@@ -1,3 +1,5 @@
+import numpy as np
+
 # Function to calculate fitness with hardcoded equations using vectorized operations
 def calculate_fitness(equations1, equations2, df):
     """
@@ -51,10 +53,16 @@ def find_pareto_front(df):
     
     A fronteira de Pareto contém todos os pontos não-dominados.
     
-    Algoritmo eficiente:
-    1. Ordenar pontos por fitness1 (decrescente)
-    2. Iterar mantendo o máximo de fitness2 visto até agora
-    3. Um ponto está na fronteira se seu fitness2 > máximo visto
+    Algoritmo de varredura otimizado (Sweep Algorithm) - O(n log n):
+    1. Ordenar pontos por fitness1 (decrescente) e fitness2 (decrescente)
+    2. Percorrer os pontos mantendo o máximo de fitness2 visto
+    3. Um ponto está na fronteira se seu fitness2 >= máximo visto
+    
+    Por que funciona:
+    - Ao ordenar por fitness1 decrescente, garantimos que nenhum ponto à direita
+      pode dominar um ponto à esquerda pelo critério fitness1
+    - Então, basta verificar se existe um ponto anterior com fitness2 maior
+    - Se fitness2 do ponto atual >= max_fitness2, ele não é dominado
     
     Args:
         df: DataFrame com colunas ['registro', 'fitness1', 'fitness2']
@@ -62,16 +70,13 @@ def find_pareto_front(df):
     Returns:
         DataFrame contendo apenas os pontos da fronteira de Pareto
     """
-    print("Encontrando fronteira de Pareto...")
+    print("Encontrando fronteira de Pareto (algoritmo otimizado)...")
     print(f"Total de pontos no espaço de busca: {len(df):,}")
     
-    # Criar cópia para não modificar o dataframe original
-    df_sorted = df.copy()
-    
-    # Ordenar por fitness1 (decrescente, pois queremos maximizar)
-    # Em caso de empate em fitness1, ordenar por fitness2 (decrescente)
-    df_sorted = df_sorted.sort_values(by=['fitness1', 'fitness2'], 
-                                       ascending=[False, False])
+    # Criar cópia e ordenar por fitness1 (decrescente), depois fitness2 (decrescente)
+    # Isso garante que pontos com mesmo fitness1 sejam ordenados por fitness2
+    df_sorted = df.sort_values(by=['fitness1', 'fitness2'], 
+                                ascending=[False, False]).reset_index(drop=False)
     
     # Lista para armazenar índices dos pontos não-dominados
     pareto_indices = []
@@ -79,15 +84,30 @@ def find_pareto_front(df):
     # Máximo de fitness2 visto até agora
     max_fitness2 = float('-inf')
     
-    # Iterar pelos pontos ordenados
+    # Percorrer pontos ordenados
     for idx, row in df_sorted.iterrows():
-        # Se fitness2 do ponto atual é maior que o máximo visto,
-        # então este ponto não é dominado
-        if row['fitness2'] > max_fitness2:
-            pareto_indices.append(idx)
-            max_fitness2 = row['fitness2']
+        current_fitness1 = row['fitness1']
+        current_fitness2 = row['fitness2']
+        
+        # Como ordenamos por fitness1 decrescente, todos os pontos anteriores
+        # têm fitness1 >= current_fitness1
+        # 
+        # Para o ponto atual não ser dominado, ele precisa ter:
+        # fitness2 >= max_fitness2 (máximo fitness2 dos pontos com fitness1 >= atual)
+        #
+        # Se fitness2 < max_fitness2, então existe um ponto anterior com:
+        # - fitness1 >= current_fitness1 (garantido pela ordenação)
+        # - fitness2 > current_fitness2 (pois max_fitness2 > current_fitness2)
+        # Logo, o ponto atual é dominado
+        
+        if current_fitness2 >= max_fitness2:
+#            print(f'ponto_adicionado_front: f1 = {current_fitness1}, f2 = {current_fitness2}')
+            # Ponto não é dominado - adicionar à fronteira
+            pareto_indices.append(row['index'])
+            # Atualizar o máximo de fitness2
+            max_fitness2 = current_fitness2
     
-    # Extrair os pontos da fronteira de Pareto
+    # Extrair os pontos da fronteira de Pareto usando os índices originais
     pareto_front = df.loc[pareto_indices].copy()
     
     # Ordenar a fronteira por fitness1 para melhor visualização

@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import math
 
 # Configure matplotlib for better performance with large datasets
 plt.style.use('seaborn-v0_8-darkgrid')
@@ -8,11 +9,20 @@ plt.rcParams['lines.linewidth'] = 0.5
 def display_pareto_front(df, pareto_df):
 
         # ============================================================================
+        # Calcular limites comuns para ambos os gráficos
+        # ============================================================================
+        
+        # Encontrar o máximo entre fitness1 e fitness2 de todos os pontos
+        max_fitness = max(df['fitness1'].max(), df['fitness2'].max())
+        # Arredondar para cima para um valor "bonito"
+        max_limit = math.ceil(max_fitness / 5) * 5
+        
+        # ============================================================================
         # GRÁFICO 1: Fronteira de Pareto
         # ============================================================================
         
-        # Gráfico de dispersão da fronteira de Pareto
-        fig, ax = plt.subplots(figsize=(12, 8))
+        # Gráfico de dispersão da fronteira de Pareto (figura quadrada)
+        fig, ax = plt.subplots(figsize=(10, 10))
 
         # Plotar a fronteira de Pareto
         ax.scatter(pareto_df['fitness1'], pareto_df['fitness2'], 
@@ -30,6 +40,13 @@ def display_pareto_front(df, pareto_df):
                 fontsize=15, fontweight='bold', pad=20)
         ax.legend(fontsize=11, loc='best')
         ax.grid(True, alpha=0.3, linestyle='--')
+        
+        # Definir limites iguais para x e y começando em 0
+        ax.set_xlim(0, max_limit)
+        ax.set_ylim(0, max_limit)
+        
+        # Definir aspect ratio igual (1 cm no x = 1 cm no y)
+        ax.set_aspect('equal', adjustable='box')
 
         # Adicionar anotações para os pontos extremos
         # Ponto com maior fitness1
@@ -61,11 +78,12 @@ def display_pareto_front(df, pareto_df):
         # ============================================================================
 
         # Subsampling para todos os pontos (para não sobrecarregar o gráfico)
-        sample_size = min(50000, len(df))  # Máximo de 50k pontos
+        sample_size = min(500000, len(df))  # Máximo de 50k pontos
         df_sample = df.sample(n=sample_size, random_state=42)
 
         # Criar figura com subplots usando GridSpec (boxplots mais discretos)
-        fig = plt.figure(figsize=(15, 9))
+        # Ajustar para figura mais quadrada
+        fig = plt.figure(figsize=(12, 12))
         gs = fig.add_gridspec(3, 3, width_ratios=[1, 6, 0.4], height_ratios=[0.4, 6, 1], 
                              hspace=0.02, wspace=0.02)
         
@@ -97,6 +115,13 @@ def display_pareto_front(df, pareto_df):
                 fontsize=15, fontweight='bold', pad=20)
         ax_main.legend(fontsize=11, loc='best')
         ax_main.grid(True, alpha=0.3, linestyle='--')
+        
+        # Definir limites iguais para x e y começando em 0
+        ax_main.set_xlim(0, max_limit)
+        ax_main.set_ylim(0, max_limit)
+        
+        # Definir aspect ratio igual (1 cm no x = 1 cm no y)
+        ax_main.set_aspect('equal', adjustable='box')
 
         # Boxplot para Fitness1 da amostra (topo - horizontal, mais discreto)
         bp1 = ax_top.boxplot([df_sample['fitness1']], vert=False, widths=0.5,

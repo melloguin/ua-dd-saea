@@ -241,3 +241,609 @@ def display_fitness_landscape_with_pareto(df, pareto_df=None):
     
     plt.tight_layout()
     plt.show()
+
+
+
+
+
+
+
+def dividir_plot_regioes(plt, df3, n_regioes):
+
+    # Adicionar áreas coloridas a cada 20% do eixo x
+    max_registro = df3['registro'].max()
+    cores = ['lightblue', 'lightgreen', 'lightyellow', 'lightcoral', 'lavender']
+
+    for i, cor in enumerate(cores):
+        inicio = i * (1 / n_regioes) * max_registro
+        fim = (i + 1) * (1 / n_regioes) * max_registro
+        plt.axvspan(inicio, fim, color=cor, alpha=0.2, zorder=0)
+
+    # Adicionar linhas verticais a cada 20% do eixo x
+    for percent in [0.2, 0.4, 0.6, 0.8, 1]:
+        plt.axvline(x=max_registro * percent, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+
+    return plt
+
+
+
+def adicionar_wape_por_regiao(plt, df, col_real, col_previsto, n_regioes):
+    """
+    Calcula e adiciona os valores de WAPE por região no gráfico.
+    
+    Parameters:
+    -----------
+    plt : matplotlib.pyplot
+        Objeto pyplot do matplotlib
+    df : pd.DataFrame
+        Dataframe contendo os dados
+    col_real : str
+        Nome da coluna com valores reais
+    col_previsto : str
+        Nome da coluna com valores previstos
+        
+    Returns:
+    --------
+    plt : matplotlib.pyplot
+        Objeto pyplot atualizado com as anotações de WAPE
+    """
+    import numpy as np
+    
+    # Obter o registro máximo
+    max_registro = df['registro'].max()
+    
+    # Calcular denominador global (média de toda a base)
+    denominador_global = df[col_real].mean()
+    
+    # Calcular WAPE para cada região (5 regiões de 20% cada)
+    wapes = []
+    
+    for i in range(n_regioes):
+        # Definir limites da região
+        inicio = i * (1 / n_regioes) * max_registro
+        fim = (i + 1) * (1 / n_regioes) * max_registro
+        
+        # Filtrar dados da região
+        df_regiao = df[(df['registro'] >= inicio) & (df['registro'] < fim)]
+        
+        # Calcular WAPE: mean(abs(real-previsto))/mean(real de toda a base)
+        erro_abs = np.abs(df_regiao[col_real] - df_regiao[col_previsto])
+        wape = round(100 * erro_abs.mean() / denominador_global, 1)
+        wapes.append(wape)
+        
+        # Posição no meio da região para adicionar o texto
+        posicao_x = (inicio + fim) / 2
+        
+        # Pegar o valor máximo do y para posicionar o texto no topo
+        y_max = plt.gca().get_ylim()[1]
+        posicao_y = y_max * 0.95  # 95% da altura do gráfico
+        
+        # Adicionar texto com o valor do WAPE
+        plt.text(posicao_x, posicao_y, 
+                f'WAPE: {wape:.1f} %',
+                horizontalalignment='center',
+                verticalalignment='top',
+                fontsize=10,
+                fontweight='bold',
+                #bbox=dict(boxstyle='round,pad=0.5', facecolor='white', edgecolor='black', alpha=0.7)
+                )
+    
+    return plt
+
+
+def adicionar_wape_amostragem_por_regiao(plt, df, col_real, col_previsto, df_amostragem, col_cenario, n_regioes):
+    """
+    Calcula e adiciona os valores de WAPE e percentuais de amostragem por região no gráfico.
+    
+    Parameters:
+    -----------
+    plt : matplotlib.pyplot
+        Objeto pyplot do matplotlib
+    df : pd.DataFrame
+        Dataframe contendo os dados de fitness
+    col_real : str
+        Nome da coluna com valores reais
+    col_previsto : str
+        Nome da coluna com valores previstos
+    df_amostragem : pd.DataFrame
+        Dataframe contendo as taxas de amostragem por região
+    col_cenario : str
+        Nome da coluna do cenário de amostragem (ex: 'cenario1', 'cenario2', etc)
+    n_regioes : int
+        Número de regiões para divisão
+        
+    Returns:
+    --------
+    plt : matplotlib.pyplot
+        Objeto pyplot atualizado com as anotações de WAPE e amostragem
+    """
+    import numpy as np
+    
+    # Obter o registro máximo
+    max_registro = df['registro'].max()
+    
+    # Calcular denominador global (média de toda a base)
+    denominador_global = df[col_real].mean()
+    
+    # Calcular WAPE para cada região
+    wapes = []
+    
+    for i in range(n_regioes):
+        # Definir limites da região
+        inicio = i * (1 / n_regioes) * max_registro
+        fim = (i + 1) * (1 / n_regioes) * max_registro
+        
+        # Filtrar dados da região
+        df_regiao = df[(df['registro'] >= inicio) & (df['registro'] < fim)]
+        
+        # Calcular erros
+        erros = df_regiao[col_previsto] - df_regiao[col_real]
+        
+        # Calcular WAPE: mean(abs(erro))/mean(real de toda a base)
+        erro_abs = np.abs(erros)
+        wape = round(100 * erro_abs.mean() / denominador_global, 1)
+        wapes.append(wape)
+        
+        # Calcular WAPE de sub-previsão: mean(erros negativos)/mean(real de toda a base)
+        erros_sub = erros[erros < 0]
+        wape_sub = round(100 * erros_sub.mean() / denominador_global, 1) if len(erros_sub) > 0 else 0
+        
+        # Calcular WAPE de sobre-previsão: mean(erros positivos)/mean(real de toda a base)
+        erros_sobre = erros[erros > 0]
+        wape_sobre = round(100 * erros_sobre.mean() / denominador_global, 1) if len(erros_sobre) > 0 else 0
+        
+        # Obter percentual de amostragem da região
+        if i < len(df_amostragem):
+            taxa_amostragem = df_amostragem.loc[i, col_cenario] * 100  # Converter para percentual
+        else:
+            taxa_amostragem = 0
+        
+        # Posição no meio da região para adicionar o texto
+        posicao_x = (inicio + fim) / 2
+        
+        # Pegar o valor máximo do y para posicionar o texto no topo
+        y_max = plt.gca().get_ylim()[1]
+        y_min = plt.gca().get_ylim()[0]
+        altura_grafico = y_max - y_min
+        
+        # Posição dos textos (ajustadas para incluir mais informações)
+        posicao_y_wape = y_max * 0.95
+        posicao_y_wape_sub = y_max * 0.90
+        posicao_y_wape_sobre = y_max * 0.85
+        posicao_y_amostragem = y_max * 0.80
+        
+        # Adicionar texto com o valor do WAPE
+        plt.text(posicao_x, posicao_y_wape, 
+                f'WAPE: {wape:.1f}%',
+                horizontalalignment='center',
+                verticalalignment='top',
+                fontsize=9,
+                fontweight='bold',
+                color='darkblue')
+        
+        # Adicionar texto com WAPE de sub-previsão
+        plt.text(posicao_x, posicao_y_wape_sub, 
+                f'Sub: {wape_sub:.1f}%',
+                horizontalalignment='center',
+                verticalalignment='top',
+                fontsize=8,
+                fontweight='normal',
+                color='red')
+        
+        # Adicionar texto com WAPE de sobre-previsão
+        plt.text(posicao_x, posicao_y_wape_sobre, 
+                f'Sobre: {wape_sobre:.1f}%',
+                horizontalalignment='center',
+                verticalalignment='top',
+                fontsize=8,
+                fontweight='normal',
+                color='orange')
+        
+        # Adicionar texto com o percentual de amostragem
+        plt.text(posicao_x, posicao_y_amostragem, 
+                f'Amost: {taxa_amostragem:.2f}%',
+                horizontalalignment='center',
+                verticalalignment='top',
+                fontsize=8,
+                fontweight='normal',
+                color='darkgreen',
+                style='italic')
+    
+    return plt
+
+
+
+
+
+
+
+def criar_plot_base(df3, features):
+    plt.figure()
+    plt.plot(df3['registro'], df3['fitness1'], label='fitness1_real')
+    dividir_plot_regioes(plt, df3, n_regioes=5)
+    # Features (skip categorical/string columns)
+    for col in features:
+        if df3[col].dtype in ['object', 'string', 'category']:
+            continue
+        plt.plot(df3['registro'], df3[col], label=col)
+
+
+def plota_landscape_5cenarios(df3, features, df_amostragem):
+    import numpy as np
+    from matplotlib.gridspec import GridSpec
+    
+    n_regioes = 5
+    max_registro = df3['registro'].max()
+    
+    # Cores para os cenários
+    cores_cenarios = {
+        'c1': 'blue',
+        'c2': 'green', 
+        'c3': 'red'
+    }
+    
+    # Cores das regiões
+    cores_regioes = ['lightblue', 'lightgreen', 'lightyellow', 'lightcoral', 'lavender']
+    
+    # Função auxiliar para adicionar regiões coloridas
+    def adicionar_regioes_coloridas(ax):
+        for i, cor in enumerate(cores_regioes):
+            inicio = i * (1 / n_regioes) * max_registro
+            fim = (i + 1) * (1 / n_regioes) * max_registro
+            ax.axvspan(inicio, fim, color=cor, alpha=0.2, zorder=0)
+        for percent in [0.2, 0.4, 0.6, 0.8]:
+            ax.axvline(x=max_registro * percent, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+    
+    # Função auxiliar para calcular métricas por região
+    def calcular_metricas_por_regiao(df, col_real, col_previsto):
+        metricas = []
+        # Calcular denominador global (média de toda a base)
+        denominador_global = df[col_real].mean()
+        
+        for i in range(n_regioes):
+            inicio = i * (1 / n_regioes) * max_registro
+            fim = (i + 1) * (1 / n_regioes) * max_registro
+            df_regiao = df[(df['registro'] >= inicio) & (df['registro'] < fim)]
+            
+            erros = df_regiao[col_previsto] - df_regiao[col_real]
+            erro_abs = np.abs(erros)
+            wape = 100 * erro_abs.mean() / denominador_global
+            
+            erros_sub = erros[erros < 0]
+            wape_sub = 100 * erros_sub.mean() / denominador_global if len(erros_sub) > 0 else 0
+            
+            erros_sobre = erros[erros > 0]
+            wape_sobre = 100 * erros_sobre.mean() / denominador_global if len(erros_sobre) > 0 else 0
+            
+            taxa_amostragem = df_amostragem.loc[i, col_previsto.replace('fitness1_c', 'cenario')] * 100 if i < len(df_amostragem) else 0
+            
+            metricas.append({
+                'wape': wape,
+                'wape_sub': wape_sub,
+                'wape_sobre': wape_sobre,
+                'taxa_amostragem': taxa_amostragem
+            })
+        return metricas
+    
+    # ========== CENÁRIO 1 ==========
+    df3['erro_c1'] = df3['fitness1_c1'] - df3['fitness1']
+    metricas_c1 = calcular_metricas_por_regiao(df3, 'fitness1', 'fitness1_c1')
+    
+    fig = plt.figure(figsize=(16, 16))
+    gs = GridSpec(5, 1, figure=fig, height_ratios=[2.3, 1, 0.3, 0.8, 1], hspace=0.3)
+    
+    # Subfigura 1: Landscape (fitness real + previsto)
+    ax1 = fig.add_subplot(gs[0])
+    adicionar_regioes_coloridas(ax1)
+    ax1.plot(df3['registro'], df3['fitness1'], label='fitness1_real', linewidth=1.5, color='black')
+    ax1.plot(df3['registro'], df3['fitness1_c1'], label='previsao_c1', linewidth=1.5, color=cores_cenarios['c1'], alpha=0.25)
+    ax1.legend(loc='upper left', fontsize=10)
+    ax1.set_ylabel('Fitness', fontweight='bold')
+    ax1.set_title('Cenário 1 - Fitness Real vs Previsto', fontweight='bold', fontsize=12)
+    ax1.grid(True, alpha=0.3)
+    ax1.set_xlim(0, max_registro)
+    
+    # Subfigura 2: Features
+    ax2 = fig.add_subplot(gs[1])
+    adicionar_regioes_coloridas(ax2)
+    for col in features:
+        if df3[col].dtype in ['object', 'string', 'category']:
+            continue
+        ax2.plot(df3['registro'], df3[col], label=col, alpha=0.7)
+    ax2.legend(loc='upper right', fontsize=8, ncol=2)
+    ax2.set_ylabel('Features', fontweight='bold')
+    ax2.set_title('Features Utilizadas no Modelo', fontweight='bold', fontsize=11)
+    ax2.grid(True, alpha=0.3)
+    ax2.set_xlim(0, max_registro)
+    
+    # Subfigura 3: Textos WAPE e Amostragem (nova subfigura)
+    ax3 = fig.add_subplot(gs[2])
+    adicionar_regioes_coloridas(ax3)
+    ax3.set_xlim(0, max_registro)
+    ax3.set_ylim(0, 1)
+    ax3.axis('off')  # Remover eixos
+    
+    # Adicionar textos de WAPE e Amostragem
+    posicoes_barras = [(i + 0.5) * (1 / n_regioes) * max_registro for i in range(n_regioes)]
+    wapes_geral = [m['wape'] for m in metricas_c1]
+    taxas_amost = [m['taxa_amostragem'] for m in metricas_c1]
+    
+    for pos, wape_g, taxa_amost in zip(posicoes_barras, wapes_geral, taxas_amost):
+        ax3.text(pos, 0.5, f'WAPE: {wape_g:.0f}%\nAmost: {taxa_amost:.0f}%', 
+                ha='center', va='center', fontsize=13, fontweight='bold', color='darkblue',
+                bbox=dict(boxstyle='round,pad=0.5', facecolor='white', edgecolor='lightgray', alpha=0.9))
+    
+    # Subfigura 4: Gráfico de barras WAPE
+    ax4 = fig.add_subplot(gs[3])
+    adicionar_regioes_coloridas(ax4)
+    
+    largura_barra = 0.15 * (1 / n_regioes) * max_registro
+    
+    wapes_sub = [m['wape_sub'] for m in metricas_c1]
+    wapes_sobre = [m['wape_sobre'] for m in metricas_c1]
+    
+    ax4.bar(posicoes_barras, wapes_sub, width=largura_barra, 
+            color='darkblue', alpha=0.8, label='WAPE Sub', edgecolor='navy', linewidth=1.5)
+    ax4.bar(posicoes_barras, wapes_sobre, width=largura_barra, 
+            color='lightblue', alpha=0.8, label='WAPE Sobre', edgecolor='steelblue', linewidth=1.5)
+    
+    for i, (pos, wape_sub_val, wape_sobre_val) in enumerate(zip(posicoes_barras, wapes_sub, wapes_sobre)):
+        if abs(wape_sub_val) > 2:
+            ax4.text(pos, wape_sub_val/2, f'{abs(wape_sub_val):.0f}%', 
+                    ha='center', va='center', fontsize=9, fontweight='bold', color='white')
+        if abs(wape_sobre_val) > 2:
+            ax4.text(pos, wape_sobre_val/2, f'{abs(wape_sobre_val):.0f}%', 
+                    ha='center', va='center', fontsize=9, fontweight='bold', color='darkblue')
+    
+    ax4.set_ylabel('WAPE (%)', fontweight='bold')
+    ax4.set_title('WAPE por Região (Sub-previsão e Sobre-previsão)', fontweight='bold', fontsize=11)
+    ax4.axhline(y=0, color='black', linewidth=0.8, linestyle='-')
+    ax4.legend(loc='upper left', fontsize=8)
+    ax4.grid(True, alpha=0.3, axis='y')
+    ax4.set_xlim(0, max_registro)
+    
+    # Subfigura 5: Distribuições de erro
+    ax5 = fig.add_subplot(gs[4])
+    for i in range(n_regioes):
+        inicio = i * (1 / n_regioes) * max_registro
+        fim = (i + 1) * (1 / n_regioes) * max_registro
+        df_regiao = df3[(df3['registro'] >= inicio) & (df3['registro'] < fim)]
+        
+        ax5.axvspan(inicio, fim, color=cores_regioes[i], alpha=0.2, zorder=0)
+        
+        erros = df_regiao['erro_c1'].values
+        
+        if len(erros) > 0:
+            counts, bin_edges = np.histogram(erros, bins=30)
+            bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+            counts_norm = counts / counts.max() if counts.max() > 0 else counts
+            largura_regiao = fim - inicio
+            x_positions = inicio + (bin_centers - bin_centers.min()) / (bin_centers.max() - bin_centers.min() + 1e-10) * largura_regiao * 0.9
+            x_positions += largura_regiao * 0.05
+            
+            ax5.fill_between(x_positions, 0, counts_norm, alpha=0.6, color=cores_cenarios['c1'])
+            ax5.plot(x_positions, counts_norm, color='darkblue', linewidth=1.5, alpha=0.8)
+    
+    ax5.set_xlabel('Registro', fontweight='bold')
+    ax5.set_ylabel('Densidade Normalizada', fontweight='bold')
+    ax5.set_title('Distribuição dos Erros por Região', fontweight='bold', fontsize=11)
+    ax5.set_xlim(0, max_registro)
+    ax5.grid(True, alpha=0.3)
+    
+    for percent in [0.2, 0.4, 0.6, 0.8]:
+        ax5.axvline(x=max_registro * percent, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+    
+    plt.tight_layout()
+    plt.show()
+    
+    
+    # ========== CENÁRIO 2 ==========
+    df3['erro_c2'] = df3['fitness1_c2'] - df3['fitness1']
+    metricas_c2 = calcular_metricas_por_regiao(df3, 'fitness1', 'fitness1_c2')
+    
+    fig = plt.figure(figsize=(16, 16))
+    gs = GridSpec(5, 1, figure=fig, height_ratios=[2.3, 1, 0.3, 0.8, 1], hspace=0.3)
+    
+    ax1 = fig.add_subplot(gs[0])
+    adicionar_regioes_coloridas(ax1)
+    ax1.plot(df3['registro'], df3['fitness1'], label='fitness1_real', linewidth=1.5, color='black')
+    ax1.plot(df3['registro'], df3['fitness1_c2'], label='previsao_c2', linewidth=1.5, color=cores_cenarios['c2'], alpha=0.25)
+    ax1.legend(loc='upper left', fontsize=10)
+    ax1.set_ylabel('Fitness', fontweight='bold')
+    ax1.set_title('Cenário 2 - Fitness Real vs Previsto', fontweight='bold', fontsize=12)
+    ax1.grid(True, alpha=0.3)
+    ax1.set_xlim(0, max_registro)
+    
+    ax2 = fig.add_subplot(gs[1])
+    adicionar_regioes_coloridas(ax2)
+    for col in features:
+        if df3[col].dtype in ['object', 'string', 'category']:
+            continue
+        ax2.plot(df3['registro'], df3[col], label=col, alpha=0.7)
+    ax2.legend(loc='upper right', fontsize=8, ncol=2)
+    ax2.set_ylabel('Features', fontweight='bold')
+    ax2.set_title('Features Utilizadas no Modelo', fontweight='bold', fontsize=11)
+    ax2.grid(True, alpha=0.3)
+    ax2.set_xlim(0, max_registro)
+    
+    ax3 = fig.add_subplot(gs[2])
+    adicionar_regioes_coloridas(ax3)
+    ax3.set_xlim(0, max_registro)
+    ax3.set_ylim(0, 1)
+    ax3.axis('off')
+    
+    posicoes_barras = [(i + 0.5) * (1 / n_regioes) * max_registro for i in range(n_regioes)]
+    wapes_geral = [m['wape'] for m in metricas_c2]
+    taxas_amost = [m['taxa_amostragem'] for m in metricas_c2]
+    
+    for pos, wape_g, taxa_amost in zip(posicoes_barras, wapes_geral, taxas_amost):
+        ax3.text(pos, 0.5, f'WAPE: {wape_g:.0f}%\nAmost: {taxa_amost:.0f}%', 
+                ha='center', va='center', fontsize=13, fontweight='bold', color='darkblue',
+                bbox=dict(boxstyle='round,pad=0.5', facecolor='white', edgecolor='lightgray', alpha=0.9))
+    
+    ax4 = fig.add_subplot(gs[3])
+    adicionar_regioes_coloridas(ax4)
+    
+    largura_barra = 0.15 * (1 / n_regioes) * max_registro
+    
+    wapes_sub = [m['wape_sub'] for m in metricas_c2]
+    wapes_sobre = [m['wape_sobre'] for m in metricas_c2]
+    
+    ax4.bar(posicoes_barras, wapes_sub, width=largura_barra, 
+            color='darkblue', alpha=0.8, label='WAPE Sub', edgecolor='navy', linewidth=1.5)
+    ax4.bar(posicoes_barras, wapes_sobre, width=largura_barra, 
+            color='lightblue', alpha=0.8, label='WAPE Sobre', edgecolor='steelblue', linewidth=1.5)
+    
+    for i, (pos, wape_sub_val, wape_sobre_val) in enumerate(zip(posicoes_barras, wapes_sub, wapes_sobre)):
+        if abs(wape_sub_val) > 2:
+            ax4.text(pos, wape_sub_val/2, f'{abs(wape_sub_val):.0f}%', 
+                    ha='center', va='center', fontsize=9, fontweight='bold', color='white')
+        if abs(wape_sobre_val) > 2:
+            ax4.text(pos, wape_sobre_val/2, f'{abs(wape_sobre_val):.0f}%', 
+                    ha='center', va='center', fontsize=9, fontweight='bold', color='darkblue')
+    
+    ax4.set_ylabel('WAPE (%)', fontweight='bold')
+    ax4.set_title('WAPE por Região (Sub-previsão e Sobre-previsão)', fontweight='bold', fontsize=11)
+    ax4.axhline(y=0, color='black', linewidth=0.8, linestyle='-')
+    ax4.legend(loc='upper left', fontsize=8)
+    ax4.grid(True, alpha=0.3, axis='y')
+    ax4.set_xlim(0, max_registro)
+    
+    ax5 = fig.add_subplot(gs[4])
+    for i in range(n_regioes):
+        inicio = i * (1 / n_regioes) * max_registro
+        fim = (i + 1) * (1 / n_regioes) * max_registro
+        df_regiao = df3[(df3['registro'] >= inicio) & (df3['registro'] < fim)]
+        
+        ax5.axvspan(inicio, fim, color=cores_regioes[i], alpha=0.2, zorder=0)
+        
+        erros = df_regiao['erro_c2'].values
+        
+        if len(erros) > 0:
+            counts, bin_edges = np.histogram(erros, bins=30)
+            bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+            counts_norm = counts / counts.max() if counts.max() > 0 else counts
+            largura_regiao = fim - inicio
+            x_positions = inicio + (bin_centers - bin_centers.min()) / (bin_centers.max() - bin_centers.min() + 1e-10) * largura_regiao * 0.9
+            x_positions += largura_regiao * 0.05
+            
+            ax5.fill_between(x_positions, 0, counts_norm, alpha=0.6, color=cores_cenarios['c2'])
+            ax5.plot(x_positions, counts_norm, color='darkgreen', linewidth=1.5, alpha=0.8)
+    
+    ax5.set_xlabel('Registro', fontweight='bold')
+    ax5.set_ylabel('Densidade Normalizada', fontweight='bold')
+    ax5.set_title('Distribuição dos Erros por Região', fontweight='bold', fontsize=11)
+    ax5.set_xlim(0, max_registro)
+    ax5.grid(True, alpha=0.3)
+    
+    for percent in [0.2, 0.4, 0.6, 0.8]:
+        ax5.axvline(x=max_registro * percent, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+    
+    plt.tight_layout()
+    plt.show()
+    
+    
+    # ========== CENÁRIO 3 ==========
+    df3['erro_c3'] = df3['fitness1_c3'] - df3['fitness1']
+    metricas_c3 = calcular_metricas_por_regiao(df3, 'fitness1', 'fitness1_c3')
+    
+    fig = plt.figure(figsize=(16, 16))
+    gs = GridSpec(5, 1, figure=fig, height_ratios=[2.3, 1, 0.3, 0.8, 1], hspace=0.3)
+    
+    ax1 = fig.add_subplot(gs[0])
+    adicionar_regioes_coloridas(ax1)
+    ax1.plot(df3['registro'], df3['fitness1'], label='fitness1_real', linewidth=1.5, color='black')
+    ax1.plot(df3['registro'], df3['fitness1_c3'], label='previsao_c3', linewidth=1.5, color=cores_cenarios['c3'], alpha=0.25)
+    ax1.legend(loc='upper left', fontsize=10)
+    ax1.set_ylabel('Fitness', fontweight='bold')
+    ax1.set_title('Cenário 3 - Fitness Real vs Previsto', fontweight='bold', fontsize=12)
+    ax1.grid(True, alpha=0.3)
+    ax1.set_xlim(0, max_registro)
+    
+    ax2 = fig.add_subplot(gs[1])
+    adicionar_regioes_coloridas(ax2)
+    for col in features:
+        if df3[col].dtype in ['object', 'string', 'category']:
+            continue
+        ax2.plot(df3['registro'], df3[col], label=col, alpha=0.7)
+    ax2.legend(loc='upper right', fontsize=8, ncol=2)
+    ax2.set_ylabel('Features', fontweight='bold')
+    ax2.set_title('Features Utilizadas no Modelo', fontweight='bold', fontsize=11)
+    ax2.grid(True, alpha=0.3)
+    ax2.set_xlim(0, max_registro)
+    
+    ax3 = fig.add_subplot(gs[2])
+    adicionar_regioes_coloridas(ax3)
+    ax3.set_xlim(0, max_registro)
+    ax3.set_ylim(0, 1)
+    ax3.axis('off')
+    
+    posicoes_barras = [(i + 0.5) * (1 / n_regioes) * max_registro for i in range(n_regioes)]
+    wapes_geral = [m['wape'] for m in metricas_c3]
+    taxas_amost = [m['taxa_amostragem'] for m in metricas_c3]
+    
+    for pos, wape_g, taxa_amost in zip(posicoes_barras, wapes_geral, taxas_amost):
+        ax3.text(pos, 0.5, f'WAPE: {wape_g:.0f}%\nAmost: {taxa_amost:.0f}%', 
+                ha='center', va='center', fontsize=13, fontweight='bold', color='darkblue',
+                bbox=dict(boxstyle='round,pad=0.5', facecolor='white', edgecolor='lightgray', alpha=0.9))
+    
+    ax4 = fig.add_subplot(gs[3])
+    adicionar_regioes_coloridas(ax4)
+    
+    largura_barra = 0.15 * (1 / n_regioes) * max_registro
+    
+    wapes_sub = [m['wape_sub'] for m in metricas_c3]
+    wapes_sobre = [m['wape_sobre'] for m in metricas_c3]
+    
+    ax4.bar(posicoes_barras, wapes_sub, width=largura_barra, 
+            color='darkblue', alpha=0.8, label='WAPE Sub', edgecolor='navy', linewidth=1.5)
+    ax4.bar(posicoes_barras, wapes_sobre, width=largura_barra, 
+            color='lightblue', alpha=0.8, label='WAPE Sobre', edgecolor='steelblue', linewidth=1.5)
+    
+    for i, (pos, wape_sub_val, wape_sobre_val) in enumerate(zip(posicoes_barras, wapes_sub, wapes_sobre)):
+        if abs(wape_sub_val) > 2:
+            ax4.text(pos, wape_sub_val/2, f'{abs(wape_sub_val):.0f}%', 
+                    ha='center', va='center', fontsize=9, fontweight='bold', color='white')
+        if abs(wape_sobre_val) > 2:
+            ax4.text(pos, wape_sobre_val/2, f'{abs(wape_sobre_val):.0f}%', 
+                    ha='center', va='center', fontsize=9, fontweight='bold', color='darkblue')
+    
+    ax4.set_ylabel('WAPE (%)', fontweight='bold')
+    ax4.set_title('WAPE por Região (Sub-previsão e Sobre-previsão)', fontweight='bold', fontsize=11)
+    ax4.axhline(y=0, color='black', linewidth=0.8, linestyle='-')
+    ax4.legend(loc='upper left', fontsize=8)
+    ax4.grid(True, alpha=0.3, axis='y')
+    ax4.set_xlim(0, max_registro)
+    
+    ax5 = fig.add_subplot(gs[4])
+    for i in range(n_regioes):
+        inicio = i * (1 / n_regioes) * max_registro
+        fim = (i + 1) * (1 / n_regioes) * max_registro
+        df_regiao = df3[(df3['registro'] >= inicio) & (df3['registro'] < fim)]
+        
+        ax5.axvspan(inicio, fim, color=cores_regioes[i], alpha=0.2, zorder=0)
+        
+        erros = df_regiao['erro_c3'].values
+        
+        if len(erros) > 0:
+            counts, bin_edges = np.histogram(erros, bins=30)
+            bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+            counts_norm = counts / counts.max() if counts.max() > 0 else counts
+            largura_regiao = fim - inicio
+            x_positions = inicio + (bin_centers - bin_centers.min()) / (bin_centers.max() - bin_centers.min() + 1e-10) * largura_regiao * 0.9
+            x_positions += largura_regiao * 0.05
+            
+            ax5.fill_between(x_positions, 0, counts_norm, alpha=0.6, color=cores_cenarios['c3'])
+            ax5.plot(x_positions, counts_norm, color='darkred', linewidth=1.5, alpha=0.8)
+    
+    ax5.set_xlabel('Registro', fontweight='bold')
+    ax5.set_ylabel('Densidade Normalizada', fontweight='bold')
+    ax5.set_title('Distribuição dos Erros por Região', fontweight='bold', fontsize=11)
+    ax5.set_xlim(0, max_registro)
+    ax5.grid(True, alpha=0.3)
+    
+    for percent in [0.2, 0.4, 0.6, 0.8]:
+        ax5.axvline(x=max_registro * percent, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+    
+    plt.tight_layout()
+    plt.show()

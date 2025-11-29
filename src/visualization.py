@@ -770,3 +770,339 @@ def plota_landscape_5cenarios(df3, features, df_amostragem):
     # Plotar cada cenário individualmente
     for cenario in ['c1', 'c2', 'c3']:
         plota_landscape_cenario(df3, features, df_amostragem, cenario=cenario, fitness_num=1)
+
+
+def display_two_pareto_fronts(df_real, pareto_real, pareto_surrogate):
+    """
+    Mostra dois fronts de Pareto (real e surrogate) sobre a fitness landscape verdadeira.
+    
+    Parameters:
+    -----------
+    df_real : pd.DataFrame
+        Dataframe com a fitness landscape verdadeira (todos os pontos)
+    pareto_real : pd.DataFrame
+        Dataframe com o front de Pareto verdadeiro
+    pareto_surrogate : pd.DataFrame
+        Dataframe com o front de Pareto encontrado pelo surrogate
+    """
+    
+    # ============================================================================
+    # Calcular limites comuns para ambos os gráficos
+    # ============================================================================
+    
+    # Encontrar o máximo entre fitness1 e fitness2 de todos os pontos
+    max_fitness = max(df_real['fitness1'].max(), df_real['fitness2'].max())
+    # Arredondar para cima para um valor "bonito"
+    max_limit = math.ceil(max_fitness / 2) * 2
+    
+    # ============================================================================
+    # GRÁFICO 1: Dois Fronts de Pareto
+    # ============================================================================
+    
+    # Gráfico de dispersão dos dois fronts (figura quadrada)
+    fig, ax = plt.subplots(figsize=(10, 10))
+
+    # Plotar o front verdadeiro
+    ax.scatter(pareto_real['fitness1'], pareto_real['fitness2'], 
+            c='red', s=50, alpha=0.7, edgecolors='darkred', 
+            linewidth=1.5, label=f'Front Verdadeiro ({len(pareto_real)} pts)', zorder=3)
+
+    # Conectar os pontos do front verdadeiro
+    ax.plot(pareto_real['fitness1'], pareto_real['fitness2'], 
+            'r--', alpha=0.4, linewidth=1, zorder=2)
+
+    # Plotar o front encontrado pelo surrogate
+    ax.scatter(pareto_surrogate['fitness1'], pareto_surrogate['fitness2'], 
+            c='blue', s=50, alpha=0.7, edgecolors='darkblue', 
+            linewidth=1.5, label=f'Front Surrogate ({len(pareto_surrogate)} pts)', zorder=3)
+
+    # Conectar os pontos do front surrogate
+    ax.plot(pareto_surrogate['fitness1'], pareto_surrogate['fitness2'], 
+            'b--', alpha=0.4, linewidth=1, zorder=2)
+
+    # Configurações do gráfico
+    ax.set_xlabel('Fitness1 (f1)', fontsize=13, fontweight='bold')
+    ax.set_ylabel('Fitness2 (f2)', fontsize=13, fontweight='bold')
+    ax.set_title(f'Comparação dos Fronts de Pareto na Landscape Verdadeira\n(Vermelho = Real, Azul = Encontrado pelo Surrogate)', 
+            fontsize=15, fontweight='bold', pad=20)
+    ax.legend(fontsize=11, loc='best')
+    ax.grid(True, alpha=0.3, linestyle='--')
+    
+    # Definir limites iguais para x e y começando em 0
+    ax.set_xlim(0, max_limit)
+    ax.set_ylim(0, max_limit)
+    
+    # Definir aspect ratio igual (1 cm no x = 1 cm no y)
+    ax.set_aspect('equal', adjustable='box')
+
+    # Adicionar anotações para os pontos extremos do front verdadeiro
+    # Ponto com maior fitness1
+    max_f1_point = pareto_real.iloc[0]
+    ax.annotate(f'Max f1 (Real)\n({max_f1_point["fitness1"]:.2f}, {max_f1_point["fitness2"]:.2f})',
+            xy=(max_f1_point['fitness1'], max_f1_point['fitness2']),
+            xytext=(10, -20), textcoords='offset points',
+            fontsize=9, color='darkred',
+            bbox=dict(boxstyle='round,pad=0.5', facecolor='yellow', alpha=0.7),
+            arrowprops=dict(arrowstyle='->', color='darkred', lw=1.5))
+
+    # Ponto com maior fitness2
+    max_f2_point = pareto_real.iloc[-1]
+    ax.annotate(f'Max f2 (Real)\n({max_f2_point["fitness1"]:.2f}, {max_f2_point["fitness2"]:.2f})',
+            xy=(max_f2_point['fitness1'], max_f2_point['fitness2']),
+            xytext=(10, 20), textcoords='offset points',
+            fontsize=9, color='darkred',
+            bbox=dict(boxstyle='round,pad=0.5', facecolor='yellow', alpha=0.7),
+            arrowprops=dict(arrowstyle='->', color='darkred', lw=1.5))
+
+    plt.tight_layout()
+    plt.show()
+
+    print("\n✅ Visualização concluída!")
+
+    # ============================================================================
+    # GRÁFICO 2: Dois Fronts no contexto de todos os pontos com boxplots
+    # ============================================================================
+
+    # Subsampling para todos os pontos (para não sobrecarregar o gráfico)
+    sample_size = min(500000, len(df_real))  # Máximo de 500k pontos
+    df_sample = df_real.sample(n=sample_size, random_state=42)
+
+    # Criar figura com subplots usando GridSpec (boxplots mais discretos)
+    # Ajustar para figura mais quadrada
+    fig = plt.figure(figsize=(12, 12))
+    gs = fig.add_gridspec(3, 3, width_ratios=[1, 6, 0.4], height_ratios=[0.4, 6, 1], 
+                         hspace=0.02, wspace=0.02)
+    
+    # Eixo principal (scatter plot)
+    ax_main = fig.add_subplot(gs[1, 1])
+    
+    # Eixos para os boxplots (mais discretos)
+    ax_top = fig.add_subplot(gs[0, 1], sharex=ax_main)  # Boxplot fitness1 (topo)
+    ax_right = fig.add_subplot(gs[1, 2], sharey=ax_main)  # Boxplot fitness2 (direita)
+
+    # Plotar todos os pontos (amostra) em cinza
+    ax_main.scatter(df_sample['fitness1'], df_sample['fitness2'], 
+            c='lightgray', s=10, alpha=0.3, 
+            label=f'Todos os pontos (amostra de {sample_size:,})', zorder=1)
+
+    # Plotar o front verdadeiro em destaque
+    ax_main.scatter(pareto_real['fitness1'], pareto_real['fitness2'], 
+            c='red', s=80, alpha=0.9, edgecolors='darkred', 
+            linewidth=1.5, label=f'Front Verdadeiro ({len(pareto_real)} pts)', zorder=3)
+
+    # Conectar os pontos do front verdadeiro
+    ax_main.plot(pareto_real['fitness1'], pareto_real['fitness2'], 
+            'r-', alpha=0.6, linewidth=2, zorder=2)
+
+    # Plotar o front surrogate em destaque
+    ax_main.scatter(pareto_surrogate['fitness1'], pareto_surrogate['fitness2'], 
+            c='blue', s=80, alpha=0.9, edgecolors='darkblue', 
+            linewidth=1.5, label=f'Front Surrogate ({len(pareto_surrogate)} pts)', zorder=3)
+
+    # Conectar os pontos do front surrogate
+    ax_main.plot(pareto_surrogate['fitness1'], pareto_surrogate['fitness2'], 
+            'b-', alpha=0.6, linewidth=2, zorder=2)
+
+    # Configurações do gráfico principal
+    ax_main.set_xlabel('Fitness1 (f1)', fontsize=13, fontweight='bold')
+    ax_main.set_ylabel('Fitness2 (f2)', fontsize=13, fontweight='bold')
+    ax_main.set_title(f'Comparação dos Fronts de Pareto no Espaço de Objetivos\n(Problema de Maximização Bi-Objetivo)', 
+            fontsize=15, fontweight='bold', pad=20)
+    ax_main.legend(fontsize=11, loc='best')
+    ax_main.grid(True, alpha=0.3, linestyle='--')
+    
+    # Definir limites iguais para x e y começando em 0
+    ax_main.set_xlim(0, max_limit)
+    ax_main.set_ylim(0, max_limit)
+    
+    # Definir aspect ratio igual (1 cm no x = 1 cm no y)
+    ax_main.set_aspect('equal', adjustable='box')
+
+    # Boxplot para Fitness1 da amostra (topo - horizontal, mais discreto)
+    bp1 = ax_top.boxplot([df_sample['fitness1']], vert=False, widths=0.5,
+                         patch_artist=True, 
+                         boxprops=dict(facecolor='lightgray', alpha=0.4, linewidth=0.8),
+                         medianprops=dict(color='dimgray', linewidth=1.2),
+                         whiskerprops=dict(color='gray', linewidth=0.8),
+                         capprops=dict(color='gray', linewidth=0.8),
+                         flierprops=dict(marker='o', markersize=2, alpha=0.3))
+    ax_top.tick_params(labelbottom=False, labelleft=False, length=0)
+    ax_top.set_yticks([])
+    ax_top.spines['top'].set_visible(False)
+    ax_top.spines['right'].set_visible(False)
+    ax_top.spines['left'].set_visible(False)
+    
+    # Boxplot para Fitness2 da amostra (direita - vertical, mais discreto)
+    bp2 = ax_right.boxplot([df_sample['fitness2']], vert=True, widths=0.5,
+                           patch_artist=True,
+                           boxprops=dict(facecolor='lightgray', alpha=0.4, linewidth=0.8),
+                           medianprops=dict(color='dimgray', linewidth=1.2),
+                           whiskerprops=dict(color='gray', linewidth=0.8),
+                           capprops=dict(color='gray', linewidth=0.8),
+                           flierprops=dict(marker='o', markersize=2, alpha=0.3))
+    ax_right.tick_params(labelleft=False, labelbottom=False, length=0)
+    ax_right.set_xticks([])
+    ax_right.spines['top'].set_visible(False)
+    ax_right.spines['right'].set_visible(False)
+    ax_right.spines['bottom'].set_visible(False)
+
+    plt.show()
+
+def display_fitness_landscape_with_2pareto(df, pareto_real, pareto_surrogate):
+    '''
+    Plots fitness landscape with two Pareto fronts (real and surrogate)
+    and predicted landscapes with transparency.
+    
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        DataFrame with real and predicted fitness landscapes
+        Required columns: registro, fitness1, fitness2, fitness_full
+        Optional columns: fitness1_c1, fitness2_c1 (predicted landscapes)
+    pareto_real : pd.DataFrame
+        DataFrame with real Pareto front (must have 'registro' column to match with df)
+    pareto_surrogate : pd.DataFrame
+        DataFrame with surrogate Pareto front (must have 'registro' column to match with df)
+    '''
+    
+    def add_pareto_markers(ax, pareto_df, df_main, y_col, marker_color, marker_style='D', label_suffix='', edge_color=None):
+        """Helper function to add Pareto markers using ORIGINAL landscape values"""
+        # Merge pareto with main df to get original fitness values at those registro positions
+        pareto_with_values = pareto_df.merge(df_main[['registro', y_col]], on='registro', how='left', suffixes=('', '_original'))
+        
+        # Use the original values from the main df
+        if y_col + '_original' in pareto_with_values.columns:
+            y_values = pareto_with_values[y_col + '_original']
+        else:
+            y_values = pareto_with_values[y_col]
+        
+        # Add vertical lines at key Pareto positions
+        pareto_sorted = pareto_with_values.sort_values('registro')
+        positions = [0, len(pareto_sorted)//4, len(pareto_sorted)//2, 
+                     3*len(pareto_sorted)//4, -1]
+        for i in positions:
+            ax.axvline(x=pareto_sorted.iloc[i]['registro'], color='red', 
+                      alpha=0.3, linewidth=1.5, linestyle='--', zorder=1)
+        
+        # Determine edge color
+        if edge_color is None:
+            if marker_color == 'red':
+                edge_color = 'darkred'
+            elif marker_color == 'royalblue':
+                edge_color = 'darkblue'
+            elif marker_color == 'green':
+                edge_color = 'darkgreen'
+            elif marker_color == 'darkgreen':
+                edge_color = 'black'
+            elif marker_color == 'gold':
+                edge_color = 'red'  # Gold markers with red edge
+            else:
+                edge_color = 'darkorange'
+        
+        # Add scatter points at ORIGINAL fitness values
+        ax.scatter(pareto_with_values['registro'], y_values, 
+                  c=marker_color, s=40 if marker_style=='D' else 50, 
+                  alpha=0.9 if marker_style=='D' else 0.95,
+                  edgecolors=edge_color,
+                  linewidth=1.5 if marker_style=='D' else 2,
+                  label=f'Pareto {label_suffix} ({len(pareto_df):,})', 
+                  zorder=5, marker=marker_style)
+    
+    # Configuration for the first two subplots (fitness1 and fitness2)
+    plot_configs = [
+        {
+            'y_col': 'fitness1',
+            'y_col_pred': 'fitness1_c1',
+            'fill_color': 'steelblue',
+            'edge_color': 'darkblue',
+            'pred_color': 'darkorange',  # Different color for predicted
+            'pareto_real_color': 'red',
+            'pareto_surrogate_color': 'royalblue',
+            'marker_style': 'D',
+            'ylabel': 'Fitness1',
+            'title': 'Fitness1 Landscape: Ótimos Verdadeiros e Encontrados'
+        },
+        {
+            'y_col': 'fitness2',
+            'y_col_pred': 'fitness2_c1',
+            'fill_color': 'coral',
+            'edge_color': 'darkred',
+            'pred_color': 'darkturquoise',  # Different color for predicted
+            'pareto_real_color': 'red',
+            'pareto_surrogate_color': 'royalblue',
+            'marker_style': 'D',
+            'ylabel': 'Fitness2',
+            'title': 'Fitness2 Landscape: Ótimos Verdadeiros e Encontrados'
+        }
+    ]
+    
+    fig, axes = plt.subplots(3, 1, figsize=(16, 14))
+    
+    # ========== SUBFIGURAS 1 e 2: Fitness1 e Fitness2 ==========
+    for ax, config in zip(axes[:2], plot_configs):
+        # Plot real landscape (filled area)
+        ax.fill_between(df['registro'], df[config['y_col']], alpha=0.5,
+                       color=config['fill_color'], edgecolor=config['edge_color'],
+                       linewidth=0.5, label='Landscape verdadeira')
+        
+        # Plot predicted landscape LINE with 50% transparency (ADDED)
+        if config['y_col_pred'] in df.columns:
+            ax.plot(df['registro'], df[config['y_col_pred']], 
+                   alpha=0.5, color=config['pred_color'], linewidth=1.5, 
+                   linestyle='--', label='Landscape prevista', zorder=2)
+        
+        # Add Pareto front markers - real (ótimos verdadeiros) - using ORIGINAL values
+        add_pareto_markers(ax, pareto_real, df, config['y_col'], 
+                         config['pareto_real_color'], config['marker_style'], 
+                         label_suffix='Verdadeiro')
+        
+        # Add Pareto front markers - surrogate (ótimos encontrados) - using ORIGINAL values
+        add_pareto_markers(ax, pareto_surrogate, df, config['y_col'], 
+                         config['pareto_surrogate_color'], 'D', 
+                         label_suffix='Encontrado')
+        
+        ax.set_xlabel('Registro (x)', fontsize=12, fontweight='bold')
+        ax.set_ylabel(config['ylabel'], fontsize=12, fontweight='bold')
+        ax.set_title(config['title'], fontsize=14, fontweight='bold')
+        ax.legend(fontsize=10, loc='best', framealpha=0.9)
+        ax.grid(True, alpha=0.3)
+    
+    # ========== SUBFIGURA 3: Comparação completa ==========
+    ax = axes[2]
+    
+    # Plot real landscapes (all three)
+    for col, color, alpha, lw, label in [
+        ('fitness_full', 'purple', 0.6, 1.5, 'Fitness Full (verdadeira)'),
+        ('fitness1', 'steelblue', 0.5, 1, 'Fitness1 (verdadeira)'),
+        ('fitness2', 'coral', 0.5, 1, 'Fitness2 (verdadeira)')
+    ]:
+        ax.plot(df['registro'], df[col], alpha=alpha, color=color, 
+               linewidth=lw, label=label, zorder=2)
+    
+    # Plot predicted fitness_full LINE (fitness1_c1 + fitness2_c1) with transparency (ADDED)
+    if 'fitness1_c1' in df.columns and 'fitness2_c1' in df.columns:
+        # Calculate predicted full fitness (sum of predicted f1 and f2)
+        fitness_full_pred = df['fitness1_c1'] + df['fitness2_c1']
+        ax.plot(df['registro'], fitness_full_pred, 
+               alpha=0.5, color='darkorange', linewidth=1.5, 
+               linestyle='--', label='Fitness Full (prevista)', zorder=1)
+    
+    # Add Pareto markers for real front (ótimos verdadeiros) - using ORIGINAL values
+    # Red diamond markers (STANDARDIZED across all figures)
+    add_pareto_markers(ax, pareto_real, df, 'fitness_full', 'red', 'D', 
+                     label_suffix='Verdadeiro', edge_color='darkred')
+    
+    # Add Pareto markers for surrogate front (ótimos encontrados) - using ORIGINAL values
+    # Royal blue diamond markers (STANDARDIZED across all figures)
+    add_pareto_markers(ax, pareto_surrogate, df, 'fitness_full', 'royalblue', 'D', 
+                     label_suffix='Encontrado', edge_color='darkblue')
+    
+    ax.set_xlabel('Registro (x)', fontsize=12, fontweight='bold')
+    ax.set_ylabel('Fitness', fontsize=12, fontweight='bold')
+    ax.set_title('Comparação Completa: Landscapes Verdadeiras e Previstas com Ótimos',
+                fontsize=14, fontweight='bold')
+    ax.legend(fontsize=9, loc='best', framealpha=0.9, ncol=2)
+    ax.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.show()

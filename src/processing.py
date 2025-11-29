@@ -347,10 +347,10 @@ def prever_surrogate(df2, features_surrogate, id_objetivo,
 
     # apurando erros
     for cenario in ['c1', 'c2', 'c3']:
-        df3[f'erro1_{cenario}'] = df3['fitness1'] - df3[f'fitness1_{cenario}']
-        df3[f'erro_abs1_{cenario}'] = df3[f'erro1_{cenario}'].abs()
+        df3[f'erro{id_objetivo}_{cenario}'] = df3[f'fitness{id_objetivo}'] - df3[f'fitness{id_objetivo}_{cenario}']
+        df3[f'erro_abs{id_objetivo}_{cenario}'] = df3[f'erro{id_objetivo}_{cenario}'].abs()
 
-        print(f'WAPE fitness1 {cenario}: {df3[f"erro_abs1_{cenario}"].sum() / df3[f"fitness1"].sum()}')
+        print(f'WAPE fitness{id_objetivo} {cenario}: {df3[f"erro_abs{id_objetivo}_{cenario}"].sum() / df3[f"fitness{id_objetivo}"].sum()}')
 
 
     return df3

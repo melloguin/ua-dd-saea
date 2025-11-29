@@ -1,10 +1,91 @@
 import matplotlib.pyplot as plt
 import math
+from matplotlib.gridspec import GridSpec
 
 # Configure matplotlib for better performance with large datasets
 plt.style.use('seaborn-v0_8-darkgrid')
 plt.rcParams['figure.figsize'] = (14, 6)
 plt.rcParams['lines.linewidth'] = 0.5
+
+
+def plota_fitness_landscape_com_equacoes(df, n_regioes=5):
+    """
+    Plota o fitness landscape com 3 subplots:
+    1. Fitness1 e Fitness2 (2.5x altura)
+    2. Equações geradoras da Fitness1 (1.5x altura)
+    3. Equações geradoras da Fitness2 (1.5x altura)
+    
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        Dataframe contendo as colunas 'registro', 'fitness1', 'fitness2',
+        e as equações 'fitness1_eq*' e 'fitness2_eq*'
+    n_regioes : int, optional
+        Número de regiões para divisão do gráfico (default: 5)
+    """
+    max_registro = df['registro'].max()
+    
+    # Cores das regiões
+    cores_regioes = ['lightblue', 'lightgreen', 'lightyellow', 'lightcoral', 'lavender']
+    
+    # Função auxiliar para adicionar regiões coloridas
+    def adicionar_regioes_coloridas(ax):
+        for i, cor in enumerate(cores_regioes):
+            inicio = i * (1 / n_regioes) * max_registro
+            fim = (i + 1) * (1 / n_regioes) * max_registro
+            ax.axvspan(inicio, fim, color=cor, alpha=0.2, zorder=0)
+        for percent in [0.2, 0.4, 0.6, 0.8]:
+            ax.axvline(x=max_registro * percent, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+    
+    # Criar figura com GridSpec - primeiro subplot tem 2.5x a altura dos outros
+    fig = plt.figure(figsize=(16, 14))
+    gs = GridSpec(3, 1, figure=fig, height_ratios=[2.5, 1.5, 1.5], hspace=0.3)
+    
+    # ========== SUBPLOT 1: Fitness1 e Fitness2 ==========
+    ax1 = fig.add_subplot(gs[0])
+    adicionar_regioes_coloridas(ax1)
+    
+    ax1.plot(df['registro'], df['fitness1'], label='fitness1', linewidth=1.5, color='steelblue')
+    ax1.plot(df['registro'], df['fitness2'], label='fitness2', linewidth=1.5, color='coral')
+    
+    ax1.legend(loc='upper left', fontsize=11)
+    ax1.set_ylabel('Fitness', fontweight='bold', fontsize=12)
+    ax1.set_title('Fitness Landscape - Fitness1 e Fitness2', fontweight='bold', fontsize=13)
+    ax1.grid(True, alpha=0.3)
+    ax1.set_xlim(0, max_registro)
+    
+    # ========== SUBPLOT 2: Equações geradoras da Fitness1 ==========
+    ax2 = fig.add_subplot(gs[1])
+    adicionar_regioes_coloridas(ax2)
+    
+    fitness1_eq_cols = [col for col in df.columns if 'fitness1_eq' in col]
+    for col in fitness1_eq_cols:
+        ax2.plot(df['registro'], df[col], label=col, alpha=0.7, linewidth=0.8)
+    
+    ax2.legend(loc='upper right', fontsize=8, ncol=3)
+    ax2.set_ylabel('Equações Fitness1', fontweight='bold', fontsize=11)
+    ax2.set_title('Equações Geradoras da Fitness1', fontweight='bold', fontsize=12)
+    ax2.grid(True, alpha=0.3)
+    ax2.set_xlim(0, max_registro)
+    
+    # ========== SUBPLOT 3: Equações geradoras da Fitness2 ==========
+    ax3 = fig.add_subplot(gs[2])
+    adicionar_regioes_coloridas(ax3)
+    
+    fitness2_eq_cols = [col for col in df.columns if 'fitness2_eq' in col]
+    for col in fitness2_eq_cols:
+        ax3.plot(df['registro'], df[col], label=col, alpha=0.7, linewidth=0.8)
+    
+    ax3.legend(loc='upper right', fontsize=8, ncol=3)
+    ax3.set_xlabel('Registro', fontweight='bold', fontsize=12)
+    ax3.set_ylabel('Equações Fitness2', fontweight='bold', fontsize=11)
+    ax3.set_title('Equações Geradoras da Fitness2', fontweight='bold', fontsize=12)
+    ax3.grid(True, alpha=0.3)
+    ax3.set_xlim(0, max_registro)
+    
+    plt.tight_layout()
+    plt.show()
+
 
 def display_pareto_front(df, pareto_df):
 
@@ -15,7 +96,7 @@ def display_pareto_front(df, pareto_df):
         # Encontrar o máximo entre fitness1 e fitness2 de todos os pontos
         max_fitness = max(df['fitness1'].max(), df['fitness2'].max())
         # Arredondar para cima para um valor "bonito"
-        max_limit = math.ceil(max_fitness / 5) * 5
+        max_limit = math.ceil(max_fitness / 2) * 2
         
         # ============================================================================
         # GRÁFICO 1: Fronteira de Pareto
@@ -468,7 +549,23 @@ def criar_plot_base(df3, features):
         plt.plot(df3['registro'], df3[col], label=col)
 
 
-def plota_landscape_5cenarios(df3, features, df_amostragem):
+def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_num=1):
+    """
+    Plota o landscape de um cenário específico para um fitness específico.
+    
+    Parameters:
+    -----------
+    df3 : pd.DataFrame
+        Dataframe contendo os dados de fitness real e previsão
+    features : list
+        Lista de features utilizadas no modelo
+    df_amostragem : pd.DataFrame
+        Dataframe com as taxas de amostragem por região
+    cenario : str, optional
+        Cenário a ser plotado: 'c1', 'c2' ou 'c3' (default: 'c1')
+    fitness_num : int, optional
+        Número do fitness/objetivo: 1 ou 2 (default: 1)
+    """
     import numpy as np
     from matplotlib.gridspec import GridSpec
     
@@ -484,6 +581,22 @@ def plota_landscape_5cenarios(df3, features, df_amostragem):
     
     # Cores das regiões
     cores_regioes = ['lightblue', 'lightgreen', 'lightyellow', 'lightcoral', 'lavender']
+    
+    # Definir nomes de colunas baseado no fitness
+    col_fitness_real = f'fitness{fitness_num}'
+    col_fitness_previsto = f'fitness{fitness_num}_{cenario}'
+    col_erro = f'erro_{cenario}_f{fitness_num}'
+    col_cenario_amostragem = f'cenario{cenario[1]}'  # Extrai o número do cenário (c1 -> cenario1)
+    
+    # Verificar se as colunas existem
+    if col_fitness_real not in df3.columns:
+        raise ValueError(f"Coluna '{col_fitness_real}' não encontrada no dataframe")
+    if col_fitness_previsto not in df3.columns:
+        raise ValueError(f"Coluna '{col_fitness_previsto}' não encontrada no dataframe")
+    
+    # Calcular coluna de erro se não existir
+    if col_erro not in df3.columns:
+        df3[col_erro] = df3[col_fitness_previsto] - df3[col_fitness_real]
     
     # Função auxiliar para adicionar regiões coloridas
     def adicionar_regioes_coloridas(ax):
@@ -515,7 +628,11 @@ def plota_landscape_5cenarios(df3, features, df_amostragem):
             erros_sobre = erros[erros > 0]
             wape_sobre = 100 * erros_sobre.mean() / denominador_global if len(erros_sobre) > 0 else 0
             
-            taxa_amostragem = df_amostragem.loc[i, col_previsto.replace('fitness1_c', 'cenario')] * 100 if i < len(df_amostragem) else 0
+            # Buscar taxa de amostragem no dataframe
+            if col_cenario_amostragem in df_amostragem.columns and i < len(df_amostragem):
+                taxa_amostragem = df_amostragem.loc[i, col_cenario_amostragem] * 100
+            else:
+                taxa_amostragem = 0
             
             metricas.append({
                 'wape': wape,
@@ -525,25 +642,25 @@ def plota_landscape_5cenarios(df3, features, df_amostragem):
             })
         return metricas
     
-    # ========== CENÁRIO 1 ==========
-    df3['erro_c1'] = df3['fitness1_c1'] - df3['fitness1']
-    metricas_c1 = calcular_metricas_por_regiao(df3, 'fitness1', 'fitness1_c1')
+    # Calcular métricas
+    metricas = calcular_metricas_por_regiao(df3, col_fitness_real, col_fitness_previsto)
     
+    # Criar figura com 5 subplots
     fig = plt.figure(figsize=(16, 16))
     gs = GridSpec(5, 1, figure=fig, height_ratios=[2.3, 1, 0.3, 0.8, 1], hspace=0.3)
     
-    # Subfigura 1: Landscape (fitness real + previsto)
+    # ========== SUBFIGURA 1: Landscape (fitness real + previsto) ==========
     ax1 = fig.add_subplot(gs[0])
     adicionar_regioes_coloridas(ax1)
-    ax1.plot(df3['registro'], df3['fitness1'], label='fitness1_real', linewidth=1.5, color='black')
-    ax1.plot(df3['registro'], df3['fitness1_c1'], label='previsao_c1', linewidth=1.5, color=cores_cenarios['c1'], alpha=0.25)
+    ax1.plot(df3['registro'], df3[col_fitness_real], label=f'{col_fitness_real}_real', linewidth=1.5, color='black')
+    ax1.plot(df3['registro'], df3[col_fitness_previsto], label=f'previsao_{cenario}', linewidth=1.5, color=cores_cenarios[cenario], alpha=0.25)
     ax1.legend(loc='upper left', fontsize=10)
     ax1.set_ylabel('Fitness', fontweight='bold')
-    ax1.set_title('Cenário 1 - Fitness Real vs Previsto', fontweight='bold', fontsize=12)
+    ax1.set_title(f'Cenário {cenario.upper()} - Fitness{fitness_num} Real vs Previsto', fontweight='bold', fontsize=12)
     ax1.grid(True, alpha=0.3)
     ax1.set_xlim(0, max_registro)
     
-    # Subfigura 2: Features
+    # ========== SUBFIGURA 2: Features ==========
     ax2 = fig.add_subplot(gs[1])
     adicionar_regioes_coloridas(ax2)
     for col in features:
@@ -556,7 +673,7 @@ def plota_landscape_5cenarios(df3, features, df_amostragem):
     ax2.grid(True, alpha=0.3)
     ax2.set_xlim(0, max_registro)
     
-    # Subfigura 3: Textos WAPE e Amostragem (nova subfigura)
+    # ========== SUBFIGURA 3: Textos WAPE e Amostragem ==========
     ax3 = fig.add_subplot(gs[2])
     adicionar_regioes_coloridas(ax3)
     ax3.set_xlim(0, max_registro)
@@ -565,22 +682,22 @@ def plota_landscape_5cenarios(df3, features, df_amostragem):
     
     # Adicionar textos de WAPE e Amostragem
     posicoes_barras = [(i + 0.5) * (1 / n_regioes) * max_registro for i in range(n_regioes)]
-    wapes_geral = [m['wape'] for m in metricas_c1]
-    taxas_amost = [m['taxa_amostragem'] for m in metricas_c1]
+    wapes_geral = [m['wape'] for m in metricas]
+    taxas_amost = [m['taxa_amostragem'] for m in metricas]
     
     for pos, wape_g, taxa_amost in zip(posicoes_barras, wapes_geral, taxas_amost):
         ax3.text(pos, 0.5, f'WAPE: {wape_g:.0f}%\nAmost: {taxa_amost:.0f}%', 
                 ha='center', va='center', fontsize=13, fontweight='bold', color='darkblue',
                 bbox=dict(boxstyle='round,pad=0.5', facecolor='white', edgecolor='lightgray', alpha=0.9))
     
-    # Subfigura 4: Gráfico de barras WAPE
+    # ========== SUBFIGURA 4: Gráfico de barras WAPE ==========
     ax4 = fig.add_subplot(gs[3])
     adicionar_regioes_coloridas(ax4)
     
     largura_barra = 0.15 * (1 / n_regioes) * max_registro
     
-    wapes_sub = [m['wape_sub'] for m in metricas_c1]
-    wapes_sobre = [m['wape_sobre'] for m in metricas_c1]
+    wapes_sub = [m['wape_sub'] for m in metricas]
+    wapes_sobre = [m['wape_sobre'] for m in metricas]
     
     ax4.bar(posicoes_barras, wapes_sub, width=largura_barra, 
             color='darkblue', alpha=0.8, label='WAPE Sub', edgecolor='navy', linewidth=1.5)
@@ -602,8 +719,13 @@ def plota_landscape_5cenarios(df3, features, df_amostragem):
     ax4.grid(True, alpha=0.3, axis='y')
     ax4.set_xlim(0, max_registro)
     
-    # Subfigura 5: Distribuições de erro
+    # ========== SUBFIGURA 5: Distribuições de erro ==========
     ax5 = fig.add_subplot(gs[4])
+    
+    # Determinar cor baseada no cenário
+    cor_distribuicao = cores_cenarios[cenario]
+    cor_linha = {'c1': 'darkblue', 'c2': 'darkgreen', 'c3': 'darkred'}.get(cenario, 'darkblue')
+    
     for i in range(n_regioes):
         inicio = i * (1 / n_regioes) * max_registro
         fim = (i + 1) * (1 / n_regioes) * max_registro
@@ -611,7 +733,7 @@ def plota_landscape_5cenarios(df3, features, df_amostragem):
         
         ax5.axvspan(inicio, fim, color=cores_regioes[i], alpha=0.2, zorder=0)
         
-        erros = df_regiao['erro_c1'].values
+        erros = df_regiao[col_erro].values
         
         if len(erros) > 0:
             counts, bin_edges = np.histogram(erros, bins=30)
@@ -621,8 +743,8 @@ def plota_landscape_5cenarios(df3, features, df_amostragem):
             x_positions = inicio + (bin_centers - bin_centers.min()) / (bin_centers.max() - bin_centers.min() + 1e-10) * largura_regiao * 0.9
             x_positions += largura_regiao * 0.05
             
-            ax5.fill_between(x_positions, 0, counts_norm, alpha=0.6, color=cores_cenarios['c1'])
-            ax5.plot(x_positions, counts_norm, color='darkblue', linewidth=1.5, alpha=0.8)
+            ax5.fill_between(x_positions, 0, counts_norm, alpha=0.6, color=cor_distribuicao)
+            ax5.plot(x_positions, counts_norm, color=cor_linha, linewidth=1.5, alpha=0.8)
     
     ax5.set_xlabel('Registro', fontweight='bold')
     ax5.set_ylabel('Densidade Normalizada', fontweight='bold')
@@ -635,215 +757,16 @@ def plota_landscape_5cenarios(df3, features, df_amostragem):
     
     plt.tight_layout()
     plt.show()
+
+
+def plota_landscape_5cenarios(df3, features, df_amostragem):
+    """
+    DEPRECATED: Use plota_landscape_cenario() em vez desta função.
     
+    Esta função plota os 3 cenários chamando plota_landscape_cenario() 3 vezes.
+    """
+    print("⚠️  AVISO: Esta função está deprecated. Use plota_landscape_cenario() para plotar cenários individuais.")
     
-    # ========== CENÁRIO 2 ==========
-    df3['erro_c2'] = df3['fitness1_c2'] - df3['fitness1']
-    metricas_c2 = calcular_metricas_por_regiao(df3, 'fitness1', 'fitness1_c2')
-    
-    fig = plt.figure(figsize=(16, 16))
-    gs = GridSpec(5, 1, figure=fig, height_ratios=[2.3, 1, 0.3, 0.8, 1], hspace=0.3)
-    
-    ax1 = fig.add_subplot(gs[0])
-    adicionar_regioes_coloridas(ax1)
-    ax1.plot(df3['registro'], df3['fitness1'], label='fitness1_real', linewidth=1.5, color='black')
-    ax1.plot(df3['registro'], df3['fitness1_c2'], label='previsao_c2', linewidth=1.5, color=cores_cenarios['c2'], alpha=0.25)
-    ax1.legend(loc='upper left', fontsize=10)
-    ax1.set_ylabel('Fitness', fontweight='bold')
-    ax1.set_title('Cenário 2 - Fitness Real vs Previsto', fontweight='bold', fontsize=12)
-    ax1.grid(True, alpha=0.3)
-    ax1.set_xlim(0, max_registro)
-    
-    ax2 = fig.add_subplot(gs[1])
-    adicionar_regioes_coloridas(ax2)
-    for col in features:
-        if df3[col].dtype in ['object', 'string', 'category']:
-            continue
-        ax2.plot(df3['registro'], df3[col], label=col, alpha=0.7)
-    ax2.legend(loc='upper right', fontsize=8, ncol=2)
-    ax2.set_ylabel('Features', fontweight='bold')
-    ax2.set_title('Features Utilizadas no Modelo', fontweight='bold', fontsize=11)
-    ax2.grid(True, alpha=0.3)
-    ax2.set_xlim(0, max_registro)
-    
-    ax3 = fig.add_subplot(gs[2])
-    adicionar_regioes_coloridas(ax3)
-    ax3.set_xlim(0, max_registro)
-    ax3.set_ylim(0, 1)
-    ax3.axis('off')
-    
-    posicoes_barras = [(i + 0.5) * (1 / n_regioes) * max_registro for i in range(n_regioes)]
-    wapes_geral = [m['wape'] for m in metricas_c2]
-    taxas_amost = [m['taxa_amostragem'] for m in metricas_c2]
-    
-    for pos, wape_g, taxa_amost in zip(posicoes_barras, wapes_geral, taxas_amost):
-        ax3.text(pos, 0.5, f'WAPE: {wape_g:.0f}%\nAmost: {taxa_amost:.0f}%', 
-                ha='center', va='center', fontsize=13, fontweight='bold', color='darkblue',
-                bbox=dict(boxstyle='round,pad=0.5', facecolor='white', edgecolor='lightgray', alpha=0.9))
-    
-    ax4 = fig.add_subplot(gs[3])
-    adicionar_regioes_coloridas(ax4)
-    
-    largura_barra = 0.15 * (1 / n_regioes) * max_registro
-    
-    wapes_sub = [m['wape_sub'] for m in metricas_c2]
-    wapes_sobre = [m['wape_sobre'] for m in metricas_c2]
-    
-    ax4.bar(posicoes_barras, wapes_sub, width=largura_barra, 
-            color='darkblue', alpha=0.8, label='WAPE Sub', edgecolor='navy', linewidth=1.5)
-    ax4.bar(posicoes_barras, wapes_sobre, width=largura_barra, 
-            color='lightblue', alpha=0.8, label='WAPE Sobre', edgecolor='steelblue', linewidth=1.5)
-    
-    for i, (pos, wape_sub_val, wape_sobre_val) in enumerate(zip(posicoes_barras, wapes_sub, wapes_sobre)):
-        if abs(wape_sub_val) > 2:
-            ax4.text(pos, wape_sub_val/2, f'{abs(wape_sub_val):.0f}%', 
-                    ha='center', va='center', fontsize=9, fontweight='bold', color='white')
-        if abs(wape_sobre_val) > 2:
-            ax4.text(pos, wape_sobre_val/2, f'{abs(wape_sobre_val):.0f}%', 
-                    ha='center', va='center', fontsize=9, fontweight='bold', color='darkblue')
-    
-    ax4.set_ylabel('WAPE (%)', fontweight='bold')
-    ax4.set_title('WAPE por Região (Sub-previsão e Sobre-previsão)', fontweight='bold', fontsize=11)
-    ax4.axhline(y=0, color='black', linewidth=0.8, linestyle='-')
-    ax4.legend(loc='upper left', fontsize=8)
-    ax4.grid(True, alpha=0.3, axis='y')
-    ax4.set_xlim(0, max_registro)
-    
-    ax5 = fig.add_subplot(gs[4])
-    for i in range(n_regioes):
-        inicio = i * (1 / n_regioes) * max_registro
-        fim = (i + 1) * (1 / n_regioes) * max_registro
-        df_regiao = df3[(df3['registro'] >= inicio) & (df3['registro'] < fim)]
-        
-        ax5.axvspan(inicio, fim, color=cores_regioes[i], alpha=0.2, zorder=0)
-        
-        erros = df_regiao['erro_c2'].values
-        
-        if len(erros) > 0:
-            counts, bin_edges = np.histogram(erros, bins=30)
-            bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-            counts_norm = counts / counts.max() if counts.max() > 0 else counts
-            largura_regiao = fim - inicio
-            x_positions = inicio + (bin_centers - bin_centers.min()) / (bin_centers.max() - bin_centers.min() + 1e-10) * largura_regiao * 0.9
-            x_positions += largura_regiao * 0.05
-            
-            ax5.fill_between(x_positions, 0, counts_norm, alpha=0.6, color=cores_cenarios['c2'])
-            ax5.plot(x_positions, counts_norm, color='darkgreen', linewidth=1.5, alpha=0.8)
-    
-    ax5.set_xlabel('Registro', fontweight='bold')
-    ax5.set_ylabel('Densidade Normalizada', fontweight='bold')
-    ax5.set_title('Distribuição dos Erros por Região', fontweight='bold', fontsize=11)
-    ax5.set_xlim(0, max_registro)
-    ax5.grid(True, alpha=0.3)
-    
-    for percent in [0.2, 0.4, 0.6, 0.8]:
-        ax5.axvline(x=max_registro * percent, color='gray', linestyle='--', linewidth=1, alpha=0.5)
-    
-    plt.tight_layout()
-    plt.show()
-    
-    
-    # ========== CENÁRIO 3 ==========
-    df3['erro_c3'] = df3['fitness1_c3'] - df3['fitness1']
-    metricas_c3 = calcular_metricas_por_regiao(df3, 'fitness1', 'fitness1_c3')
-    
-    fig = plt.figure(figsize=(16, 16))
-    gs = GridSpec(5, 1, figure=fig, height_ratios=[2.3, 1, 0.3, 0.8, 1], hspace=0.3)
-    
-    ax1 = fig.add_subplot(gs[0])
-    adicionar_regioes_coloridas(ax1)
-    ax1.plot(df3['registro'], df3['fitness1'], label='fitness1_real', linewidth=1.5, color='black')
-    ax1.plot(df3['registro'], df3['fitness1_c3'], label='previsao_c3', linewidth=1.5, color=cores_cenarios['c3'], alpha=0.25)
-    ax1.legend(loc='upper left', fontsize=10)
-    ax1.set_ylabel('Fitness', fontweight='bold')
-    ax1.set_title('Cenário 3 - Fitness Real vs Previsto', fontweight='bold', fontsize=12)
-    ax1.grid(True, alpha=0.3)
-    ax1.set_xlim(0, max_registro)
-    
-    ax2 = fig.add_subplot(gs[1])
-    adicionar_regioes_coloridas(ax2)
-    for col in features:
-        if df3[col].dtype in ['object', 'string', 'category']:
-            continue
-        ax2.plot(df3['registro'], df3[col], label=col, alpha=0.7)
-    ax2.legend(loc='upper right', fontsize=8, ncol=2)
-    ax2.set_ylabel('Features', fontweight='bold')
-    ax2.set_title('Features Utilizadas no Modelo', fontweight='bold', fontsize=11)
-    ax2.grid(True, alpha=0.3)
-    ax2.set_xlim(0, max_registro)
-    
-    ax3 = fig.add_subplot(gs[2])
-    adicionar_regioes_coloridas(ax3)
-    ax3.set_xlim(0, max_registro)
-    ax3.set_ylim(0, 1)
-    ax3.axis('off')
-    
-    posicoes_barras = [(i + 0.5) * (1 / n_regioes) * max_registro for i in range(n_regioes)]
-    wapes_geral = [m['wape'] for m in metricas_c3]
-    taxas_amost = [m['taxa_amostragem'] for m in metricas_c3]
-    
-    for pos, wape_g, taxa_amost in zip(posicoes_barras, wapes_geral, taxas_amost):
-        ax3.text(pos, 0.5, f'WAPE: {wape_g:.0f}%\nAmost: {taxa_amost:.0f}%', 
-                ha='center', va='center', fontsize=13, fontweight='bold', color='darkblue',
-                bbox=dict(boxstyle='round,pad=0.5', facecolor='white', edgecolor='lightgray', alpha=0.9))
-    
-    ax4 = fig.add_subplot(gs[3])
-    adicionar_regioes_coloridas(ax4)
-    
-    largura_barra = 0.15 * (1 / n_regioes) * max_registro
-    
-    wapes_sub = [m['wape_sub'] for m in metricas_c3]
-    wapes_sobre = [m['wape_sobre'] for m in metricas_c3]
-    
-    ax4.bar(posicoes_barras, wapes_sub, width=largura_barra, 
-            color='darkblue', alpha=0.8, label='WAPE Sub', edgecolor='navy', linewidth=1.5)
-    ax4.bar(posicoes_barras, wapes_sobre, width=largura_barra, 
-            color='lightblue', alpha=0.8, label='WAPE Sobre', edgecolor='steelblue', linewidth=1.5)
-    
-    for i, (pos, wape_sub_val, wape_sobre_val) in enumerate(zip(posicoes_barras, wapes_sub, wapes_sobre)):
-        if abs(wape_sub_val) > 2:
-            ax4.text(pos, wape_sub_val/2, f'{abs(wape_sub_val):.0f}%', 
-                    ha='center', va='center', fontsize=9, fontweight='bold', color='white')
-        if abs(wape_sobre_val) > 2:
-            ax4.text(pos, wape_sobre_val/2, f'{abs(wape_sobre_val):.0f}%', 
-                    ha='center', va='center', fontsize=9, fontweight='bold', color='darkblue')
-    
-    ax4.set_ylabel('WAPE (%)', fontweight='bold')
-    ax4.set_title('WAPE por Região (Sub-previsão e Sobre-previsão)', fontweight='bold', fontsize=11)
-    ax4.axhline(y=0, color='black', linewidth=0.8, linestyle='-')
-    ax4.legend(loc='upper left', fontsize=8)
-    ax4.grid(True, alpha=0.3, axis='y')
-    ax4.set_xlim(0, max_registro)
-    
-    ax5 = fig.add_subplot(gs[4])
-    for i in range(n_regioes):
-        inicio = i * (1 / n_regioes) * max_registro
-        fim = (i + 1) * (1 / n_regioes) * max_registro
-        df_regiao = df3[(df3['registro'] >= inicio) & (df3['registro'] < fim)]
-        
-        ax5.axvspan(inicio, fim, color=cores_regioes[i], alpha=0.2, zorder=0)
-        
-        erros = df_regiao['erro_c3'].values
-        
-        if len(erros) > 0:
-            counts, bin_edges = np.histogram(erros, bins=30)
-            bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-            counts_norm = counts / counts.max() if counts.max() > 0 else counts
-            largura_regiao = fim - inicio
-            x_positions = inicio + (bin_centers - bin_centers.min()) / (bin_centers.max() - bin_centers.min() + 1e-10) * largura_regiao * 0.9
-            x_positions += largura_regiao * 0.05
-            
-            ax5.fill_between(x_positions, 0, counts_norm, alpha=0.6, color=cores_cenarios['c3'])
-            ax5.plot(x_positions, counts_norm, color='darkred', linewidth=1.5, alpha=0.8)
-    
-    ax5.set_xlabel('Registro', fontweight='bold')
-    ax5.set_ylabel('Densidade Normalizada', fontweight='bold')
-    ax5.set_title('Distribuição dos Erros por Região', fontweight='bold', fontsize=11)
-    ax5.set_xlim(0, max_registro)
-    ax5.grid(True, alpha=0.3)
-    
-    for percent in [0.2, 0.4, 0.6, 0.8]:
-        ax5.axvline(x=max_registro * percent, color='gray', linestyle='--', linewidth=1, alpha=0.5)
-    
-    plt.tight_layout()
-    plt.show()
+    # Plotar cada cenário individualmente
+    for cenario in ['c1', 'c2', 'c3']:
+        plota_landscape_cenario(df3, features, df_amostragem, cenario=cenario, fitness_num=1)

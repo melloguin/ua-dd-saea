@@ -795,69 +795,69 @@ def display_two_pareto_fronts(df_real, pareto_real, pareto_surrogate):
     # Arredondar para cima para um valor "bonito"
     max_limit = math.ceil(max_fitness / 2) * 2
     
-    # ============================================================================
-    # GRÁFICO 1: Dois Fronts de Pareto
-    # ============================================================================
-    
-    # Gráfico de dispersão dos dois fronts (figura quadrada)
-    fig, ax = plt.subplots(figsize=(10, 10))
-
-    # Plotar o front verdadeiro
-    ax.scatter(pareto_real['fitness1'], pareto_real['fitness2'], 
-            c='red', s=50, alpha=0.7, edgecolors='darkred', 
-            linewidth=1.5, label=f'Front Verdadeiro ({len(pareto_real)} pts)', zorder=3)
-
-    # Conectar os pontos do front verdadeiro
-    ax.plot(pareto_real['fitness1'], pareto_real['fitness2'], 
-            'r--', alpha=0.4, linewidth=1, zorder=2)
-
-    # Plotar o front encontrado pelo surrogate
-    ax.scatter(pareto_surrogate['fitness1'], pareto_surrogate['fitness2'], 
-            c='blue', s=50, alpha=0.7, edgecolors='darkblue', 
-            linewidth=1.5, label=f'Front Surrogate ({len(pareto_surrogate)} pts)', zorder=3)
-
-    # Conectar os pontos do front surrogate
-    ax.plot(pareto_surrogate['fitness1'], pareto_surrogate['fitness2'], 
-            'b--', alpha=0.4, linewidth=1, zorder=2)
-
-    # Configurações do gráfico
-    ax.set_xlabel('Fitness1 (f1)', fontsize=13, fontweight='bold')
-    ax.set_ylabel('Fitness2 (f2)', fontsize=13, fontweight='bold')
-    ax.set_title(f'Comparação dos Fronts de Pareto na Landscape Verdadeira\n(Vermelho = Real, Azul = Encontrado pelo Surrogate)', 
-            fontsize=15, fontweight='bold', pad=20)
-    ax.legend(fontsize=11, loc='best')
-    ax.grid(True, alpha=0.3, linestyle='--')
-    
-    # Definir limites iguais para x e y começando em 0
-    ax.set_xlim(0, max_limit)
-    ax.set_ylim(0, max_limit)
-    
-    # Definir aspect ratio igual (1 cm no x = 1 cm no y)
-    ax.set_aspect('equal', adjustable='box')
-
-    # Adicionar anotações para os pontos extremos do front verdadeiro
-    # Ponto com maior fitness1
-    max_f1_point = pareto_real.iloc[0]
-    ax.annotate(f'Max f1 (Real)\n({max_f1_point["fitness1"]:.2f}, {max_f1_point["fitness2"]:.2f})',
-            xy=(max_f1_point['fitness1'], max_f1_point['fitness2']),
-            xytext=(10, -20), textcoords='offset points',
-            fontsize=9, color='darkred',
-            bbox=dict(boxstyle='round,pad=0.5', facecolor='yellow', alpha=0.7),
-            arrowprops=dict(arrowstyle='->', color='darkred', lw=1.5))
-
-    # Ponto com maior fitness2
-    max_f2_point = pareto_real.iloc[-1]
-    ax.annotate(f'Max f2 (Real)\n({max_f2_point["fitness1"]:.2f}, {max_f2_point["fitness2"]:.2f})',
-            xy=(max_f2_point['fitness1'], max_f2_point['fitness2']),
-            xytext=(10, 20), textcoords='offset points',
-            fontsize=9, color='darkred',
-            bbox=dict(boxstyle='round,pad=0.5', facecolor='yellow', alpha=0.7),
-            arrowprops=dict(arrowstyle='->', color='darkred', lw=1.5))
-
-    plt.tight_layout()
-    plt.show()
-
-    print("\n✅ Visualização concluída!")
+#    # ============================================================================
+#    # GRÁFICO 1: Dois Fronts de Pareto
+#    # ============================================================================
+#    
+#    # Gráfico de dispersão dos dois fronts (figura quadrada)
+#    fig, ax = plt.subplots(figsize=(10, 10))
+#
+#    # Plotar o front verdadeiro
+#    ax.scatter(pareto_real['fitness1'], pareto_real['fitness2'], 
+#            c='red', s=50, alpha=0.7, edgecolors='darkred', 
+#            linewidth=1.5, label=f'Front Verdadeiro ({len(pareto_real)} pts)', zorder=3)
+#
+#    # Conectar os pontos do front verdadeiro
+#    ax.plot(pareto_real['fitness1'], pareto_real['fitness2'], 
+#            'r--', alpha=0.4, linewidth=1, zorder=2)
+#
+#    # Plotar o front encontrado pelo surrogate
+#    ax.scatter(pareto_surrogate['fitness1'], pareto_surrogate['fitness2'], 
+#            c='blue', s=50, alpha=0.7, edgecolors='darkblue', 
+#            linewidth=1.5, label=f'Front Surrogate ({len(pareto_surrogate)} pts)', zorder=3)
+#
+#    # Conectar os pontos do front surrogate
+#    ax.plot(pareto_surrogate['fitness1'], pareto_surrogate['fitness2'], 
+#            'b--', alpha=0.4, linewidth=1, zorder=2)
+#
+#    # Configurações do gráfico
+#    ax.set_xlabel('Fitness1 (f1)', fontsize=13, fontweight='bold')
+#    ax.set_ylabel('Fitness2 (f2)', fontsize=13, fontweight='bold')
+#    ax.set_title(f'Comparação dos Fronts de Pareto na Landscape Verdadeira\n(Vermelho = Real, Azul = Encontrado pelo Surrogate)', 
+#            fontsize=15, fontweight='bold', pad=20)
+#    ax.legend(fontsize=11, loc='best')
+#    ax.grid(True, alpha=0.3, linestyle='--')
+#    
+#    # Definir limites iguais para x e y começando em 0
+#    ax.set_xlim(0, max_limit)
+#    ax.set_ylim(0, max_limit)
+#    
+#    # Definir aspect ratio igual (1 cm no x = 1 cm no y)
+#    ax.set_aspect('equal', adjustable='box')
+#
+#    # Adicionar anotações para os pontos extremos do front verdadeiro
+#    # Ponto com maior fitness1
+#    max_f1_point = pareto_real.iloc[0]
+#    ax.annotate(f'Max f1 (Real)\n({max_f1_point["fitness1"]:.2f}, {max_f1_point["fitness2"]:.2f})',
+#            xy=(max_f1_point['fitness1'], max_f1_point['fitness2']),
+#            xytext=(10, -20), textcoords='offset points',
+#            fontsize=9, color='darkred',
+#            bbox=dict(boxstyle='round,pad=0.5', facecolor='yellow', alpha=0.7),
+#            arrowprops=dict(arrowstyle='->', color='darkred', lw=1.5))
+#
+#    # Ponto com maior fitness2
+#    max_f2_point = pareto_real.iloc[-1]
+#    ax.annotate(f'Max f2 (Real)\n({max_f2_point["fitness1"]:.2f}, {max_f2_point["fitness2"]:.2f})',
+#            xy=(max_f2_point['fitness1'], max_f2_point['fitness2']),
+#            xytext=(10, 20), textcoords='offset points',
+#            fontsize=9, color='darkred',
+#            bbox=dict(boxstyle='round,pad=0.5', facecolor='yellow', alpha=0.7),
+#            arrowprops=dict(arrowstyle='->', color='darkred', lw=1.5))
+#
+#    plt.tight_layout()
+#    plt.show()
+#
+#    print("\n✅ Visualização concluída!")
 
     # ============================================================================
     # GRÁFICO 2: Dois Fronts no contexto de todos os pontos com boxplots

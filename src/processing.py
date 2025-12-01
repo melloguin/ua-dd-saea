@@ -141,7 +141,6 @@ def find_pareto_front(df):
 
 ###########################################################
 def criando_cenarios_amostragem(df, 
-                                pareto_df, 
                                 taxa_amostragem_global,
                                 n_regioes,
                                 proporcionalidade):
@@ -150,7 +149,6 @@ def criando_cenarios_amostragem(df,
     df_amostragem = df.groupby('regiao').agg({'fitness1': 'mean', 
                                               'fitness2': 'mean', 
                                               'fitness_full': 'mean', 
-                                              'fronteira_verdadeira': 'max'
                                              }).reset_index()
 
     # cria cenários de amostragem

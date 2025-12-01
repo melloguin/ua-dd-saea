@@ -948,6 +948,116 @@ def display_two_pareto_fronts(df_real, pareto_real, pareto_surrogate):
 
     plt.show()
 
+def display_pareto_fronts3(df_real, pareto_fronts_list):
+    """
+    Mostra múltiplos fronts de Pareto sobre a fitness landscape verdadeira.
+    
+    Parameters:
+    -----------
+    df_real : pd.DataFrame
+        Dataframe com a fitness landscape verdadeira (todos os pontos)
+    pareto_fronts_list : list of pd.DataFrame
+        Lista de dataframes com os fronts de Pareto a serem plotados
+    """
+    
+    # ============================================================================
+    # Calcular limites comuns para ambos os gráficos
+    # ============================================================================
+    
+    # Encontrar o máximo entre fitness1 e fitness2 de todos os pontos
+    max_fitness = max(df_real['fitness1'].max(), df_real['fitness2'].max())
+    # Arredondar para cima para um valor "bonito"
+    max_limit = math.ceil(max_fitness / 2) * 2
+    
+    # ============================================================================
+    # GRÁFICO: Múltiplos Fronts no contexto de todos os pontos com boxplots
+    # ============================================================================
+
+    # Subsampling para todos os pontos (para não sobrecarregar o gráfico)
+    sample_size = min(500000, len(df_real))  # Máximo de 500k pontos
+    df_sample = df_real.sample(n=sample_size, random_state=42)
+
+    # Criar figura com subplots usando GridSpec (boxplots mais discretos)
+    # Ajustar para figura mais quadrada
+    fig = plt.figure(figsize=(12, 12))
+    gs = fig.add_gridspec(3, 3, width_ratios=[1, 6, 0.4], height_ratios=[0.4, 6, 1], 
+                         hspace=0.02, wspace=0.02)
+    
+    # Eixo principal (scatter plot)
+    ax_main = fig.add_subplot(gs[1, 1])
+    
+    # Eixos para os boxplots (mais discretos)
+    ax_top = fig.add_subplot(gs[0, 1], sharex=ax_main)  # Boxplot fitness1 (topo)
+    ax_right = fig.add_subplot(gs[1, 2], sharey=ax_main)  # Boxplot fitness2 (direita)
+
+    # Plotar todos os pontos (amostra) em cinza
+    ax_main.scatter(df_sample['fitness1'], df_sample['fitness2'], 
+            c='lightgray', s=10, alpha=0.3, 
+            label=f'Todos os pontos (amostra de {sample_size:,})', zorder=1)
+
+    # Definir cores para os diferentes fronts
+    colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'cyan', 'magenta', 'yellow']
+    dark_colors = ['darkred', 'darkblue', 'darkgreen', 'darkorange', 'darkviolet', 'saddlebrown', 'deeppink', 'darkcyan', 'darkmagenta', 'gold']
+    
+    # Plotar cada front de Pareto
+    for i, pareto_front in enumerate(pareto_fronts_list):
+        color = colors[i % len(colors)]
+        dark_color = dark_colors[i % len(dark_colors)]
+        
+        # Plotar o front em destaque
+        ax_main.scatter(pareto_front['fitness1'], pareto_front['fitness2'], 
+                c=color, s=80, alpha=0.9, edgecolors=dark_color, 
+                linewidth=1.5, label=f'Front {i+1} ({len(pareto_front)} pts)', zorder=3+i)
+
+        # Conectar os pontos do front
+        ax_main.plot(pareto_front['fitness1'], pareto_front['fitness2'], 
+                color=color, alpha=0.6, linewidth=2, zorder=2+i)
+
+    # Configurações do gráfico principal
+    ax_main.set_xlabel('Fitness1 (f1)', fontsize=13, fontweight='bold')
+    ax_main.set_ylabel('Fitness2 (f2)', fontsize=13, fontweight='bold')
+    ax_main.set_title(f'Comparação de {len(pareto_fronts_list)} Fronts de Pareto no Espaço de Objetivos\n(Problema de Maximização Bi-Objetivo)', 
+            fontsize=15, fontweight='bold', pad=20)
+    ax_main.legend(fontsize=11, loc='best')
+    ax_main.grid(True, alpha=0.3, linestyle='--')
+    
+    # Definir limites iguais para x e y começando em 0
+    ax_main.set_xlim(0, max_limit)
+    ax_main.set_ylim(0, max_limit)
+    
+    # Definir aspect ratio igual (1 cm no x = 1 cm no y)
+    ax_main.set_aspect('equal', adjustable='box')
+
+    # Boxplot para Fitness1 da amostra (topo - horizontal, mais discreto)
+    bp1 = ax_top.boxplot([df_sample['fitness1']], vert=False, widths=0.5,
+                         patch_artist=True, 
+                         boxprops=dict(facecolor='lightgray', alpha=0.4, linewidth=0.8),
+                         medianprops=dict(color='dimgray', linewidth=1.2),
+                         whiskerprops=dict(color='gray', linewidth=0.8),
+                         capprops=dict(color='gray', linewidth=0.8),
+                         flierprops=dict(marker='o', markersize=2, alpha=0.3))
+    ax_top.tick_params(labelbottom=False, labelleft=False, length=0)
+    ax_top.set_yticks([])
+    ax_top.spines['top'].set_visible(False)
+    ax_top.spines['right'].set_visible(False)
+    ax_top.spines['left'].set_visible(False)
+    
+    # Boxplot para Fitness2 da amostra (direita - vertical, mais discreto)
+    bp2 = ax_right.boxplot([df_sample['fitness2']], vert=True, widths=0.5,
+                           patch_artist=True,
+                           boxprops=dict(facecolor='lightgray', alpha=0.4, linewidth=0.8),
+                           medianprops=dict(color='dimgray', linewidth=1.2),
+                           whiskerprops=dict(color='gray', linewidth=0.8),
+                           capprops=dict(color='gray', linewidth=0.8),
+                           flierprops=dict(marker='o', markersize=2, alpha=0.3))
+    ax_right.tick_params(labelleft=False, labelbottom=False, length=0)
+    ax_right.set_xticks([])
+    ax_right.spines['top'].set_visible(False)
+    ax_right.spines['right'].set_visible(False)
+    ax_right.spines['bottom'].set_visible(False)
+
+    plt.show()
+
 def display_fitness_landscape_with_2pareto(df, pareto_real, pareto_surrogate):
     '''
     Plots fitness landscape with two Pareto fronts (real and surrogate)

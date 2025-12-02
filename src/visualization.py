@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import math
+import numpy as np
 from matplotlib.gridspec import GridSpec
+from scipy import stats as scipy_stats
 
 # Configure matplotlib for better performance with large datasets
 plt.style.use('seaborn-v0_8-darkgrid')
@@ -1057,6 +1059,151 @@ def display_pareto_fronts3(df_real, pareto_fronts_list):
     ax_right.spines['bottom'].set_visible(False)
 
     plt.show()
+
+def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, problema_num=1):
+    """
+    Plota comparação de distribuições em um grid 2x5 (2 fitness x 5 regiões).
+    Para visualizar ambos os problemas, chame a função duas vezes.
+    
+    Parameters:
+    -----------
+    df_surrogate : pd.DataFrame
+        DataFrame com dados gerais (surrogate/população completa)
+    df_validacao : pd.DataFrame
+        DataFrame com dados de validação (amostra)
+    df_resultados : pd.DataFrame
+        DataFrame retornado pela função comparar_distribuicoes contendo as métricas
+    problema_num : int
+        Número do problema (1 ou 2) para filtrar os resultados
+    """
+    
+    # Filtrar resultados para o problema específico
+    df_prob = df_resultados[df_resultados['problema'] == f'problema{problema_num}'].copy()
+    
+    # Configuração do grid: 2 linhas (fitness1, fitness2) x 5 colunas (regiões)
+    fig = plt.figure(figsize=(24, 10))
+    gs = GridSpec(2, 5, figure=fig, hspace=0.15, wspace=0.15)
+    
+    # Cores para as distribuições
+    cor_surrogate = 'blue'
+    cor_validacao = 'red'
+    
+    # Fitness a plotar
+    fitness_cols = ['erro1_c1', 'erro2_c1']
+    fitness_labels = ['Fitness1', 'Fitness2']
+    
+    for row_idx, (col_erro, fitness_label) in enumerate(zip(fitness_cols, fitness_labels)):
+        # Filtrar resultados para este fitness
+        df_fitness = df_prob[df_prob['coluna'] == col_erro].copy()
+        
+        # Ordenar por região
+        df_fitness = df_fitness.sort_values('regiao')
+        
+        for col_idx, (_, resultado) in enumerate(df_fitness.iterrows()):
+            regiao = resultado['regiao']
+            
+            # Criar subplot
+            ax = fig.add_subplot(gs[row_idx, col_idx])
+            
+            # Filtrar dados por região
+            df_surr_regiao = df_surrogate[df_surrogate['regiao'] == regiao]
+            df_val_regiao = df_validacao[df_validacao['regiao'] == regiao]
+            
+            # Obter distribuições
+            dist_surrogate = df_surr_regiao[col_erro].dropna()
+            dist_validacao = df_val_regiao[col_erro].dropna()
+            
+            if len(dist_surrogate) == 0 or len(dist_validacao) == 0:
+                ax.text(0.5, 0.5, 'Sem dados', ha='center', va='center', 
+                       transform=ax.transAxes, fontsize=10)
+                continue
+            
+            # Calcular bins comuns para ambas as distribuições
+            all_data = np.concatenate([dist_surrogate, dist_validacao])
+            bins = np.histogram_bin_edges(all_data, bins=30)
+            
+            # Plotar histogramas sobrepostos com transparência
+            ax.hist(dist_surrogate, bins=bins, alpha=0.3, color=cor_surrogate, 
+                   label='Geral', density=True, edgecolor=cor_surrogate, linewidth=0.8)
+            ax.hist(dist_validacao, bins=bins, alpha=0.3, color=cor_validacao, 
+                   label='Validação', density=True, edgecolor=cor_validacao, linewidth=0.8)
+            
+            # Adicionar curvas KDE (densidade) mais visíveis
+            # KDE para surrogate
+            kde_surr = scipy_stats.gaussian_kde(dist_surrogate)
+            x_range = np.linspace(all_data.min(), all_data.max(), 100)
+            ax.plot(x_range, kde_surr(x_range), color=cor_surrogate, 
+                   linewidth=2.0, alpha=0.9)
+            
+            # KDE para validação
+            kde_val = scipy_stats.gaussian_kde(dist_validacao)
+            ax.plot(x_range, kde_val(x_range), color=cor_validacao, 
+                   linewidth=2.0, alpha=0.9)
+            
+            # Obter WAPE validação dos resultados
+            wape_validacao = resultado.get('wape_validacao', np.nan) * 100  # converter para porcentagem
+            
+            # Determinar cor e símbolo para o status "Iguais"
+            iguais_valor = resultado['distribuicoes_iguais']
+            if iguais_valor == 'Sim':
+                cor_iguais = 'darkgreen'
+                simbolo_iguais = '✓'
+            else:
+                cor_iguais = 'darkred'
+                simbolo_iguais = '✗'
+            
+            # Adicionar texto com métricas (sem a linha Iguais que será adicionada separadamente)
+            texto_metricas = (
+                f"KS p-value: {resultado['ks_pvalue']:.4f}\n"
+                f"\n"  # espaço reservado para a linha Iguais
+                f"μ_val: {resultado['media_validacao']:.2f}\n"
+                f"σ_val: {resultado['desvpad_validacao']:.2f}\n"
+                f"WAPE_val: {wape_validacao:.1f}%"
+            )
+            
+            # Box principal com fundo branco
+            ax.text(0.02, 0.98, texto_metricas, transform=ax.transAxes,
+                   fontsize=10.5, verticalalignment='top', horizontalalignment='left',
+                   bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
+                            edgecolor='gray', alpha=0.9, linewidth=0.8),
+                   zorder=10)
+            
+            # Adicionar linha "Iguais:" COLORIDA sobreposta
+            ax.text(0.025, 0.928, f"Iguais: {simbolo_iguais} {iguais_valor}", 
+                   transform=ax.transAxes,
+                   fontsize=10.5, verticalalignment='top', horizontalalignment='left',
+                   color=cor_iguais, fontweight='bold',
+                   zorder=11)
+            
+            # Configurações do subplot
+            if row_idx == 0:
+                ax.set_title(f'Região {regiao}', fontweight='bold', fontsize=13)
+            
+            if col_idx == 0:
+                ax.set_ylabel(f'{fitness_label}\nDensidade', fontweight='bold', fontsize=11)
+            
+            if row_idx == 1:
+                ax.set_xlabel('Erro', fontsize=10)
+            
+            # Grid e formatação
+            ax.grid(True, alpha=0.3, linewidth=0.6)
+            ax.tick_params(labelsize=9)
+            
+            # Ajustar espessura das bordas do subplot
+            for spine in ax.spines.values():
+                spine.set_linewidth(1.2)
+            
+            # Legenda apenas no primeiro subplot de cada linha
+            if col_idx == 0:
+                ax.legend(fontsize=9, loc='upper right', framealpha=0.8)
+    
+    # Título geral
+    fig.suptitle(f'Comparação de Distribuições - Problema {problema_num}', 
+                fontsize=16, fontweight='bold', y=0.995)
+    
+    plt.tight_layout(rect=[0, 0, 1, 0.99], pad=0.5)
+    plt.show()
+
 
 def display_fitness_landscape_with_2pareto(df, pareto_real, pareto_surrogate):
     '''

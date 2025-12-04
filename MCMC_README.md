@@ -236,3 +236,4 @@ As amostras MCMC geradas devem:
 - Ter momentos estatísticos similares (média, desvio padrão, quantis)
 - Taxa de aceitação entre 15-70% (idealmente 20-50%)
 
+

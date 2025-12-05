@@ -1,9 +1,13 @@
+import numpy as np
+
+
 ####################################################################################################################################
 ####################################################################################################################################
 ### Fast non-dominated sort
 
 def dominates(fitness_solucao1, 
-              fitness_solucao2):
+              fitness_solucao2,
+              maximize = False):
     """
     Verifica se fitness1 domina fitness2 (minimização)
     Domina se é melhor ou igual em todos os objetivos e estritamente melhor em pelo menos um
@@ -14,6 +18,9 @@ def dominates(fitness_solucao1,
     better_in_any = False
     # percorre fitness a fitness das 2 solucoes (s1 e s2) 
     for f1, f2 in zip(fitness_solucao1, fitness_solucao2):
+        # se maximização, inverte o sinal dos fitness
+        if maximize:
+            f1, f2 = -f1, -f2
         # e sinaliza se a 2a solucao é pior em algum objetivo (indica que s1 não domina s2)
         if f1 > f2:  # Pior em algum objetivo
             return False
@@ -24,7 +31,7 @@ def dominates(fitness_solucao1,
 
 
 
-def fast_non_dominated_sort(population):
+def fast_non_dominated_sort(population, config):
     """
     Implementação rápida da ordenação não-dominada (Fast Non-Dominated Sort)
     Complexidade: O(MN²) onde M é número de objetivos e N é tamanho da população
@@ -60,10 +67,10 @@ def fast_non_dominated_sort(population):
             if individual_p is individual_q:
                 continue
             # se p domina q, adicionar q à lista Sp
-            if dominates(individual_p.fitness, individual_q.fitness):
+            if dominates(individual_p.fitness, individual_q.fitness, config['maximize']):
                 individual_p.dominated_solutions.append(individual_q)
             # se q domina p, incrementar np
-            elif dominates(individual_q.fitness, individual_p.fitness):
+            elif dominates(individual_q.fitness, individual_p.fitness, config['maximize']):
                 individual_p.domination_count += 1
         
         # identifica primeiro front
@@ -99,73 +106,52 @@ def fast_non_dominated_sort(population):
     return fronts
 
 
+def uncertainty_aware_ranking(combined_population, config):
+    '''
+    Uncertainty-Aware Ranking using Multiple Simulations
 
-####################################################################################################################################
-####################################################################################################################################
-### Crowding Distance
-
-def calculate_crowding_distance(front):
-    """
-    Calcula a crowding distance para cada indivíduo no front
-    Complexidade: O(M*N*log(N)) onde M é número de objetivos e N é tamanho do front
-
-	• Muito importante manter a diversidade de soluções ao longo da evolucão de um algoritmo MOEA, 
-      para garantir que não iremos convergir para um ótimo local, e iremos explorar e encontrar
-      os modais em todo o fitness landscape
-
-	• Abordagem NSGA-II (Crowding Distance)
-		○ Realizamos o cálculo da crowding distance das soluções em um objetivo por vez:
-			§ Ordenamos as soluções, em O(NlogN), com base nos seus valores para o objetivo m1 (primeiro dos M objetivos)
-			§ Para a menor e maior solução (em relação aos valores de m1) -> atribuímos distancia(m1) = infinito
-			§ Para todas as outras:
-			    § distância(m1) = (fitness da próxima solução - fitness da solução anterior) / (fitness da maior solução - fitness da menor solução)
-                § Ou seja, a distância entre os vizinhos normalizada pela distância dos extremos
-
-		○ Realizamos esse cálculo para todos os M objetivos. A crowding distance total de uma solução 
-          é o somatório de sua crowding distance individual em cada um dos M objetivos.
-			§ Como atribuímos infinito para as soluções extremas em cada objetivo, elas serão sempre priorizadas em um 
-              desempate por distância (vamos ver que o algoritmo ainda prioriza nível de dominância antes de diversidade) 
-              o que faz sentido, pois por serem extremas, são mais diversas.
-		
-		○ Complexidade final = O(M*NlogN)
-			§ Observamos que a operação que domina a complexidade do cálculo em cada objetivo é a ordenação. 
-              As outras operações são muito simples.
-			§ Como ordenamos em O(NlogN) em cada um dos M objetivos, temos a complexidade acima.
-
-    """
-    # Front vazio termina a funcao
-    if len(front) == 0:
-        return
+        - Salva os fitness originais (listas completas)
+        - Realiza fast non-dominated sort para cada simulação
+        - Coleta o rank de cada indivíduo nesta simulação
+        - Restaura os fitness originais e calcula a média e desvio padrão dos ranks
+    '''
     
-    # Identifica quantidade de fitness
-    n_objectives = len(front[0].fitness)
-    
-    # Inicializar crowding distance para todos os individuos do front
-    for individual in front:
-        individual.crowding_distance = 0.0
-    
-    # Para cada objetivo, calcula Crowding Distance
-    for obj_idx in range(n_objectives):
+    # Salva os fitness originais (listas completas)
+    original_fitness = {}
+    for individual in combined_population:
+        original_fitness[id(individual)] = individual.fitness
 
-        # Ordenar o front pelo objetivo atual
-        front.sort(key=lambda ind: ind.fitness[obj_idx])
+    # Realiza fast non-dominated sort para cada simulação
+    for s in range(config['n_simulations']):
         
-        # Atribuir infinito para as soluções extremas
-        front[0].crowding_distance = float('inf')
-        front[-1].crowding_distance = float('inf')
+        # Atribui o s-ésimo valor de fitness para cada indivíduo
+        for individual in combined_population:
+            # fitness[0] é uma lista com n_simulations valores para o objetivo 1
+            # fitness[1] é uma lista com n_simulations valores para o objetivo 2
+            individual.fitness = [
+                original_fitness[id(individual)][0][s],  # s-ésimo valor do objetivo 1
+                original_fitness[id(individual)][1][s]   # s-ésimo valor do objetivo 2
+            ]
         
-        # Obter o range do objetivo
-        f_min = front[0].fitness[obj_idx]
-        f_max = front[-1].fitness[obj_idx]
+        # Realiza fast non-dominated sort com o fitness da s-ésima simulação
+        fronts = fast_non_dominated_sort(combined_population, config)
         
-        # Evitar divisão por zero
-        if f_max - f_min == 0:
-            continue
-        
-        # Calcular crowding distance para as soluções intermediárias
-        for i in range(1, len(front) - 1):
-            distance = (front[i + 1].fitness[obj_idx] - front[i - 1].fitness[obj_idx]) / (f_max - f_min)
-            front[i].crowding_distance += distance
+        # Coleta o rank de cada indivíduo nesta simulação
+        for individual in combined_population:
+            individual.ua_rank.append(individual.rank)
+
+    # Restaura os fitness originais e calcula estatísticas dos ranks
+    for individual in combined_population:
+        # Restaura os fitness originais
+        individual.fitness = original_fitness[id(individual)]
+        # Calcula a média dos ranks obtidos nas n_simulations
+        individual.rank = np.mean(individual.ua_rank)
+        # Calcula a métrica de dispersão: média dos desvios positivos acima da média
+        mean_rank = individual.rank
+        positive_deviations = np.maximum(0, np.array(individual.ua_rank) - mean_rank)
+        individual.rank_std = round(np.mean(positive_deviations), 5)
+        # Restaura os ua_ranks
+        individual.ua_rank = []
 
 
 
@@ -173,7 +159,7 @@ def calculate_crowding_distance(front):
 ####################################################################################################################################
 ### Seleção Geracional
 
-def generational_selection(combined_population, pop_size):
+def generational_selection(combined_population, config):
     """
     Seleção geracional: seleciona os melhores N indivíduos de Rt = Pt + Qt
 
@@ -189,28 +175,15 @@ def generational_selection(combined_population, pop_size):
 	- Essa metodologia garante o elitismo, uma vez que as melhores soluções entre Pt e Qt sempre serão mantidas (prioridade é sempre o ranking de dominancia)
 
     """
-    # Realiza fast non-dominated sort
-    fronts = fast_non_dominated_sort(combined_population)
-    
-    # Calcular crowding distance para todos os fronts
-    for front in fronts:
-        calculate_crowding_distance(front)
-    
+
+    # Calcula uncertainty-aware ranking
+    uncertainty_aware_ranking(combined_population, config)
+
+    # Ordenar população combinada por rank (menor rank/rank_std = melhor)
+    combined_population_sorted = sorted(combined_population, key=lambda ind: (ind.rank, ind.rank_std))
+
     # Selecionar indivíduos para a próxima geração
-    next_population = []
-    front_idx = 0
-    
-    # Adicionar fronts completos enquanto couberem
-    while front_idx < len(fronts) and len(next_population) + len(fronts[front_idx]) <= pop_size:
-        next_population.extend(fronts[front_idx])
-        front_idx += 1
-    
-    # Se ainda há espaço, preencher com os melhores (crowding distance) do próximo front
-    if front_idx < len(fronts) and len(next_population) < pop_size:
-        remaining = pop_size - len(next_population)
-        # Ordenar por crowding distance (decrescente)
-        fronts[front_idx].sort(key=lambda ind: ind.crowding_distance, reverse=True)
-        next_population.extend(fronts[front_idx][:remaining])
-    
+    next_population = combined_population_sorted[:config['population_size']]    
+
 
     return next_population

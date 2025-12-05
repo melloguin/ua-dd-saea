@@ -1,5 +1,5 @@
 import numpy as np
-from src.nsga2.individual import Individual
+from src.ua_sa_nsga2.individual import Individual
 
 
 def initialize_population(config, input_initial_population = None):
@@ -37,7 +37,7 @@ def initialize_population(config, input_initial_population = None):
     initial_population = []
     for i in range(config['population_size']):
         genotype = initial_genotypes[i].tolist()
-        initial_population.append(Individual(genotype))
+        initial_population.append(Individual(genotype, pop_size = 1 + config['population_size']))
 
 
     return initial_population, initial_genotypes

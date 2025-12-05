@@ -1,6 +1,6 @@
 import numpy as np
 import copy
-from src.nsga2.individual import Individual
+from src.ua_sa_nsga2.individual import Individual
 
 
 ####################################################################################################################################
@@ -13,12 +13,12 @@ def crowded_comparison_operator(ind1, ind2):
     Retorna True se ind1 deve ser selecionado sobre ind2
     
     Critérios (em ordem de prioridade):
-    1. Menor rank de dominancia (um indivíduo domina o outro, melhor front)
-    2. Maior crowding distance (mais diverso)
+    1. Menor rank de ua-dominance (um indivíduo domina o outro, melhor front médio)
+    [desativado]2. Maior crowding distance (mais diverso)
     """
     if ind1.rank != ind2.rank:
         return ind1.rank < ind2.rank
-    return ind1.crowding_distance > ind2.crowding_distance
+    return ind1.rank_std > ind2.rank_std
 
 
 def tournament_selection(population: list, 
@@ -90,7 +90,7 @@ def simulated_binary_crossover(parent1, parent2, eta=15, prob=0.9, xl=0.0, xu=9.
     # 1. Verificação de Crossover (Geral)
     # O Pymoo verifica se o cruzamento ocorre para o PAR.
     if np.random.random() > prob:
-        return c1.astype(int), c2.astype(int)
+        return c1.astype(int).tolist(), c2.astype(int).tolist()
 
     # 2. Definição de quais genes serão alterados (Probabilidade por gene = 0.5 é padrão no SBX)
     # O Pymoo geralmente altera todas as variáveis se o crossover ocorrer, 
@@ -100,7 +100,7 @@ def simulated_binary_crossover(parent1, parent2, eta=15, prob=0.9, xl=0.0, xu=9.
     mask = np.abs(p1 - p2) > 1e-14
     
     if not np.any(mask):
-        return c1.astype(int), c2.astype(int)
+        return c1.astype(int).tolist(), c2.astype(int).tolist()
     
     # 3. Vetorização: Extrair valores onde o crossover ocorrerá
     y1 = np.minimum(p1[mask], p2[mask])
@@ -151,7 +151,7 @@ def simulated_binary_crossover(parent1, parent2, eta=15, prob=0.9, xl=0.0, xu=9.
     c1[mask] = final_c1
     c2[mask] = final_c2
     
-    return np.round(c1).astype(int), np.round(c2).astype(int)
+    return np.round(c1).astype(int).tolist(), np.round(c2).astype(int).tolist()
 
 
 
@@ -168,7 +168,8 @@ def polynomial_mutation(individual, eta=20, prob=1/6):
 		○ Mutação (modificação de um único indivíduo com si mesmo)
 
     """
-    mutated = individual.genotype.copy()
+    # Garante que mutated seja uma lista Python
+    mutated = list(individual.genotype) if not isinstance(individual.genotype, list) else individual.genotype.copy()
     
     for i in range(len(mutated)):
         if np.random.random() <= prob:
@@ -233,9 +234,10 @@ def create_offspring_population(population, config):
         )
         
         # Adiciona filhos à população de descendentes
-        offspring.append(Individual(child1_genotype))
+        # Garante que o genótipo seja uma lista Python
+        offspring.append(Individual(list(child1_genotype) if not isinstance(child1_genotype, list) else child1_genotype))
         if len(offspring) < len(population):
-            offspring.append(Individual(child2_genotype))
+            offspring.append(Individual(list(child2_genotype) if not isinstance(child2_genotype, list) else child2_genotype))
     
     
     return offspring

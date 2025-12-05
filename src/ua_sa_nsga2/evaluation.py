@@ -15,18 +15,9 @@ def individual_fitness_evaluation(genotype, df_landscape, fitness_cols, maximize
     registro = genotype_to_registro(genotype)
     row = df_landscape[df_landscape['registro'] == registro]
 
-    # Coleta fitness (se registro não existe, retornar valores muito ruins)
-    if len(row) == 0:
-        fitness1 = 1e6
-        fitness2 = 1e6
-    else:
-        fitness1 = row[fitness_cols[0]].values[0]
-        fitness2 = row[fitness_cols[1]].values[0]
-
-    # Se for um problema de maximizacao, inverte os valores de fitness
-    if maximize:
-        fitness1 = -fitness1
-        fitness2 = -fitness2
+    # Coleta fitness
+    fitness1 = row[fitness_cols[0]].values[0]
+    fitness2 = row[fitness_cols[1]].values[0]
     
     return [fitness1, fitness2]
 

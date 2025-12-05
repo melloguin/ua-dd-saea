@@ -62,7 +62,6 @@ def run_my_uasa_nsga2(config: dict,
     
 
     ############# Loop principal das gerações
-    progress_stats = []
     for generation in tqdm(range(config['n_generations'])):
 
         ######### 2. População Descendente (offspring population)
@@ -78,31 +77,16 @@ def run_my_uasa_nsga2(config: dict,
         combined_population = population + offspring
 
         # Seleção geracional: selecionar N melhores para formar P(t+1)
-        population = generational_selection(combined_population, config['population_size'])
-
-        # Rastreamento de progresso
-        if config['track_progress']:
-            stats = collect_generation_stats(population, generation, config)
-            progress_stats.append(stats)
+        population = generational_selection(combined_population, config)
 
 
     ######### Finalização
-    # Extrair front de Pareto final (rank 1)
-    pareto_front = [ind for ind in population if ind.rank == 1]
-        
     # Converter para registros e criar dataframe
-    registros = [genotype_to_registro(ind.genotype) for ind in pareto_front]
+    registros = [genotype_to_registro(ind.genotype) for ind in population]
     df_pareto = df_landscape[df_landscape['registro'].isin(registros)].copy()
     
     print(f"\n✅ Otimização concluída!")
-    print(f"Soluções encontradas no front: {len(pareto_front)}")
     print(f"Registros únicos no dataframe: {len(df_pareto)}")
 
-    if config['track_progress']:
-        df_progress = pd.DataFrame(progress_stats)
-        plot_optimization_progress(df_progress)
-    else:
-        df_progress = None
 
-
-    return df_pareto, pareto_front, df_progress
+    return df_pareto

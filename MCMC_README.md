@@ -237,3 +237,4 @@ As amostras MCMC geradas devem:
 - Taxa de aceitação entre 15-70% (idealmente 20-50%)
 
 
+

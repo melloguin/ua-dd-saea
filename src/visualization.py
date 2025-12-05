@@ -27,16 +27,21 @@ def plota_fitness_landscape_com_equacoes(df, n_regioes=5):
     """
     max_registro = df['registro'].max()
     
-    # Cores das regiões
-    cores_regioes = ['lightblue', 'lightgreen', 'lightyellow', 'lightcoral', 'lavender']
+    # Gerar cores dinamicamente baseado no número de regiões
+    # Usar colormap 'tab20' que tem 20 cores distintas
+    import matplotlib.cm as cm
+    cmap = cm.get_cmap('tab20', n_regioes)
+    cores_regioes = [cmap(i) for i in range(n_regioes)]
     
     # Função auxiliar para adicionar regiões coloridas
     def adicionar_regioes_coloridas(ax):
-        for i, cor in enumerate(cores_regioes):
+        for i in range(n_regioes):
             inicio = i * (1 / n_regioes) * max_registro
             fim = (i + 1) * (1 / n_regioes) * max_registro
-            ax.axvspan(inicio, fim, color=cor, alpha=0.2, zorder=0)
-        for percent in [0.2, 0.4, 0.6, 0.8]:
+            ax.axvspan(inicio, fim, color=cores_regioes[i], alpha=0.2, zorder=0)
+        # Gerar linhas verticais dinamicamente baseado no número de regiões
+        for i in range(1, n_regioes):
+            percent = i / n_regioes
             ax.axvline(x=max_registro * percent, color='gray', linestyle='--', linewidth=1, alpha=0.5)
     
     # Criar figura com GridSpec - primeiro subplot tem 2.5x a altura dos outros
@@ -111,10 +116,6 @@ def display_pareto_front(df, pareto_df):
         ax.scatter(pareto_df['fitness1'], pareto_df['fitness2'], 
                 c='red', s=50, alpha=0.7, edgecolors='darkred', 
                 linewidth=1.5, label='Fronteira de Pareto', zorder=3)
-
-        # Conectar os pontos para melhor visualização
-        ax.plot(pareto_df['fitness1'], pareto_df['fitness2'], 
-                'r--', alpha=0.4, linewidth=1, zorder=2)
 
         # Configurações do gráfico
         ax.set_xlabel('Fitness1 (f1)', fontsize=13, fontweight='bold')
@@ -333,17 +334,22 @@ def display_fitness_landscape_with_pareto(df, pareto_df=None):
 
 def dividir_plot_regioes(plt, df3, n_regioes):
 
-    # Adicionar áreas coloridas a cada 20% do eixo x
+    # Adicionar áreas coloridas dinamicamente baseado no número de regiões
     max_registro = df3['registro'].max()
-    cores = ['lightblue', 'lightgreen', 'lightyellow', 'lightcoral', 'lavender']
+    
+    # Gerar cores dinamicamente usando colormap
+    import matplotlib.cm as cm
+    cmap = cm.get_cmap('tab20', n_regioes)
+    cores = [cmap(i) for i in range(n_regioes)]
 
-    for i, cor in enumerate(cores):
+    for i in range(n_regioes):
         inicio = i * (1 / n_regioes) * max_registro
         fim = (i + 1) * (1 / n_regioes) * max_registro
-        plt.axvspan(inicio, fim, color=cor, alpha=0.2, zorder=0)
+        plt.axvspan(inicio, fim, color=cores[i], alpha=0.2, zorder=0)
 
-    # Adicionar linhas verticais a cada 20% do eixo x
-    for percent in [0.2, 0.4, 0.6, 0.8, 1]:
+    # Adicionar linhas verticais dinamicamente baseado no número de regiões
+    for i in range(1, n_regioes + 1):
+        percent = i / n_regioes
         plt.axvline(x=max_registro * percent, color='gray', linestyle='--', linewidth=1, alpha=0.5)
 
     return plt
@@ -540,10 +546,10 @@ def adicionar_wape_amostragem_por_regiao(plt, df, col_real, col_previsto, df_amo
 
 
 
-def criar_plot_base(df3, features):
+def criar_plot_base(df3, features, n_regioes=10):
     plt.figure()
     plt.plot(df3['registro'], df3['fitness1'], label='fitness1_real')
-    dividir_plot_regioes(plt, df3, n_regioes=5)
+    dividir_plot_regioes(plt, df3, n_regioes=n_regioes)
     # Features (skip categorical/string columns)
     for col in features:
         if df3[col].dtype in ['object', 'string', 'category']:
@@ -551,7 +557,7 @@ def criar_plot_base(df3, features):
         plt.plot(df3['registro'], df3[col], label=col)
 
 
-def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_num=1):
+def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_num=1, n_regioes=10):
     """
     Plota o landscape de um cenário específico para um fitness específico.
     
@@ -567,11 +573,13 @@ def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_
         Cenário a ser plotado: 'c1', 'c2' ou 'c3' (default: 'c1')
     fitness_num : int, optional
         Número do fitness/objetivo: 1 ou 2 (default: 1)
+    n_regioes : int, optional
+        Número de regiões para divisão do gráfico (default: 10)
     """
     import numpy as np
     from matplotlib.gridspec import GridSpec
+    import matplotlib.cm as cm
     
-    n_regioes = 5
     max_registro = df3['registro'].max()
     
     # Cores para os cenários
@@ -581,8 +589,10 @@ def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_
         'c3': 'red'
     }
     
-    # Cores das regiões
-    cores_regioes = ['lightblue', 'lightgreen', 'lightyellow', 'lightcoral', 'lavender']
+    # Gerar cores dinamicamente baseado no número de regiões
+    # Usar colormap 'tab20' que tem 20 cores distintas
+    cmap = cm.get_cmap('tab20', n_regioes)
+    cores_regioes = [cmap(i) for i in range(n_regioes)]
     
     # Definir nomes de colunas baseado no fitness
     col_fitness_real = f'fitness{fitness_num}'
@@ -602,11 +612,13 @@ def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_
     
     # Função auxiliar para adicionar regiões coloridas
     def adicionar_regioes_coloridas(ax):
-        for i, cor in enumerate(cores_regioes):
+        for i in range(n_regioes):
             inicio = i * (1 / n_regioes) * max_registro
             fim = (i + 1) * (1 / n_regioes) * max_registro
-            ax.axvspan(inicio, fim, color=cor, alpha=0.2, zorder=0)
-        for percent in [0.2, 0.4, 0.6, 0.8]:
+            ax.axvspan(inicio, fim, color=cores_regioes[i], alpha=0.2, zorder=0)
+        # Gerar linhas verticais dinamicamente baseado no número de regiões
+        for i in range(1, n_regioes):
+            percent = i / n_regioes
             ax.axvline(x=max_registro * percent, color='gray', linestyle='--', linewidth=1, alpha=0.5)
     
     # Função auxiliar para calcular métricas por região
@@ -687,10 +699,13 @@ def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_
     wapes_geral = [m['wape'] for m in metricas]
     taxas_amost = [m['taxa_amostragem'] for m in metricas]
     
+    # Ajustar tamanho da fonte baseado no número de regiões
+    fontsize_texto = max(7, 13 - n_regioes // 2)  # Reduz fonte conforme aumenta regiões, mínimo 7
+    
     for pos, wape_g, taxa_amost in zip(posicoes_barras, wapes_geral, taxas_amost):
         ax3.text(pos, 0.5, f'WAPE: {wape_g:.0f}%\nAmost: {taxa_amost:.0f}%', 
-                ha='center', va='center', fontsize=13, fontweight='bold', color='darkblue',
-                bbox=dict(boxstyle='round,pad=0.5', facecolor='white', edgecolor='lightgray', alpha=0.9))
+                ha='center', va='center', fontsize=fontsize_texto, fontweight='bold', color='darkblue',
+                bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='lightgray', alpha=0.9))
     
     # ========== SUBFIGURA 4: Gráfico de barras WAPE ==========
     ax4 = fig.add_subplot(gs[3])
@@ -706,13 +721,16 @@ def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_
     ax4.bar(posicoes_barras, wapes_sobre, width=largura_barra, 
             color='lightblue', alpha=0.8, label='WAPE Sobre', edgecolor='steelblue', linewidth=1.5)
     
+    # Ajustar tamanho da fonte dos valores nas barras baseado no número de regiões
+    fontsize_barras = max(6, 9 - n_regioes // 3)  # Reduz fonte conforme aumenta regiões, mínimo 6
+    
     for i, (pos, wape_sub_val, wape_sobre_val) in enumerate(zip(posicoes_barras, wapes_sub, wapes_sobre)):
         if abs(wape_sub_val) > 2:
             ax4.text(pos, wape_sub_val/2, f'{abs(wape_sub_val):.0f}%', 
-                    ha='center', va='center', fontsize=9, fontweight='bold', color='white')
+                    ha='center', va='center', fontsize=fontsize_barras, fontweight='bold', color='white')
         if abs(wape_sobre_val) > 2:
             ax4.text(pos, wape_sobre_val/2, f'{abs(wape_sobre_val):.0f}%', 
-                    ha='center', va='center', fontsize=9, fontweight='bold', color='darkblue')
+                    ha='center', va='center', fontsize=fontsize_barras, fontweight='bold', color='darkblue')
     
     ax4.set_ylabel('WAPE (%)', fontweight='bold')
     ax4.set_title('WAPE por Região (Sub-previsão e Sobre-previsão)', fontweight='bold', fontsize=11)
@@ -754,7 +772,9 @@ def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_
     ax5.set_xlim(0, max_registro)
     ax5.grid(True, alpha=0.3)
     
-    for percent in [0.2, 0.4, 0.6, 0.8]:
+    # Gerar linhas verticais dinamicamente baseado no número de regiões
+    for i in range(1, n_regioes):
+        percent = i / n_regioes
         ax5.axvline(x=max_registro * percent, color='gray', linestyle='--', linewidth=1, alpha=0.5)
     
     plt.tight_layout()
@@ -892,18 +912,10 @@ def display_two_pareto_fronts(df_real, pareto_real, pareto_surrogate):
             c='red', s=80, alpha=0.9, edgecolors='darkred', 
             linewidth=1.5, label=f'Front Verdadeiro ({len(pareto_real)} pts)', zorder=3)
 
-    # Conectar os pontos do front verdadeiro
-    ax_main.plot(pareto_real['fitness1'], pareto_real['fitness2'], 
-            'r-', alpha=0.6, linewidth=2, zorder=2)
-
     # Plotar o front surrogate em destaque
     ax_main.scatter(pareto_surrogate['fitness1'], pareto_surrogate['fitness2'], 
             c='blue', s=80, alpha=0.9, edgecolors='darkblue', 
             linewidth=1.5, label=f'Front Surrogate ({len(pareto_surrogate)} pts)', zorder=3)
-
-    # Conectar os pontos do front surrogate
-    ax_main.plot(pareto_surrogate['fitness1'], pareto_surrogate['fitness2'], 
-            'b-', alpha=0.6, linewidth=2, zorder=2)
 
     # Configurações do gráfico principal
     ax_main.set_xlabel('Fitness1 (f1)', fontsize=13, fontweight='bold')
@@ -1006,14 +1018,10 @@ def display_pareto_fronts3(df_real, pareto_fronts_list):
         color = colors[i % len(colors)]
         dark_color = dark_colors[i % len(dark_colors)]
         
-        # Plotar o front em destaque
+        # Plotar o front em destaque (50% smaller: s=80 -> s=40)
         ax_main.scatter(pareto_front['fitness1'], pareto_front['fitness2'], 
-                c=color, s=80, alpha=0.9, edgecolors=dark_color, 
+                c=color, s=40, alpha=0.9, edgecolors=dark_color, 
                 linewidth=1.5, label=f'Front {i+1} ({len(pareto_front)} pts)', zorder=3+i)
-
-        # Conectar os pontos do front
-        ax_main.plot(pareto_front['fitness1'], pareto_front['fitness2'], 
-                color=color, alpha=0.6, linewidth=2, zorder=2+i)
 
     # Configurações do gráfico principal
     ax_main.set_xlabel('Fitness1 (f1)', fontsize=13, fontweight='bold')
@@ -1060,9 +1068,9 @@ def display_pareto_fronts3(df_real, pareto_fronts_list):
 
     plt.show()
 
-def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, problema_num=1):
+def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, problema_num=1, n_regioes=10):
     """
-    Plota comparação de distribuições em um grid 2x5 (2 fitness x 5 regiões).
+    Plota comparação de distribuições em um grid 2xN (2 fitness x N regiões).
     Para visualizar ambos os problemas, chame a função duas vezes.
     
     Parameters:
@@ -1075,14 +1083,18 @@ def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, pr
         DataFrame retornado pela função comparar_distribuicoes contendo as métricas
     problema_num : int
         Número do problema (1 ou 2) para filtrar os resultados
+    n_regioes : int, optional
+        Número de regiões para divisão do gráfico (default: 10)
     """
     
     # Filtrar resultados para o problema específico
     df_prob = df_resultados[df_resultados['problema'] == f'problema{problema_num}'].copy()
     
-    # Configuração do grid: 2 linhas (fitness1, fitness2) x 5 colunas (regiões)
-    fig = plt.figure(figsize=(24, 10))
-    gs = GridSpec(2, 5, figure=fig, hspace=0.15, wspace=0.15)
+    # Configuração do grid: 2 linhas (fitness1, fitness2) x N colunas (regiões)
+    # Ajustar largura da figura dinamicamente
+    fig_width = max(16, 4 * n_regioes)  # Mínimo 16, 4 polegadas por região
+    fig = plt.figure(figsize=(fig_width, 10))
+    gs = GridSpec(2, n_regioes, figure=fig, hspace=0.15, wspace=0.15)
     
     # Cores para as distribuições
     cor_surrogate = 'blue'
@@ -1161,26 +1173,31 @@ def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, pr
                 f"WAPE_val: {wape_validacao:.1f}%"
             )
             
+            # Ajustar tamanho da fonte baseado no número de regiões
+            fontsize_metricas = max(7, 10.5 - n_regioes // 3)  # Reduz conforme aumenta regiões
+            fontsize_titulo = max(9, 13 - n_regioes // 3)
+            fontsize_label = max(8, 11 - n_regioes // 3)
+            
             # Box principal com fundo branco
             ax.text(0.02, 0.98, texto_metricas, transform=ax.transAxes,
-                   fontsize=10.5, verticalalignment='top', horizontalalignment='left',
-                   bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
+                   fontsize=fontsize_metricas, verticalalignment='top', horizontalalignment='left',
+                   bbox=dict(boxstyle='round,pad=0.3', facecolor='white', 
                             edgecolor='gray', alpha=0.9, linewidth=0.8),
                    zorder=10)
             
             # Adicionar linha "Iguais:" COLORIDA sobreposta
             ax.text(0.025, 0.928, f"Iguais: {simbolo_iguais} {iguais_valor}", 
                    transform=ax.transAxes,
-                   fontsize=10.5, verticalalignment='top', horizontalalignment='left',
+                   fontsize=fontsize_metricas, verticalalignment='top', horizontalalignment='left',
                    color=cor_iguais, fontweight='bold',
                    zorder=11)
             
             # Configurações do subplot
             if row_idx == 0:
-                ax.set_title(f'Região {regiao}', fontweight='bold', fontsize=13)
+                ax.set_title(f'Região {regiao}', fontweight='bold', fontsize=fontsize_titulo)
             
             if col_idx == 0:
-                ax.set_ylabel(f'{fitness_label}\nDensidade', fontweight='bold', fontsize=11)
+                ax.set_ylabel(f'{fitness_label}\nDensidade', fontweight='bold', fontsize=fontsize_label)
             
             if row_idx == 1:
                 ax.set_xlabel('Erro', fontsize=10)
@@ -1205,10 +1222,10 @@ def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, pr
     plt.show()
 
 
-def display_fitness_landscape_with_2pareto(df, pareto_real, pareto_surrogate):
+def display_fitness_landscape_with_paretos(df, pareto_fronts_list, n_regioes=None):
     '''
-    Plots fitness landscape with two Pareto fronts (real and surrogate)
-    and predicted landscapes with transparency.
+    Plots fitness landscape with multiple Pareto fronts and predicted landscapes.
+    Uses same colors as display_pareto_fronts3 for consistency.
     
     Parameters:
     -----------
@@ -1216,13 +1233,39 @@ def display_fitness_landscape_with_2pareto(df, pareto_real, pareto_surrogate):
         DataFrame with real and predicted fitness landscapes
         Required columns: registro, fitness1, fitness2, fitness_full
         Optional columns: fitness1_c1, fitness2_c1 (predicted landscapes)
-    pareto_real : pd.DataFrame
-        DataFrame with real Pareto front (must have 'registro' column to match with df)
-    pareto_surrogate : pd.DataFrame
-        DataFrame with surrogate Pareto front (must have 'registro' column to match with df)
+    pareto_fronts_list : list of pd.DataFrame
+        List of dataframes with Pareto fronts (must have 'registro' column to match with df)
+    n_regioes : int or None, optional
+        Number of regions to divide the plot. If None, no regions are shown (default: None)
     '''
     
-    def add_pareto_markers(ax, pareto_df, df_main, y_col, marker_color, marker_style='D', label_suffix='', edge_color=None):
+    # Same colors as display_pareto_fronts3 for consistency
+    colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'cyan', 'magenta', 'yellow']
+    dark_colors = ['darkred', 'darkblue', 'darkgreen', 'darkorange', 'darkviolet', 'saddlebrown', 'deeppink', 'darkcyan', 'darkmagenta', 'gold']
+    
+    max_registro = df['registro'].max()
+    
+    # Generate region colors only if n_regioes is specified
+    cores_regioes = None
+    if n_regioes is not None:
+        import matplotlib.cm as cm
+        cmap = cm.get_cmap('tab20', n_regioes)
+        cores_regioes = [cmap(i) for i in range(n_regioes)]
+    
+    def adicionar_regioes_coloridas(ax):
+        """Add colored regions to plot (only if n_regioes is specified)"""
+        if n_regioes is None:
+            return
+        for i in range(n_regioes):
+            inicio = i * (1 / n_regioes) * max_registro
+            fim = (i + 1) * (1 / n_regioes) * max_registro
+            ax.axvspan(inicio, fim, color=cores_regioes[i], alpha=0.2, zorder=0)
+        # Add vertical lines
+        for i in range(1, n_regioes):
+            percent = i / n_regioes
+            ax.axvline(x=max_registro * percent, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+    
+    def add_pareto_markers(ax, pareto_df, df_main, y_col, marker_color, edge_color, label_suffix):
         """Helper function to add Pareto markers using ORIGINAL landscape values"""
         # Merge pareto with main df to get original fitness values at those registro positions
         pareto_with_values = pareto_df.merge(df_main[['registro', y_col]], on='registro', how='left', suffixes=('', '_original'))
@@ -1233,63 +1276,36 @@ def display_fitness_landscape_with_2pareto(df, pareto_real, pareto_surrogate):
         else:
             y_values = pareto_with_values[y_col]
         
-        # Add vertical lines at key Pareto positions
+        # Add vertical lines at key Pareto positions (thin and discreet)
         pareto_sorted = pareto_with_values.sort_values('registro')
         positions = [0, len(pareto_sorted)//4, len(pareto_sorted)//2, 
                      3*len(pareto_sorted)//4, -1]
         for i in positions:
-            ax.axvline(x=pareto_sorted.iloc[i]['registro'], color='red', 
-                      alpha=0.3, linewidth=1.5, linestyle='--', zorder=1)
+            ax.axvline(x=pareto_sorted.iloc[i]['registro'], color=marker_color, 
+                      alpha=0.2, linewidth=0.8, linestyle='--', zorder=1)
         
-        # Determine edge color
-        if edge_color is None:
-            if marker_color == 'red':
-                edge_color = 'darkred'
-            elif marker_color == 'royalblue':
-                edge_color = 'darkblue'
-            elif marker_color == 'green':
-                edge_color = 'darkgreen'
-            elif marker_color == 'darkgreen':
-                edge_color = 'black'
-            elif marker_color == 'gold':
-                edge_color = 'red'  # Gold markers with red edge
-            else:
-                edge_color = 'darkorange'
-        
-        # Add scatter points at ORIGINAL fitness values
+        # Add scatter points at ORIGINAL fitness values (75% of original: s=40 -> s=30)
         ax.scatter(pareto_with_values['registro'], y_values, 
-                  c=marker_color, s=40 if marker_style=='D' else 50, 
-                  alpha=0.9 if marker_style=='D' else 0.95,
+                  c=marker_color, s=30, 
+                  alpha=0.9,
                   edgecolors=edge_color,
-                  linewidth=1.5 if marker_style=='D' else 2,
-                  label=f'Pareto {label_suffix} ({len(pareto_df):,})', 
-                  zorder=5, marker=marker_style)
+                  linewidth=1.2,
+                  label=f'{label_suffix} ({len(pareto_df):,})', 
+                  zorder=5, marker='D')
     
     # Configuration for the first two subplots (fitness1 and fitness2)
     plot_configs = [
         {
             'y_col': 'fitness1',
             'y_col_pred': 'fitness1_c1',
-            'fill_color': 'steelblue',
-            'edge_color': 'darkblue',
-            'pred_color': 'darkorange',  # Different color for predicted
-            'pareto_real_color': 'red',
-            'pareto_surrogate_color': 'royalblue',
-            'marker_style': 'D',
             'ylabel': 'Fitness1',
-            'title': 'Fitness1 Landscape: Ótimos Verdadeiros e Encontrados'
+            'title': 'Fitness1 Landscape: Ótimos de Múltiplos Fronts'
         },
         {
             'y_col': 'fitness2',
             'y_col_pred': 'fitness2_c1',
-            'fill_color': 'coral',
-            'edge_color': 'darkred',
-            'pred_color': 'darkturquoise',  # Different color for predicted
-            'pareto_real_color': 'red',
-            'pareto_surrogate_color': 'royalblue',
-            'marker_style': 'D',
             'ylabel': 'Fitness2',
-            'title': 'Fitness2 Landscape: Ótimos Verdadeiros e Encontrados'
+            'title': 'Fitness2 Landscape: Ótimos de Múltiplos Fronts'
         }
     ]
     
@@ -1297,69 +1313,74 @@ def display_fitness_landscape_with_2pareto(df, pareto_real, pareto_surrogate):
     
     # ========== SUBFIGURAS 1 e 2: Fitness1 e Fitness2 ==========
     for ax, config in zip(axes[:2], plot_configs):
-        # Plot real landscape (filled area)
-        ax.fill_between(df['registro'], df[config['y_col']], alpha=0.5,
-                       color=config['fill_color'], edgecolor=config['edge_color'],
-                       linewidth=0.5, label='Landscape verdadeira')
+        # Add colored regions first
+        adicionar_regioes_coloridas(ax)
         
-        # Plot predicted landscape LINE with 50% transparency (ADDED)
+        # Plot real landscape as BLACK LINE (not filled area)
+        ax.plot(df['registro'], df[config['y_col']], 
+               color='black', linewidth=1.5, 
+               label='Landscape verdadeira', zorder=2)
+        
+        # Plot predicted landscape as GRAY LINE (25% thinner)
         if config['y_col_pred'] in df.columns:
             ax.plot(df['registro'], df[config['y_col_pred']], 
-                   alpha=0.5, color=config['pred_color'], linewidth=1.5, 
-                   linestyle='--', label='Landscape prevista', zorder=2)
+                   color='gray', linewidth=1.125, 
+                   linestyle='--', label='Landscape prevista', zorder=1)
         
-        # Add Pareto front markers - real (ótimos verdadeiros) - using ORIGINAL values
-        add_pareto_markers(ax, pareto_real, df, config['y_col'], 
-                         config['pareto_real_color'], config['marker_style'], 
-                         label_suffix='Verdadeiro')
-        
-        # Add Pareto front markers - surrogate (ótimos encontrados) - using ORIGINAL values
-        add_pareto_markers(ax, pareto_surrogate, df, config['y_col'], 
-                         config['pareto_surrogate_color'], 'D', 
-                         label_suffix='Encontrado')
+        # Add Pareto front markers for all fronts
+        for i, pareto_front in enumerate(pareto_fronts_list):
+            color = colors[i % len(colors)]
+            dark_color = dark_colors[i % len(dark_colors)]
+            add_pareto_markers(ax, pareto_front, df, config['y_col'], 
+                             color, dark_color, f'Front {i+1}')
         
         ax.set_xlabel('Registro (x)', fontsize=12, fontweight='bold')
         ax.set_ylabel(config['ylabel'], fontsize=12, fontweight='bold')
         ax.set_title(config['title'], fontsize=14, fontweight='bold')
         ax.legend(fontsize=10, loc='best', framealpha=0.9)
         ax.grid(True, alpha=0.3)
+        ax.set_xlim(0, max_registro)
     
     # ========== SUBFIGURA 3: Comparação completa ==========
     ax = axes[2]
+    adicionar_regioes_coloridas(ax)
     
-    # Plot real landscapes (all three)
-    for col, color, alpha, lw, label in [
-        ('fitness_full', 'purple', 0.6, 1.5, 'Fitness Full (verdadeira)'),
-        ('fitness1', 'steelblue', 0.5, 1, 'Fitness1 (verdadeira)'),
-        ('fitness2', 'coral', 0.5, 1, 'Fitness2 (verdadeira)')
-    ]:
-        ax.plot(df['registro'], df[col], alpha=alpha, color=color, 
-               linewidth=lw, label=label, zorder=2)
+    # Plot real landscapes as BLACK LINES (only real landscapes, no predicted)
+    ax.plot(df['registro'], df['fitness_full'], 
+           color='black', linewidth=2, 
+           label='Fitness Full (verdadeira)', zorder=3)
+    ax.plot(df['registro'], df['fitness1'], 
+           color='black', linewidth=1, alpha=0.4,
+           label='Fitness1 (verdadeira)', zorder=2)
+    ax.plot(df['registro'], df['fitness2'], 
+           color='black', linewidth=1, alpha=0.4,
+           label='Fitness2 (verdadeira)', zorder=2)
     
-    # Plot predicted fitness_full LINE (fitness1_c1 + fitness2_c1) with transparency (ADDED)
-    if 'fitness1_c1' in df.columns and 'fitness2_c1' in df.columns:
-        # Calculate predicted full fitness (sum of predicted f1 and f2)
-        fitness_full_pred = df['fitness1_c1'] + df['fitness2_c1']
-        ax.plot(df['registro'], fitness_full_pred, 
-               alpha=0.5, color='darkorange', linewidth=1.5, 
-               linestyle='--', label='Fitness Full (prevista)', zorder=1)
-    
-    # Add Pareto markers for real front (ótimos verdadeiros) - using ORIGINAL values
-    # Red diamond markers (STANDARDIZED across all figures)
-    add_pareto_markers(ax, pareto_real, df, 'fitness_full', 'red', 'D', 
-                     label_suffix='Verdadeiro', edge_color='darkred')
-    
-    # Add Pareto markers for surrogate front (ótimos encontrados) - using ORIGINAL values
-    # Royal blue diamond markers (STANDARDIZED across all figures)
-    add_pareto_markers(ax, pareto_surrogate, df, 'fitness_full', 'royalblue', 'D', 
-                     label_suffix='Encontrado', edge_color='darkblue')
+    # Add Pareto markers for all fronts
+    for i, pareto_front in enumerate(pareto_fronts_list):
+        color = colors[i % len(colors)]
+        dark_color = dark_colors[i % len(dark_colors)]
+        add_pareto_markers(ax, pareto_front, df, 'fitness_full', 
+                         color, dark_color, f'Front {i+1}')
     
     ax.set_xlabel('Registro (x)', fontsize=12, fontweight='bold')
     ax.set_ylabel('Fitness', fontsize=12, fontweight='bold')
-    ax.set_title('Comparação Completa: Landscapes Verdadeiras e Previstas com Ótimos',
+    ax.set_title('Comparação Completa: Landscapes Verdadeiras com Múltiplos Fronts',
                 fontsize=14, fontweight='bold')
     ax.legend(fontsize=9, loc='best', framealpha=0.9, ncol=2)
     ax.grid(True, alpha=0.3)
+    ax.set_xlim(0, max_registro)
     
     plt.tight_layout()
     plt.show()
+
+
+def display_fitness_landscape_with_2pareto(df, pareto_real, pareto_surrogate):
+    '''
+    DEPRECATED: Use display_fitness_landscape_with_paretos() instead.
+    
+    Plots fitness landscape with two Pareto fronts (real and surrogate).
+    This function is kept for backward compatibility.
+    '''
+    print("⚠️  AVISO: Esta função está deprecated. Use display_fitness_landscape_with_paretos() para múltiplos fronts.")
+    display_fitness_landscape_with_paretos(df, [pareto_real, pareto_surrogate])

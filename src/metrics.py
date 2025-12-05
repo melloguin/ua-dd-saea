@@ -91,33 +91,7 @@ def print_gamma_metric(results):
     results : dict
         Dicionário retornado pela função calculate_gamma_convergence_metric
     """
-    print("="*70)
-    print("MÉTRICA DE CONVERGÊNCIA GAMMA (γ)")
-    print("="*70)
-    print(f"\n📊 Informações dos Fronts:")
-    print(f"   • Pontos no front verdadeiro: {results['n_real']:,}")
-    print(f"   • Pontos no front encontrado: {results['n_surrogate']:,}")
-    
-    print(f"\n🎯 Métrica de Convergência:")
+    print(f"🎯 Métrica de Convergência:")
     print(f"   • Gamma (γ) - Média:        {results['gamma_mean']:.6f}")
     print(f"   • Desvio Padrão:            {results['gamma_std']:.6f}")
-    
-    print(f"\n📈 Estatísticas das Distâncias Mínimas:")
-    print(f"   • Mínima:                   {np.min(results['min_distances']):.6f}")
-    print(f"   • Máxima:                   {np.max(results['min_distances']):.6f}")
-    print(f"   • Mediana:                  {np.median(results['min_distances']):.6f}")
-    
-    print(f"\n💡 Interpretação:")
-    if results['gamma_mean'] < 1.0:
-        print(f"   ✅ EXCELENTE convergência (γ < 1.0)")
-    elif results['gamma_mean'] < 5.0:
-        print(f"   ✅ BOA convergência (1.0 ≤ γ < 5.0)")
-    elif results['gamma_mean'] < 10.0:
-        print(f"   ⚠️  MODERADA convergência (5.0 ≤ γ < 10.0)")
-    else:
-        print(f"   ❌ FRACA convergência (γ ≥ 10.0)")
-    
-    print(f"\n   Quanto menor o valor de γ, melhor a convergência.")
-    print(f"   γ = 0 indica que todas as soluções estão exatamente no front real.")
-    print("="*70)
 

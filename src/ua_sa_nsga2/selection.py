@@ -1,4 +1,5 @@
 import numpy as np
+from joblib import Parallel, delayed
 
 
 ####################################################################################################################################
@@ -106,44 +107,78 @@ def fast_non_dominated_sort(population, config):
     return fronts
 
 
+def _process_single_simulation(s, original_fitness_list, config):
+    """
+    Processa uma única simulação para uncertainty-aware ranking
+    
+    Args:
+        s: índice da simulação
+        original_fitness_list: lista com os fitness originais [fitness_ind0, fitness_ind1, ...]
+        config: configurações do algoritmo
+        
+    Returns:
+        list: lista de ranks [rank_ind0, rank_ind1, ...] nesta simulação
+    """
+    # Cria uma cópia temporária da população para esta simulação
+    # usando uma classe simples para evitar modificar os objetos originais
+    from types import SimpleNamespace
+    
+    temp_population = []
+    for idx, original_fitness in enumerate(original_fitness_list):
+        # Cria um objeto temporário com o fitness da s-ésima simulação
+        temp_ind = SimpleNamespace()
+        temp_ind.fitness = [
+            original_fitness[0][s],  # s-ésimo valor do objetivo 1
+            original_fitness[1][s]   # s-ésimo valor do objetivo 2
+        ]
+        temp_ind.dominated_solutions = []
+        temp_ind.domination_count = 0
+        temp_ind.rank = 0
+        temp_ind.idx = idx  # guarda o índice original
+        temp_population.append(temp_ind)
+    
+    # Realiza fast non-dominated sort com o fitness da s-ésima simulação
+    fronts = fast_non_dominated_sort(temp_population, config)
+    
+    # Coleta o rank de cada indivíduo nesta simulação, ordenado por índice
+    simulation_ranks = [0] * len(original_fitness_list)
+    for individual in temp_population:
+        simulation_ranks[individual.idx] = individual.rank
+    
+    return simulation_ranks
+
+
 def uncertainty_aware_ranking(combined_population, config):
     '''
-    Uncertainty-Aware Ranking using Multiple Simulations
+    Uncertainty-Aware Ranking using Multiple Simulations (Paralelizado com joblib)
 
         - Salva os fitness originais (listas completas)
-        - Realiza fast non-dominated sort para cada simulação
+        - Realiza fast non-dominated sort para cada simulação (em paralelo)
         - Coleta o rank de cada indivíduo nesta simulação
         - Restaura os fitness originais e calcula a média e desvio padrão dos ranks
     '''
     
-    # Salva os fitness originais (listas completas)
-    original_fitness = {}
-    for individual in combined_population:
-        original_fitness[id(individual)] = individual.fitness
+    # Salva os fitness originais (listas completas) em uma lista indexada
+    original_fitness_list = [individual.fitness for individual in combined_population]
 
-    # Realiza fast non-dominated sort para cada simulação
-    for s in range(config['n_simulations']):
-        
-        # Atribui o s-ésimo valor de fitness para cada indivíduo
-        for individual in combined_population:
-            # fitness[0] é uma lista com n_simulations valores para o objetivo 1
-            # fitness[1] é uma lista com n_simulations valores para o objetivo 2
-            individual.fitness = [
-                original_fitness[id(individual)][0][s],  # s-ésimo valor do objetivo 1
-                original_fitness[id(individual)][1][s]   # s-ésimo valor do objetivo 2
-            ]
-        
-        # Realiza fast non-dominated sort com o fitness da s-ésima simulação
-        fronts = fast_non_dominated_sort(combined_population, config)
-        
-        # Coleta o rank de cada indivíduo nesta simulação
-        for individual in combined_population:
-            individual.ua_rank.append(individual.rank)
+    # Realiza fast non-dominated sort para cada simulação (em paralelo)
+    # n_jobs=-1 usa todos os cores disponíveis
+    # Agora funciona com multiprocessing pois não depende de id()
+    all_simulation_ranks = Parallel(n_jobs=-1)(
+        delayed(_process_single_simulation)(s, original_fitness_list, config)
+        for s in range(config['n_simulations'])
+    )
+    
+    # Coleta os ranks de todas as simulações para cada indivíduo
+    # all_simulation_ranks é uma lista de listas: [[ranks_sim0], [ranks_sim1], ...]
+    # Precisamos transpor para: [[ranks_ind0], [ranks_ind1], ...]
+    for idx, individual in enumerate(combined_population):
+        individual.ua_rank = [simulation_ranks[idx] for simulation_ranks in all_simulation_ranks]
 
     # Restaura os fitness originais e calcula estatísticas dos ranks
-    for individual in combined_population:
+    for idx, individual in enumerate(combined_population):
         # Restaura os fitness originais
-        individual.fitness = original_fitness[id(individual)]
+        individual.fitness = original_fitness_list[idx]
         # Calcula a média dos ranks obtidos nas n_simulations
         individual.rank = np.mean(individual.ua_rank)
         # Calcula a métrica de dispersão: média dos desvios positivos acima da média

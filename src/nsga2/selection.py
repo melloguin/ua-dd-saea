@@ -171,11 +171,11 @@ def calculate_crowding_distance(front):
 
 ####################################################################################################################################
 ####################################################################################################################################
-### Seleção Geracional
+### Seleção Ambiental
 
-def generational_selection(combined_population, pop_size):
+def environmental_selection(combined_population, config):
     """
-    Seleção geracional: seleciona os melhores N indivíduos de Rt = Pt + Qt
+    Seleção ambiental: seleciona os melhores N indivíduos de Rt = Pt + Qt
 
 	• Formamos P(t+1) com N soluções, selecionando os x elementos com maior crowding distance do x-ésimo conjunto (primeiro a não caber em N)
         • Iremos unificar ambas as populações para uma grande população Rt = Pt + Qt, de tamanho 2N

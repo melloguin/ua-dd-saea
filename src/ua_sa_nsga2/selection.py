@@ -180,23 +180,23 @@ def uncertainty_aware_ranking(combined_population, config):
         # Restaura os fitness originais
         individual.fitness = original_fitness_list[idx]
         # Calcula a média dos ranks obtidos nas n_simulations
-        individual.rank = np.mean(individual.ua_rank)
+        individual.rank = round(np.mean(individual.ua_rank), 5)
         # Calcula a métrica de dispersão: média dos desvios positivos acima da média
         mean_rank = individual.rank
         positive_deviations = np.maximum(0, np.array(individual.ua_rank) - mean_rank)
         individual.rank_std = round(np.mean(positive_deviations), 5)
         # Restaura os ua_ranks
-        individual.ua_rank = []
+#        individual.ua_rank = []
 
 
 
 ####################################################################################################################################
 ####################################################################################################################################
-### Seleção Geracional
+### Seleção Ambiental
 
-def generational_selection(combined_population, config):
+def environmental_selection(combined_population, config):
     """
-    Seleção geracional: seleciona os melhores N indivíduos de Rt = Pt + Qt
+    Seleção ambiental: seleciona os melhores N indivíduos de Rt = Pt + Qt
 
 	• Formamos P(t+1) com N soluções, selecionando os x elementos com maior crowding distance do x-ésimo conjunto (primeiro a não caber em N)
         • Iremos unificar ambas as populações para uma grande população Rt = Pt + Qt, de tamanho 2N

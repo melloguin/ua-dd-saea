@@ -6,7 +6,7 @@ from src.ua_sa_nsga2.individual     import Individual
 from src.ua_sa_nsga2.inicialization import initialize_population
 from src.ua_sa_nsga2.evaluation     import evaluate_population, genotype_to_registro
 from src.ua_sa_nsga2.offspring      import create_offspring_population
-from src.ua_sa_nsga2.selection      import generational_selection
+from src.ua_sa_nsga2.selection      import environmental_selection
 from src.ua_sa_nsga2.utils          import collect_generation_stats, plot_optimization_progress
 
 
@@ -30,7 +30,7 @@ def run_my_uasa_nsga2(config: dict,
             - avalia Fitness da população descendente
 
         3. Seleção Geracional - P(t+1) 
-            (generational selection)
+            (environmental selection)
              - população Combinada (Rt) = população Inicial (Pt) + Descendente (Qt)
              - utilizamos a operação "fast-non-dominated-sort" em Rt, para definir os fronts (ranking) de dominância
              - calculamos a crowding distance das soluções em cada front
@@ -72,12 +72,12 @@ def run_my_uasa_nsga2(config: dict,
         evaluate_population(offspring, df_landscape, config['fitness_cols'], config['maximize'])
 
 
-        ######### 3. Seleção Geracional (generational selection)
+        ######### 3. Seleção Geracional (environmental selection)
         # Combinar Pt e Qt para formar Rt
         combined_population = population + offspring
 
         # Seleção geracional: selecionar N melhores para formar P(t+1)
-        population = generational_selection(combined_population, config)
+        population = environmental_selection(combined_population, config)
 
 
     ######### Finalização

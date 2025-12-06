@@ -6,7 +6,7 @@ from src.nsga2.individual     import Individual
 from src.nsga2.inicialization import initialize_population
 from src.nsga2.evaluation     import evaluate_population, genotype_to_registro
 from src.nsga2.offspring      import create_offspring_population
-from src.nsga2.selection      import generational_selection
+from src.nsga2.selection      import environmental_selection
 from src.nsga2.utils          import collect_generation_stats, plot_optimization_progress
 
 
@@ -29,8 +29,8 @@ def run_my_nsga2(config: dict,
             - gera população descendente (N filhos) via operações genéticas (crossover e mutação) - sobre conjunto de pais
             - avalia Fitness da população descendente
 
-        3. Seleção Geracional - P(t+1) 
-            (generational selection)
+        3. Seleção Ambiental - P(t+1) 
+            (environmental selection)
              - população Combinada (Rt) = população Inicial (Pt) + Descendente (Qt)
              - utilizamos a operação "fast-non-dominated-sort" em Rt, para definir os fronts (ranking) de dominância
              - calculamos a crowding distance das soluções em cada front
@@ -73,12 +73,12 @@ def run_my_nsga2(config: dict,
         evaluate_population(offspring, df_landscape, config['fitness_cols'], config['maximize'])
 
 
-        ######### 3. Seleção Geracional (generational selection)
+        ######### 3. Seleção Geracional (environmental selection)
         # Combinar Pt e Qt para formar Rt
         combined_population = population + offspring
 
         # Seleção geracional: selecionar N melhores para formar P(t+1)
-        population = generational_selection(combined_population, config['population_size'])
+        population = environmental_selection(combined_population, config['population_size'])
 
         # Rastreamento de progresso
         if config['track_progress']:

@@ -238,3 +238,4 @@ As amostras MCMC geradas devem:
 
 
 
+

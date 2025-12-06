@@ -3,6 +3,9 @@ import math
 import numpy as np
 from matplotlib.gridspec import GridSpec
 from scipy import stats as scipy_stats
+from src.nsga2.evaluation import genotype_to_registro
+from src.nsga2.evaluation import evaluate_population
+import matplotlib.pyplot as plt
 
 # Configure matplotlib for better performance with large datasets
 plt.style.use('seaborn-v0_8-darkgrid')
@@ -1384,3 +1387,196 @@ def display_fitness_landscape_with_2pareto(df, pareto_real, pareto_surrogate):
     '''
     print("⚠️  AVISO: Esta função está deprecated. Use display_fitness_landscape_with_paretos() para múltiplos fronts.")
     display_fitness_landscape_with_paretos(df, [pareto_real, pareto_surrogate])
+
+
+def gerar_gif_evolucao_nsga2(df_landscape, history, nome_arquivo='evolucao_nsga2.gif', 
+                              fps=10, output_dir='data'):
+    """
+    Gera um GIF animado mostrando a evolução das populações do NSGA-II ao longo das gerações.
+    
+    Parameters:
+    -----------
+    df_landscape : pd.DataFrame
+        Dataframe com a fitness landscape verdadeira (todos os pontos)
+    history : list
+        Lista com histórico de populações retornado por run_my_uasa_nsga2 com save_history=True.
+        Cada elemento da lista é uma lista de dicionários com 'genotype' e 'fitness'.
+    nome_arquivo : str, optional
+        Nome do arquivo GIF a ser gerado (default: 'evolucao_nsga2.gif')
+    fps : int, optional
+        Frames por segundo (velocidade do gif) (default: 10)
+    output_dir : str, optional
+        Diretório onde o GIF será salvo (default: 'data')
+    """
+    import imageio.v3 as imageio
+    import io
+    import os
+    
+    if history is None:
+        raise ValueError("Histórico de populações não foi fornecido. Execute run_my_uasa_nsga2 com save_history=True")
+    
+    # Criar diretório de saída se não existir
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Calcular limites comuns para todos os gráficos
+    max_fitness = max(df_landscape['fitness1'].max(), df_landscape['fitness2'].max())
+    max_limit = math.ceil(max_fitness / 2) * 2
+    
+    # Subsampling da landscape para não sobrecarregar o gráfico
+    sample_size = min(500000, len(df_landscape))
+    df_sample = df_landscape.sample(n=sample_size, random_state=42)
+    
+    n_frames = len(history)
+    print(f"Iniciando a geração de {n_frames} frames...")
+    
+    frames_buffer = []  # Lista para segurar as imagens na memória RAM
+    
+    # Loop de geração de frames
+    for i, population_snapshot in enumerate(history):
+        # Converter população snapshot para dataframe
+        registros_pop = []
+        for ind in population_snapshot:
+            # Converter genótipo para registro
+            registro = int(''.join(map(str, ind['genotype'])))
+            registros_pop.append(registro)
+        
+        # Filtrar população atual do dataframe
+        df_pop_atual = df_landscape[df_landscape['registro'].isin(registros_pop)].copy()
+        
+        # Criar figura com subplots usando GridSpec
+        fig = plt.figure(figsize=(12, 12))
+        gs = fig.add_gridspec(3, 3, width_ratios=[1, 6, 0.4], height_ratios=[0.4, 6, 1], 
+                             hspace=0.02, wspace=0.02)
+        
+        # Eixo principal (scatter plot)
+        ax_main = fig.add_subplot(gs[1, 1])
+        
+        # Eixos para os boxplots
+        ax_top = fig.add_subplot(gs[0, 1], sharex=ax_main)
+        ax_right = fig.add_subplot(gs[1, 2], sharey=ax_main)
+        
+        # Plotar todos os pontos (amostra) em cinza
+        ax_main.scatter(df_sample['fitness1'], df_sample['fitness2'], 
+                c='lightgray', s=10, alpha=0.3, 
+                label=f'Landscape completa (amostra de {sample_size:,})', zorder=1)
+        
+        # Plotar a população atual em vermelho
+        ax_main.scatter(df_pop_atual['fitness1'], df_pop_atual['fitness2'], 
+                c='red', s=80, alpha=0.9, edgecolors='darkred', 
+                linewidth=1.5, label=f'População Gen {i} ({len(df_pop_atual)} pts)', zorder=3)
+        
+        # Configurações do gráfico principal
+        ax_main.set_xlabel('Fitness1 (f1)', fontsize=13, fontweight='bold')
+        ax_main.set_ylabel('Fitness2 (f2)', fontsize=13, fontweight='bold')
+        ax_main.set_title(f'Evolução NSGA-II - Geração {i}/{n_frames-1}\n(Problema de Maximização Bi-Objetivo)', 
+                fontsize=15, fontweight='bold', pad=20)
+        ax_main.legend(fontsize=11, loc='best')
+        ax_main.grid(True, alpha=0.3, linestyle='--')
+        
+        # Definir limites iguais para x e y começando em 0
+        ax_main.set_xlim(0, max_limit)
+        ax_main.set_ylim(0, max_limit)
+        
+        # Definir aspect ratio igual
+        ax_main.set_aspect('equal', adjustable='box')
+        
+        # Boxplot para Fitness1 da amostra (topo - horizontal, mais discreto)
+        bp1 = ax_top.boxplot([df_sample['fitness1']], vert=False, widths=0.5,
+                             patch_artist=True, 
+                             boxprops=dict(facecolor='lightgray', alpha=0.4, linewidth=0.8),
+                             medianprops=dict(color='dimgray', linewidth=1.2),
+                             whiskerprops=dict(color='gray', linewidth=0.8),
+                             capprops=dict(color='gray', linewidth=0.8),
+                             flierprops=dict(marker='o', markersize=2, alpha=0.3))
+        ax_top.tick_params(labelbottom=False, labelleft=False, length=0)
+        ax_top.set_yticks([])
+        ax_top.spines['top'].set_visible(False)
+        ax_top.spines['right'].set_visible(False)
+        ax_top.spines['left'].set_visible(False)
+        
+        # Boxplot para Fitness2 da amostra (direita - vertical, mais discreto)
+        bp2 = ax_right.boxplot([df_sample['fitness2']], vert=True, widths=0.5,
+                               patch_artist=True,
+                               boxprops=dict(facecolor='lightgray', alpha=0.4, linewidth=0.8),
+                               medianprops=dict(color='dimgray', linewidth=1.2),
+                               whiskerprops=dict(color='gray', linewidth=0.8),
+                               capprops=dict(color='gray', linewidth=0.8),
+                               flierprops=dict(marker='o', markersize=2, alpha=0.3))
+        ax_right.tick_params(labelleft=False, labelbottom=False, length=0)
+        ax_right.set_xticks([])
+        ax_right.spines['top'].set_visible(False)
+        ax_right.spines['right'].set_visible(False)
+        ax_right.spines['bottom'].set_visible(False)
+        
+        # Salvar o plot na Memória (Buffer)
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png', dpi=100, bbox_inches='tight')
+        buf.seek(0)  # Retorna o "cursor" para o início do arquivo na memória
+        
+        # Ler a imagem da memória usando imageio
+        frame_imagem = imageio.imread(buf)
+        frames_buffer.append(frame_imagem)
+        
+        # Limpeza
+        buf.close()
+        plt.close(fig)
+        
+        # Barra de progresso simples
+        if (i + 1) % 10 == 0:
+            print(f"Processado {i + 1}/{n_frames} frames...")
+    
+    # Salvar o GIF Final
+    caminho_arquivo = os.path.join(output_dir, nome_arquivo)
+    print(f"Salvando arquivo '{nome_arquivo}' no diretório '{output_dir}'...")
+    
+    # loop=0 significa que o GIF vai repetir infinitamente
+    # duration é o tempo de cada frame em milissegundos (ou 1000/fps)
+    imageio.imwrite(caminho_arquivo, frames_buffer, duration=(1000/fps), loop=0)
+    
+    caminho_completo = os.path.abspath(caminho_arquivo)
+    print(f"\n✅ Sucesso! GIF gerado em:\n{caminho_completo}")
+    
+    return caminho_completo
+
+
+
+
+
+def display_evolution_of_genotypes(df_history):
+
+    # Visualizar evolução dos genótipos ao longo das gerações
+    fig, axes = plt.subplots(1, 2, figsize=(16, 5))
+
+    # Plot 1: COM diferenciação de cor por id_solucao
+    ax1 = axes[0]
+    for id_sol in df_history['id_solucao'].unique():
+        df_sol = df_history[df_history['id_solucao'] == id_sol]
+        ax1.plot(df_sol['geracao'], df_sol['genotipo'], 
+                alpha=0.6, linewidth=0.8, marker='')
+
+    ax1.set_xlabel('Geração', fontsize=12)
+    ax1.set_ylabel('Genótipo (Registro)', fontsize=12)
+    ax1.set_title('Evolução dos Genótipos - COM diferenciação por solução', fontsize=13, fontweight='bold')
+    ax1.grid(True, alpha=0.3)
+
+    # Plot 2: SEM diferenciação de cor (todas as linhas iguais)
+    ax2 = axes[1]
+    for id_sol in df_history['id_solucao'].unique():
+        df_sol = df_history[df_history['id_solucao'] == id_sol]
+        ax2.plot(df_sol['geracao'], df_sol['genotipo'], 
+                color='steelblue', alpha=0.4, linewidth=0.8, marker='')
+
+    ax2.set_xlabel('Geração', fontsize=12)
+    ax2.set_ylabel('Genótipo (Registro)', fontsize=12)
+    ax2.set_title('Evolução dos Genótipos - SEM diferenciação por solução', fontsize=13, fontweight='bold')
+    ax2.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.show()
+
+    # Estatísticas adicionais
+    print(f"\n📊 Estatísticas do histórico:")
+    print(f"   • Total de registros: {len(df_history):,}")
+    print(f"   • Gerações: {df_history['geracao'].nunique()}")
+    print(f"   • Soluções por geração: {df_history['id_solucao'].nunique()}")
+    print(f"   • Genótipos únicos visitados: {df_history['genotipo'].nunique():,}")

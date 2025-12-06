@@ -12,8 +12,9 @@ from src.ua_sa_nsga2.utils          import collect_generation_stats, plot_optimi
 
 def run_my_uasa_nsga2(config: dict,
                       df_landscape: pd.DataFrame, 
-                      input_initial_population: list = None
-                     ) -> tuple[pd.DataFrame, list, pd.DataFrame]:
+                      save_history: bool = False,
+                      input_initial_population: list = None,
+                     ) -> tuple[pd.DataFrame, list]:
     """
     Implementação completa do algoritmo NSGA-II, seguindo o paper original de Deb et al. (2002)
 
@@ -43,11 +44,11 @@ def run_my_uasa_nsga2(config: dict,
         config: dicionário de configuração
         df_landscape: dataframe com o landscape de fitness
         input_initial_population: lista de genótipos (opcional)
+        save_history: se True, salva o histórico de populações (default: False)
 
     returns:
         df_pareto: dataframe com as soluções no front de Pareto encontrado
-        pareto_front: lista de soluções no front de Pareto encontrado
-        df_progress: dataframe com as estatísticas de progresso por geração
+        history: lista com histórico de populações (se save_history=True), senão None
     """
 
     ######### 1. População Inicial (initial population)
@@ -60,6 +61,18 @@ def run_my_uasa_nsga2(config: dict,
     # Avalia fitness da população inicial
     evaluate_population(population, df_landscape, config['fitness_cols'], config['maximize'])
     
+    # Inicializar histórico se solicitado
+    history = [] if save_history else None
+    if save_history:
+        # Salvar população inicial (geração 0)
+        population_snapshot = [
+            {
+                'genotype': ind.genotype.copy(),
+                'fitness': ind.fitness.copy() if ind.fitness is not None else None
+            }
+            for ind in population
+        ]
+        history.append(population_snapshot)
 
     ############# Loop principal das gerações
     for generation in tqdm(range(config['n_generations'])):
@@ -79,6 +92,17 @@ def run_my_uasa_nsga2(config: dict,
         # Seleção geracional: selecionar N melhores para formar P(t+1)
         population = environmental_selection(combined_population, config)
 
+        # Salvar snapshot da população se histórico está ativado
+        if save_history:
+            population_snapshot = [
+                {
+                    'genotype': ind.genotype.copy(),
+                    'fitness': ind.fitness.copy() if ind.fitness is not None else None
+                }
+                for ind in population
+            ]
+            history.append(population_snapshot)
+
 
     ######### Finalização
     # Converter para registros e criar dataframe
@@ -89,4 +113,4 @@ def run_my_uasa_nsga2(config: dict,
     print(f"Registros únicos no dataframe: {len(df_pareto)}")
 
 
-    return df_pareto
+    return df_pareto, history

@@ -189,6 +189,9 @@ def environmental_selection(combined_population, config):
 	- Essa metodologia garante o elitismo, uma vez que as melhores soluções entre Pt e Qt sempre serão mantidas (prioridade é sempre o ranking de dominancia)
 
     """
+    # Extrair o tamanho da população do config
+    pop_size = config['population_size']
+    
     # Realiza fast non-dominated sort
     fronts = fast_non_dominated_sort(combined_population)
     

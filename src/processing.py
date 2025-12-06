@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from catboost import CatBoostRegressor
+from src.nsga2.evaluation import genotype_to_registro
 
 
 ######################################################################################################################
@@ -133,6 +134,35 @@ def find_pareto_front(df):
 
 
 
+###########################################################
+def history_to_dataframe(history):
+    """
+    Transforma o histórico de populações do NSGA-II em um dataframe.
+    
+    Args:
+        history: lista de gerações, onde cada geração contém uma lista de 
+                 dicionários com 'genotype' e 'fitness'
+    
+    Returns:
+        DataFrame com colunas: geracao, id_solucao, genotipo (registro)
+    """
+    dados = []
+    
+    for geracao, populacao in enumerate(history):
+        for id_solucao, individuo in enumerate(populacao):
+            # Converter genótipo para registro usando a função já existente
+            registro = genotype_to_registro(individuo['genotype'])
+            
+            dados.append({
+                'geracao': geracao,
+                'id_solucao': id_solucao,
+                'genotipo': registro
+            })
+    
+    return pd.DataFrame(dados)
+
+
+
 
 
 ######################################################################################################################
@@ -217,7 +247,6 @@ def amostrar_por_regiao(df2, df_amostragem, cenario):
     df_amostrado = pd.concat(amostras, ignore_index=True)
     
     return df_amostrado
-
 
 
 

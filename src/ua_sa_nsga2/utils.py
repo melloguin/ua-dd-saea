@@ -13,8 +13,13 @@ def collect_generation_stats(population, generation, config):
     Returns:
         dict com estatísticas da geração
     """
-    # Encontrar soluções no primeiro front
-    front1 = [ind for ind in population if ind.rank == 1]
+    # Encontrar soluções com ua_rank próximo de 1 (melhor front uncertainty-aware)
+    # Usamos threshold de 1.5 para capturar soluções do primeiro front considerando incerteza
+    front1 = [ind for ind in population if hasattr(ind, 'ua_rank') and ind.ua_rank <= 1.5]
+    
+    # Fallback: se não houver ua_rank, tenta usar rank tradicional
+    if len(front1) == 0:
+        front1 = [ind for ind in population if hasattr(ind, 'rank') and ind.rank == 1]
     
     # Calcular estatísticas de fitness
     fitness1_values = [ind.fitness[0] for ind in front1]

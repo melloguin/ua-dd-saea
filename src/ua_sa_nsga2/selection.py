@@ -154,8 +154,10 @@ def uncertainty_aware_ranking(combined_population, config):
 
         - Salva os fitness originais (listas completas)
         - Realiza fast non-dominated sort para cada simulação (em paralelo)
-        - Coleta o rank de cada indivíduo nesta simulação
-        - Restaura os fitness originais e calcula a média e desvio padrão dos ranks
+        - Coleta o rank de cada indivíduo nesta simulação em ua_simulation_ranks
+        - Restaura os fitness originais e calcula:
+            * ua_rank: média dos ranks das n_simulations
+            * ua_rank_std: média dos desvios positivos acima da média
     '''
     
     # Salva os fitness originais (listas completas) em uma lista indexada
@@ -173,20 +175,277 @@ def uncertainty_aware_ranking(combined_population, config):
     # all_simulation_ranks é uma lista de listas: [[ranks_sim0], [ranks_sim1], ...]
     # Precisamos transpor para: [[ranks_ind0], [ranks_ind1], ...]
     for idx, individual in enumerate(combined_population):
-        individual.ua_rank = [simulation_ranks[idx] for simulation_ranks in all_simulation_ranks]
+        individual.ua_simulation_ranks = [simulation_ranks[idx] for simulation_ranks in all_simulation_ranks]
 
     # Restaura os fitness originais e calcula estatísticas dos ranks
     for idx, individual in enumerate(combined_population):
         # Restaura os fitness originais
         individual.fitness = original_fitness_list[idx]
         # Calcula a média dos ranks obtidos nas n_simulations
-        individual.rank = round(np.mean(individual.ua_rank), 5)
+        individual.ua_rank = round(np.mean(individual.ua_simulation_ranks), 5)
         # Calcula a métrica de dispersão: média dos desvios positivos acima da média
-        mean_rank = individual.rank
-        positive_deviations = np.maximum(0, np.array(individual.ua_rank) - mean_rank)
-        individual.rank_std = round(np.mean(positive_deviations), 5)
-        # Restaura os ua_ranks
-#        individual.ua_rank = []
+        mean_rank = individual.ua_rank
+        positive_deviations = np.maximum(0, np.array(individual.ua_simulation_ranks) - mean_rank)
+        individual.ua_rank_std = round(np.mean(positive_deviations), 5)
+        # Limpa os ua_simulation_ranks
+        individual.ua_simulation_ranks = []
+
+
+####################################################################################################################################
+####################################################################################################################################
+### Decision Space Niching
+
+def calculate_distance_matrix(population, weights):
+    """
+    Calcula a matriz de distâncias euclidianas ponderadas entre os genótipos de todos os indivíduos.
+    
+    Args:
+        population: lista de indivíduos
+        weights: lista de pesos para cada gene (pesos_ds_niching)
+        
+    Returns:
+        numpy array NxN com as distâncias entre todos os pares de indivíduos
+    """
+    n = len(population)
+    distance_matrix = np.zeros((n, n))
+    
+    for i in range(n):
+        for j in range(i + 1, n):
+            # Calcula distância euclidiana ponderada
+            genotype_i = np.array(population[i].genotype)
+            genotype_j = np.array(population[j].genotype)
+            weights_array = np.array(weights)
+            
+            # Distância: sqrt(sum(peso(d) * (xi,d - xj,d)^2))
+            dist = np.sqrt(np.sum(weights_array * (genotype_i - genotype_j) ** 2))
+            
+            distance_matrix[i][j] = dist
+            distance_matrix[j][i] = dist  # Matriz simétrica
+    
+    return distance_matrix
+
+
+def calculate_ds_niching_distance(population, distance_matrix, selected_indices=None):
+    """
+    Calcula a ds-niching-distance para cada indivíduo.
+    
+    Args:
+        population: lista de indivíduos
+        distance_matrix: matriz NxN de distâncias euclidianas
+        selected_indices: se None, calcula média de distâncias vs todos;
+                         se fornecido, calcula média de distâncias vs apenas os selecionados
+    
+    Returns:
+        None (atualiza o atributo ds_niching_distance de cada indivíduo)
+    """
+    n = len(population)
+    
+    for i in range(n):
+        if selected_indices is None:
+            # Média das distâncias para todos os outros indivíduos
+            distances = [distance_matrix[i][j] for j in range(n) if i != j]
+        else:
+            # Média das distâncias apenas para os indivíduos já selecionados
+            distances = [distance_matrix[i][j] for j in selected_indices]
+        
+        if len(distances) > 0:
+            population[i].ds_niching_distance = np.mean(distances)
+        else:
+            population[i].ds_niching_distance = 0.0
+
+
+def select_rank1_iteratively(combined_population, config, distance_matrix):
+    """
+    Seleciona indivíduos iterativamente usando fast_non_dominated_sort com critérios:
+    - ua_rank (menor = melhor)
+    - ds_niching_distance (maior = melhor)
+    
+    Processo iterativo:
+    1. Calcula ds-niching-distance vs todos
+    2. Seleciona rank 1
+    3. Recalcula ds-niching-distance dos candidatos vs selecionados
+    4. Seleciona novo rank 1
+    5. Repete até preencher população ou rank 1 não caber todo
+    
+    Args:
+        combined_population: população combinada Pt + Qt
+        config: configurações do algoritmo
+        distance_matrix: matriz de distâncias euclidianas
+        
+    Returns:
+        next_population: população selecionada
+    """
+    n = len(combined_population)
+    population_size = config['population_size']
+    
+    # Índices dos indivíduos na combined_population (para rastrear)
+    all_indices = set(range(n))
+    selected_indices = []
+    next_population = []
+    
+    # Passo 2: Calcula ds-niching-distance inicial (média vs todos)
+    calculate_ds_niching_distance(combined_population, distance_matrix, selected_indices=None)
+    
+    # Loop iterativo: máximo de population_size iterações
+    for iteration in range(population_size):
+        
+        # Verifica se já preencheu a população
+        if len(next_population) >= population_size:
+            break
+        
+        # Identifica candidatos (ainda não selecionados)
+        candidate_indices = list(all_indices - set(selected_indices))
+        if len(candidate_indices) == 0:
+            break
+            
+        candidates = [combined_population[i] for i in candidate_indices]
+        
+        # Passo 3 (primeira vez) / Passo 5 (iterações seguintes):
+        # Cria configuração temporária para fast_non_dominated_sort
+        # Usa ua_rank como objetivo 1 (minimizar) e ds_niching_distance como objetivo 2 (maximizar)
+        temp_config = config.copy()
+        temp_config['maximize'] = False  # Vamos usar uma abordagem customizada
+        
+        # Prepara fitness temporário: [ua_rank, -ds_niching_distance]
+        # Negativo porque queremos maximizar ds_niching_distance (então minimizamos o negativo)
+        for candidate in candidates:
+            candidate.temp_fitness = candidate.fitness  # Salva fitness original
+            candidate.fitness = [candidate.ua_rank, -candidate.ds_niching_distance]
+        
+        # Fast non-dominated sort nos candidatos
+        fronts = fast_non_dominated_sort(candidates, temp_config)
+        
+        # Restaura fitness original
+        for candidate in candidates:
+            candidate.fitness = candidate.temp_fitness
+            delattr(candidate, 'temp_fitness')
+        
+        # Pega rank 1
+        rank1_candidates = fronts[0] if len(fronts) > 0 else []
+        
+        # Verifica se rank 1 cabe todo na população
+        if len(next_population) + len(rank1_candidates) <= population_size:
+            # Passo 3/5: Seleciona todos do rank 1
+            for candidate in rank1_candidates:
+                # Encontra índice original
+                idx = candidate_indices[candidates.index(candidate)]
+                selected_indices.append(idx)
+                next_population.append(candidate)
+            
+            # Se já preencheu a população exata, termina
+            if len(next_population) == population_size:
+                break
+            
+            # Passo 4: Recalcula ds-niching-distance dos candidatos restantes vs selecionados
+            if len(selected_indices) > 0:
+                calculate_ds_niching_distance(combined_population, distance_matrix, selected_indices)
+        else:
+            # Rank 1 não cabe todo - precisa usar crowding distance para desempate
+            # Calcula crowding distance baseado em ua_rank e ds_niching_distance
+            for candidate in rank1_candidates:
+                candidate.temp_fitness = candidate.fitness  # Salva fitness original
+                candidate.fitness = [candidate.ua_rank, candidate.ds_niching_distance]
+            
+            calculate_crowding_distance(rank1_candidates)
+            
+            # Restaura fitness original
+            for candidate in rank1_candidates:
+                candidate.fitness = candidate.temp_fitness
+                delattr(candidate, 'temp_fitness')
+            
+            # Ordena por crowding distance (maior = melhor)
+            rank1_candidates.sort(key=lambda ind: ind.crowding_distance, reverse=True)
+            
+            # Seleciona os que faltam para completar a população
+            remaining_slots = population_size - len(next_population)
+            for i in range(remaining_slots):
+                next_population.append(rank1_candidates[i])
+            
+            break
+    
+    # Atualiza ds-niching-distance dos selecionados como média das distâncias entre si
+    # Cria mapeamento: indivíduo -> índice na combined_population
+    individual_to_idx = {id(ind): i for i, ind in enumerate(combined_population)}
+    selected_final_indices = [individual_to_idx[id(ind)] for ind in next_population]
+    
+    for ind in next_population:
+        idx = individual_to_idx[id(ind)]
+        # Calcula média das distâncias vs todos os outros selecionados
+        distances = [distance_matrix[idx][j] for j in selected_final_indices if j != idx]
+        if len(distances) > 0:
+            ind.ds_niching_distance = np.mean(distances)
+        else:
+            ind.ds_niching_distance = 0.0
+    
+    return next_population
+
+
+####################################################################################################################################
+####################################################################################################################################
+### Crowding Distance
+
+def calculate_crowding_distance(front):
+    """
+    Calcula a crowding distance para cada indivíduo no front
+    Complexidade: O(M*N*log(N)) onde M é número de objetivos e N é tamanho do front
+
+	• Muito importante manter a diversidade de soluções ao longo da evolucão de um algoritmo MOEA, 
+      para garantir que não iremos convergir para um ótimo local, e iremos explorar e encontrar
+      os modais em todo o fitness landscape
+
+	• Abordagem NSGA-II (Crowding Distance)
+		○ Realizamos o cálculo da crowding distance das soluções em um objetivo por vez:
+			§ Ordenamos as soluções, em O(NlogN), com base nos seus valores para o objetivo m1 (primeiro dos M objetivos)
+			§ Para a menor e maior solução (em relação aos valores de m1) -> atribuímos distancia(m1) = infinito
+			§ Para todas as outras:
+			    § distância(m1) = (fitness da próxima solução - fitness da solução anterior) / (fitness da maior solução - fitness da menor solução)
+                § Ou seja, a distância entre os vizinhos normalizada pela distância dos extremos
+
+		○ Realizamos esse cálculo para todos os M objetivos. A crowding distance total de uma solução 
+          é o somatório de sua crowding distance individual em cada um dos M objetivos.
+			§ Como atribuímos infinito para as soluções extremas em cada objetivo, elas serão sempre priorizadas em um 
+              desempate por distância (vamos ver que o algoritmo ainda prioriza nível de dominância antes de diversidade) 
+              o que faz sentido, pois por serem extremas, são mais diversas.
+		
+		○ Complexidade final = O(M*NlogN)
+			§ Observamos que a operação que domina a complexidade do cálculo em cada objetivo é a ordenação. 
+              As outras operações são muito simples.
+			§ Como ordenamos em O(NlogN) em cada um dos M objetivos, temos a complexidade acima.
+
+    """
+    # Front vazio termina a funcao
+    if len(front) == 0:
+        return
+    
+    # Identifica quantidade de fitness
+    n_objectives = len(front[0].fitness)
+    
+    # Inicializar crowding distance para todos os individuos do front
+    for individual in front:
+        individual.crowding_distance = 0.0
+    
+    # Para cada objetivo, calcula Crowding Distance
+    for obj_idx in range(n_objectives):
+
+        # Ordenar o front pelo objetivo atual
+        front.sort(key=lambda ind: ind.fitness[obj_idx])
+        
+        # Atribuir infinito para as soluções extremas
+        front[0].crowding_distance = float('inf')
+        front[-1].crowding_distance = float('inf')
+        
+        # Obter o range do objetivo
+        f_min = front[0].fitness[obj_idx]
+        f_max = front[-1].fitness[obj_idx]
+        
+        # Evitar divisão por zero
+        if f_max - f_min == 0:
+            continue
+        
+        # Calcular crowding distance para as soluções intermediárias
+        for i in range(1, len(front) - 1):
+            distance = (front[i + 1].fitness[obj_idx] - front[i - 1].fitness[obj_idx]) / (f_max - f_min)
+            front[i].crowding_distance += distance
 
 
 
@@ -197,28 +456,42 @@ def uncertainty_aware_ranking(combined_population, config):
 def environmental_selection(combined_population, config):
     """
     Seleção ambiental: seleciona os melhores N indivíduos de Rt = Pt + Qt
-
-	• Formamos P(t+1) com N soluções, selecionando os x elementos com maior crowding distance do x-ésimo conjunto (primeiro a não caber em N)
-        • Iremos unificar ambas as populações para uma grande população Rt = Pt + Qt, de tamanho 2N
-	    • Iremos usar a operação de "fast non-dominated sort", para separar as soluções de Rt em rank de não dominância
-	    • Iremos selecionar todos os fronts (por rank de não dominância), enquanto couberem inteiramente em N
-		○ Ou seja, adicionamos f1 inteiro se tiver menos termos que N, depois adicionamos f2 inteiro se |f1+f2| < N, 
-              e assim por diante, até não caber o f-esimo conjunto inteiro junto com todos os seus antecessores em N
-	    • Quando chegarmos ao conjunto que devemos dividir (fx), iremos ordenar seus termos pela crowding distance 
-	        - E escolheremos as x soluções de mais crowding distance de fx para a próxima população de N = (|f1 + f2 + ... + fx-1| + x) soluções.
-
-	- Essa metodologia garante o elitismo, uma vez que as melhores soluções entre Pt e Qt sempre serão mantidas (prioridade é sempre o ranking de dominancia)
-
+    
+    Utiliza três mecanismos principais:
+    1. Uncertainty-Aware Ranking: calcula ua_rank (média) e ua_rank_std (dispersão) 
+       através de múltiplas simulações de fast non-dominated sort
+    
+    2. Decision-Space Niching (opcional): mantém diversidade no espaço de decisão através de:
+       - Matriz de distâncias euclidianas ponderadas entre genótipos
+       - Seleção iterativa baseada em dominância de (ua_rank, ds_niching_distance)
+       - Crowding distance para desempate final
+    
+    3. Elitismo: as melhores soluções entre Pt e Qt são sempre mantidas
+    
+    Processo:
+    - Calcula uncertainty-aware ranking (ua_rank e ua_rank_std)
+    - Se config['utiliza_ds_niching'] == True:
+        - Calcula matriz de distâncias no espaço de decisão
+        - Seleciona iterativamente usando dominância em (ua_rank, ds_niching_distance)
+        - Usa crowding distance quando rank 1 não cabe todo
+    - Se False:
+        - Seleciona os population_size indivíduos de menor ua_rank
     """
 
-    # Calcula uncertainty-aware ranking
+    # Passo 1: Calcula uncertainty-aware ranking
     uncertainty_aware_ranking(combined_population, config)
 
-    # Ordenar população combinada por rank (menor rank/rank_std = melhor)
-    combined_population_sorted = sorted(combined_population, key=lambda ind: (ind.rank, ind.rank_std))
-
-    # Selecionar indivíduos para a próxima geração
-    next_population = combined_population_sorted[:config['population_size']]    
-
+    # Passo 2: Verifica se usa decision-space niching
+    if config['utiliza_ds_niching'] == True:
+        # Calcula decision-space niching (matriz de distâncias euclidianas ponderadas)
+        weights = config['pesos_ds_niching']
+        distance_matrix = calculate_distance_matrix(combined_population, weights)
+        
+        # Seleção iterativa com decision-space niching + uncertainty-aware ranking
+        next_population = select_rank1_iteratively(combined_population, config, distance_matrix)
+    else:
+        # Método antigo: ordena por ua_rank e seleciona os primeiros population_size
+        combined_population_sorted = sorted(combined_population, key=lambda ind: (ind.ua_rank, ind.ua_rank_std))
+        next_population = combined_population_sorted[:config['population_size']]
 
     return next_population

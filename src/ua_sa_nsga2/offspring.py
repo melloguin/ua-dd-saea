@@ -13,12 +13,12 @@ def crowded_comparison_operator(ind1, ind2):
     Retorna True se ind1 deve ser selecionado sobre ind2
     
     Critérios (em ordem de prioridade):
-    1. Menor rank de ua-dominance (um indivíduo domina o outro, melhor front médio)
-    [desativado]2. Maior crowding distance (mais diverso)
+    1. Menor ua_rank (melhor front médio das simulações)
+    2. Menor ds_niching_distance (mais distante dos outros indivíduos)
     """
-    if ind1.rank != ind2.rank:
-        return ind1.rank < ind2.rank
-    return ind1.rank_std > ind2.rank_std
+    if ind1.ua_rank != ind2.ua_rank:
+        return ind1.ua_rank < ind2.ua_rank
+    return ind1.ds_niching_distance > ind2.ds_niching_distance
 
 
 def tournament_selection(population: list, 

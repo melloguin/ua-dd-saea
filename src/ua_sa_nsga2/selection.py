@@ -254,23 +254,30 @@ def calculate_ds_niching_distance(population, distance_matrix, selected_indices=
             population[i].ds_niching_distance = 0.0
 
 
-def select_rank1_iteratively(combined_population, config, distance_matrix):
+def select_rank1_iteratively(combined_population, config, distance_matrix, generation):
     """
     Seleciona indivíduos iterativamente usando fast_non_dominated_sort com critérios:
     - ua_rank (menor = melhor)
-    - ds_niching_distance (maior = melhor)
+    - alpha_rank_distance (menor = melhor) - combinação ponderada de ua_rank e ds_niching_distance
+    
+    A métrica alpha_rank_distance equilibra exploração (diversidade) e convergência:
+    - alpha = 1.0 (início): prioriza ds_niching_distance (exploração/diversidade)
+    - alpha = 0.0 (fim): prioriza ua_rank (convergência)
+    - Transição linear entre gerações
     
     Processo iterativo:
     1. Calcula ds-niching-distance vs todos
-    2. Seleciona rank 1
-    3. Recalcula ds-niching-distance dos candidatos vs selecionados
-    4. Seleciona novo rank 1
-    5. Repete até preencher população ou rank 1 não caber todo
+    2. Normaliza ua_rank e ds_niching_distance (min-max)
+    3. Calcula alpha_rank_distance = alpha * norm_ds + (1-alpha) * norm_ua
+    4. Seleciona rank 1 baseado em [ua_rank, alpha_rank_distance]
+    5. Recalcula ds-niching-distance dos candidatos vs selecionados
+    6. Repete até preencher população ou rank 1 não caber todo
     
     Args:
         combined_population: população combinada Pt + Qt
         config: configurações do algoritmo
         distance_matrix: matriz de distâncias euclidianas
+        generation: geração atual (0-indexed)
         
     Returns:
         next_population: população selecionada
@@ -301,16 +308,44 @@ def select_rank1_iteratively(combined_population, config, distance_matrix):
         candidates = [combined_population[i] for i in candidate_indices]
         
         # Passo 3 (primeira vez) / Passo 5 (iterações seguintes):
-        # Cria configuração temporária para fast_non_dominated_sort
-        # Usa ua_rank como objetivo 1 (minimizar) e ds_niching_distance como objetivo 2 (maximizar)
-        temp_config = config.copy()
-        temp_config['maximize'] = False  # Vamos usar uma abordagem customizada
+        # Normaliza ua_rank e ds_niching_distance dos candidatos (min-max)
+        ua_ranks = [c.ua_rank for c in candidates]
+        ds_distances = [c.ds_niching_distance for c in candidates]
         
-        # Prepara fitness temporário: [ua_rank, -ds_niching_distance]
-        # Negativo porque queremos maximizar ds_niching_distance (então minimizamos o negativo)
+        ua_min, ua_max = min(ua_ranks), max(ua_ranks)
+        ds_min, ds_max = min(ds_distances), max(ds_distances)
+        
+        # Pega alpha da geração atual
+        alpha = config['alpha_exploration_rank_distance'][generation]
+        
+        # Calcula alpha_rank_distance para cada candidato
+        for candidate in candidates:
+            # Normaliza ua_rank (min-max)
+            if ua_max - ua_min > 0:
+                norm_ua = (candidate.ua_rank - ua_min) / (ua_max - ua_min)
+            else:
+                norm_ua = 0.0
+            
+            # Normaliza ds_niching_distance (min-max) e inverte (1 - norm)
+            # Invertemos porque queremos MAXIMIZAR ds_niching_distance
+            if ds_max - ds_min > 0:
+                norm_ds = 1.0 - (candidate.ds_niching_distance - ds_min) / (ds_max - ds_min)
+            else:
+                norm_ds = 0.0
+            
+            # Calcula alpha_rank_distance: combinação ponderada
+            # alpha=1.0: prioriza diversidade (norm_ds), alpha=0.0: prioriza convergência (norm_ua)
+            candidate.alpha_rank_distance = alpha * norm_ds + (1 - alpha) * norm_ua
+        
+        # Cria configuração temporária para fast_non_dominated_sort
+        # Usa ua_rank como objetivo 1 (minimizar) e alpha_rank_distance como objetivo 2 (minimizar)
+        temp_config = config.copy()
+        temp_config['maximize'] = False
+        
+        # Prepara fitness temporário: [ua_rank, alpha_rank_distance]
         for candidate in candidates:
             candidate.temp_fitness = candidate.fitness  # Salva fitness original
-            candidate.fitness = [candidate.ua_rank, -candidate.ds_niching_distance]
+            candidate.fitness = [candidate.ua_rank, candidate.alpha_rank_distance]
         
         # Fast non-dominated sort nos candidatos
         fronts = fast_non_dominated_sort(candidates, temp_config)
@@ -341,10 +376,10 @@ def select_rank1_iteratively(combined_population, config, distance_matrix):
                 calculate_ds_niching_distance(combined_population, distance_matrix, selected_indices)
         else:
             # Rank 1 não cabe todo - precisa usar crowding distance para desempate
-            # Calcula crowding distance baseado em ua_rank e ds_niching_distance
+            # Calcula crowding distance baseado em ua_rank e alpha_rank_distance
             for candidate in rank1_candidates:
                 candidate.temp_fitness = candidate.fitness  # Salva fitness original
-                candidate.fitness = [candidate.ua_rank, candidate.ds_niching_distance]
+                candidate.fitness = [candidate.ua_rank, candidate.alpha_rank_distance]
             
             calculate_crowding_distance(rank1_candidates)
             
@@ -453,7 +488,7 @@ def calculate_crowding_distance(front):
 ####################################################################################################################################
 ### Seleção Ambiental
 
-def environmental_selection(combined_population, config):
+def environmental_selection(combined_population, config, generation):
     """
     Seleção ambiental: seleciona os melhores N indivíduos de Rt = Pt + Qt
     
@@ -463,7 +498,8 @@ def environmental_selection(combined_population, config):
     
     2. Decision-Space Niching (opcional): mantém diversidade no espaço de decisão através de:
        - Matriz de distâncias euclidianas ponderadas entre genótipos
-       - Seleção iterativa baseada em dominância de (ua_rank, ds_niching_distance)
+       - Alpha-Rank-Distance: combinação adaptativa de ua_rank e ds_niching_distance
+       - Seleção iterativa baseada em dominância de (ua_rank, alpha_rank_distance)
        - Crowding distance para desempate final
     
     3. Elitismo: as melhores soluções entre Pt e Qt são sempre mantidas
@@ -472,10 +508,16 @@ def environmental_selection(combined_population, config):
     - Calcula uncertainty-aware ranking (ua_rank e ua_rank_std)
     - Se config['utiliza_ds_niching'] == True:
         - Calcula matriz de distâncias no espaço de decisão
-        - Seleciona iterativamente usando dominância em (ua_rank, ds_niching_distance)
+        - Calcula alpha_rank_distance adaptativo por geração
+        - Seleciona iterativamente usando dominância em (ua_rank, alpha_rank_distance)
         - Usa crowding distance quando rank 1 não cabe todo
     - Se False:
         - Seleciona os population_size indivíduos de menor ua_rank
+    
+    Args:
+        combined_population: população combinada Pt + Qt
+        config: configurações do algoritmo
+        generation: geração atual (0-indexed)
     """
 
     # Passo 1: Calcula uncertainty-aware ranking
@@ -487,8 +529,8 @@ def environmental_selection(combined_population, config):
         weights = config['pesos_ds_niching']
         distance_matrix = calculate_distance_matrix(combined_population, weights)
         
-        # Seleção iterativa com decision-space niching + uncertainty-aware ranking
-        next_population = select_rank1_iteratively(combined_population, config, distance_matrix)
+        # Seleção iterativa com decision-space niching + uncertainty-aware ranking + alpha adaptativo
+        next_population = select_rank1_iteratively(combined_population, config, distance_matrix, generation)
     else:
         # Método antigo: ordena por ua_rank e seleciona os primeiros population_size
         combined_population_sorted = sorted(combined_population, key=lambda ind: (ind.ua_rank, ind.ua_rank_std))

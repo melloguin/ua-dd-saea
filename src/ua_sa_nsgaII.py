@@ -90,7 +90,7 @@ def run_my_uasa_nsga2(config: dict,
         combined_population = population + offspring
 
         # Seleção geracional: selecionar N melhores para formar P(t+1)
-        population = environmental_selection(combined_population, config)
+        population = environmental_selection(combined_population, config, generation)
 
         # Salvar snapshot da população se histórico está ativado
         if save_history:

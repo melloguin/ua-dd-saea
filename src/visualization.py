@@ -13,7 +13,8 @@ plt.rcParams['figure.figsize'] = (14, 6)
 plt.rcParams['lines.linewidth'] = 0.5
 
 
-def plota_fitness_landscape_com_equacoes(df, n_regioes=5):
+def plota_fitness_landscape_com_equacoes(df, n_regioes=5, show_regions=True, 
+                                         pareto_fronts_list=None, front_names=None):
     """
     Plota o fitness landscape com 3 subplots:
     1. Fitness1 e Fitness2 (2.5x altura)
@@ -27,6 +28,12 @@ def plota_fitness_landscape_com_equacoes(df, n_regioes=5):
         e as equações 'fitness1_eq*' e 'fitness2_eq*'
     n_regioes : int, optional
         Número de regiões para divisão do gráfico (default: 5)
+    show_regions : bool, optional
+        Se True, mostra as regiões coloridas no fundo (default: True)
+    pareto_fronts_list : list of pd.DataFrame, optional
+        Lista de dataframes com fronts de Pareto para plotar bolinhas (default: None)
+    front_names : list of str, optional
+        Lista de nomes personalizados para cada front na legenda (default: None)
     """
     max_registro = df['registro'].max()
     
@@ -38,6 +45,8 @@ def plota_fitness_landscape_com_equacoes(df, n_regioes=5):
     
     # Função auxiliar para adicionar regiões coloridas
     def adicionar_regioes_coloridas(ax):
+        if not show_regions:
+            return
         for i in range(n_regioes):
             inicio = i * (1 / n_regioes) * max_registro
             fim = (i + 1) * (1 / n_regioes) * max_registro
@@ -57,6 +66,31 @@ def plota_fitness_landscape_com_equacoes(df, n_regioes=5):
     
     ax1.plot(df['registro'], df['fitness1'], label='fitness1', linewidth=1.5, color='steelblue')
     ax1.plot(df['registro'], df['fitness2'], label='fitness2', linewidth=1.5, color='coral')
+    
+    # Plotar fronts de Pareto se fornecidos
+    if pareto_fronts_list is not None and len(pareto_fronts_list) > 0:
+        # Cores para os fronts (mesmas de display_pareto_fronts3)
+        colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'cyan', 'magenta', 'yellow']
+        dark_colors = ['darkred', 'darkblue', 'darkgreen', 'darkorange', 'darkviolet', 'saddlebrown', 'deeppink', 'darkcyan', 'darkmagenta', 'gold']
+        
+        # Se não foram fornecidos nomes, usar nomes padrão
+        if front_names is None:
+            front_names = [f'Front {i+1}' for i in range(len(pareto_fronts_list))]
+        
+        # Plotar cada front
+        for i, pareto_front in enumerate(pareto_fronts_list):
+            color = colors[i % len(colors)]
+            dark_color = dark_colors[i % len(dark_colors)]
+            
+            # Para cada ponto, usar o maior valor entre fitness1 e fitness2
+            # Isso faz a bolinha aparecer sempre na linha mais alta
+            fitness_max = pareto_front[['fitness1', 'fitness2']].max(axis=1)
+            
+            # Plotar bolinhas sempre na linha mais alta
+            ax1.scatter(pareto_front['registro'], fitness_max, 
+                       c=color, s=30, alpha=0.9, edgecolors=dark_color, 
+                       linewidth=1.2, label=f'{front_names[i]} ({len(pareto_front)} pts)', 
+                       zorder=5+i, marker='D')
     
     ax1.legend(loc='upper left', fontsize=11)
     ax1.set_ylabel('Fitness', fontweight='bold', fontsize=12)
@@ -95,151 +129,8 @@ def plota_fitness_landscape_com_equacoes(df, n_regioes=5):
     
     plt.tight_layout()
     plt.show()
-
-
-def display_pareto_front(df, pareto_df):
-
-        # ============================================================================
-        # Calcular limites comuns para ambos os gráficos
-        # ============================================================================
-        
-        # Encontrar o máximo entre fitness1 e fitness2 de todos os pontos
-        max_fitness = max(df['fitness1'].max(), df['fitness2'].max())
-        # Arredondar para cima para um valor "bonito"
-        max_limit = math.ceil(max_fitness / 2) * 2
-        
-        # ============================================================================
-        # GRÁFICO 1: Fronteira de Pareto
-        # ============================================================================
-        
-        # Gráfico de dispersão da fronteira de Pareto (figura quadrada)
-        fig, ax = plt.subplots(figsize=(10, 10))
-
-        # Plotar a fronteira de Pareto
-        ax.scatter(pareto_df['fitness1'], pareto_df['fitness2'], 
-                c='red', s=50, alpha=0.7, edgecolors='darkred', 
-                linewidth=1.5, label='Fronteira de Pareto', zorder=3)
-
-        # Configurações do gráfico
-        ax.set_xlabel('Fitness1 (f1)', fontsize=13, fontweight='bold')
-        ax.set_ylabel('Fitness2 (f2)', fontsize=13, fontweight='bold')
-        ax.set_title(f'Fronteira de Pareto Global Verdadeira\n({len(pareto_df):,} pontos não-dominados)', 
-                fontsize=15, fontweight='bold', pad=20)
-        ax.legend(fontsize=11, loc='best')
-        ax.grid(True, alpha=0.3, linestyle='--')
-        
-        # Definir limites iguais para x e y começando em 0
-        ax.set_xlim(0, max_limit)
-        ax.set_ylim(0, max_limit)
-        
-        # Definir aspect ratio igual (1 cm no x = 1 cm no y)
-        ax.set_aspect('equal', adjustable='box')
-
-        # Adicionar anotações para os pontos extremos
-        # Ponto com maior fitness1
-        max_f1_point = pareto_df.iloc[0]
-        ax.annotate(f'Max f1\n({max_f1_point["fitness1"]:.2f}, {max_f1_point["fitness2"]:.2f})',
-                xy=(max_f1_point['fitness1'], max_f1_point['fitness2']),
-                xytext=(10, -20), textcoords='offset points',
-                fontsize=9, color='darkred',
-                bbox=dict(boxstyle='round,pad=0.5', facecolor='yellow', alpha=0.7),
-                arrowprops=dict(arrowstyle='->', color='darkred', lw=1.5))
-
-        # Ponto com maior fitness2
-        max_f2_point = pareto_df.iloc[-1]
-        ax.annotate(f'Max f2\n({max_f2_point["fitness1"]:.2f}, {max_f2_point["fitness2"]:.2f})',
-                xy=(max_f2_point['fitness1'], max_f2_point['fitness2']),
-                xytext=(10, 20), textcoords='offset points',
-                fontsize=9, color='darkred',
-                bbox=dict(boxstyle='round,pad=0.5', facecolor='yellow', alpha=0.7),
-                arrowprops=dict(arrowstyle='->', color='darkred', lw=1.5))
-
-        plt.tight_layout()
-        plt.show()
-
-        print("\n✅ Visualização concluída!")
-
-
-        # ============================================================================
-        # GRÁFICO 2: Fronteira de Pareto no contexto de todos os pontos com boxplots
-        # ============================================================================
-
-        # Subsampling para todos os pontos (para não sobrecarregar o gráfico)
-        sample_size = min(500000, len(df))  # Máximo de 50k pontos
-        df_sample = df.sample(n=sample_size, random_state=42)
-
-        # Criar figura com subplots usando GridSpec (boxplots mais discretos)
-        # Ajustar para figura mais quadrada
-        fig = plt.figure(figsize=(12, 12))
-        gs = fig.add_gridspec(3, 3, width_ratios=[1, 6, 0.4], height_ratios=[0.4, 6, 1], 
-                             hspace=0.02, wspace=0.02)
-        
-        # Eixo principal (scatter plot)
-        ax_main = fig.add_subplot(gs[1, 1])
-        
-        # Eixos para os boxplots (mais discretos)
-        ax_top = fig.add_subplot(gs[0, 1], sharex=ax_main)  # Boxplot fitness1 (topo)
-        ax_right = fig.add_subplot(gs[1, 2], sharey=ax_main)  # Boxplot fitness2 (direita)
-
-        # Plotar todos os pontos (amostra) em cinza
-        ax_main.scatter(df_sample['fitness1'], df_sample['fitness2'], 
-                c='lightgray', s=10, alpha=0.3, 
-                label=f'Todos os pontos (amostra de {sample_size:,})', zorder=1)
-
-        # Plotar a fronteira de Pareto em destaque
-        ax_main.scatter(pareto_df['fitness1'], pareto_df['fitness2'], 
-                c='red', s=80, alpha=0.9, edgecolors='darkred', 
-                linewidth=1.5, label='Fronteira de Pareto', zorder=3)
-
-        # Conectar os pontos da fronteira
-        ax_main.plot(pareto_df['fitness1'], pareto_df['fitness2'], 
-                'r-', alpha=0.6, linewidth=2, zorder=2)
-
-        # Configurações do gráfico principal
-        ax_main.set_xlabel('Fitness1 (f1)', fontsize=13, fontweight='bold')
-        ax_main.set_ylabel('Fitness2 (f2)', fontsize=13, fontweight='bold')
-        ax_main.set_title(f'Fronteira de Pareto no Espaço de Objetivos\n(Problema de Maximização Bi-Objetivo)', 
-                fontsize=15, fontweight='bold', pad=20)
-        ax_main.legend(fontsize=11, loc='best')
-        ax_main.grid(True, alpha=0.3, linestyle='--')
-        
-        # Definir limites iguais para x e y começando em 0
-        ax_main.set_xlim(0, max_limit)
-        ax_main.set_ylim(0, max_limit)
-        
-        # Definir aspect ratio igual (1 cm no x = 1 cm no y)
-        ax_main.set_aspect('equal', adjustable='box')
-
-        # Boxplot para Fitness1 da amostra (topo - horizontal, mais discreto)
-        bp1 = ax_top.boxplot([df_sample['fitness1']], vert=False, widths=0.5,
-                             patch_artist=True, 
-                             boxprops=dict(facecolor='lightgray', alpha=0.4, linewidth=0.8),
-                             medianprops=dict(color='dimgray', linewidth=1.2),
-                             whiskerprops=dict(color='gray', linewidth=0.8),
-                             capprops=dict(color='gray', linewidth=0.8),
-                             flierprops=dict(marker='o', markersize=2, alpha=0.3))
-        ax_top.tick_params(labelbottom=False, labelleft=False, length=0)
-        ax_top.set_yticks([])
-        ax_top.spines['top'].set_visible(False)
-        ax_top.spines['right'].set_visible(False)
-        ax_top.spines['left'].set_visible(False)
-        
-        # Boxplot para Fitness2 da amostra (direita - vertical, mais discreto)
-        bp2 = ax_right.boxplot([df_sample['fitness2']], vert=True, widths=0.5,
-                               patch_artist=True,
-                               boxprops=dict(facecolor='lightgray', alpha=0.4, linewidth=0.8),
-                               medianprops=dict(color='dimgray', linewidth=1.2),
-                               whiskerprops=dict(color='gray', linewidth=0.8),
-                               capprops=dict(color='gray', linewidth=0.8),
-                               flierprops=dict(marker='o', markersize=2, alpha=0.3))
-        ax_right.tick_params(labelleft=False, labelbottom=False, length=0)
-        ax_right.set_xticks([])
-        ax_right.spines['top'].set_visible(False)
-        ax_right.spines['right'].set_visible(False)
-        ax_right.spines['bottom'].set_visible(False)
-
-        plt.show()
-
+    
+    return fig
 
 
 def display_fitness_landscape_with_pareto(df, pareto_df=None):
@@ -560,7 +451,7 @@ def criar_plot_base(df3, features, n_regioes=10):
         plt.plot(df3['registro'], df3[col], label=col)
 
 
-def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_num=1, n_regioes=10):
+def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_num=1, n_regioes=10, show_subplots=None):
     """
     Plota o landscape de um cenário específico para um fitness específico.
     
@@ -578,10 +469,27 @@ def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_
         Número do fitness/objetivo: 1 ou 2 (default: 1)
     n_regioes : int, optional
         Número de regiões para divisão do gráfico (default: 10)
+    show_subplots : list of bool, optional
+        Lista com 5 booleanos indicando quais subfiguras exibir:
+        [Landscape, Features, WAPE_text, WAPE_bars, Distribuição_erro]
+        Se None, exibe todas (default: None)
+        
+    Returns:
+    --------
+    fig : matplotlib.figure.Figure
+        Figura gerada
     """
     import numpy as np
     from matplotlib.gridspec import GridSpec
     import matplotlib.cm as cm
+    
+    # Se não especificado, exibir todas as subfiguras
+    if show_subplots is None:
+        show_subplots = [True, True, True, True, True]
+    
+    # Validar show_subplots
+    if len(show_subplots) != 5:
+        raise ValueError("show_subplots deve ter exatamente 5 elementos booleanos")
     
     max_registro = df3['registro'].max()
     
@@ -662,126 +570,152 @@ def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_
     # Calcular métricas
     metricas = calcular_metricas_por_regiao(df3, col_fitness_real, col_fitness_previsto)
     
-    # Criar figura com 5 subplots
-    fig = plt.figure(figsize=(16, 16))
-    gs = GridSpec(5, 1, figure=fig, height_ratios=[2.3, 1, 0.3, 0.8, 1], hspace=0.3)
+    # Definir height_ratios e índices baseado nas subfiguras ativas
+    base_height_ratios = [2.3, 1, 0.3, 0.8, 1]
+    active_ratios = [ratio for ratio, show in zip(base_height_ratios, show_subplots) if show]
+    n_subplots = sum(show_subplots)
+    
+    # Calcular altura da figura dinamicamente
+    fig_height = sum(active_ratios) * 2.5 + 2  # Escala baseada nos ratios
+    
+    # Criar figura com subplots dinâmicos
+    fig = plt.figure(figsize=(16, fig_height))
+    gs = GridSpec(n_subplots, 1, figure=fig, height_ratios=active_ratios, hspace=0.3)
+    
+    # Mapear índices de subfiguras originais para índices dinâmicos
+    subplot_map = {}
+    current_idx = 0
+    for i, show in enumerate(show_subplots):
+        if show:
+            subplot_map[i] = current_idx
+            current_idx += 1
     
     # ========== SUBFIGURA 1: Landscape (fitness real + previsto) ==========
-    ax1 = fig.add_subplot(gs[0])
-    adicionar_regioes_coloridas(ax1)
-    ax1.plot(df3['registro'], df3[col_fitness_real], label=f'{col_fitness_real}_real', linewidth=1.5, color='black')
-    ax1.plot(df3['registro'], df3[col_fitness_previsto], label=f'previsao_{cenario}', linewidth=1.5, color=cores_cenarios[cenario], alpha=0.25)
-    ax1.legend(loc='upper left', fontsize=10)
-    ax1.set_ylabel('Fitness', fontweight='bold')
-    ax1.set_title(f'Cenário {cenario.upper()} - Fitness{fitness_num} Real vs Previsto', fontweight='bold', fontsize=12)
-    ax1.grid(True, alpha=0.3)
-    ax1.set_xlim(0, max_registro)
+    if show_subplots[0]:
+        ax1 = fig.add_subplot(gs[subplot_map[0]])
+        adicionar_regioes_coloridas(ax1)
+        ax1.plot(df3['registro'], df3[col_fitness_real], label=f'{col_fitness_real}_real', linewidth=1.5, color='black')
+        ax1.plot(df3['registro'], df3[col_fitness_previsto], label=f'previsao_{cenario}', linewidth=1.5, color=cores_cenarios[cenario], alpha=0.25)
+        ax1.legend(loc='upper left', fontsize=10)
+        ax1.set_ylabel('Fitness', fontweight='bold')
+        ax1.set_title(f'Cenário {cenario.upper()} - Fitness{fitness_num} Real vs Previsto', fontweight='bold', fontsize=12)
+        ax1.grid(True, alpha=0.3)
+        ax1.set_xlim(0, max_registro)
     
     # ========== SUBFIGURA 2: Features ==========
-    ax2 = fig.add_subplot(gs[1])
-    adicionar_regioes_coloridas(ax2)
-    for col in features:
-        if df3[col].dtype in ['object', 'string', 'category']:
-            continue
-        ax2.plot(df3['registro'], df3[col], label=col, alpha=0.7)
-    ax2.legend(loc='upper right', fontsize=8, ncol=2)
-    ax2.set_ylabel('Features', fontweight='bold')
-    ax2.set_title('Features Utilizadas no Modelo', fontweight='bold', fontsize=11)
-    ax2.grid(True, alpha=0.3)
-    ax2.set_xlim(0, max_registro)
+    if show_subplots[1]:
+        ax2 = fig.add_subplot(gs[subplot_map[1]])
+        adicionar_regioes_coloridas(ax2)
+        for col in features:
+            if df3[col].dtype in ['object', 'string', 'category']:
+                continue
+            ax2.plot(df3['registro'], df3[col], label=col, alpha=0.7)
+        ax2.legend(loc='upper right', fontsize=8, ncol=2)
+        ax2.set_ylabel('Features', fontweight='bold')
+        ax2.set_title('Features Utilizadas no Modelo', fontweight='bold', fontsize=11)
+        ax2.grid(True, alpha=0.3)
+        ax2.set_xlim(0, max_registro)
     
     # ========== SUBFIGURA 3: Textos WAPE e Amostragem ==========
-    ax3 = fig.add_subplot(gs[2])
-    adicionar_regioes_coloridas(ax3)
-    ax3.set_xlim(0, max_registro)
-    ax3.set_ylim(0, 1)
-    ax3.axis('off')  # Remover eixos
-    
-    # Adicionar textos de WAPE e Amostragem
-    posicoes_barras = [(i + 0.5) * (1 / n_regioes) * max_registro for i in range(n_regioes)]
-    wapes_geral = [m['wape'] for m in metricas]
-    taxas_amost = [m['taxa_amostragem'] for m in metricas]
-    
-    # Ajustar tamanho da fonte baseado no número de regiões
-    fontsize_texto = max(7, 13 - n_regioes // 2)  # Reduz fonte conforme aumenta regiões, mínimo 7
-    
-    for pos, wape_g, taxa_amost in zip(posicoes_barras, wapes_geral, taxas_amost):
-        ax3.text(pos, 0.5, f'WAPE: {wape_g:.0f}%\nAmost: {taxa_amost:.0f}%', 
-                ha='center', va='center', fontsize=fontsize_texto, fontweight='bold', color='darkblue',
-                bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='lightgray', alpha=0.9))
+    if show_subplots[2]:
+        ax3 = fig.add_subplot(gs[subplot_map[2]])
+        adicionar_regioes_coloridas(ax3)
+        ax3.set_xlim(0, max_registro)
+        ax3.set_ylim(0, 1)
+        ax3.axis('off')  # Remover eixos
+        
+        # Adicionar textos de WAPE e Amostragem
+        posicoes_barras = [(i + 0.5) * (1 / n_regioes) * max_registro for i in range(n_regioes)]
+        wapes_geral = [m['wape'] for m in metricas]
+        taxas_amost = [m['taxa_amostragem'] for m in metricas]
+        
+        # Ajustar tamanho da fonte baseado no número de regiões (reduzido em 20%)
+        fontsize_texto = max(11, 21 - n_regioes // 2)  # Reduzido em 20%, mínimo 11
+        
+        for pos, wape_g, taxa_amost in zip(posicoes_barras, wapes_geral, taxas_amost):
+            ax3.text(pos, 0.5, f'WAPE: {wape_g:.0f}%\nAmost: {taxa_amost:.0f}%', 
+                    ha='center', va='center', fontsize=fontsize_texto, fontweight='bold', color='darkblue')
     
     # ========== SUBFIGURA 4: Gráfico de barras WAPE ==========
-    ax4 = fig.add_subplot(gs[3])
-    adicionar_regioes_coloridas(ax4)
-    
-    largura_barra = 0.15 * (1 / n_regioes) * max_registro
-    
-    wapes_sub = [m['wape_sub'] for m in metricas]
-    wapes_sobre = [m['wape_sobre'] for m in metricas]
-    
-    ax4.bar(posicoes_barras, wapes_sub, width=largura_barra, 
-            color='darkblue', alpha=0.8, label='WAPE Sub', edgecolor='navy', linewidth=1.5)
-    ax4.bar(posicoes_barras, wapes_sobre, width=largura_barra, 
-            color='lightblue', alpha=0.8, label='WAPE Sobre', edgecolor='steelblue', linewidth=1.5)
-    
-    # Ajustar tamanho da fonte dos valores nas barras baseado no número de regiões
-    fontsize_barras = max(6, 9 - n_regioes // 3)  # Reduz fonte conforme aumenta regiões, mínimo 6
-    
-    for i, (pos, wape_sub_val, wape_sobre_val) in enumerate(zip(posicoes_barras, wapes_sub, wapes_sobre)):
-        if abs(wape_sub_val) > 2:
-            ax4.text(pos, wape_sub_val/2, f'{abs(wape_sub_val):.0f}%', 
-                    ha='center', va='center', fontsize=fontsize_barras, fontweight='bold', color='white')
-        if abs(wape_sobre_val) > 2:
-            ax4.text(pos, wape_sobre_val/2, f'{abs(wape_sobre_val):.0f}%', 
-                    ha='center', va='center', fontsize=fontsize_barras, fontweight='bold', color='darkblue')
-    
-    ax4.set_ylabel('WAPE (%)', fontweight='bold')
-    ax4.set_title('WAPE por Região (Sub-previsão e Sobre-previsão)', fontweight='bold', fontsize=11)
-    ax4.axhline(y=0, color='black', linewidth=0.8, linestyle='-')
-    ax4.legend(loc='upper left', fontsize=8)
-    ax4.grid(True, alpha=0.3, axis='y')
-    ax4.set_xlim(0, max_registro)
+    if show_subplots[3]:
+        ax4 = fig.add_subplot(gs[subplot_map[3]])
+        adicionar_regioes_coloridas(ax4)
+        
+        # Recalcular posicoes_barras se não foi calculado antes (caso subplot 3 esteja oculto)
+        if not show_subplots[2]:
+            posicoes_barras = [(i + 0.5) * (1 / n_regioes) * max_registro for i in range(n_regioes)]
+        
+        largura_barra = 0.15 * (1 / n_regioes) * max_registro
+        
+        wapes_sub = [m['wape_sub'] for m in metricas]
+        wapes_sobre = [m['wape_sobre'] for m in metricas]
+        
+        ax4.bar(posicoes_barras, wapes_sub, width=largura_barra, 
+                color='darkblue', alpha=0.8, label='WAPE Sub', edgecolor='navy', linewidth=1.5)
+        ax4.bar(posicoes_barras, wapes_sobre, width=largura_barra, 
+                color='lightblue', alpha=0.8, label='WAPE Sobre', edgecolor='steelblue', linewidth=1.5)
+        
+        # Ajustar tamanho da fonte dos valores nas barras baseado no número de regiões (reduzido em 25%)
+        fontsize_barras = max(9, 14 - n_regioes // 3)  # Reduzido em 25%, mínimo 9
+        
+        for i, (pos, wape_sub_val, wape_sobre_val) in enumerate(zip(posicoes_barras, wapes_sub, wapes_sobre)):
+            if abs(wape_sub_val) > 2:
+                ax4.text(pos, wape_sub_val/2, f'{abs(wape_sub_val):.0f}%', 
+                        ha='center', va='center', fontsize=fontsize_barras, fontweight='bold', color='white')
+            if abs(wape_sobre_val) > 2:
+                ax4.text(pos, wape_sobre_val/2, f'{abs(wape_sobre_val):.0f}%', 
+                        ha='center', va='center', fontsize=fontsize_barras, fontweight='bold', color='darkblue')
+        
+        ax4.set_ylabel('WAPE (%)', fontweight='bold')
+        ax4.set_title('WAPE por Região (Sub-previsão e Sobre-previsão)', fontweight='bold', fontsize=11)
+        ax4.axhline(y=0, color='black', linewidth=0.8, linestyle='-')
+        ax4.legend(loc='upper left', fontsize=8)
+        ax4.grid(True, alpha=0.3, axis='y')
+        ax4.set_xlim(0, max_registro)
     
     # ========== SUBFIGURA 5: Distribuições de erro ==========
-    ax5 = fig.add_subplot(gs[4])
-    
-    # Determinar cor baseada no cenário
-    cor_distribuicao = cores_cenarios[cenario]
-    cor_linha = {'c1': 'darkblue', 'c2': 'darkgreen', 'c3': 'darkred'}.get(cenario, 'darkblue')
-    
-    for i in range(n_regioes):
-        inicio = i * (1 / n_regioes) * max_registro
-        fim = (i + 1) * (1 / n_regioes) * max_registro
-        df_regiao = df3[(df3['registro'] >= inicio) & (df3['registro'] < fim)]
+    if show_subplots[4]:
+        ax5 = fig.add_subplot(gs[subplot_map[4]])
         
-        ax5.axvspan(inicio, fim, color=cores_regioes[i], alpha=0.2, zorder=0)
+        # Determinar cor baseada no cenário
+        cor_distribuicao = cores_cenarios[cenario]
+        cor_linha = {'c1': 'darkblue', 'c2': 'darkgreen', 'c3': 'darkred'}.get(cenario, 'darkblue')
         
-        erros = df_regiao[col_erro].values
-        
-        if len(erros) > 0:
-            counts, bin_edges = np.histogram(erros, bins=30)
-            bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-            counts_norm = counts / counts.max() if counts.max() > 0 else counts
-            largura_regiao = fim - inicio
-            x_positions = inicio + (bin_centers - bin_centers.min()) / (bin_centers.max() - bin_centers.min() + 1e-10) * largura_regiao * 0.9
-            x_positions += largura_regiao * 0.05
+        for i in range(n_regioes):
+            inicio = i * (1 / n_regioes) * max_registro
+            fim = (i + 1) * (1 / n_regioes) * max_registro
+            df_regiao = df3[(df3['registro'] >= inicio) & (df3['registro'] < fim)]
             
-            ax5.fill_between(x_positions, 0, counts_norm, alpha=0.6, color=cor_distribuicao)
-            ax5.plot(x_positions, counts_norm, color=cor_linha, linewidth=1.5, alpha=0.8)
-    
-    ax5.set_xlabel('Registro', fontweight='bold')
-    ax5.set_ylabel('Densidade Normalizada', fontweight='bold')
-    ax5.set_title('Distribuição dos Erros por Região', fontweight='bold', fontsize=11)
-    ax5.set_xlim(0, max_registro)
-    ax5.grid(True, alpha=0.3)
-    
-    # Gerar linhas verticais dinamicamente baseado no número de regiões
-    for i in range(1, n_regioes):
-        percent = i / n_regioes
-        ax5.axvline(x=max_registro * percent, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+            ax5.axvspan(inicio, fim, color=cores_regioes[i], alpha=0.2, zorder=0)
+            
+            erros = df_regiao[col_erro].values
+            
+            if len(erros) > 0:
+                counts, bin_edges = np.histogram(erros, bins=30)
+                bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+                counts_norm = counts / counts.max() if counts.max() > 0 else counts
+                largura_regiao = fim - inicio
+                x_positions = inicio + (bin_centers - bin_centers.min()) / (bin_centers.max() - bin_centers.min() + 1e-10) * largura_regiao * 0.9
+                x_positions += largura_regiao * 0.05
+                
+                ax5.fill_between(x_positions, 0, counts_norm, alpha=0.6, color=cor_distribuicao)
+                ax5.plot(x_positions, counts_norm, color=cor_linha, linewidth=1.5, alpha=0.8)
+        
+        ax5.set_xlabel('Registro', fontweight='bold')
+        ax5.set_ylabel('Densidade Normalizada', fontweight='bold')
+        ax5.set_title('Distribuição dos Erros por Região', fontweight='bold', fontsize=11)
+        ax5.set_xlim(0, max_registro)
+        ax5.grid(True, alpha=0.3)
+        
+        # Gerar linhas verticais dinamicamente baseado no número de regiões
+        for i in range(1, n_regioes):
+            percent = i / n_regioes
+            ax5.axvline(x=max_registro * percent, color='gray', linestyle='--', linewidth=1, alpha=0.5)
     
     plt.tight_layout()
     plt.show()
+    
+    return fig
 
 
 def plota_landscape_5cenarios(df3, features, df_amostragem):
@@ -797,175 +731,7 @@ def plota_landscape_5cenarios(df3, features, df_amostragem):
         plota_landscape_cenario(df3, features, df_amostragem, cenario=cenario, fitness_num=1)
 
 
-def display_two_pareto_fronts(df_real, pareto_real, pareto_surrogate):
-    """
-    Mostra dois fronts de Pareto (real e surrogate) sobre a fitness landscape verdadeira.
-    
-    Parameters:
-    -----------
-    df_real : pd.DataFrame
-        Dataframe com a fitness landscape verdadeira (todos os pontos)
-    pareto_real : pd.DataFrame
-        Dataframe com o front de Pareto verdadeiro
-    pareto_surrogate : pd.DataFrame
-        Dataframe com o front de Pareto encontrado pelo surrogate
-    """
-    
-    # ============================================================================
-    # Calcular limites comuns para ambos os gráficos
-    # ============================================================================
-    
-    # Encontrar o máximo entre fitness1 e fitness2 de todos os pontos
-    max_fitness = max(df_real['fitness1'].max(), df_real['fitness2'].max())
-    # Arredondar para cima para um valor "bonito"
-    max_limit = math.ceil(max_fitness / 2) * 2
-    
-#    # ============================================================================
-#    # GRÁFICO 1: Dois Fronts de Pareto
-#    # ============================================================================
-#    
-#    # Gráfico de dispersão dos dois fronts (figura quadrada)
-#    fig, ax = plt.subplots(figsize=(10, 10))
-#
-#    # Plotar o front verdadeiro
-#    ax.scatter(pareto_real['fitness1'], pareto_real['fitness2'], 
-#            c='red', s=50, alpha=0.7, edgecolors='darkred', 
-#            linewidth=1.5, label=f'Front Verdadeiro ({len(pareto_real)} pts)', zorder=3)
-#
-#    # Conectar os pontos do front verdadeiro
-#    ax.plot(pareto_real['fitness1'], pareto_real['fitness2'], 
-#            'r--', alpha=0.4, linewidth=1, zorder=2)
-#
-#    # Plotar o front encontrado pelo surrogate
-#    ax.scatter(pareto_surrogate['fitness1'], pareto_surrogate['fitness2'], 
-#            c='blue', s=50, alpha=0.7, edgecolors='darkblue', 
-#            linewidth=1.5, label=f'Front Surrogate ({len(pareto_surrogate)} pts)', zorder=3)
-#
-#    # Conectar os pontos do front surrogate
-#    ax.plot(pareto_surrogate['fitness1'], pareto_surrogate['fitness2'], 
-#            'b--', alpha=0.4, linewidth=1, zorder=2)
-#
-#    # Configurações do gráfico
-#    ax.set_xlabel('Fitness1 (f1)', fontsize=13, fontweight='bold')
-#    ax.set_ylabel('Fitness2 (f2)', fontsize=13, fontweight='bold')
-#    ax.set_title(f'Comparação dos Fronts de Pareto na Landscape Verdadeira\n(Vermelho = Real, Azul = Encontrado pelo Surrogate)', 
-#            fontsize=15, fontweight='bold', pad=20)
-#    ax.legend(fontsize=11, loc='best')
-#    ax.grid(True, alpha=0.3, linestyle='--')
-#    
-#    # Definir limites iguais para x e y começando em 0
-#    ax.set_xlim(0, max_limit)
-#    ax.set_ylim(0, max_limit)
-#    
-#    # Definir aspect ratio igual (1 cm no x = 1 cm no y)
-#    ax.set_aspect('equal', adjustable='box')
-#
-#    # Adicionar anotações para os pontos extremos do front verdadeiro
-#    # Ponto com maior fitness1
-#    max_f1_point = pareto_real.iloc[0]
-#    ax.annotate(f'Max f1 (Real)\n({max_f1_point["fitness1"]:.2f}, {max_f1_point["fitness2"]:.2f})',
-#            xy=(max_f1_point['fitness1'], max_f1_point['fitness2']),
-#            xytext=(10, -20), textcoords='offset points',
-#            fontsize=9, color='darkred',
-#            bbox=dict(boxstyle='round,pad=0.5', facecolor='yellow', alpha=0.7),
-#            arrowprops=dict(arrowstyle='->', color='darkred', lw=1.5))
-#
-#    # Ponto com maior fitness2
-#    max_f2_point = pareto_real.iloc[-1]
-#    ax.annotate(f'Max f2 (Real)\n({max_f2_point["fitness1"]:.2f}, {max_f2_point["fitness2"]:.2f})',
-#            xy=(max_f2_point['fitness1'], max_f2_point['fitness2']),
-#            xytext=(10, 20), textcoords='offset points',
-#            fontsize=9, color='darkred',
-#            bbox=dict(boxstyle='round,pad=0.5', facecolor='yellow', alpha=0.7),
-#            arrowprops=dict(arrowstyle='->', color='darkred', lw=1.5))
-#
-#    plt.tight_layout()
-#    plt.show()
-#
-#    print("\n✅ Visualização concluída!")
-
-    # ============================================================================
-    # GRÁFICO 2: Dois Fronts no contexto de todos os pontos com boxplots
-    # ============================================================================
-
-    # Subsampling para todos os pontos (para não sobrecarregar o gráfico)
-    sample_size = min(500000, len(df_real))  # Máximo de 500k pontos
-    df_sample = df_real.sample(n=sample_size, random_state=42)
-
-    # Criar figura com subplots usando GridSpec (boxplots mais discretos)
-    # Ajustar para figura mais quadrada
-    fig = plt.figure(figsize=(12, 12))
-    gs = fig.add_gridspec(3, 3, width_ratios=[1, 6, 0.4], height_ratios=[0.4, 6, 1], 
-                         hspace=0.02, wspace=0.02)
-    
-    # Eixo principal (scatter plot)
-    ax_main = fig.add_subplot(gs[1, 1])
-    
-    # Eixos para os boxplots (mais discretos)
-    ax_top = fig.add_subplot(gs[0, 1], sharex=ax_main)  # Boxplot fitness1 (topo)
-    ax_right = fig.add_subplot(gs[1, 2], sharey=ax_main)  # Boxplot fitness2 (direita)
-
-    # Plotar todos os pontos (amostra) em cinza
-    ax_main.scatter(df_sample['fitness1'], df_sample['fitness2'], 
-            c='lightgray', s=10, alpha=0.3, 
-            label=f'Todos os pontos (amostra de {sample_size:,})', zorder=1)
-
-    # Plotar o front verdadeiro em destaque
-    ax_main.scatter(pareto_real['fitness1'], pareto_real['fitness2'], 
-            c='red', s=80, alpha=0.9, edgecolors='darkred', 
-            linewidth=1.5, label=f'Front Verdadeiro ({len(pareto_real)} pts)', zorder=3)
-
-    # Plotar o front surrogate em destaque
-    ax_main.scatter(pareto_surrogate['fitness1'], pareto_surrogate['fitness2'], 
-            c='blue', s=80, alpha=0.9, edgecolors='darkblue', 
-            linewidth=1.5, label=f'Front Surrogate ({len(pareto_surrogate)} pts)', zorder=3)
-
-    # Configurações do gráfico principal
-    ax_main.set_xlabel('Fitness1 (f1)', fontsize=13, fontweight='bold')
-    ax_main.set_ylabel('Fitness2 (f2)', fontsize=13, fontweight='bold')
-    ax_main.set_title(f'Comparação dos Fronts de Pareto no Espaço de Objetivos\n(Problema de Maximização Bi-Objetivo)', 
-            fontsize=15, fontweight='bold', pad=20)
-    ax_main.legend(fontsize=11, loc='best')
-    ax_main.grid(True, alpha=0.3, linestyle='--')
-    
-    # Definir limites iguais para x e y começando em 0
-    ax_main.set_xlim(0, max_limit)
-    ax_main.set_ylim(0, max_limit)
-    
-    # Definir aspect ratio igual (1 cm no x = 1 cm no y)
-    ax_main.set_aspect('equal', adjustable='box')
-
-    # Boxplot para Fitness1 da amostra (topo - horizontal, mais discreto)
-    bp1 = ax_top.boxplot([df_sample['fitness1']], vert=False, widths=0.5,
-                         patch_artist=True, 
-                         boxprops=dict(facecolor='lightgray', alpha=0.4, linewidth=0.8),
-                         medianprops=dict(color='dimgray', linewidth=1.2),
-                         whiskerprops=dict(color='gray', linewidth=0.8),
-                         capprops=dict(color='gray', linewidth=0.8),
-                         flierprops=dict(marker='o', markersize=2, alpha=0.3))
-    ax_top.tick_params(labelbottom=False, labelleft=False, length=0)
-    ax_top.set_yticks([])
-    ax_top.spines['top'].set_visible(False)
-    ax_top.spines['right'].set_visible(False)
-    ax_top.spines['left'].set_visible(False)
-    
-    # Boxplot para Fitness2 da amostra (direita - vertical, mais discreto)
-    bp2 = ax_right.boxplot([df_sample['fitness2']], vert=True, widths=0.5,
-                           patch_artist=True,
-                           boxprops=dict(facecolor='lightgray', alpha=0.4, linewidth=0.8),
-                           medianprops=dict(color='dimgray', linewidth=1.2),
-                           whiskerprops=dict(color='gray', linewidth=0.8),
-                           capprops=dict(color='gray', linewidth=0.8),
-                           flierprops=dict(marker='o', markersize=2, alpha=0.3))
-    ax_right.tick_params(labelleft=False, labelbottom=False, length=0)
-    ax_right.set_xticks([])
-    ax_right.spines['top'].set_visible(False)
-    ax_right.spines['right'].set_visible(False)
-    ax_right.spines['bottom'].set_visible(False)
-
-    plt.show()
-
-def display_pareto_fronts3(df_real, pareto_fronts_list):
+def display_pareto_fronts3(df_real, pareto_fronts_list, front_names=None, sample_size=1000000):
     """
     Mostra múltiplos fronts de Pareto sobre a fitness landscape verdadeira.
     
@@ -975,6 +741,11 @@ def display_pareto_fronts3(df_real, pareto_fronts_list):
         Dataframe com a fitness landscape verdadeira (todos os pontos)
     pareto_fronts_list : list of pd.DataFrame
         Lista de dataframes com os fronts de Pareto a serem plotados
+    front_names : list of str, optional
+        Lista de nomes personalizados para cada front na legenda.
+        Se None, usa nomes padrão 'Front 1', 'Front 2', etc.
+    sample_size : int, optional
+        Número de pontos a amostrar da landscape para plotar (default: 1000000)
     """
     
     # ============================================================================
@@ -991,46 +762,38 @@ def display_pareto_fronts3(df_real, pareto_fronts_list):
     # ============================================================================
 
     # Subsampling para todos os pontos (para não sobrecarregar o gráfico)
-    sample_size = min(500000, len(df_real))  # Máximo de 500k pontos
-    df_sample = df_real.sample(n=sample_size, random_state=42)
+    actual_sample_size = min(sample_size, len(df_real))
+    df_sample = df_real.sample(n=actual_sample_size, random_state=42)
 
-    # Criar figura com subplots usando GridSpec (boxplots mais discretos)
-    # Ajustar para figura mais quadrada
-    fig = plt.figure(figsize=(12, 12))
-    gs = fig.add_gridspec(3, 3, width_ratios=[1, 6, 0.4], height_ratios=[0.4, 6, 1], 
-                         hspace=0.02, wspace=0.02)
-    
-    # Eixo principal (scatter plot)
-    ax_main = fig.add_subplot(gs[1, 1])
-    
-    # Eixos para os boxplots (mais discretos)
-    ax_top = fig.add_subplot(gs[0, 1], sharex=ax_main)  # Boxplot fitness1 (topo)
-    ax_right = fig.add_subplot(gs[1, 2], sharey=ax_main)  # Boxplot fitness2 (direita)
+    # Criar figura simples (sem boxplots)
+    fig, ax_main = plt.subplots(figsize=(10, 10))
 
-    # Plotar todos os pontos (amostra) em cinza
+    # Plotar todos os pontos (amostra) em cinza (s=10 -> s=14 -> s=21)
     ax_main.scatter(df_sample['fitness1'], df_sample['fitness2'], 
-            c='lightgray', s=10, alpha=0.3, 
-            label=f'Todos os pontos (amostra de {sample_size:,})', zorder=1)
+            c='lightgray', s=21, alpha=0.3, 
+            label=f'Todos os pontos (amostra de {actual_sample_size:,})', zorder=1)
 
     # Definir cores para os diferentes fronts
     colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'cyan', 'magenta', 'yellow']
     dark_colors = ['darkred', 'darkblue', 'darkgreen', 'darkorange', 'darkviolet', 'saddlebrown', 'deeppink', 'darkcyan', 'darkmagenta', 'gold']
+    
+    # Se não foram fornecidos nomes, usar nomes padrão
+    if front_names is None:
+        front_names = [f'Front {i+1}' for i in range(len(pareto_fronts_list))]
     
     # Plotar cada front de Pareto
     for i, pareto_front in enumerate(pareto_fronts_list):
         color = colors[i % len(colors)]
         dark_color = dark_colors[i % len(dark_colors)]
         
-        # Plotar o front em destaque (50% smaller: s=80 -> s=40)
+        # Plotar o front em destaque (s=40 -> s=64 -> s=96)
         ax_main.scatter(pareto_front['fitness1'], pareto_front['fitness2'], 
-                c=color, s=40, alpha=0.9, edgecolors=dark_color, 
-                linewidth=1.5, label=f'Front {i+1} ({len(pareto_front)} pts)', zorder=3+i)
+                c=color, s=96, alpha=0.9, edgecolors=dark_color, 
+                linewidth=1.5, label=f'{front_names[i]} ({len(pareto_front)} pts)', zorder=3+i)
 
     # Configurações do gráfico principal
     ax_main.set_xlabel('Fitness1 (f1)', fontsize=13, fontweight='bold')
     ax_main.set_ylabel('Fitness2 (f2)', fontsize=13, fontweight='bold')
-    ax_main.set_title(f'Comparação de {len(pareto_fronts_list)} Fronts de Pareto no Espaço de Objetivos\n(Problema de Maximização Bi-Objetivo)', 
-            fontsize=15, fontweight='bold', pad=20)
     ax_main.legend(fontsize=11, loc='best')
     ax_main.grid(True, alpha=0.3, linestyle='--')
     
@@ -1041,35 +804,10 @@ def display_pareto_fronts3(df_real, pareto_fronts_list):
     # Definir aspect ratio igual (1 cm no x = 1 cm no y)
     ax_main.set_aspect('equal', adjustable='box')
 
-    # Boxplot para Fitness1 da amostra (topo - horizontal, mais discreto)
-    bp1 = ax_top.boxplot([df_sample['fitness1']], vert=False, widths=0.5,
-                         patch_artist=True, 
-                         boxprops=dict(facecolor='lightgray', alpha=0.4, linewidth=0.8),
-                         medianprops=dict(color='dimgray', linewidth=1.2),
-                         whiskerprops=dict(color='gray', linewidth=0.8),
-                         capprops=dict(color='gray', linewidth=0.8),
-                         flierprops=dict(marker='o', markersize=2, alpha=0.3))
-    ax_top.tick_params(labelbottom=False, labelleft=False, length=0)
-    ax_top.set_yticks([])
-    ax_top.spines['top'].set_visible(False)
-    ax_top.spines['right'].set_visible(False)
-    ax_top.spines['left'].set_visible(False)
-    
-    # Boxplot para Fitness2 da amostra (direita - vertical, mais discreto)
-    bp2 = ax_right.boxplot([df_sample['fitness2']], vert=True, widths=0.5,
-                           patch_artist=True,
-                           boxprops=dict(facecolor='lightgray', alpha=0.4, linewidth=0.8),
-                           medianprops=dict(color='dimgray', linewidth=1.2),
-                           whiskerprops=dict(color='gray', linewidth=0.8),
-                           capprops=dict(color='gray', linewidth=0.8),
-                           flierprops=dict(marker='o', markersize=2, alpha=0.3))
-    ax_right.tick_params(labelleft=False, labelbottom=False, length=0)
-    ax_right.set_xticks([])
-    ax_right.spines['top'].set_visible(False)
-    ax_right.spines['right'].set_visible(False)
-    ax_right.spines['bottom'].set_visible(False)
-
+    plt.tight_layout()
     plt.show()
+    
+    return fig
 
 def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, problema_num=1, n_regioes=10):
     """
@@ -1088,6 +826,11 @@ def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, pr
         Número do problema (1 ou 2) para filtrar os resultados
     n_regioes : int, optional
         Número de regiões para divisão do gráfico (default: 10)
+    
+    Returns:
+    --------
+    matplotlib.figure.Figure
+        A figura gerada
     """
     
     # Filtrar resultados para o problema específico
@@ -1223,6 +966,8 @@ def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, pr
     
     plt.tight_layout(rect=[0, 0, 1, 0.99], pad=0.5)
     plt.show()
+    
+    return fig
 
 
 def display_fitness_landscape_with_paretos(df, pareto_fronts_list, n_regioes=None):
@@ -1376,6 +1121,8 @@ def display_fitness_landscape_with_paretos(df, pareto_fronts_list, n_regioes=Non
     
     plt.tight_layout()
     plt.show()
+    
+    return fig
 
 
 def display_fitness_landscape_with_2pareto(df, pareto_real, pareto_surrogate):

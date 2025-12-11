@@ -470,8 +470,8 @@ def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_
     n_regioes : int, optional
         Número de regiões para divisão do gráfico (default: 10)
     show_subplots : list of bool, optional
-        Lista com 5 booleanos indicando quais subfiguras exibir:
-        [Landscape, Features, WAPE_text, WAPE_bars, Distribuição_erro]
+        Lista com 4 booleanos indicando quais subfiguras exibir:
+        [Landscape, Features, WAPE_text, Distribuição_erro]
         Se None, exibe todas (default: None)
         
     Returns:
@@ -485,11 +485,11 @@ def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_
     
     # Se não especificado, exibir todas as subfiguras
     if show_subplots is None:
-        show_subplots = [True, True, True, True, True]
+        show_subplots = [True, True, True, True]
     
     # Validar show_subplots
-    if len(show_subplots) != 5:
-        raise ValueError("show_subplots deve ter exatamente 5 elementos booleanos")
+    if len(show_subplots) != 4:
+        raise ValueError("show_subplots deve ter exatamente 4 elementos booleanos")
     
     max_registro = df3['registro'].max()
     
@@ -547,11 +547,16 @@ def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_
             erro_abs = np.abs(erros)
             wape = 100 * erro_abs.mean() / denominador_global
             
-            erros_sub = erros[erros < 0]
-            wape_sub = 100 * erros_sub.mean() / denominador_global if len(erros_sub) > 0 else 0
+            # Denominador por região: soma de todos os valores verdadeiros da região
+            denominador_regiao = df_regiao[col_real].sum()
             
+            # WAPE sub: soma dos erros absolutos negativos / soma dos valores verdadeiros da região
+            erros_sub = erros[erros < 0]
+            wape_sub = 100 * np.abs(erros_sub).sum() / denominador_regiao if len(erros_sub) > 0 and denominador_regiao > 0 else 0
+            
+            # WAPE sobre: soma dos erros positivos / soma dos valores verdadeiros da região
             erros_sobre = erros[erros > 0]
-            wape_sobre = 100 * erros_sobre.mean() / denominador_global if len(erros_sobre) > 0 else 0
+            wape_sobre = 100 * erros_sobre.sum() / denominador_regiao if len(erros_sobre) > 0 and denominador_regiao > 0 else 0
             
             # Buscar taxa de amostragem no dataframe
             if col_cenario_amostragem in df_amostragem.columns and i < len(df_amostragem):
@@ -571,7 +576,7 @@ def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_
     metricas = calcular_metricas_por_regiao(df3, col_fitness_real, col_fitness_previsto)
     
     # Definir height_ratios e índices baseado nas subfiguras ativas
-    base_height_ratios = [2.3, 1, 0.3, 0.8, 1]
+    base_height_ratios = [2.3, 1, 0.5, 1]  # Subfigura 3 com altura 0.5
     active_ratios = [ratio for ratio, show in zip(base_height_ratios, show_subplots) if show]
     n_subplots = sum(show_subplots)
     
@@ -616,66 +621,32 @@ def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_
         ax2.grid(True, alpha=0.3)
         ax2.set_xlim(0, max_registro)
     
-    # ========== SUBFIGURA 3: Textos WAPE e Amostragem ==========
+    # ========== SUBFIGURA 3: Textos WAPE, WAPE sub, WAPE sobre e Amostragem ==========
     if show_subplots[2]:
         ax3 = fig.add_subplot(gs[subplot_map[2]])
         adicionar_regioes_coloridas(ax3)
         ax3.set_xlim(0, max_registro)
-        ax3.set_ylim(0, 1)
+        ax3.set_ylim(0, 2.6)  # Aumentado em 30% (2 * 1.30 = 2.6)
         ax3.axis('off')  # Remover eixos
         
-        # Adicionar textos de WAPE e Amostragem
+        # Adicionar textos de WAPE, WAPE sub, WAPE sobre e Amostragem
         posicoes_barras = [(i + 0.5) * (1 / n_regioes) * max_registro for i in range(n_regioes)]
         wapes_geral = [m['wape'] for m in metricas]
-        taxas_amost = [m['taxa_amostragem'] for m in metricas]
-        
-        # Ajustar tamanho da fonte baseado no número de regiões (reduzido em 20%)
-        fontsize_texto = max(11, 21 - n_regioes // 2)  # Reduzido em 20%, mínimo 11
-        
-        for pos, wape_g, taxa_amost in zip(posicoes_barras, wapes_geral, taxas_amost):
-            ax3.text(pos, 0.5, f'WAPE: {wape_g:.0f}%\nAmost: {taxa_amost:.0f}%', 
-                    ha='center', va='center', fontsize=fontsize_texto, fontweight='bold', color='darkblue')
-    
-    # ========== SUBFIGURA 4: Gráfico de barras WAPE ==========
-    if show_subplots[3]:
-        ax4 = fig.add_subplot(gs[subplot_map[3]])
-        adicionar_regioes_coloridas(ax4)
-        
-        # Recalcular posicoes_barras se não foi calculado antes (caso subplot 3 esteja oculto)
-        if not show_subplots[2]:
-            posicoes_barras = [(i + 0.5) * (1 / n_regioes) * max_registro for i in range(n_regioes)]
-        
-        largura_barra = 0.15 * (1 / n_regioes) * max_registro
-        
         wapes_sub = [m['wape_sub'] for m in metricas]
         wapes_sobre = [m['wape_sobre'] for m in metricas]
+        taxas_amost = [m['taxa_amostragem'] for m in metricas]
         
-        ax4.bar(posicoes_barras, wapes_sub, width=largura_barra, 
-                color='darkblue', alpha=0.8, label='WAPE Sub', edgecolor='navy', linewidth=1.5)
-        ax4.bar(posicoes_barras, wapes_sobre, width=largura_barra, 
-                color='lightblue', alpha=0.8, label='WAPE Sobre', edgecolor='steelblue', linewidth=1.5)
+        # Ajustar tamanho da fonte baseado no número de regiões (aumentado em 10%)
+        fontsize_texto = max(7, int((19 - n_regioes // 2) * 0.75 * 1.10))  # Aumentado em 10%, mínimo 7
         
-        # Ajustar tamanho da fonte dos valores nas barras baseado no número de regiões (reduzido em 25%)
-        fontsize_barras = max(9, 14 - n_regioes // 3)  # Reduzido em 25%, mínimo 9
-        
-        for i, (pos, wape_sub_val, wape_sobre_val) in enumerate(zip(posicoes_barras, wapes_sub, wapes_sobre)):
-            if abs(wape_sub_val) > 2:
-                ax4.text(pos, wape_sub_val/2, f'{abs(wape_sub_val):.0f}%', 
-                        ha='center', va='center', fontsize=fontsize_barras, fontweight='bold', color='white')
-            if abs(wape_sobre_val) > 2:
-                ax4.text(pos, wape_sobre_val/2, f'{abs(wape_sobre_val):.0f}%', 
-                        ha='center', va='center', fontsize=fontsize_barras, fontweight='bold', color='darkblue')
-        
-        ax4.set_ylabel('WAPE (%)', fontweight='bold')
-        ax4.set_title('WAPE por Região (Sub-previsão e Sobre-previsão)', fontweight='bold', fontsize=11)
-        ax4.axhline(y=0, color='black', linewidth=0.8, linestyle='-')
-        ax4.legend(loc='upper left', fontsize=8)
-        ax4.grid(True, alpha=0.3, axis='y')
-        ax4.set_xlim(0, max_registro)
+        for pos, wape_g, wape_sub, wape_sobre, taxa_amost in zip(posicoes_barras, wapes_geral, wapes_sub, wapes_sobre, taxas_amost):
+            texto = f'WAPE: {wape_g:.0f}%\nsubprevisao: {wape_sub:.0f}%\nsobreprevisao: {wape_sobre:.0f}%\nAmost: {taxa_amost:.0f}%'
+            ax3.text(pos, 1.3, texto, 
+                    ha='center', va='center', fontsize=fontsize_texto, fontweight='bold', color='black')
     
-    # ========== SUBFIGURA 5: Distribuições de erro ==========
-    if show_subplots[4]:
-        ax5 = fig.add_subplot(gs[subplot_map[4]])
+    # ========== SUBFIGURA 4: Distribuições de erro ==========
+    if show_subplots[3]:
+        ax4 = fig.add_subplot(gs[subplot_map[3]])
         
         # Determinar cor baseada no cenário
         cor_distribuicao = cores_cenarios[cenario]
@@ -686,7 +657,7 @@ def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_
             fim = (i + 1) * (1 / n_regioes) * max_registro
             df_regiao = df3[(df3['registro'] >= inicio) & (df3['registro'] < fim)]
             
-            ax5.axvspan(inicio, fim, color=cores_regioes[i], alpha=0.2, zorder=0)
+            ax4.axvspan(inicio, fim, color=cores_regioes[i], alpha=0.2, zorder=0)
             
             erros = df_regiao[col_erro].values
             
@@ -698,19 +669,19 @@ def plota_landscape_cenario(df3, features, df_amostragem, cenario='c1', fitness_
                 x_positions = inicio + (bin_centers - bin_centers.min()) / (bin_centers.max() - bin_centers.min() + 1e-10) * largura_regiao * 0.9
                 x_positions += largura_regiao * 0.05
                 
-                ax5.fill_between(x_positions, 0, counts_norm, alpha=0.6, color=cor_distribuicao)
-                ax5.plot(x_positions, counts_norm, color=cor_linha, linewidth=1.5, alpha=0.8)
+                ax4.fill_between(x_positions, 0, counts_norm, alpha=0.6, color=cor_distribuicao)
+                ax4.plot(x_positions, counts_norm, color=cor_linha, linewidth=1.5, alpha=0.8)
         
-        ax5.set_xlabel('Registro', fontweight='bold')
-        ax5.set_ylabel('Densidade Normalizada', fontweight='bold')
-        ax5.set_title('Distribuição dos Erros por Região', fontweight='bold', fontsize=11)
-        ax5.set_xlim(0, max_registro)
-        ax5.grid(True, alpha=0.3)
+        ax4.set_xlabel('Registro', fontweight='bold')
+        ax4.set_ylabel('Densidade Normalizada', fontweight='bold')
+        ax4.set_title('Distribuição dos Erros por Região', fontweight='bold', fontsize=11)
+        ax4.set_xlim(0, max_registro)
+        ax4.grid(True, alpha=0.3)
         
         # Gerar linhas verticais dinamicamente baseado no número de regiões
         for i in range(1, n_regioes):
             percent = i / n_regioes
-            ax5.axvline(x=max_registro * percent, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+            ax4.axvline(x=max_registro * percent, color='gray', linestyle='--', linewidth=1, alpha=0.5)
     
     plt.tight_layout()
     plt.show()
@@ -731,7 +702,7 @@ def plota_landscape_5cenarios(df3, features, df_amostragem):
         plota_landscape_cenario(df3, features, df_amostragem, cenario=cenario, fitness_num=1)
 
 
-def display_pareto_fronts3(df_real, pareto_fronts_list, front_names=None, sample_size=1000000):
+def display_pareto_fronts3(df_real, pareto_fronts_list, front_names=None, sample_size=1000000, front_colors=None):
     """
     Mostra múltiplos fronts de Pareto sobre a fitness landscape verdadeira.
     
@@ -746,6 +717,9 @@ def display_pareto_fronts3(df_real, pareto_fronts_list, front_names=None, sample
         Se None, usa nomes padrão 'Front 1', 'Front 2', etc.
     sample_size : int, optional
         Número de pontos a amostrar da landscape para plotar (default: 1000000)
+    front_colors : list of str, optional
+        Lista de cores para cada front de Pareto.
+        Se None, usa cores padrão ['red', 'blue', 'green', ...].
     """
     
     # ============================================================================
@@ -774,8 +748,42 @@ def display_pareto_fronts3(df_real, pareto_fronts_list, front_names=None, sample
             label=f'Todos os pontos (amostra de {actual_sample_size:,})', zorder=1)
 
     # Definir cores para os diferentes fronts
-    colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'cyan', 'magenta', 'yellow']
-    dark_colors = ['darkred', 'darkblue', 'darkgreen', 'darkorange', 'darkviolet', 'saddlebrown', 'deeppink', 'darkcyan', 'darkmagenta', 'gold']
+    default_colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'cyan', 'magenta', 'yellow']
+    default_dark_colors = ['darkred', 'darkblue', 'darkgreen', 'darkorange', 'darkviolet', 'saddlebrown', 'deeppink', 'darkcyan', 'darkmagenta', 'gold']
+    
+    # Usar cores personalizadas se fornecidas, caso contrário usar cores padrão
+    if front_colors is not None:
+        colors = front_colors
+        # Gerar cores escuras correspondentes para as bordas
+        dark_colors = []
+        for color in colors:
+            if color == 'red':
+                dark_colors.append('darkred')
+            elif color == 'blue':
+                dark_colors.append('darkblue')
+            elif color == 'yellow':
+                dark_colors.append('gold')
+            elif color == 'goldenrod':
+                dark_colors.append('darkgoldenrod')
+            elif color == 'green':
+                dark_colors.append('darkgreen')
+            elif color == 'orange':
+                dark_colors.append('darkorange')
+            elif color == 'purple':
+                dark_colors.append('darkviolet')
+            elif color == 'brown':
+                dark_colors.append('saddlebrown')
+            elif color == 'pink':
+                dark_colors.append('deeppink')
+            elif color == 'cyan':
+                dark_colors.append('darkcyan')
+            elif color == 'magenta':
+                dark_colors.append('darkmagenta')
+            else:
+                dark_colors.append('black')  # fallback para cores desconhecidas
+    else:
+        colors = default_colors
+        dark_colors = default_dark_colors
     
     # Se não foram fornecidos nomes, usar nomes padrão
     if front_names is None:
@@ -794,7 +802,7 @@ def display_pareto_fronts3(df_real, pareto_fronts_list, front_names=None, sample
     # Configurações do gráfico principal
     ax_main.set_xlabel('Fitness1 (f1)', fontsize=13, fontweight='bold')
     ax_main.set_ylabel('Fitness2 (f2)', fontsize=13, fontweight='bold')
-    ax_main.legend(fontsize=11, loc='best')
+    ax_main.legend(fontsize=17, loc='best')
     ax_main.grid(True, alpha=0.3, linestyle='--')
     
     # Definir limites iguais para x e y começando em 0
@@ -970,7 +978,7 @@ def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, pr
     return fig
 
 
-def display_fitness_landscape_with_paretos(df, pareto_fronts_list, n_regioes=None):
+def display_fitness_landscape_with_paretos(df, pareto_fronts_list, n_regioes=None, front_colors=None, show_error_subplot=False):
     '''
     Plots fitness landscape with multiple Pareto fronts and predicted landscapes.
     Uses same colors as display_pareto_fronts3 for consistency.
@@ -981,15 +989,55 @@ def display_fitness_landscape_with_paretos(df, pareto_fronts_list, n_regioes=Non
         DataFrame with real and predicted fitness landscapes
         Required columns: registro, fitness1, fitness2, fitness_full
         Optional columns: fitness1_c1, fitness2_c1 (predicted landscapes)
+        Optional columns for error subplot: regiao (required if show_error_subplot=True)
     pareto_fronts_list : list of pd.DataFrame
         List of dataframes with Pareto fronts (must have 'registro' column to match with df)
     n_regioes : int or None, optional
         Number of regions to divide the plot. If None, no regions are shown (default: None)
+    front_colors : list of str, optional
+        Lista de cores para cada front de Pareto.
+        Se None, usa cores padrão ['red', 'blue', 'green', ...].
+    show_error_subplot : bool, optional
+        If True, replaces the 3rd subplot with error information by region (default: False)
     '''
     
     # Same colors as display_pareto_fronts3 for consistency
-    colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'cyan', 'magenta', 'yellow']
-    dark_colors = ['darkred', 'darkblue', 'darkgreen', 'darkorange', 'darkviolet', 'saddlebrown', 'deeppink', 'darkcyan', 'darkmagenta', 'gold']
+    default_colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'cyan', 'magenta', 'yellow']
+    default_dark_colors = ['darkred', 'darkblue', 'darkgreen', 'darkorange', 'darkviolet', 'saddlebrown', 'deeppink', 'darkcyan', 'darkmagenta', 'gold']
+    
+    # Usar cores personalizadas se fornecidas, caso contrário usar cores padrão
+    if front_colors is not None:
+        colors = front_colors
+        # Gerar cores escuras correspondentes para as bordas
+        dark_colors = []
+        for color in colors:
+            if color == 'red':
+                dark_colors.append('darkred')
+            elif color == 'blue':
+                dark_colors.append('darkblue')
+            elif color == 'yellow':
+                dark_colors.append('gold')
+            elif color == 'goldenrod':
+                dark_colors.append('darkgoldenrod')
+            elif color == 'green':
+                dark_colors.append('darkgreen')
+            elif color == 'orange':
+                dark_colors.append('darkorange')
+            elif color == 'purple':
+                dark_colors.append('darkviolet')
+            elif color == 'brown':
+                dark_colors.append('saddlebrown')
+            elif color == 'pink':
+                dark_colors.append('deeppink')
+            elif color == 'cyan':
+                dark_colors.append('darkcyan')
+            elif color == 'magenta':
+                dark_colors.append('darkmagenta')
+            else:
+                dark_colors.append('black')  # fallback para cores desconhecidas
+    else:
+        colors = default_colors
+        dark_colors = default_dark_colors
     
     max_registro = df['registro'].max()
     
@@ -1057,10 +1105,19 @@ def display_fitness_landscape_with_paretos(df, pareto_fronts_list, n_regioes=Non
         }
     ]
     
-    fig, axes = plt.subplots(3, 1, figsize=(16, 14))
+    # Determine height ratios based on whether we're showing error subplot
+    if show_error_subplot:
+        height_ratios = [2.3, 2.3, 1]  # Third subplot is smaller for text
+    else:
+        height_ratios = [1, 1, 1]  # Equal heights for standard layout
+    
+    fig = plt.figure(figsize=(16, 14))
+    gs = GridSpec(3, 1, figure=fig, height_ratios=height_ratios, hspace=0.3)
     
     # ========== SUBFIGURAS 1 e 2: Fitness1 e Fitness2 ==========
-    for ax, config in zip(axes[:2], plot_configs):
+    for idx, config in enumerate(plot_configs):
+        ax = fig.add_subplot(gs[idx])
+        
         # Add colored regions first
         adicionar_regioes_coloridas(ax)
         
@@ -1089,35 +1146,107 @@ def display_fitness_landscape_with_paretos(df, pareto_fronts_list, n_regioes=Non
         ax.grid(True, alpha=0.3)
         ax.set_xlim(0, max_registro)
     
-    # ========== SUBFIGURA 3: Comparação completa ==========
-    ax = axes[2]
-    adicionar_regioes_coloridas(ax)
+    # ========== SUBFIGURA 3: Error info by region OR Comparison ==========
+    ax = fig.add_subplot(gs[2])
     
-    # Plot real landscapes as BLACK LINES (only real landscapes, no predicted)
-    ax.plot(df['registro'], df['fitness_full'], 
-           color='black', linewidth=2, 
-           label='Fitness Full (verdadeira)', zorder=3)
-    ax.plot(df['registro'], df['fitness1'], 
-           color='black', linewidth=1, alpha=0.4,
-           label='Fitness1 (verdadeira)', zorder=2)
-    ax.plot(df['registro'], df['fitness2'], 
-           color='black', linewidth=1, alpha=0.4,
-           label='Fitness2 (verdadeira)', zorder=2)
-    
-    # Add Pareto markers for all fronts
-    for i, pareto_front in enumerate(pareto_fronts_list):
-        color = colors[i % len(colors)]
-        dark_color = dark_colors[i % len(dark_colors)]
-        add_pareto_markers(ax, pareto_front, df, 'fitness_full', 
-                         color, dark_color, f'Front {i+1}')
-    
-    ax.set_xlabel('Registro (x)', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Fitness', fontsize=12, fontweight='bold')
-    ax.set_title('Comparação Completa: Landscapes Verdadeiras com Múltiplos Fronts',
-                fontsize=14, fontweight='bold')
-    ax.legend(fontsize=9, loc='best', framealpha=0.9, ncol=2)
-    ax.grid(True, alpha=0.3)
-    ax.set_xlim(0, max_registro)
+    if show_error_subplot and n_regioes is not None:
+        # Show error information by region (like plota_landscape_cenario subfigure 3)
+        adicionar_regioes_coloridas(ax)
+        ax.set_xlim(0, max_registro)
+        ax.set_ylim(0, 2.6)
+        ax.axis('off')  # Remove axes
+        
+        # Check if we have the necessary columns for error calculation
+        if 'fitness1_c1' in df.columns and 'fitness2_c1' in df.columns and 'regiao' in df.columns:
+            # Calculate metrics per region
+            metricas_f1 = []
+            metricas_f2 = []
+            
+            # Denominador global para cada fitness
+            denominador_global_f1 = df['fitness1'].mean()
+            denominador_global_f2 = df['fitness2'].mean()
+            
+            for i in range(n_regioes):
+                inicio = i * (1 / n_regioes) * max_registro
+                fim = (i + 1) * (1 / n_regioes) * max_registro
+                df_regiao = df[(df['registro'] >= inicio) & (df['registro'] < fim)]
+                
+                # Fitness 1 errors
+                erros_f1 = df_regiao['fitness1_c1'] - df_regiao['fitness1']
+                erro_abs_f1 = np.abs(erros_f1)
+                wape_f1 = 100 * erro_abs_f1.mean() / denominador_global_f1
+                
+                denominador_regiao_f1 = df_regiao['fitness1'].sum()
+                erros_sub_f1 = erros_f1[erros_f1 < 0]
+                wape_sub_f1 = 100 * np.abs(erros_sub_f1).sum() / denominador_regiao_f1 if len(erros_sub_f1) > 0 and denominador_regiao_f1 > 0 else 0
+                erros_sobre_f1 = erros_f1[erros_f1 > 0]
+                wape_sobre_f1 = 100 * erros_sobre_f1.sum() / denominador_regiao_f1 if len(erros_sobre_f1) > 0 and denominador_regiao_f1 > 0 else 0
+                
+                metricas_f1.append({'wape': wape_f1, 'wape_sub': wape_sub_f1, 'wape_sobre': wape_sobre_f1})
+                
+                # Fitness 2 errors
+                erros_f2 = df_regiao['fitness2_c1'] - df_regiao['fitness2']
+                erro_abs_f2 = np.abs(erros_f2)
+                wape_f2 = 100 * erro_abs_f2.mean() / denominador_global_f2
+                
+                denominador_regiao_f2 = df_regiao['fitness2'].sum()
+                erros_sub_f2 = erros_f2[erros_f2 < 0]
+                wape_sub_f2 = 100 * np.abs(erros_sub_f2).sum() / denominador_regiao_f2 if len(erros_sub_f2) > 0 and denominador_regiao_f2 > 0 else 0
+                erros_sobre_f2 = erros_f2[erros_f2 > 0]
+                wape_sobre_f2 = 100 * erros_sobre_f2.sum() / denominador_regiao_f2 if len(erros_sobre_f2) > 0 and denominador_regiao_f2 > 0 else 0
+                
+                metricas_f2.append({'wape': wape_f2, 'wape_sub': wape_sub_f2, 'wape_sobre': wape_sobre_f2})
+            
+            # Add text for each region
+            posicoes_barras = [(i + 0.5) * (1 / n_regioes) * max_registro for i in range(n_regioes)]
+            fontsize_texto = max(7, int((19 - n_regioes // 2) * 0.75 * 1.10))
+            
+            for pos, m_f1, m_f2 in zip(posicoes_barras, metricas_f1, metricas_f2):
+                texto = (f'fitness1 - WAPE: {m_f1["wape"]:.0f}%\n'
+                        f'subprevisao: {m_f1["wape_sub"]:.0f}%\n'
+                        f'sobreprevisao: {m_f1["wape_sobre"]:.0f}%\n'
+                        f'\n'
+                        f'fitness2 - WAPE: {m_f2["wape"]:.0f}%\n'
+                        f'subprevisao: {m_f2["wape_sub"]:.0f}%\n'
+                        f'sobreprevisao: {m_f2["wape_sobre"]:.0f}%')
+                ax.text(pos, 1.3, texto, 
+                       ha='center', va='center', fontsize=fontsize_texto, 
+                       fontweight='bold', color='black')
+        else:
+            # Show warning if columns are missing
+            ax.text(0.5, 0.5, 
+                   'Erro: Colunas necessárias não encontradas\n(fitness1_c1, fitness2_c1, regiao)', 
+                   ha='center', va='center', fontsize=12, color='red',
+                   transform=ax.transAxes)
+    else:
+        # Show standard comparison plot
+        adicionar_regioes_coloridas(ax)
+        
+        # Plot real landscapes as BLACK LINES (only real landscapes, no predicted)
+        ax.plot(df['registro'], df['fitness_full'], 
+               color='black', linewidth=2, 
+               label='Fitness Full (verdadeira)', zorder=3)
+        ax.plot(df['registro'], df['fitness1'], 
+               color='black', linewidth=1, alpha=0.4,
+               label='Fitness1 (verdadeira)', zorder=2)
+        ax.plot(df['registro'], df['fitness2'], 
+               color='black', linewidth=1, alpha=0.4,
+               label='Fitness2 (verdadeira)', zorder=2)
+        
+        # Add Pareto markers for all fronts
+        for i, pareto_front in enumerate(pareto_fronts_list):
+            color = colors[i % len(colors)]
+            dark_color = dark_colors[i % len(dark_colors)]
+            add_pareto_markers(ax, pareto_front, df, 'fitness_full', 
+                             color, dark_color, f'Front {i+1}')
+        
+        ax.set_xlabel('Registro (x)', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Fitness', fontsize=12, fontweight='bold')
+        ax.set_title('Comparação Completa: Landscapes Verdadeiras com Múltiplos Fronts',
+                    fontsize=14, fontweight='bold')
+        ax.legend(fontsize=9, loc='best', framealpha=0.9, ncol=2)
+        ax.grid(True, alpha=0.3)
+        ax.set_xlim(0, max_registro)
     
     plt.tight_layout()
     plt.show()

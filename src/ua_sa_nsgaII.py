@@ -42,6 +42,11 @@ def run_my_uasa_nsga2(config: dict,
 
     args:
         config: dicionário de configuração
+            - 'ua_rank_stat' (opcional): função ou string para calcular ua_rank a partir dos ranks
+                * None ou 'mean': usa np.mean (default)
+                * 'median' ou 'percentile_50': usa percentil 50
+                * 'percentile_X': usa percentil X (ex: 'percentile_40')
+                * função callable: aplica a função diretamente
         df_landscape: dataframe com o landscape de fitness
         input_initial_population: lista de genótipos (opcional)
         save_history: se True, salva o histórico de populações (default: False)
@@ -90,7 +95,9 @@ def run_my_uasa_nsga2(config: dict,
         combined_population = population + offspring
 
         # Seleção geracional: selecionar N melhores para formar P(t+1)
-        population = environmental_selection(combined_population, config, generation)
+        # Pega ua_rank_stat do config (default: None, que usa 'mean')
+        ua_rank_stat = config.get('ua_rank_stat', None)
+        population = environmental_selection(combined_population, config, generation, ua_rank_stat)
 
         # Salvar snapshot da população se histórico está ativado
         if save_history:

@@ -148,7 +148,7 @@ def _process_single_simulation(s, original_fitness_list, config):
     return simulation_ranks
 
 
-def uncertainty_aware_ranking(combined_population, config):
+def uncertainty_aware_ranking(combined_population, config, ua_rank_stat=None):
     '''
     Uncertainty-Aware Ranking using Multiple Simulations (Paralelizado com joblib)
 
@@ -156,9 +156,32 @@ def uncertainty_aware_ranking(combined_population, config):
         - Realiza fast non-dominated sort para cada simulação (em paralelo)
         - Coleta o rank de cada indivíduo nesta simulação em ua_simulation_ranks
         - Restaura os fitness originais e calcula:
-            * ua_rank: média dos ranks das n_simulations
-            * ua_rank_std: média dos desvios positivos acima da média
+            * ua_rank: estatística dos ranks das n_simulations (default: média)
+            * ua_rank_std: média dos desvios positivos acima da estatística
+    
+    Args:
+        combined_population: população combinada Pt + Qt
+        config: configurações do algoritmo
+        ua_rank_stat: função ou string para calcular ua_rank a partir dos ranks
+                      - None ou 'mean': usa np.mean (default)
+                      - 'median' ou 'percentile_50': usa percentil 50
+                      - 'percentile_X': usa percentil X (ex: 'percentile_40')
+                      - função callable: aplica a função diretamente
     '''
+    
+    # Define a função de estatística a ser usada
+    if ua_rank_stat is None or ua_rank_stat == 'mean':
+        stat_func = np.mean
+    elif ua_rank_stat == 'median' or ua_rank_stat == 'percentile_50':
+        stat_func = np.median
+    elif isinstance(ua_rank_stat, str) and ua_rank_stat.startswith('percentile_'):
+        # Extrai o valor do percentil (ex: 'percentile_40' -> 40)
+        percentile_value = float(ua_rank_stat.split('_')[1])
+        stat_func = lambda x: np.percentile(x, percentile_value)
+    elif callable(ua_rank_stat):
+        stat_func = ua_rank_stat
+    else:
+        raise ValueError(f"ua_rank_stat inválido: {ua_rank_stat}. Use 'mean', 'median', 'percentile_X' ou uma função.")
     
     # Salva os fitness originais (listas completas) em uma lista indexada
     original_fitness_list = [individual.fitness for individual in combined_population]
@@ -181,11 +204,11 @@ def uncertainty_aware_ranking(combined_population, config):
     for idx, individual in enumerate(combined_population):
         # Restaura os fitness originais
         individual.fitness = original_fitness_list[idx]
-        # Calcula a média dos ranks obtidos nas n_simulations
-        individual.ua_rank = round(np.mean(individual.ua_simulation_ranks), 5)
-        # Calcula a métrica de dispersão: média dos desvios positivos acima da média
-        mean_rank = individual.ua_rank
-        positive_deviations = np.maximum(0, np.array(individual.ua_simulation_ranks) - mean_rank)
+        # Calcula a estatística dos ranks obtidos nas n_simulations
+        individual.ua_rank = round(stat_func(individual.ua_simulation_ranks), 5)
+        # Calcula a métrica de dispersão: média dos desvios positivos acima da estatística
+        ua_rank_value = individual.ua_rank
+        positive_deviations = np.maximum(0, np.array(individual.ua_simulation_ranks) - ua_rank_value)
         individual.ua_rank_std = round(np.mean(positive_deviations), 5)
         # Limpa os ua_simulation_ranks
         individual.ua_simulation_ranks = []
@@ -488,12 +511,12 @@ def calculate_crowding_distance(front):
 ####################################################################################################################################
 ### Seleção Ambiental
 
-def environmental_selection(combined_population, config, generation):
+def environmental_selection(combined_population, config, generation, ua_rank_stat=None):
     """
     Seleção ambiental: seleciona os melhores N indivíduos de Rt = Pt + Qt
     
     Utiliza três mecanismos principais:
-    1. Uncertainty-Aware Ranking: calcula ua_rank (média) e ua_rank_std (dispersão) 
+    1. Uncertainty-Aware Ranking: calcula ua_rank (estatística) e ua_rank_std (dispersão) 
        através de múltiplas simulações de fast non-dominated sort
     
     2. Decision-Space Niching (opcional): mantém diversidade no espaço de decisão através de:
@@ -518,10 +541,11 @@ def environmental_selection(combined_population, config, generation):
         combined_population: população combinada Pt + Qt
         config: configurações do algoritmo
         generation: geração atual (0-indexed)
+        ua_rank_stat: função ou string para calcular ua_rank (default: 'mean')
     """
 
     # Passo 1: Calcula uncertainty-aware ranking
-    uncertainty_aware_ranking(combined_population, config)
+    uncertainty_aware_ranking(combined_population, config, ua_rank_stat)
 
     # Passo 2: Verifica se usa decision-space niching
     if config['utiliza_ds_niching'] == True:

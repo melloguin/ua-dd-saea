@@ -4,7 +4,7 @@ from tqdm.auto import tqdm
 
 from src.ua_sa_nsga2.individual     import Individual
 from src.ua_sa_nsga2.inicialization import initialize_population
-from src.ua_sa_nsga2.evaluation     import evaluate_population, genotype_to_registro
+from src.ua_sa_nsga2.evaluation     import evaluate_population
 from src.ua_sa_nsga2.offspring      import create_offspring_population
 from src.ua_sa_nsga2.selection      import environmental_selection
 from src.ua_sa_nsga2.utils          import collect_generation_stats, plot_optimization_progress
@@ -64,7 +64,7 @@ def run_my_uasa_nsga2(config: dict,
     population, _ = initialize_population(config, input_initial_population)
 
     # Avalia fitness da população inicial
-    evaluate_population(population, df_landscape, config['fitness_cols'], config['maximize'])
+    evaluate_population(population, df_landscape, config['fitness_cols'])
     
     # Inicializar histórico se solicitado
     history = [] if save_history else None
@@ -87,7 +87,7 @@ def run_my_uasa_nsga2(config: dict,
         offspring = create_offspring_population(population, config)
 
         # Avalia fitness da população descendente
-        evaluate_population(offspring, df_landscape, config['fitness_cols'], config['maximize'])
+        evaluate_population(offspring, df_landscape, config['fitness_cols'])
 
 
         ######### 3. Seleção Geracional (environmental selection)
@@ -97,7 +97,7 @@ def run_my_uasa_nsga2(config: dict,
         # Seleção geracional: selecionar N melhores para formar P(t+1)
         # Pega ua_rank_stat do config (default: None, que usa 'mean')
         ua_rank_stat = config.get('ua_rank_stat', None)
-        population = environmental_selection(combined_population, config, generation, ua_rank_stat)
+        population = environmental_selection(combined_population, config, generation)
 
         # Salvar snapshot da população se histórico está ativado
         if save_history:

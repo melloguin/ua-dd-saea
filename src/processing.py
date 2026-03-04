@@ -56,7 +56,7 @@ def calculate_fitness(equations1, equations2, df):
 # FRONTEIRA DE PARETO - Problema de Maximização Bi-Objetivo
 # ============================================================================
 
-def find_pareto_front(df):
+def find_pareto_front(df, minimize = False, fitness1 = 'fitness1', fitness2 = 'fitness2'):
     """
     Encontra a fronteira de Pareto para um problema de maximização bi-objetivo.
     
@@ -88,19 +88,19 @@ def find_pareto_front(df):
     
     # Criar cópia e ordenar por fitness1 (decrescente), depois fitness2 (decrescente)
     # Isso garante que pontos com mesmo fitness1 sejam ordenados por fitness2
-    df_sorted = df.sort_values(by=['fitness1', 'fitness2'], 
-                                ascending=[False, False]).reset_index(drop=False)
+    df_sorted = df.sort_values(by=[fitness1, fitness2], 
+                                ascending=[minimize, minimize]).reset_index(drop=False)
     
     # Lista para armazenar índices dos pontos não-dominados
     pareto_indices = []
     
     # Máximo de fitness2 visto até agora
-    max_fitness2 = float('-inf')
-    
+    max_fitness2 = float('inf') if minimize else float('-inf')
+        
     # Percorrer pontos ordenados
     for idx, row in df_sorted.iterrows():
-        current_fitness1 = row['fitness1']
-        current_fitness2 = row['fitness2']
+        current_fitness1 = row[fitness1]
+        current_fitness2 = row[fitness2]
         
         # Como ordenamos por fitness1 decrescente, todos os pontos anteriores
         # têm fitness1 >= current_fitness1
@@ -113,18 +113,21 @@ def find_pareto_front(df):
         # - fitness2 > current_fitness2 (pois max_fitness2 > current_fitness2)
         # Logo, o ponto atual é dominado
         
-        if current_fitness2 >= max_fitness2:
-#            print(f'ponto_adicionado_front: f1 = {current_fitness1}, f2 = {current_fitness2}')
-            # Ponto não é dominado - adicionar à fronteira
-            pareto_indices.append(row['index'])
-            # Atualizar o máximo de fitness2
-            max_fitness2 = current_fitness2
+        if minimize:
+            if current_fitness2 <= max_fitness2:
+                pareto_indices.append(row['index'])
+                max_fitness2 = current_fitness2
+        else:
+            if current_fitness2 >= max_fitness2:
+                pareto_indices.append(row['index'])
+                max_fitness2 = current_fitness2
+
     
     # Extrair os pontos da fronteira de Pareto usando os índices originais
     pareto_front = df.loc[pareto_indices].copy()
     
     # Ordenar a fronteira por fitness1 para melhor visualização
-    pareto_front = pareto_front.sort_values(by='fitness1', ascending=False)
+    pareto_front = pareto_front.sort_values(by=fitness1, ascending=minimize)
     
     print(f"✅ Fronteira de Pareto encontrada!")
     print(f"Fronteira de Pareto contém {len(pareto_front):,} pontos.")
@@ -381,3 +384,123 @@ def prever_surrogate(df2, features_surrogate, id_objetivo,
 
 
     return df3
+
+
+
+
+##########################################################################################
+# Adicao de ruido no treinamento do modelo surrogate (MMF1)
+##########################################################################################
+
+# FUNÇÃO GERADORA DE DISTRIBUIÇÕES BRUTAS
+def gerar_ruido_raw(dist, params, n_samples):
+    """Gera a amostragem bruta baseada no nome da distribuição e seus parâmetros."""
+    if dist == 'bimodal':
+        regime = np.random.choice([0, 1], size=n_samples, p=params['p'])
+        return np.where(regime == 0, 
+                        np.random.normal(params['mu1'], params['sd1'], n_samples), 
+                        np.random.normal(params['mu2'], params['sd2'], n_samples))
+    elif dist == 'student_t':   return np.random.standard_t(df=params['df'], size=n_samples)
+    elif dist == 'lognormal':   return np.random.lognormal(mean=params['mean'], sigma=params['sigma'], size=n_samples)
+    elif dist == 'poisson':     return np.random.poisson(lam=params['lam'], size=n_samples)
+    elif dist == 'binomial':    return np.random.binomial(n=params['n'], p=params['p'], size=n_samples)
+    elif dist == 'geometric':   return np.random.geometric(p=params['p'], size=n_samples)
+    elif dist == 'exponential': return np.random.exponential(scale=params['scale'], size=n_samples)
+    elif dist == 'uniform':     return np.random.uniform(low=params['low'], high=params['high'], size=n_samples)
+    elif dist == 'laplace':     return np.random.laplace(loc=params['loc'], scale=params['scale'], size=n_samples)
+    elif dist == 'gamma':       return np.random.gamma(shape=params['shape'], scale=params['scale'], size=n_samples)
+    elif dist == 'beta':        return np.random.beta(a=params['a'], b=params['b'], size=n_samples)
+    elif dist == 'rayleigh':    return np.random.rayleigh(scale=params['scale'], size=n_samples)
+    elif dist == 'weibull':     return np.random.weibull(a=params['a'], size=n_samples)
+    elif dist == 'logistic':    return np.random.logistic(loc=params['loc'], scale=params['scale'], size=n_samples)
+    elif dist == 'pareto':      return np.random.pareto(a=params['a'], size=n_samples)
+    elif dist == 'rademacher':  return np.random.choice([-1.0, 1.0], size=n_samples)
+    else:                       return np.random.normal(0, 1, n_samples) # Default fallback
+
+# FUNÇÃO DE INJEÇÃO PRINCIPAL (Para o DataFrame)
+def injetar_ruidos_parametrizados(df, config_dict, col_regiao='regiao'):
+    """
+    Injeta ruídos no DataFrame baseando-se no dicionário de configuração.
+    Garante padronização de variância e ajuste fino de média.
+    Agora cada região tem sua própria força de ruído (forca_ruido) definida no config_dict.
+    """
+    print("Iniciando injeção de ruídos parametrizados...")
+    df_ruidoso = df.copy()
+    
+    # Médias globais das funções objetivo (para calcular escalas)
+    mean_f1 = df['f1'].mean()
+    mean_f2 = df['f2'].mean()
+    
+    print(f"Média F1: {mean_f1:.6f}")
+    print(f"Média F2: {mean_f2:.6f}")
+    
+    # Inicializar colunas de ruído com zeros
+    df_ruidoso['_ruido_f1'] = 0.0
+    df_ruidoso['_ruido_f2'] = 0.0
+    
+    np.random.seed(42)
+    
+    print("\n📊 Força de ruído por região:")
+    for reg, conf in config_dict.items():
+        # Converter a chave para string para comparar com a coluna 'regiao'
+        reg_str = str(reg)
+        indices_regiao = df_ruidoso[df_ruidoso[col_regiao] == reg_str].index.tolist()
+        n_samples = len(indices_regiao)
+        
+        if n_samples == 0: 
+            print(f"⚠️  Região {reg} não encontrada no DataFrame")
+            continue
+            
+        dist_nome = conf['dist']
+        params = conf['params']
+        target_mean = conf['target_mean']
+        forca_ruido = conf.get('forca_ruido', 0.0)  # Lê força de ruído específica da região
+        
+        # Escalas específicas para esta região
+        scale_f1 = forca_ruido * mean_f1
+        scale_f2 = forca_ruido * mean_f2
+        
+        print(f"  Região {reg:2d}: força={forca_ruido:.1f}, scale_f1={scale_f1:.4f}, scale_f2={scale_f2:.4f}, dist={dist_nome}")
+        
+        # Se força de ruído é zero nesta região, pular
+        if forca_ruido == 0:
+            continue
+        
+        # Gera o ruído
+        raw_noise = gerar_ruido_raw(dist_nome, params, n_samples)
+        
+        # 1. Centraliza em 0
+        centered_noise = raw_noise - np.mean(raw_noise)
+        
+        # 2. Padroniza para std = 1
+        std_val = np.std(centered_noise)
+        if std_val == 0: std_val = 1e-6
+        std_noise = centered_noise / std_val
+        
+        # 3. Aplica a escala específica da região e soma a média-alvo desejada
+        # Para f1
+        ruido_f1 = (std_noise * scale_f1) + target_mean
+        for i, idx in enumerate(indices_regiao):
+            df_ruidoso.at[idx, '_ruido_f1'] = ruido_f1[i]
+        
+        # Re-embaralha para criar ruído de f2 independente de f1
+        np.random.shuffle(std_noise)
+        ruido_f2 = (std_noise * scale_f2) + target_mean
+        for i, idx in enumerate(indices_regiao):
+            df_ruidoso.at[idx, '_ruido_f2'] = ruido_f2[i]
+        
+    # Aplicar os ruídos
+    df_ruidoso['f1'] = df_ruidoso['f1'] + df_ruidoso['_ruido_f1']
+    df_ruidoso['f2'] = df_ruidoso['f2'] + df_ruidoso['_ruido_f2']
+    
+    # Verificar se ruído foi realmente aplicado
+    ruido_f1_aplicado = df_ruidoso['_ruido_f1'].abs().mean()
+    ruido_f2_aplicado = df_ruidoso['_ruido_f2'].abs().mean()
+    print(f"\n📈 Ruído médio absoluto aplicado em F1: {ruido_f1_aplicado:.6f}")
+    print(f"📈 Ruído médio absoluto aplicado em F2: {ruido_f2_aplicado:.6f}")
+    
+    # Remover colunas temporárias
+    df_ruidoso.drop(columns=['_ruido_f1', '_ruido_f2'], inplace=True)
+    
+    print("✅ Injeção concluída com sucesso!")
+    return df_ruidoso

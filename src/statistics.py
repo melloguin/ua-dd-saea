@@ -45,12 +45,17 @@ def comparar_distribuicoes(df_surrogate, df_validacao, col, problema, calcula_wa
         - wape_validacao: WAPE da base de validação (média do erro absoluto / média do fitness)
     """
     
-    # Determinar objetivo baseado na coluna
+    # Determinar objetivo baseado na coluna de forma flexível
     if col == 'erro1_c1':
         objetivo = 'fitness1'
     elif col == 'erro2_c1':
         objetivo = 'fitness2'
+    elif col == 'erro_f1':
+        objetivo = 'f1'
+    elif col == 'erro_f2':
+        objetivo = 'f2'
     else:
+        # Padrão genérico: substitui 'erro' por 'fitness' ou remove '_erro'
         objetivo = col.replace('erro', 'fitness').replace('_c1', '')
     
     # Lista para armazenar resultados

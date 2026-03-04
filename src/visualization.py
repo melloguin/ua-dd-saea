@@ -1,11 +1,13 @@
+import plotly.express as px
 import matplotlib.pyplot as plt
+import seaborn as sns
 import math
 import numpy as np
 from matplotlib.gridspec import GridSpec
 from scipy import stats as scipy_stats
 from src.nsga2.evaluation import genotype_to_registro
 from src.nsga2.evaluation import evaluate_population
-import matplotlib.pyplot as plt
+from src.processing import gerar_ruido_raw
 
 # Configure matplotlib for better performance with large datasets
 plt.style.use('seaborn-v0_8-darkgrid')
@@ -14,7 +16,9 @@ plt.rcParams['lines.linewidth'] = 0.5
 
 
 def plota_fitness_landscape_com_equacoes(df, n_regioes=5, show_regions=True, 
-                                         pareto_fronts_list=None, front_names=None):
+                                         pareto_fronts_list=None, front_names=None,
+                                         fitness1 = 'fitness1', fitness2 = 'fitness2',
+                                         plot_equations = True):
     """
     Plota o fitness landscape com 3 subplots:
     1. Fitness1 e Fitness2 (2.5x altura)
@@ -64,8 +68,8 @@ def plota_fitness_landscape_com_equacoes(df, n_regioes=5, show_regions=True,
     ax1 = fig.add_subplot(gs[0])
     adicionar_regioes_coloridas(ax1)
     
-    ax1.plot(df['registro'], df['fitness1'], label='fitness1', linewidth=1.5, color='steelblue')
-    ax1.plot(df['registro'], df['fitness2'], label='fitness2', linewidth=1.5, color='coral')
+    ax1.plot(df['registro'], df[fitness1], label=fitness1, linewidth=1.5, color='steelblue')
+    ax1.plot(df['registro'], df[fitness2], label=fitness2, linewidth=1.5, color='coral')
     
     # Plotar fronts de Pareto se fornecidos
     if pareto_fronts_list is not None and len(pareto_fronts_list) > 0:
@@ -84,7 +88,7 @@ def plota_fitness_landscape_com_equacoes(df, n_regioes=5, show_regions=True,
             
             # Para cada ponto, usar o maior valor entre fitness1 e fitness2
             # Isso faz a bolinha aparecer sempre na linha mais alta
-            fitness_max = pareto_front[['fitness1', 'fitness2']].max(axis=1)
+            fitness_max = pareto_front[[fitness1, fitness2]].max(axis=1)
             
             # Plotar bolinhas sempre na linha mais alta
             ax1.scatter(pareto_front['registro'], fitness_max, 
@@ -98,34 +102,36 @@ def plota_fitness_landscape_com_equacoes(df, n_regioes=5, show_regions=True,
     ax1.grid(True, alpha=0.3)
     ax1.set_xlim(0, max_registro)
     
-    # ========== SUBPLOT 2: Equações geradoras da Fitness1 ==========
-    ax2 = fig.add_subplot(gs[1])
-    adicionar_regioes_coloridas(ax2)
+    if plot_equations:
+
+        # ========== SUBPLOT 2: Equações geradoras da Fitness1 ==========
+        ax2 = fig.add_subplot(gs[1])
+        adicionar_regioes_coloridas(ax2)
+        
+        fitness1_eq_cols = [col for col in df.columns if 'fitness1_eq' in col]
+        for col in fitness1_eq_cols:
+            ax2.plot(df['registro'], df[col], label=col, alpha=0.7, linewidth=0.8)
+        
+        ax2.legend(loc='upper right', fontsize=8, ncol=3)
+        ax2.set_ylabel('Equações Fitness1', fontweight='bold', fontsize=11)
+        ax2.set_title('Equações Geradoras da Fitness1', fontweight='bold', fontsize=12)
+        ax2.grid(True, alpha=0.3)
+        ax2.set_xlim(0, max_registro)
     
-    fitness1_eq_cols = [col for col in df.columns if 'fitness1_eq' in col]
-    for col in fitness1_eq_cols:
-        ax2.plot(df['registro'], df[col], label=col, alpha=0.7, linewidth=0.8)
-    
-    ax2.legend(loc='upper right', fontsize=8, ncol=3)
-    ax2.set_ylabel('Equações Fitness1', fontweight='bold', fontsize=11)
-    ax2.set_title('Equações Geradoras da Fitness1', fontweight='bold', fontsize=12)
-    ax2.grid(True, alpha=0.3)
-    ax2.set_xlim(0, max_registro)
-    
-    # ========== SUBPLOT 3: Equações geradoras da Fitness2 ==========
-    ax3 = fig.add_subplot(gs[2])
-    adicionar_regioes_coloridas(ax3)
-    
-    fitness2_eq_cols = [col for col in df.columns if 'fitness2_eq' in col]
-    for col in fitness2_eq_cols:
-        ax3.plot(df['registro'], df[col], label=col, alpha=0.7, linewidth=0.8)
-    
-    ax3.legend(loc='upper right', fontsize=8, ncol=3)
-    ax3.set_xlabel('Registro', fontweight='bold', fontsize=12)
-    ax3.set_ylabel('Equações Fitness2', fontweight='bold', fontsize=11)
-    ax3.set_title('Equações Geradoras da Fitness2', fontweight='bold', fontsize=12)
-    ax3.grid(True, alpha=0.3)
-    ax3.set_xlim(0, max_registro)
+        # ========== SUBPLOT 3: Equações geradoras da Fitness2 ==========
+        ax3 = fig.add_subplot(gs[2])
+        adicionar_regioes_coloridas(ax3)
+        
+        fitness2_eq_cols = [col for col in df.columns if 'fitness2_eq' in col]
+        for col in fitness2_eq_cols:
+            ax3.plot(df['registro'], df[col], label=col, alpha=0.7, linewidth=0.8)
+        
+        ax3.legend(loc='upper right', fontsize=8, ncol=3)
+        ax3.set_xlabel('Registro', fontweight='bold', fontsize=12)
+        ax3.set_ylabel('Equações Fitness2', fontweight='bold', fontsize=11)
+        ax3.set_title('Equações Geradoras da Fitness2', fontweight='bold', fontsize=12)
+        ax3.grid(True, alpha=0.3)
+        ax3.set_xlim(0, max_registro)
     
     plt.tight_layout()
     plt.show()
@@ -702,7 +708,13 @@ def plota_landscape_5cenarios(df3, features, df_amostragem):
         plota_landscape_cenario(df3, features, df_amostragem, cenario=cenario, fitness_num=1)
 
 
-def display_pareto_fronts3(df_real, pareto_fronts_list, front_names=None, sample_size=1000000, front_colors=None):
+def display_pareto_fronts3(df_real,
+                           pareto_fronts_list, 
+                           fitness1 = 'fitness1',
+                           fitness2 = 'fitness2',
+                           front_names=None, 
+                           sample_size=1000000, 
+                           front_colors=None):
     """
     Mostra múltiplos fronts de Pareto sobre a fitness landscape verdadeira.
     
@@ -726,11 +738,21 @@ def display_pareto_fronts3(df_real, pareto_fronts_list, front_names=None, sample
     # Calcular limites comuns para ambos os gráficos
     # ============================================================================
     
-    # Encontrar o máximo entre fitness1 e fitness2 de todos os pontos
-    max_fitness = max(df_real['fitness1'].max(), df_real['fitness2'].max())
-    # Arredondar para cima para um valor "bonito"
-    max_limit = math.ceil(max_fitness / 2) * 2
-    
+    # Calcular limites independentes para cada eixo
+    max_fitness1 = df_real[fitness1].max()
+    max_fitness2 = df_real[fitness2].max()
+   
+    # Arredondar para cima para valores "bonitos"
+    if max_fitness1 <= 1:
+        max_limit_x = 1
+    else:
+        max_limit_x = math.ceil(max_fitness1 / 2) * 2
+
+    if max_fitness2 <= 1:
+        max_limit_y = 1
+    else:
+        max_limit_y = math.ceil(max_fitness2 / 2) * 2
+
     # ============================================================================
     # GRÁFICO: Múltiplos Fronts no contexto de todos os pontos com boxplots
     # ============================================================================
@@ -743,7 +765,7 @@ def display_pareto_fronts3(df_real, pareto_fronts_list, front_names=None, sample
     fig, ax_main = plt.subplots(figsize=(10, 10))
 
     # Plotar todos os pontos (amostra) em cinza (s=10 -> s=14 -> s=21)
-    ax_main.scatter(df_sample['fitness1'], df_sample['fitness2'], 
+    ax_main.scatter(df_sample[fitness1], df_sample[fitness2], 
             c='lightgray', s=21, alpha=0.3, 
             label=f'Todos os pontos (amostra de {actual_sample_size:,})', zorder=1)
 
@@ -795,7 +817,7 @@ def display_pareto_fronts3(df_real, pareto_fronts_list, front_names=None, sample
         dark_color = dark_colors[i % len(dark_colors)]
         
         # Plotar o front em destaque (s=40 -> s=64 -> s=96)
-        ax_main.scatter(pareto_front['fitness1'], pareto_front['fitness2'], 
+        ax_main.scatter(pareto_front[fitness1], pareto_front[fitness2], 
                 c=color, s=96, alpha=0.9, edgecolors=dark_color, 
                 linewidth=1.5, label=f'{front_names[i]} ({len(pareto_front)} pts)', zorder=3+i)
 
@@ -806,20 +828,23 @@ def display_pareto_fronts3(df_real, pareto_fronts_list, front_names=None, sample
     ax_main.grid(True, alpha=0.3, linestyle='--')
     
     # Definir limites iguais para x e y começando em 0
-    ax_main.set_xlim(0, max_limit)
-    ax_main.set_ylim(0, max_limit)
+    ax_main.set_xlim(0, max_limit_x)
+    ax_main.set_ylim(0, max_limit_y)
     
     # Definir aspect ratio igual (1 cm no x = 1 cm no y)
-    ax_main.set_aspect('equal', adjustable='box')
+#    ax_main.set_aspect('equal', adjustable='box')
 
     plt.tight_layout()
     plt.show()
     
     return fig
 
-def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, problema_num=1, n_regioes=10):
+
+
+def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, problema_num=1, n_regioes=None, 
+                                   fitness_cols=None, fitness_labels=None, problem_name=None, max_cols=5):
     """
-    Plota comparação de distribuições em um grid 2xN (2 fitness x N regiões).
+    Plota comparação de distribuições em um grid com quebra de linha.
     Para visualizar ambos os problemas, chame a função duas vezes.
     
     Parameters:
@@ -830,46 +855,133 @@ def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, pr
         DataFrame com dados de validação (amostra)
     df_resultados : pd.DataFrame
         DataFrame retornado pela função comparar_distribuicoes contendo as métricas
-    problema_num : int
-        Número do problema (1 ou 2) para filtrar os resultados
+    problema_num : int, optional
+        Número do problema (1 ou 2) para filtrar os resultados usando padrão 'problema{num}'
+        Ignorado se problem_name for fornecido (default: 1)
     n_regioes : int, optional
-        Número de regiões para divisão do gráfico (default: 10)
+        Número de regiões para divisão do gráfico (default: None = auto-detecta dos dados)
+    fitness_cols : list of str, optional
+        Lista com os nomes das colunas de erro a plotar (default: auto-detecta)
+    fitness_labels : list of str, optional
+        Lista com os labels para os fitness (default: auto-gera baseado nas colunas)
+    problem_name : str, optional
+        Nome específico do problema no DataFrame (ex: 'MMF1', 'MMF4', 'BBob16'). 
+        Se fornecido, sobrescreve problema_num (default: None)
+    max_cols : int, optional
+        Número máximo de colunas por linha antes de quebrar (default: 5)
     
     Returns:
     --------
     matplotlib.figure.Figure
         A figura gerada
     """
+    import matplotlib.pyplot as plt
+    from matplotlib.gridspec import GridSpec
+    import numpy as np
+    from scipy import stats as scipy_stats
+    import math
+    import pandas as pd
+    
+    # Determinar o nome do problema a filtrar
+    if problem_name is not None:
+        problema_filtro = problem_name
+    else:
+        problema_filtro = f'problema{problema_num}'
     
     # Filtrar resultados para o problema específico
-    df_prob = df_resultados[df_resultados['problema'] == f'problema{problema_num}'].copy()
+    df_prob = df_resultados[df_resultados['problema'] == problema_filtro].copy()
     
-    # Configuração do grid: 2 linhas (fitness1, fitness2) x N colunas (regiões)
-    # Ajustar largura da figura dinamicamente
-    fig_width = max(16, 4 * n_regioes)  # Mínimo 16, 4 polegadas por região
-    fig = plt.figure(figsize=(fig_width, 10))
-    gs = GridSpec(2, n_regioes, figure=fig, hspace=0.15, wspace=0.15)
+    if len(df_prob) == 0:
+        print(f"⚠️  AVISO: Nenhum dado encontrado para problema='{problema_filtro}'")
+        print(f"    Problemas disponíveis: {list(df_resultados['problema'].unique())}")
+        return plt.figure(figsize=(16, 10))
+    
+    # Auto-detectar número de regiões se não fornecido
+    if n_regioes is None:
+        n_regioes = len(df_prob['regiao'].unique())
+        print(f"📊 Auto-detectado: {n_regioes} regiões")
+    
+    # Auto-detectar colunas de fitness se não fornecidas
+    if fitness_cols is None:
+        colunas_disponiveis = df_resultados['coluna'].unique()
+        
+        if 'erro1_c1' in colunas_disponiveis or 'erro2_c1' in colunas_disponiveis:
+            fitness_cols = ['erro1_c1', 'erro2_c1']
+            fitness_labels = ['Fitness1', 'Fitness2'] if fitness_labels is None else fitness_labels
+        elif 'erro_f1' in colunas_disponiveis or 'erro_f2' in colunas_disponiveis:
+            fitness_cols = ['erro_f1', 'erro_f2']
+            fitness_labels = ['F1', 'F2'] if fitness_labels is None else fitness_labels
+        else:
+            fitness_cols = list(colunas_disponiveis[:2])
+            fitness_labels = [f'Fitness{i+1}' for i in range(len(fitness_cols))] if fitness_labels is None else fitness_labels
+    
+    if fitness_labels is None:
+        fitness_labels = [f'Fitness{i+1}' for i in range(len(fitness_cols))]
+    
+    # Calcular dimensões do grid
+    n_cols = min(max_cols, n_regioes)
+    n_rows_per_fitness = math.ceil(n_regioes / n_cols)
+    
+    # Configuração da figura - altura sem espaço extra
+    fig_width = max(16, 4 * n_cols)
+    fig_height = 5 * n_rows_per_fitness * 2
+    fig = plt.figure(figsize=(fig_width, fig_height))
+    
+    # Criar GridSpec com espaçamento extra entre objetivos
+    height_ratios = []
+    for i in range(n_rows_per_fitness):
+        height_ratios.append(1.0)
+    height_ratios.append(0.3)  # Espaço entre objetivos
+    for i in range(n_rows_per_fitness):
+        height_ratios.append(1.0)
+    
+    total_rows = n_rows_per_fitness * 2 + 1  # +1 para o espaçamento
+    
+    gs = GridSpec(total_rows, n_cols, figure=fig, 
+                  height_ratios=height_ratios,
+                  hspace=0.2, wspace=0.15)
     
     # Cores para as distribuições
     cor_surrogate = 'blue'
     cor_validacao = 'red'
     
-    # Fitness a plotar
-    fitness_cols = ['erro1_c1', 'erro2_c1']
-    fitness_labels = ['Fitness1', 'Fitness2']
-    
-    for row_idx, (col_erro, fitness_label) in enumerate(zip(fitness_cols, fitness_labels)):
+    # Plotar cada fitness
+    for fitness_idx, (col_erro, fitness_label) in enumerate(zip(fitness_cols, fitness_labels)):
         # Filtrar resultados para este fitness
         df_fitness = df_prob[df_prob['coluna'] == col_erro].copy()
         
-        # Ordenar por região
-        df_fitness = df_fitness.sort_values('regiao')
+        if len(df_fitness) == 0:
+            print(f"⚠️  AVISO: Nenhum dado encontrado para coluna='{col_erro}'")
+            continue
         
-        for col_idx, (_, resultado) in enumerate(df_fitness.iterrows()):
+        # Ordenar numericamente pela região
+        df_fitness['regiao_num'] = pd.to_numeric(df_fitness['regiao'], errors='coerce')
+        df_fitness = df_fitness.sort_values('regiao_num')
+        
+        # Calcular offset de linha para o segundo fitness
+        if fitness_idx == 0:
+            row_offset = 0
+        else:
+            row_offset = n_rows_per_fitness + 1  # +1 para pular a linha de espaçamento
+        
+        for idx, (_, resultado) in enumerate(df_fitness.iterrows()):
             regiao = resultado['regiao']
             
+            # Calcular posição no grid
+            grid_row = idx // n_cols
+            grid_col = idx % n_cols
+            actual_row = row_offset + grid_row
+            
             # Criar subplot
-            ax = fig.add_subplot(gs[row_idx, col_idx])
+            ax = fig.add_subplot(gs[actual_row, grid_col])
+            
+            # Adicionar título do objetivo no primeiro subplot de cada bloco
+            if idx == 0:
+                # Título acima do primeiro subplot
+                ax.text(0.5, 1.15, f'Objetivo: {fitness_label}', 
+                       transform=ax.transAxes,
+                       fontsize=14, fontweight='bold', color='darkblue',
+                       ha='center', va='bottom')
             
             # Filtrar dados por região
             df_surr_regiao = df_surrogate[df_surrogate['regiao'] == regiao]
@@ -895,19 +1007,17 @@ def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, pr
                    label='Validação', density=True, edgecolor=cor_validacao, linewidth=0.8)
             
             # Adicionar curvas KDE (densidade) mais visíveis
-            # KDE para surrogate
             kde_surr = scipy_stats.gaussian_kde(dist_surrogate)
             x_range = np.linspace(all_data.min(), all_data.max(), 100)
             ax.plot(x_range, kde_surr(x_range), color=cor_surrogate, 
                    linewidth=2.0, alpha=0.9)
             
-            # KDE para validação
             kde_val = scipy_stats.gaussian_kde(dist_validacao)
             ax.plot(x_range, kde_val(x_range), color=cor_validacao, 
                    linewidth=2.0, alpha=0.9)
             
             # Obter WAPE validação dos resultados
-            wape_validacao = resultado.get('wape_validacao', np.nan) * 100  # converter para porcentagem
+            wape_validacao = resultado.get('wape_validacao', np.nan) * 100
             
             # Determinar cor e símbolo para o status "Iguais"
             iguais_valor = resultado['distribuicoes_iguais']
@@ -918,19 +1028,19 @@ def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, pr
                 cor_iguais = 'darkred'
                 simbolo_iguais = '✗'
             
-            # Adicionar texto com métricas (sem a linha Iguais que será adicionada separadamente)
+            # Adicionar texto com métricas
             texto_metricas = (
                 f"KS p-value: {resultado['ks_pvalue']:.4f}\n"
-                f"\n"  # espaço reservado para a linha Iguais
+                f"\n"
                 f"μ_val: {resultado['media_validacao']:.2f}\n"
                 f"σ_val: {resultado['desvpad_validacao']:.2f}\n"
                 f"WAPE_val: {wape_validacao:.1f}%"
             )
             
-            # Ajustar tamanho da fonte baseado no número de regiões
-            fontsize_metricas = max(7, 10.5 - n_regioes // 3)  # Reduz conforme aumenta regiões
-            fontsize_titulo = max(9, 13 - n_regioes // 3)
-            fontsize_label = max(8, 11 - n_regioes // 3)
+            # Ajustar tamanho da fonte
+            fontsize_metricas = max(7, 10.5 - n_cols // 2)
+            fontsize_titulo = max(9, 13 - n_cols // 2)
+            fontsize_label = max(8, 11 - n_cols // 2)
             
             # Box principal com fundo branco
             ax.text(0.02, 0.98, texto_metricas, transform=ax.transAxes,
@@ -946,14 +1056,15 @@ def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, pr
                    color=cor_iguais, fontweight='bold',
                    zorder=11)
             
-            # Configurações do subplot
-            if row_idx == 0:
-                ax.set_title(f'Região {regiao}', fontweight='bold', fontsize=fontsize_titulo)
+            # Título do subplot
+            ax.set_title(f'Região {regiao}', fontweight='bold', fontsize=fontsize_titulo)
             
-            if col_idx == 0:
-                ax.set_ylabel(f'{fitness_label}\nDensidade', fontweight='bold', fontsize=fontsize_label)
+            # Label do eixo Y apenas na primeira coluna
+            if grid_col == 0:
+                ax.set_ylabel('Densidade', fontweight='bold', fontsize=fontsize_label)
             
-            if row_idx == 1:
+            # Label do eixo X apenas na última linha de cada fitness
+            if grid_row == n_rows_per_fitness - 1 or idx == len(df_fitness) - 1:
                 ax.set_xlabel('Erro', fontsize=10)
             
             # Grid e formatação
@@ -964,18 +1075,16 @@ def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, pr
             for spine in ax.spines.values():
                 spine.set_linewidth(1.2)
             
-            # Legenda apenas no primeiro subplot de cada linha
-            if col_idx == 0:
+            # Legenda apenas no primeiro subplot de cada fitness
+            if idx == 0:
                 ax.legend(fontsize=9, loc='upper right', framealpha=0.8)
     
-    # Título geral
-    fig.suptitle(f'Comparação de Distribuições - Problema {problema_num}', 
-                fontsize=16, fontweight='bold', y=0.995)
-    
-    plt.tight_layout(rect=[0, 0, 1, 0.99], pad=0.5)
+    # Ajustar layout sem espaço extra
+    plt.tight_layout(pad=0.5)
     plt.show()
     
     return fig
+
 
 
 def display_fitness_landscape_with_paretos(df, pareto_fronts_list, n_regioes=None, front_colors=None, show_error_subplot=False):
@@ -1456,3 +1565,607 @@ def display_evolution_of_genotypes(df_history):
     print(f"   • Gerações: {df_history['geracao'].nunique()}")
     print(f"   • Soluções por geração: {df_history['id_solucao'].nunique()}")
     print(f"   • Genótipos únicos visitados: {df_history['genotipo'].nunique():,}")
+
+
+
+
+
+###################################################################################################################
+###################################################################################################################
+
+import pandas as pd
+import numpy as np
+
+import plotly.express as px
+import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
+from matplotlib.colors import Normalize
+from matplotlib.cm import ScalarMappable
+
+from sklearn.decomposition import PCA
+from scipy.stats import qmc
+from pymoo.problems import get_problem
+from pymoo.core.problem import Problem
+
+
+
+
+def plot_landscapes_heatmap_dashboard(df_m1, df_par_m1, mmf1,
+                                      df_m4, df_par_m4, mmf4, 
+                                      df_b, df_par_b, bbob):
+    plt.style.use('seaborn-v0_8-darkgrid')
+    fig = plt.figure(figsize=(18, 16))
+    fig.suptitle('Análise Topológica (Espaço de Decisão 2D): MMF1, MMF4 vs BBOB-BiObj f16', 
+                 fontsize=22, fontweight='bold', y=0.95)
+    
+    gs = GridSpec(3, 2, figure=fig, hspace=0.3, wspace=0.15)
+    
+    def plot_heatmap(ax, df, df_par, obj_col, title, cbar_label, cmap='plasma', xl=None, xu=None):
+        scatter = ax.scatter(df['x_1'], df['x_2'], c=df[obj_col], cmap=cmap, 
+                             alpha=0.9, s=8, edgecolor='none')
+        
+        # Plota o Pareto (bolinhas brancas)
+        ax.scatter(df_par['x_1'], df_par['x_2'], 
+                   color='white', edgecolor='black', s=40, linewidth=1.0, 
+                   zorder=10, label='Pareto Optimal Set')
+        
+        ax.set_title(title, fontsize=15, fontweight='bold')
+        ax.set_xlabel('$x_1$ (Decisão 1)', fontsize=12)
+        ax.set_ylabel('$x_2$ (Decisão 2)', fontsize=12)
+        
+        if xl is not None and xu is not None:
+            ax.set_xlim(xl[0], xu[0])
+            ax.set_ylim(xl[1], xu[1])
+            
+        ax.legend(loc='upper right', facecolor='white', framealpha=0.8)
+        fig.colorbar(scatter, ax=ax, label=cbar_label)
+
+    # --- Plot 1 & 2: MMF1 ---
+    ax1 = fig.add_subplot(gs[0, 0])
+    plot_heatmap(ax1, df_m1, df_par_m1, 'f1', '1. MMF1 - Objetivo 1 ($f_1$)', 'Valor de $f_1$', 'plasma', mmf1.xl, mmf1.xu)
+
+    ax2 = fig.add_subplot(gs[0, 1])
+    plot_heatmap(ax2, df_m1, df_par_m1, 'f2', '2. MMF1 - Objetivo 2 ($f_2$)', 'Valor de $f_2$', 'plasma', mmf1.xl, mmf1.xu)
+
+    # --- Plot 3 & 4: MMF4 ---
+    ax3 = fig.add_subplot(gs[1, 0])
+    plot_heatmap(ax3, df_m4, df_par_m4, 'f1', '3. MMF4 - Objetivo 1 ($f_1$)', 'Valor de $f_1$', 'plasma', mmf4.xl, mmf4.xu)
+
+    ax4 = fig.add_subplot(gs[1, 1])
+    plot_heatmap(ax4, df_m4, df_par_m4, 'f2', '4. MMF4 - Objetivo 2 ($f_2$)', 'Valor de $f_2$', 'plasma', mmf4.xl, mmf4.xu)
+
+    # --- Plot 5 & 6: BBOB ---
+    ax5 = fig.add_subplot(gs[2, 0])
+    plot_heatmap(ax5, df_b, df_par_b, 'f1', '5. BBOB Gallagher Caótico - Objetivo 1', 'Valor de $f_1$', 'plasma', bbob.xl, bbob.xu)
+
+    ax6 = fig.add_subplot(gs[2, 1])
+    plot_heatmap(ax6, df_b, df_par_b, 'f2', '6. BBOB Gallagher Caótico - Objetivo 2', 'Valor de $f_2$', 'plasma', bbob.xl, bbob.xu)
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+def plot_mmf1_dashboard(df, pareto_df, features_cols=['x_1', 'x_2'], fit1_col='f1', fit2_col='f2'):
+    """
+    Gera um dashboard enxuto com 4 visualizações em um grid 2x2:
+    1. Heatmap do Espaço de Decisão para a Fitness 1.
+    2. Heatmap do Espaço de Decisão para a Fitness 2.
+    3. Coordenadas Paralelas das soluções do Front de Pareto.
+    4. Boxplots da distribuição das variáveis do Front de Pareto.
+    """
+    # Configuração geral da figura (Layout 2 linhas x 2 colunas)
+    fig, axes = plt.subplots(2, 2, figsize=(20, 14))
+    plt.style.use('seaborn-v0_8-darkgrid')
+    
+    # Título principal (suptitle) removido conforme solicitado
+    
+    x1_col = features_cols[0]
+    x2_col = features_cols[1]
+    
+    # Paleta de cor Laranja/Roxo para o Heatmap
+    cmap_heatmap = 'plasma' 
+    
+    # Tamanho dos pontos do Pareto
+    tamanho_pareto = 7
+
+    # ==========================================================
+    # 1. Heatmap do Espaço de Decisão (Apenas Fitness 1)
+    # ==========================================================
+    ax1 = axes[0, 0]
+    
+    scatter1 = ax1.scatter(df[x1_col], df[x2_col], 
+                           c=df[fit1_col], cmap=cmap_heatmap, 
+                           alpha=0.3, s=5, edgecolor='none')
+    
+    ax1.scatter(pareto_df[x1_col], pareto_df[x2_col], 
+                color='white', s=tamanho_pareto, edgecolor='black', linewidth=0.2, 
+                label='Soluções Ótimas (Pareto)', zorder=3)
+    
+    ax1.set_title(f'1. Heatmap Espacial: Objetivo 1 (${fit1_col}$)', fontsize=15, fontweight='bold')
+    ax1.set_xlabel(f'{x1_col} (Domínio [1, 3])', fontsize=12)
+    ax1.set_ylabel(f'{x2_col} (Domínio [-1, 1])', fontsize=12)
+    ax1.legend(loc='upper right')
+    fig.colorbar(scatter1, ax=ax1, label=f'Valor de {fit1_col}')
+
+    # ==========================================================
+    # 2. Heatmap do Espaço de Decisão (Apenas Fitness 2)
+    # ==========================================================
+    ax2 = axes[0, 1]
+    
+    scatter2 = ax2.scatter(df[x1_col], df[x2_col], 
+                           c=df[fit2_col], cmap=cmap_heatmap, 
+                           alpha=0.3, s=5, edgecolor='none')
+    
+    ax2.scatter(pareto_df[x1_col], pareto_df[x2_col], 
+                color='white', s=tamanho_pareto, edgecolor='black', linewidth=0.2, 
+                label='Soluções Ótimas (Pareto)', zorder=3)
+    
+    ax2.set_title(f'2. Heatmap Espacial: Objetivo 2 (${fit2_col}$)', fontsize=15, fontweight='bold')
+    ax2.set_xlabel(f'{x1_col} (Domínio [1, 3])', fontsize=12)
+    ax2.set_ylabel(f'{x2_col} (Domínio [-1, 1])', fontsize=12)
+    ax2.legend(loc='upper right')
+    fig.colorbar(scatter2, ax=ax2, label=f'Valor de {fit2_col}')
+
+    # ==========================================================
+    # PREPARANDO DADOS DO PARETO
+    # ==========================================================
+    if len(pareto_df) > 100:
+        pareto_plot = pareto_df.sample(100, random_state=42).copy()
+    else:
+        pareto_plot = pareto_df.copy()
+        
+    pareto_plot = pareto_plot.sort_values(by=fit1_col)
+
+    # ==========================================================
+    # 3. Coordenadas Paralelas (PARETO FRONT)
+    # ==========================================================
+    ax3 = axes[1, 0]
+    
+    norm = Normalize(vmin=pareto_plot[fit1_col].min(), vmax=pareto_plot[fit1_col].max())
+    cmap_linhas = plt.get_cmap('cool')
+    
+    for _, row in pareto_plot.iterrows():
+        color = cmap_linhas(norm(row[fit1_col]))
+        ax3.plot(range(len(features_cols)), row[features_cols], color=color, alpha=0.7, linewidth=2.0)
+    
+    ax3.set_title('3. Coordenadas Paralelas (Front de Pareto)', fontsize=15, fontweight='bold')
+    ax3.set_xticks(range(len(features_cols)))
+    ax3.set_xticklabels(features_cols, fontsize=12)
+    ax3.set_ylabel('Valores das Variáveis', fontsize=12)
+    
+    ax3.set_ylim(-1.2, 3.2)
+    
+    sm = ScalarMappable(cmap=cmap_linhas, norm=norm)
+    sm.set_array([])
+    fig.colorbar(sm, ax=ax3, label=f'Posição no Pareto (Cor via ${fit1_col}$)')
+
+    # ==========================================================
+    # 4. Boxplots (Distribuição do PARETO FRONT)
+    # ==========================================================
+    ax4 = axes[1, 1]
+    
+    box_data = [pareto_plot[col] for col in features_cols]
+    
+    bplot = ax4.boxplot(box_data, patch_artist=True, labels=features_cols)
+    
+    for patch in bplot['boxes']:
+        patch.set_facecolor('skyblue')
+        patch.set_alpha(0.7)
+        patch.set_edgecolor('black')
+        
+    for median in bplot['medians']:
+        median.set_color('red')
+        median.set_linewidth(2)
+
+    ax4.set_title('4. Boxplots das Variáveis (Front de Pareto)', fontsize=15, fontweight='bold')
+    ax4.set_ylabel('Valores das Variáveis', fontsize=12)
+    
+    ax4.set_ylim(-1.2, 3.2)
+
+    # TRUQUE PARA IGUALAR LARGURAS: Adiciona colorbar invisível no ax4
+    cbar4 = fig.colorbar(scatter2, ax=ax4)
+    cbar4.ax.set_visible(False)
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+###################################################################################################################
+# Adicao de ruido no treinamento do modelo surrogate (MMF1)
+###################################################################################################################
+
+def plot_grid_16_ruidos(config_dict, n_samples=10000):
+    """
+    Gera um painel 4x4 simulando a cara de cada uma das 16 distribuições de ruído,
+    padronizadas da mesma forma que ocorre na injeção.
+    """
+    fig, axes = plt.subplots(4, 4, figsize=(20, 16))
+    fig.suptitle('Perfis de Incerteza por Região (Padronizados)', fontsize=22, fontweight='bold', y=0.98)
+    axes = axes.flatten()
+    
+    # Paleta de cores para ficar bonito
+    colors = sns.color_palette("husl", 16)
+    np.random.seed(42)
+    
+    for i, (reg, conf) in enumerate(config_dict.items()):
+        ax = axes[i]
+        
+        raw = gerar_ruido_raw(conf['dist'], conf['params'], n_samples)
+        
+        # Padroniza igual fazemos no dataset principal para plotar a forma
+        std_noise = (raw - np.mean(raw)) / (np.std(raw) + 1e-6)
+        
+        # Usamos KDE (linha suavizada) na maioria, mas histograma nas muito bizarras (rademacher)
+        if conf['dist'] == 'rademacher':
+            sns.histplot(std_noise, bins=20, ax=ax, color=colors[i], stat='density')
+        else:
+            sns.histplot(std_noise, bins=50, kde=True, ax=ax, color=colors[i], 
+                         edgecolor="none", alpha=0.4)
+            
+        ax.set_title(f"Reg {reg}: {conf['dist'].capitalize()}", fontsize=13, fontweight='bold')
+        ax.set_xlabel('Desvios do Ruído', fontsize=10)
+        ax.set_ylabel('Densidade', fontsize=10)
+        
+        # Foca nos limites importantes para visualizar bem as caudas (remove super outliers do plot)
+        ax.set_xlim(-5, 5)
+        ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.92)
+    plt.show()
+
+
+
+###################################################################################################################
+# Noisy MMF1 Dashboard
+###################################################################################################################
+
+def plot_surrogate_comparison_dashboard(
+    df_real, df_real_pareto,
+    df_pred, df_pred_pareto,
+    df_pareto_original=None,  # NOVO: Pareto sobre valores originais
+    df_pareto_ruidoso=None,   # NOVO: Pareto sobre valores ruidosos
+    features_cols=['x_1', 'x_2'],
+    fit1_col='f1',
+    fit2_col='f2',
+    fit1_pred_col='f1_predicted',
+    fit2_pred_col='f2_predicted',
+    fit1_original_col='f1_original',  # NOVO
+    fit2_original_col='f2_original',  # NOVO
+    n_bins_x1=4,
+    n_bins_x2=4
+):
+    """
+    Gera um dashboard completo de comparação entre valores originais, ruidosos e previstos.
+    
+    Figuras 1-2:   Heatmaps ORIGINAIS (f1_original, f2_original) + Pareto Original
+    Figuras 3-4:   Heatmaps RUIDOSOS (f1, f2) + Pareto Ruidoso
+    Figuras 5-6:   Heatmaps PREVISTOS (f1_predicted, f2_predicted) + Pareto Previsto
+    Figuras 7-8:   Grid 4x4 com heatmap WAPE + métricas (previsões vs ruidosos)
+    Figuras 9-10:  Grid 4x4 com distribuições dos erros (previsões vs ruidosos)
+    Figuras 11-12: Grid 4x4 com heatmap WAPE + métricas (previsões vs originais)
+    Figuras 13-14: Grid 4x4 com distribuições dos erros (previsões vs originais)
+    """
+    import matplotlib.pyplot as plt
+    from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
+    import numpy as np
+    import matplotlib.patches as mpatches
+    
+    x1_col = features_cols[0]
+    x2_col = features_cols[1]
+    cmap_heatmap = 'plasma'
+    tamanho_pareto = 7
+    
+    # Usar paretos fornecidos ou os defaults
+    if df_pareto_original is None:
+        df_pareto_original = df_real_pareto
+    if df_pareto_ruidoso is None:
+        df_pareto_ruidoso = df_real_pareto
+    
+    # Criar dataframe combinado com TODAS as colunas necessárias
+    df_combined = df_real.copy()
+    df_combined[f'{fit1_pred_col}'] = df_pred[fit1_pred_col].values
+    df_combined[f'{fit2_pred_col}'] = df_pred[fit2_pred_col].values
+    
+    # Criar bins equidistantes
+    df_combined['bin_x1'] = pd.cut(df_combined[x1_col], bins=n_bins_x1, labels=False)
+    df_combined['bin_x2'] = pd.cut(df_combined[x2_col], bins=n_bins_x2, labels=False)
+    
+    # Calcular erros: PREVISÕES vs RUIDOSOS
+    df_combined[f'erro_{fit1_col}_ruido'] = df_combined[fit1_pred_col] - df_combined[fit1_col]
+    df_combined[f'erro_{fit2_col}_ruido'] = df_combined[fit2_pred_col] - df_combined[fit2_col]
+    
+    # Calcular erros: PREVISÕES vs ORIGINAIS
+    df_combined[f'erro_{fit1_col}_original'] = df_combined[fit1_pred_col] - df_combined[fit1_original_col]
+    df_combined[f'erro_{fit2_col}_original'] = df_combined[fit2_pred_col] - df_combined[fit2_original_col]
+    
+    # Obter limites
+    x1_min, x1_max = df_combined[x1_col].min(), df_combined[x1_col].max()
+    x2_min, x2_max = df_combined[x2_col].min(), df_combined[x2_col].max()
+    x1_edges = np.linspace(x1_min, x1_max, n_bins_x1 + 1)
+    x2_edges = np.linspace(x2_min, x2_max, n_bins_x2 + 1)
+    
+    # Configuração da figura: 7 linhas x 2 colunas = 14 subplots
+    fig = plt.figure(figsize=(20, 49))  # Altura aumentada para 7 linhas
+    gs = GridSpec(7, 2, figure=fig, hspace=0.35, wspace=0.25)
+    
+    # ==========================================================
+    # FIGURAS 1-2: Heatmaps ORIGINAIS + Front de Pareto Original
+    # ==========================================================
+    for idx, (fit_col, subplot_idx) in enumerate([
+        (fit1_original_col, (0, 0)), 
+        (fit2_original_col, (0, 1))
+    ]):
+        ax = fig.add_subplot(gs[subplot_idx])
+        
+        scatter = ax.scatter(df_real[x1_col], df_real[x2_col],
+                           c=df_real[fit_col], cmap=cmap_heatmap,
+                           alpha=0.3, s=5, edgecolor='none')
+        
+        ax.scatter(df_pareto_original[x1_col], df_pareto_original[x2_col],
+                  color='white', s=tamanho_pareto, edgecolor='black', linewidth=0.5,
+                  label='Pareto Original', zorder=3)
+        
+        fit_name = 'F1' if 'f1' in fit_col.lower() else 'F2'
+        ax.set_title(f'{idx+1}. Heatmap ORIGINAL: {fit_name} (sem ruído)', 
+                    fontsize=15, fontweight='bold')
+        ax.set_xlabel(f'{x1_col}', fontsize=12)
+        ax.set_ylabel(f'{x2_col}', fontsize=12)
+        ax.legend(loc='upper right')
+        fig.colorbar(scatter, ax=ax, label=f'Valor de {fit_name} Original')
+    
+    # ==========================================================
+    # FIGURAS 3-4: Heatmaps RUIDOSOS + Front de Pareto Ruidoso
+    # ==========================================================
+    for idx, (fit_col, subplot_idx) in enumerate([
+        (fit1_col, (1, 0)), 
+        (fit2_col, (1, 1))
+    ]):
+        ax = fig.add_subplot(gs[subplot_idx])
+        
+        scatter = ax.scatter(df_real[x1_col], df_real[x2_col],
+                           c=df_real[fit_col], cmap=cmap_heatmap,
+                           alpha=0.3, s=5, edgecolor='none')
+        
+        ax.scatter(df_pareto_ruidoso[x1_col], df_pareto_ruidoso[x2_col],
+                  color='white', s=tamanho_pareto, edgecolor='black', linewidth=0.5,
+                  label='Pareto Ruidoso', zorder=3)
+        
+        fit_name = 'F1' if 'f1' in fit_col.lower() else 'F2'
+        ax.set_title(f'{idx+3}. Heatmap RUIDOSO: {fit_name} (com ruído/gabarito)', 
+                    fontsize=15, fontweight='bold')
+        ax.set_xlabel(f'{x1_col}', fontsize=12)
+        ax.set_ylabel(f'{x2_col}', fontsize=12)
+        ax.legend(loc='upper right')
+        fig.colorbar(scatter, ax=ax, label=f'Valor de {fit_name} Ruidoso')
+    
+    # ==========================================================
+    # FIGURAS 5-6: Heatmaps PREVISTOS + Front de Pareto Previsto
+    # ==========================================================
+    for idx, (fit_pred_col, subplot_idx) in enumerate([
+        (fit1_pred_col, (2, 0)), 
+        (fit2_pred_col, (2, 1))
+    ]):
+        ax = fig.add_subplot(gs[subplot_idx])
+        
+        scatter = ax.scatter(df_pred[x1_col], df_pred[x2_col],
+                           c=df_pred[fit_pred_col], cmap=cmap_heatmap,
+                           alpha=0.3, s=5, edgecolor='none')
+        
+        ax.scatter(df_pred_pareto[x1_col], df_pred_pareto[x2_col],
+                  color='white', s=tamanho_pareto, edgecolor='black', linewidth=0.5,
+                  label='Pareto Previsto', zorder=3)
+        
+        fit_name = 'F1' if 'f1' in fit_pred_col.lower() else 'F2'
+        ax.set_title(f'{idx+5}. Heatmap PREVISTO: {fit_name} (previsões do surrogate)', 
+                    fontsize=15, fontweight='bold')
+        ax.set_xlabel(f'{x1_col}', fontsize=12)
+        ax.set_ylabel(f'{x2_col}', fontsize=12)
+        ax.legend(loc='upper right')
+        fig.colorbar(scatter, ax=ax, label=f'Valor de {fit_name} Previsto')
+    
+    # ==========================================================
+    # FUNÇÃO AUXILIAR: Plotar Grid de Métricas WAPE
+    # ==========================================================
+    def plot_wape_grid(ax, fit_col_real, erro_col, fig_num, comparison_type):
+        """Plota grid 4x4 com heatmap WAPE e métricas textuais."""
+        # Calcular WAPE de cada região para criar matriz do heatmap
+        wape_matrix = np.zeros((n_bins_x2, n_bins_x1))
+        wape_matrix[:] = np.nan
+        
+        for i in range(n_bins_x1):
+            for j in range(n_bins_x2):
+                df_regiao = df_combined[
+                    (df_combined['bin_x1'] == i) &
+                    (df_combined['bin_x2'] == j)
+                ]
+                
+                if len(df_regiao) > 0:
+                    erros = df_regiao[erro_col]
+                    denominador_global = df_combined[fit_col_real].mean()
+                    wape = 100 * np.abs(erros).mean() / denominador_global
+                    wape_matrix[j, i] = wape
+        
+        # Plotar heatmap de fundo
+        cmap_wape = plt.cm.Reds
+        
+        im = ax.imshow(wape_matrix, cmap=cmap_wape, aspect='auto',
+                      extent=[x1_min, x1_max, x2_min, x2_max],
+                      origin='lower', alpha=0.6, interpolation='nearest')
+        
+        # Desenhar grid
+        for x1_edge in x1_edges:
+            ax.axvline(x=x1_edge, color='black', linestyle='-', linewidth=2, alpha=0.8)
+        for x2_edge in x2_edges:
+            ax.axhline(y=x2_edge, color='black', linestyle='-', linewidth=2, alpha=0.8)
+        
+        # Adicionar texto com métricas em cada célula
+        for i in range(n_bins_x1):
+            for j in range(n_bins_x2):
+                df_regiao = df_combined[
+                    (df_combined['bin_x1'] == i) &
+                    (df_combined['bin_x2'] == j)
+                ]
+                
+                if len(df_regiao) == 0:
+                    continue
+                
+                x1_center = (x1_edges[i] + x1_edges[i+1]) / 2
+                x2_center = (x2_edges[j] + x2_edges[j+1]) / 2
+                
+                erros = df_regiao[erro_col]
+                denominador_global = df_combined[fit_col_real].mean()
+                denominador_regiao = df_regiao[fit_col_real].sum()
+                
+                wape = 100 * np.abs(erros).mean() / denominador_global
+                
+                erros_sub = erros[erros < 0]
+                wape_sub = 100 * np.abs(erros_sub).sum() / denominador_regiao if len(erros_sub) > 0 and denominador_regiao > 0 else 0
+                
+                erros_sobre = erros[erros > 0]
+                wape_sobre = 100 * erros_sobre.sum() / denominador_regiao if len(erros_sobre) > 0 and denominador_regiao > 0 else 0
+                
+                n_obs = len(df_regiao)
+                
+                texto = f'WAPE: {wape:.0f}%\nSub: {wape_sub:.0f}%\nSobre: {wape_sobre:.0f}%\nN: {n_obs:,}'
+                
+                ax.text(x1_center, x2_center, texto,
+                       ha='center', va='center',
+                       fontsize=9, fontweight='bold',
+                       bbox=dict(boxstyle='round,pad=0.3',
+                                facecolor='white',
+                                edgecolor='black',
+                                alpha=0.85))
+        
+        fit_name = 'F1' if 'f1' in fit_col_real.lower() else 'F2'
+        ax.set_title(f'{fig_num}. Grid de Métricas WAPE: {fit_name} (pred vs {comparison_type})', 
+                    fontsize=15, fontweight='bold')
+        ax.set_xlabel(f'{x1_col}', fontsize=12)
+        ax.set_ylabel(f'{x2_col}', fontsize=12)
+        ax.set_xlim(x1_min, x1_max)
+        ax.set_ylim(x2_min, x2_max)
+        
+        fig.colorbar(im, ax=ax, label=f'WAPE (%) de {fit_name}')
+    
+    # ==========================================================
+    # FIGURAS 7-8: Grid WAPE (previsões vs ruidosos)
+    # ==========================================================
+    for idx, (fit_col, erro_col, subplot_idx) in enumerate([
+        (fit1_col, f'erro_{fit1_col}_ruido', (3, 0)), 
+        (fit2_col, f'erro_{fit2_col}_ruido', (3, 1))
+    ]):
+        ax = fig.add_subplot(gs[subplot_idx])
+        plot_wape_grid(ax, fit_col, erro_col, idx+7, 'ruidoso')
+    
+    # ==========================================================
+    # FUNÇÃO AUXILIAR: Plotar Grid de Distribuições
+    # ==========================================================
+    def plot_error_distributions(gs_pos, erro_col, fig_num, comparison_type):
+        """Plota grid 4x4 com distribuições dos erros por região."""
+        ax_main = fig.add_subplot(gs[gs_pos])
+        fit_name = 'F1' if 'f1' in erro_col else 'F2'
+        ax_main.set_title(f'{fig_num}. Distribuições dos Erros: {fit_name} (pred vs {comparison_type})', 
+                         fontsize=15, fontweight='bold', pad=10)
+        ax_main.axis('off')
+        
+        # Criar sub-grid 4x4
+        gs_sub = GridSpecFromSubplotSpec(n_bins_x2, n_bins_x1, 
+                                        subplot_spec=gs[gs_pos],
+                                        hspace=0.15, wspace=0.15)
+        
+        # Plotar distribuição em cada célula do grid
+        for i in range(n_bins_x1):
+            for j in range(n_bins_x2):
+                ax_cell = fig.add_subplot(gs_sub[n_bins_x2-1-j, i])
+                
+                df_regiao = df_combined[
+                    (df_combined['bin_x1'] == i) &
+                    (df_combined['bin_x2'] == j)
+                ]
+                
+                if len(df_regiao) > 0:
+                    erros = df_regiao[erro_col].values
+                    
+                    ax_cell.hist(erros, bins=20, color='steelblue',
+                               alpha=0.7, edgecolor='darkblue', linewidth=0.5)
+                    
+                    ax_cell.axvline(x=0, color='red', linestyle='--',
+                                  linewidth=1.5, alpha=0.7)
+                    
+                    media_erro = erros.mean()
+                    std_erro = erros.std()
+                    
+                    # Formatação adaptativa
+                    if abs(media_erro) < 0.01 and abs(media_erro) > 0:
+                        media_str = f'{media_erro:.2e}'
+                    else:
+                        media_str = f'{media_erro:.2f}'
+                    
+                    if std_erro < 0.01 and std_erro > 0:
+                        std_str = f'{std_erro:.2e}'
+                    else:
+                        std_str = f'{std_erro:.2f}'
+                    
+                    ax_cell.text(0.95, 0.95, f'μ={media_str}\nσ={std_str}',
+                               transform=ax_cell.transAxes,
+                               ha='right', va='top',
+                               fontsize=7, 
+                               bbox=dict(boxstyle='round,pad=0.3',
+                                       facecolor='white',
+                                       edgecolor='gray',
+                                       alpha=0.8))
+                else:
+                    ax_cell.text(0.5, 0.5, 'Sem\ndados',
+                               ha='center', va='center',
+                               transform=ax_cell.transAxes,
+                               fontsize=8, color='gray')
+                
+                ax_cell.tick_params(labelsize=6)
+                
+                if j > 0:
+                    ax_cell.set_xticklabels([])
+                else:
+                    ax_cell.set_xlabel('Erro', fontsize=7)
+                    
+                if i > 0:
+                    ax_cell.set_yticklabels([])
+                else:
+                    ax_cell.set_ylabel('Freq', fontsize=7)
+                
+                ax_cell.locator_params(axis='both', nbins=3)
+                ax_cell.grid(True, alpha=0.3, linewidth=0.5)
+    
+    # ==========================================================
+    # FIGURAS 9-10: Distribuições (previsões vs ruidosos)
+    # ==========================================================
+    for idx, (erro_col, gs_pos) in enumerate([
+        (f'erro_{fit1_col}_ruido', (4, 0)), 
+        (f'erro_{fit2_col}_ruido', (4, 1))
+    ]):
+        plot_error_distributions(gs_pos, erro_col, idx+9, 'ruidoso')
+    
+    # ==========================================================
+    # FIGURAS 11-12: Grid WAPE (previsões vs originais)
+    # ==========================================================
+    for idx, (fit_col, erro_col, subplot_idx) in enumerate([
+        (fit1_original_col, f'erro_{fit1_col}_original', (5, 0)), 
+        (fit2_original_col, f'erro_{fit2_col}_original', (5, 1))
+    ]):
+        ax = fig.add_subplot(gs[subplot_idx])
+        plot_wape_grid(ax, fit_col, erro_col, idx+11, 'original')
+    
+    # ==========================================================
+    # FIGURAS 13-14: Distribuições (previsões vs originais)
+    # ==========================================================
+    for idx, (erro_col, gs_pos) in enumerate([
+        (f'erro_{fit1_col}_original', (6, 0)), 
+        (f'erro_{fit2_col}_original', (6, 1))
+    ]):
+        plot_error_distributions(gs_pos, erro_col, idx+13, 'original')
+    
+    plt.tight_layout()
+    
+    return fig

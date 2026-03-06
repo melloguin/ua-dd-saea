@@ -4,7 +4,7 @@ from tqdm.auto import tqdm
 
 from src.nsga2.individual     import Individual
 from src.nsga2.inicialization import initialize_population
-from src.nsga2.evaluation     import evaluate_population, genotype_to_registro
+from src.nsga2.evaluation     import evaluate_population
 from src.nsga2.offspring      import create_offspring_population
 from src.nsga2.selection      import environmental_selection
 from src.nsga2.utils          import collect_generation_stats, plot_optimization_progress
@@ -61,7 +61,7 @@ def run_my_nsga2(config: dict,
     population, _ = initialize_population(config, input_initial_population)
 
     # Avalia fitness da população inicial
-    evaluate_population(population, df_landscape, config['fitness_cols'], config['maximize'])
+    initial_stats = evaluate_population(population, df_landscape, config['fitness_cols'])
     
     # Inicializar histórico se solicitado
     history = [] if save_history else None
@@ -70,11 +70,19 @@ def run_my_nsga2(config: dict,
         population_snapshot = [
             {
                 'genotype': ind.genotype.copy(),
-                'fitness': ind.fitness.copy() if ind.fitness is not None else None
+                'fitness': ind.fitness.copy() if ind.fitness is not None else None,
+                'mapped_point': ind.mapped_point.copy() if ind.mapped_point else None,
+                'mapping_success': ind.mapping_success
             }
             for ind in population
         ]
-        history.append(population_snapshot)
+        history.append({
+            'generation': 0,
+            'population': population_snapshot,
+            'mapping_stats': {
+                'population': initial_stats
+            }
+        })
 
     ############# Loop principal das gerações
     progress_stats = []
@@ -85,12 +93,19 @@ def run_my_nsga2(config: dict,
         offspring = create_offspring_population(population, config)
 
         # Avalia fitness da população descendente
-        evaluate_population(offspring, df_landscape, config['fitness_cols'], config['maximize'])
+        offspring_stats = evaluate_population(offspring, df_landscape, config['fitness_cols'])
 
 
         ######### 3. Seleção Geracional (environmental selection)
         # Combinar Pt e Qt para formar Rt
         combined_population = population + offspring
+        
+        # Calcular stats da combined_population
+        combined_stats = {
+            'total': len(combined_population),
+            'mapped': sum(1 for ind in combined_population if ind.mapping_success),
+            'not_found': sum(1 for ind in combined_population if not ind.mapping_success)
+        }
 
         # Seleção geracional: selecionar N melhores para formar P(t+1)
         population = environmental_selection(combined_population, config)
@@ -105,23 +120,44 @@ def run_my_nsga2(config: dict,
             population_snapshot = [
                 {
                     'genotype': ind.genotype.copy(),
-                    'fitness': ind.fitness.copy() if ind.fitness is not None else None
+                    'fitness': ind.fitness.copy() if ind.fitness is not None else None,
+                    'mapped_point': ind.mapped_point.copy() if ind.mapped_point else None,
+                    'mapping_success': ind.mapping_success
                 }
                 for ind in population
             ]
-            history.append(population_snapshot)
+            history.append({
+                'generation': generation + 1,
+                'population': population_snapshot,
+                'mapping_stats': {
+                    'offspring': offspring_stats,
+                    'combined': combined_stats
+                }
+            })
 
 
     ######### Finalização
-    # Extrair front de Pareto final (rank 1)
-    pareto_front = [ind for ind in population if ind.rank == 1]
-        
-    # Converter para registros e criar dataframe
-    registros = [genotype_to_registro(ind.genotype) for ind in pareto_front]
-    df_pareto = df_landscape[df_landscape['registro'].isin(registros)].copy()
+    # Criar dataframe com as soluções finais
+    df_pareto = pd.DataFrame([
+        {
+            'x_1': ind.genotype[0],
+            'x_2': ind.genotype[1],
+            'fitness1': ind.fitness[0],
+            'fitness2': ind.fitness[1],
+            'x_1_landscape': ind.mapped_point['x_1_landscape'] if ind.mapped_point else None,
+            'x_2_landscape': ind.mapped_point['x_2_landscape'] if ind.mapped_point else None,
+            'f1': ind.mapped_point['f1'] if ind.mapped_point else None,
+            'f2': ind.mapped_point['f2'] if ind.mapped_point else None,
+            'f1_original': ind.mapped_point['f1_original'] if ind.mapped_point else None,
+            'f2_original': ind.mapped_point['f2_original'] if ind.mapped_point else None,
+            'f1_predicted': ind.mapped_point['f1_predicted'] if ind.mapped_point else None,
+            'f2_predicted': ind.mapped_point['f2_predicted'] if ind.mapped_point else None,
+            'mapping_success': ind.mapping_success
+        }
+        for ind in population if ind.rank == 1
+    ])
     
     print(f"\n✅ Otimização concluída!")
-    print(f"Soluções encontradas no front: {len(pareto_front)}")
     print(f"Registros únicos no dataframe: {len(df_pareto)}")
 
     if config['track_progress']:
@@ -131,4 +167,4 @@ def run_my_nsga2(config: dict,
         df_progress = None
 
 
-    return df_pareto, pareto_front, df_progress, history
+    return df_pareto, df_progress, history

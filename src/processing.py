@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from catboost import CatBoostRegressor
-from src.nsga2.evaluation import genotype_to_registro
+#from src.nsga2.evaluation import genotype_to_registro
 
 
 ######################################################################################################################
@@ -137,32 +137,32 @@ def find_pareto_front(df, minimize = False, fitness1 = 'fitness1', fitness2 = 'f
 
 
 
-###########################################################
-def history_to_dataframe(history):
-    """
-    Transforma o histórico de populações do NSGA-II em um dataframe.
-    
-    Args:
-        history: lista de gerações, onde cada geração contém uma lista de 
-                 dicionários com 'genotype' e 'fitness'
-    
-    Returns:
-        DataFrame com colunas: geracao, id_solucao, genotipo (registro)
-    """
-    dados = []
-    
-    for geracao, populacao in enumerate(history):
-        for id_solucao, individuo in enumerate(populacao):
-            # Converter genótipo para registro usando a função já existente
-            registro = genotype_to_registro(individuo['genotype'])
-            
-            dados.append({
-                'geracao': geracao,
-                'id_solucao': id_solucao,
-                'genotipo': registro
-            })
-    
-    return pd.DataFrame(dados)
+############################################################
+#def history_to_dataframe(history):
+#    """
+#    Transforma o histórico de populações do NSGA-II em um dataframe.
+#    
+#    Args:
+#        history: lista de gerações, onde cada geração contém uma lista de 
+#                 dicionários com 'genotype' e 'fitness'
+#    
+#    Returns:
+#        DataFrame com colunas: geracao, id_solucao, genotipo (registro)
+#    """
+#    dados = []
+#    
+#    for geracao, populacao in enumerate(history):
+#        for id_solucao, individuo in enumerate(populacao):
+#            # Converter genótipo para registro usando a função já existente
+#            registro = genotype_to_registro(individuo['genotype'])
+#            
+#            dados.append({
+#                'geracao': geracao,
+#                'id_solucao': id_solucao,
+#                'genotipo': registro
+#            })
+#    
+#    return pd.DataFrame(dados)
 
 
 
@@ -504,3 +504,56 @@ def injetar_ruidos_parametrizados(df, config_dict, col_regiao='regiao'):
     
     print("✅ Injeção concluída com sucesso!")
     return df_ruidoso
+
+
+
+
+
+
+######################################################################################################################
+######################################################################################################################
+
+###########################################################
+def create_landscape_from_predictions(df_previsao, df_mcmc, decision_variables=['x_1', 'x_2']):
+    """
+    Processa landscape a partir de dataframes de previsão e MCMC.
+    
+    Args:
+        df_previsao: DataFrame com colunas x_1, x_2, f1, f2, f1_original, f2_original, 
+                     f1_predicted, f2_predicted, regiao
+        df_mcmc: DataFrame com erro_f1, erro_f2, regiao, id_simulacao
+        decision_variables: Lista com nomes das variáveis de decisão (default: ['x_1', 'x_2'])
+    
+    Returns:
+        DataFrame com colunas: x_1, x_2, f1, f2, f1_original, f2_original, 
+                              f1_predicted, f2_predicted, fitness1 (lista), fitness2 (lista)
+    """
+    # Selecionar colunas necessárias do df_previsao
+    cols_df = decision_variables + ['regiao', 'f1', 'f2', 'f1_original', 'f2_original', 'f1_predicted', 'f2_predicted']
+    
+    # Merge com df_mcmc para obter erros
+    df_landscape = df_previsao[cols_df].merge(df_mcmc, on='regiao', how='left')
+    
+    # Calcular fitness1 e fitness2 (predicted + erro)
+    df_landscape['fitness1'] = round(df_landscape['f1_predicted'] + df_landscape['erro_f1'], 3)
+    df_landscape['fitness2'] = round(df_landscape['f2_predicted'] + df_landscape['erro_f2'], 3)
+    
+    # Agrupar por variáveis de decisão
+    # Para as colunas escalares (f1, f2, etc), pegamos o primeiro valor (são iguais para mesma coordenada)
+    # Para fitness1 e fitness2, criamos listas (múltiplas simulações)
+    agg_dict = {
+        'f1': 'first',
+        'f2': 'first',
+        'f1_original': 'first',
+        'f2_original': 'first',
+        'f1_predicted': 'first',
+        'f2_predicted': 'first',
+        'fitness1': list,
+        'fitness2': list
+    }
+    
+    df_landscape = (df_landscape
+                    .groupby(decision_variables, as_index=False)
+                    .agg(agg_dict))
+    
+    return df_landscape

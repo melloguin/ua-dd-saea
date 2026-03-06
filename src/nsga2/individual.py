@@ -9,4 +9,4 @@ class Individual:
         self.domination_count = 0  # np: número de soluções que dominam este indivíduo
     
     def __repr__(self):
-        return f"Individual({self.genotype}, fitness={self.fitness}, rank={self.rank})"
+        return f"Individual({self.genotype}, fitness={self.fitness}, rank={self.rank})" 

@@ -22,31 +22,31 @@ def crowded_comparison_operator(ind1, ind2):
 
 
 def tournament_selection(population: list, 
-				            		 k_tournament: int
-				            		) -> Individual:
+			            		 k_tournament: int
+			            		) -> Individual:
     """
     Seleção por torneio com K indivíduos:
     
-		- Seleciona aleatoriamente K soluções (sem reposição) na população, 
-	      e encontra a melhor dentre elas a partir do crowded-comparison operator.
+	- Seleciona aleatoriamente K soluções (sem reposição) na população, 
+      e encontra a melhor dentre elas a partir do crowded-comparison operator.
 
-		- Grandes valores de K favorecem exploitation (pressão seletiva alta), 
-		    pois selecionam mais candidatos para o torneio, a probabilidade de selecionar
-		    melhores as soluções da população (que sempre irão vencer o torneio) é alta. 
-		  Pequenos valores favorecem exploration, gerando populações mais diversas,
-		    com menos convergência para as melhores soluções da população antecessora.
+	- Grandes valores de K favorecem exploitation (pressão seletiva alta), 
+	    pois selecionam mais candidatos para o torneio, a probabilidade de selecionar
+	    melhores as soluções da população (que sempre irão vencer o torneio) é alta. 
+	  Pequenos valores favorecem exploration, gerando populações mais diversas,
+	    com menos convergência para as melhores soluções da população antecessora.
 
-		- Uma excelente estratégia é aumentar o valor de K ao longo da execução,
-			  favorecendo exploration da landscape no inicio e exploitation para as 
-			  melhores soluções no final. K tem um poder de manipulação direto sobre
-			  a pressão seletiva, de forma prática e efetiva.
+	- Uma excelente estratégia é aumentar o valor de K ao longo da execução,
+		  favorecendo exploration da landscape no inicio e exploitation para as 
+		  melhores soluções no final. K tem um poder de manipulação direto sobre
+		  a pressão seletiva, de forma prática e efetiva.
     
     args:
-		- population(list): População de indivíduos
-		- k_tournament(int): Número de indivíduos participantes do torneio
+	- population(list): População de indivíduos
+	- k_tournament(int): Número de indivíduos participantes do torneio
         
     returns:
-		- Individual: Melhor indivíduo do torneio (cópia profunda)
+	- Individual: Melhor indivíduo do torneio (cópia profunda)
 
     """
 
@@ -68,7 +68,7 @@ def tournament_selection(population: list,
 ####################################################################################################################################
 ### Operadores Genéticas (Cruzamento e Mutação)
 
-def simulated_binary_crossover(parent1, parent2, eta=15, prob=0.9, xl=0.0, xu=9.0):
+def simulated_binary_crossover(parent1, parent2, eta=15, prob=0.9, xl=None, xu=None):
     """
     SBX Vetorizado - Implementação fiel à lógica matricial do Pymoo.
     	• Operadores Genéticos
@@ -83,6 +83,16 @@ def simulated_binary_crossover(parent1, parent2, eta=15, prob=0.9, xl=0.0, xu=9.
     p2 = np.array(parent2.genotype, dtype=float)
     n_var = len(p1)
     
+    # Definir limites padrão se não fornecidos
+    if xl is None:
+        xl = np.zeros(n_var)
+    else:
+        xl = np.array(xl, dtype=float)
+    if xu is None:
+        xu = np.ones(n_var)
+    else:
+        xu = np.array(xu, dtype=float)
+    
     # Inicializar filhos como cópia dos pais
     c1 = p1.copy()
     c2 = p2.copy()
@@ -90,7 +100,7 @@ def simulated_binary_crossover(parent1, parent2, eta=15, prob=0.9, xl=0.0, xu=9.
     # 1. Verificação de Crossover (Geral)
     # O Pymoo verifica se o cruzamento ocorre para o PAR.
     if np.random.random() > prob:
-        return c1.astype(int), c2.astype(int)
+        return c1.tolist(), c2.tolist()
 
     # 2. Definição de quais genes serão alterados (Probabilidade por gene = 0.5 é padrão no SBX)
     # O Pymoo geralmente altera todas as variáveis se o crossover ocorrer, 
@@ -100,7 +110,7 @@ def simulated_binary_crossover(parent1, parent2, eta=15, prob=0.9, xl=0.0, xu=9.
     mask = np.abs(p1 - p2) > 1e-14
     
     if not np.any(mask):
-        return c1.astype(int), c2.astype(int)
+        return c1.tolist(), c2.tolist()
     
     # 3. Vetorização: Extrair valores onde o crossover ocorrerá
     y1 = np.minimum(p1[mask], p2[mask])
@@ -117,7 +127,10 @@ def simulated_binary_crossover(parent1, parent2, eta=15, prob=0.9, xl=0.0, xu=9.
     
     # --- Cálculo do Beta (Vetorizado) ---
     # Limite Inferior
-    beta = 1.0 + (2.0 * (y1 - xl) / delta)
+    xl_masked = xl[mask]
+    xu_masked = xu[mask]
+    
+    beta = 1.0 + (2.0 * (y1 - xl_masked) / delta)
     alpha = 2.0 - np.power(beta, -(eta + 1.0))
     
     # Lógica condicional vetorizada para betaq
@@ -144,19 +157,19 @@ def simulated_binary_crossover(parent1, parent2, eta=15, prob=0.9, xl=0.0, xu=9.
     final_c1 = np.where(swap, c2_vals, c1_vals)
     final_c2 = np.where(swap, c1_vals, c2_vals)
     
-    final_c1 = np.clip(final_c1, xl, xu)
-    final_c2 = np.clip(final_c2, xl, xu)
+    final_c1 = np.clip(final_c1, xl_masked, xu_masked)
+    final_c2 = np.clip(final_c2, xl_masked, xu_masked)
     
     # Inserir valores calculados de volta nos vetores originais
     c1[mask] = final_c1
     c2[mask] = final_c2
     
-    return np.round(c1).astype(int), np.round(c2).astype(int)
+    return c1.tolist(), c2.tolist()
 
 
 
 #################################################################
-def polynomial_mutation(individual, eta=20, prob=1/6):
+def polynomial_mutation(individual, eta=20, prob=1/6, xl=None, xu=None):
     """
     Polynomial Mutation (PM) - Implementação idêntica ao pymoo
     Baseado no código fonte: pymoo/operators/mutation/pm.py
@@ -168,30 +181,40 @@ def polynomial_mutation(individual, eta=20, prob=1/6):
 		○ Mutação (modificação de um único indivíduo com si mesmo)
 
     """
-    mutated = individual.genotype.copy()
+    mutated = list(individual.genotype) if not isinstance(individual.genotype, list) else individual.genotype.copy()
+    
+    n_var = len(mutated)
+    if xl is None:
+        xl = np.zeros(n_var)
+    else:
+        xl = np.array(xl, dtype=float)
+    if xu is None:
+        xu = np.ones(n_var)
+    else:
+        xu = np.array(xu, dtype=float)
     
     for i in range(len(mutated)):
         if np.random.random() <= prob:
             x = float(mutated[i])
-            xl = 0.0  # Lower bound
-            xu = 9.0  # Upper bound
+            xl_i = float(xl[i])
+            xu_i = float(xu[i])
             
-            delta = xu - xl
+            delta = xu_i - xl_i
             rand = np.random.random()
             mut_pow = 1.0 / (eta + 1.0)
             
             if rand < 0.5:
-                xy = 1.0 - (x - xl) / delta
+                xy = 1.0 - (x - xl_i) / delta
                 val = 2.0 * rand + (1.0 - 2.0 * rand) * np.power(xy, eta + 1.0)
                 deltaq = np.power(val, mut_pow) - 1.0
             else:
-                xy = 1.0 - (xu - x) / delta
+                xy = 1.0 - (xu_i - x) / delta
                 val = 2.0 * (1.0 - rand) + 2.0 * (rand - 0.5) * np.power(xy, eta + 1.0)
                 deltaq = 1.0 - np.power(val, mut_pow)
             
             x_new = x + deltaq * delta
-            x_new = np.clip(x_new, xl, xu)
-            mutated[i] = int(np.round(x_new))
+            x_new = np.clip(x_new, xl_i, xu_i)
+            mutated[i] = x_new
     
     return mutated
 
@@ -206,9 +229,9 @@ def create_offspring_population(population, config):
     Cria população descendente através de seleção, crossover e mutação
     """
     offspring = []
+    n_offspring_needed = len(population)
     
-    while len(offspring) < len(population):
-
+    for _ in range(0, n_offspring_needed, 2):
         # Seleção de pais por torneio
         parent1 = tournament_selection(population, config['k_tournament'])
         parent2 = tournament_selection(population, config['k_tournament'])
@@ -217,25 +240,31 @@ def create_offspring_population(population, config):
         child1_genotype, child2_genotype = simulated_binary_crossover(
             parent1, parent2,
             eta=config['crossover_eta'],
-            prob=config['crossover_prob']
+            prob=config['crossover_prob'],
+            xl=config['limite_inferior'],
+            xu=config['limite_superior']
         )
         
         # Mutação
         child1_genotype = polynomial_mutation(
             Individual(child1_genotype),
             eta=config['mutation_eta'],
-            prob=config['mutation_prob']
+            prob=config['mutation_prob'],
+            xl=config['limite_inferior'],
+            xu=config['limite_superior']
         )
         child2_genotype = polynomial_mutation(
             Individual(child2_genotype),
             eta=config['mutation_eta'],
-            prob=config['mutation_prob']
+            prob=config['mutation_prob'],
+            xl=config['limite_inferior'],
+            xu=config['limite_superior']
         )
         
         # Adiciona filhos à população de descendentes
-        offspring.append(Individual(child1_genotype))
-        if len(offspring) < len(population):
-            offspring.append(Individual(child2_genotype))
+        offspring.append(Individual(list(child1_genotype) if not isinstance(child1_genotype, list) else child1_genotype))
+        if len(offspring) < n_offspring_needed:
+            offspring.append(Individual(list(child2_genotype) if not isinstance(child2_genotype, list) else child2_genotype))
     
     
     return offspring

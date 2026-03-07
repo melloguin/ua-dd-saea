@@ -13,6 +13,9 @@ class Individual:
         self.ua_rank_std = pop_size  # Desvio padrão do UA-rank
         self.ua_simulation_ranks = []  # Lista com ranks de todas as simulações UA
         self.ds_niching_distance = 0
+        # atributos de mapeamento da landscape
+        self.mapped_point = None  # Dict com info do ponto mapeado (x_1, x_2, f1, f2, etc)
+        self.mapping_success = False  # Se foi mapeado com sucesso
     
     def __repr__(self):
         return (f"Individual = {self.genotype}, "
@@ -21,4 +24,6 @@ class Individual:
                 f"ds_niching_distance = {self.ds_niching_distance}, "
                 f"ua_rank = {self.ua_rank}, "
                 f"ua_rank_std = {self.ua_rank_std}, "
-                f"ua_simulation_ranks = {self.ua_simulation_ranks}")
+                f"ua_simulation_ranks = {self.ua_simulation_ranks}, "
+                f"mapped_point = {self.mapped_point}, "
+                f"mapping_success = {self.mapping_success}")

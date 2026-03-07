@@ -3,7 +3,8 @@
 ### Fast non-dominated sort
 
 def dominates(fitness_solucao1, 
-              fitness_solucao2):
+              fitness_solucao2,
+              maximize = False):
     """
     Verifica se fitness1 domina fitness2 (minimização)
     Domina se é melhor ou igual em todos os objetivos e estritamente melhor em pelo menos um
@@ -14,6 +15,9 @@ def dominates(fitness_solucao1,
     better_in_any = False
     # percorre fitness a fitness das 2 solucoes (s1 e s2) 
     for f1, f2 in zip(fitness_solucao1, fitness_solucao2):
+        # se maximização, inverte o sinal dos fitness
+        if maximize:
+            f1, f2 = -f1, -f2
         # e sinaliza se a 2a solucao é pior em algum objetivo (indica que s1 não domina s2)
         if f1 > f2:  # Pior em algum objetivo
             return False
@@ -24,7 +28,7 @@ def dominates(fitness_solucao1,
 
 
 
-def fast_non_dominated_sort(population):
+def fast_non_dominated_sort(population, config):
     """
     Implementação rápida da ordenação não-dominada (Fast Non-Dominated Sort)
     Complexidade: O(MN²) onde M é número de objetivos e N é tamanho da população
@@ -60,10 +64,10 @@ def fast_non_dominated_sort(population):
             if individual_p is individual_q:
                 continue
             # se p domina q, adicionar q à lista Sp
-            if dominates(individual_p.fitness, individual_q.fitness):
+            if dominates(individual_p.fitness, individual_q.fitness, config['maximize']):
                 individual_p.dominated_solutions.append(individual_q)
             # se q domina p, incrementar np
-            elif dominates(individual_q.fitness, individual_p.fitness):
+            elif dominates(individual_q.fitness, individual_p.fitness, config['maximize']):
                 individual_p.domination_count += 1
         
         # identifica primeiro front
@@ -193,7 +197,7 @@ def environmental_selection(combined_population, config):
     pop_size = config['population_size']
     
     # Realiza fast non-dominated sort
-    fronts = fast_non_dominated_sort(combined_population)
+    fronts = fast_non_dominated_sort(combined_population, config)
     
     # Calcular crowding distance para todos os fronts
     for front in fronts:

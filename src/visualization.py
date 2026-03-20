@@ -841,6 +841,86 @@ def display_pareto_fronts3(df_real,
 
 
 
+def display_pareto_fronts7(df_real,
+                           dict_solutions,
+                           fitness1='fitness1',
+                           fitness2='fitness2',
+                           sample_size=1000000,
+                           title=None):
+    """
+    Mostra múltiplos fronts de Pareto sobre a fitness landscape verdadeira.
+    Versão simplificada que recebe um dicionário de soluções.
+
+    Parameters
+    ----------
+    df_real : pd.DataFrame
+        Dataframe com a fitness landscape verdadeira (todos os pontos).
+    dict_solutions : dict
+        Dicionário onde cada chave é o rótulo (str) e o valor é uma lista
+        [df_pareto, cor, tamanho].  Exemplo::
+
+            {
+                'Pareto ótimo':        [df_pareto_mmf1, 'white', 20],
+                'NSGA-II + surrogate': [df_pareto_my2,  'red',  80],
+            }
+    fitness1 : str, optional
+        Nome da coluna de fitness 1 (default: 'fitness1').
+    fitness2 : str, optional
+        Nome da coluna de fitness 2 (default: 'fitness2').
+    sample_size : int, optional
+        Número de pontos a amostrar da landscape para plotar (default: 1000000).
+    title : str or None, optional
+        Título do gráfico. Se None, omite título.
+
+    Returns
+    -------
+    matplotlib.figure.Figure
+    """
+    labels = list(dict_solutions.keys())
+    df_paretos = [v[0] for v in dict_solutions.values()]
+    colors = [v[1] for v in dict_solutions.values()]
+    sizes = [v[2] for v in dict_solutions.values()]
+
+    max_fitness1 = df_real[fitness1].max()
+    max_fitness2 = df_real[fitness2].max()
+
+    max_limit_x = 1 if max_fitness1 <= 1 else math.ceil(max_fitness1 / 2) * 2
+    max_limit_y = 1 if max_fitness2 <= 1 else math.ceil(max_fitness2 / 2) * 2
+
+    actual_sample_size = min(sample_size, len(df_real))
+    df_sample = df_real.sample(n=actual_sample_size, random_state=42)
+
+    fig, ax_main = plt.subplots(figsize=(10, 10))
+
+    ax_main.scatter(df_sample[fitness1], df_sample[fitness2],
+                    c='lightgray', s=21, alpha=0.3,
+                    label=f'Landscape ({actual_sample_size:,} pts)', zorder=1)
+
+    for label, df_par, color, size in zip(labels, df_paretos, colors, sizes):
+        ax_main.scatter(
+            df_par[fitness1], df_par[fitness2],
+            c=color, s=size, alpha=0.9, edgecolors='black',
+            linewidth=1.2, label=f'{label} ({len(df_par)} pts)',
+            zorder=3
+        )
+
+    ax_main.set_xlabel(f'{fitness1}', fontsize=13, fontweight='bold')
+    ax_main.set_ylabel(f'{fitness2}', fontsize=13, fontweight='bold')
+    ax_main.legend(fontsize=17, loc='best')
+    ax_main.grid(True, alpha=0.3, linestyle='--')
+
+    ax_main.set_xlim(0, max_limit_x)
+    ax_main.set_ylim(0, max_limit_y)
+
+    if title is not None:
+        ax_main.set_title(title, fontsize=18, fontweight='bold')
+
+    plt.tight_layout()
+    plt.show()
+
+    return fig
+
+
 def plota_comparacao_distribuicoes(df_surrogate, df_validacao, df_resultados, problema_num=1, n_regioes=None, 
                                    fitness_cols=None, fitness_labels=None, problem_name=None, max_cols=5):
     """
@@ -1645,6 +1725,123 @@ def plot_landscapes_heatmap_dashboard(df_m1, df_par_m1, mmf1,
     plt.show()
 
 
+def plot_landscapes_heatmap_dashboard_v2(
+    problem,
+    df_landscape,
+    dict_solutions,
+    cmap='Greys_r',
+    cmap_lighten=0.3,
+    title=None
+):
+    """
+    Plota heatmaps do espaço de decisão para um único problema bi-objetivo,
+    com suporte a múltiplos conjuntos de Pareto sobrepostos.
+
+    Parameters
+    ----------
+    problem : pymoo Problem
+        Instância do problema (deve ter .xl e .xu para limites dos eixos).
+    df_landscape : pd.DataFrame
+        DataFrame com colunas x_1, x_2, f1, f2 (landscape completa).
+    dict_solutions : dict
+        Dicionário onde cada chave é o rótulo (str) e o valor é uma lista
+        [df_pareto, cor, tamanho].  Exemplo::
+
+            {
+                'Pareto ótimo':       [df_pareto_mmf1, 'white', 20],
+                'NSGA-II + surrogate': [df_pareto_my2,  'red',  80],
+            }
+    cmap : str, optional
+        Colormap do heatmap (default: 'Greys_r').
+        Sugestões: 'Greys_r', 'gray_r', 'bone_r', 'plasma', 'viridis',
+        'inferno', 'cividis', 'magma', 'coolwarm'.
+        Referência: https://matplotlib.org/stable/gallery/color/colormap_reference.html
+    cmap_lighten : float, optional
+        Fator de clareamento do extremo escuro do colormap (0.0 a 1.0).
+        0.0 = sem alteração, 0.3 = 30 % mais claro, etc. (default: 0.3).
+    title : str or None, optional
+        Título geral da figura. Se None, omite suptitle.
+
+    Returns
+    -------
+    matplotlib.figure.Figure
+    """
+    import matplotlib.colors as mcolors
+
+    plt.style.use('seaborn-v0_8-darkgrid')
+
+    # --- clarear o colormap misturando cada cor com branco ----------------
+    base_cmap = plt.get_cmap(cmap)
+    cmap_lighten = max(0.0, min(cmap_lighten, 1.0))
+    if cmap_lighten > 0:
+        sampled = base_cmap(np.linspace(0, 1, 256))
+        sampled[:, :3] = (1 - cmap_lighten) * sampled[:, :3] + cmap_lighten
+        light_cmap = mcolors.LinearSegmentedColormap.from_list(
+            f'{cmap}_light', sampled
+        )
+    else:
+        light_cmap = base_cmap
+
+    # --- extrair listas do dicionário -------------------------------------
+    labels = list(dict_solutions.keys())
+    df_paretos = [v[0] for v in dict_solutions.values()]
+    colors = [v[1] for v in dict_solutions.values()]
+    sizes = [v[2] for v in dict_solutions.values()]
+
+    fig, axes = plt.subplots(1, 2, figsize=(18, 8))
+    fig.subplots_adjust(top=0.82)
+
+    if title is not None:
+        fig.suptitle(title, fontsize=20, fontweight='bold', y=0.97)
+
+    xl = problem.xl if hasattr(problem, 'xl') else None
+    xu = problem.xu if hasattr(problem, 'xu') else None
+
+    obj_configs = [
+        {'col': 'f1', 'label': 'Objetivo 1 ($f_1$)', 'cbar': 'Valor de $f_1$'},
+        {'col': 'f2', 'label': 'Objetivo 2 ($f_2$)', 'cbar': 'Valor de $f_2$'},
+    ]
+
+    for ax, cfg in zip(axes, obj_configs):
+        scatter = ax.scatter(
+            df_landscape['x_1'], df_landscape['x_2'],
+            c=df_landscape[cfg['col']], cmap=light_cmap,
+            alpha=0.9, s=8, edgecolor='none'
+        )
+
+        for df_par, color, size, label in zip(df_paretos, colors, sizes, labels):
+            ax.scatter(
+                df_par['x_1'], df_par['x_2'],
+                color=color, edgecolor='black', s=size,
+                linewidth=1.0, zorder=10, label=label
+            )
+
+        ax.set_title(cfg['label'], fontsize=15, fontweight='bold')
+        ax.set_xlabel('$x_1$ (Decisão 1)', fontsize=12)
+        ax.set_ylabel('$x_2$ (Decisão 2)', fontsize=12)
+
+        if xl is not None and xu is not None:
+            ax.set_xlim(xl[0], xu[0])
+            ax.set_ylim(xl[1], xu[1])
+
+        fig.colorbar(scatter, ax=ax, label=cfg['cbar'])
+
+    # --- legenda unificada horizontal acima dos subplots ------------------
+    handles, legend_labels = axes[0].get_legend_handles_labels()
+    fig.legend(
+        handles, legend_labels,
+        loc='upper center',
+        bbox_to_anchor=(0.5, 0.935),
+        ncol=len(labels),
+        fontsize=16,
+        frameon=True,
+        facecolor='white',
+        framealpha=0.9
+    )
+
+    plt.show()
+
+    return fig
 
 
 def plot_mmf1_dashboard(df, pareto_df, features_cols=['x_1', 'x_2'], fit1_col='f1', fit2_col='f2'):

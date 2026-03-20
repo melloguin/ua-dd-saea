@@ -156,8 +156,9 @@ def run_my_uasa_nsga2(config: dict,
         for ind in population
     ])
 
-    print(f"\n✅ Otimização concluída!")
-    print(f"Soluções únicas no front de Pareto: {len(df_pareto)}")
+    if config.get('verbose', True):
+        print(f"\n✅ Otimização concluída!")
+        print(f"Soluções únicas no front de Pareto: {len(df_pareto)}")
 
 
     return df_pareto, history

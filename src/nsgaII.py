@@ -157,12 +157,14 @@ def run_my_nsga2(config: dict,
         for ind in population if ind.rank == 1
     ])
     
-    print(f"\n✅ Otimização concluída!")
-    print(f"Registros únicos no dataframe: {len(df_pareto)}")
+    if config.get('verbose', True):
+        print(f"\n✅ Otimização concluída!")
+        print(f"Registros únicos no dataframe: {len(df_pareto)}")
 
     if config['track_progress']:
         df_progress = pd.DataFrame(progress_stats)
-        plot_optimization_progress(df_progress)
+        if config.get('mostrar_grafico', True):
+            plot_optimization_progress(df_progress)
     else:
         df_progress = None
 

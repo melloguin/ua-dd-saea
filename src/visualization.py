@@ -2366,3 +2366,174 @@ def plot_surrogate_comparison_dashboard(
     plt.tight_layout()
     
     return fig
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Catalog-aware PF visualisation  (used by notebook 1)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def display_pareto_fronts_catalog(problem,
+                                  F_landscape,
+                                  pareto_fronts_list=None,
+                                  front_names=None,
+                                  sample_size=100_000,
+                                  front_colors=None,
+                                  title=None,
+                                  elev_offset=-15,
+                                  azim_offset=225,
+                                  roll_offset=0,
+                                  xlim=None,
+                                  ylim=None,
+                                  zlim=None):
+    """
+    Mostra o Pareto front teórico verdadeiro + fronts empíricos sobre a
+    fitness landscape, no estilo de ``display_pareto_fronts3``.
+
+    Suporta problemas com 2 ou 3 objetivos (2D ou 3D).
+
+    Parameters
+    ----------
+    problem : Problem
+        Instância de problema do catálogo (deve ter ``true_pareto_front``).
+    F_landscape : np.ndarray (N, n_obj)
+        Valores dos objetivos amostrados (background cinza).
+    pareto_fronts_list : list of np.ndarray, optional
+        Lista de arrays (M_i, n_obj) com fronts empíricos a plotar.
+    front_names : list of str, optional
+        Rótulos para cada front empírico.
+    sample_size : int
+        Máximo de pontos do landscape a plotar (subsampling).
+    front_colors : list of str, optional
+        Cores para os fronts empíricos.
+    title : str, optional
+        Título do gráfico.
+    elev_offset : float
+        Rotação adicional em graus em torno do eixo X (elevação) para
+        gráficos 3D. Default 15.
+    azim_offset : float
+        Rotação adicional em graus em torno do eixo Z (azimute) para
+        gráficos 3D. Default 225.
+    roll_offset : float
+        Rotação adicional em graus em torno do eixo Y (roll) para
+        gráficos 3D. Default 0.
+    xlim : tuple (lo, hi), optional
+        Limites do eixo X. None = automático.
+    ylim : tuple (lo, hi), optional
+        Limites do eixo Y. None = automático.
+    zlim : tuple (lo, hi), optional
+        Limites do eixo Z (só 3D). None = automático.
+
+    Returns
+    -------
+    fig : matplotlib Figure
+    """
+    n_obj = problem.n_obj
+
+    if pareto_fronts_list is None:
+        pareto_fronts_list = []
+    if front_names is None:
+        front_names = [f'Front {i+1}' for i in range(len(pareto_fronts_list))]
+
+    default_colors = ['royalblue', 'green', 'orange', 'purple', 'brown',
+                      'pink', 'cyan', 'magenta', 'yellow']
+    default_edge   = ['navy', 'darkgreen', 'darkorange', 'darkviolet',
+                      'saddlebrown', 'deeppink', 'darkcyan', 'darkmagenta', 'gold']
+    colors = front_colors if front_colors is not None else default_colors
+    edge_colors = default_edge
+
+    actual = min(sample_size, len(F_landscape))
+    idx_bg = np.random.choice(len(F_landscape), actual, replace=False)
+    F_bg = F_landscape[idx_bg]
+
+    X_true, F_true = problem.true_pareto_front()
+
+    if n_obj == 2:
+        return _plot_pf_2d(F_bg, F_true, pareto_fronts_list, front_names,
+                           colors, edge_colors, actual, title, xlim, ylim)
+    else:
+        return _plot_pf_3d(F_bg, F_true, pareto_fronts_list, front_names,
+                           colors, edge_colors, actual, title,
+                           elev_offset, azim_offset, roll_offset,
+                           xlim, ylim, zlim)
+
+
+def _nice_limits(arrays, axis):
+    """Exact min/max across all plotted arrays on the given axis."""
+    vals = np.concatenate([a[:, axis] for a in arrays if len(a) > 0])
+    return float(vals.min()), float(vals.max())
+
+
+def _plot_pf_2d(F_bg, F_true, fronts, names, colors, edge_colors, n_sample,
+                title, xlim=None, ylim=None):
+    fig, ax = plt.subplots(figsize=(10, 10))
+
+    ax.scatter(F_bg[:, 0], F_bg[:, 1], c='lightgray', s=21, alpha=0.3,
+               label=f'Landscape ({n_sample:,} pts)', zorder=1)
+
+    for i, pf in enumerate(fronts):
+        c = colors[i % len(colors)]
+        ec = edge_colors[i % len(edge_colors)]
+        ax.scatter(pf[:, 0], pf[:, 1], c=c, s=96, alpha=0.9,
+                   edgecolors=ec, linewidth=1.5,
+                   label=f'{names[i]} ({len(pf)} pts)', zorder=2 + i)
+
+    order = F_true[:, 0].argsort()
+    ax.plot(F_true[order, 0], F_true[order, 1], 'r-', lw=2.5,
+            label=f'PF teórico ({len(F_true):,} pts)', zorder=10)
+
+    ax.set_xlabel('f\u2081', fontsize=13, fontweight='bold')
+    ax.set_ylabel('f\u2082', fontsize=13, fontweight='bold')
+    ax.legend(fontsize=14, loc='upper right')
+    ax.grid(True, alpha=0.3, linestyle='--')
+
+    all_F = [F_bg, F_true] + list(fronts)
+    ax.set_xlim(*(xlim if xlim is not None else _nice_limits(all_F, axis=0)))
+    ax.set_ylim(*(ylim if ylim is not None else _nice_limits(all_F, axis=1)))
+
+    if title:
+        ax.set_title(title, fontsize=15, fontweight='bold')
+    plt.tight_layout()
+    plt.show()
+    return fig
+
+
+def _plot_pf_3d(F_bg, F_true, fronts, names, colors, edge_colors, n_sample,
+                title, elev_offset=-15, azim_offset=225, roll_offset=0,
+                xlim=None, ylim=None, zlim=None):
+    fig = plt.figure(figsize=(10, 10))
+    ax = fig.add_subplot(111, projection='3d')
+
+    ax.scatter(F_bg[:, 0], F_bg[:, 1], F_bg[:, 2],
+               c='lightgray', s=4, alpha=0.15, depthshade=False,
+               label=f'Landscape ({n_sample:,} pts)')
+
+    for i, pf in enumerate(fronts):
+        c = colors[i % len(colors)]
+        ec = edge_colors[i % len(edge_colors)]
+        ax.scatter(pf[:, 0], pf[:, 1], pf[:, 2],
+                   c=c, s=30, alpha=0.9, edgecolors=ec, linewidths=0.4,
+                   depthshade=False,
+                   label=f'{names[i]} ({len(pf)} pts)', zorder=5 + i)
+
+    ax.scatter(F_true[:, 0], F_true[:, 1], F_true[:, 2],
+               c='red', s=2, alpha=0.4, depthshade=False,
+               label=f'PF teórico ({len(F_true):,} pts)', zorder=10)
+
+    ax.set_xlabel('f\u2081', fontsize=11, fontweight='bold', labelpad=6)
+    ax.set_ylabel('f\u2082', fontsize=11, fontweight='bold', labelpad=6)
+    ax.set_zlabel('f\u2083', fontsize=11, fontweight='bold', labelpad=6)
+    if xlim is not None:
+        ax.set_xlim(*xlim)
+    if ylim is not None:
+        ax.set_ylim(*ylim)
+    if zlim is not None:
+        ax.set_zlim(*zlim)
+
+    ax.legend(fontsize=11, loc='upper right')
+    ax.view_init(elev=25 + elev_offset, azim=45 + azim_offset, roll=roll_offset)
+
+    if title:
+        ax.set_title(title, fontsize=15, fontweight='bold')
+    plt.tight_layout()
+    plt.show()
+    return fig

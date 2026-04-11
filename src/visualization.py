@@ -2384,7 +2384,9 @@ def display_pareto_fronts_catalog(problem,
                                   roll_offset=0,
                                   xlim=None,
                                   ylim=None,
-                                  zlim=None):
+                                  zlim=None,
+                                  true_color='white',
+                                  emp_color='red'):
     """
     Mostra o Pareto front teórico verdadeiro + fronts empíricos sobre a
     fitness landscape, no estilo de ``display_pareto_fronts3``.
@@ -2434,12 +2436,11 @@ def display_pareto_fronts_catalog(problem,
     if front_names is None:
         front_names = [f'Front {i+1}' for i in range(len(pareto_fronts_list))]
 
-    default_colors = ['royalblue', 'green', 'orange', 'purple', 'brown',
-                      'pink', 'cyan', 'magenta', 'yellow']
-    default_edge   = ['navy', 'darkgreen', 'darkorange', 'darkviolet',
-                      'saddlebrown', 'deeppink', 'darkcyan', 'darkmagenta', 'gold']
-    colors = front_colors if front_colors is not None else default_colors
-    edge_colors = default_edge
+    if front_colors is not None:
+        colors = front_colors
+    else:
+        colors = [emp_color, 'green', 'orange', 'purple', 'brown',
+                  'pink', 'cyan', 'magenta', 'yellow']
 
     actual = min(sample_size, len(F_landscape))
     idx_bg = np.random.choice(len(F_landscape), actual, replace=False)
@@ -2449,12 +2450,12 @@ def display_pareto_fronts_catalog(problem,
 
     if n_obj == 2:
         return _plot_pf_2d(F_bg, F_true, pareto_fronts_list, front_names,
-                           colors, edge_colors, actual, title, xlim, ylim)
+                           colors, actual, title, xlim, ylim, true_color)
     else:
         return _plot_pf_3d(F_bg, F_true, pareto_fronts_list, front_names,
-                           colors, edge_colors, actual, title,
+                           colors, actual, title,
                            elev_offset, azim_offset, roll_offset,
-                           xlim, ylim, zlim)
+                           xlim, ylim, zlim, true_color)
 
 
 def _nice_limits(arrays, axis):
@@ -2463,8 +2464,8 @@ def _nice_limits(arrays, axis):
     return float(vals.min()), float(vals.max())
 
 
-def _plot_pf_2d(F_bg, F_true, fronts, names, colors, edge_colors, n_sample,
-                title, xlim=None, ylim=None):
+def _plot_pf_2d(F_bg, F_true, fronts, names, colors, n_sample,
+                title, xlim=None, ylim=None, true_color='white'):
     fig, ax = plt.subplots(figsize=(10, 10))
 
     ax.scatter(F_bg[:, 0], F_bg[:, 1], c='lightgray', s=21, alpha=0.3,
@@ -2472,14 +2473,18 @@ def _plot_pf_2d(F_bg, F_true, fronts, names, colors, edge_colors, n_sample,
 
     for i, pf in enumerate(fronts):
         c = colors[i % len(colors)]
-        ec = edge_colors[i % len(edge_colors)]
-        ax.scatter(pf[:, 0], pf[:, 1], c=c, s=96, alpha=0.9,
-                   edgecolors=ec, linewidth=1.5,
-                   label=f'{names[i]} ({len(pf)} pts)', zorder=2 + i)
+        _scatter_colored(ax, pf[:, 0], pf[:, 1], c,
+                         s=96, label=f'{names[i]} ({len(pf)} pts)', zorder=2 + i,
+                         alpha=0.9)
 
     order = F_true[:, 0].argsort()
-    ax.plot(F_true[order, 0], F_true[order, 1], 'r-', lw=2.5,
-            label=f'PF teórico ({len(F_true):,} pts)', zorder=10)
+    if true_color == 'white':
+        ax.plot(F_true[order, 0], F_true[order, 1], 'k-', lw=5.25, zorder=10)
+        ax.plot(F_true[order, 0], F_true[order, 1], 'w-', lw=2.25,
+                label=f'PF teórico ({len(F_true):,} pts)', zorder=11)
+    else:
+        ax.plot(F_true[order, 0], F_true[order, 1], '-', color=true_color, lw=3.0,
+                label=f'PF teórico ({len(F_true):,} pts)', zorder=10)
 
     ax.set_xlabel('f\u2081', fontsize=13, fontweight='bold')
     ax.set_ylabel('f\u2082', fontsize=13, fontweight='bold')
@@ -2497,9 +2502,9 @@ def _plot_pf_2d(F_bg, F_true, fronts, names, colors, edge_colors, n_sample,
     return fig
 
 
-def _plot_pf_3d(F_bg, F_true, fronts, names, colors, edge_colors, n_sample,
+def _plot_pf_3d(F_bg, F_true, fronts, names, colors, n_sample,
                 title, elev_offset=-15, azim_offset=225, roll_offset=0,
-                xlim=None, ylim=None, zlim=None):
+                xlim=None, ylim=None, zlim=None, true_color='white'):
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111, projection='3d')
 
@@ -2509,14 +2514,13 @@ def _plot_pf_3d(F_bg, F_true, fronts, names, colors, edge_colors, n_sample,
 
     for i, pf in enumerate(fronts):
         c = colors[i % len(colors)]
-        ec = edge_colors[i % len(edge_colors)]
-        ax.scatter(pf[:, 0], pf[:, 1], pf[:, 2],
-                   c=c, s=30, alpha=0.9, edgecolors=ec, linewidths=0.4,
-                   depthshade=False,
-                   label=f'{names[i]} ({len(pf)} pts)', zorder=5 + i)
+        _scatter_colored(ax, pf[:, 0], pf[:, 1], c,
+                         s=30, label=f'{names[i]} ({len(pf)} pts)',
+                         zorder=5 + i, z=pf[:, 2], alpha=0.9)
 
+    tc = 'black' if true_color == 'white' else true_color
     ax.scatter(F_true[:, 0], F_true[:, 1], F_true[:, 2],
-               c='red', s=2, alpha=0.4, depthshade=False,
+               c=tc, s=2, alpha=0.4, depthshade=False,
                label=f'PF teórico ({len(F_true):,} pts)', zorder=10)
 
     ax.set_xlabel('f\u2081', fontsize=11, fontweight='bold', labelpad=6)
@@ -2534,6 +2538,330 @@ def _plot_pf_3d(F_bg, F_true, fronts, names, colors, edge_colors, n_sample,
 
     if title:
         ax.set_title(title, fontsize=15, fontweight='bold')
+    plt.tight_layout()
+    plt.show()
+    return fig
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Decision-space (landscape) visualisation  (used by notebook 1)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def display_decision_space(problem, X_landscape, F_landscape,
+                           X_true, X_emp, title=None, pair_vars=None,
+                           true_color='white', emp_color='red',
+                           elev_offset=-15, azim_offset=225, roll_offset=0):
+    """Dispatch decision-space plots based on n_var.
+
+    Parameters
+    ----------
+    problem, X_landscape, F_landscape, X_true, X_emp, title, pair_vars :
+        See previous docstring.
+    true_color : str   Colour for true PS points ('white' = white + black edge).
+    emp_color  : str   Colour for empirical PS points.
+    elev_offset, azim_offset, roll_offset : float
+        3-D rotation offsets (same convention as display_pareto_fronts_catalog).
+    """
+    kw = dict(true_color=true_color, emp_color=emp_color,
+              elev_offset=elev_offset, azim_offset=azim_offset,
+              roll_offset=roll_offset)
+    n = problem.n_var
+    if n == 2:
+        _decision_heatmap_2d(problem, X_landscape, F_landscape,
+                             X_true, X_emp, title, **kw)
+    elif n == 3:
+        _decision_scatter_3d(problem, X_landscape, F_landscape,
+                             X_true, X_emp, title, **kw)
+    else:
+        _decision_pca_unified(X_landscape, F_landscape, X_true, X_emp,
+                              title, **kw)
+        _decision_pca_by_obj_2d(X_landscape, F_landscape, X_true, X_emp,
+                                title, **kw)
+        _decision_pca_by_obj_3d(X_landscape, F_landscape, X_true, X_emp,
+                                title, **kw)
+        _decision_pairwise(problem, X_landscape, X_true, X_emp, title,
+                           pair_vars=pair_vars, **kw)
+
+
+# ── 2-var heatmap (same style as plot_landscapes_heatmap_dashboard_v2) ───
+
+def _decision_heatmap_2d(problem, X, F, X_true, X_emp, title,
+                         true_color='white', emp_color='red', **_kw):
+    import matplotlib.colors as mcolors
+
+    base_cmap = plt.get_cmap('Greys')
+    sampled = base_cmap(np.linspace(0, 1, 256))
+    sampled[:, :3] = 0.7 * sampled[:, :3] + 0.3
+    light_cmap = mcolors.LinearSegmentedColormap.from_list('Greys_light', sampled)
+
+    n_obj = F.shape[1]
+    fig, axes = plt.subplots(1, n_obj, figsize=(9 * n_obj, 8))
+    if n_obj == 1:
+        axes = [axes]
+    fig.subplots_adjust(top=0.82)
+
+    if title:
+        fig.suptitle(f'{title} \u2014 Espa\u00e7o de Decis\u00e3o', fontsize=18,
+                     fontweight='bold', y=0.97)
+
+    for j, ax in enumerate(axes):
+        sc = ax.scatter(X[:, 0], X[:, 1], c=F[:, j], cmap=light_cmap,
+                        alpha=0.9, s=8, edgecolor='none')
+
+        _scatter_colored(ax, X_true[:, 0], X_true[:, 1], true_color,
+                         s=20, label='PS te\u00f3rico', zorder=10)
+        _scatter_colored(ax, X_emp[:, 0], X_emp[:, 1], emp_color,
+                         s=60, label='PS emp\u00edrico', zorder=11)
+
+        ax.set_title(f'Objetivo $f_{j+1}$', fontsize=14, fontweight='bold')
+        ax.set_xlabel('$x_1$', fontsize=12)
+        ax.set_ylabel('$x_2$', fontsize=12)
+        ax.set_xlim(problem.xl[0], problem.xu[0])
+        ax.set_ylim(problem.xl[1], problem.xu[1])
+        fig.colorbar(sc, ax=ax, label=f'$f_{j+1}$')
+
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, 0.935),
+               ncol=2, fontsize=14, frameon=True, facecolor='white', framealpha=0.9)
+    plt.show()
+    return fig
+
+
+# \u2500\u2500 3-var scatter \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+
+def _decision_scatter_3d(problem, X, F, X_true, X_emp, title,
+                         true_color='white', emp_color='red',
+                         elev_offset=-15, azim_offset=225, roll_offset=0):
+    fig = plt.figure(figsize=(12, 10))
+    ax = fig.add_subplot(111, projection='3d')
+
+    sc = ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=F[:, 0],
+                    cmap='Greys', s=2, alpha=0.15, depthshade=False)
+
+    _scatter_colored(ax, X_true[:, 0], X_true[:, 1], true_color,
+                     s=8, label='PS te\u00f3rico', zorder=9, z=X_true[:, 2], alpha=0.5)
+    _scatter_colored(ax, X_emp[:, 0], X_emp[:, 1], emp_color,
+                     s=30, label='PS emp\u00edrico', zorder=10, z=X_emp[:, 2])
+
+    ax.set_xlabel('$x_1$', fontsize=11, labelpad=6)
+    ax.set_ylabel('$x_2$', fontsize=11, labelpad=6)
+    ax.set_zlabel('$x_3$', fontsize=11, labelpad=6)
+    ax.legend(fontsize=11, loc='upper right')
+    ax.view_init(elev=25 + elev_offset, azim=45 + azim_offset, roll=roll_offset)
+    fig.colorbar(sc, ax=ax, shrink=0.5, label='$f_1$')
+
+    if title:
+        ax.set_title(f'{title} \u2014 Espa\u00e7o de Decis\u00e3o (3D)',
+                     fontsize=15, fontweight='bold')
+    plt.tight_layout()
+    plt.show()
+    return fig
+
+
+# \u2500\u2500 high-dim: PCA projection \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+
+def _scatter_colored(ax, x, y, color, s, label, zorder, z=None, **kw):
+    """Scatter with smart edge: 'white' → white fill + black edge, else solid."""
+    if color == 'white':
+        fc, ec = 'white', 'black'
+    else:
+        fc, ec = color, {'red': 'darkred', 'royalblue': 'navy'}.get(color, 'black')
+    if z is not None:
+        ax.scatter(x, y, z, c=fc, edgecolors=ec, s=s, linewidths=0.8,
+                   zorder=zorder, label=label, depthshade=False, **kw)
+    else:
+        ax.scatter(x, y, c=fc, edgecolors=ec, s=s, linewidths=0.8,
+                   zorder=zorder, label=label, **kw)
+
+
+def _pca_fit(X, X_true, X_emp, n_components):
+    """Fit PCA on all data and return projected arrays + explained variance."""
+    from sklearn.decomposition import PCA
+    pca = PCA(n_components=n_components)
+    X_all = np.vstack([X, X_true, X_emp])
+    Z_all = pca.fit_transform(X_all)
+    n_bg, n_true = len(X), len(X_true)
+    return (Z_all[:n_bg], Z_all[n_bg:n_bg + n_true], Z_all[n_bg + n_true:],
+            pca.explained_variance_ratio_)
+
+
+def _light_grey_cmap():
+    import matplotlib.colors as mcolors
+    base = plt.get_cmap('Greys')
+    s = base(np.linspace(0, 1, 256))
+    s[:, :3] = 0.7 * s[:, :3] + 0.3
+    return mcolors.LinearSegmentedColormap.from_list('Greys_light_pca', s)
+
+
+# Row 1: PCA 2D + 3D unified (single colour, no objective split)
+
+def _decision_pca_unified(X, F, X_true, X_emp, title,
+                          true_color='white', emp_color='red',
+                          elev_offset=-15, azim_offset=225, roll_offset=0):
+    Z2_bg, Z2_true, Z2_emp, var2 = _pca_fit(X, X_true, X_emp, 2)
+    Z3_bg, Z3_true, Z3_emp, var3 = _pca_fit(X, X_true, X_emp, 3)
+
+    fig = plt.figure(figsize=(18, 8))
+    fig.subplots_adjust(top=0.82)
+    if title:
+        fig.suptitle(f'{title} \u2014 PCA (vis\u00e3o \u00fanica)',
+                     fontsize=18, fontweight='bold', y=0.97)
+
+    ax2d = fig.add_subplot(1, 2, 1)
+    ax2d.scatter(Z2_bg[:, 0], Z2_bg[:, 1], c='lightgray', s=8, alpha=0.3)
+    _scatter_colored(ax2d, Z2_true[:, 0], Z2_true[:, 1], true_color,
+                     s=20, label=f'PS te\u00f3rico ({len(X_true)} pts)', zorder=10, alpha=0.8)
+    _scatter_colored(ax2d, Z2_emp[:, 0], Z2_emp[:, 1], emp_color,
+                     s=50, label=f'PS emp\u00edrico ({len(X_emp)} pts)', zorder=11, alpha=0.9)
+    ax2d.set_xlabel(f'PC1 ({var2[0]:.1%})', fontsize=12)
+    ax2d.set_ylabel(f'PC2 ({var2[1]:.1%})', fontsize=12)
+    ax2d.set_title('PCA 2D', fontsize=14, fontweight='bold')
+    ax2d.grid(True, alpha=0.3, linestyle='--')
+
+    ax3d = fig.add_subplot(1, 2, 2, projection='3d')
+    ax3d.scatter(Z3_bg[:, 0], Z3_bg[:, 1], Z3_bg[:, 2],
+                 c='lightgray', s=2, alpha=0.1, depthshade=False)
+    _scatter_colored(ax3d, Z3_true[:, 0], Z3_true[:, 1], true_color,
+                     s=8, label='PS te\u00f3rico', zorder=9, z=Z3_true[:, 2], alpha=0.5)
+    _scatter_colored(ax3d, Z3_emp[:, 0], Z3_emp[:, 1], emp_color,
+                     s=30, label='PS emp\u00edrico', zorder=10, z=Z3_emp[:, 2])
+    ax3d.set_xlabel(f'PC1 ({var3[0]:.1%})', fontsize=9, labelpad=4)
+    ax3d.set_ylabel(f'PC2 ({var3[1]:.1%})', fontsize=9, labelpad=4)
+    ax3d.set_zlabel(f'PC3 ({var3[2]:.1%})', fontsize=9, labelpad=4)
+    ax3d.set_title('PCA 3D', fontsize=14, fontweight='bold')
+    ax3d.view_init(elev=25 + elev_offset, azim=45 + azim_offset, roll=roll_offset)
+
+    handles, labels = ax2d.get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, 0.935),
+               ncol=2, fontsize=14, frameon=True, facecolor='white', framealpha=0.9)
+    plt.tight_layout()
+    plt.show()
+    return fig
+
+
+# Row 2: PCA 2D per objective (coloured by f_j)
+
+def _decision_pca_by_obj_2d(X, F, X_true, X_emp, title,
+                            true_color='white', emp_color='red', **_kw):
+    Z_bg, Z_true, Z_emp, var = _pca_fit(X, X_true, X_emp, 2)
+    cmap = _light_grey_cmap()
+    n_obj = F.shape[1]
+
+    fig, axes = plt.subplots(1, n_obj, figsize=(9 * n_obj, 8))
+    if n_obj == 1:
+        axes = [axes]
+    fig.subplots_adjust(top=0.82)
+    if title:
+        fig.suptitle(f'{title} \u2014 PCA 2D por objetivo',
+                     fontsize=18, fontweight='bold', y=0.97)
+
+    for j, ax in enumerate(axes):
+        sc = ax.scatter(Z_bg[:, 0], Z_bg[:, 1], c=F[:, j], cmap=cmap,
+                        alpha=0.9, s=8, edgecolor='none')
+        _scatter_colored(ax, Z_true[:, 0], Z_true[:, 1], true_color,
+                         s=20, label='PS te\u00f3rico', zorder=10)
+        _scatter_colored(ax, Z_emp[:, 0], Z_emp[:, 1], emp_color,
+                         s=60, label='PS emp\u00edrico', zorder=11)
+        ax.set_title(f'Objetivo $f_{j+1}$', fontsize=14, fontweight='bold')
+        ax.set_xlabel(f'PC1 ({var[0]:.1%})', fontsize=12)
+        ax.set_ylabel(f'PC2 ({var[1]:.1%})', fontsize=12)
+        fig.colorbar(sc, ax=ax, label=f'$f_{j+1}$')
+
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, 0.935),
+               ncol=2, fontsize=14, frameon=True, facecolor='white', framealpha=0.9)
+    plt.show()
+    return fig
+
+
+# Row 3: PCA 3D per objective (coloured by f_j)
+
+def _decision_pca_by_obj_3d(X, F, X_true, X_emp, title,
+                            true_color='white', emp_color='red',
+                            elev_offset=-15, azim_offset=225, roll_offset=0):
+    Z_bg, Z_true, Z_emp, var = _pca_fit(X, X_true, X_emp, 3)
+    cmap = _light_grey_cmap()
+    n_obj = F.shape[1]
+
+    fig = plt.figure(figsize=(9 * n_obj, 8))
+    fig.subplots_adjust(top=0.82)
+    if title:
+        fig.suptitle(f'{title} \u2014 PCA 3D por objetivo',
+                     fontsize=18, fontweight='bold', y=0.97)
+
+    for j in range(n_obj):
+        ax = fig.add_subplot(1, n_obj, j + 1, projection='3d')
+        sc = ax.scatter(Z_bg[:, 0], Z_bg[:, 1], Z_bg[:, 2],
+                        c=F[:, j], cmap=cmap, s=2, alpha=0.15, depthshade=False)
+        _scatter_colored(ax, Z_true[:, 0], Z_true[:, 1], true_color,
+                         s=10, label='PS te\u00f3rico', zorder=10, z=Z_true[:, 2])
+        _scatter_colored(ax, Z_emp[:, 0], Z_emp[:, 1], emp_color,
+                         s=30, label='PS emp\u00edrico', zorder=11, z=Z_emp[:, 2])
+        ax.set_title(f'Objetivo $f_{j+1}$', fontsize=14, fontweight='bold')
+        ax.set_xlabel(f'PC1 ({var[0]:.1%})', fontsize=9, labelpad=4)
+        ax.set_ylabel(f'PC2 ({var[1]:.1%})', fontsize=9, labelpad=4)
+        ax.set_zlabel(f'PC3 ({var[2]:.1%})', fontsize=9, labelpad=4)
+        ax.view_init(elev=25 + elev_offset, azim=45 + azim_offset, roll=roll_offset)
+        fig.colorbar(sc, ax=ax, shrink=0.6, label=f'$f_{j+1}$')
+
+    ax0 = fig.axes[0]
+    handles, labels = ax0.get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, 0.935),
+               ncol=2, fontsize=14, frameon=True, facecolor='white', framealpha=0.9)
+    plt.tight_layout()
+    plt.show()
+    return fig
+
+
+# \u2500\u2500 high-dim: pairwise 2-D grid \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+
+def _decision_pairwise(problem, X, X_true, X_emp, title, pair_vars=None,
+                       true_color='white', emp_color='red', **_kw):
+    tc_fill = 'white' if true_color == 'white' else true_color
+    tc_edge = 'black' if true_color == 'white' else \
+              {'red': 'darkred', 'royalblue': 'navy'}.get(true_color, 'black')
+    ec_fill = emp_color
+    ec_edge = {'red': 'darkred', 'royalblue': 'navy'}.get(emp_color, 'black')
+
+    if pair_vars is not None:
+        cols = [v - 1 for v in pair_vars]
+    else:
+        cols = list(range(problem.n_var))
+
+    k = len(cols)
+    fig, axes = plt.subplots(k, k, figsize=(3 * k, 3 * k))
+    if k == 1:
+        axes = np.array([[axes]])
+
+    for ri, ci in enumerate(cols):
+        for rj, cj in enumerate(cols):
+            ax = axes[ri, rj]
+            if ci == cj:
+                ax.hist(X[:, ci], bins=50, color='lightgray', edgecolor='gray')
+                ax.hist(X_true[:, ci], bins=30, color=tc_fill, edgecolor=tc_edge,
+                        alpha=0.5)
+            else:
+                ax.scatter(X[:, cj], X[:, ci], c='lightgray', s=1, alpha=0.1,
+                           rasterized=True)
+                ax.scatter(X_true[:, cj], X_true[:, ci], c=tc_fill,
+                           edgecolors=tc_edge, s=3, linewidths=0.3,
+                           alpha=0.4, zorder=10)
+                ax.scatter(X_emp[:, cj], X_emp[:, ci], c=ec_fill,
+                           edgecolors=ec_edge, s=8, linewidths=0.2,
+                           alpha=0.8, zorder=11)
+
+            if ri == k - 1:
+                ax.set_xlabel(f'$x_{{{cj+1}}}$', fontsize=8)
+            else:
+                ax.set_xticklabels([])
+            if rj == 0:
+                ax.set_ylabel(f'$x_{{{ci+1}}}$', fontsize=8)
+            else:
+                ax.set_yticklabels([])
+
+    if title:
+        fig.suptitle(f'{title} \u2014 Pairwise Decision Space',
+                     fontsize=14, fontweight='bold', y=1.01)
     plt.tight_layout()
     plt.show()
     return fig

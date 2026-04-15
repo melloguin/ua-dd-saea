@@ -5087,3 +5087,326 @@ por favor = (1) documente o notebook @4. optimization.ipynb com a explicacao das
 
 ---
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Conversa: Implementação de Problemas e Derivação de Pareto Fronts Teóricos
+
+> Exportação da conversa entre o usuário e o assistente AI (Claude) no Cursor IDE.
+> Data: 8 de abril de 2026.
+
+---
+
+## 1. Refatoração de `g` com `np.where` (MMF16)
+
+**Pergunta:** É possível implementar `g` com `np.where` ao invés da indexação booleana?
+
+**Resposta:** Sim. O código original usava boolean indexing com arrays intermediários:
+
+```python
+g = np.empty(X.shape[0])
+glob = x3 < 0.5
+g[glob] = 2.0 - np.sin(2.0 * self.n_pg * np.pi * x3[glob]) ** 6
+loc = ~glob
+xl_ = x3[loc]
+g[loc] = (2.0
+          - np.exp(-2.0 * np.log(2.0) * ((xl_ - 0.1) / 0.8) ** 2)
+          * np.sin(2.0 * self.n_pl * np.pi * xl_) ** 6)
+```
+
+Ficou assim com `np.where`:
+
+```python
+g = np.where(
+    x3 < 0.5,
+    2.0 - np.sin(2.0 * self.n_pg * np.pi * x3) ** 6,
+    2.0 - np.exp(-2.0 * np.log(2.0) * ((x3 - 0.1) / 0.8) ** 2)
+        * np.sin(2.0 * self.n_pl * np.pi * x3) ** 6,
+)
+```
+
+A diferença: `np.where` calcula ambos os ramos para todos os elementos e depois seleciona; boolean indexing calcula cada ramo apenas para os elementos necessários. Na prática, a diferença de performance é desprezível, e `np.where` é mais legível.
+
+**Ação:** Implementado em `MMF16_L3` e `MMF16_20` em `src/problems_catalog.py`.
+
+---
+
+## 2. Refatoração das funções DTLZ (equações explícitas)
+
+**Pergunta:** As funções DTLZ com loops genéricos não são legíveis para validação contra o artigo. Pode reescrever com f1, f2, f3 explícitos, como ZDT e MMF?
+
+**Resposta:** Todas as 5 classes DTLZ foram reescritas com equações explícitas para M=3, referenciando as equações do artigo original (Deb et al. 2001):
+
+### DTLZ1 (eq. 20–21) — PF linear
+
+```python
+f1 = 0.5 * x1 * x2 * (1.0 + g)
+f2 = 0.5 * x1 * (1.0 - x2) * (1.0 + g)
+f3 = 0.5 * (1.0 - x1) * (1.0 + g)
+```
+
+### DTLZ2 (eq. 22) — PF esférica
+
+```python
+f1 = (1.0 + g) * np.cos(x1 * np.pi / 2.0) * np.cos(x2 * np.pi / 2.0)
+f2 = (1.0 + g) * np.cos(x1 * np.pi / 2.0) * np.sin(x2 * np.pi / 2.0)
+f3 = (1.0 + g) * np.sin(x1 * np.pi / 2.0)
+```
+
+### DTLZ3 (eq. 23) — mesma forma de DTLZ2, g multimodal
+
+Mesmas expressões de f1, f2, f3 que DTLZ2, mas com:
+```python
+g = 100.0 * (self.k + np.sum((xm - 0.5)**2 - np.cos(20.0*np.pi*(xm - 0.5)), axis=1))
+```
+
+### DTLZ4 (eq. 24) — DTLZ2 com mapeamento x_i → x_i^α
+
+```python
+f1 = (1.0 + g) * np.cos(x1**a * np.pi / 2.0) * np.cos(x2**a * np.pi / 2.0)
+f2 = (1.0 + g) * np.cos(x1**a * np.pi / 2.0) * np.sin(x2**a * np.pi / 2.0)
+f3 = (1.0 + g) * np.sin(x1**a * np.pi / 2.0)
+```
+
+### DTLZ7 (eq. 27) — PF desconectada
+
+```python
+f1 = X[:, 0]
+f2 = X[:, 1]
+h = (3.0
+     - (f1 / (1.0 + g)) * (1.0 + np.sin(3.0 * np.pi * f1))
+     - (f2 / (1.0 + g)) * (1.0 + np.sin(3.0 * np.pi * f2)))
+f3 = (1.0 + g) * h
+```
+
+**Mudança de API:** O parâmetro `n_obj` foi removido dos construtores (fixado em 3), consistente com o estilo ZDT/MMF.
+
+---
+
+## 3. Notebook: Fitness Landscape para todos os problemas
+
+**Pergunta:** Adapte o notebook `1. fitness_landscape.ipynb` para apresentar todos os problemas de `problems_catalog.py`, com adaptação 3D para problemas de 3 objetivos, mostrando Pareto fronts teóricos e empíricos.
+
+**Resposta:** Notebook completamente reescrito com 9 células:
+
+| # | Tipo | Conteúdo |
+|---|------|----------|
+| 0 | code | Imports de `src.problems_catalog` |
+| 1 | markdown | Título + tabela de suites |
+| 2 | code | `generate_samples()` (grid/LHS) + `empirical_pareto_front()` (NDS) |
+| 3 | code | Pareto fronts teóricos analíticos (`TRUE_PF` dict) |
+| 4 | code | Catálogo: 13 problemas 2D + 7 problemas 3D |
+| 5 | markdown | Header bi-objetivo |
+| 6 | code | Grid 4×4 de plots 2D |
+| 7 | markdown | Header tri-objetivo |
+| 8 | code | Grid de plots 3D |
+
+---
+
+## 4. Derivação dos Pareto Fronts Teóricos
+
+A técnica central: **o PF teórico ocorre quando g = g\*  (mínimo global de g)**. Substituindo g\* nas expressões dos objetivos, obtém-se a curva/superfície analítica.
+
+### Problemas ZDT (2 objetivos)
+
+| Problema | g* | PF teórico |
+|----------|----|------------|
+| ZDT1 | 0 (xi=0) | f₂ = 1 − √f₁, f₁ ∈ [0,1] |
+| ZDT3 | 0 (xi=0) | f₂ = 1 − √f₁ − f₁·sin(10πf₁), filtrado por NDS → 5 segmentos |
+| ZDT4 | 0 (xi=0) | f₂ = 1 − √f₁ (igual ZDT1) |
+| ZDT6 | 0 (xi=0) | f₂ = 1 − f₁², f₁ ∈ [f₁_min ≈ 0.28, 1] |
+
+### Problemas MMF (2 objetivos)
+
+| Problema | g* | PF teórico |
+|----------|----|------------|
+| MMF1 | 0 (x2 na senóide) | f₂ = 1 − √f₁ |
+| MMF4 | 0 (x2 na senóide) | f₂ = 1 − f₁² |
+| MMF11_L | 1 (min de 2 − exp·sin⁶) | f₂ = 1/f₁, f₁ ∈ [0.1, 1.1] |
+
+### Problemas WFG (2 objetivos)
+
+No PF, todas as variáveis de distância são ótimas (t_p[M-1] = 0). A forma depende da shape function:
+
+| Problema | Shape | PF teórico |
+|----------|-------|------------|
+| WFG4, WFG5, WFG9 | concave | Elipse: f₁ = 2·sin(t·π/2), f₂ = 4·cos(t·π/2) |
+| WFG1 | convex + mixed | f₁ = 2·(1−cos(t·π/2)), f₂ = 4·h_mixed(t), filtrado NDS |
+| WFG2 | convex + disc | f₁ = 2·(1−cos(t·π/2)), f₂ = 4·(1−t·cos²(5πt)), filtrado NDS |
+
+### Problemas DTLZ (3 objetivos)
+
+| Problema | g* | PF teórico |
+|----------|----|------------|
+| DTLZ1 | 0 (xm=0.5) | Plano linear: f₁+f₂+f₃ = 0.5 |
+| DTLZ2 | 0 (xm=0.5) | Esfera unitária: f₁²+f₂²+f₃² = 1 |
+| DTLZ3 | 0 (xm=0.5) | Esfera unitária (mesmo DTLZ2, g diferente) |
+| DTLZ4 | 0 (xm=0.5) | Esfera unitária (mesmo DTLZ2, α afeta densidade, não forma) |
+| DTLZ7 | 1 (xm=0) | f₃ = 6 − f₁·(1+sin(3πf₁)) − f₂·(1+sin(3πf₂)), 4 patches (NDS) |
+
+### Problemas MMF16 (3 objetivos)
+
+| Problema | g* | PF teórico |
+|----------|----|------------|
+| MMF16_L3 | 1 (sin²=1) | Esfera raio 2: f₁²+f₂²+f₃² = 4 |
+| MMF16_20 | 1 (sin⁶=1) | Esfera raio 2: f₁²+f₂²+f₃² = 4 |
+
+### BBOB Gallagher Mock
+
+Paisagem aleatória (101 picos gaussianos, seed=42). **Sem PF analítico** — apenas empírico.
+
+### Resumo dos métodos de derivação
+
+| Método | Quando usar |
+|--------|-------------|
+| Substituição direta de g=g* | Todos os pontos na superfície g=g* são não-dominados |
+| Parametrização + NDS | Superfície g=g* contém regiões dominadas (ZDT3, WFG1/2, DTLZ7) |
+| Cálculo numérico de f_min | f1 não começa em 0 (ZDT6) |
+| Sem PF analítico | Paisagens aleatórias (BBOB) |
+
+### Princípio fundamental
+
+Todos esses benchmarks foram **projetados** com a estrutura `f = h(posição) · (1 + g(distância))` precisamente para que o PF verdadeiro seja fácil de derivar: basta encontrar g* e substituir. É uma feature proposital das suites ZDT, DTLZ e WFG.
+
+---
+
+## 5. Como os Pareto fronts teóricos foram obtidos?
+
+**Pergunta do usuário:** "Mas você mesmo calculou e deduziu isso, ou consumiu essa informação de algum local?"
+
+**Resposta:**
+
+Eu mesmo deduzi analiticamente, a partir das equações que estão no código do `problems_catalog.py` e do artigo DTLZ que o usuário forneceu. Nenhuma tabela externa de PFs conhecidos foi consultada.
+
+O raciocínio é sempre o mesmo e é bastante direto:
+
+1. **Olhei a fórmula de g** no código de cada problema e identifiquei o valor mínimo `g*`. Isso é cálculo elementar — por exemplo, `g = Σ(xi - 0.5)²` tem mínimo óbvio em xi = 0.5, dando g\* = 0. Ou `g = 1 + (9/k)·Σxi` tem mínimo em xi = 0, dando g\* = 1.
+
+2. **Substituí g = g\*** nas expressões de f1, f2, f3 — o que elimina as variáveis de distância e deixa os objetivos como funções apenas das variáveis de posição (x1, x2).
+
+3. **Reconheci a forma geométrica** resultante usando identidades trigonométricas básicas. Por exemplo, `cos²θ + sin²θ = 1` aplicado a `cos(x·π/2)` e `sin(x·π/2)` dá imediatamente uma esfera.
+
+4. Para os casos onde a superfície g = g\* tem **regiões dominadas** (ZDT3, DTLZ7, WFG1/2), apliquei NDS numericamente para filtrar.
+
+#### Fontes usadas na derivação
+
+Toda a informação veio exclusivamente de:
+
+- As equações do `src/problems_catalog.py` (escritas pelo assistente)
+- O artigo DTLZ (Deb et al. 2001) anexado pelo usuário (para validação cruzada)
+- Álgebra e trigonometria básica
+
+#### Por que funciona
+
+É conhecimento standard de otimização multi-objetivo que o PF de qualquer problema com a estrutura `f = h(posição) · (1 + g(distância))` ocorre em `g = g*`. Essa é a "receita" de construção dos problemas ZDT, DTLZ e WFG — eles foram *projetados* para que o PF verdadeiro seja fácil de derivar. É uma feature proposital das suites de benchmark, conforme descrito na Seção 4 ("Bottom-Up Approach") do artigo DTLZ.

@@ -10,7 +10,8 @@ def crowded_comparison_operator(ind1, ind2):
 
 
 def tournament_selection(population, k_tournament):
-    tournament_indices = np.random.choice(len(population), size=k_tournament, replace=False)
+    use_replace = len(population) < k_tournament
+    tournament_indices = np.random.choice(len(population), size=k_tournament, replace=use_replace)
     tournament_individuals = [population[i] for i in tournament_indices]
 
     best = tournament_individuals[0]

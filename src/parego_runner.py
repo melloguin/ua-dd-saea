@@ -1,15 +1,35 @@
 """
-ParEGO: Pareto-EGO - A hybrid algorithm with online landscape approximation.
+ParEGO: Pareto-EGO — A hybrid algorithm with online landscape approximation.
 
-Full implementation of Algorithm 1 from:
-Knowles, "ParEGO: A Hybrid Algorithm With On-Line Landscape Approximation
-for Expensive Multiobjective Optimization Problems" (IEEE TEVC 2006).
+Implementation based on:
+    Knowles, "ParEGO: A Hybrid Algorithm With On-Line Landscape Approximation
+    for Expensive Multiobjective Optimization Problems"
+    (IEEE TEVC 10(1), 2005).
 
-ParEGO extends single-objective EGO to multi-objective by:
-1. At each iteration, randomly selecting a weight vector λ
-2. Scalarizing objectives via augmented Tchebycheff function
-3. Building a Kriging model on the scalarized values
-4. Finding the solution that maximizes Expected Improvement
+PAPER ALGORITHM (Algorithm 1 / Section IV):
+    1. Initialize with Latin Hypercube Sampling of 11d-1 points.
+    2. At each iteration:
+       a. Draw random weight vector λ from simplex-lattice (Eq. 1, s=10).
+       b. Normalize objectives to [0,1].
+       c. Compute augmented Tchebycheff: max(λ_i*f_i) + ρ*Σ(λ_i*f_i), ρ=0.05.
+       d. Build DACE (Kriging) model on scalar costs.
+       e. Search for solution maximising Expected Improvement.
+       f. Evaluate and update.
+    3. Cap DACE model at 80 training points.
+
+DEVIATIONS / NOTES:
+    - The paper uses Nelder-Mead (20 restarts) for likelihood optimisation
+      and an internal GA (pop=20, 10000 evals) for EI maximisation.
+      This implementation uses sklearn's GaussianProcessRegressor (L-BFGS
+      for likelihood) and scipy.optimize.differential_evolution for EI
+      maximisation.  Both are standard modern alternatives that produce
+      equivalent results.
+    - The paper caps the DACE model at 80 points and selects a subset
+      heuristically (Section IV-A).  This implementation keeps all
+      training data — feasible because sklearn's GP handles moderate N
+      efficiently.
+    - Weight vectors now support M >= 2 objectives via the general
+      simplex-lattice construction (same formula as RVEA/MOEA-D).
 5. Evaluating that solution on the true expensive function
 6. Repeating until the evaluation budget is exhausted
 """
@@ -38,14 +58,25 @@ def _latin_hypercube_sampling(n_samples, n_var, xl, xu, seed=42):
 
 
 def _generate_weight_vectors(n_obj, s=10):
-    """Generate evenly distributed weight vectors using simplex-lattice design."""
+    """Generate evenly distributed weight vectors using simplex-lattice design.
+
+    Implements Eq. 1 from Knowles (2005):
+        {lambda : lambda_j in {0/s, 1/s, ..., s/s}, sum(lambda) = 1}
+
+    For n_obj >= 3 this uses the general combinatorial construction
+    (same simplex-lattice formula used by RVEA/MOEA-D).
+    """
     if n_obj == 2:
-        vectors = []
-        for i in range(s + 1):
-            vectors.append(np.array([i / s, 1 - i / s]))
-        return np.array(vectors)
-    else:
-        raise NotImplementedError("Only 2 objectives supported")
+        return np.array([[i / s, 1 - i / s] for i in range(s + 1)])
+    from itertools import combinations_with_replacement
+    points = []
+    for combo in combinations_with_replacement(range(s + 1), n_obj - 1):
+        vals = [combo[0]]
+        for j in range(1, len(combo)):
+            vals.append(combo[j] - combo[j - 1])
+        vals.append(s - combo[-1])
+        points.append(np.array(vals, dtype=float) / s)
+    return np.array(points)
 
 
 def _augmented_tchebycheff(F_normalized, lam, rho=0.05):
@@ -191,12 +222,12 @@ def run_parego(problem, config):
     # Return non-dominated solutions
     X_nd, F_nd = _find_non_dominated(X_all, F_all)
 
-    df_pareto = pd.DataFrame({
-        'x_1': X_nd[:, 0],
-        'x_2': X_nd[:, 1],
-        'f1': F_nd[:, 0],
-        'f2': F_nd[:, 1],
-    })
+    data = {}
+    for i in range(X_nd.shape[1]):
+        data[f'x_{i+1}'] = X_nd[:, i]
+    for j in range(F_nd.shape[1]):
+        data[f'f{j+1}'] = F_nd[:, j]
+    df_pareto = pd.DataFrame(data)
 
     info = {'total_FE': FE, 'n_nondominated': len(X_nd), 'total_evaluated': len(X_all)}
 

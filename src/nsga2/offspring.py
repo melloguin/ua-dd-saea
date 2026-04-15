@@ -51,7 +51,8 @@ def tournament_selection(population: list,
     """
 
     # Selecionar k indivíduos aleatoriamente
-    tournament_indices = np.random.choice(len(population), size=k_tournament, replace=False)
+    use_replace = len(population) < k_tournament
+    tournament_indices = np.random.choice(len(population), size=k_tournament, replace=use_replace)
     tournament_individuals = [population[i] for i in tournament_indices]
     
     # Encontrar o melhor usando comparações sucessivas - o(n)

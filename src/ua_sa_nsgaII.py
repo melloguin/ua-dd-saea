@@ -137,24 +137,19 @@ def run_my_uasa_nsga2(config: dict,
 
     ######### Finalização
     # Criar dataframe com as soluções finais
-    df_pareto = pd.DataFrame([
-        {
-            'x_1': ind.genotype[0],
-            'x_2': ind.genotype[1],
-            'fitness1': ind.fitness[0],
-            'fitness2': ind.fitness[1],
-            'x_1_landscape': ind.mapped_point['x_1_landscape'] if ind.mapped_point else None,
-            'x_2_landscape': ind.mapped_point['x_2_landscape'] if ind.mapped_point else None,
-            'f1': ind.mapped_point['f1'] if ind.mapped_point else None,
-            'f2': ind.mapped_point['f2'] if ind.mapped_point else None,
-            'f1_original': ind.mapped_point['f1_original'] if ind.mapped_point else None,
-            'f2_original': ind.mapped_point['f2_original'] if ind.mapped_point else None,
-            'f1_predicted': ind.mapped_point['f1_predicted'] if ind.mapped_point else None,
-            'f2_predicted': ind.mapped_point['f2_predicted'] if ind.mapped_point else None,
-            'mapping_success': ind.mapping_success
-        }
-        for ind in population
-    ])
+    records = []
+    for ind in population:
+        row = {}
+        for i in range(len(ind.genotype)):
+            row[f'x_{i+1}'] = ind.genotype[i]
+        if ind.fitness:
+            for j in range(len(ind.fitness)):
+                row[f'fitness{j+1}'] = ind.fitness[j]
+        if ind.mapped_point:
+            row.update(ind.mapped_point)
+        row['mapping_success'] = ind.mapping_success
+        records.append(row)
+    df_pareto = pd.DataFrame(records)
 
     if config.get('verbose', True):
         print(f"\n✅ Otimização concluída!")

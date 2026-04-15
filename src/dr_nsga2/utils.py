@@ -1,57 +1,63 @@
-import numpy as np
 import matplotlib.pyplot as plt
 
 
 def collect_generation_stats(population, generation, config):
-    fitness_values = [ind.fitness for ind in population if ind.fitness is not None]
+    """
+    Coleta estatísticas da população em uma geração
+    
+    Args:
+        population: lista de indivíduos da população
+        generation: número da geração atual (0-indexed)
+        config: dicionário de configuração
+    
+    Returns:
+        dict com estatísticas da geração
+    """
+    # Encontrar soluções no primeiro front
+    front1 = [ind for ind in population if ind.rank == 1]
+    
+    n_obj = len(front1[0].fitness) if front1 else 2
+    maximize = config.get('maximize', False)
 
-    if len(fitness_values) == 0:
-        return {'generation': generation}
-
-    fitness_array = np.array(fitness_values)
-
-    stats = {
-        'generation': generation,
-        'pop_size': len(population),
-    }
-
-    for obj_idx in range(config['n_objetivos']):
-        obj_values = fitness_array[:, obj_idx]
-        stats[f'obj{obj_idx+1}_mean'] = np.mean(obj_values)
-        stats[f'obj{obj_idx+1}_min'] = np.min(obj_values)
-        stats[f'obj{obj_idx+1}_max'] = np.max(obj_values)
-        stats[f'obj{obj_idx+1}_std'] = np.std(obj_values)
-
-    avg_ranks = [ind.avg_rank for ind in population if ind.avg_rank is not None]
-    if avg_ranks:
-        stats['avg_rank_mean'] = np.mean(avg_ranks)
-        stats['avg_rank_min'] = np.min(avg_ranks)
-        stats['avg_rank_max'] = np.max(avg_ranks)
-
+    stats = {'geracao': generation + 1, 'solucoes_front1': len(front1)}
+    fitness_sum = 0.0
+    for j in range(n_obj):
+        vals = [ind.fitness[j] for ind in front1]
+        best = -min(vals) if maximize else max(vals)
+        stats[f'fitness{j+1}_max'] = best
+        fitness_sum += best
+    stats['fitness_sum_max'] = fitness_sum
     return stats
 
-
 def plot_optimization_progress(df_progress):
-    n_objectives = sum(1 for col in df_progress.columns if col.endswith('_mean') and col.startswith('obj'))
+    """Plot optimization progress (works for any number of objectives)."""
+    fit_cols = [c for c in df_progress.columns if c.startswith('fitness') and c.endswith('_max')
+                and c != 'fitness_sum_max']
 
-    fig, axes = plt.subplots(1, n_objectives, figsize=(8 * n_objectives, 5))
-    if n_objectives == 1:
-        axes = [axes]
+    fig, axes = plt.subplots(1, 2, figsize=(16, 5))
 
-    for obj_idx in range(n_objectives):
-        ax = axes[obj_idx]
-        ax.plot(df_progress['generation'], df_progress[f'obj{obj_idx+1}_mean'], label='Mean', linewidth=2)
-        ax.fill_between(
-            df_progress['generation'],
-            df_progress[f'obj{obj_idx+1}_min'],
-            df_progress[f'obj{obj_idx+1}_max'],
-            alpha=0.3, label='Min-Max Range'
-        )
-        ax.set_xlabel('Geração')
-        ax.set_ylabel(f'Objetivo {obj_idx+1}')
-        ax.set_title(f'Progresso do Objetivo {obj_idx+1}')
-        ax.legend()
-        ax.grid(True, alpha=0.3)
+    ax1 = axes[0]
+    for fc in fit_cols:
+        ax1.plot(df_progress['geracao'], df_progress[fc],
+                 label=fc, marker='o', linewidth=2, markersize=3)
+    if 'fitness_sum_max' in df_progress.columns:
+        ax1.plot(df_progress['geracao'], df_progress['fitness_sum_max'],
+                 label='sum (máx)', marker='^', linewidth=2, markersize=3, linestyle='--')
+    ax1.set_xlabel('Geração', fontsize=12)
+    ax1.set_ylabel('Fitness (máximo)', fontsize=12)
+    ax1.set_title('Evolução das Fitness por Geração', fontsize=14, fontweight='bold')
+    ax1.legend(fontsize=10)
+    ax1.grid(True, alpha=0.3)
+
+    ax2 = axes[1]
+    ax2.plot(df_progress['geracao'], df_progress['solucoes_front1'],
+             color='#2E86AB', marker='o', linewidth=2, markersize=4)
+    ax2.fill_between(df_progress['geracao'], df_progress['solucoes_front1'],
+                      alpha=0.3, color='#2E86AB')
+    ax2.set_xlabel('Geração', fontsize=12)
+    ax2.set_ylabel('Número de Soluções', fontsize=12)
+    ax2.set_title('Evolução do Tamanho do Front de Pareto', fontsize=14, fontweight='bold')
+    ax2.grid(True, alpha=0.3)
 
     plt.tight_layout()
     plt.show()

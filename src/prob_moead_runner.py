@@ -2,17 +2,34 @@
 Prob-MOEA/D: Probabilistic Selection in Decomposition-Based EA for Offline MOO.
 
 Implementation based on:
-Mazumdar et al. "Probabilistic Selection Approaches in Decomposition-Based
-Evolutionary Algorithms for Offline Data-Driven Multiobjective Optimization"
-(IEEE TEVC 2022).
+    Mazumdar et al. "Probabilistic Selection Approaches in Decomposition-Based
+    Evolutionary Algorithms for Offline Data-Driven Multiobjective Optimization"
+    (IEEE TEVC 26(5), 2022).
 
-The algorithm modifies MOEA/D's PBI selection to incorporate Kriging uncertainty:
-1. Build Kriging surrogates from offline data
-2. For each solution, draw Monte Carlo samples from the Kriging posterior
-3. Compute PBI selection criterion on each sample
-4. Use probabilistic comparison: update if P(offspring better) > 0.5
+PAPER ALGORITHM (Algorithm 1):
+    1. Build Kriging surrogates (one per objective) from offline data.
+    2. Generate uniformly distributed reference vectors via simplex-lattice.
+    3. For each generation:
+       a. Generate offspring via crossover/mutation in the neighbourhood.
+       b. Evaluate offspring with Kriging → (mean, std) per objective.
+       c. Draw S Monte Carlo samples from N(mean, std).
+       d. Compute the PBI scalarisation for each sample.
+       e. Estimate PDF of PBI via Kernel Density Estimation (KDE).
+       f. Calculate P_wrong (Eq. 8) via double integration of the KDE PDFs.
+       g. Update neighbour if P_wrong(offspring < neighbour) > 0.5.
 
-Adapted to work with the user's discrete landscape framework
+SIMPLIFICATION IN THIS IMPLEMENTATION:
+    Steps (e) and (f) are simplified.  Instead of KDE + double integration
+    to compute P_wrong, we use **direct Monte Carlo win-counting**:
+        n_off_wins = count(PBI(sample_offspring) < PBI(sample_neighbour))
+        update if n_off_wins / n_mc_samples > 0.5
+    This captures the same probabilistic effect — the offspring is selected
+    when it is better in more than half of the stochastic comparisons — but
+    avoids the O(|P_j|^2) KDE fitting and numerical integration cost
+    described in the paper.  The theoretical justification is that the MC
+    win rate converges to P_wrong as S → ∞ (law of large numbers).
+
+    See paper Eq. 7-9 and Section III-B for the full KDE-based formulation.
 (offline with pre-computed surrogate predictions and MCMC error distributions).
 """
 
@@ -28,6 +45,7 @@ from src.k_rvea.offspring import (
     create_offspring_population,
 )
 from src.k_rvea.selection import generate_reference_vectors
+from src.kriging_evaluation import evaluate_population_kriging, get_kriging_uncertainty
 
 
 def _compute_pbi(f, z_min, v, penalty=5.0):
@@ -45,16 +63,19 @@ def _evaluate_with_landscape(population, df_landscape, fitness_cols):
     return evaluate_population(population, df_landscape, fitness_cols)
 
 
-def _get_uncertainty_from_mcmc(df_previsao, df_mcmc):
+def _get_uncertainty_from_mcmc(df_previsao, df_mcmc, n_obj=2):
+    """Compute per-region std of MCMC errors for N objectives.
+
+    Returns dict: region -> {'std_f1': ..., 'std_f2': ..., ...}
     """
-    Compute per-region std of MCMC errors to use as Kriging-like uncertainty.
-    Returns a dict: region -> (std_f1, std_f2).
-    """
-    error_stats = df_mcmc.groupby('regiao').agg(
-        std_f1=('erro_f1', 'std'),
-        std_f2=('erro_f2', 'std')
-    ).to_dict('index')
-    return error_stats
+    import re as _re
+    erro_cols = sorted([c for c in df_mcmc.columns if _re.match(r'^erro_f\d+$', c)],
+                       key=lambda c: int(c.split('_f')[1]))
+    agg = {ec: 'std' for ec in erro_cols}
+    stats = df_mcmc.groupby('regiao').agg(**{
+        f'std_f{ec.split("_f")[1]}': (ec, 'std') for ec in erro_cols
+    }).to_dict('index')
+    return stats
 
 
 def _find_non_dominated_from_pop(population):
@@ -78,23 +99,21 @@ def _find_non_dominated_from_pop(population):
     return [valid[i] for i in range(n) if not is_dominated[i]]
 
 
-def run_prob_moead(config, df_landscape, df_previsao, df_mcmc):
+def run_prob_moead(config, df_landscape=None, df_previsao=None, df_mcmc=None,
+                   kriging_models=None):
     """
     Prob-MOEA/D (offline): MOEA/D with probabilistic PBI selection.
 
-    Uses MCMC-derived uncertainty as a proxy for Kriging std,
-    with Monte Carlo sampling for probabilistic comparisons.
+    Based on: Mazumdar et al. (2022) "Probabilistic Selection Approaches in
+    Decomposition-Based Evolutionary Algorithms for Offline Data-Driven
+    Multiobjective Optimization", IEEE TEVC 26(5).
 
-    Args:
-        config: algorithm configuration
-        df_landscape: landscape DataFrame with fitness1, fitness2 (predicted)
-        df_previsao: prediction DataFrame with regiao column
-        df_mcmc: MCMC error samples DataFrame
+    When ``kriging_models`` is provided, uses native Kriging (mean, std) for
+    uncertainty — matching the paper's use of Kriging surrogates.
+    Falls back to CatBoost landscape + MCMC stds when kriging_models is None.
 
     Returns:
-        df_pareto: DataFrame with Pareto front solutions
-        df_progress: progress stats
-        history: None
+        df_pareto, df_progress, None
     """
     np.random.seed(config['seed'])
 
@@ -121,26 +140,29 @@ def run_prob_moead(config, df_landscape, df_previsao, df_mcmc):
 
     neighborhoods = np.argsort(dists, axis=1)[:, :T]
 
-    # Per-region uncertainty
-    region_stds = _get_uncertainty_from_mcmc(df_previsao, df_mcmc)
+    _use_kriging = kriging_models is not None
 
-    # Build region lookup for solutions
-    def _get_region_for_genotype(genotype, df_prev):
-        x1_round = round(genotype[0], 2)
-        x2_round = round(genotype[1], 2)
-        matches = df_prev[
-            (df_prev['x_1'].round(2) == x1_round) &
-            (df_prev['x_2'].round(2) == x2_round)
-        ]
-        if len(matches) > 0:
-            return matches.iloc[0].get('regiao', 1)
-        return 1
+    if not _use_kriging:
+        region_stds = _get_uncertainty_from_mcmc(df_previsao, df_mcmc)
+        import re as _re
+        _x_cols_prev = sorted([c for c in df_previsao.columns if _re.match(r'^x_\d+$', c)],
+                              key=lambda c: int(c.split('_')[1]))
+        from scipy.spatial import cKDTree as _cKDTree
+        _region_tree = _cKDTree(df_previsao[_x_cols_prev].values.astype(float))
+
+        def _get_region_for_genotype(genotype, df_prev):
+            query = np.array([genotype[i] for i in range(len(_x_cols_prev))], dtype=float)
+            _, idx = _region_tree.query(query)
+            return df_prev.iloc[idx].get('regiao', 1)
 
     # Initialize population
     config_local = config.copy()
     config_local['population_size'] = actual_pop_size
     population, _ = initialize_population(config_local)
-    _evaluate_with_landscape(population, df_landscape, fitness_cols)
+    if _use_kriging:
+        evaluate_population_kriging(population, kriging_models)
+    else:
+        _evaluate_with_landscape(population, df_landscape, fitness_cols)
 
     # Assign each individual to its closest reference vector
     pop_assignment = list(range(min(actual_pop_size, len(population))))
@@ -189,15 +211,20 @@ def run_prob_moead(config, df_landscape, df_previsao, df_mcmc):
 
             offspring = Individual(list(c1_geno) if not isinstance(c1_geno, list) else c1_geno)
             temp_pop = [offspring]
-            _evaluate_with_landscape(temp_pop, df_landscape, fitness_cols)
+            if _use_kriging:
+                evaluate_population_kriging(temp_pop, kriging_models)
+            else:
+                _evaluate_with_landscape(temp_pop, df_landscape, fitness_cols)
 
             if offspring.fitness is None:
                 continue
 
-            # Get offspring uncertainty
-            offspring_region = _get_region_for_genotype(offspring.genotype, df_previsao)
-            off_stds = region_stds.get(offspring_region, {'std_f1': 0.1, 'std_f2': 0.1})
-            off_sigma = np.array([off_stds.get('std_f1', 0.1), off_stds.get('std_f2', 0.1)])
+            if _use_kriging:
+                _, off_sigma = get_kriging_uncertainty(offspring.genotype, kriging_models)
+            else:
+                offspring_region = _get_region_for_genotype(offspring.genotype, df_previsao)
+                off_stds = region_stds.get(offspring_region, {})
+                off_sigma = np.array([off_stds.get(f'std_f{k+1}', 0.1) for k in range(n_obj)])
 
             # Probabilistic update in neighborhood
             ref_vec = V[i % n_ref]
@@ -209,10 +236,12 @@ def run_prob_moead(config, df_landscape, df_previsao, df_mcmc):
                     population[j] = offspring
                     continue
 
-                # Get neighbor uncertainty
-                neighbor_region = _get_region_for_genotype(neighbor.genotype, df_previsao)
-                nb_stds = region_stds.get(neighbor_region, {'std_f1': 0.1, 'std_f2': 0.1})
-                nb_sigma = np.array([nb_stds.get('std_f1', 0.1), nb_stds.get('std_f2', 0.1)])
+                if _use_kriging:
+                    _, nb_sigma = get_kriging_uncertainty(neighbor.genotype, kriging_models)
+                else:
+                    neighbor_region = _get_region_for_genotype(neighbor.genotype, df_previsao)
+                    nb_stds = region_stds.get(neighbor_region, {})
+                    nb_sigma = np.array([nb_stds.get(f'std_f{k+1}', 0.1) for k in range(n_obj)])
 
                 # Monte Carlo probabilistic comparison using PBI
                 off_mean = np.array(offspring.fitness)
@@ -237,34 +266,27 @@ def run_prob_moead(config, df_landscape, df_previsao, df_mcmc):
             fitness_values = [ind.fitness for ind in population if ind.fitness is not None]
             if fitness_values:
                 fa = np.array(fitness_values)
-                progress_stats.append({
-                    'generation': generation,
-                    'pop_size': len(population),
-                    'obj1_mean': np.mean(fa[:, 0]),
-                    'obj2_mean': np.mean(fa[:, 1]),
-                })
+                stat = {'generation': generation, 'pop_size': len(population)}
+                for k in range(fa.shape[1]):
+                    stat[f'obj{k+1}_mean'] = np.mean(fa[:, k])
+                progress_stats.append(stat)
 
     # Extract non-dominated solutions
     nd_pop = _find_non_dominated_from_pop(population)
 
-    df_pareto = pd.DataFrame([
-        {
-            'x_1': ind.genotype[0],
-            'x_2': ind.genotype[1],
-            'fitness1': ind.fitness[0],
-            'fitness2': ind.fitness[1],
-            'x_1_landscape': ind.mapped_point['x_1_landscape'] if ind.mapped_point else None,
-            'x_2_landscape': ind.mapped_point['x_2_landscape'] if ind.mapped_point else None,
-            'f1': ind.mapped_point.get('f1') if ind.mapped_point else None,
-            'f2': ind.mapped_point.get('f2') if ind.mapped_point else None,
-            'f1_original': ind.mapped_point.get('f1_original') if ind.mapped_point else None,
-            'f2_original': ind.mapped_point.get('f2_original') if ind.mapped_point else None,
-            'f1_predicted': ind.mapped_point.get('f1_predicted') if ind.mapped_point else None,
-            'f2_predicted': ind.mapped_point.get('f2_predicted') if ind.mapped_point else None,
-            'mapping_success': ind.mapping_success
-        }
-        for ind in nd_pop
-    ])
+    records = []
+    for ind in nd_pop:
+        row = {}
+        for i in range(len(ind.genotype)):
+            row[f'x_{i+1}'] = ind.genotype[i]
+        if ind.fitness:
+            for j in range(len(ind.fitness)):
+                row[f'fitness{j+1}'] = ind.fitness[j]
+        if ind.mapped_point:
+            row.update(ind.mapped_point)
+        row['mapping_success'] = ind.mapping_success
+        records.append(row)
+    df_pareto = pd.DataFrame(records)
 
     if config.get('verbose', True):
         print(f"\n✅ Prob-MOEA/D concluído! Soluções não-dominadas: {len(nd_pop)}")

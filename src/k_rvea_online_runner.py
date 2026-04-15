@@ -1,18 +1,26 @@
 """
-K-RVEA Online: Kriging-assisted Reference Vector Guided Evolutionary Algorithm
+K-RVEA Online: Kriging-assisted Reference Vector Guided Evolutionary Algorithm.
 
-Full implementation of Algorithm 2 from:
-Chugh et al. "A Surrogate-assisted Reference Vector Guided Evolutionary
-Algorithm for Computationally Expensive Many-objective Optimization"
-(IEEE TEVC 2016).
+Implementation based on:
+    Chugh et al. "A Surrogate-assisted Reference Vector Guided Evolutionary
+    Algorithm for Computationally Expensive Many-objective Optimization"
+    (IEEE TEVC 22(1), 2016).
 
-This online version:
-1. Evaluates an initial population using the TRUE expensive objective function
-2. Trains Kriging (Gaussian Process) models for each objective
-3. Runs RVEA for wmax generations using Kriging predictions
-4. Selects u individuals for re-evaluation on the true function
-5. Updates Kriging models with new training data
-6. Repeats until the budget of function evaluations (FEmax) is exhausted
+PAPER ALGORITHM (Algorithm 2):
+    1. Initialise with LHS of NI = 11n-1 points; evaluate with true function.
+    2. Train Kriging model per objective from archive A1.
+    3. Run RVEA for wmax generations using Kriging predictions (Algorithm 1).
+    4. Select u individuals for re-evaluation (Algorithm 3): APD or
+       uncertainty-based, depending on diversity check via fixed ref. vectors.
+    5. Manage training archive A1 (Algorithm 4): keep NI samples via clustering.
+    6. Repeat until FEmax true evaluations.
+
+DEVIATIONS / NOTES:
+    - The paper uses the DACE toolbox (Hookes-Jeeves) for Kriging
+      hyperparameter optimisation.  This implementation uses sklearn's
+      GaussianProcessRegressor with L-BFGS, which is a modern equivalent.
+    - The paper tests with 3 to 10 objectives and 10 decision variables.
+      This implementation supports any n_var and n_obj.
 7. Returns non-dominated solutions from all truly-evaluated individuals
 """
 
@@ -452,12 +460,12 @@ def run_k_rvea_online(problem, config):
     # Return non-dominated solutions from archive A2
     X_nd, F_nd = _find_non_dominated(X_A2, Y_A2)
 
-    df_pareto = pd.DataFrame({
-        'x_1': X_nd[:, 0],
-        'x_2': X_nd[:, 1],
-        'f1': F_nd[:, 0],
-        'f2': F_nd[:, 1],
-    })
+    data = {}
+    for i in range(X_nd.shape[1]):
+        data[f'x_{i+1}'] = X_nd[:, i]
+    for j in range(F_nd.shape[1]):
+        data[f'f{j+1}'] = F_nd[:, j]
+    df_pareto = pd.DataFrame(data)
 
     info = {
         'total_FE': FE,

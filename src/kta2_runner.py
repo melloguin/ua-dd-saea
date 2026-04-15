@@ -2,13 +2,29 @@
 KTA2: Kriging-Assisted Two-Archive Evolutionary Algorithm.
 
 Implementation based on:
-Song et al. "A Kriging-Assisted Two-Archive Evolutionary Algorithm for
-Expensive Many-Objective Optimization" (IEEE TEVC 2021).
+    Song et al. "A Kriging-Assisted Two-Archive Evolutionary Algorithm for
+    Expensive Many-Objective Optimization" (IEEE TEVC, 2021).
 
-Key components:
-1. Two_Arch2 optimizer with dual archives (CA for convergence, DA for diversity)
-2. Influential point-insensitive Kriging model (3 models per objective)
-3. Adaptive sampling strategy (convergence/diversity/uncertainty demand states)
+PAPER ALGORITHM (Fig. 3, Section III):
+    1. Initialise with LHS; build influential point-insensitive (IPI) models.
+    2. Generate candidate archives CCA/CDA via Two Arch2 for 10 generations.
+    3. Assess optimisation state (convergence/diversity/uncertainty demand).
+    4. Select eta samples with tailored strategy (Algorithm 1/2/3).
+    5. Update CA/DA; rebuild IPI models.  Repeat until FEmax.
+
+    IPI Model (Fig. 4, Section III-A):
+    - 3 Kriging models per objective: 1 sensitive (all data) +
+      2 insensitive (top/bottom tau*N sorted by objective value).
+    - Routing: sensitive model predicts → select insensitive model
+      whose training mean is closer to the prediction.
+
+DEVIATIONS / NOTES:
+    - The paper uses DACE (MATLAB) for Kriging.  This implementation uses
+      sklearn's GaussianProcessRegressor with Matern(nu=2.5) kernel.
+    - The paper uses PlatEMO (MATLAB) framework.  This is a standalone
+      Python implementation.
+    - The IPI model, adaptive sampling, and Two Arch2 logic follow the
+      paper faithfully.
 """
 
 import numpy as np
@@ -425,12 +441,12 @@ def run_kta2(problem, config):
     # Return non-dominated from DA
     X_nd, F_nd = _find_non_dominated(X_da, F_da)
 
-    df_pareto = pd.DataFrame({
-        'x_1': X_nd[:, 0],
-        'x_2': X_nd[:, 1],
-        'f1': F_nd[:, 0],
-        'f2': F_nd[:, 1],
-    })
+    data = {}
+    for i in range(X_nd.shape[1]):
+        data[f'x_{i+1}'] = X_nd[:, i]
+    for j in range(F_nd.shape[1]):
+        data[f'f{j+1}'] = F_nd[:, j]
+    df_pareto = pd.DataFrame(data)
 
     info = {'total_FE': FE, 'n_nondominated': len(X_nd), 'total_evaluated': len(X_all)}
 

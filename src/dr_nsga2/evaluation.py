@@ -1,98 +1,61 @@
 import pandas as pd
 import numpy as np
+import re
+from scipy.spatial import cKDTree
 
 
-def create_expanded_landscape(df_landscape):
-    """
-    Cria versões expandidas do landscape para garantir cobertura.
-    Preserva todas as colunas incluindo fitness1_adj e fitness2_adj.
-    """
-    df_original = df_landscape.copy()
-    df_original['x_1_landscape_original'] = df_original['x_1']
-    df_original['x_2_landscape_original'] = df_original['x_2']
-
-    df_shift_x1 = df_original.copy()
-    df_shift_x1['x_1'] = df_shift_x1['x_1'] + 0.01
-
-    df_shift_x2 = df_original.copy()
-    df_shift_x2['x_2'] = df_shift_x2['x_2'] + 0.01
-
-    df_shift_both = df_original.copy()
-    df_shift_both['x_1'] = df_shift_both['x_1'] + 0.01
-    df_shift_both['x_2'] = df_shift_both['x_2'] + 0.01
-
-    df_landscape_expanded = pd.concat([df_original, df_shift_x1, df_shift_x2, df_shift_both],
-                                   ignore_index=True)
-
-    df_landscape_expanded['x_1_round'] = df_landscape_expanded['x_1'].round(2)
-    df_landscape_expanded['x_2_round'] = df_landscape_expanded['x_2'].round(2)
-
-    return df_landscape_expanded
+def _detect_x_cols(df):
+    cols = [c for c in df.columns if re.match(r'^x_\d+$', c)]
+    return sorted(cols, key=lambda c: int(c.split('_')[1]))
 
 
-def genotype_to_fitness(genotype, df_landscape_expanded, fitness_cols, adjusted_fitness_cols):
-    """
-    Mapeia genótipo para fitness e adjusted_fitness arredondando para 2 casas decimais.
-
-    Returns:
-        tuple: (fitness, adjusted_fitness, mapped_point_info, mapping_success)
-    """
-    x1_round = round(genotype[0], 2)
-    x2_round = round(genotype[1], 2)
-
-    matches = df_landscape_expanded[
-        (df_landscape_expanded['x_1_round'] == x1_round) &
-        (df_landscape_expanded['x_2_round'] == x2_round)
-    ]
-
-    if len(matches) > 0:
-        row = matches.iloc[0]
-        fitness = [row[fitness_cols[0]], row[fitness_cols[1]]]
-        adjusted_fitness = [row[adjusted_fitness_cols[0]], row[adjusted_fitness_cols[1]]]
-
-        mapped_point_info = {
-            'x_1_landscape': row['x_1_landscape_original'],
-            'x_2_landscape': row['x_2_landscape_original'],
-            'f1': row['f1'],
-            'f2': row['f2'],
-            'f1_original': row['f1_original'],
-            'f2_original': row['f2_original'],
-            'f1_predicted': row['f1_predicted'],
-            'f2_predicted': row['f2_predicted']
-        }
-
-        return (fitness, adjusted_fitness, mapped_point_info, True)
-    else:
-        return (None, None, None, False)
+def prepare_landscape(df_landscape, x_cols=None):
+    if x_cols is None:
+        x_cols = _detect_x_cols(df_landscape)
+    X = df_landscape[x_cols].values.astype(float)
+    tree = cKDTree(X)
+    return tree, x_cols
 
 
-def evaluate_population(population, df_landscape, fitness_cols, adjusted_fitness_cols):
-    """
-    Avalia fitness e adjusted_fitness de toda a população.
-    """
-    df_landscape_expanded = create_expanded_landscape(df_landscape)
+def genotype_to_fitness(genotype, df_landscape, tree, x_cols,
+                        fitness_cols, adjusted_fitness_cols=None):
+    """Map genotype via nearest-neighbour; optionally read adjusted fitness."""
+    query = np.array([genotype[i] for i in range(len(x_cols))], dtype=float)
+    _, idx = tree.query(query)
+    row = df_landscape.iloc[idx]
+
+    fitness = [row[fc] for fc in fitness_cols]
+    adjusted_fitness = ([row[afc] for afc in adjusted_fitness_cols]
+                        if adjusted_fitness_cols else None)
+
+    mapped_point = {}
+    for xc in x_cols:
+        mapped_point[f'{xc}_landscape'] = row[xc]
+    for col in row.index:
+        if re.match(r'^f\d+$', col):
+            mapped_point[col] = row[col]
+        elif re.match(r'^f\d+_(original|predicted)$', col):
+            mapped_point[col] = row[col]
+
+    return fitness, adjusted_fitness, mapped_point, True
+
+
+def evaluate_population(population, df_landscape, fitness_cols,
+                        adjusted_fitness_cols=None, x_cols=None):
+    tree, x_cols = prepare_landscape(df_landscape, x_cols)
 
     total = len(population)
     mapped = 0
-    not_found = 0
 
-    for individual in population:
-        fitness, adjusted_fitness, mapped_point_info, mapping_success = genotype_to_fitness(
-            individual.genotype, df_landscape_expanded, fitness_cols, adjusted_fitness_cols
-        )
-
-        individual.fitness = fitness
-        individual.adjusted_fitness = adjusted_fitness
-        individual.mapped_point = mapped_point_info
-        individual.mapping_success = mapping_success
-
-        if mapping_success:
+    for ind in population:
+        fitness, adjusted_fitness, mapped_point, success = genotype_to_fitness(
+            ind.genotype, df_landscape, tree, x_cols,
+            fitness_cols, adjusted_fitness_cols)
+        ind.fitness = fitness
+        ind.adjusted_fitness = adjusted_fitness
+        ind.mapped_point = mapped_point
+        ind.mapping_success = success
+        if success:
             mapped += 1
-        else:
-            not_found += 1
 
-    return {
-        'total': total,
-        'mapped': mapped,
-        'not_found': not_found
-    }
+    return {'total': total, 'mapped': mapped, 'not_found': total - mapped}

@@ -116,8 +116,8 @@ def find_pareto_front_nd(df, obj_cols, minimize=True):
     F = df[list(obj_cols)].values.astype(float)
     if not minimize:
         F = -F
-    nds = NonDominatedSorting()
-    front0 = nds.do(F)[0]
+    nds = NonDominatedSorting(method="efficient_non_dominated_sort")
+    front0 = nds.do(F, only_non_dominated_front=True)
     return df.iloc[front0].copy()
 
 

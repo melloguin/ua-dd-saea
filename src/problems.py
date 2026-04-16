@@ -16,9 +16,17 @@ from pymoo.core.problem import Problem
 from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting
 
 
+_NDS = NonDominatedSorting(method="efficient_non_dominated_sort")
+
+
 def _nds_filter(F):
-    """Return indices of the non-dominated front."""
-    return NonDominatedSorting().do(F)[0]
+    """Return indices of the non-dominated front.
+
+    Uses Efficient Non-dominated Sort (ENS, Roy et al. 2016) with early stop
+    at the first front: O(N * log^(M-1) N) time and no NxN matrix allocation,
+    which makes it viable for N >> 10^5.
+    """
+    return _NDS.do(F, only_non_dominated_front=True)
 
 
 def _make_bounds(bounds):

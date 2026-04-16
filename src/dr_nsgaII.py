@@ -169,8 +169,14 @@ def run_dr_nsga2(config: dict,
                 'mapping_stats': {'offspring': offspring_stats}
             })
 
+    ranked = [p for p in population if p.avg_rank is not None]
+    selected = [p for p in ranked if p.avg_rank <= 1.0]
+    if not selected and ranked:
+        min_rank = min(p.avg_rank for p in ranked)
+        selected = [p for p in ranked if p.avg_rank == min_rank]
+
     records = []
-    for ind in [p for p in population if p.avg_rank is not None and p.avg_rank <= 1.0]:
+    for ind in selected:
         row = {}
         for i in range(len(ind.genotype)):
             row[f'x_{i+1}'] = ind.genotype[i]

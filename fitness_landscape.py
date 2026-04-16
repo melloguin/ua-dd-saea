@@ -1,21 +1,34 @@
 """
-Geracao e cache dos parquets de landscape e PF empirico para UM problema.
+Geracao e cache dos parquets de landscape e PF empirico.
 
 Espelha a parte de geracao/salvamento do notebook `1. fitness_landscape.ipynb`,
 sem nenhuma visualizacao. Pensado para ser executado via linha de comando,
 tipicamente numa VM com mais memoria/CPU.
 
+Dois modos de execucao:
+    1. UM problema: passe o nome da classe como argumento.
+    2. TODOS os problemas em paralelo (menos BBOB_Gallagher_Mock): rode
+       sem argumentos. Usa joblib para spawnar um processo por problema
+       (um nucleo por problema por padrao; controlavel via --n-jobs).
+
 Uso basico:
+    # Todos os problemas em paralelo (um core por problema):
+    python fitness_landscape.py
+
+    # Apenas um problema:
     python fitness_landscape.py MMF16_L3
 
 Outros exemplos:
-    # Muda o numero de amostras-alvo (Sobol usa a potencia de 2 mais proxima)
-    python fitness_landscape.py ZDT1 --n-samples 1000000
+    # Todos em paralelo com 1M de amostras-alvo cada:
+    python fitness_landscape.py --n-samples 1000000
 
-    # So um metodo
+    # Todos em paralelo usando no maximo 4 processos simultaneos:
+    python fitness_landscape.py --n-jobs 4
+
+    # Um problema, so um metodo:
     python fitness_landscape.py DTLZ2 --methods sobol
 
-    # Ignora cache e regera tudo
+    # Um problema, ignora cache e regera tudo:
     python fitness_landscape.py WFG4 --force
 
 Arquivos gerados em data/dataframes/{name}/:
@@ -37,6 +50,7 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+from joblib import Parallel, delayed
 from scipy.stats import qmc
 from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting
 
@@ -47,6 +61,17 @@ from src.problems import evaluate_problem
 VALID_METHODS = ['sobol', 'latin_hypercube', 'random']
 
 DATA_DIR = 'data/dataframes'
+
+# Todos os problemas do catalogo (src.problems), na ordem de apresentacao
+# do notebook `1. fitness_landscape.ipynb`. BBOB_Gallagher_Mock e
+# deliberadamente excluido (sem PF analitico e fora do escopo das rodadas
+# em massa).
+ALL_PROBLEMS: List[str] = [
+    'MMF1', 'MMF4', 'MMF11_L', 'MMF16_L3', 'MMF16_20',
+    'ZDT1', 'ZDT3', 'ZDT4', 'ZDT6',
+    'DTLZ1', 'DTLZ2', 'DTLZ3', 'DTLZ4', 'DTLZ7',
+    'WFG1', 'WFG2', 'WFG4', 'WFG5', 'WFG9',
+]
 
 # Efficient Non-dominated Sort (ENS, Roy et al. 2016): O(N * log^(M-1) N) e
 # sem matriz NxN - necessario para landscapes grandes (N >> 1e5).
@@ -203,25 +228,94 @@ def process_problem(name: str,
 
 
 # ---------------------------------------------------------------------------
+# Execucao paralela (todos os problemas)
+# ---------------------------------------------------------------------------
+
+def _process_problem_safe(name: str, n_samples: int,
+                          methods: Optional[List[str]],
+                          carrega_resultados: bool) -> Tuple[str, bool, str]:
+    """Wrapper para uso em joblib: captura excecoes para nao matar a pool."""
+    try:
+        process_problem(name=name, n_samples=n_samples, methods=methods,
+                        carrega_resultados=carrega_resultados)
+        return (name, True, '')
+    except Exception as e:
+        return (name, False, f'{type(e).__name__}: {e}')
+
+
+def run_all_parallel(problems: List[str], n_samples: int,
+                     methods: Optional[List[str]], carrega_resultados: bool,
+                     n_jobs: int) -> int:
+    """Roda `process_problem` para cada item de `problems` em paralelo.
+
+    Retorna o numero de problemas que falharam.
+    """
+    print(f'\n>>> Rodando {len(problems)} problemas em paralelo '
+          f'(n_jobs={n_jobs}, n_samples={n_samples:,}, '
+          f'carrega_resultados={carrega_resultados})')
+    print(f'>>> Problemas: {", ".join(problems)}\n')
+
+    t0 = time.time()
+    # backend='loky' (default) usa multiprocessing isolado, o que evita
+    # conflitos de GIL e de cache de Cython entre os processos da pymoo.
+    results = Parallel(n_jobs=n_jobs, backend='loky', verbose=5)(
+        delayed(_process_problem_safe)(
+            name, n_samples, methods, carrega_resultados
+        )
+        for name in problems
+    )
+    elapsed = time.time() - t0
+
+    ok = [r for r in results if r[1]]
+    fail = [r for r in results if not r[1]]
+
+    print('\n================ RESUMO ================')
+    print(f'Tempo total: {elapsed:.1f}s')
+    print(f'OK   ({len(ok)}): {", ".join(n for n, _, _ in ok) or "-"}')
+    if fail:
+        print(f'FAIL ({len(fail)}):')
+        for name, _, err in fail:
+            print(f'  - {name}: {err}')
+    print('========================================')
+    return len(fail)
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog='fitness_landscape.py',
-        description=('Gera e salva os parquets de landscape e PF empirico para '
-                     'um problema do catalogo (src.problems).'),
+        description=('Gera e salva os parquets de landscape e PF empirico '
+                     'para problemas do catalogo (src.problems). Sem argumento '
+                     'posicional, roda TODOS os problemas (menos BBOB) em '
+                     'paralelo via joblib (um processo por problema).'),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             'Exemplos:\n'
+            '  # Todos os problemas em paralelo (um core por problema):\n'
+            '  python fitness_landscape.py\n'
+            '\n'
+            '  # Um problema so:\n'
             '  python fitness_landscape.py MMF16_L3\n'
-            '  python fitness_landscape.py ZDT1 --n-samples 1000000\n'
+            '\n'
+            '  # Todos em paralelo, 1M de amostras cada:\n'
+            '  python fitness_landscape.py --n-samples 1000000\n'
+            '\n'
+            '  # Todos em paralelo, limitado a 4 processos:\n'
+            '  python fitness_landscape.py --n-jobs 4\n'
+            '\n'
+            '  # Um problema, so um metodo:\n'
             '  python fitness_landscape.py DTLZ2 --methods sobol\n'
+            '\n'
+            '  # Um problema, forca recalculo:\n'
             '  python fitness_landscape.py WFG4 --force\n'
         ),
     )
-    p.add_argument('problem',
-                   help="Nome da classe do problema (ex: MMF16_L3, ZDT1, DTLZ2, WFG4).")
+    p.add_argument('problem', nargs='?', default=None,
+                   help=("Nome da classe do problema (ex: MMF16_L3, ZDT1, "
+                         "DTLZ2, WFG4). Omita para rodar TODOS em paralelo."))
     p.add_argument('--n-samples', type=int, default=100_000,
                    help="Numero-alvo de amostras por metodo (default: 100000).")
     p.add_argument('--methods', nargs='+', choices=VALID_METHODS,
@@ -231,11 +325,28 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument('--force', action='store_true',
                    help=("Ignora os parquets existentes e recalcula tudo "
                          "(equivalente a carrega_resultados=False no notebook)."))
+    p.add_argument('--n-jobs', type=int, default=-1,
+                   help=("Numero de processos paralelos no modo 'todos' "
+                         "(default: -1 = todos os cores). Ignorado no modo "
+                         "de um unico problema."))
     return p
 
 
 def main(argv: Optional[List[str]] = None) -> int:
     args = _build_parser().parse_args(argv)
+
+    # Modo 1: sem argumento posicional -> todos os problemas em paralelo.
+    if args.problem is None:
+        n_failed = run_all_parallel(
+            problems=ALL_PROBLEMS,
+            n_samples=args.n_samples,
+            methods=args.methods,
+            carrega_resultados=not args.force,
+            n_jobs=args.n_jobs,
+        )
+        return 1 if n_failed > 0 else 0
+
+    # Modo 2: um unico problema.
     try:
         process_problem(
             name=args.problem,

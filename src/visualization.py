@@ -676,6 +676,8 @@ def display_decision_space(problem, X_landscape, F_landscape,
                            true_color='white',
                            emp_colors=None, emp_names=None,
                            emp_color=None,
+                           show_2d_pca=True,
+                           show_3d_pca=True,
                            cmap='Greys',
                            elev_offset=-15, azim_offset=225, roll_offset=0,
                            F_variants=None,
@@ -741,6 +743,8 @@ def display_decision_space(problem, X_landscape, F_landscape,
               elev_offset=elev_offset, azim_offset=azim_offset,
               roll_offset=roll_offset)
     n = problem.n_var
+    
+    # 2 variáveis de decisão (plot 2d landscape)
     if n == 2:
         if F_variants is not None:
             _decision_heatmap_2d_multi(problem, X_landscape, F_variants,
@@ -750,16 +754,20 @@ def display_decision_space(problem, X_landscape, F_landscape,
                                  X_true, X_emp_list, title, **kw)
         if df_wape is not None:
             _decision_wape_analysis(df_wape, title, *n_bins_wape)
+
+    # 3 variáveis de decisão (plot 3d landscape)
     elif n == 3:
         _decision_scatter_3d(problem, X_landscape, F_landscape,
                              X_true, X_emp_list, title, **kw)
+    
+    # > 3 variáveis de decisão (necessita redução ou visualizacao pairwise)
     else:
-        _decision_pca_unified(X_landscape, F_landscape, X_true, X_emp_list,
-                              title, **kw)
-        _decision_pca_by_obj_2d(X_landscape, F_landscape, X_true, X_emp_list,
-                                title, **kw)
-        _decision_pca_by_obj_3d(X_landscape, F_landscape, X_true, X_emp_list,
-                                title, **kw)
+        if show_2d_pca:
+            _decision_pca_by_obj_2d(X_landscape, F_landscape, X_true, X_emp_list,
+                                    title, **kw)
+        if show_3d_pca:
+            _decision_pca_by_obj_3d(X_landscape, F_landscape, X_true, X_emp_list,
+                                    title, **kw)
         _decision_pairwise(problem, X_landscape, X_true, X_emp_list, title,
                            pair_vars=pair_vars, **kw)
 

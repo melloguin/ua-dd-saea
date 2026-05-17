@@ -6,10 +6,12 @@ sem nenhuma visualizacao. Pensado para ser executado via linha de comando,
 tipicamente numa VM com mais memoria/CPU.
 
 Dois modos de execucao:
-    1. UM problema: passe o nome da classe como argumento.
-    2. TODOS os problemas em paralelo (menos BBOB_Gallagher_Mock): rode
-       sem argumentos. Usa joblib para spawnar um processo por problema
-       (um nucleo por problema por padrao; controlavel via --n-jobs).
+    1. UM problema: passe o nome (curto) do problema como argumento.
+       Aceita tambem o nome da classe (ex: BBOB1 ou
+       BBOB_F1_Sphere_Sphere; ambos gravam em data/dataframes/BBOB1/).
+    2. TODOS os problemas do catalogo em paralelo: rode sem argumentos.
+       Usa joblib para spawnar um processo por problema (um nucleo por
+       problema por padrao; controlavel via --n-jobs).
 
 Uso basico:
     # Todos os problemas em paralelo (um core por problema):
@@ -62,35 +64,81 @@ VALID_METHODS = ['sobol', 'latin_hypercube', 'random']
 
 DATA_DIR = 'data/dataframes'
 
-# Todos os problemas do catalogo (src.problems), na ordem de apresentacao
-# do notebook `1. fitness_landscape.ipynb`. BBOB_Gallagher_Mock e
-# deliberadamente excluido (sem PF analitico e fora do escopo das rodadas
-# em massa). As classes bbob-biobj (BBOB_F*) tem PF de referencia: F1
-# analitica, as demais via NSGA-II acumulado cacheado em data/bbob_pf_cache/.
-ALL_PROBLEMS: List[str] = [
-    'MMF1', 'MMF4', 'MMF11_L', 'MMF16_L3', 'MMF16_20',
-    'ZDT1', 'ZDT3', 'ZDT4', 'ZDT6',
-    'DTLZ1', 'DTLZ2', 'DTLZ3', 'DTLZ4', 'DTLZ7',
-    'WFG1', 'WFG2', 'WFG4', 'WFG5', 'WFG9',
-    'BBOB_F1_Sphere_Sphere', 
-    'BBOB_F5_Sphere_SharpRidge',
-    'BBOB_F17_EllipsoidSeparable_SchafferF7',
-    'BBOB_F22_AttractiveSector_SharpRidge',
-    'BBOB_F37_SharpRidge_Rastrigin', 
-    'BBOB_F49_Rastrigin_Gallagher101',
-    'BBOB_F55_Gallagher101_Gallagher101',
-]
+# Mapeia o nome de saida (usado em data/dataframes/{nome}/ e nos nomes
+# dos parquets) para a classe correspondente em src.problems. Espelha
+# exatamente as chamadas analyze_problem(...) do notebook
+# `1. fitness_landscape.ipynb`, na mesma ordem de apresentacao. Para os
+# problemas MMF/ZDT/DTLZ/WFG o nome de saida e igual ao nome da classe;
+# para os bbob-biobj o notebook usa nomes curtos (BBOB1, BBOB5, ...)
+# distintos do nome da classe. As classes bbob-biobj tem PF de referencia:
+# F1 analitica, as demais via NSGA-II acumulado cacheado em
+# data/bbob_pf_cache/ (1a execucao lenta).
+PROBLEM_CLASSES = {
+    'MMF1': 'MMF1',
+    'MMF4': 'MMF4',
+    'MMF11_L': 'MMF11_L',
+    'MMF16_L3': 'MMF16_L3',
+    'MMF16_20': 'MMF16_20',
+    'ZDT1': 'ZDT1',
+    'ZDT3': 'ZDT3',
+    'ZDT4': 'ZDT4',
+    'ZDT6': 'ZDT6',
+    'DTLZ1': 'DTLZ1',
+    'DTLZ2': 'DTLZ2',
+    'DTLZ3': 'DTLZ3',
+    'DTLZ4': 'DTLZ4',
+    'DTLZ7': 'DTLZ7',
+    'WFG1': 'WFG1',
+    'WFG2': 'WFG2',
+    'WFG4': 'WFG4',
+    'WFG5': 'WFG5',
+    'WFG9': 'WFG9',
+    'BBOB1': 'BBOB_F1_Sphere_Sphere',
+    'BBOB5': 'BBOB_F5_Sphere_SharpRidge',
+    'BBOB17': 'BBOB_F17_EllipsoidSeparable_SchafferF7',
+    'BBOB22': 'BBOB_F22_AttractiveSector_SharpRidge',
+    'BBOB37': 'BBOB_F37_SharpRidge_Rastrigin',
+    'BBOB49': 'BBOB_F49_Rastrigin_Gallagher101',
+    'BBOB55': 'BBOB_F55_Gallagher101_Gallagher101',
+}
+
+# Ordem de apresentacao do notebook (dict preserva ordem de insercao).
+ALL_PROBLEMS: List[str] = list(PROBLEM_CLASSES)
+
+# Reverso: nome da classe -> nome de saida canonico (para aceitar ambos
+# no CLI; o nome de saida segue sempre o do notebook).
+_CLASS_TO_NAME = {cls_name: out_name
+                  for out_name, cls_name in PROBLEM_CLASSES.items()}
+
+
+def _resolve_problem(name: str) -> Tuple[str, str]:
+    """Resolve `name` para (nome_de_saida, nome_da_classe) canonicos.
+
+    Aceita o nome curto do notebook (ex: 'BBOB1', 'MMF1') ou o nome da
+    classe em src.problems (ex: 'BBOB_F1_Sphere_Sphere'). Em ambos os
+    casos o nome de saida segue o do notebook.
+    """
+    if name in PROBLEM_CLASSES:
+        return name, PROBLEM_CLASSES[name]
+    if name in _CLASS_TO_NAME:
+        return _CLASS_TO_NAME[name], name
+    raise ValueError(
+        f"Problema '{name}' nao encontrado. Validos: "
+        f"{', '.join(PROBLEM_CLASSES)}"
+    )
 
 # Efficient Non-dominated Sort (ENS, Roy et al. 2016): O(N * log^(M-1) N) e
 # sem matriz NxN - necessario para landscapes grandes (N >> 1e5).
 _NDS = NonDominatedSorting(method="efficient_non_dominated_sort")
 
 
+N_SAMPLES = 1_000_000
+
 # ---------------------------------------------------------------------------
 # Sampling
 # ---------------------------------------------------------------------------
 
-def generate_samples(problem, n_samples: int = 100_000, method: str = 'sobol'
+def generate_samples(problem, n_samples: int = N_SAMPLES, method: str = 'sobol'
                      ) -> Tuple[np.ndarray, np.ndarray]:
     """Sample the decision space and evaluate objectives.
 
@@ -181,7 +229,7 @@ def _load_or_compute_pf(X, F, name, method, out_dir, x_cols, f_cols,
 # ---------------------------------------------------------------------------
 
 def process_problem(name: str,
-                    n_samples: int = 100_000,
+                    n_samples: int = N_SAMPLES,
                     methods: Optional[List[str]] = None,
                     carrega_resultados: bool = True) -> None:
     """
@@ -190,7 +238,9 @@ def process_problem(name: str,
     Parameters
     ----------
     name : str
-        Nome da classe do problema em `src.problems` (ex: 'MMF16_L3', 'ZDT1').
+        Nome curto do problema (ex: 'MMF16_L3', 'ZDT1', 'BBOB1') ou o
+        nome da classe em `src.problems` (ex: 'BBOB_F1_Sphere_Sphere').
+        O nome de saida segue sempre o do notebook.
     n_samples : int
         Numero-alvo de amostras por metodo (Sobol usa a potencia de 2 mais
         proxima; grid 1D/2D/3D quando n_var<=3).
@@ -206,33 +256,33 @@ def process_problem(name: str,
         if m not in VALID_METHODS:
             raise ValueError(f"method invalido: {m!r}. Validos: {VALID_METHODS}")
 
-    if not hasattr(_problems_mod, name):
+    out_name, class_name = _resolve_problem(name)
+    if not hasattr(_problems_mod, class_name):
         raise ValueError(
-            f"Problema '{name}' nao encontrado em src.problems. "
-            f"Verifique a grafia (ex: 'MMF16_L3', 'ZDT1', 'DTLZ2', 'WFG4')."
+            f"Classe '{class_name}' nao encontrada em src.problems. "
+            f"Verifique a grafia (ex: 'MMF16_L3', 'ZDT1', 'BBOB1')."
         )
-    cls = getattr(_problems_mod, name)
-    problem = cls()
+    problem = getattr(_problems_mod, class_name)()
 
     x_cols = [f'x_{i+1}' for i in range(problem.n_var)]
     f_cols = [f'f{i+1}' for i in range(problem.n_obj)]
-    out_dir = os.path.join(DATA_DIR, name)
+    out_dir = os.path.join(DATA_DIR, out_name)
     os.makedirs(out_dir, exist_ok=True)
 
-    print(f'\n========== {name} '
+    print(f'\n========== {out_name} '
           f'(n_var={problem.n_var}, n_obj={problem.n_obj}, '
           f'n_samples_alvo={n_samples:,}, carrega_resultados={carrega_resultados}) ==========')
 
     for method in methods:
-        print(f'\n[{method}] Processando {name}...')
+        print(f'\n[{method}] Processando {out_name}...')
         X, F = _load_or_generate_landscape(
-            problem, name, method, n_samples, out_dir, x_cols, f_cols,
+            problem, out_name, method, n_samples, out_dir, x_cols, f_cols,
             carrega_resultados)
         _load_or_compute_pf(
-            X, F, name, method, out_dir, x_cols, f_cols,
+            X, F, out_name, method, out_dir, x_cols, f_cols,
             carrega_resultados)
 
-    print(f'\n>>> {name}: OK. Arquivos em {out_dir}/')
+    print(f'\n>>> {out_name}: OK. Arquivos em {out_dir}/')
 
 
 # ---------------------------------------------------------------------------
@@ -297,7 +347,7 @@ def _build_parser() -> argparse.ArgumentParser:
         prog='fitness_landscape.py',
         description=('Gera e salva os parquets de landscape e PF empirico '
                      'para problemas do catalogo (src.problems). Sem argumento '
-                     'posicional, roda TODOS os problemas (menos BBOB) em '
+                     'posicional, roda TODOS os problemas do catalogo em '
                      'paralelo via joblib (um processo por problema).'),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
@@ -305,8 +355,9 @@ def _build_parser() -> argparse.ArgumentParser:
             '  # Todos os problemas em paralelo (um core por problema):\n'
             '  python fitness_landscape.py\n'
             '\n'
-            '  # Um problema so:\n'
+            '  # Um problema so (nome curto):\n'
             '  python fitness_landscape.py MMF16_L3\n'
+            '  python fitness_landscape.py BBOB1\n'
             '\n'
             '  # Todos em paralelo, 1M de amostras cada:\n'
             '  python fitness_landscape.py --n-samples 1000000\n'
@@ -322,9 +373,11 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     p.add_argument('problem', nargs='?', default=None,
-                   help=("Nome da classe do problema (ex: MMF16_L3, ZDT1, "
-                         "DTLZ2, WFG4). Omita para rodar TODOS em paralelo."))
-    p.add_argument('--n-samples', type=int, default=100_000,
+                   help=("Nome curto do problema (ex: MMF16_L3, ZDT1, "
+                         "DTLZ2, WFG4, BBOB1) ou o nome da classe (ex: "
+                         "BBOB_F1_Sphere_Sphere). Omita para rodar TODOS "
+                         "em paralelo."))
+    p.add_argument('--n-samples', type=int, default=N_SAMPLES,
                    help="Numero-alvo de amostras por metodo (default: 100000).")
     p.add_argument('--methods', nargs='+', choices=VALID_METHODS,
                    default=None,
@@ -333,7 +386,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument('--force', action='store_true',
                    help=("Ignora os parquets existentes e recalcula tudo "
                          "(equivalente a carrega_resultados=False no notebook)."))
-    p.add_argument('--n-jobs', type=int, default=-1,
+    p.add_argument('--n-jobs', type=int, default=10,
                    help=("Numero de processos paralelos no modo 'todos' "
                          "(default: -1 = todos os cores). Ignorado no modo "
                          "de um unico problema."))
@@ -349,7 +402,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             problems=ALL_PROBLEMS,
             n_samples=args.n_samples,
             methods=args.methods,
-            carrega_resultados=not args.force,
+            carrega_resultados=False,#not args.force,
             n_jobs=args.n_jobs,
         )
         return 1 if n_failed > 0 else 0
@@ -360,7 +413,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             name=args.problem,
             n_samples=args.n_samples,
             methods=args.methods,
-            carrega_resultados=not args.force,
+            carrega_resultados=False,#not args.force,
         )
     except Exception as e:
         print(f'ERRO: {e}', file=sys.stderr)

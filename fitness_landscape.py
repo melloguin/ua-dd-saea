@@ -65,12 +65,20 @@ DATA_DIR = 'data/dataframes'
 # Todos os problemas do catalogo (src.problems), na ordem de apresentacao
 # do notebook `1. fitness_landscape.ipynb`. BBOB_Gallagher_Mock e
 # deliberadamente excluido (sem PF analitico e fora do escopo das rodadas
-# em massa).
+# em massa). As classes bbob-biobj (BBOB_F*) tem PF de referencia: F1
+# analitica, as demais via NSGA-II acumulado cacheado em data/bbob_pf_cache/.
 ALL_PROBLEMS: List[str] = [
     'MMF1', 'MMF4', 'MMF11_L', 'MMF16_L3', 'MMF16_20',
     'ZDT1', 'ZDT3', 'ZDT4', 'ZDT6',
     'DTLZ1', 'DTLZ2', 'DTLZ3', 'DTLZ4', 'DTLZ7',
     'WFG1', 'WFG2', 'WFG4', 'WFG5', 'WFG9',
+    'BBOB_F1_Sphere_Sphere', 
+    'BBOB_F5_Sphere_SharpRidge',
+    'BBOB_F17_EllipsoidSeparable_SchafferF7',
+    'BBOB_F22_AttractiveSector_SharpRidge',
+    'BBOB_F37_SharpRidge_Rastrigin', 
+    'BBOB_F49_Rastrigin_Gallagher101',
+    'BBOB_F55_Gallagher101_Gallagher101',
 ]
 
 # Efficient Non-dominated Sort (ENS, Roy et al. 2016): O(N * log^(M-1) N) e

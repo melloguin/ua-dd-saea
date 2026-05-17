@@ -11,6 +11,8 @@ Suites implemented:
 Each class inherits from pymoo.core.problem.Problem.
 """
 
+import os
+
 import numpy as np
 from pymoo.core.problem import Problem
 from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting
@@ -1007,66 +1009,346 @@ class WFG9(_WFGBase):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  BBOB Gallagher Mock  (from original problems.py)
+#  BBOB bi-objective suite  (bbob-biobj; Tušar et al. 2016)
+#
+#  Each function f = (f_α, f_β) combines two single-objective bbob functions
+#  (Hansen et al. 2009, RR-6829).  Properties:
+#
+#  • Objectives are RAW / un-normalised.  COCO normalises only for its
+#    hypervolume metric (bbob-biobj report §2.3), never inside the function.
+#  • f_opt is dropped (≡ 0) so each objective's global minimum is exactly 0.
+#  • Per COCO the two objectives use DIFFERENT instances
+#    (Kα = 2K+1, Kβ = 2K+2) so the two single-objective optima differ and the
+#    Pareto set is a non-degenerate curve between them.
+#  • Search domain [-5, 5]^D (report §3.2: the extremal solutions and their
+#    radius-1 neighbourhood are guaranteed to lie there).
+#  • Instance parameters (x_opt, rotations R/Q, Gallagher peaks) come from a
+#    numpy RNG seeded by (bbob_fid, instance_id, n_var).  This reproduces the
+#    bbob-biobj landscape characteristics but is NOT bit-identical to COCO's
+#    own RNG (cocoex is not a project dependency).
+#
+#  Only F1 (Sphere/Sphere) has an analytical Pareto front (segment between
+#  the two sphere optima).  The other six have no closed form; their
+#  true_pareto_front is COCO's own approach: accumulated NSGA-II runs.
 # ═══════════════════════════════════════════════════════════════════════════
 
-class BBOB_Gallagher_Mock(Problem):
+_BBOB_PF_CACHE_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "data", "bbob_pf_cache",
+)
+
+
+def _bbob_rng(fid, inst, n_var):
+    """Deterministic Generator keyed by (function id, instance id, dim)."""
+    return np.random.default_rng(
+        np.random.SeedSequence([int(fid), int(inst), int(n_var)]))
+
+
+def _bbob_lambda_diag(alpha, D):
+    """Diagonal of Λ^α: λ_ii = α^(0.5·(i−1)/(D−1)), i=1..D.  Returns (D,)."""
+    if D == 1:
+        return np.ones(1)
+    i = np.arange(D, dtype=float)
+    return alpha ** (0.5 * i / (D - 1.0))
+
+
+def _bbob_T_osz(x):
+    """Oscillation transformation T_osz, element-wise (T_osz(0)=0)."""
+    x = np.asarray(x, dtype=float)
+    s = np.sign(x)
+    absx = np.abs(x)
+    nz = absx > 0.0
+    xhat = np.where(nz, np.log(np.where(nz, absx, 1.0)), 0.0)
+    c1 = np.where(x > 0.0, 10.0, 5.5)
+    c2 = np.where(x > 0.0, 7.9, 3.1)
+    return s * np.exp(xhat + 0.049 * (np.sin(c1 * xhat) + np.sin(c2 * xhat)))
+
+
+def _bbob_T_asy(x, beta):
+    """Asymmetry transformation T_asy^β on (N, D); positive entries only."""
+    x = np.asarray(x, dtype=float)
+    D = x.shape[1]
+    if D == 1:
+        return x.copy()
+    i = np.arange(D, dtype=float)
+    expo = 1.0 + beta * (i / (D - 1.0)) * np.sqrt(np.maximum(x, 0.0))
+    return np.where(x > 0.0, np.power(np.maximum(x, 0.0), expo), x)
+
+
+def _bbob_f_pen(X):
+    """Boundary penalty Σ max(0,|x_i|−5)².  X: (N, D) → (N,)."""
+    return np.sum(np.maximum(0.0, np.abs(X) - 5.0) ** 2, axis=1)
+
+
+def _bbob_rotation(rng, D):
+    """Random orthonormal D×D matrix (Gram–Schmidt via QR), sign-fixed."""
+    Qm, Rm = np.linalg.qr(rng.standard_normal((D, D)))
+    return Qm * np.sign(np.diag(Rm))
+
+
+class _BBOBSingle:
+    """A single-objective bbob function instance with f_opt ≡ 0.
+
+    Supported bbob ids: 1 Sphere, 2 Ellipsoid separable, 6 Attractive sector,
+    13 Sharp ridge, 15 Rastrigin, 17 Schaffer F7 (cond 10),
+    21 Gallagher's Gaussian 101-me peaks.  Callable: X (N,D) → f (N,).
     """
-    BBOB f16 mock (Gallagher's 101 Peaks) – bi-objective version.
-    Chaotic surface with n_peaks Gaussian craters per objective.
-    Bounds: x1, x2 ∈ [-5, 5].
-    """
-    def __init__(self, n_peaks=101):
-        bounds = [
-            [-5.0, 5.0],   # x1
-            [-5.0, 5.0],   # x2
-        ]
-        xl, xu = _make_bounds(bounds)
-        super().__init__(n_var=2, n_obj=2, xl=xl, xu=xu)
-        self.n_peaks = n_peaks
 
-        np.random.seed(42)
-        self.c1 = np.random.uniform(-4.5, 4.5, (n_peaks, 2))
-        self.w1 = np.random.uniform(0.1, 2.0, n_peaks)
-        self.s1 = np.random.uniform(0.2, 1.0, n_peaks)
-        self.c2 = np.random.uniform(-4.5, 4.5, (n_peaks, 2))
-        self.w2 = np.random.uniform(0.1, 2.0, n_peaks)
-        self.s2 = np.random.uniform(0.2, 1.0, n_peaks)
+    def __init__(self, fid, inst, D):
+        self.fid = int(fid)
+        self.D = int(D)
+        rng = _bbob_rng(fid, inst, D)
+        self.x_opt = rng.uniform(-4.0, 4.0, self.D)
+        self.R = _bbob_rotation(rng, self.D)
+        self.Q = _bbob_rotation(rng, self.D)
+        self.lam10 = _bbob_lambda_diag(10.0, self.D)
+        if self.fid == 21:
+            self._init_gallagher(rng)
 
-        g = np.linspace(-5.0, 5.0, 500)
-        X1, X2 = np.meshgrid(g, g)
-        X_grid = np.column_stack([X1.ravel(), X2.ravel()])
+    def _init_gallagher(self, rng):
+        D, n_peaks = self.D, 101
+        w = np.empty(n_peaks)
+        w[0] = 10.0
+        w[1:] = 1.1 + 8.0 * (np.arange(2, n_peaks + 1) - 2.0) / 99.0
+        self.g_w = w
 
-        f1_raw = np.zeros(len(X_grid))
-        f2_raw = np.zeros(len(X_grid))
-        for i in range(n_peaks):
-            d1 = np.sum((X_grid - self.c1[i]) ** 2, axis=1)
-            f1_raw -= self.w1[i] * np.exp(-d1 / (2 * self.s1[i] ** 2))
-            d2 = np.sum((X_grid - self.c2[i]) ** 2, axis=1)
-            f2_raw -= self.w2[i] * np.exp(-d2 / (2 * self.s2[i] ** 2))
-        self._f1_global_min = np.min(f1_raw)
-        self._f2_global_min = np.min(f2_raw)
+        alphas = np.empty(n_peaks)
+        alphas[0] = 1000.0
+        alphas[1:] = rng.permutation(1000.0 ** (2.0 * np.arange(100) / 99.0))
+        C = np.empty((n_peaks, D))
+        for k in range(n_peaks):
+            diag = rng.permutation(_bbob_lambda_diag(alphas[k], D))
+            C[k] = diag / (alphas[k] ** 0.25)
+        self.g_C = C
+
+        Y = np.empty((n_peaks, D))
+        Y[0] = self.x_opt
+        Y[1:] = rng.uniform(-4.9, 4.9, (n_peaks - 1, D))
+        self.g_Y = Y
+
+    def __call__(self, X):
+        X = np.atleast_2d(np.asarray(X, dtype=float))
+        fid, D = self.fid, self.D
+
+        if fid == 1:                                            # Sphere
+            z = X - self.x_opt
+            return np.sum(z * z, axis=1)
+
+        if fid == 2:                                            # Ellipsoid sep.
+            z = _bbob_T_osz(X - self.x_opt)
+            expo = (np.arange(D, dtype=float) / (D - 1.0)) if D > 1 \
+                else np.zeros(D)
+            return np.sum(10.0 ** (6.0 * expo) * z * z, axis=1)
+
+        if fid == 6:                                            # Attr. sector
+            z = ((X - self.x_opt) @ self.R.T) * self.lam10
+            z = z @ self.Q.T
+            s = np.where(z * self.x_opt > 0.0, 100.0, 1.0)
+            return _bbob_T_osz(np.sum((s * z) ** 2, axis=1)) ** 0.9
+
+        if fid == 13:                                           # Sharp ridge
+            z = ((X - self.x_opt) @ self.R.T) * self.lam10
+            z = z @ self.Q.T
+            return z[:, 0] ** 2 + 100.0 * np.sqrt(
+                np.sum(z[:, 1:] ** 2, axis=1))
+
+        if fid == 15:                                           # Rastrigin
+            z = (X - self.x_opt) @ self.R.T
+            z = _bbob_T_asy(_bbob_T_osz(z), 0.2) * self.lam10
+            z = (z @ self.Q.T) @ self.R.T
+            return (10.0 * (D - np.sum(np.cos(2.0 * np.pi * z), axis=1))
+                    + np.sum(z * z, axis=1))
+
+        if fid == 17:                                           # Schaffer F7
+            z = _bbob_T_asy((X - self.x_opt) @ self.R.T, 0.5)
+            z = (z @ self.Q.T) * self.lam10
+            s = np.sqrt(z[:, :-1] ** 2 + z[:, 1:] ** 2)
+            inner = np.mean(
+                np.sqrt(s) + np.sqrt(s) * np.sin(50.0 * s ** 0.2) ** 2, axis=1)
+            return inner ** 2 + 10.0 * _bbob_f_pen(X)
+
+        if fid == 21:                                           # Gallagher 101
+            best = np.full(X.shape[0], -np.inf)
+            for k in range(self.g_Y.shape[0]):
+                d = (X - self.g_Y[k]) @ self.R.T
+                quad = np.sum(self.g_C[k] * d * d, axis=1)
+                best = np.maximum(
+                    best, self.g_w[k] * np.exp(-quad / (2.0 * D)))
+            return _bbob_T_osz(10.0 - best) ** 2 + _bbob_f_pen(X)
+
+        raise ValueError(f"Unsupported bbob function id: {fid}")
+
+
+class _BBOBBiobjBase(Problem):
+    """Base for bbob-biobj functions f = (f_{_FID_A}, f_{_FID_B})."""
+
+    _FID_A = None
+    _FID_B = None
+
+    def __init__(self, n_var=10, instance=1):
+        xl, xu = _make_bounds([[-5.0, 5.0]] * n_var)
+        super().__init__(n_var=n_var, n_obj=2, xl=xl, xu=xu)
+        self.instance = int(instance)
+        K = self.instance
+        self._fa = _BBOBSingle(self._FID_A, 2 * K + 1, n_var)
+        self._fb = _BBOBSingle(self._FID_B, 2 * K + 2, n_var)
 
     def _evaluate(self, X, out, *args, **kwargs):
-        f1 = np.zeros(X.shape[0])
-        f2 = np.zeros(X.shape[0])
-        for i in range(self.n_peaks):
-            dist1 = np.sum((X - self.c1[i]) ** 2, axis=1)
-            f1 -= self.w1[i] * np.exp(-dist1 / (2 * self.s1[i] ** 2))
-            dist2 = np.sum((X - self.c2[i]) ** 2, axis=1)
-            f2 -= self.w2[i] * np.exp(-dist2 / (2 * self.s2[i] ** 2))
-        f1 = f1 - self._f1_global_min + 0.1
-        f2 = f2 - self._f2_global_min + 0.1
-        out["F"] = np.column_stack([f1, f2])
+        X = np.atleast_2d(np.asarray(X, dtype=float))
+        out["F"] = np.column_stack([self._fa(X), self._fb(X)])
 
-    def true_pareto_front(self, n=1000):
-        """No analytical PF; computed numerically from dense grid + NDS."""
-        g = np.linspace(-5.0, 5.0, n)
-        X1, X2 = np.meshgrid(g, g)
-        X = np.column_stack([X1.ravel(), X2.ravel()])
-        F = evaluate_problem(self, X)
+    # ── reference Pareto front (empirical, NSGA-II accumulation) ──────────
+    def true_pareto_front(self, n=1000, pop_size=200, n_gen=300,
+                          n_seeds=5, seed=0):
+        """COCO has no closed-form PF for these (report Fig. 1 uses NSGA-II).
+        Accumulate the non-dominated points of `n_seeds` independent NSGA-II
+        runs, cache to data/bbob_pf_cache/, subsample to `n` points."""
+        cache = os.path.join(
+            _BBOB_PF_CACHE_DIR,
+            f"{type(self).__name__}_d{self.n_var}_i{self.instance}.npz")
+        if os.path.exists(cache):
+            d = np.load(cache)
+            X, F = d["X"], d["F"]
+        else:
+            X, F = self._nsga2_front(pop_size, n_gen, n_seeds, seed)
+            os.makedirs(_BBOB_PF_CACHE_DIR, exist_ok=True)
+            np.savez_compressed(cache, X=X, F=F)
+        if len(F) > n:
+            idx = self._subsample_front(F, n)
+            X, F = X[idx], F[idx]
+        return X, F
+
+    def _nsga2_front(self, pop_size, n_gen, n_seeds, seed):
+        from pymoo.algorithms.moo.nsga2 import NSGA2
+        from pymoo.optimize import minimize
+        Xs, Fs = [], []
+        for s in range(seed, seed + n_seeds):
+            res = minimize(self, NSGA2(pop_size=pop_size),
+                           ("n_gen", n_gen), seed=s, verbose=False)
+            if res.X is not None:
+                Xs.append(np.atleast_2d(res.X))
+                Fs.append(np.atleast_2d(res.F))
+        X = np.vstack(Xs)
+        F = np.vstack(Fs)
         idx = _nds_filter(F)
         return X[idx], F[idx]
+
+    @staticmethod
+    def _subsample_front(F, n):
+        order = np.argsort(F[:, 0])
+        pick = np.unique(np.linspace(0, len(order) - 1, n).round().astype(int))
+        return order[pick]
+
+
+class BBOB_F1_Sphere_Sphere(_BBOBBiobjBase):
+    """
+    bbob-biobj F1 – Sphere / Sphere  (bbob f1 / f1).
+
+    f_α = ‖x − x_optα‖²,   f_β = ‖x − x_optβ‖².
+    Search space: x_i ∈ [−5, 5], default n_var = 10.
+
+    Analytical Pareto set: the straight segment between the two sphere
+    optima.  Pareto front convex; closed-form normalised hypervolume
+    (nadir reference) = 1 − ∫₀¹(1−√x)²dx = 0.8333…
+    """
+    _FID_A = 1
+    _FID_B = 1
+
+    def true_pareto_front(self, n=1000):
+        a, b = self._fa.x_opt, self._fb.x_opt
+        t = np.linspace(0.0, 1.0, n).reshape(-1, 1)
+        X = a + t * (b - a)
+        return X, evaluate_problem(self, X)
+
+
+class BBOB_F5_Sphere_SharpRidge(_BBOBBiobjBase):
+    """
+    bbob-biobj F5 – Sphere / Sharp ridge  (bbob f1 / f13).
+
+    f_α = ‖x − x_optα‖²  (separable, convex).
+    f_β = z₁² + 100·√(Σ_{i≥2} z_i²),  z = Q·Λ¹⁰·R·(x − x_optβ)
+          (non-separable, non-differentiable ridge).
+    Search space: x_i ∈ [−5, 5], default n_var = 10.
+    No closed-form PF; true_pareto_front uses accumulated NSGA-II.
+    """
+    _FID_A = 1
+    _FID_B = 13
+
+
+class BBOB_F17_EllipsoidSeparable_SchafferF7(_BBOBBiobjBase):
+    """
+    bbob-biobj F17 – Ellipsoid separable / Schaffer F7 cond 10
+    (bbob f2 / f17).
+
+    f_α = Σ 10^(6(i−1)/(D−1)) z_i²,  z = T_osz(x − x_optα)  (ill-conditioned).
+    f_β = (mean_i(√s_i + √s_i·sin²(50 s_i^{1/5})))² + 10·f_pen,
+          s_i = √(z_i²+z_{i+1}²),  z = Λ¹⁰·Q·T_asy^{0.5}(R·(x − x_optβ))
+          (asymmetric, non-separable, highly multimodal).
+    Search space: x_i ∈ [−5, 5], default n_var = 10.
+    No closed-form PF; true_pareto_front uses accumulated NSGA-II.
+    """
+    _FID_A = 2
+    _FID_B = 17
+
+
+class BBOB_F22_AttractiveSector_SharpRidge(_BBOBBiobjBase):
+    """
+    bbob-biobj F22 – Attractive sector / Sharp ridge  (bbob f6 / f13).
+
+    f_α = T_osz(Σ(s_i z_i)²)^0.9,  z = Q·Λ¹⁰·R·(x − x_optα),
+          s_i = 100 if z_i·x_optα_i>0 else 1  (highly asymmetric).
+    f_β = z₁² + 100·√(Σ_{i≥2} z_i²),  z = Q·Λ¹⁰·R·(x − x_optβ)
+          (non-differentiable ridge).
+    Search space: x_i ∈ [−5, 5], default n_var = 10.
+    No closed-form PF; true_pareto_front uses accumulated NSGA-II.
+    """
+    _FID_A = 6
+    _FID_B = 13
+
+
+class BBOB_F37_SharpRidge_Rastrigin(_BBOBBiobjBase):
+    """
+    bbob-biobj F37 – Sharp ridge / Rastrigin  (bbob f13 / f15).
+
+    f_α = z₁² + 100·√(Σ_{i≥2} z_i²),  z = Q·Λ¹⁰·R·(x − x_optα).
+    f_β = 10·(D − Σ cos(2π z_i)) + ‖z‖²,
+          z = R·Λ¹⁰·Q·T_asy^{0.2}(T_osz(R·(x − x_optβ)))
+          (non-separable, ≈10^D local optima).
+    Search space: x_i ∈ [−5, 5], default n_var = 10.
+    No closed-form PF; true_pareto_front uses accumulated NSGA-II.
+    """
+    _FID_A = 13
+    _FID_B = 15
+
+
+class BBOB_F49_Rastrigin_Gallagher101(_BBOBBiobjBase):
+    """
+    bbob-biobj F49 – Rastrigin / Gallagher 101 peaks  (bbob f15 / f21).
+
+    f_α = 10·(D − Σ cos(2π z_i)) + ‖z‖²  (≈10^D local optima).
+    f_β = T_osz(10 − max_i w_i·exp(−1/(2D)·(x−y_i)ᵀRᵀC_iR(x−y_i)))² + f_pen
+          (101 randomly placed peaks, weak global structure).
+    Search space: x_i ∈ [−5, 5], default n_var = 10.
+    No closed-form PF; true_pareto_front uses accumulated NSGA-II.
+    """
+    _FID_A = 15
+    _FID_B = 21
+
+
+class BBOB_F55_Gallagher101_Gallagher101(_BBOBBiobjBase):
+    """
+    bbob-biobj F55 – Gallagher 101 peaks / Gallagher 101 peaks
+    (bbob f21 / f21).
+
+    Both objectives: T_osz(10 − max_i w_i·exp(−1/(2D)·(x−y_i)ᵀRᵀC_iR(x−y_i)))²
+    + f_pen, with independent random peak fields (different instances).
+    No global structure in either objective.
+    Search space: x_i ∈ [−5, 5], default n_var = 10.
+    No closed-form PF; true_pareto_front uses accumulated NSGA-II.
+    """
+    _FID_A = 21
+    _FID_B = 21
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════

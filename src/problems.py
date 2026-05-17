@@ -47,7 +47,7 @@ def _make_bounds(bounds):
 
 class MMF1(Problem):
     """
-    MMF1 – CEC 2020.
+    MMF1 - CEC 2020.
 
     Two global Pareto sets mirrored about x1 = 2.
     f1 = |x1 - 2|
@@ -78,7 +78,7 @@ class MMF1(Problem):
 
 class MMF4(Problem):
     """
-    MMF4 – CEC 2020.
+    MMF4 - CEC 2020.
 
     Four global Pareto sets (piecewise formulation).
     f1 = |x1|

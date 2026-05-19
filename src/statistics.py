@@ -54,6 +54,8 @@ def comparar_distribuicoes(df_surrogate, df_validacao, col, problema, calcula_wa
         objetivo = 'f1'
     elif col == 'erro_f2':
         objetivo = 'f2'
+    elif col == 'erro_f3':
+        objetivo = 'f3'
     else:
         # Padrão genérico: substitui 'erro' por 'fitness' ou remove '_erro'
         objetivo = col.replace('erro', 'fitness').replace('_c1', '')
@@ -448,6 +450,7 @@ def gerar_amostras_mcmc_por_regiao(df, col, n_samples,
 def gerar_amostras_mcmc_por_problema(df_validacao, n_samples, 
                                      col1='erro1_c1', 
                                      col2='erro2_c1',
+                                     col3=None,
                                      burn_in=1000, 
                                      thinning=10,
                                      proposal_scale=0.7,
@@ -471,6 +474,8 @@ def gerar_amostras_mcmc_por_problema(df_validacao, n_samples,
         Nome da primeira coluna (tipicamente erro do fitness 1)
     col2 : str, default='erro2_c1'
         Nome da segunda coluna (tipicamente erro do fitness 2)
+    col3 : str, optional
+        Terceira coluna de erro (ex.: ``erro_f3``) para problemas tri-objetivo.
     burn_in : int, default=1000
         Número de iterações iniciais a serem descartadas
     thinning : int, default=10
@@ -512,7 +517,10 @@ def gerar_amostras_mcmc_por_problema(df_validacao, n_samples,
     print(f"\n{'='*70}")
     print(f"🔄 GERANDO AMOSTRAS MCMC PARA PROBLEMA")
     print(f"{'='*70}")
-    print(f"Colunas: {col1} e {col2}")
+    cols_msg = f"{col1} e {col2}"
+    if col3 is not None:
+        cols_msg += f" e {col3}"
+    print(f"Colunas: {cols_msg}")
     print(f"Amostras por região: {n_samples}")
     print(f"{'='*70}\n")
     
@@ -580,15 +588,48 @@ def gerar_amostras_mcmc_por_problema(df_validacao, n_samples,
         validate='one_to_one'  # Garante correspondência 1:1
     )
     
+    if col3 is not None:
+        print(f"\n📊 Gerando amostras para {col3}...\n")
+        amostras_col3 = gerar_amostras_mcmc_por_regiao(
+            df=df_validacao,
+            col=col3,
+            n_samples=n_samples,
+            burn_in=burn_in,
+            thinning=thinning,
+            proposal_scale=proposal_scale,
+            adaptive=adaptive,
+            random_state=random_state + 1 if random_state is not None else None
+        )
+        df_col3 = pd.DataFrame({
+            'regiao': np.repeat(list(amostras_col3.keys()),
+                                [len(v) for v in amostras_col3.values()]),
+            col3: np.concatenate(list(amostras_col3.values()))
+        })
+        df_col3['index_linha'] = df_col3.groupby('regiao').cumcount()
+        print(f"   - DataFrame {col3}: {len(df_col3)} linhas")
+        df_mcmc = pd.merge(
+            df_mcmc,
+            df_col3,
+            on=['regiao', 'index_linha'],
+            how='inner',
+            validate='one_to_one'
+        )
+    
     # Verificação de integridade
     assert len(df_mcmc) == len(df_col1) == len(df_col2), \
         "Erro: Tamanhos dos DataFrames não correspondem após merge"
+    if col3 is not None:
+        assert len(df_col3) == len(df_mcmc), \
+            "Erro: Tamanho da terceira coluna MCMC não corresponde ao merge"
     
     print(f"   ✅ Unificação concluída: {len(df_mcmc)} linhas")
     print(f"   ✅ Validação 1:1 bem-sucedida")
     
     # Reordenar colunas para melhor legibilidade
-    df_mcmc = df_mcmc[['index_linha', 'regiao', col1, col2]]
+    out_cols = ['index_linha', 'regiao', col1, col2]
+    if col3 is not None:
+        out_cols.append(col3)
+    df_mcmc = df_mcmc[out_cols]
     
     # Resumo final
     print(f"\n{'='*70}")

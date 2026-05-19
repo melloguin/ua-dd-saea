@@ -1,3 +1,27 @@
+"""
+NSGA-II: Non-dominated Sorting Genetic Algorithm II.
+
+Implementation based on:
+    Deb et al. "A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II"
+    (IEEE TEVC 6(2), 2002).
+
+PAPER ALGORITHM (Section III-C):
+    1. Create random parent population P_0 of size N.
+    2. Create offspring Q_t via binary tournament (crowded comparison), SBX, PM.
+    3. Combine R_t = P_t ∪ Q_t (size 2N).
+    4. Fast non-dominated sort on R_t → fronts F_1, F_2, ...
+    5. Fill P_{t+1} from F_1, F_2, ... until last front that fits.
+    6. For the last partial front, sort by crowding distance descending.
+    7. Repeat from step 2.
+
+DEVIATIONS / NOTES:
+    - The paper uses η_c = η_m = 20 (Section IV).  This implementation uses
+      η_c = 15, η_m = 20 by default (configurable via config dict).
+    - When kriging_models is provided, evaluation is done via Kriging
+      surrogate instead of discrete landscape lookup.  This is the
+      "NSGA-II + surrogate" variant, not a deviation from the core
+      algorithm — only the fitness source changes.
+"""
 import pandas as pd
 import numpy as np
 from tqdm.auto import tqdm
@@ -8,12 +32,14 @@ from src.nsga2.evaluation     import evaluate_population
 from src.nsga2.offspring      import create_offspring_population
 from src.nsga2.selection      import environmental_selection
 from src.nsga2.utils          import collect_generation_stats, plot_optimization_progress
+from src.kriging_evaluation   import evaluate_population_kriging
 
 
 def run_my_nsga2(config: dict,
-                 df_landscape: pd.DataFrame, 
+                 df_landscape=None,
                  save_history: bool = False,
                  input_initial_population: list = None,
+                 kriging_models=None,
                 ) -> tuple[pd.DataFrame, list, pd.DataFrame, list]:
     """
     Implementação completa do algoritmo NSGA-II, seguindo o paper original de Deb et al. (2002)
@@ -61,7 +87,10 @@ def run_my_nsga2(config: dict,
     population, _ = initialize_population(config, input_initial_population)
 
     # Avalia fitness da população inicial
-    initial_stats = evaluate_population(population, df_landscape, config['fitness_cols'])
+    if kriging_models is not None:
+        initial_stats = evaluate_population_kriging(population, kriging_models)
+    else:
+        initial_stats = evaluate_population(population, df_landscape, config['fitness_cols'])
     
     # Inicializar histórico se solicitado
     history = [] if save_history else None
@@ -93,7 +122,10 @@ def run_my_nsga2(config: dict,
         offspring = create_offspring_population(population, config)
 
         # Avalia fitness da população descendente
-        offspring_stats = evaluate_population(offspring, df_landscape, config['fitness_cols'])
+        if kriging_models is not None:
+            offspring_stats = evaluate_population_kriging(offspring, kriging_models)
+        else:
+            offspring_stats = evaluate_population(offspring, df_landscape, config['fitness_cols'])
 
 
         ######### 3. Seleção Geracional (environmental selection)
@@ -138,31 +170,28 @@ def run_my_nsga2(config: dict,
 
     ######### Finalização
     # Criar dataframe com as soluções finais
-    df_pareto = pd.DataFrame([
-        {
-            'x_1': ind.genotype[0],
-            'x_2': ind.genotype[1],
-            'fitness1': ind.fitness[0],
-            'fitness2': ind.fitness[1],
-            'x_1_landscape': ind.mapped_point['x_1_landscape'] if ind.mapped_point else None,
-            'x_2_landscape': ind.mapped_point['x_2_landscape'] if ind.mapped_point else None,
-            'f1': ind.mapped_point['f1'] if ind.mapped_point else None,
-            'f2': ind.mapped_point['f2'] if ind.mapped_point else None,
-            'f1_original': ind.mapped_point['f1_original'] if ind.mapped_point else None,
-            'f2_original': ind.mapped_point['f2_original'] if ind.mapped_point else None,
-            'f1_predicted': ind.mapped_point['f1_predicted'] if ind.mapped_point else None,
-            'f2_predicted': ind.mapped_point['f2_predicted'] if ind.mapped_point else None,
-            'mapping_success': ind.mapping_success
-        }
-        for ind in population if ind.rank == 1
-    ])
+    records = []
+    for ind in [p for p in population if p.rank == 1]:
+        row = {}
+        for i in range(len(ind.genotype)):
+            row[f'x_{i+1}'] = ind.genotype[i]
+        if ind.fitness:
+            for j in range(len(ind.fitness)):
+                row[f'fitness{j+1}'] = ind.fitness[j]
+        if ind.mapped_point:
+            row.update(ind.mapped_point)
+        row['mapping_success'] = ind.mapping_success
+        records.append(row)
+    df_pareto = pd.DataFrame(records)
     
-    print(f"\n✅ Otimização concluída!")
-    print(f"Registros únicos no dataframe: {len(df_pareto)}")
+    if config.get('verbose', True):
+        print(f"\n✅ Otimização concluída!")
+        print(f"Registros únicos no dataframe: {len(df_pareto)}")
 
     if config['track_progress']:
         df_progress = pd.DataFrame(progress_stats)
-        plot_optimization_progress(df_progress)
+        if config.get('mostrar_grafico', True):
+            plot_optimization_progress(df_progress)
     else:
         df_progress = None
 

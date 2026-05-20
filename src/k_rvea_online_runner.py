@@ -316,7 +316,7 @@ def _find_non_dominated(X, F):
     return X[mask], F[mask]
 
 
-def run_k_rvea_online(problem, config):
+def run_k_rvea_online(problem, config, save_history: bool = False):
     """
     K-RVEA Online: full Algorithm 2 from Chugh et al. (2016).
 
@@ -334,10 +334,17 @@ def run_k_rvea_online(problem, config):
             - 'crossover_prob', 'crossover_eta', 'mutation_prob', 'mutation_eta'
             - 'k_tournament'
             - 'rvea_alpha': APD rate parameter (default 2.0)
+        save_history: when True, records a snapshot of the cumulative
+            archive A2 (all truly-evaluated points) at the end of each
+            outer iteration (Kriging update cycle).
 
     Returns:
         df_pareto: DataFrame with non-dominated solutions (true evaluations)
         info: dict with metadata (FE count, archive sizes, etc.)
+        history: list of {'generation': int (update index),
+                          'population': [{'genotype': [...],
+                                          'fitness': [...]}, ...]}
+            or ``None`` when save_history=False.
     """
     np.random.seed(config['seed'])
 
@@ -388,6 +395,14 @@ def run_k_rvea_online(problem, config):
     generation_global = 0
 
     progress_log = []
+    history = [] if save_history else None
+    if save_history:
+        history.append({
+            'generation': 0,
+            'population': [{'genotype': list(X_A2[i]),
+                            'fitness': list(Y_A2[i])}
+                           for i in range(len(X_A2))],
+        })
 
     # ========== Phase 2-3: Main loop ==========
     pbar = tqdm(total=FEmax, initial=FE, desc="K-RVEA Online (FE)")
@@ -454,6 +469,14 @@ def run_k_rvea_online(problem, config):
             'generation_global': generation_global,
         })
 
+        if save_history:
+            history.append({
+                'generation': tu,
+                'population': [{'genotype': list(X_A2[i]),
+                                'fitness': list(Y_A2[i])}
+                               for i in range(len(X_A2))],
+            })
+
     pbar.close()
 
     # ========== Finalization ==========
@@ -482,4 +505,4 @@ def run_k_rvea_online(problem, config):
         print(f"   Atualizações do Kriging: {tu}")
         print(f"   Soluções não-dominadas: {len(X_nd)}")
 
-    return df_pareto, info
+    return df_pareto, info, history

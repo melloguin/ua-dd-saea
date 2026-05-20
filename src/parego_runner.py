@@ -114,7 +114,7 @@ def _find_non_dominated(X, F):
     return X[mask], F[mask]
 
 
-def run_parego(problem, config):
+def run_parego(problem, config, save_history: bool = False):
     """
     ParEGO online: Algorithm 1 from Knowles (2006).
 
@@ -125,10 +125,19 @@ def run_parego(problem, config):
             - 'FEmax': max true function evaluations (default 250)
             - 'parego_s': simplex-lattice parameter for weight vectors (default 10)
             - 'parego_rho': augmented Tchebycheff ρ parameter (default 0.05)
+        save_history: when True, records a snapshot of the cumulative
+            true-evaluated archive (X_all, F_all) at every EI iteration.
 
     Returns:
         df_pareto: DataFrame with non-dominated solutions
         info: dict with metadata
+        history: list of {'generation': int,
+                          'population': [{'genotype': [...],
+                                          'fitness': [...]}, ...]}
+            or ``None`` when save_history=False.
+            "Generation" is the EI iteration index (0 = post-LHS init); the
+            recorded population is the monotonically growing archive of
+            true-evaluated points.
     """
     np.random.seed(config['seed'])
 
@@ -149,6 +158,16 @@ def run_parego(problem, config):
     X_all = _latin_hypercube_sampling(NI, n_var, xl, xu, seed=config['seed'])
     F_all = evaluate_problem(problem, X_all)
     FE = NI
+
+    history = [] if save_history else None
+    gen_counter = 0
+    if save_history:
+        history.append({
+            'generation': gen_counter,
+            'population': [{'genotype': list(X_all[i]),
+                            'fitness': list(F_all[i])}
+                           for i in range(len(X_all))],
+        })
 
     pbar = tqdm(total=FEmax, initial=FE, desc="ParEGO (FE)")
 
@@ -198,6 +217,14 @@ def run_parego(problem, config):
             F_all = np.vstack([F_all, f_new])
             FE += 1
             pbar.update(1)
+            if save_history:
+                gen_counter += 1
+                history.append({
+                    'generation': gen_counter,
+                    'population': [{'genotype': list(X_all[i]),
+                                    'fitness': list(F_all[i])}
+                                   for i in range(len(X_all))],
+                })
             continue
 
         # Step 5: Find solution maximizing Expected Improvement
@@ -217,6 +244,15 @@ def run_parego(problem, config):
         FE += 1
         pbar.update(1)
 
+        if save_history:
+            gen_counter += 1
+            history.append({
+                'generation': gen_counter,
+                'population': [{'genotype': list(X_all[i]),
+                                'fitness': list(F_all[i])}
+                               for i in range(len(X_all))],
+            })
+
     pbar.close()
 
     # Return non-dominated solutions
@@ -234,4 +270,4 @@ def run_parego(problem, config):
     if config.get('verbose', True):
         print(f"\n✅ ParEGO concluído! FE={FE}, Soluções não-dominadas: {len(X_nd)}")
 
-    return df_pareto, info
+    return df_pareto, info, history

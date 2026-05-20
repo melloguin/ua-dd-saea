@@ -274,7 +274,7 @@ def _find_non_dominated(X, F):
     return X[mask], F[mask]
 
 
-def run_kta2(problem, config):
+def run_kta2(problem, config, save_history: bool = False):
     """
     KTA2 online: Kriging-Assisted Two-Archive EA.
 
@@ -287,10 +287,17 @@ def run_kta2(problem, config):
             - 'kta2_eta': infill samples per update (default 5)
             - 'kta2_tau': proportion for insensitive models (default 0.75)
             - 'kta2_phi': random selection size for uncertainty sampling (default 0.1)
+        save_history: when True, records a snapshot of the cumulative
+            archive (X_all, F_all) of all truly-evaluated points at the end
+            of every outer iteration.
 
     Returns:
         df_pareto: DataFrame with non-dominated solutions from DA
         info: dict with metadata
+        history: list of {'generation': int,
+                          'population': [{'genotype': [...],
+                                          'fitness': [...]}, ...]}
+            or ``None`` when save_history=False.
     """
     np.random.seed(config['seed'])
 
@@ -324,6 +331,16 @@ def run_kta2(problem, config):
 
     # Build initial models
     ipi_models = _build_influential_point_insensitive_models(X_all, F_all, n_obj, tau)
+
+    history = [] if save_history else None
+    gen_counter = 0
+    if save_history:
+        history.append({
+            'generation': gen_counter,
+            'population': [{'genotype': list(X_all[i]),
+                            'fitness': list(F_all[i])}
+                           for i in range(len(X_all))],
+        })
 
     pbar = tqdm(total=FEmax, initial=FE, desc="KTA2 (FE)")
 
@@ -436,6 +453,15 @@ def run_kta2(problem, config):
         # Rebuild models
         ipi_models = _build_influential_point_insensitive_models(X_all, F_all, n_obj, tau)
 
+        if save_history:
+            gen_counter += 1
+            history.append({
+                'generation': gen_counter,
+                'population': [{'genotype': list(X_all[i]),
+                                'fitness': list(F_all[i])}
+                               for i in range(len(X_all))],
+            })
+
     pbar.close()
 
     # Return non-dominated from DA
@@ -453,4 +479,4 @@ def run_kta2(problem, config):
     if config.get('verbose', True):
         print(f"\n✅ KTA2 concluído! FE={FE}, Soluções não-dominadas: {len(X_nd)}")
 
-    return df_pareto, info
+    return df_pareto, info, history

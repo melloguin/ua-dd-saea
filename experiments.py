@@ -30,6 +30,32 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
+from tqdm.auto import tqdm
+
+
+class _ProgressParallel(Parallel):
+    """joblib.Parallel subclass with a tqdm progress bar.
+
+    Pass ``total=N`` so the bar knows the denominator up-front. Each
+    completed task increments the bar — works regardless of dispatch order
+    and with any backend.
+    """
+
+    def __init__(self, *args, total=None, tqdm_desc='Tasks', **kwargs):
+        self._total = total
+        self._tqdm_desc = tqdm_desc
+        self._pbar = None
+        super().__init__(*args, **kwargs)
+
+    def __call__(self, *args, **kwargs):
+        with tqdm(total=self._total, desc=self._tqdm_desc) as self._pbar:
+            return super().__call__(*args, **kwargs)
+
+    def print_progress(self):
+        # Called by joblib after each task completes
+        if self._pbar is not None:
+            self._pbar.n = self.n_completed_tasks
+            self._pbar.refresh()
 
 # Ensure src/ is importable when invoked from repo root
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -113,9 +139,10 @@ def _precache_kriging(problems, seeds, cache_dir: str, skip_existing: bool,
             return (p, s, False, f'{type(e).__name__}: {e}')
 
     print(f'[Stage 1/3] Pre-caching Kriging for {len(pairs)} (problem, seed) pairs ...')
-    results = Parallel(n_jobs=n_jobs, backend='loky', verbose=1)(
-        delayed(_one)(p, s) for p, s in pairs
-    )
+    results = _ProgressParallel(
+        n_jobs=n_jobs, backend='loky', verbose=0,
+        total=len(pairs), tqdm_desc='Kriging cache',
+    )(delayed(_one)(p, s) for p, s in pairs)
     failed = [(p, s, e) for p, s, ok, e in results if not ok]
     if failed:
         print(f'  ⚠ {len(failed)} Kriging caches failed:')
@@ -196,7 +223,11 @@ def main():
           f'× seeds={len(args.seeds)}) ...')
 
     t0 = time.time()
-    results = Parallel(n_jobs=args.n_jobs, backend='loky', verbose=5)(
+    results = _ProgressParallel(
+        n_jobs=args.n_jobs, backend='loky', verbose=0,
+        total=len(tasks),
+        tqdm_desc=f'Experiments ({args.n_jobs} workers)',
+    )(
         delayed(_task_safe)(a, p, s, cfg, args.single_dir,
                              args.kriging_cache_dir, args.skip_existing)
         for a, p, s in tasks

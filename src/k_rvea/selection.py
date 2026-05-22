@@ -180,12 +180,3 @@ def rvea_environmental_selection(combined_population, config, reference_vectors_
     return selected
 
 
-def environmental_selection(combined_population, config, V0, generation):
-    """
-    Full RVEA environmental selection:
-    1. Adapt reference vectors
-    2. Select via APD
-    """
-    Va = adapt_reference_vectors(V0, combined_population)
-    selected = rvea_environmental_selection(combined_population, config, Va, generation)
-    return selected

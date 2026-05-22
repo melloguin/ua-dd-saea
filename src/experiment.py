@@ -308,10 +308,11 @@ def experiment_cache_path(algorithm: str, problem: str, seed: int,
                           noisy_problem: bool = True) -> str:
     """Path of the per-experiment parquet cache under ``single_dir``.
 
-    When ``noisy_problem=False`` an ``_clean`` suffix is added so that
-    noisy/clean runs don't overwrite each other.
+    When ``noisy_problem=True`` a ``_noisy`` suffix is added so that
+    noisy/clean runs don't overwrite each other. When ``noisy_problem=False``
+    no suffix is used (clean is the default/canonical cache name).
     """
-    suffix = '' if noisy_problem else '_clean'
+    suffix = '_noisy' if noisy_problem else ''
     return os.path.join(
         single_dir,
         f'{_safe_algo_name(algorithm)}_{problem}_seed{seed}{suffix}.parquet',
@@ -352,11 +353,11 @@ def experiment_sa_moea(
     noisy_problem : bool, default True
         If True (legado), envolve o problema base com ``NoisyProblem`` —
         Kriging eh treinado sobre amostras ruidosas e os algoritmos online
-        (K-RVEA, ParEGO, KTA2) buscam sobre o problema ruidoso.
+        (K-RVEA, ParEGO, KTA2) buscam sobre o problema ruidoso. O cache do
+        parquet recebe sufixo ``_noisy``.
         If False, usa o problema original sem transformacao: Kriging eh
         treinado sobre fitness limpa e os runners recebem o problema base.
-        Caches sao indexados separadamente (sufixo ``_clean``) para evitar
-        colisao entre runs noisy/clean.
+        O cache do parquet NAO recebe sufixo (nome canonico).
 
     Returns
     -------
@@ -447,7 +448,12 @@ def experiment_sa_moea(
 def kriging_cache_path(problem: str, seed: int,
                         cache_dir: str = 'data/experiments/kriging_cache',
                         noisy_problem: bool = True) -> str:
-    suffix = '' if noisy_problem else '_clean'
+    """Path of the Kriging .pkl cache.
+
+    ``noisy_problem=True`` adds a ``_noisy`` suffix; ``noisy_problem=False``
+    uses no suffix (clean is the default/canonical name).
+    """
+    suffix = '_noisy' if noisy_problem else ''
     return os.path.join(cache_dir, f'{problem}_seed{seed}{suffix}.pkl')
 
 
@@ -462,9 +468,10 @@ def train_and_cache_kriging(problem: str, seed: int,
     Returns the path to the pickle file.  Shared across NSGA2_surrogate,
     DR-NSGA-II, Prob-MOEA/D for the same (problem, seed).
 
-    Quando ``noisy_problem=False`` o GP eh treinado sobre fitness limpa
-    do problema original (sem o wrapper NoisyProblem) e o cache eh gravado
-    em um arquivo com sufixo ``_clean``.
+    Quando ``noisy_problem=False`` (default) o GP eh treinado sobre fitness
+    limpa do problema original (sem o wrapper NoisyProblem) e o cache eh
+    gravado SEM sufixo. Quando ``noisy_problem=True`` o cache recebe sufixo
+    ``_noisy``.
     """
     os.makedirs(cache_dir, exist_ok=True)
     path = kriging_cache_path(problem, seed, cache_dir,

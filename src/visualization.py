@@ -1155,3 +1155,89 @@ def _decision_pairwise(problem, X, X_true, X_emp_list, title, pair_vars=None,
     plt.tight_layout()
     plt.show()
     return fig
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  GIF de evolução do Pareto front (estilo display_pareto_fronts_catalog)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def gerar_gif_pareto_evolucao(problem, F_landscape, df_evolution, output_path,
+                              fps=4, xlim=None, ylim=None,
+                              sample_size=20_000,
+                              true_color='white', emp_color='red',
+                              dpi=90):
+    """Gera GIF da evolução do Pareto front empírico, geração a geração,
+    sobre a fitness landscape — usando o mesmo estilo de
+    :func:`display_pareto_fronts_catalog` (suporta apenas problemas bi-objetivo).
+
+    O PF teórico do problema é renderizado em TODOS os frames; o front empírico
+    é o conjunto de pontos da geração ``g`` extraído de ``df_evolution``.
+
+    Parameters
+    ----------
+    problem : Problem
+        Instância do catálogo (com ``true_pareto_front`` e ``n_obj == 2``).
+    F_landscape : np.ndarray (N, 2)
+        Pontos da fitness landscape (background cinza).
+    df_evolution : pd.DataFrame
+        Subset de ``data/experiments/all.parquet`` para um único
+        (algoritmo, problema, seed). Deve conter ao menos as colunas
+        ``generation``, ``f1`` e ``f2``.
+    output_path : str
+        Caminho do arquivo .gif a salvar.
+    fps : int
+        Frames por segundo (default 4).
+    xlim, ylim : tuple (lo, hi), optional
+        Limites dos eixos. None = automático (delegado a ``_plot_pf_2d``).
+    sample_size : int
+        Máximo de pontos do landscape por frame (subsampling).
+    true_color, emp_color : str
+        Cores do PF teórico e do front empírico.
+    dpi : int
+        DPI dos frames gerados (90 = compacto; 100 = padrão).
+
+    Returns
+    -------
+    str
+        ``output_path`` (caminho absoluto do GIF gerado).
+    """
+    import imageio.v3 as imageio
+    import io
+    import os
+
+    if problem.n_obj != 2:
+        raise ValueError("gerar_gif_pareto_evolucao só suporta problemas bi-objetivo.")
+    if df_evolution.empty:
+        raise ValueError("df_evolution está vazio — nada a renderizar.")
+
+    _, F_true = problem.true_pareto_front()
+    gens = sorted(df_evolution['generation'].unique())
+
+    # Subsample fixo da landscape (mesmo background em todos os frames)
+    actual_bg = min(sample_size, len(F_landscape))
+    rng = np.random.default_rng(42)
+    idx_bg = rng.choice(len(F_landscape), actual_bg, replace=False)
+    F_bg = F_landscape[idx_bg]
+
+    frames = []
+    g_last = gens[-1]
+    for g in gens:
+        F_pop = df_evolution.loc[df_evolution['generation'] == g, ['f1', 'f2']].values
+        fig = _plot_pf_2d(
+            F_bg, F_true, [F_pop], [f'Geração {g}'],
+            [emp_color], actual_bg,
+            title=f'{type(problem).__name__} — Geração {g}/{g_last}',
+            xlim=xlim, ylim=ylim, true_color=true_color,
+        )
+        buf = io.BytesIO()
+        fig.savefig(buf, format='png', dpi=dpi, bbox_inches='tight')
+        buf.seek(0)
+        frames.append(imageio.imread(buf))
+        buf.close()
+        plt.close(fig)
+
+    out_dir = os.path.dirname(output_path)
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
+    imageio.imwrite(output_path, frames, duration=1000 / fps, loop=0)
+    return os.path.abspath(output_path)

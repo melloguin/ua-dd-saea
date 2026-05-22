@@ -223,12 +223,16 @@ def _f_cols(df):
 
 
 @st.cache_data(show_spinner='Calculando métricas …')
-def build_metric_table(parquet_mtime: float) -> pd.DataFrame:
+def build_metric_table(parquet_mtime: float, filter_nds: bool) -> pd.DataFrame:
     """Para cada (problem, algo, seed): pega última geração → F_pop → 4 métricas.
     Agrega pela média entre seeds. Retorna long-format DataFrame com colunas
     ['problem','algorithm','HV','IGD','Gamma','Delta'].
 
-    O argumento ``parquet_mtime`` é apenas a chave de cache (mtime do parquet).
+    Se ``filter_nds`` for True, F_pop e filtrado para o front nao dominado
+    (front 0) antes do calculo das metricas — espelha o toggle do notebook 2.
+
+    O argumento ``parquet_mtime`` (mtime do parquet) e ``filter_nds`` compoem
+    a chave de cache.
     """
     df = load_all_parquet()
     rows = []
@@ -248,6 +252,10 @@ def build_metric_table(parquet_mtime: float) -> pd.DataFrame:
                 F_pop = sub_s.loc[sub_s['generation'] == last_gen, f_cols].values.astype(float)
                 if len(F_pop) == 0:
                     continue
+                if filter_nds:
+                    F_pop = F_pop[_nds_filter(F_pop)]
+                    if len(F_pop) == 0:
+                        continue
                 m = evaluate_metrics(F_pop, problem_obj)
                 per_seed.append(m)
             if not per_seed:
@@ -382,10 +390,13 @@ def _nds_filter(F):
     return _NDS.do(F, only_non_dominated_front=True)
 
 
-def build_algo_arrays(df_all: pd.DataFrame, problem: str, algos: list):
+def build_algo_arrays(df_all: pd.DataFrame, problem: str, algos: list,
+                       filter_nds: bool = True):
     """Retorna dois dicts {algo: F_array} e {algo: X_array}, agregando todas as
-    seeds (última geração de cada), com NDS-filter aplicado no espaço de
-    objetivos."""
+    seeds (última geração de cada). Se ``filter_nds`` for True (default), o
+    NDS-filter no espaco de objetivos eh aplicado e apenas o front nao
+    dominado eh retornado; caso contrario, a populacao final completa eh
+    retornada."""
     sub = df_all[df_all['problem'] == problem]
     if sub.empty:
         return {}, {}
@@ -406,9 +417,12 @@ def build_algo_arrays(df_all: pd.DataFrame, problem: str, algos: list):
             parts_X.append(last[x_cols].values.astype(float))
         F = np.vstack(parts_F)
         X = np.vstack(parts_X)
-        idx = _nds_filter(F)
-        out_F[algo] = F[idx]
-        out_X[algo] = X[idx]
+        if filter_nds:
+            idx = _nds_filter(F)
+            F = F[idx]
+            X = X[idx]
+        out_F[algo] = F
+        out_X[algo] = X
     return out_F, out_X
 
 
@@ -617,6 +631,17 @@ st.set_page_config(page_title='SAEA Dashboard', layout='wide')
 
 # ── Sidebar ────────────────────────────────────────────────────────────────
 with st.sidebar:
+    st.header('Análise')
+    visualizar_front_nao_dominado = st.checkbox(
+        'Analisar apenas o front não-dominado',
+        value=True,
+        help=('Se ativo, métricas (HV/IGD/Γ/Δ) e visualizações '
+              '(Pareto fronts, decision space, PCA, pairplot) usam apenas '
+              'as soluções do front 0 da população final. Caso contrário, '
+              'usa a população final completa, incluindo dominadas.'),
+        key='filter_nds_toggle')
+
+    st.divider()
     st.header('Pesos do Multicritério')
     w_hv    = st.number_input('peso Hypervolume', 0.0, 10.0, 1.0, 0.5)
     w_igd   = st.number_input('peso IGD',         0.0, 10.0, 1.0, 0.5)
@@ -714,7 +739,7 @@ weights = {'HV': w_hv, 'IGD': w_igd, 'Gamma': w_gamma, 'Delta': w_delta}
 # ── Tabela e gráfico ───────────────────────────────────────────────────────
 try:
     parquet_mtime = ALL_PARQUET.stat().st_mtime
-    metric_table = build_metric_table(parquet_mtime)
+    metric_table = build_metric_table(parquet_mtime, visualizar_front_nao_dominado)
 except Exception as e:
     st.error(f'Falha ao carregar/processar {ALL_PARQUET}: {e}')
     st.stop()
@@ -749,7 +774,8 @@ cfg['azim'] = azim
 cfg['roll'] = roll
 
 X_landscape, F_landscape = load_landscape(problem_name)
-algo_fronts, algo_X_dict = build_algo_arrays(df_all, problem_name, selected_algos)
+algo_fronts, algo_X_dict = build_algo_arrays(df_all, problem_name, selected_algos,
+                                              filter_nds=visualizar_front_nao_dominado)
 
 col1, col2 = st.columns(2)
 with col1:

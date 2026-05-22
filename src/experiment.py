@@ -188,11 +188,15 @@ def _train_kriging_from_landscape(clean_problem, noisy_problem, seed: int,
     """Train one Kriging (GP) model per objective.
 
     Replaces the old ``train_kriging_surrogates(df_previsao, ...)`` dependency:
-    samples ``n_train`` points via Sobol within the problem bounds and queries
-    the ``noisy_problem`` (NoisyProblem wrapper) to obtain noisy fitness for
-    training.  Deterministic given ``(problem, seed)``.
+    samples ``n_train`` points via Latin Hypercube Sampling within the problem
+    bounds and queries the ``noisy_problem`` (NoisyProblem wrapper) to obtain
+    noisy fitness for training.  Deterministic given ``(problem, seed)``.
+
+    LHS is preferred over Sobol here because ``n_train`` is not constrained to
+    a power of 2 (Sobol's balance properties require ``n = 2^k``); LHS gives
+    well-spread coverage for any ``n`` and is the canonical DOE for kriging.
     """
-    sampler = qmc.Sobol(d=clean_problem.n_var, seed=seed)
+    sampler = qmc.LatinHypercube(d=clean_problem.n_var, seed=seed)
     U = sampler.random(n_train)
     X = qmc.scale(U, clean_problem.xl, clean_problem.xu)
     out = {'F': np.zeros((n_train, clean_problem.n_obj))}
@@ -221,9 +225,17 @@ def _build_config(problem_name: str, seed: int, clean_problem,
     return _apply_algorithm_overrides(cfg, algorithm, clean_problem.n_var)
 
 
-def _invoke_runner(algorithm: str, cfg: dict, clean_problem, noisy_problem,
-                   kriging_models):
+def _invoke_runner(algorithm: str, cfg: dict, clean_problem,
+                   problem_for_runners, kriging_models):
     """Dispatch to the appropriate runner with ``save_history=True``.
+
+    Parameters
+    ----------
+    problem_for_runners : pymoo Problem
+        The problem instance passed to the online runners (K-RVEA, ParEGO,
+        KTA2). It is the ``NoisyProblem`` wrapper when ``noisy_problem=True``
+        in the caller, and the bare ``clean_problem`` when ``False``.
+        (Previously misnamed ``noisy_problem``.)
 
     Returns the ``history`` list (see _history_to_long_df for schema).
     """
@@ -237,11 +249,11 @@ def _invoke_runner(algorithm: str, cfg: dict, clean_problem, noisy_problem,
         _, _, history = run_prob_moead(cfg, kriging_models=kriging_models,
                                        save_history=True)
     elif algorithm == 'K-RVEA':
-        _, _, history = run_k_rvea(noisy_problem, cfg, save_history=True)
+        _, _, history = run_k_rvea(problem_for_runners, cfg, save_history=True)
     elif algorithm == 'ParEGO':
-        _, _, history = run_parego(noisy_problem, cfg, save_history=True)
+        _, _, history = run_parego(problem_for_runners, cfg, save_history=True)
     elif algorithm == 'KTA2':
-        _, _, history = run_kta2(noisy_problem, cfg, save_history=True)
+        _, _, history = run_kta2(problem_for_runners, cfg, save_history=True)
     else:
         raise ValueError(f"Unknown algorithm: {algorithm}")
     return history
@@ -400,8 +412,16 @@ def experiment_sa_moea(
         f_cols = [f'f{j+1}' for j in range(clean_problem.n_obj)]
         mean_f = df_land[f_cols].mean().to_numpy()
         problem_for_runners = NoisyProblem(clean_problem, NOISE_CONFIG, mean_f)
+        assert isinstance(problem_for_runners, NoisyProblem), \
+            "noisy_problem=True deve produzir um wrapper NoisyProblem"
     else:
         problem_for_runners = clean_problem
+        # Invariante: com noisy_problem=False, NAO deve haver wrapper de ruido.
+        # Garante que nenhum caminho acima injetou um NoisyProblem por engano.
+        assert not isinstance(problem_for_runners, NoisyProblem), \
+            "noisy_problem=False mas problem_for_runners ficou NoisyProblem"
+        assert problem_for_runners is clean_problem, \
+            "noisy_problem=False exige que os runners recebam o clean_problem"
 
     # 2. Kriging surrogates for offline_kriging algorithms
     mode = ALGORITHM_DISPATCH[algorithm]['mode']

@@ -70,8 +70,44 @@ from src.experiment import (
 )
 
 
-DEFAULT_ALGORITHMS = list(ALGORITHM_DISPATCH)
+# ── ALGORITMOS A RODAR ────────────────────────────────────────────────────
+# Disponíveis: 'NSGA2_surrogate', 'DR-NSGA-II', 'Prob-MOEA/D',
+#              'K-RVEA', 'ParEGO', 'KTA2'
+DEFAULT_ALGORITHMS = [
+    'NSGA2_surrogate',
+    'DR-NSGA-II',
+    'Prob-MOEA/D',
+    'K-RVEA',
+    'ParEGO',
+    'KTA2',
+]
+
+# ── PROBLEMAS A RODAR ─────────────────────────────────────────────────────
+# Disponíveis (catálogo completo em src/experiment.py::PROBLEM_CLASSES):
+#   MMF1, MMF4, MMF11_L, MMF16_L3, MMF16_20,
+#   ZDT1, ZDT3, ZDT4, ZDT6,
+#   DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ7,
+#   WFG1, WFG2, WFG4, WFG5, WFG9,
+#   BBOB1, BBOB5, BBOB17, BBOB22, BBOB37, BBOB49, BBOB55
+DEFAULT_PROBLEMS = [
+    'MMF1', 'MMF4', 'MMF11_L', 'MMF16_L3', 'MMF16_20',
+    'ZDT1', 'ZDT3', 'ZDT4', 'ZDT6',
+    'DTLZ1', 'DTLZ2', 'DTLZ3', 'DTLZ4', 'DTLZ7',
+    'WFG1', 'WFG2', 'WFG4', 'WFG5', 'WFG9',
+    'BBOB1', 'BBOB5', 'BBOB17', 'BBOB22', 'BBOB37', 'BBOB49', 'BBOB55',
+]
+
+# ── SEEDS A RODAR ─────────────────────────────────────────────────────────
 DEFAULT_SEEDS = [42, 43, 44, 45, 46]
+
+# ── NOISY PROBLEM TOGGLE ──────────────────────────────────────────────────
+# Se True (legado), os algoritmos online (K-RVEA, ParEGO, KTA2) e o
+# treinamento Kriging usam o wrapper ``NoisyProblem`` (NOISE_CONFIG).
+# Se False, usa os problemas originais sem transformacao (fitness limpa).
+# Caches em ``single_dir`` / ``kriging_cache_dir`` sao indexados separadamente
+# (sufixo ``_clean``) para evitar colisao entre runs noisy/clean.
+NOISY_PROBLEM = False
+
 DEFAULT_SINGLE_DIR = 'data/experiments/single'
 DEFAULT_KRIGING_CACHE_DIR = 'data/experiments/kriging_cache'
 DEFAULT_OUT = 'data/experiments/all.parquet'
@@ -94,33 +130,31 @@ def _build_cfg(modo_rapido: bool) -> dict:
 
 def _task_safe(algo: str, problem: str, seed: int, cfg: dict,
                single_dir: str, kriging_cache_dir: str,
-               skip_existing: bool):
-    """One unit of parallel work — one experiment, one parquet, one tuple."""
-    out_path = os.path.join(single_dir, f'{_safe(algo)}_{problem}_seed{seed}.parquet')
+               load_memory: bool = True,
+               noisy_problem: bool = True):
+    """One unit of parallel work — one experiment, one parquet, one tuple.
 
-    if skip_existing and os.path.exists(out_path):
-        try:
-            df = pd.read_parquet(out_path)
-            return (algo, problem, seed, True, 'skip_existing', df)
-        except Exception as e:
-            # Cached file corrupt — fall through to re-run
-            pass
-
+    ``load_memory`` is forwarded to ``experiment_sa_moea`` so the cache
+    lookup in ``single_dir`` is handled in a single place.
+    """
     try:
-        kr = load_kriging_cache(problem, seed, cache_dir=kriging_cache_dir)
+        kr = load_kriging_cache(problem, seed, cache_dir=kriging_cache_dir,
+                                noisy_problem=noisy_problem)
         df = experiment_sa_moea(algo, problem, seed, config=cfg,
-                                 kriging_models=kr)
-        df.to_parquet(out_path)
+                                 kriging_models=kr,
+                                 load_memory=load_memory,
+                                 single_dir=single_dir,
+                                 noisy_problem=noisy_problem)
         return (algo, problem, seed, True, '', df)
     except Exception as e:
         err = f'{type(e).__name__}: {e}'
-        # Capture traceback for diagnostics
         tb = traceback.format_exc()
         return (algo, problem, seed, False, err + '\n' + tb, None)
 
 
 def _precache_kriging(problems, seeds, cache_dir: str, skip_existing: bool,
-                       n_train: int = 500, n_jobs: int = 1):
+                       n_train: int = 500, n_jobs: int = 1,
+                       noisy_problem: bool = True):
     """Train and cache Kriging models for every (problem, seed) pair.
 
     Same models are reused by NSGA2_surrogate, DR-NSGA-II, Prob-MOEA/D.
@@ -133,7 +167,8 @@ def _precache_kriging(problems, seeds, cache_dir: str, skip_existing: bool,
         try:
             train_and_cache_kriging(p, s, cache_dir=cache_dir,
                                      n_train=n_train,
-                                     skip_existing=skip_existing)
+                                     skip_existing=skip_existing,
+                                     noisy_problem=noisy_problem)
             return (p, s, True, '')
         except Exception as e:
             return (p, s, False, f'{type(e).__name__}: {e}')
@@ -168,7 +203,7 @@ def main():
                                  formatter_class=argparse.RawTextHelpFormatter)
     p.add_argument('--algorithms', nargs='+', default=DEFAULT_ALGORITHMS,
                     help='Algorithms to run (subset of ALGORITHM_DISPATCH).')
-    p.add_argument('--problems', nargs='+', default=ALL_PROBLEMS,
+    p.add_argument('--problems', nargs='+', default=DEFAULT_PROBLEMS,
                     help='Problems to run (short names from PROBLEM_CLASSES).')
     p.add_argument('--seeds', nargs='+', type=int, default=DEFAULT_SEEDS,
                     help='Random seeds.')
@@ -183,11 +218,24 @@ def main():
     p.add_argument('--out', default=DEFAULT_OUT,
                     help=f'Consolidated parquet path (default: {DEFAULT_OUT}).')
     p.add_argument('--skip-existing', action='store_true',
-                    help='Skip tasks whose parquet already exists.')
+                    help='(legacy alias of load_memory=True; kept for CLI compat).')
+    p.add_argument('--no-load-memory', action='store_true',
+                    help='Disable the per-experiment parquet cache in single_dir '
+                         '(re-runs every (algo, problem, seed) from scratch).')
     p.add_argument('--no-kriging-cache', action='store_true',
                     help='Skip pre-caching of Kriging models (re-train per task).')
     p.add_argument('--no-consolidate', action='store_true',
                     help='Skip the final pd.concat / out.parquet step.')
+    noisy_group = p.add_mutually_exclusive_group()
+    noisy_group.add_argument('--noisy-problem', dest='noisy_problem',
+                              action='store_true',
+                              help='Wrap problems with NoisyProblem (default '
+                                   'follows NOISY_PROBLEM constant).')
+    noisy_group.add_argument('--no-noisy-problem', dest='noisy_problem',
+                              action='store_false',
+                              help='Use original (clean) problems without '
+                                   'NoisyProblem wrapping.')
+    p.set_defaults(noisy_problem=NOISY_PROBLEM)
     args = p.parse_args()
 
     # Validate inputs
@@ -205,13 +253,17 @@ def main():
 
     cfg = _build_cfg(args.modo_rapido)
 
+    print(f"\n[Config] noisy_problem={args.noisy_problem} "
+          f"({'NoisyProblem wrapper' if args.noisy_problem else 'problemas originais sem ruido'})")
+
     # ── Stage 1: Pre-cache Kriging ────────────────────────────────────────
     if not args.no_kriging_cache:
         _precache_kriging(args.problems, args.seeds,
                            cache_dir=args.kriging_cache_dir,
                            skip_existing=args.skip_existing,
                            n_train=cfg.get('n_kriging_train', 500),
-                           n_jobs=args.n_jobs)
+                           n_jobs=args.n_jobs,
+                           noisy_problem=args.noisy_problem)
 
     # ── Stage 2: Parallel experiments ─────────────────────────────────────
     tasks = [(a, p, s)
@@ -222,6 +274,8 @@ def main():
           f'(algorithms={len(args.algorithms)} × problems={len(args.problems)} '
           f'× seeds={len(args.seeds)}) ...')
 
+    load_memory = not args.no_load_memory
+
     t0 = time.time()
     results = _ProgressParallel(
         n_jobs=args.n_jobs, backend='loky', verbose=0,
@@ -229,7 +283,8 @@ def main():
         tqdm_desc=f'Experiments ({args.n_jobs} workers)',
     )(
         delayed(_task_safe)(a, p, s, cfg, args.single_dir,
-                             args.kriging_cache_dir, args.skip_existing)
+                             args.kriging_cache_dir, load_memory,
+                             args.noisy_problem)
         for a, p, s in tasks
     )
     elapsed = time.time() - t0

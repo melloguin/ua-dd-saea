@@ -33,10 +33,10 @@ from sklearn.gaussian_process.kernels import Matern, ConstantKernel
 
 from src import problems as _problems_mod
 from src.processing import NoisyProblem
-from src.nsgaII import run_my_nsga2
-from src.dr_nsgaII import run_dr_nsga2
+from src.nsgaII_runner import run_my_nsga2
+from src.k_rvea_runner import run_k_rvea
+from src.dr_nsgaII_runner import run_dr_nsga2
 from src.prob_moead_runner import run_prob_moead
-from src.k_rvea_online_runner import run_k_rvea_online
 from src.parego_runner import run_parego
 from src.kta2_runner import run_kta2
 
@@ -91,7 +91,7 @@ ALGORITHM_DISPATCH: dict[str, dict] = {
     'NSGA2_surrogate':  {'mode': 'offline_kriging', 'runner': run_my_nsga2},
     'DR-NSGA-II':       {'mode': 'offline_kriging', 'runner': run_dr_nsga2},
     'Prob-MOEA/D':      {'mode': 'offline_kriging', 'runner': run_prob_moead},
-    'K-RVEA':           {'mode': 'online_noisy',    'runner': run_k_rvea_online},
+    'K-RVEA':           {'mode': 'online_noisy',    'runner': run_k_rvea},
     'ParEGO':           {'mode': 'online_noisy',    'runner': run_parego},
     'KTA2':             {'mode': 'online_noisy',    'runner': run_kta2},
 }
@@ -237,7 +237,7 @@ def _invoke_runner(algorithm: str, cfg: dict, clean_problem, noisy_problem,
         _, _, history = run_prob_moead(cfg, kriging_models=kriging_models,
                                        save_history=True)
     elif algorithm == 'K-RVEA':
-        _, _, history = run_k_rvea_online(noisy_problem, cfg, save_history=True)
+        _, _, history = run_k_rvea(noisy_problem, cfg, save_history=True)
     elif algorithm == 'ParEGO':
         _, _, history = run_parego(noisy_problem, cfg, save_history=True)
     elif algorithm == 'KTA2':
@@ -296,6 +296,28 @@ def _history_to_long_df(history, algorithm: str, problem_name: str,
 #  Public entry point
 # ═══════════════════════════════════════════════════════════════════════════
 
+DEFAULT_SINGLE_DIR = 'data/experiments/single'
+
+
+def _safe_algo_name(name: str) -> str:
+    return name.replace('/', '_').replace(' ', '_').replace('-', '_').lower()
+
+
+def experiment_cache_path(algorithm: str, problem: str, seed: int,
+                          single_dir: str = DEFAULT_SINGLE_DIR,
+                          noisy_problem: bool = True) -> str:
+    """Path of the per-experiment parquet cache under ``single_dir``.
+
+    When ``noisy_problem=False`` an ``_clean`` suffix is added so that
+    noisy/clean runs don't overwrite each other.
+    """
+    suffix = '' if noisy_problem else '_clean'
+    return os.path.join(
+        single_dir,
+        f'{_safe_algo_name(algorithm)}_{problem}_seed{seed}{suffix}.parquet',
+    )
+
+
 def experiment_sa_moea(
     algorithm: str,
     problem: str,
@@ -304,6 +326,9 @@ def experiment_sa_moea(
     *,
     kriging_models=None,
     sampling_method: str = 'sobol',
+    load_memory: bool = True,
+    single_dir: str = DEFAULT_SINGLE_DIR,
+    noisy_problem: bool = True,
 ) -> pd.DataFrame:
     """Run one (algorithm, problem, seed) experiment with population logging.
 
@@ -317,6 +342,21 @@ def experiment_sa_moea(
         skips internal Kriging training (used by ``experiments.py`` cache).
     sampling_method : one of {'sobol', 'latin_hypercube', 'random'} —
         used to locate the cached landscape parquet for the mean_f estimate.
+    load_memory : bool, default True
+        If True, before running, check ``single_dir`` for a parquet matching
+        ``(algorithm, problem, seed)``; if present, load and return it instead
+        of recomputing. The freshly computed DataFrame is also saved back to
+        ``single_dir`` so the next call can hit the cache.
+    single_dir : str, default ``data/experiments/single``
+        Directory used for the per-experiment parquet cache.
+    noisy_problem : bool, default True
+        If True (legado), envolve o problema base com ``NoisyProblem`` —
+        Kriging eh treinado sobre amostras ruidosas e os algoritmos online
+        (K-RVEA, ParEGO, KTA2) buscam sobre o problema ruidoso.
+        If False, usa o problema original sem transformacao: Kriging eh
+        treinado sobre fitness limpa e os runners recebem o problema base.
+        Caches sao indexados separadamente (sufixo ``_clean``) para evitar
+        colisao entre runs noisy/clean.
 
     Returns
     -------
@@ -325,6 +365,18 @@ def experiment_sa_moea(
         x_1..x_n, f1..fm``
     where ``f*`` are clean (true) fitness values.
     """
+    if load_memory:
+        cache_path = experiment_cache_path(algorithm, problem, seed, single_dir,
+                                            noisy_problem=noisy_problem)
+        if os.path.exists(cache_path):
+            try:
+                df_cached = pd.read_parquet(cache_path)
+                print(f'parquet {cache_path} encontrado')
+                return df_cached
+            except Exception:
+                # corrupt cache → fall through and recompute
+                pass
+
     if algorithm not in ALGORITHM_DISPATCH:
         raise ValueError(f"Unknown algorithm '{algorithm}'. "
                          f"Available: {list(ALGORITHM_DISPATCH)}")
@@ -337,13 +389,18 @@ def experiment_sa_moea(
 
     cfg = _build_config(problem, seed, clean_problem, algorithm, config)
 
-    # 1. Build NoisyProblem from landscape mean_f
-    base_dir = Path('data/dataframes') / problem
-    landscape_path = base_dir / f'df_{problem}_landscape_{sampling_method}.parquet'
-    df_land = pd.read_parquet(landscape_path)
-    f_cols = [f'f{j+1}' for j in range(clean_problem.n_obj)]
-    mean_f = df_land[f_cols].mean().to_numpy()
-    noisy_problem = NoisyProblem(clean_problem, NOISE_CONFIG, mean_f)
+    # 1. Build NoisyProblem from landscape mean_f (apenas se noisy_problem=True).
+    #    Caso contrario, os runners online recebem o problema limpo e o
+    #    Kriging eh treinado sobre fitness limpa.
+    if noisy_problem:
+        base_dir = Path('data/dataframes') / problem
+        landscape_path = base_dir / f'df_{problem}_landscape_{sampling_method}.parquet'
+        df_land = pd.read_parquet(landscape_path)
+        f_cols = [f'f{j+1}' for j in range(clean_problem.n_obj)]
+        mean_f = df_land[f_cols].mean().to_numpy()
+        problem_for_runners = NoisyProblem(clean_problem, NOISE_CONFIG, mean_f)
+    else:
+        problem_for_runners = clean_problem
 
     # 2. Kriging surrogates for offline_kriging algorithms
     mode = ALGORITHM_DISPATCH[algorithm]['mode']
@@ -351,14 +408,14 @@ def experiment_sa_moea(
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', category=ConvergenceWarning)
             kriging_models = _train_kriging_from_landscape(
-                clean_problem, noisy_problem, seed,
+                clean_problem, problem_for_runners, seed,
                 n_train=cfg.get('n_kriging_train', 500))
 
     # 3. Run with save_history=True
     with warnings.catch_warnings():
         warnings.simplefilter('ignore', category=ConvergenceWarning)
         history = _invoke_runner(algorithm, cfg, clean_problem,
-                                  noisy_problem, kriging_models)
+                                  problem_for_runners, kriging_models)
 
     if history is None or len(history) == 0:
         # Defensive: return empty DataFrame with expected columns
@@ -370,6 +427,16 @@ def experiment_sa_moea(
     # 4. Convert history → long-DataFrame with clean re-eval
     df_long = _history_to_long_df(history, algorithm, problem, seed,
                                    clean_problem)
+
+    if load_memory:
+        cache_path = experiment_cache_path(algorithm, problem, seed, single_dir,
+                                            noisy_problem=noisy_problem)
+        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+        try:
+            df_long.to_parquet(cache_path)
+        except Exception:
+            pass
+
     return df_long
 
 
@@ -378,37 +445,48 @@ def experiment_sa_moea(
 # ═══════════════════════════════════════════════════════════════════════════
 
 def kriging_cache_path(problem: str, seed: int,
-                        cache_dir: str = 'data/experiments/kriging_cache') -> str:
-    return os.path.join(cache_dir, f'{problem}_seed{seed}.pkl')
+                        cache_dir: str = 'data/experiments/kriging_cache',
+                        noisy_problem: bool = True) -> str:
+    suffix = '' if noisy_problem else '_clean'
+    return os.path.join(cache_dir, f'{problem}_seed{seed}{suffix}.pkl')
 
 
 def train_and_cache_kriging(problem: str, seed: int,
                              cache_dir: str = 'data/experiments/kriging_cache',
                              n_train: int = 500,
                              sampling_method: str = 'sobol',
-                             skip_existing: bool = True) -> str:
+                             skip_existing: bool = True,
+                             noisy_problem: bool = True) -> str:
     """Train Kriging models for (problem, seed) and pickle them.
 
     Returns the path to the pickle file.  Shared across NSGA2_surrogate,
     DR-NSGA-II, Prob-MOEA/D for the same (problem, seed).
+
+    Quando ``noisy_problem=False`` o GP eh treinado sobre fitness limpa
+    do problema original (sem o wrapper NoisyProblem) e o cache eh gravado
+    em um arquivo com sufixo ``_clean``.
     """
     os.makedirs(cache_dir, exist_ok=True)
-    path = kriging_cache_path(problem, seed, cache_dir)
+    path = kriging_cache_path(problem, seed, cache_dir,
+                              noisy_problem=noisy_problem)
     if skip_existing and os.path.exists(path):
         return path
 
     clean_problem = _instantiate_problem(problem)
-    base_dir = Path('data/dataframes') / problem
-    landscape_path = base_dir / f'df_{problem}_landscape_{sampling_method}.parquet'
-    df_land = pd.read_parquet(landscape_path)
-    f_cols = [f'f{j+1}' for j in range(clean_problem.n_obj)]
-    mean_f = df_land[f_cols].mean().to_numpy()
-    noisy_problem = NoisyProblem(clean_problem, NOISE_CONFIG, mean_f)
+    if noisy_problem:
+        base_dir = Path('data/dataframes') / problem
+        landscape_path = base_dir / f'df_{problem}_landscape_{sampling_method}.parquet'
+        df_land = pd.read_parquet(landscape_path)
+        f_cols = [f'f{j+1}' for j in range(clean_problem.n_obj)]
+        mean_f = df_land[f_cols].mean().to_numpy()
+        problem_for_training = NoisyProblem(clean_problem, NOISE_CONFIG, mean_f)
+    else:
+        problem_for_training = clean_problem
 
     with warnings.catch_warnings():
         warnings.simplefilter('ignore', category=ConvergenceWarning)
         models = _train_kriging_from_landscape(
-            clean_problem, noisy_problem, seed, n_train=n_train)
+            clean_problem, problem_for_training, seed, n_train=n_train)
 
     with open(path, 'wb') as f:
         pickle.dump(models, f)
@@ -416,9 +494,11 @@ def train_and_cache_kriging(problem: str, seed: int,
 
 
 def load_kriging_cache(problem: str, seed: int,
-                        cache_dir: str = 'data/experiments/kriging_cache'):
+                        cache_dir: str = 'data/experiments/kriging_cache',
+                        noisy_problem: bool = True):
     """Return pickled Kriging models for (problem, seed) or None if missing."""
-    path = kriging_cache_path(problem, seed, cache_dir)
+    path = kriging_cache_path(problem, seed, cache_dir,
+                              noisy_problem=noisy_problem)
     if not os.path.exists(path):
         return None
     with open(path, 'rb') as f:

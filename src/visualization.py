@@ -19,6 +19,8 @@ The same code path handles either case; nothing extra is needed for the
 multi-set view beyond passing the lists.
 """
 
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
@@ -26,6 +28,54 @@ import matplotlib.colors as mcolors
 plt.style.use('seaborn-v0_8-darkgrid')
 plt.rcParams['figure.figsize'] = (14, 6)
 plt.rcParams['lines.linewidth'] = 0.5
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Cache de imagens (compartilhado pelas funcoes publicas de visualizacao)
+# ═══════════════════════════════════════════════════════════════════════════
+
+DEFAULT_IMAGE_CACHE_DIR = 'data/images'
+DEFAULT_IMAGE_DPI = 300
+
+
+def _image_cache_path(cache_dir, cache_name, cache_tag, kind):
+    """Resolve o caminho do arquivo de cache para uma figura.
+
+    Retorna ``None`` quando ``cache_name`` nao for fornecido (cache desativado).
+    Estrutura: ``{cache_dir}/{cache_name}/{cache_tag}_{kind}.png``
+    (``cache_tag`` opcional — sem prefixo se None).
+    """
+    if not cache_name:
+        return None
+    base = cache_dir or DEFAULT_IMAGE_CACHE_DIR
+    fname = f'{cache_tag}_{kind}.png' if cache_tag else f'{kind}.png'
+    return os.path.join(base, cache_name, fname)
+
+
+def _try_display_cached_image(path):
+    """Se ``path`` aponta para uma imagem existente, exibe e retorna True."""
+    if not path or not os.path.exists(path):
+        return False
+    try:
+        from IPython.display import Image, display
+        display(Image(filename=path))
+    except ImportError:
+        img = plt.imread(path)
+        fig, ax = plt.subplots(figsize=(12, 10))
+        ax.imshow(img)
+        ax.axis('off')
+        plt.show()
+    print(f'  Imagem carregada do cache: {path}')
+    return True
+
+
+def _save_figure(fig, path, dpi=DEFAULT_IMAGE_DPI):
+    """Salva a figura em alta qualidade (cria diretorios se necessario)."""
+    if not path:
+        return
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    fig.savefig(path, dpi=dpi, bbox_inches='tight')
+    print(f'  Imagem salva em: {path}')
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -46,7 +96,11 @@ def display_pareto_fronts_catalog(problem,
                                   ylim=None,
                                   zlim=None,
                                   true_color='white',
-                                  emp_color='red'):
+                                  emp_color='red',
+                                  cache_dir=None,
+                                  cache_name=None,
+                                  cache_tag=None,
+                                  load_cache_image=False):
     """Mostra o Pareto front teórico + N fronts empíricos sobre a landscape.
 
     Suporta problemas com 2 ou 3 objetivos (2D ou 3D). O número de fronts
@@ -77,8 +131,21 @@ def display_pareto_fronts_catalog(problem,
         Cor do PF teórico. ``'white'`` → branco com contorno preto.
     emp_color : str
         Cor default do primeiro empírico quando ``front_colors`` é None.
+    cache_dir, cache_name, cache_tag : str, optional
+        Configuracao do cache de imagens. Quando ``cache_name`` eh fornecido,
+        a figura gerada eh salva em
+        ``{cache_dir or 'data/images'}/{cache_name}/{cache_tag}_{kind}.png``
+        (``cache_tag`` opcional). ``kind`` eh ``pareto_2d`` ou ``pareto_3d``.
+    load_cache_image : bool
+        Quando True e a imagem cacheada existir, exibe o arquivo salvo em
+        vez de regenerar o plot.
     """
     n_obj = problem.n_obj
+    kind = 'pareto_2d' if n_obj == 2 else 'pareto_3d'
+    save_path = _image_cache_path(cache_dir, cache_name, cache_tag, kind)
+
+    if load_cache_image and _try_display_cached_image(save_path):
+        return None
 
     if pareto_fronts_list is None:
         pareto_fronts_list = []
@@ -99,12 +166,14 @@ def display_pareto_fronts_catalog(problem,
 
     if n_obj == 2:
         return _plot_pf_2d(F_bg, F_true, pareto_fronts_list, front_names,
-                           colors, actual, title, xlim, ylim, true_color)
+                           colors, actual, title, xlim, ylim, true_color,
+                           save_path=save_path)
     else:
         return _plot_pf_3d(F_bg, F_true, pareto_fronts_list, front_names,
                            colors, actual, title,
                            elev_offset, azim_offset, roll_offset,
-                           xlim, ylim, zlim, true_color)
+                           xlim, ylim, zlim, true_color,
+                           save_path=save_path)
 
 
 def _nice_limits(arrays, axis):
@@ -114,7 +183,8 @@ def _nice_limits(arrays, axis):
 
 
 def _plot_pf_2d(F_bg, F_true, fronts, names, colors, n_sample,
-                title, xlim=None, ylim=None, true_color='white'):
+                title, xlim=None, ylim=None, true_color='white',
+                save_path=None):
     fig, ax = plt.subplots(figsize=(10, 10))
 
     ax.scatter(F_bg[:, 0], F_bg[:, 1], c='lightgray', s=21, alpha=0.3,
@@ -147,13 +217,15 @@ def _plot_pf_2d(F_bg, F_true, fronts, names, colors, n_sample,
     if title:
         ax.set_title(title, fontsize=15, fontweight='bold')
     plt.tight_layout()
+    _save_figure(fig, save_path)
     plt.show()
     return fig
 
 
 def _plot_pf_3d(F_bg, F_true, fronts, names, colors, n_sample,
                 title, elev_offset=-15, azim_offset=225, roll_offset=0,
-                xlim=None, ylim=None, zlim=None, true_color='white'):
+                xlim=None, ylim=None, zlim=None, true_color='white',
+                save_path=None):
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111, projection='3d')
 
@@ -188,6 +260,7 @@ def _plot_pf_3d(F_bg, F_true, fronts, names, colors, n_sample,
     if title:
         ax.set_title(title, fontsize=15, fontweight='bold')
     plt.tight_layout()
+    _save_figure(fig, save_path)
     plt.show()
     return fig
 
@@ -204,7 +277,9 @@ def display_decision_space(problem, X_landscape, F_landscape,
                            show_2d_pca=True,
                            show_3d_pca=True,
                            cmap='Greys',
-                           elev_offset=-15, azim_offset=225, roll_offset=0):
+                           elev_offset=-15, azim_offset=225, roll_offset=0,
+                           cache_dir=None, cache_name=None, cache_tag=None,
+                           load_cache_image=False):
     """Dispatch decision-space plots based on ``n_var``.
 
     Aceita **um ou vários** conjuntos empíricos de pontos no espaço de
@@ -239,6 +314,15 @@ def display_decision_space(problem, X_landscape, F_landscape,
         Habilita/desabilita as grades de PCA para n_var > 3.
     elev_offset, azim_offset, roll_offset : float
         Rotações 3D (mesma convenção de ``display_pareto_fronts_catalog``).
+    cache_dir, cache_name, cache_tag : str, optional
+        Configuracao do cache de imagens. Quando ``cache_name`` eh fornecido,
+        cada sub-figura gerada eh salva em
+        ``{cache_dir or 'data/images'}/{cache_name}/{cache_tag}_{kind}.png``.
+        Kinds: ``decision_heatmap_2d``, ``decision_scatter_3d``,
+        ``decision_pca_2d``, ``decision_pca_3d``, ``decision_pairwise``.
+    load_cache_image : bool
+        Quando True e a imagem cacheada existir, exibe o arquivo salvo em
+        vez de regenerar o plot (avaliado por sub-figura individualmente).
     """
     if isinstance(X_emp_list, np.ndarray) and X_emp_list.ndim == 2:
         X_emp_list = [X_emp_list]
@@ -262,26 +346,51 @@ def display_decision_space(problem, X_landscape, F_landscape,
               roll_offset=roll_offset)
     n = problem.n_var
 
+    def _path(kind):
+        return _image_cache_path(cache_dir, cache_name, cache_tag, kind)
+
+    def _cached_or_call(kind, generator):
+        path = _path(kind)
+        if load_cache_image and _try_display_cached_image(path):
+            return
+        generator(path)
+
     # 2 variáveis de decisão (plot 2d landscape)
     if n == 2:
-        _decision_heatmap_2d(problem, X_landscape, F_landscape,
-                             X_true, X_emp_list, title, **kw)
+        _cached_or_call(
+            'decision_heatmap_2d',
+            lambda p: _decision_heatmap_2d(problem, X_landscape, F_landscape,
+                                           X_true, X_emp_list, title,
+                                           save_path=p, **kw))
 
     # 3 variáveis de decisão (plot 3d landscape)
     elif n == 3:
-        _decision_scatter_3d(problem, X_landscape, F_landscape,
-                             X_true, X_emp_list, title, **kw)
+        _cached_or_call(
+            'decision_scatter_3d',
+            lambda p: _decision_scatter_3d(problem, X_landscape, F_landscape,
+                                           X_true, X_emp_list, title,
+                                           save_path=p, **kw))
 
     # > 3 variáveis de decisão (necessita redução ou visualizacao pairwise)
     else:
         if show_2d_pca:
-            _decision_pca_by_obj_2d(X_landscape, F_landscape, X_true, X_emp_list,
-                                    title, **kw)
+            _cached_or_call(
+                'decision_pca_2d',
+                lambda p: _decision_pca_by_obj_2d(X_landscape, F_landscape,
+                                                  X_true, X_emp_list, title,
+                                                  save_path=p, **kw))
         if show_3d_pca:
-            _decision_pca_by_obj_3d(X_landscape, F_landscape, X_true, X_emp_list,
-                                    title, **kw)
-        _decision_pairwise(problem, X_landscape, X_true, X_emp_list, title,
-                           pair_vars=pair_vars, **kw)
+            _cached_or_call(
+                'decision_pca_3d',
+                lambda p: _decision_pca_by_obj_3d(X_landscape, F_landscape,
+                                                  X_true, X_emp_list, title,
+                                                  save_path=p, **kw))
+        _cached_or_call(
+            'decision_pairwise',
+            lambda p: _decision_pairwise(problem, X_landscape, X_true,
+                                         X_emp_list, title,
+                                         pair_vars=pair_vars,
+                                         save_path=p, **kw))
 
 
 def _resolve_landscape_cmap(cmap):
@@ -298,7 +407,7 @@ def _resolve_landscape_cmap(cmap):
 
 def _decision_heatmap_2d(problem, X, F, X_true, X_emp_list, title,
                          true_color='white', emp_colors=None, emp_names=None,
-                         cmap='Greys', **_kw):
+                         cmap='Greys', save_path=None, **_kw):
     """2D heatmap landscape with one or more overlaid empirical PS sets.
 
     ``X_emp_list`` é sempre uma lista — passe ``[X1]`` para um conjunto ou
@@ -339,6 +448,7 @@ def _decision_heatmap_2d(problem, X, F, X_true, X_emp_list, title,
     fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, 0.935),
                ncol=min(len(X_emp_list) + 1, 4), fontsize=14,
                frameon=True, facecolor='white', framealpha=0.9)
+    _save_figure(fig, save_path)
     plt.show()
     return fig
 
@@ -348,7 +458,8 @@ def _decision_heatmap_2d(problem, X, F, X_true, X_emp_list, title,
 def _decision_scatter_3d(problem, X, F, X_true, X_emp_list, title,
                          true_color='white', emp_colors=None, emp_names=None,
                          cmap='Greys',
-                         elev_offset=-15, azim_offset=225, roll_offset=0):
+                         elev_offset=-15, azim_offset=225, roll_offset=0,
+                         save_path=None):
     """3D landscape scatter with one or more overlaid empirical PS sets.
 
     ``X_emp_list`` é sempre uma lista — passe ``[X1]`` para um conjunto ou
@@ -380,6 +491,7 @@ def _decision_scatter_3d(problem, X, F, X_true, X_emp_list, title,
         ax.set_title(f'{title} — Espaço de Decisão (3D)',
                      fontsize=15, fontweight='bold')
     plt.tight_layout()
+    _save_figure(fig, save_path)
     plt.show()
     return fig
 
@@ -419,7 +531,7 @@ def _pca_fit(X, X_true, X_emp_list, n_components):
 # PCA 2D per objective (coloured by f_j)
 def _decision_pca_by_obj_2d(X, F, X_true, X_emp_list, title,
                             true_color='white', emp_colors=None, emp_names=None,
-                            cmap='Greys', **_kw):
+                            cmap='Greys', save_path=None, **_kw):
     """PCA-2D per objective with one or more overlaid empirical PS sets.
 
     ``X_emp_list`` é sempre uma lista — passe ``[X1]`` para um conjunto ou
@@ -456,6 +568,7 @@ def _decision_pca_by_obj_2d(X, F, X_true, X_emp_list, title,
     fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, 0.935),
                ncol=min(len(X_emp_list) + 1, 4), fontsize=14,
                frameon=True, facecolor='white', framealpha=0.9)
+    _save_figure(fig, save_path)
     plt.show()
     return fig
 
@@ -464,7 +577,8 @@ def _decision_pca_by_obj_2d(X, F, X_true, X_emp_list, title,
 def _decision_pca_by_obj_3d(X, F, X_true, X_emp_list, title,
                             true_color='white', emp_colors=None, emp_names=None,
                             cmap='Greys',
-                            elev_offset=-15, azim_offset=225, roll_offset=0):
+                            elev_offset=-15, azim_offset=225, roll_offset=0,
+                            save_path=None):
     """PCA-3D per objective with one or more overlaid empirical PS sets.
 
     ``X_emp_list`` é sempre uma lista — passe ``[X1]`` para um conjunto ou
@@ -504,6 +618,7 @@ def _decision_pca_by_obj_3d(X, F, X_true, X_emp_list, title,
                ncol=min(len(X_emp_list) + 1, 4), fontsize=14,
                frameon=True, facecolor='white', framealpha=0.9)
     plt.tight_layout()
+    _save_figure(fig, save_path)
     plt.show()
     return fig
 
@@ -511,7 +626,7 @@ def _decision_pca_by_obj_3d(X, F, X_true, X_emp_list, title,
 # Pairwise 2-D grid (for n_var > 3)
 def _decision_pairwise(problem, X, X_true, X_emp_list, title, pair_vars=None,
                        true_color='white', emp_colors=None, emp_names=None,
-                       cmap='Greys', **_kw):
+                       cmap='Greys', save_path=None, **_kw):
     tc_fill = 'white' if true_color == 'white' else true_color
     tc_edge = 'black' if true_color == 'white' else \
               {'red': 'darkred', 'royalblue': 'navy'}.get(true_color, 'black')
@@ -561,6 +676,7 @@ def _decision_pairwise(problem, X, X_true, X_emp_list, title, pair_vars=None,
         fig.suptitle(f'{title} — Pairwise Decision Space',
                      fontsize=14, fontweight='bold', y=1.01)
     plt.tight_layout()
+    _save_figure(fig, save_path)
     plt.show()
     return fig
 

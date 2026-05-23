@@ -72,7 +72,9 @@ from src.experiment import (
 
 # ── ALGORITMOS A RODAR ────────────────────────────────────────────────────
 # Disponíveis: 'NSGA2_surrogate', 'DR-NSGA-II', 'Prob-MOEA/D',
-#              'K-RVEA', 'ParEGO', 'KTA2'
+#              'K-RVEA', 'ParEGO', 'KTA2', 'K-RVEA-OPT'
+# K-RVEA-OPT é a variante otimizada (vetorizada + GP custom + threading
+# paralela dos M GPs + numba) — estatisticamente equivalente ao K-RVEA.
 DEFAULT_ALGORITHMS = [
     'NSGA2_surrogate',
     'DR-NSGA-II',
@@ -80,6 +82,7 @@ DEFAULT_ALGORITHMS = [
     'K-RVEA',
     'ParEGO',
     'KTA2',
+    'K-RVEA-OPT',
 ]
 
 # ── PROBLEMAS A RODAR ─────────────────────────────────────────────────────
@@ -98,7 +101,7 @@ DEFAULT_PROBLEMS = [
 ]
 
 # ── SEEDS A RODAR ─────────────────────────────────────────────────────────
-DEFAULT_SEEDS = [42, 43, 44, 45, 46]
+DEFAULT_SEEDS = [42, 33]#, 43, 44, 45, 46]
 
 # ── NOISY PROBLEM TOGGLE ──────────────────────────────────────────────────
 # Se True (legado), os algoritmos online (K-RVEA, ParEGO, KTA2) e o

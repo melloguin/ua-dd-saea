@@ -39,6 +39,7 @@ from src.dr_nsgaII_runner import run_dr_nsga2
 from src.prob_moead_runner import run_prob_moead
 from src.parego_runner import run_parego
 from src.kta2_runner import run_kta2
+from src.k_rvea_opt_runner import run_k_rvea_opt
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -94,6 +95,7 @@ ALGORITHM_DISPATCH: dict[str, dict] = {
     'K-RVEA':           {'mode': 'online_noisy',    'runner': run_k_rvea},
     'ParEGO':           {'mode': 'online_noisy',    'runner': run_parego},
     'KTA2':             {'mode': 'online_noisy',    'runner': run_kta2},
+    'K-RVEA-OPT':       {'mode': 'online_noisy',    'runner': run_k_rvea_opt},
 }
 
 
@@ -105,6 +107,13 @@ def _apply_algorithm_overrides(cfg: dict, algo: str, n_var: int) -> dict:
     Returns the mutated cfg.
     """
     if algo == 'K-RVEA':
+        cfg['FEmax'] = cfg.get('krvea_feval', 300)
+        cfg.setdefault('krvea_wmax', 20)
+        cfg.setdefault('krvea_u', 5)
+        cfg['krvea_NI'] = 11 * n_var - 1
+    elif algo == 'K-RVEA-OPT':
+        # Same overrides as K-RVEA: K-RVEA-OPT is a drop-in optimized
+        # variant, not a new algorithm.
         cfg['FEmax'] = cfg.get('krvea_feval', 300)
         cfg.setdefault('krvea_wmax', 20)
         cfg.setdefault('krvea_u', 5)
@@ -254,6 +263,9 @@ def _invoke_runner(algorithm: str, cfg: dict, clean_problem,
         _, _, history = run_parego(problem_for_runners, cfg, save_history=True)
     elif algorithm == 'KTA2':
         _, _, history = run_kta2(problem_for_runners, cfg, save_history=True)
+    elif algorithm == 'K-RVEA-OPT':
+        _, _, history = run_k_rvea_opt(problem_for_runners, cfg,
+                                       save_history=True)
     else:
         raise ValueError(f"Unknown algorithm: {algorithm}")
     return history

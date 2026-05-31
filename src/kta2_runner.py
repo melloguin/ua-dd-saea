@@ -96,13 +96,58 @@ def _i_epsilon_plus(f1, f2):
     return np.max(f1 - f2)
 
 
-def _fitness_i_epsilon(idx, F, kappa=0.05):
-    """IBEA fitness: Q(x) = sum(-exp(-I(x',x)/kappa)) for all x' != x."""
+def _normalize_population(F):
+    """Per-objective min-max normalization to [0,1]^m (Zitzler 2004).
+
+    IBEA's I_ε+ indicator is scale-sensitive: without normalization, objectives
+    on different magnitudes (WFG, DTLZ, BBOB) produce indicator values that
+    cause `exp(-I/kappa)` to overflow when `kappa=0.05`. Normalizing the
+    population to the unit hypercube keeps |I_ε+| <= 1 and therefore
+    |exp argument| <= 1/kappa = 20, well within float64 range.
+    """
+    F = np.asarray(F, dtype=float)
+    F_min = F.min(axis=0)
+    F_max = F.max(axis=0)
+    return (F - F_min) / np.maximum(F_max - F_min, 1e-12)
+
+
+def _fitness_i_epsilon_all(F, kappa=0.05):
+    """Vectorized IBEA fitness for the entire population.
+
+    Returns Q where ``Q[i] = sum_{j != i} -exp(-I_eps+(F_norm[j], F_norm[i]) / kappa)``
+    with F first normalized to [0,1]^m. Equivalent in semantics to calling
+    `_fitness_i_epsilon(i, F)` for every i, but vectorized and overflow-safe.
+    """
+    F = np.asarray(F, dtype=float)
     n = len(F)
+    if n <= 1:
+        return np.zeros(n)
+    F_norm = _normalize_population(F)
+    # I[j, i] = max_k (F_norm[j, k] - F_norm[i, k])
+    diff = F_norm[:, None, :] - F_norm[None, :, :]   # (n, n, m)
+    I = diff.max(axis=2)                             # (n, n)
+    mat = -np.exp(-I / kappa)                        # (n, n)
+    np.fill_diagonal(mat, 0.0)
+    return mat.sum(axis=0)
+
+
+def _fitness_i_epsilon(idx, F, kappa=0.05):
+    """IBEA fitness for a single individual (kept for backwards compatibility).
+
+    Prefer `_fitness_i_epsilon_all` when computing fitness for the entire
+    population — it normalizes once and is vectorized. This per-index variant
+    normalizes the full population on every call.
+    """
+    F = np.asarray(F, dtype=float)
+    n = len(F)
+    if n <= 1:
+        return 0.0
+    F_norm = _normalize_population(F)
+    fi = F_norm[idx]
     q = 0.0
     for j in range(n):
         if j != idx:
-            q += -np.exp(-_i_epsilon_plus(F[j], F[idx]) / kappa)
+            q += -np.exp(-_i_epsilon_plus(F_norm[j], fi) / kappa)
     return q
 
 
@@ -133,8 +178,7 @@ def _update_ca(X_ca, F_ca, X_new, F_new, max_size):
     F = np.vstack([F_ca, F_new]) if len(F_ca) > 0 else F_new.copy()
 
     while len(X) > max_size:
-        n = len(X)
-        Q = np.array([_fitness_i_epsilon(i, F) for i in range(n)])
+        Q = _fitness_i_epsilon_all(F)
         worst = np.argmin(Q)
         X = np.delete(X, worst, axis=0)
         F = np.delete(F, worst, axis=0)
@@ -274,7 +318,7 @@ def _find_non_dominated(X, F):
     return X[mask], F[mask]
 
 
-def run_kta2(problem, config):
+def run_kta2(problem, config, save_history: bool = False):
     """
     KTA2 online: Kriging-Assisted Two-Archive EA.
 
@@ -287,10 +331,17 @@ def run_kta2(problem, config):
             - 'kta2_eta': infill samples per update (default 5)
             - 'kta2_tau': proportion for insensitive models (default 0.75)
             - 'kta2_phi': random selection size for uncertainty sampling (default 0.1)
+        save_history: when True, records a snapshot of the cumulative
+            archive (X_all, F_all) of all truly-evaluated points at the end
+            of every outer iteration.
 
     Returns:
         df_pareto: DataFrame with non-dominated solutions from DA
         info: dict with metadata
+        history: list of {'generation': int,
+                          'population': [{'genotype': [...],
+                                          'fitness': [...]}, ...]}
+            or ``None`` when save_history=False.
     """
     np.random.seed(config['seed'])
 
@@ -324,6 +375,16 @@ def run_kta2(problem, config):
 
     # Build initial models
     ipi_models = _build_influential_point_insensitive_models(X_all, F_all, n_obj, tau)
+
+    history = [] if save_history else None
+    gen_counter = 0
+    if save_history:
+        history.append({
+            'generation': gen_counter,
+            'population': [{'genotype': list(X_all[i]),
+                            'fitness': list(F_all[i])}
+                           for i in range(len(X_all))],
+        })
 
     pbar = tqdm(total=FEmax, initial=FE, desc="KTA2 (FE)")
 
@@ -371,7 +432,7 @@ def run_kta2(problem, config):
             if convergence_demand:
                 # Convergence sampling: select eta best from CCA by I_ε+
                 n_sel = min(eta, len(X_cca))
-                Q = np.array([_fitness_i_epsilon(i, F_cca) for i in range(len(F_cca))])
+                Q = _fitness_i_epsilon_all(F_cca)
                 best_idx = np.argsort(-Q)[:n_sel]
                 X_new = X_cca[best_idx]
             else:
@@ -436,6 +497,15 @@ def run_kta2(problem, config):
         # Rebuild models
         ipi_models = _build_influential_point_insensitive_models(X_all, F_all, n_obj, tau)
 
+        if save_history:
+            gen_counter += 1
+            history.append({
+                'generation': gen_counter,
+                'population': [{'genotype': list(X_all[i]),
+                                'fitness': list(F_all[i])}
+                               for i in range(len(X_all))],
+            })
+
     pbar.close()
 
     # Return non-dominated from DA
@@ -453,4 +523,4 @@ def run_kta2(problem, config):
     if config.get('verbose', True):
         print(f"\n✅ KTA2 concluído! FE={FE}, Soluções não-dominadas: {len(X_nd)}")
 
-    return df_pareto, info
+    return df_pareto, info, history

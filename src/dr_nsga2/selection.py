@@ -89,24 +89,6 @@ def calculate_crowding_distance(front):
             front[i].crowding_distance += distance
 
 
-def _compute_rank_for_fitness(population, fitness_attr, config):
-    """
-    Temporarily swaps fitness with the given attribute, runs NDS,
-    and stores the resulting rank into rank_ori or rank_adj.
-    """
-    saved = []
-    for ind in population:
-        saved.append(ind.fitness)
-        ind.fitness = getattr(ind, fitness_attr)
-
-    fast_non_dominated_sort(population, config)
-
-    for idx, ind in enumerate(population):
-        ind.fitness = saved[idx]
-
-    return [ind.rank for ind in population]
-
-
 def dual_ranking(combined_population, config):
     """
     Dual-ranking strategy (Algorithm 2 from the DR-NSGA-II paper).

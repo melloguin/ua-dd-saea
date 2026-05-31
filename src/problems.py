@@ -702,19 +702,6 @@ def _shape_concave(x, M):
     return h
 
 
-def _shape_linear(x, M):
-    """Linear shape."""
-    h = []
-    for m in range(M):
-        val = np.ones(x[0].shape[0])
-        for i in range(M - 1 - m):
-            val *= x[i]
-        if m > 0:
-            val *= 1.0 - x[M - 1 - m]
-        h.append(val)
-    return h
-
-
 def _shape_mixed(x_last, A=5, alpha=1.0):
     """Mixed convex/concave – applied to one variable."""
     return _correct_to_01(

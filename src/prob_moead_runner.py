@@ -100,7 +100,7 @@ def _find_non_dominated_from_pop(population):
 
 
 def run_prob_moead(config, df_landscape=None, df_previsao=None, df_mcmc=None,
-                   kriging_models=None):
+                   kriging_models=None, save_history: bool = False):
     """
     Prob-MOEA/D (offline): MOEA/D with probabilistic PBI selection.
 
@@ -112,8 +112,15 @@ def run_prob_moead(config, df_landscape=None, df_previsao=None, df_mcmc=None,
     uncertainty — matching the paper's use of Kriging surrogates.
     Falls back to CatBoost landscape + MCMC stds when kriging_models is None.
 
+    When ``save_history=True``, a per-generation snapshot of the full MOEA/D
+    population is recorded (same schema as ``src.nsgaII.run_my_nsga2``).
+
     Returns:
-        df_pareto, df_progress, None
+        df_pareto, df_progress, history
+            history is a list of {'generation': int,
+                                  'population': [{'genotype': [...],
+                                                  'fitness': [...]}, ...]}
+            or ``None`` when save_history=False.
     """
     np.random.seed(config['seed'])
 
@@ -173,6 +180,16 @@ def run_prob_moead(config, df_landscape=None, df_previsao=None, df_mcmc=None,
     ])
 
     progress_stats = []
+    history = [] if save_history else None
+    if save_history:
+        history.append({
+            'generation': 0,
+            'population': [
+                {'genotype': list(ind.genotype),
+                 'fitness': list(ind.fitness) if ind.fitness is not None else None}
+                for ind in population
+            ],
+        })
 
     for generation in tqdm(range(n_gen)):
         # Update z_min
@@ -271,6 +288,16 @@ def run_prob_moead(config, df_landscape=None, df_previsao=None, df_mcmc=None,
                     stat[f'obj{k+1}_mean'] = np.mean(fa[:, k])
                 progress_stats.append(stat)
 
+        if save_history:
+            history.append({
+                'generation': generation + 1,
+                'population': [
+                    {'genotype': list(ind.genotype),
+                     'fitness': list(ind.fitness) if ind.fitness is not None else None}
+                    for ind in population
+                ],
+            })
+
     # Extract non-dominated solutions
     nd_pop = _find_non_dominated_from_pop(population)
 
@@ -292,4 +319,4 @@ def run_prob_moead(config, df_landscape=None, df_previsao=None, df_mcmc=None,
         print(f"\n✅ Prob-MOEA/D concluído! Soluções não-dominadas: {len(nd_pop)}")
 
     df_progress = pd.DataFrame(progress_stats) if progress_stats else None
-    return df_pareto, df_progress, None
+    return df_pareto, df_progress, history

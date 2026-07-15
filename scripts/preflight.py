@@ -51,6 +51,7 @@ def main():
         "c122_thetadeadp": "c122_θ-DEA-DP", "c141_mmraea": "c141_MMRAEA",
         "e74_clmea": "e74_CLMEA", "c238_eim": "c238_EIM", "e81_qpots": "e81_qPOTS",
         "c149_lbnmobo": "c149_LBN-MOBO", "b5_desdeo": "b5_Prob-RVEA", "c311_tgprmo": "c311_TGPR-MO",
+        "e103_ibeams": "e103_IBEA-MS",  # e103 agora é arquivos planos (sem .git) -> content-hash
     }
     for rid, meta in lock.get("repos", {}).items():
         if not isinstance(meta, dict):
@@ -71,6 +72,7 @@ def main():
             th = tree_sha256(path)
             print(f"  {rid:22} content-hash {th[:12]} (sem .git próprio)")
             meta["sha256_tree"] = th
+            meta["sha"] = None  # repo pinado por content-hash -> não há git sha (limpa o <SHA>)
     if write:
         json.dump(lock, open(lock_path, "w"), ensure_ascii=False, indent=2)
         print("  -> repos.lock atualizado (--write)")
@@ -84,12 +86,19 @@ def main():
         if "*" in f or "..." in f:
             problems.append(f"anchors[{p['id']}]: file não-resolvido ('{f}')")
             continue
-        # tenta localizar o arquivo (busca por basename sob a pasta do repo)
-        found = None
+        # localiza o arquivo: junta TODOS os candidatos por basename e prefere aquele
+        # cujo caminho termina com o `file` (repo-relativo) da âncora. Sem isso, um basename
+        # que colide entre libs vendorizadas (ex.: acquisition.py em _BoTorch e em e81_qPOTS)
+        # resolveria para o 1º da os.walk — o arquivo errado. Fallback: 1º por basename
+        # (compat com âncoras que trazem só o basename).
+        base = os.path.basename(f)
+        norm = f.replace("\\", "/")
+        candidates = []
         for dirpath, _, files in os.walk(ALGO):
-            if os.path.basename(f) in files:
-                found = os.path.join(dirpath, os.path.basename(f))
-                break
+            if base in files:
+                candidates.append(os.path.join(dirpath, base))
+        ends = [c for c in candidates if c.replace("\\", "/").endswith(norm)]
+        found = (ends or candidates or [None])[0]
         if not found:
             problems.append(f"anchors[{p['id']}]: arquivo '{f}' não encontrado")
             continue
@@ -103,13 +112,26 @@ def main():
         else:
             print(f"  {p['id']:22} (expect descritivo — resolver no cartão)")
 
-    # 3) placeholders
+    # 3) placeholders vs deferimentos intencionais
+    #    <SHA>/<PIN> = placeholder NÃO resolvido -> BLOQUEIA (pendência).
+    #    '<PIN A CRAVAR ...>' = deferimento EXPLÍCITO a um gate futuro (o próprio texto diz
+    #    onde será cravado, ex.: desdeo-emo no gate R3.2) -> NOTA, não bloqueia (§7.4 do handoff).
     print("\n== 3. placeholders remanescentes ==")
+    HARD_PH = ["<SHA>", "<PIN>"]
+    DEFER_PH = ["<PIN A CRAVAR"]
+    deferrals = []
     for fn in ["repos.lock", "envs.json", "params.json"]:
         txt = open(os.path.join(ART, fn)).read()
-        for ph in ["<SHA>", "<PIN>", "<PIN A CRAVAR"]:
+        for ph in HARD_PH:
             if ph in txt:
                 problems.append(f"{fn}: placeholder '{ph}' pendente")
+        for ph in DEFER_PH:
+            if ph in txt:
+                deferrals.append(f"{fn}: deferimento intencional '{ph} ...>' (cravar no gate indicado)")
+    for d in deferrals:
+        print("  (deferido) -", d)
+    if not deferrals:
+        print("  (nenhum)")
 
     print("\n== RESUMO ==")
     if problems:
@@ -117,7 +139,10 @@ def main():
         for pr in problems:
             print("   -", pr)
         sys.exit(1)
-    print("  pré-voo OK ✓")
+    if deferrals:
+        print(f"  pré-voo OK ✓ ({len(deferrals)} deferimento(s) intencional(is) — ver seção 3)")
+    else:
+        print("  pré-voo OK ✓")
 
 
 if __name__ == "__main__":

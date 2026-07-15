@@ -23,7 +23,7 @@
     {
       "id": "e74-mask",
       "repo": "e74_clmea",
-      "file": "CLMEA_Code/.../CLMEA/Local_infill.m",
+      "file": "CLMEA_Code/Algorithms/Multi-objective optimization/CLMEA/Local_infill.m",
       "line": 47,
       "kind": "🔴-D76",
       "expect_before": "x_candidates = [x_candidates; x_offspring(Choose,:)];",
@@ -35,8 +35,8 @@
       "file": "Multi-objective optimization/ParEGO/EvolALG.m",
       "line": 25,
       "kind": "🟠-D76",
-      "expect_before": "s = sqrt(mse);",
-      "expect_after": "s = sqrt(max(mse,0));"
+      "expect_before": "sqrt(mse);",
+      "expect_after": "sqrt(max(mse,0));"
     },
     {
       "id": "c141-sde-eps-L4",
@@ -97,8 +97,8 @@
       "repo": "PlatEMO",
       "file": "Multi-objective optimization/CSEA/CSEA.m",
       "line": 29,
-      "expect_before": "N = min(11*Problem.D-1,109);",
-      "expect_after": "N = 11*Problem.D-1; % remover cap 109 (S.2#2)",
+      "expect_before": "min(11*Problem.D-1,109);",
+      "expect_after": "11*Problem.D-1; % remover cap 109 (S.2#2)",
       "kind": "init"
     },
     {
@@ -113,7 +113,7 @@
     {
       "id": "e74-ndsort-obj",
       "repo": "e74_clmea",
-      "file": "CLMEA_Code/.../CLMEA/ClassifierSelect.m",
+      "file": "CLMEA_Code/Algorithms/Multi-objective optimization/CLMEA/ClassifierSelect.m",
       "line": 9,
       "expect_before": "[y_label,~] = NDSort(Parent,inf);",
       "expect_after": "<NDSort sobre objetivos preditos>",
@@ -176,7 +176,7 @@
     {
       "id": "b5-mode72-kde",
       "repo": "b5_desdeo",
-      "file": "desdeo_emo/.../ProbMOEAD_select.py",
+      "file": "desdeo_emo/selection/ProbMOEAD_select.py",
       "line": 65,
       "expect_before": "<KDE morto + plt_density :75 viva>",
       "expect_after": "<comentar :65-75>",

@@ -1,0 +1,47 @@
+# b5 Prob-RVEA (b5r, mode 7) / Prob-MOEA-D (b5m, mode 72) — OFFLINE
+
+> ⚠ **ARQUIVO GERADO** da `SPEC_experimentos_v5.2.md` (fonte única da verdade) por `gen_bundles.py` — **não edite à mão; regenere**. Em conflito entre este bundle e a SPEC, **vale a SPEC** (precedência global: Anexo S > §22 > Anexo D > corpo > E/I/K/L > históricos).
+
+**Específicas:** **D56: DUAS configs** (`b5r`=mode 7 headline; `b5m`=mode 72 quase-fiel); Hyb fora. Patch :66–75 (bloco KDE morto); sklearn **0.21.3** (D80); venv próprio; `MPLBACKEND=Agg`; ambos entram no sweep (tiers small/medium).
+
+---
+
+- [ ] **3.2 · b5 Prob-RVEA/MOEA-D** *(I.16, L.16, N.1.2, N.3 — offline)* — **venv PRÓPRIO** (colisão `desdeo_*` com c311 — **nunca co-importar**; N.1.2); `sys.path` com o ROOT do repo à frente; **env lock sklearn 0.23.2** + `statsmodels` (**ausente do requirements!**). Wrapper: `np.random.seed(s); random.seed(s)` → `DataProblem(df, bounds_df)` → `problem.train(SurrogateKriging)` (GPR n_restarts=9 consome RNG) → `evolver = {7: ProbRVEA_v3, 72: ProbMOEAD, 12: MOEA_D-piso}` com `use_surrogates=True`, 40k. **Patch do mode 72:** comentar `ProbMOEAD_select.py:66–75` (KDE morto + plt). Declarar por-modo (B18.2): mode 7 = média do APD amostrado (**aproximação não publicada**); mode 72 = MC pareado (**quase-fiel**). **Pop inicial = LHS novo** (≠ dataset; CÓDIGO, B18.9). Mode 7: mini-patch pós-`keep()` p/ archives (BaseEA.py:204–205). Grafia `uncertainity` nos dicts. Overshoot ≤1 geração das 40k internas (surrogate — não toca FE real).
+
+---
+
+| b5 | mode 7 (ProbRVEA_v3) | Específico | média do APD amostrado | fidelidade (CÓDIGO — aproximação média-MC declarada; D30) | RVEA probabilístico via média do APD amostrado (aproximação declarada) |
+| b5 | mode 72 (ProbMOEAD) | Específico | P_wrong via MC pareado (matriz 1000×1000, update se P>0,5) | fidelidade (CÓDIGO — quase-fiel; KDE→MC pareado sancionado; D30) | MOEA/D probabilístico; estima P(erro de ordenação) e substitui a incumbente se P>0,5 |
+| b5 | GPR | Específico | C(1,0,(1e-3,1e3))·RBF(10,(1e-2,1e2)), alpha=0, n_restarts=9, normalize_y=False | código oficial | GP exato/objetivo; sem ruído (alpha=0), sem normalização de Y, 9 reinícios |
+| b5 | Treino do surrogate | Específico | 1×/objetivo | código oficial | Offline: 1 GP/objetivo treinado uma vez no dataset fixo |
+| b5 | MC/indivíduo | Específico | S=1000, truncnorm(−3,3) | paper ✓ | Amostras MC/indivíduo p/ propagar a incerteza do GP |
+| b5 | Rampa θ | Específico | 0→500·(FE/FE_total) por offspring | código oficial | Penalização cresce com o orçamento consumido (mais seletivo no fim) |
+| b5 | Orçamento interno | Específico | 40.000 aval-surrogate | §11 (ancora o piso offline) | Nº de avaliações do surrogate no laço MOEA |
+| b5 | SBX / PM | Específico | SBX η=30/pc=1,0 + PM η=20/pm=1/n | paper ✓ | Operadores de variação |
+| b5 | α (APD) | Compartilhado (b5,c311) | 2 | paper ✓ | Expoente de penalização angular do APD |
+| b5 | Vizinhança | Específico | 20 | paper ✓ | Tamanho da vizinhança MOEA/D |
+| b5 | RVs (lattice) | Compartilhado (b5,c311) | H=[49,13] → 50 (M=2) / 105 (M=3) | paper ✓ | Vetores de referência Das-Dennis; direções de busca e tamanho da pop |
+| b5 | Pop inicial | Específico | LHS NOVO (pyDOE) | fidelidade (CÓDIGO — declarada; D30) | Amostragem LHS nova p/ a pop inicial (mantida, declarada) |
+> **Notas.** Duas variantes: mode 7 (RVEA-média-MC, aproximação declarada) e mode 72 (MOEA/D quase-fiel, KDE→MC pareado sancionado). b5 é a **âncora do piso offline** (40k aval-surrogate). Pop LHS e MC pareado ficam no CÓDIGO (D30). α=2 e o lattice (50/105) são compartilhados com c311.
+| b5 Prob-RVEA/MOEA-D | ⟦v2.2⟧ **CORREÇÃO CENTRAL**: mode 7 (ProbRVEA_v3) = média do APD amostrado ✓; mas **mode 72 (ProbMOEAD) = P_wrong via MC PAREADO** (matriz 1000×1000; update se P>0.5) — **quase-fiel ao paper** (troca só o KDE pela comparação empírica de amostras); a "média do PBI" (v3) é **código morto inalcançável** pelo driver; o caminho KDE está comentado; ⟦v2.2⟧ patch do 72 = comentar o **bloco 66–75** (KDE morto + plt_density), não 1 linha; ⟦v2.2⟧ **B18.8 SIM**: rampa θ 0→500·(FE/FE_total) recalculada POR OFFSPRING (72, 12, 82; ZeroDivision se FE_total=0 — sempre passar 40000); ⟦v2.2⟧ **B18.9 NÃO**: pop inicial = **LHS NOVO** (pyDOE; `init_pop` comentado em todos os modes) — diverge do Alg. 1 L2 do paper (declarar); ⟦v2.2⟧ **mode 7: adapt() dos RVs COMENTADO → RVs FIXOS o run inteiro** (modes 12/72 adaptam de verdade a cada iterate/10 gers — assimetria RVEA×MOEA/D a documentar); GPR exato: `C(1.0,(1e-3,1e3))·RBF(10,(1e-2,1e2))`, alpha=0, **n_restarts=9** (consome np.random!), normalize_y=False, sem White, treino 1×/objetivo; MC = truncnorm(−3,3) shape (N,M,1000); mode 72 ≈ 2 chamadas/offspring (~4e6 draws/gen) | S=1000 ✓; SBX 30/1.0 + PM 20/1/n ✓; α=2, vizinhança 20 ✓; RVs H=[49,13,...] → M=2: 50, M=3: 105 ✓; ⟦v2.2⟧ B18.2 re-enquadrada: **b5-MOEAD (72) fica mais próximo do paper que o assumido; b5-RVEA (7) é a aproximação média-MC** — declarar assim na dissertação; ⟦v2.2⟧ locks CONFLITAM: requirements.txt = sklearn 0.21.3/numpy 1.19.1/scipy 1.5.2 × pyproject = py3.8–3.10/numpy^1.20 (statsmodels ausente do requirements) → fixar env pelo teste do piloto; contador 40k: init+pop; RVEA soma \|offspring\|/gen (pop FLUTUA), MOEA/D +1/offspring; overshoot ≤1 geração; saída = dict c/ archives por geração (modes 12/72 = pop completa pós-replacement; mode 7 = só offspring pré-seleção → mini-patch p/ pop selecionada) |
+
+---
+
+### I.16 · b5 Prob-RVEA / Prob-MOEA/D (autor, Python/DESDEO — offline)
+**Fluxo real (driver):** GPR sklearn por objetivo (kernel gaussiano, BFGS, alpha=0) treinado 1× no dataset → RVEA/MOEA-D por 40k avaliações-surrogate onde a SELEÇÃO usa S=1000 amostras MC da posterior. ⟦corrigido v2.7 (§6.5/K.5.1)⟧ **mode 7 (ProbRVEA_v3) = média do APD amostrado (aproximação não publicada); mode 72 (ProbMOEAD) = P_wrong via MC PAREADO — QUASE-FIEL ao paper** (troca só o KDE das Eqs. 7–9 pela CDF empírica); a 'média do PBI' é código morto. Declarar por-modo (B18.2). **Integração:** wrapper bypassando read_dataset; patch bloco 66–75 do 72 (KDE morto + plt_density); rampa PBI confirmada (passar FE_total=40000); **pop inicial = LHS novo, NÃO o dataset** (B18.9, diverge do paper); snapshots pelos archives; env lock sklearn 0.23.2; sementes np+stdlib random. **σ exportável:** posterior do GPR por objetivo (amostras MC descartáveis — logar μ/σ, não as 1000 amostras). **Piso:** mode 12 = Gen-MOEA/D do próprio paper.
+
+---
+
+### L.16 · b5 Prob-RVEA/MOEA-D — wrapper: `np.random.seed(s); random.seed(s)` → `DataProblem(df, ..., bounds_df)` + `problem.train(SurrogateKriging)` (GPR consome RNG: n_restarts=9) → `evolver = {7:ProbRVEA_v3, 72:ProbMOEAD, 12:MOEA_D}[mode](problem, use_surrogates=True, n_gen_per_iter=10, total_function_evaluations=40000)` → `while evolver.continue_evolution(): evolver.iterate()` → dict de archives (grafia `uncertainity`). Patch 72: comentar ProbMOEAD_select.py:66–75. Imports com o ROOT do repo à frente do sys.path (desdeo_* vendorizados divergem do pip). Deps do caminho quente: numpy, scipy, sklearn, pandas, matplotlib, statsmodels (ausente do requirements!), pyDOE, plotly (import inútil). Instrumentação: modes 12/72 já arquivam pop completa/geração; mode 7: mini-patch pós-keep() (BaseEA.py:204–205). **RNG:** numpy global (LHS, SBX, PM, permutation, truncnorm, GPR-restarts) + stdlib random (shuffle do SBX — ativo nos modes RVEA). **Contagem 40k:** init+pop; RVEA soma |offspring|/gen (pop flutua); MOEA/D +1/offspring; overshoot ≤1 geração.
+
+---
+
+### M.15 · b5 Prob-RVEA/MOEA-D
+- **Por que P_wrong mira ACURÁCIA:** em offline, usar só a média elege o dominante no espaço-surrogate, que carrega σ alto; avaliado na função real, o de pior média mas menor σ frequentemente o domina. **P_wrong = probabilidade de a decisão de seleção estar errada** → minimizá-la maximiza a chance de o escolhido ser de fato melhor; rejeita explicitamente "boa média + σ alto" (Fig. 6). A contribuição declarada é *deslocar o foco de HV para acurácia* — o racional exato do nosso par O2/A2 offline.
+- **Por que a HÍBRIDA:** probabilística → melhor RMSE/incerteza; genérica → melhor HV; o híbrido 50/50 (sem parâmetros extras) entrega faixa mais ampla de incertezas para apoio à decisão. Limite: Hyb-MOEA/D não supera Prob-MOEA/D (herda o parceiro fraco). **Assinatura dinâmica (sanity-check para as nossas curvas):** o HV-surrogate CAI enquanto o HV-real SOBE nas versões probabilísticas — *é o sinal de que a rejeição por incerteza está operando* (em genérico/TL o HV-surrogate sobe e o real estagna = overfit ao otimismo). Corolário: o piso genérico pode ser pior que "não fazer nada" (o Init supera o genérico em vários casos).
+
+---
+
+**Âncora de fidelidade (Anexo J):**
+
+| b5 Prob-RVEA/MOEA-D | DBMOPP P1/P2 (n=10; K=2–10); DTLZ no suplemento | dataset 109 (LHS e MVNS) | 40k aval.-surrogate | 31 | HV + RMSE (mediana/std); Wilcoxon+Bonferroni | Assinatura dinâmica (Fig. 10): surrogate-HV do Prob CAI enquanto o HV real sobe (sanity check das nossas curvas); Hyb-MOEA/D não supera Prob-MOEA/D |

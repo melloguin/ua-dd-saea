@@ -1,0 +1,130 @@
+{
+  "spec_version": "5.2",
+  "note": "D83: versão machine-readable do tabelão de parâmetros §6.4 (Balde B) + política de N §6.3. FONTE DA VERDADE = §6.4/§6.5 da SPEC; este artefato é um índice de consulta rápida. Balde A/C (globais/operadores padronizados) em §6.2.",
+  "globais_balde_A": {
+    "maxFE": "31D-1",
+    "DoE_init": "11D-1 LHS-maximin (D87)",
+    "sementes": "30 {0-28,42}",
+    "hard_stop": "exato, wrapper como fonte (D89)"
+  },
+  "N_policy_balde_B": "§6.3/D20 — N por algoritmo; pisos calibrados no piloto",
+  "por_config": {
+    "b1": {
+      "N_lambda": "λ=100 vetores (CÓDIGO)",
+      "theta_bounds": "[1e-5,20]",
+      "init": "11D-1 (patch D94 :29-30)"
+    },
+    "b3": {
+      "N": "100 vetores",
+      "theta_bounds": "[1e-5,100]",
+      "delta": "0.05*N (KRVEA.m:79)",
+      "init": "11D-1"
+    },
+    "b4": {
+      "N": "50 (paper, B4.2)",
+      "init": "11D-1 (remover cap 109)",
+      "exec": "cpu",
+      "treino": "arquivo inteiro (🔵 B4.6)"
+    },
+    "e7": {
+      "dropout": "0.1 (paper, 🟠→ARTIGO)",
+      "Ke": 3,
+      "N": 100,
+      "init": "11D-1 (patch D94 :31-32)"
+    },
+    "c217": {
+      "N": 50,
+      "delta": 0.8,
+      "Gmax": 3000,
+      "gate": "±0.95 (interno)",
+      "guardas": "SAS:21/:39 (D17)",
+      "init": "11D-1 exato (fix :55)"
+    },
+    "c122": {
+      "f_min_f_max": "pela assinatura (S.5, B11.1)",
+      "gate_warmstart": "acc≥0.9",
+      "device": "cpu"
+    },
+    "c141": {
+      "N": "min(100,11D-1) (DEF-A5)",
+      "sigma": "U de ranks (D45)",
+      "porte": "3 linhas 3.x→4.15"
+    },
+    "e74": {
+      "N": "100 (D<100)",
+      "arvore": "PlatEMO 4.1 própria (D95)",
+      "CR": "1.0 (Hv_Select:14)",
+      "init": "11D-1",
+      "dedup_eps": "1e-5"
+    },
+    "c238": {
+      "GP": "ARD (θ vetorial 1×D — NÃO escalar)",
+      "θ0": 1,
+      "θ_bounds": "[1e-3,1e3]",
+      "GA": "pop=10D, 200 ger",
+      "classdef": "N.5"
+    },
+    "c262": {
+      "model": "SingleTaskGP/obj, Matérn 5/2 (🔵), Standardize, train_Yvar=1e-6",
+      "acqf": "qLogNEHVI (sampler 128, prune_baseline, fat)",
+      "optimize_acqf": "restarts=10, raw=512",
+      "refit": "por iteração (D44)"
+    },
+    "c154": {
+      "model": "como c262 mas ruído INFERIDO",
+      "pipeline": "B9.5 (default random_search × paper-faithful — decidir no piloto)",
+      "estimation": "LB"
+    },
+    "e81": {
+      "env": "botorch 0.16.1",
+      "kernel": "Matérn 1-linha (B17.8)",
+      "bounds": "[0,1] no adapter",
+      "dtype": "float64",
+      "nystrom": 0,
+      "offset": "D22 +1000·s"
+    },
+    "c149": {
+      "loop": "reconstruído (D78)",
+      "fix": "[:, :M]",
+      "q1": "HVI-greedy fechada (D96)",
+      "z_score": "por objetivo (🟢)",
+      "treino": "float32",
+      "offset": "D22 +1000·s"
+    },
+    "b5r": {
+      "mode": 7,
+      "motor": "ProbRVEA_v3",
+      "surrogate": "Kriging (C·RBF, alpha=0, n_restarts=9)",
+      "total_FE_interno": 40000,
+      "sklearn": "0.21.3"
+    },
+    "b5m": {
+      "mode": 72,
+      "motor": "ProbMOEAD",
+      "patch": "comentar ProbMOEAD_select.py:65-75"
+    },
+    "c311": {
+      "receita": "run_treed_GP (Imax=N/(10D), G=50, early-stop)",
+      "RVEA": "n_iterations=10",
+      "sigma": "extensão nossa (B15.5)",
+      "GPy": "1.9.9"
+    },
+    "e103": {
+      "N": 100,
+      "centros_RBFN": "ceil(sqrt(n_dataset)) (D93)",
+      "pm": "1/D (fix, D93)",
+      "JudgeModel": "excluir i==j (fix)",
+      "kriging": "regpoly1, θ0=10, [1e-3,1e3]"
+    },
+    "pisos_online": {
+      "N": "~20-25 calibrado no piloto (precedente ParEGO/Knowles)",
+      "MOEAD_type": "1 (PBI) explícito",
+      "SMS_EMOA": "puro (não -MA)"
+    },
+    "moead_media": {
+      "impl": "DESDEO mode 12 (D77)",
+      "N": "lattice default (50 M=2 / 105 M=3 — NÃO forçar 100)",
+      "surrogate": "GP-média (tier big: treed-GP-média)"
+    }
+  }
+}

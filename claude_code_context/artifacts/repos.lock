@@ -1,0 +1,60 @@
+{
+  "spec_version": "5.2",
+  "note": "D80 + Higiene v5.2: PlatEMO 4.15 @b686ca2 e e103 @c3e8733 têm .git (git rev-parse). Os 8 repos vendorizados SEM .git (c122/c141/e74/c238/e81/c149/b5/c311) NÃO resolvem por git rev-parse → pin por HASH DE CONTEÚDO (sha256 da árvore vendorizada) + url upstream + data de download, gravado no pre-flight. anchors.json usa expect_before/after (não sha por enquanto).",
+  "repos": {
+    "PlatEMO": {
+      "url": "https://github.com/BIMK/PlatEMO",
+      "sha": "b686ca2",
+      "pin_kind": "commit"
+    },
+    "botorch": {
+      "pin_kind": "pypi",
+      "version": "0.18.1"
+    },
+    "c122_thetadeadp": {
+      "sha": "<SHA>",
+      "pin_kind": "content-hash",
+      "sha256_tree": "283d5167ec9ff614a4992e147e1a80881edb19a1e7c349373d17cdcaa8182196"
+    },
+    "c141_mmraea": {
+      "sha": "<SHA>",
+      "pin_kind": "content-hash",
+      "sha256_tree": "d0cf8b2d208143aa25bb15b5d1437b429ac9318c3e176f2250b5dd5f1dfce35b"
+    },
+    "e74_clmea": {
+      "sha": "<SHA>",
+      "pin_kind": "content-hash",
+      "sha256_tree": "59806b6b6a6c203b7779425a885dccc414c0dc27e9cb9abd256d23b3dbccf744"
+    },
+    "c238_eim": {
+      "sha": "<SHA>",
+      "pin_kind": "content-hash",
+      "sha256_tree": "a7ad451189341ccfa579d28d95192fa231962e56efb3c000f8d608ce7c15da65"
+    },
+    "e81_qpots": {
+      "sha": "<SHA>",
+      "pin_kind": "content-hash",
+      "sha256_tree": "d2fa63a4124134df19bf19029493ad10b66e7af0831e03fb389665aaabfbab12"
+    },
+    "c149_lbnmobo": {
+      "sha": "<SHA>",
+      "pin_kind": "content-hash",
+      "sha256_tree": "8efa3ec701a31c184ac79358d163ac5782947416768d123cb3019a25a082e0ca"
+    },
+    "e103_ibeams": {
+      "sha": "<SHA>",
+      "pin_kind": "content-hash",
+      "sha256_tree": "<preencher no pre-flight>"
+    },
+    "b5_desdeo": {
+      "sha": "<SHA>",
+      "pin_kind": "content-hash",
+      "sha256_tree": "774bc18bd5ffd6201f4bc6acf286faca57f02f8f8ec071d0806125a2aa351cd6"
+    },
+    "c311_tgprmo": {
+      "sha": "<SHA>",
+      "pin_kind": "content-hash",
+      "sha256_tree": "e3b3f802dad90cba82207d2a684871877b1b404a85c42d955c0e8df2a760a900"
+    }
+  }
+}

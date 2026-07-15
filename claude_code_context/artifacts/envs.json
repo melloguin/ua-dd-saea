@@ -1,0 +1,223 @@
+{
+  "spec_version": "5.2",
+  "thread_pin": [
+    "OMP_NUM_THREADS=1",
+    "OPENBLAS_NUM_THREADS=1",
+    "MKL_NUM_THREADS=1",
+    "NUMEXPR_NUM_THREADS=1",
+    "matlab:maxNumCompThreads(1)"
+  ],
+  "dispatch": "subprocess no python do venv-alvo (D79); 1 run = 1 core (D79)",
+  "environments": {
+    "env_matlab": {
+      "stack": "matlab",
+      "version": "R2025a",
+      "note": "Mac M1 Pro; parquet brotli (zstd ausente); toolboxes: Deep Learning, Statistics, Optimization, Parallel"
+    },
+    "env_e81_qpots": {
+      "stack": "python",
+      "python": "3.10/3.11",
+      "key_pins": [
+        "botorch==0.16.1",
+        "torch==2.12.0",
+        "gpytorch==1.14.2",
+        "numpy==2.2.6",
+        "pymoo==0.6.1.6"
+      ],
+      "algs": [
+        "e81"
+      ]
+    },
+    "env_main": {
+      "stack": "python",
+      "python": "3.11",
+      "note": "env-main (S.6/D79): harness + BoTorch (c262/c154/sobol_batch) + c122 (driver próprio, factory bypass) + c149 (TENTAR aqui; fallback env_c149 se o piloto divergir)",
+      "key_pins": [
+        "numpy>=2,<3",
+        "pandas",
+        "pyarrow(zstd)",
+        "joblib",
+        "tqdm",
+        "scipy(versão REGISTRADA no manifesto)",
+        "pymoo==0.6.2",
+        "botorch==0.18.1",
+        "gpytorch(compatível)",
+        "torch(estável)",
+        "google-cloud-storage",
+        "scikit-learn(harness)",
+        "deap(c122)"
+      ],
+      "algs": [
+        "c262",
+        "c154",
+        "sobol_batch",
+        "c122",
+        "c149"
+      ]
+    },
+    "env_c149_fallback": {
+      "stack": "python",
+      "python": "3.10",
+      "condicional": "criar SÓ se o piloto divergir do env-main (S.6)",
+      "key_pins": [
+        "pymoo==0.6.0.1",
+        "numpy==1.22.4",
+        "torch(CPU)"
+      ],
+      "algs": [
+        "c149(fallback)"
+      ]
+    },
+    "env_b5": {
+      "stack": "python",
+      "python": "conforme wheels do sklearn 0.21.3 (x86; VM Linux)",
+      "note": "venv PRÓPRIO (D79/N.1.2 — NUNCA co-importar com c311); overlay desdeo_* vendorizado root-first no sys.path",
+      "key_pins": [
+        "scikit-learn==0.21.3(S.2#12; se sem wheel p/ o py, a mais próxima COM validação de equivalência do GPR no piloto)",
+        "desdeo-problem==0.14.0",
+        "desdeo-tools==0.2.6",
+        "desdeo-emo==<PIN A CRAVAR NO GATE R3.2>",
+        "statsmodels",
+        "matplotlib",
+        "pyDOE",
+        "pandas",
+        "numpy(compatível)"
+      ],
+      "algs": [
+        "b5r",
+        "b5m",
+        "moead_media"
+      ]
+    },
+    "env_c311": {
+      "stack": "python",
+      "python": ">=3.8,<3.10",
+      "note": "venv PRÓPRIO (D79/N.1.2); overlay desdeo_* root-first; NUNCA importar evaluate_population (dispara matlab.engine)",
+      "key_pins": [
+        "GPy~=1.9.9",
+        "graphviz",
+        "scikit-learn==1.1.2",
+        "numpy==1.20.2",
+        "scipy",
+        "pyDOE",
+        "plotly==4.14.3",
+        "plotly-express==0.4.1",
+        "matplotlib",
+        "statsmodels",
+        "pandas"
+      ],
+      "env_flags": [
+        "MPLBACKEND=Agg"
+      ],
+      "algs": [
+        "c311"
+      ]
+    },
+    "env_bridge": {
+      "stack": "python",
+      "python": "3.x (arm64 no Mac p/ o pyenv do R2025a)",
+      "note": "o pyenv InProcess do MATLAB aponta para este (avalia problems.py; lê DoE/dataset parquet). Não roda algoritmo.",
+      "key_pins": [
+        "numpy",
+        "pymoo(problems.py)",
+        "pyarrow"
+      ],
+      "algs": []
+    }
+  },
+  "alg_to_env": {
+    "b1": {
+      "stack": "matlab",
+      "env": "env_matlab"
+    },
+    "b3": {
+      "stack": "matlab",
+      "env": "env_matlab"
+    },
+    "b4": {
+      "stack": "matlab",
+      "env": "env_matlab"
+    },
+    "e7": {
+      "stack": "matlab",
+      "env": "env_matlab"
+    },
+    "c217": {
+      "stack": "matlab",
+      "env": "env_matlab"
+    },
+    "c141": {
+      "stack": "matlab",
+      "env": "env_matlab"
+    },
+    "e74": {
+      "stack": "matlab",
+      "env": "env_matlab"
+    },
+    "c238": {
+      "stack": "matlab",
+      "env": "env_matlab"
+    },
+    "e103": {
+      "stack": "matlab",
+      "env": "env_matlab"
+    },
+    "nsga2": {
+      "stack": "matlab",
+      "env": "env_matlab"
+    },
+    "nsga3": {
+      "stack": "matlab",
+      "env": "env_matlab"
+    },
+    "moead": {
+      "stack": "matlab",
+      "env": "env_matlab"
+    },
+    "smsemoa": {
+      "stack": "matlab",
+      "env": "env_matlab"
+    },
+    "c262": {
+      "stack": "python",
+      "env": "env_main"
+    },
+    "c154": {
+      "stack": "python",
+      "env": "env_main"
+    },
+    "e81": {
+      "stack": "python",
+      "env": "env_e81_qpots"
+    },
+    "c122": {
+      "stack": "python",
+      "env": "env_main"
+    },
+    "c149": {
+      "stack": "python",
+      "env": "env_main"
+    },
+    "c311": {
+      "stack": "python",
+      "env": "env_c311"
+    },
+    "b5r": {
+      "stack": "python",
+      "env": "env_b5"
+    },
+    "b5m": {
+      "stack": "python",
+      "env": "env_b5"
+    },
+    "moead_media": {
+      "stack": "python",
+      "env": "env_b5"
+    },
+    "sobol_batch": {
+      "stack": "python",
+      "env": "env_main"
+    }
+  },
+  "note_v52": "Higiene v5.2: env_desdeo SEPARADO em env_b5 (sklearn 0.21.3) e env_c311 (sklearn 1.1.2 + GPy) — pins mutuamente exclusivos, D79/N.1.2 proíbe co-importar; c149 movido p/ env-main c/ fallback; env-main renomeia env_botorch (harness+BO+c122+c149); seeds via artifacts/seeds.json (D91); DoE/dataset em parquet (D87/D90)."
+}

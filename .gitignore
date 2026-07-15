@@ -1,3 +1,23 @@
 *.pyc
+__pycache__/
 .DS_Store
-data
+
+# Saídas pesadas de experimento (NÃO versionar) — §17.7
+data/experiments/
+data/dataframes/
+data/gifs/
+data/models/
+data/images/
+
+# Inputs pequenos e determinísticos: VERSIONAR (não ignorar)
+!data/bbob_pf_cache/
+!data/doe/
+!data/datasets/
+!data/matlab_check.txt
+
+# venvs / ambientes locais
+.venv*/
+venv*/
+
+# data/ dentro de repos vendorizados (tutoriais/exemplos) — não é do nosso pipeline
+algorithms/**/data/

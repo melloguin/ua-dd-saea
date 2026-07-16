@@ -61,13 +61,13 @@ PROBLEM_CLASSES: dict[str, str] = {
     'WFG4':     'WFG4',
     'WFG5':     'WFG5',
     'WFG9':     'WFG9',
-    'BBOB1':    'BBOB_F1_Sphere_Sphere',
-    'BBOB5':    'BBOB_F5_Sphere_SharpRidge',
-    'BBOB17':   'BBOB_F17_EllipsoidSeparable_SchafferF7',
-    'BBOB22':   'BBOB_F22_AttractiveSector_SharpRidge',
-    'BBOB37':   'BBOB_F37_SharpRidge_Rastrigin',
-    'BBOB49':   'BBOB_F49_Rastrigin_Gallagher101',
-    'BBOB55':   'BBOB_F55_Gallagher101_Gallagher101',
+    'BBOB_F1':    'BBOB_F1_Sphere_Sphere',
+    'BBOB_F5':    'BBOB_F5_Sphere_SharpRidge',
+    'BBOB_F17':   'BBOB_F17_EllipsoidSeparable_SchafferF7',
+    'BBOB_F22':   'BBOB_F22_AttractiveSector_SharpRidge',
+    'BBOB_F37':   'BBOB_F37_SharpRidge_Rastrigin',
+    'BBOB_F49':   'BBOB_F49_Rastrigin_Gallagher101',
+    'BBOB_F55':   'BBOB_F55_Gallagher101_Gallagher101',
 }
 
 ALL_PROBLEMS: list[str] = list(PROBLEM_CLASSES)

@@ -77,13 +77,13 @@
       "WFG4": 15,
       "WFG5": 16,
       "WFG9": 17,
-      "BBOB1": 18,
-      "BBOB5": 19,
-      "BBOB17": 20,
-      "BBOB22": 21,
-      "BBOB37": 22,
-      "BBOB49": 23,
-      "BBOB55": 24
+      "BBOB_F1": 18,
+      "BBOB_F5": 19,
+      "BBOB_F17": 20,
+      "BBOB_F22": 21,
+      "BBOB_F37": 22,
+      "BBOB_F49": 23,
+      "BBOB_F55": 24
     },
     "tier_id": {
       "small": 0,
@@ -94,7 +94,7 @@
       "lhs": 0,
       "mvns": 1
     },
-    "_nota_problema_id": "indice 0-based na lista canonica experiment.ALL_PROBLEMS (= ordem do §4). BBOB usa os short names do CODIGO (BBOB1,BBOB5,BBOB17,BBOB22,BBOB37,BBOB49,BBOB55) — NAO os BBOB_F* do runs_matrix.csv (artefato dessincronizado; ver handoff/F0-02-doe.md)."
+    "_nota_problema_id": "indice 0-based na lista canonica experiment.ALL_PROBLEMS (= ordem do §4). Tokens BBOB reconciliados p/ BBOB_F1/F5/F17/F22/F37/F49/F55 em 2026-07-15 — canonicos da SPEC §4 / characteristics.csv / runs_matrix.csv; o token curto BBOBn foi eliminado do codigo/DoE; valores do DoE INALTERADOS (o seed usa o problema_id/indice, nao a string)."
   },
   "alg_id": {
     "b1": 0,

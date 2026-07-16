@@ -1,0 +1,67 @@
+{
+  "artifact": "dataset",
+  "spec_version": "5.2",
+  "decision": "D90",
+  "generator_version": 1,
+  "problema": "DTLZ1",
+  "problema_id": 8,
+  "semente": 13,
+  "tier": "small",
+  "dist": "lhs",
+  "tier_id": 0,
+  "dist_id": 0,
+  "D": 7,
+  "M": 3,
+  "n": 216,
+  "bounds": {
+    "xl": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "xu": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "sampler": "lhs-maximin",
+  "K": 100,
+  "seed_formula": "SeedSequence((semente, problema_id, tier_id, dist_id))",
+  "seed_tuple": [
+    13,
+    8,
+    0,
+    0
+  ],
+  "columns": [
+    "x0",
+    "x1",
+    "x2",
+    "x3",
+    "x4",
+    "x5",
+    "x6",
+    "f0",
+    "f1",
+    "f2"
+  ],
+  "dtype": "float64",
+  "row_major": true,
+  "numpy_version": "2.4.6",
+  "bitgen": "PCG64",
+  "x_hash": "ab932d6cbca60a7a74c746812b1f2411a93de9dde7e1dc07593912d65fb91fc9",
+  "f_hash": "7d3ccfb87ed63b37a139f86227fa731e50342c4235935c6ce90ddc3de76b53ef",
+  "dataset_hash": "f3237aa9bcbf896485094ca591385b10ff34922d5bdbb7b3d043dca2a6550aa4",
+  "n_rows": 216,
+  "n_cols": 10,
+  "created_at": "2026-07-16T02:23:27+00:00"
+}

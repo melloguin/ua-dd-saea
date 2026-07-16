@@ -1,0 +1,71 @@
+{
+  "artifact": "doe",
+  "spec_version": "5.2",
+  "decision": "D87/D88",
+  "generator_version": 1,
+  "problema": "DTLZ4",
+  "problema_id": 11,
+  "semente": 22,
+  "D": 12,
+  "n_init": 131,
+  "maxfe": 371,
+  "bounds": {
+    "xl": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "xu": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "sampler": "lhs-maximin",
+  "K": 100,
+  "seed_formula": "SeedSequence((semente, problema_id))",
+  "seed_tuple": [
+    22,
+    11
+  ],
+  "columns": [
+    "x0",
+    "x1",
+    "x2",
+    "x3",
+    "x4",
+    "x5",
+    "x6",
+    "x7",
+    "x8",
+    "x9",
+    "x10",
+    "x11"
+  ],
+  "dtype": "float64",
+  "row_major": true,
+  "numpy_version": "2.4.6",
+  "bitgen": "PCG64",
+  "doe_hash": "f6fdf7181504ae681f4d6af84c7b68eea9a4f3e5897b296dc14740281cfebf3d",
+  "n_rows": 131,
+  "n_cols": 12,
+  "created_at": "2026-07-16T02:23:32+00:00"
+}

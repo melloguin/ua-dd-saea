@@ -1,0 +1,51 @@
+{
+  "artifact": "dataset",
+  "spec_version": "5.2",
+  "decision": "D90",
+  "generator_version": 1,
+  "problema": "MMF1",
+  "problema_id": 0,
+  "semente": 0,
+  "tier": "medium",
+  "dist": "lhs",
+  "tier_id": 1,
+  "dist_id": 0,
+  "D": 2,
+  "M": 2,
+  "n": 2000,
+  "bounds": {
+    "xl": [
+      1.0,
+      -1.0
+    ],
+    "xu": [
+      3.0,
+      1.0
+    ]
+  },
+  "sampler": "lhs-maximin",
+  "K": 100,
+  "seed_formula": "SeedSequence((semente, problema_id, tier_id, dist_id))",
+  "seed_tuple": [
+    0,
+    0,
+    1,
+    0
+  ],
+  "columns": [
+    "x0",
+    "x1",
+    "f0",
+    "f1"
+  ],
+  "dtype": "float64",
+  "row_major": true,
+  "numpy_version": "2.4.6",
+  "bitgen": "PCG64",
+  "x_hash": "09237d9f0adadd0d222941623e670188b65db7840d854dce2e44800c2158c4b9",
+  "f_hash": "c9062cc9a5646d3ab01f23e018f664a58bd5e1838a863e8b1dd3cc8dc27d8c8b",
+  "dataset_hash": "8743d1f51b15844184084cdd2a005a9899b6783c060a0d0f4ffdd85645bf3102",
+  "n_rows": 2000,
+  "n_cols": 4,
+  "created_at": "2026-07-16T02:24:18+00:00"
+}

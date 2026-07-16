@@ -1,0 +1,41 @@
+{
+  "artifact": "doe",
+  "spec_version": "5.2",
+  "decision": "D87/D88",
+  "generator_version": 1,
+  "problema": "MMF1",
+  "problema_id": 0,
+  "semente": 14,
+  "D": 2,
+  "n_init": 21,
+  "maxfe": 61,
+  "bounds": {
+    "xl": [
+      1.0,
+      -1.0
+    ],
+    "xu": [
+      3.0,
+      1.0
+    ]
+  },
+  "sampler": "lhs-maximin",
+  "K": 100,
+  "seed_formula": "SeedSequence((semente, problema_id))",
+  "seed_tuple": [
+    14,
+    0
+  ],
+  "columns": [
+    "x0",
+    "x1"
+  ],
+  "dtype": "float64",
+  "row_major": true,
+  "numpy_version": "2.4.6",
+  "bitgen": "PCG64",
+  "doe_hash": "e96173d6c7aad0187d7fb6fee6c1e1240565cefd5286660444b42686ccd93671",
+  "n_rows": 21,
+  "n_cols": 2,
+  "created_at": "2026-07-16T02:22:51+00:00"
+}

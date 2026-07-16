@@ -40,6 +40,10 @@ function [status, info] = experiment(alg, problema_id, semente, exp, dataRoot)
             % R1-c217 (caso-modelo): 1o algoritmo REAL — PC-SAEA (PlatEMO 4.15)
             % ponta-a-ponta na infra do R1-00 (Solve real + hard-stop do wrapper).
             [status, info] = run_c217(alg, problema_id, semente, exp, dataRoot);
+        case 'c141'
+            % R1-c141 (1o fan-out): MMRAEA (repo do autor, porte 3 linhas p/ o
+            % 4.15 — L.7) no MESMO padrao do caso-modelo c217.
+            [status, info] = run_c141(alg, problema_id, semente, exp, dataRoot);
         otherwise
             % Algoritmos reais (b1,b3,b4,e7,c217,c141,e74,c238,e103,pisos):
             % o corpo PlatEMO (UserProblem + Solve) e o cartao R1-c217+.
@@ -358,6 +362,168 @@ function ensure_platemo_c217(ROOT)
         pr = fullfile(ROOT, 'algorithms', '_PlatEMO', 'PlatEMO');
         if isfolder(pr), addpath(genpath(pr)); end
     end
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
+%  RUN-c141 (MMRAEA REAL, repo do autor em porte 4.15) — 1o FAN-OUT da R1, no
+%  padrao do caso-modelo c217 (receita N.0 do handoff R1-c217 §4). O que e
+%  ESPECIFICO do c141: N = min(100, 11D-1) por subpopulacao (DEF-A5 — crash
+%  pool<N em D<=9), MMRAEA sem 'parameter' (wmax=20 hardcoded = paper), o path
+%  da pasta do autor (fora da arvore PlatEMO) e a instrumentacao c141_instrument
+%  (③ D45: mu ARBFs + 2 incertezas; .jsonl S.7; timing §17.6).
+% ════════════════════════════════════════════════════════════════════════════
+
+function [status, info] = run_c141(alg, problema, semente, exp, dataRoot)
+    status = "failed";
+    info = struct();
+    ROOT = harness_root();
+
+    % Arvore PlatEMO 4.15 (N.0.1) + a pasta do c141 (repo do autor).
+    ensure_paths_c141(ROOT);
+
+    % (0) PONTE: repo-root no sys.path; importa src.* (A2/§2/§18).
+    ctx = bridge_ctx(ROOT);
+
+    % (1) Problema Python via ponte -> D, M, bounds NATIVOS (§5.5).
+    pp = py_problem(ctx, problema);
+    D = pp.D; M = pp.M; xl = pp.xl(:).'; xu = pp.xu(:).';
+    maxfe = 31*D - 1;  n_init = 11*D - 1;
+    Nsub  = min(100, 11*D - 1);   % DEF-A5: teto 100 (paper/codigo) + piso 11D-1
+                                  % (ES_PDR.m:20 estoura se pool ger.1 < N — D<=9)
+
+    % (2) DoE 11D-1 do artefato (D63/D87) — CARREGADO, NUNCA regenerado.
+    doe = load_doe(problema, semente, D, dataRoot);
+    X0  = doe.X;                                   % n_init x D (float64, nativo)
+    assert(size(X0,1) == n_init, 'DoE tem %d linhas != 11D-1=%d', size(X0,1), n_init);
+    % CP-bounds (§5.5): bounds do problema == sidecar do DoE (identidade nativa).
+    assert(max(abs(xl(:)-doe.xl(:)))==0 && max(abs(xu(:)-doe.xu(:)))==0, ...
+           'CP-bounds: bounds do problema != sidecar do DoE');
+
+    % (3) .jsonl (§17.5) + wrapper de FE (FEBudget) com o logger acoplado.
+    jsonl  = nm_jsonl_path(exp, alg, problema, semente, dataRoot);
+    fid    = jsonl_open(jsonl);
+    logger = struct('guard', @(name, varargin) ...
+                    jsonl_line(fid, 'guard', [{'name'}, {name}, varargin]));
+    % bud CRIADO ANTES do Problem: o probe do construtor avalia DoE[0] (initFcn),
+    % que o lote-init reencontra como CACHE-HIT (0 FE, D89) -> a ① fecha com
+    % EXATAMENTE 31D-1 linhas, sem poluir o catalogo (receita N.0 do c217).
+    bud = FEBudget(D, maxfe, n_init, logger);
+    buf = RunBuffer();
+    jsonl_line(fid, 'header', {'alg', string(alg), 'problema', string(problema), ...
+        'semente', semente, 'D', D, 'M', M, 'regime', "online", 'maxfe', maxfe, ...
+        'doe_hash', string(doe.hash), 'algo', "c141-MMRAEA-porte4.15", ...
+        'N_subpop', Nsub, 'wmax', 20, ...
+        'sigma_dict', "sigma_0=U_ranks_pop_completa(D45 nativa); sigma_1=std_bruto_3_modos(D45 ensemble-proxy)"});
+
+    % (4) evalFcn por-x (a ponte, bounds nativos) + embrulho de LOTE (D61) — o
+    %     c217_batch_eval e GENERICO (handoff R1-c217 §7): hard-stop no meio do lote.
+    evalFcnPerX = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    batchEval   = @(X, varargin) c217_batch_eval(X, bud, evalFcnPerX);
+
+    % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.
+    %     N = Nsub e POR SUBPOPULACAO (B12.6 — pool de infill = 2N).
+    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, ...
+                  'run_id', string(nm_run_id(exp, alg, problema, semente)), ...
+                  'problema', string(problema), 'semente', semente);
+    Problem = UserProblem('evalFcn', batchEval, 'initFcn', @(N,varargin) X0(1:N,:), ...
+        'D', D, 'lower', xl, 'upper', xu, 'maxFE', maxfe, ...
+        'N', Nsub, 'once', true, 'data', data);        % maxRuntime fica inf (N.0.5)
+
+    % (6) SEMENTE (D59): rng DEPOIS de construir o Problem, ANTES do Solve.
+    rng(semente, 'twister');
+
+    % (7) Algoritmo REAL: save=-K (sem .mat/figura — N.0.3/4), outputFcn=hook (②).
+    %     MMRAEA nao tem ParameterSet (wmax=20 hardcoded — paper OK).
+    K = 20;
+    algo = MMRAEA('save', -K, ...
+        'outputFcn', @(A,P) hook_output(A, P, buf, bud, []));
+    term = "normal";
+    try
+        algo.Solve(Problem);                           % engole PlatEMO:Termination
+    catch e
+        if strcmp(e.identifier, 'PlatEMO:Termination')
+            term = "hard_stop";                        % nunca deveria vazar (Solve engole)
+        else
+            jsonl_line(fid, 'footer', {'status', "failed", 'erro', string(e.message), ...
+                'identifier', string(e.identifier), 'fe_final', bud.fe});
+            fclose(fid);
+            fprintf(2, '[R1-c141 FAILED] %s/%s/%d: %s (%s)\n', ...
+                    char(alg), char(problema), semente, e.message, e.identifier);
+            rethrow(e);                                % erro REAL -> falha honesta (D23)
+        end
+    end
+
+    % (8) EXPORT das 4 camadas (§17.2/§17.3): ① do wrapper; ②③/timing do buffer.
+    R = bud.records();                                 % catalogo ① (== 31D-1 linhas)
+    write_real(exp, alg, problema, semente, R, D, M, dataRoot);
+    write_pop(exp, alg, problema, semente, buf.pop, dataRoot);
+    write_surrogate(exp, alg, problema, semente, buf.srows, D, M, "online", dataRoot);
+    write_timing(exp, alg, problema, semente, buf.trows, dataRoot);
+
+    % (9) CP-init por-run (D87/D88): hash da init X (float64) = sidecar do DoE.
+    doe_hash_run = sha256_rowmajor_f64(bud.init_X());
+    cp_ok = strcmp(doe_hash_run, doe.hash);
+
+    % (10) Encanamento objetivo (D89/D21): FE final = 31D-1 EXATO E CP-init OK.
+    %      Falha honesta (D23/D81): gate reprovado -> manifesto/footer 'failed'.
+    ok_flag = (bud.fe == maxfe) && cp_ok;
+    st_str  = "ok"; if ~ok_flag, st_str = "failed"; end
+
+    % (11) MANIFESTO (§17.2/§17.7) + dicionario de sigma (DEF-C4/D45).
+    man = build_manifest(exp, alg, problema, semente, ...
+        maxfe, bud.fe, buf.nGeracoes(), doe_hash_run, bud.cache_hits, dataRoot);
+    man.algo_version = "c141-MMRAEA-porte4.15";
+    man.status = st_str;
+    man.params = struct('N_subpop', Nsub, 'wmax', 20, 'kernel', "MQ c=1 poly=0 x3", ...
+                        'ds_dsmerge', 1e-14);
+    man.sigma_dict = struct( ...
+        'sigma_0', "U de ranks (|Q1-Q2|+|Q1-Q3|+|Q2-Q3|) na populacao completa — incerteza NATIVA do c141 (D45)", ...
+        'sigma_1', "desvio bruto entre os 3 modos (std de [Fit1,Fit2,Fit3]) — proxy de ensemble, escalas incomensuraveis (D45)");
+    write_manifest(man, exp, alg, problema, semente, dataRoot);
+
+    jsonl_line(fid, 'footer', {'status', st_str, 'fe_final', bud.fe, 'maxfe', maxfe, ...
+        'n_geracoes', buf.nGeracoes(), 'cache_hits', bud.cache_hits, ...
+        'cp_init', cp_ok, 'termino', string(term)});
+    fclose(fid);
+
+    % (12) Higiene de memoria da ponte (D86/N.0.8): solta o Problem pymoo do run.
+    try, py.gc.collect(); catch, end
+
+    info = struct('D', D, 'M', M, 'maxfe', maxfe, 'fe_final', bud.fe, ...
+        'n_init', n_init, 'N_subpop', Nsub, 'n_geracoes', buf.nGeracoes(), ...
+        'cache_hits', bud.cache_hits, 'termino', string(term), ...
+        'doe_hash_run', string(doe_hash_run), ...
+        'doe_hash_sidecar', string(doe.hash), 'cp_ok', cp_ok);
+    if ~ok_flag
+        fprintf(2, ['[R1-c141] FALHA HONESTA (D81): FE_final=%d (31D-1=%d) cp_init=%d ' ...
+                    '-> manifesto status=failed.\n'], bud.fe, maxfe, cp_ok);
+    end
+    status = st_str;
+end
+
+
+function ensure_paths_c141(ROOT)
+% PlatEMO 4.15 (N.0.1) + a pasta do c141 (repo do autor, FORA da arvore PlatEMO).
+% A pasta do c141 tem nomes que colidem com copias do 4.15 (UpdataArchive [K-RVEA],
+% CSO [single-obj], CalFitness [IBEA etc.], dsmerge [AB-SAEA], rbf_build/rbf_predict
+% [SAMSO/SACC-EAM-II]) — TODAS as copias PlatEMO sao chamadas de dentro da PROPRIA
+% pasta (regra same-folder resolve — S.8; renames defensivos dispensados). Os
+% asserts garantem a precedencia da copia do c141 p/ as chamadas VIA PATH do
+% c141_instrument (que vive em src/, sem same-folder).
+    if isempty(which('UserProblem')) || isempty(which('OperatorGA'))
+        pr = fullfile(ROOT, 'algorithms', '_PlatEMO', 'PlatEMO');
+        if isfolder(pr), addpath(genpath(pr)); end
+    end
+    c141root = fullfile(ROOT, 'algorithms', 'c141_MMRAEA', 'extracted', 'MMRAEA');
+    if isempty(which('MMRAEA')) || ~contains(which('rbf_predict'), 'c141_MMRAEA')
+        assert(isfolder(c141root), 'c141: pasta do repo ausente: %s', c141root);
+        addpath(genpath(c141root));          % prepend -> precedencia do c141
+    end
+    assert(contains(which('rbf_predict'), 'c141_MMRAEA'), ...
+           'c141: rbf_predict nao resolve p/ a copia do c141 (precedencia de path)');
+    assert(contains(which('calFitness'), 'c141_MMRAEA'), ...
+           'c141: calFitness nao resolve p/ a copia do c141 (precedencia de path)');
 end
 
 

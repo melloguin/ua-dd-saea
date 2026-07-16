@@ -81,19 +81,20 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
             try:
                 _adapter.run(alg, problema, semente, exp=exp)
                 status = 'ok' if i == 0 else 'retried_ok'
+                n_retries = i          # nº de re-tentativas até o sucesso
                 break
             except NotImplementedError as e:
                 # Andaime da Fase 0: adapter não ligado — não retriar.
-                status, stack_trace = 'failed', repr(e)
+                status, stack_trace, n_retries = 'failed', repr(e), i
                 log.event('not_implemented', msg=str(e))
                 break
             except Exception as e:  # noqa: BLE001 — D23: capturar tudo, logar, seguir
                 import traceback
                 stack_trace = traceback.format_exc()
-                n_retries = i
+                n_retries = i          # i re-tentativas já gastas
                 log.guard('hard_error', attempt=i, err=f'{type(e).__name__}: {e}')
                 if i + 1 >= attempts:
-                    status = 'failed'
+                    status = 'failed'  # esgotou as tentativas
     finally:
         log.footer(status=status, n_retries=n_retries,
                    tempo_total_s=round(time.time() - t0, 4),

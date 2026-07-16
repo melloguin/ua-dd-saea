@@ -1,186 +1,186 @@
 {
-  "spec_version": "5.2",
-  "note": "D80: cada patch amarra (repo,arquivo,linha,expect_before,expect_after,sha_arquivo). O patcher ABORTA se o conteúdo atual ≠ expect_before. sha_arquivo preenchido no pre-flight (repos sem .git → pin por hash de conteúdo, ver repos.lock). Higiene v5.2: nomes de arquivo corrigidos (S.2#1), expect_before/after separados, âncoras faltantes + D93/D94/D95 adicionadas.",
-  "patches": [
-    {
-      "id": "c217-B5.1-guard1",
-      "repo": "PlatEMO",
-      "file": "Multi-objective optimization/PC-SAEA/SurrogateAssistedSelectionPC.m",
-      "line": 21,
-      "kind": "fidelidade-🔴",
-      "expect_before": "if error1 < 1-delta",
-      "expect_after": "if error1 > delta"
-    },
-    {
-      "id": "c217-B5.1-guard2",
-      "repo": "PlatEMO",
-      "file": "Multi-objective optimization/PC-SAEA/SurrogateAssistedSelectionPC.m",
-      "line": 39,
-      "kind": "fidelidade-🔴",
-      "expect_before": "elseif error2 < 1-delta",
-      "expect_after": "elseif error2 > delta"
-    },
-    {
-      "id": "e74-mask",
-      "repo": "e74_clmea",
-      "file": "CLMEA_Code/Algorithms/Multi-objective optimization/CLMEA/Local_infill.m",
-      "line": 47,
-      "kind": "🔴-D76",
-      "expect_before": "x_candidates = [x_candidates; x_offspring(Choose,:)];",
-      "expect_after": "x_candidates = [x_candidates; x_offspring(index(Choose),:)];"
-    },
-    {
-      "id": "b1-mse-guard-L8",
-      "repo": "PlatEMO",
-      "file": "Multi-objective optimization/ParEGO/EvolALG.m",
-      "line": 25,
-      "kind": "🟠-D76",
-      "expect_before": "sqrt(mse);",
-      "expect_after": "sqrt(max(mse,0));"
-    },
-    {
-      "id": "c141-sde-eps-L4",
-      "repo": "c141_mmraea",
-      "file": "extracted/MMRAEA/InfillStrategy.m",
-      "line": null,
-      "kind": "🟠-D76",
-      "expect_before": "<SDE sem guard>",
-      "expect_after": "<SDE + eps> (DEF-L4)"
-    },
-    {
-      "id": "e103-pm-D93a",
-      "repo": "e103_ibeams",
-      "file": "IBEAMS.m",
-      "line": 43,
-      "expect_before": "1/Global.D",
-      "expect_after": "1",
-      "kind": "fidelidade-🔴 (pm 1/D²→1/D)"
-    },
-    {
-      "id": "e103-judgemodel",
-      "repo": "e103_ibeams",
-      "file": "JudgeModel.m",
-      "line": 32,
-      "expect_before": "<inclui diagonal i==j>",
-      "expect_after": "Msite(logical(eye(N)))=true; (exclui i==j)",
-      "kind": "fidelidade-🔴"
-    },
-    {
-      "id": "e103-centros-D93",
-      "repo": "e103_ibeams",
-      "file": "construct_Rnets.m",
-      "line": 4,
-      "expect_before": "center_num = ceil(sqrt(Global.D*11-1));",
-      "expect_after": "center_num = ceil(sqrt(n_dataset)); % n INJETADO",
-      "kind": "fidelidade-D93 (mata o NO-OP)"
-    },
-    {
-      "id": "b1-doe-D94",
-      "repo": "PlatEMO",
-      "file": "Multi-objective optimization/ParEGO/ParEGO.m",
-      "line": 29,
-      "expect_before": "<gera LHS [0,1] :29 + re-escala :30>",
-      "expect_after": "<injetar X nativo direto na Evaluation; substituir :29-:30>",
-      "kind": "D94 (evita dupla-escala)"
-    },
-    {
-      "id": "e7-doe-D94",
-      "repo": "PlatEMO",
-      "file": "Multi-objective optimization/EDN-ARMOEA/EDNARMOEA.m",
-      "line": 31,
-      "expect_before": "<gera LHS [0,1] :31 + re-escala :32>",
-      "expect_after": "<injetar X nativo direto; substituir :31-:32>",
-      "kind": "D94"
-    },
-    {
-      "id": "b4-cap109",
-      "repo": "PlatEMO",
-      "file": "Multi-objective optimization/CSEA/CSEA.m",
-      "line": 29,
-      "expect_before": "min(11*Problem.D-1,109);",
-      "expect_after": "11*Problem.D-1; % remover cap 109 (S.2#2)",
-      "kind": "init"
-    },
-    {
-      "id": "b4-cpu",
-      "repo": "PlatEMO",
-      "file": "Multi-objective optimization/CSEA/CSEA.m",
-      "line": 47,
-      "expect_before": "'ExecutionEnvironment','auto'",
-      "expect_after": "'ExecutionEnvironment','cpu'",
-      "kind": "repro"
-    },
-    {
-      "id": "e74-ndsort-obj",
-      "repo": "e74_clmea",
-      "file": "CLMEA_Code/Algorithms/Multi-objective optimization/CLMEA/ClassifierSelect.m",
-      "line": 9,
-      "expect_before": "[y_label,~] = NDSort(Parent,inf);",
-      "expect_after": "<NDSort sobre objetivos preditos>",
-      "kind": "fidelidade-🔴"
-    },
-    {
-      "id": "b3-updataarchive-guard",
-      "repo": "PlatEMO",
-      "file": "Multi-objective optimization/K-RVEA/UpdataArchive.m",
-      "line": 61,
-      "expect_before": "<sem filtro de zeros de Next>",
-      "expect_after": "<guard: filtrar Next==0 antes de indexar>",
-      "kind": "[IMPL] crash latente"
-    },
-    {
-      "id": "c238-hypervolume-rm",
-      "repo": "c238_eim",
-      "file": "MultiObjective_EIM.m",
-      "line": 40,
-      "expect_before": "Hypervolume(",
-      "expect_after": "<remover as 2 linhas Hypervolume (mex Windows-only)>",
-      "kind": "[IMPL]"
-    },
-    {
-      "id": "e81-matern",
-      "repo": "e81_qpots",
-      "file": "qpots/model_object.py",
-      "line": 120,
-      "expect_before": "SingleTaskGP(",
-      "expect_after": "SingleTaskGP(..., covar_module=<Matérn>)",
-      "kind": "🔵 ARTIGO"
-    },
-    {
-      "id": "e81-offset1",
-      "repo": "e81_qpots",
-      "file": "qpots/acquisition.py",
-      "line": 219,
-      "expect_before": "torch.manual_seed(1024 + seed_iter)",
-      "expect_after": "<+1000·semente (D22)>",
-      "kind": "D22"
-    },
-    {
-      "id": "e81-offset2",
-      "repo": "e81_qpots",
-      "file": "qpots/acquisition.py",
-      "line": 366,
-      "expect_before": "seed=2430",
-      "expect_after": "<+1000·semente (D22)>",
-      "kind": "D22"
-    },
-    {
-      "id": "c149-fix-M",
-      "repo": "c149_lbnmobo",
-      "file": "BO_surrogate_function_uncertainty.py",
-      "line": 46,
-      "expect_before": "[:, :2]",
-      "expect_after": "[:, :M]",
-      "kind": "fidelidade-🔴"
-    },
-    {
-      "id": "b5-mode72-kde",
-      "repo": "b5_desdeo",
-      "file": "desdeo_emo/selection/ProbMOEAD_select.py",
-      "line": 65,
-      "expect_before": "<KDE morto + plt_density :75 viva>",
-      "expect_after": "<comentar :65-75>",
-      "kind": "[IMPL] crash"
-    }
-  ]
+ "spec_version": "5.2",
+ "note": "D80: cada patch amarra (repo,arquivo,linha,expect_before,expect_after,sha_arquivo). O patcher ABORTA se o conteúdo atual ≠ expect_before. sha_arquivo preenchido no pre-flight (repos sem .git → pin por hash de conteúdo, ver repos.lock). Higiene v5.2: nomes de arquivo corrigidos (S.2#1), expect_before/after separados, âncoras faltantes + D93/D94/D95 adicionadas.",
+ "patches": [
+  {
+   "id": "c217-B5.1-guard1",
+   "repo": "PlatEMO",
+   "file": "Multi-objective optimization/PC-SAEA/SurrogateAssistedSelectionPC.m",
+   "line": 21,
+   "kind": "fidelidade-🔴",
+   "expect_before": "if error1 < 1-delta",
+   "expect_after": "if error1 > delta"
+  },
+  {
+   "id": "c217-B5.1-guard2",
+   "repo": "PlatEMO",
+   "file": "Multi-objective optimization/PC-SAEA/SurrogateAssistedSelectionPC.m",
+   "line": 39,
+   "kind": "fidelidade-🔴",
+   "expect_before": "elseif error2 < 1-delta",
+   "expect_after": "elseif error2 > delta"
+  },
+  {
+   "id": "e74-mask",
+   "repo": "e74_clmea",
+   "file": "CLMEA_Code/Algorithms/Multi-objective optimization/CLMEA/Local_infill.m",
+   "line": 47,
+   "kind": "🔴-D76",
+   "expect_before": "x_candidates = [x_candidates; x_offspring(Choose,:)];",
+   "expect_after": "x_candidates = [x_candidates; x_offspring(index(Choose),:)];"
+  },
+  {
+   "id": "b1-mse-guard-L8",
+   "repo": "PlatEMO",
+   "file": "Multi-objective optimization/ParEGO/EvolALG.m",
+   "line": 25,
+   "kind": "🟠-D76",
+   "expect_before": "sqrt(mse);",
+   "expect_after": "sqrt(max(mse,0));"
+  },
+  {
+   "id": "c141-sde-eps-L4",
+   "repo": "c141_mmraea",
+   "file": "extracted/MMRAEA/calFitness.m",
+   "line": 6,
+   "kind": "🟠-D76",
+   "expect_before": "PopObj = (PopObj-repmat(fmin,N,1))./repmat(fmax-fmin,N,1);",
+   "expect_after": "den(den == 0) = eps;"
+  },
+  {
+   "id": "e103-pm-D93a",
+   "repo": "e103_ibeams",
+   "file": "IBEAMS.m",
+   "line": 43,
+   "expect_before": "1/Global.D",
+   "expect_after": "1",
+   "kind": "fidelidade-🔴 (pm 1/D²→1/D)"
+  },
+  {
+   "id": "e103-judgemodel",
+   "repo": "e103_ibeams",
+   "file": "JudgeModel.m",
+   "line": 32,
+   "expect_before": "<inclui diagonal i==j>",
+   "expect_after": "Msite(logical(eye(N)))=true; (exclui i==j)",
+   "kind": "fidelidade-🔴"
+  },
+  {
+   "id": "e103-centros-D93",
+   "repo": "e103_ibeams",
+   "file": "construct_Rnets.m",
+   "line": 4,
+   "expect_before": "center_num = ceil(sqrt(Global.D*11-1));",
+   "expect_after": "center_num = ceil(sqrt(n_dataset)); % n INJETADO",
+   "kind": "fidelidade-D93 (mata o NO-OP)"
+  },
+  {
+   "id": "b1-doe-D94",
+   "repo": "PlatEMO",
+   "file": "Multi-objective optimization/ParEGO/ParEGO.m",
+   "line": 29,
+   "expect_before": "<gera LHS [0,1] :29 + re-escala :30>",
+   "expect_after": "<injetar X nativo direto na Evaluation; substituir :29-:30>",
+   "kind": "D94 (evita dupla-escala)"
+  },
+  {
+   "id": "e7-doe-D94",
+   "repo": "PlatEMO",
+   "file": "Multi-objective optimization/EDN-ARMOEA/EDNARMOEA.m",
+   "line": 31,
+   "expect_before": "<gera LHS [0,1] :31 + re-escala :32>",
+   "expect_after": "<injetar X nativo direto; substituir :31-:32>",
+   "kind": "D94"
+  },
+  {
+   "id": "b4-cap109",
+   "repo": "PlatEMO",
+   "file": "Multi-objective optimization/CSEA/CSEA.m",
+   "line": 29,
+   "expect_before": "min(11*Problem.D-1,109);",
+   "expect_after": "11*Problem.D-1; % remover cap 109 (S.2#2)",
+   "kind": "init"
+  },
+  {
+   "id": "b4-cpu",
+   "repo": "PlatEMO",
+   "file": "Multi-objective optimization/CSEA/CSEA.m",
+   "line": 47,
+   "expect_before": "'ExecutionEnvironment','auto'",
+   "expect_after": "'ExecutionEnvironment','cpu'",
+   "kind": "repro"
+  },
+  {
+   "id": "e74-ndsort-obj",
+   "repo": "e74_clmea",
+   "file": "CLMEA_Code/Algorithms/Multi-objective optimization/CLMEA/ClassifierSelect.m",
+   "line": 9,
+   "expect_before": "[y_label,~] = NDSort(Parent,inf);",
+   "expect_after": "<NDSort sobre objetivos preditos>",
+   "kind": "fidelidade-🔴"
+  },
+  {
+   "id": "b3-updataarchive-guard",
+   "repo": "PlatEMO",
+   "file": "Multi-objective optimization/K-RVEA/UpdataArchive.m",
+   "line": 61,
+   "expect_before": "<sem filtro de zeros de Next>",
+   "expect_after": "<guard: filtrar Next==0 antes de indexar>",
+   "kind": "[IMPL] crash latente"
+  },
+  {
+   "id": "c238-hypervolume-rm",
+   "repo": "c238_eim",
+   "file": "MultiObjective_EIM.m",
+   "line": 40,
+   "expect_before": "Hypervolume(",
+   "expect_after": "<remover as 2 linhas Hypervolume (mex Windows-only)>",
+   "kind": "[IMPL]"
+  },
+  {
+   "id": "e81-matern",
+   "repo": "e81_qpots",
+   "file": "qpots/model_object.py",
+   "line": 120,
+   "expect_before": "SingleTaskGP(",
+   "expect_after": "SingleTaskGP(..., covar_module=<Matérn>)",
+   "kind": "🔵 ARTIGO"
+  },
+  {
+   "id": "e81-offset1",
+   "repo": "e81_qpots",
+   "file": "qpots/acquisition.py",
+   "line": 219,
+   "expect_before": "torch.manual_seed(1024 + seed_iter)",
+   "expect_after": "<+1000·semente (D22)>",
+   "kind": "D22"
+  },
+  {
+   "id": "e81-offset2",
+   "repo": "e81_qpots",
+   "file": "qpots/acquisition.py",
+   "line": 366,
+   "expect_before": "seed=2430",
+   "expect_after": "<+1000·semente (D22)>",
+   "kind": "D22"
+  },
+  {
+   "id": "c149-fix-M",
+   "repo": "c149_lbnmobo",
+   "file": "BO_surrogate_function_uncertainty.py",
+   "line": 46,
+   "expect_before": "[:, :2]",
+   "expect_after": "[:, :M]",
+   "kind": "fidelidade-🔴"
+  },
+  {
+   "id": "b5-mode72-kde",
+   "repo": "b5_desdeo",
+   "file": "desdeo_emo/selection/ProbMOEAD_select.py",
+   "line": 65,
+   "expect_before": "<KDE morto + plt_density :75 viva>",
+   "expect_after": "<comentar :65-75>",
+   "kind": "[IMPL] crash"
+  }
+ ]
 }

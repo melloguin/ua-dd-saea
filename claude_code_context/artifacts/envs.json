@@ -8,6 +8,20 @@
     "matlab:maxNumCompThreads(1)"
   ],
   "dispatch": "subprocess no python do venv-alvo (D79); 1 run = 1 core (D79)",
+  "provisioning": {
+    "venv_dir": "/Users/gmello/Documents/python_venvs",
+    "requirements_dir": "requirements/ (raiz do repo — 1 arquivo por ambiente; ver requirements/README.md p/ o mapa+estratégia)",
+    "matlab": "SEM venv: 1 instalação R2025a + toolboxes; isolamento por árvore PlatEMO (padrão 4.15 / e74 4.1 própria / e103 worker) + ponte env_bridge (requirements/env_matlab.md)",
+    "count": "4 venvs Python que rodam algoritmos (env_main, env_e81_qpots, env_b5, env_c311) + env_bridge (ponte MATLAB) + env_c149_fallback (condicional)",
+    "envs": {
+      "env_main":         {"venv": "/Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao", "req": "requirements/env_main.txt", "mac": "OK — núcleo provisionado 2026-07-15 (falta stack R2: botorch/torch/gcs/deap)", "vm": "a provisionar antes do R2"},
+      "env_e81_qpots":    {"venv": "/Users/gmello/Documents/python_venvs/env_e81_qpots", "req": "requirements/env_e81_qpots.txt", "mac": "verificar pins (torch 2.12/botorch 0.16.1) no provisionamento", "vm": "a provisionar (M6)"},
+      "env_b5":           {"venv": "/Users/gmello/Documents/python_venvs/env_b5", "req": "requirements/env_b5.txt", "mac": "INVIÁVEL (sklearn 0.21.3 sem wheel arm64)", "vm": "DESTINO NATURAL (M5)"},
+      "env_c311":         {"venv": "/Users/gmello/Documents/python_venvs/env_c311", "req": "requirements/env_c311.txt", "mac": "INVIÁVEL (numpy 1.20.2 sem wheel arm64)", "vm": "DESTINO NATURAL (M5)"},
+      "env_bridge":       {"venv": "/Users/gmello/Documents/python_venvs/env_bridge", "req": "requirements/env_bridge.txt", "mac": "OK — py 3.11.9 --enable-shared; wire do MATLAB no R1-00 (M2)", "vm": "n/a (ponte é Mac/MATLAB)"},
+      "env_c149_fallback":{"venv": "/Users/gmello/Documents/python_venvs/env_c149_fallback", "req": "requirements/env_c149_fallback.txt", "mac": "condicional", "vm": "condicional (só se o piloto do c149 divergir)"}
+    }
+  },
   "environments": {
     "env_matlab": {
       "stack": "matlab",
@@ -31,6 +45,9 @@
     "env_main": {
       "stack": "python",
       "python": "3.11",
+      "mac_interpreter": "/Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao/bin/python",
+      "mac_venv": "/Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao",
+      "provisioned": "Mac núcleo provisionado 2026-07-15 (pyenv 3.11.9): numpy 2.4.6 / pandas 3.0.3 / pyarrow 25 / pymoo 0.6.2 / scipy 1.17.1 / joblib / tqdm / scikit-learn 1.9; versões exatas em <mac_venv>/requirements.lock; usar por CAMINHO COMPLETO (shell não preserva activate). ⚠ pandas resolveu 3.0.3 — avaliar pin >=2,<3. FALTA no mesmo venv antes do R2: botorch==0.18.1 / torch / gpytorch / google-cloud-storage / deap. VM: a provisionar antes de R2/R3.",
       "note": "env-main (S.6/D79): harness + BoTorch (c262/c154/sobol_batch) + c122 (driver próprio, factory bypass) + c149 (TENTAR aqui; fallback env_c149 se o piloto divergir)",
       "key_pins": [
         "numpy>=2,<3",

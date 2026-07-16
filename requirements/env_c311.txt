@@ -1,0 +1,19 @@
+# =====================================================================
+# env_c311  —  Python >=3.8,<3.10, VM LINUX  (INVIÁVEL no Mac arm64: numpy 1.20.2 sem wheel arm64)
+# Venv: /Users/gmello/Documents/python_venvs/env_c311   (na VM)
+# Algoritmo: c311 (TGPR-MO, offline)
+# REGRAS: NUNCA co-importar com env_b5 (D79/N.1.2); overlay desdeo_* root-first;
+#         NUNCA importar evaluate_population (dispara matlab.engine). Rodar com MPLBACKEND=Agg.
+# =====================================================================
+GPy~=1.9.9
+graphviz
+scikit-learn==1.1.2
+numpy==1.20.2
+scipy
+pyDOE
+plotly==4.14.3
+plotly-express==0.4.1
+matplotlib
+statsmodels
+pandas
+pyarrow               # ler DoE/dataset parquet + export

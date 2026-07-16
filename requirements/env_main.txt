@@ -1,0 +1,25 @@
+# =====================================================================
+# env_main  —  Python 3.11.9 (pyenv)
+# Venv (Mac): /Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao
+# Interpretador: <venv>/bin/python   (usar SEMPRE por caminho completo)
+# Algoritmos: c262, c154, c122, c149  (+ sobol_batch, harness/despachante/export/métrica)
+# Estado: NÚCLEO provisionado e verificado no Mac em 2026-07-15.
+#         Foto exata em <venv>/requirements.lock (fonte de reprodutibilidade).
+# =====================================================================
+
+# --- núcleo do harness (INSTALADO) ---
+numpy>=2,<3            # 2.4.6
+pandas>=2,<3           # 2.3.3  (fixado <3 de propósito — pandas 3.0 evitado p/ reprodutibilidade)
+pyarrow               # 25.0.0 (parquet; brotli/zstd)
+pymoo==0.6.2          # fonte única dos 25 problemas (src/problems.py)
+scipy                 # 1.17.1
+joblib
+tqdm
+scikit-learn          # 1.9.0 — uso do HARNESS; NÃO é o sklearn dos algoritmos b5/c311
+
+# --- stack de R2/BoTorch (adicionar NO MESMO venv antes do M4; ainda NÃO instalado) ---
+botorch==0.18.1       # c262 (qNEHVI), c154 (JES)
+gpytorch              # compatível com botorch 0.18.1
+torch                 # estável (arm64 no Mac; CPU/CUDA na VM)
+deap                  # driver próprio do c122 (θ-DEA-DP)
+google-cloud-storage  # dual-write GCS — necessário SÓ na VM (o Mac grava local)

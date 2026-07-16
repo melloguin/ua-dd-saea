@@ -1,0 +1,11 @@
+# =====================================================================
+# env_bridge  —  Python 3.11.9 **--enable-shared**  (o pyenv que o MATLAB InProcess EMBUTE)
+# Venv: /Users/gmello/Documents/python_venvs/env_bridge   (Mac)
+# Papel: NÃO roda algoritmo. Avalia src/problems.py (pymoo) e lê DoE/dataset parquet,
+#        chamado pelo MATLAB via pyenv(ExecutionMode="InProcess").
+# CRÍTICO: precisa ser um Python --enable-shared (libpython3.11.dylib) — o pyenv 3.11.9 do Mac já é.
+# Provisionar/apontar o MATLAB para ele no cartão R1-00-harness (M2).
+# =====================================================================
+numpy
+pymoo==0.6.2          # MESMA versão do env_main (fonte única dos problemas)
+pyarrow               # ler DoE/dataset parquet (CP-init, dataset offline)

@@ -1,0 +1,13 @@
+# =====================================================================
+# env_e81_qpots  —  Python 3.10/3.11
+# Venv: /Users/gmello/Documents/python_venvs/env_e81_qpots
+# Algoritmo: e81 (qPOTS)
+# Isolado porque o botorch 0.16.1 conflita com o 0.18.1 do env_main.
+# Provisionar no M6 (VM; no Mac arm64 verificar disponibilidade dos pins ANTES).
+# =====================================================================
+botorch==0.16.1       # ⚠ verificar wheel/plataforma no provisionamento (S.6)
+torch==2.12.0         # ⚠ verificar disponibilidade/versão; ajustar no piloto se necessário
+gpytorch==1.14.2
+numpy==2.2.6
+pymoo==0.6.1.6        # versão PRÓPRIA do e81 (≠ 0.6.2 do harness) — não misturar
+pyarrow               # ler DoE/dataset parquet + escrever o export

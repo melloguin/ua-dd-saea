@@ -1,0 +1,18 @@
+# =====================================================================
+# env_b5  —  VM LINUX x86  (INVIÁVEL no Mac arm64: sklearn 0.21.3 não tem wheel arm64)
+# Venv: /Users/gmello/Documents/python_venvs/env_b5   (na VM)
+# Algoritmos: b5r, b5m (offline SA-MOEA) + moead_media (piso offline)
+# Python: conforme os wheels do sklearn 0.21.3 (x86).
+# REGRAS: NUNCA co-importar com env_c311 (D79/N.1.2); overlay desdeo_* vendorizado root-first no sys.path.
+# =====================================================================
+scikit-learn==0.21.3  # S.2#12. Se não houver wheel p/ o Python-alvo, usar a MAIS PRÓXIMA
+                      #          COM validação de equivalência do GPR no piloto (parar-e-perguntar).
+desdeo-problem==0.14.0
+desdeo-tools==0.2.6
+desdeo-emo==<PIN A CRAVAR NO GATE R3.2>   # deferimento intencional — cravar no gate R3.2 (M5)
+statsmodels
+matplotlib
+pyDOE
+pandas
+numpy                 # compatível com sklearn 0.21.3
+pyarrow               # ler DoE/dataset parquet + export

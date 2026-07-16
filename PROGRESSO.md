@@ -234,7 +234,15 @@ nova), `START_HERE.md`, `PLANO_IMPLEMENTACAO.md` (15 milestones, didático) e `O
 - *Ponto p/ veto:* `src/experiment.py` (Python) e `src/experiment.m` (MATLAB) coexistem — nomes iguais,
   runtimes diferentes (benigno, mas confuso).
 
-**R1-c217 — o CASO-MODELO 🔑 — EM EXECUÇÃO (o prompt está rodando numa sessão).**
+**R1-c217 — o CASO-MODELO 🔑 — ✅ PROVADO (2026-07-16). O PIPELINE INTEIRO FUNCIONA COM UM ALGORITMO REAL.**
+- **Achado principal (herdado por TODO o fan-out MATLAB):** a sessão pegou + corrigiu um **BUG D89** — o `obj.FE` do PlatEMO contava cache-hits (duplicatas de infill) e o `NotTerminated` parava o run CEDO (ZDT1 fechou 926≠929). Fix: `obj.FE = bud.fe` (FEBudget = fonte única, D89) + Termination no MEIO do lote (D61). MMF1/DTLZ2 (sem duplicatas) mascaravam o bug; só o D=30 (ZDT1) o expôs.
+- **Verificado pela torre (independente, rodando código):** `accept.py R1-c217` na saída REAL → **VERDE nos 4** (MMF1=61 · **ZDT1=929 apesar de 4 cache-hits** · DTLZ2=371 · DTLZ2_d15=464, todos **31D−1 EXATO**); parquets com schema §17.2 (x/f float32); CP-init OK; li o mecanismo do fix no `experiment.m`. **Escopo limpo:** só o alg c217 + infra compartilhada (`experiment.m` fix D89, `experiment.py` +FIDELITY_PROBLEMS aditivo, `preflight.py` patch-aware) — **0 DoE congelado tocado, 0 conflito BBOB**; regressões F0-01..04+R1-00 verdes.
+- **Mudanças "além do plano" (revisadas, sãs):** `FIDELITY_PROBLEMS` (DTLZ2_d15 = config d=15 do paper, SEPARADA dos 25 da bateria); `preflight` patch-aware (aceita STOCK ou APLICADO — não enfraqueceu); `data/doe/DTLZ2_d15/` untracked (DoE de fidelidade; autor decide commitar).
+- **FIDELIDADE = pendente, é do AUTOR (D97):** o IGD está longe da guia do paper (≈6,9212e-2) porque **nosso orçamento é ~4× menor** (o paper roda ~2000 FE; nós 31D−1). O autor julga lendo os estados nos `.jsonl` + o IGD na ① crua, com o caveat do orçamento. A torre NÃO julga fidelidade.
+- **→ M2 COMPLETO. O caso-modelo provou o pipeline; os outros 8 MATLAB (M3) são multiplicação e herdam o fix D89.**
+
+<!-- (descrição original da tarefa, mantida) -->
+**R1-c217 — patches e infra:**
 - O 1º algoritmo REAL (PC-SAEA) ponta-a-ponta na infra do R1-00 + a **1ª validação de fidelidade do
   autor** (compara com o artigo). Patches do `alg_c217_pcsaea.md`: as 2 guardas (SAS:21/:39, D17), N=50,
   fix PCS:55, clip do lote ao saldo, DoE injetado (D63), rng após Problem (D59), export/timing pela infra.
@@ -299,13 +307,13 @@ nova), `START_HERE.md`, `PLANO_IMPLEMENTACAO.md` (15 milestones, didático) e `O
   `data/datasets` (pontos iniciais, no repo) + `data/experiments/main/stub/` (saída do run-STUB do R1-00).
 
 ## 8. Estado atual + próximos passos
-- **Feito:** M0 ✅ · M1 (Fase 0) ✅ · M2: R1-00 ✅ · **R1-c217 EM EXECUÇÃO**.
+- **Feito:** M0 ✅ · M1 (Fase 0) ✅ · **M2 ✅ (R1-00 + R1-c217 PROVADOS — o pipeline funciona com um algoritmo real; falta só o julgamento de fidelidade do autor, D97)**.
 - **Commits recentes (branch `experiment/definitive_algorythms`, nunca pushed):** `[F0-01..04]`, os 4
   `chore/docs` da torre (BBOB reconcile `e8adacc`, data `cf4a4cc`, envs `d1edcf2`, docs `bb72de0`),
   `[R1-00-harness]`, `9b454f8` (fix check_fe), `4b7c79e`/`6ab024d`/`b6cc0c9` (docs/env_bridge).
-- **Próximo:** o autor traz o handoff do **R1-c217** → a torre verifica o encanamento (o 1º run real) e
-  ajuda na validação de fidelidade. Depois: **M3** (fan-out MATLAB: b1,b3,b4,e7,c141,e74,c238,e103,pisos)
-  ∥ **M4** (R2-00 → c262/c154 na VM). Marco crítico seguinte: **M7** (piloto de tempo/memória, PORTÃO
+- **Próximo:** **M3** (fan-out MATLAB: b1,b3,b4,e7,c141,e74,c238,e103,pisos — **herdam o fix D89** e toda
+  a infra do c217) ∥ **M4** (R2-00 → c262/c154 na VM). Em paralelo, o **autor faz a validação de fidelidade
+  do c217** (D97, com o caveat do orçamento ~4× menor que o paper). Marco crítico seguinte: **M7** (piloto de tempo/memória, PORTÃO
   bloqueante) antes das baterias **M8/M9** ("tudo rodando"). Depois sub-estudos (M10/M11), consolidação
   (M12) e análise (M13/M14/M15).
 - **Como uma instância nova assume:** leia este PROGRESSO + `ORQUESTRACAO_MESTRE.md` (status board +

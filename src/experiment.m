@@ -1,59 +1,492 @@
-function status = experiment_run(alg, problema_id, semente, exp, dataRoot)
-% experiment_run — adapter MATLAB: traduz run(alg, problema_id, semente) numa
-% chamada a main OFICIAL do PlatEMO/standalone (arquitetura A2, §16.5.3).
+function [status, info] = experiment(alg, problema_id, semente, exp, dataRoot)
+% experiment — adapter MATLAB (arquitetura A2, §16.5.3): traduz
+% run(alg, problema_id, semente) na avaliacao do problema Python pela PONTE, sob
+% o orcamento do WRAPPER de FE (FEBudget), gravando as 4 camadas do §17.2.
 %
-% >>> ESQUELETO (F0-01-harness). O CORPO REAL (ponte pyenv, UserProblem com o
-% >>> DoE injetado, export das 3 camadas, escrita do manifesto/jsonl) e o
-% >>> cartao R1-00-harness. Aqui fica o contrato + a RECEITA N.4, e um retorno
-% >>> `failed` honesto enquanto o despacho por algoritmo nao existe (D23).
+% >>> R1-00-harness (infra TRANSVERSAL — contrato N.0). CORPO REAL das pecas que
+% >>> TODOS os algoritmos MATLAB herdam: a ponte de avaliacao, o orcamento pelo
+% >>> wrapper (hard-stop 31D-1 EXATO — D89), o DoE carregado do artefato (D63/
+% >>> D87, NUNCA regenerado), o export das 4 camadas (parquet brotli+single, SEM
+% >>> round — D53; escrita atomica — D58) e o fechamento do CP-init (bit-
+% >>> identidade da camada ① com o DoE do F0-02 — D87/D88).
+% >>> NENHUM algoritmo dos 16 e implementado aqui: o run-STUB (alg='stub') e um
+% >>> AVALIADOR TRIVIAL que exercita a infra ponta-a-ponta (sem Algorithm.Solve,
+% >>> sem fidelidade — D97). O 1o algoritmo real e o R1-c217 (caso-modelo).
 %
-% Retorna status ∈ {"ok","retried_ok","failed"}.
+% Retorna status in {"ok","retried_ok","failed"} e (opcional) info do STUB.
 %
-% Contrato do adapter (preenchido em R1 — §16.5.3):
-%   1. Problema de src/problems.py pelo problema_id via ponte (A2/§2) — o MATLAB
-%      NUNCA usa problema nativo; avalia f(x) chamando py.problems.evaluate_problem.
-%   2. Bounds/sinal (§5.5): PlatEMO/EA operam em bounds NATIVOS e MINIMIZAM ->
-%      identidade nos bounds, devolve f. (CP-bounds/CP-sinal.)
-%   3. DoE 11D-1 carregado do artefato parquet (D87): parquetread do
-%      data/doe/<prob>/doe_<prob>_<sem>.parquet -> injecao via `initFcn`
-%      (A1: os SAEAs nao usam Problem.Initialization). NUNCA regenerar.
-%   4. Orcamento maxFE = 31D-1 com HARD-STOP EXATO no wrapper de FE do evalFcn
-%      (D21/D89): quando o saldo zera, avaliar os primeiros `saldo` do lote,
-%      gravar na ①, e lancar MException('PlatEMO:Termination'). O obj.FE nativo
-%      NAO governa (D89). Cache-hit bit-a-bit no X nativo = 0 FE (evento no jsonl).
-%   5. Semear (D59): rng(semente,'twister') DEPOIS de construir o Problem e
-%      ANTES de Algorithm.Solve. (e103/e74: worker dedicado, D95.)
-%   6. Coletar a trajetoria pelo hook_output (②③+timing por geracao) e gravar o
-%      export §17 (parquetwrite brotli+single, SEM round — S.6) + manifesto/jsonl.
+% Contrato do adapter herdado pelos algoritmos reais (preenchido em R1-c217+):
+%   1. Problema de src/problems.py pelo problema_id via PONTE (A2/§2) — o MATLAB
+%      NUNCA usa problema nativo; avalia f(x) por py.problems.evaluate_problem.
+%   2. Bounds/sinal (§5.5): PlatEMO/EA operam em bounds NATIVOS e minimizam ->
+%      identidade nos bounds (CP-bounds/CP-sinal), devolve f.
+%   3. DoE 11D-1 carregado do artefato parquet (D87) via parquetread; injecao por
+%      patch local (A1: os SAEAs nao usam Problem.Initialization). NUNCA regenerar.
+%   4. maxFE = 31D-1 com HARD-STOP EXATO no wrapper (FEBudget) — o obj.FE nativo
+%      do PlatEMO NAO governa (D89). Cache-hit bit-a-bit no X nativo = 0 FE.
+%   5. Semear (D59): rng(semente,'twister') DEPOIS do Problem, ANTES de Solve.
+%   6. Coletar a trajetoria pelo hook_output (②③+timing) e gravar o export §17.
 
-status = "failed";
+    status = "failed";
+    info = struct();
+    if nargin < 4 || isempty(exp),      exp = 'main';  end
+    if nargin < 5 || isempty(dataRoot), dataRoot = 'data'; end
 
-% ── Andaime da Fase 0: adapter por algoritmo ainda nao ligado ───────────────
-% (Em R1, substituir por: montar UserProblem, semear, Solve, exportar.)
-knownMatlab = {'b1','b3','b4','e7','c217','c141','e74','c238','e103', ...
-               'nsga2','nsga3','moead','smsemoa','moead_media'};
-if ~any(strcmp(alg, knownMatlab))
-    warning('experiment:unknownAlg', ...
-            'Algoritmo MATLAB desconhecido: %s', alg);
+    switch char(alg)
+        case 'stub'
+            % Run-STUB do R1-00: infra transversal ponta-a-ponta, sem algoritmo.
+            [status, info] = run_stub(alg, problema_id, semente, exp, dataRoot);
+        otherwise
+            % Algoritmos reais (b1,b3,b4,e7,c217,c141,e74,c238,e103,pisos):
+            % o corpo PlatEMO (UserProblem + Solve) e o cartao R1-c217+.
+            % A infra transversal (ponte, FEBudget, DoE, export, hook, manifesto)
+            % ja esta pronta neste arquivo para o c217 fiar. Sem algoritmo em
+            % R1-00 => falha honesta (D23), nunca silenciosa.
+            fprintf(2, ['[TODO R1-c217+] adapter PlatEMO de %s nao ligado ' ...
+                        '(R1-00 = infra transversal; sem algoritmo). ' ...
+                        'problema=%s semente=%d exp=%s\n'], ...
+                    char(alg), char(problema_id), semente, char(exp));
+            status = "failed";
+    end
 end
-% NotImplemented (Fase 0). Registrar como `failed` e retornar — nunca silencioso.
-fprintf(2, ['[TODO R1] adapter de %s nao implementado (Fase 0 = andaime). ' ...
-            'problema=%s semente=%d exp=%s dataRoot=%s\n'], ...
-        alg, problema_id, semente, exp, dataRoot);
 
-% ── ESBOCO da receita N.4 (comentado — R1 liga o corpo) ─────────────────────
-%   D = problem_dim(problema_id);
-%   maxFE = 31*D - 1;                                  % §5.1 (D21)
-%   X0 = parquetread(doe_path(problema_id, semente));  % DoE artefato (D87)
-%   prob = UserProblem('D', D, 'maxFE', maxFE, 'maxRuntime', inf, ...
-%                      'lower', xl, 'upper', xu, ...
-%                      'initFcn', @() table2array(X0), ...        % injeta DoE (A1)
-%                      'evalFcn', @(x) fe_wrapper(x, ...), ...     % ponte + hard-stop
-%                      'once', false);                            % decidir/fixar
-%   rng(semente, 'twister');                           % D59 (depois do Problem)
-%   algo = feval(alg_ctor(alg), 'save', -K, 'outputFcn', @(A,P) hook_output(A,P,...));
-%   try, algo.Solve(prob); catch e; log_and_rethrow(e); end
-%   result = algo.result;                              % snapshots {FE, Population}
-%   export_three_layers(result, ...);                  % ①②③ (F0-03)
-%   write_manifest(...); status = "ok";
+
+% ════════════════════════════════════════════════════════════════════════════
+%  RUN-STUB (avaliador trivial) — prova a infra transversal (D89/D57/D53/D58/
+%  §17.2/§17.7 + CP-init D87/D88). Espelho MATLAB do _f0_03_stub_run do accept.py.
+% ════════════════════════════════════════════════════════════════════════════
+
+function [status, info] = run_stub(alg, problema, semente, exp, dataRoot)
+    status = "failed";
+    ROOT = harness_root();
+
+    % (0) PONTE: repo-root no sys.path do Python embutido; importa src.*.
+    ctx = bridge_ctx(ROOT);
+
+    % (1) Problema Python via PONTE -> D, M, bounds (A2/§2).
+    pp = py_problem(ctx, problema);
+    D = pp.D; M = pp.M; xl = pp.xl; xu = pp.xu;
+    maxfe = 31*D - 1;  n_init = 11*D - 1;
+
+    % (2) DoE 11D-1 do artefato (D63/D87) — CARREGADO, NUNCA regenerado.
+    doe = load_doe(problema, semente, D, dataRoot);
+    X0 = doe.X;                                   % n_init x D (double, nativo)
+    assert(size(X0,1) == n_init, 'DoE tem %d linhas != 11D-1=%d', size(X0,1), n_init);
+    % CP-bounds (§5.5): os bounds do problema Python batem com o sidecar do DoE.
+    assert(max(abs(xl(:) - doe.xl(:))) == 0 && max(abs(xu(:) - doe.xu(:))) == 0, ...
+           'CP-bounds: bounds do problema != bounds do sidecar do DoE');
+
+    % (3) log .jsonl (§17.5) + wrapper de FE (FEBudget) com o logger acoplado.
+    jsonl = nm_jsonl_path(exp, alg, problema, semente, dataRoot);
+    fid = jsonl_open(jsonl);
+    logger = struct('guard', @(name, varargin) ...
+                    jsonl_line(fid, 'guard', [{'name'}, {name}, varargin]));
+    bud = FEBudget(D, maxfe, n_init, logger);
+    jsonl_line(fid, 'header', {'alg', string(alg), 'problema', string(problema), ...
+        'semente', semente, 'D', D, 'M', M, 'regime', "online", ...
+        'maxfe', maxfe, 'doe_hash', string(doe.hash)});
+
+    % evalFcn: a PONTE (A2) — f(x) por py.problems.evaluate_problem (bounds nativos).
+    evalFcn = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+
+    % (4a) INIT = os 11D-1 pontos do DoE (fase 'init'), injetados pela PONTE.
+    for i = 1:n_init
+        bud.evaluate(X0(i,:), evalFcn);
+    end
+
+    % (4b) OPT = 20D infills DISTINTOS na diagonal (fase 'opt') -> 31D-1 distintos.
+    n_infill = 20*D;
+    for i = 1:n_infill
+        frac = (i) / (n_infill + 2);
+        x = xl(:).' + frac * (xu(:).' - xl(:).');
+        if bud.solutionIdOf(x) >= 0                      % colisao (prob~0) -> nudge
+            x = x + i * 1e-9 * (xu(:).' - xl(:).');
+        end
+        bud.evaluate(x, evalFcn);
+        jsonl_line(fid, 'decision', {'caminho', "infill", ...
+            'motivo', sprintf('frac=%.4f', frac), 'fe', bud.fe});
+    end
+
+    % (4c) CACHE-HIT: reavaliar o 1o ponto do DoE = 0 FE (D89).
+    fe_antes = bud.fe;
+    bud.evaluate(X0(1,:), evalFcn);
+    cache_hit_zero_fe = (bud.fe == fe_antes);
+
+    % (4d) HARD-STOP EXATO: a proxima X INEDITA levanta PlatEMO:Termination (D21).
+    probe = xu(:).';
+    if bud.solutionIdOf(probe) >= 0, probe = probe - 1e-9 * (xu(:).' - xl(:).'); end
+    hard_stopped = false;
+    try
+        bud.evaluate(probe, evalFcn);
+    catch e
+        if strcmp(e.identifier, 'PlatEMO:Termination'), hard_stopped = true;
+        else, rethrow(e); end
+    end
+
+    % (5) trajetoria ②③+timing (RunBuffer — o coletor que o hook alimenta em
+    %     c217). O STUB fabrica geracoes p/ exercitar as camadas e o schema C1/C3.
+    R = bud.records();                                    % catalogo ①
+    sids = [R.solution_id];                               % 0-based
+    buf = RunBuffer();
+    G = 3;
+    for g = 1:G
+        view = struct('g', g);
+        % ② membership: primeiros (5+g) solution_ids reais.
+        k = min(5 + g, numel(sids));
+        view.pop_ids = sids(1:k);
+        % ③ surrogate:
+        srows = {};
+        % regressor: mu/sigma por objetivo, ligando ao ① via real_solution_id.
+        for c = 0:3
+            sid = sids(mod(g + c, numel(sids)) + 1);
+            xk = R(sid + 1).x;
+            srows{end+1} = RunBuffer.mkSurrogateRow(xk, ...
+                'real_solution_id', int32(sid), ...
+                'mu', 0.5 * (g + (0:M-1)), 'sigma', 1e-3 * (g+1) * ones(1,M), ...
+                'pred_tipo', "valor", 'modelo_flag', "GP"); %#ok<AGROW>
+        end
+        % C3: linha em espaco transformado (cru+params), mono-output estilo b1
+        % (mu_0 preenchido, mu_1.. NULL — §17.2/D47).
+        srows{end+1} = RunBuffer.mkSurrogateRow(R(1).x, ...
+            'real_solution_id', int32(sids(1)), 'mu', 0.1 * g, ...
+            'pred_tipo', "valor", 'modelo_flag', "GP", ...
+            'espaco_modelo', "transformado", 'transf_tipo', "minmax", ...
+            'transf_params', struct('min', 0.0, 'max', 1.0)); %#ok<AGROW>
+        % classificador: pred_classe/score (mu/sigma NULL) — DEF-C1.
+        srows{end+1} = RunBuffer.mkSurrogateRow(R(end).x, ...
+            'real_solution_id', int32(sids(end)), ...
+            'pred_tipo', "classe", 'pred_classe', "bom", ...
+            'pred_confianca', 0.83, 'modelo_flag', "FNN"); %#ok<AGROW>
+        view.srows = srows;
+        % §17.6 timing: um evento de retreino por geracao.
+        view.timing = struct('n_acumulado', n_init + g*5, ...
+                             'tempo_fit_s', 0.001*g, 'tempo_busca_s', 0.002);
+        buf.addGeneration(view);
+        jsonl_line(fid, 'timing', {'n_acumulado', n_init + g*5, 'tempo_fit_s', 0.001*g});
+    end
+
+    % (6) EXPORT das 4 camadas (§17.2/§17.3) — parquet brotli+single, atomico.
+    write_real(exp, alg, problema, semente, R, D, M, dataRoot);
+    write_pop(exp, alg, problema, semente, buf.pop, dataRoot);
+    write_surrogate(exp, alg, problema, semente, buf.srows, D, M, "online", dataRoot);
+    write_timing(exp, alg, problema, semente, buf.trows, dataRoot);
+
+    % (7) CP-init por-run (D87/D88): hash da init X (float64) = sidecar do DoE.
+    doe_hash_run = sha256_rowmajor_f64(bud.init_X());
+    cp_ok = strcmp(doe_hash_run, doe.hash);
+
+    % (8) MANIFESTO (§17.2/§17.7) — status ok, FE final, CP-init, timing.
+    man = build_manifest(exp, alg, problema, semente, ...
+        maxfe, bud.fe, buf.nGeracoes(), doe_hash_run, bud.cache_hits, dataRoot);
+    write_manifest(man, exp, alg, problema, semente, dataRoot);
+
+    jsonl_line(fid, 'footer', {'status', "ok", 'fe_final', bud.fe, ...
+        'n_geracoes', buf.nGeracoes(), 'cache_hits', bud.cache_hits, ...
+        'cp_init', cp_ok});
+    fclose(fid);
+
+    info = struct('D', D, 'M', M, 'maxfe', maxfe, 'fe_final', bud.fe, ...
+        'n_init', n_init, 'cache_hits', bud.cache_hits, ...
+        'cache_hit_zero_fe', cache_hit_zero_fe, 'hard_stopped', hard_stopped, ...
+        'doe_hash_run', string(doe_hash_run), 'doe_hash_sidecar', string(doe.hash), ...
+        'cp_ok', cp_ok);
+    status = "ok";
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
+%  PONTE Python (pyenv InProcess) — A2/§2/§18
+% ════════════════════════════════════════════════════════════════════════════
+
+function ROOT = harness_root()
+    % Raiz do repo = pasta-pai de src/ (este arquivo vive em src/).
+    ROOT = fileparts(fileparts(mfilename('fullpath')));
+end
+
+function ctx = bridge_ctx(ROOT)
+    % Garante o repo-root no sys.path do Python embutido e importa src.*.
+    if count(py.sys.path, ROOT) == 0
+        insert(py.sys.path, int32(0), ROOT);
+    end
+    ctx.expm = py.importlib.import_module('src.experiment');
+    ctx.prm  = py.importlib.import_module('src.problems');
+    ctx.inst = py.getattr(ctx.expm, '_instantiate_problem');  % '_' => getattr
+end
+
+function pp = py_problem(ctx, problema)
+    % Instancia o problema pelo short name e le D/M/bounds (bounds NATIVOS).
+    obj = ctx.inst(problema);
+    pp.obj = obj;
+    pp.D = double(obj.n_var);
+    pp.M = double(obj.n_obj);
+    pp.xl = double(py.numpy.asarray(obj.xl));
+    pp.xu = double(py.numpy.asarray(obj.xu));
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
+%  DoE (D63/D87) — carregado do artefato, NUNCA regenerado
+% ════════════════════════════════════════════════════════════════════════════
+
+function doe = load_doe(problema, semente, D, dataRoot)
+    pq  = nm_doe_path(problema, semente, dataRoot);
+    man = nm_doe_manifest_path(problema, semente, dataRoot);
+    assert(isfile(pq),  'DoE ausente: %s', pq);
+    assert(isfile(man), 'sidecar do DoE ausente: %s', man);
+    side = jsondecode(fileread(man));
+    cols = cellstr(side.columns);                          % {'x0',...,'x{D-1}'}
+    t = parquetread(pq);
+    doe.X = double(t{:, cols});                            % n_init x D (float64)
+    doe.hash = char(side.doe_hash);
+    doe.xl = double(side.bounds.xl);
+    doe.xu = double(side.bounds.xu);
+    assert(size(doe.X,2) == D, 'DoE tem %d colunas != D=%d', size(doe.X,2), D);
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
+%  EXPORT §17.2 — 4 camadas parquet (brotli + single, SEM round — D53; atomico)
+% ════════════════════════════════════════════════════════════════════════════
+
+function p = write_real(exp, alg, problema, semente, R, D, M, dataRoot)
+    % ① Catalogo REAL: uma linha por solution_id (§17.2). Todas nao-nulas.
+    n = numel(R);
+    X = single(vertcat(R.x));  Fm = single(vertcat(R.f));
+    T = table();
+    T.algoritmo   = repmat(string(alg), n, 1);
+    T.problema    = repmat(string(problema), n, 1);
+    T.semente     = repmat(int32(semente), n, 1);
+    T.solution_id = int32([R.solution_id].');
+    for j = 0:D-1, T.(sprintf('x%d', j)) = X(:, j+1); end
+    for j = 0:M-1, T.(sprintf('f%d', j)) = Fm(:, j+1); end
+    T.fe_index = int32([R.fe_index].');
+    T.fase     = string({R.fase}.');
+    p = nm_layer_path(exp, alg, problema, semente, 'real', dataRoot);
+    atomic_parquet(p, T);
+end
+
+function p = write_pop(exp, alg, problema, semente, pop, dataRoot)
+    % ② membership (geracao, solution_id) — §17.2/D31.
+    n = size(pop, 1);
+    T = table();
+    T.algoritmo   = repmat(string(alg), n, 1);
+    T.problema    = repmat(string(problema), n, 1);
+    T.semente     = repmat(int32(semente), n, 1);
+    T.geracao     = int32(pop(:, 1));
+    T.solution_id = int32(pop(:, 2));
+    p = nm_layer_path(exp, alg, problema, semente, 'pop', dataRoot);
+    atomic_parquet(p, T);
+end
+
+function p = write_surrogate(exp, alg, problema, semente, srows, D, M, regime, dataRoot)
+    % ③ surrogate: schema unico C1/C3 (§17.2). Numericos ausentes => NaN (=NULL
+    % no parquet MATLAB); strings ausentes => <missing> (=NULL).
+    n = numel(srows);
+    xcol = @(j) arrayfun(@(k) single(srows{k}.x(j+1)), (1:n).');
+    optnum = @(field, j) arrayfun(@(k) opt_obj(srows{k}.(field), j), (1:n).');
+    optscal = @(field) arrayfun(@(k) opt_scal(srows{k}.(field)), (1:n).');
+    strcol = @(field) arrayfun(@(k) srows{k}.(field), (1:n).');
+
+    T = table();
+    T.algoritmo = repmat(string(alg), n, 1);
+    T.problema  = repmat(string(problema), n, 1);
+    T.semente   = repmat(int32(semente), n, 1);
+    T.regime    = repmat(string(regime), n, 1);
+    T.geracao   = int32(arrayfun(@(k) srows{k}.geracao, (1:n).'));
+    for j = 0:D-1, T.(sprintf('x%d', j)) = xcol(j); end
+    % real_solution_id: int32 quando TODOS presentes (casa com §17.2/int32); se
+    % houver ausentes (candidato nao avaliado — caso do c217), cai p/ double+NaN
+    % (a consolidacao re-casta p/ int32 nullable — MATLAB nao expressa int32-NULL).
+    rsi = arrayfun(@(k) rsi_val(srows{k}.real_solution_id), (1:n).');
+    if all(~isnan(rsi))
+        T.real_solution_id = int32(rsi);
+    else
+        T.real_solution_id = rsi;    % double com NaN => NULL
+    end
+    for j = 0:M-1, T.(sprintf('mu_%d', j))    = optnum('mu', j);    end
+    for j = 0:M-1, T.(sprintf('sigma_%d', j)) = optnum('sigma', j); end
+    T.pred_tipo      = strcol('pred_tipo');
+    T.pred_classe    = strcol('pred_classe');
+    T.pred_score     = optscal('pred_score');
+    T.pred_confianca = optscal('pred_confianca');
+    T.modelo_flag    = strcol('modelo_flag');
+    T.espaco_modelo  = strcol('espaco_modelo');
+    T.transf_tipo    = strcol('transf_tipo');
+    T.transf_params  = strcol('transf_params');
+    p = nm_layer_path(exp, alg, problema, semente, 'surrogate', dataRoot);
+    atomic_parquet(p, T);
+end
+
+function p = write_timing(exp, alg, problema, semente, trows, dataRoot)
+    % Camada de tempo §17.6: (run_id, geracao, n_acumulado, tempo_fit_s, tempo_busca_s).
+    n = numel(trows);
+    rid = nm_run_id(exp, alg, problema, semente);
+    T = table();
+    T.run_id       = repmat(string(rid), n, 1);
+    T.geracao      = int32(arrayfun(@(k) trows{k}.geracao, (1:n).'));
+    T.n_acumulado  = int32(arrayfun(@(k) trows{k}.n_acumulado, (1:n).'));
+    T.tempo_fit_s  = single(arrayfun(@(k) trows{k}.tempo_fit_s, (1:n).'));
+    T.tempo_busca_s = single(arrayfun(@(k) opt_scal(field_or(trows{k}, 'tempo_busca_s')), (1:n).'));
+    p = nm_layer_path(exp, alg, problema, semente, 'timing', dataRoot);
+    atomic_parquet(p, T);
+end
+
+function v = opt_obj(vec, j)
+    % mu_j/sigma_j: NaN quando ausente OU mais curto que M (mono-output b1).
+    if isempty(vec) || j+1 > numel(vec), v = single(NaN); else, v = single(vec(j+1)); end
+end
+function v = opt_scal(s)
+    if isempty(s) || (isnumeric(s) && isnan(s)), v = single(NaN); else, v = single(s); end
+end
+function v = rsi_val(s)
+    if isempty(s), v = NaN; else, v = double(s); end
+end
+function v = field_or(s, f)
+    if isfield(s, f), v = s.(f); else, v = []; end
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
+%  MANIFESTO (§17.2/§17.7) + escrita atomica
+% ════════════════════════════════════════════════════════════════════════════
+
+function man = build_manifest(exp, alg, problema, semente, maxfe, fe_final, ...
+                              n_ger, doe_hash, cache_hits, dataRoot)
+    rid = nm_run_id(exp, alg, problema, semente);
+    local = struct();
+    for ly = ["real","pop","surrogate","timing"]
+        local.(ly) = nm_layer_path(exp, alg, problema, semente, char(ly), dataRoot);
+    end
+    local.jsonl    = nm_jsonl_path(exp, alg, problema, semente, dataRoot);
+    local.manifest = nm_manifest_path(exp, alg, problema, semente, dataRoot);
+    man = struct();
+    man.schema_version = 1;
+    man.run_id = string(rid);
+    man.exp = string(exp); man.alg = string(alg);
+    man.problema = string(problema); man.semente = semente;
+    man.regime = "online"; man.q = 1; man.tier = ""; man.dist = "";
+    man.status = "ok"; man.n_retries = 0; man.stack_trace = "";
+    man.maxfe = maxfe; man.fe_final = fe_final; man.n_geracoes = n_ger;
+    man.doe_hash = string(doe_hash); man.repo_hash = ""; man.algo_version = "stub-R1-00";
+    man.env = struct('matlab', string(version), 'stack', "matlab-platemo", ...
+                     'pymoo', "0.6.2");
+    man.timing = struct('tempo_total_s', 0.0, 'tempo_fit_surrogate_s', 0.0, ...
+                        'tempo_busca_s', 0.0, 'tempo_aval_real_s', 0.0);
+    man.fit_series = {};
+    man.cache_hits = cache_hits;
+    man.fallback_ativado = false;
+    man.paths = struct('local', local);
+    man.created_at = iso_now();
+    man.updated_at = iso_now();
+end
+
+function write_manifest(man, exp, alg, problema, semente, dataRoot)
+    p = nm_manifest_path(exp, alg, problema, semente, dataRoot);
+    atomic_write_text(p, jsonencode(man, 'PrettyPrint', true));
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
+%  NAMING §17.7/D55 — espelho de src/naming.py (fonte unica dos caminhos)
+% ════════════════════════════════════════════════════════════════════════════
+
+function a = safe_alg(alg)
+    a = strrep(strrep(char(alg), '/', '_'), ' ', '_');
+end
+function r = nm_run_id(exp, alg, problema, semente)
+    r = sprintf('%s_%s_%s_%s', char(exp), safe_alg(alg), char(problema), num2str(semente));
+end
+function b = nm_base(exp, alg, problema, semente)
+    b = ['exp_' nm_run_id(exp, alg, problema, semente)];
+end
+function d = nm_run_dir(exp, alg, dataRoot)
+    d = fullfile(char(dataRoot), 'experiments', char(exp), safe_alg(alg));
+end
+function p = nm_layer_path(exp, alg, problema, semente, layer, dataRoot)
+    fn = [nm_base(exp, alg, problema, semente) '__' layer '.parquet'];
+    p = fullfile(nm_run_dir(exp, alg, dataRoot), fn);
+end
+function p = nm_jsonl_path(exp, alg, problema, semente, dataRoot)
+    fn = [nm_base(exp, alg, problema, semente) '.jsonl'];
+    p = fullfile(nm_run_dir(exp, alg, dataRoot), fn);
+end
+function p = nm_manifest_path(exp, alg, problema, semente, dataRoot)
+    fn = [nm_base(exp, alg, problema, semente) '.manifest.json'];
+    p = fullfile(nm_run_dir(exp, alg, dataRoot), fn);
+end
+function p = nm_doe_path(problema, semente, dataRoot)
+    p = fullfile(char(dataRoot), 'doe', char(problema), ...
+                 sprintf('doe_%s_%s.parquet', char(problema), num2str(semente)));
+end
+function p = nm_doe_manifest_path(problema, semente, dataRoot)
+    p = fullfile(char(dataRoot), 'doe', char(problema), ...
+                 sprintf('doe_%s_%s.manifest.json', char(problema), num2str(semente)));
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
+%  Escrita ATOMICA (D58) — *.tmp -> movefile
+% ════════════════════════════════════════════════════════════════════════════
+
+function atomic_parquet(path, T)
+    ensure_dir(path);
+    tmp = tmp_name(path);
+    parquetwrite(tmp, T, 'VariableCompression', 'brotli');  % single/int32, SEM round (D53)
+    movefile(tmp, path, 'f');
+end
+
+function atomic_write_text(path, txt)
+    ensure_dir(path);
+    tmp = tmp_name(path);
+    fid = fopen(tmp, 'w');  assert(fid > 0, 'nao abriu %s', tmp);
+    fwrite(fid, txt, 'char');  fclose(fid);
+    movefile(tmp, path, 'f');
+end
+
+function tmp = tmp_name(path)
+    tmp = sprintf('%s.%d.tmp', path, feature('getpid'));
+end
+
+function ensure_dir(path)
+    d = fileparts(path);
+    if ~isempty(d) && ~isfolder(d), mkdir(d); end
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
+%  Log de auditoria .jsonl (§17.5) — mesma linha {ts, rec, ...} do audit_log.py
+% ════════════════════════════════════════════════════════════════════════════
+
+function fid = jsonl_open(path)
+    ensure_dir(path);
+    fid = fopen(path, 'w');
+    assert(fid > 0, 'nao abriu jsonl %s', path);
+end
+
+function jsonl_line(fid, rec, kv)
+    s = struct('ts', iso_now(), 'rec', string(rec));
+    for i = 1:2:numel(kv)
+        s.(kv{i}) = kv{i+1};
+    end
+    fprintf(fid, '%s\n', jsonencode(s));
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
+%  Utilitarios
+% ════════════════════════════════════════════════════════════════════════════
+
+function hex = sha256_rowmajor_f64(Mtx)
+% SHA256 dos bytes float64 little-endian em ROW-MAJOR (= numpy '<f8'); identico a
+% scripts/check_doe_matlab.m e a src/doe.py::decoded_hash. Mtx e column-major no
+% MATLAB; Mtx.' lido column-major = Mtx lido row-major.
+    bytes_u8 = typecast(reshape(double(Mtx).', 1, []), 'uint8');
+    md = java.security.MessageDigest.getInstance('SHA-256');
+    md.update(typecast(bytes_u8, 'int8'));
+    hb = typecast(md.digest(), 'uint8');
+    hex = lower(sprintf('%02x', hb));
+end
+
+function s = iso_now()
+    s = string(datetime('now', 'TimeZone', 'UTC', 'Format', 'yyyy-MM-dd''T''HH:mm:ssXXX'));
 end

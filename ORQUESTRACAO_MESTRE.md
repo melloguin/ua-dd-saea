@@ -87,7 +87,10 @@ M1 F0-01-harness ........................... ✅ (verificado 2026-07-15: accept 
    F0-04-metrica .......................... ✅ (verif. por leitura + probe: âncora HV(BBOB_F1)=1,04333 D92, normalização/IGD+/HV corretos; 62 tests) → FASE 0 COMPLETA
 M2 R1-00-harness (MATLAB) ................... ✅ (verif. torre 2026-07-16: CP-init cross-lang MATCH, schema §17.2 idêntico, FE exato 4 probl., MATLAB-only; fix check_fe deriva D da ①)
    R1-c217 (caso-modelo 🔑) ................. ✅ COMPLETO — gate objetivo VERDE (torre) + **fidelidade ACEITA pelo autor 9/10 (D97)** (a gestão de confiabilidade do PC-SAEA opera certo; sob orçamento 31D−1 o surrogate fica majoritariamente inativo em δ=0.8 = mecanismo acertando, vira caveat de análise na dissertação). Pontas soltas c217-only (NÃO propagam): `c217_instrument.m:71` n_contradicoes==n_empates (bug de cópia); pred_confianca=Error1 (semântica). → M2 COMPLETO, PIPELINE PROVADO
-M3 fan-out MATLAB (b1,b3,b4,e7,c141,e74,c238,e103,pisos) . 🟡 PRÓXIMO — herda o FIX D89 do c217 (obj.FE=bud.fe; todo PlatEMO)
+M3 fan-out MATLAB (9 cartões) ............... 🟡 EM CURSO — herda o fix D89 + o padrão c217
+   c141-MMRAEA ............................. ✅ (verif. torre 2026-07-16: 1º fan-out, padrão c217 generalizou; gate VERDE MMF1/ZDT1/DTLZ2, c217 sem regressão, âncora sde re-endereçada p/ calFitness.m [correto], ③ σ D45 2-col)
+   b3·b1·b4·e7·c238·pisos·e74·e103 ......... ⬜ (e74/e103 = árvore/worker próprios, por último)
+   FIX pontas-soltas c217 (instrumentação) . 🟡 PRÓXIMO (n_contradicoes==n_empates + pred_confianca=Error1 em c217_instrument.m; objetivo, não fidelidade)
 M4 R2-00-harness (BoTorch/VM) ............... ⬜ pode ir ∥ (na VM)
 M2 R1-00-harness / R1-c217 ................. ⬜
 M3 b1 b3 b4 e7 c141 e74 c238 e103 pisos .... ⬜×9

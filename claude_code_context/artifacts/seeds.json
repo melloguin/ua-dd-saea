@@ -35,6 +35,67 @@
   ],
   "materializacao": "int(np.random.SeedSequence((base, alg_id, iteracao, uso_id)).generate_state(1, dtype=np.uint64)[0]) — truncar p/ 32 bits onde a API exigir (torch.manual_seed, pymoo seed)",
   "base": "base = semente_externa (a mesma dos 30 valores); NÃO embute alg_id (o alg_id é a 2ª coordenada da tupla)",
+  "shared_init_artifacts": {
+    "_decisao": "D87/D88/D90 — DoE online e dataset offline sao artefatos UNICOS por (problema, semente[, tier, dist]), SEM alg_id; os 21 configs CARREGAM (nunca regeneram). Gerados por src/doe.py (escritor unico pyarrow). Canonicos por construcao — nao ha 2a implementacao que re-derive; publicados aqui para auditoria/veto do autor.",
+    "doe_online": {
+      "n_init": "11D-1",
+      "sampler": "lhs-maximin",
+      "K": 100,
+      "seed_formula": "np.random.Generator(PCG64(SeedSequence((semente, problema_id))))",
+      "selecao_maximin": "argmax da menor distancia euclidiana QUADRADA em [0,1]^D; empate->menor indice",
+      "hash": "SHA256(np.ascontiguousarray(X,'<f8').tobytes()) — array DECODIFICADO, row-major (D87)",
+      "path": "data/doe/{problema}/doe_{problema}_{semente}.parquet (colunas x0..x{D-1}, float64)"
+    },
+    "dataset_offline": {
+      "n_por_tier": {
+        "small": "31D-1",
+        "medium": 2000,
+        "big": 50000
+      },
+      "sampler": "lhs-maximin (small,medium/lhs); lhs-simples (big/lhs — maximin inviavel, D87/D90); mvns N(0.3,0.1*I) clip[0,1] (D67)",
+      "seed_formula": "SeedSequence((semente, problema_id, tier_id, dist_id))  [verbatim D90]",
+      "hash": "SHA256 do array [X|F] decodificado (dataset_hash); + x_hash, f_hash (D90)",
+      "principal_offline": "tier=small, dist=lhs -> nome SEM sufixo: ds_{problema}_{semente}.parquet",
+      "path": "data/datasets/{problema}/ds_{problema}_{semente}[_{tier}_{dist}].parquet (x0..x{D-1},f0..f{M-1})"
+    },
+    "problema_id": {
+      "MMF1": 0,
+      "MMF4": 1,
+      "MMF11_L": 2,
+      "MMF16_20": 3,
+      "ZDT1": 4,
+      "ZDT3": 5,
+      "ZDT4": 6,
+      "ZDT6": 7,
+      "DTLZ1": 8,
+      "DTLZ2": 9,
+      "DTLZ3": 10,
+      "DTLZ4": 11,
+      "DTLZ7": 12,
+      "WFG1": 13,
+      "WFG2": 14,
+      "WFG4": 15,
+      "WFG5": 16,
+      "WFG9": 17,
+      "BBOB1": 18,
+      "BBOB5": 19,
+      "BBOB17": 20,
+      "BBOB22": 21,
+      "BBOB37": 22,
+      "BBOB49": 23,
+      "BBOB55": 24
+    },
+    "tier_id": {
+      "small": 0,
+      "medium": 1,
+      "big": 2
+    },
+    "dist_id": {
+      "lhs": 0,
+      "mvns": 1
+    },
+    "_nota_problema_id": "indice 0-based na lista canonica experiment.ALL_PROBLEMS (= ordem do §4). BBOB usa os short names do CODIGO (BBOB1,BBOB5,BBOB17,BBOB22,BBOB37,BBOB49,BBOB55) — NAO os BBOB_F* do runs_matrix.csv (artefato dessincronizado; ver handoff/F0-02-doe.md)."
+  },
   "alg_id": {
     "b1": 0,
     "b3": 1,

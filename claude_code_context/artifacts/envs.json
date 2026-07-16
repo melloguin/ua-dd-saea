@@ -18,7 +18,7 @@
       "env_e81_qpots":    {"venv": "/Users/gmello/Documents/python_venvs/env_e81_qpots", "req": "requirements/env_e81_qpots.txt", "mac": "verificar pins (torch 2.12/botorch 0.16.1) no provisionamento", "vm": "a provisionar (M6)"},
       "env_b5":           {"venv": "/Users/gmello/Documents/python_venvs/env_b5", "req": "requirements/env_b5.txt", "mac": "INVIÁVEL (sklearn 0.21.3 sem wheel arm64)", "vm": "DESTINO NATURAL (M5)"},
       "env_c311":         {"venv": "/Users/gmello/Documents/python_venvs/env_c311", "req": "requirements/env_c311.txt", "mac": "INVIÁVEL (numpy 1.20.2 sem wheel arm64)", "vm": "DESTINO NATURAL (M5)"},
-      "env_bridge":       {"venv": "/Users/gmello/Documents/python_venvs/env_bridge", "req": "requirements/env_bridge.txt", "mac": "OK — py 3.11.9 --enable-shared; wire do MATLAB no R1-00 (M2)", "vm": "n/a (ponte é Mac/MATLAB)"},
+      "env_bridge":       {"venv": "/Users/gmello/ponte_teste", "req": "requirements/env_bridge.txt", "mac": "✅ PROVISIONADO 2026-07-16: ~/ponte_teste (venv 3.11.9 --enable-shared) = numpy 2.4.6 + pymoo 0.6.2 + pyarrow 25.0.0; MATLAB pyenv Executable aponta pra ele (Status NotLoaded); lê DoE parquet OK", "vm": "n/a (ponte é Mac/MATLAB)"},
       "env_c149_fallback":{"venv": "/Users/gmello/Documents/python_venvs/env_c149_fallback", "req": "requirements/env_c149_fallback.txt", "mac": "condicional", "vm": "condicional (só se o piloto do c149 divergir)"}
     }
   },

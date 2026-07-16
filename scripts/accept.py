@@ -41,7 +41,12 @@ def check_outputs(exp, alg, problema, semente, data_root=None):
 
 
 def check_fe(exp, alg, problema, semente, D, data_root=None):
-    """FE final = 31D-1 EXATO — nº de linhas DISTINTAS da camada ① (D89)."""
+    """FE final = 31D-1 EXATO — nº de linhas DISTINTAS da camada ① (D89).
+
+    O D é DERIVADO das colunas `x0..x{D-1}` da própria camada ① (a fonte da verdade
+    do run); o argumento `--dim` é apenas FALLBACK. Isso elimina o footgun de um
+    `--dim` errado (default 30) produzir um veredito falso — o gate tem que ser
+    confiável na bateria automática (M8)."""
     try:
         import pyarrow.parquet as pq
     except ImportError:
@@ -51,9 +56,14 @@ def check_fe(exp, alg, problema, semente, D, data_root=None):
                              data_root=data_root)
     if not os.path.exists(real):
         return False, "camada ① ausente"
-    n = pq.read_table(real).num_rows
+    tbl = pq.read_table(real)
+    n = tbl.num_rows
+    d_data = sum(1 for c in tbl.column_names
+                 if len(c) > 1 and c[0] == "x" and c[1:].isdigit())
+    if d_data:                       # D do próprio run (não confia no --dim)
+        D = d_data
     want = maxfe(D)
-    return (n == want), f"FE={n} (esperado {want})"
+    return (n == want), f"FE={n} (esperado {want}, D={D})"
 
 
 def check_doe_hash(problema, semente, data_root=None):

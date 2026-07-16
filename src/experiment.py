@@ -72,9 +72,20 @@ PROBLEM_CLASSES: dict[str, str] = {
 
 ALL_PROBLEMS: list[str] = list(PROBLEM_CLASSES)
 
+# ── Instâncias NÃO-canônicas p/ a validação MANUAL de fidelidade do autor (D97) ──
+# [R1-c217] Fora dos 25 do A2 e do grid: existem só para o autor reproduzir a
+# config EXATA do paper de um algoritmo e comparar com a âncora (Anexo J). NÃO
+# entram em ALL_PROBLEMS/PROBLEMA_ID (os gates F0 exigem exatamente 25; seeds.json
+# == doe.PROBLEMA_ID), nem na bateria. `short → (classe, kwargs)`.
+#   DTLZ2_d15: DTLZ2 com n_var=2+13=15, m=3 = a config do paper do c217 PC-SAEA
+#   (âncora IGD≈6,9212e-2; a bateria usa o canônico 'DTLZ2' = d=12).
+FIDELITY_PROBLEMS: dict[str, tuple[str, dict]] = {
+    'DTLZ2_d15': ('DTLZ2', {'k': 13}),
+}
+
 
 def is_known_problem(short_name: str) -> bool:
-    return short_name in PROBLEM_CLASSES
+    return short_name in PROBLEM_CLASSES or short_name in FIDELITY_PROBLEMS
 
 
 def _instantiate_problem(short_name: str):
@@ -82,13 +93,17 @@ def _instantiate_problem(short_name: str):
 
     Import de `src.problems` **lazy** de propósito (puxa pymoo/numpy) — só é
     exigido quando um problema é de fato instanciado (nas rodadas), nunca só
-    por importar este módulo.
+    por importar este módulo. Além dos 25 canônicos, resolve as instâncias de
+    FIDELITY_PROBLEMS (não-canônicas, D97) — que NÃO estão em ALL_PROBLEMS.
     """
-    if short_name not in PROBLEM_CLASSES:
-        raise ValueError(f"Problema desconhecido: {short_name!r}. "
-                         f"Conhecidos: {ALL_PROBLEMS}")
     from src import problems as _problems_mod  # lazy (pymoo/numpy)
-    return getattr(_problems_mod, PROBLEM_CLASSES[short_name])()
+    if short_name in PROBLEM_CLASSES:
+        return getattr(_problems_mod, PROBLEM_CLASSES[short_name])()
+    if short_name in FIDELITY_PROBLEMS:
+        cls, kw = FIDELITY_PROBLEMS[short_name]
+        return getattr(_problems_mod, cls)(**kw)
+    raise ValueError(f"Problema desconhecido: {short_name!r}. "
+                     f"Conhecidos: {ALL_PROBLEMS} (+ fidelidade: {list(FIDELITY_PROBLEMS)})")
 
 
 # ═══════════════════════════════════════════════════════════════════════════

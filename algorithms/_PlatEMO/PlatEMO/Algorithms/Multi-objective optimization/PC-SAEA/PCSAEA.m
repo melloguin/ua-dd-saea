@@ -23,10 +23,12 @@ classdef PCSAEA < ALGORITHM
             %% Parameter setting
             [delta,gmax] = Algorithm.ParameterSet(0.8,3000);
 
-            %% Initalize the population by Latin hypercube sampling
-            N          = max(11*Problem.D-1,Problem.N);
-            PopDec     = UniformPoint(N,Problem.D,'Latin');
-            Population = Problem.Evaluation(repmat(Problem.upper-Problem.lower,N,1).*PopDec+repmat(Problem.lower,N,1));
+            %% [R1-c217] Init = DoE 11D-1 INJETADO do artefato (D63/D87/D94) — NUNCA regenerar.
+            % X0 e NATIVO (load_doe): passa DIRETO -> sem re-escala (a dupla-escala D94 nao ocorre).
+            % Problem.N=50 governa populacao/lote (EnvironmentalSelection, split 13/12); o init e 11D-1
+            % (o LHS nativo :27-29 e substituido pelo artefato pareado por (problema,semente)).
+            PopDec     = Problem.data.X0;
+            Population = Problem.Evaluation(PopDec);
             Arc        = Population;
             t          = 1;
         
@@ -36,9 +38,9 @@ classdef PCSAEA < ALGORITHM
                 [Input,Output,Pa,Pmid] = CalFitnessPC(Population.objs,Population.decs,(Problem.FE/Problem.maxFE));   
                 % Data process
                 [TrainIn,~,TestIn,TestOut] = DataProcess(Input,Output);
-                % Construct and update the FNN��global classify surrogate model
-                net = RBFNNPC(0.1925);             
-                net.train(TrainIn,Problem.D);              
+                % Construct and update the FNN��global classify surrogate model
+                net = RBFNNPC(0.1925);
+                tFit_c217 = tic; net.train(TrainIn,Problem.D); tfit_s_c217 = toc(tFit_c217);   % [R1-c217] timing §17.6 (nao altera a decisao — D97)
 
                 % Error rates calculation
                 TestPre = net.lastpredict(TestIn,Problem.D,Pmid,1);
@@ -52,7 +54,14 @@ classdef PCSAEA < ALGORITHM
                 if ~isempty(Next)
                     Arc = [Arc,Problem.Evaluation(Next)];
                 end
-                Population = EnvironmentalSelection(Arc,Problem.N);                
+                % [R1-c217] D89: o obj.FE nativo do PlatEMO NAO governa (infla c/ duplicata:
+                % Evaluation soma length(Population) incluindo cache-hits). Re-sincroniza com
+                % o SALDO DISTINTO do wrapper (bud.fe) -> NotTerminated para em bud.fe=31D-1 e
+                % o rate (=Problem.FE/maxFE) fica fiel. O hard-stop real e o throw do bud (D61).
+                Problem.FE = Problem.data.bud.fe;
+                Population = EnvironmentalSelection(Arc,min(Problem.N,length(Arc)));   % [R1-c217] fix min(N,|Arc|): evita crash D<=4 (|Arc|<Problem.N=50; PCS:55)
+                % [R1-c217] instrumentacao POS-decisao (NAO altera a busca — D97): ③ score + §17.2.1 (.jsonl) + timing §17.6
+                c217_instrument(Problem, Arc, Next, delta, Error1, Error2, TestPre, tfit_s_c217);
                 t = t + 1;
             end
         end

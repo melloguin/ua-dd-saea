@@ -103,12 +103,19 @@ def main():
             problems.append(f"anchors[{p['id']}]: arquivo '{f}' não encontrado")
             continue
         eb = p.get("expect_before", "")
+        ea = p.get("expect_after", "")
         if eb and not eb.startswith("<"):  # '<...>' = descrição, não literal
             txt = open(found, errors="ignore").read()
-            ok = eb in txt
-            print(f"  {p['id']:22} {'OK' if ok else 'DIVERGE'}  {os.path.basename(found)}")
-            if not ok:
-                problems.append(f"anchors[{p['id']}]: expect_before ausente em {os.path.basename(found)}")
+            if eb in txt:                                  # árvore em estado STOCK (pré-patch)
+                print(f"  {p['id']:22} STOCK    {os.path.basename(found)}")
+            elif ea and not ea.startswith("<") and ea in txt:
+                # [R1-c217] patch de fidelidade JÁ APLICADO in-place (a implementação
+                # aplica os patches ancorados na própria árvore — R1-c217+). expect_after
+                # presente = estado patchado esperado -> OK, NÃO é divergência.
+                print(f"  {p['id']:22} APLICADO {os.path.basename(found)}")
+            else:                                          # nem stock nem aplicado = divergência REAL
+                print(f"  {p['id']:22} DIVERGE  {os.path.basename(found)}")
+                problems.append(f"anchors[{p['id']}]: nem expect_before nem expect_after em {os.path.basename(found)}")
         else:
             print(f"  {p['id']:22} (expect descritivo — resolver no cartão)")
 

@@ -18,7 +18,7 @@ function Next = SurrogateAssistedSelectionPC(Problem,net,error1,error2,Input,wma
     wmax  = floor(wmax/lnum);
     GoodNext  = zeros(wmax,D);
     GoodLabel = zeros(wmax,1);
-    if error1 < 1-delta
+    if error1 > delta                                       % [R1-c217] D17: guarda SAS:21 (religa condicao->acao ao paper; anchors.json c217-B5.1-guard1)
         while i <= wmax
             [~,index]      = sort(Label,'descend');
             GoodNext(i,:)  = Next(index(1),:);
@@ -36,7 +36,7 @@ function Next = SurrogateAssistedSelectionPC(Problem,net,error1,error2,Input,wma
             Next = GoodNext(GoodLabel >= 0.95,:);
         end
 
-    elseif error2 < 1-delta
+    elseif error2 > delta                                   % [R1-c217] D17: guarda SAS:39 (idem c/ error2; anchors.json c217-B5.1-guard2). else(:57)=aleatorio cobre contradicoes E regime-NaN
         while i <= wmax
             [~,index]      = sort(Label);
             GoodNext(i,:)  = Next(index(1),:);

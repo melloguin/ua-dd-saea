@@ -85,7 +85,9 @@ M1 F0-01-harness ........................... ✅ (verificado 2026-07-15: accept 
    F0-02-doe ............................... ✅ (verificado 2026-07-15: accept verde, 27 tests, 750 DoE+755 datasets, MATLAB CP-init PASS=1505, 0 algos tocados)
    F0-03-export ........................... ✅ (verif. adversarial 6 lentes: 5 CONFIRMED + 1 PARTIAL não-corrupção; hardening .tmp/mu>M p/ M8)
    F0-04-metrica .......................... ✅ (verif. por leitura + probe: âncora HV(BBOB_F1)=1,04333 D92, normalização/IGD+/HV corretos; 62 tests) → FASE 0 COMPLETA
-M2 R1-00-harness (MATLAB) / R1-c217 (caso-modelo) . 🟡 PRÓXIMO — R1-00 destrava o c217; env_bridge a provisionar
+M2 R1-00-harness (MATLAB) ................... ✅ (verif. torre 2026-07-16: CP-init cross-lang MATCH, schema §17.2 idêntico, FE exato 4 probl., MATLAB-only; fix check_fe deriva D da ①)
+   R1-c217 (caso-modelo 🔑) ................. 🟡 PRÓXIMO — 1º alg real ponta-a-ponta + 1ª validação de fidelidade
+   R2-00-harness (BoTorch/VM) ............... ⬜ pode ir ∥
 M2 R1-00-harness / R1-c217 ................. ⬜
 M3 b1 b3 b4 e7 c141 e74 c238 e103 pisos .... ⬜×9
 M4 R2-00 / c262 / c154 ..................... ⬜×3

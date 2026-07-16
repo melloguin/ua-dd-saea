@@ -64,6 +64,10 @@ O repo tem 4 "camadas" de arquivos, cada uma com um papel distinto. Entender iss
 
 **→ Com o F0-04, a Fase 0 (a bancada) está COMPLETA e verificada.** Todos os 4 gates verdes, 62 testes, módulos `src/` coerentes, sem conflito entre as sessões nem com a reconciliação BBOB. Abre o **M2 = c217** (o caso-modelo).
 
+### 🟡 M2 — Caso-modelo c217 (2 cartões): R1-00 ✅ · R1-c217 (próximo)
+- **✅ R1-00-harness (MATLAB, 2026-07-16)** — a infra transversal MATLAB (contrato N.0): `experiments.m` (despachante), `src/experiment.m` (adapter: ponte→`problems.py`, DoE carregado, budget, export, CP-init), `src/hook_output.m` (as 4 camadas §17.2), `src/FEBudget.m` + `src/RunBuffer.m` (wrapper de FE D89 + coletor ②③/timing). Prova por **run-STUB** (avaliador trivial pela ponte; o algoritmo real é o c217). **Verificado pela torre:** escopo **MATLAB-only** (0 `.py`/algoritmo/docs tocados — o renome `experiment_run→experiment` foi na função do `.m`, exigência do MATLAB); **CP-init cross-language MATCH** (o `doe_hash` do manifesto MATLAB = sidecar Python `89b8ce4e…`, confirmado por mim); **schema §17.2 IDÊNTICO entre stacks** (real/pop/surrogate/timing, x/f em float32); FE=31D−1 exato nos 4 problemas (MMF1/ZDT1/BBOB_F1/DTLZ2); regressões F0-01..04 verdes. **Fix da torre:** o `check_fe` do `accept.py` confiava no `--dim` (default 30 = footgun) → agora deriva o D das colunas `x0..x{D-1}` da própria camada ① (gate confiável p/ a bateria M8). 2 decisões deferidas ao c217 (evalFcn de lote com hard-stop no meio D61; `real_solution_id` nullable na ③). *(Ponto p/ veto: `experiment.py` e `experiment.m` coexistem — nomes iguais, runtimes diferentes.)*
+- **⬜ R1-c217 (o CASO-MODELO 🔑, próximo)** — o 1º algoritmo REAL (PC-SAEA) rodando ponta-a-ponta na bancada + a **1ª validação de fidelidade do autor** (compara com o artigo). Prova o pipeline inteiro; depois dele, os outros algoritmos MATLAB são multiplicação.
+
 ### Decisões do autor consolidadas nesta fase
 - Seed do DoE = `SeedSequence((semente, problema_id))`, sem alg_id (ratificado — consistente com D88).
 - **pandas fixado em 2.x** (evitado o 3.0) no env-main.
@@ -78,4 +82,4 @@ O repo tem 4 "camadas" de arquivos, cada uma com um papel distinto. Entender iss
 - **Mac:** só `env_main` provisionado (é o viável+necessário já). `env_b5`/`env_c311` são **VM-Linux** (pins x86/antigos sem wheel arm64). Venvs em `/Users/gmello/Documents/python_venvs/`.
 
 ## Próximo passo
-**M2 — o caso-modelo c217**, decomposto em 2 cartões: **R1-00-harness** (a infra transversal MATLAB — contrato N.0, a ponte `env_bridge`) → **R1-c217** (o 1º algoritmo real ponta-a-ponta + a 1ª validação de fidelidade do autor). Em paralelo, **R2-00-harness** (a infra BoTorch, na VM) pode arrancar. O R1-00 é o próximo prompt.
+**R1-c217** — o caso-modelo (2º cartão do M2). O R1-00 (infra MATLAB) ✅ está pronto e verificado; agora o c217 pluga o 1º algoritmo REAL (PC-SAEA) e prova o pipeline de ponta a ponta, com a 1ª validação de fidelidade do autor. Em paralelo, **R2-00-harness** (BoTorch, VM) pode arrancar.

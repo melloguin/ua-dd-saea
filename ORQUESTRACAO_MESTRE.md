@@ -74,6 +74,7 @@
 - **e81/c149:** offset de semente +1000·s (D22); e81 em env botorch 0.16.1 próprio.
 - **Bucket-only (D58):** c154, c122, e81, c149, c262.
 - **✅ DESYNC BBOB RESOLVIDA (2026-07-15):** canônico = **`BBOB_F1/F5/F17/F22/F37/F49/F55`** (nome da SPEC §4 / characteristics / runs_matrix). O anômalo era o token CURTO `BBOB1…` nas 7 chaves de `experiment.py` + os folders do DoE. Renomeei p/ `BBOB_F*` e regenerei os 7 BBOB — **valores INALTERADOS** (o seed usa o índice `problema_id`, não a string; hashes idênticos ao baseline), gate verde, prova MATLAB vale por identidade de conteúdo. `runs_matrix`/`characteristics` já estavam corretos (nada a mudar neles).
+- **F0-03 verificado adversarialmente (2026-07-16, 6 lentes):** hard-stop exato 31D−1, cache-hit=0 bit-a-bit (bordas -0.0/+0.0/NaN/2D/dtype OK), solution_id dedup, float32-sem-round, schema §17.2/mono-output — **todos CONFIRMED**. **2 itens de robustez (NÃO-corrupção, endereçar antes do M8):** (1) **órfão `.tmp` em kill duro (SIGKILL/power/spot-preempt):** a atomicidade do arquivo FINAL vale sempre (nunca corrompe, resume não é enganado — `is_run_done` só olha layers+manifesto), mas o `finally` não roda sob SIGKILL → `.tmp` órfãos ACUMULAM. **Crítico p/ spot VMs no M8** → adicionar varredura de `.tmp` stale no arranque/esteira (R2-00/R3-00 ou cartão de hardening). (2) **mu/sigma MAIS LONGO que M é truncado em silêncio** no `write_surrogate` (o caso b1 `len<M` está perfeito; falta guarda p/ `len>M`) → assert/warning defensivo. (3) Consequência de design (não-bug, D89): -0.0/+0.0 e NaN de payloads distintos contam como soluções distintas (2 FE) — ciente na validação de fidelidade.
 - **Seed do DoE (F0-02, ratificar):** o agente fixou `SeedSequence((semente, problema_id))` SEM alg_id — consistente com D88 (DoE único por problema×semente, todos carregam o mesmo). Ratificado; `PY -m src.doe --force` regenera em 87 s se mudar.
 - **Blob de DoE/datasets (F0-02, ~97 MB):** `.gitignore` rastreia `data/doe`+`data/datasets`, mas não foi commitado. Decisão do autor (D64): git vs bucket vs regenerar-por-máquina. Recomendo **bucket** (garante identidade Mac↔VM sem inchar o git; regeneração cross-plataforma tem risco de ULP).
 
@@ -82,8 +83,9 @@
 M0 pré-voo ................................. ✅ (verificado)
 M1 F0-01-harness ........................... ✅ (verificado 2026-07-15: accept verde, 17 tests, 0 algos tocados)
    F0-02-doe ............................... ✅ (verificado 2026-07-15: accept verde, 27 tests, 750 DoE+755 datasets, MATLAB CP-init PASS=1505, 0 algos tocados)
-   F0-03-export ........................... 🟡 PRÓXIMO
-   F0-04-metrica .......................... ⬜
+   F0-03-export ........................... ✅ (verif. adversarial 6 lentes: 5 CONFIRMED + 1 PARTIAL não-corrupção; hardening .tmp/mu>M p/ M8)
+   F0-04-metrica .......................... ✅ (verif. por leitura + probe: âncora HV(BBOB_F1)=1,04333 D92, normalização/IGD+/HV corretos; 62 tests) → FASE 0 COMPLETA
+M2 R1-00-harness (MATLAB) / R1-c217 (caso-modelo) . 🟡 PRÓXIMO — R1-00 destrava o c217; env_bridge a provisionar
 M2 R1-00-harness / R1-c217 ................. ⬜
 M3 b1 b3 b4 e7 c141 e74 c238 e103 pisos .... ⬜×9
 M4 R2-00 / c262 / c154 ..................... ⬜×3

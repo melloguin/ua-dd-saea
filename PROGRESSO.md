@@ -55,12 +55,14 @@ O repo tem 4 "camadas" de arquivos, cada uma com um papel distinto. Entender iss
 - Infra montada (Mac MATLAB + VM Vertex + bucket) e validada pelo autor.
 - **Sessão pré-voo:** resolvidas as 9 pendências de âncora; `preflight.py` verde. Verificado por 5 verificadores adversariais (o portão foi refinado, não enfraquecido; injeção de `<PIN>` falso → exit 1).
 
-### 🟡 M1 — Fase 0 (a bancada): 2 de 4 cartões
+### ✅ M1 — Fase 0 (a bancada): 4 de 4 cartões — **COMPLETA (2026-07-16)**
 - **✅ F0-01-harness** — despachantes + esteira idempotente + manifesto/logger (§17.5). Gate verde; 17 unittests; 0 código de algoritmo tocado. Descoberta: o **env-main** não estava provisionado (levou à criação do venv + `requirements/`).
 - **✅ F0-02-doe** — `src/doe.py` (LHS-maximin próprio D87, hash do array decodificado), dataset offline (D90), `seeds.json` (D91). **Materializou 750 DoE + 755 datasets.** Bit-identidade Python↔MATLAB **fechada em-sessão** (`check_doe_matlab.m` → PASS=1505, FAIL=0) + oráculo independente reproduz os hashes. Gate verde, 27 testes.
   - **Reconciliação BBOB (2026-07-15):** o token curto `BBOB1…` (anômalo) foi renomeado para **`BBOB_F1…`** (o canônico da SPEC §4 / characteristics / runs_matrix). Os 7 BBOB foram regenerados; **valores idênticos ao baseline** (o seed usa o índice `problema_id`, não a string) → a prova MATLAB continua válida por identidade de conteúdo. Gate segue verde.
-- **⬜ F0-03-export** (próximo) — wrapper de FE (cache-hit=0 D89) + hard-stop + schemas 3 tabelas + `src/gcs.py`.
-- **⬜ F0-04-metrica** — esqueleto da métrica + smoke HV F1.
+- **✅ F0-03-export** — `src/budget.py` (wrapper de FE: cache-hit=0 D89, hard-stop 31D−1 exato, solution_id dedup D57), `src/export.py` (4 camadas §17.2, float32 sem round D53, escrita atômica D58), `src/gcs.py` (dual-write lazy). Gate verde, 44 testes. **Verificado adversarialmente pela torre (6 lentes): 5 CONFIRMED + 1 PARTIAL não-corrupção** (órfão `.tmp` em kill duro — hardening p/ M8; mu>M sem guarda). Corrigiu o bug mono-output do b1.
+- **✅ F0-04-metrica** — `src/metrics.py` (esqueleto pós-hoc: IGD, **IGD+ primária D70**, HV, GD, spacing + trajetória; normaliza por (ideal,nadir) da S.5, delega ao pymoo pinado). Gate verde: **âncora D92 batida — HV(BBOB_F1)=1,04333** (|Δ|=2,7e-5). 62 testes. **Verificado pela torre por leitura + probe independente** (âncora, normalização exata, IGD+ ref-vs-ref=0, monotonicidade HV, HV=0 não-NaN) — tudo correto, 0 correções.
+
+**→ Com o F0-04, a Fase 0 (a bancada) está COMPLETA e verificada.** Todos os 4 gates verdes, 62 testes, módulos `src/` coerentes, sem conflito entre as sessões nem com a reconciliação BBOB. Abre o **M2 = c217** (o caso-modelo).
 
 ### Decisões do autor consolidadas nesta fase
 - Seed do DoE = `SeedSequence((semente, problema_id))`, sem alg_id (ratificado — consistente com D88).
@@ -76,4 +78,4 @@ O repo tem 4 "camadas" de arquivos, cada uma com um papel distinto. Entender iss
 - **Mac:** só `env_main` provisionado (é o viável+necessário já). `env_b5`/`env_c311` são **VM-Linux** (pins x86/antigos sem wheel arm64). Venvs em `/Users/gmello/Documents/python_venvs/`.
 
 ## Próximo passo
-**F0-03-export** (o prompt está com o autor). Depois F0-04, e aí o **c217** (M2, o caso-modelo que prova a linha inteira).
+**M2 — o caso-modelo c217**, decomposto em 2 cartões: **R1-00-harness** (a infra transversal MATLAB — contrato N.0, a ponte `env_bridge`) → **R1-c217** (o 1º algoritmo real ponta-a-ponta + a 1ª validação de fidelidade do autor). Em paralelo, **R2-00-harness** (a infra BoTorch, na VM) pode arrancar. O R1-00 é o próximo prompt.

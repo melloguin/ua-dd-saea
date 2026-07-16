@@ -1,5 +1,7 @@
-function [PopDec,PopObj] = EAOptimization(PopDec,Problem,wmax,RModel,Fmodel,mS,FS)
+function [PopDec,PopObj,nsub] = EAOptimization(PopDec,Problem,wmax,RModel,Fmodel,mS,FS)
 % This function is written by Jiangtao Shen
+% [R1-c141] 3o output nsub = |subpop1|,|subpop2| pos-ES_PDR (instrumentacao
+% §17.5/S.7; so leitura — nenhuma decisao alterada, D97).
 N = size(PopDec,1);
 w1 = 1;
 w2 = 1;
@@ -30,7 +32,11 @@ while w1 <= wmax
 end
 
 while w2 <= wmax
-    OffDec2 = OperatorGA(PopDec2);
+    % [R1-c141] porte 4.15 (L.7): era OperatorGA(PopDec2) — API 3.x. A assinatura
+    % 4.15 e OperatorGA(Problem,Parent); matriz entra -> matriz sai (sem avaliar).
+    % Defaults {1,20,1,20} = SBX proC=1/disC=20 + PM proM=1 (=1/d por variavel) —
+    % exatamente o Balde B do c141 (codigo oficial; paper OK).
+    OffDec2 = OperatorGA(Problem,PopDec2);
     PopDec2 = [PopDec2;OffDec2];
     PopObj2 = zeros(size(PopDec2,1),Problem.M);
     for i = 1: size(PopDec2,1)
@@ -46,5 +52,6 @@ end
 
 PopDec = [PopDec1;PopDec2];
 PopObj = [PopObj1;PopObj2];
+nsub = [size(PopDec1,1), size(PopDec2,1)];   % [R1-c141] |subpops| pos-ES_PDR
 
 end

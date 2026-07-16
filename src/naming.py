@@ -154,6 +154,72 @@ def output_filenames(exp: str, alg: str, problema: str, semente) -> list[str]:
             + [jsonl_filename(exp, alg, problema, semente)])
 
 
+# ── Artefatos de inicialização compartilhados: DoE + dataset offline ───────
+#  (§5.2/D87 online · §7·§9/D90 offline). ÚNICOS por (problema, semente[,tier,dist]),
+#  SEM alg_id (D88): todos os configs CARREGAM os mesmos pontos físicos.
+
+def doe_dir(problema: str, data_root: str = DEFAULT_DATA_ROOT) -> str:
+    """`data/doe/{problema}/` (D87)."""
+    return os.path.join(data_root, "doe", problema)
+
+
+def doe_filename(problema: str, semente) -> str:
+    """`doe_{problema}_{semente}.parquet` (D87)."""
+    return f"doe_{problema}_{semente}.parquet"
+
+
+def doe_path(problema: str, semente, data_root: str = DEFAULT_DATA_ROOT) -> str:
+    """Caminho do artefato DoE online (11D−1 × D, colunas x0…x{D−1}) — D87/D88."""
+    return os.path.join(doe_dir(problema, data_root), doe_filename(problema, semente))
+
+
+def doe_manifest_path(problema: str, semente,
+                      data_root: str = DEFAULT_DATA_ROOT) -> str:
+    """Sidecar do DoE com o hash do array decodificado (D87) — fonte-de-verdade
+    do CP-init; o manifesto do run apenas ecoa este `doe_hash`."""
+    return os.path.join(doe_dir(problema, data_root),
+                        f"doe_{problema}_{semente}.manifest.json")
+
+
+def dataset_dir(problema: str, data_root: str = DEFAULT_DATA_ROOT) -> str:
+    """`data/datasets/{problema}/` (D90)."""
+    return os.path.join(data_root, "datasets", problema)
+
+
+def dataset_filename(problema: str, semente,
+                     tier: str | None = None, dist: str | None = None) -> str:
+    """`ds_{problema}_{semente}[_{tier}_{dist}].parquet` (D90).
+
+    O offline PRINCIPAL (§7/§9 — tier `small`, dist `lhs`) usa o nome SEM sufixo;
+    as variantes do sweep (§11.5) carregam `_{tier}_{dist}`. O `[tier,dist]` é
+    opcional em par (ambos ou nenhum).
+    """
+    if (tier is None) != (dist is None):
+        raise ValueError("tier e dist devem vir juntos (ambos ou nenhum).")
+    if tier is None:
+        return f"ds_{problema}_{semente}.parquet"
+    if not _TOKEN_RE.match(tier) or not _TOKEN_RE.match(dist):
+        raise ValueError(f"tier/dist inválidos: {tier!r}, {dist!r}")
+    return f"ds_{problema}_{semente}_{tier}_{dist}.parquet"
+
+
+def dataset_path(problema: str, semente, tier: str | None = None,
+                 dist: str | None = None,
+                 data_root: str = DEFAULT_DATA_ROOT) -> str:
+    """Caminho do dataset offline (X+F, colunas x0…x{D−1},f0…f{M−1}) — D90."""
+    return os.path.join(dataset_dir(problema, data_root),
+                        dataset_filename(problema, semente, tier, dist))
+
+
+def dataset_manifest_path(problema: str, semente, tier: str | None = None,
+                          dist: str | None = None,
+                          data_root: str = DEFAULT_DATA_ROOT) -> str:
+    """Sidecar do dataset offline com o hash do array decodificado (D90)."""
+    fn = dataset_filename(problema, semente, tier, dist)
+    return os.path.join(dataset_dir(problema, data_root),
+                        fn[:-len(".parquet")] + ".manifest.json")
+
+
 # ── Espelho no bucket (GCS) ────────────────────────────────────────────────
 
 def blob_prefix(exp: str, alg: str) -> str:

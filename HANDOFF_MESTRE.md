@@ -133,6 +133,7 @@
 
 ### 7.1 — Ambientes
 - **Mac:** macOS 12.5.1 Monterey, **arm64**. Papel: MATLAB (R1) + Fase 0 + pilotos. Grava só local.
+  - **env-main (Mac): ✅ provisionado 2026-07-15** sobre pyenv 3.11.9 em `/Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao` (interpretador `.../bin/python`; usar por CAMINHO COMPLETO — o shell do Claude Code não preserva `activate`). Núcleo do harness verificado (import + round-trip parquet float64 + pymoo). Versões em `<venv>/requirements.lock`. **⚠ pandas resolveu 3.0.3** (avaliar pin `>=2,<3` p/ reprodutibilidade). Falta, no mesmo venv, o stack de R2 (`botorch==0.18.1`/torch/gpytorch/gcs/deap). A partir do F0-02 as sessões Python rodam SOB este interpretador.
 - **VM Vertex:** `v5-mestrado`, **Debian 12**, usuário `jupyter`, zona **`us-central1-a`**, com **micromamba (base)** + pyenv. Papel: Python (R2/R3) + análise. Grava local **e** bucket.
 - **Regra de fluxo:** toda config Python é nos DOIS (Mac + VM); MATLAB só no Mac. Ao instruir, Mac primeiro, VM depois.
 

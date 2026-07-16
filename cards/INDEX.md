@@ -11,7 +11,7 @@
 | F0-01-harness | Limpar imports mortos; despachantes; esteira idempotente; manifesto+logger §17.5 | — | 00_fundacao/01–05 | ✅ |
 | F0-02-doe | `src/doe.py` (LHS-maximin próprio D87 + parquet + hash array-decodificado) + gerador do dataset offline (D90) + `seeds.json` (D91) | F0-01 | 00_fundacao/01,05 | ✅ |
 | F0-03-export | Wrapper de FE (cache-hit=0 FE D89) + hard-stop + escrita atômica + schemas 3 tabelas + `src/gcs.py` | F0-01 | 00_fundacao/03 | ✅ |
-| F0-04-metrica | Esqueleto da camada de métrica + smoke F1 = **1,0433** (D92) | F0-01 | 00_fundacao/04, 50_analise_R4 | ⬜ |
+| F0-04-metrica | Esqueleto da camada de métrica + smoke F1 = **1,0433** (D92) | F0-01 | 00_fundacao/04, 50_analise_R4 | ✅ |
 
 ## Rodada 1 — MATLAB/PlatEMO (Mac; ∥ com R2)
 | ID | Tarefa | depende-de | bundle | status |

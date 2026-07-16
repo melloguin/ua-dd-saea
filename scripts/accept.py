@@ -457,6 +457,134 @@ def check_f0_03(exp="main", problema="MMF1", semente=0):
     return results
 
 
+# ── Checagem do cartão F0-04-metrica (esqueleto da métrica + âncora D92) ────
+
+#: Tolerância da âncora do smoke (D92). O HV discreto do front denso converge a
+#: 1,0433 (analítico 1,21 − 1/6); 5e-4 separa com folga do ref errado (1,0 →
+#: 0,8333, Δ≈0,21) e do não-normalizado (ordens de grandeza), sem exigir mais
+#: densidade do que o necessário.
+_TOL_HV_ANCHOR = 5e-4
+
+
+def _f0_04_stub_real(dr, problema="MMF1"):
+    """Escreve uma camada ① STUB com objetivos REAIS de `problema` (pontos do
+    front + alguns dominados, dominados PRIMEIRO para a trajetória convergir) e
+    devolve `(exp, alg, problema, semente)`. Prova a leitura ponta-a-ponta da ①
+    pela métrica — SEM algoritmo, SEM fidelidade (D97). Não é um run de FE-exato
+    (isso é o F0-03); a métrica opera sobre QUALQUER ①."""
+    import numpy as np
+    from src import problems as _P, budget, export, experiment
+    prob = experiment._instantiate_problem(problema)
+    Xf, Ff = prob.true_pareto_front(n=20)                 # pontos SOBRE o front
+    rng = np.random.default_rng(0)
+    Xd = prob.xl + rng.random((10, prob.n_var)) * (prob.xu - prob.xl)
+    Fd = _P.evaluate_problem(prob, Xd)                    # pontos dominados
+    X = np.vstack([Xd, Xf]); F = np.vstack([Fd, Ff])      # dominados → front
+    recs = [budget.RealEval(solution_id=i, x=X[i], f=F[i], fe_index=i,
+                            fase=("init" if i < Xd.shape[0] else "opt"))
+            for i in range(X.shape[0])]
+    export.write_real("main", "stub", problema, 0, recs, data_root=dr)
+    return "main", "stub", problema, 0
+
+
+def check_f0_04():
+    """Encanamento objetivo do cartão F0-04-metrica (§12/D69/D70/D92):
+
+      1. `src/metrics.py` importa (esqueleto da camada pós-hoc).
+      2. **SMOKE DECISIVO (D92):** HV(front verdadeiro do BBOB_F1, normalizado
+         por (ideal,nadir) da S.5, ref = 1,1 por coordenada) = **1,0433** (± tol).
+      3. Sanity do FRONT (0,8333 = ref no nadir 1,0) — rotulado, **NÃO é o gate**.
+      4. As 5 métricas rodam (IGD/IGD+/HV/GD/spacing): front vs front → IGD/IGD+/
+         GD = 0; HV = âncora; spacing ≥ 0 e > 0 num conjunto não-uniforme.
+      5. Lê a camada ① ponta-a-ponta: normaliza → métricas FINAIS + trajetória.
+      6. Normalização D69 = tabela S.5 (25 problemas; o F1 bate com o front vivo).
+
+    SEM algoritmo, SEM julgamento de fidelidade (D97). Fecha a Fase 0."""
+    try:
+        import numpy as np
+        from src import metrics
+    except Exception as e:  # noqa: BLE001 — import-gate dos módulos da métrica
+        return [("import da camada de métrica (src.metrics)",
+                 (False, f"{type(e).__name__}: {e}"))]
+
+    results = []
+
+    # (2) SMOKE DECISIVO — a âncora D92 que fecha a Fase 0.
+    try:
+        hv_smoke = metrics.hv_smoke_bbob_f1()
+        d = abs(hv_smoke - metrics.HV_SMOKE_BBOB_F1)
+        results.append((
+            "SMOKE D92: HV(BBOB_F1, ref=1,1/coord, normalizado) = 1,0433",
+            (d < _TOL_HV_ANCHOR,
+             f"HV={hv_smoke:.5f} (|Δ|={d:.1e} < tol {_TOL_HV_ANCHOR:.0e})")))
+    except Exception as e:  # noqa: BLE001
+        import traceback
+        return [("SMOKE D92: HV(BBOB_F1) = 1,0433",
+                 (False, f"{type(e).__name__}: {e}\n{traceback.format_exc()}"))]
+
+    # (3) sanity do FRONT (0,8333) — rotulado; NÃO confundir com o gate (D92).
+    hv_sanity = metrics.hv_front_sanity_bbob_f1()
+    ds = abs(hv_sanity - metrics.HV_SANITY_BBOB_F1)
+    results.append((
+        "sanity do FRONT (0,8333 = ref no nadir 1,0 — NÃO é o gate; D92)",
+        (ds < _TOL_HV_ANCHOR, f"HV_sanity={hv_sanity:.5f} (|Δ|={ds:.1e})")))
+
+    # (4) as 5 métricas rodam + são sãs (front vs front = 0; spacing>0 se irregular).
+    Rraw = metrics.true_front_raw("BBOB_F1", 2000)
+    ideal, nadir = metrics.reference_bounds("BBOB_F1")
+    Rn = metrics.normalize(Rraw, ideal, nadir)
+    igd0 = metrics.igd(Rn, Rn)
+    igdp0 = metrics.igd_plus(Rn, Rn)
+    gd0 = metrics.gd(Rn, Rn)
+    hv_front = metrics.hv(Rn, metrics.HV_REF_COORD)
+    sp_uniform = metrics.spacing(Rn)                      # front analítico ⇒ ~0
+    sp_irreg = metrics.spacing(np.array(                  # gaps irregulares ⇒ > 0
+        [[0.0, 1.0], [0.02, 0.9], [0.05, 0.6], [0.5, 0.5], [0.55, 0.1]]))
+    five_ok = (igd0 < 1e-9 and igdp0 < 1e-9 and gd0 < 1e-9
+               and abs(hv_front - metrics.HV_SMOKE_BBOB_F1) < 1e-3
+               and sp_uniform >= 0.0 and sp_irreg > 0.0)
+    results.append((
+        "5 métricas rodam · front×front→IGD/IGD+/GD=0 · HV=âncora · spacing sã",
+        (five_ok, f"IGD={igd0:.1e} IGD+={igdp0:.1e} GD={gd0:.1e} "
+                  f"HV={hv_front:.4f} spacing(unif)={sp_uniform:.1e} "
+                  f"spacing(irreg)={sp_irreg:.3f}")))
+
+    # (5) lê a camada ① ponta-a-ponta → normaliza → métricas + trajetória.
+    try:
+        with tempfile.TemporaryDirectory() as dr:
+            exp, alg, prob, sem = _f0_04_stub_real(dr, "MMF1")
+            res = metrics.metrics_from_real(exp, alg, prob, sem, data_root=dr,
+                                            n_checkpoints=5)
+            fin = res["final"]; traj = res["trajectory"]
+            need = {"igd", "igd_plus", "hv", "gd", "spacing", "n_nd"}
+            read_ok = (need <= set(fin) and len(traj) >= 2
+                       and all(k in traj[0] for k in ("fe", "igd_plus", "hv"))
+                       and np.isfinite(fin["igd_plus"])
+                       and traj[0]["igd_plus"] >= traj[-1]["igd_plus"])  # converge
+            msg = (f"final IGD+={fin['igd_plus']:.4f} HV={fin['hv']:.4f} "
+                   f"n_nd={fin['n_nd']} · trajetória {len(traj)} pts "
+                   f"(IGD+ {traj[0]['igd_plus']:.3f}→{traj[-1]['igd_plus']:.3f})")
+    except Exception as e:  # noqa: BLE001
+        import traceback
+        read_ok, msg = False, f"{type(e).__name__}: {e}\n{traceback.format_exc()}"
+    results.append(("lê a ① ponta-a-ponta: normaliza → métricas + trajetória",
+                    (read_ok, msg)))
+
+    # (6) normalização D69 = S.5 congelada (25 problemas; F1 bate com o front vivo).
+    from src import experiment
+    front_nadir = metrics.true_front_raw("BBOB_F1", 2000).max(axis=0)
+    n_probs = len(metrics.F_MIN_MAX)
+    tbl_ok = (n_probs == 25
+              and set(metrics.F_MIN_MAX) == set(experiment.ALL_PROBLEMS)
+              and np.allclose(nadir, front_nadir, rtol=1e-3))
+    results.append((
+        "normalização D69 = tabela S.5 (25 problemas; F1 nadir = front vivo)",
+        (tbl_ok, f"|F_MIN_MAX|={n_probs}, F1 nadir S.5={nadir.tolist()} "
+                 f"~ front {front_nadir.round(3).tolist()}")))
+
+    return results
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cartao")
@@ -497,6 +625,25 @@ def main():
               "cache-hit/schemas/atômico/gcs-local/CP-init. GCS real = VM (§17.7).")
         print("\n  >>> " + ("VERMELHO — pára-e-loga (D81)" if fail
                             else "VERDE (encanamento objetivo)"))
+        print("  Lembrete (D97): a fidelidade é validação MANUAL do autor, "
+              "a posteriori — não entra aqui.")
+        sys.exit(1 if fail else 0)
+
+    # F0-04 = esqueleto da camada de métrica + âncora do smoke (D92 = 1,0433).
+    # Encanamento próprio: import-gate + smoke HV + as 5 métricas + leitura da ①.
+    if a.cartao.startswith("F0-04"):
+        results = check_f0_04()
+        fail = False
+        for name, (ok, msg) in results:
+            mark = "SKIP" if ok is None else ("OK  " if ok else "FAIL")
+            print(f"  [{mark}] {name}: {msg}")
+            if ok is False:
+                fail = True
+        print("  [INFO] ESQUELETO (casca): as funções-núcleo + a ÂNCORA D92. A "
+              "análise COMPLETA (agregação 30 sementes, testes §14, §15) = R4 "
+              "(o autor refina/implementa — D100).")
+        print("\n  >>> " + ("VERMELHO — pára-e-loga (D81)" if fail
+                            else "VERDE (encanamento objetivo) — FECHA a Fase 0"))
         print("  Lembrete (D97): a fidelidade é validação MANUAL do autor, "
               "a posteriori — não entra aqui.")
         sys.exit(1 if fail else 0)

@@ -55,11 +55,29 @@ def check_fe(exp, alg, problema, semente, D):
 
 
 def check_doe_hash(problema, semente):
-    """CP-init parcial: o DoE parquet existe e tem hash registrado (D87/D88)."""
-    doe = os.path.join(ROOT, "data", "doe", problema, f"doe_{problema}_{semente}.parquet")
-    if not os.path.exists(doe):
-        return False, f"DoE ausente: {doe}"
-    return True, "DoE parquet presente (hash validado no manifesto)"
+    """CP-init (parte objetiva do harness, D87/D88): o DoE parquet existe E o
+    hash do ARRAY DECODIFICADO bate com o do sidecar. Consome `src.naming`
+    (fonte única do caminho) e `src.doe` (re-hash). Se `pyarrow`/`numpy` não
+    estiverem no interpretador, cai p/ checagem de existência (skip do re-hash)."""
+    from src import naming
+    doe_p = naming.doe_path(problema, semente, data_root=os.path.join(ROOT, "data"))
+    man_p = naming.doe_manifest_path(problema, semente, data_root=os.path.join(ROOT, "data"))
+    if not os.path.exists(doe_p):
+        return False, f"DoE ausente: {doe_p}"
+    if not os.path.exists(man_p):
+        return False, f"sidecar do DoE ausente: {man_p}"
+    try:
+        from src import doe as _doe
+    except Exception:  # noqa: BLE001 — sem numpy/pyarrow: só confere existência
+        return True, "DoE parquet + sidecar presentes (re-hash pulado: sem numpy/pyarrow)"
+    with open(man_p, encoding="utf-8") as _mf:
+        side = json.load(_mf)
+    cols = side["columns"]
+    back = _doe._read_matrix_parquet(doe_p, cols)
+    h = _doe.decoded_hash(back)
+    if h != side.get("doe_hash"):
+        return False, f"hash do DoE diverge do sidecar ({h[:16]} != {str(side.get('doe_hash'))[:16]})"
+    return True, f"DoE bit-a-bit OK (hash {h[:16]}… = sidecar)"
 
 
 # ── Checagem de andaime da Fase 0 (F0-01-harness — sem run) ────────────────
@@ -110,6 +128,76 @@ def check_scaffold():
     return True, "andaime OK (infra importa · naming §17.7 · manifesto+jsonl round-trip)"
 
 
+# ── Checagem do cartão F0-02-doe (DoE/dataset/seeds — sem run) ──────────────
+
+def check_f0_02():
+    """Encanamento objetivo do cartão F0-02-doe (D87/D88/D90/D91):
+
+      1. `src/doe.py` importa; `seeds.json` (D91) publica os mapas canônicos.
+      2. DoE bit-reprodutível: 2 chamadas de `generate_doe` = MESMO hash do
+         array decodificado (D87) — a âncora exata do teste F0.
+      3. Round-trip parquet: `ensure_doe` escreve e relê bit-a-bit (o hash do
+         disco = o hash da memória) e o sidecar registra esse hash.
+      4. Dataset offline (D90): F re-avaliado do `problems.py` canônico bate
+         bit-a-bit com o F persistido (a metade Python do CP-init "avaliá-lo
+         reproduz o F").
+
+    NÃO faz o CP-init COMPLETO (X inicial na CAMADA ① de um run real, nos 2
+    stacks) — isso depende do export ① (F0-03) + um run (R1-00): CORTE declarado
+    (ver handoff). A metade MATLAB (`parquetread`→hash) roda por
+    `scripts/check_doe_matlab.m`."""
+    try:
+        from src import doe
+    except Exception as e:  # noqa: BLE001
+        return False, f"import de src.doe falhou: {type(e).__name__}: {e}"
+
+    # (1) seeds.json — mapas canônicos publicados e coerentes com o código.
+    sp = os.path.join(ROOT, "claude_code_context", "artifacts", "seeds.json")
+    try:
+        with open(sp, encoding="utf-8") as _sf:
+            sj = json.load(_sf)
+    except Exception as e:  # noqa: BLE001
+        return False, f"seeds.json ilegível: {e}"
+    if len(sj.get("alg_id", {})) != 22:
+        return False, f"seeds.json alg_id != 22 configs ({len(sj.get('alg_id', {}))})"
+    shared = sj.get("shared_init_artifacts", {})
+    if shared.get("problema_id") != doe.PROBLEMA_ID:
+        return False, "seeds.json problema_id diverge de doe.PROBLEMA_ID (25 canônicos)"
+    if shared.get("tier_id") != doe.TIER_ID or shared.get("dist_id") != doe.DIST_ID:
+        return False, "seeds.json tier_id/dist_id divergem do código"
+    if "SeedSequence" not in sj.get("materializacao", ""):
+        return False, "seeds.json sem a fórmula de materialização (D91)"
+
+    # (2) reprodutibilidade bit-a-bit (2 chamadas = mesmo hash) — 2 amostras.
+    for prob, sem in (("MMF1", 0), ("ZDT4", 42)):
+        h1 = doe.decoded_hash(doe.generate_doe(prob, sem)[0])
+        h2 = doe.decoded_hash(doe.generate_doe(prob, sem)[0])
+        if h1 != h2:
+            return False, f"DoE {prob}/{sem} NÃO reprodutível ({h1[:12]} != {h2[:12]})"
+
+    # (3) round-trip parquet + sidecar, num diretório temporário.
+    with tempfile.TemporaryDirectory() as dr:
+        r = doe.ensure_doe("MMF1", 0, data_root=dr)
+        if r["skipped"]:
+            return False, "ensure_doe pulou uma geração inédita (esperado skipped=False)"
+        again = doe.ensure_doe("MMF1", 0, data_root=dr)
+        if not again["skipped"] or again["doe_hash"] != r["doe_hash"]:
+            return False, "2ª ensure_doe não foi idempotente (skip + mesmo hash)"
+
+        # (4) dataset offline: F persistido = F re-avaliado do problems.py.
+        rd = doe.ensure_dataset("MMF1", 0, data_root=dr)
+        X, F, _ = doe.generate_dataset("MMF1", 0)
+        from src import problems as _P
+        F_re = _P.evaluate_problem(doe._instantiate_problem("MMF1"), X)
+        if doe.decoded_hash(F) != doe.decoded_hash(F_re):
+            return False, "dataset: F não reproduz do problems.py (CP-init Python falhou)"
+        if not os.path.basename(rd["path"]).startswith("ds_MMF1_0.parquet"):
+            return False, f"nome do dataset principal inesperado: {rd['path']}"
+
+    return True, ("DoE bit-reprodutível (2 chamadas=mesmo hash) · round-trip parquet "
+                  "+ sidecar · dataset F reproduz do problems.py · seeds.json coerente")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cartao")
@@ -122,6 +210,19 @@ def main():
 
     print(f"== Aceitação objetiva — cartão {a.cartao} "
           f"({a.exp}/{a.alg}/{a.problema}/{a.semente}) ==")
+
+    # F0-02 = artefatos de inicialização (DoE/dataset/seeds — D87/D88/D90/D91).
+    # Encanamento próprio (sem run); não cai no andaime genérico do F0-01.
+    if a.cartao.startswith("F0-02"):
+        ok, msg = check_f0_02()
+        print(f"  [{'OK  ' if ok else 'FAIL'}] F0-02 (DoE/dataset/seeds): {msg}")
+        print("  [INFO] CP-init COMPLETO (X da camada ① nos 2 stacks) = R1-00/F0-03 "
+              "(corte declarado); metade MATLAB via scripts/check_doe_matlab.m.")
+        print("\n  >>> " + ("VERDE (encanamento objetivo)" if ok
+                            else "VERMELHO — pára-e-loga (D81)"))
+        print("  Lembrete (D97): a fidelidade é validação MANUAL do autor, "
+              "a posteriori — não entra aqui.")
+        sys.exit(0 if ok else 1)
 
     # F0-01 é PURO andaime (sem run). Idem qualquer cartão chamado sem --alg:
     # valida-se só o encanamento comum e o veredito é o do andaime.

@@ -30,9 +30,11 @@ classdef KRVEA < ALGORITHM
             [V0,Problem.N] = UniformPoint(Problem.N,Problem.M);
             V     = V0;
             NI    = 11*Problem.D-1;
-            P     = UniformPoint(NI,Problem.D,'Latin');
-            A2    = Problem.Evaluation(repmat(Problem.upper-Problem.lower,NI,1).*P+repmat(Problem.lower,NI,1));
-            A1    = A2;  
+            % [R1-b3] injecao do DoE (D63/D87/D88): substitui o PAR gera+re-escala
+            % (classe D94 — X0 NATIVO direto, a re-escala nunca roda). Init STOCK
+            % NI=11D-1 mantido; X0 vem do artefato via Problem.data (run_b3).
+            A2    = Problem.Evaluation(Problem.data.X0);
+            A1    = A2;
             THETA = 5.*ones(Problem.M,Problem.D);
             Model = cell(1,Problem.M);
 
@@ -41,6 +43,8 @@ classdef KRVEA < ALGORITHM
                 % Refresh the model and generate promising solutions
                 A1Dec = A1.decs;
                 A1Obj = A1.objs;
+                n_treino = size(A1Dec,1);            % [R1-b3] §17.6: |A1| no fit
+                t0_fit   = tic;                      % [R1-b3] §17.6: tempo do fit
                 for i = 1 : Problem.M
                     % The parameter 'regpoly1' refers to one-order polynomial
                     % function, and 'regpoly0' refers to constant function. The
@@ -50,7 +54,9 @@ classdef KRVEA < ALGORITHM
                     Model{i}   = dmodel;
                     THETA(i,:) = dmodel.theta;
                 end
+                tfit_s = toc(t0_fit);                % [R1-b3] §17.6
                 PopDec = A1Dec;
+                snaps  = cell(1,wmax);               % [R1-b3] ③ DEF-C2: pop selecionada por ger. interna
                 w      = 1;
                 while w <= wmax
                     drawnow('limitrate');
@@ -67,6 +73,9 @@ classdef KRVEA < ALGORITHM
                     index  = KEnvironmentalSelection(PopObj,V,(w/wmax)^alpha);
                     PopDec = PopDec(index,:);
                     PopObj = PopObj(index,:);
+                    % [R1-b3] ③ snapshot da pop SELECIONADA desta geracao interna
+                    % (DEF-C2; so LEITURA — nenhuma decisao alterada, D97).
+                    snaps{w} = struct('dec',PopDec,'obj',PopObj,'mse',MSE(index,:));
                     % Adapt referece vectors
                     if ~mod(w,ceil(wmax*0.1))
                         V(1:Problem.N,:) = V0.*repmat(max(PopObj,[],1)-min(PopObj,[],1),size(V0,1),1);
@@ -76,10 +85,21 @@ classdef KRVEA < ALGORITHM
 
                 % Select mu solutions for re-evaluation
                 [NumVf,~] = NoActive(A1Obj,V0);
-                PopNew    = KrigingSelect(PopDec,PopObj,MSE(index,:),V,V0,NumVf,0.05*Problem.N,mu,(w/wmax)^alpha); 
+                % [R1-b3] KrigingSelect com outputs de instrumentacao (L.2):
+                % sel=index (:64), NumV2 (:15), Flag (:42). Decisoes intactas.
+                [PopNew,sel,NumV2,Flag] = KrigingSelect(PopDec,PopObj,MSE(index,:),V,V0,NumVf,0.05*Problem.N,mu,(w/wmax)^alpha);
                 New       = Problem.Evaluation(PopNew);
                 A2        = [A2,New];
-                A1        = UpdataArchive(A1,New,V,mu,NI); 
+                % [R1-b3] guarda do crash latente (anchors b3-updataarchive-guard):
+                % nzero = clusters vazios do kmeans (zeros de Next filtrados).
+                [A1,nzero] = UpdataArchive(A1,New,V,mu,NI);
+                % [R1-b3] sync D89 (herdado do c217, PCS:56): o obj.FE nativo NAO
+                % governa; re-sincroniza com o saldo DISTINTO do wrapper apos o
+                % infill (b3 PODE propor duplicata: PopDec parte de A1Dec).
+                Problem.FE = Problem.data.bud.fe;
+                % [R1-b3] instrumentacao POS-decisao (D97): ③ + .jsonl + timing.
+                b3_instrument(Problem, A1, snaps, PopNew, sel, NumVf, NumV2, ...
+                              Flag, 0.05*Problem.N, mu, nzero, n_treino, tfit_s);
             end
         end
     end

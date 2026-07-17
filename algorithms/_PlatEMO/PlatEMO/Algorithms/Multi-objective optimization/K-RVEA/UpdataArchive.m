@@ -1,5 +1,9 @@
-function  A1 = UpdataArchive(A1,New,V,mu,NI)
+function  [A1,nzero] = UpdataArchive(A1,New,V,mu,NI)
 % Update archive
+% [R1-b3] guarda do crash latente (N.3/anchors b3-updataarchive-guard): o Next
+% pre-alocado com zeros NAO era filtrado antes de indexar Total (KrigingSelect:64
+% filtra; aqui nao) — se o kmeans devolver clusters vazios, indice 0 -> erro.
+% nzero (2o output, so leitura) conta os zeros filtrados p/ o evento de guarda.
 
 %------------------------------- Copyright --------------------------------
 % Copyright (c) 2026 BIMK Group. You are free to use the PlatEMO for
@@ -12,6 +16,7 @@ function  A1 = UpdataArchive(A1,New,V,mu,NI)
 
 % This function is written by Cheng He
 
+    nzero = 0;
     %% Delete duplicated solutions
     All       = [A1.decs;New.decs];
     [~,index] = unique(All,'rows');
@@ -58,8 +63,12 @@ function  A1 = UpdataArchive(A1,New,V,mu,NI)
                 Next(i)  = current(best);
             end
         end
-        A1 = [Total(Next),New];
-    else 
+        % [R1-b3] guard: filtra os zeros de Next (clusters vazios) antes de
+        % indexar — mesmo idioma do KrigingSelect:64. Caso sem zeros = BIT-
+        % IDENTICO ao stock (Next(Next~=0) == Next).
+        nzero = sum(Next==0);
+        A1 = [Total(Next(Next~=0)),New];
+    else
         A1 = Total;
     end
 end       

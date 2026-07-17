@@ -1,5 +1,7 @@
-function PopNew = KrigingSelect(PopDec,PopObj,MSE,V,V0,NumV1,delta,mu,theta)
+function [PopNew,index,NumV2,Flag] = KrigingSelect(PopDec,PopObj,MSE,V,V0,NumV1,delta,mu,theta)
 % Kriging selection in K-RVEA
+% [R1-b3] patch 1 linha (L.2): exporta index (:64)/NumV2 (:15)/Flag (:42) para a
+% instrumentacao (u efetivo + ramo APD x incerteza). Decisoes INTACTAS (D97).
 
 %------------------------------- Copyright --------------------------------
 % Copyright (c) 2026 BIMK Group. You are free to use the PlatEMO for

@@ -5,7 +5,13 @@ import os, re, shutil, sys
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))  # robustez de path (roda da pasta do script)
 SPEC = 'SPEC_experimentos_v5.2.md'
-OUT  = 'claude_code_context'
+# [fix 2026-07-17, torre] O script agora VIVE dentro do pacote instalado -> regeneração é
+# IN-PLACE (OUT='.'). O modo antigo (OUT='claude_code_context') criava um pacote ANINHADO
+# claude_code_context/claude_code_context/ e os bundles reais nunca eram atualizados.
+OUT  = '.'
+#: só estas pastas são GERADAS (o rmtree limita-se a elas — NUNCA a raiz, que contém a SPEC/artifacts)
+GENERATED_DIRS = ['00_fundacao', '10_rodada1_matlab', '20_rodada2_botorch',
+                  '30_rodada3_standalone', '40_subestudos', '50_analise_R4']
 text = open(SPEC, encoding='utf-8').read()
 lines = text.split('\n')
 
@@ -64,9 +70,10 @@ def write(path, title, parts, epigraph=None):
     open(full, 'w', encoding='utf-8').write(body)
     print("  %-55s %6.1f KB" % (path, len(body)/1024))
 
-if os.path.isdir(OUT):
-    shutil.rmtree(OUT)
-os.makedirs(OUT)
+for _d in GENERATED_DIRS:          # limpeza SÓ das pastas geradas (in-place seguro)
+    _p = os.path.join(OUT, _d)
+    if os.path.isdir(_p):
+        shutil.rmtree(_p)
 print("== FUNDACAO ==")
 
 d3 = sec(r'^### D\.3 ', r'^## Anexo E ')
@@ -218,16 +225,17 @@ write('50_analise_R4/metricas_estatistica_caracteristicas.md','R4 — Métricas,
       epigraph=("**Decisões-chave:** D69 (métricas sobre **f′=(f−ideal)/(nadir−ideal)**; ref HV=(1,1,…) normalizado) · D70 (**IGD+ final, mediana das 30** = endpoint primário; α=0,05; Friedman POR MÉTRICA; Nemenyi all-pairs; Holm nas rank-sum; rope=0,05 normalizado; **online × offline SEPARADOS**) · "
                 "D71 (matriz 25×8 `characteristics.csv`; unidade=PROBLEMA; Friedman só onde ≥5 problemas — **D98: propriedade objetiva, re-derivada pelo autor**) · D72 (reference set 2-obj POR SEGMENTO; cache BBOB pop200×300gen×5seeds; 'nos 6; F1 analítico') · D73 (3 honestidades) · **D99: IGDX pós-hoc p/ os 4 MMF** · **D100: esta camada é pós-experimento (o autor refina/implementa no R4; não bloqueia a implementação)** · D80 (lib de métrica PINADA). **Aceitação da métrica (D92): HV(F1 analítico, ref 1,1 por coordenada) = 1,0433** (o 0,8333 = sanity do front, ref no nadir)."))
 
-# artifacts + spec + registry + MANUAIS copies (Higiene v5.2: CLAUDE.md e PROMPT_MESTRE agora são copiados —
-# eram os 2 únicos manuais que o rmtree destruía sem restaurar; + seeds.json/params.json novos, D91/D83)
-os.makedirs(OUT+'/artifacts', exist_ok=True)
-for f in ['runs_matrix.csv','decisions.json','characteristics.csv','envs.json','repos.lock','anchors.json','seeds.json','params.json']:
-    shutil.copy('artifacts/'+f, OUT+'/artifacts/'+f)
-shutil.copy(SPEC, OUT+'/SPEC_experimentos_v5.2.md')
-shutil.copy('REGISTRO_DECISOES_pingpong_v5.md', OUT+'/REGISTRO_DECISOES_pingpong_v5.md')
-shutil.copy('gen_bundles.py', OUT+'/gen_bundles.py')
-for m in ['CLAUDE.md', 'PROMPT_MESTRE.md']:   # os manuais — NÃO são gerados, mas VÃO para o pacote
-    if os.path.exists(m): shutil.copy(m, OUT+'/'+m)
+# artifacts + spec + registry + MANUAIS: cópias SÓ no modo pacote-externo (OUT != '.').
+# No modo in-place (OUT='.'), SPEC/artifacts/manuais JÁ vivem aqui — auto-cópia daria SameFileError.
+if os.path.abspath(OUT) != os.path.abspath('.'):
+    os.makedirs(OUT+'/artifacts', exist_ok=True)
+    for f in ['runs_matrix.csv','decisions.json','characteristics.csv','envs.json','repos.lock','anchors.json','seeds.json','params.json']:
+        shutil.copy('artifacts/'+f, OUT+'/artifacts/'+f)
+    shutil.copy(SPEC, OUT+'/SPEC_experimentos_v5.2.md')
+    shutil.copy('REGISTRO_DECISOES_pingpong_v5.md', OUT+'/REGISTRO_DECISOES_pingpong_v5.md')
+    shutil.copy('gen_bundles.py', OUT+'/gen_bundles.py')
+    for m in ['CLAUDE.md', 'PROMPT_MESTRE.md']:
+        if os.path.exists(m): shutil.copy(m, OUT+'/'+m)
 print("\nTOTAL FILES:")
 n=0
 for root,_,files in os.walk(OUT):

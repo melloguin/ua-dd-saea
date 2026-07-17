@@ -258,7 +258,7 @@ Nas VMs Vertex AI a **conta de serviço** já traz credenciais (ADC) — sem cha
 | b3 | \|A1\|; u efetivo; NumV1/NumV2/Flag; ramo (APD×σ); `index` exportado; eventos: guard Next=0, dedup DoE |
 | b4 | (p0,p1,rr,tr); regime R1/R2/R3 + motivo; L dos selecionados; \|lote\| (0 = geração sem FE — contar stalls); eventos: guard randperm |
 | e7 | Ratio/flag do infill; `min(A.objs)` (translação, C3); μ/σ̄ do Estimate; infill duplicado (FE desperdiçado); evento: guard sqrt |
-| c217 | p+/p−/δ; **n_empates (TestPre==1.5)** (S.3#4); n_contradições; ESTADO 1/2/3 + motivo (desigualdade); \|lote\|; scores selecionados (§17.2.1) |
+| c217 | p+/p−/δ; **n_contradicoes (TestPre==1.5)** (S.3#4 "empates" ≡ M.4 "contradição" — MESMA quantidade, campo ÚNICO unificado no c217-fix-log [decisão do autor, v5.2]); ESTADO 1/2/3 + motivo (desigualdade); \|lote\|; scores selecionados (§17.2.1) |
 | c141 | Fit1/2/3 resumo; ranks/Q/U; nível da cascata (1/2/3) + **telemetria de ativação do ramo (Q,U)**; \|subpops\| pós-ES_PDR; eventos: guard batch-vazio, guard +eps (L4) |
 | e74 | estratégia (1/2/3); classe_PNN; μ_RBF; dist_dec/dist_obj; HV_gain; aceito/rejeitado-dedup (slot perdido); fração nível-1; RefPoint; evento: SelectTrainData reconstruído (S.3#1) |
 | c238 | min/max do y-scaling da iteração (C3); [y,u,s] do escolhido; pop final do GA; eventos: EIM-NaN→0, guard range, chol-guard/dedup |

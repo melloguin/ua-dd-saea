@@ -34,7 +34,14 @@ function c217_instrument(Problem, Arc, Next, delta, Error1, Error2, TestPre, tfi
             motivo = sprintf('Error1=%.4f, Error2=%.4f <= delta=%.2f (contradicoes) -> estado 3 (aleatorio)', Error1, Error2, delta);
         end
     end
-    n_empates = sum(TestPre(:) == 1.5);         % contradicoes/empates do PNN (S.3#4)
+    % [c217-fix-log] UMA quantidade = pares onde a predicao forward==reverse
+    % (rotulos iguais) = TestPre==1.5. O SPEC usa TRES nomes para ela: 'contradicao'
+    % (M.4: rotulos iguais = erro ALEATORIO -> ignorar), 'empates' (S.3#4/S.7:
+    % TestPre==1.5) e 'n_contradicoes' (§17.2.1, a spec DEDICADA do log da regra
+    % tripla do c217). NAO ha 2a quantidade distinta definida no SPEC -> emito 1
+    % campo so, 'n_contradicoes' (nome do §17.2.1). O `n_empates` duplicado (mesmo
+    % valor, 2o nome) foi removido (sem duplicar — decisao do autor).
+    n_contradicoes = sum(TestPre(:) == 1.5);
     lote      = size(Next, 1);
     arc_size  = numel(Arc);
 
@@ -68,7 +75,7 @@ function c217_instrument(Problem, Arc, Next, delta, Error1, Error2, TestPre, tfi
         rec = struct('ts', iso_now_c217(), 'rec', "c217_gen", ...
             'geracao', g, 'arc_size', arc_size, 'delta', delta, ...
             'p_mais', num_or_null(Error1), 'p_menos', num_or_null(Error2), ...
-            'n_contradicoes', double(n_empates), 'n_empates', double(n_empates), ...
+            'n_contradicoes', double(n_contradicoes), ...
             'estado', estado, 'motivo', string(motivo), ...
             'lote', double(lote), 'score', double(score), ...
             'tempo_fit_s', tfit_s);

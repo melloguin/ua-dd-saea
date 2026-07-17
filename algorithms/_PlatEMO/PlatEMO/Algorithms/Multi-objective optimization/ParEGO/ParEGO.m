@@ -26,18 +26,33 @@ classdef ParEGO < ALGORITHM
             %% Generate the weight vectors and random population
             [W,Problem.N] = UniformPoint(Problem.N,Problem.M);
             N             = 11*Problem.D-1;
-            PopDec        = UniformPoint(N,Problem.D,'Latin');
-            Population    = Problem.Evaluation(repmat(Problem.upper-Problem.lower,N,1).*PopDec+repmat(Problem.lower,N,1));
+            % [R1-b1] injecao do DoE (D63/D87/D88): substitui o PAR gera+re-escala
+            % das :29-:30 JUNTAS (classe D94 — X0 NATIVO direto na Evaluation, a
+            % re-escala nunca roda; injetar so na :29 causaria dupla-escala em
+            % WFG/BBOB). Init STOCK N=11D-1 mantido; X0 vem do artefato via
+            % Problem.data (run_b1).
+            Population    = Problem.Evaluation(Problem.data.X0);
             theta         = 10.*ones(1,Problem.D);
 
             %% Optimization
             while Algorithm.NotTerminated(Population)
                 % Randomly select a weight vector and preprocess the data
-                lamda  = W(randi(size(W,1)),:); 
+                lamda  = W(randi(size(W,1)),:);
                 PopObj = Population.objs;
                 [N,D]  = size(Population.decs);
-                PopObj = (PopObj-repmat(min(PopObj,[],1),N,1))./repmat((max(PopObj,[],1)-min(PopObj,[],1)),N,1);
-                PCheby = max(PopObj.*repmat(lamda,N,1),[],2)+0.05.*sum(PopObj.*repmat(lamda,N,1),2); 
+                n_arquivo = N;                       % [R1-b1] .jsonl S.7
+                % [R1-b1] P4 NaN-guard (DEF-A8; idioma L4 do c141): objetivo
+                % constante no arquivo (min==max) faria 0/0=NaN aqui e propagaria
+                % ao PCheby/EI. den==0 -> eps: o numerador (f-min) e 0 nessas
+                % colunas => normalizado 0, identico p/ qualquer den>0. So
+                % captura + guarda (D97); fmin/fmax alimentam o C3 (D47).
+                fmin = min(PopObj,[],1);
+                fmax = max(PopObj,[],1);
+                den  = fmax - fmin;
+                nan_guard_fired = any(den == 0);     % [R1-b1] evento no .jsonl
+                den(den == 0) = eps;
+                PopObj = (PopObj-repmat(fmin,N,1))./repmat(den,N,1);
+                PCheby = max(PopObj.*repmat(lamda,N,1),[],2)+0.05.*sum(PopObj.*repmat(lamda,N,1),2);
                 if N > 11*D-1+25
                     [~,index] = sort(PCheby);
                     Next      = index(1:11*D-1+25);
@@ -47,18 +62,37 @@ classdef ParEGO < ALGORITHM
                 PDec   = Population(Next).decs;
                 PCheby = PCheby(Next);
 
+                n_subset = size(PDec,1);             % [R1-b1] pos-cap top-(11D-1+25)
                 % Eliminate the solutions having duplicated inputs or outputs
                 [~,distinct1] = unique(round(PDec*1e6)/1e6,'rows');
                 [~,distinct2] = unique(round(PCheby*1e6)/1e6);
                 distinct = intersect(distinct1,distinct2);
                 PDec     = PDec(distinct,:);
                 PCheby   = PCheby(distinct);
+                n_dedup  = n_subset - size(PDec,1);  % [R1-b1] near-dups removidos (S.7)
 
                 % Surrogate-assisted prediction
+                n_treino   = size(PDec,1);           % [R1-b1] §17.6: pontos no fit
+                t0_fit     = tic;                    % [R1-b1] §17.6: tempo do fit
                 dmodel     = dacefit(PDec,PCheby,'regpoly1','corrgauss',theta,1e-5.*ones(1,D),20.*ones(1,D));
+                tfit_s     = toc(t0_fit);            % [R1-b1] §17.6
                 theta      = dmodel.theta;
-                PopDec     = EvolALG(Problem,PCheby,Population.decs,dmodel,IFEs);
+                % [R1-b1] EvolALG com output de instrumentacao (gainfo): pop FINAL
+                % scorada do GA interno + y/s/EI + Gbest/E0 + contadores dos guards
+                % (mse<0, EI-NaN). Decisoes intactas (D97).
+                t0_busca   = tic;                    % [R1-b1] §17.6 (opcional)
+                [PopDec,gainfo] = EvolALG(Problem,PCheby,Population.decs,dmodel,IFEs);
+                tbusca_s   = toc(t0_busca);          % [R1-b1]
                 Population = [Population,Problem.Evaluation(PopDec)];
+                % [R1-b1] sync D89 (herdado do c217, PCS:56): o obj.FE nativo NAO
+                % governa; re-sincroniza com o saldo DISTINTO do wrapper apos o
+                % infill (b1 PODE propor duplicata: mutacao-only copia o pai).
+                Problem.FE = Problem.data.bud.fe;
+                % [R1-b1] instrumentacao POS-decisao (D97): ③ mono-output D47/C3
+                % + linha b1_gen no .jsonl (S.7) + timing §17.6.
+                b1_instrument(Problem, lamda, fmin, fmax, gainfo, PopDec, ...
+                              n_arquivo, n_subset, n_treino, n_dedup, ...
+                              nan_guard_fired, theta, tfit_s, tbusca_s);
             end
         end
     end

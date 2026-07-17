@@ -19,6 +19,7 @@
 | **Mac** (arm64, macOS 12.5.1) | MATLAB R2025a → R1; Fase 0; pilotos; ponte InProcess (`--enable-shared`, Mac-only) | local |
 | **VM** `v5-mestrado` (Debian 12, micromamba+pyenv, us-central1-a) | R2 (BoTorch), R3 (standalone), R4 (análise) | local **+** `gs://mestrado_experiments` (dual-write) |
 | **Bucket** `gs://mestrado_experiments` | STANDARD, US multi-região, versioning on, soft-delete 7d | — |
+- **📌 MUDANÇA DE PLANO (autor, 2026-07-17): TODA a implementação/validação/testes/pilotos dos 16 algoritmos acontece NO MAC (M0–M7). A VM só entra do M8 em diante (baterias).** R2/R3 são implementados e pilotados no Mac (env-main Mac ganha o stack BoTorch; GCS smoke via ADC do Mac; a re-validação do caminho SA da VM acontece no setup do M8). O prompt R2-00 versão-VM ficou superseded.
 - Config Python nos DOIS ambientes; MATLAB só no Mac. Bucket-only (só bucket, não local): **c154, c122, e81, c149, c262** (D58).
 
 ### Venvs × algoritmos (detalhe + estratégia: `requirements/README.md`)

@@ -93,7 +93,12 @@ M3 fan-out MATLAB (9 cartões) ............... 🟡 EM CURSO — herda o fix D89
    b3-KRVEA ................................ ✅ (fusão tripla 2026-07-17, verif. adversarial 5 lentes: injeção DoE classe D94 sem dupla-escala [X0 nativo provado], KrigingSelect 1-linha assinatura, guard UpdataArchive:61 BIT-IDÊNTICO no caso são [probe 20k casos], sync D89 exercitado por duplicatas REAIS de infill; gate VERDE ×3)
    b4-CSEA ................................. ✅ (mesma fusão: cap109→11D−1, DoE D94, auto→cpu, treino arquivo-inteiro B4.6/D30, **Balde C {1,15,1,5}→{1,20,1,20} SUPORTADO pela SPEC §6.2:445+§6.4:811 [b4 NÃO é exceção nomeada — verificado adversarialmente]**, guard randperm bit-idêntico; gate VERDE ×3)
    FIX pontas-soltas c217 .................. ✅ (de-dup n_empates→n_contradicoes [1 quantidade, 3 nomes na SPEC]; pred_confianca=Error1 CONFIRMADO fiel à §17.2 [não era bug]; implementador parou-e-perguntou D81, autor decidiu; diff mínimo 9+/2−, 0 consumidores de código quebrados)
-   b1·e7·c238·pisos·e74·e103 ............... ⬜ PRÓXIMO (b1/e7 = injeção D94; c238 = classdef N.5 único não-cópia; e74/e103 = árvore/worker próprios, por último)
+   Sessão A: b1+e7 (par D94) ............... 🟡 PRÓXIMO (prompt entregue; ⚠ b1: patch sqrt(mse) ESCOPADO ao ParEGO/EvolALG.m!)
+   Sessão B: c238+pisos (par) .............. ⬜
+   Sessão C: e74 (solo; árvore 4.1, N.0-4.1) ⬜
+   Sessão D: e103 (solo; offline, D93) ..... ⬜
+   Fidelidade em LOTE (dossiê da torre) .... ⬜ ao fim da onda (decisão autor+torre 2026-07-17)
+   (∥ possível: M4/R2-00 na VM — zero interferência)
 M4 R2-00-harness (BoTorch/VM) ............... ⬜ pode ir ∥ (na VM)
 M2 R1-00-harness / R1-c217 ................. ⬜
 M3 b1 b3 b4 e7 c141 e74 c238 e103 pisos .... ⬜×9

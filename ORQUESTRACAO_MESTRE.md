@@ -66,7 +66,9 @@
 - Regra transversal: gate vermelho ⇒ pára-e-loga (D81); fidelidade nunca é gate automático (D97).
 
 ## Armadilhas conhecidas (verificadas / da SPEC) — repassar ao prompt do cartão certo
-- **b1:** patch `sqrt(mse)` escopado ao `_PlatEMO/.../ParEGO/EvolALG.m` (colide com `EGO/EvolEI.m:23`). [verificado 2026-07-15]
+- **b1:** patch `sqrt(mse)` escopado ao `_PlatEMO/.../ParEGO/EvolALG.m` (colide com `EGO/EvolEI.m:23`). [verificado 2026-07-15; EXECUTADO certo na Sessão A — EvolEI intocado, confirmado 2026-07-17]
+- **⚠ SOMBRA DE PATH (lição da Sessão A, VALE P/ TODO cartão MATLAB futuro):** o `genpath` é alfabético e a regra same-folder NÃO cobre SUBPASTAS — o DRLOS-EMCMO vendoriza um `Dropout/` idêntico ao do EDN-ARMOEA e vinha ANTES no path (os patches do e7 nunca rodariam, silenciosamente). Fix-padrão: `ensure_paths_<alg>` = prepend + asserts de `which` nos arquivos patchados. **Checagem obrigatória em cartão novo: `find` por basename de CADA arquivo patchado; se houver duplicata, prepend+assert.** Risco máximo no **e74** (árvore PlatEMO 4.1 INTEIRA duplicada). Residual latente (verificado, inócuo hoje): asserts do e7 não cobrem `EDNARMOEA.m` (basename único) e `ensure_paths_b3` não tem asserts (same-folder protege).
+- **Consumidores da ③:** `real_solution_id` é ora int32 ora double+NaN (dicotomia documentada, dependente de dados — b3/c141 vs c217/b4). O leitor do R4 deve tolerar ambos.
 - **Âncoras novas:** sempre com prefixo de diretório (resolução por sufixo do preflight; basename puro pega cópia errada, ex. `_BoTorch/acquisition.py`). [verificado]
 - **e74:** árvore PlatEMO 4.1 própria (`CLMEA_Code`), adendo N.0-4.1 (UserProblem 4.1 sem `once` → ponte por indivíduo), worker dedicado (D95).
 - **e103:** centros RBFN = ⌈√n_dataset⌉ com n injetado (D93); offline; worker dedicado.
@@ -94,12 +96,14 @@ M3 fan-out MATLAB (9 cartões) ............... 🟡 EM CURSO — herda o fix D89
    b3-KRVEA ................................ ✅ (fusão tripla 2026-07-17, verif. adversarial 5 lentes: injeção DoE classe D94 sem dupla-escala [X0 nativo provado], KrigingSelect 1-linha assinatura, guard UpdataArchive:61 BIT-IDÊNTICO no caso são [probe 20k casos], sync D89 exercitado por duplicatas REAIS de infill; gate VERDE ×3)
    b4-CSEA ................................. ✅ (mesma fusão: cap109→11D−1, DoE D94, auto→cpu, treino arquivo-inteiro B4.6/D30, **Balde C {1,15,1,5}→{1,20,1,20} SUPORTADO pela SPEC §6.2:445+§6.4:811 [b4 NÃO é exceção nomeada — verificado adversarialmente]**, guard randperm bit-idêntico; gate VERDE ×3)
    FIX pontas-soltas c217 .................. ✅ (de-dup n_empates→n_contradicoes [1 quantidade, 3 nomes na SPEC]; pred_confianca=Error1 CONFIRMADO fiel à §17.2 [não era bug]; implementador parou-e-perguntou D81, autor decidiu; diff mínimo 9+/2−, 0 consumidores de código quebrados)
-   Sessão A: b1+e7 (par D94) ............... 🟡 PRÓXIMO (prompt entregue; ⚠ b1: patch sqrt(mse) ESCOPADO ao ParEGO/EvolALG.m!)
-   Sessão B: c238+pisos (par) .............. ⬜
-   Sessão C: e74 (solo; árvore 4.1, N.0-4.1) ⬜
+   Sessão A: b1+e7 ......................... ✅ (verif. torre 2026-07-17: 24 gates verdes; adversarial 4/4 CONFIRMED — writer-fix O(n) equivalente, sombra DRLOS real+neutralizada, patches b1/e7 conformes, dropout 0,1 = mandato D30; armadilha EvolEI evitada; comportamento saudável: b1 ZDT1 melhora 136× / e7 gatilho dual vivo 152:48)
+   Sessão B: c238 (SOLO — autor separou p/ qualidade) 🟡 PRÓXIMO
+   Sessão B2: pisos ........................ ⬜
+   Sessão C: e74 (solo; árvore 4.1, N.0-4.1) ⬜ (⚠ ALTO risco de sombra de path — árvore inteira duplicada; aplicar lição DRLOS)
    Sessão D: e103 (solo; offline, D93) ..... ⬜
-   Fidelidade em LOTE (dossiê da torre) .... ⬜ ao fim da onda (decisão autor+torre 2026-07-17)
+   Fidelidade em LOTE (dossiê da torre) .... ⬜ ao fim da onda
    (∥ possível: M4/R2-00 na VM — zero interferência)
+   ✅ D6 doc-sync EXECUTADO (2026-07-17): SPEC n_empates→n_contradicoes (2 pontos) + carimbo Balde C no Anexo K b4 + bundles regenerados (diff auditado: SÓ os 3 esperados). BÔNUS: consertado bug do gen_bundles.py (OUT aninhado — regen in-place seguro agora; rmtree limitado às 6 pastas geradas).
 M4 R2-00-harness (BoTorch/VM) ............... ⬜ pode ir ∥ (na VM)
 M2 R1-00-harness / R1-c217 ................. ⬜
 M3 b1 b3 b4 e7 c141 e74 c238 e103 pisos .... ⬜×9

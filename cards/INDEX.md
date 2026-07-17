@@ -20,7 +20,7 @@
 | R1-b1 | ParEGO (injeção DoE D94 :29-30) | R1-00 | …/alg_b1_parego | ✅ |
 | R1-b3 | K-RVEA | R1-00 | …/alg_b3_krvea | ✅ |
 | R1-b4 | CSEA (cap 109; cpu) | R1-00 | …/alg_b4_csea | ✅ |
-| R1-e7 | EDN-ARMOEA (injeção DoE D94 :31-32) | R1-00 | …/alg_e7_ednarmoea | ⬜ |
+| R1-e7 | EDN-ARMOEA (injeção DoE D94 :31-32) | R1-00 | …/alg_e7_ednarmoea | ✅ |
 | R1-c217 | PC-SAEA (caso-modelo; 2 guardas) | R1-00 | …/alg_c217_pcsaea | ✅ |
 | R1-c141 | MMRAEA (porte 3 linhas) | R1-00 | …/alg_c141_mmraea | ✅ |
 | R1-e74 | CLMEA (**árvore 4.1 própria, N.0-4.1 — D95**; worker dedicado) | R1-00 | …/alg_e74_clmea | ⬜ |

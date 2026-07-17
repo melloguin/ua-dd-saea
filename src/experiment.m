@@ -44,6 +44,10 @@ function [status, info] = experiment(alg, problema_id, semente, exp, dataRoot)
             % R1-c141 (1o fan-out): MMRAEA (repo do autor, porte 3 linhas p/ o
             % 4.15 — L.7) no MESMO padrao do caso-modelo c217.
             [status, info] = run_c141(alg, problema_id, semente, exp, dataRoot);
+        case 'b1'
+            % R1-b1 (fan-out): ParEGO (built-in PlatEMO 4.15) no MESMO padrao
+            % do caso-modelo c217 (injecao DoE D94 :29-:30; guard L8; P4).
+            [status, info] = run_b1(alg, problema_id, semente, exp, dataRoot);
         case 'b3'
             % R1-b3 (fan-out): K-RVEA (built-in PlatEMO 4.15) no MESMO padrao
             % do caso-modelo c217 (receita N.0 do handoff R1-c217 §4).
@@ -536,6 +540,168 @@ end
 
 
 % ════════════════════════════════════════════════════════════════════════════
+%  RUN-b1 (ParEGO REAL, built-in PlatEMO 4.15) — fan-out da R1 no padrao do
+%  caso-modelo c217 (receita N.0 do handoff R1-c217 §4). O que e ESPECIFICO do
+%  b1: 'N',100 = nº de ESCALARIZACOES/vetores λ (D20; UniformPoint ajusta p/
+%  100 em M=2 / 91 em M=3), ParEGO sem 'parameter' (IFEs=10000 default do
+%  codigo = paper), os patches P1 (DoE D94 :29-:30 JUNTAS), P2 (guard L8
+%  sqrt(max(mse,0)) SO em ParEGO/EvolALG.m — o mesmo token em EGO/EvolEI.m
+%  fica INTOCADO, HANDOFF §11.1) e P4 (NaN-guard DEF-A8 na :39), e a
+%  instrumentacao b1_instrument (③ MONO-OUTPUT D47/C3 + S.7 + §17.6).
+%  Toolboxes: Statistics (normcdf/normpdf no EI do EvolALG).
+% ════════════════════════════════════════════════════════════════════════════
+
+function [status, info] = run_b1(alg, problema, semente, exp, dataRoot)
+    status = "failed";
+    info = struct();
+    ROOT = harness_root();
+
+    % Arvore PlatEMO 4.15 no path (N.0.1) — rede p/ chamada direta.
+    ensure_paths_b1(ROOT);
+
+    % (0) PONTE: repo-root no sys.path; importa src.* (A2/§2/§18).
+    ctx = bridge_ctx(ROOT);
+
+    % (1) Problema Python via ponte -> D, M, bounds NATIVOS (§5.5).
+    pp = py_problem(ctx, problema);
+    D = pp.D; M = pp.M; xl = pp.xl(:).'; xu = pp.xu(:).';
+    maxfe = 31*D - 1;  n_init = 11*D - 1;
+    % Nº de escalarizacoes/vetores λ (D20: paper usa 11/15 — DIVERGENCIA em
+    % CODIGO, registrada; N=100 default). UniformPoint e deterministico (L.0)
+    % — so p/ registrar o N_lambda EFETIVO (100 em M=2; NBI 91 em M=3).
+    [~, Nlam] = UniformPoint(100, M);
+
+    % (2) DoE 11D-1 do artefato (D63/D87) — CARREGADO, NUNCA regenerado.
+    doe = load_doe(problema, semente, D, dataRoot);
+    X0  = doe.X;                                   % n_init x D (float64, nativo)
+    assert(size(X0,1) == n_init, 'DoE tem %d linhas != 11D-1=%d', size(X0,1), n_init);
+    % CP-bounds (§5.5): bounds do problema == sidecar do DoE (identidade nativa).
+    assert(max(abs(xl(:)-doe.xl(:)))==0 && max(abs(xu(:)-doe.xu(:)))==0, ...
+           'CP-bounds: bounds do problema != sidecar do DoE');
+
+    % (3) .jsonl (§17.5) + wrapper de FE (FEBudget) com o logger acoplado.
+    jsonl  = nm_jsonl_path(exp, alg, problema, semente, dataRoot);
+    fid    = jsonl_open(jsonl);
+    logger = struct('guard', @(name, varargin) ...
+                    jsonl_line(fid, 'guard', [{'name'}, {name}, varargin]));
+    % bud CRIADO ANTES do Problem: o probe do construtor avalia DoE[0] (initFcn),
+    % que o lote-init reencontra como CACHE-HIT (0 FE, D89) -> a ① fecha com
+    % EXATAMENTE 31D-1 linhas, sem poluir o catalogo (receita N.0 do c217).
+    bud = FEBudget(D, maxfe, n_init, logger);
+    buf = RunBuffer();
+    jsonl_line(fid, 'header', {'alg', string(alg), 'problema', string(problema), ...
+        'semente', semente, 'D', D, 'M', M, 'regime', "online", 'maxfe', maxfe, ...
+        'doe_hash', string(doe.hash), 'algo', "b1-ParEGO-PlatEMO4.15", ...
+        'N_lambda', Nlam, 'IFEs', 10000, 'rho', 0.05, ...
+        'theta0', 10, 'theta_bounds', "[1e-5,20]", ...
+        'subset', "top-(11D-1+25) por PCheby + dedup 1e-6 (CODIGO)", ...
+        'sigma_dict', "mu_0/sigma_0=escalar PCheby predito (D47 mono-output, lossy); mu_1..=NULL; transf_params={lambda,min,max,gbest}/iter (C3)"});
+
+    % (4) evalFcn por-x (a ponte, bounds nativos) + embrulho de LOTE (D61) — o
+    %     c217_batch_eval e GENERICO (handoff R1-c217 §7): hard-stop no meio do lote.
+    evalFcnPerX = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    batchEval   = @(X, varargin) c217_batch_eval(X, bud, evalFcnPerX);
+
+    % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.
+    %     N=100 governa o nº de escalarizacoes (ParEGO.m:27 ajusta p/ Nlam).
+    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, ...
+                  'run_id', string(nm_run_id(exp, alg, problema, semente)), ...
+                  'problema', string(problema), 'semente', semente);
+    Problem = UserProblem('evalFcn', batchEval, 'initFcn', @(N,varargin) X0(1:N,:), ...
+        'D', D, 'lower', xl, 'upper', xu, 'maxFE', maxfe, ...
+        'N', 100, 'once', true, 'data', data);         % maxRuntime fica inf (N.0.5)
+
+    % (6) SEMENTE (D59): rng DEPOIS de construir o Problem, ANTES do Solve.
+    rng(semente, 'twister');
+
+    % (7) Algoritmo REAL: save=-K (sem .mat/figura — N.0.3/4), outputFcn=hook (②).
+    %     ParEGO sem 'parameter': ParameterSet(10000) = IFEs do paper.
+    K = 20;
+    algo = ParEGO('save', -K, ...
+        'outputFcn', @(A,P) hook_output(A, P, buf, bud, []));
+    term = "normal";
+    try
+        algo.Solve(Problem);                           % engole PlatEMO:Termination
+    catch e
+        if strcmp(e.identifier, 'PlatEMO:Termination')
+            term = "hard_stop";                        % nunca deveria vazar (Solve engole)
+        else
+            jsonl_line(fid, 'footer', {'status', "failed", 'erro', string(e.message), ...
+                'identifier', string(e.identifier), 'fe_final', bud.fe});
+            fclose(fid);
+            fprintf(2, '[R1-b1 FAILED] %s/%s/%d: %s (%s)\n', ...
+                    char(alg), char(problema), semente, e.message, e.identifier);
+            rethrow(e);                                % erro REAL -> falha honesta (D23)
+        end
+    end
+
+    % (8) EXPORT das 4 camadas (§17.2/§17.3): ① do wrapper; ②③/timing do buffer.
+    R = bud.records();                                 % catalogo ① (== 31D-1 linhas)
+    write_real(exp, alg, problema, semente, R, D, M, dataRoot);
+    write_pop(exp, alg, problema, semente, buf.pop, dataRoot);
+    write_surrogate(exp, alg, problema, semente, buf.srows, D, M, "online", dataRoot);
+    write_timing(exp, alg, problema, semente, buf.trows, dataRoot);
+
+    % (9) CP-init por-run (D87/D88): hash da init X (float64) = sidecar do DoE.
+    doe_hash_run = sha256_rowmajor_f64(bud.init_X());
+    cp_ok = strcmp(doe_hash_run, doe.hash);
+
+    % (10) Encanamento objetivo (D89/D21): FE final = 31D-1 EXATO E CP-init OK.
+    %      Falha honesta (D23/D81): gate reprovado -> manifesto/footer 'failed'.
+    ok_flag = (bud.fe == maxfe) && cp_ok;
+    st_str  = "ok"; if ~ok_flag, st_str = "failed"; end
+
+    % (11) MANIFESTO (§17.2/§17.7) + dicionario de sigma (DEF-C4/D47).
+    man = build_manifest(exp, alg, problema, semente, ...
+        maxfe, bud.fe, buf.nGeracoes(), doe_hash_run, bud.cache_hits, dataRoot);
+    man.algo_version = "b1-ParEGO-PlatEMO4.15";
+    man.status = st_str;
+    man.params = struct('N_lambda', Nlam, 'IFEs', 10000, 'rho', 0.05, ...
+        'dace', "regpoly1+corrgauss", 'theta0', 10, ...
+        'theta_bounds', "[1e-5,20]", 'warm_theta', true, ...
+        'mle', "boxmin SEM restarts (CODIGO; paper: Nelder-Mead 20 restarts)", ...
+        'subset', "top-(11D-1+25) por PCheby, deterministico + dedup 1e-6 (CODIGO; paper: 1/2 melhores + 1/2 aleatorias)", ...
+        'normalizacao', "min/max do arquivo por iteracao (B1.6 fechada: pelo ARQUIVO, nao por limites conhecidos)", ...
+        'ga_interno', "geracional c/ truncamento elitista, torneio bugado (EvolALG:16 — CODIGO K.3, mantido)");
+    man.sigma_dict = struct( ...
+        'mu_0', "escalar de Tchebycheff aumentado (rho=0.05) PREDITO pelo GP mono-output — LOSSY (D47): nao des-agrega em mu por objetivo; reais por-objetivo via real_solution_id -> ①", ...
+        'sigma_0', "sqrt(max(mse,0)) do GP mono-output do escalar (guard P2/L8) — regua muda por iteracao (o lambda muda); interpretar com transf_params", ...
+        'transf_params', "{lambda, min, max, gbest} da iteracao (C3/D47) — obrigatorios p/ interpretar mu_0/sigma_0");
+    write_manifest(man, exp, alg, problema, semente, dataRoot);
+
+    jsonl_line(fid, 'footer', {'status', st_str, 'fe_final', bud.fe, 'maxfe', maxfe, ...
+        'n_geracoes', buf.nGeracoes(), 'cache_hits', bud.cache_hits, ...
+        'cp_init', cp_ok, 'termino', string(term)});
+    fclose(fid);
+
+    % (12) Higiene de memoria da ponte (D86/N.0.8): solta o Problem pymoo do run.
+    try, py.gc.collect(); catch, end
+
+    info = struct('D', D, 'M', M, 'maxfe', maxfe, 'fe_final', bud.fe, ...
+        'n_init', n_init, 'N_lambda', Nlam, 'n_geracoes', buf.nGeracoes(), ...
+        'cache_hits', bud.cache_hits, 'termino', string(term), ...
+        'doe_hash_run', string(doe_hash_run), ...
+        'doe_hash_sidecar', string(doe.hash), 'cp_ok', cp_ok);
+    if ~ok_flag
+        fprintf(2, ['[R1-b1] FALHA HONESTA (D81): FE_final=%d (31D-1=%d) cp_init=%d ' ...
+                    '-> manifesto status=failed.\n'], bud.fe, maxfe, cp_ok);
+    end
+    status = st_str;
+end
+
+
+function ensure_paths_b1(ROOT)
+% addpath(genpath) da arvore PlatEMO 4.15 se o ParEGO nao estiver no path
+% (N.0.1). Rede p/ chamada direta de experiment() (o despachante ja faz por
+% worker). O ParEGO e built-in da arvore — nenhuma pasta externa.
+    if isempty(which('ParEGO')) || isempty(which('UserProblem')) || isempty(which('OperatorGA'))
+        pr = fullfile(ROOT, 'algorithms', '_PlatEMO', 'PlatEMO');
+        if isfolder(pr), addpath(genpath(pr)); end
+    end
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
 %  RUN-b3 (K-RVEA REAL, built-in PlatEMO 4.15) — fan-out da R1 no padrao do
 %  caso-modelo c217 (receita N.0 do handoff R1-c217 §4). O que e ESPECIFICO do
 %  b3: 'N',100 = nº de vetores de referencia (D20; UniformPoint ajusta p/
@@ -941,38 +1107,72 @@ end
 function p = write_surrogate(exp, alg, problema, semente, srows, D, M, regime, dataRoot)
     % ③ surrogate: schema unico C1/C3 (§17.2). Numericos ausentes => NaN (=NULL
     % no parquet MATLAB); strings ausentes => <missing> (=NULL).
+    %
+    % [R1-b1 · infra-perf] Montagem das colunas em UMA passada O(n) sobre srows
+    % (prealocado), no lugar dos builders arrayfun por coluna: a acumulacao de
+    % STRING arrays do arrayfun e O(n^2) e travou o export da ③ do b1/ZDT1
+    % (~750k linhas — 100% CPU em libmwstring_* por horas, verificado por
+    % sample). Semantica IDENTICA a dos helpers opt_obj/opt_scal/rsi_val
+    % (mesmos NaN/missing, mesma ordem de colunas, mesmos tipos, mesmo branch
+    % int32/double do rsi) — provada por re-run do MMF1 + comparacao pyarrow.
     n = numel(srows);
-    xcol = @(j) arrayfun(@(k) single(srows{k}.x(j+1)), (1:n).');
-    optnum = @(field, j) arrayfun(@(k) opt_obj(srows{k}.(field), j), (1:n).');
-    optscal = @(field) arrayfun(@(k) opt_scal(srows{k}.(field)), (1:n).');
-    strcol = @(field) arrayfun(@(k) srows{k}.(field), (1:n).');
+    GER = zeros(n, 1);
+    X   = zeros(n, D);
+    RSI = NaN(n, 1);
+    MU  = NaN(n, M);  SG = NaN(n, M);
+    PS  = NaN(n, 1);  PCONF = NaN(n, 1);
+    tipo   = repmat(string(missing), n, 1);
+    classe = repmat(string(missing), n, 1);
+    modelo = repmat(string(missing), n, 1);
+    espaco = repmat(string(missing), n, 1);
+    ttipo  = repmat(string(missing), n, 1);
+    tpar   = repmat(string(missing), n, 1);
+    for k = 1:n
+        r = srows{k};
+        GER(k)  = r.geracao;
+        X(k, :) = r.x;
+        if ~isempty(r.real_solution_id), RSI(k) = double(r.real_solution_id); end
+        v = r.mu;
+        if ~isempty(v), m = min(numel(v), M); MU(k, 1:m) = v(1:m); end
+        v = r.sigma;
+        if ~isempty(v), m = min(numel(v), M); SG(k, 1:m) = v(1:m); end
+        v = r.pred_score;
+        if ~(isempty(v) || (isnumeric(v) && isnan(v))), PS(k) = double(v); end
+        v = r.pred_confianca;
+        if ~(isempty(v) || (isnumeric(v) && isnan(v))), PCONF(k) = double(v); end
+        tipo(k)   = r.pred_tipo;
+        classe(k) = r.pred_classe;
+        modelo(k) = r.modelo_flag;
+        espaco(k) = r.espaco_modelo;
+        ttipo(k)  = r.transf_tipo;
+        tpar(k)   = r.transf_params;
+    end
 
     T = table();
     T.algoritmo = repmat(string(alg), n, 1);
     T.problema  = repmat(string(problema), n, 1);
     T.semente   = repmat(int32(semente), n, 1);
     T.regime    = repmat(string(regime), n, 1);
-    T.geracao   = int32(arrayfun(@(k) srows{k}.geracao, (1:n).'));
-    for j = 0:D-1, T.(sprintf('x%d', j)) = xcol(j); end
+    T.geracao   = int32(GER);
+    for j = 0:D-1, T.(sprintf('x%d', j)) = single(X(:, j+1)); end
     % real_solution_id: int32 quando TODOS presentes (casa com §17.2/int32); se
     % houver ausentes (candidato nao avaliado — caso do c217), cai p/ double+NaN
     % (a consolidacao re-casta p/ int32 nullable — MATLAB nao expressa int32-NULL).
-    rsi = arrayfun(@(k) rsi_val(srows{k}.real_solution_id), (1:n).');
-    if all(~isnan(rsi))
-        T.real_solution_id = int32(rsi);
+    if all(~isnan(RSI))
+        T.real_solution_id = int32(RSI);
     else
-        T.real_solution_id = rsi;    % double com NaN => NULL
+        T.real_solution_id = RSI;    % double com NaN => NULL
     end
-    for j = 0:M-1, T.(sprintf('mu_%d', j))    = optnum('mu', j);    end
-    for j = 0:M-1, T.(sprintf('sigma_%d', j)) = optnum('sigma', j); end
-    T.pred_tipo      = strcol('pred_tipo');
-    T.pred_classe    = strcol('pred_classe');
-    T.pred_score     = optscal('pred_score');
-    T.pred_confianca = optscal('pred_confianca');
-    T.modelo_flag    = strcol('modelo_flag');
-    T.espaco_modelo  = strcol('espaco_modelo');
-    T.transf_tipo    = strcol('transf_tipo');
-    T.transf_params  = strcol('transf_params');
+    for j = 0:M-1, T.(sprintf('mu_%d', j))    = single(MU(:, j+1)); end
+    for j = 0:M-1, T.(sprintf('sigma_%d', j)) = single(SG(:, j+1)); end
+    T.pred_tipo      = tipo;
+    T.pred_classe    = classe;
+    T.pred_score     = single(PS);
+    T.pred_confianca = single(PCONF);
+    T.modelo_flag    = modelo;
+    T.espaco_modelo  = espaco;
+    T.transf_tipo    = ttipo;
+    T.transf_params  = tpar;
     p = nm_layer_path(exp, alg, problema, semente, 'surrogate', dataRoot);
     atomic_parquet(p, T);
 end

@@ -79,9 +79,9 @@
    "repo": "PlatEMO",
    "file": "Multi-objective optimization/ParEGO/ParEGO.m",
    "line": 29,
-   "expect_before": "<gera LHS [0,1] :29 + re-escala :30>",
-   "expect_after": "<injetar X nativo direto na Evaluation; substituir :29-:30>",
-   "kind": "D94 (evita dupla-escala)"
+   "expect_before": "PopDec        = UniformPoint(N,Problem.D,'Latin');",
+   "expect_after": "Population    = Problem.Evaluation(Problem.data.X0);",
+   "kind": "D94 (evita dupla-escala; literais concretizados no R1-b1 — precedente Sessao 1/c141/b3)"
   },
   {
    "id": "e7-doe-D94",

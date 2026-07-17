@@ -3,7 +3,10 @@ function [net, Params] = trainmodel(tr_x, tr_y, Params)
     V=size(tr_x,2);M=size(tr_y,2);
     neuronN=40;N=size(tr_x,1);bias1=0.1;bias2=0;
     Params.neuronN=neuronN;
-    Params.dropP=[0.2,0.5];
+    % [R1-e7] dropout 0.1 do PAPER (fidelidade D30 - ARTIGO; codigo shipped
+    % usava [0.2,0.5] de Srivastava): entrada+oculta = 0.1, invertido, ATIVO
+    % na inferencia (mecanismo da incerteza EDN - altera o sigma que a tese mede).
+    Params.dropP=[0.1,0.1];
     Params.decay=1e-05;Params.learnR=0.01;
     batchsize=V;Params.batchsize=batchsize;
     run=80000;Params.round=run;

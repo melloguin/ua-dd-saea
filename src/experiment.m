@@ -56,6 +56,11 @@ function [status, info] = experiment(alg, problema_id, semente, exp, dataRoot)
             % R1-b4 (fan-out): CSEA (built-in PlatEMO 4.15) no MESMO padrao do
             % caso-modelo c217 (cap109 removido; cpu — N.2.4; Balde C).
             [status, info] = run_b4(alg, problema_id, semente, exp, dataRoot);
+        case 'e7'
+            % R1-e7 (fan-out): EDN-ARMOEA (built-in PlatEMO 4.15, N.2.1) no
+            % MESMO padrao do caso-modelo c217 (injecao DoE D94 :31-:32;
+            % dropout 0.1 D30; guard Estimate; guarda (c) D60 saldo congelado).
+            [status, info] = run_e7(alg, problema_id, semente, exp, dataRoot);
         otherwise
             % Algoritmos reais (b1,b3,b4,e7,c217,c141,e74,c238,e103,pisos):
             % o corpo PlatEMO (UserProblem + Solve) e o cartao R1-c217+.
@@ -1016,6 +1021,193 @@ function ensure_paths_b4(ROOT)
     if isempty(which('CSEA')) || isempty(which('UserProblem')) || isempty(which('OperatorGA'))
         pr = fullfile(ROOT, 'algorithms', '_PlatEMO', 'PlatEMO');
         if isfolder(pr), addpath(genpath(pr)); end
+    end
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
+%  RUN-e7 (EDN-ARMOEA REAL, built-in PlatEMO 4.15 — N.2.1) — fan-out da R1 no
+%  padrao do caso-modelo c217 (receita N.0 do handoff R1-c217 §4). O que e
+%  ESPECIFICO do e7: 'N',100 = pop interna do ARMOEA (D20; W=UniformPoint ->
+%  NW=100 em M=2 / NBI 91 em M=3 — denominador do Ratio; Problem.N NAO e
+%  reescrito pelo algoritmo), EDNARMOEA sem 'parameter' (delta=0.05/wmax=20/
+%  Ke=3 = defaults do codigo; 4 divergencias vs paper em CODIGO — B6.6), os
+%  patches P1 (DoE D94 :31-:32 JUNTAS), dropout 0.1 (D30 — ARTIGO) e guard
+%  sqrt(max(var,0)) no Estimate (na arvore), a guarda (c) do D60 (saldo
+%  congelado LOGADO — sem dedup de infill) e a instrumentacao e7_instrument
+%  (③ DEF-C2 por geracao interna + C3 translacao + S.7 + §17.6 + RAM D86).
+%  Toolboxes: Deep Learning (mapminmax; assert nativo do EDNARMOEA) +
+%  Statistics (kmeans/pdist2). Custo: ~8e4+8e3*ciclos passos SGD (B6.4 —
+%  medir no piloto, NUNCA reduzir orcamento).
+% ════════════════════════════════════════════════════════════════════════════
+
+function [status, info] = run_e7(alg, problema, semente, exp, dataRoot)
+    status = "failed";
+    info = struct();
+    ROOT = harness_root();
+
+    % Arvore PlatEMO 4.15 no path (N.0.1) — rede p/ chamada direta.
+    ensure_paths_e7(ROOT);
+
+    % (0) PONTE: repo-root no sys.path; importa src.* (A2/§2/§18).
+    ctx = bridge_ctx(ROOT);
+
+    % (1) Problema Python via ponte -> D, M, bounds NATIVOS (§5.5).
+    pp = py_problem(ctx, problema);
+    D = pp.D; M = pp.M; xl = pp.xl(:).'; xu = pp.xu(:).';
+    maxfe = 31*D - 1;  n_init = 11*D - 1;
+    % NW = nº de vetores de referencia do ARMOEA (denominador do Ratio):
+    % UniformPoint(100,M) -> 100 (M=2) / NBI 91 (M=3). Problem.N fica 100
+    % (popsize interna — o EDNARMOEA NAO reescreve Problem.N).
+    Wref = UniformPoint(100, M);
+    NW   = size(Wref, 1);
+
+    % (2) DoE 11D-1 do artefato (D63/D87) — CARREGADO, NUNCA regenerado.
+    doe = load_doe(problema, semente, D, dataRoot);
+    X0  = doe.X;                                   % n_init x D (float64, nativo)
+    assert(size(X0,1) == n_init, 'DoE tem %d linhas != 11D-1=%d', size(X0,1), n_init);
+    % CP-bounds (§5.5): bounds do problema == sidecar do DoE (identidade nativa).
+    assert(max(abs(xl(:)-doe.xl(:)))==0 && max(abs(xu(:)-doe.xu(:)))==0, ...
+           'CP-bounds: bounds do problema != sidecar do DoE');
+
+    % (3) .jsonl (§17.5) + wrapper de FE (FEBudget) com o logger acoplado.
+    jsonl  = nm_jsonl_path(exp, alg, problema, semente, dataRoot);
+    fid    = jsonl_open(jsonl);
+    logger = struct('guard', @(name, varargin) ...
+                    jsonl_line(fid, 'guard', [{'name'}, {name}, varargin]));
+    % bud CRIADO ANTES do Problem: o probe do construtor avalia DoE[0] (initFcn),
+    % que o lote-init reencontra como CACHE-HIT (0 FE, D89) -> a ① fecha com
+    % EXATAMENTE 31D-1 linhas, sem poluir o catalogo (receita N.0 do c217).
+    bud = FEBudget(D, maxfe, n_init, logger);
+    buf = RunBuffer();
+    jsonl_line(fid, 'header', {'alg', string(alg), 'problema', string(problema), ...
+        'semente', semente, 'D', D, 'M', M, 'regime', "online", 'maxfe', maxfe, ...
+        'doe_hash', string(doe.hash), 'algo', "e7-EDNARMOEA-PlatEMO4.15", ...
+        'N_pop', 100, 'NW', NW, 'delta', 0.05, 'wmax', 20, 'Ke', 3, 'T', 100, ...
+        'rede', "40/40 ReLU+tanh multi-M", 'dropP', "[0.1,0.1] (D30 ARTIGO)", ...
+        'treino', "SGD 8e4 init / 8e3 update, lr=0.01, batch=D", ...
+        'sigma_dict', "mu_j/sigma_j=media/desvio POPULACIONAL das T=100 passagens MC-dropout POR OBJETIVO, no ESPACO DO MODELO (cru no ciclo 1; transladado por ymin=min(A.objs) depois — C3 transf_params)"});
+
+    % (4) evalFcn por-x (a ponte, bounds nativos) + embrulho de LOTE (D61) — o
+    %     c217_batch_eval e GENERICO (handoff R1-c217 §7): hard-stop no meio do lote.
+    evalFcnPerX = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    batchEval   = @(X, varargin) c217_batch_eval(X, bud, evalFcnPerX);
+
+    % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.
+    %     N=100 governa a popsize interna E o UniformPoint dos vetores (D20).
+    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, ...
+                  'run_id', string(nm_run_id(exp, alg, problema, semente)), ...
+                  'problema', string(problema), 'semente', semente);
+    Problem = UserProblem('evalFcn', batchEval, 'initFcn', @(N,varargin) X0(1:N,:), ...
+        'D', D, 'lower', xl, 'upper', xu, 'maxFE', maxfe, ...
+        'N', 100, 'once', true, 'data', data);         % maxRuntime fica inf (N.0.5)
+
+    % (6) SEMENTE (D59): rng DEPOIS de construir o Problem, ANTES do Solve.
+    rng(semente, 'twister');
+
+    % (7) Algoritmo REAL: save=-K (sem .mat/figura — N.0.3/4), outputFcn=hook (②).
+    %     EDNARMOEA sem 'parameter': ParameterSet(0.05,20,3) = delta/wmax/Ke.
+    K = 20;
+    algo = EDNARMOEA('save', -K, ...
+        'outputFcn', @(A,P) hook_output(A, P, buf, bud, []));
+    term = "normal";
+    try
+        algo.Solve(Problem);                           % engole PlatEMO:Termination
+    catch e
+        if strcmp(e.identifier, 'PlatEMO:Termination')
+            term = "hard_stop";                        % nunca deveria vazar (Solve engole)
+        else
+            jsonl_line(fid, 'footer', {'status', "failed", 'erro', string(e.message), ...
+                'identifier', string(e.identifier), 'fe_final', bud.fe});
+            fclose(fid);
+            fprintf(2, '[R1-e7 FAILED] %s/%s/%d: %s (%s)\n', ...
+                    char(alg), char(problema), semente, e.message, e.identifier);
+            rethrow(e);                                % erro REAL -> falha honesta (D23)
+        end
+    end
+
+    % (8) EXPORT das 4 camadas (§17.2/§17.3): ① do wrapper; ②③/timing do buffer.
+    R = bud.records();                                 % catalogo ① (== 31D-1 linhas)
+    write_real(exp, alg, problema, semente, R, D, M, dataRoot);
+    write_pop(exp, alg, problema, semente, buf.pop, dataRoot);
+    write_surrogate(exp, alg, problema, semente, buf.srows, D, M, "online", dataRoot);
+    write_timing(exp, alg, problema, semente, buf.trows, dataRoot);
+
+    % (9) CP-init por-run (D87/D88): hash da init X (float64) = sidecar do DoE.
+    doe_hash_run = sha256_rowmajor_f64(bud.init_X());
+    cp_ok = strcmp(doe_hash_run, doe.hash);
+
+    % (10) Encanamento objetivo (D89/D21): FE final = 31D-1 EXATO E CP-init OK.
+    %      Falha honesta (D23/D81): gate reprovado -> manifesto/footer 'failed'.
+    ok_flag = (bud.fe == maxfe) && cp_ok;
+    st_str  = "ok"; if ~ok_flag, st_str = "failed"; end
+
+    % (11) MANIFESTO (§17.2/§17.7) + dicionario de sigma (DEF-C4/DEF-C3).
+    man = build_manifest(exp, alg, problema, semente, ...
+        maxfe, bud.fe, buf.nGeracoes(), doe_hash_run, bud.cache_hits, dataRoot);
+    man.algo_version = "e7-EDNARMOEA-PlatEMO4.15";
+    man.status = st_str;
+    man.params = struct('N_pop', 100, 'NW', NW, 'delta', 0.05, 'wmax', 20, ...
+        'Ke', 3, 'T', 100, 'rede', "40/40, ReLU+tanh, unica multi-M", ...
+        'dropP', "[0.1,0.1] entrada+oculta, invertido, ATIVO na inferencia (D30 ARTIGO; codigo shipped [0.2,0.5])", ...
+        'treino', "SGD puro 8e4 init/8e3 update, lr=0.01, wd=1e-5 so em W (hardcode), batch=D, sem momentum", ...
+        'init_pesos', "N(0,1/fan_in) Marsaglia (CODIGO; paper U[-0.5,0.5])", ...
+        'cap_treino', "11D-1 (recentes + max-angulo, SelectTrainData)", ...
+        'divergencias_codigo', "delta 0.05 (paper 0.08) · Ke 3 (paper 5) · N 100 (paper P=50, D20) · init pesos — B6.6; dropout CORRIGIDO p/ 0.1 (D30)", ...
+        'sem_dedup_infill', "duplicata = cache-hit 0 FE (D89), slot perdido; guarda (c) D60 saldo_congelado LOGA");
+    man.sigma_dict = struct( ...
+        'mu_j', "media das T=100 passagens MC-dropout por objetivo, no ESPACO DO MODELO: cru (ciclo 1) ou transladado por ymin=min(A.objs) do fim do ciclo anterior (SelectTrainData — C3); cru = mu + ymin (transf_params)", ...
+        'sigma_j', "desvio POPULACIONAL das T=100 passagens por objetivo (guard sqrt(max(var,0)) — Estimate.m); invariante a translacao", ...
+        'transf_params', "{ymin} da predicao do ciclo (C3) — obrigatorio p/ voltar mu ao cru; geracao_3 = CICLO (datada pelo retreino, precedente b3)");
+    write_manifest(man, exp, alg, problema, semente, dataRoot);
+
+    jsonl_line(fid, 'footer', {'status', st_str, 'fe_final', bud.fe, 'maxfe', maxfe, ...
+        'n_geracoes', buf.nGeracoes(), 'cache_hits', bud.cache_hits, ...
+        'cp_init', cp_ok, 'termino', string(term)});
+    fclose(fid);
+
+    % (12) Higiene de memoria da ponte (D86/N.0.8): solta o Problem pymoo do run.
+    try, py.gc.collect(); catch, end
+
+    info = struct('D', D, 'M', M, 'maxfe', maxfe, 'fe_final', bud.fe, ...
+        'n_init', n_init, 'NW', NW, 'n_geracoes', buf.nGeracoes(), ...
+        'cache_hits', bud.cache_hits, 'termino', string(term), ...
+        'doe_hash_run', string(doe_hash_run), ...
+        'doe_hash_sidecar', string(doe.hash), 'cp_ok', cp_ok);
+    if ~ok_flag
+        fprintf(2, ['[R1-e7] FALHA HONESTA (D81): FE_final=%d (31D-1=%d) cp_init=%d ' ...
+                    '-> manifesto status=failed.\n'], bud.fe, maxfe, cp_ok);
+    end
+    status = st_str;
+end
+
+
+function ensure_paths_e7(ROOT)
+% addpath(genpath) da arvore PlatEMO 4.15 se o EDN-ARMOEA nao estiver no path
+% (N.0.1). Rede p/ chamada direta de experiment() (o despachante ja faz por
+% worker). O EDN-ARMOEA e built-in da arvore (N.2.1) — nenhuma pasta externa.
+%
+% ⚠ PRECEDENCIA DE PATH (achado R1-e7; mesmo padrao do ensure_paths_c141/S.8):
+% o DRLOS-EMCMO (built-in FORA do estudo) vendoriza um Dropout/ BYTE-IDENTICO
+% ao do EDN-ARMOEA e vem ANTES no genpath (D<E) -> Estimate/trainmodel/
+% trainNet/testNet/updatemodel/dropout/iniA/MgaussRandom resolveriam p/ as
+% copias STOCK do DRLOS (chamadas de EDNARMOEA.m sao via PATH — Dropout/ nao e
+% same-folder) e os patches do e7 (dropout 0.1 D30, guard do Estimate) NUNCA
+% rodariam, silenciosamente. Prepend da pasta do e7 + asserts de which.
+    if isempty(which('EDNARMOEA')) || isempty(which('UserProblem')) || isempty(which('OperatorGA'))
+        pr = fullfile(ROOT, 'algorithms', '_PlatEMO', 'PlatEMO');
+        if isfolder(pr), addpath(genpath(pr)); end
+    end
+    e7dir = fullfile(ROOT, 'algorithms', '_PlatEMO', 'PlatEMO', 'Algorithms', ...
+                     'Multi-objective optimization', 'EDN-ARMOEA');
+    if ~contains(which('Estimate'), [filesep 'EDN-ARMOEA' filesep])
+        assert(isfolder(e7dir), 'e7: pasta do EDN-ARMOEA ausente: %s', e7dir);
+        addpath(genpath(e7dir));               % prepend -> precedencia do e7
+    end
+    for fn = ["Estimate","trainmodel","updatemodel","trainNet","testNet", ...
+              "dropout","iniA","MgaussRandom"]
+        assert(contains(which(char(fn)), [filesep 'EDN-ARMOEA' filesep]), ...
+               'e7: %s nao resolve p/ a copia do EDN-ARMOEA (precedencia de path)', char(fn));
     end
 end
 

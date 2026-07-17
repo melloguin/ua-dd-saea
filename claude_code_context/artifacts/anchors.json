@@ -88,9 +88,9 @@
    "repo": "PlatEMO",
    "file": "Multi-objective optimization/EDN-ARMOEA/EDNARMOEA.m",
    "line": 31,
-   "expect_before": "<gera LHS [0,1] :31 + re-escala :32>",
-   "expect_after": "<injetar X nativo direto; substituir :31-:32>",
-   "kind": "D94"
+   "expect_before": "P     = UniformPoint(NI,Problem.D,'Latin');",
+   "expect_after": "A     = Problem.Evaluation(Problem.data.X0);",
+   "kind": "D94 (evita dupla-escala; literais concretizados no R1-e7 — precedente Sessao 1/c141/b3/b1)"
   },
   {
    "id": "b4-cap109",

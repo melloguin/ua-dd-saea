@@ -44,6 +44,10 @@ function [status, info] = experiment(alg, problema_id, semente, exp, dataRoot)
             % R1-c141 (1o fan-out): MMRAEA (repo do autor, porte 3 linhas p/ o
             % 4.15 — L.7) no MESMO padrao do caso-modelo c217.
             [status, info] = run_c141(alg, problema_id, semente, exp, dataRoot);
+        case 'b3'
+            % R1-b3 (fan-out): K-RVEA (built-in PlatEMO 4.15) no MESMO padrao
+            % do caso-modelo c217 (receita N.0 do handoff R1-c217 §4).
+            [status, info] = run_b3(alg, problema_id, semente, exp, dataRoot);
         otherwise
             % Algoritmos reais (b1,b3,b4,e7,c217,c141,e74,c238,e103,pisos):
             % o corpo PlatEMO (UserProblem + Solve) e o cartao R1-c217+.
@@ -524,6 +528,170 @@ function ensure_paths_c141(ROOT)
            'c141: rbf_predict nao resolve p/ a copia do c141 (precedencia de path)');
     assert(contains(which('calFitness'), 'c141_MMRAEA'), ...
            'c141: calFitness nao resolve p/ a copia do c141 (precedencia de path)');
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
+%  RUN-b3 (K-RVEA REAL, built-in PlatEMO 4.15) — fan-out da R1 no padrao do
+%  caso-modelo c217 (receita N.0 do handoff R1-c217 §4). O que e ESPECIFICO do
+%  b3: 'N',100 = nº de vetores de referencia (D20; UniformPoint ajusta p/
+%  100 em M=2 / 91 em M=3 -> delta=0.05*N), KRVEA sem 'parameter' (alpha=2/
+%  wmax=20/mu=5 = defaults do codigo = paper), o check dedup-DoE (1o fit DACE
+%  sem dedup — L.2) e a instrumentacao b3_instrument (③ DEF-C2/B3.2 + S.7).
+% ════════════════════════════════════════════════════════════════════════════
+
+function [status, info] = run_b3(alg, problema, semente, exp, dataRoot)
+    status = "failed";
+    info = struct();
+    ROOT = harness_root();
+
+    % Arvore PlatEMO 4.15 no path (N.0.1) — rede p/ chamada direta.
+    ensure_paths_b3(ROOT);
+
+    % (0) PONTE: repo-root no sys.path; importa src.* (A2/§2/§18).
+    ctx = bridge_ctx(ROOT);
+
+    % (1) Problema Python via ponte -> D, M, bounds NATIVOS (§5.5).
+    pp = py_problem(ctx, problema);
+    D = pp.D; M = pp.M; xl = pp.xl(:).'; xu = pp.xu(:).';
+    maxfe = 31*D - 1;  n_init = 11*D - 1;
+    % Nº de vetores de referencia (D20: paper nao prescreve N p/ M=2 -> 100).
+    % UniformPoint e deterministico (L.0) — so p/ registrar N/delta EFETIVOS.
+    [~, Nref] = UniformPoint(100, M);
+    delta = 0.05 * Nref;
+
+    % (2) DoE 11D-1 do artefato (D63/D87) — CARREGADO, NUNCA regenerado.
+    doe = load_doe(problema, semente, D, dataRoot);
+    X0  = doe.X;                                   % n_init x D (float64, nativo)
+    assert(size(X0,1) == n_init, 'DoE tem %d linhas != 11D-1=%d', size(X0,1), n_init);
+    % CP-bounds (§5.5): bounds do problema == sidecar do DoE (identidade nativa).
+    assert(max(abs(xl(:)-doe.xl(:)))==0 && max(abs(xu(:)-doe.xu(:)))==0, ...
+           'CP-bounds: bounds do problema != sidecar do DoE');
+
+    % (3) .jsonl (§17.5) + wrapper de FE (FEBudget) com o logger acoplado.
+    jsonl  = nm_jsonl_path(exp, alg, problema, semente, dataRoot);
+    fid    = jsonl_open(jsonl);
+    logger = struct('guard', @(name, varargin) ...
+                    jsonl_line(fid, 'guard', [{'name'}, {name}, varargin]));
+
+    % Check dedup-DoE (L.2/S.7: "DoE injetado DEVE ser livre de duplicatas" —
+    % o 1o fit DACE roda SEM dedup; sites duplicados = falha dura, DEF-A8).
+    % Duplicata no artefato = violacao de pre-condicao -> guard + falha honesta.
+    if size(unique(X0, 'rows'), 1) ~= n_init
+        jsonl_line(fid, 'guard', {'name', "dedup_doe", 'motivo', ...
+            "DoE do artefato contem duplicatas — 1o fit DACE exigiria dedup (L.2)"});
+        fclose(fid);
+        error('b3:dedup_doe', 'DoE %s/%d contem duplicatas (L.2) — para-e-loga (D81)', ...
+              char(problema), semente);
+    end
+
+    % bud CRIADO ANTES do Problem: o probe do construtor avalia DoE[0] (initFcn),
+    % que o lote-init reencontra como CACHE-HIT (0 FE, D89) -> a ① fecha com
+    % EXATAMENTE 31D-1 linhas, sem poluir o catalogo (receita N.0 do c217).
+    bud = FEBudget(D, maxfe, n_init, logger);
+    buf = RunBuffer();
+    jsonl_line(fid, 'header', {'alg', string(alg), 'problema', string(problema), ...
+        'semente', semente, 'D', D, 'M', M, 'regime', "online", 'maxfe', maxfe, ...
+        'doe_hash', string(doe.hash), 'algo', "b3-KRVEA-PlatEMO4.15", ...
+        'N_vetores', Nref, 'alpha', 2, 'wmax', 20, 'mu', 5, 'delta', delta});
+
+    % (4) evalFcn por-x (a ponte, bounds nativos) + embrulho de LOTE (D61) — o
+    %     c217_batch_eval e GENERICO (handoff R1-c217 §7): hard-stop no meio do lote.
+    evalFcnPerX = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    batchEval   = @(X, varargin) c217_batch_eval(X, bud, evalFcnPerX);
+
+    % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.
+    %     N=100 governa o nº de vetores de referencia (KRVEA.m:30 ajusta p/ Nref).
+    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, ...
+                  'run_id', string(nm_run_id(exp, alg, problema, semente)), ...
+                  'problema', string(problema), 'semente', semente);
+    Problem = UserProblem('evalFcn', batchEval, 'initFcn', @(N,varargin) X0(1:N,:), ...
+        'D', D, 'lower', xl, 'upper', xu, 'maxFE', maxfe, ...
+        'N', 100, 'once', true, 'data', data);         % maxRuntime fica inf (N.0.5)
+
+    % (6) SEMENTE (D59): rng DEPOIS de construir o Problem, ANTES do Solve.
+    rng(semente, 'twister');
+
+    % (7) Algoritmo REAL: save=-K (sem .mat/figura — N.0.3/4), outputFcn=hook (②).
+    %     KRVEA sem 'parameter': ParameterSet(2,20,5) = alpha/wmax/mu do paper.
+    K = 20;
+    algo = KRVEA('save', -K, ...
+        'outputFcn', @(A,P) hook_output(A, P, buf, bud, []));
+    term = "normal";
+    try
+        algo.Solve(Problem);                           % engole PlatEMO:Termination
+    catch e
+        if strcmp(e.identifier, 'PlatEMO:Termination')
+            term = "hard_stop";                        % nunca deveria vazar (Solve engole)
+        else
+            jsonl_line(fid, 'footer', {'status', "failed", 'erro', string(e.message), ...
+                'identifier', string(e.identifier), 'fe_final', bud.fe});
+            fclose(fid);
+            fprintf(2, '[R1-b3 FAILED] %s/%s/%d: %s (%s)\n', ...
+                    char(alg), char(problema), semente, e.message, e.identifier);
+            rethrow(e);                                % erro REAL -> falha honesta (D23)
+        end
+    end
+
+    % (8) EXPORT das 4 camadas (§17.2/§17.3): ① do wrapper; ②③/timing do buffer.
+    R = bud.records();                                 % catalogo ① (== 31D-1 linhas)
+    write_real(exp, alg, problema, semente, R, D, M, dataRoot);
+    write_pop(exp, alg, problema, semente, buf.pop, dataRoot);
+    write_surrogate(exp, alg, problema, semente, buf.srows, D, M, "online", dataRoot);
+    write_timing(exp, alg, problema, semente, buf.trows, dataRoot);
+
+    % (9) CP-init por-run (D87/D88): hash da init X (float64) = sidecar do DoE.
+    doe_hash_run = sha256_rowmajor_f64(bud.init_X());
+    cp_ok = strcmp(doe_hash_run, doe.hash);
+
+    % (10) Encanamento objetivo (D89/D21): FE final = 31D-1 EXATO E CP-init OK.
+    %      Falha honesta (D23/D81): gate reprovado -> manifesto/footer 'failed'.
+    ok_flag = (bud.fe == maxfe) && cp_ok;
+    st_str  = "ok"; if ~ok_flag, st_str = "failed"; end
+
+    % (11) MANIFESTO (§17.2/§17.7) + dicionario de sigma (DEF-C4/B3.2).
+    man = build_manifest(exp, alg, problema, semente, ...
+        maxfe, bud.fe, buf.nGeracoes(), doe_hash_run, bud.cache_hits, dataRoot);
+    man.algo_version = "b3-KRVEA-PlatEMO4.15";
+    man.status = st_str;
+    man.params = struct('N_vetores', Nref, 'alpha', 2, 'wmax', 20, 'mu', 5, ...
+                        'delta', delta, 'dace', "regpoly1+corrgauss", ...
+                        'theta0', 5, 'theta_bounds', "[1e-5,100]", ...
+                        'warm_theta', true);
+    man.sigma_dict = struct( ...
+        'sigma_j', "sqrt(max(MSE_j,0)) por objetivo do DACE (B3.2 — unidade de export); o criterio INTERNO do switch usa a MEDIA das MSEs SEM raiz (codigo oficial)", ...
+        'geracao_3', "TODAS as linhas de um ciclo levam geracao=CICLO (datada pelo retreino, §17.1; join direto com a ②/D31); blocos por geracao interna do RVEA-surrogate em ORDEM de linha, contagens pop_por_w na linha b3_gen do .jsonl");
+    write_manifest(man, exp, alg, problema, semente, dataRoot);
+
+    jsonl_line(fid, 'footer', {'status', st_str, 'fe_final', bud.fe, 'maxfe', maxfe, ...
+        'n_geracoes', buf.nGeracoes(), 'cache_hits', bud.cache_hits, ...
+        'cp_init', cp_ok, 'termino', string(term)});
+    fclose(fid);
+
+    % (12) Higiene de memoria da ponte (D86/N.0.8): solta o Problem pymoo do run.
+    try, py.gc.collect(); catch, end
+
+    info = struct('D', D, 'M', M, 'maxfe', maxfe, 'fe_final', bud.fe, ...
+        'n_init', n_init, 'N_vetores', Nref, 'n_geracoes', buf.nGeracoes(), ...
+        'cache_hits', bud.cache_hits, 'termino', string(term), ...
+        'doe_hash_run', string(doe_hash_run), ...
+        'doe_hash_sidecar', string(doe.hash), 'cp_ok', cp_ok);
+    if ~ok_flag
+        fprintf(2, ['[R1-b3] FALHA HONESTA (D81): FE_final=%d (31D-1=%d) cp_init=%d ' ...
+                    '-> manifesto status=failed.\n'], bud.fe, maxfe, cp_ok);
+    end
+    status = st_str;
+end
+
+
+function ensure_paths_b3(ROOT)
+% addpath(genpath) da arvore PlatEMO 4.15 se o K-RVEA nao estiver no path
+% (N.0.1). Rede p/ chamada direta de experiment() (o despachante ja faz por
+% worker). O K-RVEA e built-in da arvore — nenhuma pasta externa.
+    if isempty(which('KRVEA')) || isempty(which('UserProblem')) || isempty(which('OperatorGA'))
+        pr = fullfile(ROOT, 'algorithms', '_PlatEMO', 'PlatEMO');
+        if isfolder(pr), addpath(genpath(pr)); end
+    end
 end
 
 

@@ -124,9 +124,9 @@
    "repo": "PlatEMO",
    "file": "Multi-objective optimization/K-RVEA/UpdataArchive.m",
    "line": 61,
-   "expect_before": "<sem filtro de zeros de Next>",
-   "expect_after": "<guard: filtrar Next==0 antes de indexar>",
-   "kind": "[IMPL] crash latente"
+   "expect_before": "A1 = [Total(Next),New];",
+   "expect_after": "A1 = [Total(Next(Next~=0)),New];",
+   "kind": "[IMPL] crash latente (literais concretizados no R1-b3 — precedente Sessao 1/c141)"
   },
   {
    "id": "c238-hypervolume-rm",

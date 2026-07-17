@@ -26,9 +26,12 @@ classdef CSEA < ALGORITHM
             [k,gmax] = Algorithm.ParameterSet(6,3000);
 
             %% Initalize the population by Latin hypercube sampling
-            N          = min(11*Problem.D-1,109);
-            PopDec     = UniformPoint(N,Problem.D,'Latin');
-            Population = Problem.Evaluation(repmat(Problem.upper-Problem.lower,N,1).*PopDec+repmat(Problem.lower,N,1));
+            % [R1-b4] init fiel ao paper: 11*Problem.D-1; % remover cap 109 (S.2#2)
+            % (o 109 era a regra congelada em d=10; p/ D>=10 o cap reduziria o DoE)
+            N          = 11*Problem.D-1;
+            % [R1-b4] injecao do DoE (D63/D87/D88): substitui o PAR gera+re-escala
+            % (classe D94 — X0 NATIVO direto; initFcn NAO alcanca o CSEA, L.3).
+            Population = Problem.Evaluation(Problem.data.X0);
             Arc        = Population;
             
             %% Initialize the network
@@ -44,7 +47,7 @@ classdef CSEA < ALGORITHM
             maxEpochs = 100;
             miniBatchSize = 32;
             options = trainingOptions('adam', ...
-                        'ExecutionEnvironment','auto', ...
+                        'ExecutionEnvironment','cpu', ...
                         'MaxEpochs',maxEpochs, ...
                         'MiniBatchSize',miniBatchSize, ...
                         'Shuffle','every-epoch', ...
@@ -55,12 +58,18 @@ classdef CSEA < ALGORITHM
             while Algorithm.NotTerminated(Arc)
                 % Select reference solutions and preprocess the data
                 Ref    = RefSelect(Population,k);
-                Input  = Population.decs;  
-                Output = GetOutput(Population.objs,Ref.objs); 
+                % [R1-b4] treino no ARQUIVO INTEIRO (ARTIGO — B4.6/D30): o cap
+                % nativo (= a Population de tamanho Problem.N) handicaparia o
+                % classificador; rotula-se e treina-se sobre TODO o Arc.
+                Input  = Arc.decs;
+                Output = GetOutput(Arc.objs,Ref.objs);
                 rr     = sum(Output)/length(Output);
                 tr     = min(rr,1-rr)*0.5;
                 [TrainIn,TrainOut,TestIn,TestOut] = DataProcess(Input,Output);
+                n_treino = size(Input,1);            % [R1-b4] §17.6: |Arc| no fit
+                t0_fit   = tic;                      % [R1-b4] §17.6
                 net = trainNetwork(TrainIn,TrainOut-0,layers,options);
+                tfit_s = toc(t0_fit);                % [R1-b4] §17.6
 
                 % Error rates calculation
                 TestPre = predict(net,TestIn);
@@ -69,10 +78,18 @@ classdef CSEA < ALGORITHM
                 p1 = sum(abs((TestOut(~IndexGood)-TestPre(~IndexGood))))/sum(~IndexGood);
 
                 % Surrogate-assisted selection and update the population
-                Next = SurrogateAssistedSelection(Problem,net,p0,p1,Ref,Population.decs,gmax,tr);
+                % [R1-b4] SAS com 2o output de instrumentacao (ramo/L/guard) —
+                % decisoes intactas (D97).
+                [Next,sasinfo] = SurrogateAssistedSelection(Problem,net,p0,p1,Ref,Population.decs,gmax,tr);
                 if ~isempty(Next)
                     Arc = [Arc,Problem.Evaluation(Next)];
                 end
+                % [R1-b4] sync D89 (herdado do c217, PCS:56): o obj.FE nativo NAO
+                % governa; re-sincroniza com o saldo DISTINTO do wrapper.
+                Problem.FE = Problem.data.bud.fe;
+                % [R1-b4] instrumentacao POS-decisao (D97): ③ + .jsonl + timing.
+                b4_instrument(Problem, Arc, Ref, Next, sasinfo, p0, p1, rr, tr, ...
+                              n_treino, tfit_s);
                 Population = RefSelect(Arc,Problem.N);
             end
         end

@@ -102,7 +102,7 @@ M3 fan-out MATLAB (9 cartões) ............... 🟡 EM CURSO — herda o fix D89
    Sessão B2: pisos ........................ ⬜
    Sessão C: e74 (solo; árvore 4.1, N.0-4.1) ⬜ (⚠ ALTO risco de sombra de path — árvore inteira duplicada; aplicar lição DRLOS)
    Sessão D: e103 (solo; offline, D93) ..... ⬜
-   Fidelidade em LOTE (dossiê da torre) .... ⬜ ao fim da onda
+   Fidelidade em LOTE ...................... 🟡 dossiê MATERIALIZADO em `DOSSIE_FIDELIDADE_R1.md` (esqueleto vivo, cresce por cartão; escopo ampliado pelo autor 2026-07-17: +auditoria 9→10 p/ todos, +disparo forçado de guardas, +smoke semente 42)
    (∥ possível: M4/R2-00 na VM — zero interferência)
    ✅ D6 doc-sync EXECUTADO (2026-07-17): SPEC n_empates→n_contradicoes (2 pontos) + carimbo Balde C no Anexo K b4 + bundles regenerados (diff auditado: SÓ os 3 esperados). BÔNUS: consertado bug do gen_bundles.py (OUT aninhado — regen in-place seguro agora; rmtree limitado às 6 pastas geradas).
 M4 R2-00-harness (BoTorch/VM) ............... ⬜ pode ir ∥ (na VM)

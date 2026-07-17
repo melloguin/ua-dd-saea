@@ -17,7 +17,7 @@
 | ID | Tarefa | depende-de | bundle | status |
 |---|---|---|---|---|
 | R1-00-harness | Infra transversal MATLAB: `experiments.m`, `src/experiment.m`, `src/hook_output.m` (contrato N.0) | F0-* | 10_rodada1_matlab/00_contrato | ✅ |
-| R1-b1 | ParEGO (injeção DoE D94 :29-30) | R1-00 | …/alg_b1_parego | ⬜ |
+| R1-b1 | ParEGO (injeção DoE D94 :29-30) | R1-00 | …/alg_b1_parego | ✅ |
 | R1-b3 | K-RVEA | R1-00 | …/alg_b3_krvea | ✅ |
 | R1-b4 | CSEA (cap 109; cpu) | R1-00 | …/alg_b4_csea | ✅ |
 | R1-e7 | EDN-ARMOEA (injeção DoE D94 :31-32) | R1-00 | …/alg_e7_ednarmoea | ⬜ |

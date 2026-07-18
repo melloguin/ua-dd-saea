@@ -467,6 +467,314 @@ def check_f0_03(exp="main", problema="MMF1", semente=0):
     return results
 
 
+# ── Checagem do cartão R2-00-harness (infra BoTorch — contrato N.1/§22.3) ───
+
+def _r2_00_gcs_smoke(exp, alg, problema, semente, data_root):
+    """SMOKE GCS REAL — o deferido do F0-03 (§17.7/§22.3): exercita o dual-write
+    contra o bucket DE VERDADE (ADC do Mac) e LIMPA os blobs de teste ao fim.
+
+      1. `gcs.mirror_run` sobe as 4 camadas + jsonl + manifesto do run stubpy.
+      2. Byte-identidade: sha256(blob baixado) == sha256(arquivo local), blob a
+         blob (a prova "local+bucket byte-idêntico" do piloto §22.3).
+      3. Sync de pendentes: deleta 1 blob e `gcs.sync_pending` o re-sobe.
+      4. DELETE de TODOS os blobs de teste (finally — nada de lixo no bucket;
+         o versionamento retém non-current por 7d, sem custo relevante).
+
+    Retorna (ok|None, msg). None = lib gcs ausente (skip — rode onde ela exista)."""
+    import hashlib
+    from src import gcs as _gcs
+    try:
+        from google.cloud import storage
+    except ImportError:
+        return None, "google-cloud-storage ausente neste env — smoke pulado"
+    client = storage.Client(project=_gcs.PROJECT)
+    bucket = client.bucket(_gcs.BUCKET)
+    plan = _gcs.plan_targets(exp, alg, problema, semente,
+                             enable_bucket=True, data_root=data_root)
+    # A lista de limpeza vem do PLANO (todos os blobs possíveis), não do
+    # progresso do loop — um mirror_run que estoura no MEIO já subiu blobs que
+    # nunca entrariam numa lista "do que eu conferi"; o finally cobre todos.
+    all_blobs = sorted({t["blob"] for t in plan.values() if t["blob"]})
+
+    def _cleanup_verified():
+        """Deleta todos os blobs do plano e VERIFICA pós-delete. Retorna a
+        lista de resíduos (vazia = limpeza comprovada)."""
+        for b in all_blobs:
+            try:
+                bucket.blob(b).delete()
+            except Exception:  # noqa: BLE001 — ausente é ok; verificação abaixo
+                pass
+        residuo = []
+        for b in all_blobs:
+            try:
+                if bucket.blob(b).exists():
+                    residuo.append(b)
+            except Exception:  # noqa: BLE001 — não conseguiu verificar ≠ limpo
+                residuo.append(b + " (não verificado)")
+        return residuo
+
+    done = False
+    try:
+        _gcs.mirror_run(exp, alg, problema, semente, data_root=data_root,
+                        prune_bucket_only=False, client=client)
+        n_checked = 0
+        for art, tgt in plan.items():
+            local, blob = tgt["local"], tgt["blob"]
+            if blob is None or not os.path.exists(local):
+                continue
+            with open(local, "rb") as fh:
+                h_local = hashlib.sha256(fh.read()).hexdigest()
+            h_blob = hashlib.sha256(
+                bucket.blob(blob).download_as_bytes()).hexdigest()
+            if h_local != h_blob:
+                return False, f"blob != local em '{art}' ({blob})"
+            n_checked += 1
+        if n_checked < 6:   # 4 camadas + jsonl + manifesto
+            return False, f"só {n_checked}/6 artefatos espelhados"
+        # sync de pendentes: derruba 1 blob e confere o re-upload idempotente.
+        probe = plan["timing"]["blob"]
+        bucket.blob(probe).delete()
+        r = _gcs.sync_pending([(exp, alg, problema, semente)],
+                              data_root=data_root, client=client)
+        if r["resent"] < 1 or not _gcs.blob_exists(probe, client=client):
+            return False, f"sync_pending não re-subiu o blob derrubado ({r})"
+        # limpeza VERIFICADA (a mensagem só afirma o que foi conferido).
+        residuo = _cleanup_verified()
+        done = True
+        if residuo:
+            return False, (f"checks OK mas limpeza INCOMPLETA — resíduo no "
+                           f"bucket: {residuo}")
+        return True, (f"{n_checked} blobs byte-idênticos (sha256) · "
+                      f"sync_pending re-subiu {r['resent']} · "
+                      f"{len(all_blobs)} blobs deletados (verificado "
+                      f"pós-delete)")
+    finally:
+        if not done:                     # backstop p/ falha/return antecipado
+            _cleanup_verified()
+
+
+def check_r2_00(exp="main", problema="MMF1", semente=0, gcs_smoke=False):
+    """Encanamento objetivo do cartão R2-00-harness (contrato N.1/§22.3 — infra
+    transversal BoTorch; SEM algoritmo, SEM fidelidade D97):
+
+      1. BoTorch OFICIAL == 0.18.1 (N.2.3; fork do device = 'Unknown' PROIBIDO).
+      2. STUB `stubpy` ponta-a-ponta VIA `experiment.run` (o wiring do despacho
+         lazy) num tempdir: DoE CARREGADO do artefato (D63) → 20D infills torch
+         → hard-stop natural (D61).
+      3. FE final = 31D−1 EXATO (D89) + cache-hit = 0 FE (por U repetida, por X
+         nativa e pós-esgotamento) + hard-stop.
+      4. 4 saídas presentes + schema §17.2 EXATO (D/M re-derivados do problema
+         canônico — anti-circular) + float32 (D53) + escrita atômica + run
+         pronto p/ o skip do despachante (D58).
+      5. CP-init por-run: manifest['doe_hash'] = sidecar do DoE (D87/D88).
+      6. Pinning D79/N.1.1 (threads=1, float64, CPU) registrado e em vigor.
+      7. RNG global salvo/restaurado em volta de pymoo.minimize (N.1.3).
+      8. Sementes L.10/D62/D91 = fórmula do seeds.json RE-DERIVADA independente
+         no gate (anti-tautologia; trunc 32b).
+      9. Adapter §5.5: −f (maximização) + Standardize de Y + [0,1]↔nativo.
+     10. jsonl §17.5.1 (header/decisions/guards D89/timing/footer) + manifesto
+         com env N.2.3/L.18 (botorch/scipy) e fit_series §17.6.
+     11. plan_targets bucket: dual-write planejado; stubpy NÃO é bucket-only.
+     12. (--gcs-smoke) o smoke GCS REAL deferido do F0-03, com limpeza.
+
+    Roda num tempdir (não polui `data/`); o DoE é pré-materializado ali pelo
+    GERADOR F0-02 (`doe.ensure_doe`) — o RUNNER só carrega (D63)."""
+    alg = "stubpy"
+    results = []
+    try:
+        import botorch
+        import torch  # noqa: F401
+        from src import experiment as _exp
+        from src import export as _export, gcs as _gcs, doe as _doe
+        from src import manifest as _man
+        from src import botorch_harness as _bh
+    except Exception as e:  # noqa: BLE001 — import-gate do stack R2
+        return [("import do stack R2 (botorch/torch/harness)",
+                 (False, f"{type(e).__name__}: {e}"))]
+
+    # (1) contrato N.1: BoTorch OFICIAL 0.18.1 (o fork tem __version__='Unknown').
+    v = botorch.__version__
+    results.append(("BoTorch OFICIAL == 0.18.1 (N.2.3 — fork 'Unknown' PROIBIDO)",
+                    (v == "0.18.1", f"botorch=={v}")))
+
+    with tempfile.TemporaryDirectory() as dr:
+        # DoE pré-materializado pelo GERADOR (F0-02); o runner só CARREGA (D63).
+        side = _doe.ensure_doe(problema, int(semente), data_root=dr)
+        pre_done = _export.run_done(exp, alg, problema, semente, data_root=dr)
+
+        # (2) o STUB ponta-a-ponta VIA experiment.run (prova o wiring).
+        try:
+            info = _exp.run(alg, problema, int(semente), exp=exp, data_root=dr)
+        except Exception as e:  # noqa: BLE001 — qualquer erro = VERMELHO
+            import traceback
+            return results + [("STUB stubpy ponta-a-ponta via experiment.run",
+                               (False, f"{type(e).__name__}: {e}\n"
+                                       f"{traceback.format_exc()}"))]
+        D, mfe = info["D"], info["maxfe"]
+        # Âncora INDEPENDENTE do runner: D/M vêm do problema canônico (A2) —
+        # um adapter com M errado não valida o próprio schema (anti-circular).
+        prob_ref = _exp._instantiate_problem(problema)
+        D_indep, M_indep = int(prob_ref.n_var), int(prob_ref.n_obj)
+        results.append(("wiring: experiment.run → _DISPATCH_LOADERS['stubpy'] "
+                        "+ D/M do runner = problema canônico",
+                        ("stubpy" in _exp.ALGORITHM_DISPATCH
+                         and D == D_indep and info["M"] == M_indep,
+                         f"dispatch cacheado={sorted(_exp.ALGORITHM_DISPATCH)}, "
+                         f"D={D}=={D_indep}, M={info['M']}=={M_indep}")))
+
+        # (3) FE exato + cache-hit (0 FE ×3) + hard-stop (D89/D21/D61).
+        results.append(("FE final = 31D−1 exato (D89)",
+                        check_fe(exp, alg, problema, semente, D, data_root=dr)))
+        ok_ch = (info["cache_hit_zero_fe_unit"]
+                 and info["cache_hit_zero_fe_native"]
+                 and info["cache_hit_post_exhaust"]
+                 and info["cache_hits"] >= 3
+                 and info["hard_stopped"] and info["fe_final"] == mfe)
+        results.append(("cache-hit = 0 FE (U repetida·X nativa·pós-esgot.) + "
+                        "hard-stop (D89/D21/D61)",
+                        (ok_ch, f"hits={info['cache_hits']} "
+                                f"unit={info['cache_hit_zero_fe_unit']} "
+                                f"nativa={info['cache_hit_zero_fe_native']} "
+                                f"pós={info['cache_hit_post_exhaust']} "
+                                f"hard_stop={info['hard_stopped']} "
+                                f"fe={info['fe_final']}=={mfe}")))
+
+        # (4) 4 saídas + schema §17.2 + atômico + skip (D53/D58).
+        results.append(("4 saídas presentes (§17.7)",
+                        check_outputs(exp, alg, problema, semente,
+                                      data_root=dr)))
+        results.append(("schema §17.2 (①②③+timing) + float32 (D53)",
+                        _check_export_schema(exp, alg, problema, semente,
+                                             D_indep, M_indep, dr)))
+        rundir = naming.run_dir(exp, alg, data_root=dr)
+        tmps = [f for f in os.listdir(rundir) if f.endswith(".tmp")]
+        post_done = _export.run_done(exp, alg, problema, semente, data_root=dr)
+        # (o SKIP em si é do despachante — aqui prova-se que o run fecha
+        # "pronto" no sentido D58, a pré-condição do skip.)
+        results.append(("escrita atômica (0 .tmp) + run pronto p/ o skip do "
+                        "despachante (D58)",
+                        ((not tmps and post_done and not pre_done),
+                         f"tmp={tmps}, run_done pre={pre_done} "
+                         f"post={post_done}")))
+
+        # (5) CP-init por-run: manifesto = sidecar do DoE (D87/D88).
+        man = _man.read_manifest(
+            naming.manifest_path(exp, alg, problema, semente, data_root=dr))
+        cp_ok = (man is not None and info["cp_init_ok"]
+                 and man.get("doe_hash") == side["doe_hash"]
+                 and man.get("fe_final") == mfe)
+        results.append(("CP-init por-run: manifest doe_hash = sidecar (D87/D88)",
+                        (cp_ok, f"manifest={str(man and man.get('doe_hash'))[:16]}… "
+                                f"sidecar={str(side['doe_hash'])[:16]}… "
+                                f"fe_final={man and man.get('fe_final')}")))
+
+        # (6) pinning D79/N.1.1: threads=1 + float64 + CPU + env vars.
+        pin = info["pinning"]
+        pin_ok = (pin.get("torch_num_threads") == 1
+                  and pin.get("default_dtype") == "torch.float64"
+                  and pin.get("device") == "cpu"
+                  and all(pin.get(vv) == "1" for vv in _bh.D79_THREAD_VARS))
+        results.append(("pinning D79/N.1.1 (threads=1 · float64 · CPU · env=1)",
+                        (pin_ok, f"{pin}")))
+
+        # (7) N.1.3 + (8) L.10/D62/D91 + (9) adapter §5.5.
+        results.append(("RNG global preservado em volta de pymoo.minimize "
+                        "(N.1.3)", (info["rng_guard_ok"],
+                                    f"rng_guard_ok={info['rng_guard_ok']}")))
+        # Âncora INDEPENDENTE: re-materializa a fórmula do seeds.json direto
+        # do numpy (não pelas funções do harness — anti-tautologia): uma
+        # inversão na tupla do harness reprovaria aqui.
+        import numpy as _np
+        want_seeds = [
+            int(_np.random.SeedSequence(
+                (int(semente), _bh.STUBPY_ALG_ID, k, 0))
+                .generate_state(1, dtype=_np.uint64)[0]) & 0xFFFFFFFF
+            for k in (1, 2, 3)]
+        results.append(("sementes por iteração = fórmula do seeds.json "
+                        "re-derivada independente (L.10/D62/D91, trunc 32b)",
+                        (info["seed_det_ok"]
+                         and list(info["seeds_used_head"]) == want_seeds,
+                         f"seeds[:3]={info['seeds_used_head']} == "
+                         f"re-derivadas={want_seeds}")))
+        results.append(("adapter §5.5: −f (maximização) + Standardize(Y) + "
+                        "[0,1]↔nativo",
+                        (info["sign_ok"] and info["standardize_ok"],
+                         f"sign_ok={info['sign_ok']} "
+                         f"standardize_ok={info['standardize_ok']}")))
+
+        # (10) jsonl §17.5.1 + manifesto env (N.2.3/L.18) + fit_series (§17.6).
+        # Parsing BLINDADO (jsonl malformado ⇒ FAIL com diagnóstico, não crash)
+        # + contagem de guards cache_hit (≥3: U repetida, X nativa, pós-esgot.)
+        # + cruzamento do cache_hits com o manifesto EM DISCO (anti-autorrelato).
+        jp = naming.jsonl_path(exp, alg, problema, semente, data_root=dr)
+        try:
+            with open(jp, encoding="utf-8") as fh:
+                recs = [json.loads(ln) for ln in fh]
+            kinds = [r.get("rec") for r in recs]
+            guards = {r.get("name") for r in recs if r.get("rec") == "guard"}
+            n_ch_guards = sum(1 for r in recs if r.get("rec") == "guard"
+                              and r.get("name") == "cache_hit")
+            footer = recs[-1] if recs else {}
+            jsonl_ok = (bool(recs) and kinds[0] == "header"
+                        and "decision" in kinds and "timing" in kinds
+                        and {"cache_hit", "hard_stop"} <= guards
+                        and n_ch_guards >= 3
+                        and footer.get("rec") == "footer"
+                        and footer.get("status") == "ok"
+                        and footer.get("fe_final") == mfe
+                        and footer.get("cp_init") is True
+                        and footer.get("cache_hits") == info["cache_hits"]
+                        and (man or {}).get("cache_hits") == info["cache_hits"])
+            jsonl_msg = (f"recs={len(recs)}, guards={sorted(guards)}, "
+                         f"cache_hit_guards={n_ch_guards}, "
+                         f"footer_status={footer.get('status')}, "
+                         f"cache_hits jsonl/manifesto/runner="
+                         f"{footer.get('cache_hits')}/"
+                         f"{(man or {}).get('cache_hits')}/{info['cache_hits']}")
+        except Exception as e:  # noqa: BLE001 — jsonl ilegível = FAIL, não crash
+            jsonl_ok = False
+            jsonl_msg = f"jsonl ilegível: {type(e).__name__}: {e}"
+        results.append(("jsonl §17.5.1: header·decisions·guards D89 (≥3 "
+                        "cache_hit)·timing·footer(ok, fe, cp_init)",
+                        (jsonl_ok, jsonl_msg)))
+        env_man = (man or {}).get("env", {})
+        env_ok = (env_man.get("botorch") == v
+                  and bool(env_man.get("scipy"))
+                  and bool(env_man.get("botorch_record_sha256"))
+                  and bool((man or {}).get("fit_series")))
+        results.append(("manifesto: env N.2.3/L.18 (botorch+hash, scipy) + "
+                        "fit_series §17.6",
+                        (env_ok, f"botorch={env_man.get('botorch')} "
+                                 f"scipy={env_man.get('scipy')} "
+                                 f"fit_series={len((man or {}).get('fit_series', []))} pts")))
+
+        # (11) plano de destinos bucket (PURO): dual-write; stubpy ≠ bucket-only.
+        plan_b = _gcs.plan_targets(exp, alg, problema, semente,
+                                   enable_bucket=True, data_root=dr)
+        plan_ok = (all(t["blob"] for t in plan_b.values())
+                   and not _gcs.is_bucket_only(alg)
+                   and not any(t["bucket_only"] for t in plan_b.values()))
+        results.append(("plan_targets bucket: dual-write completo; stubpy não "
+                        "é bucket-only (D58)",
+                        (plan_ok, f"{len(plan_b)} artefatos planejados")))
+
+        # (12) SMOKE GCS REAL (opt-in — o deferido do F0-03), com limpeza.
+        # Exceção (auth/rede) vira FAIL com o relatório dos demais checks
+        # preservado — nunca traceback cru; a limpeza best-effort do finally
+        # interno já rodou antes da exceção propagar.
+        if gcs_smoke:
+            try:
+                smoke = _r2_00_gcs_smoke(exp, alg, problema, semente, dr)
+            except Exception as e:  # noqa: BLE001 — rede/credencial: FAIL
+                smoke = (False, f"exceção no smoke: {type(e).__name__}: {e} "
+                                f"(limpeza best-effort executada no finally; "
+                                f"confira o prefixo experiments/main/stubpy/)")
+            results.append(("SMOKE GCS real: dual-write byte-idêntico + sync + "
+                            "delete verificado (§17.7/§22.3)", smoke))
+
+    return results
+
+
 # ── Checagem do cartão F0-04-metrica (esqueleto da métrica + âncora D92) ────
 
 #: Tolerância da âncora do smoke (D92). O HV discreto do front denso converge a
@@ -603,6 +911,9 @@ def main():
     ap.add_argument("--problema", default="ZDT1")
     ap.add_argument("--semente", default="0")
     ap.add_argument("--dim", type=int, default=30)
+    ap.add_argument("--gcs-smoke", action="store_true",
+                    help="[R2-00] roda também o smoke GCS REAL (rede; deleta "
+                         "os blobs de teste ao fim).")
     a = ap.parse_args()
 
     print(f"== Aceitação objetiva — cartão {a.cartao} "
@@ -654,6 +965,31 @@ def main():
               "(o autor refina/implementa — D100).")
         print("\n  >>> " + ("VERMELHO — pára-e-loga (D81)" if fail
                             else "VERDE (encanamento objetivo) — FECHA a Fase 0"))
+        print("  Lembrete (D97): a fidelidade é validação MANUAL do autor, "
+              "a posteriori — não entra aqui.")
+        sys.exit(1 if fail else 0)
+
+    # R2-00 = infra transversal BoTorch (contrato N.1/§22.3). Encanamento
+    # próprio: roda o STUB `stubpy` via experiment.run num tempdir e afere o
+    # contrato; --gcs-smoke liga o smoke REAL (deferido do F0-03), com limpeza.
+    if a.cartao.startswith("R2-00"):
+        if a.alg not in (None, "stubpy"):
+            print(f"  [FAIL] o STUB do R2-00 é 'stubpy' (nunca 'stub' — os "
+                  f"artefatos MATLAB do R1-00 usam esse token): --alg={a.alg!r}")
+            sys.exit(2)
+        results = check_r2_00(exp=a.exp, problema=a.problema,
+                              semente=int(a.semente), gcs_smoke=a.gcs_smoke)
+        fail = False
+        for name, (ok, msg) in results:
+            mark = "SKIP" if ok is None else ("OK  " if ok else "FAIL")
+            print(f"  [{mark}] {name}: {msg}")
+            if ok is False:
+                fail = True
+        print("  [INFO] STUB stubpy (sem algoritmo real): prova só o "
+              "ENCANAMENTO do contrato N.1 — c262/c154 são os cartões "
+              "seguintes. Sem --gcs-smoke o bucket não é tocado.")
+        print("\n  >>> " + ("VERMELHO — pára-e-loga (D81)" if fail
+                            else "VERDE (encanamento objetivo)"))
         print("  Lembrete (D97): a fidelidade é validação MANUAL do autor, "
               "a posteriori — não entra aqui.")
         sys.exit(1 if fail else 0)

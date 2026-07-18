@@ -5,8 +5,10 @@ cada repositório em `algorithms/` — **nada é reimplementado** (fidelidade §
 Este arquivo é o **esqueleto** montado na Fase 0 (cartão F0-01-harness): o
 catálogo de problemas (fonte única A2) e o contrato do adapter existem; o
 **despacho por algoritmo é preenchido nas rodadas** R1 (MATLAB via ponte),
-R2 (BoTorch) e R3 (standalone). Por isso `ALGORITHM_DISPATCH` está **vazio** e
-`run(...)` levanta `NotImplementedError` — é infraestrutura, sem algoritmo.
+R2 (BoTorch) e R3 (standalone). [R2-00-harness] O despacho é um registro
+**LAZY** (`_DISPATCH_LOADERS`): `ALGORITHM_DISPATCH` fica vazio no import (o
+módulo segue leve) e `run()` resolve/importa o runner da rodada sob demanda;
+algoritmo sem loader levanta `NotImplementedError`.
 
 > **Descomissionado (§16.5).** A POC antiga (7 algoritmos reimplementados em
 > `src/*_runner.py` + `NoisyProblem`/Kriging + toggle de ruído) **não entra no
@@ -107,27 +109,59 @@ def _instantiate_problem(short_name: str):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  Despacho por algoritmo — VAZIO na Fase 0 (preenchido em R1/R2/R3).
-#  Estrutura pretendida (por id): {'stack': 'botorch'|'standalone'|..., 'main': <callable>}.
+#  Despacho por algoritmo — registro LAZY, preenchido pelas rodadas.
+#  Estrutura (por id): {'stack': 'botorch'|'standalone'|..., 'main': <callable>}.
 #  A lista canônica de configs Python está em experiments.py::DEFAULT_ALGORITHMS.
+#
+#  [R2-00-harness] O registro é LAZY por design: `ALGORITHM_DISPATCH` fica
+#  VAZIO no import (o módulo continua leve — importável no `python3` base, e o
+#  andaime F0-01 segue verificável) e é populado por `_resolve_dispatch` na
+#  PRIMEIRA chamada de `run()` para o algoritmo — só então o módulo pesado da
+#  rodada (torch/botorch) é importado. Cada cartão de rodada adiciona a sua
+#  linha em `_DISPATCH_LOADERS` (c262/c154 no R2; R3 idem).
 # ═══════════════════════════════════════════════════════════════════════════
 
 ALGORITHM_DISPATCH: dict[str, dict] = {}
+
+#: `alg → (módulo, callable, stack)` — resolvido/importado sob demanda.
+#: Assinatura padrão do runner: `runner(exp, alg, problema_id, semente, **kw)`.
+_DISPATCH_LOADERS: dict[str, tuple[str, str, str]] = {
+    # stubpy = run-STUB transversal do R2-00 (prova de encanamento do contrato
+    # N.1; NÃO é config do estudo — o token `stub` é o STUB MATLAB do R1-00).
+    'stubpy': ('src.botorch_harness', 'run_stubpy', 'botorch'),
+}
+
+
+def _resolve_dispatch(algoritmo: str) -> dict | None:
+    """Resolve (e cacheia em `ALGORITHM_DISPATCH`) a entrada de despacho do
+    algoritmo, importando o módulo da rodada só agora (import pesado — lazy)."""
+    entry = ALGORITHM_DISPATCH.get(algoritmo)
+    if entry is None and algoritmo in _DISPATCH_LOADERS:
+        import importlib
+        mod_name, fn_name, stack = _DISPATCH_LOADERS[algoritmo]
+        mod = importlib.import_module(mod_name)
+        entry = {'stack': stack, 'main': getattr(mod, fn_name)}
+        ALGORITHM_DISPATCH[algoritmo] = entry
+    return entry
 
 
 def run(algoritmo: str, problema_id: str, semente: int, *,
         exp: str = "main", **kwargs):
     """Ponto de entrada lógico do adapter: `run(alg, problema_id, semente)`.
 
-    **Não implementado na Fase 0** — o corpo por algoritmo entra nas rodadas
-    (R1 MATLAB, R2 BoTorch, R3 standalone), seguindo o contrato de 6 passos do
-    cabeçalho deste módulo. Levantar `NotImplementedError` aqui é o
-    comportamento correto do andaime: F0-01 não roda algoritmo nenhum.
+    [R2-00-harness] Corpo real: resolve o despacho (lazy) e chama o runner da
+    rodada com a assinatura padrão `runner(exp, alg, problema_id, semente,
+    **kwargs)` — `kwargs` repassa `data_root`/`enable_bucket` etc. Erros do
+    runner PROPAGAM (o despachante `experiments.py` aplica o retry D23; o
+    `BudgetExhausted` nunca chega aqui — o runner o captura no ponto único de
+    avaliação, D61). Algoritmo sem loader ⇒ `NotImplementedError` (cartões
+    futuros preenchem `_DISPATCH_LOADERS`).
     """
-    if algoritmo not in ALGORITHM_DISPATCH:
+    entry = _resolve_dispatch(algoritmo)
+    if entry is None:
         raise NotImplementedError(
             f"Adapter do algoritmo {algoritmo!r} ainda não implementado "
-            f"(Fase 0 = andaime; despacho preenchido em R1/R2/R3). "
-            f"Problema={problema_id!r}, semente={semente}, exp={exp!r}.")
-    # (Corpo real do despacho — rodadas.)
-    raise NotImplementedError("ALGORITHM_DISPATCH populado mas run() não ligado.")
+            f"(despacho preenchido pelos cartões R1/R2/R3 em "
+            f"_DISPATCH_LOADERS). Problema={problema_id!r}, "
+            f"semente={semente}, exp={exp!r}.")
+    return entry['main'](exp, algoritmo, problema_id, semente, **kwargs)

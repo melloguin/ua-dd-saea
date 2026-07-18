@@ -116,8 +116,9 @@
    "file": "CLMEA_Code/Algorithms/Multi-objective optimization/CLMEA/ClassifierSelect.m",
    "line": 9,
    "expect_before": "[y_label,~] = NDSort(Parent,inf);",
-   "expect_after": "<NDSort sobre objetivos preditos>",
-   "kind": "fidelidade-🔴"
+   "expect_after": "[y_label,~] = NDSort(y_obj_e74,inf);",
+   "kind": "fidelidade-🔴",
+   "nota": "[R1-e74] Concretizacao da ancora descritiva: NDSort sobre os OBJETIVOS reais dos pais (y_obj_e74 = 3o output read-only do Data_Process, alinhado linha-a-linha a x_train) — nos pontos do arquivo 'preditos' ≡ reais (newrbe e interpolador exato). Re-sim do PNN rejeitado: nivel-1 poderia sair VAZIO (crash novo no randi) e o stock recomputa por ND-sort, nao por PNN. SINALIZADA p/ veto do autor (precedente c238-hypervolume-rm)."
   },
   {
    "id": "b3-updataarchive-guard",

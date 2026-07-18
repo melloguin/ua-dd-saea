@@ -67,6 +67,14 @@ function [status, info] = experiment(alg, problema_id, semente, exp, dataRoot)
             % no MESMO padrao do caso-modelo c217 (DoE injetado D63/D87;
             % FEBudget/ponte D89/D61; ancora c238-hypervolume-rm aplicada).
             [status, info] = run_c238(alg, problema_id, semente, exp, dataRoot);
+        case 'e74'
+            % R1-e74 (fan-out): CLMEA (repo do autor = arvore PlatEMO 4.1
+            % PROPRIA e completa — D95/N.0-4.1). NAO roda na 4.15: worker de
+            % path DEDICADO (rmpath 4.15 -> addpath CLMEA_Code -> restaura no
+            % onCleanup); ponte POR INDIVIDUO (UserProblem 4.1 nao tem 'once');
+            % patches 🔴 e74-mask/e74-ndsort-obj + mins L.8 + D74 aplicados na
+            % propria arvore.
+            [status, info] = run_e74(alg, problema_id, semente, exp, dataRoot);
         case {'nsga2', 'nsga3', 'moead', 'smsemoa'}
             % R1-pisos: os 4 PISOS ONLINE (NSGA-II, NSGA-III, MOEA/D type=1,
             % SMS-EMOA puro) — MOEAs STOCK do PlatEMO 4.15, SEM surrogate, que
@@ -1430,6 +1438,231 @@ function rmpath_quiet(d)
     w = warning('off', 'MATLAB:rmpath:DirNotFound');
     try, rmpath(d); catch, end
     warning(w);
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
+%  RUN-e74 (CLMEA — arvore PlatEMO 4.1 PROPRIA, D95/N.0-4.1). O UNICO da R1 que
+%  NAO roda na 4.15: a CLMEA_Code e um PlatEMO 4.1 COMPLETO (518 basenames
+%  colidem com a 4.15, incluindo as CLASSES do nucleo ALGORITHM/PROBLEM/
+%  SOLUTION/UserProblem) -> worker de PATH DEDICADO (ensure_paths_e74: rmpath
+%  4.15 -> addpath genpath(CLMEA_Code) -> asserts which -> RESTAURACAO TOTAL
+%  no onCleanup). Diferencas do contrato N.0-4.1 vs a receita N.0:
+%   - UserProblem 4.1 NAO aceita 'once' (parser filtra em silencio): a ponte
+%     avalia POR INDIVIDUO (e74_eval_one, 1xD por chamada; FE/hard-stop por
+%     chamada no FEBudget — D89/D61 valem IGUAL).
+%   - ALGORITHM 4.1 nao aceita 'run'/'metName' (so parameter/save/outputFcn).
+%   - pro.FE=0 no Solve (ALGORITHM.m:74); FE+=n em UserProblem.m:84; o probe do
+%     construtor (Initialization(1) -> initFcn=DoE[0]) e absorvido como
+%     cache-hit no init em lote — receita N.0 do c217 intacta.
+%  O que segue identico ao padrao run_c238: ponte, load_doe, FEBudget ANTES do
+%  Problem, rng DEPOIS, save=-K + hook_output, try/catch PlatEMO:Termination,
+%  export 4 camadas, CP-init, falha honesta.
+% ════════════════════════════════════════════════════════════════════════════
+
+function [status, info] = run_e74(alg, problema, semente, exp, dataRoot)
+    status = "failed";
+    info = struct();
+    ROOT = harness_root();
+
+    % (0) ISOLAMENTO DE PATH (o risco nº1 do cartao): troca 4.15 -> 4.1 e arma a
+    % restauracao TOTAL (run normal OU erro). O smoke `which -all` vai no header.
+    [smoke, pathGuard] = ensure_paths_e74(ROOT); %#ok<ASGLU> % guard vive ate o fim do run
+
+    % (1) PONTE + problema Python (bounds NATIVOS, minimiza — §5.5).
+    ctx = bridge_ctx(ROOT);
+    pp = py_problem(ctx, problema);
+    D = pp.D; M = pp.M; xl = pp.xl(:).'; xu = pp.xu(:).';
+    maxfe = 31*D - 1;  n_init = 11*D - 1;
+
+    % (2) DoE 11D-1 do artefato (D63/D87) — CARREGADO, NUNCA regenerado.
+    doe = load_doe(problema, semente, D, dataRoot);
+    X0  = doe.X;
+    assert(size(X0,1) == n_init, 'DoE tem %d linhas != 11D-1=%d', size(X0,1), n_init);
+    assert(max(abs(xl(:)-doe.xl(:)))==0 && max(abs(xu(:)-doe.xu(:)))==0, ...
+           'CP-bounds: bounds do problema != sidecar do DoE');
+
+    % (3) .jsonl (§17.5) + wrapper de FE. bud ANTES do Problem (probe absorvido).
+    jsonl  = nm_jsonl_path(exp, alg, problema, semente, dataRoot);
+    fid    = jsonl_open(jsonl);
+    logger = struct('guard', @(name, varargin) ...
+                    jsonl_line(fid, 'guard', [{'name'}, {name}, varargin]));
+    bud = FEBudget(D, maxfe, n_init, logger);
+    buf = RunBuffer();
+    jsonl_line(fid, 'header', {'alg', string(alg), 'problema', string(problema), ...
+        'semente', semente, 'D', D, 'M', M, 'regime', "online", 'maxfe', maxfe, ...
+        'doe_hash', string(doe.hash), 'algo', "e74-CLMEA-arvore-4.1-propria (D95/N.0-4.1)", ...
+        'ponte', "POR INDIVIDUO (UserProblem 4.1 sem 'once' — N.0-4.1#1)", ...
+        'params_balde_B', "num_infill=1, epsilon=1e-5, Gen_max1=200, Gen_max2=50, k_local=min(20,|Arc|) [defaults ParameterSet; sem 'parameter']", ...
+        'N_estrategias', "min(100,|Arc|) p/ D<100 (L.8/D20; stock N=100/200)", ...
+        'init', "11D-1 do artefato (desvio DELIBERADO do paper 100/200 — registrado)", ...
+        'patches', "e74-mask (Local_infill:47 🔴) + e74-ndsort-obj (ClassifierSelect:9 🔴 — NDSort sobre OBJETIVOS reais dos pais via Data_Process) + mins L.8 (CLMEA:56/:66/:76) + D74 (CalHV normalizado, Hv_Select) + syncs D89; fix opcional re-sim do PNN NAO aplicado (telemetria n_desalinhado)", ...
+        'd74', "CalHV interno: min-max do front-1 do arquivo corrente + ref 1,1 por coordenada (CalHV.m INTOCADO)", ...
+        'divergencias_stock', "CR=1.0 no OperatorDE do Hv_Select:14 (nao-uniforme vs {0.5,0.5,1,20} das demais); DataProcess declara nome != arquivo Data_Process.m (funciona); breaks :62/:72/:82 mortos (NotTerminated lanca, nunca devolve false)", ...
+        'sigma_dict', "sigma_0 POR ESTRATEGIA: s1=dist_dec (DECISAO) | s2=HV_gain (CalHV D74 - hv_base; so pseudo-front) | s3=Eucli (OBJETIVOS); mu=μ_RBF (s2 global/s3 local/boot obj-i); pred_classe=nivel_k do PNN (s1)", ...
+        'which_smoke', jsonencode(smoke)});
+
+    % (4) evalFcn POR INDIVIDUO (N.0-4.1): [dec,obj,con] por chamada 1xD, sob o
+    % FEBudget (cache-hit=0 FE D89; hard-stop D61 propaga pelo CallFcn/addCause).
+    evalFcnPerX = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, ...
+                  'logger', logger, ...
+                  'run_id', string(nm_run_id(exp, alg, problema, semente)), ...
+                  'problema', string(problema), 'semente', semente);
+    % SEM 'once' (o parser 4.1 o ignoraria em silencio) e SEM 'N' (o CLMEA usa o
+    % proprio N=100/200 interno; o Problem.N default nao e consumido).
+    Problem = UserProblem('evalFcn', @(x, varargin) e74_eval_one(x, bud, evalFcnPerX), ...
+        'initFcn', @(N, varargin) X0(1:N,:), ...
+        'D', D, 'lower', xl, 'upper', xu, 'maxFE', maxfe, ...
+        'data', data);                                 % maxRuntime fica inf (N.0.5)
+
+    % (5) SEMENTE (D59): rng DEPOIS de construir o Problem, ANTES do Solve.
+    rng(semente, 'twister');
+
+    % (6) CLMEA da arvore 4.1: save=-K + hook (②); sem 'parameter' (defaults =
+    % Balde B). Termino normal E hard-stop = PlatEMO:Termination engolida.
+    K = 20;
+    algo = CLMEA('save', -K, ...
+        'outputFcn', @(A,P) hook_output(A, P, buf, bud, []));
+    term = "normal";
+    try
+        algo.Solve(Problem);
+    catch e
+        if strcmp(e.identifier, 'PlatEMO:Termination')
+            term = "hard_stop";                        % nunca deveria vazar (Solve engole)
+        else
+            jsonl_line(fid, 'footer', {'status', "failed", 'erro', string(e.message), ...
+                'identifier', string(e.identifier), 'fe_final', bud.fe});
+            fclose(fid);
+            fprintf(2, '[R1-e74 FAILED] %s/%s/%d: %s (%s)\n', ...
+                    char(alg), char(problema), semente, e.message, e.identifier);
+            rethrow(e);                                % erro REAL -> falha honesta (D23)
+        end
+    end
+
+    % (7) EXPORT das 4 camadas (§17.2/§17.3).
+    R = bud.records();
+    write_real(exp, alg, problema, semente, R, D, M, dataRoot);
+    write_pop(exp, alg, problema, semente, buf.pop, dataRoot);
+    write_surrogate(exp, alg, problema, semente, buf.srows, D, M, "online", dataRoot);
+    write_timing(exp, alg, problema, semente, buf.trows, dataRoot);
+
+    % (8) CP-init (D87/D88) + encanamento objetivo (D89/D21) + falha honesta.
+    doe_hash_run = sha256_rowmajor_f64(bud.init_X());
+    cp_ok = strcmp(doe_hash_run, doe.hash);
+    ok_flag = (bud.fe == maxfe) && cp_ok;
+    st_str  = "ok"; if ~ok_flag, st_str = "failed"; end
+
+    % (9) MANIFESTO (§17.2/§17.7) + dicionarios DEF-C4.
+    man = build_manifest(exp, alg, problema, semente, ...
+        maxfe, bud.fe, buf.nGeracoes(), doe_hash_run, bud.cache_hits, dataRoot);
+    man.algo_version = "e74-CLMEA-arvore-4.1-propria";
+    man.status = st_str;
+    man.params = struct( ...
+        'arvore', "PlatEMO 4.1 propria (CLMEA_Code) — D95/N.0-4.1; worker de path dedicado (rmpath 4.15 -> addpath 4.1 -> restauracao total no onCleanup); ponte POR INDIVIDUO (sem 'once')", ...
+        'parameter_set', "defaults do codigo: num_infill=1, epsilon=1e-5 (dedup, rejeita SEM FE — slot perdido), Gen_max1=200, Gen_max2=50, k_local=20 -> min(20,|Arc|) [L.8]", ...
+        'N_estrategias', "stock 100 (D<100) / 200 (D>=100); nas 3 chamadas entra min(N,|Arc|) [L.8/D20 anti-crash D-baixo]", ...
+        'init_maxfe', "global-override: DoE 11D-1 do artefato (desvio DELIBERADO do paper, init nativo 100/200) / 31D-1 hard-stop do wrapper", ...
+        'bootstrap_extremos', "M FEs reais NO MAXIMO (extremos ACEITOS no dedup eps — e o metodo, Alg. 1; DE 100% no surrogate: NP=100+floor(D/10), F=CR=0.5, 20D gers, early-stop 50)", ...
+        'spreads', "PNN spr=max(pdist2(X,X))/sqrt(2n); newrbe spr=dmax/(D*n)^(1/D) (interp exata, rede M-dim unica); classes PNN por camadas ND com quotas 10/30/40/20% (Data_Process)", ...
+        'operador', "OperatorDE {0.5,0.5,1,20} (s1/s3/bootstrap); ⚠ s2/Hv_Select:14 usa {1,0.5,1,20} = CR=1.0 (nao-uniforme — CODIGO, registrado)", ...
+        'd74_calhv', "CalHV interno NORMALIZADO: min-max do front-1 do arquivo corrente (Ymin/Ymax = ideal/nadir estimados, leitura D69) + ref 1,1 por coordenada; CalHV.m INTOCADO; range<=0 (front degenerado) NAO consertado — guard hv_range0", ...
+        'patches_fidelidade', "🔴 e74-mask: Local_infill:47 -> x_offspring(index(Choose),:) [D76/ARTIGO]; 🔴 e74-ndsort-obj: ClassifierSelect:9 -> NDSort sobre os OBJETIVOS reais dos pais (y_obj_e74 do Data_Process, alinhado linha-a-linha) [D30/ARTIGO]", ...
+        'fix_opcional_nao_aplicado', "desalinhamento mascara(Offspring)x linhas(Parent) no rank-learning (re-sim do PNN) — OPCIONAL no bundle, NAO aplicado (D81); telemetria n_desalinhado/flag_copia no .jsonl", ...
+        'hazards_stock_registrados', "breaks :62/:72/:82 mortos (NotTerminated lanca PlatEMO:Termination, nunca devolve false — termino mid-ciclo via excecao); DataProcess declara nome != arquivo (resolucao por nome de arquivo); loop do rank-learning sem guarda alem de count>50; RefPoint/front degenerado = edge fora do paper (so logado)", ...
+        'dlt', "Deep Learning Toolbox OBRIGATORIA (newrbe/newpnn/ind2vec/vec2ind/sim) + Statistics (pdist2)");
+    man.sigma_dict = struct( ...
+        'sigma_0', "pseudo-σ POR ESTRATEGIA (B16.4/DEF-C4; o e74 nao tem σ de modelo — RBF interp exata + PNN classe): s1 = dist_dec (dist minima em DECISAO ao arquivo — o criterio de selecao do rank-learning); s2 = HV_gain (score CalHV D74-normalizado do membro do pseudo-front MENOS hv_base do arquivo; NaN fora do front); s3 = Eucli/dist_obj (dist minima em OBJETIVOS ao arquivo — a incerteza geometrica da selecao local)", ...
+        'mu_j', "μ_RBF (newrbe, interp exata): s2 = rede global (arquivo INTEIRO — o O(n^3)/iter); s3 = rede local (Nw vizinhos em OBJETIVOS do RefPoint); boot = so o objetivo i (rede do extremo i; demais NaN); s1 = NULL (PNN nao preve valor)", ...
+        'pred_classe', "s1: nivel_k previsto/atribuido pelo PNN (classes 1..4 por camadas ND, quotas 10/30/40/20%)", ...
+        'pred_score', "s2: score CalHV ABSOLUTO (D74-normalizado) do membro do pseudo-front (NaN fora)", ...
+        'estrategia', "no modelo_flag: PNN(s1) | RBF-global(s2) | RBF-local(s3) | RBF-global(boot)");
+    write_manifest(man, exp, alg, problema, semente, dataRoot);
+
+    jsonl_line(fid, 'footer', {'status', st_str, 'fe_final', bud.fe, 'maxfe', maxfe, ...
+        'n_geracoes', buf.nGeracoes(), 'cache_hits', bud.cache_hits, ...
+        'cp_init', cp_ok, 'termino', string(term)});
+    fclose(fid);
+
+    % (10) Higiene de memoria da ponte (D86/N.0.8).
+    try, py.gc.collect(); catch, end
+
+    info = struct('D', D, 'M', M, 'maxfe', maxfe, 'fe_final', bud.fe, ...
+        'n_init', n_init, 'n_geracoes', buf.nGeracoes(), ...
+        'cache_hits', bud.cache_hits, 'termino', string(term), ...
+        'doe_hash_run', string(doe_hash_run), ...
+        'doe_hash_sidecar', string(doe.hash), 'cp_ok', cp_ok);
+    if ~ok_flag
+        fprintf(2, ['[R1-e74] FALHA HONESTA (D81): FE_final=%d (31D-1=%d) cp_init=%d ' ...
+                    '-> manifesto status=failed.\n'], bud.fe, maxfe, cp_ok);
+    end
+    status = st_str;
+    % O pathGuard (onCleanup) restaura o path AGORA, na saida da funcao: a 4.1
+    % sai, a 4.15 (se estava) volta — prova de nao-contaminacao no cartao.
+end
+
+
+function [dec, obj, con] = e74_eval_one(x, bud, evalFcnPerX)
+% Embrulho POR INDIVIDUO do evalFcn (N.0-4.1#1 — o UserProblem 4.1 nao tem
+% 'once': Evaluation itera as linhas e chama o evalFcn com 1xD). Cada chamada
+% passa pelo wrapper de FE (cache-hit=0 FE D89; a 31D-esima X inedita levanta
+% PlatEMO:Termination NO MEIO do lote -> propaga pelo CallFcn (addCause preserva
+% o identifier) -> Solve engole -> FE final EXATO — D61). dec = x (clamp
+% autoritativo do wrapper); con = 0 (problema pymoo irrestrito).
+    dec = double(x(:).');
+    obj = bud.evaluate(dec, evalFcnPerX);   % 1xM; pode levantar PlatEMO:Termination
+    con = 0;
+end
+
+
+function [smoke, guard] = ensure_paths_e74(ROOT)
+% [R1-e74] Worker DEDICADO de path (D95/N.0-4.1#4 — o risco nº1 do projeto
+% neste cartao): o processo que roda o e74 enxerga SO a arvore PlatEMO 4.1
+% propria (CLMEA_Code). 518 basenames colidem com a _PlatEMO 4.15 — incluindo
+% as CLASSES do nucleo (ALGORITHM, PROBLEM, SOLUTION, UserProblem) — e a
+% coexistencia no mesmo path = corrupcao silenciosa. Estrategia:
+%   1. prev = path (captura INTEGRAL do estado);
+%   2. rmpath(genpath(_PlatEMO)) — TODA pasta da 4.15 sai do path;
+%   3. addpath(genpath(CLMEA_Code)) — a arvore 4.1 INTEIRA (mesmo idioma do
+%      platemo.m 4.1, que faz addpath(genpath(cd)));
+%   4. asserts `which -all`: cada simbolo-chave resolve DENTRO da CLMEA_Code e
+%      NENHUMA resolucao remanescente aponta p/ _PlatEMO (smoke devolvido ao
+%      header do .jsonl — padrao e103/N.0-4.1#4);
+%   5. guard = onCleanup(path(prev)): restauracao TOTAL na saida do run_e74
+%      (normal OU erro) — a 4.1 sai, a 4.15 (se estava) volta; um run
+%      subsequente de outro algoritmo NAO herda a 4.1 (nem vice-versa).
+% src/ (FEBudget/RunBuffer/hook_output/e74_instrument) fica: zero colisao de
+% basename com a CLMEA_Code (varredura 2026-07-18).
+    prev = path;
+    p415 = fullfile(ROOT, 'algorithms', '_PlatEMO');
+    if isfolder(p415)
+        w = warning('off', 'MATLAB:rmpath:DirNotFound');
+        try, rmpath(genpath(p415)); catch, end
+        warning(w);
+    end
+    e74root = fullfile(ROOT, 'algorithms', 'e74_CLMEA', 'CLMEA_Code');
+    assert(isfolder(e74root), 'e74: arvore CLMEA_Code ausente: %s', e74root);
+    addpath(genpath(e74root));
+    guard = onCleanup(@() path(prev));
+    % Toolboxes em runtime (cartao): DLT (newrbe/newpnn/ind2vec/vec2ind/sim) +
+    % Statistics (pdist2).
+    assert(~isempty(which('newrbe')) && ~isempty(which('newpnn')), ...
+           'e74: Deep Learning Toolbox ausente (newrbe/newpnn)');
+    assert(~isempty(which('pdist2')), 'e74: Statistics Toolbox ausente (pdist2)');
+    smoke = struct();
+    for fn = ["ALGORITHM","PROBLEM","SOLUTION","UserProblem","CLMEA", ...
+              "OperatorDE","NDSort","UniformPoint","CalHV","SelectTrainData", ...
+              "Local_infill","Hv_Select","ClassifierSelect","Data_Process","DE"]
+        allw = which(char(fn), '-all');
+        assert(~isempty(allw), 'e74: %s nao resolve no path', char(fn));
+        assert(contains(allw{1}, [filesep 'CLMEA_Code' filesep]), ...
+               'e74: %s resolve FORA da arvore 4.1: %s', char(fn), allw{1});
+        n415 = sum(contains(allw, [filesep '_PlatEMO' filesep]));
+        assert(n415 == 0, ...
+               'e74: %s ainda tem %d resolucao(oes) na arvore 4.15 (sombra de path!)', ...
+               char(fn), n415);
+        smoke.(char(fn)) = string(allw{1});
+    end
 end
 
 

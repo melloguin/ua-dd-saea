@@ -75,6 +75,16 @@ function [status, info] = experiment(alg, problema_id, semente, exp, dataRoot)
             % patches 🔴 e74-mask/e74-ndsort-obj + mins L.8 + D74 aplicados na
             % propria arvore.
             [status, info] = run_e74(alg, problema_id, semente, exp, dataRoot);
+        case 'e103'
+            % R1-e103 (ULTIMO cartao MATLAB da R1; o UNICO OFFLINE dela):
+            % IBEA-MS (repo standalone do autor — funcao IBEAMS(Global) com
+            % struct propria, NAO e PlatEMO-API; wrapper L.15/N.3). Treina UMA
+            % vez no dataset injetado (D90, 31D-1) e busca SO no surrogate:
+            % ZERO FE real na busca (o FEBudget e a rede — orcamento esgotado
+            % na carga; qualquer avaliacao nova = violacao offline). Worker de
+            % path DEDICADO (molde e74): rmpath 4.15 E CLMEA_Code -> addpath
+            % e103 -> asserts which-all -> onCleanup restaura. Sem cd().
+            [status, info] = run_e103(alg, problema_id, semente, exp, dataRoot);
         case {'nsga2', 'nsga3', 'moead', 'smsemoa'}
             % R1-pisos: os 4 PISOS ONLINE (NSGA-II, NSGA-III, MOEA/D type=1,
             % SMS-EMOA puro) — MOEAs STOCK do PlatEMO 4.15, SEM surrogate, que
@@ -1667,6 +1677,275 @@ end
 
 
 % ════════════════════════════════════════════════════════════════════════════
+%  RUN-e103 (IBEA-MS — repo standalone do autor, OFFLINE — L.15/N.3/D90/D93).
+%  O UNICO OFFLINE da R1 e o 2o worker de path dedicado (molde e74):
+%   - REGIME OFFLINE: o orcamento E O DATASET. FEBudget(D, 31D-1, n_init=31D-1)
+%     e as 31D-1 linhas do artefato D90 entram na carga (fase 'init'; o evalFcn
+%     devolve o F DO ARTEFATO — a ponte NUNCA avalia). Saldo esgotado apos a
+%     carga: qualquer X inedita na busca levanta PlatEMO:Termination, que aqui
+%     NAO e termino normal — e VIOLACAO do regime (pára-e-loga, D81).
+%   - ① = o dataset (31D-1 linhas, bit-exatas); CP-init offline = sha256 do X
+%     E do F carregados == x_hash/f_hash do sidecar do ds (D88/D90).
+%   - Wrapper L.15 no IBEAMS.m: (a) D/M/N/bounds do chamador (N=100);
+%     (b) cd()->addpath puro; (c) Population = dataset injetado (MSE=zeros
+%     marca "real"); (d) retorno [FinalDec,FinalObj]. Ancoras: pm 1/D (:43),
+%     JudgeModel diagonal (:32), centros ceil(sqrt(n_dataset)) D93 (:4) +
+%     inv->mldivide (:10).
+%   - RNG (D59/D62): rng(semente,'twister') ANTES do IBEAMS (nao ha probe;
+%     seeds.json _default — o harness NAO cria semente p/ o e103). Consumidores
+%     do stream global: kmeans 1x no setup (k-means++ — a variancia entre
+%     sementes do treino), TournamentSelection randi + GA rand/randi por ger.
+%   - Instrumentacao (src/e103_instrument.m, read-only): ② membros do DATASET
+%     na pop selecionada por geracao; ③ μ dos DOIS modelos (Kriging μ/σ +
+%     RBFN_cal incondicional); e103_setup/e103_gen/e103_busca no .jsonl;
+%     timing §17.6 = 1 linha (treino unico).
+% ════════════════════════════════════════════════════════════════════════════
+
+function [status, info] = run_e103(alg, problema, semente, exp, dataRoot)
+    status = "failed";
+    info = struct();
+    ROOT = harness_root();
+
+    % (0) ISOLAMENTO DE PATH (hazard N.3 — "o mais perigoso sob parfor"):
+    % worker dedicado; smoke `which -all` vai no header do .jsonl.
+    [smoke, pathGuard] = ensure_paths_e103(ROOT); %#ok<ASGLU> % guard vive ate o fim do run
+
+    % (1) PONTE: SO metadados (D/M/bounds — CP-bounds §5.5). ZERO avaliacao
+    % real neste runner: o F vem exclusivamente do artefato D90.
+    ctx = bridge_ctx(ROOT);
+    pp = py_problem(ctx, problema);
+    D = pp.D; M = pp.M; xl = pp.xl(:).'; xu = pp.xu(:).';
+    n_ds  = 31*D - 1;                 % tier small (principal offline — D90)
+    maxfe = n_ds;                     % o orcamento E o dataset (offline)
+
+    % (2) DATASET 31D-1 do artefato (D90) — CARREGADO, NUNCA regenerado.
+    ds = load_dataset(problema, semente, D, M, dataRoot);
+    assert(size(ds.X,1) == n_ds, 'dataset tem %d linhas != 31D-1=%d', size(ds.X,1), n_ds);
+    % CP-bounds (§5.5): bounds do problema Python == sidecar do dataset.
+    assert(max(abs(xl(:)-ds.xl(:)))==0 && max(abs(xu(:)-ds.xu(:)))==0, ...
+           'CP-bounds: bounds do problema != sidecar do dataset');
+    % Hazard L.15 (pára-e-loga ANTES): duplicata bit-a-bit no dataset e FATAL
+    % no dacefit (repeated design sites) — e furaria a carga (cache-hit).
+    assert(size(unique(ds.X, 'rows'), 1) == n_ds, ...
+           'e103: dataset com linha duplicada (dacefit fatal — D81 pára-e-loga)');
+
+    % (3) .jsonl (§17.5) + wrapper de FE: n_init = 31D-1 (TODO o dataset e
+    % fase 'init' — CP-init offline sobre o dataset inteiro).
+    jsonl  = nm_jsonl_path(exp, alg, problema, semente, dataRoot);
+    fid    = jsonl_open(jsonl);
+    logger = struct('guard', @(name, varargin) ...
+                    jsonl_line(fid, 'guard', [{'name'}, {name}, varargin]));
+    bud = FEBudget(D, maxfe, n_ds, logger);
+    buf = RunBuffer();
+    jsonl_line(fid, 'header', {'alg', string(alg), 'problema', string(problema), ...
+        'semente', semente, 'D', D, 'M', M, 'regime', "offline", 'maxfe', maxfe, ...
+        'dataset_hash', string(ds.dataset_hash), 'x_hash', string(ds.x_hash), ...
+        'f_hash', string(ds.f_hash), 'n_dataset', n_ds, ...
+        'algo', "e103-IBEAMS-offline-L15", ...
+        'ponte', "metadata-only (D/M/bounds; ZERO avaliacao real — o F e o artefato D90)", ...
+        'params_balde_B', "N=100, kappa=0.05, Generations=100 nominais (executa 99 — off-by-one CODIGO/B7.8), pm efetiva 1/D (proM=1 na :43), JudgeModel 3sigma+3sigma eps=1e-5 UF>=M-1 (diagonal i==j excluida)", ...
+        'kriging', "DACE regpoly1+corrgauss, theta0=10, bounds [1e-3,1e3] (B7.7); 1 modelo/objetivo, treino UNICO (nunca retreina)", ...
+        'rbfn', sprintf("1 rede multi-saida; centros k-means = ceil(sqrt(n_dataset)) = %d (D93, n INJETADO); spread 5*max(pdist(centros)) (kernel quase-plano — warnings esperados); pesos LSQ mldivide (inv-> \\)", ceil(sqrt(n_ds))), ...
+        'patches', "L.15(a-d) no IBEAMS.m + ancoras e103-pm-D93a (:43) / e103-judgemodel (JudgeModel:32) / e103-centros-D93 (construct_Rnets:4) + inv->mldivide (:10)", ...
+        'sigma_dict', "sigma_j = sqrt(max(MSE,0)) do predictor DACE POR OBJETIVO, SO nas linhas modelo_flag=Kriging-DACE da ③ (re-predicao read-only da pop selecionada); linhas RBFN sem sigma (RBF nao produz incerteza). No MECANISMO o MSE e gate booleano de ORDEM (JudgeModel) e MSE=0 marca membro REAL; o OffMSE=ones do ramo RBFN e MARCADOR, nao sigma. KFlag por geracao no e103_gen", ...
+        'which_smoke', jsonencode(smoke)});
+
+    % (4) CARGA do dataset no wrapper de FE: as 31D-1 avaliacoes DO DATASET
+    % sao o orcamento inteiro (a ① nasce aqui, bit-exata ao artefato). O
+    % evalFcn devolve o F da linha corrente do artefato — nenhuma ponte.
+    for i = 1:n_ds
+        fi = ds.F(i, :);
+        bud.evaluate(ds.X(i, :), @(x) fi);
+    end
+    assert(bud.fe == maxfe && bud.cache_hits == 0, ...
+           'e103: carga do dataset nao fechou 31D-1 distintas (fe=%d, hits=%d)', ...
+           bud.fe, bud.cache_hits);
+    jsonl_line(fid, 'decision', {'caminho', "carga_dataset", ...
+        'motivo', sprintf('%d linhas do artefato D90 carregadas (orcamento esgotado; busca 100%% surrogate)', n_ds), ...
+        'fe', bud.fe});
+
+    % (5) SEMENTE (D59): antes do IBEAMS — o 1o consumidor de RNG e o kmeans
+    % do setup (k-means++); nao ha probe de construtor no e103 (standalone).
+    rng(semente, 'twister');
+
+    % (6) Global L.15 (o chamador parametriza D/M/N/bounds + injeta o dataset
+    % e o n INJETADO da D93) + inst read-only. lastwarn limpo p/ o e103_setup
+    % capturar a quase-singularidade esperada do treino.
+    G = struct('D', D, 'M', M, 'N', 100, 'lower', xl, 'upper', xu, ...
+               'n_dataset', n_ds, ...
+               'data', struct('X0', ds.X, 'F0', ds.F), ...
+               'inst', struct('buf', buf, 'bud', bud, 'fid', fid));
+    lastwarn('');
+    term = "normal";
+    t0 = tic;
+    try
+        [FinalDec, FinalObj] = IBEAMS(G);
+    catch e
+        if strcmp(e.identifier, 'PlatEMO:Termination')
+            % OFFLINE: nao existe termino por orcamento — se o hard-stop do
+            % FEBudget disparou, ALGO TENTOU AVALIAR DE VERDADE na busca.
+            % Violacao do regime (D90) -> pára-e-loga (D81), nunca engolir.
+            jsonl_line(fid, 'footer', {'status', "failed", ...
+                'erro', "FE real tentada durante a busca offline (violacao D90)", ...
+                'identifier', string(e.identifier), 'fe_final', bud.fe});
+            fclose(fid);
+            fprintf(2, ['[R1-e103 FAILED] %s/%s/%d: avaliacao real tentada na ' ...
+                        'busca OFFLINE (violacao D90) — pára-e-loga (D81).\n'], ...
+                    char(alg), char(problema), semente);
+            rethrow(e);
+        else
+            jsonl_line(fid, 'footer', {'status', "failed", 'erro', string(e.message), ...
+                'identifier', string(e.identifier), 'fe_final', bud.fe});
+            fclose(fid);
+            fprintf(2, '[R1-e103 FAILED] %s/%s/%d: %s (%s)\n', ...
+                    char(alg), char(problema), semente, e.message, e.identifier);
+            rethrow(e);                                % erro REAL -> falha honesta (D23)
+        end
+    end
+    tempo_total_alg = toc(t0);
+
+    % (7) EXPORT das 4 camadas (§17.2/§17.3): ① = o DATASET; ②③/timing do buffer.
+    R = bud.records();                                 % catalogo ① (== 31D-1 linhas)
+    write_real(exp, alg, problema, semente, R, D, M, dataRoot);
+    write_pop(exp, alg, problema, semente, buf.pop, dataRoot);
+    write_surrogate(exp, alg, problema, semente, buf.srows, D, M, "offline", dataRoot);
+    write_timing(exp, alg, problema, semente, buf.trows, dataRoot);
+
+    % (8) CP-init OFFLINE (D88/D90): X E F da ① bit-a-bit com o sidecar do ds.
+    x_hash_run = sha256_rowmajor_f64(bud.init_X());
+    f_hash_run = sha256_rowmajor_f64(vertcat(R.f));
+    cp_ok = strcmp(x_hash_run, ds.x_hash) && strcmp(f_hash_run, ds.f_hash);
+    ok_flag = (bud.fe == maxfe) && cp_ok;
+    st_str  = "ok"; if ~ok_flag, st_str = "failed"; end
+
+    % n_geracoes: derivado da ③ (o ② offline so lista MEMBROS DO DATASET e uma
+    % geracao pode ficar sem nenhum — a ③ tem 2 linhas/membro em TODA geracao).
+    if isempty(buf.srows)
+        n_ger = 0;
+    else
+        n_ger = numel(unique(cellfun(@(r) r.geracao, buf.srows)));
+    end
+
+    % (9) MANIFESTO (§17.2/§17.7) + dicionarios DEF-C4.
+    man = build_manifest(exp, alg, problema, semente, ...
+        maxfe, bud.fe, n_ger, x_hash_run, bud.cache_hits, dataRoot);
+    man.algo_version = "e103-IBEAMS-offline-L15";
+    man.status = st_str;
+    man.regime = "offline";
+    man.dataset = struct('path', string(ds.path), 'n', n_ds, ...
+        'tier', "small", 'dist', "lhs", ...
+        'x_hash', string(ds.x_hash), 'f_hash', string(ds.f_hash), ...
+        'dataset_hash', string(ds.dataset_hash), ...
+        'cp_x', strcmp(x_hash_run, ds.x_hash), ...
+        'cp_f', strcmp(f_hash_run, ds.f_hash));
+    man.timing.tempo_total_s = tempo_total_alg;
+    man.params = struct( ...
+        'regime', "OFFLINE (D90): dataset 31D-1 injetado; ZERO FE real na busca; treino UNICO dos 2 modelos; 99 geracoes IBEA no surrogate", ...
+        'N', 100, 'kappa', 0.05, ...
+        'generations', "100 nominais -> 99 executadas (while CurGen<100 com CurGen=1 — off-by-one CODIGO, registrado)", ...
+        'ibea', "I_eps+ (CalFitness normaliza min-max na pop corrente), kappa=0.05; TournamentSelection K=2; GA SBX disC=20 + PM disM=20", ...
+        'pm', "proM=1 na chamada (:43) -> pm efetiva 1/D (GA.m:69 divide por D — convencao PlatEMO); stock passava 1/Global.D = 1/D^2 (🔴 ARTIGO, ancora e103-pm-D93a)", ...
+        'judgemodel', "gate booleano de ORDEM par-a-par: |f_i-f_j| vs 3sqrt(MSE_i)+3sqrt(MSE_j), eps=1e-5, relaxacao UF>=M-1; diagonal i==j EXCLUIDA (🔴 ARTIGO, ancora e103-judgemodel — stock zerava o teste com qualquer MSE>0); KFlag STATELESS (re-testado por geracao — B7.8)", ...
+        'kriging', "DACE dacefit(@regpoly1,@corrgauss), theta0=10*ones(1,D), bounds [1e-3,1e3] (B7.7); 1 modelo/objetivo; treino UNICO (offline — nunca retreina); AmendKriCal preserva o F REAL de quem tem MSE=0 (membros do dataset) e duplica ponto se N==1 (workaround stock)", ...
+        'rbfn', "1 rede multi-saida: centros k-means (k-means++ — RNG do setup) = ceil(sqrt(n_dataset)) com o n INJETADO (D93 — ancora e103-centros-D93; stock usava 11D-1 do paper), spread = 5*max(pdist(centros)) (kernel quase-plano — warnings de quase-singularidade ESPERADOS, contados no e103_setup), pesos LSQ via mldivide (inv(Z'Z)Z' -> (Z'Z)\\(Z'PopObj) — §22-e103); kernel despachado por eval() de string (stock, registrado)", ...
+        'off_mse_marcador', "no ramo RBFN o OffMSE=ones marca o offspring como 'surrogate' na geracao seguinte — MARCADOR de contabilidade, nao sigma (S.2-e103)", ...
+        'rng', "rng(semente,'twister') unico ANTES do IBEAMS (D59; sem probe). Consumidores: kmeans 1x no setup (fonte de variancia entre sementes do treino), TournamentSelection randi + GA rand/randi por geracao. seeds.json _default: NENHUMA semente criada pelo harness (uso_id catalogo vazio p/ e103)", ...
+        'watchdog', "guardas D60 de FE nao se aplicam (offline: zero FE na busca); rede = FEBudget esgotado (qualquer avaliacao nova -> PlatEMO:Termination = violacao, pára-e-loga)", ...
+        'nd_final', "AVALIACAO REAL DO ND FINAL (§11/B7.5) NAO acontece neste run (a ① = SO o dataset; gate 31D-1): 'avaliado 1x FORA' — os decs finais estao na ③ (ultima geracao) e em FinalDec; DEFINICAO EM ABERTO p/ a torre: onde persiste (recomendacao: pos-hoc Python canonico, uniforme p/ todo o offline, antes do R3)", ...
+        'divergencias_stock_mantidas', "off-by-one 99 ger; relaxacao M-1 (custa acuracia em M=2 — M.6/D73); spread 5*max(pdist) quase-plano; CalFitness com min==max -> NaN (hazard stock, nao consertado — falha honesta se disparar); AmendKriCal reordena a pop (dataset p/ o fim)");
+    man.sigma_dict = struct( ...
+        'mu_j', "μ do modelo da LINHA (modelo_flag): Kriging-DACE = predictor por objetivo; RBFN = RBFN_cal INCONDICIONAL (mesmo quando o Kriging liderou — C4/L.15, o 'μ dos DOIS modelos'). Re-predicao READ-ONLY sobre os decs da pop SELECIONADA por geracao (2 linhas/membro); membros do dataset inclusos (DACE interpola ≈exato, MSE≈0)", ...
+        'sigma_j', "sqrt(max(MSE,0)) do predictor DACE por objetivo — SO nas linhas Kriging-DACE (guard mse_neg conta MSE<0 do erro float); linhas RBFN = NULL (RBF sem incerteza). NAO confundir com o papel do MSE no mecanismo: gate booleano de ORDEM (JudgeModel 3sigma) + marcador real/surrogate (0/1)", ...
+        'kflag', "a decisao Kriging<->RBFN da geracao esta no .jsonl (e103_gen: kflag/modelo_lider) — nao ha coluna na ③; join por geracao");
+    write_manifest(man, exp, alg, problema, semente, dataRoot);
+
+    jsonl_line(fid, 'footer', {'status', st_str, 'fe_final', bud.fe, 'maxfe', maxfe, ...
+        'n_geracoes', n_ger, 'cache_hits', bud.cache_hits, ...
+        'cp_init', cp_ok, 'cp_x', strcmp(x_hash_run, ds.x_hash), ...
+        'cp_f', strcmp(f_hash_run, ds.f_hash), 'termino', string(term), ...
+        'n_final', size(FinalDec, 1), 'tempo_total_s', tempo_total_alg});
+    fclose(fid);
+
+    % (10) Higiene de memoria da ponte (D86/N.0.8) — metadados apenas, mesmo assim.
+    try, py.gc.collect(); catch, end
+
+    info = struct('D', D, 'M', M, 'maxfe', maxfe, 'fe_final', bud.fe, ...
+        'n_dataset', n_ds, 'n_geracoes', n_ger, 'cache_hits', bud.cache_hits, ...
+        'termino', string(term), 'x_hash_run', string(x_hash_run), ...
+        'f_hash_run', string(f_hash_run), 'cp_ok', cp_ok, ...
+        'n_final', size(FinalDec, 1), 'final_obj_max', max(FinalObj(:)), ...
+        'tempo_total_s', tempo_total_alg);
+    if ~ok_flag
+        fprintf(2, ['[R1-e103] FALHA HONESTA (D81): FE_final=%d (31D-1=%d) cp_init=%d ' ...
+                    '-> manifesto status=failed.\n'], bud.fe, maxfe, cp_ok);
+    end
+    status = st_str;
+    % O pathGuard (onCleanup) restaura o path na saida: o e103 sai, a 4.15
+    % (se estava) volta — nada do e103 sombreia o proximo run do processo.
+end
+
+
+function [smoke, guard] = ensure_paths_e103(ROOT)
+% [R1-e103] Worker DEDICADO de path (N.3 — "o mais perigoso sob parfor"): o
+% processo que roda o e103 enxerga a arvore e103_IBEA-MS com PRECEDENCIA total
+% e NENHUMA resolucao remanescente nas arvores grandes. Varredura de sombra
+% (find por basename, 2026-07-18): CalFitness.m x62 e EnvironmentalSelection.m
+% x155 na _PlatEMO 4.15; DACE inteiro (dacefit/predictor x29, regpoly*/corr*
+% x2); GA.m (single-objective/GA) e TournamentSelection.m (Utility functions +
+% CLMEA_Code 4.1) tambem colidem; dsmerge.m colide com c141/AB-SAEA. Zero
+% colisao com src/*.m. Estrategia (molde ensure_paths_e74):
+%   1. prev = path (captura INTEGRAL);
+%   2. rmpath(genpath(_PlatEMO)) E rmpath(genpath(CLMEA_Code)) — as duas
+%      arvores-gorila saem (no-op se ausentes);
+%   3. addpath(genpath(e103_IBEA-MS)) POR ULTIMO — precedencia sobre qualquer
+%      pasta remanescente de outro adapter (c141/c238 nao-removidas);
+%   4. asserts `which -all` sobre TODOS os simbolos chamados: 1o hit DENTRO de
+%      e103_IBEA-MS E zero resolucoes remanescentes em _PlatEMO/CLMEA_Code —
+%      qualquer sombra ABORTA o run em vez de corromper em silencio; o smoke
+%      vai no header do .jsonl;
+%   5. guard = onCleanup(path(prev)): restauracao TOTAL na saida do run_e103
+%      (normal OU erro). O proprio IBEAMS.m patchado (L.15b) faz um addpath
+%      puro da propria arvore (sem cd) — redundante e coberto pela restauracao.
+    prev = path;
+    for tree = {fullfile(ROOT, 'algorithms', '_PlatEMO'), ...
+                fullfile(ROOT, 'algorithms', 'e74_CLMEA', 'CLMEA_Code')}
+        if isfolder(tree{1})
+            w = warning('off', 'MATLAB:rmpath:DirNotFound');
+            try, rmpath(genpath(tree{1})); catch, end
+            warning(w);
+        end
+    end
+    e103root = fullfile(ROOT, 'algorithms', 'e103_IBEA-MS');
+    assert(isfolder(e103root), 'e103: arvore ausente: %s', e103root);
+    addpath(genpath(e103root));
+    guard = onCleanup(@() path(prev));
+    % Toolbox em runtime (S.2-e103): Statistics (kmeans do get_center, pdist do
+    % spread, pdist2 do the_gaussian). Sem Deep Learning aqui.
+    assert(~isempty(which('kmeans')) && ~isempty(which('pdist')) ...
+           && ~isempty(which('pdist2')), ...
+           'e103: Statistics Toolbox ausente (kmeans/pdist/pdist2)');
+    smoke = struct();
+    for fn = ["IBEAMS","JudgeModel","construct_kriging","construct_Rnets", ...
+              "kriging_cal","RBFN_cal","AmendKriCal","AmendRBFCal", ...
+              "CalFitness","EnvironmentalSelection","Fitness","GA", ...
+              "TournamentSelection","LHS_sam","PopStruct","decs","objs", ...
+              "get_center","get_Z","the_gaussian", ...
+              "dacefit","predictor","regpoly1","corrgauss","dsmerge"]
+        allw = which(char(fn), '-all');
+        assert(~isempty(allw), 'e103: %s nao resolve no path', char(fn));
+        assert(contains(allw{1}, [filesep 'e103_IBEA-MS' filesep]), ...
+               'e103: %s resolve FORA da arvore e103: %s', char(fn), allw{1});
+        nout = sum(contains(allw, [filesep '_PlatEMO' filesep])) ...
+             + sum(contains(allw, [filesep 'CLMEA_Code' filesep]));
+        assert(nout == 0, ...
+               'e103: %s ainda tem %d resolucao(oes) em _PlatEMO/CLMEA_Code (sombra de path!)', ...
+               char(fn), nout);
+        smoke.(char(fn)) = string(allw{1});
+    end
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
 %  RUN-PISO (os 4 PISOS ONLINE: NSGA-II, NSGA-III, MOEA/D type=1, SMS-EMOA) —
 %  MOEAs STOCK do PlatEMO 4.15, SEM surrogate. Sao a REGUA do estudo (§3.2/D25):
 %  respondem "o surrogate compra alguma coisa, afinal?". UM runner para os 4 —
@@ -2019,6 +2298,38 @@ end
 
 
 % ════════════════════════════════════════════════════════════════════════════
+%  DATASET OFFLINE (D90) — carregado do artefato, NUNCA regenerado ([R1-e103])
+% ════════════════════════════════════════════════════════════════════════════
+
+function ds = load_dataset(problema, semente, D, M, dataRoot)
+% Dataset offline principal (tier small / dist lhs — nome SEM sufixo, D90):
+% X (n x D) + F (n x M) float64 na ordem do sidecar, + os 3 hashes do array
+% decodificado (x_hash / f_hash / dataset_hash) p/ o CP-init offline.
+    pq  = nm_dataset_path(problema, semente, dataRoot);
+    man = nm_dataset_manifest_path(problema, semente, dataRoot);
+    assert(isfile(pq),  'dataset ausente: %s', pq);
+    assert(isfile(man), 'sidecar do dataset ausente: %s', man);
+    side = jsondecode(fileread(man));
+    assert(strcmp(char(side.tier), 'small') && strcmp(char(side.dist), 'lhs'), ...
+           'dataset %s nao e o principal (tier=%s dist=%s)', pq, side.tier, side.dist);
+    cols  = cellstr(side.columns);                 % {'x0',...,'f0',...} na ordem
+    xcols = cols(startsWith(cols, 'x'));
+    fcols = cols(startsWith(cols, 'f'));
+    assert(numel(xcols) == D, 'dataset tem %d colunas x != D=%d', numel(xcols), D);
+    assert(numel(fcols) == M, 'dataset tem %d colunas f != M=%d', numel(fcols), M);
+    t = parquetread(pq);
+    ds.X = double(t{:, xcols});                    % n x D (float64, nativo)
+    ds.F = double(t{:, fcols});                    % n x M (float64)
+    ds.x_hash = char(side.x_hash);
+    ds.f_hash = char(side.f_hash);
+    ds.dataset_hash = char(side.dataset_hash);
+    ds.xl = double(side.bounds.xl);
+    ds.xu = double(side.bounds.xu);
+    ds.path = pq;
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
 %  EXPORT §17.2 — 4 camadas parquet (brotli + single, SEM round — D53; atomico)
 % ════════════════════════════════════════════════════════════════════════════
 
@@ -2229,6 +2540,16 @@ end
 function p = nm_doe_manifest_path(problema, semente, dataRoot)
     p = fullfile(char(dataRoot), 'doe', char(problema), ...
                  sprintf('doe_%s_%s.manifest.json', char(problema), num2str(semente)));
+end
+function p = nm_dataset_path(problema, semente, dataRoot)
+    % Espelho de src/naming.py::dataset_path (principal: tier small/dist lhs
+    % -> nome SEM sufixo — D90/seeds.json).
+    p = fullfile(char(dataRoot), 'datasets', char(problema), ...
+                 sprintf('ds_%s_%s.parquet', char(problema), num2str(semente)));
+end
+function p = nm_dataset_manifest_path(problema, semente, dataRoot)
+    p = fullfile(char(dataRoot), 'datasets', char(problema), ...
+                 sprintf('ds_%s_%s.manifest.json', char(problema), num2str(semente)));
 end
 
 

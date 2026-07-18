@@ -53,17 +53,19 @@
    "file": "IBEAMS.m",
    "line": 43,
    "expect_before": "1/Global.D",
-   "expect_after": "1",
-   "kind": "fidelidade-🔴 (pm 1/D²→1/D)"
+   "expect_after": "{1,20,1,20}",
+   "kind": "fidelidade-🔴 (pm 1/D²→1/D)",
+   "nota": "[R1-e103] expect_after concretizado ('1' era fraco demais — casaria com qualquer arquivo): o literal e a cell de parametros do GA pos-patch, {proC=1,disC=20,proM=1,disM=20}. proM=1 na chamada -> pm efetiva 1/D (GA.m:69 divide por D — convencao PlatEMO; GA.m INTACTO)."
   },
   {
    "id": "e103-judgemodel",
    "repo": "e103_ibeams",
    "file": "JudgeModel.m",
    "line": 32,
-   "expect_before": "<inclui diagonal i==j>",
-   "expect_after": "Msite(logical(eye(N)))=true; (exclui i==j)",
-   "kind": "fidelidade-🔴"
+   "expect_before": "Msite = (sum(site,3)>=(M-1));",
+   "expect_after": "Msite = (sum(site,3)>=(M-1)) | logical(eye(N));",
+   "kind": "fidelidade-🔴",
+   "nota": "[R1-e103] Concretizacao da ancora descritiva ('<inclui diagonal i==j>' -> literais): o OR com logical(eye(N)) equivale ao `Msite(logical(eye(N)))=true;` sugerido no S.2-e103 (mesma semantica em 1 linha: o par i==i passa a contar como confiavel em TODOS os objetivos — a comparacao de um individuo consigo mesmo nao informa ordem). SINALIZADA p/ veto do autor (precedente e74-ndsort-obj/c238-hypervolume-rm)."
   },
   {
    "id": "e103-centros-D93",
@@ -71,8 +73,9 @@
    "file": "construct_Rnets.m",
    "line": 4,
    "expect_before": "center_num = ceil(sqrt(Global.D*11-1));",
-   "expect_after": "center_num = ceil(sqrt(n_dataset)); % n INJETADO",
-   "kind": "fidelidade-D93 (mata o NO-OP)"
+   "expect_after": "center_num = ceil(sqrt(Global.n_dataset));",
+   "kind": "fidelidade-D93 (mata o NO-OP)",
+   "nota": "[R1-e103] expect_after concretizado ('n_dataset' descritivo -> o literal MATLAB): o n INJETADO chega pelo campo Global.n_dataset, montado pelo run_e103 com o tamanho REAL do dataset carregado (31D-1 no principal; 2k/50k no sweep — D93)."
   },
   {
    "id": "b1-doe-D94",

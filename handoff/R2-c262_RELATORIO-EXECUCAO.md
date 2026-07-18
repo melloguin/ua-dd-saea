@@ -175,3 +175,68 @@ Gates R1 = da sessão paralela (a torre roda tudo no merge).
    versão atrás dessas 2 chaves (fix aditivo trivial no harness, se a torre
    quiser: `extra_manifest` no write_run_outputs).
 5. INDEX: linha R2-c262 fica ⬜ até a torre marcar (paralelismo).
+
+## 9. ⚠ DEFINIÇÕES EM ABERTO — a TORRE deve levantar com o AUTOR
+
+> Nenhuma bloqueou o gate (todas têm implementação em vigor, documentada e
+> logada); mas são decisões de leitura/política que merecem VETO explícito do
+> autor ou fechamento antes do c154/M7/M8. Numeração p/ referência no
+> ping-pong.
+
+**A — Vetos de leitura da SPEC (implementado; ratificar ou mandar mudar):**
+- **A1 · Fonte do ref-point da aquisição = tabela S.5 (congelada).** O Anexo
+  J crava "fixo por problema, escala bruta" e a fórmula
+  (`nadir+0,1·(nadir−ideal)` ≡ "nadir×1,1"); o que a SPEC NÃO nomeia é a
+  FONTE do (ideal, nadir) no nosso harness. Usei a S.5 (a tabela
+  por-problema canônica do repo — derivada do front verdadeiro). Nota de
+  honestidade: é informação de oráculo (como no paper, que fixa o ref de um
+  pool noiseless por problema — Tab. 2), mas se o autor preferir enquadrar
+  como "vantagem informacional a declarar" (espírito D73) ou trocar por
+  nadir OBSERVADO×iteração (o análogo do D96/c149), a mudança é 1 função
+  (`acqf_ref_point`) + re-rodar os pilotos. **Recomendo manter S.5**
+  (fidelidade ao protocolo do paper "ref fixo conhecido"); registrar no J.
+- **A2 · Truncamento 32-bit dos 3 seeds (h0/h1/h2).** O seeds.json manda
+  truncar "onde a API exigir" e lista torch.manual_seed; estendi aos usos
+  1 (SobolQMCNormalSampler) e 2 (options.seed do optimize_acqf) por
+  uniformidade e porque ambos alimentam SobolEngine/Generator (um uint64
+  cheio arriscaria overflow de int64). Ratificar (afeta reprodutibilidade
+  bit-a-bit da bateria — mudar depois = quebra).
+- **A3 · Semântica da camada ② p/ BO = train set completo por iteração**
+  (ger 0 = DoE; ger it = ids 0..n_train−1). O §17.3 fixa a ③ p/ BoTorch
+  (candidatos dos restarts) mas não a ② ; escolhi "o arquivo real que o
+  modelo VIU" (o BO treina em tudo). Alternativa: gravar o baseline PODADO
+  do prune_baseline (o que a acqf de fato condiciona). Barato mudar ANTES
+  do c154 (que herdará a mesma semântica); caro depois.
+- **A4 · Supressão do NumericalWarning do gpytorch** (piso 1e-6 sob
+  Standardize) — filtro estreito por mensagem, registrado no header do
+  jsonl. Artefato esperado do B8.6a; numérica intacta. Ratificar (algum
+  auditor pode preferir os warnings crus no stderr da bateria).
+- **A5 · Guarda de stall no RUNNER com teto 100** (iterações consecutivas
+  sem FE ⇒ RuntimeError). O D60-b é do DESPACHANTE; o teto 100 no runner é
+  um backstop MEU (nunca disparou; streak máx real = 3 no ZDT1). Ratificar
+  o valor ou remandar ao watchdog do despachante no M8.
+
+**B — Políticas a fechar ANTES do c154/M8 (decisão do autor via torre):**
+- **B1 · Kernel fusionado no BoTorch OFICIAL (o achado da sessão).** O
+  0.18.1 do PyPI embarca o csrc (premissa do S.3#9 caiu). Decidir: (i)
+  doc-sync da SPEC (S.3#9/N.2.3/DEF-L2 — a guarda 'Unknown' continua válida
+  p/ o FORK, mas não protege da assimetria Mac×Linux do OFICIAL); (ii)
+  tornar o OFF explícito POLÍTICA da rodada (c154 + despachante M8 chamam
+  `c262_qnehvi.disable_fused_kernel()` ou equivalente próprio) — hoje só o
+  c262 desliga.
+- **B2 · Chaves extras do manifesto × bucket (pendência §8.4).** Se a M8
+  precisa de `acqf_ref_f`/`fused_kernel` no blob: aprovar o fix aditivo
+  `extra_manifest` no `write_run_outputs` do harness (3 linhas, fora da
+  minha faixa nesta sessão) ou delegar re-upload ao despachante.
+- **B3 · Pendências 1–2 do R2-00** (integração `experiments.py`×runner:
+  manifesto sobrescrito + kwargs não repassados; resume bucket-aware p/ os
+  5 bucket-only) — já registradas lá; continuam SEM dono. Antes da M8.
+- **B4 · Dimensionamento M7 com o dado novo:** o custo do c262 é dominado
+  pela BUSCA (98% M=3 / 89% M=2), não pelo fit ⇒ a projeção da bateria
+  deve usar wall TOTAL por run (ZDT1≈5,2 dias·core p/ 30 sementes; DTLZ2≈
+  3,1; MMF1≈19 min). Decisão de máquina/paralelismo é do autor (HANDOFF
+  §7.5).
+- **B5 · Higiene menor da SPEC:** a tabela K do card c262 diz
+  `cache_root=True`; o checklist §22.3 e a L.10 dizem `None` (implementei
+  None, precedência D83 — e é o default do 0.18.1). Doc-sync opcional p/
+  matar a divergência interna.

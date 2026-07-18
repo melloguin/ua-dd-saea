@@ -198,7 +198,20 @@
 - **Sequenciamento proposto (mínimo retrabalho):** decisão agora → contrato na SPEC na MESMA janela
   documental do DI-05/DI-08 (1 regen) + artefato da sonda → o R3 nasce nativo → retrofit dos 12
   feitos no M7 (cartão DI-09-retrofit) + pilotos de validação → a bateria M8 já produz tudo.
-- **Status: aguardando decisão** (aprovar A1/A2/B1–B3 no todo ou por partes).
+- **✅ DECIDIDA pelo autor (2026-07-18): A1 + A2 + B1 + B2 + B3 aprovados; sonda com S=2000 pontos,
+  cadência k=2 gerações (+1ª e última).** Volume estimado na bateria: ~260 GB extras (o autor decidiu
+  ciente da aritmética; checagem de disco Mac/bucket entra no piloto M7; custo GCS ~US$5/mês).
+  A3/B4 = análises R4 (sem persistência nova).
+- **Cronograma EXECUTIVO (ajustado pelo autor):** o retrofit dos 9 configs SA-MATLAB **começa JÁ**
+  (∥ c154 — a faixa MATLAB está livre; c154 é Python e não committa; janela de committer único) com
+  o contrato provisório = a própria PROPOSTA (a formalização na SPEC §17.2.2 acontece na janela
+  documental pós-c154, junto de DI-05/DI-08, 1 regen). Retrofit-Python (c262+c154+export.py+helper
+  no harness) = cartão pequeno logo após o commit do c154 (pode ∥ R3-00 — faixas disjuntas). R3
+  nasce nativo. Retry/registro/progress-bar = M7 (DI-06 ampliado).
+- **Invariante do retrofit (o gate central): NÃO-PERTURBAÇÃO** — a instrumentação é read-only; a
+  prova objetiva é a ① do run pós-retrofit ser IDÊNTICA à do piloto pré-retrofit (mesma semente ⇒
+  mesma trajetória). Preditores ESTOCÁSTICOS (o MC-dropout do e7!) exigem save/restore do RNG em
+  volta da predição da sonda — sem isso a trajetória muda e o retrofit REPROVA.
 
 ---
 

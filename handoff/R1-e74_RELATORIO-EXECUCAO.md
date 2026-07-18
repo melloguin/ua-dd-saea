@@ -96,7 +96,47 @@ Sinalização de veto registrada no anchors.json (campo `nota`), no handoff (§8
 O e74 NÃO é gargalo de wall (ZDT1 8 min vs 3h55 do c238); a curva newrbe (s2, arquivo inteiro)
 cresceu 56→851 ms/fit no ZDT1 — gravada na §17.6.
 
-## 8. Incidentes / notas operacionais
+## 8. ⚠ DEFINIÇÕES EM ABERTO — TORRE: levantar com o autor (ping-pong de veto/ratificação)
+
+Nenhuma bloqueou o cartão (todas têm implementação em vigor, escolhida pela leitura mais
+conservadora da SPEC e sinalizada); mas são **decisões que o AUTOR precisa ratificar ou vetar**
+antes (ou junto) da validação de fidelidade em lote. Em caso de veto, o custo de mudança é
+baixo (1 arquivo cada; nenhum re-desenho).
+
+1. **Concretização da âncora `e74-ndsort-obj` (a mais importante).** A âncora descritiva dizia
+   `<NDSort sobre objetivos preditos>`; o implementado é **NDSort sobre os objetivos REAIS dos
+   pais** (`[y_label,~] = NDSort(y_obj_e74,inf)`, com `y_obj_e74` = 3º output read-only do
+   `Data_Process` que preserva o pareamento x_train↔objetivos). Racional: na `ClassifierSelect`
+   NÃO existe regressor (só o PNN, que prevê CLASSE — "objetivos preditos" é inimplementável
+   literalmente ali); nos pontos do arquivo predito ≡ real (newrbe interpola exato); e a
+   alternativa (re-sim do PNN) podia deixar o nível-1 VAZIO → crash novo em `randi`. **Perguntar:
+   ratifica a leitura "objetivos reais dos pais"?** (nota também gravada no próprio anchors.json).
+2. **Leitura do D74** ("min-max sobre o arquivo corrente"): implementado como **min-max do
+   FRONT-1 do arquivo** (Ymin/Ymax das :31-32 stock = ideal/nadir estimados, coerente com o
+   enunciado D69), **fixo por chamada** (comparabilidade entre os candidatos j do mesmo ciclo).
+   Alternativa rejeitada: min-max do arquivo INTEIRO (máximo de ponto dominado ≠ nadir).
+3. **③ do híbrido — `pred_tipo` POR LINHA** (`classe` p/ s1, `valor` p/ s2/s3/boot; a
+   estratégia vai no `modelo_flag`): o mock da §17.2 mostra UMA linha `hibrido` com as 2
+   cabeças, mas nenhuma linha do e74 REAL tem as duas ao mesmo tempo — fabricar μ p/ a pop do
+   s1 exigiria chamada de modelo que o mecanismo não faz. **`pred_tipo=hibrido` NÃO é emitido.**
+   Se o autor preferir aderência literal ao mock, decidir COMO preencher a cabeça ausente.
+4. **`sigma_0` = pseudo-σ POR ESTRATÉGIA** (s1=dist_dec · s2=HV_gain · s3=Eucli; semântica no
+   `sigma_dict` do manifesto, DEF-C4): as "3 colunas de pseudo-σ" da I.8 **não cabem** no schema
+   `sigma_0..sigma_{M-1}` quando M=2. O score CalHV absoluto do s2 foi p/ `pred_score`.
+5. **Cadência do ②** = a cadência REAL do `NotTerminated` stock (~4 bumps/ciclo: topo + 1 por
+   bloco; ZDT1 → 845 "gerações", 521k linhas de ② — ints, comprimem bem). Alternativa (1
+   bump/ciclo) exigiria suprimir chamadas do stock.
+6. **Fix opcional do desalinhamento máscara×Parent (re-sim do PNN) — NÃO aplicado** (o §22 o
+   marca "opcional"; K.5.2 o lista como [IMPL] — precedência §22 vence). Telemetria entregue:
+   `n_desalinhado` mediana 7–9%/ciclo; ZDT1 com 35× `dedup_slot_perdido` no s1 (o "no-op
+   silencioso" que a v2.2 previu). **Perguntar: mantém sem o fix (só telemetria) ou promove?**
+7. **Política dos edges degenerados = SÓ LOGAR** (decidido por mim sob "instrumentar, não
+   consertar"): `cand_vazio` (rank-learning sem nível-1 — 7× no MMF1), `hv_range0` (front-1
+   degenerado na norm D74 — 0 ocorrências s0; se disparar, os scores viram NaN e o `max` pega o
+   1º índice, determinístico). A SPEC chama o RefPoint degenerado de "edge não previsto no
+   paper = política nossa" SEM fixar a política — a vigente é "roda e loga". Ratificar.
+
+## 9. Incidentes / notas operacionais
 
 1. **Nenhum crash de MATLAB** nesta sessão (lotes curtos; saída por arquivo).
 2. O cwd do shell da sessão resetou 1× entre comandos (accept rodou de `~` e falhou "No such

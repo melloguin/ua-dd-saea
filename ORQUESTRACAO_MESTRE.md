@@ -105,7 +105,9 @@ M3 fan-out MATLAB (9 cartões) ............... 🟡 EM CURSO — herda o fix D89
    Fidelidade em LOTE ...................... 🟡 dossiê MATERIALIZADO em `DOSSIE_FIDELIDADE_R1.md` (esqueleto vivo, cresce por cartão; escopo ampliado pelo autor 2026-07-17: +auditoria 9→10 p/ todos, +disparo forçado de guardas, +smoke semente 42)
    (∥ possível: M4/R2-00 na VM — zero interferência)
    ✅ D6 doc-sync EXECUTADO (2026-07-17): SPEC n_empates→n_contradicoes (2 pontos) + carimbo Balde C no Anexo K b4 + bundles regenerados (diff auditado: SÓ os 3 esperados). BÔNUS: consertado bug do gen_bundles.py (OUT aninhado — regen in-place seguro agora; rmtree limitado às 6 pastas geradas).
-M4 R2-00-harness (BoTorch/VM) ............... ⬜ pode ir ∥ (na VM)
+M4 R2-00-harness (BoTorch, NO MAC) .......... ✅ VERIFICADO torre 2026-07-17 (∥ c238, faixas limpas; gate 15/15 ×2; smoke GCS 0 resíduo; bateria completa verde) — ⏳ AGUARDANDO COMMIT (sinal do autor; 2 commits: código + fix do teste F0-03 c/ sign-off)
+   R2-c262 (qNEHVI) ........................ ⬜ DESBLOQUEADO (herda o harness; pode ∥ c238 APÓS o commit do R2-00)
+   R2-c154 (JES) ........................... ⬜ (após c262)
 M2 R1-00-harness / R1-c217 ................. ⬜
 M3 b1 b3 b4 e7 c141 e74 c238 e103 pisos .... ⬜×9
 M4 R2-00 / c262 / c154 ..................... ⬜×3

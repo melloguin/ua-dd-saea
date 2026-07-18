@@ -78,14 +78,22 @@ class TestGCS(unittest.TestCase):
         self.assertIsNotNone(plan2["surrogate"]["blob"])
 
     def test_import_lazy_client_falha_clara_sem_lib(self):
-        # No Mac a lib de gcs é ausente → _client levanta RuntimeError claro
-        # (nunca um ImportError cru). Se a lib existir (VM), pulamos.
+        # Sem a lib de gcs no env → _client levanta RuntimeError claro (nunca
+        # um ImportError cru). Se a lib existir (env R2+/VM — o stack do R2-00
+        # a inclui no env-main), pulamos: nada a afirmar.
+        # [R2-00-harness] o skipTest ficava DENTRO do try e o `except Exception`
+        # engolia o SkipTest (que herda de Exception) → falha espúria assim que
+        # a lib foi instalada; o intent (skip com lib presente) é o mesmo.
         try:
             import google.cloud.storage  # noqa: F401
-            self.skipTest("google-cloud-storage presente (VM) — nada a afirmar")
-        except Exception:  # noqa: BLE001
-            with self.assertRaises(RuntimeError):
-                self.gcs._client()
+            have_lib = True
+        except ImportError:
+            have_lib = False
+        if have_lib:
+            self.skipTest("google-cloud-storage presente (env R2/VM) — "
+                          "nada a afirmar")
+        with self.assertRaises(RuntimeError):
+            self.gcs._client()
 
 
 # ── src.budget (numpy) ──────────────────────────────────────────────────────

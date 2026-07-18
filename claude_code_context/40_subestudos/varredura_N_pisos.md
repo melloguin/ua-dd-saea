@@ -19,7 +19,13 @@
 
 **Protocolo de FE dos pisos [DECIDIDO — precedente ParEGO/Knowles]:** o MOEA puro gasta FE de forma "gulosa" (avalia a população inteira por geração). Como orçamento e (população × gerações) são amarrados, a única decisão é **o tamanho da população** (as gerações são derivadas: `= K ÷ população`). O precedente canônico é o ParEGO: roda NSGA-II puro no mesmo orçamento minúsculo, **reduzindo a população** (para 20, escolhida por varredura de 10–50 para dar ao baseline sua melhor chance). Aplicado aqui:
 - Mesmo orçamento dos SA-MOEA: `maxFE = 31D−1` (§5.1).
-- **População pequena (~20–25), calibrada no piloto de timing** (varredura curta que dá ao piso a melhor chance — vira frase de método defensável).
+- **População `N = 20` — CRAVADO [decisão do autor, 2026-07-18; supersede o "~20–25 calibrada no piloto" desta linha].** A D65 havia superseditado tanto o "100" (§6.3) quanto o "~20" (§6.4/§3.2) delegando o valor à varredura pré-registrada, mas essa varredura é o cartão `SUB-varN`, que **depende-de `R1-pisos`** — o piso precisa existir antes de ser varrido. Para desatar a circularidade, o autor cravou **N=20** como o valor em vigor. **Justificativa (4 pontos, defensável em banca):**
+  1. **Precedente canônico** — é exatamente o valor do **Knowles/ParEGO**, que varreu 10–50 e elegeu 20 para o NSGA-II puro sob orçamento minúsculo; é o precedente literário que este protocolo já declara seguir.
+  2. **Interseção das fontes vivas** — 20 é o **único** valor que satisfaz ao mesmo tempo a faixa `~20–25` desta seção e o conjunto pré-registrado `{10,20,30,50}` da D65 ⇒ o cravamento **não introduz um valor novo**, apenas elege o ponto comum.
+  3. **Viabilidade em todo o grid** — `20 ≤ 11D−1` para todo `D≥2` (o menor DoE é 21, em D=2) ⇒ roda nos 25 problemas **sem teto anti-crash**. Já `N=100` é **infactível** em D=2 (população 100 > DoE de 21 pontos; 20D=40 infills não fecham uma geração) e degenerado no resto (2–6 gerações).
+  4. **Densidade de gerações** — rende 2 gerações no pior caso (D=2), 12 no DTLZ2 (D=12) e 30 no ZDT1 (D=30): evolução real em todo o grid, sem colapsar a diversidade populacional (que `N=10` comprometeria, sobretudo nos vetores de referência de NSGA-III/MOEA-D em M=3).
+
+  A varredura da D65 (`SUB-varN`) **reconfirma ou substitui** este valor antes da bateria; se eleger 20 para alguma faixa de D, os runs do `R1-pisos` já são os definitivos.
 - **Semeada do DoE compartilhado** (§5.2): parte dos mesmos `11D−1` pontos LHS, iniciando a evolução com os melhores por não-dominância. **[v5.2 — D88] Desempate quando a fronteira-1 do DoE excede a população: crowding distance, determinístico** (o critério nativo do NSGA-II) — dois runs da mesma semente selecionam o mesmo subconjunto.
 - Mesmas 30 sementes. Custo trivial (não treina GP).
 
@@ -38,7 +44,8 @@
 | c122 θ-DEA-DP | **11 (M=2) / 15 (M=3)** | nº de vetores de decomposição do paper (estrutural) |
 | c141 MMRAEA | **min(100, 11D−1)** por subpopulação | evita crash em D≤4 (ES_PDR.m:20); paper = 50/subpop |
 | e74 CLMEA | **min(100, \|Arc\|)** | evita crash; init nativo 100/200 |
-| b1, b3, e7, c238, e103, pisos | **100** | default PlatEMO (c238/e103: default do próprio código do autor); o paper não prescreve outro valor load-bearing |
+| b1, b3, e7, c238, e103 | **100** | default PlatEMO (c238/e103: default do próprio código do autor); o paper não prescreve outro valor load-bearing |
+| **pisos ONLINE** (NSGA-II/III, MOEA/D, SMS-EMOA) | **20** | **[CRAVADO 2026-07-18 — supersede o "100" desta linha]** protocolo Knowles/ParEGO: sob orçamento mínimo o piso se calibra REDUZINDO a população (gerações = 20D ÷ N). Justificativa completa em **§3.2**. `N=100` é infactível em D=2 (pop > DoE de 21) e degenerado no resto. Reconfirmado pela varredura D65 (`SUB-varN`) antes da bateria |
 | c262, c154, e81, c149 (BO) | **—** | sem N populacional; init/pop internos definidos nas linhas específicas (§6.4) |
 
 **Consequência em M=3 (aceita):** com N=100, o NBI de b1/b3/e7 gera **91 vetores** (não 105) → no K-RVEA, δ=0,05·91≈4,55. Aceito (não micro-gerenciamos para 105). Todos os N efetivos vão para a dissertação.

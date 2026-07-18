@@ -117,9 +117,10 @@
       "kriging": "regpoly1, θ0=10, [1e-3,1e3]"
     },
     "pisos_online": {
-      "N": "~20-25 calibrado no piloto (precedente ParEGO/Knowles)",
+      "N": "20 (CRAVADO 2026-07-18) — protocolo Knowles/ParEGO; e o ponto comum entre a faixa ~20-25 (§3.2/§6.4) e o conjunto pré-registrado {10,20,30,50} da D65. Justificativa em 4 pontos no §3.2. Gerações = 20D ÷ N (o DoE 11D-1 já foi gasto) ⇒ 2 (D=2) a 30 (D=30). Reconfirmado/substituído pela varredura D65 (cartão SUB-varN) antes da bateria.",
       "MOEAD_type": "1 (PBI) explícito",
-      "SMS_EMOA": "puro (não -MA)"
+      "SMS_EMOA": "puro (não -MA)",
+      "N_nota_supersede": "supersede o '100' do §6.3 (infactível em D=2: pop 100 > DoE de 21 pontos) e o '~20-25 calibrado no piloto'. NSGA-III/MOEA-D reajustam N via UniformPoint (lattice) — o N EFETIVO vai no manifesto do run."
     },
     "moead_media": {
       "impl": "DESDEO mode 12 (D77)",

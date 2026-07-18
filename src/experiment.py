@@ -129,6 +129,8 @@ _DISPATCH_LOADERS: dict[str, tuple[str, str, str]] = {
     # stubpy = run-STUB transversal do R2-00 (prova de encanamento do contrato
     # N.1; NÃO é config do estudo — o token `stub` é o STUB MATLAB do R1-00).
     'stubpy': ('src.botorch_harness', 'run_stubpy', 'botorch'),
+    # [R2-c262] qNEHVI (qLogNEHVI, BoTorch OFICIAL 0.18.1) sobre o harness R2-00.
+    'c262': ('src.c262_qnehvi', 'run_c262', 'botorch'),
 }
 
 

@@ -101,13 +101,13 @@ M3 fan-out MATLAB (9 cartões) ............... 🟡 EM CURSO — herda o fix D89
    Sessão A: b1+e7 ......................... ✅ (verif. torre 2026-07-17: 24 gates verdes; adversarial 4/4 CONFIRMED — writer-fix O(n) equivalente, sombra DRLOS real+neutralizada, patches b1/e7 conformes, dropout 0,1 = mandato D30; armadilha EvolEI evitada; comportamento saudável: b1 ZDT1 melhora 136× / e7 gatilho dual vivo 152:48)
    c238-EIM (solo, classdef N.5) ........... ✅ VERIFICADO torre 2026-07-18 (28/28 gates; adversarial 2C+1P; parquets recomputados do zero exatos; comportamento 9/10; sombra REVERSA + onCleanup = padrão novo; ZDT1 3h55 = pior-caso R1 → M7)
    pisos (nsga2/nsga3/moead/smsemoa) ....... ✅ VERIFICADO torre 2026-07-18 (40 gates verdes; regen no-op; RÉGUA: SA-vantagem cresce c/ D — 1/7→2/7→6/7 batem o melhor piso; N=20 CRAVADO pelo autor [provisório, SUB-varN reconfirma]; ⚠ pendências: pisos fora do roster do experiments.m [integração M7/M8] + adversarial da torre em curso; ⚠ PROCESSO: a sessão editou SPEC+bundles fora da faixa [sancionado pelo autor, executado com cuidado — regra reforçada: SPEC é da torre])
-   Sessão C: e74 (solo; árvore 4.1, N.0-4.1) ⬜ (⚠ ALTO risco de sombra de path — árvore inteira duplicada; aplicar lição DRLOS)
+   e74-CLMEA (solo, árvore 4.1) ............ ✅ VERIFICADO torre 2026-07-18 (24 gates; isolamento PROVADO: 518 basenames colidentes, prova c217→e74→nsga2→b3 mesmo processo; 5 vetos p/ autor; adversarial em curso; wall ZDT1 485s — NÃO é gargalo)
    Sessão D: e103 (solo; offline, D93) ..... ⬜
    Fidelidade em LOTE ...................... 🟡 dossiê MATERIALIZADO em `DOSSIE_FIDELIDADE_R1.md` (esqueleto vivo, cresce por cartão; escopo ampliado pelo autor 2026-07-17: +auditoria 9→10 p/ todos, +disparo forçado de guardas, +smoke semente 42)
    (∥ possível: M4/R2-00 na VM — zero interferência)
    ✅ D6 doc-sync EXECUTADO (2026-07-17): SPEC n_empates→n_contradicoes (2 pontos) + carimbo Balde C no Anexo K b4 + bundles regenerados (diff auditado: SÓ os 3 esperados). BÔNUS: consertado bug do gen_bundles.py (OUT aninhado — regen in-place seguro agora; rmtree limitado às 6 pastas geradas).
 M4 R2-00-harness (BoTorch, NO MAC) .......... ✅ VERIFICADO torre 2026-07-17 (∥ c238, faixas limpas; gate 15/15 ×2; smoke GCS 0 resíduo; bateria completa verde) — ⏳ AGUARDANDO COMMIT (sinal do autor; 2 commits: código + fix do teste F0-03 c/ sign-off)
-   R2-c262 (qNEHVI) ........................ ⬜ DESBLOQUEADO (herda o harness; pode ∥ c238 APÓS o commit do R2-00)
+   R2-c262 (qNEHVI) ........................ ✅ VERIFICADO torre 2026-07-18 (gates ×3; 1º/13 nos 3 problemas — o melhor do set; achado S.3#9 fused-kernel + remédio DEF-L2; 10 defs p/ autor; ZDT1 4h11→~5,2 dias·core M7)
    R2-c154 (JES) ........................... ⬜ (após c262)
 M2 R1-00-harness / R1-c217 ................. ⬜
 M3 b1 b3 b4 e7 c141 e74 c238 e103 pisos .... ⬜×9

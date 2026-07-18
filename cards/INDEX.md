@@ -25,7 +25,7 @@
 | R1-c141 | MMRAEA (porte 3 linhas) | R1-00 | …/alg_c141_mmraea | ✅ |
 | R1-e74 | CLMEA (**árvore 4.1 própria, N.0-4.1 — D95**; worker dedicado) | R1-00 | …/alg_e74_clmea | ✅ |
 | R1-c238 | EIM (embrulho classdef N.5) | R1-00 | …/alg_c238_eim | ✅ |
-| R1-e103 | IBEA-MS offline (**centros √n_dataset — D93**; worker dedicado) | R1-00 | …/alg_e103_ibeams | ⬜ |
+| R1-e103 | IBEA-MS offline (**centros √n_dataset — D93**; worker dedicado) | R1-00 | …/alg_e103_ibeams | ✅ |
 | R1-pisos | NSGA-II/III, MOEA/D, SMS-EMOA (MOEAD type=1) | R1-00 | …/alg_pisos_online | ✅ |
 
 ## Rodada 2 — BoTorch (VM Vertex; ∥ com R1)

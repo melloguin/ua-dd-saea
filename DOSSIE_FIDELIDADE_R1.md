@@ -3,8 +3,7 @@
 > **O que é.** O material de apoio para a validação de fidelidade MANUAL do autor (D97), em LOTE,
 > ao fim da onda MATLAB — decisão autor+torre de 2026-07-17. **A torre PREPARA a evidência; o
 > VEREDITO é do autor** (a assinatura "fidelidade validada" da dissertação é dele).
-> **Mantido pela torre**; cresce a cada cartão fechado. Estado: 🟡 ESQUELETO (preenchimento final
-> quando a onda fechar: falta c238, pisos, e74, e103).
+> **Mantido pela torre**; cresce a cada cartão fechado. Estado: 🟢 ONDA MATLAB COMPLETA (10/10 cartões) — falta a PREPARAÇÃO FINAL (itens 3/4/5) e o VEREDITO do autor.
 
 ## Escopo acordado (autor, 2026-07-17)
 
@@ -93,8 +92,33 @@ auditoria "9→10" (item 3) se o autor quiser fechar o ponto que falta.
 falhou em refutar). **Nota mantida: 9,5/10.** Caveat p/ o R4: dedup por `solution_id`, nunca pelo X
 float32 armazenado (colisões de cast provadas; o orçamento contou certo em float64).
 
-### e74 CLMEA · e103 IBEA-MS
-⬜ Aguardando os cartões fecharem.
+### e74 CLMEA
+- Guia (s0): DTLZ2 IGD+ 9,88e-2 (**4º/13, bate o melhor piso**) · ZDT1 9,64e-2 (6º/13, bate) · MMF1
+  6,26e-2 (10º — run minúsculo). Monotônico ×3. IGD_raw sessão: DTLZ2 1,177e-1 · ZDT1 9,64e-2.
+- Mecanismo: **as 3 estratégias em rotação PERFEITA 211/211/211** no ZDT1 (o ciclo do CLMEA visível);
+  dedup ε=1e-5 com 35 slots perdidos no s1 (o "no-op silencioso" previsto na v2.2 — telemetrado);
+  desalinhamento máscara×Parent ~8%/ciclo (fix opcional NÃO aplicado — só telemetria, decisão aberta).
+- **Isolamento = padrão-ouro do projeto:** 518 basenames colidentes; prova c217→e74→nsga2→b3 no MESMO
+  processo + asserts which. Nota torre: **9/10** (pende: veredito adversarial do desvio `ndsort-obj`
+  [reais vs "preditos"] + confronto mecanismo×paper). Wall leve (ZDT1 485s).
+
+### e103 IBEA-MS (OFFLINE — o 1º do regime)
+- **Regime offline PROVADO:** ① = o dataset (31D−1 bit-exato, CP com x_hash E f_hash — o CP mais forte
+  do set); ZERO FE na busca (violação = pára-e-loga armado, nunca disparou). O run MAIS LEVE da R1
+  (ZDT1 37s; 30 sementes ≈ 19 min/core).
+- Mecanismo: **o fix D93 DISCRIMINA de verdade** — KFlag=1 (Kriging líder) 99/99 gerações no ZDT1
+  (f₀=x₁ interpola exato, σ²~e-32) e 0/99 em MMF1/DTLZ2 (gate 3σ reprova → RBFN); o **decay dos
+  membros reais** instrumentado (ZDT1: 82→0, somem na g5 — o "erro de fantasia" em câmera lenta,
+  cruzável ③×①). Confronto com o paper no lote. Nota torre: **9,5/10**.
+- ⚠ âncora J (ZDT1 4,596e-3) NÃO comparável (setup do paper ≠). Decisão aberta: persistência da
+  avaliação REAL do ND final (§11/B7.5) — ANTES do R3.
+
+### R2 — c262 qNEHVI (fora da onda MATLAB, mesmo método de dossiê)
+- **O MELHOR do set: 1º/13 nos TRÊS problemas.** ZDT1 IGD+ **7,8e-4** (melhora 5.668×!), HV 0,875,
+  |ND|=345. Monotônico ×3. 22 cache-hits D89 no ótimo convergido (29/30 coords clampadas = convergência
+  real). Custo: busca domina (89–98%); ZDT1 4h11 → ~5,2 dias·core p/ 30 sementes (M7).
+- **Achado S.3#9:** o wheel OFICIAL 0.18.1 também embarca o kernel fusionado → remédio DEF-L2 (OFF
+  explícito) aplicado; replicado no c154. Nota torre: **9,5/10** (pende adversarial + lote).
 
 ## Como o autor vai usar (o método, igual ao c217)
 1. Curvas (item 1): convergência plausível? anomalias por contraste entre os 9?

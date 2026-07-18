@@ -1,12 +1,19 @@
-function x_candidate = ClassifierSelect(Problem, Arc, N, num_infill)
+function [x_candidate, inst_e74] = ClassifierSelect(Problem, Arc, N, num_infill)
 tr_xx = Arc.decs;
 tr_yy = Arc.objs;
-[x_train, y_train] = Data_Process(tr_xx, tr_yy, N, Problem.D);
+[x_train, y_train, y_obj_e74] = Data_Process(tr_xx, tr_yy, N, Problem.D);
 distance = pdist2(x_train,x_train);
 spr = max(max(distance))/sqrt(2*size(x_train,1));
+tfit_e74 = tic;               % [R1-e74] §17.6 (fit da PNN; nao altera decisao — D97)
 net_pnn = newpnn(x_train',ind2vec(y_train'),spr);
+tfit_e74 = toc(tfit_e74);
+tbusca_e74 = tic;
 Parent = x_train;
-[y_label,~] = NDSort(Parent,inf);
+% [R1-e74] e74-ndsort-obj (fidelidade 🔴 — ARTIGO/D30/D76): o rotulo inicial dos
+% pais e o nivel de nao-dominancia dos OBJETIVOS reais (y_obj_e74, alinhado a
+% x_train) — o stock rodava o ND-sort sobre os vetores de DECISAO (Parent), um
+% espaco sem relacao de dominancia (bug confirmado vs paper; S.2#confirmadas).
+[y_label,~] = NDSort(y_obj_e74,inf);
 y_label(y_label > 4) = 4;
 initial_1st = find(y_label == 1);
 initial_2nd = find(y_label <= 2);
@@ -36,4 +43,27 @@ if length(index)>=num_infill
 else
     x_candidate = Parent(index,:);
 end
+% [R1-e74] instrumentacao POS-decisao (leitura pura — D97; nada acima muda):
+% pop final da estrategia 1 + classe PNN por membro (re-sim de leitura, 0 FE) +
+% pseudo-σ s1 = dist minima em DECISAO ao arquivo (o criterio da selecao acima) +
+% telemetria do desalinhamento mascara(Offspring)×linhas(Parent) — o "fix
+% opcional re-sim" do bundle NAO e aplicado (D81): so medimos o efeito.
+tbusca_e74 = toc(tbusca_e74);
+classe_parent_e74 = vec2ind(sim(net_pnn,Parent'));
+dist_dec_e74 = min(pdist2(Parent, Arc.decs),[],2);
+if isempty(x_candidate)      % edge STOCK: loop sem nivel-1 -> candidato vazio
+    cand_classe_e74 = [];  cand_dist_e74 = [];
+else
+    cand_classe_e74 = vec2ind(sim(net_pnn,x_candidate'));
+    cand_dist_e74 = min(pdist2(x_candidate, Arc.decs),[],2);
+end
+inst_e74 = struct( ...
+    'count', count, 'frac_n1', sum(y_label==1)/numel(y_label), ...
+    'spr', spr, 'n_treino', size(x_train,1), ...
+    'tempo_fit_s', tfit_e74, 'tempo_busca_s', tbusca_e74, ...
+    'x_pop', Parent, 'classe_pop', classe_parent_e74(:), ...
+    'dist_dec', dist_dec_e74(:), ...
+    'n_desalinhado', sum(classe_parent_e74(:) ~= y_label(:)), ...
+    'cand_classe', cand_classe_e74(:), 'cand_dist', cand_dist_e74(:), ...
+    'flag_copia', any(cand_dist_e74 == 0));
 end

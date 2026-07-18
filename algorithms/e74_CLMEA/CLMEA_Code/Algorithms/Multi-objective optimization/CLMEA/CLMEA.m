@@ -30,8 +30,19 @@ classdef CLMEA < ALGORITHM
             elseif Problem.D >=100
                 N      = 200;
             end
-            PopDec     = UniformPoint(N,Problem.D,'Latin');
-            Arc        = Problem.Evaluation(repmat(Problem.upper-Problem.lower,N,1).*PopDec+repmat(Problem.lower,N,1));
+            % [R1-e74] Init = DoE 11D-1 INJETADO do artefato (D63/D87/D88) — NUNCA
+            % regenerar. X0 e NATIVO (load_doe): entra DIRETO na Evaluation — o par
+            % gera-LHS([0,1])+re-escala do stock (:33-34) e substituido JUNTO (o
+            % mesmo principio da D94; injetar so no RHS re-escalaria de novo).
+            % Desvio DELIBERADO do paper (init nativo = N = 100/200) — registrado.
+            % N (pop das estrategias) fica o stock 100/200; o teto min(N,|Arc|)
+            % nas 3 chamadas abaixo e o patch L.8 de D-baixo. Guarda do hazard
+            % L.8 "init em lote SEM check previo — se maxFE<=|init| estoura":
+            assert(Problem.maxFE > size(Problem.data.X0,1), ...
+                'e74: maxFE=%d <= |DoE|=%d — o init sozinho estoura o orcamento (L.8)', ...
+                Problem.maxFE, size(Problem.data.X0,1));
+            Arc        = Problem.Evaluation(Problem.data.X0);
+            Problem.FE = Problem.data.bud.fe;   % [R1-e74] sync D89 (obj.FE nao governa o termino)
             Algorithm.NotTerminated(Arc);
             %% Find extreme points
             % Select training sample point
@@ -40,43 +51,86 @@ classdef CLMEA < ALGORITHM
             ghxd=real(sqrt(x_train.^2*ones(size(x_train'))+ones(size(x_train))*(x_train').^2-2*x_train*(x_train')));
             D = size(x_train,2);
             spr = max(max(ghxd))/(D*size(x_train,1))^(1/D);
+            % [R1-e74] bootstrap de extremos = ATE M FEs reais (extremos ACEITOS no
+            % dedup ε — e o metodo, Alg. 1 do paper; contam no orcamento). DE roda
+            % 100% no surrogate (0 FE). Instrumentacao de leitura (D97) + §17.6.
+            boot_e74 = struct('aceitos', 0, 'rejeitados', 0, 'x_ext', [], ...
+                'f_ext', [], 'dist_ext', [], 'n_treino', size(x_train,1), ...
+                'spr', spr, 'tempo_fit_s', 0, 'tempo_busca_s', 0);
             for i = 1:Problem.M
                 % Construct a surrogate for the ith objective
+                t0_e74 = tic;
                 net = newrbe(x_train',y_train(:,i)',spr);    FUN = @(x) sim(net,x');
+                boot_e74.tempo_fit_s = boot_e74.tempo_fit_s + toc(t0_e74);
                 % Locate the optimum of the surrogate model
                 max_gen = 20*D;
-                [~,x_extreme,~] = DE(max_gen,FUN,D,Problem.upper,Problem.lower,epsilon);
-                if min(pdist2(x_extreme,Arc.decs))>epsilon
+                t0_e74 = tic;
+                [~,x_extreme,f_ext_e74] = DE(max_gen,FUN,D,Problem.upper,Problem.lower,epsilon);
+                boot_e74.tempo_busca_s = boot_e74.tempo_busca_s + toc(t0_e74);
+                dist_ext_e74 = min(pdist2(x_extreme,Arc.decs));
+                boot_e74.x_ext(end+1,:) = x_extreme;
+                boot_e74.f_ext(end+1) = f_ext_e74;
+                boot_e74.dist_ext(end+1) = dist_ext_e74;
+                if dist_ext_e74>epsilon
                     Arc = [Arc,Problem.Evaluation(x_extreme)];
+                    boot_e74.aceitos = boot_e74.aceitos + 1;
+                else
+                    boot_e74.rejeitados = boot_e74.rejeitados + 1;  % rejeitado SEM FE (slot perdido)
                 end
             end
+            Problem.FE = Problem.data.bud.fe;   % [R1-e74] sync D89
+            e74_instrument(Problem, 'boot', boot_e74, [], []);
             %% Iterative sampling optimization
+            % [R1-e74] L.8: Nw=min(N,length(Arc)) nas 3 chamadas (== min(100,|Arc|)
+            % p/ D<100 — anti-crash de D-baixo, D20) + k_local=min(20,|Arc|).
+            % Dedup ε=1e-5 STOCK: rejeita SEM gastar FE (slot perdido — logado).
+            % Sync D89 apos cada Evaluation; e74_instrument = leitura pura (D97).
+            % D60-c: ciclo sem consumir FE -> stall (SO loga saldo_congelado).
+            fe_stall_e74 = 0;
             while Algorithm.NotTerminated(Arc)
+                fe_ciclo0_e74 = Problem.data.bud.fe;
                 % 1: Classifier assisted infilling strategy
-                x_candidates1 = ClassifierSelect(Problem, Arc, N, num_infill);
+                [x_candidates1, inst1_e74] = ClassifierSelect(Problem, Arc, min(N,length(Arc)), num_infill);
                 Choose_index = min(pdist2(x_candidates1,Arc.decs),[],2)>epsilon;
                 if sum(Choose_index)>0
                     Arc = [Arc,Problem.Evaluation(x_candidates1(Choose_index,:))];
                 end
+                Problem.FE = Problem.data.bud.fe;   % [R1-e74] sync D89
+                e74_instrument(Problem, 's1', inst1_e74, x_candidates1, Choose_index);
                 if ~Algorithm.NotTerminated(Arc)
                     break;
                 end
-                
+
                 % 2: Hypervolume-based non-dominated pareto sort
-                x_candidates2 = Hv_Select(Problem, Arc, N, num_infill, Gen_max1);
+                [x_candidates2, inst2_e74] = Hv_Select(Problem, Arc, min(N,length(Arc)), num_infill, Gen_max1);
                 Choose_index = min(pdist2(x_candidates2,Arc.decs),[],2)>epsilon;
                 if sum(Choose_index)>0
                     Arc = [Arc,Problem.Evaluation(x_candidates2(Choose_index,:))];
                 end
+                Problem.FE = Problem.data.bud.fe;   % [R1-e74] sync D89
+                e74_instrument(Problem, 's2', inst2_e74, x_candidates2, Choose_index);
                 if ~Algorithm.NotTerminated(Arc)
                     break;
                 end
-                
+
                 % 3: Local search in objective space
-                x_candidates3 = Local_infill(Problem, Arc, num_infill, N, k_local, Gen_max2);
+                [x_candidates3, inst3_e74] = Local_infill(Problem, Arc, num_infill, min(N,length(Arc)), min(k_local,length(Arc)), Gen_max2);
                 Choose_index = min(pdist2(x_candidates3,Arc.decs),[],2)>epsilon;
                 if sum(Choose_index)>0
                     Arc = [Arc,Problem.Evaluation(x_candidates3(Choose_index,:))];
+                end
+                Problem.FE = Problem.data.bud.fe;   % [R1-e74] sync D89
+                e74_instrument(Problem, 's3', inst3_e74, x_candidates3, Choose_index);
+                % [R1-e74] D60-c (guarda de stall logico — SO LOGA; o watchdog
+                % externo e quem age): ciclo inteiro sem FE = as 3 estrategias
+                % rejeitadas no dedup ε (candidato ja no arquivo).
+                if Problem.data.bud.fe == fe_ciclo0_e74
+                    fe_stall_e74 = fe_stall_e74 + 1;
+                else
+                    fe_stall_e74 = 0;
+                end
+                if fe_stall_e74 >= 2
+                    e74_instrument(Problem, 'stall', struct('ciclos', fe_stall_e74), [], []);
                 end
                 if ~Algorithm.NotTerminated(Arc)
                     break;

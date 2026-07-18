@@ -48,6 +48,19 @@
   de 757k (**+3%**); implementação: gerador do artefato + hook em 10 instrumentadores `.m` + 2
   runners Python + check no accept (sonda presente/consistente).
 
+#### Dimensionamento da sonda (tamanho S × cadência k) — a aritmética p/ decisão do autor
+O autor sugeriu S=3000 por GERAÇÃO (k=1). O ganho estatístico satura e o custo de armazenamento
+explode — o erro-padrão do WAPE/cobertura cai com 1/√S, e a restrição vinculante é o VOLUME da
+bateria (16.500 runs; a estimativa atual do estudo já é 0,5–0,9 TB):
+| Opção | SE relativo | Volume extra estimado (bateria toda) | Nota |
+|---|---|---|---|
+| S=200, k=5 | ~7% | ~10 GB | o mínimo defensável |
+| **S=500, k=5 (recomendada)** | **~4,5%** | **~26 GB** | curva por época nítida, custo baixo |
+| S=1000, k=10 | ~3,2% | ~25 GB | mais precisão pontual, menos resolução temporal |
+| S=3000, k=1 | ~1,8% | **~770 GB — quase DOBRA o estudo** | ganho marginal ínfimo p/ o custo |
+(Sempre: 1ª e última geração incluídas independentemente de k. Runtime: mesmo S=3000 seria barato
+em CPU — a restrição é disco/bucket, não tempo.)
+
 ### A3 · Rótulo verdadeiro dos classificadores — análise R4 (pós-hoc, sem persistência nova)
 Com A1+A2: na sonda, por construção; nos pontos reais, derivado de ①+② (dominância vs arquivo da
 geração). Vira notebook do R4: acurácia/precision/recall/F1/AUC(confiança) por geração, comparando
@@ -114,3 +127,14 @@ restarts persistidos, documentar).
 | A2 | gerador (1×) + hook × 12 + nativo R3 + accept | <1% | +~3% da ③ |
 | B1–B3 | campos jsonl (padronização) | zero | ~KB/run |
 | A3/B4 | notebooks R4 (pós-hoc) | — | — |
+
+
+---
+
+## Anexo — mapeamento dos 4 incrementos planejados pelo autor (2026-07-18)
+| Incremento do autor | Onde cai | Quando |
+|---|---|---|
+| 1 · Mecanismo de RETRY (execuções quebram) | Despachante/esteira — o manifesto já tem `retried_ok` e a esteira é idempotente/resumível por desenho; falta o retry automático (n tentativas + backoff) no `_run_one`, integrado aos fixes dos 2 majors do R2-00 | **M7 (DI-06 ampliado)** — o consumidor é a bateria; pilotos não precisam |
+| 2 · Sonda LHS/Sobol p/ régua única de classificador/regressor | **É o A2 desta proposta** (com o dimensionamento acima — recomendação S=500/k=5, não 3000/k=1) | Contrato na janela documental; R3 nativo; retrofit R1/R2 ∥ R3 (faixa MATLAB ociosa) |
+| 3 · Logs suficientes p/ fidelidade? + resultados parciais p/ auditar ao vivo + tempos + BARRA DE PROGRESSO | Fidelidade de MECANISMO: os jsonl já são o "filme" (31 campos/iter no c238; auditados). Qualidade de SURROGATE: só com A1/A2. Resultados parciais: o jsonl JÁ streama por geração (best-f/fe/ramos) — padronizar no B1/B2 um registro-resumo por geração; NÃO flushar a ① parcial (quebraria a escrita atômica D58). Barra de progresso: `scripts/progress.py` da torre (lê jsonl/manifestos, read-only — tqdm-like por run + tabela do grid) | Resumo por geração: junto do B1/B2. `progress.py`: a torre pode construir a qualquer momento (read-only) |
+| 4 · Tabela-registro de execuções (grid × check × wall × retries) | JÁ EXISTE o esqueleto: `runs_matrix.csv` (o grid) + manifestos por run + `Scoreboard` (manifest.py). Falta: coluna de retries (vem do incremento 1) + a VIEW renderizada (o mesmo `progress.py`) | **M7** (junto do retry) |

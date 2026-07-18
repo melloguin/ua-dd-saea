@@ -183,6 +183,23 @@
   contrato pronto.
 - **Referências.** `handoff/R1-e103.md` §8; SPEC §11/B7.5.
 
+### DI-09 — 🟡 PROPOSTA (aguardando decisão do autor) — Instrumentação de assertividade dos surrogates
+- **Contexto.** Pergunta do autor (2026-07-18): temos dados p/ analisar erro dos surrogates (WAPE,
+  acurácia/recall na classificação) e a evolução do surrogate com as épocas, comparando os 16? A
+  torre DEMONSTROU nos dados reais: regressores JÁ analisáveis (c262 WAPE 0,0011 melhorando 6,2×;
+  e103 cobertura-1σ 50% = σ subestimado) MAS com contaminação in-sample (b3 "WAPE 0") e amostra
+  enviesada por algoritmo; classificadores SEM rótulo verdadeiro persistido.
+- **Proposta completa:** `PROPOSTA_DI-09_instrumentacao_surrogate.md` (raiz) — A1 marcador
+  in-sample (`fe_treino_max`, 🔴), A2 sonda canônica 200 pts Sobol c/ f verdadeiro (`regime='sonda'`,
+  🔴), A3 rótulo verdadeiro pós-hoc (R4), B1 hiperparâmetros/loss por refit, B2 tempos por fase,
+  B3 dist. do infill ao arquivo, B4 análises sem persistência nova (NLL/CRPS/sharpness/Kendall-τ/
+  contrafactual greedy-μ). NÃO propostos: genealogia de operadores (invasivo no stock), serialização
+  do modelo (GB+ sem pergunta).
+- **Sequenciamento proposto (mínimo retrabalho):** decisão agora → contrato na SPEC na MESMA janela
+  documental do DI-05/DI-08 (1 regen) + artefato da sonda → o R3 nasce nativo → retrofit dos 12
+  feitos no M7 (cartão DI-09-retrofit) + pilotos de validação → a bateria M8 já produz tudo.
+- **Status: aguardando decisão** (aprovar A1/A2/B1–B3 no todo ou por partes).
+
 ---
 
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)

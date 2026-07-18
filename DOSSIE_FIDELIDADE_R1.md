@@ -99,8 +99,16 @@ float32 armazenado (colisões de cast provadas; o orçamento contou certo em flo
   dedup ε=1e-5 com 35 slots perdidos no s1 (o "no-op silencioso" previsto na v2.2 — telemetrado);
   desalinhamento máscara×Parent ~8%/ciclo (fix opcional NÃO aplicado — só telemetria, decisão aberta).
 - **Isolamento = padrão-ouro do projeto:** 518 basenames colidentes; prova c217→e74→nsga2→b3 no MESMO
-  processo + asserts which. Nota torre: **9/10** (pende: veredito adversarial do desvio `ndsort-obj`
-  [reais vs "preditos"] + confronto mecanismo×paper). Wall leve (ZDT1 485s).
+  processo + asserts which. Wall leve (ZDT1 485s).
+- **Veredito adversarial da torre (2026-07-18): patches CONFIRMED; desvio `ndsort-obj` classificado
+  FIEL-EQUIVALENTE (não-violação)** — "preditos" só existia no placeholder do anchors.json; a SPEC
+  (precedência D83) manda "NDSort → objetivos"; o stock não tem regressor; o newrbe é interpolação
+  EXATA (predito≡real nos pontos do arquivo); o re-sim arriscava crash `randi(0)`. Parquets PARTIAL
+  (tudo confirmado — contabilidade 329+2+176+211+211=929 recomputada; ③ 0 violações em 63k linhas;
+  isolamento restaura o path INTEIRO, guard armado ANTES dos asserts) **com 1 CORREÇÃO quantitativa:
+  o desalinhamento máscara×Parent no ZDT1 é ~24,8%/ciclo (máx 91/100!) — não ~8% (o ~8% era só o
+  DTLZ2). ⚠ PONTO PRIORITÁRIO do seu julgamento: com ~25% de desalinhamento, o fix opcional do
+  re-sim (não aplicado) merece sua atenção no lote.** Nota torre: **9/10** (mantida).
 
 ### e103 IBEA-MS (OFFLINE — o 1º do regime)
 - **Regime offline PROVADO:** ① = o dataset (31D−1 bit-exato, CP com x_hash E f_hash — o CP mais forte
@@ -117,8 +125,15 @@ float32 armazenado (colisões de cast provadas; o orçamento contou certo em flo
 - **O MELHOR do set: 1º/13 nos TRÊS problemas.** ZDT1 IGD+ **7,8e-4** (melhora 5.668×!), HV 0,875,
   |ND|=345. Monotônico ×3. 22 cache-hits D89 no ótimo convergido (29/30 coords clampadas = convergência
   real). Custo: busca domina (89–98%); ZDT1 4h11 → ~5,2 dias·core p/ 30 sementes (M7).
-- **Achado S.3#9:** o wheel OFICIAL 0.18.1 também embarca o kernel fusionado → remédio DEF-L2 (OFF
-  explícito) aplicado; replicado no c154. Nota torre: **9,5/10** (pende adversarial + lote).
+- **Achado S.3#9 CONFIRMADO adversarialmente:** o wheel oficial CONTÉM o `logei_fused.cpp`
+  (byte-identidade instalado×wheel VERIFICADA: sha256 dos 494 arquivos do RECORD, 0 divergências);
+  o desligamento DEF-L2 é efetivo (`_load_attempted=True` + `_C=None` antes de qualquer acqf). ⚠ é
+  estado POR PROCESSO → todo runner BoTorch repete a política (c154 já instruído; despachante M8 idem).
+- **Parquets PARTIAL (precisões, 0 defeitos):** contabilidade FE recomputada FECHA (929 = 329 init +
+  622 iters − 22 cache-hits); os 22 hits = canto de Pareto x=(1,0,…) bit-exato (D89 legítimo); a ③
+  tem 9 NULLs/geração por DESENHO (restarts não-escolhidos) + 1 do hard-stop; curva n^2,28 (ZDT1) e
+  n^1,97 (DTLZ2) — MMF1 plano (overhead, esperado). Nota p/ análise: corr(mu_1,f1) fraca no MMF1
+  multimodal (−0,155; orientação correta) — qualidade preditiva, não bug. Nota torre: **9,5/10**.
 
 ## Como o autor vai usar (o método, igual ao c217)
 1. Curvas (item 1): convergência plausível? anomalias por contraste entre os 9?

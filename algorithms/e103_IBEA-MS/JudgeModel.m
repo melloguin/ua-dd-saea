@@ -29,8 +29,14 @@ function KFlag = JudgeModel(Population, MSE)
         selectid = (I(:,:,objid)>MSEI(:,:,objid));
         site(:,:,objid)  = selectid;
     end
-    Msite = (sum(site,3)>=(M-1));
-    
+    % [R1-e103 · ancora e103-judgemodel 🔴 D30/ARTIGO] excluir os pares i==j
+    % do teste: na diagonal I=0 e MSEI=6*sqrt(MSE_i) -> com QUALQUER MSE_i>0 o
+    % par i==i reprovava (site=0) e o all(all(Msite)) zerava -> KFlag=1
+    % rarissimo (vies estrutural pro-RBFN — S.2-e103). O OR com a identidade
+    % equivale ao `Msite(logical(eye(N)))=true` sugerido no S.2-e103 (a
+    % comparacao de um individuo consigo mesmo nao informa ORDEM nenhuma).
+    Msite = (sum(site,3)>=(M-1)) | logical(eye(N));
+
     if all(all(Msite))
         %%% All the The objective values ​​of the individual pairs do not differ by more than 3*RMSE
         %%% The Kriging models are selected

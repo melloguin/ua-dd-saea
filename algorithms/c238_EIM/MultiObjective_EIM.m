@@ -37,7 +37,7 @@ GP_obj = cell(1,num_obj);
 index = Paretoset(sample_y);
 non_dominated_front = sample_y(index,:);
 non_dominated_front_scaled = sample_y_scaled(index,:);
-hypervolume = Hypervolume(non_dominated_front,ref_point);
+% [R1-c238] chamada ao mex Hypervolume removida (Windows-only — c238-hypervolume-rm)
 % print the hypervolume information
 fprintf('EIM on %d-D %s function, iteration: %d, evaluation: %d, hypervolume: %0.2f \n',num_vari,fun_name,iteration,evaluation,hypervolume);
 % beginning of the iteration
@@ -61,7 +61,7 @@ while evaluation < max_evaluation
     index = Paretoset(sample_y);
     non_dominated_front = sample_y(index,:);
     non_dominated_front_scaled = sample_y_scaled(index,:);
-    hypervolume = Hypervolume(non_dominated_front,ref_point);
+    % [R1-c238] chamada ao mex Hypervolume removida (Windows-only — c238-hypervolume-rm)
     % print the hypervolume information
     fprintf('EIM on %d-D %s function, iteration: %d, evaluation: %d, hypervolume: %0.2f\n',num_vari,fun_name,iteration,evaluation,hypervolume);
 end

@@ -1,4 +1,7 @@
-function [best_x,best_y] = Optimizer_GA(obj_fun,num_vari,lower_bound,upper_bound,pop_size,max_gen)
+function [best_x,best_y,pop_vari,pop_fitness] = Optimizer_GA(obj_fun,num_vari,lower_bound,upper_bound,pop_size,max_gen)
+% [R1-c238] saidas extras pop_vari/pop_fitness = pop FINAL do GA (DEF-C2: a
+% populacao final do otimizador de aquisicao por iteracao de BO) — instrumentacao
+% so-leitura; selecao/operadores/decisoes ficam INTACTOS.
 % the internal optimization using genetic algorithm
 % the number of current generation
 generation = 1;

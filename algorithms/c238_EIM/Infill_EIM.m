@@ -1,4 +1,6 @@
-function y = Infill_EIM(x,kriging_obj,non_dominated_front,criterion)
+function [y,u,s,n_nan] = Infill_EIM(x,kriging_obj,non_dominated_front,criterion)
+% [R1-c238] saidas extras u,s (ja computadas em :7-11) e n_nan — instrumentacao
+% so-leitura (L.9/DEF-C2); o criterio y e as decisoes ficam INTACTOS.
 % you can choose criterion as 'Euclidean', 'Maximin', or 'Hypervolume'
 num_x = size(x,1);
 % number of non-dominated points,number of objectives
@@ -13,6 +15,11 @@ u_matrix = repelem(u,num_pareto,1);
 s_matrix = repelem(s,num_pareto,1);
 f_matrix = repmat(non_dominated_front,num_x,1);
 EIM = (f_matrix - u_matrix).*normcdf((f_matrix - u_matrix)./s_matrix) + s_matrix.*normpdf((f_matrix - u_matrix)./s_matrix);
+% [R1-c238] guard [IMPL do cartao c238]: s=0 em ponto de treino & f=u -> 0/0=NaN
+% na matriz EIM; NaN=0 (sem melhoria esperada — bundle alg_c238_eim). Contado em
+% n_nan p/ o evento `eim_nan` do .jsonl (§17.5) — logado, nunca silencioso.
+n_nan = nnz(isnan(EIM));
+EIM(isnan(EIM)) = 0;
 switch criterion
     case 'Euclidean'
         y = min(reshape(sqrt(sum(EIM.^2,2)),[num_pareto,num_x]))';

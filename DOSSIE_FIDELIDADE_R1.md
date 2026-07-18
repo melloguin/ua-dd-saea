@@ -72,7 +72,21 @@ auditoria "9→10" (item 3) se o autor quiser fechar o ponto que falta.
   livro-texto; ranking no perfil esperado; o ponto que falta = confronto mecanismo×paper + os 2 pontos acima).
 - ⚠ custo: ZDT1 3h55/run → ~118 h/core p/ 30 sementes (M7).
 
-### pisos · e74 CLMEA · e103 IBEA-MS
+### pisos ONLINE (nsga2 · nsga3 · moead type=1 · smsemoa) — A RÉGUA do estudo
+- **N=20 CRAVADO pelo autor (2026-07-18, provisório até o SUB-varN):** o bundle não pinava N e a
+  cadeia era circular (SUB-varN depende de R1-pisos); cravado 20 = valor do Knowles/ParEGO ∩ faixa
+  ~20–25 ∩ conjunto {10,20,30,50} da D65; N=100 era infactível em D=2 (pop>DoE de 21). SPEC/§3.2
+  tem a justificativa em 4 pontos; a varredura D65 reconfirma ou substitui antes da bateria.
+- **Comportamento: monotônico nos 12 runs** (4 pisos × 3 problemas); smsemoa = o piso mais forte
+  (2/3 problemas — seleção por HV, esperado); moead o mais fraco no ZDT1 (1,89 — N=20 em D=30).
+- **🔬 A RÉGUA (o achado central p/ a dissertação):** SA-MOEAs que batem o MELHOR piso:
+  **MMF1 (D=2): 1/7** (só o b1) · **DTLZ2 (D=12): 2/7** (c141, b1) · **ZDT1 (D=30): 6/7** (todos
+  menos o c217). **A vantagem do surrogate CRESCE com a dimensão/pressão de orçamento — exatamente
+  a tese da literatura SA-MOO.** O c217 abaixo dos pisos no ZDT1 é o caveat já aceito (surrogate
+  majoritariamente inativo em δ=0.8). Em D=2 com 61 FE, MOEA puro com N=20 é competitivo (achado
+  conhecido). Guias: melhor piso MMF1 smsemoa=4,86e-2 · DTLZ2 smsemoa=1,43e-1 · ZDT1 nsga2=6,12e-1.
+
+### e74 CLMEA · e103 IBEA-MS
 ⬜ Aguardando os cartões fecharem.
 
 ## Como o autor vai usar (o método, igual ao c217)

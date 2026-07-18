@@ -67,6 +67,17 @@ function [status, info] = experiment(alg, problema_id, semente, exp, dataRoot)
             % no MESMO padrao do caso-modelo c217 (DoE injetado D63/D87;
             % FEBudget/ponte D89/D61; ancora c238-hypervolume-rm aplicada).
             [status, info] = run_c238(alg, problema_id, semente, exp, dataRoot);
+        case {'nsga2', 'nsga3', 'moead', 'smsemoa'}
+            % R1-pisos: os 4 PISOS ONLINE (NSGA-II, NSGA-III, MOEA/D type=1,
+            % SMS-EMOA puro) — MOEAs STOCK do PlatEMO 4.15, SEM surrogate, que
+            % sao a REGUA (baseline) do estudo (§3.2/D25). Mesmo padrao do
+            % caso-modelo c217, com DUAS especificidades do cartao:
+            %   (a) semeadura §3.2/D88 — a evolucao parte dos MELHORES N do DoE
+            %       por nao-dominancia + crowding distance (deterministico);
+            %   (b) sem surrogate => ③ VAZIA e serie §17.6 VAZIA (S.7: o .jsonl
+            %       dos pisos e so o minimo comum).
+            % ZERO patch no PlatEMO: os pisos sao stock POR DESIGN.
+            [status, info] = run_piso(alg, problema_id, semente, exp, dataRoot);
         otherwise
             % Algoritmos reais (b1,b3,b4,e7,c217,c141,e74,c238,e103,pisos):
             % o corpo PlatEMO (UserProblem + Solve) e o cartao R1-c217+.
@@ -1419,6 +1430,308 @@ function rmpath_quiet(d)
     w = warning('off', 'MATLAB:rmpath:DirNotFound');
     try, rmpath(d); catch, end
     warning(w);
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
+%  RUN-PISO (os 4 PISOS ONLINE: NSGA-II, NSGA-III, MOEA/D type=1, SMS-EMOA) —
+%  MOEAs STOCK do PlatEMO 4.15, SEM surrogate. Sao a REGUA do estudo (§3.2/D25):
+%  respondem "o surrogate compra alguma coisa, afinal?". UM runner para os 4 —
+%  eles diferem SO na classe PlatEMO e no 'parameter' (piso_spec).
+%
+%  O que os pisos herdam do caso-modelo c217 (receita N.0): ponte, load_doe,
+%  FEBudget ANTES do Problem, rng DEPOIS do Problem, save=-K + outputFcn,
+%  try/catch PlatEMO:Termination, export das 4 camadas, CP-init, falha honesta.
+%
+%  O que e ESPECIFICO deste cartao (e NAO existe nos 7 fan-outs anteriores):
+%   (a) SEMEADURA §3.2/D88 — o piso e MOEA puro: nao tem arquivo de surrogate
+%       para absorver as 11D-1 do DoE. O protocolo Knowles manda partir dos
+%       MESMOS pontos, iniciando a evolucao com os MELHORES por nao-dominancia,
+%       desempate por CROWDING DISTANCE deterministico (o criterio nativo do
+%       NSGA-II) — dois runs da mesma semente escolhem o mesmo subconjunto.
+%   (b) SEM SURROGATE => tabela ③ VAZIA + serie §17.6 VAZIA (bundle dos pisos);
+%       o .jsonl e so o MINIMO COMUM (S.7, ultima linha) — sem pisos_instrument.
+%   (c) SYNC D89 no hook (ver piso_hook) — aqui e OBRIGATORIO por um motivo a
+%       mais que nos outros: o Solve ZERA pro.FE, mas o DoE ja foi gasto FORA
+%       dele.
+%  ZERO patch no PlatEMO: pisos nao tem patch de fidelidade POR DESIGN.
+% ════════════════════════════════════════════════════════════════════════════
+
+function [status, info] = run_piso(alg, problema, semente, exp, dataRoot)
+    status = "failed";
+    info = struct();
+    ROOT = harness_root();
+    spec = piso_spec(alg);
+
+    % Arvore PlatEMO 4.15 no path (N.0.1) — rede p/ chamada direta.
+    ensure_paths_piso(ROOT, spec.classe);
+
+    % (0) PONTE: repo-root no sys.path; importa src.* (A2/§2/§18).
+    ctx = bridge_ctx(ROOT);
+
+    % (1) Problema Python via ponte -> D, M, bounds NATIVOS (§5.5).
+    pp = py_problem(ctx, problema);
+    D = pp.D; M = pp.M; xl = pp.xl(:).'; xu = pp.xu(:).';
+    maxfe = 31*D - 1;  n_init = 11*D - 1;
+
+    % N = 20 CRAVADO (§3.2/§6.3/§6.4 + adendo D65, 2026-07-18). O piso se
+    % calibra REDUZINDO a populacao (Knowles/ParEGO): geracoes = 20D ÷ N.
+    % NSGA-III e MOEA/D reajustam N pelo lattice do UniformPoint (M=3, N=20 ->
+    % 15) — o N EFETIVO e lido do Problem APOS o Solve e vai no manifesto
+    % (precedente §6.3: "todos os N efetivos vao para a dissertacao").
+    N_nominal = 20;
+
+    % (2) DoE 11D-1 do artefato (D63/D87) — CARREGADO, NUNCA regenerado.
+    doe = load_doe(problema, semente, D, dataRoot);
+    X0  = doe.X;                                   % n_init x D (float64, nativo)
+    assert(size(X0,1) == n_init, 'DoE tem %d linhas != 11D-1=%d', size(X0,1), n_init);
+    % CP-bounds (§5.5): bounds do problema == sidecar do DoE (identidade nativa).
+    assert(max(abs(xl(:)-doe.xl(:)))==0 && max(abs(xu(:)-doe.xu(:)))==0, ...
+           'CP-bounds: bounds do problema != sidecar do DoE');
+
+    % (3) .jsonl (§17.5) + wrapper de FE (FEBudget) com o logger acoplado.
+    jsonl  = nm_jsonl_path(exp, alg, problema, semente, dataRoot);
+    fid    = jsonl_open(jsonl);
+    logger = struct('guard', @(name, varargin) ...
+                    jsonl_line(fid, 'guard', [{'name'}, {name}, varargin]));
+    bud = FEBudget(D, maxfe, n_init, logger);
+    buf = RunBuffer();
+    jsonl_line(fid, 'header', {'alg', string(alg), 'problema', string(problema), ...
+        'semente', semente, 'D', D, 'M', M, 'regime', "online", 'maxfe', maxfe, ...
+        'doe_hash', string(doe.hash), 'algo', spec.algo_version, ...
+        'piso', true, 'surrogate', false, ...
+        'principio', spec.principio, 'casamento', spec.casamento, ...
+        'N_nominal', N_nominal, ...
+        'N_origem', "20 CRAVADO 2026-07-18 (Knowles/ParEGO; ponto comum entre ~20-25 do §3.2 e {10,20,30,50} da D65; varredura SUB-varN reconfirma)", ...
+        'seeding', "melhores N das 11D-1 do DoE por NDSort + CrowdingDistance (§3.2/D88, deterministico)", ...
+        'operadores', "Balde C: SBX proC=1 dis_c=20 + PM proM=1 dis_m=20 (defaults OperatorGA do PlatEMO)"});
+
+    % (4) evalFcn por-x (a ponte, bounds nativos) + embrulho de LOTE (D61) — o
+    %     c217_batch_eval e GENERICO (handoff R1-c217 §7): hard-stop no meio do lote.
+    evalFcnPerX = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    batchEval   = @(X, varargin) c217_batch_eval(X, bud, evalFcnPerX);
+
+    % (4b) ── SEMEADURA DOS PISOS (§3.2 + D88) — o passo NOVO deste cartao ────
+    % Ordem obrigatoria (e a unica que fecha CP-init E orcamento ao mesmo tempo):
+    %  1. PRE-AVALIA as 11D-1 do DoE pelo bud, NA ORDEM DO ARTEFATO -> fase
+    %     'init' da ①, 11D-1 FE gastos, init_X() bit-identico ao artefato
+    %     (CP-init D87/D88 fecha exatamente como nos outros 7 algoritmos).
+    %  2. NDSort + CrowdingDistance sobre essas 11D-1 -> a ordem canonica do
+    %     NSGA-II (frente asc, crowding desc; empate -> indice asc = estavel).
+    %  3. O initFcn devolve os N primeiros -> o Solve os re-avalia como
+    %     CACHE-HIT (0 FE, D89) => a evolucao fica com EXATAMENTE 20D.
+    F0 = zeros(n_init, M);
+    for i = 1:n_init
+        F0(i,:) = bud.evaluate(X0(i,:), evalFcnPerX);
+    end
+    assert(bud.fe == n_init, ...
+           'semeadura: DoE consumiu %d FE != 11D-1=%d', bud.fe, n_init);
+    FrontNo  = NDSort(F0, n_init);
+    CrowdDis = CrowdingDistance(F0, FrontNo);
+    % -CrowdDis: Inf (extremos da frente) vira -Inf e sobe primeiro = crowding
+    % DECRESCENTE. A 3a chave (indice) torna o desempate total e reprodutivel.
+    [~, ord] = sortrows([FrontNo(:), -CrowdDis(:), (1:n_init).'], [1 2 3]);
+    Xsel = X0(ord, :);
+    jsonl_line(fid, 'seeding', {'n_doe', n_init, 'n_frentes', max(FrontNo), ...
+        'n_frente1', sum(FrontNo == 1), 'N_nominal', N_nominal, ...
+        'frente1_excede_pop', sum(FrontNo == 1) > N_nominal, ...
+        'criterio', "NDSort + CrowdingDistance (D88) — desempate final por indice"});
+
+    % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.
+    %     initFcn devolve os N MELHORES (nao os N primeiros do artefato) — a
+    %     diferenca em relacao aos 7 fan-outs anteriores. O probe do construtor
+    %     (Initialization(1)) pega Xsel(1,:), que ja esta no cache => 0 FE.
+    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, ...
+                  'run_id', string(nm_run_id(exp, alg, problema, semente)), ...
+                  'problema', string(problema), 'semente', semente);
+    Problem = UserProblem('evalFcn', batchEval, ...
+        'initFcn', @(N,varargin) piso_init(N, Xsel, n_init, logger), ...
+        'D', D, 'lower', xl, 'upper', xu, 'maxFE', maxfe, ...
+        'N', N_nominal, 'once', true, 'data', data);   % maxRuntime fica inf (N.0.5)
+
+    % (6) SEMENTE (D59): rng DEPOIS de construir o Problem, ANTES do Solve.
+    rng(semente, 'twister');
+
+    % (7) Algoritmo REAL (STOCK): save=-K (sem .mat/figura — N.0.3/4) + hook.
+    K = 20;
+    algo = feval(spec.classe, 'parameter', spec.parameter, 'save', -K, ...
+        'outputFcn', @(A,P) piso_hook(A, P, buf, bud));
+    term = "normal";
+    try
+        algo.Solve(Problem);                           % engole PlatEMO:Termination
+    catch e
+        if strcmp(e.identifier, 'PlatEMO:Termination')
+            term = "hard_stop";
+        else
+            jsonl_line(fid, 'footer', {'status', "failed", 'erro', string(e.message), ...
+                'identifier', string(e.identifier), 'fe_final', bud.fe});
+            fclose(fid);
+            fprintf(2, '[R1-pisos FAILED] %s/%s/%d: %s (%s)\n', ...
+                    char(alg), char(problema), semente, e.message, e.identifier);
+            rethrow(e);                                % erro REAL -> falha honesta (D23)
+        end
+    end
+    N_efetivo = Problem.N;   % NSGA-III/MOEA-D reajustam pelo lattice (UniformPoint)
+
+    % (8) EXPORT das 4 camadas (§17.2/§17.3): ① do wrapper; ② do buffer.
+    %     ③ e timing sao VAZIAS por construcao (piso = sem surrogate) — o
+    %     invariante e ASSERTADO, nao presumido.
+    if ~isempty(buf.srows) || ~isempty(buf.trows)
+        jsonl_line(fid, 'guard', {'name', "piso_com_surrogate", ...
+            'n_srows', numel(buf.srows), 'n_trows', numel(buf.trows), ...
+            'motivo', "piso nao deveria emitir ③/timing (sem surrogate)"});
+    end
+    R = bud.records();                                 % catalogo ① (== 31D-1 linhas)
+    write_real(exp, alg, problema, semente, R, D, M, dataRoot);
+    write_pop(exp, alg, problema, semente, buf.pop, dataRoot);
+    write_surrogate(exp, alg, problema, semente, buf.srows, D, M, "online", dataRoot);
+    write_timing(exp, alg, problema, semente, buf.trows, dataRoot);
+
+    % (9) CP-init por-run (D87/D88): hash da init X (float64) = sidecar do DoE.
+    doe_hash_run = sha256_rowmajor_f64(bud.init_X());
+    cp_ok = strcmp(doe_hash_run, doe.hash);
+
+    % (10) Encanamento objetivo (D89/D21): FE final = 31D-1 EXATO E CP-init OK.
+    ok_flag = (bud.fe == maxfe) && cp_ok;
+    st_str  = "ok"; if ~ok_flag, st_str = "failed"; end
+
+    % (11) MANIFESTO (§17.2/§17.7). Sem sigma_dict: nao ha surrogate.
+    man = build_manifest(exp, alg, problema, semente, ...
+        maxfe, bud.fe, buf.nGeracoes(), doe_hash_run, bud.cache_hits, dataRoot);
+    man.algo_version = spec.algo_version;
+    man.status = st_str;
+    man.params = struct( ...
+        'N_nominal', N_nominal, 'N_efetivo', N_efetivo, ...
+        'N_decisao', "20 CRAVADO 2026-07-18 (§3.2 — Knowles/ParEGO; ponto comum ~20-25 x D65 {10,20,30,50}); SUB-varN reconfirma antes da bateria", ...
+        'N_efetivo_nota', "NSGA-III/MOEA-D reajustam N pelo lattice do UniformPoint (M=3, 20 -> 15); NSGA-II/SMS-EMOA mantem o nominal. Precedente §6.3 (N=100 -> 91 vetores em M=3)", ...
+        'seeding', "melhores N das 11D-1 do DoE por NDSort + CrowdingDistance, desempate final por indice (§3.2/D88) — os N entram como cache-hit (0 FE)", ...
+        'geracoes_derivadas', "20D ÷ N_efetivo (o DoE 11D-1 e gasto ANTES do Solve)", ...
+        'operadores', "Balde C: OperatorGA stock (SBX proC=1 dis_c=20; PM proM=1 dis_m=20)", ...
+        'parameter', spec.parameter_desc, ...
+        'surrogate', "NENHUM (piso = MOEA puro) -> tabela ③ vazia e serie §17.6 vazia", ...
+        'patches', "NENHUM — piso e stock do PlatEMO 4.15 por design", ...
+        'principio', spec.principio, 'casamento', spec.casamento);
+    write_manifest(man, exp, alg, problema, semente, dataRoot);
+
+    jsonl_line(fid, 'footer', {'status', st_str, 'fe_final', bud.fe, 'maxfe', maxfe, ...
+        'n_geracoes', buf.nGeracoes(), 'cache_hits', bud.cache_hits, ...
+        'cp_init', cp_ok, 'termino', string(term), ...
+        'N_nominal', N_nominal, 'N_efetivo', N_efetivo});
+    fclose(fid);
+
+    % (12) Higiene de memoria da ponte (D86/N.0.8): solta o Problem pymoo do run.
+    try, py.gc.collect(); catch, end
+
+    info = struct('D', D, 'M', M, 'maxfe', maxfe, 'fe_final', bud.fe, ...
+        'n_init', n_init, 'N_nominal', N_nominal, 'N_efetivo', N_efetivo, ...
+        'n_geracoes', buf.nGeracoes(), 'cache_hits', bud.cache_hits, ...
+        'termino', string(term), 'doe_hash_run', string(doe_hash_run), ...
+        'doe_hash_sidecar', string(doe.hash), 'cp_ok', cp_ok);
+    if ~ok_flag
+        fprintf(2, ['[R1-pisos] FALHA HONESTA (D81): FE_final=%d (31D-1=%d) cp_init=%d ' ...
+                    '-> manifesto status=failed.\n'], bud.fe, maxfe, cp_ok);
+    end
+    status = st_str;
+end
+
+
+function spec = piso_spec(alg)
+% Os 4 pisos diferem SO na classe PlatEMO e no 'parameter'. O casamento
+% piso -> principio de selecao e o §3.2/D25 (da a atribuicao limpa do ganho
+% ao surrogate: cada piso espelha o MECANISMO de uma familia de SA-MOEA).
+    spec = struct();
+    switch char(alg)
+        case 'nsga2'
+            spec.classe        = 'NSGAII';
+            spec.parameter     = {};        % NSGA-II nao tem ParameterSet
+            spec.parameter_desc= "nenhum (NSGA-II stock nao expoe parametro)";
+            spec.algo_version  = "piso-NSGAII-PlatEMO4.15";
+            spec.principio     = "dominancia/Pareto";
+            spec.casamento     = "EA-Dominancia (b4, c217, c141, e74) + BO-Melhoria-de-Pareto (c238) — §3.2";
+        case 'nsga3'
+            spec.classe        = 'NSGAIII';
+            spec.parameter     = {};        % NSGA-III nao tem ParameterSet
+            spec.parameter_desc= "nenhum (NSGA-III stock nao expoe parametro); N vira |Z| do UniformPoint";
+            spec.algo_version  = "piso-NSGAIII-PlatEMO4.15";
+            spec.principio     = "referencia/indicador";
+            spec.casamento     = "EA-Indicador (e7) — §3.2";
+        case 'moead'
+            % S.2#19: MOEAD.m:22 `type = ParameterSet(1)` ja e 1 (PBI), mas o
+            % contrato manda FIXAR EXPLICITAMENTE e registrar no manifesto.
+            spec.classe        = 'MOEAD';
+            spec.parameter     = {1};
+            spec.parameter_desc= "type=1 (PBI, theta~5) FIXADO EXPLICITAMENTE (S.2#19; coincide com o default do codigo)";
+            spec.algo_version  = "piso-MOEAD-PlatEMO4.15-type1-PBI";
+            spec.principio     = "decomposicao";
+            spec.casamento     = "EA-Decomposicao (b3, c122) + BO-Decomposicao (b1) — §3.2";
+        case 'smsemoa'
+            % SMS-EMOA PURO (nao o SMS-EMOA-MA, que e variante surrogate — §3.6).
+            spec.classe        = 'SMSEMOA';
+            spec.parameter     = {};
+            spec.parameter_desc= "nenhum (SMS-EMOA PURO stock — nao e o SMS-EMOA-MA surrogate do §3.6)";
+            spec.algo_version  = "piso-SMSEMOA-PlatEMO4.15";
+            spec.principio     = "contribuicao de hipervolume (S-metric)";
+            spec.casamento     = "BO-Hipervolume (c262 qNEHVI) — espelho mecanico exato, D25/§3.2";
+        otherwise
+            error('piso_spec:desconhecido', 'piso desconhecido: %s', char(alg));
+    end
+end
+
+
+function Xi = piso_init(N, Xsel, n_init, logger)
+% initFcn dos pisos: os N MELHORES do DoE (ja ordenados por NDSort+crowding).
+% Os N sao re-avaliados pelo Solve e batem no cache => 0 FE (D89).
+% Teto anti-crash (§6.3, "tetos de seguranca sao implementacao obrigatoria"):
+% a populacao nao pode exceder o DoE. Com N=20 e n_init>=21 (D>=2) isto NUNCA
+% dispara; se disparar, LOGA e deixa o UserProblem falhar honestamente na
+% checagem de forma [N D] (D81 — nunca silencioso).
+    if N > n_init
+        logger.guard('piso_pop_excede_doe', 'N_pedido', N, 'n_init', n_init, ...
+            'motivo', 'populacao do piso > 11D-1 do DoE (teto anti-crash §6.3)');
+    end
+    Xi = Xsel(1:min(N, n_init), :);
+end
+
+
+function piso_hook(Algorithm, Problem, buf, bud)
+% Hook dos pisos = sync D89 + o hook transversal (② por geracao).
+%
+% ⚠ O SYNC E OBRIGATORIO AQUI, e por um motivo A MAIS que nos outros runners:
+%   (a) [comum] o obj.FE nativo soma cache-hits e correria a frente do saldo
+%       DISTINTO do wrapper a primeira duplicata de offspring (o achado do
+%       c217: ZDT1 fechava 926 em vez de 929);
+%   (b) [ESPECIFICO DO PISO] `ALGORITHM.Solve` ZERA pro.FE (:80), mas as 11D-1
+%       do DoE foram gastas ANTES do Solve (semeadura §3.2) -> sem o sync o
+%       NotTerminated enxergaria so as 20D da evolucao e o `rate` do save=-K
+%       ficaria completamente fora de escala.
+% Posicao: ALGORITHM.m:126 chama o outputFcn ANTES da checagem :127
+% (`nofinish = pro.FE < pro.maxFE`), entao sincronizar aqui e lido no MESMO
+% ciclo — o hard-stop real segue sendo o throw do bud (D61), este e o caminho
+% de termino limpo.
+    Problem.FE = bud.fe;
+    % timing = [] : piso nao treina surrogate => serie §17.6 VAZIA (bundle).
+    hook_output(Algorithm, Problem, buf, bud, []);
+end
+
+
+function ensure_paths_piso(ROOT, classe)
+% addpath(genpath) da arvore PlatEMO 4.15 (N.0.1: Utility functions/ nao entra
+% pelo Solve). Os 4 pisos sao built-ins da arvore — nenhuma pasta externa, logo
+% nenhuma sombra de path a varrer PARA DENTRO. A varredura de sombra REVERSA
+% (c238_EIM traz UniformPoint.m/DTLZ2.m proprios) e neutralizada pelo onCleanup
+% do run_c238, que remove aquela pasta do path ao fim do run.
+    if isempty(which(classe)) || isempty(which('UserProblem')) || ...
+       isempty(which('OperatorGA')) || isempty(which('CrowdingDistance'))
+        pr = fullfile(ROOT, 'algorithms', '_PlatEMO', 'PlatEMO');
+        if isfolder(pr), addpath(genpath(pr)); end
+    end
+    % Assert de precedencia: o piso TEM de resolver para a arvore 4.15.
+    for fn = string({classe, 'UniformPoint', 'NDSort', 'CrowdingDistance', 'OperatorGA'})
+        w = which(char(fn));
+        assert(~isempty(w) && contains(w, [filesep '_PlatEMO' filesep]), ...
+            'piso: %s nao resolve p/ a arvore _PlatEMO 4.15 (which=%s)', ...
+            char(fn), w);
+    end
 end
 
 

@@ -31,7 +31,7 @@
 ## Rodada 2 — BoTorch (VM Vertex; ∥ com R1)
 | ID | Tarefa | depende-de | bundle | status |
 |---|---|---|---|---|
-| R2-00-harness | Infra BoTorch (contrato N.1; dual-write GCS) | F0-* | 20_rodada2_botorch/00_contrato | ⬜ |
+| R2-00-harness | Infra BoTorch (contrato N.1; dual-write GCS) | F0-* | 20_rodada2_botorch/00_contrato | ✅ |
 | R2-c262 | qNEHVI | R2-00 | …/alg_c262_qnehvi | ⬜ |
 | R2-c154 | JES (B9.5 no piloto) | R2-00 | …/alg_c154_jes | ⬜ |
 

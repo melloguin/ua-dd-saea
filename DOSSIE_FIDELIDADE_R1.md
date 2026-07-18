@@ -61,8 +61,19 @@ auditoria "9→10" (item 3) se o autor quiser fechar o ponto que falta.
   incerteza 48× no ZDT1 (aritmética visível e correta nos logs). Dropout 0,1 do paper ativo (D30).
 - `saldo_congelado`/`dup_infill` armados, 0 disparos → item 4. RAM pico 3,25 GB (ZDT1) → dado p/ M7.
 
-### c238 EIM · pisos · e74 CLMEA · e103 IBEA-MS
-⬜ Aguardando os cartões fecharem (c238 em curso).
+### c238 EIM
+- Guia (semente 0): ZDT1 IGD+ 3,96e-2 / HV 0,80 (|ND|=27; melhora 111,7×, monotônico) · DTLZ2 1,49e-1
+  (3º/7 no ranking) · MMF1 6,21e-2 (6º/7, pelotão apertado). IGD_raw da sessão: ZDT1 4,99e-2 · DTLZ2 2,30e-1.
+- Mecanismo p/ conferir: assinatura EGO exata (n_treino +1/iter nos 3; q=1); critério EIMe (Euclidean);
+  eim_best decai em DTLZ2/ZDT1. **Pontos de atenção:** (1) eim_best RUIDOSO no MMF1 (40 iters; a re-escala
+  {min,range} muda por iteração — explicável, confrontar com o paper do EIM); (2) salto tardio do eim_best
+  no fim do ZDT1 (~5e-5→1,3e-1 — idem re-escala; o IGD+ seguiu caindo). Guards: 0 disparos em 880 iters.
+- Nota de comportamento da torre: **9/10** (encanamento perfeito recomputado do zero; assinatura EGO de
+  livro-texto; ranking no perfil esperado; o ponto que falta = confronto mecanismo×paper + os 2 pontos acima).
+- ⚠ custo: ZDT1 3h55/run → ~118 h/core p/ 30 sementes (M7).
+
+### pisos · e74 CLMEA · e103 IBEA-MS
+⬜ Aguardando os cartões fecharem.
 
 ## Como o autor vai usar (o método, igual ao c217)
 1. Curvas (item 1): convergência plausível? anomalias por contraste entre os 9?

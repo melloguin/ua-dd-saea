@@ -98,7 +98,7 @@ M3 fan-out MATLAB (9 cartões) ............... 🟡 EM CURSO — herda o fix D89
    b4-CSEA ................................. ✅ (mesma fusão: cap109→11D−1, DoE D94, auto→cpu, treino arquivo-inteiro B4.6/D30, **Balde C {1,15,1,5}→{1,20,1,20} SUPORTADO pela SPEC §6.2:445+§6.4:811 [b4 NÃO é exceção nomeada — verificado adversarialmente]**, guard randperm bit-idêntico; gate VERDE ×3)
    FIX pontas-soltas c217 .................. ✅ (de-dup n_empates→n_contradicoes [1 quantidade, 3 nomes na SPEC]; pred_confianca=Error1 CONFIRMADO fiel à §17.2 [não era bug]; implementador parou-e-perguntou D81, autor decidiu; diff mínimo 9+/2−, 0 consumidores de código quebrados)
    Sessão A: b1+e7 ......................... ✅ (verif. torre 2026-07-17: 24 gates verdes; adversarial 4/4 CONFIRMED — writer-fix O(n) equivalente, sombra DRLOS real+neutralizada, patches b1/e7 conformes, dropout 0,1 = mandato D30; armadilha EvolEI evitada; comportamento saudável: b1 ZDT1 melhora 136× / e7 gatilho dual vivo 152:48)
-   Sessão B: c238 (SOLO — autor separou p/ qualidade) 🟡 PRÓXIMO
+   c238-EIM (solo, classdef N.5) ........... ✅ VERIFICADO torre 2026-07-18 (28/28 gates; adversarial 2C+1P; parquets recomputados do zero exatos; comportamento 9/10; sombra REVERSA + onCleanup = padrão novo; ZDT1 3h55 = pior-caso R1 → M7)
    Sessão B2: pisos ........................ ⬜
    Sessão C: e74 (solo; árvore 4.1, N.0-4.1) ⬜ (⚠ ALTO risco de sombra de path — árvore inteira duplicada; aplicar lição DRLOS)
    Sessão D: e103 (solo; offline, D93) ..... ⬜

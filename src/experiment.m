@@ -61,6 +61,12 @@ function [status, info] = experiment(alg, problema_id, semente, exp, dataRoot)
             % MESMO padrao do caso-modelo c217 (injecao DoE D94 :31-:32;
             % dropout 0.1 D30; guard Estimate; guarda (c) D60 saldo congelado).
             [status, info] = run_e7(alg, problema_id, semente, exp, dataRoot);
+        case 'c238'
+            % R1-c238 (fan-out): EIM (repo STANDALONE do autor — NAO e Algorithm
+            % do PlatEMO) via EMBRULHO classdef N.5 (algorithms/c238_EIM/EIM.m),
+            % no MESMO padrao do caso-modelo c217 (DoE injetado D63/D87;
+            % FEBudget/ponte D89/D61; ancora c238-hypervolume-rm aplicada).
+            [status, info] = run_c238(alg, problema_id, semente, exp, dataRoot);
         otherwise
             % Algoritmos reais (b1,b3,b4,e7,c217,c141,e74,c238,e103,pisos):
             % o corpo PlatEMO (UserProblem + Solve) e o cartao R1-c217+.
@@ -1209,6 +1215,210 @@ function ensure_paths_e7(ROOT)
         assert(contains(which(char(fn)), [filesep 'EDN-ARMOEA' filesep]), ...
                'e7: %s nao resolve p/ a copia do EDN-ARMOEA (precedencia de path)', char(fn));
     end
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
+%  RUN-c238 (EIM REAL, repo standalone do autor + EMBRULHO classdef N.5) —
+%  fan-out da R1 no padrao do caso-modelo c217. O que e ESPECIFICO do c238: o
+%  algoritmo NAO e PlatEMO — e um script standalone (Zhan 2017) convertido p/
+%  `classdef EIM < ALGORITHM` (contrato N.5, em algorithms/c238_EIM/EIM.m), que
+%  chama as funcoes INTACTAS do repo (GP_Train/Infill_EIM/Optimizer_GA/
+%  Paretoset). 'N',100 no UserProblem (N.5-2) e INERTE (GA interno = 10D; init
+%  = DoE do artefato). EIM sem 'parameter' (criterion default = 'Euclidean' —
+%  EIMe, variante do driver). Patches [IMPL]: guard EIM NaN->0 (Infill_EIM),
+%  saidas extras de instrumentacao (Infill_EIM/Optimizer_GA), 2 linhas
+%  Hypervolume removidas do script (ancora c238-hypervolume-rm — mex
+%  Windows-only). Guard chol = dedup do treino (na EIM.main). A pasta
+%  c238_EIM sai do path ao FIM do run (onCleanup — sombra reversa de
+%  UniformPoint.m/DTLZ2.m sobre o PlatEMO, licao S.8/R1-e7).
+%  Toolboxes: Optimization (fmincon sqp no GP_Train) + Statistics
+%  (normcdf/normpdf/lhsdesign).
+% ════════════════════════════════════════════════════════════════════════════
+
+function [status, info] = run_c238(alg, problema, semente, exp, dataRoot)
+    status = "failed";
+    info = struct();
+    ROOT = harness_root();
+
+    % Arvore PlatEMO 4.15 (N.0.1) + a pasta do c238 (repo standalone do autor).
+    % O onCleanup REMOVE a pasta do path ao sair (normal OU erro): o proprio
+    % ALGORITHM.Solve:81 tambem a PREPENDE (addpath da pasta do classdef) e
+    % nunca remove — sem isto, UniformPoint.m/DTLZ2.m do c238_EIM sombreariam
+    % os do PlatEMO p/ b1/b3/e7/pisos num run posterior do MESMO processo.
+    c238dir = ensure_paths_c238(ROOT);
+    pathGuard = onCleanup(@() rmpath_quiet(c238dir)); %#ok<NASGU>
+
+    % (0) PONTE: repo-root no sys.path; importa src.* (A2/§2/§18).
+    ctx = bridge_ctx(ROOT);
+
+    % (1) Problema Python via ponte -> D, M, bounds NATIVOS (§5.5).
+    pp = py_problem(ctx, problema);
+    D = pp.D; M = pp.M; xl = pp.xl(:).'; xu = pp.xu(:).';
+    maxfe = 31*D - 1;  n_init = 11*D - 1;
+
+    % (2) DoE 11D-1 do artefato (D63/D87) — CARREGADO, NUNCA regenerado.
+    doe = load_doe(problema, semente, D, dataRoot);
+    X0  = doe.X;                                   % n_init x D (float64, nativo)
+    assert(size(X0,1) == n_init, 'DoE tem %d linhas != 11D-1=%d', size(X0,1), n_init);
+    % CP-bounds (§5.5): bounds do problema == sidecar do DoE (identidade nativa).
+    assert(max(abs(xl(:)-doe.xl(:)))==0 && max(abs(xu(:)-doe.xu(:)))==0, ...
+           'CP-bounds: bounds do problema != sidecar do DoE');
+
+    % (3) .jsonl (§17.5) + wrapper de FE (FEBudget) com o logger acoplado.
+    jsonl  = nm_jsonl_path(exp, alg, problema, semente, dataRoot);
+    fid    = jsonl_open(jsonl);
+    logger = struct('guard', @(name, varargin) ...
+                    jsonl_line(fid, 'guard', [{'name'}, {name}, varargin]));
+    % bud CRIADO ANTES do Problem: o probe do construtor avalia DoE[0] (initFcn),
+    % que o lote-init reencontra como CACHE-HIT (0 FE, D89) -> a ① fecha com
+    % EXATAMENTE 31D-1 linhas, sem poluir o catalogo (receita N.0 do c217).
+    bud = FEBudget(D, maxfe, n_init, logger);
+    buf = RunBuffer();
+    jsonl_line(fid, 'header', {'alg', string(alg), 'problema', string(problema), ...
+        'semente', semente, 'D', D, 'M', M, 'regime', "online", 'maxfe', maxfe, ...
+        'doe_hash', string(doe.hash), 'algo', "c238-EIM-embrulho-N5", ...
+        'criterion', "Euclidean (EIMe — default do driver; paper nao elege)", ...
+        'kriging', "OK-Forrester proprio (nao-DACE), kernel gaussiano, ARD 1xD", ...
+        'theta0', 1, 'theta_bounds', "[1e-3,1e3]", ...
+        'mle', "fmincon sqp em log10(theta), single-start, MaxFunEvals=20D", ...
+        'nugget', "(10+n)*eps", 'ga', "pop=10D, 200 ger (CODIGO; paper DE — B10.2)", ...
+        'sigma_dict', "mu_j/sigma_j=media/sqrt(max(mse,0)) do kriging proprio POR OBJETIVO, no ESPACO DO MODELO (y min-max por iteracao — paper; C3 transf_params={min,range} -> cru=mu*range+min)"});
+
+    % (4) evalFcn por-x (a ponte, bounds nativos) + embrulho de LOTE (D61) — o
+    %     c217_batch_eval e GENERICO (handoff R1-c217 §7): hard-stop no meio do lote.
+    evalFcnPerX = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    batchEval   = @(X, varargin) c217_batch_eval(X, bud, evalFcnPerX);
+
+    % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.
+    %     'N',100 = N.5-2 (INERTE no c238: o GA interno e 10D e o init e o DoE).
+    %     'logger' vai no data p/ a EIM.main emitir guard_range NA DETECCAO
+    %     (revisao adversarial R1-c238 — evento nunca perdido por crash do fit).
+    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, ...
+                  'logger', logger, ...
+                  'run_id', string(nm_run_id(exp, alg, problema, semente)), ...
+                  'problema', string(problema), 'semente', semente);
+    Problem = UserProblem('evalFcn', batchEval, 'initFcn', @(N,varargin) X0(1:N,:), ...
+        'D', D, 'lower', xl, 'upper', xu, 'maxFE', maxfe, ...
+        'N', 100, 'once', true, 'data', data);         % maxRuntime fica inf (N.0.5)
+
+    % (6) SEMENTE (D59): rng DEPOIS de construir o Problem, ANTES do Solve.
+    rng(semente, 'twister');
+
+    % (7) Algoritmo REAL: save=-K (sem .mat/figura — N.0.3/4), outputFcn=hook (②).
+    %     EIM sem 'parameter': criterion default 'Euclidean' (EIMe).
+    K = 20;
+    algo = EIM('save', -K, ...
+        'outputFcn', @(A,P) hook_output(A, P, buf, bud, []));
+    term = "normal";
+    try
+        algo.Solve(Problem);                           % engole PlatEMO:Termination
+    catch e
+        if strcmp(e.identifier, 'PlatEMO:Termination')
+            term = "hard_stop";                        % nunca deveria vazar (Solve engole)
+        else
+            jsonl_line(fid, 'footer', {'status', "failed", 'erro', string(e.message), ...
+                'identifier', string(e.identifier), 'fe_final', bud.fe});
+            fclose(fid);
+            fprintf(2, '[R1-c238 FAILED] %s/%s/%d: %s (%s)\n', ...
+                    char(alg), char(problema), semente, e.message, e.identifier);
+            rethrow(e);                                % erro REAL -> falha honesta (D23)
+        end
+    end
+
+    % (8) EXPORT das 4 camadas (§17.2/§17.3): ① do wrapper; ②③/timing do buffer.
+    R = bud.records();                                 % catalogo ① (== 31D-1 linhas)
+    write_real(exp, alg, problema, semente, R, D, M, dataRoot);
+    write_pop(exp, alg, problema, semente, buf.pop, dataRoot);
+    write_surrogate(exp, alg, problema, semente, buf.srows, D, M, "online", dataRoot);
+    write_timing(exp, alg, problema, semente, buf.trows, dataRoot);
+
+    % (9) CP-init por-run (D87/D88): hash da init X (float64) = sidecar do DoE.
+    doe_hash_run = sha256_rowmajor_f64(bud.init_X());
+    cp_ok = strcmp(doe_hash_run, doe.hash);
+
+    % (10) Encanamento objetivo (D89/D21): FE final = 31D-1 EXATO E CP-init OK.
+    %      Falha honesta (D23/D81): gate reprovado -> manifesto/footer 'failed'.
+    ok_flag = (bud.fe == maxfe) && cp_ok;
+    st_str  = "ok"; if ~ok_flag, st_str = "failed"; end
+
+    % (11) MANIFESTO (§17.2/§17.7) + dicionario de sigma (DEF-C4/DEF-C3).
+    man = build_manifest(exp, alg, problema, semente, ...
+        maxfe, bud.fe, buf.nGeracoes(), doe_hash_run, bud.cache_hits, dataRoot);
+    man.algo_version = "c238-EIM-embrulho-N5";
+    man.status = st_str;
+    man.params = struct('criterion', "Euclidean (EIMe)", ...
+        'kriging', "OK-Forrester proprio (nao-DACE): mu constante, kernel gaussiano, ARD theta 1xD", ...
+        'theta0', 1, 'theta_bounds', "[1e-3,1e3]", ...
+        'mle', "fmincon sqp em log10(theta), single-start, MaxFunEvals=20D, tol 1e-20 (CODIGO)", ...
+        'x_norm', "[0,1] pelos bounds (GP_Train)", 'nugget', "(10+n)*eps", ...
+        'y_rescaling', "min-max por iteracao (PAPER §V-B(5)a) + guard max(range,eps) [IMPL]", ...
+        'ga_interno', "pop=10D, 200 ger, torneio k=2, SBX dis_c=10 por-variavel (p=0.5), PM dis_m=20 pm=1/D, (mu+lambda) elitista -> 2000D aval-aquisicao/iter (CODIGO; paper: DE/rand/1/bin 50x50 F=0.8 CR=0.8 x4 — B10.2/D30, UNICA divergencia material)", ...
+        'anti_clustering', "AUSENTE no repo (CODIGO — B10.7); telemetria min_dist_infill no jsonl", ...
+        'init_maxfe', "global-override: 11D-1 (artefato) / 31D-1 (repo fixava 100/200)", ...
+        'sem_dedup_infill', "duplicata = cache-hit 0 FE (D89), slot perdido (dup_infill); dedup SO no treino (guard chol [IMPL])", ...
+        'embrulho', "classdef EIM < ALGORITHM (N.5, 8 pontos) — script oficial nao roda no harness");
+    man.sigma_dict = struct( ...
+        'mu_j', "media do kriging proprio (OK-Forrester) POR OBJETIVO, no ESPACO DO MODELO (y re-escalado min-max por iteracao — paper); cru = mu*range + min (transf_params)", ...
+        'sigma_j', "s = sqrt(max(mse,0)) do GP_Predict STOCK por objetivo, no espaco re-escalado; a regua muda por iteracao — interpretar com transf_params", ...
+        'transf_params', "{min, range} da iteracao (C3, leitura D47 — precedente e7: UMA linha por candidato no espaco do modelo); range = POS-guard max(range,eps)");
+    write_manifest(man, exp, alg, problema, semente, dataRoot);
+
+    jsonl_line(fid, 'footer', {'status', st_str, 'fe_final', bud.fe, 'maxfe', maxfe, ...
+        'n_geracoes', buf.nGeracoes(), 'cache_hits', bud.cache_hits, ...
+        'cp_init', cp_ok, 'termino', string(term)});
+    fclose(fid);
+
+    % (12) Higiene de memoria da ponte (D86/N.0.8): solta o Problem pymoo do run.
+    try, py.gc.collect(); catch, end
+
+    info = struct('D', D, 'M', M, 'maxfe', maxfe, 'fe_final', bud.fe, ...
+        'n_init', n_init, 'n_geracoes', buf.nGeracoes(), ...
+        'cache_hits', bud.cache_hits, 'termino', string(term), ...
+        'doe_hash_run', string(doe_hash_run), ...
+        'doe_hash_sidecar', string(doe.hash), 'cp_ok', cp_ok);
+    if ~ok_flag
+        fprintf(2, ['[R1-c238] FALHA HONESTA (D81): FE_final=%d (31D-1=%d) cp_init=%d ' ...
+                    '-> manifesto status=failed.\n'], bud.fe, maxfe, cp_ok);
+    end
+    status = st_str;
+end
+
+
+function c238dir = ensure_paths_c238(ROOT)
+% PlatEMO 4.15 (N.0.1: ALGORITHM/UserProblem/NDSort) + a pasta do c238 (repo
+% STANDALONE do autor — o classdef EIM.m do embrulho N.5 vive nela).
+%
+% ⚠ VARREDURA DE SOMBRA (obrigatoria — licao R1-e7/S.8): os arquivos que o
+% c238 CHAMA por path (GP_Train/GP_Predict/Infill_EIM/Optimizer_GA/Paretoset)
+% sao UNICOS em algorithms/ (find 2026-07-17: nenhuma duplicata em outra
+% arvore — sem sombra P/ DENTRO do c238). A sombra real e REVERSA: c238_EIM
+% traz UniformPoint.m e DTLZ2.m que colidem com os do PlatEMO 4.15 — com a
+% pasta prependada, um run posterior de b1/b3/e7/pisos no MESMO processo
+% resolveria UniformPoint p/ a copia simplificada do Zhan (silencioso). O
+% prepend + asserts abaixo garantem a precedencia DURANTE o run do c238; a
+% REMOCAO ao fim do run e responsabilidade do onCleanup no run_c238.
+    if isempty(which('UserProblem')) || isempty(which('OperatorGA'))
+        pr = fullfile(ROOT, 'algorithms', '_PlatEMO', 'PlatEMO');
+        if isfolder(pr), addpath(genpath(pr)); end
+    end
+    c238dir = fullfile(ROOT, 'algorithms', 'c238_EIM');
+    if isempty(which('EIM')) || ~contains(which('GP_Train'), [filesep 'c238_EIM' filesep])
+        assert(isfolder(c238dir), 'c238: pasta do repo ausente: %s', c238dir);
+        addpath(c238dir);                      % prepend -> precedencia do c238
+    end
+    for fn = ["EIM","GP_Train","GP_Predict","Infill_EIM","Optimizer_GA","Paretoset"]
+        assert(contains(which(char(fn)), [filesep 'c238_EIM' filesep]), ...
+               'c238: %s nao resolve p/ a copia do c238_EIM (precedencia de path)', char(fn));
+    end
+end
+
+
+function rmpath_quiet(d)
+% Remove a pasta do path sem ruido (onCleanup do run_c238 — sombra reversa).
+    w = warning('off', 'MATLAB:rmpath:DirNotFound');
+    try, rmpath(d); catch, end
+    warning(w);
 end
 
 

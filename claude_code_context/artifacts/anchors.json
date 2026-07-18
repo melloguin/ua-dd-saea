@@ -134,8 +134,8 @@
    "file": "MultiObjective_EIM.m",
    "line": 40,
    "expect_before": "Hypervolume(",
-   "expect_after": "<remover as 2 linhas Hypervolume (mex Windows-only)>",
-   "kind": "[IMPL]"
+   "expect_after": "% [R1-c238] chamada ao mex Hypervolume removida (Windows-only — c238-hypervolume-rm)",
+   "kind": "[IMPL] (as 2 linhas :40/:64 viram o comentario-marcador; literais concretizados no R1-c238 — precedente Sessao 1/c141/b3/b1/e7)"
   },
   {
    "id": "e81-matern",

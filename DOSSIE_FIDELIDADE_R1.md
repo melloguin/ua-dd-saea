@@ -86,6 +86,13 @@ auditoria "9→10" (item 3) se o autor quiser fechar o ponto que falta.
   majoritariamente inativo em δ=0.8). Em D=2 com 61 FE, MOEA puro com N=20 é competitivo (achado
   conhecido). Guias: melhor piso MMF1 smsemoa=4,86e-2 · DTLZ2 smsemoa=1,43e-1 · ZDT1 nsga2=6,12e-1.
 
+**Veredito adversarial da torre (2026-07-18) sobre os pisos: 3/3 CONFIRMED** — (1) a semeadura D88
+(NDSort+crowding, replicada em Python independente, bate a ② geração 1 EXATA nos 5 runs testados);
+(2) a edição N=20 da SPEC íntegra e mínima (5 hunks todos no tema; bundles fiéis; aritmética conferida);
+(3) parquets recomputados do zero: init = DoE INTEIRO bit-a-bit nos 12 (a pergunta adversarial central
+falhou em refutar). **Nota mantida: 9,5/10.** Caveat p/ o R4: dedup por `solution_id`, nunca pelo X
+float32 armazenado (colisões de cast provadas; o orçamento contou certo em float64).
+
 ### e74 CLMEA · e103 IBEA-MS
 ⬜ Aguardando os cartões fecharem.
 

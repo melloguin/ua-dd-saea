@@ -282,6 +282,15 @@ A pedido do autor ("vocês validaram O QUÊ em cada um?"), a torre detectou que 
 - **Análise de COMPORTAMENTO (torre, parquets+logs → a nota 9/10):** trajetórias IGD+ **monotônicas nos 3** (MMF1 melhora 60×; ZDT1 111,7× → IGD+ 3,96e-2/HV 0,80; DTLZ2 7,9×). **Assinatura EGO de livro-texto:** n_treino +1/iter EXATO nos 3; eim_best DECAI em DTLZ2 (2,6e-1→7,4e-2) e ZDT1 (7,8e-1→~5e-5); a parede O(n³) MEDIDA (fit 3,5s→31s/iter no ZDT1). Ranking vs os 6 pares: DTLZ2 3º/7 · ZDT1 4º/7 · MMF1 6º/7 (pelotão apertado) — exatamente o perfil esperado de um EIM clássico. **Pontos p/ o dossiê:** eim_best ruidoso no MMF1 (40 iters, re-escala {min,range} muda por iter — explicável, confrontar com o paper) + salto tardio no ZDT1 (idem). Guards limpos (880 iters). **⚠ custo: ZDT1 3h55 = novo pior-caso R1 → ~118h/core p/ 30 sementes (dado do M7).**
 - **Incidentes operacionais da sessão (lições):** cwd não-persistente; pipe-tail travado pelos MathWorksServiceHost (monitorar término pelo FOOTER do .jsonl, não pelo processo); coexistência limpa com o R2/c262 paralelo.
 
+### ✅ Lote de decisões DI-01…DI-08 (autor, 2026-07-18) — pós-fechamento da onda MATLAB
+O autor decidiu EM LOTE as 30+ pendências consolidadas pela torre (agrupadas em 8 decisões).
+**Registro canônico e detalhado: `REGISTRO_DECISOES_IMPLEMENTACAO.md`** (raiz — o companheiro de
+implementação do REGISTRO_DECISOES_pingpong_v5). Resumo: DI-01 âncoras em bloco ✓ · DI-02 fixes de
+infra ✓ · DI-03 convenções de export ③/② ✓ · DI-04 leituras do c262 ✓ · DI-05 política fused-kernel
+OFF + doc-syncs (agendado: janela documental) · DI-06 pacote hardening M7 (8 itens, escopo fechado) ·
+DI-07 e74 (ndsort-obj FIEL-EQUIVALENTE ratificado; re-sim mantém telemetria com ATENÇÃO ~24,8%;
+D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVADA — executar antes do R3)**.
+
 ### 📌 Decisão de estratégia (autor + torre, 2026-07-17) — o resto da onda MATLAB
 1. **Fidelidade em LOTE no fim da onda** (não mais por-algoritmo): o padrão está provado (c217 9/10 + 3 fan-outs), os mecanismos são isolados por algoritmo, e a comparação lado-a-lado dos 8 é evidência MELHOR (anomalias saltam por contraste). A torre preparará um **dossiê consolidado de fidelidade** (curvas IGD+ × FE + resumo de mecanismo por `.jsonl` + números-guia com caveat de orçamento) para UMA sessão de julgamento profundo do autor. O gate objetivo (`accept.py`) segue por-algoritmo e automático; a verificação da torre segue por-sessão.
 2. **Implementação em PARES/SOLOS, sessões novas** (padrão b3+b4 provado; nunca 6 numa sessão — contexto degradaria): **Sessão A: b1+e7** (gêmeos D94) → **B: c238+pisos** (classdef N.5 + os 4 triviais) → **C: e74 sozinho** (árvore 4.1 própria, N.0-4.1) → **D: e103 sozinho** (offline, D93). 4 sessões p/ 6 cartões.

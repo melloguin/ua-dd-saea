@@ -1,5 +1,6 @@
 # ORQUESTRAÇÃO MESTRE — control tower da implementação (versão técnica, para o orquestrador)
 
+> **📖 DECISÕES DE IMPLEMENTAÇÃO: o registro canônico é `REGISTRO_DECISOES_IMPLEMENTACAO.md` (raiz)** — DI-01…DI-08 (lote 2026-07-18, todas decididas pelo autor) + histórico RI-01…RI-12 + a agenda de execução pendente (janela documental DI-05/DI-08; hardening M7 DI-06; dossiê DI-07b).
 > **Uso:** referência operacional da instância-orquestradora (eu). Guia a montagem de cada prompt de cartão, os gates, e o estado. Fonte da verdade continua sendo `claude_code_context/SPEC_experimentos_v5.2.md` + `cards/INDEX.md`; este arquivo é o **plano de execução** por cima deles. Par didático: `PLANO_IMPLEMENTACAO.md`. Atualizar o **Status board** a cada handoff recebido.
 
 ## Invariantes que EU imponho ao montar cada prompt (checklist pré-envio)

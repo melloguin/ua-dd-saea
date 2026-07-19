@@ -1,4 +1,5 @@
-function c217_instrument(Problem, Arc, Next, delta, Error1, Error2, TestPre, tfit_s)
+function c217_instrument(Problem, Arc, Next, delta, Error1, Error2, TestPre, tfit_s, ...
+                         tbusca_s, tger_s, TrainIn, Output, Pmid, ArcDecPre)
 % c217_instrument — instrumentacao POS-decisao do c217 PC-SAEA (chamada no fim de
 % cada geracao pela PCSAEA.main patchada). NAO altera nenhuma decisao da busca
 % (D97): so LE o que a geracao ja computou (Error1/2, estado, lote, TestPre) e
@@ -18,6 +19,20 @@ function c217_instrument(Problem, Arc, Next, delta, Error1, Error2, TestPre, tfi
     buf = d.buf; bud = d.bud; fid = d.log;
     g = double(buf.gen);                        % geracao corrente (bumpada pelo hook)
     if g < 1, g = 1; end
+    snd = [];
+    if isfield(d, 'snd'), snd = d.snd; end      % [DI-09] pode nao existir
+
+    % ── [DI-09/A1] fe_treino_max: maior fe_index no TREINO deste fit ──────────
+    % LITERAL do §17.2 — o treino do c217 e TrainIn (subamostra 3/4 estratificada
+    % de Input, DataProcess.m:14-22), nao o arquivo. Vale tanto p/ as linhas da
+    % SONDA quanto p/ as da BUSCA (§9: o filtro in-sample x out-of-sample da R4
+    % se aplica as DUAS).
+    ftm = -1;
+    for i = 1:size(TrainIn, 1)
+        sid = bud.solutionIdOf(TrainIn(i, 1:Problem.D));
+        if sid > ftm, ftm = sid; end
+    end
+    if ftm < 0, ftm = []; end
 
     % ── Estado da regra tripla CORRIGIDA (D17), reproduzindo as guardas do SAS ──
     % (so p/ LOG/score; a decisao real ja foi tomada pelo SAS com estas MESMAS
@@ -59,28 +74,91 @@ function c217_instrument(Problem, Arc, Next, delta, Error1, Error2, TestPre, tfi
             srows{end+1} = RunBuffer.mkSurrogateRow(Dec(i, :), ...
                 'real_solution_id', rsi, ...
                 'pred_tipo', "score", 'pred_score', score, ...
-                'pred_confianca', Error1, 'modelo_flag', "PNN-par"); %#ok<AGROW>
+                'pred_confianca', Error1, 'modelo_flag', "PNN-par", ...
+                'fe_treino_max', ftm); %#ok<AGROW>
         end
     end
 
     % ── §17.6 timing: 1 evento de retreino do PNN por geracao ──────────────────
-    timing = struct('n_acumulado', arc_size, 'tempo_fit_s', tfit_s, 'tempo_busca_s', NaN);
+    % [DI-09] n_acumulado CORRIGIDO: o §17.6 define "nº de pontos reais no TREINO
+    % naquele retreino" — era `numel(Arc)` (o ARQUIVO), que e outra grandeza e
+    % achatava a curva de escalabilidade do c217. Passa a ser size(TrainIn,1).
+    % O tamanho do arquivo continua auditavel no `arc_size` da linha c217_gen.
+    timing = struct('n_acumulado', size(TrainIn, 1), 'tempo_fit_s', tfit_s, ...
+                    'tempo_busca_s', tbusca_s, ...
+                    'tempo_geracao_s', tger_s, ...
+                    'tempo_pred_sonda_s', sonda_tempo(snd));
 
     % ── Emite ③ + timing no MESMO g do hook (② vem do hook_output) ─────────────
     view = struct('g', g, 'srows', {srows}, 'timing', timing);
     buf.addGeneration(view);
 
-    % ── §17.2.1 — log legivel da regra tripla por geracao (.jsonl) ─────────────
+    % ── §17.2.1 + S.7.1/DI-10 — log da regra tripla + o minimo comum ──────────
     if ~isempty(fid) && fid > 2
+        % [DI-10] n_best/n_worst do treino. `TrainOut` e DESCARTADO em PCSAEA.m:40
+        % (`[TrainIn,~,...]`), mas a contagem e DETERMINISTICA a partir de `Output`,
+        % que esta em escopo: DataProcess.m:14-19 mantem ceil(3/4) de cada estrato
+        % (rotulo "melhor" = Output>1, vindo de CalFitnessPC.m:69-71). Substituto
+        % EXATO, sem tocar no miolo stock. Invariante: n_best+n_worst == |TrainIn|.
+        n_best  = ceil(3/4 * sum(Output(:) >  1));
+        n_worst = ceil(3/4 * sum(Output(:) <= 1));
+
         rec = struct('ts', iso_now_c217(), 'rec', "c217_gen", ...
             'geracao', g, 'arc_size', arc_size, 'delta', delta, ...
             'p_mais', num_or_null(Error1), 'p_menos', num_or_null(Error2), ...
             'n_contradicoes', double(n_contradicoes), ...
             'estado', estado, 'motivo', string(motivo), ...
             'lote', double(lote), 'score', double(score), ...
-            'tempo_fit_s', tfit_s);
+            'tempo_fit_s', tfit_s, ...
+            ... % ── DI-10: especificos do c217 (S.7.1) ──
+            'n_best', double(n_best), 'n_worst', double(n_worst), ...
+            'n_treino', double(size(TrainIn, 1)), ...
+            'n_pares_treino', double(size(TrainIn,1)^2 - size(TrainIn,1)), ...
+            'n_Pmid', double(size(Pmid, 1)), ...
+            ... % ── DI-10: minimo comum dos 21 (S.7.1) ──
+            'fe', bud.fe, ...
+            'f_best', min(Arc.objs, [], 1), ...
+            'n_front1', double(n_front1_de(Arc)), ...
+            'modelo_hp', struct('spread', 0.1925), ...
+            'fe_treino_max', num_or_null(opt_nan(ftm)), ...
+            'tempo_busca_s', tbusca_s, 'tempo_geracao_s', tger_s, ...
+            'dist_min_arquivo', dist_min_arq(Next, ArcDecPre));
         try, fprintf(fid, '%s\n', jsonencode(rec)); catch, end
     end
+end
+
+
+function t = sonda_tempo(snd)
+% [DI-09] Tempo da sonda desta geracao (0 se nao rodou) -> coluna ④.
+    if isempty(snd), t = 0; else, t = snd.takePendingTime(); end
+end
+
+function n = n_front1_de(Arc)
+% [DI-10] |ND| corrente. Nenhuma variavel do c217 o guarda (a selecao usa o
+% fitness SPEA2 do ESCalFitness, nao NDSort) -> derivado. NDSort e determinista,
+% nao consome RNG e nao muta estado.
+    try
+        [FrontNo, ~] = NDSort(Arc.objs, 1);
+        n = sum(FrontNo == 1);
+    catch
+        n = NaN;
+    end
+end
+
+function dmin = dist_min_arq(Next, ArcDecPre)
+% [DI-10/B3] Distancia de CADA infill ao arquivo ANTERIOR (espaco de decisao).
+% Usa o snapshot PRE-infill: em PCSAEA.m:64 o `Arc` ja inclui os proprios
+% infills, o que daria distancia 0 (degenerada).
+    if isempty(Next) || isempty(ArcDecPre), dmin = []; return; end
+    try
+        dmin = min(pdist2(Next, ArcDecPre), [], 2).';
+    catch
+        dmin = [];
+    end
+end
+
+function v = opt_nan(x)
+    if isempty(x), v = NaN; else, v = double(x); end
 end
 
 function v = num_or_null(x)

@@ -71,6 +71,72 @@ classdef RunBuffer < handle
     end
 
     methods (Static)
+        function rows = mkSurrogateRows(X, varargin)
+            % Versao em LOTE de mkSurrogateRow, SEM inputParser — ~150x mais
+            % rapida (148 us -> ~1 us por linha, medido no R2025a). Existe por
+            % causa do volume da SONDA: 2000 linhas por bloco, ate ~295 blocos
+            % num run (c217/ZDT1) => o inputParser sozinho custava ~87 s/run.
+            % Mesmo precedente do writer O(n)->O(n^2) do DI-02: o custo por
+            % linha e o que decide se a bateria M8 e viavel.
+            %
+            % Campos que VARIAM por linha entram como matriz N x k (mu, sigma)
+            % ou coluna N x 1 (pred_score, pred_classe, pred_confianca,
+            % fe_treino_max); os CONSTANTES entram como escalar/string e sao
+            % replicados. Semantica IDENTICA a mkSurrogateRow (mesmos defaults,
+            % mesmos NaN/missing) — a equivalencia e testada no smoke do stub.
+            n = size(X, 1);
+            a = struct('mu', [], 'sigma', [], 'pred_tipo', string(missing), ...
+                       'pred_classe', string(missing), 'pred_score', [], ...
+                       'pred_confianca', [], 'modelo_flag', string(missing), ...
+                       'espaco_modelo', string(missing), ...
+                       'transf_tipo', string(missing), 'transf_params', [], ...
+                       'regime', string(missing), 'fe_treino_max', []);
+            for i = 1:2:numel(varargin)
+                f = varargin{i};
+                if ~isfield(a, f)
+                    error('RunBuffer:param', 'parametro desconhecido: %s', f);
+                end
+                a.(f) = varargin{i+1};
+            end
+            if ~ismissing(string(a.pred_tipo)) && ...
+               ~ismember(string(a.pred_tipo), ["valor","classe","score","hibrido"])
+                error('RunBuffer:pred_tipo', 'pred_tipo invalido: %s', a.pred_tipo);
+            end
+            % transf_params: serializado UMA vez (constante por bloco).
+            if isempty(a.transf_params)
+                tp = string(missing);
+            elseif isstring(a.transf_params) || ischar(a.transf_params)
+                tp = string(a.transf_params);
+            else
+                tp = string(jsonencode(a.transf_params));
+            end
+            proto = struct('geracao', [], 'x', [], 'real_solution_id', [], ...
+                'mu', [], 'sigma', [], 'pred_tipo', string(a.pred_tipo), ...
+                'pred_classe', string(missing), 'pred_score', [], ...
+                'pred_confianca', [], 'modelo_flag', string(a.modelo_flag), ...
+                'espaco_modelo', string(a.espaco_modelo), ...
+                'transf_tipo', string(a.transf_tipo), 'transf_params', tp, ...
+                'regime', string(a.regime), 'fe_treino_max', a.fe_treino_max);
+            pick = @(v, i) sel_row(v, i, n);
+            rows = cell(1, n);
+            for i = 1:n
+                r = proto;
+                r.x = double(X(i, :));
+                r.mu    = pick(a.mu, i);
+                r.sigma = pick(a.sigma, i);
+                r.pred_score     = pick(a.pred_score, i);
+                r.pred_confianca = pick(a.pred_confianca, i);
+                if ~ismissing(string(a.pred_classe))
+                    if numel(a.pred_classe) == n
+                        r.pred_classe = string(a.pred_classe(i));
+                    else
+                        r.pred_classe = string(a.pred_classe);
+                    end
+                end
+                rows{i} = r;
+            end
+        end
+
         function r = mkSurrogateRow(x, varargin)
             % Espelho de src/export.py::surrogate_row — monta uma linha ③ com
             % defaults ausentes ([] = NULL/NaN no export). x = 1xD (nativo).
@@ -132,4 +198,18 @@ end
 
 function v = as_row(v)
     if isempty(v), v = []; else, v = double(v(:).'); end
+end
+
+function v = sel_row(V, i, n)
+% Linha i de um campo do lote: matriz N x k -> linha i; escalar/vetor unico ->
+% replicado; vazio -> vazio (=> NULL no export).
+    if isempty(V)
+        v = [];
+    elseif size(V, 1) == n && n > 1
+        v = double(V(i, :));
+    elseif isscalar(V)
+        v = double(V);
+    else
+        v = double(V(:).');
+    end
 end

@@ -34,8 +34,9 @@ classdef PCSAEA < ALGORITHM
         
             %% Optimization
             while Algorithm.NotTerminated(Arc)
+                tGer_c217 = tic;   % [DI-09] §17.6 tempo_geracao_s (read-only)
                 % Select a balance sample set by a new fitness
-                [Input,Output,Pa,Pmid] = CalFitnessPC(Population.objs,Population.decs,(Problem.FE/Problem.maxFE));   
+                [Input,Output,Pa,Pmid] = CalFitnessPC(Population.objs,Population.decs,(Problem.FE/Problem.maxFE));
                 % Data process
                 [TrainIn,~,TestIn,TestOut] = DataProcess(Input,Output);
                 % Construct and update the FNN��global classify surrogate model
@@ -47,10 +48,19 @@ classdef PCSAEA < ALGORITHM
                 % New and suitble reliability selection
                 validIndex = TestPre~=1.5;
                 Error1 = sum(TestOut(validIndex)==TestPre(validIndex))/length(TestOut);   
-                Error2 = sum(TestOut(validIndex)~=TestPre(validIndex))/length(TestOut);              
+                Error2 = sum(TestOut(validIndex)~=TestPre(validIndex))/length(TestOut);
+
+                % [DI-09] SONDA CANONICA (§17.2.2) — READ-ONLY, zero FE, RNG
+                % salvo/restaurado. Ponto: apos o fit (:43), com Pmid/Error1 ja
+                % prontos e TrainIn em escopo, e ANTES da 1a decisao (:53, onde o
+                % RNG passa a ser consumido). NAO altera nenhuma variavel da busca.
+                c217_sonda(Problem,net,Pmid,Error1,TrainIn);
 
                 % Surrogate-assisted selection and update the population
+                ArcDecPre_c217 = Arc.decs;   % [DI-10] arquivo ANTES do infill (dist_min_arquivo)
+                tBusca_c217 = tic;
                 Next = SurrogateAssistedSelectionPC(Problem,net,Error1,Error2,Population.decs,gmax,Pa,Problem.D,0,delta);
+                tbusca_s_c217 = toc(tBusca_c217);   % [DI-10/B2] §17.6 tempo_busca_s
                 if ~isempty(Next)
                     Arc = [Arc,Problem.Evaluation(Next)];
                 end
@@ -61,7 +71,8 @@ classdef PCSAEA < ALGORITHM
                 Problem.FE = Problem.data.bud.fe;
                 Population = EnvironmentalSelection(Arc,min(Problem.N,length(Arc)));   % [R1-c217] fix min(N,|Arc|): evita crash D<=4 (|Arc|<Problem.N=50; PCS:55)
                 % [R1-c217] instrumentacao POS-decisao (NAO altera a busca — D97): ③ score + §17.2.1 (.jsonl) + timing §17.6
-                c217_instrument(Problem, Arc, Next, delta, Error1, Error2, TestPre, tfit_s_c217);
+                c217_instrument(Problem, Arc, Next, delta, Error1, Error2, TestPre, tfit_s_c217, ...
+                                tbusca_s_c217, toc(tGer_c217), TrainIn, Output, Pmid, ArcDecPre_c217);
                 t = t + 1;
             end
         end

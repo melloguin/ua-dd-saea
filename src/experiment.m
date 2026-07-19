@@ -195,7 +195,8 @@ function [status, info] = run_stub(alg, problema, semente, exp, dataRoot)
     % -> ③ regime='sonda' -> ④ tempo_pred_sonda_s -> man.sonda) SEM algoritmo
     % real, para que uma regressao da infra apareca aqui e nao no 1o config.
     sd  = load_sonda(problema, D, M, dataRoot);
-    snd = SondaState(sd, buf, fid, alg);
+    snd = [];
+    if ~isempty(sd), snd = SondaState(sd, buf, fid, alg); end
     % predict_fn de mentira (deterministico): mu = x(:,1)*g, sigma constante.
     mk_fn = @(gg) @(Xs) arrayfun(@(i) {RunBuffer.mkSurrogateRow(Xs(i,:), ...
                         'mu', Xs(i,1) * gg * ones(1,M), ...
@@ -323,6 +324,7 @@ function [status, info] = run_c217(alg, problema, semente, exp, dataRoot)
     status = "failed";
     info = struct();
     ROOT = harness_root();
+    t0_run = tic;                                  % [§17.6] wall total do run
 
     % Garante a arvore PlatEMO 4.15 no path (N.0.1) — rede p/ chamada DIRETA de
     % experiment() (o despachante experiments.m ja faz addpath por worker).
@@ -368,7 +370,13 @@ function [status, info] = run_c217(alg, problema, semente, exp, dataRoot)
     %     (a instrumentacao c217 le Problem.data.*).
     %   - initFcn = DoE[0] p/ o PROBE (Initialization(1)) do construtor: evita o
     %     ponto aleatorio; o probe avalia DoE[0] pela ponte (absorvido como cache-hit).
-    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, ...
+    %   - [DI-09] snd = SondaState. Entra AQUI porque UserProblem.data e
+    %     SetAccess=protected: nao ha como injetar de dentro do algoritmo.
+    %     O load_sonda confere o x_hash no arranque e ABORTA em divergencia.
+    sd  = load_sonda(problema, D, M, dataRoot);
+    snd = [];
+    if ~isempty(sd), snd = SondaState(sd, buf, fid, alg); end
+    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, 'snd', snd, ...
                   'run_id', string(nm_run_id(exp, alg, problema, semente)), ...
                   'problema', string(problema), 'semente', semente);
     Problem = UserProblem('evalFcn', batchEval, 'initFcn', @(N,varargin) X0(1:N,:), ...
@@ -399,6 +407,12 @@ function [status, info] = run_c217(alg, problema, semente, exp, dataRoot)
         end
     end
 
+    % (7b) [DI-09] SONDA da ULTIMA geracao — FORA do laco. O hard-stop (D61) mata
+    % o corpo no meio do ciclo, entao o bloco da ultima geracao nunca rodaria por
+    % dentro; aqui ele dispara sobre o modelo ARMADO no ultimo fit. No-op se a
+    % geracao corrente ja foi sondada pela cadencia k=2.
+    if ~isempty(snd), snd.finalProbe(buf.gen); end
+
     % (8) EXPORT das 4 camadas (§17.2/§17.3): ① do wrapper; ②③/timing do buffer.
     R = bud.records();                                 % catalogo ① (== 31D-1 linhas)
     write_real(exp, alg, problema, semente, R, D, M, dataRoot);
@@ -421,6 +435,8 @@ function [status, info] = run_c217(alg, problema, semente, exp, dataRoot)
         maxfe, bud.fe, buf.nGeracoes(), doe_hash_run, bud.cache_hits, dataRoot);
     man.algo_version = "c217-PCSAEA-PlatEMO4.15";
     man.status = st_str;
+    % [v5.2.1/§17.6] bloco `timing` OBRIGATORIO + fit_series + man.sonda (DI-09).
+    man = fill_manifest_timing(man, buf.trows, bud, toc(t0_run), snd);
     write_manifest(man, exp, alg, problema, semente, dataRoot);
 
     jsonl_line(fid, 'footer', {'status', st_str, 'fe_final', bud.fe, 'maxfe', maxfe, ...
@@ -2404,8 +2420,23 @@ function sd = load_sonda(problema, D, M, dataRoot)
 % documentada, precedente do __final DI-08).
     pq  = nm_sonda_path(problema, dataRoot);
     man = nm_sonda_manifest_path(problema, dataRoot);
-    assert(isfile(pq),  'sonda ausente: %s', pq);
-    assert(isfile(man), 'sidecar da sonda ausente: %s', man);
+
+    % [DI-09] O artefato cobre EXATAMENTE os 25 problemas do grid oficial
+    % (runs_matrix.csv) — verificado: 25/25. Problemas de PILOTO fora do grid
+    % (ex.: DTLZ2_d15, variante dimensional usada so nas checagens de D) NAO
+    % tem regua, e nao podem ter: a sonda e Sobol com d=D, entao a variante
+    % precisaria de artefato PROPRIO. Nesses casos o run segue SEM sonda — mas
+    % o fato fica registrado de forma inconfundivel (o chamador grava
+    % man.sonda.status='artefato_ausente' + evento no jsonl), para que "sonda
+    % ausente" nunca possa ser confundido com "sonda vazia".
+    if ~isfile(pq) || ~isfile(man)
+        sd = [];
+        warning('experiment:sondaAusente', ...
+            ['sonda ausente para o problema %s (%s) — o run segue SEM sonda. ' ...
+             'Esperado apenas em problemas FORA do grid dos 25 (piloto).'], ...
+            char(problema), pq);
+        return;
+    end
     side = jsondecode(fileread(man));
 
     t = parquetread(pq);
@@ -2684,9 +2715,15 @@ function man = fill_manifest_timing(man, trows, bud, tempo_total_s, snd)
     end
     man.fit_series = fs;
 
-    % Bloco `sonda` (DI-09): a certidao da regua usada neste run.
+    % Bloco `sonda` (DI-09): a certidao da regua usada neste run. Quando o
+    % problema esta FORA do grid dos 25 (piloto), o artefato nao existe e o
+    % bloco registra a AUSENCIA explicitamente — "sem sonda" nunca pode ser
+    % lido como "sonda vazia".
     if nargin >= 5 && ~isempty(snd)
         man.sonda = snd.manifestBlock();
+    else
+        man.sonda = struct('status', "artefato_ausente", ...
+            'motivo', "problema fora do grid dos 25 (sonda e por problema, Sobol d=D)");
     end
 end
 

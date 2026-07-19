@@ -1,0 +1,14 @@
+{
+ "schema_version": 1,
+ "problema": "WFG2",
+ "problema_id": 14,
+ "S": 2000,
+ "D": 22,
+ "M": 2,
+ "base_seed": 4242,
+ "sobol_seed_32": 2374098138,
+ "scramble": true,
+ "x_hash": "4bb888fc3e582e380440cf60074d2b03c733198bc2461deebbfb08310e1b975d",
+ "f_hash": "43c9f24eb10fa15f69aa34f2fc3f14f8ebca31f2aa9a9f87aaf37c688a94bb35",
+ "convencao": "sha256 dos bytes float64 row-major (D87); ordem das linhas = ordem de gera\u00e7\u00e3o Sobol (join por posi\u00e7\u00e3o)"
+}

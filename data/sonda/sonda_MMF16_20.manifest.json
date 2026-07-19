@@ -1,0 +1,14 @@
+{
+ "schema_version": 1,
+ "problema": "MMF16_20",
+ "problema_id": 3,
+ "S": 2000,
+ "D": 20,
+ "M": 3,
+ "base_seed": 4242,
+ "sobol_seed_32": 3898424596,
+ "scramble": true,
+ "x_hash": "8f238ff256b773fe7e2e0bca324a08210fd55348a44951a5eeff31c456cf2fbf",
+ "f_hash": "0ccd7954e5e15db952c2bfb8fc4b82a23b4aa001b292d34e18af972c331547ef",
+ "convencao": "sha256 dos bytes float64 row-major (D87); ordem das linhas = ordem de gera\u00e7\u00e3o Sobol (join por posi\u00e7\u00e3o)"
+}

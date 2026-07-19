@@ -1,0 +1,14 @@
+{
+ "schema_version": 1,
+ "problema": "ZDT1",
+ "problema_id": 4,
+ "S": 2000,
+ "D": 30,
+ "M": 2,
+ "base_seed": 4242,
+ "sobol_seed_32": 565577284,
+ "scramble": true,
+ "x_hash": "5a738ff1a813830ad30aae9cfc99ed13c18ab4534735bf50c72859c68b748ba4",
+ "f_hash": "24b6c5d9b7a57353bc5354a70303dcfe1b52314e6cf6e797fc8622f351ab03d6",
+ "convencao": "sha256 dos bytes float64 row-major (D87); ordem das linhas = ordem de gera\u00e7\u00e3o Sobol (join por posi\u00e7\u00e3o)"
+}

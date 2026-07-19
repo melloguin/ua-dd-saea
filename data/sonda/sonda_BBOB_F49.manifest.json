@@ -1,0 +1,14 @@
+{
+ "schema_version": 1,
+ "problema": "BBOB_F49",
+ "problema_id": 23,
+ "S": 2000,
+ "D": 10,
+ "M": 2,
+ "base_seed": 4242,
+ "sobol_seed_32": 2415814661,
+ "scramble": true,
+ "x_hash": "b05414b87c93a5c57f1139068132a739828f002a1f89abd0a844f83a01df284a",
+ "f_hash": "9dce5a9516f29bc470b1cad9c311925b4eea946c82e37bcecb52a58302ce732a",
+ "convencao": "sha256 dos bytes float64 row-major (D87); ordem das linhas = ordem de gera\u00e7\u00e3o Sobol (join por posi\u00e7\u00e3o)"
+}

@@ -235,6 +235,19 @@ do §17 com mocks) + SPEC v5.2.1 (§17.2.2 sonda S=2000/k=2 · `fe_treino_max` n
 expandida com `tempo_geracao_s`/`tempo_pred_sonda_s` + manifesto timing OBRIGATÓRIO ·
 S.7.1 DI-10 · `__final` DI-08 · S.3#9 DI-05) + bundles regenerados. PENDENTE da janela original:
 apenas o item B5 (`cache_root` — cosmético, card do c262).
+### 📌 DEFS-c154 — 🟡 AGUARDANDO PING-PONG (levantadas pela sessão c154, 2026-07-18)
+Do `handoff/R2-c154_REPASSE-A-TORRE.md`: **D-1 NaN-guard do JES** (LB estoura logdet em bolsões
+raros; guard só na SELEÇÃO, acqf crua intocada, logado — 24 disparos DTLZ2, 8/10 iters ZDT1; SEM
+ele o ZDT1 é irrodável; **rec. torre: MANTER**, mesma classe das guardas ratificadas) · **D-2
+custo** (DTLZ2 ≈18 dias·core/problema; ZDT1 ≈121 — dimensionamento da R2 pelo c154, alavancas
+mapeadas) → M7 · **D-3 ZDT1**: completar ou documentar corte → M7 · **D-4 gaps v5.2.1** (backfill
+tempo_busca_s do ④; colunas novas; mll_final; **n_baseline N/A no JES → decisão torre: logar
+`n_train` e documentar no sigma_dict**) → escopo do retrofit-R2 · médias (escada RuntimeError,
+likelihood default, init_batch_limit 256×32, projetor de wall) e baixas (doc-syncs) → lote.
+**Ação já executada pela torre:** backup das baselines ①+manifesto+jsonl de TODOS os pilotos em
+`data/experiments/_baseline_pre_retrofit/` (9,4 MB — a linha de base do gate de não-perturbação;
+o ① do c154/DTLZ2 custou 14h37) + **artefato da SONDA gerado e verificado** (`scripts/gen_sonda.py`
++ `data/sonda/` — 25 problemas, determinismo 25/25, gabarito conferido; os retrofits só CARREGAM).
 ---
 
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)

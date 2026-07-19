@@ -1,0 +1,14 @@
+{
+ "schema_version": 1,
+ "problema": "DTLZ4",
+ "problema_id": 11,
+ "S": 2000,
+ "D": 12,
+ "M": 3,
+ "base_seed": 4242,
+ "sobol_seed_32": 1003568590,
+ "scramble": true,
+ "x_hash": "9af00e6cff4bb863cc5ee5547f1e9bf5c6ce30840306ad6b4546cc16d07faa01",
+ "f_hash": "7e272dd05cb8d9c0f7fac5a3672117a0e5f07ac2f7e0885fd1bbd486d813dc54",
+ "convencao": "sha256 dos bytes float64 row-major (D87); ordem das linhas = ordem de gera\u00e7\u00e3o Sobol (join por posi\u00e7\u00e3o)"
+}

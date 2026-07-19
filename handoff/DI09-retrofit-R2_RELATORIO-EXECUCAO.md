@@ -10,8 +10,9 @@
 
 ```
 🔴 NAO-PERTURBACAO (① bit-a-bit vs data/experiments/_baseline_pre_retrofit/)
-   c262/MMF1: 61L sha=c37afd6d4f551d66 == 61L sha=c37afd6d4f551d66   VERDE ✓
-   c154/MMF1: 61L sha=95be196c1855bd70 == 61L sha=95be196c1855bd70   VERDE ✓
+   c262/MMF1 : 61L  sha=c37afd6d4f551d66     == idem   VERDE ✓
+   c154/MMF1 : 61L  sha=95be196c1855bd70     == idem   VERDE ✓
+   c262/DTLZ2: 371L sha=e43c52033eff0b9d29a2 == idem   VERDE ✓  (opcional; D=12,M=3,241 iters)
 
 accept.py    R2-c262/MMF1 · R2-c262/DTLZ2 · R2-c154/MMF1 · R2-c154/DTLZ2   VERDE ×4
              (4 saídas + jsonl · FE=31D−1 exato · CP-init DoE bit-a-bit)

@@ -15,19 +15,18 @@
 
 ## 1. Resposta direta: a etapa está pronta?
 
-**O escopo obrigatório do cartão: SIM, 100% executado e validado.**
-**Há UMA tarefa opcional ainda rodando** (o cartão a marcou como opcional e
-mandou "pode deixar rodando e reportar" — é o que faço na §7).
+**SIM — obrigatório E opcional, tudo executado e validado.** O run opcional
+`c262/DTLZ2` terminou depois da primeira versão deste relatório e também passou
+no gate (§7). Não há nada pendente de execução.
 
 | | |
 |---|---|
 | Escopo obrigatório | ✅ completo, gates verdes |
-| `c262/DTLZ2` (o cartão marcou **OPCIONAL**) | ⏳ **216/241 iterações** no fechamento deste relatório |
+| `c262/DTLZ2` (o cartão marcou **OPCIONAL**) | ✅ **concluído — gate VERDE** (ver §7) |
 | Escopo explicitamente proibido pelo cartão | não tocado (§9) |
 
-O run opcional **não é pré-requisito de nada**: a mecânica da sonda está provada
-no MMF1 nos 2 configs, que é exatamente o que o cartão determinou
-(*"c154/DTLZ2: NÃO re-rode — a mecânica da sonda se prova no MMF1"*).
+O único run que o cartão proibiu re-executar (`c154/DTLZ2`, 14h37) recebeu
+backfill da ④, como determinado.
 
 ## 2. O código que rodei e o resultado — evidência, não memória
 
@@ -43,9 +42,12 @@ $PY -c "from src import experiment; experiment.run('c154','MMF1',0, exp='main')"
 # depois: sha256 da ① re-executada vs a de data/experiments/_baseline_pre_retrofit/
 ```
 ```
-c262/MMF1  baseline=61L/c37afd6d4f551d66  pos-retrofit=61L/c37afd6d4f551d66  -> VERDE
-c154/MMF1  baseline=61L/95be196c1855bd70  pos-retrofit=61L/95be196c1855bd70  -> VERDE
+c262/MMF1   baseline=61L /c37afd6d4f551d66      pos-retrofit=61L /c37afd6d4f551d66      -> VERDE
+c154/MMF1   baseline=61L /95be196c1855bd70      pos-retrofit=61L /95be196c1855bd70      -> VERDE
+c262/DTLZ2  baseline=371L/e43c52033eff0b9d29a2  pos-retrofit=371L/e43c52033eff0b9d29a2  -> VERDE
 ```
+O DTLZ2 (D=12, M=3, **241 iterações, 122 blocos de sonda**) é a prova mais forte
+das três: 6× mais iterações que o MMF1 e um espaço muito maior.
 **A ① é bit-idêntica com a sonda ativa.** É a prova objetiva que o invariante
 DI-09 exige.
 
@@ -221,17 +223,40 @@ Como a busca domina (81–89%), **a sonda não muda a ordem de grandeza de nenhu
 run**. O que ela move é **volume em disco**: a ③ cresce ~90× no MMF1. Confirma
 por medição a aritmética dos ~260 GB que o autor já cravou na DI-09.
 
-## 7. O run opcional (`c262/DTLZ2`)
+## 7. O run opcional (`c262/DTLZ2`) — CONCLUÍDO, VERDE
 
-**Estado no fechamento: 216/241 iterações, 109 blocos de sonda.** Lançado para
-medir a sonda em escala real (D=12, M=3; ~2h31 pré-retrofit). O gate **não
-depende dele**. Projeção pela medida do MMF1: ~121 blocos × 2000 = **242.000
-linhas de sonda** e ~**+7 s** de predição sobre um run de ~2h30 (≈0,08%) — ali o
-custo relevante é disco, não CPU.
+Rodado em escala real (D=12, M=3, 241 iterações; wall **8.972 s = 2h29**, contra
+~2h31 do baseline pré-retrofit — ou seja, **a sonda não é distinguível do ruído
+no wall total**).
 
-**Se a torre quiser conferir quando terminar:** a cadência esperada é
-`{1} ∪ {2,4,…,240} ∪ {241}` = **122 blocos**; a ① deve bater bit-a-bit com
-`_baseline_pre_retrofit/c262/exp_main_c262_DTLZ2_0__real.parquet`.
+```
+🔴 NAO-PERTURBACAO: ① 371 linhas, sha e43c52033eff0b9d29a2 == baseline  -> VERDE
+③ 246.410 linhas | busca 2.410 · sonda 244.000
+   blocos: 122 (esperado 122) · gerações {1,2,4,…,240,241} conferem: True
+   todas com 2000 linhas: True · ordem do artefato bit-exata: True
+   fe_treino_max: 0 NULL
+④ 241 linhas | NULLs: busca=0 sonda=0 geracao=0
+⑤ sonda 122×2000 = 244.000 · sigma_dict 10 chaves · timing 5 chaves
+⑥ header 1 · timing 241 · decision 241 · sonda 122 · footer 1
+```
+
+**Custo medido em escala (corrige a projeção da §6):**
+
+| | medido |
+|---|---|
+| `tempo_pred_sonda_s` | **16,29 s de 8.972 s = 0,18 %** |
+| `tempo_busca_s` | 8.838 s (98,5 %) |
+| ③ em disco | 0,22 MB → **9,1 MB (41×)** |
+
+> ⚠ Correção honesta: eu havia projetado ~7 s (0,08 %) para a sonda aqui; o
+> medido foi **16,3 s (0,18 %)** — a projeção linear a partir do MMF1 subestimou
+> por ~2×, porque o custo do posterior cresce com `n_train` (que vai a 371 no
+> DTLZ2 contra 61 no MMF1). **A conclusão não muda:** a sonda continua sendo
+> ruído no wall (a busca é 98,5 %) e o que ela move é disco.
+
+**Extrapolação de volume para a M8:** 9,1 MB/run neste porte. A bateria tem
+16.500 runs, com D variando até 30 (ZDT1) — o que sustenta, por medição, a ordem
+de grandeza dos **~260 GB extras** que o autor já cravou na DI-09.
 
 ---
 

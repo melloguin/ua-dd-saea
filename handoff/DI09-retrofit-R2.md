@@ -14,6 +14,7 @@
 |---|---|
 | 🔴 **NÃO-PERTURBAÇÃO c262/MMF1** (① vs `_baseline_pre_retrofit/`) | **VERDE — bit-idêntica** |
 | 🔴 **NÃO-PERTURBAÇÃO c154/MMF1** (① vs `_baseline_pre_retrofit/`) | **VERDE — bit-idêntica** |
+| 🔴 **NÃO-PERTURBAÇÃO c262/DTLZ2** (opcional; 241 iters, 122 blocos) | **VERDE — bit-idêntica** |
 | Suíte de testes (122 casos, +30 novos) | **VERDE** |
 | F0-01 / F0-02 / F0-03 / F0-04 | **VERDE** ×4 |
 | R2-00-harness · preflight | **VERDE** |

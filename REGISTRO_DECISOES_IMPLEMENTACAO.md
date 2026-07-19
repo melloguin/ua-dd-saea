@@ -439,6 +439,17 @@ o ① do c154/DTLZ2 custou 14h37) + **artefato da SONDA gerado e verificado** (`
 2. **Antes do R3:** DI-08-2/3/4 (naming + avaliador pós-hoc + check no accept + retroativo e103).
 3. **M7:** DI-06 (o mini-cartão de hardening com os 8 itens).
 4. **Dossiê/lote do autor:** DI-07b (o desalinhamento ~24,8% do e74 como ponto prioritário).
+4b. **🔴 DEFINIÇÕES EM ABERTO do retrofit-R1 — a torre deve levantá-las com o autor.**
+   Detalhadas em `handoff/DI09-retrofit-R1_RELATORIO-EXECUCAO.md` §5.
+   **Bloqueantes** (definição a CRIAR; travam o config indicado): **A-1** e103 — qual é o escalar
+   `margem_3sigma` (o mecanismo é booleano; não existe UM valor) · **A-2** e103 — com que `geracao`
+   carimbar os 2 blocos offline da sonda · **A-3** e74 — a RBF `s3` é treinada POR PONTO, então
+   quantos blocos por ciclo · **A-4** pisos — o assert `piso_com_surrogate` exige `trows` vazio, mas
+   o cartão exige ④ para os pisos.
+   **Ratificações** (já valendo em código, vetáveis): **B-1** `n_acumulado` do c217 · **B-2**
+   `fe_treino_max` sobre o TREINO (não monotônico em b4/c217/b1) · **B-3** dtype de
+   `real_solution_id` · **B-4** contiguidade do bloco de sonda · **B-5** escopo das checagens de
+   sonda no `accept.py`.
 5. **🔴 Doc-syncs da DI-12 (torre — território SPEC/CONTRATO, RI-12).** Os três primeiros existem
    porque o texto normativo **admitia duas leituras** — foi essa ambiguidade que gerou a divergência
    entre stacks; cravar a redação é o que impede a reincidência:

@@ -14,7 +14,7 @@
 |---|---|
 | 🔴 **NÃO-PERTURBAÇÃO c262/MMF1** (① vs `_baseline_pre_retrofit/`) | **VERDE — bit-idêntica** |
 | 🔴 **NÃO-PERTURBAÇÃO c154/MMF1** (① vs `_baseline_pre_retrofit/`) | **VERDE — bit-idêntica** |
-| Suíte de testes (118 casos, +26 novos) | **VERDE** |
+| Suíte de testes (122 casos, +30 novos) | **VERDE** |
 | F0-01 / F0-02 / F0-03 / F0-04 | **VERDE** ×4 |
 | R2-00-harness · preflight | **VERDE** |
 | `accept.py` R2-c262 / R2-c154 (MMF1 e DTLZ2) | **VERDE** |
@@ -105,8 +105,9 @@ tese não se maquia:
 | `geracao`, `n_acumulado`, `tempo_fit_s` | EXATO (evento `timing`) |
 | `tempo_busca_s` (240/241) | EXATO (`t_busca_s` da `decision`) |
 | `tempo_busca_s` (it 241) | DERIVADO — a `decision` da última é o `hard_stop`, que fecha antes de o wall da busca ser logado |
-| `tempo_geracao_s` (241/241) | DERIVADO — âncoras `ts(timing) − tempo_fit_s` |
-| `tempo_pred_sonda_s` | NULL — run PRÉ-sonda, não havia grandeza a medir |
+| `tempo_geracao_s` (240/241) | DERIVADO — âncoras `ts(timing) − tempo_fit_s`, **descontada a sonda** (a definição do escritor vivo) |
+| `tempo_geracao_s` (it 241) | DERIVADO — `fit + busca`, cota INFERIOR: o `footer` do jsonl vem **depois** da escrita das 4 camadas e do upload, que não são custo da geração |
+| `tempo_pred_sonda_s` | NULL — run PRÉ-sonda (o jsonl inteiro não tem evento `sonda`), não havia grandeza a medir |
 
 **Calibração do estimador derivado:** contra as 240 iterações de valor
 conhecido, `ts(decision) − ts(timing)` errou **+8 ms em ~450 s** (2×10⁻⁵
@@ -114,8 +115,11 @@ relativo).
 
 **Validação cruzada independente:** o ④ backfillado soma `tempo_busca_s` =
 **51 674,4 s** contra os **51 674,4185 s** que o manifesto já registrava por
-outro caminho; `tempo_geracao_s` soma **52 596,1 s** contra `tempo_total_s` =
-**52 596,3 s** (a diferença é o setup/teardown fora do laço).
+outro caminho.
+
+> ⚠ A semântica de `tempo_geracao_s` deste backfill foi **corrigida após a
+> revisão adversarial** (commit `bb17129`); a ④ foi restaurada ao estado
+> pré-backfill e reconstruída. Ver §4.1 do RELATÓRIO.
 
 ## 6. DI-11.3 — o teto de wall-clock (adendo B / lacuna D-8)
 

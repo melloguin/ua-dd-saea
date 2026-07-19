@@ -6,10 +6,14 @@
 > que código rodou, que resultado deu, o que foi encontrado no caminho, e
 > **o que exige decisão do autor**.
 >
-> 🔴 **AÇÃO REQUERIDA DA TORRE:** a §8 lista **11 definições em aberto**, sendo
-> **2 bloqueadores** e **4 decisões de contrato de dados** que eu tomei para não
+> 🔴 **AÇÃO REQUERIDA DA TORRE:** a §8 lista **13 definições em aberto**, sendo
+> **3 bloqueadores** e **4 decisões de contrato de dados** que eu tomei para não
 > travar o cartão e que precisam de ratificação. A torre deve **levantá-las com
 > o autor**. Nenhuma é decisão de fidelidade (D97).
+>
+> ⚡ **A mais urgente é a §8.1/B-0:** a sessão retrofit-MATLAB implementou a
+> sonda com uma **cadência diferente** da minha. Quanto mais runs forem gravados
+> antes de padronizar, maior o retrabalho.
 
 ---
 
@@ -266,6 +270,35 @@ de grandeza dos **~260 GB extras** que o autor já cravou na DI-09.
 Abaixo o resumo executivo, por prioridade.)*
 
 ## 8.1 BLOQUEADORES (não são decisão minha; precisam de cartão)
+
+### ⚡🔴 B-0 · CADÊNCIA DA SONDA DIVERGE entre Python e MATLAB — decidir JÁ
+Achado no fechamento, ao conferir faixa. A sessão **retrofit-MATLAB** commitou
+em paralelo (`cc3eee1`) e implementou a mesma sonda com outra cadência:
+
+| | fórmula | gerações com bloco |
+|---|---|---|
+| **MATLAB** (`SondaState.due`) | `g==1 \|\| mod(g-1,k)==0` | **1, 3, 5, 7, …** |
+| **Python** (`sonda_due`) | `it==1 or it%k==0` | **1, 2, 4, 6, …** |
+
+Ambas são leituras defensáveis de *"a cada k=2 + SEMPRE a 1ª e a última"*.
+**Argumento textual a favor da Python:** sob a fórmula MATLAB a cláusula
+"+ SEMPRE a 1ª" fica **vazia** (1 já está em 1,3,5,…); a SPEC tê-la escrito
+sugere que a cadência não inclui a 1ª naturalmente. Não é conclusivo, e **não é
+decisão minha**.
+
+**Impacto, sem alarmismo:** *não* quebra o contrato de análise (o eixo de
+comparação é o **FE**, não a geração — CONTRATO §3.1 / R4 regra 6). **Mas** a
+sonda é vendida como *"a régua ÚNICA, idêntica para todos"*, e uma diferença
+arbitrária **por stack** contradiz isso; muda a contagem de blocos (logo, o
+volume) e desalinha leituras indexadas por geração.
+**Custo de padronizar: 1 linha de cada lado — e cai a cada run gravado.**
+
+### ⚠ B-0b · `tempo_geracao_s`: o MATLAB desconta a sonda?
+Ligada a B-0 e à minha decisão **D-1**. Implementei descontando. No MATLAB,
+`c217_instrument.m` grava `tempo_geracao_s` e `tempo_pred_sonda_s` lado a lado e
+**não vi a subtração** — mas a sessão seguia ATIVA e o código em fluxo, então
+**não afirmo que esteja errado**; registro para a torre conferir. Se um lado
+descontar e o outro não, a mesma coluna significa duas coisas entre stacks.
 
 ### 🔴🔴 B-1 · `experiments.py` APAGA o manifesto do retrofit — bloqueador da M8
 `experiments.py::_run_one` chama `new_manifest`+`write_manifest`

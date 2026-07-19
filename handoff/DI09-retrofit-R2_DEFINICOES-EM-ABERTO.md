@@ -109,6 +109,54 @@ Dois itens do repasse não entraram no resumo da DI-11 e **continuam abertos**:
 - **`fe_treino_max`, sonda e mínimo comum DI-10 nos 9 configs MATLAB e nos do
   R3.** Fora da faixa por construção (paralelismo triplo).
 
+## A-12 🔴🔴 DIVERGÊNCIA PYTHON × MATLAB na CADÊNCIA DA SONDA — decisão urgente
+
+**Achado no fechamento**, ao conferir que meus commits não invadiram faixa
+alheia: a sessão **retrofit-MATLAB** commitou em paralelo (`cc3eee1`,
+`[DI09-R1] infra: sonda canonica…`) e implementou a **mesma** sonda com uma
+**cadência diferente da minha**.
+
+| | fórmula | gerações com bloco |
+|---|---|---|
+| **MATLAB** (`src/SondaState.m`, `due()`) | `g == 1 \|\| mod(g-1, k) == 0` | **1, 3, 5, 7, …** |
+| **Python** (`botorch_harness.sonda_due`) | `it == 1 or it % k == 0` | **1, 2, 4, 6, …** |
+
+Ambas são leituras defensáveis de *"a cada k=2 gerações/iterações + SEMPRE a 1ª
+e a última"* (§17.2.2).
+
+**O argumento textual a favor da leitura Python:** sob a fórmula MATLAB a
+cláusula **"+ SEMPRE a 1ª" fica vazia** — a geração 1 já está em 1,3,5,… O fato
+de a SPEC ter escrito essa cláusula explicitamente sugere que a cadência
+pretendida **não** inclui a 1ª naturalmente, isto é, cai nas gerações pares.
+Não é conclusivo, e **não é decisão minha**.
+
+**Impacto real (avaliação honesta, sem alarmismo):**
+- ❌ **Não** quebra o contrato de análise: o CONTRATO §3.1 e a R4 regra 6 dizem
+  que o eixo de comparação entre algoritmos é o **FE consumido**, não a geração.
+- ⚠ **Mas** a sonda é vendida como *"a régua ÚNICA, idêntica para todos"* — e
+  uma diferença arbitrária **por stack** contradiz esse espírito.
+- ⚠ Muda a contagem de blocos por run (logo, a estimativa de volume) e
+  desalinha qualquer leitura indexada por geração.
+
+**O que a torre precisa decidir:** qual das duas fórmulas é a canônica, e
+padronizar as duas faixas. **Custo de mudar:** 1 linha de cada lado. Quanto
+antes, melhor — cada run gravado com a fórmula perdedora terá de ser
+re-executado ou ter a diferença documentada para sempre.
+
+## A-13 ⚠ `tempo_geracao_s` — o MATLAB desconta a sonda? (não consegui confirmar)
+
+Ligada à A-12 e à minha decisão **D-1/A-2**: implementei `tempo_geracao_s`
+**descontando** o custo da sonda. No lado MATLAB, `c217_instrument.m` grava
+`'tempo_geracao_s', tger_s` e `'tempo_pred_sonda_s', sonda_tempo(snd)` lado a
+lado, mas **não vi a subtração** — `tger_s` chega pronto do chamador.
+
+**Não afirmo que esteja errado:** a sessão MATLAB seguia ATIVA quando fiz esta
+verificação e o código está em fluxo; pode já estar tratado, ou tratado no
+chamador. **Registro para a torre conferir**, porque se um lado descontar e o
+outro não, a MESMA coluna passa a significar duas coisas entre stacks — que é
+exatamente o defeito que a revisão adversarial pegou dentro do meu próprio
+código (§4.1 do RELATÓRIO), ali corrigido.
+
 ## A-9 🔴🔴 BLOQUEADOR PARA A M8 — `experiments.py` APAGA o manifesto do retrofit
 
 **Não é da minha faixa** (`experiments.py` = dispatcher, faixa R3-00) e **não é

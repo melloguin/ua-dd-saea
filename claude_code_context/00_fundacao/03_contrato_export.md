@@ -45,7 +45,10 @@ algoritmo | problema | semente | regime | geracao (TODAS — D33) |
 x_1..x_D | real_solution_id (liga ao Catálogo REAL se o candidato foi avaliado; senão NULL) |
 mu_1..mu_M (predição) | sigma_1..sigma_M (se disponível) |
 pred_tipo | pred_classe | pred_score | pred_confianca | modelo_flag   ← [C1/D26] saída conforme o tipo
+fe_treino_max (int32) ← [DI-09/A1 v5.2.1] maior fe_index no TREINO do modelo no fit desta predição
 ```
+**[DI-09 v5.2.1]** A coluna `regime` da ③ distingue `'sonda'` (as predições na régua fixa —
+§17.2.2) das predições da busca; `fe_treino_max` separa in-sample de out-of-sample na análise.
 **Manifesto por run** (JSON): parâmetros efetivos, **wall-clock total + desdobramento (fit-surrogate / busca / avaliação-real) e a série de tempo de fit por retreino `{n_acumulado, tempo_fit_s}` — §17.6**, nº de FEs efetivo, nº de gerações internas, **q (tamanho de lote; 1 no principal)**, versão do algoritmo/repo, hash do DoE inicial, e **[D23] `status` ∈ {`ok`, `retried_ok`, `failed`} + `n_retries` + stack trace se falhou** (o mesmo status vai também no Parquet, para filtrar sucessos/falhas por algoritmo×problema×semente na análise).
 
 **✔ [DEF-C1 — DECIDIDO na D26/v3.0.9] Schema ÚNICO com colunas opcionais (base única).** Os 4 classificadores (b4, c122, c217, e o e74 híbrido) **não** preveem μ/σ de valor — preveem *relações* (classe, score de ranking). Em vez de duas bases separadas por tipo de surrogate, adotamos **uma única tabela** com colunas opcionais: o regressor preenche `mu/sigma` (o resto NULL); o classificador preenche a coluna de relação (μ/σ NULL); o híbrido preenche os dois. **Racional:** a análise central é cruzar a camada surrogate com a real por indivíduo (§17.1) — na base única isso é um **join direto**; em bases separadas exigiria **unir** duas tabelas e o híbrido e74 ficaria **partido** em duas. O "custo" da tabela larga com NULLs é ilusório: em Parquet (colunar), sequências de NULL comprimem a quase zero. A única dor real — "o que cada coluna significa em cada algoritmo" — é resolvida pelo dicionário de σ (DEF-C4). *(Opção rejeitada: bases separadas por tipo de surrogate — mais "pura" por tabela, mas 2 formatos, UNION em toda visão global, e o e74 partido em duas.)*
@@ -106,6 +109,32 @@ tamanho_do_lote_infill | scores_dos_selecionados
 **O que a auditoria verifica** (cruzando os `.txt` com o esperado do paper): (a) com um modelo decente, o **estado 1 domina** as gerações iniciais; (b) o **estado 2 (inversão) só dispara quando p_menos > delta** — se nunca disparar, tudo bem (é raro; acurácia típica ~0,6); (c) o **regime-NaN cai no estado 3 (aleatório)**, e não no "maximiza" da versão bugada; (d) a distribuição de estados ao longo do run é coerente com a Tabela 5 / Fig. 9 do paper. Isto **fecha o loop** com o check de reprodução (§20): se os números-âncora baterem E os logs mostrarem os estados certos, a fiação está fiel. **Template extensível** (não obrigatório agora): o mesmo formato serve aos demais classificadores (b4 regime R1/R2/R3; c122 acordo das 2 redes; e74 estratégia 1/2/3) — decidir na DEF-C1 se generalizamos.
 
 **✔ [DEF-C3 — DECIDIDO D28/v3.0.11] Espaços transformados: gravar CRU + TRANSFORMADO, ambos completos.** Alguns algoritmos modelam num espaço transformado, não no cru: **b1 (ParEGO)** escalariza os M objetivos num único valor Tchebycheff (peso λ sorteado por iteração) + normaliza o arquivo min-max; **c238 (EIM)** normaliza y por min-max a cada iteração (do paper); **e7** translada os objetivos. *(Mais normalizações de Y triviais e invertíveis em poucos outros — ex.: o z-score que adicionamos ao c149 — que caem na mesma regra.)* **Decisão:** para esses casos a base surrogate grava **os dois espaços de uma vez** — o valor no espaço do modelo, o valor no cru (onde a transformação é invertível: c238, e7) **E** os parâmetros da transformação por iteração — mais colunas opcionais: `espaco_modelo` (transformado|cru), `transf_tipo` (escalar-tcheby|minmax|translacao|zscore), `transf_params` (λ / min,max / vetor de translação). **Racional:** são só ~3 algoritmos e o custo de storage é desprezível (~+1–2 GB no total, §17.4); em troca, a análise **não precisa inverter nada** — os dois espaços já vêm prontos (escolha do autor pelo cronograma apertado). *(Exceção honesta: a escalarização do b1 é **lossy** — grava-se o escalar + λ, que é interpretável mas não des-agrega em μ por objetivo; é inerente ao ParEGO, não uma perda evitável.)* Rejeitadas: "só o transformado" (sem os parâmetros, o valor de uma iteração não é comparável ao de outra e não volta ao cru → quebra o cruzamento com a camada real §17.1) e "cru + parâmetros, inverter na análise" (economiza ~1–2 GB mas custa tempo de análise — não compensa dado o cronograma).
+
+### 17.2.2 — SONDA canônica de generalização [DI-09 — decisão do autor 2026-07-18 · v5.2.1]
+**O quê.** Um conjunto FIXO de **S=2000 pontos por problema** — o MESMO para todos os algoritmos,
+gerações e sementes — que cada modelo prediz periodicamente, gravando na ③ com `regime='sonda'`.
+É a régua única que torna a qualidade dos surrogates DIRETAMENTE comparável entre os 17 configs
+com modelo (GP × RBF × PNN × rede × classificador), livre do viés de amostragem da busca.
+- **Definição EXATA dos pontos (sem margem p/ erro):** artefato `data/sonda/sonda_{problema}.parquet`
+  gerado 1× por `scripts/gen_sonda.py` — Sobol embaralhado `scipy.stats.qmc.Sobol(d=D, scramble=True,
+  seed=SeedSequence((4242, problema_id)) truncada a 32 bits)`, re-escalado aos bounds NATIVOS,
+  colunas `sonda_id | x0..x{D-1} | f0..f{M-1}` com o **f verdadeiro pré-computado** em
+  `src/problems.py` (float64) + sidecar com sha256 do array. **Nenhum algoritmo gera pontos de
+  sonda — todos CARREGAM o artefato e conferem o hash no arranque** (disciplina D63/D87). Custo de
+  FE: ZERO (avaliação analítica fora do orçamento — exceção contábil, precedente do `__final` §11).
+- **Cadência:** ONLINE = a cada **k=2** gerações/iterações + SEMPRE a 1ª e a última; OFFLINE =
+  **1× por modelo treinado** (e103 grava 2 blocos: Kriging e RBFN). O evento `sonda` do `.jsonl`
+  registra `geracao`, `fe` e `tempo_pred_sonda_s` — o eixo de comparação entre algoritmos é o
+  **FE consumido** (gerações não são alinhadas entre configs).
+- **Gravação:** 2000 linhas na ③ (`regime='sonda'`, `real_solution_id=NULL`, `fe_treino_max`
+  preenchido), na ORDEM do artefato (join com o gabarito POR POSIÇÃO dentro do bloco — invariante
+  do writer). A saída segue a semântica do modelo de cada algoritmo (tabela no
+  `CONTRATO_DE_DADOS.md` §3.2, raiz do repo): regressores → μ/σ por objetivo; b1 → o escalar
+  Tchebycheff com o λ corrente; c217/c122 → score vs referência corrente; b4 → classe+L;
+  e74 → 2×2000 linhas (nível PNN + μ RBF). Pisos NÃO têm sonda (sem modelo).
+- **🔴 Invariante de NÃO-PERTURBAÇÃO:** a sonda não pode alterar a busca — preditores estocásticos
+  (MC-dropout do e7) exigem save/restore do RNG em volta da predição; a prova objetiva por config
+  é a ① do run com sonda ser IDÊNTICA à do run sem (mesma semente ⇒ mesma trajetória).
 
 ### 17.3 Formato físico e implementação
 - **Parquet** (colunar, comprime bem o histórico grande) + manifesto JSON. Um diretório por (algoritmo, problema); arquivos separados por semente e por camada (a camada surrogate é muito maior — separá-la facilita carregar só o que a análise precisa). **As métricas NÃO são gravadas aqui** — derivadas em §12.
@@ -190,7 +219,7 @@ Esta subseção responde direto: **o que os logs (§17.5) + os números-âncora 
 
 Duas saídas de tempo promovidas a **dado de primeira classe** (antes: só o total no manifesto §17.2 e o parcial no log de auditoria §17.5, que *não é fonte de métrica*). Servem a duas análises: **(a)** custo computacional por run comparado **entre famílias** de algoritmos; **(b)** a **⭐ curva de escalabilidade** — o achado-alvo dos dois sub-estudos (§V-B.3 online, §11.5 offline): *"a parede do GP (O(n³)) aparece nos dois regimes; BNN (online) e treed-GP (offline) a atravessam."* Sem esta camada o achado fica em inspeção qualitativa; com ela vira curva quantitativa.
 
-**(1) Wall-clock por run (custo total).** Já no manifesto (§17.2); reafirmado aqui como dado de análise. Grava-se o **tempo total do run** e, quando separável sem custo extra, o **desdobramento** `tempo_total_s`, `tempo_fit_surrogate_s` (soma de todos os retreinos), `tempo_busca_s` (aquisição/otimização interna) e `tempo_aval_real_s` (avaliação da função verdadeira) — para atribuir o custo ao **mecanismo** (treino do surrogate × busca × avaliação), não só ao relógio.
+**(1) Wall-clock por run (custo total).** Já no manifesto (§17.2); reafirmado aqui como dado de análise. **[v5.2.1 — CRÍTICO, auditoria da torre 2026-07-18: o bloco `timing` do manifesto estava ZERADO em 10/12 configs implementados (os walls só existiam em prosa). O preenchimento de `tempo_total_s` + desdobramento vira OBRIGATÓRIO nos 21 configs — retrofit DI-09.]** Grava-se o **tempo total do run** e, quando separável sem custo extra, o **desdobramento** `tempo_total_s`, `tempo_fit_surrogate_s` (soma de todos os retreinos), `tempo_busca_s` (aquisição/otimização interna) e `tempo_aval_real_s` (avaliação da função verdadeira) — para atribuir o custo ao **mecanismo** (treino do surrogate × busca × avaliação), não só ao relógio.
 ⚠ **Ressalva de stack (§19):** wall-clock entre **MATLAB e Python** é **confundido pela linguagem** — comparar custo **dentro** de cada stack, ou reportar com a ressalva explícita; nunca "família X é mais rápida que Y" cruzando stacks. A **curva (2)** é mais robusta a isso, porque mede o *escalonamento* (a forma da curva vs `n`), não segundos absolutos.
 
 **(2) ⭐ Série de tempo de fit do surrogate por retreino.** Uma **mini-tabela** por run (Parquet leve, ou array no manifesto) — **uma linha por evento de retreino** (a iteração/geração em que o surrogate é re-treinado):
@@ -201,7 +230,9 @@ Duas saídas de tempo promovidas a **dado de primeira classe** (antes: só o tot
 | `geracao` / `iter` | quando o retreino ocorreu (sincroniza com ①②③ via `geracao`) |
 | `n_acumulado` | nº de pontos reais no conjunto de treino **naquele** retreino (eixo-x da escalabilidade) |
 | `tempo_fit_s` | tempo de treino do surrogate **naquele** retreino (eixo-y) |
-| `tempo_busca_s` *(opcional)* | tempo da aquisição/otimização interna na mesma iteração |
+| `tempo_busca_s` | tempo da aquisição/otimização interna na mesma iteração — **OBRIGATÓRIO [v5.2.1, autor: era opcional]** |
+| `tempo_pred_sonda_s` | **[DI-09 v5.2.1]** custo da sonda na iteração (0 quando não roda) |
+| `tempo_geracao_s` | **[v5.2.1, autor]** wall TOTAL da geração (fit+busca+aval+overhead) — o relógio por geração, nos 21 configs (pisos: fit=NULL) |
 
 O par `(n_acumulado, tempo_fit_s)` **é** a curva custo-de-treino × tamanho-de-dados: o O(n³) do GP aparece como crescimento super-linear; o retreino ~linear do **BNN (c149)** e o **treed-GP (c311)** aparecem achatados. É **barato** (um float por retreino; dezenas a centenas de linhas por run) e sai do **mesmo hook por geração** que já emite as camadas ②③ (§17.1) — o valor já era computado e apenas logado em §17.5; agora é promovido a coluna.
 
@@ -227,7 +258,7 @@ BUCKET:  gs://mestrado_experiments/experiments/{exp}/{alg}/exp_{exp}_{alg}_{prob
 LOCAL :  data/experiments/{exp}/{alg}/exp_{exp}_{alg}_{problema}_{semente}.parquet
 ```
 
-> **Camadas por run (§17.1/§17.6).** Como o export tem camadas de tamanhos muito diferentes (① catálogo real, ② população/geração, ③ surrogate — a grande, §17.4 — e a série de tempo §17.6), a §17.3 já decidiu **separá-las por arquivo**. Realiza-se isso com um **sufixo de camada** sobre a base (com o token `{exp}` — Higiene v5.2/D55): `exp_{exp}_{alg}_{problema}_{semente}__surrogate.parquet` (③, o payload volumoso — ver §17.4, ~0,5–0,9 TB no total do estudo), `__real.parquet` (①), `__pop.parquet` (②), `__timing.parquet` (§17.6), mais o log de auditoria `exp_{exp}_{alg}_{problema}_{semente}.jsonl` (§17.5) e o fragmento de manifesto. O nome/pasta acima é a **base**; o sufixo distingue a camada. *(Nos runs Python, TODOS esses artefatos — parquets + `.jsonl` + manifesto — são espelhados no bucket, para uma VM Vertex AI destruída não levar embora nem dados nem trilha de auditoria; os **parquets** são os obrigatórios.)*
+> **Camadas por run (§17.1/§17.6).** Como o export tem camadas de tamanhos muito diferentes (① catálogo real, ② população/geração, ③ surrogate — a grande, §17.4 — e a série de tempo §17.6), a §17.3 já decidiu **separá-las por arquivo**. Realiza-se isso com um **sufixo de camada** sobre a base (com o token `{exp}` — Higiene v5.2/D55): `exp_{exp}_{alg}_{problema}_{semente}__surrogate.parquet` (③, o payload volumoso — ver §17.4, ~0,5–0,9 TB no total do estudo), `__real.parquet` (①), `__pop.parquet` (②), `__timing.parquet` (§17.6), **`__final.parquet` [DI-08 v5.2.1 — SÓ os 5 configs offline: o ND final avaliado 1× na função verdadeira via `src/problems.py`, pós-hoc, fora do orçamento (§11); colunas `x*|f*|origem`; o gate offline checa presença+consistência]**, mais o log de auditoria `exp_{exp}_{alg}_{problema}_{semente}.jsonl` (§17.5) e o fragmento de manifesto. O nome/pasta acima é a **base**; o sufixo distingue a camada. *(Nos runs Python, TODOS esses artefatos — parquets + `.jsonl` + manifesto — são espelhados no bucket, para uma VM Vertex AI destruída não levar embora nem dados nem trilha de auditoria; os **parquets** são os obrigatórios.)*
 
 **Criar a pasta se não existe.**
 - **Local:** antes de gravar, `Path(dir).mkdir(parents=True, exist_ok=True)` (Python) / `if ~exist(dir,'dir'); mkdir(dir); end` (MATLAB) — cria `data/experiments/{exp}/{alg}/` na primeira vez.
@@ -271,3 +302,32 @@ Nas VMs Vertex AI a **conta de serviço** já traz credenciais (ADC) — sem cha
 | c311 | nº de GPs por objetivo (`dict_gps`); `total_points_per_model_sequence`; iterações efetivas + early-stop; folha pior-MSE escolhida; evento: try do bfgs |
 | e103 | CurGen; KFlag (Kriging↔RBFN); √MSE por geração; μ dos DOIS modelos; evento: quase-singularidade do RBFN (esperado, contar) |
 | pisos | só o mínimo comum (cabeçalho, parciais, FE, rodapé) — sem surrogate |
+
+### S.7.1 — Enriquecimento DI-10 do `.jsonl` [decisão do autor 2026-07-18 · v5.2.1]
+**Mínimo comum NOVO em todo `<alg>_gen` (os 21):** `fe` · `f_best[]` (melhor por objetivo) ·
+`n_front1` (|ND| corrente) · `modelo_hp` (hiperparâmetros/loss do fit — B1) · `tempo_fit_s`/
+`tempo_busca_s` (B2) · `dist_min_arquivo` (por infill, espaço de decisão normalizado — B3) —
+mais o evento `sonda` (§17.2.2). **Campos específicos ADICIONAIS por config** (regra: TUDO
+read-only; grandezas que exigiriam patch invasivo no miolo stock NÃO entram — MOEA/D replace-count,
+NSGA-III niching e genealogia de operadores REJEITADOS):
+
+| Config | + DI-10 |
+|---|---|
+| b1 | λ VETOR completo; `ei_best`; `n_pool_ga` |
+| b3 | `apd_sel`/`sigma_sel` (o PORQUÊ numérico da escolha por ramo); `n_vetores_vazios`; `adapt_delta_V` (norma da adaptação dos vetores de referência/ciclo) |
+| b4 | os 6 `solution_id` das referências radiais da geração; `rr`/`tr` efetivos |
+| e7 | `n_clusters_efetivo`; ramo/cluster de cada um dos K=3 infills; `loss_treino` |
+| c217 | `n_best`/`n_worst` do treino; \|Pmid\| |
+| c141 | `n_por_nivel` da cascata; hp do RBF |
+| e74 | `n_por_nivel` do PNN; `k_local_efetivo` |
+| c238 | `eim_mediana_pool` |
+| c262/c154 | `acqf_todos_restarts` (a paisagem da aquisição = COMO o BO escolheu); `n_baseline`; `mll_final` |
+| e81 | `n_baseline`; resumo dos draws de Thompson (min/med/max) |
+| c149 | `hvi_top5`; `std_ensemble_sel` |
+| c122 | `n_acordo`/`n_desacordo` das 2 redes por geração |
+| b5 | pesos de decomposição do b5m no HEADER (determinísticos, 1×); `p_wrong_stats` |
+| c311 | `n_folhas` + `profundidade` da árvore por iteração |
+| e103 | `divergencia_modelos` (mean\|μ_Krig−μ_RBFN\|/geração); `margem_3sigma` |
+| pisos | `n_front1`; `f_best[]`; ideal/nadir da pop; vetores de decomposição do moead/nsga3 no HEADER (1×) |
+
+*(Expansão didática completa + racional por campo: `CONTRATO_DE_DADOS.md` §6.1, raiz do repo.)*

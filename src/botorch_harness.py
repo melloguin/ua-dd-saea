@@ -383,7 +383,7 @@ def sonda_predict_gp(model, adapter: "BoTorchProblemAdapter",
     Retorna `(mu_f (S,M), sigma (S,M))` em float64, na ORDEM do artefato."""
     U = adapter.to_unit(np.asarray(X_sonda, dtype=np.float64))
     mus, sigmas = [], []
-    with preserve_torch_rng(), torch.no_grad():
+    with preserve_all_rng(), torch.no_grad():
         for i in range(0, U.shape[0], int(chunk)):
             post = model.posterior(U[i:i + int(chunk)])
             mus.append(post.mean.cpu().numpy())
@@ -420,6 +420,43 @@ def emit_sonda_block(buf: "SnapshotBuffer", log, *, it: int, fe: int,
               hash_check="ok (conferido no arranque — load_sonda)",
               motivo=motivo)
     return dt
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Mínimo comum DI-10 do `<alg>_gen` (SPEC §S.7.1 — os 21 configs)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def di10_minimo_comum(bud, *, u_infill=None, train_U=None) -> dict:
+    """As grandezas que o DI-10 tornou mínimo comum de TODO `<alg>_gen`:
+
+    - `f_best`: o melhor valor por objetivo no ① até aqui (o "melhor-até-agora"
+      do §17.5; não é um ponto — é o ideal empírico).
+    - `n_front1`: |ND| corrente do ① (o tamanho do front não-dominado).
+    - `dist_min_arquivo` (B3): distância euclidiana do infill ao ponto mais
+      próximo do arquivo, no **espaço de decisão NORMALIZADO** [0,1]^D — é o
+      indicador de exploração×explotação sob incerteza (CONTRATO §9). Só sai
+      quando `u_infill`/`train_U` são passados (é "por infill").
+
+    Read-only sobre o `FEBudget` e sem RNG — não perturba nada. `fe` e os
+    tempos ficam com o chamador (que os tem à mão)."""
+    from src.problems import _nds_filter          # lazy (pymoo)
+    with preserve_all_rng(), torch.no_grad():     # não-perturbação (defensivo)
+        F = np.vstack([r.f for r in bud.records])
+        out = {
+            "f_best": [float(v) for v in F.min(axis=0)],
+            # ⚠ `_nds_filter` devolve ÍNDICES (não máscara booleana) — o
+            # tamanho do front é `len`, nunca um count_nonzero (que comeria
+            # silenciosamente o índice 0 sempre que ele fosse não-dominado).
+            "n_front1": int(len(_nds_filter(F))),
+        }
+        if u_infill is not None and train_U is not None:
+            u = torch.as_tensor(u_infill, dtype=torch.float64).reshape(-1)
+            A = torch.as_tensor(train_U,
+                                dtype=torch.float64).reshape(-1, u.shape[0])
+            if A.shape[0]:
+                out["dist_min_arquivo"] = float(
+                    torch.linalg.norm(A - u, dim=1).min())
+    return out
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -904,7 +941,7 @@ __all__ = [
     "guarded_pymoo_minimize",
     "iteration_cleanup",
     "SONDA_K", "SONDA_CHUNK", "load_sonda", "sonda_due",
-    "sonda_predict_gp", "emit_sonda_block",
+    "sonda_predict_gp", "emit_sonda_block", "di10_minimo_comum",
     "load_doe", "BoTorchProblemAdapter", "SnapshotBuffer",
     "write_run_outputs", "dual_write_run", "run_stubpy",
 ]

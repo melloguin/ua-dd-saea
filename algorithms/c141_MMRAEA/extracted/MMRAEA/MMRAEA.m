@@ -26,6 +26,7 @@ classdef MMRAEA < ALGORITHM
             RModel = cell(1,Problem.M);
             %% Optimization
             while Algorithm.NotTerminated(A2)
+                tGer_c141 = tic;   % [DI-09] §17.6 tempo_geracao_s (read-only)
                 A1Obj = A1.objs;
                 A1Dec = A1.decs;
                 n_treino_c141 = size(A1Dec,1);   % [R1-c141] n_acumulado do retreino (§17.6)
@@ -46,12 +47,22 @@ classdef MMRAEA < ALGORITHM
                 [FS, FY]   = dsmerge(A1Dec, Fitness);
                 Fmodel = rbf_build(FS,FY);
                 tfit_s_c141 = toc(tFit_c141);
+
+                % [DI-09] SONDA CANONICA (§17.2.2) — READ-ONLY, zero FE, RNG
+                % salvo/restaurado. Ponto: pos-fit dos M+2 RBFs e ANTES de
+                % EAOptimization/InfillStrategy (a busca) e ANTES da Evaluation
+                % (:60), onde o hard-stop aborta o corpo do ciclo.
+                c141_sonda(Problem,RModel,mS,tfit_s_c141);
+
                 PopDec = A1Dec;
                 PopObj = A1Obj;
                 % Evolutionary Optimization
+                tBusca_c141 = tic;
                 [PopDec,PopObj,nsub_c141] = EAOptimization(PopDec,Problem,wmax,RModel,Fmodel,mS,FS);
                 % Selection of new samples
                 [PopNew, inf_c141] = InfillStrategy(PopDec,PopObj,Dmodel,DS,Fmodel,FS,A1);
+                tbusca_s_c141 = toc(tBusca_c141);   % [DI-10/B2] §17.6 tempo_busca_s
+                A1DecPre_c141 = A1Dec;              % [DI-10/B3] arquivo ANTES do infill
                 % re-evaluate infilled points and update A1 and A2
                 % [R1-c141] guard batch-vazio [IMPL]: o batch e VARIAVEL e pode ser 0
                 % (iteracao 0-FE — fiel ao paper); Evaluation([]) quebraria o CallFcn/
@@ -74,7 +85,8 @@ classdef MMRAEA < ALGORITHM
                 % (pool 2N: mu ARBFs + as 2 incertezas) + .jsonl §17.5/S.7 + timing §17.6.
                 c141_instrument(Problem, A1, PopDec, PopObj, PopNew, Dmodel, DS, ...
                                 Fmodel, FS, inf_c141, nsub_c141, n_treino_c141, ...
-                                sde_fmodel_c141, tfit_s_c141);
+                                sde_fmodel_c141, tfit_s_c141, ...
+                                tbusca_s_c141, toc(tGer_c141), RModel, mS, A1DecPre_c141);
             end
         end
     end

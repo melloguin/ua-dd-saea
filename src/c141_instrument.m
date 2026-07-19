@@ -1,5 +1,6 @@
 function c141_instrument(Problem, A1, PoolDec, PoolObj, PopNew, Dmodel, DS, ...
-                         Fmodel, FS, info, nsub, n_treino, sde_fmodel, tfit_s)
+                         Fmodel, FS, info, nsub, n_treino, sde_fmodel, tfit_s, ...
+                         tbusca_s, tger_s, RModel, mS, A1DecPre)
 % c141_instrument — instrumentacao POS-decisao do c141 MMRAEA (chamada no fim de
 % cada ciclo pela MMRAEA.main patchada). NAO altera nenhuma decisao da busca
 % (D97): so LE o que o ciclo ja computou (pool pos-ES_PDR, cascata, batch) e
@@ -37,6 +38,14 @@ function c141_instrument(Problem, A1, PoolDec, PoolObj, PopNew, Dmodel, DS, ...
     if g < 1, g = 1; end
     lote = size(PopNew, 1);
     npool = size(PoolDec, 1);
+    snd = [];
+    if isfield(d, 'snd'), snd = d.snd; end      % [DI-09]
+    % [DI-09/A1] fe_treino_max: o treino e A1 INTEIRO (UpdataArchive so faz
+    % unique/dedup, nunca poda) e solution_id == fe_index => bud.fe-1. Aqui o
+    % ciclo JA avaliou o infill (MMRAEA.m:60), entao subtrai-se o lote para
+    % recuperar o estado do fit — que e o que a coluna significa.
+    ftm = bud.fe - 1 - lote;
+    if ftm < 0, ftm = []; end
 
     % ── eventos de guarda (§17.5): batch-vazio [IMPL] e +eps L4/D76 por sitio ──
     if lote == 0
@@ -81,12 +90,15 @@ function c141_instrument(Problem, A1, PoolDec, PoolObj, PopNew, Dmodel, DS, ...
         srows{i} = RunBuffer.mkSurrogateRow(PoolDec(i, :), ...
             'real_solution_id', rsi, ...
             'mu', PoolObj(i, :), 'sigma', [Upool(i), Ens(i)], ...
-            'pred_tipo', "valor", 'modelo_flag', "RBF-MQ3");
+            'pred_tipo', "valor", 'modelo_flag', "RBF-MQ3", ...
+            'fe_treino_max', ftm);
     end
 
     % ── §17.6 timing: 1 evento de retreino (M+2 RBFs) por ciclo ────────────────
     timing = struct('n_acumulado', n_treino, 'tempo_fit_s', tfit_s, ...
-                    'tempo_busca_s', NaN);
+                    'tempo_busca_s', tbusca_s, ...
+                    'tempo_geracao_s', tger_s, ...
+                    'tempo_pred_sonda_s', sonda_tempo_c141(snd));
 
     % ── Emite ③ + timing no MESMO g do hook (② vem do hook_output) ─────────────
     view = struct('g', g, 'srows', {srows}, 'timing', timing);
@@ -108,9 +120,66 @@ function c141_instrument(Problem, A1, PoolDec, PoolObj, PopNew, Dmodel, DS, ...
             'fit1', resumo(info.Fit1), 'fit2', resumo(info.Fit2), ...
             'fit3', resumo(info.Fit3), ...
             'Q', resumo(info.Q), 'U', resumo(info.U), ...
-            'U_pool_max', max(Upool), 'tempo_fit_s', tfit_s);
+            'U_pool_max', max(Upool), 'tempo_fit_s', tfit_s, ...
+            ... % ── DI-10: especificos do c141 (S.7.1) ──
+            'n_por_nivel', struct('entrada', npool, ...
+                                  'nivel1', double(info.n_front1), ...
+                                  'nivel2', double(info.n_front2), ...
+                                  'selecionados', double(n_sel_c141(info)), ...
+                                  'lote', double(lote)), ...
+            'modelo_hp', hp_rbf_c141(RModel, mS), ...
+            ... % ── DI-10: minimo comum dos 21 (S.7.1) ──
+            'f_best', min(A1.objs, [], 1), ...
+            'fe_treino_max', opt_null_c141(ftm), ...
+            'tempo_busca_s', tbusca_s, 'tempo_geracao_s', tger_s, ...
+            'dist_min_arquivo', dist_min_c141(PopNew, A1DecPre));
         try, fprintf(fid, '%s\n', jsonencode(rec)); catch, end
     end
+end
+
+
+function t = sonda_tempo_c141(snd)
+    if isempty(snd), t = 0; else, t = snd.takePendingTime(); end
+end
+
+function n = n_sel_c141(info)
+% [DI-10] nivel 3 da cascata = |unique([index1,index2])| — ja capturado no
+% struct `info` (idx_sel, InfillStrategy.m:54-55), so nao era escrito.
+    if isfield(info, 'idx_sel'), n = numel(info.idx_sel); else, n = NaN; end
+end
+
+function hp = hp_rbf_c141(RModel, mS)
+% [DI-10/B1] hp EFETIVOS do RBF: MMRAEA chama rbf_build com 2 args, entao valem
+% os defaults (MQ, c=1, poly=0). n = size(mS,1) pos-dsmerge (ds=1e-14).
+    hp = struct('bf_type', "MQ", 'bf_c', 1, 'poly', 0, 'n', size(mS, 1));
+    try
+        if ~isempty(RModel) && isstruct(RModel{1})
+            m = RModel{1};
+            if isfield(m,'bf_type'), hp.bf_type = string(m.bf_type); end
+            if isfield(m,'bf_c'),    hp.bf_c    = double(m.bf_c);    end
+            if isfield(m,'poly'),    hp.poly    = double(m.poly);    end
+            if isfield(m,'n'),       hp.n       = double(m.n);       end
+        end
+    catch
+    end
+end
+
+function dmin = dist_min_c141(PopNew, A1DecPre)
+% [DI-10/B3] Distancia de cada infill ao arquivo ANTERIOR (espaco de decisao).
+% ⚠ SEM pdist2: o c141 e "zero toolbox confirmado" (handoff R1-c141) — usar a
+% Statistics Toolbox aqui criaria uma dependencia que o config nao tem.
+    dmin = [];
+    if isempty(PopNew) || isempty(A1DecPre), return; end
+    n = size(PopNew, 1);
+    dmin = zeros(1, n);
+    for i = 1:n
+        dif = A1DecPre - PopNew(i, :);          % broadcast implicito
+        dmin(i) = sqrt(min(sum(dif .* dif, 2)));
+    end
+end
+
+function v = opt_null_c141(x)
+    if isempty(x), v = []; else, v = double(x); end
 end
 
 function guard_line(fid, name, g, varargin)

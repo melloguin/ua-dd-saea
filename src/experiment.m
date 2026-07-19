@@ -503,6 +503,7 @@ function [status, info] = run_c141(alg, problema, semente, exp, dataRoot)
     status = "failed";
     info = struct();
     ROOT = harness_root();
+    t0_run = tic;                                  % [§17.6] wall total do run
 
     % Arvore PlatEMO 4.15 (N.0.1) + a pasta do c141 (repo do autor).
     ensure_paths_c141(ROOT);
@@ -548,7 +549,11 @@ function [status, info] = run_c141(alg, problema, semente, exp, dataRoot)
 
     % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.
     %     N = Nsub e POR SUBPOPULACAO (B12.6 — pool de infill = 2N).
-    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, ...
+    %     [DI-09] snd = SondaState (data e SetAccess=protected: so aqui).
+    sd  = load_sonda(problema, D, M, dataRoot);
+    snd = [];
+    if ~isempty(sd), snd = SondaState(sd, buf, fid, alg); end
+    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, 'snd', snd, ...
                   'run_id', string(nm_run_id(exp, alg, problema, semente)), ...
                   'problema', string(problema), 'semente', semente);
     Problem = UserProblem('evalFcn', batchEval, 'initFcn', @(N,varargin) X0(1:N,:), ...
@@ -579,6 +584,10 @@ function [status, info] = run_c141(alg, problema, semente, exp, dataRoot)
         end
     end
 
+    % (7b) [DI-09] SONDA da ULTIMA geracao — fora do laco, sobre o modelo ARMADO
+    % no ultimo fit. No-op se a geracao ja foi sondada pela cadencia k=2.
+    if ~isempty(snd), snd.finalProbe(buf.gen); end
+
     % (8) EXPORT das 4 camadas (§17.2/§17.3): ① do wrapper; ②③/timing do buffer.
     R = bud.records();                                 % catalogo ① (== 31D-1 linhas)
     write_real(exp, alg, problema, semente, R, D, M, dataRoot);
@@ -600,6 +609,7 @@ function [status, info] = run_c141(alg, problema, semente, exp, dataRoot)
         maxfe, bud.fe, buf.nGeracoes(), doe_hash_run, bud.cache_hits, dataRoot);
     man.algo_version = "c141-MMRAEA-porte4.15";
     man.status = st_str;
+    man = fill_manifest_timing(man, buf.trows, bud, toc(t0_run), snd);   % [§17.6/DI-09]
     man.params = struct('N_subpop', Nsub, 'wmax', 20, 'kernel', "MQ c=1 poly=0 x3", ...
                         'ds_dsmerge', 1e-14);
     man.sigma_dict = struct( ...

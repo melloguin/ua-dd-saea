@@ -8,7 +8,7 @@
 > janela documental (sem sessão de implementação ativa) e fica referenciada aqui.
 > **Formato por decisão:** Contexto → Opções → Decisão → Justificativa → Evidência de verificação →
 > Efeitos/ações → Referências. Decisor: **o autor** (Guilherme), em ping-pong com a torre.
-> Última atualização: **2026-07-18** (bloco DI-01…DI-08 decidido em lote pelo autor).
+> Última atualização: **2026-07-19** (DI-12: as 5 decisões do cartão `DI09-retrofit-R1`, na PARTE A2).
 
 ---
 
@@ -212,6 +212,8 @@
   prova objetiva é a ① do run pós-retrofit ser IDÊNTICA à do piloto pré-retrofit (mesma semente ⇒
   mesma trajetória). Preditores ESTOCÁSTICOS (o MC-dropout do e7!) exigem save/restore do RNG em
   volta da predição da sonda — sem isso a trajetória muda e o retrofit REPROVA.
+- **▶ EXECUÇÃO no stack MATLAB: ver DI-12 (PARTE A2)** — as 5 decisões que a execução do cartão
+  `DI09-retrofit-R1` exigiu do autor, mais as correções/achados do lote.
 
 ### DI-10 — ✅ DECIDIDA (autor, 2026-07-18) — Enriquecimento do `.jsonl` (mecanismo por config)
 - **Contexto.** Pergunta do autor: o jsonl mostra EM DETALHES o comportamento de cada algoritmo
@@ -268,6 +270,150 @@ likelihood default, init_batch_limit 256×32, projetor de wall) e baixas (doc-sy
 `data/experiments/_baseline_pre_retrofit/` (9,4 MB — a linha de base do gate de não-perturbação;
 o ① do c154/DTLZ2 custou 14h37) + **artefato da SONDA gerado e verificado** (`scripts/gen_sonda.py`
 + `data/sonda/` — 25 problemas, determinismo 25/25, gabarito conferido; os retrofits só CARREGAM).
+
+---
+
+## PARTE A2 — O lote de 2026-07-19 (execução do retrofit DI-09/DI-10 no stack MATLAB)
+
+### DI-12 — ✅ CRAVADAS EM LOTE (autor, 2026-07-19) — as 5 do cartão DI09-retrofit-R1
+- **Contexto.** A sessão do cartão `DI09-retrofit-R1` (retrofit da sonda canônica + enriquecimento
+  DI-10 nos 9 configs SA-MATLAB) fez o recon dos 9 configs + do writer compartilhado e levou ao
+  autor as ambiguidades que **não eram resolvíveis com o CONTRATO_DE_DADOS + SPEC na mão**
+  (protocolo D81). As cinco abaixo foram decididas pelo autor durante a sessão. As demais dúvidas
+  do recon foram resolvidas pela sessão com o contrato (registradas no handoff §1, como vetáveis).
+
+---
+
+**DI-12.1 — "Patch aditivo" em arquivo stock NÃO é patch invasivo, exceto em hot-loop.**
+- **Contexto.** O §6.1 manda: *"toda adição é read-only; grandezas inacessíveis sem patch invasivo
+  no miolo stock NÃO entram"*. Três campos DI-10 caíram na fronteira: o valor é **calculado e usado**
+  dentro de uma função stock, que simplesmente não o devolve. Expor exige acrescentar um valor de
+  retorno — sem mudar nada do que a função faz.
+  - b3 `apd_sel`: +1 output em `KrigingSelect.m` (arquivo **já patchado** pela L.2; variável já
+    computada nos dois ramos).
+  - e103 `margem_3sigma`: 1 linha de captura ao lado de `IBEAMS.m:67` (invalida o
+    `repos.lock`/`e103_ibeams.sha256_tree` → exige re-lacre por `preflight.py --write`).
+  - e7 `loss_treino`: 2º output em `trainNet.m` (valor já calculado na `:19`, RNG zero) — porém
+    **dentro do laço de treino de 8e4 iterações**, no run mais caro da R1 (ZDT1, 72 min).
+- **Opções.** (a) liberar os três; (b) liberar exceto no hot-loop; (c) proibir os três.
+- **Decisão: (b).** Liberados `apd_sel` (b3) e `margem_3sigma` (e103); **barrado `loss_treino` (e7)**.
+- **Justificativa.** Uma linha que só LÊ um valor já computado não altera o mecanismo — não é o que
+  o §6.1 quer barrar (o alvo dele é reescrever o miolo). O critério que separa é **custo de
+  execução**, não pureza: o e7 é o run mais caro da rodada e o campo está no laço quente.
+- **Efeitos.** e7: `loss_treino` fica **NULL**, registrado como INACESSÍVEL no cartão do e7, com a
+  razão. e103: o cartão inclui o re-lacre do `repos.lock` + reverificação das 3 âncoras.
+- **Referências.** `handoff/DI09-retrofit-R1.md` §1; SPEC §S.7.1; CONTRATO §6.1.
+
+---
+
+**DI-12.2 — A sonda da ÚLTIMA geração sai de um carrier handle + bloco pós-`Solve`.**
+- **Contexto.** O §17.2.2 exige *"SEMPRE a 1ª e a última"*. Mas o algoritmo **não sabe** que está na
+  última geração: o orçamento acaba no MEIO do ciclo — o `FEBudget` lança `PlatEMO:Termination`
+  (D21/D61) no ponto de avaliação, e a exceção salta para fora do laço. Todo bloco posicionado
+  depois daquele ponto nunca executa. Em c141/b4 é pior: o lote de infill é variável (no c141 pode
+  ser 0), então não há predicado a priori para "este é o último ciclo".
+- **Opções.** (a) carrier handle + disparo pós-`Solve`; (b) aceitar "a última AMOSTRADA" (a curva
+  perde o ponto final quando o último fit cai em geração fora da cadência); (c) k=1 nos configs
+  problemáticos (dobra o volume e contraria o k=2).
+- **Decisão: (a).**
+- **Justificativa.** O modelo final é o **mais treinado** — é o ponto final da curva "o surrogate
+  melhora com as épocas?" e o instante em que o DI-09 compara os algoritmos no fim do orçamento.
+  Perdê-lo esvaziaria justamente a medida que motiva a sonda.
+- **Implementação.** `SondaState` é um **handle** criado no `run_*` e injetado em `Problem.data`
+  (⚠ `UserProblem.data` é `SetAccess = protected` — não há como injetar depois). O config chama
+  `snd.probe(...)`, que **arma sempre** (guarda uma closure sobre o modelo recém-treinado, custo
+  ~zero) e dispara só na cadência; o `run_*` chama `snd.finalProbe(buf.gen)` **depois** do
+  `Algorithm.Solve`, fora do laço, e o método é no-op se aquela geração já foi sondada.
+- **Efeitos.** Mecanismo ÚNICO para os 9 configs. Desfaz o veredito "INACESSÍVEL" que o recon dera
+  para o stash pós-run (ele avaliara só a rota de gravar em `Problem.data` de dentro do algoritmo).
+- **Referências.** `src/SondaState.m`; `handoff/DI09-retrofit-R1.md` §3.
+
+---
+
+**DI-12.3 — e74: a sonda mede as TRÊS RBFs, discriminadas por `modelo_flag`.**
+- **Contexto.** O §3.2 fala de *"μ RBF"* no singular, mas o e74 (CLMEA) instancia **três** RBFs
+  distintas no run, com conjuntos de treino distintos: *boot* (M redes mono-saída sobre o DoE,
+  `CLMEA.m:63`), *s2* (rede M-saídas sobre o **arquivo inteiro**, `Hv_Select.m:9`) e *s3* (rede
+  M-saídas **local**, sobre os vizinhos, `Local_infill.m:31`). "O WAPE do RBF do e74" seriam três
+  números diferentes.
+- **Opções.** (a) só a s2 (única M-saídas com `n_acumulado` monotônico, logo comparável no eixo FE)
+  + par casado com o bloco PNN; (b) só a s2, cada bloco na sua geração natural; (c) as três.
+- **Decisão: (c) — medir as três.**
+- **Justificativa.** As três são modelos que o algoritmo **de fato usa para decidir**; escolher uma
+  descartaria evidência sobre o mecanismo híbrido, que é o que torna o e74 interessante na tese.
+- **Efeitos.** O e74 emite até **4 blocos por ciclo** (PNN + 3 RBFs) — cada um com sua
+  `modelo_flag`, e a questão do "par casado PNN/RBF" se dissolve (não há par). ⚠ **Volume**: medir
+  antes de rodar o ZDT1. ⚠ A s3 é treinada por ponto — o cartão do e74 deve fixar e documentar
+  qual instância do ciclo é sondada (1 bloco/ciclo, não 1 por ponto).
+- **Referências.** `handoff/DI09-retrofit-R1.md` §1; CONTRATO §3.2.
+
+---
+
+**DI-12.4 — `FEBudget.evaluate` ganha cronômetro: `tempo_aval_real_s` deixa de ser imensurável.**
+- **Contexto.** O §17.6 tornou o bloco `timing` do manifesto OBRIGATÓRIO nos 21, com
+  `tempo_aval_real_s` entre os quatro. Ele **não era medido em lugar nenhum** do stack MATLAB.
+  Toda avaliação real passa por um portão único (`FEBudget.evaluate`) — é lá que se mede.
+- **Opções.** (a) instrumentar o portão; (b) deixar NULL e documentar; (c) adiar para o M7.
+- **Decisão: (a).**
+- **Justificativa.** ~4 linhas, sem RNG, sem alterar decisão nenhuma; preenche os 11 configs de uma
+  vez. Sem isso, o breakdown fit×busca×aval do §17.6 fica manco justo na parcela que a tese usa
+  para separar custo-de-modelo de custo-de-função.
+- **Implementação.** `tic/toc` acumulador em volta do `evalFcn` — **só a avaliação inédita**;
+  cache-hit (D89) não avalia nada e não entra.
+- **Efeitos.** Arquivo compartilhado pelos 11 configs + pisos ⇒ revalidar o que já passou (feito:
+  gate de não-perturbação re-rodado).
+- **Referências.** `src/FEBudget.m`; SPEC §17.6.
+
+---
+
+**DI-12.5 — 🔴 Cadência da sonda PADRONIZADA entre stacks: `g = 1, 2, 4, 6, …`.**
+- **Contexto.** As duas sessões de retrofit implementaram a mesma frase do §17.2.2 (*"a cada k=2
+  gerações + SEMPRE a 1ª e a última"*) de formas diferentes — divergência achada e escalada pela
+  sessão retrofit-R2 (commit `652e24d`, D81):
+  - MATLAB (`SondaState.due`): `g==1 || mod(g-1,k)==0` → 1, 3, 5, 7, …
+  - Python (`sonda_due`): `it==1 or it%k==0` → 1, 2, 4, 6, …
+- **Opções.** (a) alinhar o MATLAB ao Python; (b) alinhar o Python ao MATLAB; (c) escalar à torre e
+  seguir sem alinhar.
+- **Decisão: (a) — o MATLAB adota `g = 1, 2, 4, 6, …`.**
+- **Justificativa.** Duas razões independentes. **Textual:** sob a leitura `1,3,5,…` a cláusula
+  *"+SEMPRE a 1ª"* ficaria **vazia** (o 1 já pertence à progressão) — a SPEC ter se dado o trabalho
+  de escrevê-la indica que a cadência sozinha não inclui a primeira. **Estrutural, decisiva:** a
+  sonda é vendida como *"a régua ÚNICA, idêntica para todos os algoritmos, gerações e sementes"* —
+  uma cadência que muda por STACK contradiz a própria definição. Alinhar para o lado que já tem
+  runs gravados (c262/c154) custa menos, e o custo de padronizar só cresce a cada run novo.
+- **Efeitos.** `SondaState.due` alterado (1 linha); c217 e c141 re-rodados e re-validados (7 runs,
+  gate bit-a-bit verde). Contagem de blocos muda: c217/DTLZ2 116→117, c141/ZDT1 77→78.
+  **Doc-sync pendente na torre:** cravar a fórmula no §17.2.2 e no CONTRATO §3.1 (hoje o texto
+  admite as duas leituras — foi essa ambiguidade que produziu a divergência).
+- **Referências.** commit `652e24d` (escalação da R2); `src/SondaState.m`;
+  `handoff/DI09-retrofit-R1.md` §1.
+
+---
+
+### 📌 Correções e achados do lote (registrados junto)
+1. **🔴 `n_acumulado` do c217 media o ARQUIVO, não o TREINO — corrigido, PENDENTE DE RATIFICAÇÃO.**
+   O §17.6 define *"nº de pontos reais no **treino** naquele retreino"*; o `c217_instrument` gravava
+   `numel(Arc)` (o arquivo) — outra grandeza, que achatava a curva de escalabilidade do c217.
+   Corrigido para `size(TrainIn,1)` (o c217 treina numa subamostra 3/4 estratificada); o tamanho do
+   arquivo segue auditável em `arc_size`. **Não toca a busca nem a ①** (gate verde), mas **muda a ④
+   do c217 vs a baseline** ⇒ o autor deve ratificar.
+2. **`tempo_geracao_s` DESCONTA a sonda** (alinha com a decisão D-1 do retrofit-R2, item B-0b da
+   escalação `652e24d`). O relógio da geração mede o custo do ALGORITMO; incluir a sonda poria o
+   preço do instrumento dentro da análise de custo (§9) e faria a MESMA coluna significar coisas
+   diferentes em cada stack. **Doc-sync pendente:** explicitar no §17.6/CONTRATO §4, que hoje diz
+   só "wall TOTAL da geração (fit+busca+aval+overhead)".
+3. **`mkSurrogateRow` custava 148 µs/linha** (o `inputParser`) — ~87 s/run só no c217/ZDT1.
+   Adicionado `RunBuffer.mkSurrogateRows` (lote): **38× mais rápido**, equivalência campo-a-campo
+   provada (0 divergências em 2000 linhas × 15 campos). Mesma classe do fix DI-02 (writer O(n²)):
+   o custo por linha é o que decide se a bateria M8 é viável.
+4. **A sonda cobre o GRID, não os problemas de piloto.** `DTLZ2_d15` (variante dimensional, só de
+   piloto) não tem artefato — e não pode ter sem um próprio, já que a sonda é Sobol com `d=D`.
+   **Verificado: o grid oficial (`runs_matrix.csv`) tem 25 problemas e os 25 têm sonda** ⇒ a bateria
+   não é afetada. `load_sonda` tolera a ausência e o manifesto grava
+   `man.sonda.status='artefato_ausente'`, para que *"sem sonda"* nunca seja lido como *"sonda vazia"*.
+5. **`scripts/accept.py` não tem NENHUMA checagem de sonda** (0 hits) — nem a invariante de ordem
+   que o §3.1 promete estar *"documentada no accept"*. Faixa `.py` ⇒ repassado à torre/R3-00.
+
 ---
 
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
@@ -293,3 +439,19 @@ o ① do c154/DTLZ2 custou 14h37) + **artefato da SONDA gerado e verificado** (`
 2. **Antes do R3:** DI-08-2/3/4 (naming + avaliador pós-hoc + check no accept + retroativo e103).
 3. **M7:** DI-06 (o mini-cartão de hardening com os 8 itens).
 4. **Dossiê/lote do autor:** DI-07b (o desalinhamento ~24,8% do e74 como ponto prioritário).
+5. **🔴 Doc-syncs da DI-12 (torre — território SPEC/CONTRATO, RI-12).** Os três primeiros existem
+   porque o texto normativo **admitia duas leituras** — foi essa ambiguidade que gerou a divergência
+   entre stacks; cravar a redação é o que impede a reincidência:
+   - **§17.2.2 + CONTRATO §3.1 — cadência:** cravar a fórmula `g = 1, 2, 4, 6, …` (DI-12.5), em vez
+     de só a prosa "a cada k=2 + SEMPRE a 1ª e a última".
+   - **§17.6 + CONTRATO §4 — `tempo_geracao_s`:** explicitar que **DESCONTA a sonda** (mede o custo
+     do algoritmo, não o do instrumento). Hoje diz só "wall TOTAL da geração".
+   - **§6.1 do CONTRATO — "patch invasivo":** registrar o critério da DI-12.1 (adição read-only que
+     só expõe valor já computado é permitida; o que barra é custo em hot-loop, não pureza).
+   - **§3.2 — e74:** a sonda mede as **três** RBFs (DI-12.3), não "μ RBF" no singular.
+6. **Ratificação do autor:** o `n_acumulado` do c217 (achado 1 da DI-12) — corrigido de `numel(Arc)`
+   para `size(TrainIn,1)`; muda a ④ do c217 vs a baseline.
+7. **Torre/R3-00 (faixa `.py`):** `scripts/accept.py` ganhar as checagens de sonda (contagem
+   S×blocos, ordem do artefato, `fe_treino_max ≤ fe`, presença do bloco `man.sonda`) — achado 5.
+8. **Continuação do cartão DI09-retrofit-R1:** os 7 configs restantes (b1, b4, e7, b3, e103, e74,
+   c238) + o pacote leve dos 4 pisos. Receita mecânica em `handoff/DI09-retrofit-R1.md` §4.

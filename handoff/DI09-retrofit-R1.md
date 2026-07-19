@@ -11,7 +11,13 @@
 
 ## 1. Decisões do autor cravadas nesta sessão (2026-07-19)
 
-Quatro ambiguidades reais foram levadas ao autor (protocolo D81) e decididas:
+> **Registro canônico: `REGISTRO_DECISOES_IMPLEMENTACAO.md` → PARTE A2 → DI-12.1 a DI-12.5**
+> (com Contexto/Opções/Justificativa/Efeitos por decisão, no formato do registro). A tabela abaixo
+> é o resumo operacional desta sessão — **em divergência, vale o registro.**
+> Os doc-syncs que essas decisões exigem na SPEC/CONTRATO (território da torre, RI-12) estão na
+> *Agenda de execução pendente* do registro, item 5.
+
+Cinco ambiguidades reais foram levadas ao autor (protocolo D81) e decididas:
 
 | # | Questão | Decisão |
 |---|---|---|

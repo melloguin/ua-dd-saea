@@ -65,7 +65,8 @@ Os invariantes não dependem da disciplina de cada config; são estruturais:
 - **I5 — nunca derruba a busca.** `try/catch` com evento de guarda, **re-lançando `PlatEMO:Termination`**.
 - **I6 — cronômetro próprio**, fora dos `tic/toc` de fit e de busca.
 
-**Cadência:** `probe(g, fn, ftm, ...)` **arma sempre** e dispara em `g = 1, 3, 5, …` (k=2, a 1ª incluída).
+**Cadência:** `probe(g, fn, ftm, ...)` **arma sempre** e dispara em **`g = 1, 2, 4, 6, …`** (k=2 + a 1ª;
+fórmula idêntica à do `sonda_due` do lado Python — decisão 5 do §1).
 A **última** vem do `finalProbe(buf.gen)` chamado pelo `run_*` **depois** do `Algorithm.Solve`.
 
 ---

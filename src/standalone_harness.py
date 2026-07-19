@@ -698,17 +698,16 @@ def sonda_due(it: int, *, k: int = SONDA_K) -> bool:
     iteração corrente ainda não tiver emitido. **No OFFLINE não se usa esta
     função**: lá a cadência é `1× por modelo treinado` (o modelo não muda).
 
-    🔴 **DEFINIÇÃO EM ABERTO (A-12, escalada à torre em `652e24d`):** a fórmula
-    da cadência DIVERGE entre os stacks — Python (`it==1 or it%k==0` → blocos em
-    1,2,4,6,…) × MATLAB (`SondaState.due`: `g==1 || mod(g-1,k)==0` → 1,3,5,7,…).
-    As duas leem a mesma frase da §17.2.2 e a decisão é da torre. Adotamos aqui
-    a fórmula **Python**, por coerência com o R2 (c262/c154 já gravaram assim) —
-    NÃO por julgarmos o mérito.
+    ✅ **CANÔNICA — DI-12.5 (autor, 2026-07-19).** Houve divergência entre os
+    stacks (MATLAB fazia `g==1 || mod(g-1,k)==0` → 1,3,5,7,…), escalada por D81
+    em `652e24d`; o autor **cravou esta fórmula** (`1,2,4,6,…`) e o MATLAB foi
+    alinhado a ela (`a5f6eab`). Razão decisiva registrada na decisão: a sonda é
+    "a régua ÚNICA, idêntica para todos" — uma cadência que muda por STACK
+    contradiz a própria definição.
 
-    Alcance na R3: afeta só os 3 configs ONLINE (c122, c149, e81). Os 4 offline
-    (b5r/b5m/c311/piso-off) são IMUNES — lá a cadência é 1× por modelo treinado
-    e não depende de `k`. Se a torre cravar a fórmula MATLAB, o conserto é esta
-    uma linha.
+    Alcance na R3: só os 3 configs ONLINE (c122, c149, e81) usam esta função.
+    Os 4 offline (b5r/b5m/c311/piso-off) são IMUNES — lá a cadência é 1× por
+    modelo treinado e não depende de `k`.
     """
     it = int(it)
     return it == 1 or it % int(k) == 0

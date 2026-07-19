@@ -109,14 +109,20 @@ o regime offline.
 ## 5. Um achado que não é meu, mas que a torre precisa ver
 
 Ao instrumentar a cadência da sonda, cruzei com o `652e24d`
-(`[DI09-R2] D81: cadencia da SONDA diverge entre Python e MATLAB`): **A-12**
-segue sem decisão. Python dá blocos em 1,2,4,6…; MATLAB em 1,3,5,7…
+(`[DI09-R2] D81: cadencia da SONDA diverge entre Python e MATLAB`): naquele
+momento **A-12 estava sem decisão**. Segui a fórmula Python por coerência com o
+R2 e documentei a pendência.
 
-Segui a fórmula **Python** por coerência com o R2, e deixei isso explícito no
-docstring do `sonda_due`. **A boa notícia para a R3:** o alcance é pequeno —
-só os 3 configs ONLINE (c122, c149, e81) usam `sonda_due`; os 4 offline têm
-cadência "1× por modelo treinado" e são **imunes**. Se a torre cravar a fórmula
-MATLAB, o conserto do meu lado é 1 linha.
+**Ao reler o log no fechamento, a decisão já tinha entrado**: a **DI-12.5**
+cravou exatamente a fórmula Python (`1,2,4,6,…`) e alinhou o MATLAB a ela
+(`a5f6eab`) — pela razão de que uma régua que muda por stack não é régua. Meu
+código já estava certo; corrigi só o docstring e a pendência do handoff, que
+haviam nascido obsoletos. Idem o `tempo_geracao_s` descontando a sonda
+(`47daa76`), que é a semântica que o `run_stubr3` usa.
+
+*Fica a lição operacional do paralelismo triplo: reler o `git log` no
+fechamento não é formalidade — foi a segunda vez na sessão que uma faixa
+vizinha mudou o chão sob uma decisão minha (a primeira foi o `export.py`).*
 
 Também MEDI uma coisa que contradiz o texto do contrato: **`pymoo 0.6.2` não
 desloca `np.random` nem `random`** — nem com `seed=`, nem sem. A premissa do

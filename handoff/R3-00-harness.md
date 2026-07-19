@@ -268,12 +268,15 @@ na ③ (geração 99) e em FinalDec" — se o re-piloto mudar isso, o `--check` 
    avaliação real: guardamos todos os N finais, D54, e marcamos quais
    sobreviveram — é a coluna que separa o front verdadeiro do "erro de
    fantasia"). **Ratificar ou mandar cortar.**
-2. **🔴 A-12 (cadência da sonda) alcança a R3.** A divergência Python
-   (1,2,4,6,…) × MATLAB (1,3,5,7,…) segue **sem decisão** (`652e24d`). Adotei a
-   fórmula **Python**, por coerência com o R2 — não por mérito. **Alcance na
-   R3: só os 3 configs ONLINE (c122, c149, e81);** os 4 offline são IMUNES
-   (cadência = 1× por modelo treinado, independe de `k`). Conserto = 1 linha
-   (`sonda_due`).
+2. **✅ A-12 (cadência da sonda) — RESOLVIDA durante a sessão, sem ação minha.**
+   A divergência Python (1,2,4,6,…) × MATLAB (1,3,5,7,…) foi cravada pelo autor
+   na **DI-12.5**: vale a fórmula **Python**, e o MATLAB foi alinhado a ela
+   (`a5f6eab`). Meu `sonda_due` já a implementava — **nenhuma mudança de código
+   foi necessária**; só atualizei o docstring, que a descrevia como pendente.
+   Idem o `tempo_geracao_s` DESCONTANDO a sonda (`47daa76` alinhou o MATLAB à
+   semântica A-2/D-1 do retrofit R2, que é a que o `run_stubr3` usa).
+   *Registro por transparência: escrevi esta pendência antes de a decisão
+   entrar no log e a corrigi ao reler o log no fechamento.*
 3. **⚠ A premissa do N.2.3 não se reproduz no env-main — MEDIDO.**
    `pymoo 0.6.2` **não desloca** `np.random` nem `random`, nem com `seed=`, nem
    sem. Logo a checagem "guarda de RNG provada contra `pymoo.minimize` REAL"

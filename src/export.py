@@ -493,12 +493,37 @@ def backfill_timing_from_jsonl(exp: str, alg: str, problema: str, semente, *,
             f"backfill da ④: nenhum evento `timing` em {jpath} — nada a "
             f"reconstruir. Pára-e-loga (D81).")
 
+    # 🔴 GUARDA DE ESCOPO: o backfill só existe para runs PRÉ-retrofit. Num run
+    # pós-retrofit as 3 colunas foram MEDIDAS no laço e reconstruí-las seria
+    # trocar medida por derivação (pior: `tempo_geracao_s` tem definição
+    # diferente nos dois caminhos — o vivo desconta a sonda e mede antes do
+    # `iteration_cleanup`). Como `write_timing` reescreve o arquivo INTEIRO, a
+    # troca seria silenciosa. Abortar aqui é o que impede isso.
+    tpath = naming.layer_path(exp, alg, problema, semente, "timing", data_root)
+    if os.path.exists(tpath):
+        import pyarrow.parquet as pq
+        _old = pq.read_table(tpath)
+        for _c in ("tempo_geracao_s", "tempo_pred_sonda_s"):
+            if _c in _old.schema.names and _old.column(_c).null_count < _old.num_rows:
+                raise RuntimeError(
+                    f"backfill da ④ ({tpath}): a ④ no disco já tem `{_c}` "
+                    f"PREENCHIDA — este é um run PÓS-retrofit, cujas colunas "
+                    f"foram MEDIDAS no laço. Reconstruí-las do jsonl trocaria "
+                    f"medida por derivação (e `tempo_geracao_s` tem definição "
+                    f"diferente nos dois caminhos). NADA foi sobrescrito. "
+                    f"Pára-e-loga (D81).")
+
     its = sorted(timing_recs)
     ancora = {it: _jsonl_ts(timing_recs[it]) - float(timing_recs[it]["tempo_fit_s"])
               for it in its}
-    fim = footer_ts if footer_ts is not None else _jsonl_ts(timing_recs[its[-1]])
+    #: Um run é PRÉ-sonda quando o jsonl inteiro não tem nenhum evento `sonda`.
+    #: Só então `tempo_pred_sonda_s` é NULL ("não medido"). Num run COM sonda,
+    #: as iterações sem bloco valem 0.0 — a MESMA convenção do escritor vivo
+    #: (CONTRATO §4: "0 quando não roda"), senão a coluna passa a misturar
+    #: "não rodou" com "não existia".
+    pre_sonda = not sonda_recs
 
-    rows, exatos, derivados = [], 0, 0
+    rows, exatos, derivados, anomalas = [], 0, 0, 0
     for i, it in enumerate(its):
         dec = decision_recs.get(it)
         busca = next((dec[k] for k in _BUSCA_KEYS
@@ -507,21 +532,37 @@ def backfill_timing_from_jsonl(exp: str, alg: str, problema: str, semente, *,
             exatos += 1
         elif dec is not None:
             busca = _jsonl_ts(dec) - _jsonl_ts(timing_recs[it])
-            derivados += 1
-        prox = ancora[its[i + 1]] if i + 1 < len(its) else fim
+            if busca < 0:            # `decision` antes do `timing` da iteração:
+                busca = None         # a premissa de ordem não vale — NÃO grava
+                anomalas += 1        # um número negativo plausível-mas-falso.
+            else:
+                derivados += 1
         snd = sonda_recs.get(it)
+        t_snd = (None if pre_sonda
+                 else float(snd.get("tempo_pred_sonda_s", 0.0)) if snd else 0.0)
+        if i + 1 < len(its):
+            # wall de âncora a âncora, MENOS a sonda — a mesma definição do
+            # escritor vivo (§17.6: a sonda é instrumentação, não custo do
+            # algoritmo, e vai medida à parte).
+            ger = max(ancora[its[i + 1]] - ancora[it] - (t_snd or 0.0), 0.0)
+        else:
+            # ÚLTIMA geração: NÃO se estende até o `footer`. Nos 2 runners o
+            # footer só é emitido DEPOIS de `write_run_outputs` (4 parquets +
+            # manifesto + upload) — ir até lá inflaria justamente a linha de
+            # maior `n`, a que mais pesa em qualquer ajuste da curva de custo.
+            # Usa-se fit+busca: cota INFERIOR justa, sem a cauda de escrita.
+            ger = (None if busca is None
+                   else float(timing_recs[it]["tempo_fit_s"]) + float(busca))
         rows.append({
             "geracao": it,
             "n_acumulado": int(timing_recs[it]["n_acumulado"]),
             "tempo_fit_s": float(timing_recs[it]["tempo_fit_s"]),
             "tempo_busca_s": (None if busca is None else float(busca)),
-            "tempo_pred_sonda_s": (None if snd is None
-                                   else float(snd.get("tempo_pred_sonda_s", 0.0))),
-            "tempo_geracao_s": max(prox - ancora[it], 0.0),
+            "tempo_pred_sonda_s": t_snd,
+            "tempo_geracao_s": ger,
         })
 
     # guarda: confere as colunas EXATAS contra a ④ que já está no disco.
-    tpath = naming.layer_path(exp, alg, problema, semente, "timing", data_root)
     conferidas = 0
     if os.path.exists(tpath):
         import pyarrow.parquet as pq
@@ -542,6 +583,15 @@ def backfill_timing_from_jsonl(exp: str, alg: str, problema: str, semente, *,
                     f"nas colunas EXATAS (geracao/n_acumulado/tempo_fit_s) — o "
                     f"jsonl não é deste run. NADA foi sobrescrito. "
                     f"Pára-e-loga (D81).")
+            velho_b = old.get("tempo_busca_s", [None] * len(rows))[k]
+            if (velho_b is not None and novo["tempo_busca_s"] is not None
+                    and abs(float(velho_b) - novo["tempo_busca_s"]) > 1e-3):
+                raise RuntimeError(
+                    f"backfill da ④ ({tpath}): linha {k} tem `tempo_busca_s` "
+                    f"MEDIDO no disco ({float(velho_b):.4f}s) divergindo do "
+                    f"reconstruído ({novo['tempo_busca_s']:.4f}s). Medida não "
+                    f"se troca por derivação. NADA foi sobrescrito. "
+                    f"Pára-e-loga (D81).")
         conferidas = len(rows)
 
     if not dry_run:
@@ -549,14 +599,20 @@ def backfill_timing_from_jsonl(exp: str, alg: str, problema: str, semente, *,
     return {
         "path": tpath, "n_linhas": len(rows), "dry_run": dry_run,
         "busca_exatas": exatos, "busca_derivadas": derivados,
+        "busca_anomalas": anomalas,          # ts fora de ordem ⇒ NÃO gravadas
         "busca_nulas": sum(1 for r in rows if r["tempo_busca_s"] is None),
+        "pre_sonda": pre_sonda,
         "linhas_conferidas_vs_disco": conferidas,
         "procedencia": {
             "exato": "geracao, n_acumulado, tempo_fit_s, tempo_busca_s "
                      "(iterações com a grandeza na `decision`)",
-            "derivado": "tempo_geracao_s (âncoras ts do jsonl) e o "
-                        "tempo_busca_s das iterações sem a grandeza logada "
-                        "(ts(decision)−ts(timing))",
+            "derivado": "tempo_geracao_s (âncoras ts do jsonl, MENOS a sonda — "
+                        "a definição do escritor vivo) e o tempo_busca_s das "
+                        "iterações sem a grandeza logada (ts(decision)−ts(timing))",
+            "ultima_geracao": "tempo_geracao_s da ÚLTIMA iteração = "
+                              "tempo_fit_s + tempo_busca_s (cota INFERIOR): o "
+                              "`footer` do jsonl vem depois da escrita das "
+                              "camadas e do upload, que não são custo da geração",
         },
     }
 

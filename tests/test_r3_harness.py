@@ -706,3 +706,35 @@ class TestRegressoesRevisao(unittest.TestCase):
         self.assertIn("exp_off_b5r_MMF1_0__final.parquet", subidos)
         self.assertIn("exp_off_b5r_MMF1_0__final.manifest.json", subidos)
         self.assertEqual(st["exp_off_b5r_MMF1_0__final.parquet"], "uploaded")
+
+    def test_LACUNA_CONHECIDA_piso_com_fit_NULL_nao_e_gravavel(self):
+        """SENTINELA de uma lacuna do CONTRATO §4, fora da minha faixa.
+
+        O §4 manda: *"Pisos: ④ por geração com `tempo_geracao_s` (fit=NULL)"*.
+        O `SnapshotBuffer` aceita `tempo_fit_s=None` (fiel ao contrato), mas o
+        **escritor não consegue gravar**: `export.timing_schema()` declara
+        `tempo_fit_s` com `nullable=False` e `export.write_timing` faz
+        `float(r["tempo_fit_s"])` sem guarda. Conserto = 2 linhas em
+        `src/export.py` — **faixa do retrofit-BoTorch**, por isso não o fiz.
+
+        Atinge o cartão **piso-off** (`moead_media`) da R3 e os 4 pisos online.
+
+        Este teste PINA a lacuna: quando `export.py` for corrigido, ele falha e
+        avisa quem for atualizar o handoff/§4. Não é um teste de comportamento
+        desejado — é um marcador de dívida com dono.
+        """
+        import tempfile as _tf
+        from src import export, naming, standalone_harness as sh
+        buf = sh.SnapshotBuffer()
+        buf.add_timing(geracao=1, n_acumulado=20, tempo_fit_s=None,
+                       tempo_busca_s=0.5, tempo_geracao_s=0.7)
+        self.assertIsNone(buf.timing_rows[0]["tempo_fit_s"])
+        self.assertFalse(export.timing_schema().field("tempo_fit_s").nullable)
+        with _tf.TemporaryDirectory() as dr:
+            os.makedirs(naming.run_dir("off", "moead_media", data_root=dr))
+            with self.assertRaises(TypeError, msg=(
+                    "export.write_timing passou a aceitar tempo_fit_s=None — "
+                    "a lacuna do §4 (piso com fit=NULL) foi CORRIGIDA. "
+                    "Remova esta sentinela e a pendência do handoff R3-00.")):
+                export.write_timing("off", "moead_media", "MMF1", 0,
+                                    buf.timing_rows, data_root=dr)

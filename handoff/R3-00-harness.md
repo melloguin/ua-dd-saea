@@ -319,6 +319,19 @@ na ③ (geração 99) e em FinalDec" — se o re-piloto mudar isso, o `--check` 
    **duas rotas de upload**. **Sugestão à torre:** dar a `plan_targets` um
    parâmetro `optional_layers=()` e passar `('final',)` no caminho offline —
    1 função, e a rota volta a ser única. Não fiz por ser faixa alheia.
+8. **🔴 LACUNA DO §4 SEM DONO — o piso com `fit=NULL` NÃO é gravável.**
+   O CONTRATO §4 manda: *"Pisos: ④ por geração com `tempo_geracao_s`
+   (fit=NULL)"*. O `SnapshotBuffer` aceita `tempo_fit_s=None` (fiel ao
+   contrato), mas o **escritor não grava**: `export.timing_schema()` declara
+   `tempo_fit_s` com `nullable=False` e `export.write_timing` faz
+   `float(r["tempo_fit_s"])` sem guarda → `TypeError`. **Conserto = 2 linhas em
+   `src/export.py`** (nullable + guarda de None), que é **faixa do
+   retrofit-BoTorch** — por isso não o fiz. **Atinge o cartão `piso-off`
+   (`moead_media`) da R3 e os 4 pisos ONLINE da R1.** Há sentinela em
+   `tests/test_r3_harness.py::test_LACUNA_CONHECIDA_piso_com_fit_NULL_nao_e_gravavel`
+   que falha quando a lacuna for fechada, para quem corrigir lembrar de
+   atualizar este handoff. *Descoberta ao conferir o contrato §4 item a item
+   depois do fechamento, a pedido do autor.*
 8. **`load_sonda` duplicado** (aqui e em `botorch_harness`) — necessário
    (envelopes de dependência distintos: lá o módulo importa torch no topo).
    Há **teste de equivalência** que falha se divergirem. **Sugestão:** extrair

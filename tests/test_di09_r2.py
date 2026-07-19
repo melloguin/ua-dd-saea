@@ -250,6 +250,93 @@ class TestBackfillTiming(unittest.TestCase):
                 export.backfill_timing_from_jsonl(
                     "main", "c154", "MMF1", 0, data_root=d)
 
+    # ── regressões da revisão adversarial ────────────────────────────────
+    # Os 4 casos abaixo nasceram de defeitos CONFIRMADOS numa revisão do diff.
+    # Cada um corrompia dados de forma silenciosa e plausível.
+
+    def test_run_POS_retrofit_e_recusado(self):
+        """🔴 O defeito mais grave achado na revisão: rodar o backfill sobre um
+        run PÓS-retrofit substituía as colunas MEDIDAS por derivadas — inflando
+        `tempo_geracao_s` (a definição do backfill incluía a sonda e o gc) e
+        trocando `tempo_pred_sonda_s`=0.0 por NULL. `write_timing` reescreve o
+        arquivo inteiro, então a troca era invisível."""
+        from src import export
+        with tempfile.TemporaryDirectory() as d:
+            self._run_sintetico(d, com_timing=False)
+            export.write_timing("main", "c154", "MMF1", 0, [
+                {"geracao": it, "n_acumulado": 10 + it, "tempo_fit_s": 2.0,
+                 "tempo_busca_s": 90.0, "tempo_pred_sonda_s": 0.0,
+                 "tempo_geracao_s": 92.0} for it in (1, 2, 3)], data_root=d)
+            with self.assertRaises(RuntimeError) as ctx:
+                export.backfill_timing_from_jsonl(
+                    "main", "c154", "MMF1", 0, data_root=d)
+            self.assertIn("PÓS-retrofit", str(ctx.exception))
+
+    def test_ultima_geracao_nao_absorve_a_cauda_de_escrita(self):
+        """O `footer` do jsonl é emitido DEPOIS de `write_run_outputs` (4
+        parquets + manifesto + upload). Estender a última geração até ele
+        inflava justamente a linha de maior `n` — a que mais pesa no ajuste da
+        curva de custo. A última passa a valer fit+busca (cota inferior)."""
+        import pyarrow.parquet as pq
+        from src import export
+        with tempfile.TemporaryDirectory() as d:
+            self._run_sintetico(d, com_timing=False)   # footer a t0+295
+            rel = export.backfill_timing_from_jsonl(
+                "main", "c154", "MMF1", 0, data_root=d)
+            t = pq.read_table(rel["path"])
+            ultima = float(t.column("tempo_geracao_s")[2].as_py())
+        self.assertAlmostEqual(ultima, 2.0 + 90.0, places=2)   # fit + busca
+        self.assertLess(ultima, 95.0)                          # não vai ao footer
+
+    def test_tempo_pred_sonda_s_zero_vs_null(self):
+        """NULL só quando o run é PRÉ-sonda (nenhum evento no jsonl inteiro).
+        Num run COM sonda, iteração sem bloco vale 0.0 — a convenção do
+        escritor vivo. Misturar as duas faz a coluna significar duas coisas."""
+        import pyarrow.parquet as pq
+        from src import export, naming
+        with tempfile.TemporaryDirectory() as d:
+            self._run_sintetico(d, com_timing=False)
+            jp = naming.jsonl_path("main", "c154", "MMF1", 0, d)
+            with open(jp, "a", encoding="utf-8") as fh:        # sonda só na it 2
+                fh.write(json.dumps({"ts": "2001-09-09T01:48:10.000+00:00",
+                                     "rec": "sonda", "it": 2,
+                                     "tempo_pred_sonda_s": 1.5}) + "\n")
+            rel = export.backfill_timing_from_jsonl(
+                "main", "c154", "MMF1", 0, data_root=d)
+            self.assertFalse(rel["pre_sonda"])
+            col = pq.read_table(rel["path"]).column("tempo_pred_sonda_s")
+        self.assertEqual(col.null_count, 0)                    # nenhum NULL
+        self.assertEqual([v.as_py() for v in col], [0.0, 1.5, 0.0])
+
+    def test_tempo_busca_derivado_negativo_nao_e_gravado(self):
+        """`ts(decision) < ts(timing)` viola a premissa de ordem do estimador.
+        Gravar o negativo (ou clampá-lo a 0) produziria um número plausível e
+        falso; a linha fica NULL e a anomalia é CONTADA no relatório."""
+        import pyarrow.parquet as pq
+        from src import export, naming
+        with tempfile.TemporaryDirectory() as d:
+            self._run_sintetico(d, com_timing=False)
+            jp = naming.jsonl_path("main", "c154", "MMF1", 0, d)
+            from datetime import datetime, timezone
+            # a it 3 começa em t0+200 e loga o `timing` em t0+202 (ver
+            # _run_sintetico); pôr a `decision` em t0+150 inverte a ordem.
+            antes_do_timing = datetime.fromtimestamp(
+                1_000_150.0, timezone.utc).isoformat(timespec="milliseconds")
+            linhas = [json.loads(x) for x in open(jp, encoding="utf-8")]
+            for r in linhas:                       # a it 3 (hard_stop, derivada)
+                if r["rec"] == "decision" and r["it"] == 3:
+                    r["ts"] = antes_do_timing
+            with open(jp, "w", encoding="utf-8") as fh:
+                for r in linhas:
+                    fh.write(json.dumps(r) + "\n")
+            rel = export.backfill_timing_from_jsonl(
+                "main", "c154", "MMF1", 0, data_root=d)
+            col = pq.read_table(rel["path"]).column("tempo_busca_s")
+        self.assertEqual(rel["busca_anomalas"], 1)
+        self.assertEqual(rel["busca_derivadas"], 0)
+        self.assertIsNone(col[2].as_py())          # NULL, não 0.0 nem negativo
+        self.assertTrue(all(v.as_py() >= 0 for v in col[:2]))
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  SONDA canônica §17.2.2 + a 🔴 guarda de não-perturbação

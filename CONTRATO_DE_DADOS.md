@@ -1,5 +1,5 @@
 # CONTRATO DE DADOS — todos os outputs da execução dos 21 configs
-### O documento-referência definitivo dos dados persistidos (v1.0 · 2026-07-18)
+### O documento-referência definitivo dos dados persistidos (v1.1 · 2026-07-19 — lote DI-13)
 
 > **O que é.** A consolidação DIDÁTICA e COMPLETA de tudo que cada execução persiste: qual informação,
 > quando é coletada, em que formato, e que análise alimenta. Junta: o §17 da SPEC (o contrato
@@ -142,10 +142,20 @@ espaco_modelo | transf_tipo | transf_params            ← DEF-C3 (cru+transform
 gerações — a comparação perfeita e justa de qual modelo é melhor"* — e busca + sonda na MESMA
 tabela ③, diferenciadas pela coluna `regime`.
 
-- **OS 2000 PONTOS SÃO FIXOS E ÚNICOS POR PROBLEMA — para sempre, para todos os algoritmos, em
+> **[DI-13.5 · 2026-07-19] ATUALIZAÇÃO:** o artefato passou a ter **S=20.000 pontos** e serve aos
+> DOIS regimes, porque a sequência de Sobol é **ANINHADA** (provado: |dif|=0):
+> **ONLINE lê as 2.000 primeiras** (a cada k=2 gerações) · **OFFLINE lê as 20.000** (1× por modelo
+> treinado — o modelo é fixo, então cabe muito mais ponto pela mesma análise). A fatia online é
+> BIT-IDÊNTICA a uma sonda de 2.000 ⇒ a régua é a MESMA na faixa compartilhada e os runs online já
+> retrofitados NÃO precisam ser refeitos (`x_hash_online` == hash antigo em 25/25 problemas).
+> O sidecar (v2) traz `S`, `S_online`, `x_hash`/`f_hash` (artefato) e `x_hash_online`/`f_hash_online`
+> (a fatia) — cada regime confere o SEU hash. Nos blocos OFFLINE, `geracao = NULL` (o modelo treina
+> ANTES do laço; não há geração a que pertencer).
+
+- **OS PONTOS SÃO FIXOS E ÚNICOS POR PROBLEMA — para sempre, para todos os algoritmos, em
   todas as gerações e sementes.** Definição EXATA (sem margem para erro): o artefato
   **`data/sonda/sonda_{problema}.parquet`**, gerado UMA vez por `scripts/gen_sonda.py`:
-  S=2000 pontos **Sobol embaralhado** (`scipy.stats.qmc.Sobol(d=D, scramble=True,
+  S=20.000 pontos **Sobol embaralhado** (online usa os 2.000 primeiros) (`scipy.stats.qmc.Sobol(d=D, scramble=True,
   seed = SeedSequence((4242, problema_id)) truncada a 32 bits)`), re-escalados aos bounds NATIVOS,
   com **f verdadeiro pré-computado** via `src/problems.py` (float64) — colunas
   `sonda_id (0..1999) | x0..x{D-1} | f0..f{M-1}` + sidecar `sonda_{problema}.manifest.json` com
@@ -213,6 +223,10 @@ tempo total de execução do algoritmo em cada geração e no total"* — o ④ 
 | **`tempo_pred_sonda_s`** | custo da sonda na iteração (0 quando não roda) |
 | **`tempo_geracao_s`** | **wall TOTAL da geração** (fit+busca+aval+overhead — o relógio da geração) |
 
+**[DI-13.2] `tempo_fit_s` é NULLABLE:** os pisos não têm surrogate ⇒ gravam `NULL` ("não se
+aplica", ≠ `0.0` que significaria "treinou e custou zero" e poluiria a média de custo). O
+`tempo_geracao_s` deles é gravado normalmente — é o **custo-baseline** do estudo.
+
 **+ o bloco `timing` do MANIFESTO vira OBRIGATÓRIO nos 21** (estava ZERADO em 10/12 — auditoria
 da torre): `tempo_total_s` (wall do run), `tempo_fit_surrogate_s`, `tempo_busca_s`,
 `tempo_aval_real_s` (agregados). Pisos: ④ por geração com `tempo_geracao_s` (fit=NULL).
@@ -233,6 +247,13 @@ n_geracoes` · **`doe_hash`** (o CP-init D87/D88; offline: x_hash+f_hash) · `al
 - **Alimenta:** a TABELA DE EXECUÇÕES (grid × status × wall × retries — agregação dos manifestos
   via `Scoreboard`; view `progress.py` no M7); auditoria de reprodutibilidade; filtro de
   sucessos/falhas na análise.
+
+> **[DI-13.1] REGRA DA MESCLA (quem escreve o manifesto):** o **runner** grava a certidão RICA
+> (doe_hash, fe_final, n_geracoes, timing MEDIDO, fit_series, sigma_dict, bloco sonda); o
+> **despachante** (`experiments.py`) **MESCLA** só o que é dele (`status`, `n_retries`,
+> `stack_trace`, `tempo_total_despachante_s`) — **nunca reconstrói** (isso apagava tudo) e **nunca
+> sobrescreve medida por estimativa**. Se o runner não gravou (run morreu antes), o despachante cria
+> do zero.
 
 ## 6. Log de auditoria (`.jsonl`) — o FILME das decisões (§17.5 + DI-10)
 
@@ -287,9 +308,14 @@ de operadores/pais por indivíduo. *(As alternativas read-only acima cobrem o es
 
 ## 7. Camada ⑦ — `__final.parquet` (SÓ os 5 offline — DI-08)
 
-O §11/B7.5 manda avaliar o ND FINAL do offline 1× na função verdadeira ("a única chamada real").
-Camada própria por run offline: `x0..x{D-1} | f0..f{M-1} (avaliados em problems.py) |
-origem_solution_id/link à ③`; escrita PÓS-HOC pela torre/harness Python; NÃO conta no orçamento
+O §11/B7.5 manda avaliar o conjunto final do offline 1× na função verdadeira ("a única chamada
+real"). **[DI-13.9] AVALIAM-SE TODOS OS FINAIS e o não-dominado é filtrado DEPOIS da avaliação
+real** — filtrar pelo ND-segundo-o-modelo ANTES seria filtrar a realidade pela FANTASIA do modelo,
+destruindo justamente o que a camada mede (o custo extra é nulo: funções analíticas).
+Camada própria por run offline: `x0..x{D-1} | f0..f{M-1} (avaliados em problems.py) | origem_solution_id | origem_geracao |
+**origem_linha** (link POSICIONAL à ③ — a regra 1 do R4 proíbe casar por X float32) |
+**nd_pos_real** (se o ponto continua não-dominado APÓS a real — a medida DIRETA do "erro de
+fantasia") [DI-13.8]`; escrita PÓS-HOC pela torre/harness Python; NÃO conta no orçamento
 (exceção §11); o gate offline checa presença+consistência. Configs: e103, b5r, b5m, c311, piso-off.
 - **Alimenta:** as métricas oficiais do regime offline (§11) — o ponto único da curva real.
 
@@ -332,3 +358,7 @@ origem_solution_id/link à ③`; escrita PÓS-HOC pela torre/harness Python; NÃ
 6. Comparação entre algoritmos ao longo do tempo: alinhar por FE consumido, não por "geração".
 7. Wall-clock: nunca comparar cross-stack sem ressalva (§19); a curva de escalabilidade é robusta.
 8. `fe_index` é 0-based; gerações são 1-based; nº de gerações varia por config/cache-hits.
+9. **[DI-13.15] `fe_treino_max` NÃO é monotônico** em b1/b4/c217 — esses três SUBAMOSTRAM o conjunto
+   de treino, então o valor pode cair de uma iteração p/ a outra e não coincide com `fe−1`.
+10. **[DI-13.5] Sonda:** `geracao` é NULL nos blocos OFFLINE; o join com o gabarito é POR POSIÇÃO
+    dentro do bloco (online = linhas 0..1999 do artefato; offline = 0..19999).

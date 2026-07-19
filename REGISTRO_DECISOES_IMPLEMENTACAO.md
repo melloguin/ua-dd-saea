@@ -8,7 +8,7 @@
 > janela documental (sem sessão de implementação ativa) e fica referenciada aqui.
 > **Formato por decisão:** Contexto → Opções → Decisão → Justificativa → Evidência de verificação →
 > Efeitos/ações → Referências. Decisor: **o autor** (Guilherme), em ping-pong com a torre.
-> Última atualização: **2026-07-19** (DI-12: as 5 decisões do cartão `DI09-retrofit-R1`, na PARTE A2).
+> Última atualização: **2026-07-19** (DI-13: as 21 decisões do lote pós-retrofits triplos, na PARTE A3).
 
 ---
 
@@ -413,6 +413,130 @@ o ① do c154/DTLZ2 custou 14h37) + **artefato da SONDA gerado e verificado** (`
    `man.sonda.status='artefato_ausente'`, para que *"sem sonda"* nunca seja lido como *"sonda vazia"*.
 5. **`scripts/accept.py` não tem NENHUMA checagem de sonda** (0 hits) — nem a invariante de ordem
    que o §3.1 promete estar *"documentada no accept"*. Faixa `.py` ⇒ repassado à torre/R3-00.
+
+## PARTE A3 — DI-13: o lote de 2026-07-19 (as 21 decisões pós-retrofits triplos)
+
+> **Contexto do lote.** As três sessões paralelas (`DI09-retrofit-R2` BoTorch, `DI09-retrofit-R1`
+> MATLAB, `R3-00-harness`) levantaram 31 itens em aberto, muitos duplicados entre elas. A torre
+> consolidou em 9 decisões substantivas + 12 ratificações, explicou cada uma didaticamente ao autor,
+> e **o autor decidiu todas em 2026-07-19**. Implementação: a torre, na mesma janela (sem sessão
+> ativa). Evidência: bateria completa verde (21 gates + 199 testes) após cada mudança.
+
+### DI-13.1 — O despachante MESCLA o manifesto (nunca reconstrói) ✅ (a)
+- **Problema.** `experiments.py::_run_one` chamava `new_manifest`+`write_manifest`
+  INCONDICIONALMENTE após o runner, sobrescrevendo a certidão RICA que o runner acabara de gravar:
+  sumiam `doe_hash`, `fe_final`, `n_geracoes`, `sigma_dict`, bloco `sonda`, `fit_series` e o timing
+  MEDIDO (virava stub com 3 de 4 chaves `None`). Os pilotos escaparam por chamarem o runner direto;
+  **a bateria M8 passa pelo despachante ⇒ os 16.500 runs perderiam o payload DI-09/DI-10 da camada
+  ⑤, sem sintoma visível.** Levantado por 2 sessões independentes (R2 §B-1, R3 §D8).
+- **Opções.** (a) mesclar; (b) manifesto separado do despachante; (c) runner escreve por último.
+- **Decisão: (a) MESCLAR** — lê o manifesto do runner e injeta só o que é do despachante
+  (`status`, `n_retries`, `stack_trace`, `tempo_total_despachante_s`); **nunca sobrescreve medida
+  por estimativa**; se o runner não gravou (run morreu antes), cria do zero como antes.
+- **Implementado.** `experiments.py` (+`read_manifest` no import). Regressão:
+  `tests/test_di13.py::TestDI13_1_MesclaManifesto` (2 testes: preserva payload · cria do zero).
+
+### DI-13.2 — `tempo_fit_s` aceita NULL (os pisos não treinam) ✅ (a)
+- **Problema.** O CONTRATO §4 manda os pisos gravarem a ④ com `tempo_fit_s = NULL` ("não se
+  aplica"), mas o schema declarava `nullable=False` e o writer fazia `float(None)` ⇒ estouro. Os 4
+  pisos online + o piso offline **não conseguiam cumprir o contrato**; travava o cartão piso-off.
+- **Opções.** (a) `nullable=True` + guarda; (b) gravar `0.0`; (c) pisos sem ④.
+- **Decisão: (a)** — e o autor explicitou: *"aceita nulos para o tempo de treinamento, mas guarda o
+  tempo de execução do algoritmo normalmente"*. `0.0` MENTIRIA ("treinou e custou zero") e poluiria
+  qualquer média de custo; sem a ④ perderíamos o `tempo_geracao_s` dos pisos, que é o **custo-baseline**.
+- **Implementado.** `src/export.py` (schema `nullable=True` + writer usa `opt()`). Regressão:
+  `test_di13.py::TestDI13_2_PisoTimingNull`. **A SENTINELA que a sessão R3 plantou disparou como
+  projetado** e foi convertida em teste de comportamento correto (`test_r3_harness.py`).
+
+### DI-13.3 — Aborto por teto: manifesto `failed` + `is_run_done` mais estrito ✅ (c) → M7
+- **Problema.** Run abortado pelo teto de tempo não grava certidão de falha; com artefatos de uma
+  execução ANTERIOR no disco, o `is_run_done` (D58) lê o run como PRONTO ⇒ um run truncado entraria
+  na bateria como completo.
+- **Decisão: (c) as duas** — o aborto grava `status='failed'` (corrige a raiz, é o que a D23 manda)
+  **e** o `is_run_done` passa a exigir `fe_final == maxfe` (rede independente).
+- **Execução: cartão de hardening do M7**, junto com o retry (mexe na semântica de resume — merece
+  o cartão dedicado, não uma janela de torre).
+
+### DI-13.4 — e103 `margem_3sigma` = a estatística honesta ✅ (b)
+- **Problema.** O DI-10 pediu "o valor que decide o KFlag", mas o mecanismo **não tem um valor**: é
+  booleano sobre pares (`sum(site,3) >= M-1`).
+- **Decisão: (b)** logar `margem_3sigma_stats` = `n_pares_ok`/`n_pares_total` + o `KFlag`.
+  Inventar um escalar seria criar grandeza inexistente (proibido por D81); a estatística responde a
+  pergunta real ("a decisão foi apertada ou folgada?").
+- **Execução:** cartão de continuação do retrofit MATLAB (e103).
+
+### DI-13.5 — 🔬 Sonda OFFLINE: `geracao=NULL` e **S=20.000** (artefato ANINHADO) ✅
+- **Decisão do autor (com upgrade sobre a recomendação da torre):** (i) `geracao = NULL` nos blocos
+  de sonda do regime offline (o modelo treina 1×, ANTES do laço — não há geração a que pertencer;
+  NULL é mais honesto que o `0` que a torre propôs); (ii) **o offline usa 20.000 pontos**, não
+  2.000 — *"como não vai ficar fazendo Sobol geração após geração, quero mais pontos no Sobol único
+  que vai fazer a análise"*.
+- **Como foi implementado (a propriedade que torna isto elegante).** A torre verificou
+  empiricamente que **a sequência de Sobol é ANINHADA**: os 2.000 primeiros pontos de uma sequência
+  de 20.000 são **BIT-IDÊNTICOS** aos 2.000 de uma sequência de 2.000 (|dif| = 0 em D=2/12/30).
+  Logo: **UM único artefato de 20.000 por problema** serve aos dois regimes —
+  **ONLINE lê `[0:2000]`** (a cada k=2 gerações) e **OFFLINE lê as 20.000** (1× por modelo).
+  Consequências provadas: (1) a régua é a MESMA nos dois regimes na faixa compartilhada — a
+  comparação online↔offline continua exata; (2) **os runs online já retrofitados (c217, c141,
+  c262, c154) NÃO precisam ser refeitos** — `x_hash_online` == o `x_hash` antigo em **25/25**
+  problemas (verificado).
+- **Implementado.** `scripts/gen_sonda.py` (S=20000, `S_online`=2000, sidecar v2 com
+  `x_hash_online`/`f_hash_online`) + artefato regerado (88 MB, determinismo 25/25) + fatiamento por
+  `regime` nos **três** loaders (`botorch_harness`, `standalone_harness`, `experiment.m`) + o gate
+  R3-00 passou a checar contra o S DO REGIME (não contra o literal 2000).
+- **Bônus (bug latente corrigido).** A chave do cache de sonda não incluía o `data_root` — um load
+  de outra pasta devolvia o artefato cacheado, **mascarando adulteração**. Agora a chave é
+  `(problema, regime, data_root)` + helper público `clear_sonda_cache()` (testes não cutucam o dict
+  interno). Regressão: `test_di13.py::TestDI13_5_SondaAninhada` (inclui a prova do aninhamento).
+- **⚠ Nota estatística registrada:** Sobol tem balanceamento ótimo em potências de 2. 2.000/20.000
+  não são (2.048/16.384 seriam). A perda de uniformidade é pequena e o autor cravou os valores;
+  fica o registro (mudar exigiria regerar + refazer os 4 configs online já retrofitados).
+
+### DI-13.6 — e74: a sonda mede a RBF do ponto ESCOLHIDO ✅ (b)
+- **Problema.** O e74 tem 3 cabeças, e a terceira (`Local_infill`) é treinada **por ponto** — num
+  ciclo há ~20 instâncias. "Medir as três" (DI-12.3) não definia QUAL.
+- **Decisão: (b)** a s3 **do ponto que virou infill** — é a instância que **importou** (guiou a
+  decisão real), rende 1 bloco/ciclo, e tem leitura defensável na dissertação: *"o modelo local que
+  guiou a escolha"*. Documentar no `sigma_dict`.
+- **Execução:** cartão de continuação (e74).
+
+### DI-13.7 — pisos: estreitar o assert `piso_com_surrogate` ✅ (a)
+- **Problema.** A trava "piso não produz surrogate" foi escrita conferindo TAMBÉM as linhas de
+  timing — e o contrato agora EXIGE ④ dos pisos. A trava impedia o próprio contrato.
+- **Decisão: (a)** estreitar para a camada ③ (a intenção original), liberando a ④.
+- **Execução:** cartão de continuação (pacote dos pisos).
+
+### DI-13.8 — camada ⑦: ratificadas `origem_linha` e `nd_pos_real` ✅ (a)
+- `origem_linha` = link POSICIONAL à ③ (a regra 1 do R4 proíbe casar por X float32);
+  **`nd_pos_real`** = se o ponto continua não-dominado APÓS a avaliação real — a medida DIRETA do
+  **"erro de fantasia"** (quanto do "front" do modelo realmente é front). Custo: 1 int + 1 booleano.
+
+### DI-13.9 — camada ⑦: avaliar TODOS os finais e filtrar DEPOIS ✅ (a)
+- **Decisão: (a)** — filtrar pelo ND-do-modelo ANTES seria **filtrar a realidade pela fantasia**,
+  destruindo justamente o que a camada mede; o custo extra é nulo (funções analíticas).
+  Leitura da SPEC B7.5 confirmada. **Ação da torre: ajustar a redação do CONTRATO §7** (que dizia
+  "o ND final") — feito nesta janela.
+
+### DI-13.10 a DI-13.21 — as 12 ratificações em bloco ✅
+`tempo_geracao_s` EXCLUI o custo da sonda (instrumentação não contamina a medida do mecanismo; os 2
+stacks alinhados) · renome `acqf_todos_restarts` (nome normativo) · `tempo_pred_sonda_s`=NULL em run
+pré-sonda ("não medido" ≠ "custou zero") · backfill = dado derivado E rotulado · `n_acumulado` do
+c217 corrigido (`numel(Arc)`→`size(TrainIn,1)`, conformidade §17.6) · **`fe_treino_max` NÃO é
+monotônico em b1/b4/c217** (subamostram o treino) → **vira regra 9 do R4** · dtype de
+`real_solution_id` e contiguidade do bloco · endurecer o check de RNG do R2-00 (M7) · checagens de
+sonda no `accept.py` (continuação) · `load_sonda` duplicado MATLAB/Python (aceito — linguagens
+diferentes) · caveat float32 do e103 na ⑦ · doc-syncs pendentes (feitos nesta janela).
+
+### 📌 Estado de execução da DI-13 (o que a torre fez nesta janela)
+| Decisão | Onde | Status |
+|---|---|---|
+| 13.1 mescla | `experiments.py` | ✅ implementada + 2 regressões |
+| 13.2 NULL do piso | `src/export.py` | ✅ implementada + regressão (sentinela do R3 convertida) |
+| 13.5 sonda 20k | `scripts/gen_sonda.py`, `data/sonda/` (regerado), 3 loaders, `accept.py` | ✅ implementada + 2 regressões + prova de compatibilidade 25/25 |
+| 13.8/13.9 ⑦ | redação do `CONTRATO_DE_DADOS.md` §7 + SPEC | ✅ doc-sync |
+| 13.3 aborto | cartão de hardening **M7** | 📅 agendada |
+| 13.4/13.6/13.7 | cartão de **continuação do retrofit MATLAB** (e103/e74/pisos) | 📅 no prompt |
+| 13.10–13.21 | ratificadas; execução distribuída (M7 / continuação / feitas) | ✅/📅 |
 
 ---
 

@@ -643,7 +643,16 @@ def offline_guard(log=None, *, alg: str = "?", problema: str = "?"):
 #  SONDA canônica (§17.2.2 / DI-09) — a régua fixa de 2000 pontos
 # ═══════════════════════════════════════════════════════════════════════════
 
+def clear_sonda_cache() -> None:
+    """Esvazia o cache de sonda por processo. [DI-13.5] A chave é
+    `(problema, regime, data_root)` — o `data_root` FALTAVA (bug latente: um
+    load de outra pasta devolvia o artefato cacheado, mascarando adulteração).
+    Testes usam ESTA função em vez de mexer no dict interno."""
+    _SONDA_CACHE.clear()
+
+
 def load_sonda(problema: str, *,
+               regime: str = 'online',
                data_root: str = naming.DEFAULT_DATA_ROOT) -> dict:
     """Carrega `data/sonda/sonda_{problema}.parquet` e confere os hashes.
 
@@ -656,8 +665,9 @@ def load_sonda(problema: str, *,
     de preservar: o gabarito (`F`) casa com o bloco POR POSIÇÃO (§3.1 / R4
     regra 5). Nenhum algoritmo GERA pontos de sonda — todos CARREGAM.
     """
-    if problema in _SONDA_CACHE:
-        return _SONDA_CACHE[problema]
+    _ck = (problema, regime, os.path.abspath(data_root))
+    if _ck in _SONDA_CACHE:
+        return _SONDA_CACHE[_ck]
     base = os.path.join(data_root, "sonda", f"sonda_{problema}")
     path, mpath = base + ".parquet", base + ".manifest.json"
     if not (os.path.exists(path) and os.path.exists(mpath)):
@@ -684,9 +694,21 @@ def load_sonda(problema: str, *,
             f"SONDA {problema}: hash do array decodificado diverge do sidecar "
             f"(x {xh[:16]}… vs {str(side.get('x_hash'))[:16]}…) — artefato "
             f"corrompido. Pára-e-loga (D81).")
+    # ── [DI-13.5] fatia por REGIME (gêmeo do botorch_harness) ──────────────────
+    # Artefato S=20.000: ONLINE lê as PRIMEIRAS S_online (2.000) a cada k=2
+    # gerações; OFFLINE lê TODAS (modelo treina 1× ⇒ cabe mais ponto). Sobol é
+    # ANINHADO ⇒ a fatia online é BIT-IDÊNTICA à sonda de 2.000 (test_di13).
+    if regime == 'online':
+        n_on = int(side.get('S_online', 2000))
+        X, F = X[:n_on], F[:n_on]
+        xh_on = _decoded_hash(X)
+        if side.get('x_hash_online') and xh_on != side['x_hash_online']:
+            raise RuntimeError(f'SONDA {problema}: fatia ONLINE diverge do sidecar (D81).')
+        xh, fh_, S = xh_on, _decoded_hash(F), n_on
+
     art = {"X": X, "F": F, "S": S, "D": D, "M": M,
            "x_hash": xh, "f_hash": fh_, "path": path, "sidecar": side}
-    _SONDA_CACHE[problema] = art
+    _SONDA_CACHE[_ck] = art
     return art
 
 
@@ -1278,7 +1300,9 @@ def run_stubr3(exp: str, alg: str, problema: str, semente, *,
 
     bud, ds = load_offline_budget(problema, semente, data_root=data_root)
     D, M, n_ds = ds["D"], ds["M"], ds["n"]
-    sonda = load_sonda(problema, data_root=data_root)
+    # [DI-13.5] o STUB do R3-00 é OFFLINE ⇒ lê o artefato INTEIRO (20.000).
+    # Os cartões R3 ONLINE (c122/c149/e81) passam regime='online' (fatia 2.000).
+    sonda = load_sonda(problema, regime='offline', data_root=data_root)
     buf = SnapshotBuffer()
     log = AuditLogger.for_run(exp, alg, problema, semente,
                               data_root=data_root, append=False)

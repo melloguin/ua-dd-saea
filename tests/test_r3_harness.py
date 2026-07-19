@@ -269,7 +269,7 @@ class TestArtefatos(unittest.TestCase):
         self.assertTrue(np.array_equal(a["X"], b["X"]))
         self.assertTrue(np.array_equal(a["F"], b["F"]))
         self.assertEqual((a["x_hash"], a["f_hash"]), (b["x_hash"], b["f_hash"]))
-        self.assertEqual(a["S"], 2000)
+        self.assertEqual(a['S'], 2000)  # [DI-13.5] fatia ONLINE
 
     def test_sonda_due_cadencia_online_k2(self):
         from src import standalone_harness as sh
@@ -707,34 +707,26 @@ class TestRegressoesRevisao(unittest.TestCase):
         self.assertIn("exp_off_b5r_MMF1_0__final.manifest.json", subidos)
         self.assertEqual(st["exp_off_b5r_MMF1_0__final.parquet"], "uploaded")
 
-    def test_LACUNA_CONHECIDA_piso_com_fit_NULL_nao_e_gravavel(self):
-        """SENTINELA de uma lacuna do CONTRATO §4, fora da minha faixa.
+    def test_piso_com_fit_NULL_e_gravavel(self):
+        """[DI-13.2 — LACUNA FECHADA pela torre em 2026-07-19]
 
-        O §4 manda: *"Pisos: ④ por geração com `tempo_geracao_s` (fit=NULL)"*.
-        O `SnapshotBuffer` aceita `tempo_fit_s=None` (fiel ao contrato), mas o
-        **escritor não consegue gravar**: `export.timing_schema()` declara
-        `tempo_fit_s` com `nullable=False` e `export.write_timing` faz
-        `float(r["tempo_fit_s"])` sem guarda. Conserto = 2 linhas em
-        `src/export.py` — **faixa do retrofit-BoTorch**, por isso não o fiz.
-
-        Atinge o cartão **piso-off** (`moead_media`) da R3 e os 4 pisos online.
-
-        Este teste PINA a lacuna: quando `export.py` for corrigido, ele falha e
-        avisa quem for atualizar o handoff/§4. Não é um teste de comportamento
-        desejado — é um marcador de dívida com dono.
+        Era uma SENTINELA (afirmava que a lacuna existia, para disparar quando
+        alguém a fechasse). O autor decidiu a Decisão 2 = (a): `tempo_fit_s`
+        passou a NULLABLE e o writer usa `opt()`. Agora o teste afirma o
+        COMPORTAMENTO CORRETO: o piso GRAVA a ④ com fit=NULL (≠ 0.0, que seria
+        "treinou e custou zero") e o `tempo_geracao_s` — o custo-baseline.
         """
-        import tempfile as _tf
-        from src import export, naming, standalone_harness as sh
-        buf = sh.SnapshotBuffer()
-        buf.add_timing(geracao=1, n_acumulado=20, tempo_fit_s=None,
-                       tempo_busca_s=0.5, tempo_geracao_s=0.7)
-        self.assertIsNone(buf.timing_rows[0]["tempo_fit_s"])
-        self.assertFalse(export.timing_schema().field("tempo_fit_s").nullable)
-        with _tf.TemporaryDirectory() as dr:
-            os.makedirs(naming.run_dir("off", "moead_media", data_root=dr))
-            with self.assertRaises(TypeError, msg=(
-                    "export.write_timing passou a aceitar tempo_fit_s=None — "
-                    "a lacuna do §4 (piso com fit=NULL) foi CORRIGIDA. "
-                    "Remova esta sentinela e a pendência do handoff R3-00.")):
-                export.write_timing("off", "moead_media", "MMF1", 0,
-                                    buf.timing_rows, data_root=dr)
+        import tempfile, os
+        import pyarrow.parquet as pq
+        import src.export as E
+        f = [x for x in E.timing_schema() if x.name == 'tempo_fit_s'][0]
+        self.assertTrue(f.nullable)
+        d = tempfile.mkdtemp()
+        E.write_timing('main', 'nsga2', 'MMF1', 0, [
+            {'geracao': 1, 'n_acumulado': 0, 'tempo_fit_s': None,
+             'tempo_busca_s': 0.5, 'tempo_pred_sonda_s': None,
+             'tempo_geracao_s': 0.7}], data_root=d)
+        p = [os.path.join(r, fn) for r, _, fs in os.walk(d)
+             for fn in fs if fn.endswith('__timing.parquet')][0]
+        t = pq.read_table(p)
+        self.assertIsNone(t['tempo_fit_s'].to_pylist()[0])

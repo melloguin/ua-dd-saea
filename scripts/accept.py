@@ -938,18 +938,23 @@ def check_r3_00(exp="off", problema="MMF1", semente=0, data_root=None):
                          f"{tm.num_rows} linhas, nulos={nulos}")))
 
         # (9) sonda: ordem do artefato + hash + ZERO FE.
-        sonda = _sh.load_sonda(problema, data_root=dr)
+        # [DI-13.5] o tamanho depende do REGIME: online lê a fatia de S_online
+        # (2.000); offline lê o artefato INTEIRO (20.000) — o STUB do R3-00 é
+        # offline. O check é contra o que o loader devolve p/ o regime, não
+        # contra um literal.
+        sonda = _sh.load_sonda(problema, regime="offline", data_root=dr)
         idx_s = [i for i, r in enumerate(regs) if r == "sonda"]
         Xs = np.column_stack([np.asarray(surr.column(f"x{j}"),
                                          dtype=np.float64)[idx_s]
                               for j in range(D_indep)])
         ordem_ok = np.array_equal(
             Xs, sonda["X"].astype(np.float32).astype(np.float64))
-        results.append(("sonda §17.2.2: S=2000 na ORDEM do artefato (join "
+        results.append(("sonda §17.2.2: S do REGIME na ORDEM do artefato (join "
                         "posicional — R4 regra 5), hash conferido, ZERO FE",
-                        (n_sonda == sonda["S"] == 2000 and ordem_ok
+                        (n_sonda == sonda["S"] and ordem_ok
                          and ev["fe_final"] == n_ds_indep,
-                         f"S={n_sonda} ordem_preservada={ordem_ok} "
+                         f"S={n_sonda} (esperado {sonda['S']}, regime=offline) "
+                         f"ordem_preservada={ordem_ok} "
                          f"FE inalterado={ev['fe_final']}")))
 
         # (10) ⑦ reconstituível da ③ — o invariante.

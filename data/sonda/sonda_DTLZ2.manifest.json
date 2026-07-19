@@ -1,14 +1,17 @@
 {
- "schema_version": 1,
+ "schema_version": 2,
  "problema": "DTLZ2",
  "problema_id": 9,
- "S": 2000,
+ "S": 20000,
+ "S_online": 2000,
+ "x_hash_online": "1bfc9edf738f794809f8dcf0e8f049897e29b38d349f4e7523ceae2b9bbe4d6d",
+ "f_hash_online": "00edd93551a0789c52ece3aa5384b1e6475c37ad1e2c873646ee855f820988cf",
  "D": 12,
  "M": 3,
  "base_seed": 4242,
  "sobol_seed_32": 1954704044,
  "scramble": true,
- "x_hash": "1bfc9edf738f794809f8dcf0e8f049897e29b38d349f4e7523ceae2b9bbe4d6d",
- "f_hash": "00edd93551a0789c52ece3aa5384b1e6475c37ad1e2c873646ee855f820988cf",
- "convencao": "sha256 dos bytes float64 row-major (D87); ordem das linhas = ordem de gera\u00e7\u00e3o Sobol (join por posi\u00e7\u00e3o)"
+ "x_hash": "0b76bc415a0090927784e6dd24a327876b96f26debde70bcb64d5466fab158a7",
+ "f_hash": "54425edf4b9786bc008bafb91c58272244623976665ed4508ec7548d15555964",
+ "convencao": "sha256 dos bytes float64 row-major (D87); ordem das linhas = ordem de geracao Sobol (join por posicao). ONLINE le [0:S_online] e confere x_hash_online; OFFLINE le tudo e confere x_hash. Sobol e ANINHADO: as S_online primeiras sao identicas as de uma geracao de tamanho S_online (DI-13.5)."
 }

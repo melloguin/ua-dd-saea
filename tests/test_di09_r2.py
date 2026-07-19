@@ -348,11 +348,14 @@ class TestSonda(unittest.TestCase):
     def test_carrega_o_artefato_real_e_confere_o_hash(self):
         from src.botorch_harness import load_sonda
         a = load_sonda("MMF1")
-        self.assertEqual(a["S"], 2000)
+        self.assertEqual(a['S'], 2000)  # [DI-13.5] fatia ONLINE
         self.assertEqual(a["X"].shape, (2000, a["D"]))
         self.assertEqual(a["F"].shape, (2000, a["M"]))
-        self.assertEqual(a["x_hash"], a["sidecar"]["x_hash"])
-        self.assertEqual(a["f_hash"], a["sidecar"]["f_hash"])
+        # [DI-13.5] no regime ONLINE o hash é o da FATIA (x_hash_online);
+        # o `x_hash` do sidecar é o do artefato INTEIRO (20.000).
+        self.assertEqual(a["x_hash"], a["sidecar"]["x_hash_online"])
+        self.assertEqual(a["f_hash"], a["sidecar"]["f_hash_online"])
+        self.assertEqual(a["sidecar"]["S"], 20000)
         self.assertIs(load_sonda("MMF1"), a)          # cache por processo
 
     def test_artefato_ausente_para_e_loga(self):
@@ -375,12 +378,12 @@ class TestSonda(unittest.TestCase):
             side = json.load(open(mp))
             side["x_hash"] = "0" * 64
             json.dump(side, open(mp, "w"))
-            H._SONDA_CACHE.pop("MMF1", None)
+            H.clear_sonda_cache()          # [DI-13.5] helper público
             try:
                 with self.assertRaises(RuntimeError):
                     H.load_sonda("MMF1", data_root=d)
             finally:
-                H._SONDA_CACHE.pop("MMF1", None)
+                H.clear_sonda_cache()
 
     def test_cadencia_k2_com_a_primeira(self):
         from src.botorch_harness import sonda_due

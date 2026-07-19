@@ -21,7 +21,16 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.experiment import ALL_PROBLEMS, _instantiate_problem  # noqa: E402
 
-S = 2000            #: nº de pontos (decisão do autor, DI-09: S=2000, k=2)
+#: [DI-13.5, autor 2026-07-19] O artefato tem 20.000 pontos e serve aos DOIS regimes:
+#:   ONLINE  → lê as PRIMEIRAS 2.000 linhas, a cada k=2 gerações (S_ONLINE);
+#:   OFFLINE → lê as 20.000, UMA vez por modelo treinado (o modelo é fixo; sem
+#:             repetição geração-a-geração, cabe MUITO mais ponto pela mesma análise).
+#: A sequência de Sobol é ANINHADA (verificado: |dif|=0 em D=2/12/30): as 2.000
+#: primeiras de 20.000 são BIT-IDÊNTICAS às 2.000 de uma geração de 2.000 — logo a
+#: régua é a MESMA nos dois regimes na faixa compartilhada, e os runs online já
+#: retrofitados NÃO precisam ser refeitos.
+S = 20000           #: tamanho do artefato (offline usa tudo)
+S_ONLINE = 2000     #: fatia que o regime ONLINE lê (linhas 0..1999)
 BASE_SEED = 4242    #: base da SeedSequence da sonda (≠ DoE/dataset — sem colisão)
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                    'data', 'sonda')
@@ -63,7 +72,8 @@ def main():
         fmn = os.path.join(pdir, f'sonda_{problema}.manifest.json')
         if args.check:
             man = json.load(open(fmn))
-            ok = (man['x_hash'] == xh and man['f_hash'] == fh)
+            ok = (man['x_hash'] == xh and man['f_hash'] == fh
+                  and man.get('x_hash_online') == _decoded_hash(X[:S_ONLINE]))
             print(f"  {problema:12} {'OK' if ok else 'HASH DIVERGE!'}")
             fails += 0 if ok else 1
             continue
@@ -73,14 +83,20 @@ def main():
         for j in range(M):
             df[f'f{j}'] = F[:, j]
         df.to_parquet(fpq, index=False)     # float64 — o GABARITO não perde precisão
-        json.dump({'schema_version': 1, 'problema': problema, 'problema_id': pid,
-                   'S': S, 'D': D, 'M': M, 'base_seed': BASE_SEED,
+        xh_on, fh_on = _decoded_hash(X[:S_ONLINE]), _decoded_hash(F[:S_ONLINE])
+        json.dump({'schema_version': 2, 'problema': problema, 'problema_id': pid,
+                   'S': S, 'S_online': S_ONLINE,
+                   'x_hash_online': xh_on, 'f_hash_online': fh_on,
+                   'D': D, 'M': M, 'base_seed': BASE_SEED,
                    'sobol_seed_32': seed, 'scramble': True,
                    'x_hash': xh, 'f_hash': fh,
-                   'convencao': 'sha256 dos bytes float64 row-major (D87); '
-                                'ordem das linhas = ordem de geração Sobol (join por posição)'},
+                   'convencao': 'sha256 dos bytes float64 row-major (D87); ordem das linhas = '
+                                'ordem de geracao Sobol (join por posicao). ONLINE le [0:S_online] '
+                                'e confere x_hash_online; OFFLINE le tudo e confere x_hash. '
+                                'Sobol e ANINHADO: as S_online primeiras sao identicas as de uma '
+                                'geracao de tamanho S_online (DI-13.5).'},
                   open(fmn, 'w'), indent=1)
-        print(f"  {problema:12} D={D:2d} M={M} seed32={seed:>10} x_hash={xh[:12]}…")
+        print(f"  {problema:12} D={D:2d} M={M} S={S} x_hash={xh[:10]}… x_hash_online={xh_on[:10]}…")
     if args.check and fails:
         sys.exit(1)
 

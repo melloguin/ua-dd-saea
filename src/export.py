@@ -176,7 +176,12 @@ def timing_schema():
         pa.field("run_id", pa.string(), nullable=False),
         pa.field("geracao", pa.int32(), nullable=False),
         pa.field("n_acumulado", pa.int32(), nullable=False),
-        pa.field("tempo_fit_s", pa.float32(), nullable=False),
+        # [DI-13.2, autor 2026-07-19] NULLABLE: os PISOS não têm surrogate, logo não
+        # têm tempo de treino — `NULL` = "não se aplica", que é diferente de `0.0`
+        # ("treinou e custou zero"). Sem isto os 4 pisos online + o piso offline não
+        # conseguem gravar a ④ que o CONTRATO §4 exige (o `tempo_geracao_s` deles é
+        # o custo-baseline do estudo). A análise (R4) já tolera NULL em outras colunas.
+        pa.field("tempo_fit_s", pa.float32(), nullable=True),
         pa.field("tempo_busca_s", pa.float32(), nullable=True),
         pa.field("tempo_pred_sonda_s", pa.float32(), nullable=True),
         pa.field("tempo_geracao_s", pa.float32(), nullable=True),
@@ -387,7 +392,8 @@ def write_timing(exp: str, alg: str, problema: str, semente,
         "run_id": pa.array([rid] * n, type=pa.string()),
         "geracao": pa.array([int(r["geracao"]) for r in rows], type=pa.int32()),
         "n_acumulado": pa.array([int(r["n_acumulado"]) for r in rows], type=pa.int32()),
-        "tempo_fit_s": pa.array([float(r["tempo_fit_s"]) for r in rows], type=pa.float32()),
+        # [DI-13.2] `opt` (não `float(...)`): pisos gravam NULL — ver o schema acima.
+        "tempo_fit_s": opt("tempo_fit_s"),
         "tempo_busca_s": opt("tempo_busca_s"),
         "tempo_pred_sonda_s": opt("tempo_pred_sonda_s"),
         "tempo_geracao_s": opt("tempo_geracao_s"),

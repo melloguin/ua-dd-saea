@@ -111,7 +111,8 @@ tamanho_do_lote_infill | scores_dos_selecionados
 **✔ [DEF-C3 — DECIDIDO D28/v3.0.11] Espaços transformados: gravar CRU + TRANSFORMADO, ambos completos.** Alguns algoritmos modelam num espaço transformado, não no cru: **b1 (ParEGO)** escalariza os M objetivos num único valor Tchebycheff (peso λ sorteado por iteração) + normaliza o arquivo min-max; **c238 (EIM)** normaliza y por min-max a cada iteração (do paper); **e7** translada os objetivos. *(Mais normalizações de Y triviais e invertíveis em poucos outros — ex.: o z-score que adicionamos ao c149 — que caem na mesma regra.)* **Decisão:** para esses casos a base surrogate grava **os dois espaços de uma vez** — o valor no espaço do modelo, o valor no cru (onde a transformação é invertível: c238, e7) **E** os parâmetros da transformação por iteração — mais colunas opcionais: `espaco_modelo` (transformado|cru), `transf_tipo` (escalar-tcheby|minmax|translacao|zscore), `transf_params` (λ / min,max / vetor de translação). **Racional:** são só ~3 algoritmos e o custo de storage é desprezível (~+1–2 GB no total, §17.4); em troca, a análise **não precisa inverter nada** — os dois espaços já vêm prontos (escolha do autor pelo cronograma apertado). *(Exceção honesta: a escalarização do b1 é **lossy** — grava-se o escalar + λ, que é interpretável mas não des-agrega em μ por objetivo; é inerente ao ParEGO, não uma perda evitável.)* Rejeitadas: "só o transformado" (sem os parâmetros, o valor de uma iteração não é comparável ao de outra e não volta ao cru → quebra o cruzamento com a camada real §17.1) e "cru + parâmetros, inverter na análise" (economiza ~1–2 GB mas custa tempo de análise — não compensa dado o cronograma).
 
 ### 17.2.2 — SONDA canônica de generalização [DI-09 — decisão do autor 2026-07-18 · v5.2.1]
-**O quê.** Um conjunto FIXO de **S=2000 pontos por problema** — o MESMO para todos os algoritmos,
+**O quê.** Um conjunto FIXO de pontos por problema — **artefato de S=20.000; o regime ONLINE lê as
+2.000 primeiras e o OFFLINE lê todas [DI-13.5, autor 2026-07-19]** — o MESMO para todos os algoritmos,
 gerações e sementes — que cada modelo prediz periodicamente, gravando na ③ com `regime='sonda'`.
 É a régua única que torna a qualidade dos surrogates DIRETAMENTE comparável entre os 17 configs
 com modelo (GP × RBF × PNN × rede × classificador), livre do viés de amostragem da busca.
@@ -122,8 +123,13 @@ com modelo (GP × RBF × PNN × rede × classificador), livre do viés de amostr
   `src/problems.py` (float64) + sidecar com sha256 do array. **Nenhum algoritmo gera pontos de
   sonda — todos CARREGAM o artefato e conferem o hash no arranque** (disciplina D63/D87). Custo de
   FE: ZERO (avaliação analítica fora do orçamento — exceção contábil, precedente do `__final` §11).
-- **Cadência:** ONLINE = a cada **k=2** gerações/iterações + SEMPRE a 1ª e a última; OFFLINE =
-  **1× por modelo treinado** (e103 grava 2 blocos: Kriging e RBFN). O evento `sonda` do `.jsonl`
+- **Cadência e TAMANHO por regime [DI-13.5]:** ONLINE = **2.000 pontos** (a fatia `[0:S_online]`
+  do artefato) a cada **k=2** gerações/iterações + SEMPRE a 1ª e a última; OFFLINE = **os 20.000**,
+  **1× por modelo treinado**, com `geracao = NULL` (o modelo treina ANTES do laço — não há geração
+  a que pertencer). A sequência de Sobol é **ANINHADA** (verificado |dif|=0): a fatia online é
+  BIT-IDÊNTICA a uma sonda gerada com 2.000, logo a régua é a MESMA nos dois regimes na faixa
+  compartilhada. O sidecar v2 traz `S`/`S_online` + `x_hash`/`x_hash_online` — cada regime confere
+  o SEU hash (e103 grava 2 blocos: Kriging e RBFN). O evento `sonda` do `.jsonl`
   registra `geracao`, `fe` e `tempo_pred_sonda_s` — o eixo de comparação entre algoritmos é o
   **FE consumido** (gerações não são alinhadas entre configs).
 - **Gravação:** 2000 linhas na ③ (`regime='sonda'`, `real_solution_id=NULL`, `fe_treino_max`
@@ -229,7 +235,7 @@ Duas saídas de tempo promovidas a **dado de primeira classe** (antes: só o tot
 | `run_id` | liga ao manifesto (algoritmo, problema, semente) |
 | `geracao` / `iter` | quando o retreino ocorreu (sincroniza com ①②③ via `geracao`) |
 | `n_acumulado` | nº de pontos reais no conjunto de treino **naquele** retreino (eixo-x da escalabilidade) |
-| `tempo_fit_s` | tempo de treino do surrogate **naquele** retreino (eixo-y) |
+| `tempo_fit_s` | tempo de treino do surrogate **naquele** retreino (eixo-y). **NULLABLE [DI-13.2]:** os pisos não treinam ⇒ `NULL` = "não se aplica" (≠ `0.0` = "treinou e custou zero") |
 | `tempo_busca_s` | tempo da aquisição/otimização interna na mesma iteração — **OBRIGATÓRIO [v5.2.1, autor: era opcional]** |
 | `tempo_pred_sonda_s` | **[DI-09 v5.2.1]** custo da sonda na iteração (0 quando não roda) |
 | `tempo_geracao_s` | **[v5.2.1, autor]** wall TOTAL da geração (fit+busca+aval+overhead) — o relógio por geração, nos 21 configs (pisos: fit=NULL) |
@@ -258,7 +264,7 @@ BUCKET:  gs://mestrado_experiments/experiments/{exp}/{alg}/exp_{exp}_{alg}_{prob
 LOCAL :  data/experiments/{exp}/{alg}/exp_{exp}_{alg}_{problema}_{semente}.parquet
 ```
 
-> **Camadas por run (§17.1/§17.6).** Como o export tem camadas de tamanhos muito diferentes (① catálogo real, ② população/geração, ③ surrogate — a grande, §17.4 — e a série de tempo §17.6), a §17.3 já decidiu **separá-las por arquivo**. Realiza-se isso com um **sufixo de camada** sobre a base (com o token `{exp}` — Higiene v5.2/D55): `exp_{exp}_{alg}_{problema}_{semente}__surrogate.parquet` (③, o payload volumoso — ver §17.4, ~0,5–0,9 TB no total do estudo), `__real.parquet` (①), `__pop.parquet` (②), `__timing.parquet` (§17.6), **`__final.parquet` [DI-08 v5.2.1 — SÓ os 5 configs offline: o ND final avaliado 1× na função verdadeira via `src/problems.py`, pós-hoc, fora do orçamento (§11); colunas `x*|f*|origem`; o gate offline checa presença+consistência]**, mais o log de auditoria `exp_{exp}_{alg}_{problema}_{semente}.jsonl` (§17.5) e o fragmento de manifesto. O nome/pasta acima é a **base**; o sufixo distingue a camada. *(Nos runs Python, TODOS esses artefatos — parquets + `.jsonl` + manifesto — são espelhados no bucket, para uma VM Vertex AI destruída não levar embora nem dados nem trilha de auditoria; os **parquets** são os obrigatórios.)*
+> **Camadas por run (§17.1/§17.6).** Como o export tem camadas de tamanhos muito diferentes (① catálogo real, ② população/geração, ③ surrogate — a grande, §17.4 — e a série de tempo §17.6), a §17.3 já decidiu **separá-las por arquivo**. Realiza-se isso com um **sufixo de camada** sobre a base (com o token `{exp}` — Higiene v5.2/D55): `exp_{exp}_{alg}_{problema}_{semente}__surrogate.parquet` (③, o payload volumoso — ver §17.4, ~0,5–0,9 TB no total do estudo), `__real.parquet` (①), `__pop.parquet` (②), `__timing.parquet` (§17.6), **`__final.parquet` [DI-08 v5.2.1 — SÓ os 5 configs offline: o conjunto final avaliado 1× na função verdadeira via `src/problems.py`, pós-hoc, fora do orçamento (§11). **[DI-13.9] TODOS os finais são avaliados e o ND é filtrado DEPOIS da avaliação real** (filtrar pelo ND-do-modelo antes seria filtrar a realidade pela fantasia); colunas `x*|f*|origem_solution_id|origem_geracao|origem_linha|nd_pos_real` [DI-13.8]; o gate offline checa presença+consistência]**, mais o log de auditoria `exp_{exp}_{alg}_{problema}_{semente}.jsonl` (§17.5) e o fragmento de manifesto. O nome/pasta acima é a **base**; o sufixo distingue a camada. *(Nos runs Python, TODOS esses artefatos — parquets + `.jsonl` + manifesto — são espelhados no bucket, para uma VM Vertex AI destruída não levar embora nem dados nem trilha de auditoria; os **parquets** são os obrigatórios.)*
 
 **Criar a pasta se não existe.**
 - **Local:** antes de gravar, `Path(dir).mkdir(parents=True, exist_ok=True)` (Python) / `if ~exist(dir,'dir'); mkdir(dir); end` (MATLAB) — cria `data/experiments/{exp}/{alg}/` na primeira vez.

@@ -2416,18 +2416,29 @@ end
 %  SONDA CANONICA (DI-09 / §17.2.2) — carregada do artefato, NUNCA gerada
 % ════════════════════════════════════════════════════════════════════════════
 
-function sd = load_sonda(problema, D, M, dataRoot)
-% Os S=2000 pontos FIXOS do problema (os MESMOS p/ todos os algoritmos,
-% geracoes e sementes — §17.2.2). Molde do load_dataset (D90): le o artefato,
-% confere o CP no ARRANQUE e ABORTA em divergencia (disciplina D63/D87).
+function sd = load_sonda(problema, D, M, dataRoot, regime)
+% Os pontos FIXOS do problema (os MESMOS p/ todos os algoritmos, geracoes e
+% sementes — §17.2.2). Molde do load_dataset (D90): le o artefato, confere o CP
+% no ARRANQUE e ABORTA em divergencia (disciplina D63/D87).
 %
-%   sd.X (2000 x D, float64, bounds NATIVOS)  -> o que se prediz
-%   sd.F (2000 x M, float64)                  -> o GABARITO; NAO vai para a ③
-%                                                (§3.1: join por POSICAO)
+% [DI-13.5, autor 2026-07-19] O artefato tem S=20.000 e serve aos DOIS regimes:
+%   regime='online'  (default) -> le as PRIMEIRAS side.S_online (2.000), a cada
+%                                 k=2 geracoes;
+%   regime='offline'           -> le TODAS as 20.000, UMA vez por modelo treinado
+%                                 (o modelo e fixo; sem repeticao geracao-a-geracao
+%                                 cabe MUITO mais ponto pela mesma analise).
+% Sobol e ANINHADO (provado): a fatia online e BIT-IDENTICA a uma sonda gerada
+% com 2.000 -> a regua e a MESMA nos dois regimes na faixa compartilhada, e os
+% runs online ja retrofitados NAO precisam ser refeitos.
+%
+%   sd.X (S x D, float64, bounds NATIVOS)  -> o que se prediz
+%   sd.F (S x M, float64)                  -> o GABARITO; NAO vai para a ③
+%                                             (§3.1: join por POSICAO)
 %   sd.x_hash / sd.f_hash / sd.S
 %
 % Custo de FE: ZERO — a sonda nunca chama o avaliador real (exceção contabil
 % documentada, precedente do __final DI-08).
+    if nargin < 5 || isempty(regime), regime = 'online'; end
     pq  = nm_sonda_path(problema, dataRoot);
     man = nm_sonda_manifest_path(problema, dataRoot);
 
@@ -2463,9 +2474,24 @@ function sd = load_sonda(problema, D, M, dataRoot)
     sd.S = size(sd.X, 1);
     assert(sd.S == double(side.S), 'sonda: S=%d != sidecar %d', sd.S, double(side.S));
 
+    % ── [DI-13.5] fatia por REGIME (ver o cabecalho) ──────────────────────────
+    sd.regime = char(regime);
+    if strcmpi(regime, 'online')
+        nOn = 2000;
+        if isfield(side, 'S_online'), nOn = double(side.S_online); end
+        sd.X = sd.X(1:nOn, :);
+        sd.F = sd.F(1:nOn, :);
+        sd.S = nOn;
+    end
+
     % ── CP da sonda (o gate do arranque): sha256 dos bytes float64 row-major ──
-    sd.x_hash = char(side.x_hash);
-    sd.f_hash = char(side.f_hash);
+    if strcmpi(sd.regime, 'online') && isfield(side, 'x_hash_online')
+        sd.x_hash = char(side.x_hash_online);   % o CP da FATIA online
+        sd.f_hash = char(side.f_hash_online);
+    else
+        sd.x_hash = char(side.x_hash);          % o CP do artefato INTEIRO
+        sd.f_hash = char(side.f_hash);
+    end
     h = sha256_rowmajor_f64(sd.X);
     assert(strcmp(h, sd.x_hash), ...
         'sonda:x_hash DIVERGENTE em %s\n  artefato: %s\n  sidecar : %s', ...

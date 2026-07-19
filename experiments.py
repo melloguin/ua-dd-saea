@@ -36,7 +36,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from src import naming
 from src import experiment as _adapter
-from src.manifest import Scoreboard, new_manifest, write_manifest, is_run_done
+from src.manifest import (Scoreboard, new_manifest, write_manifest, read_manifest,
+                          is_run_done)
 from src.audit_log import AuditLogger
 
 # ── Roster canônico do stack PYTHON (§21.2 / S.4-F0#2) ─────────────────────
@@ -101,13 +102,38 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
                    stack_trace=stack_trace)
         log.close()
 
+    # ── Manifesto: MESCLAR, nunca reconstruir [DI-13.1, autor 2026-07-19] ──────
+    # O RUNNER já gravou o manifesto RICO (doe_hash, fe_final, n_geracoes, timing
+    # medido, fit_series, sigma_dict, bloco sonda). O despachante sabe outras 3
+    # coisas — status/n_retries/stack_trace — e o wall-clock de fora. Reconstruir
+    # aqui (o comportamento anterior) SOBRESCREVIA a certidão do runner e a bateria
+    # M8 perderia TODO o payload DI-09/DI-10 da camada ⑤, sem sintoma visível.
+    # Regra: se o runner gravou → mescla só os campos do despachante; se não gravou
+    # (run morreu antes) → cria do zero, como antes.
     bucket = GCS_BUCKET  # Python espelha no bucket (§17.7); o upload é F0-03
-    man = new_manifest(exp, alg, problema, semente, status=status,
-                       n_retries=n_retries, stack_trace=stack_trace,
-                       timing={'tempo_total_s': round(time.time() - t0, 4),
-                               'tempo_fit_surrogate_s': None,
-                               'tempo_busca_s': None, 'tempo_aval_real_s': None},
-                       data_root=data_root, bucket=bucket)
+    wall = round(time.time() - t0, 4)
+    mpath = naming.manifest_path(exp, alg, problema, semente, data_root=data_root)
+    man = read_manifest(mpath)
+    if man is None:                       # o runner não chegou a gravar
+        man = new_manifest(exp, alg, problema, semente, status=status,
+                           n_retries=n_retries, stack_trace=stack_trace,
+                           timing={'tempo_total_s': wall,
+                                   'tempo_fit_surrogate_s': None,
+                                   'tempo_busca_s': None, 'tempo_aval_real_s': None},
+                           data_root=data_root, bucket=bucket)
+    else:                                 # MESCLA (preserva tudo que o runner pôs)
+        man['status'] = status
+        man['n_retries'] = n_retries
+        if stack_trace:
+            man['stack_trace'] = stack_trace
+        man.setdefault('timing', {})
+        # o wall do despachante inclui overhead de orquestração; só preenche se o
+        # runner não mediu (nunca sobrescreve medida por estimativa).
+        if not man['timing'].get('tempo_total_s'):
+            man['timing']['tempo_total_s'] = wall
+        man['timing']['tempo_total_despachante_s'] = wall
+        if bucket:
+            man.setdefault('paths', {})['bucket'] = man.get('paths', {}).get('bucket') or bucket
     write_manifest(man, data_root)
     return status
 

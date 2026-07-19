@@ -302,7 +302,16 @@ SONDA_CHUNK = 512
 _SONDA_CACHE: dict[str, dict] = {}
 
 
+def clear_sonda_cache() -> None:
+    """Esvazia o cache de sonda por processo. [DI-13.5] A chave é
+    `(problema, regime, data_root)` — o `data_root` FALTAVA (bug latente: um
+    load de outra pasta devolvia o artefato cacheado, mascarando adulteração).
+    Testes usam ESTA função em vez de mexer no dict interno."""
+    _SONDA_CACHE.clear()
+
+
 def load_sonda(problema: str, *,
+               regime: str = "online",
                data_root: str = naming.DEFAULT_DATA_ROOT) -> dict:
     """Carrega o artefato da SONDA de `problema` e confere os hashes do sidecar.
 
@@ -317,8 +326,9 @@ def load_sonda(problema: str, *,
     (CONTRATO §3.1 / R4 regra 5). Retorna
     `{X, F, S, D, M, x_hash, f_hash, path, sidecar}` (X/F float64).
     Resultado cacheado por processo (o artefato é imutável)."""
-    if problema in _SONDA_CACHE:
-        return _SONDA_CACHE[problema]
+    _ck = (problema, regime, os.path.abspath(data_root))
+    if _ck in _SONDA_CACHE:
+        return _SONDA_CACHE[_ck]
     base = os.path.join(data_root, "sonda", f"sonda_{problema}")
     path, mpath = base + ".parquet", base + ".manifest.json"
     if not (os.path.exists(path) and os.path.exists(mpath)):
@@ -346,9 +356,25 @@ def load_sonda(problema: str, *,
             f"(x {xh[:16]}… vs {str(side.get('x_hash'))[:16]}…; f {fh_[:16]}… "
             f"vs {str(side.get('f_hash'))[:16]}…) — artefato corrompido. "
             f"Pára-e-loga (D81).")
-    art = {"X": X, "F": F, "S": S, "D": D, "M": M,
+    # ── [DI-13.5, autor 2026-07-19] fatia por REGIME ──────────────────────────
+    # O artefato tem S=20.000. ONLINE lê as PRIMEIRAS `S_online` (2.000), a cada
+    # k=2 gerações; OFFLINE lê TODAS (o modelo treina 1×, então cabe MUITO mais
+    # ponto pela mesma análise). Sobol é ANINHADO: a fatia online é BIT-IDÊNTICA
+    # a uma sonda gerada com 2.000 (provado em tests/test_di13.py) — a régua é a
+    # MESMA nos dois regimes na faixa compartilhada, e os runs online já
+    # retrofitados NÃO precisam ser refeitos.
+    if regime == "online":
+        n_on = int(side.get("S_online", 2000))
+        X, F = X[:n_on], F[:n_on]
+        xh_on = _sonda_hash(X)
+        if side.get("x_hash_online") and xh_on != side["x_hash_online"]:
+            raise RuntimeError(
+                f"SONDA {problema}: a fatia ONLINE [0:{n_on}] diverge do "
+                f"`x_hash_online` do sidecar — artefato corrompido. Pára-e-loga (D81).")
+        xh, fh_, S = xh_on, _sonda_hash(F), n_on
+    art = {"X": X, "F": F, "S": S, "D": D, "M": M, "regime": regime,
            "x_hash": xh, "f_hash": fh_, "path": path, "sidecar": side}
-    _SONDA_CACHE[problema] = art
+    _SONDA_CACHE[_ck] = art
     return art
 
 

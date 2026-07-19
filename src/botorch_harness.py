@@ -42,7 +42,14 @@ O que este módulo fornece (e de onde vem cada exigência):
 - **Snapshot §17.3/§17.6** — `SnapshotBuffer` coleta ② (membership do arquivo),
   ③ (candidatos com μ/σ, via `export.surrogate_row`) e a série de timing POR
   ITERAÇÃO DE BO (a política EA-cêntrica "por geração" mapeia p/ "por iteração"
-  nos BO puros — §17.3).
+  nos BO puros — §17.3). Pós-retrofit carrega também o `fe_treino_max` corrente
+  (DI-09/A1) e completa a linha ④ da geração por `update_timing`.
+- **SONDA DI-09/§17.2.2** — `load_sonda()` CARREGA o artefato dos 2000 pontos
+  fixos por problema e confere o hash (nunca gera — mesma disciplina do DoE);
+  `sonda_due()` dá a cadência k=2; `emit_sonda_block()` prediz e grava as 2000
+  linhas ③ `regime='sonda'` + o evento `sonda` do jsonl. `preserve_torch_rng()`
+  é a 🔴 guarda de NÃO-PERTURBAÇÃO: nenhum consumo de RNG pela instrumentação
+  pode deslocar a trajetória da busca.
 - **Persistência §17.7/D58** — `write_run_outputs()` grava as 4 camadas + o
   `.jsonl` + o manifesto (com `doe_hash` do CP-init, env e fit_series) via os
   módulos F0 (`export`/`manifest` — reusados, nunca duplicados);
@@ -179,6 +186,35 @@ def torch_seed_for(base: int, alg_id: int, iteracao: int,
 
 
 @contextmanager
+def preserve_torch_rng():
+    """🔴 A guarda de NÃO-PERTURBAÇÃO da sonda (DI-09/§17.2.2).
+
+    O invariante do retrofit é que a instrumentação NÃO altera a busca — a prova
+    objetiva é a ① do run com sonda ser bit-idêntica à do run sem. O laço dos 2
+    runners BoTorch depende do RNG GLOBAL do torch (`manual_seed` por iteração,
+    e o `optimize_acqf`/`fit_gpytorch_mll` consomem desse stream), então
+    QUALQUER consumo de RNG pela instrumentação deslocaria a trajetória. Este
+    gerenciador salva e restaura o estado do RNG torch em volta da predição.
+
+    O preditor do c262/c154 é determinístico sob `no_grad` (não há o hazard de
+    MC-dropout do e7) — a guarda é, portanto, defensiva **por contrato**: ela
+    vale mesmo que uma versão futura da lib passe a sortear internamente."""
+    state = torch.get_rng_state()
+    try:
+        yield
+    finally:
+        torch.set_rng_state(state)
+
+
+@contextmanager
+def preserve_all_rng():
+    """`preserve_torch_rng` + `preserve_global_rng` — os 3 streams (torch, numpy
+    global e `random`) intactos em volta de um bloco de instrumentação."""
+    with preserve_torch_rng(), preserve_global_rng():
+        yield
+
+
+@contextmanager
 def preserve_global_rng():
     """N.1.3: `pymoo.minimize(seed=·)` re-semeia `np.random`/`random` GLOBAIS —
     salvar/restaurar o estado em volta de cada chamada (o `Generator` próprio do
@@ -244,6 +280,146 @@ def load_doe(problema: str, semente, *,
             f"do sidecar ({h[:16]}… != {str(side.get('doe_hash'))[:16]}…) — "
             f"artefato corrompido. Pára-e-loga (D81).")
     return {"X": X, "doe_hash": h, "sidecar": side, "path": path}
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  SONDA canônica DI-09 / SPEC §17.2.2 (a régua fixa de 2000 pontos)
+# ═══════════════════════════════════════════════════════════════════════════
+
+#: Cadência ONLINE da sonda (decisão do autor, DI-09): a cada k=2 iterações,
+#: SEMPRE a 1ª e a última. (OFFLINE = 1× por modelo treinado — não é a R2.)
+SONDA_K = 2
+
+#: Tamanho do lote de predição da sonda. Numericamente neutro (os 2000 pontos
+#: são independentes no posterior: μ é linha-a-linha e σ é a diagonal), mas
+#: evita materializar a covariância 2000×2000 do gpytorch. Constante FIXA —
+#: mudá-la é mudar o custo, nunca o valor.
+SONDA_CHUNK = 512
+
+#: Cache por processo: o artefato é FIXO por problema e o hash é conferido no
+#: primeiro carregamento (a sonda roda dezenas de vezes por run — carregar e
+#: re-hashear 2000×D floats a cada bloco seria puro desperdício).
+_SONDA_CACHE: dict[str, dict] = {}
+
+
+def load_sonda(problema: str, *,
+               data_root: str = naming.DEFAULT_DATA_ROOT) -> dict:
+    """Carrega o artefato da SONDA de `problema` e confere os hashes do sidecar.
+
+    Mesma disciplina do DoE (D63/D87/D88): o runner **NUNCA gera** os pontos —
+    carrega `data/sonda/sonda_{problema}.parquet` (gerado 1× por
+    `scripts/gen_sonda.py`) e confere `x_hash`/`f_hash` (sha256 dos bytes
+    float64 row-major) contra `sonda_{problema}.manifest.json`. Ausente ⇒
+    FileNotFoundError; hash divergente ⇒ RuntimeError (pára-e-loga D81).
+
+    A ORDEM DAS LINHAS é a ordem de geração Sobol e é o que o writer da ③ tem
+    de preservar — o gabarito (`F`) casa com o bloco de sonda POR POSIÇÃO
+    (CONTRATO §3.1 / R4 regra 5). Retorna
+    `{X, F, S, D, M, x_hash, f_hash, path, sidecar}` (X/F float64).
+    Resultado cacheado por processo (o artefato é imutável)."""
+    if problema in _SONDA_CACHE:
+        return _SONDA_CACHE[problema]
+    base = os.path.join(data_root, "sonda", f"sonda_{problema}")
+    path, mpath = base + ".parquet", base + ".manifest.json"
+    if not (os.path.exists(path) and os.path.exists(mpath)):
+        raise FileNotFoundError(
+            f"artefato da SONDA ausente p/ {problema}: {path} (+sidecar). O "
+            f"runner NUNCA gera pontos de sonda (§17.2.2) — materialize antes "
+            f"com scripts/gen_sonda.py. Pára-e-loga (D81).")
+    with open(mpath, encoding="utf-8") as fh:
+        side = json.load(fh)
+    import pyarrow.parquet as pq
+    tbl = pq.read_table(path)
+    D, M, S = int(side["D"]), int(side["M"]), int(side["S"])
+    X = np.column_stack([np.asarray(tbl.column(f"x{j}"), dtype=np.float64)
+                         for j in range(D)])
+    F = np.column_stack([np.asarray(tbl.column(f"f{j}"), dtype=np.float64)
+                         for j in range(M)])
+    if X.shape != (S, D) or F.shape != (S, M):
+        raise RuntimeError(
+            f"SONDA {problema}: shapes {X.shape}/{F.shape} != "
+            f"({S},{D})/({S},{M}) do sidecar. Pára-e-loga (D81).")
+    xh, fh_ = _sonda_hash(X), _sonda_hash(F)
+    if xh != side.get("x_hash") or fh_ != side.get("f_hash"):
+        raise RuntimeError(
+            f"SONDA {problema}: hash do array decodificado diverge do sidecar "
+            f"(x {xh[:16]}… vs {str(side.get('x_hash'))[:16]}…; f {fh_[:16]}… "
+            f"vs {str(side.get('f_hash'))[:16]}…) — artefato corrompido. "
+            f"Pára-e-loga (D81).")
+    art = {"X": X, "F": F, "S": S, "D": D, "M": M,
+           "x_hash": xh, "f_hash": fh_, "path": path, "sidecar": side}
+    _SONDA_CACHE[problema] = art
+    return art
+
+
+def _sonda_hash(arr: np.ndarray) -> str:
+    """sha256 dos bytes float64 row-major — a MESMA convenção do DoE (D87)."""
+    return hashlib.sha256(
+        np.ascontiguousarray(arr, dtype=np.float64).tobytes()).hexdigest()
+
+
+def sonda_due(it: int, *, k: int = SONDA_K) -> bool:
+    """Cadência ONLINE (§17.2.2): a 1ª iteração e depois a cada `k`. A ÚLTIMA
+    também é obrigatória, mas só se sabe qual é quando o hard-stop chega — o
+    runner cobre esse caso emitindo o bloco no ramo `BudgetExhausted` se a
+    iteração corrente ainda não tiver emitido (ver `run_c262`/`run_c154`)."""
+    it = int(it)
+    return it == 1 or it % int(k) == 0
+
+
+def sonda_predict_gp(model, adapter: "BoTorchProblemAdapter",
+                     X_sonda: np.ndarray, *, chunk: int = SONDA_CHUNK):
+    """Prediz μ/σ POR OBJETIVO nos pontos da sonda com um modelo BoTorch de
+    regressão (a semântica da linha do CONTRATO §3.2 p/ c262/c154 e os demais
+    regressores da família).
+
+    - Roda sob `no_grad` (D86) **e** sob `preserve_torch_rng` — a guarda de
+      não-perturbação (§17.2.2).
+    - O modelo vive em [0,1]^D e em −f (maximização, §5.5): a entrada é
+      convertida pelo adapter e o μ devolvido é **em f (minimização)**, como
+      manda o export — o sinal invertido nunca vaza.
+    - Em lotes de `chunk` (independentes ⇒ numericamente neutro).
+
+    Retorna `(mu_f (S,M), sigma (S,M))` em float64, na ORDEM do artefato."""
+    U = adapter.to_unit(np.asarray(X_sonda, dtype=np.float64))
+    mus, sigmas = [], []
+    with preserve_torch_rng(), torch.no_grad():
+        for i in range(0, U.shape[0], int(chunk)):
+            post = model.posterior(U[i:i + int(chunk)])
+            mus.append(post.mean.cpu().numpy())
+            sigmas.append(np.sqrt(post.variance.cpu().numpy()))
+            del post
+    return -np.vstack(mus), np.vstack(sigmas)
+
+
+def emit_sonda_block(buf: "SnapshotBuffer", log, *, it: int, fe: int,
+                     sonda: dict, adapter: "BoTorchProblemAdapter", model,
+                     fe_treino_max: int, modelo_flag: str = "GP",
+                     motivo: str = "cadencia k=2") -> float:
+    """Emite UM bloco de sonda: prediz os S pontos, grava as S linhas na ③ com
+    `regime='sonda'` **na ordem do artefato** e loga o evento `sonda` do jsonl
+    (§17.2.2 + CONTRATO §6). Custo de FE: ZERO (o `f` verdadeiro já está no
+    artefato — exceção contábil documentada). Retorna `tempo_pred_sonda_s`.
+
+    O bloco inteiro corre sob a guarda de RNG (dentro de `sonda_predict_gp`) e
+    não toca o `FEBudget` — a busca não vê nada disto acontecer."""
+    t0 = time.time()
+    mu_f, sigma = sonda_predict_gp(model, adapter, sonda["X"])
+    X = sonda["X"]
+    for i in range(X.shape[0]):
+        buf.add_surrogate(_export.surrogate_row(
+            it, X[i], regime="sonda", real_solution_id=None,
+            mu=mu_f[i], sigma=sigma[i], pred_tipo="valor",
+            modelo_flag=modelo_flag, fe_treino_max=fe_treino_max))
+    dt = time.time() - t0
+    log.event("sonda", it=it, geracao=it, fe=int(fe),
+              n_pontos=int(X.shape[0]),
+              tempo_pred_sonda_s=round(dt, 4),
+              fe_treino_max=int(fe_treino_max),
+              sonda_x_hash=sonda["x_hash"], sonda_f_hash=sonda["f_hash"],
+              hash_check="ok (conferido no arranque — load_sonda)",
+              motivo=motivo)
+    return dt
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -349,24 +525,64 @@ class SnapshotBuffer:
         self.pop_rows: list[tuple[int, int]] = []
         self.surr_rows: list[dict] = []
         self.timing_rows: list[dict] = []
+        #: DI-09/A1: o `fe_treino_max` CORRENTE (maior `fe_index` no treino do
+        #: modelo ajustado nesta iteração). O runner o crava logo após o fit e
+        #: toda linha ③ emitida daí em diante o herda — assim nenhuma predição
+        #: sai sem o marcador in-sample × out-of-sample.
+        self.fe_treino_max: int | None = None
+
+    def set_fe_treino_max(self, fe_treino_max: int | None) -> None:
+        """Crava o marcador A1 da iteração corrente (chamar logo após o fit)."""
+        self.fe_treino_max = (None if fe_treino_max is None
+                              else int(fe_treino_max))
 
     def add_pop(self, geracao: int, solution_ids) -> None:
         """Membership do arquivo real na iteração `geracao` (② — §17.2)."""
         self.pop_rows.extend((int(geracao), int(s)) for s in solution_ids)
 
     def add_surrogate(self, row: dict) -> None:
-        """Uma linha ③ montada com `export.surrogate_row(...)` (C1/C3)."""
+        """Uma linha ③ montada com `export.surrogate_row(...)` (C1/C3). Herda o
+        `fe_treino_max` corrente do buffer quando a linha não trouxer o seu."""
+        if row.get("fe_treino_max") is None and self.fe_treino_max is not None:
+            row = {**row, "fe_treino_max": self.fe_treino_max}
         self.surr_rows.append(row)
 
     def add_timing(self, geracao: int, n_acumulado: int, tempo_fit_s: float,
-                   tempo_busca_s: float | None = None) -> None:
-        """Um evento de retreino → série `(n_acumulado, tempo_fit_s)` (§17.6)."""
+                   tempo_busca_s: float | None = None,
+                   tempo_pred_sonda_s: float | None = None,
+                   tempo_geracao_s: float | None = None) -> None:
+        """Um evento de retreino → série `(n_acumulado, tempo_fit_s)` (§17.6).
+
+        Os runners BoTorch chamam este método IMEDIATAMENTE após o fit (para
+        que a curva O(n³) retenha o fit final mesmo quando o hard-stop corta a
+        iteração — D61), portanto os tempos de busca/sonda/geração ainda não
+        existem: eles entram depois, por `update_timing`."""
         self.timing_rows.append({
             "geracao": int(geracao), "n_acumulado": int(n_acumulado),
             "tempo_fit_s": float(tempo_fit_s),
             "tempo_busca_s": (None if tempo_busca_s is None
                               else float(tempo_busca_s)),
+            "tempo_pred_sonda_s": (None if tempo_pred_sonda_s is None
+                                   else float(tempo_pred_sonda_s)),
+            "tempo_geracao_s": (None if tempo_geracao_s is None
+                                else float(tempo_geracao_s)),
         })
+
+    def update_timing(self, geracao: int, **campos) -> None:
+        """Completa a linha ④ da geração `geracao` com os tempos que só se
+        conhecem no FIM da iteração (`tempo_busca_s`, `tempo_pred_sonda_s`,
+        `tempo_geracao_s` — §17.6 expandida). Geração desconhecida ⇒ KeyError
+        (falha barulhenta: uma ④ meio-preenchida em silêncio é pior que um
+        aborto)."""
+        alvo = int(geracao)
+        for row in reversed(self.timing_rows):
+            if row["geracao"] == alvo:
+                row.update({k: (None if v is None else float(v))
+                            for k, v in campos.items()})
+                return
+        raise KeyError(
+            f"update_timing: geração {alvo} não está na série ④ "
+            f"(add_timing precisa vir antes). Pára-e-loga (D81).")
 
     @property
     def fit_series(self) -> list[dict]:
@@ -684,8 +900,11 @@ __all__ = [
     "D79_THREAD_VARS", "DEVICE", "STUBPY_ALG_ID",
     "pin_runtime", "env_info",
     "iteration_seed", "torch_seed_for",
-    "preserve_global_rng", "guarded_pymoo_minimize",
+    "preserve_global_rng", "preserve_torch_rng", "preserve_all_rng",
+    "guarded_pymoo_minimize",
     "iteration_cleanup",
+    "SONDA_K", "SONDA_CHUNK", "load_sonda", "sonda_due",
+    "sonda_predict_gp", "emit_sonda_block",
     "load_doe", "BoTorchProblemAdapter", "SnapshotBuffer",
     "write_run_outputs", "dual_write_run", "run_stubpy",
 ]

@@ -95,10 +95,14 @@ function c141_instrument(Problem, A1, PoolDec, PoolObj, PopNew, Dmodel, DS, ...
     end
 
     % ── §17.6 timing: 1 evento de retreino (M+2 RBFs) por ciclo ────────────────
+    % [DI-09/B-0b] tempo_geracao_s DESCONTA a sonda — ver nota em c217_instrument:
+    % o relogio da geracao mede o custo do ALGORITMO, nao o da instrumentacao.
+    % Alinhado com a decisao D-1 do retrofit-R2 (Python).
+    tps = sonda_tempo_c141(snd);
     timing = struct('n_acumulado', n_treino, 'tempo_fit_s', tfit_s, ...
                     'tempo_busca_s', tbusca_s, ...
-                    'tempo_geracao_s', tger_s, ...
-                    'tempo_pred_sonda_s', sonda_tempo_c141(snd));
+                    'tempo_geracao_s', max(tger_s - tps, 0), ...
+                    'tempo_pred_sonda_s', tps);
 
     % ── Emite ③ + timing no MESMO g do hook (② vem do hook_output) ─────────────
     view = struct('g', g, 'srows', {srows}, 'timing', timing);

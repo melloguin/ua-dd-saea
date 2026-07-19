@@ -84,10 +84,16 @@ function c217_instrument(Problem, Arc, Next, delta, Error1, Error2, TestPre, tfi
     % naquele retreino" — era `numel(Arc)` (o ARQUIVO), que e outra grandeza e
     % achatava a curva de escalabilidade do c217. Passa a ser size(TrainIn,1).
     % O tamanho do arquivo continua auditavel no `arc_size` da linha c217_gen.
+    % [DI-09/B-0b] tempo_geracao_s DESCONTA a sonda: o relogio da geracao mede o
+    % custo do ALGORITMO (fit+busca+aval+overhead do proprio algoritmo), nao o
+    % da instrumentacao. Incluir a sonda inflaria a analise de custo (§9) com o
+    % preco do instrumento. Alinhado com a decisao D-1 do retrofit-R2 (Python) —
+    % a MESMA coluna tem de significar a MESMA coisa nos dois stacks.
+    tps = sonda_tempo(snd);
     timing = struct('n_acumulado', size(TrainIn, 1), 'tempo_fit_s', tfit_s, ...
                     'tempo_busca_s', tbusca_s, ...
-                    'tempo_geracao_s', tger_s, ...
-                    'tempo_pred_sonda_s', sonda_tempo(snd));
+                    'tempo_geracao_s', max(tger_s - tps, 0), ...
+                    'tempo_pred_sonda_s', tps);
 
     % ── Emite ③ + timing no MESMO g do hook (② vem do hook_output) ─────────────
     view = struct('g', g, 'srows', {srows}, 'timing', timing);

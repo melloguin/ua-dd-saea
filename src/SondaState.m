@@ -78,10 +78,18 @@ classdef SondaState < handle
         end
 
         function tf = due(obj, g)
-        % Cadencia k=2 a partir da 1a: g = 1, 3, 5, ... (a 1a SEMPRE entra).
+        % Cadencia §17.2.2: "a cada k=2 geracoes + SEMPRE a 1a e a ultima"
+        %   => g = 1, 2, 4, 6, 8, ...
+        % [decisao do autor, 2026-07-19] Esta formula e a MESMA do lado Python
+        % (`sonda_due`, retrofit-R2), depois que a divergencia entre os stacks
+        % foi escalada (D81, commit 652e24d): sob a leitura alternativa
+        % (1,3,5,...) a clausula "+SEMPRE a 1a" do §17.2.2 ficaria VAZIA — o
+        % texto te-la escrito indica que a cadencia sozinha nao inclui a 1a.
+        % A sonda e a regua UNICA, identica para todos os configs: uma cadencia
+        % que mudasse por STACK contradiria a propria definicao.
         % A ULTIMA nao e decidida aqui — vem do finalProbe (ver cabecalho).
             g = double(g);
-            tf = (g >= 1) && (g == 1 || mod(g - 1, obj.k) == 0);
+            tf = (g >= 1) && (g == 1 || mod(g, obj.k) == 0);
         end
 
         function arm(obj, fn, ftm, varargin)

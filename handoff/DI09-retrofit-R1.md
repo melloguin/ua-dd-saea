@@ -19,6 +19,7 @@ Quatro ambiguidades reais foram levadas ao autor (protocolo D81) e decididas:
 | **2** | Como garantir a sonda na **última** geração, se o orçamento estoura no meio do ciclo e a exceção salta para fora do laço? | **Carrier handle + bloco pós-`Solve`.** Implementado no `SondaState` (`arm`/`finalProbe`). |
 | **3** | e74: qual das **três** RBFs é a cabeça-valor, e os blocos PNN/RBF levam o mesmo `geracao`? | **Medir as três** (boot, s2/`Hv_Select`, s3/`Local_infill`), discriminadas por `modelo_flag`. |
 | **4** | Instrumentar `FEBudget.evaluate` para preencher `tempo_aval_real_s`? | **Sim.** Cronômetro acumulador no portão único das avaliações reais. |
+| **5** | **Cadência da sonda divergia entre stacks** (escalado pela sessão retrofit-R2, commit `652e24d`): MATLAB `1,3,5,…` × Python `1,2,4,6,…` | **Alinhar o MATLAB ao Python: `g = 1, 2, 4, 6, …`.** Sob a leitura `1,3,5,…` a cláusula "+SEMPRE a 1ª" do §17.2.2 ficaria vazia; e a sonda é a régua **única** — uma cadência que muda por stack contradiz a própria definição. `SondaState.due` alterado; c217 e c141 re-rodados e re-validados. |
 
 ### Resoluções que tomei com o contrato na mão (vetáveis)
 
@@ -39,7 +40,7 @@ Quatro ambiguidades reais foram levadas ao autor (protocolo D81) e decididas:
 | `src/experiment.m::load_sonda` | Carrega `data/sonda/sonda_{p}.parquet` + sidecar e **confere o `x_hash`** (sha256 float64 row-major) no arranque, abortando em divergência — disciplina D63/D87. Nenhum algoritmo gera pontos. + `nm_sonda_path`/`nm_sonda_manifest_path`. |
 | `src/SondaState.m` **(novo)** | O motor da sonda. Ver §3. |
 | `src/experiment.m::write_surrogate` | `regime` **por linha** (o argumento vira default — espelha `export.py:328`) + coluna **`fe_treino_max`**, com o branch int32/double-NaN do `real_solution_id`. |
-| `src/experiment.m::write_timing` | **`tempo_pred_sonda_s`** + **`tempo_geracao_s`**; toda leitura de trow por `field_or` (o acesso direto derrubava o export com qualquer linha nova); `n_acumulado` cai para double+NaN em linha sem retreino, em vez de `int32(NaN)=0`, que se leria como "treinou com 0 pontos". |
+| `src/experiment.m::write_timing` | **`tempo_pred_sonda_s`** + **`tempo_geracao_s`** (que **desconta** a sonda — o relógio da geração mede o custo do algoritmo, não o do instrumento; alinhado com a decisão D-1 do retrofit-R2); toda leitura de trow por `field_or` (o acesso direto derrubava o export com qualquer linha nova); `n_acumulado` cai para double+NaN em linha sem retreino, em vez de `int32(NaN)=0`, que se leria como "treinou com 0 pontos". |
 | `src/experiment.m::fill_manifest_timing` **(novo)** | Preenche o bloco `timing` **obrigatório** (§17.6 — nascia zerado; só o e103 o preenchia) + `fit_series` + bloco `man.sonda`. |
 | `src/FEBudget.m` | Cronômetro acumulador `tempo_aval_real_s` em volta do `evalFcn` — só avaliação inédita; cache-hit (D89) não avalia e não entra. |
 | `src/RunBuffer.m` | Parâmetros `regime`/`fe_treino_max`; defaults dos campos novos de timing; **`mkSurrogateRows`** (lote) — ver §5. |
@@ -141,9 +142,9 @@ mínimo comum completo.
 | problema | ① não-perturbação | accept | blocos de sonda |
 |---|---|---|---|
 | MMF1 | **IDÊNTICA** 61×10 | exit 0 | 21 × 2000 |
-| DTLZ2 | **IDÊNTICA** 371×21 | exit 0 | 116 × 2000 |
+| DTLZ2 | **IDÊNTICA** 371×21 | exit 0 | 117 × 2000 |
 | DTLZ2_d15 | **IDÊNTICA** 464×24 | exit 0 | — (fora do grid, §5.2) |
-| ZDT1 | **IDÊNTICA** 929×38 | exit 0 | 295 × 2000 |
+| ZDT1 | **IDÊNTICA** 929×38 | exit 0 | 296 × 2000 |
 
 ### c141 — MMRAEA (commit `ff38f2b`)
 Sonda: μ por objetivo, **σ NULL** (o RBF é interpolante — a distinção VAR-GP × ERR-EMP).
@@ -159,6 +160,6 @@ DI-10: `n_por_nivel` completo da cascata (o `idx_sel` já existia no struct `inf
 |---|---|---|---|
 | MMF1 | **IDÊNTICA** 61×10 | exit 0 | 6 × 2000 |
 | DTLZ2 | **IDÊNTICA** 371×21 | exit 0 | 33 × 2000 |
-| ZDT1 | **IDÊNTICA** 929×38 | exit 0 | 77 × 2000 |
+| ZDT1 | **IDÊNTICA** 929×38 | exit 0 | 78 × 2000 |
 
 **Suíte Python:** 122 testes OK (nenhum arquivo `.py` foi tocado).

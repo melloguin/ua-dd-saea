@@ -18,6 +18,7 @@
 | F0-01 / F0-02 / F0-03 / F0-04 | **VERDE** ×4 |
 | R2-00-harness · preflight | **VERDE** |
 | `accept.py` R2-c262 / R2-c154 (MMF1 e DTLZ2) | **VERDE** |
+| Revisão adversarial do diff (5 lentes, 35→12 confirmados) | 4 corrigidos · 2 escalados (fora da faixa) |
 
 Gates R1 **não** rodados (faixa MATLAB ativa — instrução do cartão).
 
@@ -126,6 +127,16 @@ independente**, avaliado antes da projeção, e passou a devolver também o
 aborto muda conforme o motivo. O comportamento do aborto é o mesmo de antes
 (limpo, curva parcial, sem parquets órfãos). Não muda busca nem numérica;
 validado em teste unitário, sem run real, como o adendo pede.
+
+## 6.1 ⚠ Bloqueador escalado (fora da faixa) — leia antes da M8
+
+A revisão adversarial confirmou que **`experiments.py::_run_one` sobrescreve o
+manifesto que o runner grava**, com um `timing` stub — apagando `sigma_dict`,
+bloco `sonda`, `doe_hash`, `fe_final`, `fit_series`. É pendência conhecida
+(DI-06) mas o retrofit multiplicou a consequência: **a bateria M8 despachada por
+ali perderia todo o payload DI-09/DI-10 da camada ⑤, sem sintoma visível.**
+Detalhes e recomendação em §A-9 das DEFINIÇÕES EM ABERTO. Os runs desta sessão
+estão íntegros (despacho por `src.experiment.run` direto, verificado).
 
 ## 7. Faixa e higiene
 

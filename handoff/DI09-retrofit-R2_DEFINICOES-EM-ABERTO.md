@@ -53,6 +53,13 @@ e foi barato" × "NULL = não existia" importa em qualquer agregação).
 
 ## A-4 `tempo_geracao_s` do backfill é DERIVADO
 
+> ⚠ **Atualizado após a revisão adversarial do diff** — a semântica descrita
+> aqui foi corrigida (commit `bb17129`). O derivado agora **desconta a sonda**
+> (igual ao escritor vivo) e a **última geração vale `fit+busca`**, sem a cauda
+> de escrita/upload que o `footer` do jsonl carregava. Duas guardas novas
+> impedem que um run PÓS-retrofit seja backfillado (trocando medida por
+> derivação) — ver §A-11.
+
 **O que fiz.** Reconstruído das âncoras `ts(timing) − tempo_fit_s` do jsonl, e a
 procedência gravada no manifesto (`timing_backfill`). Idem o `tempo_busca_s` da
 ÚLTIMA iteração (1 de 241), cuja `decision` é o `hard_stop`.
@@ -102,9 +109,76 @@ Dois itens do repasse não entraram no resumo da DI-11 e **continuam abertos**:
 - **`fe_treino_max`, sonda e mínimo comum DI-10 nos 9 configs MATLAB e nos do
   R3.** Fora da faixa por construção (paralelismo triplo).
 
+## A-9 🔴🔴 BLOQUEADOR PARA A M8 — `experiments.py` APAGA o manifesto do retrofit
+
+**Não é da minha faixa** (`experiments.py` = dispatcher, faixa R3-00) e **não é
+defeito novo** — o handoff R2-c262 já o listava como pendência conhecida
+(DI-06). Mas **o retrofit multiplicou a consequência**, e isso muda a prioridade.
+
+**O fato, verificado nesta sessão** (`experiments.py`, `_run_one`, ~linha 105):
+depois que o runner retorna, o dispatcher chama incondicionalmente
+
+```python
+man = new_manifest(..., timing={'tempo_total_s': ...,
+                                'tempo_fit_surrogate_s': None,
+                                'tempo_busca_s': None, 'tempo_aval_real_s': None},
+                   ...)
+write_manifest(man, data_root)
+```
+
+Isso **sobrescreve** o manifesto que o runner acabou de gravar. Vai embora:
+**`sigma_dict`** (DEF-C4 — leitura OBRIGATÓRIA antes de usar a ③), o bloco
+**`sonda`** (S/k/hashes/nº de blocos — a certidão de qual régua foi usada),
+`doe_hash` (o CP-init D87/D88), `fe_final`, `maxfe`, `n_geracoes`,
+`algo_version`, `env`, `fit_series`, `acqf_ref_f`, `fused_kernel` — e o bloco
+`timing` completo é trocado por um stub com **3 das 4 chaves em `None`**,
+que é exatamente o defeito que a auditoria da torre encontrou em 10/12 configs
+e que a v5.2.1 tornou OBRIGATÓRIO corrigir (§17.6(1) / R3 da PROPOSTA).
+
+**Por que os runs desta sessão estão íntegros:** despachei por
+`src.experiment.run(...)` direto, não por `experiments.py`. A auditoria confirma
+`sigma_dict` (10 chaves) e o bloco `sonda` presentes nos 4 manifestos.
+
+**Por que isto é um bloqueador:** se a bateria M8 for despachada por
+`experiments.py`, **os 16.500 runs perdem todo o payload DI-09/DI-10 do
+manifesto** — e o `timing` obrigatório volta a nascer zerado, desfazendo o
+retrofit inteiro na camada ⑤ sem nenhum sintoma visível.
+
+**Recomendação:** o dispatcher deve **preservar/mesclar** o manifesto escrito
+pelo runner (ler o que está no disco e só atualizar `status`/`n_retries`/
+`stack_trace`), nunca reconstruí-lo do zero. É item de cartão do R3-00/DI-06.
+
+## A-10 Aborto por teto de wall × artefatos de execução anterior
+
+**Levantado na revisão; pré-existente, não introduzido pelo cartão.** Quando o
+teto de wall-clock aborta, o `write_run_outputs` não roda (por desenho — é o que
+mantém o aborto limpo) e **nenhum manifesto `failed` é gravado**. Se já
+existirem artefatos de uma execução ANTERIOR do mesmo `run_id` no disco, eles
+sobrevivem: manifesto `status:"ok"` + 4 parquets antigos ao lado de um jsonl
+recém-truncado que diz `failed`. O `is_run_done` (D58) leria o run como pronto.
+
+Não mexi porque gravar um manifesto `failed` no caminho de aborto muda a
+semântica de resume/`run_done` — decisão de infra (DI-06/M7), não deste cartão.
+
 ## A-8 Nota de manutenção — armadilha do `_nds_filter`
 
 `src/problems._nds_filter` devolve **ÍNDICES**, não máscara booleana. Um
 `count_nonzero` sobre ele descarta silenciosamente o índice 0. Isso já custou um
 bug nesta sessão (pego pelo teste, antes de qualquer dado ser consumido). Quem
 for instrumentar `n_front1` nos demais configs: use `len(...)`.
+
+## A-11 Re-executar um backfill exige restaurar a ④ antes
+
+Consequência (deliberada) da guarda de escopo criada em `bb17129`: uma ④ que já
+foi backfillada tem `tempo_geracao_s` preenchido, então o backfill **se recusa a
+rodar de novo**. É o comportamento certo — é o que impede que um run
+pós-retrofit tenha medida trocada por derivação —, mas custa ergonomia se um
+backfill precisar ser refeito (foi o caso nesta sessão, após a correção da
+semântica). O procedimento é: reescrever a ④ com as 3 colunas exatas do jsonl
+(`geracao`/`n_acumulado`/`tempo_fit_s`) e as demais NULL, e então rodar o
+backfill. Leva segundos e está registrado aqui para não ser redescoberto.
+
+**Alternativa, se a torre preferir:** marcar a procedência dentro da própria ④
+(uma coluna `origem` ∈ {medido, backfill}) em vez de inferi-la pela presença de
+`tempo_geracao_s`. Seria mais explícito, mas é mais uma coluna no contrato — não
+tomei essa decisão sozinho.

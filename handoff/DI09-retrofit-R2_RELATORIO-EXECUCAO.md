@@ -83,6 +83,41 @@ conhecido, `ts(decision) − ts(timing)` errou **+8 ms em ~450 s** (2×10⁻⁵)
 
 A procedência exato × derivado está gravada no manifesto (`timing_backfill`).
 
+## 4.1 Revisão adversarial do diff — 12 defeitos confirmados, 4 corrigidos
+
+Rodei uma revisão multi-agente sobre o diff do cartão (5 lentes independentes →
+verificação cética de cada achado, viés default REFUTAR). **35 levantados, 12
+sobreviveram.** Consolidados, são 3 defeitos distintos:
+
+**(a) 🔴 O backfill trocava medida por derivação — CORRIGIDO (`bb17129`).**
+Sete dos doze achados apontavam a mesma raiz. `write_timing` reescreve o arquivo
+INTEIRO, mas a guarda só conferia `geracao`/`n_acumulado`/`tempo_fit_s` — que
+batem **por construção** (vêm do mesmo `add_timing`). As 3 colunas de tempo
+passavam sem conferência. Um verificador **reproduziu empiricamente** o dano:
+rodar o backfill sobre o run pós-retrofit `c262/MMF1` inflaria
+`tempo_geracao_s` em **+10,66%** e trocaria `tempo_pred_sonda_s` de `0.0` para
+NULL em **19/41** linhas — sem erro, e com o relatório ainda dizendo
+"41 linhas conferidas vs disco". Duas causas somadas: a definição do backfill
+**incluía** a sonda e o gc (o escritor vivo **desconta** a sonda), e a última
+geração ia até o `footer`, que os 2 runners só emitem **depois** de
+`write_run_outputs` (4 parquets + manifesto + upload) — inflando justamente a
+linha de maior `n`, a que mais pesa no ajuste da curva de custo. Corrigido com
+guarda de escopo, guarda estendida, definição alinhada, última geração =
+`fit+busca`, e NULL-contado para `tempo_busca_s` derivado negativo. 4 testes de
+regressão.
+
+**(b) 🔴🔴 `experiments.py` apaga o manifesto do retrofit — NÃO corrigido
+(fora da faixa).** É bloqueador para a M8; detalhado em §A-9 das DEFINIÇÕES EM
+ABERTO. Os runs desta sessão estão íntegros (despachei por
+`src.experiment.run` direto).
+
+**(c) Aborto por teto × artefatos anteriores — NÃO corrigido (pré-existente,
+DI-06).** §A-10 das definições.
+
+O c154/DTLZ2 foi **re-backfillado** com a semântica corrigida (④ restaurada ao
+estado pré-backfill antes): última geração 488,76 s → **488,54 s**. As somas
+seguem batendo com o manifesto.
+
 ## 5. O achado do processo (vale registrar)
 
 O teste `test_minimo_comum` reprovou na primeira execução e expôs um bug real:

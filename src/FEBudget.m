@@ -31,6 +31,12 @@ classdef FEBudget < handle
         n_init       (1,1) double            % 11D-1 (§5.2/D87)
         fe           (1,1) double = 0        % saldo consumido (X distintas)
         cache_hits   (1,1) double = 0        % nº de cache-hits (D89, evento)
+        % [v5.2.1/§17.6] Cronometro acumulado das avaliacoes REAIS — o
+        % `tempo_aval_real_s` do bloco `timing` do manifesto. Mede SO o
+        % evalFcn (a funcao verdadeira); cache-hit (D89) nao avalia nada e
+        % portanto nao entra. Read-only sobre a decisao: nenhum ramo depende
+        % deste valor.
+        tempo_aval_real_s (1,1) double = 0
     end
 
     properties (Access = private)
@@ -85,7 +91,9 @@ classdef FEBudget < handle
                     obj.maxfe));
             end
 
+            t0_aval = tic;                            % [§17.6] so a aval. REAL
             f = double(evalFcn(x));
+            obj.tempo_aval_real_s = obj.tempo_aval_real_s + toc(t0_aval);
             f = f(:).';                               % 1xM
             fe_index = obj.fe;                        % 0-based
             sid = fe_index;                           % solution_id = fe_index (D57)

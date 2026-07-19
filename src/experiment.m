@@ -119,6 +119,7 @@ end
 function [status, info] = run_stub(alg, problema, semente, exp, dataRoot)
     status = "failed";
     ROOT = harness_root();
+    t0_run = tic;                                  % [§17.6] wall total do run
 
     % (0) PONTE: repo-root no sys.path do Python embutido; importa src.*.
     ctx = bridge_ctx(ROOT);
@@ -188,6 +189,34 @@ function [status, info] = run_stub(alg, problema, semente, exp, dataRoot)
     R = bud.records();                                    % catalogo ①
     sids = [R.solution_id];                               % 0-based
     buf = RunBuffer();
+
+    % ── SONDA DI-09 (§17.2.2): o autoteste da infra transversal ──────────────
+    % O stub exercita o caminho INTEIRO (artefato -> CP do x_hash -> SondaState
+    % -> ③ regime='sonda' -> ④ tempo_pred_sonda_s -> man.sonda) SEM algoritmo
+    % real, para que uma regressao da infra apareca aqui e nao no 1o config.
+    sd  = load_sonda(problema, D, M, dataRoot);
+    snd = SondaState(sd, buf, fid, alg);
+    % predict_fn de mentira (deterministico): mu = x(:,1)*g, sigma constante.
+    mk_fn = @(gg) @(Xs) arrayfun(@(i) {RunBuffer.mkSurrogateRow(Xs(i,:), ...
+                        'mu', Xs(i,1) * gg * ones(1,M), ...
+                        'sigma', 1e-3 * ones(1,M), ...
+                        'pred_tipo', "valor", 'modelo_flag', "STUB")}, ...
+                        (1:size(Xs,1)).');
+    % PROVA de nao-perturbacao do RNG (o gate do e7, exercitado desde o stub):
+    rng(12345, 'twister');
+    rand_antes = rand();
+    st_ref = rng();
+    snd_fn = mk_fn(1);
+    snd.probe(1, snd_fn, bud.fe - 1, 'modelo', "STUB");
+    st_dep = rng();
+    rng_intacto = isequal(st_ref.Type, st_dep.Type) && ...
+                  isequal(st_ref.Seed, st_dep.Seed) && ...
+                  isequal(st_ref.State, st_dep.State);
+    rand_depois = rand();                     % tem de ser o MESMO sorteio de
+    rng(12345, 'twister'); rand();            % um run sem sonda nenhuma
+    rand_sem_sonda = rand();
+    rng_mesma_sequencia = (rand_depois == rand_sem_sonda);
+
     G = 3;
     for g = 1:G
         view = struct('g', g);
@@ -218,12 +247,32 @@ function [status, info] = run_stub(alg, problema, semente, exp, dataRoot)
             'pred_tipo', "classe", 'pred_classe', "bom", ...
             'pred_confianca', 0.83, 'modelo_flag', "FNN"); %#ok<AGROW>
         view.srows = srows;
-        % §17.6 timing: um evento de retreino por geracao.
+        % Sonda das geracoes seguintes (a g=1 ja rodou acima, no teste de RNG):
+        % k=2 => dispara em g=3; em g=2 so ARMA (custo ~zero).
+        if g >= 2
+            snd.probe(g, mk_fn(g), bud.fe - 1, 'modelo', "STUB");
+        end
+        % §17.6 timing: um evento de retreino por geracao + os 2 campos novos.
         view.timing = struct('n_acumulado', n_init + g*5, ...
-                             'tempo_fit_s', 0.001*g, 'tempo_busca_s', 0.002);
+                             'tempo_fit_s', 0.001*g, 'tempo_busca_s', 0.002, ...
+                             'tempo_pred_sonda_s', snd.takePendingTime(), ...
+                             'tempo_geracao_s', 0.01*g);
         buf.addGeneration(view);
         jsonl_line(fid, 'timing', {'n_acumulado', n_init + g*5, 'tempo_fit_s', 0.001*g});
     end
+
+    % (5b) SONDA FINAL (§17.2.2 "SEMPRE a ultima"): fora do laco, sobre o
+    % modelo ARMADO no ultimo fit — o caminho que no algoritmo real roda depois
+    % que o hard-stop matou o `while`. G=3 ja foi sondada pela cadencia, entao
+    % este disparo deve ser NO-OP (o finalProbe nao repete geracao).
+    % (o stub nao usa bumpGen — as geracoes sao explicitas —, entao o teste usa
+    % G=3 (JA sondada pela cadencia) e G+1=4 (NUNCA sondada), que e exatamente
+    % a dicotomia do algoritmo real.)
+    n_blocos_antes_final = snd.n_blocos;
+    snd.finalProbe(G);                       % ja sondada => NO-OP
+    final_foi_noop = (snd.n_blocos == n_blocos_antes_final);
+    snd.finalProbe(G + 1);                   % nunca sondada => DISPARA
+    final_disparou = (snd.n_blocos == n_blocos_antes_final + 1);
 
     % (6) EXPORT das 4 camadas (§17.2/§17.3) — parquet brotli+single, atomico.
     write_real(exp, alg, problema, semente, R, D, M, dataRoot);
@@ -238,6 +287,8 @@ function [status, info] = run_stub(alg, problema, semente, exp, dataRoot)
     % (8) MANIFESTO (§17.2/§17.7) — status ok, FE final, CP-init, timing.
     man = build_manifest(exp, alg, problema, semente, ...
         maxfe, bud.fe, buf.nGeracoes(), doe_hash_run, bud.cache_hits, dataRoot);
+    % [v5.2.1/§17.6] bloco `timing` OBRIGATORIO + fit_series + man.sonda.
+    man = fill_manifest_timing(man, buf.trows, bud, toc(t0_run), snd);
     write_manifest(man, exp, alg, problema, semente, dataRoot);
 
     jsonl_line(fid, 'footer', {'status', "ok", 'fe_final', bud.fe, ...
@@ -249,7 +300,13 @@ function [status, info] = run_stub(alg, problema, semente, exp, dataRoot)
         'n_init', n_init, 'cache_hits', bud.cache_hits, ...
         'cache_hit_zero_fe', cache_hit_zero_fe, 'hard_stopped', hard_stopped, ...
         'doe_hash_run', string(doe_hash_run), 'doe_hash_sidecar', string(doe.hash), ...
-        'cp_ok', cp_ok);
+        'cp_ok', cp_ok, ...
+        'sonda_x_hash_ok', true, ...            % load_sonda aborta se divergir
+        'sonda_n_blocos', snd.n_blocos, 'sonda_n_linhas', snd.n_linhas, ...
+        'sonda_n_falhas', snd.n_falhas, ...
+        'rng_intacto', rng_intacto, 'rng_mesma_sequencia', rng_mesma_sequencia, ...
+        'final_foi_noop', final_foi_noop, 'final_disparou', final_disparou, ...
+        'tempo_aval_real_s', bud.tempo_aval_real_s);
     status = "ok";
 end
 
@@ -2330,6 +2387,53 @@ end
 
 
 % ════════════════════════════════════════════════════════════════════════════
+%  SONDA CANONICA (DI-09 / §17.2.2) — carregada do artefato, NUNCA gerada
+% ════════════════════════════════════════════════════════════════════════════
+
+function sd = load_sonda(problema, D, M, dataRoot)
+% Os S=2000 pontos FIXOS do problema (os MESMOS p/ todos os algoritmos,
+% geracoes e sementes — §17.2.2). Molde do load_dataset (D90): le o artefato,
+% confere o CP no ARRANQUE e ABORTA em divergencia (disciplina D63/D87).
+%
+%   sd.X (2000 x D, float64, bounds NATIVOS)  -> o que se prediz
+%   sd.F (2000 x M, float64)                  -> o GABARITO; NAO vai para a ③
+%                                                (§3.1: join por POSICAO)
+%   sd.x_hash / sd.f_hash / sd.S
+%
+% Custo de FE: ZERO — a sonda nunca chama o avaliador real (exceção contabil
+% documentada, precedente do __final DI-08).
+    pq  = nm_sonda_path(problema, dataRoot);
+    man = nm_sonda_manifest_path(problema, dataRoot);
+    assert(isfile(pq),  'sonda ausente: %s', pq);
+    assert(isfile(man), 'sidecar da sonda ausente: %s', man);
+    side = jsondecode(fileread(man));
+
+    t = parquetread(pq);
+    cols  = string(t.Properties.VariableNames);
+    % 'sonda_id' NAO casa com os prefixos x/f — a ordem das colunas do artefato
+    % e (sonda_id, x0..x{D-1}, f0..f{M-1}), gerada por scripts/gen_sonda.py.
+    xcols = cols(startsWith(cols, "x"));
+    fcols = cols(startsWith(cols, "f"));
+    assert(numel(xcols) == D, 'sonda tem %d colunas x != D=%d', numel(xcols), D);
+    assert(numel(fcols) == M, 'sonda tem %d colunas f != M=%d', numel(fcols), M);
+
+    sd.X = double(t{:, cellstr(xcols)});
+    sd.F = double(t{:, cellstr(fcols)});
+    sd.S = size(sd.X, 1);
+    assert(sd.S == double(side.S), 'sonda: S=%d != sidecar %d', sd.S, double(side.S));
+
+    % ── CP da sonda (o gate do arranque): sha256 dos bytes float64 row-major ──
+    sd.x_hash = char(side.x_hash);
+    sd.f_hash = char(side.f_hash);
+    h = sha256_rowmajor_f64(sd.X);
+    assert(strcmp(h, sd.x_hash), ...
+        'sonda:x_hash DIVERGENTE em %s\n  artefato: %s\n  sidecar : %s', ...
+        pq, h, sd.x_hash);
+    sd.path = pq;
+end
+
+
+% ════════════════════════════════════════════════════════════════════════════
 %  EXPORT §17.2 — 4 camadas parquet (brotli + single, SEM round — D53; atomico)
 % ════════════════════════════════════════════════════════════════════════════
 
@@ -2380,6 +2484,8 @@ function p = write_surrogate(exp, alg, problema, semente, srows, D, M, regime, d
     RSI = NaN(n, 1);
     MU  = NaN(n, M);  SG = NaN(n, M);
     PS  = NaN(n, 1);  PCONF = NaN(n, 1);
+    FTM = NaN(n, 1);                                  % [DI-09/A1] fe_treino_max
+    REG = repmat(string(regime), n, 1);               % [DI-09] regime POR LINHA
     tipo   = repmat(string(missing), n, 1);
     classe = repmat(string(missing), n, 1);
     modelo = repmat(string(missing), n, 1);
@@ -2391,6 +2497,14 @@ function p = write_surrogate(exp, alg, problema, semente, srows, D, M, regime, d
         GER(k)  = r.geracao;
         X(k, :) = r.x;
         if ~isempty(r.real_solution_id), RSI(k) = double(r.real_solution_id); end
+        % [DI-09] regime/fe_treino_max: lidos com field_or — as linhas legadas
+        % (montadas antes do retrofit) nao carregam os campos; o argumento
+        % `regime` da funcao segue valendo como DEFAULT da linha. Espelha a
+        % politica do src/export.py::write_surrogate (regime por linha c/ fallback).
+        v = field_or(r, 'regime');
+        if ~isempty(v) && ~ismissing(string(v)), REG(k) = string(v); end
+        v = field_or(r, 'fe_treino_max');
+        if ~(isempty(v) || (isnumeric(v) && isnan(v))), FTM(k) = double(v); end
         v = r.mu;
         if ~isempty(v), m = min(numel(v), M); MU(k, 1:m) = v(1:m); end
         v = r.sigma;
@@ -2411,7 +2525,7 @@ function p = write_surrogate(exp, alg, problema, semente, srows, D, M, regime, d
     T.algoritmo = repmat(string(alg), n, 1);
     T.problema  = repmat(string(problema), n, 1);
     T.semente   = repmat(int32(semente), n, 1);
-    T.regime    = repmat(string(regime), n, 1);
+    T.regime    = REG;                    % [DI-09] por linha ('sonda' x busca)
     T.geracao   = int32(GER);
     for j = 0:D-1, T.(sprintf('x%d', j)) = single(X(:, j+1)); end
     % real_solution_id: int32 quando TODOS presentes (casa com §17.2/int32); se
@@ -2432,20 +2546,42 @@ function p = write_surrogate(exp, alg, problema, semente, srows, D, M, regime, d
     T.espaco_modelo  = espaco;
     T.transf_tipo    = ttipo;
     T.transf_params  = tpar;
+    % [DI-09/A1] fe_treino_max: maior fe_index no TREINO do modelo no momento do
+    % fit — o marcador que separa in-sample de out-of-sample na R4 (§9). MESMO
+    % branch int32/double-NaN do real_solution_id (o MATLAB nao expressa
+    % int32-NULL; a consolidacao Python re-casta p/ int32 nullable).
+    if all(~isnan(FTM))
+        T.fe_treino_max = int32(FTM);
+    else
+        T.fe_treino_max = FTM;
+    end
     p = nm_layer_path(exp, alg, problema, semente, 'surrogate', dataRoot);
     atomic_parquet(p, T);
 end
 
 function p = write_timing(exp, alg, problema, semente, trows, dataRoot)
-    % Camada de tempo §17.6: (run_id, geracao, n_acumulado, tempo_fit_s, tempo_busca_s).
+    % Camada de tempo §17.6 (pos-retrofit DI-09): run_id, geracao, n_acumulado,
+    % tempo_fit_s, tempo_busca_s (OBRIGATORIO), tempo_pred_sonda_s, tempo_geracao_s.
+    %
+    % [DI-09] TODO campo e lido por field_or/opt_scal: uma linha de timing sem
+    % retreino (so `tempo_geracao_s`) ou sem sonda e legitima pos-retrofit, e o
+    % acesso direto `trows{k}.<campo>` derrubava o export inteiro no fim do run.
     n = numel(trows);
     rid = nm_run_id(exp, alg, problema, semente);
+    tcol = @(f) single(arrayfun(@(k) opt_scal(field_or(trows{k}, f)), (1:n).'));
+    icol = @(f) arrayfun(@(k) double(opt_scal(field_or(trows{k}, f))), (1:n).');
     T = table();
     T.run_id       = repmat(string(rid), n, 1);
-    T.geracao      = int32(arrayfun(@(k) trows{k}.geracao, (1:n).'));
-    T.n_acumulado  = int32(arrayfun(@(k) trows{k}.n_acumulado, (1:n).'));
-    T.tempo_fit_s  = single(arrayfun(@(k) trows{k}.tempo_fit_s, (1:n).'));
-    T.tempo_busca_s = single(arrayfun(@(k) opt_scal(field_or(trows{k}, 'tempo_busca_s')), (1:n).'));
+    T.geracao      = int32(icol('geracao'));
+    % n_acumulado indefinido numa linha SEM retreino (so wall da geracao): cai
+    % p/ double+NaN em vez de virar int32(NaN)=0, que se leria como "treinou
+    % com 0 pontos" e envenenaria a curva de escalabilidade (§17.6).
+    NAC = icol('n_acumulado');
+    if all(~isnan(NAC)), T.n_acumulado = int32(NAC); else, T.n_acumulado = NAC; end
+    T.tempo_fit_s        = tcol('tempo_fit_s');
+    T.tempo_busca_s      = tcol('tempo_busca_s');
+    T.tempo_pred_sonda_s = tcol('tempo_pred_sonda_s');   % [DI-09] 0 quando nao roda
+    T.tempo_geracao_s    = tcol('tempo_geracao_s');      % [v5.2.1] wall da geracao
     p = nm_layer_path(exp, alg, problema, semente, 'timing', dataRoot);
     atomic_parquet(p, T);
 end
@@ -2489,14 +2625,74 @@ function man = build_manifest(exp, alg, problema, semente, maxfe, fe_final, ...
     man.doe_hash = string(doe_hash); man.repo_hash = ""; man.algo_version = "stub-R1-00";
     man.env = struct('matlab', string(version), 'stack', "matlab-platemo", ...
                      'pymoo', "0.6.2");
-    man.timing = struct('tempo_total_s', 0.0, 'tempo_fit_surrogate_s', 0.0, ...
-                        'tempo_busca_s', 0.0, 'tempo_aval_real_s', 0.0);
+    % [v5.2.1/§17.6 — OBRIGATORIO] O bloco `timing` nascia zerado aqui e so o
+    % e103 o preenchia (auditoria da torre: ZERADO em 10/12). Agora e derivado
+    % da ④ pelo `fill_manifest_timing`, chamado por cada run_* antes do
+    % write_manifest; estes defaults so valem se a ④ vier vazia (pisos sem ④).
+    man.timing = struct('tempo_total_s', NaN, 'tempo_fit_surrogate_s', NaN, ...
+                        'tempo_busca_s', NaN, 'tempo_aval_real_s', NaN, ...
+                        'tempo_pred_sonda_s', NaN);
     man.fit_series = {};
     man.cache_hits = cache_hits;
     man.fallback_ativado = false;
     man.paths = struct('local', local);
     man.created_at = iso_now();
     man.updated_at = iso_now();
+end
+
+function man = fill_manifest_timing(man, trows, bud, tempo_total_s, snd)
+% [v5.2.1/§17.6] Preenche o bloco `timing` OBRIGATORIO + a `fit_series`, e (se
+% houver sonda) o bloco `man.sonda`. Chamado por cada run_* ANTES do
+% write_manifest. Agregacao a partir da MESMA fonte da ④ (as trows) -> o
+% manifesto e a camada ④ nunca divergem.
+%
+%   tempo_total_s      wall do run (tic no topo do run_*)
+%   tempo_fit_surrogate_s / tempo_busca_s / tempo_pred_sonda_s  somas da ④
+%   tempo_aval_real_s  do cronometro do FEBudget (o portao unico das avaliacoes)
+    sum_of = @(f) local_nansum(cellfun(@(t) double(opt_scal(field_or(t, f))), ...
+                                       trows(:).', 'UniformOutput', true));
+    if isempty(trows)
+        tf = NaN; tb = NaN; tps = NaN;
+    else
+        tf  = sum_of('tempo_fit_s');
+        tb  = sum_of('tempo_busca_s');
+        tps = sum_of('tempo_pred_sonda_s');
+    end
+    % [DI-09] O total de sonda vem do SondaState, nao da soma da ④: a sonda
+    % FINAL dispara DEPOIS do laco (pos-Solve), quando nenhuma linha ④ nova
+    % esta mais sendo criada — somar a ④ sub-reportaria justamente o bloco do
+    % modelo final. Regra de leitura: soma da ④ <= manifesto; a diferenca e o
+    % bloco final. (A ④ segue com a atribuicao POR GERACAO, que e o seu papel.)
+    if nargin >= 5 && ~isempty(snd), tps = snd.tempo_total_s; end
+    man.timing = struct( ...
+        'tempo_total_s',         double(tempo_total_s), ...
+        'tempo_fit_surrogate_s', tf, ...
+        'tempo_busca_s',         tb, ...
+        'tempo_aval_real_s',     double(bud.tempo_aval_real_s), ...
+        'tempo_pred_sonda_s',    tps);
+
+    % ⭐ fit_series (§17.6): (n_acumulado, tempo_fit_s) por RETREINO — a curva
+    % da parede O(n³). Linhas sem retreino (so wall da geracao) nao entram.
+    fs = {};
+    for k = 1:numel(trows)
+        na = double(opt_scal(field_or(trows{k}, 'n_acumulado')));
+        tk = double(opt_scal(field_or(trows{k}, 'tempo_fit_s')));
+        if ~isnan(na) && ~isnan(tk)
+            fs{end+1} = struct('geracao', double(opt_scal(field_or(trows{k}, 'geracao'))), ...
+                               'n_acumulado', na, 'tempo_fit_s', tk); %#ok<AGROW>
+        end
+    end
+    man.fit_series = fs;
+
+    % Bloco `sonda` (DI-09): a certidao da regua usada neste run.
+    if nargin >= 5 && ~isempty(snd)
+        man.sonda = snd.manifestBlock();
+    end
+end
+
+function s = local_nansum(v)
+    v = v(~isnan(v));
+    if isempty(v), s = NaN; else, s = sum(v); end
 end
 
 function write_manifest(man, exp, alg, problema, semente, dataRoot)
@@ -2550,6 +2746,14 @@ end
 function p = nm_dataset_manifest_path(problema, semente, dataRoot)
     p = fullfile(char(dataRoot), 'datasets', char(problema), ...
                  sprintf('ds_%s_%s.manifest.json', char(problema), num2str(semente)));
+end
+function p = nm_sonda_path(problema, dataRoot)
+    % [DI-09/§17.2.2] A sonda e POR PROBLEMA (nao por semente): os MESMOS 2000
+    % pontos p/ todos os algoritmos, geracoes e sementes.
+    p = fullfile(char(dataRoot), 'sonda', sprintf('sonda_%s.parquet', char(problema)));
+end
+function p = nm_sonda_manifest_path(problema, dataRoot)
+    p = fullfile(char(dataRoot), 'sonda', sprintf('sonda_%s.manifest.json', char(problema)));
 end
 
 

@@ -55,6 +55,11 @@ classdef RunBuffer < handle
                 t = view.timing;
                 t.geracao = g;
                 if ~isfield(t, 'tempo_busca_s'), t.tempo_busca_s = NaN; end
+                % [DI-09/§17.6] tempo_pred_sonda_s = 0 quando a sonda NAO rodou
+                % nesta geracao (o contrato §4 diz "0 quando nao roda", nao NULL);
+                % tempo_geracao_s = NaN quando o config ainda nao o mede.
+                if ~isfield(t, 'tempo_pred_sonda_s'), t.tempo_pred_sonda_s = 0; end
+                if ~isfield(t, 'tempo_geracao_s'),    t.tempo_geracao_s = NaN; end
                 obj.trows{end+1} = t; %#ok<AGROW>
             end
         end
@@ -86,6 +91,11 @@ classdef RunBuffer < handle
             p.addParameter('espaco_modelo', string(missing));
             p.addParameter('transf_tipo', string(missing));
             p.addParameter('transf_params', []);
+            % [DI-09] regime POR LINHA ('sonda' x o regime da busca) e o
+            % marcador in-sample/out-of-sample. Ausentes => o write_surrogate
+            % aplica o default do arquivo (regime) / NULL (fe_treino_max).
+            p.addParameter('regime', string(missing));
+            p.addParameter('fe_treino_max', []);
             p.parse(varargin{:});
             a = p.Results;
 
@@ -107,6 +117,8 @@ classdef RunBuffer < handle
             r.modelo_flag = string(a.modelo_flag);
             r.espaco_modelo = string(a.espaco_modelo);
             r.transf_tipo = string(a.transf_tipo);
+            r.regime = string(a.regime);              % [DI-09]
+            r.fe_treino_max = a.fe_treino_max;        % [DI-09/A1]
             if isempty(a.transf_params)
                 r.transf_params = string(missing);
             elseif isstring(a.transf_params) || ischar(a.transf_params)

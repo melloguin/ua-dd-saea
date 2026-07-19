@@ -105,15 +105,20 @@ from src import budget as _budget
 from src import export as _export
 from src import naming
 from src.audit_log import AuditLogger
+from src import botorch_harness as _H
 from src.botorch_harness import (
     BoTorchProblemAdapter,
     SnapshotBuffer,
+    di10_minimo_comum,
+    emit_sonda_block,
     env_info,
     iteration_cleanup,
     iteration_seed,
     load_doe,
+    load_sonda,
     pin_runtime,
     preserve_global_rng,
+    sonda_due,
     torch_seed_for,
     write_run_outputs,
 )
@@ -156,6 +161,55 @@ ACQF_OPTIONS_STATIC = {"init_batch_limit": 256}
 MAX_STALL_ITERS = 100
 
 ALGO_VERSION = "c154-JES/qLBMOJES-LB-botorch-0.18.1"
+
+
+def _sonda_header(sonda_art: dict) -> dict:
+    """O bloco `sonda` do header do jsonl — a certidão da régua usada (§17.2.2)."""
+    return {"S": sonda_art["S"], "k": _H.SONDA_K,
+            "cadencia": "1ª iteração, a cada k=2, e SEMPRE a última",
+            "x_hash": sonda_art["x_hash"], "f_hash": sonda_art["f_hash"],
+            "path": sonda_art["path"], "custo_fe": 0}
+
+
+def _sigma_dict() -> dict:
+    """`sigma_dict` (DEF-C4) — o dicionário semântico da ③ do c154, LEITURA
+    OBRIGATÓRIA antes de usar a tabela (CONTRATO §3/R4 regra 3)."""
+    return {
+        "pred_tipo": "valor (regressor probabilístico)",
+        "modelo_flag": "GP = SingleTaskGP por objetivo (ModelListGP), o modelo "
+                       "PRINCIPAL — não os caminhos de Matheron do JES",
+        "mu_j": "média do posterior do GP do objetivo j, em f de MINIMIZAÇÃO "
+                "(o motor opera em −f; o export inverte — §5.5)",
+        "sigma_j": "desvio-padrão do posterior (VAR-GP). ⚠ Difere do c262: o "
+                   "ruído aqui é INFERIDO (B9.x — likelihood default do "
+                   "0.18.1, prior LogNormal, piso 1e-4), não fixado em 1e-6",
+        "espaco_modelo": "cru (o GP treina em [0,1]^D; a ③ grava x NATIVO)",
+        "regime": "'sonda' = os 2000 pontos fixos do artefato §17.2.2, na "
+                  "ORDEM do artefato (join com o gabarito POR POSIÇÃO); "
+                  "'online' = os 5D candidatos dos restarts do optimize_acqf",
+        "fe_treino_max": "maior fe_index no treino do GP no fit desta predição "
+                         "(DI-09/A1 — filtro in-sample × out-of-sample)",
+        "real_solution_id": "preenchido só na linha do candidato ESCOLHIDO que "
+                            "de fato consumiu FE; NULL nos demais restarts e "
+                            "em toda a sonda",
+        # 🔴 A decisão da torre (DI-11 item 2 / DEFS-c154 §D-4) documentada
+        # exatamente onde o CONTRATO §3 manda que a análise vá procurar.
+        "jsonl_n_baseline": "AUSENTE POR DESENHO no c154. `n_baseline` é "
+                            "conceito do qNEHVI (o X_baseline podado do "
+                            "prune_baseline); o JES não tem X_baseline. Por "
+                            "decisão da torre (DI-11), o c154 loga `n_train` — "
+                            "o tamanho do conjunto de treino do GP na iteração "
+                            "— e é ESSE o campo a usar na comparação com o "
+                            "c262. NÃO são a mesma grandeza: n_train é o "
+                            "arquivo inteiro, n_baseline é o subconjunto podado",
+        "jsonl_acqf_todos_restarts": "os 5·D valores da acqf, um por restart (a "
+                                     "paisagem da aquisição — DI-10). ⚠ Runs "
+                                     "PRÉ-retrofit gravaram a mesma grandeza "
+                                     "sob o nome `acqf_restarts`. Valores "
+                                     "não-finitos são possíveis (NaN-guard do "
+                                     "estimador LB) e ficam COMO ESTÃO aqui — "
+                                     "a guarda age só na seleção",
+    }
 
 
 def uso_path(s: int) -> int:
@@ -394,13 +448,16 @@ def run_c154(exp: str, alg: str, problema: str, semente, *,
     semente = int(semente)
 
     doe_art = load_doe(problema, semente, data_root=data_root)
+    # SONDA DI-09/§17.2.2: CARREGADA 1× (hash conferido) antes de abrir o log —
+    # artefato ausente/corrompido pára o run ANTES de gastar FE (como o DoE).
+    sonda_art = load_sonda(problema, data_root=data_root)
 
     log = AuditLogger.for_run(exp, alg, problema, semente,
                               data_root=data_root, append=False)
     try:
         return _run_c154_body(exp, alg, problema, semente, t0, pinning, env,
-                              fused_policy, doe_art, rota, log, data_root,
-                              enable_bucket, max_wall_s)
+                              fused_policy, doe_art, sonda_art, rota, log,
+                              data_root, enable_bucket, max_wall_s)
     except Exception:
         # D23/D60: parada anômala NUNCA silenciosa — footer failed no jsonl.
         import traceback
@@ -411,7 +468,7 @@ def run_c154(exp: str, alg: str, problema: str, semente, *,
 
 
 def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
-                   doe_art, rota, log, data_root, enable_bucket,
+                   doe_art, sonda_art, rota, log, data_root, enable_bucket,
                    max_wall_s) -> dict:
     bud = _budget.FEBudget(D=doe_art["X"].shape[1], logger=log)
     adapter = BoTorchProblemAdapter(problema, bud)
@@ -431,6 +488,8 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                       "0.18.1: prior LogNormal, piso 1e-4)"),
                acqf_ref=("JES não usa ref-point externo; box decomposition "
                          "com ref interno -1e10 do helper oficial"),
+               sonda=_sonda_header(sonda_art),
+               sigma_dict=_sigma_dict(),
                params={"S": NUM_PARETO_SAMPLES, "P": NUM_PARETO_POINTS,
                        "estimation_type": ESTIMATION_TYPE,
                        "rs_ladder": list(RS_FALLBACK_LADDER),
@@ -453,6 +512,8 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
     tempo_fit_total = 0.0
     tempo_busca_total = 0.0
     tempo_paths_total = 0.0
+    tempo_sonda_total = 0.0                    # DI-09 (agregado do manifesto)
+    n_blocos_sonda = 0                         # blocos de 2000 linhas emitidos
     rs_fallbacks_total = 0
     hard_stopped = False
     stall_streak = 0
@@ -474,12 +535,16 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
 
             t_fit0 = time.time()
             model = _build_models(train_X, train_Y)
-            fit_retries = _fit_models(model)
+            fit_retries, modelo_hp = _fit_models(model)  # +modelo_hp (DI-10/B1)
             tempo_fit = time.time() - t_fit0
             tempo_fit_total += tempo_fit
             n_iters_fit = it
+            # DI-09/A1: o modelo desta iteração viu os fe_index 0..n_train−1 —
+            # toda linha ③ emitida daqui em diante herda o marcador.
+            buf.set_fe_treino_max(n_train - 1)
             # timing ANTES do infill: a curva §17.6 retém o fit final mesmo
-            # quando o hard-stop corta a iteração (D61).
+            # quando o hard-stop corta a iteração (D61). Busca/sonda/geração
+            # entram por `update_timing` no fim da iteração.
             buf.add_timing(it, n_acumulado=n_train, tempo_fit_s=tempo_fit)
             log.timing(n_acumulado=n_train, tempo_fit_s=tempo_fit, it=it)
             # ②: o arquivo real que o modelo VIU nesta iteração.
@@ -554,6 +619,20 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
             if hs2_list is not None:
                 decision_extra["hs_nsgaii"] = hs2_list
 
+            def di10():
+                """Os campos DI-10 do `<alg>_gen` TIRADOS NO MOMENTO DO LOG —
+                `fe`/`f_best`/`n_front1` refletem o arquivo depois (ou não) do
+                infill, conforme o ramo que chamar. `n_baseline` NÃO existe no
+                JES (DI-11): o campo comparável é `n_train`, documentado no
+                `sigma_dict`."""
+                return dict(
+                    fe=bud.fe, modelo_hp=modelo_hp, n_train=n_train,
+                    acqf_todos_restarts=[float(v) for v in acq_vals],
+                    tempo_fit_s=round(tempo_fit, 4),
+                    tempo_busca_s=round(tempo_busca, 4),
+                    **di10_minimo_comum(bud, u_infill=U_cand[best],
+                                        train_U=train_X))
+
             # o infill: consome 1 FE (ou cache-hit=0 FE; ou BudgetExhausted).
             fe_antes = bud.fe
             try:
@@ -566,7 +645,22 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                     pred_tipo="valor", modelo_flag="GP"))
                 log.decision(caminho="hard_stop", it=it,
                              motivo="infill inédito com saldo zerado (D21/D61)",
-                             acqf_escolhido=acqf_best, **decision_extra)
+                             acqf_escolhido=acqf_best,
+                             **decision_extra, **di10())
+                # §17.2.2: esta É a última iteração — a sonda é OBRIGATÓRIA
+                # nela. O bloco desta iteração ainda não saiu (o ponto de
+                # emissão é a jusante do infill, que acabou de levantar), e o
+                # modelo desta iteração continua vivo aqui.
+                t_snd = emit_sonda_block(
+                    buf, log, it=it, fe=bud.fe, sonda=sonda_art,
+                    adapter=adapter, model=model,
+                    fe_treino_max=n_train - 1,
+                    motivo="ultima iteracao (hard-stop D61)")
+                tempo_sonda_total += t_snd
+                n_blocos_sonda += 1
+                buf.update_timing(it, tempo_busca_s=tempo_busca,
+                                  tempo_pred_sonda_s=t_snd,
+                                  tempo_geracao_s=(time.time() - t_it0) - t_snd)
                 raise
             sid = bud.solution_id_of(X_cand_nat[best])
             buf.add_surrogate(_export.surrogate_row(
@@ -579,11 +673,28 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
             log.decision(caminho="infill",
                          motivo="argmax do qLBMOJES-LB nos restarts (L.11)",
                          it=it, acqf_escolhido=acqf_best,
-                         acqf_restarts=[float(v) for v in acq_vals],
                          fit_retries=fit_retries, acqf_warnings=acqf_warns,
-                         fe=bud.fe, solution_id=sid,
-                         cache_hit=cache_hit_iter, n_train=n_train,
-                         t_busca_s=round(tempo_busca, 4), **decision_extra)
+                         solution_id=sid, cache_hit=cache_hit_iter,
+                         t_busca_s=round(tempo_busca, 4),   # legado (compat.)
+                         **decision_extra, **di10())
+
+            # SONDA §17.2.2 — DEPOIS da busca da iteração (isolamento máximo) e
+            # ANTES do `del model`. Cadência k=2 + 1ª; a última é coberta no
+            # ramo do hard-stop acima. ZERO FE, RNG preservado.
+            t_snd = 0.0
+            if sonda_due(it):
+                t_snd = emit_sonda_block(
+                    buf, log, it=it, fe=bud.fe, sonda=sonda_art,
+                    adapter=adapter, model=model, fe_treino_max=n_train - 1)
+                tempo_sonda_total += t_snd
+                n_blocos_sonda += 1
+            # ④ (§17.6 expandida): o wall da GERAÇÃO exclui a sonda — ela é
+            # instrumentação DESTE estudo, não custo do algoritmo, e vai
+            # medida à parte em `tempo_pred_sonda_s`. (O projetor de teto,
+            # abaixo, vê o wall CHEIO: lá a pergunta é o relógio de parede.)
+            buf.update_timing(it, tempo_busca_s=tempo_busca,
+                              tempo_pred_sonda_s=t_snd,
+                              tempo_geracao_s=(time.time() - t_it0) - t_snd)
             if stall_streak >= MAX_STALL_ITERS:      # D60-b (guarda de stall)
                 log.guard("stall_logico", it=it, streak=stall_streak,
                           fe=bud.fe)
@@ -599,28 +710,33 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
 
             # projeção do teto de wall-clock do piloto (ZDT1 ≤ 8h).
             proj.add(n_train, tempo_fit, time.time() - t_it0)
-            over, proj_s, elapsed = proj.exceeded(bud.fe)
+            over, proj_s, elapsed, criterio = proj.exceeded(bud.fe)
             if over:
                 log.event("wall_projection_abort", it=it, fe=bud.fe,
+                          criterio=criterio,          # 'elapsed' | 'projecao'
                           elapsed_s=round(elapsed, 1),
-                          proj_restante_s=round(proj_s, 1),
+                          proj_restante_s=(None if proj_s is None
+                                           else round(proj_s, 1)),
                           max_wall_s=max_wall_s)
                 raise RuntimeError(
-                    f"projeção de wall-clock estourou o teto do piloto: "
-                    f"{elapsed:.0f}s decorridos + {proj_s:.0f}s projetados > "
-                    f"{max_wall_s:.0f}s (fe={bud.fe}/{bud.maxfe}). Aborto "
-                    f"LIMPO — curva §17.6 parcial no jsonl. A decisão de "
-                    f"completar é da torre/autor (M7). Pára-e-loga (D81).")
+                    f"teto de wall-clock do piloto estourado por "
+                    f"'{criterio}': {elapsed:.0f}s decorridos"
+                    + ("" if proj_s is None
+                       else f" + {proj_s:.0f}s projetados")
+                    + f" > {max_wall_s:.0f}s (fe={bud.fe}/{bud.maxfe}). Aborto "
+                      f"LIMPO — curva §17.6 parcial no jsonl. A decisão de "
+                      f"completar é da torre/autor (M7). Pára-e-loga (D81).")
     except _budget.BudgetExhausted:
         hard_stopped = True                       # D21/D61: fim limpo do laço
         iteration_cleanup()
 
-    timing_totais = {
-        "tempo_total_s": round(time.time() - t0, 4),
-        "tempo_fit_surrogate_s": round(tempo_fit_total, 4),
-        "tempo_busca_s": round(tempo_busca_total, 4),
-        "tempo_aval_real_s": round(adapter.tempo_aval_real_s, 4),
-    }
+    timing_totais = _export.manifest_timing_block(
+        tempo_total_s=time.time() - t0,
+        tempo_fit_surrogate_s=tempo_fit_total,
+        tempo_busca_s=tempo_busca_total,
+        tempo_aval_real_s=adapter.tempo_aval_real_s,
+        tempo_pred_sonda_s=tempo_sonda_total,
+        tempo_paths_s=round(tempo_paths_total, 4))   # desdobramento do JES
     out = write_run_outputs(
         exp, alg, problema, semente, bud, buf, adapter=adapter,
         doe_hash_sidecar=doe_art["doe_hash"], env=env, pinning=pinning,
@@ -628,6 +744,10 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
         timing_totais=timing_totais, regime="online",
         data_root=data_root, enable_bucket=enable_bucket)
     out["manifest"]["fused_kernel"] = fused_policy["fused_kernel"]
+    out["manifest"]["sigma_dict"] = _sigma_dict()       # DEF-C4 (obrigatório)
+    out["manifest"]["sonda"] = {**_sonda_header(sonda_art),
+                                "n_blocos": n_blocos_sonda,
+                                "n_linhas": n_blocos_sonda * sonda_art["S"]}
     out["manifest"]["jes"] = {
         "rota_b95": rota, "S": NUM_PARETO_SAMPLES, "P": NUM_PARETO_POINTS,
         "estimation_type": ESTIMATION_TYPE,
@@ -641,6 +761,7 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
     log.footer(status="ok", fe_final=bud.fe, n_geracoes=n_iters_fit,
                cache_hits=bud.cache_hits, cp_init=out["cp_init_ok"],
                rs_fallbacks_total=rs_fallbacks_total,
+               n_blocos_sonda=n_blocos_sonda,
                hard_stopped=hard_stopped)
 
     return {

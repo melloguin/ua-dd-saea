@@ -538,6 +538,23 @@ diferentes) · caveat float32 do e103 na ⑦ · doc-syncs pendentes (feitos nest
 | 13.4/13.6/13.7 | cartão de **continuação do retrofit MATLAB** (e103/e74/pisos) | 📅 no prompt |
 | 13.10–13.21 | ratificadas; execução distribuída (M7 / continuação / feitas) | ✅/📅 |
 
+### DI-14 — Sincronização `runs_matrix.csv` ↔ `envs.json` (achado da torre, 2026-07-19)
+- **Contexto.** Ao montar o prompt do R3-c122, a torre bateu os artefatos e achou **9 configs com
+  nomes de ambiente OBSOLETOS** no `runs_matrix.csv` — resquícios do desenho anterior ao S.8
+  (`env_botorch`, `env_c122_thetadea`, `env_c149_lbnmobo`, `env_desdeo`), enquanto o `envs.json` já
+  trazia os atuais (`env_main`, `env_b5`, `env_c311`). Ex.: o c122 precisava de env próprio por causa
+  do `pymop`/`optproblems`/`autograd`; o **bypass do factory** (S.8) removeu essas deps e o env
+  **encolheu para `env_main`** — o `runs_matrix` não acompanhou.
+- **Gravidade real (verificada).** **Nenhum risco de runtime:** o código consome
+  `envs.json:alg_to_env` (`standalone_harness.py:213`), NÃO a coluna do `runs_matrix`. O dano seria
+  de **leitura humana/sessão** — um implementador do c122 provisionaria um venv inexistente.
+- **Decisão/ação (torre):** `runs_matrix.csv` sincronizado com o `envs.json` (a fonte que o código
+  consome): **8.700 linhas** de 19.950 atualizadas em 9 configs — b5r/b5m/moead_media→`env_b5`,
+  c311→`env_c311`, c122/c149/c154/c262/sobol_batch→`env_main`. Divergências restantes: **0**;
+  contagem de linhas preservada (19.950); preflight e suíte verdes.
+- **Regra que fica:** em divergência de ambiente, **`envs.json` é a fonte** (é o que o D79/N.2
+  consome em runtime); o `runs_matrix` é derivado e deve ser sincronizado.
+
 ---
 
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)

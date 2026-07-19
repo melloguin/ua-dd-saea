@@ -17,7 +17,7 @@
 accept.py    R2-c262/MMF1 · R2-c262/DTLZ2 · R2-c154/MMF1 · R2-c154/DTLZ2   VERDE ×4
              (4 saídas + jsonl · FE=31D−1 exato · CP-init DoE bit-a-bit)
              F0-01 · F0-02 · F0-03 · F0-04 · R2-00-harness · preflight        VERDE ×6
-suíte        118 testes (26 novos em tests/test_di09_r2.py)                   VERDE
+suíte        122 testes (30 novos em tests/test_di09_r2.py)                   VERDE
 ```
 Gates R1 **não** rodados — faixa MATLAB ativa (instrução do cartão).
 
@@ -129,11 +129,32 @@ errado por −1 na maioria das iterações e **nada teria acusado** até a anál
 R4. Corrigido (`len(...)`) e os 2 runs de gate foram re-executados. É o
 argumento a favor de instrumentar com teste, não com inspeção.
 
-## 6. Run opcional em andamento
+## 6. Run opcional `c262/DTLZ2` — CONCLUÍDO, VERDE (escala real)
 
-`c262/DTLZ2` (D=12, M=3, 241 iterações; ~2h31 pré-retrofit) foi lançado ao fim
-da sessão para medir a sonda em escala real. **Estado no fechamento:** ver §7 do
-handoff / a saída em `scratchpad/c262_dtlz2.log`. O gate NÃO depende dele — a
-mecânica está provada no MMF1 nos 2 configs. Projeção pela medida do MMF1:
-~121 blocos × 2000 = **242.000 linhas de sonda** e ~**+7 s** de predição sobre
-um run de ~2h30 (≈0,08%); o custo relevante ali é disco, não CPU.
+D=12, M=3, 241 iterações. Wall **8.972 s = 2h29**, contra ~2h31 do baseline
+pré-retrofit: **a sonda não é distinguível do ruído no wall total.**
+
+```
+🔴 NAO-PERTURBACAO: ① 371 linhas, sha e43c52033eff0b9d29a2 == baseline  VERDE ✓
+③ 246.410 linhas | busca 2.410 · sonda 244.000
+   122 blocos (esperado 122) · gerações {1,2,4,…,240,241} conferem
+   todas com 2000 linhas · ordem do artefato bit-exata · fe_treino_max 0 NULL
+④ 241 linhas, 0 NULL nas 3 colunas
+⑤ sonda 122×2000 · sigma_dict 10 chaves   ⑥ sonda 122 eventos
+```
+
+| | medido |
+|---|---|
+| `tempo_pred_sonda_s` | **16,29 s de 8.972 s = 0,18 %** |
+| `tempo_busca_s` | 8.838 s (**98,5 %**) |
+| ③ em disco | 0,22 MB → **9,1 MB (41×)** |
+
+> ⚠ **Correção honesta da minha projeção.** Eu havia projetado ~7 s (0,08 %) de
+> sonda aqui, extrapolando linearmente do MMF1. O medido foi **16,3 s (0,18 %)**
+> — subestimei por ~2×, porque o custo do posterior cresce com `n_train` (371 no
+> DTLZ2 contra 61 no MMF1), não com o nº de blocos apenas. **A conclusão não
+> muda:** a busca é 98,5 % do wall e o que a sonda move é disco.
+
+**Extrapolação de volume para a M8:** 9,1 MB/run neste porte, 16.500 runs, com D
+indo até 30 (ZDT1) — sustenta **por medição** a ordem de grandeza dos ~260 GB
+extras que o autor já cravou na DI-09.

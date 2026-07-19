@@ -235,7 +235,27 @@ do §17 com mocks) + SPEC v5.2.1 (§17.2.2 sonda S=2000/k=2 · `fe_treino_max` n
 expandida com `tempo_geracao_s`/`tempo_pred_sonda_s` + manifesto timing OBRIGATÓRIO ·
 S.7.1 DI-10 · `__final` DI-08 · S.3#9 DI-05) + bundles regenerados. PENDENTE da janela original:
 apenas o item B5 (`cache_root` — cosmético, card do c262).
-### 📌 DEFS-c154 — 🟡 AGUARDANDO PING-PONG (levantadas pela sessão c154, 2026-07-18)
+### DI-11 — ✅ CRAVADA EM LOTE (autor delegou à recomendação da torre, 2026-07-18) — as DEFS-c154 e pendências correntes
+1. **NaN-guard do JES (D-1): MANTIDO/ratificado** — guard só na SELEÇÃO, acqf crua intocada, logado
+   (mesma classe das guardas já ratificadas; sem ele o ZDT1 é irrodável).
+2. **Gaps v5.2.1 (D-4): já embutidos no cartão DI09-retrofit-R2** (backfill tempo_busca_s do ④ via
+   jsonl; colunas novas; mll_final; n_baseline N/A no JES → logar `n_train`, doc no sigma_dict).
+3. **Médias do c154:** escada de fallback do RuntimeError MANTIDA (0 disparos reais) · likelihood
+   default + assimetria kernel-Gamma×likelihood MANTIDAS como implementadas (mexer = mexer em
+   numérica; documentado no manifesto) · `init_batch_limit` 32 (c262) × 256 (c154) SEM unificação
+   (numericamente neutro — muda só velocidade; documentado) · **projetor de wall-clock: consertar
+   NO retrofit-R2** (teto de tempo DECORRIDO independente da projeção pós-10-iters — adendo B).
+4. **Baixas do c154 + B5 (`cache_root`):** agendadas para a PRÓXIMA janela documental (pós-retrofits)
+   — doc-syncs puros (MatheronPathModel seed; uso_id do optimize_acqf no catálogo; token c154b).
+5. **Política b5/c311 (M5): tentar pins VIZINHOS no Mac com validação de equivalência do
+   GPR/stack; se inviável → exceção VM** (efetivação nos cartões deles; o R3-00 só deixa o
+   mecanismo subprocess-por-venv pronto).
+6. **e74 re-sim (DI-07b): REAFIRMADO** — mantém telemetria; o julgamento é do autor no dossiê
+   (é decisão de FIDELIDADE, não de infraestrutura — não se crava agora).
+7. **D-2 (custo/dimensionamento R2) e D-3 (ZDT1 do c154): explicitamente NÃO são agora** — decisões
+   de orçamento do M7, com os dados do piloto na mão.
+
+### 📌 DEFS-c154 — histórico (levantadas pela sessão c154, 2026-07-18; RESOLVIDAS pela DI-11 acima)
 Do `handoff/R2-c154_REPASSE-A-TORRE.md`: **D-1 NaN-guard do JES** (LB estoura logdet em bolsões
 raros; guard só na SELEÇÃO, acqf crua intocada, logado — 24 disparos DTLZ2, 8/10 iters ZDT1; SEM
 ele o ZDT1 é irrodável; **rec. torre: MANTER**, mesma classe das guardas ratificadas) · **D-2

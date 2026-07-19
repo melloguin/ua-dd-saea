@@ -1,0 +1,667 @@
+"""Runner do c154 — JES (Joint Entropy Search, BoTorch OFICIAL 0.18.1) sobre o
+harness R2-00, no MOLDE do c262 (R2-c262).
+
+Cartão R2-c154 (receita L.11; §22.3/N.1; I.11/E.1; a DEF-B9.5 está FECHADA
+pela D75 — §6.4 é a DONA da receita). O algoritmo é o
+qLowerBoundMultiObjectiveJointEntropySearch("LB") do BoTorch 0.18.1; NADA é
+reimplementado: modelo, caminhos (Matheron/decoupled), otimizadores dos
+caminhos, aquisição e otimização são as classes/helpers oficiais. Este módulo
+só INTEGRA (adapter §5.5 + FEBudget + export §17) e INSTRUMENTA (jsonl
+§17.5/S.7 + ③ com μ/σ do posterior + curva §17.6). **SEM julgamento de
+fidelidade (D97)** — a validação é MANUAL do autor, a posteriori, em lote.
+
+Receita por iteração (L.11 — a fonte; parâmetros também em params.json):
+  - `torch.manual_seed(h0)` ANTES de modelo+acqf (uso_id 0 do seeds.json);
+    usos 1..S = hs por amostra do caminho (MatheronPathModel); usos S+1..2S =
+    hs' do NSGA-II (rota b) — fórmula D62/D91, trunc 32 bits, logadas.
+  - Modelo COMO NO L.10 mas com **ruído INFERIDO** (B9.x — NÃO fixar
+    `train_Yvar`): `SingleTaskGP` por objetivo com a likelihood DEFAULT do
+    0.18.1 (prior LogNormal, piso 1e-4 — declarada no header do jsonl) +
+    `covar_module=get_matern_kernel_with_gamma_prior(D)` (Matérn 5/2 ARD,
+    rota Gamma 🔵 D30, como no c262) + `Standardize(m=1)` → `ModelListGP`;
+    **refit from scratch por iteração (D44)** via `fit_gpytorch_mll`.
+  - Pipeline pré-aquisição (B9.5/D75):
+    * rota (a) PRODUÇÃO: S chamadas de `sample_optimal_points(num_samples=1,
+      num_points=P, optimizer=random_search_optimizer,
+      optimizer_kwargs={pop_size:1024, max_tries:10})`, cada uma sob
+      `torch.manual_seed(hs)` — o 0.18.1 NÃO expõe seed no path (a nota
+      "MatheronPathModel(seed=)" do bundle está desatualizada vs a lib
+      instalada); o path E o Sobol do random_search consomem o RNG GLOBAL do
+      torch (verificado nesta sessão), logo o hs por amostra do catálogo D91
+      materializa-se por `manual_seed` antes de cada chamada.
+      **Fallback OBRIGATÓRIO do `RuntimeError`** (random_search achou <P
+      pontos ND): escada DETERMINÍSTICA (1024,10)→(2048,20)→(4096,40), sem
+      re-seed (o stream segue), cada degrau logado como evento; esgotada a
+      escada ⇒ RuntimeError pára-e-loga (D81). [Escada = definição do
+      executor — item [IMPL] da B9.5; sinalizada p/ ratificação da torre.]
+    * rota (b) PILOTO (checagem de fidelidade da D75, 1–2 problemas):
+      `get_matheron_path_model` → `MultiOutputPosteriorMean` →
+      `optimize_with_nsgaii(q=P, population_size=100, max_gen=500, seed=hs')`
+      sob `preserve_global_rng` (N.1.3) com os 3 RNGs semeados
+      (pymoo+np+random — L.11); guarda shape≠P (o helper pode devolver a
+      população cheia com aviso). A truncagem HV-greedy é a INTERNA do helper
+      oficial. Rodada nesta sessão com o token de namespace `c154b`
+      (alg_id/sementes = 10, idênticos — comparação pareada), NUNCA na
+      bateria.
+  - `compute_sample_box_decomposition(pf)` (ref interno −1e10 do helper — o
+    JES NÃO usa ref-point externo; difere do c262) →
+    `qLowerBoundMultiObjectiveJointEntropySearch(model, ps, pf, hcb,
+    estimation_type="LB")` — o __init__ já condiciona o modelo COM o ruído da
+    likelihood (não há knob noiseless no MO); hazard do logdet inicial sem
+    jitter mitigado por q=1 (card).
+  - `optimize_acqf(q=1, num_restarts=5·D, raw_samples=1000·D — valores do
+    PAPER, options={init_batch_limit — guarda de RAM NOSSA (D86), declarada},
+    return_best_only=False)` → os 5D candidatos dos restarts (③, política
+    BoTorch §17.4) + escolhido = argmax. Sem seed explícito no optimize_acqf:
+    o catálogo D91 do c154 não define esse uso — a geração de ICs consome o
+    RNG global (determinística, ancorada nos manual_seed).
+  - **NaN-guard (§17.5 — guarda que loga quando dispara):** o estimador LB
+    devolve não-finito em bolsões raros (~1/10⁴; covariância moment-matched
+    não-PSD → logdet NaN mesmo com o jitter oficial — visto no DTLZ2 it 11,
+    onde derrubava o `torch.multinomial` da seleção Boltzmann de ICs).
+    Remédio: (i) os ICs são gerados pelo `gen_batch_initial_conditions`
+    OFICIAL com a acqf embrulhada em `_NaNGuardedAcqfICs` (não-finito →
+    pior-finito−1 SÓ na pontuação dos raw samples; guard `nan_guard_ics`);
+    (ii) o escolhido é o argmax NAN-MASKED dos restarts (guard
+    `nan_guard_argmax`; todos não-finitos ⇒ pára-e-loga D81). A acqf crua
+    segue intocada na otimização L-BFGS e nos valores exportados.
+
+③: μ/σ do `model.posterior` (modelo PRINCIPAL) nos candidatos dos restarts,
+sob `no_grad` (D86); μ exportado = −mean (o sinal nunca vaza — §5.5); o
+escolhido aponta `real_solution_id` pós-FE. ②: membership do train set.
+§17.6: `add_timing(it, n_acumulado=bud.fe ANTES do infill, t_fit)` logo após
+o fit — o t_fit é SÓ o fit_gpytorch_mll (mesma semântica do c262 → curvas
+comparáveis); o estágio JES (paths+acqf) é BUSCA e vai desdobrado no jsonl
+(`t_paths_s`/`t_busca_s` por iteração) e no manifesto.
+
+jsonl S.7 (c154): rota (a-default/b-paper) B9.5; S fronts amostrados (shapes
++ valores em f, 6 casas); RuntimeError capturado (eventos da escada); valor
+da acqf (escolhido + restarts); restarts 5D/1000D; h0/hs/hs' efetivos.
+
+Política do kernel fusionado (DEF-L2/S.3#9): REPLICADA do c262 — OFF
+explícito via `c262_qnehvi.disable_fused_kernel()` (a chamada de 1 linha que
+o handoff R2-c262 manda). O JES não passa pelo logei, mas a política vale
+p/ o processo (determinismo Mac×Linux) e fica registrada em jsonl+manifesto.
+
+Guardas: hard-stop D21/D61 (`BudgetExhausted` = fim NATURAL); stall de
+cache-hit D89/D60-b (teto 100); projeção de wall-clock (`max_wall_s` — teto
+de 8h do ZDT1 no piloto; reuso do projetor do c262): estouro projetado aborta
+LIMPO com a curva §17.6 parcial no jsonl — a decisão de completar é da
+torre/autor (M7).
+
+Módulo PESADO (torch/botorch) — importado LAZY pelo `_DISPATCH_LOADERS`.
+"""
+
+from __future__ import annotations
+
+import random
+import time
+import warnings
+
+import numpy as np
+import torch
+
+from src import budget as _budget
+from src import export as _export
+from src import naming
+from src.audit_log import AuditLogger
+from src.botorch_harness import (
+    BoTorchProblemAdapter,
+    SnapshotBuffer,
+    env_info,
+    iteration_cleanup,
+    iteration_seed,
+    load_doe,
+    pin_runtime,
+    preserve_global_rng,
+    torch_seed_for,
+    write_run_outputs,
+)
+# Reuso deliberado do MOLDE (R2-c262): a política DEF-L2 (chamada blessada
+# pelo handoff R2-c262), o fit L.10 (D44 — receita idêntica) e o projetor de
+# wall-clock do piloto. Nada é duplicado; o c262 é código congelado da rodada.
+from src.c262_qnehvi import (
+    _WallClockProjector,
+    _fit_models,
+    disable_fused_kernel,
+)
+
+#: alg_id canônico do c154 no `artifacts/seeds.json` (D91).
+C154_ALG_ID = 10
+
+#: catálogo uso_id do c154 (seeds.json/D91): 0 = torch.manual_seed da
+#: iteração; 1..S = hs por amostra do caminho; S+1..2S = hs' do NSGA-II (b).
+USO_MANUAL_SEED = 0
+
+#: parâmetros da receita L.11 (paper/§6.4 — Balde B congelado).
+NUM_PARETO_SAMPLES = 10          # S (paper)
+NUM_PARETO_POINTS = 10           # P (paper)
+ESTIMATION_TYPE = "LB"           # recomendação explícita do paper
+#: rota (a): random_search_optimizer (D75 — produção). Escada de fallback do
+#: RuntimeError (obrigatório — L.11): degrau 1 = os valores do card.
+RS_FALLBACK_LADDER = ((1024, 10), (2048, 20), (4096, 40))
+#: rota (b): checagem de fidelidade do piloto (D75; pop-250 morta).
+NSGAII_POP = 100
+NSGAII_GEN = 500
+#: optimize_acqf — fórmulas do PAPER (por dimensão D).
+NUM_RESTARTS_PER_D = 5
+RAW_SAMPLES_PER_D = 1000
+#: guarda de RAM NOSSA (D86) — não vem do paper. 256 (≠32 do molde c262):
+#: chunking de AVALIAÇÃO dos ICs, numericamente neutro (benchmark do piloto
+#: em DTLZ2-like n=131/D=12/M=3: best idêntico 32×256×1024; 32→256 poupa
+#: ~14% da busca; RAM folgada — os tensores do forward JES são pequenos).
+ACQF_OPTIONS_STATIC = {"init_batch_limit": 256}
+
+#: D60-b (guarda de stall): teto de iterações CONSECUTIVAS sem consumir FE.
+MAX_STALL_ITERS = 100
+
+ALGO_VERSION = "c154-JES/qLBMOJES-LB-botorch-0.18.1"
+
+
+def uso_path(s: int) -> int:
+    """uso_id do hs da amostra `s` (1-based) do caminho — catálogo D91: 1..S."""
+    if not 1 <= s <= NUM_PARETO_SAMPLES:
+        raise ValueError(f"amostra fora de 1..S: {s}")
+    return s
+
+
+def uso_nsgaii(s: int) -> int:
+    """uso_id do hs' do NSGA-II da amostra `s` (rota b) — catálogo: S+1..2S."""
+    if not 1 <= s <= NUM_PARETO_SAMPLES:
+        raise ValueError(f"amostra fora de 1..S: {s}")
+    return NUM_PARETO_SAMPLES + s
+
+
+def _build_models(train_X: torch.Tensor, train_Y_max: torch.Tensor):
+    """O modelo da receita: COMO NO c262/L.10 mas com ruído INFERIDO (B9.x —
+    sem `train_Yvar`; likelihood default do 0.18.1). Matérn 5/2 ARD com prior
+    Gamma (🔵 D30) + `Standardize(m=1)`, agregados num `ModelListGP`.
+    `train_Y_max` já está em −f (maximização — §5.5)."""
+    from botorch.models import ModelListGP, SingleTaskGP
+    from botorch.models.transforms.outcome import Standardize
+    from botorch.models.utils.gpytorch_modules import (
+        get_matern_kernel_with_gamma_prior,
+    )
+    D = train_X.shape[-1]
+    models = []
+    for j in range(train_Y_max.shape[-1]):
+        Yj = train_Y_max[:, j:j + 1]
+        models.append(SingleTaskGP(
+            train_X, Yj,
+            covar_module=get_matern_kernel_with_gamma_prior(D),
+            outcome_transform=Standardize(m=1)))
+    return ModelListGP(*models)
+
+
+def _sample_pareto_points_rs(model, D: int, semente: int, it: int, log):
+    """Rota (a) — produção (D75): S amostras de (X*,Y*) via o helper OFICIAL
+    `sample_optimal_points` + `random_search_optimizer`, 1 chamada POR amostra
+    sob `torch.manual_seed(hs)` (usos 1..S — D91). Fallback do RuntimeError =
+    escada determinística `RS_FALLBACK_LADDER` (sem re-seed; o stream segue),
+    cada degrau logado; esgotada ⇒ propaga (pára-e-loga D81).
+    Retorna (ps (S,P,D), pf (S,P,M), hs_list, n_fallbacks)."""
+    from botorch.acquisition.multi_objective.utils import (
+        random_search_optimizer,
+        sample_optimal_points,
+    )
+    bounds = torch.stack([torch.zeros(D, dtype=torch.float64),
+                          torch.ones(D, dtype=torch.float64)])
+    ps_list, pf_list, hs_list = [], [], []
+    n_fallbacks = 0
+    for s in range(1, NUM_PARETO_SAMPLES + 1):
+        hs = torch_seed_for(semente, C154_ALG_ID, it, uso_path(s))
+        hs_list.append(hs)
+        last_err = None
+        for degrau, (pop_size, max_tries) in enumerate(RS_FALLBACK_LADDER):
+            try:
+                ps_s, pf_s = sample_optimal_points(
+                    model=model, bounds=bounds,
+                    num_samples=1, num_points=NUM_PARETO_POINTS,
+                    optimizer=random_search_optimizer, maximize=True,
+                    optimizer_kwargs={"pop_size": pop_size,
+                                      "max_tries": max_tries})
+                break
+            except RuntimeError as err:            # <P pontos ND achados
+                last_err = err
+                n_fallbacks += 1
+                log.event("rs_runtimeerror_fallback", it=it, amostra=s,
+                          degrau_falho=degrau,
+                          pop_size=pop_size, max_tries=max_tries,
+                          erro=str(err)[:200])
+        else:
+            log.guard("rs_fallback_esgotado", it=it, amostra=s,
+                      escada=list(RS_FALLBACK_LADDER))
+            raise RuntimeError(
+                f"c154 rota (a): random_search_optimizer falhou nas "
+                f"{len(RS_FALLBACK_LADDER)} tentativas da escada p/ a amostra "
+                f"{s} (it {it}) — {last_err}. Pára-e-loga (D81).")
+        ps_list.append(ps_s)
+        pf_list.append(pf_s)
+    return torch.cat(ps_list), torch.cat(pf_list), hs_list, n_fallbacks
+
+
+def _sample_pareto_points_nsgaii(model, D: int, M: int, semente: int, it: int,
+                                 log):
+    """Rota (b) — paper-faithful, SÓ piloto (checagem de fidelidade D75):
+    por amostra s, `torch.manual_seed(hs)` (uso s) → caminho
+    `get_matheron_path_model` → `MultiOutputPosteriorMean` →
+    `optimize_with_nsgaii(q=P, pop=100, gen=500, seed=hs')` (uso S+s) com os
+    3 RNGs semeados (pymoo+np+random — L.11) sob `preserve_global_rng`
+    (N.1.3; o helper chama o pymoo.minimize por dentro). Truncagem HV-greedy
+    = a interna do helper OFICIAL. Guarda shape≠P: >P ⇒ corte [:P] logado;
+    <P ⇒ RuntimeError (pára-e-loga). Retorna (ps, pf, hs_list, hs2_list)."""
+    from botorch.acquisition.multioutput_acquisition import (
+        MultiOutputPosteriorMean,
+    )
+    from botorch.sampling.pathwise import get_matheron_path_model
+    from botorch.utils.multi_objective.optimize import optimize_with_nsgaii
+    bounds = torch.stack([torch.zeros(D, dtype=torch.float64),
+                          torch.ones(D, dtype=torch.float64)])
+    ps_list, pf_list, hs_list, hs2_list = [], [], [], []
+    for s in range(1, NUM_PARETO_SAMPLES + 1):
+        hs = torch_seed_for(semente, C154_ALG_ID, it, uso_path(s))
+        hs_list.append(hs)
+        path_model = get_matheron_path_model(model=model)
+        pm_acqf = MultiOutputPosteriorMean(model=path_model)
+        hs2 = iteration_seed(semente, C154_ALG_ID, it, uso_nsgaii(s),
+                             bits32=True)
+        hs2_list.append(hs2)
+        with preserve_global_rng():                # N.1.3
+            np.random.seed(hs2)                    # np.random.choice do helper
+            random.seed(hs2)                       # L.11: semear os 3
+            X_p, Y_p = optimize_with_nsgaii(
+                acq_function=pm_acqf, bounds=bounds, num_objectives=M,
+                q=NUM_PARETO_POINTS, population_size=NSGAII_POP,
+                max_gen=NSGAII_GEN, seed=hs2)
+        if X_p.shape[0] != NUM_PARETO_POINTS:      # guarda shape≠P (card)
+            log.guard("nsgaii_shape_neq_P", it=it, amostra=s,
+                      shape=list(X_p.shape), P=NUM_PARETO_POINTS)
+            if X_p.shape[0] > NUM_PARETO_POINTS:
+                X_p = X_p[:NUM_PARETO_POINTS]
+                Y_p = Y_p[:NUM_PARETO_POINTS]
+            else:
+                raise RuntimeError(
+                    f"c154 rota (b): optimize_with_nsgaii devolveu "
+                    f"{X_p.shape[0]} < P={NUM_PARETO_POINTS} pontos "
+                    f"(it {it}, amostra {s}). Pára-e-loga (D81).")
+        ps_list.append(X_p.unsqueeze(0))
+        pf_list.append(Y_p.unsqueeze(0))
+        del path_model, pm_acqf
+    return torch.cat(ps_list), torch.cat(pf_list), hs_list, hs2_list
+
+
+def _make_acqf(model, ps: torch.Tensor, pf: torch.Tensor):
+    """A aquisição da receita L.11: box decomposition OFICIAL (ref interno
+    −1e10 do helper; o JES não usa ref-point externo) + qLBMOJES("LB"). O
+    __init__ condiciona o modelo nos (X*,Y*) COM o ruído da likelihood."""
+    from botorch.acquisition.multi_objective.joint_entropy_search import (
+        qLowerBoundMultiObjectiveJointEntropySearch,
+    )
+    from botorch.acquisition.multi_objective.utils import (
+        compute_sample_box_decomposition,
+    )
+    hcb = compute_sample_box_decomposition(pf)
+    acqf = qLowerBoundMultiObjectiveJointEntropySearch(
+        model=model, pareto_sets=ps, pareto_fronts=pf,
+        hypercell_bounds=hcb, estimation_type=ESTIMATION_TYPE)
+    return acqf, hcb
+
+
+class _NaNGuardedAcqfICs(torch.nn.Module):
+    """NaN-guard da SELEÇÃO DE ICs (§17.5 — guarda que LOGA quando dispara).
+
+    O estimador LB do JES pode devolver não-finito em bolsões raros do espaço
+    (a covariância M×M *moment-matched* da truncagem não é garantidamente PSD
+    → `logdet` NaN mesmo com o jitter 1e-6 do código oficial — visto ao vivo
+    no DTLZ2 it 11, ~1 ponto em 10⁴). O `initialize_q_batch` oficial trata
+    +inf (baixa o η) mas NaN/−inf envenenam o `standardize`+`multinomial` e
+    DERRUBAM o run. Este embrulho é usado SÓ para PONTUAR os raw samples na
+    geração de ICs: troca valor não-finito pelo pior-finito−1 (⇒ o ponto
+    nunca é escolhido como IC; se TUDO for não-finito, o Ystd==0 cai no
+    fallback aleatório OFICIAL). A acqf crua segue intocada na otimização e
+    no argmax. Fires contados p/ o jsonl."""
+
+    def __init__(self, acqf):
+        super().__init__()
+        self.acqf = acqf
+        self.n_nonfinite = 0
+
+    def forward(self, X: torch.Tensor) -> torch.Tensor:
+        vals = self.acqf(X)
+        bad = ~torch.isfinite(vals)
+        if bad.any():
+            self.n_nonfinite += int(bad.sum())
+            finite = vals[~bad]
+            floor = (float(finite.min()) - 1.0) if finite.numel() else -1e10
+            vals = torch.where(bad, torch.full_like(vals, floor), vals)
+        return vals
+
+
+def _optimize_acqf_restarts(acqf, D: int, log, it: int):
+    """`optimize_acqf` da receita (q=1) com os valores do PAPER (5D restarts /
+    pool 1000D) e `return_best_only=False` → TODOS os candidatos dos restarts
+    (③ §17.4). Sem seed explícito (catálogo D91 do c154 não define esse uso;
+    ICs saem do RNG global, ancorado nos manual_seed). Os ICs são gerados
+    pelo gerador OFICIAL (`gen_batch_initial_conditions`) com o NaN-guard
+    `_NaNGuardedAcqfICs` na pontuação (guarda logada); a otimização L-BFGS e
+    os valores finais usam a acqf CRUA. Warnings contados (deslocam RNG)."""
+    from botorch.optim import optimize_acqf
+    from botorch.optim.initializers import gen_batch_initial_conditions
+    bounds = torch.stack([torch.zeros(D, dtype=torch.float64),
+                          torch.ones(D, dtype=torch.float64)])
+    guarded = _NaNGuardedAcqfICs(acqf)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        ics = gen_batch_initial_conditions(
+            acq_function=guarded, bounds=bounds, q=1,
+            num_restarts=NUM_RESTARTS_PER_D * D,
+            raw_samples=RAW_SAMPLES_PER_D * D,
+            options=dict(ACQF_OPTIONS_STATIC))
+        cands, acq_vals = optimize_acqf(
+            acqf, bounds=bounds, q=1,
+            num_restarts=NUM_RESTARTS_PER_D * D,
+            raw_samples=RAW_SAMPLES_PER_D * D,
+            options=dict(ACQF_OPTIONS_STATIC),
+            batch_initial_conditions=ics,
+            sequential=False,          # sequential=(q>1); principal é q=1
+            return_best_only=False)
+    if guarded.n_nonfinite:
+        log.guard("nan_guard_ics", it=it, n_nonfinite=guarded.n_nonfinite,
+                  nota="acqf não-finita em raw samples — pontos rebaixados "
+                       "ao pior-finito na seleção de ICs (LB/logdet não-PSD)")
+    n_warn = sum(1 for w in caught
+                 if "optimization" in str(w.message).lower()
+                 or "trying again" in str(w.message).lower())
+    return cands.detach(), acq_vals.detach(), n_warn
+
+
+def run_c154(exp: str, alg: str, problema: str, semente, *,
+             data_root: str = naming.DEFAULT_DATA_ROOT,
+             enable_bucket: bool = False,
+             max_wall_s: float | None = None,
+             rota: str = "a", **_kwargs) -> dict:
+    """Um run c154 (q=1) — assinatura padrão dos runners R2. `rota` ∈ {'a'
+    (produção, D75), 'b' (paper-faithful; SÓ piloto — chamar com o token de
+    namespace `alg='c154b'` p/ não colidir com o run de produção)}.
+    `max_wall_s` liga a projeção de teto do piloto (8h no ZDT1); estouro
+    projetado ⇒ aborto limpo + RuntimeError (pára-e-loga D81)."""
+    if rota not in ("a", "b"):
+        raise ValueError(f"rota B9.5 inválida: {rota!r} (esperado 'a'|'b')")
+    t0 = time.time()
+    pinning = pin_runtime()
+    env = env_info()                          # guarda N.2.3 (fork ⇒ RuntimeError)
+    fused_policy = disable_fused_kernel()     # DEF-L2 replicada do c262
+    semente = int(semente)
+
+    doe_art = load_doe(problema, semente, data_root=data_root)
+
+    log = AuditLogger.for_run(exp, alg, problema, semente,
+                              data_root=data_root, append=False)
+    try:
+        return _run_c154_body(exp, alg, problema, semente, t0, pinning, env,
+                              fused_policy, doe_art, rota, log, data_root,
+                              enable_bucket, max_wall_s)
+    except Exception:
+        # D23/D60: parada anômala NUNCA silenciosa — footer failed no jsonl.
+        import traceback
+        log.footer(status="failed", stack=traceback.format_exc()[-2000:])
+        raise
+    finally:
+        log.close()
+
+
+def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
+                   doe_art, rota, log, data_root, enable_bucket,
+                   max_wall_s) -> dict:
+    bud = _budget.FEBudget(D=doe_art["X"].shape[1], logger=log)
+    adapter = BoTorchProblemAdapter(problema, bud)
+    D, M = adapter.D, adapter.M
+    buf = SnapshotBuffer()
+    num_restarts = NUM_RESTARTS_PER_D * D
+    raw_samples = RAW_SAMPLES_PER_D * D
+
+    log.header(run_id=naming.run_id(exp, alg, problema, semente),
+               alg=alg, alg_id=C154_ALG_ID, problema=problema, D=D, M=M,
+               semente=semente, regime="online", maxfe=bud.maxfe,
+               doe_hash=doe_art["doe_hash"], env=env, pinning=pinning,
+               algo_version=ALGO_VERSION,
+               rota_b95=rota,
+               fused_kernel=fused_policy["fused_kernel"],
+               ruido=("INFERIDO (B9.x — sem train_Yvar; likelihood default "
+                      "0.18.1: prior LogNormal, piso 1e-4)"),
+               acqf_ref=("JES não usa ref-point externo; box decomposition "
+                         "com ref interno -1e10 do helper oficial"),
+               params={"S": NUM_PARETO_SAMPLES, "P": NUM_PARETO_POINTS,
+                       "estimation_type": ESTIMATION_TYPE,
+                       "rs_ladder": list(RS_FALLBACK_LADDER),
+                       "nsgaii_pop": NSGAII_POP, "nsgaii_gen": NSGAII_GEN,
+                       "num_restarts": num_restarts,        # 5D (paper)
+                       "raw_samples": raw_samples,          # 1000D (paper)
+                       "q": 1, "refit": "from-scratch/iter (D44)",
+                       "kernel": "Matern-5/2-ARD gamma-prior (D30)",
+                       "acqf": "qLBMOJES-LB L.11",
+                       **ACQF_OPTIONS_STATIC})
+
+    # (1) init: os 11D−1 pontos do DoE, NATIVOS, pelo wrapper (fase init).
+    X0 = doe_art["X"]
+    for i in range(X0.shape[0]):
+        adapter.evaluate_native(X0[i])
+    buf.add_pop(0, [r.solution_id for r in bud.records])
+
+    # (2) laço de BO até o hard-stop NATURAL (D61). 1 infill real/iteração.
+    proj = _WallClockProjector(max_wall_s, t0, bud.maxfe)
+    tempo_fit_total = 0.0
+    tempo_busca_total = 0.0
+    tempo_paths_total = 0.0
+    rs_fallbacks_total = 0
+    hard_stopped = False
+    stall_streak = 0
+    it = 0
+    n_iters_fit = 0
+    try:
+        while True:
+            it += 1
+            t_it0 = time.time()
+            # L.11: manual_seed ANTES de modelo+acqf (uso 0 — D91).
+            h0 = torch_seed_for(semente, C154_ALG_ID, it, USO_MANUAL_SEED)
+
+            # §17.6: o fit desta iteração treina com os pontos JÁ avaliados.
+            n_train = bud.fe
+            X_nat = np.vstack([r.x for r in bud.records])
+            F_min = np.vstack([r.f for r in bud.records])
+            train_X = adapter.to_unit(X_nat)
+            train_Y = torch.as_tensor(-F_min, dtype=torch.float64)
+
+            t_fit0 = time.time()
+            model = _build_models(train_X, train_Y)
+            fit_retries = _fit_models(model)
+            tempo_fit = time.time() - t_fit0
+            tempo_fit_total += tempo_fit
+            n_iters_fit = it
+            # timing ANTES do infill: a curva §17.6 retém o fit final mesmo
+            # quando o hard-stop corta a iteração (D61).
+            buf.add_timing(it, n_acumulado=n_train, tempo_fit_s=tempo_fit)
+            log.timing(n_acumulado=n_train, tempo_fit_s=tempo_fit, it=it)
+            # ②: o arquivo real que o modelo VIU nesta iteração.
+            buf.add_pop(it, range(n_train))
+
+            # o estágio JES (paths + acqf + otimização) é BUSCA (§17.6).
+            t_busca0 = time.time()
+            hs2_list = None
+            if rota == "a":
+                ps, pf, hs_list, n_fb = _sample_pareto_points_rs(
+                    model, D, semente, it, log)
+                rs_fallbacks_total += n_fb
+            else:
+                ps, pf, hs_list, hs2_list = _sample_pareto_points_nsgaii(
+                    model, D, M, semente, it, log)
+            # o random_search_optimizer avalia o posterior SEM no_grad → os
+            # tensores voltam com grad; solta o grafo (D86; e o export/log
+            # não diferencia nada).
+            ps, pf = ps.detach(), pf.detach()
+            t_paths = time.time() - t_busca0
+            tempo_paths_total += t_paths
+
+            acqf, hcb = _make_acqf(model, ps, pf)
+            cands, acq_vals, acqf_warns = _optimize_acqf_restarts(
+                acqf, D, log, it)
+            tempo_busca = time.time() - t_busca0
+            tempo_busca_total += tempo_busca
+            if acqf_warns:
+                log.event("optimize_acqf_warning", it=it, n=acqf_warns,
+                          nota="retry/warning desloca o RNG (registrado)")
+
+            # ③: μ/σ do posterior do modelo PRINCIPAL nos restarts (D86).
+            U_cand = cands.squeeze(1)                       # (5D, D)
+            with torch.no_grad():
+                post = model.posterior(U_cand)
+                mu_max = post.mean.cpu().numpy()            # −f (maximização)
+                sigma = np.sqrt(post.variance.cpu().numpy())
+            mu_f = -mu_max                       # export SEMPRE em f (§5.5)
+            # argmax nan-masked (mesmo NaN-guard §17.5: restart não-finito
+            # nunca é o escolhido; TODOS não-finitos ⇒ pára-e-loga D81).
+            finite_mask = torch.isfinite(acq_vals)
+            if not bool(finite_mask.all()):
+                log.guard("nan_guard_argmax", it=it,
+                          n_nonfinite=int((~finite_mask).sum()))
+                if not bool(finite_mask.any()):
+                    raise RuntimeError(
+                        f"c154: TODOS os {int(acq_vals.numel())} restarts "
+                        f"devolveram acqf não-finita (it {it}). "
+                        f"Pára-e-loga (D81).")
+            masked = torch.where(finite_mask, acq_vals,
+                                 torch.full_like(acq_vals, float("-inf")))
+            best = int(torch.argmax(masked))
+            acqf_best = float(acq_vals[best])
+            X_cand_nat = adapter.to_native(U_cand)
+
+            for k in range(U_cand.shape[0]):
+                if k == best:
+                    continue                     # o escolhido entra após o FE
+                buf.add_surrogate(_export.surrogate_row(
+                    it, X_cand_nat[k],
+                    mu=mu_f[k], sigma=sigma[k],
+                    pred_tipo="valor", modelo_flag="GP"))
+
+            # S.7: os S fronts amostrados — shapes + valores em f (−pf).
+            pf_f = (-pf).cpu().numpy()
+            decision_extra = dict(
+                rota=rota, torch_seed=h0, hs_paths=hs_list,
+                pf_shape=list(pf.shape), ps_shape=list(ps.shape),
+                pf_amostrados_f=np.round(pf_f, 6).tolist(),
+                n_restarts=num_restarts, raw_samples=raw_samples,
+                t_paths_s=round(t_paths, 4))
+            if hs2_list is not None:
+                decision_extra["hs_nsgaii"] = hs2_list
+
+            # o infill: consome 1 FE (ou cache-hit=0 FE; ou BudgetExhausted).
+            fe_antes = bud.fe
+            try:
+                adapter.evaluate_unit_max(U_cand[best])
+            except _budget.BudgetExhausted:
+                # linha ③ do escolhido nunca-avaliado (real_solution_id NULL)
+                buf.add_surrogate(_export.surrogate_row(
+                    it, X_cand_nat[best],
+                    mu=mu_f[best], sigma=sigma[best],
+                    pred_tipo="valor", modelo_flag="GP"))
+                log.decision(caminho="hard_stop", it=it,
+                             motivo="infill inédito com saldo zerado (D21/D61)",
+                             acqf_escolhido=acqf_best, **decision_extra)
+                raise
+            sid = bud.solution_id_of(X_cand_nat[best])
+            buf.add_surrogate(_export.surrogate_row(
+                it, X_cand_nat[best], real_solution_id=sid,
+                mu=mu_f[best], sigma=sigma[best],
+                pred_tipo="valor", modelo_flag="GP"))
+
+            cache_hit_iter = (bud.fe == fe_antes)
+            stall_streak = stall_streak + 1 if cache_hit_iter else 0
+            log.decision(caminho="infill",
+                         motivo="argmax do qLBMOJES-LB nos restarts (L.11)",
+                         it=it, acqf_escolhido=acqf_best,
+                         acqf_restarts=[float(v) for v in acq_vals],
+                         fit_retries=fit_retries, acqf_warnings=acqf_warns,
+                         fe=bud.fe, solution_id=sid,
+                         cache_hit=cache_hit_iter, n_train=n_train,
+                         t_busca_s=round(tempo_busca, 4), **decision_extra)
+            if stall_streak >= MAX_STALL_ITERS:      # D60-b (guarda de stall)
+                log.guard("stall_logico", it=it, streak=stall_streak,
+                          fe=bud.fe)
+                raise RuntimeError(
+                    f"c154 estagnado: {stall_streak} iterações consecutivas "
+                    f"sem consumir FE (só duplicatas D89) — D60-b. "
+                    f"Pára-e-loga (D81).")
+
+            # D86: fim da iteração — solta tensores e coleta.
+            del (model, acqf, hcb, ps, pf, cands, acq_vals, post, train_X,
+                 train_Y, U_cand)
+            iteration_cleanup()
+
+            # projeção do teto de wall-clock do piloto (ZDT1 ≤ 8h).
+            proj.add(n_train, tempo_fit, time.time() - t_it0)
+            over, proj_s, elapsed = proj.exceeded(bud.fe)
+            if over:
+                log.event("wall_projection_abort", it=it, fe=bud.fe,
+                          elapsed_s=round(elapsed, 1),
+                          proj_restante_s=round(proj_s, 1),
+                          max_wall_s=max_wall_s)
+                raise RuntimeError(
+                    f"projeção de wall-clock estourou o teto do piloto: "
+                    f"{elapsed:.0f}s decorridos + {proj_s:.0f}s projetados > "
+                    f"{max_wall_s:.0f}s (fe={bud.fe}/{bud.maxfe}). Aborto "
+                    f"LIMPO — curva §17.6 parcial no jsonl. A decisão de "
+                    f"completar é da torre/autor (M7). Pára-e-loga (D81).")
+    except _budget.BudgetExhausted:
+        hard_stopped = True                       # D21/D61: fim limpo do laço
+        iteration_cleanup()
+
+    timing_totais = {
+        "tempo_total_s": round(time.time() - t0, 4),
+        "tempo_fit_surrogate_s": round(tempo_fit_total, 4),
+        "tempo_busca_s": round(tempo_busca_total, 4),
+        "tempo_aval_real_s": round(adapter.tempo_aval_real_s, 4),
+    }
+    out = write_run_outputs(
+        exp, alg, problema, semente, bud, buf, adapter=adapter,
+        doe_hash_sidecar=doe_art["doe_hash"], env=env, pinning=pinning,
+        n_geracoes=n_iters_fit, algo_version=ALGO_VERSION,
+        timing_totais=timing_totais, regime="online",
+        data_root=data_root, enable_bucket=enable_bucket)
+    out["manifest"]["fused_kernel"] = fused_policy["fused_kernel"]
+    out["manifest"]["jes"] = {
+        "rota_b95": rota, "S": NUM_PARETO_SAMPLES, "P": NUM_PARETO_POINTS,
+        "estimation_type": ESTIMATION_TYPE,
+        "num_restarts": num_restarts, "raw_samples": raw_samples,
+        "rs_fallbacks_total": rs_fallbacks_total,
+        "tempo_paths_s": round(tempo_paths_total, 4),
+    }
+    from src import manifest as _manifest
+    _manifest.write_manifest(out["manifest"], data_root)
+
+    log.footer(status="ok", fe_final=bud.fe, n_geracoes=n_iters_fit,
+               cache_hits=bud.cache_hits, cp_init=out["cp_init_ok"],
+               rs_fallbacks_total=rs_fallbacks_total,
+               hard_stopped=hard_stopped)
+
+    return {
+        "D": D, "M": M, "maxfe": bud.maxfe, "fe_final": bud.fe,
+        "n_init": bud.n_init, "n_iters": n_iters_fit,
+        "cache_hits": bud.cache_hits, "hard_stopped": hard_stopped,
+        "cp_init_ok": out["cp_init_ok"],
+        "doe_hash_run": out["doe_hash_run"],
+        "rota_b95": rota,
+        "rs_fallbacks_total": rs_fallbacks_total,
+        "fused_kernel": fused_policy["fused_kernel"],
+        "timing_totais": timing_totais,
+        "tempo_paths_s": round(tempo_paths_total, 4),
+        "fit_series": buf.fit_series,
+        "upload_status": out["upload_status"],
+    }
+
+
+__all__ = [
+    "C154_ALG_ID", "USO_MANUAL_SEED", "uso_path", "uso_nsgaii",
+    "NUM_PARETO_SAMPLES", "NUM_PARETO_POINTS", "ESTIMATION_TYPE",
+    "RS_FALLBACK_LADDER", "NSGAII_POP", "NSGAII_GEN",
+    "NUM_RESTARTS_PER_D", "RAW_SAMPLES_PER_D", "run_c154",
+]

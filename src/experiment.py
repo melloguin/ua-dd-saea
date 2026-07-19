@@ -131,6 +131,8 @@ _DISPATCH_LOADERS: dict[str, tuple[str, str, str]] = {
     'stubpy': ('src.botorch_harness', 'run_stubpy', 'botorch'),
     # [R2-c262] qNEHVI (qLogNEHVI, BoTorch OFICIAL 0.18.1) sobre o harness R2-00.
     'c262': ('src.c262_qnehvi', 'run_c262', 'botorch'),
+    # [R2-c154] JES (qLBMOJES-LB, BoTorch OFICIAL 0.18.1) sobre o harness R2-00.
+    'c154': ('src.c154_jes', 'run_c154', 'botorch'),
 }
 
 

@@ -1,0 +1,353 @@
+#!/usr/bin/env python3
+"""Avaliador PÓS-HOC do ND final do regime OFFLINE — a camada ⑦ (DI-08).
+
+O QUE RESOLVE. O §11/B7.5 manda avaliar o conjunto não-dominado FINAL dos
+algoritmos offline **uma vez** na função verdadeira — "a única chamada real do
+offline" — e computar as métricas sobre ele. Mas o desenho do regime fixa
+① = o DATASET (31D−1 linhas EXATAS, que o gate exige): as ~N avaliações finais
+não têm casa lá. A DI-08 decidiu a camada própria `__final.parquet`, avaliada
+pós-hoc em Python canônico (`src/problems.py`), **uniforme para os 5 configs
+offline** — o que tira a ponte MATLAB da equação: o e103 (MATLAB) e o
+b5r/b5m/c311/piso-off (Python) passam pelo MESMO avaliador, então a comparação
+cross-stack do §9 vale por construção.
+
+COMO FUNCIONA. Lê a ③ `__surrogate.parquet` do run, pega a ÚLTIMA geração
+(descartando as linhas de sonda, que não são candidatos da busca), avalia
+aqueles decs 1× em `problems.py` em float64 e grava a ⑦. A avaliação é
+**FORA do orçamento**: nenhum `FEBudget` é instanciado, a ① não é tocada e o
+`fe_final` do manifesto não muda (a exceção contábil documentada do §11).
+
+Convenção B7.5 — **avaliar TODOS os finais e filtrar pós-real**: guardamos as N
+linhas (D54, salvar tudo) e marcamos `nd_pos_real` depois de conhecer o f
+verdadeiro. Filtrar a não-dominância ANTES seria filtrar pela fantasia do
+modelo, e é justamente o "erro de fantasia" que esta camada existe para medir.
+
+DETERMINÍSTICO e IDEMPOTENTE: as funções dos problemas são analíticas e puras,
+não há RNG em lugar nenhum deste caminho; rodar duas vezes produz o mesmo
+parquet. Por padrão um `__final` já existente é PRESERVADO (`--force` reescreve).
+
+USO
+    PY=/Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao/bin/python
+    $PY scripts/final_eval.py --exp off --alg b5r --problema MMF1 --semente 0
+    $PY scripts/final_eval.py --exp main --alg e103 --problema MMF1 --semente 0
+    $PY scripts/final_eval.py --alg e103 --all-seeds          # lote
+    $PY scripts/final_eval.py ... --check                     # só verifica
+
+⚠ CAVEAT DE PRECISÃO (definição em aberto — ver handoff §Definições): os decs
+lidos da ③ estão em **float32** (D53 vale para todas as camadas). A avaliação
+pós-hoc é, portanto, sobre o dec float32-truncado, não sobre o float64 que o
+algoritmo tinha em mãos. Para os cartões R3 (Python) isso é evitável — o
+harness pode chamar `standalone_harness.write_final(...)` no fim do run com os
+decs float64 em memória. Para o e103 (MATLAB, já executado) a ③ é a única
+fonte. MEDIDO no STUB (não estimado): desvio relativo em `f` de até **9,7e-6**
+(MMF1) e 6,0e-8 (ZDT1), com **0 inversões** do filtro `nd_pos_real` em ambos.
+Fica REGISTRADO no sidecar de cada ⑦ (`origem_precisao`) para a auditoria.
+
+INVARIANTE ⑦×③ (aprendido na prova deste cartão, e agora conferido pelo
+`--check`): **o ND final tem de estar NA ③**. Um runner que escreva a ⑦ a
+partir de pontos que a ③ não registrou — o caso clássico é usar a PROLE da
+última geração em vez da população gravada — produz uma camada que ninguém
+consegue reconstituir nem auditar, e para o e103 (cuja ③ é a única fonte) o
+retroativo simplesmente avaliaria outro conjunto. O erro é silencioso: as duas
+camadas ficam bem-formadas e o run passa em todo o resto.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+
+import numpy as np  # noqa: E402
+
+from src import naming  # noqa: E402
+from src import experiment as _exp  # noqa: E402
+from src import problems as _problems  # noqa: E402
+from src import standalone_harness as sh  # noqa: E402
+
+#: Regimes da ③ que NÃO são candidatos da busca (§17.2.2). O bloco de sonda
+#: são os 2000 pontos da régua fixa — nunca o front do algoritmo.
+_NAO_BUSCA = frozenset({"sonda"})
+
+
+def read_final_candidates(exp: str, alg: str, problema: str, semente, *,
+                          data_root: str = naming.DEFAULT_DATA_ROOT) -> dict:
+    """Extrai da ③ os decs da ÚLTIMA geração da BUSCA (o front no surrogate).
+
+    Retorna `{X, geracao, linhas, solution_ids, D, M, n_total, n_sonda}` —
+    `X` float64 (promovido do float32 gravado; ver o caveat no topo), `linhas`
+    = a posição de cada candidato dentro do bloco daquela geração (o link
+    posicional à ③), `solution_ids` = o `real_solution_id` quando o ponto era
+    um membro do dataset (nulo na maioria).
+    """
+    import pyarrow.parquet as pq
+    path = naming.layer_path(exp, alg, problema, semente, "surrogate",
+                             data_root=data_root)
+    if not os.path.exists(path):
+        raise FileNotFoundError(
+            f"camada ③ ausente p/ {alg}/{problema}/{semente}: {path}. O "
+            f"`__final` é derivado dela — rode o algoritmo antes. "
+            f"Pára-e-loga (D81).")
+    tbl = pq.read_table(path)
+    n_total = tbl.num_rows
+    cols = set(tbl.column_names)
+    D = sum(1 for c in cols if len(c) > 1 and c[0] == "x" and c[1:].isdigit())
+    M = sum(1 for c in cols if c.startswith("mu_") and c[3:].isdigit())
+    if not D:
+        raise RuntimeError(f"③ de {alg}/{problema}/{semente} sem colunas x*.")
+
+    regime = (np.asarray(tbl.column("regime").to_pylist(), dtype=object)
+              if "regime" in cols else np.array(["online"] * n_total,
+                                                dtype=object))
+    ger = np.asarray(tbl.column("geracao"), dtype=np.int64)
+    busca = np.array([r not in _NAO_BUSCA for r in regime], dtype=bool)
+    n_sonda = int((~busca).sum())
+    if not busca.any():
+        raise RuntimeError(
+            f"③ de {alg}/{problema}/{semente} só tem linhas de sonda — não há "
+            f"front de busca para avaliar. Pára-e-loga (D81).")
+
+    g_final = int(ger[busca].max())
+    sel = busca & (ger == g_final)
+    idx = np.flatnonzero(sel)
+
+    X = np.column_stack([
+        np.asarray(tbl.column(f"x{j}"), dtype=np.float64)[idx]
+        for j in range(D)])
+    sids = (np.asarray(tbl.column("real_solution_id").to_pylist(), dtype=object)[idx]
+            if "real_solution_id" in cols else np.array([None] * len(idx),
+                                                        dtype=object))
+    return {"X": X, "geracao": g_final,
+            "linhas": np.arange(len(idx), dtype=np.int64),
+            "solution_ids": list(sids), "D": D, "M": M,
+            "n_total": n_total, "n_sonda": n_sonda}
+
+
+def evaluate_final(problema: str, X: np.ndarray) -> np.ndarray:
+    """Avalia `X` na função VERDADEIRA, em float64, FORA do orçamento.
+
+    Ponto único do §11 ("a única chamada real do offline"). Usa o
+    `problems.py` canônico — o mesmo módulo que gerou o `F` do dataset (D90) e
+    o gabarito da sonda —, então o `f` desta camada é comparável com tudo o
+    mais sem nenhuma conversão. Nenhum `FEBudget` é envolvido: por construção,
+    é impossível esta chamada consumir orçamento.
+    """
+    prob = _exp._instantiate_problem(problema)
+    X = np.ascontiguousarray(X, dtype=np.float64)
+    xl = np.asarray(prob.xl, dtype=np.float64)
+    xu = np.asarray(prob.xu, dtype=np.float64)
+
+    # A tolerância tem de acompanhar a PRECISÃO DE ARMAZENAMENTO, não ser uma
+    # constante. Todo X que chega aqui passou por uma camada float32 (D53): a
+    # ③ no caminho retroativo, a própria ⑦ no `check_final`. Perto de 1.0 o
+    # quantum do float32 é ~1,2e-7 — 100× MAIOR que um 1e-9 fixo. E clipar no
+    # bound é comportamento rotineiro de MOEA (o próprio `run_stubr3` faz).
+    # Medido: com 1e-9, MMF11_L (xl=0.1, xu=1.1 — o único dos 25 canônicos com
+    # bounds não representáveis em float32) reprovava a própria ⑦ em 8 de 29
+    # sementes. `tol` abaixo é ~8 ULPs float32 da escala do bound.
+    escala = np.maximum(np.abs(xl), np.abs(xu)).astype(np.float32)
+    tol = np.maximum(1e-9, 8.0 * np.spacing(escala).astype(np.float64))
+    fora = (X < xl - tol).any(axis=1) | (X > xu + tol).any(axis=1)
+    if fora.any():
+        pior = float(np.max(np.maximum(xl - X, X - xu)))
+        raise RuntimeError(
+            f"{problema}: {int(fora.sum())} dec(s) do ND final FORA dos "
+            f"bounds nativos (excesso máx {pior:.3g} > tol {float(tol.max()):.3g})"
+            f" — o algoritmo devolveu solução inválida (ou a ③ está "
+            f"corrompida). Pára-e-loga (D81).")
+    # Violações DENTRO da tolerância são ruído de armazenamento, não do
+    # algoritmo: clipamos para que o problema não receba um X fora do domínio.
+    X = np.clip(X, xl, xu)
+    return np.ascontiguousarray(
+        _problems.evaluate_problem(prob, X), dtype=np.float64)
+
+
+def final_eval_run(exp: str, alg: str, problema: str, semente, *,
+                   data_root: str = naming.DEFAULT_DATA_ROOT,
+                   force: bool = False) -> dict:
+    """Avalia e grava a ⑦ de UM run offline. Idempotente (ver `force`)."""
+    out_path = naming.final_path(exp, alg, problema, semente,
+                                 data_root=data_root)
+    if os.path.exists(out_path) and not force:
+        return {"status": "skip", "path": out_path,
+                "motivo": "__final já existe (use --force para reescrever)"}
+
+    cand = read_final_candidates(exp, alg, problema, semente,
+                                 data_root=data_root)
+    F = evaluate_final(problema, cand["X"])
+    # `nd_pos_real` fica a cargo do `write_final`, que o computa sobre a vista
+    # float32 PERSISTIDA — a mesma que o `--check` relê. Computá-lo aqui, no
+    # float64 cru, criava a assimetria que reprovava uma ⑦ correta.
+    path = sh.write_final(
+        exp, alg, problema, semente, cand["X"], F,
+        origem_solution_id=cand["solution_ids"],
+        origem_geracao=[cand["geracao"]] * F.shape[0],
+        origem_linha=cand["linhas"],
+        origem_precisao="float32 (decs lidos da ③ — ver caveat do módulo)",
+        data_root=data_root)
+    with open(_sidecar_path(out_path), encoding="utf-8") as fh:
+        side = json.load(fh)
+    return {"status": "ok", "path": path, "sidecar": side,
+            "n_final": int(F.shape[0]), "n_nd": int(side["n_nd_pos_real"]),
+            "geracao": int(cand["geracao"]), "n_sonda_ignorada": cand["n_sonda"]}
+
+
+def _sidecar_path(final_parquet_path: str) -> str:
+    return final_parquet_path[:-len(".parquet")] + ".manifest.json"
+
+
+def check_final(exp: str, alg: str, problema: str, semente, *,
+                data_root: str = naming.DEFAULT_DATA_ROOT) -> tuple:
+    """Verifica presença + CONSISTÊNCIA da ⑦ (o check do gate offline, DI-08).
+
+    Consistência = re-avaliar os `x` gravados na ⑦ e exigir que o `f` gravado
+    seja reproduzido (dentro da tolerância do float32 em que ele foi gravado).
+    É a prova de que o `f` da camada é mesmo o f VERDADEIRO daquele `x`, e não
+    um resíduo do surrogate — exatamente o que a DI-08 quer garantir.
+    """
+    import pyarrow.parquet as pq
+    p = naming.final_path(exp, alg, problema, semente, data_root=data_root)
+    if not os.path.exists(p):
+        return False, f"camada ⑦ ausente: {p}"
+    tbl = pq.read_table(p)
+    cn = set(tbl.column_names)
+    D = sum(1 for c in cn if len(c) > 1 and c[0] == "x" and c[1:].isdigit())
+    M = sum(1 for c in cn if len(c) > 1 and c[0] == "f" and c[1:].isdigit())
+    if not (D and M):
+        return False, f"⑦ sem colunas x*/f* (obtido {sorted(cn)})"
+    if tbl.num_rows == 0:
+        return False, "⑦ vazia (o ND final tem de ter ao menos 1 ponto — §11)"
+    exp_sch = sh.final_schema(D, M)
+    got = pq.read_schema(p).remove_metadata()
+    if not got.equals(exp_sch, check_metadata=False):
+        return False, (f"schema da ⑦ diverge do DI-08 (esperado "
+                       f"{exp_sch.names}, obtido {got.names})")
+    X = np.column_stack([np.asarray(tbl.column(f"x{j}"), dtype=np.float64)
+                         for j in range(D)])
+    F = np.column_stack([np.asarray(tbl.column(f"f{j}"), dtype=np.float64)
+                         for j in range(M)])
+    try:
+        F_re = evaluate_final(problema, X).astype(np.float32).astype(np.float64)
+    except Exception as exc:  # noqa: BLE001
+        # Um check TEM de devolver veredito, nunca estourar: `check_r3_00` não
+        # protege a chamada, e um traceback aqui abortava o gate ANTES dos
+        # checks de manifesto/pinning/subprocess (eles nunca rodavam).
+        return False, f"⑦: não foi possível reavaliar o X gravado ({exc})"
+    if not np.allclose(F, F_re, rtol=1e-5, atol=1e-6, equal_nan=True):
+        pior = float(np.nanmax(np.abs(F - F_re)))
+        return False, (f"⑦ INCONSISTENTE: o f gravado não reproduz "
+                       f"problems.py (maior desvio {pior:.3g})")
+    nd = np.asarray(tbl.column("nd_pos_real").to_pylist(), dtype=bool)
+    nd_re = np.zeros(len(nd), dtype=bool)
+    nd_re[list(int(i) for i in _problems._nds_filter(F))] = True
+    if not np.array_equal(nd, nd_re):
+        return False, (f"⑦: nd_pos_real diverge do filtro recomputado "
+                       f"({int(nd.sum())} vs {int(nd_re.sum())})")
+
+    # ── INVARIANTE ⑦×③: o ND final tem de estar NA ③ ────────────────────
+    # Sem isto, a ⑦ pode ser escrita a partir de pontos que a ③ nunca
+    # registrou (ex.: a PROLE da última geração, em vez da população que foi
+    # gravada). O erro é silencioso e fatal: para o e103 — já executado em
+    # MATLAB — a ③ é a ÚNICA fonte, então uma ⑦ irreconstituível não é
+    # auditável nem reproduzível. A comparação é em float32 porque é nessa
+    # precisão que a ③ guarda o X (D53).
+    try:
+        cand = read_final_candidates(exp, alg, problema, semente,
+                                     data_root=data_root)
+    except Exception as exc:  # noqa: BLE001
+        return False, f"⑦: não foi possível reler a ③ p/ conferir ({exc})"
+    # A conferência é POR `origem_linha` — o link que a própria ⑦ declara —, e
+    # não por igualdade posicional da tabela inteira. A invariante que o
+    # contrato exige é "cada ponto da ⑦ ESTÁ na ③", não "a ⑦ é a ③ na mesma
+    # ordem e cardinalidade": um config que devolva só o subconjunto ND, ou em
+    # outra ordem, é legítimo e não pode levar vermelho. O bug-alvo (a PROLE da
+    # última geração, cujos X não aparecem em lugar nenhum da ③) continua morto.
+    ref = cand["X"].astype(np.float32).astype(np.float64)
+    linhas = np.asarray(tbl.column("origem_linha").to_pylist(), dtype=np.int64)
+    gers = np.asarray(tbl.column("origem_geracao").to_pylist(), dtype=np.int64)
+    if (linhas < 0).any() or (linhas >= ref.shape[0]).any():
+        return False, (f"⑦ IRRECONSTITUÍVEL: `origem_linha` fora do intervalo "
+                       f"[0,{ref.shape[0]}) da geração {cand['geracao']} da ③ "
+                       f"— a ⑦ aponta para linhas que não existem. D81.")
+    fora_ger = gers != int(cand["geracao"])
+    if fora_ger.any():
+        return False, (f"⑦ IRRECONSTITUÍVEL: {int(fora_ger.sum())} linha(s) "
+                       f"com `origem_geracao` != {cand['geracao']} (a última "
+                       f"geração da busca na ③). D81.")
+    if not np.array_equal(X, ref[linhas]):
+        pior = float(np.abs(X - ref[linhas]).max())
+        return False, (f"⑦ IRRECONSTITUÍVEL: o X da ⑦ não bate com a linha "
+                       f"que ela mesma aponta na ③ (maior desvio {pior:.3g}) "
+                       f"— a ⑦ veio de pontos que a ③ não registrou. D81.")
+
+    # A certidão (`origem_precisao`) é obrigatória: sem ela a auditoria não
+    # sabe se os decs vieram em float64 (nativo) ou float32 (retroativo).
+    spath = _sidecar_path(p)
+    if not os.path.exists(spath):
+        return False, f"⑦ sem sidecar de procedência: {os.path.basename(spath)}"
+    with open(spath, encoding="utf-8") as fh:
+        side = json.load(fh)
+    if not side.get("origem_precisao"):
+        return False, "⑦: sidecar sem `origem_precisao` (procedência dos decs)"
+
+    return True, (f"⑦ presente e consistente ({tbl.num_rows} finais, "
+                  f"{int(nd.sum())} ND pós-real, f reproduz problems.py, "
+                  f"X reconstituível da ③ ger {cand['geracao']} via "
+                  f"origem_linha; procedência: {side['origem_precisao']})")
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(
+        description="Avaliador pós-hoc do ND final offline (DI-08 / camada ⑦)")
+    ap.add_argument("--exp", default="off")
+    ap.add_argument("--alg", required=True)
+    ap.add_argument("--problema", required=True)
+    ap.add_argument("--semente", default="0")
+    ap.add_argument("--data-root", default=None)
+    ap.add_argument("--force", action="store_true",
+                    help="reescreve um __final já existente")
+    ap.add_argument("--check", action="store_true",
+                    help="só verifica presença+consistência (não escreve)")
+    ap.add_argument("--all-seeds", action="store_true",
+                    help="itera as 30 sementes {0..28, 42}")
+    a = ap.parse_args()
+
+    dr = a.data_root or os.path.join(ROOT, "data")
+    # Guarda de escopo: a ⑦ só existe no regime offline (DI-08). O STUB do
+    # R3-00 entra por ser justamente a prova de encanamento desta camada.
+    permitidos = sh.OFFLINE_CONFIGS + (sh.STUB_ALG,)
+    if a.alg not in permitidos:
+        print(f"  [FAIL] {a.alg!r} não é config OFFLINE. A camada ⑦ existe só "
+              f"nos 5 do regime offline: {list(sh.OFFLINE_CONFIGS)} (DI-08).")
+        return 2
+
+    sementes = (list(range(29)) + [42]) if a.all_seeds else [int(a.semente)]
+    falhou = False
+    for s in sementes:
+        try:
+            if a.check:
+                ok, msg = check_final(a.exp, a.alg, a.problema, s, data_root=dr)
+                mark = "OK  " if ok else "FAIL"
+                falhou = falhou or not ok
+            else:
+                r = final_eval_run(a.exp, a.alg, a.problema, s, data_root=dr,
+                                   force=a.force)
+                ok = r["status"] in ("ok", "skip")
+                mark = "OK  " if r["status"] == "ok" else "SKIP"
+                msg = (r.get("motivo") or
+                       f"{r['n_final']} finais avaliados (ger {r['geracao']}), "
+                       f"{r['n_nd']} ND pós-real → {os.path.basename(r['path'])}")
+        except Exception as exc:  # noqa: BLE001 — pára-e-loga com diagnóstico
+            mark, msg, falhou = "FAIL", f"{type(exc).__name__}: {exc}", True
+        print(f"  [{mark}] {a.alg}/{a.problema}/{s}: {msg}")
+    print("\n  >>> " + ("VERMELHO — pára-e-loga (D81)" if falhou else "VERDE"))
+    return 1 if falhou else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

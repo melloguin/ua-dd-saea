@@ -133,6 +133,22 @@ _DISPATCH_LOADERS: dict[str, tuple[str, str, str]] = {
     'c262': ('src.c262_qnehvi', 'run_c262', 'botorch'),
     # [R2-c154] JES (qLBMOJES-LB, BoTorch OFICIAL 0.18.1) sobre o harness R2-00.
     'c154': ('src.c154_jes', 'run_c154', 'botorch'),
+    # ── Rodada 3 — standalone de implementação própria (contrato N.2) ──────
+    # [R3-00-harness] run-STUB OFFLINE transversal (token distinto de `stub`
+    # do R1-00 e `stubpy` do R2-00). NÃO é config do estudo.
+    'stubr3': ('src.standalone_harness', 'run_stubr3', 'standalone'),
+    # Os 6 configs da R3 entram aqui, 1 linha por cartão. O `stack` é
+    # 'standalone' e o env de cada um vem do `envs.json` (D79) — b5r/b5m e
+    # c311 rodam em venvs PRÓPRIOS e NUNCA podem ser co-importados (N.1.2):
+    # o despacho da bateria usa `standalone_harness.run_in_venv`, que dá um
+    # processo por run. Descomente ao fechar o cartão correspondente.
+    # 'c122':        ('src.c122_thetadeadp', 'run_c122', 'standalone'),
+    # 'c149':        ('src.c149_lbnmobo',    'run_c149', 'standalone'),
+    # 'e81':         ('src.e81_qpots',       'run_e81',  'standalone'),
+    # 'b5r':         ('src.b5_prob',         'run_b5r',  'standalone'),
+    # 'b5m':         ('src.b5_prob',         'run_b5m',  'standalone'),
+    # 'c311':        ('src.c311_tgprmo',     'run_c311', 'standalone'),
+    # 'moead_media': ('src.piso_offline',    'run_piso_offline', 'standalone'),
 }
 
 
@@ -168,4 +184,25 @@ def run(algoritmo: str, problema_id: str, semente: int, *,
             f"(despacho preenchido pelos cartões R1/R2/R3 em "
             f"_DISPATCH_LOADERS). Problema={problema_id!r}, "
             f"semente={semente}, exp={exp!r}.")
+
+    # [R3-00-harness] ROTEAMENTO OBRIGATÓRIO por venv (D79/N.1.2). b5 e c311
+    # vendorizam `desdeo_*` HOMÔNIMOS com código diferente: rodá-los no mesmo
+    # processo faz o `sys.modules` entregar as classes erradas SEM ERRO. Isso
+    # não pode depender de o operador lembrar de chamar `run_in_venv` — o
+    # despachante serial (`experiments.py`, n_jobs=1) e o paralelo (loky, que
+    # REUSA workers) chamam `run()` direto. Aqui a regra vira MECANISMO.
+    # `_in_child` é posto pelo bootstrap do subprocesso e corta a recursão.
+    if not kwargs.pop('_in_child', False):
+        from src.standalone_harness import VENV_ONLY_ALGS
+        if algoritmo in VENV_ONLY_ALGS:
+            from src.standalone_harness import run_in_venv
+            r = run_in_venv(algoritmo, problema_id, semente, exp=exp,
+                            **kwargs)
+            if not r.get('ok'):
+                raise RuntimeError(
+                    f"run em venv próprio falhou p/ {algoritmo!r} "
+                    f"(rc={r.get('returncode')}, env={r.get('env_id')}):\n"
+                    f"{r.get('traceback')}")
+            return r['result']
+
     return entry['main'](exp, algoritmo, problema_id, semente, **kwargs)

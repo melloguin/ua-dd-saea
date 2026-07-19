@@ -775,6 +775,405 @@ def check_r2_00(exp="main", problema="MMF1", semente=0, gcs_smoke=False):
     return results
 
 
+# ── Checagem do cartão R3-00-harness (infra transversal standalone + ⑦) ────
+
+def check_r3_00(exp="off", problema="MMF1", semente=0, data_root=None):
+    """Encanamento objetivo do R3-00-harness (contrato N.2 + DI-08).
+
+    Roda o STUB OFFLINE `stubr3` num tempdir (dataset/sonda linkados do repo) e
+    afere o contrato da Rodada 3 — SEM algoritmo e SEM fidelidade (D97):
+
+      1. wiring `experiment.run` → dispatch lazy (stack `standalone`);
+      2. regime OFFLINE: FE final = 31D−1 EXATO **e** = |dataset| (o orçamento
+         É o dataset, D90), tudo em fase `init`;
+      3. ① bit-exata ao artefato + CP-init `x_hash` **E** `f_hash` (o CP
+         offline é mais forte que o online, que só cobre X);
+      4. violação de regime (FE na busca) levanta `OfflineBudgetViolation`;
+      5. cache-hit = 0 FE (D89) mesmo com o saldo esgotado;
+      6. 4+1 saídas + schemas §17.2 EXATOS (incl. a ⑦ do DI-08) + float32/zstd;
+      7. ③ v5.2.1: `regime` POR LINHA (sonda × busca na MESMA tabela) e
+         `fe_treino_max` sem nulos;
+      8. ④ v5.2.1 COMPLETA: `tempo_busca_s`/`tempo_pred_sonda_s`/
+         `tempo_geracao_s` preenchidos;
+      9. sonda: 2000 linhas na ordem do artefato, hash conferido, ZERO FE;
+     10. ⑦ presente, consistente e RECONSTITUÍVEL da ③ (o invariante que a
+         prova deste cartão descobriu);
+     11. manifesto com bloco `timing` (§17.6 obrigatório), `sigma_dict`
+         (DEF-C4) e o CP offline;
+     12. pinning D79 e guarda de RNG N.2.3 (contra `pymoo.minimize` REAL);
+     13. subprocess-por-venv (D79/N.2) resolve o env de cada config do R3 pelo
+         `envs.json` e executa de verdade no interpretador-alvo.
+    """
+    import shutil
+    import numpy as np
+    import pyarrow.parquet as pq
+    import pyarrow.compute as pc
+    from src import experiment as _exp
+    from src import export as _export
+    from src import standalone_harness as _sh
+
+    ALG = _sh.STUB_ALG
+    results = []
+    semente = int(semente)
+    repo_data = data_root or os.path.join(ROOT, "data")
+
+    # Âncoras INDEPENDENTES do runner (anti-circular — precedente R2-00).
+    prob_obj = _exp._instantiate_problem(problema)
+    D_indep, M_indep = int(prob_obj.n_var), int(prob_obj.n_obj)
+    n_ds_indep = maxfe(D_indep)                     # 31D−1 (o dataset, D90)
+
+    with tempfile.TemporaryDirectory() as dr:
+        for sub in ("datasets", "sonda"):
+            shutil.copytree(os.path.join(repo_data, sub),
+                            os.path.join(dr, sub))
+        try:
+            ev = _exp.run(ALG, problema, semente, exp=exp, data_root=dr)
+            results.append(("wiring experiment.run → dispatch lazy "
+                            "(stack standalone)", (True, f"run OK: {ALG}")))
+        except Exception as exc:  # noqa: BLE001
+            results.append(("wiring experiment.run → dispatch lazy",
+                            (False, f"{type(exc).__name__}: {exc}")))
+            return results
+
+        results.append((
+            "dispatch R3 registrado em _DISPATCH_LOADERS",
+            (_exp._DISPATCH_LOADERS.get(ALG) ==
+             ("src.standalone_harness", "run_stubr3", "standalone"),
+             f"{ALG} → {_exp._DISPATCH_LOADERS.get(ALG)}")))
+
+        # (2) FE = 31D−1 = |dataset|, e o orçamento nasce esgotado.
+        results.append(("FE final = 31D−1 EXATO **e** = |dataset| (D90 — o "
+                        "orçamento É o dataset)",
+                        (ev["fe_final"] == n_ds_indep
+                         and ev["maxfe"] == n_ds_indep
+                         and ev["n_dataset"] == n_ds_indep,
+                         f"fe={ev['fe_final']} maxfe={ev['maxfe']} "
+                         f"n_ds={ev['n_dataset']} (esperado {n_ds_indep}, "
+                         f"D={D_indep})")))
+        results.append(("FE do artefato (①) — nº de linhas",
+                        check_fe(exp, ALG, problema, semente, D_indep,
+                                 data_root=dr)))
+
+        # (3) ① bit-exata ao dataset + CP-init x_hash E f_hash.
+        real = pq.read_table(naming.layer_path(exp, ALG, problema, semente,
+                                               "real", data_root=dr))
+        fases = set(real.column("fase").to_pylist())
+        ds = _sh.load_dataset(problema, semente, data_root=dr)
+        Xr = np.column_stack([np.asarray(real.column(f"x{j}"), dtype=np.float64)
+                              for j in range(D_indep)])
+        Fr = np.column_stack([np.asarray(real.column(f"f{j}"), dtype=np.float64)
+                              for j in range(M_indep)])
+        bitex = (np.array_equal(Xr, ds["X"].astype(np.float32).astype(np.float64))
+                 and np.array_equal(Fr, ds["F"].astype(np.float32).astype(np.float64)))
+        results.append(("① = o DATASET bit-a-bit (pós-cast float32 D53) · "
+                        "fase toda `init`",
+                        (bitex and fases == {"init"},
+                         f"bit-exata={bitex} fases={sorted(fases)}")))
+        man = json.load(open(naming.manifest_path(exp, ALG, problema, semente,
+                                                  data_root=dr),
+                             encoding="utf-8"))
+        cpo = man.get("cp_init_offline") or {}
+        results.append(("CP-init OFFLINE: x_hash **E** f_hash == sidecar do "
+                        "dataset (mais forte que o CP online — D90)",
+                        (bool(ev["cp_init_ok"])
+                         and cpo.get("x_hash") == ds["x_hash"]
+                         and cpo.get("f_hash") == ds["f_hash"],
+                         f"x={str(cpo.get('x_hash'))[:16]}… "
+                         f"f={str(cpo.get('f_hash'))[:16]}…")))
+
+        # (4)(5) violação de regime e cache-hit.
+        bud, _ = _sh.load_offline_budget(problema, semente, data_root=dr)
+        try:
+            with _sh.offline_guard(alg=ALG, problema=problema):
+                bud.evaluate(np.full(D_indep, 0.123456789),
+                             lambda x: np.zeros(M_indep))
+            viol = (False, "NÃO levantou — o regime offline não está guardado")
+        except _sh.OfflineBudgetViolation:
+            viol = (True, "FE na busca ⇒ OfflineBudgetViolation (pára-e-loga)")
+        results.append(("violação de regime OFFLINE é exceção própria, não "
+                        "término natural (≠ D61)", viol))
+        fe0 = bud.fe
+        bud.evaluate(ds["X"][0], lambda x: None)
+        results.append(("cache-hit = 0 FE mesmo com saldo esgotado (D89)",
+                        (bud.fe == fe0 and bud.cache_hits >= 1,
+                         f"fe {fe0}→{bud.fe}, cache_hits={bud.cache_hits}")))
+
+        # (6) 4+1 saídas e schemas exatos.
+        results.append(("4 saídas obrigatórias + jsonl (§17.7)",
+                        check_outputs(exp, ALG, problema, semente,
+                                      data_root=dr)))
+        results.append(("schema §17.2 (①②③+timing) + float32 (D53)",
+                        _check_export_schema_r3(exp, ALG, problema, semente,
+                                                D_indep, M_indep, dr)))
+        fpath = naming.final_path(exp, ALG, problema, semente, data_root=dr)
+        got = pq.read_schema(fpath).remove_metadata()
+        results.append(("⑦ `__final.parquet` presente + schema DI-08 EXATO",
+                        (os.path.exists(fpath)
+                         and got.equals(_sh.final_schema(D_indep, M_indep),
+                                        check_metadata=False),
+                         f"{os.path.basename(fpath)}: {got.names}")))
+
+        # (7) ③ v5.2.1 — regime por linha + fe_treino_max.
+        surr = pq.read_table(naming.layer_path(exp, ALG, problema, semente,
+                                               "surrogate", data_root=dr))
+        regs = surr.column("regime").to_pylist()
+        n_sonda = regs.count("sonda")
+        n_busca = len(regs) - n_sonda
+        n_ftm_null = pc.sum(pc.is_null(surr.column("fe_treino_max"))).as_py()
+        results.append(("③ v5.2.1: `regime` POR LINHA (sonda × busca na MESMA "
+                        "tabela) + `fe_treino_max` sem nulos (DI-09/A1)",
+                        (n_sonda > 0 and n_busca > 0 and n_ftm_null == 0,
+                         f"sonda={n_sonda} busca={n_busca} "
+                         f"fe_treino_max nulos={n_ftm_null}")))
+
+        # (8) ④ v5.2.1 completa.
+        tm = pq.read_table(naming.layer_path(exp, ALG, problema, semente,
+                                             "timing", data_root=dr))
+        nulos = {c: pc.sum(pc.is_null(tm.column(c))).as_py()
+                 for c in ("tempo_busca_s", "tempo_pred_sonda_s",
+                           "tempo_geracao_s")}
+        results.append(("④ v5.2.1 COMPLETA desde o nascimento: busca/sonda/"
+                        "geração preenchidos (§17.6 expandida)",
+                        (all(v == 0 for v in nulos.values()) and tm.num_rows > 0,
+                         f"{tm.num_rows} linhas, nulos={nulos}")))
+
+        # (9) sonda: ordem do artefato + hash + ZERO FE.
+        sonda = _sh.load_sonda(problema, data_root=dr)
+        idx_s = [i for i, r in enumerate(regs) if r == "sonda"]
+        Xs = np.column_stack([np.asarray(surr.column(f"x{j}"),
+                                         dtype=np.float64)[idx_s]
+                              for j in range(D_indep)])
+        ordem_ok = np.array_equal(
+            Xs, sonda["X"].astype(np.float32).astype(np.float64))
+        results.append(("sonda §17.2.2: S=2000 na ORDEM do artefato (join "
+                        "posicional — R4 regra 5), hash conferido, ZERO FE",
+                        (n_sonda == sonda["S"] == 2000 and ordem_ok
+                         and ev["fe_final"] == n_ds_indep,
+                         f"S={n_sonda} ordem_preservada={ordem_ok} "
+                         f"FE inalterado={ev['fe_final']}")))
+
+        # (10) ⑦ reconstituível da ③ — o invariante.
+        results.append(("⑦ consistente e RECONSTITUÍVEL da ③ (o f reproduz "
+                        "problems.py; o X bate com a última geração)",
+                        _check_final_layer(exp, ALG, problema, semente, dr)))
+
+        # (11) manifesto.
+        tb = man.get("timing") or {}
+        results.append(("manifesto: bloco `timing` §17.6 OBRIGATÓRIO + "
+                        "`sigma_dict` (DEF-C4) + regime offline",
+                        (all(tb.get(k) is not None for k in
+                             ("tempo_total_s", "tempo_fit_surrogate_s",
+                              "tempo_busca_s", "tempo_aval_real_s"))
+                         and bool(man.get("sigma_dict"))
+                         and man.get("regime") == "offline"
+                         and man.get("status") == "ok",
+                         f"timing={tb} sigma_dict={bool(man.get('sigma_dict'))} "
+                         f"regime={man.get('regime')}")))
+        tmps = [f for f in os.listdir(naming.run_dir(exp, ALG, data_root=dr))
+                if f.endswith(".tmp")]
+        results.append(("escrita ATÔMICA — nenhum `.tmp` residual (D58)",
+                        (not tmps, f"residuais={tmps}")))
+
+    # (12) pinning D79 + guarda de RNG N.2.3.
+    pin = _sh.pin_runtime()
+    results.append(("pinning D79/N.1.1 (threads=1 nas 4 vars; torch opcional)",
+                    (all(pin.get(v) == "1" for v in _sh.D79_THREAD_VARS),
+                     f"{ {v: pin.get(v) for v in _sh.D79_THREAD_VARS} }")))
+    results.append(("guarda de RNG N.2.3 contra `pymoo.minimize` REAL "
+                    "(re-semeia np.random/random globais)",
+                    _r3_rng_guard_probe(problema)))
+
+    # (13) subprocess-por-venv (D79/N.2) — o mecanismo que separa b5 × c311.
+    results.append(("subprocess-por-venv: envs.json resolve o env dos 6 "
+                    "configs R3 (b5×c311 NUNCA co-importados — N.1.2)",
+                    _r3_env_resolution()))
+    results.append(("subprocess-por-venv EXECUTA de verdade (pin D79 no "
+                    "FILHO, protocolo de resultado)",
+                    _r3_subprocess_probe(problema, semente, repo_data)))
+    return results
+
+
+def _check_export_schema_r3(exp, alg, problema, semente, D, M, data_root):
+    """Como `_check_export_schema`, mas sem exigir a coexistência μ+classe na
+    ③ (aquilo é do STUB do F0-03/R2-00; os configs offline da R3 são
+    regressores puros — C1 continua satisfeito com μ). Reusa os schemas
+    schema-as-code de `src.export`."""
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+    import pyarrow.compute as pc
+    from src import export
+    want = {"real": export.real_schema(D, M), "pop": export.pop_schema(),
+            "surrogate": export.surrogate_schema(D, M),
+            "timing": export.timing_schema()}
+    for layer, sch in want.items():
+        p = naming.layer_path(exp, alg, problema, semente, layer,
+                              data_root=data_root)
+        got = pq.read_schema(p).remove_metadata()
+        if not got.equals(sch, check_metadata=False):
+            return False, (f"schema da camada {layer} diverge do §17.2 "
+                           f"(esperado {sch.names}, obtido {got.names})")
+    surr = pq.read_table(naming.layer_path(exp, alg, problema, semente,
+                                           "surrogate", data_root=data_root))
+    n_mu = surr.num_rows - pc.sum(pc.is_null(surr.column("mu_0"))).as_py()
+    if n_mu == 0:
+        return False, "③ sem nenhuma linha de regressor (μ preenchido) — C1"
+    real_sch = pq.read_schema(naming.layer_path(exp, alg, problema, semente,
+                                                "real", data_root=data_root))
+    if (real_sch.field("x0").type != pa.float32()
+            or real_sch.field("f0").type != pa.float32()):
+        return False, "camada ① não está em float32 (D53)"
+    return True, (f"schemas §17.2 exatos (①②③+timing) · ③ com μ ({n_mu} "
+                  f"linhas) · float32 (D53)")
+
+
+def _check_final_layer(exp, alg, problema, semente, data_root):
+    """Delega ao `check_final` do `scripts/final_eval.py` (fonte única do
+    check da ⑦ — o gate não reimplementa a regra do DI-08)."""
+    import importlib.util
+    p = os.path.join(ROOT, "scripts", "final_eval.py")
+    spec = importlib.util.spec_from_file_location("_final_eval", p)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.check_final(exp, alg, problema, semente, data_root=data_root)
+
+
+def _r3_rng_guard_probe(problema):
+    """N.2.3 — a guarda de RNG, provada em DOIS níveis.
+
+    ⚠ Por que dois: MEDIDO nesta sessão, `pymoo 0.6.2` (env-main) **não
+    desloca** `np.random`/`random` — nem com `seed=`, nem sem. Rodar só a
+    prova "contra o pymoo real" daria VERDE mesmo que `preserve_global_rng`
+    fosse um `pass`. A premissa do contrato R3 item 3 vale para o **pymoo
+    ANTIGO** dos venvs `env_b5`/`env_c311`, que é onde b5/c311 rodam.
+
+    (a) MECÂNICA: perturba ao máximo dentro da guarda e exige restauração
+        bit-a-bit — é este o teste que tem conteúdo aqui;
+    (b) INTEGRAÇÃO: roda um NSGA-II REAL pelo embrulho e confere o estado,
+        registrando de passagem o comportamento desta versão do pymoo.
+    """
+    try:
+        import random
+        import numpy as np
+        from pymoo.algorithms.moo.nsga2 import NSGA2
+        from src import experiment as _exp
+        from src import standalone_harness as _sh
+    except ImportError as exc:
+        return None, f"pymoo ausente — skip ({exc})"
+
+    # (a) prova mecânica
+    np.random.seed(7)
+    random.seed(7)
+    np_b, py_b = np.random.get_state(), random.getstate()
+    with _sh.preserve_global_rng():
+        np.random.seed(999999)          # exatamente o que o pymoo antigo faz
+        random.seed(999999)
+        np.random.random(50)
+    mec = (np.array_equal(np_b[1], np.random.get_state()[1])
+           and np_b[2:] == np.random.get_state()[2:]
+           and py_b == random.getstate())
+
+    # (b) integração com o culpado nominal
+    prob = _exp._instantiate_problem(problema)
+    np_c, py_c = np.random.get_state(), random.getstate()
+    _sh.guarded_pymoo_minimize(prob, NSGA2(pop_size=8), ("n_gen", 2),
+                               seed=1, verbose=False)
+    integ = (np.array_equal(np_c[1], np.random.get_state()[1])
+             and py_c == random.getstate())
+
+    import pymoo
+    return (mec and integ,
+            f"(a) restauração bit-a-bit sob perturbação máxima={mec} · "
+            f"(b) NSGA-II real sob o embrulho={integ} · nota: pymoo "
+            f"{pymoo.__version__} não desloca os globais — a guarda é para o "
+            f"pymoo antigo de env_b5/env_c311 (N.2.3)")
+
+
+def _r3_env_resolution():
+    """Cada um dos 6 configs R3 resolve para um interpretador via `envs.json`,
+    e b5* × c311 caem em ENVS DISTINTOS (N.1.2 — o achado nº 1 do contrato)."""
+    from src import standalone_harness as _sh
+    alvos = ("c122", "c149", "e81", "b5r", "b5m", "c311", "moead_media")
+    mapa = {}
+    for alg in alvos:
+        try:
+            mapa[alg] = _sh.interpreter_for_alg(alg)[0]
+        except KeyError as exc:
+            return False, f"{alg}: {exc}"
+    if mapa["b5r"] == mapa["c311"]:
+        return False, (f"b5r e c311 no MESMO env ({mapa['b5r']}) — N.1.2 exige "
+                       f"venvs distintos (desdeo_* vendorizado homônimo)")
+    # ⚠ A tabela sozinha é verdadeira por construção — seria verde mesmo que
+    # ninguém jamais chamasse `run_in_venv`. O que importa é o MECANISMO:
+    # (a) os 4 configs de overlay estão marcados como venv-only, e
+    # (b) a sentinela de colisão realmente ABORTA quando dois overlays de
+    #     raízes diferentes aparecem no mesmo processo.
+    if not {"b5r", "b5m", "moead_media", "c311"} <= set(_sh.VENV_ONLY_ALGS):
+        return False, (f"VENV_ONLY_ALGS não cobre os 4 configs de overlay: "
+                       f"{sorted(_sh.VENV_ONLY_ALGS)} — o roteamento de "
+                       f"`experiment.run` não os protegeria (N.1.2)")
+    _sh._OVERLAY_SEEN.clear()
+    try:
+        _sh._OVERLAY_SEEN["desdeo_emo"] = "/raiz/b5"
+        import types
+        falso = types.ModuleType("desdeo_emo")
+        falso.__file__ = "/raiz/c311/desdeo_emo/__init__.py"
+        sys.modules["desdeo_emo"] = falso
+        try:
+            _sh.assert_overlay_coerente()
+            return False, ("a sentinela de colisão de overlay NÃO disparou "
+                           "com dois `desdeo_emo` de raízes distintas (N.1.2)")
+        except RuntimeError:
+            pass
+    finally:
+        sys.modules.pop("desdeo_emo", None)
+        _sh._OVERLAY_SEEN.clear()
+    return True, (f"{mapa} · b5*={mapa['b5r']} ≠ c311={mapa['c311']} · "
+                  f"VENV_ONLY_ALGS roteia os 4 · sentinela de colisão ABORTA")
+
+
+def _r3_subprocess_probe(problema, semente, repo_data):
+    """O mecanismo D79/N.2 roda DE VERDADE: despacha o STUB no interpretador
+    resolvido pelo `envs.json` (env-main, o único provisionado no Mac) e
+    confere que o filho devolveu o resultado e nasceu com o pin de threads."""
+    import shutil
+    from src import experiment as _exp
+    from src import standalone_harness as _sh
+    try:
+        _, interp = _sh.interpreter_for_alg("c122")     # env-main
+    except KeyError as exc:
+        return False, f"resolução de env falhou: {exc}"
+    if not os.path.exists(interp):
+        return None, f"interpretador ausente — skip ({interp})"
+    with tempfile.TemporaryDirectory() as dr:
+        for sub in ("datasets", "sonda"):
+            shutil.copytree(os.path.join(repo_data, sub),
+                            os.path.join(dr, sub))
+        r = _sh.run_in_venv(_sh.STUB_ALG, problema, semente, exp="off",
+                            data_root=dr, interpreter=interp, timeout=600)
+        if not r.get("ok"):
+            return False, (f"filho falhou (rc={r['returncode']}): "
+                           f"{str(r.get('traceback'))[-400:]}")
+        # ⚠ Exigir ÂNCORAS VINDAS DE DENTRO DO FILHO. Sem isto o check era
+        # tautológico: dava VERDE com o pin D79 quebrado no filho (provado —
+        # `OMP_NUM_THREADS=8` passava) e com o resultado vazio. E é justamente
+        # o subprocesso com env limpo que o módulo declara ser o pinning
+        # AUTORITATIVO da bateria.
+        res = r.get("result") or {}
+        prob_obj = _exp._instantiate_problem(problema)
+        fe_esperado = maxfe(int(prob_obj.n_var))
+        pin = res.get("pin_filho") or ""
+        pin_ok = pin and all(f"{v}=1" in pin for v in _sh.D79_THREAD_VARS)
+        fe_ok = res.get("fe_final") == fe_esperado
+        iso_ok = bool(res.get("isolated_filho"))
+        if not (pin_ok and fe_ok and iso_ok):
+            return False, (f"evidência do filho insuficiente: pin={pin!r} "
+                           f"(ok={pin_ok}) · fe_final={res.get('fe_final')} "
+                           f"(esperado {fe_esperado}) · isolated={iso_ok}")
+        return True, (f"run completo no subprocesso ({os.path.basename(interp)}"
+                      f"), fe_final={res['fe_final']} · pin lido DENTRO do "
+                      f"filho: {pin} · `-I` ativo")
+
+
 # ── Checagem do cartão F0-04-metrica (esqueleto da métrica + âncora D92) ────
 
 #: Tolerância da âncora do smoke (D92). O HV discreto do front denso converge a
@@ -988,6 +1387,41 @@ def main():
         print("  [INFO] STUB stubpy (sem algoritmo real): prova só o "
               "ENCANAMENTO do contrato N.1 — c262/c154 são os cartões "
               "seguintes. Sem --gcs-smoke o bucket não é tocado.")
+        print("\n  >>> " + ("VERMELHO — pára-e-loga (D81)" if fail
+                            else "VERDE (encanamento objetivo)"))
+        print("  Lembrete (D97): a fidelidade é validação MANUAL do autor, "
+              "a posteriori — não entra aqui.")
+        sys.exit(1 if fail else 0)
+
+    # R3-00 = infra transversal standalone (contrato N.2/§22.4) + a camada ⑦
+    # do DI-08. Encanamento próprio: roda o STUB OFFLINE `stubr3` via
+    # experiment.run num tempdir e afere o contrato da Rodada 3.
+    # ⚠ TEM de vir ANTES do catch-all abaixo: `or not a.alg` engoliria este
+    # cartão (que não exige --alg) e devolveria o VERDE do andaime F0-01.
+    if a.cartao.startswith("R3-00"):
+        if a.alg not in (None, "stubr3"):
+            print(f"  [FAIL] o STUB do R3-00 é 'stubr3' (nunca 'stub', do "
+                  f"R1-00 MATLAB, nem 'stubpy', do R2-00): --alg={a.alg!r}")
+            sys.exit(2)
+        # O STUB é OFFLINE: o token de experimento canônico do regime é `off`
+        # (D55). O default do parser é `main` (herdado dos cartões online), so
+        # remapeamos e AVISAMOS — um cabeçalho que diga `main` e uma saída que
+        # caia em `off` seria exatamente o tipo de silêncio que a D55 fecha.
+        exp_r3 = a.exp if a.exp != "main" else "off"
+        if exp_r3 != a.exp:
+            print(f"  [INFO] exp remapeado {a.exp!r} → {exp_r3!r}: o STUB do "
+                  f"R3-00 é OFFLINE (token canônico do regime — D55).")
+        results = check_r3_00(exp=exp_r3, problema=a.problema,
+                              semente=int(a.semente))
+        fail = False
+        for name, (ok, msg) in results:
+            mark = "SKIP" if ok is None else ("OK  " if ok else "FAIL")
+            print(f"  [{mark}] {name}: {msg}")
+            if ok is False:
+                fail = True
+        print("  [INFO] STUB stubr3 (sem algoritmo real): prova só o "
+              "ENCANAMENTO do contrato N.2 + DI-08 — c122/b5r/b5m/c311/c149/"
+              "e81/piso-off são os cartões seguintes.")
         print("\n  >>> " + ("VERMELHO — pára-e-loga (D81)" if fail
                             else "VERDE (encanamento objetivo)"))
         print("  Lembrete (D97): a fidelidade é validação MANUAL do autor, "

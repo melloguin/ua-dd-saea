@@ -14,6 +14,7 @@ Regras (SPEC v5.2):
 - base do run  = `exp_{run_id}`                             (§17.7)
 - camadas      = `{base}__{camada}.parquet`, camada ∈
   {real (①), pop (②), surrogate (③), timing (§17.6)}       (§17.1/§17.6)
+  + `final` (⑦) — camada OPCIONAL, **só nos 5 configs offline** (DI-08)
 - log auditoria= `{base}.jsonl`                             (§17.5)
 - manifesto    = `{base}.manifest.json` (fragmento por run — D58; realiza o
   `{run_id}.manifest.json` do D58 sob a base `exp_{run_id}` do §17.7, de modo
@@ -33,7 +34,31 @@ import re
 # ── Vocabulário fixo ───────────────────────────────────────────────────────
 
 #: Camadas de export por run (§17.1 ①②③ + §17.6 timing).
+#: **OBRIGATÓRIAS nos 21 configs** — é esta tupla que o manifesto (`paths`,
+#: `is_run_done`), o espelho GCS (`plan_targets`) e o gate (`check_outputs`)
+#: iteram. NÃO acrescente camadas opcionais aqui: um run online passaria a ser
+#: cobrado por um arquivo que ele nunca escreve (o resume da esteira o daria
+#: como "não pronto" e a re-executaria para sempre).
 LAYERS: tuple[str, ...] = ("real", "pop", "surrogate", "timing")
+
+#: [R3-00-harness / DI-08] Camada ⑦ `__final.parquet` — o conjunto não-dominado
+#: FINAL do regime OFFLINE avaliado UMA vez na função verdadeira (§11/B7.5, "a
+#: única chamada real do offline"), em `src/problems.py` (float64), PÓS-HOC e
+#: FORA do orçamento (a exceção contábil do §11).
+#:
+#: É **OPCIONAL por construção**: existe só nos 5 configs offline (e103, b5r,
+#: b5m, c311, piso-off) e não tem sentido nos 16 online. Por isso vive FORA de
+#: `LAYERS` — quem exige a camada é o branch offline do gate, não o contrato
+#: universal do run. `layer_path(..., "final")` funciona (DI-08 §Execução-2);
+#: `layer_filenames`/`output_filenames`/`is_run_done` seguem intocados.
+FINAL_LAYER: str = "final"
+
+#: Camadas opcionais, por regime (hoje só a ⑦ do offline).
+OPTIONAL_LAYERS: tuple[str, ...] = (FINAL_LAYER,)
+
+#: O vocabulário COMPLETO aceito por `check_layer`/`layer_path` (obrigatórias +
+#: opcionais). Use `LAYERS` quando a pergunta for "o que todo run deve ter".
+ALL_LAYERS: tuple[str, ...] = LAYERS + OPTIONAL_LAYERS
 
 #: Tokens de experimento estáticos (§0/§1.5/D55). O sweep é dinâmico:
 #: `sweep-{tier}-{dist}` — use `sweep_exp(tier, dist)`.
@@ -68,8 +93,14 @@ def check_exp(exp: str) -> str:
 
 
 def check_layer(layer: str) -> str:
-    if layer not in LAYERS:
-        raise ValueError(f"camada inválida: {layer!r}. Esperado uma de {LAYERS}.")
+    """Valida um token de camada contra o vocabulário COMPLETO (`ALL_LAYERS`).
+
+    [R3-00-harness] Aceita as 4 obrigatórias **e** as opcionais (`final` — DI-08).
+    A distinção "toda run tem" × "só o offline tem" é de quem CONSOME a lista
+    (`LAYERS` vs `ALL_LAYERS`), não de quem valida um nome de arquivo.
+    """
+    if layer not in ALL_LAYERS:
+        raise ValueError(f"camada inválida: {layer!r}. Esperado uma de {ALL_LAYERS}.")
     return layer
 
 
@@ -140,8 +171,27 @@ def manifest_path(exp: str, alg: str, problema: str, semente,
                         manifest_filename(exp, alg, problema, semente))
 
 
+def final_filename(exp: str, alg: str, problema: str, semente) -> str:
+    """`{base}__final.parquet` — a camada ⑦ do offline (DI-08)."""
+    return layer_filename(exp, alg, problema, semente, FINAL_LAYER)
+
+
+def final_path(exp: str, alg: str, problema: str, semente,
+               data_root: str = DEFAULT_DATA_ROOT) -> str:
+    """Caminho da camada ⑦ `__final.parquet` (DI-08 — só os 5 configs offline).
+
+    Atalho legível para `layer_path(..., "final")`; é o caminho que o avaliador
+    pós-hoc (`scripts/final_eval.py`) escreve e que o branch offline do gate lê.
+    """
+    return layer_path(exp, alg, problema, semente, FINAL_LAYER, data_root)
+
+
 def layer_filenames(exp: str, alg: str, problema: str, semente) -> list[str]:
-    """As 4 camadas parquet do run (① ② ③ + timing)."""
+    """As 4 camadas parquet OBRIGATÓRIAS do run (① ② ③ + timing).
+
+    Não inclui a ⑦ `final` de propósito — ela é opcional/offline (DI-08); quem a
+    exige é o branch offline do gate. Ver `FINAL_LAYER`/`final_path`.
+    """
     return [layer_filename(exp, alg, problema, semente, ly) for ly in LAYERS]
 
 

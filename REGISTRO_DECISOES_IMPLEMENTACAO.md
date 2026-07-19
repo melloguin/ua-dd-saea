@@ -213,6 +213,28 @@
   mesma trajetória). Preditores ESTOCÁSTICOS (o MC-dropout do e7!) exigem save/restore do RNG em
   volta da predição da sonda — sem isso a trajetória muda e o retrofit REPROVA.
 
+### DI-10 — ✅ DECIDIDA (autor, 2026-07-18) — Enriquecimento do `.jsonl` (mecanismo por config)
+- **Contexto.** Pergunta do autor: o jsonl mostra EM DETALHES o comportamento de cada algoritmo
+  (vetores de decomposição, como o BO escolheu o ponto…)? A torre fez o mapeamento profundo dos
+  22 configs sobre o S.7 existente e identificou os campos que faltavam.
+- **Decisão:** mínimo comum novo em todo `<alg>_gen` (`fe`, `f_best[]`, `n_front1`, `modelo_hp`,
+  tempos, `dist_min_arquivo`) + campos específicos por config (b3: `apd_sel`/`sigma_sel`/
+  `adapt_delta_V`; c262/c154: `acqf_todos_restarts`/`n_baseline`/`mll_final`; c311: `n_folhas`/
+  `profundidade`; e103: `divergencia_modelos`/`margem_3sigma`; pisos: `n_front1`/`f_best`/vetores
+  de decomposição no header; tabela completa na SPEC §S.7.1 e no CONTRATO_DE_DADOS §6.1).
+  **Regra:** tudo read-only; grandezas que exigiriam patch invasivo no miolo stock REJEITADAS
+  (MOEA/D replace-count, NSGA-III niching, genealogia de operadores).
+- **Execução:** retrofit-R1 (já contratado) + retrofit-Python + R3 nativo.
+- **Referências.** SPEC §S.7.1 (v5.2.1); `CONTRATO_DE_DADOS.md` §6.
+
+### 📌 NOTA — Janela documental ANTECIPADA pelo autor (2026-07-18, v5.2.1)
+O autor ordenou a atualização documental completa ANTES do fechamento do c154 (sessão ativa apenas
+em faixa Python; regen auditado: SÓ 03_contrato_export + linha S.3 + SPEC). Executado pela torre:
+**`CONTRATO_DE_DADOS.md`** (raiz — o documento-referência definitivo dos outputs, réplica+expansão
+do §17 com mocks) + SPEC v5.2.1 (§17.2.2 sonda S=2000/k=2 · `fe_treino_max` na ③ · §17.6
+expandida com `tempo_geracao_s`/`tempo_pred_sonda_s` + manifesto timing OBRIGATÓRIO ·
+S.7.1 DI-10 · `__final` DI-08 · S.3#9 DI-05) + bundles regenerados. PENDENTE da janela original:
+apenas o item B5 (`cache_root` — cosmético, card do c262).
 ---
 
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)

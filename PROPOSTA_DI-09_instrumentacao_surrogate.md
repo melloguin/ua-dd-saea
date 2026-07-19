@@ -1,4 +1,7 @@
 # PROPOSTA DI-09 — Instrumentação de assertividade/calibração dos surrogates
+> **⚠ SUPERSEDIDA COMO CONTRATO (2026-07-18):** o contrato executável e definitivo agora é
+> **`CONTRATO_DE_DADOS.md`** (raiz) + SPEC v5.2.1 (§17.2.2/S.7.1). Este arquivo permanece como
+> registro do racional/aritmética da decisão. Divergência ⇒ vale SPEC > CONTRATO > esta proposta.
 ### (para decisão do autor; vira DI-09 no REGISTRO_DECISOES_IMPLEMENTACAO.md se aprovada)
 
 > **Motivação.** A dissertação é sobre SA-MOO-**UU** — o uso explícito da incerteza do surrogate.

@@ -142,7 +142,8 @@ _DISPATCH_LOADERS: dict[str, tuple[str, str, str]] = {
     # c311 rodam em venvs PRÓPRIOS e NUNCA podem ser co-importados (N.1.2):
     # o despacho da bateria usa `standalone_harness.run_in_venv`, que dá um
     # processo por run. Descomente ao fechar o cartão correspondente.
-    # 'c122':        ('src.c122_thetadeadp', 'run_c122', 'standalone'),
+    # [R3-c122] θ-DEA-DP (2 FNNs par-a-par, driver próprio) sobre o harness R3-00.
+    'c122':          ('src.c122_thetadeadp', 'run_c122', 'standalone'),
     # 'c149':        ('src.c149_lbnmobo',    'run_c149', 'standalone'),
     # 'e81':         ('src.e81_qpots',       'run_e81',  'standalone'),
     # 'b5r':         ('src.b5_prob',         'run_b5r',  'standalone'),

@@ -777,6 +777,138 @@ def check_r2_00(exp="main", problema="MMF1", semente=0, gcs_smoke=False):
 
 # ── Checagem do cartão R3-00-harness (infra transversal standalone + ⑦) ────
 
+def check_r3_c122(exp="main", problema="MMF1", semente=0, data_root=None):
+    """Gate objetivo do R3-c122 (θ-DEA-DP, ONLINE) — o run JÁ TEM de existir.
+
+    Difere do `check_r3_00` de propósito: aquele RODA o stub (segundos); este
+    AFERE um run já gravado, porque um run real do c122 leva de 50 s (MMF1) a
+    horas (ZDT1) — re-rodar dentro do gate o tornaria inutilizável.
+
+    O que prova (nada disto é fidelidade — D97):
+      1. as 4 saídas + jsonl + manifesto existem;
+      2. **FE = 31D−1 EXATO**, D derivado da própria ① (não do `--dim`);
+      3. CP-init: `doe_hash` do manifesto == hash do artefato do DoE, e as
+         `11D−1` primeiras linhas da ① em fase `init`;
+      4. ③ v5.2.1: `regime` POR LINHA (sonda × online na MESMA tabela), blocos
+         de sonda de **2.000** na ORDEM do artefato, `fe_treino_max` sem nulos,
+         `real_solution_id` NULL nas linhas de sonda;
+      5. ③-BUSCA: `pred_tipo='score'` com `pred_score` preenchido e
+         `mu_*`/`sigma_*` NULOS (o c122 é par-a-par — μ/σ significam outra
+         coisa e envenenariam a leitura da R4), ≤ TOP_BUSCA linhas por geração;
+      6. ④ v5.2.1 COMPLETA: as 4 colunas de tempo sem nulos indevidos;
+      7. manifesto com bloco `timing` + `sigma_dict` + bloco `sonda`.
+    """
+    from src import naming as _naming
+    out = []
+    data_root = data_root or os.path.join(ROOT, "data")
+    alg = "c122"
+    try:
+        import numpy as _np
+        import pyarrow.parquet as _pq
+    except ImportError:
+        return [("pyarrow/numpy", (None, "ausentes no env — skip"))]
+
+    out.append(("saídas", check_outputs(exp, alg, problema, semente,
+                                        data_root=data_root)))
+    ok_real = os.path.exists(_naming.layer_path(exp, alg, problema, semente,
+                                                "real", data_root=data_root))
+    if not ok_real:
+        out.append(("run presente", (False, f"① ausente — rode primeiro: "
+                                            f"run_c122('{exp}','c122',"
+                                            f"'{problema}',{semente})")))
+        return out
+
+    real = _pq.read_table(_naming.layer_path(exp, alg, problema, semente,
+                                             "real", data_root=data_root))
+    D = sum(1 for c in real.column_names
+            if len(c) > 1 and c[0] == "x" and c[1:].isdigit())
+    out.append(("FE exato (①)", check_fe(exp, alg, problema, semente, D,
+                                         data_root=data_root)))
+    out.append(("CP-init (DoE bit-a-bit)",
+                check_doe_hash(problema, semente, data_root=data_root)))
+
+    fases = real.column("fase").to_pylist()
+    n_init = 11 * D - 1
+    ok = (fases[:n_init] == ["init"] * n_init
+          and all(f == "opt" for f in fases[n_init:]))
+    out.append(("① fases init/opt", (ok, f"{fases.count('init')} init "
+                                         f"(esperado {n_init}) + "
+                                         f"{fases.count('opt')} opt")))
+
+    surr = _pq.read_table(_naming.layer_path(exp, alg, problema, semente,
+                                             "surrogate", data_root=data_root))
+    reg = _np.asarray(surr.column("regime").to_pylist())
+    n_snd = int((reg == "sonda").sum())
+    ok = n_snd > 0 and n_snd % 2000 == 0
+    out.append(("③ blocos de sonda ×2000",
+                (ok, f"{n_snd} linhas 'sonda' = {n_snd / 2000:g} blocos; "
+                     f"{int((reg == 'online').sum())} linhas de busca")))
+
+    # ordem do artefato: o join com o gabarito é POSICIONAL (R4 regra 5)
+    from src import standalone_harness as _sh
+    snd_art = _sh.load_sonda(problema, regime="online", data_root=data_root)
+    xs = _np.column_stack([surr.column(f"x{i}").to_numpy() for i in range(D)])
+    idx = _np.where(reg == "sonda")[0]
+    ok_ordem = True
+    for b in range(len(idx) // 2000):
+        bloco = xs[idx[b * 2000:(b + 1) * 2000]]
+        if not _np.allclose(bloco, snd_art["X"].astype(bloco.dtype),
+                            rtol=0, atol=1e-5):
+            ok_ordem = False
+            break
+    out.append(("③ sonda na ORDEM do artefato",
+                (ok_ordem, "todos os blocos batem posicionalmente com "
+                           "data/sonda/ (join posicional, R4 regra 5)"
+                 if ok_ordem else f"bloco {b} FORA de ordem — a R4 casaria "
+                                  f"predição com o gabarito ERRADO")))
+
+    ftm = surr.column("fe_treino_max").to_pylist()
+    out.append(("③ fe_treino_max sem nulos",
+                (all(v is not None for v in ftm),
+                 f"min={min(v for v in ftm if v is not None)} "
+                 f"max={max(v for v in ftm if v is not None)}")))
+
+    rsid = surr.column("real_solution_id").to_pylist()
+    snd_nulo = all(rsid[i] is None or (isinstance(rsid[i], float)
+                                       and _np.isnan(rsid[i])) for i in idx)
+    out.append(("③ sonda com real_solution_id NULL",
+                (snd_nulo, "as 2000×N linhas de sonda não apontam o ① "
+                           "(nenhuma foi avaliada) — correto")))
+
+    tipos = set(surr.column("pred_tipo").to_pylist())
+    mus = surr.column("mu_0").to_pylist() if "mu_0" in surr.column_names else []
+    mu_nulo = all(v is None or (isinstance(v, float) and _np.isnan(v))
+                  for v in mus)
+    score = surr.column("pred_score").to_pylist()
+    ok = (tipos == {"score"} and mu_nulo
+          and all(v is not None for v in score))
+    out.append(("③ score par-a-par (DEF-C1)",
+                (ok, f"pred_tipo={tipos}, pred_score preenchido, "
+                     f"mu_*/sigma_* NULOS (o c122 não produz μ/σ)")))
+
+    tim = _pq.read_table(_naming.layer_path(exp, alg, problema, semente,
+                                            "timing", data_root=data_root))
+    faltando = [c for c in ("tempo_fit_s", "tempo_busca_s",
+                            "tempo_pred_sonda_s", "tempo_geracao_s")
+                if any(v is None for v in tim.column(c).to_pylist())]
+    out.append(("④ timing v5.2.1 completa",
+                (not faltando, f"{tim.num_rows} gerações × 4 colunas de tempo"
+                 if not faltando else f"colunas com NULL: {faltando}")))
+
+    with open(_naming.manifest_path(exp, alg, problema, semente,
+                                    data_root=data_root), encoding="utf-8") as fh:
+        man = json.load(fh)
+    tblk = man.get("timing") or {}
+    ok = (all(k in tblk for k in ("tempo_total_s", "tempo_fit_surrogate_s",
+                                  "tempo_busca_s", "tempo_aval_real_s"))
+          and bool(man.get("sigma_dict")) and bool(man.get("sonda")))
+    out.append(("⑤ manifesto (timing+sigma_dict+sonda)",
+                (ok, f"timing={sorted(tblk)}; sigma_dict="
+                     f"{len(man.get('sigma_dict') or {})} chaves; "
+                     f"sonda.n_blocos={(man.get('sonda') or {}).get('n_blocos')}")))
+    return out
+
+
 def check_r3_00(exp="off", problema="MMF1", semente=0, data_root=None):
     """Encanamento objetivo do R3-00-harness (contrato N.2 + DI-08).
 
@@ -1427,6 +1559,28 @@ def main():
         print("  [INFO] STUB stubr3 (sem algoritmo real): prova só o "
               "ENCANAMENTO do contrato N.2 + DI-08 — c122/b5r/b5m/c311/c149/"
               "e81/piso-off são os cartões seguintes.")
+        print("\n  >>> " + ("VERMELHO — pára-e-loga (D81)" if fail
+                            else "VERDE (encanamento objetivo)"))
+        print("  Lembrete (D97): a fidelidade é validação MANUAL do autor, "
+              "a posteriori — não entra aqui.")
+        sys.exit(1 if fail else 0)
+
+    # R3-c122 = θ-DEA-DP (1º algoritmo da Rodada 3, ONLINE). Afere o run JÁ
+    # EXECUTADO (não re-roda: um run de ZDT1 leva horas) contra o contrato
+    # v5.2.1 — FE exato, CP-init, 4 camadas + jsonl + manifesto, sonda e ③.
+    # ⚠ TEM de vir ANTES do catch-all abaixo (mesma armadilha do R3-00).
+    if a.cartao.startswith("R3-c122"):
+        if a.alg not in (None, "c122"):
+            print(f"  [FAIL] cartão R3-c122 só afere --alg=c122: {a.alg!r}")
+            sys.exit(2)
+        results = check_r3_c122(exp=a.exp, problema=a.problema,
+                                semente=int(a.semente))
+        fail = False
+        for name, (ok, msg) in results:
+            mark = "SKIP" if ok is None else ("OK  " if ok else "FAIL")
+            print(f"  [{mark}] {name}: {msg}")
+            if ok is False:
+                fail = True
         print("\n  >>> " + ("VERMELHO — pára-e-loga (D81)" if fail
                             else "VERDE (encanamento objetivo)"))
         print("  Lembrete (D97): a fidelidade é validação MANUAL do autor, "

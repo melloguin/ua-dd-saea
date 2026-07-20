@@ -129,7 +129,7 @@ com modelo (GP × RBF × PNN × rede × classificador), livre do viés de amostr
   a que pertencer). A sequência de Sobol é **ANINHADA** (verificado |dif|=0): a fatia online é
   BIT-IDÊNTICA a uma sonda gerada com 2.000, logo a régua é a MESMA nos dois regimes na faixa
   compartilhada. O sidecar v2 traz `S`/`S_online` + `x_hash`/`x_hash_online` — cada regime confere
-  o SEU hash (e103 grava 2 blocos: Kriging e RBFN). O evento `sonda` do `.jsonl`
+  o SEU hash (e103 grava 2 blocos: Kriging e RBFN). **⚠ EXCEÇÃO c311 — o modelo NÃO é fixo** [C311-02/DI-16.12]: no TGPR-MO o surrogate é CONSTRUÍDO dentro de um laço (1 GP de folha por iteração, até Imax=⌈N/(10D)⌉ — 2.500 no tier big), então a premissa 'offline = modelo treinado 1×' não se aplica. Sondar por iteração é inviável (2.500×20.000 linhas). **Regra p/ o c311: exatamente 2 blocos fixos** — (i) ao FIM da construção da árvore (`modelo_flag='treedGP_build'`) e (ii) ao FIM do run (`modelo_flag='treedGP_final'`), ambos com `geracao`=NULL. O evento `sonda` do `.jsonl`
   registra `geracao`, `fe` e `tempo_pred_sonda_s` — o eixo de comparação entre algoritmos é o
   **FE consumido** (gerações não são alinhadas entre configs).
 - **Gravação:** 2000 linhas na ③ (`regime='sonda'`, `real_solution_id=NULL`, `fe_treino_max`
@@ -182,9 +182,9 @@ com modelo (GP × RBF × PNN × rede × classificador), livre do viés de amostr
 | c217 | PNN · **par-a-par**→score | 100% | ~309 (D15–21→465–650) | ~1 M | ~50–150 k | ~5–12% |
 | c122 | 2×FNN · **par-a-par** (θ-dom)→score | 100% | ~309 | ~1 M | ~50–150 k | ~5–12% |
 | e74 | **híbrido** (RBF μ + PNN classe) | 100% | ~309 | ~3–5×10⁵ | ~30–50 k | ~8–12% |
-| b5 (off) | GP · μ/σ (Prob-RVEA/MOEA-D) | 100% | ~309 +final | ~40 k | ~8 k | ~20% |
-| c311 (off) | árvore-GP local · μ+σ | 100% | ~309 +final | ~10⁵ | ~20 k | ~20% |
-| e103 (off) | **seleção de modelo** (Kriging↔RBFN) | 100% | ~309 +final | ~9,9 k | ~2 k | ~20% |
+| b5 (off) | GP · μ/σ (Prob-RVEA/MOEA-D) | 100% | ~309 +final | ~40 k | **~40–60 k** (busca ~40 k + **sonda 20 k**) | ~100% | ⟦v5.2.1: pós-D54/sonda⟧
+| c311 (off) | árvore-GP local · μ+σ | 100% | ~309 +final | ~10⁶ (predict 1-pt/linha) | **~80–135 k** (build ~10 k + final 1.000 ger × pop 50/105 = 50–105 k + **sonda 2×20 k**) | — | ⟦v5.2.1: valores pré-D54/pré-sonda estavam ~20 k⟧
+| e103 (off) | **seleção de modelo** (Kriging↔RBFN) | 100% | ~309 +final | ~9,9 k | **~45 k** (busca ~5 k + **sonda 2×20 k**) | — | ⟦v5.2.1: pós-D54/sonda⟧
 
 **As duas leituras:** (i) **REAL = 100% em todos**, exatas 31D−1/run (~309 em D=10; ~929 em D=30), fonte das métricas oficiais — nunca amostramos; (ii) **SURROGATE = fração pequena** (0,5–20%): o modelo é consultado milhões de vezes, mas só os snapshots persistem; quanto mais pesado o otimizador interno, MENOR o % guardado (o teto corta mais).
 
@@ -236,7 +236,7 @@ Duas saídas de tempo promovidas a **dado de primeira classe** (antes: só o tot
 | `run_id` | liga ao manifesto (algoritmo, problema, semente) |
 | `geracao` / `iter` | quando o retreino ocorreu (sincroniza com ①②③ via `geracao`) |
 | `n_acumulado` | nº de pontos reais no conjunto de treino **naquele** retreino (eixo-x da escalabilidade) |
-| `tempo_fit_s` | tempo de treino do surrogate **naquele** retreino (eixo-y). **NULLABLE [DI-13.2]:** os pisos não treinam ⇒ `NULL` = "não se aplica" (≠ `0.0` = "treinou e custou zero") |
+| `tempo_fit_s` | tempo de treino do surrogate **naquele** retreino (eixo-y). **NULLABLE [DI-13.2, refinada por DI-16.1]:** só os **4 pisos ONLINE** (MOEA puro) gravam `NULL` = 'não se aplica'. **O piso OFFLINE (MOEA/D-média, D77) TREINA um GP e grava `tempo_fit_s` MEDIDO**, em 1 linha (molde do e103): `n_acumulado` = |dataset| = 31D−1 = "não se aplica" (≠ `0.0` = "treinou e custou zero") |
 | `tempo_busca_s` | tempo da aquisição/otimização interna na mesma iteração — **OBRIGATÓRIO [v5.2.1, autor: era opcional]** |
 | `tempo_pred_sonda_s` | **[DI-09 v5.2.1]** custo da sonda na iteração (0 quando não roda) |
 | `tempo_geracao_s` | **[v5.2.1, autor]** wall TOTAL da geração (fit+busca+aval+overhead) — o relógio por geração, nos 21 configs (pisos: fit=NULL) |

@@ -181,10 +181,11 @@
    "id": "b5-mode72-kde",
    "repo": "b5_desdeo",
    "file": "desdeo_emo/selection/ProbMOEAD_select.py",
-   "line": 65,
-   "expect_before": "<KDE morto + plt_density :75 viva>",
-   "expect_after": "<comentar :65-75>",
-   "kind": "[IMPL] crash"
+   "line": 66,
+   "expect_before": "<inicio do bloco KDE morto (gaussian_kde/plt_density) — literal a CONCRETIZAR no cartao R3-b5 apos inspecionar o arquivo real (precedente b3-updataarchive-guard/c238-hypervolume-rm)>",
+   "expect_after": "<bloco :66-75 comentado — literal a CONCRETIZAR no cartao>",
+   "kind": "[IMPL] crash",
+   "nota": "[H1/DI-16.20] o cartao diz ':66-75' e a ancora dizia ':65' (off-by-one). Reconciliado p/ 66; os literais sao CONCRETIZADOS pela sessao (o repo b5 nao esta montado nesta arvore) e sinalizados p/ veto do autor."
   }
  ]
 }

@@ -699,14 +699,62 @@ São **definições ausentes**, não erros de redação — exigem escolha de es
   **`env_b5`/`env_c311`**, apontando o `envs.json:alg_to_env` como FONTE ÚNICA em runtime (DI-14),
   com o pin correto do sklearn (0.21.3) e a **TAREFA 0 de Mac×VM** (DI-11.5/RI-08) explícita.
 
+### DI-16.9 a DI-16.20 — os 17 achados dos cartões POSTERIORES (torre, 2026-07-19)
+Aplicados em lote enquanto c122 e o retrofit MATLAB rodavam (faixa da torre: SPEC + artefatos;
+zero interseção com `.py` do c122 ou `.m` do MATLAB). **Todos verificados nos bundles regenerados.**
+
+**c149 (7 — era o cartão MAIS dessincronizado):**
+- **DI-16.9 (A-02)** a sonda devolve `(μ,σ)` **DES-PADRONIZADOS por objetivo** (o c149 faz z-score de
+  Y): `μ_nat=μ_z·std+mean`, `σ_nat=√max(σ²_z,0)·std`, com os params do refit CORRENTE; `sigma_*`
+  carrega **σ, nunca σ²**.
+- **DI-16.10 (E-02)** a premissa «`minimize(seed=k)` re-semeia os globais» é **FALSA no pymoo 0.6.2**
+  do env_main (MEDIDO pelo R3-00) — vale só em ≤0.6.1.3 (o fallback do Colab). Usar
+  `preserve_all_rng` de qualquer forma.
+- **DI-16.11 (F-01)** ENV = **`env_main` no Mac** (não os pins do Colab, que são o fallback D78);
+  Tarefa 0: confirmar `torch` no venv.
+- **(I-03)** as sementes: os nomes `g()`/`h()` das receitas L **não existem em código** → usar
+  `iteration_seed(...)` do harness (D62/D91).
+- **(I-04)** DoE: **NÃO gerar** — `load_doe` do artefato (D87/D88); gerar o próprio estava MORTO.
+- **(B-02)** o adapter faz **só a desnormalização** e DELEGA a `bud.evaluate` — o FEBudget é a fonte
+  ÚNICA do orçamento (D89); "contagem + dedup no adapter" duplicaria a contabilidade.
+- **DI-16.15 (E-01)** o cartão passa a listar as APIs do harness REAL a reusar (com destaque para o
+  `iteration_cleanup`/D86, crítico no ensemble de K=10 redes).
+
+**c311 (5):**
+- **DI-16.12 (C311-02) 🔴 a premissa "offline = modelo fixo" é FALSA para ele** — o TGPR-MO constrói
+  a árvore DENTRO de um laço (1 GP de folha por iteração, até 2.500 no big). Regra cravada:
+  **exatamente 2 blocos de sonda** — fim da construção (`treedGP_build`) e fim do run
+  (`treedGP_final`), ambos com `geracao`=NULL.
+- **DI-16.13 (C311-12)** a sonda de 20.000 exige um **`predict_batch(X)` NOVO** (o `predict` canônico
+  é loop 1-ponto-por-linha ⇒ 40–60k chamadas GPy por bloco); **NÃO** copiar o `predict_new` (é de
+  outra classe).
+- **DI-16.14 (C311-14)** o cartão se contradizia (mandava trocar NDS pygmo→pymoo e 5 linhas acima
+  dizia que o pygmo nunca é importado): **o pygmo está AUSENTE do caminho `framework/` — nenhum swap
+  é necessário**.
+- **DI-16.19 (C311-11)** **contador de `geracao` ÚNICO e monotônico** atravessando as 2 fases (as ③
+  das fases colidiam em 1..50); fase discriminada em `modelo_flag`.
+- **(C311-15)** volumetria da ③ atualizada pós-D54+sonda (c311 ~80–135 k, não ~20 k; idem b5/e103).
+
+**b5 / piso-off (4):**
+- **DI-16.16 (B3) 🔴** o mini-patch do mode 7 é **REQUISITO DE GATE**, não instrumentação: sem ele o
+  archive é a PROLE pré-seleção ⇒ **a ⑦ nasce IRRECONSTITUÍVEL da ③ com erro SILENCIOSO**. O aceite
+  do b5r passa a incluir `final_eval --check` VERDE.
+- **(D1)** o `tempo_fit_s`=NULL vale só p/ os **4 pisos ONLINE**; o piso OFFLINE **treina e grava
+  tempo medido** (coerente com a DI-16.1).
+- **DI-16.17 (J1)** no b5/piso a **② sai VAZIA por construção** (pop inicial = LHS novo ≠ dataset) e o
+  `real_solution_id` é NULL na busca — ESPERADO, declarado no `sigma_dict`; o gate NÃO deve exigir ②
+  não-vazia nesses configs.
+- **DI-16.20 (H1)** âncora `b5-mode72-kde`: off-by-one reconciliado (65→**66**) + literais marcados
+  para CONCRETIZAÇÃO na sessão (precedente b3/c238), já que o repo do b5 não está montado.
+
+**e81 (1):** **DI-16.18 (E81-09)** contradições internas resolvidas por lápide — vale o corpo:
+**`train_Yvar=1e-12`** (não 1e-6), **ngen=10 (D46)** (não "a fixar"), e **env PRÓPRIO
+`env_e81_qpots` com botorch 0.16.1** (não "testar sobre o 0.18 primeiro").
+
 ### 📌 Estado da aplicação dos 43 achados (transparência)
-**26 de 43 aplicados.** Os **17 restantes** são de cartões POSTERIORES e serão corrigidos ANTES de
-cada um (a torre não deixa cartão abrir com pendência): **c149 (7 — 4 🔴:** semântica da sonda,
-harness, conflito TRIPLO de sementes D22×D62/D91, DoE D87/D88**)** · **c311 (5 — 1 🔴:** a premissa
-"offline = modelo fixo" é FALSA p/ ele, que constrói a árvore incrementalmente**)** · **b5/piso-off
-(4 — 3 🔴:** ⑦ irreconstituível no mode 7, timing do piso que TREINA, ② e real_solution_id vazios**)**
-· **e81 (1 🟡:** contradições internas de nugget/ngen**)**. **O conjunto que o R3-c122 lê está 100%
-sincronizado** (contrato transversal + cartão + contrato de dados + as 6 decisões DI-16).
+**43 de 43 APLICADOS ✅** (26 no primeiro lote + os 17 dos cartões posteriores, DI-16.9..16.20).
+Todos verificados nos bundles regenerados; preflight e suíte verdes. **Os 7 cartões do M5/R3 estão
+sincronizados com a arquitetura atual** — nenhum abre com pendência de documentação.
 
 ### DI-16.6 — `n_baseline` → **`n_train`** no e81
 - O `n_baseline` é o \|X_baseline\| **pós-prune** do qLogNEHVI. O qPOTS **não tem baseline nem

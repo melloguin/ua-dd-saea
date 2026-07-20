@@ -903,6 +903,7 @@ function [status, info] = run_b3(alg, problema, semente, exp, dataRoot)
     status = "failed";
     info = struct();
     ROOT = harness_root();
+    t0_run = tic;                                  % [§17.6] wall total do run
 
     % Arvore PlatEMO 4.15 no path (N.0.1) — rede p/ chamada direta.
     ensure_paths_b3(ROOT);
@@ -961,7 +962,11 @@ function [status, info] = run_b3(alg, problema, semente, exp, dataRoot)
 
     % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.
     %     N=100 governa o nº de vetores de referencia (KRVEA.m:30 ajusta p/ Nref).
-    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, ...
+    %     [DI-09] snd = SondaState (data e SetAccess=protected: so aqui).
+    sd  = load_sonda(problema, D, M, dataRoot);
+    snd = [];
+    if ~isempty(sd), snd = SondaState(sd, buf, fid, alg); end
+    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, 'snd', snd, ...
                   'run_id', string(nm_run_id(exp, alg, problema, semente)), ...
                   'problema', string(problema), 'semente', semente);
     Problem = UserProblem('evalFcn', batchEval, 'initFcn', @(N,varargin) X0(1:N,:), ...
@@ -992,6 +997,10 @@ function [status, info] = run_b3(alg, problema, semente, exp, dataRoot)
         end
     end
 
+    % (7b) [DI-09] SONDA da ULTIMA geracao — fora do laco, sobre o modelo ARMADO
+    % no ultimo fit. No-op se aquela geracao ja foi sondada pela cadencia.
+    if ~isempty(snd), snd.finalProbe(); end
+
     % (8) EXPORT das 4 camadas (§17.2/§17.3): ① do wrapper; ②③/timing do buffer.
     R = bud.records();                                 % catalogo ① (== 31D-1 linhas)
     write_real(exp, alg, problema, semente, R, D, M, dataRoot);
@@ -1013,6 +1022,7 @@ function [status, info] = run_b3(alg, problema, semente, exp, dataRoot)
         maxfe, bud.fe, buf.nGeracoes(), doe_hash_run, bud.cache_hits, dataRoot);
     man.algo_version = "b3-KRVEA-PlatEMO4.15";
     man.status = st_str;
+    man = fill_manifest_timing(man, buf.trows, bud, toc(t0_run), snd);   % [§17.6/DI-09]
     man.params = struct('N_vetores', Nref, 'alpha', 2, 'wmax', 20, 'mu', 5, ...
                         'delta', delta, 'dace', "regpoly1+corrgauss", ...
                         'theta0', 5, 'theta_bounds', "[1e-5,100]", ...

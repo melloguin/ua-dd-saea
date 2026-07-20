@@ -40,6 +40,7 @@ classdef KRVEA < ALGORITHM
 
             %% Optimization
             while Algorithm.NotTerminated(A2)
+                tGer_b3 = tic;                       % [DI09-R1c] §17.6 wall da geracao
                 % Refresh the model and generate promising solutions
                 A1Dec = A1.decs;
                 A1Obj = A1.objs;
@@ -55,6 +56,16 @@ classdef KRVEA < ALGORITHM
                     THETA(i,:) = dmodel.theta;
                 end
                 tfit_s = toc(t0_fit);                % [R1-b3] §17.6
+                % [DI09-R1c] SONDA (DI-09/§17.2.2): pos-fit dos M DACEs, ANTES da
+                % 1a decisao, ANTES do 1o consumo de RNG (OperatorGA no laco
+                % interno) e ANTES da Evaluation (:93, onde o hard-stop aborta o
+                % corpo). `pred_h` resolve o `predictor` NESTE escopo: ha ~30
+                % copias de predictor/dacefit na arvore e o b3_sonda vive em src/
+                % (sem same-folder), entao passar o handle e o que garante que a
+                % sonda usa a MESMA implementacao que a busca usou no fit.
+                pred_h_b3 = @predictor;
+                ftm_b3    = b3_sonda(Problem, Model, A1Dec, tfit_s, pred_h_b3);
+                t0_busca_b3 = tic;                   % [DI09-R1c] §17.6 (pos-sonda)
                 PopDec = A1Dec;
                 snaps  = cell(1,wmax);               % [R1-b3] ③ DEF-C2: pop selecionada por ger. interna
                 w      = 1;
@@ -87,7 +98,9 @@ classdef KRVEA < ALGORITHM
                 [NumVf,~] = NoActive(A1Obj,V0);
                 % [R1-b3] KrigingSelect com outputs de instrumentacao (L.2):
                 % sel=index (:64), NumV2 (:15), Flag (:42). Decisoes intactas.
-                [PopNew,sel,NumV2,Flag] = KrigingSelect(PopDec,PopObj,MSE(index,:),V,V0,NumVf,0.05*Problem.N,mu,(w/wmax)^alpha);
+                [PopNew,sel,NumV2,Flag,APD_S_b3] = KrigingSelect(PopDec,PopObj,MSE(index,:),V,V0,NumVf,0.05*Problem.N,mu,(w/wmax)^alpha);
+                tbusca_s_b3  = toc(t0_busca_b3);     % [DI09-R1c] §17.6
+                A1DecPre_b3  = A1.decs;              % [DI09-R1c] DI-10/B3 pre-infill
                 New       = Problem.Evaluation(PopNew);
                 A2        = [A2,New];
                 % [R1-b3] guarda do crash latente (anchors b3-updataarchive-guard):
@@ -99,7 +112,11 @@ classdef KRVEA < ALGORITHM
                 Problem.FE = Problem.data.bud.fe;
                 % [R1-b3] instrumentacao POS-decisao (D97): ③ + .jsonl + timing.
                 b3_instrument(Problem, A1, snaps, PopNew, sel, NumVf, NumV2, ...
-                              Flag, 0.05*Problem.N, mu, nzero, n_treino, tfit_s);
+                              Flag, 0.05*Problem.N, mu, nzero, n_treino, tfit_s, ...
+                              ftm_b3, A1DecPre_b3, A2.objs, toc(tGer_b3), tbusca_s_b3, ...
+                              APD_S_b3, MSE(index,:));
+                              % ^ [DI-17.2] f_best/n_front1 = A2 (arquivo real
+                              %   POS-ciclo; o A1 do b3 e PODADO com teto NI).
             end
         end
     end

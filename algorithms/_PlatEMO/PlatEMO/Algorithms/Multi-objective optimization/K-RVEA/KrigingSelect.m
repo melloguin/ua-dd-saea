@@ -1,7 +1,12 @@
-function [PopNew,index,NumV2,Flag] = KrigingSelect(PopDec,PopObj,MSE,V,V0,NumV1,delta,mu,theta)
+function [PopNew,index,NumV2,Flag,APD_S] = KrigingSelect(PopDec,PopObj,MSE,V,V0,NumV1,delta,mu,theta)
 % Kriging selection in K-RVEA
 % [R1-b3] patch 1 linha (L.2): exporta index (:64)/NumV2 (:15)/Flag (:42) para a
 % instrumentacao (u efetivo + ramo APD x incerteza). Decisoes INTACTAS (D97).
+% [DI09-R1c/DI-12.1] +1 output APD_S: o vetor de APD por candidato, JA COMPUTADO
+% nos dois ramos (:38) e usado pelas decisoes de :55/:58. Expo-lo e patch ADITIVO
+% — nenhuma linha de decisao muda; e o que o DI-10 pede como `apd_sel` (o PORQUE
+% numerico da escolha no ramo APD). Liberado explicitamente pelo autor: uma linha
+% que so LE um valor ja calculado nao e o que o §6.1 barra.
 
 %------------------------------- Copyright --------------------------------
 % Copyright (c) 2026 BIMK Group. You are free to use the PlatEMO for

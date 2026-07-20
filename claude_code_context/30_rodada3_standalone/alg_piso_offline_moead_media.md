@@ -16,7 +16,7 @@ No offline, MOEA puro é **impossível** (não há função real para avaliar du
 
 ## 10. Surrogate do piso offline — [DECIDIDO: GP-média]
 O piso treina um **GP (Kriging)** no dataset e otimiza sobre a **média** — **mesma família dos 3 viáveis** (todos GP). Isola *uma* variável (usar σ vs só a média); RBF/NN introduziria uma segunda diferença (família do modelo) e poluiria o isolamento.
-- **Ajuste no tier big-data (~50k):** o GP padrão não treina (parede O(n³)); **só nesse tier** o piso usa **treed-GP-média**, mantendo o conceito "GP-média" e a presença do piso em todos os tiers.
+- **Ajuste no tier big-data (~50k):** o GP padrão não treina (parede O(n³)); **só nesse tier** o piso usa **treed-GP-média**, mantendo o conceito "GP-média" e a presença do piso em todos os tiers. **[P5/DI-16.5] ROTA — a antiga era IMPOSSÍVEL:** o piso offline vira **DUAS instâncias**, cada uma no env do seu PAR de ablação — (i) **small/medium → `env_b5`** (motor MOEA/D mode 12 + Kriging-média = a ablação do b5, que só roda nesses tiers); (ii) **big → `env_c311`** (treed-GP-média + o MOEA/D disponível ali = a ablação do c311, o único que roda no big). Motivo: a `treeGP` vive no vendor do c311 e o mode 12 no do b5, e **b5×c311 NUNCA podem ser co-importados** (N.1.2/D79 — mesmo nome de pacote, código diferente ⇒ usa as classes ERRADAS sem erro). Um env por processo ⇒ zero colisão. O roster do sweep (§11.5) passa a listar o piso nos **3** tiers.
 
 ---
 

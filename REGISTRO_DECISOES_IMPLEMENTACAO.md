@@ -8,7 +8,7 @@
 > janela documental (sem sessão de implementação ativa) e fica referenciada aqui.
 > **Formato por decisão:** Contexto → Opções → Decisão → Justificativa → Evidência de verificação →
 > Efeitos/ações → Referências. Decisor: **o autor** (Guilherme), em ping-pong com a torre.
-> Última atualização: **2026-07-19** (DI-15: sincronização do M5/R3 — auditoria de 88 agentes, na PARTE A4).
+> Última atualização: **2026-07-19** (DI-16: as 6 definições escaladas pela auditoria M5, na PARTE A5).
 
 ---
 
@@ -621,6 +621,74 @@ São **definições ausentes**, não erros de redação — exigem escolha de es
 | P4 | **N interno do piso offline × b5** (`I1`/DEF-E3): 100 × 50/105 quebra a "ablação exata" | é a validade da comparação piso×b5 |
 | P5 | **Rota do piso no tier big** (`C311-06`): usa treed-GP do c311? colide com "b5×c311 nunca co-importar" | decisão de desenho + risco de venv |
 | P6 | **`n_baseline` no e81** (`E81-04`): conceito do qNEHVI que não existe no qPOTS | análogo à DI-11 §2 (c154 → `n_train`), mas precisa do aval |
+
+## PARTE A5 — DI-16: as 6 definições que a auditoria M5 escalou (autor, 2026-07-19)
+
+> As pendências P1–P6 da DI-15.5 (definições AUSENTES, não erros de redação — D81 proíbe a torre
+> escolher sozinha). O autor aprovou as 6 recomendações em bloco. Cravadas na SPEC + CONTRATO +
+> bundles regenerados nesta janela.
+
+### DI-16.1 — O piso OFFLINE **EMITE SONDA** (a regra "pisos não têm modelo" era falsa p/ ele)
+- **Contexto.** A regra dizia «pisos (4+1) — NÃO TÊM SONDA (sem modelo)». Vale para os 4 pisos
+  ONLINE (MOEAs puros). É **FALSA** para o 5º: o piso offline **treina um GP (Kriging)** e otimiza
+  sobre a **média** — ele É, por desenho, "o b5 sem σ" (DEF-E3): mesmo motor (MOEA/D mode 12 do
+  DESDEO), mesmo surrogate, mesmo orçamento (40k aval-surrogate).
+- **Decisão: (a) o piso-off emite sonda** como qualquer config com modelo — `mu_*` preenchido,
+  `sigma_*` NULL — e grava `tempo_fit_s` REAL + `modelo_hp`.
+- **Justificativa.** A comparação de sonda **piso-off × b5r/b5m é a medição mais direta que o estudo
+  tem do VALOR do σ**: mesmo GP, mesmo μ, mesmos 20.000 pontos ⇒ a diferença é atribuível só à
+  incerteza. Excluí-la por uma frase escrita pensando nos pisos online perderia o contraste central.
+- **⚠ Efeito colateral: AJUSTA a DI-13.7.** O assert passa a ser «os **4 pisos ONLINE** não produzem
+  ③» (não "os pisos"). A contagem de configs COM surrogate vai de 17 → **18**.
+
+### DI-16.2 — A referência da sonda do c122 = **a população selecionada (N=11/15)**
+- **Contexto.** O modelo do c122 não responde nada absoluto sobre 1 ponto: as 2 FNNs consomem PARES
+  `[x_i,x_j]` e devolvem softmax-3; `e(z)` só existe RELATIVO a um conjunto. "Referência corrente"
+  nunca foi definida para ele (para o c217 sim: Pmid).
+- **Decisão: (a) a POPULAÇÃO SELECIONADA corrente** (N=11 em M=2 / 15 em M=3), com `n_ref` no jsonl.
+- **Justificativa.** É a única candidata que é **(i) de tamanho FIXO** — parâmetro do próprio
+  algoritmo ⇒ `e(z)` comparável entre gerações, sementes e configs (o arquivo inteiro cresceria de
+  11D−1 a 31D−1 e o score subiria SÓ pela escala, **falsificando a curva "o surrogate melhora com as
+  épocas?"**, que é o propósito da sonda) — **e (ii) FIEL**: é o contexto real em que o modelo decide
+  durante a busca.
+
+### DI-16.3 — ③-BUSCA do c122 = **TOP-100 do pool + agregados** (não o pool de 7.000)
+- **Contexto.** A DEF-C2 classificava o c122 como "EA ⇒ grave a população selecionada" — mas a
+  seleção de sobrevivência dele usa fitness **REAL**, então a população selecionada NÃO é predição
+  de modelo (a ③ sairia vazia de conteúdo). O modelo prevê sobre o **pool de N\*=7.000/iteração**,
+  do qual só **1** vira FE. A própria volumetria da SPEC (~1M linhas) só fechava com a leitura POOL.
+- **Decisão: (c) TOP-100 do pool por `e(z)` + agregados do pool INTEIRO** (min/mediana/máx,
+  contagens) no jsonl. **~2 GB** em vez de **~120 GB**.
+- **Justificativa (quase sem perda analítica).** O ranking dos 6.900 restantes é **inauditável por
+  construção** — nenhum deles ganha `f` real, então não há verdade contra a qual medir. As análises
+  que EXISTEM (a escolha foi boa? o modelo discrimina? contrafactual greedy-μ) acontecem na CABEÇA
+  do ranking + nos agregados. *(Escopo: c122. O c217, apesar de par-a-par, não tem pool — a ③ dele é
+  ~1 linha/iteração, verificado nos dados.)*
+
+### DI-16.4 — N do piso offline = **o lattice do b5m (50/105)**, não 100
+- **Contexto.** O piso declarava N=100 (resíduo do default PlatEMO dos pisos ONLINE) enquanto o b5m
+  usa o lattice Das-Dennis (50 em M=2 / 105 em M=3). No MOEA/D o **N É o nº de vetores de
+  decomposição** — define a estrutura da busca inteira.
+- **Decisão: (a) o piso usa o MESMO lattice do b5m.**
+- **Justificativa.** Com N diferente, o contraste piso×b5m mediria **duas** variáveis (uso de σ **e**
+  estrutura da busca) — exatamente o que a "ablação exata" da DEF-E3 existe para evitar; e com 40k
+  avaliações fixas o N ainda muda o nº de gerações (400×800), alterando ③ e ④.
+
+### DI-16.5 — Rota do piso no tier big: **DUAS instâncias, cada uma no env do seu par**
+- **Contexto (a rota antiga era FISICAMENTE IMPOSSÍVEL).** O piso-big precisaria da classe `treeGP`
+  (vendor do **c311**, só em `env_c311`) e do motor MOEA/D mode 12 (vendor do **b5**), mas
+  **b5×c311 NUNCA podem ser co-importados** (N.1.2/D79 — mesmo nome de pacote, código diferente ⇒
+  usa as classes ERRADAS *sem erro*). E o `envs.json` roteia o piso para `env_b5`.
+- **Decisão: (a)** o piso offline vira **duas instâncias**: **small/medium → `env_b5`** (mode 12 +
+  Kriging-média = a ablação do **b5**, que só roda nesses tiers) · **big → `env_c311`**
+  (treed-GP-média + o MOEA/D de lá = a ablação do **c311**, o único que roda no big).
+- **Justificativa.** Cada tier tem um PAR diferente — o piso é a ablação de quem está no tier. Um env
+  por processo ⇒ zero risco de colisão. O roster do sweep (§11.5) passa a listar o piso nos 3 tiers.
+
+### DI-16.6 — `n_baseline` → **`n_train`** no e81
+- O `n_baseline` é o \|X_baseline\| **pós-prune** do qLogNEHVI. O qPOTS **não tem baseline nem
+  prune** (o maximin é vs o dataset INTEIRO). **Decisão: logar `n_train`** — mesma solução já
+  aplicada ao c154 (DI-11 §2), consistente.
 
 ---
 

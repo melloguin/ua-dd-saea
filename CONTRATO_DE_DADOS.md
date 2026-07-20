@@ -186,8 +186,9 @@ tabela ③, diferenciadas pela coluna `regime`.
 | c217 | score ternário do ponto vs a referência corrente (Pmid) | pred_score + pred_confianca(Error1) |
 | b4 | classe bom/ruim vs o arquivo corrente + L | pred_classe + pred_confianca |
 | e74 | as DUAS cabeças: nível PNN (linha classe) + μ RBF (linha valor) | 2×2000 linhas (pred_tipo por linha) |
-| c122 | e(z) da EDN par-a-par vs referência corrente | pred_score + pred_confianca(max-softmax) |
-| pisos (4+1) | — NÃO TÊM SONDA (sem modelo) | — |
+| c122 | e(z) da EDN par-a-par **vs a POPULAÇÃO SELECIONADA corrente (N=11 em M=2 / 15 em M=3) [P2/DI-16.2]** — referência de tamanho FIXO (parâmetro do próprio algoritmo) ⇒ o score é comparável entre gerações, sementes e configs; é também o contexto REAL em que o modelo decide na busca. Logar `n_ref` no jsonl | pred_score + pred_confianca(max-softmax) |
+| pisos **ONLINE** (4) | — NÃO TÊM SONDA (**sem modelo**) | — |
+| piso **OFFLINE** (moead_media) | **TEM SONDA [P1/DI-16.1]** — ele TREINA um GP (Kriging) e otimiza sobre a MÉDIA: μ por objetivo, **σ NULL** (é o "b5 sem σ") | mu_* preenchido; sigma_* NULL |
 
 - **Alimenta:** WAPE/erro global comparável entre os 17 · curva "o surrogate melhora com as
   épocas?" pareada com IGD+×FE (a figura-síntese) · calibração em região neutra · rótulo
@@ -223,7 +224,7 @@ tempo total de execução do algoritmo em cada geração e no total"* — o ④ 
 | **`tempo_pred_sonda_s`** | custo da sonda na iteração (0 quando não roda) |
 | **`tempo_geracao_s`** | **wall TOTAL da geração** (fit+busca+aval+overhead — o relógio da geração) |
 
-**[DI-13.2] `tempo_fit_s` é NULLABLE:** os pisos não têm surrogate ⇒ gravam `NULL` ("não se
+**[DI-13.2] `tempo_fit_s` é NULLABLE:** os **4 pisos ONLINE** não têm surrogate (⚠ **[P1/DI-16.1] o piso OFFLINE TEM** — treina um GP e grava `tempo_fit_s` real) ⇒ gravam `NULL` ("não se
 aplica", ≠ `0.0` que significaria "treinou e custou zero" e poluiria a média de custo). O
 `tempo_geracao_s` deles é gravado normalmente — é o **custo-baseline** do estudo.
 
@@ -294,7 +295,7 @@ inacessíveis sem patch invasivo no miolo stock NÃO entram — anotadas no fim)
 | c238 | y-scaling; [y,u,s] escolhido; pop GA; guards EIM-NaN/range/chol | **`eim_mediana_pool` (o decaimento do POOL inteiro, não só do best)** |
 | c262 | seeds h1/h2; acqf do escolhido; restarts; fit-retries; fused/fallback | **`acqf_todos_restarts` (os 10 valores — a paisagem da aquisição = COMO o BO escolheu); `n_baseline` (pós-prune); `mll_final` (B1)** |
 | c154 | rota B9.5; S fronts; acqf; restarts | **idem c262 (acqf dos restarts, n_baseline, mll)** |
-| e81 | draws da posterior; front+índice; assert \|lote\|==q; dedup; dtype | **`n_baseline`; resumo dos draws de Thompson (min/med/max)** |
+| e81 | draws da posterior; front+índice; assert \|lote\|==q; dedup; dtype | **`n_train`** (o qPOTS NÃO tem baseline nem prune — o maximin é vs o dataset INTEIRO; `n_baseline` é conceito do qLogNEHVI. Mesma solução do c154 — DI-11 §2) **[P6/DI-16.6]**; resumo dos draws de Thompson (min/med/max) |
 | c149 | val-MSE ×K=10; z-score params; HVI escolhido; tempo_fit | **`hvi_top5` (os HVI dos 5 melhores candidatos — como o greedy escolheu); `std_ensemble_sel` (a incerteza-ensemble do escolhido)** |
 | c122 | softmax; Q1/Q2/Q3; accs por classe; skip-de-treino/re-init | **`n_acordo`/`n_desacordo` das 2 redes por geração (o mecanismo θ-DEA-DP)** |
 | b5 | modo; geração/arquivamento; n_restarts GPR; substituições P_wrong (b5m) | **os PESOS de decomposição do b5m no HEADER (determinísticos — 1×); `p_wrong_stats` (min/med/max por geração)** |

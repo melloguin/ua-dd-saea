@@ -136,7 +136,7 @@ com modelo (GP × RBF × PNN × rede × classificador), livre do viés de amostr
   preenchido), na ORDEM do artefato (join com o gabarito POR POSIÇÃO dentro do bloco — invariante
   do writer). A saída segue a semântica do modelo de cada algoritmo (tabela no
   `CONTRATO_DE_DADOS.md` §3.2, raiz do repo): regressores → μ/σ por objetivo; b1 → o escalar
-  Tchebycheff com o λ corrente; c217/c122 → score vs referência corrente; b4 → classe+L;
+  Tchebycheff com o λ corrente; c217 → score vs a referência corrente (**Pmid**); **c122 → score `e(z)` vs a POPULAÇÃO SELECIONADA corrente (N=11/15) [P2/DI-16.2]** — tamanho FIXO ⇒ comparável no tempo; logar `n_ref`; b4 → classe+L;
   e74 → 2×2000 linhas (nível PNN + μ RBF). Pisos NÃO têm sonda (sem modelo).
 - **🔴 Invariante de NÃO-PERTURBAÇÃO:** a sonda não pode alterar a busca — preditores estocásticos
   (MC-dropout do e7) exigem save/restore do RNG em volta da predição; a prova objetiva por config
@@ -151,7 +151,8 @@ com modelo (GP × RBF × PNN × rede × classificador), livre do viés de amostr
 ### 17.4 — Granularidade e volume da camada surrogate [DEF-C2 — DECIDIDO D27/v3.0.10]
 
 **Política de granularidade (o que entra no snapshot, por classe de motor).** A camada surrogate NÃO grava toda consulta ao modelo (são milhões, baratas) — grava **snapshots** da população/candidatos *decisão-relevantes*, com a unidade natural de cada motor:
-- **EA** (b3, b4, e7, c141, e74, c217, c122): a **população SELECIONADA por geração** (a que sobrevive à seleção, não todo rascunho interno), em **todas as gerações** (100%, nada amostrado no eixo de gerações).
+- **EA** (b3, b4, e7, c141, e74, c217): a **população SELECIONADA por geração**
+- **[P3/DI-16.3] c122 (pré-seleção por pool):** a regra EA NÃO se aplica — a seleção de sobrevivência dele usa fitness **REAL** (o surrogate nunca substitui a avaliação), logo a população selecionada NÃO é predição de modelo. A ③-BUSCA do c122 grava, por iteração: **o TOP-100 do pool N*=7000 por `e(z)`** (a cabeça do ranking, onde a decisão acontece — só 1 vira FE) **+ os agregados do pool INTEIRO** (min/mediana/máx de `e(z)`, contagens por categoria) no jsonl. Racional: o ranking dos 6.900 restantes é **inauditável por construção** (nenhum deles ganha f real), então o pool completo custaria ~120 GB sem abrir análise nova; o TOP-100 + agregados preserva tudo que é analisável (qualidade da escolha, poder discriminante, contrafactual greedy-μ) por ~2 GB (a que sobrevive à seleção, não todo rascunho interno), em **todas as gerações** (100%, nada amostrado no eixo de gerações).
 - **BO com EA interno** (b1 ParEGO/GA, c238 EIM/DE, e81 qPOTS/NSGA-II, c149/NSGA-II): a **população final do otimizador de aquisição** por **iteração de BO**.
 - **BoTorch** (c262, c154): os **candidatos avaliados nos restarts** de multi-start por iteração.
 - **Offline** (b5, c311, e103): a população-surrogate do MOEA interno em todas as gerações.
@@ -307,7 +308,8 @@ Nas VMs Vertex AI a **conta de serviço** já traz credenciais (ADC) — sem cha
 | b5 | modo (7/72/12); geração/arquivamento; n_restarts do GPR consumidos; substituições por P_wrong>0.5 (72) |
 | c311 | nº de GPs por objetivo (`dict_gps`); `total_points_per_model_sequence`; iterações efetivas + early-stop; folha pior-MSE escolhida; evento: try do bfgs |
 | e103 | CurGen; KFlag (Kriging↔RBFN); √MSE por geração; μ dos DOIS modelos; evento: quase-singularidade do RBFN (esperado, contar) |
-| pisos | só o mínimo comum (cabeçalho, parciais, FE, rodapé) — sem surrogate |
+| pisos ONLINE (4) | só o mínimo comum (cabeçalho, parciais, FE, rodapé) — sem surrogate |
+| piso OFFLINE | **[P1/DI-16.1] TEM modelo (GP-média) ⇒ emite SONDA (μ, σ NULL) + `tempo_fit_s` real + `modelo_hp`.** A comparação sonda piso-off × b5r/b5m é a medição mais direta do estudo sobre o VALOR do σ (mesmo GP, mesmo μ, mesma régua — DEF-E3) |
 
 ### S.7.1 — Enriquecimento DI-10 do `.jsonl` [decisão do autor 2026-07-18 · v5.2.1]
 **Mínimo comum NOVO em todo `<alg>_gen` (os 21):** `fe` · `f_best[]` (melhor por objetivo) ·
@@ -328,7 +330,7 @@ NSGA-III niching e genealogia de operadores REJEITADOS):
 | e74 | `n_por_nivel` do PNN; `k_local_efetivo` |
 | c238 | `eim_mediana_pool` |
 | c262/c154 | `acqf_todos_restarts` (a paisagem da aquisição = COMO o BO escolheu); `n_baseline`; `mll_final` |
-| e81 | `n_baseline`; resumo dos draws de Thompson (min/med/max) |
+| e81 | **`n_train`** (o qPOTS NÃO tem baseline nem prune — o maximin é vs o dataset INTEIRO; `n_baseline` é conceito do qLogNEHVI. Mesma solução do c154 — DI-11 §2) **[P6/DI-16.6]**; resumo dos draws de Thompson (min/med/max) |
 | c149 | `hvi_top5`; `std_ensemble_sel` |
 | c122 | `n_acordo`/`n_desacordo` das 2 redes por geração |
 | b5 | pesos de decomposição do b5m no HEADER (determinísticos, 1×); `p_wrong_stats` |

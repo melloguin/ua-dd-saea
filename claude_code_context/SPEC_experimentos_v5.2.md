@@ -860,7 +860,7 @@ Cada uma das 30 sementes gera um **dataset LHS novo** de `31D−1` pontos (não 
 
 ## 10. Surrogate do piso offline — [DECIDIDO: GP-média]
 O piso treina um **GP (Kriging)** no dataset e otimiza sobre a **média** — **mesma família dos 3 viáveis** (todos GP). Isola *uma* variável (usar σ vs só a média); RBF/NN introduziria uma segunda diferença (família do modelo) e poluiria o isolamento.
-- **Ajuste no tier big-data (~50k):** o GP padrão não treina (parede O(n³)); **só nesse tier** o piso usa **treed-GP-média**, mantendo o conceito "GP-média" e a presença do piso em todos os tiers.
+- **Ajuste no tier big-data (~50k):** o GP padrão não treina (parede O(n³)); **só nesse tier** o piso usa **treed-GP-média**, mantendo o conceito "GP-média" e a presença do piso em todos os tiers. **[P5/DI-16.5] ROTA — a antiga era IMPOSSÍVEL:** o piso offline vira **DUAS instâncias**, cada uma no env do seu PAR de ablação — (i) **small/medium → `env_b5`** (motor MOEA/D mode 12 + Kriging-média = a ablação do b5, que só roda nesses tiers); (ii) **big → `env_c311`** (treed-GP-média + o MOEA/D disponível ali = a ablação do c311, o único que roda no big). Motivo: a `treeGP` vive no vendor do c311 e o mode 12 no do b5, e **b5×c311 NUNCA podem ser co-importados** (N.1.2/D79 — mesmo nome de pacote, código diferente ⇒ usa as classes ERRADAS sem erro). Um env por processo ⇒ zero colisão. O roster do sweep (§11.5) passa a listar o piso nos **3** tiers.
 
 ## 11. Orçamento interno do MOEA + avaliação final — [DECIDIDO]
 
@@ -1218,7 +1218,7 @@ com modelo (GP × RBF × PNN × rede × classificador), livre do viés de amostr
   preenchido), na ORDEM do artefato (join com o gabarito POR POSIÇÃO dentro do bloco — invariante
   do writer). A saída segue a semântica do modelo de cada algoritmo (tabela no
   `CONTRATO_DE_DADOS.md` §3.2, raiz do repo): regressores → μ/σ por objetivo; b1 → o escalar
-  Tchebycheff com o λ corrente; c217/c122 → score vs referência corrente; b4 → classe+L;
+  Tchebycheff com o λ corrente; c217 → score vs a referência corrente (**Pmid**); **c122 → score `e(z)` vs a POPULAÇÃO SELECIONADA corrente (N=11/15) [P2/DI-16.2]** — tamanho FIXO ⇒ comparável no tempo; logar `n_ref`; b4 → classe+L;
   e74 → 2×2000 linhas (nível PNN + μ RBF). Pisos NÃO têm sonda (sem modelo).
 - **🔴 Invariante de NÃO-PERTURBAÇÃO:** a sonda não pode alterar a busca — preditores estocásticos
   (MC-dropout do e7) exigem save/restore do RNG em volta da predição; a prova objetiva por config
@@ -1233,7 +1233,8 @@ com modelo (GP × RBF × PNN × rede × classificador), livre do viés de amostr
 ### 17.4 — Granularidade e volume da camada surrogate [DEF-C2 — DECIDIDO D27/v3.0.10]
 
 **Política de granularidade (o que entra no snapshot, por classe de motor).** A camada surrogate NÃO grava toda consulta ao modelo (são milhões, baratas) — grava **snapshots** da população/candidatos *decisão-relevantes*, com a unidade natural de cada motor:
-- **EA** (b3, b4, e7, c141, e74, c217, c122): a **população SELECIONADA por geração** (a que sobrevive à seleção, não todo rascunho interno), em **todas as gerações** (100%, nada amostrado no eixo de gerações).
+- **EA** (b3, b4, e7, c141, e74, c217): a **população SELECIONADA por geração**
+- **[P3/DI-16.3] c122 (pré-seleção por pool):** a regra EA NÃO se aplica — a seleção de sobrevivência dele usa fitness **REAL** (o surrogate nunca substitui a avaliação), logo a população selecionada NÃO é predição de modelo. A ③-BUSCA do c122 grava, por iteração: **o TOP-100 do pool N*=7000 por `e(z)`** (a cabeça do ranking, onde a decisão acontece — só 1 vira FE) **+ os agregados do pool INTEIRO** (min/mediana/máx de `e(z)`, contagens por categoria) no jsonl. Racional: o ranking dos 6.900 restantes é **inauditável por construção** (nenhum deles ganha f real), então o pool completo custaria ~120 GB sem abrir análise nova; o TOP-100 + agregados preserva tudo que é analisável (qualidade da escolha, poder discriminante, contrafactual greedy-μ) por ~2 GB (a que sobrevive à seleção, não todo rascunho interno), em **todas as gerações** (100%, nada amostrado no eixo de gerações).
 - **BO com EA interno** (b1 ParEGO/GA, c238 EIM/DE, e81 qPOTS/NSGA-II, c149/NSGA-II): a **população final do otimizador de aquisição** por **iteração de BO**.
 - **BoTorch** (c262, c154): os **candidatos avaliados nos restarts** de multi-start por iteração.
 - **Offline** (b5, c311, e103): a população-surrogate do MOEA interno em todas as gerações.
@@ -1652,7 +1653,7 @@ Arquitetura A2 · **13 SA-MOEA online + 3 offline** (§3.0–3.5) · 4 pisos onl
 | **D62** | **Sementes internas via `SeedSequence`** *(v5.2 — D91: executável via `artifacts/seeds.json` — tabela alg_id→int + catálogo uso_id + materialização)* | `np.random.SeedSequence((base, alg_id, iter, uso_id))`, `base` embute o offset **D22** (`1000·semente` p/ e81/c149). Substitui todos os `h()/g()/hs` das receitas L. §5.3/Anexo L |
 | **D63** | **DoE como artefato persistido (fonte única dos pontos iniciais)** | `src/doe.py` gera **1 artefato float64 por (problema,semente)** *(v5.2 — D87: formato **parquet**, escritor único pyarrow, hash sobre o array DECODIFICADO — supersede o `.npy` desta linha; D90 estende ao dataset offline)* em `data/doe/…`, sha256 no manifesto; os 2 stacks **CARREGAM** (MATLAB lê o `.npy`, nunca regenera); teste **bit-a-bit** no F0. §5.2/§22.1 |
 | **D64** | **Sem backup automático do lado MATLAB** *(v5.2 — D100: confirmada pelo autor — ele fará backups manualmente à medida que os resultados saírem)* | Backup manual a critério do autor; risco de disco **aceito e declarado** (reversível com 1 linha de cron). §17.7 |
-| **D65** | **N dos pisos ONLINE = varredura pré-registrada, 1 N por faixa de D** | N∈{10,20,30,50}, 5 problemas do sweep + 2 reps alta-D, 5 sementes; critério = melhor mediana **IGD+ (D70)**; crava ANTES da bateria. Piso **offline** mantém N=100 interno. Supersede o "100" (§6.3) e o "~20" (§6.4/§3.2). **⚠ [ADENDO 2026-07-18 — valor provisório cravado]** a varredura vive no cartão `SUB-varN`, que **depende-de `R1-pisos`** (circularidade: o piso precisa existir para ser varrido). Para desatá-la o autor cravou **`N=20` como o valor EM VIGOR** — o ponto comum entre a faixa `~20–25` (§3.2/§6.4) e este conjunto `{10,20,30,50}`, e o valor original do Knowles/ParEGO (justificativa em 4 pontos no **§3.2**). O `R1-pisos` roda com N=20; a varredura desta decisão **reconfirma ou substitui** antes da bateria, e se eleger 20 numa faixa de D os runs do `R1-pisos` já são definitivos |
+| **D65** | **N dos pisos ONLINE = varredura pré-registrada, 1 N por faixa de D** | N∈{10,20,30,50}, 5 problemas do sweep + 2 reps alta-D, 5 sementes; critério = melhor mediana **IGD+ (D70)**; crava ANTES da bateria. Piso **offline**: **N = o MESMO lattice Das-Dennis do b5m — 50 (M=2) / 105 (M=3) [P4/DI-16.4]** ⟦v5.2.1 — corrigido: o "N=100 interno" era resíduo do default PlatEMO dos pisos ONLINE. No MOEA/D o N É o nº de vetores de decomposição = a estrutura da busca; com N≠ o contraste piso×b5m mediria DUAS variáveis (σ **e** estrutura), quebrando a "ablação exata" da DEF-E3 que é a razão de ser do piso⟧. Supersede o "100" (§6.3) e o "~20" (§6.4/§3.2). **⚠ [ADENDO 2026-07-18 — valor provisório cravado]** a varredura vive no cartão `SUB-varN`, que **depende-de `R1-pisos`** (circularidade: o piso precisa existir para ser varrido). Para desatá-la o autor cravou **`N=20` como o valor EM VIGOR** — o ponto comum entre a faixa `~20–25` (§3.2/§6.4) e este conjunto `{10,20,30,50}`, e o valor original do Knowles/ParEGO (justificativa em 4 pontos no **§3.2**). O `R1-pisos` roda com N=20; a varredura desta decisão **reconfirma ou substitui** antes da bateria, e se eleger 20 numa faixa de D os runs do `R1-pisos` já são definitivos |
 | **D66** | **V-B.4 large-batch fechada** | q=10; `maxFE_batch = 11D−1 + K·q`, **K=200** (2.000 infills); DoE pareado c/ o principal; roster **c149/c262/e81/c154 + piso Sobol-batch**; qParEGO fora; ~5 problemas × 30. §V-B.4/§0 |
 | **D67** | **MVNS totalmente especificada** *(v5.2 — D90: materializada como artefato persistido, mesma convenção do dataset)* | Amostrar em **[0,1]^D**; **μ=0,3·𝟙 fixo** (viés off-center); **Σ=diag(0,1)**; clip aos bounds; mapear a nativo. §11.5/§9 |
 | **D68** | **Avaliação final offline: SEM cap do tamanho do não-dominado (\|ND\|)** | Gerar/avaliar/salvar o ND **completo**; a comparabilidade do HV (confundidor de tamanho) é tratada **pós-hoc**, a critério do autor. §11/§12 |
@@ -2837,7 +2838,8 @@ Aplicar §22.2 com as correções S.2 (#1-6, #16-19) e S.3 (#1, #4-6). Arquivos 
 | b5 | modo (7/72/12); geração/arquivamento; n_restarts do GPR consumidos; substituições por P_wrong>0.5 (72) |
 | c311 | nº de GPs por objetivo (`dict_gps`); `total_points_per_model_sequence`; iterações efetivas + early-stop; folha pior-MSE escolhida; evento: try do bfgs |
 | e103 | CurGen; KFlag (Kriging↔RBFN); √MSE por geração; μ dos DOIS modelos; evento: quase-singularidade do RBFN (esperado, contar) |
-| pisos | só o mínimo comum (cabeçalho, parciais, FE, rodapé) — sem surrogate |
+| pisos ONLINE (4) | só o mínimo comum (cabeçalho, parciais, FE, rodapé) — sem surrogate |
+| piso OFFLINE | **[P1/DI-16.1] TEM modelo (GP-média) ⇒ emite SONDA (μ, σ NULL) + `tempo_fit_s` real + `modelo_hp`.** A comparação sonda piso-off × b5r/b5m é a medição mais direta do estudo sobre o VALOR do σ (mesmo GP, mesmo μ, mesma régua — DEF-E3) |
 
 ### S.7.1 — Enriquecimento DI-10 do `.jsonl` [decisão do autor 2026-07-18 · v5.2.1]
 **Mínimo comum NOVO em todo `<alg>_gen` (os 21):** `fe` · `f_best[]` (melhor por objetivo) ·
@@ -2858,7 +2860,7 @@ NSGA-III niching e genealogia de operadores REJEITADOS):
 | e74 | `n_por_nivel` do PNN; `k_local_efetivo` |
 | c238 | `eim_mediana_pool` |
 | c262/c154 | `acqf_todos_restarts` (a paisagem da aquisição = COMO o BO escolheu); `n_baseline`; `mll_final` |
-| e81 | `n_baseline`; resumo dos draws de Thompson (min/med/max) |
+| e81 | **`n_train`** (o qPOTS NÃO tem baseline nem prune — o maximin é vs o dataset INTEIRO; `n_baseline` é conceito do qLogNEHVI. Mesma solução do c154 — DI-11 §2) **[P6/DI-16.6]**; resumo dos draws de Thompson (min/med/max) |
 | c149 | `hvi_top5`; `std_ensemble_sel` |
 | c122 | `n_acordo`/`n_desacordo` das 2 redes por geração |
 | b5 | pesos de decomposição do b5m no HEADER (determinísticos, 1×); `p_wrong_stats` |

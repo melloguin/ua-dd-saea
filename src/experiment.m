@@ -2142,6 +2142,7 @@ function [status, info] = run_piso(alg, problema, semente, exp, dataRoot)
     status = "failed";
     info = struct();
     ROOT = harness_root();
+    t0_run = tic;                                  % [§17.6] wall total do run
     spec = piso_spec(alg);
 
     % Arvore PlatEMO 4.15 no path (N.0.1) — rede p/ chamada direta.
@@ -2186,6 +2187,18 @@ function [status, info] = run_piso(alg, problema, semente, exp, dataRoot)
         'N_origem', "20 CRAVADO 2026-07-18 (Knowles/ParEGO; ponto comum entre ~20-25 do §3.2 e {10,20,30,50} da D65; varredura SUB-varN reconfirma)", ...
         'seeding', "melhores N das 11D-1 do DoE por NDSort + CrowdingDistance (§3.2/D88, deterministico)", ...
         'operadores', "Balde C: SBX proC=1 dis_c=20 + PM proM=1 dis_m=20 (defaults OperatorGA do PlatEMO)"});
+    % [DI-10] Os VETORES DE DECOMPOSICAO do moead/nsga3 no HEADER — sao
+    % DETERMINISTICOS (UniformPoint(N,M)) e constantes no run, entao vao 1x, nao
+    % por geracao. Sem eles a decisao "qual vetor guiou qual escolha" fica
+    % inauditavel a jusante. NSGA-II e SMS-EMOA nao decompoem: nada a emitir.
+    if any(strcmp(char(alg), {'moead','nsga3'}))
+        [Wdec, Nlat] = UniformPoint(N_nominal, M);
+        jsonl_line(fid, 'decomposicao', {'alg', string(alg), ...
+            'N_nominal', N_nominal, 'N_lattice', Nlat, 'M', M, ...
+            'vetores', Wdec, ...
+            'origem', "UniformPoint(N,M) do PlatEMO — deterministico, 1x por run", ...
+            'nota', "o N EFETIVO do lattice pode diferir do nominal (M=3, 20 -> 15)"});
+    end
 
     % (4) evalFcn por-x (a ponte, bounds nativos) + embrulho de LOTE (D61) — o
     %     c217_batch_eval e GENERICO (handoff R1-c217 §7): hard-stop no meio do lote.
@@ -2235,8 +2248,12 @@ function [status, info] = run_piso(alg, problema, semente, exp, dataRoot)
 
     % (7) Algoritmo REAL (STOCK): save=-K (sem .mat/figura — N.0.3/4) + hook.
     K = 20;
+    % [DI09-R1c] tstate = relogio da geracao (containers.Map e HANDLE: a mutacao
+    % dentro do hook persiste, sem `persistent`, que vazaria entre runs).
+    tstate = containers.Map('KeyType', 'char', 'ValueType', 'any');
+    tstate('t0') = tic;
     algo = feval(spec.classe, 'parameter', spec.parameter, 'save', -K, ...
-        'outputFcn', @(A,P) piso_hook(A, P, buf, bud));
+        'outputFcn', @(A,P) piso_hook(A, P, buf, bud, fid, alg, tstate));
     term = "normal";
     try
         algo.Solve(Problem);                           % engole PlatEMO:Termination
@@ -2257,10 +2274,14 @@ function [status, info] = run_piso(alg, problema, semente, exp, dataRoot)
     % (8) EXPORT das 4 camadas (§17.2/§17.3): ① do wrapper; ② do buffer.
     %     ③ e timing sao VAZIAS por construcao (piso = sem surrogate) — o
     %     invariante e ASSERTADO, nao presumido.
-    if ~isempty(buf.srows) || ~isempty(buf.trows)
+    % [DI-13.7, decisao do autor] O invariante e sobre a camada ③ SO. A trava
+    % original conferia TAMBEM `buf.trows` — mas o contrato AGORA EXIGE a ④ dos
+    % pisos (§4/DI-13.2: `tempo_fit_s`=NULL, `tempo_geracao_s` normal, o
+    % custo-baseline do estudo), entao a trava impedia o proprio contrato.
+    if ~isempty(buf.srows)
         jsonl_line(fid, 'guard', {'name', "piso_com_surrogate", ...
-            'n_srows', numel(buf.srows), 'n_trows', numel(buf.trows), ...
-            'motivo', "piso nao deveria emitir ③/timing (sem surrogate)"});
+            'n_srows', numel(buf.srows), ...
+            'motivo', "piso nao deveria emitir a ③ (sem surrogate); a ④ E esperada"});
     end
     R = bud.records();                                 % catalogo ① (== 31D-1 linhas)
     write_real(exp, alg, problema, semente, R, D, M, dataRoot);
@@ -2281,6 +2302,14 @@ function [status, info] = run_piso(alg, problema, semente, exp, dataRoot)
         maxfe, bud.fe, buf.nGeracoes(), doe_hash_run, bud.cache_hits, dataRoot);
     man.algo_version = spec.algo_version;
     man.status = st_str;
+    man = fill_manifest_timing(man, buf.trows, bud, toc(t0_run), []);   % [§17.6]
+    % [DI09-R1c] `fill_manifest_timing` com snd=[] grava man.sonda com status
+    % 'artefato_ausente' — o que seria FALSO em dois sentidos no piso: o artefato
+    % EXISTE (25/25 problemas do grid) e a ausencia de sonda aqui e por DESIGN,
+    % nao por falta. Sobrescreve-se com a verdade.
+    man.sonda = struct('status', "nao_se_aplica", ...
+        'motivo', "piso ONLINE = MOEA puro, sem surrogate a sondar (CONTRATO §3.2)", ...
+        'n_blocos', 0, 'n_linhas', 0);
     man.params = struct( ...
         'N_nominal', N_nominal, 'N_efetivo', N_efetivo, ...
         'N_decisao', "20 CRAVADO 2026-07-18 (§3.2 — Knowles/ParEGO; ponto comum ~20-25 x D65 {10,20,30,50}); SUB-varN reconfirma antes da bateria", ...
@@ -2374,7 +2403,7 @@ function Xi = piso_init(N, Xsel, n_init, logger)
 end
 
 
-function piso_hook(Algorithm, Problem, buf, bud)
+function piso_hook(Algorithm, Problem, buf, bud, fid, alg, tstate)
 % Hook dos pisos = sync D89 + o hook transversal (② por geracao).
 %
 % ⚠ O SYNC E OBRIGATORIO AQUI, e por um motivo A MAIS que nos outros runners:
@@ -2390,8 +2419,32 @@ function piso_hook(Algorithm, Problem, buf, bud)
 % ciclo — o hard-stop real segue sendo o throw do bud (D61), este e o caminho
 % de termino limpo.
     Problem.FE = bud.fe;
-    % timing = [] : piso nao treina surrogate => serie §17.6 VAZIA (bundle).
-    hook_output(Algorithm, Problem, buf, bud, []);
+
+    % [DI09-R1c] §17.6: a ④ do piso deixou de ser VAZIA — ela e o CUSTO-BASELINE
+    % do estudo (CONTRATO §4 + DI-13.2). Como os pisos sao STOCK (zero patch por
+    % design), nao ha onde por um `tic` dentro do algoritmo: o wall da geracao
+    % sai do DELTA entre chamadas consecutivas deste hook, que o PlatEMO invoca
+    % 1x por geracao (ALGORITHM.m:126). `tstate` e um containers.Map (handle) do
+    % run_piso — e o que permite guardar o instante anterior sem `persistent`
+    % (que vazaria entre runs no mesmo processo MATLAB).
+    tger_s = NaN;
+    if nargin >= 7 && ~isempty(tstate)
+        try
+            if isKey(tstate, 't0'), tger_s = toc(tstate('t0')); end
+            tstate('t0') = tic;
+        catch
+        end
+    end
+    % tempo_fit_s AUSENTE => NULL (piso nao treina — DI-13.2).
+    % tempo_busca_s / tempo_pred_sonda_s = NaN => NULL, nao 0: "nao se aplica"
+    % e "nao medido" nao sao "custou zero" (ver o cabecalho do piso_instrument).
+    timing = struct('tempo_geracao_s', tger_s, ...
+                    'tempo_busca_s', NaN, 'tempo_pred_sonda_s', NaN);
+    hook_output(Algorithm, Problem, buf, bud, timing);
+
+    if nargin >= 6
+        piso_instrument(Algorithm, Problem, buf, bud, fid, alg, tger_s);
+    end
 end
 
 

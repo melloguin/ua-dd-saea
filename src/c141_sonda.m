@@ -65,7 +65,7 @@ function rows = c141_sonda_rows(RModel, mS, Xs, M)
     rows = RunBuffer.mkSurrogateRows(Xs, ...
         'mu', MU, ...                      % sigma ausente => NULL (interpolante)
         'pred_tipo', "valor", 'modelo_flag', "RBF-MQ3", ...
-        'espaco_modelo', "nativo");
+        'espaco_modelo', "cru");
 end
 
 

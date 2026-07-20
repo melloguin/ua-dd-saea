@@ -103,7 +103,7 @@ classdef ParEGO < ALGORITHM
                               n_arquivo, n_subset, n_treino, n_dedup, ...
                               nan_guard_fired, theta, tfit_s, tbusca_s, ...
                               toc(tGer_b1), ftm_b1, A_pre_b1, Population.objs, dmodel);
-                              % ^ [DI-15.2] f_best/n_front1 = arquivo real POS-ciclo
+                              % ^ [DI-17.2] f_best/n_front1 = arquivo real POS-ciclo
                               %   (a Population aqui JA inclui o infill de :96).
             end
         end

@@ -64,5 +64,5 @@ function rows = c217_sonda_rows(net, Xs, D, Pmid, Error1)
     rows = RunBuffer.mkSurrogateRows(Xs, ...
         'pred_tipo', "score", 'pred_score', Ys(:), ...
         'pred_confianca', Error1, ...              % NaN (regime-NaN) => NULL
-        'modelo_flag', "PNN-par", 'espaco_modelo', "nativo");
+        'modelo_flag', "PNN-par", 'espaco_modelo', "cru");
 end

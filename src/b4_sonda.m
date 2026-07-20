@@ -77,7 +77,7 @@ function rows = b4_sonda_rows(net, Xs)
 % Xs entra DIRETO no predict, espaco NATIVO — exatamente como `Next` entra em
 % SAS.m:23. O z-score NAO e transformacao do adapter: e a featureInputLayer
 % ('Normalization','zscore', CSEA.m:39), INTERNA a rede, com Mean/Std
-% reajustados a cada geracao (rede NOVA por geracao) => espaco_modelo="nativo".
+% reajustados a cada geracao (rede NOVA por geracao) => espaco_modelo="cru".
     L = double(predict(net, Xs));
     L = L(:);
     classe = repmat("ruim", numel(L), 1);
@@ -85,5 +85,5 @@ function rows = b4_sonda_rows(net, Xs)
     rows = RunBuffer.mkSurrogateRows(Xs, ...
         'pred_tipo', "classe", 'pred_classe', classe, ...
         'pred_confianca', L, 'modelo_flag', "FNN", ...
-        'espaco_modelo', "nativo");
+        'espaco_modelo', "cru");
 end

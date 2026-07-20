@@ -266,14 +266,14 @@ function [status, info] = run_stub(alg, problema, semente, exp, dataRoot)
     % ARMADO no ultimo fit — o caminho que no algoritmo real roda depois que o
     % hard-stop matou o `while`.
     %
-    % [DI-15.5, autor 2026-07-19] O finalProbe usa a geracao do modelo ARMADO
+    % [DI-17.5, autor 2026-07-19] O finalProbe usa a geracao do modelo ARMADO
     % (`g_armado`), NAO um argumento do chamador. Os dois casos testados aqui sao
     % exatamente a dicotomia do algoritmo real:
     %   (i)  o ultimo fit CAIU na cadencia (G=3 ja sondada) => NO-OP;
     %   (ii) o ultimo fit NAO caiu na cadencia (g=5 e impar: `probe` ARMA e nao
     %        dispara) => o finalProbe DISPARA, e o bloco tem de sair carimbado
     %        com g=5 (o modelo armado), nunca com outra geracao.
-    % O caso (ii) e a regressao do bug que a DI-15.5 corrige: sob a semantica
+    % O caso (ii) e a regressao do bug que a DI-17.5 corrige: sob a semantica
     % antiga (`finalProbe(buf.gen)`) um config de overshoot zero carimbava o
     % bloco final com uma geracao que NUNCA existiu.
     % Estado ao sair do laco: a cadencia (g = 1,2,4,...) disparou em g=1 e g=2;
@@ -360,7 +360,7 @@ function [status, info] = run_stub(alg, problema, semente, exp, dataRoot)
         'final_foi_noop', final_foi_noop, ...
         'final_armou_sem_disparar', armou_sem_disparar, ...
         'final_disparou', final_disparou, ...
-        'final_carimbou_armado', final_carimbou_armado, ...   % [DI-15.5]
+        'final_carimbou_armado', final_carimbou_armado, ...   % [DI-17.5]
         'sonda_off_linhas', n_off, ...                        % [DI-13.5]
         'ger_null_ok', ger_null_ok, 'ger_busca_ok', ger_busca_ok, ...
         'tempo_aval_real_s', bud.tempo_aval_real_s);

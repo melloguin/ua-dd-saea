@@ -350,6 +350,21 @@ def write_surrogate(exp: str, alg: str, problema: str, semente,
         return [None if (r[key_arr] is None or j >= len(r[key_arr]))
                 else float(r[key_arr][j]) for r in rows]
 
+    # [M7/DI-06 · guarda `mu > M`] O caso CURTO (len < M) é legítimo e vira NULL
+    # acima (mono-output do b1). O caso LONGO (len > M) NÃO é: significa que o
+    # instrumentador montou o vetor com mais objetivos do que o problema tem —
+    # os extras seriam TRUNCADOS em silêncio, escondendo um bug de indexação
+    # (exatamente a classe do `n_front1` do retrofit-R2, que só apareceu no teste).
+    for _k in ("mu", "sigma"):
+        _long = [i for i, r in enumerate(rows)
+                 if r.get(_k) is not None and len(r[_k]) > M]
+        if _long:
+            _i = _long[0]
+            raise ValueError(
+                f"③ {alg}/{problema}/s{semente}: `{_k}` com {len(rows[_i][_k])} "
+                f"componentes > M={M} em {len(_long)} linha(s) (1ª: índice {_i}). "
+                f"O truncamento seria SILENCIOSO — pára-e-loga (D81/M7).")
+
     for j, c in enumerate(xc):
         cols[c] = pa.array([float(r["x"][j]) for r in rows], type=pa.float32())
     cols["real_solution_id"] = pa.array(

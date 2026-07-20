@@ -146,12 +146,24 @@ def is_run_done(exp: str, alg: str, problema: str, semente,
     """Esteira idempotente (D58): o run está **pronto**?
 
     Pronto = fragmento de manifesto presente **E** status ∈ {ok, retried_ok}
-    **E** as camadas parquet presentes **E** (quando `pyarrow` disponível e
-    `check_footers`) footers válidos. Qualquer peça faltando ⇒ re-roda.
+    **E** `fe_final == maxfe` (D21/D61) **E** as camadas parquet presentes **E**
+    (quando `pyarrow` disponível e `check_footers`) footers válidos. Qualquer
+    peça faltando ⇒ re-roda.
+
+    **[DI-13.3 · rede de segurança]** A checagem de `fe_final == maxfe` é NOVA.
+    Sem ela, um run **abortado pelo teto de tempo** (que não chega a gravar
+    `status='failed'`) convivendo com artefatos de uma execução ANTERIOR no
+    disco seria lido como PRONTO — um run truncado entraria na bateria como se
+    fosse completo, em silêncio. A raiz (o aborto gravar `failed`) é o item (a)
+    da DI-13.3; esta é a rede independente do motivo da parada.
     """
     mpath = naming.manifest_path(exp, alg, problema, semente, data_root)
     man = read_manifest(mpath)
     if man is None or man.get("status") not in ("ok", "retried_ok"):
+        return False
+    # [DI-13.3] o orçamento tem de ter fechado EXATO (hard-stop D21/D61).
+    fe_final, maxfe = man.get("fe_final"), man.get("maxfe")
+    if fe_final is not None and maxfe is not None and int(fe_final) != int(maxfe):
         return False
     for ly in naming.LAYERS:
         p = naming.layer_path(exp, alg, problema, semente, ly, data_root)

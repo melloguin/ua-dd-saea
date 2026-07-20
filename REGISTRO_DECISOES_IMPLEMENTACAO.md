@@ -8,7 +8,7 @@
 > janela documental (sem sessão de implementação ativa) e fica referenciada aqui.
 > **Formato por decisão:** Contexto → Opções → Decisão → Justificativa → Evidência de verificação →
 > Efeitos/ações → Referências. Decisor: **o autor** (Guilherme), em ping-pong com a torre.
-> Última atualização: **2026-07-19** (DI-16: as 6 definições escaladas pela auditoria M5, na PARTE A5).
+> Última atualização: **2026-07-19** (DI-17: hardening do M7 adiantado, na PARTE A6).
 
 ---
 
@@ -760,6 +760,53 @@ sincronizados com a arquitetura atual** — nenhum abre com pendência de docume
 - O `n_baseline` é o \|X_baseline\| **pós-prune** do qLogNEHVI. O qPOTS **não tem baseline nem
   prune** (o maximin é vs o dataset INTEIRO). **Decisão: logar `n_train`** — mesma solução já
   aplicada ao c154 (DI-11 §2), consistente.
+
+## PARTE A6 — DI-17: hardening do M7 adiantado (torre, 2026-07-19)
+
+> Executado enquanto o retrofit MATLAB e o R3-c122 rodavam — **em arquivos que nenhuma das duas
+> sessões toca** (`experiments.py`, `src/manifest.py`, `src/export.py`, `tests/`). Verificado:
+> suíte verde, gates F0/R3-00 verdes, preflight verde.
+
+### DI-17.1 — Retry com BACKOFF + erros não-retriáveis [incremento 1 do autor / DI-06 item 1]
+- **Antes:** `attempts = 2` (o 1 retry do D23), sem espera entre tentativas.
+- **Agora:** `RETRY_ATTEMPTS = 3` com **backoff exponencial** (`RETRY_BACKOFF_S · 2^i` = 0s → 5s →
+  20s). A espera é o que separa falha TRANSITÓRIA (licença MATLAB contendida, I/O, OOM momentâneo,
+  rede no upload — certas em 16.500 runs) de falha REAL.
+- **+ classe NÃO-RETRIÁVEL nova:** `FileNotFoundError`/`KeyError` (DoE/dataset/sonda/chave de env
+  ausente) cortam na hora com `guard('nao_retriavel')` — retriar erro de PREPARAÇÃO só queima tempo.
+  O `NotImplementedError` já cortava.
+- Cada retry emite evento `retry` no jsonl (tentativa/de/espera/motivo) — alimenta a coluna
+  `n_retries` da tabela de execuções.
+
+### DI-17.2 — Varredura de `.tmp` órfãos [DI-06 item 1]
+- `experiments.sweep_tmp_orfaos(data_root, idade_min_s=3600, dry_run=False)`: remove os `.tmp` que a
+  escrita atômica (D58) deixa para trás num crash DURO (kill -9, spot-VM revogada, OOM). Não
+  corrompem nada, mas em 16.500 runs viram dezenas de GB de lixo silencioso.
+- **A sutileza que evita o desastre:** só apaga o que tem **mais de 1 h** — um `.tmp` recente pode
+  ser de um run **VIVO** neste instante, e apagá-lo mataria a escrita em curso. Testado: o velho é
+  removido, o recente sobrevive.
+
+### DI-17.3 — `is_run_done` ESTRITO [DI-13.3 item (b)]
+- Passa a exigir **`fe_final == maxfe`** além de `status ∈ {ok, retried_ok}` + camadas + footers.
+- **Por quê:** um run abortado pelo teto de tempo não grava `failed`; se houver artefatos de uma
+  execução ANTERIOR no disco, o resume o lia como PRONTO e um run **truncado entraria na bateria
+  como completo, em silêncio**. Esta é a rede independente do motivo da parada; a raiz (o aborto
+  gravar `failed`) é o item (a), no cartão do M7.
+- Consumidor único = o despachante (`experiments.py:160`) — **não** os gates, logo nenhuma sessão
+  ativa foi afetada.
+
+### DI-17.4 — Guarda `mu/sigma > M` no export [DI-06]
+- `write_surrogate` agora **ABORTA** se um vetor `mu`/`sigma` tiver MAIS componentes que M.
+- **A assimetria é proposital:** o caso CURTO (`len < M`) é legítimo e vira NULL — é o mono-output
+  do b1 (ParEGO, D47). O caso LONGO não é: significa que o instrumentador montou o vetor com mais
+  objetivos do que o problema tem, e os extras seriam **truncados em silêncio** — exatamente a
+  classe do bug do `n_front1` do retrofit-R2 (que só apareceu porque havia um teste).
+- 4 testes de regressão em `tests/test_di13.py`.
+
+**Pendente do M7 (não feito nesta janela, com razão):** DI-13.3 item (a) — o aborto gravar
+`status='failed'` — toca os runners `c262`/`c154`/`standalone_harness`, e o `standalone_harness` é
+lido pelo cartão R3-c122 em execução; fica para o cartão do M7. O `scripts/progress.py` apareceu na
+árvore como untracked de autoria não declarada — **a torre não tocou** (regra de faixa).
 
 ---
 

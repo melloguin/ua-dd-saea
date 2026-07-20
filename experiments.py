@@ -54,6 +54,12 @@ DEFAULT_SEEDS: list[int] = list(range(29)) + [42]
 
 DEFAULT_EXP = 'main'
 DEFAULT_DATA_ROOT = 'data'
+
+# ── Política de retry da bateria [M7/DI-06 item 1] ──────────────────────────
+#: Tentativas por run (1 + N−1 retries). D23 pedia 1 retry; a bateria pede mais.
+RETRY_ATTEMPTS = 3
+#: Base do backoff exponencial em segundos (0s → 5s → 20s nas 3 tentativas).
+RETRY_BACKOFF_S = 5
 GCS_BUCKET = 'mestrado_experiments'   # espelho Python (§17.7); MATLAB = só local
 
 
@@ -77,7 +83,15 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
         log.header(run_id=naming.run_id(exp, alg, problema, semente),
                    alg=alg, problema=problema, semente=semente, exp=exp,
                    modo_rapido=modo_rapido)
-        attempts = 2  # 1 tentativa + 1 retry (D23)
+        # ── Retry com BACKOFF [M7/DI-06 item 1 — o incremento 1 do autor] ────
+        # A bateria são 16.500 runs em máquina compartilhada: falhas transitórias
+        # (licença MATLAB contendida, I/O, OOM momentâneo, rede no upload) são
+        # CERTAS. O D23 já previa 1 retry; aqui ele vira `RETRY_ATTEMPTS`
+        # tentativas com espera crescente `RETRY_BACKOFF_S · 2^i` (0s → 5s → 20s),
+        # que é o que separa "falha transitória" de "falha real". Erros
+        # NÃO-RETRIÁVEIS (adapter ausente, arquivo de contexto faltando) cortam na
+        # hora — retriar não conserta e só queima tempo.
+        attempts = RETRY_ATTEMPTS
         for i in range(attempts):
             try:
                 _adapter.run(alg, problema, semente, exp=exp)
@@ -85,9 +99,15 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
                 n_retries = i          # nº de re-tentativas até o sucesso
                 break
             except NotImplementedError as e:
-                # Andaime da Fase 0: adapter não ligado — não retriar.
+                # Andaime da Fase 0: adapter não ligado — NÃO retriar.
                 status, stack_trace, n_retries = 'failed', repr(e), i
                 log.event('not_implemented', msg=str(e))
+                break
+            except (FileNotFoundError, KeyError) as e:
+                # [M7] artefato/config ausente (DoE, dataset, sonda, chave de env):
+                # é ERRO DE PREPARAÇÃO, não transitório — retriar não conserta.
+                status, stack_trace, n_retries = 'failed', repr(e), i
+                log.guard('nao_retriavel', err=f'{type(e).__name__}: {e}')
                 break
             except Exception as e:  # noqa: BLE001 — D23: capturar tudo, logar, seguir
                 import traceback
@@ -96,6 +116,11 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
                 log.guard('hard_error', attempt=i, err=f'{type(e).__name__}: {e}')
                 if i + 1 >= attempts:
                     status = 'failed'  # esgotou as tentativas
+                else:
+                    espera = RETRY_BACKOFF_S * (2 ** i)
+                    log.event('retry', tentativa=i + 1, de=attempts,
+                              espera_s=espera, motivo=f'{type(e).__name__}')
+                    time.sleep(espera)
     finally:
         log.footer(status=status, n_retries=n_retries,
                    tempo_total_s=round(time.time() - t0, 4),
@@ -151,6 +176,36 @@ def _stage_precache(problems, seeds, data_root):
     """
     print(f'[1/3] Pré-cache compartilhável (DoE/dataset) → cartão F0-02 '
           f'(stub; {len(problems)}×{len(seeds)} pares).')
+
+
+def sweep_tmp_orfaos(data_root: str = DEFAULT_DATA_ROOT, *, idade_min_s: float = 3600,
+                     dry_run: bool = False) -> list[str]:
+    """Remove `.tmp` ÓRFÃOS de escritas atômicas interrompidas [M7/DI-06 item 1].
+
+    A escrita atômica (D58) grava em `<arquivo>.tmp` e faz `replace` no fim — um
+    crash DURO (kill -9, spot-VM revogada, OOM) entre os dois deixa o `.tmp` para
+    trás. Eles não corrompem nada (o resume ignora), mas em 16.500 runs viram
+    dezenas de GB de lixo silencioso no disco e no bucket.
+
+    Só apaga o que tem **mais de `idade_min_s`** (default 1h): um `.tmp` recente
+    pode ser de um run VIVO neste instante — apagá-lo mataria a escrita em curso.
+    Devolve a lista de caminhos (removidos, ou que seriam removidos em `dry_run`).
+    """
+    from pathlib import Path
+    agora, alvos = time.time(), []
+    raiz = Path(data_root)
+    if not raiz.exists():
+        return alvos
+    for p in raiz.rglob('*.tmp'):
+        try:
+            if agora - p.stat().st_mtime < idade_min_s:
+                continue           # jovem demais: pode ser um run VIVO
+            alvos.append(str(p))
+            if not dry_run:
+                p.unlink()
+        except OSError:
+            continue               # sumiu no caminho / sem permissão: ignora
+    return alvos
 
 
 def _stage_grid(tasks, exp, data_root, *, n_jobs, force, modo_rapido, sb):

@@ -82,3 +82,79 @@ class TestDI13_5_SondaAninhada(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Hardening do M7 (DI-06) — implementado pela torre em 2026-07-19
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestM7_Retry(unittest.TestCase):
+    """[M7/DI-06 item 1] retry com backoff + erros não-retriáveis."""
+
+    def test_constantes_do_retry(self):
+        import experiments
+        self.assertGreaterEqual(experiments.RETRY_ATTEMPTS, 3)
+        self.assertGreater(experiments.RETRY_BACKOFF_S, 0)
+
+    def test_sweep_tmp_poupa_o_recente_e_apaga_o_velho(self):
+        """O `.tmp` recente pode ser um run VIVO — apagá-lo mataria a escrita."""
+        import os, time, tempfile
+        import experiments
+        d = tempfile.mkdtemp()
+        velho = os.path.join(d, "a.parquet.tmp")
+        with open(velho, "w") as fh:
+            fh.write("x")
+        os.utime(velho, (time.time() - 7200, time.time() - 7200))   # 2h
+        novo = os.path.join(d, "b.parquet.tmp")
+        with open(novo, "w") as fh:
+            fh.write("y")
+        removidos = experiments.sweep_tmp_orfaos(d)
+        self.assertEqual(len(removidos), 1)
+        self.assertFalse(os.path.exists(velho))
+        self.assertTrue(os.path.exists(novo))     # o VIVO sobrevive
+
+    def test_dry_run_nao_apaga(self):
+        import os, time, tempfile
+        import experiments
+        d = tempfile.mkdtemp()
+        p = os.path.join(d, "c.parquet.tmp")
+        with open(p, "w") as fh:
+            fh.write("x")
+        os.utime(p, (time.time() - 7200, time.time() - 7200))
+        self.assertEqual(len(experiments.sweep_tmp_orfaos(d, dry_run=True)), 1)
+        self.assertTrue(os.path.exists(p))
+
+
+class TestM7_ResumeEstrito(unittest.TestCase):
+    """[DI-13.3 b] `is_run_done` exige `fe_final == maxfe` — a rede contra o
+    run abortado pelo teto que convive com artefatos de execução anterior."""
+
+    def test_run_truncado_nao_e_pronto(self):
+        import tempfile
+        from src import naming
+        from src.manifest import new_manifest, write_manifest, is_run_done
+        d = tempfile.mkdtemp()
+        man = new_manifest("main", "fake", "MMF1", 0, status="ok", data_root=d)
+        man.update({"fe_final": 40, "maxfe": 61})      # truncado!
+        write_manifest(man, d)
+        self.assertFalse(is_run_done("main", "fake", "MMF1", 0, d))
+
+
+class TestM7_GuardaMuMaiorQueM(unittest.TestCase):
+    """[M7/DI-06] μ/σ MAIS LONGO que M seria truncado em silêncio."""
+
+    def test_mu_longo_estoura(self):
+        import tempfile
+        import src.export as E
+        with self.assertRaises(ValueError):
+            E.write_surrogate("main", "x", "MMF1", 0,
+                              [E.surrogate_row(1, [0.1, 0.2], mu=[1., 2., 3.])],
+                              D=2, M=2, data_root=tempfile.mkdtemp())
+
+    def test_mu_curto_passa(self):
+        """O caso mono-output do b1 (len < M) é LEGÍTIMO — vira NULL."""
+        import tempfile
+        import src.export as E
+        E.write_surrogate("main", "b1", "MMF1", 0,
+                          [E.surrogate_row(1, [0.1, 0.2], mu=[1.0])],
+                          D=2, M=2, data_root=tempfile.mkdtemp())

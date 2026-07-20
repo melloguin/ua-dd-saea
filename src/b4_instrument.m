@@ -1,5 +1,5 @@
 function b4_instrument(Problem, Arc, Ref, Next, sasinfo, p0, p1, rr, tr, ...
-                       n_treino, tfit_s)
+                       n_treino, tfit_s, tbusca_s, tger_s, ftm, ArcDecPre, n_trainin)
 % b4_instrument — instrumentacao POS-decisao do b4 CSEA (chamada no fim de cada
 % geracao pela CSEA.main patchada, DEPOIS da avaliacao real do lote). NAO altera
 % nenhuma decisao da busca (D97): so LE o que a geracao ja computou (p0/p1/rr/
@@ -57,12 +57,23 @@ function b4_instrument(Problem, Arc, Ref, Next, sasinfo, p0, p1, rr, tr, ...
         srows{i} = RunBuffer.mkSurrogateRow(Next(i, :), ...
             'real_solution_id', rsi, ...
             'pred_tipo', "classe", 'pred_classe', classe, ...
-            'pred_confianca', L(i), 'modelo_flag', "FNN");
+            'pred_confianca', L(i), 'modelo_flag', "FNN", ...
+            'espaco_modelo', "nativo", ...
+            'fe_treino_max', ftm);      % [DI-09/A1] tb nas linhas de busca
     end
 
-    % ── §17.6 timing: 1 retreino (trainNetwork, arquivo inteiro) por geracao ───
-    timing = struct('n_acumulado', n_treino, 'tempo_fit_s', tfit_s, ...
-                    'tempo_busca_s', NaN);
+    % ── §17.6 timing: 1 retreino (trainNetwork) por geracao ────────────────────
+    % [DI09-R1c] n_acumulado = |TrainIn| (a subamostra 3/4 ESTRATIFICADA que o
+    % trainNetwork de fato viu), NAO |Arc|: o §17.6/CONTRATO:220 define
+    % "nº de pontos reais no TREINO naquele retreino". Mesma correcao que o c217
+    % sofreu (numel(Arc) -> size(TrainIn,1), DI-13). O |Arc| segue auditavel no
+    % jsonl (campos `arquivo` e `n_treino`).
+    % [DI-13.10] tempo_geracao_s DESCONTA a sonda.
+    tps = sonda_tempo_b4(d);
+    timing = struct('n_acumulado', n_trainin, 'tempo_fit_s', tfit_s, ...
+                    'tempo_busca_s', tbusca_s, ...
+                    'tempo_geracao_s', max(tger_s - tps, 0), ...
+                    'tempo_pred_sonda_s', tps);
 
     % ── Emite ③ + timing no MESMO g do hook (② vem do hook_output) ─────────────
     view = struct('g', g, 'srows', {srows}, 'timing', timing);
@@ -88,9 +99,75 @@ function b4_instrument(Problem, Arc, Ref, Next, sasinfo, p0, p1, rr, tr, ...
             'ramo', sasinfo.ramo, 'motivo', string(motivo), ...
             'lote', double(lote), 'L_sel', L.', ...
             'ref_ids', ref_ids, 'n_treino', n_treino, ...
-            'guard_randperm', sasinfo.guard_randperm, 'tempo_fit_s', tfit_s);
+            'guard_randperm', sasinfo.guard_randperm, 'tempo_fit_s', tfit_s, ...
+            ... % ── DI-10: especificos do b4 (S.7.1/CONTRATO §6.1) ──
+            ... % `ref_ids` (os K solution_id das REFERENCIAS radiais) ja sai acima:
+            ... % e o CONTEXTO sem o qual a classe e inauditavel (o rotulo e vs as
+            ... % refs DAQUELA geracao, nao vs o arquivo). `rr`/`tr` efetivos idem.
+            'n_refs', double(size(Ref.decs, 1)), ...
+            'modelo_hp', hp_fnn_b4(tfit_s, n_trainin), ...
+            ... % ── DI-10: minimo comum dos 21 (S.7.1) ──
+            ... % [DI-15.2] f_best/n_front1 = ARQUIVO REAL POS-ciclo (o Arc aqui ja
+            ... % inclui o infill da Evaluation de CSEA.m:87) — decisao do autor.
+            'f_best', min(Arc.objs, [], 1), ...
+            'n_front1', n_front1_b4(Arc.objs), ...
+            'fe_treino_max', opt_null_b4(ftm), ...
+            'n_acumulado', double(n_trainin), ...
+            'tempo_busca_s', tbusca_s, 'tempo_geracao_s', tger_s, ...
+            'tempo_pred_sonda_s', tps, ...
+            'dist_min_arquivo', dist_min_b4(Next, ArcDecPre));
         try, fprintf(fid, '%s\n', jsonencode(rec)); catch, end
     end
+end
+
+function t = sonda_tempo_b4(d)
+    if isfield(d, 'snd') && ~isempty(d.snd), t = d.snd.takePendingTime(); else, t = 0; end
+end
+
+function hp = hp_fnn_b4(tfit_s, n_trainin)
+% [DI-10/B1] hp EFETIVOS da FNN (CSEA.m:39-45/:48-54 — arquitetura FIXA, mas a
+% rede e REINICIALIZADA a cada geracao; o que varia e o tamanho do treino).
+    hp = struct('arquitetura', "featureInput(zscore)-fc-batchnorm-relu-fc-sigmoid", ...
+                'normalizacao', "zscore INTERNO a featureInputLayer (Mean/Std " + ...
+                                "reajustados por geracao — rede nova)", ...
+                'shuffle', "every-epoch", 'n_treino_fit', double(n_trainin), ...
+                'tempo_fit_s', tfit_s);
+end
+
+function n = n_front1_b4(PopObj)
+% [DI-10] |ND| do arquivo real POS-ciclo (DI-15.2). NDSort e built-in PlatEMO,
+% deterministico e zero-RNG; o `1` para no 1o front.
+    n = NaN;
+    try
+        n = sum(NDSort(PopObj, 1) == 1);
+    catch
+    end
+    n = double(n);
+end
+
+function dmin = dist_min_b4(Next, ArcDecPre)
+% [DI-10/B3] Distancia de cada infill ao arquivo ANTERIOR (espaco de DECISAO,
+% NATIVO — decisao do autor DI-15.4: a SPEC dizia "normalizado", mas os dois
+% configs ja aceitos (c141, c217) usam nativo e o valor nao e renormalizavel
+% post-hoc; doc-sync do §S.7.1 repassado a torre).
+% `pdist2` e legitimo aqui: o b4 ja depende da Statistics Toolbox (RefSelect.m).
+% [] quando o lote e vazio (stalls 0-FE do b4 — design, D60-c).
+    dmin = [];
+    if isempty(Next) || isempty(ArcDecPre), return; end
+    try
+        dmin = min(pdist2(Next, ArcDecPre), [], 2).';
+    catch
+        n = size(Next, 1);
+        dmin = zeros(1, n);
+        for i = 1:n
+            dif = ArcDecPre - Next(i, :);
+            dmin(i) = sqrt(min(sum(dif .* dif, 2)));
+        end
+    end
+end
+
+function v = opt_null_b4(x)
+    if isempty(x), v = []; else, v = double(x); end
 end
 
 function guard_line(fid, name, g, varargin)

@@ -34,9 +34,17 @@ classdef RunBuffer < handle
                 return;   % sem indice de geracao nada a coletar
             end
             g = double(view.g);
+            % [DI-13.5] g = NaN e o portador de "geracao NULL" (bloco de sonda do
+            % regime OFFLINE: o modelo treina ANTES do laco). NaO e "sem geracao":
+            % as linhas TEM de ser coletadas, so que com geracao nula. Por isso o
+            % portador e NaN e nao [] — `[]` cairia no early-return acima e
+            % DESCARTARIA o bloco inteiro em silencio.
+            eh_nula = isnan(g);
 
             % ② membership: (geracao, solution_id) por individuo real.
-            if isfield(view, 'pop_ids') && ~isempty(view.pop_ids)
+            % Um bloco de geracao NULL nunca traz pop_ids (e sonda, nao populacao)
+            % — o guard abaixo impede que um NaN entre na ② e polua nGeracoes().
+            if ~eh_nula && isfield(view, 'pop_ids') && ~isempty(view.pop_ids)
                 ids = double(view.pop_ids(:));
                 obj.pop = [obj.pop; [repmat(g, numel(ids), 1), ids]];
             end
@@ -45,13 +53,19 @@ classdef RunBuffer < handle
             if isfield(view, 'srows') && ~isempty(view.srows)
                 for k = 1:numel(view.srows)
                     r = view.srows{k};
-                    r.geracao = g;                 % carimba a geracao
+                    if eh_nula
+                        r.geracao = [];            % [DI-13.5] NULL na ③
+                    else
+                        r.geracao = g;             % carimba a geracao
+                    end
                     obj.srows{end+1} = r; %#ok<AGROW>
                 end
             end
 
             % §17.6 timing: 1 evento de retreino por geracao (quando ha retreino).
-            if isfield(view, 'timing') && ~isempty(view.timing)
+            % Bloco de geracao NULL nao gera linha na ④ (a ④ e indexada POR
+            % geracao; o custo da sonda offline vai para man.timing).
+            if ~eh_nula && isfield(view, 'timing') && ~isempty(view.timing)
                 t = view.timing;
                 t.geracao = g;
                 if ~isfield(t, 'tempo_busca_s'), t.tempo_busca_s = NaN; end

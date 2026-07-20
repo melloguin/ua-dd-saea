@@ -262,24 +262,75 @@ function [status, info] = run_stub(alg, problema, semente, exp, dataRoot)
         jsonl_line(fid, 'timing', {'n_acumulado', n_init + g*5, 'tempo_fit_s', 0.001*g});
     end
 
-    % (5b) SONDA FINAL (§17.2.2 "SEMPRE a ultima"): fora do laco, sobre o
-    % modelo ARMADO no ultimo fit — o caminho que no algoritmo real roda depois
-    % que o hard-stop matou o `while`. G=3 ja foi sondada pela cadencia, entao
-    % este disparo deve ser NO-OP (o finalProbe nao repete geracao).
-    % (o stub nao usa bumpGen — as geracoes sao explicitas —, entao o teste usa
-    % G=3 (JA sondada pela cadencia) e G+1=4 (NUNCA sondada), que e exatamente
-    % a dicotomia do algoritmo real.)
-    n_blocos_antes_final = snd.n_blocos;
-    snd.finalProbe(G);                       % ja sondada => NO-OP
-    final_foi_noop = (snd.n_blocos == n_blocos_antes_final);
-    snd.finalProbe(G + 1);                   % nunca sondada => DISPARA
-    final_disparou = (snd.n_blocos == n_blocos_antes_final + 1);
+    % (5b) SONDA FINAL (§17.2.2 "SEMPRE a ultima"): fora do laco, sobre o modelo
+    % ARMADO no ultimo fit — o caminho que no algoritmo real roda depois que o
+    % hard-stop matou o `while`.
+    %
+    % [DI-15.5, autor 2026-07-19] O finalProbe usa a geracao do modelo ARMADO
+    % (`g_armado`), NAO um argumento do chamador. Os dois casos testados aqui sao
+    % exatamente a dicotomia do algoritmo real:
+    %   (i)  o ultimo fit CAIU na cadencia (G=3 ja sondada) => NO-OP;
+    %   (ii) o ultimo fit NAO caiu na cadencia (g=5 e impar: `probe` ARMA e nao
+    %        dispara) => o finalProbe DISPARA, e o bloco tem de sair carimbado
+    %        com g=5 (o modelo armado), nunca com outra geracao.
+    % O caso (ii) e a regressao do bug que a DI-15.5 corrige: sob a semantica
+    % antiga (`finalProbe(buf.gen)`) um config de overshoot zero carimbava o
+    % bloco final com uma geracao que NUNCA existiu.
+    % Estado ao sair do laco: a cadencia (g = 1,2,4,...) disparou em g=1 e g=2;
+    % o probe de g=3 (impar) apenas ARMOU. Logo g_armado = 3 e INEDITA.
+    n0 = snd.n_blocos;                       % 2 blocos
+    armou_sem_disparar = (n0 == 2) && isequal(snd.g_armado, 3);
+
+    % (ii) o ultimo fit NAO caiu na cadencia => o finalProbe DISPARA, e o bloco
+    % tem de sair carimbado com g_armado=3 (o modelo que de fato existe).
+    snd.finalProbe();
+    final_disparou = (snd.n_blocos == n0 + 1);
+    final_carimbou_armado = ~isempty(snd.gens_sondadas) && ...
+                            snd.gens_sondadas(end) == 3;
+
+    % (i) o ultimo fit CAIU na cadencia (g=4 e par => probe dispara e arma) =>
+    % o finalProbe seguinte tem de ser NO-OP (nao repete geracao ja sondada).
+    snd.probe(4, mk_fn(4), bud.fe - 1, 'modelo', "STUB");
+    n1 = snd.n_blocos;
+    snd.finalProbe();
+    final_foi_noop = (snd.n_blocos == n1);
+
+    % (5c) [DI-13.5 · adendo da torre] REGRESSAO DO WRITER: `geracao` NULLABLE.
+    % Um bloco de sonda OFFLINE (geracao = NULL) emitido no MESMO arquivo que as
+    % linhas de busca (geracao inteira) exercita o branch int32-x-double do
+    % write_surrogate: em MATLAB `int32(NaN)` = 0, entao um cast incondicional
+    % faria o bloco offline virar silenciosamente "geracao 0". O stub cobre isso
+    % SEM precisar rodar o e103 (que e caro). A conferencia e feita apos o export.
+    sd_off = load_sonda(problema, D, M, dataRoot, 'offline');
+    n_off  = 0;
+    if ~isempty(sd_off)
+        snd_off = SondaState(sd_off, buf, fid, alg);
+        snd_off.probeOffline(mk_fn(1), bud.fe - 1, 'modelo', "STUB-OFFLINE");
+        n_off = snd_off.n_linhas;
+    end
 
     % (6) EXPORT das 4 camadas (§17.2/§17.3) — parquet brotli+single, atomico.
     write_real(exp, alg, problema, semente, R, D, M, dataRoot);
     write_pop(exp, alg, problema, semente, buf.pop, dataRoot);
     write_surrogate(exp, alg, problema, semente, buf.srows, D, M, "online", dataRoot);
     write_timing(exp, alg, problema, semente, buf.trows, dataRoot);
+
+    % (6b) [DI-13.5] CONFERE A COLUNA `geracao` NOS DOIS LADOS, relendo o parquet
+    % que acabou de ser escrito (nao o buffer — o que importa e o que foi ao disco).
+    %   sonda OFFLINE -> NULL (NaN)      ·      linhas de busca -> inteiro >= 1
+    % Ler NULL como 0 e o sintoma de `int32(NaN)`; ler a busca como NULL e o
+    % sintoma oposto (a coluna caiu para double sem preservar os valores).
+    ger_null_ok = true; ger_busca_ok = true;
+    if n_off > 0
+        Tchk = parquetread(nm_layer_path(exp, alg, problema, semente, 'surrogate', dataRoot));
+        eh_sonda = (string(Tchk.regime) == "sonda");
+        gg = double(Tchk.geracao);
+        % as linhas de sonda ONLINE do stub tem geracao inteira; so as OFFLINE
+        % sao nulas — e sao exatamente n_off linhas.
+        ger_null_ok  = (sum(isnan(gg)) == n_off);
+        ger_busca_ok = ~any(isnan(gg(~eh_sonda))) && all(gg(~eh_sonda) >= 1) && ...
+                       all(mod(gg(~eh_sonda), 1) == 0);
+    end
 
     % (7) CP-init por-run (D87/D88): hash da init X (float64) = sidecar do DoE.
     doe_hash_run = sha256_rowmajor_f64(bud.init_X());
@@ -306,7 +357,12 @@ function [status, info] = run_stub(alg, problema, semente, exp, dataRoot)
         'sonda_n_blocos', snd.n_blocos, 'sonda_n_linhas', snd.n_linhas, ...
         'sonda_n_falhas', snd.n_falhas, ...
         'rng_intacto', rng_intacto, 'rng_mesma_sequencia', rng_mesma_sequencia, ...
-        'final_foi_noop', final_foi_noop, 'final_disparou', final_disparou, ...
+        'final_foi_noop', final_foi_noop, ...
+        'final_armou_sem_disparar', armou_sem_disparar, ...
+        'final_disparou', final_disparou, ...
+        'final_carimbou_armado', final_carimbou_armado, ...   % [DI-15.5]
+        'sonda_off_linhas', n_off, ...                        % [DI-13.5]
+        'ger_null_ok', ger_null_ok, 'ger_busca_ok', ger_busca_ok, ...
         'tempo_aval_real_s', bud.tempo_aval_real_s);
     status = "ok";
 end
@@ -1013,6 +1069,7 @@ function [status, info] = run_b4(alg, problema, semente, exp, dataRoot)
     status = "failed";
     info = struct();
     ROOT = harness_root();
+    t0_run = tic;                                  % [§17.6] wall total do run
 
     % Arvore PlatEMO 4.15 no path (N.0.1) — rede p/ chamada direta.
     ensure_paths_b4(ROOT);
@@ -1057,7 +1114,11 @@ function [status, info] = run_b4(alg, problema, semente, exp, dataRoot)
 
     % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.
     %     N=50 do paper (B4.2): cap da Population (RefSelect(Arc,Problem.N)).
-    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, ...
+    %     [DI-09] snd = SondaState (data e SetAccess=protected: so aqui).
+    sd  = load_sonda(problema, D, M, dataRoot);
+    snd = [];
+    if ~isempty(sd), snd = SondaState(sd, buf, fid, alg); end
+    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, 'snd', snd, ...
                   'run_id', string(nm_run_id(exp, alg, problema, semente)), ...
                   'problema', string(problema), 'semente', semente);
     Problem = UserProblem('evalFcn', batchEval, 'initFcn', @(N,varargin) X0(1:N,:), ...
@@ -1088,6 +1149,10 @@ function [status, info] = run_b4(alg, problema, semente, exp, dataRoot)
         end
     end
 
+    % (7b) [DI-09] SONDA da ULTIMA geracao — fora do laco, sobre o modelo ARMADO
+    % no ultimo fit. No-op se aquela geracao ja foi sondada pela cadencia.
+    if ~isempty(snd), snd.finalProbe(); end
+
     % (8) EXPORT das 4 camadas (§17.2/§17.3): ① do wrapper; ②③/timing do buffer.
     R = bud.records();                                 % catalogo ① (== 31D-1 linhas)
     write_real(exp, alg, problema, semente, R, D, M, dataRoot);
@@ -1109,6 +1174,7 @@ function [status, info] = run_b4(alg, problema, semente, exp, dataRoot)
         maxfe, bud.fe, buf.nGeracoes(), doe_hash_run, bud.cache_hits, dataRoot);
     man.algo_version = "b4-CSEA-PlatEMO4.15";
     man.status = st_str;
+    man = fill_manifest_timing(man, buf.trows, bud, toc(t0_run), snd);   % [§17.6/DI-09]
     man.params = struct('N', 50, 'K_refs', 6, 'gmax', 3000, ...
         'rede', "H=2D, 1 oculta; zscore (featureInputLayer, CSEA.m:36) + BatchNorm + ReLU + sigmoide + regressionLayer (MSE)", ...
         'treinador', "adam lr=1e-3, 100 epocas, batch 32, sem early-stop, rede NOVA/Glorot por geracao (divergencia em bloco vs paper LM/T=500 — CODIGO, registrada)", ...
@@ -2556,7 +2622,7 @@ function p = write_surrogate(exp, alg, problema, semente, srows, D, M, regime, d
     % (mesmos NaN/missing, mesma ordem de colunas, mesmos tipos, mesmo branch
     % int32/double do rsi) — provada por re-run do MMF1 + comparacao pyarrow.
     n = numel(srows);
-    GER = zeros(n, 1);
+    GER = NaN(n, 1);            % [DI-13.5] NaN = NULL (bloco de sonda offline)
     X   = zeros(n, D);
     RSI = NaN(n, 1);
     MU  = NaN(n, M);  SG = NaN(n, M);
@@ -2571,7 +2637,7 @@ function p = write_surrogate(exp, alg, problema, semente, srows, D, M, regime, d
     tpar   = repmat(string(missing), n, 1);
     for k = 1:n
         r = srows{k};
-        GER(k)  = r.geracao;
+        if ~isempty(r.geracao), GER(k) = r.geracao; end   % [DI-13.5] vazio => NULL
         X(k, :) = r.x;
         if ~isempty(r.real_solution_id), RSI(k) = double(r.real_solution_id); end
         % [DI-09] regime/fe_treino_max: lidos com field_or — as linhas legadas
@@ -2603,7 +2669,20 @@ function p = write_surrogate(exp, alg, problema, semente, srows, D, M, regime, d
     T.problema  = repmat(string(problema), n, 1);
     T.semente   = repmat(int32(semente), n, 1);
     T.regime    = REG;                    % [DI-09] por linha ('sonda' x busca)
-    T.geracao   = int32(GER);
+    % [DI-13.5 · adendo da torre] `geracao` e NULLABLE: os blocos de sonda do
+    % regime OFFLINE gravam geracao=NULL (o modelo treina ANTES do laco — nao ha
+    % geracao a que pertencer). MATLAB nao expressa int32-NULL: `int32(NaN)` = 0,
+    % o que faria o bloco offline virar silenciosamente "geracao 0". Aplica-se o
+    % MESMO idioma ja usado no `n_acumulado` da ④ (write_timing) e no
+    % `real_solution_id` abaixo: mantem-se double (NaN => NULL no parquet) se
+    % houver QUALQUER ausente; so casta p/ int32 quando a coluna esta completa.
+    % BIT-NEUTRO para todos os configs ONLINE — sem NaN, o branch escolhe int32
+    % exatamente como antes. (O lado Python ja foi corrigido pela torre.)
+    if all(~isnan(GER))
+        T.geracao = int32(GER);
+    else
+        T.geracao = GER;             % double com NaN => NULL
+    end
     for j = 0:D-1, T.(sprintf('x%d', j)) = single(X(:, j+1)); end
     % real_solution_id: int32 quando TODOS presentes (casa com §17.2/int32); se
     % houver ausentes (candidato nao avaliado — caso do c217), cai p/ double+NaN

@@ -27,13 +27,23 @@ classdef SondaState < handle
 % final da curva, que e o modelo mais treinado e o eixo de comparacao do DI-09.]
 %
 % USO (por config):
-%   snd = SondaState(sd, buf, bud, fid, alg);          % sd = load_sonda(...)
+%   snd = SondaState(sd, buf, fid, alg);               % sd = load_sonda(...)
+%   ^^ ATENCAO: a assinatura NAO leva `bud` (invariante I2 — a classe nao pode
+%      receber o FEBudget, senao teria como gastar orcamento). Ate 2026-07-19
+%      este cabecalho documentava `SondaState(sd, buf, bud, fid, alg)`, o que
+%      levava quem copiasse daqui a passar o FEBudget na posicao do `fid` — e o
+%      .jsonl morria em SILENCIO (`fid > 2` e falso para um objeto). Corrigido.
 %   ...apos CADA fit, antes de qualquer decisao:
 %   snd.probe(g, @(X) minhas_linhas(X), ftm, 'modelo', "GP-DACE");
 %   ...ao montar a linha de timing da geracao:
 %   timing.tempo_pred_sonda_s = snd.takePendingTime();
 %   ...apos o Algorithm.Solve, no run_*:
-%   snd.finalProbe(buf.gen);
+%   snd.finalProbe();                                  % ver DI-15.5 abaixo
+%
+% REGIME OFFLINE (DI-13.5): o artefato tem S=20.000 e o offline le TODAS (1x por
+% modelo treinado, fora do laco). Nesses blocos `geracao` = NULL. O disparo e por
+% `probeOffline(fn, ftm, ...)` — nao por `probe`, que exige g>=1 e nunca casaria
+% a cadencia com um g inexistente.
 
     properties (SetAccess = private)
         X                        % S x D float64, bounds NATIVOS, ordem do artefato
@@ -46,11 +56,14 @@ classdef SondaState < handle
         path   char
         k      (1,1) double = 2  % cadencia (§17.2.2)
 
+        regime char = 'online'   % [DI-13.5] 'online' (S=2000) | 'offline' (S=20000)
+
         n_blocos      (1,1) double = 0    % disparos concluidos
         n_linhas      (1,1) double = 0    % linhas ③ emitidas com regime='sonda'
         n_falhas      (1,1) double = 0
         tempo_total_s (1,1) double = 0
         gens_sondadas double = []         % geracoes ja sondadas (p/ o manifesto)
+        g_armado double = []              % [DI-15.5] a geracao do modelo ARMADO
     end
 
     properties (Access = private)
@@ -74,7 +87,20 @@ classdef SondaState < handle
             if nargin >= 3, obj.fid = fid; end
             if nargin >= 4, obj.alg = char(alg); end
             if nargin >= 5 && ~isempty(k), obj.k = double(k); end
-            assert(obj.S == 2000, 'sonda: S=%d != 2000 (§17.2.2)', obj.S);
+            % [DI-13.5] O S esperado depende do REGIME: o artefato tem 20.000 e a
+            % sequencia de Sobol e ANINHADA, entao o ONLINE le a fatia [1:2000]
+            % (load_sonda ja fatia) e o OFFLINE le as 20.000. O assert continua
+            % existindo — mas contra o S DO REGIME, nao contra o literal 2000.
+            if isfield(sd, 'regime') && ~isempty(sd.regime)
+                obj.regime = char(sd.regime);
+            end
+            if strcmpi(obj.regime, 'offline')
+                assert(obj.S == 20000, ...
+                    'sonda offline: S=%d != 20000 (§17.2.2/DI-13.5)', obj.S);
+            else
+                assert(obj.S == 2000, ...
+                    'sonda online: S=%d != 2000 (§17.2.2)', obj.S);
+            end
         end
 
         function tf = due(obj, g)
@@ -92,28 +118,47 @@ classdef SondaState < handle
             tf = (g >= 1) && (g == 1 || mod(g, obj.k) == 0);
         end
 
-        function arm(obj, fn, ftm, varargin)
-        % Registra o ULTIMO modelo treinado SEM predizer nada (custo ~zero).
-        % E o que permite ao finalProbe medir o modelo final depois que o
-        % hard-stop matou o laco.
-            obj.armado = struct('fn', fn, 'ftm', ftm, 'meta', {varargin});
+        function arm(obj, g, fn, ftm, varargin)
+        % Registra o ULTIMO modelo treinado SEM predizer nada (custo ~zero),
+        % JUNTO COM A GERACAO A QUE ELE PERTENCE. E o que permite ao finalProbe
+        % medir o modelo final depois que o hard-stop matou o laco.
+            obj.armado  = struct('fn', fn, 'ftm', ftm, 'meta', {varargin});
+            obj.g_armado = double(g);
         end
 
         function probe(obj, g, fn, ftm, varargin)
         % Arma SEMPRE + dispara se a geracao estiver na cadencia.
-            obj.arm(fn, ftm, varargin{:});
+            obj.arm(g, fn, ftm, varargin{:});
             if obj.due(g)
                 obj.fire(g, fn, ftm, 'cadencia', varargin{:});
             end
         end
 
-        function finalProbe(obj, g)
+        function probeOffline(obj, fn, ftm, varargin)
+        % [DI-13.5] O disparo do regime OFFLINE: UM bloco por MODELO TREINADO,
+        % fora do laco, com `geracao` = NULL (NaN e o portador ate o writer).
+        % NAO arma: no offline nao existe hard-stop no meio do ciclo capaz de
+        % matar o bloco (o orcamento e o dataset e ja foi esgotado antes da
+        % busca), logo nao ha "ultima geracao" a recuperar. Deixar `armado`
+        % vazio torna um finalProbe defensivo um no-op garantido.
+            obj.fire(NaN, fn, ftm, 'offline', varargin{:});
+        end
+
+        function finalProbe(obj, ~)
         % [DECISAO DO AUTOR] A sonda da ULTIMA geracao, disparada pelo run_*
         % DEPOIS do Algorithm.Solve — fora do laco, ja com a excecao de termino
         % engolida. Nao repete se a geracao ja foi sondada pela cadencia.
-            if isempty(obj.armado), return; end
-            g = double(g);
-            if g < 1, return; end                       % run sem geracao alguma
+        %
+        % [DI-15.5, autor 2026-07-19] A geracao usada e a do modelo ARMADO
+        % (`g_armado`), NAO o `buf.gen` corrente. Motivo: em configs de overshoot
+        % ZERO (c238), a PlatEMO:Termination sai do TOPO do ciclo seguinte
+        % (ALGORITHM.m:128) DEPOIS de o outputFcn ja ter bumpado a geracao — o
+        % `buf.gen` pos-Solve aponta uma geracao que NUNCA foi armada, e o bloco
+        % final sairia carimbado com a geracao errada. O argumento posicional
+        % legado e aceito e IGNORADO para nao quebrar os call-sites existentes.
+            if isempty(obj.armado) || isempty(obj.g_armado), return; end
+            g = obj.g_armado;
+            if isnan(g) || g < 1, return; end            % run sem geracao alguma
             if any(obj.gens_sondadas == g), return; end
             a = obj.armado;
             obj.fire(g, a.fn, a.ftm, 'final', a.meta{:});

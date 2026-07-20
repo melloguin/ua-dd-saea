@@ -92,7 +92,6 @@ classdef ParEGO < ALGORITHM
                 [PopDec,gainfo] = EvolALG(Problem,PCheby,Population.decs,dmodel,IFEs);
                 tbusca_s   = toc(t0_busca);          % [R1-b1]
                 A_pre_b1   = Population.decs;        % [DI09-R1c] DI-10/B3: arquivo PRE-infill
-                ObjPre_b1  = Population.objs;        % [DI09-R1c] DI-10: f_best/n_front1 do ciclo
                 Population = [Population,Problem.Evaluation(PopDec)];
                 % [R1-b1] sync D89 (herdado do c217, PCS:56): o obj.FE nativo NAO
                 % governa; re-sincroniza com o saldo DISTINTO do wrapper apos o
@@ -103,7 +102,9 @@ classdef ParEGO < ALGORITHM
                 b1_instrument(Problem, lamda, fmin, fmax, gainfo, PopDec, ...
                               n_arquivo, n_subset, n_treino, n_dedup, ...
                               nan_guard_fired, theta, tfit_s, tbusca_s, ...
-                              toc(tGer_b1), ftm_b1, A_pre_b1, ObjPre_b1, dmodel);
+                              toc(tGer_b1), ftm_b1, A_pre_b1, Population.objs, dmodel);
+                              % ^ [DI-15.2] f_best/n_front1 = arquivo real POS-ciclo
+                              %   (a Population aqui JA inclui o infill de :96).
             end
         end
     end

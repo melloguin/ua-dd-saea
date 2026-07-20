@@ -56,6 +56,7 @@ classdef CSEA < ALGORITHM
 
             %% Optimization
             while Algorithm.NotTerminated(Arc)
+                t0_ger_b4 = tic;                     % [DI09-R1c] §17.6 wall da geracao
                 % Select reference solutions and preprocess the data
                 Ref    = RefSelect(Population,k);
                 % [R1-b4] treino no ARQUIVO INTEIRO (ARTIGO — B4.6/D30): o cap
@@ -77,20 +78,39 @@ classdef CSEA < ALGORITHM
                 p0 = sum(abs((TestOut(IndexGood)-TestPre(IndexGood))))/sum(IndexGood);
                 p1 = sum(abs((TestOut(~IndexGood)-TestPre(~IndexGood))))/sum(~IndexGood);
 
+                % [DI09-R1c] SONDA (DI-09/§17.2.2): pos-fit (:71), ANTES da unica
+                % decisao do ciclo (:85 SAS), ANTES do 1o consumo de RNG pos-fit
+                % (OperatorGA/randperm/randi vivem dentro do SAS) e ANTES da
+                % Evaluation (:87), onde o hard-stop aborta o corpo. Devolve o
+                % fe_treino_max sobre o TrainIn (subamostra 3/4 estratificada),
+                % calculado UMA vez por geracao e repassado ao instrument.
+                ftm_b4 = b4_sonda(Problem, net, TrainIn);
+
                 % Surrogate-assisted selection and update the population
                 % [R1-b4] SAS com 2o output de instrumentacao (ramo/L/guard) —
                 % decisoes intactas (D97).
+                t0_busca_b4 = tic;                   % [DI09-R1c] §17.6
                 [Next,sasinfo] = SurrogateAssistedSelection(Problem,net,p0,p1,Ref,Population.decs,gmax,tr);
+                tbusca_s_b4 = toc(t0_busca_b4);      % [DI09-R1c] §17.6
                 if ~isempty(Next)
                     Arc = [Arc,Problem.Evaluation(Next)];
                 end
                 % [R1-b4] sync D89 (herdado do c217, PCS:56): o obj.FE nativo NAO
                 % governa; re-sincroniza com o saldo DISTINTO do wrapper.
                 Problem.FE = Problem.data.bud.fe;
-                % [R1-b4] instrumentacao POS-decisao (D97): ③ + .jsonl + timing.
-                b4_instrument(Problem, Arc, Ref, Next, sasinfo, p0, p1, rr, tr, ...
-                              n_treino, tfit_s);
                 Population = RefSelect(Arc,Problem.N);
+                % [R1-b4] instrumentacao POS-decisao (D97): ③ + .jsonl + timing.
+                % [DI09-R1c] MOVIDA para DEPOIS do RefSelect: o `tempo_geracao_s`
+                % do §17.6 e o wall TOTAL da geracao, e o RefSelect final nao e
+                % barato (NDSort + pdist2 |Arc|x|Arc| no ZDT1). Deixa-lo fora do
+                % relogio tornaria a curva de custo do b4 nao-comparavel com a do
+                % c217, onde o EnvironmentalSelection analogo esta DENTRO
+                % (PCSAEA.m:72 antes do instrument de :75). O b4_instrument nao le
+                % nada mutado pelo RefSelect (nao recebe Population) e o RefSelect
+                % nao consome RNG — o movimento e read-only.
+                b4_instrument(Problem, Arc, Ref, Next, sasinfo, p0, p1, rr, tr, ...
+                              n_treino, tfit_s, tbusca_s_b4, toc(t0_ger_b4), ...
+                              ftm_b4, Input, size(TrainIn,1));
             end
         end
     end

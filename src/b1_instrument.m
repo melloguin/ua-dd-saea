@@ -1,6 +1,7 @@
 function b1_instrument(Problem, lamda, fmin, fmax, gainfo, PopDec, ...
                        n_arquivo, n_subset, n_treino, n_dedup, ...
-                       nan_guard_fired, theta, tfit_s, tbusca_s)
+                       nan_guard_fired, theta, tfit_s, tbusca_s, ...
+                       tger_s, ftm, A_pre, ObjPre, dmodel)
 % b1_instrument — instrumentacao POS-decisao do b1 ParEGO (chamada no fim de
 % cada iteracao de BO pela ParEGO.main patchada). NAO altera nenhuma decisao da
 % busca (D97): so LE o que a iteracao ja computou (a pop final scorada do GA
@@ -74,12 +75,18 @@ function b1_instrument(Problem, lamda, fmin, fmax, gainfo, PopDec, ...
             'mu', pop.y(i), 'sigma', pop.s(i), ...
             'pred_tipo', "valor", 'modelo_flag', "GP-DACE", ...
             'espaco_modelo', "transformado", 'transf_tipo', "escalar-tcheby", ...
-            'transf_params', tp); %#ok<AGROW>
+            'transf_params', tp, ...
+            'fe_treino_max', ftm); %#ok<AGROW>   % [DI-09/A1] tb nas linhas de busca
     end
 
     % ── §17.6 timing: 1 retreino (dacefit) + busca (EvolALG) por iteracao ─────
+    % [DI-13.10] tempo_geracao_s DESCONTA a sonda: o relogio da iteracao mede o
+    % custo do ALGORITMO, nao o do instrumento (molde c141_instrument.m:104).
+    tps = sonda_tempo_b1(d);
     timing = struct('n_acumulado', n_treino, 'tempo_fit_s', tfit_s, ...
-                    'tempo_busca_s', tbusca_s);
+                    'tempo_busca_s', tbusca_s, ...
+                    'tempo_geracao_s', max(tger_s - tps, 0), ...
+                    'tempo_pred_sonda_s', tps);
 
     % ── Emite ③ + timing no MESMO g do hook (② vem do hook_output) ────────────
     view = struct('g', g, 'srows', {srows}, 'timing', timing);
@@ -104,9 +111,63 @@ function b1_instrument(Problem, lamda, fmin, fmax, gainfo, PopDec, ...
             'lote', 1, ...
             'n_mse_neg', gainfo.n_mse_neg, 'n_ei_nan', gainfo.n_ei_nan, ...
             'nan_guard', nan_guard_fired, ...
-            'tempo_fit_s', tfit_s, 'tempo_busca_s', tbusca_s);
+            ... % ── DI-10: especificos do b1 (S.7.1/CONTRATO §6.1) ──
+            ... % `lambda` (vetor completo de M valores) e `ei_best` ja saem acima,
+            ... % nas chaves de mesmo nome. `n_pool_ga` e o NOME CONTRATADO da
+            ... % grandeza que ja era escrita como `ga_pop`: emito as DUAS (aditivo
+            ... % — renomear quebraria qualquer leitor escrito contra `ga_pop`).
+            'n_pool_ga', size(pop.dec, 1), ...
+            'modelo_hp', hp_gp_b1(dmodel, theta, tfit_s), ...
+            ... % ── DI-10: minimo comum dos 21 (S.7.1) ──
+            'f_best', min(ObjPre, [], 1), ...
+            'n_front1', sum(NDSort(ObjPre, 1) == 1), ...
+            'fe_treino_max', opt_null_b1(ftm), ...
+            'tempo_busca_s', tbusca_s, 'tempo_geracao_s', tger_s, ...
+            'tempo_pred_sonda_s', tps, ...
+            'dist_min_arquivo', dist_min_b1(PopDec, A_pre), ...
+            'tempo_fit_s', tfit_s);
         try, fprintf(fid, '%s\n', jsonencode(rec)); catch, end
     end
+end
+
+function t = sonda_tempo_b1(d)
+    if isfield(d, 'snd') && ~isempty(d.snd), t = d.snd.takePendingTime(); else, t = 0; end
+end
+
+function hp = hp_gp_b1(dmodel, theta, tfit_s)
+% [DI-10/B1] hp EFETIVOS do GP-DACE, read-only de dacefit.m:123-125.
+% As chaves planas theta_min/max/media seguem sendo emitidas acima (nao remover:
+% ha leitores escritos contra elas) — esta e a forma ESTRUTURADA que o S.7.1 pede.
+    hp = struct('theta', theta(:).', 'n', NaN, 'sigma2', [], ...
+                'regr', "regpoly1", 'corr', "corrgauss", 'tempo_fit_s', tfit_s);
+    try
+        if isstruct(dmodel)
+            if isfield(dmodel, 'S'),      hp.n      = size(dmodel.S, 1); end
+            if isfield(dmodel, 'sigma2'), hp.sigma2 = dmodel.sigma2(:).'; end
+            if isfield(dmodel, 'theta'),  hp.theta  = dmodel.theta(:).';  end
+        end
+    catch
+    end
+end
+
+function dmin = dist_min_b1(PopDec, A_pre)
+% [DI-10/B3] Distancia de cada infill ao arquivo ANTERIOR (espaco de decisao).
+% O b1 nao tem arquivo ND separado: o arquivo E a Population (snapshot pre-:88).
+% Laco sem pdist2 (molde c141_instrument.m:171-183) — o b1 TEM a Statistics
+% Toolbox, mas manter o mesmo helper mantem a coluna comparavel entre configs.
+% O lote do b1 e sempre 1 (PopDec = Best, EvolALG.m:67) => escalar.
+    dmin = [];
+    if isempty(PopDec) || isempty(A_pre), return; end
+    n = size(PopDec, 1);
+    dmin = zeros(1, n);
+    for i = 1:n
+        dif = A_pre - PopDec(i, :);
+        dmin(i) = sqrt(min(sum(dif .* dif, 2)));
+    end
+end
+
+function v = opt_null_b1(x)
+    if isempty(x), v = []; else, v = double(x); end
 end
 
 function guard_line(fid, name, g, varargin)

@@ -36,6 +36,7 @@ classdef ParEGO < ALGORITHM
 
             %% Optimization
             while Algorithm.NotTerminated(Population)
+                tGer_b1 = tic;                       % [DI09-R1c] §17.6 wall da iteracao
                 % Randomly select a weight vector and preprocess the data
                 lamda  = W(randi(size(W,1)),:);
                 PopObj = Population.objs;
@@ -77,12 +78,21 @@ classdef ParEGO < ALGORITHM
                 dmodel     = dacefit(PDec,PCheby,'regpoly1','corrgauss',theta,1e-5.*ones(1,D),20.*ones(1,D));
                 tfit_s     = toc(t0_fit);            % [R1-b1] §17.6
                 theta      = dmodel.theta;
+                % [DI09-R1c] SONDA (DI-09/§17.2.2): pos-fit, ANTES do EvolALG (o
+                % 1o consumidor de RNG do ciclo), ANTES da Evaluation (:88, onde o
+                % hard-stop aborta o corpo) e ANTES do t0_busca (senao contaminaria
+                % tempo_busca_s). Devolve o fe_treino_max, que so e calculavel aqui
+                % (o treino e o PDec pos-cap/dedup, nao o arquivo) e que o
+                % b1_instrument — que roda POS-Evaluation — nao consegue reconstruir.
+                ftm_b1 = b1_sonda(Problem, dmodel, PDec, PCheby, lamda, fmin, fmax, tfit_s);
                 % [R1-b1] EvolALG com output de instrumentacao (gainfo): pop FINAL
                 % scorada do GA interno + y/s/EI + Gbest/E0 + contadores dos guards
                 % (mse<0, EI-NaN). Decisoes intactas (D97).
                 t0_busca   = tic;                    % [R1-b1] §17.6 (opcional)
                 [PopDec,gainfo] = EvolALG(Problem,PCheby,Population.decs,dmodel,IFEs);
                 tbusca_s   = toc(t0_busca);          % [R1-b1]
+                A_pre_b1   = Population.decs;        % [DI09-R1c] DI-10/B3: arquivo PRE-infill
+                ObjPre_b1  = Population.objs;        % [DI09-R1c] DI-10: f_best/n_front1 do ciclo
                 Population = [Population,Problem.Evaluation(PopDec)];
                 % [R1-b1] sync D89 (herdado do c217, PCS:56): o obj.FE nativo NAO
                 % governa; re-sincroniza com o saldo DISTINTO do wrapper apos o
@@ -92,7 +102,8 @@ classdef ParEGO < ALGORITHM
                 % + linha b1_gen no .jsonl (S.7) + timing §17.6.
                 b1_instrument(Problem, lamda, fmin, fmax, gainfo, PopDec, ...
                               n_arquivo, n_subset, n_treino, n_dedup, ...
-                              nan_guard_fired, theta, tfit_s, tbusca_s);
+                              nan_guard_fired, theta, tfit_s, tbusca_s, ...
+                              toc(tGer_b1), ftm_b1, A_pre_b1, ObjPre_b1, dmodel);
             end
         end
     end

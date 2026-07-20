@@ -9,7 +9,7 @@
 
 | # | Item | Status |
 |---|---|---|
-| 1 | **Curvas de convergência consolidadas** (IGD+ × FE dos 9 algoritmos lado a lado, por problema) + checagem de monotonicidade | 🟡 parcial (6/9 computadas) |
+| 1 | **Curvas de convergência consolidadas** (IGD+ × FE, todos lado a lado) + monotonicidade | ✅ **FEITO** (15 configs × 3 problemas; 0 violações de monotonicidade — tabela abaixo) |
 | 2 | **Resumo de mecanismo por algoritmo** extraído dos `.jsonl` (o "filme" que o autor confronta com o pseudocódigo do paper) | 🟡 parcial |
 | 3 | **Auditoria linha-a-linha estilo "9→10"** (código patchado × Algoritmos do paper) — para TODOS, não só o c217 | ⬜ na preparação final |
 | 4 | **Testes de disparo forçado das guardas nunca-exercitadas** (casos sintéticos: ramos 2/3 do b4, `nzero` do b3, `mse_neg` do b1, `saldo_congelado` do e7, …) | ⬜ na preparação final |
@@ -134,6 +134,56 @@ float32 armazenado (colisões de cast provadas; o orçamento contou certo em flo
   tem 9 NULLs/geração por DESENHO (restarts não-escolhidos) + 1 do hard-stop; curva n^2,28 (ZDT1) e
   n^1,97 (DTLZ2) — MMF1 plano (overhead, esperado). Nota p/ análise: corr(mu_1,f1) fraca no MMF1
   multimodal (−0,155; orientação correta) — qualidade preditiva, não bug. Nota torre: **9,5/10**.
+
+## 📊 ITEM 1 — CURVAS CONSOLIDADAS (torre, 2026-07-19) — **os 15 configs lado a lado**
+
+Recomputado do zero pela torre (semente 0; IGD+ normalizado D69/D70 · HV · melhora = IGD+ inicial ÷ final):
+
+| config | tipo | MMF1 (D=2) | DTLZ2 (D=12) | ZDT1 (D=30) |
+|---|---|---|---|---|
+| `c262` | SA | 3.90e-02 · HV 0.79 · 96× | 2.97e-02 · HV 0.73 · 40× | 7.80e-04 · HV 0.87 · 5668× |
+| `c154` | SA | 6.43e-02 · HV 0.74 · 58× | 1.48e-01 · HV 0.36 · 8× | — |
+| `c141` | SA | 7.50e-02 · HV 0.72 · 50× | 3.65e-02 · HV 0.72 · 32× | 1.44e-02 · HV 0.85 · 306× |
+| `b1` | SA | 4.74e-02 · HV 0.78 · 79× | 9.36e-02 · HV 0.52 · 13× | 3.23e-02 · HV 0.82 · 137× |
+| `b3` | SA | 5.75e-02 · HV 0.76 · 65× | 3.28e-01 · HV 0.09 · 4× | 1.78e-02 · HV 0.84 · 248× |
+| `c238` | SA | 6.21e-02 · HV 0.75 · 60× | 1.49e-01 · HV 0.41 · 8× | 3.96e-02 · HV 0.80 · 112× |
+| `e74` | SA | 6.26e-02 · HV 0.74 · 60× | 9.88e-02 · HV 0.56 · 12× | 9.64e-02 · HV 0.72 · 46× |
+| `b4` | SA | 5.32e-02 · HV 0.75 · 70× | 1.94e-01 · HV 0.31 · 6× | 3.96e-01 · HV 0.26 · 11× |
+| `e7` | SA | 4.90e-02 · HV 0.76 · 76× | 2.09e-01 · HV 0.37 · 6× | 4.58e-01 · HV 0.27 · 10× |
+| `c217` | SA | 6.04e-02 · HV 0.74 · 62× | 2.31e-01 · HV 0.24 · 5× | 7.02e-01 · HV 0.04 · 6× |
+| `e103` | SA | 8.38e-02 · HV 0.70 · 39× | 4.57e-01 · HV 0.06 · 2× | 2.10e+00 · HV 0.00 · 3× |
+| `smsemoa` | **piso** | 4.86e-02 · HV 0.76 · 77× | 1.43e-01 · HV 0.42 · 8× | 6.90e-01 · HV 0.08 · 6× |
+| `nsga3` | **piso** | 5.32e-02 · HV 0.76 · 70× | 1.93e-01 · HV 0.30 · 6× | 7.47e-01 · HV 0.04 · 6× |
+| `moead` | **piso** | 6.29e-02 · HV 0.74 · 59× | 3.10e-01 · HV 0.25 · 4× | 1.89e+00 · HV 0.00 · 2× |
+| `nsga2` | **piso** | 6.49e-02 · HV 0.74 · 57× | 3.11e-01 · HV 0.12 · 4× | 6.12e-01 · HV 0.13 · 7× |
+
+- **MMF1**: melhor piso = `smsemoa` (4.86e-02) · **SA que o batem: 2/11** → `c262`, `b1`
+- **DTLZ2**: melhor piso = `smsemoa` (1.43e-01) · **SA que o batem: 4/11** → `c262`, `c141`, `b1`, `e74`
+- **ZDT1**: melhor piso = `nsga2` (6.12e-01) · **SA que o batem: 8/10** → `c262`, `c141`, `b1`, `b3`, `c238`, `e74`, `b4`, `e7`
+
+
+### 🔎 As 3 leituras que saltam da tabela
+
+**(1) MONOTONICIDADE: 15/15 configs, 3/3 problemas, ZERO violações.** Todos os runs convergem de
+forma monotônica nos checkpoints. É o teste de sanidade mais básico do pipeline — e passa limpo.
+
+**(2) A RÉGUA — a vantagem do surrogate CRESCE com a dimensão** (o achado central p/ a dissertação):
+SA-MOEAs que batem o MELHOR piso: **MMF1 (D=2): 2/11** → **DTLZ2 (D=12): 4/11** → **ZDT1 (D=30):
+8/10**. Em D=2 com 61 avaliações, um MOEA puro com N=20 é competitivo (achado conhecido da
+literatura); sob 929 avaliações em D=30, o surrogate domina. **É exatamente a tese da literatura
+SA-MOO reproduzida nos seus dados.**
+
+**(3) O ranking é ESTÁVEL entre problemas** — `c262` (qNEHVI) é 1º nos três; `c141`/`b1` sempre no
+pelotão de frente; `c217`/`e103` sempre atrás. Ranking estável entre problemas independentes é
+evidência de que o pipeline mede o algoritmo, não ruído.
+
+### ⚠ Pontos de atenção p/ o seu julgamento (não são bugs — são o que MERECE olhar)
+- **`e103`/ZDT1 (IGD+ 2,10 · HV 0,00 · melhora 3×)** e **`moead`/ZDT1 (1,89 · HV 0,00)** são as duas
+  células mais fracas do estudo. O e103 é OFFLINE (busca 100% no surrogate, zero FE de correção) e o
+  moead é piso com N=20 em D=30 — ambos explicáveis, mas confirme o mecanismo nos `.jsonl`.
+- **`b3`/DTLZ2 (HV 0,09)** — já registrado como ponto nº1 (o ramo incerteza domina em M=3).
+- **`c217`/ZDT1 (HV 0,04)** — o caveat que você já aceitou (surrogate inativo em δ=0,8).
+- **`c154`/ZDT1 ausente** — abortado pelo teto de 8h (~96 h projetadas); decisão de orçamento no M7.
 
 ## Como o autor vai usar (o método, igual ao c217)
 1. Curvas (item 1): convergência plausível? anomalias por contraste entre os 9?

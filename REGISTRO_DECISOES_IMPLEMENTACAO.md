@@ -810,6 +810,67 @@ lido pelo cartão R3-c122 em execução; fica para o cartão do M7. O `scripts/p
 
 ---
 
+## PARTE A7 — DI-18: auditoria de PROSA dos cartões R1/R2 (torre, 2026-07-19)
+
+**O que foi auditado.** Um workflow adversarial de **64 agentes** leu, para cada um dos 15 algoritmos
+já implementados nas rodadas R1 (MATLAB) e R2 (BoTorch), o **cartão/bundle + a seção da SPEC que o
+gera + o código realmente entregue + os dados do run**, procurando *uma coisa só*: **frases que
+descrevem um comportamento DIFERENTE do que o repositório faz hoje**. Não é auditoria de código — é
+auditoria da **prosa vinculante**, que é o que uma sessão nova (ou o autor, no julgamento manual de
+fidelidade D97) lê para decidir se o algoritmo está certo.
+
+**Por que isso importa mais do que parece.** Nossa validação de fidelidade é **MANUAL e a
+posteriori** (D97): o autor compara o comportamento observado com o comportamento DESCRITO. Se a
+descrição estiver desatualizada, o autor vê uma **falsa discrepância** e reprova um algoritmo
+correto — ou, pior, ratifica um errado. Uma linha de prosa obsoleta custa uma rodada inteira de
+re-execução.
+
+**Funil:** 71 achados brutos → 59 sobreviveram ao filtro de criticidade → **38 CONFIRMADOS** por
+verificação independente contra o código/dados (16 🔴 = risco real de decisão errada). Os 21
+descartados eram leitura desatualizada do próprio auditor ou duplicatas.
+
+### DI-18.1 — Os dois achados que JÁ TERIAM causado dano (c217)
+
+| # | O que a prosa dizia | O que o repositório faz | Consequência evitada |
+|---|---|---|---|
+| **C217-01** 🔴 | tabela de parâmetros: `DoE inicial = max(11D−1, N)`, "garante ≥50 amostras" | a implementação **injeta o artefato** (D63/D94): `fase=init` tem **21 linhas** no D=2 (=11·2−1), nunca 50 | o autor leria a tabela e concluiria que o **c217 viola o invariante 11D−1** — o mais grave dos invariantes do protocolo |
+| **C217-02** 🔴 | "sob o fix: ger. 1 lote 41, depois 6 (~95 gerações)" | run real ZDT1: **588 gerações**, `lote`=1 em **585** delas (`Counter({1: 585, 6: 3})`) | o cartão descrevia o comportamento **AS-SHIPPED (pré-D17)**. O autor **já aceitou a fidelidade do c217 com nota 9/10** — conferir esse perfil teria produzido uma discrepância FALSA e reaberto um cartão fechado |
+
+### DI-18.2 — Os 38 confirmados, por algoritmo (todos aplicados)
+
+| Alg | Nº | Destaques |
+|---|---|---|
+| c217 | 6 | DoE injetado (🔴), perfil de lote medido (🔴), regra do lote v2.2, decisão superseded por D17, `.txt`→`.jsonl`, **âncora J medida a 2000 FEs** vs nosso orçamento 464 → *IGD acima da faixa é ESPERADO* |
+| c141 | 4 | sinais do nível 2 `[−Fit1, Fit2, −Fit3]` (🔴), u=5 revogado (🔴), faixa de crash D≤9→D≤4, mtime do init RESOLVIDO (é stock), patch LHS → injeção classe D94 |
+| b1 | 2 | 🔴 o patch de DoE substitui o **par `:29–:30` JUNTO** (patchar só a `:29` = **dupla-escala silenciosa** em WFG/BBOB); 🔴 a ③ grava a **população final do GA interno**, não best/geração |
+| b3 | 3 | 🔴 critério = máx **MSE̅** (média das VARIÂNCIAS, **sem raiz** — `KrigingSelect.m:61`), não "máx σ̄"; a raiz é unidade de EXPORT apenas; D94 citada |
+| b4 | 3 | 🔴 **rótulo 1 ⟺ não estritamente pior que todas as K=6 refs** — *dominação NÃO é exigida* (a prosa dizia "domina ≥1 referência", contradizendo o próprio cartão); nomes p0/p1; o stall 0-FE mora no 4º ramo |
+| e7 | 2 | 🔴 dropout **0,1/0,1 do PAPER** (D30), não o 0,2/0,5 do código do autor; a divergência mora em DEF-B6.6, não no L.4; e7 **não** usa `trainNetwork` |
+| c238 | 1 | **crash latente STOCK** documentado: front ND de 1 ponto → `Infill_EIM.m:25` colapsa a escalar → `Optimizer_GA.m:17` estoura. **Deliberadamente NÃO consertado** (falha honesta de código stock; conserto = decisão do autor, D81) |
+| e74 | 4 | 🔴 **D94 APLICA-SE ao e74** (o gerador dizia o contrário); init nativo 100/200 substituído por 11D−1; D74 = min-max do **FRONT-1** fixo por chamada; desalinhamento máscara×Parent = **~24,8%/ciclo no ZDT1 (máx 91/100)**, não os ~8% do DTLZ2 |
+| e103 | 3 | 🔴 centros RBFN = `ceil(sqrt(n_dataset))` (D93), não `ceil(sqrt(11D−1))`; 100 ger × pop 100 = 10.000 (o "99 ger" dava 9.900); **B7.7/7.8/7.9 FECHADAS** — não re-auditar |
+| pisos | 2 | `UniformPoint(20,3)` → **H=4 → 15 vetores**: NSGA-III e MOEA/D rodam com **N efetivo 15** em M=3 (NSGA-II e SMS-EMOA mantêm 20) — o "N=20" **não é uniforme entre os 4 pisos**; MOEA/D com `T=2` gera **23% de duplicatas** e é o pior dos pisos — **não é bug**, é a D89 |
+| c262 | 3 | 🔴 **S.3#9 era FALSO**: o `logei_fused.cpp` está no wheel OFICIAL também (byte-identidade verificada) → a política vigente é **DESLIGAR o kernel explicitamente** (DEF-L2/DI-05), não "usar o oficial porque não tem o kernel"; DEF-B8.6 **FECHADA** em D40; ref da aquisição = **oráculo S.5 congelado** ⇒ vantagem informacional declarada (D73) |
+| c154 | 5 | 🔴 são **DOIS otimizadores** (caminhos ≠ aquisição), a prosa fundia num só; 🔴 B9.5 **fechada pela D75** — o piloto MEDE (×17,7), não escolhe; 🔴 o jitter 1e-6 **não basta** (NaN no LB do JES; sem a guarda o ZDT1 é irrodável); escada de fallback `(1024,10)→(2048,20)→(4096,40)`; likelihood LogNormal moderno × kernel Gamma-legado = assimetria **deliberada** |
+| contrato R2 | 1 | DEF-L2 promovida a **política da rodada**, com a nota de que o desligamento é estado **POR PROCESSO** (cada subprocess D79 + despachante M8) |
+
+### DI-18.3 — Onde as correções foram aplicadas (e por que não no cartão)
+
+**Os bundles são ARQUIVOS GERADOS** (`gen_bundles.py`) — editá-los à mão seria perdido na próxima
+regeneração. Portanto: **50 edições na `SPEC_experimentos_v5.2.md`** (fonte única) + **2 no
+`gen_bundles.py`** (as duas frases que são literais *hardcoded* do gerador, não vêm da SPEC:
+a faixa-guia do c217 e a nota de D94 do e74) + 1 no `DOSSIE_FIDELIDADE_R1.md` (o ~8% obsoleto).
+Toda edição carrega a marca **⟦v5.2.1⟧** e, quando revoga um texto, mantém a **lápide** do texto
+antigo — a rastreabilidade do que mudou é o que permite ao autor auditar a auditoria.
+
+**⚠ PENDÊNCIA OPERACIONAL (única):** `python claude_code_context/gen_bundles.py` **NÃO foi
+executado** — ele faz `rmtree` das 6 pastas de bundles, e havia **duas sessões de implementação
+lendo essa árvore** (retrofit MATLAB e R3-c122). Regenerar com uma sessão aberta pode apagar o
+arquivo que ela está lendo no exato instante. **Rodar assim que ambas fecharem**; até lá, SPEC e
+bundles divergem nesses 52 pontos — e a precedência D83 (**vale a SPEC**) cobre o intervalo.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

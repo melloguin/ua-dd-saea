@@ -97,7 +97,7 @@ float32 armazenado (colisões de cast provadas; o orçamento contou certo em flo
   6,26e-2 (10º — run minúsculo). Monotônico ×3. IGD_raw sessão: DTLZ2 1,177e-1 · ZDT1 9,64e-2.
 - Mecanismo: **as 3 estratégias em rotação PERFEITA 211/211/211** no ZDT1 (o ciclo do CLMEA visível);
   dedup ε=1e-5 com 35 slots perdidos no s1 (o "no-op silencioso" previsto na v2.2 — telemetrado);
-  desalinhamento máscara×Parent ~8%/ciclo (fix opcional NÃO aplicado — só telemetria, decisão aberta).
+  desalinhamento máscara×Parent **~24,8%/ciclo no ZDT1 (máx 91/100)** — o ~8% era só o DTLZ2 (fix opcional NÃO aplicado — só telemetria; ponto PRIORITÁRIO do julgamento em lote, DI-07b).
 - **Isolamento = padrão-ouro do projeto:** 518 basenames colidentes; prova c217→e74→nsga2→b3 no MESMO
   processo + asserts which. Wall leve (ZDT1 485s).
 - **Veredito adversarial da torre (2026-07-18): patches CONFIRMED; desvio `ndsort-obj` classificado

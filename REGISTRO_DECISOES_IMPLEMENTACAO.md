@@ -685,6 +685,29 @@ São **definições ausentes**, não erros de redação — exigem escolha de es
 - **Justificativa.** Cada tier tem um PAR diferente — o piso é a ablação de quem está no tier. Um env
   por processo ⇒ zero risco de colisão. O roster do sweep (§11.5) passa a listar o piso nos 3 tiers.
 
+### DI-16.7 / DI-16.8 / R3C-05 — o pacote que LIBERA o cartão R3-c122 (torre, 2026-07-19)
+- **DI-16.7 (C122-08):** preâmbulo transversal novo na §22.4 — «**a infra JÁ EXISTE**»: lista as APIs
+  do `standalone_harness.py` que os 7 cartões da R3 herdam (pin/env_info, run_in_venv, load_doe+
+  FEBudget, load_dataset+offline_guard, seeds D62, preserve_all_rng, iteration_cleanup, load_sonda/
+  sonda_due/emit_sonda_block, minimo_comum_di10, SnapshotBuffer, write_run_outputs/dual_write_run,
+  write_final) + o esqueleto copiável `run_stubr3` + «gancho faltando ⇒ pára-e-pergunta (D81)».
+- **DI-16.8 (C122-10):** o carimbo `bucket-only` (D54) passa a declarar a FASE: **vale do M8 em
+  diante**; **no Mac, até o M7, `enable_bucket=False` com as camadas LOCAIS COMPLETAS, sem podar a ③**
+  (RI-08). Sem isso o implementador tentaria credenciar GCS numa sessão em que isso não se aplica —
+  ou pior, podaria a ③ do piloto. Aplicado nas epígrafes da R2 E da R3.
+- **R3C-05:** os ponteiros de env MORTOS («env §18.6», «env §18.7») viraram os nomes canônicos
+  **`env_b5`/`env_c311`**, apontando o `envs.json:alg_to_env` como FONTE ÚNICA em runtime (DI-14),
+  com o pin correto do sklearn (0.21.3) e a **TAREFA 0 de Mac×VM** (DI-11.5/RI-08) explícita.
+
+### 📌 Estado da aplicação dos 43 achados (transparência)
+**26 de 43 aplicados.** Os **17 restantes** são de cartões POSTERIORES e serão corrigidos ANTES de
+cada um (a torre não deixa cartão abrir com pendência): **c149 (7 — 4 🔴:** semântica da sonda,
+harness, conflito TRIPLO de sementes D22×D62/D91, DoE D87/D88**)** · **c311 (5 — 1 🔴:** a premissa
+"offline = modelo fixo" é FALSA p/ ele, que constrói a árvore incrementalmente**)** · **b5/piso-off
+(4 — 3 🔴:** ⑦ irreconstituível no mode 7, timing do piso que TREINA, ② e real_solution_id vazios**)**
+· **e81 (1 🟡:** contradições internas de nugget/ngen**)**. **O conjunto que o R3-c122 lê está 100%
+sincronizado** (contrato transversal + cartão + contrato de dados + as 6 decisões DI-16).
+
 ### DI-16.6 — `n_baseline` → **`n_train`** no e81
 - O `n_baseline` é o \|X_baseline\| **pós-prune** do qLogNEHVI. O qPOTS **não tem baseline nem
   prune** (o maximin é vs o dataset INTEIRO). **Decisão: logar `n_train`** — mesma solução já

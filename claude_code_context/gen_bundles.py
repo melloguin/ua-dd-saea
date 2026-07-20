@@ -161,7 +161,7 @@ write('20_rodada2_botorch/00_contrato_rodada2.md', 'Rodada 2 — contrato transv
                 "\n\n"
                 "**Decisões-chave:** BoTorch **OFICIAL 0.18.1** (nunca o fork do device — N.2.3) · D62 (`SeedSequence((base,alg_id,iter,uso_id))` p/ toda semente interna) · "
                 "D79 (subprocess-por-venv; `OMP/OPENBLAS/MKL/NUMEXPR=1`; float64; CPU) · D53/D54 (export float32 sem round; **c262/c154 são bucket-only**) · "
-                "D58 (resume dos bucket-only LISTA O BUCKET) · **D86 (higiene torch: `no_grad` na predição; `del`+`gc.collect()` por iteração — N.1.5)** · D61 (`BudgetExhausted`)."))
+                "D58 (resume dos bucket-only LISTA O BUCKET — agendado no hardening do M7; **até lá, no Mac, `enable_bucket=False` e camadas locais completas, RI-08**) · **D86 (higiene torch: `no_grad` na predição; `del`+`gc.collect()` por iteração — N.1.5)** · D61 (`BudgetExhausted`)."))
 def nxt2(pat):
     i=find(r'^### '+pat)
     for j in range(i+1,len(lines)):
@@ -186,7 +186,7 @@ write('30_rodada3_standalone/00_contrato_rodada3.md', 'Rodada 3 — contrato tra
                 "**Decisões-chave:** D77 (**piso offline = DESDEO mode 12, GP-média = b5-sem-σ**; a listagem PlatEMO morreu) · D56 (b5 = 2 configs `b5r`/`b5m`) · "
                 "D78 (**fallbacks pré-registrados**: c311→treed/sparse-GP substituto 'author-modified'; c149→best-effort, senão narrativa repousa no c311 + nota BNN futuro; flag `fallback_ativado`) · "
                 "D68 (ND final SEM cap — salvar completo) · D62 (SeedSequence; base=1000·semente p/ e81/c149 — D22) · D79 (venv PRÓPRIO por repo; b5×c311 NUNCA co-importados — N.1.2) · "
-                "**D86 (higiene torch por iteração no c149 — N.1.5)** · D54 (e81/c149/c122 bucket-only)."))
+                "**D86 (higiene torch por iteração no c149 — N.1.5)** · D54 (e81/c149/c122 bucket-only — **vale do M8 em diante, na bateria**; no Mac, até o M7, roda `enable_bucket=False` com as camadas LOCAIS COMPLETAS, **sem podar a ③** — RI-08; o resume que lista o bucket [D58] está no hardening do M7) [C122-10/DI-16.8]."))
 R3ALGS={
  'alg_c122_thetadeadp':('c122 θ-DEA-DP (autor, Python/torch+DEAP)','3.1 ',['c122'],r'I\.6 ',r'L\.6 ',r'M\.12 ',r'E\.7 ','c122 ',
     "f_min/f_max dos fronts VERDADEIROS pela ASSINATURA (vantagem informacional DECLARADA — D73b); driver próprio bypassa o factory (env encolhe — S.8); cap anti-spin (fork do main loop); **bucket-only (D54)**; stub do visualizer."),

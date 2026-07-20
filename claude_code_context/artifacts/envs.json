@@ -1,240 +1,272 @@
 {
-  "spec_version": "5.2",
-  "thread_pin": [
-    "OMP_NUM_THREADS=1",
-    "OPENBLAS_NUM_THREADS=1",
-    "MKL_NUM_THREADS=1",
-    "NUMEXPR_NUM_THREADS=1",
-    "matlab:maxNumCompThreads(1)"
-  ],
-  "dispatch": "subprocess no python do venv-alvo (D79); 1 run = 1 core (D79)",
-  "provisioning": {
-    "venv_dir": "/Users/gmello/Documents/python_venvs",
-    "requirements_dir": "requirements/ (raiz do repo — 1 arquivo por ambiente; ver requirements/README.md p/ o mapa+estratégia)",
-    "matlab": "SEM venv: 1 instalação R2025a + toolboxes; isolamento por árvore PlatEMO (padrão 4.15 / e74 4.1 própria / e103 worker) + ponte env_bridge (requirements/env_matlab.md)",
-    "count": "4 venvs Python que rodam algoritmos (env_main, env_e81_qpots, env_b5, env_c311) + env_bridge (ponte MATLAB) + env_c149_fallback (condicional)",
-    "envs": {
-      "env_main":         {"venv": "/Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao", "req": "requirements/env_main.txt", "mac": "OK — núcleo provisionado 2026-07-15 (falta stack R2: botorch/torch/gcs/deap)", "vm": "a provisionar antes do R2"},
-      "env_e81_qpots":    {"venv": "/Users/gmello/Documents/python_venvs/env_e81_qpots", "req": "requirements/env_e81_qpots.txt", "mac": "verificar pins (torch 2.12/botorch 0.16.1) no provisionamento", "vm": "a provisionar (M6)"},
-      "env_b5":           {"venv": "/Users/gmello/Documents/python_venvs/env_b5", "req": "requirements/env_b5.txt", "mac": "INVIÁVEL (sklearn 0.21.3 sem wheel arm64)", "vm": "DESTINO NATURAL (M5)"},
-      "env_c311":         {"venv": "/Users/gmello/Documents/python_venvs/env_c311", "req": "requirements/env_c311.txt", "mac": "INVIÁVEL (numpy 1.20.2 sem wheel arm64)", "vm": "DESTINO NATURAL (M5)"},
-      "env_bridge":       {"venv": "/Users/gmello/ponte_teste", "req": "requirements/env_bridge.txt", "mac": "✅ PROVISIONADO 2026-07-16: ~/ponte_teste (venv 3.11.9 --enable-shared) = numpy 2.4.6 + pymoo 0.6.2 + pyarrow 25.0.0; MATLAB pyenv Executable aponta pra ele (Status NotLoaded); lê DoE parquet OK", "vm": "n/a (ponte é Mac/MATLAB)"},
-      "env_c149_fallback":{"venv": "/Users/gmello/Documents/python_venvs/env_c149_fallback", "req": "requirements/env_c149_fallback.txt", "mac": "condicional", "vm": "condicional (só se o piloto do c149 divergir)"}
-    }
+ "spec_version": "5.2",
+ "thread_pin": [
+  "OMP_NUM_THREADS=1",
+  "OPENBLAS_NUM_THREADS=1",
+  "MKL_NUM_THREADS=1",
+  "NUMEXPR_NUM_THREADS=1",
+  "matlab:maxNumCompThreads(1)"
+ ],
+ "dispatch": "subprocess no python do venv-alvo (D79); 1 run = 1 core (D79)",
+ "provisioning": {
+  "venv_dir": "/Users/gmello/Documents/python_venvs",
+  "requirements_dir": "requirements/ (raiz do repo — 1 arquivo por ambiente; ver requirements/README.md p/ o mapa+estratégia)",
+  "matlab": "SEM venv: 1 instalação R2025a + toolboxes; isolamento por árvore PlatEMO (padrão 4.15 / e74 4.1 própria / e103 worker) + ponte env_bridge (requirements/env_matlab.md)",
+  "count": "4 venvs Python que rodam algoritmos (env_main, env_e81_qpots, env_b5, env_c311) + env_bridge (ponte MATLAB) + env_c149_fallback (condicional)",
+  "envs": {
+   "env_main": {
+    "venv": "/Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao",
+    "req": "requirements/env_main.txt",
+    "mac": "OK — núcleo provisionado 2026-07-15 (falta stack R2: botorch/torch/gcs/deap)",
+    "vm": "a provisionar antes do R2"
+   },
+   "env_e81_qpots": {
+    "venv": "/Users/gmello/Documents/python_venvs/env_e81_qpots",
+    "req": "requirements/env_e81_qpots.txt",
+    "mac": "verificar pins (torch 2.12/botorch 0.16.1) no provisionamento",
+    "vm": "a provisionar (M6)"
+   },
+   "env_b5": {
+    "venv": "/Users/gmello/Documents/python_venvs/env_b5",
+    "req": "requirements/env_b5.txt",
+    "mac": "INVIÁVEL (sklearn 0.21.3 sem wheel arm64)",
+    "vm": "DESTINO NATURAL (M5) ⟦v5.2.1: NÃO é automático — ver nota_mac_vm_DI11⟧",
+    "nota_mac_vm_DI11": "[DI-11.5 · autor 2026-07-17/19] O plano vigente roda TUDO NO MAC até o M7 (a VM só entra no M8). Este env é INVIÁVEL no Mac arm64 com o pin atual ⇒ o CARTÃO decide, como TAREFA 0: (a) tentar pins VIZINHOS no Mac com validação de equivalência do GPR/stack (rota preferida), ou (b) exceção documentada rodando na VM. NÃO é 'destino natural VM' automático."
+   },
+   "env_c311": {
+    "venv": "/Users/gmello/Documents/python_venvs/env_c311",
+    "req": "requirements/env_c311.txt",
+    "mac": "INVIÁVEL (numpy 1.20.2 sem wheel arm64)",
+    "vm": "DESTINO NATURAL (M5) ⟦v5.2.1: NÃO é automático — ver nota_mac_vm_DI11⟧",
+    "nota_mac_vm_DI11": "[DI-11.5 · autor 2026-07-17/19] O plano vigente roda TUDO NO MAC até o M7 (a VM só entra no M8). Este env é INVIÁVEL no Mac arm64 com o pin atual ⇒ o CARTÃO decide, como TAREFA 0: (a) tentar pins VIZINHOS no Mac com validação de equivalência do GPR/stack (rota preferida), ou (b) exceção documentada rodando na VM. NÃO é 'destino natural VM' automático."
+   },
+   "env_bridge": {
+    "venv": "/Users/gmello/ponte_teste",
+    "req": "requirements/env_bridge.txt",
+    "mac": "✅ PROVISIONADO 2026-07-16: ~/ponte_teste (venv 3.11.9 --enable-shared) = numpy 2.4.6 + pymoo 0.6.2 + pyarrow 25.0.0; MATLAB pyenv Executable aponta pra ele (Status NotLoaded); lê DoE parquet OK",
+    "vm": "n/a (ponte é Mac/MATLAB)"
+   },
+   "env_c149_fallback": {
+    "venv": "/Users/gmello/Documents/python_venvs/env_c149_fallback",
+    "req": "requirements/env_c149_fallback.txt",
+    "mac": "condicional",
+    "vm": "condicional (só se o piloto do c149 divergir)"
+   }
+  }
+ },
+ "environments": {
+  "env_matlab": {
+   "stack": "matlab",
+   "version": "R2025a",
+   "note": "Mac M1 Pro; parquet brotli (zstd ausente); toolboxes: Deep Learning, Statistics, Optimization, Parallel"
   },
-  "environments": {
-    "env_matlab": {
-      "stack": "matlab",
-      "version": "R2025a",
-      "note": "Mac M1 Pro; parquet brotli (zstd ausente); toolboxes: Deep Learning, Statistics, Optimization, Parallel"
-    },
-    "env_e81_qpots": {
-      "stack": "python",
-      "python": "3.10/3.11",
-      "key_pins": [
-        "botorch==0.16.1",
-        "torch==2.12.0",
-        "gpytorch==1.14.2",
-        "numpy==2.2.6",
-        "pymoo==0.6.1.6"
-      ],
-      "algs": [
-        "e81"
-      ]
-    },
-    "env_main": {
-      "stack": "python",
-      "python": "3.11",
-      "mac_interpreter": "/Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao/bin/python",
-      "mac_venv": "/Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao",
-      "provisioned": "Mac núcleo provisionado 2026-07-15 (pyenv 3.11.9): numpy 2.4.6 / pandas 3.0.3 / pyarrow 25 / pymoo 0.6.2 / scipy 1.17.1 / joblib / tqdm / scikit-learn 1.9; versões exatas em <mac_venv>/requirements.lock; usar por CAMINHO COMPLETO (shell não preserva activate). ⚠ pandas resolveu 3.0.3 — avaliar pin >=2,<3. FALTA no mesmo venv antes do R2: botorch==0.18.1 / torch / gpytorch / google-cloud-storage / deap. VM: a provisionar antes de R2/R3.",
-      "note": "env-main (S.6/D79): harness + BoTorch (c262/c154/sobol_batch) + c122 (driver próprio, factory bypass) + c149 (TENTAR aqui; fallback env_c149 se o piloto divergir)",
-      "key_pins": [
-        "numpy>=2,<3",
-        "pandas",
-        "pyarrow(zstd)",
-        "joblib",
-        "tqdm",
-        "scipy(versão REGISTRADA no manifesto)",
-        "pymoo==0.6.2",
-        "botorch==0.18.1",
-        "gpytorch(compatível)",
-        "torch(estável)",
-        "google-cloud-storage",
-        "scikit-learn(harness)",
-        "deap(c122)"
-      ],
-      "algs": [
-        "c262",
-        "c154",
-        "sobol_batch",
-        "c122",
-        "c149"
-      ]
-    },
-    "env_c149_fallback": {
-      "stack": "python",
-      "python": "3.10",
-      "condicional": "criar SÓ se o piloto divergir do env-main (S.6)",
-      "key_pins": [
-        "pymoo==0.6.0.1",
-        "numpy==1.22.4",
-        "torch(CPU)"
-      ],
-      "algs": [
-        "c149(fallback)"
-      ]
-    },
-    "env_b5": {
-      "stack": "python",
-      "python": "conforme wheels do sklearn 0.21.3 (x86; VM Linux)",
-      "note": "venv PRÓPRIO (D79/N.1.2 — NUNCA co-importar com c311); overlay desdeo_* vendorizado root-first no sys.path",
-      "key_pins": [
-        "scikit-learn==0.21.3(S.2#12; se sem wheel p/ o py, a mais próxima COM validação de equivalência do GPR no piloto)",
-        "desdeo-problem==0.14.0",
-        "desdeo-tools==0.2.6",
-        "desdeo-emo==<PIN A CRAVAR NO GATE R3.2>",
-        "statsmodels",
-        "matplotlib",
-        "pyDOE",
-        "pandas",
-        "numpy(compatível)"
-      ],
-      "algs": [
-        "b5r",
-        "b5m",
-        "moead_media"
-      ]
-    },
-    "env_c311": {
-      "stack": "python",
-      "python": ">=3.8,<3.10",
-      "note": "venv PRÓPRIO (D79/N.1.2); overlay desdeo_* root-first; NUNCA importar evaluate_population (dispara matlab.engine)",
-      "key_pins": [
-        "GPy~=1.9.9",
-        "graphviz",
-        "scikit-learn==1.1.2",
-        "numpy==1.20.2",
-        "scipy",
-        "pyDOE",
-        "plotly==4.14.3",
-        "plotly-express==0.4.1",
-        "matplotlib",
-        "statsmodels",
-        "pandas"
-      ],
-      "env_flags": [
-        "MPLBACKEND=Agg"
-      ],
-      "algs": [
-        "c311"
-      ]
-    },
-    "env_bridge": {
-      "stack": "python",
-      "python": "3.x (arm64 no Mac p/ o pyenv do R2025a)",
-      "note": "o pyenv InProcess do MATLAB aponta para este (avalia problems.py; lê DoE/dataset parquet). Não roda algoritmo.",
-      "key_pins": [
-        "numpy",
-        "pymoo(problems.py)",
-        "pyarrow"
-      ],
-      "algs": []
-    }
+  "env_e81_qpots": {
+   "stack": "python",
+   "python": "3.10/3.11",
+   "key_pins": [
+    "botorch==0.16.1",
+    "torch==2.12.0",
+    "gpytorch==1.14.2",
+    "numpy==2.2.6",
+    "pymoo==0.6.1.6"
+   ],
+   "algs": [
+    "e81"
+   ]
   },
-  "alg_to_env": {
-    "b1": {
-      "stack": "matlab",
-      "env": "env_matlab"
-    },
-    "b3": {
-      "stack": "matlab",
-      "env": "env_matlab"
-    },
-    "b4": {
-      "stack": "matlab",
-      "env": "env_matlab"
-    },
-    "e7": {
-      "stack": "matlab",
-      "env": "env_matlab"
-    },
-    "c217": {
-      "stack": "matlab",
-      "env": "env_matlab"
-    },
-    "c141": {
-      "stack": "matlab",
-      "env": "env_matlab"
-    },
-    "e74": {
-      "stack": "matlab",
-      "env": "env_matlab"
-    },
-    "c238": {
-      "stack": "matlab",
-      "env": "env_matlab"
-    },
-    "e103": {
-      "stack": "matlab",
-      "env": "env_matlab"
-    },
-    "nsga2": {
-      "stack": "matlab",
-      "env": "env_matlab"
-    },
-    "nsga3": {
-      "stack": "matlab",
-      "env": "env_matlab"
-    },
-    "moead": {
-      "stack": "matlab",
-      "env": "env_matlab"
-    },
-    "smsemoa": {
-      "stack": "matlab",
-      "env": "env_matlab"
-    },
-    "c262": {
-      "stack": "python",
-      "env": "env_main"
-    },
-    "c154": {
-      "stack": "python",
-      "env": "env_main"
-    },
-    "e81": {
-      "stack": "python",
-      "env": "env_e81_qpots"
-    },
-    "c122": {
-      "stack": "python",
-      "env": "env_main"
-    },
-    "c149": {
-      "stack": "python",
-      "env": "env_main"
-    },
-    "c311": {
-      "stack": "python",
-      "env": "env_c311"
-    },
-    "b5r": {
-      "stack": "python",
-      "env": "env_b5"
-    },
-    "b5m": {
-      "stack": "python",
-      "env": "env_b5"
-    },
-    "moead_media": {
-      "stack": "python",
-      "env": "env_b5"
-    },
-    "sobol_batch": {
-      "stack": "python",
-      "env": "env_main"
-    }
+  "env_main": {
+   "stack": "python",
+   "python": "3.11",
+   "mac_interpreter": "/Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao/bin/python",
+   "mac_venv": "/Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao",
+   "provisioned": "Mac núcleo provisionado 2026-07-15 (pyenv 3.11.9): numpy 2.4.6 / pandas 3.0.3 / pyarrow 25 / pymoo 0.6.2 / scipy 1.17.1 / joblib / tqdm / scikit-learn 1.9; versões exatas em <mac_venv>/requirements.lock; usar por CAMINHO COMPLETO (shell não preserva activate). ⚠ pandas resolveu 3.0.3 — avaliar pin >=2,<3. FALTA no mesmo venv antes do R2: botorch==0.18.1 / torch / gpytorch / google-cloud-storage / deap. VM: a provisionar antes de R2/R3.",
+   "note": "env-main (S.6/D79): harness + BoTorch (c262/c154/sobol_batch) + c122 (driver próprio, factory bypass) + c149 (TENTAR aqui; fallback env_c149 se o piloto divergir)",
+   "key_pins": [
+    "numpy>=2,<3",
+    "pandas",
+    "pyarrow(zstd)",
+    "joblib",
+    "tqdm",
+    "scipy(versão REGISTRADA no manifesto)",
+    "pymoo==0.6.2",
+    "botorch==0.18.1",
+    "gpytorch(compatível)",
+    "torch(estável)",
+    "google-cloud-storage",
+    "scikit-learn(harness)",
+    "deap(c122)"
+   ],
+   "algs": [
+    "c262",
+    "c154",
+    "sobol_batch",
+    "c122",
+    "c149"
+   ]
   },
-  "note_v52": "Higiene v5.2: env_desdeo SEPARADO em env_b5 (sklearn 0.21.3) e env_c311 (sklearn 1.1.2 + GPy) — pins mutuamente exclusivos, D79/N.1.2 proíbe co-importar; c149 movido p/ env-main c/ fallback; env-main renomeia env_botorch (harness+BO+c122+c149); seeds via artifacts/seeds.json (D91); DoE/dataset em parquet (D87/D90)."
+  "env_c149_fallback": {
+   "stack": "python",
+   "python": "3.10",
+   "condicional": "criar SÓ se o piloto divergir do env-main (S.6)",
+   "key_pins": [
+    "pymoo==0.6.0.1",
+    "numpy==1.22.4",
+    "torch(CPU)"
+   ],
+   "algs": [
+    "c149(fallback)"
+   ]
+  },
+  "env_b5": {
+   "stack": "python",
+   "python": "conforme wheels do sklearn 0.21.3 (x86; VM Linux)",
+   "note": "venv PRÓPRIO (D79/N.1.2 — NUNCA co-importar com c311); overlay desdeo_* vendorizado root-first no sys.path",
+   "key_pins": [
+    "scikit-learn==0.21.3(S.2#12; se sem wheel p/ o py, a mais próxima COM validação de equivalência do GPR no piloto)",
+    "desdeo-problem==0.14.0",
+    "desdeo-tools==0.2.6",
+    "desdeo-emo==<PIN A CRAVAR NO GATE R3.2>",
+    "statsmodels",
+    "matplotlib",
+    "pyDOE",
+    "pandas",
+    "numpy(compatível)"
+   ],
+   "algs": [
+    "b5r",
+    "b5m",
+    "moead_media"
+   ]
+  },
+  "env_c311": {
+   "stack": "python",
+   "python": ">=3.8,<3.10",
+   "note": "venv PRÓPRIO (D79/N.1.2); overlay desdeo_* root-first; NUNCA importar evaluate_population (dispara matlab.engine)",
+   "key_pins": [
+    "GPy~=1.9.9",
+    "graphviz",
+    "scikit-learn==1.1.2",
+    "numpy==1.20.2",
+    "scipy",
+    "pyDOE",
+    "plotly==4.14.3",
+    "plotly-express==0.4.1",
+    "matplotlib",
+    "statsmodels",
+    "pandas"
+   ],
+   "env_flags": [
+    "MPLBACKEND=Agg"
+   ],
+   "algs": [
+    "c311"
+   ]
+  },
+  "env_bridge": {
+   "stack": "python",
+   "python": "3.x (arm64 no Mac p/ o pyenv do R2025a)",
+   "note": "o pyenv InProcess do MATLAB aponta para este (avalia problems.py; lê DoE/dataset parquet). Não roda algoritmo.",
+   "key_pins": [
+    "numpy",
+    "pymoo(problems.py)",
+    "pyarrow"
+   ],
+   "algs": []
+  }
+ },
+ "alg_to_env": {
+  "b1": {
+   "stack": "matlab",
+   "env": "env_matlab"
+  },
+  "b3": {
+   "stack": "matlab",
+   "env": "env_matlab"
+  },
+  "b4": {
+   "stack": "matlab",
+   "env": "env_matlab"
+  },
+  "e7": {
+   "stack": "matlab",
+   "env": "env_matlab"
+  },
+  "c217": {
+   "stack": "matlab",
+   "env": "env_matlab"
+  },
+  "c141": {
+   "stack": "matlab",
+   "env": "env_matlab"
+  },
+  "e74": {
+   "stack": "matlab",
+   "env": "env_matlab"
+  },
+  "c238": {
+   "stack": "matlab",
+   "env": "env_matlab"
+  },
+  "e103": {
+   "stack": "matlab",
+   "env": "env_matlab"
+  },
+  "nsga2": {
+   "stack": "matlab",
+   "env": "env_matlab"
+  },
+  "nsga3": {
+   "stack": "matlab",
+   "env": "env_matlab"
+  },
+  "moead": {
+   "stack": "matlab",
+   "env": "env_matlab"
+  },
+  "smsemoa": {
+   "stack": "matlab",
+   "env": "env_matlab"
+  },
+  "c262": {
+   "stack": "python",
+   "env": "env_main"
+  },
+  "c154": {
+   "stack": "python",
+   "env": "env_main"
+  },
+  "e81": {
+   "stack": "python",
+   "env": "env_e81_qpots"
+  },
+  "c122": {
+   "stack": "python",
+   "env": "env_main"
+  },
+  "c149": {
+   "stack": "python",
+   "env": "env_main"
+  },
+  "c311": {
+   "stack": "python",
+   "env": "env_c311"
+  },
+  "b5r": {
+   "stack": "python",
+   "env": "env_b5"
+  },
+  "b5m": {
+   "stack": "python",
+   "env": "env_b5"
+  },
+  "moead_media": {
+   "stack": "python",
+   "env": "env_b5"
+  },
+  "sobol_batch": {
+   "stack": "python",
+   "env": "env_main"
+  }
+ },
+ "note_v52": "Higiene v5.2: env_desdeo SEPARADO em env_b5 (sklearn 0.21.3) e env_c311 (sklearn 1.1.2 + GPy) — pins mutuamente exclusivos, D79/N.1.2 proíbe co-importar; c149 movido p/ env-main c/ fallback; env-main renomeia env_botorch (harness+BO+c122+c149); seeds via artifacts/seeds.json (D91); DoE/dataset em parquet (D87/D90)."
 }

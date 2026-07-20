@@ -135,7 +135,12 @@ def surrogate_schema(D: int, M: int):
         pa.field("problema", pa.string(), nullable=False),
         pa.field("semente", pa.int32(), nullable=False),
         pa.field("regime", pa.string(), nullable=False),
-        pa.field("geracao", pa.int32(), nullable=False),
+        # [DI-13.5 · fix da torre 2026-07-19] NULLABLE: os blocos de SONDA do regime
+        # OFFLINE têm `geracao = NULL` — o modelo treina UMA vez, ANTES do laço, então
+        # não há geração a que pertencer (a decisão do autor foi NULL, não 0). Sem isto
+        # o contrato que a própria DI-13.5 fixou seria INGRAVÁVEL (achado A3 da
+        # auditoria M5). Linhas de BUSCA seguem com geração inteira, sempre.
+        pa.field("geracao", pa.int32(), nullable=True),
     ]
     fields += [pa.field(c, pa.float32(), nullable=False) for c in x_cols(D)]
     # liga ao ① quando o candidato foi avaliado (senão NULL) — §17.2.
@@ -261,7 +266,7 @@ def write_pop(exp: str, alg: str, problema: str, semente,
 
 # ── Camada ③ surrogate (schema único C1/C3) ──────────────────────────────────
 
-def surrogate_row(geracao: int, x, *,
+def surrogate_row(geracao: "int | None", x, *,
                   real_solution_id: int | None = None,
                   mu=None, sigma=None,
                   pred_tipo: str | None = None,
@@ -287,7 +292,8 @@ def surrogate_row(geracao: int, x, *,
     if espaco_modelo is not None and espaco_modelo not in ESPACOS:
         raise ValueError(f"espaco_modelo inválido: {espaco_modelo!r}")
     return {
-        "geracao": int(geracao),
+        # [DI-13.5] None ⇒ NULL (sonda offline); inteiro nas demais linhas.
+        "geracao": (None if geracao is None else int(geracao)),
         "fe_treino_max": (None if fe_treino_max is None else int(fe_treino_max)),
         "regime": regime,
         "x": np.asarray(x, dtype=np.float64).reshape(-1),
@@ -333,7 +339,10 @@ def write_surrogate(exp: str, alg: str, problema: str, semente,
         # regime POR LINHA (DI-09): a linha manda; o parâmetro é só o default.
         "regime": pa.array([(r.get("regime") or regime) for r in rows],
                            type=pa.string()),
-        "geracao": pa.array([int(r["geracao"]) for r in rows], type=pa.int32()),
+        # [DI-13.5] None ⇒ NULL (blocos de SONDA offline: o modelo treina antes do
+        # laço, não há geração). Linhas de busca sempre com inteiro.
+        "geracao": pa.array([None if r.get("geracao") is None else int(r["geracao"])
+                             for r in rows], type=pa.int32()),
     }
     def opt_obj(key_arr, j):
         # μ/σ por objetivo j; None (NULL) quando ausente OU mais curto que M —

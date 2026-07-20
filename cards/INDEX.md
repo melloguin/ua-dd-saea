@@ -38,7 +38,7 @@
 ## Rodada 3 — standalone (ordem: c122 → b5 → c311 → c149 → e81)
 | ID | Tarefa | depende-de | bundle | status |
 |---|---|---|---|---|
-| R3-00-harness | Infra standalone (venvs isolados; b5×c311 nunca co-importar) | R2-00 | 30_rodada3_standalone/00_contrato | ⬜ |
+| R3-00-harness | Infra standalone (venvs isolados; b5×c311 nunca co-importar) | R2-00 | 30_rodada3_standalone/00_contrato | ✅ |
 | R3-c122 | θ-DEA-DP (f_min/f_max pela assinatura) | R3-00 | …/alg_c122_thetadeadp | ⬜ |
 | R3-b5 | Prob-RVEA/MOEA-D (b5r/b5m; venv env_b5) | R3-00 | …/alg_b5_prob | ⬜ |
 | R3-c311 | TGPR-MO (venv env_c311) | R3-00 | …/alg_c311_tgprmo | ⬜ |

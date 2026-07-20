@@ -33,7 +33,7 @@ O piso treina um **GP (Kriging)** no dataset e otimiza sobre a **média** — **
 
 **Piso ancorado no b5 (40k):** porque piso-MOEA/D vs Prob-MOEA/D com o **mesmo orçamento interno** é a ablação cirúrgica (única diferença = seleção probabilística).
 
-**Avaliação final [DECIDIDO]:** o algoritmo termina com uma frente aproximada *no surrogate*; o **conjunto não-dominado final** é avaliado na **função verdadeira uma única vez** (a única chamada real no offline), e as métricas são computadas sobre ele. Revela o "erro de fantasia" do surrogate (soluções ótimas no modelo, ruins na verdade). Padrão do offline data-driven.
+**Avaliação final [DECIDIDO]:** o algoritmo termina com uma frente aproximada *no surrogate*; **[DI-13.9]** **TODOS os finais** são avaliados na **função verdadeira uma única vez** (`src/problems.py`, pós-hoc, fora do orçamento) e o **não-dominado é filtrado DEPOIS** da avaliação real — filtrar pelo ND-segundo-o-modelo ANTES seria filtrar a realidade pela FANTASIA do modelo, destruindo o que a camada mede (custo extra nulo: funções analíticas). Camada **⑦ `__final.parquet`** (colunas `x*|f*|origem_solution_id|origem_geracao|origem_linha|nd_pos_real` — DI-13.8), escrita/checada por `scripts/final_eval.py`. **Invariante: a ⑦ tem de ser RECONSTITUÍVEL da ③** (gravar a partir da população que a ③ REGISTROU, não da seguinte). O conjunto não-dominado final era avaliado (a única chamada real no offline), e as métricas são computadas sobre ele. Revela o "erro de fantasia" do surrogate (soluções ótimas no modelo, ruins na verdade). Padrão do offline data-driven.
 
 ---
 

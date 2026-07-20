@@ -8,7 +8,7 @@
 > janela documental (sem sessão de implementação ativa) e fica referenciada aqui.
 > **Formato por decisão:** Contexto → Opções → Decisão → Justificativa → Evidência de verificação →
 > Efeitos/ações → Referências. Decisor: **o autor** (Guilherme), em ping-pong com a torre.
-> Última atualização: **2026-07-19** (DI-13: as 21 decisões do lote pós-retrofits triplos, na PARTE A3).
+> Última atualização: **2026-07-19** (DI-15: sincronização do M5/R3 — auditoria de 88 agentes, na PARTE A4).
 
 ---
 
@@ -554,6 +554,73 @@ diferentes) · caveat float32 do e103 na ⑦ · doc-syncs pendentes (feitos nest
   contagem de linhas preservada (19.950); preflight e suíte verdes.
 - **Regra que fica:** em divergência de ambiente, **`envs.json` é a fonte** (é o que o D79/N.2
   consome em runtime); o `runs_matrix` é derivado e deve ser sincronizado.
+
+## PARTE A4 — DI-15: sincronização do M5/R3 com a arquitetura (auditoria de 2026-07-19)
+
+> **O que foi.** O autor pediu auditoria exaustiva dos 7 cartões do M5/R3 contra a arquitetura atual
+> (DI-01..DI-14, CONTRATO_DE_DADOS v1.1, SPEC v5.2.1, harness real). A torre rodou **6 auditores
+> paralelos + 82 verificações adversariais individuais** (88 agentes, ~1.000 tool-calls):
+> **95 achados brutos → 82 críticos → 43 CONFIRMADOS** (48% de falso-positivo — a fase cética
+> impediu 39 correções indevidas). O autor delegou: *"pode usar sua sugestão em todas as decisões"*.
+
+### DI-15.0 — 🔴 A CAUSA RAIZ (estrutural, afeta TODAS as rodadas)
+- **Problema.** Nenhum dos 3 contratos de rodada (R1/R2/R3) puxa o §17 (contrato de export) nem o
+  S.7/S.7.1 — esse conteúdo vive só em `00_fundacao/03_contrato_export.md`, que a "regra de ouro do
+  contexto" mandava ler **"uma vez, na Fase 0"**. Consequência: **uma sessão NOVA de qualquer rodada
+  podia implementar um algoritmo sem NUNCA ver** a SONDA (§17.2.2), a camada ⑦ (DI-08), o jsonl
+  enriquecido (S.7.1/DI-10) ou o timing v5.2.1 (§17.6). Os bundles do R3 confirmaram: **zero menções**.
+  *(Isto explica retroativamente por que a torre vinha mandando "leia o CONTRATO_DE_DADOS" em todos os
+  prompts — compensação manual de um buraco estrutural.)*
+- **Correção.** (1) `claude_code_context/CLAUDE.md` §0: o **`CONTRATO_DE_DADOS.md` virou leitura
+  OBRIGATÓRIA EM TODA SESSÃO** (item 2 de 5), com o porquê documentado; (2) os **3 contratos de
+  rodada** ganharam um cabeçalho "📋 LEITURA OBRIGATÓRIA ANTES DE CODAR" resumindo sonda/⑦/timing/
+  jsonl e mandando ler o contrato de dados (via `gen_bundles.py`, para não se perder na regeneração).
+
+### DI-15.1 — 🔴 `geracao` NULL era INGRAVÁVEL (a decisão contradizia o schema)
+- **Problema (achado A3).** A DI-13.5 fixou `geracao = NULL` nos blocos de sonda OFFLINE, mas
+  `surrogate_schema` declarava `geracao` como `nullable=False` e `surrogate_row`/`write_surrogate`
+  faziam `int(geracao)` ⇒ **o contrato que a própria decisão criou era impossível de cumprir**.
+- **Correção (código, faixa da torre).** `src/export.py`: ③ `geracao` → `nullable=True`;
+  `surrogate_row(geracao: int | None)`; o writer da ③ emite NULL quando None (o writer da ④
+  permanece obrigatório — timing é sempre por geração). Provado: grava `[None, 3]` na mesma tabela.
+
+### DI-15.2 — 🔴 A camada ⑦ com a redação REVOGADA na SPEC (a precedência apontava para o texto errado)
+- **Problema (R3C-02/B2/C311-03).** A DI-13.9 ("TODOS os finais avaliados; ND filtrado DEPOIS") foi
+  aplicada só no `CONTRATO_DE_DADOS.md`; a **SPEC ficou com a redação antiga** em §11, na tabela do
+  Anexo D e na seção de métricas — e como a precedência declarada é **SPEC > CONTRATO**, o texto
+  revogado é que valeria. Um implementador de b5/c311 produziria uma ⑦ pré-filtrada pela fantasia do
+  modelo, destruindo o `nd_pos_real`. *(Mitigado por 3 camadas — o header novo, o CONTRATO, e o gate
+  mecânico de `final_eval.py` que recomputa o filtro — mas a prosa tinha de ser consertada.)*
+- **Correção.** SPEC §11 + tabela D + §métricas reescritas para a redação DI-13.9 (com as colunas
+  DI-13.8 e o invariante "⑦ RECONSTITUÍVEL da ③"); `export 2 camadas` → `6–7 camadas (§17.7)` (3×).
+
+### DI-15.3 — 🔴 O contrato R3 descrevia um harness HIPOTÉTICO (e contradizia a D90)
+- **Problema (R3C-04/E1).** O E.9 mandava *"gerar dataset LHS 31D−1 no env da ponte"* — o que
+  **contradiz a D90** (o dataset é ARTEFATO carregado, nunca gerado) e ignora que o
+  `src/standalone_harness.py` já entrega tudo pronto.
+- **Correção.** SPEC/E.9: "CARREGAR do artefato (D90)" + a lista das APIs REAIS a reusar
+  (`run_in_venv`, `load_dataset`, `load_offline_budget`, `offline_guard`, `load_sonda(regime=…)`,
+  `emit_sonda_block`, `minimo_comum_di10`, `SnapshotBuffer`, `write_run_outputs`, `write_final`,
+  `preserve_all_rng`, `iteration_cleanup`) + "NÃO reimplemente nada disso".
+
+### DI-15.4 — Correções editoriais em lote (aplicadas na SPEC + regeneração)
+`F1/R3C-11` pin do sklearn do b5 (0.23.2 → **0.21.3**, com lápide; o conflito era interno ao cartão) ·
+`C311-09` o **c311 NÃO é de treino único** (constrói a árvore incrementalmente ⇒ `fit_series` com
+várias linhas — a afirmação contrária no §17.6 era falsa) · `H2/H-01/R3C-09` **INDEX: R3-00-harness
+⬜→✅** · `G1/C311-04` **`envs.json`**: os envs `env_b5`/`env_c311` deixam de dizer "VM = destino
+natural" e passam a carregar a **nota DI-11.5** (o cartão decide como TAREFA 0: pins vizinhos no Mac
+com validação de equivalência, ou exceção documentada na VM).
+
+### DI-15.5 — 🟡 PENDÊNCIAS ESCALADAS AO AUTOR (D81 — a torre NÃO decidiu sozinha)
+São **definições ausentes**, não erros de redação — exigem escolha de escopo/mecanismo:
+| # | Questão | Por que é do autor |
+|---|---|---|
+| P1 | **O piso OFFLINE emite sonda?** (`A2`/`R3C-06`) Ele treina um GP (§10) ⇒ TEM modelo, mas o contrato diz "pisos não têm sonda" | muda escopo de coleta e a contagem de configs com surrogate (17 → 18?) |
+| P2 | **Semântica da sonda do c122** (`C122-02`): qual é a "referência corrente" contra a qual o score `e(z)` é computado? (3 leituras possíveis) | é definição de MECANISMO — D81 proíbe inventar |
+| P3 | **Granularidade da ③-BUSCA dos par-a-par** (`C122-03`): o pool do c122 é N\*=7000/iteração — grava-se o pool inteiro? (idem c217) | decide volume da bateria (pode ser TB) |
+| P4 | **N interno do piso offline × b5** (`I1`/DEF-E3): 100 × 50/105 quebra a "ablação exata" | é a validade da comparação piso×b5 |
+| P5 | **Rota do piso no tier big** (`C311-06`): usa treed-GP do c311? colide com "b5×c311 nunca co-importar" | decisão de desenho + risco de venv |
+| P6 | **`n_baseline` no e81** (`E81-04`): conceito do qNEHVI que não existe no qPOTS | análogo à DI-11 §2 (c154 → `n_train`), mas precisa do aval |
 
 ---
 

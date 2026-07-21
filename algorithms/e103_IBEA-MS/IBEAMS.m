@@ -65,6 +65,12 @@ function [FinalDec, FinalObj] = IBEAMS(Global)
         % [R1-e103 · inst] captura read-only do conjunto JULGADO (o que o
         % JudgeModel viu) ANTES do ramo KFlag=0 sobrescrever OffMSE com ones.
         MSE_julgada_e103 = [MSE;OffMSE];
+        % [R1-e103 · inst / DI-13.4] +1 captura read-only: os OBJETIVOS do
+        % conjunto JULGADO — o OUTRO input do JudgeModel — p/ o instrument
+        % recomputar site/Msite (margem_3sigma_stats) SEM tocar o mecanismo.
+        % Aqui Population/Offspring ainda sao EXATAMENTE o que o JudgeModel
+        % recebeu (:64); o ramo abaixo os sobrescreve.
+        PopObj_julgada_e103 = objs([Population,Offspring]);
         if KFlag
             [Population,MSE] = EnvironmentalSelection([Population,Offspring],Global.N,kappa,[MSE;OffMSE]);  %Environmental selection assisted by the Kriging models
         else
@@ -78,7 +84,7 @@ function [FinalDec, FinalObj] = IBEAMS(Global)
         % read-only, ZERO decisao alterada (D97).
         if isfield(Global, 'inst') && ~isempty(Global.inst)
             e103_instrument('gen', Global, KModel, Rnets, CurGen, KFlag, ...
-                            Population, MSE, MSE_julgada_e103);
+                            Population, MSE, MSE_julgada_e103, PopObj_julgada_e103);
         end
         CurGen = CurGen+1;
     end

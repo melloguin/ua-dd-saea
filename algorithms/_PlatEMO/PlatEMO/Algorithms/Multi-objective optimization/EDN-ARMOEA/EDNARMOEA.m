@@ -56,11 +56,27 @@ classdef EDNARMOEA < ALGORITHM
             stall_ciclos = 0;
 
             while Algorithm.NotTerminated(A)
+                tGer_e7 = tic;                     % [DI09-R1c] §17.6 wall do ciclo
                 %% Update the model
                 fe_ciclo0 = Problem.data.bud.fe;   % [R1-e7] p/ FE consumido no ciclo
                 t0_fit  = tic;                     % [R1-e7] §17.6
                 net=updatemodel(tr_xx, tr_yy, Params, net);
                 tfit_s  = toc(t0_fit);             % [R1-e7] §17.6
+                % [DI09-R1c] SONDA (DI-09/§17.2.2): pos-fit (updatemodel acima),
+                % ANTES do 1o rand da busca (a PopDec abaixo) e da 1a decisao —
+                % ponto, RNG (save/restore LOAD-BEARING no e7: MC-dropout) e
+                % contratos documentados no cabecalho do e7_sonda. Devolve o
+                % fe_treino_max, SO calculavel aqui (no call-site do instrument o
+                % A ja cresceu e o tr_x ja foi re-selecionado). SEM try/catch: o
+                % hard-stop D21 (PlatEMO:Termination) tem de subir.
+                ftm_e7 = e7_sonda(Problem, net, Params, tr_x, ymin_vig, espaco_vig);
+                % [DI09-R1c] §17.6: a BUSCA do e7 e separavel — vai do sorteio da
+                % PopDec ate o IndividualSelect (o ARMOEA-sobre-o-surrogate +
+                % selecao dos K=3 infills). O CONTRATO §4 tornou tempo_busca_s
+                % OBRIGATORIO ("era opcional/NaN"); a R1 deixara NaN. tic AQUI
+                % (pos-sonda: o instrumento fica fora do relogio) e toc apos o
+                % IndividualSelect — read-only, nenhuma decisao tocada.
+                t0_busca_e7 = tic;
 
                 %% Generate the sampling points and random population
                 popsize=Problem.N;
@@ -95,6 +111,7 @@ classdef EDNARMOEA < ALGORITHM
                 end
                 flag=RatioOld-Ratio<delta;
                 PopNew=IndividualSelect(PopDec, PopObj, PopMSE, Ke, flag);
+                tbusca_s_e7 = toc(t0_busca_e7);    % [DI09-R1c] §17.6
                 RatioNew=Ratio;                    % [R1-e7] p/ o .jsonl (motivo)
                 RatioVelho=RatioOld;               % [R1-e7]
                 RatioOld=Ratio;
@@ -121,7 +138,13 @@ classdef EDNARMOEA < ALGORITHM
                               RatioVelho, RatioNew, delta, flag, ...
                               fe_ciclo, stall_ciclos, n_std_neg, ...
                               ymin_vig, espaco_vig, size(W,1), ...
-                              tfit_s, tfit_init_s);
+                              tfit_s, tfit_init_s, ...
+                              ftm_e7, toc(tGer_e7), A, Params, tbusca_s_e7);
+                              % ^ [DI-19.2] f_best/n_front1 = A POS-update (o
+                              %   [A,New] acima); [DI-13.10] tger BRUTO — o
+                              %   instrument desconta a sonda na ④ (takePendingTime)
+                              %   e grava o bruto no .jsonl. Params = hp efetivos
+                              %   (dropP/learnR/batchsize) p/ o modelo_hp (DI-10).
                 tfit_init_s = NaN;                 % so o 1o ciclo emite o treino inicial
                 % [R1-e7] ymin p/ o PROXIMO ciclo (C3): o SelectTrainData acima
                 % transladou o y por min(A.objs) — as predicoes do proximo ciclo

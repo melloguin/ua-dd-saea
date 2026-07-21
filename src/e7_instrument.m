@@ -1,7 +1,8 @@
 function e7_instrument(Problem, snaps, PopNew, n_treino, ...
                        RatioVelho, RatioNew, delta, flag, ...
                        fe_ciclo, stall_ciclos, n_std_neg, ...
-                       ymin_vig, espaco_vig, NW, tfit_s, tfit_init_s)
+                       ymin_vig, espaco_vig, NW, tfit_s, tfit_init_s, ...
+                       ftm, tger_s, A, Params, tbusca_s)
 % e7_instrument — instrumentacao POS-decisao do e7 EDN-ARMOEA (chamada no fim
 % de cada ciclo pela EDNARMOEA.main patchada). NAO altera nenhuma decisao da
 % busca (D97): so LE o que o ciclo ja computou (snapshots do ARMOEA-sobre-o-
@@ -32,7 +33,17 @@ function e7_instrument(Problem, snaps, PopNew, n_treino, ...
 %     rss_mb (pico observavel — D86), tempos; eventos 'guard': std_neg,
 %     dup_infill, saldo_congelado.
 %   timing §17.6: 1 retreino (updatemodel 8e3 passos SGD) por ciclo; no 1o
-%     ciclo, +1 linha com o treino INICIAL (trainmodel 8e4 passos).
+%     ciclo, +1 linha com o treino INICIAL (trainmodel 8e4 passos). [DI-13.10]
+%     tempo_geracao_s da ④ = max(tger-tps,0) — DESCONTA a sonda (tps via
+%     snd.takePendingTime); o BRUTO vai no .jsonl.
+%   [DI09-R1c] minimo comum DI-10 (S.7.1) na linha 'e7_gen': f_best/n_front1
+%     [DI-19.2: ARQUIVO REAL POS-ciclo — o A recebido ja inclui o New],
+%     fe_treino_max=ftm (vindo do e7_sonda; o e7 SUBAMOSTRA o treino —
+%     SelectTrainData capa em N1=11D-1 — logo NUNCA usar bud.fe-1),
+%     dist_min_arquivo [DI-19.4: espaco de DECISAO NATIVO, vs arquivo
+%     PRE-infill], tempo_geracao_s BRUTO, tempo_pred_sonda_s, modelo_hp (hp
+%     EFETIVOS — mesmos que o e7_sonda documenta — + NW + loss_treino
+%     INACESSIVEL, DI-12.1). O ftm tambem vai nas linhas ③ da busca (DI-09/A1).
 %
 % Fontes (via Problem.data, empacotado pelo run_e7): .buf RunBuffer (o MESMO
 % que o hook_output alimenta com ②) · .bud FEBudget (X -> solution_id, D57) ·
@@ -46,6 +57,16 @@ function e7_instrument(Problem, snaps, PopNew, n_treino, ...
     if g < 1, g = 1; end
     lote = size(PopNew, 1);
     n_dup = lote - fe_ciclo;
+
+    % [DI-19.2] arquivo REAL POS-ciclo: o A do call-site ja fez A=[A,New] (o e7
+    % nao poda o A — so cresce). [DI-10/B3] snapshot PRE-infill p/ o dist_min:
+    % [A,New] e append puro e |New|==lote SEMPRE aqui (duplicata vira cache-hit
+    % 0 FE mas AINDA e uma SOLUTION; e no hard-stop NO MEIO do lote o instrument
+    % nem roda — o ciclo morre na Evaluation), logo o fatiamento e EXATO e
+    % dispensa captura extra na EDNARMOEA.main.
+    AObj    = A.objs;
+    ADec    = A.decs;
+    ADecPre = ADec(1:end-lote, :);
 
     % ── eventos de guarda (§17.5) ─────────────────────────────────────────────
     if n_std_neg > 0
@@ -80,14 +101,25 @@ function e7_instrument(Problem, snaps, PopNew, n_treino, ...
                 'pred_tipo', "valor", 'modelo_flag', "EDN-MCdropout", ...
                 'espaco_modelo', string(espaco_vig), ...
                 'transf_tipo', "translacao", ...
-                'transf_params', tp); %#ok<AGROW>
+                'transf_params', tp, ...
+                'fe_treino_max', ftm); %#ok<AGROW>
+                % ^ [DI-09/A1] ftm do e7_sonda (MESMO fit deste ciclo). O e7
+                %   SUBAMOSTRA o treino (SelectTrainData capa em N1=11D-1):
+                %   recalcular aqui daria o ftm do PROXIMO fit, e bud.fe-1 e
+                %   atalho INVALIDO (cabecalho do e7_sonda).
         end
     end
 
     % ── §17.6 timing: retreino (8e3) por ciclo; 1o ciclo += treino inicial ────
+    % [DI-13.10] tempo_geracao_s DESCONTA a sonda (tps); o BRUTO vai no .jsonl.
+    % tempo_busca_s segue NaN: o e7 nao tem tic de busca sancionado (o wall do
+    % ciclo e o tger; fit e sonda tem medidores proprios).
+    tps = sonda_tempo_e7(d);
     view = struct('g', g, 'srows', {srows}, ...
                   'timing', struct('n_acumulado', n_treino, ...
-                                   'tempo_fit_s', tfit_s, 'tempo_busca_s', NaN));
+                                   'tempo_fit_s', tfit_s, 'tempo_busca_s', tbusca_s, ...
+                                   'tempo_geracao_s', max(tger_s - tps, 0), ...
+                                   'tempo_pred_sonda_s', tps));
     if ~isnan(tfit_init_s)
         % linha extra do treino INICIAL (8e4 passos) — mesmo g do 1o ciclo.
         buf.addGeneration(struct('g', g, ...
@@ -119,15 +151,98 @@ function e7_instrument(Problem, snaps, PopNew, n_treino, ...
             'geracao', g, 'fe', bud.fe, ...
             'RatioOld', RatioVelho, 'Ratio', RatioNew, 'delta', delta, ...
             'flag', logical(flag), 'ramo', ramo, 'motivo', string(motivo), ...
+            ... % [DI-10 §6.1] n_clusters_efetivo SEM patch: IndividualSelect
+            ... % monta xnew com UMA linha por cluster NAO-VAZIO do kmeans =>
+            ... % |PopNew| E a contagem efetiva (Ke=3 e o teto, nao o efetivo).
+            ... % O "cluster de CADA infill" e POSICIONAL: o infill i vem do
+            ... % i-esimo cluster nao-vazio — os labels do kmeans sao arbitrarios
+            ... % por ciclo, entao o indice e a unica leitura estavel (B18: nao
+            ... % inventar grandeza; o ramo flag e POR CICLO, nao por infill).
+            'n_clusters_efetivo', double(size(PopNew, 1)), ...
+            'cluster_por_infill', "posicional: infill i = i-esimo cluster nao-vazio (labels kmeans arbitrarios)", ...
             'lote', double(lote), 'fe_ciclo', double(fe_ciclo), ...
+            'tempo_busca_s', tbusca_s, ...
             'n_dup_infill', double(n_dup), 'stall_ciclos', double(stall_ciclos), ...
             'n_treino', double(n_treino), 'NW', double(NW), ...
             'ymin', ymin_vig(:).', 'espaco', string(espaco_vig), ...
             'pop_por_w', pop_por_w, 'n_std_neg', double(n_std_neg), ...
             'rss_mb', rss_mb, ...
-            'tempo_fit_s', tfit_s, 'tempo_fit_inicial_s', tfit_init_s);
+            'tempo_fit_s', tfit_s, 'tempo_fit_inicial_s', tfit_init_s, ...
+            ... % ── DI-10: minimo comum dos 21 (S.7.1) ──
+            ... % [DI-19.2] f_best/n_front1 = ARQUIVO REAL POS-ciclo (o A aqui ja
+            ... % inclui o New; o e7 nao poda o A). [DI-13.10] tempo_geracao_s
+            ... % BRUTO aqui (o DESCONTADO vive na ④).
+            'f_best', min(AObj, [], 1), ...
+            'n_front1', n_front1_e7(AObj), ...
+            'fe_treino_max', opt_null_e7(ftm), ...
+            'tempo_geracao_s', tger_s, ...
+            'tempo_pred_sonda_s', tps, ...
+            'dist_min_arquivo', dist_min_e7(PopNew, ADecPre), ...
+            'modelo_hp', hp_edn_e7(Params, n_treino, NW));
         try, fprintf(fid, '%s\n', jsonencode(rec)); catch, end
     end
+end
+
+function t = sonda_tempo_e7(d)
+% [DI-13.10] tempo pendente da sonda (0 em run sem sonda — guard p/ snd vazio).
+    if isfield(d, 'snd') && ~isempty(d.snd), t = d.snd.takePendingTime(); else, t = 0; end
+end
+
+function hp = hp_edn_e7(Params, n_treino, NW)
+% [DI-10/B1] hp EFETIVOS da EDN — o MESMO conjunto que o e7_sonda documenta e
+% emite nos blocos da sonda: Params.round=8e4 NAO governa o update
+% (updatemodel.m:5 hardcoda run=8000) e Params.decay NAO e usado (trainNet.m:42
+% hardcoda decay=1e-05); T=100 de Estimate.m:16; batchsize=V=D (trainmodel.m:11).
+% + NW (nº de vetores de referencia do ARMOEA — denominador do Ratio).
+% `loss_treino` NAO EXISTE: BARRADO pelo autor (DI-12.1) — a loss esta COMENTADA
+% em trainNet.m:17 (re-habilita-la seria computacao nova no laco de 8e4/8e3
+% passos, nao "+1 retorno a um numero ja calculado") e o proxy via testNet
+% consome RNG (dropout.m:4). Registrado como INACESSIVEL, nao omitido.
+    hp = struct('neuronN',        40, ...
+                'dropP',          Params.dropP(:).', ...
+                'learnR',         Params.learnR, ...
+                'decay_efetivo',  1e-05, ...
+                'batchsize',      Params.batchsize, ...
+                'T',              100, ...
+                'passos_init',    80000, ...
+                'passos_update',  8000, ...
+                'NW',             double(NW), ...
+                'n_treino',       double(n_treino), ...
+                'loss_treino',    "INACESSIVEL (DI-12.1)");
+end
+
+function n = n_front1_e7(PopObj)
+% [DI-10] |ND| do arquivo real POS-ciclo (DI-19.2). NDSort e built-in PlatEMO,
+% deterministico e zero-RNG; o `1` para no 1o front.
+    n = NaN;
+    try, n = sum(NDSort(PopObj, 1) == 1); catch, end
+    n = double(n);
+end
+
+function dmin = dmin_loop_e7(PopNew, ADecPre)
+    n = size(PopNew, 1);
+    dmin = zeros(1, n);
+    for i = 1:n
+        dif = ADecPre - PopNew(i, :);
+        dmin(i) = sqrt(min(sum(dif .* dif, 2)));
+    end
+end
+
+function dmin = dist_min_e7(PopNew, ADecPre)
+% [DI-10/B3] Distancia de cada infill ao arquivo PRE-infill — espaco de DECISAO,
+% NATIVO (DI-19.4). `pdist2` e legitimo: o e7 ja depende da Statistics Toolbox
+% (kmeans em IndividualSelect.m:13); fallback em loop puro por robustez.
+    dmin = [];
+    if isempty(PopNew) || isempty(ADecPre), return; end
+    try
+        dmin = min(pdist2(PopNew, ADecPre), [], 2).';
+    catch
+        dmin = dmin_loop_e7(PopNew, ADecPre);
+    end
+end
+
+function v = opt_null_e7(x)
+    if isempty(x), v = []; else, v = double(x); end
 end
 
 function guard_line(fid, name, g, varargin)

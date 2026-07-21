@@ -34,10 +34,11 @@ function ftm = e74_sonda(Problem, cabeca, modelo, x_train, varargin)
 % Este arquivo IMPLEMENTA (iii) mas ACEITA TAMBEM o estado unico (ver a guarda
 % de disparo: `data.snd` pode ser um SondaState escalar OU um struct de handles)
 % — a escolha entre (ii) e (iii) fica com o autor e NAO exige reescrever aqui.
-% [DI-17.1, decisao do autor 2026-07-19] Um SondaState POR CABECA, com `k`
-% proprio e fase deslocada. (A numeracao correta e DI-17.x: a torre ja ocupou
-% DI-15.0..15.5 e DI-16.x numa sessao concorrente — uma versao anterior deste
-% cabecalho citava "DI-15.1", que no REGISTRO e outra coisa.)
+% [DI-19.1, decisao do autor 2026-07-19] Um SondaState POR CABECA, com `k`
+% proprio e fase deslocada. (A numeracao correta e DI-19.x: a torre ocupou
+% DI-15.0..15.5, DI-16.x E DI-17.1..17.4 (hardening M7) em sessoes concorrentes —
+% o retrofit-R1 foi realocado de DI-17.x para DI-19.x pela torre; uma versao
+% anterior deste cabecalho citava "DI-15.1", que no REGISTRO e outra coisa.)
 %
 % O motivo MECANICO pelo qual a questao existe (isto e fato medido, nao
 % decisao): ALGORITHM.m:119 chama o outputFcn
@@ -217,7 +218,7 @@ function ftm = e74_sonda(Problem, cabeca, modelo, x_train, varargin)
     if isempty(snd), return; end
     if isempty(modelo), return; end            % edge: ciclo sem fit (Arc.best vazio)
 
-    g = double(d.buf.gen);                     % g VERDADEIRO (ver DI-17.1 acima)
+    g = double(d.buf.gen);                     % g VERDADEIRO (ver DI-19.1 acima)
     if g < 1, g = 1; end
 
     % hp efetivos (DI-10/modelo_hp) — `spr` e `n_treino` sao os MESMOS que o

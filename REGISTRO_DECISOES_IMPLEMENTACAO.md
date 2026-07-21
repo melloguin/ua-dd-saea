@@ -871,6 +871,128 @@ bundles divergem nesses 52 pontos — e a precedência D83 (**vale a SPEC**) cob
 
 ---
 
+## PARTE A8 — DI-19: as 8 decisões do retrofit-R1 MATLAB (autor via sessão, renumeradas pela torre 2026-07-20)
+
+**Por que DI-19 e não DI-17.** A sessão do retrofit MATLAB tomou 8 decisões do autor e as numerou
+`DI-17.1…17.8`, sem saber que a torre **já havia ocupado `DI-17.1…17.4`** com o hardening do M7
+(PARTE A6). Colisão real: uma sessão futura que lê `[DI-17.2]` num comentário `.m` e vai ao REGISTRO
+encontra "varredura de `.tmp` órfãos". A torre **realocou o bloco do retrofit para `DI-19.x`**
+(2026-07-20): 40 citações em 9 arquivos `.m` (`SondaState`, `c238_sonda`, `e74_sonda`, `experiment`,
+`b3_sonda`, `b3_instrument`, `b4_instrument`, `KRVEA`, `ParEGO`) + 19 no `handoff/DI09-retrofit-R1-cont.md`,
+todas verificadas por grep (0 `DI-17.x` do sentido-MATLAB restante). **A regra que faltava (agora
+firme):** quem abre um bloco `DI-N` novo **reserva o número no REGISTRO ANTES** de usá-lo no código.
+
+| # (novo) | decisão | efeito |
+|---|---|---|
+| **DI-19.1** | **e74: um `SondaState` POR CABEÇA**, `k` próprio + fase deslocada | o `g` do hook do e74 bumpa **4× por ciclo** (`CLMEA.m:46/:90/:100/:112/:135`); sob 1 estado com k=2, s1/s3 disparavam todo ciclo e a **s2 (RBF global) NUNCA** disparava. ⚠ ainda `🟡 PENDENTE DE RATIFICAÇÃO` no cabeçalho de `e74_sonda.m:27` → **D-11 do lote DI-20** (nenhum run do e74 rodou com sonda, decisão livre) |
+| **DI-19.2** | `f_best`/`n_front1` = **arquivo real PÓS-ciclo** | sem definição operacional os configs divergiam (c141 pós, b1 pré → curvas defasadas de 1 infill); b1 realinhado; b3/b4 usam o `A2` (o `A1` é podado com teto NI) |
+| **DI-19.3** | e103 `n_geracoes` = ③ com filtro `regime != 'sonda'` | **substitui** a instrução do cartão (a ② offline só lista membros do dataset → 4 gerações para um run de 99) |
+| **DI-19.4** | `dist_min_arquivo` em espaço **NATIVO** nos 21 | a SPEC §S.7.1 diz "normalizado"; c141/c217 (aceitos) usam nativo; não é renormalizável post-hoc → **doc-sync D-14 do lote DI-20** |
+| **DI-19.5** | `finalProbe` usa `g_armado`, não `buf.gen` | em overshoot-zero (c238) o `PlatEMO:Termination` sai do topo do ciclo seguinte, depois de o `outputFcn` já ter bumpado ⇒ `buf.gen` aponta geração nunca armada. Não é bit-neutro ⇒ c217/c141 re-rodados |
+| **DI-19.6** | c238: sonda em espaço **CRU** | régua constante entre gerações e comparável ao gabarito (responde à pendência de `handoff/R1-c238.md` §8, aberta desde a R1) |
+| **DI-19.7** | offline: `f_best` = pop corrente **+** min do dataset no header | superconjunto; vale para os 5 offline |
+| **DI-19.8** | `espaco_modelo` = **`"cru"`** nos 21 | `"nativo"` estava fora do enum `("transformado","cru")` que `export.py:292` valida — o writer MATLAB não valida e passava calado. ⚠ **APLICAÇÃO INCOMPLETA** (achado DI-20/A8): só o MMF1 foi re-rodado; **1.050.000 linhas** de c141/c217 (DTLZ2+ZDT1) ainda gravam `"nativo"` |
+
+---
+
+## PARTE A9 — DI-20: auditoria do RETROFIT DI-09 (MATLAB R1 + BoTorch R2) — torre, 2026-07-20
+
+**O que foi auditado.** Um workflow adversarial de **90 agentes** (10 lentes independentes +
+verificadores céticos por achado, viés default REFUTAR) leu código, dados, docs e rodou os gates,
+para responder às perguntas do autor: o retrofit está feito e correto? nada conflitou? os outputs
+bastam para a análise? nota 0–10 de comportamento por algoritmo? Colheita: **43 achados
+sobreviveram** à refutação (12 CONFIRMADOS, 31 PARCIAIS; 19 refutados como leitura de doc
+desatualizado ou severidade inflada). *(17 dos 90 agentes — refutações de doc-sync/decisões — não
+completaram por limite semanal de API; não afeta o núcleo, pois os achados vêm da fase de auditoria,
+que fechou 10/10 lentes.)*
+
+### DI-20.1 — O INVARIANTE CENTRAL ESTÁ PROVADO
+Não-perturbação da ① (o coração da DI-09): **53/53 `__real.parquet` bit-idênticos** ao
+`_baseline_pre_retrofit` (sha256 do arquivo inteiro), sendo **32 comparações INFORMATIVAS** (runs
+re-executados APÓS o snapshot de 2026-07-19 09:41 — a igualdade prova algo) e o restante tautológico.
+A sonda respeita a **ordem do artefato**: `max|x_sonda − artefato| = 0.0` em 100% dos blocos
+verificados (não só o bloco 0), o que valida o join-por-posição do R4. Cadência **alinhada nos dois
+stacks** (`{1,2,4,6,…}` em 20/20 runs) — a dúvida B-0 do repasse R2 está **fechada**.
+
+### DI-20.2 — COBERTURA REAL (o "7/11" e o "R2 completo" são honestos, mas há letra miúda)
+- **MATLAB R1:** 7/11 completos (**b1, b3, b4, c141, c217** + os **4 pisos**); os 4 declarados
+  faltantes (**c238, e7, e74, e103**) estão em **ZERO** — `<alg>_sonda.m` escrito e revisado, mas
+  **NÃO LIGADO** (0 referências no `run_<alg>` do `experiment.m`), `fe_treino_max` 100% NULL. As 2
+  correções que a sessão alegou (isstruct→isa no e74; probeOffline no e103) **estão no disco**.
+- **BoTorch R2:** "completo" é verdadeiro DENTRO do escopo, mas a **sonda cobre 3 de 5 runs**
+  (c262/MMF1, c262/DTLZ2, c154/MMF1). O **c262/ZDT1 — o melhor resultado da bateria (IGD+ 0,0008)** —
+  não tem sonda, `fe_treino_max`, `sigma_dict` nem `modelo_hp`: a qualidade do modelo é não-medível
+  exatamente onde ele mais vence.
+
+### DI-20.3 — O GP APRENDE, E A SONDA MEDE (a validação da tese)
+c262/DTLZ2: WAPE **0,1188→0,0695** (−41,5%, corr(fe_treino_max, WAPE)=−0,969), σ médio cai pela
+metade (corr=−0,988), **calibração exemplar** (cobertura 2σ=0,978 vs nominal 0,954). O **achado de
+ouro**: c154/MMF1 it30–37 — o ruído inferido do GP explode 90×, o σ CAI 37% e o erro SOBE 30% (o
+modelo fica **pior e mais confiante** ao mesmo tempo; cobertura 2σ despenca 0,934→0,577 e recupera na
+it38). **Nenhuma métrica interna da busca veria isso — só a sonda vê.** O contraste é atribuível a UMA
+escolha: c262 fixa `train_Yvar=1e-6` (D40) e nunca degenera; c154 infere o ruído e degenera.
+
+### DI-20.4 — NOTAS DE COMPORTAMENTO (0–10, semente 0, ancoradas em número medido)
+Ressalva metodológica: **1 semente por célula** — nada aqui é estatisticamente testável; o que
+sustenta as notas baixas é a **evidência mecânica independente** (mu divergente, `n_ds_membros`
+zerado, cache-hits saturado, sonda "chata") que corrobora o resultado ruim.
+
+| config | nota | síntese |
+|---|---|---|
+| c262 (qNEHVI) | **9,5** | melhor otimizador nos 3 (IGD+ 0,039/0,030/**0,0008**); sonda cai monotônica; só não é 10 porque o ZDT1 não tem sonda |
+| b1 (ParEGO) | **8,5** | sólido e consistente (2º/3º/3º); sigma sem NaN; teto pela sonda estruturalmente incomparável (mono-output D47) |
+| smsemoa (piso) | **8,0** | piso mais forte e honesto; bate 6 dos 10 SA-MOEAs em DTLZ2 |
+| e74 (CLMEA) | **7,5** | bate os 4 pisos em DTLZ2/ZDT1; perde ponto só por instrumentação ausente (sem sonda ainda) |
+| nsga3 (piso) | **7,5** | piso saudável, sem degeneração |
+| c154 (JES) | **7,5** | sonda aprende bem no MMF1 (+53%); penalizado pelo custo (DTLZ2 = 14,6 h, o pior wall) e por não bater piso |
+| c238 (EIM) | **7,0** | busca boa (bate pisos em DTLZ2/ZDT1); cai por instrumentação ausente em bloco (sem sonda) |
+| nsga2 (piso) | **7,0** | baseline honesto, faz o que um piso deve |
+| b3 (K-RVEA) | **6,5** | **dissociação severa**: ZDT1 exemplar (2º melhor, melhor curva de sonda), mas DTLZ2 **abaixo dos 4 pisos** e sonda "chata" (+4%) |
+| b4 (CSEA) | **6,5** | busca acima dos pisos, mas o classificador quase não discrimina (spearman ~0,15 oscilante) e a ③ de busca tem ~1 linha/geração |
+| e7 (EDN-ARMOEA) | **6,0** | bate pisos no ZDT1/MMF1, mas não clera o piso em DTLZ2 (M=3); sem sonda |
+| c217 | **4,5** | o SA-MOEA mais fraco; score de discriminação ~nula e `pred_confianca` CONSTANTE por bloco; pior que o nsga2 no ZDT1; ainda `sigma_dict=null` |
+| moead (piso) | **4,0** | **régua quebrada no ZDT1**: 182 cache-hits/183 guards, IGD+ 1,89, HV=0 — piso degenerado (não é bug: D89) |
+| c141 (MMRAEA) | **4,0** | dupla personalidade: 2º melhor em DTLZ2/ZDT1, mas **divergência numérica do RBF no MMF1** (mu explode para [−145, 210] vs f∈[0, 8,3]; MAE ×8,7) → pior config no MMF1, abaixo dos pisos |
+| e103 (IBEA-MS, offline) | **4,0** | pior qualidade nos 3; ZDT1 falha total (a busca sai do suporte do dataset: `n_ds_membros` 82→0); **camada ⑦ AUSENTE** ⇒ o endpoint oficial do offline não existe |
+
+### DI-20.5 — SUFICIÊNCIA DOS OUTPUTS (resposta à pergunta do autor)
+Para os 7 configs completos + os 2 BoTorch com sonda: **sim, os parquets + logs bastam** — as 5
+análises ((a) IGD+/HV, (b) WAPE/calibração, (c) uso da incerteza, (d) escalabilidade, (e) prova de
+fidelidade) rodaram de ponta a ponta e deram número plausível. **NÃO bastam** para: os **4 MATLAB
+sem retrofit** (c238/e7/e74/e103 — sem sonda, sem análise de assertividade do surrogate), o
+**c262/ZDT1** (sem sonda no melhor run), o **e103** (⑦ ausente ⇒ sem métrica oficial offline), e o
+**c217** (`sigma_dict=null` ⇒ a ③ é "leitura proibida" pela regra 3 do R4).
+
+### DI-20.6 — OS 5 DEFEITOS QUE OS GATES NÃO PEGAM (os documentos os davam por resolvidos)
+1. **DI-19.8 incompleta** (🔴 medido pela torre): `espaco_modelo="nativo"` em **1.050.000 linhas**
+   (c141+c217 DTLZ2/ZDT1) — fora do enum; só o MMF1 foi re-rodado. Estoura na consolidação Python.
+2. **c217 sem `sigma_dict`** (🔴 medido): null nos 3 manifestos (b3 tem 2 chaves) — viola DEF-C4/regra 3.
+3. **Deriva de schema DENTRO do config**: no c238/e7/e74/e103 o MMF1 tem `fe_treino_max`+timing novo,
+   DTLZ2/ZDT1 não — e onde a coluna existe é 100% NULL.
+4. **`timing` do manifesto NULL** nos 9 runs de c238/e7/e74 (parcial no e103) — o CONTRATO §4 o torna
+   OBRIGATÓRIO.
+5. **`tempo_geracao_s` EXCLUI a sonda** (medido: 1.129/1.129) — o CONTRATO §4 dizia "wall TOTAL".
+   **CORRIGIDO nesta passada** (doc-sync, DI-13.10).
+
+### DI-20.7 — AS 21 DECISÕES EM ABERTO CONSOLIDADAS (a torre DEVE levantar com o autor)
+A varredura de TODOS os handoffs + REGISTRO + SPEC + CONTRATO + cards encontrou **31 pendências
+documentadas; 24 já estavam resolvidas** por commits posteriores (o custo dessa dessincronia é
+justamente o que esta auditoria pagou em horas). Restam **21 decisões vivas**, consolidadas em
+`handoff/DI20-AUDITORIA-RETROFIT_DECISOES.md` e resumidas na resposta ao autor. Classificação:
+**4 BLOQUEIAM a M8** (D-01 `n_acumulado` NULL dos pisos; D-03 `is_run_done` bucket-aware; D-06
+`experiments.py` repassa `data_root`/`enable_bucket`; D-12 ⑦ no `is_run_done`), **7 de contrato de
+dados**, **3 de fidelidade** (só o autor, D97: D-04 b4 `n_acumulado`, D-11 e74 cadência, D-20 c149),
+e o restante de infra/doc-sync.
+
+### DI-20.8 — O QUE A TORRE JÁ CORRIGIU NESTA PASSADA (sem tocar faixa de sessão viva)
+- Renumeração **DI-17.x → DI-19.x** (colisão resolvida — DI-19 acima).
+- CONTRATO §4: `tempo_geracao_s` **EXCLUI a sonda** (era "wall TOTAL").
+- CONTRATO §3.1: "2000 linhas" → **ONLINE 2000 / OFFLINE 20.000** (`geracao`=NULL) — fim da
+  contradição interna.
+- Registro completo (esta PARTE A9) + as notas de comportamento + as 21 decisões escaladas.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

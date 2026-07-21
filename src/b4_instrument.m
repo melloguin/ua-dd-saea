@@ -107,7 +107,7 @@ function b4_instrument(Problem, Arc, Ref, Next, sasinfo, p0, p1, rr, tr, ...
             'n_refs', double(size(Ref.decs, 1)), ...
             'modelo_hp', hp_fnn_b4(tfit_s, n_trainin), ...
             ... % ── DI-10: minimo comum dos 21 (S.7.1) ──
-            ... % [DI-17.2] f_best/n_front1 = ARQUIVO REAL POS-ciclo (o Arc aqui ja
+            ... % [DI-19.2] f_best/n_front1 = ARQUIVO REAL POS-ciclo (o Arc aqui ja
             ... % inclui o infill da Evaluation de CSEA.m:87) — decisao do autor.
             'f_best', min(Arc.objs, [], 1), ...
             'n_front1', n_front1_b4(Arc.objs), ...
@@ -135,7 +135,7 @@ function hp = hp_fnn_b4(tfit_s, n_trainin)
 end
 
 function n = n_front1_b4(PopObj)
-% [DI-10] |ND| do arquivo real POS-ciclo (DI-17.2). NDSort e built-in PlatEMO,
+% [DI-10] |ND| do arquivo real POS-ciclo (DI-19.2). NDSort e built-in PlatEMO,
 % deterministico e zero-RNG; o `1` para no 1o front.
     n = NaN;
     try

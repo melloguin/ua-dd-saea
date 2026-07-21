@@ -71,7 +71,7 @@ qualquer divergência posterior seria **inequivocamente minha**.
 ```
 rng_intacto: 1              rng_mesma_sequencia: 1
 final_armou_sem_disparar: 1 final_disparou: 1
-final_carimbou_armado: 1    final_foi_noop: 1        ← DI-17.5, os dois ramos
+final_carimbou_armado: 1    final_foi_noop: 1        ← DI-19.5, os dois ramos
 sonda_off_linhas: 20000     ger_null_ok: 1  ger_busca_ok: 1  ← DI-13.5 + adendo da torre
 ```
 
@@ -122,7 +122,7 @@ houver qualquer ausente; só casta `int32` quando completa.
   "sem geração" — um `[]` cairia no early-return e **descartaria o bloco inteiro em silêncio**.
 - **Provado bit-neutro:** c217/c141/b1/b4 seguem com `geracao` `int32`, 0 nulls.
 
-### 2.2 `finalProbe` usa `g_armado`, não `buf.gen` *(DI-17.5)*
+### 2.2 `finalProbe` usa `g_armado`, não `buf.gen` *(DI-19.5)*
 Em configs de overshoot ZERO (c238), a `PlatEMO:Termination` sai do **topo do ciclo seguinte**
 (`ALGORITHM.m:128`) **depois** de o `outputFcn` já ter bumpado ⇒ `buf.gen` pós-Solve aponta uma
 geração **nunca armada**, e o bloco final sairia carimbado com ela. Agora o `SondaState` guarda a
@@ -140,7 +140,7 @@ O cabeçalho documentava `SondaState(sd, buf, bud, fid, alg)`; a assinatura real
 objeto). Afetava os 7 configs restantes.
 
 ### 2.5 Duas regressões novas no config `stub`
-- **DI-17.5 nos dois ramos**: último fit fora da cadência ⇒ dispara carimbando `g_armado`; dentro da
+- **DI-19.5 nos dois ramos**: último fit fora da cadência ⇒ dispara carimbando `g_armado`; dentro da
   cadência ⇒ no-op. *O teste antigo asseverava o comportamento BUGADO* (disparar com geração nunca
   armada) — foi reescrito.
 - **DI-13.5**: bloco offline de 20.000 no **mesmo arquivo** das linhas de busca, conferindo os
@@ -155,13 +155,13 @@ objeto). Afetava os 7 configs restantes.
 ### 3.1 🔴 A instrução do cartão sobre o `n_geracoes` do e103 estava errada — os dados provam
 O cartão mandava derivar da camada ②. **Medido:** a ② offline só lista membros do dataset, e no
 ZDT1 eles somem na g5 ⇒ **② dá 4 gerações** para um run que executa **99**.
-Levado ao autor (D81) → **DI-17.3: ③ filtrando `regime != 'sonda'`**. Substitui a instrução do cartão.
+Levado ao autor (D81) → **DI-19.3: ③ filtrando `regime != 'sonda'`**. Substitui a instrução do cartão.
 
 ### 3.2 🔴 `espaco_modelo="nativo"` está FORA do enum e passa CALADO
 `src/export.py:67` fixa `ESPACOS = ("transformado","cru")` e **valida** em `:292`. O writer MATLAB
 **não valida**, então gravava e seguia. Já estava em **c141 e c217, entregues e aceitos**.
 Estouraria só na consolidação Python — **depois dos 16.500 runs da M8**.
-→ **DI-17.8: padronizado em `"cru"` nos 21.** c141/c217 re-rodados, ① idênticas. (O `e7` já estava
+→ **DI-19.8: padronizado em `"cru"` nos 21.** c141/c217 re-rodados, ① idênticas. (O `e7` já estava
 correto e serviu de precedente.)
 
 ### 3.3 🔴 `n_acumulado` do b4 media o ARQUIVO, não o TREINO
@@ -176,7 +176,7 @@ Entraram os commits `a9d906b`..`26a8c83` (DI-15/DI-16, cartões R3) enquanto est
 **Faixas verificadas disjuntas** — nenhum `.m` deste cartão foi tocado (eles mexeram em docs,
 `export.py`, `envs.json`, `anchors.json`, bundles).
 **Mas ocuparam a numeração DI-15.x**, que eu usava para as decisões do autor desta sessão.
-→ **Renumeradas para DI-17.1…DI-17.8**, e as citações que já tinham entrado no código foram
+→ **Renumeradas para DI-19.1…DI-19.8**, e as citações que já tinham entrado no código foram
 corrigidas (senão o handoff apontaria para decisões alheias).
 
 ### 3.5 🟡 Assimetria cross-stack do `geracao` (consequência do §2.1)
@@ -194,18 +194,18 @@ só o `real_solution_id`**, não a `geracao`. Ver §5, item T-2.
 
 ---
 
-## 4. As 8 decisões do autor desta sessão (DI-17.x) — para a torre registrar
+## 4. As 8 decisões do autor desta sessão (DI-19.x) — para a torre registrar
 
 | # | decisão | efeito |
 |---|---|---|
-| **DI-17.1** | **e74: um `SondaState` POR CABEÇA**, com `k` próprio e fase deslocada | O `g` do hook do e74 bumpa **4× por ciclo** (`CLMEA.m:90/:100/:112/:135`); sob k=2, s1 e s3 disparavam todo ciclo e **o s2 — a RBF global — NUNCA dispararia**. |
-| **DI-17.2** | `f_best`/`n_front1` = **arquivo real PÓS-ciclo** | Sem definição operacional, os configs divergiram (c141 pós, b1 pré ⇒ curvas defasadas de um infill). b1 realinhado; b3 usa `A2` (o `A1` é podado com teto NI). |
-| **DI-17.3** | e103 `n_geracoes` = ③ com filtro `regime != 'sonda'` | **Substitui a instrução do cartão** (§3.1). |
-| **DI-17.4** | `dist_min_arquivo` em espaço **NATIVO** nos 21 + doc-sync | A SPEC §S.7.1 diz "normalizado"; c141/c217 (aceitos) usam nativo; não é renormalizável post-hoc. |
-| **DI-17.5** | `finalProbe` usa `g_armado` | §2.2. Não é bit-neutro ⇒ c217/c141 re-rodados. |
-| **DI-17.6** | c238: sonda em espaço **CRU** | Régua constante entre gerações e comparável ao gabarito. *Responde a pendência de `handoff/R1-c238.md` §8 item 2(b), aberta desde a R1.* |
-| **DI-17.7** | offline: `f_best` = pop corrente **+** min do dataset no header | Superconjunto; vale para os 5 offline. |
-| **DI-17.8** | `espaco_modelo` = **`"cru"`** nos 21 | §3.2. |
+| **DI-19.1** | **e74: um `SondaState` POR CABEÇA**, com `k` próprio e fase deslocada | O `g` do hook do e74 bumpa **4× por ciclo** (`CLMEA.m:90/:100/:112/:135`); sob k=2, s1 e s3 disparavam todo ciclo e **o s2 — a RBF global — NUNCA dispararia**. |
+| **DI-19.2** | `f_best`/`n_front1` = **arquivo real PÓS-ciclo** | Sem definição operacional, os configs divergiram (c141 pós, b1 pré ⇒ curvas defasadas de um infill). b1 realinhado; b3 usa `A2` (o `A1` é podado com teto NI). |
+| **DI-19.3** | e103 `n_geracoes` = ③ com filtro `regime != 'sonda'` | **Substitui a instrução do cartão** (§3.1). |
+| **DI-19.4** | `dist_min_arquivo` em espaço **NATIVO** nos 21 + doc-sync | A SPEC §S.7.1 diz "normalizado"; c141/c217 (aceitos) usam nativo; não é renormalizável post-hoc. |
+| **DI-19.5** | `finalProbe` usa `g_armado` | §2.2. Não é bit-neutro ⇒ c217/c141 re-rodados. |
+| **DI-19.6** | c238: sonda em espaço **CRU** | Régua constante entre gerações e comparável ao gabarito. *Responde a pendência de `handoff/R1-c238.md` §8 item 2(b), aberta desde a R1.* |
+| **DI-19.7** | offline: `f_best` = pop corrente **+** min do dataset no header | Superconjunto; vale para os 5 offline. |
+| **DI-19.8** | `espaco_modelo` = **`"cru"`** nos 21 | §3.2. |
 
 ---
 
@@ -228,7 +228,7 @@ A regra diz "tolerar int32 E double+NaN" **nomeando só o `real_solution_id`**. 
 nullable, o MATLAB grava `double`+NaN e o Python grava `int32` nullable para a MESMA coluna.
 **Um leitor a jusante que faça `astype(int32)` sem tratar NaN quebra no e103.** Doc-sync necessário.
 
-### T-3 · Doc-sync da DI-17.4 na SPEC §S.7.1
+### T-3 · Doc-sync da DI-19.4 na SPEC §S.7.1
 O texto diz "espaço de decisão NORMALIZADO"; a decisão do autor foi **nativo**. Faixa SPEC.
 
 ### T-4 · Doc-sync da DI-13.5 no CONTRATO §3.1
@@ -260,9 +260,9 @@ linhas e exige patch no stock (⇒ re-lacre do `repos.lock`). **Decisão do auto
 2. **e7** — wiring + 2 runs. ⚠ ZDT1 fora: **72 min**. `loss_treino` = **INACESSÍVEL** por decisão
    do autor (DI-12.1) — registrar a ausência.
 3. **e74** — wiring dos **4 pontos de hook** (`CLMEA.m`, `ClassifierSelect.m`, `Hv_Select.m`,
-   `Local_infill.m`) + os **3 `SondaState`** da DI-17.1 + 3 runs.
+   `Local_infill.m`) + os **3 `SondaState`** da DI-19.1 + 3 runs.
 4. **e103** — wiring + `margem_3sigma` (patch em `IBEAMS.m:67` ⇒ **re-lacre por
-   `scripts/preflight.py --write`**) + `n_geracoes` da DI-17.3 + 3 runs.
+   `scripts/preflight.py --write`**) + `n_geracoes` da DI-19.3 + 3 runs.
 5. **Re-execução consolidada dos gates** (ver ressalva do §1.5).
 6. **Regressão total**: F0×4 + 13 configs ×MMF1 + preflight + suíte completa.
 7. **RELATÓRIO padrão** de execução.

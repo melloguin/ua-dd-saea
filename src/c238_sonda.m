@@ -11,7 +11,7 @@ function c238_sonda(Problem, GP_obj, ymin, yrange)
 %   pred_tipo="valor", modelo_flag="OK-Forrester", pred_classe/score/confianca NULL.
 %
 % ESPACO: o bloco sai ja invertido para o espaco CRU do gabarito
-% [DI-17.6, decisao do autor 2026-07-19]. O modelo do c238 opera sobre y
+% [DI-19.6, decisao do autor 2026-07-19]. O modelo do c238 opera sobre y
 % min-max-normalizado POR ITERACAO; a sonda existe para comparar o modelo ENTRE
 % geracoes e ENTRE algoritmos, e uma regua que muda a cada geracao sabota
 % exatamente isso — alem de o gabarito do artefato estar em cru. A inversao
@@ -19,11 +19,12 @@ function c238_sonda(Problem, GP_obj, ymin, yrange)
 % A divergencia com as linhas de BUSCA do c238 (que gravam "transformado" +
 % transf_params, c238_instrument.m:77-82) e deliberada e vai declarada no
 % sigma_dict do manifesto.
-% (Nota de numeracao: as decisoes deste cartao sao DI-17.x — a torre ja ocupou
-% DI-15.0..15.5 e DI-16.x numa sessao concorrente.)
+% (Nota de numeracao: as decisoes deste cartao sao DI-19.x — a torre ocupou
+% DI-15.0..15.5, DI-16.x E DI-17.1..17.4 (hardening M7) em sessoes concorrentes;
+% por isso o retrofit-R1 foi realocado de DI-17.x para DI-19.x pela torre.)
 %
 % ⚠ PENDENCIA TRANSVERSAL (nao resolver so aqui): o VALOR gravado abaixo e
-% RESOLVIDO [DI-17.8, autor 2026-07-19]: o valor gravado e "cru", o termo do
+% RESOLVIDO [DI-19.8, autor 2026-07-19]: o valor gravado e "cru", o termo do
 % contrato (DEF-C3 "cru+transformado") e o unico que passa na validacao de
 % export.py:292. Antes deste cartao os .m gravavam "nativo", FORA do enum de
 % export.py:67 — o writer MATLAB nao valida, entao o desvio passava calado ate
@@ -122,7 +123,7 @@ function rows = c238_sonda_rows(GP_obj, Xs, M, ymin, yrange)
         for a = 1:passo:n
             b = min(a + passo - 1, n);
             [u, s] = GP_Predict(Xs(a:b, :), GP_obj{j});   % (test_x, model), 2 saidas
-            % DI-17.6: inversao do min-max da ITERACAO -> espaco CRU do gabarito.
+            % DI-19.6: inversao do min-max da ITERACAO -> espaco CRU do gabarito.
             MU(a:b, j) = u(:) .* yrange(j) + ymin(j);
             SG(a:b, j) = s(:) .* yrange(j);
         end
@@ -131,6 +132,6 @@ function rows = c238_sonda_rows(GP_obj, Xs, M, ymin, yrange)
         'mu', MU, 'sigma', SG, ...
         'pred_tipo', "valor", 'modelo_flag', "OK-Forrester", ...
         'espaco_modelo', "cru");     % ja invertido => sem transf_tipo/params
-    % [DI-17.8] "cru" e o termo do contrato (DEF-C3), o unico que passa na
+    % [DI-19.8] "cru" e o termo do contrato (DEF-C3), o unico que passa na
     % validacao de export.py:292 contra ESPACOS=("transformado","cru").
 end

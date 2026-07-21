@@ -115,7 +115,7 @@ classdef KRVEA < ALGORITHM
                               Flag, 0.05*Problem.N, mu, nzero, n_treino, tfit_s, ...
                               ftm_b3, A1DecPre_b3, A2.objs, toc(tGer_b3), tbusca_s_b3, ...
                               APD_S_b3, MSE(index,:));
-                              % ^ [DI-17.2] f_best/n_front1 = A2 (arquivo real
+                              % ^ [DI-19.2] f_best/n_front1 = A2 (arquivo real
                               %   POS-ciclo; o A1 do b3 e PODADO com teto NI).
             end
         end

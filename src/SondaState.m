@@ -38,7 +38,7 @@ classdef SondaState < handle
 %   ...ao montar a linha de timing da geracao:
 %   timing.tempo_pred_sonda_s = snd.takePendingTime();
 %   ...apos o Algorithm.Solve, no run_*:
-%   snd.finalProbe();                                  % ver DI-17.5 abaixo
+%   snd.finalProbe();                                  % ver DI-19.5 abaixo
 %
 % REGIME OFFLINE (DI-13.5): o artefato tem S=20.000 e o offline le TODAS (1x por
 % modelo treinado, fora do laco). Nesses blocos `geracao` = NULL. O disparo e por
@@ -63,7 +63,7 @@ classdef SondaState < handle
         n_falhas      (1,1) double = 0
         tempo_total_s (1,1) double = 0
         gens_sondadas double = []         % geracoes ja sondadas (p/ o manifesto)
-        g_armado double = []              % [DI-17.5] a geracao do modelo ARMADO
+        g_armado double = []              % [DI-19.5] a geracao do modelo ARMADO
     end
 
     properties (Access = private)
@@ -149,7 +149,7 @@ classdef SondaState < handle
         % DEPOIS do Algorithm.Solve — fora do laco, ja com a excecao de termino
         % engolida. Nao repete se a geracao ja foi sondada pela cadencia.
         %
-        % [DI-17.5, autor 2026-07-19] A geracao usada e a do modelo ARMADO
+        % [DI-19.5, autor 2026-07-19] A geracao usada e a do modelo ARMADO
         % (`g_armado`), NAO o `buf.gen` corrente. Motivo: em configs de overshoot
         % ZERO (c238), a PlatEMO:Termination sai do TOPO do ciclo seguinte
         % (ALGORITHM.m:128) DEPOIS de o outputFcn ja ter bumpado a geracao — o

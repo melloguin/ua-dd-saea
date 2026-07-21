@@ -361,17 +361,34 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
   (16 repos oficiais + PlatEMO, vendorizados — só se toca com patch de fidelidade), `data/doe` +
   `data/datasets` (pontos iniciais, no repo) + `data/experiments/main/stub/` (saída do run-STUB do R1-00).
 
-## 8. Estado atual + próximos passos
-- **Feito:** M0 ✅ · M1 (Fase 0) ✅ · **M2 ✅ (R1-00 + R1-c217 PROVADOS — o pipeline funciona com um algoritmo real; falta só o julgamento de fidelidade do autor, D97)**.
-- **Commits recentes (branch `experiment/definitive_algorythms`, nunca pushed):** `[F0-01..04]`, os 4
-  `chore/docs` da torre (BBOB reconcile `e8adacc`, data `cf4a4cc`, envs `d1edcf2`, docs `bb72de0`),
-  `[R1-00-harness]`, `9b454f8` (fix check_fe), `4b7c79e`/`6ab024d`/`b6cc0c9` (docs/env_bridge).
-- **Próximo:** **M3** (fan-out MATLAB: b1,b3,b4,e7,c141,e74,c238,e103,pisos — **herdam o fix D89** e toda
-  a infra do c217) ∥ **M4** (R2-00 → c262/c154 na VM). Em paralelo, o **autor faz a validação de fidelidade
-  do c217** (D97, com o caveat do orçamento ~4× menor que o paper). Marco crítico seguinte: **M7** (piloto de tempo/memória, PORTÃO
-  bloqueante) antes das baterias **M8/M9** ("tudo rodando"). Depois sub-estudos (M10/M11), consolidação
-  (M12) e análise (M13/M14/M15).
-- **Como uma instância nova assume:** leia este PROGRESSO + `ORQUESTRACAO_MESTRE.md` (status board +
-  armadilhas + mapa de bundles) + `HANDOFF_MESTRE.md`. Monte o próximo prompt pelo padrão dos anteriores
-  (ver os handoffs). Regra de ouro: verifique cada sessão rodando código + lendo; nunca julgue
-  fidelidade (D97); pára-e-pergunte em ambiguidade (D81).
+## 8. Estado atual + próximos passos *(atualizado 2026-07-20)*
+- **Feito:** M0 ✅ · M1 (Fase 0) ✅ · M2 ✅ · **M3 (fan-out MATLAB) ✅ 10/10** · **M4 (R2: R2-00 ✅ +
+  c262 ✅ + c154 ✅)** · **M5/R3-c122 ✅** (theta-DEA-DP, 3 problemas, cartão fechado `29e8539`).
+- **A ONDA DI-09 (instrumentação do surrogate) — o grande bloco desta semana:** o autor decidiu que
+  TODO run persiste, além das 7 camadas, a **SONDA canônica** (2000 pontos Sobol fixos previstos por
+  cada modelo a cada k=2 gerações — a régua ÚNICA que compara a assertividade de todos os 16
+  algoritmos) + `fe_treino_max` (in/out-of-sample) + timing por geração + `sigma_dict` + o "mínimo
+  comum DI-10" no jsonl. Isso exigiu **retrofitar os configs já implementados**, em duas frentes
+  paralelas:
+  - **Retrofit R1 (MATLAB):** 🟡 **7/11** — b1, b3, b4, c141, c217 + os 4 pisos completos e verdes;
+    **c238, e7, e74, e103 faltam** (sonda escrita, NÃO ligada). Decisões do autor = **DI-19.1…19.8**
+    (renumeradas da colisão DI-17; ver REGISTRO PARTE A8).
+  - **Retrofit R2 (BoTorch):** c262 e c154, com a sonda cobrindo **3 de 5 runs** (c262/ZDT1 ficou sem).
+  - **Auditoria da torre (DI-20, workflow de 90 agentes):** invariante de não-perturbação **PROVADO**
+    (53/53 ① bit-idênticas ao baseline); o GP **aprende e a sonda mede** (c262/DTLZ2 WAPE −41,5%,
+    calibração 0,978; o achado-de-ouro c154/MMF1 it30-37: pior E mais confiante — só a sonda vê).
+    **Notas de comportamento 0–10** (semente 0, ver REGISTRO A9): c262 9,5 · b1 8,5 · smsemoa 8,0 ·
+    e74/nsga3/c154 7,5 · c238/nsga2 7,0 · b3/b4 6,5 · e7 6,0 · c217 4,5 · moead/c141/e103 4,0.
+    **21 decisões em aberto** consolidadas em `handoff/DI20-AUDITORIA-RETROFIT_DECISOES.md`.
+- **Antes disso, a auditoria de PROSA (DI-18):** 38 achados aplicados na SPEC (o retrofit não podia
+  ser julgado contra uma descrição desatualizada). ⚠ **`gen_bundles.py` ainda NÃO foi rodado** — SPEC
+  e bundles divergem nesses pontos; rodar agora que as 3 sessões (retrofit MATLAB, R2, c122) fecharam.
+- **Próximo (5 passos):** (1) **o autor decide as 21** de DI-20 — 4 bloqueiam a M8; (2) fechar os **4
+  MATLAB** (D-05, MMF1+DTLZ2, ~3-5h) + re-rodar c141/c217 DTLZ2/ZDT1 (`"nativo"`→`"cru"`) e o
+  `sigma_dict` do c217; (3) **regenerar os bundles** (`gen_bundles.py`) + os 3 doc-syncs vivos (a
+  fórmula de cadência na SPEC é prioritária p/ os 6 R3 restantes); (4) **implementar os 4 blocos de
+  infra ratificados** (`is_run_done` bucket-aware, repasse de kwargs, ⑦ no resume, `n_acumulado`
+  nullable); (5) seguir o **R3** (b5→c311→c149→e81→piso-off) rumo ao **M7 (PORTÃO)**.
+- **Como uma instância nova assume:** leia este PROGRESSO + `CONTRATO_DE_DADOS.md` (obrigatório) +
+  `REGISTRO_DECISOES_IMPLEMENTACAO.md` + `ORQUESTRACAO_MESTRE.md`. Regra de ouro: verifique cada sessão
+  rodando código + lendo; nunca julgue fidelidade (D97); pára-e-pergunte em ambiguidade (D81).

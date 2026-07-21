@@ -125,7 +125,7 @@ function rows = b3_sonda_rows(Model, Xs, M, pred_h)
 % POSICAO — §3.1/I3). Xs vai DIRETO ao preditor: sem sort, sem unique, sem
 % clamp, sem filtro.
 %
-% ESPACO: "cru" (o termo do contrato — DI-17.8). O `predictor` normaliza X internamente por dmodel.Ssc
+% ESPACO: "cru" (o termo do contrato — DI-19.8). O `predictor` normaliza X internamente por dmodel.Ssc
 % (predictor.m:50), exatamente como a busca faz com os decs nativos da KRVEA.m:70
 % => o parquet da sonda entra sem NENHUMA conversao; transf_tipo/params = NULL.
 %

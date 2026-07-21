@@ -110,7 +110,7 @@ function b3_instrument(Problem, A1, snaps, PopNew, sel, NumV1, NumV2, Flag, ...
             'n_vetores_vazios', double(sum(pop_por_w == 0)), ...
             'modelo_hp', hp_gp_b3(n_treino, tfit_s), ...
             ... % ── DI-10: minimo comum dos 21 (S.7.1) ──
-            ... % [DI-17.2] f_best/n_front1 = ARQUIVO REAL POS-ciclo. No b3 esse
+            ... % [DI-19.2] f_best/n_front1 = ARQUIVO REAL POS-ciclo. No b3 esse
             ... % arquivo e o A2 (o A1 e PODADO com teto NI em UpdataArchive).
             'f_best', min(ObjPos, [], 1), ...
             'n_front1', n_front1_b3(ObjPos), ...
@@ -161,7 +161,7 @@ function n = n_front1_b3(PopObj)
 end
 
 function dmin = dist_min_b3(PopNew, A1DecPre)
-% [DI-10/B3] espaco de DECISAO, NATIVO (DI-17.4).
+% [DI-10/B3] espaco de DECISAO, NATIVO (DI-19.4).
     dmin = [];
     if isempty(PopNew) || isempty(A1DecPre), return; end
     n = size(PopNew, 1);

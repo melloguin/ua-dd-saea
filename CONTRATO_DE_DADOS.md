@@ -168,7 +168,7 @@ tabela ③, diferenciadas pela coluna `regime`.
   Cada bloco de sonda grava também o `fe` corrente no jsonl (evento `sonda`) — **o eixo de
   comparação entre algoritmos é o FE consumido** (as "gerações" de algoritmos diferentes não são
   alinhadas entre si; o FE é).
-- **Como grava:** 2000 linhas na ③ com `regime='sonda'`, `geracao`=corrente, `fe_treino_max`,
+- **Como grava:** ⟦DI-13.5 — corrigido: dizia "2000 linhas" sem qualificar o regime⟧ **ONLINE grava 2000 linhas** (`geracao`=corrente) e **OFFLINE grava 20.000 linhas** (`geracao`=**NULL** — o modelo treina antes do laço) na ③ com `regime='sonda'`, `fe_treino_max`,
   `real_solution_id=NULL`, e a MESMA semântica de saída que o modelo daquele algoritmo produz
   (tabela §3.2). O gabarito (f verdadeiro) NÃO se repete na ③ — está no artefato, join por
   `sonda_id`? **Não**: a ③ não tem coluna sonda_id; o join é POR POSIÇÃO (as 2000 linhas de cada
@@ -222,7 +222,7 @@ tempo total de execução do algoritmo em cada geração e no total"* — o ④ 
 | `tempo_fit_s` | treino do surrogate NAQUELE retreino (eixo-y da parede O(n³)) |
 | `tempo_busca_s` | aquisição/otimização interna da iteração (OBRIGATÓRIO — era opcional/NaN) |
 | **`tempo_pred_sonda_s`** | custo da sonda na iteração (0 quando não roda) |
-| **`tempo_geracao_s`** | **wall TOTAL da geração** (fit+busca+aval+overhead — o relógio da geração) |
+| **`tempo_geracao_s`** | wall da geração **EXCLUINDO a sonda** = fit+busca+aval+overhead da busca, **SEM** `tempo_pred_sonda_s` (⟦DI-13.10 ratificada; corrigido — dizia "wall TOTAL", que incluiria a sonda⟧). A sonda é instrumentação DESTE estudo e contaminaria a curva de escalabilidade de forma desigual (só roda a cada k=2). Provado nos dados: `fit+busca ≤ tempo_geracao_s` em 100% das gerações, mas `fit+busca+sonda > tempo_geracao_s` exatamente nas gerações com sonda (1.129/1.129, 6 configs MATLAB + os 2 BoTorch). **O projetor de teto, ao contrário, vê o wall CHEIO** (paga a sonda). |
 
 **[DI-13.2] `tempo_fit_s` é NULLABLE:** os **4 pisos ONLINE** não têm surrogate (⚠ **[P1/DI-16.1] o piso OFFLINE TEM** — treina um GP e grava `tempo_fit_s` real) ⇒ gravam `NULL` ("não se
 aplica", ≠ `0.0` que significaria "treinou e custou zero" e poluiria a média de custo). O

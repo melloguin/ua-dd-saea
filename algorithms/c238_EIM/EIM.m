@@ -59,6 +59,7 @@ classdef EIM < ALGORITHM
             %% (N.5-4) loop de BO — 1 infill/iteracao, termino exato 31D-1
             while Algorithm.NotTerminated(Population)
                 iter = iter + 1;
+                tGer_c238 = tic;                   % [DI09-R1c] §17.6 wall da iteracao
                 sample_x = Population.decs;
                 sample_y = Population.objs;
 
@@ -96,6 +97,16 @@ classdef EIM < ALGORITHM
                         1*ones(1,D), 0.001*ones(1,D), 1000*ones(1,D));
                 end
                 tempo_fit = toc(t0);
+                % [DI09-R1c] SONDA (DI-09/§17.2.2): pos-fit dos M GP_Train (o
+                % GP_obj daqui e EXATAMENTE o modelo que a busca usa abaixo),
+                % ANTES da 1a decisao (Optimizer_GA), do 1o consumo de RNG do
+                % ciclo (lhsdesign do Optimizer_GA:9 — GP_*/Infill_EIM/Paretoset
+                % nao consomem) e da Evaluation (hard-stop); APOS toc(t0) e
+                % ANTES de t1=tic — nao contamina tempo_fit nem tempo_busca
+                % (I6). As 4 condicoes provadas no cabecalho de c238_sonda.m.
+                % ymin = PRE-guard, yrange = POS-guard max(range,eps) — o par
+                % que inverte o min-max da iteracao p/ o CRU (DI-19.6/DI-19.8).
+                c238_sonda(Problem, GP_obj, ymin, yrange);
 
                 % (N.5-7) GA interno maximiza o EIM (pop final = ③, DEF-C2)
                 t1 = tic;
@@ -122,7 +133,13 @@ classdef EIM < ALGORITHM
                     n_range0, n_dedup, numel(ia), idx_nd, GP_obj, ...
                     ga_pop, ga_fit, y_pop, u_pop, s_pop, n_nan_pop, ...
                     infill_x, neg_best, min_dist, fe_antes, stall, ...
-                    tempo_fit, tempo_busca);
+                    tempo_fit, tempo_busca, toc(tGer_c238), sample_x, ...
+                    Population.objs);
+                    % ^ [DI-19.2] f_best/n_front1 = arquivo real POS-ciclo (a
+                    %   Population aqui JA inclui o New do infill). sample_x =
+                    %   snapshot PRE-infill p/ dist_min_arquivo (DI-19.4): e o
+                    %   Population.decs do topo da iteracao e NADA e avaliado
+                    %   entre a captura e a Evaluation — dispensa captura nova.
             end
         end
     end

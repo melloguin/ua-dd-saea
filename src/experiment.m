@@ -493,6 +493,15 @@ function [status, info] = run_c217(alg, problema, semente, exp, dataRoot)
     man.status = st_str;
     % [v5.2.1/§17.6] bloco `timing` OBRIGATORIO + fit_series + man.sonda (DI-09).
     man = fill_manifest_timing(man, buf.trows, bud, toc(t0_run), snd);
+    % [DI-20.6#2] sigma_dict OBRIGATORIO (DEF-C4): estava NULL nos 3 manifestos
+    % do c217 — a regra 3 do R4 torna a ③ "leitura proibida" sem ele. O c217 e
+    % score par-a-par (DEF-C1): nao ha mu/sigma; o dicionario diz o que as
+    % colunas pred_* significam. Semantica do handoff R1-c217 §7 (ja no header
+    % do jsonl — aqui e a copia da CERTIDAO, que e o que a R4 le).
+    man.sigma_dict = struct( ...
+        'pred_score', "score ternario {-1,0,+1} AGREGADO do PNN par-a-par vs a referencia corrente Pmid (nao ha comparacao O(n^2) gravada — DEF-C2)", ...
+        'pred_confianca', "Error1 do ciclo (confiabilidade estimada do classificador; CONSTANTE por bloco/geracao — e um atributo do MODELO, nao do ponto)", ...
+        'mu_sigma', "NULL SEMPRE (classificador par-a-par puro — nao ha cabeca de valor nem incerteza)");
     write_manifest(man, exp, alg, problema, semente, dataRoot);
 
     jsonl_line(fid, 'footer', {'status', st_str, 'fe_final', bud.fe, 'maxfe', maxfe, ...
@@ -1249,6 +1258,7 @@ function [status, info] = run_e7(alg, problema, semente, exp, dataRoot)
     status = "failed";
     info = struct();
     ROOT = harness_root();
+    t0_run = tic;                                  % [§17.6] wall total do run
 
     % Arvore PlatEMO 4.15 no path (N.0.1) — rede p/ chamada direta.
     ensure_paths_e7(ROOT);
@@ -1299,7 +1309,13 @@ function [status, info] = run_e7(alg, problema, semente, exp, dataRoot)
 
     % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.
     %     N=100 governa a popsize interna E o UniformPoint dos vetores (D20).
-    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, ...
+    %     [DI-09] snd = SondaState. O e7 e o UNICO preditor de fato ESTOCASTICO
+    %     (MC-dropout, ~1,4e7 draws/bloco): e AQUI que o save/restore de RNG do
+    %     SondaState (I1) deixa de ser redundante e vira o proprio gate.
+    sd  = load_sonda(problema, D, M, dataRoot);
+    snd = [];
+    if ~isempty(sd), snd = SondaState(sd, buf, fid, alg); end
+    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, 'snd', snd, ...
                   'run_id', string(nm_run_id(exp, alg, problema, semente)), ...
                   'problema', string(problema), 'semente', semente);
     Problem = UserProblem('evalFcn', batchEval, 'initFcn', @(N,varargin) X0(1:N,:), ...
@@ -1330,6 +1346,9 @@ function [status, info] = run_e7(alg, problema, semente, exp, dataRoot)
         end
     end
 
+    % (7b) [DI-09] SONDA da ULTIMA geracao — fora do laco, sobre o modelo ARMADO.
+    if ~isempty(snd), snd.finalProbe(); end
+
     % (8) EXPORT das 4 camadas (§17.2/§17.3): ① do wrapper; ②③/timing do buffer.
     R = bud.records();                                 % catalogo ① (== 31D-1 linhas)
     write_real(exp, alg, problema, semente, R, D, M, dataRoot);
@@ -1351,6 +1370,7 @@ function [status, info] = run_e7(alg, problema, semente, exp, dataRoot)
         maxfe, bud.fe, buf.nGeracoes(), doe_hash_run, bud.cache_hits, dataRoot);
     man.algo_version = "e7-EDNARMOEA-PlatEMO4.15";
     man.status = st_str;
+    man = fill_manifest_timing(man, buf.trows, bud, toc(t0_run), snd);   % [§17.6/DI-09]
     man.params = struct('N_pop', 100, 'NW', NW, 'delta', 0.05, 'wmax', 20, ...
         'Ke', 3, 'T', 100, 'rede', "40/40, ReLU+tanh, unica multi-M", ...
         'dropP', "[0.1,0.1] entrada+oculta, invertido, ATIVO na inferencia (D30 ARTIGO; codigo shipped [0.2,0.5])", ...
@@ -1438,6 +1458,7 @@ function [status, info] = run_c238(alg, problema, semente, exp, dataRoot)
     status = "failed";
     info = struct();
     ROOT = harness_root();
+    t0_run = tic;                                  % [§17.6] wall total do run
 
     % Arvore PlatEMO 4.15 (N.0.1) + a pasta do c238 (repo standalone do autor).
     % O onCleanup REMOVE a pasta do path ao sair (normal OU erro): o proprio
@@ -1492,7 +1513,11 @@ function [status, info] = run_c238(alg, problema, semente, exp, dataRoot)
     %     'N',100 = N.5-2 (INERTE no c238: o GA interno e 10D e o init e o DoE).
     %     'logger' vai no data p/ a EIM.main emitir guard_range NA DETECCAO
     %     (revisao adversarial R1-c238 — evento nunca perdido por crash do fit).
-    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, ...
+    %     [DI-09] snd = SondaState (data e SetAccess=protected: so aqui).
+    sd  = load_sonda(problema, D, M, dataRoot);
+    snd = [];
+    if ~isempty(sd), snd = SondaState(sd, buf, fid, alg); end
+    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, 'snd', snd, ...
                   'logger', logger, ...
                   'run_id', string(nm_run_id(exp, alg, problema, semente)), ...
                   'problema', string(problema), 'semente', semente);
@@ -1524,6 +1549,11 @@ function [status, info] = run_c238(alg, problema, semente, exp, dataRoot)
         end
     end
 
+    % (7b) [DI-09] SONDA da ULTIMA iteracao — fora do laco, sobre o modelo ARMADO
+    % no ultimo fit. [DI-19.5] usa g_armado: no c238 (overshoot ZERO) o buf.gen
+    % pos-Solve aponta uma geracao NUNCA armada — o motivo da propria decisao.
+    if ~isempty(snd), snd.finalProbe(); end
+
     % (8) EXPORT das 4 camadas (§17.2/§17.3): ① do wrapper; ②③/timing do buffer.
     R = bud.records();                                 % catalogo ① (== 31D-1 linhas)
     write_real(exp, alg, problema, semente, R, D, M, dataRoot);
@@ -1545,6 +1575,7 @@ function [status, info] = run_c238(alg, problema, semente, exp, dataRoot)
         maxfe, bud.fe, buf.nGeracoes(), doe_hash_run, bud.cache_hits, dataRoot);
     man.algo_version = "c238-EIM-embrulho-N5";
     man.status = st_str;
+    man = fill_manifest_timing(man, buf.trows, bud, toc(t0_run), snd);   % [§17.6/DI-09]
     man.params = struct('criterion', "Euclidean (EIMe)", ...
         'kriging', "OK-Forrester proprio (nao-DACE): mu constante, kernel gaussiano, ARD theta 1xD", ...
         'theta0', 1, 'theta_bounds', "[1e-3,1e3]", ...
@@ -1643,6 +1674,7 @@ function [status, info] = run_e74(alg, problema, semente, exp, dataRoot)
     status = "failed";
     info = struct();
     ROOT = harness_root();
+    t0_run = tic;                                  % [§17.6] wall total do run
 
     % (0) ISOLAMENTO DE PATH (o risco nº1 do cartao): troca 4.15 -> 4.1 e arma a
     % restauracao TOTAL (run normal OU erro). O smoke `which -all` vai no header.
@@ -1684,7 +1716,26 @@ function [status, info] = run_e74(alg, problema, semente, exp, dataRoot)
     % (4) evalFcn POR INDIVIDUO (N.0-4.1): [dec,obj,con] por chamada 1xD, sob o
     % FEBudget (cache-hit=0 FE D89; hard-stop D61 propaga pelo CallFcn/addCause).
     evalFcnPerX = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
-    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, ...
+    % [DI-09/DI-19.1] UM SondaState POR CABECA ('boot'/'s1'/'s2'/'s3' — o struct
+    % que o e74_sonda espera). Motivo: o g do hook bumpa 4x POR CICLO (boot g=1;
+    % ciclo c: s1=4c-2, s2=4c-1, s3=4c) — sob UM estado com k=2 o s2 (a RBF
+    % global, a curva O(n^3) que a R4 quer) NUNCA dispararia.
+    % CALIBRACAO (D-11, do implementador, ratificacao em lote D97): ROUND-ROBIN
+    %   s1 k=6  -> c = 2,5,8,...   s2 k=3 -> c = 1,4,7,...   s3 k=12 -> c = 3,6,9,...
+    % (aritmetica: mod(4c-2,6)==0 <=> c==2 mod 3; mod(4c-1,3)==0 <=> c==1 mod 3;
+    %  mod(4c,12)==0 <=> c==0 mod 3). Cada ciclo sonda EXATAMENTE UMA cabeca e
+    % cada cabeca e medida a cada 3 ciclos — volume ~1 bloco/ciclo (ZDT1 ~213
+    % blocos ~430k linhas, vs 1,27M do k=1 nas tres). O boot dispara em g=1 pela
+    % clausula da 1a (due(1) e true para qualquer k).
+    sd  = load_sonda(problema, D, M, dataRoot);
+    snd = [];
+    if ~isempty(sd)
+        snd = struct('boot', SondaState(sd, buf, fid, alg), ...
+                     's1',   SondaState(sd, buf, fid, alg, 6), ...
+                     's2',   SondaState(sd, buf, fid, alg, 3), ...
+                     's3',   SondaState(sd, buf, fid, alg, 12));
+    end
+    data = struct('X0', X0, 'buf', buf, 'bud', bud, 'log', fid, 'snd', snd, ...
                   'logger', logger, ...
                   'run_id', string(nm_run_id(exp, alg, problema, semente)), ...
                   'problema', string(problema), 'semente', semente);
@@ -1719,6 +1770,16 @@ function [status, info] = run_e74(alg, problema, semente, exp, dataRoot)
         end
     end
 
+    % (6b) [DI-09] SONDA da ULTIMA geracao de CADA CABECA — fora do laco, sobre
+    % o modelo armado de cada handle (DI-19.1: sem isto duas das cabecas
+    % perderiam o ponto final da curva). No-op por handle se ja sondada.
+    if ~isempty(snd) && isstruct(snd)
+        fns_snd = fieldnames(snd);
+        for i_snd = 1:numel(fns_snd)
+            snd.(fns_snd{i_snd}).finalProbe();
+        end
+    end
+
     % (7) EXPORT das 4 camadas (§17.2/§17.3).
     R = bud.records();
     write_real(exp, alg, problema, semente, R, D, M, dataRoot);
@@ -1737,6 +1798,21 @@ function [status, info] = run_e74(alg, problema, semente, exp, dataRoot)
         maxfe, bud.fe, buf.nGeracoes(), doe_hash_run, bud.cache_hits, dataRoot);
     man.algo_version = "e74-CLMEA-arvore-4.1-propria";
     man.status = st_str;
+    % [§17.6/DI-09] snd e um STRUCT de handles: o fill recebe [] e o bloco
+    % man.sonda e montado por cabeca logo abaixo (o tempo total e a SOMA).
+    man = fill_manifest_timing(man, buf.trows, bud, toc(t0_run), []);
+    if ~isempty(snd) && isstruct(snd)
+        heads = struct(); tps_total = 0;
+        fns_man = fieldnames(snd);
+        for i_man = 1:numel(fns_man)
+            heads.(fns_man{i_man}) = snd.(fns_man{i_man}).manifestBlock();
+            tps_total = tps_total + snd.(fns_man{i_man}).tempo_total_s;
+        end
+        man.timing.tempo_pred_sonda_s = tps_total;
+        man.sonda = struct('status', "ok_multi_cabeca", 'regime', "online", ...
+            'decisao', "[DI-19.1] um SondaState por cabeca; k round-robin s1=6, s2=3, s3=12 (cada cabeca a cada 3 ciclos, fase deslocada); boot 1x em g=1 (clausula da 1a)", ...
+            'cabecas', heads);
+    end
     man.params = struct( ...
         'arvore', "PlatEMO 4.1 propria (CLMEA_Code) — D95/N.0-4.1; worker de path dedicado (rmpath 4.15 -> addpath 4.1 -> restauracao total no onCleanup); ponte POR INDIVIDUO (sem 'once')", ...
         'parameter_set', "defaults do codigo: num_infill=1, epsilon=1e-5 (dedup, rejeita SEM FE — slot perdido), Gen_max1=200, Gen_max2=50, k_local=20 -> min(20,|Arc|) [L.8]", ...
@@ -1874,6 +1950,7 @@ function [status, info] = run_e103(alg, problema, semente, exp, dataRoot)
     status = "failed";
     info = struct();
     ROOT = harness_root();
+    t0_run = tic;                                  % [§17.6] wall total do run
 
     % (0) ISOLAMENTO DE PATH (hazard N.3 — "o mais perigoso sob parfor"):
     % worker dedicado; smoke `which -all` vai no header do .jsonl.
@@ -1933,6 +2010,15 @@ function [status, info] = run_e103(alg, problema, semente, exp, dataRoot)
         'motivo', sprintf('%d linhas do artefato D90 carregadas (orcamento esgotado; busca 100%% surrogate)', n_ds), ...
         'fe', bud.fe});
 
+    % (4b) [DI-09/DI-13.5] SONDA OFFLINE: o artefato INTEIRO (S=20.000), 1 bloco
+    % POR MODELO TREINADO (Kriging e RBFN => 2 blocos), geracao=NULL, disparado
+    % pelo e103_instrument no case 'setup' via snd.probeOffline. Carregar AQUI
+    % (antes do rng — a leitura de parquet nao consome RNG, mas a disciplina e a
+    % mesma dos runs online: sonda carregada antes da semente).
+    sd  = load_sonda(problema, D, M, dataRoot, 'offline');
+    snd = [];
+    if ~isempty(sd), snd = SondaState(sd, buf, fid, alg); end
+
     % (5) SEMENTE (D59): antes do IBEAMS — o 1o consumidor de RNG e o kmeans
     % do setup (k-means++); nao ha probe de construtor no e103 (standalone).
     rng(semente, 'twister');
@@ -1943,7 +2029,7 @@ function [status, info] = run_e103(alg, problema, semente, exp, dataRoot)
     G = struct('D', D, 'M', M, 'N', 100, 'lower', xl, 'upper', xu, ...
                'n_dataset', n_ds, ...
                'data', struct('X0', ds.X, 'F0', ds.F), ...
-               'inst', struct('buf', buf, 'bud', bud, 'fid', fid));
+               'inst', struct('buf', buf, 'bud', bud, 'fid', fid, 'snd', snd));
     lastwarn('');
     term = "normal";
     t0 = tic;
@@ -1987,12 +2073,18 @@ function [status, info] = run_e103(alg, problema, semente, exp, dataRoot)
     ok_flag = (bud.fe == maxfe) && cp_ok;
     st_str  = "ok"; if ~ok_flag, st_str = "failed"; end
 
-    % n_geracoes: derivado da ③ (o ② offline so lista MEMBROS DO DATASET e uma
-    % geracao pode ficar sem nenhum — a ③ tem 2 linhas/membro em TODA geracao).
+    % n_geracoes: derivado da ③ FILTRANDO regime=='sonda' [DI-19.3, decisao do
+    % autor — SUBSTITUI a instrucao do cartao de derivar da ②]. Medido: a ②
+    % offline so lista MEMBROS DO DATASET e no ZDT1 eles somem na g5 => a ②
+    % daria 4 geracoes para um run que executa 99. E os blocos de sonda tem
+    % geracao=NULL ([] nas srows) — sem o filtro, o cellfun quebraria e cada
+    % NaN contaria como geracao distinta.
     if isempty(buf.srows)
         n_ger = 0;
     else
-        n_ger = numel(unique(cellfun(@(r) r.geracao, buf.srows)));
+        eh_sonda_e103 = cellfun(@(r) isfield(r, 'regime') && ...
+            ~ismissing(string(r.regime)) && string(r.regime) == "sonda", buf.srows);
+        n_ger = numel(unique(cellfun(@(r) r.geracao, buf.srows(~eh_sonda_e103))));
     end
 
     % (9) MANIFESTO (§17.2/§17.7) + dicionarios DEF-C4.
@@ -2007,7 +2099,11 @@ function [status, info] = run_e103(alg, problema, semente, exp, dataRoot)
         'dataset_hash', string(ds.dataset_hash), ...
         'cp_x', strcmp(x_hash_run, ds.x_hash), ...
         'cp_f', strcmp(f_hash_run, ds.f_hash));
-    man.timing.tempo_total_s = tempo_total_alg;
+    % [§17.6/DI-09] O bloco timing COMPLETO (nascia 4/5 NaN — so o total era
+    % preenchido, e cobria SO o IBEAMS). tempo_total_s agora e o wall do RUN
+    % (ponte + carga do dataset + busca + export), como o CONTRATO §4 define; o
+    % wall SO da busca continua no jsonl (busca_fim) e no info.tempo_total_s.
+    man = fill_manifest_timing(man, buf.trows, bud, toc(t0_run), snd);
     man.params = struct( ...
         'regime', "OFFLINE (D90): dataset 31D-1 injetado; ZERO FE real na busca; treino UNICO dos 2 modelos; 99 geracoes IBEA no surrogate", ...
         'N', 100, 'kappa', 0.05, ...
@@ -2028,6 +2124,11 @@ function [status, info] = run_e103(alg, problema, semente, exp, dataRoot)
         'kflag', "a decisao Kriging<->RBFN da geracao esta no .jsonl (e103_gen: kflag/modelo_lider) — nao ha coluna na ③; join por geracao");
     write_manifest(man, exp, alg, problema, semente, dataRoot);
 
+    % [DI-19.7] f_best do regime offline: o min do DATASET vai 1x aqui (e
+    % constante — informacao de contexto); o f_best por geracao (pop-surrogate,
+    % valores DE MODELO) sai no e103_gen do jsonl.
+    jsonl_line(fid, 'f_best_dataset', {'f_best_dataset', min(ds.F, [], 1), ...
+        'nota', "min por objetivo do DATASET (constante; DI-19.7) — o f_best por geracao e da pop-surrogate"});
     jsonl_line(fid, 'footer', {'status', st_str, 'fe_final', bud.fe, 'maxfe', maxfe, ...
         'n_geracoes', n_ger, 'cache_hits', bud.cache_hits, ...
         'cp_init', cp_ok, 'cp_x', strcmp(x_hash_run, ds.x_hash), ...

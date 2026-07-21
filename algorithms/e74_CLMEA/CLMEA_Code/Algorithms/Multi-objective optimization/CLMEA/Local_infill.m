@@ -4,7 +4,10 @@ function [x_candidates, inst_e74] = Local_infill(Problem, Arc, num_infill, N, k_
 % pseudo-σ s3, a "incerteza geometrica" da selecao) + timing §17.6.
 inst_e74 = struct('tempo_fit_s', 0, 'tempo_busca_s', 0, 'n_treino', 0, ...
     'spr', NaN, 'x_pop', [], 'y_pop', [], 'eucli', [], 'front_mask', [], ...
-    'cand_eucli', []);
+    'cand_eucli', [], 'ftm', [], ...
+    'k_local', double(k_local));   % [DI09-R1c] o k_local EFETIVO (o call-site ja
+                                   % passa min(20,|Arc|) do L.8 — DI-10 §6.1)
+    % [DI09-R1c] 'ftm' [] = ciclo sem fit (laco 0x) -> NULL na ③/jsonl
 ParetoSolution = Arc.best.decs;    ParetoFront = Arc.best.objs;
 D = size(ParetoSolution,2);
 CrowdDis = CrowdingDistance(ParetoFront);
@@ -31,6 +34,13 @@ for i = 1:min(length(index),num_infill)
     net = newrbe(x_train',y_train',spr);
     inst_e74.tempo_fit_s = inst_e74.tempo_fit_s + toc(tf0_e74);
     inst_e74.n_treino = size(x_train,1);  inst_e74.spr = spr;
+    % [DI09-R1c] SONDA s3 (DI-09/§17.2.2 + DI-13.6: a instancia DO PONTO QUE
+    % VIROU INFILL): pos-fit, pre-RNG (o 1o consumo sao os randi do laco
+    % abaixo) e pre-Evaluation (CLMEA.m); FORA dos tic/toc de fit e de busca.
+    % A sonda NAO clampa na caixa [x_lb,x_ub] (I3) — extrapolacao declarada,
+    % ver a ADVERTENCIA do e74_sonda.m. ftm sobre os N vizinhos em OBJETIVO.
+    inst_e74.ftm = e74_sonda(Problem, 's3', net, x_train, 'spr', spr, ...
+        'tempo_fit_s', inst_e74.tempo_fit_s);
     tb0_e74 = tic;
     for j = 1: Gen_max2
         x_offspring = OperatorDE(Problem, repmat(RefPoint(i,:), N, 1), x_parent(randi(k_local,1,N),:), x_parent(randi(k_local,1,N),:), {0.5,0.5,1,20});

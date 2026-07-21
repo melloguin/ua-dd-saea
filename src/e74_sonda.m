@@ -12,8 +12,8 @@ function ftm = e74_sonda(Problem, cabeca, modelo, x_train, varargin)
 % (problema fora do grid) o instrument continua recebendo o valor certo.
 %
 % ─── O e74 NAO tem "3 cabecas": tem 4 INSTANCIAS de modelo ────────────────────
-%   'boot' RBF-global(boot) — CLMEA.m:63, M redes newrbe MONO-saida (uma por
-%          objetivo) sobre o DoE. Roda 1x NO ARRANQUE, FORA do while (:60-80).
+%   'boot' RBF-global(boot) — CLMEA.m:65, M redes newrbe MONO-saida (uma por
+%          objetivo) sobre o DoE. Roda 1x NO ARRANQUE, FORA do while (:62-83).
 %   's1'   PNN(s1)          — ClassifierSelect.m:8, newpnn sobre a subamostra
 %          estratificada; devolve o NIVEL de nao-dominancia (1..4).
 %   's2'   RBF-global(s2)   — Hv_Select.m:9, newrbe M-dimensional sobre o
@@ -21,29 +21,34 @@ function ftm = e74_sonda(Problem, cabeca, modelo, x_train, varargin)
 %   's3'   RBF-local(s3)    — Local_infill.m:31, newrbe sobre os N vizinhos EM
 %          OBJETIVO do RefPoint. LOCAL (ver a advertencia grande abaixo).
 % Os literais de modelo_flag sao IDENTICOS aos das linhas de busca
-% (e74_instrument.m:49/:79/:95/:101) — o join sonda x busca da R4 e por
+% (e74_instrument.m:64/:111/:128/:135) — o join sonda x busca da R4 e por
 % modelo_flag; divergir aqui parte a serie em duas.
 %
-% ─── CADENCIA: UM SondaState POR CABECA — 🟡 PENDENTE DE RATIFICACAO (D81) ────
-% ⚠ NAO ha decisao registrada para isto. O REGISTRO nao tem entrada sobre "um
-% estado por cabeca"; a decisao de cadencia cravada e a DI-12.5 (g = 1,2,4,6...,
-% SondaState.due), que NAO trata do e74. O recon do e74 escalou justamente esta
-% questao como PARA-E-LOGA (D81) com QUATRO saidas: (i) contador de ciclo
-% proprio no probe; (ii) k=1 para o e74 num estado unico; (iii) um estado por
-% cabeca com k proprio; (iv) aceitar a cobertura enviesada e documentar.
-% Este arquivo IMPLEMENTA (iii) mas ACEITA TAMBEM o estado unico (ver a guarda
-% de disparo: `data.snd` pode ser um SondaState escalar OU um struct de handles)
-% — a escolha entre (ii) e (iii) fica com o autor e NAO exige reescrever aqui.
-% [DI-19.1, decisao do autor 2026-07-19] Um SondaState POR CABECA, com `k`
-% proprio e fase deslocada. (A numeracao correta e DI-19.x: a torre ocupou
-% DI-15.0..15.5, DI-16.x E DI-17.1..17.4 (hardening M7) em sessoes concorrentes —
-% o retrofit-R1 foi realocado de DI-17.x para DI-19.x pela torre; uma versao
+% ─── CADENCIA: UM SondaState POR CABECA — DI-19.1 CRAVADA ────────────────────
+% [DI-19.1 — decisao do autor, 2026-07-19; REGISTRO PARTE A8] UM SondaState POR
+% CABECA ('boot'/'s1'/'s2'/'s3'), com `k` proprio e fase deslocada — a saida
+% (iii) do PARA-E-LOGA que o recon do e74 tinha escalado (D81). A guarda de
+% disparo abaixo continua aceitando TAMBEM o SondaState escalar (molde legado
+% dos demais run_*), mas o molde DESTE config e o struct de handles.
+% CALIBRACAO (D-11) — escolhida pelo IMPLEMENTADOR e sujeita a ratificacao em
+% lote (D97): ROUND-ROBIN
+%       s1 k=6  -> c = 2,5,8,...  (g=4c-2: mod(4c-2,6)==0 <=> c ≡ 2 mod 3)
+%       s2 k=3  -> c = 1,4,7,...  (g=4c-1: mod(4c-1,3)==0 <=> c ≡ 1 mod 3)
+%       s3 k=12 -> c = 3,6,9,...  (g=4c:   mod(4c,12)==0  <=> c ≡ 0 mod 3)
+% Cada ciclo sonda EXATAMENTE UMA cabeca e cada cabeca e medida a cada 3
+% ciclos — volume ~1 bloco/ciclo (ZDT1 ~211 blocos ~430k linhas na ③, vs os
+% 1,27M de linhas que k=1 nas 3 cabecas geraria). O boot dispara em g=1 pela
+% clausula da 1a (due(1) e true para QUALQUER k). Os k moram no run_e74 (quem
+% constroi os handles — experiment.m), NUNCA aqui: este arquivo so repassa o g
+% verdadeiro. (A numeracao correta e DI-19.x: a torre ocupou DI-15.0..15.5,
+% DI-16.x E DI-17.1..17.4 (hardening M7) em sessoes concorrentes — o
+% retrofit-R1 foi realocado de DI-17.x para DI-19.x pela torre; uma versao
 % anterior deste cabecalho citava "DI-15.1", que no REGISTRO e outra coisa.)
 %
 % O motivo MECANICO pelo qual a questao existe (isto e fato medido, nao
 % decisao): ALGORITHM.m:119 chama o outputFcn
 % (=hook_output.m:31, bumpGen) DENTRO do NotTerminated, e a CLMEA.main chama
-% NotTerminated em :46, :90(while), :100, :112 e :135 => o `g` bumpa 4x POR
+% NotTerminated em :46, :101(while), :114, :129 e :155 => o `g` bumpa 4x POR
 % CICLO. O mapa exato e:
 %       boot -> g = 1              (apos o bump de :46, antes do while)
 %       ciclo c:  s1 -> g = 4c-2   s2 -> g = 4c-1   s3 -> g = 4c
@@ -78,7 +83,7 @@ function ftm = e74_sonda(Problem, cabeca, modelo, x_train, varargin)
 % mesma distincao VAR-GP x ERR-EMP do c141 (c141_sonda.m:6-9).
 %
 % ⚠ DIVERGENCIA DECLARADA (s2): nas linhas de BUSCA o e74 grava sigma_0=HV_gain
-% (e74_instrument.m:89) e pred_score=score CalHV (:94). NENHUM dos dois e saida
+% (e74_instrument.m:126) e pred_score=score CalHV (:127). NENHUM dos dois e saida
 % do modelo — sao funcoes da DECISAO sobre o arquivo — e nem sao computaveis
 % para 2000 pontos sem 2000 chamadas de CalHV por bloco. Ficam NULL na sonda.
 % Consequencia a registrar no sigma_dict: para o modelo_flag "RBF-global(s2)" a
@@ -98,7 +103,7 @@ function ftm = e74_sonda(Problem, cabeca, modelo, x_train, varargin)
 %
 % ⚠⚠ ADVERTENCIA OBRIGATORIA — o s3 e um modelo LOCAL medido por uma sonda
 % GLOBAL. Local_infill.m:27 define a caixa [x_lb,x_ub]=min/max(x_train) sobre os
-% N vizinhos e a busca CLAMPA todo offspring dentro dela (:37). O dominio de
+% N vizinhos e a busca CLAMPA todo offspring dentro dela (:44). O dominio de
 % validade da RBF-local e ESSA CAIXA. A sonda nao pode clampar (I3 — a ordem e o
 % suporte do artefato sao fixos, SondaState.m:12-14), logo a MAIORIA dos 2000
 % pontos cai FORA do dominio e a rede extrapola. O erro (WAPE/RMSE) do
@@ -108,26 +113,27 @@ function ftm = e74_sonda(Problem, cabeca, modelo, x_train, varargin)
 % subconjunto de pontos dentro da caixa daquele bloco (que a R4 pode reconstruir
 % cruzando com os x_pop do bloco de busca do mesmo g).
 %
-% ─── POR QUE ESTES PONTOS DE HOOK ────────────────────────────────────────────
+% ─── POR QUE ESTES PONTOS DE HOOK (WIRED — DI09-R1c; linhas POS-insercao) ────
 % Os quatro passam nos quatro testes (pos-fit / pre-1a-decisao / pre-1o consumo
 % de RNG / pre-Evaluation) e ficam FORA dos tic/toc de fit e de busca (§17.6):
-%   s1   ClassifierSelect.m, entre :9 e :10 — fit em :8, `tfit_e74` fechado em
-%        :9, `tbusca_e74 = tic` so em :10. O 1o RNG sao os 3 `randi` + OperatorDE
-%        de :20; entre :10 e :20 so ha NDSort/find (deterministicos). E ANTES da
-%        Evaluation do bloco (CLMEA.m:96).
-%   s2   Hv_Select.m, entre :10 e :11 — fit em :9, toc em :10, tic da busca em
-%        :11. O 1o RNG sao os 2 `randperm(N)` de :16; :12 SelectTrainData e :13
-%        `sim` nao consomem RNG. ANTES da Evaluation (CLMEA.m:108).
-%   s3   Local_infill.m, entre :33 e :34 — fit em :31, toc em :32, tic da busca
-%        em :34. O 1o RNG sao os 2 `randi(k_local,1,N)` de :36; :22-29 sao
-%        pdist2/sort/min/max. ANTES da Evaluation (CLMEA.m:120).
-%   boot CLMEA.m, entre :81 e :82 — depois do sync D89 de :81 e antes da chamada
-%        do e74_instrument de :82, com as M redes acumuladas num cell ao lado da
-%        :63. UM bloco com mu M-dimensional, pareado com o UNICO bloco de busca
-%        que o boot ja emite (e74_instrument.m:51-54, 1 chamada). Disparar
-%        DENTRO do laco daria M blocos de sonda contra 1 de busca no MESMO g=1.
+%   s1   ClassifierSelect.m:15 — fit em :8, `tfit_e74` fechado em :9,
+%        `tbusca_e74 = tic` so em :16. O 1o RNG sao os 3 `randi` + OperatorDE
+%        de :26; ate la so ha NDSort/find (deterministicos). E ANTES da
+%        Evaluation do bloco (CLMEA.m:109).
+%   s2   Hv_Select.m:16 — fit em :9, toc em :10, tic da busca em :17. O 1o RNG
+%        sao os 2 `randperm(N)` de :22; :18 SelectTrainData e :19 `sim` nao
+%        consomem RNG. ANTES da Evaluation (CLMEA.m:124).
+%   s3   Local_infill.m:39 — fit em :31, toc em :32, tic da busca em :41. O 1o
+%        RNG sao os 2 `randi(k_local,1,N)` de :43; :22-29 sao pdist2/sort/min/
+%        max. ANTES da Evaluation (CLMEA.m:139).
+%   boot CLMEA.m:91 — depois do sync D89 de :84 e antes da chamada do
+%        e74_instrument de :93, com as M redes acumuladas no cell nets_e74
+%        (:61, append em :67 FORA do tic/toc do fit de :65). UM bloco com mu
+%        M-dimensional, pareado com o UNICO bloco de busca que o boot ja emite
+%        (e74_instrument.m:60-66, 1 chamada). Disparar DENTRO do laco daria M
+%        blocos de sonda contra 1 de busca no MESMO g=1.
 %        ⚠ UNICA excecao a letra da regra "pre-Evaluation": este ponto fica
-%        depois das Evaluation dos extremos (:75). E inofensivo — o assert de
+%        depois das Evaluation dos extremos (:78). E inofensivo — o assert de
 %        CLMEA.m:41 garante maxFE > |DoE| e a folga maxfe=31D-1 vs n_init=11D-1
 %        cobre com sobra os <=M extremos, entao o hard-stop nao pode disparar
 %        ali. (Se disparasse, o `finalProbe` pos-Solve cobriria o modelo armado.)
@@ -159,19 +165,19 @@ function ftm = e74_sonda(Problem, cabeca, modelo, x_train, varargin)
     % LITERAL do §17.2: "maior fe_index no TREINO do modelo no momento do fit".
     % `solution_id == fe_index` por construcao (FEBudget.m:98-99).
     % TRES REGIMES DE TREINO NO MESMO RUN — nao existe um ftm unico do config:
-    %   boot: x_train = Arc.decs capturado em CLMEA.m:49, ANTES do laco. NAO
-    %         cresce dentro dele (os extremos entram em Arc na :75, mas o
+    %   boot: x_train = Arc.decs capturado em CLMEA.m:50, ANTES do laco. NAO
+    %         cresce dentro dele (os extremos entram em Arc na :78, mas o
     %         snapshot nao) => as M redes veem o DoE INTEIRO e ftm = 11D-2.
-    %         ⚠ NAO usar o atalho `bud.fe-1` AQUI: no ponto do hook (entre :81 e
-    %         :82) o bud.fe JA INCLUI os ate M extremos avaliados em :75, que
+    %         ⚠ NAO usar o atalho `bud.fe-1` AQUI: no ponto do hook (:91) o
+    %         bud.fe JA INCLUI os ate M extremos avaliados em :78, que
     %         NENHUMA das M redes viu. O atalho superestimaria o treino.
     %   s1  : subamostra ESTRATIFICADA de N=min(100,|Arc|) linhas por camadas ND
     %         com quotas 10/30/40/20% (Data_Process.m:10-22). Copia bit-a-bit de
     %         linhas de Arc.decs (:20), logo solutionIdOf resolve.
     %   s3  : os N vizinhos mais proximos EM OBJETIVO do RefPoint
     %         (Local_infill.m:22-24) — a subamostra mais enviesada das tres.
-    %   s2  : o ARQUIVO INTEIRO (Hv_Select.m:2). Arc so cresce (CLMEA.m:75/:96/
-    %         :108/:120), nunca e podado, e o dedup eps garante |Arc| == bud.fe
+    %   s2  : o ARQUIVO INTEIRO (Hv_Select.m:2). Arc so cresce (CLMEA.m:78/:109/
+    %         :124/:139), nunca e podado, e o dedup eps garante |Arc| == bud.fe
     %         => vale o atalho `bud.fe-1` do c141 (c141_sonda.m:40).
     % ⚠ NAO-MONOTONICO em boot/s1/s3 (regra 9 do R4): o subconjunto TROCA de
     % composicao entre ciclos, nao so cresce — e essa e a semantica pedida, e o
@@ -199,9 +205,11 @@ function ftm = e74_sonda(Problem, cabeca, modelo, x_train, varargin)
     % ── guardas do disparo ───────────────────────────────────────────────────
     if ~isfield(d, 'snd') || isempty(d.snd), return; end       % run sem sonda
     snd_all = d.snd;
-    % DUAS formas aceitas de proposito (a escolha (ii) x (iii) e do autor):
-    %   SondaState escalar -> UM estado para as 4 cabecas (o molde de TODOS os
-    %       run_* de hoje: experiment.m:199/378/555/734 poem um handle CRU aqui);
+    % DUAS formas aceitas de proposito (DI-19.1 CRAVOU a (iii) — struct POR
+    % CABECA, o que o run_e74 constroi; o escalar segue aceito p/ o molde
+    % legado dos demais run_*):
+    %   SondaState escalar -> UM estado para as 4 cabecas (o molde dos outros
+    %       run_*: experiment.m:199/378/555/734 poem um handle CRU aqui);
     %   struct de handles  -> um estado por cabeca ('boot','s1','s2','s3').
     % ⚠ Exigir `isstruct` sozinho fazia a sonda virar NO-OP SILENCIOSO sob o
     % molde vigente: sem erro, sem guarda, sem linha — o pior modo de falha para
@@ -266,7 +274,7 @@ function rows = e74_rows_pnn(net, Xs, flag)
 % espaco NATIVO, sem normalizacao e sem clamp — o newpnn foi treinado com
 % `x_train'` cru (ClassifierSelect.m:8).
 % pred_classe = "nivel_k" com a MESMA formatacao das linhas de busca
-% (e74_instrument.m:78), senao os dois lados nao juntam por string.
+% (e74_instrument.m:110), senao os dois lados nao juntam por string.
     k = e74_sim_pnn(net, Xs);
     rows = RunBuffer.mkSurrogateRows(Xs, ...
         'pred_tipo', "classe", ...
@@ -288,7 +296,7 @@ end
 
 
 function rows = e74_rows_boot(nets, Xs, M, flag)
-% As S linhas da ③ do bootstrap. Cada rede e MONO-saida (CLMEA.m:63 roda dentro
+% As S linhas da ③ do bootstrap. Cada rede e MONO-saida (CLMEA.m:65 roda dentro
 % de `for i = 1:Problem.M`), entao a coluna i de mu vem da rede i — o bloco
 % inteiro sai com mu M-dimensional, semantica identica a do c141. Coluna sem
 % rede correspondente fica NaN (=> NULL), nunca 0.
@@ -329,7 +337,7 @@ end
 
 function k = e74_sim_pnn(net, Xs)
 % Mesmo chunking, mesma independencia por linha. `vec2ind(sim(...))` e a
-% LEITURA EXATA que a busca faz (ClassifierSelect.m:23/:32/:52/:57) — a sonda
+% LEITURA EXATA que a busca faz (ClassifierSelect.m:29/:38/:58/:63) — a sonda
 % replica o consumo do modelo, nao uma versao "melhorada" dele.
     n = size(Xs, 1);
     k = zeros(n, 1);

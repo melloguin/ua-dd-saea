@@ -8,6 +8,12 @@ spr = max(max(ghxd))/(D*num_sample)^(1/D);
 tfit_e74 = tic;              % [R1-e74] §17.6 (fit da RBF global no arquivo INTEIRO —
 net = newrbe(x_archive',y_archive',spr);   % o O(n³)/iter da curva de escalabilidade)
 tfit_e74 = toc(tfit_e74);
+% [DI09-R1c] SONDA s2 (DI-09/§17.2.2): pos-fit, pre-RNG (o 1o consumo sao os
+% randperm do laco abaixo; SelectTrainData/sim nao consomem) e pre-Evaluation
+% (CLMEA.m); FORA dos tic/toc de fit e de busca. Read-only (D97), 0 FE. O
+% fe_treino_max usa o atalho bud.fe-1 (treino = arquivo INTEIRO — e74_sonda) e
+% viaja ao e74_instrument dentro do inst_e74 ('ftm').
+ftm_e74 = e74_sonda(Problem, 's2', net, x_archive, 'spr', spr, 'tempo_fit_s', tfit_e74);
 tbusca_e74 = tic;
 [x_parent, ~] = SelectTrainData(Arc, N);
 y_parent = sim(net,x_parent')';
@@ -69,6 +75,7 @@ end
 inst_e74 = struct( ...
     'spr', spr, 'n_treino', num_sample, ...
     'tempo_fit_s', tfit_e74, 'tempo_busca_s', toc(tbusca_e74), ...
+    'ftm', ftm_e74, ...       % [DI09-R1c/DI-09-A1] fe_treino_max do fit desta estrategia
     'x_pop', x_parent, 'y_pop', y_parent, 'front_mask', front_mask_e74(:), ...
     'Ymin', Ymin, 'Ymax', Ymax, 'range0', any(range_e74 <= 0), ...
     'hv_base', hv_base_e74, 'score', score_e74, 'chosen', chosen_e74);

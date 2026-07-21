@@ -242,19 +242,45 @@ formatação.
 | 14 | Commits `[R3-c122]` (ritual, staged conferido) | `dc40174`, `e921b3d` |
 | 15 | ZDT1 (teto 8 h) | ver §11 |
 
-## 11. ZDT1 — a projeção e o teto
+## 11. ZDT1 — a projeção, o teto, e por que a projeção errou para MAIS
 
-<!-- PREENCHER AO FIM DO RUN -->
-**Em voo no fechamento deste relatório.** Medições em tempo real: 65/600
-gerações, ritmo estabilizado em **13,3 s/geração**, projeção de wall total
-**~2,3 h** — **bem abaixo do teto de 8 h**, portanto o aborto limpo NÃO deve ser
-exercitado.
+**Fechou limpo: FE=929 exato, 600 gerações, `status='ok'`,
+`motivo_parada='orcamento'`, wall 5.060,1 s = 1,41 h.** O teto de 8 h **não foi
+exercitado** — o cartão antecipava que seria.
 
-O ritmo estabiliza porque o custo do fit **platôa**: a janela `T_max = 11D+24 =
-354` capeia o pareamento, então a partir de ~25 gerações (arquivo > 354) o custo
-por geração para de crescer. É por isso que a extrapolação linear é confiável
-aqui e não seria num algoritmo com parede O(n³) (o contraste com o c238/c262 é
-exatamente esse — e é material para o §17.6).
+O histórico das projeções vale registro, porque a lição não é "acertei":
+
+| momento | ritmo medido | projeção de wall total |
+|---|---|---|
+| geração 31 | — | ~5,5 h |
+| geração 51 | 17,5 s/ger (médio) · 18,3 (recente) | ~3,0 h |
+| geração 65 | 15,9 s/ger (médio) · **13,3 (recente)** | ~2,3 h |
+| **final** | **8,4 s/ger** (600 ger / 5.060 s) | **1,41 h** |
+
+Duas causas, e só uma eu tinha previsto:
+
+1. **O platô do fit (previsto).** A janela `T_max = 11D+24 = 354` capeia o
+   pareamento: a partir de ~25 gerações (arquivo > 354) o custo por geração para
+   de crescer. É por isso que a extrapolação linear é legítima aqui e **não
+   seria** num algoritmo com parede O(n³) — o contraste com c238/c262 é
+   exatamente esse, e é material para o §17.6.
+2. **Contenção de CPU minha (não previsto).** As primeiras ~65 gerações rodaram
+   **enquanto** eu executava a suíte de regressão, os gates e as duas provas
+   caras (que são elas mesmas 2 runs completos de MMF1). Todo processo está
+   pinado em 1 thread (D79), mas são processos concorrentes disputando o mesmo
+   Mac. O ritmo "recente" que eu media estava contaminado pela minha própria
+   carga.
+
+**Lição para o dimensionamento do M8:** minhas projeções de custo feitas *durante*
+a sessão são **pessimistas por construção** — media com a máquina ocupada por
+mim. O número honesto para o M7 é o **wall final de um run sozinho**, e é esse
+que está na tabela do handoff. Quem for extrapolar a bateria a partir dos meus
+números intermediários vai superdimensionar.
+
+*(Nota adicional: `n_spin_total=21` em 600 gerações — o cap de 10 nunca foi
+atingido, e os spins não custam FE, só wall. `cache_hits=0` no ZDT1, contra 1 em
+MMF1: em D=30 a chance de o SBX/PM reproduzir um X bit-a-bit idêntico é
+desprezível — o cache-hit é um fenômeno de D baixo.)*
 
 ## 12. O que eu NÃO fiz (de propósito)
 

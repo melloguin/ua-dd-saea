@@ -146,7 +146,11 @@ _DISPATCH_LOADERS: dict[str, tuple[str, str, str]] = {
     'c122':          ('src.c122_thetadeadp', 'run_c122', 'standalone'),
     # [R3-c149] LBN-MOBO (deep ensemble K=10 + HVI-greedy D96) sobre o R3-00.
     'c149':          ('src.c149_lbnmobo',    'run_c149', 'standalone'),
-    # 'e81':         ('src.e81_qpots',       'run_e81',  'standalone'),
+    # [R3-e81] qPOTS (Thompson + NSGA-II + maximin) sobre o R3-00. ⚠ env
+    # PRÓPRIO `env_e81_qpots` (botorch 0.16.1 / pymoo 0.6.1.6 — NUNCA misturar
+    # com o env-main): o despachante resolve por `envs.json:alg_to_env` e
+    # roda em subprocess (D79/N.2).
+    'e81':           ('src.e81_qpots',       'run_e81',  'standalone'),
     # 'b5r':         ('src.b5_prob',         'run_b5r',  'standalone'),
     # 'b5m':         ('src.b5_prob',         'run_b5m',  'standalone'),
     # 'c311':        ('src.c311_tgprmo',     'run_c311', 'standalone'),

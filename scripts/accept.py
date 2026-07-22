@@ -949,6 +949,262 @@ def check_r3_c149(exp="main", problema="MMF1", semente=0, data_root=None):
     return out
 
 
+def check_r3_e81(exp="main", problema="MMF1", semente=0, data_root=None):
+    """Gate objetivo do R3-e81 (qPOTS, ONLINE) — o run JÁ TEM de existir.
+
+    Mesmo desenho do `check_r3_c149`/`check_r3_c122` (branch ADITIVO): AFERE um
+    run gravado, não re-roda (um run de ZDT1 custa horas). O e81 é REGRESSOR
+    (DEF-C1), então herda os checks de μ/σ do c149; o que é PRÓPRIO dele:
+      - ③-BUSCA: `real_solution_id` preenchido em EXATAMENTE `q` linhas por
+        geração — o lote do maximin (`q` lido do manifesto; 1 no principal,
+        10 no `exp=batch`);
+      - ⑤: `params` tem de declarar os kwargs OBRIGATÓRIOS do `qpots()`
+        (`nystrom=0`, `ngen=10`, `dim`, `q`) e o dtype float64 (N.2.2) — são
+        os itens do checklist §22.4·3.5 que sobrevivem no dado;
+      - ⑤: `sigma_dict` tem de declarar `n_baseline` como NÃO-APLICÁVEL
+        (P6/DI-16.6 — o qPOTS não tem baseline nem prune);
+      - ⑥: o `.jsonl` tem de carregar `n_train` (NUNCA `n_baseline`) e o
+        `assert |lote|==q` por geração.
+    O resto espelha o c149. Nada disto é fidelidade (D97).
+    """
+    from src import naming as _naming
+    out = []
+    data_root = data_root or os.path.join(ROOT, "data")
+    alg = "e81"
+    try:
+        import numpy as _np
+        import pyarrow.parquet as _pq
+    except ImportError:
+        return [("pyarrow/numpy", (None, "ausentes no env — skip"))]
+
+    out.append(("saídas", check_outputs(exp, alg, problema, semente,
+                                        data_root=data_root)))
+    ok_real = os.path.exists(_naming.layer_path(exp, alg, problema, semente,
+                                                "real", data_root=data_root))
+    if not ok_real:
+        out.append(("run presente", (False, f"① ausente — rode primeiro: "
+                                            f"run_e81('{exp}','e81',"
+                                            f"'{problema}',{semente})")))
+        return out
+
+    real = _pq.read_table(_naming.layer_path(exp, alg, problema, semente,
+                                             "real", data_root=data_root))
+    D = sum(1 for c in real.column_names
+            if len(c) > 1 and c[0] == "x" and c[1:].isdigit())
+
+    with open(_naming.manifest_path(exp, alg, problema, semente,
+                                    data_root=data_root),
+              encoding="utf-8") as fh:
+        man = json.load(fh)
+    q = int(man.get("q", 1))
+    abortado = man.get("status") == "failed"
+
+    # Num aborto sancionado (teto de wall / cache-cap) o FE final é MENOR que
+    # 31D−1 por desenho — a curva parcial É o entregável (o cartão diz que
+    # abortar por teto é DADO, não falha). O check de FE exato só se aplica
+    # ao run que fechou o orçamento.
+    if abortado:
+        out.append(("FE exato (①)",
+                    (None, f"SKIP — run abortado ({man.get('motivo_parada')}): "
+                           f"fe_final={man.get('fe_final')} < {31 * D - 1} por "
+                           f"desenho; a curva parcial é o entregável")))
+    else:
+        out.append(("FE exato (①)", check_fe(exp, alg, problema, semente, D,
+                                             data_root=data_root)))
+    out.append(("CP-init (DoE bit-a-bit)",
+                check_doe_hash(problema, semente, data_root=data_root)))
+
+    fases = real.column("fase").to_pylist()
+    n_init = 11 * D - 1
+    ok = (fases[:n_init] == ["init"] * n_init
+          and all(f == "opt" for f in fases[n_init:]))
+    out.append(("① fases init/opt", (ok, f"{fases.count('init')} init "
+                                         f"(esperado {n_init}) + "
+                                         f"{fases.count('opt')} opt")))
+
+    surr = _pq.read_table(_naming.layer_path(exp, alg, problema, semente,
+                                             "surrogate", data_root=data_root))
+    reg = _np.asarray(surr.column("regime").to_pylist())
+    n_snd = int((reg == "sonda").sum())
+    ok = n_snd > 0 and n_snd % 2000 == 0
+    out.append(("③ blocos de sonda ×2000",
+                (ok, f"{n_snd} linhas 'sonda' = {n_snd / 2000:g} blocos; "
+                     f"{int((reg == 'online').sum())} linhas de busca")))
+
+    # ordem do artefato: o join com o gabarito é POSICIONAL (R4 regra 5)
+    from src import standalone_harness as _sh
+    snd_art = _sh.load_sonda(problema, regime="online", data_root=data_root)
+    xs = _np.column_stack([surr.column(f"x{i}").to_numpy() for i in range(D)])
+    idx = _np.where(reg == "sonda")[0]
+    ok_ordem = True
+    b = 0
+    for b in range(len(idx) // 2000):
+        bloco = xs[idx[b * 2000:(b + 1) * 2000]]
+        if not _np.allclose(bloco, snd_art["X"].astype(bloco.dtype),
+                            rtol=0, atol=1e-5):
+            ok_ordem = False
+            break
+    out.append(("③ sonda na ORDEM do artefato",
+                (ok_ordem, "todos os blocos batem posicionalmente com "
+                           "data/sonda/ (join posicional, R4 regra 5)"
+                 if ok_ordem else f"bloco {b} FORA de ordem — a R4 casaria "
+                                  f"predição com o gabarito ERRADO")))
+
+    ftm = surr.column("fe_treino_max").to_pylist()
+    out.append(("③ fe_treino_max sem nulos",
+                (all(v is not None for v in ftm),
+                 f"min={min(v for v in ftm if v is not None)} "
+                 f"max={max(v for v in ftm if v is not None)} "
+                 f"(treino = dataset INTEIRO ⇒ monotônico)")))
+
+    rsid = surr.column("real_solution_id").to_pylist()
+    snd_nulo = all(rsid[i] is None or (isinstance(rsid[i], float)
+                                       and _np.isnan(rsid[i])) for i in idx)
+    out.append(("③ sonda com real_solution_id NULL",
+                (snd_nulo, "as 2000×N linhas de sonda não apontam o ① "
+                           "(nenhuma foi avaliada) — correto")))
+
+    # regressor (DEF-C1): pred_tipo='valor'; μ E σ preenchidos em TODAS as
+    # linhas (busca + sonda); score/classe nulos. TODAS as colunas μ/σ.
+    tipos = set(surr.column("pred_tipo").to_pylist())
+    M_cols = sum(1 for c in surr.column_names
+                 if c.startswith("mu_") and c[3:].isdigit())
+    mu_ok = sig_ok = True
+    for j in range(M_cols):
+        for col, flag in ((f"mu_{j}", "mu"), (f"sigma_{j}", "sigma")):
+            vals = surr.column(col).to_pylist()
+            algum_nulo = any(v is None or (isinstance(v, float)
+                                           and _np.isnan(v)) for v in vals)
+            if algum_nulo and flag == "mu":
+                mu_ok = False
+            if algum_nulo and flag == "sigma":
+                sig_ok = False
+    score = surr.column("pred_score").to_pylist()
+    classe = surr.column("pred_classe").to_pylist()
+    ok = (tipos == {"valor"} and mu_ok and sig_ok
+          and all(v is None for v in score)
+          and all(v is None for v in classe))
+    out.append(("③ regressor μ/σ (DEF-C1)",
+                (ok, f"pred_tipo={tipos}, mu_0..mu_{M_cols-1}/sigma_* sem "
+                     f"NULL, score/classe NULOS (σ = desvio da posterior do "
+                     f"GP des-padronizado — ver sigma_dict)")))
+
+    # σ do GP tem de ser > 0 (é VAR-GP, não pseudo-σ): σ ≡ 0 denunciaria
+    # posterior colapsada ou des-padronização perdida.
+    sig0 = _np.asarray([v for v in surr.column("sigma_0").to_pylist()
+                        if v is not None], dtype=float)
+    ok = sig0.size > 0 and float(sig0.min()) >= 0.0 and float(sig0.max()) > 0.0
+    out.append(("③ σ do GP não-degenerado",
+                (ok, f"sigma_0 ∈ [{sig0.min():.3g}, {sig0.max():.3g}]")))
+
+    # DEF-C3: o modelo opera em z ⇒ espaço/transf declarados em TODA linha
+    # (o gate é set-equality: 1 NULL reprova). `transf_params` tem de ser um
+    # OBJETO JSON — uma string aqui denunciaria duplo-encode (o hazard do
+    # kwarg `c3=`, achado desta sessão).
+    esp = set(surr.column("espaco_modelo").to_pylist())
+    ttip = set(surr.column("transf_tipo").to_pylist())
+    tpar = surr.column("transf_params").to_pylist()
+    linhas_busca = _np.where(reg == "online")[0]
+    par_busca_ok = all(tpar[i] for i in linhas_busca)
+    try:
+        amostra = json.loads(tpar[0]) if tpar and tpar[0] else None
+        sem_duplo = isinstance(amostra, dict)
+    except (TypeError, ValueError):
+        sem_duplo = False
+    ok = (esp == {"cru"} and "zscore" in ttip and par_busca_ok and sem_duplo)
+    out.append(("③ z-score declarado (DEF-C3)",
+                (ok, f"espaco_modelo={esp}, transf_tipo={ttip}, "
+                     f"transf_params em TODAS as linhas e decodifica para "
+                     f"{'dict (sem duplo-encode)' if sem_duplo else 'NÃO-dict — DUPLO-ENCODE'}")))
+
+    # q do lote: EXATAMENTE q `real_solution_id` por geração de BUSCA
+    ger = surr.column("geracao").to_pylist()
+    por_ger: dict = {}
+    for i in linhas_busca:
+        if rsid[i] is not None and not (isinstance(rsid[i], float)
+                                        and _np.isnan(rsid[i])):
+            por_ger[ger[i]] = por_ger.get(ger[i], 0) + 1
+    gers_busca = {ger[i] for i in linhas_busca}
+    ok = all(por_ger.get(g, 0) == q for g in gers_busca)
+    out.append((f"③ |lote|=q={q} (escolhidos/geração)",
+                (ok, f"{len(gers_busca)} gerações de busca, "
+                     f"{sum(por_ger.values())} escolhidos "
+                     f"(cache-hit aponta a solução preexistente — D89)")))
+
+    tim = _pq.read_table(_naming.layer_path(exp, alg, problema, semente,
+                                            "timing", data_root=data_root))
+    faltando = [c for c in ("tempo_fit_s", "tempo_busca_s",
+                            "tempo_pred_sonda_s", "tempo_geracao_s")
+                if any(v is None for v in tim.column(c).to_pylist())]
+    out.append(("④ timing v5.2.1 completa",
+                (not faltando, f"{tim.num_rows} gerações × 4 colunas de tempo"
+                 if not faltando else f"colunas com NULL: {faltando}")))
+
+    # ④ n_acumulado = o TREINO (DI-16.6): tem de crescer de 11D−1 em diante
+    na = [v for v in tim.column("n_acumulado").to_pylist() if v is not None]
+    ok = bool(na) and na[0] == n_init and all(
+        na[i] <= na[i + 1] for i in range(len(na) - 1))
+    out.append(("④ n_acumulado = TREINO (monotônico)",
+                (ok, f"{na[0] if na else '?'} → {na[-1] if na else '?'} "
+                     f"(começa em 11D−1={n_init}; o qPOTS não poda)")))
+
+    tblk = man.get("timing") or {}
+    sd = man.get("sigma_dict") or {}
+    pr = man.get("params") or {}
+    ok = (all(k in tblk for k in ("tempo_total_s", "tempo_fit_surrogate_s",
+                                  "tempo_busca_s", "tempo_aval_real_s"))
+          and bool(sd) and bool(man.get("sonda"))
+          and (man.get("sonda") or {}).get("regime") == "online")
+    out.append(("⑤ manifesto (timing+sigma_dict+sonda.regime)",
+                (ok, f"timing={sorted(tblk)}; sigma_dict={len(sd)} chaves; "
+                     f"sonda.n_blocos={(man.get('sonda') or {}).get('n_blocos')}"
+                     f"; regime={(man.get('sonda') or {}).get('regime')}")))
+
+    # ⑤ os kwargs OBRIGATÓRIOS do checklist §22.4·3.5, no dado
+    kw = pr.get("qpots_kwargs") or {}
+    ok = (int(kw.get("nystrom", -1)) == 0 and int(kw.get("ngen", -1)) == 10
+          and int(kw.get("dim", -1)) == D and int(kw.get("q", -1)) == q
+          and "float64" in str(pr.get("torch_default_dtype", "")))
+    out.append(("⑤ params: kwargs qpots + dtype (§22.4·3.5)",
+                (ok, f"nystrom={kw.get('nystrom')} ngen={kw.get('ngen')} "
+                     f"dim={kw.get('dim')} q={kw.get('q')}; dtype declarado="
+                     f"{str(pr.get('torch_default_dtype'))[:24]}…")))
+
+    ok = "n_baseline" in sd and "NAO SE APLICA" in str(sd["n_baseline"]).upper()
+    out.append(("⑤ sigma_dict: n_baseline N/A (P6/DI-16.6)",
+                (ok, "o qPOTS não tem baseline nem prune — o maximin é vs o "
+                     "dataset INTEIRO; o campo equivalente é `n_train`"
+                 if ok else "sigma_dict não declara n_baseline como N/A")))
+
+    # ⑥ jsonl: DI-10 + os campos S.7 do e81
+    jpath = _naming.jsonl_path(exp, alg, problema, semente,
+                               data_root=data_root)
+    gens, faltas, lote_ok, tem_nb = 0, set(), True, False
+    with open(jpath, encoding="utf-8") as fh:
+        for linha in fh:
+            r = json.loads(linha)
+            if r.get("rec") != "decision":
+                continue
+            gens += 1
+            for campo in ("n_train", "fe", "f_best", "n_front1", "modelo_hp",
+                          "tempo_fit_s", "tempo_busca_s", "draws_thompson",
+                          "n_front_acq", "assert_lote_eq_q", "seed_nsga2",
+                          "nystrom", "ngen"):
+                if campo not in r:
+                    faltas.add(campo)
+            if r.get("assert_lote_eq_q") is not True:
+                lote_ok = False
+            if "n_baseline" in r:
+                tem_nb = True
+    ok = gens > 0 and not faltas and lote_ok and not tem_nb
+    out.append(("⑥ jsonl: DI-10 + S.7 do e81",
+                (ok, f"{gens} eventos de decisão; campos ausentes="
+                     f"{sorted(faltas) or 'nenhum'}; |lote|==q em todas="
+                     f"{lote_ok}; usa n_train e NÃO n_baseline="
+                     f"{not tem_nb} (P6/DI-16.6)")))
+    return out
+
+
 # ── Checagem do cartão R3-00-harness (infra transversal standalone + ⑦) ────
 
 def check_r3_c122(exp="main", problema="MMF1", semente=0, data_root=None):
@@ -1770,6 +2026,29 @@ def main():
             sys.exit(2)
         results = check_r3_c149(exp=a.exp, problema=a.problema,
                                 semente=int(a.semente))
+        fail = False
+        for name, (ok, msg) in results:
+            mark = "SKIP" if ok is None else ("OK  " if ok else "FAIL")
+            print(f"  [{mark}] {name}: {msg}")
+            if ok is False:
+                fail = True
+        print("\n  >>> " + ("VERMELHO — pára-e-loga (D81)" if fail
+                            else "VERDE (encanamento objetivo)"))
+        print("  Lembrete (D97): a fidelidade é validação MANUAL do autor, "
+              "a posteriori — não entra aqui.")
+        sys.exit(1 if fail else 0)
+
+    # R3-e81 = qPOTS (3º algoritmo da Rodada 3, ONLINE). Afere o run JÁ
+    # EXECUTADO (não re-roda) contra o contrato v5.2.1 — molde do R3-c149,
+    # + os checks PRÓPRIOS do cartão (kwargs obrigatórios do qpots(), dtype
+    # float64, n_baseline N/A, n_train no jsonl, |lote|==q).
+    # ⚠ TEM de vir ANTES do catch-all abaixo (mesma armadilha do R3-00).
+    if a.cartao.startswith("R3-e81"):
+        if a.alg not in (None, "e81"):
+            print(f"  [FAIL] cartão R3-e81 só afere --alg=e81: {a.alg!r}")
+            sys.exit(2)
+        results = check_r3_e81(exp=a.exp, problema=a.problema,
+                               semente=int(a.semente))
         fail = False
         for name, (ok, msg) in results:
             mark = "SKIP" if ok is None else ("OK  " if ok else "FAIL")

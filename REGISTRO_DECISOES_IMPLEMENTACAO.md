@@ -1180,6 +1180,31 @@ infra para "baixo" (nenhum corrompe dado atual). Correções APLICADAS (com test
 
 ---
 
+## PARTE A14 — DI-25: as 4 ratificações do autor pós-e81, aplicadas (2026-07-22)
+
+**O ato.** O autor aprovou em bloco as recomendações da torre ("aprovo suas recomendacoes nas 4
+decisoes e em todas outras que estiverem em aberto"). Aplicado:
+
+| # | decisão ratificada | onde foi cravada |
+|---|---|---|
+| 1 | **Kernel do e81 = `get_matern_kernel_with_gamma_prior(D)`** — o MESMO helper de c262:195/c154:247 (D30 "Compartilhado"); com o stock o fit do ZDT1 morre; com o helper 28/28 fits OK | SPEC §22.4·3.5 + L.12 (2 sedes) + bundles regenerados |
+| 2 | **Desempate do HVI-greedy (D96/c149) = σ² agregada EM Z** (escala-neutra; σ² nativa deixaria o objetivo grande dominar) | SPEC §22.4·3.4 + linha D96 (2 sedes) — fecha a pendência da DI-23 |
+| 3 | **Fallback `\|ND\|<q` do batch = qmaximin DEFINIDO**: completar o lote até q por seleção MAXIMIN sobre o restante da população (rank-1+), maximizando a distância mínima aos já-selecionados; falha-alto se nem assim fechar. Risco medido: MMF1 na borda (\|ND\| mín=10). **Implementação = cartão SUB-batch/M10** | SPEC §22.4·3.5 + L.12 (2 sedes) |
+| 4 | **`scripts/progress.py` ADOTADO** — revisado pela torre linha a linha: READ-ONLY genuíno (jsonl/manifesto/grid; vivacidade pelo FOOTER — a lição das sessões MATLAB), testado ao vivo (painel + tabela + placar 64 ok/19.950 grid). Vira ferramenta permanente da esteira | commitado; é o "painel M7 incremento 3/4" que faltava rastrear |
+
+**Varredura do "todas as outras em aberto" — também aplicado:**
+- **`q`/`status`/`motivo_parada` no `botorch_harness.write_run_outputs`** — a lacuna simétrica
+  registrada na DI-24 (o batch q=10 de c262/c154 nasceria com manifesto q=1): fechada AGORA, sem
+  esperar o cartão SUB-batch.
+- Itens que PERMANECEM agendados com dono (não são decisões): D-17 (RNG check R2-00, M7) · D-18
+  (load_sonda duplicado, M7) · teste end-to-end dos abortos (M7) · dossiê itens 3/4/5 + julgamento
+  D97 (a fila do autor) · enable_bucket + VM sem toolchain C++ (M8).
+
+Suíte pós-DI-25: **295 OK**. Bundles: 44 regenerados (as ratificações já chegaram aos cartões
+e81/c149 — verificado por grep).
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

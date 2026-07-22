@@ -671,6 +671,9 @@ def write_run_outputs(exp: str, alg: str, problema: str, semente,
                       doe_hash_sidecar: str, env: dict, pinning: dict,
                       n_geracoes: int, algo_version: str,
                       timing_totais: dict, regime: str = "online",
+                      status: str = "ok",
+                      motivo_parada: str | None = None,
+                      q: int = 1,
                       data_root: str = naming.DEFAULT_DATA_ROOT,
                       enable_bucket: bool = False) -> dict:
     """Fecha o run: 4 camadas §17.2 (via `src.export` — reuso, não duplicação),
@@ -699,8 +702,10 @@ def write_run_outputs(exp: str, alg: str, problema: str, semente,
             f"sidecar do DoE ({doe_hash_sidecar[:16]}…) — o run NÃO partiu do "
             f"artefato compartilhado (D88). Pára-e-loga (D81).")
 
+    # [DI-25] status/motivo/q pela infra (simétrico ao standalone_harness,
+    # DI-23/DI-24): o batch (q=10) de c262/c154 nasce com manifesto honesto.
     man = _manifest.new_manifest(
-        exp, alg, problema, semente, status="ok",
+        exp, alg, problema, semente, status=status, q=int(q),
         regime=regime, maxfe=bud.maxfe, fe_final=bud.fe,
         n_geracoes=int(n_geracoes), doe_hash=doe_hash_run,
         algo_version=algo_version,
@@ -709,6 +714,8 @@ def write_run_outputs(exp: str, alg: str, problema: str, semente,
         data_root=data_root,
         bucket=(_gcs.BUCKET if enable_bucket else None))
     man["cache_hits"] = bud.cache_hits                    # D89 (informativo)
+    if motivo_parada is not None:
+        man["motivo_parada"] = motivo_parada
     _manifest.write_manifest(man, data_root)
 
     upload_status = None

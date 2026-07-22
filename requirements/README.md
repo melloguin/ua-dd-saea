@@ -76,3 +76,25 @@ python -m venv /Users/gmello/Documents/python_venvs/<nome>
 - **env_bridge** → py 3.11.9 `--enable-shared` (o que o MATLAB embute) — provisionar no **R1-00**.
 - **env_e81_qpots** → py 3.10/3.11 — provisionar no **M6** (verificar disponibilidade dos pins).
 - **env_b5 / env_c311** → **na VM Linux** (M5), não no Mac.
+
+---
+
+## Verificação da torre (2026-07-22) — viabilidade REAL no Mac (macOS 12.5.1, arm64, medida)
+
+Método: PyPI consultado pin a pin (`curl pypi.org/pypi/<pkg>/<ver>/json`), tags aceitas pelo pip
+local (`pip debug --verbose` → máx `macosx_12_0_arm64`), ferramentas locais inventariadas.
+NADA foi instalado (D80 — pins/instalação são do autor).
+
+| env | veredito NESTE Mac | rota |
+|---|---|---|
+| **env_main** (c149) | ✅ pronto | torch 2.11.0 já instalado e provado (c262/c154/c122) |
+| **env_b5** (b5r/b5m/piso-off) | ✅ **viável via Rosetta** | Python **3.7 x86_64** (`arch -x86_64 pyenv install 3.7.17`): sklearn 0.21.3 e pandas 0.25.3 TÊM wheel `macosx_10_9_x86_64 cp37m`; desdeo-* são pure-python. A nota antiga "inviável no Mac" valia só para arm64 NATIVO. Rosetta 2 está instalada e funcional (testado). |
+| **env_c311** | 🟡 **provável via Rosetta** | numpy 1.20.2 + sklearn 1.1.2 têm wheel x86_64 cp38/39; **GPy 1.9.9 é sdist-only em TODAS as plataformas** para py3.8/3.9 (até a VM Linux compila) ⇒ no Mac exige compilar o sdist sob Rosetta — provável, não garantido; se o build falhar, é o único que vai à VM |
+| **env_e81_qpots** | ❌ **bloqueado pelo pin** `torch==2.12.0` | o wheel arm64 exige macOS≥14 (o pip local REJEITA, medido); NÃO existe wheel mac x86_64 (PyTorch abandonou Intel) nem sdist. Saídas (decisão do AUTOR, D80): **(a) re-pin → torch==2.11.0** (o MESMO do env_main; botorch 0.16.1 exige só >=2.0.1) ⇒ e81 vira 100% Mac-nativo arm64 · (b) upgrade do macOS p/ 14+ ⇒ o pin atual instala nativo |
+
+Ferramentas locais: Rosetta 2 ✅ · pyenv ✅ (3.8.19/3.10.14/3.11.9, todos arm64 — nenhum x86_64
+ainda) · brew ✅ · SEM docker/colima/conda. Container amd64 neste macOS 12 = só emulação qemu
+(lenta; a aceleração Rosetta-em-VM exige macOS 13+) — a rota Rosetta-pyenv é a melhor.
+
+⚠ Caveat de regime: o desenvolvimento+gates no Mac valem para CORRETUDE/mecanismo; a numérica
+CANÔNICA da bateria Python sai da VM Linux (M8), como o §19 já ressalva.

@@ -133,9 +133,9 @@
       "S+1..2S": "hs' do NSGA-II (rota b)"
     },
     "c149": {
-      "0": "torch.manual_seed por rede net_n (0..9)",
-      "1": "seed do NSGA-II da aquisição",
-      "2": "Generator(PCG64) do DoE"
+      "0": "torch.manual_seed por rede net_n (0..9) — na pratica INERTE (cada rede re-semeia com base+net_n+1 antes de consumir RNG; ver c149_lbnmobo.py)",
+      "1": "seed do NSGA-II da aquisicao — POR-ITERACAO via iteration_seed (SPEC 22.4-3.4; DI-23: o seed CONSTANTE do stock (indice de run, ==0 em q=1) entra em LIVELOCK no cache-hit D89 — provado na sessao R3-c149)",
+      "2": "fallback aleatorio-do-front do HVI-greedy (D96) — rotulo antigo 'Generator(PCG64) do DoE' era STALE: o DoE nao se gera desde D87 (carrega-se do artefato)"
     },
     "e81": {
       "_nota": "e81 usa offset ARITMÉTICO D22, não SeedSequence (ver abaixo)"
@@ -149,7 +149,7 @@
       "acquisition.py:366 (seed=2430) → +1000·s"
     ],
     "c149": [
-      "net_n+1 e seeds internos do NSGA-II → +1000·s (offset A6)"
+      "net_n+1 → +1000·s (offset A6). ⟦DI-23 — corrigido⟧ o seed do NSGA-II NAO e hardcode do stock a offsetar: e POR-ITERACAO via iteration_seed (uso 1 acima; o 'indice de run' do stock e constante e trava em livelock no cache-hit D89)"
     ]
   },
   "log": "os valores efetivamente materializados são gravados no .jsonl de cada run para auditoria"

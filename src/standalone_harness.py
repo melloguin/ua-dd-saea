@@ -740,6 +740,7 @@ def emit_sonda_block(buf: "SnapshotBuffer", log, *, geracao: int, fe: int,
                      modelo_flag: str = "surrogate",
                      pred_tipo: str = "valor",
                      motivo: str = "cadencia k=2",
+                     c3: dict | None = None,
                      chunk: int = SONDA_CHUNK) -> float:
     """Emite UM bloco de sonda: S linhas na ③ com `regime='sonda'`, na ORDEM
     do artefato, + o evento `sonda` no `.jsonl`. Retorna `tempo_pred_sonda_s`.
@@ -801,10 +802,14 @@ def emit_sonda_block(buf: "SnapshotBuffer", log, *, geracao: int, fe: int,
                      "pred_confianca": (None if B is None else float(B[i]))}
         else:                                     # 'valor' / 'híbrido'
             extra = {"mu": A[i], "sigma": (None if B is None else B[i])}
+        # [DI-23/achado §3.4 do c149] `c3` = as colunas DEF-C3 (espaco_modelo/
+        # transf_tipo/transf_params) pertencem a TODA linha quando o modelo
+        # opera em espaço transformado — o c149 precisou de um carimbo pós-hoc
+        # (_stamp_c3_sonda) porque este helper não as aceitava; agora aceita.
         buf.add_surrogate(_export.surrogate_row(
             int(geracao), X[i], regime="sonda", real_solution_id=None,
             pred_tipo=pred_tipo, modelo_flag=modelo_flag,
-            fe_treino_max=fe_treino_max, **extra))
+            fe_treino_max=fe_treino_max, **(c3 or {}), **extra))
     dt = time.time() - t0
     log.event("sonda", geracao=int(geracao), fe=int(fe),
               n_pontos=int(X.shape[0]), tempo_pred_sonda_s=round(dt, 4),
@@ -979,6 +984,8 @@ def write_run_outputs(exp: str, alg: str, problema: str, semente,
                       sonda_info: dict | None = None,
                       params: dict | None = None,
                       fallback_ativado: bool = False,
+                      status: str = "ok",
+                      motivo_parada: str | None = None,
                       data_root: str = naming.DEFAULT_DATA_ROOT,
                       enable_bucket: bool = False) -> dict:
     """Fecha o run: as 4 camadas §17.2 (via `src.export` — reuso, não
@@ -1030,8 +1037,12 @@ def write_run_outputs(exp: str, alg: str, problema: str, semente,
                 f"o run NÃO partiu do artefato compartilhado (D88). "
                 f"Pára-e-loga (D81).")
 
+    # [DI-23/achado §3.3 do c149] `status` deixou de ser hard-coded: um runner
+    # que aborta (teto de wall, cache-cap) passa status='failed'+motivo_parada e
+    # o manifesto nasce HONESTO — antes, o c122 prometia `failed` no docstring e
+    # o carimbo fixo 'ok' o desmentia (a única rede era o fe_final != maxfe).
     man = _manifest.new_manifest(
-        exp, alg, problema, semente, status="ok",
+        exp, alg, problema, semente, status=status,
         regime=regime, maxfe=bud.maxfe, fe_final=bud.fe,
         n_geracoes=int(n_geracoes), doe_hash=doe_hash_run,
         algo_version=algo_version,
@@ -1042,6 +1053,8 @@ def write_run_outputs(exp: str, alg: str, problema: str, semente,
         bucket=(_gcs.BUCKET if enable_bucket else None))
     man["cache_hits"] = bud.cache_hits                     # D89 (informativo)
     man["sigma_dict"] = sigma_dict                         # DEF-C4
+    if motivo_parada is not None:
+        man["motivo_parada"] = motivo_parada
     if params is not None:
         man["params"] = params
     if regime == "offline":

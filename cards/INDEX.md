@@ -42,7 +42,7 @@
 | R3-c122 | θ-DEA-DP (f_min/f_max pela assinatura) | R3-00 | …/alg_c122_thetadeadp | ✅ (3/3 gates VERDES, 29e8539) |
 | R3-b5 | Prob-RVEA/MOEA-D (b5r/b5m; venv env_b5) | R3-00 | …/alg_b5_prob | ⬜ |
 | R3-c311 | TGPR-MO (venv env_c311) | R3-00 | …/alg_c311_tgprmo | ⬜ |
-| R3-c149 | LBN-MOBO (reconstruir loop; **HVI-greedy D96**) | R3-00 | …/alg_c149_lbnmobo | ⬜ |
+| R3-c149 | LBN-MOBO (reconstruir loop; **HVI-greedy D96**) | R3-00 | …/alg_c149_lbnmobo | ✅ (3/3 pilotos VERDES, timebox 6h/10h, a664599; validação da torre DI-23) |
 | R3-e81 | qPOTS (env botorch 0.16.1 próprio) | R3-00 | …/alg_e81_qpots | ⬜ |
 | R3-piso-off | MOEA/D-média (DESDEO mode 12, D77; env_b5) | R3-b5 | …/alg_piso_offline_moead_media | ⬜ |
 

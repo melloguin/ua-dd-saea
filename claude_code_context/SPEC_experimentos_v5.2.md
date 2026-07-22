@@ -711,7 +711,7 @@ Na tabela, a coluna **Justificativa** diz a fonte de cada valor: *código oficia
 | c149 | Split / DataLoader | Específico | 90/10; sem shuffle; seed=net_n+1 | código oficial | Ordem fixa; a única aleatoriedade é o seed por rede |
 | c149 | Incerteza σ² | Específico | variância populacional (ddof=0) | código oficial | σ² = dispersão das K previsões (estimador populacional) |
 | c149 | Aquisição F | Específico | [μ₁..μ_M, −σ²₁..−σ²_M] | código oficial | Vetor MO: minimiza μ (explotação) e −σ² (maximiza incerteza) |
-| c149 | Otimizador interno | Específico | NSGA-II pymoo 0.6.0.1, pop=1000, 100 gens, SBX 0,9/15, PM 0,9/20 (por-var 1/30) | código oficial | Busca o front da aquisição; pop grande cobre o espaço |
+| c149 | Otimizador interno | Específico | NSGA-II pymoo (env_main 0.6.2), pop=1000, 100 gens, SBX 0,9/15, PM 0,9/20 (por-var = **default do pymoo `min(0.5, 1/D)`** ⟦DI-23 — decisão do AUTOR 2026-07-22; corrigido: dizia '1/30 hard-coded'⟧) | código oficial | Busca o front da aquisição; pop grande cobre o espaço |
 | c149 | res.X | Específico | rank-0 da pop final (≤pop) | código oficial | Retorna só o não-dominado (pode ter <1000 candidatos) |
 | c149 | z-score de Y | Específico | padronização dos alvos | EXTENSÃO nossa (D30/D13.4) | Normaliza Y no treino; estabiliza gradientes/escala do loss |
 | c149 | Fix `[:, :M]` | Específico | M genérico (era `[:, :2]`) | fidelidade → ARTIGO (D30) | Corrige o hard-code de 2 objetivos → funciona em M=3 |
@@ -719,7 +719,7 @@ Na tabela, a coluna **Justificativa** diz a fonte de cada valor: *código oficia
 | c149 | Regra q=10 (batch) | Específico | HVI-greedy sequencial | D42 (nosso protocolo) | 10 candidatos um a um por ganho de HV; q fixo p/ comparabilidade |
 | c149 | Retreino | Específico | do zero, K=10 / 60 ép. por iteração | D43 (como no paper) | Retreina o ensemble a cada iteração; o retreino É o mecanismo que dá a incerteza |
 
-> **Notas.** PM por-variável=1/30 hard-coded (não 1/D): hazard se D≠30, mantido como no código. z-score (extensão) e fix `[:, :M]` (fidelidade) atuam em eixos distintos. q=1 (D41) e q=10 (D42) são o **mesmo mecanismo** (HVI-greedy sobre μ) em dois regimes de batch; o paper gera o front inteiro sobre [μ,−σ²] e não fixa q → o q fixo é nosso. Ablação prevista: aleatória-do-front.
+> **Notas.** ⟦DI-23 — CORRIGIDO; a nota anterior ('1/30 hard-coded (não 1/D): hazard se D≠30') era FACTUALMENTE INCORRETA: medido no env_main, o pymoo 0.6.2 usa o default `min(0.5, 1/n_var)` — que ESCALA com D (0,5 em D=2 · 1/12 em D=12 · 1/30 em D=30) — e o repo chama `NSGA2(pop_size=1000)` SEM operadores explícitos (não há '1/30' literal em código). O autor cravou (2026-07-22): default do pymoo, registrado em `params.nsga2_acq.pm` dos manifestos.⟧ z-score (extensão) e fix `[:, :M]` (fidelidade) atuam em eixos distintos. q=1 (D41) e q=10 (D42) são o **mesmo mecanismo** (HVI-greedy sobre μ) em dois regimes de batch; o paper gera o front inteiro sobre [μ,−σ²] e não fixa q → o q fixo é nosso. Ablação prevista: aleatória-do-front.
 
 #### b5 · Prob-RVEA / Prob-MOEA-D (OFFLINE)
 

@@ -931,11 +931,15 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
             tempo_fit_surrogate_s=t_fit_total, tempo_busca_s=t_busca_total,
             tempo_aval_real_s=adapter.tempo_aval_real_s,
             tempo_pred_sonda_s=t_sonda_total)
+        # [DI-23] status/motivo REAIS no manifesto — cumpre a promessa do
+        # docstring (:576-579): um aborto por teto/cache-cap grava `failed`,
+        # não o 'ok' hard-coded que o harness carimbava (achado §3.3 do c149).
         res = H.write_run_outputs(
             exp, alg, problema, semente, bud, buf, D=D, M=M,
             cp_hashes={"doe_hash": doe["doe_hash"]},
             env=env, pinning=pinning, n_geracoes=g,
             algo_version=ALGO_VERSION, timing_totais=timing_totais,
+            status=status, motivo_parada=motivo_parada,
             sigma_dict=sigma_dict, regime="online", params=params,
             sonda_info={"S": sonda["S"], "cadencia": f"online: k={H.SONDA_K} "
                         f"(g=1,2,4,6,…) + 1a e ultima",

@@ -1099,6 +1099,51 @@ canônica da bateria Python sai da VM no M8.
 
 ---
 
+## PARTE A12 — DI-23: validação do R3-c149 pela torre + correções de infra (2026-07-22)
+
+**O cartão.** A sessão (Fable 5) reconstruiu o loop do LBN-MOBO em 6h do timebox de 10h — o maior
+risco de fidelidade do R3 pago em sessão. **Validação da torre (workflow de 8 agentes Opus +
+refutação): código VERDE (fiel ao checklist §22.4·3.4, não-interferência limpa — 4 arquivos, tudo
+aditivo, vendorizado+repos.lock intocados) · dados VERDE TOTAL (cadência bit-exata à fórmula
+normativa, ordem do artefato em TODOS os blocos, C3 100%, DI-10 completo, ③-busca reconstituível
+com erro ~1e-7) · gates ao vivo todos verdes (272 testes pós-DI-23).**
+
+### DI-23.1 — O achado de comportamento (o cartão de nota 5/10)
+**Bimodal, e NÃO é defeito de pipeline** (2 refutadores confirmaram: comportamento FIEL):
+- **ZDT1 exemplar**: bate os 4 pisos, val-MSE 0.18→0.024 (o ensemble aprende), HVI decai.
+- **MMF1 e DTLZ2: ganho de IGD+ sobre o DoE = LITERALMENTE ZERO** (0.0956==DoE; 0.4532==DoE),
+  abaixo dos 4 pisos. Mecanismo MEDIDO: em baixo-n o ensemble é preditor-da-média (val-MSE(z)~1.0)
+  ⇒ HVI=0 em 40/40 gerações (MMF1) ⇒ a seleção colapsa no subconjunto de σ² MÁXIMA = os cantos do
+  box (f≈(1,2), todos dominados). No DTLZ2 o HVI funciona (240/240) mas premia extremos de eixo —
+  o surrogate NÃO superprediz (|mu−real| mediano [0.03,0.07,0.14]); é a seleção HVI-greedy fiel à
+  D96. **É RESULTADO científico** (o que o estudo existe para medir) e o caso que o D70 já previa
+  (HV degenerado excluído do Friedman). Vai como número-guia ao D97.
+- Correção de precisão vs o repasse: os infills do MMF1 caem em DOIS cantos opostos (não um), e a
+  via dominante é o fallback_aleatorio (32/40) DENTRO do conjunto de σ² máxima (não o desempate
+  direto 8/40).
+
+### DI-23.2 — Os 5 achados estruturais: TODOS CONFIRMADOS (linha a linha) e o que a torre fez
+| § | achado | ação |
+|---|---|---|
+| 3.1 | seeds.json em conflito com a SPEC (seed NSGA-II constante do stock = LIVELOCK no cache-hit D89; provado) + rótulo do uso 2 STALE | ✅ **seeds.json SINCRONIZADO** (usos 0/1/2 do c149 reescritos + offset corrigido) |
+| 3.2 | nota SPEC:722 factualmente incorreta ("1/30 hard-coded") — medido: pymoo 0.6.2 = `min(0.5, 1/D)`; o autor cravou o default | ✅ **SPEC:714/722 corrigidas** + bundles regenerados |
+| 3.3 | `write_run_outputs` carimbava `status='ok'` fixo — o c122 prometia `failed` no teto e não cumpria | ✅ **kwarg `status=`/`motivo_parada=` no harness** + call-site do c122 corrigido + 3 testes (o aborto grava failed E o `is_run_done` o reprova) |
+| 3.4 | `emit_sonda_block` sem as colunas C3 (o c149 carimbava pós-hoc) | ✅ **kwarg `c3=` no helper** + 2 testes — b5/c311/e81/piso-off já nascem sem o contorno |
+| 3.5 | desempate do HVI-greedy em σ²-agregada-EM-Z (decisão de sessão declarada) | 🔴 **AGUARDA RATIFICAÇÃO DO AUTOR** (recomendação da torre: RATIFICAR — ver resposta de 2026-07-22; a evidência DI-23.1 do colapso-de-canto pertence ao D97, não muda a leitura correta da D96) |
+
+### DI-23.3 — DEF-N4 (o c149 fica?)
+Recomendação da sessão: **FICA** (risco pago, único BNN online, custo medido 3,37h<8h no ZDT1).
+A torre CONCORDA, com a nota honesta: o comportamento 5/10 (ganho zero em 2/3 pilotos) NÃO muda a
+recomendação — é exatamente o dado que a tese quer reportar — mas pertence ao julgamento D97 do
+autor, cuja condição já estava registrada (reprovação ⇒ fallback env_c149_fallback/D78, não drop).
+
+### DI-23.4 — Lacuna de cobertura registrada (não corrigida nesta janela)
+Os caminhos de ABORTO do c149 (teto_s, cache-cap) seguem sem teste de ponta-a-ponta (achado A1,
+baixo) — o plumbing do manifesto failed agora TEM teste (DI-23.2/3.3); o exercício end-to-end fica
+para o M7 (registrado).
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

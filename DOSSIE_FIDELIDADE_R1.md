@@ -192,3 +192,36 @@ evidência de que o pipeline mede o algoritmo, não ruído.
 4. Guardas (item 4): os caminhos raros se comportam quando forçados?
 5. Estabilidade (item 5): semente 42 não revela nada patológico?
 6. Veredito por algoritmo: ACEITAR (com caveats documentados) ou SINALIZAR (vira D81).
+
+---
+
+## Item 2-bis — NOTAS DE COMPORTAMENTO v2 (torre, 2026-07-22 — pós-retrofit COMPLETO)
+
+**O que mudou vs a v1 (DI-20.4):** a v1 foi medida com 4 configs SEM sonda, o c217 sem `sigma_dict`
+e o e103 sem a ⑦ — três lacunas que puxavam nota para baixo por FALTA DE DADO, não por
+comportamento. Agora **todos os 16 têm a instrumentação completa** e as notas medem SÓ o
+comportamento do mecanismo (workflow de 5 analistas, ~514k tokens, leitura de ①②③④⑤⑥⑦ + gabarito
+da sonda; join posicional validado em TODOS os blocos analisados). Rubrica: 10 = o mecanismo se
+comporta exatamente como o esperado; <7 = algo concretamente errado. 1 semente — as notas baixas
+se sustentam em evidência MECÂNICA, não em ranking.
+
+| Nota | Config | Movimento vs v1 | Por quê (síntese; detalhes na resposta da torre de 2026-07-22) |
+|---|---|---|---|
+| 10 | nsga2 · nsga3 · smsemoa | ↑ | pisos IMPECÁVEIS: monotonia (0 regressões nsga3/smsemoa), turnover real, falham só onde a literatura diz (crowding em M=3) |
+| 9,5 | c262 | = | GP aprende (WAPE −39/−45%), calibração 0,978, acqf decai — assinatura completa; 1º nos 3 problemas |
+| 8,5 | b1 | = | bate os 4 pisos nos 3; sonda ESCALAR (D47) reconstruída e sadia; desconto: sobreconfiança tardia (cobertura 2σ→0,5) |
+| 8,5 | b4 | ↑↑ (6,5) | a sonda REFUTOU o "não discrimina": AUC 0,75 (ZDT1, máx 0,92) e APRENDE no DTLZ2 (0,53→0,70, ρ=0,80 c/ treino); vence os 4 pisos no ZDT1 |
+| 8,5 | e103 | ↑↑↑ (4,0) | a ⑦ nova prova: IGD+ **0,0057** no ZDT1 (ganho 99,7% sobre o dataset — melhor endpoint do painel); a "fuga do dataset" era o modelo certo agindo certo (WAPE 2,2%, cobertura 0,956) |
+| 8,0 | c122 | (novo) | bate os 4 pisos em DTLZ2/ZDT1 (35× o melhor piso no ZDT1); e(z) correlaciona com dominância real (ρ 0,72-0,75) e satura POR VITÓRIA; fraqueza real só no MMF1 (ρ→0,04, confiança=1,0) |
+| 8,0 | e74 | ↑ (7,5) | único que bate os 4 pisos no DTLZ2; as 3 cabeças medidas pela 1ª vez: RBF afiada perto do arquivo, mas EXPLODE fora do suporte (mu até 770; f_true máx 8,6) e o PNN INVERTE no fim do ZDT1 (ρ −0,34) |
+| 7,5 | c238 | ↑ (7,0) | sonda nova: APRENDE e calibra no DTLZ2 (WAPE f2 8,1→0,9%, cobertura →0,95); degeneração numérica real no fim do MMF1 (mu até 339, θ no bound) e perde de 2 pisos lá |
+| 7,0 | e7 | ↑ (6,0) | mecanismo decisório fiel (152 conv/48 incerteza, 0 stalls); mas a sonda PROVA que o ensemble NÃO aprende globalmente (DTLZ2 WAPE 21,8→26,4%) — esquecimento induzido pelo SelectTrainData — e o σ do dropout é otimista (cobertura 0,37-0,41) |
+| 6,0 | b3 | ↓ (6,5) | a dissociação agora tem MECANISMO: no DTLZ2 sonda PLANA (WAPE 14% fixo com treino ×3) + switch preso 44/48 no ramo incerteza = ciclo vicioso exploração→modelo-não-melhora; empata com o pior piso |
+| 6,0 | c154 | ↓ (7,5) | o achado-de-ouro é DEFEITO real: ruído inferido ×90 (it30-37) → pior E mais confiante (cobertura 0,936→0,758) com busca estagnada; perde de pisos nos 2 problemas; acqf frágil (241/241 warnings) |
+| 6,0 | c217 | ↑ (4,5) | o `sigma_dict` novo RESOLVEU o flag (`pred_confianca` constante = Error1 do modelo, DESENHO); o score tem sinal (295/295 blocos direção certa no ZDT1) mas o gate δ=0,8 quase nunca abre → EA ~aleatório que perde do nsga2 |
+| 5,0 | c141 | ↑ (4,0) | divergência do RBF no MMF1 CONFIRMADA bloco a bloco (mu → [−145,210], MAE ×8,5, spearman ~0,05) e abaixo dos 4 pisos lá; MAS é o MELHOR dos 7 em DTLZ2 (0,0392) e ZDT1 (0,0144) — e o ZDT1 já mostra o início da mesma deriva |
+| 4,0 | moead | = | régua quebrada no ZDT1 (T=2 → clonagem → 23% duplicatas, HV=0, perde a melhor solução do seed) e REGRIDE no MMF1 (−65% vs DoE); ok só no DTLZ2 |
+
+**Uso no julgamento D97:** as notas ≠ fidelidade. b3/c154/c217/c141/moead têm comportamento
+concretamente ruim POR MECANISMO FIEL (stock honesto sob nosso orçamento) — a decisão de aceitar/
+sinalizar é sua; a evidência mecânica de cada linha está pronta para o veredito.

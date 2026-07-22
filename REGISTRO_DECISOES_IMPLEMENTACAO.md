@@ -1091,9 +1091,15 @@ fecha, citando o commit.)*
    Insumos prontos: `DOSSIE_FIDELIDADE_R1.md` (item 1), as notas DI-20.4, os handoffs por cartão.
    Inclui os pontos priorizados: DI-07b (desalinhamento ~24,8% do e74) e a armadilha do sentinela
    `acc=1` p/ classe ausente (c122, handoff §achados).
-2. **M5 restante:** R3-b5 (b5r/b5m) → c311 (VM, envs isolados) — os cartões leem a fórmula da
-   cadência agora NORMATIVA e a regra do cache-hit×arquivo propagada (DI-21).
-3. **M6:** c149 (com o TIMEBOX da D-20 definido ANTES de abrir o cartão) → e81 → piso-off.
+2. **⟦REORDENADO — autor, 2026-07-22: "quero continuar a implementação no Mac"⟧**
+   **Próximo: R3-c149** (env_main, Mac — RI-08) com o TIMEBOX da D-20 ativo, depois **e81**
+   (env próprio, pins satisfazíveis no Mac — provisionamento do autor). A reordenação é SEGURA:
+   os cartões R3 são independentes entre si (só dependem do R3-00 ✅ + lições do c122 ✅, ambas
+   propagadas), e a única dependência de ordem que existia — ratificar o cache-hit×arquivo antes
+   de c149/e81 — foi FECHADA na DI-21. Bônus: antecipar o c149 antecipa a decisão DEF-N4
+   (manter/dropar o BNN), que a D-20 já mandava resolver ANTES do M7.
+3. **Janela VM (quando o autor provisionar env_b5/env_c311):** R3-b5 (b5r/b5m) → c311 →
+   piso-off — os cartões leem a cadência NORMATIVA e o CONTRATO já atualizados.
 4. **M7 (PORTÃO):** piloto §22.5 + o hardening restante: D-17 (endurecer o check de RNG do R2-00 —
    molde do R3-00 pronto), sub-varN, decisões de custo D-2/D-3 do M7, revisitar D-18 (load_sonda).
 5. **Antes da M8:** ligar `enable_bucket` no despachante (o repasse de kwargs já está — D-06);

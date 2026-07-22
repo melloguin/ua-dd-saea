@@ -127,7 +127,7 @@ espaco_modelo | transf_tipo | transf_params            ← DEF-C3 (cru+transform
 - **b1 (ParEGO) — caso especial D47:** mono-output — modela o ESCALAR de Tchebycheff (λ sorteado
   por iteração), não os objetivos. `mu_0/sigma_0` = o escalar; C3 carrega λ + min/max + Gbest.
   *Limitação inerente: candidato nunca-avaliado só tem o escalar (não há μ por objetivo).*
-- **Granularidade (DEF-C2):** EA → a população SELECIONADA por geração; BO com EA interno →
+- **Granularidade (DEF-C2):** EA → a população SELECIONADA por geração; BO com EA interno ⟦DI-24: = o **rank-0/front** da população final (o universo real da decisão — `res.X`); precedente aceito c149+e81, cravado nos `sigma_dict`⟧ →
   a população final do otimizador de aquisição por iteração; BoTorch → os candidatos dos
   restarts; offline → a pop-surrogate do MOEA interno, todas as gerações.
 - **Espaços (DEF-C3):** onde o modelo opera transformado (b1 tcheby, c238 minmax, e7 translação,

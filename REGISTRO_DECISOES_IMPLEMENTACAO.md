@@ -1144,6 +1144,42 @@ para o M7 (registrado).
 
 ---
 
+## PARTE A13 — DI-24: validação do R3-e81 + correções de infra (torre, 2026-07-22)
+
+**O cartão.** Runner qPOTS (Opus... não — a sessão rodou conforme o plano) sobre o vendor INTOCADO
+com 3 ganchos read-only. **Validação da torre (workflow 10 agentes Opus + refutação): código VERDE
+(receita canônica; kernel = o MESMO helper de c262:195/c154:247; não-interferência limpa) · dados
+VERDE (auditoria pyarrow integral; corr(mu, f_true) até 1,0000) · gates ao vivo verdes (295 testes
+pós-DI-24) · NOTA DE COMPORTAMENTO 9/10** — o OPOSTO do c149: infills diversos (2,5-5,6% no bordo),
+GP aprendendo limpo (MAE out-of-sample caindo monotônico nos 3), ganhos de 32-53% sobre o DoE, e o
+MMF1 batendo TODOS os pisos e o c122. Ressalvas (não-bugs): MMF1-obj1 superconfiante (sin-ridge
+inaprendível com <60 pts) e ZDT1 estagnando nos últimos 40% do orçamento (a natureza do qPOTS em
+30-D — o GP é excelente (WAPE<1%) e o front fica grosseiro: o gargalo é o PODER da aquisição, o
+contraste perfeito com o qNEHVI). **A parede de custo do e81 NÃO é o fit O(n³) (13-16% do wall,
+n^1,9-2,4): é a AQUISIÇÃO (84-87%, plana em n, explode com D)** — insumo novo do M7.
+
+### DI-24.1 — Os achados do dossiê: verificados, recalibrados e o que a torre fez
+Os 10 itens são REAIS (7 confirmados integrais); os refutadores rebaixaram as severidades de
+infra para "baixo" (nenhum corrompe dado atual). Correções APLICADAS (com teste; suíte 295 OK):
+| item | ação |
+|---|---|
+| §4.2 c3= dict×string | ✅ teste do DI-23 corrigido (dict) + **guarda falha-ALTO** em `surrogate_row` (string ⇒ ValueError — o duplo-encode silencioso morreu) + 2 testes |
+| §4.3 ④ NULL no cache-cap do c149 | ✅ o break sai APÓS a ④ fechar (flag `abortar_cache`; padrão do teto_wall) — o run abortado grava ④ válida |
+| §4.4 `q` no manifesto | ✅ kwarg `q=` no `write_run_outputs` → `new_manifest` (o carimbo pós-hoc do e81 vira redundante; o batch M10 usa o kwarg; a MESMA lacuna existe no botorch_harness p/ c262/c154-batch — registrada p/ o cartão SUB-batch) |
+| §8.7 f_hash_online | ✅ comparado ao sidecar nos DOIS load_sonda (standalone + botorch) — falha fechada |
+| §8.2 granularidade ③-busca | REFUTADO como defeito: o `sigma_dict` (regra 3 do R4) JÁ crava rank-0/front nos 2 configs aceitos; as análises §9 são INTRA-config (a régua inter-config é a SONDA). Qualificador editorial "(rank-0/front)" adicionado à DEF-C2 no CONTRATO |
+| §8.8 auditar.py só no env-main | aceito e documentado (o validador roda no env-main — que é onde a torre valida) |
+
+### DI-24.2 — Decisões que aguardam o AUTOR (levantadas na resposta de 2026-07-22)
+1. 🔴 **Kernel do e81** = `get_matern_kernel_with_gamma_prior(D)` (o MESMO de c262/c154; D30
+   "Compartilhado"; sem ele o ZDT1 não fecha o fit). Recomendação da torre: RATIFICAR.
+2. 🟠 **Fallback |ND|<q do batch** (MMF1 na borda: |ND| mín=10): definir o "qmaximin" citado.
+   Recomendação: completar o lote até q por seleção maximin sobre o restante da população.
+3. 🔴 (pendente desde DI-23) **desempate σ²-em-z do c149**.
+4. (pendente) `scripts/progress.py` — adotar ou descartar.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

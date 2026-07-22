@@ -589,6 +589,7 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
     }
 
     n_cache_infill = n_cache_seguidos = n_clamp_sigma2 = 0
+    abortar_cache = False        # [DI-24] o break do cache-cap sai APOS a ④ fechar
     g = 0
     status, motivo_parada = "ok", "orcamento"
     t_fit_total = t_busca_total = t_sonda_total = 0.0
@@ -730,12 +731,16 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                                  "(bit-a-bit) — 0 FE (D89); o treino NAO "
                                  "cresce")
                 if n_cache_seguidos >= CACHE_CAP:
+                    # [DI-24/achado §4.3 do e81] NAO dar break aqui: a linha da
+                    # ④ desta geracao ja foi aberta (add_timing) e sairia com 3
+                    # NULLs que o proprio gate reprova. Seta o aborto e deixa a
+                    # iteracao fechar ③/②/④ — o break vem apos o update_timing.
                     status, motivo_parada = "failed", "cache_hit_travado"
                     log.guard("cache_hit_travado", geracao=g, fe=bud.fe,
                               seguidos=n_cache_seguidos,
                               acao="ABORTO — o orcamento nao avanca; "
                                    "para-e-loga (D81)")
-                    break
+                    abortar_cache = True
             else:
                 n_cache_seguidos = 0
 
@@ -792,6 +797,12 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
             # ── higiene D86 (p/ o c149 é sobrevivência, não estilo) ────────
             del problem, cand_X01, cand_F, mu_z, sig2_z, mu_nat, sig_nat
             H.iteration_cleanup()
+
+            # [DI-24/achado §4.3 do e81] o aborto do cache-cap sai AQUI, com a
+            # ④/③/②/⑥ desta geracao COMPLETAS (o break no sitio deixava a ④
+            # com 3 NULLs que o proprio gate reprova).
+            if abortar_cache:
+                break
 
             if teto_s is not None and (time.time() - t_run) > teto_s:
                 status, motivo_parada = "failed", "teto_wall"

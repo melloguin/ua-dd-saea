@@ -411,9 +411,19 @@ def surrogate_row(geracao: "int | None", x, *,
         "modelo_flag": modelo_flag,
         "espaco_modelo": espaco_modelo,
         "transf_tipo": transf_tipo,
+        # [DI-24/achado §4.2 do e81] falha-ALTO em string: um JSON ja
+        # serializado sofreria DUPLO-encode silencioso na ③ (json.loads
+        # devolveria str, nao dict — corromperia a leitura R4 sem sintoma).
         "transf_params": (None if transf_params is None
-                          else json.dumps(transf_params, ensure_ascii=False)),
+                          else (_raise_transf_str() if isinstance(transf_params, str)
+                                else json.dumps(transf_params, ensure_ascii=False))),
     }
+
+
+def _raise_transf_str():
+    raise ValueError(
+        "transf_params deve ser dict/list (o writer serializa) — uma STRING "
+        "ja-serializada causaria duplo-encode silencioso na ③ [DI-24].")
 
 
 def write_surrogate(exp: str, alg: str, problema: str, semente,

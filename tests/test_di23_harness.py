@@ -87,8 +87,9 @@ class TestC3NoEmitSonda(unittest.TestCase):
             predict=lambda Xc: (np.zeros((len(Xc), 2)),
                                 np.ones((len(Xc), 2))),
             fe_treino_max=9, modelo_flag="GP-teste",
+            # transf_params = DICT (string = duplo-encode; agora falha-alto, DI-24)
             c3={"espaco_modelo": "cru", "transf_tipo": "zscore",
-                "transf_params": json.dumps({"mu": [0, 0]})})
+                "transf_params": {"mu": [0, 0]}})
         self.assertEqual(len(buf.surr_rows), 5)
         for r in buf.surr_rows:
             self.assertEqual(r["espaco_modelo"], "cru")
@@ -108,3 +109,19 @@ class TestC3NoEmitSonda(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestGuardaTransfParamsString(unittest.TestCase):
+    """[DI-24] transf_params STRING falha-ALTO (duplo-encode silencioso morto)."""
+
+    def test_string_levanta(self):
+        from src import export
+        with self.assertRaises(ValueError):
+            export.surrogate_row(1, np.zeros(2), regime="online",
+                                 transf_params='{"mu": [0, 0]}')
+
+    def test_dict_segue_ok(self):
+        from src import export
+        r = export.surrogate_row(1, np.zeros(2), regime="online",
+                                 transf_params={"mu": [0, 0]})
+        self.assertEqual(json.loads(r["transf_params"]), {"mu": [0, 0]})

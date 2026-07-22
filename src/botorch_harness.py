@@ -371,7 +371,14 @@ def load_sonda(problema: str, *,
             raise RuntimeError(
                 f"SONDA {problema}: a fatia ONLINE [0:{n_on}] diverge do "
                 f"`x_hash_online` do sidecar — artefato corrompido. Pára-e-loga (D81).")
-        xh, fh_, S = xh_on, _sonda_hash(F), n_on
+        fh_on = _sonda_hash(F)
+        # [DI-24/achado §8.7 do e81] o f_hash_online também se confere — antes
+        # era recalculado e NUNCA comparado (ia não-auditado ao manifesto).
+        if side.get("f_hash_online") and fh_on != side["f_hash_online"]:
+            raise RuntimeError(
+                f"SONDA {problema}: o F da fatia ONLINE diverge do "
+                f"`f_hash_online` do sidecar — artefato corrompido. Pára-e-loga (D81).")
+        xh, fh_, S = xh_on, fh_on, n_on
     art = {"X": X, "F": F, "S": S, "D": D, "M": M, "regime": regime,
            "x_hash": xh, "f_hash": fh_, "path": path, "sidecar": side}
     _SONDA_CACHE[_ck] = art

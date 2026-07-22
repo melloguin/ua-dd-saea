@@ -704,7 +704,12 @@ def load_sonda(problema: str, *,
         xh_on = _decoded_hash(X)
         if side.get('x_hash_online') and xh_on != side['x_hash_online']:
             raise RuntimeError(f'SONDA {problema}: fatia ONLINE diverge do sidecar (D81).')
-        xh, fh_, S = xh_on, _decoded_hash(F), n_on
+        fh_on = _decoded_hash(F)
+        # [DI-24/achado §8.7 do e81] o f_hash_online tambem se confere — antes
+        # era recalculado e NUNCA comparado (ia nao-auditado ao manifesto).
+        if side.get('f_hash_online') and fh_on != side['f_hash_online']:
+            raise RuntimeError(f'SONDA {problema}: f da fatia ONLINE diverge do sidecar (D81).')
+        xh, fh_, S = xh_on, fh_on, n_on
 
     art = {"X": X, "F": F, "S": S, "D": D, "M": M,
            "x_hash": xh, "f_hash": fh_, "path": path, "sidecar": side}
@@ -986,6 +991,7 @@ def write_run_outputs(exp: str, alg: str, problema: str, semente,
                       fallback_ativado: bool = False,
                       status: str = "ok",
                       motivo_parada: str | None = None,
+                      q: int = 1,
                       data_root: str = naming.DEFAULT_DATA_ROOT,
                       enable_bucket: bool = False) -> dict:
     """Fecha o run: as 4 camadas §17.2 (via `src.export` — reuso, não
@@ -1042,7 +1048,7 @@ def write_run_outputs(exp: str, alg: str, problema: str, semente,
     # o manifesto nasce HONESTO — antes, o c122 prometia `failed` no docstring e
     # o carimbo fixo 'ok' o desmentia (a única rede era o fe_final != maxfe).
     man = _manifest.new_manifest(
-        exp, alg, problema, semente, status=status,
+        exp, alg, problema, semente, status=status, q=int(q),
         regime=regime, maxfe=bud.maxfe, fe_final=bud.fe,
         n_geracoes=int(n_geracoes), doe_hash=doe_hash_run,
         algo_version=algo_version,

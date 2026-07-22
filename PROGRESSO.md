@@ -363,7 +363,7 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
 
 ## 8. Estado atual + próximos passos *(atualizado 2026-07-22)*
 - **Feito:** M0 ✅ · M1 (Fase 0) ✅ · M2 ✅ · **M3 (fan-out MATLAB) ✅ 10/10** · **M4 (R2: R2-00 ✅ +
-  c262 ✅ + c154 ✅)** · **M5.1/R3-c122 ✅** (3/3 gates, `29e8539`) · **M5.2/R3-c149 ✅** (reconstrução em 6h/10h de timebox, 3/3 pilotos, DEF-N4: FICA; validação da torre = DI-23) · **RETROFIT DI-09 ✅ COMPLETO
+  c262 ✅ + c154 ✅)** · **M5.1/R3-c122 ✅** (3/3 gates, `29e8539`) · **M5.3/R3-e81 ✅** (qPOTS, 18/18 ×3, nota 9/10 — o anti-c149; validação DI-24) · **M5.2/R3-c149 ✅** (reconstrução em 6h/10h de timebox, 3/3 pilotos, DEF-N4: FICA; validação da torre = DI-23) · **RETROFIT DI-09 ✅ COMPLETO
   (MATLAB 11/11 + BoTorch)** — regressão total verde (14 runs ×MMF1 + F0×4 + 26 gates + suíte) ·
   **DI-21 ✅**: as 21 decisões da auditoria DI-20 RATIFICADAS pelo autor e APLICADAS (código+teste+
   doc; ver REGISTRO PARTE A10) — inclui a ⑦ do e103 GERADA, o backfill do c262/ZDT1, os validadores

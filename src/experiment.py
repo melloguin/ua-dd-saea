@@ -144,7 +144,8 @@ _DISPATCH_LOADERS: dict[str, tuple[str, str, str]] = {
     # processo por run. Descomente ao fechar o cartão correspondente.
     # [R3-c122] θ-DEA-DP (2 FNNs par-a-par, driver próprio) sobre o harness R3-00.
     'c122':          ('src.c122_thetadeadp', 'run_c122', 'standalone'),
-    # 'c149':        ('src.c149_lbnmobo',    'run_c149', 'standalone'),
+    # [R3-c149] LBN-MOBO (deep ensemble K=10 + HVI-greedy D96) sobre o R3-00.
+    'c149':          ('src.c149_lbnmobo',    'run_c149', 'standalone'),
     # 'e81':         ('src.e81_qpots',       'run_e81',  'standalone'),
     # 'b5r':         ('src.b5_prob',         'run_b5r',  'standalone'),
     # 'b5m':         ('src.b5_prob',         'run_b5m',  'standalone'),

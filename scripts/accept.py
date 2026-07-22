@@ -775,6 +775,180 @@ def check_r2_00(exp="main", problema="MMF1", semente=0, gcs_smoke=False):
     return results
 
 
+# ── Checagem do cartão R3-c149 (LBN-MOBO, ONLINE — regressor μ/σ) ──────────
+
+def check_r3_c149(exp="main", problema="MMF1", semente=0, data_root=None):
+    """Gate objetivo do R3-c149 (LBN-MOBO, ONLINE) — o run JÁ TEM de existir.
+
+    Mesmo desenho do `check_r3_c122` (branch ADITIVO, precedente autorizado):
+    AFERE um run gravado, não re-roda. Diferenças por ser REGRESSOR (DEF-C1):
+      - ③: `pred_tipo='valor'` em TODAS as linhas; `mu_*`/`sigma_*`
+        PREENCHIDOS (busca E sonda); `pred_score`/`pred_classe` NULOS;
+      - ③: `espaco_modelo='cru'` + `transf_tipo='zscore'` + `transf_params`
+        com mean/std POR ITERAÇÃO (DEF-C3 — o modelo opera em z);
+      - ③-BUSCA: `real_solution_id` preenchido em EXATAMENTE 1 linha por
+        geração (o escolhido do HVI-greedy; q=1).
+    O resto espelha o c122: FE=31D−1 EXATO, CP-init, fases init/opt, blocos
+    de sonda ×2000 na ORDEM do artefato, `fe_treino_max` sem nulos,
+    `real_solution_id` NULL na sonda, ④ 4 tempos sem NULL, ⑤ manifesto.
+    Nada disto é fidelidade (D97).
+    """
+    from src import naming as _naming
+    out = []
+    data_root = data_root or os.path.join(ROOT, "data")
+    alg = "c149"
+    try:
+        import numpy as _np
+        import pyarrow.parquet as _pq
+    except ImportError:
+        return [("pyarrow/numpy", (None, "ausentes no env — skip"))]
+
+    out.append(("saídas", check_outputs(exp, alg, problema, semente,
+                                        data_root=data_root)))
+    ok_real = os.path.exists(_naming.layer_path(exp, alg, problema, semente,
+                                                "real", data_root=data_root))
+    if not ok_real:
+        out.append(("run presente", (False, f"① ausente — rode primeiro: "
+                                            f"run_c149('{exp}','c149',"
+                                            f"'{problema}',{semente})")))
+        return out
+
+    real = _pq.read_table(_naming.layer_path(exp, alg, problema, semente,
+                                             "real", data_root=data_root))
+    D = sum(1 for c in real.column_names
+            if len(c) > 1 and c[0] == "x" and c[1:].isdigit())
+    out.append(("FE exato (①)", check_fe(exp, alg, problema, semente, D,
+                                         data_root=data_root)))
+    out.append(("CP-init (DoE bit-a-bit)",
+                check_doe_hash(problema, semente, data_root=data_root)))
+
+    fases = real.column("fase").to_pylist()
+    n_init = 11 * D - 1
+    ok = (fases[:n_init] == ["init"] * n_init
+          and all(f == "opt" for f in fases[n_init:]))
+    out.append(("① fases init/opt", (ok, f"{fases.count('init')} init "
+                                         f"(esperado {n_init}) + "
+                                         f"{fases.count('opt')} opt")))
+
+    surr = _pq.read_table(_naming.layer_path(exp, alg, problema, semente,
+                                             "surrogate", data_root=data_root))
+    reg = _np.asarray(surr.column("regime").to_pylist())
+    n_snd = int((reg == "sonda").sum())
+    ok = n_snd > 0 and n_snd % 2000 == 0
+    out.append(("③ blocos de sonda ×2000",
+                (ok, f"{n_snd} linhas 'sonda' = {n_snd / 2000:g} blocos; "
+                     f"{int((reg == 'online').sum())} linhas de busca")))
+
+    # ordem do artefato: o join com o gabarito é POSICIONAL (R4 regra 5)
+    from src import standalone_harness as _sh
+    snd_art = _sh.load_sonda(problema, regime="online", data_root=data_root)
+    xs = _np.column_stack([surr.column(f"x{i}").to_numpy() for i in range(D)])
+    idx = _np.where(reg == "sonda")[0]
+    ok_ordem = True
+    b = 0
+    for b in range(len(idx) // 2000):
+        bloco = xs[idx[b * 2000:(b + 1) * 2000]]
+        if not _np.allclose(bloco, snd_art["X"].astype(bloco.dtype),
+                            rtol=0, atol=1e-5):
+            ok_ordem = False
+            break
+    out.append(("③ sonda na ORDEM do artefato",
+                (ok_ordem, "todos os blocos batem posicionalmente com "
+                           "data/sonda/ (join posicional, R4 regra 5)"
+                 if ok_ordem else f"bloco {b} FORA de ordem — a R4 casaria "
+                                  f"predição com o gabarito ERRADO")))
+
+    ftm = surr.column("fe_treino_max").to_pylist()
+    out.append(("③ fe_treino_max sem nulos",
+                (all(v is not None for v in ftm),
+                 f"min={min(v for v in ftm if v is not None)} "
+                 f"max={max(v for v in ftm if v is not None)}")))
+
+    rsid = surr.column("real_solution_id").to_pylist()
+    snd_nulo = all(rsid[i] is None or (isinstance(rsid[i], float)
+                                       and _np.isnan(rsid[i])) for i in idx)
+    out.append(("③ sonda com real_solution_id NULL",
+                (snd_nulo, "as 2000×N linhas de sonda não apontam o ① "
+                           "(nenhuma foi avaliada) — correto")))
+
+    # regressor (DEF-C1): pred_tipo='valor'; μ E σ preenchidos em TODAS as
+    # linhas (busca + sonda); score/classe nulos. Checa TODAS as colunas μ/σ
+    # (o check do c122 só olhava mu_0 — cobertura ilusória, achado da recon).
+    tipos = set(surr.column("pred_tipo").to_pylist())
+    M_cols = sum(1 for c in surr.column_names
+                 if c.startswith("mu_") and c[3:].isdigit())
+    mu_ok = sig_ok = True
+    for j in range(M_cols):
+        for col, flag in ((f"mu_{j}", "mu"), (f"sigma_{j}", "sigma")):
+            vals = surr.column(col).to_pylist()
+            algum_nulo = any(v is None or (isinstance(v, float)
+                                           and _np.isnan(v)) for v in vals)
+            if algum_nulo and flag == "mu":
+                mu_ok = False
+            if algum_nulo and flag == "sigma":
+                sig_ok = False
+    score = surr.column("pred_score").to_pylist()
+    classe = surr.column("pred_classe").to_pylist()
+    ok = (tipos == {"valor"} and mu_ok and sig_ok
+          and all(v is None for v in score)
+          and all(v is None for v in classe))
+    out.append(("③ regressor μ/σ (DEF-C1)",
+                (ok, f"pred_tipo={tipos}, mu_0..mu_{M_cols-1}/sigma_* sem "
+                     f"NULL, score/classe NULOS (σ = desvio entre as K=10 "
+                     f"redes — ver sigma_dict)")))
+
+    # DEF-C3: o modelo opera em z ⇒ espaco/transf declarados em toda linha
+    esp = set(surr.column("espaco_modelo").to_pylist())
+    ttip = set(surr.column("transf_tipo").to_pylist())
+    tpar = surr.column("transf_params").to_pylist()
+    linhas_busca = _np.where(reg == "online")[0]
+    par_busca_ok = all(tpar[i] for i in linhas_busca)
+    ok = (esp == {"cru"} and "zscore" in ttip and par_busca_ok)
+    out.append(("③ z-score declarado (DEF-C3)",
+                (ok, f"espaco_modelo={esp}, transf_tipo={ttip}, "
+                     f"transf_params presente nas {len(linhas_busca)} linhas "
+                     f"de busca")))
+
+    # q=1: EXATAMENTE 1 real_solution_id por geração de BUSCA
+    ger = surr.column("geracao").to_pylist()
+    por_ger: dict = {}
+    for i in linhas_busca:
+        if rsid[i] is not None and not (isinstance(rsid[i], float)
+                                        and _np.isnan(rsid[i])):
+            por_ger[ger[i]] = por_ger.get(ger[i], 0) + 1
+    gers_busca = {ger[i] for i in linhas_busca}
+    ok = all(por_ger.get(g, 0) == 1 for g in gers_busca)
+    out.append(("③ q=1 (1 escolhido/geração)",
+                (ok, f"{len(gers_busca)} gerações de busca, "
+                     f"{sum(por_ger.values())} escolhidos "
+                     f"(cache-hit aponta a solução preexistente — D89)")))
+
+    tim = _pq.read_table(_naming.layer_path(exp, alg, problema, semente,
+                                            "timing", data_root=data_root))
+    faltando = [c for c in ("tempo_fit_s", "tempo_busca_s",
+                            "tempo_pred_sonda_s", "tempo_geracao_s")
+                if any(v is None for v in tim.column(c).to_pylist())]
+    out.append(("④ timing v5.2.1 completa",
+                (not faltando, f"{tim.num_rows} gerações × 4 colunas de tempo"
+                 if not faltando else f"colunas com NULL: {faltando}")))
+
+    with open(_naming.manifest_path(exp, alg, problema, semente,
+                                    data_root=data_root),
+              encoding="utf-8") as fh:
+        man = json.load(fh)
+    tblk = man.get("timing") or {}
+    ok = (all(k in tblk for k in ("tempo_total_s", "tempo_fit_surrogate_s",
+                                  "tempo_busca_s", "tempo_aval_real_s"))
+          and bool(man.get("sigma_dict")) and bool(man.get("sonda"))
+          and (man.get("sonda") or {}).get("regime") == "online")
+    out.append(("⑤ manifesto (timing+sigma_dict+sonda.regime)",
+                (ok, f"timing={sorted(tblk)}; sigma_dict="
+                     f"{len(man.get('sigma_dict') or {})} chaves; "
+                     f"sonda.n_blocos={(man.get('sonda') or {}).get('n_blocos')}"
+                     f"; regime={(man.get('sonda') or {}).get('regime')}")))
+    return out
+
+
 # ── Checagem do cartão R3-00-harness (infra transversal standalone + ⑦) ────
 
 def check_r3_c122(exp="main", problema="MMF1", semente=0, data_root=None):
@@ -1574,6 +1748,27 @@ def main():
             print(f"  [FAIL] cartão R3-c122 só afere --alg=c122: {a.alg!r}")
             sys.exit(2)
         results = check_r3_c122(exp=a.exp, problema=a.problema,
+                                semente=int(a.semente))
+        fail = False
+        for name, (ok, msg) in results:
+            mark = "SKIP" if ok is None else ("OK  " if ok else "FAIL")
+            print(f"  [{mark}] {name}: {msg}")
+            if ok is False:
+                fail = True
+        print("\n  >>> " + ("VERMELHO — pára-e-loga (D81)" if fail
+                            else "VERDE (encanamento objetivo)"))
+        print("  Lembrete (D97): a fidelidade é validação MANUAL do autor, "
+              "a posteriori — não entra aqui.")
+        sys.exit(1 if fail else 0)
+
+    # R3-c149 = LBN-MOBO (2º algoritmo da Rodada 3, ONLINE). Afere o run JÁ
+    # EXECUTADO (não re-roda) contra o contrato v5.2.1 — molde do R3-c122.
+    # ⚠ TEM de vir ANTES do catch-all abaixo (mesma armadilha do R3-00).
+    if a.cartao.startswith("R3-c149"):
+        if a.alg not in (None, "c149"):
+            print(f"  [FAIL] cartão R3-c149 só afere --alg=c149: {a.alg!r}")
+            sys.exit(2)
+        results = check_r3_c149(exp=a.exp, problema=a.problema,
                                 semente=int(a.semente))
         fail = False
         for name, (ok, msg) in results:

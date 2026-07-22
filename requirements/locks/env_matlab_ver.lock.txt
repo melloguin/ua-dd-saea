@@ -1,0 +1,5 @@
+Deep Learning Toolbox | 25.1 | (R2025a)
+MATLAB | 25.1 | (R2025a)
+Optimization Toolbox | 25.1 | (R2025a)
+Parallel Computing Toolbox | 25.1 | (R2025a)
+Statistics and Machine Learning Toolbox | 25.1 | (R2025a)

@@ -79,6 +79,11 @@ python -m venv /Users/gmello/Documents/python_venvs/<nome>
 
 ---
 
+## ⭐ Reprodutibilidade zero-contexto (2026-07-22)
+- **Receitas executáveis** (máquina nova → pipeline rodando): `requirements/PROVISIONAMENTO.md`.
+- **Locks resolvidos** (`pip freeze` dos envs VALIDADOS + `ver` do MATLAB): `requirements/locks/`.
+- Regra: instalar pela INTENÇÃO (`env_*.txt`), conferir contra o LOCK; divergência ⇒ D80 (autor).
+
 ## Verificação da torre (2026-07-22) — viabilidade REAL no Mac (macOS 12.5.1, arm64, medida)
 
 Método: PyPI consultado pin a pin (`curl pypi.org/pypi/<pkg>/<ver>/json`), tags aceitas pelo pip

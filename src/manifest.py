@@ -165,13 +165,47 @@ def is_run_done(exp: str, alg: str, problema: str, semente,
     fe_final, maxfe = man.get("fe_final"), man.get("maxfe")
     if fe_final is not None and maxfe is not None and int(fe_final) != int(maxfe):
         return False
-    for ly in naming.LAYERS:
+    # [D-12/DI-21] os 5 configs OFFLINE também precisam da ⑦ `__final` — é a
+    # ÚNICA avaliação real do ND final (§11) e a VM que a segura é efêmera. Sem
+    # esta linha, um run offline SEM a ⑦ contava como pronto, a esteira não a
+    # gerava, e o dado se perdia sem sintoma (achado A3 da auditoria DI-20).
+    camadas = naming.LAYERS + ((naming.FINAL_LAYER,)
+                               if alg in OFFLINE_ALGS else ())
+    for ly in camadas:
         p = naming.layer_path(exp, alg, problema, semente, ly, data_root)
         if not os.path.exists(p):
+            # [D-03/DI-21] resume BUCKET-AWARE: a ③ dos 5 volumosos é podada
+            # localmente após o upload (D58/gcs.mirror_run) — na VM, o run
+            # completo ficaria "não pronto" PARA SEMPRE e re-executaria os 5
+            # configs mais caros do estudo. A D58 já prometia "resume dos
+            # bucket-only LISTA O BUCKET"; esta é a promessa cumprida. No Mac
+            # (sem lib gcs / sem rede) o fallback falha FECHADO ⇒ False.
+            if _bucket_has(exp, alg, problema, semente, ly):
+                continue
             return False
         if check_footers and _footer_ok(p) is False:
             return False
     return True
+
+
+#: [D-12/DI-21] Os 5 configs do regime OFFLINE (fonte: runs_matrix.csv, exp=off)
+#: — os únicos cuja ⑦ `__final` é OBRIGATÓRIA no `is_run_done`.
+OFFLINE_ALGS: frozenset[str] = frozenset({"e103", "b5r", "b5m", "c311",
+                                          "moead_media"})
+
+
+def _bucket_has(exp: str, alg: str, problema: str, semente, layer: str) -> bool:
+    """[D-03/DI-21] A camada `layer` deste run existe no BUCKET? Falha FECHADA:
+    qualquer impossibilidade (camada não é bucket-only p/ este alg, lib gcs
+    ausente no Mac, rede fora) responde False — nunca um falso 'pronto'."""
+    try:
+        from src import gcs
+        if not gcs.is_bucket_only(alg, layer):
+            return False
+        fname = naming.layer_filename(exp, alg, problema, semente, layer)
+        return bool(gcs.blob_exists(naming.blob_path(exp, alg, fname)))
+    except Exception:
+        return False
 
 
 # ── Placar de console corrido (D23 / §17.5) ────────────────────────────────

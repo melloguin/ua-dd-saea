@@ -126,8 +126,10 @@ from src.botorch_harness import (
 # pelo handoff R2-c262), o fit L.10 (D44 — receita idêntica) e o projetor de
 # wall-clock do piloto. Nada é duplicado; o c262 é código congelado da rodada.
 from src.c262_qnehvi import (
+    WallClockAbort,
     _WallClockProjector,
     _fit_models,
+    _manifesto_failed_teto,
     disable_fused_kernel,
 )
 
@@ -718,14 +720,20 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                           proj_restante_s=(None if proj_s is None
                                            else round(proj_s, 1)),
                           max_wall_s=max_wall_s)
-                raise RuntimeError(
+                # [D-07/DI-21] mesmo padrão do c262/c122: failed no disco
+                # ANTES do raise (cenário B-2 da auditoria).
+                _manifesto_failed_teto(exp, alg, problema, semente, data_root,
+                                       criterio=criterio, elapsed_s=elapsed,
+                                       fe=bud.fe, maxfe=bud.maxfe)
+                raise WallClockAbort(
                     f"teto de wall-clock do piloto estourado por "
                     f"'{criterio}': {elapsed:.0f}s decorridos"
                     + ("" if proj_s is None
                        else f" + {proj_s:.0f}s projetados")
                     + f" > {max_wall_s:.0f}s (fe={bud.fe}/{bud.maxfe}). Aborto "
-                      f"LIMPO — curva §17.6 parcial no jsonl. A decisão de "
-                      f"completar é da torre/autor (M7). Pára-e-loga (D81).")
+                      f"LIMPO — curva §17.6 parcial no jsonl + manifesto "
+                      f"failed. A decisão de completar é da torre/autor (M7). "
+                      f"Pára-e-loga (D81).")
     except _budget.BudgetExhausted:
         hard_stopped = True                       # D21/D61: fim limpo do laço
         iteration_cleanup()

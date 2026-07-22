@@ -361,9 +361,13 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
   (16 repos oficiais + PlatEMO, vendorizados — só se toca com patch de fidelidade), `data/doe` +
   `data/datasets` (pontos iniciais, no repo) + `data/experiments/main/stub/` (saída do run-STUB do R1-00).
 
-## 8. Estado atual + próximos passos *(atualizado 2026-07-20)*
+## 8. Estado atual + próximos passos *(atualizado 2026-07-22)*
 - **Feito:** M0 ✅ · M1 (Fase 0) ✅ · M2 ✅ · **M3 (fan-out MATLAB) ✅ 10/10** · **M4 (R2: R2-00 ✅ +
-  c262 ✅ + c154 ✅)** · **M5/R3-c122 ✅** (theta-DEA-DP, 3 problemas, cartão fechado `29e8539`).
+  c262 ✅ + c154 ✅)** · **M5.1/R3-c122 ✅** (3/3 gates, `29e8539`) · **RETROFIT DI-09 ✅ COMPLETO
+  (MATLAB 11/11 + BoTorch)** — regressão total verde (14 runs ×MMF1 + F0×4 + 26 gates + suíte) ·
+  **DI-21 ✅**: as 21 decisões da auditoria DI-20 RATIFICADAS pelo autor e APLICADAS (código+teste+
+  doc; ver REGISTRO PARTE A10) — inclui a ⑦ do e103 GERADA, o backfill do c262/ZDT1, os validadores
+  promovidos a `scripts/{naoperturbacao,auditar}.py`, e os bundles REGENERADOS pós-DI-18.
 - **A ONDA DI-09 (instrumentação do surrogate) — o grande bloco desta semana:** o autor decidiu que
   TODO run persiste, além das 7 camadas, a **SONDA canônica** (2000 pontos Sobol fixos previstos por
   cada modelo a cada k=2 gerações — a régua ÚNICA que compara a assertividade de todos os 16

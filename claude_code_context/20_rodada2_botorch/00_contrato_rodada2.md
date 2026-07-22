@@ -11,15 +11,16 @@
 ### 22.3 Rodada 2 — BoTorch (Python; Vertex AI; grava local + bucket, §17.7)
 
 **Infra da rodada (contrato N.1 + L.18):**
-- [ ] **BoTorch OFICIAL 0.18.1** — nunca o clone do device (é um **fork** com kernel C++ `-march=native` que falha silenciosamente no arm64 → numérica assimétrica Mac×Linux; N.2.3). Registrar no manifesto versão exata + hash (o fork tem `__version__=="Unknown"`).
-- [ ] `torch.set_num_threads(1)` + **float64** + CPU em todo stack torch (N.1.1); `np.random.Generator` próprio p/ DoE; **salvar/restaurar o RNG global em volta de `pymoo.minimize`** (N.1.3); diretórios de export por `(alg, problema, semente)` (N.1.4).
+- [ ] **BoTorch OFICIAL 0.18.1** — nunca o clone do device (é um **fork**: mesma base do oficial + `_FUSED_MAX_I=32`/gate `q<=32` editados e `__version__=="Unknown"`; N.2.3). ⚠ ⟦v5.2.1 — CORRIGIDO⟧ O kernel C++ fusionado (`csrc/logei_fused.cpp`, JIT `-march=native`) **é STOCK do wheel OFICIAL também** (DI-05, byte-identidade wheel×instalado verificada) → a guarda N.2.3 detecta o FORK mas **NÃO** protege da assimetria numérica Mac×Linux do OFICIAL. Registrar no manifesto versão exata + hash.
+- [ ] **DEF-L2 = POLÍTICA DA RODADA (DI-05):** todo runner BoTorch **DESLIGA o kernel fusionado no arranque** (`_load_attempted=True` + `_C=None`, ANTES de qualquer acqf) → caminho Python puro determinístico Mac×Linux. O desligamento é estado **POR PROCESSO**: cada subprocess D79 e o despachante M8 (hardening M7, DI-06 item 7) precisam chamar; o c154 replica a MESMA função do c262 (`c262_qnehvi.disable_fused_kernel()`). Registrar o flag efetivo no manifesto.
+- [ ] `torch.set_num_threads(1)` + CPU em todo stack torch; dtype = **o que o REPO DO AUTOR exige, registrado no manifesto** ⟦DI-21 — generalizada; dizia 'float64' como universal, mas o c122 EXIGE float32 (`prediction.py:24` faz `.float()`; sob default float64 o forward estoura RuntimeError — MEDIDO). float64 segue o DEFAULT quando o repo não exigir outro⟧ (N.1.1); `np.random.Generator` próprio p/ DoE; **salvar/restaurar o RNG global em volta de `pymoo.minimize`** (N.1.3); diretórios de export por `(alg, problema, semente)` (N.1.4).
 - [ ] Adapter BoTorch: `normalize/unnormalize [0,1]↔nativo` + `−f` (maximização) + `Standardize` de Y (§5.5); **snapshot por iteração de BO** (§17.3); `torch.manual_seed(h(run,it))` **antes** de construir modelo+acqf (L.10). Registrar a versão do scipy (fast-path L-BFGS-B em [1.13,1.19) — L.18).
 - [ ] **Persistência Python** (§17.7): local + upload ao bucket `mestrado_experiments` (ADC da conta de serviço) + sync de pendentes — **construída aqui, reutilizada pela Rodada 3**.
 
 **Checklist por algoritmo:**
 
 
-**Piloto da Rodada 2:** a **curva `(n_acumulado, tempo_fit_s)`** dos GP-BO é o dado-alvo (§17.6 — a parede O(n³) começa aqui); B9.5 decidida; smoke-test da persistência **local+bucket byte-idêntico + sync**. **Ao passar o gate, a VM pode rodar c262/c154 enquanto a Rodada 3 avança.**
+**Piloto da Rodada 2:** a **curva `(n_acumulado, tempo_fit_s)`** dos GP-BO é o dado-alvo (§17.6 — a parede O(n³) começa aqui); B9.5 **já fechada pela D75** — o piloto MEDE o gap (a)×(b), não escolhe (medido: **×17,7** em MMF1); ⟦v5.2.1⟧ smoke-test da persistência **local+bucket byte-idêntico + sync**. **Ao passar o gate, a VM pode rodar c262/c154 enquanto a Rodada 3 avança.**
 
 ---
 

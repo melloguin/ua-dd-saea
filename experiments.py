@@ -61,6 +61,9 @@ RETRY_ATTEMPTS = 3
 #: Base do backoff exponencial em segundos (0s → 5s → 20s nas 3 tentativas).
 RETRY_BACKOFF_S = 5
 GCS_BUCKET = 'mestrado_experiments'   # espelho Python (§17.7); MATLAB = só local
+#: [D-16/DI-21] Configs BoTorch — o despachante desliga o kernel fusionado
+#: (DEF-L2/DI-05) antes de despachá-los; estado POR PROCESSO.
+BOTORCH_ALGS = frozenset({'c262', 'c154', 'e81'})
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -92,9 +95,25 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
         # NÃO-RETRIÁVEIS (adapter ausente, arquivo de contexto faltando) cortam na
         # hora — retriar não conserta e só queima tempo.
         attempts = RETRY_ATTEMPTS
+        # [D-16/DI-21 — a letra da DI-05] DEF-L2 é estado POR PROCESSO: o
+        # despachante também desliga o kernel fusionado antes de despachar um
+        # runner BoTorch, sem depender da ordem de importação do runner. Import
+        # LAZY e tolerante: no Mac/MATLAB o stack torch pode nem existir.
+        if alg in BOTORCH_ALGS:
+            try:
+                from src.c262_qnehvi import disable_fused_kernel
+                disable_fused_kernel()
+            except Exception as e:  # noqa: BLE001 — melhor rodar que abortar
+                log.event('fused_kernel_disable_indisponivel', err=repr(e))
         for i in range(attempts):
             try:
-                _adapter.run(alg, problema, semente, exp=exp)
+                # [D-06/DI-21] repassa `data_root` (a mescla DI-13.1 procurava o
+                # manifesto no root ERRADO sob --data-root customizado e regravava
+                # o toco com 3 timings None — o defeito voltava por outra porta).
+                # `enable_bucket` segue o default do runner (False no Mac até o
+                # M7, RI-08/DI-16.8); o despachante M8 o ligará explicitamente.
+                _adapter.run(alg, problema, semente, exp=exp,
+                             data_root=data_root)
                 status = 'ok' if i == 0 else 'retried_ok'
                 n_retries = i          # nº de re-tentativas até o sucesso
                 break
@@ -110,6 +129,14 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
                 log.guard('nao_retriavel', err=f'{type(e).__name__}: {e}')
                 break
             except Exception as e:  # noqa: BLE001 — D23: capturar tudo, logar, seguir
+                # [D-07/DI-21] Aborto por TETO de wall-clock (`WallClockAbort`
+                # dos runners BoTorch) NÃO é retriável: cada retry estouraria o
+                # MESMO teto e um teto de 8h viraria 24h. Checagem pelo NOME da
+                # classe para não importar torch no despachante.
+                if type(e).__name__ == 'WallClockAbort':
+                    status, stack_trace, n_retries = 'failed', repr(e), i
+                    log.guard('teto_wall_nao_retriavel', err=str(e)[:200])
+                    break
                 import traceback
                 stack_trace = traceback.format_exc()
                 n_retries = i          # i re-tentativas já gastas
@@ -140,12 +167,14 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
     mpath = naming.manifest_path(exp, alg, problema, semente, data_root=data_root)
     man = read_manifest(mpath)
     if man is None:                       # o runner não chegou a gravar
+        # [D-06/DI-21] `bucket=None`: se o runner morreu antes de gravar, nada
+        # subiu — o carimbo de espelho só entra quando o upload CONFIRMA.
         man = new_manifest(exp, alg, problema, semente, status=status,
                            n_retries=n_retries, stack_trace=stack_trace,
                            timing={'tempo_total_s': wall,
                                    'tempo_fit_surrogate_s': None,
                                    'tempo_busca_s': None, 'tempo_aval_real_s': None},
-                           data_root=data_root, bucket=bucket)
+                           data_root=data_root, bucket=None)
     else:                                 # MESCLA (preserva tudo que o runner pôs)
         man['status'] = status
         man['n_retries'] = n_retries
@@ -157,7 +186,16 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
         if not man['timing'].get('tempo_total_s'):
             man['timing']['tempo_total_s'] = wall
         man['timing']['tempo_total_despachante_s'] = wall
-        if bucket:
+        # [D-06/DI-21] O carimbo `paths.bucket` é CONDICIONAL: só afirma o
+        # espelho quando o upload de fato aconteceu — `upload_status` é o mapa
+        # por artefato que `dual_write_run` grava ({art: "uploaded"|...}); no
+        # Mac ele é None e o carimbo NÃO acontece. Um manifesto que MENTE sobre
+        # persistência é pior que um que se cala: a VM é efêmera e a ③ dos 5
+        # volumosos é o dado insubstituível.
+        us = man.get('upload_status')
+        subiu = isinstance(us, dict) and any(
+            str(v).startswith('uploaded') for v in us.values())
+        if bucket and subiu:
             man.setdefault('paths', {})['bucket'] = man.get('paths', {}).get('bucket') or bucket
     write_manifest(man, data_root)
     return status

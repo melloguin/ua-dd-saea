@@ -175,12 +175,18 @@ def timing_schema():
     Pós-retrofit v5.2.1 (§17.6 expandida): `tempo_busca_s` virou OBRIGATÓRIO de
     PREENCHIMENTO (o tipo segue nullable — pisos/runs antigos), e entram
     `tempo_pred_sonda_s` (custo da sonda na iteração; 0 quando não roda) e
-    `tempo_geracao_s` (wall TOTAL da geração = fit+busca+aval+overhead)."""
+    `tempo_geracao_s` (wall da geração **EXCLUINDO a sonda** = fit+busca+aval+
+    overhead da busca — DI-13.10; a sonda é instrumentação DESTE estudo e
+    contaminaria a curva de escalabilidade de forma desigual)."""
     pa = _pa()
     return pa.schema([
         pa.field("run_id", pa.string(), nullable=False),
         pa.field("geracao", pa.int32(), nullable=False),
-        pa.field("n_acumulado", pa.int32(), nullable=False),
+        # [D-01/DI-21, autor 2026-07-21] NULLABLE pelo MESMO princípio da DI-13.2:
+        # os pisos não TREINAM, logo não há "nº de pontos no treino" — NULL = "não
+        # se aplica" (≠ 0 = "treinou em zero pontos"). Era a irmã não-nullable da
+        # `tempo_fit_s`: `cast(timing_schema())` estourava na consolidação da ④.
+        pa.field("n_acumulado", pa.int32(), nullable=True),
         # [DI-13.2, autor 2026-07-19] NULLABLE: os PISOS não têm surrogate, logo não
         # têm tempo de treino — `NULL` = "não se aplica", que é diferente de `0.0`
         # ("treinou e custou zero"). Sem isto os 4 pisos online + o piso offline não
@@ -191,6 +197,104 @@ def timing_schema():
         pa.field("tempo_pred_sonda_s", pa.float32(), nullable=True),
         pa.field("tempo_geracao_s", pa.float32(), nullable=True),
     ])
+
+
+# ── Normalização de schema cross-stack [D-02/DI-21, autor 2026-07-21] ───────
+
+#: Colunas cujo tipo CANÔNICO é int32 NULLABLE. O writer MATLAB não expressa
+#: int32-NULL: grava `double`+NaN (o idioma provado do `parquetwrite`). Regra 2
+#: do R4 GENERERALIZADA (antes nomeava só o `real_solution_id`): todo leitor
+#: tolera as duas formas — e esta função é a que torna a tolerância mecânica.
+INT32_NULLABLE_COLS: tuple[str, ...] = (
+    "geracao", "n_acumulado", "fe_treino_max", "real_solution_id",
+)
+
+
+def normalize_schema(table):
+    """Normaliza uma tabela ao CANÔNICO cross-stack — chame ANTES de qualquer
+    `concat` MATLAB × Python (a consolidação R4 DEVE passar por aqui).
+
+    O que normaliza (por CLASSE, não por elenco de camada):
+    1. **texto**: `large_string` (pandas/MATLAB) → `string` (canônico Python);
+    2. **inteiros nullable** (`INT32_NULLABLE_COLS`): `double`+NaN (MATLAB) →
+       `int32` com NULL de verdade — um `astype(int32)` ingênuo sobre NaN é
+       exatamente o crash silencioso que a auditoria DI-20 previu no e103.
+
+    NÃO valida conteúdo (é papel do `auditar.py`); NÃO reordena colunas — use
+    `concat_normalized` para juntar tabelas de origens diferentes."""
+    pa = _pa()
+    import pyarrow.compute as pc
+    cols, fields = [], []
+    for i, f in enumerate(table.schema):
+        col = table.column(i)
+        if pa.types.is_large_string(f.type):
+            col = col.cast(pa.string())
+            f = f.with_type(pa.string())
+        elif f.name in INT32_NULLABLE_COLS and pa.types.is_floating(f.type):
+            # NaN → NULL primeiro (cast float→int32 sobre NaN estoura).
+            col = pc.if_else(pc.is_nan(col.combine_chunks()), None,
+                             col.combine_chunks()).cast(pa.int32())
+            f = f.with_type(pa.int32())
+        elif f.name in INT32_NULLABLE_COLS and pa.types.is_integer(f.type) \
+                and f.type != pa.int32():
+            col = col.cast(pa.int32())
+            f = f.with_type(pa.int32())
+        cols.append(col)
+        fields.append(pa.field(f.name, f.type, nullable=True)
+                      if f.name in INT32_NULLABLE_COLS else f)
+    return pa.table(dict(zip([f.name for f in fields], cols)),
+                    schema=pa.schema(fields))
+
+
+def cast_completo(table, schema):
+    """`normalize_schema` + COMPLETAR colunas nullable ausentes com NULL +
+    reordenar + `cast(schema)` — o cast canônico da leitura R4.
+
+    Um run PRÉ-retrofit tem a ④ com 5 colunas (sem `tempo_pred_sonda_s`/
+    `tempo_geracao_s`, que são nullable); um `cast` ingênuo estoura por nome de
+    campo. Coluna NÃO-nullable ausente segue sendo erro (dado obrigatório não
+    se inventa)."""
+    pa = _pa()
+    t = normalize_schema(table)
+    data = {}
+    for f in schema:
+        if f.name in t.schema.names:
+            data[f.name] = t.column(f.name)
+        elif f.nullable:
+            data[f.name] = pa.nulls(t.num_rows, type=f.type)
+        else:
+            raise ValueError(
+                f"coluna OBRIGATÓRIA `{f.name}` ausente da tabela — não é o "
+                f"caso pré-retrofit (colunas novas são nullable); dado "
+                f"obrigatório não se completa com NULL.")
+    return pa.table(data).cast(schema)
+
+
+def concat_normalized(tables):
+    """Concatena tabelas de stacks diferentes (a operação da consolidação R4).
+
+    Cada tabela passa por `normalize_schema`; o conjunto de colunas vira a
+    UNIÃO na ordem da primeira tabela (coluna ausente ⇒ NULL tipado) — assim
+    uma ④ de piso (sem coluna nova) concatena com uma ④ retrofitada."""
+    pa = _pa()
+    normed = [normalize_schema(t) for t in tables]
+    ordem: list[str] = []
+    tipo: dict[str, object] = {}
+    for t in normed:
+        for f in t.schema:
+            if f.name not in tipo:
+                ordem.append(f.name)
+                tipo[f.name] = f.type
+    alinhadas = []
+    for t in normed:
+        data = {}
+        for name in ordem:
+            if name in t.schema.names:
+                data[name] = t.column(name).cast(tipo[name])
+            else:
+                data[name] = pa.nulls(t.num_rows, type=tipo[name])
+        alinhadas.append(pa.table(data))
+    return pa.concat_tables(alinhadas)
 
 
 # ── Escritor físico (atômico + zstd) ────────────────────────────────────────
@@ -415,7 +519,10 @@ def write_timing(exp: str, alg: str, problema: str, semente,
     table = pa.table({
         "run_id": pa.array([rid] * n, type=pa.string()),
         "geracao": pa.array([int(r["geracao"]) for r in rows], type=pa.int32()),
-        "n_acumulado": pa.array([int(r["n_acumulado"]) for r in rows], type=pa.int32()),
+        # [D-01/DI-21] pisos gravam NULL (sem treino) — mesmo idioma do tempo_fit_s.
+        "n_acumulado": pa.array([None if r.get("n_acumulado") is None
+                                 else int(r["n_acumulado"]) for r in rows],
+                                type=pa.int32()),
         # [DI-13.2] `opt` (não `float(...)`): pisos gravam NULL — ver o schema acima.
         "tempo_fit_s": opt("tempo_fit_s"),
         "tempo_busca_s": opt("tempo_busca_s"),
@@ -651,6 +758,7 @@ __all__ = [
     "PARQUET_CODEC", "FASES", "PRED_TIPOS", "ESPACOS",
     "x_cols", "f_cols", "mu_cols", "sigma_cols",
     "real_schema", "pop_schema", "surrogate_schema", "timing_schema",
+    "INT32_NULLABLE_COLS", "normalize_schema", "cast_completo", "concat_normalized",
     "write_real", "write_pop", "write_surrogate", "write_timing",
     "surrogate_row", "run_done",
     "manifest_timing_block", "backfill_timing_from_jsonl",

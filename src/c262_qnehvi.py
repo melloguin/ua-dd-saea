@@ -318,6 +318,30 @@ def _optimize_acqf_restarts(acqf, D: int, h2: int):
     return cands.detach(), acq_vals.detach(), n_warn
 
 
+class WallClockAbort(RuntimeError):
+    """[D-07/DI-21] Aborto por teto de wall-clock — classe DISTINTA para o
+    despachante reconhecer (pelo NOME, sem importar torch) que retriar não
+    conserta: cada retry estouraria o MESMO teto (8h virariam 24h)."""
+
+
+def _manifesto_failed_teto(exp, alg, problema, semente, data_root, *,
+                           criterio, elapsed_s, fe, maxfe):
+    """[D-07/DI-21 — o padrão do c122 replicado] Grava um manifesto `failed`
+    NO PONTO do aborto por teto. Sem ele, artefatos de uma execução ANTERIOR
+    do mesmo run_id sobreviviam ao lado de um jsonl novo dizendo failed, e o
+    `is_run_done` (D58) lia o run truncado como PRONTO — o cenário B-2 da
+    auditoria. O manifesto é NOVO (não mescla): misturar campos ricos da
+    execução antiga com o aborto novo confundiria duas execuções."""
+    from src import manifest as _manifest
+    man = _manifest.new_manifest(
+        exp, alg, problema, semente, status="failed",
+        stack_trace=(f"WallClockAbort[{criterio}]: {elapsed_s:.0f}s "
+                     f"(fe={fe}/{maxfe})"),
+        maxfe=maxfe, fe_final=fe, data_root=data_root)
+    man["motivo_parada"] = "teto_wall"
+    _manifest.write_manifest(man, data_root)
+
+
 class _WallClockProjector:
     """Teto de wall-clock do piloto (ZDT1 ≤ ~8h) por DOIS critérios independentes.
 
@@ -628,14 +652,20 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                           proj_restante_s=(None if proj_s is None
                                            else round(proj_s, 1)),
                           max_wall_s=max_wall_s)
-                raise RuntimeError(
+                # [D-07/DI-21] failed no disco ANTES do raise — is_run_done
+                # nunca mais lê um aborto por teto como run pronto.
+                _manifesto_failed_teto(exp, alg, problema, semente, data_root,
+                                       criterio=criterio, elapsed_s=elapsed,
+                                       fe=bud.fe, maxfe=bud.maxfe)
+                raise WallClockAbort(
                     f"teto de wall-clock do piloto estourado por "
                     f"'{criterio}': {elapsed:.0f}s decorridos"
                     + ("" if proj_s is None
                        else f" + {proj_s:.0f}s projetados")
                     + f" > {max_wall_s:.0f}s (fe={bud.fe}/{bud.maxfe}). Aborto "
-                      f"LIMPO — curva §17.6 parcial no jsonl. A decisão de "
-                      f"completar é da torre/autor (M7). Pára-e-loga (D81).")
+                      f"LIMPO — curva §17.6 parcial no jsonl + manifesto "
+                      f"failed. A decisão de completar é da torre/autor (M7). "
+                      f"Pára-e-loga (D81).")
     except _budget.BudgetExhausted:
         hard_stopped = True                       # D21/D61: fim limpo do laço
         iteration_cleanup()

@@ -25,7 +25,7 @@
 ---
 
 ### I.2 · b3 K-RVEA (PlatEMO 4.15)
-**Fluxo real:** ciclo = wmax=20 gerações no surrogate (RVEA com vetores adaptativos) → seleção de ≤5 infills por clustering dos vetores ativos: critério APD (convergência) se ΔVf≤δ, senão máx σ̄ (diversidade); clusters vazios são descartados (u efetivo < 5). Retreina 1 DACE/objetivo. **Integração:** patch LHS (KRVEA.m:33); N→nº de vetores + δ=0.05N. **σ exportável:** por objetivo `sqrt(max(MSE_j,0))` (B3.2 ►; o critério interno usa a média dos σ). **Divergências/checks:** gestão do arquivo de treino vs Alg. 4 do paper (B3.5); falha dura do dacefit (sites duplicados/"Bad parameter region" — DEF-A8); overshoot até +4 FEs (DEF-A2).
+**Fluxo real:** ciclo = wmax=20 gerações no surrogate (RVEA com vetores adaptativos) → seleção de ≤5 infills por clustering dos vetores ativos: critério APD (convergência) se ΔVf≤δ, senão máx **MSE̅** (média das VARIÂNCIAS preditivas, **sem raiz** — código oficial, `KrigingSelect.m:61`) ⟦v5.2.1 — corrigido: dizia 'máx σ̄'⟧; clusters vazios são descartados (u efetivo < 5). Retreina 1 DACE/objetivo. **Integração:** patch de DoE **classe D94** (`KRVEA.m:33` — o par gera+re-escala substituído JUNTO pela injeção do X0 nativo) ⟦v5.2.1 — a D94 não estava citada⟧; N→nº de vetores + δ=0.05N. **σ exportável:** por objetivo `sqrt(max(MSE_j,0))` (B3.2 ► — a raiz é unidade de **EXPORT apenas**; o critério interno **NÃO** usa raiz: média das VARIÂNCIAS ⟦v5.2.1 — corrigido⟧). **Divergências/checks:** gestão do arquivo de treino vs Alg. 4 do paper (B3.5); falha dura do dacefit (sites duplicados/"Bad parameter region" — DEF-A8); overshoot até +4 FEs (DEF-A2).
 
 ---
 

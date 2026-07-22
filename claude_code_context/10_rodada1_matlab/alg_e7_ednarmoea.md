@@ -37,7 +37,7 @@
 ### M.5 · e7 EDN-ARMOEA
 - **Racional (por que dropout-como-incerteza):** dropout-NN ≈ deep GP (Gal & Ghahramani); dropout no TESTE (T=100 passagens numa única rede) dá a variância preditiva sem guardar/retreinar T redes — inviável em SAEA. **Justificativa empírica decisiva (nova):** as tabelas do suplemento mostram que **a incerteza do GP COLAPSA/fica não-informativa em alta-dim/poucos-dados**, enquanto o EDN mantém incerteza discriminativa — é o *porquê concreto* de preferir dropout a σ-de-GP neste regime (liga-se ao nosso eixo "como cada um usa a incerteza").
 - **Ablação do gatilho de diversidade:** a Tabela I isola a gestão de modelo usando GP em todas as variantes — o dual (convergência + switch-por-incerteza) vence convergência-pura e diversidade-pura (melhor em 8/16) → **a cadência de troca é feature, nenhum critério isolado basta**. delta é o botão explor/explot (delta maior → menos seleção-por-incerteza). AR-MOEA foi escolhido em parte porque suas reference vectors já fornecem o sinal |Wv|/|W| do gatilho.
-- **Honestidade:** dropout 0,1 "no theoretic guidance" (abaixo do 0,2/0,5 de Srivastava — nosso código usa 0,2/0,5, Anexo L.4 → divergência já registrada); heurística itertrain≈30×#params.
+- **Honestidade:** dropout 0,1 "no theoretic guidance" (abaixo do 0,2/0,5 de Srivastava); o código oficial do autor usa `dropP=[0.2, 0.5]` — ⟦**revogado por D30**⟧ **nosso run usa 0,1/0,1 do PAPER** (patch em `Dropout/trainmodel.m:6`, `handoff/R1-e7.md`; a divergência código×paper está registrada em **DEF-B6.6** (Anexo B/§800) — **não** no Anexo L.4, que só cita dropout na ordem de RNG) ⟦v5.2.1⟧; heurística itertrain≈30×#params.
 
 ---
 

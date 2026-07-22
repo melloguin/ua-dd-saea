@@ -163,7 +163,7 @@ tabela ③, diferenciadas pela coluna `regime`.
   este artefato e o instrumentador confere o hash no arranque** (mesma disciplina do DoE D63/D87).
   Custo de FE: **ZERO** (funções analíticas avaliadas fora do orçamento — exceção contábil
   documentada, precedente DI-08).
-- **Cadência:** ONLINE = a cada **k=2** gerações/iterações + SEMPRE a 1ª e a última;
+- **Cadência:** ONLINE = a cada **k=2** gerações/iterações + SEMPRE a 1ª e a última — **FÓRMULA NORMATIVA ⟦DI-12.5/DI-21⟧: `g == 1 OU mod(g, k) == 0` ⇒ gerações {1, 2, 4, 6, 8, …}; a última via finalProbe/BudgetExhausted** (a fórmula é a vinculante; a prosa admitia duas leituras e já custou uma divergência entre stacks);
   OFFLINE = **1× por modelo treinado** (o modelo não muda — e103 grava 2 blocos: Kriging e RBFN).
   Cada bloco de sonda grava também o `fe` corrente no jsonl (evento `sonda`) — **o eixo de
   comparação entre algoritmos é o FE consumido** (as "gerações" de algoritmos diferentes não são
@@ -185,7 +185,7 @@ tabela ③, diferenciadas pela coluna `regime`.
 | b1 | o ESCALAR Tchebycheff com o λ DA ITERAÇÃO corrente | mu_0/sigma_0 + C3{λ,min/max,Gbest} |
 | c217 | score ternário do ponto vs a referência corrente (Pmid) | pred_score + pred_confianca(Error1) |
 | b4 | classe bom/ruim vs o arquivo corrente + L | pred_classe + pred_confianca |
-| e74 | as DUAS cabeças: nível PNN (linha classe) + μ RBF (linha valor) | 2×2000 linhas (pred_tipo por linha) |
+| e74 | as **TRÊS cabeças** ⟦DI-12.3/DI-19.1 — corrigido: dizia 'as duas'⟧: PNN s1 (classe) + RBF-global s2 (valor) + RBF-local s3 (valor), em **ROUND-ROBIN k=6/3/12** (cada ciclo sonda 1 cabeça; cada cabeça a cada 3 ciclos — medido no ZDT1: 71/71/71 blocos + 1 boot) | 1×2000 linhas/ciclo, `modelo` no evento identifica a cabeça |
 | c122 | e(z) da EDN par-a-par **vs a POPULAÇÃO SELECIONADA corrente (N=11 em M=2 / 15 em M=3) [P2/DI-16.2]** — referência de tamanho FIXO (parâmetro do próprio algoritmo) ⇒ o score é comparável entre gerações, sementes e configs; é também o contexto REAL em que o modelo decide na busca. Logar `n_ref` no jsonl | pred_score + pred_confianca(max-softmax) |
 | pisos **ONLINE** (4) | — NÃO TÊM SONDA (**sem modelo**) | — |
 | piso **OFFLINE** (moead_media) | **TEM SONDA [P1/DI-16.1]** — ele TREINA um GP (Kriging) e otimiza sobre a MÉDIA: μ por objetivo, **σ NULL** (é o "b5 sem σ") | mu_* preenchido; sigma_* NULL |
@@ -281,7 +281,8 @@ caminhos × paper) · 2 protocolo? (FE=31D−1, DoE hash) · 3 adapters? (clamps
 ### 6.1 Campos específicos por config (S.7 da SPEC + ENRIQUECIMENTO DI-10 em negrito)
 
 *(mapeamento profundo da torre, 2026-07-18 — regra: TODA adição é read-only; grandezas
-inacessíveis sem patch invasivo no miolo stock NÃO entram — anotadas no fim)*
+inacessíveis sem patch invasivo no miolo stock NÃO entram — anotadas no fim.
+**Critério do que é 'invasivo' ⟦DI-12.1/DI-21⟧: adição read-only que só EXPÕE um valor JÁ computado pelo stock é PERMITIDA (ex.: +1 retorno de função); o que barra é CUSTO NOVO em hot-loop ou alteração de decisão — o critério é comportamento, não pureza textual.)*
 
 | Config | S.7 (já contratado) | **+ DI-10 (novo)** |
 |---|---|---|
@@ -352,7 +353,7 @@ fantasia") [DI-13.8]`; escrita PÓS-HOC pela torre/harness Python; NÃO conta no
 ## 10. Regras de leitura obrigatórias (R4)
 
 1. Dedup/joins por `solution_id` — NUNCA pelo X float32 armazenado.
-2. `real_solution_id`: tolerar int32 E double+NaN (dicotomia documentada).
+2. ⟦GENERALIZADA — D-02/T-2/DI-21; nomeava só o `real_solution_id`⟧ **Dicotomia cross-stack por CLASSE**: (a) todo INTEIRO NULLABLE (`geracao`, `n_acumulado`, `fe_treino_max`, `real_solution_id` — o elenco vive em `export.INT32_NULLABLE_COLS`) = tolerar int32-NULL (Python) E double+NaN (MATLAB — `astype(int32)` ingênuo sobre NaN QUEBRA, p.ex. no e103); (b) todo TEXTO = tolerar `string` E `large_string`. **O mecanismo obrigatório é `export.normalize_schema`/`concat_normalized`/`cast_completo`** — toda consolidação passa por eles ANTES de qualquer concat (regra escrita protege quem lê; a função protege quem esquece).
 3. Antes de ler a ③ de um algoritmo: ler o `sigma_dict` do manifesto (DEF-C4).
 4. Erro de surrogate: filtrar in-sample com `fe_treino_max`; b1 compara-se à parte (escalar).
 5. Sonda: join com o gabarito POR POSIÇÃO dentro do bloco (ordem do artefato preservada).

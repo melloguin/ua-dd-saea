@@ -649,16 +649,26 @@ São **definições ausentes**, não erros de redação — exigem escolha de es
 - **Justificativa.** É a única candidata que é **(i) de tamanho FIXO** — parâmetro do próprio
   algoritmo ⇒ `e(z)` comparável entre gerações, sementes e configs (o arquivo inteiro cresceria de
   11D−1 a 31D−1 e o score subiria SÓ pela escala, **falsificando a curva "o surrogate melhora com as
-  épocas?"**, que é o propósito da sonda) — **e (ii) FIEL**: é o contexto real em que o modelo decide
-  durante a busca.
+  épocas?"**, que é o propósito da sonda). ⟦**Perna (ii) CORRIGIDA — DI-21/D-19det, achado da
+  sessão R3-c122**: a justificativa antiga ("é o contexto real em que o modelo decide") era
+  factualmente errada — a população selecionada NUNCA é referência de dominância no código (a
+  decisão real é rep-do-cluster → intra ≤300). **A decisão (a) FICA** — a perna (i) (tamanho fixo ⇒
+  comparabilidade) sustenta sozinha —, mas a sonda do c122 é **instrumento com referência PRÓPRIA**,
+  não o score interno da busca. Já declarado no `sigma_dict` dos manifestos.⟧
 
 ### DI-16.3 — ③-BUSCA do c122 = **TOP-100 do pool + agregados** (não o pool de 7.000)
 - **Contexto.** A DEF-C2 classificava o c122 como "EA ⇒ grave a população selecionada" — mas a
   seleção de sobrevivência dele usa fitness **REAL**, então a população selecionada NÃO é predição
   de modelo (a ③ sairia vazia de conteúdo). O modelo prevê sobre o **pool de N\*=7.000/iteração**,
   do qual só **1** vira FE. A própria volumetria da SPEC (~1M linhas) só fechava com a leitura POOL.
-- **Decisão: (c) TOP-100 do pool por `e(z)` + agregados do pool INTEIRO** (min/mediana/máx,
-  contagens) no jsonl. **~2 GB** em vez de **~120 GB**.
+- **Decisão ⟦REESCRITA — DI-21/D-19det; a (c) original era INEXEQUÍVEL (4 lentes adversariais
+  4/4: `e(z)` é grandeza INTRA-conjunto, só existe na categoria vencedora ≤Q_max=300,
+  `selection.py:158-168`; sobre os 7.000 o código computa `scf` INTER vs o representante; `e(z)`
+  real sobre 7.000 = 49M pares/iteração, ~8-10 GB/rede) → o autor cravou a **A+** na sessão⟧:**
+  ③ = **TOP-100 por `e(z)` DA CATEGORIA vencedora** (`real_solution_id` só no escolhido); jsonl =
+  o que o algoritmo DE FATO computa sobre os 7.000 (`n_q1/n_q2/n_q3`, `n_acordo`/`n_desacordo`,
+  `pool_scf_{min,med,max}`) + `ez_cat_{min,med,max}`. Custo e perturbação zero.
+  **~2 GB** em vez de **~120 GB**.
 - **Justificativa (quase sem perda analítica).** O ranking dos 6.900 restantes é **inauditável por
   construção** — nenhum deles ganha `f` real, então não há verdade contra a qual medir. As análises
   que EXISTEM (a escolha foi boa? o modelo discrimina? contrafactual greedy-μ) acontecem na CABEÇA
@@ -891,7 +901,7 @@ firme):** quem abre um bloco `DI-N` novo **reserva o número no REGISTRO ANTES**
 | **DI-19.5** | `finalProbe` usa `g_armado`, não `buf.gen` | em overshoot-zero (c238) o `PlatEMO:Termination` sai do topo do ciclo seguinte, depois de o `outputFcn` já ter bumpado ⇒ `buf.gen` aponta geração nunca armada. Não é bit-neutro ⇒ c217/c141 re-rodados |
 | **DI-19.6** | c238: sonda em espaço **CRU** | régua constante entre gerações e comparável ao gabarito (responde à pendência de `handoff/R1-c238.md` §8, aberta desde a R1) |
 | **DI-19.7** | offline: `f_best` = pop corrente **+** min do dataset no header | superconjunto; vale para os 5 offline |
-| **DI-19.8** | `espaco_modelo` = **`"cru"`** nos 21 | `"nativo"` estava fora do enum `("transformado","cru")` que `export.py:292` valida — o writer MATLAB não valida e passava calado. ⚠ **APLICAÇÃO INCOMPLETA** (achado DI-20/A8): só o MMF1 foi re-rodado; **1.050.000 linhas** de c141/c217 (DTLZ2+ZDT1) ainda gravam `"nativo"` |
+| **DI-19.8** | `espaco_modelo` = **`"cru"`** nos 21 | `"nativo"` estava fora do enum `("transformado","cru")` que `export.py:292` valida — o writer MATLAB não valida e passava calado. ⟦**FECHADA em 7b6ac6e** (sessão DI09-R1c, fase final): a anotação anterior — 'só o MMF1 re-rodado, 1.050.000 linhas nativo' — foi resolvida; **verificado pela torre 2026-07-22: 0 linhas 'nativo' no repo inteiro**, e o teste permanente `test_espaco_modelo_dentro_do_enum` (D-15) trava regressão⟧ |
 
 ---
 
@@ -964,9 +974,10 @@ sem retrofit** (c238/e7/e74/e103 — sem sonda, sem análise de assertividade do
 **c217** (`sigma_dict=null` ⇒ a ③ é "leitura proibida" pela regra 3 do R4).
 
 ### DI-20.6 — OS 5 DEFEITOS QUE OS GATES NÃO PEGAM (os documentos os davam por resolvidos)
-1. **DI-19.8 incompleta** (🔴 medido pela torre): `espaco_modelo="nativo"` em **1.050.000 linhas**
-   (c141+c217 DTLZ2/ZDT1) — fora do enum; só o MMF1 foi re-rodado. Estoura na consolidação Python.
-2. **c217 sem `sigma_dict`** (🔴 medido): null nos 3 manifestos (b3 tem 2 chaves) — viola DEF-C4/regra 3.
+1. ⟦**FECHADO** pela sessão DI09-R1c (7b6ac6e) — 0 linhas 'nativo' restantes, verificado pela torre⟧
+   ~~DI-19.8 incompleta: `espaco_modelo="nativo"` em 1.050.000 linhas~~
+2. ⟦**FECHADO** pela mesma sessão — sigma_dict preenchido nos 3 manifestos do c217 e re-verificado
+   pela torre 2026-07-22 (2 chaves, como b3/b4)⟧ ~~c217 sem `sigma_dict`~~
 3. **Deriva de schema DENTRO do config**: no c238/e7/e74/e103 o MMF1 tem `fe_treino_max`+timing novo,
    DTLZ2/ZDT1 não — e onde a coluna existe é 100% NULL.
 4. **`timing` do manifesto NULL** nos 9 runs de c238/e7/e74 (parcial no e103) — o CONTRATO §4 o torna
@@ -993,6 +1004,66 @@ e o restante de infra/doc-sync.
 
 ---
 
+## PARTE A10 — DI-21: as 21 decisões RATIFICADAS pelo autor + aplicação pela torre (2026-07-22)
+
+**O ato.** O autor leu a consolidação DI-20.7 (`handoff/DI20-AUDITORIA-RETROFIT_DECISOES.md`) e
+**aprovou TODAS as recomendações em bloco** ("concordo com sua recomendacao nas 21 decisoes. pode
+aplicar"). Esta parte registra o que cada decisão virou — código, doc ou registro — e a prova.
+
+### DI-21.1 — Ratificações de FIDELIDADE (D97 — decisão do autor, agora cravada)
+| ref | decisão ratificada |
+|---|---|
+| **D-04/R-1** | `n_acumulado` de **c217 E b4 EM BLOCO** = nº de pontos no **TREINO** (não o arquivo) — os dois subamostradores alinhados; `arc_size` no jsonl preserva o tamanho do arquivo. Muda a ④ vs baseline; a ① ficou bit-a-bit (23 gates) |
+| **D-11** | e74: **um `SondaState` POR CABEÇA**, round-robin **k s1=6 / s2=3 / s3=12** (cada ciclo sonda 1 cabeça; cada cabeça a cada 3 ciclos) — como implementado; dado produzido: **71/71/71 blocos + 1 boot** no ZDT1, verificado pela torre no jsonl |
+| **D-20** | c149: rota **(c) TIMEBOX explícito**, definido e decidido **ANTES do M7** — "reconstruir o loop" é o maior risco de fidelidade do R3; descobrir na M8 é o pior mundo |
+| **D-19det#4** | **cache-hit D89 × arquivo crescente** (c122 §5.3): no cache-hit o arquivo **NÃO cresce**; ③ gravada com `real_solution_id` da preexistente + cap p/ hits consecutivos. **Propagado** aos checklists de c149 e e81 na SPEC (o hazard gêmeo) |
+
+### DI-21.2 — Código aplicado pela torre (com teste para cada)
+| ref | mudança | onde |
+|---|---|---|
+| **D-01** | `n_acumulado` NULLABLE na ④ + writer com o idioma da DI-13.2 | `export.py` |
+| **D-02** | `normalize_schema` + `cast_completo` + `concat_normalized` + `INT32_NULLABLE_COLS` — o cast canônico OBRIGATÓRIO da consolidação cross-stack | `export.py` |
+| **D-03** | `is_run_done` **bucket-aware** (`_bucket_has`, falha FECHADA: sem lib/rede ⇒ False) — a promessa da D58 cumprida; sem isto a VM re-executaria os 5 configs mais caros para sempre | `manifest.py` |
+| **D-06** | despachante repassa `data_root` ao runner (a mescla DI-13.1 achava o manifesto no root errado) + carimbo `paths.bucket` **CONDICIONAL** ao upload confirmado | `experiments.py` |
+| **D-07** | aborto por teto grava **manifesto `failed`** no sítio (padrão c122 replicado) + exceção `WallClockAbort` **não-retriável** no despachante (um teto de 8h não vira 24h) | `c262_qnehvi.py`, `c154_jes.py`, `experiments.py` |
+| **D-12** | os 5 OFFLINE (`OFFLINE_ALGS` = e103/b5r/b5m/c311/moead_media) exigem a **⑦** no `is_run_done`; `plan_targets(optional_layers=…)` planeja a ⑦ na rota única | `manifest.py`, `gcs.py` |
+| **D-15** | teste de CONTRATO permanente: varre os parquets REAIS do repo (normalização + enum + cast) — teria pego o "nativo" e o `n_acumulado` dos pisos antes de qualquer auditoria | `tests/test_di21_contrato.py` (19 testes) |
+| **D-16** | despachante desliga o **kernel fusionado** antes de despachar BoTorch (DEF-L2/DI-05 — estado POR PROCESSO; import lazy e tolerante) | `experiments.py` |
+| **B34** | `manifestBlock` do SondaState ganha o campo `regime` — **provado com o run-STUB MATLAB real** (regime=online, 4 blocos, asserts internos verdes, ① do stub intacta) | `SondaState.m` |
+| — | **Validadores PROMOVIDOS a permanentes** (2 sessões seguidas os reconstruíram no scratchpad): gate 1 não-perturbação + gate 2 auditoria da sonda/④/⑤/⑦. Provados: **53/53** baselines verdes; **16/16** runs de todos os tipos (MATLAB online, offline 2×20k, multi-cabeça, pisos, BoTorch, standalone) | `scripts/naoperturbacao.py`, `scripts/auditar.py` |
+
+### DI-21.3 — Dados corrigidos/completados
+- **⑦ do e103 GERADA nos 3 problemas** (`scripts/final_eval.py`; 42/158/188 ND pós-real) — o
+  endpoint oficial do offline EXISTE agora; era o achado A3/nota-4,0 da DI-20.
+- **Backfill derivado do c262/ZDT1 (D-10):** ④ com 623/623 `tempo_busca_s` (0 NULL; Σ=13.389 s ≈
+  89% do wall de 15.051 s), procedência `timing_backfill` no manifesto — o timing do run de ~4h
+  recuperado sem re-execução.
+
+### DI-21.4 — Doc-sync executado (as contradições ativas mortas)
+- **Fórmula da cadência NORMATIVA** (`g==1 OU mod(g,k)==0` ⇒ {1,2,4,6,…}) na SPEC §17.2.2 E no
+  CONTRATO §3.1 — a ambiguidade que gerou a divergência cross-stack não pode morder os 6 cartões
+  R3 restantes.
+- **DI-16.3 REESCRITA** (semântica A+ do autor) e **perna (ii) da DI-16.2 corrigida** — SPEC +
+  este registro.
+- **N.1.1 generalizada**: dtype = o que o repo do autor exige, registrado no manifesto (o c122
+  exige float32 — medido).
+- **Regra 2 do R4 GENERALIZADA por classe** (T-2: inclui `geracao`/`n_acumulado`/`fe_treino_max`)
+  com o mecanismo `normalize_schema` como obrigatório — CONTRATO §10.
+- `dist_min_arquivo` = espaço **NATIVO** (DI-19.4) + **NULL no offline** (D-08) — SPEC §S.7.1.
+- **D-09/T-8**: ④ do e103 = **1 linha** (a série é por RETREINO e o e103 tem um) — exceção
+  declarada; a curva por geração cabe no jsonl sem patch no stock.
+- e74 = **TRÊS cabeças round-robin** no CONTRATO §3.2 (dizia "as duas") + critério DI-12.1 do
+  patch read-only no §6.1.
+- Renumeração DI-17→DI-19 já registrada na PARTE A8; agenda sincronizada (D-21); INDEX atualizado.
+
+### DI-21.5 — Decisões REGISTRADAS sem ação imediata (com dono e prazo)
+| ref | o quê | quando |
+|---|---|---|
+| D-17 | endurecer o check de RNG do R2-00 (molde do R3-00) | cartão M7 |
+| D-18 | manter `load_sonda` duplicado (teste de equivalência protege); reavaliar se surgir 3ª cópia | M7 |
+| D-16c | VM da M8 SEM toolchain C++ (torna o kernel fusionado impossível por construção) | provisionamento M8 |
+| D-05 | ZDT1 de c238 (3h55) e e7 (72min) FORA do piloto — entram na bateria M8 normal | M8 |
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |
@@ -1011,35 +1082,20 @@ e o restante de infra/doc-sync.
 | RI-12 | 07-17 | **SPEC/bundles/params = TERRITÓRIO DA TORRE** | regra reforçada após a sessão pisos editar a SPEC (sancionada, mas o canal correto é pára-e-loga → torre executa) |
 
 ## Agenda de execução pendente deste registro
-1. **Janela documental (quando o c154 fechar):** DI-05 (S.3#9 + B5) + DI-08-1 (SPEC do `__final`) —
-   edições da SPEC + regen de bundles + diff auditado, pela torre.
-2. **Antes do R3:** DI-08-2/3/4 (naming + avaliador pós-hoc + check no accept + retroativo e103).
-3. **M7:** DI-06 (o mini-cartão de hardening com os 8 itens).
-4. **Dossiê/lote do autor:** DI-07b (o desalinhamento ~24,8% do e74 como ponto prioritário).
-4b. **🔴 DEFINIÇÕES EM ABERTO do retrofit-R1 — a torre deve levantá-las com o autor.**
-   Detalhadas em `handoff/DI09-retrofit-R1_RELATORIO-EXECUCAO.md` §5.
-   **Bloqueantes** (definição a CRIAR; travam o config indicado): **A-1** e103 — qual é o escalar
-   `margem_3sigma` (o mecanismo é booleano; não existe UM valor) · **A-2** e103 — com que `geracao`
-   carimbar os 2 blocos offline da sonda · **A-3** e74 — a RBF `s3` é treinada POR PONTO, então
-   quantos blocos por ciclo · **A-4** pisos — o assert `piso_com_surrogate` exige `trows` vazio, mas
-   o cartão exige ④ para os pisos.
-   **Ratificações** (já valendo em código, vetáveis): **B-1** `n_acumulado` do c217 · **B-2**
-   `fe_treino_max` sobre o TREINO (não monotônico em b4/c217/b1) · **B-3** dtype de
-   `real_solution_id` · **B-4** contiguidade do bloco de sonda · **B-5** escopo das checagens de
-   sonda no `accept.py`.
-5. **🔴 Doc-syncs da DI-12 (torre — território SPEC/CONTRATO, RI-12).** Os três primeiros existem
-   porque o texto normativo **admitia duas leituras** — foi essa ambiguidade que gerou a divergência
-   entre stacks; cravar a redação é o que impede a reincidência:
-   - **§17.2.2 + CONTRATO §3.1 — cadência:** cravar a fórmula `g = 1, 2, 4, 6, …` (DI-12.5), em vez
-     de só a prosa "a cada k=2 + SEMPRE a 1ª e a última".
-   - **§17.6 + CONTRATO §4 — `tempo_geracao_s`:** explicitar que **DESCONTA a sonda** (mede o custo
-     do algoritmo, não o do instrumento). Hoje diz só "wall TOTAL da geração".
-   - **§6.1 do CONTRATO — "patch invasivo":** registrar o critério da DI-12.1 (adição read-only que
-     só expõe valor já computado é permitida; o que barra é custo em hot-loop, não pureza).
-   - **§3.2 — e74:** a sonda mede as **três** RBFs (DI-12.3), não "μ RBF" no singular.
-6. **Ratificação do autor:** o `n_acumulado` do c217 (achado 1 da DI-12) — corrigido de `numel(Arc)`
-   para `size(TrainIn,1)`; muda a ④ do c217 vs a baseline.
-7. **Torre/R3-00 (faixa `.py`):** `scripts/accept.py` ganhar as checagens de sonda (contagem
-   S×blocos, ordem do artefato, `fe_treino_max ≤ fe`, presença do bloco `man.sonda`) — achado 5.
-8. **Continuação do cartão DI09-retrofit-R1:** os 7 configs restantes (b1, b4, e7, b3, e103, e74,
-   c238) + o pacote leve dos 4 pisos. Receita mecânica em `handoff/DI09-retrofit-R1.md` §4.
+*(⟦REESCRITA — DI-21/D-21, 2026-07-22⟧: a versão anterior listava 24 itens JÁ RESOLVIDOS —
+auditada item a item pela DI-20; o custo dessa dessincronia foi horas de re-verificação.
+Regra nova em vigor: ao cravar uma DI-N, riscar NA MESMA PASSADA os itens de handoff que ela
+fecha, citando o commit.)*
+
+1. **Julgamento de fidelidade do autor, EM LOTE (D97)** — os 13 configs MATLAB + c262/c154 + c122.
+   Insumos prontos: `DOSSIE_FIDELIDADE_R1.md` (item 1), as notas DI-20.4, os handoffs por cartão.
+   Inclui os pontos priorizados: DI-07b (desalinhamento ~24,8% do e74) e a armadilha do sentinela
+   `acc=1` p/ classe ausente (c122, handoff §achados).
+2. **M5 restante:** R3-b5 (b5r/b5m) → c311 (VM, envs isolados) — os cartões leem a fórmula da
+   cadência agora NORMATIVA e a regra do cache-hit×arquivo propagada (DI-21).
+3. **M6:** c149 (com o TIMEBOX da D-20 definido ANTES de abrir o cartão) → e81 → piso-off.
+4. **M7 (PORTÃO):** piloto §22.5 + o hardening restante: D-17 (endurecer o check de RNG do R2-00 —
+   molde do R3-00 pronto), sub-varN, decisões de custo D-2/D-3 do M7, revisitar D-18 (load_sonda).
+5. **Antes da M8:** ligar `enable_bucket` no despachante (o repasse de kwargs já está — D-06);
+   provisionar VM sem toolchain C++ (D-16c, SPEC:2764) e validar o `is_run_done` bucket-aware
+   (D-03) com credenciais reais.

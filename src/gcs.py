@@ -52,6 +52,7 @@ def is_bucket_only(alg: str, layer: str = "surrogate") -> bool:
 
 def plan_targets(exp: str, alg: str, problema: str, semente, *,
                  enable_bucket: bool = True,
+                 optional_layers: tuple = (),
                  data_root: str = naming.DEFAULT_DATA_ROOT) -> dict:
     """Decide, por artefato do run, ONDE ele mora — SEM tocar a rede.
 
@@ -64,8 +65,12 @@ def plan_targets(exp: str, alg: str, problema: str, semente, *,
       **bucket-only** (`local=None` na consolidação, mas escrita local-primeiro
       acontece e é podada após upload — ver `mirror_run`).
     """
+    # [D-12/DI-21] `optional_layers` entra na MESMA rota das obrigatórias — a ⑦
+    # `__final` dos 5 offline subia por um bloco paralelo improvisado no
+    # standalone (achado A9 da auditoria DI-20); agora o chamador passa
+    # `optional_layers=(naming.FINAL_LAYER,)` e a ⑦ é planejada como as demais.
     arts: dict[str, dict] = {}
-    for layer in naming.LAYERS:
+    for layer in naming.LAYERS + tuple(optional_layers):
         local = naming.layer_path(exp, alg, problema, semente, layer, data_root)
         fname = naming.layer_filename(exp, alg, problema, semente, layer)
         bonly = enable_bucket and is_bucket_only(alg, layer)

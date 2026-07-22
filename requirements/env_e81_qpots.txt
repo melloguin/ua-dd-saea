@@ -6,7 +6,9 @@
 # Provisionar no M6 (VM; no Mac arm64 verificar disponibilidade dos pins ANTES).
 # =====================================================================
 botorch==0.16.1       # ⚠ verificar wheel/plataforma no provisionamento (S.6)
-torch==2.12.0         # ⚠ verificar disponibilidade/versão; ajustar no piloto se necessário
+torch==2.11.0         # RE-PIN do autor (2026-07-22, DI-22): o 2.12.0 exige macOS>=14 (sem wheel
+                      # x86_64 nem sdist — verificado no PyPI); 2.11.0 = o MESMO torch do env_main
+                      # (c262/c154/c122 já rodam nele) e o botorch 0.16.1 só exige >=2.0.1.
 gpytorch==1.14.2
 numpy==2.2.6
 pymoo==0.6.1.6        # versão PRÓPRIA do e81 (≠ 0.6.2 do harness) — não misturar

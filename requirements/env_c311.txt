@@ -1,5 +1,6 @@
 # =====================================================================
-# env_c311  —  Python >=3.8,<3.10, VM LINUX  (INVIÁVEL no Mac arm64: numpy 1.20.2 sem wheel arm64)
+# env_c311  —  Python 3.8 EXATO (⚠ NÃO 3.9: o C do GPy 1.9.9 usa tp_print, removido no py3.9 —
+# vale na VM também). Mac via ROSETTA ✅ provisionado+validado 2026-07-22. Extra: Pillow<10.
 # Venv: /Users/gmello/Documents/python_venvs/env_c311   (na VM)
 # Algoritmo: c311 (TGPR-MO, offline)
 # REGRAS: NUNCA co-importar com env_b5 (D79/N.1.2); overlay desdeo_* root-first;
@@ -16,4 +17,5 @@ plotly-express==0.4.1
 matplotlib
 statsmodels
 pandas
+Pillow<10             # Pillow>=10 exige numpy>=1.21 (numpy.typing.NDArray); o pin é 1.20.2
 pyarrow               # ler DoE/dataset parquet + export

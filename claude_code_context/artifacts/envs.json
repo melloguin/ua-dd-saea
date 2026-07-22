@@ -23,20 +23,20 @@
    "env_e81_qpots": {
     "venv": "/Users/gmello/Documents/python_venvs/env_e81_qpots",
     "req": "requirements/env_e81_qpots.txt",
-    "mac": "verificar pins (torch 2.12/botorch 0.16.1) no provisionamento",
+    "mac": "✅ PROVISIONADO 2026-07-22 (arm64 NATIVO, py3.11.9; torch RE-PINADO 2.12.0→2.11.0 pelo autor/DI-22; fit+posterior e harness validados)",
     "vm": "a provisionar (M6)"
    },
    "env_b5": {
     "venv": "/Users/gmello/Documents/python_venvs/env_b5",
     "req": "requirements/env_b5.txt",
-    "mac": "INVIÁVEL (sklearn 0.21.3 sem wheel arm64)",
+    "mac": "✅ PROVISIONADO 2026-07-22 (Rosetta x86_64, py3.7.12 via micromamba osx-64; harness+export+sonda VALIDADOS) — rota (a) da nota_mac_vm_DI11, sem mudar pin nenhum",
     "vm": "DESTINO NATURAL (M5) ⟦v5.2.1: NÃO é automático — ver nota_mac_vm_DI11⟧",
     "nota_mac_vm_DI11": "[DI-11.5 · autor 2026-07-17/19] O plano vigente roda TUDO NO MAC até o M7 (a VM só entra no M8). Este env é INVIÁVEL no Mac arm64 com o pin atual ⇒ o CARTÃO decide, como TAREFA 0: (a) tentar pins VIZINHOS no Mac com validação de equivalência do GPR/stack (rota preferida), ou (b) exceção documentada rodando na VM. NÃO é 'destino natural VM' automático."
    },
    "env_c311": {
     "venv": "/Users/gmello/Documents/python_venvs/env_c311",
     "req": "requirements/env_c311.txt",
-    "mac": "INVIÁVEL (numpy 1.20.2 sem wheel arm64)",
+    "mac": "✅ PROVISIONADO 2026-07-22 (Rosetta x86_64, py3.8.20; GPy 1.9.9 COMPILADO do sdist — exige py3.8, NÃO 3.9; +Pillow<10; GPy treina/prediz e harness validados)",
     "vm": "DESTINO NATURAL (M5) ⟦v5.2.1: NÃO é automático — ver nota_mac_vm_DI11⟧",
     "nota_mac_vm_DI11": "[DI-11.5 · autor 2026-07-17/19] O plano vigente roda TUDO NO MAC até o M7 (a VM só entra no M8). Este env é INVIÁVEL no Mac arm64 com o pin atual ⇒ o CARTÃO decide, como TAREFA 0: (a) tentar pins VIZINHOS no Mac com validação de equivalência do GPR/stack (rota preferida), ou (b) exceção documentada rodando na VM. NÃO é 'destino natural VM' automático."
    },
@@ -65,7 +65,7 @@
    "python": "3.10/3.11",
    "key_pins": [
     "botorch==0.16.1",
-    "torch==2.12.0",
+    "torch==2.11.0 ⟦RE-PIN do autor 2026-07-22/DI-22 — 2.12.0 exige macOS>=14, sem wheel x86_64/sdist; 2.11.0 = o MESMO do env_main; botorch aceita >=2.0.1⟧",
     "gpytorch==1.14.2",
     "numpy==2.2.6",
     "pymoo==0.6.1.6"
@@ -119,7 +119,7 @@
   },
   "env_b5": {
    "stack": "python",
-   "python": "conforme wheels do sklearn 0.21.3 (x86; VM Linux)",
+   "python": "3.7 EXATO (cp37m — único com wheel do sklearn 0.21.3). PROVISIONADO no Mac 2026-07-22 via Rosetta x86_64 (micromamba osx-64) e VALIDADO: harness+export+sonda OK em py3.7; na VM Linux idem py3.7 (manylinux1 cp37)",
    "note": "venv PRÓPRIO (D79/N.1.2 — NUNCA co-importar com c311); overlay desdeo_* vendorizado root-first no sys.path",
    "key_pins": [
     "scikit-learn==0.21.3(S.2#12; se sem wheel p/ o py, a mais próxima COM validação de equivalência do GPR no piloto)",
@@ -140,7 +140,7 @@
   },
   "env_c311": {
    "stack": "python",
-   "python": ">=3.8,<3.10",
+   "python": "3.8 EXATO — ⚠ NÃO 3.9: o C pré-gerado do GPy 1.9.9 usa tp_print, removido no py3.9; build só fecha em 3.8 (provisionamento Mac 2026-07-22 — VALE NA VM TAMBÉM). Extra: Pillow<10. PROVISIONADO+VALIDADO no Mac via Rosetta x86_64",
    "note": "venv PRÓPRIO (D79/N.1.2); overlay desdeo_* root-first; NUNCA importar evaluate_population (dispara matlab.engine)",
    "key_pins": [
     "GPy~=1.9.9",

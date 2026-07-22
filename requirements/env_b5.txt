@@ -1,5 +1,6 @@
 # =====================================================================
-# env_b5  —  VM LINUX x86  (INVIÁVEL no Mac arm64: sklearn 0.21.3 não tem wheel arm64)
+# env_b5  —  py3.7 x86_64 (Mac via ROSETTA ✅ provisionado+validado 2026-07-22 · VM Linux idem)
+# (a nota antiga "INVIÁVEL no Mac" valia só p/ arm64 NATIVO; wheels x86_64 cp37m existem)
 # Venv: /Users/gmello/Documents/python_venvs/env_b5   (na VM)
 # Algoritmos: b5r, b5m (offline SA-MOEA) + moead_media (piso offline)
 # Python: conforme os wheels do sklearn 0.21.3 (x86).

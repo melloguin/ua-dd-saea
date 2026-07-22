@@ -1064,6 +1064,41 @@ aplicar"). Esta parte registra o que cada decisão virou — código, doc ou reg
 | D-16c | VM da M8 SEM toolchain C++ (torna o kernel fusionado impossível por construção) | provisionamento M8 |
 | D-05 | ZDT1 de c238 (3h55) e e7 (72min) FORA do piloto — entram na bateria M8 normal | M8 |
 
+## PARTE A11 — DI-22: provisionamento Mac dos 3 envs restantes + re-pin do e81 (autor, 2026-07-22)
+
+**A decisão do autor.** "Quero implementar tudo aqui no Mac com Claude Code; a VM só na hora de
+disparar os experimentos em massa." A torre verificou a viabilidade (PyPI pin a pin — ver
+`requirements/README.md`) e **PROVISIONOU + VALIDOU os 3 envs no Mac**, sem tocar a faixa da
+sessão R3-c149 (ativa durante a operação).
+
+### DI-22.1 — O RE-PIN do e81 (decisão D80 do autor)
+`torch==2.12.0` → **`torch==2.11.0`**. Motivo verificado: o wheel arm64 do 2.12.0 exige
+macOS≥14 (o pip deste Mac rejeita — medido), não existe wheel mac x86_64 nem sdist. O 2.11.0 é
+**o MESMO torch do env_main** (c262/c154/c122 já rodam nele; consistência até MELHORA) e o
+botorch 0.16.1 só exige ≥2.0.1. Aplicado em `requirements/env_e81_qpots.txt` + `envs.json`.
+⚠ A VM da bateria usa o MESMO requirements re-pinado.
+
+### DI-22.2 — Os 3 envs provisionados e PROVADOS (ferramenta: micromamba osx-64, sem sudo)
+| env | rota | prova executada |
+|---|---|---|
+| **env_b5** (b5r/b5m/piso-off) | **Rosetta x86_64, py3.7.12** — sklearn 0.21.3 + pandas 0.25.3 por wheel (a nota "inviável no Mac" valia só p/ arm64 nativo) | desdeo_* importam; **harness COMPLETO em py3.7**: 8 módulos importam, `write_timing` grava, `load_sonda` lê a fatia offline 20k |
+| **env_c311** | **Rosetta x86_64, py3.8.20** + GPy 1.9.9 **compilado do sdist** | GPy treina+prediz (GPRegression+RBF, var≥0); harness importa; sonda offline OK |
+| **env_e81_qpots** | **arm64 NATIVO, py3.11.9** (com o re-pin) | botorch 0.16.1 `fit_gpytorch_mll`+posterior OK; harness importa; sonda online OK |
+
+### DI-22.3 — As 2 lições que VALEM PARA A VM (registradas nos requirements)
+1. **env_c311 = Python 3.8 EXATO, nunca 3.9**: o C pré-gerado do GPy 1.9.9 usa `tp_print`
+   (removido no py3.9) — o build falha em 3.9 EM QUALQUER plataforma. Descoberto aqui; a VM
+   herdaria o mesmo erro.
+2. **`Pillow<10` no env_c311**: o Pillow moderno exige numpy≥1.21 (`numpy.typing.NDArray`) e o
+   pin é 1.20.2. Adicionado ao requirements.
+
+**Pendência deliberada (não é lacuna):** o pin do `desdeo-emo` segue DEFERIDO ao gate R3.2 —
+o cartão R3-b5 o crava com o autor (o overlay vendorizado root-first é o primário de qualquer
+forma). **Caveat de regime (§19):** os gates no Mac provam corretude/mecanismo; a numérica
+canônica da bateria Python sai da VM no M8.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

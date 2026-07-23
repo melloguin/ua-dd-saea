@@ -203,6 +203,18 @@ class BaseDecompositionEA(BaseEA):
         self.population.add(offspring, self.use_surrogates)
         selected = self._select()
         self.population.keep(selected)
+        # [R3-b5 / DI-16.16] Re-carimba o arquivo da geracao com a populacao
+        # POS-selecao (os sobreviventes). Population.add() arquivou a PROLE
+        # PRE-selecao em str(gen_count-1); sem isto a ⑦ (sobreviventes finais)
+        # nasce irreconstituivel da ③ (defeito 🔴 do R3-00). Invariante: a ③ da
+        # ultima geracao == a ⑦ (mesmo n, mesmo X float32). Afeta so ProbRVEA
+        # (ProbMOEAD sobrescreve _next_gen). ndarray.copy() = copia densa.
+        _gk = str(self.population.gen_count - 1)
+        self.population.individuals_archive[_gk] = self.population.individuals.copy()
+        self.population.objectives_archive[_gk] = self.population.objectives.copy()
+        self.population.uncertainty_archive[_gk] = (
+            None if self.population.uncertainity is None
+            else self.population.uncertainity.copy())
         self._current_gen_count += 1
         self._gen_count_in_curr_iteration += 1
         self._function_evaluation_count += offspring.shape[0]

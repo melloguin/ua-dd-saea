@@ -1560,6 +1560,154 @@ def check_r3_00(exp="off", problema="MMF1", semente=0, data_root=None):
     return results
 
 
+def check_r3_b5(alg, exp="off", problema="MMF1", semente=0, data_root=None):
+    """[R3-b5] Afere o run OFFLINE JÁ GRAVADO de b5r (mode 7 · Prob-RVEA_v3) ou
+    b5m (mode 72 · Prob-MOEA/D) — encanamento objetivo (D97: fidelidade é do
+    autor, a posteriori). ADITIVO: LÊ o que o runner persistiu, NÃO re-roda (o
+    run leva minutos). Contrato N.2 / regime offline:
+
+      1. as 6-7 camadas presentes (⑦ __final OBRIGATÓRIA — D-12/DI-21);
+      2. FE final = 31D−1 = |dataset| (D90); ① = o dataset bit-a-bit, fase `init`;
+      3. CP-init OFFLINE (x_hash **E** f_hash == sidecar) do manifesto;
+      4. ② VAZIA por construção é ACEITÁVEL (DI-16.17) — NÃO exigimos não-vazia;
+      5. ③ `regime` POR LINHA: sonda (S=20000, geracao NULL, fe_treino_max set) +
+         busca (geracao inteira, fe_treino_max=n_ds−1, real_solution_id NULL —
+         DI-16.17); espaco_modelo ∈ {cru}; μ_*/σ_* preenchidos (regressor prob.);
+      6. ④ ≥1 linha com tempo_fit_s NÃO-nulo (b5 NÃO é piso) + tempo_busca_s;
+      7. ⑤ manifesto: timing §17.6 + sigma_dict (DEF-C4) + sonda + regime offline
+         + status ok;
+      8. ⑦ presente e RECONSTITUÍVEL da ③ (última geração) — DI-16.16/DI-08.
+    """
+    import numpy as np
+    import pyarrow.parquet as pq
+    from src import experiment as _exp
+    from src import standalone_harness as _sh
+
+    if alg not in ("b5r", "b5m"):
+        return [("cartão R3-b5 só afere --alg=b5r|b5m", (False, f"alg={alg!r}"))]
+    results = []
+    semente = int(semente)
+    dr = data_root or os.path.join(ROOT, "data")
+
+    prob_obj = _exp._instantiate_problem(problema)
+    D, M = int(prob_obj.n_var), int(prob_obj.n_obj)
+    n_ds = maxfe(D)                                    # 31D−1
+
+    # (1) camadas presentes (⑦ é OBRIGATÓRIA no offline).
+    layers = {L: naming.layer_path(exp, alg, problema, semente, L, data_root=dr)
+              for L in ("real", "pop", "surrogate", "timing", "final")}
+    manp = naming.manifest_path(exp, alg, problema, semente, data_root=dr)
+    faltam = [L for L, p in layers.items() if not os.path.exists(p)]
+    if not os.path.exists(manp):
+        faltam.append("manifest")
+    if faltam:
+        return [("as 6-7 camadas presentes (rode o b5 ANTES do accept)",
+                 (False, f"faltam: {faltam} — pasta {os.path.dirname(manp)}"))]
+    results.append(("6-7 camadas presentes (①②③④⑤ + ⑦ __final — D-12)",
+                    (True, "todas presentes")))
+
+    man = json.load(open(manp, encoding="utf-8"))
+    ds = _sh.load_dataset(problema, semente, data_root=dr)
+
+    # (2) ① = dataset bit-exato + fase `init` + FE=31D−1.
+    real = pq.read_table(layers["real"])
+    Xr = np.column_stack([np.asarray(real.column(f"x{j}"), dtype=np.float64)
+                          for j in range(D)])
+    Fr = np.column_stack([np.asarray(real.column(f"f{j}"), dtype=np.float64)
+                          for j in range(M)])
+    bitex = (np.array_equal(Xr, ds["X"].astype(np.float32).astype(np.float64))
+             and np.array_equal(Fr, ds["F"].astype(np.float32).astype(np.float64)))
+    fases = set(real.column("fase").to_pylist())
+    results.append(("FE final = 31D−1 = |dataset| (D90) · ① = o dataset bit-a-bit "
+                    "(pós-cast float32) · fase toda `init`",
+                    (real.num_rows == n_ds and bitex and fases == {"init"},
+                     f"rows={real.num_rows} (esperado {n_ds}) bitex={bitex} "
+                     f"fases={sorted(fases)}")))
+
+    # (3) CP-init OFFLINE (o mais forte — X E F).
+    cpo = man.get("cp_init_offline") or {}
+    results.append(("CP-init OFFLINE: x_hash **E** f_hash == sidecar do dataset (D90)",
+                    (cpo.get("x_hash") == ds["x_hash"]
+                     and cpo.get("f_hash") == ds["f_hash"],
+                     f"x={str(cpo.get('x_hash'))[:12]}… f={str(cpo.get('f_hash'))[:12]}…")))
+
+    # (4) ② VAZIA é ACEITÁVEL (DI-16.17) — NÃO exigimos não-vazia.
+    pop = pq.read_table(layers["pop"])
+    results.append(("② membership: schema válido; VAZIA por construção é "
+                    "ACEITÁVEL (DI-16.17 — init LHS ≠ dataset)",
+                    (set(pop.schema.names) >= {"algoritmo", "problema",
+                     "semente", "geracao", "solution_id"},
+                     f"rows={pop.num_rows} (vazia OK)")))
+
+    # (5) ③ regime POR LINHA (sonda × busca).
+    surr = pq.read_table(layers["surrogate"])
+    reg = surr.column("regime").to_pylist()
+    ger = surr.column("geracao").to_pylist()
+    ftm = surr.column("fe_treino_max").to_pylist()
+    esp = set(v for v in surr.column("espaco_modelo").to_pylist()
+              if v not in (None, ""))
+    rsid = surr.column("real_solution_id").to_pylist()
+    idx_s = [i for i, r in enumerate(reg) if r == "sonda"]
+    idx_b = [i for i, r in enumerate(reg) if r == "offline"]
+    sonda_art = _sh.load_sonda(problema, regime="offline", data_root=dr)
+    ok_sonda = (len(idx_s) == sonda_art["S"]
+                and all(ger[i] is None for i in idx_s)
+                and all(ftm[i] is not None for i in idx_s))
+    results.append(("③ sonda OFFLINE: S=20000 · geracao NULL (DI-13.5) · "
+                    "fe_treino_max sem nulo",
+                    (ok_sonda, f"n_sonda={len(idx_s)} (esperado {sonda_art['S']}) "
+                     f"geracao_all_null={all(ger[i] is None for i in idx_s)}")))
+    gb = [ger[i] for i in idx_b]
+    ok_busca = (len(idx_b) > 0
+                and all(g is not None for g in gb)
+                and all(int(ftm[i]) == n_ds - 1 for i in idx_b)
+                and all(rsid[i] is None for i in idx_b)
+                and esp <= {"cru"})
+    results.append(("③ busca: geracao inteira · fe_treino_max=n_ds−1 · "
+                    "real_solution_id NULL (② vazia — DI-16.17) · espaco_modelo∈{cru}",
+                    (ok_busca, f"n_busca={len(idx_b)} "
+                     f"ger∈[{min(gb)}..{max(gb)}] espaco={esp} "
+                     f"rsid_all_null={all(rsid[i] is None for i in idx_b)}")))
+    mucols = [c for c in surr.schema.names if c.startswith("mu_")]
+    sgcols = [c for c in surr.schema.names if c.startswith("sigma_")]
+    ok_musg = (len(mucols) == M and len(sgcols) == M and bool(idx_b)
+               and all(surr.column(c)[idx_b[0]].as_py() is not None
+                       for c in mucols + sgcols))
+    results.append(("③ regressor probabilístico: μ_* E σ_* preenchidos (M cada)",
+                    (ok_musg, f"mu_*={len(mucols)} sigma_*={len(sgcols)} M={M}")))
+
+    # (6) ④ timing — b5 NÃO é piso ⇒ tempo_fit_s NÃO-nulo.
+    tim = pq.read_table(layers["timing"])
+    tfit = tim.column("tempo_fit_s").to_pylist()
+    tbus = tim.column("tempo_busca_s").to_pylist()
+    results.append(("④ timing: ≥1 linha · tempo_fit_s NÃO-nulo (b5 não é piso) · "
+                    "tempo_busca_s preenchido",
+                    (tim.num_rows >= 1 and all(v is not None for v in tfit)
+                     and all(v is not None for v in tbus),
+                     f"rows={tim.num_rows} tempo_fit_s={[round(v, 3) for v in tfit if v is not None]} "
+                     f"tempo_busca_s={[round(v, 2) for v in tbus if v is not None]}")))
+
+    # (7) ⑤ manifesto.
+    tb = man.get("timing") or {}
+    results.append(("⑤ manifesto: timing §17.6 + sigma_dict (DEF-C4) + sonda + "
+                    "regime offline + status ok",
+                    (all(tb.get(k) is not None for k in
+                         ("tempo_total_s", "tempo_fit_surrogate_s",
+                          "tempo_busca_s", "tempo_aval_real_s"))
+                     and bool(man.get("sigma_dict")) and bool(man.get("sonda"))
+                     and man.get("regime") == "offline"
+                     and man.get("status") == "ok",
+                     f"sigma_dict={bool(man.get('sigma_dict'))} "
+                     f"sonda={bool(man.get('sonda'))} regime={man.get('regime')} "
+                     f"status={man.get('status')}")))
+
+    # (8) ⑦ reconstituível da ③ (o invariante DI-16.16 — delega ao final_eval).
+    results.append(("⑦ __final presente e RECONSTITUÍVEL da ③ (última geração) — "
+                    "DI-16.16/DI-08",
+                    _check_final_layer(exp, alg, problema, semente, dr)))
+    return results
+
+
 def _check_export_schema_r3(exp, alg, problema, semente, D, M, data_root):
     """Como `_check_export_schema`, mas sem exigir a coexistência μ+classe na
     ③ (aquilo é do STUB do F0-03/R2-00; os configs offline da R3 são
@@ -2049,6 +2197,33 @@ def main():
             sys.exit(2)
         results = check_r3_e81(exp=a.exp, problema=a.problema,
                                semente=int(a.semente))
+        fail = False
+        for name, (ok, msg) in results:
+            mark = "SKIP" if ok is None else ("OK  " if ok else "FAIL")
+            print(f"  [{mark}] {name}: {msg}")
+            if ok is False:
+                fail = True
+        print("\n  >>> " + ("VERMELHO — pára-e-loga (D81)" if fail
+                            else "VERDE (encanamento objetivo)"))
+        print("  Lembrete (D97): a fidelidade é validação MANUAL do autor, "
+              "a posteriori — não entra aqui.")
+        sys.exit(1 if fail else 0)
+
+    # [R3-b5] Prob-RVEA (b5r, mode 7) / Prob-MOEA/D (b5m, mode 72), OFFLINE.
+    # ⚠ TEM de vir ANTES do catch-all abaixo (mesma armadilha do R3-00: o
+    # `or not a.alg` engoliria e devolveria o VERDE do andaime F0-01). Afere o
+    # run JÁ GRAVADO (o runner roda por minutos — o accept não re-executa).
+    if a.cartao.startswith("R3-b5"):
+        if a.alg not in ("b5r", "b5m"):
+            print(f"  [FAIL] cartão R3-b5 só afere --alg=b5r|b5m: {a.alg!r}")
+            sys.exit(2)
+        # b5 é OFFLINE: o token canônico do regime é `off` (idem R3-00).
+        exp_b5 = a.exp if a.exp != "main" else "off"
+        if a.exp == "main":
+            print(f"  [INFO] exp remapeado {a.exp!r} → {exp_b5!r}: b5 é offline "
+                  "(o run vive em off/{b5r,b5m}/).")
+        results = check_r3_b5(a.alg, exp=exp_b5, problema=a.problema,
+                              semente=int(a.semente))
         fail = False
         for name, (ok, msg) in results:
             mark = "SKIP" if ok is None else ("OK  " if ok else "FAIL")

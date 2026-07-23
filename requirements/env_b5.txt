@@ -10,10 +10,28 @@ scikit-learn==0.21.3  # S.2#12. Se não houver wheel p/ o Python-alvo, usar a MA
                       #          COM validação de equivalência do GPR no piloto (parar-e-perguntar).
 desdeo-problem==0.14.0
 desdeo-tools==0.2.6
-desdeo-emo==<PIN A CRAVAR NO GATE R3.2>   # deferimento intencional — cravar no gate R3.2 (M5)
+# desdeo-emo: VENDORED — SEM pacote pip. Cravado no gate R3.2 (cartão R3-b5, autor
+# delegou à recomendação). Fonte única = algorithms/b5_Prob-RVEA/desdeo_emo (overlay
+# root-first no sys.path; a SurrogateKriging de kernel fixo vive no desdeo_problem
+# vendorizado). Travado por content-hash (preflight -> repos.lock b5_desdeo). NÃO instalar via pip.
 statsmodels
 matplotlib
 pyDOE
-pandas
+pandas==1.3.5         # [R3-b5 2026-07-23] SUBIDO de 0.25.3 -> 1.3.5 (autor cravou). O 0.25.3 QUEBRA o
+                      # DataProblem do desdeo (pd.DataFrame(columns=,index=[0]) é bug do pandas 0.25,
+                      # corrigido no 1.0). O desdeo NÃO pina pandas (a nota "forçado pelo desdeo" era
+                      # incorreta); 1.3.5 é o último de py3.7, instala sobre numpy 1.21.6, e o harness
+                      # escreve parquet 100% via pyarrow -> ZERO mudança de byte de saída. Vale p/ c311/moead_media.
 numpy                 # compatível com sklearn 0.21.3
 pyarrow               # ler DoE/dataset parquet + export
+plotly==4.14.3        # [R3-b5] desdeo_emo.othertools.plotlyanimate (import-time) — mesma versão do env_c311.
+graphviz              # [R3-b5] desdeo_emo.surrogatemodelling.BioGP (import-time) — env_c311 tem 0.20.x.
+# pygmo: NÃO instalado — é force-importado por desdeo_emo.EAs.__init__ (NSGAIII/PPGA) e selection.__init__
+#        (NSGAIII_select), mas o caminho b5 (ProbRVEA_v3/ProbMOEAD) NUNCA o usa. Dep pesada (Boost),
+#        ausente até no env_c311. O runner b5_prob.py insere um STUB minimo (só fast_non_dominated_sorting,
+#        nunca chamado) em sys.modules antes de importar o vendorizado. [R3-b5/env — ver handoff]
+pymoo==0.6.1.2        # [R3-b5 2026-07-23] finais ⑦ + filtro ND via src/problems.py NO runner offline
+                      # (gap de provisionamento fechado — autor delegou; era o "pymoo antigo" do R3-00
+                      # REPASSE). py3.7: exige shim `typing.Literal=typing_extensions.Literal` ANTES de
+                      # importar src.problems (o NDS loader do pymoo importa typing.Literal, py3.8+); o
+                      # runner b5_prob.py aplica. Roda puro-python (sem Cython) = só velocidade, finais são pequenos.

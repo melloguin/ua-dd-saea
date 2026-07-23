@@ -151,8 +151,11 @@ _DISPATCH_LOADERS: dict[str, tuple[str, str, str]] = {
     # com o env-main): o despachante resolve por `envs.json:alg_to_env` e
     # roda em subprocess (D79/N.2).
     'e81':           ('src.e81_qpots',       'run_e81',  'standalone'),
-    # 'b5r':         ('src.b5_prob',         'run_b5r',  'standalone'),
-    # 'b5m':         ('src.b5_prob',         'run_b5m',  'standalone'),
+    # [R3-b5] Prob-RVEA (b5r, mode 7) / Prob-MOEA/D (b5m, mode 72), OFFLINE. env
+    # PRÓPRIO `env_b5` (sklearn 0.21.3, desdeo VENDORIZADO root-first) — subprocess
+    # por venv (D79/N.2); NUNCA co-importar com c311 (N.1.2).
+    'b5r':           ('src.b5_prob',         'run_b5r',  'standalone'),
+    'b5m':           ('src.b5_prob',         'run_b5m',  'standalone'),
     # 'c311':        ('src.c311_tgprmo',     'run_c311', 'standalone'),
     # 'moead_media': ('src.piso_offline',    'run_piso_offline', 'standalone'),
 }

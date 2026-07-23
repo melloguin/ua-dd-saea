@@ -44,11 +44,24 @@ CONDA_SUBDIR=osx-64 micromamba create -y -p /Users/gmello/Documents/python_venvs
     -c conda-forge python=3.7 pip          # VM Linux: omitir CONDA_SUBDIR (linux-64 nativo)
 /Users/gmello/Documents/python_venvs/env_b5/bin/python -m pip install \
     "scikit-learn==0.21.3" "desdeo-problem==0.14.0" "desdeo-tools==0.2.6" \
-    statsmodels matplotlib pyDOE pandas numpy pyarrow
+    statsmodels matplotlib pyDOE "pandas==1.3.5" numpy pyarrow \
+    "pymoo==0.6.1.2" "plotly==4.14.3" graphviz
+# pygmo: NÃO instalar (force-import de NSGAIII/PPGA no desdeo_emo, mas b5 nunca os usa;
+#        dep pesada Boost, ausente até no env_c311). O runner b5_prob.py stuba em sys.modules.
 ```
-- ⚠ `desdeo-emo`: pin **DEFERIDO ao gate R3.2** (cartão R3-b5 crava com o autor); o primário é o
-  `desdeo_*` VENDORIZADO em `algorithms/b5_Prob-RVEA/` (root-first no sys.path).
-- Resolvidos validados: pandas 0.25.3 (forçado pelo desdeo), numpy 1.21.6, pyarrow 12.0.1 (lock).
+- ⚠ `desdeo-emo`: **CRAVADO no gate R3.2 (cartão R3-b5, autor delegou) = VENDORED, SEM pacote pip.**
+  Fonte única = `algorithms/b5_Prob-RVEA/desdeo_emo` (overlay root-first no sys.path; a SurrogateKriging
+  de kernel fixo mora no `desdeo_problem` vendorizado). Travado por content-hash (`b5_desdeo` no repos.lock).
+- ⚠ `pymoo==0.6.1.2` **[R3-b5 2026-07-23]**: os finais ⑦ e o filtro ND são avaliados via `src/problems.py`
+  DENTRO do runner offline (env_b5) — o env não o tinha (gap; o R3-00 REPASSE já assumia "pymoo antigo"
+  em env_b5). Instalado com constraints (o core validado NÃO se moveu). **py3.7:** o runner aplica o shim
+  `typing.Literal = typing_extensions.Literal` ANTES de importar `src.problems` (o NDS loader do pymoo
+  importa `typing.Literal`, que só existe em py3.8+). Roda puro-python (sem Cython) — só velocidade; os
+  conjuntos finais são pequenos. Vale igual p/ c311/moead_media (env_b5-família).
+- Prova de aceitação ⑦: `MPLBACKEND=Agg <env>/bin/python -c "import typing,typing_extensions; typing.Literal=getattr(typing,'Literal',typing_extensions.Literal); from src import problems as P, standalone_harness as H; import numpy as np; P._nds_filter(P.evaluate_problem(H._instantiate('DTLZ2'), np.random.rand(8,12)))"`.
+- Resolvidos validados: **pandas 1.3.5** (⚠ [R3-b5 2026-07-23] SUBIDO de 0.25.3 pelo autor — o 0.25.3
+  QUEBRA o `DataProblem` do desdeo; o desdeo NÃO pina pandas, então "forçado pelo desdeo" era incorreto;
+  o harness escreve parquet 100% via pyarrow ⇒ a saída não muda), numpy 1.21.6, pyarrow 12.0.1 (lock).
 - Prova de aceitação: `<env>/bin/python -c "import sklearn, desdeo_problem; from src.standalone_harness import load_sonda; load_sonda('MMF1', regime='offline')"` (na raiz do repo).
 
 ## 3. env_c311 — py **3.8 EXATO** x86_64 (c311/TGPR-MO) — OFFLINE

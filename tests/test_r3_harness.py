@@ -541,21 +541,27 @@ class TestRegressoesRevisao(unittest.TestCase):
             sh._OVERLAY_SEEN.clear()
 
     def test_experiment_run_roteia_venv_only_para_subprocesso(self):
-        """Prova do ROTEAMENTO sem provisionar env_b5: o roteamento tem de
-        acontecer ANTES do despacho in-process — aqui ele falha por
-        interpretador ausente, e é justamente isso que mostra que passou pelo
-        caminho do venv em vez de importar b5 neste processo."""
+        """Prova do ROTEAMENTO: um alg venv-only tem de ir p/ o subprocesso ANTES
+        do despacho in-process — o FILHO re-importa `experiment` e não consegue
+        resolver um alg AINDA-NÃO-REGISTRADO no dict do módulo, e é justamente essa
+        falha que mostra que passou pelo caminho do venv (não importou in-process).
+
+        [R3-b5] O cobaia mudou de `b5r` p/ `moead_media`: ao fechar o cartão R3-b5,
+        `b5r`/`b5m` foram REGISTRADOS em `_DISPATCH_LOADERS` (descomentados), então
+        o filho passaria a RODAR b5r de verdade (env_b5 provisionado) em vez de
+        falhar. `moead_media` segue comentado (cartão próprio) — o stand-in de
+        'venv-only ainda não registrado'. (NÃO usar `c311`: sessão concorrente.)"""
         from src import experiment, standalone_harness as sh
-        experiment._DISPATCH_LOADERS["b5r"] = (
+        experiment._DISPATCH_LOADERS["moead_media"] = (
             "src.standalone_harness", "run_stubr3", "standalone")
         try:
             with self.assertRaises((FileNotFoundError, RuntimeError)) as cm:
-                experiment.run("b5r", "MMF1", 0, exp="off")
+                experiment.run("moead_media", "MMF1", 0, exp="off")
             self.assertNotIsInstance(cm.exception, NotImplementedError)
         finally:
-            experiment._DISPATCH_LOADERS.pop("b5r", None)
-            experiment.ALGORITHM_DISPATCH.pop("b5r", None)
-        self.assertIn("b5r", sh.VENV_ONLY_ALGS)
+            experiment._DISPATCH_LOADERS.pop("moead_media", None)
+            experiment.ALGORITHM_DISPATCH.pop("moead_media", None)
+        self.assertIn("moead_media", sh.VENV_ONLY_ALGS)
 
     def test_in_child_corta_a_recursao_do_roteamento(self):
         """O bootstrap do filho reentra em `experiment.run`; sem `_in_child` o

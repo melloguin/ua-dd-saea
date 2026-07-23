@@ -63,16 +63,22 @@ class ProbMOEAD_select(SelectionBase):
         values_SF_offspring = self._evaluate_SF(offspring_population, current_reference_vectors, ideal_point_matrix, pwrong_offspring, theta_adaptive_matrix)
 
         ##### KDE here and then compute probability
-        pwrong_current.pdf_list = {}
-        pwrong_current.ecdf_list = {}
-        pwrong_offspring.pdf_list = {}
-        pwrong_offspring.ecdf_list = {}
-        values_SF_offspring_temp = np.asarray([values_SF_offspring])
-        values_SF_current_temp = np.asarray([values_SF_current])
-        pwrong_offspring.compute_pdf(values_SF_offspring_temp.reshape(num_neighbors,1,n_samples))
-        pwrong_current.compute_pdf(values_SF_current_temp.reshape(num_neighbors,1,n_samples))
-        #pwrong_offspring.plt_density(values_SF_offspring.reshape(20,1,n_samples))
-        pwrong_current.plt_density(values_SF_current_temp.reshape(20,1,n_samples))
+        # [R3-b5 / anchor b5-mode72-kde] Bloco KDE MORTO + plt_density CRASHY
+        # comentado. As linhas 66-73 computavam pdf/ecdf que a decisao (linha
+        # abaixo, compute_probability_wrong_MC) NUNCA usa; a linha 75
+        # (plt_density) salva um PDF por vizinho sob usetex e da reshape(20,...)
+        # -> ValueError se n_neighbors != 20 (aqui, e sempre, e 20, mas o custo
+        # de I/O em 40k FE inviabiliza a busca). A decisao usa MC (mode 72).
+        # pwrong_current.pdf_list = {}
+        # pwrong_current.ecdf_list = {}
+        # pwrong_offspring.pdf_list = {}
+        # pwrong_offspring.ecdf_list = {}
+        # values_SF_offspring_temp = np.asarray([values_SF_offspring])
+        # values_SF_current_temp = np.asarray([values_SF_current])
+        # pwrong_offspring.compute_pdf(values_SF_offspring_temp.reshape(num_neighbors,1,n_samples))
+        # pwrong_current.compute_pdf(values_SF_current_temp.reshape(num_neighbors,1,n_samples))
+        # #pwrong_offspring.plt_density(values_SF_offspring.reshape(20,1,n_samples))
+        # pwrong_current.plt_density(values_SF_current_temp.reshape(20,1,n_samples))
         probabilities = np.zeros(num_neighbors)
         for i in range(num_neighbors):
             # cheaper MC samples comparison

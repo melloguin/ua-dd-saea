@@ -182,10 +182,20 @@
    "repo": "b5_desdeo",
    "file": "desdeo_emo/selection/ProbMOEAD_select.py",
    "line": 66,
-   "expect_before": "<inicio do bloco KDE morto (gaussian_kde/plt_density) — literal a CONCRETIZAR no cartao R3-b5 apos inspecionar o arquivo real (precedente b3-updataarchive-guard/c238-hypervolume-rm)>",
-   "expect_after": "<bloco :66-75 comentado — literal a CONCRETIZAR no cartao>",
+   "expect_before": "        pwrong_current.pdf_list = {}",
+   "expect_after": "[R3-b5 / anchor b5-mode72-kde] Bloco KDE MORTO",
    "kind": "[IMPL] crash",
-   "nota": "[H1/DI-16.20] o cartao diz ':66-75' e a ancora dizia ':65' (off-by-one). Reconciliado p/ 66; os literais sao CONCRETIZADOS pela sessao (o repo b5 nao esta montado nesta arvore) e sinalizados p/ veto do autor."
+   "nota": "[R3-b5/H1/DI-16.20] literal concretizado pela sessao contra a arvore montada (off-by-one :65->66 reconciliado). Comenta o bloco :66-75 (KDE morto :66-73 + plt_density CRASHY :75, que salva PDF por vizinho sob usetex e reshape(20,...)); a decisao mode 72 usa compute_probability_wrong_MC (linha 79). Sinalizado p/ veto do autor."
+  },
+  {
+   "id": "b5-mode7-archive",
+   "repo": "b5_desdeo",
+   "file": "desdeo_emo/EAs/BaseEA.py",
+   "line": 206,
+   "expect_before": "        self.population.keep(selected)\n        self._current_gen_count += 1",
+   "expect_after": "self.population.individuals_archive[_gk] = self.population.individuals.copy()",
+   "kind": "[IMPL] gate-🔴 (DI-16.16)",
+   "nota": "[R3-b5/DI-16.16] mini-patch pos-keep() em BaseDecompositionEA._next_gen: re-carimba o arquivo da geracao com a populacao POS-selecao (sobreviventes). Sem ele a ⑦ do mode 7 (ProbRVEA) nasce irreconstituivel da ③ (prole pre-selecao — defeito 🔴 do R3-00). Afeta so ProbRVEA; ProbMOEAD sobrescreve _next_gen. Sinalizado p/ veto do autor."
   }
  ]
 }

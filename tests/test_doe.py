@@ -107,7 +107,10 @@ class TestDoE(unittest.TestCase):
         self.assertEqual(shared["problema_id"], doe.PROBLEMA_ID)
         self.assertEqual(shared["tier_id"], doe.TIER_ID)
         self.assertEqual(shared["dist_id"], doe.DIST_ID)
-        self.assertEqual(len(sj["alg_id"]), 22)
+        # 23 = os 22 configs de bateria + sobol_batch=22 (piso do batch q=10,
+        # DI-33 — antecipado do M10 p/ a rodada-42).
+        self.assertEqual(len(sj["alg_id"]), 23)
+        self.assertEqual(sj["alg_id"]["sobol_batch"], 22)
 
 
 if __name__ == "__main__":

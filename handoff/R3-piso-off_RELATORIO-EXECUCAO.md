@@ -133,4 +133,60 @@ sem falha na faixa da sessão c311 concorrente.
 | ZDT1  | 929 | 112.4 s | fit domina (GP O(n³), 929 pts) |
 
 `tempo_fit_s` REAL gravado na ④ (1 linha/run) — o piso offline TREINA (DI-16.1);
-contrasta com os 4 pisos ONLINE (`tempo_fit_s`=NULL, sem modelo).
+contrasta com os 4 pisos ONLINE (`tempo_fit_s`=NULL, sem modelo). ZDT1: fit=49.7 s
+(GP em 929 pts domina) vs busca=55.2 s; MMF1 fit=0.13 s.
+
+---
+
+## 5. FASE B — WIRING (2026-07-23, mesma sessão; torre liberou)
+
+**5.1 dispatch** — `src/experiment.py:163` descomentado:
+`'moead_media': ('src.piso_offline','run_piso_offline','standalone')`. Já estavam
+prontos: `VENV_ONLY_ALGS ∋ moead_media` (standalone_harness:87) e
+`alg_to_env.moead_media = env_b5` (envs.json:266). Nada em `requirements/**`.
+
+**5.2 accept** — `scripts/accept.py::check_r3_piso_off` (molde `check_r3_b5`) + bloco
+CLI `R3-piso-off` antes do catch-all F0-01. Deltas do piso conferidos: σ_* NULL em
+TODA a ③, μ_* preenchido, N=lattice b5m (50/105), ④=1 linha tempo_fit_s real.
+```
+$ENV_MAIN scripts/accept.py R3-piso-off --alg moead_media --problema <P> --semente 0 --exp off
+→ MMF1 VERDE · DTLZ2 VERDE · ZDT1 VERDE   (11 checks OK cada; exit 0)
+```
+Exemplo (MMF1): "③ piso 'b5 sem σ': μ_*=2 (sem nulo) · σ_*=2 (todos NULL)" · "N(pop
+última ger 801)=50 esperado=50 (M=2)" · "④ 1 linha tempo_fit_s=[0.127]".
+
+**5.3 e2e do dispatch** (precedente c311-B):
+```
+$ENV_MAIN -c "from src import experiment; experiment.run('moead_media','MMF1',0,exp='off')"
+→ DISPATCH_RESULT: {... n_final:50, mode:12, executavel_filho:.../env_b5/bin/python,
+   pin_filho:OMP/OPENBLAS/MKL/NUMEXPR=1}   (status ok)
+→ ⑦ sha256 ANTES(direto)==DEPOIS(dispatch) = 1131114f… → BIT-IDÊNTICA ✓
+→ ③ sha256 idêntica ✓
+```
+
+**5.4 teste compartilhado atualizado** — `tests/test_r3_harness.py::
+test_experiment_run_roteia_venv_only_para_subprocesso`: a cobaia `moead_media`
+("venv-only não-registrado") esgotou com o dispatch ligado; reescrito p/ forçar
+interpretador inexistente (prova o roteamento via `FileNotFoundError` no spawn, sem
+rodar o piso). Ver REPASSE §B7.
+
+**5.5 revisão adversarial (workflow próprio) — 2 achados MINOR corrigidos:**
+- F1: `sigma_dict['sigma_*']` reafirmava "mesmo GP, mesmo μ" (contradizia `modelo`,
+  DI-28). Reescrito → "MESMA ESPECIFICAÇÃO, treino independente".
+- F2: teste da ④ não guardava DI-13.10. Asserções adicionadas.
+- Pilotos ×3 RE-RODADOS (manifesto c/ sigma_dict corrigido): resultados IDÊNTICOS
+  (fe/n_ger/n_final/n_nd) · ⑦ byte-inalterada.
+
+**5.6 fechamento:**
+```
+$ENV_B5  PISO_SLOW=1 -m unittest tests.test_piso_off      → Ran 12 · OK (gates 3/4/5)
+$ENV_MAIN -m unittest discover -s tests                   → Ran 321 · OK (skipped=22)
+$ENV_MAIN scripts/preflight.py                            → exit 0
+```
+
+**Matriz final (Fase B):**
+| config | accept | e2e dispatch | ⑦ bit-idêntica |
+|---|---|---|---|
+| MMF1  | 🟢 | 🟢 (env_b5 subprocess) | 🟢 `1131114f…` |
+| DTLZ2 | 🟢 | — | — |
+| ZDT1  | 🟢 | — | — |

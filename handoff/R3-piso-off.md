@@ -33,9 +33,10 @@ probabilística). É **"o b5 sem σ"**.
 
 ## 2. Decisões cravadas / herdadas (o autor delegou; ver REPASSE p/ ratificações)
 1. **σ NULL na ③ (busca E sonda)** — DI-16.1 (`sigma_* NULL`) + CONTRATO §3.2
-   (`mu_* preenchido; sigma_* NULL`). O piso reporta SÓ μ. ⚠ a linha OUTPUTS do
+   (`mu_* preenchido; sigma_* NULL`). O piso reporta SÓ μ. A linha OUTPUTS do
    cartão dizia "σ = desvio do GPR" (resíduo copiado do sigma_dict do b5) —
-   sobreposta por DI-16.1 (5 fontes × 1). Ratificação no REPASSE.
+   sobreposta por DI-16.1. **CONFIRMADO PELA TORRE (2026-07-23): contradição do
+   prompt resolvida por PRECEDÊNCIA — definitivo, sem re-trabalho.**
 2. **Mode 12 = `MOEA_D` de `desdeo_emo.EAs.ProbMOEAD`** (PBI + `MOEAD_select`,
    arquiva ind/obj/unc por geração). ⚠ há um SEGUNDO `MOEA_D` em
    `desdeo_emo/EAs/MOEAD.py:22` (default TCH, `_next_gen` NÃO arquiva) — a
@@ -121,11 +122,33 @@ NUNCA `git push` · NUNCA `git add -A` · não toquei em `experiment.py`, `accep
 `[R3-piso-off]` só da Fase A: `src/piso_offline.py`, `tests/test_piso_off.py`,
 `handoff/R3-piso-off*.md`.
 
-## 8. Fase B (NÃO iniciada — aguarda comando do autor)
-- Descomentar o dispatch `experiment.py:163`
-  (`'moead_media': ('src.piso_offline','run_piso_offline','standalone')`).
-- Suíte COMPLETA de fechamento + preflight + `accept.py` (gate objetivo FE/saídas/
-  CP-init) nos 3 pilotos + o piso-off "piso-off" do §11.
-- Ratificar as definições em aberto do REPASSE.
+## 8. Fase B — WIRING (COMPLETA · 2026-07-23, mesma sessão, torre liberou)
+- **`experiment.py:163`** — dispatch `moead_media → run_piso_offline` DESCOMENTADO
+  (`_DISPATCH_LOADERS`). `VENV_ONLY_ALGS`/`alg_to_env` já continham moead_media.
+- **`scripts/accept.py`** — `check_r3_piso_off` ADITIVO (molde `check_r3_b5`, com
+  os deltas do piso: σ_* NULL em TODA a ③ · ④ 1 linha tempo_fit_s real · N =
+  lattice b5m 50/105) + bloco de dispatch do cartão `R3-piso-off` antes do
+  catch-all F0-01. **accept R3-piso-off ×3 (MMF1/DTLZ2/ZDT1) = VERDE.**
+- **`requirements/**`** — NADA mudado (não instalei nada; env_b5 intocado).
+- **e2e do dispatch:** `experiment.run('moead_media','MMF1',0,exp='off')` → subprocesso
+  `env_b5` (executavel_filho confirmado, threads pinadas) → status ok · **⑦ BYTE-
+  IDÊNTICA** ao piloto direto (sha256 `1131114f…`).
+- **`tests/test_r3_harness.py`** — 1 teste ATUALIZADO (necessário): o
+  `test_experiment_run_roteia_venv_only_para_subprocesso` usava `moead_media` como
+  cobaia "venv-only não-registrado"; com o dispatch ligado essa cobaia se esgota
+  (os 4 venv-only estão TODOS registrados). Reescrito para forçar um INTERPRETADOR
+  inexistente ⇒ prova o roteamento (FileNotFoundError no spawn, nunca
+  NotImplementedError) SEM rodar o piso. Ver REPASSE §B7.
+- **Fechamento:** suíte COMPLETA env-main **Ran 321 · OK (skipped=22)** · preflight
+  **exit 0** · accept ×3 VERDE.
 
-**FASE A COMPLETA — aguardo o comando de Fase B.**
+## 9. Revisão adversarial (workflow próprio) — 2 achados MINOR corrigidos
+- **F1 (piso_offline.py sigma_dict):** o campo `sigma_*` reafirmava "mesmo GP, mesmo
+  μ" — contradição com o campo `modelo` (DI-28: treino INDEPENDENTE, nunca idêntico;
+  alg_id 21≠18 semeia RNGs distintos ⇒ μ não byte-igual). Reescrito p/ "MESMA
+  ESPECIFICAÇÃO, treino independente; μ da mesma especificação, não presumido-igual".
+- **F2 (test_piso_off ④):** o teste não guardava a DI-13.10 (`tempo_geracao_s` EXCLUI
+  a sonda) nem `n_acumulado=n_ds`. Adicionadas as asserções (geracao == fit+busca;
+  sonda separada > 0; n_acumulado == n_dataset). Pilotos re-rodados; tudo VERDE.
+
+**CARTÃO FECHADO — com este cartão, os 21/21 configs do estudo estão implementados.**

@@ -24,7 +24,11 @@ que deixei em aberto para o autor ratificar** (D81 — não escolhi fidelidade s
 
 ## B. DEFINIÇÕES EM ABERTO — pedem ratificação do autor
 
-### B1. 🟠 σ do piso: **NULL** (implementado) × "desvio do GPR" (frase do cartão)
+### B1. ✅ RESOLVIDO (torre, 2026-07-23) — σ do piso = **NULL**, definitivo
+> **A torre confirmou:** a resolução por PRECEDÊNCIA está correta e é DEFINITIVA
+> (DI-16.1 + CONTRATO §3.2 governam; a frase "σ = desvio do GPR" era ruído de
+> herança do molde b5). Registrado como "contradição do prompt resolvida por
+> precedência, confirmada pela torre". Sem re-trabalho. (Detalhe abaixo, p/ registro.)
 - **Conflito interno do cartão.** A epígrafe (i) e a linha OUTPUTS do MEU cartão
   dizem *"③ … σ = desvio do GPR — NUNCA variância"*. Isso é **cópia literal** do
   `sigma_dict` do b5 (`b5_prob.py:189`) e **contradiz** a decisão que o próprio
@@ -83,14 +87,37 @@ que deixei em aberto para o autor ratificar** (D81 — não escolhi fidelidade s
 
 ---
 
-## C. Fase B (NÃO iniciada — aguarda comando do autor)
-1. Descomentar `experiment.py:163` (dispatch `moead_media → run_piso_offline`).
-2. `accept.py` (gate objetivo) + suíte COMPLETA de fechamento + preflight nos 3
-   pilotos e no "piso-off" do §11.
-3. Aplicar as ratificações de B1–B3.
-4. (Torre) avaliar se o shim pyarrow / o final_eval merecem tratamento central.
+### B7. 🟡 `tests/test_r3_harness.py` — 1 teste ATUALIZADO (necessário na Fase B)
+- O `test_experiment_run_roteia_venv_only_para_subprocesso` usava `moead_media`
+  como cobaia de "venv-only AINDA-NÃO-registrado" (o docstring documenta a migração
+  anterior `b5r → moead_media`). Ao ligar o dispatch de `moead_media` (Fase B), essa
+  cobaia se ESGOTA — os 4 venv-only (b5r/b5m/moead_media/c311) estão TODOS
+  registrados agora.
+- **O que fiz:** reescrevi a prova para forçar um INTERPRETADOR inexistente ⇒ `run()`
+  roteia p/ o subprocesso (venv-only) e `run_in_venv` falha com `FileNotFoundError`
+  no spawn (jamais `NotImplementedError`, que só o despacho in-process daria). Prova
+  o roteamento IGUAL, sem rodar o piso (~40s) e sem cobaia não-registrada.
+- **Peço ciência:** foi a única mudança num teste COMPARTILHADO — exigida para a
+  suíte fechar em `Ran 321, OK` (critério de fechamento da torre). Alternativa se a
+  torre preferir: mover a prova para um alg sintético + monkeypatch de
+  `VENV_ONLY_ALGS` (mais verboso; o `FileNotFoundError` de interpretador é o caminho
+  mais limpo e já usado por `test_run_in_venv_com_interpreter_preserva`).
 
-Nenhum arquivo COMPARTILHADO tocado; nenhum vendored editado; `git push`/`add -A`
-não usados; `data/experiments/` é gitignored (outputs locais).
+### B8. 🟢 Revisão adversarial própria — 2 achados MINOR corrigidos (informativo)
+- **F1:** `sigma_dict['sigma_*']` reafirmava "mesmo GP, mesmo μ" (contradizia o campo
+  `modelo`, ratificado DI-28: treino INDEPENDENTE, nunca idêntico). Reescrito.
+- **F2:** o teste da ④ não guardava a DI-13.10 (`tempo_geracao_s` EXCLUI a sonda).
+  Asserções adicionadas. Pilotos re-rodados; ⑦ inalterada (byte-idêntica).
 
-**FASE A COMPLETA — aguardo o comando de Fase B.**
+## C. Fase B — WIRING (COMPLETA, 2026-07-23)
+1. ✅ `experiment.py:163` descomentado (dispatch `moead_media → run_piso_offline`).
+2. ✅ `accept.py::check_r3_piso_off` + bloco CLI do cartão — accept ×3 VERDE.
+3. ✅ e2e: `experiment.run(...)` → subprocesso env_b5 → status ok · ⑦ byte-idêntica.
+4. ✅ Fechamento: suíte COMPLETA env-main `Ran 321 · OK` · preflight `exit 0`.
+5. ✅ B1 (σ NULL) confirmado pela torre; B2/B3/B4/B5/B6 seguem p/ ciência/ratificação.
+
+Nenhum vendored editado; `requirements/**` intocado; `git push`/`add -A` não usados;
+`data/experiments/` é gitignored (outputs locais). Único teste compartilhado tocado:
+`test_r3_harness.py` (B7, necessário).
+
+**CARTÃO FECHADO — com este cartão, os 21/21 configs do estudo estão implementados.**

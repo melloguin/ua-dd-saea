@@ -343,6 +343,21 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
   MMF1 inverte (rico). check_r3_c311 endurecido (contador contíguo + ambas as fases).
   Ver REGISTRO PARTE A17; decisões DI-30 (B2/B3/D97-b5m) na mesa do autor.
 
+### 2026-07-23 (noite) — AUDITORIA EXAUSTIVA DE FECHAMENTO (DI-31): implementação 100% fechada
+- **Workflow `fechamento-implementacao-21de21`**: 9 auditores Opus (todos os 22 configs + infra +
+  gates + artefatos + prontidão M7/M8 + integridade de dados) + verificação adversarial (32/32
+  procedem). Veredito: **a implementação dos ALGORITMOS está 100% fechada** — infra-core "sem bug
+  latente"; runners impecáveis. O "aberto" NÃO é algoritmo: é lançamento/gate (torre corrigiu) +
+  build de bateria M7/M8 + o D97 do autor.
+- **Torre corrigiu (commit `c9c52f2`):** 🔴 bug de bateria M9 (`experiments.py` rejeitava
+  b5r/b5m/moead_media — token-fantasma 'b5'; agora roster DERIVADO dos loaders, drift-proof +
+  teste-guard); roster de `experiments.m` sem os 4 pisos online; endurecimento de gate portado da
+  DI-29 aos gêmeos b5/piso (contiguidade 1..N + μ/σ em toda a busca) + guard `min([])` nos 3 checks
+  online; órfão off/c122 removido. accept 12/12 · suíte **325 OK** · preflight 0.
+- **Inventário definitivo no REGISTRO PARTE A19 (DI-31):** ~35 itens rastreados, maioria já fechada;
+  o que resta são 6 cartões de build torre (portao.py, enable_bucket, driver ⑦ offline, doc-sync
+  SPEC/bundles, hardening M7, sobol_batch/M10) + 7 decisões do autor (A1-A7, com A1=lote D97 a chave).
+
 ## 4. Ambientes (estado real)
 - **Mac** (arm64, macOS 12.5.1): MATLAB R2025a (R1 + Fase 0 + pilotos) + os venvs Python. Grava local.
 - **VM Vertex** `v5-mestrado` (Debian 12, us-central1-a, micromamba+pyenv): R2/R3 + análise. Grava local

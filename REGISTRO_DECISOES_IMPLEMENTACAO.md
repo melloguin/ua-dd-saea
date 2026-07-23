@@ -1379,6 +1379,87 @@ sobrou antes do M7 — os achados confirmados dela entram como DI-31.
 
 ---
 
+## PARTE A19 — DI-31: AUDITORIA EXAUSTIVA DE FECHAMENTO (o inventário definitivo) (2026-07-23)
+
+**Gatilho.** O autor pediu o fechamento DEFINITIVO: uma última validação exaustiva dos 21/22
+configs + repo inteiro, caçando QUALQUER decisão/correção/melhoria/pendência antes das baterias.
+Workflow `fechamento-implementacao-21de21`: **9 auditores Opus** (decisões consolidadas · 13 MATLAB ·
+5 Python online · 4 Python offline · infra transversal · maquinaria de gates · artefatos · prontidão
+M7/M8 · integridade de dados) + **verificação adversarial por achado** (32 verificações, **32/32
+procedem, 0 refutadas** — auditores disciplinados). Notas de confiança por fatia: python-online 9 ·
+dados-integridade 8,5 · python-offline 8,5 · artefatos 8 · matlab-r1 8 · gates 7 · decisões 7,5 ·
+m7-m8-readiness 5,5. **Infra-core: "sem bug latente ou resíduo; 193 testes OK; fixes DI-26/27/29
+coerentes".**
+
+**VEREDITO CENTRAL: a implementação dos ALGORITMOS está 100% fechada.** Os 22 runners de config
+(9 Python + 13 MATLAB) estão impecáveis — nenhum defeito de algoritmo, nenhuma fidelidade
+auto-decidida. O que a auditoria achou de "aberto" **não é implementação de algoritmo**: são
+(a) 4 defeitos no ESTRATO DE LANÇAMENTO/GATE que a torre já corrigiu, (b) cartões de build da
+bateria (M7/M8), e (c) o julgamento D97 do autor.
+
+### FECHADO nesta rodada pela torre (commit `c9c52f2`)
+1. **🔴 Bug de bateria M9 — `experiments.py` rejeitava b5r/b5m/moead_media.** `KNOWN_ALGORITHMS`
+   era literal com o token-fantasma `'b5'` (chaves reais = b5r/b5m) e SEM moead_media ⇒ o parse do
+   CLI (`bad_alg`) REJEITAVA os 3 offline ⇒ a bateria M9 era irrodável. Agora DERIVADO de
+   `_DISPATCH_LOADERS` (drift-proof) + `DEFAULT` coerente com exp=main (só online). Teste-guard
+   `tests/test_roster_bateria.py` (4) trava a regressão.
+2. **Roster de `experiments.m` sem os 4 pisos ONLINE** ⇒ a M8 os pularia em silêncio. Adicionados
+   nsga2/nsga3/moead/smsemoa ao default.
+3. **Endurecimento de gate portado (DI-29 só cobrira o c311):** contiguidade `geracao` 1..N nos
+   gêmeos `check_r3_b5` e `check_r3_piso_off` (antes min-só ⇒ buraco de geração passava VERDE);
+   μ_*/σ_* conferidos em TODA a ③-busca no b5/c311/piso (antes só `idx_b[0]` = cobertura ilusória
+   na dimensão-linha); guard `default='∅'` nos min/max dos 3 checks online (c149/e81/c122) contra
+   crash com fe_treino_max todo-nulo.
+4. **Órfão removido:** `data/experiments/off/c122` (failed stub pré-c122, config fora do grid).
+Re-validado: accept **12/12 offline VERDE**, suíte **325 OK** (+4), preflight exit 0.
+
+### CONFIRMADO já-fechado (a auditoria rastreou ~35 itens; a maioria estava fechada)
+As 21 decisões da DI-20 → ratificadas (DI-21) e aplicadas com teste; R-1/D-04, D-11 (round-robin
+e74 k=6/3/12), T-2, T-8 (④ e103), DEF-C4, DEF-N4 (c149 FICA), kernel-e81, desempate-c149, B34,
+c262 DI-03/04/05, c154 DI-11, c122 DI-21.4, c149 DI-23/25, e81 DI-24/25, piso B1/B2/B3 (DI-30),
+b5r modo-7 v3 (DI-28), c311 D1-D3 (DI-28), b5m/DTLZ2 (DI-30). Os 4 "blockers de código" da M8
+existem e estão certos: D-06 repasse data_root, D-03/D-12 is_run_done bucket-aware + ⑦ offline,
+D-16 fused-kernel off. repos.lock re-lacrado sem .pyc (DI-27) bate byte-a-byte.
+
+### RESTA — CARTÕES DE BUILD DA BATERIA (torre; NÃO é implementação de algoritmo)
+Estes são o M7 (portão) e o provisionamento M8 — sempre foram desta fase, não da implementação:
+- **T1** Driver de portão `scripts/portao.py` (roteia accept+auditar+final_eval+naoperturbacao por
+  run sobre o grid de ~19.950) — hoje o `experiments.py` grava mas não gateia. Pré-M8.
+- **T2** `enable_bucket` no despachante (flag CLI + repasse ao `_adapter.run`; D-06 itens 4/6) — a VM
+  efêmera gravaria só local sem isso. Pré-M8 (validar com credenciais reais = provisionamento).
+- **T3** Driver de lote da ⑦ offline (varre os runs offline → `final_eval --check`) + `is_run_done_m`
+  MATLAB cobrar a camada final do e103. Pré-M9.
+- **T4** **doc-sync SPEC→bundles** (RI-12 destravado): header "N interno=100" stale do cartão do piso
+  (→ lattice 50/105, D65 v5.2.1); clarificar §6.1 que moead_media segue linha "b5" (DI-30.B3);
+  comentário `e74_sonda.m:33` "sujeita a ratificação" → RATIFICADA DI-21.1; reconciliar D88 "21" vs
+  §1.5 "22 configs"; CONTRATO §7 origem_linha → par (origem_geracao, origem_linha); texto stale
+  `abertas_torre`/`modelo_hp` nos sigma_dict de c311/piso (propaga a todo manifesto). Rodar
+  `gen_bundles.py` + auditar o diff. **É a próxima ação da torre.**
+- **T5** Portar o probe mecânico de RNG do R3-00 ao gate R2-00 (D-17); teste e2e de aborto/resume;
+  smoke de sonda no ZDT1 de c238/e7/c262 (fatias que nunca rodaram sonda@D=30). Cartão M7.
+- **T6** `sobol_batch` runner + qmaximin + plumbing q=10 + alg_id no seeds.json — cartão M10
+  (sub-estudo batch; a M8/M9 principal q=1 NÃO depende).
+
+### RESTA — DECISÕES DO AUTOR (a torre recomenda; só você ratifica)
+- **A1 🔑 Lote D97 de FIDELIDADE (os 22 configs)** — a decisão central e o item 1 da AGENDA;
+  pré-M7 (para não re-rodar). Insumos prontos no `DOSSIE_FIDELIDADE_R1.md`. Torre recomenda:
+  fechar ANTES do M8 (segurança contra re-execução); sinalizações viram D81.
+- **A2** sub-varN: N=20 dos pisos online é DEFINITIVO ou roda a varredura D65 {10,20,30,50}? Torre:
+  N=20 definitivo (justificado §3.2), varredura como sub-estudo M11 opcional.
+- **A3** D-2/D-3: teto/orçamento por config e se o ZDT1 do c154 (~121 dias-core) entra na bateria.
+  Decidir no M7 com os walls medidos.
+- **A4** Provisionamento da VM/bucket (D80): construir a VM Linux (sem toolchain C++, D-16c) dos
+  locks + validar gcs com credenciais reais. É o pré-requisito físico do M7-lado-VM e do M8.
+- **A5** Política de `teto_s` do c311 nas baterias (O(n³) do GPy em n grande sob Rosetta).
+- **A6** Escopo do experimento `batch` (sobol_batch, q=10) no M8/M10.
+- **A7** Timing do dossiê itens 3/4/5 (auditoria 9→10, disparo forçado de guardas, smoke semente 42):
+  torre entrega o insumo; autor decide rodar antes do M8 ou em paralelo às baterias.
+
+Achados baixa (doc-drift cosmético, e2e-test gaps, σ≈0 degenerado do obj-0 linear do ZDT1 =
+robustez da CAMADA DE ANÁLISE não dos dados, e103 smoke sob `main/`) consolidados no dossiê/T4/T5.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

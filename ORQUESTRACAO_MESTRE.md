@@ -117,8 +117,12 @@ M5 ✅ COMPLETO: R3-00 · c122 · b5r/b5m · c311 (Fase A+B) · gate R3.2 desdeo
 M6 ✅ COMPLETO: c149 (DI-23) · e81 (DI-24, 9/10) · piso-off (2026-07-23, ablação D77 APROVADA 9/10)
    → 🏁 21/21 CONFIGS IMPLEMENTADOS — validação do marco = DI-29 (suíte 321 · accept 15/15 ·
      auditar+final_eval 24/24 · workflow 8 agentes, ZERO achado média+; REGISTRO A17)
-M7 piloto timing (BLOQUEANTE) .............. ⬜ ← PRÓXIMO (pré: DI-30 do autor + doc-sync SPEC/
-   bundles + lote D97 + hardening [D-17·abort e2e·dossiê 3/4/5·pisos no roster·enable_bucket])
+🏁 IMPLEMENTAÇÃO 100% FECHADA (auditoria exaustiva DI-31, 2026-07-23; 9 auditores + adversarial)
+M7 piloto timing (BLOQUEANTE) .............. ⬜ ← PRÓXIMO. Pré-requisitos consolidados (REGISTRO A19):
+   TORRE build: T1 portao.py · T2 enable_bucket · T3 driver ⑦-offline · T4 doc-sync SPEC/bundles
+     (PRÓXIMA AÇÃO) · T5 hardening (D-17 RNG, abort e2e, smoke sonda ZDT1 c238/e7/c262) · T6 M10
+   AUTOR: A1 lote D97 (chave) · A2 sub-varN · A3 D-2/D-3 custo · A4 provisionar VM/bucket ·
+     A5 teto c311 · A6 escopo batch · A7 timing dossiê 3/4/5
 M8 bateria ONLINE (12.750) ................. ⬜
 M9 bateria OFFLINE (3.750) ................. ⬜
 M10 SUB-batch .............................. ⬜

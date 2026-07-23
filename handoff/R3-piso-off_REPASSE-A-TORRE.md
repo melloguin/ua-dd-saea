@@ -24,6 +24,12 @@ que deixei em aberto para o autor ratificar** (D81 — não escolhi fidelidade s
 
 ## B. DEFINIÇÕES EM ABERTO — pedem ratificação do autor
 
+> ### ⚠⚠ TORRE CENTRAL: LEVANTAR COM O AUTOR ⚠⚠
+> **B2 e B3 são DECISÕES do autor ainda em aberto** (não são falhas de gate — o
+> cartão fecha VERDE com os defaults consistentes-com-b5 que adotei). A torre
+> central DEVE apresentá-las ao autor para decisão. **B7** pede ciência (1 teste
+> COMPARTILHADO alterado). B1/B8 resolvidos; B4/B5/B6 informativos.
+
 ### B1. ✅ RESOLVIDO (torre, 2026-07-23) — σ do piso = **NULL**, definitivo
 > **A torre confirmou:** a resolução por PRECEDÊNCIA está correta e é DEFINITIVA
 > (DI-16.1 + CONTRATO §3.2 governam; a frase "σ = desvio do GPR" era ruído de

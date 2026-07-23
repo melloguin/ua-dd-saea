@@ -189,16 +189,36 @@ precedência, confirmada pela torre'. Nenhum re-trabalho."* → **REGISTRADO.**
 
 ## 6. DEFINIÇÕES EM ABERTO / CIÊNCIA PARA O AUTOR
 
-| # | Item | Status |
-|---|---|---|
-| B1 | σ do piso = NULL | ✅ **RESOLVIDO** pela torre (precedência) |
-| B2 | `modelo_hp` = NULL offline (D-08) vs "grava modelo_hp" (DI-16.1) | 🟠 ratificar (segui o molde b5; o VALOR é NULL por HP fixos) |
-| B3 | ⑥/HEADER: enriquecimento "pisos" da CONTRATO §6.1 (ideal/nadir por geração; vetores de decomposição no header) NÃO adicionado — segui o molde "b5" (config surrogate) | 🟡 o piso segue a linha "pisos" ou a linha "b5"? |
-| B4 | shim pyarrow do b5 OMITIDO (doe.py já DI-26-safe) | 🟢 ciência |
-| B5 | `final_eval` roda no env_main (py3.11 tem `typing.Literal`) | 🟢 ciência |
-| B6 | seed pela convenção D62 (idêntico ao b5, já ratificado) | 🟢 ciência |
-| B7 | `test_r3_harness.py` — 1 teste compartilhado atualizado (cobaia esgotada) | 🟡 ciência (necessário p/ suíte 321 OK) |
-| B8 | 2 achados MINOR da revisão adversarial | ✅ corrigidos |
+> ### ⚠⚠ AÇÃO REQUERIDA DA TORRE CENTRAL ⚠⚠
+> **Os itens B2 e B3 abaixo são DECISÕES DO AUTOR ainda em aberto.** Nenhum é falha
+> de gate (o cartão fecha VERDE com os defaults que escolhi), mas ambos são escolhas
+> semânticas/de contrato onde adotei o default consistente-com-b5 e o autor pode
+> querer diferente. **A torre central DEVE levantar B2 e B3 com o autor para
+> decisão** antes de considerar o cartão 100% ratificado. B7 pede CIÊNCIA (teste
+> compartilhado alterado). B1/B8 já resolvidos; B4/B5/B6 são só informativos.
+
+| # | Item | Status | Precisa do autor? |
+|---|---|---|---|
+| **B2** | `modelo_hp` = NULL offline (D-08 "HP fixos, treino único") **vs** "grava modelo_hp" (DI-16.1). Segui o molde b5 (NULL) p/ manter a ablação simétrica ao b5m; o VALOR é NULL por HP fixos. | 🟠 **ABERTO** | **SIM — ratificar** |
+| **B3** | ⑥/HEADER: o `moead_media` é ao mesmo tempo "um piso" e "um config surrogate da família b5". A CONTRATO §6.1 tem uma linha "pisos" (pede ideal/nadir por geração + vetores de decomposição no HEADER) e uma linha "b5" (pede pesos no header + p_wrong). Segui a linha **"b5"** (⑥ = `minimo_comum_di10`); NÃO adicionei o enriquecimento "pisos". | 🟡 **ABERTO** | **SIM — decidir qual linha** |
+| B1 | σ do piso = NULL | ✅ RESOLVIDO (torre, precedência) | não |
+| B7 | `test_r3_harness.py` — 1 teste COMPARTILHADO atualizado (cobaia venv-only esgotou ao ligar o dispatch) | 🟡 ciência | ciência (opcional decidir se prefere outra abordagem) |
+| B4 | shim pyarrow do b5 OMITIDO (doe.py já DI-26-safe) | 🟢 ciência | não |
+| B5 | `final_eval` roda no env_main (py3.11 tem `typing.Literal`) | 🟢 ciência | não |
+| B6 | seed pela convenção D62 (idêntico ao b5, já ratificado) | 🟢 ciência | não |
+| B8 | 2 achados MINOR da revisão adversarial | ✅ corrigidos | não |
+
+**Detalhe de B2 (para a decisão):** o GP (SurrogateKriging) OTIMIZA os HP do kernel
+no fit único (n_restarts=9), então HP AJUSTADOS existem. O molde b5/D-08 grava
+`modelo_hp=NULL` porque não há RE-treino/tuning por geração. Alternativa se o autor
+quiser: logar os HP ajustados 1× no HEADER (read-only, não perturba) — mas isso
+desviaria do b5m e criaria uma assimetria na ablação. **Recomendação:** manter NULL.
+
+**Detalhe de B3 (para a decisão):** adicionar a linha "pisos" seria read-only e
+não-perturbador (ideal/nadir = max/min por objetivo da pop arquivada por geração;
+vetores = `evolver.reference_vectors` no header). **Recomendação:** como a análise do
+piso é a do PAR de ablação (piso×b5m), a linha "b5" mantém o ⑥ estruturalmente
+idêntico ao b5m — mas é decisão do autor porque a §6.1 lista o piso sob "pisos".
 
 ---
 

@@ -1263,6 +1263,40 @@ local `geracao=NULL` como padrão da família offline vs fix central no `emit_so
 
 ---
 
+## PARTE A16 — DI-28: as 7 ratificações do autor pós-paralelo, APLICADAS (2026-07-23)
+
+O autor ratificou EM BLOCO as 7 recomendações da torre (PARTE A15, "EM ABERTO"). Efeitos:
+1. **D97 modo 7 (b5r): `Prob_APD_select_v3` É a variante do estudo.** A aproximação média-MC
+   (declarada no sigma_dict) fica; `v1` não será usada. Vira caveat de análise na dissertação
+   (mesmo padrão do caveat c217/δ=0,8). Nota de comportamento b5r mantida (7).
+2. **Pins do env_b5 RATIFICADOS:** pandas 1.3.5 · pymoo 0.6.1.2 (+shim `typing.Literal` py3.7) ·
+   plotly 4.14.3 · graphviz · **pygmo permanece STUB** (nunca instanciado pelos modes 7/72/12;
+   NÃO instalar). PROVISIONAMENTO §2 + env_b5.txt + lock já refletem (sessão b5); nada a mudar.
+3. **pyDOE: o GANCHO runner-local é DEFINITIVO** (b5 + c311 + futuros da família desdeo). SEM
+   re-pin do pyDOE antigo. Semântica ratificada: LHS via RandomState global semeado = réplica
+   do pyDOE clássico, reprodutível da semente. A pendência §2.2 do repasse c311 está FECHADA —
+   a Fase B NÃO materializa patch nem mexe em env (instrução no comando de Fase B). O piso-off
+   HERDA o gancho do molde b5 (obrigatório).
+4. **Semeadura por convenção D62 RATIFICADA como implementada:** b5 usos 1/2 (random/numpy
+   derivados) · c311 uso 0 (mesmo s nos 2 RNGs) — ambas válidas e documentadas por config;
+   o literal do cartão (`np.random.seed(s)` cru) NÃO é exigido.
+5. **④ RATIFICADA:** b5 = 1 linha (motor caixa-preta); c311 = 1 linha/retreino de construção
+   (C311-09). Satisfaz a §17.6 ("por geração/retreino") para os dois.
+6. **`geracao=NULL` da sonda offline: o carimbo LOCAL pós-`emit_sonda_block` é o padrão
+   CANÔNICO da família offline** (precedente c149→b5→c311; o piso-off herda). Fix central no
+   `emit_sonda_block` = opcional, fila do M7 (não bloqueia nada).
+7. **`uso_id` do c311 = `_default`/0 RATIFICADO** (sem RNG concorrente do harness). seeds.json
+   INALTERADO de propósito (o `_default` cobre; não se edita artefato consumido com sessões
+   em voo).
+
+Nenhuma mudança de CÓDIGO decorre das 7 (tudo já implementado como ratificado). Mudanças de
+DOC: esta PARTE + PROVISIONAMENTO (pyDOE "ratificado") + dossiê (notas b5r/b5m/c311 + decisão
+modo-7) + PROGRESSO/ORQUESTRACAO/memória. SPEC/bundles: sync adiado (RI-12 — sessões em voo).
+Impacto nos prompts em voo: 1 cláusula da Fase B do c311 atualizada (gancho lhs DEFINITIVO,
+pendência fechada) + 1 linha informativa no prompt do piso-off (não re-levantar o já decidido).
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

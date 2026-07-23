@@ -32,7 +32,8 @@ MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1`; MATLAB: `maxNumCompThreads(1)` (o harn
 exporte antes). ⚠ **Drift do pyDOE**: os pyDOE novos (ex.: 0.9.1) ignoram `np.random.seed` no
 `lhs(seed=None)` — a pop inicial do RVEA/DESDEO vira não-reprodutível. Os runners corrigem em
 RUNTIME (gancho/injeção do RandomState global semeado — `src/b5_prob.py` e `src/c311_tgprmo.py`);
-qualquer runner novo da família DEVE herdar o mesmo fix (pendente de ratificação do autor).
+qualquer runner novo da família DEVE herdar o mesmo fix (**RATIFICADO pelo autor — DI-28.3:
+o gancho é DEFINITIVO; NÃO re-pinar o pyDOE antigo**).
 
 ## 1. env_main — py 3.11.9 arm64 (c262 · c154 · c122 · c149 + harness/despachante/métrica)
 ```bash

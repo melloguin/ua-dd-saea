@@ -416,9 +416,10 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
 - **Próximo (5 passos, 2026-07-23):** (1) disparar **c311-Fase-B** (comando à sessão pausada; inclui
   o fix OBRIGATÓRIO do nd_pos_real float64 — REGISTRO A15) **∥ piso-off-Fase-A** (sessão nova,
   prompt 2-fases; arquivos próprios apenas); (2) torre VALIDA os 2 retornos (forense + gates +
-  workflow adversarial) e libera a Fase B do piso-off; (3) **lote de ratificações do autor** (7 itens
-  do REGISTRO A15: D97 modo-7 v3/v1, pins env_b5, pyDOE, semeadura, ④, geracao=NULL, uso_id) + SPEC/
-  bundles sincronizados pela torre (SÓ com nenhuma sessão aberta); (4) itens 3/4/5 do dossiê de
+  workflow adversarial) e libera a Fase B do piso-off; (3) ✅ **as 7 ratificações APLICADAS (DI-28,
+  2026-07-23)** — modo-7=v3 · pins env_b5 (pygmo=STUB) · gancho pyDOE DEFINITIVO · semeadura D62 ·
+  ④ · carimbo geracao=NULL canônico · uso_id c311=0; resta o sync SPEC/bundles (SÓ com nenhuma
+  sessão aberta) + o D97 offline em lote; (4) itens 3/4/5 do dossiê de
   fidelidade (auditoria 9→10, guardas forçadas, smoke semente 42) + preparação do M7 (D-17 RNG,
   abort e2e, qmaximin); (5) **M7 (PORTÃO) piloto de timing** → provisionamento VM/bucket (M8).
 - **Como uma instância nova assume:** leia este PROGRESSO + `CONTRATO_DE_DADOS.md` (obrigatório) +

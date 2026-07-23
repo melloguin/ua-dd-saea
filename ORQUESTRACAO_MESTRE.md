@@ -116,7 +116,7 @@ M4 R2-00-harness (BoTorch, NO MAC) .......... ✅ VERIFICADO torre 2026-07-17 (�
 M5 R3-00 ✅ · c122 ✅ · b5r/b5m ✅ (2026-07-23, PARALELO validado DI-27: 0 conflito, 18/18 gates)
    · c311 FASE A ✅ (Fase B/wiring aguarda comando) · gate R3.2 desdeo-emo ✅ CRAVADO (vendored)
 M6 c149 ✅ (DI-23) · e81 ✅ (DI-24, nota 9/10) · piso-off ⬜ ← ÚNICO config faltante (prompt pronto)
-M7 piloto timing (BLOQUEANTE) .............. ⬜ (após c311-B + piso-off + ratificações A15)
+M7 piloto timing (BLOQUEANTE) .............. ⬜ (após c311-B + piso-off; ratificações A15 ✅=DI-28)
 M8 bateria ONLINE (12.750) ................. ⬜
 M9 bateria OFFLINE (3.750) ................. ⬜
 M10 SUB-batch .............................. ⬜

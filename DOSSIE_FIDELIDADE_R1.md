@@ -222,6 +222,9 @@ se sustentam em evidência MECÂNICA, não em ranking.
 | 6,0 | c217 | ↑ (4,5) | o `sigma_dict` novo RESOLVEU o flag (`pred_confianca` constante = Error1 do modelo, DESENHO); o score tem sinal (295/295 blocos direção certa no ZDT1) mas o gate δ=0,8 quase nunca abre → EA ~aleatório que perde do nsga2 |
 | 5,0 | c141 | ↑ (4,0) | divergência do RBF no MMF1 CONFIRMADA bloco a bloco (mu → [−145,210], MAE ×8,5, spearman ~0,05) e abaixo dos 4 pisos lá; MAS é o MELHOR dos 7 em DTLZ2 (0,0392) e ZDT1 (0,0144) — e o ZDT1 já mostra o início da mesma deriva |
 | 4,0 | moead | = | régua quebrada no ZDT1 (T=2 → clonagem → 23% duplicatas, HV=0, perde a melhor solução do seed) e REGRIDE no MMF1 (−65% vs DoE); ok só no DTLZ2 |
+| 7,0 | b5r | (novo, DI-27/28) | Prob-RVEA offline (mode 7; **v3 média-MC RATIFICADA como a variante do estudo — DI-28.1**): progride sem colapso nos 3 e mantém espalhamento; convergência PARCIAL (ZDT1 dist 0,55 à frente analítica, f1 trava em ≥0,18) — o "seguro-mas-mediano" honesto |
+| 5,0 | b5m | (novo, DI-27) | Prob-MOEA/D offline (mode 72, MC-pareada quase-fiel): colapso de canto no DTLZ2 (nd 6/105; o GP do obj-2 degenera μ≈0 — reversão à média fora do suporte) e ZDT1 estaciona longe (dist 1,52; nenhum ponto alcança a frente); dado HONESTO — comportamento do operador sob dataset offline |
+| 7,5 | c311 | (novo, DI-27) | TGPR-MO offline: o MELHOR offline no ZDT1 (dist **0,0012**, frente completa 50/50 ND) e construção incremental viva (n_acumulado 40→122; 2 blocos de sonda bit-idênticos = modelo fixo na fase final); fraco só no MMF1 de dataset 61 pts (nd 10/46, extrapola além do suporte) |
 
 **Uso no julgamento D97:** as notas ≠ fidelidade. b3/c154/c217/c141/moead têm comportamento
 concretamente ruim POR MECANISMO FIEL (stock honesto sob nosso orçamento) — a decisão de aceitar/

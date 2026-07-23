@@ -3,7 +3,7 @@
 > **Para quem é.** Alguém (ou uma VM nova) sem NENHUM contexto, que precisa recriar os ambientes
 > e rodar o pipeline. Cada env tem: a **intenção** (`requirements/env_*.txt` — pins decididos pelo
 > autor, D80), o **lock resolvido** (`requirements/locks/env_*.lock.txt` — a foto `pip freeze`
-> exata dos ambientes VALIDADOS em 2026-07-22) e a **receita** abaixo. Instale pela intenção;
+> exata dos ambientes VALIDADOS — data no cabeçalho de cada lock) e a **receita** abaixo. Instale pela intenção;
 > confira contra o lock; divergência de versão = pare e pergunte ao autor (D80).
 > Mapa alg→env: `claude_code_context/artifacts/envs.json` (`alg_to_env` — FONTE ÚNICA, DI-14).
 
@@ -27,6 +27,12 @@ curl -Ls https://micro.mamba.pm/api/micromamba/osx-arm64/latest | tar -xj bin/mi
 
 **Pins de thread (D79) — SEMPRE, em todo run:** `OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1`; MATLAB: `maxNumCompThreads(1)` (o harness já aplica).
+**Determinismo (família desdeo/GPy — b5, c311, moead_media) [DI-27]:** rodar SEMPRE com
+`PYTHONHASHSEED=0` (o `run_in_venv` já aplica de fato desde o fix `b782167`; em invocação MANUAL,
+exporte antes). ⚠ **Drift do pyDOE**: os pyDOE novos (ex.: 0.9.1) ignoram `np.random.seed` no
+`lhs(seed=None)` — a pop inicial do RVEA/DESDEO vira não-reprodutível. Os runners corrigem em
+RUNTIME (gancho/injeção do RandomState global semeado — `src/b5_prob.py` e `src/c311_tgprmo.py`);
+qualquer runner novo da família DEVE herdar o mesmo fix (pendente de ratificação do autor).
 
 ## 1. env_main — py 3.11.9 arm64 (c262 · c154 · c122 · c149 + harness/despachante/métrica)
 ```bash

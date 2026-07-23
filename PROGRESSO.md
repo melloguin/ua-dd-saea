@@ -307,6 +307,26 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
 
 ---
 
+### 2026-07-23 — o dia do PARALELO: R3-b5 FECHADO ∥ R3-c311 Fase A (coreografia de 2 fases)
+- **✅ R3-b5 (Prob-RVEA mode 7 = b5r · Prob-MOEA/D mode 72 = b5m, OFFLINE, env_b5/Rosetta).**
+  `src/b5_prob.py` sobre o harness; 2 patches vendorizados ancorados (b5r re-archive DI-16.16;
+  b5m KDE-morto); pin desdeo-emo CRAVADO = vendored (gate R3.2 fechado). 6/6 pilotos, gates 18/18,
+  determinismo + não-perturbação bit-a-bit. A sessão descobriu e corrigiu: drift do pyDOE (LHS
+  ignora o seed global — fix runner-local), pandas 0.25.3→1.3.5 (autor cravou; 0.25 quebra o
+  DataProblem), bug de torre no doe.py/pyarrow-12 (escalou SEM tocar o arquivo compartilhado —
+  fix central da torre `9e9ea9c`). Commits `e3ecab1`+`8847f0a`.
+- **✅ R3-c311 Fase A (TGPR-MO, OFFLINE, env_c311).** `src/c311_tgprmo.py`: vendor INTACTO + 4
+  ganchos runtime (σ B15.5 · predict_batch DI-16.13 · contador único C311-11 · lhs-determinismo);
+  2 blocos de sonda 20k geracao=NULL (DI-16.12) bit-idênticos entre si; ② vazia (DI-16.17);
+  3 pilotos verdes + determinismo + não-perturbação. Fase B (wiring: dispatch/accept/locks) aguarda
+  comando. Commits `4d8a997`+`ba55f18`.
+- **✅ Validação-torre do paralelo (DI-26/27, commits `9e9ea9c`+`b782167`):** interseção de arquivos
+  entre as 2 sessões = ∅ (forense de git); gates ao vivo 309 OK/preflight 0/não-perturbação 53/
+  auditar+final_eval 18/18; workflow 15 agentes (8 auditores + 7 verificação adversarial). 3 fixes
+  de infra: `-s`+scrub (PYTHONHASHSEED=0 valia NADA sob `-I`), tree_sha256 sem `.pyc` (repos.lock
+  re-lacrado — reprodutível em checkout limpo/VM), warning do final_eval. 1 latente ALTA achado no
+  c311 (nd_pos_real float64 — fix cravado p/ a Fase B). Ver REGISTRO PARTE A15.
+
 ## 4. Ambientes (estado real)
 - **Mac** (arm64, macOS 12.5.1): MATLAB R2025a (R1 + Fase 0 + pilotos) + os venvs Python. Grava local.
 - **VM Vertex** `v5-mestrado` (Debian 12, us-central1-a, micromamba+pyenv): R2/R3 + análise. Grava local
@@ -316,7 +336,9 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
   (botorch 0.18.1/torch/gpytorch/gcs/deap) NO MESMO venv antes do M4.
 - **env_bridge** ✅ = `~/ponte_teste` (3.11.9 --enable-shared; numpy+pymoo 0.6.2+pyarrow 25); MATLAB
   `pyenv` aponta pra ele.
-- **env_b5 / env_c311** = INVIÁVEIS no Mac arm64 → provisionar na **VM Linux** (M5) via `requirements/`.
+- **env_b5 / env_c311** = **PROVISIONADOS NO MAC (2026-07-22/23)** via micromamba x86_64/Rosetta
+  (receitas EXECUTÁVEIS + locks em `requirements/PROVISIONAMENTO.md`); a VM Linux (M8) recria dos
+  mesmos locks (manylinux cp37/cp38, sem Rosetta).
 - Detalhe: `requirements/README.md` + `envs.json.provisioning`.
 
 ## 5. Todas as validações que a torre rodou (resumo)
@@ -361,7 +383,12 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
   (16 repos oficiais + PlatEMO, vendorizados — só se toca com patch de fidelidade), `data/doe` +
   `data/datasets` (pontos iniciais, no repo) + `data/experiments/main/stub/` (saída do run-STUB do R1-00).
 
-## 8. Estado atual + próximos passos *(atualizado 2026-07-22)*
+## 8. Estado atual + próximos passos *(atualizado 2026-07-23 — pós-paralelo b5∥c311-A)*
+- **PLACAR DE IMPLEMENTAÇÃO: 20 de 21 configs prontos.** Falta SÓ o piso-off (`moead_media`,
+  mode 12 do MESMO evolver/env do b5 — o cartão mais leve que resta) + a Fase B do c311 (wiring,
+  30-60 min). Depois disso o código dos 21 configs está 100% (resta só o runner trivial
+  `sobol_batch` + plumbing q=10, que pertencem ao M10). Plano imediato: disparar **c311-Fase-B ∥
+  piso-off-Fase-A** (faixas disjuntas por desenho; prompts da torre prontos).
 - **Feito:** M0 ✅ · M1 (Fase 0) ✅ · M2 ✅ · **M3 (fan-out MATLAB) ✅ 10/10** · **M4 (R2: R2-00 ✅ +
   c262 ✅ + c154 ✅)** · **M5.1/R3-c122 ✅** (3/3 gates, `29e8539`) · **M5.3/R3-e81 ✅** (qPOTS, 18/18 ×3, nota 9/10 — o anti-c149; validação DI-24) · **M5.2/R3-c149 ✅** (reconstrução em 6h/10h de timebox, 3/3 pilotos, DEF-N4: FICA; validação da torre = DI-23) · **RETROFIT DI-09 ✅ COMPLETO
   (MATLAB 11/11 + BoTorch)** — regressão total verde (14 runs ×MMF1 + F0×4 + 26 gates + suíte) ·
@@ -374,9 +401,8 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
   algoritmos) + `fe_treino_max` (in/out-of-sample) + timing por geração + `sigma_dict` + o "mínimo
   comum DI-10" no jsonl. Isso exigiu **retrofitar os configs já implementados**, em duas frentes
   paralelas:
-  - **Retrofit R1 (MATLAB):** 🟡 **7/11** — b1, b3, b4, c141, c217 + os 4 pisos completos e verdes;
-    **c238, e7, e74, e103 faltam** (sonda escrita, NÃO ligada). Decisões do autor = **DI-19.1…19.8**
-    (renumeradas da colisão DI-17; ver REGISTRO PARTE A8).
+  - **Retrofit R1 (MATLAB): ✅ 11/11 COMPLETO (2026-07-21)** — decisões DI-19.x aplicadas
+    (ver REGISTRO PARTE A8; pendências residuais R-1/D-11/T-8 no handoff DI09-retrofit-R1-cont).
   - **Retrofit R2 (BoTorch):** c262 e c154, com a sonda cobrindo **3 de 5 runs** (c262/ZDT1 ficou sem).
   - **Auditoria da torre (DI-20, workflow de 90 agentes):** invariante de não-perturbação **PROVADO**
     (53/53 ① bit-idênticas ao baseline); o GP **aprende e a sonda mede** (c262/DTLZ2 WAPE −41,5%,
@@ -384,15 +410,17 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
     **Notas de comportamento 0–10** (semente 0, ver REGISTRO A9): c262 9,5 · b1 8,5 · smsemoa 8,0 ·
     e74/nsga3/c154 7,5 · c238/nsga2 7,0 · b3/b4 6,5 · e7 6,0 · c217 4,5 · moead/c141/e103 4,0.
     **21 decisões em aberto** consolidadas em `handoff/DI20-AUDITORIA-RETROFIT_DECISOES.md`.
-- **Antes disso, a auditoria de PROSA (DI-18):** 38 achados aplicados na SPEC (o retrofit não podia
-  ser julgado contra uma descrição desatualizada). ⚠ **`gen_bundles.py` ainda NÃO foi rodado** — SPEC
-  e bundles divergem nesses pontos; rodar agora que as 3 sessões (retrofit MATLAB, R2, c122) fecharam.
-- **Próximo (5 passos):** (1) **o autor decide as 21** de DI-20 — 4 bloqueiam a M8; (2) fechar os **4
-  MATLAB** (D-05, MMF1+DTLZ2, ~3-5h) + re-rodar c141/c217 DTLZ2/ZDT1 (`"nativo"`→`"cru"`) e o
-  `sigma_dict` do c217; (3) **regenerar os bundles** (`gen_bundles.py`) + os 3 doc-syncs vivos (a
-  fórmula de cadência na SPEC é prioritária p/ os 6 R3 restantes); (4) **implementar os 4 blocos de
-  infra ratificados** (`is_run_done` bucket-aware, repasse de kwargs, ⑦ no resume, `n_acumulado`
-  nullable); (5) seguir o **R3** (b5→c311→c149→e81→piso-off) rumo ao **M7 (PORTÃO)**.
+- **Antes disso, a auditoria de PROSA (DI-18):** 38 achados aplicados na SPEC. **Bundles já
+  REGENERADOS (3× desde então, 44 arquivos)** — SPEC v5.2.1 e bundles em sincronia; próxima regen
+  só quando NENHUMA sessão de implementação estiver aberta (regra RI-12).
+- **Próximo (5 passos, 2026-07-23):** (1) disparar **c311-Fase-B** (comando à sessão pausada; inclui
+  o fix OBRIGATÓRIO do nd_pos_real float64 — REGISTRO A15) **∥ piso-off-Fase-A** (sessão nova,
+  prompt 2-fases; arquivos próprios apenas); (2) torre VALIDA os 2 retornos (forense + gates +
+  workflow adversarial) e libera a Fase B do piso-off; (3) **lote de ratificações do autor** (7 itens
+  do REGISTRO A15: D97 modo-7 v3/v1, pins env_b5, pyDOE, semeadura, ④, geracao=NULL, uso_id) + SPEC/
+  bundles sincronizados pela torre (SÓ com nenhuma sessão aberta); (4) itens 3/4/5 do dossiê de
+  fidelidade (auditoria 9→10, guardas forçadas, smoke semente 42) + preparação do M7 (D-17 RNG,
+  abort e2e, qmaximin); (5) **M7 (PORTÃO) piloto de timing** → provisionamento VM/bucket (M8).
 - **Como uma instância nova assume:** leia este PROGRESSO + `CONTRATO_DE_DADOS.md` (obrigatório) +
   `REGISTRO_DECISOES_IMPLEMENTACAO.md` + `ORQUESTRACAO_MESTRE.md`. Regra de ouro: verifique cada sessão
   rodando código + lendo; nunca julgue fidelidade (D97); pára-e-pergunte em ambiguidade (D81).

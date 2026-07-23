@@ -1205,6 +1205,64 @@ e81/c149 — verificado por grep).
 
 ---
 
+## PARTE A15 — DI-26/DI-27: validação-torre do PARALELO b5 ∥ c311-Fase-A + 3 fixes de infra (2026-07-23)
+
+**Contexto.** Primeira execução PARALELA de duas sessões de implementação (R3-b5 fechando; R3-c311
+em 2 fases coreografadas, Fase A restrita a arquivos próprios). A torre validou os dois retornos com
+forense de git, gates ao vivo e workflow de 15 agentes (8 auditores + 7 verificadores adversariais).
+
+### DI-26 — fix central do `doe.py` (achado da sessão b5, aplicado pela torre DURANTE o paralelo)
+`_read_matrix_parquet` usava `ChunkedArray.to_numpy(zero_copy_only=)` — kwarg inexistente no
+pyarrow 12 do env_b5 (caminho offline-Python nunca exercitado antes do b5; a VM Linux herdaria).
+Forma `combine_chunks().to_numpy(...)` funciona em 12/17/25 e é BIT-IDÊNTICA (hash == sidecar em
+env_main E env_b5). Commit `9e9ea9c`. O shim local do b5 é auto-desativante e coexiste. Protocolo
+exemplar da sessão: NÃO editou o arquivo compartilhado durante o paralelo; escalou à torre.
+
+### DI-27 — veredito do paralelo + 3 fixes (commit `b782167`)
+**Veredito: ZERO conflito.** Interseção de arquivos dos 4 commits (e3ecab1/8847f0a × 4d8a997/ba55f18)
+= ∅; árvore limpa; o ÚNICO editor de compartilhados foi o b5 (aditivo — accept/dispatch/artefatos da
+faixa dele; o c311-A tocou só `src/c311_tgprmo.py` + `tests/test_c311.py`). Gates ao vivo da torre:
+suíte **309 OK** · preflight 0 · não-perturbação **53/53** · auditar **9/9** · final_eval **9/9**.
+Notas da auditoria: compartilhados 9 · envs-docs 8,5 · patches-vendored 8,5 · código-b5 8.
+- **Fix 1 — o `-I` tornava o `PYTHONHASHSEED=0` INERTE (único achado CONFIRMADO em média).**
+  `run_in_venv` setava a var no child_env mas lançava o filho com `-I` (⊃ `-E`, que ignora env vars).
+  Fix: `-s` + scrub explícito de `PYTHON*` herdado (isolamento N.1.2 preservado). Prova: `hash('abc')`
+  estável entre processos nos 3 envs; contraprova com `-I` variava.
+- **Fix 2 — `tree_sha256` selava ~66 `.pyc` gitignorados** ⇒ content-hash irreprodutível num checkout
+  limpo (a VM) e lock "envelhecendo" a cada import. Agora exclui `__pycache__`/`*.pyc`; `repos.lock`
+  re-lacrado INTEIRO (5 árvores) — o hash novo do `b5_desdeo` (`e73f89e1…`) bate BIT-A-BIT com o
+  recomputo independente do verificador adversarial. Fecha o pedido A.1.6 do handoff R3-b5.
+- **Fix 3 — RuntimeWarning do `final_eval` na `geracao=NULL`** (repasse c311 §2.5): sentinela −1.
+
+**Achado LATENTE (alta) no c311 — fix obrigatório na Fase B (dono = a sessão):**
+`c311_tgprmo.py:657-664` passa `nd_pos_real` calculado no float64 CRU — o anti-padrão que a docstring
+do `write_final` proíbe e que o b5 mediu (b5m/ZDT1: 20≠19). Os 3 pilotos passaram só por ausência de
+empate na borda. Fix = OMITIR `nd_pos_real` (o `write_final` calcula na vista float32) + contar o ND
+do manifesto na mesma vista + re-rodar pilotos e gates. Instrução cravada no comando da Fase B.
+
+**Achado de REDAÇÃO (dados honestos, sem re-run):** o sigma_dict do b5 diz "surrogate idêntico
+[b5r/b5m] — só a seleção difere"; os μ da sonda DIFEREM (GPR `n_restarts=9` consome o RNG global,
+semeado por alg_id 17≠18 ⇒ treinos independentes). Leitura correta: **mesma ESPECIFICAÇÃO, treino
+independente por config**. O piso-off deve redigir assim. Observação p/ o D97: o GP do obj-2 de
+b5m/DTLZ2 degenera (μ≈0, corr 0,006) — é o mecanismo do "colapso de canto" observado.
+
+**Comportamento (insumo do lote D97; semente 0):** b5r **7** (progride sem colapso; convergência
+parcial: ZDT1 dist 0,55 à frente analítica) · b5m **5** (colapso de canto em DTLZ2 nd=6/105; ZDT1
+estaciona longe, dist 1,52) · c311 **7,5** (ZDT1 dist **0,0012** — o MELHOR offline até aqui; fraco
+no MMF1 de dataset 61 pts). Cross-checks fortes: X da sonda BIT-IDÊNTICOS entre b5r/b5m/c311 e o
+artefato canônico; os 2 blocos de sonda do c311 bit-idênticos entre si (modelo fixo na fase final);
+⑦ ≡ última geração da ③ nos 6 runs b5 (ND recomputado bate EXATO).
+
+**EM ABERTO p/ o autor (levantados pelos repasses + auditoria; recomendações da torre no chat):**
+(1) D97 modo 7: `Prob_APD_select_v3` (média-MC declarada) vs `v1` "original"; (2) ratificar pins do
+env_b5 (pandas 1.3.5 ✔cravado · pymoo · plotly · graphviz · pygmo=STUB); (3) ratificar o fix pyDOE
+(gancho semeado, b5+c311) vs re-pin do pyDOE antigo; (4) semeadura por convenção D62 (b5 usos 1/2;
+c311 uso 0) vs literal do cartão; (5) ④ granularidade (b5 1 linha; c311 1/retreino); (6) carimbo
+local `geracao=NULL` como padrão da família offline vs fix central no `emit_sonda_block`;
+(7) `uso_id` do c311 = `_default`/0.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

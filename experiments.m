@@ -33,7 +33,10 @@ function experiments(varargin)
 
 % ── Parse de argumentos ────────────────────────────────────────────────────
 p = inputParser;
-p.addParameter('algorithms', {'b1','b3','b4','e7','c217','c141','e74','c238','e103'});
+% [DI-31] roster default completo: 9 SAEA + 4 pisos ONLINE. Os pisos ficavam de
+% fora → a bateria M8 os pulava em silêncio. e103 é OFFLINE (--exp off).
+p.addParameter('algorithms', {'b1','b3','b4','e7','c217','c141','e74','c238', ...
+                              'nsga2','nsga3','moead','smsemoa','e103'});
 p.addParameter('problems', default_problems());
 p.addParameter('seeds', [0:28, 42]);          % 30 sementes (§5.3/D85)
 p.addParameter('exp', 'main');                % main|off|batch|sweep-<tier>-<dist>

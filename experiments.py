@@ -42,9 +42,20 @@ from src.audit_log import AuditLogger
 
 # ── Roster canônico do stack PYTHON (§21.2 / S.4-F0#2) ─────────────────────
 # Os algoritmos MATLAB (b1,b3,b4,e7,c217,c141,e74,c238,e103,pisos) rodam pelo
-# despachante `experiments.m`. Aqui, só o lado Python (BoTorch + standalone):
-DEFAULT_ALGORITHMS: list[str] = ['c262', 'c154', 'e81', 'c122', 'c149', 'b5', 'c311']
-KNOWN_ALGORITHMS: set[str] = set(DEFAULT_ALGORITHMS)
+# despachante `experiments.m`. Aqui, só o lado Python (BoTorch + standalone).
+#
+# [DI-31] KNOWN_ALGORITHMS é DERIVADO dos loaders reais (`_DISPATCH_LOADERS`) —
+# a lista literal antiga (`…,'b5','c311'`) era um bug de bateria: 'b5' NÃO existe
+# no dispatch (as chaves são 'b5r'/'b5m') e 'moead_media' faltava ⇒ a validação
+# do CLI (bad_alg abaixo) REJEITAVA os 3 configs offline b5r/b5m/moead_media e a
+# bateria M9 era irrodável. Derivar do dispatch torna o allowlist IMPOSSÍVEL de
+# driftar (o teste `test_roster_cobre_loaders` trava a regressão).
+KNOWN_ALGORITHMS: frozenset = frozenset(
+    a for a in _adapter._DISPATCH_LOADERS if not a.startswith('stub'))
+#: Default do no-arg (coerente com DEFAULT_EXP='main'): só os ONLINE. Os OFFLINE
+#: (b5r/b5m/c311/moead_media) rodam com `--exp off --algorithms …` explícito.
+_OFFLINE = frozenset({'b5r', 'b5m', 'c311', 'moead_media', 'e103'})
+DEFAULT_ALGORITHMS: list[str] = sorted(KNOWN_ALGORITHMS - _OFFLINE)
 
 # ── Problemas: os 25 canônicos (A2/§4; MMF16_L3 removido) ──────────────────
 DEFAULT_PROBLEMS: list[str] = list(_adapter.ALL_PROBLEMS)

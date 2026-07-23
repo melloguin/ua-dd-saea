@@ -861,8 +861,8 @@ def check_r3_c149(exp="main", problema="MMF1", semente=0, data_root=None):
     ftm = surr.column("fe_treino_max").to_pylist()
     out.append(("③ fe_treino_max sem nulos",
                 (all(v is not None for v in ftm),
-                 f"min={min(v for v in ftm if v is not None)} "
-                 f"max={max(v for v in ftm if v is not None)}")))
+                 f"min={min((v for v in ftm if v is not None), default='∅')} "
+                 f"max={max((v for v in ftm if v is not None), default='∅')}")))
 
     rsid = surr.column("real_solution_id").to_pylist()
     snd_nulo = all(rsid[i] is None or (isinstance(rsid[i], float)
@@ -1053,8 +1053,8 @@ def check_r3_e81(exp="main", problema="MMF1", semente=0, data_root=None):
     ftm = surr.column("fe_treino_max").to_pylist()
     out.append(("③ fe_treino_max sem nulos",
                 (all(v is not None for v in ftm),
-                 f"min={min(v for v in ftm if v is not None)} "
-                 f"max={max(v for v in ftm if v is not None)} "
+                 f"min={min((v for v in ftm if v is not None), default='∅')} "
+                 f"max={max((v for v in ftm if v is not None), default='∅')} "
                  f"(treino = dataset INTEIRO ⇒ monotônico)")))
 
     rsid = surr.column("real_solution_id").to_pylist()
@@ -1295,8 +1295,8 @@ def check_r3_c122(exp="main", problema="MMF1", semente=0, data_root=None):
     ftm = surr.column("fe_treino_max").to_pylist()
     out.append(("③ fe_treino_max sem nulos",
                 (all(v is not None for v in ftm),
-                 f"min={min(v for v in ftm if v is not None)} "
-                 f"max={max(v for v in ftm if v is not None)}")))
+                 f"min={min((v for v in ftm if v is not None), default='∅')} "
+                 f"max={max((v for v in ftm if v is not None), default='∅')}")))
 
     rsid = surr.column("real_solution_id").to_pylist()
     snd_nulo = all(rsid[i] is None or (isinstance(rsid[i], float)
@@ -1658,24 +1658,31 @@ def check_r3_b5(alg, exp="off", problema="MMF1", semente=0, data_root=None):
                     (ok_sonda, f"n_sonda={len(idx_s)} (esperado {sonda_art['S']}) "
                      f"geracao_all_null={all(ger[i] is None for i in idx_s)}")))
     gb = [ger[i] for i in idx_b]
+    # [DI-31] contiguidade 1..N (mesmo endurecimento que a DI-29 deu ao c311;
+    # o b5 é single-fase, então basta o conjunto ser {1..max}).
+    gset_b = set(g for g in gb if g is not None)
     ok_busca = (len(idx_b) > 0
                 and all(g is not None for g in gb)
+                and gset_b == set(range(1, max(gset_b) + 1))
                 and all(int(ftm[i]) == n_ds - 1 for i in idx_b)
                 and all(rsid[i] is None for i in idx_b)
                 and esp <= {"cru"})
     ger_rng = f"{min(gb)}..{max(gb)}" if gb else "∅"   # guarda ③-vazia [DI-29]
-    results.append(("③ busca: geracao inteira · fe_treino_max=n_ds−1 · "
+    results.append(("③ busca: geracao inteira CONTÍGUA 1..N · fe_treino_max=n_ds−1 · "
                     "real_solution_id NULL (② vazia — DI-16.17) · espaco_modelo∈{cru}",
                     (ok_busca, f"n_busca={len(idx_b)} "
                      f"ger∈[{ger_rng}] espaco={esp} "
                      f"rsid_all_null={all(rsid[i] is None for i in idx_b)}")))
     mucols = [c for c in surr.schema.names if c.startswith("mu_")]
     sgcols = [c for c in surr.schema.names if c.startswith("sigma_")]
+    # [DI-31] μ_*/σ_* não-nulos em TODA a ③-busca (antes só a 1ª linha idx_b[0]).
     ok_musg = (len(mucols) == M and len(sgcols) == M and bool(idx_b)
-               and all(surr.column(c)[idx_b[0]].as_py() is not None
-                       for c in mucols + sgcols))
-    results.append(("③ regressor probabilístico: μ_* E σ_* preenchidos (M cada)",
-                    (ok_musg, f"mu_*={len(mucols)} sigma_*={len(sgcols)} M={M}")))
+               and all(surr.column(c)[i].as_py() is not None
+                       for c in mucols + sgcols for i in idx_b))
+    results.append(("③ regressor probabilístico: μ_* E σ_* preenchidos (M cada) "
+                    "em TODA a ③-busca",
+                    (ok_musg, f"mu_*={len(mucols)} sigma_*={len(sgcols)} M={M} "
+                     f"n_busca={len(idx_b)}")))
 
     # (6) ④ timing — b5 NÃO é piso ⇒ tempo_fit_s NÃO-nulo.
     tim = pq.read_table(layers["timing"])
@@ -1828,11 +1835,16 @@ def check_r3_c311(exp="off", problema="MMF1", semente=0, data_root=None):
                      f"flags={sorted(flags_b)} espaco={esp}")))
     mucols = [c for c in surr.schema.names if c.startswith("mu_")]
     sgcols = [c for c in surr.schema.names if c.startswith("sigma_")]
+    # [DI-31] μ_*/σ_* não-nulos em TODA a ③-busca (antes só idx_b[0]). No c311 o σ
+    # é NaN nas folhas só-árvore, mas NaN≠NULL (é finito no schema): a checagem é
+    # de NÃO-NULO, que vale em toda a busca.
     ok_musg = (len(mucols) == M and len(sgcols) == M and bool(idx_b)
-               and all(surr.column(c)[idx_b[0]].as_py() is not None
-                       for c in mucols + sgcols))
-    results.append(("③ regressor probabilístico: μ_* E σ_* preenchidos (M cada)",
-                    (ok_musg, f"mu_*={len(mucols)} sigma_*={len(sgcols)} M={M}")))
+               and all(surr.column(c)[i].as_py() is not None
+                       for c in mucols + sgcols for i in idx_b))
+    results.append(("③ regressor probabilístico: μ_* E σ_* preenchidos (M cada) "
+                    "em TODA a ③-busca",
+                    (ok_musg, f"mu_*={len(mucols)} sigma_*={len(sgcols)} M={M} "
+                     f"n_busca={len(idx_b)}")))
 
     # (6) ④ timing — c311 NÃO é piso ⇒ tempo_fit_s não-nulo; 1 linha por retreino.
     tim = pq.read_table(layers["timing"])
@@ -1965,14 +1977,16 @@ def check_r3_piso_off(exp="off", problema="MMF1", semente=0, data_root=None):
                     (ok_sonda, f"n_sonda={len(idx_s)} (esperado {S}) "
                      f"geracao_all_null={all(ger[i] is None for i in idx_s)}")))
     gb = [ger[i] for i in idx_b]
+    # [DI-31] contiguidade 1..N (antes só min==1; buraco de geração passava VERDE).
+    gset_b = set(g for g in gb if g is not None)
     ok_busca = (len(idx_b) > 0
                 and all(g is not None for g in gb)
-                and min(gb) == 1
+                and gset_b == set(range(1, max(gset_b) + 1))
                 and all(int(ftm[i]) == n_ds - 1 for i in idx_b)
                 and all(rsid[i] is None for i in idx_b)
                 and esp <= {"cru"})
     ger_rng = f"{min(gb)}..{max(gb)}" if gb else "∅"   # guarda ③-vazia [DI-29]
-    results.append(("③ busca: geracao inteira 1..N · fe_treino_max=n_ds−1 · "
+    results.append(("③ busca: geracao inteira CONTÍGUA 1..N · fe_treino_max=n_ds−1 · "
                     "real_solution_id NULL (② vazia — DI-16.17) · espaco_modelo∈{cru}",
                     (ok_busca, f"n_busca={len(idx_b)} ger∈[{ger_rng}] "
                      f"espaco={esp} rsid_all_null={all(rsid[i] is None for i in idx_b)}")))

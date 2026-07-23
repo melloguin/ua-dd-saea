@@ -1,20 +1,35 @@
 # R3-c311 — REPASSE À TORRE
 
-> Validação **re-executada AO VIVO** nesta sessão + definições em aberto que **a torre DEVE
-> levantar com o autor**. Cartão R3-c311 (TGPR-MO, OFFLINE). **FASE A COMPLETA**; Fase B (wiring)
-> aguarda o commit do b5 + o comando do autor.
+> Validação **re-executada AO VIVO** + definições em aberto. Cartão R3-c311 (TGPR-MO, OFFLINE).
+> **FASE A + FASE B COMPLETAS — CARTÃO FECHADO.** As 3 pendências da Fase A foram TODAS FECHADAS
+> pelo autor (DI-28/A16). **Nenhuma definição NOVA em aberto** (§2 é histórico, agora resolvido).
 
-## 1. O que foi entregue (Fase A) e o que falta (Fase B)
-**Entregue (arquivos meus):** `src/c311_tgprmo.py` · `tests/test_c311.py` · `handoff/R3-c311*.md`
-(3) · `data/experiments/off/c311/**` (3 pilotos). Vendored `c311_TGPR-MO/**` INTACTO.
+## 0. 🔴 FIX OBRIGATÓRIO da Fase B (achado ALTA da torre, DI-27/A15) — APLICADO
+O runner passava `nd_pos_real` calculado no **float64 CRU** ao `write_final` — anti-padrão que a
+docstring proíbe (mesma classe do bug medido no b5m/ZDT1: 20≠19 no `--check`; meus 3 pilotos
+passavam SÓ por ausência de empate na borda). **Fix (molde `b5_prob.py`):** OMITIDO `nd_pos_real`
+(o `write_final` o calcula na vista **float32** que a ⑦ persiste e o `--check` relê) + ND do footer
+contado na MESMA vista. **Prova:** pilotos re-rodados + `accept R3-c311 ×3` VERDE + `final_eval
+--check ×3` VERDE (⑦ reconstituível: 46/10, 84/77, 50/50) + SLOW (determinismo/não-perturbação) OK.
 
-**Fase B (por desenho, NÃO iniciada — faixa da torre/b5):** descomentar o dispatch do c311
-(`experiment.py:156`); branch aditivo `check_r3_c311` no `accept.py` (antes do catch-all F0-01);
-registrar `pymoo==0.6.1.2` do env_c311 no lock + PROVISIONAMENTO §3; SE houver patch a
-materializar (ver §2.2), aplicar no vendored + âncora + re-lacre; `accept.py R3-c311 ×3`; suíte
-completa + preflight no fechamento; commits finais.
+## 1. O que foi entregue (Fase A + B) — CARTÃO FECHADO
+**Fase A (arquivos meus):** `src/c311_tgprmo.py` · `tests/test_c311.py` · `handoff/R3-c311*.md` (3)
+· `data/experiments/off/c311/**` (3 pilotos). Vendored `c311_TGPR-MO/**` INTACTO.
+**Fase B (wiring):** `src/experiment.py:159` (dispatch descomentado) · `scripts/accept.py`
+(`check_r3_c311` + branch aditivo ANTES do catch-all F0-01) · `requirements/env_c311.txt` +
+`locks/env_c311.lock.txt` (regenerado) + `PROVISIONAMENTO.md §3` (pymoo==0.6.1.2 + stub optproblems
++ ratificação pyDOE). **NÃO** toquei `repos.lock`/`anchors.json`/pyDOE (re-lacrados pela torre em
+`b782167`; gancho DEFINITIVO — DI-28.3). Fechamento: `accept R3-c311 ×3` VERDE · `auditar ×3` VERDE
+· `final_eval --check ×3` VERDE · SLOW env_c311 OK · **suíte env-main 309 OK** · **preflight VERDE**.
+Coexistência com R3-piso-off (Fase A ativa): ZERO interseção; staged-check só-meus por commit.
 
-## 2. 🔴 DEFINIÇÕES EM ABERTO — a torre DEVE levantar com o autor
+## 2. DEFINIÇÕES (levantadas na Fase A) — TODAS FECHADAS pelo autor na DI-28/A16
+> **HISTÓRICO — nada aqui está mais aberto.** Fechamentos: §2.1 → DI-28.7 (`uso_id`=`_default`/0
+> ratificado); §2.2 → DI-28.3 (gancho lhs DEFINITIVO, sem re-pin/patch); §2.3 → DI-28.5 (④ =
+> 1 linha/retreino ratificada); §2.4 → confirmado (contador via `_current_gen_count`, 204 na
+> construção); §2.5 → DI-27 Fix 3 (RuntimeWarning silenciado pela torre). Mantido abaixo como
+> registro do raciocínio.
+
 ### 2.1 `uso_id` do c311 não catalogado no `seeds.json`
 `seeds.json:uso_id_catalogo` lista só online (c262/c154/c149/e81) + `_default` (uso_id=0 p/
 "algoritmos sem RNG concorrente do harness"). O c311 se encaixa no `_default` (a sonda é

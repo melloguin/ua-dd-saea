@@ -128,8 +128,51 @@ Todos: `cp_init_ok=true`, `fe_final=n_dataset` (o dataset É o orçamento), `n_g
 `auditar.py` VERDE ×3 · `final_eval.py --check` VERDE ×3 · determinismo ✅ · não-perturbação
 ✅ · suíte env_c311 (SLOW) ✅ · suíte env-main + preflight VERDES (Fase 0).
 
-## 8. Fronteira da Fase A (o que NÃO fiz — é Fase B/torre)
-Descomentar o dispatch (`experiment.py:156`), branch aditivo no `accept.py`, registrar o pymoo
-no lock/PROVISIONAMENTO, materializar patch formal (se houver) + âncora + re-lacre, `accept.py
-R3-c311 ×3`, suíte completa + preflight no fechamento. **Aguardando o commit do b5 e o comando
-do autor.**
+## 8. Fronteira da Fase A (o que ficou p/ a Fase B) — TODA EXECUTADA (ver §B)
+
+---
+
+# PARTE B — FASE B (wiring + FIX obrigatório) — 2026-07-23
+
+**Gatilho reconhecido:** `git log` mostrou `[R3-b5]` wiring committado (`e3ecab1`/`8847f0a`), os
+fixes DI-27 da torre (`b782167`: `-I`→`-s`+scrub PYTHON* ⇒ PYTHONHASHSEED=0 vale; `tree_sha256`
+exclui `.pyc` + `repos.lock` re-lacrado INTEIRO incl. minha árvore; RuntimeWarning do `final_eval`
+silenciado) e a DI-28 (`4aec48c`: as 7 ratificações — **as minhas 3 pendências FECHADAS**).
+
+### B.1 FIX OBRIGATÓRIO — `nd_pos_real` na vista float32 (achado ALTA, DI-27/A15)
+O runner calculava `nd_idx` via `_nds_filter(F_final)` no **float64 CRU** e passava
+`nd_pos_real=` ao `write_final` — o anti-padrão que a docstring proíbe (mesma classe do bug que o
+b5 mediu: b5m/ZDT1 20≠19 no `--check`). Meus 3 pilotos passavam SÓ por ausência de empate na
+borda. **Fix (molde `src/b5_prob.py:420-432`):** OMITI o `nd_pos_real` (o `write_final` o calcula
+sobre a **vista float32** que a ⑦ persiste e o `--check` relê) e passei a contar o ND do
+footer/retorno na MESMA vista (`F_final.astype(float32).astype(float64)`). Re-rodei os 3 pilotos
+determinísticos — contagens inalteradas (46/10, 84/77, 50/50: sem empate de borda nestes), mas
+agora a coluna `nd_pos_real` da ⑦ é consistente com o que o `--check` recomputa.
+
+### B.2 Wiring (dispatch + accept + locks)
+- **`src/experiment.py:159`** — descomentei `'c311': ('src.c311_tgprmo','run_c311','standalone')`.
+  Importável ao fim (verificado: `c311 in _DISPATCH_LOADERS`).
+- **`scripts/accept.py`** — `check_r3_c311` (molde `check_r3_b5`; adaptações c311: ③ **2 blocos**
+  de sonda `treedGP_build`+`treedGP_final` = 40000 linhas geracao-NULL; ③-busca contador ÚNICO
+  1..N `modelo_flag∈{treedGP_build,treedGP_final}`; ④ 1-linha/retreino) + branch ADITIVO
+  `R3-c311` ANTES do catch-all F0-01.
+- **`requirements/`** — `env_c311.txt` (+`pymoo==0.6.1.2`, nota optproblems/pygmo),
+  `locks/env_c311.lock.txt` (regenerado por `pip freeze`: +pymoo/autograd/cma/dill/Deprecated;
+  núcleo intacto), `PROVISIONAMENTO.md §3` (pymoo + stub optproblems + ratificação pyDOE DI-28.3).
+- **NÃO toquei** `repos.lock`/`anchors.json`/pyDOE (re-lacrados pela torre em `b782167`; DI-28.3 =
+  gancho lhs DEFINITIVO, sem patch vendorizado). O §2.2 do meu repasse Fase A está FECHADO.
+
+### B.3 Gates de fechamento (re-executados ao vivo)
+`accept.py R3-c311 --alg c311 --problema {MMF1,DTLZ2,ZDT1} --semente 0 --exp off` → **VERDE ×3**
+(10 checks cada: 6-7 camadas · FE=31D−1=dataset bit-a-bit · CP-init x_hash E f_hash · ② vazia OK ·
+**③ sonda 2 blocos 40000 geracao-NULL** · **③ busca contador 1..1204** modelo_flags OK · μ/σ · ④
+4 linhas · ⑤ manifesto · ⑦ reconstituível) · `auditar ×3` VERDE · `final_eval --check ×3` VERDE ·
+SLOW (determinismo + não-perturbação) env_c311 **`Ran 3 OK`** · **suíte env-main `Ran 309 OK`** ·
+**preflight VERDE**.
+
+### B.4 Coexistência com R3-piso-off (Fase A ATIVA)
+Segui as regras: `git status` só mostrou os MEUS arquivos; `git diff --cached` VAZIO antes de
+cada `add`; NUNCA toquei `src/piso_offline.py`/`tests/test_piso_off.py`/`data/.../moead_media/**`.
+No fechamento a suíte tinha 309 (o `test_piso_off.py` ainda não existia); se aparecer e falhar SÓ
+nele, a regra (b) do comando vale (excluir e registrar). Commits `[R3-c311]` Fase B com
+staged-check só-meus.

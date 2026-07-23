@@ -104,7 +104,10 @@ def read_final_candidates(exp: str, alg: str, problema: str, semente, *,
     regime = (np.asarray(tbl.column("regime").to_pylist(), dtype=object)
               if "regime" in cols else np.array(["online"] * n_total,
                                                 dtype=object))
-    ger = np.asarray(tbl.column("geracao"), dtype=np.int64)
+    # geracao=NULL nas linhas de sonda offline (DI-16.12) — sentinela -1 evita
+    # o RuntimeWarning de cast NaN→int64; só ger[busca] é consumido adiante.
+    ger = np.array([-1 if g is None else int(g)
+                    for g in tbl.column("geracao").to_pylist()], dtype=np.int64)
     busca = np.array([r not in _NAO_BUSCA for r in regime], dtype=bool)
     n_sonda = int((~busca).sum())
     if not busca.any():

@@ -240,6 +240,13 @@ def child_env(*, env_id: str | None = None,
     janela num nó headless) entram aqui.
     """
     out = dict(base if base is not None else os.environ)
+    # [DI-27] Scrub de TODO PYTHON* herdado: um PYTHONPATH do pai poderia
+    # sombrear o overlay `desdeo_*` de outro venv (N.1.2). O scrub explícito
+    # substitui o antigo `-I` do lançamento — com `-s` o filho volta a HONRAR
+    # env vars, e o PYTHONHASHSEED=0 abaixo passa a valer de fato (com `-I`,
+    # que implica `-E`, ele era ignorado silenciosamente).
+    for k in [k for k in out if k.startswith("PYTHON")]:
+        del out[k]
     for v in D79_THREAD_VARS:
         out[v] = "1"
     out["PYTHONHASHSEED"] = "0"          # reprodutibilidade de iteração de set
@@ -344,10 +351,11 @@ def run_in_venv(alg: str, problema: str, semente, *, exp: str = "off",
     })
     code = _CHILD_BOOTSTRAP.format(root=ROOT, payload=payload,
                                    begin=_RESULT_BEGIN, end=_RESULT_END)
-    # `-I` = isolated: ignora PYTHONPATH e site-packages do usuário. Sem isso o
-    # overlay `desdeo_*` de um venv pode ser sombreado pelo do outro via
-    # variável de ambiente herdada — exatamente o que N.1.2 proíbe.
-    cmd = [interp, "-I", "-c", code]
+    # `-s` (sem user-site) + o scrub de PYTHON* no child_env cobrem o que o
+    # antigo `-I` cobria (N.1.2: nada herdado sombreia o overlay `desdeo_*`),
+    # MAS deixam o filho honrar o env controlado — em particular o
+    # PYTHONHASHSEED=0, que o `-I` (⊃ `-E`) ignorava silenciosamente [DI-27].
+    cmd = [interp, "-s", "-c", code]
     proc = subprocess.run(  # noqa: S603 — cmd é construído aqui, sem shell
         cmd, env=child_env(env_id=env_id, envs=envs), cwd=ROOT,
         capture_output=capture_output, text=True, timeout=timeout, check=False)

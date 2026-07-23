@@ -17,11 +17,19 @@ ALGO = os.path.join(ROOT, "algorithms")
 
 
 def tree_sha256(path):
-    """Hash determinístico do conteúdo de uma árvore de arquivos (ignora .git)."""
+    """Hash determinístico do conteúdo de uma árvore de arquivos.
+
+    Ignora `.git`, `__pycache__` e `*.pyc/*.pyo` [DI-27]: bytecode é
+    gitignorado e nasce dos imports locais, então incluí-lo tornava o hash
+    IRREPRODUTÍVEL num checkout limpo (a VM) e "envelhecia" o lock a cada
+    import (achado da validação R3-b5/c311).
+    """
     h = hashlib.sha256()
     for dirpath, dirs, files in os.walk(path):
-        dirs[:] = sorted(d for d in dirs if d != ".git")
+        dirs[:] = sorted(d for d in dirs if d not in (".git", "__pycache__"))
         for f in sorted(files):
+            if f.endswith((".pyc", ".pyo")):
+                continue
             fp = os.path.join(dirpath, f)
             rel = os.path.relpath(fp, path)
             h.update(rel.encode())

@@ -13,7 +13,13 @@
 |---|---|---|
 | **Mac A** (o atual) | MATLAB metade 1 + torre/gates | 6 dos 12 online MATLAB + e103 (off+sweep) |
 | **Mac B** (do pai) | MATLAB metade 2 | os outros 6 online MATLAB |
-| **VM GCP** (32 vCPU/64 GB) | TODO o Python | 5 online (c262/c154/c122/c149/e81) + 4 offline (b5r/b5m/c311/moead_media) + sweeps Python |
+| **VM-1 GCP** (32 vCPU/64 GB) | Python pesado | 5 online (c262/c154/c122/c149/e81) + batch q=10 (as células caras de 2000 infills) |
+| **VM-2 GCP** (32 vCPU/64 GB) | Python offline | 4 offline (b5r/b5m/c311/moead_media) + sweeps Python |
+
+**⚠ DECISÃO DO AUTOR (DI-33b): a rodada-42 é UMA SÓ, no estado DEFINITIVO do repo** —
+dispara-se TUDO (665 células) somente APÓS T7+T6 implementados e a validação final da
+torre. Nada de lote parcial pré-T6/T7 (evita duas gerações de código no mesmo dataset).
+O provisionamento (F1, este runbook) corre EM PARALELO à sessão T7+T6.
 
 Fluxo: **F1** provisionar (este runbook) → **F2** smoke de portabilidade → **F3** disparo
 da rodada-42 → **F4** `portao.py --varredura` verde nas 3 → **F5** workflows Fable de

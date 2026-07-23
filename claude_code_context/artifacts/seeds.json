@@ -118,7 +118,8 @@
     "b5m": 18,
     "c311": 19,
     "e103": 20,
-    "moead_media": 21
+    "moead_media": 21,
+    "sobol_batch": 22
   },
   "uso_id_catalogo": {
     "_regra": "uso_id distingue usos CONCORRENTES do RNG do harness dentro de uma iteração; enumerado das receitas do Anexo L",
@@ -152,5 +153,5 @@
       "net_n+1 → +1000·s (offset A6). ⟦DI-23 — corrigido⟧ o seed do NSGA-II NAO e hardcode do stock a offsetar: e POR-ITERACAO via iteration_seed (uso 1 acima; o 'indice de run' do stock e constante e trava em livelock no cache-hit D89)"
     ]
   },
-  "log": "os valores efetivamente materializados são gravados no .jsonl de cada run para auditoria"
+  "log": "os valores efetivamente materializados são gravados no .jsonl de cada run para auditoria | 2026-07-23 [DI-33/torre]: +sobol_batch=22 (piso do sub-estudo batch q=10; uso_id=_default/0 — Sobol scrambled/Owen semeado por iteration_seed(base,22,iter,0); antecipado do M10 p/ a rodada-42 por decisao do autor)"
 }

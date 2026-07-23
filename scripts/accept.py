@@ -1663,10 +1663,11 @@ def check_r3_b5(alg, exp="off", problema="MMF1", semente=0, data_root=None):
                 and all(int(ftm[i]) == n_ds - 1 for i in idx_b)
                 and all(rsid[i] is None for i in idx_b)
                 and esp <= {"cru"})
+    ger_rng = f"{min(gb)}..{max(gb)}" if gb else "∅"   # guarda ③-vazia [DI-29]
     results.append(("③ busca: geracao inteira · fe_treino_max=n_ds−1 · "
                     "real_solution_id NULL (② vazia — DI-16.17) · espaco_modelo∈{cru}",
                     (ok_busca, f"n_busca={len(idx_b)} "
-                     f"ger∈[{min(gb)}..{max(gb)}] espaco={esp} "
+                     f"ger∈[{ger_rng}] espaco={esp} "
                      f"rsid_all_null={all(rsid[i] is None for i in idx_b)}")))
     mucols = [c for c in surr.schema.names if c.startswith("mu_")]
     sgcols = [c for c in surr.schema.names if c.startswith("sigma_")]
@@ -1807,16 +1808,23 @@ def check_r3_c311(exp="off", problema="MMF1", semente=0, data_root=None):
                      f"ger_all_null={all(ger[i] is None for i in idx_s)}")))
     gb = [ger[i] for i in idx_b]
     flags_b = set(mflag[i] for i in idx_b)
+    # [DI-29] Endurecido pós-auditoria do fechamento 21/21: o check anunciava o
+    # contador ÚNICO C311-11 mas só aferia min==1 — um reset do contador na fase
+    # final, um buraco de geração ou a ausência de uma das 2 fases passariam
+    # VERDE. Agora o check defende o que anuncia (contíguo 1..N + AMBAS as fases).
+    gset = set(g for g in gb if g is not None)
     ok_busca = (len(idx_b) > 0 and all(g is not None for g in gb)
-                and min(gb) == 1                       # contador 1-based (C311-11)
+                and gset == set(range(1, max(gset) + 1))
+                and flags_b == {"treedGP_build", "treedGP_final"}
                 and all(int(ftm[i]) == n_ds - 1 for i in idx_b)
                 and all(rsid[i] is None for i in idx_b)
-                and esp <= {"cru"}
-                and flags_b <= {"treedGP_build", "treedGP_final"})
-    results.append(("③ busca: contador geracao ÚNICO 1..N atravessando as 2 fases "
-                    "(C311-11) · modelo_flag∈{treedGP_build,treedGP_final} · "
-                    "fe_treino_max=n_ds−1 · real_solution_id NULL (② vazia) · espaco∈{cru}",
-                    (ok_busca, f"n_busca={len(idx_b)} ger∈[{min(gb)}..{max(gb)}] "
+                and esp <= {"cru"})
+    ger_rng = f"{min(gb)}..{max(gb)}" if gb else "∅"
+    results.append(("③ busca: contador geracao ÚNICO E CONTÍGUO 1..N atravessando "
+                    "as 2 fases (C311-11) · modelo_flag == {treedGP_build,"
+                    "treedGP_final} · fe_treino_max=n_ds−1 · real_solution_id NULL "
+                    "(② vazia) · espaco∈{cru}",
+                    (ok_busca, f"n_busca={len(idx_b)} ger∈[{ger_rng}] "
                      f"flags={sorted(flags_b)} espaco={esp}")))
     mucols = [c for c in surr.schema.names if c.startswith("mu_")]
     sgcols = [c for c in surr.schema.names if c.startswith("sigma_")]
@@ -1963,9 +1971,10 @@ def check_r3_piso_off(exp="off", problema="MMF1", semente=0, data_root=None):
                 and all(int(ftm[i]) == n_ds - 1 for i in idx_b)
                 and all(rsid[i] is None for i in idx_b)
                 and esp <= {"cru"})
+    ger_rng = f"{min(gb)}..{max(gb)}" if gb else "∅"   # guarda ③-vazia [DI-29]
     results.append(("③ busca: geracao inteira 1..N · fe_treino_max=n_ds−1 · "
                     "real_solution_id NULL (② vazia — DI-16.17) · espaco_modelo∈{cru}",
-                    (ok_busca, f"n_busca={len(idx_b)} ger∈[{min(gb)}..{max(gb)}] "
+                    (ok_busca, f"n_busca={len(idx_b)} ger∈[{ger_rng}] "
                      f"espaco={esp} rsid_all_null={all(rsid[i] is None for i in idx_b)}")))
     # μ_* preenchido · σ_* NULL em TODA a ③ — o piso é "b5 sem σ" (DI-16.1).
     mucols = [c for c in surr.schema.names if c.startswith("mu_")]

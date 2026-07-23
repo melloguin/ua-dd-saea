@@ -128,8 +128,13 @@ bucket e gateia. Verde = a VM está pronta.
 
 **Células (todas com `--seeds 42`):** main 425 (12 MATLAB×25 + 5 Python×25) · off 125
 (e103×25 no Mac + 4 Python×25) · sweep 90 (b5r/b5m/c311 Python + e103 MATLAB; tokens
-`sweep-{small,medium,big}-{lhs,mvns}`) · **batch 25 = FORA (T6/M10 não implementado)**.
-**Total: 640 células.**
+`sweep-{small,medium,big}-{lhs,mvns}`) · **batch 25 (c149/c262/e81/c154/sobol_batch ×
+5 problemas — INCLUÍDO por decisão do autor, DI-33; exige o cartão T6 ANTES)**.
+**Total: 665 células.** ⚠ Dois PRÉ-REQUISITOS de implementação antes do disparo
+completo: **T6** (batch q=10 — ver REGISTRO A21) e **T7** (o "fio do sweep": os
+runners offline ainda não derivam tier/dist do token `sweep-*` — ver REGISTRO A21;
+sem o T7, um run de sweep rodaria SILENCIOSAMENTE sobre o dataset small errado).
+main+off (550 células) podem disparar IMEDIATAMENTE — não dependem de T6/T7.
 
 ```bash
 # VM (tudo Python; ~6-10 paralelos; e7 não se aplica — é MATLAB):

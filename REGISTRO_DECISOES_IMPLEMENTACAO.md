@@ -1494,6 +1494,45 @@ executados NA varredura-42/M7, onde são células reais.)
 
 ---
 
+## PARTE A21 — DI-33: batch q=10 ANTECIPADO p/ a rodada-42 + o achado "fio do sweep" (2026-07-23)
+
+**Decisão do autor:** o sub-estudo batch q=10 (c149/c262/e81/c154 + sobol_batch × 5 problemas)
+ENTRA na rodada-42 de fidelidade (era M10). Rodada-42 passa a **665 células** (main 425 + off 125
++ sweep 90 + batch 25). main+off disparam imediatamente; sweep e batch dependem de T7/T6.
+
+### T6 — o que falta p/ o batch q=10 (cartão de implementação; era M10)
+O que JÁ existe: `q` no manifesto/`write_run_outputs` (DI-23) · runs_matrix com q=10 · e81 com o
+lote NATIVO fiado (`q` ponta-a-ponta até `acq.qpots(q=)`) · naming `exp=batch`. O que FALTA:
+1. **Orçamento batch**: `maxFE_batch = 11D−1 + K·q` (K=200 ⇒ +2000 infills, D66) — hoje NADA
+   computa orçamento por exp; os runners assumem 31D−1.
+2. **Fio do q nos 4 online**: c262 (`optimize_acqf(q=10, sequential=True)` — hoje q=1 hardcoded) ·
+   c154 (idem, lote nativo JES) · c149 (laço HVI-greedy iterado q vezes, D42) · e81 (SÓ o
+   fallback qmaximin p/ |ND|<q — DI-25 #3, definido e não-implementado; o resto está fiado).
+3. **Runner `sobol_batch`** (o piso do batch: Sobol scrambled/Owen por semente, lotes de q=10 —
+   trivial sobre o harness) + dispatch + alg_id no seeds.json (novo id; ratificar).
+4. **Gates batch-aware**: o catch-all/check_fe espera FE=31D−1 — reprovaria um run batch correto;
+   auditar/portão idem. Estender a expectativa de FE por exp.
+**Instrumentação: NENHUM retrofit novo necessário** — as 7 camadas/sonda/⑥/⑤ são agnósticas de
+config e JÁ são q-aware (③ multi-candidato é o padrão existente do c262; a sonda é a mesma régua;
+④ por iteração; manifesto grava q). Diagnóstico do batch = mesma qualidade do main por construção.
+Únicos acréscimos de log: eventos de lote no ⑥ (ex.: `lote_completado_por=qmaximin`), já previstos
+na DI-25 #3.
+
+### T7 — o achado "fio do sweep" (descoberto pela torre ANTES de queimar células)
+O plumbing de BAIXO existe e está pronto: datasets dos tiers no disco (`ds_*_{tier}_{dist}`),
+`load_dataset`/`load_offline_budget` aceitam tier/dist (e o orçamento vem GRÁTIS do desenho "o
+orçamento É o dataset": medium=2000/big=50k), tokens no naming, ramo big do c311
+(`_build_surrogates`, B15.4) implementado. **O elo que FALTA é fino: NINGUÉM deriva (tier, dist)
+do token `exp=sweep-<tier>-<dist>`** — os 3 runners offline chamam `load_offline_budget(problema,
+semente)` SEM tier/dist (b5_prob:292, c311:459, piso:298) ⇒ um run de sweep hoje rodaria
+SILENCIOSAMENTE sobre o dataset small e gravaria sob o nome do sweep. Escopo do T7:
+(1) helper `naming.parse_sweep(exp)→(tier,dist)`; (2) os 3 runners derivam do exp e repassam
+(+ c311 roteia big→`_build_surrogates`); (3) e103/MATLAB: `experiment.m` carrega a variante do
+tier (lado MATLAB do mesmo fio); (4) gates: expectativa de FE/n por tier (check_fe/auditar);
+(5) smoke 1 célula/token (6 tokens) ANTES das 90 células.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

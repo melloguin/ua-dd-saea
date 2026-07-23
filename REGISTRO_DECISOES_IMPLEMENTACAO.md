@@ -1356,6 +1356,29 @@ exemplar.
 
 ---
 
+## PARTE A18 — DI-30: o autor RATIFICOU as 3 decisões do fechamento 21/21 (2026-07-23)
+
+O autor aprovou as 3 recomendações da torre (PARTE A17, "EM ABERTO DI-30"):
+- **B2 — `modelo_hp` do piso = NULL (RATIFICADO).** Coerente com o molde b5 e o D-08 (HP fixos,
+  treino único). Gravar HP no piso mas não no b5m criaria assimetria espúria na ablação. Sem
+  mudança de código (já era NULL).
+- **B3 — linha do ⑥/CONTRATO §6.1 do moead_media = "b5" (RATIFICADO).** O ⑥ do piso fica
+  estruturalmente idêntico ao do b5m (o par de ablação). AÇÃO da torre no doc-sync: clarificar
+  na §6.1 que o `moead_media`, embora seja "piso", segue a linha de logging "b5" (é um config
+  surrogate da família b5). Sem mudança de código.
+- **B1/σ-NULL** já estava fechado (confirmado pela torre); **D97-b5m/DTLZ2** — aceitar o GP
+  degenerado do obj-2 como achado científico legítimo + caveat na dissertação (RATIFICADO como
+  encaminhamento; o julgamento de fidelidade final continua no lote D97). Sem mudança de código
+  (dado honesto e determinístico; protocolo de sementes é fixo).
+
+**Nenhuma mudança de código decorre da DI-30** — as 3 eram "manter como implementado". Efeito:
+esta PARTE + a nota §6.1 na fila do doc-sync + a atualização do DOSSIÊ (flag b5m/DTLZ2 → ratificado).
+Uma auditoria EXAUSTIVA de fechamento (9 auditores + verificação adversarial, workflow
+`fechamento-implementacao-21de21`) roda em paralelo para garantir que NENHUMA outra pendência
+sobrou antes do M7 — os achados confirmados dela entram como DI-31.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

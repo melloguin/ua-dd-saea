@@ -19,3 +19,8 @@ statsmodels
 pandas
 Pillow<10             # Pillow>=10 exige numpy>=1.21 (numpy.typing.NDArray); o pin é 1.20.2
 pyarrow               # ler DoE/dataset parquet + export
+pymoo==0.6.1.2        # [R3-c311 Fase B] finais ⑦/ND via src/problems.py DENTRO do runner
+                      # offline; py3.8 tem typing.Literal nativo (SEM o shim do env_b5); puro-python.
+# optproblems: NÃO instalar — dep import-time do desdeo_problem via testproblems, que o caminho
+#   DataProblem do c311 nunca usa; o runner src/c311_tgprmo.py o STUBA em sys.modules (respeita D80).
+# pygmo: idem AUSENTE do caminho framework/ do c311 (DI-16.14) — nenhum shim (≠ b5).

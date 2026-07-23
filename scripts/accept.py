@@ -1708,6 +1708,155 @@ def check_r3_b5(alg, exp="off", problema="MMF1", semente=0, data_root=None):
     return results
 
 
+def check_r3_c311(exp="off", problema="MMF1", semente=0, data_root=None):
+    """[R3-c311] Afere o run OFFLINE JÁ GRAVADO do TGPR-MO (treed-GP/GPy) —
+    encanamento objetivo (D97: fidelidade é do autor, a posteriori). ADITIVO: LÊ
+    o que o runner persistiu, NÃO re-roda. Molde: `check_r3_b5`. Diferenças c311:
+
+      • ③ sonda = **2 BLOCOS** (treedGP_build + treedGP_final, DI-16.12), cada
+        S=20000 ⇒ 40000 linhas, TODAS geracao NULL;
+      • ③ busca: contador `geracao` ÚNICO 1..N atravessando as 2 fases (C311-11);
+        modelo_flag ∈ {treedGP_build, treedGP_final};
+      • ④ = 1 linha por RETREINO de construção (C311-09; ≥1 basta aqui).
+    Resto = idem b5 (regime offline): 6-7 camadas (⑦ OBRIGATÓRIA), FE=31D−1=|dataset|,
+    ① = dataset bit-a-bit, CP-init x_hash E f_hash, ② vazia aceitável (DI-16.17),
+    μ_*/σ_* preenchidos, ⑤ manifesto completo, ⑦ reconstituível da ③.
+    """
+    import numpy as np
+    import pyarrow.parquet as pq
+    from src import experiment as _exp
+    from src import standalone_harness as _sh
+
+    alg = "c311"
+    results = []
+    semente = int(semente)
+    dr = data_root or os.path.join(ROOT, "data")
+
+    prob_obj = _exp._instantiate_problem(problema)
+    D, M = int(prob_obj.n_var), int(prob_obj.n_obj)
+    n_ds = maxfe(D)                                    # 31D−1
+
+    # (1) camadas presentes (⑦ é OBRIGATÓRIA no offline).
+    layers = {L: naming.layer_path(exp, alg, problema, semente, L, data_root=dr)
+              for L in ("real", "pop", "surrogate", "timing", "final")}
+    manp = naming.manifest_path(exp, alg, problema, semente, data_root=dr)
+    faltam = [L for L, p in layers.items() if not os.path.exists(p)]
+    if not os.path.exists(manp):
+        faltam.append("manifest")
+    if faltam:
+        return [("as 6-7 camadas presentes (rode o c311 ANTES do accept)",
+                 (False, f"faltam: {faltam} — pasta {os.path.dirname(manp)}"))]
+    results.append(("6-7 camadas presentes (①②③④⑤ + ⑦ __final — D-12)",
+                    (True, "todas presentes")))
+
+    man = json.load(open(manp, encoding="utf-8"))
+    ds = _sh.load_dataset(problema, semente, data_root=dr)
+
+    # (2) ① = dataset bit-exato + fase `init` + FE=31D−1.
+    real = pq.read_table(layers["real"])
+    Xr = np.column_stack([np.asarray(real.column(f"x{j}"), dtype=np.float64)
+                          for j in range(D)])
+    Fr = np.column_stack([np.asarray(real.column(f"f{j}"), dtype=np.float64)
+                          for j in range(M)])
+    bitex = (np.array_equal(Xr, ds["X"].astype(np.float32).astype(np.float64))
+             and np.array_equal(Fr, ds["F"].astype(np.float32).astype(np.float64)))
+    fases = set(real.column("fase").to_pylist())
+    results.append(("FE final = 31D−1 = |dataset| (D90) · ① = o dataset bit-a-bit "
+                    "(pós-cast float32) · fase toda `init`",
+                    (real.num_rows == n_ds and bitex and fases == {"init"},
+                     f"rows={real.num_rows} (esperado {n_ds}) bitex={bitex} "
+                     f"fases={sorted(fases)}")))
+
+    # (3) CP-init OFFLINE (o mais forte — X E F).
+    cpo = man.get("cp_init_offline") or {}
+    results.append(("CP-init OFFLINE: x_hash **E** f_hash == sidecar do dataset (D90)",
+                    (cpo.get("x_hash") == ds["x_hash"]
+                     and cpo.get("f_hash") == ds["f_hash"],
+                     f"x={str(cpo.get('x_hash'))[:12]}… f={str(cpo.get('f_hash'))[:12]}…")))
+
+    # (4) ② VAZIA é ACEITÁVEL (DI-16.17).
+    pop = pq.read_table(layers["pop"])
+    results.append(("② membership: schema válido; VAZIA por construção é "
+                    "ACEITÁVEL (DI-16.17 — init LHS ≠ dataset)",
+                    (set(pop.schema.names) >= {"algoritmo", "problema",
+                     "semente", "geracao", "solution_id"},
+                     f"rows={pop.num_rows} (vazia OK)")))
+
+    # (5) ③ regime POR LINHA: 2 blocos de sonda (DI-16.12) + contador C311-11.
+    surr = pq.read_table(layers["surrogate"])
+    reg = surr.column("regime").to_pylist()
+    ger = surr.column("geracao").to_pylist()
+    ftm = surr.column("fe_treino_max").to_pylist()
+    esp = set(v for v in surr.column("espaco_modelo").to_pylist()
+              if v not in (None, ""))
+    rsid = surr.column("real_solution_id").to_pylist()
+    mflag = surr.column("modelo_flag").to_pylist()
+    idx_s = [i for i, r in enumerate(reg) if r == "sonda"]
+    idx_b = [i for i, r in enumerate(reg) if r == "offline"]
+    sonda_art = _sh.load_sonda(problema, regime="offline", data_root=dr)
+    S = sonda_art["S"]
+    n_build = sum(1 for i in idx_s if mflag[i] == "treedGP_build")
+    n_final = sum(1 for i in idx_s if mflag[i] == "treedGP_final")
+    ok_sonda = (len(idx_s) == 2 * S and n_build == S and n_final == S
+                and all(ger[i] is None for i in idx_s)
+                and all(ftm[i] is not None for i in idx_s))
+    results.append(("③ sonda OFFLINE: 2 BLOCOS treedGP_build+treedGP_final (DI-16.12) "
+                    "· S=20000 cada · geracao NULL (DI-13.5) · fe_treino_max sem nulo",
+                    (ok_sonda, f"n_sonda={len(idx_s)} (esperado {2*S}) "
+                     f"build={n_build} final={n_final} "
+                     f"ger_all_null={all(ger[i] is None for i in idx_s)}")))
+    gb = [ger[i] for i in idx_b]
+    flags_b = set(mflag[i] for i in idx_b)
+    ok_busca = (len(idx_b) > 0 and all(g is not None for g in gb)
+                and min(gb) == 1                       # contador 1-based (C311-11)
+                and all(int(ftm[i]) == n_ds - 1 for i in idx_b)
+                and all(rsid[i] is None for i in idx_b)
+                and esp <= {"cru"}
+                and flags_b <= {"treedGP_build", "treedGP_final"})
+    results.append(("③ busca: contador geracao ÚNICO 1..N atravessando as 2 fases "
+                    "(C311-11) · modelo_flag∈{treedGP_build,treedGP_final} · "
+                    "fe_treino_max=n_ds−1 · real_solution_id NULL (② vazia) · espaco∈{cru}",
+                    (ok_busca, f"n_busca={len(idx_b)} ger∈[{min(gb)}..{max(gb)}] "
+                     f"flags={sorted(flags_b)} espaco={esp}")))
+    mucols = [c for c in surr.schema.names if c.startswith("mu_")]
+    sgcols = [c for c in surr.schema.names if c.startswith("sigma_")]
+    ok_musg = (len(mucols) == M and len(sgcols) == M and bool(idx_b)
+               and all(surr.column(c)[idx_b[0]].as_py() is not None
+                       for c in mucols + sgcols))
+    results.append(("③ regressor probabilístico: μ_* E σ_* preenchidos (M cada)",
+                    (ok_musg, f"mu_*={len(mucols)} sigma_*={len(sgcols)} M={M}")))
+
+    # (6) ④ timing — c311 NÃO é piso ⇒ tempo_fit_s não-nulo; 1 linha por retreino.
+    tim = pq.read_table(layers["timing"])
+    tfit = tim.column("tempo_fit_s").to_pylist()
+    tbus = tim.column("tempo_busca_s").to_pylist()
+    results.append(("④ timing: ≥1 linha (1 por RETREINO de construção — C311-09) · "
+                    "tempo_fit_s NÃO-nulo (c311 não é piso) · tempo_busca_s preenchido",
+                    (tim.num_rows >= 1 and all(v is not None for v in tfit)
+                     and all(v is not None for v in tbus),
+                     f"rows={tim.num_rows} tempo_fit_s={[round(v, 3) for v in tfit if v is not None]}")))
+
+    # (7) ⑤ manifesto.
+    tb = man.get("timing") or {}
+    results.append(("⑤ manifesto: timing §17.6 + sigma_dict (DEF-C4) + sonda + "
+                    "regime offline + status ok",
+                    (all(tb.get(k) is not None for k in
+                         ("tempo_total_s", "tempo_fit_surrogate_s",
+                          "tempo_busca_s", "tempo_aval_real_s"))
+                     and bool(man.get("sigma_dict")) and bool(man.get("sonda"))
+                     and man.get("regime") == "offline"
+                     and man.get("status") == "ok",
+                     f"sigma_dict={bool(man.get('sigma_dict'))} "
+                     f"sonda={bool(man.get('sonda'))} regime={man.get('regime')} "
+                     f"status={man.get('status')}")))
+
+    # (8) ⑦ reconstituível da ③ (o invariante DI-16.16 — delega ao final_eval).
+    results.append(("⑦ __final presente e RECONSTITUÍVEL da ③ (última geração) — "
+                    "DI-16.16/DI-08",
+                    _check_final_layer(exp, alg, problema, semente, dr)))
+    return results
+
+
 def _check_export_schema_r3(exp, alg, problema, semente, D, M, data_root):
     """Como `_check_export_schema`, mas sem exigir a coexistência μ+classe na
     ③ (aquilo é do STUB do F0-03/R2-00; os configs offline da R3 são
@@ -2224,6 +2373,33 @@ def main():
                   "(o run vive em off/{b5r,b5m}/).")
         results = check_r3_b5(a.alg, exp=exp_b5, problema=a.problema,
                               semente=int(a.semente))
+        fail = False
+        for name, (ok, msg) in results:
+            mark = "SKIP" if ok is None else ("OK  " if ok else "FAIL")
+            print(f"  [{mark}] {name}: {msg}")
+            if ok is False:
+                fail = True
+        print("\n  >>> " + ("VERMELHO — pára-e-loga (D81)" if fail
+                            else "VERDE (encanamento objetivo)"))
+        print("  Lembrete (D97): a fidelidade é validação MANUAL do autor, "
+              "a posteriori — não entra aqui.")
+        sys.exit(1 if fail else 0)
+
+    # [R3-c311] TGPR-MO (treed-GP/GPy), OFFLINE, env PRÓPRIO `env_c311`.
+    # ⚠ TEM de vir ANTES do catch-all abaixo (mesma armadilha do R3-00/b5: o
+    # `or not a.alg` engoliria e devolveria o VERDE do andaime F0-01). Afere o
+    # run JÁ GRAVADO (o runner roda por minutos — o accept não re-executa).
+    if a.cartao.startswith("R3-c311"):
+        if a.alg not in ("c311",):
+            print(f"  [FAIL] cartão R3-c311 só afere --alg=c311: {a.alg!r}")
+            sys.exit(2)
+        # c311 é OFFLINE: o token canônico do regime é `off` (idem R3-00/b5).
+        exp_c311 = a.exp if a.exp != "main" else "off"
+        if a.exp == "main":
+            print(f"  [INFO] exp remapeado {a.exp!r} → {exp_c311!r}: c311 é offline "
+                  "(o run vive em off/c311/).")
+        results = check_r3_c311(exp=exp_c311, problema=a.problema,
+                                semente=int(a.semente))
         fail = False
         for name, (ok, msg) in results:
             mark = "SKIP" if ok is None else ("OK  " if ok else "FAIL")

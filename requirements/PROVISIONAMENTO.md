@@ -82,8 +82,22 @@ PY=/Users/gmello/Documents/python_venvs/env_c311/bin/python
 $PY -m pip install "numpy==1.20.2" "scikit-learn==1.1.2" scipy pyDOE "plotly==4.14.3" \
     "plotly-express==0.4.1" matplotlib statsmodels pandas "Pillow<10" pyarrow graphviz
 $PY -m pip install --no-build-isolation "GPy~=1.9.9"    # COMPILA o sdist (precisa do CLT/gcc)
+$PY -m pip install "pymoo==0.6.1.2"                     # [R3-c311 Fase B] finais ⑦/ND via src/problems.py
 ```
-- Prova: `MPLBACKEND=Agg $PY -c "import GPy; import numpy as np; m=GPy.models.GPRegression(np.random.rand(20,2), np.random.rand(20,1)); m.optimize(max_iters=5); m.predict(np.random.rand(3,2))"`.
+- Prova GPy: `MPLBACKEND=Agg $PY -c "import GPy; import numpy as np; m=GPy.models.GPRegression(np.random.rand(20,2), np.random.rand(20,1)); m.optimize(max_iters=5); m.predict(np.random.rand(3,2))"`.
+- ⚠ `pymoo==0.6.1.2` **[R3-c311 Fase B 2026-07-23]**: os finais ⑦ e o filtro ND são avaliados via
+  `src/problems.py` DENTRO do runner offline (env_c311) — **MESMO gap do env_b5** (§2). Instalado com
+  constraints do freeze (o núcleo validado — numpy 1.20.2 / GPy 1.9.9 / sklearn 1.1.2 / pyarrow 17 — NÃO
+  se moveu). **py3.8 tem `typing.Literal` nativo ⇒ SEM o shim do env_b5.** Puro-python
+  (`py3-none-any.whl`, sem Cython — só velocidade; conjuntos finais pequenos). Prova ⑦: `MPLBACKEND=Agg
+  $PY -c "from src import problems as P, standalone_harness as H; import numpy as np; P._nds_filter(P.evaluate_problem(H._instantiate('DTLZ2'), np.random.rand(8,12)))"`.
+- ⚠ `optproblems` **NÃO instalado**: dep de import-time do `desdeo_problem/__init__` via `testproblems`,
+  que o caminho `DataProblem` do c311 NUNCA usa. O runner `src/c311_tgprmo.py` **STUBA**
+  `optproblems.{zdt,dtlz}` em `sys.modules` ANTES do import (respeita D80 — não instala pacote no env).
+  `pygmo`: idem AUSENTE do caminho `framework/` do c311 (DI-16.14) — **nenhum shim** (≠ b5).
+- ⚠ `pyDOE`: drift do §0 — o runner c311 herda o **gancho lhs-determinismo** (RandomState global
+  semeado). RATIFICADO DEFINITIVO (DI-28.3): NÃO re-pinar o pyDOE antigo, NÃO materializar patch.
+- Prova offline: `<env>/bin/python -c "import GPy, sklearn, desdeo_problem; from src.standalone_harness import load_sonda; load_sonda('MMF1', regime='offline')"` (na raiz do repo).
 
 ## 4. env_e81_qpots — py 3.11.9 **arm64 nativo** (e81/qPOTS) — ONLINE
 Pin do torch **RE-PINADO pelo autor (DI-22)**: `2.12.0 → 2.11.0` (o 2.12 exige macOS≥14, sem

@@ -156,7 +156,10 @@ _DISPATCH_LOADERS: dict[str, tuple[str, str, str]] = {
     # por venv (D79/N.2); NUNCA co-importar com c311 (N.1.2).
     'b5r':           ('src.b5_prob',         'run_b5r',  'standalone'),
     'b5m':           ('src.b5_prob',         'run_b5m',  'standalone'),
-    # 'c311':        ('src.c311_tgprmo',     'run_c311', 'standalone'),
+    # [R3-c311] TGPR-MO (treed-GP/GPy), OFFLINE. env PRÓPRIO `env_c311` (py3.8,
+    # GPy 1.9.9, desdeo VENDORIZADO root-first) — subprocess por venv (D79/N.2);
+    # NUNCA co-importar com b5 (N.1.2 — mesmo nome de pacote, código diferente).
+    'c311':          ('src.c311_tgprmo',     'run_c311', 'standalone'),
     # 'moead_media': ('src.piso_offline',    'run_piso_offline', 'standalone'),
 }
 

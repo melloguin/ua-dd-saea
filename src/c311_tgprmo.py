@@ -654,16 +654,23 @@ def run_c311(exp: str, alg: str, problema: str, semente, *,
         F_final = np.ascontiguousarray(
             _problems.evaluate_problem(H._instantiate(problema), pop_final),
             dtype=np.float64)
-        nd_idx = set(int(i) for i in _problems._nds_filter(F_final))
-        n_nd = len(nd_idx)
+        # [DI-27/A15] `nd_pos_real`: NAO passar — o `write_final` o calcula sobre a
+        # vista FLOAT32 que a ⑦ PERSISTE (a mesma que o `final_eval --check` re-le).
+        # Calcula-lo no float64 CRU cria assimetria float32/float64 em empates de
+        # borda (o b5 mediu b5m/ZDT1: 20 vs 19) e reprovaria uma ⑦ correta (o
+        # anti-padrao que a docstring do write_final proibe). Molde: b5_prob.py.
         H.write_final(
             exp, alg, problema, semente, pop_final, F_final,
             origem_solution_id=[bud.solution_id_of(x) for x in pop_final],
             origem_geracao=[final_gen_last] * pop_final.shape[0],
             origem_linha=np.arange(pop_final.shape[0]),
-            nd_pos_real=[i in nd_idx for i in range(pop_final.shape[0])],
             origem_camada="surrogate (③), ultima geracao treedGP_final",
             data_root=data_root)
+        # footer/retorno: conta o ND sobre a MESMA vista float32 da ⑦ (consistente
+        # com a coluna nd_pos_real gravada e com o --check).
+        nd_idx = set(int(i) for i in _problems._nds_filter(
+            F_final.astype(np.float32).astype(np.float64)))
+        n_nd = len(nd_idx)
 
     except H.OfflineBudgetViolation:
         # o offline_guard ja gravou guard+footer(failed) e re-levantou: uma avaliacao

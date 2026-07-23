@@ -215,7 +215,13 @@ def _read_matrix_parquet(path: str, columns: list[str]) -> np.ndarray:
     float64 — para re-hash de verificação (round-trip bit-a-bit)."""
     import pyarrow.parquet as pq
     t = pq.read_table(path, columns=columns)
-    cols = [np.asarray(t.column(c).to_numpy(zero_copy_only=False), dtype=np.float64)
+    # [DI-26 · achado da sessão R3-b5] `ChunkedArray.to_numpy(zero_copy_only=)`
+    # só existe no pyarrow moderno (25 do env_main OK; o 12 do env_b5 REJEITA o
+    # kwarg — este caminho nunca tinha rodado na família offline-Python). A
+    # forma `combine_chunks().to_numpy(...)` funciona em TODAS as versões do
+    # estudo (12/17/25) e é bit-idêntica (provado pela sessão + teste abaixo).
+    cols = [np.asarray(t.column(c).combine_chunks()
+                        .to_numpy(zero_copy_only=False), dtype=np.float64)
             for c in columns]
     return np.ascontiguousarray(np.column_stack(cols), dtype=np.float64)
 

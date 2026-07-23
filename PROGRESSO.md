@@ -358,6 +358,19 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
   o que resta são 6 cartões de build torre (portao.py, enable_bucket, driver ⑦ offline, doc-sync
   SPEC/bundles, hardening M7, sobol_batch/M10) + 7 decisões do autor (A1-A7, com A1=lote D97 a chave).
 
+### 2026-07-23 (fechamento) — DI-32: A1-A7 ratificadas · T4 doc-sync · T1-T3/T5 construídos
+- **T4 EXECUTADO** (`e18f968`): SPEC 21→22 configs · nota pyDOE/D62/PYTHONHASHSEED na L.17 ·
+  epígrafes N-lattice/varN · CONTRATO §6.1+§7 · sigma_dicts ratificados · bundles regenerados
+  (diff auditado: só os 8 esperados).
+- **T1-T3/T5 CONSTRUÍDOS** (`1ec0624`): `scripts/portao.py` (driver de portão + lote ⑦-offline,
+  com `--varredura`) · `--enable-bucket` ponta-a-ponta · `is_run_done_m` cobra a ⑦ do e103 ·
+  probe mecânico de RNG no gate R2-00 (D-17). Suíte **328 OK**.
+- **PROVA DE FOGO do portão — varredura TOTAL do data/: 66 runs · 147 gates · 61 verdes · 5
+  vermelhos = EXATAMENTE as fatias stale pré-retrofit já conhecidas** (ZDT1 de c238/c262/e7 sem
+  sonda + c154/DTLZ2 + c217/DTLZ2_d15) — a rede pegou o que devia; essas células re-rodam na
+  varredura semente-42 com o código retrofitado. **A1/A4 (lote D97 + VM) = o plano de validação
+  definitiva semente-42 acordado com o autor (3 máquinas, tudo × 25 problemas, seed 42).**
+
 ## 4. Ambientes (estado real)
 - **Mac** (arm64, macOS 12.5.1): MATLAB R2025a (R1 + Fase 0 + pilotos) + os venvs Python. Grava local.
 - **VM Vertex** `v5-mestrado` (Debian 12, us-central1-a, micromamba+pyenv): R2/R3 + análise. Grava local

@@ -1460,6 +1460,40 @@ robustez da CAMADA DE ANÁLISE não dos dados, e103 smoke sob `main/`) consolida
 
 ---
 
+## PARTE A20 — DI-32: A1-A7 RATIFICADAS + cartões de build T1-T5 EXECUTADOS (2026-07-23)
+
+**O autor ratificou EM BLOCO as recomendações A1-A7 da PARTE A19** e mandou executar T4 + T1-T3/T5:
+- **A1 (lote D97)**: será executado como a VALIDAÇÃO DEFINITIVA DE FIDELIDADE sobre a varredura
+  semente-42 completa (estratégia do autor, refinada pela torre no chat de 2026-07-23 — 3 máquinas,
+  todos os configs × 25 problemas, seed 42; o protocolo Fable de 3 classes vira o método oficial).
+- **A2**: N=20 dos pisos online = DEFINITIVO; SUB-varN vira sub-estudo OPCIONAL do M11 (epígrafe
+  do bundle atualizada). **A3/A5**: teto/orçamento por config (incl. c154/ZDT1 e teto_s do c311)
+  decididos no M7 com os walls da varredura-42. **A6**: batch/sobol_batch = escopo M10.
+  **A7**: dossiê itens 3/4/5 ANTES do M8 — o item 5 (smoke semente 42) é SUBSUMIDO pela
+  varredura-42 em largura total.
+- **A4**: provisionamento VM/bucket = próxima ação física do autor (receitas prontas,
+  PROVISIONAMENTO.md; D-16c sem toolchain C++).
+
+**T4 — doc-sync SPEC→bundles EXECUTADO (commit `e18f968`):** contagem D88 21→22 nos sítios
+normativos · nota DI-28 na receita L.17 (D62 canônica + drift pyDOE + gancho DEFINITIVO +
+PYTHONHASHSEED) · epígrafes do gen_bundles corrigidas ("N interno=100" SUPERADA → lattice 50/105;
+varN opcional) · CONTRATO §6.1 (moead_media = linha "b5", DI-30.B3; modelo_hp NULL B2) e §7
+(origem_linha = PAR com origem_geracao) · e74_sonda.m "sujeita a ratificação"→RATIFICADA ·
+sigma_dict de c311/piso: textos "em aberto"→RATIFICADO (chaves preservadas). Bundles regenerados
+(44 arquivos; diff auditado = só os 8 esperados). Suíte 325 OK · preflight 0.
+
+**T1+T3 — `scripts/portao.py` (commit `1ec0624`): o DRIVER DE PORTÃO das baterias.** Roteia por
+run: accept (branch R3 dedicado / catch-all R1-R2) + auditar + final_eval --check (offline);
+modo `--varredura` = varre todo o data/ e é TAMBÉM o driver de LOTE da ⑦ offline. Provado ao
+vivo: varredura exp=off 12 runs/36 gates VERDE; catch-all MATLAB (c217) VERDE. `is_run_done_m`
+do MATLAB agora COBRA a ⑦ do e103. `tests/test_portao.py` trava a cobertura de todos os configs.
+**T2** — `--enable-bucket` de ponta a ponta no experiments.py (os 9 runners já aceitavam).
+**T5** — probe MECÂNICO de RNG (D-17) no gate R2-00 ao lado do auto-relato; provado VERDE no
+gate real. Suíte final: **328 OK**. (T5-resto: e2e de aborto + smokes ZDT1 c238/e7/c262 =
+executados NA varredura-42/M7, onde são células reais.)
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

@@ -82,7 +82,8 @@ BOTORCH_ALGS = frozenset({'c262', 'c154', 'e81'})
 # ═══════════════════════════════════════════════════════════════════════════
 
 def _run_one(exp: str, alg: str, problema: str, semente: int,
-             data_root: str, *, modo_rapido: bool = False) -> str:
+             data_root: str, *, modo_rapido: bool = False,
+             enable_bucket: bool = False) -> str:
     """Executa (ou tenta) um run e materializa manifesto + `.jsonl`.
 
     Retorna o `status` ∈ {ok, retried_ok, failed}. A política de erro-duro
@@ -121,10 +122,12 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
                 # [D-06/DI-21] repassa `data_root` (a mescla DI-13.1 procurava o
                 # manifesto no root ERRADO sob --data-root customizado e regravava
                 # o toco com 3 timings None — o defeito voltava por outra porta).
-                # `enable_bucket` segue o default do runner (False no Mac até o
-                # M7, RI-08/DI-16.8); o despachante M8 o ligará explicitamente.
+                # [DI-32/T2] `enable_bucket` agora é FIO DE PONTA A PONTA: o CLI
+                # `--enable-bucket` liga o dual-write §17.7 (a VM efêmera do M8
+                # gravaria SÓ local sem isto — perda total no descarte). Default
+                # False = Mac/pilotos local puro (RI-08/DI-16.8), como sempre.
                 _adapter.run(alg, problema, semente, exp=exp,
-                             data_root=data_root)
+                             data_root=data_root, enable_bucket=enable_bucket)
                 status = 'ok' if i == 0 else 'retried_ok'
                 n_retries = i          # nº de re-tentativas até o sucesso
                 break
@@ -257,7 +260,8 @@ def sweep_tmp_orfaos(data_root: str = DEFAULT_DATA_ROOT, *, idade_min_s: float =
     return alvos
 
 
-def _stage_grid(tasks, exp, data_root, *, n_jobs, force, modo_rapido, sb):
+def _stage_grid(tasks, exp, data_root, *, n_jobs, force, modo_rapido, sb,
+                enable_bucket=False):
     """Estágio 2 — executa o grid (idempotente/resumível)."""
     pending = []
     for alg, prob, seed in tasks:
@@ -275,13 +279,15 @@ def _stage_grid(tasks, exp, data_root, *, n_jobs, force, modo_rapido, sb):
         # Serial — sem joblib (mantém o andaime rodável no python3 base).
         for alg, prob, seed in pending:
             sb.record(_run_one(exp, alg, prob, seed, data_root,
-                               modo_rapido=modo_rapido))
+                               modo_rapido=modo_rapido,
+                               enable_bucket=enable_bucket))
             sb.print()
     else:
         from joblib import Parallel, delayed  # lazy (execução paralela real)
         results = Parallel(n_jobs=n_jobs, backend='loky', verbose=0)(
             delayed(_run_one)(exp, alg, prob, seed, data_root,
-                              modo_rapido=modo_rapido)
+                              modo_rapido=modo_rapido,
+                              enable_bucket=enable_bucket)
             for alg, prob, seed in pending)
         for st in results:
             sb.record(st)
@@ -338,6 +344,9 @@ def main(argv=None):
                    help='Pula o estágio 3 de consolidação (§17.4/F0-03).')
     p.add_argument('--modo-rapido', action='store_true',
                    help='(passthrough) marca budget reduzido p/ smoke — F0-03.')
+    p.add_argument('--enable-bucket', action='store_true',
+                   help='[DI-32/T2] liga o dual-write local+bucket (§17.7) — '
+                        'OBRIGATÓRIO na VM efêmera do M8; default = só local.')
     args = p.parse_args(argv)
 
     # Validação de entradas
@@ -369,7 +378,8 @@ def main(argv=None):
     _stage_precache(args.problems, args.seeds, args.data_root)
     _stage_grid(tasks, args.exp, args.data_root,
                 n_jobs=args.n_jobs, force=args.force,
-                modo_rapido=args.modo_rapido, sb=sb)
+                modo_rapido=args.modo_rapido, sb=sb,
+                enable_bucket=args.enable_bucket)
     _stage_consolidate(args.exp, args.data_root, enabled=not args.no_consolidate)
 
     print(f"\n{'=' * 66}")

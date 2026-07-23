@@ -681,6 +681,12 @@ def check_r2_00(exp="main", problema="MMF1", semente=0, gcs_smoke=False):
         results.append(("RNG global preservado em volta de pymoo.minimize "
                         "(N.1.3)", (info["rng_guard_ok"],
                                     f"rng_guard_ok={info['rng_guard_ok']}")))
+        # [DI-32/T5 · D-17] Prova MECÂNICA independente (molde R3-00): o item
+        # acima é AUTO-RELATO do runner — seria VERDE mesmo com
+        # preserve_global_rng = pass. O probe exercita a guarda de verdade
+        # (2 níveis + sentinela de versão do pymoo).
+        results.append(("RNG guard: prova mecânica independente (D-17)",
+                        _r3_rng_guard_probe(problema)))
         # Âncora INDEPENDENTE: re-materializa a fórmula do seeds.json direto
         # do numpy (não pelas funções do harness — anti-tautologia): uma
         # inversão na tupla do harness reprovaria aqui.

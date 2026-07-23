@@ -141,6 +141,12 @@ function tf = is_run_done_m(exp, alg, prob, seed, dataRoot)
             return;
         end
     end
+    % [DI-32/T3] e103 e OFFLINE: a camada final (⑦ __final, gerada pelo
+    % scripts/final_eval.py pos-hoc) e o endpoint OFICIAL do regime — sem ela o
+    % run NAO esta pronto (espelha manifest.py::is_run_done + OFFLINE_ALGS).
+    if strcmp(a, 'e103') && ~isfile(fullfile(rundir, [base '__final.parquet']))
+        return;
+    end
     tf = true;
 end
 

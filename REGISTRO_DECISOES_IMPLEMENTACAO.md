@@ -1297,6 +1297,65 @@ pendência fechada) + 1 linha informativa no prompt do piso-off (não re-levanta
 
 ---
 
+## PARTE A17 — DI-29: validação-torre do FECHAMENTO 21/21 (R3-piso-off + c311-Fase-B) (2026-07-23)
+
+**O MARCO: os 21/21 configs do estudo estão IMPLEMENTADOS e VALIDADOS.** R3-piso-off fechou
+(commits `35ac50c`/`34b2a49`/`8256dfa`/`a92545f`) logo após a Fase B do c311 (`fb4fc30`/`0a6fe8e`/
+`74281a0`) — o segundo paralelismo coreografado, de novo sem conflito (interseção de commits das
+duas sessões = APENAS os 2 compartilhados autorizados do wiring, tocados EM SÉRIE).
+
+**Validação da torre (a maior varredura até aqui):** suíte **321 OK** · preflight 0 ·
+não-perturbação **53/53** · **accept 15/15** (4 cartões offline ×3 problemas + 3 online de
+regressão) · **auditar+final_eval 24/24** (4 algs offline ×3) · workflow de 8 agentes (5 auditores
++ 3 verificação adversarial; notas 8,5–9,5) + 1 auditor dedicado ao código da Fase B do c311
+(8,5/10 — "fix impecável, wiring exemplar"). **ZERO achado confirmado em média+** — os 3 suspeitos
+foram refutados a baixa com verificação independente.
+
+**Fatos fortes provados nos dados:** X da sonda BIT-IDÊNTICO entre piso, b5m e o artefato canônico;
+⑦ ≡ última geração da ③ nos 3 pilotos do piso; ND recomputado na vista float32 bate EXATO no piso
+(8/53/29) E no c311 pós-fix (10/77/50 — o fix nd_pos_real é ENFORÇADO pelo final_eval, não só
+afirmado); os 2 blocos de sonda do c311 seguem bit-idênticos entre si pós-re-run; μ do piso vs b5m:
+corr ≈1,0 onde os dois aprendem (mesma especificação) e byte-identidade sempre False (treino
+independente — DI-28 confirmada no dado).
+
+**A ABLAÇÃO D77 FUNCIONA (o resultado científico do marco):** piso μ-only vs b5m probabilístico nos
+mesmos datasets — ZDT1: piso dist 0,179 à frente vs b5m 1,52 (**a maquinaria probabilística
+ATRAPALHA ~8,5×**); DTLZ2: piso ESPALHA (nd 53/105) onde o b5m COLAPSA (6/105) — **a seleção
+probabilística CAUSA o colapso**; MMF1: o sinal INVERTE (b5m tem mais diversidade ND, 21 vs 8) —
+contraste não-monotônico e cientificamente rico. Turnover: piso troca ~8,5%/ger (conservador,
+gerações estagnadas) vs b5m ~98%/ger (hiperativo guiado por σ). **Nota de comportamento
+moead_media = 9,0** (ablação de manual; régua APROVADA).
+
+**Fix da torre nesta rodada (commit `c740753`):** `check_r3_c311` endurecido (contador CONTÍGUO
+1..N + presença de AMBAS as fases — antes só aferia min==1; achado de 2 auditores independentes,
+mitigado por o runner ser correto por construção) + guarda de ③-vazia nas mensagens dos 3 checks
+offline (crash `min([])` herdado do molde). Re-validado: accept 12/12 offline VERDE + suíte 321 OK.
+
+**Correções de processo pegas PELA SESSÃO do piso (registro de mérito):** a suíte pegou a regressão
+do teste de roteamento (cobaia venv-only esgotada com o 4º dispatch ligado → reescrito para provar
+o roteamento por FileNotFoundError no spawn — solução verificada pela torre, robusta); a revisão
+adversarial própria da sessão pegou o over-claim do sigma_dict (F1) e a falta da guarda DI-13.10
+no teste da ④ (F2). E a resolução σ-NULL por precedência de documentos (DI-16.1 sobre o prompt) foi
+exemplar.
+
+**EM ABERTO p/ o autor (DI-30, a ratificar):**
+1. **B2 — `modelo_hp` do piso:** NULL (como implementado, molde b5/D-08) vs gravar os HP ajustados
+   do kernel. Recomendação da torre: **manter NULL** (gravar no piso e não no b5m criaria assimetria
+   espúria na ablação).
+2. **B3 — linha do ⑥/CONTRATO §6.1 p/ o moead_media:** "b5" (como implementado — ⑥ estruturalmente
+   idêntico ao b5m, o par de ablação) vs "pisos" (ideal/nadir por geração + vetores no header).
+   Recomendação da torre: **manter "b5"** + nota de clarificação na §6.1 no próximo doc-sync.
+3. **D97-b5m/DTLZ2 (o item substantivo):** o GP do obj-2 do b5m/DTLZ2 é DEGENERADO (μ≈0 constante,
+   corr 0,006 com o f real de std 0,588) enquanto o piso, com a MESMA especificação e MESMOS dados,
+   ajusta corr 0,992 — sensibilidade à semente do treino único (n_restarts consome o RNG global,
+   alg_id 18≠21). Dado HONESTO e determinístico; quebra o contraste da ablação NESSE problema.
+   Recomendação da torre: **aceitar como está** (achado científico legítimo; protocolo de sementes
+   é fixo) e documentar como caveat no D97/dissertação — decisão final é do autor no lote D97.
+4. Nota informativa: cartão/bundle do piso com header "N interno = 100" STALE (conflita DI-16.4;
+   o runner faz o certo) — corrige no doc-sync SPEC→bundles, agora destravado (nenhuma sessão aberta).
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

@@ -113,10 +113,12 @@ M3 fan-out MATLAB (9 cartões) ............... 🟡 EM CURSO — herda o fix D89
 M4 R2-00-harness (BoTorch, NO MAC) .......... ✅ VERIFICADO torre 2026-07-17 (∥ c238, faixas limpas; gate 15/15 ×2; smoke GCS 0 resíduo; bateria completa verde) — ⏳ AGUARDANDO COMMIT (sinal do autor; 2 commits: código + fix do teste F0-03 c/ sign-off)
    R2-c262 (qNEHVI) ........................ ✅ VERIFICADO torre 2026-07-18 (gates ×3; 1º/13 nos 3 problemas — o melhor do set; achado S.3#9 fused-kernel + remédio DEF-L2; 10 defs p/ autor; ZDT1 4h11→~5,2 dias·core M7)
    R2-c154 (JES) ........................... ✅ (verificado torre → R2 COMPLETA; retrofit sonda incluído)
-M5 R3-00 ✅ · c122 ✅ · b5r/b5m ✅ (2026-07-23, PARALELO validado DI-27: 0 conflito, 18/18 gates)
-   · c311 FASE A ✅ (Fase B/wiring aguarda comando) · gate R3.2 desdeo-emo ✅ CRAVADO (vendored)
-M6 c149 ✅ (DI-23) · e81 ✅ (DI-24, nota 9/10) · piso-off ⬜ ← ÚNICO config faltante (prompt pronto)
-M7 piloto timing (BLOQUEANTE) .............. ⬜ (após c311-B + piso-off; ratificações A15 ✅=DI-28)
+M5 ✅ COMPLETO: R3-00 · c122 · b5r/b5m · c311 (Fase A+B) · gate R3.2 desdeo-emo CRAVADO
+M6 ✅ COMPLETO: c149 (DI-23) · e81 (DI-24, 9/10) · piso-off (2026-07-23, ablação D77 APROVADA 9/10)
+   → 🏁 21/21 CONFIGS IMPLEMENTADOS — validação do marco = DI-29 (suíte 321 · accept 15/15 ·
+     auditar+final_eval 24/24 · workflow 8 agentes, ZERO achado média+; REGISTRO A17)
+M7 piloto timing (BLOQUEANTE) .............. ⬜ ← PRÓXIMO (pré: DI-30 do autor + doc-sync SPEC/
+   bundles + lote D97 + hardening [D-17·abort e2e·dossiê 3/4/5·pisos no roster·enable_bucket])
 M8 bateria ONLINE (12.750) ................. ⬜
 M9 bateria OFFLINE (3.750) ................. ⬜
 M10 SUB-batch .............................. ⬜

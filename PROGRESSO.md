@@ -327,6 +327,22 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
   re-lacrado — reprodutível em checkout limpo/VM), warning do final_eval. 1 latente ALTA achado no
   c311 (nd_pos_real float64 — fix cravado p/ a Fase B). Ver REGISTRO PARTE A15.
 
+### 2026-07-23 (tarde) — 🏁 O MARCO: 21/21 CONFIGS IMPLEMENTADOS (fim da fase de implementação)
+- **✅ R3-c311 Fase B** (`fb4fc30`/`0a6fe8e`/`74281a0`): fix nd_pos_real (float32, molde b5) +
+  wiring (dispatch :162 · check_r3_c311 aditivo · pymoo/optproblems nos locks §3) + e2e do
+  despachante (⑦ do subprocesso ≡ piloto direto). Auditoria dedicada da torre: 8,5/10.
+- **✅ R3-piso-off** (`35ac50c`..`a92545f`): moead_media (MOEA/D-média, DESDEO mode 12) — a ablação
+  "b5 sem σ" (DI-16.1: σ NULL em TODA a ③; N = lattice b5m 50/105 DI-16.4, provado empiricamente:
+  gerações 801/381/801 ≡ b5m). A sessão resolveu a contradição σ do prompt POR PRECEDÊNCIA de
+  documentos (protocolo D81 exemplar), pegou e corrigiu a regressão do teste de roteamento (B7) e
+  2 achados da própria revisão adversarial. 3 pilotos + 6 gates Fase A + wiring Fase B VERDES.
+- **✅ Validação-torre do marco (DI-29, `c740753`):** a maior varredura até aqui — suíte 321 ·
+  accept 15/15 · auditar+final_eval 24/24 · não-perturbação 53/53 · workflow 8 agentes + auditor
+  c311-B; ZERO achado média+ sobreviveu à refutação. **A ablação D77 FUNCIONA**: ZDT1 piso 0,179 vs
+  b5m 1,52 (σ-machinery atrapalha 8,5×); DTLZ2 piso espalha (53/105) onde b5m colapsa (6/105);
+  MMF1 inverte (rico). check_r3_c311 endurecido (contador contíguo + ambas as fases).
+  Ver REGISTRO PARTE A17; decisões DI-30 (B2/B3/D97-b5m) na mesa do autor.
+
 ## 4. Ambientes (estado real)
 - **Mac** (arm64, macOS 12.5.1): MATLAB R2025a (R1 + Fase 0 + pilotos) + os venvs Python. Grava local.
 - **VM Vertex** `v5-mestrado` (Debian 12, us-central1-a, micromamba+pyenv): R2/R3 + análise. Grava local
@@ -384,11 +400,10 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
   `data/datasets` (pontos iniciais, no repo) + `data/experiments/main/stub/` (saída do run-STUB do R1-00).
 
 ## 8. Estado atual + próximos passos *(atualizado 2026-07-23 — pós-paralelo b5∥c311-A)*
-- **PLACAR DE IMPLEMENTAÇÃO: 20 de 21 configs prontos.** Falta SÓ o piso-off (`moead_media`,
-  mode 12 do MESMO evolver/env do b5 — o cartão mais leve que resta) + a Fase B do c311 (wiring,
-  30-60 min). Depois disso o código dos 21 configs está 100% (resta só o runner trivial
-  `sobol_batch` + plumbing q=10, que pertencem ao M10). Plano imediato: disparar **c311-Fase-B ∥
-  piso-off-Fase-A** (faixas disjuntas por desenho; prompts da torre prontos).
+- **🏁 PLACAR: 21 de 21 CONFIGS IMPLEMENTADOS E VALIDADOS (2026-07-23).** A fase de implementação
+  de algoritmos ACABOU — resta só o runner trivial `sobol_batch` + plumbing q=10 (pertencem ao M10).
+  M5 e M6 COMPLETOS. O caminho agora: ratificações DI-30 → doc-sync SPEC/bundles (destravado:
+  nenhuma sessão aberta) → lote D97 do autor → hardening pré-M7 → **M7 (PORTÃO de timing)** → VM/M8.
 - **Feito:** M0 ✅ · M1 (Fase 0) ✅ · M2 ✅ · **M3 (fan-out MATLAB) ✅ 10/10** · **M4 (R2: R2-00 ✅ +
   c262 ✅ + c154 ✅)** · **M5.1/R3-c122 ✅** (3/3 gates, `29e8539`) · **M5.3/R3-e81 ✅** (qPOTS, 18/18 ×3, nota 9/10 — o anti-c149; validação DI-24) · **M5.2/R3-c149 ✅** (reconstrução em 6h/10h de timebox, 3/3 pilotos, DEF-N4: FICA; validação da torre = DI-23) · **RETROFIT DI-09 ✅ COMPLETO
   (MATLAB 11/11 + BoTorch)** — regressão total verde (14 runs ×MMF1 + F0×4 + 26 gates + suíte) ·
@@ -413,15 +428,14 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
 - **Antes disso, a auditoria de PROSA (DI-18):** 38 achados aplicados na SPEC. **Bundles já
   REGENERADOS (3× desde então, 44 arquivos)** — SPEC v5.2.1 e bundles em sincronia; próxima regen
   só quando NENHUMA sessão de implementação estiver aberta (regra RI-12).
-- **Próximo (5 passos, 2026-07-23):** (1) disparar **c311-Fase-B** (comando à sessão pausada; inclui
-  o fix OBRIGATÓRIO do nd_pos_real float64 — REGISTRO A15) **∥ piso-off-Fase-A** (sessão nova,
-  prompt 2-fases; arquivos próprios apenas); (2) torre VALIDA os 2 retornos (forense + gates +
-  workflow adversarial) e libera a Fase B do piso-off; (3) ✅ **as 7 ratificações APLICADAS (DI-28,
-  2026-07-23)** — modo-7=v3 · pins env_b5 (pygmo=STUB) · gancho pyDOE DEFINITIVO · semeadura D62 ·
-  ④ · carimbo geracao=NULL canônico · uso_id c311=0; resta o sync SPEC/bundles (SÓ com nenhuma
-  sessão aberta) + o D97 offline em lote; (4) itens 3/4/5 do dossiê de
-  fidelidade (auditoria 9→10, guardas forçadas, smoke semente 42) + preparação do M7 (D-17 RNG,
-  abort e2e, qmaximin); (5) **M7 (PORTÃO) piloto de timing** → provisionamento VM/bucket (M8).
+- **Próximo (5 passos, 2026-07-23 pós-marco 21/21):** (1) **autor ratifica as DI-30** (B2 modelo_hp
+  NULL · B3 linha ⑥ "b5" · D97-b5m/DTLZ2 aceitar+caveat — recomendações no REGISTRO A17);
+  (2) torre executa o **doc-sync SPEC→bundles** (DESTRAVADO — nenhuma sessão aberta): header
+  "N interno = 100" stale do cartão do piso, receita L.17/pyDOE, PYTHONHASHSEED, clarificação
+  §6.1 pós-B3, regen + diff auditado; (3) **lote D97 do autor** (dossiê: 21 notas + flags
+  b5m/DTLZ2 e c311 D1-D3); (4) hardening pré-M7 (D-17 RNG · abort e2e · dossiê itens 3/4/5 ·
+  pisos no roster do experiments.m · enable_bucket); (5) **M7 (PORTÃO) pilotos de timing/memória**
+  → dimensionamento VM/bucket → M8 (baterias).
 - **Como uma instância nova assume:** leia este PROGRESSO + `CONTRATO_DE_DADOS.md` (obrigatório) +
   `REGISTRO_DECISOES_IMPLEMENTACAO.md` + `ORQUESTRACAO_MESTRE.md`. Regra de ouro: verifique cada sessão
   rodando código + lendo; nunca julgue fidelidade (D97); pára-e-pergunte em ambiguidade (D81).

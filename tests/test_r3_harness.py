@@ -542,24 +542,32 @@ class TestRegressoesRevisao(unittest.TestCase):
 
     def test_experiment_run_roteia_venv_only_para_subprocesso(self):
         """Prova do ROTEAMENTO: um alg venv-only tem de ir p/ o subprocesso ANTES
-        do despacho in-process — o FILHO re-importa `experiment` e não consegue
-        resolver um alg AINDA-NÃO-REGISTRADO no dict do módulo, e é justamente essa
-        falha que mostra que passou pelo caminho do venv (não importou in-process).
+        do despacho in-process.
 
-        [R3-b5] O cobaia mudou de `b5r` p/ `moead_media`: ao fechar o cartão R3-b5,
-        `b5r`/`b5m` foram REGISTRADOS em `_DISPATCH_LOADERS` (descomentados), então
-        o filho passaria a RODAR b5r de verdade (env_b5 provisionado) em vez de
-        falhar. `moead_media` segue comentado (cartão próprio) — o stand-in de
-        'venv-only ainda não registrado'. (NÃO usar `c311`: sessão concorrente.)"""
+        [R3-piso-off] Os 4 algs venv-only (b5r/b5m/moead_media/c311) estão TODOS
+        REGISTRADOS agora (o cartão R3-piso-off fechou o ÚLTIMO) — não sobra
+        nenhum 'venv-only ainda não registrado' p/ usar como cobaia (o antigo
+        stand-in `moead_media` agora RODA de verdade no env_b5). Então a prova
+        força o INTERPRETADOR do env a um caminho INEXISTENTE: `run()` vai ao
+        subprocesso (venv-only) e `run_in_venv` falha com FileNotFoundError NA HORA
+        de spawnar — jamais NotImplementedError (que só o despacho IN-PROCESS daria
+        p/ um alg não-registrado). É essa falha de spawn que prova o roteamento —
+        e sem rodar o piso (~40s)."""
         from src import experiment, standalone_harness as sh
-        experiment._DISPATCH_LOADERS["moead_media"] = (
-            "src.standalone_harness", "run_stubr3", "standalone")
+        orig = sh.interpreter_for_alg
+
+        def _interp_inexistente(alg, envs=None):
+            if alg == "moead_media":
+                return "env_b5", "/nao/existe/python-interpretador"
+            return orig(alg, envs=envs)
+
+        sh.interpreter_for_alg = _interp_inexistente
         try:
             with self.assertRaises((FileNotFoundError, RuntimeError)) as cm:
                 experiment.run("moead_media", "MMF1", 0, exp="off")
             self.assertNotIsInstance(cm.exception, NotImplementedError)
         finally:
-            experiment._DISPATCH_LOADERS.pop("moead_media", None)
+            sh.interpreter_for_alg = orig
             experiment.ALGORITHM_DISPATCH.pop("moead_media", None)
         self.assertIn("moead_media", sh.VENV_ONLY_ALGS)
 

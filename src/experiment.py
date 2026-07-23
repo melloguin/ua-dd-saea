@@ -160,7 +160,11 @@ _DISPATCH_LOADERS: dict[str, tuple[str, str, str]] = {
     # GPy 1.9.9, desdeo VENDORIZADO root-first) — subprocess por venv (D79/N.2);
     # NUNCA co-importar com b5 (N.1.2 — mesmo nome de pacote, código diferente).
     'c311':          ('src.c311_tgprmo',     'run_c311', 'standalone'),
-    # 'moead_media': ('src.piso_offline',    'run_piso_offline', 'standalone'),
+    # [R3-piso-off] Piso offline MOEA/D-média (moead_media, DESDEO mode 12 = Gen-
+    # MOEA/D PBI) — a ablação cirúrgica do b5 ("b5 sem σ"). env PRÓPRIO `env_b5`
+    # (o MESMO do b5; sklearn 0.21.3, desdeo VENDORIZADO root-first) — subprocess
+    # por venv (D79/N.2); NUNCA co-importar com c311 (N.1.2).
+    'moead_media':   ('src.piso_offline',    'run_piso_offline', 'standalone'),
 }
 
 

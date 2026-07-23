@@ -210,8 +210,14 @@ def _sigma_dict(n_ds):
         "sigma_*": ("NULL POR CONSTRUCAO (DI-16.1): o piso e 'o b5 sem σ' — o motor "
                     "seleciona SO pela media; a incerteza do GPR NAO e reportada "
                     "(nem na busca nem na sonda). O contraste da sonda piso x "
-                    "b5r/b5m (mesmo GP, mesmo μ, mesmos 20.000 pontos) isola o "
-                    "VALOR de σ; excluir σ AQUI e o que torna o contraste limpo."),
+                    "b5r/b5m isola o VALOR de σ: MESMA ESPECIFICACAO de GP e os "
+                    "MESMOS 20.000 pontos, diferindo SO em σ entrar (b5) ou nao "
+                    "(piso) na selecao. ⚠ NAO e 'o mesmo GP byte-a-byte': o treino "
+                    "e INDEPENDENTE por config (DI-28 — alg_id 21 vs 18 semeia RNGs "
+                    "distintos; os 9 restarts do GPR podem convergir a μ nao "
+                    "identico), entao a leitura R4 compara μ da MESMA especificacao, "
+                    "nao μ presumido-igual. Excluir σ AQUI e o que torna o contraste "
+                    "atribuivel so a σ."),
         "regime": "offline = candidatos da busca no surrogate · sonda = regua fixa (§17.2.2)",
         "espaco_modelo": "cru — o GP prediz em f nativa (o piso NAO transforma); transf_tipo/params NULL",
         "fe_treino_max": ("constante %d (=n_dataset-1) em TODA linha (busca+sonda) "

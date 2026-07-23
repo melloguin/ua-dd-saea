@@ -124,6 +124,10 @@ class TestPuros(unittest.TestCase):
         # redação ratificada DI-28: 'ESPECIFICACAO' + 'INDEPENDENTE', nunca 'identico'
         self.assertIn("INDEPENDENTE", sd["modelo"])
         self.assertNotIn("identico ao b5", sd["modelo"].lower())
+        # sigma_* NÃO pode reafirmar o over-claim "mesmo GP, mesmo μ": DI-28 manda
+        # treino INDEPENDENTE por config (μ da MESMA especificação, não byte-igual).
+        self.assertIn("INDEPENDENTE", sd["sigma_*"])
+        self.assertNotIn("mesmo gp, mesmo", sd["sigma_*"].lower())
         # fe_treino_max = n-1
         self.assertIn("60", sd["fe_treino_max"])
 
@@ -233,6 +237,15 @@ class TestRunCompleto(unittest.TestCase):
             self.assertEqual(t4.num_rows, 1)
             self.assertTrue(all(v is not None
                                 for v in t4.column("tempo_fit_s").to_pylist()))
+            # n_acumulado = n_dataset (o modelo vê o dataset inteiro 1×)
+            self.assertEqual(t4.column("n_acumulado")[0].as_py(), res["n_dataset"])
+            # 🔴 DI-13.10: tempo_geracao_s EXCLUI a sonda (senão contamina a curva
+            # de escalabilidade). geracao == fit+busca; a sonda vive à parte.
+            t_ger = t4.column("tempo_geracao_s")[0].as_py()
+            t_fitbusca = (t4.column("tempo_fit_s")[0].as_py()
+                          + t4.column("tempo_busca_s")[0].as_py())
+            self.assertAlmostEqual(t_ger, t_fitbusca, places=6)
+            self.assertGreater(t4.column("tempo_pred_sonda_s")[0].as_py(), 0.0)
 
             # ⑤ manifesto: sigma_dict + timing.tempo_total_s
             man = json.load(open(base + ".manifest.json"))

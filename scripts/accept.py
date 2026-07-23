@@ -1857,6 +1857,176 @@ def check_r3_c311(exp="off", problema="MMF1", semente=0, data_root=None):
     return results
 
 
+def check_r3_piso_off(exp="off", problema="MMF1", semente=0, data_root=None):
+    """[R3-piso-off] Afere o run OFFLINE JÁ GRAVADO do piso MOEA/D-média
+    (moead_media, mode 12 = Gen-MOEA/D PBI) — a ablação cirúrgica do b5 ("b5 sem
+    σ"). Encanamento objetivo (D97: fidelidade é do autor, a posteriori).
+    ADITIVO: LÊ o que o runner persistiu, NÃO re-roda. Molde: `check_r3_b5`.
+    Diferenças do PISO (vs b5):
+
+      • ③ **σ_* = NULL em TODA a ③** (busca E sonda) — DI-16.1: o piso reporta SÓ
+        μ ("b5 sem σ"); μ_* preenchido;
+      • ④ = **1 LINHA** (treino ÚNICO) com tempo_fit_s NÃO-nulo — o piso OFFLINE
+        TREINA um GP (DI-16.1), ao contrário dos 4 pisos ONLINE;
+      • N = o LATTICE do b5m (DI-16.4): a pop da última geração = 50 (M=2) /
+        105 (M=3), NÃO 100.
+    Resto = idem b5 (regime offline): 1 bloco de sonda S=20000 geracao-NULL, 6-7
+    camadas (⑦ OBRIGATÓRIA), FE=31D−1=|dataset|, ① = dataset bit-a-bit, CP-init
+    x_hash E f_hash, ② vazia aceitável (DI-16.17), ⑤ manifesto completo, ⑦
+    reconstituível da ③ (DI-16.16).
+    """
+    import numpy as np
+    import pyarrow.parquet as pq
+    from src import experiment as _exp
+    from src import standalone_harness as _sh
+
+    alg = "moead_media"
+    results = []
+    semente = int(semente)
+    dr = data_root or os.path.join(ROOT, "data")
+
+    prob_obj = _exp._instantiate_problem(problema)
+    D, M = int(prob_obj.n_var), int(prob_obj.n_obj)
+    n_ds = maxfe(D)                                    # 31D−1
+
+    # (1) camadas presentes (⑦ é OBRIGATÓRIA no offline).
+    layers = {L: naming.layer_path(exp, alg, problema, semente, L, data_root=dr)
+              for L in ("real", "pop", "surrogate", "timing", "final")}
+    manp = naming.manifest_path(exp, alg, problema, semente, data_root=dr)
+    faltam = [L for L, p in layers.items() if not os.path.exists(p)]
+    if not os.path.exists(manp):
+        faltam.append("manifest")
+    if faltam:
+        return [("as 6-7 camadas presentes (rode o piso-off ANTES do accept)",
+                 (False, f"faltam: {faltam} — pasta {os.path.dirname(manp)}"))]
+    results.append(("6-7 camadas presentes (①②③④⑤ + ⑦ __final — D-12)",
+                    (True, "todas presentes")))
+
+    man = json.load(open(manp, encoding="utf-8"))
+    ds = _sh.load_dataset(problema, semente, data_root=dr)
+
+    # (2) ① = dataset bit-exato + fase `init` + FE=31D−1.
+    real = pq.read_table(layers["real"])
+    Xr = np.column_stack([np.asarray(real.column(f"x{j}"), dtype=np.float64)
+                          for j in range(D)])
+    Fr = np.column_stack([np.asarray(real.column(f"f{j}"), dtype=np.float64)
+                          for j in range(M)])
+    bitex = (np.array_equal(Xr, ds["X"].astype(np.float32).astype(np.float64))
+             and np.array_equal(Fr, ds["F"].astype(np.float32).astype(np.float64)))
+    fases = set(real.column("fase").to_pylist())
+    results.append(("FE final = 31D−1 = |dataset| (D90) · ① = o dataset bit-a-bit "
+                    "(pós-cast float32) · fase toda `init`",
+                    (real.num_rows == n_ds and bitex and fases == {"init"},
+                     f"rows={real.num_rows} (esperado {n_ds}) bitex={bitex} "
+                     f"fases={sorted(fases)}")))
+
+    # (3) CP-init OFFLINE (o mais forte — X E F).
+    cpo = man.get("cp_init_offline") or {}
+    results.append(("CP-init OFFLINE: x_hash **E** f_hash == sidecar do dataset (D90)",
+                    (cpo.get("x_hash") == ds["x_hash"]
+                     and cpo.get("f_hash") == ds["f_hash"],
+                     f"x={str(cpo.get('x_hash'))[:12]}… f={str(cpo.get('f_hash'))[:12]}…")))
+
+    # (4) ② VAZIA é ACEITÁVEL (DI-16.17).
+    pop = pq.read_table(layers["pop"])
+    results.append(("② membership: schema válido; VAZIA por construção é "
+                    "ACEITÁVEL (DI-16.17 — init LHS ≠ dataset)",
+                    (set(pop.schema.names) >= {"algoritmo", "problema",
+                     "semente", "geracao", "solution_id"},
+                     f"rows={pop.num_rows} (vazia OK)")))
+
+    # (5) ③ regime POR LINHA: 1 bloco de sonda + σ NULL em TODA a ③ (DI-16.1).
+    surr = pq.read_table(layers["surrogate"])
+    reg = surr.column("regime").to_pylist()
+    ger = surr.column("geracao").to_pylist()
+    ftm = surr.column("fe_treino_max").to_pylist()
+    esp = set(v for v in surr.column("espaco_modelo").to_pylist()
+              if v not in (None, ""))
+    rsid = surr.column("real_solution_id").to_pylist()
+    mflag = surr.column("modelo_flag").to_pylist()
+    idx_s = [i for i, r in enumerate(reg) if r == "sonda"]
+    idx_b = [i for i, r in enumerate(reg) if r == "offline"]
+    sonda_art = _sh.load_sonda(problema, regime="offline", data_root=dr)
+    S = sonda_art["S"]
+    ok_sonda = (len(idx_s) == S
+                and all(ger[i] is None for i in idx_s)
+                and all(ftm[i] is not None for i in idx_s)
+                and all(mflag[i] == _MODELO_FLAG_PISO for i in idx_s))
+    results.append(("③ sonda OFFLINE: 1 BLOCO S=20000 · geracao NULL (DI-13.5) · "
+                    "fe_treino_max sem nulo · modelo_flag único",
+                    (ok_sonda, f"n_sonda={len(idx_s)} (esperado {S}) "
+                     f"geracao_all_null={all(ger[i] is None for i in idx_s)}")))
+    gb = [ger[i] for i in idx_b]
+    ok_busca = (len(idx_b) > 0
+                and all(g is not None for g in gb)
+                and min(gb) == 1
+                and all(int(ftm[i]) == n_ds - 1 for i in idx_b)
+                and all(rsid[i] is None for i in idx_b)
+                and esp <= {"cru"})
+    results.append(("③ busca: geracao inteira 1..N · fe_treino_max=n_ds−1 · "
+                    "real_solution_id NULL (② vazia — DI-16.17) · espaco_modelo∈{cru}",
+                    (ok_busca, f"n_busca={len(idx_b)} ger∈[{min(gb)}..{max(gb)}] "
+                     f"espaco={esp} rsid_all_null={all(rsid[i] is None for i in idx_b)}")))
+    # μ_* preenchido · σ_* NULL em TODA a ③ — o piso é "b5 sem σ" (DI-16.1).
+    mucols = [c for c in surr.schema.names if c.startswith("mu_")]
+    sgcols = [c for c in surr.schema.names if c.startswith("sigma_")]
+    ok_mu = (len(mucols) == M
+             and all(surr.column(c).null_count == 0 for c in mucols))
+    ok_sigma_null = (len(sgcols) == M
+                     and all(surr.column(c).null_count == surr.num_rows
+                             for c in sgcols))
+    results.append(("③ piso 'b5 sem σ' (DI-16.1): μ_* preenchido (M) · "
+                    "σ_* = NULL em TODA a ③ (busca E sonda)",
+                    (ok_mu and ok_sigma_null,
+                     f"mu_*={len(mucols)} (sem nulo? {ok_mu}) "
+                     f"sigma_*={len(sgcols)} (todos NULL? {ok_sigma_null})")))
+    # N = o lattice do b5m (DI-16.4): a pop da última geração = 50 (M=2)/105 (M=3).
+    N_exp = {2: 50, 3: 105}.get(M)
+    gmax = max(gb) if gb else 0
+    n_lastgen = sum(1 for i in idx_b if ger[i] == gmax)
+    results.append(("N = o lattice do b5m (DI-16.4): pop da última geração = "
+                    "50 (M=2) / 105 (M=3), NÃO 100",
+                    (None if N_exp is None else (n_lastgen == N_exp),
+                     f"N(pop última ger {gmax})={n_lastgen} esperado={N_exp} (M={M})")))
+
+    # (6) ④ timing — o piso OFFLINE TREINA (DI-16.1) ⇒ tempo_fit_s NÃO-nulo; 1 LINHA.
+    tim = pq.read_table(layers["timing"])
+    tfit = tim.column("tempo_fit_s").to_pylist()
+    tbus = tim.column("tempo_busca_s").to_pylist()
+    results.append(("④ timing: 1 LINHA (treino único) · tempo_fit_s NÃO-nulo (o "
+                    "piso OFFLINE treina um GP — DI-16.1) · tempo_busca_s preenchido",
+                    (tim.num_rows == 1 and all(v is not None for v in tfit)
+                     and all(v is not None for v in tbus),
+                     f"rows={tim.num_rows} (esperado 1) "
+                     f"tempo_fit_s={[round(v, 3) for v in tfit if v is not None]} "
+                     f"tempo_busca_s={[round(v, 2) for v in tbus if v is not None]}")))
+
+    # (7) ⑤ manifesto.
+    tb = man.get("timing") or {}
+    results.append(("⑤ manifesto: timing §17.6 + sigma_dict (DEF-C4) + sonda + "
+                    "regime offline + status ok",
+                    (all(tb.get(k) is not None for k in
+                         ("tempo_total_s", "tempo_fit_surrogate_s",
+                          "tempo_busca_s", "tempo_aval_real_s"))
+                     and bool(man.get("sigma_dict")) and bool(man.get("sonda"))
+                     and man.get("regime") == "offline"
+                     and man.get("status") == "ok",
+                     f"sigma_dict={bool(man.get('sigma_dict'))} "
+                     f"sonda={bool(man.get('sonda'))} regime={man.get('regime')} "
+                     f"status={man.get('status')}")))
+
+    # (8) ⑦ reconstituível da ③ (o invariante DI-16.16 — delega ao final_eval).
+    results.append(("⑦ __final presente e RECONSTITUÍVEL da ③ (última geração) — "
+                    "DI-16.16/DI-08",
+                    _check_final_layer(exp, alg, problema, semente, dr)))
+    return results
+
+
+#: modelo_flag canônico do piso (espelha src.piso_offline._MODELO_FLAG; o accept
+#: NÃO importa o runner do env_b5 — declara a constante para checar a ③).
+_MODELO_FLAG_PISO = "moead_media/MOEAD-PBI+GPR-media"
+
+
 def _check_export_schema_r3(exp, alg, problema, semente, D, M, data_root):
     """Como `_check_export_schema`, mas sem exigir a coexistência μ+classe na
     ③ (aquilo é do STUB do F0-03/R2-00; os configs offline da R3 são
@@ -2400,6 +2570,35 @@ def main():
                   "(o run vive em off/c311/).")
         results = check_r3_c311(exp=exp_c311, problema=a.problema,
                                 semente=int(a.semente))
+        fail = False
+        for name, (ok, msg) in results:
+            mark = "SKIP" if ok is None else ("OK  " if ok else "FAIL")
+            print(f"  [{mark}] {name}: {msg}")
+            if ok is False:
+                fail = True
+        print("\n  >>> " + ("VERMELHO — pára-e-loga (D81)" if fail
+                            else "VERDE (encanamento objetivo)"))
+        print("  Lembrete (D97): a fidelidade é validação MANUAL do autor, "
+              "a posteriori — não entra aqui.")
+        sys.exit(1 if fail else 0)
+
+    # [R3-piso-off] Piso MOEA/D-média (moead_media, mode 12), OFFLINE, env `env_b5`
+    # (o MESMO do b5). A ablação cirúrgica do b5 ("b5 sem σ").
+    # ⚠ TEM de vir ANTES do catch-all abaixo (mesma armadilha do R3-00/b5/c311: o
+    # `or not a.alg` engoliria e devolveria o VERDE do andaime F0-01). Afere o
+    # run JÁ GRAVADO (o runner roda por minutos — o accept não re-executa).
+    if a.cartao.startswith("R3-piso-off"):
+        if a.alg not in (None, "moead_media"):
+            print(f"  [FAIL] cartão R3-piso-off só afere --alg=moead_media "
+                  f"(ou sem --alg): {a.alg!r}")
+            sys.exit(2)
+        # piso-off é OFFLINE: token canônico do regime = `off` (idem R3-00/b5/c311).
+        exp_piso = a.exp if a.exp != "main" else "off"
+        if a.exp == "main":
+            print(f"  [INFO] exp remapeado {a.exp!r} → {exp_piso!r}: o piso-off é "
+                  "offline (o run vive em off/moead_media/).")
+        results = check_r3_piso_off(exp=exp_piso, problema=a.problema,
+                                    semente=int(a.semente))
         fail = False
         for name, (ok, msg) in results:
             mark = "SKIP" if ok is None else ("OK  " if ok else "FAIL")

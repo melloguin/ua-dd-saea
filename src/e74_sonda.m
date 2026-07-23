@@ -30,8 +30,7 @@ function ftm = e74_sonda(Problem, cabeca, modelo, x_train, varargin)
 % (iii) do PARA-E-LOGA que o recon do e74 tinha escalado (D81). A guarda de
 % disparo abaixo continua aceitando TAMBEM o SondaState escalar (molde legado
 % dos demais run_*), mas o molde DESTE config e o struct de handles.
-% CALIBRACAO (D-11) — escolhida pelo IMPLEMENTADOR e sujeita a ratificacao em
-% lote (D97): ROUND-ROBIN
+% CALIBRACAO (D-11) — RATIFICADA pelo autor (DI-21.1, 2026-07-22): ROUND-ROBIN
 %       s1 k=6  -> c = 2,5,8,...  (g=4c-2: mod(4c-2,6)==0 <=> c ≡ 2 mod 3)
 %       s2 k=3  -> c = 1,4,7,...  (g=4c-1: mod(4c-1,3)==0 <=> c ≡ 1 mod 3)
 %       s3 k=12 -> c = 3,6,9,...  (g=4c:   mod(4c,12)==0  <=> c ≡ 0 mod 3)

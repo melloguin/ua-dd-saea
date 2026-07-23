@@ -2,7 +2,7 @@
 
 > ⚠ **ARQUIVO GERADO** da `SPEC_experimentos_v5.2.md` (fonte única da verdade) por `gen_bundles.py` — **não edite à mão; regenere**. Em conflito entre este bundle e a SPEC, **vale a SPEC** (precedência global: Anexo S > §22 > Anexo D > corpo > E/I/K/L > históricos).
 
-**D77 (a casa canônica):** roda no **MESMO motor do b5** — `MOEA_D` (mode 12) do repo DESDEO — sobre **GP-média** (SurrogateKriging só-μ, sem σ) = **a ablação exata do b5** (DEF-E3: o contraste piso-vs-b5 mede exatamente o valor de usar σ). A antiga listagem 'built-in PlatEMO / Rodada 1' está MORTA. Python, Rodada 3, cartão R3 próprio. N interno = 100 (D65 não se aplica: sem pressão de orçamento). ND final sem cap (D68).
+**D77 (a casa canônica):** roda no **MESMO motor do b5** — `MOEA_D` (mode 12) do repo DESDEO — sobre **GP-média** (SurrogateKriging só-μ, sem σ) = **a ablação exata do b5** (DEF-E3: o contraste piso-vs-b5 mede exatamente o valor de usar σ). A antiga listagem 'built-in PlatEMO / Rodada 1' está MORTA. Python, Rodada 3, cartão R3 próprio. **N = o lattice Das-Dennis herdado do b5m (50 em M=2 / 105 em M=3) — DI-16.4/D65 v5.2.1; a antiga nota 'N interno = 100' está SUPERADA** (o piso roda o MESMO motor do b5, sem override de lattice — provado empiricamente no R3-piso-off: gerações 801/381/801 ≡ b5m). ND final sem cap (D68).
 
 ---
 

@@ -188,7 +188,7 @@ tabela ③, diferenciadas pela coluna `regime`.
 | e74 | as **TRÊS cabeças** ⟦DI-12.3/DI-19.1 — corrigido: dizia 'as duas'⟧: PNN s1 (classe) + RBF-global s2 (valor) + RBF-local s3 (valor), em **ROUND-ROBIN k=6/3/12** (cada ciclo sonda 1 cabeça; cada cabeça a cada 3 ciclos — medido no ZDT1: 71/71/71 blocos + 1 boot) | 1×2000 linhas/ciclo, `modelo` no evento identifica a cabeça |
 | c122 | e(z) da EDN par-a-par **vs a POPULAÇÃO SELECIONADA corrente (N=11 em M=2 / 15 em M=3) [P2/DI-16.2]** — referência de tamanho FIXO (parâmetro do próprio algoritmo) ⇒ o score é comparável entre gerações, sementes e configs; é também o contexto REAL em que o modelo decide na busca. Logar `n_ref` no jsonl | pred_score + pred_confianca(max-softmax) |
 | pisos **ONLINE** (4) | — NÃO TÊM SONDA (**sem modelo**) | — |
-| piso **OFFLINE** (moead_media) | **TEM SONDA [P1/DI-16.1]** — ele TREINA um GP (Kriging) e otimiza sobre a MÉDIA: μ por objetivo, **σ NULL** (é o "b5 sem σ") | mu_* preenchido; sigma_* NULL |
+| piso **OFFLINE** (moead_media) | **TEM SONDA [P1/DI-16.1]** — ele TREINA um GP (Kriging) e otimiza sobre a MÉDIA: μ por objetivo, **σ NULL** (é o "b5 sem σ"). **[DI-30.B3, autor 2026-07-23]** No ⑥/logging o moead_media segue a linha **"b5"** (⑥ estruturalmente idêntico ao b5m, seu par de ablação) — NÃO a linha "pisos" (ideal/nadir por geração), embora seja "piso" na taxonomia. **[DI-30.B2]** `modelo_hp` = NULL (HP fixos, treino único — simetria com o b5m) | mu_* preenchido; sigma_* NULL |
 
 - **Alimenta:** WAPE/erro global comparável entre os 17 · curva "o surrogate melhora com as
   épocas?" pareada com IGD+×FE (a figura-síntese) · calibração em região neutra · rótulo
@@ -315,7 +315,7 @@ real"). **[DI-13.9] AVALIAM-SE TODOS OS FINAIS e o não-dominado é filtrado DEP
 real** — filtrar pelo ND-segundo-o-modelo ANTES seria filtrar a realidade pela FANTASIA do modelo,
 destruindo justamente o que a camada mede (o custo extra é nulo: funções analíticas).
 Camada própria por run offline: `x0..x{D-1} | f0..f{M-1} (avaliados em problems.py) | origem_solution_id | origem_geracao |
-**origem_linha** (link POSICIONAL à ③ — a regra 1 do R4 proíbe casar por X float32) |
+**origem_linha** (link POSICIONAL à ③ via o **PAR (origem_geracao, origem_linha)**: filtre a ③ pela geração de origem e indexe pela POSIÇÃO dentro do bloco daquela geração — origem_linha NÃO é índice absoluto na ③; a regra 1 do R4 proíbe casar por X float32) [DI-31/T4] |
 **nd_pos_real** (se o ponto continua não-dominado APÓS a real — a medida DIRETA do "erro de
 fantasia") [DI-13.8]`; escrita PÓS-HOC pela torre/harness Python; NÃO conta no orçamento
 (exceção §11); o gate offline checa presença+consistência. Configs: e103, b5r, b5m, c311, piso-off.

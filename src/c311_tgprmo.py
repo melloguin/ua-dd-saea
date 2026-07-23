@@ -507,11 +507,12 @@ def run_c311(exp: str, alg: str, problema: str, semente, *,
                      "C311-09 fit_series MULTI-linha, o eixo da escalabilidade treed-GP). "
                      "A fase final (sem retreino) e as 2 sondas entram no agregado do "
                      "manifesto; tempo_geracao_s EXCLUI a sonda (DI-13.10)."),
-        "abertas_torre": ("A torre DEVE levantar com o autor: (a) uso_id do c311 nao "
-                          "catalogado no seeds.json — aplicada a receita L.17 (mesmo s p/ "
-                          "numpy e random, uso_id=0 default); (b) granularidade da ④ (por "
-                          "retreino de construcao); (c) contagem de building inclui o +1/it "
-                          "do _refresh_population (=51/it via _current_gen_count)."),
+        "abertas_torre": ("TODAS RATIFICADAS pelo autor (DI-28, 2026-07-23): (a) uso_id "
+                          "do c311 = _default/0 (mesmo s p/ numpy e random) RATIFICADO; "
+                          "(b) ④ por retreino de construcao RATIFICADA; (c) contagem de "
+                          "building inclui o +1/it do _refresh_population (=51/it via "
+                          "_current_gen_count) CONFIRMADA. Gancho lhs = DEFINITIVO "
+                          "(DI-28.3, sem re-pin do pyDOE)."),
     }
 
     status, motivo_parada = "ok", None

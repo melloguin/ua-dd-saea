@@ -209,7 +209,7 @@ write('30_rodada3_standalone/alg_piso_offline_moead_media.md','Piso offline — 
       [sec(r'^### 3\.4 ', r'^### 3\.5 '), sec(r'^## 10\. ', r'^## 11\. '), sec(r'^## 11\. ', r'^## 11\.5 '),
        rows(r'^### 6\.4 ', r'^### 6\.6 ', ['Piso offline (MOEA/D-média)'])],
       epigraph=("**D77 (a casa canônica):** roda no **MESMO motor do b5** — `MOEA_D` (mode 12) do repo DESDEO — sobre **GP-média** (SurrogateKriging só-μ, sem σ) = **a ablação exata do b5** (DEF-E3: o contraste piso-vs-b5 mede exatamente o valor de usar σ). "
-                "A antiga listagem 'built-in PlatEMO / Rodada 1' está MORTA. Python, Rodada 3, cartão R3 próprio. N interno = 100 (D65 não se aplica: sem pressão de orçamento). ND final sem cap (D68)."))
+                "A antiga listagem 'built-in PlatEMO / Rodada 1' está MORTA. Python, Rodada 3, cartão R3 próprio. **N = o lattice Das-Dennis herdado do b5m (50 em M=2 / 105 em M=3) — DI-16.4/D65 v5.2.1; a antiga nota 'N interno = 100' está SUPERADA** (o piso roda o MESMO motor do b5, sem override de lattice — provado empiricamente no R3-piso-off: gerações 801/381/801 ≡ b5m). ND final sem cap (D68)."))
 
 print("== SUB-ESTUDOS ==")
 write('40_subestudos/batch_largebatch.md','Sub-estudo LARGE-BATCH (q=10) — Parte V-B [fechado por D66]',
@@ -220,7 +220,7 @@ write('40_subestudos/sweep_offline.md','Sub-estudo SWEEP offline (tamanho × dis
       epigraph="**D67 (MVNS):** amostrar em **[0,1]^D**; **μ=0,3·𝟙 FIXO** (viés consistente; semente varia só as amostras); **Σ=diag(0,1)**; clip aos bounds; mapear a nativo. **Roster:** b5r+b5m+e103 (small/medium) e c311 (small/medium/big) — D56. `run_id`: `sweep-{tier}-{dist}` (D55).")
 write('40_subestudos/varredura_N_pisos.md','Varredura pré-registrada do N dos pisos online [D65]',
       [sec(r'^### 3\.2 ', r'^### 3\.3 '), sec(r'^### 6\.3 ', r'^### 6\.4 ')],
-      epigraph="**D65:** N∈{10,20,30,50} × (5 problemas do sweep + 2 reps alta-D) × 5 sementes; critério = **mediana do IGD+ final (D70)**; escolhe **1 N por faixa de D** (baixa ≤5 / média / alta ≥20) ANTES da bateria. Piso offline mantém N=100.")
+      epigraph="**D65:** N∈{10,20,30,50} × (5 problemas do sweep + 2 reps alta-D) × 5 sementes; critério = **mediana do IGD+ final (D70)**; escolhe **1 N por faixa de D** (baixa ≤5 / média / alta ≥20) ANTES da bateria. Piso offline mantém o lattice do b5m (50 M=2 / 105 M=3 — DI-16.4). **[DI-32/A2] N=20 dos pisos ONLINE RATIFICADO DEFINITIVO pelo autor; esta varredura vira sub-estudo OPCIONAL do M11.**")
 
 print("== ANALISE (R4) ==")
 write('50_analise_R4/metricas_estatistica_caracteristicas.md','R4 — Métricas, testes estatísticos e análise por característica (§12–§15 + Anexo O)',

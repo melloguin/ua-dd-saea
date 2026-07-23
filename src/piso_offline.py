@@ -238,10 +238,9 @@ def _sigma_dict(n_ds):
                           "preenchido, σ NULL. Custo FE=ZERO; RNG salvo/restaurado "
                           "(nao-perturbacao §3.1)."),
         "dist_min_arquivo": "NULL no offline — nao ha arquivo crescente/infill real [D-08]",
-        "modelo_hp": ("NULL no offline — HP fixos, treino unico [D-08] (idem b5; a "
-                      "DI-16.1 diz 'grava modelo_hp' contrastando com os pisos "
-                      "ONLINE, que nao tem modelo; o VALOR segue NULL por HP fixos "
-                      "— ver REPASSE p/ ratificacao)."),
+        "modelo_hp": ("NULL no offline — HP fixos, treino unico [D-08], idem b5. "
+                      "RATIFICADO pelo autor (DI-30.B2, 2026-07-23): gravar HP no "
+                      "piso e nao no b5m criaria assimetria espuria na ablacao."),
         "rampa_theta": ("a decomposicao PBI usa rampa θ funcao de "
                         "fe/total_function_evaluations (=40000, SEMPRE); por isso "
                         "40000 e obrigatorio mesmo com FE real=0."),

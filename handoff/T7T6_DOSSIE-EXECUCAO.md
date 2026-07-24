@@ -73,21 +73,35 @@ aquisição vai à rodada de fidelidade real (D97), não ao smoke — levada à 
 OOM-killed rodando 4 em paralelo em 16 GB) — insumo A3 para o provisionamento M8.
 
 ## Estado final
-- **Código:** 100% commitado (`0155686`→`6cd5e82`, 9 commits); nada pendente.
+- **Código:** commitado em **12 commits** desta sessão (`0155686`→`26087f1`, todos
+  prefixados [T7-sweep]/[T6-batch]/[T7+T6]; o 13º no range, `6be7c53 docs(F1)`, é
+  pré-existente/não-desta-sessão). **Nada de código/handoff pendente.**
 - **Suíte 368 OK** (baseline 328, **+40**) · preflight 0 · `portao --varredura` VERDE em
   `off` (12/36) e `batch` (3 verdes/6 gates); sweep 6 tokens verdes.
+- **Escopo do "fechado":** vale para os CARTÕES T7/T6. Resta **1 gap de robustez offline**
+  (b5/piso sem `teto_s` — item 7 abaixo), não-bloqueante.
 - **Higiene:** add explícito, staged-check em todo commit, ZERO `git push`, ZERO `git add -A`.
+- **⚠ O relatório completo e VERIFICADO está em `T7T6_RELATORIO-EXECUCAO.md`** (este dossiê
+  é o resumo; o relatório traz cada comando/resultado + as reconciliações da verificação
+  adversarial).
 
 ## Definições em aberto para a torre levantar com o autor
-1. **[T6·central] Redução do custo da aquisição batch dos GP-BO** (c154: restarts/raw_samples
-   2D/50D; c262: MC_SAMPLES/prune_baseline — pede análise). D97. **A decisão-chave.**
+*(lista consolidada — a versão detalhada, com instrução explícita à torre, está na §7 do
+`T7T6_RELATORIO-EXECUCAO.md`)*
+1. **🔑 [T6·central·D97] Redução do custo da aquisição batch dos GP-BO** (c154: restarts/
+   raw_samples 2D/50D; c262: MC_SAMPLES/prune_baseline — pede análise). **A decisão-chave.**
 2. **[T7·B15.4]** cartão próprio do piso-big (treeGP-média em env_c311).
 3. **[T7/T6] Regenerar `runs_matrix.csv`** (torre): piso no sweep + MMF1→MMF16_20 (sweep, e
    avaliar no batch).
 4. **[T7]** materializar os ~441 datasets do sweep.
-5. **[A3/M8]** provisionamento RAM do batch (GP-BO ~1 run/4 GB) + walls medidos (§D-3).
-6. **[cosmético]** `q` no dict de retorno do c149 sai None (manifesto correto).
+5. **[A3/M8·offline] Custo do sweep medium ~22 h-core** (32 células × ~50 min) — insumo do
+   teto/orçamento por config. *(estava só no corpo do T7; subido à lista.)*
+6. **[A3/M8·batch]** provisionamento RAM do batch (GP-BO ~1 run/4 GB) + walls medidos.
+7. **[robustez·offline] b5/piso NÃO honram `teto_s`** — sem aborto por wall-clock na bateria
+   offline (o c311 tem). *(pendência de código; estava fora da lista — subida agora.)*
+8. **[cosmético]** `q` no dict de retorno do c149 sai None (manifesto correto).
 
 ---
-**T7+T6 FECHADOS — os 665 tipos de célula da rodada-42 estão implementados; aguardo a
-validação final da torre.**
+**T7+T6 FECHADOS (no escopo dos cartões) — os 665 tipos de célula da rodada-42 estão
+implementados; resta o gap offline b5/piso-teto_s (§7, não-bloqueante) e as decisões do autor
+(§1 é a chave). Aguardo a validação final da torre.**

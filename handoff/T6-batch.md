@@ -63,7 +63,8 @@ DI-31); roda no `env_main`.
 ### 2.4 `teto_s` fiado de ponta a ponta (autorização do autor)
 `experiments.py --teto-s` → `_stage_grid` → `_run_one` → `adapter.run` → runner. Antes o
 parâmetro existia em c311/e81 mas o despachante **nunca o passava** — o `_TetoWall` era
-código morto na bateria. **Teto do batch = 4 h/run** (decisão do autor 2026-07-24).
+código morto na bateria. **Teto do batch: 4 h/run inicialmente (autor 2026-07-24), depois
+elevado a 8 h/run** para os 2 GP-BO restantes (o c262 re-rodado sozinho usou `teto_s=28800`).
 
 ### 2.5 🔴 FIX de lançamento — o e81 rodaria no stack errado
 `VENV_ONLY_ALGS` era literal e **esquecia o e81**, que tem env próprio (`env_e81_qpots`,

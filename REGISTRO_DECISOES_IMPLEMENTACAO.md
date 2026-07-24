@@ -1607,6 +1607,19 @@ da torre — será registrado em adendo):
 Execução (torre, após a decisão 1 fechar, num lote único): regen runs_matrix + datasets do sweep
 (MMF16_20/semente-42 primeiro; 30 sementes no M8) + teto default + cartões T8/T9 + doc-sync.
 
+**ADENDO (mesmo dia): a decisão 1 FECHOU e o lote FOI EXECUTADO (commit `e78bfdf`).**
+- **DI-35.1 — custo batch dos GP-BO: alvo ~10h/run** (o ponto ótimo do autor no tradeoff
+  tempo×qualidade). O knob é CALIBRADO POR MEDIÇÃO (cartão T9): probes curtos → projeção com o
+  crescimento do custo em n → valores que projetem ~10h → ratificação com números. Vale p/ c154
+  E c262, batch-only (o principal q=1 fica intocado, com prova de regressão bit-a-bit).
+- **DI-35.3b — batch também em MMF16_20** (aprovado "ok": mesma parede de densidade D=2).
+- **Executado:** runs_matrix 19.950→20.850 (690 trocas MMF1→MMF16_20 em sweep+batch; +900 do
+  piso no sweep) · treed_media=23 fiado (seeds/envs/OFFLINE_*/dispatch-comentado/portão/guards)
+  · teto universal 12h (default --teto-s 43200 + fio no b5/piso com aborto limpo) · 18 datasets
+  s42 novos · SPEC §11.5/§V-B/D66 anotadas + 44 bundles regenerados · suíte 369 OK · portão
+  78/180 (só os 5 stale). Cartões T8 (piso-big) e T9 (calibração ~10h) prontos p/ disparo
+  PARALELO (faixas disjuntas — análise no chat da torre).
+
 ---
 
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)

@@ -21,3 +21,5 @@ venv*/
 
 # data/ dentro de repos vendorizados (tutoriais/exemplos) — não é do nosso pipeline
 algorithms/**/data/
+*.asv
+*.orig

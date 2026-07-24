@@ -22,13 +22,16 @@ def tree_sha256(path):
     Ignora `.git`, `__pycache__` e `*.pyc/*.pyo` [DI-27]: bytecode é
     gitignorado e nasce dos imports locais, então incluí-lo tornava o hash
     IRREPRODUTÍVEL num checkout limpo (a VM) e "envelhecia" o lock a cada
-    import (achado da validação R3-b5/c311).
+    import (achado da validação R3-b5/c311). [DI-34] Idem para o lixo de
+    SO/editor `.DS_Store`/`.asv`/`.orig` — a metade macOS do MESMO ruído
+    (achado do provisionamento F1: 8/9 hashes divergiam Mac×VM por causa
+    dos .DS_Store locais; correlação 9/9 provada).
     """
     h = hashlib.sha256()
     for dirpath, dirs, files in os.walk(path):
         dirs[:] = sorted(d for d in dirs if d not in (".git", "__pycache__"))
         for f in sorted(files):
-            if f.endswith((".pyc", ".pyo")):
+            if f.endswith((".pyc", ".pyo", ".DS_Store", ".asv", ".orig")):
                 continue
             fp = os.path.join(dirpath, f)
             rel = os.path.relpath(fp, path)

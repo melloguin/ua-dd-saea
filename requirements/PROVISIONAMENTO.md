@@ -49,10 +49,18 @@ wheel nativo ⇒ a rota é **x86_64 sob Rosetta** (validada 2026-07-22); na VM L
 export MAMBA_ROOT_PREFIX=/Users/gmello/Documents/python_venvs/_micromamba/root
 CONDA_SUBDIR=osx-64 micromamba create -y -p /Users/gmello/Documents/python_venvs/env_b5 \
     -c conda-forge python=3.7 pip          # VM Linux: omitir CONDA_SUBDIR (linux-64 nativo)
-/Users/gmello/Documents/python_venvs/env_b5/bin/python -m pip install \
-    "scikit-learn==0.21.3" "desdeo-problem==0.14.0" "desdeo-tools==0.2.6" \
-    statsmodels matplotlib pyDOE "pandas==1.3.5" numpy pyarrow \
-    "pymoo==0.6.1.2" "plotly==4.14.3" graphviz
+# ⚠ [DI-34/F1] MÉTODO CANÔNICO EM MÁQUINA NOVA = O LOCK COM --no-deps. A lista
+# solta acima de tudo FALHA com pip moderno (ResolutionImpossible: o pin
+# RATIFICADO pandas==1.3.5/DI-28 contraria o METADADO do desdeo-problem 0.14.0,
+# que declara pandas<0.26 — o env do Mac foi construído em 2 tempos e nunca
+# passou por transação única; provado no provisionamento F1, VM-1):
+/Users/gmello/Documents/python_venvs/env_b5/bin/python -m pip install --no-deps \
+    -r requirements/locks/env_b5.lock.txt
+# ACEITE (3 componentes): (1) pip freeze × lock = IGUAL; (2) `pip check` com
+# EXATAMENTE DUAS reclamações — desdeo-problem 0.14.0 e desdeo-tools 0.2.6
+# reclamando do pandas 1.3.5 (o desvio conhecido/ratificado DI-28; o env_b5
+# VALIDADO do Mac exibe as mesmas duas, verbatim) — qualquer 3ª linha = PARE;
+# (3) prova de import: `import sklearn, desdeo_problem` + load_sonda.
 # pygmo: NÃO instalar (force-import de NSGAIII/PPGA no desdeo_emo, mas b5 nunca os usa;
 #        dep pesada Boost, ausente até no env_c311). O runner b5_prob.py stuba em sys.modules.
 ```
@@ -79,10 +87,14 @@ em QUALQUER plataforma com 3.9 (lição medida no provisionamento; vale na VM). 
 CONDA_SUBDIR=osx-64 micromamba create -y -p /Users/gmello/Documents/python_venvs/env_c311 \
     -c conda-forge python=3.8 pip
 PY=/Users/gmello/Documents/python_venvs/env_c311/bin/python
-$PY -m pip install "numpy==1.20.2" "scikit-learn==1.1.2" scipy pyDOE "plotly==4.14.3" \
-    "plotly-express==0.4.1" matplotlib statsmodels pandas "Pillow<10" pyarrow graphviz
-$PY -m pip install --no-build-isolation "GPy~=1.9.9"    # COMPILA o sdist (precisa do CLT/gcc)
-$PY -m pip install "pymoo==0.6.1.2"                     # [R3-c311 Fase B] finais ⑦/ND via src/problems.py
+# ⚠ [DI-34/F1] MÉTODO CANÔNICO EM MÁQUINA NOVA = O LOCK EM 2 ETAPAS (o lock
+# CONTÉM GPy==1.9.9, que exige --no-build-isolation p/ compilar — filtre-o da
+# 1ª etapa; validado nas VMs do F1 com resolução normal, sem --no-deps):
+grep -v "^GPy" requirements/locks/env_c311.lock.txt > /tmp/c311_semgpy.txt
+$PY -m pip install -r /tmp/c311_semgpy.txt
+$PY -m pip install --no-build-isolation "GPy==1.9.9"    # COMPILA o sdist (precisa de gcc/CLT)
+# ACEITE: pip freeze × lock IGUAL (incl. GPy) + `pip check` LIMPO ("No broken
+# requirements found" — baseline do env VALIDADO do Mac) + fit GPy de prova.
 ```
 - Prova GPy: `MPLBACKEND=Agg $PY -c "import GPy; import numpy as np; m=GPy.models.GPRegression(np.random.rand(20,2), np.random.rand(20,1)); m.optimize(max_iters=5); m.predict(np.random.rand(3,2))"`.
 - ⚠ `pymoo==0.6.1.2` **[R3-c311 Fase B 2026-07-23]**: os finais ⑦ e o filtro ND são avaliados via

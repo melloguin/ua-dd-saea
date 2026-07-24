@@ -20,6 +20,8 @@ scikit-learn          # 1.9.0 — uso do HARNESS; NÃO é o sklearn dos algoritm
 # --- stack de R2/BoTorch (adicionar NO MESMO venv antes do M4; ainda NÃO instalado) ---
 botorch==0.18.1       # c262 (qNEHVI), c154 (JES)
 gpytorch              # compatível com botorch 0.18.1
-torch                 # estável (arm64 no Mac; CPU/CUDA na VM)
+torch==2.11.0         # [DI-34/Q4] RE-PIN do autor (DI-22) AGORA na intenção — a
+                      # intenção solta deixou o pip da VM resolver 2.13.0 (D80 #1
+                      # do F1); o lock sempre teve 2.11.0. Mesmo torch do env_e81.
 deap                  # driver próprio do c122 (θ-DEA-DP)
 google-cloud-storage  # dual-write GCS — necessário SÓ na VM (o Mac grava local)

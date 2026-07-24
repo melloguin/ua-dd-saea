@@ -193,6 +193,31 @@ EOF
    (o plumbing existe e está testado em unidade, mas NUNCA rodou run real — em especial
    `sweep-big-*` do c311, ramo `_build_surrogates`, e o sweep do e103 no MATLAB).
 
+## §6-bis · CORREÇÕES DE CAMPO do F1 (o que o provisionamento real ensinou — handoff v4)
+
+1. **O remoto EXISTE** (`github.com/melloguin/ua-dd-saea`, público): migração = clone do
+   origin + **`git checkout experiment/definitive_algorythms`** (o clone cai em `main`).
+   ssh/bundle viram fallback. `git push` segue proibido nas máquinas.
+2. **Os dados (`doe`/`datasets`/`sonda`) são RASTREADOS** — vêm no clone; os rsync do
+   §5.3/§6.2 caem.
+3. **Envs SEMPRE dos LOCKS** (nunca das intenções): env_main/env_e81 direto do lock;
+   **env_b5 = lock + `--no-deps`** (aceite: pip check com EXATAMENTE as 2 reclamações
+   desdeo — DI-28); **env_c311 = lock-sem-GPy → `GPy==1.9.9 --no-build-isolation`**
+   (pip check LIMPO). Critério Q2 em linux: extras permitidos SÓ da família
+   `{nvidia-*, triton, cuda-*}` (o wheel linux do torch as traz; versões são função
+   do torch).
+4. **D-16c em Workbench:** `sudo apt-get remove -y --auto-remove gcc` (não
+   build-essential), prova `gcc/cc → command not found`; `gcc-12` residual documentado.
+5. **`naoperturbacao` = N/A em máquina nova** (gate de máquina-com-histórico; baselines
+   só existem no Mac A). Critério de suíte: `Ran ≥ 328 OK` + 0 FAIL/ERROR — nunca
+   igualdade de contagem entre máquinas.
+6. Vertex: conferir QUOTA de CPUs antes de criar; idle-shutdown E auto-upgrade OFF;
+   IAM de bucket ao SA da instância (cross-projeto ok; sem sa.json); ignorar o conda
+   da imagem (tudo por caminho absoluto).
+7. **Nota MATLAB (achado DI-34):** a ponte Python InProcess pode falhar dentro de
+   workers do parfor — o e103 (e worker dedicado em geral) deve rodar SERIAL no lote;
+   conferir no disparo do Mac (o run direto `experiment(...)` está provado).
+
 ## §7 · Avisos de custo e ordem de disparo
 
 - **Células caras conhecidas (1 core cada):** c238/ZDT1 ~3h55 · c262/ZDT1 ~4h11 ·

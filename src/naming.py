@@ -64,6 +64,15 @@ ALL_LAYERS: tuple[str, ...] = LAYERS + OPTIONAL_LAYERS
 #: `sweep-{tier}-{dist}` — use `sweep_exp(tier, dist)`.
 STATIC_EXPS: tuple[str, ...] = ("main", "off", "batch")
 
+#: [T7-sweep] Vocabulário CANÔNICO do sweep offline — espelho de
+#: `src/doe.py::TIER_ID/DIST_ID` e de `artifacts/seeds.json:dataset_offline`
+#: (D38/D67/D90). Vive aqui (e não em `doe.py`) porque `naming` é stdlib puro
+#: e é a fonte única da nomenclatura; `doe` importa `naming`, nunca o inverso.
+#: Consumido por `parse_sweep` — o ÚNICO ponto que traduz um token `exp` em
+#: (tier, dist) para escolher o arquivo de dataset.
+SWEEP_TIERS: tuple[str, ...] = ("small", "medium", "big")
+SWEEP_DISTS: tuple[str, ...] = ("lhs", "mvns")
+
 #: Diretório-raiz padrão das saídas (relativo à raiz do repo).
 DEFAULT_DATA_ROOT = "data"
 
@@ -78,6 +87,60 @@ def sweep_exp(tier: str, dist: str) -> str:
     if not _TOKEN_RE.match(tier) or not _TOKEN_RE.match(dist):
         raise ValueError(f"tier/dist inválidos p/ sweep: {tier!r}, {dist!r}")
     return f"sweep-{tier}-{dist}"
+
+
+def parse_sweep(exp: str) -> tuple[str | None, str | None]:
+    """Inversa de `sweep_exp`: deriva `(tier, dist)` do token `exp` (T7).
+
+    É o **elo do fio do sweep**: sem ela, um run `sweep-medium-mvns` carregaria
+    o dataset PRINCIPAL (small/lhs, nome sem sufixo) e gravaria sob o nome do
+    sweep — erro SILENCIOSO. Quem escolhe o arquivo do dataset passa por aqui.
+
+    - `main`/`off`/`batch` (e qualquer token não-sweep) ⇒ `(None, None)`, que é
+      exatamente o que `load_dataset`/`load_offline_budget` já entendem como "o
+      dataset principal" (`naming.dataset_filename` omite o sufixo).
+    - `sweep-{tier}-{dist}` com vocabulário CANÔNICO ⇒ `(tier, dist)`.
+    - token com forma de sweep mas tier/dist fora do vocabulário ⇒ `ValueError`
+      (pára-e-loga, D81). Falhar alto aqui é o ponto: um `sweep-foo-bar` que
+      devolvesse `(None, None)` recriaria o bug silencioso que o T7 corrige.
+
+    ⚠ `small`+`lhs` = o offline PRINCIPAL e é gravado **sem sufixo**
+    (`seeds.json:dataset_offline.principal_offline`, D90). Quem consome o par
+    resolve isso por `is_main_variant` — não presuma que todo tier/dist tem
+    arquivo próprio.
+    """
+    if not isinstance(exp, str) or not _SWEEP_RE.match(exp):
+        return (None, None)
+    _, tier, dist = exp.split("-", 2)
+    if tier not in SWEEP_TIERS or dist not in SWEEP_DISTS:
+        raise ValueError(
+            f"token de sweep com vocabulário inválido: {exp!r} "
+            f"(tier={tier!r} ∉ {SWEEP_TIERS}, ou dist={dist!r} ∉ {SWEEP_DISTS}). "
+            f"D38/D67/D90 — pára-e-loga (D81).")
+    return (tier, dist)
+
+
+def is_main_variant(tier: str | None, dist: str | None) -> bool:
+    """O par `(tier, dist)` designa o dataset offline PRINCIPAL (sem sufixo)?
+
+    `small`+`lhs` É o principal (`seeds.json:dataset_offline.principal_offline`,
+    D90) — não existe `ds_{p}_{s}_small_lhs.parquet` em disco. Espelha a regra
+    `is_main` de `src/doe.py::ensure_dataset`, que é quem ESCREVE o artefato.
+    """
+    return (tier is None and dist is None) or (tier == "small" and dist == "lhs")
+
+
+def dataset_variant(exp: str) -> tuple[str | None, str | None]:
+    """`(tier, dist)` prontos p/ `load_dataset`/`load_offline_budget` a partir do `exp`.
+
+    Combina `parse_sweep` + `is_main_variant`: devolve `(None, None)` sempre que
+    o dataset alvo for o PRINCIPAL — seja porque o `exp` não é sweep, seja
+    porque é `sweep-small-lhs` (que reusa o arquivo sem sufixo). É esta a função
+    que os runners offline chamam; `parse_sweep` fica para quem precisa do par
+    LITERAL do token (manifesto, logs, gates).
+    """
+    tier, dist = parse_sweep(exp)
+    return (None, None) if is_main_variant(tier, dist) else (tier, dist)
 
 
 def is_valid_exp(exp: str) -> bool:

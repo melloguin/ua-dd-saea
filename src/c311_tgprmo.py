@@ -411,6 +411,22 @@ def _build_surrogates(DataProblem, treeGP, X, F, x_low, x_high):
     objetivo (só a ÁRVORE; os GPs entram no laço de construção). Reproduzido aqui para
     o vendor não ser tocado e para instrumentarmos o laço (os archives do building são
     descartados no caminho 2-fases — L.17).
+
+    ⚠ **[T7-sweep] B15.4 — NÃO é o "ramo big" do c311.** O cartão do T7 pedia
+    rotear `tier=='big'` para cá (pulando o `while evolver.continue_evolution()`).
+    A leitura da SPEC NÃO sustenta isso e a mudança seria invisível e grave:
+      · SPEC D38 (:1628) — "**Pisos**: Kriging-média (small/medium), **tree-média
+        (big)**": B15.4 descreve o **PISO** do tier big, não o c311.
+      · SPEC §10 [P5/DI-16.5] (:865) — o piso offline vira DUAS instâncias, e a
+        do big é "**treed-GP-média** … = **a ablação do c311**, o único que roda
+        no big" (env_c311).
+      · SPEC :1904/:1520 — as âncoras de escalabilidade do próprio c311 no big
+        ("build @50k treed **31,6 s**"; "N=50k, D=2 → **2500 iterações máx**")
+        só fazem sentido se o c311-big RODA a construção iterativa.
+    Rotear c311-big para cá transformaria o ÚNICO config do tier big na sua
+    própria ablação — o mecanismo treed-GP (addGPs iterativo) É o c311.
+    Por isso o laço fica INTOCADO; a questão está levantada à torre/autor
+    (handoff T7-sweep, "definições em aberto"). Não decidimos fidelidade (D97/D81).
     """
     import pandas as pd
     nvars, nobjs = X.shape[1], F.shape[1]
@@ -455,8 +471,19 @@ def run_c311(exp: str, alg: str, problema: str, semente, *,
     (DataProblem, treeGP, RVEA, BaseDecompositionEA,
      CreateIndividuals) = _import_vendor()
 
+    # ── [T7-sweep] a CÉLULA do grid sai do token exp (`sweep-<tier>-<dist>`) ────
+    #    `tier/dist` = o par literal (manifesto/log); `t_ds/d_ds` = a VARIANTE de
+    #    arquivo (small/lhs reusa o principal, sem sufixo — D90). O c311 é o
+    #    ÚNICO config do tier `big` (50k) — D38/§1.5.
+    #    ⚠ NÃO há roteamento `big` → `_build_surrogates` aqui: ver a nota
+    #    B15.4 no docstring de `_build_surrogates`. O laço de construção segue
+    #    INTOCADO (comportamento validado), pendente de decisão do autor.
+    tier, dist = naming.parse_sweep(exp)
+    t_ds, d_ds = naming.dataset_variant(exp)
+
     # ── ① = o DATASET (D90): o orçamento nasce ESGOTADO; CP x_hash E f_hash ──────
-    bud, ds = H.load_offline_budget(problema, semente, data_root=data_root)
+    bud, ds = H.load_offline_budget(problema, semente, tier=t_ds, dist=d_ds,
+                                    data_root=data_root)
     D, M, n_ds = ds["D"], ds["M"], ds["n"]
     x_low, x_high = (np.asarray(b, dtype=np.float64) for b in H._bounds(problema))
     fe_treino_max = n_ds - 1                       # DI-09/A1: constante no offline
@@ -527,7 +554,9 @@ def run_c311(exp: str, alg: str, problema: str, semente, *,
                    dataset_hash=ds.get("dataset_hash"),
                    ambiente=env, pinning=pinning, sigma_dict=sigma_dict,
                    sonda_x_hash=sonda["x_hash"], sonda_S=sonda["S"], params=params,
-                   emitir_sonda=bool(emitir_sonda))
+                   emitir_sonda=bool(emitir_sonda),
+                   tier=tier, dist=dist,             # [T7] a célula do grid
+                   dataset_path=ds.get("path"))      # o arquivo REALMENTE lido
 
         # ── RNG global (L.17): numpy (pyDOE/SBX/PM/sklearn-tree) + stdlib (shuffle) ──
         # uso_id=0 (default): c311 nao tem RNG concorrente do harness; np.random e random
@@ -716,6 +745,7 @@ def run_c311(exp: str, alg: str, problema: str, semente, *,
                     {"S": sonda["S"], "cadencia": "DESLIGADA (prova nao-perturbacao)",
                      "n_blocos": 0}),
         status=status, motivo_parada=motivo_parada, q=int(q),
+        tier=tier, dist=dist,
         data_root=data_root, enable_bucket=enable_bucket)
 
     log.footer(status=status, motivo=motivo_parada, fe_final=bud.fe, cp_init=True,

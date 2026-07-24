@@ -294,8 +294,20 @@ def _run(exp, problema, semente, *,
 
     DataProblem, SurrogateKriging, MOEA_D = _import_vendored()
 
-    # ── orcamento OFFLINE = o dataset (D90; esgotado na carga; ① = 31D−1) ────
-    bud, ds = H.load_offline_budget(problema, semente, data_root=data_root)
+    # ── [T7-sweep] a CÉLULA do grid sai do token exp (`sweep-<tier>-<dist>`) ──
+    #    `tier/dist` = o par literal (manifesto/log); `t_ds/d_ds` = a VARIANTE
+    #    de arquivo (small/lhs reusa o principal, sem sufixo — D90). Ver a nota
+    #    completa em b5_prob.py (este é o gêmeo de ablação do b5m).
+    #    ⚠ O roster do sweep (runs_matrix) NÃO inclui `moead_media` hoje — o fio
+    #    fica pronto porque a SPEC §10/D38 PREVÊ o piso nos 3 tiers; o conflito
+    #    artefato×SPEC está levantado à torre (handoff T7). Sem célula no grid,
+    #    este caminho é inerte: `exp='off'` ⇒ (None, None) ⇒ comportamento atual.
+    tier, dist = naming.parse_sweep(exp)
+    t_ds, d_ds = naming.dataset_variant(exp)
+
+    # ── orcamento OFFLINE = o dataset (D90; esgotado na carga; ① = n do tier) ─
+    bud, ds = H.load_offline_budget(problema, semente, tier=t_ds, dist=d_ds,
+                                    data_root=data_root)
     D, M, n_ds = ds["D"], ds["M"], ds["n"]
     X_ds = np.asarray(ds["X"], dtype=np.float64)
     F_ds = np.asarray(ds["F"], dtype=np.float64)
@@ -314,7 +326,9 @@ def _run(exp, problema, semente, *,
                    n_dataset=n_ds, doe_hash=ds["x_hash"], f_hash=ds["f_hash"],
                    dataset_hash=ds.get("dataset_hash"),
                    ambiente=env, pinning=pinning, sigma_dict=sigma_dict,
-                   sonda_x_hash=sonda["x_hash"], sonda_S=sonda["S"])
+                   sonda_x_hash=sonda["x_hash"], sonda_S=sonda["S"],
+                   tier=tier, dist=dist,             # [T7] a célula do grid
+                   dataset_path=ds.get("path"))      # o arquivo REALMENTE lido
 
         # ── DataProblem (nomes 1-based, como Main_Execute) + bounds REAIS ────
         #    (NAO usar o read_dataset vendorizado: ele hard-coda bounds por
@@ -452,11 +466,25 @@ def _run(exp, problema, semente, *,
                         "n_blocos": 1 if sonda_on else 0,
                         "x_hash": sonda["x_hash"], "f_hash": sonda["f_hash"]},
             status="ok", motivo_parada="orcamento", q=1,
+            tier=tier, dist=dist,
             data_root=data_root, enable_bucket=enable_bucket)
 
         log.footer(status="ok", fe_final=bud.fe, cp_init=True,
                    cache_hits=bud.cache_hits, n_geracoes=gen_final,
                    n_final=n_fin, n_nd_pos_real=len(nd_idx))
+    except Exception as exc:                          # noqa: BLE001 — D23/D60
+        # [T7-sweep] Gêmeo do b5: parada anômala = `failed` no manifesto, nunca
+        # silenciosa. Ver a nota completa em `H.write_failed_manifest`.
+        log.guard("erro_inesperado", detalhe=repr(exc))
+        log.footer(status="failed", motivo=f"erro_{type(exc).__name__}",
+                   fe_final=bud.fe, cp_init=None, cache_hits=bud.cache_hits)
+        H.write_failed_manifest(
+            exp, _ALG, problema, semente,
+            motivo=f"erro_{type(exc).__name__}", regime="offline",
+            maxfe=bud.maxfe, fe_final=bud.fe, tier=tier, dist=dist,
+            env=env, pinning=pinning, algo_version=ALGO_VERSION,
+            detalhe=repr(exc), data_root=data_root)
+        raise
     finally:
         log.close()
 

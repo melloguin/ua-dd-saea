@@ -987,6 +987,41 @@ class SnapshotBuffer:
 #  Fechamento do run: 4 camadas + manifesto + dual-write (§17.2/§17.7)
 # ═══════════════════════════════════════════════════════════════════════════
 
+def write_failed_manifest(exp: str, alg: str, problema: str, semente, *,
+                          motivo: str, regime: str = "offline",
+                          maxfe: int | None = None, fe_final: int | None = None,
+                          tier: str | None = None, dist: str | None = None,
+                          q: int = 1,
+                          env: dict | None = None, pinning: dict | None = None,
+                          algo_version: str | None = None,
+                          detalhe: str | None = None,
+                          data_root: str = naming.DEFAULT_DATA_ROOT) -> str:
+    """[T7-sweep] Manifesto HONESTO de parada anômala (D23/D60) — nunca silenciosa.
+
+    **Por que existe.** `c311_tgprmo` já capturava toda exceção e fechava com
+    `status='failed'`; `b5_prob` e `piso_offline` NÃO — um `try/finally` sem
+    `except` deixava a exceção subir e o run terminava **sem manifesto nenhum**.
+    Numa bateria isso é pior que um vermelho: `portao.py --varredura` enumera as
+    células a partir dos manifestos em disco, então um run assim **desaparece**
+    da varredura — o total cai e nada fica vermelho (o ponto cego). Descoberto no
+    T7 quando a ① do tier `medium` (n=2000) estourou `LinAlgError` no fit do GPR.
+
+    Não escreve camadas (podem estar parciais/inconsistentes) e não afere CP-init
+    — o objetivo é ÚNICO: deixar a certidão de óbito do run em disco. Quem chama
+    RE-LEVANTA a exceção em seguida, para o retry D23 do despachante seguir valendo.
+    """
+    man = _manifest.new_manifest(
+        exp, alg, problema, semente, status="failed", regime=regime,
+        q=int(q), tier=tier, dist=dist, maxfe=maxfe, fe_final=fe_final,
+        algo_version=algo_version,
+        env={**(env or {}), "pinning": (pinning or {})},
+        data_root=data_root, bucket=None)
+    man["motivo_parada"] = motivo
+    if detalhe:
+        man["stack_trace"] = detalhe
+    return _manifest.write_manifest(man, data_root)
+
+
 def write_run_outputs(exp: str, alg: str, problema: str, semente,
                       bud: _budget.FEBudget, buf: SnapshotBuffer, *,
                       D: int, M: int,
@@ -1000,6 +1035,8 @@ def write_run_outputs(exp: str, alg: str, problema: str, semente,
                       status: str = "ok",
                       motivo_parada: str | None = None,
                       q: int = 1,
+                      tier: str | None = None,
+                      dist: str | None = None,
                       data_root: str = naming.DEFAULT_DATA_ROOT,
                       enable_bucket: bool = False) -> dict:
     """Fecha o run: as 4 camadas §17.2 (via `src.export` — reuso, não
@@ -1055,8 +1092,14 @@ def write_run_outputs(exp: str, alg: str, problema: str, semente,
     # que aborta (teto de wall, cache-cap) passa status='failed'+motivo_parada e
     # o manifesto nasce HONESTO — antes, o c122 prometia `failed` no docstring e
     # o carimbo fixo 'ok' o desmentia (a única rede era o fe_final != maxfe).
+    # [T7-sweep] tier/dist são o par LITERAL do token exp (`sweep-<tier>-<dist>`),
+    # NÃO a variante de arquivo: um run de `sweep-small-lhs` declara
+    # tier='small'/dist='lhs' no manifesto ainda que leia o dataset principal
+    # (sem sufixo). Quem consome o manifesto quer saber a CÉLULA do grid; quem
+    # escolhe o arquivo usa `naming.dataset_variant`. main/off/batch ⇒ None.
     man = _manifest.new_manifest(
         exp, alg, problema, semente, status=status, q=int(q),
+        tier=tier, dist=dist,
         regime=regime, maxfe=bud.maxfe, fe_final=bud.fe,
         n_geracoes=int(n_geracoes), doe_hash=doe_hash_run,
         algo_version=algo_version,

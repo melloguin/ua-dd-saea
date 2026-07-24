@@ -58,6 +58,60 @@ class TestNaming(unittest.TestCase):
         self.assertNotEqual(naming.base("off", "b5r", "ZDT1", 0),
                             naming.base("sweep-small-LHS", "b5r", "ZDT1", 0))
 
+    def test_parse_sweep_tokens_validos(self):
+        # [T7-sweep] O elo que faltava: derivar (tier, dist) do token exp.
+        # As 6 combinações do grid (runs_matrix: 18 exp|alg = 90 células/semente).
+        for tier in ("small", "medium", "big"):
+            for dist in ("lhs", "mvns"):
+                exp = naming.sweep_exp(tier, dist)
+                self.assertEqual(naming.parse_sweep(exp), (tier, dist),
+                                 f"round-trip sweep_exp/parse_sweep falhou p/ {exp}")
+
+    def test_parse_sweep_nao_sweep_devolve_none(self):
+        # main/off/batch NÃO são sweep ⇒ (None, None) = "o dataset principal",
+        # que é exatamente o que load_dataset já entende (sufixo omitido).
+        for exp in ("main", "off", "batch"):
+            self.assertEqual(naming.parse_sweep(exp), (None, None))
+        # Tokens sem forma de sweep também caem no principal, sem estourar.
+        for exp in ("bogus", "sweep", "sweep-small", "", "sweepsmalllhs"):
+            self.assertEqual(naming.parse_sweep(exp), (None, None))
+
+    def test_parse_sweep_vocabulario_invalido_estoura(self):
+        # A armadilha que o T7 fecha: um token COM forma de sweep mas com
+        # tier/dist fora do vocabulário canônico NÃO pode devolver (None, None)
+        # — isso recriaria o bug silencioso (rodar sobre o dataset small e
+        # gravar sob o nome do sweep). Tem de PARAR (D81).
+        for exp in ("sweep-foo-bar", "sweep-small-sobol", "sweep-huge-lhs",
+                    "sweep-SMALL-lhs", "sweep-small-LHS"):
+            with self.assertRaises(ValueError, msg=f"{exp} deveria estourar"):
+                naming.parse_sweep(exp)
+
+    def test_is_main_variant_e_dataset_variant(self):
+        # small/lhs É o offline principal (nome SEM sufixo — D90/seeds.json):
+        # não existe ds_{p}_{s}_small_lhs.parquet em disco.
+        self.assertTrue(naming.is_main_variant("small", "lhs"))
+        self.assertTrue(naming.is_main_variant(None, None))
+        self.assertFalse(naming.is_main_variant("medium", "lhs"))
+        self.assertFalse(naming.is_main_variant("small", "mvns"))
+        self.assertFalse(naming.is_main_variant("big", "lhs"))
+        # dataset_variant = o que os runners passam a load_offline_budget.
+        self.assertEqual(naming.dataset_variant("sweep-small-lhs"), (None, None))
+        self.assertEqual(naming.dataset_variant("off"), (None, None))
+        self.assertEqual(naming.dataset_variant("sweep-medium-mvns"),
+                         ("medium", "mvns"))
+        self.assertEqual(naming.dataset_variant("sweep-big-lhs"), ("big", "lhs"))
+
+    def test_dataset_variant_casa_com_o_arquivo_em_disco(self):
+        # O par devolvido tem de reconstruir o MESMO nome que doe.ensure_dataset
+        # escreve (regra is_main lá; is_main_variant aqui) — se estes dois
+        # divergirem, o runner lê um arquivo que ninguém gerou.
+        t, d = naming.dataset_variant("sweep-small-lhs")
+        self.assertEqual(naming.dataset_filename("MMF1", 42, t, d),
+                         "ds_MMF1_42.parquet")
+        t, d = naming.dataset_variant("sweep-medium-mvns")
+        self.assertEqual(naming.dataset_filename("MMF1", 42, t, d),
+                         "ds_MMF1_42_medium_mvns.parquet")
+
     def test_blob_gcs(self):
         self.assertEqual(naming.blob_prefix("main", "c262"),
                          "experiments/main/c262")

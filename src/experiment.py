@@ -212,8 +212,26 @@ def run(algoritmo: str, problema_id: str, semente: int, *,
         from src.standalone_harness import VENV_ONLY_ALGS
         if algoritmo in VENV_ONLY_ALGS:
             from src.standalone_harness import run_in_venv
+            # [T7-sweep] 🔴 FIX: `run_in_venv` é TRANSPORTE — sua assinatura só
+            # conhece exp/data_root/envs/interpreter/timeout/extra_kwargs/
+            # capture_output. Repassar `**kwargs` cru estourava
+            # `TypeError: run_in_venv() got an unexpected keyword argument
+            # 'enable_bucket'` em TODO run dos 4 configs venv-only despachado
+            # por `experiments.py` (que sempre passa enable_bucket) — o
+            # TypeError caía no `except Exception` genérico do despachante e
+            # virava 3 retries + `status='failed'`, não pára-e-loga. Latente
+            # porque os cartões R3 chamaram os runners direto.
+            # A separação é por CAMADA, não por lista de nomes: o que o
+            # transporte entende fica aqui; TODO o resto (enable_bucket, tier,
+            # dist, q, teto_s, sonda_on…) desce ao runner por `extra_kwargs`.
+            # Drift-proof: um kwarg novo de runner passa a funcionar sozinho.
+            _TRANSPORTE = ('envs', 'interpreter', 'timeout', 'capture_output')
+            transporte = {k: kwargs.pop(k) for k in _TRANSPORTE if k in kwargs}
+            data_root = kwargs.pop('data_root', None)
+            if data_root is not None:
+                transporte['data_root'] = data_root
             r = run_in_venv(algoritmo, problema_id, semente, exp=exp,
-                            **kwargs)
+                            extra_kwargs=kwargs or None, **transporte)
             if not r.get('ok'):
                 raise RuntimeError(
                     f"run em venv próprio falhou p/ {algoritmo!r} "

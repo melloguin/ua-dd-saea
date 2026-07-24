@@ -27,6 +27,36 @@ def maxfe(problema_dim):
     return 31 * problema_dim - 1
 
 
+def n_dataset_esperado(exp, problema, semente, D, data_root=None):
+    """[T7-sweep] |dataset| esperado do regime OFFLINE, por CÉLULA do grid.
+
+    No offline "o orçamento É o dataset" (D90) ⇒ FE final = |dataset|. Para
+    `off` (e qualquer exp não-sweep) isso é `31D−1`; para `sweep-<tier>-<dist>`
+    é o `n` do dataset DAQUELE tier — **lido do sidecar do artefato**, nunca
+    hard-coded (2000/50000 são do `doe.py`; duplicar a constante no gate criaria
+    duas fontes da verdade e o gate deixaria de aferir o que o run leu).
+
+    Devolve `(n, origem)`. Se o sidecar do sweep não existir, devolve
+    `(None, motivo)` — o chamador reprova com mensagem honesta em vez de
+    comparar contra um número inventado.
+    """
+    tier, dist = naming.parse_sweep(exp)
+    if tier is None:                       # main/off/batch → o principal
+        return maxfe(D), f"31D−1 (D={D})"
+    t, d = naming.dataset_variant(exp)     # small/lhs reusa o principal
+    data_root = data_root or os.path.join(ROOT, "data")
+    side = naming.dataset_manifest_path(problema, semente, t, d,
+                                        data_root=data_root)
+    if not os.path.exists(side):
+        return None, f"sidecar do dataset {tier}/{dist} ausente: {side}"
+    with open(side, encoding="utf-8") as fh:
+        meta = json.load(fh)
+    n = meta.get("n_rows", meta.get("n"))
+    if n is None:
+        return None, f"sidecar sem n_rows/n: {side}"
+    return int(n), f"|dataset {tier}/{dist}| = {int(n)} (sidecar)"
+
+
 # ── Checagens por run (cartões R1/R2/R3 — com --alg) ───────────────────────
 
 def check_outputs(exp, alg, problema, semente, data_root=None):
@@ -62,8 +92,14 @@ def check_fe(exp, alg, problema, semente, D, data_root=None):
                  if len(c) > 1 and c[0] == "x" and c[1:].isdigit())
     if d_data:                       # D do próprio run (não confia no --dim)
         D = d_data
-    want = maxfe(D)
-    return (n == want), f"FE={n} (esperado {want}, D={D})"
+    # [T7-sweep] a expectativa é POR CÉLULA: 31D−1 no principal, |dataset do
+    # tier| no sweep (do sidecar). Sem isto um run sweep-medium correto
+    # (n=2000) era reprovado por um gate que só sabia 31D−1.
+    want, origem = n_dataset_esperado(exp, problema, semente, D,
+                                      data_root=data_root)
+    if want is None:
+        return False, f"expectativa de FE indeterminada — {origem}"
+    return (n == want), f"FE={n} (esperado {want} · {origem})"
 
 
 def check_doe_hash(problema, semente, data_root=None):
@@ -1426,7 +1462,12 @@ def check_r3_00(exp="off", problema="MMF1", semente=0, data_root=None):
         real = pq.read_table(naming.layer_path(exp, ALG, problema, semente,
                                                "real", data_root=dr))
         fases = set(real.column("fase").to_pylist())
-        ds = _sh.load_dataset(problema, semente, data_root=dr)
+        # [T7-sweep] o gate carrega a MESMA variante que o runner (do token
+        # exp). Aqui o exp é sempre 'off' (o stub roda em tempdir), então
+        # dataset_variant devolve (None, None) e o comportamento é o de antes.
+        _t_ds, _d_ds = naming.dataset_variant(exp)
+        ds = _sh.load_dataset(problema, semente, tier=_t_ds, dist=_d_ds,
+                              data_root=dr)
         Xr = np.column_stack([np.asarray(real.column(f"x{j}"), dtype=np.float64)
                               for j in range(D_indep)])
         Fr = np.column_stack([np.asarray(real.column(f"f{j}"), dtype=np.float64)
@@ -1597,7 +1638,12 @@ def check_r3_b5(alg, exp="off", problema="MMF1", semente=0, data_root=None):
 
     prob_obj = _exp._instantiate_problem(problema)
     D, M = int(prob_obj.n_var), int(prob_obj.n_obj)
-    n_ds = maxfe(D)                                    # 31D−1
+    # [T7-sweep] |dataset| POR CÉLULA: 31D−1 no principal, n do tier no sweep
+    # (lido do sidecar). O gate tem de aferir contra o que o run REALMENTE leu.
+    n_ds, _origem_n = n_dataset_esperado(exp, problema, semente, D,
+                                         data_root=dr)
+    if n_ds is None:
+        return [("expectativa de |dataset| do sweep", (False, _origem_n))]
 
     # (1) camadas presentes (⑦ é OBRIGATÓRIA no offline).
     layers = {L: naming.layer_path(exp, alg, problema, semente, L, data_root=dr)
@@ -1613,7 +1659,12 @@ def check_r3_b5(alg, exp="off", problema="MMF1", semente=0, data_root=None):
                     (True, "todas presentes")))
 
     man = json.load(open(manp, encoding="utf-8"))
-    ds = _sh.load_dataset(problema, semente, data_root=dr)
+    # [T7-sweep] o gate carrega a MESMA variante que o runner (do token exp) —
+    # se carregasse o principal, um run de sweep seria comparado bit-a-bit
+    # contra o dataset errado e reprovaria (ou pior, passaria por engano).
+    _t_ds, _d_ds = naming.dataset_variant(exp)
+    ds = _sh.load_dataset(problema, semente, tier=_t_ds, dist=_d_ds,
+                          data_root=dr)
 
     # (2) ① = dataset bit-exato + fase `init` + FE=31D−1.
     real = pq.read_table(layers["real"])
@@ -1748,7 +1799,12 @@ def check_r3_c311(exp="off", problema="MMF1", semente=0, data_root=None):
 
     prob_obj = _exp._instantiate_problem(problema)
     D, M = int(prob_obj.n_var), int(prob_obj.n_obj)
-    n_ds = maxfe(D)                                    # 31D−1
+    # [T7-sweep] |dataset| POR CÉLULA: 31D−1 no principal, n do tier no sweep
+    # (lido do sidecar). O gate tem de aferir contra o que o run REALMENTE leu.
+    n_ds, _origem_n = n_dataset_esperado(exp, problema, semente, D,
+                                         data_root=dr)
+    if n_ds is None:
+        return [("expectativa de |dataset| do sweep", (False, _origem_n))]
 
     # (1) camadas presentes (⑦ é OBRIGATÓRIA no offline).
     layers = {L: naming.layer_path(exp, alg, problema, semente, L, data_root=dr)
@@ -1764,7 +1820,12 @@ def check_r3_c311(exp="off", problema="MMF1", semente=0, data_root=None):
                     (True, "todas presentes")))
 
     man = json.load(open(manp, encoding="utf-8"))
-    ds = _sh.load_dataset(problema, semente, data_root=dr)
+    # [T7-sweep] o gate carrega a MESMA variante que o runner (do token exp) —
+    # se carregasse o principal, um run de sweep seria comparado bit-a-bit
+    # contra o dataset errado e reprovaria (ou pior, passaria por engano).
+    _t_ds, _d_ds = naming.dataset_variant(exp)
+    ds = _sh.load_dataset(problema, semente, tier=_t_ds, dist=_d_ds,
+                          data_root=dr)
 
     # (2) ① = dataset bit-exato + fase `init` + FE=31D−1.
     real = pq.read_table(layers["real"])
@@ -1913,7 +1974,12 @@ def check_r3_piso_off(exp="off", problema="MMF1", semente=0, data_root=None):
 
     prob_obj = _exp._instantiate_problem(problema)
     D, M = int(prob_obj.n_var), int(prob_obj.n_obj)
-    n_ds = maxfe(D)                                    # 31D−1
+    # [T7-sweep] |dataset| POR CÉLULA: 31D−1 no principal, n do tier no sweep
+    # (lido do sidecar). O gate tem de aferir contra o que o run REALMENTE leu.
+    n_ds, _origem_n = n_dataset_esperado(exp, problema, semente, D,
+                                         data_root=dr)
+    if n_ds is None:
+        return [("expectativa de |dataset| do sweep", (False, _origem_n))]
 
     # (1) camadas presentes (⑦ é OBRIGATÓRIA no offline).
     layers = {L: naming.layer_path(exp, alg, problema, semente, L, data_root=dr)
@@ -1929,7 +1995,12 @@ def check_r3_piso_off(exp="off", problema="MMF1", semente=0, data_root=None):
                     (True, "todas presentes")))
 
     man = json.load(open(manp, encoding="utf-8"))
-    ds = _sh.load_dataset(problema, semente, data_root=dr)
+    # [T7-sweep] o gate carrega a MESMA variante que o runner (do token exp) —
+    # se carregasse o principal, um run de sweep seria comparado bit-a-bit
+    # contra o dataset errado e reprovaria (ou pior, passaria por engano).
+    _t_ds, _d_ds = naming.dataset_variant(exp)
+    ds = _sh.load_dataset(problema, semente, tier=_t_ds, dist=_d_ds,
+                          data_root=dr)
 
     # (2) ① = dataset bit-exato + fase `init` + FE=31D−1.
     real = pq.read_table(layers["real"])

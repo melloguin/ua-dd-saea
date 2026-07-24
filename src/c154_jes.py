@@ -492,6 +492,7 @@ def run_c154(exp: str, alg: str, problema: str, semente, *,
              data_root: str = naming.DEFAULT_DATA_ROOT,
              enable_bucket: bool = False,
              max_wall_s: float | None = None,
+             teto_s: float | None = None,
              rota: str = "a", q: int = 1, **_kwargs) -> dict:
     """Um run c154 (q=1) — assinatura padrão dos runners R2. `rota` ∈ {'a'
     (produção, D75), 'b' (paper-faithful; SÓ piloto — chamar com o token de
@@ -500,6 +501,13 @@ def run_c154(exp: str, alg: str, problema: str, semente, *,
     projetado ⇒ aborto limpo + RuntimeError (pára-e-loga D81)."""
     if rota not in ("a", "b"):
         raise ValueError(f"rota B9.5 inválida: {rota!r} (esperado 'a'|'b')")
+    # [T6-batch] o despachante da bateria passa `teto_s` (fio unificado); o c154
+    # implementa o teto via `max_wall_s` (o projetor). São o MESMO conceito —
+    # mapeia p/ que o cap de 4h do batch chegue de fato aqui (senão `teto_s`
+    # cairia em `**_kwargs` e o run correria sem teto). NO-OP quando teto_s=None
+    # (o principal q=1 — a prova de regressão fica intocada).
+    if max_wall_s is None and teto_s is not None:
+        max_wall_s = float(teto_s)
     t0 = time.time()
     pinning = pin_runtime()
     env = env_info()                          # guarda N.2.3 (fork ⇒ RuntimeError)

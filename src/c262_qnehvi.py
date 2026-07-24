@@ -453,11 +453,16 @@ def run_c262(exp: str, alg: str, problema: str, semente, *,
              data_root: str = naming.DEFAULT_DATA_ROOT,
              enable_bucket: bool = False,
              max_wall_s: float | None = None,
+             teto_s: float | None = None,
              q: int = 1, **_kwargs) -> dict:
     """Um run c262 — assinatura padrão dos runners R2 (`experiment.run`
     repassa os kwargs). `max_wall_s` liga a projeção de teto do piloto (8h no
     ZDT1); estouro projetado ⇒ aborto limpo + RuntimeError (pára-e-loga D81).
     Retorna o dict de evidências (FE, iters, timing, curva §17.6)."""
+    # [T6-batch] `teto_s` do despachante → `max_wall_s` (o mesmo teto de wall);
+    # NO-OP quando teto_s=None (o principal q=1). Ver a nota em run_c154.
+    if max_wall_s is None and teto_s is not None:
+        max_wall_s = float(teto_s)
     t0 = time.time()
     pinning = pin_runtime()
     env = env_info()                          # guarda N.2.3 (fork ⇒ RuntimeError)

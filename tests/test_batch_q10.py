@@ -148,5 +148,44 @@ class TestRoteamentoDeEnvDoBatch(unittest.TestCase):
         self.assertEqual(env_id, "env_e81_qpots")
 
 
+class TestTetoFiadoPeloDespachante(unittest.TestCase):
+    """[T6-batch] `teto_s` do CLI ate o runner (autorizacao do autor, 2026-07-24).
+
+    Os runners c311/e81 ja aceitavam `teto_s` e tratam o estouro como DADO
+    (manifesto `failed`/`teto_wall` — D61/§22.5), mas `experiments.py` NUNCA o
+    passava: o `_TetoWall` era codigo morto na bateria. Sem isto nao ha como
+    dimensionar o batch (cujos smokes podem custar ordens de grandeza mais que
+    o principal) nem aplicar o teto de 4 h decidido pelo autor.
+    """
+
+    def _adapter_kwargs(self, **kw):
+        from unittest import mock
+        import experiments
+        falso = mock.Mock()
+        with mock.patch.object(experiments, "_adapter") as ad:
+            ad.run = falso
+            experiments._run_one("batch", "e81", "ZDT4", 42, "data", **kw)
+        return falso.call_args[1]
+
+    def test_teto_s_chega_ao_runner(self):
+        kw = self._adapter_kwargs(teto_s=14400.0)      # as 4 h do autor
+        self.assertEqual(kw["teto_s"], 14400.0)
+
+    def test_sem_teto_a_chave_NAO_e_passada(self):
+        # Não pode injetar `teto_s=None` — runners que não conhecem a chave a
+        # engoliriam no **_kwargs, mas os que a conhecem passariam a receber
+        # um None explícito onde antes recebiam o default. Menos ruído: omitir.
+        kw = self._adapter_kwargs()
+        self.assertNotIn("teto_s", kw)
+
+    def test_cli_expoe_teto_s(self):
+        import experiments
+        args = experiments._parse_args(["--exp", "batch", "--teto-s", "14400"]) \
+            if hasattr(experiments, "_parse_args") else None
+        if args is None:
+            self.skipTest("parser não exposto isoladamente")
+        self.assertEqual(args.teto_s, 14400.0)
+
+
 if __name__ == "__main__":
     unittest.main()

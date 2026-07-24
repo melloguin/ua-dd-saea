@@ -83,7 +83,8 @@ BOTORCH_ALGS = frozenset({'c262', 'c154', 'e81'})
 
 def _run_one(exp: str, alg: str, problema: str, semente: int,
              data_root: str, *, modo_rapido: bool = False,
-             enable_bucket: bool = False) -> str:
+             enable_bucket: bool = False,
+             teto_s: float | None = None) -> str:
     """Executa (ou tenta) um run e materializa manifesto + `.jsonl`.
 
     Retorna o `status` ∈ {ok, retried_ok, failed}. A política de erro-duro
@@ -126,8 +127,16 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
                 # `--enable-bucket` liga o dual-write §17.7 (a VM efêmera do M8
                 # gravaria SÓ local sem isto — perda total no descarte). Default
                 # False = Mac/pilotos local puro (RI-08/DI-16.8), como sempre.
+                # [T6-batch] `teto_s` FIADO ATE O RUNNER. Os runners que o
+                # aceitam (c311, e81) tratam o estouro como DADO — aborto limpo
+                # com manifesto `failed`/`teto_wall` (D61/§22.5), nao excecao.
+                # Antes o parametro existia mas o despachante NUNCA o passava:
+                # o `_TetoWall` era inalcancavel na bateria. Os runners que nao
+                # o conhecem simplesmente ignoram (cai no **_kwargs deles).
+                _kw = {} if teto_s is None else {'teto_s': float(teto_s)}
                 _adapter.run(alg, problema, semente, exp=exp,
-                             data_root=data_root, enable_bucket=enable_bucket)
+                             data_root=data_root, enable_bucket=enable_bucket,
+                             **_kw)
                 status = 'ok' if i == 0 else 'retried_ok'
                 n_retries = i          # nº de re-tentativas até o sucesso
                 break
@@ -261,7 +270,7 @@ def sweep_tmp_orfaos(data_root: str = DEFAULT_DATA_ROOT, *, idade_min_s: float =
 
 
 def _stage_grid(tasks, exp, data_root, *, n_jobs, force, modo_rapido, sb,
-                enable_bucket=False):
+                enable_bucket=False, teto_s=None):
     """Estágio 2 — executa o grid (idempotente/resumível)."""
     pending = []
     for alg, prob, seed in tasks:
@@ -280,14 +289,14 @@ def _stage_grid(tasks, exp, data_root, *, n_jobs, force, modo_rapido, sb,
         for alg, prob, seed in pending:
             sb.record(_run_one(exp, alg, prob, seed, data_root,
                                modo_rapido=modo_rapido,
-                               enable_bucket=enable_bucket))
+                               enable_bucket=enable_bucket, teto_s=teto_s))
             sb.print()
     else:
         from joblib import Parallel, delayed  # lazy (execução paralela real)
         results = Parallel(n_jobs=n_jobs, backend='loky', verbose=0)(
             delayed(_run_one)(exp, alg, prob, seed, data_root,
                               modo_rapido=modo_rapido,
-                              enable_bucket=enable_bucket)
+                              enable_bucket=enable_bucket, teto_s=teto_s)
             for alg, prob, seed in pending)
         for st in results:
             sb.record(st)
@@ -340,6 +349,11 @@ def main(argv=None):
                    help='Raiz das saídas (default: data).')
     p.add_argument('--force', action='store_true',
                    help='Re-roda mesmo células já prontas (ignora a esteira).')
+    p.add_argument('--teto-s', type=float, default=None,
+                   help='[T6] Teto de wall-clock POR RUN, em segundos. O runner '
+                        'que o aceita (c311, e81) aborta LIMPO ao estourar — '
+                        'manifesto failed/teto_wall (aborto por teto = DADO, '
+                        'D61/§22.5). Default None = sem teto.')
     p.add_argument('--no-consolidate', action='store_true',
                    help='Pula o estágio 3 de consolidação (§17.4/F0-03).')
     p.add_argument('--modo-rapido', action='store_true',
@@ -379,7 +393,7 @@ def main(argv=None):
     _stage_grid(tasks, args.exp, args.data_root,
                 n_jobs=args.n_jobs, force=args.force,
                 modo_rapido=args.modo_rapido, sb=sb,
-                enable_bucket=args.enable_bucket)
+                enable_bucket=args.enable_bucket, teto_s=args.teto_s)
     _stage_consolidate(args.exp, args.data_root, enabled=not args.no_consolidate)
 
     print(f"\n{'=' * 66}")

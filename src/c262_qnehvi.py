@@ -318,6 +318,58 @@ def _optimize_acqf_restarts(acqf, D: int, h2: int):
     return cands.detach(), acq_vals.detach(), n_warn
 
 
+def _lote_greedy_sequencial(acqf, D: int, h2: int, q: int):
+    """[T6-batch] O lote NATIVO do qLogNEHVI (D66) — greedy sequencial em q.
+
+    **Por que reimplementar em vez de `optimize_acqf(q=10, sequential=True)`.**
+    O BoTorch PROÍBE a combinação que o nosso contrato exige:
+    `sequential=True` + `return_best_only=False` ⇒
+    `NotImplementedError: return_best_only=False only supported for joint
+    optimization`. Mas a ③ do c262 é definida (§17.4) sobre **TODOS os
+    candidatos dos restarts**, e a DI-10 exige `acqf_todos_restarts` ("a
+    paisagem da aquisição = COMO o BO escolheu"). Escolher um dos dois
+    contratos seria perder fidelidade (lote não-nativo) ou perder a
+    instrumentação central do config.
+
+    Não há terceiro caminho na API — mas há na implementação: o modo sequencial
+    do BoTorch (`botorch.optim.optimize._optimize_acqf_sequential_q`) é
+    literalmente *"for each of q times, generate a single candidate greedily,
+    then add it to the list of pending points"*, isto é, **q chamadas com q=1**
+    e `set_X_pending` acumulando os já escolhidos. Esta função é a transcrição
+    fiel desse laço, trocando apenas `return_best_only` — que **não altera a
+    seleção** (o `argmax` devolve o mesmo ponto que o `return_best_only=True`
+    devolveria), só expõe o que o stock descarta. Mesmo critério DI-12.1/DI-21
+    ("adição read-only que só EXPÕE valor já computado é permitida") e mesmo
+    precedente do `_build_surrogates` do c311.
+
+    ⚠ **q=1 tem saída ANTECIPADA**: nem toca em `X_pending`, para o caminho do
+    experimento principal sair BIT-INTOCADO (é o que a prova de regressão do
+    T6 afere contra os runs já validados).
+
+    Devolve `[(cands, acq_vals, n_warn, idx_best), ...]` — um passo por infill.
+    """
+    if int(q) == 1:                       # ← caminho do principal, intocado
+        cands, acq_vals, n_warn = _optimize_acqf_restarts(acqf, D, h2)
+        return [(cands, acq_vals, n_warn, int(torch.argmax(acq_vals)))]
+
+    base_pending = acqf.X_pending
+    passos, escolhidos = [], []
+    try:
+        for _ in range(int(q)):
+            if escolhidos:
+                novos = torch.cat(escolhidos, dim=-2)
+                acqf.set_X_pending(
+                    novos if base_pending is None
+                    else torch.cat([base_pending, novos], dim=-2))
+            cands, acq_vals, n_warn = _optimize_acqf_restarts(acqf, D, h2)
+            b = int(torch.argmax(acq_vals))
+            escolhidos.append(cands[b].detach().reshape(1, -1))
+            passos.append((cands, acq_vals, n_warn, b))
+    finally:
+        acqf.set_X_pending(base_pending)   # o stock também restaura ao fim
+    return passos
+
+
 class WallClockAbort(RuntimeError):
     """[D-07/DI-21] Aborto por teto de wall-clock — classe DISTINTA para o
     despachante reconhecer (pelo NOME, sem importar torch) que retriar não
@@ -400,8 +452,9 @@ class _WallClockProjector:
 def run_c262(exp: str, alg: str, problema: str, semente, *,
              data_root: str = naming.DEFAULT_DATA_ROOT,
              enable_bucket: bool = False,
-             max_wall_s: float | None = None, **_kwargs) -> dict:
-    """Um run c262 (q=1) — assinatura padrão dos runners R2 (`experiment.run`
+             max_wall_s: float | None = None,
+             q: int = 1, **_kwargs) -> dict:
+    """Um run c262 — assinatura padrão dos runners R2 (`experiment.run`
     repassa os kwargs). `max_wall_s` liga a projeção de teto do piloto (8h no
     ZDT1); estouro projetado ⇒ aborto limpo + RuntimeError (pára-e-loga D81).
     Retorna o dict de evidências (FE, iters, timing, curva §17.6)."""
@@ -429,7 +482,8 @@ def run_c262(exp: str, alg: str, problema: str, semente, *,
         return _run_c262_body(exp, alg, problema, semente, t0, pinning, env,
                               fused_policy, doe_art, sonda_art, ref_f,
                               ideal_s5, nadir_s5,
-                              log, data_root, enable_bucket, max_wall_s)
+                              log, data_root, enable_bucket, max_wall_s,
+                              int(q))
     except Exception:
         # D23/D60: parada anômala NUNCA silenciosa — footer failed no jsonl
         # (o despachante decide retry; o BudgetExhausted não chega aqui — é
@@ -443,8 +497,11 @@ def run_c262(exp: str, alg: str, problema: str, semente, *,
 
 def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                    doe_art, sonda_art, ref_f, ideal_s5, nadir_s5, log,
-                   data_root, enable_bucket, max_wall_s) -> dict:
-    bud = _budget.FEBudget(D=doe_art["X"].shape[1], logger=log)
+                   data_root, enable_bucket, max_wall_s, q=1) -> dict:
+    # [T6-batch] o orçamento é POR EXP (D66): main = 31D−1; batch = 11D−1+200q.
+    _D0 = doe_art["X"].shape[1]
+    bud = _budget.FEBudget(
+        D=_D0, maxfe=_budget.maxfe_por_exp(exp, _D0, q), logger=log)
     adapter = BoTorchProblemAdapter(problema, bud)
     D, M = adapter.D, adapter.M
     buf = SnapshotBuffer()
@@ -526,24 +583,50 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
             t_busca0 = time.time()
             acqf = _make_acqf(model, ref_max, train_X, h1)
             n_baseline = _n_baseline(acqf)               # pós-prune (DI-10)
-            cands, acq_vals, acqf_warns = _optimize_acqf_restarts(acqf, D, h2)
+            # [T6-batch] LOTE NATIVO: q passos gulosos sequenciais (D66/D42).
+            # q=1 ⇒ 1 passo, sem tocar em X_pending = o principal INTOCADO.
+            passos = _lote_greedy_sequencial(acqf, D, h2, q)
             tempo_busca = time.time() - t_busca0
             tempo_busca_total += tempo_busca
+            acqf_warns = sum(p[2] for p in passos)
             if acqf_warns:
                 log.event("optimize_acqf_warning",
                           it=it, n=acqf_warns,
                           nota="retry/warning desloca o RNG (L.10 — registrado)")
 
             # ③: μ/σ do posterior nos candidatos dos restarts (D86: no_grad).
+            # Com q>1 há uma PAISAGEM POR PASSO guloso (o X_pending muda a
+            # aquisição a cada escolha) — a ③ registra todas, que é a leitura
+            # forte do §17.4/DI-10 ("como o BO escolheu"), agora por infill.
+            cands, acq_vals, _nw0, best = passos[0]
             U_cand = cands.squeeze(1)                       # (restarts, D)
             with torch.no_grad():
                 post = model.posterior(U_cand)
                 mu_max = post.mean.cpu().numpy()            # −f (maximização)
                 sigma = np.sqrt(post.variance.cpu().numpy())
             mu_f = -mu_max                       # export SEMPRE em f (§5.5)
-            best = int(torch.argmax(acq_vals))
             acqf_best = float(acq_vals[best])
             X_cand_nat = adapter.to_native(U_cand)
+
+            # Os passos 2..q (só existem no batch): ③ dos NÃO-escolhidos agora;
+            # os escolhidos entram depois do FE, junto com o do passo 1.
+            extras = []                    # [(X_nat, mu, sigma, idx_best), ...]
+            for cands_i, acqv_i, _nwi, best_i in passos[1:]:
+                U_i = cands_i.squeeze(1)
+                with torch.no_grad():
+                    post_i = model.posterior(U_i)
+                    mu_i = -post_i.mean.cpu().numpy()
+                    sig_i = np.sqrt(post_i.variance.cpu().numpy())
+                X_i = adapter.to_native(U_i)
+                for k in range(U_i.shape[0]):
+                    if k == best_i:
+                        continue
+                    buf.add_surrogate(_export.surrogate_row(
+                        it, X_i[k], mu=mu_i[k], sigma=sig_i[k],
+                        pred_tipo="valor", modelo_flag="GP"))
+                extras.append((X_i, mu_i, sig_i, best_i,
+                               float(acqv_i[best_i]), U_i))
+                del post_i
 
             for k in range(U_cand.shape[0]):
                 if k == best:
@@ -601,6 +684,44 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                 mu=mu_f[best], sigma=sigma[best],
                 pred_tipo="valor", modelo_flag="GP"))
 
+            # [T6-batch] os FE dos passos 2..q do lote (vazio quando q=1).
+            # O orçamento governa (D61): se estourar NO MEIO do lote, a linha ③
+            # do escolhido sai sem `real_solution_id` e o hard-stop segue o
+            # MESMO rito do passo 1 (sonda obrigatória na última iteração).
+            sids_lote = [sid]
+            for X_i, mu_i, sig_i, best_i, acqv_i, U_i in extras:
+                try:
+                    adapter.evaluate_unit_max(U_i[best_i])
+                except _budget.BudgetExhausted:
+                    buf.add_surrogate(_export.surrogate_row(
+                        it, X_i[best_i], mu=mu_i[best_i], sigma=sig_i[best_i],
+                        pred_tipo="valor", modelo_flag="GP"))
+                    log.decision(caminho="hard_stop", it=it,
+                                 motivo="orçamento esgotado no meio do lote "
+                                        "(D21/D61)",
+                                 torch_seed=h0, h1=h1, h2=h2,
+                                 acqf_escolhido=acqv_i, q=q,
+                                 n_no_lote=len(sids_lote),
+                                 n_restarts=NUM_RESTARTS, **di10())
+                    t_snd = emit_sonda_block(
+                        buf, log, it=it, fe=bud.fe, sonda=sonda_art,
+                        adapter=adapter, model=model,
+                        fe_treino_max=n_train - 1,
+                        motivo="ultima iteracao (hard-stop D61, lote parcial)")
+                    tempo_sonda_total += t_snd
+                    n_blocos_sonda += 1
+                    buf.update_timing(
+                        it, tempo_busca_s=tempo_busca,
+                        tempo_pred_sonda_s=t_snd,
+                        tempo_geracao_s=(time.time() - t_it0) - t_snd)
+                    raise
+                sid_i = bud.solution_id_of(X_i[best_i])
+                sids_lote.append(sid_i)
+                buf.add_surrogate(_export.surrogate_row(
+                    it, X_i[best_i], real_solution_id=sid_i,
+                    mu=mu_i[best_i], sigma=sig_i[best_i],
+                    pred_tipo="valor", modelo_flag="GP"))
+
             cache_hit_iter = (bud.fe == fe_antes)
             stall_streak = stall_streak + 1 if cache_hit_iter else 0
             log.decision(caminho="infill",
@@ -610,6 +731,7 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                          n_restarts=NUM_RESTARTS, fit_retries=fit_retries,
                          acqf_warnings=acqf_warns,
                          solution_id=sid, cache_hit=cache_hit_iter,
+                         q=q, lote_solution_ids=sids_lote,
                          n_train=n_train, **di10())
 
             # SONDA §17.2.2 — DEPOIS da busca da iteração (isolamento máximo) e
@@ -640,6 +762,7 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
 
             # D86: fim da iteração — solta tensores e coleta.
             del model, acqf, cands, acq_vals, post, train_X, train_Y, U_cand
+            del passos, extras
             iteration_cleanup()
 
             # projeção do teto de wall-clock do piloto (ZDT1 ≤ 8h).
@@ -680,7 +803,7 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
         exp, alg, problema, semente, bud, buf, adapter=adapter,
         doe_hash_sidecar=doe_art["doe_hash"], env=env, pinning=pinning,
         n_geracoes=n_iters_fit, algo_version=ALGO_VERSION,
-        timing_totais=timing_totais, regime="online",
+        timing_totais=timing_totais, regime="online", q=int(q),
         data_root=data_root, enable_bucket=enable_bucket)
     out["manifest"]["acqf_ref_f"] = ref_f.tolist()
     out["manifest"]["fused_kernel"] = fused_policy["fused_kernel"]

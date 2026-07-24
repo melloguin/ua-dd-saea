@@ -40,7 +40,7 @@ S_ONLINE, S_OFFLINE = 2000, 20000
 #: linha "pisos"), mesma classe dos pisos MATLAB nsga2/moead: o auditar não
 #: pode exigir sonda dele.
 PISOS_ONLINE = {"nsga2", "nsga3", "moead", "smsemoa", "sobol_batch"}
-OFFLINE = {"e103", "b5r", "b5m", "c311", "moead_media"}
+OFFLINE = {"e103", "b5r", "b5m", "c311", "moead_media", "treed_media"}
 
 
 def audita(alg, prob, sem, exp="main", data_root="data", *,

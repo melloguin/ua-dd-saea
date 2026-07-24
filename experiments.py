@@ -53,8 +53,9 @@ from src.audit_log import AuditLogger
 KNOWN_ALGORITHMS: frozenset = frozenset(
     a for a in _adapter._DISPATCH_LOADERS if not a.startswith('stub'))
 #: Default do no-arg (coerente com DEFAULT_EXP='main'): só os ONLINE. Os OFFLINE
-#: (b5r/b5m/c311/moead_media) rodam com `--exp off --algorithms …` explícito.
-_OFFLINE = frozenset({'b5r', 'b5m', 'c311', 'moead_media', 'e103'})
+#: (b5r/b5m/c311/moead_media/e103/treed_media) rodam com `--exp {off,sweep-*}
+#: --algorithms …` explícito (treed_media só em sweep-big-{lhs,mvns}).
+_OFFLINE = frozenset({'b5r', 'b5m', 'c311', 'moead_media', 'e103', 'treed_media'})
 DEFAULT_ALGORITHMS: list[str] = sorted(KNOWN_ALGORITHMS - _OFFLINE)
 
 # ── Problemas: os 25 canônicos (A2/§4; MMF16_L3 removido) ──────────────────

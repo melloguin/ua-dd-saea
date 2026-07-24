@@ -165,9 +165,9 @@ _DISPATCH_LOADERS: dict[str, tuple[str, str, str]] = {
     # (o MESMO do b5; sklearn 0.21.3, desdeo VENDORIZADO root-first) — subprocess
     # por venv (D79/N.2); NUNCA co-importar com c311 (N.1.2).
     'moead_media':   ('src.piso_offline',    'run_piso_offline', 'standalone'),
-    # [DI-35.2/T8] piso-big do sweep (treed-GP-média, env_c311) — o cartão T8
-    # descomenta ao fechar:
-    # 'treed_media':   ('src.treed_media',      'run_treed_media', 'standalone'),
+    # [DI-35.2/T8] piso-big do sweep (treed-GP-média, env_c311) — a ablação do
+    # c311 no tier big (build_surrogates direto, sem addGPs; sigma NULL DI-16.1):
+    'treed_media':   ('src.treed_media',      'run_treed_media', 'standalone'),
     # [T6-batch] sobol_batch — o PISO do sub-estudo batch q=10 (DI-33). Piso
     # ONLINE (avaliação real de lotes Sobol scrambled, SEM surrogate); roda no
     # env_main (não é venv-only). alg_id=22 no seeds.json.

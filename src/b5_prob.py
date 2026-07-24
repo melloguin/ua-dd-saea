@@ -268,8 +268,9 @@ def _patch_doe_pyarrow_compat():
 def _run_b5(alg, exp, problema, semente, *,
             data_root: str = naming.DEFAULT_DATA_ROOT,
             enable_bucket: bool = False, sonda_on: bool = True,
-            **_kwargs) -> dict:
+            teto_s: float | None = None, **_kwargs) -> dict:
     t_run = time.time()
+    status, motivo_parada = "ok", "orcamento"   # [DI-35.5] teto pode mudar
     _patch_doe_pyarrow_compat()               # env_b5 pyarrow 12 (bug de torre)
     pinning = H.pin_runtime()
     env = H.env_info()
@@ -377,6 +378,17 @@ def _run_b5(alg, exp, problema, semente, *,
         with H.offline_guard(log, alg=alg, problema=problema):
             with _quiet():
                 while evolver.continue_evolution():
+                    # [DI-35.5] TETO UNIVERSAL (12h nas baterias): checado a
+                    # cada iterate (10 geracoes, ~s). Aborto LIMPO com as
+                    # camadas PARCIAIS (os archives ja acumulados viram a ③).
+                    if teto_s is not None and (time.time() - t_run) > teto_s:
+                        status, motivo_parada = "failed", "teto_wall"
+                        log.guard("teto_wall", fe=bud.fe,
+                                  decorrido_s=round(time.time() - t_run, 1),
+                                  teto_s=teto_s,
+                                  acao="ABORTO LIMPO — curva parcial "
+                                       "preservada; manifesto failed (D-07)")
+                        break
                     evolver.iterate()
         t_busca_total = time.time() - t_busca0
 
@@ -463,11 +475,11 @@ def _run_b5(alg, exp, problema, semente, *,
             sonda_info={"S": sonda["S"], "cadencia": "offline: 1x por modelo",
                         "n_blocos": 1 if sonda_on else 0,
                         "x_hash": sonda["x_hash"], "f_hash": sonda["f_hash"]},
-            status="ok", motivo_parada="orcamento", q=1,
+            status=status, motivo_parada=motivo_parada, q=1,
             tier=tier, dist=dist,
             data_root=data_root, enable_bucket=enable_bucket)
 
-        log.footer(status="ok", fe_final=bud.fe, cp_init=True,
+        log.footer(status=status, fe_final=bud.fe, cp_init=True,
                    cache_hits=bud.cache_hits, n_geracoes=gen_final,
                    n_final=n_fin, n_nd_pos_real=len(nd_idx))
     except Exception as exc:                          # noqa: BLE001 — D23/D60

@@ -267,8 +267,10 @@ class TestGuardaDeEscopo(unittest.TestCase):
 
     def test_os_5_configs_offline_sao_os_do_contrato(self):
         from src import standalone_harness as sh
+        # [DI-35.2/T8] +treed_media (o piso-big do sweep)
         self.assertEqual(set(sh.OFFLINE_CONFIGS),
-                         {"e103", "b5r", "b5m", "c311", "moead_media"})
+                         {"e103", "b5r", "b5m", "c311", "moead_media",
+                          "treed_media"})
 
     def test_cli_recusa_config_online(self):
         import subprocess

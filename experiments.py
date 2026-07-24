@@ -355,11 +355,12 @@ def main(argv=None):
                    help='Raiz das saídas (default: data).')
     p.add_argument('--force', action='store_true',
                    help='Re-roda mesmo células já prontas (ignora a esteira).')
-    p.add_argument('--teto-s', type=float, default=None,
-                   help='[T6] Teto de wall-clock POR RUN, em segundos. O runner '
-                        'que o aceita (c311, e81) aborta LIMPO ao estourar — '
-                        'manifesto failed/teto_wall (aborto por teto = DADO, '
-                        'D61/§22.5). Default None = sem teto.')
+    p.add_argument('--teto-s', type=float, default=43200.0,
+                   help='[DI-35.5] TETO UNIVERSAL por run (segundos; default '
+                        '12h=43200 nos experimentos definitivos, decisão do '
+                        'autor). Runners que o honram abortam LIMPO ao '
+                        'estourar — manifesto failed/teto_wall (aborto por '
+                        'teto = DADO, D61/§22.5). Passe 0 para desligar.')
     p.add_argument('--no-consolidate', action='store_true',
                    help='Pula o estágio 3 de consolidação (§17.4/F0-03).')
     p.add_argument('--modo-rapido', action='store_true',
@@ -399,7 +400,7 @@ def main(argv=None):
     _stage_grid(tasks, args.exp, args.data_root,
                 n_jobs=args.n_jobs, force=args.force,
                 modo_rapido=args.modo_rapido, sb=sb,
-                enable_bucket=args.enable_bucket, teto_s=args.teto_s)
+                enable_bucket=args.enable_bucket, teto_s=(args.teto_s or None))
     _stage_consolidate(args.exp, args.data_root, enabled=not args.no_consolidate)
 
     print(f"\n{'=' * 66}")

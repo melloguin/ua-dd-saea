@@ -44,6 +44,7 @@ CARTAO_POR_ALG = {
     "c122": "R3-c122", "c149": "R3-c149", "e81": "R3-e81",
     "b5r": "R3-b5", "b5m": "R3-b5",
     "c311": "R3-c311", "moead_media": "R3-piso-off",
+    "treed_media": "T8-piso-big",   # [DI-35.2] catch-all tier-aware até o T8 fechar
     "c262": "R2-c262", "c154": "R2-c154",
     # [T6-batch] o piso do batch — gate genérico por-run (4 saídas + FE=11D−1+
     # 200q + CP-init do DoE online); sem branch dedicado (③ vazia, sem sonda).

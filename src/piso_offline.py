@@ -92,7 +92,7 @@ _VENDOR = os.path.join(_REPO, "algorithms", "b5_Prob-RVEA")
 def run_piso_offline(exp, alg, problema, semente, *,
                      data_root: str = naming.DEFAULT_DATA_ROOT,
                      enable_bucket: bool = False, sonda_on: bool = True,
-                     **_kwargs) -> dict:
+                     teto_s: float | None = None, **_kwargs) -> dict:
     """Piso offline — MOEA/D-média (mode 12). O `alg` do despacho e sempre
     `moead_media`; o cartao e unico."""
     if alg != _ALG:
@@ -100,7 +100,7 @@ def run_piso_offline(exp, alg, problema, semente, *,
             "run_piso_offline so cobre %r (recebeu %r) — 1 sessao = 1 cartao."
             % (_ALG, alg))
     return _run(exp, problema, semente, data_root=data_root,
-                enable_bucket=enable_bucket, sonda_on=sonda_on)
+                enable_bucket=enable_bucket, sonda_on=sonda_on, teto_s=teto_s)
 
 
 # ── util: silenciar os prints verbosos do repo vendorizado ────────────────────
@@ -276,8 +276,10 @@ def _sigma_dict(n_ds):
 
 def _run(exp, problema, semente, *,
          data_root: str = naming.DEFAULT_DATA_ROOT,
-         enable_bucket: bool = False, sonda_on: bool = True) -> dict:
+         enable_bucket: bool = False, sonda_on: bool = True,
+         teto_s: float | None = None) -> dict:
     t_run = time.time()
+    status, motivo_parada = "ok", "orcamento"   # [DI-35.5] teto pode mudar
     pinning = H.pin_runtime()
     env = H.env_info()
     semente = int(semente)
@@ -382,6 +384,15 @@ def _run(exp, problema, semente, *,
         with H.offline_guard(log, alg=alg, problema=problema):
             with _quiet():
                 while evolver.continue_evolution():
+                    # [DI-35.5] TETO UNIVERSAL — mesmo rito do b5.
+                    if teto_s is not None and (time.time() - t_run) > teto_s:
+                        status, motivo_parada = "failed", "teto_wall"
+                        log.guard("teto_wall", fe=bud.fe,
+                                  decorrido_s=round(time.time() - t_run, 1),
+                                  teto_s=teto_s,
+                                  acao="ABORTO LIMPO — curva parcial "
+                                       "preservada; manifesto failed (D-07)")
+                        break
                     evolver.iterate()
         t_busca_total = time.time() - t_busca0
 
@@ -465,11 +476,11 @@ def _run(exp, problema, semente, *,
             sonda_info={"S": sonda["S"], "cadencia": "offline: 1x por modelo",
                         "n_blocos": 1 if sonda_on else 0,
                         "x_hash": sonda["x_hash"], "f_hash": sonda["f_hash"]},
-            status="ok", motivo_parada="orcamento", q=1,
+            status=status, motivo_parada=motivo_parada, q=1,
             tier=tier, dist=dist,
             data_root=data_root, enable_bucket=enable_bucket)
 
-        log.footer(status="ok", fe_final=bud.fe, cp_init=True,
+        log.footer(status=status, fe_final=bud.fe, cp_init=True,
                    cache_hits=bud.cache_hits, n_geracoes=gen_final,
                    n_final=n_fin, n_nd_pos_real=len(nd_idx))
     except Exception as exc:                          # noqa: BLE001 — D23/D60

@@ -828,7 +828,7 @@ Na tabela, a coluna **Justificativa** diz a fonte de cada valor: *código oficia
 | c311 (TGPR-MO) | RVEA | **Construção** `Imax=⌈N/(10D)⌉ × 50 ger` (early-stop) + **otimização final 10 × 100 = 1.000 gerações** |
 | **Piso** (MOEA/D-média) | MOEA/D | **40.000 avaliações-surrogate** (ancorado no b5 — a única diferença piso×b5 é a seleção probabilística) |
 
-**Parâmetros do sub-estudo LARGE-BATCH [FECHADO por D66 (v5.0)].** O sub-estudo (c149, c262, e81, c154 + piso Sobol-batch) roda com **q=10 uniforme** (D36), orçamento **`maxFE_batch = 11D−1 + K·q` com K=200 = DoE pareado + 2.000 infills de lote** (D66), nos **5 problemas do sweep** (MMF1, ZDT4, DTLZ2, WFG9, ZDT1), mesmas 30 sementes e DoE compartilhado. Cada algoritmo usa seu **modo de lote NATIVO** em q=10 (c149 = lote local da rede bayesiana; c262/e81/c154 = q nativo do BoTorch) — **sem fallback livre** (preserva a comparabilidade com qNEHVI/qPOTS/JES). O `q` fixo vai no manifesto; a regra q=1 do c149 no principal é a D41 (HVI-greedy(μ)). Detalhe em §V-B.
+**Parâmetros do sub-estudo LARGE-BATCH [FECHADO por D66 (v5.0)].** O sub-estudo (c149, c262, e81, c154 + piso Sobol-batch) roda com **q=10 uniforme** (D36), orçamento **`maxFE_batch = 11D−1 + K·q` com K=200 = DoE pareado + 2.000 infills de lote** (D66), nos **5 problemas do sweep** (MMF16_20, ZDT4, DTLZ2, WFG9, ZDT1) ⟦DI-35.3, autor 2026-07-24 — MMF1→MMF16_20: as paredes de D=2 mataram o MMF1 no sweep (duplicata-clip do MVNS: 2/61, 76/2000, 1757/50000 medidos; GP singular em medium/big por densidade n^(−1/D)); padronização TOTAL no MMF16_20 (mesma família MMF, M=3/D=20), sweep E batch⟧, mesmas 30 sementes e DoE compartilhado. Cada algoritmo usa seu **modo de lote NATIVO** em q=10 (c149 = lote local da rede bayesiana; c262/e81/c154 = q nativo do BoTorch) — **sem fallback livre** (preserva a comparabilidade com qNEHVI/qPOTS/JES). O `q` fixo vai no manifesto; a regra q=1 do c149 no principal é a D41 (HVI-greedy(μ)). Detalhe em §V-B.
 
 **Fidelidade — a fonte adotada por parâmetro divergente.** A tabela-inventário completa das divergências código×paper, com a **causa** (🔴 BUG / 🔵 VERSÃO / 🟠 IMPL / 🟣 ERRATUM / 🟢 EXTENSÃO) e a **fonte adotada** (ARTIGO ou CÓDIGO) por caso, está no **Anexo K.3**. Toda correção leva **patch auditável (arquivo:linha)** verificado pelos logs de auditoria (§17.5) + reprodução (§20). Os casos que decidem (corrigem ao artigo) são poucos e todos tocam o surrogate/incerteza que a tese mede: kernel Matérn (c262/e81), dropout 0,1 (e7), treino no arquivo inteiro (b4), `[:, :M]` (c149), pm=1/D + JudgeModel (e103), NDSort/Local_infill nos objetivos (e74), fiação da regra tripla (c217). O restante fica fiel ao código, documentado.
 
@@ -889,11 +889,11 @@ Sub-estudo (não a bateria inteira) que **varia o tamanho do dataset** para most
 - **Medium ≈ 2000** (GP padrão ainda treina; acima de `31D−1` mesmo nos D altos).
 - **Big ≈ 30000–50000** — **c311 + piso-treed-GP apenas**. O GP padrão bate na parede **O(n³)** (matriz 50k×50k inviável em memória/tempo) → e103/b5 **não rodam** nesse tier por impossibilidade computacional, não por qualidade. **Este é o achado de escalabilidade**, não um grid uniforme: *"quando os dados crescem, o GP padrão para de escalar; o treed-GP continua"*.
 
-**~5 problemas do sweep [DECIDIDO]** (cobrindo D de 2 a 30 e landscapes fáceis→difíceis):
+**~5 problemas do sweep [DECIDIDO]** (cobrindo D de 10 a 30 ⟦DI-35.3⟧ e landscapes fáceis→difíceis):
 
 | Problema | D | Papel no sweep |
 |---|---|---|
-| MMF1 | 2 | **Controle** (baixa D, fácil de modelar): todos devem ir bem em todos os tamanhos |
+| MMF16_20 | 20 | ⟦DI-35.3⟧ substitui o MMF1 (o "controle D=2" era INEXECUTÁVEL: duplicata-clip no mvns e GP singular em medium/big — paredes numéricas de D=2, medidas no T7); mantém a família MMF (multimodal) no sweep |
 | ZDT4 | 10 | Multimodalidade extrema → tamanho da amostra deve importar muito |
 | DTLZ2 | 12 | Landscape suave/côncava → caso bem-comportado (3 obj) |
 | WFG9 | 22 | Não-separável + enganoso → mais difícil de aproximar |
@@ -936,7 +936,7 @@ Critério de entrada: **lote como modo nativo do método publicado** (não forç
 |---|---|---|
 | **q (lote)** | q = 10 (primário; opcional sweep q=20 se o custo couber) | Ativa os mecanismos de lote sem trivializar; um q só contém o custo. Nota honesta: o habitat nativo do c149 é lote ~10³ — q=10 já ativa o mecanismo (seleção diversa de um front), mas registrar que não é o extremo do paper |
 | **Orçamento** | ~2.000–3.000 avaliações reais (init `11D−1` + K·q infills) | Fundo o bastante para o GP sentir o O(n³) e o BNN mostrar que não sente — onde vive o achado de escalabilidade |
-| **Problemas** | Os mesmos 5 do sweep offline (MMF1, ZDT4, DTLZ2*, WFG9, ZDT1) | Cobre D 2–30 e geometrias; **reusar os problemas amarra o achado batch-online ao treed-GP-offline** numa história única. DTLZ2 é 3-obj — sem conflito |
+| **Problemas** | Os mesmos 5 do sweep offline (MMF16_20, ZDT4, DTLZ2*, WFG9, ZDT1) ⟦DI-35.3⟧ | Cobre D 2–30 e geometrias; **reusar os problemas amarra o achado batch-online ao treed-GP-offline** numa história única. DTLZ2 é 3-obj — sem conflito |
 | **Sementes / DoE** | Mesmas 30 sementes; mesmo DoE `11D−1` LHS compartilhado | Fairness herdada de graça (§5.2–5.3) |
 | **Regra q=1 do c149 no principal** | A definir na nota de adapter (Anexo E.3): 1 ponto do front 2MD (candidatas: máx. incerteza / joelho / aleatório-do-front) | O paper não define modo q=1 — a regra é nossa, precisa ser declarada e justificada |
 

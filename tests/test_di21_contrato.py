@@ -134,9 +134,10 @@ class TestD12FinalNoResume(unittest.TestCase):
             self.assertTrue(manifest.is_run_done(exp, "b1", prob, sem, root))
 
     def test_lista_offline_canonica(self):
+        # [DI-35.2/T8] +treed_media (o piso-big do sweep)
         self.assertEqual(manifest.OFFLINE_ALGS,
                          frozenset({"e103", "b5r", "b5m", "c311",
-                                    "moead_media"}))
+                                    "moead_media", "treed_media"}))
 
     def test_plan_targets_inclui_final(self):
         from src import gcs

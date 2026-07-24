@@ -34,7 +34,7 @@ Critério de entrada: **lote como modo nativo do método publicado** (não forç
 |---|---|---|
 | **q (lote)** | q = 10 (primário; opcional sweep q=20 se o custo couber) | Ativa os mecanismos de lote sem trivializar; um q só contém o custo. Nota honesta: o habitat nativo do c149 é lote ~10³ — q=10 já ativa o mecanismo (seleção diversa de um front), mas registrar que não é o extremo do paper |
 | **Orçamento** | ~2.000–3.000 avaliações reais (init `11D−1` + K·q infills) | Fundo o bastante para o GP sentir o O(n³) e o BNN mostrar que não sente — onde vive o achado de escalabilidade |
-| **Problemas** | Os mesmos 5 do sweep offline (MMF1, ZDT4, DTLZ2*, WFG9, ZDT1) | Cobre D 2–30 e geometrias; **reusar os problemas amarra o achado batch-online ao treed-GP-offline** numa história única. DTLZ2 é 3-obj — sem conflito |
+| **Problemas** | Os mesmos 5 do sweep offline (MMF16_20, ZDT4, DTLZ2*, WFG9, ZDT1) ⟦DI-35.3⟧ | Cobre D 2–30 e geometrias; **reusar os problemas amarra o achado batch-online ao treed-GP-offline** numa história única. DTLZ2 é 3-obj — sem conflito |
 | **Sementes / DoE** | Mesmas 30 sementes; mesmo DoE `11D−1` LHS compartilhado | Fairness herdada de graça (§5.2–5.3) |
 | **Regra q=1 do c149 no principal** | A definir na nota de adapter (Anexo E.3): 1 ponto do front 2MD (candidatas: máx. incerteza / joelho / aleatório-do-front) | O paper não define modo q=1 — a regra é nossa, precisa ser declarada e justificada |
 

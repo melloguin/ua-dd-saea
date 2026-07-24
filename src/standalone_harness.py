@@ -74,7 +74,8 @@ ENVS_JSON = os.path.join(ROOT, "claude_code_context", "artifacts", "envs.json")
 
 #: Os 5 configs do regime OFFLINE (§7/§9/D90 + D77). O e103 é MATLAB (R1); os
 #: outros 4 são desta rodada. É esta lista que decide quem DEVE ter a camada ⑦.
-OFFLINE_CONFIGS: tuple[str, ...] = ("e103", "b5r", "b5m", "c311", "moead_media")
+OFFLINE_CONFIGS: tuple[str, ...] = ("e103", "b5r", "b5m", "c311", "moead_media",
+                                    "treed_media")   # [DI-35.2/T8] piso-big
 
 #: 🔴 Configs que **NUNCA** podem rodar no processo do despachante (N.1.2).
 #: b5 e c311 vendorizam `desdeo_emo`/`desdeo_problem`/`desdeo_tools` com o MESMO

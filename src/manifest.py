@@ -190,7 +190,7 @@ def is_run_done(exp: str, alg: str, problema: str, semente,
 
 #: [D-12/DI-21] Os 5 configs do regime OFFLINE (fonte: runs_matrix.csv, exp=off)
 #: — os únicos cuja ⑦ `__final` é OBRIGATÓRIA no `is_run_done`.
-OFFLINE_ALGS: frozenset[str] = frozenset({"e103", "b5r", "b5m", "c311",
+OFFLINE_ALGS: frozenset[str] = frozenset({"e103", "b5r", "b5m", "c311", "treed_media",
                                           "moead_media"})
 
 

@@ -77,8 +77,9 @@ class TestContratoDoGrid(unittest.TestCase):
         self.assertEqual({r["q"] for r in self.linhas}, {"10"})
 
     def test_os_5_problemas_do_sub_estudo(self):
+        # [DI-35.3] MMF1 -> MMF16_20 (paredes de D=2; padronizacao total do autor)
         self.assertEqual({r["problema"] for r in self.linhas},
-                         {"MMF1", "ZDT1", "ZDT4", "DTLZ2", "WFG9"})
+                         {"MMF16_20", "ZDT1", "ZDT4", "DTLZ2", "WFG9"})
 
     def test_batch_nao_tem_tier_nem_dist(self):
         # batch é ONLINE — tier/dist são do sweep offline.

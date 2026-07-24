@@ -16,11 +16,11 @@ Sub-estudo (não a bateria inteira) que **varia o tamanho do dataset** para most
 - **Medium ≈ 2000** (GP padrão ainda treina; acima de `31D−1` mesmo nos D altos).
 - **Big ≈ 30000–50000** — **c311 + piso-treed-GP apenas**. O GP padrão bate na parede **O(n³)** (matriz 50k×50k inviável em memória/tempo) → e103/b5 **não rodam** nesse tier por impossibilidade computacional, não por qualidade. **Este é o achado de escalabilidade**, não um grid uniforme: *"quando os dados crescem, o GP padrão para de escalar; o treed-GP continua"*.
 
-**~5 problemas do sweep [DECIDIDO]** (cobrindo D de 2 a 30 e landscapes fáceis→difíceis):
+**~5 problemas do sweep [DECIDIDO]** (cobrindo D de 10 a 30 ⟦DI-35.3⟧ e landscapes fáceis→difíceis):
 
 | Problema | D | Papel no sweep |
 |---|---|---|
-| MMF1 | 2 | **Controle** (baixa D, fácil de modelar): todos devem ir bem em todos os tamanhos |
+| MMF16_20 | 20 | ⟦DI-35.3⟧ substitui o MMF1 (o "controle D=2" era INEXECUTÁVEL: duplicata-clip no mvns e GP singular em medium/big — paredes numéricas de D=2, medidas no T7); mantém a família MMF (multimodal) no sweep |
 | ZDT4 | 10 | Multimodalidade extrema → tamanho da amostra deve importar muito |
 | DTLZ2 | 12 | Landscape suave/côncava → caso bem-comportado (3 obj) |
 | WFG9 | 22 | Não-separável + enganoso → mais difícil de aproximar |

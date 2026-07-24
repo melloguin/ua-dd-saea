@@ -83,6 +83,13 @@ def n_init_for(D: int) -> int:
 #: literal solto em runner/gate.
 K_BATCH: int = 200
 
+#: [DI-34] O q CANÔNICO do sub-estudo batch (D66). Fonte ÚNICA do despachante:
+#: a auditoria final da torre reproduziu que sem este fio uma célula batch
+#: despachada pela bateria rodava SILENCIOSAMENTE em q=1 (FE=11D−1+200, gates
+#: passando porque liam o q=1 do próprio manifesto) — o 3º bug da mesma família
+#: da camada de lançamento (roster DI-31, transporte E1/T7).
+Q_BATCH: int = 10
+
 
 def maxfe_por_exp(exp: str, D: int, q: int = 1) -> int:
     """[T6-batch] Orçamento de FE por EXPERIMENTO — a fonte única (D66).

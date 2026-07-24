@@ -805,14 +805,29 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
             # seleção gulosa. Para q=1 o laço roda 1×, na MESMA ordem de antes.
             idx_sel_map: dict[int, int] = {}
             dist_min = None
+            hard_stop_lote = False
             for _s in selecoes:
                 i_pick = _s["idx"]
                 x_pick_nat = oracle.to_native(cand_X01[i_pick])
                 if dist_min is None:                   # ⑥ = do 1º pick (q=1: =sel)
                     dist_min = _dist_min(x_pick_nat, X_nat)
                 fe_antes = bud.fe
-                oracle.eval_native(x_pick_nat)         # BudgetExhausted sobe p/ o
-                sid = bud.solution_id_of(x_pick_nat)   #   except externo (D61)
+                try:
+                    oracle.eval_native(x_pick_nat)
+                except BudgetExhausted:
+                    # [DI-34] hard-stop no MEIO do lote (q>1): NÃO propagar
+                    # daqui — a ④ desta geração já foi aberta e sairia com os
+                    # 3 tempos NULL, que o próprio gate reprova (mesmo rito do
+                    # cache-cap DI-24). Fecha ③/②/④/⑥ da geração PARCIAL e
+                    # re-levanta APÓS o timing. (Só alcançável com q>1: o pick
+                    # 1 nunca estoura — o laço de geração exige saldo ≥ 1.)
+                    hard_stop_lote = True
+                    log.guard("hard_stop_lote", geracao=g, fe=bud.fe,
+                              n_avaliados_do_lote=len(idx_sel_map), q=q,
+                              motivo="orçamento esgotou no meio do lote — "
+                                     "geração parcial VÁLIDA (D61/D42)")
+                    break
+                sid = bud.solution_id_of(x_pick_nat)
                 idx_sel_map[i_pick] = sid
                 cache_hit = (bud.fe == fe_antes)
                 if cache_hit:
@@ -910,6 +925,13 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
             # com 3 NULLs que o proprio gate reprova).
             if abortar_cache:
                 break
+
+            # [DI-34] o fim-de-orçamento capturado no meio do lote re-levanta
+            # AQUI, com ③/②/④/⑥ desta geração completas — o except externo o
+            # trata como o fim NATURAL que ele é (D61).
+            if hard_stop_lote:
+                raise BudgetExhausted(
+                    f"fim do orçamento no meio do lote (fe={bud.fe})")
 
             if teto_s is not None and (time.time() - t_run) > teto_s:
                 status, motivo_parada = "failed", "teto_wall"

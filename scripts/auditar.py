@@ -56,6 +56,36 @@ def audita(alg, prob, sem, exp="main", data_root="data", *,
     man = json.load(open(naming.manifest_path(exp, alg, prob, sem, data_root)))
     fe_final = man.get("fe_final")
 
+    # ── [DI-34] OFFLINE: binding por HASH do ① à CÉLULA do grid ─────────────
+    # O ① de um run offline tem de ser O DATASET do (tier, dist) do token exp
+    # — comparado por hash contra o SIDECAR do artefato, não por contagem de
+    # linhas (o catch-all do accept só contava; a assimetria deixava o e103
+    # dos sweeps sem binding forte — achado da validação final da torre).
+    if offline:
+        # dataset_variant (não parse_sweep): sweep-small-lhs ≡ o PRINCIPAL —
+        # não existe sidecar `_small_lhs`; a variante normaliza p/ (None,None).
+        _tier, _dist = naming.dataset_variant(exp)
+        try:
+            _sc = json.load(open(naming.dataset_manifest_path(
+                prob, sem, tier=_tier, dist=_dist, data_root=data_root)))
+        except FileNotFoundError:
+            _sc = None
+            achados.append(f"⑤ sidecar do dataset da célula ({exp}) ausente")
+        if _sc:
+            _cp = man.get("cp_init_offline") or {}          # stack Python
+            _dm = man.get("dataset") or {}                   # stack MATLAB
+            _xm = _cp.get("x_hash") or _dm.get("x_hash")
+            _fm = _cp.get("f_hash") or _dm.get("f_hash")
+            if _xm != _sc.get("x_hash"):
+                achados.append(
+                    "⑤ CP-init x_hash ≠ sidecar do dataset da CÉLULA "
+                    f"({exp}: tier={_tier or 'principal'}) — o run pode ter "
+                    "lido o dataset ERRADO")
+            if _fm != _sc.get("f_hash"):
+                achados.append(
+                    "⑤ CP-init f_hash ≠ sidecar do dataset da CÉLULA "
+                    f"({exp}: tier={_tier or 'principal'})")
+
     # ── ③ ───────────────────────────────────────────────────────────────────
     t = pq.read_table(base)
     reg = t.column("regime").to_pylist()

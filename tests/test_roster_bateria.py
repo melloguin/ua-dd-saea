@@ -29,6 +29,29 @@ class TestRosterCobreLoaders(unittest.TestCase):
         self.assertNotIn("b5", experiments.KNOWN_ALGORITHMS)
         self.assertNotIn("b5", experiments.DEFAULT_ALGORITHMS)
 
+    def test_fio_do_q_batch(self):
+        """[DI-34] o despachante FIA q=Q_BATCH ao runner em exp=batch — sem
+        este fio a bateria batch rodava em q=1 SILENCIOSO (FE=11D−1+200, gates
+        passando porque liam o q do próprio manifesto). 3º bug da família da
+        camada de lançamento (roster DI-31, transporte E1/T7)."""
+        import tempfile
+        from unittest import mock
+        from src.budget import Q_BATCH
+        capturado = {}
+
+        def _fake_run(alg, problema, semente, **kw):
+            capturado.update(kw)
+            return {"status": "ok"}
+
+        with tempfile.TemporaryDirectory() as td, \
+                mock.patch.object(experiments._adapter, "run", _fake_run):
+            experiments._run_one("batch", "sobol_batch", "ZDT4", 42, td)
+            self.assertEqual(capturado.get("q"), Q_BATCH)
+            capturado.clear()
+            experiments._run_one("main", "c122", "MMF1", 0, td)
+            self.assertNotIn("q", capturado,
+                             "exp=main NÃO deve fiar q (q=1 é o default)")
+
     def test_default_e_coerente_com_exp_main(self):
         # o default do no-arg roda sob DEFAULT_EXP='main' ⇒ só ONLINE
         for off in ("b5r", "b5m", "c311", "moead_media", "e103"):

@@ -127,6 +127,9 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
                 # `--enable-bucket` liga o dual-write §17.7 (a VM efêmera do M8
                 # gravaria SÓ local sem isto — perda total no descarte). Default
                 # False = Mac/pilotos local puro (RI-08/DI-16.8), como sempre.
+                # [DI-34] `q` FIADO AO RUNNER: exp=batch ⇒ q=Q_BATCH (D66; fonte
+                # única em budget.py). Sem este fio a bateria batch rodava em
+                # q=1 SILENCIOSO (achado crítico da validação final da torre).
                 # [T6-batch] `teto_s` FIADO ATE O RUNNER. Os runners que o
                 # aceitam (c311, e81) tratam o estouro como DADO — aborto limpo
                 # com manifesto `failed`/`teto_wall` (D61/§22.5), nao excecao.
@@ -134,6 +137,9 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
                 # o `_TetoWall` era inalcancavel na bateria. Os runners que nao
                 # o conhecem simplesmente ignoram (cai no **_kwargs deles).
                 _kw = {} if teto_s is None else {'teto_s': float(teto_s)}
+                if exp == 'batch':
+                    from src.budget import Q_BATCH
+                    _kw['q'] = Q_BATCH
                 _adapter.run(alg, problema, semente, exp=exp,
                              data_root=data_root, enable_bucket=enable_bucket,
                              **_kw)

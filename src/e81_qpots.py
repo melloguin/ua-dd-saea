@@ -923,11 +923,26 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                 sids: list[int] = []
                 houve_cache = False
                 dists = []
+                hard_stop_lote = False
                 for x01 in lote01:
                     x_nat = oracle.to_native(x01)
                     dists.append(_dist_min(x_nat, X_nat))
                     fe_antes = bud.fe
-                    oracle.eval_native(x_nat)
+                    try:
+                        oracle.eval_native(x_nat)
+                    except BudgetExhausted:
+                        # [DI-34] STRADDLE: o orçamento esgotou no meio do
+                        # lote. Os picks JÁ avaliados desta geração entraram
+                        # na ① — sem este rito eles sumiam da ③/②/⑥ (a
+                        # paisagem da última geração ficava incompleta).
+                        # Grava a geração PARCIAL e re-levanta após o ⑥.
+                        hard_stop_lote = True
+                        dists.pop()   # o dist do ponto NÃO avaliado sai do ⑥
+                        log.guard("hard_stop_lote", geracao=g, fe=bud.fe,
+                                  n_avaliados_do_lote=len(sids), q=q,
+                                  motivo="orçamento esgotou no meio do lote "
+                                         "— geração parcial VÁLIDA (D61)")
+                        break
                     sid = bud.solution_id_of(x_nat)
                     sids.append(sid)
                     if bud.fe == fe_antes:
@@ -962,10 +977,13 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                 if lote_extra01 is not None and lote_extra01.shape[0]:
                     mu_ex, sig_ex = _mu_sigma(mo, lote_extra01, torch)
                     for j in range(lote_extra01.shape[0]):
+                        k = n_stock_sel + j
+                        if k >= len(sids):
+                            break   # [DI-34] straddle: extra NÃO avaliado
                         buf.add_surrogate(_export.surrogate_row(
                             g, oracle.to_native(lote_extra01[j]),
                             regime="online",
-                            real_solution_id=sids[n_stock_sel + j],
+                            real_solution_id=sids[k],
                             mu=mu_ex[j], sigma=sig_ex[j],
                             pred_tipo="valor",
                             modelo_flag=modelo_flag + "+qmaximin", **c3))
@@ -1015,6 +1033,12 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                                               if d is not None)
                                           if any(d is not None for d in dists)
                                           else None)))
+                # [DI-34] o straddle re-levanta AQUI, com ③/②/⑥ da geração
+                # parcial completos (a ④ fecha no finally, como sempre) — o
+                # tratamento externo o recebe como o fim natural que é (D61).
+                if hard_stop_lote:
+                    raise BudgetExhausted(
+                        f"fim do orçamento no meio do lote (fe={bud.fe})")
             finally:
                 # ⚠ A ④ é FECHADA AQUI, aconteça o que acontecer. No molde
                 # c149 o `break` do cache-cap saltava o `update_timing` e a

@@ -2105,11 +2105,18 @@ function [status, info] = run_e103(alg, problema, semente, exp, dataRoot)
     man.algo_version = "e103-IBEAMS-offline-L15";
     man.status = st_str;
     man.regime = "offline";
-    % [T7-sweep] tier/dist HONESTOS (antes: "small"/"lhs" cravados — num run de
-    % sweep o manifesto MENTIRIA, que e' pior que falhar). Vem do sidecar do
-    % artefato que foi de fato lido.
-    man.tier = string(ds.tier);        % topo do manifesto (contrato src/manifest.py)
-    man.dist = string(ds.dist);
+    % [T7-sweep -> DI-34] tier/dist do TOPO = a CELULA DO GRID (o token exp),
+    % como no stack Python: NULL fora do sweep (o grid off tem tier/dist
+    % vazios; gravar o 'small'/'lhs' do sidecar aqui divergia do runs_matrix
+    % e do lado Python — achado da validacao final da torre). A proveniencia
+    % do artefato LIDO permanece integral em man.dataset.tier/.dist.
+    if strlength(string(tier)) > 0
+        man.tier = string(tier);
+        man.dist = string(dist);
+    else
+        man.tier = string(missing);    % jsonencode -> null (paridade Python)
+        man.dist = string(missing);
+    end
     man.dataset = struct('path', string(ds.path), 'n', n_ds, ...
         'tier', string(ds.tier), 'dist', string(ds.dist), ...
         'x_hash', string(ds.x_hash), 'f_hash', string(ds.f_hash), ...

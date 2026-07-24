@@ -1533,6 +1533,55 @@ tier (lado MATLAB do mesmo fio); (4) gates: expectativa de FE/n por tier (check_
 
 ---
 
+## PARTE A22 — DI-34: VALIDAÇÃO FINAL da torre sobre T7/T6 + fila do congelamento (2026-07-24)
+
+**Contexto.** A sessão T7/T6 fechou (12 commits, `9fcde9f..11845ce`): T7 = o fio do sweep nos 2
+stacks; T6 = batch q=10 (orçamento D66, lote nativo nos 4 online, `sobol_batch`, gates). Em
+paralelo o F1 provisionou Mac A + VM-1 + VM-2 (100% até o 🔒; 2 divergências D80 resolvidas por
+veredito; handoff v4). Esta PARTE registra a VALIDAÇÃO FINAL da torre — o portão do congelamento.
+
+**Validação:** forense de git (12 commits, 28 arquivos, faixas limpas) · suíte 369 OK · preflight 0
+· **portão 78 runs/180 gates** (só os 5 stale pré-retrofit conhecidos) · **prova de regressão spot
+independente da torre: b5r/MMF1 re-rodado ⇒ ⑦ e ③ BIT-IDÊNTICAS** ao validado · workflow de 10
+agentes (5 auditores + verificação adversarial; notas 8/5/9/8/9). A sessão T7/T6 também passou por
+auto-auditoria adversarial e corrigiu o próprio relatório (contagem de commits, sobre-afirmações).
+
+**5 achados CONFIRMADOS — TODOS corrigidos pela torre (commit `c2a522d`):**
+1. **🔴 CRÍTICO — o fio do q:** o despachante não fiava `q` ao runner ⇒ célula batch da BATERIA
+   rodava q=1 SILENCIOSO (FE=11D−1+200; gates passavam pois liam o q do próprio manifesto).
+   Reproduzido ao vivo pela auditoria. Fix: `Q_BATCH=10` canônico (budget.py, D66) + fio no
+   `_run_one` + teste-guarda + **prova e2e** (sobol_batch via despachante ⇒ q=10, FE=2109).
+   É o 3º bug da MESMA família da camada de lançamento (roster DI-31, transporte E1/T7) — a
+   lição estrutural: runners perfeitos não salvam um lançador que não os chama direito.
+2. **ALTO — c149 batch:** hard-stop no meio do lote deixava a ④ com 3 tempos NULL (gate reprova).
+   Rito do cache-cap espelhado (flag+break+fecha parciais+re-levanta).
+3. **MÉDIO — e81 straddle:** geração parcial cortada pelo orçamento perdia ③/② (pontos na ① sem
+   paisagem). Grava a parcial + re-levanta após o ⑥.
+4. **MÉDIO — e103/MATLAB:** `man.tier/dist` do topo vinham do SIDECAR (off ficava "small/lhs",
+   divergindo do grid e do stack Python). Agora = a CÉLULA do token (null fora do sweep);
+   proveniência preservada em `man.dataset`. Provado ao vivo (off/e103/MMF1/0 novo: VERDE).
+5. **MÉDIO — gate:** binding por HASH do ① à célula offline no `auditar` (cp_init x/f_hash vs
+   sidecar do `dataset_variant(exp)`) — fecha a assimetria do e103 no catch-all (só contava linhas).
+
+**Fila do congelamento executada (commit `b3675ef`):** datasets sweep-42 commitados (P1, 24
+arquivos, incl. MMF16_20) · `tree_sha256` exclui `{.DS_Store,.asv,.orig}` + repos.lock RE-LACRADO
+(hashes agora reproduzíveis Mac×VM — achado F1) + 3 `.asv` fora do índice + `.gitignore` ·
+`torch==2.11.0` na INTENÇÃO (Q4/D80#1) · PROVISIONAMENTO §2/§3 = método canônico dos LOCKS
+(b5 `--no-deps` + critério das 2 exceções desdeo; c311 2-etapas + pip check limpo) · RUNBOOK §6-bis
+(correções de campo do F1, incl. nota parfor/ponte do MATLAB). Órfãos removidos (off/b5
+token-fantasma; batch/c262 probe-fantasma da auditoria).
+
+**EM ABERTO p/ o autor (DI-35, a decisão que destrava o push/tag):** ver os REPASSEs T7/T6 —
+(1) 🔑 custo da aquisição batch dos GP-BO (c154 ~100h medido: knob batch-only 2D/50D sugerido;
+c262 ~56h: pede sonda de tuning); (2) B15.4 = cartão novo do PISO-big (a SPEC venceu o cartão —
+leitura confirmada pela auditoria); (3) escopo do MMF1 no sweep (paredes D=2 em mvns e
+medium/big; MMF16_20 D=20 como substituto — controle small-lhs a decidir) e no batch;
+(4) piso no sweep (SPEC × runs_matrix — regen da matriz); (5) política de teto (A3/A5; b5/piso
+sem teto_s; walls medidos nos REPASSEs). Itens de execução pós-decisão: regen runs_matrix +
+~441 datasets de sweep (30 sementes) + cartão do piso-big + sonda de tuning do c262.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

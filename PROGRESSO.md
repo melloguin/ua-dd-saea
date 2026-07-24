@@ -371,6 +371,20 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
   varredura semente-42 com o código retrofitado. **A1/A4 (lote D97 + VM) = o plano de validação
   definitiva semente-42 acordado com o autor (3 máquinas, tudo × 25 problemas, seed 42).**
 
+### 2026-07-24 — T7/T6 FECHADOS + F1 3/4 máquinas + VALIDAÇÃO FINAL da torre (DI-34)
+- **T7 (fio do sweep) + T6 (batch q=10)** entregues pela sessão dupla (12 commits): exp=sweep
+  fiado nos 2 stacks; orçamento D66; lote nativo nos 4 online; `sobol_batch`; 2 bugs de
+  lançamento achados E corrigidos pela sessão (kwargs-transporte; e81 no stack errado);
+  achado central de custo: **GP-BO inviáveis no batch cheio (c154 ~100h, c262 ~56h — decisão
+  DI-35)**. Auto-auditoria adversarial da sessão corrigiu o próprio relatório.
+- **F1**: Mac A, VM-1 e VM-2 100% (handoff v4; 2 D80 resolvidas por veredito; VM-2 de primeira).
+- **Validação final da torre**: portão 78/180 (só os 5 stale) · spot b5r bit-idêntico ·
+  workflow 10 agentes ⇒ **5 achados confirmados, TODOS corrigidos** (`c2a522d`): 🔴 fio do q
+  (3º bug da camada de lançamento) + c149 lote + e81 straddle + e103 tier/dist + binding por
+  hash no auditar. **Fila do congelamento executada** (`b3675ef`): datasets sweep-42,
+  tree_sha256 sem lixo-de-SO (hashes Mac≡VM), torch pinado na intenção, receitas canônicas
+  dos locks, RUNBOOK §6-bis. Ver REGISTRO A22; decisões DI-35 na mesa do autor.
+
 ## 4. Ambientes (estado real)
 - **Mac** (arm64, macOS 12.5.1): MATLAB R2025a (R1 + Fase 0 + pilotos) + os venvs Python. Grava local.
 - **VM Vertex** `v5-mestrado` (Debian 12, us-central1-a, micromamba+pyenv): R2/R3 + análise. Grava local

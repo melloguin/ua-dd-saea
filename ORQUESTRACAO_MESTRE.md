@@ -118,7 +118,9 @@ M6 ✅ COMPLETO: c149 (DI-23) · e81 (DI-24, 9/10) · piso-off (2026-07-23, abla
    → 🏁 21/21 CONFIGS IMPLEMENTADOS — validação do marco = DI-29 (suíte 321 · accept 15/15 ·
      auditar+final_eval 24/24 · workflow 8 agentes, ZERO achado média+; REGISTRO A17)
 🏁 IMPLEMENTAÇÃO 100% FECHADA (auditoria exaustiva DI-31, 2026-07-23; 9 auditores + adversarial)
-M7 piloto timing (BLOQUEANTE) .............. ⬜ ← PRÓXIMO. Pré-requisitos consolidados (REGISTRO A19):
+T7 fio-do-sweep ✅ · T6 batch-q10 ✅ (2026-07-24; validação final DI-34: 5 achados corrigidos,
+   incl. 🔴 fio do q) · F1 provisionamento: Mac A + VM-1 + VM-2 ✅ (falta Mac B)
+M7 piloto timing (BLOQUEANTE) .............. 🟡 EM CURSO — a rodada-42 É o M7. Pré-requisitos (REGISTRO A19/A22):
    TORRE build: T1 portao.py · T2 enable_bucket · T3 driver ⑦-offline · T4 doc-sync SPEC/bundles
      (PRÓXIMA AÇÃO) · T5 hardening (D-17 RNG, abort e2e, smoke sonda ZDT1 c238/e7/c262) · T6 M10
    AUTOR: A1 lote D97 (chave) · A2 sub-varN · A3 D-2/D-3 custo · A4 provisionar VM/bucket ·

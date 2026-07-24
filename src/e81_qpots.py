@@ -844,6 +844,8 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
 
                 lote01 = np.asarray(newx.detach().cpu(),
                                     dtype=np.float64).reshape(-1, D)
+                lote_extra01 = None            # os completados pelo fallback
+                n_stock_sel = int(lote01.shape[0])
 
                 # **assert |lote| == q** (§22.4·3.5): quando |ND| < q, o
                 # `argsort()[-q:]` do stock devolve um lote MENOR — em
@@ -888,6 +890,12 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                                      torch.as_tensor(pool), q=faltam)
                     extra = np.asarray(extra.detach().cpu(),
                                        dtype=np.float64).reshape(-1, D)
+                    # [T6-batch/fix] os pontos COMPLETADOS (rank-1+) não estão
+                    # no `espia.front` ⇒ a ③, que itera sobre o front, os
+                    # perderia. Guarda p/ gravá-los na ③ depois (com o sid do
+                    # FE), senão a |lote|==q do gate reprova (só |ND| escolhidos).
+                    n_stock_sel = int(lote01.shape[0])   # quantos vieram do stock
+                    lote_extra01 = extra                 # os completados (q−|ND|)
                     lote01 = np.vstack([lote01, extra])
                     n_lote_completado += 1
                     log.guard("lote_completado_por", geracao=g,
@@ -946,6 +954,21 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                         real_solution_id=idx_sel.get(i),
                         mu=mu_nat[i], sigma=sig_nat[i],
                         pred_tipo="valor", modelo_flag=modelo_flag, **c3))
+                # [T6-batch/fix] os pontos COMPLETADOS pelo fallback qmaximin
+                # (rank-1+, fora do front) também são LOTE — a ③ tem de
+                # registrá-los com o real_solution_id do seu FE, senão o gate
+                # `|lote|==q` conta só os |ND| do front (o defeito medido no
+                # 1º smoke: 28 gerações com <q escolhidos).
+                if lote_extra01 is not None and lote_extra01.shape[0]:
+                    mu_ex, sig_ex = _mu_sigma(mo, lote_extra01, torch)
+                    for j in range(lote_extra01.shape[0]):
+                        buf.add_surrogate(_export.surrogate_row(
+                            g, oracle.to_native(lote_extra01[j]),
+                            regime="online",
+                            real_solution_id=sids[n_stock_sel + j],
+                            mu=mu_ex[j], sigma=sig_ex[j],
+                            pred_tipo="valor",
+                            modelo_flag=modelo_flag + "+qmaximin", **c3))
                 # ② membership: o dataset REAL corrente — é literalmente o
                 # conjunto contra o qual o maximin decide (o "estado" do BO;
                 # precedente c262/c149).

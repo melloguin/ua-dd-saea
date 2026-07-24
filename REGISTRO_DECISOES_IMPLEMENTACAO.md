@@ -1582,6 +1582,33 @@ sem teto_s; walls medidos nos REPASSEs). Itens de execução pós-decisão: rege
 
 ---
 
+## PARTE A23 — DI-35: decisões do autor sobre os repasses T7/T6 (2026-07-24, PARCIAL)
+
+O autor decidiu 4 dos 5 itens (o item 1, custo batch dos GP-BO, aguarda a explicação didática
+da torre — será registrado em adendo):
+- **DI-35.2 — B15.4/piso-big:** o autor delegou ("o que achar mais adequado") e a torre CRAVA a
+  leitura da SPEC (confirmada pela auditoria): **piso-big = instância NOVA** (treed-GP-média via
+  `build_surrogates`, env_c311, a ablação do c311 no tier big) ⇒ **cartão T8**.
+- **DI-35.3 — sweep TODO em MMF16_20:** MMF1 SAI de TODOS os tokens do sweep; **MMF16_20 (D=20,
+  família MMF) entra em todos** — padronização total. ⚠ Registro honesto da torre: isso remove o
+  "controle D=2" que a §11.5 designava — aceito porque o controle era inexecutável em 5 dos 6
+  tokens (paredes de D=2: duplicata-clip no mvns; densidade GP no medium/big); um controle que só
+  existe em 1 token não controla nada. Doc-sync da §11.5 no próximo lote. (Extensão da troca ao
+  BATCH: recomendada pela torre pelo mesmo motivo de densidade — aguarda 1 palavra do autor.)
+- **DI-35.4 — piso no sweep: CONFIRMADO** (a SPEC §10/D38 vence o runs_matrix): moead_media
+  (small/medium, env_b5) + piso-big (big, env_c311/T8) entram no grid do sweep ⇒ regen da matriz.
+- **DI-35.5 — TETO UNIVERSAL 12h:** nos experimentos DEFINITIVOS, teto_s=43200 para TODOS os
+  runs dos 22 configs (principais e complementares). Consequências registradas: (a) o despachante
+  Python ganha default `--teto-s 43200`; b5/piso ganham o fio do teto (gap conhecido) — junto do
+  T8; (b) stack MATLAB: sem plumbing de teto (pior wall observado = 33,6m — o teto de 12h é
+  vácuo lá; wiring MATLAB só se o autor exigir); (c) ⚠ células que o teto de 12h VAI cortar na
+  receita cheia: c154/DTLZ2 (14,6h medido, s0) e c154/ZDT1 (>8h) ⇒ virarão `failed/teto_wall`
+  honestos (aborto=dado, D61) — interage com a decisão 1.
+Execução (torre, após a decisão 1 fechar, num lote único): regen runs_matrix + datasets do sweep
+(MMF16_20/semente-42 primeiro; 30 sementes no M8) + teto default + cartões T8/T9 + doc-sync.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

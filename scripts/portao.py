@@ -45,6 +45,9 @@ CARTAO_POR_ALG = {
     "b5r": "R3-b5", "b5m": "R3-b5",
     "c311": "R3-c311", "moead_media": "R3-piso-off",
     "c262": "R2-c262", "c154": "R2-c154",
+    # [T6-batch] o piso do batch — gate genérico por-run (4 saídas + FE=11D−1+
+    # 200q + CP-init do DoE online); sem branch dedicado (③ vazia, sem sonda).
+    "sobol_batch": "T6-sobol_batch",
     **{a: f"R1-{a}" for a in ("c217", "c141", "b1", "b3", "b4", "e7", "c238",
                               "e74", "e103", "nsga2", "nsga3", "moead",
                               "smsemoa")},

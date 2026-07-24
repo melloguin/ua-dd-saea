@@ -126,12 +126,20 @@ class TestGateTierAware(unittest.TestCase):
         spec.loader.exec_module(cls.accept)
         cls.raiz = raiz
 
-    def test_nao_sweep_continua_31D_menos_1(self):
-        # Nenhuma mudança de comportamento fora do sweep (a suíte prova).
-        for exp in ("main", "off", "batch"):
+    def test_online_principal_e_offline_continuam_31D_menos_1(self):
+        # main/off = o experimento principal ⇒ 31D−1 (⟦T6-batch⟧: `batch`
+        # SAIU desta lista — ganhou orçamento próprio 11D−1+200q, coberto por
+        # test_batch_q10; o alias offline `n_dataset_esperado` usa q=1).
+        for exp in ("main", "off"):
             n, origem = self.accept.n_dataset_esperado(exp, "MMF1", 42, 2)
             self.assertEqual(n, 61, f"{exp} deveria seguir 31D−1")
             self.assertIn("31D", origem)
+
+    def test_batch_deixou_de_ser_31D_menos_1(self):
+        # A premissa antiga (batch=31D−1) foi superada pelo T6.
+        n, origem = self.accept.fe_esperado_por_exp("batch", "MMF1", 42, 2, q=10)
+        self.assertEqual(n, 2021)          # 11·2−1 + 200·10
+        self.assertIn("200", origem)
 
     def test_sweep_small_lhs_reusa_o_principal(self):
         n, _ = self.accept.n_dataset_esperado("sweep-small-lhs", "MMF1", 42, 2)

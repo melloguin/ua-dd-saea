@@ -27,21 +27,30 @@ def maxfe(problema_dim):
     return 31 * problema_dim - 1
 
 
-def n_dataset_esperado(exp, problema, semente, D, data_root=None):
-    """[T7-sweep] |dataset| esperado do regime OFFLINE, por CÉLULA do grid.
+def fe_esperado_por_exp(exp, problema, semente, D, data_root=None, q=1):
+    """FE final esperado por CÉLULA do grid — a fonte única do gate (D66/D90).
 
-    No offline "o orçamento É o dataset" (D90) ⇒ FE final = |dataset|. Para
-    `off` (e qualquer exp não-sweep) isso é `31D−1`; para `sweep-<tier>-<dist>`
-    é o `n` do dataset DAQUELE tier — **lido do sidecar do artefato**, nunca
-    hard-coded (2000/50000 são do `doe.py`; duplicar a constante no gate criaria
-    duas fontes da verdade e o gate deixaria de aferir o que o run leu).
+    Três regimes:
+      - `main` (online principal) ⇒ **31D−1** (D21);
+      - `batch` (online, q=10) ⇒ **11D−1 + 200·q** — o `q` vem do MANIFESTO
+        (D66; delegado a `budget.maxfe_por_exp`, a MESMA fonte do runner);
+      - `sweep-<tier>-<dist>` (offline) ⇒ o `n` do dataset DAQUELE tier, **lido
+        do sidecar do artefato** (nunca hard-coded 2000/50000 — duplicar a
+        constante criaria duas fontes da verdade). `off` = o principal (31D−1).
 
-    Devolve `(n, origem)`. Se o sidecar do sweep não existir, devolve
-    `(None, motivo)` — o chamador reprova com mensagem honesta em vez de
-    comparar contra um número inventado.
+    Devolve `(n, origem)`; `(None, motivo)` se o sidecar do sweep faltar — o
+    chamador reprova com mensagem honesta em vez de comparar contra um número
+    inventado.
     """
+    if exp == "batch":
+        try:
+            from src import budget as _bud
+            n = _bud.maxfe_por_exp("batch", D, q)
+        except Exception as e:                         # noqa: BLE001
+            return None, f"orçamento batch indeterminado: {e}"
+        return int(n), f"11D−1+200·q (D={D}, q={q}) = {int(n)}"
     tier, dist = naming.parse_sweep(exp)
-    if tier is None:                       # main/off/batch → o principal
+    if tier is None:                       # main/off → o principal
         return maxfe(D), f"31D−1 (D={D})"
     t, d = naming.dataset_variant(exp)     # small/lhs reusa o principal
     data_root = data_root or os.path.join(ROOT, "data")
@@ -55,6 +64,11 @@ def n_dataset_esperado(exp, problema, semente, D, data_root=None):
     if n is None:
         return None, f"sidecar sem n_rows/n: {side}"
     return int(n), f"|dataset {tier}/{dist}| = {int(n)} (sidecar)"
+
+
+def n_dataset_esperado(exp, problema, semente, D, data_root=None):
+    """Compat. [T7-sweep]: alias offline de `fe_esperado_por_exp` (q ignorado)."""
+    return fe_esperado_por_exp(exp, problema, semente, D, data_root=data_root)
 
 
 # ── Checagens por run (cartões R1/R2/R3 — com --alg) ───────────────────────
@@ -92,11 +106,20 @@ def check_fe(exp, alg, problema, semente, D, data_root=None):
                  if len(c) > 1 and c[0] == "x" and c[1:].isdigit())
     if d_data:                       # D do próprio run (não confia no --dim)
         D = d_data
-    # [T7-sweep] a expectativa é POR CÉLULA: 31D−1 no principal, |dataset do
-    # tier| no sweep (do sidecar). Sem isto um run sweep-medium correto
-    # (n=2000) era reprovado por um gate que só sabia 31D−1.
-    want, origem = n_dataset_esperado(exp, problema, semente, D,
-                                      data_root=data_root)
+    # [T7-sweep/T6-batch] a expectativa é POR CÉLULA: 31D−1 no principal,
+    # |dataset do tier| no sweep (sidecar), 11D−1+200q no batch (q do manifesto).
+    # Sem isto um run sweep-medium (n=2000) ou batch (FE=2021) correto seria
+    # reprovado por um gate que só sabia 31D−1.
+    q_run = 1
+    manp = naming.manifest_path(exp, alg, problema, semente, data_root=data_root)
+    if os.path.exists(manp):
+        try:
+            with open(manp, encoding="utf-8") as _fh:
+                q_run = int(json.load(_fh).get("q", 1) or 1)
+        except Exception:                              # noqa: BLE001
+            q_run = 1
+    want, origem = fe_esperado_por_exp(exp, problema, semente, D,
+                                       data_root=data_root, q=q_run)
     if want is None:
         return False, f"expectativa de FE indeterminada — {origem}"
     return (n == want), f"FE={n} (esperado {want} · {origem})"

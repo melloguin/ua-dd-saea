@@ -36,7 +36,10 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 S_ONLINE, S_OFFLINE = 2000, 20000
-PISOS_ONLINE = {"nsga2", "nsga3", "moead", "smsemoa"}
+#: [T6-batch] sobol_batch é PISO ONLINE (③ vazia, SEM sonda — CONTRATO §6.1
+#: linha "pisos"), mesma classe dos pisos MATLAB nsga2/moead: o auditar não
+#: pode exigir sonda dele.
+PISOS_ONLINE = {"nsga2", "nsga3", "moead", "smsemoa", "sobol_batch"}
 OFFLINE = {"e103", "b5r", "b5m", "c311", "moead_media"}
 
 

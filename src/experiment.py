@@ -165,6 +165,10 @@ _DISPATCH_LOADERS: dict[str, tuple[str, str, str]] = {
     # (o MESMO do b5; sklearn 0.21.3, desdeo VENDORIZADO root-first) — subprocess
     # por venv (D79/N.2); NUNCA co-importar com c311 (N.1.2).
     'moead_media':   ('src.piso_offline',    'run_piso_offline', 'standalone'),
+    # [T6-batch] sobol_batch — o PISO do sub-estudo batch q=10 (DI-33). Piso
+    # ONLINE (avaliação real de lotes Sobol scrambled, SEM surrogate); roda no
+    # env_main (não é venv-only). alg_id=22 no seeds.json.
+    'sobol_batch':   ('src.sobol_batch',     'run_sobol_batch', 'standalone'),
 }
 
 

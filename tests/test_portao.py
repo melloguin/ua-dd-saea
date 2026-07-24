@@ -21,9 +21,12 @@ class TestCoberturaDoPortao(unittest.TestCase):
             return {r["alg"] for r in csv.DictReader(fh)}
 
     def test_todo_config_do_grid_tem_cartao(self):
-        faltam = self._algs_do_grid() - set(portao.CARTAO_POR_ALG) - {"sobol_batch"}
-        self.assertFalse(faltam, f"configs do grid SEM cartão no portão: {faltam} "
-                                 "(sobol_batch é a exceção conhecida — M10/T6)")
+        # [T6-batch] sobol_batch DEIXOU de ser exceção — agora tem cartão.
+        faltam = self._algs_do_grid() - set(portao.CARTAO_POR_ALG)
+        self.assertFalse(faltam, f"configs do grid SEM cartão no portão: {faltam}")
+
+    def test_sobol_batch_tem_cartao_do_batch(self):
+        self.assertEqual(portao.CARTAO_POR_ALG["sobol_batch"], "T6-sobol_batch")
 
     def test_offline_vem_da_fonte_unica(self):
         # o portão importa OFFLINE_ALGS do manifest (não duplica o conjunto)

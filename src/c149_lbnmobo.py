@@ -62,7 +62,7 @@ import numpy as np
 from src import export as _export
 from src import manifest as _manifest
 from src import naming
-from src.budget import BudgetExhausted, FEBudget
+from src.budget import BudgetExhausted, FEBudget, maxfe_por_exp
 
 # ── Identidade e constantes do config ───────────────────────────────────────
 
@@ -412,6 +412,90 @@ def _hvi_greedy_d96(F_arc: np.ndarray, mu_nat: np.ndarray,
             "n_hvi_pos": int((hvi > 0).sum()), "n_empatados": len(empatados)}
 
 
+def _hvi_greedy_lote_d42(F_arc: np.ndarray, mu_nat: np.ndarray,
+                         sig2_z: np.ndarray, rng_fallback, q: int) -> list:
+    """[T6-batch] O lote NATIVO do c149 (D42) — HVI-greedy SEQUENCIAL em q.
+
+    D42 (vinculante): *"Sub-seleção HVI-greedy sequencial (10 um a um por ganho
+    de HV). … Rejeitados k-means e aleatório."* — o q fixo é do NOSSO protocolo
+    (o paper avalia o front inteiro; D42 esclarece), *"consistente com q=1
+    (D41)"*.
+
+    q=1 ⇒ delega VERBATIM ao `_hvi_greedy_d96` (o caminho do principal fica
+    provadamente intocado — a prova de regressão do T6 o afere bit-a-bit).
+
+    q>1 (o batch): `q` escolhas SEM REPOSIÇÃO sobre o MESMO front de candidatos
+    do NSGA-II. A cada passo o "front" de referência do HV é o ND OBSERVADO
+    AUMENTADO pelos μ preditos dos já escolhidos deste lote — pois eles são
+    infills PENDENTES cujo valor real ainda não existe (só o μ). Cada passo
+    maximiza `HV(front ∪ {c}) − HV(front)`, com o MESMO desempate do D96
+    (σ² agregada em z; empate total ⇒ aleatório do harness).
+
+    ⚠ **DECISÃO DE EXECUÇÃO (autor ratificou a recomendação, 2026-07-24; D97
+    revê a fidelidade):** a D42 fixa "sequencial por ganho de HV" mas NÃO diz
+    com que valor o já-escolhido entra no passo seguinte. O real não existe no
+    momento da seleção ⇒ só o μ predito é coerente (é a mesma escolha do qEHVI:
+    pending points entram na média). A **normalização (fmin/fmax) é FIXA na
+    iteração** (card: "mesma normalização D96 por iteração de lote"), calculada
+    1× do arquivo observado — não é re-derivada a cada passo do lote.
+
+    Devolve `[sel_1, …, sel_q]` no formato do `_hvi_greedy_d96` (+ `passo`).
+    """
+    if int(q) == 1:
+        return [_hvi_greedy_d96(F_arc, mu_nat, sig2_z, rng_fallback)]
+
+    from pymoo.indicators.hv import HV
+
+    M = F_arc.shape[1]
+    fmin = F_arc.min(axis=0)
+    fmax = F_arc.max(axis=0)
+    rng_obj = np.maximum(fmax - fmin, 1e-12)          # normalização FIXA (card)
+    A = (F_arc - fmin) / rng_obj
+    C = (mu_nat - fmin) / rng_obj
+    ref = np.full(M, HVI_REF, dtype=np.float64)
+    s2_agg = np.sum(np.maximum(sig2_z, 0.0), axis=1)
+    n = C.shape[0]
+
+    front = A[_nds_idx(A)]                             # cresce c/ os escolhidos
+    disponivel = np.ones(n, dtype=bool)
+    selecoes = []
+    for passo in range(int(q)):
+        hv0 = float(HV(ref_point=ref)(front))
+        hvi = np.zeros(n, dtype=np.float64)
+        for i in range(n):
+            if not disponivel[i]:
+                continue
+            c = C[i]
+            if np.any(c >= ref):
+                continue
+            if np.any(np.all(front <= c, axis=1)):
+                continue
+            hvi[i] = float(HV(ref_point=ref)(np.vstack([front, c]))) - hv0
+        hvi_masked = np.where(disponivel, hvi, -np.inf)
+        best = float(hvi_masked.max())
+        empatados = np.flatnonzero(hvi_masked == best)
+        if len(empatados) == 1:
+            idx, caminho = int(empatados[0]), "hvi"
+        else:
+            s2_e = s2_agg[empatados]
+            vence = empatados[s2_e == s2_e.max()]
+            if len(vence) == 1:
+                idx, caminho = int(vence[0]), "desempate_sigma"
+            else:
+                idx = int(vence[int(rng_fallback.integers(len(vence)))])
+                caminho = "fallback_aleatorio"
+        top5 = np.sort(hvi[disponivel])[::-1][:5]
+        selecoes.append({
+            "idx": idx, "caminho": caminho, "hvi": float(hvi[idx]),
+            "hvi_top5": [float(v) for v in top5],
+            "sigma2_agg_sel_z": float(s2_agg[idx]),
+            "n_hvi_pos": int((hvi_masked > 0).sum()),
+            "n_empatados": len(empatados), "passo": passo})
+        disponivel[idx] = False
+        front = np.vstack([front, C[idx]])            # μ predito do pendente
+    return selecoes
+
+
 def _nds_idx(F: np.ndarray) -> np.ndarray:
     from src import problems as _problems
     return np.asarray(_problems._nds_filter(np.asarray(F, dtype=np.float64)))
@@ -462,6 +546,7 @@ def run_c149(exp: str, alg: str, problema: str, semente, *,
              data_root: str = naming.DEFAULT_DATA_ROOT,
              enable_bucket: bool = False,
              teto_s: float | None = None,
+             q: int = 1,
              **_kwargs) -> dict:
     """Roda o LBN-MOBO sob o contrato v5.2.1. Assinatura padrão dos runners.
 
@@ -486,11 +571,12 @@ def run_c149(exp: str, alg: str, problema: str, semente, *,
         return _run_c149_inner(exp, alg, problema, semente, torch=torch,
                                pinning=pinning, env=env, t_run=t_run,
                                data_root=data_root,
-                               enable_bucket=enable_bucket, teto_s=teto_s)
+                               enable_bucket=enable_bucket, teto_s=teto_s,
+                               q=int(q))
 
 
 def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
-                    data_root, enable_bucket, teto_s):
+                    data_root, enable_bucket, teto_s, q=1):
     from layer_config_forward import MultiLayerPerceptron_forward as MLP
 
     # ── determinismo (L.14) ─────────────────────────────────────────────────
@@ -503,7 +589,8 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                                 data_root=data_root, append=False)
     doe = H.load_doe(problema, semente, data_root=data_root)
     D = int(doe["X"].shape[1])
-    bud = FEBudget(D=D, logger=log)
+    # [T6-batch] orcamento POR EXP (D66): main = 31D-1; batch = 11D-1+200q.
+    bud = FEBudget(D=D, maxfe=maxfe_por_exp(exp, D, q), logger=log)
     oracle = _Oracle(problema, bud)
     M = oracle.n_obj
     if doe["X"].shape[0] != bud.n_init:
@@ -704,52 +791,64 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
             mu_nat = mu_z * z_std + z_mean
             sig_nat = np.sqrt(np.maximum(sig2_z, 0.0)) * z_std
             F_arc = Y_nat                              # o arquivo OBSERVADO
-            sel = _hvi_greedy_d96(F_arc, mu_nat, sig2_z,
-                                  _rng_fallback(g))
+            # [T6-batch] LOTE NATIVO: q escolhas HVI-greedy SEQUENCIAIS (D42).
+            # q=1 ⇒ 1 escolha, delegada VERBATIM ao D96 = o principal INTOCADO.
+            selecoes = _hvi_greedy_lote_d42(F_arc, mu_nat, sig2_z,
+                                            _rng_fallback(g), q)
+            sel = selecoes[0]                          # campos de log (q=1: =D96)
             i_sel = sel["idx"]
             t_busca = time.time() - t_b0
             t_busca_total += t_busca
 
-            # ── 1 FE: o escolhido (dedup D89 no FEBudget) ───────────────────
-            x_sel_nat = oracle.to_native(cand_X01[i_sel])
-            dist_min = _dist_min(x_sel_nat, X_nat)
-            fe_antes = bud.fe
-            oracle.eval_native(x_sel_nat)
-            sid = bud.solution_id_of(x_sel_nat)
-            cache_hit = (bud.fe == fe_antes)
-            if cache_hit:
-                # [DI-21/c122 §5.3 — o hazard gêmeo, morto por construção]: o
-                # treino sai de bud.records, que NÃO cresce no cache-hit. A ③
-                # continua gravada (a predição FOI decisão-relevante), com
-                # real_solution_id da solução PREEXISTENTE. Cap p/ hits
-                # consecutivos: o orçamento não avança — pára-e-loga.
-                n_cache_infill += 1
-                n_cache_seguidos += 1
-                log.guard("cache_hit_infill", geracao=g, solution_id=sid,
-                          fe=bud.fe, seguidos=n_cache_seguidos,
-                          motivo="o HVI-greedy reescolheu uma X ja avaliada "
-                                 "(bit-a-bit) — 0 FE (D89); o treino NAO "
-                                 "cresce")
-                if n_cache_seguidos >= CACHE_CAP:
-                    # [DI-24/achado §4.3 do e81] NAO dar break aqui: a linha da
-                    # ④ desta geracao ja foi aberta (add_timing) e sairia com 3
-                    # NULLs que o proprio gate reprova. Seta o aborto e deixa a
-                    # iteracao fechar ③/②/④ — o break vem apos o update_timing.
-                    status, motivo_parada = "failed", "cache_hit_travado"
-                    log.guard("cache_hit_travado", geracao=g, fe=bud.fe,
-                              seguidos=n_cache_seguidos,
-                              acao="ABORTO — o orcamento nao avanca; "
-                                   "para-e-loga (D81)")
-                    abortar_cache = True
-            else:
-                n_cache_seguidos = 0
+            # ── q FE: os escolhidos do lote (dedup D89 no FEBudget) ─────────
+            # idx→sid p/ a ③ multi-candidato (molde e81 idx_sel). Ordem = a da
+            # seleção gulosa. Para q=1 o laço roda 1×, na MESMA ordem de antes.
+            idx_sel_map: dict[int, int] = {}
+            dist_min = None
+            for _s in selecoes:
+                i_pick = _s["idx"]
+                x_pick_nat = oracle.to_native(cand_X01[i_pick])
+                if dist_min is None:                   # ⑥ = do 1º pick (q=1: =sel)
+                    dist_min = _dist_min(x_pick_nat, X_nat)
+                fe_antes = bud.fe
+                oracle.eval_native(x_pick_nat)         # BudgetExhausted sobe p/ o
+                sid = bud.solution_id_of(x_pick_nat)   #   except externo (D61)
+                idx_sel_map[i_pick] = sid
+                cache_hit = (bud.fe == fe_antes)
+                if cache_hit:
+                    # [DI-21/c122 §5.3] o treino sai de bud.records, que NÃO
+                    # cresce no cache-hit; a ③ da predição segue gravada.
+                    n_cache_infill += 1
+                    n_cache_seguidos += 1
+                    log.guard("cache_hit_infill", geracao=g, solution_id=sid,
+                              fe=bud.fe, seguidos=n_cache_seguidos,
+                              passo=_s.get("passo", 0),
+                              motivo="o HVI-greedy reescolheu uma X ja avaliada "
+                                     "(bit-a-bit) — 0 FE (D89); o treino NAO "
+                                     "cresce")
+                    if n_cache_seguidos >= CACHE_CAP:
+                        # [DI-24] NAO dar break aqui: a ④ desta geracao ja foi
+                        # aberta e sairia com NULLs. Seta o aborto e deixa a
+                        # iteracao fechar ③/②/④ — o break vem apos o timing.
+                        status, motivo_parada = "failed", "cache_hit_travado"
+                        log.guard("cache_hit_travado", geracao=g, fe=bud.fe,
+                                  seguidos=n_cache_seguidos,
+                                  acao="ABORTO — o orcamento nao avanca; "
+                                       "para-e-loga (D81)")
+                        abortar_cache = True
+                        break                          # corta o lote; ④ fecha
+                else:
+                    n_cache_seguidos = 0
+            # a ⑥ usa o sid do 1º pick (compat. q=1); o lote inteiro no jsonl
+            sid = idx_sel_map[i_sel]
 
             # ── ③ BUSCA: a população final da aquisição (DEF-C2), μ/σ nat ──
+            # real_solution_id preenchido p/ TODOS os escolhidos do lote.
             for i in range(cand_X01.shape[0]):
                 buf.add_surrogate(_export.surrogate_row(
                     g, oracle.to_native(cand_X01[i]),
                     regime="online",
-                    real_solution_id=(sid if i == i_sel else None),
+                    real_solution_id=idx_sel_map.get(i),
                     mu=mu_nat[i], sigma=sig_nat[i],
                     pred_tipo="valor",
                     modelo_flag=f"BNN-ensemble(K={K_ENSEMBLE})",
@@ -768,10 +867,18 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
             F_arc_pos = np.vstack([r.f for r in bud.records])
             log.decision(
                 caminho=f"c149_gen:{sel['caminho']}",
-                motivo=f"HVI-greedy D96 (q=1) sobre {cand_X01.shape[0]} "
-                       f"candidatos do front 2M",
+                motivo=(f"HVI-greedy D96 (q=1) sobre {cand_X01.shape[0]} "
+                        f"candidatos do front 2M") if q == 1 else
+                       (f"HVI-greedy SEQUENCIAL q={q} (D42, sem reposição) "
+                        f"sobre {cand_X01.shape[0]} candidatos do front 2M"),
                 geracao=g, seed_nsga2=int(seed_nsga2),
                 n_front_acq=int(cand_X01.shape[0]),
+                q=q,
+                lote_solution_ids=([idx_sel_map[s["idx"]] for s in selecoes
+                                    if s["idx"] in idx_sel_map]
+                                   if q > 1 else None),
+                lote_caminhos=([s["caminho"] for s in selecoes]
+                               if q > 1 else None),
                 hvi_escolhido=_f(sel["hvi"]),
                 hvi_top5=[_f(v) for v in sel["hvi_top5"]],
                 n_hvi_pos=sel["n_hvi_pos"], n_empatados=sel["n_empatados"],
@@ -856,7 +963,7 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
             cp_hashes={"doe_hash": doe["doe_hash"]},
             env=env, pinning=pinning, n_geracoes=g,
             algo_version=ALGO_VERSION, timing_totais=timing_totais,
-            sigma_dict=sigma_dict, regime="online", params=params,
+            sigma_dict=sigma_dict, regime="online", params=params, q=int(q),
             sonda_info={"S": sonda["S"], "regime": "online",
                         "cadencia": f"online: k={H.SONDA_K} (g=1,2,4,6,…) + "
                                     f"1a e ultima (finalProbe)",

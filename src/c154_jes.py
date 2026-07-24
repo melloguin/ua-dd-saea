@@ -431,11 +431,68 @@ def _optimize_acqf_restarts(acqf, D: int, log, it: int):
     return cands.detach(), acq_vals.detach(), n_warn
 
 
+def _lote_greedy_sequencial_jes(acqf, D: int, log, it: int, q: int):
+    """[T6-batch] O lote NATIVO do qLB-JES (D66) — greedy sequencial em q.
+
+    Mesmo raciocínio do c262 (ver `_lote_greedy_sequencial` lá), com DOIS
+    motivos a mais para transcrever o laço em vez de `optimize_acqf(q, seq)`:
+
+    1. `return_best_only=False` (a ③ exige TODOS os restarts) é incompatível com
+       `sequential=True` na API — idêntico ao c262.
+    2. o c154 passa `batch_initial_conditions=ics` explícito, e o BoTorch
+       PROÍBE isso sob sequencial (`UnsupportedError: batch_initial_conditions
+       is not supported for sequential optimization`). O laço manual re-gera os
+       ICs a cada passo (o correto: a acqf muda quando `X_pending` cresce).
+
+    O JES condiciona no lote via `@concatenate_pending_points` no seu `forward`
+    (verificado no 0.18.1): a entropia é conjunta sobre `[X, X_pending]`, então
+    `set_X_pending` dos já escolhidos É o mecanismo de lote nativo (o bundle
+    batch_largebatch.md: "qLB-JES batch … greedy sequencial; submodular").
+
+    q=1 ⇒ 1 passo, sem tocar em `X_pending` = o principal INTOCADO.
+    Devolve `[(cands, acq_vals, n_warn, idx_best), ...]`.
+
+    ⚠ CAVEAT (B9.4, anotar no dado): q=10 extrapola o máx do paper (q=8) e o
+    lower bound do JES NÃO é monotônico — o ganho por passo pode não decrescer.
+    É esperado; não é bug. O `motivo` do log registra o passo.
+    """
+    def _argmax_finito(acq_vals):
+        m = torch.isfinite(acq_vals)
+        if not bool(m.any()):
+            raise RuntimeError(
+                f"c154: TODOS os restarts com acqf não-finita no lote (it {it}). "
+                f"Pára-e-loga (D81).")
+        masked = torch.where(m, acq_vals,
+                             torch.full_like(acq_vals, float("-inf")))
+        return int(torch.argmax(masked))
+
+    if int(q) == 1:                       # ← caminho do principal, intocado
+        cands, acq_vals, n_warn = _optimize_acqf_restarts(acqf, D, log, it)
+        return [(cands, acq_vals, n_warn, _argmax_finito(acq_vals))]
+
+    base_pending = acqf.X_pending
+    passos, escolhidos = [], []
+    try:
+        for _p in range(int(q)):
+            if escolhidos:
+                novos = torch.cat(escolhidos, dim=-2)
+                acqf.set_X_pending(
+                    novos if base_pending is None
+                    else torch.cat([base_pending, novos], dim=-2))
+            cands, acq_vals, n_warn = _optimize_acqf_restarts(acqf, D, log, it)
+            b = _argmax_finito(acq_vals)
+            escolhidos.append(cands[b].detach().reshape(1, -1))
+            passos.append((cands, acq_vals, n_warn, b))
+    finally:
+        acqf.set_X_pending(base_pending)
+    return passos
+
+
 def run_c154(exp: str, alg: str, problema: str, semente, *,
              data_root: str = naming.DEFAULT_DATA_ROOT,
              enable_bucket: bool = False,
              max_wall_s: float | None = None,
-             rota: str = "a", **_kwargs) -> dict:
+             rota: str = "a", q: int = 1, **_kwargs) -> dict:
     """Um run c154 (q=1) — assinatura padrão dos runners R2. `rota` ∈ {'a'
     (produção, D75), 'b' (paper-faithful; SÓ piloto — chamar com o token de
     namespace `alg='c154b'` p/ não colidir com o run de produção)}.
@@ -459,7 +516,7 @@ def run_c154(exp: str, alg: str, problema: str, semente, *,
     try:
         return _run_c154_body(exp, alg, problema, semente, t0, pinning, env,
                               fused_policy, doe_art, sonda_art, rota, log,
-                              data_root, enable_bucket, max_wall_s)
+                              data_root, enable_bucket, max_wall_s, int(q))
     except Exception:
         # D23/D60: parada anômala NUNCA silenciosa — footer failed no jsonl.
         import traceback
@@ -471,8 +528,11 @@ def run_c154(exp: str, alg: str, problema: str, semente, *,
 
 def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                    doe_art, sonda_art, rota, log, data_root, enable_bucket,
-                   max_wall_s) -> dict:
-    bud = _budget.FEBudget(D=doe_art["X"].shape[1], logger=log)
+                   max_wall_s, q=1) -> dict:
+    # [T6-batch] orcamento POR EXP (D66): main = 31D-1; batch = 11D-1+200q.
+    _D0 = doe_art["X"].shape[1]
+    bud = _budget.FEBudget(
+        D=_D0, maxfe=_budget.maxfe_por_exp(exp, _D0, q), logger=log)
     adapter = BoTorchProblemAdapter(problema, bud)
     D, M = adapter.D, adapter.M
     buf = SnapshotBuffer()
@@ -570,8 +630,10 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
             tempo_paths_total += t_paths
 
             acqf, hcb = _make_acqf(model, ps, pf)
-            cands, acq_vals, acqf_warns = _optimize_acqf_restarts(
-                acqf, D, log, it)
+            # [T6-batch] LOTE NATIVO: q passos gulosos sequenciais (D66).
+            # q=1 ⇒ 1 passo sem X_pending = o principal INTOCADO.
+            passos = _lote_greedy_sequencial_jes(acqf, D, log, it, q)
+            cands, acq_vals, acqf_warns, _best0 = passos[0]
             tempo_busca = time.time() - t_busca0
             tempo_busca_total += tempo_busca
             if acqf_warns:
@@ -601,6 +663,26 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
             best = int(torch.argmax(masked))
             acqf_best = float(acq_vals[best])
             X_cand_nat = adapter.to_native(U_cand)
+
+            # [T6-batch] ③ dos passos 2..q do lote (vazio quando q=1): a ③ de
+            # cada passo guloso — o NÃO-escolhido agora, o escolhido após o FE.
+            extras = []           # [(X_nat, mu, sigma, idx_best, acqf_best), ...]
+            for cands_i, acqv_i, _nwi, best_i in passos[1:]:
+                U_i = cands_i.squeeze(1)
+                with torch.no_grad():
+                    post_i = model.posterior(U_i)
+                    mu_i = -post_i.mean.cpu().numpy()
+                    sig_i = np.sqrt(post_i.variance.cpu().numpy())
+                X_i = adapter.to_native(U_i)
+                for k in range(U_i.shape[0]):
+                    if k == best_i:
+                        continue
+                    buf.add_surrogate(_export.surrogate_row(
+                        it, X_i[k], mu=mu_i[k], sigma=sig_i[k],
+                        pred_tipo="valor", modelo_flag="GP"))
+                extras.append((X_i, mu_i, sig_i, best_i, float(acqv_i[best_i]),
+                               U_i))
+                del post_i
 
             for k in range(U_cand.shape[0]):
                 if k == best:
@@ -670,6 +752,42 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                 mu=mu_f[best], sigma=sigma[best],
                 pred_tipo="valor", modelo_flag="GP"))
 
+            # [T6-batch] os FE dos passos 2..q do lote (vazio quando q=1).
+            # Orçamento governa (D61): estouro NO MEIO do lote segue o MESMO
+            # rito do passo 1 (③ sem real_solution_id + sonda obrigatória).
+            sids_lote = [sid]
+            for X_i, mu_i, sig_i, best_i, acqv_i, U_i in extras:
+                try:
+                    adapter.evaluate_unit_max(U_i[best_i])
+                except _budget.BudgetExhausted:
+                    buf.add_surrogate(_export.surrogate_row(
+                        it, X_i[best_i], mu=mu_i[best_i], sigma=sig_i[best_i],
+                        pred_tipo="valor", modelo_flag="GP"))
+                    log.decision(caminho="hard_stop", it=it,
+                                 motivo="orçamento esgotado no meio do lote "
+                                        "(D21/D61)",
+                                 acqf_escolhido=acqv_i, q=q,
+                                 n_no_lote=len(sids_lote),
+                                 **decision_extra, **di10())
+                    t_snd = emit_sonda_block(
+                        buf, log, it=it, fe=bud.fe, sonda=sonda_art,
+                        adapter=adapter, model=model,
+                        fe_treino_max=n_train - 1,
+                        motivo="ultima iteracao (hard-stop D61, lote parcial)")
+                    tempo_sonda_total += t_snd
+                    n_blocos_sonda += 1
+                    buf.update_timing(
+                        it, tempo_busca_s=tempo_busca,
+                        tempo_pred_sonda_s=t_snd,
+                        tempo_geracao_s=(time.time() - t_it0) - t_snd)
+                    raise
+                sid_i = bud.solution_id_of(X_i[best_i])
+                sids_lote.append(sid_i)
+                buf.add_surrogate(_export.surrogate_row(
+                    it, X_i[best_i], real_solution_id=sid_i,
+                    mu=mu_i[best_i], sigma=sig_i[best_i],
+                    pred_tipo="valor", modelo_flag="GP"))
+
             cache_hit_iter = (bud.fe == fe_antes)
             stall_streak = stall_streak + 1 if cache_hit_iter else 0
             log.decision(caminho="infill",
@@ -677,6 +795,7 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                          it=it, acqf_escolhido=acqf_best,
                          fit_retries=fit_retries, acqf_warnings=acqf_warns,
                          solution_id=sid, cache_hit=cache_hit_iter,
+                         q=q, lote_solution_ids=sids_lote,
                          t_busca_s=round(tempo_busca, 4),   # legado (compat.)
                          **decision_extra, **di10())
 
@@ -749,7 +868,7 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
         exp, alg, problema, semente, bud, buf, adapter=adapter,
         doe_hash_sidecar=doe_art["doe_hash"], env=env, pinning=pinning,
         n_geracoes=n_iters_fit, algo_version=ALGO_VERSION,
-        timing_totais=timing_totais, regime="online",
+        timing_totais=timing_totais, regime="online", q=int(q),
         data_root=data_root, enable_bucket=enable_bucket)
     out["manifest"]["fused_kernel"] = fused_policy["fused_kernel"]
     out["manifest"]["sigma_dict"] = _sigma_dict()       # DEF-C4 (obrigatório)

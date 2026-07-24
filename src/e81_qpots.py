@@ -120,10 +120,9 @@ from typing import Any
 import numpy as np
 
 from src import export as _export
-from src import manifest as _manifest
 from src import naming
 from src import standalone_harness as H
-from src.budget import BudgetExhausted, FEBudget
+from src.budget import BudgetExhausted, FEBudget, maxfe_por_exp
 
 # ── Identidade e constantes do config (Balde de parâmetros do cartão) ───────
 
@@ -588,7 +587,8 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                                 data_root=data_root, append=False)
     doe = H.load_doe(problema, semente, data_root=data_root)
     D = int(doe["X"].shape[1])
-    bud = FEBudget(D=D, logger=log)
+    # [T6-batch] orcamento POR EXP (D66): main = 31D-1; batch = 11D-1+200q.
+    bud = FEBudget(D=D, maxfe=maxfe_por_exp(exp, D, q), logger=log)
     oracle = _Oracle(problema, bud)
     M = oracle.n_obj
     if doe["X"].shape[0] != bud.n_init:
@@ -731,6 +731,7 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
     }
 
     n_cache_infill = n_cache_seguidos = n_lote_menor = 0
+    n_lote_completado = 0
     g = 0
     status, motivo_parada = "ok", "orcamento"
     t_fit_total = t_busca_total = t_sonda_total = 0.0
@@ -856,9 +857,48 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                               motivo="|ND| < q: o argsort()[-q:] do "
                                      "select_candidates devolve lote menor "
                                      "SILENCIOSAMENTE (stock)",
-                              acao="registrado; o orcamento e governado pelo "
-                                   "FEBudget, entao o run segue com o lote "
-                                   "efetivo (fallback qmaximin documentado)")
+                              acao="fallback qmaximin (DI-25 #3): completar "
+                                   "ate q sobre os rank-1+ da populacao")
+                    # ── [T6-batch] FALLBACK qmaximin (DI-25 #3, ratificado
+                    #    2026-07-22): completar o lote ate q por MAXIMIN sobre
+                    #    o RESTANTE da populacao do NSGA-II (rank-1+), maximizando
+                    #    a distancia minima aos JA-selecionados; falha-alto se
+                    #    nem assim fechar. Usa o `qmaximin` VENDORIZADO (fiel —
+                    #    o mesmo farthest-point do repo, examples/Parallel_TC).
+                    faltam = int(q) - int(lote01.shape[0])
+                    ranks = espia.res.pop.get("rank")
+                    Xpop = np.asarray(espia.res.pop.get("X"),
+                                      dtype=np.float64).reshape(-1, D)
+                    pool = (Xpop[np.asarray(ranks) >= 1] if ranks is not None
+                            else np.empty((0, D)))
+                    # dedup bit-a-bit contra o que ja esta no lote (D89)
+                    if pool.shape[0] and lote01.shape[0]:
+                        keep = ~np.array([
+                            bool(np.any(np.all(lote01 == p, axis=1)))
+                            for p in pool])
+                        pool = pool[keep]
+                    if pool.shape[0] < faltam:
+                        raise RuntimeError(
+                            f"e81 |ND|<q e o fallback qmaximin NAO fecha o lote: "
+                            f"faltam {faltam}, rank-1+ disponiveis {pool.shape[0]} "
+                            f"(g={g}, |ND|={lote01.shape[0]}, q={q}). "
+                            f"Falha-alto (DI-25 #3) — para-e-loga (D81).")
+                    from qpots.utils.tc_utils import qmaximin
+                    extra = qmaximin(torch.as_tensor(lote01),
+                                     torch.as_tensor(pool), q=faltam)
+                    extra = np.asarray(extra.detach().cpu(),
+                                       dtype=np.float64).reshape(-1, D)
+                    lote01 = np.vstack([lote01, extra])
+                    n_lote_completado += 1
+                    log.guard("lote_completado_por", geracao=g,
+                              valor="qmaximin", n_completado=faltam,
+                              n_pool_rank1mais=int(pool.shape[0]), q=q,
+                              motivo="DI-25 #3: maximin sobre rank-1+ "
+                                     "maximizando dist-min aos ja-selecionados")
+                    if lote01.shape[0] != q:
+                        raise RuntimeError(
+                            f"e81 fallback qmaximin fechou {lote01.shape[0]}!=q "
+                            f"({q}) — para-e-loga (D81).")
 
                 front01 = (espia.front if espia.front is not None
                            else lote01)
@@ -1038,24 +1078,22 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
             sigma_dict=sigma_dict, regime="online", params=params,
             # DI-23/§3.3: o manifesto nasce HONESTO — nada de reescrever
             # por fora (o contorno que o c149 precisou antes destes kwargs).
-            status=status, motivo_parada=motivo_parada,
+            status=status, motivo_parada=motivo_parada, q=int(q),
             sonda_info={"S": sonda["S"], "regime": "online",
                         "cadencia": f"online: k={k_sonda} (g=1,2,4,6,…) + "
                                     f"1a e ultima (finalProbe)",
                         "n_blocos": _n_blocos(buf, sonda["S"]),
                         "x_hash": sonda["x_hash"], "f_hash": sonda["f_hash"]},
             data_root=data_root, enable_bucket=enable_bucket)
-        # ⚠ `write_run_outputs` não repassa `q` ao `new_manifest` (que fixa
-        # q=1). O grid tem 150 runs de e81 em `exp=batch` com q=10 — sem este
-        # carimbo o manifesto MENTIRIA o q. Lacuna de infra sinalizada à torre.
+        # [T6-batch] `q` carimbado DIRETO no `write_run_outputs` (o harness já
+        # o repassa ao `new_manifest`) — o remendo de reescrita pós-hoc (2
+        # escritas) foi removido.
         man = res["manifest"]
-        if int(man.get("q", 1)) != int(q):
-            man["q"] = int(q)
-            _manifest.write_manifest(man, data_root)
         log.footer(status=status, fe_final=bud.fe, cp_init=True,
                    cache_hits=bud.cache_hits, n_geracoes=g,
                    motivo_parada=motivo_parada, n_front1=n_front1,
-                   n_cache_infill=n_cache_infill, n_lote_menor=n_lote_menor)
+                   n_cache_infill=n_cache_infill, n_lote_menor=n_lote_menor,
+                   n_lote_completado=n_lote_completado)
     finally:
         log.close()
 
@@ -1067,7 +1105,8 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
         "n_timing_rows": len(buf.timing_rows),
         "n_blocos_sonda": _n_blocos(buf, sonda["S"]), "regime": "online",
         "cache_hits": bud.cache_hits, "n_cache_infill": n_cache_infill,
-        "n_lote_menor": n_lote_menor, "n_front1": n_front1,
+        "n_lote_menor": n_lote_menor,
+        "n_lote_completado": n_lote_completado, "n_front1": n_front1,
         "tempo_pred_sonda_s": t_sonda_total, "q": q,
     }
 

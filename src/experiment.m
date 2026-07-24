@@ -1961,12 +1961,24 @@ function [status, info] = run_e103(alg, problema, semente, exp, dataRoot)
     ctx = bridge_ctx(ROOT);
     pp = py_problem(ctx, problema);
     D = pp.D; M = pp.M; xl = pp.xl(:).'; xu = pp.xu(:).';
-    n_ds  = 31*D - 1;                 % tier small (principal offline — D90)
-    maxfe = n_ds;                     % o orcamento E o dataset (offline)
 
-    % (2) DATASET 31D-1 do artefato (D90) — CARREGADO, NUNCA regenerado.
-    ds = load_dataset(problema, semente, D, M, dataRoot);
-    assert(size(ds.X,1) == n_ds, 'dataset tem %d linhas != 31D-1=%d', size(ds.X,1), n_ds);
+    % [T7-sweep] A CELULA do grid sai do token exp (`sweep-<tier>-<dist>`).
+    % `off`/`main` => ('','') = o dataset PRINCIPAL (comportamento de sempre).
+    % Sem isto um run de sweep lia o principal e gravava sob o nome do sweep —
+    % erro SILENCIOSO (o CP-init passa: confere contra o arquivo que foi lido).
+    [tier, dist] = nm_parse_sweep(exp);
+
+    % (2) DATASET do artefato (D90) — CARREGADO, NUNCA regenerado.
+    ds = load_dataset(problema, semente, D, M, dataRoot, tier, dist);
+    % [T7] o orcamento E o dataset: o n vem do ARTEFATO, nunca de formula
+    % (small=31D-1, medium=2000, big=50000 sao do doe.py — duplicar aqui criaria
+    % 2 fontes da verdade). No principal a identidade 31D-1 segue sendo aferida.
+    n_ds  = ds.n;
+    maxfe = n_ds;
+    if nm_is_main_variant(tier, dist)
+        assert(n_ds == 31*D - 1, ...
+               'dataset principal tem %d linhas != 31D-1=%d', n_ds, 31*D - 1);
+    end
     % CP-bounds (§5.5): bounds do problema Python == sidecar do dataset.
     assert(max(abs(xl(:)-ds.xl(:)))==0 && max(abs(xu(:)-ds.xu(:)))==0, ...
            'CP-bounds: bounds do problema != sidecar do dataset');
@@ -2093,8 +2105,13 @@ function [status, info] = run_e103(alg, problema, semente, exp, dataRoot)
     man.algo_version = "e103-IBEAMS-offline-L15";
     man.status = st_str;
     man.regime = "offline";
+    % [T7-sweep] tier/dist HONESTOS (antes: "small"/"lhs" cravados — num run de
+    % sweep o manifesto MENTIRIA, que e' pior que falhar). Vem do sidecar do
+    % artefato que foi de fato lido.
+    man.tier = string(ds.tier);        % topo do manifesto (contrato src/manifest.py)
+    man.dist = string(ds.dist);
     man.dataset = struct('path', string(ds.path), 'n', n_ds, ...
-        'tier', "small", 'dist', "lhs", ...
+        'tier', string(ds.tier), 'dist', string(ds.dist), ...
         'x_hash', string(ds.x_hash), 'f_hash', string(ds.f_hash), ...
         'dataset_hash', string(ds.dataset_hash), ...
         'cp_x', strcmp(x_hash_run, ds.x_hash), ...
@@ -2624,17 +2641,33 @@ end
 %  DATASET OFFLINE (D90) — carregado do artefato, NUNCA regenerado ([R1-e103])
 % ════════════════════════════════════════════════════════════════════════════
 
-function ds = load_dataset(problema, semente, D, M, dataRoot)
-% Dataset offline principal (tier small / dist lhs — nome SEM sufixo, D90):
-% X (n x D) + F (n x M) float64 na ordem do sidecar, + os 3 hashes do array
-% decodificado (x_hash / f_hash / dataset_hash) p/ o CP-init offline.
-    pq  = nm_dataset_path(problema, semente, dataRoot);
-    man = nm_dataset_manifest_path(problema, semente, dataRoot);
+function ds = load_dataset(problema, semente, D, M, dataRoot, tier, dist)
+% Dataset offline (D90): X (n x D) + F (n x M) float64 na ordem do sidecar, +
+% os 3 hashes do array decodificado (x_hash / f_hash / dataset_hash) p/ o
+% CP-init offline. [T7-sweep] `tier`/`dist` selecionam a VARIANTE do sweep;
+% omitidos (ou small/lhs) => o offline PRINCIPAL, nome SEM sufixo.
+%
+% ⚠ O `n` NAO e' derivado de formula: sai do artefato (espelho do Python, que
+% monta FEBudget(maxfe=n) com o n lido). Assim medium=2000/big=50000 nunca
+% viram constante duplicada neste arquivo.
+    if nargin < 6, tier = ''; end
+    if nargin < 7, dist = ''; end
+    pq  = nm_dataset_path(problema, semente, dataRoot, tier, dist);
+    man = nm_dataset_manifest_path(problema, semente, dataRoot, tier, dist);
     assert(isfile(pq),  'dataset ausente: %s', pq);
     assert(isfile(man), 'sidecar do dataset ausente: %s', man);
     side = jsondecode(fileread(man));
-    assert(strcmp(char(side.tier), 'small') && strcmp(char(side.dist), 'lhs'), ...
-           'dataset %s nao e o principal (tier=%s dist=%s)', pq, side.tier, side.dist);
+    % [T7] Confere contra o que foi PEDIDO (antes: exigia small/lhs sempre, o
+    % que fazia TODA variante do sweep abortar). O principal declara
+    % tier='small'/dist='lhs' no proprio sidecar.
+    if nm_is_main_variant(tier, dist)
+        tier_q = 'small'; dist_q = 'lhs';
+    else
+        tier_q = char(tier); dist_q = char(dist);
+    end
+    assert(strcmp(char(side.tier), tier_q) && strcmp(char(side.dist), dist_q), ...
+           'dataset %s: sidecar diz tier=%s/dist=%s, pedido tier=%s/dist=%s', ...
+           pq, side.tier, side.dist, tier_q, dist_q);
     cols  = cellstr(side.columns);                 % {'x0',...,'f0',...} na ordem
     xcols = cols(startsWith(cols, 'x'));
     fcols = cols(startsWith(cols, 'f'));
@@ -2649,6 +2682,9 @@ function ds = load_dataset(problema, semente, D, M, dataRoot)
     ds.xl = double(side.bounds.xl);
     ds.xu = double(side.bounds.xu);
     ds.path = pq;
+    ds.tier = char(side.tier);          % [T7] o que o ARTEFATO declara
+    ds.dist = char(side.dist);
+    ds.n    = size(ds.X, 1);            % [T7] o n VEM DO ARTEFATO, nao de formula
 end
 
 
@@ -3063,15 +3099,52 @@ function p = nm_doe_manifest_path(problema, semente, dataRoot)
     p = fullfile(char(dataRoot), 'doe', char(problema), ...
                  sprintf('doe_%s_%s.manifest.json', char(problema), num2str(semente)));
 end
-function p = nm_dataset_path(problema, semente, dataRoot)
-    % Espelho de src/naming.py::dataset_path (principal: tier small/dist lhs
-    % -> nome SEM sufixo — D90/seeds.json).
-    p = fullfile(char(dataRoot), 'datasets', char(problema), ...
-                 sprintf('ds_%s_%s.parquet', char(problema), num2str(semente)));
+function [tier, dist] = nm_parse_sweep(exp)
+    % [T7-sweep] Espelho EXATO de src/naming.py::parse_sweep.
+    % `main`/`off`/`batch` e qualquer token nao-sweep => ('','') = o principal.
+    % Token COM forma de sweep mas vocabulario invalido => ERRO (D81): devolver
+    % o principal recriaria o bug silencioso (rodar sobre o dataset small e
+    % gravar sob o nome do sweep).
+    tier = ''; dist = '';
+    tk = regexp(char(exp), '^sweep-([A-Za-z0-9]+)-([A-Za-z0-9]+)$', ...
+                'tokens', 'once');
+    if isempty(tk), return; end
+    t = tk{1}; d = tk{2};
+    assert(any(strcmp(t, {'small','medium','big'})) && ...
+           any(strcmp(d, {'lhs','mvns'})), ...
+           ['token de sweep com vocabulario invalido: %s (tier=%s, dist=%s). ' ...
+            'D38/D67/D90 — para-e-loga (D81).'], char(exp), t, d);
+    tier = t; dist = d;
 end
-function p = nm_dataset_manifest_path(problema, semente, dataRoot)
+function tf = nm_is_main_variant(tier, dist)
+    % [T7-sweep] Espelho de src/naming.py::is_main_variant. small+lhs E o
+    % offline PRINCIPAL e e gravado SEM sufixo (seeds.json, D90) — nao existe
+    % ds_{p}_{s}_small_lhs.parquet em disco.
+    tf = (isempty(tier) && isempty(dist)) || ...
+         (strcmp(tier, 'small') && strcmp(dist, 'lhs'));
+end
+function s = nm_dataset_sufixo(tier, dist)
+    if nm_is_main_variant(tier, dist)
+        s = '';
+    else
+        s = sprintf('_%s_%s', char(tier), char(dist));
+    end
+end
+function p = nm_dataset_path(problema, semente, dataRoot, tier, dist)
+    % Espelho de src/naming.py::dataset_path (principal: tier small/dist lhs
+    % -> nome SEM sufixo — D90/seeds.json). [T7] tier/dist opcionais.
+    if nargin < 4, tier = ''; end
+    if nargin < 5, dist = ''; end
     p = fullfile(char(dataRoot), 'datasets', char(problema), ...
-                 sprintf('ds_%s_%s.manifest.json', char(problema), num2str(semente)));
+                 sprintf('ds_%s_%s%s.parquet', char(problema), ...
+                         num2str(semente), nm_dataset_sufixo(tier, dist)));
+end
+function p = nm_dataset_manifest_path(problema, semente, dataRoot, tier, dist)
+    if nargin < 4, tier = ''; end
+    if nargin < 5, dist = ''; end
+    p = fullfile(char(dataRoot), 'datasets', char(problema), ...
+                 sprintf('ds_%s_%s%s.manifest.json', char(problema), ...
+                         num2str(semente), nm_dataset_sufixo(tier, dist)));
 end
 function p = nm_sonda_path(problema, dataRoot)
     % [DI-09/§17.2.2] A sonda e POR PROBLEMA (nao por semente): os MESMOS 2000

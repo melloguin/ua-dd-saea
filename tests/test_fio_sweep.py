@@ -162,5 +162,57 @@ class TestGateTierAware(unittest.TestCase):
         self.assertIn("sidecar", origem)
 
 
+class TestParidadeMatlabPython(unittest.TestCase):
+    """[T7-sweep] O fio do sweep existe em DOIS stacks — eles não podem derivar.
+
+    `src/experiment.m` reimplementa `parse_sweep`/`is_main_variant`/o sufixo do
+    dataset porque o MATLAB não importa `naming.py`. Duas implementações da mesma
+    convenção é dívida: se alguém acrescentar um tier em `naming.py` e esquecer o
+    `.m`, os 600 runs de e103 do sweep leem o arquivo errado EM SILÊNCIO. Estes
+    testes leem o fonte `.m` e cobram a paridade do vocabulário e da regra
+    `is_main`. (O comportamento em si é aferido pela regressão ao vivo do e103 —
+    ①②③ bit-idênticas — registrada no handoff T7-sweep §4.5.)
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        import os
+        raiz = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        with open(os.path.join(raiz, "src", "experiment.m"),
+                  encoding="utf-8") as fh:
+            cls.m = fh.read()
+
+    def test_o_m_tem_os_3_helpers_do_fio(self):
+        for fn in ("nm_parse_sweep", "nm_is_main_variant", "nm_dataset_sufixo"):
+            self.assertIn(f"function", self.m)
+            self.assertIn(fn, self.m, f"{fn} ausente de src/experiment.m")
+
+    def test_vocabulario_do_m_bate_com_o_do_naming(self):
+        from src import naming
+        # o .m declara o vocabulário em literais de cell array
+        for t in naming.SWEEP_TIERS:
+            self.assertIn(f"'{t}'", self.m,
+                          f"tier {t!r} de naming.SWEEP_TIERS ausente do .m")
+        for d in naming.SWEEP_DISTS:
+            self.assertIn(f"'{d}'", self.m,
+                          f"dist {d!r} de naming.SWEEP_DISTS ausente do .m")
+        # e a lista literal tem de ter EXATAMENTE o mesmo conteúdo
+        self.assertIn("{'small','medium','big'}", self.m)
+        self.assertIn("{'lhs','mvns'}", self.m)
+        self.assertEqual(naming.SWEEP_TIERS, ("small", "medium", "big"))
+        self.assertEqual(naming.SWEEP_DISTS, ("lhs", "mvns"))
+
+    def test_o_m_nao_crava_mais_31D_menos_1_no_e103(self):
+        # run_e103 cravava `n_ds = 31*D - 1` ANTES de ler o artefato, o que
+        # estourava o assert em medium/big. Agora o n vem de ds.n.
+        self.assertIn("n_ds  = ds.n", self.m)
+        self.assertNotIn("n_ds  = 31*D - 1", self.m)
+
+    def test_o_m_nao_crava_mais_tier_small_no_manifesto(self):
+        # `'tier', "small", 'dist', "lhs"` constante fazia o manifesto de um run
+        # de sweep MENTIR — pior que falhar.
+        self.assertNotIn("'tier', \"small\", 'dist', \"lhs\"", self.m)
+
+
 if __name__ == "__main__":
     unittest.main()

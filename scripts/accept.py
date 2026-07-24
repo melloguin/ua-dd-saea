@@ -974,7 +974,19 @@ def check_r3_c149(exp="main", problema="MMF1", semente=0, data_root=None):
                      f"transf_params presente nas {len(linhas_busca)} linhas "
                      f"de busca")))
 
-    # q=1: EXATAMENTE 1 real_solution_id por geração de BUSCA
+    # [T6-batch] EXATAMENTE q real_solution_id por geração de BUSCA — o q vem
+    # do MANIFESTO (principal=1 por D41; batch=10 por D66). O gate era
+    # hard-coded em 1 e reprovava um run de batch correto (2000 escolhidos =
+    # 10/geração). Mesma generalização do check do e81.
+    _mq = _naming.manifest_path(exp, alg, problema, semente,
+                                data_root=data_root or os.path.join(ROOT, "data"))
+    q_run = 1
+    if os.path.exists(_mq):
+        try:
+            with open(_mq, encoding="utf-8") as _fh:
+                q_run = int(json.load(_fh).get("q", 1) or 1)
+        except Exception:                              # noqa: BLE001
+            q_run = 1
     ger = surr.column("geracao").to_pylist()
     por_ger: dict = {}
     for i in linhas_busca:
@@ -982,8 +994,8 @@ def check_r3_c149(exp="main", problema="MMF1", semente=0, data_root=None):
                                         and _np.isnan(rsid[i])):
             por_ger[ger[i]] = por_ger.get(ger[i], 0) + 1
     gers_busca = {ger[i] for i in linhas_busca}
-    ok = all(por_ger.get(g, 0) == 1 for g in gers_busca)
-    out.append(("③ q=1 (1 escolhido/geração)",
+    ok = all(por_ger.get(g, 0) == q_run for g in gers_busca)
+    out.append((f"③ |lote|=q={q_run} (escolhidos/geração)",
                 (ok, f"{len(gers_busca)} gerações de busca, "
                      f"{sum(por_ger.values())} escolhidos "
                      f"(cache-hit aponta a solução preexistente — D89)")))

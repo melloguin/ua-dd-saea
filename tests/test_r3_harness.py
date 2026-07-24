@@ -513,10 +513,25 @@ class TestRegressoesRevisao(unittest.TestCase):
 
     def test_VENV_ONLY_cobre_os_4_configs_de_overlay(self):
         """N.1.2 deixou de ser convenção em comentário e virou mecanismo:
-        `experiment.run` ROTEIA estes algs para o subprocesso."""
+        `experiment.run` ROTEIA estes algs para o subprocesso.
+
+        ⟦T6-batch⟧ A asserção deixou de ser IGUALDADE com os 4 do overlay. O
+        conjunto passou a ser DERIVADO de `envs.json` pelo critério real —
+        *"env do alg != env do despachante"* — e a igualdade antiga **travava um
+        defeito**: o `e81` tem env próprio (`env_e81_qpots`, botorch **0.16.1**
+        contra **0.18.1** do env_main) e ficava de fora, de modo que a bateria
+        o rodaria com um stack diferente do que validou o config. O que este
+        teste garante segue sendo o essencial: os 4 do overlay estão cobertos.
+        """
         from src import standalone_harness as sh
-        self.assertEqual(set(sh.VENV_ONLY_ALGS),
-                         {"b5r", "b5m", "moead_media", "c311"})
+        # os 4 do overlay `desdeo_*` — a intenção ORIGINAL, preservada
+        self.assertLessEqual({"b5r", "b5m", "moead_media", "c311"},
+                             set(sh.VENV_ONLY_ALGS))
+        # e o e81, pelo critério dos pins (a correção do T6)
+        self.assertIn("e81", sh.VENV_ONLY_ALGS)
+        # quem vive no env do despachante NÃO é roteado (custo de subprocesso à toa)
+        for alg in ("c149", "c154", "c262", "c122"):
+            self.assertNotIn(alg, sh.VENV_ONLY_ALGS)
 
     def test_sentinela_de_overlay_ABORTA_em_raizes_distintas(self):
         """O 'pior achado' do contrato R3: dois `desdeo_emo` homônimos no mesmo

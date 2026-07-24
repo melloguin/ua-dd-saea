@@ -69,13 +69,46 @@ class RealEval:
 
 
 def maxfe_for(D: int) -> int:
-    """`maxFE = 31D−1` (D21)."""
+    """`maxFE = 31D−1` (D21) — o orçamento do experimento PRINCIPAL."""
     return 31 * int(D) - 1
 
 
 def n_init_for(D: int) -> int:
     """Tamanho do DoE inicial `11D−1` (§5.2/D87)."""
     return 11 * int(D) - 1
+
+
+#: [T6-batch] Nº de iterações de LOTE do sub-estudo batch (D66/§6). Com q=10 dá
+#: os 2.000 infills do contrato. Constante nomeada para o número não virar
+#: literal solto em runner/gate.
+K_BATCH: int = 200
+
+
+def maxfe_por_exp(exp: str, D: int, q: int = 1) -> int:
+    """[T6-batch] Orçamento de FE por EXPERIMENTO — a fonte única (D66).
+
+    - `main` (e qualquer token não-batch online) ⇒ **31D−1** (D21), inalterado.
+    - `batch` ⇒ **11D−1 + K·q** com **K=200** (D66/§6/SPEC:831): o **MESMO DoE
+      pareado do principal** (`11D−1`, nunca regenerado) + 2.000 infills de lote.
+    - `off` / `sweep-*` ⇒ **NÃO passam por aqui**: no offline "o orçamento É o
+      dataset" (D90) e o `maxfe` nasce do `n` lido do artefato
+      (`load_offline_budget`). Chamar esta função para um exp offline é erro de
+      uso — ela levanta, em vez de devolver um 31D−1 que ninguém deveria usar.
+
+    O `q` só entra no ramo `batch`; nos demais é ignorado (o principal é q=1 por
+    construção — D41/§6).
+    """
+    from src import naming
+    D = int(D)
+    if exp == "batch":
+        return n_init_for(D) + K_BATCH * int(q)
+    tier, _ = naming.parse_sweep(exp)
+    if exp == "off" or tier is not None:
+        raise ValueError(
+            f"maxfe_por_exp não se aplica a exp={exp!r}: no regime OFFLINE o "
+            f"orçamento É o dataset (D90) e vem do artefato, não de fórmula. "
+            f"Use load_offline_budget(). Pára-e-loga (D81).")
+    return maxfe_for(D)
 
 
 @dataclass

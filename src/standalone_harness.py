@@ -83,8 +83,34 @@ OFFLINE_CONFIGS: tuple[str, ...] = ("e103", "b5r", "b5m", "c311", "moead_media")
 #: importado, então o segundo run recebe as classes do primeiro **sem erro e sem
 #: warning** — e sai numericamente errado com o manifesto dizendo `ok`.
 #: `experiment.run` ROTEIA estes algs para `run_in_venv` (ver `_in_child`).
-VENV_ONLY_ALGS: frozenset[str] = frozenset(
-    {"b5r", "b5m", "moead_media", "c311"})
+#:
+#: [T6-batch] 🔴 **DERIVADO de `envs.json`, não mais literal.** O critério real é
+#: *"o alg roda num env DIFERENTE do despachante"* — e o despachante roda em
+#: `env_main` (`experiments.py`). A lista literal cobria só os 4 do overlay
+#: `desdeo_*` e **esquecia o `e81`**, que tem env próprio (`env_e81_qpots`) com
+#: pins materialmente distintos: **botorch 0.16.1 × 0.18.1** do env_main
+#: (+ gpytorch 1.14.2×1.15.2, numpy 2.2.6×2.4.6, pymoo 0.6.1.6×0.6.2). Os runs
+#: validados do e81 em `data/experiments/main/e81/` registram botorch **0.16.1**
+#: no manifesto — ou seja, a bateria despachada por `experiments.py` rodaria o
+#: e81 com um stack DIFERENTE do que validou o config, sem erro e sem warning.
+#: Derivar do artefato torna isso drift-proof (a lição da DI-31): um config novo
+#: com env próprio passa a ser roteado sozinho.
+def _derivar_venv_only() -> frozenset[str]:
+    """Algs cujo `alg_to_env` != o env do despachante (`env_main`) — D79."""
+    try:
+        tabela = load_env_table()["alg_to_env"]
+    except Exception:                                      # noqa: BLE001
+        raise RuntimeError(
+            "envs.json:alg_to_env ilegível — não dá para decidir o roteamento "
+            "por venv (D79). Pára-e-loga (D81): rodar com uma lista-fallback "
+            "silenciosa é exatamente o bug que este derivador fecha.")
+    return frozenset(
+        alg for alg, spec in tabela.items()
+        if spec.get("stack") == "python" and spec.get("env") != "env_main")
+
+
+#: Materializado logo APÓS `load_env_table` (que este derivador consome) — ver
+#: o fim da seção de ambientes. Declarado aqui só para o leitor do vocabulário.
 
 #: Pacotes vendorizados homônimos que a sentinela vigia (N.1.2).
 OVERLAY_PACKAGES: tuple[str, ...] = ("desdeo_emo", "desdeo_problem",
@@ -197,6 +223,12 @@ def load_env_table(path: str = ENVS_JSON) -> dict:
     """Lê `claude_code_context/artifacts/envs.json` (o artefato do D79)."""
     with open(path, encoding="utf-8") as fh:
         return json.load(fh)
+
+
+#: [T6-batch] O roteamento por venv, DERIVADO do artefato (docstring completa em
+#: `_derivar_venv_only`, acima). Materializado aqui porque consome
+#: `load_env_table`.
+VENV_ONLY_ALGS: frozenset[str] = _derivar_venv_only()
 
 
 def interpreter_for_alg(alg: str, *, envs: dict | None = None) -> tuple[str, str]:

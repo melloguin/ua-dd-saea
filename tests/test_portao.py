@@ -42,5 +42,60 @@ class TestCoberturaDoPortao(unittest.TestCase):
             self.assertEqual(portao.CARTAO_POR_ALG[alg], card)
 
 
+class TestAbortoSancionadoDI38(unittest.TestCase):
+    """[DI-38a] teto_wall/cache_cap = estado ESPERADO, não vermelho do portão.
+
+    Sob o rito BoTorch o aborto por teto NÃO grava camadas (anti-órfão DI-21):
+    sem estes guards a varredura F4 reprovaria por desenho exatamente as
+    células c154 que a DI-37.1/DI-38(a) sancionam."""
+
+    def _run_fake(self, tmp, motivo="teto_wall", status="failed"):
+        import json
+        from src import naming
+        exp, alg, prob, sem = "batch", "c154", "DTLZ2", 42
+        mp = naming.manifest_path(exp, alg, prob, sem, data_root=tmp)
+        os.makedirs(os.path.dirname(mp), exist_ok=True)
+        with open(mp, "w", encoding="utf-8") as fh:
+            json.dump({"exp": exp, "alg": alg, "problema": prob,
+                       "semente": sem, "status": status, "q": 10,
+                       "motivo_parada": motivo, "fe_final": 240,
+                       "maxfe": 2131}, fh)
+        return exp, alg, prob, sem
+
+    def test_portao_reporta_sancionado_sem_gatear(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            exp, alg, prob, sem = self._run_fake(tmp)
+            res = portao.gates_de_um_run(exp, alg, prob, sem, data_root=tmp)
+            self.assertEqual(len(res), 1)
+            nome, ok, det = res[0]
+            self.assertEqual(nome, "aborto-sancionado")
+            self.assertTrue(ok)
+            self.assertIn("teto_wall", det)
+
+    def test_portao_failed_nao_sancionado_gateia_normal(self):
+        # um failed comum (crash) NÃO ganha o carve-out — os gates rodam e acusam
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            exp, alg, prob, sem = self._run_fake(tmp, motivo="excecao")
+            res = portao.gates_de_um_run(exp, alg, prob, sem, data_root=tmp)
+            self.assertNotEqual(res[0][0], "aborto-sancionado")
+
+    def test_check_fe_skipa_sancionado_sem_camada_1(self):
+        # check_fe: SKIP (None) ANTES do check de camada ① — a ① ausente no
+        # rito BoTorch é por desenho, não falha.
+        import importlib.util as u
+        import tempfile
+        spec = u.spec_from_file_location(
+            "accept_mod", os.path.join(ROOT, "scripts", "accept.py"))
+        acc = u.module_from_spec(spec)
+        spec.loader.exec_module(acc)
+        with tempfile.TemporaryDirectory() as tmp:
+            exp, alg, prob, sem = self._run_fake(tmp)
+            ok, msg = acc.check_fe(exp, alg, prob, sem, 12, data_root=tmp)
+            self.assertIsNone(ok, msg)
+            self.assertIn("sancionado", msg)
+
+
 if __name__ == "__main__":
     unittest.main()

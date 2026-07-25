@@ -96,16 +96,6 @@ def check_fe(exp, alg, problema, semente, D, data_root=None):
     except ImportError:
         return None, "pyarrow ausente — skip (instalar no env)"
     data_root = data_root or os.path.join(ROOT, "data")
-    real = naming.layer_path(exp, alg, problema, semente, "real",
-                             data_root=data_root)
-    if not os.path.exists(real):
-        return False, "camada ① ausente"
-    tbl = pq.read_table(real)
-    n = tbl.num_rows
-    d_data = sum(1 for c in tbl.column_names
-                 if len(c) > 1 and c[0] == "x" and c[1:].isdigit())
-    if d_data:                       # D do próprio run (não confia no --dim)
-        D = d_data
     # [T7-sweep/T6-batch] a expectativa é POR CÉLULA: 31D−1 no principal,
     # |dataset do tier| no sweep (sidecar), 11D−1+200q no batch (q do manifesto).
     # Sem isto um run sweep-medium (n=2000) ou batch (FE=2021) correto seria
@@ -120,14 +110,26 @@ def check_fe(exp, alg, problema, semente, D, data_root=None):
         except Exception:                              # noqa: BLE001
             q_run, _man = 1, {}
     # [DI-38] Aborto SANCIONADO (teto de wall / cache-cap): o FE final é MENOR
-    # que o orçamento POR DESENHO — a curva parcial é o entregável. Fonte
-    # ÚNICA do skip (antes vivia só no cartão do e81 e o gate genérico
-    # reprovaria exatamente as células que a DI-37.1 sanciona).
+    # que o orçamento POR DESENHO — a curva parcial é o entregável. Checa ANTES
+    # da camada ①: no rito BoTorch o aborto por teto não grava parquets (a ①
+    # ausente é por desenho, não falha — DI-38a). Fonte ÚNICA do skip (antes
+    # vivia só no cartão do e81 e o gate genérico reprovaria exatamente as
+    # células que a DI-37.1 sanciona).
     if _man.get("status") == "failed" and \
             _man.get("motivo_parada") in ("teto_wall", "cache_cap"):
         return None, (f"SKIP — aborto sancionado ({_man.get('motivo_parada')}): "
                       f"fe_final={_man.get('fe_final')} por desenho; "
                       f"a curva parcial é o entregável")
+    real = naming.layer_path(exp, alg, problema, semente, "real",
+                             data_root=data_root)
+    if not os.path.exists(real):
+        return False, "camada ① ausente"
+    tbl = pq.read_table(real)
+    n = tbl.num_rows
+    d_data = sum(1 for c in tbl.column_names
+                 if len(c) > 1 and c[0] == "x" and c[1:].isdigit())
+    if d_data:                       # D do próprio run (não confia no --dim)
+        D = d_data
     want, origem = fe_esperado_por_exp(exp, problema, semente, D,
                                        data_root=data_root, q=q_run)
     if want is None:

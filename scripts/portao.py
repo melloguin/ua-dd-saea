@@ -62,11 +62,33 @@ def _sub(args: list[str]) -> tuple[bool, str]:
     return r.returncode == 0, (linhas[-1][:110] if linhas else "")
 
 
+def _manifesto_do_run(exp, alg, problema, semente, data_root) -> dict:
+    """Lê o manifesto do run (dict vazio se ausente/ilegível)."""
+    from src import naming
+    root = data_root if os.path.isabs(data_root) else os.path.join(ROOT, data_root)
+    try:
+        with open(naming.manifest_path(exp, alg, problema, semente,
+                                       data_root=root), encoding="utf-8") as fh:
+            return json.load(fh)
+    except Exception:  # noqa: BLE001 — sem manifesto ⇒ os gates dirão o resto
+        return {}
+
+
 def gates_de_um_run(exp: str, alg: str, problema: str, semente,
                     data_root: str = "data") -> list[tuple[str, bool, str]]:
     """O conjunto de gates aplicável a UM run, na ordem canônica."""
     if alg not in CARTAO_POR_ALG:
         return [("cartao", False, f"config desconhecido do portão: {alg!r}")]
+    # [DI-38a] Aborto SANCIONADO (teto de wall / cache-cap): estado ESPERADO da
+    # célula, não falha do pipeline. Sob o rito BoTorch não há camadas a gatear
+    # (a curva parcial vive no jsonl §17.6) — sem este guard a varredura F4
+    # reprovaria por desenho exatamente as células que a DI-37.1/DI-38 sancionam.
+    man = _manifesto_do_run(exp, alg, problema, semente, data_root)
+    if man.get("status") == "failed" and \
+            man.get("motivo_parada") in ("teto_wall", "cache_cap"):
+        return [("aborto-sancionado", True,
+                 f"{man.get('motivo_parada')} — sem gates por desenho (DI-38a); "
+                 f"curva parcial no jsonl; fe_final={man.get('fe_final')}")]
     out = []
     card = CARTAO_POR_ALG[alg]
     # (accept.py não expõe --data-root: opera sempre sobre data/ — o
@@ -133,7 +155,10 @@ def main(argv=None) -> int:
     for exp, alg, prob, sem in runs:
         res = gates_de_um_run(exp, alg, prob, sem, a.data_root)
         total_gates += len(res)
-        marca = "✅" if all(ok for _, ok, _ in res) else "🔴"
+        if len(res) == 1 and res[0][0] == "aborto-sancionado":
+            marca = "⚪"                       # [DI-38a] sancionado ≠ verde ≠ falha
+        else:
+            marca = "✅" if all(ok for _, ok, _ in res) else "🔴"
         print(f"{marca} {exp}/{alg}/{prob}/s{sem}: " + " · ".join(
             f"{nome}={'VERDE' if ok else 'FALHOU'}" for nome, ok, _ in res))
         for nome, ok, det in res:

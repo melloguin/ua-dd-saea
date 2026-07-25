@@ -399,7 +399,12 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
   parquets; check_fe skip sancionado; heading V-B.5; e103-sweep no RUNBOOK; 19.950→20.850;
   headers q). REGISTRO A26. **Sobrou 1 decisão: 🔴 DI-38** (como materializar a curva parcial do
   c154 sob teto — rec.: cartão T10 rito-truncamento BoTorch ANTES do push).
-- **Próximo ato: DI-38 (autor) → [T10 se (b)] → push + tag `rodada-42-freeze` (AUTOR) → F2 → disparo.**
+- **DI-38 DECIDIDA = (a)** (2026-07-25): manter aborto-por-projeção; T10 → backlog do refinamento
+  pós-rodada (doutrina: rodar → colher imperfeições → 1 refinamento final). Torre tornou o (a)
+  operável: portão reporta ⚪ aborto-sancionado (não vermelho), check_fe skipa antes da ①,
+  +3 testes-guarda. Expectativa oficial: ~6-7 células ⚪ (c154 main/DTLZ2+prováveis, 5 batch).
+- **CONGELAMENTO COMPLETO — zero decisões em aberto. Próximo ato: push + tag `rodada-42-freeze`
+  (AUTOR) → F2 desbloqueio (cowork F1) → disparo das 695 células.**
 
 ### 2026-07-24 (noite) — T8+T9 FECHADOS · 23/23 configs · fix do projetor · PRONTO P/ CONGELAR
 - **T8 treed_media** (piso-big, 6-14s/célula!) + **T9 calibração** (c262 batch = 2,2h CHEIO sem

@@ -1732,6 +1732,41 @@ c154/ZDT1–WFG9, + as 5 c154-batch. Opções:
 
 ---
 
+## PARTE A27 — DI-38 DECIDIDA = (a) · carve-out ⚪ nos gates · CONGELADO (2026-07-25)
+
+**O autor decidiu a DI-38 = opção (a): manter o comportamento atual** (aborto por projeção,
+sem camadas nas células c154 que estouram o teto) **e levar o T10 ao backlog** — com a doutrina
+explícita: *"vamos rodar agora o que temos e ver o que sai; o que não estiver perfeito vira UM
+refinamento final para a versão perfeita"*. A rodada-42 assume o papel adicional de COLHEITA de
+imperfeições; o lote de refinamento pós-rodada as trata de uma vez.
+
+**Execução da torre (para o (a) ser OPERÁVEL no F4):**
+1. `portao.py`: run com `status=failed` + `motivo_parada ∈ {teto_wall, cache_cap}` vira
+   **⚪ aborto-sancionado** — 1 linha informativa, sem rodar accept/auditar/final_eval (não há
+   camadas a gatear por desenho) e SEM contar vermelho. `failed` comum (crash) segue gateando
+   normal e acusando.
+2. `accept.check_fe`: o skip de aborto sancionado moveu para ANTES do check de camada ① (no rito
+   BoTorch a ① ausente é por desenho — antes o gate devolveria "camada ① ausente" = falso 🔴).
+3. `tests/test_portao.py` +3 guards (⚪ sancionado; failed-comum gateia; check_fe skipa sem ①).
+4. SPEC §5.1/§V-B.4/§V-B.5 anotadas ⟦DI-38(a)⟧ + bundles regen; RUNBOOK §7 (re-invocação sem
+   c154 na lista).
+
+**Expectativa OFICIAL da rodada-42 (para ninguém diagnosticar como falha):** ~6-7 células ⚪ —
+c154 main/DTLZ2 (certa), c154 main/ZDT1-WFG9 (prováveis) e as 5 c154-batch; cada uma custa
+~min-1h antes do aborto por projeção.
+
+**BACKLOG DO REFINAMENTO PÓS-RODADA (consolidado; donos definidos na hora):** T10 rito de
+truncamento BoTorch (se o autor quiser as curvas parciais do c154 em parquet) · teto de wall no
+stack MATLAB (lacuna declarada §5.1; hoje inócua) · tensão ⑦×teto-na-construção do c311 (M8) ·
+env_c149_fallback sem lock · data/images rastreado vs comentário do .gitignore · rótulos stale
+da ORQUESTRACAO · headers/params.json §L.11 do knob (feito) · + TUDO que a execução das 695
+células revelar.
+
+**Com a A27, o congelamento está COMPLETO: zero decisões em aberto. Próximo ato = push + tag
+`rodada-42-freeze` (AUTOR) → F2 desbloqueio das 3 máquinas → disparo.**
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

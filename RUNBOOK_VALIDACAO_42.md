@@ -241,10 +241,12 @@ EOF
   célula com custo projetado ≥12h morre em **~minutos–1h**, com manifesto
   `failed/teto_wall` e **SEM parquets ①–⑦** (curva parcial só no `.jsonl` — desenho
   anti-órfão DI-21). Afeta: **c154 main/DTLZ2 (~14,6h)**, possivelmente c154/ZDT1-WFG9,
-  e **as 5 células c154-batch (piso ≥30h)**. `teto_wall` nelas é o comportamento ATUAL
-  esperado — **NÃO re-disparar** (`is_run_done` lê `failed` como não-pronto: re-disparo
-  re-queima ~1h e aborta de novo). Se essas células devem entregar curva parcial em
-  parquet, é a **decisão DI-38 (REGISTRO A26) ANTES do disparo**.
+  e **as 5 células c154-batch (piso ≥30h)**. **⟦DI-38(a) DECIDIDA, autor 2026-07-25⟧:
+  comportamento MANTIDO — `teto_wall` nessas células é o resultado esperado; o portão
+  as reporta como ⚪ aborto-sancionado (não conta vermelho). NÃO re-disparar**
+  (`is_run_done` lê `failed` como não-pronto: re-disparo re-queima ~1h e aborta de
+  novo — na RE-invocação do lote, remova c154 da lista de `--algorithms`).
+  O rito de truncamento-com-camadas (T10) fica no backlog do refinamento pós-rodada.
 - **Batch q=10 (DI-37):** c262 ≈ 2,2h/célula (receita cheia, sem knob) ·
   c149/e81/sobol_batch baratos · c154 = bullet acima.
 - **c311 sweep-big (50k)**: âncora de build ~32s, mas fase final + sonda em n=50k é

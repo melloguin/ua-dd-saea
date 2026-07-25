@@ -132,7 +132,10 @@ DI-37 RATIFICADO EM BLOCO (autor, 2026-07-25) ✅ — 7 itens (c154 teto=dado ·
 Auditoria de prontidão (DI-38) ✅ 2026-07-25 — 3 ALTA no doc-sync da torre CORRIGIDOS (SPEC
    §5.1 verdadeira; check_fe skip sancionado; e103-sweep no RUNBOOK; V-B.5) · 🔴 DI-38 NA MESA:
    c154 sob teto BoTorch aborta por projeção SEM parquets — rec. cartão T10 antes do push
-M7 RODADA-42 (BLOQUEANTE; =piloto timing) .. 🟡 QUASE-CONGELADO — resta: DI-38 → push+tag
+DI-38 DECIDIDA (a) ✅ 2026-07-25 — manter aborto-por-projeção; T10→backlog; portão ⚪
+   aborto-sancionado (carve-out DI-38a em portao.py+check_fe, 3 testes-guarda); expectativa
+   oficial da rodada: ~6-7 células ⚪ (c154). Doutrina: rodar → colher → 1 refinamento final
+M7 RODADA-42 (BLOQUEANTE; =piloto timing) .. 🟢 CONGELADO-PRONTO — resta só: push+tag
    `rodada-42-freeze` (AUTOR) → F2 desbloqueio 🔒 3 máquinas (cowork F1: pull+célula real+
    portão) → disparo 695 células → F4 portão varredura → F5 fidelidade Fable → F6 D97
 M8 bateria ONLINE (12.750) ................. ⬜

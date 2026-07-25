@@ -103,6 +103,17 @@ NUM_RESTARTS = 10
 RAW_SAMPLES = 512
 TRAIN_YVAR = 1e-6
 ACQF_OPTIONS_STATIC = {"maxiter": 2000, "init_batch_limit": 32}
+# [T9/DI-35.1] CALIBRAÇÃO BATCH — DECISÃO MEDIDA: **o c262 NÃO recebe knob de
+# redução**. Medido POR ITERAÇÃO (ZDT4/42, q=10, 1 core, serial, cartão T9): a
+# receita CHEIA projeta **~2,2 h** o run batch completo (200 iters; busca ~1,6 h
+# sub-linear p≈0,54 + fit ~0,6 h + overhead) — MUITO abaixo do alvo ~10 h e do
+# teto 12 h. Os "~56 h" do repasse T6 eram CONTENÇÃO (4 configs em paralelo +
+# swap/OOM), não a receita. Além disso `MC_SAMPLES` é um DUD aqui: 16/32/64/128
+# dão o MESMO t_busca (o custo é o particionamento do baseline, não a amostragem
+# MC) — reduzi-lo não baixaria o custo, só a qualidade. O único gargalo real do
+# c262 batch é RAM (o baseline cresce com n — D-2): provisionamento, não receita.
+# Se um dia se quiser margem, o lever seria NUM_RESTARTS/RAW_SAMPLES (não MC).
+# Autor ratifica manter a receita cheia (D97). O caminho q=1 já é intocado.
 
 #: D60-b (guarda de stall): teto de iterações CONSECUTIVAS sem consumir FE
 #: (só duplicatas bit-a-bit — cache-hit D89). O watchdog pleno é do despachante.

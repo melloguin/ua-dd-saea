@@ -153,6 +153,27 @@ NSGAII_GEN = 500
 #: optimize_acqf — fórmulas do PAPER (por dimensão D).
 NUM_RESTARTS_PER_D = 5
 RAW_SAMPLES_PER_D = 1000
+#: [T9/DI-35.1] Aquisição batch-aware — SÓ no `exp=batch` (q>1). Calibrado POR
+#: MEDIÇÃO (cartão T9; ZDT4/42, 1 core, serial; projeção pela PRÓPRIA curva medida
+#: integrada nas 200 iterações — n→2099).
+#: 🔴 ACHADO MEDIDO: ~10 h COMPLETO é INVIÁVEL no c154 batch com knob defensável.
+#: O custo da aquisição JES-LB cresce ~n^1,5-1,7 (o posterior do GP por avaliação,
+#: SEM prune de baseline — ≠ c262) e domina no n alto. Projeções diretas (ZDT4/D=10),
+#: e o FLOOR sem extrapolação (t_busca das iters medidas + o resto ao ÚLTIMO valor
+#: medido, i.e. crescimento ZERO — um piso, pois o custo AINDA acelerava):
+#:   2D/50D (20/500)  → ~255 h  (floor 47 h)
+#:   1D/50D (10/500)  → ~147 h  (FLOOR 30 h)   ⟵ ESTE (≈ default BoTorch 10/512)
+#:   1D/25D (10/250)  → ~62 h   (floor 16 h)
+#: TODO config mede FLOOR > o teto de 12 h ⇒ NENHUM knob defensável fecha 200 iters
+#: em ~10 h. `1D/50D` é a MAIOR redução DEFENSÁVEL (≈ default da lib, ~10× mais
+#: barato/optimize_acqf que o cheio): sob o teto de 12 h (DI-35.5) ele avança o
+#: MÁXIMO no run antes de truncar (failed/teto_wall = dado). A escolha de estratégia
+#: — {aceitar truncado · limitar nº de infills K_BATCH · redução mais agressiva ·
+#: tirar o c154 do roster (T6 D-1b)} — é do AUTOR (D97/D81); ver
+#: handoff/T9-calibracao_REPASSE.md. q=1 (principal) INTOCADO (regressão ①②③④
+#: bit-a-bit). Knob é PER_D: em D alto custa ainda mais. NÃO altera paths (S=10).
+NUM_RESTARTS_PER_D_BATCH = 1
+RAW_SAMPLES_PER_D_BATCH = 50
 #: guarda de RAM NOSSA (D86) — não vem do paper. 256 (≠32 do molde c262):
 #: chunking de AVALIAÇÃO dos ICs, numericamente neutro (benchmark do piloto
 #: em DTLZ2-like n=131/D=12/M=3: best idêntico 32×256×1024; 32→256 poupa
@@ -163,6 +184,20 @@ ACQF_OPTIONS_STATIC = {"init_batch_limit": 256}
 MAX_STALL_ITERS = 100
 
 ALGO_VERSION = "c154-JES/qLBMOJES-LB-botorch-0.18.1"
+
+
+def _restarts_raw_for_q(q, D: int) -> tuple[int, int]:
+    """[T9/DI-35.1] `(num_restarts, raw_samples)` EFETIVOS por `q`.
+
+    - `q > 1` (batch): receita calibrada REDUZIDA (`*_PER_D_BATCH`) — ~10 h/run.
+    - `q == 1` (principal): receita CHEIA do paper (5D/1000D) — **byte-idêntica**
+      ao pré-T9 (a prova de regressão ①②③④ afere isto).
+
+    Fonte ÚNICA: o runner (`_optimize_acqf_restarts`), o header/params e o
+    teste-guarda leem daqui — nunca podem divergir do que roda de fato."""
+    per_r = NUM_RESTARTS_PER_D_BATCH if int(q) > 1 else NUM_RESTARTS_PER_D
+    per_s = RAW_SAMPLES_PER_D_BATCH if int(q) > 1 else RAW_SAMPLES_PER_D
+    return per_r * int(D), per_s * int(D)
 
 
 def _sonda_header(sonda_art: dict) -> dict:
@@ -393,16 +428,21 @@ class _NaNGuardedAcqfICs(torch.nn.Module):
         return vals
 
 
-def _optimize_acqf_restarts(acqf, D: int, log, it: int):
-    """`optimize_acqf` da receita (q=1) com os valores do PAPER (5D restarts /
-    pool 1000D) e `return_best_only=False` → TODOS os candidatos dos restarts
-    (③ §17.4). Sem seed explícito (catálogo D91 do c154 não define esse uso;
-    ICs saem do RNG global, ancorado nos manual_seed). Os ICs são gerados
-    pelo gerador OFICIAL (`gen_batch_initial_conditions`) com o NaN-guard
-    `_NaNGuardedAcqfICs` na pontuação (guarda logada); a otimização L-BFGS e
-    os valores finais usam a acqf CRUA. Warnings contados (deslocam RNG)."""
+def _optimize_acqf_restarts(acqf, D: int, log, it: int, *, q: int = 1):
+    """`optimize_acqf` da receita (q=1 por passo greedy) com `return_best_only=
+    False` → TODOS os candidatos dos restarts (③ §17.4). Sem seed explícito
+    (catálogo D91 do c154 não define esse uso; ICs saem do RNG global, ancorado
+    nos manual_seed). Os ICs são gerados pelo gerador OFICIAL
+    (`gen_batch_initial_conditions`) com o NaN-guard `_NaNGuardedAcqfICs` na
+    pontuação (guarda logada); a otimização L-BFGS e os valores finais usam a
+    acqf CRUA. Warnings contados (deslocam RNG).
+
+    [T9/DI-35.1] `num_restarts`/`raw_samples` são batch-aware via
+    `_restarts_raw_for_q(q, D)`: q=1 (principal) = 5D/1000D do PAPER, byte-
+    idêntico; q>1 (batch) = a receita calibrada reduzida (~10 h/run)."""
     from botorch.optim import optimize_acqf
     from botorch.optim.initializers import gen_batch_initial_conditions
+    num_restarts, raw_samples = _restarts_raw_for_q(q, D)
     bounds = torch.stack([torch.zeros(D, dtype=torch.float64),
                           torch.ones(D, dtype=torch.float64)])
     guarded = _NaNGuardedAcqfICs(acqf)
@@ -410,13 +450,13 @@ def _optimize_acqf_restarts(acqf, D: int, log, it: int):
         warnings.simplefilter("always")
         ics = gen_batch_initial_conditions(
             acq_function=guarded, bounds=bounds, q=1,
-            num_restarts=NUM_RESTARTS_PER_D * D,
-            raw_samples=RAW_SAMPLES_PER_D * D,
+            num_restarts=num_restarts,
+            raw_samples=raw_samples,
             options=dict(ACQF_OPTIONS_STATIC))
         cands, acq_vals = optimize_acqf(
             acqf, bounds=bounds, q=1,
-            num_restarts=NUM_RESTARTS_PER_D * D,
-            raw_samples=RAW_SAMPLES_PER_D * D,
+            num_restarts=num_restarts,
+            raw_samples=raw_samples,
             options=dict(ACQF_OPTIONS_STATIC),
             batch_initial_conditions=ics,
             sequential=False,          # sequential=(q>1); principal é q=1
@@ -479,7 +519,9 @@ def _lote_greedy_sequencial_jes(acqf, D: int, log, it: int, q: int):
                 acqf.set_X_pending(
                     novos if base_pending is None
                     else torch.cat([base_pending, novos], dim=-2))
-            cands, acq_vals, n_warn = _optimize_acqf_restarts(acqf, D, log, it)
+            # [T9] q>1 aqui (o ramo q==1 saiu antes) ⇒ receita batch reduzida.
+            cands, acq_vals, n_warn = _optimize_acqf_restarts(
+                acqf, D, log, it, q=q)
             b = _argmax_finito(acq_vals)
             escolhidos.append(cands[b].detach().reshape(1, -1))
             passos.append((cands, acq_vals, n_warn, b))
@@ -544,8 +586,9 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
     adapter = BoTorchProblemAdapter(problema, bud)
     D, M = adapter.D, adapter.M
     buf = SnapshotBuffer()
-    num_restarts = NUM_RESTARTS_PER_D * D
-    raw_samples = RAW_SAMPLES_PER_D * D
+    # [T9/DI-35.1] EFETIVOS por exp: q=1 = 5D/1000D (paper, header idêntico ao
+    # pré-T9); batch (q>1) = a receita calibrada reduzida. Mesma fonte do runner.
+    num_restarts, raw_samples = _restarts_raw_for_q(q, D)
 
     log.header(run_id=naming.run_id(exp, alg, problema, semente),
                alg=alg, alg_id=C154_ALG_ID, problema=problema, D=D, M=M,
@@ -564,8 +607,8 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                        "estimation_type": ESTIMATION_TYPE,
                        "rs_ladder": list(RS_FALLBACK_LADDER),
                        "nsgaii_pop": NSGAII_POP, "nsgaii_gen": NSGAII_GEN,
-                       "num_restarts": num_restarts,        # 5D (paper)
-                       "raw_samples": raw_samples,          # 1000D (paper)
+                       "num_restarts": num_restarts,        # 5D/1000D no q=1;
+                       "raw_samples": raw_samples,          # reduzido no batch (T9)
                        "q": 1, "refit": "from-scratch/iter (D44)",
                        "kernel": "Matern-5/2-ARD gamma-prior (D30)",
                        "acqf": "qLBMOJES-LB L.11",
@@ -649,7 +692,7 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                           nota="retry/warning desloca o RNG (registrado)")
 
             # ③: μ/σ do posterior do modelo PRINCIPAL nos restarts (D86).
-            U_cand = cands.squeeze(1)                       # (5D, D)
+            U_cand = cands.squeeze(1)             # (num_restarts, D); 5D no q=1
             with torch.no_grad():
                 post = model.posterior(U_cand)
                 mu_max = post.mean.cpu().numpy()            # −f (maximização)
@@ -919,5 +962,7 @@ __all__ = [
     "C154_ALG_ID", "USO_MANUAL_SEED", "uso_path", "uso_nsgaii",
     "NUM_PARETO_SAMPLES", "NUM_PARETO_POINTS", "ESTIMATION_TYPE",
     "RS_FALLBACK_LADDER", "NSGAII_POP", "NSGAII_GEN",
-    "NUM_RESTARTS_PER_D", "RAW_SAMPLES_PER_D", "run_c154",
+    "NUM_RESTARTS_PER_D", "RAW_SAMPLES_PER_D",
+    "NUM_RESTARTS_PER_D_BATCH", "RAW_SAMPLES_PER_D_BATCH",
+    "_restarts_raw_for_q", "run_c154",
 ]

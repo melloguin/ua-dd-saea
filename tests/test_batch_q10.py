@@ -188,5 +188,86 @@ class TestTetoFiadoPeloDespachante(unittest.TestCase):
         self.assertEqual(args.teto_s, 14400.0)
 
 
+class TestCalibracaoBatchT9(unittest.TestCase):
+    """[T9/DI-35.1] Calibração POR MEDIÇÃO do custo da aquisição batch (q=10) p/
+    ~10 h/run (o ponto ótimo do tradeoff tempo×qualidade do autor).
+
+    Regra de ouro (a mesma da prova de regressão ①②③④): o knob age **SÓ** no
+    batch (q>1). O caminho q=1 (experimento principal) mantém a receita CHEIA do
+    paper — byte-idêntico ao pré-T9. Estes guardas travam os VALORES calibrados
+    e a intocabilidade do q=1 na fonte única (`_restarts_raw_for_q`).
+    """
+
+    def test_c154_constantes_batch_calibradas(self):
+        # 1D/50D = 10 restarts / 500 raw em D=10 (≈ o default do BoTorch 10/512).
+        from src import c154_jes as m
+        self.assertEqual(m.NUM_RESTARTS_PER_D_BATCH, 1)
+        self.assertEqual(m.RAW_SAMPLES_PER_D_BATCH, 50)
+        # a receita do PAPER fica intocada (q=1 a usa).
+        self.assertEqual(m.NUM_RESTARTS_PER_D, 5)
+        self.assertEqual(m.RAW_SAMPLES_PER_D, 1000)
+
+    def test_c154_q1_receita_cheia_do_paper_intocada(self):
+        # o principal (q=1) tem de sair 5D/1000D em QUALQUER D — a base da prova
+        # de regressão bit-a-bit.
+        from src import c154_jes as m
+        for D in (2, 10, 12, 22, 30):
+            self.assertEqual(m._restarts_raw_for_q(1, D), (5 * D, 1000 * D))
+
+    def test_c154_batch_usa_receita_reduzida(self):
+        from src import c154_jes as m
+        for D in (2, 10, 12, 22, 30):
+            self.assertEqual(m._restarts_raw_for_q(10, D), (1 * D, 50 * D))
+        # ZDT4 (D=10) — a célula de calibração: 10 restarts / 500 raw.
+        self.assertEqual(m._restarts_raw_for_q(10, 10), (10, 500))
+        # q>1 é sempre reduzido; q=1 nunca (fronteira exata do knob).
+        self.assertNotEqual(m._restarts_raw_for_q(2, 10),
+                            m._restarts_raw_for_q(1, 10))
+
+    def test_c154_call_site_usa_o_helper_nao_hardcode(self):
+        # [T9 review] WIRING: o call site REAL (`_optimize_acqf_restarts`) tem de
+        # PASSAR os valores do helper ao gen_batch_ic + optimize_acqf. Um hardcode
+        # que ignorasse o helper (rodando o batch com a receita cheia) passaria os
+        # outros testes (que só checam a aritmética do helper) mas falha AQUI —
+        # este teste cruza o call site de fato.
+        from unittest import mock
+        from src import c154_jes as m
+        cap = {}
+
+        def fake_gen_ic(*a, **k):
+            cap["gen"] = (k.get("num_restarts"), k.get("raw_samples"))
+            return mock.MagicMock()
+
+        def fake_opt(*a, **k):
+            cap["opt"] = (k.get("num_restarts"), k.get("raw_samples"))
+            return mock.MagicMock(), mock.MagicMock()
+
+        with mock.patch("botorch.optim.initializers.gen_batch_initial_conditions",
+                        fake_gen_ic), \
+             mock.patch("botorch.optim.optimize_acqf", fake_opt):
+            # q=1 (principal) ⇒ 5D/1000D em D=10 (byte-idêntico ao pré-T9)
+            m._optimize_acqf_restarts(mock.MagicMock(), 10, mock.MagicMock(), 1,
+                                      q=1)
+            self.assertEqual(cap["gen"], (50, 10000))
+            self.assertEqual(cap["opt"], (50, 10000))
+            # q=10 (batch) ⇒ 1D/50D reduzido = 10/500 em D=10
+            m._optimize_acqf_restarts(mock.MagicMock(), 10, mock.MagicMock(), 1,
+                                      q=10)
+            self.assertEqual(cap["gen"], (10, 500))
+            self.assertEqual(cap["opt"], (10, 500))
+
+    def test_c262_sem_reducao_batch_decisao_medida(self):
+        # [T9] c262 medido ~2,2 h no batch cheio (<< 10 h) ⇒ NENHUM knob. Os
+        # parâmetros da receita L.10 são os mesmos em q=1 e q>1 (MC é um dud; o
+        # gargalo é RAM, não CPU). A AUSÊNCIA de constante batch é intencional.
+        from src import c262_qnehvi as m
+        self.assertEqual(m.MC_SAMPLES, 128)
+        self.assertEqual(m.NUM_RESTARTS, 10)
+        self.assertEqual(m.RAW_SAMPLES, 512)
+        self.assertFalse(hasattr(m, "MC_SAMPLES_BATCH"),
+                         "c262 não deve ganhar knob batch (decisão medida T9)")
+        self.assertFalse(hasattr(m, "NUM_RESTARTS_BATCH"))
+
+
 if __name__ == "__main__":
     unittest.main()

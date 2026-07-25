@@ -22,14 +22,20 @@ NaN (nunca None) — a ③ grava σ=NULL de qualquer forma (DI-16.1). Verificado
 ## GATES
 
 ### GATE 1 — Smokes (células REAIS s42), wall medido (50k é terreno novo)
-| célula | wall | status | n_ger | n_final | n_ND | ② | sonda |
-|---|---|---|---|---|---|---|---|
-| sweep-big-lhs / ZDT4 (D10,M2) | **7,37 s** | ok | 1000 | 36 | 7 | vazia | 1×20000 |
-| sweep-big-mvns / ZDT4 | **6,48 s** | ok | 1000 | 37 | 8 | vazia | 1×20000 |
-| sweep-big-lhs / DTLZ2 (D12,M3) — bônus | **12,10 s** | ok | 1000 | 105 | 61 | vazia | 1×20000 |
+Cobri os **5/5 problemas** do grid (o cartão pedia ZDT4×2 + 1; estendi para robustez):
+| célula (D,M) | dist | wall | status | n_ger | n_final | n_ND | ② | sonda |
+|---|---|---|---|---|---|---|---|---|
+| ZDT4 (10,2) | lhs | **7,37 s** | ok | 1000 | 36 | 7 | vazia | 1×20000 |
+| ZDT4 (10,2) | mvns | **6,48 s** | ok | 1000 | 37 | 8 | vazia | 1×20000 |
+| DTLZ2 (12,3) | lhs | **12,10 s** | ok | 1000 | 105 | 61 | vazia | 1×20000 |
+| ZDT1 (30,2) | lhs | **14,40 s** | ok | 1000 | 50 | 11 | vazia | 1×20000 |
+| WFG9 (22,2)* | lhs | **8,12 s** | ok | 1000 | 46 | 16 | vazia | 1×20000 |
+| MMF16_20 (20,3) | lhs | **12,91 s** | ok | 1000 | 105 | 79 | vazia | 1×20000 |
 
-Muito abaixo do ~1min do c311-big: a ablação PULA o laço `addGPs` (o gargalo O(n³) do GPy).
-`fe_final == maxfe == 50000`, `cp_init_ok=True` em todas.
+*WFG9 tem bounds ≠ [0,1] — honrados via `H._bounds`. Muito abaixo do ~1min do c311-big: a
+ablação PULA o laço `addGPs` (o gargalo O(n³) do GPy). `fe_final == maxfe == 50000`,
+`cp_init_ok=True` em todas. Portão re-rodado pós-fix em 4 células (ZDT4 lhs/mvns, MMF16_20,
+WFG9) — todas VERDE.
 
 ### GATE 2 — auditar + final_eval --check + portão → **VERDE**
 | gate | sweep-big-lhs/ZDT4/42 | sweep-big-mvns/ZDT4/42 |

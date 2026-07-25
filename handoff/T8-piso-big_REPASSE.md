@@ -57,13 +57,25 @@ o rito do piso (⑦ parcial) é o análogo direto e coerente com "curva parcial 
 
 ---
 
-## #5 ℹ NÃO-PERTURBAÇÃO clássica (baseline) — N/A p/ config novo
+## #5 ⭐ DECISÃO — baseline de não-perturbação para `treed_media`?
 `scripts/naoperturbacao.py` compara contra um baseline congelado
 (`data/experiments/_baseline_pre_retrofit/`) que NÃO existe p/ `treed_media` (config novo
 pós-congelamento) — retorna `[--] sem baseline` (RUNBOOK §6-bis item 5: N/A, não bloqueia).
 A não-perturbação foi provada pelo `test_sonda_NAO_perturba_a_busca` (sonda on/off ⇒
-⑦+③-busca idênticas). Determinismo bit-a-bit: mesma-máquina (D79); provado por
-`test_determinismo_bit_a_bit`.
+⑦+③-busca idênticas); o determinismo bit-a-bit (mesma-máquina, D79) por
+`test_determinismo_bit_a_bit`. **Decisão do autor:** CRIAR um baseline congelado p/
+`treed_media` (como os outros configs têm), para o gate permanente cobri-lo, ou manter
+só-teste (N/A no gate)?
+
+## #6 CONFIRMAR (menores)
+- **RVEA-final = espelho exato do c311-final** (n_iterations=10×100=1000 ger, lattice/α/
+  selection default) — isola SÓ σ. Confirmar que é o contraste pretendido (baixo risco).
+- **`modelo_flag`** = `"treed_media/RVEA-arvore-media"` (escolhido; não especificado; auditor
+  não confere o valor). Confirmar ou fixar convenção.
+
+> **O DOSSIÊ COMPLETO do processo está em `T8-piso-big_DOSSIE-EXECUCAO.md`** — leitura
+> processo-a-processo (método, decisões, log de gates comando→resultado, git). A seção §8
+> do dossiê repete estas definições em aberto. **Torre: levantar #4 e #5 com o autor.**
 
 ---
 

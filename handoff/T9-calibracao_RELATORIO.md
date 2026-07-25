@@ -26,7 +26,7 @@ em OOM), `analyze.py` (projeção componente-a-componente + método da razão). 
   **OOM-killed em n=669** — evidência viva do D-2). Projeção componente: busca ~1,6 h
   (p≈0,54) + fit ~0,6 h (p≈2,17) + overhead ~0 = **~2,2 h**.
 - **CONFIRMAÇÃO** (runner REAL, empty knob, q=10, 15 iters): header = 128/10/512
-  (cheio, como esperado — c262 sem knob); `t_busca` 5,2→17,3 s (n=109→259), bate com
+  (cheio, como esperado — c262 sem knob); `t_busca` 5,2→17,3 s (n=109→249), bate com
   a Fase A. Wiring OK.
 
 ## 3. Probes c154 (ZDT4/42, q=10, serial, 1 core)

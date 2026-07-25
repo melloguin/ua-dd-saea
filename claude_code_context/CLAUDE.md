@@ -24,7 +24,7 @@ claude_code_context/
 ├── REGISTRO_DECISOES_pingpong_v5.md ← o PORQUÊ rico de cada decisão D53–D86 (consulta)
 ├── gen_bundles.py               ← regenera os bundles a partir da SPEC (rode após editar a SPEC)
 ├── artifacts/                   ← dados que você CONSOME (não parseie a SPEC p/ isto)
-│   ├── runs_matrix.csv          ← as 19.950 linhas do grid (run_id, exp, alg, problema, semente, q, tier, dist, stack, env)
+│   ├── runs_matrix.csv          ← as 20.850 linhas do grid — DI-35 (run_id, exp, alg, problema, semente, q, tier, dist, stack, env)
 │   ├── decisions.json           ← índice vinculante D53–D86 (id → título, supersedes, seções)
 │   ├── envs.json                ← tabela alg→env + pin de threads (D79) + 6 ambientes
 │   ├── characteristics.csv      ← matriz 25×8 da análise por característica (D71)

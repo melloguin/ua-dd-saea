@@ -110,14 +110,24 @@ def check_fe(exp, alg, problema, semente, D, data_root=None):
     # |dataset do tier| no sweep (sidecar), 11D−1+200q no batch (q do manifesto).
     # Sem isto um run sweep-medium (n=2000) ou batch (FE=2021) correto seria
     # reprovado por um gate que só sabia 31D−1.
-    q_run = 1
+    q_run, _man = 1, {}
     manp = naming.manifest_path(exp, alg, problema, semente, data_root=data_root)
     if os.path.exists(manp):
         try:
             with open(manp, encoding="utf-8") as _fh:
-                q_run = int(json.load(_fh).get("q", 1) or 1)
+                _man = json.load(_fh)
+            q_run = int(_man.get("q", 1) or 1)
         except Exception:                              # noqa: BLE001
-            q_run = 1
+            q_run, _man = 1, {}
+    # [DI-38] Aborto SANCIONADO (teto de wall / cache-cap): o FE final é MENOR
+    # que o orçamento POR DESENHO — a curva parcial é o entregável. Fonte
+    # ÚNICA do skip (antes vivia só no cartão do e81 e o gate genérico
+    # reprovaria exatamente as células que a DI-37.1 sanciona).
+    if _man.get("status") == "failed" and \
+            _man.get("motivo_parada") in ("teto_wall", "cache_cap"):
+        return None, (f"SKIP — aborto sancionado ({_man.get('motivo_parada')}): "
+                      f"fe_final={_man.get('fe_final')} por desenho; "
+                      f"a curva parcial é o entregável")
     want, origem = fe_esperado_por_exp(exp, problema, semente, D,
                                        data_root=data_root, q=q_run)
     if want is None:

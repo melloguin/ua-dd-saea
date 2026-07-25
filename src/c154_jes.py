@@ -609,7 +609,7 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                        "nsgaii_pop": NSGAII_POP, "nsgaii_gen": NSGAII_GEN,
                        "num_restarts": num_restarts,        # 5D/1000D no q=1;
                        "raw_samples": raw_samples,          # reduzido no batch (T9)
-                       "q": 1, "refit": "from-scratch/iter (D44)",
+                       "q": int(q), "refit": "from-scratch/iter (D44)",
                        "kernel": "Matern-5/2-ARD gamma-prior (D30)",
                        "acqf": "qLBMOJES-LB L.11",
                        **ACQF_OPTIONS_STATIC})

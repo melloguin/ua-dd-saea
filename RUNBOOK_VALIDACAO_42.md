@@ -57,13 +57,14 @@ git clone gmello@<IP-do-Mac-A>:/Users/gmello/Documents/python_repos/mestrado/ua-
 # alternativa sem rede: no Mac A `git bundle create uadd.bundle --all` → copiar → `git clone uadd.bundle`
 ```
 
-**2.3 Artefatos de dados** (`data/doe/` + `data/datasets/` são gitignorados — ~100 MB):
+**2.3 Artefatos de dados** — ⚠ correção da auditoria DI-38: `data/doe/` + `data/datasets/`
+estão **RASTREADOS no git** (~190 MB; `.gitignore` tem `!data/doe/`/`!data/datasets/`) —
+**o clone JÁ os leva**. O rsync abaixo é só FALLBACK/verificação (bit-idêntico):
 ```bash
 rsync -av gmello@<IP-do-Mac-A>:/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/doe/ data/doe/
 rsync -av gmello@<IP-do-Mac-A>:/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/datasets/ data/datasets/
 ```
-(Opção B: regenerar — é determinístico — mas o rsync é bit-idêntico por construção e mais
-rápido; a verificação é a mesma: preflight + CP-init no smoke.)
+(A verificação em qualquer caso é a mesma: preflight + CP-init no smoke.)
 
 **2.4 A ponte MATLAB↔Python** (`env_bridge` — PROVISIONAMENTO.md §5):
 ```bash
@@ -103,9 +104,10 @@ TOOLS=$HOME/python_venvs/_micromamba; mkdir -p $TOOLS/bin $TOOLS/root && cd $TOO
 curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xj bin/micromamba
 ```
 
-**3.3 Código + dados:**
+**3.3 Código + dados** (doe/datasets vêm NO CLONE — rastreados no git; rsync = fallback):
 ```bash
 git clone <bundle-ou-ssh-do-Mac-A> ~/ua-dd-saea && cd ~/ua-dd-saea
+# fallback/verificação apenas (bit-idêntico):
 rsync -av gmello@<IP-Mac-A>:.../data/doe/ data/doe/ && rsync -av gmello@<IP-Mac-A>:.../data/datasets/ data/datasets/
 ```
 
@@ -150,15 +152,21 @@ $PY experiments.py --exp off  --algorithms b5r b5m c311 moead_media --seeds 42 -
 # batch q=10 (VM-1; as 5 células c154 SEGURAM 12h cada e morrem no teto POR DESENHO — §7):
 $PY experiments.py --exp batch --algorithms c149 c262 e81 c154 sobol_batch --seeds 42 --n-jobs 8 --enable-bucket
 # sweeps (após o smoke do §6.3): 1 comando por token — rosters por tier (DI-35.4):
-#   small/medium → b5r b5m c311 moead_media  ·  big → c311 treed_media (SÓ os treed)
+#   small/medium → b5r b5m c311 moead_media (Python) + e103 (MATLAB, Mac A — comandos abaixo)
+#   big → c311 treed_media (SÓ os treed)
 $PY experiments.py --exp sweep-small-mvns --algorithms b5r b5m c311 moead_media --seeds 42 --n-jobs 8 --enable-bucket
 $PY experiments.py --exp sweep-big-lhs    --algorithms c311 treed_media        --seeds 42 --n-jobs 8 --enable-bucket
 
 # Mac A — TODOS os 12 MATLAB (Mac B está fora; pode dividir em 2 lotes p/ log):
 matlab -batch "experiments('algorithms',{'b1','b3','b4','e7','c217','c141'},'seeds',42)" > /tmp/lote_A.log 2>&1
 matlab -batch "experiments('algorithms',{'e74','c238','nsga2','nsga3','moead','smsemoa'},'seeds',42)" > /tmp/lote_B.log 2>&1
-# e103 (offline MATLAB, Mac A) + depois a ⑦ via final_eval (env_main):
+# e103 (offline MATLAB, Mac A — SERIAL) + depois a ⑦ via final_eval (env_main):
 matlab -batch "experiments('algorithms',{'e103'},'exp','off','seeds',42)" > /tmp/e103.log 2>&1
+# e103 no SWEEP (small/medium apenas — big é só c311/treed_media), 1 comando por token:
+matlab -batch "experiments('algorithms',{'e103'},'exp','sweep-small-lhs','seeds',42)"   > /tmp/e103_sw_sl.log 2>&1
+matlab -batch "experiments('algorithms',{'e103'},'exp','sweep-small-mvns','seeds',42)"  > /tmp/e103_sw_sm.log 2>&1
+matlab -batch "experiments('algorithms',{'e103'},'exp','sweep-medium-lhs','seeds',42)"  > /tmp/e103_sw_ml.log 2>&1
+matlab -batch "experiments('algorithms',{'e103'},'exp','sweep-medium-mvns','seeds',42)" > /tmp/e103_sw_mm.log 2>&1
 ```
 Monitorar: `scripts/progress.py --watch` · Gatear ao fim: `scripts/portao.py --varredura`.
 
@@ -226,18 +234,22 @@ EOF
 ## §7 · Avisos de custo e ordem de disparo
 
 - **Células caras conhecidas (1 core cada):** c238/ZDT1 ~3h55 · c262/ZDT1 ~4h11 ·
-  c149/ZDT1 ~3h22 · e81/ZDT1 ~2h · e7/ZDT1 ~72min (RAM 3,3 GB) · b3/ZDT1 ~26min ·
-  c154/DTLZ2 ~14,6h e c154/ZDT1 > 8h — **cortadas pelo teto universal de 12h
-  (`--teto-s 43200` default; DI-35.5): `failed/teto_wall` = DADO, não falha (DI-37.1,
-  RESOLVIDO — a antiga "decisão A3" está fechada)**.
-- **Batch q=10 — expectativas RATIFICADAS (DI-37):** c262 ≈ 2,2h/célula (receita cheia,
-  sem knob) · **as 5 células c154-batch TERMINAM NO TETO 12h POR DESENHO** (piso ≥30h
-  mesmo com o knob per-D 1D/50D) — `failed/teto_wall` nelas é o resultado ESPERADO;
-  não re-disparar, não diagnosticar como falha · c149/e81/sobol_batch baratos.
+  c149/ZDT1 ~3h22 · e81/ZDT1 ~2h · e7/ZDT1 ~72min (RAM 3,3 GB) · b3/ZDT1 ~26min.
+  ⚠ Os MATLAB NÃO têm teto de wall-clock (lacuna aceita — todos ≪ 12h; rede = D60).
+- **⚠ c154 sob o teto 12h — SEMÂNTICA REAL (auditoria DI-38; leia antes de disparar):**
+  o teto BoTorch (c262/c154) aborta por **PROJEÇÃO ANTECIPADA** (arma na 11ª iteração):
+  célula com custo projetado ≥12h morre em **~minutos–1h**, com manifesto
+  `failed/teto_wall` e **SEM parquets ①–⑦** (curva parcial só no `.jsonl` — desenho
+  anti-órfão DI-21). Afeta: **c154 main/DTLZ2 (~14,6h)**, possivelmente c154/ZDT1-WFG9,
+  e **as 5 células c154-batch (piso ≥30h)**. `teto_wall` nelas é o comportamento ATUAL
+  esperado — **NÃO re-disparar** (`is_run_done` lê `failed` como não-pronto: re-disparo
+  re-queima ~1h e aborta de novo). Se essas células devem entregar curva parcial em
+  parquet, é a **decisão DI-38 (REGISTRO A26) ANTES do disparo**.
+- **Batch q=10 (DI-37):** c262 ≈ 2,2h/célula (receita cheia, sem knob) ·
+  c149/e81/sobol_batch baratos · c154 = bullet acima.
 - **c311 sweep-big (50k)**: âncora de build ~32s, mas fase final + sonda em n=50k é
   terreno novo — rode o smoke primeiro e olhe o wall antes das demais células big.
 - Ordem recomendada: disparar PRIMEIRO as células caras (elas dominam o wall-clock;
-  o resto preenche os cores restantes). A rodada inteira nas 3 máquinas ≈ **1–2 dias**
-  (as 5 c154-batch seguram 12h cada — reservar 5 cores da VM para elas desde o início).
+  o resto preenche os cores restantes). A rodada inteira nas 3 máquinas ≈ **1–2 dias**.
 - Os walls que saírem daqui SÃO o M7: `progress.py --tabela` ao final = a tabela de
   dimensionamento das 30 sementes (decisões A3/A5 com dado).

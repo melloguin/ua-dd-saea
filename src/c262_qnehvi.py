@@ -552,7 +552,7 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                sigma_dict=_sigma_dict(),
                params={"mc_samples": MC_SAMPLES, "num_restarts": NUM_RESTARTS,
                        "raw_samples": RAW_SAMPLES, "train_Yvar": TRAIN_YVAR,
-                       "q": 1, "refit": "from-scratch/iter (D44)",
+                       "q": int(q), "refit": "from-scratch/iter (D44)",
                        "kernel": "Matern-5/2-ARD gamma-prior (D30)",
                        "acqf": "qLogNEHVI L.10", "cache_root": None,
                        **ACQF_OPTIONS_STATIC})

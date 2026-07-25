@@ -129,7 +129,10 @@ DI-37 RATIFICADO EM BLOCO (autor, 2026-07-25) ✅ — 7 itens (c154 teto=dado ·
    knob per-D · caveat D97 · ⑦-teto rito-piso · naoperturbação teste-only · confirmações T8)
    + doc-sync final (SPEC §5.1 teto universal/§V-B.4/§V-B.5/L.10/L.11 + params.json +
    bundles regen auditado + RUNBOOK 3-máquinas/695 células). FILA DECISÓRIA VAZIA.
-M7 RODADA-42 (BLOQUEANTE; =piloto timing) .. 🟡 PRONTO P/ CONGELAR — resta: push+tag
+Auditoria de prontidão (DI-38) ✅ 2026-07-25 — 3 ALTA no doc-sync da torre CORRIGIDOS (SPEC
+   §5.1 verdadeira; check_fe skip sancionado; e103-sweep no RUNBOOK; V-B.5) · 🔴 DI-38 NA MESA:
+   c154 sob teto BoTorch aborta por projeção SEM parquets — rec. cartão T10 antes do push
+M7 RODADA-42 (BLOQUEANTE; =piloto timing) .. 🟡 QUASE-CONGELADO — resta: DI-38 → push+tag
    `rodada-42-freeze` (AUTOR) → F2 desbloqueio 🔒 3 máquinas (cowork F1: pull+célula real+
    portão) → disparo 695 células → F4 portão varredura → F5 fidelidade Fable → F6 D97
 M8 bateria ONLINE (12.750) ................. ⬜

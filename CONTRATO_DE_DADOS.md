@@ -328,7 +328,7 @@ fantasia") [DI-13.8]`; escrita PÓS-HOC pela torre/harness Python; NÃO conta no
 | `data/doe/{p}/doe_{p}_{s}.parquet` + sidecar | o DoE 11D−1 por (problema, semente) + hash | comparação justa D88 (o MESMO início p/ os 21) |
 | `data/datasets/{p}/ds_{p}_{s}.parquet` + sidecar | dataset offline (D90) | o orçamento do regime offline |
 | **`data/sonda/sonda_{p}.parquet` + sidecar** | **os 2000 pontos FIXOS + f verdadeiro + hash** | **a régua única da sonda (§3.1)** |
-| `claude_code_context/artifacts/runs_matrix.csv` | as 19.950 linhas do grid | a lista do que TEM que rodar |
+| `claude_code_context/artifacts/runs_matrix.csv` | as 20.850 linhas do grid (DI-35) | a lista do que TEM que rodar |
 | Tabela de execuções (M7; agrega manifestos via Scoreboard) | grid × status × wall_s × n_retries | o painel do operador |
 | `scripts/progress.py` (M7) | view ao vivo (jsonl+manifestos) | barra tqdm-like + tabela |
 

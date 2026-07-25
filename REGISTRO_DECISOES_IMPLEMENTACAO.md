@@ -1686,6 +1686,52 @@ desbloqueio das 3 máquinas → disparo das ~695 células.
 
 ---
 
+## PARTE A26 — Auditoria de PRONTIDÃO do congelamento (2026-07-25) + a DECISÃO DI-38
+
+**Antes de declarar o repo pronto, a torre rodou a auditoria final de prontidão** (5 auditores
+independentes read-only + refutação adversarial, 13 agentes): notas doc×código 6,5 · runbook×matrix
+7 · spec×bundles 8,5 · pendências 9,5 · estado-repo 8,5. **7 achados confirmados (3 ALTA/4 MEDIA)
+— os 3 ALTA eram do texto que a PRÓPRIA torre escreveu no doc-sync DI-37** (a SPEC prometia mais
+do que o código faz). Registro de humildade: o auditor pegou o autor do doc-sync no mesmo dia.
+
+**Correções DIRETAS aplicadas (todas de gate/metadado/doc — mandato da torre):**
+1. **SPEC §5.1 reescrita para a VERDADE**: o teto 12h existe SÓ no despachante Python (o stack
+   MATLAB NÃO tem teto — lacuna DECLARADA, aceita: pior célula MATLAB c238/ZDT1 ~3h55 ≪ 12h; rede
+   = watchdog D60) e o RITO difere por família — standalone/pisos gravam camadas parciais (⑦ só no
+   treed_media); **BoTorch (c262/c154) aborta por PROJEÇÃO ANTECIPADA (arma na 11ª iteração) SEM
+   parquets** (anti-órfão D-07/DI-21; curva só no .jsonl §17.6).
+2. **`check_fe` do accept ganhou o skip de aborto sancionado como FONTE ÚNICA** (antes só o cartão
+   do e81 tinha; o gate genérico reprovaria exatamente as células que a DI-37.1 sanciona).
+3. **Heading `## V-B.5` restaurado** (a edição DI-37 da torre o havia engolido — 5 referências
+   penduradas) + caveat DI-37.4 anotado com a limitação da lente-de-prefixo.
+4. **RUNBOOK**: +4 comandos do e103-sweep (20 células MATLAB estavam ÓRFÃS do bloco de disparo);
+   semântica real do c154 sob teto (morre em ~min–1h por projeção, SEM parquets; NÃO re-disparar —
+   `is_run_done` lê failed como não-pronto); §2.3/§3.3 corrigidos (doe/datasets RASTREADOS no git
+   ~190 MB — o clone JÁ os leva; rsync = fallback).
+5. **19.950→20.850** em CONTRATO_DE_DADOS/HANDOFF_MESTRE/PROGRESSO/claude_code_context/CLAUDE.md.
+6. **Headers jsonl de c154/c262: `"q": int(q)`** (declaravam q=1 hard-coded mesmo em run batch;
+   q=1 bit-inalterado).
+7. Bundles regenerados. Suíte 391 OK · preflight 0. (1 achado REFUTADO pelo adversarial; 28 baixas
+   registradas — destaques pré-existentes: env_c149_fallback sem lock; data/images 152 PNGs
+   rastreados vs comentário do .gitignore; rótulos stale na ORQUESTRACAO.)
+
+**🔴 DI-38 — NA MESA DO AUTOR (a única decisão que resta antes do push/tag):** a DI-37.1 foi
+ratificada sob a premissa (da torre, ERRADA) de que o c154 truncaria no teto ~iteração 50–80
+entregando curva parcial. O código real (BoTorch) aborta por projeção em ~minutos–1h **sem
+produzir ①–⑦**. Células afetadas na rodada-42: c154 main/DTLZ2 (~14,6h), possivelmente
+c154/ZDT1–WFG9, + as 5 c154-batch. Opções:
+- **(a) Manter o comportamento atual** — aborto antecipado, custo ~zero, MAS essas células não
+  entregam NENHUM dado de análise (nem parcial): furo no grid 25-problemas do c154 main e batch
+  de facto sem c154.
+- **(b) [RECOMENDAÇÃO DA TORRE] Cartão T10 — rito de truncamento BoTorch**: no aborto por teto,
+  gravar as camadas parciais (write_run_outputs com status=failed) e, nas células sancionadas,
+  critério elapsed-only (projeção vira warning) — entrega EXATAMENTE o que a DI-37.1 ratificou
+  ("curva parcial é o dado"). Custo: 1 sessão curta + revalidação + ~12h/célula sancionada
+  (~7 células ≈ 84h-core, paralelas ⇒ +0 no wall da rodada). T10 ANTES do push.
+- **(c) Reduzir escopo**: c154 fora do batch + main sem as células >12h.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

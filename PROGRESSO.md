@@ -20,7 +20,7 @@
 - **Este repo (`ua-dd-saea`)** é o **pipeline experimental**: roda os 16 algoritmos (de suas
   implementações OFICIAIS em `algorithms/`, sem reimplementar) sobre **25 problemas × 30 sementes**.
 - **Bateria principal = 16.500 runs** (12.750 online + 3.750 offline).
-- **Grid completo (`runs_matrix.csv`):** 19.950 runs (principal + sub-estudos).
+- **Grid completo (`runs_matrix.csv`):** 20.850 runs (principal + sub-estudos; DI-35).
 
 ### O desenho experimental (o essencial)
 - **Arquitetura A2:** fonte ÚNICA de cada problema em `src/problems.py` (25 classes pymoo); cada
@@ -394,7 +394,12 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
   params.json +3 chaves (diff semântico auditado); bundles regen (4 arquivos esperados);
   RUNBOOK atualizado (3 máquinas/Mac B FORA, censo 695 células, comando batch, expectativa
   teto_wall das 5 c154-batch).
-- **FILA DECISÓRIA VAZIA. Próximo ato: push + tag `rodada-42-freeze` (AUTOR) → F2 → disparo.**
+- **Auditoria de prontidão (13 agentes)**: 7 achados confirmados — 3 ALTA no próprio doc-sync da
+  torre; corrigidos (SPEC §5.1 verdadeira: teto = Python-only, BoTorch aborta por PROJEÇÃO sem
+  parquets; check_fe skip sancionado; heading V-B.5; e103-sweep no RUNBOOK; 19.950→20.850;
+  headers q). REGISTRO A26. **Sobrou 1 decisão: 🔴 DI-38** (como materializar a curva parcial do
+  c154 sob teto — rec.: cartão T10 rito-truncamento BoTorch ANTES do push).
+- **Próximo ato: DI-38 (autor) → [T10 se (b)] → push + tag `rodada-42-freeze` (AUTOR) → F2 → disparo.**
 
 ### 2026-07-24 (noite) — T8+T9 FECHADOS · 23/23 configs · fix do projetor · PRONTO P/ CONGELAR
 - **T8 treed_media** (piso-big, 6-14s/célula!) + **T9 calibração** (c262 batch = 2,2h CHEIO sem

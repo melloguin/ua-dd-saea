@@ -116,7 +116,7 @@
 
 | Artefato | O que é / estado v5.2 |
 |---|---|
-| `runs_matrix.csv` | As 19.950 linhas do grid. **Corrigido:** o sweep ganhou o token `sweep-{tier}-{dist}` no run_id → **0 duplicatas** (era 600 dup). |
+| `runs_matrix.csv` | As 20.850 linhas do grid (DI-35). **Corrigido:** o sweep ganhou o token `sweep-{tier}-{dist}` no run_id → **0 duplicatas** (era 600 dup). |
 | `envs.json` | Tabela alg→env + 7 ambientes. **Corrigido:** `env_b5` e `env_c311` SEPARADOS (pins mutuamente exclusivos); `env_main` (harness+BO+c122+c149); `env_bridge` (ponte); fallback c149. |
 | `seeds.json` | **NOVO (D91):** alg_id→int + catálogo uso_id + materialização + offset D22. |
 | `params.json` | **NOVO (D83):** parâmetros Balde B por config (índice do §6.4). |

@@ -11,15 +11,18 @@
 
 | Máquina | Papel | Configs |
 |---|---|---|
-| **Mac A** (o atual) | MATLAB metade 1 + torre/gates | 6 dos 12 online MATLAB + e103 (off+sweep) |
-| **Mac B** (do pai) | MATLAB metade 2 | os outros 6 online MATLAB |
-| **VM-1 GCP** (32 vCPU/64 GB) | Python pesado | 5 online (c262/c154/c122/c149/e81) + batch q=10 (as células caras de 2000 infills) |
-| **VM-2 GCP** (32 vCPU/64 GB) | Python offline | 4 offline (b5r/b5m/c311/moead_media) + sweeps Python |
+| **Mac A** (o atual) | **TODOS os 12 MATLAB** + e103 + torre/gates | 12 online MATLAB + e103 (off+sweep; e103 SERIAL — ponte InProcess falha em workers parfor) |
+| **VM-1 GCP** `v5-mestrado` (32 vCPU/64 GB) | Python pesado | 5 online (c262/c154/c122/c149/e81) + batch q=10 (as células caras de 2000 infills) |
+| **VM-2 GCP** `mestrado-v6` (32 vCPU/64 GB) | Python offline | 4 offline (b5r/b5m/c311/moead_media) + treed_media + sweeps Python |
+
+**⚠ Mac B está FORA da rodada-42** (High Sierra — F1 falhou; §2 abaixo fica como
+referência histórica/M8). A trilha alternativa de scale-out MATLAB é a **VM Azure
+F64s_v2 (M8; pin R2025a OBRIGATÓRIO — o template default é R2025b, problema D80)**.
 
 **⚠ DECISÃO DO AUTOR (DI-33b): a rodada-42 é UMA SÓ, no estado DEFINITIVO do repo** —
-dispara-se TUDO (665 células) somente APÓS T7+T6 implementados e a validação final da
-torre. Nada de lote parcial pré-T6/T7 (evita duas gerações de código no mesmo dataset).
-O provisionamento (F1, este runbook) corre EM PARALELO à sessão T7+T6.
+dispara-se TUDO (~695 células) somente APÓS T7+T6+T8+T9 e a validação final da torre
+(DI-36/DI-37 — FECHADAS 2026-07-25; fila decisória VAZIA). Nada de lote parcial
+(evita duas gerações de código no mesmo dataset).
 
 Fluxo: **F1** provisionar (este runbook) → **F2** smoke de portabilidade → **F3** disparo
 da rodada-42 → **F4** `portao.py --varredura` verde nas 3 → **F5** workflows Fable de
@@ -41,7 +44,7 @@ Credencial do bucket (para o sync pós-hoc dos runs MATLAB — §5.3):
 gcloud auth application-default login        # ou GOOGLE_APPLICATION_CREDENTIALS=<sa.json>
 ```
 
-## §2 · Máquina B — o Mac do pai (MATLAB)
+## §2 · Máquina B — o Mac do pai (MATLAB) — **⚠ FORA da rodada-42 (F1 falhou: High Sierra); seção mantida como referência p/ M8/Azure**
 
 **2.1 MATLAB.** Instalar **R2025a Update 1** com as toolboxes EXATAS do lock
 (`requirements/locks/env_matlab_ver.lock.txt` — confira com `matlab -batch ver`).
@@ -133,23 +136,25 @@ bucket e gateia. Verde = a VM está pronta.
 ## §4 · A rodada-42 — quem dispara o quê
 
 **Células (todas com `--seeds 42`):** main 425 (12 MATLAB×25 + 5 Python×25) · off 125
-(e103×25 no Mac + 4 Python×25) · sweep 90 (b5r/b5m/c311 Python + e103 MATLAB; tokens
-`sweep-{small,medium,big}-{lhs,mvns}`) · **batch 25 (c149/c262/e81/c154/sobol_batch ×
-5 problemas — INCLUÍDO por decisão do autor, DI-33; exige o cartão T6 ANTES)**.
-**Total: 665 células.** ⚠ Dois PRÉ-REQUISITOS de implementação antes do disparo
-completo: **T6** (batch q=10 — ver REGISTRO A21) e **T7** (o "fio do sweep": os
-runners offline ainda não derivam tier/dist do token `sweep-*` — ver REGISTRO A21;
-sem o T7, um run de sweep rodaria SILENCIOSAMENTE sobre o dataset small errado).
-main+off (550 células) podem disparar IMEDIATAMENTE — não dependem de T6/T7.
+(e103×25 no Mac + 4 Python×25) · **sweep 120** (b5r 20 · b5m 20 · c311 30 · moead_media 20
+· treed_media 10 Python + e103 20 MATLAB; tokens `sweep-{small,medium,big}-{lhs,mvns}`,
+grid DI-35) · **batch 25** (c149/c262/e81/c154/sobol_batch × 5 problemas).
+**Total: 695 células** (345 MATLAB + 350 Python — censo do `runs_matrix.csv`, seed 42).
+✅ Pré-requisitos T6/T7/T8/T9 IMPLEMENTADOS E VALIDADOS (REGISTRO A21–A25); a fila
+decisória está vazia (DI-37) — o disparo é liberado pelo push+tag do autor + F2.
 
 ```bash
 # VM (tudo Python; ~6-10 paralelos; e7 não se aplica — é MATLAB):
 $PY experiments.py --exp main --algorithms c262 c154 c122 c149 e81 --seeds 42 --n-jobs 8 --enable-bucket
 $PY experiments.py --exp off  --algorithms b5r b5m c311 moead_media --seeds 42 --n-jobs 8 --enable-bucket
-# sweeps (após o smoke do §6.3): 1 comando por token, ex.:
-$PY experiments.py --exp sweep-small-mvns --algorithms b5r b5m c311 --seeds 42 --n-jobs 8 --enable-bucket
+# batch q=10 (VM-1; as 5 células c154 SEGURAM 12h cada e morrem no teto POR DESENHO — §7):
+$PY experiments.py --exp batch --algorithms c149 c262 e81 c154 sobol_batch --seeds 42 --n-jobs 8 --enable-bucket
+# sweeps (após o smoke do §6.3): 1 comando por token — rosters por tier (DI-35.4):
+#   small/medium → b5r b5m c311 moead_media  ·  big → c311 treed_media (SÓ os treed)
+$PY experiments.py --exp sweep-small-mvns --algorithms b5r b5m c311 moead_media --seeds 42 --n-jobs 8 --enable-bucket
+$PY experiments.py --exp sweep-big-lhs    --algorithms c311 treed_media        --seeds 42 --n-jobs 8 --enable-bucket
 
-# Mac A (metade 1) e Mac B (metade 2) — dividir a lista de 12:
+# Mac A — TODOS os 12 MATLAB (Mac B está fora; pode dividir em 2 lotes p/ log):
 matlab -batch "experiments('algorithms',{'b1','b3','b4','e7','c217','c141'},'seeds',42)" > /tmp/lote_A.log 2>&1
 matlab -batch "experiments('algorithms',{'e74','c238','nsga2','nsga3','moead','smsemoa'},'seeds',42)" > /tmp/lote_B.log 2>&1
 # e103 (offline MATLAB, Mac A) + depois a ⑦ via final_eval (env_main):
@@ -222,11 +227,17 @@ EOF
 
 - **Células caras conhecidas (1 core cada):** c238/ZDT1 ~3h55 · c262/ZDT1 ~4h11 ·
   c149/ZDT1 ~3h22 · e81/ZDT1 ~2h · e7/ZDT1 ~72min (RAM 3,3 GB) · b3/ZDT1 ~26min ·
-  **c154/ZDT1 = estourou o teto de 8h → DECISÃO A3 ANTES do disparo** (manter teto e
-  aceitar `failed`=dado honesto, ou excluir a célula da rodada-42).
+  c154/DTLZ2 ~14,6h e c154/ZDT1 > 8h — **cortadas pelo teto universal de 12h
+  (`--teto-s 43200` default; DI-35.5): `failed/teto_wall` = DADO, não falha (DI-37.1,
+  RESOLVIDO — a antiga "decisão A3" está fechada)**.
+- **Batch q=10 — expectativas RATIFICADAS (DI-37):** c262 ≈ 2,2h/célula (receita cheia,
+  sem knob) · **as 5 células c154-batch TERMINAM NO TETO 12h POR DESENHO** (piso ≥30h
+  mesmo com o knob per-D 1D/50D) — `failed/teto_wall` nelas é o resultado ESPERADO;
+  não re-disparar, não diagnosticar como falha · c149/e81/sobol_batch baratos.
 - **c311 sweep-big (50k)**: âncora de build ~32s, mas fase final + sonda em n=50k é
   terreno novo — rode o smoke primeiro e olhe o wall antes das demais células big.
 - Ordem recomendada: disparar PRIMEIRO as células caras (elas dominam o wall-clock;
-  o resto preenche os cores restantes). A rodada inteira nas 3 máquinas ≈ **1–2 dias**.
+  o resto preenche os cores restantes). A rodada inteira nas 3 máquinas ≈ **1–2 dias**
+  (as 5 c154-batch seguram 12h cada — reservar 5 cores da VM para elas desde o início).
 - Os walls que saírem daqui SÃO o M7: `progress.py --tabela` ao final = a tabela de
   dimensionamento das 30 sementes (decisões A3/A5 com dado).

@@ -385,6 +385,17 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
   tree_sha256 sem lixo-de-SO (hashes Mac≡VM), torch pinado na intenção, receitas canônicas
   dos locks, RUNBOOK §6-bis. Ver REGISTRO A22; decisões DI-35 na mesa do autor.
 
+### 2026-07-25 — DI-37 RATIFICADO · DOC-SYNC FINAL · REPO PRONTO PARA O PUSH+TAG 🔒→🚀
+- **Autor ratificou os 7 itens DI-37 em bloco** (c154 batch termina no teto=DADO · c262 cheio
+  2,2h · knob per-D 1D/50D · caveat D97 · ⑦-teto=rito-piso · não-perturbação teste-only ·
+  confirmações T8). Nenhuma mudança de código — tudo já estava shipado. REGISTRO PARTE A25.
+- **Doc-sync final executado:** SPEC ganhou o bloco do TETO UNIVERSAL 12h em §5.1 (gap real —
+  nunca tinha sido anotado) + §V-B.4 custo medido do batch + §V-B.5 caveat + L.10/L.11;
+  params.json +3 chaves (diff semântico auditado); bundles regen (4 arquivos esperados);
+  RUNBOOK atualizado (3 máquinas/Mac B FORA, censo 695 células, comando batch, expectativa
+  teto_wall das 5 c154-batch).
+- **FILA DECISÓRIA VAZIA. Próximo ato: push + tag `rodada-42-freeze` (AUTOR) → F2 → disparo.**
+
 ### 2026-07-24 (noite) — T8+T9 FECHADOS · 23/23 configs · fix do projetor · PRONTO P/ CONGELAR
 - **T8 treed_media** (piso-big, 6-14s/célula!) + **T9 calibração** (c262 batch = 2,2h CHEIO sem
   knob; c154 FLOOR ≥30h → decisão DI-37; knob per-D shipado; regressão q=1 bit-a-bit) — 4º

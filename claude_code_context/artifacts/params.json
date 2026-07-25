@@ -68,12 +68,15 @@
       "model": "SingleTaskGP/obj, Matérn 5/2 (🔵), Standardize, train_Yvar=1e-6",
       "acqf": "qLogNEHVI (sampler 128, prune_baseline, fat)",
       "optimize_acqf": "restarts=10, raw=512",
-      "refit": "por iteração (D44)"
+      "refit": "por iteração (D44)",
+      "batch_q10": "receita IDÊNTICA, sem knob ⟦DI-37.2⟧ — ~2,2 h/run medidos (T9)"
     },
     "c154": {
       "model": "como c262 mas ruído INFERIDO",
       "pipeline": "B9.5 (default random_search × paper-faithful — decidir no piloto)",
-      "estimation": "LB"
+      "estimation": "LB",
+      "optimize_acqf": "q=1 (principal): restarts=5D, raw=1000D (paper) · BATCH q=10: restarts=1D, raw=50D ⟦DI-37.3 — calibração T9; fonte única _restarts_raw_for_q em src/c154_jes.py⟧",
+      "batch_q10": "knob per-D acima + células terminam no teto 12h por desenho (failed/teto_wall — DI-37.1, aceito; piso ≥30h medido)"
     },
     "e81": {
       "env": "botorch 0.16.1",

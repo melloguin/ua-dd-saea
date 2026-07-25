@@ -119,12 +119,19 @@ M6 ✅ COMPLETO: c149 (DI-23) · e81 (DI-24, 9/10) · piso-off (2026-07-23, abla
      auditar+final_eval 24/24 · workflow 8 agentes, ZERO achado média+; REGISTRO A17)
 🏁 IMPLEMENTAÇÃO 100% FECHADA (auditoria exaustiva DI-31, 2026-07-23; 9 auditores + adversarial)
 T7 fio-do-sweep ✅ · T6 batch-q10 ✅ (2026-07-24; validação final DI-34: 5 achados corrigidos,
-   incl. 🔴 fio do q) · F1 provisionamento: Mac A + VM-1 + VM-2 ✅ (falta Mac B)
-M7 piloto timing (BLOQUEANTE) .............. 🟡 EM CURSO — a rodada-42 É o M7. Pré-requisitos (REGISTRO A19/A22):
-   TORRE build: T1 portao.py · T2 enable_bucket · T3 driver ⑦-offline · T4 doc-sync SPEC/bundles
-     (PRÓXIMA AÇÃO) · T5 hardening (D-17 RNG, abort e2e, smoke sonda ZDT1 c238/e7/c262) · T6 M10
-   AUTOR: A1 lote D97 (chave) · A2 sub-varN · A3 D-2/D-3 custo · A4 provisionar VM/bucket ·
-     A5 teto c311 · A6 escopo batch · A7 timing dossiê 3/4/5
+   incl. 🔴 fio do q) · F1 provisionamento: Mac A + VM-1 + VM-2 ✅ 100% (Mac B FORA —
+   High Sierra; Azure F64s_v2 = trilha M8, pin R2025a obrigatório)
+DI-35 grid definitivo ✅ (MMF16_20 total, piso no sweep [treed_media=23], teto 12h; matrix 20.850)
+T8 treed_media ✅ · T9 calibração batch ✅ (2026-07-24, EM PARALELO — 4º paralelismo limpo;
+   validação DI-36: 🔴 projetor wall-clock batch-aware corrigido [4º bug camada-lançamento];
+   c262 batch=2,2h CHEIO [o "56h" era o projetor]; c154 FLOOR ≥30h)
+DI-37 RATIFICADO EM BLOCO (autor, 2026-07-25) ✅ — 7 itens (c154 teto=dado · c262 cheio ·
+   knob per-D · caveat D97 · ⑦-teto rito-piso · naoperturbação teste-only · confirmações T8)
+   + doc-sync final (SPEC §5.1 teto universal/§V-B.4/§V-B.5/L.10/L.11 + params.json +
+   bundles regen auditado + RUNBOOK 3-máquinas/695 células). FILA DECISÓRIA VAZIA.
+M7 RODADA-42 (BLOQUEANTE; =piloto timing) .. 🟡 PRONTO P/ CONGELAR — resta: push+tag
+   `rodada-42-freeze` (AUTOR) → F2 desbloqueio 🔒 3 máquinas (cowork F1: pull+célula real+
+   portão) → disparo 695 células → F4 portão varredura → F5 fidelidade Fable → F6 D97
 M8 bateria ONLINE (12.750) ................. ⬜
 M9 bateria OFFLINE (3.750) ................. ⬜
 M10 SUB-batch .............................. ⬜

@@ -1654,6 +1654,38 @@ agora): c311 sob teto NA CONSTRUÇÃO omitiria a ⑦ e o gate reprovaria — ina
 
 ---
 
+## PARTE A25 — DI-37: RATIFICAÇÃO EM BLOCO (autor, 2026-07-25) + doc-sync final do congelamento
+
+**O autor ratificou os 7 itens da mesa DI-37 seguindo as recomendações da torre — o ÚLTIMO lote
+decisório antes do push/tag.** Nenhum item exigiu mudança de código (knob per-D, rito-piso e teto
+universal já estavam shipados em T8/T9/DI-35); o lote é decisório+documental:
+
+| # | Decisão ratificada | Efeito |
+|---|---|---|
+| DI-37.1 | **c154 batch TERMINA NO TETO 12h por desenho** (`failed/teto_wall`, ~it. 50–80/200; piso ≥30h medido — nenhum knob honesto fecha 10h) | curva parcial = dado; lente de prefixo §V-B.5; accept já pula FE-exato em aborto sancionado |
+| DI-37.2 | **c262 batch = receita CHEIA, sem knob** (~2,2h medidos; o "56h" era o projetor, DI-36) | L.10 anotada |
+| DI-37.3 | **c154 knob per-D BATCH-ONLY**: optimize_acqf restarts=1D/raw=50D (q=1 intacto 5D/1000D, regressão byte-idêntica) | L.11 + §V-B.4 + params.json |
+| DI-37.4 | **Caveat D97**: contraste q=1×q=10 do c154 carrega 2 confounders (knob + truncamento) — declarar; contraste limpo = c262/e81 | §V-B.5 (vinculante p/ análise) |
+| DI-37.5 | **T8: ⑦ no teto do treed_media = rito-piso** (⑦ parcial gravada; house norm — o gate exige ⑦) | comportamento shipado confirmado |
+| DI-37.6 | **T8: não-perturbação do treed_media = teste-only/N/A** (doutrina máquina-com-histórico) | idem |
+| DI-37.7 | **T8: confirmações** — seleção final RVEA espelha o c311 (10×100, mean); `modelo_flag` conforme | idem |
+
+**Doc-sync executado (DEF-6):** SPEC §5.1 ganhou o bloco do **TETO UNIVERSAL 12h** (⟦DI-35.5/DI-37.1⟧ —
+gap real: o teto nunca tinha sido anotado na SPEC) · §V-B.4 bloco ⟦DI-37⟧ (custo medido do batch) ·
+§V-B.5 caveat ⟦DI-37.4⟧ · L.10/L.11 anotadas · `params.json` +3 chaves (c154.optimize_acqf/batch_q10,
+c262.batch_q10; diff semântico auditado = só as 3) · **bundles regenerados** (diff auditado: só
+01_regras_globais, alg_c154, alg_c262, batch_largebatch — exatamente os 4 esperados).
+
+**Tensão registrada p/ M8 (não-decisão):** c311 sob teto NA FASE DE CONSTRUÇÃO omitiria a ⑦ e o
+gate reprovaria — inalcançável na rodada-42 (build do c311 = segundos–minutos); reavaliar se o M8
+introduzir tiers/problemas onde o build encoste no teto.
+
+**Com a A25, a fila decisória do congelamento está VAZIA.** Estado: 23/23 configs · suíte verde ·
+portão só-stale · docs sincronizados. Próximo ato = **push + tag `rodada-42-freeze` (AUTOR)** →
+desbloqueio das 3 máquinas → disparo das ~695 células.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

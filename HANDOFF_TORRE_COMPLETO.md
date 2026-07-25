@@ -221,3 +221,33 @@ M7.6 F6 lote D97 do autor + GO/NO-GO M8.
 (2) aplicar correções + escalar decisões + REGISTRO A28 + re-tag do autor SE houver fix;
 (3) F2: desbloquear Mac A/VM-1/VM-2; (4) DISPARAR a rodada-42; (5) F4/F5: portão nas 3 máquinas
 + workflows de fidelidade → dossiê p/ o D97.
+
+---
+
+## 10. ⏸ VALIDAÇÃO FINAL PAUSADA (2026-07-25) — PROTOCOLO DE RETOMADA
+
+**Pausada pelo autor (limite semanal ~85%; reset em ~4 dias, ~2026-07-29).** Workflow parado
+via TaskStop; **NADA foi perdido**:
+- **12/32 finders COMPLETOS, resultados integrais salvos** (nota + achados + veredito dos
+  smokes): cfg b1, b3, b4, e7, c217, c141, e74, c238, pisos_online, e103, c262, c154.
+- **Faltam**: 8 cfg (c122, b5, c311, c149, e81, moead_media, treed_media, sobol_batch) +
+  12 transversais + a fase de refutação adversarial.
+- Journal (1 linha `type:result` por agente pronto, cacheado por hash do prompt):
+  `~/.claude/projects/-Users-gmello/1dad1ee9-8028-4d8e-a5cf-e0264dcc7966/subagents/workflows/wf_c451718a-b88/journal.jsonl`
+- Script congelado:
+  `~/.claude/projects/-Users-gmello-Documents-python-repos-mestrado-ua-dd-saea/1dad1ee9-8028-4d8e-a5cf-e0264dcc7966/workflows/scripts/validacao-final-100pct-wf_c451718a-b88.js`
+
+**RETOMAR (na MESMA conversa da torre — é o caso previsto):** chamar
+`Workflow({scriptPath: <script acima>, resumeFromRunId: "wf_c451718a-b88"})` — os 12 prontos
+voltam do cache INSTANTÂNEO (custo ~zero); só os 20 restantes + verificação rodam ao vivo.
+**REGRAS DE OURO DA RETOMADA:** (1) NÃO editar os prompts dos finders no script (o cache casa
+por hash do prompt — editar = re-rodar do zero e pagar de novo); (2) **NÃO fazer NENHUMA
+mudança de código no repo antes de retomar** (os 12 auditaram o estado atual; mudar o código
+invalidaria a coerência — docs novas como este handoff são inócuas); (3) retomar ANTES de
+qualquer correção — as correções vêm DEPOIS da consolidação.
+
+**Fallback (se for uma conversa NOVA):** `resumeFromRunId` não cruza sessões. Nesse caso: ler
+as linhas `type:result` do journal (são os 12 relatórios completos, JSON validado por schema),
+consolidá-los, e relançar APENAS os 20 finders faltantes copiando seus prompts do script
+congelado (mesma estrutura de Workflow, sem os 12 já feitos) — depois a verificação adversarial
+sobre o conjunto unido.

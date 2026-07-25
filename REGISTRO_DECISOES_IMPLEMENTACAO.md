@@ -1767,6 +1767,88 @@ células revelar.
 
 ---
 
+## PARTE A28 — Consolidação da validação final (12/32) + DI-39 (N dos pisos) (2026-07-25)
+
+**Origem.** O workflow `wf_c451718a-b88` foi pausado com **12 de 32** finders completos. Os 12
+relatórios foram lidos do `journal.jsonl` e consolidados **sem relançar nada** (custo zero).
+Cobertura: `b1, b3, b4, e7, c217, c141, e74, c238, pisos_online, e103, c262, c154` — ou seja,
+**100% do roster MATLAB da rodada-42**. Notas de 7 a 8,5; **113 achados** (10 ALTA, 45 MÉDIA,
+58 BAIXA); todos os smokes verdes, FE exato em 100% dos casos, não-perturbação da sonda provada.
+
+**Leitura da torre sobre os 10 ALTA — nenhum produz dado corrompido na semente 42:**
+
+- **Três** (`b1`, `e7`, `c238`) descrevem células stale **de semente 0** que o `is_run_done`
+  absorveria como prontas. Os auditores escreveram *"a RODADA-42 vai pular essas células"* —
+  **incorreto**: a rodada-42 é semente **42**, e as células citadas são `..._0`. O risco é da
+  **M8**, que inclui a semente 0. **Ação: re-run com `force` das células stale ANTES do M8.**
+- **Dois** (`b3`/`adapt_delta_V` e `e74`/DI-07b) geram dado **incompleto ou pendente de
+  julgamento**, não errado — e o julgamento D97 do e74 fica MELHOR com o dado da semente 42 na
+  mão. Reclassificados como **decisão pré-M8**, não pré-rodada.
+- **Um** (`pisos_online`/SUB-varN) é pré-registro ⇒ **DI-39 abaixo**.
+- **Quatro** são de outras máquinas: `e103` (435 runs de sweep sem dataset — só nas outras 29
+  sementes, problema do M8), `c262` (batch q=10 nunca completou um run ponta-a-ponta; único probe
+  cheio OOM-killed em n=669 ⇒ risco de OOM com `--n-jobs 8` na VM-1) e `c154` ×2 — **este último
+  CORRIGE UM NÚMERO OFICIAL DESTE REGISTRO**: a premissa *"~min-1h"* das linhas 1708/1756 foi
+  simulada contra o ④ REAL de `main/c154/DTLZ2_0` e o trip por projeção só vem na iteração 158,
+  após **~6,3 h** queimadas (a projeção assume busca constante, enquanto a busca JES cresce
+  ~n^1,6, e por isso dispara tarde). Erro de ~6× na expectativa publicada; ×30 sementes ≈ 190
+  h-core só em DTLZ2 para **zero parquet**.
+
+### DI-39 — N dos pisos na rodada-42: PROVISÓRIO, com o SUB-varN mantido antes do M8
+
+**O achado (ALTA, finder `pisos_online`).** O SUB-varN (D65) nunca foi executado —
+`cards/INDEX.md:54` marca ⬜. `SPEC:1488` e o bundle `alg_pisos_online.md:33` condicionam a
+bateria à varredura N∈{10,20,30,50}, que deve reconfirmar ou substituir o N=20 cravado em
+2026-07-18 (RI-10, já registrado como *"provisório até SUB-varN"*). Como a semente 42 é uma das
+30 oficiais, disparar os pisos agora toca o pré-registro.
+
+**Decisão do autor (2026-07-25).** A varredura **NÃO é dispensada**. O N=20 é declarado
+**provisório** para as 100 células de piso da rodada-42, e o **SUB-varN permanece como
+pré-requisito do M8**. Se a varredura eleger N≠20, as células de piso da semente 42 são
+descartadas e re-rodadas sob o N eleito; se confirmar o N=20, elas são promovidas sem alteração.
+
+**Justificativa.**
+
+1. A rodada-42 é **validação de fidelidade e piloto de timing (M7)**, não a bateria de
+   comparação: a banda dos pisos que os BO-especiais usam como referência é construída no M8/M9,
+   e nenhuma interpretação comparativa é fixada aqui.
+2. O custo de refazer é desprezível — as células de piso rodam em **segundos** (medido na
+   `matlab-vm3`: 3 células `nsga2` em 6 s), contra as horas das células com surrogate.
+3. Adiar a rodada-42 até a varredura não reduz risco algum: o dado gerado é válido para N=20 e
+   nada nele é corrompido pela pendência.
+
+**Registrado ANTES do disparo, deliberadamente:** uma dispensa — ou um adiamento — de
+pré-registro decidido *depois* de ver os resultados é metodologicamente mais frágil que a mesma
+decisão tomada às cegas. Esta entrada é a evidência da anterioridade.
+
+**Pendência aberta:** SUB-varN (D65), cartão `40_subestudos/varredura_N_pisos`, ainda ⬜ —
+pré-requisito do M8.
+
+### Correções factuais apuradas nesta sessão
+
+1. **A tag `rodada-42-freeze` NUNCA EXISTIU.** `git ls-remote --tags origin` → vazio; nenhuma tag
+   local. O `HANDOFF_TORRE_COMPLETO.md` e a PARTE A27 acima a declaram *pushada* — **incorreto,
+   confirmado pelo autor** (*"eu nunca commitei ou dei push adicionando essa tag"*). O gate
+   substantivo da DI-33b permanece **verde por hash**: `1c2811b` é ancestral do HEAD e
+   `git log 1c2811b..HEAD -- src/ scripts/ tests/ requirements/ algorithms/` é **vazio** (os dois
+   commits posteriores, `cd67133` e `70e2d97`, são só documentação). Criar a tag é ato do autor.
+
+2. **O `src/` do repo NÃO está no path salvo do MATLAB em NENHUMA das duas máquinas MATLAB.**
+   Medido no Mac A: `entradas do repo: 0`, `which('experiment')` → `[]`, com 753 entradas no
+   path. O `experiments.m` (raiz) resolve apenas porque o MATLAB busca na pasta corrente; o
+   `experiment.m` (em `src/`) **não** resolvia — o mesmo erro que derrubou a primeira tentativa
+   da fase 3 na `matlab-vm3` (`Undefined function 'experiment'`). **Consequência: os comandos do
+   RUNBOOK §4 para o Mac A falhariam na primeira célula.** Corrigido nas DUAS máquinas com
+   `~/Documents/MATLAB/startup.m` (`addpath(<repo>/src)` + `pyenv(...,'InProcess')`), fora do
+   repositório. Verificado no Mac A: `which experiment` → `src/experiment.m`; ponte →
+   `/Users/gmello/ponte_teste/bin/python`, que **bate com o `PROVISIONAMENTO.md` §5**; e o
+   `env_bridge` do Mac recebeu o **primeiro aceite Q2 formal** — `diff` vazio contra
+   `locks/env_bridge.lock.txt`. **Não invalida run algum**: o defeito era de *procedimento
+   documentado*, não de dado. **Emenda ao RUNBOOK §4 e à receita de VM MATLAB: o `startup.m` é
+   pré-requisito das duas máquinas.**
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

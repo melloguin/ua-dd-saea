@@ -385,6 +385,16 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
   tree_sha256 sem lixo-de-SO (hashes Mac≡VM), torch pinado na intenção, receitas canônicas
   dos locks, RUNBOOK §6-bis. Ver REGISTRO A22; decisões DI-35 na mesa do autor.
 
+### 2026-07-24 (noite) — T8+T9 FECHADOS · 23/23 configs · fix do projetor · PRONTO P/ CONGELAR
+- **T8 treed_media** (piso-big, 6-14s/célula!) + **T9 calibração** (c262 batch = 2,2h CHEIO sem
+  knob; c154 FLOOR ≥30h → decisão DI-37; knob per-D shipado; regressão q=1 bit-a-bit) — 4º
+  paralelismo limpo (interseção vazia; one-liners autorizados).
+- **Validação final da torre (DI-36):** 1 ALTA corrigida — projetor de wall-clock não-batch-aware
+  (abortaria espuriamente o c262 batch; fix `acfac4b` com passo inferido, q=1 bit-igual) + a
+  causa-raiz do "56h" do T6 corrigida (artefato do projetor) + regressao_q1.py preservado.
+- **Estado: suíte 391 OK · portão 84/198 (só 5 stale) · 23/23 configs smoked · DI-37 na mesa →
+  depois: push/tag do autor → desbloqueio das 3 máquinas → DISPARO da rodada-42 (~695 células).**
+
 ## 4. Ambientes (estado real)
 - **Mac** (arm64, macOS 12.5.1): MATLAB R2025a (R1 + Fase 0 + pilotos) + os venvs Python. Grava local.
 - **VM Vertex** `v5-mestrado` (Debian 12, us-central1-a, micromamba+pyenv): R2/R3 + análise. Grava local

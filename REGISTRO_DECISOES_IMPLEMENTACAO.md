@@ -1622,6 +1622,38 @@ Execução (torre, após a decisão 1 fechar, num lote único): regen runs_matri
 
 ---
 
+## PARTE A24 — DI-36: validação final T8/T9 (o último portão) + fix do projetor (2026-07-24)
+
+**Os 2 últimos cartões fecharam EM PARALELO sem um arranhão** (4º paralelismo limpo: interseção de
+commits VAZIA; T8 tocou `experiments.py`/`auditar.py` só nos 2 one-liners AUTORIZADOS — a fiação do
+treed_media que a torre tinha deixado incompleta no lote DI-35, registro de mérito da sessão que a
+detectou e escalou antes de tocar). **T8**: `treed_media` (config 23/23) validado nos 5/5 problemas
+(smokes 6-14s! — o piso-big é ~100× mais barato que o c311-big), notas da auditoria 9/9,5.
+**T9**: calibração POR MEDIÇÃO — **c262 batch = ~2,2h na receita CHEIA (sem knob!)**; **c154 não
+fecha ~10h com nenhum knob defensável** (FLOOR ≥30h; aquisição JES-LB ~n^1,6); knob shipado
+per-D (1D restarts/50D raw); prova de regressão q=1 bit-a-bit nos 2. Notas 9/7,5.
+
+**Achado ALTA da auditoria da torre — CORRIGIDO (commits `acfac4b`+`913bd00`):** o
+`_WallClockProjector` (c262, importado pelo c154) somava 1 termo POR FE em vez de POR ITERAÇÃO —
+em q=10 superestimava ~10× e **abortaria espuriamente as 5 células batch do c262** sob o teto 12h.
+Fix: passo inferido dos samples (mediana dos deltas; q=1 fica BIT-IGUAL, com teste-guarda).
+**BÔNUS — causa-raiz do "~56h" do T6 CORRIGIDA:** era o artefato do projetor não-batch-aware, NÃO
+contenção/swap como o T9 narrou (a projeção real do c262 sempre foi ~2,2h). Também preservado:
+`scripts/regressao_q1.py` (a prova do T9 vivia só no scratchpad) + envs.json cosmético.
+
+**Gates finais:** suíte **391 OK** · preflight 0 · **portão 84 runs/198 gates** (só os 5 stale) ·
+árvore limpa. **A implementação da rodada-42 está TOTAL: 23/23 configs, 4 tipos de experimento,
+todos com smoke verde.**
+
+**DI-37 NA MESA DO AUTOR (o último lote antes do push/tag):** (1) c154 batch: truncado no teto
+[rec] vs fora do roster; (2) ratificar c262 batch = receita cheia ~2,2h; (3) ratificar knob per-D
+do c154; (4) ratificar caveat D97 do confounder; (5) T8-⑦ no teto = rito-piso [rec; house norm e o
+gate exige ⑦]; (6) naoperturbacao do treed_media = teste-only [rec; doutrina máquina-com-histórico];
+(7) confirmar espelhamento RVEA-final + modelo_flag do T8. Tensão registrada p/ M8 (não decide
+agora): c311 sob teto NA CONSTRUÇÃO omitiria a ⑦ e o gate reprovaria — inalcançável na rodada-42.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

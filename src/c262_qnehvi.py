@@ -433,13 +433,26 @@ class _WallClockProjector:
         self.samples.append((int(n), float(t_fit), float(t_iter)))
 
     def projection_s(self, n_now: int) -> float | None:
-        """Segundos projetados p/ TERMINAR o run a partir de `n_now` FEs."""
+        """Segundos projetados p/ TERMINAR o run a partir de `n_now` FEs.
+
+        [DI-36] O passo de FE POR ITERAÇÃO é inferido dos próprios samples
+        (mediana dos deltas de n): em q=1 dá 1 — projeção BIT-IGUAL à
+        original; em lote (q=10) cada iteração futura avança ~q FEs — somar
+        termo-a-termo em passo 1 superestimava ~q× nos DOIS termos, e o
+        projetor abortaria espuriamente o batch do c262 (~2,2h reais
+        projetados acima do teto). Era também a origem do "~56h" do T6
+        (artefato do projetor, não contenção/swap — causa-raiz corrigida
+        pela auditoria da torre sobre a evidência do T9).
+        """
         if len(self.samples) < 10:
             return None
         recent = self.samples[-5:]
         c = float(np.mean([tf / max(n, 1) ** 3 for n, tf, _ in recent]))
         other = float(np.mean([ti - tf for n, tf, ti in recent]))
-        ns = np.arange(n_now, self.maxfe + 1, dtype=np.float64)
+        difs = np.diff([n for n, _, _ in self.samples])
+        avanca = difs[difs > 0]
+        passo = int(np.median(avanca)) if avanca.size else 1
+        ns = np.arange(n_now, self.maxfe + 1, max(1, passo), dtype=np.float64)
         return float(c * np.sum(ns ** 3) + max(other, 0.0) * len(ns))
 
     def exceeded(self, n_now: int) -> tuple[bool, float | None, float, str | None]:

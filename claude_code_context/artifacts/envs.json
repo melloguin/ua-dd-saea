@@ -163,7 +163,8 @@
         "MPLBACKEND=Agg"
       ],
       "algs": [
-        "c311"
+        "c311",
+        "treed_media"
       ]
     },
     "env_bridge": {

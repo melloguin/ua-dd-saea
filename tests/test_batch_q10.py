@@ -271,3 +271,39 @@ class TestCalibracaoBatchT9(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestProjetorBatchAware(unittest.TestCase):
+    """[DI-36] O projetor de wall-clock tem de ser batch-aware: com q=10 as
+    iterações futuras avançam ~q FEs — somar em passo 1 superestimava ~q× e
+    abortaria espuriamente o batch do c262 (~2,2h reais > teto). Em q=1 a
+    projeção fica BIT-IGUAL à fórmula original."""
+
+    def _proj(self, passo, n0=100, k=12, t_fit=2.0, t_iter=5.0, maxfe=400):
+        from src.c262_qnehvi import _WallClockProjector
+        p = _WallClockProjector(3600.0, 0.0, maxfe)
+        for i in range(k):
+            p.add(n0 + i * passo, t_fit, t_iter)
+        return p, n0 + (k - 1) * passo
+
+    def test_q1_bit_igual_a_formula_original(self):
+        import numpy as np
+        p, n_now = self._proj(passo=1)
+        recent = p.samples[-5:]
+        c = float(np.mean([tf / max(n, 1) ** 3 for n, tf, _ in recent]))
+        other = float(np.mean([ti - tf for n, tf, ti in recent]))
+        ns = np.arange(n_now, p.maxfe + 1, dtype=np.float64)
+        legado = float(c * np.sum(ns ** 3) + max(other, 0.0) * len(ns))
+        self.assertEqual(p.projection_s(n_now), legado)
+
+    def test_q10_projeta_por_iteracao_nao_por_fe(self):
+        p1, n1 = self._proj(passo=1, maxfe=400)
+        p10, n10 = self._proj(passo=10, n0=100, maxfe=400 + 9 * 11)
+        # mesmo nº de iterações restantes ⇒ projeções da MESMA ordem; o bug
+        # antigo dava ~10× no caso q=10 (1 termo por FE em vez de por iteração)
+        proj10 = p10.projection_s(n10)
+        n_iters_restantes = len(range(n10, p10.maxfe + 1, 10))
+        # limite superior folgado: custo por iteração recente × iterações × 3
+        custo_iter = 5.0
+        self.assertLess(proj10, custo_iter * n_iters_restantes * 3,
+                        "projeção q=10 superestimada — o passo não foi inferido")

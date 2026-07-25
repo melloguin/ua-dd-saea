@@ -297,13 +297,15 @@ class TestProjetorBatchAware(unittest.TestCase):
         self.assertEqual(p.projection_s(n_now), legado)
 
     def test_q10_projeta_por_iteracao_nao_por_fe(self):
-        p1, n1 = self._proj(passo=1, maxfe=400)
+        import numpy as np
         p10, n10 = self._proj(passo=10, n0=100, maxfe=400 + 9 * 11)
-        # mesmo nº de iterações restantes ⇒ projeções da MESMA ordem; o bug
-        # antigo dava ~10× no caso q=10 (1 termo por FE em vez de por iteração)
-        proj10 = p10.projection_s(n10)
-        n_iters_restantes = len(range(n10, p10.maxfe + 1, 10))
-        # limite superior folgado: custo por iteração recente × iterações × 3
-        custo_iter = 5.0
-        self.assertLess(proj10, custo_iter * n_iters_restantes * 3,
-                        "projeção q=10 superestimada — o passo não foi inferido")
+        proj_novo = p10.projection_s(n10)
+        # a fórmula ANTIGA (passo 1 = 1 termo por FE — o bug): ~10× maior
+        recent = p10.samples[-5:]
+        c = float(np.mean([tf / max(n, 1) ** 3 for n, tf, _ in recent]))
+        other = float(np.mean([ti - tf for n, tf, ti in recent]))
+        ns1 = np.arange(n10, p10.maxfe + 1, dtype=np.float64)
+        proj_bug = float(c * np.sum(ns1 ** 3) + max(other, 0.0) * len(ns1))
+        self.assertLess(proj_novo, proj_bug / 5,
+                        "o passo não foi inferido — projeção q=10 continua "
+                        "somando 1 termo por FE (o bug do aborto espúrio)")

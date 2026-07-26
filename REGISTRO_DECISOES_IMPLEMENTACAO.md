@@ -1767,7 +1767,7 @@ células revelar.
 
 ---
 
-## PARTE A28 — Consolidação da validação final (12/32) + DI-39 (N dos pisos) (2026-07-25)
+## PARTE A28 — Consolidação da validação final (12/32) + DI-39 (N dos pisos) + DI-40 (c154 fora do batch) (2026-07-25)
 
 **Origem.** O workflow `wf_c451718a-b88` foi pausado com **12 de 32** finders completos. Os 12
 relatórios foram lidos do `journal.jsonl` e consolidados **sem relançar nada** (custo zero).
@@ -1823,6 +1823,49 @@ decisão tomada às cegas. Esta entrada é a evidência da anterioridade.
 
 **Pendência aberta:** SUB-varN (D65), cartão `40_subestudos/varredura_N_pisos`, ainda ⬜ —
 pré-requisito do M8.
+
+### DI-40 — `c154` SAI do roster do `batch` (q=10); PERMANECE no `main` (2026-07-25)
+
+**O que mudou a conta.** O finder `c154` da validação final simulou o `_WallClockProjector`
+(`src/c262_qnehvi.py:435-473`, reusado pelo c154) contra o ④ **real** de `main/c154/DTLZ2_0`
+(241 iterações, 52.596 s = 14,6 h medidos) e mostrou que, com teto de 43.200 s, o trip por
+projeção só arma na **iteração 158, após ~22.632 s ≈ 6,3 h queimadas** — porque a projeção
+assume busca constante (média das últimas 5) enquanto a busca JES cresce ~n^1,6, e por isso
+dispara tarde. **As linhas 1708 e 1756 deste REGISTRO afirmam "~min–1h": erro de ~6×**, e a
+DI-38(a) foi decidida com o número errado.
+
+**Decisão do autor (2026-07-25), tomada com o número corrigido:**
+
+- **`batch` (q=10): o `c154` SAI do roster do disparo.** As 5 células (DTLZ2, MMF16_20, WFG9,
+  ZDT1, ZDT4 × semente 42) abortam **100% por desenho** — o piso medido é ≥30 h contra teto de
+  12 h — e **não gravam parquet algum**. Custo de mantê-las: ~30 h-core para produzir apenas
+  `jsonl` + manifesto `failed`. Roster do batch passa a ser **`c149 c262 e81 sobol_batch`**,
+  **20 células** em vez de 25.
+- **`main` (q=1): o `c154` PERMANECE, com as 25 células.** Aqui a remoção seria perda de
+  evidência, não economia: só a classe D=12/M=3 (DTLZ1/2/3/4/7 + WFG1/2/4/5/9) e o ZDT1 devem
+  estourar o teto — **~11 células ⚪ a ~6 h cada (~66 h-core)** —, enquanto as **~14 restantes**
+  (MMF1, MMF4, MMF11_L, MMF16_20, ZDT3, ZDT4, ZDT6 e os sete BBOB) **completam com dado
+  íntegro**. O `c154`/JES é um dos 22 SA-MOEAs e é o *curinga de custo* do conjunto: o
+  comportamento dele sob orçamento apertado é parte do que a dissertação mede.
+
+**Relação com a DI-38(a): não a reverte.** A DI-38(a) decidiu **manter o comportamento** de
+aborto por projeção sem camadas, e isso segue valendo — as ~11 células ⚪ do `main` são o
+resultado ESPERADO e o portão as reporta como aborto-sancionado, não vermelho. A DI-40 decide
+outra coisa: **não despachar** o subconjunto de células cujo aborto é *certo por construção* e
+cujo produto é *zero parquet*.
+
+**EXPECTATIVA OFICIAL REVISADA da rodada-42** (substitui a da PARTE A27): **~11 células ⚪ no
+`main` do c154** (classe D=12/M=3 + ZDT1), **zero no `batch`** (não despachadas). A estimativa
+anterior de "~6-7 ⚪, cada uma a ~min-1h" está **superada**.
+
+**Obrigatório no relatório de fidelidade (dossiê D97):** esta decisão entra explicitamente,
+com o número medido (~6,3 h por célula acima do teto) e com a distinção entre o `batch`
+retirado por inutilidade e o `main` mantido por conter evidência. Sem isso, a ausência das 5
+células de `c154-batch` na consolidação parece lacuna de execução em vez de decisão registrada.
+
+**Pendência para o M8:** o `runs_matrix.csv` continua agendando **150 linhas** de `c154-batch`
+(5 problemas × 30 sementes). A DI-40 vale para a rodada-42; a decisão de retirá-las da matrix —
+ou de mantê-las e assumir ~225-300 h-core para zero parquet — fica para antes do M8.
 
 ### Correções factuais apuradas nesta sessão
 

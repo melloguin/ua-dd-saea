@@ -1995,6 +1995,22 @@ falhas determinísticas. Detalhe/opções na resposta da torre ao autor (2026-07
 
 ---
 
+## PARTE A31 — DI-42.2-.7 DECIDIDAS pelo autor (2026-07-28) + execução parcial
+
+**Ratificações:** .2=(a) re-rodar as células comprometidas (⚠ pendência operacional: confirmar
+ONDE vive a cópia OFICIAL de cada uma — Mac tem smokes T8/T6 das mesmas células; se a cópia da
+rodada veio das VMs e está limpa, o item vira só higiene local) · .3=(c) blindar código E
+instalar a lib (blindagem APLICADA no commit; lib = ação do autor/D80 no env_c311 de Mac+VM-2)
+· .4=(a) fix c122 g=1 no T11 + caveat s42 · .5=EM DISCUSSÃO (autor pediu aprofundamento; a
+evidência empírica MUDOU o quadro: o evento sonda do ⑥ JÁ carrega fe_treino_max — c217/s42
+verificado — o que falta é só o campo literal `fe` do CONTRATO §6; ③ tem fe_treino_max povoado)
+· .6=(a) params no ⑤ via T11 · .7=(a) lista no-retry determinística via T11.
+**Aplicado agora:** blindagem do dual_write nas 2 harnesses (upload nunca mata run; falha →
+`upload_status.erro`). **T11 (cartão único do refinamento) acumula:** .4, .6, .7 + os ~40
+sem-escolha da A30 + o que a análise de fidelidade colher.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

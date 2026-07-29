@@ -80,7 +80,7 @@ auditoria "9→10" (item 3) se o autor quiser fechar o ponto que falta.
   (2/3 problemas — seleção por HV, esperado); moead o mais fraco no ZDT1 (1,89 — N=20 em D=30).
 - **🔬 A RÉGUA (o achado central p/ a dissertação):** SA-MOEAs que batem o MELHOR piso:
   **MMF1 (D=2): 1/7** (só o b1) · **DTLZ2 (D=12): 2/7** (c141, b1) · **ZDT1 (D=30): 6/7** (todos
-  menos o c217). **A vantagem do surrogate CRESCE com a dimensão/pressão de orçamento — exatamente
+  menos o c217). ⟦**SUPERSEDED por D9/F5 (autor 2026-07-29)** — válido só p/ os 3 problemas da R1; nos 25 a separação é por FAMÍLIA (BBOB 66% · ZDT 62% · MMF 62% · DTLZ 34% · WFG 26%), não por D. Ver §D9 no fim deste dossiê.⟧ ~~A vantagem do surrogate CRESCE com a dimensão/pressão de orçamento — exatamente
   a tese da literatura SA-MOO.** O c217 abaixo dos pisos no ZDT1 é o caveat já aceito (surrogate
   majoritariamente inativo em δ=0.8). Em D=2 com 61 FE, MOEA puro com N=20 é competitivo (achado
   conhecido). Guias: melhor piso MMF1 smsemoa=4,86e-2 · DTLZ2 smsemoa=1,43e-1 · ZDT1 nsga2=6,12e-1.
@@ -167,7 +167,7 @@ Recomputado do zero pela torre (semente 0; IGD+ normalizado D69/D70 · HV · mel
 **(1) MONOTONICIDADE: 15/15 configs, 3/3 problemas, ZERO violações.** Todos os runs convergem de
 forma monotônica nos checkpoints. É o teste de sanidade mais básico do pipeline — e passa limpo.
 
-**(2) A RÉGUA — a vantagem do surrogate CRESCE com a dimensão** (o achado central p/ a dissertação):
+**(2) A RÉGUA — ⟦SUPERSEDED por D9/F5⟧ ~~a vantagem do surrogate CRESCE com a dimensão~~ → a separação é por FAMÍLIA de problema** (leitura da R1 abaixo mantida como histórico):
 SA-MOEAs que batem o MELHOR piso: **MMF1 (D=2): 2/11** → **DTLZ2 (D=12): 4/11** → **ZDT1 (D=30):
 8/10**. Em D=2 com 61 avaliações, um MOEA puro com N=20 é competitivo (achado conhecido da
 literatura); sob 929 avaliações em D=30, o surrogate domina. **É exatamente a tese da literatura
@@ -290,3 +290,42 @@ cadeia do congelamento), 1 é dado descasado (`batch/c149/ZDT4`, célula excluí
 **Plano de reparo antes das 30 sementes:** `f5/PLANO_RODADA_PERFEITA.md` — 16 bloqueadores
 + melhorias de instrumentação, ~19 h de código, **zero re-execução obrigatória**.
 
+---
+
+## §D9 — AS 5 CONCLUSÕES CIENTÍFICAS RATIFICADAS (autor, 2026-07-29) — vinculantes p/ a dissertação
+
+Ratificadas em bloco após a análise de fidelidade F5 (666 células, 24 configs, 14 céticos).
+**Este bloco é a fonte canônica: qualquer texto anterior deste dossiê que os contradiga está
+SUPERSEDED.**
+
+1. **A régua é por FAMÍLIA, não por dimensão.** "A vantagem do surrogate cresce com D" foi
+   construída sobre 3 problemas na R1 e **não se sustenta nos 25**: BBOB 66% · ZDT 62% ·
+   MMF 62% · DTLZ 34% · WFG 26% de comparações favoráveis. **Freio obrigatório:** em 1 semente
+   só **17,7%** (54/305) das comparações excedem o piso de ruído entre máquinas (HV ≤1,55%);
+   MMF tem 0/50 e WFG 1/58 conclusivas. A inferência é do M8/M9 com 30 sementes.
+   *(fontes: `f5/transversal_regua.csv`, `f5/transversais_f55_adendo.md` §A, O-18)*
+2. **O endpoint do regime OFFLINE é a camada ⑦, nunca a ①.** As métricas da ① **empatam por
+   desenho** entre os 5 configs offline (a ① É o dataset compartilhado; D69 lê a ①). Pela ⑦:
+   e103 IGD+ 0,2251/17 vitórias · b5r 0,3814 · b5m 0,4868 · moead_media 0,5959 · c311 0,7211.
+   A própria F5 errou nisto e se autocorrigiu (a §4 do sweep passou de 46×4 para **29×21** ao
+   ser refeita pela ⑦). *(fontes: `f5/transversais_f55_sec4_corrigida.md`, `transversal_offline_camada7.csv`)*
+3. **Caveat do c311 no tier `small`:** o paper reivindica n=2.000; o tier small opera ABAIXO
+   desse regime ⇒ resultado fora do envelope de projeto declarado. E mais dado **REDUZ** a
+   fração do surrogate coberta por GPs (σ-NaN mediano 90,3% no big). *(`c311.md` §7-5-iv)*
+4. **O congelamento do b5m é RESULTADO, não bug** (classe (b) da F5.4): `ReferenceVectors.adapt`
+   com amplitude 0 → `values` zerados (105/105) → PBI **1000/1000 NaN** → `P_wrong ≡ 0` →
+   **0 substituições em 798.000 comparações**, dentro de execuções bit-idênticas às arquivadas,
+   com o código oficial (Cheng-2016). **NÃO inserir guard** (seria extensão nossa e apagaria o
+   achado). b5m/DTLZ1 e b5m/DTLZ3 são declarados **cientificamente vazios**. A ablação D77 é
+   publicada em **duas leituras** (45 e 31 células): o efeito em σ sobrevive (p=0,0012→0,0020),
+   o efeito direcional em IGD+ enfraquece (p=0,281→0,624). *(`adversarial/b5m-A8.md`)*
+5. **Homologação em bloco dos enquadramentos da F5.4:** dos 13 achados classe (3) escalados —
+   **5 refutados** (b4-A12, c154-J27, moead-M16, moead_media-C9b, e103-A25), **1 parcial**
+   (sobol_batch-S23 → 1 campo), **6 confirmados (d) instrumentação/doc**, **1 (b) resultado**
+   (b5m), **1 (c) dado descasado** (③ do c149/ZDT4) e **ZERO (a)** — nenhum bug de
+   implementação de algoritmo em 24 configs. *(`f5/RELATORIO_FINAL_F5.md` §2.2-D8)*
+
+**Os 24 caveats operacionais** que acompanham estas 5 conclusões estão em
+`f5/RELATORIO_FINAL_F5.md` §2.3 e são **igualmente vinculantes** (incl.: n_nd/spacing/GD do
+DTLZ4 inválidos por float32 — IGD+ e HV são invariantes; N efetivo 40≠45 nos DESDEO;
+`repo_hash` vazio em 666/666; b4 usou surrogate em 25,8% dos FEs; c217 gateou 4,6%).

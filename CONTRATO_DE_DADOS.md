@@ -165,9 +165,15 @@ tabela ③, diferenciadas pela coluna `regime`.
   documentada, precedente DI-08).
 - **Cadência:** ONLINE = a cada **k=2** gerações/iterações + SEMPRE a 1ª e a última — **FÓRMULA NORMATIVA ⟦DI-12.5/DI-21⟧: `g == 1 OU mod(g, k) == 0` ⇒ gerações {1, 2, 4, 6, 8, …}; a última via finalProbe/BudgetExhausted** (a fórmula é a vinculante; a prosa admitia duas leituras e já custou uma divergência entre stacks);
   OFFLINE = **1× por modelo treinado** (o modelo não muda — e103 grava 2 blocos: Kriging e RBFN).
-  Cada bloco de sonda grava também o `fe` corrente no jsonl (evento `sonda`) — **o eixo de
-  comparação entre algoritmos é o FE consumido** (as "gerações" de algoritmos diferentes não são
-  alinhadas entre si; o FE é).
+  Cada bloco de sonda grava no jsonl (evento `sonda`) o **`fe_treino_max`** — **⟦DI-42.5(b),
+  autor 2026-07-28⟧ o EIXO OFICIAL de comparação entre algoritmos é o `fe_treino_max`** (o
+  fe_index do ponto mais novo que o modelo tinha APRENDIDO quando a foto foi tirada; presente na
+  ③ e no evento ⑥, povoado nos DOIS stacks — verificado na rodada-42). Racional: comparar
+  surrogates pelo CONHECIMENTO ingerido é justo entre algoritmos com cadências de retreino
+  diferentes; o `fe`-no-instante (orçamento GASTO na hora da foto, `≥ fe_treino_max`, defasagem
+  ≤ tamanho do lote/geração) mediria relógio, não aprendizado — fica OPCIONAL e é reconstituível
+  a posteriori cruzando os eventos de avaliação do próprio ⑥. (As "gerações" de algoritmos
+  diferentes não são alinhadas entre si; o eixo de FE é.)
 - **Como grava:** ⟦DI-13.5 — corrigido: dizia "2000 linhas" sem qualificar o regime⟧ **ONLINE grava 2000 linhas** (`geracao`=corrente) e **OFFLINE grava 20.000 linhas** (`geracao`=**NULL** — o modelo treina antes do laço) na ③ com `regime='sonda'`, `fe_treino_max`,
   `real_solution_id=NULL`, e a MESMA semântica de saída que o modelo daquele algoritmo produz
   (tabela §3.2). O gabarito (f verdadeiro) NÃO se repete na ③ — está no artefato, join por

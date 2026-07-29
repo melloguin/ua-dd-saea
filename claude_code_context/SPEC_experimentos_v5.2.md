@@ -1219,8 +1219,13 @@ com modelo (GP × RBF × PNN × rede × classificador), livre do viés de amostr
   BIT-IDÊNTICA a uma sonda gerada com 2.000, logo a régua é a MESMA nos dois regimes na faixa
   compartilhada. O sidecar v2 traz `S`/`S_online` + `x_hash`/`x_hash_online` — cada regime confere
   o SEU hash (e103 grava 2 blocos: Kriging e RBFN). **⚠ EXCEÇÃO c311 — o modelo NÃO é fixo** [C311-02/DI-16.12]: no TGPR-MO o surrogate é CONSTRUÍDO dentro de um laço (1 GP de folha por iteração, até Imax=⌈N/(10D)⌉ — 2.500 no tier big), então a premissa 'offline = modelo treinado 1×' não se aplica. Sondar por iteração é inviável (2.500×20.000 linhas). **Regra p/ o c311: exatamente 2 blocos fixos** — (i) ao FIM da construção da árvore (`modelo_flag='treedGP_build'`) e (ii) ao FIM do run (`modelo_flag='treedGP_final'`), ambos com `geracao`=NULL. O evento `sonda` do `.jsonl`
-  registra `geracao`, `fe` e `tempo_pred_sonda_s` — o eixo de comparação entre algoritmos é o
-  **FE consumido** (gerações não são alinhadas entre configs).
+  registra `geracao`, `fe_treino_max` e `tempo_pred_sonda_s` — **⟦DI-42.5(b), autor 2026-07-28⟧
+  o EIXO OFICIAL de comparação entre algoritmos é o `fe_treino_max`** (o fe_index do ponto mais
+  novo que o modelo tinha APRENDIDO na foto — presente na ③ E no evento ⑥, povoado nos 2 stacks),
+  não o relógio: comparar surrogates pelo conhecimento ingerido é justo entre cadências de
+  retreino distintas; o `fe`-no-instante-da-foto (gasto corrente, `≥ fe_treino_max`, defasagem
+  ≤ tamanho do lote) fica OPCIONAL e é reconstituível do próprio ⑥ (eventos de avaliação ×
+  geração). Gerações não são alinhadas entre configs; o eixo de FE é.
 - **Gravação:** 2000 linhas na ③ (`regime='sonda'`, `real_solution_id=NULL`, `fe_treino_max`
   preenchido), na ORDEM do artefato (join com o gabarito POR POSIÇÃO dentro do bloco — invariante
   do writer). A saída segue a semântica do modelo de cada algoritmo (tabela no

@@ -218,6 +218,14 @@ está detalhada, com opções, recomendação da torre e consequência de cada e
 
 ---
 
+## 6-bis. LAUDO DA INSTRUMENTAÇÃO (documento irmão)
+
+`handoff/F5-LAUDO-INSTRUMENTACAO.md` responde às perguntas do autor sobre retry, sonda e
+tempo, com 8 recomendações medidas. **A crítica: a identidade da referência do
+classificador não é logada em c217/c122/e74 (0/25 células cada) — sem ela a qualidade do
+classificador é NÃO-MENSURÁVEL, e isso é irrecuperável a posteriori.** Custo total do
+laudo: ~2 h de código. Traz 1 decisão para o autor (sonda estratificada).
+
 ## 7. COMO CONTINUAR
 
 1. **Autor decide as 16** (§6) — a maioria em bloco, com as recomendações.

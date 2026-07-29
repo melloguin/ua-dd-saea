@@ -24,6 +24,11 @@
 | **F5.3a pilotos** | ✅ | c217 9,0 (≡ âncora do autor) · e81 10 · e7 10 · b1 9,3 · c311 8,5 — ZERO classe (3) | 
 | F5.3b–F5.7 | ⬜ | aguarda calibração do autor |
 
+> 📎 **Laudo complementar:** `handoff/F5-LAUDO-INSTRUMENTACAO.md` — as 8 melhorias de
+> INSTRUMENTAÇÃO PARA ANÁLISE (retry, sonda de classificadores, tempo), medidas nas 666
+> células. Complementa este registro: aqui é "o dado é confiável?", lá é "o dado permite
+> a análise?".
+
 **Itens já acumulados para a torre central corrigir (consolidação final na F5.7):**
 1. 🔴 **B1** — `experiments.py:209` sobrescreve `status=failed` do runner com `ok`
    (provado de novo aqui: a célula REPROVADA da F5.1 estava `ok` no manifesto).

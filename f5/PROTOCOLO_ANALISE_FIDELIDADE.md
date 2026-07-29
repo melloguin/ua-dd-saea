@@ -111,13 +111,29 @@ Piloto mostrou: a norma é incomensurável (orçamentos 2-20×, dimensões, M, m
 diferentes; e81 sem tabela numérica; c311 sem IGD e fora do envelope N≥2000). BBOB
 nunca compara com literatura (front empírico).
 
-## Etapa 7 — Relatório padronizado por config
+## Etapa 7 — Relatório padronizado por config ⟦v1.1 — formato RICO, autor 2026-07-29⟧
 
-Ordem fixa: Ficha do mecanismo → tabela de aspectos (Etapa 4) → **% por classe (com
-denominador)** → comparação canônica → veredito de contrato (interpretação dos ⚠ da
-F5.2: "por desenho, cite a regra" vs "defeito, escale") → score + recomendação → teto
-de verificabilidade (T) → armadilhas confirmadas. **1 conclusão = 1 tabela/gráfico** —
-sem análise decorativa (regra do autor).
+Ordem fixa: Ficha do mecanismo → **DISSECAÇÃO DOS ASPECTOS (o CORE)** → **% por classe
+(com denominador)** → comparação canônica → veredito de contrato → score +
+recomendação → teto de verificabilidade (T) → armadilhas confirmadas.
+
+**⟦v1.1⟧ A dissecação dos aspectos é NARRATIVA e DETALHADA** (ajuste do autor após os
+pilotos): abre com uma tabela-resumo compacta (1 linha/aspecto: nome, classe,
+verificabilidade, resultado-síntese) e segue com **um bloco de texto por aspecto**
+(1-3 parágrafos cada) cobrindo obrigatoriamente:
+(a) **o que o artigo prescreve** (referência de seção/equação + citação curta);
+(b) **o que a nossa SPEC/implementação definiu** e POR QUÊ (a decisão D-xx/DI-xx e o
+racional dela);
+(c) **o que foi OBSERVADO nos dados** (a query, os números agregados, células
+exemplares com valores concretos);
+(d) **por que aconteceu** — o mecanismo causal que liga (a)-(b)-(c);
+(e) o veredito: classe (1)/(2)/(3)/T + verificabilidade.
+Caso a caso, rico em detalhe — estas são as respostas principais da análise. A regra
+"1 conclusão = 1 tabela/gráfico" segue valendo para as DEMAIS seções (saúde, canônica),
+não para a dissecação, que é texto longo por desenho.
+
+*(Calibração do autor 2026-07-29: régua de score RATIFICADA como está — 10 alcançável
+com dados quando tudo é (1)/(2) com contrato e saúde limpos; T declarado à parte.)*
 
 ## 5. DEFINIÇÕES CONGELADAS (Botão 1)
 

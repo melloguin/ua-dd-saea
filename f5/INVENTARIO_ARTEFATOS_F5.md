@@ -191,7 +191,45 @@ tiers e LHS×MVNS; (5) batch vs Sobol; (6) as ablações D77 e big.
 
 ## 7. CONSOLIDAÇÃO FINAL — fases F5.6 e F5.7
 
-*(preenchido ao fechar as fases)*
+### `f5/RELATORIO_FINAL_F5.md` (199 KB) — **o entregável para a mesa D97**
+**Fase:** F5.6. **O que é:** o relatório para o autor, em 4 blocos: §0 o veredito em uma
+página (663 aprovadas, 3 excluídas, 24 configs, zero bugs de algoritmo) · §1 a
+**matriz-mestra 24 configs × 7 dimensões** (P1 protocolo · P2 contrato · P3 mecanismo ·
+P4 saúde · P5 canônica · P6 vs pisos · P7 adversarial) · §2 "onde olhar primeiro"
+(11 itens rankeados, só o que não está bem), as decisões que só o autor pode tomar e os
+caveats obrigatórios para a dissertação · §3 os **24 capítulos-síntese**, cada um com
+células, % por classe, a prova central do mecanismo e o número que a sustenta.
+**Serve para:** é o documento do julgamento D97 — o autor lê este e decide.
+
+### `f5/PLANO_RODADA_PERFEITA.md` (233 linhas)
+**Fase:** F5.7. **O que é:** o plano de reparo para a torre central antes das 30
+sementes: **16 bloqueadores** (B-01 a B-16, cada um com arquivo:linha, o número medido na
+rodada-42, o que acontece nas 30 sementes se não corrigir — quantificado —, a correção, o
+custo e o teste que prova a correção) + **B-17** (acrescentado pela torre: a análise de
+sweep não pode usar a camada ①) + melhorias de instrumentação (os `CONFIRMADO(d)` da
+F5.4) + decisões de escopo + células a re-rodar + o que deve virar gate automático.
+**Total: ~19 h de código, zero re-execução obrigatória.**
+**Serve para:** um implementador executa sem ler mais nada.
+
+### `f5/consolidacao/` (7 arquivos, ~450 KB)
+**Fase:** F5.6. **O que são:** as saídas brutas dos 6 agentes de consolidação —
+`g1..g4-*.md` (os extratos estruturados dos 24 relatórios, em JSON), `escalacoes.md`,
+`plano.md`, mais `matriz_dados.json` (os 24 registros parseados) e `matriz_mestra.md`.
+**Serve para:** rastrear cada célula da matriz-mestra até o relatório de origem.
+
+### `f5/transversais_f55_sec4_corrigida.md` + `transversal_sweep_camada7.csv`
+**Fase:** F5.5 (correção emitida na F5.6). **O que é:** a análise do sweep REFEITA pela
+camada ⑦, depois que o consolidador provou que a versão anterior media o dataset e não o
+algoritmo (119 linhas → 30 valores distintos). Os números mudam materialmente:
+"mais dado → melhor" cai de 46×4 para **29×21**; LHS×MVNS de 32×27 para 27×32; e o
+ranking passa a discriminar (c311 15 vitórias · e103 10 · treed_media 3).
+**Serve para:** é a versão citável; a §4 original ficou como lápide no arquivo antigo.
+
+### `DOSSIE_FIDELIDADE_R1.md` *(na raiz do repo — atualizado, não criado, pela F5)*
+**Fase:** F5.6. **O que ganhou:** a seção final com o veredito consolidado dos 24 configs
+(score, recomendação, % por classe, prior v2 e o destino de cada achado classe (3) após o
+contraditório), as 3 células excluídas com causa e as 4 correções científicas que a F5
+produziu. **Serve para:** manter o dossiê histórico do projeto como fonte única do D97.
 
 ---
 

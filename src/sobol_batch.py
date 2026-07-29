@@ -26,6 +26,7 @@ from __future__ import annotations
 # ⚠ ORDEM: o `standalone_harness` pina as env vars de thread (D79/N.1.1) no
 # TOPO, ANTES de qualquer `import numpy`.
 from src import standalone_harness as H
+from src.checkpoint import Checkpointer as _Checkpointer   # [DI-43]
 
 import time
 
@@ -108,6 +109,9 @@ def run_sobol_batch(exp: str, alg: str, problema: str, semente, *,
     xl, xu = H._bounds(problema)
 
     buf = H.SnapshotBuffer()
+    # [DI-43] checkpoint atômico periódico — 25 gerações OU 30 min.
+    ckpt = _Checkpointer(exp, alg, problema, semente, D=D, M=M,
+                         regime="online", q=int(q), data_root=data_root, log=log)
     base = H.seed_base(alg, semente)
     status, motivo_parada = "ok", "orcamento"
     n_geracoes = 0
@@ -156,6 +160,7 @@ def run_sobol_batch(exp: str, alg: str, problema: str, semente, *,
                 buf.update_timing(g, tempo_busca_s=t_busca,
                                   tempo_pred_sonda_s=0.0,
                                   tempo_geracao_s=(time.time() - t_g0))
+                ckpt.talvez_gravar(bud, buf, iteracao=g)   # [DI-43]
                 log.decision(caminho="sobol_batch_gen",
                              motivo=f"lote Sobol scrambled q={q} (piso — sem "
                                     f"surrogate)",

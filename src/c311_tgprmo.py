@@ -96,6 +96,7 @@ import numpy as np
 from src import export as _export
 from src import naming
 from src import standalone_harness as H
+from src.checkpoint import Checkpointer as _Checkpointer   # [DI-43]
 from src.budget import BudgetExhausted
 
 # ── Identidade e constantes do config (Balde de parâmetros do cartão) ───────
@@ -493,6 +494,10 @@ def run_c311(exp: str, alg: str, problema: str, semente, *,
     buf.set_fe_treino_max(fe_treino_max)
     log = H.AuditLogger.for_run(exp, alg, problema, semente,
                                 data_root=data_root, append=False)
+    # [DI-43] checkpoint atômico periódico — 25 iterações OU 30 min.
+    ckpt = _Checkpointer(exp, alg, problema, semente, D=D, M=M,
+                         regime="offline", tier=tier, dist=dist,
+                         data_root=data_root, log=log)
 
     params = {
         "receita": "run_treed_GP(X,F,x_low,x_high) [2 fases] + RVEA(n_iterations=10) final",
@@ -625,6 +630,7 @@ def run_c311(exp: str, alg: str, problema: str, semente, *,
                 buf.update_timing(g_it, tempo_busca_s=t_busca_it,
                                   tempo_pred_sonda_s=0.0,
                                   tempo_geracao_s=t_fit_it + t_busca_it)
+                ckpt.talvez_gravar(bud, buf, iteracao=n_iter_build)   # [DI-43]
                 t_fit_total += t_fit_it
                 t_busca_total += t_busca_it
                 log.decision(

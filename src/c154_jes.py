@@ -105,6 +105,7 @@ from src import budget as _budget
 from src import export as _export
 from src import naming
 from src.audit_log import AuditLogger
+from src.checkpoint import Checkpointer as _Checkpointer   # [DI-43]
 from src import botorch_harness as _H
 from src.botorch_harness import (
     BoTorchProblemAdapter,
@@ -622,6 +623,10 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
 
     # (2) laço de BO até o hard-stop NATURAL (D61). 1 infill real/iteração.
     proj = _WallClockProjector(max_wall_s, t0, bud.maxfe)
+    # [DI-43] checkpoint atômico periódico — 25 iterações OU 30 min.
+    ckpt = _Checkpointer(exp, alg, problema, semente, D=adapter.D, M=adapter.M,
+                         regime="online", q=int(q), data_root=data_root, log=log)
+    truncou_por_teto = False                   # [DI-43] teto por RELÓGIO
     tempo_fit_total = 0.0
     tempo_busca_total = 0.0
     tempo_paths_total = 0.0
@@ -880,30 +885,36 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                  train_Y, U_cand)
             iteration_cleanup()
 
-            # projeção do teto de wall-clock do piloto (ZDT1 ≤ 8h).
+            # [DI-43] checkpoint atômico periódico (25 its OU 30 min).
+            ckpt.talvez_gravar(bud, buf, iteracao=it)
+
+            # teto de wall-clock (DI-44: 12 h) — elapsed-only desde a DI-43.
             proj.add(n_train, tempo_fit, time.time() - t_it0)
             over, proj_s, elapsed, criterio = proj.exceeded(bud.fe)
-            if over:
-                log.event("wall_projection_abort", it=it, fe=bud.fe,
-                          criterio=criterio,          # 'elapsed' | 'projecao'
+            if criterio == "projecao_warning" and not proj.avisou_projecao:
+                # [DI-43] a projeção não aborta mais: ela AVISA (1 linha/run).
+                proj.avisou_projecao = True
+                log.event("wall_projection_warning", it=it, fe=bud.fe,
                           elapsed_s=round(elapsed, 1),
+                          proj_restante_s=round(proj_s, 1),
+                          max_wall_s=max_wall_s,
+                          nota="projecao indica que o run nao fecha no teto; "
+                               "seguindo ate o relogio (truncamento-com-dado, "
+                               "DI-43/44)")
+            if over:
+                # [DI-43] TRUNCAMENTO-COM-DADO: fecha pelo rito normal com
+                # status='failed'/motivo='teto_wall' e as camadas parciais
+                # GRAVADAS. As 11 células D>=12 do main/c154 queimavam ~1,47 h
+                # cada (medido na s42) para entregar zero parquet.
+                truncou_por_teto = True
+                log.event("teto_wall_truncamento", it=it, fe=bud.fe,
+                          criterio=criterio, elapsed_s=round(elapsed, 1),
+                          max_wall_s=max_wall_s,
                           proj_restante_s=(None if proj_s is None
                                            else round(proj_s, 1)),
-                          max_wall_s=max_wall_s)
-                # [D-07/DI-21] mesmo padrão do c262/c122: failed no disco
-                # ANTES do raise (cenário B-2 da auditoria).
-                _manifesto_failed_teto(exp, alg, problema, semente, data_root,
-                                       criterio=criterio, elapsed_s=elapsed,
-                                       fe=bud.fe, maxfe=bud.maxfe)
-                raise WallClockAbort(
-                    f"teto de wall-clock do piloto estourado por "
-                    f"'{criterio}': {elapsed:.0f}s decorridos"
-                    + ("" if proj_s is None
-                       else f" + {proj_s:.0f}s projetados")
-                    + f" > {max_wall_s:.0f}s (fe={bud.fe}/{bud.maxfe}). Aborto "
-                      f"LIMPO — curva §17.6 parcial no jsonl + manifesto "
-                      f"failed. A decisão de completar é da torre/autor (M7). "
-                      f"Pára-e-loga (D81).")
+                          acao="fecha failed/teto_wall GRAVANDO as camadas "
+                               "parciais (DI-43/44 — curva parcial e o dado)")
+                break
     except _budget.BudgetExhausted:
         hard_stopped = True                       # D21/D61: fim limpo do laço
         iteration_cleanup()
@@ -920,7 +931,11 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
         doe_hash_sidecar=doe_art["doe_hash"], env=env, pinning=pinning,
         n_geracoes=n_iters_fit, algo_version=ALGO_VERSION,
         timing_totais=timing_totais, regime="online", q=int(q),
+        # [DI-43] truncamento-com-dado: teto fecha `failed` COM as camadas.
+        status=("failed" if truncou_por_teto else "ok"),
+        motivo_parada=("teto_wall" if truncou_por_teto else None),
         data_root=data_root, enable_bucket=enable_bucket)
+    out["manifest"]["checkpoint"] = ckpt.resumo()
     out["manifest"]["fused_kernel"] = fused_policy["fused_kernel"]
     out["manifest"]["sigma_dict"] = _sigma_dict()       # DEF-C4 (obrigatório)
     out["manifest"]["sonda"] = {**_sonda_header(sonda_art),
@@ -936,10 +951,14 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
     from src import manifest as _manifest
     _manifest.write_manifest(out["manifest"], data_root)
 
-    log.footer(status="ok", fe_final=bud.fe, n_geracoes=n_iters_fit,
+    # [DI-43] `status` mente, `motivo_parada` nao: o footer diz os dois.
+    log.footer(status=("failed" if truncou_por_teto else "ok"),
+               motivo=("teto_wall" if truncou_por_teto else None),
+               fe_final=bud.fe, n_geracoes=n_iters_fit,
                cache_hits=bud.cache_hits, cp_init=out["cp_init_ok"],
                rs_fallbacks_total=rs_fallbacks_total,
                n_blocos_sonda=n_blocos_sonda,
+               n_checkpoints=ckpt.n_checkpoints,
                hard_stopped=hard_stopped)
 
     return {

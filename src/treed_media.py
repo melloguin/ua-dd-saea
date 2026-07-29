@@ -69,6 +69,7 @@ from __future__ import annotations
 # ── ORDEM (D79/N.1.1): o `standalone_harness` (e o `c311_tgprmo`) pinam as env
 #    vars de thread ANTES de numpy, no import. Importá-los primeiro é o cinto. ──
 from src import standalone_harness as H
+from src.checkpoint import Checkpointer as _Checkpointer   # [DI-43]
 
 import contextlib
 import random
@@ -350,6 +351,13 @@ def run_treed_media(exp: str, alg: str, problema: str, semente, *,
     buf.set_fe_treino_max(fe_treino_max)
     log = H.AuditLogger.for_run(exp, alg, problema, semente,
                                 data_root=data_root, append=False)
+    # [DI-43] checkpoint atômico periódico — 25 iterações OU 30 min. O hook
+    # do `_next_gen` (linhas 174-183) alimenta o buffer a cada geração, então
+    # aqui há dado parcial de verdade para gravar (ao contrário do b5/piso-off,
+    # cujo ③ só nasce no replay pós-laço).
+    ckpt = _Checkpointer(exp, _ALG, problema, semente, D=D, M=M,
+                         regime="offline", tier=tier, dist=dist,
+                         data_root=data_root, log=log)
 
     params = {
         "receita": ("build_surrogates(X,F,x_low,x_high) [SÓ árvore, sem addGPs] + "
@@ -434,6 +442,8 @@ def run_treed_media(exp: str, alg: str, problema: str, semente, *,
                         break
                     evf.iterate()                   # 100 gerações (hook captura cada)
                     H.iteration_cleanup()
+                    ckpt.talvez_gravar(bud, buf,
+                                       iteracao=int(evf._current_gen_count))
             t_busca_total = time.time() - t_f0
             final_gen_last = int(evf._current_gen_count)
             pop_final = np.ascontiguousarray(

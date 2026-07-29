@@ -511,15 +511,21 @@ class TestTetoWallClockDI113(unittest.TestCase):
         self.assertFalse(over)
         self.assertIsNone(criterio)
 
-    def test_a_projecao_original_segue_funcionando(self):
-        # regressão: o critério (1) não foi trocado pelo (2).
+    def test_a_projecao_original_segue_sendo_CALCULADA(self):
+        # ⟦DI-43, emendada pela DI-44 — o teste MUDOU de contrato junto com a
+        # decisão⟧ A projeção (critério 1) continua sendo calculada e reportada,
+        # mas **não aborta mais**: ela virou `projecao_warning`. O aborto por
+        # projeção matava o run antes de existir qualquer parquet (medido na s42:
+        # 0,87–2,99 h por célula do main/c154 D≥12 para ZERO dado), e a doutrina
+        # nova é truncamento-com-dado — o run segue até o RELÓGIO e fecha
+        # `failed`/`teto_wall` GRAVANDO as camadas parciais.
         from src.c262_qnehvi import _WallClockProjector
         p = _WallClockProjector(max_wall_s=100.0, t0=time.time(), maxfe=500)
         for n in range(10, 20):
             p.add(n, 1.0, 1.0)                        # c·n³ ⇒ projeção enorme
         over, proj, _, criterio = p.exceeded(20)
-        self.assertTrue(over)
-        self.assertEqual(criterio, "projecao")
+        self.assertFalse(over)                        # ← era assertTrue (DI-43)
+        self.assertEqual(criterio, "projecao_warning")
         self.assertIsNotNone(proj)
 
     def test_sem_teto_nunca_dispara(self):

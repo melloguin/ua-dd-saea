@@ -73,6 +73,7 @@ from src import budget as _budget
 from src import export as _export
 from src import naming
 from src.audit_log import AuditLogger
+from src.checkpoint import Checkpointer as _Checkpointer   # [DI-43]
 from src import botorch_harness as _H
 from src.botorch_harness import (
     BoTorchProblemAdapter,
@@ -384,7 +385,12 @@ def _lote_greedy_sequencial(acqf, D: int, h2: int, q: int):
 class WallClockAbort(RuntimeError):
     """[D-07/DI-21] Aborto por teto de wall-clock — classe DISTINTA para o
     despachante reconhecer (pelo NOME, sem importar torch) que retriar não
-    conserta: cada retry estouraria o MESMO teto (8h virariam 24h)."""
+    conserta: cada retry estouraria o MESMO teto (8h virariam 24h).
+
+    ⟦DI-43/44⟧ **O rito do teto não a levanta mais** (o run trunca e fecha
+    `failed`/`teto_wall` COM as camadas). Ela fica: (i) o despachante mantém o
+    ramo não-retriável por NOME, que é barato e defende qualquer runner futuro;
+    (ii) o `teto_s` de um runner standalone pode continuar usando-a."""
 
 
 def _manifesto_failed_teto(exp, alg, problema, semente, data_root, *,
@@ -394,7 +400,10 @@ def _manifesto_failed_teto(exp, alg, problema, semente, data_root, *,
     do mesmo run_id sobreviviam ao lado de um jsonl novo dizendo failed, e o
     `is_run_done` (D58) lia o run truncado como PRONTO — o cenário B-2 da
     auditoria. O manifesto é NOVO (não mescla): misturar campos ricos da
-    execução antiga com o aborto novo confundiria duas execuções."""
+    execução antiga com o aborto novo confundiria duas execuções.
+
+    ⟦DI-43/44⟧ Fora do rito do teto (que agora fecha pelo `write_run_outputs`
+    com as camadas parciais); segue disponível para aborto SEM dado."""
     from src import manifest as _manifest
     man = _manifest.new_manifest(
         exp, alg, problema, semente, status="failed",
@@ -406,28 +415,34 @@ def _manifesto_failed_teto(exp, alg, problema, semente, data_root, *,
 
 
 class _WallClockProjector:
-    """Teto de wall-clock do piloto (ZDT1 ≤ ~8h) por DOIS critérios independentes.
+    """Teto de wall-clock (DI-44: **12 h**) — hoje com UM critério de aborto.
 
-    (1) **Projeção** (original): ajusta `t_fit ≈ c·n³` nas últimas iterações e
-        projeta o restante do run (fits em n crescente + busca/aval
-        ~constantes); só arma depois de 10 amostras.
+    (1) **Projeção**: ajusta `t_fit ≈ c·n³` nas últimas iterações e projeta o
+        restante do run (fits em n crescente + busca/aval ~constantes); só arma
+        depois de 10 amostras. ⟦**DI-43/44: NÃO ABORTA MAIS** — virou AVISO.⟧
     (2) **Teto de tempo DECORRIDO** (DI-11.3, adendo B): `elapsed > max_wall_s`
-        aborta na hora, INDEPENDENTE da projeção.
+        aborta na hora. **É o único critério de aborto** (DI-43).
 
-    Por que (2) existe (lacuna achada na sessão do c154, D-8): a projeção só
-    arma na 11ª iteração. Num problema de ~45 min/iteração o run FURA um teto de
-    8h sem nunca projetar — o critério nunca chega a ser avaliado. O teste de
-    `elapsed` fecha essa janela e não muda nada quando (1) já morde.
+    **Por que (1) deixou de abortar [DI-43, emendada pela DI-44].** O aborto por
+    projeção matava o run ANTES de qualquer parquet existir: medido na s42, as
+    células do `main/c154` D≥12 queimaram 0,87–2,99 h cada (média 1,47 h — o
+    "~6,3 h" da DI-40 era ~4× superestimado, ERRATA da PARTE A32) para entregar
+    **zero dado**. Com o roster 100% e o teto de 12 h, a doutrina passa a ser
+    *truncamento-com-dado*: o run vai até o RELÓGIO e fecha
+    `failed`/`teto_wall` GRAVANDO as camadas parciais — "curva parcial é o
+    dado" (DI-37.1). A projeção continua sendo CALCULADA e LOGADA
+    (`wall_projection_warning`): ela é a estimativa que explica por que a célula
+    não vai fechar, e apagá-la perderia o diagnóstico.
 
-    NUNCA reduz orçamento — só decide abortar LIMPO (curva §17.6 parcial no
-    jsonl; o `write_run_outputs` não roda ⇒ sem parquets órfãos nem manifesto
-    `ok` mentiroso). Nada aqui toca a busca ou a numérica."""
+    NUNCA reduz orçamento e nada aqui toca a busca ou a numérica."""
 
     def __init__(self, max_wall_s: float | None, t0: float, maxfe: int):
         self.max_wall_s = max_wall_s
         self.t0 = t0
         self.maxfe = maxfe
         self.samples: list[tuple[int, float, float]] = []  # (n, t_fit, t_iter)
+        #: já avisamos que a projeção estourou? (1 linha por run, não 1 por it)
+        self.avisou_projecao = False
 
     def add(self, n: int, t_fit: float, t_iter: float) -> None:
         self.samples.append((int(n), float(t_fit), float(t_iter)))
@@ -458,18 +473,21 @@ class _WallClockProjector:
     def exceeded(self, n_now: int) -> tuple[bool, float | None, float, str | None]:
         """`(estourou, proj_restante_s|None, elapsed_s, criterio|None)`.
 
-        `criterio` ∈ {'elapsed', 'projecao'} diz QUAL dos dois disparou — vai
-        para o jsonl, porque a leitura de um aborto muda conforme o motivo."""
+        ⟦DI-43/44⟧ `estourou` é **True SÓ por `elapsed`**. Quando a projeção
+        indica que o run não fecharia no teto, devolve
+        `criterio='projecao_warning'` com `estourou=False`: o chamador LOGA e
+        segue rodando até o relógio, para entregar curva parcial em parquet.
+        """
         elapsed = time.time() - self.t0
         if self.max_wall_s is None:
             return False, None, elapsed, None
-        if elapsed > self.max_wall_s:            # (2) DI-11.3 — independente
+        if elapsed > self.max_wall_s:            # (2) DI-11.3 — o ÚNICO aborto
             return True, None, elapsed, "elapsed"
         proj = self.projection_s(n_now)          # (1) projeção pós-10-amostras
         if proj is None:
             return False, None, elapsed, None
         if (elapsed + proj) > self.max_wall_s:
-            return True, proj, elapsed, "projecao"
+            return False, proj, elapsed, "projecao_warning"
         return False, proj, elapsed, None
 
 
@@ -565,11 +583,15 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
 
     # (2) laço de BO até o hard-stop NATURAL (D61). 1 infill real/iteração.
     proj = _WallClockProjector(max_wall_s, t0, bud.maxfe)
+    # [DI-43] checkpoint atômico periódico — 25 iterações OU 30 min.
+    ckpt = _Checkpointer(exp, alg, problema, semente, D=adapter.D, M=adapter.M,
+                         regime="online", q=int(q), data_root=data_root, log=log)
     tempo_fit_total = 0.0
     tempo_busca_total = 0.0
     tempo_sonda_total = 0.0                    # DI-09 (agregado do manifesto)
     n_blocos_sonda = 0                         # blocos de 2000 linhas emitidos
     hard_stopped = False
+    truncou_por_teto = False                   # [DI-43] teto por RELÓGIO
     stall_streak = 0
     it = 0
     n_iters_fit = 0                            # iterações com modelo ajustado
@@ -794,30 +816,39 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
             del passos, extras
             iteration_cleanup()
 
-            # projeção do teto de wall-clock do piloto (ZDT1 ≤ 8h).
+            # [DI-43] checkpoint atômico periódico (25 its OU 30 min): as
+            # camadas parciais existem ANTES do fim, então uma morte matada
+            # (spot revogada, OOM, SIGKILL) não zera o run.
+            ckpt.talvez_gravar(bud, buf, iteracao=it)
+
+            # teto de wall-clock (DI-44: 12 h) — elapsed-only desde a DI-43.
             proj.add(n_train, tempo_fit, time.time() - t_it0)
             over, proj_s, elapsed, criterio = proj.exceeded(bud.fe)
-            if over:
-                log.event("wall_projection_abort", it=it, fe=bud.fe,
-                          criterio=criterio,          # 'elapsed' | 'projecao'
+            if criterio == "projecao_warning" and not proj.avisou_projecao:
+                # [DI-43] a projeção não aborta mais: ela AVISA (1 linha por
+                # run). O run segue até o relógio para entregar curva parcial.
+                proj.avisou_projecao = True
+                log.event("wall_projection_warning", it=it, fe=bud.fe,
                           elapsed_s=round(elapsed, 1),
+                          proj_restante_s=round(proj_s, 1),
+                          max_wall_s=max_wall_s,
+                          nota="projecao indica que o run nao fecha no teto; "
+                               "seguindo ate o relogio (truncamento-com-dado, "
+                               "DI-43/44)")
+            if over:
+                # [DI-43] TRUNCAMENTO-COM-DADO: sai do laço e fecha pelo rito
+                # normal com status='failed'/motivo='teto_wall' — as camadas
+                # parciais são GRAVADAS (era `raise WallClockAbort` e zero
+                # parquet: ~1,47 h/célula queimada por nada na s42).
+                truncou_por_teto = True
+                log.event("teto_wall_truncamento", it=it, fe=bud.fe,
+                          criterio=criterio, elapsed_s=round(elapsed, 1),
+                          max_wall_s=max_wall_s,
                           proj_restante_s=(None if proj_s is None
                                            else round(proj_s, 1)),
-                          max_wall_s=max_wall_s)
-                # [D-07/DI-21] failed no disco ANTES do raise — is_run_done
-                # nunca mais lê um aborto por teto como run pronto.
-                _manifesto_failed_teto(exp, alg, problema, semente, data_root,
-                                       criterio=criterio, elapsed_s=elapsed,
-                                       fe=bud.fe, maxfe=bud.maxfe)
-                raise WallClockAbort(
-                    f"teto de wall-clock do piloto estourado por "
-                    f"'{criterio}': {elapsed:.0f}s decorridos"
-                    + ("" if proj_s is None
-                       else f" + {proj_s:.0f}s projetados")
-                    + f" > {max_wall_s:.0f}s (fe={bud.fe}/{bud.maxfe}). Aborto "
-                      f"LIMPO — curva §17.6 parcial no jsonl + manifesto "
-                      f"failed. A decisão de completar é da torre/autor (M7). "
-                      f"Pára-e-loga (D81).")
+                          acao="fecha failed/teto_wall GRAVANDO as camadas "
+                               "parciais (DI-43/44 — curva parcial e o dado)")
+                break
     except _budget.BudgetExhausted:
         hard_stopped = True                       # D21/D61: fim limpo do laço
         iteration_cleanup()
@@ -833,7 +864,12 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
         doe_hash_sidecar=doe_art["doe_hash"], env=env, pinning=pinning,
         n_geracoes=n_iters_fit, algo_version=ALGO_VERSION,
         timing_totais=timing_totais, regime="online", q=int(q),
+        # [DI-43] truncamento-com-dado: o teto fecha o run como `failed` MAS
+        # com as camadas escritas — é o rito, não uma exceção ao rito.
+        status=("failed" if truncou_por_teto else "ok"),
+        motivo_parada=("teto_wall" if truncou_por_teto else None),
         data_root=data_root, enable_bucket=enable_bucket)
+    out["manifest"]["checkpoint"] = ckpt.resumo()
     out["manifest"]["acqf_ref_f"] = ref_f.tolist()
     out["manifest"]["fused_kernel"] = fused_policy["fused_kernel"]
     out["manifest"]["sigma_dict"] = _sigma_dict()       # DEF-C4 (obrigatório)
@@ -843,9 +879,14 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
     from src import manifest as _manifest
     _manifest.write_manifest(out["manifest"], data_root)
 
-    log.footer(status="ok", fe_final=bud.fe, n_geracoes=n_iters_fit,
+    # [DI-43] o footer não pode dizer 'ok' num run truncado: `status` mente e
+    # `motivo_parada` não — a triagem tem de casar os dois (história do B1).
+    log.footer(status=("failed" if truncou_por_teto else "ok"),
+               motivo=("teto_wall" if truncou_por_teto else None),
+               fe_final=bud.fe, n_geracoes=n_iters_fit,
                cache_hits=bud.cache_hits, cp_init=out["cp_init_ok"],
                n_blocos_sonda=n_blocos_sonda,
+               n_checkpoints=ckpt.n_checkpoints,
                hard_stopped=hard_stopped)
 
     return {

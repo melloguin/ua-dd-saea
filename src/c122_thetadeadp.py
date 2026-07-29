@@ -43,6 +43,8 @@ import time
 # do módulo, ANTES de qualquer `import numpy`. Importá-lo primeiro é o que faz o
 # pinning valer neste processo.
 from src import standalone_harness as H
+from src.checkpoint import Checkpointer as _Checkpointer   # [DI-43]
+
 
 import numpy as np
 
@@ -642,7 +644,11 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
     T_MAX = 11 * D + 24                                    # janela do update
     counter = PerCounter(MU)                               # NOVO por run
     sonda = H.load_sonda(problema, regime="online", data_root=data_root)
+
     buf = H.SnapshotBuffer()
+    # [DI-43] checkpoint atômico periódico — 25 gerações OU 30 min.
+    ckpt = _Checkpointer(exp, alg, problema, semente, D=D, M=M,
+                         regime="online", q=1, data_root=data_root, log=log)
 
     sigma_dict = {
         "modelo": "2 FNNs 2x200 ReLU par-a-par (Pareto-Net + theta-Net), "
@@ -852,6 +858,7 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                            tempo_fit_s=t_fit, tempo_busca_s=t_busca,
                            tempo_pred_sonda_s=t_snd,
                            tempo_geracao_s=(time.time() - t_g0) - t_snd)
+            ckpt.talvez_gravar(bud, buf, iteracao=g)     # [DI-43]
 
             # ── ⑥ jsonl: mínimo comum DI-10 + os campos do c122 (S.7.1) ────
             F_arc = np.asarray([ind.fitness.values for ind in archive],

@@ -122,6 +122,7 @@ import numpy as np
 from src import export as _export
 from src import naming
 from src import standalone_harness as H
+from src.checkpoint import Checkpointer as _Checkpointer   # [DI-43]
 from src.budget import BudgetExhausted, FEBudget, maxfe_por_exp
 
 # ── Identidade e constantes do config (Balde de parâmetros do cartão) ───────
@@ -598,6 +599,9 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
 
     sonda = H.load_sonda(problema, regime="online", data_root=data_root)
     buf = H.SnapshotBuffer()
+    # [DI-43] checkpoint atômico periódico — 25 gerações OU 30 min.
+    ckpt = _Checkpointer(exp, alg, problema, semente, D=D, M=M,
+                         regime="online", q=int(q), data_root=data_root, log=log)
     espia = _Espia()
 
     #: **bounds = [0,1]^D** — o invariante que mata o bug maximin (§22.4·3.5).
@@ -1049,6 +1053,7 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                     buf.update_timing(
                         g, tempo_busca_s=t_busca, tempo_pred_sonda_s=t_snd,
                         tempo_geracao_s=(time.time() - t_g0) - t_snd)
+                ckpt.talvez_gravar(bud, buf, iteracao=g)   # [DI-43]
                 # higiene D86: soltar os tensores/objetos da iteração antes
                 # do `gc.collect()`. O `mo` NÃO entra aqui — fica retido de
                 # propósito em `estado_sonda` (a sonda final o usa); é 1

@@ -56,6 +56,7 @@ import time
 # ⚠ ORDEM: o `standalone_harness` pina as env vars de thread (D79/N.1.1) no
 # TOPO do módulo, ANTES de qualquer `import numpy`.
 from src import standalone_harness as H
+from src.checkpoint import Checkpointer as _Checkpointer   # [DI-43]
 
 import numpy as np
 
@@ -600,6 +601,9 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
 
     sonda = H.load_sonda(problema, regime="online", data_root=data_root)
     buf = H.SnapshotBuffer()
+    # [DI-43] checkpoint atômico periódico — 25 gerações OU 30 min.
+    ckpt = _Checkpointer(exp, alg, problema, semente, D=D, M=M,
+                         regime="online", q=int(q), data_root=data_root, log=log)
 
     ativacoes = ["tanh", "ReLU", "CELU", "LeakyReLU", "ELU",
                  "Hardswish", "tanh", "ReLU", "CELU", "LeakyReLU"]
@@ -879,6 +883,7 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
             buf.update_timing(g, tempo_busca_s=t_busca,
                               tempo_pred_sonda_s=t_snd,
                               tempo_geracao_s=(time.time() - t_g0) - t_snd)
+            ckpt.talvez_gravar(bud, buf, iteracao=g)     # [DI-43]
             F_arc_pos = np.vstack([r.f for r in bud.records])
             log.decision(
                 caminho=f"c149_gen:{sel['caminho']}",

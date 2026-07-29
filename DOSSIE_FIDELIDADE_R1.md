@@ -231,3 +231,62 @@ se sustentam em evidência MECÂNICA, não em ranking.
 **Uso no julgamento D97:** as notas ≠ fidelidade. b3/c154/c217/c141/moead têm comportamento
 concretamente ruim POR MECANISMO FIEL (stock honesto sob nosso orçamento) — a decisão de aceitar/
 sinalizar é sua; a evidência mecânica de cada linha está pronta para o veredito.
+
+---
+
+## 🏁 VALIDAÇÃO F5 DA RODADA-42 — o veredito consolidado (torre de fidelidade, 2026-07-29)
+
+> **Substitui as notas v1/v2 como base do julgamento D97.** As notas anteriores mediam
+> COMPORTAMENTO em 3 problemas da semente 0; esta tabela mede **FIDELIDADE** em 25 problemas
+> da semente 42, com o protocolo `f5/PROTOCOLO_ANALISE_FIDELIDADE.md` (v1.1) e verificação
+> adversarial de todo achado. Relatório completo: `f5/RELATORIO_FINAL_F5.md`.
+> Escopo: 666 células, 663 aprovadas, 3 excluídas com causa.
+
+| config | score F5 | recomendação | classes (1)/(2)/(3) | prior v2 | classe (3) após adversarial |
+|---|---:|---|---|---|---|
+| **e7** | **10.0** | aceitar | 53.6/46.4/0.0 | 7,0 | — |
+| **nsga2** | **10.0** | aceitar | 39.1/60.9/0.0 | 10 | — |
+| **nsga3** | **10.0** | aceitar | 42.9/57.1/0.0 | 10 | — |
+| **smsemoa** | **10.0** | aceitar | 27.3/72.7/0.0 | 10 | — |
+| **b3** | **9.6** | aceitar | 29.6/70.4/0.0 | 6,0 | — |
+| **c122** | **9.5** | aceitar+caveat | 32.1/64.3/3.6 | 8,0 | A27: CONFIRMADO(d) |
+| **c141** | **9.5** | aceitar | 33.3/66.7/0.0 | 5,0 | — |
+| **c217** | **9.5** | aceitar | 38.5/61.5/0.0 | 6,0 | — |
+| **c238** | **9.5** | aceitar+caveat | 40.0/60.0/0.0 | 7,5 | — |
+| **c262** | **9.5** | aceitar | 33.3/66.7/0.0 | 9,5 | — |
+| **c311** | **9.5** | aceitar | 29.6/70.4/0.0 | 7,5 | — |
+| **e81** | **9.5** | aceitar | 35.7/60.7/3.6 | 9,0 | B28: CONFIRMADO(d) |
+| **treed_media** | **9.5** | aceitar | 25.9/74.1/0.0 | — | — |
+| **b1** | **9.4** | aceitar+caveat | 25.0/75.0/0.0 | 8,5 | — |
+| **e103** | **9.3** | aceitar+caveat | 61.5/34.6/3.8 | 8,5 | A25: REFUTADO como classe (3) → rebaixado a CONFIRMADO(d) — defeito de instrumentação/propagação de espelho, não desvio de fidelidade |
+| **b4** | **9.0** | aceitar+caveat | 36.0/60.0/4.0 | 8,5 | A12: REFUTADO |
+| **b5r** | **9.0** | aceitar+caveat | 26.9/69.2/3.8 | 7,0 | A30: CONFIRMADO(d) |
+| **c149** | **9.0** | aceitar+caveat | 59.3/37.0/3.7 | 5,0 | A26: CONFIRMADO(c) |
+| **e74** | **9.0** | aceitar+caveat | 43.3/56.7/0.0 | 8,0 | — |
+| **moead** | **9.0** | aceitar | 29.6/66.7/3.7 | 4,0 | M16: REFUTADO — 100% explicadas pela D53 (⑥ em float64 × ① em float32); bracket fecha 469/469 no moead e 1.634/1.634 nos 4 pisos, 0 inexplicadas; reclassificado como (2) sancionado citando D53 + D57 item 3 + CONTRATO R4#1 |
+| **moead_media** | **9.0** | aceitar+caveat | 32.1/64.3/3.6 | 9,0 | C9b: REFUTADO |
+| **sobol_batch** | **9.0** | aceitar+caveat | 24.0/64.0/12.0 | — | S23: CONFIRMADO(d); S24: CONFIRMADO(d); S25: não enviado à F5.4 — já inventariado como item 6 da torre; abre correção ao texto da F5.2b, não trabalho novo |
+| **c154** | **8.5** | aceitar+caveat | 37.0/59.3/3.7 | 6,0 | J27: REFUTADO |
+| **b5m** | **8.0** | aceitar+caveat | 45.5/50.0/4.5 | 5,0 | A25: CONFIRMADO(d); A8: CONFIRMADO(b) |
+
+**Síntese:** média **9,33** · **todos ACEITAR** (13 com caveat) · **ZERO bugs de
+implementação de algoritmo** em 24 configs. Dos 13 achados classe (3): 5 refutados no
+contraditório, 6 são defeito de instrumentação/log, 1 virou resultado científico (b5m: a
+cadeia do congelamento), 1 é dado descasado (`batch/c149/ZDT4`, célula excluída).
+
+**As 3 células excluídas pela validação** (somam-se às 29 que não rodaram):
+`sweep-big-mvns/c311/MMF16_20` (F5.1 — aborto interno mascarado, bug B1) ·
+`main/b1/WFG1` (F5.2a — ⑥ com 49 eventos truncados, escrita concorrente na vm3) ·
+`batch/c149/ZDT4` (F5.4 — quimera: ③ de outra execução, provado 2.000/2.000 × 0/2.000).
+
+**Correções científicas que a F5 produziu** (a serem incorporadas na dissertação):
+1. A régua "a vantagem do surrogate cresce com D" **não se sustenta** nos 25 problemas —
+   o que separa é a FAMÍLIA do problema (BBOB 66% · ZDT 62% · MMF 62% · DTLZ 34% · WFG 26%).
+2. No regime OFFLINE as métricas da ① **empatam por desenho** entre os 5 configs (a ① É o
+   dataset compartilhado) — o endpoint válido é a ⑦ (`nd_pos_real`).
+3. Pela ⑦, "mais dado → melhor" no sweep cai de 46×4 para **29×21**; LHS×MVNS = 27×32.
+4. Os GPs locais do c311 melhoram o endpoint em 7 de 9 células big vs `treed_media`, a ~100× o custo.
+
+**Plano de reparo antes das 30 sementes:** `f5/PLANO_RODADA_PERFEITA.md` — 16 bloqueadores
++ melhorias de instrumentação, ~19 h de código, **zero re-execução obrigatória**.
+

@@ -70,7 +70,7 @@ significa "incomensurável com o paper", que é um fato do desenho, não do algo
 
 ## 2. ONDE OLHAR PRIMEIRO + DECISÕES DO AUTOR
 
-## 1. ONDE OLHAR PRIMEIRO
+### 2.1 ONDE OLHAR PRIMEIRO
 
 *(ranqueado por severidade; só o que NÃO está bem)*
 
@@ -116,7 +116,7 @@ significa "incomensurável com o paper", que é um fato do desenho, não do algo
 
 ---
 
-## 2. DECISÕES DO AUTOR (D97)
+### 2.2 DECISÕES DO AUTOR (D97)
 
 | # | decisão | contexto (2 linhas) | opções | recomendação da torre | consequência de cada opção |
 |---:|---|---|---|---|---|
@@ -139,7 +139,7 @@ significa "incomensurável com o paper", que é um fato do desenho, não do algo
 
 ---
 
-## 3. CAVEATS OBRIGATÓRIOS PARA A DISSERTAÇÃO
+### 2.3 CAVEATS OBRIGATÓRIOS PARA A DISSERTAÇÃO
 
 1. **Base = 1 semente.** Tudo em `f5/transversais_f55.md` é **descritivo, não teste estatístico** — a inferência é do M13/M8-M9 com 30 sementes. *(cabeçalho da F5.5)*
 2. **Piso de ruído entre máquinas: HV ≤1,55%, IGD+ até 58,98% (O-18)** — diferenças abaixo disso não são conclusivas; só **54 de 305** comparações da régua (17,7%) estão acima dele. *(`f5/transversal_regua.csv`, coluna `n_conclusivas`)*

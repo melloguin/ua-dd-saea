@@ -165,3 +165,57 @@ Prestação de contas (pergunta do autor, 2026-07-29): **nenhum item se perdeu**
 | NaN-guard dos passos 2..q do lote (c262) | MOOT — c262 saiu do batch (T11-D4); no main q=1 o caminho não existe |
 | Crash latente n_front=1 do c238 | aceito e registrado desde a R1; F5 observou n_front=2 sem crash; corrigir mudaria runner por evento raro |
 | Semântica do CACHE_CAP (conta gerações-com-hit, não 0-FE-puro) | comportamento sancionado; vira nota de doc, não código |
+
+## 11. LAUDO DE INSTRUMENTAÇÃO DA F5 (`handoff/F5-LAUDO-INSTRUMENTACAO.md`) — 8 itens + a refutação da torre
+
+O autor pediu à F5 um diagnóstico do NÍVEL de instrumentação (não de fidelidade). Veredito da
+F5: **8,5/10** — completa para regressores e para provar mecanismo; incompleta para a análise
+COMPARATIVA de classificadores. Os 8 itens (I-1..I-8 do laudo; **numeração distinta** dos
+I-01..I-13 do PLANO_RODADA_PERFEITA) entram assim no T11:
+
+| item do laudo | veredito da torre | destino |
+|---|---|---|
+| **I-1 🔴 logar `pmid_ids`/`ref_ids`** (c217, c122; b4 já faz) | 🔩 **SIM, mas NÃO é bloqueador — a F5 superestimou: NÃO é irrecuperável.** Refutação medida pela torre (abaixo) | T11-código-menor (~2 linhas/config) |
+| **I-2 🔴 declarar a REGRA do rótulo no `sigma_dict`** | 📄 **SIM — é o item de maior valor/custo do laudo** (a acurácia publicada varia 0,35↔0,995 conforme a regra; hoje não está escrita em lugar nenhum) | T11-doc (custo ~0) |
+| I-3 🟠 cronômetro no portão Python + permitir NULL | 🔩 SIM — **é o I-02 do outro plano** (mesma causa: `budget.py:222`) | dedup |
+| I-4 🟠 lista `NO_RETRY` | 🔩 SIM — **é o B-16** (dedup) | dedup |
+| I-5 🟠 `y_treino_dist` (prevalência das classes no treino) | 🔩 SIM (~1 linha × 4 configs) — separa "classificador ruim" de "problema desbalanceado" | T11-código-menor |
+| **I-6 🟡 sonda estratificada p/ classificadores** | 🗳 **DECISÃO NOVA DO AUTOR (T11-D11)** — muda o que a sonda mede; ver §8 | mesa |
+| I-7 🟡 `tempo_geracao_s` no e103; `tempo_fit_s` no sobol_batch | 🔩 SIM (~2 linhas) | T11-código-menor |
+| I-8 🟡 `n_front1`/`f_best` no sobol_batch | 🔩 SIM — **é o I-03 do outro plano** (dedup) | dedup |
+
+### ⚖ REFUTAÇÃO DA TORRE ao I-1 ("irrecuperável a posteriori") — MEDIDA, não opinião
+
+O laudo afirma que sem os ids "o rótulo verdadeiro não é reconstituível — irrecuperável". **É
+falso para os dois configs**, e a prova está no código e nos dados:
+
+- **c217:** `PCSAEA.m:39` — `[Input,Output,Pa,Pmid] = CalFitnessPC(Population.objs,
+  Population.decs, Problem.FE/Problem.maxFE)`. Verificado: `CalFitnessPC.m` tem **ZERO**
+  chamadas de RNG (`grep -c "rand|randn|randperm"` = 0) ⇒ é uma função DETERMINÍSTICA da
+  população + razão de orçamento. E a ② grava `(geracao, solution_id)` — medido em
+  `main/c217/ZDT4/42`: **37.114 linhas, 182 gerações**. Com ②+①+`fe` do ⑥, o `Pmid` de
+  qualquer geração é **recomputável**.
+- **c122:** `MU = len(ref_points)` (`c122_thetadeadp.py:641`) são os **vetores de decomposição
+  Das-Dennis FIXOS** (11 em M=2, 15 em M=3), deriváveis de M — não indivíduos cujos ids se
+  perderam. A referência do classificador é a população selecionada
+  (`pop = sel_scalar_dea(pop + [escolhido], MU)`, `:826`), cujos ids estão na ②
+  (medido: 2.100 linhas).
+
+**Consequência para a doutrina "mínimo de mudança":** o I-1 **deixa de ser bloqueador** e vira
+conveniência de alto valor — 2 linhas por config que eliminam o risco de uma reimplementação
+divergente de `CalFitnessPC` na fase de análise (R4). Recomendo FAZER (é barato e remove risco
+analítico), mas registrando que **não** é o item crítico que o laudo pintou.
+
+### T11-D11 (nova) — a sonda dos classificadores deve ganhar um bloco estratificado?
+
+**Contexto.** A sonda são 2.000 pontos Sobol por bloco. Pontos aleatórios quase nunca são
+"bons": prevalência **0,4%** ⇒ ~8 positivos por bloco ⇒ precision/recall instáveis (o AUC é
+robusto e já funciona: 0,72–0,92 no b4).
+**Opções.** (a) manter 2.000 Sobol puros — régua perfeitamente comparável, métricas de
+classe instáveis; (b) **acrescentar** ~500 pontos amostrados perto do arquivo corrente, com
+`regime='sonda_estratificada'` (nunca misturado com a régua) — destrava precision/recall/F1,
+mas o bloco novo NÃO é comparável entre algoritmos e aumenta o volume da ③; (c) subir para
+3.000 Sobol — quase não ajuda (a prevalência não muda, só o n).
+**Recomendação: (b)**, alinhada com a F5 — **mas com a ressalva da torre**: é o único item de
+todo o T11 que **muda o que a instrumentação MEDE** (os demais mudam o que ela REGISTRA), então
+exige gate de não-perturbação (G-6) e nota explícita no CONTRATO §17.2.2.

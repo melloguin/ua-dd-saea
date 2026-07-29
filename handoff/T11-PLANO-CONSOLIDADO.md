@@ -139,3 +139,29 @@ EXATAMENTE 1 quimera e 34 anômalas** — se devolver outra coisa, o gate está 
 F5-mesa (as 10 decisões acima) → F6 re-runs (1,17 h-core + I/O) → F7 provisionamento (CAMINHO
 CRÍTICO — dias) → F8 SUB-varN → F9 DISPARO das 30 sementes.
 **Total de engenharia: ~30-37 h em 1-3 cartões de implementação + validação da torre.**
+
+## 10. RASTREABILIDADE — os "~40 itens" da validação de código (A30) neste plano
+
+Prestação de contas (pergunta do autor, 2026-07-29): **nenhum item se perdeu**. Destino:
+
+| grupo dos ~40 (A30) | destino no T11 |
+|---|---|
+| Campos contratuais do ⑥/⑤ (params, DI-10 do b5, n_front1, sigma_dict) | 🔩 I-07 / I-05 / I-03; o `fe` da sonda RESOLVIDO por contrato (DI-42.5b) |
+| teste→tempdir + poluição do ⑥ | 🔧 B-13 |
+| manifesto de batch abortado com q=1 | 🔩 I-10 |
+| células stale de semente 0 (force) | 🔧 B-03 (campanha_id resolve de raiz) + §4-item-5 |
+| datasets de sweep p/ 29 sementes | 🗳 T11-D10 (pré-requisito) |
+| probe de RAM do c262 batch | SUPERSEDED por T11-D4 (c262 fora do batch) |
+| resume/⑦ do e103 | 🔧 B-08 |
+| suíte hermética (teste D-03 consulta bucket real) | 📄 §6 + guarda B-13 |
+| docs (e7_sonda.m; §3.2 pisos; teto-MATLAB; ⑦×teto-c311; cosméticos) | 📄 §6 |
+| **4 itens que estavam FORA e entram agora (adição desta seção):** | |
+| Guard de tier no `treed_media` (aceita qualquer exp) | 🔩 NOVO (5 linhas) |
+| Roster/exp-default do e103 no `experiments.m` (bateria main criaria 750 runs fantasma) | 🔩 NOVO (guard 2 linhas) |
+| Testes-lacuna seletivos: straddle do e81 (dispara na bateria com cache-hits reais — e81 FICA no batch M8) + smoke D74/BBOB do e74 | 🔩 NOVO (~2h) |
+| Preflight confere content-hash das âncoras (c141 com 1/6) | 🔩 NOVO (barato) |
+| **4 itens REBAIXADOS a risco-aceito (❌), com o porquê:** | |
+| Guard de predição RBF não-finita (c141) | log-only em runner MATLAB por evento nunca observado; os gates de integridade pegam a célula se ocorrer |
+| NaN-guard dos passos 2..q do lote (c262) | MOOT — c262 saiu do batch (T11-D4); no main q=1 o caminho não existe |
+| Crash latente n_front=1 do c238 | aceito e registrado desde a R1; F5 observou n_front=2 sem crash; corrigir mudaria runner por evento raro |
+| Semântica do CACHE_CAP (conta gerações-com-hit, não 0-FE-puro) | comportamento sancionado; vira nota de doc, não código |

@@ -1,0 +1,5 @@
+{"off/DTLZ2": {"M": 3, "sementes_com_>=1_colapso": 11, "sementes_totais": 27, "frac_obj_colapsados": 0.1852}, "piso": 3, "b5m": 0, "wall_s": 201.9}
+{"off/DTLZ1": {"M": 3, "sementes_com_>=1_colapso": 26, "sementes_totais": 27, "frac_obj_colapsados": 0.6667}, "piso": 2, "b5m": 3, "wall_s": 17.9}
+{"off/DTLZ3": {"M": 3, "sementes_com_>=1_colapso": 27, "sementes_totais": 27, "frac_obj_colapsados": 0.8272}, "piso": 2, "b5m": 3, "wall_s": 58.9}
+{"off/ZDT6": {"M": 2, "sementes_com_>=1_colapso": 10, "sementes_totais": 27, "frac_obj_colapsados": 0.2037}, "piso": 1, "b5m": 0, "wall_s": 110.1}
+OK

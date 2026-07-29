@@ -1,0 +1,33 @@
+/Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao/lib/python3.11/site-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao/lib/python3.11/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+[carga] 6268 geracoes b4_gen em 25 celulas
+[T1a] max |rr*|Arc| - round| = 5.684e-14  (rr racional exato: 6268/6268)
+[T1b] n_acumulado == ceil(3/4|D0|)+ceil(3/4|D1|): 6268/6268
+[T1c] p0 NaN: 39   p1 NaN: 0
+[T1d] (test1==0): 39   (test0==0): 0
+[T1e] p0nan <=> test1==0 : 6268/6268
+[T1f] p0nan <=> test0==0 : 6229/6268
+[T1g] p1nan <=> test0==0 : 6268/6268
+[T1h] celulas com p0 NaN: {'BBOB_F17': 25, 'BBOB_F5': 11, 'ZDT4': 3}
+[T2] p0+p1: media 0.7547 mediana 0.7677 min 0.1975 max 1.3599; fracao <1: 0.9518
+[T2b] medias globais: p0=0.5870  p1=0.1674  rr mediana=0.1333
+[T3] geracoes com rr>0.5: 524  -> p0 medio 0.3503  p1 medio 0.4228
+         rr<0.10 n= 2633  p0=0.7252  p1=0.0891
+       0.10-0.30 n= 2199  p0=0.5433  p1=0.1429
+       0.30-0.50 n=  905  p0=0.4350  p1=0.3048
+         rr>0.50 n=  524  p0=0.3503  p1=0.4228
+[T3b] spearman(rr,p0) = -0.7192
+[T3c] spearman(rr,p1) = +0.8070
+[T4] previsao do nivel medio de saida da rede: H_A 0.2154  |  H_B 0.6347
+[T4a] ramo4 n=5215  mean L_sel=0.3590  mediana=0.2930
+[T4b] |L_sel - previsao| ramo4:  H_A MAE=0.2066   H_B MAE=0.3922   H_A vence em 3346/5176
+[T4c] join geracao x bloco de sonda: 5968 linhas; mean L_sonda=0.2614 mediana=0.1261
+[T4d] |L_sonda - previsao|: H_A MAE=0.1511  H_B MAE=0.4548  H_A vence em 4706/5929
+[T4e] spearman(L_sonda_mean, mean_pred_HA) = +0.5417
+[T4f] spearman(L_sonda_mean, mean_pred_HB) = -0.2749
+[T5] ramo reconstruido literalmente de SAS.m:27-57 com p0/p1 COMO LOGADOS: 6268/6268
+[T5b] mesma expressao com p0<->p1 TROCADOS: 1252/6268
+[T6] min |D0| = 10  min |D1| = 2  min test0 = 2  min test1 = 0
+[ok] CSVs escritos em /Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/baterias/f54/b4-A12

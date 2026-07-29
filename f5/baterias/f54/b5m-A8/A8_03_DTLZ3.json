@@ -1,0 +1,63 @@
+{
+ "problema": "DTLZ3",
+ "adapt": [
+  {
+   "gen_arquivada": 1,
+   "amp": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "amp_min": 0.0,
+   "amp_exato_zero": true,
+   "n_amp_zero": 3,
+   "linhas_norma0": 105,
+   "n_linhas": 105,
+   "norma_min": 0.0,
+   "norma_max": 0.0,
+   "nan_values": 0
+  },
+  {
+   "gen_arquivada": 12,
+   "amp": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "amp_min": 0.0,
+   "amp_exato_zero": true,
+   "n_amp_zero": 3,
+   "linhas_norma0": 105,
+   "n_linhas": 105,
+   "norma_min": 0.0,
+   "norma_max": 0.0,
+   "nan_values": 0
+  }
+ ],
+ "iterates": [
+  {
+   "iterate": 1,
+   "chamadas_do": 1050,
+   "subst": 0,
+   "p_nan": 0,
+   "p_zero": 21000,
+   "p_maior05": 0,
+   "p_n": 21000,
+   "p_med": 0.0
+  },
+  {
+   "iterate": 2,
+   "chamadas_do": 1050,
+   "subst": 0,
+   "p_nan": 0,
+   "p_zero": 21000,
+   "p_maior05": 0,
+   "p_n": 21000,
+   "p_med": 0.0
+  }
+ ],
+ "pbi_nan": 84000,
+ "pbi_tot": 84000,
+ "gens_iguais": 21,
+ "n_gens_conferidas": 21
+}

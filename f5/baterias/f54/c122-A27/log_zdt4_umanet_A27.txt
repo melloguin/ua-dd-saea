@@ -1,0 +1,12 @@
+fit_inicial: p_net=True  s_net=False
+decisoes=201  com accs_s NULL (theta-Net inexistente)=201
+
+bloco g=1: max e(z) = 108.944778
+   teto H0 (1 rede x N=11)        = 11      -> excede em 9.90x   [68.5% dos 2000 pontos acima do teto H0]
+   teto H1 (1 rede x 11D-1=109)   = 109     -> folga = 0.055222  (99.949% do teto)
+   conf mediana no bloco 1 = 1.000000; e(z)/conf no maximo = 108.945
+
+blocos g>=2: max e(z) = 11.000000  (teto H0/H1 = N = 11) -> violacoes: 0/202000
+
+niveis inteiros distintos no bloco 1: 108 (min 0, max 109)
+um unico ponto da sonda 'domina' ate 108.9 referencias — impossivel com 11.

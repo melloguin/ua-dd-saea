@@ -1,0 +1,28 @@
+celulas MECANICAS por config:
+            alg                     label  congeladas_trans
+7           b5m                     DTLZ1               370
+9           b5m                     DTLZ3               380
+34          b5m     swap_medium-mvns_ZDT4               771
+46  moead_media                  BBOB_F17               741
+70  moead_media     swap_medium-lhs_DTLZ2               346
+71  moead_media  swap_medium-lhs_MMF16_20               380
+75  moead_media    swap_medium-mvns_DTLZ2               298
+77  moead_media     swap_medium-mvns_WFG9               544
+
+celulas com slots mortos (parcial):
+            alg                  label  n_mortos
+53  moead_media                  DTLZ2         1
+54  moead_media                  DTLZ3         1
+55  moead_media                  DTLZ4        14
+69  moead_media                   ZDT6         1
+74  moead_media   swap_medium-lhs_ZDT4         1
+79  moead_media  swap_medium-mvns_ZDT4         1
+80  moead_media   swap_small-lhs_DTLZ2         1
+85  moead_media  swap_small-mvns_DTLZ2        14
+
+UNIAO de celulas contaminadas (qualquer config): 14
+['BBOB_F17', 'DTLZ1', 'DTLZ2', 'DTLZ3', 'DTLZ4', 'ZDT6', 'swap_medium-lhs_DTLZ2', 'swap_medium-lhs_MMF16_20', 'swap_medium-lhs_ZDT4', 'swap_medium-mvns_DTLZ2', 'swap_medium-mvns_WFG9', 'swap_medium-mvns_ZDT4', 'swap_small-lhs_DTLZ2', 'swap_small-mvns_DTLZ2']
+TODAS as 45 (analista)       n=45  b5m<piso em 32/45  razao mediana=0.724  Wilcoxon p=0.0012
+excluindo contaminadas       n=31  b5m<piso em 23/31  razao mediana=0.724  Wilcoxon p=0.0020
+IGD+ TODAS as 45             n=45  b5m melhor em 27/45  mediana b5m=0.3596 piso=0.5603  p=0.2810
+IGD+ excluindo contaminadas  n=31  b5m melhor em 17/31  mediana b5m=0.3232 piso=0.4275  p=0.6242

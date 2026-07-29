@@ -1,0 +1,40 @@
+==============================================================================
+E1 — ReferenceVectors.adapt com fitness CONSTANTE (max==min)
+==============================================================================
+M=2 H=49 -> number_of_vectors=50 (esperado 50)  |values| linha0=1.000000
+   apos adapt(const): nan=0  inf=0  zeros=100/100  norma_max=0.000e+00 norma_min=0.000e+00  linhas_norma0=50/50
+   values_planar: nan=0  (adapt nao toca values_planar)
+M=3 H=13 -> number_of_vectors=105 (esperado 105)  |values| linha0=1.000000
+   apos adapt(const): nan=0  inf=0  zeros=315/315  norma_max=0.000e+00 norma_min=0.000e+00  linhas_norma0=105/105
+   values_planar: nan=0  (adapt nao toca values_planar)
+==============================================================================
+E7 — CONTRAFACTUAL do adapt: amplitude != 0 (identica nos M objetivos)
+==============================================================================
+amplitude 1e-12 -> nan=0 ; ||values-values_iniciais||_max=1.110e-16 (normalizacao CANCELA o fator escalar)
+amplitude (0, 1e-300) -> linhas com norma 0: 50/50 ; nan=0
+==============================================================================
+E6 — DEGENERACAO PARCIAL: amplitude 0 so no obj0 (M=2 e M=3)
+==============================================================================
+M=2: linhas com norma 0 -> 1/50  indices=[49]
+      vetor inicial 49 = [1.0, 0.0] (suporte so no obj degenerado)
+M=3: linhas com norma 0 -> 1/105  indices=[104]
+      vetor inicial 104 = [1.0, 0.0, 0.0] (suporte so no obj degenerado)
+==============================================================================
+E2/E3 — pbi(weights zerado) -> NaN ; compute_probability_wrong_MC(NaN,NaN)
+==============================================================================
+pbi com w=0     : nan=1000/1000  (0/0 em weights/norm_weights)
+pbi com w=(.6,.8): nan=0/1000  min=-24.2116 max=23020.2822
+MC(NaN,NaN) = 0.0   | MC(ok,ok) = 0.4995
+MC(NaN, ok) = 0.0   | MC(ok, NaN) = 0.0
+==============================================================================
+E4/E5 — ProbMOEAD_select.do REAL (degenerado x contrafactual eps>0)
+==============================================================================
+DEGENERADO amp=(0,0)        : substituicoes=   0 /  400 comparacoes (0.0%)  |linhas de values com norma 0 = 50/50
+contrafactual amp=1e-12     : substituicoes= 188 /  400 comparacoes (47.0%)  |linhas de values com norma 0 = 0/50
+contrafactual amp=1e-3      : substituicoes= 201 /  400 comparacoes (50.2%)  |linhas de values com norma 0 = 0/50
+parcial amp=(0,1)           : substituicoes= 193 /  400 comparacoes (48.2%)  |linhas de values com norma 0 = 1/50
+==============================================================================
+E4b — MOEAD_select (o PISO, mode 12) sob a MESMA condicao degenerada
+==============================================================================
+MOEAD_select (media) degenerado: substituicoes=0 / 400 comparacoes
+FIM DA BANCADA

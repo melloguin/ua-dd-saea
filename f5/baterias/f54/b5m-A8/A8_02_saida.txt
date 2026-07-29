@@ -1,0 +1,342 @@
+b5m          BBOB_F1                      onset_obs=801  onset_pred=None   congel=1    amp_last=8.298e+01 turn_mean=0.3173
+b5m          BBOB_F17                     onset_obs=801  onset_pred=None   congel=1    amp_last=5.555e+04 turn_mean=0.6507
+b5m          BBOB_F22                     onset_obs=801  onset_pred=None   congel=1    amp_last=3.467e+04 turn_mean=0.2189
+b5m          BBOB_F37                     onset_obs=801  onset_pred=None   congel=1    amp_last=2.127e+03 turn_mean=0.3619
+b5m          BBOB_F49                     onset_obs=801  onset_pred=None   congel=1    amp_last=2.596e+02 turn_mean=0.7204
+b5m          BBOB_F5                      onset_obs=801  onset_pred=None   congel=1    amp_last=2.985e+02 turn_mean=0.3040
+b5m          BBOB_F55                     onset_obs=801  onset_pred=None   congel=1    amp_last=8.182e+01 turn_mean=0.4674
+b5m          DTLZ1                        onset_obs=11   onset_pred=1      congel=371  amp_last=0.000e+00 turn_mean=0.0263
+b5m          DTLZ2                        onset_obs=381  onset_pred=None   congel=1    amp_last=5.091e+00 turn_mean=0.1426
+b5m          DTLZ3                        onset_obs=1    onset_pred=1      congel=381  amp_last=0.000e+00 turn_mean=0.0000
+b5m          DTLZ4                        onset_obs=381  onset_pred=None   congel=1    amp_last=6.233e-01 turn_mean=0.8326
+b5m          DTLZ7                        onset_obs=381  onset_pred=None   congel=1    amp_last=9.877e+00 turn_mean=0.3724
+b5m          MMF1                         onset_obs=801  onset_pred=None   congel=1    amp_last=2.116e+00 turn_mean=0.3406
+b5m          MMF11_L                      onset_obs=800  onset_pred=None   congel=2    amp_last=8.878e+00 turn_mean=0.0859
+b5m          MMF16_20                     onset_obs=381  onset_pred=None   congel=1    amp_last=1.110e+01 turn_mean=0.1476
+b5m          MMF4                         onset_obs=801  onset_pred=None   congel=1    amp_last=3.057e+00 turn_mean=0.1038
+b5m          WFG1                         onset_obs=801  onset_pred=None   congel=1    amp_last=6.320e-01 turn_mean=0.2636
+b5m          WFG2                         onset_obs=801  onset_pred=None   congel=1    amp_last=5.754e+00 turn_mean=0.2695
+b5m          WFG4                         onset_obs=801  onset_pred=None   congel=1    amp_last=5.400e+00 turn_mean=0.2460
+b5m          WFG5                         onset_obs=801  onset_pred=None   congel=1    amp_last=6.872e+00 turn_mean=0.1890
+b5m          WFG9                         onset_obs=801  onset_pred=None   congel=1    amp_last=7.424e+00 turn_mean=0.2207
+b5m          ZDT1                         onset_obs=801  onset_pred=None   congel=1    amp_last=2.770e+00 turn_mean=0.2311
+b5m          ZDT3                         onset_obs=801  onset_pred=None   congel=1    amp_last=4.021e+00 turn_mean=0.3080
+b5m          ZDT4                         onset_obs=801  onset_pred=None   congel=1    amp_last=1.366e+01 turn_mean=0.8929
+b5m          ZDT6                         onset_obs=801  onset_pred=None   congel=1    amp_last=3.015e+00 turn_mean=0.1893
+b5m          swap_medium-lhs_DTLZ2        onset_obs=381  onset_pred=None   congel=1    amp_last=3.972e+00 turn_mean=0.1433
+b5m          swap_medium-lhs_MMF16_20     onset_obs=381  onset_pred=None   congel=1    amp_last=8.769e-01 turn_mean=0.9930
+b5m          swap_medium-lhs_WFG9         onset_obs=801  onset_pred=None   congel=1    amp_last=7.037e+00 turn_mean=0.2373
+b5m          swap_medium-lhs_ZDT1         onset_obs=801  onset_pred=None   congel=1    amp_last=2.637e+00 turn_mean=0.1286
+b5m          swap_medium-lhs_ZDT4         onset_obs=801  onset_pred=None   congel=1    amp_last=4.322e+00 turn_mean=0.9987
+b5m          swap_medium-mvns_DTLZ2       onset_obs=381  onset_pred=None   congel=1    amp_last=7.778e+00 turn_mean=0.1504
+b5m          swap_medium-mvns_MMF16_20    onset_obs=381  onset_pred=None   congel=1    amp_last=4.929e+00 turn_mean=0.9571
+b5m          swap_medium-mvns_WFG9        onset_obs=801  onset_pred=None   congel=1    amp_last=6.883e+00 turn_mean=0.4657
+b5m          swap_medium-mvns_ZDT1        onset_obs=801  onset_pred=None   congel=1    amp_last=2.321e+00 turn_mean=0.1701
+b5m          swap_medium-mvns_ZDT4        onset_obs=30   onset_pred=31     congel=772  amp_last=0.000e+00 turn_mean=0.0094
+b5m          swap_small-lhs_DTLZ2         onset_obs=381  onset_pred=None   congel=1    amp_last=5.091e+00 turn_mean=0.1426
+b5m          swap_small-lhs_MMF16_20      onset_obs=381  onset_pred=None   congel=1    amp_last=1.110e+01 turn_mean=0.1476
+b5m          swap_small-lhs_WFG9          onset_obs=801  onset_pred=None   congel=1    amp_last=7.424e+00 turn_mean=0.2207
+b5m          swap_small-lhs_ZDT1          onset_obs=801  onset_pred=None   congel=1    amp_last=2.770e+00 turn_mean=0.2311
+b5m          swap_small-lhs_ZDT4          onset_obs=801  onset_pred=None   congel=1    amp_last=1.366e+01 turn_mean=0.8929
+b5m          swap_small-mvns_DTLZ2        onset_obs=381  onset_pred=None   congel=1    amp_last=6.711e+00 turn_mean=0.1445
+b5m          swap_small-mvns_MMF16_20     onset_obs=381  onset_pred=None   congel=1    amp_last=1.144e+01 turn_mean=0.1825
+b5m          swap_small-mvns_WFG9         onset_obs=801  onset_pred=None   congel=1    amp_last=6.952e+00 turn_mean=0.2862
+b5m          swap_small-mvns_ZDT1         onset_obs=780  onset_pred=None   congel=22   amp_last=1.556e+00 turn_mean=0.0428
+b5m          swap_small-mvns_ZDT4         onset_obs=801  onset_pred=None   congel=1    amp_last=1.023e+00 turn_mean=0.9966
+moead_media  BBOB_F1                      onset_obs=801  onset_pred=None   congel=1    amp_last=9.417e+01 turn_mean=0.1318
+moead_media  BBOB_F17                     onset_obs=60   onset_pred=61     congel=742  amp_last=0.000e+00 turn_mean=0.0622
+moead_media  BBOB_F22                     onset_obs=801  onset_pred=None   congel=1    amp_last=3.651e+04 turn_mean=0.1864
+moead_media  BBOB_F37                     onset_obs=801  onset_pred=None   congel=1    amp_last=2.036e+03 turn_mean=0.2896
+moead_media  BBOB_F49                     onset_obs=801  onset_pred=None   congel=1    amp_last=1.328e+03 turn_mean=0.2455
+moead_media  BBOB_F5                      onset_obs=801  onset_pred=None   congel=1    amp_last=4.197e+02 turn_mean=0.1144
+moead_media  BBOB_F55                     onset_obs=801  onset_pred=None   congel=1    amp_last=3.453e+01 turn_mean=0.2120
+moead_media  DTLZ1                        onset_obs=360  onset_pred=None   congel=22   amp_last=7.099e-02 turn_mean=0.1725
+moead_media  DTLZ2                        onset_obs=278  onset_pred=None   congel=104  amp_last=7.858e-12 turn_mean=0.1508
+moead_media  DTLZ3                        onset_obs=370  onset_pred=None   congel=12   amp_last=1.037e+03 turn_mean=0.3267
+moead_media  DTLZ4                        onset_obs=381  onset_pred=None   congel=1    amp_last=2.963e-01 turn_mean=0.3391
+moead_media  DTLZ7                        onset_obs=381  onset_pred=None   congel=1    amp_last=4.995e+00 turn_mean=0.3945
+moead_media  MMF1                         onset_obs=801  onset_pred=None   congel=1    amp_last=4.115e-02 turn_mean=0.0966
+moead_media  MMF11_L                      onset_obs=794  onset_pred=None   congel=8    amp_last=6.867e-01 turn_mean=0.1424
+moead_media  MMF16_20                     onset_obs=381  onset_pred=None   congel=1    amp_last=6.655e+00 turn_mean=0.1589
+moead_media  MMF4                         onset_obs=798  onset_pred=None   congel=4    amp_last=3.164e+00 turn_mean=0.1133
+moead_media  WFG1                         onset_obs=801  onset_pred=None   congel=1    amp_last=8.679e-01 turn_mean=0.1978
+moead_media  WFG2                         onset_obs=801  onset_pred=None   congel=1    amp_last=4.064e+00 turn_mean=0.2645
+moead_media  WFG4                         onset_obs=801  onset_pred=None   congel=1    amp_last=4.505e+00 turn_mean=0.2191
+moead_media  WFG5                         onset_obs=799  onset_pred=None   congel=3    amp_last=5.509e+00 turn_mean=0.2281
+moead_media  WFG9                         onset_obs=801  onset_pred=None   congel=1    amp_last=8.794e+00 turn_mean=0.2134
+moead_media  ZDT1                         onset_obs=801  onset_pred=None   congel=1    amp_last=2.062e+00 turn_mean=0.2459
+moead_media  ZDT3                         onset_obs=801  onset_pred=None   congel=1    amp_last=2.182e+00 turn_mean=0.2525
+moead_media  ZDT4                         onset_obs=801  onset_pred=None   congel=1    amp_last=5.608e+00 turn_mean=0.2677
+moead_media  ZDT6                         onset_obs=118  onset_pred=None   congel=684  amp_last=2.891e+00 turn_mean=0.0660
+moead_media  swap_medium-lhs_DTLZ2        onset_obs=35   onset_pred=31     congel=347  amp_last=0.000e+00 turn_mean=0.0824
+moead_media  swap_medium-lhs_MMF16_20     onset_obs=1    onset_pred=1      congel=381  amp_last=0.000e+00 turn_mean=0.0000
+moead_media  swap_medium-lhs_WFG9         onset_obs=801  onset_pred=None   congel=1    amp_last=8.154e+00 turn_mean=0.2096
+moead_media  swap_medium-lhs_ZDT1         onset_obs=801  onset_pred=None   congel=1    amp_last=2.226e+00 turn_mean=0.2090
+moead_media  swap_medium-lhs_ZDT4         onset_obs=312  onset_pred=None   congel=490  amp_last=6.244e-01 turn_mean=0.0343
+moead_media  swap_medium-mvns_DTLZ2       onset_obs=83   onset_pred=51     congel=299  amp_last=0.000e+00 turn_mean=0.1611
+moead_media  swap_medium-mvns_MMF16_20    onset_obs=381  onset_pred=None   congel=1    amp_last=1.276e-32 turn_mean=0.3433
+moead_media  swap_medium-mvns_WFG9        onset_obs=257  onset_pred=181    congel=545  amp_last=0.000e+00 turn_mean=0.2187
+moead_media  swap_medium-mvns_ZDT1        onset_obs=801  onset_pred=None   congel=1    amp_last=1.815e+00 turn_mean=0.2280
+moead_media  swap_medium-mvns_ZDT4        onset_obs=502  onset_pred=None   congel=300  amp_last=6.297e-01 turn_mean=0.0831
+moead_media  swap_small-lhs_DTLZ2         onset_obs=278  onset_pred=None   congel=104  amp_last=7.858e-12 turn_mean=0.1508
+moead_media  swap_small-lhs_MMF16_20      onset_obs=381  onset_pred=None   congel=1    amp_last=6.655e+00 turn_mean=0.1589
+moead_media  swap_small-lhs_WFG9          onset_obs=801  onset_pred=None   congel=1    amp_last=8.794e+00 turn_mean=0.2134
+moead_media  swap_small-lhs_ZDT1          onset_obs=801  onset_pred=None   congel=1    amp_last=2.062e+00 turn_mean=0.2459
+moead_media  swap_small-lhs_ZDT4          onset_obs=801  onset_pred=None   congel=1    amp_last=5.608e+00 turn_mean=0.2677
+moead_media  swap_small-mvns_DTLZ2        onset_obs=210  onset_pred=None   congel=172  amp_last=2.559e+00 turn_mean=0.1091
+moead_media  swap_small-mvns_MMF16_20     onset_obs=381  onset_pred=None   congel=1    amp_last=7.007e+00 turn_mean=0.1668
+moead_media  swap_small-mvns_WFG9         onset_obs=801  onset_pred=None   congel=1    amp_last=3.996e-01 turn_mean=0.3422
+moead_media  swap_small-mvns_ZDT1         onset_obs=801  onset_pred=None   congel=1    amp_last=1.818e+00 turn_mean=0.2459
+moead_media  swap_small-mvns_ZDT4         onset_obs=801  onset_pred=None   congel=1    amp_last=5.364e-01 turn_mean=0.1550
+
+===== P1 — bicondicional congelamento <-> amplitude zero em fronteira =====
+b5m          celulas=45 | congelam=45 | tem fronteira amp-zero=3 | onset_pred==onset_obs em 1/45 | FALSOS POS=0 | FALSOS NEG=42
+                        label  onset_obs  onset_pred  congeladas  n_ger_amp_zero
+0                     BBOB_F1        801         NaN           1               0
+1                    BBOB_F17        801         NaN           1               1
+2                    BBOB_F22        801         NaN           1               0
+3                    BBOB_F37        801         NaN           1               0
+4                    BBOB_F49        801         NaN           1               0
+5                     BBOB_F5        801         NaN           1               0
+6                    BBOB_F55        801         NaN           1               0
+7                       DTLZ1         11         1.0         371             381
+8                       DTLZ2        381         NaN           1               0
+10                      DTLZ4        381         NaN           1               0
+11                      DTLZ7        381         NaN           1               0
+12                       MMF1        801         NaN           1               0
+13                    MMF11_L        800         NaN           2               0
+14                   MMF16_20        381         NaN           1               0
+15                       MMF4        801         NaN           1               0
+16                       WFG1        801         NaN           1               0
+17                       WFG2        801         NaN           1               0
+18                       WFG4        801         NaN           1               0
+19                       WFG5        801         NaN           1               0
+20                       WFG9        801         NaN           1               0
+21                       ZDT1        801         NaN           1               0
+22                       ZDT3        801         NaN           1               0
+23                       ZDT4        801         NaN           1               0
+24                       ZDT6        801         NaN           1               0
+25      swap_medium-lhs_DTLZ2        381         NaN           1               0
+26   swap_medium-lhs_MMF16_20        381         NaN           1               0
+27       swap_medium-lhs_WFG9        801         NaN           1               0
+28       swap_medium-lhs_ZDT1        801         NaN           1               0
+29       swap_medium-lhs_ZDT4        801         NaN           1               0
+30     swap_medium-mvns_DTLZ2        381         NaN           1               0
+31  swap_medium-mvns_MMF16_20        381         NaN           1               0
+32      swap_medium-mvns_WFG9        801         NaN           1               0
+33      swap_medium-mvns_ZDT1        801         NaN           1               0
+34      swap_medium-mvns_ZDT4         30        31.0         772             773
+35       swap_small-lhs_DTLZ2        381         NaN           1               0
+36    swap_small-lhs_MMF16_20        381         NaN           1               0
+37        swap_small-lhs_WFG9        801         NaN           1               0
+38        swap_small-lhs_ZDT1        801         NaN           1               0
+39        swap_small-lhs_ZDT4        801         NaN           1               0
+40      swap_small-mvns_DTLZ2        381         NaN           1               0
+41   swap_small-mvns_MMF16_20        381         NaN           1               0
+42       swap_small-mvns_WFG9        801         NaN           1               0
+43       swap_small-mvns_ZDT1        780         NaN          22               0
+44       swap_small-mvns_ZDT4        801         NaN           1               0
+moead_media  celulas=45 | congelam=45 | tem fronteira amp-zero=5 | onset_pred==onset_obs em 1/45 | FALSOS POS=0 | FALSOS NEG=40
+                        label  onset_obs  onset_pred  congeladas  n_ger_amp_zero
+45                    BBOB_F1        801         NaN           1               0
+46                   BBOB_F17         60        61.0         742             742
+47                   BBOB_F22        801         NaN           1               0
+48                   BBOB_F37        801         NaN           1               0
+49                   BBOB_F49        801         NaN           1               0
+50                    BBOB_F5        801         NaN           1               0
+51                   BBOB_F55        801         NaN           1               0
+52                      DTLZ1        360         NaN          22               0
+53                      DTLZ2        278         NaN         104               0
+54                      DTLZ3        370         NaN          12               0
+55                      DTLZ4        381         NaN           1               0
+56                      DTLZ7        381         NaN           1               0
+57                       MMF1        801         NaN           1               0
+58                    MMF11_L        794         NaN           8               0
+59                   MMF16_20        381         NaN           1               0
+60                       MMF4        798         NaN           4               0
+61                       WFG1        801         NaN           1               0
+62                       WFG2        801         NaN           1               0
+63                       WFG4        801         NaN           1               0
+64                       WFG5        799         NaN           3               0
+65                       WFG9        801         NaN           1               0
+66                       ZDT1        801         NaN           1               0
+67                       ZDT3        801         NaN           1               0
+68                       ZDT4        801         NaN           1               0
+69                       ZDT6        118         NaN         684               0
+70      swap_medium-lhs_DTLZ2         35        31.0         347             355
+72       swap_medium-lhs_WFG9        801         NaN           1               0
+73       swap_medium-lhs_ZDT1        801         NaN           1               0
+74       swap_medium-lhs_ZDT4        312         NaN         490               0
+75     swap_medium-mvns_DTLZ2         83        51.0         299             338
+76  swap_medium-mvns_MMF16_20        381         NaN           1               0
+77      swap_medium-mvns_WFG9        257       181.0         545             621
+78      swap_medium-mvns_ZDT1        801         NaN           1               0
+79      swap_medium-mvns_ZDT4        502         NaN         300               0
+80       swap_small-lhs_DTLZ2        278         NaN         104               0
+81    swap_small-lhs_MMF16_20        381         NaN           1               0
+82        swap_small-lhs_WFG9        801         NaN           1               0
+83        swap_small-lhs_ZDT1        801         NaN           1               0
+84        swap_small-lhs_ZDT4        801         NaN           1               0
+85      swap_small-mvns_DTLZ2        210         NaN         172               0
+86   swap_small-mvns_MMF16_20        381         NaN           1               0
+87       swap_small-mvns_WFG9        801         NaN           1               0
+88       swap_small-mvns_ZDT1        801         NaN           1               0
+89       swap_small-mvns_ZDT4        801         NaN           1               0
+
+===== total de geracoes congeladas (b5m) =====
+soma congeladas=1588 de 30165 geracoes arquivadas; celulas com congelamento=45
+                        label  n_ger  onset_obs  onset_pred  congeladas  mu_unicos  sg_unicos  X_ident_ultima
+0                     BBOB_F1    801        801         NaN           1      22873      22788           False
+1                    BBOB_F17    801        801         NaN           1       8164       8710           False
+2                    BBOB_F22    801        801         NaN           1      10477      10442           False
+3                    BBOB_F37    801        801         NaN           1      23751      23741           False
+4                    BBOB_F49    801        801         NaN           1      27055      26978           False
+5                     BBOB_F5    801        801         NaN           1      20575      20539           False
+6                    BBOB_F55    801        801         NaN           1      23248      23266           False
+7                       DTLZ1    381         11         1.0         371          1          1           False
+8                       DTLZ2    381        381         NaN           1      15983      15984           False
+9                       DTLZ3    381          1         1.0         381          1          1           False
+10                      DTLZ4    381        381         NaN           1      32461      29992           False
+11                      DTLZ7    381        381         NaN           1      28004      10232           False
+12                       MMF1    801        801         NaN           1      13271      13291           False
+13                    MMF11_L    801        800         NaN           2       5886       3584           False
+14                   MMF16_20    381        381         NaN           1      15913      15916           False
+15                       MMF4    801        801         NaN           1       6921       6922           False
+16                       WFG1    801        801         NaN           1      18608      18656           False
+17                       WFG2    801        801         NaN           1      16608      16611           False
+18                       WFG4    801        801         NaN           1      14852      14854           False
+19                       WFG5    801        801         NaN           1      11259      11260           False
+20                       WFG9    801        801         NaN           1      13226      13225           False
+21                       ZDT1    801        801         NaN           1      16538       8376           False
+22                       ZDT3    801        801         NaN           1      17303       9529           False
+23                       ZDT4    801        801         NaN           1      24033      14373           False
+24                       ZDT6    801        801         NaN           1      12096      12113           False
+25      swap_medium-lhs_DTLZ2    381        381         NaN           1      16243      16240           False
+26   swap_medium-lhs_MMF16_20    381        381         NaN           1      57286      38179           False
+27       swap_medium-lhs_WFG9    801        801         NaN           1      14293      14298           False
+28       swap_medium-lhs_ZDT1    801        801         NaN           1       7094       3860           False
+29       swap_medium-lhs_ZDT4    801        801         NaN           1      22131      15174           False
+30     swap_medium-mvns_DTLZ2    381        381         NaN           1      17217      16971           False
+31  swap_medium-mvns_MMF16_20    381        381         NaN           1      57509      38313           False
+32      swap_medium-mvns_WFG9    801        801         NaN           1      22651      22610           False
+33      swap_medium-mvns_ZDT1    801        801         NaN           1      10001       5174           False
+34      swap_medium-mvns_ZDT4    801         30        31.0         772        188        186            True
+35       swap_small-lhs_DTLZ2    381        381         NaN           1      15983      15984           False
+36    swap_small-lhs_MMF16_20    381        381         NaN           1      15913      15916           False
+37        swap_small-lhs_WFG9    801        801         NaN           1      13226      13225           False
+38        swap_small-lhs_ZDT1    801        801         NaN           1      16538       8376           False
+39        swap_small-lhs_ZDT4    801        801         NaN           1      24033      14373           False
+40      swap_small-mvns_DTLZ2    381        381         NaN           1      15360      15357           False
+41   swap_small-mvns_MMF16_20    381        381         NaN           1      17652      17652           False
+42       swap_small-mvns_WFG9    801        801         NaN           1      15434      15431           False
+43       swap_small-mvns_ZDT1    801        780         NaN          22        948        968           False
+44       swap_small-mvns_ZDT4    801        801         NaN           1      32685      13268           False
+
+===== P2 — degeneracao PARCIAL (slots previstos x slots mortos) =====
+            alg                      label  M  parcial_bnd parcial_J                                                 slots_pred  n_slots_mortos                     slots_mortos  congeladas
+10          b5m                      DTLZ4  3          1.0       [1]                                                       [13]             0.0                               []           1
+52  moead_media                      DTLZ1  3          1.0    [0, 2]  [0, 14, 27, 39, 50, 60, 69, 77, 84, 90, 95, 99, 102, 104]             0.0                               []          22
+53  moead_media                      DTLZ2  3          1.0    [0, 2]  [0, 14, 27, 39, 50, 60, 69, 77, 84, 90, 95, 99, 102, 104]             1.0                            [104]         104
+54  moead_media                      DTLZ3  3          1.0       [0]                                                      [104]             1.0                            [104]          12
+55  moead_media                      DTLZ4  3          1.0    [0, 2]  [0, 14, 27, 39, 50, 60, 69, 77, 84, 90, 95, 99, 102, 104]            14.0  [0, 14, 27, 39, 50, 60, 69, 77]           1
+69  moead_media                       ZDT6  2          1.0       [0]                                                       [49]             1.0                             [49]         684
+70  moead_media      swap_medium-lhs_DTLZ2  3         11.0    [0, 2]  [0, 14, 27, 39, 50, 60, 69, 77, 84, 90, 95, 99, 102, 104]             0.0                               []         347
+74  moead_media       swap_medium-lhs_ZDT4  2          1.0       [1]                                                        [0]             1.0                              [0]         490
+75  moead_media     swap_medium-mvns_DTLZ2  3         11.0    [0, 2]  [0, 14, 27, 39, 50, 60, 69, 77, 84, 90, 95, 99, 102, 104]             0.0                               []         299
+76  moead_media  swap_medium-mvns_MMF16_20  3          1.0    [0, 2]  [0, 14, 27, 39, 50, 60, 69, 77, 84, 90, 95, 99, 102, 104]             0.0                               []           1
+79  moead_media      swap_medium-mvns_ZDT4  2          1.0       [1]                                                        [0]             1.0                              [0]         300
+80  moead_media       swap_small-lhs_DTLZ2  3          1.0    [0, 2]  [0, 14, 27, 39, 50, 60, 69, 77, 84, 90, 95, 99, 102, 104]             1.0                            [104]         104
+85  moead_media      swap_small-mvns_DTLZ2  3          1.0    [0, 2]  [0, 14, 27, 39, 50, 60, 69, 77, 84, 90, 95, 99, 102, 104]            14.0  [0, 14, 27, 39, 50, 60, 69, 77]         172
+
+===== P3 — controle cruzado: quem congela em cada config =====
+            alg                      label  onset_obs  congeladas  mu_unicos
+0           b5m                    BBOB_F1        801           1      22873
+1           b5m                   BBOB_F17        801           1       8164
+2           b5m                   BBOB_F22        801           1      10477
+3           b5m                   BBOB_F37        801           1      23751
+4           b5m                   BBOB_F49        801           1      27055
+5           b5m                    BBOB_F5        801           1      20575
+6           b5m                   BBOB_F55        801           1      23248
+7           b5m                      DTLZ1         11         371          1
+8           b5m                      DTLZ2        381           1      15983
+9           b5m                      DTLZ3          1         381          1
+10          b5m                      DTLZ4        381           1      32461
+11          b5m                      DTLZ7        381           1      28004
+12          b5m                       MMF1        801           1      13271
+13          b5m                    MMF11_L        800           2       5886
+14          b5m                   MMF16_20        381           1      15913
+15          b5m                       MMF4        801           1       6921
+16          b5m                       WFG1        801           1      18608
+17          b5m                       WFG2        801           1      16608
+18          b5m                       WFG4        801           1      14852
+19          b5m                       WFG5        801           1      11259
+20          b5m                       WFG9        801           1      13226
+21          b5m                       ZDT1        801           1      16538
+22          b5m                       ZDT3        801           1      17303
+23          b5m                       ZDT4        801           1      24033
+24          b5m                       ZDT6        801           1      12096
+25          b5m      swap_medium-lhs_DTLZ2        381           1      16243
+26          b5m   swap_medium-lhs_MMF16_20        381           1      57286
+27          b5m       swap_medium-lhs_WFG9        801           1      14293
+28          b5m       swap_medium-lhs_ZDT1        801           1       7094
+29          b5m       swap_medium-lhs_ZDT4        801           1      22131
+30          b5m     swap_medium-mvns_DTLZ2        381           1      17217
+31          b5m  swap_medium-mvns_MMF16_20        381           1      57509
+32          b5m      swap_medium-mvns_WFG9        801           1      22651
+33          b5m      swap_medium-mvns_ZDT1        801           1      10001
+34          b5m      swap_medium-mvns_ZDT4         30         772        188
+35          b5m       swap_small-lhs_DTLZ2        381           1      15983
+36          b5m    swap_small-lhs_MMF16_20        381           1      15913
+37          b5m        swap_small-lhs_WFG9        801           1      13226
+38          b5m        swap_small-lhs_ZDT1        801           1      16538
+39          b5m        swap_small-lhs_ZDT4        801           1      24033
+40          b5m      swap_small-mvns_DTLZ2        381           1      15360
+41          b5m   swap_small-mvns_MMF16_20        381           1      17652
+42          b5m       swap_small-mvns_WFG9        801           1      15434
+43          b5m       swap_small-mvns_ZDT1        780          22        948
+44          b5m       swap_small-mvns_ZDT4        801           1      32685
+45  moead_media                    BBOB_F1        801           1       9635
+46  moead_media                   BBOB_F17         60         742        563
+47  moead_media                   BBOB_F22        801           1       9603
+48  moead_media                   BBOB_F37        801           1      20565
+49  moead_media                   BBOB_F49        801           1      15978
+50  moead_media                    BBOB_F5        801           1       7531
+51  moead_media                   BBOB_F55        801           1      14544
+52  moead_media                      DTLZ1        360          22        385
+53  moead_media                      DTLZ2        278         104        212
+54  moead_media                      DTLZ3        370          12       1940
+55  moead_media                      DTLZ4        381           1        680
+56  moead_media                      DTLZ7        381           1      18608
+57  moead_media                       MMF1        801           1       6030
+58  moead_media                    MMF11_L        794           8       8165
+59  moead_media                   MMF16_20        381           1      17063
+60  moead_media                       MMF4        798           4       7443
+61  moead_media                       WFG1        801           1      14598
+62  moead_media                       WFG2        801           1      19167
+63  moead_media                       WFG4        801           1      15760
+64  moead_media                       WFG5        799           3      16239
+65  moead_media                       WFG9        801           1      15402
+66  moead_media                       ZDT1        801           1      17209
+67  moead_media                       ZDT3        801           1      17362
+68  moead_media                       ZDT4        801           1      16960
+69  moead_media                       ZDT6        118         684        276
+70  moead_media      swap_medium-lhs_DTLZ2         35         347        965
+71  moead_media   swap_medium-lhs_MMF16_20          1         381          1
+72  moead_media       swap_medium-lhs_WFG9        801           1      15241
+73  moead_media       swap_medium-lhs_ZDT1        801           1      14570
+74  moead_media       swap_medium-lhs_ZDT4        312         490        203
+75  moead_media     swap_medium-mvns_DTLZ2         83         299       1034
+76  moead_media  swap_medium-mvns_MMF16_20        381           1       6051
+77  moead_media      swap_medium-mvns_WFG9        257         545       4344
+78  moead_media      swap_medium-mvns_ZDT1        801           1      16101
+79  moead_media      swap_medium-mvns_ZDT4        502         300        315
+80  moead_media       swap_small-lhs_DTLZ2        278         104        212
+81  moead_media    swap_small-lhs_MMF16_20        381           1      17063
+82  moead_media        swap_small-lhs_WFG9        801           1      15402
+83  moead_media        swap_small-lhs_ZDT1        801           1      17209
+84  moead_media        swap_small-lhs_ZDT4        801           1      16960
+85  moead_media      swap_small-mvns_DTLZ2        210         172        555
+86  moead_media   swap_small-mvns_MMF16_20        381           1      15093
+87  moead_media       swap_small-mvns_WFG9        801           1      21480
+88  moead_media       swap_small-mvns_ZDT1        801           1      17149
+89  moead_media       swap_small-mvns_ZDT4        801           1       9101

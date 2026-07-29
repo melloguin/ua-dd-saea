@@ -1,0 +1,29 @@
+==== celulas com SLOTS MORTOS isolados (degeneracao PARCIAL) ====
+            alg                  label  M  onset  congeladas_trans  n_mortos                                                     mortos  J_star  n_face face_bate
+53  moead_media                  DTLZ2  3    278               103         1                                                      [104]     [0]       1      True
+54  moead_media                  DTLZ3  3    370                11         1                                                      [104]     [0]       1      True
+55  moead_media                  DTLZ4  3    381                 0        14  [0, 14, 27, 39, 50, 60, 69, 77, 84, 90, 95, 99, 102, 104]  [0, 2]      14      True
+69  moead_media                   ZDT6  2    118               683         1                                                       [49]     [0]       1      True
+74  moead_media   swap_medium-lhs_ZDT4  2    312               489         1                                                        [0]     [1]       1      True
+79  moead_media  swap_medium-mvns_ZDT4  2    502               299         1                                                        [0]     [1]       1      True
+80  moead_media   swap_small-lhs_DTLZ2  3    278               103         1                                                      [104]     [0]       1      True
+85  moead_media  swap_small-mvns_DTLZ2  3    210               171        14  [0, 14, 27, 39, 50, 60, 69, 77, 84, 90, 95, 99, 102, 104]  [0, 2]      14      True
+
+face_bate: 8/8
+
+==== congelamento TOTAL (todos os slots) ====
+            alg                     label  onset  congeladas_trans  amp_zero_em_alguma_ger
+9           b5m                     DTLZ3      1               380                     381
+71  moead_media  swap_medium-lhs_MMF16_20      1               380                     381
+
+==== b5m: transicoes congeladas por celula (terminal) ====
+                    label  n_ger  onset  congeladas_trans  amp_zero_em_alguma_ger  amp_min_global
+7                   DTLZ1    381     11               370                     381        0.000000
+9                   DTLZ3    381      1               380                     381        0.000000
+13                MMF11_L    801    800                 1                       0        0.864711
+34  swap_medium-mvns_ZDT4    801     30               771                     773        0.000000
+43   swap_small-mvns_ZDT1    801    780                21                       0        0.254663
+TOTAL transicoes congeladas b5m = 1543 de 30120 transicoes (5 celulas)
+TOTAL geracoes arquivadas b5m = 30165
+
+TOTAL transicoes congeladas piso = 4201 (16 celulas)

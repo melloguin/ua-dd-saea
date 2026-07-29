@@ -1,0 +1,6 @@
+unidade,n_por_config,piso,b5m,b5r,razao_piso_b5m,chi2,p
+par celula x objetivo (o do relatorio),104,28,9,5,3.11,24.93,3.87e-06
+"par, dedup do re-run off==sweep-small-lhs",92,25,9,5,2.78,20.07,4.39e-05
+"CELULA (1 fit), dedup",40,13,5,3,2.6,9.7,0.0078
+PROBLEMA (1 paisagem),25,8,4,3,2.0,3.5,0.1738
+"par, SEM os 2 problemas dominantes (DTLZ2,MMF16_20)",74,10,7,5,1.43,1.92,0.3834

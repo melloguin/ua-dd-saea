@@ -1,0 +1,50 @@
+{
+ "n_pares": 104,
+ "col_wape1": {
+  "b5m": 9,
+  "b5r": 5,
+  "moead_media": 28
+ },
+ "col_inerte": {
+  "b5m": 9,
+  "b5r": 4,
+  "moead_media": 28
+ },
+ "col_inerte_frouxo": {
+  "b5m": 9,
+  "b5r": 5,
+  "moead_media": 28
+ },
+ "col_const_naozero": {
+  "b5m": 0,
+  "b5r": 0,
+  "moead_media": 0
+ },
+ "discordancia_wape1_x_inerte": {
+  "b5m": {
+   "so_wape1": 0,
+   "so_inerte": 0,
+   "ambos": 9
+  },
+  "b5r": {
+   "so_wape1": 1,
+   "so_inerte": 0,
+   "ambos": 4
+  },
+  "moead_media": {
+   "so_wape1": 0,
+   "so_inerte": 0,
+   "ambos": 28
+  }
+ },
+ "mu_identicamente_zero": {
+  "b5m": 4,
+  "b5r": 3,
+  "moead_media": 17
+ },
+ "nos_colapsados_mu_mean_rel_mediana": {
+  "b5m": 0.0,
+  "b5r": 0.0,
+  "moead_media": 0.0
+ }
+}

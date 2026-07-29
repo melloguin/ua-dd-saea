@@ -219,3 +219,45 @@ mas o bloco novo NÃO é comparável entre algoritmos e aumenta o volume da ③;
 **Recomendação: (b)**, alinhada com a F5 — **mas com a ressalva da torre**: é o único item de
 todo o T11 que **muda o que a instrumentação MEDE** (os demais mudam o que ela REGISTRA), então
 exige gate de não-perturbação (G-6) e nota explícita no CONTRATO §17.2.2.
+
+## 12. A CAÇA HISTÓRICA (7 caçadores, 362 pendências) + A MESA DEFINITIVA T11-D1..D13
+
+**Varredura completa do histórico** (REGISTRO A1-A32, SPEC, cards, handoffs, ORQUESTRACAO,
+PROGRESSO, DOSSIE, F5): 362 pendências → **144 RESOLVIDAS + 52 SUPERSEDED** (verificadas) +
+166 abertas brutas → dedup → o que segue. Incorporado ao plano:
+
+**Trabalho novo absorvido (sem decisão):**
+- 🔩 **OP-6 — higiene do `--force`**: re-run sobre célula com parquets órfãos de aborto
+  anterior produz ESTADO HÍBRIDO (quimera local) — o force deve limpar os artefatos da célula
+  antes de re-executar (parente do B-03/B-10)
+- 🔩 e2e de aborto (DI-23.4, adiado desde o R3-c149) → vira o TESTE do B-05 (teto_s pequeno)
+- 🔩 fallback-footer no `is_run_done`/censo quando ⑤ ausente (O-21/E-04) → dobra no B-15
+- 🔩 regen do `runs_matrix.csv` pós-D4 (as 150 linhas c154-batch + eventuais c262-batch)
+- 📄 lote de doc herdado: cache_root (B5 do DI-05, divergência tabela-K×L.10 desde 18/07) ·
+  baixas do c154 (MatheronPathModel-seed inexistente no 0.18.1; uso_id do optimize_acqf) ·
+  `cards/INDEX.md` stale (5 cartões) · cabeçalhos PROGRESSO/ORQUESTRACAO · número "~min-1h"
+  do RUNBOOK (4× errado) · OP-1..OP-7 do registro de operação (incl. o rompimento deliberado
+  do teto 48h na janela final e a atribuição mista do c238) · prosa dos 6 relatórios F5 +
+  scores_f53.csv revisto + cabeçalho do RELATORIO_F5 · nota N_efetivo (só nsga2/smsemoa=20)
+- ❌ novos não-corrigir (doutrina): `load_sonda` triplicado (gatilho da D-18 ATINGIDO e
+  RECUSADO — refactor sem efeito em resultado) · fix central do `emit_sonda_block` (DI-28.6,
+  opcional) · q=None no dict de retorno do c149 (cosmético) · sweep q=20 (V-B.4) DESCARTADO
+  formalmente · A3/B4 do DI-09 e D98/D99/multiplicidade-§14 = camada R4 (autor, pré-análise,
+  não bloqueiam M8 — registrados como FUTURO)
+
+### A MESA DEFINITIVA — 13 decisões (renumerada; supersede o §8)
+
+D1 re-run das 2 reprovadas · D2 quimera c149 (rota A0: checar geração noncurrent no bucket
+ANTES da cópia do Mac) · D3 ⑦ e103→bucket · **D4 roster batch do M8 (AMENDADA: o caçador
+achou o contra-argumento científico — remover c262 deixa o sub-estudo batch com 3/5 configs;
+alternativa nova (c): manter batch/c262 COM o rito T10 = curvas parciais de 12h também no
+batch)** · D5 T10 · D6 falhas reais = defeito ou limitação · D7 iteration_seed por célula ·
+D8 taxonomia das 29 · D9 dissertação (régua família + endpoint ⑦ + tier-small + b5m-A8
+resultado + homologação em bloco dos enquadramentos F5.4) · D10 pré-requisitos (fila: SUB-varN
+· datasets 29 sementes · envs Linux · TAG · 9 drivers · lib gcs env_c311 · pins scipy/numpy ·
+enable_bucket+validação D-03 com credencial real) · **D11 sonda estratificada (laudo I-6)** ·
+**D12 fechar FORMALMENTE a DI-07b do e74 (aberta desde 18/07! rec: NÃO promover o fix — a F5
+quantificou [eq.7-8 inerte em 87,8%] e você aprovou 9,0 aceitar+caveat; doc-sync da SPEC L.8
+que ainda promete promoção) + b3 `adapt_delta_V` (rec: documentar como não-emitido)** ·
+**D13 verificações dirigidas órfãs — quais rodar (rec: SÓ as 2 do teto-T: b1-torneio
+EvolALG.m:16 e b3-índice UpdataArchive; nsga3-D88, c141-WFG5 e sobol_batch-5cel = NÃO)**

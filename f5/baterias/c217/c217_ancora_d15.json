@@ -1,0 +1,26 @@
+{
+ "run": "main_c217_DTLZ2_d15_0",
+ "D": 15,
+ "M": 3,
+ "maxfe": 464,
+ "n_gen": 300,
+ "estados": {
+  "3": 300
+ },
+ "nbest_ok": 300,
+ "nworst_ok": 300,
+ "npares_ok": 300,
+ "npmid_ok": 300,
+ "soma_ok": 300,
+ "regra_ok": 300,
+ "acc": 0.5255833333333334,
+ "n_nd": 41,
+ "n_ref": 5050,
+ "igd_cru": 0.3077399106667766,
+ "igdp_cru": 0.276148855786322,
+ "paper_igd": 0.069212,
+ "paper_3sigma": [
+  0.04586,
+  0.09256
+ ]
+}

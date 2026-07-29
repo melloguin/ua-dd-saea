@@ -1,0 +1,26 @@
+problema,n_blocos,n_esperado,faltando,extra,motivos,ult_gen_completa,fantasma,ult_par,ok_flag,n_pontos_ok
+BBOB_F1,96,96,0,[],"{""cadencia"": 96}",190,191,True,1,1
+BBOB_F17,99,99,0,[],"{""cadencia"": 99}",196,197,True,1,1
+BBOB_F22,71,70,0,[139],"{""cadencia"": 70, ""final"": 1}",138,139,True,1,1
+BBOB_F37,94,94,0,[],"{""cadencia"": 94}",186,187,True,1,1
+BBOB_F49,99,99,0,[],"{""cadencia"": 99}",196,197,True,1,1
+BBOB_F5,81,81,0,[],"{""cadencia"": 81}",160,161,True,1,1
+BBOB_F55,90,90,0,[],"{""cadencia"": 90}",178,179,True,1,1
+DTLZ1,71,71,0,[],"{""cadencia"": 71}",140,141,True,1,1
+DTLZ2,121,121,0,[],"{""cadencia"": 121}",240,241,True,1,1
+DTLZ3,121,121,0,[],"{""cadencia"": 121}",240,241,True,1,1
+DTLZ4,121,121,0,[],"{""cadencia"": 121}",240,241,True,1,1
+DTLZ7,217,216,0,[431],"{""cadencia"": 216, ""final"": 1}",431,432,False,1,1
+MMF1,22,22,0,[],"{""cadencia"": 22}",42,43,True,1,1
+MMF11_L,23,22,0,[43],"{""cadencia"": 22, ""final"": 1}",43,44,False,1,1
+MMF16_20,201,201,0,[],"{""cadencia"": 201}",400,401,True,1,1
+MMF4,20,20,0,[],"{""cadencia"": 20}",38,39,True,1,1
+WFG1,221,221,0,[],"{""cadencia"": 221}",440,441,True,1,1
+WFG2,221,221,0,[],"{""cadencia"": 221}",440,441,True,1,1
+WFG4,221,221,0,[],"{""cadencia"": 221}",440,441,True,1,1
+WFG5,221,221,0,[],"{""cadencia"": 221}",440,441,True,1,1
+WFG9,222,221,0,[441],"{""cadencia"": 221, ""final"": 1}",441,442,False,1,1
+ZDT1,294,294,0,[],"{""cadencia"": 294}",586,587,True,1,1
+ZDT3,292,291,0,[581],"{""cadencia"": 291, ""final"": 1}",581,582,False,1,1
+ZDT4,92,91,0,[181],"{""cadencia"": 91, ""final"": 1}",181,182,False,1,1
+ZDT6,79,78,0,[155],"{""cadencia"": 78, ""final"": 1}",155,156,False,1,1

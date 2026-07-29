@@ -1,0 +1,70 @@
+/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/baterias/c311/b11_folha_escolhida.py:85: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  print(c.groupby('tier').apply(lambda x: pd.Series({
+BBOB_F1 tppm hit 5 / 8 | g51i-1 8 | ngps 5
+BBOB_F17 tppm hit 8 / 8 | g51i-1 8 | ngps 8
+BBOB_F22 tppm hit 8 / 8 | g51i-1 8 | ngps 8
+BBOB_F37 tppm hit 6 / 8 | g51i-1 8 | ngps 6
+BBOB_F49 tppm hit 8 / 8 | g51i-1 8 | ngps 8
+BBOB_F5 tppm hit 8 / 8 | g51i-1 8 | ngps 8
+BBOB_F55 tppm hit 8 / 8 | g51i-1 8 | ngps 8
+DTLZ1 tppm hit 12 / 12 | g51i-1 12 | ngps 12
+DTLZ2 tppm hit 11 / 12 | g51i-1 12 | ngps 11
+DTLZ3 tppm hit 11 / 12 | g51i-1 12 | ngps 11
+DTLZ4 tppm hit 12 / 12 | g51i-1 12 | ngps 12
+DTLZ7 tppm hit 12 / 12 | g51i-1 12 | ngps 12
+MMF1 tppm hit 8 / 8 | g51i-1 8 | ngps 8
+MMF11_L tppm hit 8 / 8 | g51i-1 8 | ngps 8
+MMF16_20 tppm hit 12 / 12 | g51i-1 12 | ngps 12
+MMF4 tppm hit 7 / 8 | g51i-1 8 | ngps 7
+WFG1 tppm hit 4 / 8 | g51i-1 8 | ngps 4
+WFG2 tppm hit 8 / 8 | g51i-1 8 | ngps 8
+WFG4 tppm hit 6 / 8 | g51i-1 8 | ngps 6
+WFG5 tppm hit 8 / 8 | g51i-1 8 | ngps 8
+WFG9 tppm hit 8 / 8 | g51i-1 8 | ngps 8
+ZDT1 tppm hit 8 / 8 | g51i-1 8 | ngps 8
+ZDT3 tppm hit 8 / 8 | g51i-1 8 | ngps 8
+ZDT4 tppm hit 6 / 8 | g51i-1 8 | ngps 6
+ZDT6 tppm hit 8 / 8 | g51i-1 8 | ngps 8
+swap_big-lhs_DTLZ2 tppm hit 10 / 297 | g51i-1 297 | ngps 236
+swap_big-lhs_MMF16_20 tppm hit 13 / 132 | g51i-1 132 | ngps 103
+swap_big-lhs_WFG9 tppm hit 2 / 12 | g51i-1 12 | ngps 2
+swap_big-lhs_ZDT1 tppm hit 21 / 36 | g51i-1 36 | ngps 33
+swap_big-lhs_ZDT4 tppm hit 46 / 100 | g51i-1 98 | ngps 51
+swap_big-mvns_DTLZ2 tppm hit 16 / 168 | g51i-1 163 | ngps 129
+swap_big-mvns_WFG9 tppm hit 10 / 16 | g51i-1 16 | ngps 14
+swap_big-mvns_ZDT1 tppm hit 58 / 122 | g51i-1 122 | ngps 89
+swap_big-mvns_ZDT4 tppm hit 33 / 60 | g51i-1 60 | ngps 40
+swap_medium-lhs_DTLZ2 tppm hit 32 / 42 | g51i-1 42 | ngps 42
+swap_medium-lhs_MMF16_20 tppm hit 29 / 30 | g51i-1 30 | ngps 30
+swap_medium-lhs_WFG9 tppm hit 12 / 12 | g51i-1 12 | ngps 12
+swap_medium-lhs_ZDT1 tppm hit 12 / 12 | g51i-1 12 | ngps 12
+swap_medium-lhs_ZDT4 tppm hit 11 / 14 | g51i-1 14 | ngps 14
+swap_medium-mvns_DTLZ2 tppm hit 28 / 42 | g51i-1 42 | ngps 40
+swap_medium-mvns_MMF16_20 tppm hit 27 / 30 | g51i-1 30 | ngps 30
+swap_medium-mvns_WFG9 tppm hit 16 / 16 | g51i-1 16 | ngps 16
+swap_medium-mvns_ZDT1 tppm hit 6 / 14 | g51i-1 14 | ngps 11
+swap_medium-mvns_ZDT4 tppm hit 7 / 20 | g51i-1 20 | ngps 11
+swap_small-lhs_DTLZ2 tppm hit 11 / 12 | g51i-1 12 | ngps 11
+swap_small-lhs_MMF16_20 tppm hit 12 / 12 | g51i-1 12 | ngps 12
+swap_small-lhs_WFG9 tppm hit 8 / 8 | g51i-1 8 | ngps 8
+swap_small-lhs_ZDT1 tppm hit 8 / 8 | g51i-1 8 | ngps 8
+swap_small-lhs_ZDT4 tppm hit 6 / 8 | g51i-1 8 | ngps 6
+swap_small-mvns_DTLZ2 tppm hit 12 / 12 | g51i-1 12 | ngps 12
+swap_small-mvns_MMF16_20 tppm hit 12 / 12 | g51i-1 12 | ngps 12
+swap_small-mvns_WFG9 tppm hit 8 / 8 | g51i-1 8 | ngps 8
+swap_small-mvns_ZDT1 tppm hit 5 / 8 | g51i-1 8 | ngps 5
+swap_small-mvns_ZDT4 tppm hit 8 / 8 | g51i-1 8 | ngps 8
+-> /Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/baterias/c311/b11_folha_iter.csv (1495, 13)
+-> /Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/baterias/c311/b11_folha_cel.csv (54, 21)
+
+pares (iteração, objetivo): 1495
+tppm reconstruído == logado [g51i]: 687 (46.0%)  | n_gps: 1213 (81.1%)
+tppm reconstruído == logado [g51i_1]: 1488 (99.5%)  | n_gps: 1491 (99.7%)
+células com 100% de acerto (tppm, g51i): 27 / 54
+1ª iteração (a escolha inicial) acerta: 120 / 125
+última iteração (cobertura final) acerta: 95 / 125
+        pares    hit        pct
+tier                           
+big     943.0  209.0  22.163309
+medium  232.0  180.0  77.586207
+small   320.0  298.0  93.125000

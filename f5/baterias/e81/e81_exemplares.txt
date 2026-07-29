@@ -1,0 +1,21 @@
+
+=== EXEMPLAR 1 — query-joia (MMF1, geracao 10) ===
+  bounds nativos MMF1: xl=[1.0, -1.0] xu=[3.0, 1.0] (NAO [0,1]^2)
+  n_front_acq=21  n_train=30  idx_escolhidos=[1]
+  maximin_escolhido (log)      = 0.12442901575070979
+  maximin RECOMPUTADO em [0,1] = 0.12442905965494498   |delta| = 4.390e-08
+  argmax do recomputo = 1 (== idx_escolhido)  | 2o colocado = 0.119821
+  mesmo recomputo em espaco NATIVO -> argmax = 1 (dist=0.248858); dist_min_arquivo=0.248858
+  x do escolhido (nativo) = [2.919445037841797, -0.9989259839057922] ; x da 1a linha da ③ = [2.819941997528076, -0.17951600253582]
+  linha marcada na ③ (posicao) = [1]
+
+=== EXEMPLAR 2 — B17.5 top-q x Eq.6-greedy (q10_DTLZ2, geracao 3) ===
+  front=250  top-q (log)=[4, 5, 17, 21, 58, 61, 64, 81, 95, 100]
+  top-q recomputado          =[4, 5, 17, 21, 58, 61, 64, 81, 95, 100]
+  Eq.6-greedy (contrafactual)=[4, 5, 17, 21, 47, 61, 81, 88, 95, 181]
+  soma dos maximin: top-q=8.542993  greedy=8.365104 (top-q maximiza a SOMA)
+  separacao mutua MINIMA do lote: top-q=0.249730  greedy=0.910690 (greedy 3.65x mais disperso)
+
+=== EXEMPLAR 3 — maior salto de aprendizado (q10_MMF16_20 obj2) ===
+  WAPE cai x19.3 num unico passo de bloco; lengthscale x4.52; outputscale x0.381
+  ponta a ponta: lengthscale x15.29, outputscale x0.199

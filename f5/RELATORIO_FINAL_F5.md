@@ -68,6 +68,12 @@ significa "incomensurável com o paper", que é um fato do desenho, não do algo
 
 ---
 
+
+> ⚠ **PENDÊNCIA ATIVA — 16 decisões do autor.** A §2.2 abaixo lista as decisões que
+> a validação levanta e NÃO pode tomar (doutrina D97). Nenhuma bloqueia esta entrega;
+> **todas bloqueiam o disparo das 30 sementes.** O handoff da execução para a torre
+> central está em `handoff/F5-HANDOFF-EXECUCAO.md` §6.
+
 ## 2. ONDE OLHAR PRIMEIRO + DECISÕES DO AUTOR
 
 ### 2.1 ONDE OLHAR PRIMEIRO

@@ -2069,6 +2069,44 @@ E-08 (RAM c262-batch) volta a ser obrigatório; custo re-projetado +12-17 mil h-
 
 ---
 
+## PARTE A35 — 🏁 MESA ZERADA: DI-44 (teto 12 h) + DI-45 (fix do e74 APROVADO) — 13/13 decididas (2026-07-29)
+
+**DI-44 — teto FINAL = 12 h** (emenda à DI-43, que havia posto 33 h). O autor decidiu com a
+conta da torre na mesa: as **25 células** que estouram o teto são **3,6% do grid** e
+consumiriam **73%** da campanha a 33 h (**34.041** h-core) contra **18.291** h-core a 12 h —
+economia de **15.750 h-core (46%)**; e como a F5 provou que essas células NUNCA completam
+(teto de 48 h ⇒ `ok=0` em 14; projeções 41–190 h), horas extras só compram pontos adicionais de
+uma curva parcial (valor marginal decrescente). **TUDO O MAIS DA DI-43 PERMANECE**: roster 100%
+(695×30, c154-batch de volta), truncamento-com-dado universal (T10 obrigatório; aborto-por-
+projeção extinto; teto por RELÓGIO), outputs intermediários (checkpoint atômico). Base do
+custo = heatmap `f5/tempo_heatmap_30seeds.html` (Σ 10.173 h-core; c149 2.811 · c154 1.537 ·
+c122 1.239 · b5m 1.123 · c262 867 · e81 680 · c238 502 · e7 452).
+
+**DI-45 — fix do e74 APROVADO** (fecha a DI-07b, aberta desde 2026-07-18). O autor autorizou
+aplicar o fix do desalinhamento máscara×Parent em `ClassifierSelect.m:46-48` — a torre REVISOU
+a recomendação (antes: não-promover) porque o autor vai **re-validar fidelidade na semente 1**,
+o que remove o único contra-argumento. Razões a favor: (i) **bússola D29** — bug do código
+original ⇒ segue o ARTIGO; (ii) **precedente no próprio e74** — o D76 já patchou o MESMO tipo de
+bug de máscara nesse algoritmo (era incoerente corrigir um e deixar o outro); (iii) o fix é
+**1 linha nova + 1 alterada** (capturar `find(y_label==1)` e mapear a ordenação de volta ao
+índice absoluto); (iv) restaura a **Contribuição 1 declarada do paper**. Impacto medido do
+desvio (F5, 25 células): a metade "classificador guia" OPERA (elite em 96,7% dos 2.091 infills)
+e a metade "incerteza escolhe" é INERTE (argmax em só 12,24%; rank mediano 43/100) + 13,31% dos
+ciclos em no-op. **Não invalidou resultados** (e74 = 9,0 aceitar+caveat), mas 1 das 3
+contribuições do artigo não se reproduzia. Obrigatório junto: preservar a telemetria
+`n_desalinhado` (para PROVAR na validação da semente 1 que o argmax passou a valer) + re-lacre
+de âncora/`repos.lock` do e74 (vendorizado tocado).
+
+**🏁 PLACAR FINAL DA MESA T11: 13/13 DECIDIDAS.** D1-D3 (re-runs/quimera/⑦) · D4+D5 (DI-43+44) ·
+D6 (falhas = decidir pela referência; default limitação) · D7 (iteration_seed ganha a célula no
+M8) · D8 (re-rodar TODAS as ~29 não-ok) · D9 (5 conclusões cravadas no DOSSIE §D9) · D10 (fila
+de pré-requisitos autorizada; ações de infra do autor anotadas p/ depois do código) · D11
+(TODAS as melhorias de instrumentação, incl. sonda estratificada dos classificadores) · D12
+(=DI-45) · D13 (só as 2 verificações dirigidas: b1-torneio e b3-índice). **Zero decisões em
+aberto. Próximo: a torre escreve os cartões T11.**
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

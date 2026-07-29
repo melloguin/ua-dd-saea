@@ -2035,6 +2035,25 @@ h-core. Meta: re-gate das 666 devolve exatamente 1 quimera + 34 anômalas.
 
 ---
 
+## PARTE A33 — CONSOLIDAÇÃO FINAL: 3 fontes → mesa T11-D1..D13 (2026-07-29)
+
+**Fecha o pedido do autor: "consolidar TODAS as decisões (fidelidade + validação-143 + rodadas
+passadas), filtrar pelo essencial, contar e catalogar".** Caça histórica com 7 agentes: **362
+pendências avaliadas — 144 RESOLVIDAS, 52 SUPERSEDED, 166 abertas brutas → dedup → 13 DECISÕES
+FINAIS (T11-D1..D13, §12 do plano) + trabalho novo absorvido (OP-6 higiene do --force; e2e de
+aborto→teste do B-05; fallback-footer→B-15; regen matrix pós-D4; lote 📄 herdado) + 5 novos ❌
+pela doutrina (load_sonda triplicado com gatilho D-18 atingido e RECUSADO; emit_sonda_block;
+q=None c149; sweep q=20 descartado; A3/B4+D98/D99/§14 = camada R4/futuro).** Resgates notáveis
+do passado: **DI-07b do e74 ABERTA DESDE 18/07** (a SPEC L.8 ainda promete promoção do fix "antes
+da bateria" — vira D12, rec: NÃO promover, você já aprovou o e74 9,0 com caveat) · contra-
+argumento científico ao D4 (remover batch/c262 deixa o sub-estudo com 3/5 configs; nova opção:
+mantê-lo COM T10) · cache_root divergente desde o DI-05. Laudo de instrumentação (§11) já
+incorporado com a REFUTAÇÃO da torre ao I-1 (Pmid reconstituível: CalFitnessPC sem RNG + ② com
+37.114 ids medidos). **Estado: TODO o conhecimento das 3 fontes está em UM lugar
+(handoff/T11-PLANO-CONSOLIDADO.md); falta só a mesa D1..D13 do autor → cartões T11 → execução.**
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

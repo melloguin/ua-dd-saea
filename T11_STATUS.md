@@ -5,7 +5,15 @@
 > Fonte da verdade do escopo: `SPEC_T11_REFINAMENTO_FINAL.md`.
 
 ## FASE G — globais habilitadoras
-- [ ] G1 · audit_log: anti-append (B-01) + escrita atômica (B-11) + testes
+- [x] G1 · audit_log: anti-append (B-01) + escrita atômica (B-11) + testes — `519b3e4` (2026-07-29)
+      · suíte 405 (394+11), mesmo conjunto de falhas do baseline (0 regressão)
+      · ⚠ 2 falhas PRÉ-EXISTENTES (não são regressão): `test_batch_q10.TestTetoFiadoPeloDespachante`
+        escreve em `data/` de produção (**B-13**, item do G6) e o ⑥ de `batch/e81/q10_ZDT4` está
+        congelado 444 — era `PermissionError`, agora é `RunJaFechado` (o B-01 pegando em flagrante)
+      · ⚠ RESÍDUO do B-11 fora do escopo declarado do G1 (`src/audit_log.py`): o writer MATLAB
+        (`src/experiment.m:3199 jsonl_open` = `fopen(path,'w')`) segue com deslocamento próprio;
+        e a claim "2 handles no mesmo arquivo" em `src/b1_instrument.m` NÃO se verifica no código
+        (só `experiment.m` tem `fopen`; 1 fid por run) — decisão do autor pendente
 - [ ] G2 · despachante: no-op sem ⑥ (B-02) · NO_RETRY (B-16) · q real no ⑤ de aborto (I-10) · revogação DI-40 no dispatch
 - [ ] G3 · manifest: campanha_id + is_run_done v2 (B-03) · higiene do --force (OP-6) · fallback-footer (O-21)
 - [ ] G4 · gcs/harnesses: mirror no aborto (B-09) · identidade do blob + poda segura (B-10)

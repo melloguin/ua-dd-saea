@@ -2054,6 +2054,21 @@ incorporado com a REFUTAÇÃO da torre ao I-1 (Pmid reconstituível: CalFitnessP
 
 ---
 
+## PARTE A34 — DI-43: TETO 33h + RODA-SE TUDO + TRUNCAMENTO UNIVERSAL + CHECKPOINTS (autor, 2026-07-29)
+
+**Devolutivas da mesa T11-D1..D13:** D1-D3 ✅ à risca · **D4/D5 = DI-43** (supersede DI-38a e
+reverte a DI-40 no roster): teto experimental = **33 h**; **rodam TODAS as 695 células × 30
+sementes** (incl. as 5 c154-batch); rito único Python = **truncamento-com-dado** (T10
+obrigatório; aborto-por-projeção extinto); **NOVO requisito: outputs intermediários**
+(checkpoint atômico periódico) · D6-D7 ✅ (falhas=decidir pela referência; iteration_seed ganha
+a célula no M8) · **D8 revisada**: as ~29 não-ok da s42 re-rodam TODAS sob o regime novo ·
+D11 ✅ (TODAS as melhorias de instrumentação, incl. sonda estratificada) · D9/D10/D12/D13
+aguardam re-explicação didática. SPEC §5.1 reescrita (bloco DI-43) + bundles regen. Efeitos:
+E-08 (RAM c262-batch) volta a ser obrigatório; custo re-projetado +12-17 mil h-core ⇒ E-10
+(envs Linux) crítico; T11 ganha 2 frentes novas (T10-expandido + checkpoint).
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

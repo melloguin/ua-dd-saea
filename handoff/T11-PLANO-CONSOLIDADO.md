@@ -261,3 +261,31 @@ quantificou [eq.7-8 inerte em 87,8%] e você aprovou 9,0 aceitar+caveat; doc-syn
 que ainda promete promoção) + b3 `adapt_delta_V` (rec: documentar como não-emitido)** ·
 **D13 verificações dirigidas órfãs — quais rodar (rec: SÓ as 2 do teto-T: b1-torneio
 EvolALG.m:16 e b3-índice UpdataArchive; nsga3-D88, c141-WFG5 e sobol_batch-5cel = NÃO)**
+
+## 13. DEVOLUTIVAS DO AUTOR (2026-07-29) — DI-43 — e o que muda no plano
+
+**Ratificações:** D1-D3 ✅ · D6-D7 ✅ · D11 ✅ ("aplique TODAS as melhorias de instrumentação",
+incl. sonda estratificada dos classificadores). **D9/D10/D12/D13 aguardam re-explicação.**
+
+**D4+D5 = DI-43 (a mudança de regime; SPEC §5.1 atualizada, bundles regen):**
+- **Teto experimental = 33 h** (118.800 s; era 12 h).
+- **Roster 100%**: 695 células × 30 sementes — as 5 c154-batch VOLTAM (DI-40 revertida
+  p/ o roster); c262-batch FICA; nenhuma célula sai por custo.
+- **Truncamento-com-dado universal** (T10 vira obrigatório e é o rito único do stack Python):
+  rodar até completar OU 33 h por RELÓGIO; teto ⇒ `failed/teto_wall` + camadas parciais.
+  Aborto-por-projeção EXTINTO (projeção = warning).
+- **Outputs intermediários (requisito NOVO)**: checkpoint atômico periódico das camadas nos
+  runners Python (cadência a definir no cartão; proposta da torre: flush a cada K iterações
+  OU X minutos, escrita atômica via tmp+rename; MATLAB fora — células ≤4 h).
+- **D8 revisada**: TODAS as ~29 células não-ok da s42 re-rodam sob o regime novo (vira também
+  o smoke de aceitação do T10/checkpoint em células reais).
+
+**Trabalho NOVO que a DI-43 cria (entra nos cartões):**
+1. T10 expandido (rito de truncamento em TODOS os runners BoTorch + critério elapsed-only).
+2. Checkpoint intermediário (design + implementação + teste de crash-recovery).
+3. `--teto-s` default 43200→118800 + RUNBOOK/drivers/SPEC-refs.
+4. **Probe de RAM do c262-batch VOLTA a ser obrigatório** (E-08 des-superseded: com o c262
+   de volta ao batch, o OOM em n=669 precisa de mitigação — medir e dimensionar --n-jobs).
+5. Dispatch/rosters completos (o RUNBOOK que tirava c154 do batch é revertido).
+6. Custo da campanha re-projetado: base 10.173 + **~12-17 mil h-core** das células que antes
+   abortavam baratas e agora rodam até 33 h ⇒ **E-10 (envs Linux/VMs) vira ainda mais crítico**.

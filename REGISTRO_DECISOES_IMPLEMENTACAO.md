@@ -1971,6 +1971,30 @@ estudo funciona.**
 
 ---
 
+## PARTE A30 — DI-42.1 APLICADA + o PLACAR dos 64 + a mesa DI-42.2-.7 (2026-07-28)
+
+**DI-42.1 ratificada pelo autor e aplicada (`8e8e966`):** `experiments.py` não rebaixa mais o
+`status='failed'` do runner para 'ok' (runner = autoridade do próprio fim; direção inversa
+preservada). RUNBOOK: `--problems` nos comandos batch/sweep (sem ele = 125 células), roster
+DI-40 (sem c154 no batch), `'parallel',false` em 7 comandos MATLAB (O-09).
+
+**PLACAR DOS 64 CONFIRMADOS:** ✅ **9 resolvidos** (B1×3 achados + cache_cap×2 + ⑦-e103 [as 5
+regeneradas] + falso-VERDE + --problems + parallel,false) · 📋 **~9 sem ação de código** (vão ao
+dossiê D97 como comportamento: HV_gain e74, MMF1 degenerado em c141/c238/c149, b5r colapso de
+RVs, retreino-em-cache-hit, overshoot e7, crash-latente c238 observado em n_front=2) · 🔧 **~40
+= lote de refinamento pré-M8** (trabalho sancionado pela doutrina do autor, sem escolha real:
+campos contratuais faltantes no ⑥/⑤/sigma_dict, guards latentes, testes-lacuna [straddle/D74/
+hard-stop-b4/CACHE_CAP], teste→tempdir, guard de tier, roster e103 do experiments.m, manifesto
+failed q=1 em batch, preflight content-hash, suíte hermética [D-03], datasets sweep 29 sementes,
+force das células s0 pré-retrofit, probe de RAM do c262 batch, resume/final_eval e103) ·
+🔴 **6 DECISÕES GENUÍNAS na mesa (DI-42.2-.7):** células comprometidas da s42 [4: c311 big-mvns
+LinAlgError mascarada; moead ⑥ 2-escritores; treed ⑥ truncado; e81-batch ⑥ poluído pelo teste] ·
+env_c311 sem google-cloud-storage (guard vs pin D80) · c122 sonda g=1 não-truncada · campo fe do
+evento sonda (fixar todos × Python-só+③ como eixo × documentar) · params no ⑤ · no-retry de
+falhas determinísticas. Detalhe/opções na resposta da torre ao autor (2026-07-28).
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

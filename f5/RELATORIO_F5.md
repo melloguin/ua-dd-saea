@@ -327,7 +327,77 @@ sklearn (c311, 3 incrementos fora da banda sob MVNS — mecanismo já provado po
 
 ## 6-bis. F5.3b — Fan-out (19 configs) — ⬜ aguarda calibração do autor
 
-## 7. F5.4 — Verificação adversarial — ⬜
+## 7. F5.4 — Verificação adversarial — ✅ CONCLUÍDA (2026-07-29)
+
+14 agentes Opus: 13 céticos (1 por achado classe (3), viés de REFUTAR) + 1 investigador do
+padrão sistêmico. Artefatos: `f5/adversarial/*.md` (14 vereditos) + `f5/baterias/f54/`.
+
+### 7.1 O veredito dos 13
+
+| achado | veredito | enquadramento |
+|---|---|---|
+| b4-A12 (p0/p1 invertidos) | **REFUTADO** | resíduo (d) doc, severidade mínima |
+| c154-J27 (desalinhamento ③×acqf) | **REFUTADO** | — |
+| moead-M16 (n_front1 ±1) | **REFUTADO** | — |
+| moead_media-C9b (colapso do GPR) | **REFUTADO** | reclassificado (2) sancionado |
+| e103-A25 (⑦ card. 200) | **REFUTADO como (3)** | rebaixado a (d) |
+| sobol_batch-S23 (n_front1 ausente) | **PARCIALMENTE REFUTADO** | (d), reduzido de 4 p/ 1 campo |
+| c122-A27 (referência do bloco-1) | CONFIRMADO **(d)** | instrumentação/doc |
+| e81-B28 (94 pares espúrios) | CONFIRMADO **(d)** | duplicata do defeito sistêmico |
+| b5r-A30 (③ ger.1 = pop inicial) | CONFIRMADO **(d)** | instrumentação/doc |
+| b5m-A25 (⑥ sem DI-10) | CONFIRMADO **(d)** | instrumentação/doc |
+| sobol_batch-S24 (tempo_aval=0) | CONFIRMADO **(d)** | instrumentação |
+| b5m-A8 (cadeia do congelamento) | CONFIRMADO **(b)** | **comportamento legítimo → vira RESULTADO** |
+| c149-A26 (③ de outra execução) | CONFIRMADO **(c)** | **DADO DESCASADO → célula sai** |
+
+**O resultado que mais importa: ZERO achados da categoria (a) — nenhum bug de
+implementação de algoritmo em 24 configs.** 6 são defeitos de instrumentação/log (o
+mecanismo está certo, o registro é que engana), 1 vira resultado científico, 1 é dado
+descasado (1 célula excluída), 5 caíram na refutação.
+
+### 7.2 O padrão sistêmico — causa-raiz provada em 6 passos
+
+O investigador varreu as 666 células e achou **34 com assinatura anômala (5,1%)**, das
+quais **4 com conteúdo do bucket ≠ do Mac — todas ZDT4**, incluindo uma que NENHUM
+analista tinha visto (`sobol_batch/q10_ZDT4`).
+
+**A causa não é a que estava registrada** ("provisionamento copiou `data/`") — são duas
+causas encadeadas:
+1. **`is_run_done` faz o disparo PULAR a célula** quando o smoke pré-campanha já deixou
+   artefato em `data/` (22 células "pulou" nos `done.txt`, **9 delas ZDT4**);
+2. **`AuditLogger` abre o ⑥ em modo `"a"` (append) sem guarda** (`src/audit_log.py:55`),
+   então toda re-invocação empilha `header`/`footer` do despachante sobre um run fechado.
+
+**Por que ZDT4**: é a célula-de-smoke canônica — está no roster de `batch` E dos 6 tokens
+de `sweep`, e é o menor D (=10) dos cinco (maxFE 309/2109 contra 929/2329 do ZDT1);
+`scripts/accept.py:256` usa literalmente o par `("ZDT4", 42)`.
+
+**Dano científico real = 1 célula.** Só `batch/c149/ZDT4` é quimera, e a prova é
+definitiva: a ③ do bucket bate **2.000/2.000 bit-a-bit** contra a ① do **Mac (24/07)** e
+**0/2.000** contra a ① do próprio bucket (VM, 26/07) — o `__surrogate.parquet` do bucket
+é o do smoke do Mac; as demais camadas são do run da VM. As outras 3 células divergentes
+são metadados/⑦, dano zero.
+
+**Saúde do resto da campanha (medida, não presumida):** o teste 3×1 (X da linha da ③ com
+`real_solution_id` ≡ X da ①) rodou nas 666 — **360 aplicáveis, 359 OK a 100% bit-a-bit,
+1 falha** (a do c149). `①.nrows == manifest.fe_final` fecha **666/666**;
+`footer.fe_final == manifest.fe_final` fecha **666/666**; `doe_hash` e `sonda.x_hash`
+particionam 25/25 problemas sem uma célula órfã.
+
+### 7.3 ⚠ Incidente da PRÓPRIA validação (auto-reporte)
+
+Durante a F5.3, **um agente meu invocou `experiments.py` para `batch/e81/ZDT4`** — que,
+por estar `is_run_done`, foi um no-op… **exceto pelo `AuditLogger`, que appendou 10 pares
+`header`/`footer` vazios ao ⑥** (timestamps 2026-07-28T23:59Z a 2026-07-29T01:59Z).
+É a demonstração acidental e perfeita do bug nº 2 do §7.2.
+**Apuração completa e correção:** comparei **os 666 ⑥ locais contra a cópia do bucket** —
+665 idênticos, 3 divergentes: `batch/c149/ZDT4` e `batch/sobol_batch/ZDT4` divergem por
+serem as versões do **Mac de 24/07** (pré-existentes, não tocadas por mim) e
+`batch/e81/ZDT4` era o único alterado na minha janela (prefixo-compatível + 20 linhas).
+**Restaurado bit-a-bit da cópia do bucket (95 footers, era 105) e congelado em modo 444**;
+backup do arquivo contaminado preservado no scratchpad. Nenhum parquet, manifesto ou
+outra célula foi tocado. Regra reforçada para a F5.7: **agente de análise não invoca
+`experiments.py`, nem para no-op**.
 
 ## 8. F5.5 — Transversais — ⬜
 

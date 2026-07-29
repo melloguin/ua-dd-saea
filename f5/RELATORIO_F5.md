@@ -8,7 +8,7 @@
 > Contratos: `handoff/F5-FRAMEWORK-v2.md` (a tarefa) · `f5/PROTOCOLO_ANALISE_FIDELIDADE.md`
 > (o método por config).
 >
-> **Estado: F5.1 CONCLUÍDA (2026-07-28) · placar 666 = 665 APROVADAS + 1 REPROVADA-F5.1.**
+> **Estado: F5.3a CONCLUÍDA (2026-07-28) · placar 666 = 664 na análise + 2 REPROVADAS (1 F5.1, 1 F5.2a) · pilotos: zero classe (3) · aguarda calibração do autor p/ o fan-out.**
 
 ---
 
@@ -20,7 +20,7 @@
 | D2 organização | ✅ | 666 células → layout do autor; 4.398 arquivos; 0 substituição de ⑥ necessária |
 | D3 verificação | ✅ | 0 camadas faltantes vs censo |
 | **F5.1 gates** | ✅ | **665 aprovadas / 1 REPROVADA** (aborto interno mascarado — bug B1); 45 ⑦ do e103 geradas pós-hoc pela torre; 4 falsos-vermelhos de tolerância diagnosticados e aceitos pelo autor |
-| F5.2 | 🟡 em execução | integridade + contrato + métricas + sonda + tempo |
+| **F5.2** | ✅ | **664 aprovadas / 1 reprovada** (b1/WFG1 ⑥ contaminado); contrato estrutural 100% (1 não-conformidade: ⑤ sem params em 7 configs); métricas 664/664; sonda 461 células; projeção 30 seeds ≈ 10.173 h-core |
 | **F5.3a pilotos** | ✅ | c217 9,0 (≡ âncora do autor) · e81 10 · e7 10 · b1 9,3 · c311 8,5 — ZERO classe (3) | 
 | F5.3b–F5.7 | ⬜ | aguarda calibração do autor |
 

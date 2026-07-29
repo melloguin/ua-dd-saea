@@ -385,6 +385,21 @@ D74/edges ✓) · **DI-08 camada `__final.parquet` p/ o ND real offline (APROVAD
   tree_sha256 sem lixo-de-SO (hashes Mac≡VM), torch pinado na intenção, receitas canônicas
   dos locks, RUNBOOK §6-bis. Ver REGISTRO A22; decisões DI-35 na mesa do autor.
 
+### 2026-07-28 — A VALIDAÇÃO FINAL (143 agentes) · DI-41 aplicada · DI-42 na mesa
+- **32 finders fresh-eyes (Fable) + 111 verificadores adversariais (Opus)**, 0 erros, ~2,97M
+  tokens: 310 achados brutos → **64 confirmados (13 ALTA + 51 MÉDIA)**, 6 refutados.
+- **DI-41 (torre corrigiu, `eb977f2`):** ⑦ do e103 com o DOBRO de linhas (multi-surrogate:
+  1 linha por membro×modelo — zerava o `spacing`; ⑦ regenerada 200→100, portão VERDE) ·
+  token `cache_cap`→`cache_hit_travado` (bug meu do DI-38a) · falso-VERDE do accept
+  (tudo-SKIP saía 0 ⇒ varredura inteira verde sem checar nada; agora INCONCLUSIVO/exit 2).
+- **DI-42 na mesa (4 blocos):** runner (B1 status mascarado — prova real no c311/sweep-big;
+  campo `fe` da sonda; `params` no manifesto; retry de falha determinística; guard de tier;
+  ⑥ sem footer; teste escrevendo em produção) · D97 (b5r colapso de RVs, MMF1 degenerado,
+  HV_gain e74, sonda g=1 do c122) · pré-M8 (pré-retrofit, datasets de sweep, RAM do c262
+  batch, SUB-varN) · RUNBOOK (parfor, `--problems`, roster e103).
+- **O bom:** FE exato 100%, não-perturbação da sonda provada bit-a-bit em 8 configs,
+  convergência real medida, mecanismos vivos e observáveis. A régua funciona.
+
 ### 2026-07-25 — DI-37 RATIFICADO · DOC-SYNC FINAL · REPO PRONTO PARA O PUSH+TAG 🔒→🚀
 - **Autor ratificou os 7 itens DI-37 em bloco** (c154 batch termina no teto=DADO · c262 cheio
   2,2h · knob per-D 1D/50D · caveat D97 · ⑦-teto=rito-piso · não-perturbação teste-only ·

@@ -1892,6 +1892,85 @@ ou de mantê-las e assumir ~225-300 h-core para zero parquet — fica para antes
 
 ---
 
+## PARTE A29 — A VALIDAÇÃO FINAL (143 agentes) · DI-41 aplicada · DI-42 na mesa (2026-07-28)
+
+**O maior exercício de validação do projeto.** Workflow `wf_c451718a-b88`: **32 finders
+fresh-eyes** (20 por-config + 12 transversais, SEM saber que o código já fora validado) rodados
+em **Fable** + **111 verificadores adversariais** rodados em **Opus** (divisão pedida pelo autor:
+descoberta barata, verificação cara). 143 agentes, 0 erros, ~2,97 M tokens, 1.176 tool-calls.
+**310 achados brutos → 64 CONFIRMADOS (13 ALTA + 51 MÉDIA), 20 parciais, 6 refutados, 128 baixas.**
+Notas por dimensão: melhores = b4/b5 8,5 · rng-determinismo 8 · matlab-arvores 8; **piores =
+fe-budget 4,5 · docs-sync 4,5 · c311 6 · despachante-python 6 · testes 6**.
+
+### DI-41 — os 3 bugs de GATE que a torre corrigiu direto (commit `eb977f2`)
+
+1. **🔴 ⑦ do e103 com o DOBRO de linhas (bug de dado REAL, achado da rodada).** O e103 é
+   IBEA-**MS** (multi-surrogate): a ③ grava 1 linha por **(membro × modelo)** —
+   `{Kriging-DACE, RBFN}`. O `final_eval` pegava as 200 linhas da última geração e avaliava cada
+   ponto **2× na função real**, gravando ⑦ com 200 linhas para 100 membros. Efeito grave e
+   silencioso: `n_final` inflado e **`spacing` ZERADO** (duplicata tem distância 0) — e spacing é
+   uma das 5 métricas do estudo. Fix: filtrar por UM `modelo_flag` (o 1º da ③), **nunca por X**
+   (membros coincidentes de população convergida são legítimos — o `moead_media/BBOB_F17_42` tem
+   49/50 X repetidos e DEVE mantê-los). Verificado no-op nos 5 configs de modelo único. ⑦ do
+   smoke regenerada: **200→100 linhas, 21 ND, portão VERDE** (o `--check` acusara a incoerência
+   corretamente — o gate funcionou).
+2. **🔴 Token do aborto sancionado ERRADO (bug meu, do DI-38a/`1c2811b`).** O carve-out ⚪ procura
+   `motivo_parada == 'cache_cap'`, mas os runners emitem **`cache_hit_travado`** (c122:815,
+   c149:848, e81:1063); `cache_cap` só existe como *nome de parâmetro* no header. Corrigido nos
+   3 sítios (portao/accept/censo42).
+3. **🔴 `accept.py` dava FALSO-VERDE.** `accept.py:2784` só reprova em `ok is False`; com
+   pyarrow/numpy ausentes os 3 checks devolvem SKIP (`None`) ⇒ imprimia **"VERDE"** e saía **0
+   sem checar nada**. Como o `portao.py` usa esse exit code e roda no `sys.executable`, um
+   `python3 scripts/portao.py` sem o `$PY` do env_main **pintava a varredura inteira de verde**.
+   Agora: **INCONCLUSIVO, exit 2**.
+
+### DI-42 — A MESA DO AUTOR (o que a torre NÃO corrigiu, por mandato)
+
+**Bloco 1 — muda comportamento/saída de RUNNER (⇒ dados da rodada-42 passam a diferir dos do M8):**
+
+| # | Achado (confirmado) | Recomendação da torre |
+|---|---|---|
+| 42.1 | **B1 — `experiments.py:209` sobrescreve `status='failed'` do runner com `'ok'`** (runners standalone abortam por `break`, sem exceção). 4 finders independentes; **prova empírica na rodada-42: `sweep-big-mvns/c311/MMF16_20/42` morreu de `gpy_bfgs_linalg` e está marcada `ok`** — e no offline `fe_final==maxfe` por construção, então `is_run_done` a lê como PRONTA. O rito ⚪ NUNCA dispara no stack standalone | **CORRIGIR antes do M8** (1 linha: não rebaixar `failed` do runner). Na rodada-42: **triar por `motivo_parada`**, não por `status` (já instruído no handoff F5) |
+| 42.2 | **Evento `sonda` do ⑥ não grava o campo `fe`** — exigido pelo CONTRATO §6/§3.1 como "o eixo de comparação entre algoritmos". Transversal: b1, b3, c238, MATLAB inteiro, c122… | **CORRIGIR antes do M8** (a sonda perde o eixo de comparação sem isso) |
+| 42.3 | **Manifesto ⑤ sem a chave `params`** (config efetiva) — CONTRATO §5. Transversal: c217, c262, c154, b5, moead_media (48/48 runs) | Corrigir antes do M8 (a config efetiva só existe no header do ⑥) |
+| 42.4 | Falhas **determinísticas** do c154 (stall D60-b, escada RS esgotada) são **retriadas 3×** pelo despachante — queima 3× o custo para o mesmo fim | Corrigir (não retriar falha determinística) |
+| 42.5 | `treed_media` **sem guard de tier**: aceitaria qualquer `exp` e rodaria fora da célula big | Corrigir (guard barato) |
+| 42.6 | ⑥ **truncado/sem footer**: c311 7/58 (morre em `dual_write_run` — gcs ausente no env_c311, DEPOIS de gravar manifesto `ok`); `moead_media` 1 caso de **dois escritores concorrentes**; bucket **nunca** tem footer | Corrigir o c311 (env) + lock no ⑥; o footer-no-bucket é estrutural (documentar) |
+| 42.7 | **Teste unitário escreve em `data/` de PRODUÇÃO** (`test_batch_q10.py`) — poluiu o ⑥ de `exp_batch_e81_ZDT4_42` com 90 pares header/footer | Corrigir já (tempdir) |
+
+**Bloco 2 — vai para o D97 (fidelidade/comportamento; NÃO é bug de código):** `b5r` com RVs fixos
+**colapsa a população** (ZDT4: média 9,9, mín 2) ⇒ ⑦ quase-degenerada · `MMF1` (D=2) degenerado em
+vários configs (c141 μ −145..210; c238 μ |339| com f≤8,1 e θ no teto; c149 ensemble constante com
+HVI=0 em 40/40) · `HV_gain` negativo em 40-73% das linhas do e74 (artefato CalHV/fmin sob D74) ·
+c122 **bloco de sonda g=1 usa a população NÃO-truncada** e grava `n_ref=MU` errado (quebra a
+comparabilidade prometida pela DI-16.2 — **este é o único do bloco 2 que é defeito de
+instrumentação, não comportamento**).
+
+**Bloco 3 — pré-M8 (já triado na A28, reconfirmado):** células **pré-retrofit** absorvidas pelo
+resume (b1 DTLZ2/ZDT1, c238 ZDT1, c262 ZDT1, c154 DTLZ2 — todas semente **0**) ⇒ `--force` antes
+do M8 · **datasets de sweep só existem para a semente 42** ⇒ 435 células e103 abortariam no M8 ·
+**c262 batch nunca completou ponta-a-ponta** (probe OOM-killed em n=669; RAM em n→2109 não medida)
+⇒ **medir antes de disparar o batch com `--n-jobs 8`** · SUB-varN (DI-39) segue pré-requisito.
+
+**Bloco 4 — RUNBOOK/operação:** comandos MATLAB sem `'parallel',false` (O-09 declara parfor
+incompatível) · comandos batch/sweep **sem `--problems`** (default = 25 problemas ⇒ 125 células em
+vez de 25) · roster default do `experiments.m` inclui e103 com `exp='main'` · resume não-idempotente
+do e103 (re-executa até o `final_eval` pós-hoc rodar).
+
+### O que a validação CONFIRMOU de bom (ponto 4 do pedido do autor)
+
+**Os 20 vereditos de comportamento são majoritariamente EXCELENTES.** FE exato em 100% dos smokes
+de todos os configs; **não-perturbação da sonda PROVADA bit-a-bit** (① idêntica com/sem sonda) em
+b1, b3, b4, e7, c141, c217, c238, e74; convergência real medida (b3 ZDT1 f1 2,25→0,017; b4
+2,25→0,40; e7 DTLZ2 f_best→~0 com n_front1 37→88; c238 DTLZ2 f→1e-26); mecanismos vivos e
+observáveis (c217: 585/588 gerações em estado 3 = surrogate inativo sob 31D−1, **exatamente o que
+o autor já aceitou em D97 9/10**; b3: switch incerteza/APD 44/4 no M=3 e 100% APD nos demais; e7:
+gatilho dual 152/48; b4: gate L>0,9 respeitado com mínimo 0,9006); guardas armadas sem disparo
+espúrio; cache-hit D89 exercitado em dado real (b3: 2 infills duplicados no ZDT1). **A régua do
+estudo funciona.**
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

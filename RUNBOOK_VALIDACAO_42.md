@@ -150,23 +150,25 @@ decisória está vazia (DI-37) — o disparo é liberado pelo push+tag do autor 
 $PY experiments.py --exp main --algorithms c262 c154 c122 c149 e81 --seeds 42 --n-jobs 8 --enable-bucket
 $PY experiments.py --exp off  --algorithms b5r b5m c311 moead_media --seeds 42 --n-jobs 8 --enable-bucket
 # batch q=10 (VM-1; as 5 células c154 SEGURAM 12h cada e morrem no teto POR DESENHO — §7):
-$PY experiments.py --exp batch --algorithms c149 c262 e81 c154 sobol_batch --seeds 42 --n-jobs 8 --enable-bucket
+$PY experiments.py --exp batch --algorithms c149 c262 e81 sobol_batch --seeds 42 --n-jobs 8 --enable-bucket --problems MMF16_20 ZDT4 DTLZ2 WFG9 ZDT1
+# ⚠ DI-40: c154 FORA do batch · DI-42: SEM --problems o default são os 25 problemas
+#   (125 células em vez de 25!) — o batch/sweep rodam SÓ nos 5 problemas do sub-estudo.
 # sweeps (após o smoke do §6.3): 1 comando por token — rosters por tier (DI-35.4):
 #   small/medium → b5r b5m c311 moead_media (Python) + e103 (MATLAB, Mac A — comandos abaixo)
 #   big → c311 treed_media (SÓ os treed)
-$PY experiments.py --exp sweep-small-mvns --algorithms b5r b5m c311 moead_media --seeds 42 --n-jobs 8 --enable-bucket
-$PY experiments.py --exp sweep-big-lhs    --algorithms c311 treed_media        --seeds 42 --n-jobs 8 --enable-bucket
+$PY experiments.py --exp sweep-small-mvns --algorithms b5r b5m c311 moead_media --seeds 42 --n-jobs 8 --enable-bucket --problems MMF16_20 ZDT4 DTLZ2 WFG9 ZDT1
+$PY experiments.py --exp sweep-big-lhs    --algorithms c311 treed_media        --seeds 42 --n-jobs 8 --enable-bucket --problems MMF16_20 ZDT4 DTLZ2 WFG9 ZDT1
 
 # Mac A — TODOS os 12 MATLAB (Mac B está fora; pode dividir em 2 lotes p/ log):
-matlab -batch "experiments('algorithms',{'b1','b3','b4','e7','c217','c141'},'seeds',42)" > /tmp/lote_A.log 2>&1
-matlab -batch "experiments('algorithms',{'e74','c238','nsga2','nsga3','moead','smsemoa'},'seeds',42)" > /tmp/lote_B.log 2>&1
+matlab -batch "experiments('algorithms',{'b1','b3','b4','e7','c217','c141'},'seeds',42,'parallel',false)" > /tmp/lote_A.log 2>&1
+matlab -batch "experiments('algorithms',{'e74','c238','nsga2','nsga3','moead','smsemoa'},'seeds',42,'parallel',false)" > /tmp/lote_B.log 2>&1
 # e103 (offline MATLAB, Mac A — SERIAL) + depois a ⑦ via final_eval (env_main):
-matlab -batch "experiments('algorithms',{'e103'},'exp','off','seeds',42)" > /tmp/e103.log 2>&1
+matlab -batch "experiments('algorithms',{'e103'},'exp','off','seeds',42,'parallel',false)" > /tmp/e103.log 2>&1
 # e103 no SWEEP (small/medium apenas — big é só c311/treed_media), 1 comando por token:
-matlab -batch "experiments('algorithms',{'e103'},'exp','sweep-small-lhs','seeds',42)"   > /tmp/e103_sw_sl.log 2>&1
-matlab -batch "experiments('algorithms',{'e103'},'exp','sweep-small-mvns','seeds',42)"  > /tmp/e103_sw_sm.log 2>&1
-matlab -batch "experiments('algorithms',{'e103'},'exp','sweep-medium-lhs','seeds',42)"  > /tmp/e103_sw_ml.log 2>&1
-matlab -batch "experiments('algorithms',{'e103'},'exp','sweep-medium-mvns','seeds',42)" > /tmp/e103_sw_mm.log 2>&1
+matlab -batch "experiments('algorithms',{'e103'},'exp','sweep-small-lhs','seeds',42,'parallel',false)"   > /tmp/e103_sw_sl.log 2>&1
+matlab -batch "experiments('algorithms',{'e103'},'exp','sweep-small-mvns','seeds',42,'parallel',false)"  > /tmp/e103_sw_sm.log 2>&1
+matlab -batch "experiments('algorithms',{'e103'},'exp','sweep-medium-lhs','seeds',42,'parallel',false)"  > /tmp/e103_sw_ml.log 2>&1
+matlab -batch "experiments('algorithms',{'e103'},'exp','sweep-medium-mvns','seeds',42,'parallel',false)" > /tmp/e103_sw_mm.log 2>&1
 ```
 Monitorar: `scripts/progress.py --watch` · Gatear ao fim: `scripts/portao.py --varredura`.
 

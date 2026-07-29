@@ -206,7 +206,16 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
                                    'tempo_busca_s': None, 'tempo_aval_real_s': None},
                            data_root=data_root, bucket=None)
     else:                                 # MESCLA (preserva tudo que o runner pôs)
-        man['status'] = status
+        # [DI-42.1] O runner é a AUTORIDADE sobre o próprio fim: os standalone
+        # abortam por `break` SEM exceção (teto_wall, cache_hit_travado,
+        # gpy_bfgs_linalg…) e gravam status='failed' + motivo_parada no
+        # manifesto — e o despachante, vendo retorno sem exceção, REBAIXAVA
+        # para 'ok' (a célula c311/sweep-big-mvns/MMF16_20/42 da rodada-42 é a
+        # prova empírica: LinAlgError do GPy carimbada 'ok'). Regra: 'failed'
+        # do runner NUNCA é rebaixado; o contrário (runner 'ok' + exceção no
+        # despachante ⇒ 'failed') continua valendo, como antes.
+        if man.get('status') != 'failed':
+            man['status'] = status
         man['n_retries'] = n_retries
         if stack_trace:
             man['stack_trace'] = stack_trace

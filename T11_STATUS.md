@@ -28,7 +28,14 @@
         driver do autor) e ele está CORRETO para o censo da s42 (as 5 células nunca foram
         despachadas então) — precisa virar CONDICIONAL por semente quando o B-12/G6 commitar
         os drivers, senão o M8 reporta 690 em vez de 695 células
-- [ ] G3 · manifest: campanha_id + is_run_done v2 (B-03) · higiene do --force (OP-6) · fallback-footer (O-21)
+- [x] G3 · manifest: campanha_id + is_run_done v2 (B-03) · higiene do --force (OP-6) · fallback-footer (O-21) — `4253fa4` (2026-07-29)
+      · suíte 439, 1 falha (a ambiental D-03) · 18 testes novos em `tests/test_campanha.py`
+      · **AÇÃO DO AUTOR NO DISPARO:** `export UA_DD_SAEA_CAMPANHA_ID="$(git rev-parse --short=12 HEAD)_<data>"`
+        nos 4 drivers de máquina. Sem a env, o default `{commit12}_{data UTC}` MUDA à meia-noite
+        e o resume re-roda tudo. O despachante imprime o id em uso no arranque do grid
+      · os dois stacks derivam o id pela MESMA fórmula e da MESMA env (`experiment.m` também)
+      · sentinela `QUALQUER_CAMPANHA` para auditar o passado (o re-gate das 666 lê ⑤ v1)
+      · CONTRATO_DE_DADOS §5 atualizado (schema v2)
 - [ ] G4 · gcs/harnesses: mirror no aborto (B-09) · identidade do blob + poda segura (B-10)
 - [ ] G5 · truncamento-com-dado (elapsed-only; projeção=warning) + CHECKPOINT atômico periódico + kill-test
 - [ ] G6 · gates G-1..G-9 + motivos_parada.json + mapa_termino.json + gabarito_camadas.json + B-12/13/14/15 + suíte hermética (D-03)

@@ -1028,6 +1028,7 @@ def write_failed_manifest(exp: str, alg: str, problema: str, semente, *,
                           env: dict | None = None, pinning: dict | None = None,
                           algo_version: str | None = None,
                           detalhe: str | None = None,
+                          enable_bucket: bool = False,
                           data_root: str = naming.DEFAULT_DATA_ROOT) -> str:
     """[T7-sweep] Manifesto HONESTO de parada anômala (D23/D60) — nunca silenciosa.
 
@@ -1052,7 +1053,16 @@ def write_failed_manifest(exp: str, alg: str, problema: str, semente, *,
     man["motivo_parada"] = motivo
     if detalhe:
         man["stack_trace"] = detalhe
-    return _manifest.write_manifest(man, data_root)
+    p = _manifest.write_manifest(man, data_root)
+    # [B-09] A evidência do aborto TAMBÉM sobe. Antes, `mirror_run` só rodava
+    # dentro de `write_run_outputs` (fim de run bem-sucedido): as ~870 células
+    # não-OK de 30 sementes ficavam órfãs no disco de uma VM efêmera e morriam
+    # com ela. Só ⑥+⑤ (trilha leve), nunca levanta.
+    if enable_bucket:
+        man["upload_status"] = _gcs.mirror_evidencia(
+            exp, alg, problema, semente, data_root=data_root)
+        p = _manifest.write_manifest(man, data_root)
+    return p
 
 
 def write_run_outputs(exp: str, alg: str, problema: str, semente,

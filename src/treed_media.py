@@ -483,7 +483,8 @@ def run_treed_media(exp: str, alg: str, problema: str, semente, *,
             motivo=motivo_parada, regime="offline",
             maxfe=bud.maxfe, fe_final=bud.fe, tier=tier, dist=dist,
             env=env, pinning=pinning, algo_version=ALGO_VERSION,
-            detalhe=repr(exc), data_root=data_root)
+            detalhe=repr(exc), data_root=data_root,
+            enable_bucket=enable_bucket)  # [B-09] evidência do aborto sobe
         log.close()
         raise
 

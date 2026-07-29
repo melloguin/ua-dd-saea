@@ -116,47 +116,171 @@ def blob_exists(blob_path: str, *, bucket: str = BUCKET,
     return client.bucket(bucket).blob(blob_path).exists()
 
 
+class ColisaoDeBlob(RuntimeError):
+    """[B-10] O objeto JÁ existe e este run não é o dono dele.
+
+    A quimera `batch/c149/q10_ZDT4` foi feita disto: ①②④⑤⑥ do run da v6 (26/07
+    14:52→19:05) com a ③ **bit-idêntica** (md5 `1269b87f7612`) ao run do Mac de
+    24/07 — dois runs da mesma célula em hosts distintos, um sobrescrevendo o
+    objeto do outro. Teste cruzado: ③(bucket)×①(bucket) fechou **0/2.000**.
+    """
+
+
+def _e_412(e: Exception) -> bool:
+    """A exceção é o 412 do `if_generation_match`? (sem importar a lib — o
+    módulo tem de ser importável no Mac, onde `google-cloud-storage` não existe)"""
+    return (getattr(e, 'code', None) == 412
+            or type(e).__name__ == 'PreconditionFailed'
+            or '412' in str(getattr(e, 'message', '')))
+
+
+def md5_b64(path: str) -> str:
+    """MD5 do arquivo local no MESMO formato que o GCS devolve em `blob.md5_hash`
+    (base64 do digest bruto) — é o que permite CONFIRMAR o upload antes de podar."""
+    import base64
+    import hashlib
+    h = hashlib.md5()                     # noqa: S324 — checksum do GCS, não cripto
+    with open(path, 'rb') as fh:
+        for bloco in iter(lambda: fh.read(1 << 20), b''):
+            h.update(bloco)
+    return base64.b64encode(h.digest()).decode()
+
+
 def upload(local_path: str, blob_path: str, *, bucket: str = BUCKET,
-           project: str = PROJECT, client=None) -> dict:
+           project: str = PROJECT, client=None,
+           if_generation_match: int | None = None,
+           verificar: bool = False) -> dict:
     """Sobe `local_path` → `gs://{bucket}/{blob_path}` (LAZY — rede).
 
-    Local-primeiro + upload → local e blob ficam byte-idênticos (§17.7). Upload é
-    idempotente (sobrescreve). Retorna `{status, blob, gs_uri}`."""
+    Local-primeiro + upload → local e blob ficam byte-idênticos (§17.7).
+
+    **[B-10]** `if_generation_match=0` = "só se o objeto NÃO existir": o GCS
+    responde **412** e o upload falha em vez de passar por cima do objeto de
+    outra execução — a proteção estrutural contra a quimera. Aqui isso vira
+    `ColisaoDeBlob`. `verificar=True` compara o `md5_hash` do blob com o md5
+    local: é o que autoriza PODAR a cópia local (D58) — "upload confirmado"
+    tem de significar confirmado.
+    """
     if not os.path.exists(local_path):
         raise FileNotFoundError(f"nada a subir: {local_path!r} não existe")
     client = client or _client(project)
-    client.bucket(bucket).blob(blob_path).upload_from_filename(local_path)
-    return {"status": "uploaded", "blob": blob_path,
-            "gs_uri": f"gs://{bucket}/{blob_path}"}
+    blob = client.bucket(bucket).blob(blob_path)
+    kw = {} if if_generation_match is None else {
+        'if_generation_match': if_generation_match}
+    try:
+        blob.upload_from_filename(local_path, **kw)
+    except Exception as e:  # noqa: BLE001 — só o 412 tem tratamento próprio
+        if if_generation_match is not None and _e_412(e):
+            raise ColisaoDeBlob(
+                f"gs://{bucket}/{blob_path} já existe (generation≠"
+                f"{if_generation_match}) — outro run/host é o dono; "
+                f"upload recusado para não repetir a quimera do c149.") from e
+        raise
+    out = {"status": "uploaded", "blob": blob_path,
+           "gs_uri": f"gs://{bucket}/{blob_path}"}
+    if verificar:
+        local_md5 = md5_b64(local_path)
+        blob.reload()
+        out["md5_local"], out["md5_blob"] = local_md5, blob.md5_hash
+        if blob.md5_hash != local_md5:
+            raise RuntimeError(
+                f"upload NÃO confirmado (md5 divergente) em "
+                f"gs://{bucket}/{blob_path}: local={local_md5} "
+                f"blob={blob.md5_hash} — a cópia local NÃO será podada.")
+        out["status"] = "uploaded_verificado"
+    return out
 
 
 def mirror_run(exp: str, alg: str, problema: str, semente, *,
                bucket: str = BUCKET, project: str = PROJECT,
                prune_bucket_only: bool = True,
+               sobrescrever: bool = False,
                data_root: str = naming.DEFAULT_DATA_ROOT,
                client=None) -> dict:
     """Espelha os artefatos LOCAIS de um run no bucket (LAZY — rede; VM only).
 
     Sobe cada artefato existente localmente; para a ③ bucket-only dos 5 volumosos
-    (D58), após o upload **poda** a cópia local (`prune_bucket_only`) p/ liberar
-    disco. Retorna o mapa de `upload_status` por artefato (pra ir ao manifesto,
-    §17.7). NÃO é chamado no Mac (sem gcs)."""
+    (D58), após o upload **CONFIRMADO por md5** poda a cópia local
+    (`prune_bucket_only`) p/ liberar disco. Retorna o mapa de `upload_status` por
+    artefato (pra ir ao manifesto, §17.7). NÃO é chamado no Mac (sem gcs).
+
+    **[B-10] `sobrescrever=False` (default) = criar-ou-recusar.** Cada upload vai
+    com `if_generation_match=0`: se o objeto já existe, o dono é outro run/host e
+    o artefato fica com status `colidiu_412` — **e a cópia local NÃO é podada**.
+    Era a poda cega (`os.remove` em `gcs.py:155`) que tornava a quimera do c149
+    IRRECUPERÁVEL: a única ③ local havia sido apagada. Re-execução legítima
+    (`--force`, re-run de célula `failed`) passa `sobrescrever=True`.
+    """
     client = client or _client(project)
     plan = plan_targets(exp, alg, problema, semente,
                         enable_bucket=True, data_root=data_root)
     status: dict[str, str] = {}
+    igm = None if sobrescrever else 0
     for art, tgt in plan.items():
         local, blob = tgt["local"], tgt["blob"]
         if blob is None or not os.path.exists(local):
             status[art] = "absent"
             continue
-        upload(local, blob, bucket=bucket, project=project, client=client)
-        if tgt["bucket_only"] and prune_bucket_only:
-            os.remove(local)                       # ③ volumosa só no bucket (D58)
+        podar = bool(tgt["bucket_only"] and prune_bucket_only)
+        try:
+            upload(local, blob, bucket=bucket, project=project, client=client,
+                   if_generation_match=igm, verificar=podar)
+        except ColisaoDeBlob:
+            # o objeto é de outra execução: não sobrescreve, não poda, não mente.
+            status[art] = "colidiu_412"
+            continue
+        if podar:
+            os.remove(local)                   # ③ volumosa só no bucket (D58)
             status[art] = "uploaded_bucket_only"
         else:
             status[art] = "uploaded"
     return status
+
+
+def mirror_evidencia(exp: str, alg: str, problema: str, semente, *,
+                     bucket: str = BUCKET, project: str = PROJECT,
+                     sobrescrever: bool = True,
+                     data_root: str = naming.DEFAULT_DATA_ROOT,
+                     client=None) -> dict:
+    """[B-09] Espelha a TRILHA LEVE (⑥ + ⑤) de um run que ABORTOU ou FALHOU.
+
+    `mirror_run` só rodava no fim de run bem-sucedido (dentro de
+    `write_run_outputs`), então a evidência das ~870 células não-OK de 30
+    sementes (29/semente) ficava órfã no disco de uma VM efêmera e morria com
+    ela — e o footer `failed`+`erro` do ⑥ é o ÚNICO lugar onde o stack MATLAB
+    certifica a própria falha (O-21). Foi por isso que o `rsync` manual das 4
+    máquinas teve de acontecer ANTES do desligamento.
+
+    Sobe SÓ ⑥ e ⑤ (nunca bucket-only, nunca poda: as camadas podem estar
+    parciais/inconsistentes e o dado local é a fonte-de-verdade da esteira).
+    `sobrescrever=True` por default: a evidência do MEU aborto é mais recente
+    que o que estiver lá para esta célula, e um 412 aqui perderia o diagnóstico
+    — que é justamente o que este espelho existe para salvar.
+    **NUNCA levanta**: devolve `{'erro': ...}` (blindagem DI-42.3 — upload
+    acessório não mata run, e aqui o run já morreu).
+    """
+    out: dict[str, str] = {}
+    try:
+        client = client or _client(project)
+        alvos = (('jsonl', naming.jsonl_path(exp, alg, problema, semente, data_root),
+                  naming.jsonl_filename(exp, alg, problema, semente)),
+                 ('manifest', naming.manifest_path(exp, alg, problema, semente,
+                                                   data_root),
+                  naming.manifest_filename(exp, alg, problema, semente)))
+        for art, local, fname in alvos:
+            if not os.path.exists(local):
+                out[art] = 'absent'
+                continue
+            try:
+                upload(local, naming.blob_path(exp, alg, fname), bucket=bucket,
+                       project=project, client=client,
+                       if_generation_match=(None if sobrescrever else 0))
+                out[art] = 'uploaded'
+            except ColisaoDeBlob:
+                out[art] = 'colidiu_412'
+    except Exception as e:  # noqa: BLE001 — o run já falhou; isto é resgate
+        out['erro'] = f'mirror_evidencia_failed: {e!r}'
+    return out
 
 
 def sync_pending(runs: list[tuple], *, bucket: str = BUCKET,
@@ -191,6 +315,7 @@ def smoke_blob_path() -> str:
 
 __all__ = [
     "BUCKET", "PROJECT", "BUCKET_ONLY_ALGS", "BUCKET_ONLY_LAYERS",
-    "is_bucket_only", "plan_targets", "blob_exists", "upload",
-    "mirror_run", "sync_pending", "smoke_blob_path",
+    "ColisaoDeBlob", "is_bucket_only", "plan_targets", "blob_exists", "upload",
+    "md5_b64", "mirror_run", "mirror_evidencia", "sync_pending",
+    "smoke_blob_path",
 ]

@@ -300,6 +300,23 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
         if bucket and subiu:
             man.setdefault('paths', {})['bucket'] = man.get('paths', {}).get('bucket') or bucket
     write_manifest(man, data_root)
+    # ── [B-09] a EVIDÊNCIA do run não-OK também sobe ─────────────────────────
+    # `mirror_run` só roda no fim de run bem-sucedido (dentro de
+    # `write_run_outputs`), então as ~870 células não-OK de 30 sementes
+    # (29/semente) ficavam órfãs no disco de uma VM efêmera. Aqui é a última
+    # linha de defesa e a única que cobre TODAS as rotas de morte: exceção do
+    # runner, aborto por teto, `break` silencioso, subprocesso venv-only.
+    # Sobe só ⑥+⑤ (a trilha leve), depois da mescla, e NUNCA levanta.
+    if enable_bucket and man.get('status') == 'failed':
+        from src import gcs as _gcs
+        ev = _gcs.mirror_evidencia(exp, alg, problema, semente,
+                                   data_root=data_root)
+        us = man.get('upload_status')
+        if not isinstance(us, dict):      # `None` quando o run nunca falou com
+            us = {}                       # o bucket — o carimbo entra igual.
+        us.update({f'evidencia_{k}': v for k, v in ev.items()})
+        man['upload_status'] = us
+        write_manifest(man, data_root)
     return status
 
 

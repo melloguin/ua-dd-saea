@@ -208,7 +208,8 @@ def run_sobol_batch(exp: str, alg: str, problema: str, semente, *,
             motivo=f"erro_{type(exc).__name__}", regime="online",
             maxfe=bud.maxfe, fe_final=bud.fe, q=q,
             env=env, pinning=pinning, algo_version=ALGO_VERSION,
-            detalhe=repr(exc), data_root=data_root)
+            detalhe=repr(exc), data_root=data_root,
+            enable_bucket=enable_bucket)  # [B-09] evidência do aborto sobe
         raise
     finally:
         log.close()

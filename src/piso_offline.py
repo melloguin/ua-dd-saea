@@ -494,7 +494,8 @@ def _run(exp, problema, semente, *,
             motivo=f"erro_{type(exc).__name__}", regime="offline",
             maxfe=bud.maxfe, fe_final=bud.fe, tier=tier, dist=dist,
             env=env, pinning=pinning, algo_version=ALGO_VERSION,
-            detalhe=repr(exc), data_root=data_root)
+            detalhe=repr(exc), data_root=data_root,
+            enable_bucket=enable_bucket)  # [B-09] evidência do aborto sobe
         raise
     finally:
         log.close()

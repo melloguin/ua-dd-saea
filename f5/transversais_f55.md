@@ -78,7 +78,18 @@
 | c311 | 25 | 0.340 | 0.7211 | 3 |
 | moead_media | 25 | 0.340 | 0.5959 | 1 |
 
-## 4. SWEEP — "mais dado → melhor?" (tier) e LHS × MVNS (distribuição)
+## 4. SWEEP — ⚠ SEÇÃO SUPERADA (ver `transversais_f55_sec4_corrigida.md`)
+
+> **Esta seção usou a métrica da camada ① e por isso mediu o DATASET, não o algoritmo.**
+> Nos configs offline a ① É o dataset compartilhado (D69 lê a ①), então o IGD+ empata por
+> desenho: 119 linhas colapsam em **30 valores distintos** e **30/30 grupos (tier,dist,
+> problema) têm valor único entre todos os algoritmos**. Achado do consolidador da F5.6,
+> confirmado pela torre. A versão CORRETA (medida pela camada ⑦, o ND final avaliado na
+> função real) está em `f5/transversais_f55_sec4_corrigida.md`, e os números mudam:
+> "mais dado → melhor" cai de **46×4** para **29×21**; LHS×MVNS de 32×27 para 27×32.
+> O texto original fica abaixo como lápide.
+
+### [LÁPIDE]  — "mais dado → melhor?" (tier) e LHS × MVNS (distribuição)
 
 | config | dist | problema | small | medium | big | melhora small→maior |
 |---|---|---|---:|---:|---:|---|

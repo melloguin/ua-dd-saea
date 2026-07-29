@@ -17,7 +17,17 @@
         malformadas são `b1_gen`/`sonda`, mediana 1.647 B) · não existe "2º handle" em
         `src/b1_instrument.m` (só `experiment.m` tem `fopen`, 1 fid por run)
       · ⚠ PENDENTE PARA O AUTOR: smoke MATLAB de 1 célula (o engine não importa no venv da suíte)
-- [ ] G2 · despachante: no-op sem ⑥ (B-02) · NO_RETRY (B-16) · q real no ⑤ de aborto (I-10) · revogação DI-40 no dispatch
+- [x] G2 · despachante: no-op sem ⑥ (B-02) · NO_RETRY (B-16) · q real no ⑤ de aborto (I-10) · revogação DI-40 no dispatch — `65c835f` (2026-07-29)
+      · suíte 421, 1 falha (a ambiental D-03) · 14 testes novos em `tests/test_despachante.py`
+      · B-02 fecha 2 buracos: o skip não abre o ⑥ **e** o despachante passa a abrir com
+        `append=False` (sem isso a guarda B-01 mataria o resume de toda célula `failed`)
+      · I-10 foi além do `q`: o ⑤ do aborto também herda `tier`/`dist` (de `naming.parse_sweep`)
+        e `regime` — mesma classe de defeito, ⑤ de sweep abortado não dizia o tier
+      · DI-40: **verificado** que não há filtro de dispatch (e2e travando o despacho de
+        `batch/c154`). ⚠ O único filtro DI-40 vivo está em `scripts/tabela42.py:37` (UNTRACKED,
+        driver do autor) e ele está CORRETO para o censo da s42 (as 5 células nunca foram
+        despachadas então) — precisa virar CONDICIONAL por semente quando o B-12/G6 commitar
+        os drivers, senão o M8 reporta 690 em vez de 695 células
 - [ ] G3 · manifest: campanha_id + is_run_done v2 (B-03) · higiene do --force (OP-6) · fallback-footer (O-21)
 - [ ] G4 · gcs/harnesses: mirror no aborto (B-09) · identidade do blob + poda segura (B-10)
 - [ ] G5 · truncamento-com-dado (elapsed-only; projeção=warning) + CHECKPOINT atômico periódico + kill-test

@@ -245,7 +245,7 @@ da torre): `tempo_total_s` (wall do run), `tempo_fit_surrogate_s`, `tempo_busca_
 
 ## 5. Manifesto (`.manifest.json`) — a certidão do run
 
-Chaves (schema v1, verificado): `run_id/exp/alg/problema/semente/regime/q/tier/dist` ·
+Chaves (**schema v2**): **`campanha_id`** · `run_id/exp/alg/problema/semente/regime/q/tier/dist` ·
 **`status`∈{ok,retried_ok,failed} + `n_retries` + `stack_trace`** (D23) · `maxfe/fe_final/
 n_geracoes` · **`doe_hash`** (o CP-init D87/D88; offline: x_hash+f_hash) · `algo_version/env`
 (versões) · **`timing` (OBRIGATÓRIO pós-retrofit)** + `fit_series` · `cache_hits` ·
@@ -254,6 +254,16 @@ n_geracoes` · **`doe_hash`** (o CP-init D87/D88; offline: x_hash+f_hash) · `al
 - **Alimenta:** a TABELA DE EXECUÇÕES (grid × status × wall × retries — agregação dos manifestos
   via `Scoreboard`; view `progress.py` no M7); auditoria de reprodutibilidade; filtro de
   sucessos/falhas na análise.
+
+> **[B-03 · schema v2, 2026-07-29] `campanha_id` — a identidade da CAMPANHA.**
+> `{commit12}_{data}`, ou o valor cravado na env **`UA_DD_SAEA_CAMPANHA_ID`** (o modo
+> normativo: a campanha das 30 sementes leva ~21 dias e o default derivado da data mudaria de
+> valor no meio). Escrito pelos DOIS stacks (`src/manifest.py:new_manifest` e
+> `src/experiment.m:build_manifest`) e **exigido pelo `is_run_done`**: manifesto v1 (sem o campo)
+> ou de campanha anterior ⇒ NÃO-pronto, o que força o re-run das células stale — sem isso as 5
+> células pré-retrofit de **semente 0** (b1 DTLZ2/ZDT1, c238 ZDT1, c262 ZDT1, c154 DTLZ2) entravam
+> como resultado oficial. Quem AUDITA o passado (o re-gate das 666, cujos ⑤ são v1) passa
+> `campanha_id=manifest.QUALQUER_CAMPANHA`.
 
 > **[DI-13.1] REGRA DA MESCLA (quem escreve o manifesto):** o **runner** grava a certidão RICA
 > (doe_hash, fe_final, n_geracoes, timing MEDIDO, fit_series, sigma_dict, bloco sonda); o

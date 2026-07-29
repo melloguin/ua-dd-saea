@@ -36,8 +36,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from src import naming
 from src import experiment as _adapter
-from src.manifest import (Scoreboard, new_manifest, write_manifest, read_manifest,
-                          is_run_done)
+from src.manifest import (CAMPANHA_ENV, Scoreboard, campanha_id_corrente,
+                          is_run_done, limpar_celula, new_manifest,
+                          read_manifest, write_manifest)
 from src.audit_log import AuditLogger
 
 # ── Roster canônico do stack PYTHON (§21.2 / S.4-F0#2) ─────────────────────
@@ -359,8 +360,20 @@ def _stage_grid(tasks, exp, data_root, *, n_jobs, force, modo_rapido, sb,
 
     print(f'[2/3] Grid: {len(tasks)} células — {sb.skipped} prontas (skip), '
           f'{len(pending)} a rodar em {n_jobs} worker(s).')
+    print(f'[campanha] campanha_id = {campanha_id_corrente()} '
+          f'(B-03; crave com {CAMPANHA_ENV} nas campanhas longas).')
     if not pending:
         return
+    # ── [OP-6] higiene do --force: LIMPA antes de re-rodar ───────────────────
+    # Re-rodar por cima deixava as camadas da execução anterior no disco: se o
+    # run novo morresse antes de reescrever todas, a célula ficava com ①②③④ de
+    # uma execução e ⑤ de outra — a mecânica da quimera `batch/c149/q10_ZDT4`.
+    if force:
+        n_arq = 0
+        for alg, prob, seed in pending:
+            n_arq += len(limpar_celula(exp, alg, prob, seed, data_root))
+        print(f'[--force] {n_arq} artefato(s) local(is) de {len(pending)} '
+              f'célula(s) removido(s) antes do re-run (OP-6; o bucket é intocado).')
 
     # [B-02] a esteira JÁ decidiu acima (o `pending`), então o `_run_one` não
     # repete o `is_run_done` — que lista o bucket nos 5 bucket-only (D58).

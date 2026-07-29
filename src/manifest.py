@@ -23,22 +23,70 @@ leitura de footer de parquet (validação profunda) é **opcional** — se o
 
 from __future__ import annotations
 
+import functools
 import json
 import os
+import subprocess
 from datetime import datetime, timezone
 
 from src import naming
 from src.atomic_io import atomic_write_text
+from src.audit_log import footer_fechado
 
 #: Status de um run (D23). `failed` = qualquer parada anômala (nunca silenciosa).
 STATUSES: tuple[str, ...] = ("ok", "retried_ok", "failed")
 
-#: Versão do schema do manifesto (para migração futura da análise).
-MANIFEST_SCHEMA_VERSION = 1
+#: Versão do schema do manifesto. **v2 = com `campanha_id`** (B-03) — a migração
+#: é de WRITE PATH (todo ⑤ novo nasce v2), nunca retroativa em massa: um ⑤ v1 é
+#: legível como sempre, só não conta como pronto para a campanha corrente.
+MANIFEST_SCHEMA_VERSION = 2
+
+#: [B-03] Variável de ambiente que CRAVA a identidade da campanha. É a forma
+#: NORMATIVA de usar o campo: a campanha das 30 sementes leva ~21 dias em 4
+#: máquinas, então o default derivado da data (abaixo) mudaria de valor no meio
+#: e faria o resume re-rodar tudo. O driver de lote exporta uma vez:
+#:     export UA_DD_SAEA_CAMPANHA_ID="$(git rev-parse --short=12 HEAD)_2026-08-01"
+#: Os dois stacks leem a MESMA variável (o writer MATLAB em
+#: `src/experiment.m:build_manifest`).
+CAMPANHA_ENV: str = "UA_DD_SAEA_CAMPANHA_ID"
+
+#: [B-03] Sentinela para quem AUDITA o passado em vez de decidir re-run: o
+#: re-gate das 666 células da rodada-42 lê manifestos v1 (sem carimbo), e exigir
+#: a campanha corrente ali pintaria o grid inteiro de "não-pronto".
+QUALQUER_CAMPANHA: str = "*"
 
 
 def _utcnow_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+@functools.lru_cache(maxsize=1)
+def _repo_hash_curto() -> str:
+    """`git rev-parse --short=12 HEAD` (1× por processo; 'sem-git' se falhar)."""
+    try:
+        raiz = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        out = subprocess.run(['git', 'rev-parse', '--short=12', 'HEAD'],
+                             cwd=raiz, capture_output=True, text=True, timeout=10)
+        h = out.stdout.strip()
+        return h if out.returncode == 0 and h else 'sem-git'
+    except (OSError, subprocess.SubprocessError):
+        return 'sem-git'
+
+
+def campanha_id_corrente() -> str:
+    """[B-03] A identidade da campanha CORRENTE: `{commit12}_{data}` ou a env.
+
+    Sem este carimbo, `is_run_done` não distinguia uma célula da campanha de uma
+    célula de SMOKE ou PRÉ-RETROFIT: as stale de semente **0** (b1 DTLZ2/ZDT1,
+    c238 ZDT1, c262 ZDT1, c154 DTLZ2) eram absorvidas como prontas — e a semente
+    0 é uma das 30. Medido na rodada-42: 22 células "pulou" únicas nos
+    `done.txt`, 9 delas ZDT4.
+
+    A env `CAMPANHA_ENV` tem precedência (é o modo normativo). O default só
+    serve para smoke/desenvolvimento — ele MUDA de valor à meia-noite UTC.
+    """
+    v = os.environ.get(CAMPANHA_ENV, '').strip()
+    return v or f"{_repo_hash_curto()}_{datetime.now(timezone.utc):%Y-%m-%d}"
 
 
 def new_manifest(exp: str, alg: str, problema: str, semente,
@@ -53,6 +101,7 @@ def new_manifest(exp: str, alg: str, problema: str, semente,
                  timing: dict | None = None, fit_series: list | None = None,
                  stack_trace: str | None = None,
                  fallback_ativado: bool = False,
+                 campanha_id: str | None = None,
                  data_root: str = naming.DEFAULT_DATA_ROOT,
                  bucket: str | None = None) -> dict:
     """Constrói o dicionário de manifesto de um run.
@@ -86,6 +135,9 @@ def new_manifest(exp: str, alg: str, problema: str, semente,
 
     return {
         "schema_version": MANIFEST_SCHEMA_VERSION,
+        # [B-03] o carimbo da campanha nasce com o ⑤ (write path) — quem
+        # re-executa a célula reescreve o ⑤ e o carimbo se atualiza sozinho.
+        "campanha_id": campanha_id or campanha_id_corrente(),
         "run_id": rid,
         "exp": exp, "alg": alg, "problema": problema, "semente": semente,
         "regime": regime, "q": q, "tier": tier, "dist": dist,
@@ -142,13 +194,21 @@ def _footer_ok(path: str) -> bool | None:
 
 def is_run_done(exp: str, alg: str, problema: str, semente,
                 data_root: str = naming.DEFAULT_DATA_ROOT,
-                *, check_footers: bool = True) -> bool:
+                *, check_footers: bool = True,
+                campanha_id: str | None = None) -> bool:
     """Esteira idempotente (D58): o run está **pronto**?
 
-    Pronto = fragmento de manifesto presente **E** status ∈ {ok, retried_ok}
-    **E** `fe_final == maxfe` (D21/D61) **E** as camadas parquet presentes **E**
+    Pronto = fragmento de manifesto presente **E** **o `campanha_id` é o da
+    campanha corrente (B-03)** **E** status ∈ {ok, retried_ok} **E**
+    `fe_final == maxfe` (D21/D61) **E** as camadas parquet presentes **E**
     (quando `pyarrow` disponível e `check_footers`) footers válidos. Qualquer
     peça faltando ⇒ re-roda.
+
+    **[B-03]** Manifesto **v1** (sem o campo) ou de campanha ANTERIOR ⇒ `False`
+    — e isso é o comportamento DESEJADO, não um efeito colateral: é o que impede
+    uma célula de smoke ou pré-retrofit de entrar como resultado oficial. Passe
+    `campanha_id` explícito para perguntar por outra campanha, ou
+    `QUALQUER_CAMPANHA` para auditar o passado (o re-gate das 666).
 
     **[DI-13.3 · rede de segurança]** A checagem de `fe_final == maxfe` é NOVA.
     Sem ela, um run **abortado pelo teto de tempo** (que não chega a gravar
@@ -160,6 +220,10 @@ def is_run_done(exp: str, alg: str, problema: str, semente,
     mpath = naming.manifest_path(exp, alg, problema, semente, data_root)
     man = read_manifest(mpath)
     if man is None or man.get("status") not in ("ok", "retried_ok"):
+        return False
+    # [B-03] antes de qualquer I/O de camada: o carimbo de campanha é O(1).
+    if campanha_id != QUALQUER_CAMPANHA and \
+            man.get("campanha_id") != (campanha_id or campanha_id_corrente()):
         return False
     # [DI-13.3] o orçamento tem de ter fechado EXATO (hard-stop D21/D61).
     fe_final, maxfe = man.get("fe_final"), man.get("maxfe")
@@ -186,6 +250,78 @@ def is_run_done(exp: str, alg: str, problema: str, semente,
         if check_footers and _footer_ok(p) is False:
             return False
     return True
+
+
+def certidao_do_run(exp: str, alg: str, problema: str, semente,
+                    data_root: str = naming.DEFAULT_DATA_ROOT) -> dict | None:
+    """A certidão de fim do run, com **fallback para o footer do ⑥** [O-21/E-04].
+
+    O stack MATLAB certifica a própria falha no FOOTER DO ⑥, não no ⑤:
+    `main/b1/DTLZ4` fechou com `least squares problem is underdetermined` lá e
+    em lugar nenhum mais. Todo verificador que olha só a camada ⑤ (`is_run_done`,
+    `censo_bucket.py`, o rito de fechamento por máquina) classifica a célula como
+    **SEM-MANIFESTO** e perde o diagnóstico, que está a um `tail` de distância.
+
+    Devolve `{'fonte', 'status', 'fe_final', 'motivo', 'campanha_id', 'raw'}` —
+    `fonte ∈ {'manifesto', 'footer_jsonl'}` — ou `None` quando não há nem ⑤ nem
+    footer de fechamento (aí sim: a célula não deixou certidão nenhuma).
+
+    ⚠ O campo de término é HETEROGÊNEO por config (`motivo_parada` no ⑤ de
+    c122/c149/e81/b5 · `footer.termino` nos 13 MATLAB + e7/e74/nsga3/smsemoa ·
+    `footer.motivo` no c311 · `footer.hard_stopped` em c154/c262 — I-08); aqui
+    devolve-se o PRIMEIRO não-nulo, e o mapa normativo é o
+    `artifacts/mapa_termino.json`.
+    """
+    man = read_manifest(naming.manifest_path(exp, alg, problema, semente, data_root))
+    if man is not None:
+        return {'fonte': 'manifesto', 'status': man.get('status'),
+                'fe_final': man.get('fe_final'),
+                'motivo': _primeiro_motivo(man),
+                'campanha_id': man.get('campanha_id'), 'raw': man}
+    rec = footer_fechado(naming.jsonl_path(exp, alg, problema, semente, data_root))
+    if rec is None:
+        return None
+    return {'fonte': 'footer_jsonl', 'status': rec.get('status'),
+            'fe_final': rec.get('fe_final'), 'motivo': _primeiro_motivo(rec),
+            'campanha_id': rec.get('campanha_id'), 'raw': rec}
+
+
+def _primeiro_motivo(d: dict):
+    for k in ('motivo_parada', 'motivo', 'erro', 'termino'):
+        v = d.get(k)
+        if v not in (None, ''):
+            return v
+    return None
+
+
+def limpar_celula(exp: str, alg: str, problema: str, semente,
+                  data_root: str = naming.DEFAULT_DATA_ROOT,
+                  *, dry_run: bool = False) -> list[str]:
+    """[OP-6] Remove os artefatos LOCAIS da célula ANTES de uma re-execução.
+
+    O `--force` re-rodava POR CIMA: as camadas da execução anterior ficavam no
+    disco e, se o run novo morresse antes de reescrever todas, a célula passava a
+    ter ①②③④ de UMA execução com o ⑤ de OUTRA — a mecânica exata da quimera
+    `batch/c149/q10_ZDT4` (③ do Mac de 24/07 com ①④⑤⑥ da v6 de 26/07).
+
+    Só o disco LOCAL: a cópia do BUCKET é a oficial (D58) e nunca é podada
+    daqui. Devolve os caminhos removidos (ou que seriam, em `dry_run`).
+    """
+    alvos = [naming.layer_path(exp, alg, problema, semente, ly, data_root)
+             for ly in naming.LAYERS + (naming.FINAL_LAYER,)]
+    alvos.append(naming.jsonl_path(exp, alg, problema, semente, data_root))
+    alvos.append(naming.manifest_path(exp, alg, problema, semente, data_root))
+    removidos = []
+    for p in alvos:
+        # proibição absoluta da casa: o baseline pré-retrofit é INTOCÁVEL.
+        if '_baseline_pre_retrofit' in p:
+            raise RuntimeError(f'recusa de escrita em _baseline_pre_retrofit: {p}')
+        if not os.path.exists(p):
+            continue
+        removidos.append(p)
+        if not dry_run:
+            os.remove(p)
+    return removidos
 
 
 #: [D-12/DI-21] Os 5 configs do regime OFFLINE (fonte: runs_matrix.csv, exp=off)

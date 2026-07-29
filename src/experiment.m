@@ -2978,7 +2978,11 @@ function man = build_manifest(exp, alg, problema, semente, maxfe, fe_final, ...
     local.jsonl    = nm_jsonl_path(exp, alg, problema, semente, dataRoot);
     local.manifest = nm_manifest_path(exp, alg, problema, semente, dataRoot);
     man = struct();
-    man.schema_version = 1;
+    % [B-03] schema v2 = com `campanha_id`. O carimbo distingue celula DA
+    % CAMPANHA de celula de smoke/pre-retrofit: sem ele, `is_run_done` absorvia
+    % as stale de semente 0 como prontas — e a semente 0 e uma das 30.
+    man.schema_version = 2;
+    man.campanha_id = string(campanha_id_corrente());
     man.run_id = string(rid);
     man.exp = string(exp); man.alg = string(alg);
     man.problema = string(problema); man.semente = semente;
@@ -3001,6 +3005,32 @@ function man = build_manifest(exp, alg, problema, semente, maxfe, fe_final, ...
     man.paths = struct('local', local);
     man.created_at = iso_now();
     man.updated_at = iso_now();
+end
+
+function cid = campanha_id_corrente()
+% [B-03] A identidade da campanha corrente — a MESMA fonte do lado Python
+% (`src/manifest.py:campanha_id_corrente`): a variavel de ambiente
+% UA_DD_SAEA_CAMPANHA_ID e, na ausencia dela, `{commit12}_{data UTC}`.
+% A env e o modo NORMATIVO: a campanha das 30 sementes leva ~21 dias, e o
+% default derivado da data mudaria de valor no meio (o resume re-rodaria tudo).
+% `persistent` porque o `git rev-parse` e um system() por processo MATLAB.
+    persistent cache
+    if ~isempty(cache), cid = cache; return; end
+    v = strtrim(getenv('UA_DD_SAEA_CAMPANHA_ID'));
+    if ~isempty(v)
+        cache = v; cid = v; return;
+    end
+    h = 'sem-git';
+    try
+        raiz = fileparts(fileparts(mfilename('fullpath')));
+        [st, out] = system(sprintf('git -C "%s" rev-parse --short=12 HEAD', raiz));
+        out = strtrim(out);
+        if st == 0 && ~isempty(out), h = out; end
+    catch
+    end
+    dia = char(datetime('now', 'TimeZone', 'UTC', 'Format', 'yyyy-MM-dd'));
+    cache = sprintf('%s_%s', h, dia);
+    cid = cache;
 end
 
 function man = fill_manifest_timing(man, trows, bud, tempo_total_s, snd)

@@ -187,9 +187,110 @@ autorizadas a subir ao bucket e já constam na pasta centralizadora
 
 ---
 
-## 5. F5.2 — Integridade · contrato · métricas · sonda · tempo — 🟡 EM EXECUÇÃO
+## 5. F5.2 — Integridade · contrato · métricas · sonda · tempo — ✅ CONCLUÍDA (2026-07-28)
 
-*(seção preenchida ao fechar a fase)*
+**Escopo**: as 665 aprovadas da F5.1. **Saldo da fase: 1 nova REPROVADA (F5.2a) → 664
+células impecáveis seguem para a F5.3.** Artefatos: `f5/integridade_f52a.csv` ·
+`f5/contrato_f52b.csv` · `f5/metricas_finais_f52c.csv` + `f5/trajetorias/` (664 JSON) ·
+`f5/tempo_f52d.csv` + `f5/tempo_heatmap.html` + `f5/projecao_30seeds.md` ·
+`f5/sonda_f52e.csv`.
+
+### 5.1 F5.2a — Integridade ("nada corrompido?"): ✅ com 1 reprovação e 5 ressalvas
+
+Todo arquivo das 665 células foi ABERTO: parquet lido (pyarrow, linhas+colunas),
+manifest parseado, jsonl parseado linha a linha. Resultado:
+- **Zero parquets ilegíveis, zero manifests ilegíveis** em ~4.490 arquivos.
+- 105 ③ com 0 linhas = **por desenho** (4 pisos online × 25 + sobol_batch × 5 — configs
+  sem surrogate; o arquivo existe vazio por completude de camadas, DI-13.7).
+- **🔴 REPROVADA (nova categoria F5.2a): `main/b1/WFG1`** — ⑥ com **49 eventos truncados
+  no MEIO do JSON** espalhados pelo arquivo (linhas 839, 843, 845…) e **sem footer**.
+  Timestamps das linhas rasgadas: madrugada de 2026-07-27 na vm3 — a janela dos
+  problemas de disco/capacidade da vm3 (O-19). Assinatura de escrita
+  concorrente/interrompida (possivelmente dois writers na mesma célula — vide item do
+  RUNBOOK sem `'parallel',false`, achado da validação final). ①–⑤ estão íntegras e os
+  gates F5.1 passaram (não parseiam o ⑥) — mas o FILME do mecanismo está contaminado
+  em 49 pontos ⇒ inutilizável para a Classe A no padrão "impecável". Candidata a
+  re-run na rodada perfeita.
+- **Ressalva (5 células, aprovadas)**: 1 linha órfã não-parseável em
+  `off/e103/{DTLZ7,WFG2,WFG4,WFG9}` (fragmento-cauda tipo `.234093}` na ÚLTIMA linha —
+  resíduo de reescrita mais curta do arquivo; o filme da tentativa final está ÍNTEGRO,
+  header→footer completos) e em `sweep-small-lhs/moead_media/ZDT1` (linha com TEXTO DE
+  OPERADOR embutido — o caso "2-escritores" pré-registrado no caveat 3). Sem perda
+  analítica relevante (≤1 evento por célula).
+
+### 5.2 F5.2b — Contrato de dados: ✅ estrutural 100%, com 1 não-conformidade de ⑤
+
+**O lado verde (o grosso):** nas 664 células, **ZERO desvios** de: contagem da ①
+(31D−1 no main/off/small; 2.000 no medium; 50.000 no big; 11D−1+2000 no batch — tiers
+todos exatos), fase init (11D−1 online; 100% init no offline), schema das camadas
+①③④, ② vazia só na família sancionada, blocos de sonda (2.000×k online;
+20.000×{1,2} offline conforme o config), ⑦ presente com `nd_pos_real` em 100% do
+offline, `fe_final==maxfe`, `q=10` no batch, `sigma_dict` presente em todo config com
+surrogate.
+**A não-conformidade (197 células, 7 configs):** o ⑤ NÃO tem a chave `params` (o
+CONTRATO §5 a lista como obrigatória) em **c217 (25), c262 (21), c154 (11), b5r (45),
+b5m (45), moead_media (45), sobol_batch (5)** — heterogeneidade entre writers.
+**Fallbacks verificados** (sem perda de dado): c262/c154 têm params no HEADER do ⑥;
+c217 tem os valores achatados no header (N, delta, gmax…); b5-família/sobol_batch
+recuperam de `artifacts/params.json` + `sigma_dict`. **Item nº 6 para a torre
+central**: uniformizar `params` no ⑤ dos 7 configs.
+
+### 5.3 F5.2c — Métricas oficiais: ✅ 664/664, zero erros
+
+Gate D92 verde (1,04333) ANTES de qualquer conta; `src/metrics.py` puro (nunca
+reimplementado). Por célula: IGD+ (primária), HV, IGD, GD, spacing, |ND| finais +
+trajetória de 20 checkpoints. Prévia (rank médio de IGD+ nos 25 problemas do main):
+**c262 3,7 · c122 4,7 · c141 4,8 · e74 6,1 · b3 6,4** — coerente com todos os priors
+(c262 = melhor do set). Régua SA×pisos por dimensão (PRÉVIA de 1 semente; análise
+plena na F5.5): D=2 25/39 · D=7 0/13 · D=10 74/115 · D=12 11/35 · D=20 6/11 ·
+D=22 24/69 · D=30 15/23 células SA batendo o melhor piso.
+
+### 5.4 F5.2d — Tempo: ✅ zero buracos de timing
+
+**665/665 células com `timing.tempo_total_s` no ⑤** (a obrigatoriedade do retrofit
+v5.2.1 foi cumprida em 100% da rodada). Heatmap config×célula em
+`f5/tempo_heatmap.html`; matriz em `f5/tempo_f52d.csv` (com coluna de máquina:
+roster + correção `mac*` via `_lotes_mac/*done.txt`). **Projeção 30 sementes ≈
+10.173 h-core**; os 4 dominantes: main/c149 2.131 · main/c154 1.537 · main/c122
+1.239 · main/c262 867 h-core (detalhe em `f5/projecao_30seeds.md`; caveats §19 e
+atribuição de máquina documentados no arquivo).
+
+### 5.5 F5.2e — Sonda (a régua comum): ✅ 461 células regressoras, zero avisos
+
+44.928 medições (célula × bloco × objetivo): WAPE + correlação + cobertura ±1,96σ,
+por objetivo, no espaço CRU (des-transformação via `transf_params` — 100% dos blocos
+com contagem exata 2.000/20.000 e des-transformação suportada). Síntese "o surrogate
+aprendeu?" (variação mediana do WAPE 1º→último bloco, main):
+
+| config | ΔWAPE mediano | leitura (× priors) |
+|---|---:|---|
+| e81 | **−38%** | GP aprende limpo ✓ (prior DI-24) |
+| c154 | **−32%** | GP aprende ✓ |
+| c262 | **−17%** | GP aprende ✓ (prior DI-20.3) |
+| c238 | −2% | quase-plano |
+| c141 | −0% | plano (deriva do RBF é local, não global) |
+| b3 | +4% | sonda "chata" ✓ (prior: dissociação b3) |
+| e7 | +6% | NÃO aprende ✓ (esquecimento do SelectTrainData — prior v2) |
+| c149 | +16% | piora ✓ (prior: preditor-da-média em baixo-n) |
+| e74 | **+268%** | RBF explode fora do suporte ✓ (prior v2: μ até 770) |
+
+A régua reproduz TODOS os comportamentos previamente documentados — agora em 25
+problemas por config, não 3. b1 fica à parte (escalar D47); classificadores
+(c217/b4/c122) ficam para a análise dedicada da F5.3.
+
+### 5.6 Veredito da fase
+
+| | células |
+|---|---:|
+| Entraram na F5.2 | 665 |
+| **APROVADAS → seguem para F5.3** | **664** |
+| REPROVADAS na F5.2a | 1 (`main/b1/WFG1`, ⑥ contaminado) |
+| Aprovadas com ressalva | 5 (linha órfã no ⑥) + 197 (⑤ sem `params`) + 8 (⑥ sem footer, F5.1) |
+
+**Novos itens para a torre central** (somam-se aos 5 do §0): **(6)** `params`
+obrigatório no ⑤ dos 7 configs listados; **(7)** reescrita do ⑥ em retry não trunca o
+arquivo (caudas órfãs — e103×4); **(8)** proteção contra writer concorrente/interrompido
+no ⑥ (b1/WFG1) + `'parallel',false` explícito nos comandos MATLAB do RUNBOOK.
 
 ## 6. F5.3a/b — Análises de fidelidade por config — ⬜
 

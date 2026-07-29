@@ -36,7 +36,14 @@
       · os dois stacks derivam o id pela MESMA fórmula e da MESMA env (`experiment.m` também)
       · sentinela `QUALQUER_CAMPANHA` para auditar o passado (o re-gate das 666 lê ⑤ v1)
       · CONTRATO_DE_DADOS §5 atualizado (schema v2)
-- [ ] G4 · gcs/harnesses: mirror no aborto (B-09) · identidade do blob + poda segura (B-10)
+- [x] G4 · gcs/harnesses: mirror no aborto (B-09) · identidade do blob + poda segura (B-10) — `73f5a18` (2026-07-29)
+      · suíte 454, 1 falha (a ambiental D-03) · 15 testes novos em `tests/test_espelho.py`
+        (cliente GCS FALSO, sem rede — o 412 e o md5 corrompido são simulados)
+      · B-10 = **if-generation-match**, NÃO o prefixo `campanha_id/host`: o prefixo mudaria
+        `naming.blob_path` e com ele o layout do bucket da s42, o resume bucket-aware, o censo,
+        o `coletar42.sh` e o layout de análise — raio largo para o mesmo efeito
+      · poda da ③ agora exige md5 do blob == md5 local; colisão ⇒ `colidiu_412` e local PRESERVADO
+      · ⚠ o smoke REAL de rede (412 de verdade) só roda na VM — fica para o autor
 - [ ] G5 · truncamento-com-dado (elapsed-only; projeção=warning) + CHECKPOINT atômico periódico + kill-test
 - [ ] G6 · gates G-1..G-9 + motivos_parada.json + mapa_termino.json + gabarito_camadas.json + B-12/13/14/15 + suíte hermética (D-03)
 - [ ] G7 · cronômetro tempo_aval (I-02) + export NULL + repo_hash no ⑤ (I-09)

@@ -117,6 +117,20 @@ def read_final_candidates(exp: str, alg: str, problema: str, semente, *,
 
     g_final = int(ger[busca].max())
     sel = busca & (ger == g_final)
+
+    # [DI-41] Config MULTI-SURROGATE (e103/IBEA-MS): a ③ grava UMA LINHA POR
+    # (membro × modelo) — 100 membros × {Kriging-DACE, RBFN} = 200 linhas. Sem
+    # este filtro a ⑦ nascia com o DOBRO de linhas (cada ponto avaliado 2× na f
+    # real), inflando `n_final` e ZERANDO o `spacing` (duplicatas têm distância
+    # 0). Filtra por UM modelo (o 1º na ordem da ③) — NUNCA por X: membros
+    # legitimamente coincidentes (população convergida) DEVEM ser preservados.
+    # Config de modelo único (b5r/b5m/c311/moead_media/treed_media) é no-op.
+    if "modelo_flag" in cols:
+        flags = np.asarray(tbl.column("modelo_flag").to_pylist(), dtype=object)
+        distintos = list(dict.fromkeys(flags[sel].tolist()))
+        if len(distintos) > 1:
+            sel = sel & (flags == distintos[0])
+
     idx = np.flatnonzero(sel)
 
     X = np.column_stack([

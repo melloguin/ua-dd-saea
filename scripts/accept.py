@@ -116,7 +116,7 @@ def check_fe(exp, alg, problema, semente, D, data_root=None):
     # vivia só no cartão do e81 e o gate genérico reprovaria exatamente as
     # células que a DI-37.1 sanciona).
     if _man.get("status") == "failed" and \
-            _man.get("motivo_parada") in ("teto_wall", "cache_cap"):
+            _man.get("motivo_parada") in ("teto_wall", "cache_hit_travado"):
         return None, (f"SKIP — aborto sancionado ({_man.get('motivo_parada')}): "
                       f"fe_final={_man.get('fe_final')} por desenho; "
                       f"a curva parcial é o entregável")
@@ -2783,6 +2783,15 @@ def main():
         print(f"  [{mark}] {name}: {msg}")
         if ok is False:
             fail = True
+    # [DI-41] NENHUM check pôde rodar (ex.: pyarrow/numpy ausentes no
+    # interpretador) ⇒ INCONCLUSIVO, nunca VERDE. Antes, "tudo SKIP" saía 0 e o
+    # `portao.py` — que lê o exit code — pintava a varredura INTEIRA de verde
+    # sem ter checado UMA linha de parquet (falso-VERDE). Rode com o env_main.
+    inconclusivo = all(ok is None for _, (ok, _m) in checks)
+    if inconclusivo:
+        print("\n  >>> INCONCLUSIVO — nenhum check pôde rodar (dependências "
+              "ausentes?). NÃO é verde: rode com o interpretador do env_main.")
+        sys.exit(2)
     print("\n  >>> " + ("VERMELHO — pára-e-loga (D81)" if fail
                         else "VERDE (encanamento objetivo)"))
     print("  Lembrete (D97): a fidelidade é validação MANUAL do autor, "

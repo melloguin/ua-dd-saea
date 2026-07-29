@@ -85,7 +85,7 @@ def gates_de_um_run(exp: str, alg: str, problema: str, semente,
     # reprovaria por desenho exatamente as células que a DI-37.1/DI-38 sancionam.
     man = _manifesto_do_run(exp, alg, problema, semente, data_root)
     if man.get("status") == "failed" and \
-            man.get("motivo_parada") in ("teto_wall", "cache_cap"):
+            man.get("motivo_parada") in ("teto_wall", "cache_hit_travado"):
         return [("aborto-sancionado", True,
                  f"{man.get('motivo_parada')} — sem gates por desenho (DI-38a); "
                  f"curva parcial no jsonl; fe_final={man.get('fe_final')}")]

@@ -21,7 +21,8 @@
 | D3 verificação | ✅ | 0 camadas faltantes vs censo |
 | **F5.1 gates** | ✅ | **665 aprovadas / 1 REPROVADA** (aborto interno mascarado — bug B1); 45 ⑦ do e103 geradas pós-hoc pela torre; 4 falsos-vermelhos de tolerância diagnosticados e aceitos pelo autor |
 | F5.2 | 🟡 em execução | integridade + contrato + métricas + sonda + tempo |
-| F5.3–F5.7 | ⬜ | — |
+| **F5.3a pilotos** | ✅ | c217 9,0 (≡ âncora do autor) · e81 10 · e7 10 · b1 9,3 · c311 8,5 — ZERO classe (3) | 
+| F5.3b–F5.7 | ⬜ | aguarda calibração do autor |
 
 **Itens já acumulados para a torre central corrigir (consolidação final na F5.7):**
 1. 🔴 **B1** — `experiments.py:209` sobrescreve `status=failed` do runner com `ok`
@@ -292,7 +293,39 @@ obrigatório no ⑤ dos 7 configs listados; **(7)** reescrita do ⑥ em retry n�
 arquivo (caudas órfãs — e103×4); **(8)** proteção contra writer concorrente/interrompido
 no ⑥ (b1/WFG1) + `'parallel',false` explícito nos comandos MATLAB do RUNBOOK.
 
-## 6. F5.3a/b — Análises de fidelidade por config — ⬜
+## 6. F5.3a — Pilotos de fidelidade — ✅ CONCLUÍDA (2026-07-28) · aguarda CALIBRAÇÃO do autor
+
+5 relatórios completos em `f5/relatorios_config/{c217,e81,e7,c311,b1}.md` — protocolo
+v1.0 executado em TODAS as células de cada config (não amostra): 6.762 gerações (c217),
+8.020 decisões (e81, incl. 5 células batch), 2.328 ciclos (e7), 604 decisões + tiers
+(c311), 7.073 iterações (b1). Agregado: ~25 mil eventos de decisão auditados, ~12M
+linhas de ③ verificadas.
+
+| config | score piloto | prior | recomendação | classe (3) | destaque |
+|---|---|---|---|---|---|
+| c217 | **9,0** | 9/10 AUTOR | aceitar | 0 | **âncora BATE exata**; finalProbe/hard_stop novos aspectos provados |
+| e81 | **10,0** | 9/10 autor | aceitar | 0 | query-joia 8.020/8.020 (\|Δ\|≤8,1e-8); fallback qmaximin DI-25 exercitado 32× e correto; B17.5 resolvida POR DADO |
+| e7 | **10,0** | 7,0 v2 | aceitar | 0 | identidade dos ramos 99,5%/99,1% em 6.984 infills; agente-4 refutado (pop não persiste: interseção 0 em 2.303 fronteiras) |
+| b1 | **9,3** | 8,5 v2 | aceitar+caveat | 0 | identidade EI 7.073/7.073 (13 caudas = underflow provado); 2 células perdidas (DTLZ4 real; WFG1 infra) |
+| c311 | **8,5** | 7,5 v2 | aceitar | 0 | early-stop do código PROVADO (16 disparos, janela-2/piso-6); âncora J de escalabilidade @50k confirmada; nó-puro MVNS explicado |
+
+**ZERO aspectos classe (3) nos 5 pilotos** — todos os desvios mapeados a decisões
+sancionadas com citação. Única confirmação OPCIONAL à F5.4: semântica de nó-puro do
+sklearn (c311, 3 incrementos fora da banda sob MVNS — mecanismo já provado por dado).
+
+**Achados sistêmicos novos (além dos configs):**
+- **Métricas oficiais EMPATAM por desenho entre os 5 algs offline** (a ① é o MESMO
+  dataset; D69 lê a ①) — ranquear offline exige a ⑦ (`nd_pos_real`/f-reais); vincula a
+  F5.5.
+- Caveat de leitura do `sonda_f52e.csv`: na família treed, `cobertura95` só cobre os
+  pontos com σ válido — reportar junto o %σ-NaN (o próprio CSV traz `n_validas`).
+- `tempo_f52d.csv` corrigido (commit 7a58bcb): 31 células com máquina real Mac
+  (e7×22, c238×7, b1×2 — recuperações O-19) estavam com o roster.
+- Sweep do c311 (novidade científica p/ D97): mais dado melhora a MÉTRICA do dataset
+  mas REDUZ a fração do surrogate coberta por GPs (early-stop corta cedo; big ≈ árvore
+  pura com ilhas de GP; σ-NaN mediano 90,3% na sonda big).
+
+## 6-bis. F5.3b — Fan-out (19 configs) — ⬜ aguarda calibração do autor
 
 ## 7. F5.4 — Verificação adversarial — ⬜
 

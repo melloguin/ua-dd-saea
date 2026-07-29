@@ -44,7 +44,21 @@
         o `coletar42.sh` e o layout de análise — raio largo para o mesmo efeito
       · poda da ③ agora exige md5 do blob == md5 local; colisão ⇒ `colidiu_412` e local PRESERVADO
       · ⚠ o smoke REAL de rede (412 de verdade) só roda na VM — fica para o autor
-- [ ] G5 · truncamento-com-dado (elapsed-only; projeção=warning) + CHECKPOINT atômico periódico + kill-test
+- [x] G5 · truncamento-com-dado (elapsed-only; projeção=warning) + CHECKPOINT atômico periódico + kill-test — `936a687` (2026-07-29)
+      · suíte 473, 1 falha (a ambiental D-03) · 19 testes novos em `tests/test_checkpoint.py`
+      · bit-identidade PROVADA (①②③ byte-idênticas com/sem checkpoint; ④ estrutural, regra do
+        molde `scripts/regressao_q1.py:69`) · kill-test com SIGKILL real ✓ · retomada não duplica ✓
+      · checkpoint em 8 runners (c262 c154 c122 c149 e81 c311 treed_media sobol_batch);
+        **b5r/b5m/moead_media FORA por desenho** — a ③ deles nasce no replay pós-laço, um
+        checkpoint no meio gravaria ③ vazia; eles já truncam com dado via `teto_s` (DI-35.5)
+      · ⚠ CONTRATO NOVO (achado do kill-test): em ⑤ `checkpoint_em_andamento`, `fe_final` é
+        **PISO** das camadas (o ⑤ é o último dos 5 arquivos; um kill pode deixar as camadas 1
+        checkpoint à frente). O ⑤ nunca promete dado que as camadas não têm — a direção é a
+        garantia. Consumidores do censo/gates precisam saber disso
+      · `tests/test_di09_r2.py::test_a_projecao_original_segue_funcionando` MUDOU de contrato
+        junto com a DI-43 (era `assertTrue(over)` na projeção) → `..._segue_sendo_CALCULADA`
+      · ⚠ FALTA (fase A): validar numa célula D≥12 real do c154 que ela morre às 12 h COM
+        camadas parciais (A1) e o probe de RAM do c262-batch (A4) — precisam de máquina
 - [ ] G6 · gates G-1..G-9 + motivos_parada.json + mapa_termino.json + gabarito_camadas.json + B-12/13/14/15 + suíte hermética (D-03)
 - [ ] G7 · cronômetro tempo_aval (I-02) + export NULL + repo_hash no ⑤ (I-09)
 - [ ] 🏁 MARCO G · re-gate das 666 ⇒ exatamente 1 quimera + 34 anômalas → **ONDA-0 LIBERADA: c149 · e81 · e7 · c238 · b3 · c141 · b1 · nsga2 · nsga3 · moead · smsemoa · treed_media**

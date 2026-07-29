@@ -1,0 +1,26 @@
+problema,gmax,falta_s1,falta_s2,falta_s3,extra_s1,extra_s2,extra_s3,extras,ultima_coberta,boot_1x
+BBOB_F1,290,0,0,0,1,1,0,"{""PNN(s1)"": [290], ""RBF-global(s2)"": [287]}",True,True
+BBOB_F17,276,0,0,0,1,1,0,"{""PNN(s1)"": [274], ""RBF-global(s2)"": [275]}",True,True
+BBOB_F22,283,0,0,0,0,1,1,"{""RBF-global(s2)"": [283], ""RBF-local(s3)"": [280]}",True,True
+BBOB_F37,294,0,0,0,0,0,1,"{""RBF-local(s3)"": [292]}",True,True
+BBOB_F49,284,0,0,0,0,1,1,"{""RBF-global(s2)"": [283], ""RBF-local(s3)"": [284]}",True,True
+BBOB_F5,279,0,0,0,1,0,0,"{""PNN(s1)"": [278]}",True,True
+BBOB_F55,287,0,0,0,1,1,1,"{""PNN(s1)"": [286], ""RBF-global(s2)"": [287], ""RBF-local(s3)"": [284]}",True,True
+DTLZ1,183,0,0,0,1,0,0,"{""PNN(s1)"": [182]}",True,True
+DTLZ2,316,0,0,0,1,0,1,"{""PNN(s1)"": [314], ""RBF-local(s3)"": [316]}",True,True
+DTLZ3,320,0,0,0,0,1,1,"{""RBF-global(s2)"": [319], ""RBF-local(s3)"": [320]}",True,True
+DTLZ4,316,0,0,0,1,0,1,"{""PNN(s1)"": [314], ""RBF-local(s3)"": [316]}",True,True
+DTLZ7,650,0,0,0,1,1,0,"{""PNN(s1)"": [650], ""RBF-global(s2)"": [647]}",True,True
+MMF1,59,0,0,0,1,1,1,"{""PNN(s1)"": [58], ""RBF-global(s2)"": [59], ""RBF-local(s3)"": [56]}",True,True
+MMF11_L,63,0,0,0,1,0,0,"{""PNN(s1)"": [62]}",True,True
+MMF16_20,530,0,0,0,1,1,0,"{""PNN(s1)"": [530], ""RBF-global(s2)"": [527]}",True,True
+MMF4,51,0,0,0,1,0,0,"{""PNN(s1)"": [50]}",True,True
+WFG1,586,0,0,0,1,1,1,"{""PNN(s1)"": [586], ""RBF-global(s2)"": [583], ""RBF-local(s3)"": [584]}",True,True
+WFG2,614,0,0,0,1,1,0,"{""PNN(s1)"": [614], ""RBF-global(s2)"": [611]}",True,True
+WFG4,586,0,0,0,1,1,1,"{""PNN(s1)"": [586], ""RBF-global(s2)"": [583], ""RBF-local(s3)"": [584]}",True,True
+WFG5,584,0,0,0,0,1,1,"{""RBF-global(s2)"": [583], ""RBF-local(s3)"": [584]}",True,True
+WFG9,588,0,0,0,1,1,0,"{""PNN(s1)"": [586], ""RBF-global(s2)"": [587]}",True,True
+ZDT1,835,0,0,0,0,1,1,"{""RBF-global(s2)"": [835], ""RBF-local(s3)"": [832]}",True,True
+ZDT3,871,0,0,0,0,1,1,"{""RBF-global(s2)"": [871], ""RBF-local(s3)"": [868]}",True,True
+ZDT4,343,0,0,0,0,1,1,"{""RBF-global(s2)"": [343], ""RBF-local(s3)"": [340]}",True,True
+ZDT6,283,0,0,0,0,1,1,"{""RBF-global(s2)"": [283], ""RBF-local(s3)"": [280]}",True,True

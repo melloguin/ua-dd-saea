@@ -72,6 +72,19 @@ DEFAULT_DATA_ROOT = 'data'
 RETRY_ATTEMPTS = 3
 #: Base do backoff exponencial em segundos (0s → 5s → 20s nas 3 tentativas).
 RETRY_BACKOFF_S = 5
+#: [B-16/DI-42.7=(a)] Falhas DETERMINÍSTICAS — retriar só queima o mesmo custo 3×.
+#: Casamento por SUBSTRING de `f'{tipo}: {mensagem}'`. As 3 foram medidas na
+#: rodada-42, e a prova de determinismo é empírica: `main/b1/DTLZ4` falhou
+#: IDÊNTICO em duas arquiteturas (vm3 Linux/Intel e Mac arm64); no `main/c154`
+#: (ZDT6 it 62, BBOB_F55 it 55) a própria escada de random search já esgotou as
+#: 3 relaxações internas; no `main/c262/WFG1` (it 41, n_train=281) o BoTorch já
+#: esgotou as tentativas internas de fit. Em 30 sementes: ~430 h-core com retry
+#: contra ~145 h-core sem — economia de ~285 h-core para o MESMO fim.
+NO_RETRY_SUBSTRINGS: tuple[str, ...] = (
+    'least squares problem is underdetermined',
+    'random_search_optimizer falhou nas 3 tentativas',
+    'ModelFittingError: All attempts to fit',
+)
 GCS_BUCKET = 'mestrado_experiments'   # espelho Python (§17.7); MATLAB = só local
 #: [D-16/DI-21] Configs BoTorch — o despachante desliga o kernel fusionado
 #: (DEF-L2/DI-05) antes de despachá-los; estado POR PROCESSO.
@@ -85,21 +98,52 @@ BOTORCH_ALGS = frozenset({'c262', 'c154', 'e81'})
 def _run_one(exp: str, alg: str, problema: str, semente: int,
              data_root: str, *, modo_rapido: bool = False,
              enable_bucket: bool = False,
-             teto_s: float | None = None) -> str:
+             teto_s: float | None = None,
+             checar_pronto: bool = True) -> str:
     """Executa (ou tenta) um run e materializa manifesto + `.jsonl`.
 
-    Retorna o `status` ∈ {ok, retried_ok, failed}. A política de erro-duro
-    (D23) dá **1 retry** em falha genérica; um `NotImplementedError` (adapter
-    ausente na Fase 0) NÃO é retriável — fecha `failed` na hora, com a razão
-    registrada. Toda parada é logada (nunca silenciosa — D23/D60).
+    Retorna o `status` ∈ {ok, retried_ok, failed, **skipped**}. A política de
+    erro-duro (D23) dá **1 retry** em falha genérica; um `NotImplementedError`
+    (adapter ausente na Fase 0) NÃO é retriável — fecha `failed` na hora, com a
+    razão registrada. Toda parada é logada (nunca silenciosa — D23/D60).
+
+    `checar_pronto=False` é para quem JÁ decidiu (o `_stage_grid`, que filtra a
+    esteira antes de montar o `pending`): `is_run_done` lista o BUCKET nos 5
+    configs bucket-only (D58), então checar duas vezes por célula custa rede.
     """
+    # ── [B-02] O ⑥ SÓ ABRE DEPOIS DE DECIDIR EXECUTAR ────────────────────────
+    # Antes, `AuditLogger.for_run` era a 1ª linha: qualquer invocação que não
+    # executasse nada (smoke por token, teste unitário, célula já pronta)
+    # deixava 1 par header+footer no ⑥ da célula — 22 células "pulou"/semente
+    # ⇒ ~660 células/campanha com ⑥ poluído, e a regra O-22 dando ~270 falsos
+    # alarmes de "morte de máquina". O caminho de skip agora vive no stdout (o
+    # driver de lote deriva o `pulou` do mtime do ⑤ e escreve o done.txt).
+    rid = naming.run_id(exp, alg, problema, semente)
+    if checar_pronto and is_run_done(exp, alg, problema, semente, data_root):
+        print(f'[skip] {rid}: já pronta (is_run_done) — ⑥ intocado.', flush=True)
+        return 'skipped'
     status, n_retries, stack_trace = 'failed', 0, None
     t0 = time.time()
-    log = AuditLogger.for_run(exp, alg, problema, semente, data_root)
+    # [I-10] Os kwargs do run são montados UMA vez, ANTES de tudo, porque o
+    # manifesto do ABORTO também precisa deles: os 5 manifestos abortados de
+    # `batch/c262` gravaram `q=1` enquanto o `header.params.q` do ⑥ dizia 10 (o
+    # ramo `new_manifest` não herdava nada do run) — 150 células com o `q` errado
+    # no ⑤ no roster completo.
+    _kw = {} if teto_s is None else {'teto_s': float(teto_s)}
+    if exp == 'batch':
+        from src.budget import Q_BATCH
+        _kw['q'] = Q_BATCH
+    # [B-01/B-11] `append=False`: quem chega aqui VAI executar, e é por isso o
+    # dono do ⑥ — trunca e assume, o mesmo rito dos runners e do harness MATLAB
+    # (`experiment.m:jsonl_open`). Em append, a guarda anti-append do B-01
+    # levantaria `RunJaFechado` em toda re-execução de célula cujo run anterior
+    # fechou com `fe_final` (as ~29 não-ok da s42, p.ex.), matando o resume; e a
+    # higiene de partida é justamente o que a OP-6 pede do `--force`.
+    log = AuditLogger.for_run(exp, alg, problema, semente, data_root,
+                              append=False)
     try:
-        log.header(run_id=naming.run_id(exp, alg, problema, semente),
-                   alg=alg, problema=problema, semente=semente, exp=exp,
-                   modo_rapido=modo_rapido)
+        log.header(run_id=rid, alg=alg, problema=problema, semente=semente,
+                   exp=exp, modo_rapido=modo_rapido)
         # ── Retry com BACKOFF [M7/DI-06 item 1 — o incremento 1 do autor] ────
         # A bateria são 16.500 runs em máquina compartilhada: falhas transitórias
         # (licença MATLAB contendida, I/O, OOM momentâneo, rede no upload) são
@@ -137,10 +181,6 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
                 # Antes o parametro existia mas o despachante NUNCA o passava:
                 # o `_TetoWall` era inalcancavel na bateria. Os runners que nao
                 # o conhecem simplesmente ignoram (cai no **_kwargs deles).
-                _kw = {} if teto_s is None else {'teto_s': float(teto_s)}
-                if exp == 'batch':
-                    from src.budget import Q_BATCH
-                    _kw['q'] = Q_BATCH
                 _adapter.run(alg, problema, semente, exp=exp,
                              data_root=data_root, enable_bucket=enable_bucket,
                              **_kw)
@@ -166,6 +206,20 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
                 if type(e).__name__ == 'WallClockAbort':
                     status, stack_trace, n_retries = 'failed', repr(e), i
                     log.guard('teto_wall_nao_retriavel', err=str(e)[:200])
+                    break
+                # [B-16] Falha DETERMINÍSTICA: a mesma exceção vai acontecer nas
+                # 3 tentativas, então o retry só multiplica o custo (~285 h-core
+                # em 30 sementes). O casamento é por SUBSTRING da mensagem
+                # porque a exceção chega embrulhada em RuntimeError pelas rotas
+                # dos runners (a classe original se perde; o texto, não).
+                msg = f'{type(e).__name__}: {e}'
+                padrao = next((s for s in NO_RETRY_SUBSTRINGS if s in msg), None)
+                if padrao is not None:
+                    import traceback
+                    status, n_retries = 'failed', i
+                    stack_trace = traceback.format_exc()
+                    log.guard('determinista_nao_retriavel', padrao=padrao,
+                              err=msg[:200])
                     break
                 import traceback
                 stack_trace = traceback.format_exc()
@@ -199,8 +253,16 @@ def _run_one(exp: str, alg: str, problema: str, semente: int,
     if man is None:                       # o runner não chegou a gravar
         # [D-06/DI-21] `bucket=None`: se o runner morreu antes de gravar, nada
         # subiu — o carimbo de espelho só entra quando o upload CONFIRMA.
+        # [I-10] A CÉLULA do grid vai no ⑤ mesmo no aborto: `q` dos kwargs do
+        # run (era `q=1` fixo nos 5 manifestos abortados de `batch/c262`, contra
+        # `header.params.q=10` no ⑥) e `tier`/`dist` do próprio token `exp` —
+        # sem eles o manifesto de uma célula de sweep abortada não diz de que
+        # tier ela é, e o censo/gate lê a célula errada.
+        tier, dist = naming.parse_sweep(exp)
         man = new_manifest(exp, alg, problema, semente, status=status,
                            n_retries=n_retries, stack_trace=stack_trace,
+                           q=int(_kw.get('q', 1)), tier=tier, dist=dist,
+                           regime=('offline' if alg in _OFFLINE else 'online'),
                            timing={'tempo_total_s': wall,
                                    'tempo_fit_surrogate_s': None,
                                    'tempo_busca_s': None, 'tempo_aval_real_s': None},
@@ -300,22 +362,27 @@ def _stage_grid(tasks, exp, data_root, *, n_jobs, force, modo_rapido, sb,
     if not pending:
         return
 
+    # [B-02] a esteira JÁ decidiu acima (o `pending`), então o `_run_one` não
+    # repete o `is_run_done` — que lista o bucket nos 5 bucket-only (D58).
+    def _placar(st: str) -> None:
+        sb.record_skip() if st == 'skipped' else sb.record(st)
+
     if n_jobs == 1:
         # Serial — sem joblib (mantém o andaime rodável no python3 base).
         for alg, prob, seed in pending:
-            sb.record(_run_one(exp, alg, prob, seed, data_root,
-                               modo_rapido=modo_rapido,
-                               enable_bucket=enable_bucket, teto_s=teto_s))
+            _placar(_run_one(exp, alg, prob, seed, data_root,
+                             modo_rapido=modo_rapido, checar_pronto=False,
+                             enable_bucket=enable_bucket, teto_s=teto_s))
             sb.print()
     else:
         from joblib import Parallel, delayed  # lazy (execução paralela real)
         results = Parallel(n_jobs=n_jobs, backend='loky', verbose=0)(
             delayed(_run_one)(exp, alg, prob, seed, data_root,
-                              modo_rapido=modo_rapido,
+                              modo_rapido=modo_rapido, checar_pronto=False,
                               enable_bucket=enable_bucket, teto_s=teto_s)
             for alg, prob, seed in pending)
         for st in results:
-            sb.record(st)
+            _placar(st)
         sb.print()
 
 

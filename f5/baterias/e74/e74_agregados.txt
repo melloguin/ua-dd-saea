@@ -1,0 +1,618 @@
+####################################################################################################
+# 0. CENSO ESTRUTURAL (25 celulas main, semente 42)
+####################################################################################################
+problema  D  M status termino  maxfe  fe_final  n_init  n_opt  ciclos  n_s1  n_s2  n_s3  boot_aceitos  boot_rejeitados  slot_s1  slot_s2  slot_s3  n_geracoes  pop_gens  timing_rows  n_eventos_gen  n_sonda_blocos  tempo_total
+ BBOB_F1 10  2     ok  normal    309       309     109    200      73    73    72    72             2                0       11        0        0         291       291          218            217              75   226.524637
+BBOB_F17 10  2     ok  normal    309       309     109    200      69    69    69    69             2                0        9        0        0         277       277          208            207              72   162.920519
+BBOB_F22 10  2     ok  normal    309       309     109    200      71    71    71    70             2                0       14        0        0         284       284          213            212              74   162.708263
+BBOB_F37 10  2     ok  normal    309       309     109    200      74    74    73    73             2                0       22        0        0         295       295          221            220              76   169.510854
+BBOB_F49 10  2     ok  normal    309       309     109    200      71    71    71    71             2                0       15        0        0         285       285          214            213              74   158.859269
+ BBOB_F5 10  2     ok  normal    309       309     109    200      70    70    70    69             2                0       11        0        0         280       280          210            209              72   176.353213
+BBOB_F55 10  2     ok  normal    309       309     109    200      72    72    72    71             2                0       17        0        0         288       288          216            215              75   170.358142
+   DTLZ1  7  3     ok  normal    216       216      76    140      46    46    46    45             3                0        0        0        0         184       184          138            137              48   110.909719
+   DTLZ2 12  3     ok  normal    371       371     131    240      79    79    79    79             3                0        0        0        0         317       317          238            237              82   450.105029
+   DTLZ3 12  3     ok  normal    371       371     131    240      80    80    80    80             3                0        3        0        0         321       321          241            240              83   187.101287
+   DTLZ4 12  3     ok  normal    371       371     131    240      79    79    79    79             3                0        0        0        0         317       317          238            237              82   310.956833
+   DTLZ7 22  3     ok  normal    681       681     241    440     163   163   162   162             3                0       44        0        0         651       651          488            487             165   548.752856
+    MMF1  2  2     ok  normal     61        61      21     40      15    15    15    14             2                0        0        0        0          60        60           45             44              18    33.750346
+ MMF11_L  2  2     ok  normal     61        61      21     40      16    16    16    15             2                0        0        0        0          64        64           48             47              18    35.242736
+MMF16_20 20  3     ok  normal    619       619     219    400     133   133   132   132             3                0        0        0        0         531       531          398            397             135  1333.891488
+    MMF4  2  2     ok  normal     61        61      21     40      13    13    13    12             2                0        0        0        0          52        52           39             38              15    32.160480
+    WFG1 22  2     ok  normal    681       681     241    440     147   147   146   146             2                0        1        0        0         587       587          440            439             150   476.425400
+    WFG2 22  2     ok  normal    681       681     241    440     154   154   153   153             2                0       22        0        0         615       615          461            460             156   410.370432
+    WFG4 22  2     ok  normal    681       681     241    440     147   147   146   146             2                0        1        0        0         587       587          440            439             150   399.270438
+    WFG5 22  2     ok  normal    681       681     241    440     146   146   146   146             2                0        0        0        0         585       585          439            438             149   393.387549
+    WFG9 22  2     ok  normal    681       681     241    440     147   147   147   147             2                0        3        0        0         589       589          442            441             150   415.841356
+    ZDT1 30  2     ok  normal    929       929     329    600     209   209   209   208             2                0       28        0        0         836       836          627            626             212  1028.472024
+    ZDT3 30  2     ok  normal    929       929     329    600     218   218   218   217             2                0       55        0        0         872       872          654            653             221   821.777974
+    ZDT4 10  2     ok  normal    309       309     109    200      86    86    86    85             2                0       59        0        0         344       344          258            257              89   189.482546
+    ZDT6 10  2     ok  normal    309       309     109    200      71    71    71    70             2                0       14        0        0         284       284          213            212              74   155.377430
+
+  u1_ok: 25/25
+  fe_index_denso: 25/25
+  u2_init_ok: 25/25
+  u10_pop_ok: 25/25
+  u10_tim_ok: 25/25
+  rot_1a1: 18/25
+  fe_check: 25/25
+  TOTAIS: ciclos = 2449 | slots s1/s2/s3 = 2449 2442 2431 | eventos e74_gen = 7322 | blocos de sonda = 2515
+  FE: init 3836 + boot 56 + infill 6964 = 10856 vs fe_final total 10856
+  timing_rows == eventos_gen + 1(boot): 25 /25
+  k (slots executados no ultimo ciclo): {2: 11, 1: 7, 3: 7}
+  ARITMETICA U10 (fecha exato?):
+   n_geracoes == 4*C - 2 + k : 25 /25
+   pop_gens  == n_geracoes    : 25 /25
+   eventos   == 3*(C-1) + k   : 25 /25
+   n_s1 == C                  : 25 /25
+   n_s2 == C-1+[k>=2]         : 25 /25
+   n_s3 == C-1+[k>=3]         : 25 /25
+   ROTACAO 1:1:1 EXATA nos ciclos COMPLETOS (C-1) em 25/25 por construcao acima
+  tempo total das 25 celulas (h): 2.38
+
+####################################################################################################
+# 1. ROTACAO 1:1:1 e CONTABILIDADE DE SLOTS
+####################################################################################################
+problema  slots_s1  aceitos_s1  dedup_s1  vazio_s1  slots_s2  aceitos_s2  slots_s3  aceitos_s3  fe_infill  fe_boot  fe_init  fe_total
+ BBOB_F1        73          54        11         8        72          72        72          72        198        2      109       309
+BBOB_F17        69          60         9         0        69          69        69          69        198        2      109       309
+BBOB_F22        71          57        14         0        71          71        70          70        198        2      109       309
+BBOB_F37        74          52        22         0        73          73        73          73        198        2      109       309
+BBOB_F49        71          56        15         0        71          71        71          71        198        2      109       309
+ BBOB_F5        70          59        11         0        70          70        69          69        198        2      109       309
+BBOB_F55        72          55        17         0        72          72        71          71        198        2      109       309
+   DTLZ1        46          46         0         0        46          46        45          45        137        3       76       216
+   DTLZ2        79          79         0         0        79          79        79          79        237        3      131       371
+   DTLZ3        80          77         3         0        80          80        80          80        237        3      131       371
+   DTLZ4        79          79         0         0        79          79        79          79        237        3      131       371
+   DTLZ7       163         113        44         6       162         162       162         162        437        3      241       681
+    MMF1        15           9         0         6        15          15        14          14         38        2       21        61
+ MMF11_L        16           7         0         9        16          16        15          15         38        2       21        61
+MMF16_20       133         133         0         0       132         132       132         132        397        3      219       619
+    MMF4        13          13         0         0        13          13        12          12         38        2       21        61
+    WFG1       147         146         1         0       146         146       146         146        438        2      241       681
+    WFG2       154         132        22         0       153         153       153         153        438        2      241       681
+    WFG4       147         146         1         0       146         146       146         146        438        2      241       681
+    WFG5       146         146         0         0       146         146       146         146        438        2      241       681
+    WFG9       147         144         3         0       147         147       147         147        438        2      241       681
+    ZDT1       209         181        28         0       209         209       208         208        598        2      329       929
+    ZDT3       218         163        55         0       218         218       217         217        598        2      329       929
+    ZDT4        86          27        59         0        86          86        85          85        198        2      109       309
+    ZDT6        71          57        14         0        71          71        70          70        198        2      109       309
+  rotacao exata (n_s1==n_s2 e n_s3 in {n_s1-1,n_s1}): 18 /25
+  aceitos por estrategia: 2091 2442 2431
+  taxa de aceite s1 = 0.8538  s2 = 1.0000  s3 = 1.0000
+  slots perdidos por dedup: s1 = 329 s2 = 0 s3 = 0
+
+####################################################################################################
+# 2. QUERY-JOIA — identidade da selecao (argmax do pseudo-sigma por estrategia)
+####################################################################################################
+        n  achado  argmax  dXmax  rank_med  rank_p95  rank_max  pct_achado  pct_argmax
+est                                                                                   
+1    2091  2091.0   256.0    0.0      43.0      94.0     100.0       100.0      12.243
+2    2442  2442.0  2432.0    0.0       1.0       1.0       1.0       100.0      99.590
+3    2431  2431.0  1625.0    0.0       1.0      15.5      86.0       100.0      66.845
+
+  blocos SEM sigma valido (s2, front vazio) por estrategia:
+     blocos  sem_sigma  sem_mu  bloco_med
+est                                      
+1      2449          0    2449      100.0
+2      2442         10       0      100.0
+3      2431          0       0      100.0
+
+  pct argmax por problema x estrategia:
+est       pct_s1  pct_s2  pct_s3  n_s1  n_s2  n_s3
+problema                                          
+BBOB_F1     7.41  100.00    4.17    54    72    72
+BBOB_F17   10.00  100.00   40.58    60    69    69
+BBOB_F22    3.51  100.00   61.43    57    71    70
+BBOB_F37    5.77  100.00   80.82    52    73    73
+BBOB_F49   17.86  100.00   70.42    56    71    71
+BBOB_F5     3.39  100.00   43.48    59    70    69
+BBOB_F55    5.45  100.00   52.11    55    72    71
+DTLZ1       8.70  100.00   55.56    46    46    45
+DTLZ2      11.39  100.00   30.38    79    79    79
+DTLZ3      10.39  100.00   66.25    77    80    80
+DTLZ4      11.39  100.00   68.35    79    79    79
+DTLZ7       9.73   93.83   67.90   113   162   162
+MMF1       11.11  100.00   35.71     9    15    14
+MMF11_L    28.57  100.00   33.33     7    16    15
+MMF16_20   25.56  100.00   51.52   133   132   132
+MMF4        0.00  100.00   16.67    13    13    12
+WFG1       15.07  100.00   75.34   146   146   146
+WFG2       10.61  100.00   85.62   132   153   153
+WFG4       13.01  100.00   87.67   146   146   146
+WFG5       19.86  100.00   82.88   146   146   146
+WFG9        8.33  100.00   80.95   144   147   147
+ZDT1        9.94  100.00   57.69   181   209   208
+ZDT3       14.11  100.00   89.40   163   218   217
+ZDT4       11.11  100.00   88.24    27    86    85
+ZDT6       14.04  100.00   44.29    57    71    70
+
+  identidade telemetria(evento) vs sigma_0 da (3): |sig_do_escolhido - telemetria|
+      count          mean           std           min           25%           50%           75%           max
+est                                                                                                          
+1    2091.0  1.996527e-07  3.183817e-07  2.570177e-11  1.035416e-08  4.405452e-08  2.346002e-07  1.899445e-06
+2    2432.0  6.094385e-09  6.686634e-09  0.000000e+00  8.398009e-10  3.809890e-09  9.452394e-09  2.964897e-08
+3    2431.0  3.038766e-04  4.431345e-03  3.063300e-12  4.501106e-09  1.441433e-08  2.061317e-07  1.808612e-01
+
+####################################################################################################
+# 3. DI-07b — DESALINHAMENTO mascara x Parent (A ENTREGA PRIORITARIA)
+####################################################################################################
+          ciclos_s1      N  media  frac_media_pct   p50    p75   p90    p99  maxi  zeros  noop  slots  infills  eq8  zeros_pct  noop_pct  eq8_pct
+problema                                                                                                                                         
+BBOB_F1          73  100.0  26.29           26.29  19.0  27.00  88.8  90.28    91      1    11     11       54    4        1.4      15.1      7.4
+BBOB_F17         69  100.0  20.26           20.26   9.0  17.00  89.0  91.00    91      1     9      9       60    6        1.4      13.0     10.0
+BBOB_F22         71  100.0  34.86           34.86  25.0  31.50  90.0  91.00    91      0    14     14       57    2        0.0      19.7      3.5
+BBOB_F37         74  100.0  38.42           38.42  20.0  88.00  90.0  91.00    91      1    22     22       52    3        1.4      29.7      5.8
+BBOB_F49         71  100.0  27.59           27.59  13.0  23.00  88.0  90.60    92      1    15     15       56   10        1.4      21.1     17.9
+BBOB_F5          70  100.0  33.81           33.81  27.0  32.75  89.1  90.00    90      0    11     11       59    2        0.0      15.7      3.4
+BBOB_F55         72  100.0  35.38           35.38  22.0  34.25  89.9  91.00    91      0    17     17       55    3        0.0      23.6      5.5
+DTLZ1            46  100.0   8.89            8.97   8.0   9.00  16.0  28.30    31      1     0      0       46    4        2.2       0.0      8.7
+DTLZ2            79  100.0   7.90            7.90   7.0   9.00  16.0  25.88    29      9     0      0       79    9       11.4       0.0     11.4
+DTLZ3            80  100.0  10.98           10.98   8.0  10.00  14.1  88.21    89      2     3      3       77    8        2.5       3.8     10.4
+DTLZ4            79  100.0   7.75            7.75   8.0   9.00  10.0  22.32    27      2     0      0       79    9        2.5       0.0     11.4
+DTLZ7           163  100.0  30.09           30.09   8.0  88.00  90.0  92.38    93     12    44     44      113   11        7.4      27.0      9.7
+MMF1             15   42.0   8.87           19.79   7.0  15.50  17.0  17.00    17      0     0      0        9    1        0.0       0.0     11.1
+MMF11_L          16   43.0   3.44            9.24   1.0   5.00   9.5  14.25    15      4     0      0        7    2       25.0       0.0     28.6
+MMF16_20        133  100.0   4.23            4.23   3.0   7.00   9.0  17.08    19     25     0      0      133   34       18.8       0.0     25.6
+MMF4             13   41.0   5.46           12.26   3.0   7.00  14.6  19.52    20      1     0      0       13    0        7.7       0.0      0.0
+WFG1            147  100.0   6.24            6.24   7.0   9.00  10.0  20.54    22     12     0      1      146   22        8.2       0.0     15.1
+WFG2            154  100.0  19.60           19.60   8.0  15.00  88.0  90.47    92      5    21     22      132   14        3.2      13.6     10.6
+WFG4            147  100.0   7.30            7.30   7.0   9.00  10.4  22.08    26      8     0      1      146   19        5.4       0.0     13.0
+WFG5            146  100.0   6.43            6.43   7.0   8.75  10.0  25.10    27     20     0      0      146   29       13.7       0.0     19.9
+WFG9            147  100.0   9.05            9.05   8.0   9.00  12.8  88.08    90      6     3      3      144   12        4.1       2.0      8.3
+ZDT1            209  100.0  22.58           22.58   9.0  28.00  88.0  90.00    90     17    28     28      181   18        8.1      13.4      9.9
+ZDT3            218  100.0  27.11           27.11   8.0  69.75  90.0  91.00    91     23    55     55      163   23       10.6      25.2     14.1
+ZDT4             86  100.0  65.01           65.01  88.0  90.00  91.0  92.15    93      0    59     59       27    3        0.0      68.6     11.1
+ZDT6             71  100.0  23.89           23.89   8.0  13.00  90.0  91.30    92      4    14     14       57    8        5.6      19.7     14.0
+
+  GLOBAL: ciclos s1 = 2449 | n_desalinhado medio = 19.988 (20.13% da pop N) | mediana = 8.0 | max = 93 | zeros = 155 (6.33%)
+  decis da FRACAO desalinhada (%):
+0.10     2.0
+0.25     6.0
+0.50     8.0
+0.75    19.0
+0.90    88.0
+0.95    90.0
+0.99    91.0
+1.00    93.0
+  ciclos no-op (count==0): 326 (13.31%)
+
+  CRUZAMENTO count==0  x  slot_perdido:
+slot   False  True 
+count              
+False   2120      3
+True       0    326
+  CRUZAMENTO count==0  x  flag_copia:
+flag_copia   0.0  1.0
+count                
+False       2120    3
+True           0  326
+  CRUZAMENTO desal>0   x  slot_perdido:
+slot   False  True 
+desal              
+False    155      0
+True    1965    329
+  correlacao desal_frac x slot: 0.9604
+  correlacao desal_frac x count: -0.1947
+  desal medio | slot==1: 88.52  vs  slot==0: 9.35
+
+  frac_nivel1 (guarda >=90%) e count (guarda count>50):
+          frac_n1_med  frac_n1_min  frac_n1_ge09  count_med  count_max  count_gt50  ciclos
+problema                                                                                  
+BBOB_F1      0.900000     0.000000            37       49.0         51          36      73
+BBOB_F17     0.910000     0.650000            55       31.0         51          14      69
+BBOB_F22     0.750000     0.530000            22       51.0         51          49      71
+BBOB_F37     0.835000     0.600000            36       51.0         51          38      74
+BBOB_F49     0.910000     0.630000            49       28.0         51          22      71
+BBOB_F5      0.705000     0.390000            19       51.0         51          51      70
+BBOB_F55     0.790000     0.540000            28       51.0         51          44      72
+DTLZ1        0.908608     0.610000            40       20.0         51           6      46
+DTLZ2        0.910000     0.680000            68       12.0         51          11      79
+DTLZ3        0.910000     0.740000            70       19.0         51          11      80
+DTLZ4        0.910000     0.670000            72       16.0         51           8      79
+DTLZ7        0.920000     0.000000           144        5.0         51          19     163
+MMF1         0.526316     0.000000             5       51.0         51          10      15
+MMF11_L      0.000000     0.000000             4       51.0         51          12      16
+MMF16_20     0.930000     0.800000           130        2.0         51           3     133
+MMF4         0.910714     0.477273             9       15.0         51           4      13
+WFG1         0.910000     0.730000           138        5.0         51           9     147
+WFG2         0.910000     0.690000           132       16.5         51          23     154
+WFG4         0.910000     0.670000           132        8.0         51          15     147
+WFG5         0.910000     0.670000           138       10.5         51           8     146
+WFG9         0.910000     0.730000           132       10.0         51          17     147
+ZDT1         0.910000     0.430000           148        5.0         51          61     209
+ZDT3         0.930000     0.750000           209        4.0         51           9     218
+ZDT4         0.940000     0.650000            76        0.0         51          10      86
+ZDT6         0.910000     0.680000            66        9.0         51           5      71
+  GLOBAL frac_nivel1>=0,9 em 1959 / 2449 | count>50 (guarda do loop) em 495 | count max global = 51
+
+  PREDICAO FALSIFICAVEL (a): pos <= K-1  (K = round(frac_n1*N)): 2091 / 2091 = 100.00%
+  PREDICAO (b): is_argmax  <=>  frac_n1==1 :
+is_argmax   0.0  1.0
+frac_n1             
+False      1835  203
+True          0   53
+  n_linhas do bloco com real_solution_id NAO-nulo (candidato = ponto do arquivo):
+        count    mean     std  min   25%   50%   75%     max
+count                                                       
+False  2123.0  0.0118  0.0089  0.0  0.01  0.01  0.01  0.1765
+True    326.0  1.0000  0.0000  1.0  1.00  1.00  1.00  1.0000
+
+####################################################################################################
+# 4. s2 — D74 / range0 / identidade do score
+####################################################################################################
+  blocos s2: 2442 | range0=True: 10 | sem sigma valido: 10
+n_sigma_val  False  True 
+range0                   
+0.0           2432      0
+1.0              0     10
+  range0 por problema: {'DTLZ7': 10}
+  identidade sigma_0 == pred_score - hv_base: max|dif| = 5.845568895601617e-08
+  argmax do HV_gain (blocos com front valido): 2432 / 2432 = 100.000%
+  n_front (membros do pseudo-front) mediana: 100.0 min 1 max 100
+  hv_base mediana: 0.6928 | hv_gain mediana: 0.243756 | hv_gain<=0: 59
+
+  D74 (Ymin/Ymax == min/max do FRONT-1 do arquivo corrente) — erro RELATIVO:
+   n amostras = 200 | mediana {'dYmin': 2.3083e-08, 'dYmax': 3.1965e-08} | p95 {'dYmin': 4.3e-08, 'dYmax': 5.5e-08} | max {'dYmin': 5.7e-08, 'dYmax': 0.38379765}
+  n_front1 do evento == recomputado: 118 / 200
+
+####################################################################################################
+# 5. s3 — identidade FORTE (front reconstruido) 
+####################################################################################################
+  blocos testados: 2431 | ok_forte: 2431 = 100.00% | escolhido DENTRO do front: 2431 = 100.00%
+  n_front do evento == reconstruido: 2385 / 2431
+            n     ok  infront  nf_ev  nf_rec  k_local
+problema                                             
+BBOB_F1    72   72.0     72.0   20.0    20.5     20.0
+BBOB_F17   69   69.0     69.0    6.0     6.0     20.0
+BBOB_F22   70   70.0     70.0    7.5     7.5     20.0
+BBOB_F37   73   73.0     73.0    6.0     6.0     20.0
+BBOB_F49   71   71.0     71.0    6.0     6.0     20.0
+BBOB_F5    69   69.0     69.0   15.0    16.0     20.0
+BBOB_F55   71   71.0     71.0    4.0     4.0     20.0
+DTLZ1      45   45.0     45.0   12.0    12.0     20.0
+DTLZ2      79   79.0     79.0   23.0    23.0     20.0
+DTLZ3      80   80.0     80.0   11.5    11.5     20.0
+DTLZ4      79   79.0     79.0   33.0    33.0     20.0
+DTLZ7     162  162.0    162.0   21.0    21.0     20.0
+MMF1       14   14.0     14.0    5.5     5.5     20.0
+MMF11_L    15   15.0     15.0   20.0    22.0     20.0
+MMF16_20  132  132.0    132.0   17.0    17.0     20.0
+MMF4       12   12.0     12.0   10.0    10.0     20.0
+WFG1      146  146.0    146.0   28.0    28.0     20.0
+WFG2      153  153.0    153.0    7.0     7.0     20.0
+WFG4      146  146.0    146.0   12.0    12.0     20.0
+WFG5      146  146.0    146.0   26.5    26.5     20.0
+WFG9      147  147.0    147.0   10.0    10.0     20.0
+ZDT1      208  208.0    208.0   14.0    14.0     20.0
+ZDT3      217  217.0    217.0    6.0     6.0     20.0
+ZDT4       85   85.0     85.0    8.0     8.0     20.0
+ZDT6       70   70.0     70.0    8.0     8.0     20.0
+
+####################################################################################################
+# 6. U4/U5/U7/U3/U8 — sonda, join, timing, relogios
+####################################################################################################
+problema  D  M  s1_blocos  s1_esp  s1_ok  s2_blocos  s2_esp  s2_ok  s3_blocos  s3_esp  s3_ok  boot_g1  ultimo_coberto  gmaxg  n_blocos_tot  n_falhas  u5_dX_max  u5_blocos  u7_viol  u7_viol_com_sonda  u3_fits  u3_esp  ftm_max  fe_final
+ BBOB_F1 10  2         25      24  False         25      24  False         24      24   True     True            True    290            75         0        0.0         75        0                  0      218     218      306       309
+BBOB_F17 10  2         24      23  False         24      23  False         23      23   True     True            True    276            72         0        0.0         72        0                  0      208     208      307       309
+BBOB_F22 10  2         24      24   True         25      24  False         24      23  False     True            True    283            74         0        0.0         74        0                  0      213     213      307       309
+BBOB_F37 10  2         25      25   True         25      25   True         25      24  False     True            True    294            76         0        0.0         76        0                  0      221     221      307       309
+BBOB_F49 10  2         24      24   True         25      24  False         24      23  False     True            True    284            74         0        0.0         74        0                  0      214     214      306       309
+ BBOB_F5 10  2         24      23  False         24      24   True         23      23   True     True            True    279            72         0        0.0         72        0                  0      210     210      307       309
+BBOB_F55 10  2         25      24  False         25      24  False         24      23  False     True            True    287            75         0        0.0         75        0                  0      216     216      307       309
+   DTLZ1  7  3         16      15  False         16      16   True         15      15   True     True            True    183            48         0        0.0         48        0                  0      138     138      214       216
+   DTLZ2 12  3         27      26  False         27      27   True         27      26  False     True            True    316            82         0        0.0         82        0                  0      238     238      368       371
+   DTLZ3 12  3         27      27   True         28      27  False         27      26  False     True            True    320            83         0        0.0         83        0                  0      241     241      369       371
+   DTLZ4 12  3         27      26  False         27      27   True         27      26  False     True            True    316            82         0        0.0         82        0                  0      238     238      368       371
+   DTLZ7 22  3         55      54  False         55      54  False         54      54   True     True            True    650           165         0        0.0        165        0                  0      488     488      679       681
+    MMF1  2  2          6       5  False          6       5  False          5       4  False     True            True     59            18         0        0.0         18        0                  0       45      45       59        61
+ MMF11_L  2  2          6       5  False          6       6   True          5       5   True     True            True     63            18         0        0.0         18        0                  0       48      48       59        61
+MMF16_20 20  3         45      44  False         45      44  False         44      44   True     True            True    530           135         0        0.0        135        0                  0      398     398      617       619
+    MMF4  2  2          5       4  False          5       5   True          4       4   True     True            True     51            15         0        0.0         15        0                  0       39      39       59        61
+    WFG1 22  2         50      49  False         50      49  False         49      48  False     True            True    586           150         0        0.0        150        0                  0      440     440      677       681
+    WFG2 22  2         52      51  False         52      51  False         51      51   True     True            True    614           156         0        0.0        156        0                  0      461     461      677       681
+    WFG4 22  2         50      49  False         50      49  False         49      48  False     True            True    586           150         0        0.0        150        0                  0      440     440      679       681
+    WFG5 22  2         49      49   True         50      49  False         49      48  False     True            True    584           149         0        0.0        149        0                  0      439     439      678       681
+    WFG9 22  2         50      49  False         50      49  False         49      49   True     True            True    588           150         0        0.0        150        0                  0      442     442      678       681
+    ZDT1 30  2         70      70   True         71      70  False         70      69  False     True            True    835           212         0        0.0        212        0                  0      627     627      927       929
+    ZDT3 30  2         73      73   True         74      73  False         73      72  False     True            True    871           221         0        0.0        221        0                  0      654     654      927       929
+    ZDT4 10  2         29      29   True         30      29  False         29      28  False     True            True    343            89         0        0.0         89        0                  0      258     258      307       309
+    ZDT6 10  2         24      24   True         25      24  False         24      23  False     True            True    283            74         0        0.0         74        0                  0      213     213      307       309
+  cadencia exata s1/s2/s3: 9 7 10 /25
+  (subset-check) buracos na cadencia esperada: 0 | blocos EXTRA (finalProbe): 49 | ultima geracao coberta: 25 /25
+  extras por celula: {'BBOB_F1': '{"PNN(s1)": [290], "RBF-global(s2)": [287]}', 'BBOB_F17': '{"PNN(s1)": [274], "RBF-global(s2)": [275]}', 'BBOB_F22': '{"RBF-global(s2)": [283], "RBF-local(s3)": [280]}', 'BBOB_F37': '{"RBF-local(s3)": [292]}', 'BBOB_F49': '{"RBF-global(s2)": [283], "RBF-local(s3)": [284]}', 'BBOB_F5': '{"PNN(s1)": [278]}', 'BBOB_F55': '{"PNN(s1)": [286], "RBF-global(s2)": [287], "RBF-local(s3)": [284]}', 'DTLZ1': '{"PNN(s1)": [182]}', 'DTLZ2': '{"PNN(s1)": [314], "RBF-local(s3)": [316]}', 'DTLZ3': '{"RBF-global(s2)": [319], "RBF-local(s3)": [320]}', 'DTLZ4': '{"PNN(s1)": [314], "RBF-local(s3)": [316]}', 'DTLZ7': '{"PNN(s1)": [650], "RBF-global(s2)": [647]}', 'MMF1': '{"PNN(s1)": [58], "RBF-global(s2)": [59], "RBF-local(s3)": [56]}', 'MMF11_L': '{"PNN(s1)": [62]}', 'MMF16_20': '{"PNN(s1)": [530], "RBF-global(s2)": [527]}', 'MMF4': '{"PNN(s1)": [50]}', 'WFG1': '{"PNN(s1)": [586], "RBF-global(s2)": [583], "RBF-local(s3)": [584]}', 'WFG2': '{"PNN(s1)": [614], "RBF-global(s2)": [611]}', 'WFG4': '{"PNN(s1)": [586], "RBF-global(s2)": [583], "RBF-local(s3)": [584]}', 'WFG5': '{"RBF-global(s2)": [583], "RBF-local(s3)": [584]}', 'WFG9': '{"PNN(s1)": [586], "RBF-global(s2)": [587]}', 'ZDT1': '{"RBF-global(s2)": [835], "RBF-local(s3)": [832]}', 'ZDT3': '{"RBF-global(s2)": [871], "RBF-local(s3)": [868]}', 'ZDT4': '{"RBF-global(s2)": [343], "RBF-local(s3)": [340]}', 'ZDT6': '{"RBF-global(s2)": [283], "RBF-local(s3)": [280]}'}
+  boot 1x em g=1: 25 /25 | blocos de sonda total: 2515 | falhas: 0
+  U5 max|dX| global (join posicional): 0.0 | blocos casados: 2515
+  U7 violacoes fit+busca>total: 0 | delas com sonda: 0
+  U3 fits == eventos+1: 25 /25
+  U8 fe_treino_max monotonico por cabeca:
+    PNN(s1) : 25 / 25
+    RBF-global(boot) : 25 / 25
+    RBF-global(s2) : 25 / 25
+    RBF-local(s3) : 21 / 25
+  U8 ftm_max == fe_final - 1: 0 /25 | ftm_max == fe_final: 0
+
+####################################################################################################
+# 7. U9 — guards x manifesto x footer
+####################################################################################################
+problema  cache_hit_guard  cache_hits_man  cache_ok  dedup_guard  dedup_eventos  dedup_ok  hv_range0_guard  hv_range0_eventos  cand_vazio_guard  cand_vazio_eventos termino status  cp_init  fallback  n_retries outros
+ BBOB_F1                1               1      True           11             11      True                0                  0                 8                   8  normal     ok     True     False          0     {}
+BBOB_F17                1               1      True            9              9      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+BBOB_F22                1               1      True           14             14      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+BBOB_F37                1               1      True           22             22      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+BBOB_F49                1               1      True           15             15      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+ BBOB_F5                1               1      True           11             11      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+BBOB_F55                1               1      True           17             17      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+   DTLZ1                1               1      True            0              0      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+   DTLZ2                1               1      True            0              0      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+   DTLZ3                1               1      True            3              3      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+   DTLZ4                1               1      True            0              0      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+   DTLZ7                1               1      True           44             44      True               10                 10                 6                   6  normal     ok     True     False          0     {}
+    MMF1                1               1      True            0              0      True                0                  0                 6                   6  normal     ok     True     False          0     {}
+ MMF11_L                1               1      True            0              0      True                0                  0                 9                   9  normal     ok     True     False          0     {}
+MMF16_20                1               1      True            0              0      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+    MMF4                1               1      True            0              0      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+    WFG1                1               1      True            1              1      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+    WFG2                1               1      True           22             22      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+    WFG4                1               1      True            1              1      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+    WFG5                1               1      True            0              0      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+    WFG9                1               1      True            3              3      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+    ZDT1                1               1      True           28             28      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+    ZDT3                1               1      True           55             55      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+    ZDT4                1               1      True           59             59      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+    ZDT6                1               1      True           14             14      True                0                  0                 0                   0  normal     ok     True     False          0     {}
+  cache_ok: 25 /25 | dedup_ok: 25 /25
+  hv_range0 guard==eventos: 25 /25 | total range0: 10
+  cand_vazio guard==eventos: 25 /25 | total: 29
+  termino normal: 25 /25 | status ok: 25 | cp_init True: 25 | fallback: 0 | retries: 0
+  outros guards: {'{}'}
+  cache_hits total (manifesto): 25 | dedup total: 329
+
+####################################################################################################
+# 8. BOOTSTRAP DE EXTREMOS (Alg.1 l.5-9)
+####################################################################################################
+problema  D  M  aceitos  rejeitados   ok  todos_gt_eps  n_redes  M_saidas  n_treino  init_esp  fe_apos_boot  fe_esp                       dist_ext
+ BBOB_F1 10  2        2           0 True          True        2         1       109       109           111     111           [6.285434, 6.156543]
+BBOB_F17 10  2        2           0 True          True        2         1       109       109           111     111           [5.925408, 9.140349]
+BBOB_F22 10  2        2           0 True          True        2         1       109       109           111     111           [6.542464, 6.788343]
+BBOB_F37 10  2        2           0 True          True        2         1       109       109           111     111           [7.516586, 5.669859]
+BBOB_F49 10  2        2           0 True          True        2         1       109       109           111     111           [6.584171, 8.168111]
+ BBOB_F5 10  2        2           0 True          True        2         1       109       109           111     111            [6.743129, 5.37794]
+BBOB_F55 10  2        2           0 True          True        2         1       109       109           111     111           [8.753101, 7.717465]
+   DTLZ1  7  3        3           0 True          True        3         1        76        76            79      79  [0.43157, 0.574641, 0.582913]
+   DTLZ2 12  3        3           0 True          True        3         1       131       131           134     134   [0.82759, 0.736926, 0.61612]
+   DTLZ3 12  3        3           0 True          True        3         1       131       131           134     134 [0.673144, 0.583938, 0.777743]
+   DTLZ4 12  3        3           0 True          True        3         1       131       131           134     134  [0.85629, 0.693044, 0.692856]
+   DTLZ7 22  3        3           0 True          True        3         1       241       241           244     244  [1.20932, 1.203509, 1.282147]
+    MMF1  2  2        2           0 True          True        2         1        21        21            23      23           [0.193138, 0.119427]
+ MMF11_L  2  2        2           0 True          True        2         1        21        21            23      23            [0.117745, 0.11512]
+MMF16_20 20  3        3           0 True          True        3         1       219       219           222     222  [1.22016, 1.438684, 1.060098]
+    MMF4  2  2        2           0 True          True        2         1        21        21            23      23            [0.08606, 0.181559]
+    WFG1 22  2        2           0 True          True        2         1       241       241           243     243          [31.635955, 27.45085]
+    WFG2 22  2        2           0 True          True        2         1       241       241           243     243         [27.317898, 30.084838]
+    WFG4 22  2        2           0 True          True        2         1       241       241           243     243         [31.772457, 26.692993]
+    WFG5 22  2        2           0 True          True        2         1       241       241           243     243          [25.94939, 26.622708]
+    WFG9 22  2        2           0 True          True        2         1       241       241           243     243         [29.505916, 25.582001]
+    ZDT1 30  2        2           0 True          True        2         1       329       329           331     331           [1.409424, 1.679288]
+    ZDT3 30  2        2           0 True          True        2         1       329       329           331     331           [1.554495, 1.643353]
+    ZDT4 10  2        2           0 True          True        2         1       109       109           111     111            [5.73313, 4.777239]
+    ZDT6 10  2        2           0 True          True        2         1       109       109           111     111           [0.704925, 0.596686]
+  aceitos+rejeitados == M: 25 /25 | FE reais de extremos: 56 | rejeitados no dedup: 0
+  n_treino == 11D-1: 25 /25 | fe_apos_boot == 11D-1+aceitos: 25 /25
+  n_redes == M: 25 /25 | M_saidas==1 (1 rede por objetivo): 25 /25
+
+####################################################################################################
+# 9. QUOTAS DO PNN / N efetivo / k_local
+####################################################################################################
+problema  N_med  N_min  N_max       f1       f2       f3       f4  exato_10_30_40_20  ciclos k_local  arq_min
+ BBOB_F1  100.0    100    100 0.718082 0.155205 0.093973 0.032740                  7      73    [20]      109
+BBOB_F17  100.0    100    100 0.867101 0.046667 0.058261 0.027971                  7      69    [20]      109
+BBOB_F22  100.0    100    100 0.775211 0.083521 0.099859 0.041408                 11      71    [20]      109
+BBOB_F37  100.0    100    100 0.705946 0.098919 0.131081 0.064054                 20      74    [20]      109
+BBOB_F49  100.0    100    100 0.792535 0.074085 0.089577 0.043803                 14      71    [20]      109
+ BBOB_F5  100.0    100    100 0.779571 0.069714 0.109000 0.041714                  8      70    [20]      109
+BBOB_F55  100.0    100    100 0.749861 0.092778 0.108056 0.049306                 17      72    [20]      109
+   DTLZ1  100.0     79    100 0.980712 0.007239 0.009441 0.002609                  0      46    [20]       76
+   DTLZ2  100.0    100    100 0.977595 0.012278 0.008734 0.001392                  0      79    [20]      131
+   DTLZ3  100.0    100    100 0.953375 0.018750 0.019625 0.008250                  3      80    [20]      131
+   DTLZ4  100.0    100    100 0.982278 0.009114 0.007468 0.001139                  0      79    [20]      131
+   DTLZ7  100.0    100    100 0.705092 0.125276 0.113190 0.056442                 24     163    [20]      241
+    MMF1   42.0     23     60 0.533407 0.346142 0.114032 0.006420                  0      15    [20]       21
+ MMF11_L   43.0     23     60 0.397497 0.583120 0.012076 0.007307                  0      16    [20]       21
+MMF16_20  100.0    100    100 0.972857 0.016391 0.009023 0.001729                  0     133    [20]      219
+    MMF4   41.0     23     59 0.954452 0.012771 0.023733 0.009044                  0      13    [20]       21
+    WFG1  100.0    100    100 0.977075 0.012653 0.008571 0.001701                  0     147    [20]      241
+    WFG2  100.0    100    100 0.858182 0.051429 0.061753 0.028636                 17     154    [20]      241
+    WFG4  100.0    100    100 0.977823 0.013265 0.007551 0.001361                  0     147    [20]      241
+    WFG5  100.0    100    100 0.983082 0.009384 0.005479 0.002055                  0     146    [20]      241
+    WFG9  100.0    100    100 0.962653 0.017007 0.014830 0.005510                  3     147    [20]      241
+    ZDT1  100.0    100    100 0.839091 0.058995 0.071627 0.030287                 19     209    [20]      329
+    ZDT3  100.0    100    100 0.758486 0.086651 0.103716 0.051147                 43     218    [20]      329
+    ZDT4  100.0    100    100 0.373372 0.210349 0.277907 0.138372                 34      86    [20]      109
+    ZDT6  100.0    100    100 0.809577 0.066761 0.082958 0.040704                 13      71    [20]      109
+  N mediano por celula: min 41.0 max 100.0
+  fracoes medias das 4 classes (global): 0.8154 0.0911 0.0657 0.0278
+
+####################################################################################################
+# 10. pred_tipo POR LINHA / espaco_modelo / transf
+####################################################################################################
+problema                                                                                                   tipos  blocos_hibridos  n_blocos  mu_nulo_s1  classe_nao_nula_rbf espaco_modelo transf
+ BBOB_F1 {"PNN(s1)": "classe", "RBF-global(boot)": "valor", "RBF-global(s2)": "valor", "RBF-local(s3)": "valor"}                0       218           0                    0            []     []
+BBOB_F17 {"PNN(s1)": "classe", "RBF-global(boot)": "valor", "RBF-global(s2)": "valor", "RBF-local(s3)": "valor"}                0       208           0                    0            []     []
+BBOB_F22 {"PNN(s1)": "classe", "RBF-global(boot)": "valor", "RBF-global(s2)": "valor", "RBF-local(s3)": "valor"}                0       213           0                    0            []     []
+BBOB_F37 {"PNN(s1)": "classe", "RBF-global(boot)": "valor", "RBF-global(s2)": "valor", "RBF-local(s3)": "valor"}                0       221           0                    0            []     []
+BBOB_F49 {"PNN(s1)": "classe", "RBF-global(boot)": "valor", "RBF-global(s2)": "valor", "RBF-local(s3)": "valor"}                0       214           0                    0            []     []
+ BBOB_F5 {"PNN(s1)": "classe", "RBF-global(boot)": "valor", "RBF-global(s2)": "valor", "RBF-local(s3)": "valor"}                0       210           0                    0            []     []
+  blocos hibridos (2 pred_tipo no mesmo bloco): 0 de 7347
+  mu preenchido em linha PNN(s1): 0 | pred_classe em linha RBF: 0
+  tipos por flag (celula 1): {"PNN(s1)": "classe", "RBF-global(boot)": "valor", "RBF-global(s2)": "valor", "RBF-local(s3)": "valor"}
+  espaco_modelo distintos: {'[]'} | transf: {'[]'}
+
+####################################################################################################
+# 11. SPREADS recomputados (formula do codigo)
+####################################################################################################
+            count          mean           std           min           25%           50%           75%           max
+tipo                                                                                                               
+PNN          71.0  4.255300e-09  3.982840e-09  2.652565e-10  1.338468e-09  3.144782e-09  5.301452e-09  1.515649e-08
+RBF-global  125.0  7.422565e-09  6.102990e-09  1.918201e-10  2.508255e-09  6.365168e-09  9.771170e-09  2.429740e-08
+  amostras por tipo: {'RBF-global': 125, 'PNN': 71}
+  max erro relativo por tipo: {'PNN': 1.5156492354133412e-08, 'RBF-global': 2.42974020760675e-08}
+
+####################################################################################################
+# 12. U6 — SONDA por CABECA (regua comum)
+####################################################################################################
+                   n  wape_1_med  wape_ult_med  dwape_med  wape_max  corr_1  corr_ult  nan  blocos
+cabeca                                                                                            
+RBF-global(boot)  56      0.1993        0.1993     0.0000    6.3128  0.8077    0.8077    0      56
+RBF-global(s2)    56      0.1994        0.6901   187.6406  162.4176  0.7868    0.3278    0    1878
+RBF-local(s3)     56      0.2811        0.8650   218.6459  474.1208  0.6994    0.2726    0    1830
+  dWAPE% por problema x cabeca (mediana dos objetivos):
+cabeca    RBF-global(boot)  RBF-global(s2)  RBF-local(s3)
+problema                                                 
+BBOB_F1                0.0           -50.0          376.9
+BBOB_F17               0.0           109.6          185.9
+BBOB_F22               0.0           430.7         4342.2
+BBOB_F37               0.0          1369.0          164.7
+BBOB_F49               0.0           389.6          886.9
+BBOB_F5                0.0          8281.2          324.4
+BBOB_F55               0.0          2727.3         6251.4
+DTLZ1                  0.0           214.7          225.5
+DTLZ2                  0.0           -33.7           92.0
+DTLZ3                  0.0           153.9           45.0
+DTLZ4                  0.0          1190.4          752.2
+DTLZ7                  0.0           -13.6          236.6
+MMF1                   0.0           616.5          681.9
+MMF11_L                0.0           144.2          164.7
+MMF16_20               0.0           131.3           13.0
+MMF4                   0.0            27.5          -38.5
+WFG1                   0.0          2070.1          152.0
+WFG2                   0.0           487.7          139.5
+WFG4                   0.0           118.5          166.8
+WFG5                   0.0           373.1          573.2
+WFG9                   0.0           391.6           95.2
+ZDT1                   0.0         72468.9         1052.6
+ZDT3                   0.0           878.9         1324.3
+ZDT4                   0.0          2024.5          369.2
+ZDT6                   0.0         65666.6        16455.5
+  WAPE do ULTIMO bloco por problema x cabeca:
+cabeca    RBF-global(boot)  RBF-global(s2)  RBF-local(s3)
+problema                                                 
+BBOB_F1              0.075           0.036          0.550
+BBOB_F17             0.375           0.798          1.284
+BBOB_F22             0.104           0.320          2.320
+BBOB_F37             0.214           1.864          5.543
+BBOB_F49             0.197           0.719          2.779
+BBOB_F5              0.039           2.572          1.487
+BBOB_F55             0.071           1.917          4.970
+DTLZ1                0.464           1.509          2.357
+DTLZ2                0.215           0.144          0.428
+DTLZ3                0.301           1.566          0.669
+DTLZ4                4.872          18.967         17.860
+DTLZ7                0.042           0.047          0.540
+MMF1                 0.730           1.479          1.842
+MMF11_L              0.167           0.462          0.451
+MMF16_20             0.230           0.331          0.405
+MMF4                 0.332           0.210          0.205
+WFG1                 0.023           1.376          0.924
+WFG2                 0.235           1.546          0.785
+WFG4                 0.294           0.561          0.767
+WFG5                 0.274           1.283          2.162
+WFG9                 0.487           2.369          0.736
+ZDT1                 0.028          17.317          1.390
+ZDT3                 0.080           1.147          4.356
+ZDT4                 0.340           4.194          1.392
+ZDT6                 0.079          64.003         16.401
+  correlacao mediana por problema x cabeca:
+cabeca    RBF-global(boot)  RBF-global(s2)  RBF-local(s3)
+problema                                                 
+BBOB_F1              0.960           0.995          0.931
+BBOB_F17             0.874           0.900          0.775
+BBOB_F22             0.952           0.701          0.748
+BBOB_F37             0.904           0.495          0.066
+BBOB_F49             0.499           0.299         -0.154
+BBOB_F5              0.982           0.810          0.864
+BBOB_F55             0.204           0.095          0.256
+DTLZ1                0.754           0.635          0.584
+DTLZ2                0.927           0.965          0.858
+DTLZ3                0.835           0.815          0.697
+DTLZ4                0.129           0.123          0.079
+DTLZ7                0.993           0.996          0.458
+MMF1                 0.490           0.305          0.393
+MMF11_L              0.876           0.623          0.623
+MMF16_20             0.920           0.920          0.757
+MMF4                 0.637           0.787          0.788
+WFG1                 0.330           0.115          0.040
+WFG2                 0.425           0.447          0.225
+WFG4                 0.063           0.083          0.009
+WFG5                 0.086           0.051          0.042
+WFG9                 0.056           0.047          0.011
+ZDT1                 0.991           0.589          0.363
+ZDT3                 0.839           0.601          0.644
+ZDT4                 0.252           0.446          0.068
+ZDT6                 0.597           0.131          0.146
+  cobertura95 nao-nula (esperado 0 — sem sigma de modelo): 0
+
+####################################################################################################
+# 13. METRICAS vs PISOS + TRAJETORIAS
+####################################################################################################
+problema       e74  melhor_piso  bate_piso   gap_pct  rank_sa  n_sa  piso_moead  piso_nsga2  piso_nsga3  piso_smsemoa
+ BBOB_F1   0.00295      0.13595       True -97.82822        2    13     0.25821     0.13595     0.13732       0.14809
+BBOB_F17   0.02434      0.02061      False  18.07732        6    13     0.03393     0.02061     0.02442       0.02134
+BBOB_F22   0.08182      0.15913       True -48.58586        5    13     0.81161     0.26769     0.30071       0.15913
+BBOB_F37   0.21129      0.25392       True -16.78853        7    13     0.45248     0.27621     0.32686       0.25392
+BBOB_F49   0.14938      0.20706       True -27.85565        5    13     0.40782     0.20706     0.30676       0.29618
+ BBOB_F5   0.01597      0.11928       True -86.60947        4    13     0.25581     0.19853     0.19072       0.11928
+BBOB_F55   0.51665      0.60615       True -14.76479        9    12     0.80843     0.60615     0.67399       0.72897
+   DTLZ1  63.01380     45.34570      False  38.96311        2    13    55.24320    45.34570    54.57957      63.71341
+   DTLZ2   0.12808      0.17008       True -24.69738        4    12     0.35186     0.23150     0.24369       0.17008
+   DTLZ3 226.22880    129.76799      False  74.33328        4    12   210.15942   305.65449   236.36467     129.76799
+   DTLZ4   0.25282      0.28240       True -10.47386        3    11     0.32371     0.34805     0.28240       0.33217
+   DTLZ7   0.09783      1.12471       True -91.30192        5    11     1.42829     1.42528     1.12471       1.88096
+    MMF1   0.04292      0.05701       True -24.72722        6    13     0.06856     0.06281     0.05701       0.07143
+ MMF11_L   0.01374      0.02316       True -40.68139        2    13     0.04362     0.03176     0.02316       0.04145
+MMF16_20   0.03469      0.03162      False   9.72667        7    11     0.06001     0.04070     0.03169       0.03162
+    MMF4   0.02192      0.03771       True -41.87543        2    13     0.04188     0.04038     0.03771       0.04709
+    WFG1   0.52068      0.49539      False   5.10445        4    10     0.71047     0.49819     0.50745       0.49539
+    WFG2   0.18089      0.12276      False  47.35606        8    12     0.22374     0.12276     0.12329       0.14230
+    WFG4   0.10067      0.04442      False 126.61112        7    12     0.10905     0.06171     0.07176       0.04442
+    WFG5   0.04958      0.09308       True -46.73319        2    12     0.18738     0.09308     0.11263       0.09416
+    WFG9   0.07996      0.09553       True -16.29855        3    12     0.14973     0.09994     0.09553       0.11139
+    ZDT1   0.07886      0.44408       True -82.24217        6    12     1.68688     0.44408     0.95617       0.70059
+    ZDT3   0.38146      0.34426      False  10.80631        9    11     1.02499     0.34426     0.41213       0.35050
+    ZDT4  63.54204     43.89827      False  44.74840       10    13    65.17104    43.89827    46.24627      47.10188
+    ZDT6   1.67970      6.44568       True -73.94063        7    12     7.60519     6.44568     6.66240       6.60503
+  bate o melhor piso em 16 / 25 | rank SA medio 5.16 de 13
+  derrotas com gap > piso de ruido O-18 (58,98%): 2 | derrotas dentro do ruido: 7
+  vitorias por margem > 58,98%: 5
+  derrotas conclusivas: [{'problema': 'DTLZ3', 'e74': 226.2288, 'melhor_piso': 129.768, 'gap_pct': 74.3333}, {'problema': 'WFG4', 'e74': 0.1007, 'melhor_piso': 0.0444, 'gap_pct': 126.6111}]
+  vitorias conclusivas: [{'problema': 'BBOB_F1', 'e74': 0.003, 'melhor_piso': 0.136, 'gap_pct': -97.8282}, {'problema': 'BBOB_F5', 'e74': 0.016, 'melhor_piso': 0.1193, 'gap_pct': -86.6095}, {'problema': 'DTLZ7', 'e74': 0.0978, 'melhor_piso': 1.1247, 'gap_pct': -91.3019}, {'problema': 'ZDT1', 'e74': 0.0789, 'melhor_piso': 0.4441, 'gap_pct': -82.2422}, {'problema': 'ZDT6', 'e74': 1.6797, 'melhor_piso': 6.4457, 'gap_pct': -73.9406}]
+
+problema  n  fe_ini  fe_fim    inicio       fim  melhora_pct  violacoes  pior_salto
+ BBOB_F1 20     0.0   308.0   1.66512   0.00295     99.82268          0     0.00000
+BBOB_F17 20     0.0   308.0   2.41679   0.02434     98.99285          0     0.00000
+BBOB_F22 20     0.0   308.0   6.55041   0.08182     98.75099          0     0.00000
+BBOB_F37 20     0.0   308.0   1.18274   0.21129     82.13559          0     0.00000
+BBOB_F49 20     0.0   308.0   1.33830   0.14938     88.83795          0     0.00000
+ BBOB_F5 20     0.0   308.0   0.91655   0.01597     98.25731          0     0.00000
+BBOB_F55 20     0.0   308.0   1.38854   0.51665     62.79180          0     0.00000
+   DTLZ1 20     0.0   215.0 541.77536  63.01380     88.36902          0     0.00000
+   DTLZ2 20     0.0   370.0   1.62973   0.12808     92.14126          0    -0.00048
+   DTLZ3 20     0.0   370.0 914.16006 226.22880     75.25282          0     0.00000
+   DTLZ4 20     0.0   370.0   1.23027   0.25282     79.44998          0     0.00000
+   DTLZ7 20     0.0   680.0   2.95064   0.09783     96.68451          0     0.00000
+    MMF1 20     0.0    60.0   2.81130   0.04292     98.47346          0     0.00000
+ MMF11_L 20     0.0    60.0   0.57282   0.01374     97.60202          0     0.00000
+MMF16_20 20     0.0   618.0   0.85592   0.03469     95.94693          0    -0.00049
+    MMF4 20     0.0    60.0   0.36752   0.02192     94.03579          0     0.00000
+    WFG1 20     0.0   680.0   1.11634   0.52068     53.35859          0     0.00000
+    WFG2 20     0.0   680.0   0.65957   0.18089     72.57488          0     0.00000
+    WFG4 20     0.0   680.0   0.32821   0.10067     69.32710          0    -0.00087
+    WFG5 20     0.0   680.0   0.54352   0.04958     90.87823          0    -0.00008
+    WFG9 20     0.0   680.0   0.69285   0.07996     88.45867          0    -0.00042
+    ZDT1 20     0.0   928.0   3.82536   0.07886     97.93853          0     0.00000
+    ZDT3 20     0.0   928.0   2.52086   0.38146     84.86766          0     0.00000
+    ZDT4 20     0.0   308.0 160.00269  63.54204     60.28689          0     0.00000
+    ZDT6 20     0.0   308.0   8.95271   1.67970     81.23805          0     0.00000
+  violacoes de monotonicidade: 0 em 475 transicoes | pior salto 0.0
+  melhora 1o->ultimo checkpoint: min 53.4% (WFG1) max 99.8% (BBOB_F1) mediana 88.8%

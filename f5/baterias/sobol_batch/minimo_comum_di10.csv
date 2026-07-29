@@ -1,0 +1,9 @@
+alg,exp,evento_de_geracao,n_eventos,fe,f_best,n_front1,ideal,nadir_pop,nadir_front1,modelo_hp,tempo_fit_s,tempo_busca_s,dist_min_arquivo,n_campos_di10
+nsga2,main,nsga2_gen,11,True,True,True,True,True,True,False,False,False,False,6
+nsga3,main,nsga3_gen,11,True,True,True,True,True,True,False,False,False,False,6
+moead,main,moead_gen,14,True,True,True,True,True,True,False,False,False,False,6
+smsemoa,main,smsemoa_gen,11,True,True,True,True,True,True,False,False,False,False,6
+sobol_batch,batch,decision,200,True,True,False,False,False,False,False,False,False,False,2
+e81,batch,decision,200,True,True,True,False,False,False,True,True,True,True,7
+c149,batch,decision,200,True,True,True,False,False,False,True,True,True,True,7
+moead_media,off,decision,801,True,True,True,False,False,False,False,True,False,False,4

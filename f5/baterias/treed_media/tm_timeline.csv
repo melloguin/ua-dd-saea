@@ -1,0 +1,11 @@
+label,dt_header_sonda_s,fit_mais_sonda_s,resid_fase1_s,tempo_busca_s,tempo_total_s,dt_sonda_footer_s,resid_fase2_s,dt_header_footer_s,resid_total_s,sonda_antes_da_busca,ordem_eventos
+swap_big-lhs_DTLZ2,1.371,1.3526,0.0184,7.6547,10.9692,8.785,1.1303,10.156,-0.8132,True,header>sonda>footer
+swap_big-lhs_MMF16_20,1.91,1.8928,0.0172,7.7932,11.5296,9.176,1.3828,11.086,-0.4436,True,header>sonda>footer
+swap_big-lhs_WFG9,1.7,1.6827,0.0173,3.58,7.2242,4.474,0.894,6.174,-1.0502,True,header>sonda>footer
+swap_big-lhs_ZDT1,1.813,1.7892,0.0238,3.8316,13.2831,4.953,1.1214,6.766,-6.5171,True,header>sonda>footer
+swap_big-lhs_ZDT4,0.952,0.9275,0.0245,3.1542,6.7214,3.814,0.6598,4.766,-1.9554,True,header>sonda>footer
+swap_big-mvns_DTLZ2,2.109,2.0817,0.0273,8.983,13.9358,10.143,1.16,12.252,-1.6838,True,header>sonda>footer>footer
+swap_big-mvns_MMF16_20,3.106,3.0802,0.0258,8.9529,15.7127,,,,,,header>sonda
+swap_big-mvns_WFG9,1.508,1.4871,0.0209,4.1057,7.5384,5.065,0.9593,6.573,-0.9654,True,header>sonda>footer>footer
+swap_big-mvns_ZDT1,1.784,1.7662,0.0178,4.1636,7.8988,5.294,1.1304,7.078,-0.8208,True,header>sonda>footer>footer
+swap_big-mvns_ZDT4,0.737,0.7176,0.0194,3.2705,5.8615,3.885,0.6145,4.622,-1.2395,True,header>sonda>footer

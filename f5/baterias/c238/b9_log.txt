@@ -1,0 +1,103 @@
+OK BBOB_F1
+OK BBOB_F17
+OK BBOB_F22
+OK BBOB_F37
+OK BBOB_F49
+OK BBOB_F5
+OK BBOB_F55
+OK DTLZ1
+OK DTLZ2
+OK DTLZ3
+OK DTLZ4
+OK DTLZ7
+OK MMF1
+OK MMF11_L
+OK MMF16_20
+OK MMF4
+OK WFG1
+OK WFG2
+OK WFG4
+OK WFG5
+OK WFG9
+OK ZDT1
+OK ZDT3
+OK ZDT4
+OK ZDT6
+problema  D  M  n_gens  fbest_eq_ymin  normmin_eq_ymin  normmax_eq_ymax  eim_zero  eim_lt1e12  prim_gen_zero  frac_zero  mind_nas_zero  rank_infill_1  rank_infill_med  rank_infill_max  empate_med  empate_max  n_clones_pool  clone_sigma_max  clone_sigma_med  clone_eim_max  clone_eim_med  eim_med_pool_med  razao_clone_pool
+ BBOB_F1 10  2     200      37.789177     1.178303e-06     7.113036e-06       189         189              8      0.945       3.953877            195              1.0               84       100.0         100              0              NaN              NaN            NaN            NaN          0.000000               NaN
+BBOB_F17 10  2     200  238949.205537     1.321311e-02     3.476048e+00         0           0             -1      0.000            NaN            104              1.0               99         1.0         100              2         0.052654         0.052654       0.033703       0.033703          0.032717          1.030123
+BBOB_F22 10  2     200     570.353926     5.931727e-05     1.070225e-01         0           0             -1      0.000            NaN             99              2.0               98         1.0         100              1         0.045621         0.045621       0.029996       0.029996          0.016732          1.792751
+BBOB_F37 10  2     200     210.119327     2.498113e-05     8.231996e-05         0           0             -1      0.000            NaN            117              1.0               95         1.0         100              2         0.042456         0.042456       0.028075       0.028075          0.031679          0.886249
+BBOB_F49 10  2     200      28.265394     2.565808e-06     8.479114e-05         0           0             -1      0.000            NaN            122              1.0               99         1.0         100              3         0.124132         0.121738       0.032652       0.031536          0.032550          0.968849
+ BBOB_F5 10  2     200     199.135665     2.930975e-05     3.836773e-05         0           0             -1      0.000            NaN            146              1.0              100         1.0         100              1         0.036648         0.036648       0.000004       0.000004          0.008385          0.000463
+BBOB_F55 10  2     200      18.546504     1.822123e-06     1.881951e-06         0           0             -1      0.000            NaN            119              1.0              100         1.0         100              9         0.201678         0.201678       0.341814       0.011658          0.148153          0.078688
+   DTLZ1  7  3     140       0.224253     5.539062e-09     1.164062e-05         0           0             -1      0.000            NaN             62              2.5               70         4.5          70              1         0.257847         0.257847       0.143042       0.143042          0.116249          1.230477
+   DTLZ2 12  3     240       0.015612     2.667471e-10     1.081913e-07         0           0             -1      0.000            NaN             75             19.0              120         1.0         120              2         0.072347         0.069790       0.138358       0.112899          0.121779          0.927080
+   DTLZ3 12  3     240       8.049752     2.490801e-07     5.873131e-05         0           0             -1      0.000            NaN             63             19.0              120         1.0         120              0              NaN              NaN            NaN            NaN          0.094708               NaN
+   DTLZ4 12  3     240       0.376455     9.813794e-09     1.190399e-07         0           0             -1      0.000            NaN             89              7.5              120         1.0         120              1         0.056662         0.056662       0.339028       0.339028          0.089892          3.771505
+   DTLZ7 22  3     440      10.646339     6.007357e-08     8.989833e-07         0           0             -1      0.000            NaN            332              1.0              171         1.0         168              0              NaN              NaN            NaN            NaN          0.000167               NaN
+    MMF1  2  2      40       0.180973     2.533058e-09     2.897171e-08         0           0             -1      0.000            NaN             39              1.0               19        20.0          20            521        58.822941         1.704213      90.673764       2.197314          0.563426          3.899916
+ MMF11_L  2  2      40       0.312649     4.775243e-08     4.985853e-07         0           0             -1      0.000            NaN             39              1.0               10        20.0          20            477         3.678828         0.053916       4.958295       0.080515          0.077675          1.036572
+MMF16_20 20  3     400       0.001593     1.761350e-11     1.072319e-07         0           0             -1      0.000            NaN            120             16.0              200         1.0         200              0              NaN              NaN            NaN            NaN          0.168898               NaN
+    MMF4  2  2      40       0.074491     8.034932e-10     9.435839e-08         0           0             -1      0.000            NaN             38              1.0                6        20.0          20            500        43.517700         0.946682      37.453211       3.505732          2.992646          1.171449
+    WFG1 22  2     440       0.461867     4.758012e-08     6.350080e-08         0           0             -1      0.000            NaN            308              1.0              192         1.0         143              0              NaN              NaN            NaN            NaN          0.364788               NaN
+    WFG2 22  2     440       0.631059     2.879288e-08     1.264241e-07         0           0             -1      0.000            NaN            373              1.0              211         1.0           3              0              NaN              NaN            NaN            NaN          0.059371               NaN
+    WFG4 22  2     440       0.354218     3.048701e-08     2.075889e-07         0           0             -1      0.000            NaN            374              1.0              169         1.0           2              0              NaN              NaN            NaN            NaN          0.124750               NaN
+    WFG5 22  2     440       0.660032     1.665494e-08     4.996638e-08         0           0             -1      0.000            NaN            190              8.0              216        37.5         220              0              NaN              NaN            NaN            NaN          0.058271               NaN
+    WFG9 22  2     440       0.527599     3.209040e-08     1.443809e-07         0           0             -1      0.000            NaN            426              1.0               80         1.0           1              0              NaN              NaN            NaN            NaN          0.321585               NaN
+    ZDT1 30  2     600       1.695638     9.006027e-08     4.232946e-07         0           0             -1      0.000            NaN            557              1.0              294         1.0         298              0              NaN              NaN            NaN            NaN          0.000288               NaN
+    ZDT3 30  2     600       2.914987     9.107420e-08     2.248623e-07         0           4             -1      0.000            NaN            594              1.0              179         1.0         300              0              NaN              NaN            NaN            NaN          0.000064               NaN
+    ZDT4 10  2     200      29.600632     2.820038e-06     6.361291e-06         0           0             -1      0.000            NaN            101              1.0              100         1.0         100             27         0.208178         0.189000       0.006786       0.003416          0.041753          0.081808
+    ZDT6 10  2     200       7.480353     4.009882e-08     2.220240e-07         0          10             -1      0.000            NaN            112              1.0              100         3.0         100              9         0.110026         0.106701       0.000077       0.000006          0.000036          0.165602
+problema  n_trans  subidas  range_mudou  frente_mudou  subida_com_range  subida_com_frente  subida_sem_nada  saltos_gt100pct  salto_grande_com_range  salto_grande_com_frente  salto_grande_sem_nada
+ BBOB_F1      199        5            4            10                 1                  1                4                4                       0                        0                      4
+BBOB_F17      199       97            8            20                 4                  9               87                3                       0                        0                      3
+BBOB_F22      199       91            9            15                 3                  6               83               15                       0                        1                     14
+BBOB_F37      199       98           14             9                 6                  4               90                3                       0                        0                      3
+BBOB_F49      199       99            7            13                 3                  7               91                7                       0                        2                      5
+ BBOB_F5      199       92           12            66                 4                 18               73               65                       0                        6                     59
+BBOB_F55      199      101           24            45                13                 29               70               34                       6                        6                     27
+   DTLZ1      139       67           13            39                 8                 20               45                3                       0                        1                      2
+   DTLZ2      239      115           22            81                11                 31               82                8                       0                        2                      6
+   DTLZ3      239      128           12            47                 6                 22              104               12                       0                        0                     12
+   DTLZ4      239      120           14            24                 7                  9              108               29                       2                        3                     25
+   DTLZ7      439      203           32            83                18                 38              157               11                       1                        2                      9
+    MMF1       39       14            4             8                 0                  3               11               10                       0                        2                      8
+ MMF11_L       39       20            6            19                 3                 13                7                7                       1                        6                      1
+MMF16_20      399      197           16           191                 8                 92              102               67                       1                       36                     31
+    MMF4       39       14            7             8                 2                  2               10                7                       2                        1                      4
+    WFG1      439      217            4           114                 3                 55              162               26                       1                       13                     13
+    WFG2      439      224            9            27                 2                  9              214               48                       0                        0                     48
+    WFG4      439      205           17            37                 8                 18              181                3                       0                        0                      3
+    WFG5      439      215            5           126                 1                 60              154               68                       0                       22                     46
+    WFG9      439      222            9            16                 4                  8              212               21                       0                        1                     20
+    ZDT1      599      283           18            31                 6                 11              268               86                       5                        6                     76
+    ZDT3      599      286           12            20                 5                  5              277                7                       2                        0                      5
+    ZDT4      199       92            9            25                 4                 11               80               42                       2                        5                     36
+    ZDT6      199       87           12            21                 2                  9               76               41                       2                        5                     34
+problema  D  init doe_shape    u2_dx_max  u2_dx32_max  u2_ok     doe_hash_man  doe_hash_recalc     sidecar_hash                                                            rec_census     guard_census  man_cache_hits  guard_cache_hits  dup_infill  n_opt
+ BBOB_F1 10   109 (109, 10) 2.375114e-07          0.0   True f875df0bb01999e1 f875df0bb01999e1 f875df0bb01999e1 {"header": 1, "guard": 1, "sonda": 101, "c238_gen": 200, "footer": 1} {"cache_hit": 1}               1                 1           0    200
+BBOB_F17 10   109 (109, 10) 2.378790e-07          0.0   True d15aed2c60ef23cc d15aed2c60ef23cc d15aed2c60ef23cc {"header": 1, "guard": 1, "sonda": 101, "c238_gen": 200, "footer": 1} {"cache_hit": 1}               1                 1           0    200
+BBOB_F22 10   109 (109, 10) 2.345477e-07          0.0   True f363ce9265e27d44 f363ce9265e27d44 f363ce9265e27d44 {"header": 1, "guard": 1, "sonda": 101, "c238_gen": 200, "footer": 1} {"cache_hit": 1}               1                 1           0    200
+BBOB_F37 10   109 (109, 10) 2.368516e-07          0.0   True 6ff27d4d787c367a 6ff27d4d787c367a 6ff27d4d787c367a {"header": 1, "guard": 1, "sonda": 101, "c238_gen": 200, "footer": 1} {"cache_hit": 1}               1                 1           0    200
+BBOB_F49 10   109 (109, 10) 2.365150e-07          0.0   True 95bec03708fdb8c2 95bec03708fdb8c2 95bec03708fdb8c2 {"header": 1, "guard": 1, "sonda": 101, "c238_gen": 200, "footer": 1} {"cache_hit": 1}               1                 1           0    200
+ BBOB_F5 10   109 (109, 10) 2.372765e-07          0.0   True 9c1c6f9e8c0acf91 9c1c6f9e8c0acf91 9c1c6f9e8c0acf91 {"header": 1, "guard": 1, "sonda": 101, "c238_gen": 200, "footer": 1} {"cache_hit": 1}               1                 1           0    200
+BBOB_F55 10   109 (109, 10) 2.357826e-07          0.0   True 156cb913846b92db 156cb913846b92db 156cb913846b92db {"header": 1, "guard": 1, "sonda": 101, "c238_gen": 200, "footer": 1} {"cache_hit": 1}               1                 1           0    200
+   DTLZ1  7    76   (76, 7) 2.968073e-08          0.0   True 721bacf399101717 721bacf399101717 721bacf399101717  {"header": 1, "guard": 1, "sonda": 71, "c238_gen": 140, "footer": 1} {"cache_hit": 1}               1                 1           0    140
+   DTLZ2 12   131 (131, 12) 2.976508e-08          0.0   True e9e359a6a4afa9d5 e9e359a6a4afa9d5 e9e359a6a4afa9d5 {"header": 1, "guard": 1, "sonda": 121, "c238_gen": 240, "footer": 1} {"cache_hit": 1}               1                 1           0    240
+   DTLZ3 12   131 (131, 12) 2.979716e-08          0.0   True b41f7d771c68d252 b41f7d771c68d252 b41f7d771c68d252 {"header": 1, "guard": 1, "sonda": 121, "c238_gen": 240, "footer": 1} {"cache_hit": 1}               1                 1           0    240
+   DTLZ4 12   131 (131, 12) 2.974925e-08          0.0   True 75dc5d1c4ceddd7c 75dc5d1c4ceddd7c 75dc5d1c4ceddd7c {"header": 1, "guard": 1, "sonda": 121, "c238_gen": 240, "footer": 1} {"cache_hit": 1}               1                 1           0    240
+   DTLZ7 22   241 (241, 22) 2.979180e-08          0.0   True 82fffdba6191f6b3 82fffdba6191f6b3 82fffdba6191f6b3 {"header": 1, "guard": 1, "sonda": 221, "c238_gen": 440, "footer": 1} {"cache_hit": 1}               1                 1           0    440
+    MMF1  2    21   (21, 2) 1.145752e-07          0.0   True b4682dc218d24077 b4682dc218d24077 b4682dc218d24077   {"header": 1, "guard": 1, "sonda": 21, "c238_gen": 40, "footer": 1} {"cache_hit": 1}               1                 1           0     40
+ MMF11_L  2    21   (21, 2) 5.847902e-08          0.0   True bc5b5476bae00728 bc5b5476bae00728 bc5b5476bae00728   {"header": 1, "guard": 1, "sonda": 21, "c238_gen": 40, "footer": 1} {"cache_hit": 1}               1                 1           0     40
+MMF16_20 20   219 (219, 20) 2.979628e-08          0.0   True 00c877887f6a3b86 00c877887f6a3b86 00c877887f6a3b86 {"header": 1, "guard": 1, "sonda": 201, "c238_gen": 400, "footer": 1} {"cache_hit": 1}               1                 1           0    400
+    MMF4  2    21   (21, 2) 5.451373e-08          0.0   True 8e6e2b094ef93635 8e6e2b094ef93635 8e6e2b094ef93635   {"header": 1, "guard": 1, "sonda": 21, "c238_gen": 40, "footer": 1} {"cache_hit": 1}               1                 1           0     40
+    WFG1 22   241 (241, 22) 1.904864e-06          0.0   True 737008bc4aa4e0f5 737008bc4aa4e0f5 737008bc4aa4e0f5 {"header": 1, "guard": 1, "sonda": 221, "c238_gen": 440, "footer": 1} {"cache_hit": 1}               1                 1           0    440
+    WFG2 22   241 (241, 22) 1.905226e-06          0.0   True 4992992e00fb8ac2 4992992e00fb8ac2 4992992e00fb8ac2 {"header": 1, "guard": 1, "sonda": 221, "c238_gen": 440, "footer": 1} {"cache_hit": 1}               1                 1           0    440
+    WFG4 22   241 (241, 22) 1.904271e-06          0.0   True efcdbbe567fe9529 efcdbbe567fe9529 efcdbbe567fe9529 {"header": 1, "guard": 1, "sonda": 221, "c238_gen": 440, "footer": 1} {"cache_hit": 1}               1                 1           0    440
+    WFG5 22   241 (241, 22) 1.889324e-06          0.0   True 83b71528d381b6ea 83b71528d381b6ea 83b71528d381b6ea {"header": 1, "guard": 1, "sonda": 221, "c238_gen": 440, "footer": 1} {"cache_hit": 1}               1                 1           0    440
+    WFG9 22   241 (241, 22) 1.907034e-06          0.0   True 9c1105d2d7e82f1b 9c1105d2d7e82f1b 9c1105d2d7e82f1b {"header": 1, "guard": 1, "sonda": 221, "c238_gen": 440, "footer": 1} {"cache_hit": 1}               1                 1           0    440
+    ZDT1 30   329 (329, 30) 2.978190e-08          0.0   True 15afa53dfdb4e0cd 15afa53dfdb4e0cd 15afa53dfdb4e0cd {"header": 1, "guard": 1, "sonda": 301, "c238_gen": 600, "footer": 1} {"cache_hit": 1}               1                 1           0    600
+    ZDT3 30   329 (329, 30) 2.980070e-08          0.0   True 0e2102b5ae8bd3b4 0e2102b5ae8bd3b4 0e2102b5ae8bd3b4 {"header": 1, "guard": 1, "sonda": 301, "c238_gen": 600, "footer": 1} {"cache_hit": 1}               1                 1           0    600
+    ZDT4 10   109 (109, 10) 2.374759e-07          0.0   True f238a513ec1ad671 f238a513ec1ad671 f238a513ec1ad671 {"header": 1, "guard": 1, "sonda": 101, "c238_gen": 200, "footer": 1} {"cache_hit": 1}               1                 1           0    200
+    ZDT6 10   109 (109, 10) 2.979843e-08          0.0   True 57a9736e2650080b 57a9736e2650080b 57a9736e2650080b {"header": 1, "guard": 1, "sonda": 101, "c238_gen": 200, "footer": 1} {"cache_hit": 1}               1                 1           0    200

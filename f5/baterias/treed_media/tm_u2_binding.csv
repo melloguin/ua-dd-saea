@@ -1,0 +1,11 @@
+label,problema,dist,n_artefato,n_camada1,x_hash_recomputado,x_hash_manifesto,x_hash_bate,f_hash_recomputado,f_hash_manifesto,f_hash_bate,dataset_hash_art,maxabs_dX_f32,maxabs_dF_f32,ordem_preservada,sampler,seed_tuple,tier,dist_art
+swap_big-lhs_DTLZ2,DTLZ2,lhs,50000,50000,9d7f3bd3594b1436,9d7f3bd3594b1436,True,a3b0abeb81b2ff0b,a3b0abeb81b2ff0b,True,87186bb2a7a100c4,0.0,0.0,True,lhs-simple,"[42, 9, 2, 0]",big,lhs
+swap_big-lhs_MMF16_20,MMF16_20,lhs,50000,50000,cb4ed39d93a90c9e,cb4ed39d93a90c9e,True,b07a4ba0eb71d428,b07a4ba0eb71d428,True,e5d252dd54f32be1,0.0,0.0,True,lhs-simple,"[42, 3, 2, 0]",big,lhs
+swap_big-lhs_WFG9,WFG9,lhs,50000,50000,cd961497fae9429f,cd961497fae9429f,True,1f7ae077aceae7a8,1f7ae077aceae7a8,True,e216e7486d1819a2,0.0,0.0,True,lhs-simple,"[42, 17, 2, 0]",big,lhs
+swap_big-lhs_ZDT1,ZDT1,lhs,50000,50000,0621707a1f006a51,0621707a1f006a51,True,6594bb083fef49af,6594bb083fef49af,True,d0d4d93acdc3bcf0,0.0,0.0,True,lhs-simple,"[42, 4, 2, 0]",big,lhs
+swap_big-lhs_ZDT4,ZDT4,lhs,50000,50000,48a6a6689af5deb4,48a6a6689af5deb4,True,f58686e6b256380a,f58686e6b256380a,True,487cd49bf52ae7ff,0.0,0.0,True,lhs-simple,"[42, 6, 2, 0]",big,lhs
+swap_big-mvns_DTLZ2,DTLZ2,mvns,50000,50000,5b1e304daf343a9f,5b1e304daf343a9f,True,0b889f30a38baf54,0b889f30a38baf54,True,a025cc8d4981acd1,0.0,0.0,True,mvns,"[42, 9, 2, 1]",big,mvns
+swap_big-mvns_MMF16_20,MMF16_20,mvns,50000,50000,e37704fb25bafc9a,e37704fb25bafc9a,True,c983fa42a6dc3b2e,c983fa42a6dc3b2e,True,8f0405ff52ee4845,0.0,0.0,True,mvns,"[42, 3, 2, 1]",big,mvns
+swap_big-mvns_WFG9,WFG9,mvns,50000,50000,0d6f340acc1f0666,0d6f340acc1f0666,True,dcfd130bb75cb03f,dcfd130bb75cb03f,True,938c2405a6727f21,0.0,0.0,True,mvns,"[42, 17, 2, 1]",big,mvns
+swap_big-mvns_ZDT1,ZDT1,mvns,50000,50000,e9d9df220f34f9e5,e9d9df220f34f9e5,True,10120fb7596ea8f2,10120fb7596ea8f2,True,71eef00f783b0f23,0.0,0.0,True,mvns,"[42, 4, 2, 1]",big,mvns
+swap_big-mvns_ZDT4,ZDT4,mvns,50000,50000,0172cd920b3b7355,0172cd920b3b7355,True,f5993cf6e2cfc2e8,f5993cf6e2cfc2e8,True,f1f45779e2457023,0.0,0.0,True,mvns,"[42, 6, 2, 1]",big,mvns

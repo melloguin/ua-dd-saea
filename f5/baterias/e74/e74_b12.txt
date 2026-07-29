@@ -1,0 +1,49 @@
+####################################################################################################
+# (1) N e k_local efetivos
+####################################################################################################
+  bloco da ③ == min(100,|Arc|): 7322 / 7322 = 100.000%
+  k_local_efetivo == min(20,|Arc|): 2431 / 2431 = 100.000%
+
+####################################################################################################
+# (2) PARTICAO DO CRITERIO DE SAIDA DO LOOP DA s1
+####################################################################################################
+  ciclos produtivos (count>0): 2123
+  saida A (frac_nivel1 >= 0,9 — regra do PAPER): 1633
+  saida B (count == 51, i.e. count>50 — guarda do CODIGO): 495 | interseccao: 5
+  A + B - AB = 2123 => cobre 100.00% dos produtivos
+  count: min 2 mediana 16.0 max 51
+
+####################################################################################################
+# (3) PADRAO TEMPORAL DO REGIME NO-OP
+####################################################################################################
+regime    no-op  produtivo  taxa_noop_%
+pos                                    
+1o terco    283        543        34.26
+2o terco     27        780         3.35
+3o terco     16        800         1.96
+  posicao relativa dos no-op: mediana 0.119 | quartis 0.056 / 0.222
+
+####################################################################################################
+# (4) ESPACO DO NDSort (D30) — correlacao de postos rotulo x rank ND
+####################################################################################################
+  blocos no-op com rotulo NAO-constante testados: 84
+  OBJETIVOS: mediana 0.9410 | media 0.9285 | min 0.8083 | max 0.9493 | NaN 0
+  DECISAO  : mediana 0.0367 | media 0.0311 | min -0.5665 | max 0.5900 | NaN 21 (rank ND CONSTANTE=1 em decisao)
+  entre os blocos com rho_dec DEFINIDO: rho_obj > rho_dec em 63 / 63
+
+####################################################################################################
+# (5) D74 — Ymin/Ymax vs front-1 recomputado
+####################################################################################################
+  amostras: 200 | dYmin <= 1e-6: 200 | dYmax <= 1e-6: 192
+  dYmin max: 5.706e-08 | dYmax max (excl. DTLZ4): 5.648e-08
+  residuo: celulas com dYmax>1e-6 = {'DTLZ4': 8}
+  DTLZ4: |ND1| recomputado (①, float32) x n_front1 do evento (float64 do PlatEMO):
+ geracao  n_front1  n_front1_ev
+       3         7           23
+       7         8           25
+      11         8           26
+      15         9           26
+      19         9           27
+      23         9           28
+      27        10           30
+      31        11           30

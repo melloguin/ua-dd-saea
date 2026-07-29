@@ -1,0 +1,86 @@
+gate D92 OK: 1.04333
+  BBOB_F1 ok
+  BBOB_F17 ok
+  BBOB_F22 ok
+  BBOB_F37 ok
+  BBOB_F49 ok
+  BBOB_F5 ok
+  BBOB_F55 ok
+  DTLZ1 ok
+  DTLZ2 ok
+  DTLZ3 ok
+  DTLZ4 ok
+  DTLZ7 ok
+  MMF1 ok
+  MMF11_L ok
+  MMF16_20 ok
+  MMF4 ok
+  WFG1 ok
+  WFG2 ok
+  WFG4 ok
+  WFG5 ok
+  WFG9 ok
+  ZDT1 ok
+  ZDT3 ok
+  ZDT4 ok
+  ZDT6 ok
+    problema    alg  n_ger   N   igd_doe  igd_pop1  igd_popF   igd_arq  hv_popF  nd_popF  unicos_popF  reg_vs_doe  reg_vs_semeada  raz_popF_doe  raz_popF_pop1
+0    BBOB_F1  moead     12  20    0.5082    0.5082    0.3284    0.2582   0.4827        3           16       False           False        0.6462         0.6462
+4   BBOB_F17  moead     14  20    0.1057    0.1057    0.0631    0.0339   1.0365        8           11       False           False        0.5966         0.5966
+8   BBOB_F22  moead     14  20    0.9287    0.9287    0.8319    0.8116   0.0715        8           11       False           False        0.8957         0.8957
+12  BBOB_F37  moead     13  20    0.6756    0.6756    0.4617    0.4525   0.2682        6           15       False           False        0.6834         0.6834
+16  BBOB_F49  moead     14  20    0.5068    0.5068    0.5897    0.4078   0.3623       10           12        True            True        1.1635         1.1635
+20   BBOB_F5  moead     14  20    0.6099    0.6099    0.2917    0.2558   0.4474        8           11       False           False        0.4783         0.4783
+24  BBOB_F55  moead     13  20    1.0905    1.0905    0.8661    0.8084   0.0774        4           15       False           False        0.7943         0.7943
+28     DTLZ1  moead     11  15  115.2437  133.1406   55.2432   55.2432   0.0000       11           12       False           False        0.4794         0.4149
+32     DTLZ2  moead     17  15    0.4484    0.6361    0.3967    0.3519   0.1270       14           14       False           False        0.8848         0.6237
+36     DTLZ3  moead     18  15  446.9151  643.1069  263.9698  210.1594   0.0000       10           13       False           False        0.5906         0.4105
+40     DTLZ4  moead     18  15    0.8196    0.8196    0.3292    0.3237   0.0523       11           12       False           False        0.4017         0.4017
+44     DTLZ7  moead     33  15    2.6970    2.6970    1.4354    1.4283   0.0000       11           13       False           False        0.5322         0.5322
+48      MMF1  moead      3  20    0.1178    0.1178    0.1482    0.0686   0.6134       11           12        True            True        1.2585         1.2585
+52   MMF11_L  moead      3  20    0.0614    0.0614    0.0521    0.0436   0.8873        8           13       False           False        0.8493         0.8493
+56  MMF16_20  moead     29  15    0.0778    0.1263    0.1459    0.0600   0.3828       14           13        True            True        1.8760         1.1555
+60      MMF4  moead      3  20    0.0683    0.0683    0.0716    0.0419   0.3943       15           14        True            True        1.0477         1.0477
+64      WFG1  moead     31  20    1.0003    1.0003    0.9587    0.7105   0.0000       16           13       False           False        0.9584         0.9584
+68      WFG2  moead     27  20    0.2351    0.2351    0.2336    0.2237   0.4207        5           15       False           False        0.9937         0.9937
+72      WFG4  moead     27  20    0.1345    0.1350    0.1391    0.1091   0.1854       10           16        True            True        1.0346         1.0307
+76      WFG5  moead     26  20    0.2162    0.2164    0.2003    0.1874   0.1422       15           18       False           False        0.9266         0.9254
+80      WFG9  moead     25  20    0.2387    0.2387    0.2424    0.1497   0.0800        9           19        True            True        1.0154         1.0154
+84      ZDT1  moead     38  20    2.0959    2.0959    1.7054    1.6869   0.0000        6           14       False           False        0.8137         0.8137
+88      ZDT3  moead     38  20    1.2547    1.2547    1.0288    1.0250   0.0000        8           16       False           False        0.8200         0.8200
+92      ZDT4  moead     14  20   91.9217   91.9217   65.1710   65.1710   0.0000        8           11       False           False        0.7090         0.7090
+96      ZDT6  moead     14  20    7.9973    7.9973    7.9217    7.6052   0.0000        7           14       False           False        0.9905         0.9905
+
+=== REGRESSÃO DA POPULAÇÃO ===
+moead    regride vs DoE inteiro:  6/25 | regride vs população SEMEADA:  6/25 | razão popF/pop1 mediana 0.820 | únicos na pop final: med 13.0 de 20
+nsga2    regride vs DoE inteiro:  1/25 | regride vs população SEMEADA:  0/25 | razão popF/pop1 mediana 0.451 | únicos na pop final: med 20.0 de 20
+nsga3    regride vs DoE inteiro:  0/25 | regride vs população SEMEADA:  0/25 | razão popF/pop1 mediana 0.465 | únicos na pop final: med 20.0 de 20
+smsemoa  regride vs DoE inteiro:  0/25 | regride vs população SEMEADA:  0/25 | razão popF/pop1 mediana 0.452 | únicos na pop final: med 20.0 de 20
+
+alg       moead  nsga2  nsga3  smsemoa
+problema                              
+BBOB_F1   0.646  0.272  0.270    0.291
+BBOB_F17  0.597  0.196  0.237    0.202
+BBOB_F22  0.896  0.288  0.324    0.171
+BBOB_F37  0.683  0.409  0.488    0.376
+BBOB_F49  1.164  0.409  0.605    0.584
+BBOB_F5   0.478  0.326  0.315    0.196
+BBOB_F55  0.794  0.580  0.619    0.668
+DTLZ1     0.479  0.393  0.474    0.553
+DTLZ2     0.885  0.521  0.602    0.381
+DTLZ3     0.591  0.684  0.529    0.290
+DTLZ4     0.402  0.425  0.350    0.405
+DTLZ7     0.532  0.555  0.417    0.697
+MMF1      1.258  0.533  0.508    0.608
+MMF11_L   0.849  0.577  0.377    0.731
+MMF16_20  1.876  1.143  0.766    0.649
+MMF4      1.048  0.591  0.552    0.706
+WFG1      0.958  0.503  0.508    0.495
+WFG2      0.994  0.523  0.531    0.605
+WFG4      1.035  0.488  0.573    0.342
+WFG5      0.927  0.450  0.543    0.437
+WFG9      1.015  0.451  0.411    0.467
+ZDT1      0.814  0.212  0.465    0.334
+ZDT3      0.820  0.280  0.332    0.279
+ZDT4      0.709  0.478  0.503    0.512
+ZDT6      0.991  0.807  0.833    0.826

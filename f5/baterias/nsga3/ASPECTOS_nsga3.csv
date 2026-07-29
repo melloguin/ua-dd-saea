@@ -1,0 +1,25 @@
+n,aspecto,classe,verificabilidade,resultado_sintese
+A1,Orcamento FE = 31D-1 + hard-stop exato,(2) D21/D61,direta,25/25 maxfe=fe_final=|①|=31D-1; guard hard_stop em fe=maxfe 25/25
+A2,DoE init 11D-1 bit-a-bit do artefato (ordem preservada),(2) D63/D88,direta,25/25 dX_max=0.0 e doe_hash sidecar==manifesto
+A3,N=20 CRAVADO (Knowles/ParEGO) - PROVISORIO ate SUB-varN,(2) §3.2/D65/DI-39,direta-declarativa,N_nominal=20 em 25/25 manifesto+header+footer
+A4,N EFETIVO = 15 em M=3 (lattice UniformPoint),(2) DI-18/§6.3,direta,|pop|=15 em 6 celulas M=3 e 20 em 19 celulas M=2; 413/413 geracoes
+A5,Lattice UniformPoint(N,M) NBI identico ao PlatEMO,(1),direta (JOIA),25/25 max|dW|=0.0 na ORDEM logada; H1=4 (M=3) e 19 (M=2)
+A6,Vetores de referencia fixos (stock; nao adaptativo),(1),direta,1 registro 'decomposicao' por run em 25/25
+A7,Semeadura D88 NDSort+CrowdingDistance deterministica,(2) §3.2/D88,direta (JOIA),24/25 conjunto IDENTICO ao recomputo; DTLZ4 explicado por underflow float32
+A8,|pop| constante == N_efetivo,(1),direta,413/413 geracoes; ② com ngen grupos em 25/25
+A9,Descendentes por geracao = 2*floor(N/2) (truncagem de N impar),(1) stock PlatEMO,direta,14 em M=3 e 20 em M=2; fecha a aritmetica em 25/25
+A10,Aritmetica ①x②x⑥: off = FE_infill + cache_hits,(1),direta (JOIA),25/25 exato; 7200 descendentes = 6849 FE + 180 dup + parciais
+A11,Dedup D57/D89 (duplicata nao gasta FE gasta o SLOT),(2) D57/D89,direta,675 guards = 495 semeadura + 180 descendentes; 2.5% dos descendentes
+A12,Colisao float32 no export da ① (dedup roda em double),(2) armadilha pre-registrada 2026-07-18,direta,4 linhas colididas em 10856 (0.037%); DTLZ4 x2 MMF1 MMF4
+A13,Cache-hit de arranque: |semeadura| = N_ef + 1,(2) D57,direta,25/25 exatamente Nef+1 hits em fe=init com Nef sids distintos
+A14,Sem geracao fantasma: ② e ④ tem n_geracoes grupos,(1),direta,25/25; a geracao truncada pelo hard-stop TEM snapshot
+A15,Operadores Balde C: SBX proC=1 dis_c=20 + PM proM=1 dis_m=20,(2) Balde C,direta-declarativa,string identica em 25/25 headers
+A16,Selecao ambiental por nicho de vetor de referencia,T,indireta (spacing),spacing rank 1.67/4 em M=3 (melhor dos 4 pisos em 2/6)
+A17,Normalizacao interna / Zmin acumulado do NSGA-III,T,nao-verificavel,nao exportado (so o ideal da populacao corrente)
+A18,Instrumentacao ideal/nadir (semantica de populacao corrente),(1),direta,ideal==f_best 25/25; 2 nao-monotonias em 898 (0.22%) = elitismo por nicho
+A19,Ausencia TOTAL de surrogate em todas as camadas,(2) §3.2/DI-13.7,direta,③ 0 linhas 25/25; fit_series []; sem sigma_dict; sonda nao_se_aplica
+A20,Timing: ④ sem fit/busca/sonda; ④==⑥; Sigma④ <= total,(2) §17.6/DI-13.10,direta,413/413 NaN nos 3 campos; max|Δt| 1.3e-8; Sigma④=17.0% do wall
+A21,U9 guards do ⑥ == cache_hits do ⑤,(1),direta,675 == 675 (25/25 por celula)
+A22,Contrato do ⑤/⑥ (params 12 chaves; footer unico; termino),(1),direta,0 linhas nsga3 no contrato_f52b; footer.termino='normal' 25/25
+A23,Elo codigo->log (repo_hash vazio; sem anchors),T,nao-verificavel,repo_hash='' em 25/25
+A24,Formula 'geracoes = 20D / N_efetivo' do manifesto e aproximacao,(2) nota,direta,real = ceil((20D + dup)/2*floor(N/2)); DTLZ2 18 obs vs 16 pela formula

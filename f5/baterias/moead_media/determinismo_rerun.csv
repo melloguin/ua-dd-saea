@@ -1,0 +1,6 @@
+problema,__real_shape,__real_dmax,__real_bit,__surrogate_shape,__surrogate_dmax,__surrogate_bit,__final_shape,__final_dmax,__final_bit,__timing_shape,__timing_dmax,__timing_bit,nger_igual,hash_igual,sigma_dict_igual,wall_off,wall_sweep
+DTLZ2,True,0.0,True,True,0.0,False,True,0.0,True,True,7.40118408203125,False,True,True,True,49.1622,57.6854
+MMF16_20,True,0.0,True,True,0.0,False,True,0.0,True,True,4.750762939453125,False,True,True,True,78.6854,84.5451
+WFG9,True,0.0,True,True,0.0,False,True,0.0,True,True,5.358013153076172,False,True,True,True,65.0766,70.9625
+ZDT1,True,0.0,True,True,0.0,False,True,0.0,True,True,14.544631958007812,False,True,True,True,124.2121,139.6989
+ZDT4,True,0.0,True,True,0.0,False,True,0.0,True,True,2.2031097412109375,False,True,True,True,38.8479,41.2441

@@ -1,0 +1,65 @@
+####################################################################################################
+# CONTRATO / INTEGRIDADE / TEMPO (F5.2a/b/d) — linhas do e74
+####################################################################################################
+  contrato_f52b: linhas e74 = 0 (de 197 no total) | colunas: ['exp', 'alg', 'problema', 'camada', 'tipo', 'detalhe']
+  integridade_f52a: linhas e74 = 0 (de 111 no total) | colunas: ['alg', 'exp', 'problema', 'camada', 'veredito', 'detalhe']
+  tempo_f52d: linhas e74 = 25 | colunas: ['exp', 'alg', 'problema', 'label', 'maquina', 'wall_s']
+ exp alg problema    label maquina      wall_s
+main e74     MMF1     MMF1     vm3   33.750346
+main e74     MMF4     MMF4     vm3   32.160480
+main e74  MMF11_L  MMF11_L     vm3   35.242736
+main e74 MMF16_20 MMF16_20     vm3 1333.891488
+main e74     ZDT1     ZDT1     vm3 1028.472024
+main e74     ZDT3     ZDT3     vm3  821.777974
+main e74     ZDT4     ZDT4     vm3  189.482546
+main e74     ZDT6     ZDT6     vm3  155.377430
+main e74    DTLZ1    DTLZ1     vm3  110.909719
+main e74    DTLZ2    DTLZ2     vm3  450.105029
+main e74    DTLZ3    DTLZ3     vm3  187.101287
+main e74    DTLZ4    DTLZ4     vm3  310.956833
+main e74    DTLZ7    DTLZ7     vm3  548.752856
+main e74     WFG1     WFG1     vm3  476.425400
+main e74     WFG2     WFG2     vm3  410.370432
+main e74     WFG4     WFG4     vm3  399.270438
+main e74     WFG5     WFG5     vm3  393.387549
+main e74     WFG9     WFG9     vm3  415.841356
+main e74  BBOB_F1  BBOB_F1     vm3  226.524637
+main e74  BBOB_F5  BBOB_F5     vm3  176.353213
+main e74 BBOB_F17 BBOB_F17     vm3  162.920519
+main e74 BBOB_F22 BBOB_F22     vm3  162.708263
+main e74 BBOB_F37 BBOB_F37     vm3  169.510854
+main e74 BBOB_F49 BBOB_F49     vm3  158.859269
+main e74 BBOB_F55 BBOB_F55     vm3  170.358142
+  maquinas: {'vm3': 25}
+  wall total e74 (h): 2.38
+
+####################################################################################################
+# METRICAS F5.2c — colunas e rank global
+####################################################################################################
+  colunas: ['exp', 'alg', 'problema', 'igd_plus', 'hv', 'igd', 'gd', 'spacing', 'n_nd', 'erro']
+  colunas de metrica com igd: ['igd_plus', 'igd']
+  usando primaria = igd_plus
+  rank medio e74 no conjunto COMPLETO (SA+pisos): 6.08 de 16.2 algs/problema
+  rank medio e74 entre os SA: 5.16
+  ranks completos por problema: {'BBOB_F1': 2, 'BBOB_F17': 8, 'BBOB_F22': 5, 'BBOB_F37': 7, 'BBOB_F49': 5, 'BBOB_F5': 4, 'BBOB_F55': 9, 'DTLZ1': 5, 'DTLZ2': 4, 'DTLZ3': 6, 'DTLZ4': 3, 'DTLZ7': 5, 'MMF1': 6, 'MMF11_L': 2, 'MMF16_20': 9, 'MMF4': 2, 'WFG1': 7, 'WFG2': 11, 'WFG4': 10, 'WFG5': 2, 'WFG9': 3, 'ZDT1': 6, 'ZDT3': 11, 'ZDT4': 13, 'ZDT6': 7}
+
+####################################################################################################
+# COMPARACAO CANONICA — nossos numeros nos 9 problemas com interseccao de familia
+####################################################################################################
+problema  D  M  maxfe  init  igd_nosso  igdplus_nosso  hv_nosso  paper_D30  paper_menor_D  razao_orcamento  razao_D
+    ZDT1 30  2    929   329    0.07888        0.07886   0.74625    0.17209             30          3.09667  1.00000
+    ZDT3 30  2    929   329    0.38146        0.38146   0.23133    0.80636             30          3.09667  1.00000
+    ZDT4 10  2    309   109   63.54443       63.54204   0.00000  269.38000             30          1.03000  0.33333
+    ZDT6 10  2    309   109    1.67970        1.67970   0.00000    1.69450             30          1.03000  0.33333
+   DTLZ1  7  3    216    76   63.01380       63.01380   0.00000  286.40000             30          0.72000  0.23333
+   DTLZ2 12  3    371   131    0.14229        0.12808   0.50784    0.29013             30          1.23667  0.40000
+   DTLZ3 12  3    371   131  226.22989      226.22880   0.00000  676.09000             30          1.23667  0.40000
+   DTLZ4 12  3    371   131    0.41668        0.25282   0.20785    1.00510             30          1.23667  0.40000
+   DTLZ7 22  3    681   241    0.12480        0.09783   0.42988    0.80399             30          2.27000  0.73333
+
+####################################################################################################
+# n_front1 — pre x pos FE (re-checagem)
+####################################################################################################
+  n_front1 == |ND1(arquivo POS-FE)|: 190 / 200 = 95.0%
+  n_front1 == |ND1(arquivo PRE-FE)|: 161 / 200 = 80.5%
+  (uniao: pelo menos uma das duas) -> amostra de 200 eventos

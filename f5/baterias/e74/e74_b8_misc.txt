@@ -1,0 +1,195 @@
+####################################################################################################
+# (A) IDENTIDADE ndsort-obj + quotas 10/30/40/20 (amostra por celula)
+####################################################################################################
+  eventos testados: 300 em 25 celulas
+  n_por_nivel_pop == classes por camadas ND sobre OBJETIVOS : 0 / 300 = 0.00%
+  n_por_nivel_pop == classes por camadas ND sobre DECISAO   : 21 / 300 = 7.00%
+  (so a 1a classe) OBJETIVOS: 5 | DECISAO: 35
+           n  obj  dec  obj_n1  dec_n1
+problema                              
+BBOB_F1   12    0    0       1       1
+BBOB_F17  12    0    0       0       0
+BBOB_F22  12    0    0       0       0
+BBOB_F37  12    0    0       0       1
+BBOB_F49  12    0    0       0       0
+BBOB_F5   12    0    0       0       0
+BBOB_F55  12    0    1       1       2
+DTLZ1     12    0    0       0       0
+DTLZ2     12    0    0       0       1
+DTLZ3     12    0    0       0       0
+DTLZ4     12    0    2       0       3
+DTLZ7     12    0    1       0       1
+MMF1      12    0    0       0       0
+MMF11_L   12    0    0       0       0
+MMF16_20  12    0    4       0       5
+MMF4      12    0    0       0       0
+WFG1      12    0    2       0       4
+WFG2      12    0    2       1       2
+WFG4      12    0    2       0       6
+WFG5      12    0    2       0       3
+WFG9      12    0    1       0       2
+ZDT1      12    0    2       0       2
+ZDT3      12    0    2       1       2
+ZDT4      12    0    0       0       0
+ZDT6      12    0    0       1       0
+  exemplos (obs | obj | dec):
+problema  geracao   N              obs              obj            dec  ok_obj  ok_dec
+ BBOB_F1        2 100 [10, 30, 40, 20] [15, 27, 39, 19]  [96, 0, 0, 4]   False   False
+ BBOB_F1       26 100 [10, 30, 40, 20] [10, 37, 40, 13]  [99, 0, 0, 1]   False   False
+ BBOB_F1       50 100    [98, 0, 1, 1] [14, 27, 47, 12]  [99, 0, 0, 1]   False   False
+ BBOB_F1       74 100    [90, 7, 3, 0] [25, 15, 42, 18] [100, 0, 0, 0]   False   False
+ BBOB_F1       98 100    [90, 3, 6, 1] [32, 12, 36, 20] [100, 0, 0, 0]   False   False
+ BBOB_F1      122 100    [95, 1, 2, 2]  [41, 0, 42, 17] [100, 0, 0, 0]   False   False
+ BBOB_F1      146 100   [0, 90, 10, 0]  [50, 0, 38, 12]  [98, 0, 0, 2]   False   False
+ BBOB_F1      170 100    [96, 0, 4, 0]  [58, 0, 26, 16]  [96, 0, 0, 4]   False   False
+ BBOB_F1      194 100    [99, 1, 0, 0]   [70, 0, 21, 9]  [95, 0, 0, 5]   False   False
+ BBOB_F1      218 100    [97, 2, 1, 0]   [79, 0, 21, 0]  [92, 0, 0, 8]   False   False
+ BBOB_F1      242 100    [99, 1, 0, 0]   [88, 0, 0, 12] [90, 0, 0, 10]   False   False
+ BBOB_F1      266 100    [94, 4, 2, 0]    [95, 0, 0, 5] [90, 0, 0, 10]   False   False
+BBOB_F17        2 100 [10, 30, 40, 20] [17, 35, 35, 13]  [95, 0, 0, 5]   False   False
+BBOB_F17       22 100 [10, 30, 40, 20] [16, 26, 39, 19]  [96, 0, 0, 4]   False   False
+BBOB_F17       42 100    [98, 2, 0, 0] [19, 21, 45, 15]  [97, 0, 0, 3]   False   False
+BBOB_F17       62 100   [100, 0, 0, 0] [12, 28, 40, 20]  [92, 0, 0, 8]   False   False
+BBOB_F17       82 100    [99, 1, 0, 0] [14, 31, 42, 13]  [92, 0, 0, 8]   False   False
+BBOB_F17      102 100    [98, 0, 2, 0] [16, 26, 46, 12]  [93, 0, 0, 7]   False   False
+BBOB_F17      122 100    [99, 0, 1, 0] [18, 27, 39, 16]  [93, 0, 0, 7]   False   False
+BBOB_F17      142 100   [100, 0, 0, 0] [12, 32, 43, 13]  [91, 0, 0, 9]   False   False
+
+####################################################################################################
+# (B)(C) frac_nivel1 / n_front1 / f_best
+####################################################################################################
+  frac_nivel1(evento) == fracao pred_classe==nivel_1 no bloco: 43 / 300
+  |dif| max: 0.9
+  n_front1(evento) == |ND1(arquivo)| recomputado: 262 / 300 = 87.33%
+  f_best == min por objetivo do arquivo: max|dif| = 1.719790535782408 | exato (<1e-12): 51 / 300
+
+####################################################################################################
+# (D) REPARTICAO REAL DO ORCAMENTO POR ESTRATEGIA
+####################################################################################################
+problema  D  M  fe_infill  s1  s2  s3   sh1   sh2   sh3  desvio_max_pp
+ BBOB_F1 10  2        198  54  72  72 27.27 36.36 36.36           6.06
+BBOB_F17 10  2        198  60  69  69 30.30 34.85 34.85           3.03
+BBOB_F22 10  2        198  57  71  70 28.79 35.86 35.35           4.55
+BBOB_F37 10  2        198  52  73  73 26.26 36.87 36.87           7.07
+BBOB_F49 10  2        198  56  71  71 28.28 35.86 35.86           5.05
+ BBOB_F5 10  2        198  59  70  69 29.80 35.35 34.85           3.54
+BBOB_F55 10  2        198  55  72  71 27.78 36.36 35.86           5.56
+   DTLZ1  7  3        137  46  46  45 33.58 33.58 32.85           0.49
+   DTLZ2 12  3        237  79  79  79 33.33 33.33 33.33           0.00
+   DTLZ3 12  3        237  77  80  80 32.49 33.76 33.76           0.84
+   DTLZ4 12  3        237  79  79  79 33.33 33.33 33.33           0.00
+   DTLZ7 22  3        437 113 162 162 25.86 37.07 37.07           7.48
+    MMF1  2  2         38   9  15  14 23.68 39.47 36.84           9.65
+ MMF11_L  2  2         38   7  16  15 18.42 42.11 39.47          14.91
+MMF16_20 20  3        397 133 132 132 33.50 33.25 33.25           0.17
+    MMF4  2  2         38  13  13  12 34.21 34.21 31.58           1.75
+    WFG1 22  2        438 146 146 146 33.33 33.33 33.33           0.00
+    WFG2 22  2        438 132 153 153 30.14 34.93 34.93           3.20
+    WFG4 22  2        438 146 146 146 33.33 33.33 33.33           0.00
+    WFG5 22  2        438 146 146 146 33.33 33.33 33.33           0.00
+    WFG9 22  2        438 144 147 147 32.88 33.56 33.56           0.46
+    ZDT1 30  2        598 181 209 208 30.27 34.95 34.78           3.07
+    ZDT3 30  2        598 163 218 217 27.26 36.45 36.29           6.08
+    ZDT4 10  2        198  27  86  85 13.64 43.43 42.93          19.70
+    ZDT6 10  2        198  57  71  70 28.79 35.86 35.35           4.55
+  GLOBAL: s1 2091 (30.03%)  s2 2442 (35.07%)  s3 2431 (34.91%)  de 6964 infills
+  celulas com desvio >5 pp do 1/3: 9 | >10 pp: 2
+  pior celula: {'problema': 'ZDT4', 'sh1': 13.636363636363637, 'sh2': 43.43434343434343, 'sh3': 42.92929292929293}
+
+####################################################################################################
+# (E) CADENCIA por INDICE DE SLOT da cabeca
+####################################################################################################
+problema         cabeca  k_declarado  n_slots  n_blocos  idx0  delta3  delta_outro  ultimo_slot_coberto            deltas
+ BBOB_F1        PNN(s1)            6       73        25     1      23            1                 True {"3": 23, "2": 1}
+ BBOB_F1 RBF-global(s2)            3       72        25     0      23            1                 True {"3": 23, "2": 1}
+ BBOB_F1  RBF-local(s3)           12       72        24     2      23            0                 True         {"3": 23}
+BBOB_F17        PNN(s1)            6       69        24     1      22            1                 True {"3": 22, "1": 1}
+BBOB_F17 RBF-global(s2)            3       69        24     0      22            1                 True {"3": 22, "2": 1}
+BBOB_F17  RBF-local(s3)           12       69        23     2      22            0                 True         {"3": 22}
+BBOB_F22        PNN(s1)            6       71        24     1      23            0                 True         {"3": 23}
+BBOB_F22 RBF-global(s2)            3       71        25     0      23            1                 True {"3": 23, "1": 1}
+BBOB_F22  RBF-local(s3)           12       70        24     2      22            1                 True {"3": 22, "1": 1}
+BBOB_F37        PNN(s1)            6       74        25     1      24            0                 True         {"3": 24}
+BBOB_F37 RBF-global(s2)            3       73        25     0      24            0                 True         {"3": 24}
+BBOB_F37  RBF-local(s3)           12       73        25     2      23            1                 True {"3": 23, "1": 1}
+BBOB_F49        PNN(s1)            6       71        24     1      23            0                 True         {"3": 23}
+BBOB_F49 RBF-global(s2)            3       71        25     0      23            1                 True {"3": 23, "1": 1}
+BBOB_F49  RBF-local(s3)           12       71        24     2      22            1                 True {"3": 22, "2": 1}
+ BBOB_F5        PNN(s1)            6       70        24     1      22            1                 True {"3": 22, "2": 1}
+ BBOB_F5 RBF-global(s2)            3       70        24     0      23            0                 True         {"3": 23}
+ BBOB_F5  RBF-local(s3)           12       69        23     2      22            0                 True         {"3": 22}
+BBOB_F55        PNN(s1)            6       72        25     1      23            1                 True {"3": 23, "1": 1}
+BBOB_F55 RBF-global(s2)            3       72        25     0      23            1                 True {"3": 23, "2": 1}
+BBOB_F55  RBF-local(s3)           12       71        24     2      22            1                 True {"3": 22, "2": 1}
+   DTLZ1        PNN(s1)            6       46        16     1      14            1                 True {"3": 14, "2": 1}
+   DTLZ1 RBF-global(s2)            3       46        16     0      15            0                 True         {"3": 15}
+   DTLZ1  RBF-local(s3)           12       45        15     2      14            0                 True         {"3": 14}
+   DTLZ2        PNN(s1)            6       79        27     1      25            1                 True {"3": 25, "2": 1}
+   DTLZ2 RBF-global(s2)            3       79        27     0      26            0                 True         {"3": 26}
+   DTLZ2  RBF-local(s3)           12       79        27     2      25            1                 True {"3": 25, "1": 1}
+   DTLZ3        PNN(s1)            6       80        27     1      26            0                 True         {"3": 26}
+   DTLZ3 RBF-global(s2)            3       80        28     0      26            1                 True {"3": 26, "1": 1}
+   DTLZ3  RBF-local(s3)           12       80        27     2      25            1                 True {"3": 25, "2": 1}
+   DTLZ4        PNN(s1)            6       79        27     1      25            1                 True {"3": 25, "2": 1}
+   DTLZ4 RBF-global(s2)            3       79        27     0      26            0                 True         {"3": 26}
+   DTLZ4  RBF-local(s3)           12       79        27     2      25            1                 True {"3": 25, "1": 1}
+   DTLZ7        PNN(s1)            6      163        55     1      53            1                 True {"3": 53, "2": 1}
+   DTLZ7 RBF-global(s2)            3      162        55     0      53            1                 True {"3": 53, "2": 1}
+   DTLZ7  RBF-local(s3)           12      162        54     2      53            0                 True         {"3": 53}
+    MMF1        PNN(s1)            6       15         6     1       4            1                 True  {"3": 4, "1": 1}
+    MMF1 RBF-global(s2)            3       15         6     0       4            1                 True  {"3": 4, "2": 1}
+    MMF1  RBF-local(s3)           12       14         5     2       3            1                 True  {"3": 3, "2": 1}
+ MMF11_L        PNN(s1)            6       16         6     1       4            1                 True  {"3": 4, "2": 1}
+ MMF11_L RBF-global(s2)            3       16         6     0       5            0                 True          {"3": 5}
+ MMF11_L  RBF-local(s3)           12       15         5     2       4            0                 True          {"3": 4}
+MMF16_20        PNN(s1)            6      133        45     1      43            1                 True {"3": 43, "2": 1}
+MMF16_20 RBF-global(s2)            3      132        45     0      43            1                 True {"3": 43, "2": 1}
+MMF16_20  RBF-local(s3)           12      132        44     2      43            0                 True         {"3": 43}
+    MMF4        PNN(s1)            6       13         5     1       3            1                 True  {"3": 3, "2": 1}
+    MMF4 RBF-global(s2)            3       13         5     0       4            0                 True          {"3": 4}
+    MMF4  RBF-local(s3)           12       12         4     2       3            0                 True          {"3": 3}
+    WFG1        PNN(s1)            6      147        50     1      48            1                 True {"3": 48, "1": 1}
+    WFG1 RBF-global(s2)            3      146        50     0      48            1                 True {"3": 48, "1": 1}
+    WFG1  RBF-local(s3)           12      146        49     2      47            1                 True {"3": 47, "2": 1}
+    WFG2        PNN(s1)            6      154        52     1      50            1                 True {"3": 50, "2": 1}
+    WFG2 RBF-global(s2)            3      153        52     0      50            1                 True {"3": 50, "2": 1}
+    WFG2  RBF-local(s3)           12      153        51     2      50            0                 True         {"3": 50}
+    WFG4        PNN(s1)            6      147        50     1      48            1                 True {"3": 48, "1": 1}
+    WFG4 RBF-global(s2)            3      146        50     0      48            1                 True {"3": 48, "1": 1}
+    WFG4  RBF-local(s3)           12      146        49     2      47            1                 True {"3": 47, "2": 1}
+    WFG5        PNN(s1)            6      146        49     1      48            0                 True         {"3": 48}
+    WFG5 RBF-global(s2)            3      146        50     0      48            1                 True {"3": 48, "1": 1}
+    WFG5  RBF-local(s3)           12      146        49     2      47            1                 True {"3": 47, "2": 1}
+    WFG9        PNN(s1)            6      147        50     1      48            1                 True {"3": 48, "1": 1}
+    WFG9 RBF-global(s2)            3      147        50     0      48            1                 True {"3": 48, "2": 1}
+    WFG9  RBF-local(s3)           12      147        49     2      48            0                 True         {"3": 48}
+    ZDT1        PNN(s1)            6      209        70     1      69            0                 True         {"3": 69}
+    ZDT1 RBF-global(s2)            3      209        71     0      69            1                 True {"3": 69, "1": 1}
+    ZDT1  RBF-local(s3)           12      208        70     2      68            1                 True {"3": 68, "1": 1}
+    ZDT3        PNN(s1)            6      218        73     1      72            0                 True         {"3": 72}
+    ZDT3 RBF-global(s2)            3      218        74     0      72            1                 True {"3": 72, "1": 1}
+    ZDT3  RBF-local(s3)           12      217        73     2      71            1                 True {"3": 71, "1": 1}
+    ZDT4        PNN(s1)            6       86        29     1      28            0                 True         {"3": 28}
+    ZDT4 RBF-global(s2)            3       86        30     0      28            1                 True {"3": 28, "1": 1}
+    ZDT4  RBF-local(s3)           12       85        29     2      27            1                 True {"3": 27, "1": 1}
+    ZDT6        PNN(s1)            6       71        24     1      23            0                 True         {"3": 23}
+    ZDT6 RBF-global(s2)            3       71        25     0      23            1                 True {"3": 23, "1": 1}
+    ZDT6  RBF-local(s3)           12       70        24     2      22            1                 True {"3": 22, "1": 1}
+  delta==3 (1 sonda a cada 3 ciclos) em 2366 de 2415 transicoes = 97.97%
+  fase inicial (idx0) por cabeca: {'PNN(s1)': [1], 'RBF-global(s2)': [0], 'RBF-local(s3)': [2]}
+  ultimo slot da cabeca coberto: 75 / 75
+
+####################################################################################################
+# (F) BLOCOS range0 (front degenerado — hazard CalHV do bundle)
+####################################################################################################
+problema  geracao  n_front  n_front1                       Ymin                                          Ymax hv_base hv_gain  aceito  sig_todos_nan  mu_ok
+   DTLZ7       19      100         2 [0, 0, 12.806032357461444]   [0.2107082912777809, 0, 13.094150843684167]    None    None       1           True    100
+   DTLZ7       23      100         3 [0, 0, 12.806032357461444]   [0.2107082912777809, 0, 13.094150843684167]    None    None       1           True    100
+   DTLZ7       39      100         2 [0, 0, 10.569801582045825]  [0, 0.23379703009677025, 11.117178161846013]    None    None       1           True    100
+   DTLZ7       43      100         2 [0, 0, 10.569801582045825]  [0, 0.23379703009677025, 11.117178161846013]    None    None       1           True    100
+   DTLZ7       47      100         2 [0, 0, 10.569801582045825]  [0, 0.23379703009677025, 11.117178161846013]    None    None       1           True    100
+   DTLZ7       51      100         2 [0, 0, 10.569801582045825]  [0, 0.23379703009677025, 11.117178161846013]    None    None       1           True    100
+   DTLZ7       55      100         2 [0, 0, 10.569801582045825]  [0, 0.23379703009677025, 11.117178161846013]    None    None       1           True    100
+   DTLZ7       71      100         2  [0, 0, 9.344873739675748]   [0.10881439851632058, 0, 9.503896385769913]    None    None       1           True    100
+   DTLZ7       75      100         2  [0, 0, 9.344873739675748]   [0.10881439851632058, 0, 9.503896385769913]    None    None       1           True    100
+   DTLZ7      107      100         3  [0, 0, 8.345501508364203] [8.622636669337713e-06, 0, 8.914439002277884]    None    None       1           True    100

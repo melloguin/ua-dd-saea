@@ -1997,9 +1997,7 @@ falhas determinísticas. Detalhe/opções na resposta da torre ao autor (2026-07
 
 ## PARTE A31 — DI-42.2-.7 DECIDIDAS pelo autor (2026-07-28) + execução parcial
 
-**Ratificações:** .2=(a) re-rodar as células comprometidas (⚠ pendência operacional: confirmar
-ONDE vive a cópia OFICIAL de cada uma — Mac tem smokes T8/T6 das mesmas células; se a cópia da
-rodada veio das VMs e está limpa, o item vira só higiene local) · .3=(c) blindar código E
+**Ratificações (REVISADA 2026-07-28-b):** .2=**(c) NOVA DECISÃO DO AUTOR — NÃO re-rodar nada**: a consolidação já aconteceu e a VERSÃO OFICIAL é a do BUCKET; as 4 células comprometidas ficam em QUARENTENA documentada (sem mutação de dado agora) e serão reavaliadas após a 2ª RODADA DE FIDELIDADE que o autor vai disparar · .3=(c) blindar código E
 instalar a lib (blindagem APLICADA no commit; lib = ação do autor/D80 no env_c311 de Mac+VM-2)
 · .4=(a) fix c122 g=1 no T11 + caveat s42 · .5=EM DISCUSSÃO (autor pediu aprofundamento; a
 evidência empírica MUDOU o quadro: o evento sonda do ⑥ JÁ carrega fe_treino_max — c217/s42

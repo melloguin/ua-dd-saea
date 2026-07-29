@@ -5,15 +5,18 @@
 > Fonte da verdade do escopo: `SPEC_T11_REFINAMENTO_FINAL.md`.
 
 ## FASE G — globais habilitadoras
-- [x] G1 · audit_log: anti-append (B-01) + escrita atômica (B-11) + testes — `519b3e4` (2026-07-29)
-      · suíte 405 (394+11), mesmo conjunto de falhas do baseline (0 regressão)
-      · ⚠ 2 falhas PRÉ-EXISTENTES (não são regressão): `test_batch_q10.TestTetoFiadoPeloDespachante`
-        escreve em `data/` de produção (**B-13**, item do G6) e o ⑥ de `batch/e81/q10_ZDT4` está
-        congelado 444 — era `PermissionError`, agora é `RunJaFechado` (o B-01 pegando em flagrante)
-      · ⚠ RESÍDUO do B-11 fora do escopo declarado do G1 (`src/audit_log.py`): o writer MATLAB
-        (`src/experiment.m:3199 jsonl_open` = `fopen(path,'w')`) segue com deslocamento próprio;
-        e a claim "2 handles no mesmo arquivo" em `src/b1_instrument.m` NÃO se verifica no código
-        (só `experiment.m` tem `fopen`; 1 fid por run) — decisão do autor pendente
+- [x] G1 · audit_log: anti-append (B-01) + escrita atômica (B-11) + testes — `519b3e4` + `945b6be` (2026-07-29)
+      · **suíte 407, 1 falha** — só a ambiental D-03 (some no G6.7)
+      · `519b3e4`: B-01 (`RunJaFechado` + `footer_fechado()`) e B-11 no lado Python (1 linha =
+        1 `os.write` sob O_APPEND; > `select.PIPE_BUF` sob `flock`) + 11 testes
+      · `945b6be` (autorizado pelo autor): B-11 no writer MATLAB (`experiment.m:jsonl_open` trunca
+        1× e reabre em `'a'` — vale p/ os 13 configs MATLAB) + **B-13(a)** teste→tempdir
+        (a guarda `tearDownModule` = B-13(b) segue no G6) + 2 testes de paridade do `.m`
+      · ⚠ ERRATA ao PLANO F5/B-11 (2 claims não confirmadas pelo dado, anotadas no código):
+        o splice do `main/b1/WFG1` NÃO está nas linhas de header/sigma_dict (header = 512 B; as 49
+        malformadas são `b1_gen`/`sonda`, mediana 1.647 B) · não existe "2º handle" em
+        `src/b1_instrument.m` (só `experiment.m` tem `fopen`, 1 fid por run)
+      · ⚠ PENDENTE PARA O AUTOR: smoke MATLAB de 1 célula (o engine não importa no venv da suíte)
 - [ ] G2 · despachante: no-op sem ⑥ (B-02) · NO_RETRY (B-16) · q real no ⑤ de aborto (I-10) · revogação DI-40 no dispatch
 - [ ] G3 · manifest: campanha_id + is_run_done v2 (B-03) · higiene do --force (OP-6) · fallback-footer (O-21)
 - [ ] G4 · gcs/harnesses: mirror no aborto (B-09) · identidade do blob + poda segura (B-10)

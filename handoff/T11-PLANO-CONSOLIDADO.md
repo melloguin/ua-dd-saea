@@ -1,0 +1,141 @@
+# T11 — O REFINAMENTO FINAL CONSOLIDADO (torre, 2026-07-29)
+
+> **O que é.** A unificação das DUAS grandes análises — (1) a validação exaustiva de código
+> (143 agentes, 64 achados confirmados; REGISTRO A29-A31) e (2) a análise de fidelidade F5
+> (666 células, 24 configs, 38 agentes + 14 adversariais; `f5/`) — numa ÚNICA lista-mestra com
+> o veredito da torre por item, sob a **doutrina do autor (2026-07-29): "corrigir só o
+> essencial; mudar o código o mínimo possível; mas deixá-lo sem nenhum erro."**
+> Fonte primária de cada item: `f5/PLANO_RODADA_PERFEITA.md` (B/I/G/E) e REGISTRO A29-A31.
+
+## 0. O CRUZAMENTO DAS DUAS ANÁLISES — o veredito da torre
+
+**As duas análises convergem, se explicam e se corrigiram mutuamente. Nenhuma contradição
+material sobreviveu.**
+
+1. **Meus 3 fixes de gate (DI-41/42.1) são os B-05/B-06/B-07 do plano da F5** — reconhecidos
+   como "🟡 corrigido no HEAD". O do falso-VERDE **salvou a própria F5** ("foi assim que a
+   F5.1 quase começou errada"). A célula que meu B1 desmascarou (`c311/big-mvns`) é
+   exatamente a célula que a F5.1 REPROVOU no gate.
+2. **Meus achados eram os SINTOMAS; a F5 achou o MECANISMO.** Eu vi: jsonl com 2 escritores
+   (moead), teste escrevendo em produção (e81), ⑥ truncado (treed), header duplicado. A F5
+   provou a causa única por trás de todos: `is_run_done` sem campanha + `AuditLogger` em
+   append cego + escrita não-atômica (o trio B-01/B-02/B-03/B-11) — e mediu: 34/666 células
+   com assinatura anômala (5,1%), dano científico real = 1 quimera.
+3. **Impacto dos meus achados nos resultados da F5: PEQUENO E JÁ CONTIDO.** Dos meus 64:
+   nenhum invalidou config algum; o que tocava dado real (⑦ do e103 dobrada, célula
+   mascarada) foi corrigido/excluído ANTES ou PELO gate da F5. A F5 validou a ciência JÁ COM
+   os meus fixes aplicados.
+4. **O contraditório funcionou nas duas direções:** a F5 REFUTOU 2 afirmações minhas —
+   (i) o c122 GRAVA o `fe` no evento sonda (minha DI-42 dizia que não; ERRATA na A30);
+   (ii) o número da DI-40 ("~6,3 h/célula queimada") está 4× superestimado (medido:
+   0,87–2,99 h, média 1,47 h) — D7 corrige o REGISTRO.
+5. **Zero bug de algoritmo nas duas análises, por caminhos independentes** — 143 agentes
+   lendo código + 38 agentes lendo dados chegaram à mesma conclusão. A ciência está boa;
+   o reparo é todo de plumbing/registro.
+
+## 1. VOLUMES CONSOLIDADOS
+
+| fonte | brutos | sobreviventes ao contraditório |
+|---|---:|---|
+| Validação de código (143 agentes) | 310 | 64 confirmados (13 ALTA + 51 MÉDIA) |
+| Fidelidade F5 (38+14 agentes) | 533 itens estruturados | 16 bloqueadores + 13 instrumentação + 9 gates + 26 decisões (E+D) + 11 vereditos de célula |
+| **Deduplicado (esta lista-mestra)** | — | **16 🔧 código-bloqueador · 9 🔩 código-menor · 9 🚦 gates · 12 📄 doc/registro · 10 🗳 decisões · 8 ✅ já-feitos · 14 ❌ não-corrigir** |
+
+## 2. ✅ JÁ FEITO (ação zero)
+
+B-05 status do runner (8e8e966) · B-06 token cache (eb977f2) · B-07 falso-VERDE (eb977f2) ·
+⑦-e103 multi-surrogate + 5 regeneradas no Mac (eb977f2) · blindagem dual_write (10d4cf5) ·
+eixo da sonda = fe_treino_max no CONTRATO/SPEC (3fbb841) · RUNBOOK --problems/parallel,false/
+roster DI-40 (8e8e966) · lote3s.sh --teto-s (operação, 28/07).
+
+## 3. 🔧 T11-CÓDIGO: os bloqueadores (TODOS valem — ~19 h, zero re-execução)
+
+Veredito da torre: **os 13 abertos passam TODOS no critério "só o essencial"** — cada um tem
+dano quantificado em 30 sementes e correção pequena (10-60 linhas). Detalhe completo com
+evidência/teste em `f5/PLANO_RODADA_PERFEITA.md §1`.
+
+| # | item | dano se não fizer (30 sementes) | custo |
+|---|---|---|---|
+| B-01 | guarda anti-append no AuditLogger (`audit_log.py:55`) | ~1.020 células c/ ⑥ anômalo | 1h |
+| B-02 | no-op não abre o ⑥ (`experiments.py:98`) | ~660 células poluídas + ~270 falsos alarmes | 30min |
+| B-03 | `campanha_id` no `is_run_done` (+migração schema ⑤) | smokes/stale-s0 viram resultado oficial | 3h |
+| B-04 | gates de proveniência (G-1..G-3) | ~30 quimeras invisíveis | 2h |
+| B-05/06/07 | blindar os 3 fixes (testes de regressão + artefato `motivos_parada.json` + exit-2 duro no portão) | regressão silenciosa | 2h |
+| B-08 | ⑦ no rito de fechamento + `final_eval` regenera incond. + gabarito NORMATIVO no censo | 1.350 células sem endpoint, invisíveis | 3h |
+| B-09/10 | `mirror_run` também no aborto + identidade de execução no blob + não podar ③ antes de confirmar | evidência de ~870 falhas morre com a VM; quimera irrecuperável | 2,5h |
+| B-11 | escrita atômica de linha no ⑥ (O_APPEND ≤ PIPE_BUF) | ~180 células ⑥ ilegível | 2h |
+| B-12 | commitar os 8 drivers untracked + preflight anti-`data/` forasteiro | disparo fora do controle de versão | 45min |
+| B-13 | teste→tempdir + guarda de suíte anti-escrita em `data/` | recontaminação | 40min |
+| B-14 | tolerância da ⑦: `rtol=1e-4` (versão simples; NÃO a condition-aware) | ~120 falsos-vermelhos | 30min |
+| B-15 | discriminador O-22 (footer ausente ≠ morte se ⑤ ok) | ~270 falsos alarmes | 30min |
+| B-16 | lista `NO_RETRY` de falhas determinísticas | ~285 h-core queimados | 40min |
+
+## 4. 🔩 T11-CÓDIGO-MENOR: instrumentação (seletiva — só o que muda leitura de RESULTADO)
+
+| item | veredito | por quê |
+|---|---|---|
+| I-01 c122 `n_ref` do bloco g=1 | 🔩 SIM (só o metadado) | comparabilidade da sonda g=1; NÃO mudar quando a sonda dispara (mudaria o que ela mede) |
+| I-02 `tempo_aval_real_s` cronometrado | 🔩 SIM | análise de custo §17.6 lê 0,0 como "instantâneo" |
+| I-05 b5: DI-10 específicos (p_wrong_stats, n_substituicoes, flag vetores_degenerados, amplitude float64) | 🔩 SIM | é o que torna o RESULTADO b5m (D9) auditável nas 30 sementes sem re-run |
+| I-07 `params` no ⑤ (7 configs) | 🔩 SIM (já ratificado DI-42.6a) | 197→~6.450 células violando CONTRATO §5 |
+| I-08 `mapa_termino.json` | 🔩 SIM | pré-requisito do gate G-2 |
+| I-09 `repo_hash` no ⑤ | 🔩 SIM | elo D80 run↔código vazio em 666/666 |
+| I-10 ⑤ de batch abortado com q real | 🔩 SIM (família fio-do-q) | metadado errado em toda célula batch abortada |
+| I-03 `n_front1` do sobol_batch via mínimo-comum | 🔩 SIM (pequeno) | log do piso do batch 2/10 campos |
+| I-13 string `geracoes_derivadas` nsga3 | 🔩 SIM (trivial) | metadado errado em 750 células |
+| I-04 ③ ger-1 DESDEO · I-06 p0/p1 · I-11 σ do c311 · I-12 ordem ③ BoTorch | 📄 DOC (regra de leitura/glossário) | mecanismo certo; corrigir o código mudaria dado ou não acrescenta |
+| +c262: 8 hiperparâmetros da acqf no header | 🔩 SIM (linhas) | auditabilidade direta |
+| +pinar scipy/numpy em envs.json/locks | 🗳 autor (D80) | reprodutibilidade M8 |
+
+## 5. 🚦 GATES G-1..G-9 — TODOS valem (~6 h; 20,5 s de CPU nas 666)
+
+G-1 3×1 inter-camadas (código PRONTO) · G-2 unicidade/integridade do ⑥ · G-3 proveniência ·
+G-4 gabarito normativo de camadas · G-5 tolerância-⑦ · G-6 não-perturbação por par de runs ·
+G-7 contrato §6.1 por teste · G-8 guarda de suíte · G-9 content-hash na propagação.
+É a máquina que transforma "a F5 validou uma vez" em "toda rodada se auto-valida".
+
+## 6. 📄 T11-DOC/REGISTRO (barato, zero risco)
+
+ERRATA A30 (c122 grava `fe`) · correção do número DI-40 (D7: 1,47 h médio) · E-09/D16: os 6
+números publicados (χ² pseudorreplicado do moead_media; endpoint e103 200→100/10→5; NÃO
+aplicar a "correção" 0,05→0,10) · glossário p0/p1 (NUNCA inverter valores) · regra R4#10
+(dominância sobre ① float32 é lossy) · regra de leitura da ③ BoTorch no CONTRATO · lnum do
+c217 · assimetria de logging do sobol_batch · O-21 formalizado (falha MATLAB certificada no
+footer) · caveats 1-24 da F5 §2.3 → dossiê/dissertação · suíte hermética (teste D-03 não
+consulta bucket real) · itens cosméticos herdados (env_c149_fallback lock; data/images;
+rótulos ORQUESTRACAO).
+
+## 7. ❌ NÃO-CORRIGIR (consolidado das duas análises — a doutrina aplicada)
+
+Trocar valores p0/p1 (destrutivo) · sonda do c122 pós-truncagem (mudaria a medida) · α por
+linha na ③ (re-run por zero info) · re-rodar b5m pela instrumentação (1.123 h-core por nada)
+· duplo carimbo b5r isolado · re-disparar sobol_batch pelo n_front1 (recuperável em 5s) ·
+mexer no D53/float32 · guard no vendorizado b5 (mudaria o mecanismo = o RESULTADO D9) ·
+limpar o ⑥ do e81 (vetado DI-42.2; congelado 444) · "corrigir" fantasia e103 0,05→0,10 (erro
+de 2×) · descartar transição ger1→ger2 b5r · campo `fe` em runners MATLAB (DI-42.5b resolveu
+por contrato) · condition-aware da B-14 (a simples basta) · células "pulou"/tolerância-⑦/sem-
+footer-env_c311 (aprovadas; resolvem-se por B-15/B-14/DI-42.3).
+
+## 8. 🗳 AS 10 DECISÕES DO AUTOR (o que resta da mesa D1-D16 + E-01..E-10)
+
+| # | decisão | recomendação consolidada (F5 + torre) |
+|---|---|---|
+| T11-D1 | Re-rodar as 2 células reprovadas (c311/big-mvns 0,075h; b1/WFG1 1,09h)? — supersede a quarentena DI-42.2 | SIM, com os fixes B-05/B-11 aplicados (1,17 h-core) |
+| T11-D2 | Quimera c149: substituir pela cópia ÍNTEGRA do Mac + re-gate | SIM (0 h; a cópia é provada 2.000/2.000) |
+| T11-D3 | e103/medium-lhs/ZDT4: copiar a ⑦ correta (100 linhas) p/ espelho+bucket | SIM (2 arquivos, content-hash) |
+| T11-D4 | E-01/D7: batch/c262 SAI do roster M8 (abortou 5/5); main/c154 FICA completo; corrigir o número da DI-40 | SIM às três |
+| T11-D5 | E-05: reabrir T10 (rito truncamento BoTorch) p/ o main/c154 D≥12? Math corrigida: (a) queima ~485 h-core p/ zero dado; (b) T10 = ~3.960 h-core COM curva parcial, preenchendo o furo D=12/M=3 onde a tese de escalabilidade se decide | Torre: **(b)**, dentro do T11 (nunca patch avulso). Decisão de custo é sua |
+| T11-D6 | E-03/E-04/D6: as 3 falhas reais (c154×2, c262/WFG1) + b1/DTLZ4 — defeito ou limitação? | Decidir PELA REFERÊNCIA config a config; default = (a) resultado/limitação (zero código, zero quebra de comparabilidade) |
+| T11-D7 | D15: `iteration_seed` ganha a CÉLULA no M8 (n efetivo 1→45 por config no offline)? | Ciência pura, SUA — a torre nota: muda streams ⇒ s42 offline não é réplica exata do M8; se sim, declarar no protocolo |
+| T11-D8 | D5: publicar as 29 não-go como taxonomia/resultado (95,8% com honestidade) | SIM (rec. F5) |
+| T11-D9 | D10/D11/D12: régua por FAMÍLIA (com o freio dos 17,7%) · endpoint offline = ⑦ · caveat tier-small do c311 | SIM às três (dissertação) |
+| T11-D10 | E-02: SUB-varN antes do disparo (DI-39) · E-07 datasets 29 sementes · E-10 provisionar env_b5/c311/e81 em Linux · F0: commitar 8 drivers + CRIAR A TAG (nunca existiu) + backup imutável | Pré-requisitos: executar todos |
+
+## 9. SEQUÊNCIA (a do plano F5, adotada)
+
+F0 higiene → F1 bloqueadores (~19h) → F2 instrumentação seletiva (~5h) → F3 gates (~6h) →
+F4 validação do reparo (suíte ~410 + smoke 21 configs + **re-gate das 666: deve devolver
+EXATAMENTE 1 quimera e 34 anômalas** — se devolver outra coisa, o gate está errado) →
+F5-mesa (as 10 decisões acima) → F6 re-runs (1,17 h-core + I/O) → F7 provisionamento (CAMINHO
+CRÍTICO — dias) → F8 SUB-varN → F9 DISPARO das 30 sementes.
+**Total de engenharia: ~30-37 h em 1-3 cartões de implementação + validação da torre.**

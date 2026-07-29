@@ -2009,6 +2009,32 @@ sem-escolha da A30 + o que a análise de fidelidade colher.
 
 ---
 
+## PARTE A32 — F5 ABSORVIDA · CRUZAMENTO DAS 2 ANÁLISES · T11 CONSOLIDADO (2026-07-29)
+
+**A análise de fidelidade F5 fechou e o autor APROVOU os 24 configs** (média 9,33; 11 aceitar +
+13 aceitar+caveat; ZERO bug de algoritmo; 3 células excluídas com prova). A torre absorveu 100%
+dos ~1.700 artefatos (leitura direta do PLANO_RODADA_PERFEITA + RELATORIO_FINAL + 11 leitores
+estruturados = 533 itens) e cruzou com a validação de código (143 agentes, A29-A31).
+
+**Cruzamento:** convergência total — meus fixes DI-41/42 = B-05/06/07 do plano F5 (o falso-VERDE
+"quase fez a F5.1 começar errada"); meus achados eram os SINTOMAS e a F5 provou o MECANISMO
+(trio is_run_done-sem-campanha + append-cego + escrita-não-atômica; 34/666 anômalas, dano real =
+1 quimera). O contraditório corrigiu a torre 2×:
+**ERRATA à PARTE A30/DI-42:** (1) o c122 GRAVA o campo `fe` no evento sonda (runner :752
+passa fe=bud.fe) — a claim "c122 sem fe" está ERRADA; (2) o número da DI-40 ("~6,3 h/célula
+queimada") é ~4× superestimado — medido na s42: 0,87–2,99 h, média 1,47 h (D7 da F5).
+
+**T11 CONSOLIDADO** (`handoff/T11-PLANO-CONSOLIDADO.md`): 8 ✅ já-feitos · 13 🔧 bloqueadores
+(~19h, TODOS valem) · ~10 🔩 instrumentação seletiva · 9 🚦 gates (3×1 pronto) · 12 📄 doc ·
+14 ❌ não-corrigir (doutrina "mínimo de mudança, zero erro" aplicada) · **10 decisões T11-D1..D10
+na mesa do autor** (destaques: re-run das 2 reprovadas supersedendo a quarentena; substituição
+da quimera c149 pela cópia provada do Mac; batch/c262 fora do M8; REABERTURA do T10 com a math
+corrigida; iteration_seed por célula [D15 — ciência]; SUB-varN/datasets/envs-Linux/tag como
+pré-requisitos). Sequência F0→F9 do plano F5 adotada; re-execução obrigatória TOTAL = 1,17
+h-core. Meta: re-gate das 666 devolve exatamente 1 quimera + 34 anômalas.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

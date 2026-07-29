@@ -733,18 +733,34 @@ def dual_write_run(exp: str, alg: str, problema: str, semente, *,
     """Dual-write §17.7 (local-primeiro já feito): `gcs.mirror_run` sobe as
     camadas + jsonl + manifesto (e poda a ③ local dos bucket-only — D58), o
     `upload_status` entra no manifesto, que é regravado e re-subido. Reusado
-    pela R3. NÃO chame no Mac/pilotos sem a lib gcs (o import é lazy e falha
-    claro)."""
-    status = _gcs.mirror_run(exp, alg, problema, semente,
-                             data_root=data_root, client=client)
-    manifest_dict["upload_status"] = status
-    mpath = _manifest.write_manifest(manifest_dict, data_root)
-    _gcs.upload(mpath,
-                naming.blob_path(exp, alg,
-                                 naming.manifest_filename(exp, alg, problema,
-                                                          semente)),
-                client=client)
-    return status
+    pela R3.
+
+    [DI-42.3] BLINDADO: falha de upload (lib gcs ausente no env, rede, auth)
+    NUNCA mata o run — o dado JÁ está salvo local (local-primeiro §17.7) e o
+    upload é re-executável a posteriori (gcs.sync). Sem esta blindagem, 7/58
+    runs do c311 na rodada-42 morreram AQUI (env_c311 sem google-cloud-storage)
+    DEPOIS do manifesto 'ok' e ANTES do footer do ⑥ — diário truncado sem
+    sintoma. A falha fica REGISTRADA no manifesto (`upload_status.erro`)."""
+    try:
+        status = _gcs.mirror_run(exp, alg, problema, semente,
+                                 data_root=data_root, client=client)
+        manifest_dict["upload_status"] = status
+        mpath = _manifest.write_manifest(manifest_dict, data_root)
+        _gcs.upload(mpath,
+                    naming.blob_path(exp, alg,
+                                     naming.manifest_filename(exp, alg,
+                                                              problema,
+                                                              semente)),
+                    client=client)
+        return status
+    except Exception as e:  # noqa: BLE001 — upload é acessório; dado é local
+        status = {"erro": f"upload_failed: {e!r}"}
+        manifest_dict["upload_status"] = status
+        try:
+            _manifest.write_manifest(manifest_dict, data_root)
+        except Exception:  # noqa: BLE001 — manifesto local anterior permanece
+            pass
+        return status
 
 
 # ═══════════════════════════════════════════════════════════════════════════

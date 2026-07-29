@@ -1175,27 +1175,42 @@ def dual_write_run(exp: str, alg: str, problema: str, semente, *,
     `gcs.py` (fora da faixa deste cartão) — o que também mantém os 16 online
     exatamente como estavam. No Mac/pilotos nada disto roda
     (`enable_bucket=False`).
+
+    [DI-42.3] BLINDADO: falha de upload NUNCA mata o run (o dado já é local;
+    upload re-executável via gcs.sync). Foi exatamente aqui que 7/58 runs do
+    c311 morreram na rodada-42 (env_c311 sem google-cloud-storage), truncando
+    o ⑥ sem footer DEPOIS do manifesto 'ok'. Falha vira `upload_status.erro`.
     """
-    status = _gcs.mirror_run(exp, alg, problema, semente,
-                             data_root=data_root, client=client)
-    for p in (naming.final_path(exp, alg, problema, semente, data_root),
-              naming.final_path(exp, alg, problema, semente,
-                                data_root)[:-len(".parquet")]
-              + ".manifest.json"):
-        nome = os.path.basename(p)
-        if not os.path.exists(p):
-            status[nome] = "absent"
-            continue
-        _gcs.upload(p, naming.blob_path(exp, alg, nome), client=client)
-        status[nome] = "uploaded"
-    manifest_dict["upload_status"] = status
-    mpath = _manifest.write_manifest(manifest_dict, data_root)
-    _gcs.upload(mpath,
-                naming.blob_path(exp, alg,
-                                 naming.manifest_filename(exp, alg, problema,
-                                                          semente)),
-                client=client)
-    return status
+    try:
+        status = _gcs.mirror_run(exp, alg, problema, semente,
+                                 data_root=data_root, client=client)
+        for p in (naming.final_path(exp, alg, problema, semente, data_root),
+                  naming.final_path(exp, alg, problema, semente,
+                                    data_root)[:-len(".parquet")]
+                  + ".manifest.json"):
+            nome = os.path.basename(p)
+            if not os.path.exists(p):
+                status[nome] = "absent"
+                continue
+            _gcs.upload(p, naming.blob_path(exp, alg, nome), client=client)
+            status[nome] = "uploaded"
+        manifest_dict["upload_status"] = status
+        mpath = _manifest.write_manifest(manifest_dict, data_root)
+        _gcs.upload(mpath,
+                    naming.blob_path(exp, alg,
+                                     naming.manifest_filename(exp, alg,
+                                                              problema,
+                                                              semente)),
+                    client=client)
+        return status
+    except Exception as e:  # noqa: BLE001 — upload é acessório; dado é local
+        status = {"erro": f"upload_failed: {e!r}"}
+        manifest_dict["upload_status"] = status
+        try:
+            _manifest.write_manifest(manifest_dict, data_root)
+        except Exception:  # noqa: BLE001 — manifesto local anterior permanece
+            pass
+        return status
 
 
 # ═══════════════════════════════════════════════════════════════════════════

@@ -1,5 +1,10 @@
 # CLAUDE.md — porta de entrada do repositório `ua-dd-saea`
 
+> **🚨 CAMPANHA ATUAL (2026-07-29): T11 — o refinamento final do código.** Se você é uma
+> sessão de implementação: leia **`SPEC_T11_REFINAMENTO_FINAL.md`** (a missão, com ordem
+> normativa), **`T11_STATUS.md`** (retome do primeiro ☐) e **`MAPA_ARTEFATOS.md`** (o mapa do
+> repo). As regras deste arquivo e do `claude_code_context/CLAUDE.md` seguem valendo.
+
 > Este repositório executa o **pipeline experimental do mestrado** (survey + análise experimental
 > de 16 algoritmos SA-MOEA). Toda a especificação, contexto e protocolo de implementação vivem
 > na pasta **`claude_code_context/`**.

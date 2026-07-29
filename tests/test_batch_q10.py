@@ -11,6 +11,7 @@ A regra de ouro destes testes: **nada muda fora de `exp=batch`**. O caminho q=1
 do experimento principal tem de sair bit-intocado (a prova bit-a-bit contra os
 runs já validados está no handoff T6-batch).
 """
+import tempfile
 import unittest
 
 from src import budget, naming
@@ -160,12 +161,18 @@ class TestTetoFiadoPeloDespachante(unittest.TestCase):
     """
 
     def _adapter_kwargs(self, **kw):
+        # [B-13] `data_root` em TEMPDIR. Com a raiz literal "data" este teste
+        # escrevia na PRODUÇÃO: 47 execuções da suíte × 2 pares header/footer =
+        # os 94 pares espúrios do ⑥ de `batch/e81/q10_ZDT4`, mais
+        # `timing.tempo_total_despachante_s` fabricado (0,0002 s contra
+        # tempo_total_s + 3..8 s nas outras 29 células do e81).
         from unittest import mock
         import experiments
         falso = mock.Mock()
-        with mock.patch.object(experiments, "_adapter") as ad:
-            ad.run = falso
-            experiments._run_one("batch", "e81", "ZDT4", 42, "data", **kw)
+        with tempfile.TemporaryDirectory() as dr:
+            with mock.patch.object(experiments, "_adapter") as ad:
+                ad.run = falso
+                experiments._run_one("batch", "e81", "ZDT4", 42, dr, **kw)
         return falso.call_args[1]
 
     def test_teto_s_chega_ao_runner(self):

@@ -3197,9 +3197,24 @@ end
 % ════════════════════════════════════════════════════════════════════════════
 
 function fid = jsonl_open(path)
+% [B-11] O dono da celula TRUNCA 1x e passa a escrever em APPEND.
+% O handle 'w' escreve no deslocamento PROPRIO: a descarga do buffer dele passa
+% por cima do que outro escritor ja pos no fim do arquivo (o footer do
+% despachante Python, que mantem o ⑥ aberto em 'a' durante a chamada MATLAB, ou
+% um 2o processo da mesma celula). Medido no gemeo Python deste writer: com dois
+% escritores 'w' na mesma celula sobram 5.000 de 10.000 linhas; com 'w' + 'a',
+% os outros escritores perdem 2.903 de 10.000 e sai 1 linha malformada — a
+% familia do main/b1/WFG1 (49 de 931 spliced, 0 footer) e do
+% moead_media/swap_small-lhs_ZDT1 (2 escritores, retrocesso de 134,3 s). Em 'a'
+% cada fprintf vai para o FIM do arquivo e o pior caso deixa de ser PERDA.
+% O anti-append do B-01 nao se aplica aqui: quem abre este handle E o dono do
+% run (equivale ao append=false do lado Python — audit_log.py:105).
     ensure_dir(path);
     fid = fopen(path, 'w');
     assert(fid > 0, 'nao abriu jsonl %s', path);
+    fclose(fid);
+    fid = fopen(path, 'a');
+    assert(fid > 0, 'nao reabriu em append o jsonl %s', path);
 end
 
 function jsonl_line(fid, rec, kv)

@@ -230,6 +230,49 @@ class TestEscritaAtomicaB11(unittest.TestCase):
                                  f"escritor {tag}: {len(vistos)} de {n_linhas}")
 
 
+class TestWriterMATLABDoSexto(unittest.TestCase):
+    """[B-11] O ⑥ tem DOIS writers e o outro é o MATLAB.
+
+    `src/experiment.m:jsonl_open` abria em `'w'` — deslocamento próprio, a
+    semântica que perde linha (§ do teste acima). Não há como exercitá-lo aqui
+    (o engine MATLAB não importa no venv da suíte), então o que se cobra é a
+    PARIDADE do fonte, no molde de `tests/test_fio_sweep.py`.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        with open(os.path.join(_RAIZ, "src", "experiment.m"),
+                  encoding="utf-8", errors="replace") as fh:
+            fonte = fh.read()
+        i = fonte.index("function fid = jsonl_open(path)")
+        cls.corpo = fonte[i:fonte.index("\nfunction ", i + 1)]
+
+    def test_jsonl_open_trunca_uma_vez_e_devolve_handle_em_append(self):
+        c = self.corpo
+        for lit in ("fopen(path, 'w')", "fclose(fid)", "fopen(path, 'a')"):
+            self.assertIn(lit, c, f"{lit} ausente de jsonl_open")
+        # a ordem é o contrato: trunca (o dono assume o ⑥) → fecha → append
+        self.assertLess(c.index("fopen(path, 'w')"), c.index("fclose(fid)"))
+        self.assertLess(c.index("fclose(fid)"), c.index("fopen(path, 'a')"))
+        # e o handle DEVOLVIDO é o de append, não o de truncamento
+        self.assertGreater(c.rindex("fopen(path, 'a')"),
+                           c.rindex("fopen(path, 'w')"))
+
+    def test_o_sexto_nao_tem_outro_fopen_no_stack_matlab(self):
+        # ERRATA ao PLANO F5/B-11 ("src/b1_instrument.m: 2 handles no mesmo
+        # arquivo"): não há 2º handle — só `experiment.m` abre arquivo no stack
+        # MATLAB, 1 fid por run. Se um 2º aparecer, o B-11 volta pela outra porta.
+        alheios = []
+        for nome in sorted(os.listdir(os.path.join(_RAIZ, "src"))):
+            if not nome.endswith(".m") or nome == "experiment.m":
+                continue
+            with open(os.path.join(_RAIZ, "src", nome),
+                      encoding="utf-8", errors="replace") as fh:
+                if "fopen(" in fh.read():
+                    alheios.append(nome)
+        self.assertEqual(alheios, [])
+
+
 #: Escritor do teste de concorrência: 1 em cada 10 linhas passa de
 #: `LIMITE_ATOMICO_B` (é a faixa do header/sigma_dict, onde o splice de
 #: `main/b1/WFG1` aconteceu) — o resto fica na faixa atômica por O_APPEND.

@@ -506,6 +506,16 @@ def _ez_rows(tel: dict, geracao: int, escolhido, sid, modelo_flag: str) -> list:
 #  Sonda [P2/DI-16.2] — e(z) contra a POPULAÇÃO SELECIONADA
 # ═══════════════════════════════════════════════════════════════════════════
 
+def _problems_eval(problema: str, X):
+    """[A11] `f` VERDADEIRO dos pontos do bloco estratificado — FORA do
+    orçamento (funções analíticas; mesma exceção contábil da sonda §17.2.2/DI-08,
+    custo de FE ZERO). Só alimenta o AGREGADO do ⑥ (a prevalência); o `f` não vai
+    à ③ porque o schema dela é contrato e o valor é recomputável do X gravado."""
+    from src import problems as _p
+    return _p.evaluate_problem(H._instantiate(problema),
+                               np.asarray(X, dtype=np.float64))
+
+
 def _sonda_predict(estado: dict, xl: np.ndarray, xu: np.ndarray):
     """Gancho `predict(X)->(score, confianca)` do `emit_sonda_block`.
 
@@ -850,6 +860,32 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                             f"n_ref REAL={len(pop)} (nominal MU={MU})"))
                 t_sonda_total += t_snd
                 ultima_sonda_g = g
+                # ── [A11/I-6/D11] BLOCO ESTRATIFICADO ────────────────────────
+                # A régua Sobol responde "o modelo é bom GLOBALMENTE?"; ela NÃO
+                # responde "ele acerta ONDE a decisão acontece?", porque pontos
+                # Sobol quase nunca são bons: prevalência medida **0,4%** ⇒ ~8
+                # positivos por bloco de 2.000, e com 8 positivos
+                # precision/recall/F1 têm variância enorme (só o AUC é estável).
+                # Subir para 3.000 Sobol NÃO resolve — a prevalência não muda.
+                # Este bloco amostra ~500 pontos PERTO do arquivo corrente, sai
+                # com `regime='sonda_estratificada'` e NUNCA se mistura à régua:
+                # cada algoritmo tem um arquivo diferente, então ele não é
+                # comparável ENTRE configs (a ressalva que o autor aceitou ao
+                # escolher a opção (b) do laudo §6).
+                t_estrat = H.emit_sonda_estratificada(
+                    buf, log, geracao=g, fe=bud.fe,
+                    arquivo_X=np.asarray([list(i) for i in archive],
+                                         dtype=np.float64),
+                    xl=adapter.xl, xu=adapter.xu,
+                    predict=_sonda_predict(estado_sonda, adapter.xl, adapter.xu),
+                    true_f=lambda X: _problems_eval(problema, X),
+                    fe_treino_max=fe_treino_max, pred_tipo="score",
+                    modelo_flag="EDN-par(2xFNN)",
+                    semente_bloco=H.iteration_seed(
+                        int(semente), ALG_ID, g, H.SONDA_ESTRAT_USO,
+                        bits32=True),
+                    meta=_meta_referencia(pop, bud, MU))
+                t_sonda_total += t_estrat
 
             # ── estágios 1+2 com cap anti-spin ──────────────────────────────
             t_b0 = time.time()

@@ -196,6 +196,26 @@
    "expect_after": "self.population.individuals_archive[_gk] = self.population.individuals.copy()",
    "kind": "[IMPL] gate-🔴 (DI-16.16)",
    "nota": "[R3-b5/DI-16.16] mini-patch pos-keep() em BaseDecompositionEA._next_gen: re-carimba o arquivo da geracao com a populacao POS-selecao (sobreviventes). Sem ele a ⑦ do mode 7 (ProbRVEA) nasce irreconstituivel da ③ (prole pre-selecao — defeito 🔴 do R3-00). Afeta so ProbRVEA; ProbMOEAD sobrescreve _next_gen. Sinalizado p/ veto do autor."
+  },
+  {
+   "id": "e74-classifierselect-idx",
+   "repo": "e74_clmea",
+   "file": "CLMEA_Code/Algorithms/Multi-objective optimization/CLMEA/ClassifierSelect.m",
+   "line": 46,
+   "expect_before": "[~,index] = sort(min(pdist2(Parent(y_label==1,:), Arc.decs),[],2),'descend');",
+   "expect_after": "S = find(y_label==1);",
+   "kind": "[FIDELIDADE] bug do codigo original -> segue o ARTIGO (bussola D29)",
+   "nota": "[DI-45, autorizada pelo autor 2026-07-29; fecha a DI-07b aberta desde 18/07] Desalinhamento mascara x Parent: `index` e posicao DENTRO de S=find(y_label==1) e era usado como indice ABSOLUTO de Parent. 1 linha nova + 1 alterada. Efeito medido na s42 (25 celulas): metade 'classificador guia' OPERA (elite em 96,7% dos 2.091 infills), metade 'incerteza escolhe' INERTE (argmax em 12,24%, rank mediano 43/100) + 13,31% de no-op — 1 das 3 contribuicoes do artigo nao se reproduzia. PRESERVAR a telemetria `n_desalinhado`: ela deve CAIR a ~0 no regime produtivo e e a PROVA do fix na re-validacao da semente 1. Precedente: D76 patchou o MESMO tipo de bug de mascara aqui."
+  },
+  {
+   "id": "b5-pwrong-stats",
+   "repo": "b5_desdeo",
+   "file": "desdeo_emo/selection/ProbMOEAD_select.py",
+   "line": 28,
+   "expect_before": "n_samples = 1000\nclass ProbMOEAD_select(SelectionBase):",
+   "expect_after": "P_WRONG_STATS = {}",
+   "kind": "[INSTRUMENTACAO] read-only (DI-12.1)",
+   "nota": "[T11-A3/I-05] Acumulador modulo-nivel de P_wrong lido pelo replay do runner. `p_wrong_stats` era o UNICO campo DI-10 com 0/N no estudo (0 de 30.165 eventos do b5; zeros absolutos so em b5m/b5r/moead_media). Sem ele a cadeia A8 (congelamento: adapt zera values -> PBI NaN -> P_wrong = 0,0 -> zero substituicoes) fica INFERIDA em 4.050 celulas e o congelamento PARCIAL (8 celulas do piso, 8/8 por face do lattice) invisivel. Nao consome RNG, nao altera retorno, nao entra em ramo de decisao; custo medido 0,022 s/run (0,0008% de tempo_busca_s mediano = 2.868,2 s). Prova de nao-perturbacao: run com x sem o patch, ①③⑦ byte-identicas. ⚠ O `expect_before` inclui a linha SEGUINTE (`class ProbMOEAD_select`) de proposito: o patch e ADITIVO (insere entre as duas), entao um expect_before de 1 linha sobrevive a ele e o validador reportaria STOCK num arquivo patchado."
   }
  ]
 }

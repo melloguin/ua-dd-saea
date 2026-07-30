@@ -125,12 +125,14 @@ class TestSondaLevaOsMetadados(unittest.TestCase):
         from src.standalone_harness import emit_sonda_block
         self.assertIn("meta", inspect.signature(emit_sonda_block).parameters)
 
-    def test_as_DUAS_emissoes_do_c122_levam_meta(self):
-        # a da cadência E a final: se só uma levasse, o bloco da última geração
-        # (que a §3.1 torna obrigatório) sairia com o rótulo velho
+    def test_TODAS_as_emissoes_do_c122_levam_meta(self):
+        # 3 sítios: a sonda da cadência, a sonda FINAL (que a §3.1 torna
+        # obrigatória) e o bloco ESTRATIFICADO do A11. Se um só ficasse de fora,
+        # aquele bloco sairia com o rótulo velho (`n_ref` nominal) e a análise
+        # não saberia contra o que ele mediu.
         with open(C.__file__, encoding="utf-8") as fh:
             src = fh.read()
-        self.assertEqual(src.count("meta=_meta_referencia(pop, bud, MU)"), 2)
+        self.assertEqual(src.count("meta=_meta_referencia(pop, bud, MU)"), 3)
 
 class TestA6SobolBatchENsga3(unittest.TestCase):
     """[T11-A6] I-03 (`n_front1` no sobol_batch) + I-13 (`geracoes_derivadas`).
@@ -170,3 +172,86 @@ class TestA6SobolBatchENsga3(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipUnless(_TEM, "stack do c122 ausente")
+class TestA11SondaEstratificada(unittest.TestCase):
+    """[T11-A11/I-6/D11] O bloco que destrava precision/recall dos classificadores.
+
+    Pontos Sobol quase nunca são "bons": prevalência medida **0,4%** ⇒ ~8
+    positivos por bloco de 2.000, e com 8 positivos precision/recall/F1 têm
+    variância enorme (só o AUC é estável). Subir para 3.000 Sobol NÃO resolve —
+    a prevalência não muda, só o n. **A estratificação é o que resolve.**
+
+    Medido no smoke (c122/MMF1/s0): prevalência de ND no bloco estratificado =
+    **7,4%** contra 0,4% da régua — 18× mais positivos. E os regimes ficam
+    SEPARADOS na ③: 44.000 `sonda` · 10.500 `sonda_estratificada` · 3.632 busca.
+    """
+
+    def test_amostra_fica_dentro_dos_bounds(self):
+        from src.standalone_harness import amostra_estratificada
+        A = np.array([[0.02, 0.98], [0.99, 0.01]])     # arquivo NAS BORDAS
+        X = amostra_estratificada(A, [0, 0], [1, 1], n=400, semente_bloco=7)
+        self.assertEqual(X.shape, (400, 2))
+        self.assertTrue((X >= 0).all() and (X <= 1).all())
+
+    def test_e_deterministica_por_semente(self):
+        from src.standalone_harness import amostra_estratificada
+        A = np.array([[0.5, 0.5]])
+        a = amostra_estratificada(A, [0, 0], [1, 1], n=50, semente_bloco=3)
+        b = amostra_estratificada(A, [0, 0], [1, 1], n=50, semente_bloco=3)
+        c = amostra_estratificada(A, [0, 0], [1, 1], n=50, semente_bloco=4)
+        self.assertTrue(np.array_equal(a, b))
+        self.assertFalse(np.array_equal(a, c))
+
+    def test_fica_PERTO_do_arquivo(self):
+        # é o ponto do item: a amostra tem de cair na vizinhança do arquivo,
+        # senão é uma régua Sobol com outro nome
+        from src.standalone_harness import amostra_estratificada
+        A = np.array([[0.5, 0.5]])
+        X = amostra_estratificada(A, [0, 0], [1, 1], n=2000, semente_bloco=1)
+        d = np.linalg.norm(X - A[0], axis=1)
+        self.assertLess(float(np.median(d)), 0.12)     # σ_rel=0,05 por dimensão
+
+    def test_arquivo_vazio_devolve_bloco_vazio(self):
+        from src.standalone_harness import amostra_estratificada
+        X = amostra_estratificada(np.empty((0, 2)), [0, 0], [1, 1], n=10)
+        self.assertEqual(X.shape[0], 0)
+
+    def test_o_regime_e_SEPARADO_da_regua(self):
+        # NUNCA misturar: cada algoritmo tem um arquivo diferente, então o bloco
+        # não é comparável ENTRE configs (a ressalva da opção (b) do laudo §6)
+        import inspect
+
+        from src import standalone_harness as H
+        src = inspect.getsource(H.emit_sonda_estratificada)
+        self.assertIn('regime="sonda_estratificada"', src)
+        self.assertIn("NUNCA misturar", src)
+
+    def test_o_f_verdadeiro_NAO_vai_para_a_terceira(self):
+        # o schema da ③ é contrato (§3): mudá-lo custaria re-run de tudo por
+        # ZERO informação nova — os problemas são analíticos e o f é
+        # recomputável do X gravado (mesma doutrina do I-12)
+        import inspect
+
+        from src import standalone_harness as H
+        src = inspect.getsource(H.emit_sonda_estratificada)
+        self.assertIn("prevalencia_nd_no_bloco", inspect.getsource(H))
+        self.assertNotIn("f_verdadeiro=", src)
+
+    def test_roda_sob_preserve_all_rng(self):
+        # a amostragem E a predição consomem RNG; sem a guarda, MEDIR MOVERIA A
+        # BUSCA e o run inteiro seria inválido (invariante §3.1)
+        import inspect
+
+        from src import standalone_harness as H
+        self.assertIn("with preserve_all_rng():",
+                      inspect.getsource(H.emit_sonda_estratificada))
+
+    def test_o_c122_usa_uso_id_proprio_no_RNG(self):
+        # a semente do bloco sai do catálogo D62/D91 com `uso_id` dedicado —
+        # reusar o uso_id da busca acoplaria instrumento e algoritmo
+        from src.standalone_harness import SONDA_ESTRAT_USO
+        self.assertEqual(SONDA_ESTRAT_USO, 91)
+        with open(C.__file__, encoding="utf-8") as fh:
+            self.assertIn("H.SONDA_ESTRAT_USO", fh.read())

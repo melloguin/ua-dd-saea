@@ -6,6 +6,45 @@ from desdeo_emo.othertools.ReferenceVectors import ReferenceVectors
 from desdeo_emo.othertools.ProbabilityWrong import Probability_wrong
 
 n_samples = 1000
+
+# ── [T11-A3 / I-05 · anchor b5-pwrong-stats] TELEMETRIA READ-ONLY ────────────
+# `p_wrong_stats` era o UNICO campo DI-10 com 0/N em todo o estudo: ausente em
+# 30.165/30.165 eventos do b5 (controle: b1 3/3, b4 3/3, c217 3/3, c238 1/1,
+# c122 2/2, c149 2/2, e81 2/2, c311 2/2, e103 2/2, e74 2/2, nsga3 3/3, moead
+# 3/3, nsga2 2/2, smsemoa 2/2 — zeros absolutos SO em b5m, b5r e moead_media).
+# Sem ele, a cadeia A8 — o congelamento (`adapt` zera `values` -> PBI NaN ->
+# P_wrong identicamente 0,0 -> ZERO substituicoes) — fica INFERIDA em 4.050
+# celulas, e o congelamento PARCIAL (8 celulas do piso, previsto por face do
+# lattice 8/8) fica invisivel.
+#
+# Este acumulador so LE `probabilities` e `selection`, que a decisao ja
+# computou (`compute_probability_wrong_MC`, abaixo). NAO consome RNG, NAO
+# altera retorno, NAO entra em ramo de decisao: o criterio DI-12.1 e
+# comportamento, nao pureza textual. Custo medido pelo plano F5: 0,022 s por run
+# acumulando (0,0008% de `tempo_busca_s` mediano = 2.868,2 s).
+#
+# O runner LE e ZERA por run (`b5_prob.py` / `piso_offline.py`); a chave e o
+# `gen_count` da populacao, para o replay pos-laco casar geracao a geracao.
+P_WRONG_STATS = {}
+
+
+def _pw_registra(gen, probabilities, n_substituicoes):
+    """[I-05] Acumula (min, mediana, max, n) de P_wrong da geracao. Nunca levanta."""
+    try:
+        import numpy as _np
+        pr = _np.asarray(probabilities, dtype=float).ravel()
+        if pr.size == 0:
+            return
+        P_WRONG_STATS.setdefault(int(gen), []).append({
+            "min": float(_np.min(pr)), "med": float(_np.median(pr)),
+            "max": float(_np.max(pr)), "n_vizinhos": int(pr.size),
+            "n_substituicoes": int(n_substituicoes),
+            "n_nan": int(_np.count_nonzero(~_np.isfinite(pr))),
+        })
+    except Exception:
+        pass
+
+
 class ProbMOEAD_select(SelectionBase):
     """The MOEAD selection operator. 
 
@@ -87,6 +126,9 @@ class ProbMOEAD_select(SelectionBase):
         # Compare the offspring with the individuals in the neighborhood 
         # and replace the ones which are outperformed by it if P_{wrong}>0.5
         selection = np.where(probabilities>0.5)[0]
+        # [T11-A3/I-05 · anchor b5-pwrong-stats] telemetria READ-ONLY (a decisao
+        # acima ja esta tomada; nada abaixo a le)
+        _pw_registra(getattr(pop, "gen_count", -1), probabilities, len(selection))
 
         # Considering mean
         # selection2 = np.where(np.mean(values_SF_offspring, axis=1) < np.mean(values_SF_current, axis=1))[0]

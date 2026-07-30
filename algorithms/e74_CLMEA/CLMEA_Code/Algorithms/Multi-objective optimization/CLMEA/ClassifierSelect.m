@@ -43,12 +43,19 @@ while sum(y_label == 1)<0.9*N
         break;
     end
 end
-[~,index] = sort(min(pdist2(Parent(y_label==1,:), Arc.decs),[],2),'descend');
-if length(index)>=num_infill
-    x_candidate = Parent(index(1:num_infill),:);
-else
-    x_candidate = Parent(index,:);
-end
+% [DI-45 · anchor e74-classifierselect-idx] indice ABSOLUTO: a mascara ordena
+% DENTRO de S. O `sort` ve so as linhas de `Parent(y_label==1,:)`, entao `index`
+% e posicao NESSE subconjunto — usa-lo direto em `Parent(index,:)` seleciona
+% linhas de OUTRA classe sempre que S nao for um prefixo de Parent. Efeito
+% medido nas 25 celulas da s42: a metade "classificador guia" OPERA (elite em
+% 96,7% dos 2.091 infills) mas a metade "incerteza escolhe" fica INERTE (argmax
+% em so 12,24%; rank mediano 43/100) + 13,31% dos ciclos em no-op — 1 das 3
+% contribuicoes declaradas do artigo nao se reproduzia. Bussola D29: bug do
+% codigo original => segue o ARTIGO. Precedente no proprio e74: o D76 ja patchou
+% o MESMO tipo de bug de mascara aqui.
+S = find(y_label==1);
+[~,index] = sort(min(pdist2(Parent(S,:), Arc.decs),[],2),'descend');
+x_candidate = Parent(S(index(1:min(num_infill,numel(index)))),:);
 % [R1-e74] instrumentacao POS-decisao (leitura pura — D97; nada acima muda):
 % pop final da estrategia 1 + classe PNN por membro (re-sim de leitura, 0 FE) +
 % pseudo-σ s1 = dist minima em DECISAO ao arquivo (o criterio da selecao acima) +

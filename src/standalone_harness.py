@@ -872,6 +872,121 @@ def emit_sonda_block(buf: "SnapshotBuffer", log, *, geracao: int, fe: int,
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+#  [A11/I-6/D11] SONDA ESTRATIFICADA — só para os 4 CLASSIFICADORES
+# ═══════════════════════════════════════════════════════════════════════════
+
+#: Nº de pontos do bloco estratificado (o plano pede "~500").
+SONDA_ESTRAT_N = 500
+#: Amplitude da perturbação, como fração do range de cada dimensão.
+SONDA_ESTRAT_SIGMA_REL = 0.05
+#: `uso_id` do RNG do bloco (catálogo D62/D91) — nunca colide com a busca.
+SONDA_ESTRAT_USO = 91
+
+
+def _problems_nds(F):
+    """Índices do ND de F (import local: `problems` é pesado e só serve aqui)."""
+    from src import problems as _p
+    return _p._nds_filter(F)
+
+
+def amostra_estratificada(arquivo_X, xl, xu, *, n=SONDA_ESTRAT_N,
+                          sigma_rel=SONDA_ESTRAT_SIGMA_REL, semente_bloco=0):
+    """`n` pontos amostrados PERTO do arquivo corrente, clipados aos bounds.
+
+    **Por que existe [I-6/D11].** Pontos Sobol aleatórios quase nunca são "bons":
+    a prevalência medida da classe positiva é **0,4%**, ou seja **~8 positivos por
+    bloco de 2.000**. Com 8 positivos, precision/recall/F1 têm variância enorme e
+    só o AUC é estável — a régua Sobol responde "o modelo é bom GLOBALMENTE?",
+    não "ele acerta ONDE a decisão acontece?". Subir para 3.000 pontos NÃO
+    resolve (a prevalência não muda, só o n): **a estratificação é o que resolve**.
+
+    **O que NÃO se faz:** misturar com a régua. Os 2.000 Sobol continuam intactos
+    e comparáveis entre TODOS os algoritmos; este bloco vai com
+    `regime='sonda_estratificada'` e NUNCA entra na mesma análise — cada
+    algoritmo tem um arquivo diferente, então o bloco não é comparável ENTRE
+    configs (é a ressalva que o autor ratificou ao escolher a opção (b)).
+
+    Determinismo: `numpy.random.default_rng(semente_bloco)` LOCAL — não toca o
+    RNG global (o chamador ainda o envolve em `preserve_all_rng`, cinto e
+    suspensório).
+    """
+    A = np.atleast_2d(np.asarray(arquivo_X, dtype=np.float64))
+    xl = np.asarray(xl, dtype=np.float64).ravel()
+    xu = np.asarray(xu, dtype=np.float64).ravel()
+    if A.size == 0:
+        return np.empty((0, xl.size), dtype=np.float64)
+    rng = np.random.default_rng(int(semente_bloco))
+    base = A[rng.integers(0, A.shape[0], size=int(n))]
+    ruido = rng.normal(0.0, sigma_rel * (xu - xl), size=(int(n), xl.size))
+    return np.clip(base + ruido, xl, xu)
+
+
+def emit_sonda_estratificada(buf, log, *, geracao, fe, arquivo_X, xl, xu,
+                             predict, true_f, fe_treino_max,
+                             pred_tipo="score", modelo_flag="classificador",
+                             n=SONDA_ESTRAT_N, semente_bloco=0,
+                             meta=None) -> float:
+    """Emite UM bloco `regime='sonda_estratificada'` na ③ + o evento no ⑥.
+
+    O `f` VERDADEIRO destes pontos não está em artefato nenhum (eles dependem do
+    arquivo corrente), então é avaliado AQUI, **fora do orçamento** — mesma
+    exceção contábil da sonda Sobol (§17.2.2/DI-08): funções analíticas, custo de
+    FE **ZERO**, e o `FEBudget` nem é tocado. É por isso que `true_f` entra por
+    parâmetro em vez de sair do `bud`: quem chama declara que está fora do
+    orçamento.
+
+    Tudo sob `preserve_all_rng()` — a amostragem E a predição consomem RNG, e
+    este bloco é INSTRUMENTO: mover a busca aqui invalidaria o run inteiro (o
+    gate G-6 prova que não move).
+    """
+    t0 = time.time()
+    with preserve_all_rng():
+        X = amostra_estratificada(arquivo_X, xl, xu, n=n,
+                                  semente_bloco=semente_bloco)
+        if X.shape[0] == 0:
+            return 0.0
+        mu, sigma = predict(X)
+        for i in range(X.shape[0]):
+            buf.add_surrogate(_export.surrogate_row(
+                (None if geracao is None else int(geracao)), X[i],
+                regime="sonda_estratificada", real_solution_id=None,
+                mu=(None if mu is None else mu[i]),
+                sigma=(None if sigma is None else sigma[i]),
+                pred_tipo=pred_tipo, modelo_flag=modelo_flag,
+                fe_treino_max=fe_treino_max))
+        # ⚠ O `f` VERDADEIRO NÃO vai à ③: o schema dela é contrato (§3) e
+        # mudá-lo custaria re-run de tudo por ZERO informação nova — os
+        # problemas são ANALÍTICOS e determinísticos, então a análise recompõe
+        # `problems.evaluate_problem(prob, X)` a partir do X gravado, EXATO. É a
+        # mesma doutrina do I-12 (informação recuperável por regra de leitura) e
+        # do que o plano recusa para o α do c154/c262.
+        # O que vai ao ⑥ é o AGREGADO que justifica o bloco existir: a
+        # prevalência da classe positiva. Na régua Sobol ela é 0,4% (~8
+        # positivos em 2.000) e é por isso que precision/recall/F1 são instáveis.
+        prevalencia = None
+        if true_f is not None:
+            try:
+                F = np.atleast_2d(np.asarray(true_f(X), dtype=np.float64))
+                idx = set(int(i) for i in _problems_nds(F))
+                prevalencia = len(idx) / float(F.shape[0])
+            except Exception:                # noqa: BLE001 — nunca derruba
+                prevalencia = None
+    dt = time.time() - t0
+    log.event("sonda_estratificada", geracao=(None if geracao is None
+                                              else int(geracao)),
+              fe=int(fe), n_pontos=int(X.shape[0]),
+              tempo_pred_s=round(dt, 4), fe_treino_max=fe_treino_max,
+              sigma_rel=SONDA_ESTRAT_SIGMA_REL, semente_bloco=int(semente_bloco),
+              n_arquivo=int(np.atleast_2d(arquivo_X).shape[0]),
+              prevalencia_nd_no_bloco=prevalencia,
+              modelo_flag=modelo_flag,
+              nota=("bloco NAO-comparavel entre algoritmos (cada um tem um "
+                    "arquivo diferente) — NUNCA misturar com regime='sonda'"),
+              **(meta or {}))
+    return dt
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 #  Mínimo comum do `.jsonl` (DI-10) — o que TODO `<alg>_gen` carrega
 # ═══════════════════════════════════════════════════════════════════════════
 

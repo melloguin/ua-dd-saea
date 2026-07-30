@@ -73,6 +73,57 @@ _VENDOR = os.path.join(_REPO, "algorithms", "b5_Prob-RVEA")
 # ══════════════════════════════════════════════════════════════════════════════
 #  Despacho (o `experiment.run` chama com `(exp, alg, problema, semente, **kw)`)
 # ══════════════════════════════════════════════════════════════════════════════
+def _pw_registro_da_geracao(g):
+    """[I-05] Os registros de P_wrong que o `ProbMOEAD_select` acumulou na
+    geração `g` (lista, 1 por chamada de seleção). Vazio no b5r (mode 7 =
+    Prob-RVEA, que não passa pelo `ProbMOEAD_select`) — e vazio é INFORMAÇÃO."""
+    try:
+        from desdeo_emo.selection.ProbMOEAD_select import P_WRONG_STATS
+        return P_WRONG_STATS.get(int(g), [])
+    except Exception:                        # noqa: BLE001 — nunca derruba (D97)
+        return []
+
+
+def _pw_stats_da_geracao(g):
+    """[I-05] `p_wrong_stats` = (min, med, max) agregados da geração.
+
+    A cadeia **A8** (o congelamento: `adapt` zera `values` → PBI NaN → P_wrong
+    ≡ 0,0 → ZERO substituições) era INFERIDA em 4.050 células por falta deste
+    campo. Com ele, o congelamento vira MEDIDA — e o congelamento PARCIAL (8
+    células do piso, previsto por face do lattice 8/8) deixa de ser invisível.
+    """
+    regs = _pw_registro_da_geracao(g)
+    if not regs:
+        return None
+    import numpy as _np
+    return {"min": float(_np.min([r["min"] for r in regs])),
+            "med": float(_np.median([r["med"] for r in regs])),
+            "max": float(_np.max([r["max"] for r in regs])),
+            "n_chamadas": len(regs),
+            "n_nan": int(sum(r["n_nan"] for r in regs))}
+
+
+def _n_subs_da_geracao(g):
+    """[I-05] `n_substituicoes` — quantos vizinhos o offspring substituiu
+    (P_wrong > 0,5). ZERO em toda a série é a assinatura do congelamento A8."""
+    regs = _pw_registro_da_geracao(g)
+    return None if not regs else int(sum(r["n_substituicoes"] for r in regs))
+
+
+def _vetores_degenerados(evolver):
+    """[I-05 item 3] `flag_vetores_degenerados`: a norma dos vetores de
+    referência colapsou a zero? É a CAUSA a montante do PBI NaN (A8)."""
+    try:
+        import numpy as _np
+        V = evolver.population.problem.reference_vectors.values
+        n = _np.linalg.norm(_np.asarray(V, dtype=float), axis=1)
+        return {"n_vetores": int(n.size),
+                "n_norma_zero": int(_np.count_nonzero(n == 0.0)),
+                "norma_min": float(_np.min(n)), "norma_max": float(_np.max(n))}
+    except Exception:                        # noqa: BLE001
+        return None
+
+
 def run_b5r(exp, alg, problema, semente, **kwargs):
     """b5r — Prob-RVEA_v3 (mode 7)."""
     return _run_b5("b5r", exp, problema, semente, **kwargs)
@@ -167,6 +218,21 @@ def _patch_lhs_seeding():
     _CI._b5_lhs_patched = True
 
 
+def _params_efetivos(alg, mode, n_ds) -> dict:
+    """[I-07] A config EFETIVA do b5r/b5m para o ⑤ (CONTRATO §5)."""
+    return {"alg": alg, "mode": int(mode),
+            "motor": ("Prob-RVEA (mode 7)" if int(mode) == 7
+                      else "Prob-MOEA/D (mode 72)"),
+            "surrogate": ("SurrogateKriging DESDEO: 1 GP por objetivo, "
+                          "C(1,(1e-3,1e3))*RBF(10,(1e-2,1e2)), alpha=0, "
+                          "n_restarts_optimizer=9, normalize_y=False"),
+            "treino": "UNICO no dataset (offline nao retreina)",
+            "n_dataset": int(n_ds),
+            "regime": "offline", "q": 1,
+            "patches_vendorizados": ["b5-mode72-kde", "b5-mode7-archive",
+                                     "b5-pwrong-stats"]}
+
+
 def _sigma_dict(alg, n_ds):
     """DEF-C4: o dicionario que torna a ③ auditavel. Declara TODAS as excecoes
     do offline (② vazia, NULLs, semantica do σ, o pin, a rampa θ, o overshoot)."""
@@ -189,6 +255,22 @@ def _sigma_dict(alg, n_ds):
         "sigma_*": ("DESVIO-PADRAO a posteriori do GPR por objetivo (NUNCA "
                     "variancia); mesma semantica em b5r e b5m (surrogate identico "
                     "— so a selecao difere)."),
+        # [I-04/A30] GRANULARIDADE DA ③ — a chave "1" do archive é a pop
+        # INICIAL, não uma geração de seleção. Provado: `|pop| ger 1 == N_RV`
+        # em 45/45 células e LHS-perfeito em 727/727 dimensões na ger 1
+        # (contra 9/727 na ger 2 e 6/727 na ger 3); a contabilidade de 40k FE
+        # fecha 45/45 na leitura "chave 1 = init" e falha 45/45 na outra. O
+        # patch DI-16.16 re-carimba `str(gen_count−1)`, que já vale ≥2 na 1ª
+        # `_next_gen` — a chave "1" é ESTRUTURALMENTE inalcançável por ele
+        # (Population.__init__ já a escreveu). Sem esta declaração, 4.050
+        # células contam +1 geração (erro global 0,078%, máx 0,245%) e 3.020
+        # de 1.772.336 linhas de ③-busca (0,170%) são snapshot inicial —
+        # LEGÍTIMAS, mas não são decisão.
+        "granularidade_③": ("ger 1 = pop INICIAL (LHS, PRÉ-seleção); 2..n = "
+                            "PÓS-seleção; passos de seleção = n_geracoes−1; "
+                            "FE conta init+pop (bundle v2.2). Controle "
+                            "negativo: o treed_media, que engancha em "
+                            "`_next_gen`, NÃO tem o fenômeno"),
         "regime": "offline = candidatos da busca no surrogate · sonda = regua fixa (§17.2.2)",
         "espaco_modelo": "cru — o GP prediz em f nativa (b5 NAO transforma); transf_tipo/params NULL",
         "fe_treino_max": ("constante %d (=n_dataset-1) em TODA linha (busca+sonda) "
@@ -310,6 +392,14 @@ def _run_b5(alg, exp, problema, semente, *,
     sonda = H.load_sonda(problema, regime="offline", data_root=data_root)
 
     buf = H.SnapshotBuffer()
+    # [I-05] o acumulador de P_wrong é MÓDULO-nível: zerar no arranque, senão
+    # dois runs no MESMO processo (o par do gate G-6, por exemplo) misturariam
+    # a estatística de um com a do outro.
+    try:
+        from desdeo_emo.selection.ProbMOEAD_select import P_WRONG_STATS
+        P_WRONG_STATS.clear()
+    except Exception:                        # noqa: BLE001 — b5r nem importa
+        pass
     log = H.AuditLogger.for_run(exp, alg, problema, semente,
                                 data_root=data_root, append=False)
     sigma_dict = _sigma_dict(alg, n_ds)
@@ -428,6 +518,10 @@ def _run_b5(alg, exp, problema, semente, *,
             log.decision(
                 caminho="b5_gen", motivo="selecao no surrogate (mode %d)" % mode,
                 geracao=g, n_ds_membros=0,
+                # [I-05] os campos DI-10 do b5 que eram 0/N em 30.165 eventos
+                p_wrong_stats=_pw_stats_da_geracao(g),
+                n_substituicoes=_n_subs_da_geracao(g),
+                flag_vetores_degenerados=_vetores_degenerados(evolver),
                 **H.minimo_comum_di10(
                     Og, fe=bud.fe,
                     tempo_fit_s=(t_fit if g == int(keys[0]) else None)))
@@ -477,6 +571,9 @@ def _run_b5(alg, exp, problema, semente, *,
             env=env, pinning=pinning, n_geracoes=gen_final,
             algo_version=ALGO_VERSION, timing_totais=timing_totais,
             sigma_dict=sigma_dict, regime="offline",
+            # [I-07/A3] a config EFETIVA no ⑤ (CONTRATO §5): b5r e b5m tinham
+            # 45 células cada SEM a chave — 1.350 por config em 30 sementes.
+            params=_params_efetivos(alg, mode, n_ds),
             sonda_info={"S": sonda["S"], "cadencia": "offline: 1x por modelo",
                         "n_blocos": 1 if sonda_on else 0,
                         "x_hash": sonda["x_hash"], "f_hash": sonda["f_hash"]},

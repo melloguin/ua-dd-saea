@@ -190,6 +190,19 @@ def _patch_lhs_seeding():
     _CI._piso_lhs_patched = True
 
 
+def _params_efetivos(n_ds) -> dict:
+    """[I-07] A config EFETIVA do moead_media para o ⑤ (CONTRATO §5)."""
+    return {"alg": "moead_media", "mode": 12,
+            "motor": ("MOEA/D mode 12 (Gen-MOEA/D, PBI) — a ABLACAO EXATA do "
+                      "b5m: MOEAD_select em vez de ProbMOEAD_select, sem "
+                      "maquinaria probabilistica (D77/DEF-E3)"),
+            "surrogate": ("SurrogateKriging DESDEO — MESMA ESPECIFICACAO do b5, "
+                          "treino INDEPENDENTE (DI-28)"),
+            "sigma": "NULL por construcao (DI-16.1: 'o b5 sem σ')",
+            "treino": "UNICO no dataset", "n_dataset": int(n_ds),
+            "regime": "offline", "q": 1}
+
+
 def _sigma_dict(n_ds):
     """DEF-C4: o dicionario que torna a ③ auditavel. Declara TODAS as excecoes do
     offline (② vazia, σ NULL, NULLs, o pin, a rampa θ, o overshoot) + a diferenca
@@ -206,6 +219,16 @@ def _sigma_dict(n_ds):
                   "MOEA_D (desdeo_emo.EAs.ProbMOEAD), selecao MOEAD_select "
                   "(decomposicao PBI), SEM maquinaria probabilistica — a ABLACAO "
                   "EXATA do b5m (mode 72, que usa ProbMOEAD_select). D77/DEF-E3."),
+        # [I-04/A30] GRANULARIDADE DA ③ — a chave "1" do archive é a pop
+        # INICIAL, não uma geração de seleção (Population.__init__ já a escreve;
+        # o patch DI-16.16 re-carimba `str(gen_count−1)`, que já vale ≥2 na 1ª
+        # `_next_gen`, então a chave "1" é ESTRUTURALMENTE inalcançável por ele).
+        # Provado: `|pop| ger 1 == N_RV` em 45/45 células, LHS-perfeito em 727/727
+        # dimensões na ger 1 (9/727 na ger 2), e a contabilidade de 40k FE fecha
+        # 45/45 nesta leitura e falha 45/45 na outra.
+        "granularidade_③": ("ger 1 = pop INICIAL (LHS, PRÉ-seleção); 2..n = "
+                            "PÓS-seleção; passos de seleção = n_geracoes−1; "
+                            "FE conta init+pop (bundle v2.2)"),
         "mu_*": "media a posteriori do GPR, em f de MINIMIZACAO (sem flip de sinal)",
         "sigma_*": ("NULL POR CONSTRUCAO (DI-16.1): o piso e 'o b5 sem σ' — o motor "
                     "seleciona SO pela media; a incerteza do GPR NAO e reportada "
@@ -478,6 +501,9 @@ def _run(exp, problema, semente, *,
             env=env, pinning=pinning, n_geracoes=gen_final,
             algo_version=ALGO_VERSION, timing_totais=timing_totais,
             sigma_dict=sigma_dict, regime="offline",
+            # [I-07/A3] a config EFETIVA no ⑤ (CONTRATO §5): 45 células sem a
+            # chave — 1.350 em 30 sementes.
+            params=_params_efetivos(n_ds),
             sonda_info={"S": sonda["S"], "cadencia": "offline: 1x por modelo",
                         "n_blocos": 1 if sonda_on else 0,
                         "x_hash": sonda["x_hash"], "f_hash": sonda["f_hash"]},

@@ -576,3 +576,71 @@ class TestG9ContentHash(unittest.TestCase):
         self.assertIn("DIVERGENCIAS_CONTEUDO.csv", src)
         # a heurística antiga não pode voltar
         self.assertNotIn("abs(os.path.getmtime(d) - os.path.getmtime(o)) < 2", src)
+
+
+class TestG6NaoPerturbacaoPorPar(unittest.TestCase):
+    """[G-6] O par de runs (com × sem sonda) — o invariante 🔴 do CONTRATO §3.1.
+
+    "A sonda NÃO PODE alterar a busca": preditores estocásticos (o MC-dropout do
+    e7 é o extremo) exigem save/restore do RNG em volta da predição. O que existia
+    era `naoperturbacao.py --all`, que compara contra o baseline CONGELADO — outra
+    pergunta ("a instrumentação de 2026-07 mudou a trajetória?"). O par prova o
+    invariante na mesma sessão, no mesmo código. Está PROVADO bit-a-bit em 8
+    configs MATLAB e faltava em 11 — T1 ou T2 em 11 dos 24 relatórios.
+    """
+
+    def _np(self):
+        import importlib.util as u
+        spec = u.spec_from_file_location(
+            "naoperturbacao_mod",
+            os.path.join(_RAIZ, "scripts", "naoperturbacao.py"))
+        mod = u.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+
+    def test_os_10_configs_com_sonda_tem_a_flag(self):
+        mod = self._np()
+        self.assertEqual(set(mod.FLAG_SONDA), {
+            "c122", "c149", "e81", "c154", "c262",
+            "b5r", "b5m", "moead_media", "c311", "treed_media"})
+
+    def test_a_flag_existe_no_FONTE_de_cada_runner(self):
+        # fio despachante→runner: uma flag declarada aqui e ausente lá seria um
+        # gate que "passa" sem nunca desligar a sonda.
+        mod = self._np()
+        arquivo = {"c122": "c122_thetadeadp", "c149": "c149_lbnmobo",
+                   "e81": "e81_qpots", "c154": "c154_jes", "c262": "c262_qnehvi",
+                   "b5r": "b5_prob", "b5m": "b5_prob", "moead_media": "piso_offline",
+                   "c311": "c311_tgprmo", "treed_media": "treed_media"}
+        for alg, flag in mod.FLAG_SONDA.items():
+            with self.subTest(alg=alg):
+                with open(os.path.join(_RAIZ, "src", f"{arquivo[alg]}.py"),
+                          encoding="utf-8") as fh:
+                    src = fh.read()
+                self.assertIn(f"{flag}: bool = True", src)
+                self.assertIn(f"if {flag}", src.replace("if not ", "if "))
+
+    def test_piso_sem_surrogate_e_NAO_APLICAVEL(self):
+        # os 4 pisos online e o sobol_batch não têm régua §17.2.2 para desligar
+        mod = self._np()
+        for alg in ("nsga2", "nsga3", "moead", "smsemoa", "sobol_batch"):
+            with self.subTest(alg=alg):
+                ok, msg = mod.par_de_runs(alg, "MMF1", 0)
+                self.assertIsNone(ok)
+                self.assertIn("não-aplicável", msg)
+
+    def test_a_flag_atravessa_o_wrapper_ate_o_inner(self):
+        # c122/c149/e81 têm wrapper→`_run_*_inner`: uma flag que para no wrapper
+        # é a família de bug "kwargs não repassados" (5 bugs históricos).
+        for nome, inner in (("c122_thetadeadp", "_run_c122_inner"),
+                            ("c149_lbnmobo", "_run_c149_inner"),
+                            ("e81_qpots", "_run_e81_inner")):
+            with self.subTest(runner=nome):
+                with open(os.path.join(_RAIZ, "src", f"{nome}.py"),
+                          encoding="utf-8") as fh:
+                    src = fh.read()
+                chamada = src[src.index(f"return {inner}("):]
+                chamada = chamada[:chamada.index(")\n")]
+                self.assertIn("sonda_on=sonda_on", chamada)
+                assin = src[src.index(f"def {inner}("):]
+                self.assertIn("sonda_on=True", assin[:assin.index("):")])

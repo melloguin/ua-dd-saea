@@ -532,6 +532,7 @@ def _lote_greedy_sequencial_jes(acqf, D: int, log, it: int, q: int):
 
 
 def run_c154(exp: str, alg: str, problema: str, semente, *,
+             sonda_on: bool = True,
              data_root: str = naming.DEFAULT_DATA_ROOT,
              enable_bucket: bool = False,
              max_wall_s: float | None = None,
@@ -791,7 +792,7 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                 # nela. O bloco desta iteração ainda não saiu (o ponto de
                 # emissão é a jusante do infill, que acabou de levantar), e o
                 # modelo desta iteração continua vivo aqui.
-                t_snd = emit_sonda_block(
+                t_snd = 0.0 if not sonda_on else emit_sonda_block(   # [G-6]
                     buf, log, it=it, fe=bud.fe, sonda=sonda_art,
                     adapter=adapter, model=model,
                     fe_treino_max=n_train - 1,
@@ -825,7 +826,7 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                                  acqf_escolhido=acqv_i, q=q,
                                  n_no_lote=len(sids_lote),
                                  **decision_extra, **di10())
-                    t_snd = emit_sonda_block(
+                    t_snd = 0.0 if not sonda_on else emit_sonda_block(  # [G-6]
                         buf, log, it=it, fe=bud.fe, sonda=sonda_art,
                         adapter=adapter, model=model,
                         fe_treino_max=n_train - 1,
@@ -859,7 +860,7 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
             # ANTES do `del model`. Cadência k=2 + 1ª; a última é coberta no
             # ramo do hard-stop acima. ZERO FE, RNG preservado.
             t_snd = 0.0
-            if sonda_due(it):
+            if sonda_on and sonda_due(it):                  # [G-6]
                 t_snd = emit_sonda_block(
                     buf, log, it=it, fe=bud.fe, sonda=sonda_art,
                     adapter=adapter, model=model, fe_treino_max=n_train - 1)

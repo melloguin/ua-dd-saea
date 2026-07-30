@@ -27,7 +27,8 @@ import hashlib
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
 
 BASELINE = "data/experiments/_baseline_pre_retrofit"
 
@@ -63,6 +64,72 @@ def checa(alg: str, prob: str, sem, exp: str = "main",
                    " — investigar antes de aceitar")
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+#  [G-6] PAR DE RUNS — a prova que o gate do PLANO §5 pede
+# ═══════════════════════════════════════════════════════════════════════════
+
+#: Configs Python com sonda + o nome da flag que a desliga. `sobol_batch` e os
+#: 4 pisos online NÃO têm sonda (sem surrogate ⇒ sem régua §17.2.2) e ficam
+#: fora por desenho; os 13 MATLAB precisam do gêmeo desta flag no `experiment.m`.
+FLAG_SONDA = {
+    "c122": "sonda_on", "c149": "sonda_on", "e81": "sonda_on",
+    "c154": "sonda_on", "c262": "sonda_on",
+    "b5r": "sonda_on", "b5m": "sonda_on", "moead_media": "sonda_on",
+    "c311": "emitir_sonda", "treed_media": "emitir_sonda",
+}
+
+
+def par_de_runs(alg: str, prob: str, sem, exp: str = "main",
+                *, data_root: str | None = None, **kwargs):
+    """[G-6] Roda a MESMA célula 2× — com e sem sonda — e compara a ① BIT-A-BIT.
+
+    É o gate que o PLANO §5 pede e que o `--all` NÃO faz: o `--all` compara
+    contra o baseline CONGELADO (`_baseline_pre_retrofit/`), que responde outra
+    pergunta ("a instrumentação de 2026-07 mudou a trajetória?"). Este responde a
+    do invariante 🔴 do CONTRATO §3.1: *a sonda NÃO PODE alterar a busca* — e a
+    prova é o par, na mesma sessão, no mesmo código.
+
+    Por que importa: preditores estocásticos (o MC-dropout do e7 é o caso
+    extremo) exigem save/restore do RNG em volta da predição. Sem o par, o que
+    existe é a promessa. Está PROVADO bit-a-bit em 8 configs MATLAB (b1, b3, b4,
+    e7, c141, c217, c238, e74) e FALTA em 11 — é o item de teto mais repetido do
+    estudo (T1 ou T2 em 11 dos 24 relatórios).
+
+    Devolve `(ok, mensagem)`; `None` = não-aplicável (config sem sonda).
+    """
+    import shutil
+    import tempfile
+    if alg not in FLAG_SONDA:
+        return None, f"{alg} não tem sonda (piso sem surrogate) — não-aplicável"
+    from src import experiment as _adapter
+    from src import naming as _naming
+    flag = FLAG_SONDA[alg]
+    hashes = {}
+    for rotulo, ligada in (("com_sonda", True), ("sem_sonda", False)):
+        dr = tempfile.mkdtemp(prefix=f"g6_{alg}_{rotulo}_")
+        try:
+            # os artefatos de ENTRADA (DoE/dataset/sonda) nunca se regeneram
+            # (D63/D90): o tempdir os enxerga por link.
+            for entrada in ("doe", "datasets", "sonda"):
+                orig = os.path.join(ROOT, "data", entrada)
+                if os.path.isdir(orig):
+                    os.symlink(orig, os.path.join(dr, entrada))
+            _adapter.run(alg, prob, sem, exp=exp, data_root=dr,
+                         **{flag: ligada}, **kwargs)
+            p1 = _naming.layer_path(exp, alg, prob, sem, "real", dr)
+            if not os.path.exists(p1):
+                return False, f"{rotulo}: a ① não foi escrita"
+            hashes[rotulo] = _sha(p1)
+        finally:
+            shutil.rmtree(dr, ignore_errors=True)
+    if hashes["com_sonda"] == hashes["sem_sonda"]:
+        return True, (f"① BIT-IDÊNTICA com e sem sonda "
+                      f"(sha256 {hashes['com_sonda'][:16]})")
+    return False, (f"🔴 A SONDA PERTURBOU A BUSCA: ① difere "
+                   f"({hashes['com_sonda'][:12]} × {hashes['sem_sonda'][:12]}) "
+                   f"— invariante 🔴 do CONTRATO §3.1 violado. Pára-e-loga (D81)")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("alg", nargs="?")
@@ -73,7 +140,18 @@ def main() -> int:
                     help="varre todos os runs que têm baseline")
     ap.add_argument("--tolerar-ausente", action="store_true",
                     help="baseline ausente conta como aviso, não falha")
+    ap.add_argument("--par", action="store_true",
+                    help="[G-6] RODA a célula 2x (com e sem sonda) em tempdir e "
+                         "compara a ① bit-a-bit — a prova do invariante §3.1")
     a = ap.parse_args()
+
+    if a.par:
+        if not (a.alg and a.problema and a.semente is not None):
+            ap.error("--par exige <alg> <problema> <semente>")
+        ok, msg = par_de_runs(a.alg, a.problema, a.semente, a.exp)
+        tag = "ok  " if ok else ("--  " if ok is None else "XXXX")
+        print(f"  [{tag}] G-6 par {a.alg}/{a.problema}/{a.semente}: {msg}")
+        return 0 if ok is not False else 1
 
     alvos = []
     if a.all:

@@ -544,6 +544,7 @@ def _sonda_predict(estado: dict, oracle: _Oracle, torch):
 
 
 def run_c149(exp: str, alg: str, problema: str, semente, *,
+             sonda_on: bool = True,
              data_root: str = naming.DEFAULT_DATA_ROOT,
              enable_bucket: bool = False,
              teto_s: float | None = None,
@@ -573,11 +574,12 @@ def run_c149(exp: str, alg: str, problema: str, semente, *,
                                pinning=pinning, env=env, t_run=t_run,
                                data_root=data_root,
                                enable_bucket=enable_bucket, teto_s=teto_s,
-                               q=int(q))
+                               q=int(q),
+                               sonda_on=sonda_on)
 
 
 def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
-                    data_root, enable_bucket, teto_s, q=1):
+                    data_root, enable_bucket, teto_s, q=1, sonda_on=True):
     from layer_config_forward import MultiLayerPerceptron_forward as MLP
 
     # ── determinismo (L.14) ─────────────────────────────────────────────────
@@ -766,7 +768,7 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
             # sonda DEPOIS do fit, ANTES da decisão: mede o modelo COM QUE
             # esta iteração decide (k lido dinamicamente — teste §3.1)
             t_snd = 0.0
-            if H.sonda_due(g, k=H.SONDA_K):
+            if sonda_on and H.sonda_due(g, k=H.SONDA_K):        # [G-6]
                 t_snd = H.emit_sonda_block(
                     buf, log, geracao=g, fe=bud.fe, sonda=sonda,
                     predict=_sonda_predict(estado_sonda, oracle, torch),
@@ -960,7 +962,7 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
         raise
 
     # ── sonda final (fora do try do laço p/ rodar também pós-BudgetExhausted)
-    if g and ultima_sonda_g != g and models is not None:
+    if sonda_on and g and ultima_sonda_g != g and models is not None:   # [G-6]
         # fe_treino_max do bloco final = o do ÚLTIMO fit (o modelo é o da
         # última iteração; o infill final NUNCA entra em treino — honesto,
         # e a coluna diz exatamente o que o modelo viu):

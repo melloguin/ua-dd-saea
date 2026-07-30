@@ -535,6 +535,7 @@ class FitFalhouError(RuntimeError):
 
 
 def run_e81(exp: str, alg: str, problema: str, semente, *,
+            sonda_on: bool = True,
             data_root: str = naming.DEFAULT_DATA_ROOT,
             enable_bucket: bool = False,
             teto_s: float | None = None,
@@ -569,11 +570,12 @@ def run_e81(exp: str, alg: str, problema: str, semente, *,
                               pinning=pinning, env=env, t_run=t_run,
                               data_root=data_root,
                               enable_bucket=enable_bucket, teto_s=teto_s,
-                              q=int(q), sonda_k=sonda_k)
+                              q=int(q), sonda_k=sonda_k,
+                               sonda_on=sonda_on)
 
 
 def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
-                   data_root, enable_bucket, teto_s, q, sonda_k):
+                   data_root, enable_bucket, teto_s, q, sonda_k, sonda_on=True):
     from botorch.exceptions.errors import ModelFittingError
     from qpots.acquisition import Acquisition
     from qpots.model_object import ModelObject
@@ -820,7 +822,7 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
 
                 # sonda DEPOIS do fit, ANTES da decisão: mede o modelo COM QUE
                 # esta iteração decide (k lido dinamicamente — teste §3.1)
-                if H.sonda_due(g, k=k_sonda):
+                if sonda_on and H.sonda_due(g, k=k_sonda):      # [G-6]
                     t_snd = H.emit_sonda_block(
                         buf, log, geracao=g, fe=bud.fe, sonda=sonda,
                         predict=_sonda_predict(estado_sonda, oracle, torch),
@@ -1099,7 +1101,8 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
     # ── sonda final (§3.1/finalProbe) — fora do try do laço para rodar
     # também depois do BudgetExhausted. Não roda se o run abortou no fit
     # (não há modelo válido a sondar).
-    if (g and ultima_sonda_g != g and estado_sonda.get("mo") is not None
+    if (sonda_on and g and ultima_sonda_g != g          # [G-6]
+            and estado_sonda.get("mo") is not None
             and motivo_parada != "fit_falhou"):
         ftm_final = estado_sonda.get("ftm")
         buf.set_fe_treino_max(ftm_final)

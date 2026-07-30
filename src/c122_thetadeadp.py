@@ -565,6 +565,7 @@ def _sonda_predict(estado: dict, xl: np.ndarray, xu: np.ndarray):
 # ═══════════════════════════════════════════════════════════════════════════
 
 def run_c122(exp: str, alg: str, problema: str, semente, *,
+             sonda_on: bool = True,
              data_root: str = naming.DEFAULT_DATA_ROOT,
              enable_bucket: bool = False,
              teto_s: float | None = None,
@@ -591,11 +592,12 @@ def run_c122(exp: str, alg: str, problema: str, semente, *,
         return _run_c122_inner(exp, alg, problema, semente, torch=torch,
                                pinning=pinning, env=env, t_run=t_run,
                                data_root=data_root, enable_bucket=enable_bucket,
-                               teto_s=teto_s)
+                               teto_s=teto_s,
+                               sonda_on=sonda_on)
 
 
 def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
-                    data_root, enable_bucket, teto_s):
+                    data_root, enable_bucket, teto_s, sonda_on=True):
     from evolution.counter import PerCounter
     from evolution.dom import pareto_dominance, scalar_dominance
     from evolution.norm import var_normalization
@@ -753,7 +755,7 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
 
             # sonda ANTES da decisão: mede o modelo COM QUE esta geração decide
             t_snd = 0.0
-            if H.sonda_due(g, k=H.SONDA_K):
+            if sonda_on and H.sonda_due(g, k=H.SONDA_K):   # [G-6]
                 t_snd = H.emit_sonda_block(
                     buf, log, geracao=g, fe=bud.fe, sonda=sonda,
                     predict=_sonda_predict(estado_sonda, adapter.xl, adapter.xu),
@@ -906,7 +908,7 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                 break
 
         # ── sonda da ÚLTIMA geração (§3.1: "SEMPRE a 1ª e a última") ────────
-        if g and ultima_sonda_g != g:
+        if sonda_on and g and ultima_sonda_g != g:            # [G-6]
             estado_sonda.update(pop=list(pop), p_net=p_net, s_net=s_net)
             buf.set_fe_treino_max(fe_treino_max)
             t_snd = H.emit_sonda_block(

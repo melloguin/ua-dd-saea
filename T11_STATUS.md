@@ -68,10 +68,22 @@
         · B-06 fonte única nos 3 sítios (portao/accept/censo42) · **B-12** (9 drivers no git +
           preflight anti-forasteiro) · **B-13(b)/G-8** (guarda de suíte) · **B-14/G-5** (rtol 1e-4)
         · **G6.7** suíte hermética (D-03 com lib/rede simuladas + o caminho blob-presente)
-      · ⚠ **FALTA no G6** (próxima sessão): **G-6** não-perturbação por par de runs (flag
-        `--sem-sonda`; precisa RODAR 21 pares) · **G-7** contrato §6.1 aferido por teste (exige
-        a tabela §6.1 em artefato machine-readable) · **G-9** content-hash na propagação
-        (rito F4/`coletar42.sh`)
+      · **G-7 FEITO** (`5b6df3e`): `artifacts/contrato_61.json` (extração + CURAÇÃO contra a
+        medição — 3 falsos-positivos removidos: `n_baseline` do e81 que o §6.1 cita para NEGAR,
+        `solution_id` do b4 que é `ref_ids`, `tempo_fit_s` dos pisos que é NULL por contrato) +
+        `gate_contrato_61` no portão. Reproduz I-03/I-05/I-07 e acha **5 pendências SEM ITEM NO
+        T11** (`adapt_delta_V` b3 · `mll_final` c262 · `loss_treino` e7 · `margem_3sigma` e103 ·
+        `sigma_dict` ausente no ⑤ dos 4 pisos online, 112 células) → **decisão do autor**
+      · **G-9 FEITO** (`15586b0`): `scripts/content_hash.py` + a mescla do `tabela42.py` deixou
+        de decidir por tamanho+mtime±2s (heurística que apagava o destino em silêncio) e agora
+        registra `DIVERGENCIAS_CONTEUDO.csv`. Só paga md5 quando precisa
+      · **G-6 CÓDIGO FEITO** (`398d253`): flag `sonda_on` UNIFORME nos 5 runners que não a tinham
+        (c122 c149 e81 c154 c262), em TODOS os sítios de emissão (cadência + os 2 ramos de
+        hard-stop dos BoTorch + a emissão final fora do laço) e atravessando o wrapper→inner;
+        `naoperturbacao.py --par` roda a célula 2× em tempdir e compara a ① bit-a-bit.
+        **PROVA COLHIDA: c122/MMF1/s0 ⇒ ① BIT-IDÊNTICA** (sha256 be06b54124e9c100, 91 s o par)
+      · ⚠ FALTA no G-6 (é RODAR, não é código): o par em c149 · e81 · c154 · c262 · c311 ·
+        b5r/b5m · moead_media · treed_media + o gêmeo da flag no `experiment.m` (e103)
       · ⚠ AÇÃO DO AUTOR: o preflight agora acusa **58 manifestos de OUTRA MÁQUINA** em
         `data/experiments` (as células que voltaram das VMs por rsync). Já estão no bucket e em
         `resultados_experimentos` — o disco local tem de partir limpo antes do disparo

@@ -734,7 +734,12 @@ def run_c311(exp: str, alg: str, problema: str, semente, *,
 
     timing_totais = _export.manifest_timing_block(
         tempo_total_s=time.time() - t_run, tempo_fit_surrogate_s=t_fit_total,
-        tempo_busca_s=t_busca_total, tempo_aval_real_s=0.0,
+        # [I-02] NULL, não 0.0: no OFFLINE o orçamento nasce ESGOTADO (a ①
+        # é o dataset, D90) e nenhuma avaliação real acontece DENTRO do run —
+        # gravar zero afirmaria "avaliar custou zero". `bud.tempo_aval_real_s`
+        # devolve None quando nenhuma avaliação passou pelo portão.
+        tempo_busca_s=t_busca_total,
+        tempo_aval_real_s=bud.tempo_aval_real_s,
         tempo_pred_sonda_s=t_sonda_total)
 
     res = H.write_run_outputs(

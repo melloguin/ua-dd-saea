@@ -2989,7 +2989,13 @@ function man = build_manifest(exp, alg, problema, semente, maxfe, fe_final, ...
     man.regime = "online"; man.q = 1; man.tier = ""; man.dist = "";
     man.status = "ok"; man.n_retries = 0; man.stack_trace = "";
     man.maxfe = maxfe; man.fe_final = fe_final; man.n_geracoes = n_ger;
-    man.doe_hash = string(doe_hash); man.repo_hash = ""; man.algo_version = "stub-R1-00";
+    man.doe_hash = string(doe_hash);
+    % [I-09] o elo D80 run<->codigo: era "" em 666/666 celulas da rodada-42,
+    % transversal aos 13 configs MATLAB. Sem ele, ~10.350 celulas/campanha ficam
+    % sem dizer QUAL codigo as produziu — e e esse elo que sustenta todo o
+    % aspecto declarativo (pins, patches, ancoras).
+    man.repo_hash = string(repo_hash_corrente());
+    man.algo_version = "stub-R1-00";
     man.env = struct('matlab', string(version), 'stack', "matlab-platemo", ...
                      'pymoo', "0.6.2");
     % [v5.2.1/§17.6 — OBRIGATORIO] O bloco `timing` nascia zerado aqui e so o
@@ -3031,6 +3037,22 @@ function cid = campanha_id_corrente()
     dia = char(datetime('now', 'TimeZone', 'UTC', 'Format', 'yyyy-MM-dd'));
     cache = sprintf('%s_%s', h, dia);
     cid = cache;
+end
+
+function h = repo_hash_corrente()
+% [I-09] O commit COMPLETO do repo (gemeo de `src/manifest.py:repo_hash_corrente`).
+% `persistent` porque e um system() por processo MATLAB.
+    persistent cache
+    if ~isempty(cache), h = cache; return; end
+    h = '';
+    try
+        raiz = fileparts(fileparts(mfilename('fullpath')));
+        [st, out] = system(sprintf('git -C "%s" rev-parse HEAD', raiz));
+        out = strtrim(out);
+        if st == 0 && ~isempty(out), h = out; end
+    catch
+    end
+    cache = h;
 end
 
 function man = fill_manifest_timing(man, trows, bud, tempo_total_s, snd)

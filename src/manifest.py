@@ -61,6 +61,27 @@ def _utcnow_iso() -> str:
 
 
 @functools.lru_cache(maxsize=1)
+def repo_hash_corrente() -> str:
+    """[I-09] O commit COMPLETO do repo — o elo D80 run↔código.
+
+    Medido na rodada-42: `repo_hash = ''` em **666/666** células (transversal aos
+    13 configs MATLAB e presente também em smsemoa/nsga2/c217/e7/b1/c262). Sem
+    ele, ~10.350 células/campanha perdem o elo com o código que as produziu — e é
+    justamente o elo que sustenta TODO aspecto declarativo (pins, patches,
+    âncoras): um `repo_hash` vazio rebaixa a auditoria de reprodutibilidade
+    inteira. O default do `new_manifest` passa a preenchê-lo, como o campanha_id.
+    """
+    try:
+        raiz = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        out = subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=raiz,
+                             capture_output=True, text=True, timeout=10)
+        h = out.stdout.strip()
+        return h if out.returncode == 0 and h else ''
+    except (OSError, subprocess.SubprocessError):
+        return ''
+
+
+@functools.lru_cache(maxsize=1)
 def _repo_hash_curto() -> str:
     """`git rev-parse --short=12 HEAD` (1× por processo; 'sem-git' se falhar)."""
     try:
@@ -143,7 +164,10 @@ def new_manifest(exp: str, alg: str, problema: str, semente,
         "regime": regime, "q": q, "tier": tier, "dist": dist,
         "status": status, "n_retries": n_retries, "stack_trace": stack_trace,
         "maxfe": maxfe, "fe_final": fe_final, "n_geracoes": n_geracoes,
-        "doe_hash": doe_hash, "repo_hash": repo_hash, "algo_version": algo_version,
+        "doe_hash": doe_hash,
+        # [I-09] default = o commit corrente (era `None`/'' em 666/666 células)
+        "repo_hash": (repo_hash if repo_hash is not None else repo_hash_corrente()),
+        "algo_version": algo_version,
         "env": env or {},
         "timing": timing or {
             "tempo_total_s": None, "tempo_fit_surrogate_s": None,

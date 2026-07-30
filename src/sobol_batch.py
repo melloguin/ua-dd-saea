@@ -188,7 +188,12 @@ def run_sobol_batch(exp: str, alg: str, problema: str, semente, *,
             tempo_busca_s=sum(buf.timing_rows and
                               [r.get("tempo_busca_s", 0.0) or 0.0
                                for r in buf.timing_rows] or [0.0]),
-            tempo_aval_real_s=0.0, tempo_pred_sonda_s=0.0)
+            # [I-02] o valor MEDIDO pelo portão único (`budget.py`), não o
+            # `0.0` literal: as 5 células deste config na s42 são as únicas do
+            # estudo com `tempo_aval_real_s` = zero EXATO (0 zeros em 416
+            # células alheias), e o valor real medido é 4,110 s-VM nas 5 —
+            # 20,6% do wall, 57,15% no WFG9.
+            tempo_aval_real_s=bud.tempo_aval_real_s, tempo_pred_sonda_s=0.0)
         res = H.write_run_outputs(
             exp, alg, problema, semente, bud, buf, D=D, M=M,
             cp_hashes={"doe_hash": doe["doe_hash"]},

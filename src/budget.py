@@ -37,6 +37,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+import time
+
 import numpy as np
 
 
@@ -150,6 +152,10 @@ class FEBudget:
     _records: list[RealEval] = field(default_factory=list, init=False)
     _fe: int = field(default=0, init=False)
     _cache_hits: int = field(default=0, init=False)
+    #: [I-02] acumulador do tempo de avaliação REAL (só as chamadas a `true_f`;
+    #: cache-hit não avalia nada e não entra).
+    _tempo_aval_real_s: float = field(default=0.0, init=False)
+    _n_avals_cronometradas: int = field(default=0, init=False)
 
     def __post_init__(self) -> None:
         self.D = int(self.D)
@@ -181,6 +187,19 @@ class FEBudget:
     @property
     def cache_hits(self) -> int:
         return self._cache_hits
+
+    @property
+    def tempo_aval_real_s(self) -> float | None:
+        """[I-02] Soma medida do tempo em `true_f` — ou **None** se nenhuma
+        avaliação passou por aqui.
+
+        `None` é o ponto do item: "não medi" ≠ "custou zero". No offline o
+        orçamento nasce ESGOTADO (a ① é o dataset, D90) e nenhuma avaliação real
+        acontece no run — gravar 0.0 ali afirmaria que avaliar custou zero.
+        """
+        if not self._n_avals_cronometradas:
+            return None
+        return self._tempo_aval_real_s
 
     @property
     def records(self) -> list[RealEval]:
@@ -219,7 +238,18 @@ class FEBudget:
                                   x_key=key.hex()[:16])                # A2 (evento)
             raise BudgetExhausted(self.maxfe)
 
+        # [I-02] O CRONÔMETRO DO PORTÃO ÚNICO. `tempo_aval_real_s` era medido à
+        # mão em 5 dos 6 runners Python online, e o `sobol_batch` — o 1/6 que
+        # não media — gravava `0.0` LITERAL: 5/5 células dele na s42 com zero
+        # exato, contra 0 zeros em 416 células alheias, quando o valor real
+        # medido é 4,110 s-VM nas 5 (20,6% do wall, e 57,15% no WFG9). Aqui a
+        # medida nasce no ponto por onde TODA avaliação real do stack Python
+        # passa: um runner novo herda a medição sem lembrar de nada. A DI-12.4
+        # já tinha feito isto no `src/FEBudget.m` (lado MATLAB).
+        _t0_aval = time.perf_counter()
         f = np.asarray(true_f(x), dtype=np.float64).reshape(-1)
+        self._tempo_aval_real_s += time.perf_counter() - _t0_aval
+        self._n_avals_cronometradas += 1
         fe_index = self._fe
         rec = RealEval(solution_id=fe_index, x=x.copy(), f=f.copy(),
                        fe_index=fe_index, fase=self._fase(fe_index))

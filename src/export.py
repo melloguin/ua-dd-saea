@@ -546,7 +546,7 @@ def write_timing(exp: str, alg: str, problema: str, semente,
 # ── Bloco `timing` do MANIFESTO (§17.6 — OBRIGATÓRIO pós-v5.2.1) ─────────────
 
 def manifest_timing_block(*, tempo_total_s: float, tempo_fit_surrogate_s: float,
-                          tempo_busca_s: float, tempo_aval_real_s: float,
+                          tempo_busca_s: float, tempo_aval_real_s: float | None,
                           tempo_pred_sonda_s: float | None = None,
                           casas: int = 4, **extra) -> dict:
     """Monta o bloco `timing` agregado do manifesto (§17.6(1) / CONTRATO §4).
@@ -556,11 +556,20 @@ def manifest_timing_block(*, tempo_total_s: float, tempo_fit_surrogate_s: float,
     sonda (DI-09) — omitido quando o config não tem sonda (os 4 pisos online,
     §R1 da PROPOSTA). `**extra` deixa cada runner anexar o seu desdobramento
     próprio (ex.: `tempo_paths_s` do c154) sem duplicar este helper."""
+    # [I-02] `tempo_aval_real_s` aceita **None** = "não medi", que é DIFERENTE de
+    # 0.0 = "medi e custou zero". O `round(float(...))` tornava o NULL
+    # inexprimível: por isso o `sobol_batch` gravava `0.0` literal e 5 células da
+    # s42 ficaram indistinguíveis de "avaliação instantânea" (o valor real eram
+    # 4,110 s = 20,6% do wall). Os outros 3 tempos seguem obrigatórios (o bloco
+    # `timing` nasceu ZERADO em 10/12 configs — auditoria da torre).
+    def _ou_nulo(v):
+        return None if v is None else round(float(v), casas)
+
     blk = {
         "tempo_total_s": round(float(tempo_total_s), casas),
         "tempo_fit_surrogate_s": round(float(tempo_fit_surrogate_s), casas),
         "tempo_busca_s": round(float(tempo_busca_s), casas),
-        "tempo_aval_real_s": round(float(tempo_aval_real_s), casas),
+        "tempo_aval_real_s": _ou_nulo(tempo_aval_real_s),
     }
     if tempo_pred_sonda_s is not None:
         blk["tempo_pred_sonda_s"] = round(float(tempo_pred_sonda_s), casas)

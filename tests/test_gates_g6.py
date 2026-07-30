@@ -339,6 +339,103 @@ class TestGate3Proveniencia(unittest.TestCase):
         self.assertIn("sem env.executable", det)
 
 
+class TestGate7Contrato61(unittest.TestCase):
+    """G-7: as chaves que o CONTRATO §6.1 promete estão no ⑥ e no ⑤?
+
+    Nenhum gate conferia campo DI-10 de config algum — `auditar.py` não inspeciona
+    o ⑥ e o `accept.py:check_r3_b5` tem 8 itens, todos estruturais. Foi por essa
+    porta que I-05, I-07 e I-03 atravessaram CINCO gates verdes.
+    """
+
+    MIN = ("fe", "f_best", "n_front1", "tempo_fit_s", "tempo_busca_s")
+
+    def _celula(self, dr, *, campos_extra=(), man=None, rec="decision"):
+        p = os.path.join(dr, "x.jsonl")
+        ev = {"ts": "t", "rec": rec, "caminho": "c122_gen:x"}
+        ev.update({c: 1 for c in self.MIN})
+        ev.update({c: 1 for c in campos_extra})
+        with open(p, "w", encoding="utf-8") as fh:
+            fh.write('{"ts":"t","rec":"header","D":30}\n')
+            fh.write(json.dumps(ev) + "\n")
+            fh.write('{"ts":"t","rec":"footer","status":"ok","fe_final":9}\n')
+        return p, (man if man is not None else
+                   {"params": {"N": 11}, "sigma_dict": {"modelo": "x"},
+                    "timing": {"tempo_total_s": 1.0}, "doe_hash": "h",
+                    "campanha_id": "c_1", "repo_hash": "r"})
+
+    def test_celula_completa_passa(self):
+        with tempfile.TemporaryDirectory() as dr:
+            jp, man = self._celula(dr, campos_extra=("n_acordo", "n_desacordo"))
+            ok, det = G.gate_contrato_61("c122", jp, man)
+            self.assertTrue(ok, det)
+
+    def test_campo_di10_ausente_reprova(self):
+        # a assinatura do I-05: `p_wrong_stats` 0/N em 30.165 eventos do b5
+        with tempfile.TemporaryDirectory() as dr:
+            jp, man = self._celula(dr)
+            ok, det = G.gate_contrato_61("b5m", jp, man)
+            self.assertFalse(ok)
+            self.assertIn("p_wrong_stats", det)
+
+    def test_params_ausente_no_quinto_reprova(self):
+        # a assinatura do I-07: 197 células (~32% do grid) sem `params` no ⑤
+        with tempfile.TemporaryDirectory() as dr:
+            jp, man = self._celula(dr, campos_extra=("n_acordo", "n_desacordo"))
+            man.pop("params")
+            ok, det = G.gate_contrato_61("c122", jp, man)
+            self.assertFalse(ok)
+            self.assertIn("params", det)
+
+    def test_n_front1_ausente_reprova_o_sobol_batch(self):
+        # a assinatura do I-03: o único config sem o mínimo comum DI-10
+        with tempfile.TemporaryDirectory() as dr:
+            p = os.path.join(dr, "x.jsonl")
+            with open(p, "w", encoding="utf-8") as fh:
+                fh.write('{"ts":"t","rec":"header"}\n')
+                fh.write('{"ts":"t","rec":"decision","caminho":"sobol_batch_gen",'
+                         '"fe":9,"f_best":[1,2]}\n')
+            ok, det = G.gate_contrato_61("sobol_batch", p, {"params": {}})
+            self.assertFalse(ok)
+            self.assertIn("n_front1", det)
+
+    def test_o_que_NAO_SE_APLICA_nao_vira_falso_vermelho(self):
+        # `tempo_fit_s` nos 4 pisos online é NULL por contrato (DI-13.2: não
+        # treinam) e `n_baseline` no e81 é conceito do qLogNEHVI (P6/DI-16.6).
+        sexto_piso, _, nsa_piso = G.campos_contratados("nsga2")
+        self.assertNotIn("tempo_fit_s", sexto_piso)
+        self.assertIn("tempo_fit_s", nsa_piso)
+        sexto_e81, _, nsa_e81 = G.campos_contratados("e81")
+        self.assertNotIn("n_baseline", sexto_e81)
+        self.assertIn("n_baseline", nsa_e81)
+
+    def test_treed_media_sem_evento_e_NAO_APLICAVEL(self):
+        with tempfile.TemporaryDirectory() as dr:
+            p = os.path.join(dr, "x.jsonl")
+            with open(p, "w", encoding="utf-8") as fh:
+                fh.write('{"ts":"t","rec":"header"}\n')
+                fh.write('{"ts":"t","rec":"footer","fe_final":9}\n')
+            ok, det = G.gate_contrato_61("treed_media", p, {})
+            self.assertIsNone(ok)
+            self.assertIn("não-aplicável", det)
+
+    def test_o_artefato_cobre_os_24_configs(self):
+        import csv
+        art = G._artefato("contrato_61.json")
+        with open(os.path.join(ARTEFATOS, "runs_matrix.csv"), encoding="utf-8") as fh:
+            algs = {r["alg"] for r in csv.DictReader(fh)}
+        self.assertEqual(algs - set(art["configs"]), set())
+
+    def test_as_pendencias_medidas_estao_declaradas(self):
+        # o gate FICA vermelho nestas até a FASE A fechar — e é para isso que
+        # ele existe. O artefato tem de dizer QUAL item resolve cada uma.
+        art = G._artefato("contrato_61.json")["pendencias_medidas"]
+        self.assertIn("p_wrong_stats", art["sexto"]["b5r/b5m/moead_media"]["ausente"])
+        self.assertIn("sobol_batch", art["quinto"]["params"]["configs"])
+        for fam in art["sexto"].values():
+            self.assertTrue(fam.get("item"))
+            self.assertTrue(fam.get("medido"))
+
+
 class TestDiscriminadorO22(unittest.TestCase):
     """B-15: footer ausente ≠ morte de máquina (eram ~270 falsos alarmes)."""
 

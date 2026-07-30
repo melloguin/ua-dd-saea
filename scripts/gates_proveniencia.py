@@ -294,6 +294,70 @@ def gate_gabarito_camadas(exp: str, alg: str, problema: str, semente,
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+#  G-7 · o CONTRATO §6.1 aferido (as chaves do ⑥ e do ⑤ por config)
+# ═══════════════════════════════════════════════════════════════════════════
+
+#: `rec` que NÃO são evento de geração (o G-7 só olha o evento da decisão).
+_RECS_NAO_GERACAO = frozenset({"header", "footer", "guard", "sonda", "timing",
+                               "partial", "retry", "checkpoint"})
+
+
+def campos_contratados(alg: str) -> tuple[set, set, dict]:
+    """(campos do ⑥, campos do ⑤, não-se-aplica) para o config — do artefato."""
+    art = _artefato("contrato_61.json")
+    ent = art["configs"].get(alg, {"di10": [], "nao_se_aplica": {}})
+    nsa = dict(ent.get("nao_se_aplica") or {})
+    sexto = (set(art["minimo_comum_di10"]["campos"]) | set(ent.get("di10") or ())) - set(nsa)
+    return sexto, set(art["quinto_obrigatorio"]["campos"]), nsa
+
+
+def gate_contrato_61(alg: str, caminho_jsonl: str, man: dict,
+                     *, max_linhas: int = 200_000) -> tuple[bool | None, str]:
+    """[G-7] As chaves que o CONTRATO §6.1 promete estão no ⑥ e no ⑤?
+
+    Nenhum gate conferia campo DI-10 de config algum: `auditar.py` NÃO inspeciona
+    o ⑥ (zero ocorrências de `jsonl`/`decision`/`_gen`/`f_best` no arquivo) e o
+    `accept.py:check_r3_b5` tem 8 itens, todos estruturais. Foi por essa porta que
+    I-05 (b5 `p_wrong_stats` 0/N em 30.165 eventos), I-07 (`params` ausente no ⑤
+    de 7 configs, ~32% do grid) e I-03 (`n_front1` do sobol_batch) atravessaram
+    CINCO gates verdes.
+
+    O que NÃO SE APLICA vem declarado no artefato com o motivo (`tempo_fit_s` nos
+    4 pisos online é NULL por contrato — DI-13.2; `n_baseline` no e81 é conceito
+    do qLogNEHVI que o qPOTS não tem — P6/DI-16.6), então o gate não inventa
+    falso-vermelho onde o contrato já disse "aqui não".
+    """
+    sexto, quinto, _nsa = campos_contratados(alg)
+    if not os.path.exists(caminho_jsonl):
+        return None, "⑥ ausente — não-aplicável"
+    vistos: set = set()
+    n_eventos = 0
+    with open(caminho_jsonl, "rb") as fh:
+        for i, raw in enumerate(fh):
+            if i >= max_linhas:
+                break
+            if b'"rec"' not in raw:
+                continue
+            try:
+                rec = json.loads(raw.decode("utf-8", "replace"))
+            except ValueError:
+                continue
+            if not isinstance(rec, dict) or rec.get("rec") in _RECS_NAO_GERACAO:
+                continue
+            n_eventos += 1
+            vistos |= set(rec.keys())
+    if not n_eventos:
+        return None, "⑥ sem evento de geração — não-aplicável (ver mapa_termino)"
+    falta6 = sorted(sexto - vistos)
+    falta5 = sorted(k for k in quinto if man.get(k) in (None, "", {}))
+    det = (f"⑥ {len(sexto) - len(falta6)}/{len(sexto)} campos · "
+           f"⑤ {len(quinto) - len(falta5)}/{len(quinto)} chaves")
+    if falta6 or falta5:
+        det += f" → FALTA ⑥{falta6} ⑤{falta5}"
+    return (not (falta6 or falta5)), det
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 #  B-15 · discriminador O-22 (footer ausente ≠ morte de máquina)
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -353,6 +417,7 @@ def gates_de_proveniencia(exp: str, alg: str, problema: str, semente,
         ("G-3 proveniencia", *gate_proveniencia(man, alg, campanha_id=campanha_id,
                                                 modo=modo)),
         ("G-4 camadas", *gate_gabarito_camadas(exp, alg, problema, semente, raiz)),
+        ("G-7 contrato61", *gate_contrato_61(alg, jp, man)),
     ]
     veredito, det = discriminador_o22(man, jp)
     out.append(("B-15 O-22", veredito != "morte", f"{veredito}: {det}"))

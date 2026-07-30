@@ -604,21 +604,64 @@ class TestG6NaoPerturbacaoPorPar(unittest.TestCase):
             "c122", "c149", "e81", "c154", "c262",
             "b5r", "b5m", "moead_media", "c311", "treed_media"})
 
-    def test_a_flag_existe_no_FONTE_de_cada_runner(self):
-        # fio despachante→runner: uma flag declarada aqui e ausente lá seria um
-        # gate que "passa" sem nunca desligar a sonda.
+    #: alg → (arquivo do runner, função de ENTRADA do dispatch)
+    RUNNERS = {"c122": ("c122_thetadeadp", "run_c122"),
+               "c149": ("c149_lbnmobo", "run_c149"),
+               "e81": ("e81_qpots", "run_e81"),
+               "c154": ("c154_jes", "run_c154"),
+               "c262": ("c262_qnehvi", "run_c262"),
+               "b5r": ("b5_prob", "run_b5"), "b5m": ("b5_prob", "run_b5"),
+               "moead_media": ("piso_offline", "run_moead_media"),
+               "c311": ("c311_tgprmo", "run_c311"),
+               "treed_media": ("treed_media", "run_treed_media")}
+
+    def test_a_flag_esta_NO_ESCOPO_de_cada_sitio_de_emissao(self):
+        """A prova por ESCOPO, não por grep.
+
+        A versão anterior deste teste procurava `f"{flag}: bool = True"` e
+        `f"if {flag}"` no FONTE e passou VERDE enquanto c154/c262 estouravam
+        `NameError: name 'sonda_on' is not defined` no run real: os dois têm
+        `run_*` → `_run_*_body`, a flag estava na assinatura do wrapper e os
+        sítios de emissão vivem no BODY. Grep não vê escopo — é a mesma
+        cegueira da família "kwargs não repassados" (5 bugs históricos).
+        Agora: para CADA função que menciona a flag, ela tem de ser parâmetro
+        DAQUELA função (ou de uma função que a envolve).
+        """
+        import ast
         mod = self._np()
-        arquivo = {"c122": "c122_thetadeadp", "c149": "c149_lbnmobo",
-                   "e81": "e81_qpots", "c154": "c154_jes", "c262": "c262_qnehvi",
-                   "b5r": "b5_prob", "b5m": "b5_prob", "moead_media": "piso_offline",
-                   "c311": "c311_tgprmo", "treed_media": "treed_media"}
         for alg, flag in mod.FLAG_SONDA.items():
+            arq, _entrada = self.RUNNERS[alg]
             with self.subTest(alg=alg):
-                with open(os.path.join(_RAIZ, "src", f"{arquivo[alg]}.py"),
-                          encoding="utf-8") as fh:
-                    src = fh.read()
-                self.assertIn(f"{flag}: bool = True", src)
-                self.assertIn(f"if {flag}", src.replace("if not ", "if "))
+                caminho = os.path.join(_RAIZ, "src", f"{arq}.py")
+                with open(caminho, encoding="utf-8") as fh:
+                    arvore = ast.parse(fh.read(), filename=caminho)
+                usa, declara = set(), set()
+
+                def _params(fn):
+                    a = fn.args
+                    return {x.arg for x in (a.args + a.posonlyargs + a.kwonlyargs)}
+
+                class V(ast.NodeVisitor):
+                    def __init__(self, pilha=()):
+                        self.pilha = pilha
+
+                    def visit_FunctionDef(self, no):
+                        escopo = self.pilha + (_params(no),)
+                        if flag in _params(no):
+                            declara.add(no.name)
+                        for filho in ast.iter_child_nodes(no):
+                            V(escopo).visit(filho)
+
+                    def visit_Name(self, no):
+                        if no.id == flag and isinstance(no.ctx, ast.Load):
+                            usa.add(any(flag in p for p in self.pilha))
+
+                V().visit(arvore)
+                self.assertTrue(declara, f"{arq}: nenhuma função declara {flag}")
+                self.assertNotIn(
+                    False, usa,
+                    f"{arq}: {flag} é LIDA fora do escopo de quem a declara — "
+                    f"é o NameError que o par de runs pegou em c154/c262")
 
     def test_piso_sem_surrogate_e_NAO_APLICAVEL(self):
         # os 4 pisos online e o sobol_batch não têm régua §17.2.2 para desligar

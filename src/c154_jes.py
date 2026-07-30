@@ -568,7 +568,8 @@ def run_c154(exp: str, alg: str, problema: str, semente, *,
     try:
         return _run_c154_body(exp, alg, problema, semente, t0, pinning, env,
                               fused_policy, doe_art, sonda_art, rota, log,
-                              data_root, enable_bucket, max_wall_s, int(q))
+                              data_root, enable_bucket, max_wall_s, int(q),
+                              sonda_on=sonda_on)
     except Exception:
         # D23/D60: parada anômala NUNCA silenciosa — footer failed no jsonl.
         import traceback
@@ -580,7 +581,7 @@ def run_c154(exp: str, alg: str, problema: str, semente, *,
 
 def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                    doe_art, sonda_art, rota, log, data_root, enable_bucket,
-                   max_wall_s, q=1) -> dict:
+                   max_wall_s, q=1, sonda_on=True) -> dict:
     # [T6-batch] orcamento POR EXP (D66): main = 31D-1; batch = 11D-1+200q.
     _D0 = doe_art["X"].shape[1]
     bud = _budget.FEBudget(

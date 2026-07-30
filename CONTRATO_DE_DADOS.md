@@ -130,6 +130,20 @@ espaco_modelo | transf_tipo | transf_params            ← DEF-C3 (cru+transform
 - **Granularidade (DEF-C2):** EA → a população SELECIONADA por geração; BO com EA interno ⟦DI-24: = o **rank-0/front** da população final (o universo real da decisão — `res.X`); precedente aceito c149+e81, cravado nos `sigma_dict`⟧ →
   a população final do otimizador de aquisição por iteração; BoTorch → os candidatos dos
   restarts; offline → a pop-surrogate do MOEA interno, todas as gerações.
+- **⚠ ORDEM DAS LINHAS da ③-online dos BoTorch (c154, c262) — REGRA DE LEITURA
+  ⟦I-12/T11-A1; J27 REFUTADO⟧.** As `R` linhas de uma iteração vêm na ordem dos restarts **com o
+  vencedor REMOVIDO e RE-ANEXADO NO FIM**:
+
+  > `linha j → restart j` (se `j < best`) · `linha j → restart j+1` (se `j ≥ best`) ·
+  > `linha R−1 → best`, com `best = argmax isfinite(acqf_todos_restarts)`.
+
+  Casar linha↔restart por índice ingênuo conclui *"mismatch em **89%** das iterações"* — e a
+  conclusão é do LEITOR, não do dado. Com a regra, os **76.535 + ~5,2e5** linhas de pool da
+  família BoTorch ficam auditáveis (levanta o teto da query-joia). O utilitário
+  `restart_de_linha(R, best)` é a forma executável da regra. **A regra NÃO se estende a q>1**
+  (`src/c154_jes.py:720-736`, `:810-830`): no lote a ③ segue outra montagem — se o batch voltar,
+  a regra tem de ser re-derivada, não presumida. Controle: a ③ do **e81** é alinhável por
+  `idx_escolhidos` e NÃO precisa desta regra.
 - **Espaços (DEF-C3):** onde o modelo opera transformado (b1 tcheby, c238 minmax, e7 translação,
   e103/c149 z/…): gravam-se os DOIS espaços + parâmetros por iteração (`transf_*`) — a análise
   não inverte nada.

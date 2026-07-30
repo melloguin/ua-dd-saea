@@ -213,6 +213,7 @@ def _sigma_dict() -> dict:
     """`sigma_dict` (DEF-C4) — o dicionário semântico da ③ do c154, LEITURA
     OBRIGATÓRIA antes de usar a tabela (CONTRATO §3/R4 regra 3)."""
     return {
+        "ordem_terceira_online": "[I-12] as R linhas de uma iteracao vem na ordem dos restarts com o VENCEDOR removido e re-anexado NO FIM: linha j -> restart j (j<best) | j+1 (j>=best); linha R-1 -> best, com best=argmax isfinite(acqf_todos_restarts). Casar por indice ingenuo da 89% de falso-mismatch (J27 REFUTADO). Utilitario: botorch_harness.restart_de_linha(R, best). NAO vale para q>1",
         "pred_tipo": "valor (regressor probabilístico)",
         "modelo_flag": "GP = SingleTaskGP por objetivo (ModelListGP), o modelo "
                        "PRINCIPAL — não os caminhos de Matheron do JES",
@@ -531,6 +532,22 @@ def _lote_greedy_sequencial_jes(acqf, D: int, log, it: int, q: int):
     return passos
 
 
+def _params_efetivos(q, num_restarts, raw_samples) -> dict:
+    """[I-07/A1] A config EFETIVA — fonte ÚNICA do `params` do header do ⑥
+    E do ⑤. Duplicar o literal nos dois lugares é como o `q` do batch
+    divergiu na rodada-42 (⑤ dizia 1, header dizia 10 — I-10)."""
+    return {"S": NUM_PARETO_SAMPLES, "P": NUM_PARETO_POINTS,
+            "estimation_type": ESTIMATION_TYPE,
+            "rs_ladder": list(RS_FALLBACK_LADDER),
+            "nsgaii_pop": NSGAII_POP, "nsgaii_gen": NSGAII_GEN,
+            "num_restarts": num_restarts,        # 5D/1000D no q=1;
+            "raw_samples": raw_samples,          # reduzido no batch (T9)
+            "q": int(q), "refit": "from-scratch/iter (D44)",
+            "kernel": "Matern-5/2-ARD gamma-prior (D30)",
+            "acqf": "qLBMOJES-LB L.11",
+            **ACQF_OPTIONS_STATIC}
+
+
 def run_c154(exp: str, alg: str, problema: str, semente, *,
              sonda_on: bool = True,
              data_root: str = naming.DEFAULT_DATA_ROOT,
@@ -606,17 +623,7 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                          "com ref interno -1e10 do helper oficial"),
                sonda=_sonda_header(sonda_art),
                sigma_dict=_sigma_dict(),
-               params={"S": NUM_PARETO_SAMPLES, "P": NUM_PARETO_POINTS,
-                       "estimation_type": ESTIMATION_TYPE,
-                       "rs_ladder": list(RS_FALLBACK_LADDER),
-                       "nsgaii_pop": NSGAII_POP, "nsgaii_gen": NSGAII_GEN,
-                       "num_restarts": num_restarts,        # 5D/1000D no q=1;
-                       "raw_samples": raw_samples,          # reduzido no batch (T9)
-                       "q": int(q), "refit": "from-scratch/iter (D44)",
-                       "kernel": "Matern-5/2-ARD gamma-prior (D30)",
-                       "acqf": "qLBMOJES-LB L.11",
-                       **ACQF_OPTIONS_STATIC})
-
+               params=_params_efetivos(q, num_restarts, raw_samples))
     # (1) init: os 11D−1 pontos do DoE, NATIVOS, pelo wrapper (fase init).
     X0 = doe_art["X"]
     for i in range(X0.shape[0]):
@@ -936,6 +943,8 @@ def _run_c154_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
         # [DI-43] truncamento-com-dado: teto fecha `failed` COM as camadas.
         status=("failed" if truncou_por_teto else "ok"),
         motivo_parada=("teto_wall" if truncou_por_teto else None),
+        # [I-07/A1] a config EFETIVA no ⑤ (CONTRATO §5) — a MESMA do header do ⑥
+        params=_params_efetivos(q, num_restarts, raw_samples),
         data_root=data_root, enable_bucket=enable_bucket)
     out["manifest"]["checkpoint"] = ckpt.resumo()
     out["manifest"]["fused_kernel"] = fused_policy["fused_kernel"]

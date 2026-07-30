@@ -69,6 +69,7 @@ import json
 import os
 import platform
 import random
+import sys
 import time
 from contextlib import contextmanager
 
@@ -148,6 +149,13 @@ def env_info() -> dict:
             "Pára-e-loga (D81).")
     return {
         "python": platform.python_version(),
+        # [G-3/I-09] O INTÉRPRETE que rodou — o `standalone_harness.env_info`
+        # (:212) já o gravava e o lado BoTorch não: sem ele o gate de
+        # proveniência não tem como afirmar que a célula correu no venv do
+        # roster (`envs.json:venvs_aceitos`), e é o roteamento por venv que
+        # impede o desastre silencioso do N.1.2. A quimera do c149 só pôde ser
+        # DIAGNOSTICADA porque o ⑤ dela declarava o intérprete.
+        "executable": sys.executable,
         "numpy": np.__version__,
         "scipy": scipy.__version__,          # L.18 (fonte de não-repro bit-a-bit)
         "pymoo": pymoo.__version__,
@@ -156,6 +164,26 @@ def env_info() -> dict:
         "botorch": botorch.__version__,      # N.2.3: exige o OFICIAL
         "botorch_record_sha256": _botorch_record_sha256(),
     }
+
+
+def restart_de_linha(n_linhas: int, best: int) -> list[int]:
+    """[I-12] Qual RESTART é cada linha da ③-online de uma iteração BoTorch.
+
+    A ③ vem na ordem dos restarts com o VENCEDOR removido e re-anexado no fim:
+    `linha j → restart j` (j < best) · `→ restart j+1` (j ≥ best) ·
+    `linha R−1 → best`. Casar por índice ingênuo conclui "mismatch em **89%** das
+    iterações" — e a conclusão é do LEITOR, não do dado (J27 REFUTADO).
+
+    ⚠ Vale para **q=1**. No lote (`c154_jes.py:720-736`, `:810-830`) a montagem
+    é outra: se o batch voltar, a regra tem de ser RE-DERIVADA, não presumida.
+    """
+    R = int(n_linhas)
+    best = int(best)
+    if R <= 0:
+        return []
+    if not (0 <= best < R):
+        raise ValueError(f"best={best} fora de [0,{R})")
+    return [(j if j < best else j + 1) for j in range(R - 1)] + [best]
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -673,6 +701,7 @@ def write_run_outputs(exp: str, alg: str, problema: str, semente,
                       timing_totais: dict, regime: str = "online",
                       status: str = "ok",
                       motivo_parada: str | None = None,
+                      params: dict | None = None,
                       q: int = 1,
                       data_root: str = naming.DEFAULT_DATA_ROOT,
                       enable_bucket: bool = False) -> dict:
@@ -716,6 +745,13 @@ def write_run_outputs(exp: str, alg: str, problema: str, semente,
     man["cache_hits"] = bud.cache_hits                    # D89 (informativo)
     if motivo_parada is not None:
         man["motivo_parada"] = motivo_parada
+    # [I-07] `params` = a CONFIG EFETIVA do algoritmo. O CONTRATO §5 a lista como
+    # obrigatória e o stack BoTorch a gravava SÓ no header do ⑥: medido na s42,
+    # 24 células de c262 + 13 de c154 sem a chave no ⑤ (com o roster completo,
+    # 750+750 = 1.500 células violando o §5). Quem lê a tabela de execuções não
+    # tem por que abrir o ⑥ de 40 MB para saber com que num_restarts o run correu.
+    if params is not None:
+        man["params"] = params
     _manifest.write_manifest(man, data_root)
 
     upload_status = None
@@ -990,6 +1026,7 @@ def _run_stubpy_body(exp, alg, problema, semente, t0, pinning, env,
 
 
 __all__ = [
+    "restart_de_linha",
     "D79_THREAD_VARS", "DEVICE", "STUBPY_ALG_ID",
     "pin_runtime", "env_info",
     "iteration_seed", "torch_seed_for",

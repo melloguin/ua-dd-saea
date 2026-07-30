@@ -149,6 +149,7 @@ def _sigma_dict() -> dict:
     """`sigma_dict` (DEF-C4) — o dicionário semântico da ③ do c262, LEITURA
     OBRIGATÓRIA antes de usar a tabela (CONTRATO §3/R4 regra 3)."""
     return {
+        "ordem_terceira_online": "[I-12] as R linhas de uma iteracao vem na ordem dos restarts com o VENCEDOR removido e re-anexado NO FIM: linha j -> restart j (j<best) | j+1 (j>=best); linha R-1 -> best, com best=argmax isfinite(acqf_todos_restarts). Casar por indice ingenuo da 89% de falso-mismatch (J27 REFUTADO). Utilitario: botorch_harness.restart_de_linha(R, best). NAO vale para q>1",
         "pred_tipo": "valor (regressor probabilístico)",
         "modelo_flag": "GP = SingleTaskGP por objetivo (ModelListGP)",
         "mu_j": "média do posterior do GP do objetivo j, em f de MINIMIZAÇÃO "

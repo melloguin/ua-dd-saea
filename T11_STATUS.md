@@ -59,9 +59,45 @@
         junto com a DI-43 (era `assertTrue(over)` na projeção) → `..._segue_sendo_CALCULADA`
       · ⚠ FALTA (fase A): validar numa célula D≥12 real do c154 que ela morre às 12 h COM
         camadas parciais (A1) e o probe de RAM do c262-batch (A4) — precisam de máquina
-- [ ] G6 · gates G-1..G-9 + motivos_parada.json + mapa_termino.json + gabarito_camadas.json + B-12/13/14/15 + suíte hermética (D-03)
+- [~] G6 · gates G-1..G-9 + motivos_parada.json + mapa_termino.json + gabarito_camadas.json + B-12/13/14/15 + suíte hermética (D-03) — `f5b172c` + `789900e` (2026-07-29)
+      · **suíte 516 testes, 0 FALHAS** (a ambiental D-03 morreu no G6.7) · +43 testes novos
+      · FEITO: 3 artefatos (`motivos_parada` B-06 · `mapa_termino` I-08 · `gabarito_camadas` G-4)
+        · `envs.json` +`venvs_aceitos` (o roster que o G-3 exigia e não existia)
+        · `scripts/gates_proveniencia.py` = G-1 3×1 (porte do f5) · G-2 ⑥ · G-3 · G-4 · B-15
+        · ligado no `portao.py` (com marca ⚠ p/ INCONCLUSIVO — nunca verde, lição do B-07)
+        · B-06 fonte única nos 3 sítios (portao/accept/censo42) · **B-12** (9 drivers no git +
+          preflight anti-forasteiro) · **B-13(b)/G-8** (guarda de suíte) · **B-14/G-5** (rtol 1e-4)
+        · **G6.7** suíte hermética (D-03 com lib/rede simuladas + o caminho blob-presente)
+      · ⚠ **FALTA no G6** (próxima sessão): **G-6** não-perturbação por par de runs (flag
+        `--sem-sonda`; precisa RODAR 21 pares) · **G-7** contrato §6.1 aferido por teste (exige
+        a tabela §6.1 em artefato machine-readable) · **G-9** content-hash na propagação
+        (rito F4/`coletar42.sh`)
+      · ⚠ AÇÃO DO AUTOR: o preflight agora acusa **58 manifestos de OUTRA MÁQUINA** em
+        `data/experiments` (as células que voltaram das VMs por rsync). Já estão no bucket e em
+        `resultados_experimentos` — o disco local tem de partir limpo antes do disparo
 - [ ] G7 · cronômetro tempo_aval (I-02) + export NULL + repo_hash no ⑤ (I-09)
-- [ ] 🏁 MARCO G · re-gate das 666 ⇒ exatamente 1 quimera + 34 anômalas → **ONDA-0 LIBERADA: c149 · e81 · e7 · c238 · b3 · c141 · b1 · nsga2 · nsga3 · moead · smsemoa · treed_media**
+- [~] 🏁 MARCO G · re-gate das 666 ⇒ exatamente 1 quimera + 34 anômalas → **ONDA-0 LIBERADA: c149 · e81 · e7 · c238 · b3 · c141 · b1 · nsga2 · nsga3 · moead · smsemoa · treed_media**
+      · **RE-GATE RODADO (2026-07-29)** sobre as 666 células oficiais de
+        `~/Documents/python_repos/mestrado/resultados_experimentos`:
+        - **G-1 3×1: 360 aplicáveis · 359 OK · 1 falha** — IDÊNTICO ao placar da F5
+        - **a quimera:** `c149/q10_ZDT4`, 0/2000 bit-idênticos, `max|ΔX| = 9,99983` (a F5 mediu
+          9,999830) — reproduzida ao dígito
+        - **G-2: os 11 que o plano manda acusar** (9 sem footer + 1 com 3 + 1 com 95 pares)
+          **+ 4 e103 com linha malformada** = 15 células
+        - **B-15: 21 footer-faltante** (12 com 1 footer + 9 com zero) reclassificadas —
+          é exatamente o número que o B-15 mede
+      · ⚠ **DECISÃO PENDENTE DO AUTOR (D81):** o critério "1 quimera + **34** anômalas" NÃO é
+        reproduzível como escrito, e a razão é uma tensão DENTRO do plano: as 21 células
+        "footer faltante" que compõem a maior parte das 34 são justamente as que o **B-15 manda
+        NÃO acusar** (~270 falsos alarmes/campanha) e que o §4-item-9 declara "aprovadas
+        cientificamente, reprovadas no contrato §6". Aritmética medida nas 666: 12 (1 footer onde
+        o despachante daria 2) + 9 (zero footer) + 6 (linha malformada) + 1 (95 headers) + 1
+        (footer a mais) = **27 células distintas** (2 caem em 2 famílias). **Nenhuma família de
+        anomalia ficou sem detecção** — a diferença é contabilidade, não cobertura.
+        **Placar proposto:** 1 quimera + **15 anômalas** + 21 `footer_faltante` contadas e não
+        vermelhas. Aguarda ratificação
+      · ⚠ FALTA p/ liberar a Onda-0: preflight 0 (as 58 forasteiras acima) + G7 (o `repo_hash`
+        do G-3 em modo campanha) + smoke 24/24
 
 ## FASE A — por algoritmo (cada ☑ = DEFINITIVO ✅ = autor pode disparar em escala)
 - [ ] A1 · c154 (herda G5; validar teto D≥12 com camadas; params ⑤; doc I-12)

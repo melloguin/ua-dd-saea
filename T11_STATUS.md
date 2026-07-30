@@ -68,6 +68,16 @@
         · B-06 fonte única nos 3 sítios (portao/accept/censo42) · **B-12** (9 drivers no git +
           preflight anti-forasteiro) · **B-13(b)/G-8** (guarda de suíte) · **B-14/G-5** (rtol 1e-4)
         · **G6.7** suíte hermética (D-03 com lib/rede simuladas + o caminho blob-presente)
+      · ✅ **G-6 · 10 de 11 PARES PYTHON PROVADOS** — o b5m fechou em 2026-07-30:
+        `① BIT-IDÊNTICA com e sem sonda (sha256 bcda99b31dfb2c35)`. O hash bate com o ① da
+        prova I-05 rodada em worktree separado — cruzamento independente
+      · ✅ **GÊMEO MATLAB DA FLAG** (`4126b78`): `UA_DD_SAEA_SONDA_OFF` lido no construtor do
+        `SondaState`, que se DESARMA. O gate sai de **10 para 19 configs**. DESARMAR e não
+        SUMIR porque `build_manifest` lê `snd.n_blocos` direto e `[].n_blocos` é erro — com o
+        objeto vivo o manifesto declara `desligada=true` e a sonda nunca some calada.
+        Os **4** caminhos até o `fire` têm guard (`due`, `probeOffline`, `finalProbe`,
+        `probeEstratificada`) — só a cadência deixaria o bloco final e o offline dispararem
+      · ⚠ FALTA (máquina): rodar `naoperturbacao.py <alg> --par` nos 9 configs MATLAB
       · **G-7 FEITO** (`5b6df3e`): `artifacts/contrato_61.json` (extração + CURAÇÃO contra a
         medição — 3 falsos-positivos removidos: `n_baseline` do e81 que o §6.1 cita para NEGAR,
         `solution_id` do b4 que é `ref_ids`, `tempo_fit_s` dos pisos que é NULL por contrato) +
@@ -151,7 +161,16 @@
       · I-05: acumulador P_wrong no VENDORIZADO (âncora `b5-pwrong-stats` + re-lacre) +
         `p_wrong_stats`/`n_substituicoes`/`flag_vetores_degenerados` no ⑥
       · `params` no ⑤ dos 3 · granularidade_③ no sigma_dict dos 3 (I-04)
-      · ⏳ FALTA: a prova ①③⑦ byte-idênticas com×sem o patch (rodando; o b5m leva ~22 min/run)
+      · ✅ **PROVA I-05 PASSOU** (`27ef86d`, 2026-07-30): ①③⑦ **BYTE-IDÊNTICAS** com × sem o
+        patch vendorizado. STOCK (`b74c620~1`, 0 ocorrências) × COM (2 ocorrências), cada perna
+        no SEU worktree isolado — a árvore principal nunca foi tocada:
+        ① `bcda99b31dfb2c35` · ③ `17b6f9b68a6675fb` · ⑦ `cc06fcfa61e5a582` nos DOIS lados
+      · ✅ **CUSTO MEDIDO, e a minha alegação anterior era FALSA (ERRATA 9)**: COM 2.781 s ×
+        STOCK 2.810 s — o patch é até marginalmente mais rápido. Eu havia atribuído a ele um
+        wall de 43 min ("2,5× de lentidão") e reescrito o acumulador em O(1) por causa disso;
+        microbenchmark isolado (100k chamadas, array de 20) deu 30,5 µs × 7,1 µs por chamada
+        ⇒ ~1,9 s por run, NÃO 23 min. Caiu o motivo, a reescrita foi **REVERTIDA** para a
+        versão planejada (que preserva a MEDIANA) e o lacre voltou a bater sem artefato novo
 - [x] A4 · c262 — `52befff` (2026-07-30) · `ACQF_HP` (os 8+2 do T1) como fonte única do
       `_make_acqf`/header/⑤ · `params` no ⑤ · `fit_retries>0` vira guard amarelo
       · ⚠ FALTA (máquina): o PROBE DE RAM do batch → `--n-jobs` no RUNBOOK
@@ -178,23 +197,158 @@
       `preserve_all_rng`) + ligado no **c122**
       · **PREVALÊNCIA 7,4% no bloco contra 0,4% da régua = 18× mais positivos**
       · regimes separados na ③: 44.000 sonda · 10.500 estratificada · 3.632 busca
-      · ⚠ FALTA: os 3 classificadores MATLAB (b4, c217, e74) — gêmeo MATLAB do mecanismo
+      · ✅ **GÊMEO MATLAB FEITO** (`9a53a51`, 2026-07-30): `SondaState.probeEstratificada` +
+        `manifestBlockEstrat`/`takePendingTimeEstrat` (contadores SEPARADOS da régua) +
+        `FEBudget.arquivoX()` + fiação em b4/c217/e74 sob `snd.due(g)`, depois da régua
+      · 2 armadilhas minhas, pegas ANTES do commit: (i) o derivador de semente era FNV-1a em
+        `uint64` e MATLAB **satura** em vez de dar wrap ⇒ TODA geração receberia a mesma
+        semente (controle numérico: 1 valor distinto em 8). Trocado por MINSTD, cujo produto
+        `(2^31−2)·16807 ≈ 3,6e13 < 2^53` é exato em double — 0 colisões em 1.600 pares;
+        (ii) eu ia usar `Problem.CalObj` para a prevalência, mas o `UserProblem` é construído
+        com `evalFcn` e SEM `objFcn` ⇒ cairia no stub da PROBLEM base e devolveria ZEROS,
+        dando prevalência 1,0 falsa e silenciosa
+      · DIVERGÊNCIA DELIBERADA: sem `true_f` no MATLAB — a ponte Python custa 1 round-trip
+        POR PONTO (500 × ~200 sondas ≈ 100 mil por run) para um agregado que a análise
+        recompõe EXATO do X da ③ (doutrina I-12). `prevalencia_nd_no_bloco` sai NaN por desenho
+      · ⚠ FALTA (máquina): o gate G-6 de não-perturbação em b4/c217/e74 antes do carimbo
+
+## 🔍 RODADA DE VALIDAÇÃO CRUZADA (2026-07-30, tarde) — auditoria de STALENESS
+
+> **Por que existe.** O autor levantou a pergunta certa: *"houve algoritmo testado ANTES do
+> seu estado de código final?"* — isto é, testamos, e depois mexemos num arquivo que aquele
+> algoritmo usa. Um teste verde sobre código que mudou depois não vale nada, e nenhum gate
+> desta campanha media isso.
+
+**Método.** Fecho de imports por config (AST sobre `src/*.py`, recursivo) × `git log -1` por
+arquivo × horário de cada teste. Nada de memória de sessão — só timestamp contra timestamp.
+
+**Resultado — eixo SMOKE:** ✅ **0 stale.** Os 11 configs Python foram testados entre 11:10 e
+11:43; a última mudança em qualquer dependência deles foi às **10:02** (`27ef86d`).
+
+**Resultado — eixo PAR G-6:** 🔴 **9 de 10 STALE.**
+
+| | |
+|---|---|
+| os 9 pares foram provados até | **30/07 00:18:27** (`dca0e37`) |
+| `src/standalone_harness.py` (dependência de TODOS) mudou em | **30/07 08:12:50** (`b74c620`) |
+| defasagem | **~8 horas** |
+
+Atenuante MEDIDO: o diff é `115 insertions, **0 deletions**` — puramente aditivo (constantes
++ funções novas da sonda estratificada); nada existente foi modificado. Mas o **c122 é caso
+à parte**: o mesmo commit fiou o bloco estratificado **dentro do laço de busca dele**.
+
+**RE-PROVA (em série, um processo por vez):**
+
+| config | ① sha256 | veredito |
+|---|---|---|
+| **c122** | `be06b54124e9c100` | ✅ BIT-IDÊNTICA — **e é o MESMO hash da prova de ontem** (linha 94), ou seja a sonda estratificada NÃO perturbou a busca |
+| c311 | `07530706e23cdddd` | ✅ BIT-IDÊNTICA |
+| treed_media | `dd03ee216118d017` | ✅ BIT-IDÊNTICA |
+| e81 · c262 · moead_media · c154 · b5r · c149 | — | ⏳ interrompidos pelo autor p/ entrar junto com o lote de correções |
+| b5m | `bcda99b31dfb2c35` | ✅ já era pós-mudança (12:11) |
+
+**CLASSIFICAÇÃO DAS MUDANÇAS — o que pode alterar RESULTADO, e o que já está provado:**
+
+| mudança | pode alterar? | prova |
+|---|---|---|
+| **e74 · fix DI-45** | **SIM — intencional** (autor aprovou) | ⏳ gate ±3σ + `n_desalinhado→~0` (máquina do autor) |
+| **b5 · acumulador vendorizado** | poderia (código DENTRO do algoritmo) | ✅ ①③⑦ byte-idênticas stock × patch, worktrees isolados |
+| **A11 · sonda estratificada (c122)** | poderia (RNG + roda no laço) | ✅ ① idêntica à de antes do A11 |
+| **G5 · checkpoint periódico** | poderia (escreve no meio do run) | ✅ `test_checkpoint_nao_muda_o_resultado` **com controle** provando que o checkpoint rodou |
+| flag `sonda_on` / `UA_DD_SAEA_SONDA_OFF` | não, quando ligada (default) | ✅ é o próprio par G-6 |
+| G1–G4, G7, instrumentação I-xx | não tocam a busca | ✅ construção + pares |
+
+**ERRATA 11 — a tabela de `params` da s42 engana.** Medir `params` no ⑤ dos manifestos da
+rodada-42 mostra "SEM params" em b5m/b5r/c154/c262/c217/moead_media/sobol_batch — mas isso é
+**dado PRÉ-T11**, gerado antes de o I-07 existir. O que vale é o que o código de HOJE emite,
+medido nos smokes: **9 de 10 configs Python gravam `params`; falta em UM — `sobol_batch`.**
+
+**O QUE UM SMOKE PROVA, E O QUE NÃO PROVA.** Prova: o config roda ponta a ponta, escreve as
+camadas contratadas, o ⑤ traz `campanha_id`/`repo_hash`/schema v2, o ⑥ tem header+footer sem
+linha malformada, a proveniência fecha. **É verificação de ENCANAMENTO.** NÃO prova correção
+numérica, fidelidade ao artigo nem que a busca faz o que deveria — um algoritmo pode estar
+profundamente errado e passar nos 6 portões. Cobertura atual: **11 de 24 configs**, 6 deles
+inteiramente verdes, 3 com inconclusivo esperado, 2 com achado aberto, **13 sem cobertura**.
+
 
 ## FASE V — verificações & re-runs
 - [x] V1 · VD b1-torneio + VD b3-índice — `ca157d8` (2026-07-30) ·
       `handoff/T11-V1-verificacoes-dirigidas.md`
       · **VD-b1 🔴 CONFIRMADO:** o torneio ranqueia pelo PCheby do SUBCONJUNTO e indexa o
         `Dec` INTEIRO — **93,0% de 8.443 gerações**, mediana **44,9%** da população
-        inalcançável, 25/28 células. MESMA CLASSE do DI-45 ⇒ **decisão de fidelidade do autor**
+        inalcançável, **28/28** células com ≥1 geração afetada (24 com a maioria)
+      · ⚠ **ERRATA 10 — eu SUPERESTIMEI este achado.** Lendo o `EvolALG` até o fim: o torneio
+        defeituoso constrói APENAS a metade-crossover da PRIMEIRA geração interna do GA de
+        aquisição; da 2ª em diante os domínios CASAM (`EvolALG.m:65`). Medido: o ramo é
+        **3,87%** dos 87,77 M candidatos scorados, e o infill veio da 1ª geração interna em
+        **12,19%** dos ciclos ⇒ o torneio é **INERTE em ~93,9%**. Concentrado: BBOB_F37 62,7%
+        e BBOB_F49 61,3%
+      · ⚠ **E eu classifiquei ERRADO.** A SPEC já tem este item como **🟠 IMPL → CÓDIGO,
+        documentado** (`SPEC:434` cita "torneio do b1" pelo nome; `SPEC:500` o lista entre as
+        divergências periféricas mantidas no CÓDIGO, D30/D47), e o `EvolALG.m:9-10` registra a
+        decisão anterior "o bug do torneio (:16) fica (CODIGO K.3)". Marcá-lo 🔴 disparou um
+        D81 sem motivo e reabriu decisão FECHADA. **Retirada a proposta de conserto: nada muda.**
+        A bússola da SPEC distingue os casos — o GA interno do b1 é periférico ao mecanismo que
+        a tese mede; a seleção do e74 (DI-45) É o mecanismo
       · **VD-b3 🔴 estrutural:** `Next` mistura domínios de índice no ramo 1; `nzero=0` em
         1.619/1.619 não discrimina o ramo ⇒ instrumentar `size(Via,1)`/`NI−mu` (~2 linhas)
 - [ ] V2 · re-runs s42: c311/big-mvns + b1/WFG1 · quimera c149 (rota A0→Mac) · ⑦ e103→bucket · ~29 não-ok no regime novo
 - [~] V3 · lote de docs — `66195cf` (2026-07-30) · **PARTE A36** no REGISTRO (execução do T11 +
       as 8 ERRATAS + os 6 contratos novos) · nº da DI-40 corrigido nos 2 pontos (1,47 h medido) ·
       RUNBOOK: rito NOVO do teto (truncamento-com-dado) + seção do `campanha_id` + números
-      · ⚠ FALTA: cards/INDEX · SPEC L.8 do e74 pós-fix · D7/iteration_seed na SPEC §D62 (a SPEC
-        é TERRITÓRIO DA TORRE — RI-12 — então deixei para o autor)
+      · ✅ **PARTE A37** (`8123e92`): ERRATA A30 MEDIDA (c122 grava `fe` — 3.981 eventos com,
+        0 sem; a DI-42 dizia o contrário) · **R4#10** virou a regra **11** do CONTRATO
+        (dominância sobre ① ou ⑦ é LOSSY: `f0`/`f1` são float32 nas duas camadas, medido com
+        `read_schema`) · regra **12** nova (bloco estratificado NUNCA na mesma análise que a
+        régua) · `lnum` do c217 medido (`lote` = {1: 9.013, **3: 1**, 6: 64} — o lote 3 existe,
+        mas `|Pmid|`/`|Pbest|` NÃO são logados ⇒ não resolvível pelo dado da s42)
+      · ✅ **cards/INDEX**: 3 cartões estavam ⬜ desde o fim da R3 e os configs rodaram — status
+        virado CONTRA O DADO (48 b5m · 49 b5r · 58 c311 · 48 moead_media com ⑤) + seção de
+        campanhas (F5 ✅ · T10 ⏸ · T11 🟡)
+      · ⚠ FICA COM A TORRE (RI-12): SPEC L.8 do e74 pós-fix · D7/`iteration_seed` na SPEC §D62
+      · ⚠ NÃO MEXI, de propósito: o "~min-1h" do RUNBOOK **já estava certo** (`RUNBOOK:264`
+        traz o medido 0,87–2,99 h/célula, média 1,47 h)
 
 ## ACEITAÇÃO FINAL
-- [ ] Suíte ≥410, 0 falhas · preflight 0 · re-gate 666 = 1+34 · smoke 24/24 · kill-test ✓ · handoffs escritos
+- [~] Suíte ≥410, 0 falhas · preflight 0 · re-gate 666 = 1+34 · smoke 24/24 · kill-test ✓ · handoffs escritos
+      · ✅ **suíte 613 testes, 0 falhas** (era 394 no início da campanha; +219)
+      · ✅ kill-test do checkpoint (G5) verde
+      · ⚠ preflight: **1 pendência** — os 58 manifestos forasteiros (é item do AUTOR: as
+        células que voltaram das VMs por rsync; já estão no bucket e o disco local tem de
+        partir limpo)
+      · ⚠ re-gate: **1 quimera + 15 anômalas + 21 `footer_faltante`** — o "34" do plano NÃO
+        se reproduz (ERRATA 4); as 21 são exatamente as que o **B-15 manda não acusar**.
+        Placar RATIFICADO pelo autor em 2026-07-30
+      · 🟡 **SMOKE 11 de 24** — os 11 configs PYTHON, 1 célula real cada, em tempdir:
+        | config | s | portão |
+        |---|---|---|
+        | c154 | 98,1 | ✅ verdes |
+        | c122 | 50,4 | ✅ verdes |
+        | c262 | 34,8 | ✅ verdes |
+        | c149 | 251,1 | ✅ verdes |
+        | e81 | 23,5 | ✅ verdes |
+        | b5m | 2.781 | ✅ (as 2 pernas do I-05) |
+        | b5r | 172,1 | ⚠ G-1 inconclusivo (③ sem linha marcada) |
+        | c311 | 26,0 | ⚠ G-1 inconclusivo |
+        | treed_media | 27,9 | ⚠ G-1 + G-7 inconclusivos |
+        | moead_media | 56,8 | 🔴 G-7: ⑥ sem `p_wrong_stats` |
+        | sobol_batch | 1,7 | 🔴 G-7: ⑤ sem `params` |
+      · ⚠ **NOTA DE MÉTODO — a 1ª tentativa destes smokes foi INVÁLIDA e está registrada
+        para não se repetir.** Rodei os 10 num `ThreadPoolExecutor` (4 threads, 1 processo).
+        Os tempdirs eram isolados, o **estado global do torch não**: `c122_thetadeadp.py:192`
+        põe `set_default_dtype(float32)` e `botorch_harness.py:112` põe `float64`, e em
+        threads concorrentes um sobrescreve o outro no meio do forward — o c122 morreu com
+        `mat1 and mat2 must have the same dtype`. **Não era bug do c122.** O `envs.json` crava
+        a regra violada: *"dispatch: subprocess no python do venv-alvo (D79); 1 run = 1 core"*.
+        Os 5 configs de venv PRÓPRIO (b5r, moead_media, c311, treed_media, e81) rodaram em
+        subprocess e valem; os 5 do `env_main` foram refeitos **EM SÉRIE**, um processo por vez
+      · ⏳ FALTA: os **13 smokes MATLAB** (máquina do autor)
+- [ ] 🗳 **DECISÕES DO AUTOR abertas pelos gates** (D81 — reportado, NÃO implementado):
+      · `sobol_batch` sem `params` no ⑤: a lacuna é REAL (reproduzida isolada), mas a
+        exigência é regra GLOBAL do gate, ancorada no `CONTRATO_DE_DADOS.md:26`; o **I-07 do
+        plano nomeia só 5 configs** e sobol_batch não está entre eles. Preencher = implementar
+        fora do plano
+      · `moead_media` sem `p_wrong_stats` no ⑥: o moead_media é a **ABLAÇÃO sem a maquinaria
+        probabilística** (mode 12), então pode ser falso-positivo do MEU `contrato_61`, da
+        família da ERRATA 6 — a conferir antes de qualquer conserto
 - [ ] AUTOR: tag `t11-definitivo` + push · fila de infra D10 (envs Linux · lib gcs env_c311 · pins · datasets 29 sementes · SUB-varN) · DISPARO

@@ -154,10 +154,15 @@ class TestDesarmeNoSondaState(unittest.TestCase):
 
     def test_controle_a_versao_anterior_REPROVA(self):
         """CONTROLE MEDIDO: sem ele a checagem estrutural não prova nada."""
-        r = subprocess.run(["git", "-C", RAIZ, "show", "HEAD:src/SondaState.m"],
-                           capture_output=True, text=True)
+        # Commit ANTERIOR ao desarme (`4126b78`). FIXO de propósito — e é a
+        # SEGUNDA vez nesta campanha que eu erro isto: a 1ª versão apontava para
+        # `HEAD`, que virou o próprio commit do desarme, então o "controle"
+        # continha os guards e passava. Referência móvel não é controle.
+        r = subprocess.run(
+            ["git", "-C", RAIZ, "show", "4126b78~1:src/SondaState.m"],
+            capture_output=True, text=True)
         if r.returncode != 0:
-            self.skipTest("HEAD indisponível neste clone")
+            self.skipTest("4126b78~1 indisponível neste clone")
         self.assertEqual(
             _caminhos_desarmados(r.stdout), set(),
             "o CONTROLE passou: a versão anterior (sem desarme) foi aceita, "

@@ -150,21 +150,62 @@ class TestD12FinalNoResume(unittest.TestCase):
 
 
 class TestD03BucketFallbackFalhaFechado(unittest.TestCase):
-    def test_camada_ausente_sem_gcs_e_nao_pronto(self):
-        """c154 (bucket-only na ③) com a ③ removida: no Mac (sem lib/rede) o
-        fallback tem de FALHAR FECHADO — False, nunca um falso 'pronto'."""
+    """[G6.7 · suíte HERMÉTICA] Estes testes NÃO falam com a rede.
+
+    A versão anterior de `test_camada_ausente_sem_gcs_e_nao_pronto` era a única
+    falha "ambiental tolerada" da suíte: ela removia a ③ e esperava False, mas
+    numa máquina COM `google-cloud-storage` e credenciais o
+    `manifest._bucket_has` encontra o blob de verdade no bucket e responde True —
+    o resume bucket-aware funcionando, não um bug. Um teste que depende de a
+    máquina NÃO ter credencial não afere nada: agora a ausência de lib/rede é
+    SIMULADA, e o caminho oposto (blob presente ⇒ pronto), que nunca era
+    exercitado, ganhou teste próprio."""
+
+    def test_sem_lib_gcs_falha_fechado(self):
+        # o Mac sem `google-cloud-storage`: qualquer impossibilidade ⇒ False,
+        # nunca um falso 'pronto' (D-03/DI-21).
+        from unittest import mock
+        from src import gcs
         with tempfile.TemporaryDirectory() as root:
             exp, prob, sem = _mini_run(root, "c154", com_final=False)
-            os.remove(naming.layer_path(exp, "c154", prob, sem, "surrogate",
-                                        root))
-            self.assertFalse(
-                manifest.is_run_done(exp, "c154", prob, sem, root))
+            os.remove(naming.layer_path(exp, "c154", prob, sem, "surrogate", root))
+            with mock.patch.object(gcs, "blob_exists",
+                                   side_effect=RuntimeError(
+                                       "google-cloud-storage ausente")):
+                self.assertFalse(manifest.is_run_done(exp, "c154", prob, sem, root))
 
-    def test_camada_nao_bucket_only_nunca_consulta_rede(self):
-        """b1 (não bucket-only): camada ausente ⇒ False direto (o fallback nem
-        se aplica — _bucket_has responde False antes de tocar a rede)."""
-        self.assertFalse(manifest._bucket_has("main", "b1", "MMF1", 0,
-                                              "surrogate"))
+    def test_sem_rede_falha_fechado(self):
+        from unittest import mock
+        from src import gcs
+        with tempfile.TemporaryDirectory() as root:
+            exp, prob, sem = _mini_run(root, "c154", com_final=False)
+            os.remove(naming.layer_path(exp, "c154", prob, sem, "surrogate", root))
+            with mock.patch.object(gcs, "blob_exists",
+                                   side_effect=OSError("Network is unreachable")):
+                self.assertFalse(manifest.is_run_done(exp, "c154", prob, sem, root))
+
+    def test_blob_presente_no_bucket_e_PRONTO(self):
+        # a outra metade do D-03, que nunca era exercitada: a ③ dos 5
+        # bucket-only é PODADA localmente após o upload (D58/gcs.mirror_run) —
+        # sem este fallback a VM re-executaria para sempre os 5 configs mais
+        # caros do estudo.
+        from unittest import mock
+        from src import gcs
+        with tempfile.TemporaryDirectory() as root:
+            exp, prob, sem = _mini_run(root, "c154", com_final=False)
+            os.remove(naming.layer_path(exp, "c154", prob, sem, "surrogate", root))
+            with mock.patch.object(gcs, "blob_exists", return_value=True) as be:
+                self.assertTrue(manifest.is_run_done(exp, "c154", prob, sem, root))
+            self.assertEqual(be.call_count, 1)
+
+    def test_camada_nao_bucket_only_nunca_consulta_a_rede(self):
+        # b1 não é bucket-only: `_bucket_has` responde False ANTES de tocar rede
+        from unittest import mock
+        from src import gcs
+        with mock.patch.object(gcs, "blob_exists") as be:
+            self.assertFalse(manifest._bucket_has("main", "b1", "MMF1", 0,
+                                                  "surrogate"))
+        be.assert_not_called()
 
 
 class TestD07TetoWall(unittest.TestCase):

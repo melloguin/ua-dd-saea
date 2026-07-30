@@ -50,6 +50,48 @@ def git_head(path):
         return None
 
 
+def _manifestos_forasteiros():
+    """[B-12] Manifestos em `data/experiments/**` gravados em OUTRA MÁQUINA.
+
+    O discriminador é o HOST, não o venv: `env.executable` que aponta um caminho
+    ABSOLUTO INEXISTENTE nesta máquina só pode ter sido escrito em outra. Medido
+    no Mac: 58 células com `/home/jupyter/python_venvs/env_main/bin/python` (as
+    VMs) são forasteiras, enquanto `env_b5`/`env_c311`/`env_e81_qpots` são venvs
+    LEGÍTIMOS do próprio Mac (E-10: 230 células/semente são Mac-only) e não podem
+    virar alarme.
+
+    ⚠ O critério literal do B-12 ("`env.executable` ≠ o intérprete da máquina
+    corrente") daria 304 falsos-positivos neste checkout, porque a mesma máquina
+    roda 4 venvs diferentes por desenho (D79/N.1.2). O que o B-12 quer barrar é
+    dado que VIAJOU no provisionamento — e isso é o host.
+
+    Ignora o `_baseline_pre_retrofit` (intocável) e manifestos sem
+    `env.executable` (o stack MATLAB não tem intérprete Python — 654 das 666
+    células da s42).
+    """
+    sys.path.insert(0, os.path.join(ROOT, "scripts"))
+    from gates_proveniencia import venv_de
+    raiz = os.path.join(ROOT, "data", "experiments")
+    fora = []
+    for dirpath, dirs, files in os.walk(raiz):
+        dirs[:] = [d for d in dirs if d != "_baseline_pre_retrofit"]
+        for f in files:
+            if not f.endswith(".manifest.json") or "__final" in f:
+                continue
+            fp = os.path.join(dirpath, f)
+            try:
+                with open(fp, encoding="utf-8") as fh:
+                    man = json.load(fh)
+            except Exception:            # noqa: BLE001 — ilegível é outro gate
+                continue
+            exe = (man.get("env") or {}).get("executable")
+            if not exe or not str(exe).startswith("/"):
+                continue
+            if not os.path.exists(str(exe)):
+                fora.append((os.path.relpath(fp, ROOT), venv_de(exe)))
+    return sorted(fora)
+
+
 def main():
     write = "--write" in sys.argv
     problems = []
@@ -149,6 +191,29 @@ def main():
     for d in deferrals:
         print("  (deferido) -", d)
     if not deferrals:
+        print("  (nenhum)")
+
+    # 4) [B-12] MANIFESTO FORASTEIRO em data/experiments — o disparo não pode
+    #    começar com dado de OUTRA máquina no disco desta. Padrão medido na s42:
+    #    `batch/e81` não está no roster de VM nenhuma (`lote42.sh`: v5=main/c154;
+    #    v6=batch/{sobol_batch,c149,c262}+main/c262; vm3=MATLAB+main/{c122,c149}+
+    #    off/sweep e103; e81 é Mac-only, venv env_e81_qpots) — e as 3 VMs tinham
+    #    `.jsonl` dessa célula. Uma célula cujo host real diverge do dono do
+    #    roster fica sem auditoria, e o `repo_hash` do manifesto não cobre isso.
+    print("\n== 4. manifestos forasteiros em data/experiments (B-12) ==")
+    forasteiros = _manifestos_forasteiros()
+    if forasteiros:
+        for rel, venv in forasteiros[:12]:
+            print(f"  FORASTEIRO {rel} (venv={venv})")
+        if len(forasteiros) > 12:
+            print(f"  ... +{len(forasteiros) - 12}")
+        problems.append(
+            f"{len(forasteiros)} manifesto(s) de OUTRA MÁQUINA em "
+            f"data/experiments (`env.executable` não existe neste host) — "
+            f"consolide/mova ANTES do disparo (B-12). No Mac isto acusa as "
+            f"células que voltaram das VMs por rsync: elas já estão no bucket "
+            f"e em resultados_experimentos, e o disco local tem de partir limpo")
+    else:
         print("  (nenhum)")
 
     print("\n== RESUMO ==")

@@ -255,10 +255,24 @@ def check_final(exp: str, alg: str, problema: str, semente, *,
         # protege a chamada, e um traceback aqui abortava o gate ANTES dos
         # checks de manifesto/pinning/subprocess (eles nunca rodavam).
         return False, f"⑦: não foi possível reavaliar o X gravado ({exc})"
-    if not np.allclose(F, F_re, rtol=1e-5, atol=1e-6, equal_nan=True):
+    # [B-14/G-5] `rtol=1e-4`, não 1e-5. A tolerância antiga não modelava a
+    # AMPLIFICAÇÃO do float32 (D53) pelo número de condição do problema e deu
+    # 4 FALSOS-VERMELHOS medidos na s42, com desvio RELATIVO 1,5e-5–7,3e-5:
+    # `off/c311/DTLZ3` 7,3e-5 (abs 6,10e-4; cond ~10³ por `g` com 100·Σcos(20πx)) ·
+    # `off/c311/DTLZ4` 4,9e-5 (α=100 ⇒ x^100) · `sweep-big-mvns/c311/WFG9` 1,9e-5 ·
+    # `sweep-medium-mvns/b5m/WFG9` 1,5e-5. Mecanismo provado: ULP-float32
+    # (~6e-8 rel em x) × nº de condição — recomputar com e sem clip nos bounds dá
+    # o MESMO desvio. Em 30 sementes seriam ~120 falsos-vermelhos, e cada triagem
+    # manual é uma chance de mascarar um vermelho VERDADEIRO. O controle negativo
+    # continua reprovando: a ⑦ de 200 linhas de `swap_medium-lhs/e103/ZDT4`.
+    # Reporta-se o desvio RELATIVO (o absoluto sozinho não diz nada de escala).
+    if not np.allclose(F, F_re, rtol=1e-4, atol=1e-6, equal_nan=True):
         pior = float(np.nanmax(np.abs(F - F_re)))
+        den = np.maximum(np.abs(F_re), 1e-30)
+        pior_rel = float(np.nanmax(np.abs(F - F_re) / den))
         return False, (f"⑦ INCONSISTENTE: o f gravado não reproduz "
-                       f"problems.py (maior desvio {pior:.3g})")
+                       f"problems.py (desvio relativo máx {pior_rel:.3g}; "
+                       f"absoluto {pior:.3g})")
     nd = np.asarray(tbl.column("nd_pos_real").to_pylist(), dtype=bool)
     nd_re = np.zeros(len(nd), dtype=bool)
     nd_re[list(int(i) for i in _problems._nds_filter(F))] = True

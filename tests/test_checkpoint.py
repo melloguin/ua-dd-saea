@@ -321,9 +321,22 @@ for it in range(1, 10_000):
             self.assertGreater(man["fe_final"], 0)
             # (3) a esteira NÃO lê isso como pronto
             self.assertFalse(manifest.is_run_done(*ARGS, dr))
-            # (4) nenhum .tmp órfão do rename atômico
+            # (4) o resíduo esperado de uma morte MATADA é um `.tmp` órfão —
+            # é exatamente o que a escrita atômica promete (tmp+rename: o alvo
+            # nunca fica corrompido; o que sobra é o temporário), e o harness já
+            # tem varredor para ele (`experiments.sweep_tmp_orfaos`, M7/DI-06:
+            # "um crash DURO (kill -9, spot-VM revogada, OOM) entre os dois
+            # deixa o .tmp para trás"). O que se cobra é que o resíduo seja
+            # LIMPÁVEL e que a limpeza não toque as camadas.
+            import experiments
             d = naming.run_dir(*ARGS[:2], data_root=dr)
-            self.assertEqual([f for f in os.listdir(d) if f.endswith(".tmp")], [])
+            antes = {f for f in os.listdir(d) if not f.endswith(".tmp")}
+            removidos = experiments.sweep_tmp_orfaos(dr, idade_min_s=0)
+            self.assertEqual([f for f in os.listdir(d) if f.endswith(".tmp")], [],
+                             f"sobrou .tmp após a varredura (removidos={removidos})")
+            self.assertEqual({f for f in os.listdir(d)}, antes)
+            for ly in naming.LAYERS:            # e as camadas seguem legíveis
+                pq.ParquetFile(naming.layer_path(*ARGS, ly, data_root=dr)).metadata
 
     def test_retomada_nao_duplica(self):
         # o checkpoint reescreve a camada INTEIRA a cada vez (não faz append),

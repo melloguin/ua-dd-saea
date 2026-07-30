@@ -507,6 +507,21 @@ def run_c311(exp: str, alg: str, problema: str, semente, *,
         "kernel": "GPy Matern52 ARD; sem White/normalizer/priors; optimize('bfgs') unico",
         "selection_type": "mean", "alpha": 2, "early_stop": "delta=total_pts-seq[it-3], it>5",
         "sigma": "sqrt(var_GPy) exposto (B15.5); NaN nas folhas sem GP (DI-16.9)",
+        # [I-11/A10] AVISO DE LEITURA — o σ do c311 é ESPARSO por desenho: só as
+        # folhas COM GP o têm. Medido na s42 (`sonda_f52e.csv`): 250/250 linhas do
+        # c311 trazem `n_validas = 20.000` e `n_nan = 0`, o que descreve o **μ**,
+        # não o σ — e a `cobertura95` do tier big pode repousar sobre **105
+        # pontos** (`sweep-big-lhs/WFG9`), com σ-NaN mediano de **90,3%**.
+        # Contra-exemplo correto: o `treed_media` (sem GP nenhum) tem NaN em 24/24.
+        # Quem lê calibração DESTE config tem de reportar `n_sigma_valido`
+        # (= linhas com σ finito) junto do número, nunca o `n_validas` do μ.
+        "AVISO_n_sigma_valido": ("`n_validas`/`n_nan` do CSV da sonda descrevem o "
+                                 "μ (20.000 linhas, 0 NaN em 250/250). O σ é "
+                                 "ESPARSO: σ-NaN mediano 90,3% na sonda big, e a "
+                                 "cobertura95 de `sweep-big-lhs/WFG9` repousa "
+                                 "sobre 105 pontos. Reporte n_sigma_valido = "
+                                 "count(isfinite(sigma_*)) SEMPRE junto da "
+                                 "calibração deste config [I-11]"),
     }
     sigma_dict = {
         "modelo": ("TGPR-MO (treed-GP): arvore de regressao MSE (min_samples_leaf=10D, "

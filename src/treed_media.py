@@ -319,6 +319,20 @@ def run_treed_media(exp: str, alg: str, problema: str, semente, *,
     não-perturbação (§3.1): a ⑦ e a ③-busca saem BIT-idênticas com a sonda
     ligada ou desligada (a sonda roda FORA da busca, sob `preserve_all_rng`).
     """
+    # [DI-42.5/A10] GUARD DE TIER — ANTES do import do vendor (falhar cedo é o
+    # ponto: o `_import_vendor` puxa GPy/desdeo do env_c311 e um erro lá
+    # esconderia este). O treed_media existe SÓ no tier `big` (D38/DI-16.5: é "o
+    # c311 SEM os GPs", o único config do tier big) e o runner aceitava QUALQUER
+    # `exp` — rodaria em `off`/`main`/`sweep-small` lendo o dataset de OUTRO
+    # tier e gravando sob o nome desta célula, EM SILÊNCIO. Um dataset trocado é
+    # indetectável a jusante: a ① fica coerente consigo mesma. Pára-e-loga (D81).
+    _tier_guard, _ = naming.parse_sweep(exp)
+    if _tier_guard != "big":
+        raise ValueError(
+            f"treed_media só roda em sweep-big-<dist> (D38/DI-16.5) — recebeu "
+            f"exp={exp!r} (tier={_tier_guard!r}). Fora do big ele leria o "
+            f"dataset de outro tier e gravaria sob o nome desta célula, sem "
+            f"sintoma. Pára-e-loga (D81).")
     if alg != _ALG:
         raise ValueError(
             "run_treed_media só cobre %r (recebeu %r) — 1 sessão = 1 cartão."

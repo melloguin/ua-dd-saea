@@ -17,10 +17,42 @@
 |---|---|
 | ✅ **verde pleno** — smoke + 6/6 portões + §3.1 bit-idêntica | **6** |
 | ⚠ **verde com inconclusivo POR DESENHO** (G-1 sem linha marcada na ③) | **5** |
-| ⚪ **sem cobertura nesta máquina** (MATLAB) | **13** |
+| ⚪ sem cobertura | **0** — os 13 MATLAB foram rodados pelo autor em 2026-07-30 |
+
+**24 de 24 configs com smoke + portões.** 13 MATLAB em `/tmp/smoke_matlab`
+(`ok=6/4/1/1/3`, zero `skipped`) e 11 Python em tempdirs.
+
+**24 de 24 com G-7 VERDE sobre DADO FRESCO.** ⚠ A varredura inicial acusou 4
+configs com "campo contratado e nunca emitido"; refeita sobre dado fresco (não a
+s42, que é PRÉ-T11), sobrou **1** — o e103, corrigido pela ERRATA 14. Os outros
+três (`b3/adapt_delta_V`, `b5m/p_wrong_stats`, `sobol_batch/n_front1`) eram
+falso-positivo de ler dado velho, a mesma armadilha da ERRATA 11.
+
+**e74 · fix DI-45:** gate ±3σ PASSOU nas 3 células (8 gates verdes cada), âncora
+`e74-classifierselect-idx` APLICADO, lacre `867ae5f56d8b` OK. ⚠ **ERRATA 15** —
+o `n_desalinhado→~0` que este relatório prometia na v1 mede OUTRO sítio
+(`Local_infill.m`), deliberadamente não-corrigido; não era a prova.
 
 **§3.1 — o invariante 🔴 do CONTRATO (a sonda não pode alterar a busca):
-10 de 10 configs Python provados BIT-IDÊNTICOS**, todos com o **mesmo sha256**
+🏁 FECHADO EM 19 DE 19 configs com sonda** — 10 Python + **9 MATLAB** (b1
+`4d81d858` · b3 `760941d2` · b4 `2404320f` · c141 `d7f20cd0` · c217 `868a15c0` ·
+c238 `43f53326` · e7 `1e1060ee` · e74 `fc9ced7a` · e103 `a94d2766`). Os 5 pisos
+sem surrogate são não-aplicáveis (não têm sonda). **0 perturbaram · 0 falharam.**
+
+O desarme foi confirmado por **três sinais independentes** em cada par, não só
+pelo hash: `sonda.desligada=true` no ⑤, `n_blocos` caindo a 0, e a ③
+**encolhendo** (e74: 46.499→1.999 linhas; e103: 59.800→19.800). Só o hash bater
+seria fraco — um desarme que nunca disparasse daria o mesmo resultado. Os três
+juntos provam que a sonda RODOU e mesmo assim não mexeu na busca.
+
+O **e103 é o caso mais exigente**: regime OFFLINE, sonda de 20.000 pontos,
+disparada por `probeOffline` — que chama o `fire` DIRETO, sem passar pela
+cadência. É o caminho que um desarme ingênuo (só barrar o `due()`) deixaria
+escapar; foi por isso que o guard entrou nos 4 caminhos.
+
+Este item era **T1 ou T2 em 11 dos 24 relatórios** do estudo — o mais repetido.
+
+**10 de 10 configs Python** também provados BIT-IDÊNTICOS, todos com o **mesmo sha256**
 das provas anteriores à campanha. A mudança do A11 (115 linhas, 0 remoções) não
 perturbou nenhuma busca — não é inferência, é o mesmo hash.
 

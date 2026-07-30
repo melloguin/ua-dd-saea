@@ -98,7 +98,7 @@ def gate_3x1(caminho_terceira: str, caminho_primeira: str) -> tuple[bool, str]:
         import numpy as np
         import pyarrow.parquet as pq
     except ImportError as e:                        # exit 2 = INCONCLUSIVO
-        return None, f"dependência ausente ({e.name}) — INCONCLUSIVO"
+        return None, f"dependência ausente ({e.name}) — {MARCA_NAO_AFERIVEL}"
     if not (os.path.exists(caminho_terceira) and os.path.exists(caminho_primeira)):
         return None, "sem ③ ou sem ① — não-aplicável"
     # [conserto 2026-07-30] Um parquet de 0 byte ou com schema divergente
@@ -108,7 +108,7 @@ def gate_3x1(caminho_terceira: str, caminho_primeira: str) -> tuple[bool, str]:
     try:
         cols = pq.ParquetFile(caminho_terceira).schema_arrow.names
     except Exception as e:                     # noqa: BLE001 — ilegível ≠ verde
-        return None, f"③ ilegível ({type(e).__name__}: {e}) — INCONCLUSIVO"
+        return None, f"③ ilegível ({type(e).__name__}: {e}) — {MARCA_NAO_AFERIVEL}"
     if "real_solution_id" not in cols:
         return None, "③ sem real_solution_id — não-aplicável"
     xs = [c for c in cols if c.startswith("x") and c[1:].isdigit()]
@@ -320,6 +320,40 @@ def gate_gabarito_camadas(exp: str, alg: str, problema: str, semente,
 #  G-7 · o CONTRATO §6.1 aferido (as chaves do ⑥ e do ⑤ por config)
 # ═══════════════════════════════════════════════════════════════════════════
 
+# ═══════════════════════════════════════════════════════════════════════════
+#  As DUAS espécies de `None` — e por que confundi-las é perigoso
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Um gate devolve `None` por dois motivos MUITO diferentes, e até 2026-07-30 os
+# dois apareciam como o mesmo ⚠ "INCONCLUSIVO":
+#
+#   NÃO-APLICÁVEL — o gate não tem o que medir NESTE config, POR DESENHO. Um
+#     piso sem surrogate não tem ③ para o G-1 conferir; isso é permanente e
+#     está correto. Nada a fazer, hoje nem nunca.
+#
+#   NÃO-AFERÍVEL — o gate DEVERIA medir e NÃO CONSEGUIU: parquet ilegível,
+#     dependência ausente, ⑥ que não existe. Isso é PROBLEMA, e some no meio
+#     dos não-aplicáveis se os dois usam a mesma marca.
+#
+# A doutrina B-07 (INCONCLUSIVO nunca conta como verde) vale para os DOIS. O que
+# muda é o que o operador faz: o 1º ele ignora, o 2º ele investiga. Sem separar,
+# um parquet corrompido se esconde atrás de nove pisos sem sonda.
+MARCA_NAO_APLICAVEL = "não-aplicável"
+MARCA_NAO_AFERIVEL = "NÃO-AFERÍVEL"
+
+
+def especie_do_none(detalhe: str) -> str:
+    """`'nao_aplicavel'` | `'nao_aferivel'` a partir do detalhe do gate.
+
+    A marca é textual DE PROPÓSITO: a API dos gates é `(bool|None, str)` e está
+    em uso por `portao.py`, pelo CLI e por 30+ testes. Trocar por um enum
+    quebraria os três; a marca padroniza o que já era convenção de redação e
+    fica coberta por teste.
+    """
+    return ("nao_aferivel" if MARCA_NAO_AFERIVEL.lower() in (detalhe or "").lower()
+            else "nao_aplicavel")
+
+
 #: Infraestrutura do ⑥ — nunca é evento de geração, em nenhum config.
 _RECS_INFRA = frozenset({"header", "footer", "guard", "sonda", "timing",
                          "partial", "retry", "checkpoint",
@@ -378,7 +412,18 @@ def gate_contrato_61(alg: str, caminho_jsonl: str, man: dict,
     """
     sexto, quinto, _nsa = campos_contratados(alg)
     if not os.path.exists(caminho_jsonl):
-        return None, "⑥ ausente — não-aplicável"
+        # ⚠ [conserto 2026-07-30] Isto dizia "não-aplicável" e ia embora SEM
+        # OLHAR O ⑤ — o mesmo defeito do ramo "sem evento de geração", e aqui
+        # ainda pior: um ⑥ AUSENTE não é desenho de config nenhum, é anomalia
+        # (o ⑥ é obrigatório em todo run). Vira NÃO-AFERÍVEL, e o ⑤ é auditado
+        # assim mesmo — camadas independentes.
+        q2 = quinto - ({"campanha_id", "repo_hash"} if modo != "campanha" else set())
+        f5 = sorted(k for k in q2 if man.get(k) in (None, "", {}))
+        if f5:
+            return False, (f"⑥ AUSENTE ({MARCA_NAO_AFERIVEL}) · ⑤ "
+                           f"{len(q2) - len(f5)}/{len(q2)} chaves → FALTA ⑤{f5}")
+        return None, (f"⑥ ausente — {MARCA_NAO_AFERIVEL} (o ⑥ é obrigatório em "
+                      f"todo run; ⑤ conferido e completo: {len(q2)}/{len(q2)})")
 
     def _chaves(v, prof=0):
         """Chaves em PROFUNDIDADE. Um campo ANINHADO está no ⑥ e é auditável:

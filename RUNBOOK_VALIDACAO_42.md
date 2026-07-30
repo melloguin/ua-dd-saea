@@ -280,3 +280,64 @@ EOF
   o resto preenche os cores restantes). A rodada inteira nas 3 máquinas ≈ **1–2 dias**.
 - Os walls que saírem daqui SÃO o M7: `progress.py --tabela` ao final = a tabela de
   dimensionamento das 30 sementes (decisões A3/A5 com dado).
+
+---
+
+## §X · SMOKE × CAMPANHA — a distinção que NÃO existia aqui
+
+> **Por que esta seção existe.** Em 2026-07-30 um agente rodou os smokes MATLAB
+> copiando os comandos do §1 deste RUNBOOK e obteve `skipped=6/4/1/1`: **zero
+> células executadas**. Os comandos estavam CERTOS — para o que o §1 é, que é o
+> disparo da campanha REAL, em `data/`. Usados como smoke, apontaram para
+> produção, onde aquelas células já existiam da rodada-42, e a esteira
+> idempotente pulou todas. Ninguém percebeu até alguém olhar o log.
+
+**A armadilha:** `dataRoot` (MATLAB) e `data_root` (Python) **têm produção como
+default nos DOIS stacks**.
+
+```matlab
+p.addParameter('dataRoot', 'data');        % experiments.m
+```
+```python
+data_root: str = naming.DEFAULT_DATA_ROOT  # runners Python
+```
+
+### Invocação de CAMPANHA (escreve em `data/` — é o desejado)
+```bash
+$PY experiments.py --exp main --algorithms c122 --seeds 42
+matlab -batch "experiments('algorithms',{'b1'},'seeds',42)"
+```
+
+### Invocação de SMOKE (NUNCA toca produção)
+```bash
+SMOKE=/tmp/smoke_$(date +%H%M%S)
+mkdir -p "$SMOKE/experiments"
+for e in doe datasets sonda; do ln -s "$PWD/data/$e" "$SMOKE/$e"; done   # entradas READ-ONLY
+
+matlab -batch "experiments('algorithms',{'b1'},'problems',{'MMF1'},'seeds',42,'parallel',false,'dataRoot','$SMOKE')"
+$PY -c "import sys;sys.path.insert(0,'.');from src import experiment as a;a.run('c122','MMF1',0,exp='main',data_root='$SMOKE')"
+```
+
+**Como saber que deu certo:** o placar tem de dizer `ok=N skipped=0`. Se vier
+`skipped`, o `dataRoot` aponta para um lugar que já tem aquelas células.
+
+⚠ **`'parallel',false` no MATLAB:** o `e103` NÃO funciona em worker `parfor` (a
+ponte `pyenv` InProcess falha). Paralelize entre TERMINAIS, não dentro do
+`experiments.m`.
+
+## §X.1 · `UA_DD_SAEA_CAMPANHA_ID` — o mesmo id nas 4 máquinas
+
+O `campanha_id` (B-03) carimba cada ⑤ e é o que o `is_run_done` exige para não
+reaproveitar célula de outra campanha. **Ele é OPCIONAL**: sem a variável, o
+`manifest.py` deriva `<commit-curto>_<data>` (ex.: `25e95b464a67_2026-07-30`).
+
+O que a variável resolve é ter **um id ÚNICO e IGUAL nas 4 máquinas** para a
+mesma campanha — sem ela, cada máquina deriva o seu e as células ficam com ids
+diferentes, o que quebra o `is_run_done` cruzado.
+
+**Antes do disparo, em CADA máquina (Mac A, VM-1, VM-2, VM-3):**
+```bash
+export UA_DD_SAEA_CAMPANHA_ID="m8-$(git -C <repo> rev-parse --short HEAD)"
+echo "$UA_DD_SAEA_CAMPANHA_ID"          # confira que as 4 imprimem o MESMO texto
+```
+Para persistir na sessão da VM, ponha a linha no `~/.bashrc` da máquina.

@@ -225,8 +225,23 @@
 - [x] A7 · b4 — `52befff` (2026-07-30) · REGRA_DO_ROTULO + glossário p0/p1 no sigma_dict
       (trocá-los derruba a reprodução de 6.268/6.268 para 1.252/6.268) · `y_treino_dist`
       DERIVADO de `rr`×`n_treino`, sem tocar o vendorizado
-- [~] A8 · e74 — **FIX DI-45 APLICADO** `b74c620` (2026-07-30) · `S=find(y_label==1)` +
-      índice absoluto · `n_desalinhado` PRESERVADO (é a prova na semente 1) · âncora
+- [~] A8 · e74 — **FIX DI-45 APLICADO**
+      · ⚠ **ERRATA 15 (2026-07-30):** eu registrei aqui, e repeti ao autor duas vezes, que
+        "`n_desalinhado` cai a ~0 é a PROVA do fix". **É FALSO, e a resposta estava a uma
+        linha do campo:** `src/e74_instrument.m:184` diz
+        `% mascara(Offspring)×Parent (fix opcional NAO aplicado)`. São DOIS
+        desalinhamentos diferentes no e74: o da **DI-45** vive em
+        `ClassifierSelect.m:56-58` (o `index` era posição DENTRO de `S` e indexava `Parent`
+        inteiro) e **foi corrigido**; o `n_desalinhado` mede o de `Local_infill.m`
+        (máscara(Offspring)×Parent), que **continua lá POR DECISÃO REGISTRADA**. O número
+        não podia cair — e ter caído seria suspeito
+      · MEDIDO: s42 pré-fix 93,49% (2.860/3.059) × smoke pós-fix 89,80% (273/304). A
+        diferença é ruído de célula, não efeito do fix — porque o fix não toca esse sítio
+      · ✅ **A PROVA REAL é o gate ±3σ**, e ele PASSOU: 3 células (MMF1, DTLZ2, ZDT1),
+        **8 gates VERDES em cada**, sobre o smoke de 2026-07-30. Mais o `preflight`:
+        âncora `e74-classifierselect-idx` **APLICADO** e lacre `867ae5f56d8b` **OK** `b74c620` (2026-07-30) · `S=find(y_label==1)` +
+      índice absoluto · `n_desalinhado` PRESERVADO (⚠ ERRATA 15: NÃO é a prova — mede o
+        desalinhamento de `Local_infill.m`, que fica por decisão) · âncora
       `e74-classifierselect-idx` + `repos.lock` re-lacrado · preflight: APLICADO
       · ⚠ FALTA (máquina): smoke de 3 células + gate ±3σ · regra-rótulo/y_treino_dist do e74
 - [~] A9 · c217 — `52befff` (2026-07-30) · `pmid_ids` (era 0/25 células com a identidade) +
@@ -307,7 +322,7 @@ Atenuante MEDIDO: o diff é `115 insertions, **0 deletions**` — puramente adit
 
 | mudança | pode alterar? | prova |
 |---|---|---|
-| **e74 · fix DI-45** | **SIM — intencional** (autor aprovou) | ⏳ gate ±3σ + `n_desalinhado→~0` (máquina do autor) |
+| **e74 · fix DI-45** | **SIM — intencional** (autor aprovou) | ✅ **gate ±3σ PASSOU** — 3 células, 8 gates verdes cada (2026-07-30). ⚠ o `n_desalinhado→~0` que eu prometia era **ERRATA 15**: mede OUTRO sítio, deliberadamente não-corrigido |
 | **b5 · acumulador vendorizado** | poderia (código DENTRO do algoritmo) | ✅ ①③⑦ byte-idênticas stock × patch, worktrees isolados |
 | **A11 · sonda estratificada (c122)** | poderia (RNG + roda no laço) | ✅ ① idêntica à de antes do A11 |
 | **G5 · checkpoint periódico** | poderia (escreve no meio do run) | ✅ `test_checkpoint_nao_muda_o_resultado` **com controle** provando que o checkpoint rodou |

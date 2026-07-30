@@ -39,7 +39,7 @@ PY = sys.executable
 from src.manifest import OFFLINE_ALGS  # noqa: E402 — fonte única (DI-16.8)
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 from gates_proveniencia import (           # noqa: E402 — [T11-G6] G-1..G-4 + B-15
-    gates_de_proveniencia, motivo_e_sancionado)
+    gates_de_proveniencia, motivo_e_sancionado, especie_do_none)
 
 #: alg → cartão do accept. R3 = branches dedicados; R1/R2 = rótulo informativo
 #: (o catch-all F0-01 roteia pelo `--alg`, não pelo nome do cartão).
@@ -176,7 +176,7 @@ def main(argv=None) -> int:
                      "(ou use --varredura)")
         runs = [(a.exp, a.alg, a.problema, a.semente)]
 
-    total_gates, vermelhos, inconclusivos = 0, [], []
+    total_gates, vermelhos, inconclusivos, nao_afericos = 0, [], [], []
     for exp, alg, prob, sem in runs:
         res = gates_de_um_run(exp, alg, prob, sem, a.data_root,
                               modo=("historico" if a.historico else "campanha"))
@@ -185,8 +185,11 @@ def main(argv=None) -> int:
             marca = "⚪"                       # [DI-38a] sancionado ≠ verde ≠ falha
         elif any(ok is False for _, ok, _ in res):
             marca = "🔴"
+        elif any(ok is None and especie_do_none(d) == "nao_aferivel"
+                 for _, ok, d in res):
+            marca = "⛔"                        # o gate NÃO CONSEGUIU medir
         elif any(ok is None for _, ok, _ in res):
-            marca = "⚠"                        # INCONCLUSIVO nunca é verde (B-07)
+            marca = "⚪"                        # não-aplicável POR DESENHO
         else:
             marca = "✅"
         print(f"{marca} {exp}/{alg}/{prob}/s{sem}: " + " · ".join(
@@ -195,6 +198,12 @@ def main(argv=None) -> int:
         for nome, ok, det in res:
             if ok is False:
                 vermelhos.append((exp, alg, prob, sem, nome, det))
+            elif ok is None and especie_do_none(det) == "nao_aferivel":
+                # NÃO-AFERÍVEL: o gate DEVERIA medir e não conseguiu (parquet
+                # ilegível, dependência ausente, ⑥ inexistente). Some no meio
+                # dos não-aplicáveis se os dois usam a mesma marca — e é o único
+                # dos dois que pede investigação.
+                nao_afericos.append((exp, alg, prob, sem, nome, det))
             elif ok is None:
                 # [B-07] INCONCLUSIVO **NUNCA** conta como verde. Até 2026-07-30
                 # esta doutrina valia só para o emoji: `vermelhos` só recebia
@@ -205,23 +214,31 @@ def main(argv=None) -> int:
 
     if vermelhos:
         veredito = "REPROVADO"
+    elif nao_afericos:
+        veredito = "NÃO-AFERÍVEL (gate não conseguiu medir — investigar)"
     elif inconclusivos:
         veredito = "INCONCLUSIVO (não é verde — B-07)"
     else:
         veredito = "VERDE"
     print(f"\nPORTÃO: {len(runs)} runs · {total_gates} gates · "
-          f"{len(vermelhos)} vermelho(s) · {len(inconclusivos)} inconclusivo(s) → "
-          f"{veredito}")
+          f"{len(vermelhos)} vermelho(s) · {len(nao_afericos)} não-aferível(is) · "
+          f"{len(inconclusivos)} não-aplicável(is) → {veredito}")
     for exp, alg, prob, sem, nome, det in vermelhos:
         print(f"  🔴 {exp}/{alg}/{prob}/s{sem} [{nome}]: {det}")
+    for exp, alg, prob, sem, nome, det in nao_afericos:
+        print(f"  ⛔ {exp}/{alg}/{prob}/s{sem} [{nome}]: {det}")
     for exp, alg, prob, sem, nome, det in inconclusivos:
-        print(f"  ⚠ {exp}/{alg}/{prob}/s{sem} [{nome}]: {det}")
+        print(f"  ⚪ {exp}/{alg}/{prob}/s{sem} [{nome}]: {det}")
     # 0 = verde · 1 = vermelho · 2 = inconclusivo (distintos DE PROPOSITO: quem
     # chama precisa poder tratar "reprovou" e "nao consegui medir" de formas
     # diferentes — colapsar os dois foi o que criou o falso-verde).
+    # 0 = verde · 1 = vermelho · 2 = NÃO-AFERÍVEL (o gate não mediu — investigar).
+    # NÃO-APLICÁVEL por desenho NÃO bloqueia: um piso sem surrogate nunca terá ③
+    # para o G-1 conferir, e tratar isso como pendência tornaria o portão
+    # permanentemente amarelo — o caminho conhecido para um gate ser ignorado.
     if vermelhos:
         return 1
-    return 2 if inconclusivos else 0
+    return 2 if nao_afericos else 0
 
 
 if __name__ == "__main__":

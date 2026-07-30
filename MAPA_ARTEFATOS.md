@@ -90,3 +90,59 @@ sementes (~18.291 h-core).
 - `git push`/tag = SÓ o autor. `git add` sempre explícito (NUNCA `-A`). Suíte SEMPRE antes de commit.
 - MATLAB roda com `'parallel',false` (O-09); e103 é serial; teto 12h existe SÓ no stack Python (lacuna aceita).
 - Célula "pronta" = `is_run_done` (manifesto ok + fe_final==maxfe + camadas); NÃO confie em `status` sem cruzar `motivo_parada` (história do bug B1).
+
+---
+
+# SEÇÃO 8 — PARA CONSTRUTORES DE PROBLEMAS NOVOS (dados reais; score 0-10 POR ESSA missão)
+
+> Audiência: quem adiciona problemas/experimentos ao pipeline (missão 2026-07-30: 3 problemas
+> reais — dataset fixo · caixa-preta · sistema de equações). Score = importância PARA ISSO.
+
+## A regra de ouro da sua missão
+
+Um problema novo NÃO se "adiciona ao código" — ele **entra pelo catálogo e obedece ao
+contrato**. Tudo o que os 24 algoritmos consomem (bounds, avaliação, DoE, sonda, normalização,
+orçamento) vem de artefatos padronizados. Seu trabalho é produzir as peças do contrato para os
+3 problemas novos — o harness não muda.
+
+## O mapa, por score
+
+| Artefato (endereço) | Função na doc | Conteúdo (resumo) | Score |
+|---|---|---|---:|
+| `CONTRATO_DE_DADOS.md` | O contrato executável de TUDO que um run persiste | As 7 camadas (①real ②pop ③surrogate+SONDA ④timing ⑤manifesto ⑥jsonl ⑦final-offline) coluna a coluna; semânticas por config; schema v2 com `campanha_id` (T11/G3) | **10** |
+| `src/problems.py` | O catálogo vivo dos 25 problemas — **o molde do seu código** | Classes pymoo (`Problem`: M, D, bounds, `_evaluate`); `ALL_PROBLEMS`/`PROBLEM_CLASSES`; o precedente BBOB (mock determinístico) — os gates F0 exigem EXATAMENTE 25 hoje (sua adição muda esse número em ~4 guards de teste) | **10** |
+| `claude_code_context/SPEC_experimentos_v5.2.md` §4 + §5 + §17 + §12.1 | A lei científica | §4 os 25 problemas e critérios de inclusão · §5 orçamento (maxFE=31D−1, DoE 11D−1, cache-hit=0 FE/D89, **teto 12h + truncamento-com-dado DI-43/44**) · §17 export/sonda · **§12.1 fronts EMPÍRICOS (cache NSGA-II) — o precedente BBOB é o SEU caminho para problemas sem frente analítica** | **10** |
+| `claude_code_context/00_fundacao/05_problemas.md` | Bundle dos problemas (gerado da SPEC) | §4 + S.5 (tabela f_min/f_max COMPUTADA — o método de normalização D69 que você terá de reproduzir p/ os 3 novos) + L.19 (notas do problems.py) | **9** |
+| `src/doe.py` + `data/doe/` | DoE como artefato bit-a-bit (D63) | Geração determinística do LHS 11D−1 POR (problema, semente); hash conferido no arranque; **você gera os .npy dos 3 problemas × 30 sementes** | **9** |
+| `scripts/gen_sonda.py` + `data/sonda/` | A régua comum dos surrogates | 2000 pts Sobol (online) / 20000 (offline) + **f REAL deles** por problema — ⚠ para caixa-preta CARA isto é uma DECISÃO DE DESENHO (ver prompt §5) | **9** |
+| `claude_code_context/artifacts/runs_matrix.csv` + `seeds.json` + `envs.json` + `characteristics.csv` | O grid machine-readable | 20.850 runs (suas linhas novas entram aqui); alg_id/semeadura D62 (⚠ D7/T11: `iteration_seed` ganha a CÉLULA no M8); matriz 25×8 de características (D98 — vocês adicionam 3 linhas) | **9** |
+| `src/budget.py` | O portão ÚNICO de avaliação (FE) | Wrapper = única autoridade do orçamento; dedup bit-a-bit D89 (⚠ dataset real com duplicatas!); `maxfe_por_exp`; cronômetro `tempo_aval_real_s` (T11/G7) | **9** |
+| `data/bbob_pf_cache/` + `src/metrics.py` | O precedente de front empírico + a métrica oficial | Cache de front ND por NSGA-II longo (D72); normalização (ideal,nadir) S.5; ref-HV 1,1; IGD+ primária; smoke-gate D92 — **para os 3 problemas reais vocês precisarão do equivalente** | **9** |
+| `SPEC_T11_REFINAMENTO_FINAL.md` + `T11_STATUS.md` | A campanha EM CURSO no repo | O repo está em cirurgia ativa (fases G/A/V; suíte 394→516 e subindo). **Seu código nasce SOBRE o T11** — leia o STATUS para saber o que já mudou (campanha_id, checkpoint, gates novos, gabarito_camadas) | **8** |
+| `src/naming.py` | A gramática dos arquivos | run_id `{exp}_{alg}_{problema}_{semente}`; paths das camadas; tokens de sweep; blob do bucket — seus problemas herdam tudo isso de graça | **8** |
+| `claude_code_context/artifacts/gabarito_camadas.json` + `mapa_termino.json` + `motivos_parada.json` | Artefatos NOVOS do T11 (G6) | Camadas obrigatórias por (config,regime) — o censo/gates cobram deles; **seus 3 problemas × cada config entram no gabarito** | **8** |
+| `data/datasets/` + convenção D90 | Datasets offline como artefato | `ds_{problema}_{semente}[_{tier}_{dist}]` + manifest x_hash/f_hash — **o molde EXATO do seu problema de dataset-fixo** (regime `off`) | **8** p/ o problema-1 |
+| `MAPA_ARTEFATOS.md` (raiz) | O mapa geral do repo | Ordem de leitura, fatos operacionais (interpretador, envs, git) | **7** |
+| `scripts/portao.py` + `accept.py` + `auditar.py` + `gates_proveniencia.py` | Os gates que o SEU dado terá de passar | FE exato · CP-init por hash · sonda na cadência · 3×1 · proveniência · gabarito — projete JÁ pensando neles | **7** |
+| `f5/RELATORIO_FINAL_F5.md` + `f5/relatorios_config/` (24) | Como fidelidade/instrumentação são julgadas aqui | O padrão de dissecação que um dia será aplicado aos SEUS problemas; caveats §2.3 (ex.: float32 invalida n_nd/spacing/GD no DTLZ4 — atenção a escalas dos seus dados reais) | **6** |
+| `REGISTRO_DECISOES_IMPLEMENTACAO.md` (A29-A35) + `DOSSIE_FIDELIDADE_R1.md` §D9 | As decisões recentes e as conclusões científicas vinculantes | DI-41..45; teto 12h; roster 100%; régua por FAMÍLIA; endpoint offline = ⑦ | **6** |
+| `HANDOFF_TORRE_COMPLETO.md` | A história completa do projeto | Filme F0→T11, regras, lições | **5** |
+| `experiments.py` / `experiments.m` | Despachantes | Como um run nasce (retry NO_RETRY, teto `--teto-s 43200`, campanha_id, manifesto) — você NÃO os altera; só entende | **5** |
+| `RUNBOOK_VALIDACAO_42.md` + `REGISTRO_OPERACAO_RODADA42.md` | Operação real em 4 máquinas | Como se dispara/monitora; tropeços O-01..O-22 | **4** |
+| `f5/PLANO_RODADA_PERFEITA.md` + `handoff/F5-LAUDO-INSTRUMENTACAO.md` | Os defeitos que o T11 conserta | Contexto do porquê das mudanças em curso | **4** |
+| `algorithms/` (vendorizadas) | Os códigos originais dos papers | NUNCA tocar; irrelevante p/ problemas novos | **2** |
+
+## Checklist do que os 3 problemas novos precisam produzir (o "contrato de entrada")
+
+1. Classe pymoo em `src/problems.py` (M, D, bounds NATIVOS, `_evaluate` determinístico — se o
+   sistema real tiver ruído/não-determinismo, PARE: é decisão do autor/D81, quebra D89 e os
+   gates de determinismo).
+2. Entrada nos guards do catálogo (os testes que hoje exigem "exatamente 25").
+3. `f_min/f_max` pelo método S.5 OU front empírico pelo precedente BBOB/§12.1 (D72) — sem
+   isso a métrica (D69) não normaliza.
+4. DoE 11D−1 × 30 sementes (`src/doe.py`) — bit-a-bit, commitados em `data/doe/`.
+5. Artefato de sonda + **decisão de custo** (caixa-preta cara: ver prompt §5).
+6. Problema-1 (dataset fixo): dataset no formato D90 (`data/datasets/`) + hash; regime `off`.
+7. Linhas no `runs_matrix.csv` + `characteristics.csv` (+3 linhas, critérios D98) +
+   `gabarito_camadas.json`.
+8. Smoke: 1 célula real por regime × 1 config barato (ex.: nsga2) com `portao.py` VERDE.

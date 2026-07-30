@@ -8,6 +8,8 @@ Grava: resultados_experimentos/data/experiments/**   (layout NATIVO — serve de
                                                       progress.py, portao.py)
        resultados_experimentos/INDICE.csv            1 linha por célula
        resultados_experimentos/DUPLICADAS.csv        células em >1 máquina
+       resultados_experimentos/DIVERGENCIAS_CONTEUDO.csv  [G-9] mesmo caminho,
+                                                     conteúdo diferente
        resultados_experimentos/TABELA_ALGORITMOS.csv
        resultados_experimentos/TABELA_ALGORITMOS.md
        resultados_experimentos/TABELA_ALGORITMOS.html
@@ -20,6 +22,9 @@ Não escreve nada no repo e não apaga nada em _maquinas/.
 """
 from __future__ import annotations
 import collections, csv, html, json, os, re, shutil, sys, time
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import content_hash as _ch          # [G-9] a propagação compara CONTEÚDO
 
 HOME = os.path.expanduser("~")
 BASE = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
@@ -105,6 +110,7 @@ for maq in MAQS:
 ORDEM = {"ok": 0, "abortou": 1, "FALHOU": 2, "ilegivel": 3}
 os.makedirs(os.path.join(BASE, "data", "experiments"), exist_ok=True)
 indice, duplicadas, copiados = [], [], 0
+divergencias = []          # [G-9] conteúdo diferente no MESMO caminho
 for (exp, alg, prob, sem), por_maq in sorted(achados.items()):
     esc = sorted(por_maq.items(),
                  key=lambda kv: (ORDEM.get(kv[1]["estado"], 9), -kv[1]["mtime"]))[0]
@@ -122,12 +128,22 @@ for (exp, alg, prob, sem), por_maq in sorted(achados.items()):
             continue
         o, d = os.path.join(reg["dir"], fn), os.path.join(destino, fn)
         if os.path.exists(d):
-            try:
-                if os.stat(d).st_ino == os.stat(o).st_ino: continue     # já é o mesmo inode
-            except OSError: pass
-            if os.path.getsize(d) == os.path.getsize(o) \
-               and abs(os.path.getmtime(d) - os.path.getmtime(o)) < 2:
+            # [G-9] CONTEÚDO decide, não metadado. Antes: "mesmo tamanho e mtime
+            # dentro de 2 s" contava como idêntico, e qualquer outra coisa fazia
+            # `os.remove(d)` + re-link SILENCIOSO. Dois arquivos de mesmo tamanho
+            # com conteúdo diferente (a MESMA célula rodada 2x, ou uma cópia
+            # obsoleta de outra semente) passavam por iguais; e uma diferença
+            # real era resolvida por sobrescrita cega, sem ninguém saber qual
+            # venceu. Amostra da F5: 605 arquivos, 2 divergências — e 4 dos 5
+            # obsoletos do `_bucket_raw` eram de SEMENTE 0, que entrariam no M8
+            # por essa porta. O `mesmo_conteudo` só paga md5 quando precisa
+            # (mesmo inode = zero; tamanhos diferentes = zero).
+            igual, motivo = _ch.mesmo_conteudo(o, d)
+            if igual:
                 continue
+            divergencias.append({"exp": exp, "alg": alg, "problema": prob,
+                                 "semente": sem, "arquivo": fn,
+                                 "maquina_escolhida": maq, "motivo": motivo})
             os.remove(d)
         try:                       # link duro: instantâneo e sem custo de disco
             os.link(o, d)
@@ -155,6 +171,15 @@ grava_csv("INDICE.csv", sorted(indice, key=lambda r: (r["algoritmo"], r["experim
 if duplicadas:
     grava_csv("DUPLICADAS.csv", duplicadas,
               ["exp", "alg", "problema", "semente", "escolhida", "todas"])
+# [G-9] O que a heurística de tamanho+mtime resolvia por sobrescrita cega agora
+# fica REGISTRADO: mesmo caminho, conteúdo diferente. Zero divergências é o
+# esperado; qualquer linha aqui é uma célula que existe em 2 versões.
+if divergencias:
+    grava_csv("DIVERGENCIAS_CONTEUDO.csv", divergencias,
+              ["exp", "alg", "problema", "semente", "arquivo",
+               "maquina_escolhida", "motivo"])
+    print("  ⚠ [G-9] %d arquivo(s) com CONTEÚDO divergente no mesmo caminho "
+          "— ver DIVERGENCIAS_CONTEUDO.csv" % len(divergencias))
 
 # ── 4. tabela por algoritmo × família ────────────────────────────────────────
 prev = collections.defaultdict(collections.Counter)     # alg -> familia -> total

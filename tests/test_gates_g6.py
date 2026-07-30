@@ -474,3 +474,105 @@ class TestDiscriminadorO22(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestG9ContentHash(unittest.TestCase):
+    """[G-9] A propagação compara CONTEÚDO, não metadado.
+
+    A mescla das 4 máquinas decidia "é o mesmo arquivo" por tamanho + mtime±2s e,
+    quando dizia "diferente", APAGAVA o destino e re-linkava — silenciosamente.
+    Amostra da F5: 605 arquivos, 2 divergências; e 4 dos 5 obsoletos do
+    `_bucket_raw` eram de SEMENTE 0, que entrariam no M8 por essa porta.
+    """
+
+    def _cria(self, dr, nome, conteudo, mtime=None):
+        p = os.path.join(dr, nome)
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        with open(p, "wb") as fh:
+            fh.write(conteudo)
+        if mtime is not None:
+            os.utime(p, (mtime, mtime))
+        return p
+
+    def _ch(self):
+        import importlib.util as u
+        spec = u.spec_from_file_location(
+            "content_hash_mod", os.path.join(_RAIZ, "scripts", "content_hash.py"))
+        mod = u.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+
+    def test_mesmo_tamanho_e_mtime_mas_conteudo_DIFERENTE_e_pego(self):
+        # é EXATAMENTE o caso que a heurística antiga deixava passar
+        ch = self._ch()
+        with tempfile.TemporaryDirectory() as dr:
+            a = self._cria(dr, "a/x.parquet", b"AAAA-conteudo-de-um-run", 1_700_000_000)
+            b = self._cria(dr, "b/x.parquet", b"BBBB-conteudo-de-outro-", 1_700_000_000)
+            self.assertEqual(os.path.getsize(a), os.path.getsize(b))
+            self.assertEqual(os.path.getmtime(a), os.path.getmtime(b))
+            igual, motivo = ch.mesmo_conteudo(a, b)
+            self.assertFalse(igual)
+            self.assertIn("md5 DIFERENTE", motivo)
+
+    def test_conteudo_igual_com_mtime_diferente_NAO_e_divergencia(self):
+        # o inverso: a heurística antiga re-copiava por mtime; conteúdo manda
+        ch = self._ch()
+        with tempfile.TemporaryDirectory() as dr:
+            a = self._cria(dr, "a/x.parquet", b"mesmo", 1_700_000_000)
+            b = self._cria(dr, "b/x.parquet", b"mesmo", 1_800_000_000)
+            igual, motivo = ch.mesmo_conteudo(a, b)
+            self.assertTrue(igual)
+            self.assertIn("md5 igual", motivo)
+
+    def test_hard_link_nao_paga_hash(self):
+        ch = self._ch()
+        with tempfile.TemporaryDirectory() as dr:
+            a = self._cria(dr, "a/x.parquet", b"x" * 4096)
+            b = os.path.join(dr, "b", "x.parquet")
+            os.makedirs(os.path.dirname(b), exist_ok=True)
+            os.link(a, b)
+            igual, motivo = ch.mesmo_conteudo(a, b)
+            self.assertTrue(igual)
+            self.assertIn("inode", motivo)
+
+    def test_tamanho_diferente_nao_paga_hash(self):
+        ch = self._ch()
+        with tempfile.TemporaryDirectory() as dr:
+            a = self._cria(dr, "a/x.parquet", b"curto")
+            b = self._cria(dr, "b/x.parquet", b"bem mais longo que o outro")
+            igual, motivo = ch.mesmo_conteudo(a, b)
+            self.assertFalse(igual)
+            self.assertIn("tamanhos diferentes", motivo)
+
+    def test_comparar_arvores_conta_certo(self):
+        ch = self._ch()
+        with tempfile.TemporaryDirectory() as dr:
+            o, d = os.path.join(dr, "o"), os.path.join(dr, "d")
+            for raiz, conteudo in ((o, b"igual"), (d, b"igual")):
+                self._cria(raiz, "main/c149/a.parquet", conteudo)
+            self._cria(o, "main/c149/b.parquet", b"AAAA")
+            self._cria(d, "main/c149/b.parquet", b"BBBB")     # mesma dimensão
+            self._cria(o, "main/c149/so_origem.parquet", b"z")
+            r = ch.comparar_arvores(o, d)
+            self.assertEqual(r["conferidos"], 2)
+            self.assertEqual(r["iguais"], 1)
+            self.assertEqual(len(r["divergentes"]), 1)
+            self.assertEqual(r["divergentes"][0][0], "main/c149/b.parquet")
+            self.assertEqual(r["so_origem"], 1)
+
+    def test_o_baseline_nunca_entra_na_varredura(self):
+        ch = self._ch()
+        with tempfile.TemporaryDirectory() as dr:
+            o, d = os.path.join(dr, "o"), os.path.join(dr, "d")
+            self._cria(o, "_baseline_pre_retrofit/x.parquet", b"A")
+            self._cria(d, "_baseline_pre_retrofit/x.parquet", b"B")
+            self.assertEqual(ch.comparar_arvores(o, d)["conferidos"], 0)
+
+    def test_a_mescla_do_tabela42_usa_o_content_hash(self):
+        with open(os.path.join(_RAIZ, "scripts", "tabela42.py"),
+                  encoding="utf-8") as fh:
+            src = fh.read()
+        self.assertIn("_ch.mesmo_conteudo(o, d)", src)
+        self.assertIn("DIVERGENCIAS_CONTEUDO.csv", src)
+        # a heurística antiga não pode voltar
+        self.assertNotIn("abs(os.path.getmtime(d) - os.path.getmtime(o)) < 2", src)

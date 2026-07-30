@@ -69,6 +69,32 @@ function ftm = b4_sonda(Problem, net, TrainIn)
 
     fn = @(Xs) b4_sonda_rows(net, Xs);
     snd.probe(g, fn, ftm, 'modelo', "FNN");
+
+    % ── [A11/I-6/D11] BLOCO ESTRATIFICADO ────────────────────────────────────
+    % So quando a regua acabou de disparar: os dois blocos medem o MESMO modelo
+    % da MESMA geracao, senao a comparacao "global x local" nao fecha. `due(g)`
+    % e o mesmo predicado que o `probe` usou acima.
+    %
+    % O arquivo vem de `bud.arquivoX()` — os X REALMENTE avaliados (①), nao o
+    % `TrainIn`: o treino do b4 e a subamostra 3/4 estratificada por classe
+    % (DataProcess.m:19-21), que e um recorte do arquivo, nao o arquivo.
+    %
+    % ⚠ SEM `true_f` — e DE PROPOSITO, e diverge do gemeo Python. La a
+    % prevalencia sai de graca (numpy, no mesmo processo). Aqui o unico avaliador
+    % analitico e `evalFcnPerX`, que atravessa a PONTE Python UM PONTO POR VEZ:
+    % 500 pontos x ~200 sondas por run = ~100 mil round-trips so para calcular um
+    % agregado que a analise recompoe EXATO a partir do X que ja vai na ③ (os
+    % problemas sao analiticos e deterministicos — mesma doutrina do I-12 e a
+    % mesma razao pela qual o `f` verdadeiro nao entra na ③ nem no lado Python).
+    % Resultado: `prevalencia_nd_no_bloco` sai NaN no ⑥ do MATLAB, por desenho.
+    %
+    % E NAO use `Problem.CalObj`: o harness constroi o `UserProblem` com
+    % `evalFcn` e SEM `objFcn`, entao o CalObj cai no stub da PROBLEM base e
+    % devolveria ZEROS — a prevalencia sairia 1,0 em todo bloco, silenciosamente.
+    if snd.due(g)
+        snd.probeEstratificada(g, bud.arquivoX(), ...
+            Problem.lower, Problem.upper, fn, ftm, 'modelo', "FNN");
+    end
 end
 
 

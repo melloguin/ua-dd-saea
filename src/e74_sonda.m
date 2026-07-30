@@ -263,6 +263,23 @@ function ftm = e74_sonda(Problem, cabeca, modelo, x_train, varargin)
     end
 
     snd.probe(g, fn, ftm, 'modelo', flag, 'hp', hp);
+
+    % ── [A11/I-6/D11] BLOCO ESTRATIFICADO ────────────────────────────────────
+    % So quando a regua acabou de disparar (`due` e puro: so g e k), para que os
+    % dois blocos meçam a MESMA cabeca da MESMA geracao.
+    %
+    % ⚠ O e74 tem QUATRO cabecas de modelo e esta funcao serve as quatro. Se mais
+    % de uma disparar na mesma geracao, saem varios blocos estratificados com o
+    % mesmo `g` — igual ja acontece com a regua. O `modelo` no evento (`flag`) e
+    % o que discrimina; a analise agrupa por (geracao, modelo), nunca so por
+    % geracao.
+    %
+    % SEM `true_f`: a prevalencia sai NaN e a analise a recompoe do X da ③ (ver
+    % a nota longa em b4_sonda.m — a ponte Python custa 1 round-trip por ponto).
+    if snd.due(g)
+        snd.probeEstratificada(g, bud.arquivoX(), ...
+            Problem.lower, Problem.upper, fn, ftm, 'modelo', flag);
+    end
 end
 
 

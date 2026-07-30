@@ -124,6 +124,26 @@ classdef FEBudget < handle
             end
         end
 
+        function X = arquivoX(obj)
+            % [A11/I-6] TODAS as X ja avaliadas de verdade (init + opt), em
+            % float64 e na ordem de avaliacao — o "arquivo corrente" que a sonda
+            % ESTRATIFICADA usa como centro de amostragem.
+            %
+            % Por que aqui e nao via `records()`: o `records` monta um struct
+            % array de n elementos com x/f/fase por linha, so para o consumidor
+            % jogar tudo fora menos o x. Este acessor devolve a matriz direto —
+            % o bloco estratificado dispara na cadencia da sonda (a cada k
+            % geracoes) e nao pode pagar essa alocacao toda vez.
+            %
+            % READ-ONLY: nao toca RNG, nao toca orcamento, nao registra nada.
+            n = numel(obj.recX);
+            if n == 0, X = zeros(0, obj.D); return; end
+            X = zeros(n, obj.D);
+            for k = 1:n
+                X(k,:) = obj.recX{k};
+            end
+        end
+
         function R = records(obj)
             % Struct array das linhas do Catalogo REAL ① (ordem = fe_index).
             n = numel(obj.recX);

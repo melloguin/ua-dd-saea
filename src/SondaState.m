@@ -66,12 +66,33 @@ classdef SondaState < handle
         g_armado double = []              % [DI-19.5] a geracao do modelo ARMADO
     end
 
+    % ── [A11/I-6/D11] SONDA ESTRATIFICADA — contadores SEPARADOS ────────────
+    % Contadores PROPRIOS, nunca somados aos da regua. A regua Sobol e o unico
+    % objeto comparavel ENTRE algoritmos (mesmos S pontos, mesmo x_hash); o bloco
+    % estratificado amostra perto do arquivo CORRENTE, que e diferente em cada
+    % config. Somar os dois no `man.sonda` destruiria essa comparabilidade — e o
+    % plano e explicito: "NUNCA misturado a regua Sobol".
+    properties (SetAccess = private)
+        n_blocos_estrat  (1,1) double = 0
+        n_linhas_estrat  (1,1) double = 0
+        n_falhas_estrat  (1,1) double = 0
+        tempo_estrat_s   (1,1) double = 0
+        gens_estrat      double = []
+    end
+
+    properties (Constant)
+        N_ESTRAT         (1,1) double = 500     % espelha H.SONDA_ESTRAT_N
+        SIGMA_REL_ESTRAT (1,1) double = 0.05    % espelha H.SONDA_ESTRAT_SIGMA_REL
+        USO_ESTRAT       (1,1) double = 91      % espelha H.SONDA_ESTRAT_USO
+    end
+
     properties (Access = private)
         buf                      % RunBuffer (o MESMO coletor da busca)
         fid    = []              % fid do .jsonl
         alg    char = ''
         tempo_pendente (1,1) double = 0   % tempo desde o ultimo takePendingTime
         armado = []              % struct{fn, ftm, meta} do ULTIMO fit visto
+        tempo_pendente_estrat (1,1) double = 0   % [A11] pendente SEPARADO
     end
 
     methods
@@ -171,6 +192,148 @@ classdef SondaState < handle
             obj.tempo_pendente = 0;
         end
 
+        function t = takePendingTimeEstrat(obj)
+        % [A11] O MESMO rito, em acumulador SEPARADO. Existe para o chamador
+        % poder descontar o bloco estratificado do `tempo_geracao_s` (DI-13.10)
+        % SEM contaminar o `tempo_pred_sonda_s`, que e a metrica da regua Sobol e
+        % tem de continuar comparavel entre algoritmos. Somar os dois faria o
+        % custo da regua parecer ~25% maior nos 4 classificadores e em mais
+        % nenhum config — um artefato de instrumentacao virando "achado".
+            t = obj.tempo_pendente_estrat;
+            obj.tempo_pendente_estrat = 0;
+        end
+
+        function probeEstratificada(obj, g, arquivoX, xl, xu, fn, ftm, varargin)
+        % [A11/I-6/D11] UM bloco `regime='sonda_estratificada'` na ③ + evento ⑥.
+        %
+        % POR QUE EXISTE. A regua Sobol responde "o modelo e bom GLOBALMENTE?".
+        % Ela NAO responde "ele acerta ONDE a decisao acontece?", porque pontos
+        % Sobol quase nunca sao bons: a prevalencia MEDIDA da classe positiva e
+        % 0,4% => ~8 positivos por bloco de 2.000, e com 8 positivos
+        % precision/recall/F1 tem variancia enorme (so o AUC fica estavel).
+        % Subir para 3.000 Sobol NAO resolve — a prevalencia nao muda, so o n. A
+        % ESTRATIFICACAO e o que resolve: no gemeo Python a prevalencia medida
+        % subiu de 0,4% para 7,4% (18x mais positivos).
+        %
+        % O QUE NAO SE FAZ. Misturar com a regua. Os S pontos Sobol seguem
+        % intactos e comparaveis entre TODOS os algoritmos; este bloco sai com
+        % `regime='sonda_estratificada'` e NUNCA entra na mesma analise — cada
+        % algoritmo tem um arquivo diferente, logo o bloco nao e comparavel ENTRE
+        % configs (a ressalva que o autor aceitou ao escolher a opcao (b)).
+        %
+        % ARGUMENTOS
+        %   g         geracao (>=1) ou NaN (NULL, regime offline)
+        %   arquivoX  n x D, arquivo CORRENTE em bounds NATIVOS
+        %   xl, xu    1 x D bounds nativos (para o ruido e o clip)
+        %   fn        @(X) -> cell de srows, MESMO contrato do `fire` da regua
+        %   ftm       fe_treino_max (carimbado pela classe, invariante I4)
+        %   name-value opcionais:
+        %     'true_f'         @(X) -> n x M, avaliado FORA do orcamento (§17.2.2/
+        %                      DI-08: problemas analiticos, custo de FE ZERO) —
+        %                      so para a PREVALENCIA no ⑥; o f NAO vai a ③.
+        %     'semente_bloco'  inteiro; default = derivado de (alg,g,uso=91)
+        %     'modelo'         string do modelo (vai ao evento)
+        %     'n'              tamanho do bloco (default N_ESTRAT=500)
+            p = obj.metaOf(varargin{:});
+            n = obj.N_ESTRAT;
+            if isfield(p, 'n') && ~isempty(p.n), n = double(p.n); end
+            semente = obj.sementeBlocoEstrat(g);
+            if isfield(p, 'semente_bloco') && ~isempty(p.semente_bloco)
+                semente = double(p.semente_bloco);
+            end
+
+            % ── I1: RNG global salvo e restaurado aconteca o que acontecer ────
+            % Cinto E suspensorio, igual ao gemeo Python (que usa um Generator
+            % LOCAL *dentro* de `preserve_all_rng`): a amostragem abaixo usa um
+            % RandStream PROPRIO e nao deveria tocar o gerador global, mas o
+            % `fn` do chamador pode — e o invariante da §3.1 e que a ① seja
+            % bit-identica com e sem a sonda.
+            st_rng = rng();
+            cleanup = onCleanup(@() rng(st_rng)); %#ok<NASGU>
+
+            t0 = tic;
+            ok = true;
+            nlin = 0;
+            prevalencia = NaN;
+            try
+                X = obj.amostraEstratificada(arquivoX, xl, xu, n, ...
+                                             obj.SIGMA_REL_ESTRAT, semente);
+                if isempty(X)
+                    dt = toc(t0);
+                    obj.tempo_estrat_s = obj.tempo_estrat_s + dt;
+                    obj.tempo_pendente_estrat = obj.tempo_pendente_estrat + dt;
+                    obj.eventEstrat(g, p, dt, true, ftm, 0, 0, NaN, semente);
+                    return;                       % arquivo vazio: no-op honesto
+                end
+                rows = fn(X);
+                assert(iscell(rows), ...
+                    'sonda_estrat: predict_fn deve devolver cell de srows');
+                assert(numel(rows) == size(X, 1), ...
+                    'sonda_estrat: predict_fn devolveu %d linhas != %d pontos', ...
+                    numel(rows), size(X, 1));
+
+                % ── I4: os invariantes carimbados pela CLASSE ────────────────
+                for i = 1:numel(rows)
+                    rows{i}.regime = "sonda_estratificada";
+                    rows{i}.real_solution_id = [];      % NULL por contrato
+                    rows{i}.fe_treino_max = ftm;
+                end
+                obj.buf.addGeneration(struct('g', g, 'srows', {rows}));
+                nlin = numel(rows);
+                obj.n_blocos_estrat = obj.n_blocos_estrat + 1;
+                obj.n_linhas_estrat = obj.n_linhas_estrat + nlin;
+                obj.gens_estrat(end+1) = g;
+
+                % PREVALENCIA — o unico agregado que justifica o bloco existir.
+                % O `f` VERDADEIRO nao vai a ③: o schema dela e contrato (§3) e
+                % muda-lo custaria re-run de tudo por ZERO informacao nova (os
+                % problemas sao analiticos e deterministicos, a analise recompoe
+                % de X). Mesma doutrina do I-12.
+                if isfield(p, 'true_f') && ~isempty(p.true_f)
+                    try
+                        Fv = p.true_f(X);
+                        prevalencia = sum(NDSort(Fv, 1) == 1) / size(Fv, 1);
+                    catch
+                        prevalencia = NaN;          % nunca derruba o run
+                    end
+                end
+            catch ME
+                % I5: o hard-stop TEM de subir; o resto vira guarda.
+                if strcmp(ME.identifier, 'PlatEMO:Termination'), rethrow(ME); end
+                ok = false;
+                obj.n_falhas_estrat = obj.n_falhas_estrat + 1;
+                obj.guard('sonda_estratificada_falhou', g, ...
+                          'erro', string(ME.identifier), ...
+                          'msg', string(ME.message));
+            end
+            dt = toc(t0);                           % I6: cronometro proprio
+
+            obj.tempo_estrat_s = obj.tempo_estrat_s + dt;
+            obj.tempo_pendente_estrat = obj.tempo_pendente_estrat + dt;
+            obj.eventEstrat(g, p, dt, ok, ftm, nlin, ...
+                            size(reshape(arquivoX, [], max(numel(xl),1)), 1), ...
+                            prevalencia, semente);
+        end
+
+        function blk = manifestBlockEstrat(obj)
+        % [A11] A certidao do bloco estratificado — SEPARADA do man.sonda.
+        % `comparavel_entre_configs = false` e a linha mais importante daqui: e o
+        % que impede alguem, seis meses depois, de por os dois no mesmo grafico.
+            blk = struct( ...
+                'regime',                  "sonda_estratificada", ...
+                'n',                       obj.N_ESTRAT, ...
+                'sigma_rel',               obj.SIGMA_REL_ESTRAT, ...
+                'uso_id',                  obj.USO_ESTRAT, ...
+                'n_blocos',                obj.n_blocos_estrat, ...
+                'n_linhas',                obj.n_linhas_estrat, ...
+                'n_falhas',                obj.n_falhas_estrat, ...
+                'tempo_total_s',           obj.tempo_estrat_s, ...
+                'geracoes',                obj.gens_estrat(:).', ...
+                'comparavel_entre_configs', false, ...
+                'nota', "amostrado PERTO do arquivo corrente (cada config tem " + ...
+                        "um arquivo diferente) — NUNCA misturar com regime='sonda'");
+        end
+
         function blk = manifestBlock(obj)
         % A certidao da regua usada no run (vai para man.sonda).
             blk = struct( ...
@@ -236,6 +399,101 @@ classdef SondaState < handle
             for i = 1:2:numel(varargin)
                 meta.(varargin{i}) = varargin{i+1};
             end
+        end
+
+        function X = amostraEstratificada(~, arquivoX, xl, xu, n, sigma_rel, semente)
+        % [A11] `n` pontos PERTO do arquivo corrente, clipados aos bounds.
+        %
+        % Espelha `standalone_harness.amostra_estratificada`: sorteia com
+        % reposicao uma linha-base do arquivo e soma ruido gaussiano de desvio
+        % `sigma_rel * (xu - xl)` por dimensao.
+        %
+        % DETERMINISMO SEM TOCAR O GLOBAL: usa um `RandStream` PROPRIO. Isto e
+        % mais forte que o `rng(semente)` que seria o reflexo natural em MATLAB —
+        % aquele reposicionaria o gerador global, e mesmo com o onCleanup
+        % restaurando depois, qualquer excecao entre o `rng` e o restore deixaria
+        % a busca com uma sequencia diferente. Com RandStream proprio o gerador
+        % global NUNCA e escrito.
+        %
+        % ⚠ NAO e bit-identico ao gemeo Python. O Python usa
+        % `numpy.random.default_rng` (PCG64) semeado por `SeedSequence`; nao
+        % existe equivalente exato em MATLAB e reimplementar o SeedSequence aqui
+        % seria custo alto por ZERO ganho: o bloco nao e comparavel ENTRE
+        % configs por construcao, entao os pontos do b4 nunca serao confrontados
+        % com os do c122. O que o contrato exige e REPRODUTIBILIDADE (mesmo run,
+        % mesma semente => mesmos pontos), e isso o RandStream garante.
+            X = [];
+            A = reshape(arquivoX, [], numel(xl));
+            if isempty(A), return; end
+            xl = reshape(double(xl), 1, []);
+            xu = reshape(double(xu), 1, []);
+            n  = max(0, round(double(n)));
+            if n == 0, return; end
+            rs   = RandStream('mt19937ar', 'Seed', mod(double(semente), 2^32));
+            idx  = randi(rs, size(A, 1), n, 1);
+            base = double(A(idx, :));
+            desv = sigma_rel .* (xu - xl);
+            ruido = randn(rs, n, numel(xl)) .* repmat(desv, n, 1);
+            X = min(max(base + ruido, repmat(xl, n, 1)), repmat(xu, n, 1));
+        end
+
+        function s = sementeBlocoEstrat(obj, g)
+        % [A11/D62] Semente do bloco, derivada e DOCUMENTADA.
+        %
+        % O gemeo Python usa `iteration_seed(base, alg_id, iteracao, uso_id=91)`
+        % = `numpy.random.SeedSequence((...))`. Nao ha SeedSequence em MATLAB e
+        % nao afirmo paridade bit-a-bit (ver `amostraEstratificada`). Aqui a
+        % mistura e explicita e verificavel a olho: FNV-1a de 64 bits sobre a
+        % tupla (alg, geracao, uso=91), reduzida a 32 bits.
+        %
+        % O que importa para o contrato: mesma (alg, g) => mesma semente, e
+        % geracoes diferentes => sementes descorrelacionadas (o proposito do
+        % uso_id/iteracao do D62 e nao reusar o mesmo fluxo em usos distintos).
+        %
+        % ⚠ POR QUE **NAO** E UM FNV-1a. A primeira versao deste metodo usava
+        % FNV-1a de 64 bits em `uint64`. Em MATLAB a aritmetica de inteiros
+        % **SATURA** em vez de dar wrap-around (ao contrario de C/numpy): apos
+        % duas multiplicacoes o acumulador crava em `intmax('uint64')` e daí em
+        % diante TODA geracao devolveria a MESMA semente — o bloco estratificado
+        % sairia identico em todos os ciclos e o `sigma_rel` seria decorativo.
+        %
+        % O mixer abaixo e o Lehmer/MINSTD (`mod(s*16807, 2^31-1)`), escolhido
+        % por uma razao aritmetica verificavel: o produto maximo e
+        % (2^31-2)*16807 ~ 3,6e13, **abaixo de 2^53**, logo cada passo e EXATO em
+        % ponto flutuante double — sem saturacao e sem perda de bits.
+            gg = double(g);
+            if isnan(gg), gg = 0; end
+            M = 2147483647;                            % 2^31 - 1 (primo)
+            s = 1;
+            simbolos = [double(char(obj.alg)), gg, obj.USO_ESTRAT];
+            for i = 1:numel(simbolos)
+                v = mod(round(simbolos(i)), M);
+                s = mod(mod(s + v, M) * 16807, M);     % produto < 2^53 => exato
+            end
+            if s == 0, s = 1; end                      % 0 e ponto fixo do MINSTD
+        end
+
+        function eventEstrat(obj, g, p, dt, ok, ftm, nlin, n_arquivo, prev, semente)
+        % [A11] Evento `sonda_estratificada` no ⑥ — nome PROPRIO, nunca `sonda`.
+        % Se reusasse `rec='sonda'`, todo consumidor que conta blocos da regua
+        % (censo, gates G-2/G-4, tabela42) passaria a contar 2x nos 4
+        % classificadores e em nenhum outro config.
+            if isempty(obj.fid) || obj.fid <= 2, return; end
+            modelo = "";
+            if isfield(p, 'modelo'), modelo = string(p.modelo); end
+            rec = struct('ts', obj.nowIso(), 'rec', "sonda_estratificada", ...
+                'alg', string(obj.alg), 'geracao', double(g), ...
+                'modelo', modelo, 'n_pontos', double(nlin), ...
+                'tempo_pred_s', dt, ...
+                'fe_treino_max', double(opt_or_nan(ftm)), ...
+                'sigma_rel', obj.SIGMA_REL_ESTRAT, ...
+                'semente_bloco', double(semente), ...
+                'n_arquivo', double(n_arquivo), ...
+                'prevalencia_nd_no_bloco', prev, ...
+                'ok', ok, ...
+                'nota', "bloco NAO-comparavel entre algoritmos (cada um tem um " + ...
+                        "arquivo diferente) — NUNCA misturar com regime='sonda'");
+            try, fprintf(obj.fid, '%s\n', jsonencode(rec)); catch, end
         end
 
         function event(obj, g, meta, motivo, dt, ok, ftm)

@@ -39,6 +39,18 @@ function c217_sonda(Problem, net, Pmid, Error1, TrainIn)
     % ── o disparo (cadencia k=2 + arm p/ a sonda final pos-Solve) ────────────
     fn = @(Xs) c217_sonda_rows(net, Xs, Problem.D, Pmid, Error1);
     snd.probe(g, fn, ftm, 'modelo', "PNN-par");
+
+    % ── [A11/I-6/D11] BLOCO ESTRATIFICADO ────────────────────────────────────
+    % So quando a regua acabou de disparar (`due` e puro: so g e k), para que os
+    % dois blocos meçam o MESMO modelo da MESMA geracao. O arquivo vem de
+    % `bud.arquivoX()` — os X REALMENTE avaliados (①) —, nao do `TrainIn`, que e
+    % a subamostra 3/4 estratificada por classe.
+    % SEM `true_f`: a prevalencia sai NaN e a analise a recompoe do X da ③ (ver
+    % a nota longa em b4_sonda.m — a ponte Python custa 1 round-trip por ponto).
+    if snd.due(g)
+        snd.probeEstratificada(g, bud.arquivoX(), ...
+            Problem.lower, Problem.upper, fn, ftm, 'modelo', "PNN-par");
+    end
 end
 
 

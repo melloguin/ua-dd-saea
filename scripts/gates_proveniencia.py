@@ -101,7 +101,14 @@ def gate_3x1(caminho_terceira: str, caminho_primeira: str) -> tuple[bool, str]:
         return None, f"dependência ausente ({e.name}) — INCONCLUSIVO"
     if not (os.path.exists(caminho_terceira) and os.path.exists(caminho_primeira)):
         return None, "sem ③ ou sem ① — não-aplicável"
-    cols = pq.ParquetFile(caminho_terceira).schema_arrow.names
+    # [conserto 2026-07-30] Um parquet de 0 byte ou com schema divergente
+    # levantava aqui e derrubava a VARREDURA INTEIRA com traceback — as células
+    # seguintes nem chegavam a ser gateadas. Um gate que EXPLODE é pior que um
+    # gate vermelho: o vermelho você vê, a explosão some com o resto do censo.
+    try:
+        cols = pq.ParquetFile(caminho_terceira).schema_arrow.names
+    except Exception as e:                     # noqa: BLE001 — ilegível ≠ verde
+        return None, f"③ ilegível ({type(e).__name__}: {e}) — INCONCLUSIVO"
     if "real_solution_id" not in cols:
         return None, "③ sem real_solution_id — não-aplicável"
     xs = [c for c in cols if c.startswith("x") and c[1:].isdigit()]
@@ -242,6 +249,22 @@ def gate_proveniencia(man: dict, alg: str, *, campanha_id=None,
         if venv_de(exe) not in roster:
             faltas.append(f"venv={venv_de(exe)!r} fora do roster de {alg} "
                           f"({sorted(roster)})")
+    elif exe and not roster:
+        # [conserto 2026-07-30] Antes isto caía no `elif not exe` e o gate
+        # passava CALADO: `exe` presente + roster vazio ⇒ nenhuma checagem,
+        # VERDE. Valia para os 13 configs MATLAB (`venvs_aceitos: []`, por
+        # desenho — MATLAB não tem intérprete Python) e para qualquer alg
+        # desconhecido. Um `env.executable` INVENTADO passava verde.
+        # Um ⑤ do stack MATLAB **não deveria ter** `env.executable`: se tem, é
+        # anomalia e vira FALTA. Alg desconhecido não é aferível ⇒ AVISO.
+        if alg in _ALGS_MATLAB:
+            faltas.append(
+                f"⑤ do stack MATLAB traz env.executable={venv_de(exe)!r} — o "
+                f"MATLAB não tem intérprete Python; este manifesto não pode ter "
+                f"nascido no stack que ele declara")
+        else:
+            avisos.append(f"venv={venv_de(exe)!r} NÃO AFERÍVEL: '{alg}' não tem "
+                          f"roster em envs.json (gate cego neste config)")
     elif not exe:
         # MATLAB não tem intérprete Python: 654 das 666 células da s42 não têm o
         # campo, por desenho (o ⑤ do stack matlab traz `env.matlab`).
@@ -414,6 +437,21 @@ def discriminador_o22(man: dict, caminho_jsonl: str) -> tuple[str, str]:
 # ═══════════════════════════════════════════════════════════════════════════
 #  Fachada por célula + CLI
 # ═══════════════════════════════════════════════════════════════════════════
+
+#: Configs do stack MATLAB — lidos do `envs.json` (nunca hardcoded), usados pelo
+#: G-3 para distinguir "não tem intérprete por desenho" de "roster ausente".
+def _algs_matlab() -> frozenset:
+    try:
+        with open(os.path.join(ARTEFATOS, "envs.json"), encoding="utf-8") as fh:
+            m = json.load(fh).get("alg_to_env", {})
+        return frozenset(a for a, v in m.items()
+                         if isinstance(v, dict) and v.get("stack") == "matlab")
+    except Exception:                          # noqa: BLE001
+        return frozenset()
+
+
+_ALGS_MATLAB = _algs_matlab()
+
 
 def gates_de_proveniencia(exp: str, alg: str, problema: str, semente,
                           data_root: str = "data", *,

@@ -68,14 +68,29 @@ def checa(alg: str, prob: str, sem, exp: str = "main",
 #  [G-6] PAR DE RUNS — a prova que o gate do PLANO §5 pede
 # ═══════════════════════════════════════════════════════════════════════════
 
-#: Configs Python com sonda + o nome da flag que a desliga. `sobol_batch` e os
-#: 4 pisos online NÃO têm sonda (sem surrogate ⇒ sem régua §17.2.2) e ficam
-#: fora por desenho; os 13 MATLAB precisam do gêmeo desta flag no `experiment.m`.
+#: Sentinela: no stack MATLAB a sonda não se desliga por kwarg, e sim pela
+#: variável de ambiente lida no construtor do `SondaState`.
+MATLAB_ENV = object()
+
+#: [G-6] Nome da variável — o mesmo mecanismo do `UA_DD_SAEA_CAMPANHA_ID` (B-03).
+ENV_SONDA_OFF = "UA_DD_SAEA_SONDA_OFF"
+
+#: Config → como desligar a sonda. `sobol_batch` e os 4 pisos ONLINE não têm
+#: sonda (sem surrogate ⇒ sem régua §17.2.2) e ficam fora POR DESENHO.
+#:
+#: Os 13 MATLAB usam `MATLAB_ENV` porque o `experiment.m` recebe
+#: (alg, problema, semente, exp, dataRoot) e um 6º posicional obrigaria a tocar
+#: os 14 `run_*` + o adapter — muito mais superfície do que o gate justifica.
 FLAG_SONDA = {
+    # Python — kwarg direto no runner
     "c122": "sonda_on", "c149": "sonda_on", "e81": "sonda_on",
     "c154": "sonda_on", "c262": "sonda_on",
     "b5r": "sonda_on", "b5m": "sonda_on", "moead_media": "sonda_on",
     "c311": "emitir_sonda", "treed_media": "emitir_sonda",
+    # MATLAB — variável de ambiente (SondaState desarma no construtor)
+    "b1": MATLAB_ENV, "b3": MATLAB_ENV, "b4": MATLAB_ENV, "e7": MATLAB_ENV,
+    "c141": MATLAB_ENV, "c217": MATLAB_ENV, "c238": MATLAB_ENV,
+    "e74": MATLAB_ENV, "e103": MATLAB_ENV,
 }
 
 
@@ -107,6 +122,7 @@ def par_de_runs(alg: str, prob: str, sem, exp: str = "main",
     hashes = {}
     for rotulo, ligada in (("com_sonda", True), ("sem_sonda", False)):
         dr = tempfile.mkdtemp(prefix=f"g6_{alg}_{rotulo}_")
+        env_antes = os.environ.get(ENV_SONDA_OFF)
         try:
             # os artefatos de ENTRADA (DoE/dataset/sonda) nunca se regeneram
             # (D63/D90): o tempdir os enxerga por link.
@@ -114,13 +130,33 @@ def par_de_runs(alg: str, prob: str, sem, exp: str = "main",
                 orig = os.path.join(ROOT, "data", entrada)
                 if os.path.isdir(orig):
                     os.symlink(orig, os.path.join(dr, entrada))
-            _adapter.run(alg, prob, sem, exp=exp, data_root=dr,
-                         **{flag: ligada}, **kwargs)
+            if flag is MATLAB_ENV:
+                # [G-6] Nos 13 configs MATLAB a flag não é kwarg: o
+                # `experiment.m` recebe (alg, problema, semente, exp, dataRoot) e
+                # acrescentar um 6º posicional obrigaria a mexer em TODOS os
+                # `run_*` e no adapter. O `SondaState` lê `UA_DD_SAEA_SONDA_OFF`
+                # no construtor e se DESARMA (o objeto continua existindo, senão
+                # `build_manifest` quebraria em `[].n_blocos`). Mesmo precedente
+                # do `UA_DD_SAEA_CAMPANHA_ID` do B-03.
+                if ligada:
+                    os.environ.pop(ENV_SONDA_OFF, None)
+                else:
+                    os.environ[ENV_SONDA_OFF] = "1"
+                _adapter.run(alg, prob, sem, exp=exp, data_root=dr, **kwargs)
+            else:
+                _adapter.run(alg, prob, sem, exp=exp, data_root=dr,
+                             **{flag: ligada}, **kwargs)
             p1 = _naming.layer_path(exp, alg, prob, sem, "real", dr)
             if not os.path.exists(p1):
                 return False, f"{rotulo}: a ① não foi escrita"
             hashes[rotulo] = _sha(p1)
         finally:
+            # restaurar SEMPRE: um env vazado deixaria a próxima célula sem
+            # sonda em silêncio — exatamente o que este gate existe para impedir.
+            if env_antes is None:
+                os.environ.pop(ENV_SONDA_OFF, None)
+            else:
+                os.environ[ENV_SONDA_OFF] = env_antes
             shutil.rmtree(dr, ignore_errors=True)
     if hashes["com_sonda"] == hashes["sem_sonda"]:
         return True, (f"① BIT-IDÊNTICA com e sem sonda "

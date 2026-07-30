@@ -64,6 +64,11 @@ classdef SondaState < handle
         tempo_total_s (1,1) double = 0
         gens_sondadas double = []         % geracoes ja sondadas (p/ o manifesto)
         g_armado double = []              % [DI-19.5] a geracao do modelo ARMADO
+
+        % [G-6] sonda DESARMADA por `UA_DD_SAEA_SONDA_OFF` — o gemeo MATLAB do
+        % `sonda_on`. O objeto existe (o manifesto continua legivel), mas nenhum
+        % caminho chega ao `fire`. Vai ao manifesto: a sonda nunca some calada.
+        desligada (1,1) logical = false
     end
 
     % ── [A11/I-6/D11] SONDA ESTRATIFICADA — contadores SEPARADOS ────────────
@@ -122,6 +127,19 @@ classdef SondaState < handle
                 assert(obj.S == 2000, ...
                     'sonda online: S=%d != 2000 (§17.2.2)', obj.S);
             end
+            % [G-6] O gemeo MATLAB do `sonda_on` dos runners Python. Sem ele o
+            % par de nao-perturbacao (§3.1: a ① tem de ser BIT-IDENTICA com e sem
+            % sonda) so podia ser provado nos 10 configs Python — os 13 MATLAB
+            % ficavam na promessa.
+            %
+            % DESARMAR, NAO SUMIR. A alternativa obvia — `load_sonda` devolver []
+            % — parece mais simples porque os 14 sitios de construcao ja fazem
+            % `if ~isempty(sd)`, mas QUEBRA o manifesto: `build_manifest` le
+            % `snd.n_blocos`/`n_linhas`/`n_falhas` direto, e `[].n_blocos` e erro.
+            % Aqui o objeto existe, os contadores ficam em 0 e o manifesto
+            % DECLARA `desligada=true` — a sonda nunca some em silencio.
+            obj.desligada = ~isempty(getenv('UA_DD_SAEA_SONDA_OFF')) && ...
+                            ~strcmp(getenv('UA_DD_SAEA_SONDA_OFF'), '0');
         end
 
         function tf = due(obj, g)
@@ -136,7 +154,7 @@ classdef SondaState < handle
         % que mudasse por STACK contradiria a propria definicao.
         % A ULTIMA nao e decidida aqui — vem do finalProbe (ver cabecalho).
             g = double(g);
-            tf = (g >= 1) && (g == 1 || mod(g, obj.k) == 0);
+            tf = ~obj.desligada && (g >= 1) && (g == 1 || mod(g, obj.k) == 0);
         end
 
         function arm(obj, g, fn, ftm, varargin)
@@ -162,6 +180,7 @@ classdef SondaState < handle
         % matar o bloco (o orcamento e o dataset e ja foi esgotado antes da
         % busca), logo nao ha "ultima geracao" a recuperar. Deixar `armado`
         % vazio torna um finalProbe defensivo um no-op garantido.
+            if obj.desligada, return; end            % [G-6]
             obj.fire(NaN, fn, ftm, 'offline', varargin{:});
         end
 
@@ -177,6 +196,7 @@ classdef SondaState < handle
         % `buf.gen` pos-Solve aponta uma geracao que NUNCA foi armada, e o bloco
         % final sairia carimbado com a geracao errada. O argumento posicional
         % legado e aceito e IGNORADO para nao quebrar os call-sites existentes.
+            if obj.desligada, return; end            % [G-6]
             if isempty(obj.armado) || isempty(obj.g_armado), return; end
             g = obj.g_armado;
             if isnan(g) || g < 1, return; end            % run sem geracao alguma
@@ -234,6 +254,7 @@ classdef SondaState < handle
         %     'semente_bloco'  inteiro; default = derivado de (alg,g,uso=91)
         %     'modelo'         string do modelo (vai ao evento)
         %     'n'              tamanho do bloco (default N_ESTRAT=500)
+            if obj.desligada, return; end            % [G-6]
             p = obj.metaOf(varargin{:});
             n = obj.N_ESTRAT;
             if isfield(p, 'n') && ~isempty(p.n), n = double(p.n); end
@@ -329,6 +350,7 @@ classdef SondaState < handle
                 'n_falhas',                obj.n_falhas_estrat, ...
                 'tempo_total_s',           obj.tempo_estrat_s, ...
                 'geracoes',                obj.gens_estrat(:).', ...
+                'desligada',               obj.desligada, ...   % [G-6]
                 'comparavel_entre_configs', false, ...
                 'nota', "amostrado PERTO do arquivo corrente (cada config tem " + ...
                         "um arquivo diferente) — NUNCA misturar com regime='sonda'");
@@ -347,6 +369,7 @@ classdef SondaState < handle
                 'n_linhas',      obj.n_linhas, ...
                 'n_falhas',      obj.n_falhas, ...
                 'tempo_total_s', obj.tempo_total_s, ...
+                'desligada',     obj.desligada, ...   % [G-6] nunca some calada
                 'geracoes',      obj.gens_sondadas(:).');
         end
     end

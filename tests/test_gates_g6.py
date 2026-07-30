@@ -628,10 +628,22 @@ class TestG6NaoPerturbacaoPorPar(unittest.TestCase):
         return mod
 
     def test_os_10_configs_com_sonda_tem_a_flag(self):
+        """Os 10 PYTHON por kwarg + os 9 MATLAB por variável de ambiente.
+
+        Até 2026-07-30 este teste travava o conjunto em 10 e o gate G-6 só
+        rodava no stack Python — os 13 configs MATLAB ficavam na promessa. O
+        gêmeo MATLAB é `UA_DD_SAEA_SONDA_OFF`, lido no construtor do
+        `SondaState`, que se DESARMA (o objeto continua existindo, senão o
+        `build_manifest` quebraria em `[].n_blocos`).
+        """
         mod = self._np()
-        self.assertEqual(set(mod.FLAG_SONDA), {
+        py = {a for a, v in mod.FLAG_SONDA.items() if v is not mod.MATLAB_ENV}
+        ml = {a for a, v in mod.FLAG_SONDA.items() if v is mod.MATLAB_ENV}
+        self.assertEqual(py, {
             "c122", "c149", "e81", "c154", "c262",
             "b5r", "b5m", "moead_media", "c311", "treed_media"})
+        self.assertEqual(ml, {"b1", "b3", "b4", "e7", "c141",
+                              "c217", "c238", "e74", "e103"})
 
     #: alg → (arquivo do runner, função de ENTRADA do dispatch)
     RUNNERS = {"c122": ("c122_thetadeadp", "run_c122"),
@@ -659,6 +671,9 @@ class TestG6NaoPerturbacaoPorPar(unittest.TestCase):
         import ast
         mod = self._np()
         for alg, flag in mod.FLAG_SONDA.items():
+            if flag is mod.MATLAB_ENV:
+                continue      # stack MATLAB: não há runner Python p/ ler por AST
+                              # (o desarme é no SondaState.m — ver test_g6_matlab)
             arq, _entrada = self.RUNNERS[alg]
             with self.subTest(alg=alg):
                 caminho = os.path.join(_RAIZ, "src", f"{arq}.py")

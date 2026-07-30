@@ -76,8 +76,15 @@ def _so_codigo(fonte):
     return "\n".join(saida)
 
 
+#: Commit ANTERIOR à fiação do A11 (`9a53a51`). Fixo de propósito: a 1ª versão
+#: usava `HEAD~1`, que SE MOVE — dois commits depois o "controle" já continha a
+#: fiação e passava, dando falso-verde ao teste positivo. Um controle ancorado
+#: em referência móvel não é controle.
+BASE_ANTES_DO_A11 = "9a53a51~1"
+
+
 def _do_git(rel):
-    r = subprocess.run(["git", "-C", RAIZ, "show", "HEAD~1:" + rel],
+    r = subprocess.run(["git", "-C", RAIZ, "show", BASE_ANTES_DO_A11 + ":" + rel],
                        capture_output=True, text=True)
     return r.stdout if r.returncode == 0 else None
 
@@ -168,7 +175,7 @@ class TestFiacaoNosClassificadores(unittest.TestCase):
                              "%s: o CONTROLE passou — a checagem não "
                              "discrimina" % nome)
         if not vistos:
-            self.skipTest("HEAD~1 indisponível neste clone")
+            self.skipTest("%s indisponível neste clone" % BASE_ANTES_DO_A11)
 
     def test_nao_usa_CalObj(self):
         """`UserProblem` é construído com `evalFcn` e SEM `objFcn` — o CalObj cai

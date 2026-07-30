@@ -50,7 +50,7 @@ def git_head(path):
         return None
 
 
-def _manifestos_forasteiros():
+def _manifestos_forasteiros(raiz_dados=None):
     """[B-12] Manifestos em `data/experiments/**` gravados em OUTRA MÁQUINA.
 
     O discriminador é o HOST, não o venv: `env.executable` que aponta um caminho
@@ -71,7 +71,11 @@ def _manifestos_forasteiros():
     """
     sys.path.insert(0, os.path.join(ROOT, "scripts"))
     from gates_proveniencia import venv_de
-    raiz = os.path.join(ROOT, "data", "experiments")
+    # `raiz_dados` existe para o TESTE poder plantar um manifesto sintético num
+    # tempdir. Antes, o teste do B-12 criava `data/experiments/_teste_b12` na
+    # PRODUÇÃO a cada execução da suíte — escrita real em `data/`, proibição
+    # absoluta da casa. Em produção o parâmetro fica None e nada muda.
+    raiz = raiz_dados or os.path.join(ROOT, "data", "experiments")
     fora = []
     for dirpath, dirs, files in os.walk(raiz):
         dirs[:] = [d for d in dirs if d != "_baseline_pre_retrofit"]

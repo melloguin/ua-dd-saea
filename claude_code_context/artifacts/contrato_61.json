@@ -1,299 +1,298 @@
 {
-  "_meta": {
-    "artefato": "contrato_61.json",
-    "decisao": "G-7 (PLANO_RODADA_PERFEITA §5) — o CONTRATO §6.1 aferido por gate",
-    "data": "2026-07-29",
-    "cartao": "T11-G6",
-    "o_que_e": "A tabela §6.1 do `CONTRATO_DE_DADOS.md` em forma machine-readable: por config, quais chaves o ⑥ (evento de geração) e o ⑤ têm de carregar — e, explicitamente, quais NÃO SE APLICAM e por quê.",
-    "por_que": "Nenhum gate conferia campo DI-10 de config algum: `scripts/auditar.py` não inspeciona o ⑥ (zero ocorrências de `jsonl`/`decision`/`_gen`/`f_best` no arquivo) e o `accept.py:check_r3_b5` tem 8 itens, todos estruturais. Foi por isso que I-05 (b5 com `p_wrong_stats` 0/N em 30.165 eventos), I-07 (`params` ausente no ⑤ de 7 configs) e I-03 (`n_front1` ausente no sobol_batch) atravessaram CINCO gates verdes.",
-    "como_foi_construido": "Extração automática dos identificadores em crase da tabela §6.1 + CURAÇÃO manual contra a medição real: cada campo foi conferido no ⑥/⑤ das células locais da rodada-42 (6 células por config). A curação foi necessária porque a extração crua produz 3 falsos-positivos — o §6.1 menciona `n_baseline` justamente para NEGAR que o e81 o tenha, cita `solution_id` na prosa do b4 quando o campo real é `ref_ids`, e o mínimo comum inclui `tempo_fit_s`, que nos 4 pisos online é NULL por contrato (DI-13.2: eles não treinam).",
-    "consumidores": [
-      "scripts/gates_proveniencia.py (G-7)",
-      "scripts/portao.py",
-      "tests/test_gates_g6.py"
-    ],
-    "achado_novo": "Além de reproduzir I-03/I-05/I-07, a medição acusou 4 campos DI-10 contratados e AUSENTES que nenhum item do T11 cobria (`adapt_delta_V` do b3 · `mll_final` do c262 · `loss_treino` do e7 · `margem_3sigma` do e103) e 112 células de piso online sem `sigma_dict` (nsga2/nsga3/moead/smsemoa, 28 cada). Ver `pendencias_medidas`.",
-    "errata_2026-07-30": "3 das 5 'pendências' da 1ª medição eram FALSO-POSITIVO DO GATE, não do código: `mll_final` (c154/c262) e `loss_treino` (e7) estão ANINHADOS dentro de `modelo_hp`, e o gate só olhava o TOPO do evento. Um campo aninhado está no ⑥ e é auditável — o gate afere PRESENÇA, não POSIÇÃO. Corrigido para varrer em profundidade (≤4 níveis). `n_baseline` no c154 virou não-se-aplica (o sigma_dict do próprio runner já o declarava). Restam 2 pendências REAIS: `adapt_delta_V` (b3) e `margem_3sigma` (e103)."
+ "_meta": {
+  "artefato": "contrato_61.json",
+  "decisao": "G-7 (PLANO_RODADA_PERFEITA §5) — o CONTRATO §6.1 aferido por gate",
+  "data": "2026-07-29",
+  "cartao": "T11-G6",
+  "o_que_e": "A tabela §6.1 do `CONTRATO_DE_DADOS.md` em forma machine-readable: por config, quais chaves o ⑥ (evento de geração) e o ⑤ têm de carregar — e, explicitamente, quais NÃO SE APLICAM e por quê.",
+  "por_que": "Nenhum gate conferia campo DI-10 de config algum: `scripts/auditar.py` não inspeciona o ⑥ (zero ocorrências de `jsonl`/`decision`/`_gen`/`f_best` no arquivo) e o `accept.py:check_r3_b5` tem 8 itens, todos estruturais. Foi por isso que I-05 (b5 com `p_wrong_stats` 0/N em 30.165 eventos), I-07 (`params` ausente no ⑤ de 7 configs) e I-03 (`n_front1` ausente no sobol_batch) atravessaram CINCO gates verdes.",
+  "como_foi_construido": "Extração automática dos identificadores em crase da tabela §6.1 + CURAÇÃO manual contra a medição real: cada campo foi conferido no ⑥/⑤ das células locais da rodada-42 (6 células por config). A curação foi necessária porque a extração crua produz 3 falsos-positivos — o §6.1 menciona `n_baseline` justamente para NEGAR que o e81 o tenha, cita `solution_id` na prosa do b4 quando o campo real é `ref_ids`, e o mínimo comum inclui `tempo_fit_s`, que nos 4 pisos online é NULL por contrato (DI-13.2: eles não treinam).",
+  "consumidores": [
+   "scripts/gates_proveniencia.py (G-7)",
+   "scripts/portao.py",
+   "tests/test_gates_g6.py"
+  ],
+  "achado_novo": "Além de reproduzir I-03/I-05/I-07, a medição acusou 4 campos DI-10 contratados e AUSENTES que nenhum item do T11 cobria (`adapt_delta_V` do b3 · `mll_final` do c262 · `loss_treino` do e7 · `margem_3sigma` do e103) e 112 células de piso online sem `sigma_dict` (nsga2/nsga3/moead/smsemoa, 28 cada). Ver `pendencias_medidas`.",
+  "errata_2026-07-30": "3 das 5 'pendências' da 1ª medição eram FALSO-POSITIVO DO GATE, não do código: `mll_final` (c154/c262) e `loss_treino` (e7) estão ANINHADOS dentro de `modelo_hp`, e o gate só olhava o TOPO do evento. Um campo aninhado está no ⑥ e é auditável — o gate afere PRESENÇA, não POSIÇÃO. Corrigido para varrer em profundidade (≤4 níveis). `n_baseline` no c154 virou não-se-aplica (o sigma_dict do próprio runner já o declarava). Restam 2 pendências REAIS: `adapt_delta_V` (b3) e `margem_3sigma` (e103).",
+  "errata_12_2026-07-30": "`p_wrong_stats` era exigido de b5m, b5r E moead_media — mas so o b5m (mode 72, Prob-MOEA/D) passa pelo `ProbMOEAD_select`, onde vive o acumulador. b5r (mode 7, Prob-RVEA) e moead_media (mode 12, MOEA/D-media) usam OUTROS seletores. Evidencia no proprio codigo: src/b5_prob.py:78-79 ('Vazio no b5r ... nao passa pelo ProbMOEAD_select') e src/piso_offline.py:9-11 ('mode 12 usa MOEAD_select'). O b5r escapava do vermelho por ACIDENTE (b5_prob.py:522 grava a chave vazia); o moead_media acusava porque o piso_offline nao grava. Falso-positivo do ARTEFATO, nao do codigo — familia da ERRATA 6."
+ },
+ "minimo_comum_di10": {
+  "campos": [
+   "fe",
+   "f_best",
+   "n_front1",
+   "tempo_fit_s",
+   "tempo_busca_s"
+  ],
+  "fonte": "CONTRATO §6 (`<alg>_gen`: mínimo comum DI-10) + S.7.1",
+  "nota": "`modelo_hp` (B1) e `dist_min_arquivo` (B3) fazem parte do mínimo mas só se aplicam a quem tem surrogate e arquivo — ficam em `di10` por config."
+ },
+ "quinto_obrigatorio": {
+  "campos": [
+   "params",
+   "sigma_dict",
+   "timing",
+   "doe_hash",
+   "campanha_id",
+   "repo_hash"
+  ],
+  "fonte": "CONTRATO §5 + B-03 (campanha_id) + I-09 (repo_hash)"
+ },
+ "configs": {
+  "b1": {
+   "di10": [
+    "ei_best",
+    "n_pool_ga",
+    "modelo_hp",
+    "dist_min_arquivo"
+   ],
+   "nao_se_aplica": {}
   },
-  "minimo_comum_di10": {
-    "campos": [
-      "fe",
-      "f_best",
-      "n_front1",
-      "tempo_fit_s",
-      "tempo_busca_s"
-    ],
-    "fonte": "CONTRATO §6 (`<alg>_gen`: mínimo comum DI-10) + S.7.1",
-    "nota": "`modelo_hp` (B1) e `dist_min_arquivo` (B3) fazem parte do mínimo mas só se aplicam a quem tem surrogate e arquivo — ficam em `di10` por config."
+  "b3": {
+   "di10": [
+    "apd_sel",
+    "sigma_sel",
+    "n_vetores_vazios",
+    "adapt_delta_V"
+   ],
+   "nao_se_aplica": {}
   },
-  "quinto_obrigatorio": {
-    "campos": [
-      "params",
-      "sigma_dict",
-      "timing",
-      "doe_hash",
-      "campanha_id",
-      "repo_hash"
-    ],
-    "fonte": "CONTRATO §5 + B-03 (campanha_id) + I-09 (repo_hash)"
+  "b4": {
+   "di10": [
+    "ref_ids",
+    "rr",
+    "tr"
+   ],
+   "nao_se_aplica": {
+    "solution_id": "a prosa do §6.1 diz 'os 6 solution_id das REFERÊNCIAS radiais'; o campo REAL é `ref_ids` (medido: 25/25 células)"
+   }
   },
-  "configs": {
-    "b1": {
-      "di10": [
-        "ei_best",
-        "n_pool_ga",
-        "modelo_hp",
-        "dist_min_arquivo"
-      ],
-      "nao_se_aplica": {}
-    },
-    "b3": {
-      "di10": [
-        "apd_sel",
-        "sigma_sel",
-        "n_vetores_vazios",
-        "adapt_delta_V"
-      ],
-      "nao_se_aplica": {}
-    },
-    "b4": {
-      "di10": [
-        "ref_ids",
-        "rr",
-        "tr"
-      ],
-      "nao_se_aplica": {
-        "solution_id": "a prosa do §6.1 diz 'os 6 solution_id das REFERÊNCIAS radiais'; o campo REAL é `ref_ids` (medido: 25/25 células)"
-      }
-    },
-    "e7": {
-      "di10": [
-        "n_clusters_efetivo",
-        "loss_treino"
-      ],
-      "nao_se_aplica": {}
-    },
-    "c217": {
-      "di10": [
-        "n_best",
-        "n_worst"
-      ],
-      "nao_se_aplica": {}
-    },
-    "c141": {
-      "di10": [
-        "n_por_nivel"
-      ],
-      "nao_se_aplica": {}
-    },
-    "e74": {
-      "di10": [
-        "n_por_nivel",
-        "k_local_efetivo"
-      ],
-      "nao_se_aplica": {}
-    },
-    "c238": {
-      "di10": [
-        "eim_mediana_pool"
-      ],
-      "nao_se_aplica": {}
-    },
-    "c262": {
-      "di10": [
-        "acqf_todos_restarts",
-        "n_baseline",
-        "mll_final"
-      ],
-      "nao_se_aplica": {}
-    },
-    "c154": {
-      "di10": [
-        "acqf_todos_restarts",
-        "mll_final"
-      ],
-      "nao_se_aplica": {
-        "n_baseline": "AUSENTE POR DESENHO — o próprio `sigma_dict` do c154 já o declara (src/c154_jes.py: 'jsonl_n_baseline: AUSENTE POR DESENHO no c154'): o qLBMOJES-LB não faz prune de baseline (o JES vê o arquivo inteiro), então `n_baseline` é conceito do qLogNEHVI, como no e81 (P6/DI-16.6). O §6.1 diz 'idem c262' na prosa, e a prosa está mais larga que o algoritmo."
-      }
-    },
-    "e81": {
-      "di10": [
-        "n_train"
-      ],
-      "nao_se_aplica": {
-        "n_baseline": "[P6/DI-16.6] o qPOTS NÃO tem baseline nem prune — o maximin é vs o dataset INTEIRO. O §6.1 cita `n_baseline` para NEGAR que se aplique"
-      }
-    },
-    "c149": {
-      "di10": [
-        "hvi_top5",
-        "std_ensemble_sel"
-      ],
-      "nao_se_aplica": {}
-    },
-    "c122": {
-      "di10": [
-        "n_acordo",
-        "n_desacordo"
-      ],
-      "nao_se_aplica": {}
-    },
-    "b5r": {
-      "di10": [
-        "p_wrong_stats"
-      ],
-      "nao_se_aplica": {
-        "tempo_busca_s": "④ com 1 linha por desenho (offline, fit único): o tempo de busca vive na ④, não no evento de geração"
-      }
-    },
-    "b5m": {
-      "di10": [
-        "p_wrong_stats"
-      ],
-      "nao_se_aplica": {
-        "tempo_busca_s": "idem b5r"
-      }
-    },
-    "moead_media": {
-      "di10": [
-        "p_wrong_stats"
-      ],
-      "nao_se_aplica": {
-        "tempo_busca_s": "idem b5r (é o 'b5 sem σ' — DI-30.B3)"
-      }
-    },
-    "c311": {
-      "di10": [
-        "n_folhas",
-        "profundidade"
-      ],
-      "nao_se_aplica": {}
-    },
-    "e103": {
-      "di10": [
-        "divergencia_modelos",
-        "margem_3sigma_stats"
-      ],
-      "nao_se_aplica": {
-        "margem_3sigma": "DIVERGÊNCIA DE NOME, não campo ausente: o e103 grava `margem_3sigma_stats` (src/e103_instrument.m:186) — a estatística HONESTA do gate [DI-13.4(b)], réplica literal da aritmética do JudgeModel sobre (PopObj_julgada, MSE_julgada). O §6.1 pede um escalar; o código entrega mais. Mesma classe do `solution_id`×`ref_ids` do b4."
-      }
-    },
-    "treed_media": {
-      "di10": [],
-      "nao_se_aplica": {
-        "fe": "não grava evento de geração (a ③ vem do hook do `_next_gen`) — ver mapa_termino.json",
-        "f_best": "idem",
-        "n_front1": "idem",
-        "tempo_fit_s": "idem",
-        "tempo_busca_s": "idem"
-      }
-    },
-    "nsga2": {
-      "di10": [
-        "f_best",
-        "n_front1"
-      ],
-      "nao_se_aplica": {
-        "tempo_fit_s": "[DI-13.2] piso ONLINE não treina surrogate: `tempo_fit_s` é NULL por contrato",
-        "tempo_busca_s": "o piso não tem aquisição a otimizar"
-      }
-    },
-    "nsga3": {
-      "di10": [
-        "f_best",
-        "n_front1"
-      ],
-      "nao_se_aplica": {
-        "tempo_fit_s": "idem nsga2",
-        "tempo_busca_s": "idem nsga2"
-      }
-    },
-    "moead": {
-      "di10": [
-        "f_best",
-        "n_front1"
-      ],
-      "nao_se_aplica": {
-        "tempo_fit_s": "idem nsga2",
-        "tempo_busca_s": "idem nsga2"
-      }
-    },
-    "smsemoa": {
-      "di10": [
-        "f_best",
-        "n_front1"
-      ],
-      "nao_se_aplica": {
-        "tempo_fit_s": "idem nsga2",
-        "tempo_busca_s": "idem nsga2"
-      }
-    },
-    "sobol_batch": {
-      "di10": [
-        "f_best",
-        "n_front1"
-      ],
-      "nao_se_aplica": {
-        "tempo_fit_s": "piso do batch, sem surrogate (NULL por contrato)",
-        "tempo_busca_s": "o lote é Sobol puro"
-      }
-    }
+  "e7": {
+   "di10": [
+    "n_clusters_efetivo",
+    "loss_treino"
+   ],
+   "nao_se_aplica": {}
   },
-  "pendencias_medidas": {
-    "_nota": "O que a medição de 2026-07-29 encontrou AUSENTE nos ⑥/⑤ locais da rodada-42, com o item do T11 que resolve. O gate G-7 fica VERMELHO nestes até a FASE A fechar — e é para isso que ele existe.",
-    "sexto": {
-      "b5r/b5m/moead_media": {
-        "ausente": [
-          "p_wrong_stats"
-        ],
-        "item": "I-05 / T11-A3",
-        "medido": "0/N em 30.165 eventos — único dos 21 configs com 0/N"
-      },
-      "sobol_batch": {
-        "ausente": [
-          "n_front1"
-        ],
-        "item": "I-03 / T11-A6",
-        "medido": "presente em 46/47 linhas (alg,exp) do estudo; ausente só aqui"
-      },
-      "b3": {
-        "ausente": [
-          "adapt_delta_V"
-        ],
-        "item": "RESOLVIDO em T11-P0 (2026-07-30) — derivado dos snaps, sem patch vendorizado",
-        "medido": "ausente em 40/40 eventos de b3_gen — nem no topo nem aninhado"
-      },
-      "_resolvidos_como_falso_positivo": {
-        "mll_final (c154, c262)": "ANINHADO em `modelo_hp` — presente; era o gate olhando só o topo",
-        "loss_treino (e7)": "ANINHADO em `modelo_hp` — presente; idem",
-        "n_baseline (c154)": "NÃO-SE-APLICA (o sigma_dict do runner já declarava)",
-        "margem_3sigma (e103)": "DIVERGÊNCIA DE NOME — o campo é `margem_3sigma_stats` e é mais rico"
-      }
-    },
-    "quinto": {
-      "params": {
-        "configs": [
-          "c217",
-          "c262",
-          "c154",
-          "b5r",
-          "b5m",
-          "moead_media",
-          "sobol_batch"
-        ],
-        "item": "I-07 / T11-A1,A2,A3,A4,A6,A9",
-        "medido": "216 células locais (197 na cópia oficial) — ~32% do grid em 30 sementes"
-      },
-      "sigma_dict": {
-        "configs": [
-          "nsga2",
-          "nsga3",
-          "moead",
-          "smsemoa"
-        ],
-        "item": "RESOLVIDO em T11-P0 (2026-07-30): o piso passa a DECLARAR `sigma_dict.status='nao_se_aplica'` em vez de omitir — mesmo padrão do bloco `sonda` do próprio piso e do `tempo_fit_s=NULL` da ④ (DI-13.2)",
-        "medido": "28 células cada = 112; são pisos ONLINE sem surrogate (③ vazia), então o honesto é um sigma_dict declarando 'sem modelo', como o `tempo_fit_s=NULL` da ④"
-      }
-    }
+  "c217": {
+   "di10": [
+    "n_best",
+    "n_worst"
+   ],
+   "nao_se_aplica": {}
+  },
+  "c141": {
+   "di10": [
+    "n_por_nivel"
+   ],
+   "nao_se_aplica": {}
+  },
+  "e74": {
+   "di10": [
+    "n_por_nivel",
+    "k_local_efetivo"
+   ],
+   "nao_se_aplica": {}
+  },
+  "c238": {
+   "di10": [
+    "eim_mediana_pool"
+   ],
+   "nao_se_aplica": {}
+  },
+  "c262": {
+   "di10": [
+    "acqf_todos_restarts",
+    "n_baseline",
+    "mll_final"
+   ],
+   "nao_se_aplica": {}
+  },
+  "c154": {
+   "di10": [
+    "acqf_todos_restarts",
+    "mll_final"
+   ],
+   "nao_se_aplica": {
+    "n_baseline": "AUSENTE POR DESENHO — o próprio `sigma_dict` do c154 já o declara (src/c154_jes.py: 'jsonl_n_baseline: AUSENTE POR DESENHO no c154'): o qLBMOJES-LB não faz prune de baseline (o JES vê o arquivo inteiro), então `n_baseline` é conceito do qLogNEHVI, como no e81 (P6/DI-16.6). O §6.1 diz 'idem c262' na prosa, e a prosa está mais larga que o algoritmo."
+   }
+  },
+  "e81": {
+   "di10": [
+    "n_train"
+   ],
+   "nao_se_aplica": {
+    "n_baseline": "[P6/DI-16.6] o qPOTS NÃO tem baseline nem prune — o maximin é vs o dataset INTEIRO. O §6.1 cita `n_baseline` para NEGAR que se aplique"
+   }
+  },
+  "c149": {
+   "di10": [
+    "hvi_top5",
+    "std_ensemble_sel"
+   ],
+   "nao_se_aplica": {}
+  },
+  "c122": {
+   "di10": [
+    "n_acordo",
+    "n_desacordo"
+   ],
+   "nao_se_aplica": {}
+  },
+  "b5r": {
+   "di10": [],
+   "nao_se_aplica": {
+    "tempo_busca_s": "④ com 1 linha por desenho (offline, fit único): o tempo de busca vive na ④, não no evento de geração",
+    "p_wrong_stats": "mode 7 usa `ProbRVEA_v3`, NAO o `ProbMOEAD_select` — nao existe P_wrong a medir. Exigir este campo e INVERTIDO: se ele aparecesse, significaria que o b5r teria passado pelo seletor do b5m, isto e, o experimento estaria INVALIDO. A exigencia foi copiada do b5m por engano (ERRATA 12, 2026-07-30); a SPEC §6.1 nao tem linha para este config."
+   }
+  },
+  "b5m": {
+   "di10": [
+    "p_wrong_stats"
+   ],
+   "nao_se_aplica": {
+    "tempo_busca_s": "idem b5r"
+   }
+  },
+  "moead_media": {
+   "di10": [],
+   "nao_se_aplica": {
+    "tempo_busca_s": "idem b5r (é o 'b5 sem σ' — DI-30.B3)",
+    "p_wrong_stats": "mode 12 usa `MOEAD_select`, NAO o `ProbMOEAD_select` — nao existe P_wrong a medir. Exigir este campo e INVERTIDO: se ele aparecesse, significaria que a ABLACAO teria sido contaminada com a maquinaria probabilistica que ela existe para NAO ter (o contraste piso x b5 e justamente esse), isto e, o experimento estaria INVALIDO. A exigencia foi copiada do b5m por engano (ERRATA 12, 2026-07-30); a SPEC §6.1 nao tem linha para este config."
+   }
+  },
+  "c311": {
+   "di10": [
+    "n_folhas",
+    "profundidade"
+   ],
+   "nao_se_aplica": {}
+  },
+  "e103": {
+   "di10": [
+    "divergencia_modelos",
+    "margem_3sigma_stats"
+   ],
+   "nao_se_aplica": {
+    "margem_3sigma": "DIVERGÊNCIA DE NOME, não campo ausente: o e103 grava `margem_3sigma_stats` (src/e103_instrument.m:186) — a estatística HONESTA do gate [DI-13.4(b)], réplica literal da aritmética do JudgeModel sobre (PopObj_julgada, MSE_julgada). O §6.1 pede um escalar; o código entrega mais. Mesma classe do `solution_id`×`ref_ids` do b4."
+   }
+  },
+  "treed_media": {
+   "di10": [],
+   "nao_se_aplica": {
+    "fe": "não grava evento de geração (a ③ vem do hook do `_next_gen`) — ver mapa_termino.json",
+    "f_best": "idem",
+    "n_front1": "idem",
+    "tempo_fit_s": "idem",
+    "tempo_busca_s": "idem"
+   }
+  },
+  "nsga2": {
+   "di10": [
+    "f_best",
+    "n_front1"
+   ],
+   "nao_se_aplica": {
+    "tempo_fit_s": "[DI-13.2] piso ONLINE não treina surrogate: `tempo_fit_s` é NULL por contrato",
+    "tempo_busca_s": "o piso não tem aquisição a otimizar"
+   }
+  },
+  "nsga3": {
+   "di10": [
+    "f_best",
+    "n_front1"
+   ],
+   "nao_se_aplica": {
+    "tempo_fit_s": "idem nsga2",
+    "tempo_busca_s": "idem nsga2"
+   }
+  },
+  "moead": {
+   "di10": [
+    "f_best",
+    "n_front1"
+   ],
+   "nao_se_aplica": {
+    "tempo_fit_s": "idem nsga2",
+    "tempo_busca_s": "idem nsga2"
+   }
+  },
+  "smsemoa": {
+   "di10": [
+    "f_best",
+    "n_front1"
+   ],
+   "nao_se_aplica": {
+    "tempo_fit_s": "idem nsga2",
+    "tempo_busca_s": "idem nsga2"
+   }
+  },
+  "sobol_batch": {
+   "di10": [
+    "f_best",
+    "n_front1"
+   ],
+   "nao_se_aplica": {
+    "tempo_fit_s": "piso do batch, sem surrogate (NULL por contrato)",
+    "tempo_busca_s": "o lote é Sobol puro"
+   }
   }
+ },
+ "pendencias_medidas": {
+  "_nota": "O que a medição de 2026-07-29 encontrou AUSENTE nos ⑥/⑤ locais da rodada-42, com o item do T11 que resolve. O gate G-7 fica VERMELHO nestes até a FASE A fechar — e é para isso que ele existe.",
+  "sexto": {
+   "b5r/b5m/moead_media": {
+    "ausente": [
+     "p_wrong_stats"
+    ],
+    "item": "I-05 / T11-A3",
+    "medido": "0/N em 30.165 eventos — único dos 21 configs com 0/N"
+   },
+   "sobol_batch": {
+    "ausente": [
+     "n_front1"
+    ],
+    "item": "I-03 / T11-A6",
+    "medido": "presente em 46/47 linhas (alg,exp) do estudo; ausente só aqui"
+   },
+   "b3": {
+    "ausente": [
+     "adapt_delta_V"
+    ],
+    "item": "RESOLVIDO em T11-P0 (2026-07-30) — derivado dos snaps, sem patch vendorizado",
+    "medido": "ausente em 40/40 eventos de b3_gen — nem no topo nem aninhado"
+   },
+   "_resolvidos_como_falso_positivo": {
+    "mll_final (c154, c262)": "ANINHADO em `modelo_hp` — presente; era o gate olhando só o topo",
+    "loss_treino (e7)": "ANINHADO em `modelo_hp` — presente; idem",
+    "n_baseline (c154)": "NÃO-SE-APLICA (o sigma_dict do runner já declarava)",
+    "margem_3sigma (e103)": "DIVERGÊNCIA DE NOME — o campo é `margem_3sigma_stats` e é mais rico"
+   }
+  },
+  "quinto": {
+   "params": {
+    "configs": [
+     "c217",
+     "c262",
+     "c154",
+     "b5r",
+     "b5m",
+     "moead_media",
+     "sobol_batch"
+    ],
+    "item": "I-07 / T11-A1,A2,A3,A4,A6,A9",
+    "medido": "216 células locais (197 na cópia oficial) — ~32% do grid em 30 sementes"
+   },
+   "sigma_dict": {
+    "configs": [
+     "nsga2",
+     "nsga3",
+     "moead",
+     "smsemoa"
+    ],
+    "item": "RESOLVIDO em T11-P0 (2026-07-30): o piso passa a DECLARAR `sigma_dict.status='nao_se_aplica'` em vez de omitir — mesmo padrão do bloco `sonda` do próprio piso e do `tempo_fit_s=NULL` da ④ (DI-13.2)",
+    "medido": "28 células cada = 112; são pisos ONLINE sem surrogate (③ vazia), então o honesto é um sigma_dict declarando 'sem modelo', como o `tempo_fit_s=NULL` da ④"
+   }
+  }
+ }
 }

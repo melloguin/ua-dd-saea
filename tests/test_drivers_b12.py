@@ -66,25 +66,37 @@ class TestPreflightAntiForasteiro(unittest.TestCase):
                                         "mestrado_experimentos_dissertacao"))
 
     def test_manifesto_forasteiro_plantado_e_acusado(self):
+        """O discriminador do B-12 acusa um manifesto de OUTRA máquina?
+
+        ⚠ [conserto 2026-07-30] Esta versão planta o manifesto num TEMPDIR, não
+        em `data/experiments/_teste_b12` da PRODUÇÃO. A versão anterior criava e
+        removia aquela pasta a CADA execução da suíte — escrita real em `data/`,
+        que é proibição absoluta da casa —, e a guarda G-8 não acusava porque a
+        impressão dela estatava os FILHOS de `data/experiments` e nunca a RAIZ,
+        justamente o inode cujo mtime muda quando uma subpasta nasce e morre.
+        Os dois lados foram consertados: a guarda passou a estatar a raiz, e o
+        teste parou de tocar na produção.
+        """
         import json
         import tempfile
         mod = self._preflight()
-        alvo = os.path.join(_RAIZ, "data", "experiments", "_teste_b12")
-        os.makedirs(alvo, exist_ok=True)
-        p = os.path.join(alvo, "exp_main_zz_MMF1_0.manifest.json")
-        try:
+        with tempfile.TemporaryDirectory(prefix="b12_forasteiro_") as base:
+            alvo = os.path.join(base, "experiments", "_teste_b12")
+            os.makedirs(alvo)
+            p = os.path.join(alvo, "exp_main_zz_MMF1_0.manifest.json")
             with open(p, "w", encoding="utf-8") as fh:
                 json.dump({"exp": "main", "alg": "zz", "problema": "MMF1",
                            "semente": 0, "status": "ok",
                            "env": {"executable": "/nao/existe/env_fantasma/bin/python"}},
                           fh)
-            achados = dict(mod._manifestos_forasteiros())
+            achados = dict(mod._manifestos_forasteiros(
+                raiz_dados=os.path.join(base, "experiments")))
             rel = os.path.relpath(p, _RAIZ)
-            self.assertIn(rel, achados)
+            self.assertIn(rel, achados,
+                          "o discriminador do B-12 não acusou o manifesto "
+                          "plantado — o gate ficaria cego a células vindas de "
+                          "outra máquina por rsync")
             self.assertEqual(achados[rel], "env_fantasma")
-        finally:
-            os.remove(p)
-            os.rmdir(alvo)
 
     def test_o_baseline_pre_retrofit_nunca_e_varrido(self):
         # proibição absoluta da casa: nem para LER em varredura de escrita

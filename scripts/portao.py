@@ -161,7 +161,7 @@ def main(argv=None) -> int:
                      "(ou use --varredura)")
         runs = [(a.exp, a.alg, a.problema, a.semente)]
 
-    total_gates, vermelhos = 0, []
+    total_gates, vermelhos, inconclusivos = 0, [], []
     for exp, alg, prob, sem in runs:
         res = gates_de_um_run(exp, alg, prob, sem, a.data_root)
         total_gates += len(res)
@@ -179,13 +179,33 @@ def main(argv=None) -> int:
         for nome, ok, det in res:
             if ok is False:
                 vermelhos.append((exp, alg, prob, sem, nome, det))
+            elif ok is None:
+                # [B-07] INCONCLUSIVO **NUNCA** conta como verde. Até 2026-07-30
+                # esta doutrina valia só para o emoji: `vermelhos` só recebia
+                # `ok is False`, então uma célula cujo ÚNICO não-verde fosse
+                # INCONCLUSIVO imprimia "VERDE" e saía 0 — e este é o portão que
+                # AUTORIZA O DISPARO. Um gate que não sabe medir não atesta nada.
+                inconclusivos.append((exp, alg, prob, sem, nome, det))
 
+    if vermelhos:
+        veredito = "REPROVADO"
+    elif inconclusivos:
+        veredito = "INCONCLUSIVO (não é verde — B-07)"
+    else:
+        veredito = "VERDE"
     print(f"\nPORTÃO: {len(runs)} runs · {total_gates} gates · "
-          f"{len(vermelhos)} vermelho(s) → "
-          f"{'VERDE' if not vermelhos else 'REPROVADO'}")
+          f"{len(vermelhos)} vermelho(s) · {len(inconclusivos)} inconclusivo(s) → "
+          f"{veredito}")
     for exp, alg, prob, sem, nome, det in vermelhos:
         print(f"  🔴 {exp}/{alg}/{prob}/s{sem} [{nome}]: {det}")
-    return 0 if not vermelhos else 1
+    for exp, alg, prob, sem, nome, det in inconclusivos:
+        print(f"  ⚠ {exp}/{alg}/{prob}/s{sem} [{nome}]: {det}")
+    # 0 = verde · 1 = vermelho · 2 = inconclusivo (distintos DE PROPOSITO: quem
+    # chama precisa poder tratar "reprovou" e "nao consegui medir" de formas
+    # diferentes — colapsar os dois foi o que criou o falso-verde).
+    if vermelhos:
+        return 1
+    return 2 if inconclusivos else 0
 
 
 if __name__ == "__main__":

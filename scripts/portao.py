@@ -78,8 +78,17 @@ def _manifesto_do_run(exp, alg, problema, semente, data_root) -> dict:
 
 
 def gates_de_um_run(exp: str, alg: str, problema: str, semente,
-                    data_root: str = "data") -> list[tuple[str, bool, str]]:
-    """O conjunto de gates aplicável a UM run, na ordem canônica."""
+                    data_root: str = "data", *,
+                    modo: str = "campanha") -> list[tuple[str, bool, str]]:
+    """O conjunto de gates aplicável a UM run, na ordem canônica.
+
+    `modo='historico'` audita a **rodada-42**, cujos ⑤ nasceram no schema v1 e
+    por isso não têm `campanha_id` nem `repo_hash` (o B-03 é desta campanha).
+    Sem esta opção o portão pintava de VERMELHO as 666 células da s42 por um
+    campo que elas não podiam ter — e o gate do §1 do RUNBOOK, que manda gatear
+    o corpus histórico, ficava inutilizável. O `gates_proveniencia` já tinha os
+    dois modos; o portão é que não os expunha.
+    """
     if alg not in CARTAO_POR_ALG:
         return [("cartao", False, f"config desconhecido do portão: {alg!r}")]
     # [DI-38a] Aborto SANCIONADO (teto de wall / cache-cap): estado ESPERADO da
@@ -95,11 +104,13 @@ def gates_de_um_run(exp: str, alg: str, problema: str, semente,
         # abortava SEM camadas. Agora o truncamento-com-dado GRAVA as parciais,
         # então a célula sancionada AINDA passa pelos gates de proveniência —
         # ela tem dado, e dado sem proveniência é o que a T11 existe para matar.
-        prov = gates_de_proveniencia(exp, alg, problema, semente, data_root)
+        prov = gates_de_proveniencia(exp, alg, problema, semente, data_root,
+                                     modo=modo)
         return [("aborto-sancionado", True,
                  f"{man.get('motivo_parada')} — gates de conteúdo dispensados "
                  f"(DI-38a); fe_final={man.get('fe_final')}")] + prov
-    out = list(gates_de_proveniencia(exp, alg, problema, semente, data_root))
+    out = list(gates_de_proveniencia(exp, alg, problema, semente, data_root,
+                                     modo=modo))
     card = CARTAO_POR_ALG[alg]
     # (accept.py não expõe --data-root: opera sempre sobre data/ — o
     #  passthrough de data_root do portão vale p/ o final_eval)
@@ -151,6 +162,10 @@ def main(argv=None) -> int:
     ap.add_argument("--data-root", default="data")
     ap.add_argument("--varredura", action="store_true",
                     help="varre TODOS os runs em data/ (filtros --exp/--alg)")
+    ap.add_argument("--historico", action="store_true",
+                    help="audita a rodada-42 (⑤ v1, sem campanha_id/repo_hash) "
+                         "— sem isto o portão reprova as 666 células por um "
+                         "campo que elas não podiam ter")
     a = ap.parse_args(argv)
 
     if a.varredura:
@@ -163,7 +178,8 @@ def main(argv=None) -> int:
 
     total_gates, vermelhos, inconclusivos = 0, [], []
     for exp, alg, prob, sem in runs:
-        res = gates_de_um_run(exp, alg, prob, sem, a.data_root)
+        res = gates_de_um_run(exp, alg, prob, sem, a.data_root,
+                              modo=("historico" if a.historico else "campanha"))
         total_gates += len(res)
         if res and res[0][0] == "aborto-sancionado":
             marca = "⚪"                       # [DI-38a] sancionado ≠ verde ≠ falha

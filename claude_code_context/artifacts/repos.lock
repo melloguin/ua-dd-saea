@@ -4,8 +4,9 @@
   "repos": {
     "PlatEMO": {
       "url": "https://github.com/BIMK/PlatEMO",
-      "sha": "b686ca2",
-      "pin_kind": "commit"
+      "sha": null,
+      "pin_kind": "commit",
+      "sha256_tree": "fb9ed1d399d41dffa7df298c2de50e21e0be11944ab915f2f7e0452a6b632abe"
     },
     "botorch": {
       "pin_kind": "pypi",

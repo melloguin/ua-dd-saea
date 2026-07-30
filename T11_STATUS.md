@@ -83,7 +83,16 @@
         `solution_id` do b4 que é `ref_ids`, `tempo_fit_s` dos pisos que é NULL por contrato) +
         `gate_contrato_61` no portão. Reproduz I-03/I-05/I-07 e acha **5 pendências SEM ITEM NO
         T11** (`adapt_delta_V` b3 · `mll_final` c262 · `loss_treino` e7 · `margem_3sigma` e103 ·
-        `sigma_dict` ausente no ⑤ dos 4 pisos online, 112 células) → **decisão do autor**
+        `sigma_dict` ausente no ⑤ dos 4 pisos online, 112 células)
+      · ✅ **AS 5 JÁ FORAM RESOLVIDAS em `4796a03`** — esta linha ficou roteando "decisão do
+        autor" por mais 6 commits e a varredura de 2026-07-30 pegou. O desfecho de cada uma:
+        **3 eram FALSO-POSITIVO DO GATE** (`mll_final` do c262 e `loss_treino` do e7 estavam
+        ANINHADOS em `modelo_hp`; o e103 grava `margem_3sigma_stats`, mais rico que o
+        `margem_3sigma` cobrado) ⇒ o gate passou a varrer em PROFUNDIDADE, aferindo PRESENÇA e
+        não POSIÇÃO — é a **ERRATA 6/7**. **2 eram REAIS e foram implementadas**:
+        `adapt_delta_V` DERIVADO no `b3_instrument.m` (sem tocar a árvore vendorizada) e o
+        `sigma_dict` dos 4 pisos DECLARADO como `nao_se_aplica` (declarar a
+        não-aplicabilidade é informação; omitir é silêncio)
       · **G-9 FEITO** (`15586b0`): `scripts/content_hash.py` + a mescla do `tabela42.py` deixou
         de decidir por tamanho+mtime±2s (heurística que apagava o destino em silêncio) e agora
         registra `DIVERGENCIAS_CONTEUDO.csv`. Só paga md5 quando precisa
@@ -149,11 +158,12 @@
       · **SMOKE de célula REAL** (c154/MMF1/s0): ⑤ completo (params+campanha_id+repo_hash+
         checkpoint+tempo_aval MEDIDO), fe_final==maxfe==61, gates G-1..G-4/B-15 VERDES em modo
         CAMPANHA (G-1 3×1 = 40/40 bit-idênticos)
-      · ⚠ **FALTA p/ o carimbo:** (a) G-7 acusa `mll_final`/`n_baseline` ausentes no ⑥ — 2 das
-        5 pendências "SEM ITEM NO T11" (o `n_baseline` pode ser NÃO-APLICÁVEL aqui como no e81:
-        qLBMOJES não tem prune de baseline; decidir sozinho seria escolher semântica de
-        contrato — **D81, decisão do autor**); (b) validar célula D≥12 morrendo às 12 h COM
-        camadas parciais (precisa de máquina)
+      · ✅ **(a) RESOLVIDO em `4796a03`** (esta linha estava OBSOLETA, achado da varredura):
+        `mll_final` era FALSO-POSITIVO do gate — está aninhado em `modelo_hp`, e o gate passou
+        a varrer em profundidade (ERRATA 6). O `n_baseline` foi declarado NÃO-APLICÁVEL, como
+        no e81 — o próprio `sigma_dict` do runner já dizia "AUSENTE POR DESENHO" (ERRATA 8)
+      · ⚠ **FALTA p/ o carimbo:** validar célula D≥12 morrendo às 12 h COM camadas parciais
+        (precisa de máquina — item do autor)
 - [x] A2 · c122 — `73d9fef` (2026-07-30) · **SMOKE: n_ref=21 (=11D−1) no g=1 × 11 (=MU) no g≥2**
       — o teste de aceitação do I-01. ref_ids (21/11 ids) · y_treino_dist (462/484 pares) ·
       REGRA_DO_ROTULO no sigma_dict · params já existia

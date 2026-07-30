@@ -109,6 +109,16 @@ def main():
         "e74_clmea": "e74_CLMEA", "c238_eim": "c238_EIM", "e81_qpots": "e81_qPOTS",
         "c149_lbnmobo": "c149_LBN-MOBO", "b5_desdeo": "b5_Prob-RVEA", "c311_tgprmo": "c311_TGPR-MO",
         "e103_ibeams": "e103_IBEA-MS",  # e103 agora é arquivos planos (sem .git) -> content-hash
+        # [conserto 2026-07-30] O PlatEMO FALTAVA neste mapa, então o `continue`
+        # abaixo o pulava e ele NUNCA era conferido. Pior: ele tem `.git`
+        # PRÓPRIO, e o pin do lock é `sha: b686ca2` — mas **ninguém commita no
+        # repo aninhado**: os 12 arquivos patchados (CSEA, EDN-ARMOEA, K-RVEA,
+        # PC-SAEA, ParEGO — incl. o `EvolALG.m` do VD-b1 e o e74) vivem como
+        # working-tree changes. O HEAD continua b686ca2 com a árvore suja, então
+        # o pin por commit atesta a BASE e nunca o ESTADO. E o `git status` do
+        # repo-MÃE também não os vê, porque um repo aninhado não é rastreado.
+        # Invisível nos dois lados. Content-hash resolve: ele hasheia o disco.
+        "PlatEMO": "_PlatEMO",
     }
     for rid, meta in lock.get("repos", {}).items():
         if not isinstance(meta, dict):
@@ -123,9 +133,19 @@ def main():
         # só usa git HEAD se o dir tem .git PRÓPRIO (senão rev-parse pega o do repo-mãe → inútil)
         head = git_head(path) if os.path.isdir(os.path.join(path, ".git")) else None
         if head:
-            print(f"  {rid:22} git HEAD {head[:12]} (.git próprio)")
+            # O HEAD é informação ÚTIL (diz de que base o vendor partiu), mas
+            # NÃO é lacre: com a árvore suja ele não muda. Conferimos os dois —
+            # o HEAD contra o pin, e o content-hash contra o estado.
+            pin = str(meta.get("sha") or "")
+            if pin and not (head.startswith(pin) or pin.startswith(head[:len(pin)])):
+                print(f"  {rid:22} git HEAD {head[:12]} != pin {pin} *** DIVERGE ***")
+                problems.append(
+                    f"repos.lock: '{rid}' está no commit {head[:12]}, mas o pin "
+                    f"é {pin} — a base vendorizada mudou")
+            else:
+                print(f"  {rid:22} git HEAD {head[:12]} (pin OK)")
             meta["sha"] = head
-        else:
+        if True:
             th = tree_sha256(path)
             # CONFERIR, não só recalcular. Sem esta comparacao o "lacre" nao lacra
             # nada: o modo leitura imprimia o hash RECALCULADO, que por construcao
@@ -133,8 +153,9 @@ def main():
             # passava em silencio (foi o que aconteceu com b5-pwrong-stats em
             # 2026-07-30). Sem `--write`, divergencia e PENDENCIA.
             guardado = meta.get("sha256_tree")
+            rotulo = "árvore" if head else "sem .git próprio"
             if write or not guardado:
-                print(f"  {rid:22} content-hash {th[:12]} (sem .git próprio)")
+                print(f"  {rid:22} content-hash {th[:12]} ({rotulo}) — LACRADO")
             elif guardado == th:
                 print(f"  {rid:22} content-hash {th[:12]} LACRE OK")
             else:

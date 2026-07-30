@@ -787,6 +787,7 @@ def emit_sonda_block(buf: "SnapshotBuffer", log, *, geracao: int, fe: int,
                      pred_tipo: str = "valor",
                      motivo: str = "cadencia k=2",
                      c3: dict | None = None,
+                     meta: dict | None = None,
                      chunk: int = SONDA_CHUNK) -> float:
     """Emite UM bloco de sonda: S linhas na ③ com `regime='sonda'`, na ORDEM
     do artefato, + o evento `sonda` no `.jsonl`. Retorna `tempo_pred_sonda_s`.
@@ -796,6 +797,9 @@ def emit_sonda_block(buf: "SnapshotBuffer", log, *, geracao: int, fe: int,
     vaza para o export) e σ (ou `None` se o modelo não tem incerteza — RBF
     puro). É chamado sob `preserve_all_rng()`: a sonda **não pode** mover a
     busca (invariante de não-perturbação, §3.1).
+
+    `meta` = metadados do CONFIG para o evento `sonda` (ex.: o `n_ref` REAL da
+    referência do c122 — I-01). Vai só ao ⑥; não toca a ③ nem a predição.
 
     Custo de FE: **ZERO** — o `f` verdadeiro já está no artefato; a exceção
     contábil é documentada (precedente do `__final`, DI-08). Este bloco não
@@ -863,7 +867,7 @@ def emit_sonda_block(buf: "SnapshotBuffer", log, *, geracao: int, fe: int,
                              else int(fe_treino_max)),
               sonda_x_hash=sonda["x_hash"], sonda_f_hash=sonda["f_hash"],
               hash_check="ok (conferido no arranque — load_sonda)",
-              modelo_flag=modelo_flag, motivo=motivo)
+              modelo_flag=modelo_flag, motivo=motivo, **(meta or {}))
     return dt
 
 

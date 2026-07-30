@@ -564,6 +564,70 @@ def _sonda_predict(estado: dict, xl: np.ndarray, xu: np.ndarray):
 #  O RUNNER
 # ═══════════════════════════════════════════════════════════════════════════
 
+def _y_treino_dist(archive, rel_map) -> dict | None:
+    """[I-5] Prevalência das CLASSES no conjunto de treino desta geração.
+
+    Sem ela não dá para separar *"o classificador é ruim"* de *"o problema está
+    desbalanceado"* — e a distinção é o que separa um achado de um artefato.
+
+    O `rel_map` do c122 é uma matriz `int8` (`evolution/utils.py:104`) com as 3
+    classes do par-a-par — **0** = incomparável/empate, **1** = i domina j,
+    **2** = j domina i (`evolution/dom.py:40-48`) — e **−1** = PAR AINDA NÃO
+    COMPUTADO (o valor de inicialização). O treino vê só os pares JÁ computados
+    do bloco `[0:n, 0:n]` do arquivo corrente, então é exatamente esse recorte
+    que se conta. Leitura pura de uma matriz que o stock já preencheu (DI-12.1):
+    nenhum par novo é computado aqui.
+    """
+    try:
+        n = len(archive)
+        if not n:
+            return None
+        m = np.asarray(rel_map)[:n, :n]
+        total = int(m.size)
+        nao_calc = int((m == -1).sum())
+        return {"n_pares_possiveis": total,
+                "n_pares_computados": total - nao_calc,
+                "classe_0_empate": int((m == 0).sum()),
+                "classe_1_i_domina": int((m == 1).sum()),
+                "classe_2_j_domina": int((m == 2).sum()),
+                "n_arquivo": int(n)}
+    except Exception:                       # noqa: BLE001 — nunca derruba (D97)
+        return None
+
+
+def _meta_referencia(pop, bud, mu_nominal: int) -> dict:
+    """[I-01 + I-1] O que a sonda do c122 mediu CONTRA — tamanho REAL e IDS.
+
+    **I-01 (o metadado errado).** O `n_ref` era o literal `MU` em 7 sítios, mas
+    o bloco g=1 é emitido ANTES da truncagem: naquele instante `pop` ainda é a
+    população NÃO-truncada (os 7.000 offspring do g=1 nascem mesmo dela).
+    Medido na s42: o bloco-1 excede o teto H0(=2N) em **22/25** problemas e
+    H1(=2·(11D−1)) em **0/25**; no ZDT4 o `max e(z)` = **108,944778** = 99,949%
+    de 109 = 11D−1, contra `max e(z)` = 11,000000 EXATO no g≥2 (0/202.000
+    violações), e ρ(custo, (11D−1)/N) = **0,9990**. Ou seja: a referência do
+    bloco-1 é de tamanho 11D−1, não MU. Com o rótulo errado, a queda
+    bloco-1→bloco-2 (mediana **16,5×**, máx 72,3× no ZDT3) seria lida como "o
+    surrogate degradou" em 750 blocos.
+    ⚠ NÃO se muda QUANDO a sonda dispara (isso mudaria O QUE ela mede e quebraria
+    a cadência g=1 comum aos 18 configs) — só o METADADO.
+
+    **I-1 (a identidade).** Sem os IDS da referência, a qualidade do
+    classificador é NÃO-MENSURÁVEL a posteriori: o `e(z)` é relativo à população
+    selecionada, e reconstruir o rótulo verdadeiro dos 2.000 pontos da sonda
+    exige saber QUAIS pontos formavam a referência. O b4 já loga `ref_ids` (25/25
+    células) — este é o mesmo padrão.
+    """
+    ids = []
+    for ind in pop:
+        sid = bud.solution_id_of(np.asarray(list(ind), dtype=np.float64))
+        if sid is not None:
+            ids.append(int(sid))
+    return {"n_ref": len(pop),                 # o REAL, não o nominal
+            "n_ref_nominal": int(mu_nominal),  # MU (o que o algoritmo pede)
+            "n_ref_truncada": len(pop) == int(mu_nominal),
+            "ref_ids": ids}
+
+
 def run_c122(exp: str, alg: str, problema: str, semente, *,
              sonda_on: bool = True,
              data_root: str = naming.DEFAULT_DATA_ROOT,
@@ -667,6 +731,26 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
         "regime=sonda": f"[P2/DI-16.2] e(z) vs a POPULACAO SELECIONADA corrente "
                         f"(n_ref={MU}) — referencia de tamanho FIXO. E um "
                         f"INSTRUMENTO de medida, nao o score interno da busca.",
+        # [I-2] A REGRA DO RÓTULO VERDADEIRO — o item que torna a métrica
+        # REPRODUTÍVEL. Medido no b4 (o classificador que JÁ loga os ids): as 3
+        # definições plausíveis de "rótulo verdadeiro" sobre as MESMAS 280
+        # gerações dão acurácia 0,350 / 0,999 / 0,995. Ou seja: "acurácia do
+        # classificador" não é um número enquanto a regra não estiver escrita —
+        # e o `sigma_dict` descrevia o que a COLUNA contém, nunca CONTRA O QUE o
+        # modelo classificou.
+        "REGRA_DO_ROTULO": (
+            "o c122 é par-a-par TERNÁRIO: para o par (z, r) com r na população "
+            "de referência (`ref_ids` do evento de geração), a EDN devolve a "
+            "classe de dominância — 0=incomparável/empate, 1=z domina r, "
+            "2=r domina z (evolution/dom.py:40-48). O `pred_score` gravado na ③ "
+            "é o e(z) AGREGADO sobre a referência, não a classe do par. Para "
+            "reconstruir o rótulo verdadeiro de um ponto da SONDA: avalie o f "
+            "verdadeiro do artefato §17.2.2, compare com o f dos `ref_ids` pelo "
+            "MESMO critério (pareto_dominance p/ a rede-p, scalar_dominance com "
+            "os pesos da geração p/ a rede-s) e agregue com a mesma regra do "
+            "e(z). A prevalência das classes no TREINO daquela geração está em "
+            "`y_treino_dist_p`/`_s` (I-5) — sem ela não se separa 'classificador "
+            "ruim' de 'problema desbalanceado'"),
         "real_solution_id": "preenchido SO na linha do escolhido (unico que "
                             "vira FE); os outros nunca foram avaliados (NULL)",
         "fe_treino_max": "|archive|−1 no momento do fit — MONOTONICO no c122 "
@@ -761,7 +845,9 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                     predict=_sonda_predict(estado_sonda, adapter.xl, adapter.xu),
                     fe_treino_max=fe_treino_max, pred_tipo="score",
                     modelo_flag="EDN-par(2xFNN)",
-                    motivo=f"cadencia k={H.SONDA_K} (g=1,2,4,6,…); n_ref={MU}")
+                    meta=_meta_referencia(pop, bud, MU),          # [I-01/I-1]
+                    motivo=(f"cadencia k={H.SONDA_K} (g=1,2,4,6,…); "
+                            f"n_ref REAL={len(pop)} (nominal MU={MU})"))
                 t_sonda_total += t_snd
                 ultima_sonda_g = g
 
@@ -871,7 +957,15 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                 caminho=f"c122_gen:{tel.get('ramo')}",
                 motivo=f"categoria={tel.get('categoria_escolhida')} "
                        f"(Q1>Q2>Q3, acordo das 2 redes)",
-                geracao=g, cid=tel.get("cid"), n_ref=MU,
+                geracao=g, cid=tel.get("cid"),
+                # [I-01] o n_ref REAL (o bloco g=1 é emitido ANTES da truncagem)
+                n_ref=len(pop), n_ref_nominal=MU,
+                # [I-1] a IDENTIDADE da referência — sem ela a qualidade do
+                # classificador é não-mensurável a posteriori (molde: b4)
+                ref_ids=_meta_referencia(pop, bud, MU)["ref_ids"],
+                # [I-5] prevalência das classes no treino das 2 redes
+                y_treino_dist_p=_y_treino_dist(archive, p_rel_map),
+                y_treino_dist_s=_y_treino_dist(archive, s_rel_map),
                 softmax_escolhido=(None if i_esc is None or tel["conf"] is None
                                    else _f(tel["conf"][i_esc])),
                 e_z_escolhido=(None if i_esc is None
@@ -916,7 +1010,9 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                 predict=_sonda_predict(estado_sonda, adapter.xl, adapter.xu),
                 fe_treino_max=fe_treino_max, pred_tipo="score",
                 modelo_flag="EDN-par(2xFNN)",
-                motivo=f"ultima geracao (§3.1); n_ref={MU}")
+                meta=_meta_referencia(pop, bud, MU),              # [I-01/I-1]
+                motivo=(f"ultima geracao (§3.1); n_ref REAL={len(pop)} "
+                        f"(nominal MU={MU})"))
             t_sonda_total += t_snd
             buf.update_timing(g, tempo_pred_sonda_s=t_snd)
             ultima_sonda_g = g

@@ -40,11 +40,24 @@
 |---|---|---|---|---|
 | R3-00-harness | Infra standalone (venvs isolados; b5×c311 nunca co-importar) | R2-00 | 30_rodada3_standalone/00_contrato | ✅ |
 | R3-c122 | θ-DEA-DP (f_min/f_max pela assinatura) | R3-00 | …/alg_c122_thetadeadp | ✅ (3/3 gates VERDES, 29e8539) |
-| R3-b5 | Prob-RVEA/MOEA-D (b5r/b5m; venv env_b5) | R3-00 | …/alg_b5_prob | ⬜ |
-| R3-c311 | TGPR-MO (venv env_c311) | R3-00 | …/alg_c311_tgprmo | ⬜ |
+| R3-b5 | Prob-RVEA/MOEA-D (b5r/b5m; venv env_b5) | R3-00 | …/alg_b5_prob | ✅ (rodada-42: 48 células b5m + 49 b5r com ⑤) |
+| R3-c311 | TGPR-MO (venv env_c311) | R3-00 | …/alg_c311_tgprmo | ✅ (rodada-42: 58 células com ⑤) |
 | R3-c149 | LBN-MOBO (reconstruir loop; **HVI-greedy D96**) | R3-00 | …/alg_c149_lbnmobo | ✅ (3/3 pilotos VERDES, timebox 6h/10h, a664599; validação da torre DI-23) |
 | R3-e81 | qPOTS (env botorch 0.16.1 próprio) | R3-00 | …/alg_e81_qpots | ✅ (18/18 ×3, ZDT1 1,99h<8h, 5bde3db; validação da torre DI-24) |
-| R3-piso-off | MOEA/D-média (DESDEO mode 12, D77; env_b5) | R3-b5 | …/alg_piso_offline_moead_media | ⬜ |
+| R3-piso-off | MOEA/D-média (DESDEO mode 12, D77; env_b5) | R3-b5 | …/alg_piso_offline_moead_media | ✅ (rodada-42: 48 células com ⑤) |
+
+> **Nota de atualização (T11, 2026-07-30).** As 3 linhas acima estavam ⬜ desde o
+> fechamento da R3, mas a rodada-42 executou os quatro configs. O status foi
+> virado CONTRA O DADO (contagem de `__real.parquet` + `.manifest.json` em
+> `data/experiments/*/{alg}/`), não contra memória de sessão — era o item
+> "`cards/INDEX.md` stale (5 cartões)" do lote de doc herdado.
+
+## Campanhas de refinamento (pós-R3, pré-M8)
+| ID | Tarefa | depende-de | bundle | status |
+|---|---|---|---|---|
+| F5 | Auditoria de 6 relatórios + consolidação (`f5/**` = evidência CONGELADA, read-only) | R1-R3 | — | ✅ |
+| T10 | Rito de truncamento BoTorch (D≥12) | F5 | — | ⏸ backlog (DI-38=(a)) |
+| T11 | **Refinamento final do código** antes do disparo: FASE G (7 globais habilitadoras) · FASE A (A1-A11 por algoritmo) · FASE V (V1 forense read-only, V2 re-runs, V3 docs) | F5 | `SPEC_T11_REFINAMENTO_FINAL.md` · `T11_STATUS.md` | 🟡 código fechado; falta o que exige MATLAB e as máquinas do autor |
 
 ## Sub-estudos e análise
 | ID | Tarefa | depende-de | bundle | status |

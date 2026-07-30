@@ -2207,3 +2207,101 @@ fecha, citando o commit.)*
 5. **Antes da M8:** ligar `enable_bucket` no despachante (o repasse de kwargs já está — D-06);
    provisionar VM sem toolchain C++ (D-16c, SPEC:2764) e validar o `is_run_done` bucket-aware
    (D-03) com credenciais reais.
+
+---
+
+## PARTE A37 — 📄 O LOTE V3 DE DOCUMENTAÇÃO (T11, 2026-07-30)
+
+> Os itens de doc do `T11-PLANO-CONSOLIDADO.md` §6 + §12-📄. Cada um foi
+> **RE-MEDIDO** antes de virar texto — nesta campanha 10 erratas nasceram de
+> "verifique antes de escrever", e copiar a afirmação do plano teria propagado
+> as que estavam erradas. Onde o dado não existe, está dito que não existe.
+
+### A37.1 · ERRATA A30 — o c122 GRAVA `fe` no evento `sonda` ✅ MEDIDO
+
+A DI-42 afirmava que o c122 **não** gravava o `fe` no evento da sonda. Medição
+nos ⑥ da rodada-42:
+
+| | |
+|---|---|
+| eventos `rec='sonda'` do c122 **com** `fe` | **3.981** |
+| **sem** `fe` | **0** |
+
+Exemplo: `{"rec":"sonda","geracao":1,"fe":76,"n_pontos":2000,…}`. A afirmação da
+DI-42 está **errada** e fica retificada aqui: o `fe` — que é o eixo de
+comparação entre algoritmos — sempre esteve lá.
+
+### A37.2 · R4#10 — dominância sobre a ① é LOSSY ✅ MEDIDO
+
+Schema real das camadas (lido com `pyarrow.parquet.read_schema`):
+
+| camada | colunas de objetivo | tipo |
+|---|---|---|
+| ① `__real.parquet` | `f0`, `f1`, … | **`float`** (float32) |
+| ⑦ `__final.parquet` | `f0`, `f1`, `f2` | **`float`** (float32) |
+
+**Regra de leitura R4#10.** Qualquer cálculo de **dominância / não-dominância /
+front** feito a partir da ① ou da ⑦ opera sobre valores em **float32**, enquanto
+o algoritmo decidiu em **float64**. Duas soluções que o algoritmo distinguiu
+podem sair **empatadas** no parquet, e o front recomposto pela análise pode
+diferir do front que a busca de fato viu. Isso **não é bug** — é a política D53
+de export (float32 + 3 casas) valendo, e não se muda (está no NÃO-CORRIGIR:
+"mexer no D53/float32"). O que se faz é **declarar**: toda métrica de dominância
+da R4 carrega essa ressalva, e comparações no fio da navalha (diferenças abaixo
+da resolução do float32) não são conclusivas.
+
+### A37.3 · Glossário p0/p1 do b4 — NUNCA inverter
+
+`p0` e `p1` do b4 **não** são "probabilidade da classe 0/1": são as taxas de
+erro medidas em `CSEA.m:75-78` sobre o conjunto de teste, com semânticas
+distintas e **não intercambiáveis**. O glossário está gravado no
+`man.sigma_dict` do próprio run (é lá que o leitor da ③ vai procurar), junto com
+a `REGRA_DO_ROTULO`. Trocar os dois derruba a contagem de acertos de **6.268
+para 1.252** — é destrutivo e está no NÃO-CORRIGIR.
+
+### A37.4 · `lnum` do c217 — DOC-SYNC, não mensurável hoje ⚠
+
+O bundle identifica `lnum ≡ |Pmid|` (=13 para N=50) e usa `batch = ⌊lnum/2⌋`; o
+dado mostra `batch = ⌊|Pbest|/2⌋`, com `|Pmid| = 2⌊|P|/8⌋+1`. As duas grandezas
+**coincidem em N=50 e divergem na rampa** (|P|=22 ⇒ |Pmid|=5, |Pbest|=6).
+
+O que a rodada-42 permite dizer, medindo o campo `lote` dos 9.078 eventos
+`c217_gen`:
+
+| `lote` | ciclos |
+|---|---|
+| 1 | 9.013 |
+| **3** | **1** |
+| 6 | 64 |
+
+O lote 3 **existe** (1 ciclo), o que é consistente com a leitura
+`⌊|Pbest|/2⌋` na rampa. Mas **`|Pmid|` e `|Pbest|` não são logados**, então a
+ambiguidade **não pode ser resolvida pelo dado da s42** — fica como doc-sync
+para a torre, e vira mensurável na M8 se alguém logar as duas grandezas. Com 30
+sementes × D=2 as células de rampa se multiplicam por 30, então o item deixa de
+ser marginal.
+
+### A37.5 · Os 6 números publicados (E-09/D16) — o que NÃO se mexe
+
+- **χ² do moead_media é PSEUDORREPLICADO** — a unidade independente é a célula,
+  não a linha; o teste como publicado infla o n. Ressalva de leitura, não
+  recálculo.
+- **Endpoint do e103: 200→100 / 10→5**, conforme corrigido na F5.
+- **NÃO aplicar a "correção" 0,05→0,10** do e103: a "correção" é que está errada
+  (erro de 2×). Está no NÃO-CORRIGIR como "fantasia e103".
+
+### A37.6 · Itens que ficam ABERTOS e por quê
+
+| item | por que não fechei |
+|---|---|
+| SPEC L.8 do e74 pós-fix DI-45 | a SPEC é **território da torre (RI-12)** |
+| D7/`iteration_seed` na SPEC §D62 | idem |
+| caveats 1-24 da F5 §2.3 → dossiê | destino é a **dissertação**, não o repo |
+| OP-1..OP-7 completos | OP-6 entrou no G3 (higiene do `--force`); os demais são **registro de OPERAÇÃO** (rompimento do teto 48 h na janela final, atribuição mista do c238) — factuais do autor, não meus |
+
+### A37.7 · O que este lote NÃO tocou, de propósito
+
+O número "~min-1h" do RUNBOOK **já estava corrigido** (`RUNBOOK:264` traz
+"medido na s42, **0,87–2,99 h por célula (média 1,47 h)**"), então não há o que
+fazer — é o mesmo número da correção da DI-40. Registrado para ninguém
+"consertar" de novo o que já está certo.

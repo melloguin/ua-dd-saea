@@ -394,3 +394,19 @@ fantasia") [DI-13.8]`; escrita PÓS-HOC pela torre/harness Python; NÃO conta no
    de treino, então o valor pode cair de uma iteração p/ a outra e não coincide com `fe−1`.
 10. **[DI-13.5] Sonda:** `geracao` é NULL nos blocos OFFLINE; o join com o gabarito é POR POSIÇÃO
     dentro do bloco (online = linhas 0..1999 do artefato; offline = 0..19999).
+11. **[T11/A37.2 — o "R4#10" do plano] DOMINÂNCIA sobre ① ou ⑦ é LOSSY.** As colunas de objetivo
+    das duas camadas são **float32** (medido com `read_schema`: `f0`,`f1`,… = `float`), enquanto o
+    algoritmo decidiu em **float64**. Duas soluções que a busca distinguiu podem sair EMPATADAS no
+    parquet, e o front recomposto pela análise pode diferir do front que a busca viu. **Não é bug**
+    — é a política D53 (float32 sem arredondamento) valendo, e ela não muda. O que se exige é a
+    ressalva: toda métrica de dominância da R4 a carrega, e diferenças abaixo da resolução do
+    float32 **não são conclusivas**. Onde a distinção importa, use `solution_id` (regra 1) e a
+    ordem de avaliação, não a comparação numérica.
+12. **[T11/A11] `regime='sonda_estratificada'` NUNCA entra na mesma análise que `regime='sonda'`.**
+    A régua Sobol é o único bloco comparável ENTRE algoritmos (mesmos S pontos, mesmo `x_hash`); o
+    bloco estratificado amostra ~500 pontos perto do ARQUIVO CORRENTE, que é diferente em cada
+    config. Ele responde "o modelo acerta ONDE a decisão acontece?" (prevalência medida 7,4% no
+    c122 contra 0,4% da régua — 18× mais positivos), e só é comparável **do mesmo config consigo
+    mesmo ao longo do tempo**. O manifesto declara `comparavel_entre_configs=false`. No stack
+    MATLAB o campo `prevalencia_nd_no_bloco` sai **NaN por desenho** (a análise o recompõe do X da
+    ③ — a ponte Python custaria 1 round-trip por ponto); no Python ele vem preenchido.

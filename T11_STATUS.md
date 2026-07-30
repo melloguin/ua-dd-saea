@@ -82,8 +82,17 @@
         hard-stop dos BoTorch + a emissão final fora do laço) e atravessando o wrapper→inner;
         `naoperturbacao.py --par` roda a célula 2× em tempdir e compara a ① bit-a-bit.
         **PROVA COLHIDA: c122/MMF1/s0 ⇒ ① BIT-IDÊNTICA** (sha256 be06b54124e9c100, 91 s o par)
-      · ⚠ FALTA no G-6 (é RODAR, não é código): o par em c149 · e81 · c154 · c262 · c311 ·
-        b5r/b5m · moead_media · treed_media + o gêmeo da flag no `experiment.m` (e103)
+      · **G-6 · 9 de 11 PARES PROVADOS** (① BIT-IDÊNTICA com e sem sonda, MMF1/s0):
+        c122 `be06b541` · c149 `38b5584b` · e81 `b9525753` · c262 `75c52d8b` · c154 `eadf899d` ·
+        moead_media `8e690c81` · b5r `c02703c2` · treed_media `9c06dd44` · c311 `9e605 2bc`
+        (o moead_media rodou em py3.7 via `run_in_venv` — prova de brinde que a flag atravessa
+        o transporte de venv). **b5m rodando · e103 falta o gêmeo da flag no `experiment.m`**
+      · 🔴 O par PEGOU um bug do meu próprio patch: c154/c262 estouravam `NameError` porque a
+        flag parava no wrapper e os sítios de emissão vivem no `_run_*_body` — e o teste por
+        GREP passou verde. Trocado por checagem de ESCOPO via AST (`4ef4d47`), com controle
+        provando que o grep antigo dizia PASSA no código quebrado
+      · verificado que os 8 módulos que toquei importam em **py3.7 (env_b5)** e **py3.8
+        (env_c311)** — sem isso c311/b5/treed_media/moead_media quebrariam no DISPARO
       · ⚠ AÇÃO DO AUTOR: o preflight agora acusa **58 manifestos de OUTRA MÁQUINA** em
         `data/experiments` (as células que voltaram das VMs por rsync). Já estão no bucket e em
         `resultados_experimentos` — o disco local tem de partir limpo antes do disparo
@@ -121,7 +130,20 @@
         do G-3 em modo campanha) + smoke 24/24
 
 ## FASE A — por algoritmo (cada ☑ = DEFINITIVO ✅ = autor pode disparar em escala)
-- [ ] A1 · c154 (herda G5; validar teto D≥12 com camadas; params ⑤; doc I-12)
+- [~] A1 · c154 (herda G5; validar teto D≥12 com camadas; params ⑤; doc I-12) — `7cad932` (2026-07-30)
+      · **FEITO:** `params` no ⑤ (I-07) via `_params_efetivos` (fonte única header⑥/⑤) ·
+        regra I-12 da ordem da ③ no CONTRATO + no `sigma_dict` dos 2 gêmeos + utilitário
+        `botorch_harness.restart_de_linha` · `env.executable` no ⑤ do stack BoTorch (achado do G-3)
+      · **I-12 VERIFICADO NO DADO:** 1.200 blocos de c154+c262 na s42 ⇒ vencedor na ÚLTIMA
+        linha em 1.200 (100,0%)
+      · **SMOKE de célula REAL** (c154/MMF1/s0): ⑤ completo (params+campanha_id+repo_hash+
+        checkpoint+tempo_aval MEDIDO), fe_final==maxfe==61, gates G-1..G-4/B-15 VERDES em modo
+        CAMPANHA (G-1 3×1 = 40/40 bit-idênticos)
+      · ⚠ **FALTA p/ o carimbo:** (a) G-7 acusa `mll_final`/`n_baseline` ausentes no ⑥ — 2 das
+        5 pendências "SEM ITEM NO T11" (o `n_baseline` pode ser NÃO-APLICÁVEL aqui como no e81:
+        qLBMOJES não tem prune de baseline; decidir sozinho seria escolher semântica de
+        contrato — **D81, decisão do autor**); (b) validar célula D≥12 morrendo às 12 h COM
+        camadas parciais (precisa de máquina)
 - [ ] A2 · c122 (n_ref real g=1 · ref_ids · regra-rótulo · y_treino_dist · params ⑤)
 - [ ] A3 · família b5: b5m/b5r/moead_media (I-05 campos DI-10 · wrapper A8 read-only · params ⑤ · granularidade ③)
 - [ ] A4 · c262 (herda G5; 8 hp da acqf; params ⑤; fit_retries warning; PROBE DE RAM do batch → --n-jobs no RUNBOOK)

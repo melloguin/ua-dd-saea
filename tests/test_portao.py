@@ -43,11 +43,15 @@ class TestCoberturaDoPortao(unittest.TestCase):
 
 
 class TestAbortoSancionadoDI38(unittest.TestCase):
-    """[DI-38a] teto_wall/cache_cap = estado ESPERADO, não vermelho do portão.
+    """[DI-38a] teto_wall/cache_hit_travado = estado ESPERADO, não vermelho.
 
-    Sob o rito BoTorch o aborto por teto NÃO grava camadas (anti-órfão DI-21):
-    sem estes guards a varredura F4 reprovaria por desenho exatamente as
-    células c154 que a DI-37.1/DI-38(a) sancionam."""
+    ⟦ATUALIZADO no T11-G5/G6 — DI-43/44⟧ Quando este teste nasceu, o aborto por
+    teto NÃO gravava camada nenhuma (anti-órfão DI-21), então a célula sancionada
+    não tinha o que gatear e o portão devolvia UMA linha. Com o
+    truncamento-com-dado a célula PASSA A TER camadas parciais — e dado sem
+    proveniência é exatamente o que a campanha T11 existe para matar. Contrato
+    novo: o sancionado dispensa os gates de CONTEÚDO (accept/auditar/final_eval)
+    e continua passando pelos de PROVENIÊNCIA (G-1..G-4 + B-15)."""
 
     def _run_fake(self, tmp, motivo="teto_wall", status="failed"):
         import json
@@ -67,11 +71,16 @@ class TestAbortoSancionadoDI38(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             exp, alg, prob, sem = self._run_fake(tmp)
             res = portao.gates_de_um_run(exp, alg, prob, sem, data_root=tmp)
-            self.assertEqual(len(res), 1)
             nome, ok, det = res[0]
             self.assertEqual(nome, "aborto-sancionado")
             self.assertTrue(ok)
             self.assertIn("teto_wall", det)
+            # os gates de CONTEÚDO ficam de fora; os de PROVENIÊNCIA, não
+            nomes = [n for n, _, _ in res]
+            self.assertNotIn("auditar", nomes)
+            self.assertFalse([n for n in nomes if n.startswith("accept[")])
+            self.assertIn("G-1 3x1", nomes)
+            self.assertIn("G-2 sexto", nomes)
 
     def test_portao_failed_nao_sancionado_gateia_normal(self):
         # um failed comum (crash) NÃO ganha o carve-out — os gates rodam e acusam

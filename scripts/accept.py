@@ -115,8 +115,10 @@ def check_fe(exp, alg, problema, semente, D, data_root=None):
     # ausente é por desenho, não falha — DI-38a). Fonte ÚNICA do skip (antes
     # vivia só no cartão do e81 e o gate genérico reprovaria exatamente as
     # células que a DI-37.1 sanciona).
-    if _man.get("status") == "failed" and \
-            _man.get("motivo_parada") in ("teto_wall", "cache_hit_travado"):
+    # [B-06] a lista vem do ARTEFATO `artifacts/motivos_parada.json` (fonte única)
+    sys.path.insert(0, os.path.join(ROOT, "scripts"))
+    from gates_proveniencia import motivo_e_sancionado as _sancionado
+    if _man.get("status") == "failed" and _sancionado(_man.get("motivo_parada")):
         return None, (f"SKIP — aborto sancionado ({_man.get('motivo_parada')}): "
                       f"fe_final={_man.get('fe_final')} por desenho; "
                       f"a curva parcial é o entregável")

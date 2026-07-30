@@ -58,7 +58,9 @@
     "env_matlab": {
       "stack": "matlab",
       "version": "R2025a",
-      "note": "Mac M1 Pro; parquet brotli (zstd ausente); toolboxes: Deep Learning, Statistics, Optimization, Parallel"
+      "note": "Mac M1 Pro; parquet brotli (zstd ausente); toolboxes: Deep Learning, Statistics, Optimization, Parallel",
+      "venvs_aceitos": [],
+      "venvs_aceitos_nota": "MATLAB nao tem intérprete Python: o ⑤ do stack matlab nao traz `env.executable` (medido: 654 celulas da s42 sem o campo). O gate G-3 pula a checagem de intérprete nesses configs e cobra campanha_id + repo_hash."
     },
     "env_e81_qpots": {
       "stack": "python",
@@ -72,7 +74,11 @@
       ],
       "algs": [
         "e81"
-      ]
+      ],
+      "venvs_aceitos": [
+        "env_e81_qpots"
+      ],
+      "venvs_aceitos_nota": "[T11-G6/G-3] Nomes de VENV aceitos — o gate de proveniencia compara o NOME DO VENV extraido de `manifest.env.executable` (o componente antes de /bin/python), nao o caminho: o mesmo venv vive em /Users/gmello/Documents/python_venvs/<venv>/bin/python no Mac e em /home/jupyter/python_venvs/<venv>/bin/python na VM. Valores MEDIDOS nos 666 manifestos da rodada-42 + o `mac_interpreter` declarado."
     },
     "env_main": {
       "stack": "python",
@@ -102,7 +108,12 @@
         "sobol_batch",
         "c122",
         "c149"
-      ]
+      ],
+      "venvs_aceitos": [
+        "env_main",
+        "mestrado_experimentos_dissertacao"
+      ],
+      "venvs_aceitos_nota": "[T11-G6/G-3] Nomes de VENV aceitos — o gate de proveniencia compara o NOME DO VENV extraido de `manifest.env.executable` (o componente antes de /bin/python), nao o caminho: o mesmo venv vive em /Users/gmello/Documents/python_venvs/<venv>/bin/python no Mac e em /home/jupyter/python_venvs/<venv>/bin/python na VM. Valores MEDIDOS nos 666 manifestos da rodada-42 + o `mac_interpreter` declarado."
     },
     "env_c149_fallback": {
       "stack": "python",
@@ -115,7 +126,12 @@
       ],
       "algs": [
         "c149(fallback)"
-      ]
+      ],
+      "venvs_aceitos": [
+        "env_c149",
+        "env_c149_fallback"
+      ],
+      "venvs_aceitos_nota": "[T11-G6/G-3] Nomes de VENV aceitos — o gate de proveniencia compara o NOME DO VENV extraido de `manifest.env.executable` (o componente antes de /bin/python), nao o caminho: o mesmo venv vive em /Users/gmello/Documents/python_venvs/<venv>/bin/python no Mac e em /home/jupyter/python_venvs/<venv>/bin/python na VM. Valores MEDIDOS nos 666 manifestos da rodada-42 + o `mac_interpreter` declarado."
     },
     "env_b5": {
       "stack": "python",
@@ -140,7 +156,11 @@
         "b5r",
         "b5m",
         "moead_media"
-      ]
+      ],
+      "venvs_aceitos": [
+        "env_b5"
+      ],
+      "venvs_aceitos_nota": "[T11-G6/G-3] Nomes de VENV aceitos — o gate de proveniencia compara o NOME DO VENV extraido de `manifest.env.executable` (o componente antes de /bin/python), nao o caminho: o mesmo venv vive em /Users/gmello/Documents/python_venvs/<venv>/bin/python no Mac e em /home/jupyter/python_venvs/<venv>/bin/python na VM. Valores MEDIDOS nos 666 manifestos da rodada-42 + o `mac_interpreter` declarado."
     },
     "env_c311": {
       "stack": "python",
@@ -165,7 +185,11 @@
       "algs": [
         "c311",
         "treed_media"
-      ]
+      ],
+      "venvs_aceitos": [
+        "env_c311"
+      ],
+      "venvs_aceitos_nota": "[T11-G6/G-3] Nomes de VENV aceitos — o gate de proveniencia compara o NOME DO VENV extraido de `manifest.env.executable` (o componente antes de /bin/python), nao o caminho: o mesmo venv vive em /Users/gmello/Documents/python_venvs/<venv>/bin/python no Mac e em /home/jupyter/python_venvs/<venv>/bin/python na VM. Valores MEDIDOS nos 666 manifestos da rodada-42 + o `mac_interpreter` declarado."
     },
     "env_bridge": {
       "stack": "python",
@@ -176,7 +200,12 @@
         "pymoo(problems.py)",
         "pyarrow"
       ],
-      "algs": []
+      "algs": [],
+      "venvs_aceitos": [
+        "env_bridge",
+        "mestrado_experimentos_dissertacao"
+      ],
+      "venvs_aceitos_nota": "[T11-G6/G-3] Nomes de VENV aceitos — o gate de proveniencia compara o NOME DO VENV extraido de `manifest.env.executable` (o componente antes de /bin/python), nao o caminho: o mesmo venv vive em /Users/gmello/Documents/python_venvs/<venv>/bin/python no Mac e em /home/jupyter/python_venvs/<venv>/bin/python na VM. Valores MEDIDOS nos 666 manifestos da rodada-42 + o `mac_interpreter` declarado."
     }
   },
   "alg_to_env": {

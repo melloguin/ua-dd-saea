@@ -37,6 +37,9 @@ sys.path.insert(0, ROOT)
 PY = sys.executable
 
 from src.manifest import OFFLINE_ALGS  # noqa: E402 — fonte única (DI-16.8)
+sys.path.insert(0, os.path.join(ROOT, "scripts"))
+from gates_proveniencia import (           # noqa: E402 — [T11-G6] G-1..G-4 + B-15
+    gates_de_proveniencia, motivo_e_sancionado)
 
 #: alg → cartão do accept. R3 = branches dedicados; R1/R2 = rótulo informativo
 #: (o catch-all F0-01 roteia pelo `--alg`, não pelo nome do cartão).
@@ -84,12 +87,19 @@ def gates_de_um_run(exp: str, alg: str, problema: str, semente,
     # (a curva parcial vive no jsonl §17.6) — sem este guard a varredura F4
     # reprovaria por desenho exatamente as células que a DI-37.1/DI-38 sancionam.
     man = _manifesto_do_run(exp, alg, problema, semente, data_root)
-    if man.get("status") == "failed" and \
-            man.get("motivo_parada") in ("teto_wall", "cache_hit_travado"):
+    # [B-06] a classificação do motivo vem do ARTEFATO
+    # `artifacts/motivos_parada.json` — nunca de literais aqui (a divergência
+    # 'cache_cap' × 'cache_hit_travado' custou a DI-41.2).
+    if man.get("status") == "failed" and motivo_e_sancionado(man.get("motivo_parada")):
+        # ⚠ [DI-43/T11-G5] O carve-out "sem gates" era do tempo em que o teto
+        # abortava SEM camadas. Agora o truncamento-com-dado GRAVA as parciais,
+        # então a célula sancionada AINDA passa pelos gates de proveniência —
+        # ela tem dado, e dado sem proveniência é o que a T11 existe para matar.
+        prov = gates_de_proveniencia(exp, alg, problema, semente, data_root)
         return [("aborto-sancionado", True,
-                 f"{man.get('motivo_parada')} — sem gates por desenho (DI-38a); "
-                 f"curva parcial no jsonl; fe_final={man.get('fe_final')}")]
-    out = []
+                 f"{man.get('motivo_parada')} — gates de conteúdo dispensados "
+                 f"(DI-38a); fe_final={man.get('fe_final')}")] + prov
+    out = list(gates_de_proveniencia(exp, alg, problema, semente, data_root))
     card = CARTAO_POR_ALG[alg]
     # (accept.py não expõe --data-root: opera sempre sobre data/ — o
     #  passthrough de data_root do portão vale p/ o final_eval)
@@ -155,14 +165,19 @@ def main(argv=None) -> int:
     for exp, alg, prob, sem in runs:
         res = gates_de_um_run(exp, alg, prob, sem, a.data_root)
         total_gates += len(res)
-        if len(res) == 1 and res[0][0] == "aborto-sancionado":
+        if res and res[0][0] == "aborto-sancionado":
             marca = "⚪"                       # [DI-38a] sancionado ≠ verde ≠ falha
+        elif any(ok is False for _, ok, _ in res):
+            marca = "🔴"
+        elif any(ok is None for _, ok, _ in res):
+            marca = "⚠"                        # INCONCLUSIVO nunca é verde (B-07)
         else:
-            marca = "✅" if all(ok for _, ok, _ in res) else "🔴"
+            marca = "✅"
         print(f"{marca} {exp}/{alg}/{prob}/s{sem}: " + " · ".join(
-            f"{nome}={'VERDE' if ok else 'FALHOU'}" for nome, ok, _ in res))
+            f"{nome}={'VERDE' if ok else ('INCONCL' if ok is None else 'FALHOU')}"
+            for nome, ok, _ in res))
         for nome, ok, det in res:
-            if not ok:
+            if ok is False:
                 vermelhos.append((exp, alg, prob, sem, nome, det))
 
     print(f"\nPORTÃO: {len(runs)} runs · {total_gates} gates · "

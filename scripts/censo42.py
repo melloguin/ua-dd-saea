@@ -85,7 +85,12 @@ CAMADAS = [("1", "__real.parquet"),      ("2", "__pop.parquet"),
            ("3", "__surrogate.parquet"), ("4", "__timing.parquet"),
            ("5", ".manifest.json"),      ("6", ".jsonl"),
            ("7", "__final.parquet")]
-ABORTO_SANCIONADO = {"teto_wall", "cache_hit_travado"}
+# [B-06] FONTE ÚNICA: `artifacts/motivos_parada.json` (era um literal aqui, um no
+# accept e um no portão — e em 2026-07-25 o literal foi cravado ERRADO,
+# 'cache_cap' em vez de 'cache_hit_travado', DI-41.2).
+sys.path.insert(0, os.path.join(REPO, "scripts"))
+from gates_proveniencia import _artefato as _art_motivos  # noqa: E402
+ABORTO_SANCIONADO = set(_art_motivos("motivos_parada.json")["sancionados"])
 
 A = os.path.join(REPO, "claude_code_context", "artifacts")
 with open(os.path.join(A, "runs_matrix.csv"), encoding="utf-8") as fh:

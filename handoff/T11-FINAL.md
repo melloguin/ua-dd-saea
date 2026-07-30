@@ -1,5 +1,33 @@
 # T11 — HANDOFF FINAL DA CAMPANHA (2026-07-29/30)
 
+> # ⚠ ESTE ARQUIVO ESTAVA OBSOLETO — leia este bloco antes de qualquer número abaixo
+>
+> Ele foi escrito no commit `e492d39` e se apresentava como "HANDOFF FINAL"
+> enquanto **11 commits** aconteciam depois, incluindo uma auditoria adversarial
+> que achou **4 CRÍTICOS**. Itens listados aqui como pendentes já fecharam;
+> itens dados como fechados voltaram atrás. **A fonte viva é o
+> `T11_STATUS.md`**; este arquivo é a fotografia de 30/07 08:27, mantida pelo
+> histórico.
+>
+> ### O que mudou depois dele
+>
+> | | |
+> |---|---|
+> | Suíte | 587 → **627 testes**, 0 falhas |
+> | **A3/I-05** | ✅ **PROVA PASSOU** — ①③⑦ byte-idênticas com × sem o patch vendorizado (worktrees isolados). E a ERRATA 9 derrubou minha alegação de "2,5× de lentidão": medido, COM 2.781 s × STOCK 2.810 s |
+> | **A11** | ganhou o **gêmeo MATLAB** (b4/c217/e74) |
+> | **G-6** | saiu de 10 para **19 configs** (gêmeo MATLAB da flag `UA_DD_SAEA_SONDA_OFF`) |
+> | **V1/VD-b1** | **ERRATA 10 — RETIRADO.** Estava superestimado (inerte em ~93,9%) e MAL CLASSIFICADO: a SPEC já o tem como 🟠 IMPL → CÓDIGO. **Nada muda no b1** |
+> | **A9/c217** | era **CARIMBO FALSO** — a `regra do rótulo` nunca foi escrita; escrita agora (e o pareamento é POSICIONAL E CÍCLICO, não o do b4) |
+> | **Varredura** | 78 achados · **4 CRÍTICOS**, todos falso-verde: portão dava VERDE com INCONCLUSIVO · guarda G-8 cega à raiz (e um teste escrevia em produção) · G-1 sem controle-positivo · G-1 explodia e derrubava o censo |
+> | **Staleness** | 9 de 10 pares G-6 estavam STALE; re-provados c122/c311/treed_media/b5m — o c122 voltou com o **mesmo ①** |
+> | **Erratas** | 8 → **13** |
+>
+> As §§ abaixo permanecem como estavam em 30/07 08:27.
+
+---
+
+
 > **Para quem lê primeiro:** o `T11_STATUS.md` tem o hash e as pendências de CADA
 > item; este arquivo tem o **como**, o **porquê** e — o mais importante — as
 > **erratas** e os **contratos novos** que mudam como o próximo agente deve ler o

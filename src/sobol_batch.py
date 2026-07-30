@@ -203,8 +203,36 @@ def run_sobol_batch(exp: str, alg: str, problema: str, semente, *,
             # células alheias), e o valor real medido é 4,110 s-VM nas 5 —
             # 20,6% do wall, 57,15% no WFG9.
             tempo_aval_real_s=bud.tempo_aval_real_s, tempo_pred_sonda_s=0.0)
+        # [I-07/C2] `params` — a config EFETIVA no ⑤. O CONTRATO §5 lista
+        # `params` entre as chaves obrigatórias do manifesto, e o sobol_batch era
+        # o ÚNICO config Python que ainda não o gravava (medido nos smokes de
+        # 2026-07-30: 9 de 10 gravam). O I-07 do plano nomeia só 5 configs, então
+        # esta lacuna não tinha item — foi achado do smoke e reportado ao autor
+        # antes de virar código (D81).
+        # Os valores NÃO são literais soltos: saem das MESMAS fontes que a busca
+        # usou (`q`, `D`, `maxfe` do budget), para que quem lê a tabela de
+        # execuções não precise abrir o ⑥ para saber com que lote o run correu.
+        params = {
+            "alg": "sobol_batch",
+            "motor": ("piso do BATCH — a cada iteração propõe q pontos por "
+                      "sequência de Sobol SCRAMBLED (randomização de Owen), "
+                      "SEM surrogate e SEM aquisição"),
+            "q": int(q),
+            "scramble": True,
+            "scramble_tipo": "Owen (scipy.stats.qmc.Sobol scramble=True)",
+            "gerador": "scipy.stats.qmc.Sobol",
+            "semeadura": ("um `seed` por iteração, derivado da semente do run — "
+                          "o lote i não repete o lote i-1"),
+            "nota_potencia_de_2": ("q=10 não é potência de 2: usamos `random(q)`, "
+                                   "e o scipy avisa que a propriedade de "
+                                   "balanceamento do Sobol não vale para o lote"),
+            "surrogate": "NENHUM (é o piso — a comparação existe para isolar o efeito do modelo)",
+            "sigma": "NULL por construção (sem modelo, não há incerteza a reportar)",
+            "D": int(D), "M": int(M), "maxfe": int(bud.maxfe),
+            "regime": "online",
+        }
         res = H.write_run_outputs(
-            exp, alg, problema, semente, bud, buf, D=D, M=M,
+            exp, alg, problema, semente, bud, buf, D=D, M=M, params=params,
             cp_hashes={"doe_hash": doe["doe_hash"]},
             env=env, pinning=pinning, n_geracoes=n_geracoes,
             algo_version=ALGO_VERSION, timing_totais=timing_totais,

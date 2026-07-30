@@ -39,9 +39,26 @@ art = os.path.join(REPO, "claude_code_context", "artifacts")
 grade_todas = [r for r in csv.DictReader(open(os.path.join(art, "runs_matrix.csv"),
                                               encoding="utf-8"))
                if r["semente"] == SEMENTE]
-# DI-40: c154 sai do roster do batch — 5 células não despachadas.
-DI40 = [r for r in grade_todas if r["exp"] == "batch" and r["alg"] == "c154"]
+# ── DI-40 · e por que este filtro é CONDICIONAL À SEMENTE ────────────────────
+# Na rodada-42 o c154 saiu do roster do batch: 5 células nunca foram
+# despachadas, e contá-las como "faltando" produziria 5 buracos fantasma no
+# censo. Até 2026-07-30 o filtro era INCONDICIONAL — correto para a s42 e
+# **ERRADO para a M8**, onde a REVOGAÇÃO DA DI-40 (T11-G2, commit `65c835f`)
+# repôs o c154 no batch: lá as 5 células SÃO esperadas, e escondê-las faria o
+# censo declarar completude sobre um grid menor que o real.
+#
+# O discriminador é a SEMENTE, porque é ela que identifica a rodada: a s42 é a
+# única que rodou sob a DI-40 vigente. Qualquer outra semente é pós-revogação.
+DI40_VIGENTE = (SEMENTE == "42")
+DI40 = ([r for r in grade_todas if r["exp"] == "batch" and r["alg"] == "c154"]
+        if DI40_VIGENTE else [])
 grade = [r for r in grade_todas if r not in DI40]
+if DI40_VIGENTE and DI40:
+    print(f"[DI-40] semente {SEMENTE}: {len(DI40)} células batch/c154 fora do "
+          f"roster (não despachadas) — excluídas da grade esperada")
+elif not DI40_VIGENTE:
+    print(f"[DI-40] semente {SEMENTE}: filtro NÃO aplicado — a DI-40 foi "
+          f"REVOGADA no T11-G2, o c154 volta ao batch e as células são esperadas")
 
 def familia(exp):
     if exp == "main":  return "main"

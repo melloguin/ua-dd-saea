@@ -75,7 +75,16 @@
       · ⚠ AÇÃO DO AUTOR: o preflight agora acusa **58 manifestos de OUTRA MÁQUINA** em
         `data/experiments` (as células que voltaram das VMs por rsync). Já estão no bucket e em
         `resultados_experimentos` — o disco local tem de partir limpo antes do disparo
-- [ ] G7 · cronômetro tempo_aval (I-02) + export NULL + repo_hash no ⑤ (I-09)
+- [x] G7 · cronômetro tempo_aval (I-02) + export NULL + repo_hash no ⑤ (I-09) — `83dbdac` (2026-07-29)
+      · **suíte 532 testes, 0 falhas** · 16 testes novos em `tests/test_g7_instrumentacao.py`
+      · cronômetro no `budget.py:evaluate` (o portão ÚNICO) — cache-hit e hard-stop NÃO contam
+      · `tempo_aval_real_s` pode ser **NULL** ("não medi" ≠ "custou zero"): os 4 runners offline
+        + o stub deixaram de gravar `0.0`, e o sobol_batch passa o valor MEDIDO
+      · `repo_hash` nasce preenchido nos DOIS writers (Python e MATLAB) — era `''` em 666/666
+      · ⇒ o gate **G-3 em modo `campanha` fecha VERDE** num ⑤ novo (fio completo travado por teste)
+      · ⚠ NÃO mexi nas 5 medições manuais que já funcionam (`adapter/oracle.tempo_aval_real_s`
+        em c122/c149/c154/c262/e81) — o laudo I-3 as chama de "opcional: enxugar"; tocar código
+        de medição validado por ganho estético não vale o risco
 - [~] 🏁 MARCO G · re-gate das 666 ⇒ exatamente 1 quimera + 34 anômalas → **ONDA-0 LIBERADA: c149 · e81 · e7 · c238 · b3 · c141 · b1 · nsga2 · nsga3 · moead · smsemoa · treed_media**
       · **RE-GATE RODADO (2026-07-29)** sobre as 666 células oficiais de
         `~/Documents/python_repos/mestrado/resultados_experimentos`:

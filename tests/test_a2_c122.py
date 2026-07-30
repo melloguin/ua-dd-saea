@@ -132,6 +132,41 @@ class TestSondaLevaOsMetadados(unittest.TestCase):
             src = fh.read()
         self.assertEqual(src.count("meta=_meta_referencia(pop, bud, MU)"), 2)
 
+class TestA6SobolBatchENsga3(unittest.TestCase):
+    """[T11-A6] I-03 (`n_front1` no sobol_batch) + I-13 (`geracoes_derivadas`).
+
+    * **I-03** — o sobol_batch montava o evento à mão em vez de chamar
+      `H.minimo_comum_di10`: era o ÚNICO dos 47 pares (alg,exp) do estudo sem
+      `n_front1` (presente em 46/47), e o campo faltava também no header, nos 2
+      footers e nas 31 chaves do ⑤. Custo de gravá-lo: 0,020–0,052 s = 0,3–1,6%
+      do wall.
+    * **I-13** — a string `geracoes_derivadas` dos 4 pisos. MEDIDO nas 112
+      células de piso da s42: a string antiga (`20D ÷ N_efetivo`) acerta
+      **2/112**; a fórmula do plano F5 (com `ceil`) acerta **0/112**; a melhor
+      aproximação (`floor((20D+n_dup)/(2⌊N_ef/2⌋))`) acerta **103/112**. Logo:
+      `n_geracoes` é EMERGENTE, e o metadado passa a dizer isso em vez de
+      prometer uma fórmula fechada que não existe.
+    """
+
+    def test_sobol_batch_usa_o_minimo_comum(self):
+        with open(os.path.join(_RAIZ, "src", "sobol_batch.py"),
+                  encoding="utf-8") as fh:
+            src = fh.read()
+        self.assertIn("**H.minimo_comum_di10(", src)
+        # o `f_best` montado à mão saiu (o helper o entrega junto de n_front1)
+        self.assertNotIn('f_best=[float(v) for v in', src)
+
+    def test_a_string_do_piso_nao_promete_formula_fechada(self):
+        with open(os.path.join(_RAIZ, "src", "experiment.m"),
+                  encoding="utf-8", errors="replace") as fh:
+            m = fh.read()
+        i = m.index("'geracoes_derivadas'")
+        bloco = m[i:i + 1200]
+        self.assertIn("EMERGENTE", bloco)
+        self.assertIn("103/112", bloco)          # a acurácia MEDIDA da aproximação
+        self.assertNotIn('"20D ÷ N_efetivo', bloco)
+        self.assertIn("nao derive, LEIA", bloco)
+
 
 if __name__ == "__main__":
     unittest.main()

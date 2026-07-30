@@ -161,13 +161,22 @@ def run_sobol_batch(exp: str, alg: str, problema: str, semente, *,
                                   tempo_pred_sonda_s=0.0,
                                   tempo_geracao_s=(time.time() - t_g0))
                 ckpt.talvez_gravar(bud, buf, iteracao=g)   # [DI-43]
+                # [I-03] o MÍNIMO COMUM DI-10 pelo helper, não à mão. Este era
+                # o ÚNICO dos 47 pares (alg,exp) do estudo sem `n_front1` — o
+                # evento era montado aqui em vez de chamar
+                # `H.minimo_comum_di10`, e o campo faltou também no header, nos
+                # 2 footers e nas 31 chaves do ⑤. Custo medido de gravá-lo:
+                # `problems._nds_filter` × 200 gerações = 0,020–0,052 s =
+                # 0,3–1,6% do wall. `tempo_fit_s=None` (piso sem modelo, DI-13.2)
+                # e `tempo_busca_s` sobe ao ⑥ de brinde.
                 log.decision(caminho="sobol_batch_gen",
                              motivo=f"lote Sobol scrambled q={q} (piso — sem "
                                     f"surrogate)",
-                             geracao=g, fe=bud.fe, q=q, seed_sobol=int(seed_it),
-                             f_best=[float(v) for v in
-                                     np.vstack([r.f for r in bud.records])
-                                     .min(axis=0)])
+                             geracao=g, q=q, seed_sobol=int(seed_it),
+                             **H.minimo_comum_di10(
+                                 np.vstack([r.f for r in bud.records]),
+                                 fe=bud.fe, tempo_fit_s=None,
+                                 tempo_busca_s=t_busca))
                 n_geracoes = g
                 if teto_s is not None and (time.time() - t_run) > teto_s:
                     status, motivo_parada = "failed", "teto_wall"

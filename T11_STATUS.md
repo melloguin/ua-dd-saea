@@ -77,7 +77,21 @@
         objeto vivo o manifesto declara `desligada=true` e a sonda nunca some calada.
         Os **4** caminhos até o `fire` têm guard (`due`, `probeOffline`, `finalProbe`,
         `probeEstratificada`) — só a cadência deixaria o bloco final e o offline dispararem
-      · ⚠ FALTA (máquina): rodar `naoperturbacao.py <alg> --par` nos 9 configs MATLAB
+      · ✅ **G-6 FECHADO — 19 de 19 configs com sonda, BIT-IDÊNTICOS** (2026-07-30, runs
+        reais do autor). 10 Python + **9 MATLAB** (b1 `4d81d858` · b3 `760941d2` · b4
+        `2404320f` · c141 `d7f20cd0` · c217 `868a15c0` · c238 `43f53326` · e7 `1e1060ee` ·
+        e74 `fc9ced7a` · **e103 `a94d2766`**). Os 5 pisos sem surrogate são não-aplicáveis.
+        **0 perturbaram · 0 falharam.**
+      · O desarme foi CONFIRMADO por 3 sinais independentes em cada par, não só pelo hash:
+        `sonda.desligada=true` no ⑤ · `n_blocos` caindo a 0 · a ③ ENCOLHENDO (e74:
+        46.499→1.999 linhas; e103: 59.800→19.800). Se só o hash batesse, um desarme que
+        nunca disparou daria o mesmo resultado — os 3 juntos provam que a sonda RODOU e
+        MESMO ASSIM não mexeu na busca
+      · ⚠ O **e103 é o caso mais exigente**: regime OFFLINE, sonda de 20.000 pontos, e o
+        disparo dele é `probeOffline` — que chama o `fire` DIRETO, sem passar pela cadência.
+        É exatamente o caminho que um desarme ingênuo (só barrar o `due()`) deixaria passar.
+        Foi por isso que o guard entrou nos 4 caminhos, e o offline é a prova de que valeu
+      · Este item era **T1 ou T2 em 11 dos 24 relatórios** do estudo — o mais repetido
       · **G-7 FEITO** (`5b6df3e`): `artifacts/contrato_61.json` (extração + CURAÇÃO contra a
         medição — 3 falsos-positivos removidos: `n_baseline` do e81 que o §6.1 cita para NEGAR,
         `solution_id` do b4 que é `ref_ids`, `tempo_fit_s` dos pisos que é NULL por contrato) +

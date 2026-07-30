@@ -144,21 +144,56 @@
         qLBMOJES não tem prune de baseline; decidir sozinho seria escolher semântica de
         contrato — **D81, decisão do autor**); (b) validar célula D≥12 morrendo às 12 h COM
         camadas parciais (precisa de máquina)
-- [ ] A2 · c122 (n_ref real g=1 · ref_ids · regra-rótulo · y_treino_dist · params ⑤)
-- [ ] A3 · família b5: b5m/b5r/moead_media (I-05 campos DI-10 · wrapper A8 read-only · params ⑤ · granularidade ③)
-- [ ] A4 · c262 (herda G5; 8 hp da acqf; params ⑤; fit_retries warning; PROBE DE RAM do batch → --n-jobs no RUNBOOK)
-- [ ] A5 · e103 (tempo_geracao_s; validar rito da ⑦)
-- [ ] A6 · sobol_batch (n_front1/f_best; tempo_fit NULL) + nsga3 (string geracoes_derivadas)
-- [ ] A7 · b4 (regra-rótulo; y_treino_dist; NUNCA inverter p0/p1)
-- [ ] A8 · e74 — FIX DI-45 (ClassifierSelect:46-48; n_desalinhado preservado; re-lacre âncora/repos.lock; smoke ±3σ) + regra-rótulo + y_treino_dist
-- [ ] A9 · c217 (pmid_ids; regra-rótulo; y_treino_dist; params ⑤)
-- [ ] A10 · c311/treed_media (nota n_sigma_valido; guard de tier)
-- [ ] A11 · sonda estratificada dos 4 classificadores (por último; G-6 obrigatório)
+- [x] A2 · c122 — `73d9fef` (2026-07-30) · **SMOKE: n_ref=21 (=11D−1) no g=1 × 11 (=MU) no g≥2**
+      — o teste de aceitação do I-01. ref_ids (21/11 ids) · y_treino_dist (462/484 pares) ·
+      REGRA_DO_ROTULO no sigma_dict · params já existia
+- [~] A3 · família b5 — `b74c620` + `08a4019` (2026-07-30)
+      · I-05: acumulador P_wrong no VENDORIZADO (âncora `b5-pwrong-stats` + re-lacre) +
+        `p_wrong_stats`/`n_substituicoes`/`flag_vetores_degenerados` no ⑥
+      · `params` no ⑤ dos 3 · granularidade_③ no sigma_dict dos 3 (I-04)
+      · ⏳ FALTA: a prova ①③⑦ byte-idênticas com×sem o patch (rodando; o b5m leva ~22 min/run)
+- [x] A4 · c262 — `52befff` (2026-07-30) · `ACQF_HP` (os 8+2 do T1) como fonte única do
+      `_make_acqf`/header/⑤ · `params` no ⑤ · `fit_retries>0` vira guard amarelo
+      · ⚠ FALTA (máquina): o PROBE DE RAM do batch → `--n-jobs` no RUNBOOK
+- [x] A5 · e103 — `5aa31e3` (2026-07-30) · `tempo_geracao_s` na ④ (era o único config sem)
+      · ⚠ FALTA (máquina): validar o rito da ⑦ numa célula
+- [x] A6 · sobol_batch + nsga3 — `40df11a` (2026-07-30) · `minimo_comum_di10` no sobol_batch
+      (n_front1=8 no smoke; tempo_fit NULL) · a string do piso reescrita CONTRA O DADO: a
+      fórmula do plano acerta **0/112**, a antiga 2/112, `floor(...)` 103/112 ⇒ declarado
+      EMERGENTE ("não derive, LEIA")
+- [x] A7 · b4 — `52befff` (2026-07-30) · REGRA_DO_ROTULO + glossário p0/p1 no sigma_dict
+      (trocá-los derruba a reprodução de 6.268/6.268 para 1.252/6.268) · `y_treino_dist`
+      DERIVADO de `rr`×`n_treino`, sem tocar o vendorizado
+- [~] A8 · e74 — **FIX DI-45 APLICADO** `b74c620` (2026-07-30) · `S=find(y_label==1)` +
+      índice absoluto · `n_desalinhado` PRESERVADO (é a prova na semente 1) · âncora
+      `e74-classifierselect-idx` + `repos.lock` re-lacrado · preflight: APLICADO
+      · ⚠ FALTA (máquina): smoke de 3 células + gate ±3σ · regra-rótulo/y_treino_dist do e74
+- [x] A9 · c217 — `52befff` (2026-07-30) · `pmid_ids` (era 0/25 células com a identidade) +
+      `y_treino_dist` ternário · ⚠ params ⑤ do c217 ainda pendente (writer MATLAB)
+- [x] A10 · c311/treed_media — `5aa31e3` (2026-07-30) · guard de tier ANTES do import do
+      vendor (verificado: off/main/sweep-small BARRADOS, big passa) · aviso
+      `n_sigma_valido` no sigma_dict do c311 (σ-NaN mediano 90,3% no big)
+- [~] A11 · sonda estratificada — `b74c620` (2026-07-30) · mecanismo no harness
+      (`emit_sonda_estratificada`/`amostra_estratificada`, RNG local uso_id=91, sob
+      `preserve_all_rng`) + ligado no **c122**
+      · **PREVALÊNCIA 7,4% no bloco contra 0,4% da régua = 18× mais positivos**
+      · regimes separados na ③: 44.000 sonda · 10.500 estratificada · 3.632 busca
+      · ⚠ FALTA: os 3 classificadores MATLAB (b4, c217, e74) — gêmeo MATLAB do mecanismo
 
 ## FASE V — verificações & re-runs
-- [ ] V1 · VD b1-torneio + VD b3-índice (forense read-only; 🔴 ⇒ D81)
+- [x] V1 · VD b1-torneio + VD b3-índice — `ca157d8` (2026-07-30) ·
+      `handoff/T11-V1-verificacoes-dirigidas.md`
+      · **VD-b1 🔴 CONFIRMADO:** o torneio ranqueia pelo PCheby do SUBCONJUNTO e indexa o
+        `Dec` INTEIRO — **93,0% de 8.443 gerações**, mediana **44,9%** da população
+        inalcançável, 25/28 células. MESMA CLASSE do DI-45 ⇒ **decisão de fidelidade do autor**
+      · **VD-b3 🔴 estrutural:** `Next` mistura domínios de índice no ramo 1; `nzero=0` em
+        1.619/1.619 não discrimina o ramo ⇒ instrumentar `size(Via,1)`/`NI−mu` (~2 linhas)
 - [ ] V2 · re-runs s42: c311/big-mvns + b1/WFG1 · quimera c149 (rota A0→Mac) · ⑦ e103→bucket · ~29 não-ok no regime novo
-- [ ] V3 · lote de docs (T11-PLANO §6+§12-📄: ERRATA A30 · nº DI-40 · 6 números F5 · cards/INDEX · RUNBOOK · OP-1..7 · SPEC L.8 e74 · D62/iteration_seed · textos de teto)
+- [~] V3 · lote de docs — `66195cf` (2026-07-30) · **PARTE A36** no REGISTRO (execução do T11 +
+      as 8 ERRATAS + os 6 contratos novos) · nº da DI-40 corrigido nos 2 pontos (1,47 h medido) ·
+      RUNBOOK: rito NOVO do teto (truncamento-com-dado) + seção do `campanha_id` + números
+      · ⚠ FALTA: cards/INDEX · SPEC L.8 do e74 pós-fix · D7/iteration_seed na SPEC §D62 (a SPEC
+        é TERRITÓRIO DA TORRE — RI-12 — então deixei para o autor)
 
 ## ACEITAÇÃO FINAL
 - [ ] Suíte ≥410, 0 falhas · preflight 0 · re-gate 666 = 1+34 · smoke 24/24 · kill-test ✓ · handoffs escritos

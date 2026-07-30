@@ -1790,7 +1790,7 @@ Cobertura: `b1, b3, b4, e7, c217, c141, e74, c238, pisos_online, e103, c262, c15
   cheio OOM-killed em n=669 ⇒ risco de OOM com `--n-jobs 8` na VM-1) e `c154` ×2 — **este último
   CORRIGE UM NÚMERO OFICIAL DESTE REGISTRO**: a premissa *"~min-1h"* das linhas 1708/1756 foi
   simulada contra o ④ REAL de `main/c154/DTLZ2_0` e o trip por projeção só vem na iteração 158,
-  após **~6,3 h** queimadas (a projeção assume busca constante, enquanto a busca JES cresce
+  após **~6,3 h** queimadas ⟦ERRATA T11 (2026-07-30): este número foi **superado 2×**. O "~min-1h" original foi corrigido para "~6,3 h" pela A28, e a F5 mediu na s42 o valor REAL: **0,87–2,99 h por célula, média 1,47 h** — o "6,3 h" é ~4× superestimado (a projeção arma na it 158 num run cuja iteração encarece). E, com a DI-43/44 + o T11-G5, o ponto ficou histórico: o aborto por projeção foi EXTINTO (a projeção virou `wall_projection_warning`) e o teto passa a truncar COM as camadas gravadas.⟧ (a projeção assume busca constante, enquanto a busca JES cresce
   ~n^1,6, e por isso dispara tarde). Erro de ~6× na expectativa publicada; ×30 sementes ≈ 190
   h-core só em DTLZ2 para **zero parquet**.
 
@@ -1829,7 +1829,7 @@ pré-requisito do M8.
 **O que mudou a conta.** O finder `c154` da validação final simulou o `_WallClockProjector`
 (`src/c262_qnehvi.py:435-473`, reusado pelo c154) contra o ④ **real** de `main/c154/DTLZ2_0`
 (241 iterações, 52.596 s = 14,6 h medidos) e mostrou que, com teto de 43.200 s, o trip por
-projeção só arma na **iteração 158, após ~22.632 s ≈ 6,3 h queimadas** — porque a projeção
+projeção só arma na **iteração 158, após ~22.632 s ≈ 6,3 h queimadas** ⟦ERRATA T11 (2026-07-30): este número foi **superado 2×**. O "~min-1h" original foi corrigido para "~6,3 h" pela A28, e a F5 mediu na s42 o valor REAL: **0,87–2,99 h por célula, média 1,47 h** — o "6,3 h" é ~4× superestimado (a projeção arma na it 158 num run cuja iteração encarece). E, com a DI-43/44 + o T11-G5, o ponto ficou histórico: o aborto por projeção foi EXTINTO (a projeção virou `wall_projection_warning`) e o teto passa a truncar COM as camadas gravadas.⟧ — porque a projeção
 assume busca constante (média das últimas 5) enquanto a busca JES cresce ~n^1,6, e por isso
 dispara tarde. **As linhas 1708 e 1756 deste REGISTRO afirmam "~min–1h": erro de ~6×**, e a
 DI-38(a) foi decidida com o número errado.
@@ -2104,6 +2104,65 @@ de pré-requisitos autorizada; ações de infra do autor anotadas p/ depois do c
 (TODAS as melhorias de instrumentação, incl. sonda estratificada dos classificadores) · D12
 (=DI-45) · D13 (só as 2 verificações dirigidas: b1-torneio e b3-índice). **Zero decisões em
 aberto. Próximo: a torre escreve os cartões T11.**
+
+---
+
+## PARTE A36 — EXECUÇÃO DO T11: FASE G + FASE A + as 8 erratas que o próprio trabalho gerou (2026-07-29/30)
+
+**Estado:** FASE G fechada (G1-G7, 7/7) + FASE A quase completa (A1-A11 com
+resíduos declarados) + V1. Suíte **394 → 587 testes, 0 falhas**. ~36 commits.
+
+### As 8 ERRATAS abertas contra os documentos-fonte (todas verificadas no DADO)
+
+Todas nasceram da regra da casa *"se você escrever QUALQUER afirmação em doc,
+verifique no código/dado antes de commitar"* — e cada uma teria virado trabalho
+errado se eu tivesse seguido o texto:
+
+| # | onde | o que o doc dizia | o que o dado diz |
+|---|---|---|---|
+| 1 | PLANO F5/B-11 | o splice do `main/b1/WFG1` está "nas linhas de header/sigma_dict" | o header tem **512 B**; as 49 malformadas são `b1_gen`/`sonda` (mediana 1.647 B) com um `guard` de ts POSTERIOR sobrescrito no meio |
+| 2 | PLANO F5/B-11 | "`src/b1_instrument.m` (2 handles no mesmo arquivo)" | **não existe 2º handle**: só `experiment.m` tem `fopen`, 1 fid por run |
+| 3 | PLANO F5/B-12 | abortar se `env.executable ≠ o intérprete da máquina` | daria **304 falsos-positivos** (a mesma máquina roda 4 venvs por desenho, E-10). O discriminador certo é o HOST ⇒ **58** verdadeiros-positivos |
+| 4 | PLANO F5 §5/aceitação | "re-gate ⇒ 1 quimera + **34** anômalas" | 1 quimera ✔ + **15** anômalas + 21 `footer_faltante` que o **próprio B-15** manda NÃO acusar. Aritmética completa: 12+9+6+1+1 = 27 distintas |
+| 5 | I-13/A24 | `geracoes_derivadas` = `⌈(20D+n_dup)/2⌊N_ef/2⌋⌉` | acerta **0/112**; a string antiga acerta 2/112; `floor(...)` acerta 103/112 ⇒ **`n_geracoes` é EMERGENTE**, não fechada |
+| 6 | contrato_61 (meu) | `mll_final`/`loss_treino` ausentes | **ANINHADOS** em `modelo_hp` — era o meu gate olhando só o topo |
+| 7 | §6.1 do CONTRATO | e103 deve ter `margem_3sigma` | o runner grava `margem_3sigma_stats`, que é **mais rico** (a estatística do gate, DI-13.4b) |
+| 8 | §6.1 do CONTRATO | c154 deve ter `n_baseline` | o `sigma_dict` do PRÓPRIO runner já dizia "AUSENTE POR DESENHO" (qLBMOJES não faz prune) |
+
+### Contratos NOVOS que a execução criou (a próxima sessão precisa saber)
+
+1. **`fe_final` do ⑤ de checkpoint é PISO das camadas.** As 5 escritas são
+   atômicas uma a uma, não como grupo; o ⑤ é a última, então um kill pode deixar
+   as camadas 1 checkpoint à frente. A direção é a garantia: o ⑤ nunca promete
+   dado que as camadas não têm.
+2. **`is_run_done` exige `campanha_id`** (v1 ⇒ False, o que força o re-run das
+   stale); auditar o passado usa `manifest.QUALQUER_CAMPANHA`.
+3. **O despachante abre o ⑥ com `append=False`** — quem chega ao `_run_one` vai
+   executar, logo é o dono do arquivo.
+4. **O aborto sancionado passa pelos gates de PROVENIÊNCIA** (só os de conteúdo
+   são dispensados): com truncamento-com-dado a célula TEM camadas.
+5. **`tempo_aval_real_s` pode ser NULL** — "não medi" ≠ "custou zero".
+6. **O gate G-3 tem 2 modos** (`campanha` × `historico`).
+
+### 3 cirurgias vendorizadas, todas com âncora + re-lacre + prova
+
+| âncora | arquivo | natureza |
+|---|---|---|
+| `e74-classifierselect-idx` | `ClassifierSelect.m:46` | **DI-45** — fidelidade (bússola D29) |
+| `b5-pwrong-stats` | `ProbMOEAD_select.py:28` | I-05 — instrumentação read-only |
+| (as 2 do b5 que já existiam) | — | re-validadas: `preflight` reporta APLICADO em 4/4 |
+
+### Achados NOVOS que viram decisão do autor
+
+- **VD-b1 (V1):** o torneio do `EvolALG.m:16` ranqueia pelo PCheby do
+  SUBCONJUNTO e indexa o `Dec` INTEIRO — **93,0% de 8.443 gerações**, com
+  mediana **44,9%** da população inalcançável. Mesma classe do DI-45. Relatório
+  em `handoff/T11-V1-verificacoes-dirigidas.md`.
+- **VD-b3:** o `Next` do `UpdataArchive` mistura domínios de índice no ramo 1;
+  falta instrumentar `size(Via,1)`/`NI−mu` (~2 linhas) para virar número.
+- **`sigma_dict` ausente no ⑤ dos 4 pisos online** (112 células) — resolvido
+  declarando `nao_se_aplica`, no padrão que o próprio piso já usa no bloco
+  `sonda`.
 
 ---
 

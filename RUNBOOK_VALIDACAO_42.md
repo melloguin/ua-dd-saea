@@ -35,10 +35,26 @@ fidelidade (torre) → **F6** veredito D97 do autor → M8/M9 (expandir p/ 30 se
 ```bash
 cd /Users/gmello/Documents/python_repos/mestrado/ua-dd-saea
 PY=/Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao/bin/python
-$PY -m unittest discover -s tests            # esperado: Ran 328 · OK
-$PY scripts/preflight.py                     # exit 0 (lacres/âncoras/artefatos)
+$PY -m unittest discover -s tests            # esperado: Ran 587 · OK  [T11]
+$PY scripts/preflight.py                     # exit 0 (lacres/âncoras/artefatos
+                                             #  + manifesto forasteiro, B-12)
 $PY scripts/naoperturbacao.py --all          # 53 verdes
+$PY scripts/gates_proveniencia.py --varredura --historico   # G-1..G-4+B-15+G-7
 ```
+
+### ⚠ ANTES DE QUALQUER DISPARO — crave o `campanha_id` [B-03, T11-G3]
+
+```bash
+export UA_DD_SAEA_CAMPANHA_ID="$(git rev-parse --short=12 HEAD)_$(date +%F)"
+```
+
+**Em TODAS as máquinas, com o MESMO valor**, e uma vez só no início da campanha
+(não por lote). O `is_run_done` passou a exigir este carimbo: manifesto sem ele
+(schema v1) ou de campanha anterior conta como NÃO-PRONTO — é o que impede as
+células stale de semente 0 (b1 DTLZ2/ZDT1, c238 ZDT1, c262 ZDT1, c154 DTLZ2)
+entrarem como resultado oficial. Sem a env, o default é `{commit12}_{data UTC}`
+e ele **muda à meia-noite** — no dia 2 o resume re-rodaria tudo. O despachante
+imprime o id em uso no arranque do grid: confira que é o mesmo nas 4 máquinas.
 Credencial do bucket (para o sync pós-hoc dos runs MATLAB — §5.3):
 ```bash
 gcloud auth application-default login        # ou GOOGLE_APPLICATION_CREDENTIALS=<sa.json>
@@ -238,17 +254,24 @@ EOF
 - **Células caras conhecidas (1 core cada):** c238/ZDT1 ~3h55 · c262/ZDT1 ~4h11 ·
   c149/ZDT1 ~3h22 · e81/ZDT1 ~2h · e7/ZDT1 ~72min (RAM 3,3 GB) · b3/ZDT1 ~26min.
   ⚠ Os MATLAB NÃO têm teto de wall-clock (lacuna aceita — todos ≪ 12h; rede = D60).
-- **⚠ c154 sob o teto 12h — SEMÂNTICA REAL (auditoria DI-38; leia antes de disparar):**
-  o teto BoTorch (c262/c154) aborta por **PROJEÇÃO ANTECIPADA** (arma na 11ª iteração):
-  célula com custo projetado ≥12h morre em **~minutos–1h**, com manifesto
-  `failed/teto_wall` e **SEM parquets ①–⑦** (curva parcial só no `.jsonl` — desenho
-  anti-órfão DI-21). Afeta: **c154 main/DTLZ2 (~14,6h)**, possivelmente c154/ZDT1-WFG9,
-  e **as 5 células c154-batch (piso ≥30h)**. **⟦DI-38(a) DECIDIDA, autor 2026-07-25⟧:
-  comportamento MANTIDO — `teto_wall` nessas células é o resultado esperado; o portão
-  as reporta como ⚪ aborto-sancionado (não conta vermelho). NÃO re-disparar**
-  (`is_run_done` lê `failed` como não-pronto: re-disparo re-queima ~1h e aborta de
-  novo — na RE-invocação do lote, remova c154 da lista de `--algorithms`).
-  O rito de truncamento-com-camadas (T10) fica no backlog do refinamento pós-rodada.
+- **⚠ c154/c262 sob o teto 12h — O RITO MUDOU ⟦DI-43+DI-44, aplicado no T11-G5⟧:**
+  **TRUNCAMENTO-COM-DADO.** O teto dispara **só por RELÓGIO** (`elapsed`), o run vai
+  até as 12h e fecha `failed`/`teto_wall` **GRAVANDO as camadas parciais** — "curva
+  parcial é o dado" (DI-37.1). A **projeção não aborta mais**: virou
+  `wall_projection_warning` (1 linha por run), porque ela é a estimativa que EXPLICA
+  por que a célula não fecha, não motivo para matá-la.
+  *Como era antes (e por que mudou):* o aborto por projeção matava o run antes de
+  qualquer parquet existir — medido na s42, **0,87–2,99 h por célula (média 1,47 h)**
+  queimadas para ZERO dado. ⚠ O "~minutos–1h" das versões antigas e o "~6,3 h" da
+  DI-40 são os DOIS superados: 1,47 h é o número medido.
+  Afeta as mesmas células (**c154 main D≥12**, as 5 de **c154-batch**), mas agora
+  elas ENTREGAM curva parcial. O portão segue reportando ⚪ aborto-sancionado, e
+  **agora também roda os gates de PROVENIÊNCIA nelas** (elas têm dado). **Continua
+  valendo NÃO re-disparar** — `is_run_done` as lê como não-prontas e o re-disparo
+  re-queima as 12h.
+  Os runners Python também gravam **checkpoint atômico a cada 25 iterações OU 30 min**
+  (DI-43): uma morte matada (spot revogada, OOM, SIGKILL) deixa camadas parciais
+  legíveis + ⑤ coerente. ⚠ Nesse ⑤, `fe_final` é **PISO** das camadas.
 - **Batch q=10 (DI-37):** c262 ≈ 2,2h/célula (receita cheia, sem knob) ·
   c149/e81/sobol_batch baratos · c154 = bullet acima.
 - **c311 sweep-big (50k)**: âncora de build ~32s, mas fase final + sonda em n=50k é

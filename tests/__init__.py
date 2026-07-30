@@ -1,3 +1,10 @@
+
+# [conserto 2026-07-30] Anotações LAZY. Sem isto, `tuple[int, str]`
+# (py3.9+) e `str | None` (py3.10+) quebram o IMPORT do pacote de
+# testes em **py3.7 (env_b5)** e **py3.8 (env_c311)** — exatamente os
+# dois interpretadores que 13 `skipUnless` mandam usar. A suíte parecia
+# ter cobertura naqueles envs e não rodava nem o import.
+from __future__ import annotations
 # Pacote de testes do harness (F0-01). Rodar:
 #   python3 -m unittest discover -s tests -t .
 #

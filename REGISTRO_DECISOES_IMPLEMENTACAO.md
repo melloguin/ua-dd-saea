@@ -2154,12 +2154,33 @@ errado se eu tivesse seguido o texto:
 
 ### Achados NOVOS que viram decisão do autor
 
-- **VD-b1 (V1):** o torneio do `EvolALG.m:16` ranqueia pelo PCheby do
-  SUBCONJUNTO e indexa o `Dec` INTEIRO — **93,0% de 8.443 gerações**, com
-  mediana **44,9%** da população inalcançável. Mesma classe do DI-45. Relatório
-  em `handoff/T11-V1-verificacoes-dirigidas.md`.
-- **VD-b3:** o `Next` do `UpdataArchive` mistura domínios de índice no ramo 1;
-  falta instrumentar `size(Via,1)`/`NI−mu` (~2 linhas) para virar número.
+- **VD-b1 (V1):** ~~achado 🔴, mesma classe do DI-45~~ → **ERRATA 10 · RETIRADO.**
+  O registro abaixo estava errado nas duas pontas e ficou assim por 6 commits
+  (achado da varredura de 2026-07-30):
+  **(a) SEVERIDADE superestimada.** O torneio do `EvolALG.m:16` de fato ranqueia
+  pelo PCheby do SUBCONJUNTO e indexa o `Dec` INTEIRO em 93,0% das 8.443
+  gerações — mas isso constrói APENAS a metade-crossover da PRIMEIRA geração
+  interna do GA de aquisição; da 2ª em diante os domínios CASAM
+  (`EvolALG.m:65`). Medido: o ramo defeituoso é **3,87%** dos 87,77 M candidatos
+  scorados, e o infill veio da 1ª geração interna em **12,19%** dos ciclos ⇒ o
+  torneio é **INERTE em ~93,9%**. Concentrado: BBOB_F37 62,7% e BBOB_F49 61,3%.
+  **(b) CLASSIFICAÇÃO errada.** A SPEC já tem este item como **🟠 IMPL → CÓDIGO,
+  documentado**: `SPEC:434` cita "torneio do b1" pelo NOME entre os exemplos de
+  🟠, e `SPEC:500` o lista entre as divergências periféricas mantidas no CÓDIGO
+  (D30/D47). O `EvolALG.m:9-10` registra a decisão da sessão anterior: *"o bug
+  do torneio (:16) fica (CODIGO K.3)"*. Marcá-lo 🔴 disparou um D81 sem motivo e
+  **reabriu decisão FECHADA** — a mesa estava zerada.
+  **(c) O argumento de "consistência com a DI-45" também era falso.** A bússola
+  da SPEC distingue os casos: o GA interno do b1 é o otimizador de aquisição,
+  **periférico** ao mecanismo que a tese mede (o surrogate e o uso da
+  incerteza); a seleção assistida por classificador do e74 **É** o mecanismo.
+  **NADA MUDA no b1.** O número medido vira lastro da classificação 🟠 que já
+  existia. Relatório em `handoff/T11-V1-verificacoes-dirigidas.md`.
+- **VD-b3:** o `Next` do `UpdataArchive` mistura domínios de índice no ramo 1.
+  **FECHADO como forense read-only** — o pedido de instrumentar
+  `size(Via,1)`/`NI−mu` foi RETIRADO junto com a ERRATA 10: medir mais para
+  decidir algo que não está em aberto é trabalho sem destino. `nzero=0` em
+  1.619/1.619 ciclos não discrimina o ramo, e isso é desfecho legítimo.
 - **`sigma_dict` ausente no ⑤ dos 4 pisos online** (112 células) — resolvido
   declarando `nao_se_aplica`, no padrão que o próprio piso já usa no bloco
   `sonda`.
@@ -2305,3 +2326,82 @@ O número "~min-1h" do RUNBOOK **já estava corrigido** (`RUNBOOK:264` traz
 "medido na s42, **0,87–2,99 h por célula (média 1,47 h)**"), então não há o que
 fazer — é o mesmo número da correção da DI-40. Registrado para ninguém
 "consertar" de novo o que já está certo.
+
+---
+
+## PARTE A38 — 🔍 A VARREDURA ADVERSARIAL E O QUE ELA ACHOU (T11, 2026-07-30)
+
+> **Por que existe.** O autor pediu uma auditoria de tudo que a campanha
+> produziu, com uma pergunta específica: *"há algoritmo testado ANTES do seu
+> estado final de código?"*. Rodaram 6 auditores independentes read-only
+> (commits×plano · suíte · dados · docs · reprodutibilidade dos números · os
+> próprios gates) sobre 42 commits, 619 testes e 744 células. Saíram **78
+> achados brutos** (4 CRÍTICOS · 18 ALTOS · 33 médios · 15 baixos · 8
+> cosméticos). A fase de refutação adversarial processou 27 de ~156 votos antes
+> de ser encerrada por orçamento, então **cada achado tratado abaixo foi
+> reproduzido À MÃO antes de virar código** — nesta campanha 13 erratas
+> nasceram de "verifique antes de escrever", e 3 delas eram falso-positivo de
+> gate meu.
+
+### A38.1 · O commit `4796a03` — o buraco de registro que a varredura achou
+
+`4796a03` ("T11-P0") tocou **5 arquivos de código** e não tinha **uma única
+linha** em documento nenhum da campanha, violando a regra do próprio
+`T11_STATUS`. O que ele fez, registrado agora:
+
+| arquivo | o quê |
+|---|---|
+| `scripts/gates_proveniencia.py` | o G-7 passou a varrer o ⑥ em **PROFUNDIDADE** — aferir PRESENÇA da chave, não POSIÇÃO |
+| `claude_code_context/artifacts/contrato_61.json` | os 3 falso-positivos saíram do contrato |
+| `src/b3_instrument.m` | `adapt_delta_V` DERIVADO (sem tocar a árvore vendorizada) |
+| `src/experiment.m` | `sigma_dict` dos 4 pisos DECLARADO como `nao_se_aplica` |
+| `tests/test_gates_g6.py` | os testes do gate novo |
+
+E o **erro procedural** que ele contém, declarado: o b3 e os 4 pisos estão na
+lista Onda-0 "SEM pendência por-algoritmo" do plano, logo mexer neles foi
+**fora da FASE A**. O D81 mandava *parar e perguntar* diante de gate vermelho
+inesperado, e eu implementei. Os campos são contratados (SPEC §6.1:2881 exige
+`adapt_delta_V` do b3; o CONTRATO §5 lista `sigma_dict` no ⑤), então reverter
+deixaria o repo violando a SPEC — ficam, com o erro de processo assumido.
+
+### A38.2 · Os 4 CRÍTICOS — todos falso-verde, todos meus
+
+1. **O portão dava VERDE com INCONCLUSIVO.** `vermelhos` só recebia
+   `ok is False`; inconclusivo saía `return 0`. A doutrina B-07 valia só para o
+   emoji, não para o veredito nem para o exit code — **e é o portão que
+   autoriza o disparo**. Agora `0`=verde · `1`=vermelho · `2`=inconclusivo.
+2. **A guarda G-8 era cega à raiz.** O `os.walk` estatava os FILHOS de
+   `data/experiments` e nunca o diretório-raiz; uma subpasta que nasce e morre
+   muda o mtime da RAIZ. `test_drivers_b12` escrevia em **produção a cada
+   suíte** com a guarda verde. Ao consertar, a guarda passou a acusar o
+   **próprio controle dela** — que também plantava arquivo na produção. Ambos
+   hermetizados.
+3. **O G-1 não tinha controle-positivo.** O critério de aceitação é "1 quimera",
+   e a varredura devolve **0**: gatear `batch/c149/ZDT4/s42` dá VERDE. Sem o
+   controle não havia evidência de que o gate soubesse reprovar. Entrou uma
+   quimera **sintética** + o controle simétrico.
+4. **O G-1 explodia** em parquet de 0 byte e derrubava o censo inteiro com
+   traceback — as células seguintes nem eram gateadas.
+
+### A38.3 · A auditoria de STALENESS — a pergunta do autor, respondida
+
+Método: fecho de imports por AST × `git log -1` por arquivo × hora de cada teste.
+
+| eixo | veredito |
+|---|---|
+| **Smokes** | ✅ 0 stale (testados 11:10–11:43; última mudança de dependência 10:02) |
+| **Pares G-6** | 🔴 **9 de 10 STALE** — provados até 00:18, e o `standalone_harness.py` mudou às 08:12 |
+
+O diff que os invalidou é `115 insertions, **0 deletions**` (puramente aditivo),
+e a re-prova confirmou: **c122 voltou com o MESMO ① sha256 da prova anterior**
+(`be06b54124e9c100`) — a sonda estratificada não perturbou a busca. Mas isso é
+resultado, não era garantia. **Lição virou processo:** a re-auditoria de
+staleness passa a ser o ÚLTIMO passo antes de declarar conformidade.
+
+### A38.4 · Achados que NÃO viraram código, e por quê
+
+| achado | desfecho |
+|---|---|
+| `b1/WFG1` perdeu **39 de 413 gerações** por splice — irrecuperável nas cópias locais | **do autor** — e o V2 já re-roda exatamente essa célula |
+| wrapper do gatilho do `adapt` (A3/I-05 item 4) nunca implementado | **declarado**: é cirurgia vendorizada ⇒ âncora + re-lacre + ~90 min de nova prova. A cadeia A8 já é observável na CAUSA (`flag_vetores_degenerados`) e no EFEITO (`p_wrong_stats`≡0) |
+| 33 médios + 15 baixos + 8 cosméticos | **não entraram** nesta rodada — pela nota dos próprios auditores não bloqueiam a campanha; ficam no handoff |

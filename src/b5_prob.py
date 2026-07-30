@@ -73,46 +73,41 @@ _VENDOR = os.path.join(_REPO, "algorithms", "b5_Prob-RVEA")
 # ══════════════════════════════════════════════════════════════════════════════
 #  Despacho (o `experiment.run` chama com `(exp, alg, problema, semente, **kw)`)
 # ══════════════════════════════════════════════════════════════════════════════
-def _pw_agregado_da_geracao(g):
-    """[I-05] O acumulador O(1) que o `ProbMOEAD_select` manteve na geração `g`.
-
-    Vazio no b5r (mode 7 = Prob-RVEA, que não passa pelo `ProbMOEAD_select`) —
-    e vazio é INFORMAÇÃO, não falha.
-    """
+def _pw_registro_da_geracao(g):
+    """[I-05] Os registros de P_wrong que o `ProbMOEAD_select` acumulou na
+    geração `g` (lista, 1 por chamada de seleção). Vazio no b5r (mode 7 =
+    Prob-RVEA, que não passa pelo `ProbMOEAD_select`) — e vazio é INFORMAÇÃO."""
     try:
         from desdeo_emo.selection.ProbMOEAD_select import P_WRONG_STATS
-        return P_WRONG_STATS.get(int(g))
+        return P_WRONG_STATS.get(int(g), [])
     except Exception:                        # noqa: BLE001 — nunca derruba (D97)
-        return None
+        return []
 
 
 def _pw_stats_da_geracao(g):
-    """[I-05] `p_wrong_stats` da geração: min/média/max + **n_zeros**.
+    """[I-05] `p_wrong_stats` = (min, med, max) agregados da geração.
 
     A cadeia **A8** (o congelamento: `adapt` zera `values` → PBI NaN → P_wrong
-    ≡ 0,0 → ZERO substituições) era INFERIDA em 4.050 células. `n_zeros` é a
-    medida direta dela: P_wrong EXATAMENTE 0,0.
-
-    ⚠ Sem MEDIANA, de propósito. O ponto de coleta é hot loop (uma chamada por
-    indivíduo por geração, ~20k-100k por run) e reter os valores para medianizar
-    custou **2,5× de lentidão** no b5m na 1ª versão — o critério DI-12.1 ("o que
-    barra é custo novo em hot-loop") reprova isso. Média exata + min/max +
-    n_zeros respondem o que a A8 pergunta.
+    ≡ 0,0 → ZERO substituições) era INFERIDA em 4.050 células por falta deste
+    campo. Com ele, o congelamento vira MEDIDA — e o congelamento PARCIAL (8
+    células do piso, previsto por face do lattice 8/8) deixa de ser invisível.
     """
-    a = _pw_agregado_da_geracao(g)
-    if not a or not a["n"]:
+    regs = _pw_registro_da_geracao(g)
+    if not regs:
         return None
-    return {"min": a["min"], "media": a["soma"] / a["n"], "max": a["max"],
-            "n_valores": a["n"], "n_zeros": a["n_zeros"], "n_nan": a["n_nan"],
-            "n_chamadas": a["n_chamadas"],
-            "frac_zeros": a["n_zeros"] / a["n"]}
+    import numpy as _np
+    return {"min": float(_np.min([r["min"] for r in regs])),
+            "med": float(_np.median([r["med"] for r in regs])),
+            "max": float(_np.max([r["max"] for r in regs])),
+            "n_chamadas": len(regs),
+            "n_nan": int(sum(r["n_nan"] for r in regs))}
 
 
 def _n_subs_da_geracao(g):
     """[I-05] `n_substituicoes` — quantos vizinhos o offspring substituiu
     (P_wrong > 0,5). ZERO em toda a série é a assinatura do congelamento A8."""
-    a = _pw_agregado_da_geracao(g)
-    return None if not a else int(a["n_substituicoes"])
+    regs = _pw_registro_da_geracao(g)
+    return None if not regs else int(sum(r["n_substituicoes"] for r in regs))
 
 
 def _vetores_degenerados(evolver):

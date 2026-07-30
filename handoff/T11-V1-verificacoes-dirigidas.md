@@ -54,34 +54,105 @@ reconhece: *"o bug do torneio (:16) fica (CODIGO K.3)"*.
 
 ### O tamanho do efeito (medido nos 28 ⑥ de `main/b1` da s42)
 
+> **⚠ ERRATA 10 (2026-07-30, tarde) — esta seção SUPERESTIMAVA a severidade.**
+> A versão anterior dizia "em 93% das gerações quase metade da população nunca
+> pode ser sorteada como pai", como se isso governasse a busca inteira. Ao ler o
+> `EvolALG` **até o fim** descobri que o torneio defeituoso constrói **apenas a
+> metade-crossover da PRIMEIRA geração interna** do GA de aquisição; da 2ª
+> geração interna em diante o torneio é chamado com `size(Parent,1)` e
+> `EI(index(1:ceil(N/2)))` — **mesmo comprimento, domínios casados, sem bug**
+> (`EvolALG.m:65`). Os números abaixo estão refeitos. O achado continua real,
+> mas o alcance é uma ordem de grandeza menor. O `25 de 28` também estava
+> errado (é 28 com ≥1 geração afetada, 24 com a maioria afetada).
+
+**Camada 1 — o torneio, onde ele acontece** (só a 1ª geração interna):
+
 | | |
 |---|---|
-| gerações com evento `b1_gen` | **8.443** |
-| com `\|PCheby\| < \|Dec\|` (torneio afetado) | **7.850 — 93,0%** |
-| fração do `Dec` INALCANÇÁVEL pelo sorteio | **mediana 44,9% · máx 86,5%** |
-| células afetadas | **25 de 28** |
+| gerações externas com evento `b1_gen` | **8.443** |
+| com `\|PCheby\| < \|Dec\|` (torneio com domínios trocados) | **7.850 — 93,0%** |
+| fração do `Dec` inalcançável pelo sorteio | **mediana 44,9% · máx 86,5%** |
+| células com ≥1 geração afetada | **28 de 28** |
+| células com a MAIORIA das gerações afetada | **24 de 28** |
 
-Ou seja: em 93% das gerações, **quase metade da população nunca pode ser
-sorteada como pai** — e a seleção que acontece é por um valor que pertence a
-outro indivíduo.
+**Camada 2 — quanto isso é do esforço de aquisição** (o GA interno roda uma
+mediana de **14** gerações, `ga_iters`; o ramo defeituoso é metade de UMA):
+
+| | |
+|---|---|
+| candidatos scorados na s42 (`Σ ga_iters × ga_pop`) | **87.772.460** |
+| vindos do ramo defeituoso | **3.397.016 — 3,87%** |
+| por ciclo: `1/(2·ga_iters)` | **mediana 3,57% · máx 8,33%** |
+
+**Camada 3 — o número decisivo: o infill chegou a vir daí?** O `Best` é o argmin
+do `e0_trace` (melhor EI ao longo de TODAS as gerações internas), então basta ver
+quando a 1ª geração interna ganhou:
+
+| | |
+|---|---|
+| ciclos em que o infill veio da 1ª geração interna | **1.029 / 8.443 — 12,19%** |
+| desses, o ramo defeituoso é exatamente metade dos candidatos | **⇒ ~6,1% dos ciclos** |
+| **o torneio com domínios trocados é INERTE em** | **~93,9% dos ciclos** |
+
+E o efeito é **concentrado**, não difuso — em 2 das 28 células ele é grande:
+
+| célula | 1ª geração interna ganhou |
+|---|---|
+| `BBOB_F37` | **62,7%** (323/515) ⇒ ramo defeituoso em ~31% dos ciclos |
+| `BBOB_F49` | **61,3%** (309/504) ⇒ ~31% |
+| `BBOB_F22` | 25,8% ⇒ ~13% |
+| `WFG1` | 14,2% ⇒ ~7% |
+| as outras 24 | ≤ 12,5% ⇒ ≤ ~6% |
+
+### O mecanismo, exato
+
+`TournamentSelection(K,N,PCheby)` devolve `N` índices **no domínio de `PCheby`**
+(`randi(length(varargin{1}),K,N)`, linha 25) — valores em `1..|PCheby|`. O
+chamador usa esses índices em **`Dec`**, que tem `size(Dec,1) ≥ |PCheby|` linhas.
+Dois danos distintos:
+
+1. **poda do pool de acasalamento** — só as linhas `1..|PCheby|` de `Dec` podem
+   ser pais. E como `ParEGO.m:95` faz `Population = [Population, ...]` (**append
+   puro**) e `:34` põe o DoE no início, as linhas alcançáveis são as **mais
+   antigas** do arquivo — no pior caso medido (`DTLZ4`, g=99: `|Dec|`=229,
+   `|PCheby|`=31) o crossover só podia cruzar os 31 pontos iniciais;
+2. **aptidão trocada** — o `sort` do cap e o `unique` do dedup reordenam e
+   removem, então a posição `i` de `PCheby` e a linha `i` de `Dec` são indivíduos
+   diferentes: quem ganha o torneio não é quem entra no crossover.
+
+**O que atenua, na mesma geração:** o segundo termo é
+`OperatorGA(Problem,Dec,{0,0,1,20})` — `proC=0, proM=1`: **mutação polinomial
+sobre o arquivo INTEIRO**. Todo indivíduo, inclusive os mais novos e melhores,
+gera candidato ali. E o `Best` é escolhido por EI sobre a união.
+
+**O conserto já está pronto na própria função.** `ParEGO.m:63-72` mantém `PDec` e
+`PCheby` em lockstep — mesmo `Next` (cap) e mesmo `distinct` (dedup, que é
+`intersect(distinct1,distinct2)` justamente para casar os dois). A linha 92 passa
+`Population.decs`. Trocar por `PDec` deixa `size(Dec,1) = |PCheby|` e **todo o
+resto da função fica coerente** (inclusive o `Gbest = min(PCheby)`), o que é
+evidência forte de que `PDec` era a intenção. É **um token**.
 
 ### Leitura
 
-1. **Não invalida a rodada-42.** O b1 é `ParEGO` e o efeito está no operador de
-   variação, não no orçamento nem no export: FE final exato, ①–⑤ íntegras, e o
-   segundo termo do `Off` (`OperatorGA(Problem,Dec,{0,0,1,20})`) gera prole a
-   partir da população inteira, então a busca não fica presa.
+1. **Não invalida a rodada-42.** O efeito está no operador de variação, não no
+   orçamento nem no export: FE final exato, ①–⑤ íntegras, e a busca não fica
+   presa (ramo de mutação + EI sobre a união).
 2. **É comportamento do CÓDIGO ORIGINAL** (bloco upstream do PlatEMO), não do
    nosso patch — a bússola **D29** classificaria como 🔴 *bug do código → segue o
    ARTIGO*, o mesmo veredito que produziu a DI-45.
 3. **A decisão é do autor**, e é de FIDELIDADE (D97): corrigir muda o
-   comportamento do b1 e quebra a comparabilidade s42 × M8, exatamente como no
-   e74. Não toquei.
+   comportamento do b1 e quebra a comparabilidade s42 × M8. Não toquei.
+4. **Falta 1 medida para fechar exato**: qual das duas metades da 1ª geração
+   interna produziu o `Best`. Hoje eu só sei que a 1ª geração ganhou em 12,19%
+   dos ciclos e rateio 50/50. Custa ~2 linhas read-only no `EvolALG` (logar se
+   `index(1) <= size(Off,1)/2` na 1ª iteração) e transforma o `~6,1%` em número
+   medido — exatamente o que a DI-45 fez com o `87,76% inerte` do e74.
 
 **Opções para a mesa:** (a) documentar como limitação/fidelidade-ao-código e
-manter; (b) corrigir como o DI-45 (passar `PCheby` e `PDec` casados ao
-`EvolALG`), com re-lacre de âncora e re-validação; (c) corrigir só na M8 e
-declarar a descontinuidade.
+manter; (b) corrigir como o DI-45 (`Population.decs` → `PDec` na `ParEGO.m:92`),
+com âncora + re-lacre + re-validação; (c) corrigir só na M8 e declarar a
+descontinuidade; (d) instrumentar as ~2 linhas AGORA e decidir com o número
+exato.
 
 ---
 

@@ -123,7 +123,24 @@ def main():
             meta["sha"] = head
         else:
             th = tree_sha256(path)
-            print(f"  {rid:22} content-hash {th[:12]} (sem .git próprio)")
+            # CONFERIR, não só recalcular. Sem esta comparacao o "lacre" nao lacra
+            # nada: o modo leitura imprimia o hash RECALCULADO, que por construcao
+            # sempre bate com o disco, e um patch vendorizado aplicado sem re-lacre
+            # passava em silencio (foi o que aconteceu com b5-pwrong-stats em
+            # 2026-07-30). Sem `--write`, divergencia e PENDENCIA.
+            guardado = meta.get("sha256_tree")
+            if write or not guardado:
+                print(f"  {rid:22} content-hash {th[:12]} (sem .git próprio)")
+            elif guardado == th:
+                print(f"  {rid:22} content-hash {th[:12]} LACRE OK")
+            else:
+                print(f"  {rid:22} content-hash {th[:12]} != lacrado {guardado[:12]} "
+                      f"*** DIVERGE ***")
+                problems.append(
+                    f"repos.lock: '{rid}' DIVERGE do lacre (disco {th[:12]} != "
+                    f"lacrado {guardado[:12]}) — a arvore vendorizada mudou sem "
+                    f"re-lacre; rode `preflight.py --write` se a mudanca e legitima "
+                    f"(patch de ancora) ou reverta se nao e")
             meta["sha256_tree"] = th
             meta["sha"] = None  # repo pinado por content-hash -> não há git sha (limpa o <SHA>)
     if write:

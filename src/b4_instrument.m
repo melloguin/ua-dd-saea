@@ -99,6 +99,14 @@ function b4_instrument(Problem, Arc, Ref, Next, sasinfo, p0, p1, rr, tr, ...
             'ramo', sasinfo.ramo, 'motivo', string(motivo), ...
             'lote', double(lote), 'L_sel', L.', ...
             'ref_ids', ref_ids, 'n_treino', n_treino, ...
+            ... % [I-5] prevalencia das classes no TREINO desta geracao, sem a
+            ... % qual nao se separa "classificador ruim" de "problema
+            ... % desbalanceado". DERIVADO, nao patchado: o stock ja calcula
+            ... % `rr = sum(Output)/length(Output)` (CSEA.m:67) sobre o MESMO
+            ... % vetor de rotulos, e `n_treino = size(Input,1)` e o comprimento
+            ... % dele — a contagem sai exata sem tocar o vendorizado nem mudar
+            ... % a assinatura da chamada.
+            'y_treino_dist', y_treino_dist_b4(rr, n_treino), ...
             'guard_randperm', sasinfo.guard_randperm, 'tempo_fit_s', tfit_s, ...
             ... % ── DI-10: especificos do b4 (S.7.1/CONTRATO §6.1) ──
             ... % `ref_ids` (os K solution_id das REFERENCIAS radiais) ja sai acima:
@@ -183,4 +191,22 @@ end
 
 function s = iso_now_b4()
     s = string(datetime('now', 'TimeZone', 'UTC', 'Format', 'yyyy-MM-dd''T''HH:mm:ssXXX'));
+end
+
+function d = y_treino_dist_b4(rr, n_treino)
+% [I-5] Distribuicao do rotulo binario do CSEA no treino da geracao.
+% `rr` (reliability rate) E a prevalencia da classe 1: CSEA.m:67 faz
+% rr = sum(Output)/length(Output), e length(Output) == n_treino == |Arc|.
+    d = [];
+    try
+        n = double(n_treino);
+        if ~isfinite(n) || n <= 0, return; end
+        n1 = round(double(rr) * n);
+        d = struct('n', n, 'classe_1', n1, 'classe_0', n - n1, ...
+                   'prevalencia_classe_1', double(rr), ...
+                   'nota', "rotulo binario do GetOutput(Arc.objs, Ref.objs); " + ...
+                           "1 = 'bom' vs as K=6 referencias radiais da geracao");
+    catch
+        d = [];
+    end
 end

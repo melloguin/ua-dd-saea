@@ -104,6 +104,24 @@ NUM_RESTARTS = 10
 RAW_SAMPLES = 512
 TRAIN_YVAR = 1e-6
 ACQF_OPTIONS_STATIC = {"maxiter": 2000, "init_batch_limit": 32}
+
+#: [T11-A4 / T1 do relatório de fidelidade] Os 8 hiperparâmetros do qLogNEHVI
+#: que a receita L.10 crava e que NÃO estavam declarados em lugar nenhum —
+#: só no corpo do `_make_acqf`. Sem eles no header/⑤, quem audita a aquisição
+#: tem de LER O CÓDIGO da versão que rodou (e o `repo_hash` estava vazio: I-09).
+#: São a FONTE ÚNICA — `_make_acqf` os consome daqui.
+ACQF_HP = {
+    "prune_baseline": True,     # poda o X_baseline dominado (o n_baseline do ⑥)
+    "alpha": 0.0,               # 0 = HV exato (sem aproximação por caixas)
+    "cache_pending": True,
+    "max_iep": 0,               # nenhum ponto pendente incremental
+    "incremental_nehvi": True,
+    "cache_root": None,         # DEF-L2/L.10: sem cache de raiz de Cholesky
+    "tau_relu": 1e-6,           # suavização do ReLU (fat=True)
+    "tau_max": 1e-3,            # suavização do max
+    "fat": True,                # cauda "gorda" do log (a formulação Log)
+    "eta": 1e-3,
+}
 # [T9/DI-35.1] CALIBRAÇÃO BATCH — DECISÃO MEDIDA: **o c262 NÃO recebe knob de
 # redução**. Medido POR ITERAÇÃO (ZDT4/42, q=10, 1 core, serial, cartão T9): a
 # receita CHEIA projeta **~2,2 h** o run batch completo (200 iters; busca ~1,6 h
@@ -296,16 +314,7 @@ def _make_acqf(model, ref_max, X_baseline: torch.Tensor, h1: int):
         X_baseline=X_baseline,
         sampler=SobolQMCNormalSampler(
             sample_shape=torch.Size([MC_SAMPLES]), seed=h1),
-        prune_baseline=True,
-        alpha=0.0,
-        cache_pending=True,
-        max_iep=0,
-        incremental_nehvi=True,
-        cache_root=None,
-        tau_relu=1e-6,
-        tau_max=1e-3,
-        fat=True,
-        eta=1e-3,
+        **ACQF_HP,          # [A4] os 8 hp declarados (fonte única do header/⑤)
     )
 
 
@@ -492,6 +501,20 @@ class _WallClockProjector:
         return False, proj, elapsed, None
 
 
+def _params_efetivos(q) -> dict:
+    """[I-07/A4] A config EFETIVA — fonte ÚNICA do `params` do header do ⑥ E do
+    ⑤ (o CONTRATO §5 o exige e 24 células de c262 na s42 não o tinham no ⑤).
+    Inclui os 8 hp da acqf (T1): sem eles, auditar a aquisição exige ler o
+    código da versão que rodou."""
+    return {"mc_samples": MC_SAMPLES, "num_restarts": NUM_RESTARTS,
+            "raw_samples": RAW_SAMPLES, "train_Yvar": TRAIN_YVAR,
+            "q": int(q), "refit": "from-scratch/iter (D44)",
+            "kernel": "Matern-5/2-ARD gamma-prior (D30)",
+            "acqf": "qLogNEHVI L.10",
+            "acqf_hp": dict(ACQF_HP),          # [A4] os 8 do T1
+            **ACQF_OPTIONS_STATIC}
+
+
 def run_c262(exp: str, alg: str, problema: str, semente, *,
              sonda_on: bool = True,
              data_root: str = naming.DEFAULT_DATA_ROOT,
@@ -571,12 +594,7 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                                "sob Standardize (piso 1e-6 do gpytorch)"),
                sonda=_sonda_header(sonda_art),
                sigma_dict=_sigma_dict(),
-               params={"mc_samples": MC_SAMPLES, "num_restarts": NUM_RESTARTS,
-                       "raw_samples": RAW_SAMPLES, "train_Yvar": TRAIN_YVAR,
-                       "q": int(q), "refit": "from-scratch/iter (D44)",
-                       "kernel": "Matern-5/2-ARD gamma-prior (D30)",
-                       "acqf": "qLogNEHVI L.10", "cache_root": None,
-                       **ACQF_OPTIONS_STATIC})
+               params=_params_efetivos(q))
 
     # (1) init: os 11D−1 pontos do DoE, NATIVOS, pelo wrapper (fase init).
     X0 = doe_art["X"]
@@ -620,6 +638,21 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
             t_fit0 = time.time()
             model = _build_models(train_X, train_Y)
             fit_retries, modelo_hp = _fit_models(model)   # +modelo_hp (DI-10/B1)
+            if fit_retries:
+                # [A4] AVISO AMARELO: o fit do GP precisou de tentativa extra.
+                # Antes o número só viajava dentro do evento de geração, onde
+                # ninguém filtra por ele; como `guard` ele entra na varredura de
+                # guardas do portão e na triagem do dossiê. É o sintoma precoce
+                # do MESMO gargalo que matou `main/c262/WFG1` com
+                # `ModelFittingError: All attempts to fit` na it 41 (n_train=281,
+                # 41,3% do orçamento) — a região quase-plana do WFG1 degenera a
+                # matriz de covariância, e o retry conta essa história ANTES do
+                # erro duro.
+                log.guard("fit_retries", it=it, n_retries=int(fit_retries),
+                          n_train=int(n_train),
+                          motivo="fit_gpytorch_mll precisou de tentativa extra "
+                                 "(condicionamento do GP) — precursor do "
+                                 "ModelFittingError")
             tempo_fit = time.time() - t_fit0
             tempo_fit_total += tempo_fit
             n_iters_fit = it
@@ -871,6 +904,7 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
         # com as camadas escritas — é o rito, não uma exceção ao rito.
         status=("failed" if truncou_por_teto else "ok"),
         motivo_parada=("teto_wall" if truncou_por_teto else None),
+        params=_params_efetivos(q),            # [I-07/A4] a config no ⑤
         data_root=data_root, enable_bucket=enable_bucket)
     out["manifest"]["checkpoint"] = ckpt.resumo()
     out["manifest"]["acqf_ref_f"] = ref_f.tolist()

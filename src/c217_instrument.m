@@ -121,6 +121,18 @@ function c217_instrument(Problem, Arc, Next, delta, Error1, Error2, TestPre, tfi
             'n_treino', double(size(TrainIn, 1)), ...
             'n_pares_treino', double(size(TrainIn,1)^2 - size(TrainIn,1)), ...
             'n_Pmid', double(size(Pmid, 1)), ...
+            ... % [I-1] a IDENTIDADE da referencia, nao so o tamanho. O c217
+            ... % logava APENAS `n_Pmid` (0/25 celulas com os ids): sem saber
+            ... % QUAIS pontos formavam o Pmid daquela geracao, o rotulo
+            ... % verdadeiro dos 2.000 pontos da sonda e irreconstituivel e a
+            ... % qualidade do classificador vira NAO-MENSURAVEL — irrecuperavel
+            ... % a posteriori. Molde: o b4 (b4_instrument.m:91-95). ~2 linhas,
+            ... % `bud.solutionIdOf` e deterministico e nao consome RNG.
+            'pmid_ids', pmid_ids_c217(bud, Pmid), ...
+            ... % [I-5] prevalencia das classes no TREINO desta geracao — sem
+            ... % ela nao se separa "classificador ruim" de "problema
+            ... % desbalanceado". O c217 e ternario {-1,0,+1} (Output).
+            'y_treino_dist', y_treino_dist_c217(Output), ...
             ... % ── DI-10: minimo comum dos 21 (S.7.1) ──
             'fe', bud.fe, ...
             'f_best', min(Arc.objs, [], 1), ...
@@ -174,4 +186,37 @@ end
 
 function s = iso_now_c217()
     s = string(datetime('now', 'TimeZone', 'UTC', 'Format', 'yyyy-MM-dd''T''HH:mm:ssXXX'));
+end
+
+
+function ids = pmid_ids_c217(bud, Pmid)
+% [I-1] Os solution_id das linhas do Pmid (a referencia do gate). -1 = ponto
+% que ainda nao foi avaliado na funcao real (nao tem id).
+    ids = [];
+    try
+        if isempty(Pmid), return; end
+        n = size(Pmid, 1);
+        ids = -ones(1, n);
+        for i = 1:n
+            ids(i) = bud.solutionIdOf(Pmid(i, :));
+        end
+    catch
+        ids = [];   % instrumentacao NUNCA derruba o run (D97)
+    end
+end
+
+function d = y_treino_dist_c217(Output)
+% [I-5] Distribuicao das classes no alvo de treino do PNN par-a-par.
+% O `Output` do c217 e ternario: -1 (pior), 0 (empate/incomparavel), +1 (melhor).
+    d = [];
+    try
+        y = double(Output(:));
+        if isempty(y), return; end
+        d = struct('n', numel(y), ...
+                   'classe_menos1', sum(y < 0), ...
+                   'classe_zero',   sum(y == 0), ...
+                   'classe_mais1',  sum(y > 0));
+    catch
+        d = [];
+    end
 end

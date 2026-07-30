@@ -320,9 +320,34 @@ def gate_gabarito_camadas(exp: str, alg: str, problema: str, semente,
 #  G-7 · o CONTRATO §6.1 aferido (as chaves do ⑥ e do ⑤ por config)
 # ═══════════════════════════════════════════════════════════════════════════
 
-#: `rec` que NÃO são evento de geração (o G-7 só olha o evento da decisão).
-_RECS_NAO_GERACAO = frozenset({"header", "footer", "guard", "sonda", "timing",
-                               "partial", "retry", "checkpoint"})
+#: Infraestrutura do ⑥ — nunca é evento de geração, em nenhum config.
+_RECS_INFRA = frozenset({"header", "footer", "guard", "sonda", "timing",
+                         "partial", "retry", "checkpoint",
+                         "sonda_estratificada"})
+
+
+def _rec_de_geracao(alg: str, recs_vistos: set) -> frozenset:
+    """O `rec` que É o evento de geração daquele config.
+
+    ⚠ [conserto 2026-07-30] Isto era uma BLACKLIST de 8 nomes: tudo que não
+    estivesse nela contava como evento de geração e tinha as chaves creditadas
+    ao CONTRATO §6.1. Medido no corpus: **21 `rec` distintos** entravam, entre
+    eles `decision` (166.962), `fit` (17.800), `optimize_acqf_warning`,
+    `rs_runtimeerror_fallback`, `seeding`, `decomposicao`, `e103_setup`,
+    `e103_busca`, `f_best_dataset`, `e74_boot`, `fit_inicial` e
+    `wall_projection_abort`. Chaves de um AVISO satisfaziam o contrato — e o
+    `sonda_estratificada` que eu mesmo criei hoje entraria na conta também.
+
+    A regra correta, MEDIDA no corpus (rec × config, 2026-07-30):
+      · stack MATLAB  → `{alg}_gen` (b1_gen, c217_gen, e74_gen, …)
+      · stack Python  → `decision`
+    O `{alg}_gen` tem PRECEDÊNCIA: o e103 emite os dois (`e103_gen` 5.148 ×
+    `decision` 52) e o evento da decisão dele é o primeiro.
+    """
+    proprio = f"{alg}_gen"
+    if proprio in recs_vistos:
+        return frozenset({proprio})
+    return frozenset({"decision"})
 
 
 def campos_contratados(alg: str) -> tuple[set, set, dict]:
@@ -374,6 +399,22 @@ def gate_contrato_61(alg: str, caminho_jsonl: str, man: dict,
             return out
         return set()
 
+    # 1ª passada: quais `rec` existem neste ⑥ (para escolher o evento correto)
+    recs_vistos: set = set()
+    with open(caminho_jsonl, "rb") as fh:
+        for i, raw in enumerate(fh):
+            if i >= max_linhas:
+                break
+            if b'"rec"' not in raw:
+                continue
+            try:
+                r = json.loads(raw.decode("utf-8", "replace"))
+            except ValueError:
+                continue
+            if isinstance(r, dict) and r.get("rec"):
+                recs_vistos.add(r["rec"])
+    alvo = _rec_de_geracao(alg, recs_vistos - _RECS_INFRA)
+
     vistos: set = set()
     n_eventos = 0
     with open(caminho_jsonl, "rb") as fh:
@@ -386,16 +427,26 @@ def gate_contrato_61(alg: str, caminho_jsonl: str, man: dict,
                 rec = json.loads(raw.decode("utf-8", "replace"))
             except ValueError:
                 continue
-            if not isinstance(rec, dict) or rec.get("rec") in _RECS_NAO_GERACAO:
+            if not isinstance(rec, dict) or rec.get("rec") not in alvo:
                 continue
             n_eventos += 1
             vistos |= _chaves(rec)
-    if not n_eventos:
-        return None, "⑥ sem evento de geração — não-aplicável (ver mapa_termino)"
-    falta6 = sorted(sexto - vistos)
     if modo != "campanha":      # a s42 não tinha campanha_id nem repo_hash
         quinto = quinto - {"campanha_id", "repo_hash"}
     falta5 = sorted(k for k in quinto if man.get(k) in (None, "", {}))
+    if not n_eventos:
+        # ⚠ [conserto 2026-07-30] Aqui o gate devolvia "não-aplicável" e ia
+        # embora SEM NUNCA OLHAR O ⑤ — o `treed_media` escapava 100% da
+        # checagem de params/sigma_dict/timing/doe_hash/campanha_id só por não
+        # ter evento de geração no ⑥. O ⑥ não ter evento não absolve o ⑤: são
+        # camadas independentes do contrato.
+        if falta5:
+            return False, (f"⑥ sem evento `{sorted(alvo)[0]}` (não-aplicável) · "
+                           f"⑤ {len(quinto) - len(falta5)}/{len(quinto)} chaves "
+                           f"→ FALTA ⑤{falta5}")
+        return None, (f"⑥ sem evento `{sorted(alvo)[0]}` — não-aplicável "
+                      f"(ver mapa_termino) · ⑤ {len(quinto)}/{len(quinto)} OK")
+    falta6 = sorted(sexto - vistos)
     det = (f"⑥ {len(sexto) - len(falta6)}/{len(sexto)} campos · "
            f"⑤ {len(quinto) - len(falta5)}/{len(quinto)} chaves")
     if falta6 or falta5:

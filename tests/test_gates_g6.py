@@ -408,15 +408,66 @@ class TestGate7Contrato61(unittest.TestCase):
         self.assertNotIn("n_baseline", sexto_e81)
         self.assertIn("n_baseline", nsa_e81)
 
-    def test_treed_media_sem_evento_e_NAO_APLICAVEL(self):
+    def _sexto_sem_evento(self, dr):
+        p = os.path.join(dr, "x.jsonl")
+        with open(p, "w", encoding="utf-8") as fh:
+            fh.write('{"ts":"t","rec":"header"}\n')
+            fh.write('{"ts":"t","rec":"footer","fe_final":9}\n')
+        return p
+
+    def test_sem_evento_no_sexto_mas_QUINTO_COMPLETO_e_nao_aplicavel(self):
+        """⑥ sem evento de geração ⇒ o ⑥ não é aferível. Só o ⑥."""
+        _sexto, quinto, _nsa = G.campos_contratados("treed_media")
+        man = {k: "x" for k in quinto}
         with tempfile.TemporaryDirectory() as dr:
-            p = os.path.join(dr, "x.jsonl")
+            ok, det = G.gate_contrato_61("treed_media",
+                                         self._sexto_sem_evento(dr), man,
+                                         modo="campanha")
+        self.assertIsNone(ok, det)
+        self.assertIn("não-aplicável", det)
+
+    def test_sem_evento_no_sexto_e_QUINTO_INCOMPLETO_REPROVA(self):
+        """O conserto de 2026-07-30 — e a razão dele.
+
+        Antes, `if not n_eventos: return None` saía do gate ANTES de olhar o ⑤:
+        um ⑥ sem evento de geração absolvia o manifesto inteiro. O
+        `treed_media` escapava 100% da checagem de
+        params/sigma_dict/timing/doe_hash/campanha_id só por isso. ⑥ e ⑤ são
+        camadas INDEPENDENTES do contrato — o silêncio de uma não perdoa a
+        outra.
+        """
+        with tempfile.TemporaryDirectory() as dr:
+            ok, det = G.gate_contrato_61("treed_media",
+                                         self._sexto_sem_evento(dr), {},
+                                         modo="campanha")
+        self.assertIs(ok, False,
+                      "⑤ VAZIO passou como não-aplicável porque o ⑥ não tinha "
+                      "evento de geração — o defeito voltou. Detalhe: %s" % det)
+        self.assertIn("FALTA ⑤", det)
+
+    def test_o_evento_de_geracao_e_por_CONFIG_nao_uma_blacklist(self):
+        """Chaves de `fit`/aviso NÃO podem satisfazer o contrato do ⑥.
+
+        Medido no corpus em 2026-07-30: com a blacklist antiga, **21 `rec`
+        distintos** contavam como evento de geração — `decision` (166.962),
+        `fit` (17.800), `optimize_acqf_warning`, `seeding`, `e74_boot`… e o
+        `sonda_estratificada` criado no A11 entraria junto.
+        """
+        sexto, quinto, _ = G.campos_contratados("b1")
+        man = {k: "x" for k in quinto}
+        with tempfile.TemporaryDirectory() as dr:
+            p = os.path.join(dr, "y.jsonl")
             with open(p, "w", encoding="utf-8") as fh:
                 fh.write('{"ts":"t","rec":"header"}\n')
+                # um `fit` carregando TODAS as chaves do contrato do ⑥
+                fh.write(json.dumps({"ts": "t", "rec": "fit",
+                                     **{c: 1 for c in sexto}}) + "\n")
                 fh.write('{"ts":"t","rec":"footer","fe_final":9}\n')
-            ok, det = G.gate_contrato_61("treed_media", p, {})
-            self.assertIsNone(ok)
-            self.assertIn("não-aplicável", det)
+            ok, det = G.gate_contrato_61("b1", p, man, modo="campanha")
+        self.assertIsNot(ok, True,
+                         "as chaves de um `rec=fit` satisfizeram o CONTRATO §6.1 "
+                         "do b1 — o gate voltou a creditar evento que não é o da "
+                         "decisão. Detalhe: %s" % det)
 
     def test_o_artefato_cobre_os_24_configs(self):
         import csv

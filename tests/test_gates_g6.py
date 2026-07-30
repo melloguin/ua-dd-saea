@@ -431,9 +431,38 @@ class TestGate7Contrato61(unittest.TestCase):
         art = G._artefato("contrato_61.json")["pendencias_medidas"]
         self.assertIn("p_wrong_stats", art["sexto"]["b5r/b5m/moead_media"]["ausente"])
         self.assertIn("sobol_batch", art["quinto"]["params"]["configs"])
-        for fam in art["sexto"].values():
-            self.assertTrue(fam.get("item"))
-            self.assertTrue(fam.get("medido"))
+        for chave, fam in art["sexto"].items():
+            if chave.startswith("_"):        # blocos de nota (ex.: os resolvidos
+                continue                     # como falso-positivo do gate)
+            with self.subTest(pendencia=chave):
+                self.assertTrue(fam.get("item"))
+                self.assertTrue(fam.get("medido"))
+
+    def test_o_gate_ve_campo_ANINHADO(self):
+        # a errata de 2026-07-30: `mll_final` (c154/c262) e `loss_treino` (e7)
+        # vivem dentro de `modelo_hp`, e o gate só olhava o TOPO — 3 dos 5
+        # "achados" eram falso-positivo DELE, não defeito do código. O gate afere
+        # PRESENÇA, não POSIÇÃO.
+        with tempfile.TemporaryDirectory() as dr:
+            p = os.path.join(dr, "x.jsonl")
+            ev = {"ts": "t", "rec": "decision", "caminho": "c262_gen",
+                  "fe": 1, "f_best": [1], "n_front1": 1,
+                  "tempo_fit_s": 1, "tempo_busca_s": 1,
+                  "acqf_todos_restarts": [1, 2], "n_baseline": 7,
+                  "modelo_hp": {"mll_final": -3.2, "por_objetivo": []}}
+            with open(p, "w", encoding="utf-8") as fh:
+                fh.write('{"rec":"header"}\n' + json.dumps(ev) + "\n")
+            man = {"params": {"q": 1}, "sigma_dict": {"m": "x"},
+                   "timing": {"tempo_total_s": 1.0}, "doe_hash": "h"}
+            ok, det = G.gate_contrato_61("c262", p, man, modo="historico")
+            self.assertTrue(ok, det)          # mll_final ANINHADO conta
+            # controle: sem o `modelo_hp`, o mesmo evento REPROVA
+            ev.pop("modelo_hp")
+            with open(p, "w", encoding="utf-8") as fh:
+                fh.write('{"rec":"header"}\n' + json.dumps(ev) + "\n")
+            ok2, det2 = G.gate_contrato_61("c262", p, man, modo="historico")
+            self.assertFalse(ok2)
+            self.assertIn("mll_final", det2)
 
 
 class TestDiscriminadorO22(unittest.TestCase):

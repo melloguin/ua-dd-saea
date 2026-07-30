@@ -98,6 +98,7 @@ function b3_instrument(Problem, A1, snaps, PopNew, sel, NumV1, NumV2, Flag, ...
             'ramo', ramo, 'motivo', string(motivo), ...
             'lote', double(lote), 'index', double(sel(:).'), ...
             'pop_por_w', pop_por_w, 'nzero_updata', nzero, ...
+            'adapt_delta_V', adapt_delta_V_b3(Problem, snaps), ...
             'tempo_fit_s', tfit_s, ...
             ... % ── DI-10: especificos do b3 (S.7.1/CONTRATO §6.1) ──
             ... % apd_sel/sigma_sel = o PORQUE NUMERICO da escolha. Emitidos os
@@ -119,6 +120,43 @@ function b3_instrument(Problem, A1, snaps, PopNew, sel, NumV1, NumV2, Flag, ...
             'tempo_pred_sonda_s', tps, ...
             'dist_min_arquivo', dist_min_b3(PopNew, A1DecPre));
         try, fprintf(fid, '%s\n', jsonencode(rec)); catch, end
+    end
+end
+
+function dv = adapt_delta_V_b3(Problem, snaps)
+% [DI-10/B3] `adapt_delta_V` — a norma da adaptacao dos vetores de referencia
+% por ciclo, que E o mecanismo do K-RVEA (o "R" de RVEA adaptativo).
+%
+% DERIVADO, nao patchado: o stock adapta em KRVEA.m:92 com
+%   V(1:N,:) = V0 .* repmat(max(PopObj)-min(PopObj), N, 1)
+% a cada `ceil(wmax*0.1)` geracoes internas. Como V0 = UniformPoint(N,M) e
+% DETERMINISTICO e os `snaps{w}.obj` ja estao aqui, a norma de cada adaptacao
+% sai de LEITURA — sem tocar a arvore vendorizada e sem re-lacre de ancora
+% (DI-12.1: o que barra e custo novo em hot-loop ou mudanca de decisao; isto e
+% ~10 normas por ciclo, fora do laco de busca).
+%
+% Devolve o vetor de ||V_novo - V_anterior||_F, um por evento de adaptacao.
+    dv = [];
+    try
+        wmax = numel(snaps);
+        if wmax < 1, return; end
+        passo = ceil(wmax * 0.1);
+        if passo < 1, passo = 1; end
+        V0 = UniformPoint(Problem.N, Problem.M);
+        faixa_ant = [];
+        for w = 1:wmax
+            if mod(w, passo) ~= 0, continue; end
+            sw = snaps{w};
+            if isempty(sw) || isempty(sw.obj), continue; end
+            faixa = max(sw.obj, [], 1) - min(sw.obj, [], 1);
+            if ~isempty(faixa_ant)
+                dV = V0 .* repmat(faixa - faixa_ant, size(V0, 1), 1);
+                dv(end+1) = norm(dV, 'fro'); %#ok<AGROW>
+            end
+            faixa_ant = faixa;
+        end
+    catch
+        dv = [];   % instrumentacao NUNCA derruba o run (D97/patch-minimo)
     end
 end
 

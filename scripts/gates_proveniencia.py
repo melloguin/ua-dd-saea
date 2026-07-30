@@ -312,7 +312,8 @@ def campos_contratados(alg: str) -> tuple[set, set, dict]:
 
 
 def gate_contrato_61(alg: str, caminho_jsonl: str, man: dict,
-                     *, max_linhas: int = 200_000) -> tuple[bool | None, str]:
+                     *, max_linhas: int = 200_000,
+                     modo: str = "campanha") -> tuple[bool | None, str]:
     """[G-7] As chaves que o CONTRATO §6.1 promete estão no ⑥ e no ⑤?
 
     Nenhum gate conferia campo DI-10 de config algum: `auditar.py` NÃO inspeciona
@@ -330,6 +331,26 @@ def gate_contrato_61(alg: str, caminho_jsonl: str, man: dict,
     sexto, quinto, _nsa = campos_contratados(alg)
     if not os.path.exists(caminho_jsonl):
         return None, "⑥ ausente — não-aplicável"
+
+    def _chaves(v, prof=0):
+        """Chaves em PROFUNDIDADE. Um campo ANINHADO está no ⑥ e é auditável:
+        `mll_final` (c154/c262) e `loss_treino` (e7) vivem dentro de
+        `modelo_hp`, e exigi-los no topo era falso-vermelho perpétuo em 3
+        configs — o gate tem de aferir PRESENÇA, não posição."""
+        if prof > 4:
+            return set()
+        if isinstance(v, dict):
+            out = set(v)
+            for x in v.values():
+                out |= _chaves(x, prof + 1)
+            return out
+        if isinstance(v, list):
+            out = set()
+            for x in v[:3]:
+                out |= _chaves(x, prof + 1)
+            return out
+        return set()
+
     vistos: set = set()
     n_eventos = 0
     with open(caminho_jsonl, "rb") as fh:
@@ -345,10 +366,12 @@ def gate_contrato_61(alg: str, caminho_jsonl: str, man: dict,
             if not isinstance(rec, dict) or rec.get("rec") in _RECS_NAO_GERACAO:
                 continue
             n_eventos += 1
-            vistos |= set(rec.keys())
+            vistos |= _chaves(rec)
     if not n_eventos:
         return None, "⑥ sem evento de geração — não-aplicável (ver mapa_termino)"
     falta6 = sorted(sexto - vistos)
+    if modo != "campanha":      # a s42 não tinha campanha_id nem repo_hash
+        quinto = quinto - {"campanha_id", "repo_hash"}
     falta5 = sorted(k for k in quinto if man.get(k) in (None, "", {}))
     det = (f"⑥ {len(sexto) - len(falta6)}/{len(sexto)} campos · "
            f"⑤ {len(quinto) - len(falta5)}/{len(quinto)} chaves")
@@ -417,7 +440,7 @@ def gates_de_proveniencia(exp: str, alg: str, problema: str, semente,
         ("G-3 proveniencia", *gate_proveniencia(man, alg, campanha_id=campanha_id,
                                                 modo=modo)),
         ("G-4 camadas", *gate_gabarito_camadas(exp, alg, problema, semente, raiz)),
-        ("G-7 contrato61", *gate_contrato_61(alg, jp, man)),
+        ("G-7 contrato61", *gate_contrato_61(alg, jp, man, modo=modo)),
     ]
     veredito, det = discriminador_o22(man, jp)
     out.append(("B-15 O-22", veredito != "morte", f"{veredito}: {det}"))

@@ -187,7 +187,21 @@
       índice absoluto · `n_desalinhado` PRESERVADO (é a prova na semente 1) · âncora
       `e74-classifierselect-idx` + `repos.lock` re-lacrado · preflight: APLICADO
       · ⚠ FALTA (máquina): smoke de 3 células + gate ±3σ · regra-rótulo/y_treino_dist do e74
-- [x] A9 · c217 — `52befff` (2026-07-30) · `pmid_ids` (era 0/25 células com a identidade) +
+- [~] A9 · c217 — `52befff` (2026-07-30) · `pmid_ids` (era 0/25 células com a identidade) +
+      · ⚠ **CARIMBO FALSO CORRIGIDO (2026-07-30, varredura):** este item estava `[x]`
+        DEFINITIVO e o título do `52befff` diz "b4 e c217 (regra do rótulo…)", mas **só o b4
+        recebeu**. Sem ela a ③ do c217 é "leitura proibida" pela regra 3 do R4 — o autor
+        dispararia achando que estava auditável. Regra escrita agora no `sigma_dict`
+      · ⚠ E a regra do c217 **não é a do b4**: o b4 julga contra as K referências radiais
+        ("não é pior que TODAS"); o c217 é par-a-par **POSICIONAL E CÍCLICO** —
+        `RBFNNPC.m:61` faz `Preference(mod(i+numberP,numberP)+1,…)`, ou seja cada ponto da
+        sonda é julgado contra **UMA** referência, dada pela POSIÇÃO dele no bloco. Agregar
+        contra o Pmid inteiro mede outra coisa
+      · ⚠ Escrevi a fórmula **errada na 1ª vez** (off-by-one ao converter 1-based→0-based) e
+        peguei ao simular o laço. A regra final traz as duas convenções, o aviso do
+        deslocamento e o aviso de que sort/unique na ③ corrompe o rótulo (o pareamento
+        depende da posição). `tests/test_a9_regra_rotulo_c217.py` trava a fórmula, com
+        CONTROLE provando que a versão off-by-one não reproduz o laço
       `y_treino_dist` ternário · ⚠ params ⑤ do c217 ainda pendente (writer MATLAB)
 - [x] A10 · c311/treed_media — `5aa31e3` (2026-07-30) · guard de tier ANTES do import do
       vendor (verificado: off/main/sweep-small BARRADOS, big passa) · aviso

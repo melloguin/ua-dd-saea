@@ -161,6 +161,24 @@
       · I-05: acumulador P_wrong no VENDORIZADO (âncora `b5-pwrong-stats` + re-lacre) +
         `p_wrong_stats`/`n_substituicoes`/`flag_vetores_degenerados` no ⑥
       · `params` no ⑤ dos 3 · granularidade_③ no sigma_dict dos 3 (I-04)
+      · ⚠ **ERRATA 13 (varredura 2026-07-30):** o item (4) do A3 — "amplitude em float64 no
+        ⑥" — foi dado por AUSENTE porque a palavra literal não aparecia. **Meio
+        falso-positivo, da família da ERRATA 6:** a medida já estava lá, em
+        `flag_vetores_degenerados.norma_min`/`.norma_max`, ambos float64, lidos direto do
+        `evolver` (sem patch vendorizado). Ficou EXPLÍCITA como `amplitude` para ninguém
+        repetir a busca — é ela que discrimina o congelamento **PARCIAL** (`n_norma_zero>0`
+        só diz "colapsou alguns"; a amplitude mostra os vetores encolhendo ANTES de zerar,
+        que é onde a cadeia A8 começa)
+      · 🔴 **NÃO IMPLEMENTADO, e agora declarado:** o **wrapper read-only no gatilho do
+        `adapt`** (b5m-A8, ~8 linhas). É cirurgia VENDORIZADA em
+        `ReferenceVectors.adapt` ⇒ exige âncora nova + re-lacre + **nova prova de
+        não-perturbação** (~90 min de b5m). Não o fiz, e o buraco estava sem declaração em
+        lugar nenhum — foi achado da varredura.
+        **Por que dá para decidir sem pressa:** a cadeia A8 já é observável nas DUAS pontas
+        — a CAUSA em `flag_vetores_degenerados` (norma dos vetores colapsando) e o EFEITO em
+        `p_wrong_stats` (max≡0,0) + `n_substituicoes`≡0. O wrapper acrescentaria QUANDO o
+        `adapt` dispara, que é corroboração, não a única evidência. **Decisão do autor**,
+        pelo custo da prova.
       · ✅ **PROVA I-05 PASSOU** (`27ef86d`, 2026-07-30): ①③⑦ **BYTE-IDÊNTICAS** com × sem o
         patch vendorizado. STOCK (`b74c620~1`, 0 ocorrências) × COM (2 ocorrências), cada perna
         no SEU worktree isolado — a árvore principal nunca foi tocada:

@@ -117,9 +117,21 @@ def _vetores_degenerados(evolver):
         import numpy as _np
         V = evolver.population.problem.reference_vectors.values
         n = _np.linalg.norm(_np.asarray(V, dtype=float), axis=1)
+        nmin, nmax = float(_np.min(n)), float(_np.max(n))
         return {"n_vetores": int(n.size),
                 "n_norma_zero": int(_np.count_nonzero(n == 0.0)),
-                "norma_min": float(_np.min(n)), "norma_max": float(_np.max(n))}
+                "norma_min": nmin, "norma_max": nmax,
+                # [I-05 item 4 · ERRATA 13] A "amplitude em float64" que o A3
+                # pede. Ela JÁ estava aqui em `norma_min`/`norma_max` — a
+                # varredura de 2026-07-30 a deu por ausente porque procurou a
+                # palavra literal, o mesmo falso-positivo da ERRATA 6
+                # (`mll_final`/`loss_treino` aninhados em `modelo_hp`). Fica
+                # EXPLÍCITA para nenhum leitor futuro repetir a busca: é a
+                # medida CONTÍNUA do colapso, e o que ela discrimina é o
+                # congelamento PARCIAL — `n_norma_zero > 0` já diz "colapsou
+                # alguns", mas só a amplitude mostra os vetores encolhendo
+                # ANTES de zerar, que é onde a cadeia A8 começa.
+                "amplitude": float(nmax - nmin)}
     except Exception:                        # noqa: BLE001
         return None
 

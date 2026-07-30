@@ -168,6 +168,27 @@ def main():
                     f"(patch de ancora) ou reverta se nao e")
             meta["sha256_tree"] = th
             meta["sha"] = None  # repo pinado por content-hash -> não há git sha (limpa o <SHA>)
+    # [conserto 2026-07-30] O `botorch` é o outro repo do lock que o `dir_map`
+    # nunca alcançava — mas ele NÃO é árvore vendorizada: `pin_kind: pypi`. Não
+    # há o que hashear; o que se confere é a VERSÃO INSTALADA no intérprete
+    # corrente. Sem isto o pin "0.18.1" era um texto que ninguém lia, e um
+    # upgrade silencioso do venv passaria (o c154/c262 dependem dele).
+    bt = lock.get("repos", {}).get("botorch") or {}
+    if bt.get("pin_kind") == "pypi" and bt.get("version"):
+        try:
+            import importlib.metadata as _md
+            inst = _md.version("botorch")
+            if inst == bt["version"]:
+                print(f"  {'botorch':22} pypi {inst} PIN OK")
+            else:
+                print(f"  {'botorch':22} pypi {inst} != pin {bt['version']} "
+                      f"*** DIVERGE ***")
+                problems.append(
+                    f"repos.lock: botorch instalado {inst} != pin "
+                    f"{bt['version']} — o stack do c154/c262 mudou sob os pés")
+        except Exception:                    # noqa: BLE001
+            print(f"  {'botorch':22} pypi pin {bt['version']} "
+                  f"(NÃO INSTALADO neste intérprete — não aferível)")
     if write:
         json.dump(lock, open(lock_path, "w"), ensure_ascii=False, indent=2)
         print("  -> repos.lock atualizado (--write)")

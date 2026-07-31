@@ -823,14 +823,17 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
 
             # SONDA §17.2.2 — DEPOIS da busca da iteração (isolamento máximo) e
             # ANTES do `del model`. Cadência k=2 + 1ª; a última é coberta no
-            # ramo do hard-stop acima. ZERO FE, RNG preservado.
+            # ramo do hard-stop acima OU no do teto (BL-06), conforme o motivo
+            # de parada. ZERO FE, RNG preservado.
             t_snd = 0.0
+            emitiu_sonda = False
             if sonda_on and sonda_due(it):                  # [G-6]
                 t_snd = emit_sonda_block(
                     buf, log, it=it, fe=bud.fe, sonda=sonda_art,
                     adapter=adapter, model=model, fe_treino_max=n_train - 1)
                 tempo_sonda_total += t_snd
                 n_blocos_sonda += 1
+                emitiu_sonda = True
             # ④ (§17.6 expandida): o wall da GERAÇÃO exclui a sonda — ela é
             # instrumentação DESTE estudo, não custo do algoritmo, e vai
             # medida à parte em `tempo_pred_sonda_s`. (O projetor de teto,
@@ -847,16 +850,16 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                     f"sem consumir FE (só duplicatas D89) — D60-b. "
                     f"Pára-e-loga (D81).")
 
-            # D86: fim da iteração — solta tensores e coleta.
-            del model, acqf, cands, acq_vals, post, train_X, train_Y, U_cand
-            del passos, extras
-            iteration_cleanup()
-
             # [DI-43] checkpoint atômico periódico (25 its OU 30 min): as
             # camadas parciais existem ANTES do fim, então uma morte matada
             # (spot revogada, OOM, SIGKILL) não zera o run.
             ckpt.talvez_gravar(bud, buf, iteracao=it)
 
+            # [BL-06] O `del model` (D86) desceu para DEPOIS do teto: sob
+            # truncamento esta É a última iteração, e o §17.2.2 promete bloco
+            # de sonda na última — mas predizer exige o modelo VIVO. Nada mais
+            # muda de ordem: `proj.exceeded` aborta só por `elapsed` desde a
+            # DI-43, então o instante do teto não se move.
             # teto de wall-clock (DI-44: 12 h) — elapsed-only desde a DI-43.
             proj.add(n_train, tempo_fit, time.time() - t_it0)
             over, proj_s, elapsed, criterio = proj.exceeded(bud.fe)
@@ -877,13 +880,35 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                 # parciais são GRAVADAS (era `raise WallClockAbort` e zero
                 # parquet: ~1,47 h/célula queimada por nada na s42).
                 truncou_por_teto = True
+                # [BL-06] O bloco FINAL da sonda, ANTES de fechar as camadas
+                # parciais. `sonda.cadencia` declara no ⑤ "1ª, a cada k=2 e
+                # SEMPRE a última"; sob teto a última é ESTA, e o ramo do
+                # hard-stop (o único que cobria a promessa) nunca é alcançado.
+                # Custo medido: ~0,08 s — e é a foto mais informativa de uma
+                # célula truncada, a única em que o modelo viu todos os dados.
+                if sonda_on and not emitiu_sonda:
+                    t_snd = emit_sonda_block(
+                        buf, log, it=it, fe=bud.fe, sonda=sonda_art,
+                        adapter=adapter, model=model,
+                        fe_treino_max=n_train - 1,
+                        motivo="ultima iteracao (teto_wall DI-43/44)")
+                    tempo_sonda_total += t_snd
+                    n_blocos_sonda += 1
+                    buf.update_timing(it, tempo_pred_sonda_s=t_snd)
                 log.event("teto_wall_truncamento", it=it, fe=bud.fe,
                           criterio=criterio, elapsed_s=round(elapsed, 1),
                           max_wall_s=max_wall_s,
                           proj_restante_s=(None if proj_s is None
                                            else round(proj_s, 1)),
+                          n_blocos_sonda=n_blocos_sonda,
                           acao="fecha failed/teto_wall GRAVANDO as camadas "
                                "parciais (DI-43/44 — curva parcial e o dado)")
+
+            # D86: fim da iteração — solta tensores e coleta.
+            del model, acqf, cands, acq_vals, post, train_X, train_Y, U_cand
+            del passos, extras
+            iteration_cleanup()
+            if truncou_por_teto:
                 break
     except _budget.BudgetExhausted:
         hard_stopped = True                       # D21/D61: fim limpo do laço

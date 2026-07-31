@@ -421,9 +421,12 @@ def _sonda_hash(arr: np.ndarray) -> str:
 
 def sonda_due(it: int, *, k: int = SONDA_K) -> bool:
     """Cadência ONLINE (§17.2.2): a 1ª iteração e depois a cada `k`. A ÚLTIMA
-    também é obrigatória, mas só se sabe qual é quando o hard-stop chega — o
-    runner cobre esse caso emitindo o bloco no ramo `BudgetExhausted` se a
-    iteração corrente ainda não tiver emitido (ver `run_c262`/`run_c154`)."""
+    também é obrigatória, mas só se sabe qual é quando o laço termina — e ele
+    termina por DOIS motivos, cada um com seu ramo no runner
+    (`run_c262`/`run_c154`), que emite o bloco se a iteração corrente ainda não
+    tiver emitido: `BudgetExhausted` (hard-stop D21/D61) e `teto_wall`
+    (truncamento DI-43/44 — BL-06). Nos dois, o bloco sai com o modelo ainda
+    vivo e ANTES das camadas parciais serem fechadas."""
     it = int(it)
     return it == 1 or it % int(k) == 0
 

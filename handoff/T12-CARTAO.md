@@ -109,7 +109,15 @@ Pmid: nenhum re-lacre necessário. Nenhum outro item toca árvore vendorizada.
       real) + mutante que reproduz o `(0,0,n)`. Controle negativo contra o fonte de ontem:
       3 erros (`KeyError: 'classe_melhor'`) + 1 falha. ⚠ `params.surrogate` do ⑤ ainda repete a
       ficção do ternário — é **BL-15**, endereçado no T12.8 (o cartão o põe na varredura de `params`).
-- [ ] T12.4 · BL-06 finalProbe sob teto_wall (c154/c262)
+- [x] T12.4 · BL-06 finalProbe sob teto_wall (c154/c262) — não era 1 linha: no ponto do `break` o
+      modelo já morrera no `del` (D86). O `del`/`iteration_cleanup` desceram para DEPOIS do teto (o
+      `exceeded` aborta só por `elapsed` desde a DI-43, então o INSTANTE do teto não se move) e o
+      bloco final sai no ramo do truncamento, com `motivo="ultima iteracao (teto_wall DI-43/44)"`.
+      `tests/test_t12_teto_sonda.py`: 12 testes, run REAL truncado na **iteração 3** (ímpar ⇒ fora
+      da cadência ⇒ o bloco só pode ter vindo do teto). Controle negativo: 4 falhas + 2 erros no
+      código de ontem (`3 not found in [1, 2]`). **Bit-identidade**: ①②③ byte-idênticas pré×pós
+      nos 2 configs; ④ difere — e o CONTROLE mostra que ela difere entre 2 execuções do MESMO
+      código (são wall-times). ⚠ Achado colateral em §7 · pendência (b).
 - [ ] T12.5 · BL-09 fflush por linha (MATLAB; ⚠ engine)
 - [ ] T12.6 · BL-08 pin scipy (autorização D10 do autor)
 - [ ] T12.7 · gates texto→comportamento (2 arquivos)
@@ -124,3 +132,33 @@ Suíte ≥627 + novos, **0 falhas** · cada fix com controle negativo demonstrad
 passa) · smokes reais de c217, b5m e 1 célula-teto com os campos carregando VALORES (zero
 sentinelas) · as 2 decisões registradas com o veredito do autor · `staleness` 0 · handoff.
 **Depois deste cartão: a tag final do autor → fila de infra D10 → DISPARO das 30 sementes.**
+
+## §7 · PENDÊNCIAS ABERTAS PELA EXECUÇÃO (para o AUTOR — D81)
+
+**(a) `moead_media` no T12.2.** O cartão diz *"vale para b5m/b5r/moead_media"*, mas no
+`src/piso_offline.py` **o campo nunca foi escrito** (0 ocorrências de `reference_vectors`) — não
+há o que "apontar ao evolver". Escrever o wrapper lá é **item novo** (a F5.4 o pediu; o
+`bloqueios.json` o precifica em ~90 min à parte), e acrescenta chave ao ⑥ de um config cujo
+contrato foi fechado — o clássico "gate vermelho misterioso" (6 sítios de fiação). Medido a favor:
+o `MOEA_D` (mode 12) **tem** `reference_vectors` (`MOEAD.py:111`), então o contraste
+piso × b5 sobre a causa do A8 seria mensurável. **Recomendação: fazer, com smoke de
+`moead_media` + portão, se o autor autorizar antes da tag.** Não fiz sozinho.
+
+**(b) Contaminação de estado global entre teste-com-mock e run REAL (PRÉ-EXISTENTE).** Um run
+REAL de c262 no MESMO processo em que já rodou
+`tests/test_batch_q10.py::TestCalibracaoBatchT9::test_c154_call_site_usa_o_helper_nao_hardcode`
+morre com `ValueError: torch.cat(): expected a non-empty list of Tensors` dentro do
+`optimize_acqf`. **Reproduzido com o fix do BL-06 desfeito** ⇒ não é desta campanha; ficou visível
+agora porque este cartão é o primeiro a rodar célula REAL dentro da suíte. Aquele teste faz
+`mock.patch` em `botorch.optim.optimize_acqf` e em `gen_batch_initial_conditions`. **Risco para a
+campanha: nenhum** — 1 célula = 1 processo no despachante. **Mitigação adotada:** todo teste que
+roda célula real vai em **subprocesso** (é a regra que produziu os smokes do T11, e é como a
+campanha roda). Recomendação: manter essa regra nos testes novos do T12.7/T12.8.
+
+**(c) `flag_vetores_degenerados` continua sendo colhido no replay pós-busca**
+(`b5_prob.py:536`) ⇒ valor CONSTANTE nas gerações, contra o que o comentário do próprio código
+promete ("mostra os vetores encolhendo ANTES de zerar"). O `bloqueios.json` chama isso de defeito
+secundário (~3 linhas: acumulador módulo-nível com chave `gen_count`, o padrão já validado do
+`P_WRONG_STATS`) e o cartão não o incluiu no fix. **Recomendação: fazer junto de (a)** — sem ele o
+campo não distingue congelamento TOTAL de PARCIAL ao longo do tempo, que é 649 das 2.237
+transições congeladas.

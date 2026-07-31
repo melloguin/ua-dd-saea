@@ -118,7 +118,19 @@ Pmid: nenhum re-lacre necessário. Nenhum outro item toca árvore vendorizada.
       código de ontem (`3 not found in [1, 2]`). **Bit-identidade**: ①②③ byte-idênticas pré×pós
       nos 2 configs; ④ difere — e o CONTROLE mostra que ela difere entre 2 execuções do MESMO
       código (são wall-times). ⚠ Achado colateral em §7 · pendência (b).
-- [ ] T12.5 · BL-09 fflush por linha (MATLAB; ⚠ engine)
+- [x] T12.5 · BL-09 — **NENHUMA linha de código; o bloqueio não sobreviveu à medição.** O engine
+      estava disponível (R2025a nesta máquina), então tudo foi medido, não alegado:
+      (1) **`fflush` não existe no MATLAB** (`exist('fflush')=0`) — e `jsonl_line` não tem
+      `try/catch`, logo a "1 linha" prescrita **derrubaria todo run MATLAB da campanha**;
+      (2) **modo perda-de-cauda REFUTADO** — 1 linha de 64 B sobrevive a `kill -9` (o writer não é
+      bufferizado); (3) **modo SPLICE CONFIRMADO, mas o fix não é flush, é atomicidade** — 4
+      escritores × 300 linhas de 6,4 KB: `fprintf` **30 partidas**, `fwrite` **26**,
+      `java.io.FileOutputStream` append **0** (1.200/1.200 linhas nos três — nada se PERDE).
+      **Não troquei o writer dos 13 configs na véspera da tag**: o ⑥ do MATLAB tem escritor ÚNICO
+      hoje (o `experiments.py` só despacha o roster Python; `parfor` escreve células distintas).
+      `tests/test_t12_jsonl_matlab.py` (4 testes, writer REAL extraído do `experiment.m`) tranca o
+      que é determinístico e **re-mede em cada máquina** — se a libc do Linux bufferizar, fica
+      vermelho lá. Decisão em §7 · pendência (d).
 - [ ] T12.6 · BL-08 pin scipy (autorização D10 do autor)
 - [ ] T12.7 · gates texto→comportamento (2 arquivos)
 - [ ] T12.8 · varredura de VALOR de todos os campos T11 (1 teste/campo)
@@ -154,6 +166,19 @@ agora porque este cartão é o primeiro a rodar célula REAL dentro da suíte. A
 campanha: nenhum** — 1 célula = 1 processo no despachante. **Mitigação adotada:** todo teste que
 roda célula real vai em **subprocesso** (é a regra que produziu os smokes do T11, e é como a
 campanha roda). Recomendação: manter essa regra nos testes novos do T12.7/T12.8.
+
+**(d) O writer ⑥ do MATLAB não é atômico por linha — trocar agora ou não?** Medido (§5 · T12.5):
+`fprintf` parte 30 de 1.200 linhas de 6,4 KB sob 4 escritores; o `write(byte[])` do Java parte 0.
+Hoje isso **não** expõe a campanha (escritor único por ⑥), e por isso não mexi. **Recomendação:
+NÃO trocar antes da tag** — o custo é o writer dos 13 configs MATLAB (o `jsonl_line` + 18
+`fprintf(fid,…)` diretos nos `*_instrument.m`), justo o tipo de mudança larga que a doutrina manda
+evitar na véspera. **Trocar SE** o autor pretender: (i) dois processos na mesma célula (retomada
+concorrente), (ii) qualquer co-escritor Python no ⑥ do MATLAB, ou (iii) duas máquinas gravando a
+mesma célula. O caminho está provado e é local: `jsonl_write(fid, linha)` usando
+`java.io.FileOutputStream(fopen(fid), true)` — o `fid` continua sendo a identidade que os 19
+sítios já passam, e todos os guards `fid > 2` seguem valendo. ⚠ O comentário do `jsonl_open`
+(B-11) descreve um co-escritor Python "durante a chamada MATLAB" que **não existe na arquitetura
+de hoje** — vale corrigir o comentário junto (armadilha doc×código).
 
 **(c) `flag_vetores_degenerados` continua sendo colhido no replay pós-busca**
 (`b5_prob.py:536`) ⇒ valor CONSTANTE nas gerações, contra o que o comentário do próprio código

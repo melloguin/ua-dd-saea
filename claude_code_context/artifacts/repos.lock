@@ -12,6 +12,11 @@
       "pin_kind": "pypi",
       "version": "0.18.1"
     },
+    "numpy": {
+      "pin_kind": "pypi",
+      "version": "2.4.6",
+      "nota": "[BL-08/T13] O OUTRO lado do par do scipy. A bit-identidade do scramble de Owen do sobol_batch vale SO sob numpy 2.4.6 E scipy 1.17.1 nos dois lados — pinar um so protege metade. Com a campanha em 9 maquinas sao 8 resolucoes NOVAS de pip, e a divergencia de versao e SISTEMATICA por grupo de maquinas: a alocacao por semente dilui ruido aleatorio, nao offset. Gate: tests/test_t12_pin_scipy.py."
+    },
     "scipy": {
       "pin_kind": "pypi",
       "version": "1.17.1",

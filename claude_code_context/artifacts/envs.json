@@ -88,7 +88,7 @@
       "provisioned": "Mac núcleo provisionado 2026-07-15 (pyenv 3.11.9): numpy 2.4.6 / pandas 3.0.3 / pyarrow 25 / pymoo 0.6.2 / scipy 1.17.1 / joblib / tqdm / scikit-learn 1.9; versões exatas em <mac_venv>/requirements.lock; usar por CAMINHO COMPLETO (shell não preserva activate). ⚠ pandas resolveu 3.0.3 — avaliar pin >=2,<3. FALTA no mesmo venv antes do R2: botorch==0.18.1 / torch / gpytorch / google-cloud-storage / deap. VM: a provisionar antes de R2/R3.",
       "note": "env-main (S.6/D79): harness + BoTorch (c262/c154/sobol_batch) + c122 (driver próprio, factory bypass) + c149 (TENTAR aqui; fallback env_c149 se o piloto divergir)",
       "key_pins": [
-        "numpy>=2,<3",
+        "numpy==2.4.6 ⟦BL-08/T13: PIN EXATO — o outro lado do par do scipy. A bit-identidade do scramble de Owen (src/sobol_batch.py:72-73) vale SÓ sob numpy 2.4.6 E scipy 1.17.1 nos dois lados. Com 9 máquinas sao 8 resolucoes novas de pip, e a divergencia de versao e SISTEMATICA por grupo de maquinas — a alocacao por semente nao a dilui⟧",
         "pandas",
         "pyarrow(zstd)",
         "joblib",

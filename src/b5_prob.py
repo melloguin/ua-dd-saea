@@ -144,6 +144,35 @@ def _vetores_degenerados(evolver):
         return None
 
 
+def _registra_vetores(evolver, serie, desde):
+    """[BL-02b] Carimba o estado dos vetores nas gerações que ele GOVERNOU.
+
+    O `adapt` roda **uma vez por `iterate()`** — no topo dele, via
+    `manage_preferences` (`BaseEA.py:244`) — e cada `iterate()` produz
+    `n_gen_per_iter` gerações. Logo o estado colhido DEPOIS de um `iterate()` é
+    exatamente o que valeu para as gerações daquele bloco: **a série é amostrada
+    na cadência do `iterate`, não a cada geração**, e é isso que ela significa.
+
+    Antes disto o campo era colhido UMA vez, no replay pós-busca, sobre o estado
+    FINAL dos vetores — e o mesmo valor ia carimbado nas 381 gerações. O
+    comentário do próprio campo promete o oposto (*"mostra os vetores encolhendo
+    ANTES de zerar, que é onde a cadeia A8 começa"*), e sem a série não se separa
+    congelamento TOTAL de PARCIAL: 649 das 2.237 transições congeladas da s42 são
+    intermitentes, e o onset é o que as distingue.
+
+    Read-only (D97): lê `reference_vectors.values` e as CHAVES do archive.
+    Não toca RNG, população nem qualquer decisão da busca.
+    """
+    d = _vetores_degenerados(evolver)
+    try:
+        ate = max(int(k) for k in evolver.population.individuals_archive)
+    except Exception:                        # noqa: BLE001 — nunca derruba
+        return desde
+    for g in range(int(desde) + 1, ate + 1):
+        serie[g] = d
+    return ate
+
+
 def run_b5r(exp, alg, problema, semente, **kwargs):
     """b5r — Prob-RVEA_v3 (mode 7)."""
     return _run_b5("b5r", exp, problema, semente, **kwargs)
@@ -485,6 +514,11 @@ def _run_b5(alg, exp, problema, semente, *,
                           n_gen_per_iter=_GEN_PER_ITER,
                           total_function_evaluations=_FE_TOTAL)
         t_busca0 = time.time()
+        # [BL-02b] Série do estado dos vetores POR GERAÇÃO (ver
+        # `_registra_vetores`). O snapshot inicial cobre as gerações que a
+        # construção da população já criou, ANTES do 1º `adapt`.
+        vetores_por_ger = {}
+        ultima_ger_vet = _registra_vetores(evolver, vetores_por_ger, 0)
         with H.offline_guard(log, alg=alg, problema=problema):
             with _quiet():
                 while evolver.continue_evolution():
@@ -500,6 +534,8 @@ def _run_b5(alg, exp, problema, semente, *,
                                        "preservada; manifesto failed (D-07)")
                         break
                     evolver.iterate()
+                    ultima_ger_vet = _registra_vetores(
+                        evolver, vetores_por_ger, ultima_ger_vet)
         t_busca_total = time.time() - t_busca0
 
         # ── ③ busca: replay dos arquivos por geracao (o motor e caixa-preta) ─
@@ -541,7 +577,8 @@ def _run_b5(alg, exp, problema, semente, *,
                 # [I-05] os campos DI-10 do b5 que eram 0/N em 30.165 eventos
                 p_wrong_stats=_pw_stats_da_geracao(g),
                 n_substituicoes=_n_subs_da_geracao(g),
-                flag_vetores_degenerados=_vetores_degenerados(evolver),
+                # [BL-02b] o estado que valeu NESTA geração, não o final
+                flag_vetores_degenerados=vetores_por_ger.get(g),
                 **H.minimo_comum_di10(
                     Og, fe=bud.fe,
                     tempo_fit_s=(t_fit if g == int(keys[0]) else None)))

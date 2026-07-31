@@ -8,7 +8,14 @@
 # =====================================================================
 
 # --- núcleo do harness (INSTALADO) ---
-numpy>=2,<3            # 2.4.6
+numpy==2.4.6          # [BL-08/T13] PIN EXATO — o OUTRO lado do par. A
+                      # bit-identidade do scramble de Owen do sobol_batch está
+                      # provada cross-OS/cross-arquitetura SÓ sob numpy 2.4.6
+                      # **E** scipy 1.17.1 nos dois lados; pinar um só protege
+                      # metade. Com a campanha em 9 máquinas são 8 resoluções
+                      # NOVAS de pip — e a diferença de versão é sistemática
+                      # por grupo de máquinas, então a alocação por semente
+                      # NÃO a dilui (ela dilui ruído aleatório, não offset).
 pandas>=2,<3           # 2.3.3  (fixado <3 de propósito — pandas 3.0 evitado p/ reprodutibilidade)
 pyarrow               # 25.0.0 (parquet; brotli/zstd)
 pymoo==0.6.2          # fonte única dos 25 problemas (src/problems.py)

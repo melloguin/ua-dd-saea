@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""[T12/BL-08] O pin do `scipy` — declarado, instalado e MEDIDO no lote.
+"""[T12/BL-08] O pin do PAR `numpy`+`scipy` — declarado, instalado e MEDIDO no lote.
 
 Por que este arquivo existe
 ---------------------------
@@ -47,58 +47,72 @@ LOTES = {
 }
 
 
-def _pin_do_lock():
+#: O PAR que a bit-identidade de Owen exige. Pinar um só protege metade.
+PACOTES = ("numpy", "scipy")
+
+
+def _pin_do_lock(pkg):
     with open(LOCK, encoding="utf-8") as fh:
-        return json.load(fh)["repos"]["scipy"]["version"]
+        return json.load(fh)["repos"][pkg]["version"]
 
 
-def _pin_da_envs():
+def _pin_da_envs(pkg):
     with open(ENVS, encoding="utf-8") as fh:
         envs = json.load(fh)
     pins = envs["environments"]["env_main"]["key_pins"]
-    achados = [p for p in pins if p.startswith("scipy")]
+    achados = [p for p in pins if p.startswith(pkg)]
     if len(achados) != 1:
-        raise AssertionError("esperava 1 pin de scipy em key_pins, achei %r"
-                             % (achados,))
-    m = re.match(r"scipy==([0-9][^\s⟦]*)", achados[0])
+        raise AssertionError("esperava 1 pin de %s em key_pins, achei %r"
+                             % (pkg, achados))
+    m = re.match(r"%s==([0-9][^\s⟦]*)" % pkg, achados[0])
     if not m:
         raise AssertionError(
-            "o pin do scipy na envs.json não é EXATO (`scipy==X.Y.Z`): %r"
-            % (achados[0],))
+            "o pin do %s na envs.json não é EXATO (`%s==X.Y.Z`): %r"
+            % (pkg, pkg, achados[0]))
     return m.group(1)
 
 
-def _pin_do_requirements():
+def _pin_do_requirements(pkg):
     with open(REQ, encoding="utf-8") as fh:
         for linha in fh:
-            m = re.match(r"\s*scipy==([0-9][^\s#]*)", linha)
+            m = re.match(r"\s*%s==([0-9][^\s#]*)" % pkg, linha)
             if m:
                 return m.group(1)
-    raise AssertionError("requirements/env_main.txt não pina scipy com `==`")
+    raise AssertionError(
+        "requirements/env_main.txt não pina %s com `==`" % pkg)
 
 
 class TestPinDoScipy(unittest.TestCase):
 
     def test_os_tres_artefatos_declaram_a_MESMA_versao(self):
         """Um pin em 2 dos 3 lugares é pior que nenhum: dá falsa segurança."""
-        self.assertEqual(
-            {_pin_da_envs(), _pin_do_lock(), _pin_do_requirements()},
-            {"1.17.1"},
-            "envs.json, repos.lock e requirements/env_main.txt discordam sobre "
-            "a versão do scipy")
+        for pkg in PACOTES:
+            with self.subTest(pacote=pkg):
+                declarados = {_pin_da_envs(pkg), _pin_do_lock(pkg),
+                              _pin_do_requirements(pkg)}
+                self.assertEqual(
+                    len(declarados), 1,
+                    "envs.json, repos.lock e requirements/env_main.txt "
+                    "discordam sobre a versão do %s: %r" % (pkg, declarados))
 
-    def test_o_pin_bate_com_o_scipy_INSTALADO(self):
+    def test_o_PAR_numpy_scipy_bate_com_o_INSTALADO(self):
         """O que roda tem de ser o que se declara — em CADA máquina.
 
         Este é o teste que muda de resposta nas VMs: se o `pip` de lá resolver
-        outra versão, ele fica vermelho ANTES do disparo, não depois.
+        outra versão, ele fica vermelho ANTES do disparo, não depois. E afere o
+        **par**, porque a bit-identidade de Owen exige os dois lados: com o
+        numpy solto, o pin do scipy protegia metade.
         """
+        import numpy
         import scipy
-        self.assertEqual(
-            scipy.__version__, _pin_do_lock(),
-            "o scipy instalado (%s) não é o pinado (%s) — o lote de Owen do "
-            "sobol_batch deixa de ser comparável entre máquinas"
-            % (scipy.__version__, _pin_do_lock()))
+        instalado = {"numpy": numpy.__version__, "scipy": scipy.__version__}
+        for pkg in PACOTES:
+            with self.subTest(pacote=pkg):
+                self.assertEqual(
+                    instalado[pkg], _pin_do_lock(pkg),
+                    "o %s instalado (%s) não é o pinado (%s) — o lote de Owen "
+                    "do sobol_batch deixa de ser comparável entre máquinas"
+                    % (pkg, instalado[pkg], _pin_do_lock(pkg)))
 
     def test_o_lote_de_Owen_reproduz_byte_a_byte(self):
         """O que o pin PROTEGE, medido — não a existência da linha no artefato.

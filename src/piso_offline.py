@@ -103,6 +103,50 @@ def run_piso_offline(exp, alg, problema, semente, *,
                 enable_bucket=enable_bucket, sonda_on=sonda_on, teto_s=teto_s)
 
 
+# ── [BL-02/A25] o flag dos vetores de referência, TAMBÉM no piso ──────────────
+#  A F5.4 pediu este campo e ele nunca foi escrito aqui — 0 ocorrências de
+#  `reference_vectors` neste arquivo. Não era escolha: era omissão, e ela
+#  esvazia justamente a ABLAÇÃO. O `MOEA_D` do mode 12 herda o
+#  `manage_preferences` do `BaseDecompositionEA` (`BaseEA.py:244`), que chama
+#  `reference_vectors.adapt(...)` a cada `iterate()` — ou seja, **o piso está
+#  sujeito à MESMA cadeia A8 do b5m** (`adapt` → norma 0 → PBI NaN → P_wrong ≡ 0
+#  → zero substituições). Sem o campo aqui, um congelamento do b5m não pode ser
+#  atribuído à maquinaria probabilística: pode ser comum aos dois, e aí o achado
+#  se descaracteriza. É exatamente o contraste que a ablação existe para medir.
+#  Read-only (D97): nenhuma decisão da busca vê isto acontecer.
+
+def _vetores_degenerados(evolver):
+    """A norma dos vetores de referência colapsou a zero? (gêmeo do b5_prob)"""
+    try:
+        V = evolver.reference_vectors.values
+        n = np.linalg.norm(np.asarray(V, dtype=float), axis=1)
+        nmin, nmax = float(np.min(n)), float(np.max(n))
+        return {"n_vetores": int(n.size),
+                "n_norma_zero": int(np.count_nonzero(n == 0.0)),
+                "norma_min": nmin, "norma_max": nmax,
+                "amplitude": float(nmax - nmin)}
+    except Exception:                        # noqa: BLE001 — nunca derruba (D97)
+        return None
+
+
+def _registra_vetores(evolver, serie, desde):
+    """Carimba o estado dos vetores nas gerações que ele GOVERNOU.
+
+    Gêmeo de `b5_prob._registra_vetores`: o `adapt` roda 1× por `iterate()`, que
+    produz `n_gen_per_iter` gerações — a série é amostrada na cadência do
+    `iterate`, e é isso que ela declara. Nasce já assim aqui (o b5 precisou de
+    correção; este não repete o erro).
+    """
+    d = _vetores_degenerados(evolver)
+    try:
+        ate = max(int(k) for k in evolver.population.individuals_archive)
+    except Exception:                        # noqa: BLE001
+        return desde
+    for g in range(int(desde) + 1, ate + 1):
+        serie[g] = d
+    return ate
+
+
 # ── util: silenciar os prints verbosos do repo vendorizado ────────────────────
 @contextlib.contextmanager
 def _quiet():
@@ -404,6 +448,9 @@ def _run(exp, problema, semente, *,
                          n_gen_per_iter=_GEN_PER_ITER,
                          total_function_evaluations=_FE_TOTAL)
         t_busca0 = time.time()
+        # [BL-02] série do estado dos vetores POR GERAÇÃO (ver `_registra_vetores`)
+        vetores_por_ger = {}
+        ultima_ger_vet = _registra_vetores(evolver, vetores_por_ger, 0)
         with H.offline_guard(log, alg=alg, problema=problema):
             with _quiet():
                 while evolver.continue_evolution():
@@ -417,6 +464,8 @@ def _run(exp, problema, semente, *,
                                        "preservada; manifesto failed (D-07)")
                         break
                     evolver.iterate()
+                    ultima_ger_vet = _registra_vetores(
+                        evolver, vetores_por_ger, ultima_ger_vet)
         t_busca_total = time.time() - t_busca0
 
         # ── ③ busca: replay dos arquivos por geracao (o motor e caixa-preta) ─
@@ -452,6 +501,9 @@ def _run(exp, problema, semente, *,
                 caminho="moead_media_gen",
                 motivo="selecao no surrogate (MOEA/D mode 12, PBI; so a media)",
                 geracao=g, n_ds_membros=0,
+                # [BL-02] a CAUSA a montante da cadeia A8, agora medida também
+                # no piso — sem ela o contraste b5m × ablação não fecha
+                flag_vetores_degenerados=vetores_por_ger.get(g),
                 **H.minimo_comum_di10(
                     Og, fe=bud.fe,
                     tempo_fit_s=(t_fit if g == int(keys[0]) else None)))

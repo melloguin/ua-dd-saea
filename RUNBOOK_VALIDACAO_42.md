@@ -341,3 +341,47 @@ export UA_DD_SAEA_CAMPANHA_ID="m8-$(git -C <repo> rev-parse --short HEAD)"
 echo "$UA_DD_SAEA_CAMPANHA_ID"          # confira que as 4 imprimem o MESMO texto
 ```
 Para persistir na sessão da VM, ponha a linha no `~/.bashrc` da máquina.
+
+---
+
+## §Y · `--n-jobs` POR MÁQUINA — a RAM é o gargalo, não a CPU
+
+> **Medido em 2026-07-30.** Um probe instrumentado rodou uma célula
+> `batch/c262/ZDT4/q=10` amostrando o RSS do próprio processo a cada 2 s
+> (1.306 amostras) e registrou **pico de 1.205 MB**.
+>
+> ⚠ **Este número é PISO, não pico definitivo:** o run não chegou ao fim (foi
+> morto sob pressão de memória, e o valor sobreviveu porque o probe grava o
+> pico a cada novo máximo — mesma doutrina do checkpoint do G5). O consumo
+> poderia ter subido mais.
+>
+> **Por isso o teto adotado é 6 GB por job — 5× o medido** (decisão do autor,
+> 2026-07-30). Um teto conservador custa paralelismo; um teto otimista custa a
+> campanha inteira quando o OS começar a matar processos no meio da noite.
+
+| máquina | vCPU | RAM | RAM permite | CPU permite | **`--n-jobs`** |
+|---|---|---|---|---|---|
+| **Mac A** (host da torre/gates) | 8 | 16 GB | 2 | 8 | **2** |
+| **VM-1 GCP** `v5-mestrado` | 32 | 64 GB | 10 | 32 | **10** |
+| **VM-2 GCP** `mestrado-v6` | 32 | 64 GB | 10 | 32 | **10** |
+| **VM-3** | 16 | 32 GB | 5 | 16 | **5** |
+
+```bash
+# VM-1 — Python pesado (5 online + batch q=10)
+$PY experiments.py --exp batch --algorithms c149 c262 e81 sobol_batch --seeds 42 \
+    --n-jobs 10 --enable-bucket --problems MMF16_20 ZDT4 DTLZ2 WFG9 ZDT1
+
+# Mac A — reserve 1 dos 2 slots se for rodar MATLAB em paralelo
+$PY experiments.py --exp main --algorithms c122 --seeds 42 --n-jobs 2
+```
+
+**Por que a CPU não manda aqui.** Todo run é pinado em **1 thread** (D79:
+`OMP_NUM_THREADS=1` e afins), então em tese caberiam tantos jobs quantos vCPU.
+Mas com 6 GB por job a memória esgota **antes** — em toda máquina do parque. Se
+alguém subir o `--n-jobs` para o número de vCPU, o OS mata processos e as
+células morrem sem dado.
+
+⚠ **O `c154` é o caso extremo e tem regra própria:** medido em
+`main/c154/DTLZ2/s42` (D=12), ele sozinho chegou a **2,2 GB** e rodou 6 h até
+bater o teto. Numa máquina rodando c154 em paralelo, conte-o como **1 job
+inteiro** e não desconte.

@@ -176,8 +176,22 @@
         `mll_final` era FALSO-POSITIVO do gate — está aninhado em `modelo_hp`, e o gate passou
         a varrer em profundidade (ERRATA 6). O `n_baseline` foi declarado NÃO-APLICÁVEL, como
         no e81 — o próprio `sigma_dict` do runner já dizia "AUSENTE POR DESENHO" (ERRATA 8)
-      · ⚠ **FALTA p/ o carimbo:** validar célula D≥12 morrendo às 12 h COM camadas parciais
-        (precisa de máquina — item do autor)
+      · ✅ **VALIDAÇÃO DO TETO APROVADA** (2026-07-30/31): `main/c154/DTLZ2/s42`, a ÚNICA
+        célula D≥12 do grid (`maxfe=371` ⇒ `31D−1` com D=12). Teto de **6 h** por decisão do
+        autor — para o MECANISMO é indiferente, o gatilho é `elapsed > teto` e o rito depois
+        dele é o mesmo código; o valor do teto é só o operando da comparação.
+        **RESULTADO:** wall **21.835 s** (6h03 — disparou em 21.600 s e gastou 235 s
+        escrevendo), **`rc=0`** (encerramento LIMPO, não crash), e a célula deixou:
+        | ⑤ | `status=failed` · **`motivo_parada=teto_wall`** · `fe_final=282/371` · `campanha_id` ✅ `repo_hash` ✅ `params` ✅ `sigma_dict` ✅ `timing` ✅ `doe_hash` ✅ |
+        | ① | **282 linhas** × 21 cols · ② 31.237 · ③ 161.060 · ④ 151 · ⑥ 551 linhas |
+        **COERÊNCIA:** a ① tem 282 linhas e o ⑤ declara `fe_final=282` — batem EXATAMENTE.
+      · ✅ E o portão trata certo: `aborto-sancionado` (DI-38a) **e ainda roda os 6 gates de
+        proveniência**, todos VERDES — incl. `G-1 3x1 = 151/151 bit-idênticos, 0 ids órfãos`
+        (já sob o denominador corrigido do achado #48)
+      · Isto valida o rito completo do **G5/DI-43/DI-44**: a célula morreu no teto **COM
+        dado**, rastreável, e o gate a reconhece como estado ESPERADO em vez de falha. É o
+        teste que protege as **~485 h-core** que o plano estimava perder se as células de
+        12 h morressem sem dado
 - [x] A2 · c122 — `73d9fef` (2026-07-30) · **SMOKE: n_ref=21 (=11D−1) no g=1 × 11 (=MU) no g≥2**
       — o teste de aceitação do I-01. ref_ids (21/11 ids) · y_treino_dist (462/484 pares) ·
       REGRA_DO_ROTULO no sigma_dict · params já existia
@@ -215,7 +229,16 @@
         versão planejada (que preserva a MEDIANA) e o lacre voltou a bater sem artefato novo
 - [x] A4 · c262 — `52befff` (2026-07-30) · `ACQF_HP` (os 8+2 do T1) como fonte única do
       `_make_acqf`/header/⑤ · `params` no ⑤ · `fit_retries>0` vira guard amarelo
-      · ⚠ FALTA (máquina): o PROBE DE RAM do batch → `--n-jobs` no RUNBOOK
+      · ✅ **PROBE DE RAM FEITO** (2026-07-30): `batch/c262/ZDT4/q=10` instrumentado com
+        amostragem de RSS a cada 2 s — **pico de 1.205 MB** em 1.306 amostras.
+        ⚠ É **PISO, não pico definitivo**: o run não chegou ao fim (morto sob pressão de
+        memória), e o número sobreviveu só porque o probe grava o pico a CADA novo máximo —
+        a mesma doutrina do checkpoint do G5. As 2 tentativas anteriores morreram deixando
+        NADA.
+      · ✅ **`--n-jobs` cravado no RUNBOOK §Y** com teto de **6 GB/job** (5× o medido,
+        decisão do autor): Mac A **2** · VM-1 **10** · VM-2 **10** · VM-3 **5**.
+        **A RAM é o gargalo em TODA máquina do parque** — não a CPU. Com 1 thread por run
+        (D79) caberiam tantos jobs quantos vCPU, mas a memória esgota antes
 - [x] A5 · e103 — `5aa31e3` (2026-07-30) · `tempo_geracao_s` na ④ (era o único config sem)
       · ⚠ FALTA (máquina): validar o rito da ⑦ numa célula
 - [x] A6 · sobol_batch + nsga3 — `40df11a` (2026-07-30) · `minimo_comum_di10` no sobol_batch

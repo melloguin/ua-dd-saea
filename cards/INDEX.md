@@ -57,7 +57,7 @@
 |---|---|---|---|---|
 | F5 | Auditoria de 6 relatórios + consolidação (`f5/**` = evidência CONGELADA, read-only) | R1-R3 | — | ✅ |
 | T10 | Rito de truncamento BoTorch (D≥12) | F5 | — | ⏸ backlog (DI-38=(a)) |
-| T11 | **Refinamento final do código** antes do disparo: FASE G (7 globais habilitadoras) · FASE A (A1-A11 por algoritmo) · FASE V (V1 forense read-only, V2 re-runs, V3 docs) | F5 | `SPEC_T11_REFINAMENTO_FINAL.md` · `T11_STATUS.md` | 🟡 código fechado; falta o que exige MATLAB e as máquinas do autor |
+| T11 | **Refinamento final do código** antes do disparo: FASE G (7 globais) · FASE A (A1-A11) · FASE V · auditoria adversarial (78 achados) · 24/24 smokes · G-6 em 19/19 · rito de teto APROVADO | F5 | `SPEC_T11_REFINAMENTO_FINAL.md` · `T11_STATUS.md` · **`handoff/T11-RODADA-FINAL.md`** | ✅ **código fechado e validado** — resta o V2 (máquinas do autor) e tag+push |
 
 ## Sub-estudos e análise
 | ID | Tarefa | depende-de | bundle | status |

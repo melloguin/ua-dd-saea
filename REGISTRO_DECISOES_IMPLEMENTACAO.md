@@ -2645,3 +2645,78 @@ estavam corretos e não precisaram de mudança.
   (config, problema) como rede de segurança, **mais** 2 células-calibradoras
   (`c238/MMF1/s42` e `e74/DTLZ2/s42`) em cada uma das 9 máquinas, para não extrapolar um piso
   Mac×vm3 a 7 máquinas nunca medidas.
+
+---
+
+## PARTE A42 — T13: as pendências do T12 + a campanha em 9 máquinas (2026-07-31)
+
+Continuação direta da PARTE A41. Executada em série **B → C → A** por instrução do autor, para
+que o repasse à torre já saísse com tudo dentro.
+
+### A42.1 — DI-42 (T12.D1): o piso de ruído, RESOLVIDO por desenho
+
+**A decisão do autor (2026-07-31).** *"Vamos assumir esse problema."* Cada máquina roda **TODOS
+os experimentos em algumas sementes aleatórias**; a dissertação reporta média/mediana das 30, e a
+agregação transforma a divergência entre máquinas em ruído aleatório.
+
+**Por que isto FECHA o BL-07, e não o adia.** A divergência cross-máquina é real e está medida
+(15 pares Mac×vm3: 7 bit-idênticos, 6 acima do piso O-18 de HV ≤1,55%, e o `c238/MMF1` com
+**ΔIGD+ 80,03%** no endpoint PRIMÁRIO). O que a torna perigosa não é a magnitude — é a
+**correlação com o tratamento**. Sob a regra **O-16** ("um config, uma máquina") a máquina era
+CONSTANTE nas 30 sementes de um config, isto é, um **offset sistemático** que nenhuma média
+dilui. Alocando por SEMENTE, a máquina varia DENTRO de cada config entre repetições: vira ruído
+aleatório, e é exatamente o que a mediana de 30 dilui. **A decisão inverte o regime, e é a
+inversão que resolve.**
+
+**Consequência normativa: a O-16 está APOSENTADA para RESULTADO** (segue valendo para a tabela
+de TEMPO do M7 — comparar wall entre algoritmos ainda exige a mesma máquina). Aposentada no texto
+do driver (`scripts/lote3s.sh`), não só em prosa: um driver que documenta o oposto do desenho é a
+armadilha doc×código que este projeto já pagou 3× no mesmo dia.
+
+**Pendência que a decisão NÃO resolve:** sem o `host` no ⑤ não havia como *demonstrar* que a
+diluição aconteceu — resolvido no C2 abaixo.
+
+### A42.2 — O que o bloco B entregou (o único que muda NÚMERO é o B4)
+
+* **B4 · `numpy==2.4.6`** nos 3 artefatos. O BL-08 exige o PAR `numpy` + `scipy`; o T12 pinou só
+  o scipy (era o autorizado) e protegia metade. Com 9 máquinas são **8 resoluções novas de
+  `pip`**, e divergência de versão é sistemática por grupo de máquinas — a diluição por semente
+  **não** a desfaz. É o único item de B/C que toca número.
+* **B1 · o campo no `moead_media`.** Confirmei que o `MOEA_D` (mode 12) herda o
+  `manage_preferences` do `BaseDecompositionEA` (`BaseEA.py:244`), que chama
+  `reference_vectors.adapt(...)` a cada `iterate()` — **o piso está sujeito à MESMA cadeia A8 do
+  b5m**. Medido: `moead_media/DTLZ1` (46 s) colapsa **14 de 105** vetores, onset na geração 12;
+  `DTLZ3` (53 s) colapsa **1 de 105**, onset na geração 2. **O piso colapsa PARCIALMENTE**, contra
+  o colapso **TOTAL** do `b5m/DTLZ3` (105 de 105). ⇒ **O achado do b5m SOBREVIVE ao contraste da
+  ablação**, e isso só é afirmável porque o campo passou a existir no piso.
+* **B2 · a série por geração.** O campo era colhido 1× no replay pós-busca e o mesmo valor ia
+  carimbado nas 381 gerações. Agora é amostrado na cadência do `iterate()` (a cadência real do
+  `adapt`). Medido no `b5m/DTLZ1`: gerações **1–11 sadias com 1.042–1.093 substituições cada**;
+  geração **12** com 105/105 colapsados e **0 substituições**; assim até a 381. Soma **10.479
+  substituições, TODAS antes do onset, ZERO depois** — a cadeia A8 inteira, com o instante.
+
+### A42.3 — O que o bloco C entregou (nada disto toca decisão de algoritmo)
+
+* **C1 · o BLOQUEADOR real das 9 máquinas.** `interpreter_for_alg` resolvia o interpretador por
+  caminho ABSOLUTO de macOS. Os 6 configs de venv próprio **nunca rodaram fora do Mac** — o perfil
+  do driver dizia isso em voz alta (*"mac: TODO o venv-próprio — únicos venvs do projeto"*). Passa
+  a resolver por CANDIDATOS pelo NOME do venv, a identidade que o gate G-3 já usa.
+* **C2 · a MÁQUINA viaja com o dado.** `host` + `plataforma` nos 3 writers de ⑤. Antes: **zero**
+  ocorrências de `gethostname`/`uname` em `src/`, e a única atribuição era a `maquina_dona` do
+  censo — DERIVADA do roster planejado, que rotula errado toda célula recuperada noutra máquina.
+  A arquitetura é normalizada no lado MATLAB (`maca64`→`arm64`) para a R4 não precisar de dois
+  vocabulários. Os **6 portões de proveniência seguem verdes** com as chaves novas.
+* **C3/C4/C5 · escalonamento e relatório abertos.** Censo sem `sys.exit` em host novo;
+  `LOTE_PARES=todos` derivando o roster do ARTEFATO (medido: `LOTE_MAQ=vm7` derivou as 695
+  células); lista de máquinas do relatório derivada do disco.
+
+### A42.4 — ⚠ NOVE bloqueadores do `bloqueios.json` NUNCA foram tratados
+
+O cartão T12 cobriu 13 dos 22. Ficaram **fora do cartão e sem tratamento**, todos baratos:
+**BL-11** (treed_media: I/O do checkpoint dentro de `tempo_busca_s`) · **BL-12** (b4: 3 números de
+calibração que não reproduzem) · **BL-13** (`geracoes_derivadas` declara o operador do NSGA-II
+para os 4 pisos) · **BL-14** (`frente1_excede_pop` usa `N_nominal` em vez de `N_efetivo`) ·
+**BL-17** (`contrato_61` não cobre a linha dos pisos) · **BL-18** (e103: `espaco_modelo` NULL na
+busca e 'cru' na sonda, na MESMA ③) · **BL-19** (b4: 2 edições de doc da F5.4) · **BL-20**
+(sobol_batch: `nota_potencia_de_2` literal fixa) · **BL-21** (e81: `progress.py` lê `footers[-1]`).
+**Não os fiz por estarem fora do cartão (D81), e os registro aqui para o autor decidir.**

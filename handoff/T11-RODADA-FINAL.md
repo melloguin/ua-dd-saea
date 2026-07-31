@@ -735,11 +735,14 @@ gates conferem **estrutura**; nenhum confere **valor**.
 
 ```
 /Users/gmello/Documents/python_repos/mestrado/evidencia_T11/     ← 53 MB
-├── LEIA-ME.md          ← comece por aqui
+├── HANDOFF-SMOKES.md   ← 📖 o inventário completo, célula a célula
+├── LEIA-ME.md          ← resumo curto
+├── smoke_python/       ← os 11 smokes PYTHON (11 células)
 ├── smoke_matlab/       ← os 13 smokes MATLAB (15 células)
 ├── g6_com/  g6_sem/    ← os pares §3.1 (9 + 9 células)
 └── teto_c154/          ← a célula do rito de teto
 ```
+**Cópia do handoff dos smokes no repo:** `handoff/T11-SMOKES.md`.
 
 | pasta | conteúdo | células |
 |---|---|---|
@@ -767,10 +770,14 @@ essas pastas: o `accept.py` não aceita `--data-root` e leria `data/` (achado
 #42). O portão já sabe disso e marca o `accept` como NÃO-AFERÍVEL fora de
 `data/`, mas o caminho direto é mais limpo.
 
-**Os 11 smokes PYTHON não estão preservados** — rodaram em tempdirs removidos ao
-fim de cada run (disciplina de não deixar lixo). **Os vereditos estão
-registrados** em §5 e no `T11-CONFORMIDADE.md`. Para regenerar qualquer um
-(1 s a 45 min conforme o config): `RUNBOOK §X`, a invocação de SMOKE.
+**Os 11 smokes PYTHON foram REFEITOS e preservados** (2026-07-31, 2h12 em série).
+A primeira rodada tinha sido APAGADA pelos meus próprios scripts, que faziam
+`shutil.rmtree()` ao fim "para não deixar lixo" — e eram evidência. O autor
+pegou a falha ao perguntar onde o validador leria os artefatos.
+**11/11 com `ok=true`, zero vermelhos.**
+
+**NÃO preservados, e não serão refeitos:** o probe de RAM do `c262-batch`
+(sobrou só o número: pico **1.205 MB**) e a 1ª execução do `b5m`.
 
 **Nenhum smoke escreveu em produção** — verificado por duas medidas
 independentes: **0 manifestos com `campanha_id`** (obrigatório desde o G3) e

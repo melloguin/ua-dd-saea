@@ -208,11 +208,19 @@ def main() -> int:
     ap.add_argument("problema")
     ap.add_argument("semente", type=int)
     ap.add_argument("--exp", default="main")
+    # [conserto 2026-07-30 · achado #42] Sem esta flag o `auditar` lia SEMPRE
+    # `data/experiments`, mesmo quando o `portao.py` mandava gatear outro
+    # corpus. Provado: gatear uma célula INEXISTENTE num sandbox devolvia
+    # `auditar=VERDE`, porque ele foi olhar a célula de mesmo nome em produção.
+    # A função `audita()` já recebia `data_root` — só o CLI não expunha.
+    ap.add_argument("--data-root", default="data",
+                    help="raiz dos dados a auditar (default: data/). O F4 do "
+                         "RUNBOOK gateia o corpus CONSOLIDADO, que não é data/")
     ap.add_argument("--regime", choices=["online", "offline"], default=None)
     ap.add_argument("--piso", action="store_true", default=None)
     a = ap.parse_args()
     achados = audita(a.alg, a.problema, a.semente, a.exp,
-                     regime=a.regime, piso=a.piso)
+                     regime=a.regime, piso=a.piso, data_root=a.data_root)
     for x in achados:
         print(f"  XXXX {x}")
     print(f"AUDITORIA {a.alg}/{a.problema}/{a.semente}: "

@@ -39,7 +39,8 @@ PY = sys.executable
 from src.manifest import OFFLINE_ALGS  # noqa: E402 — fonte única (DI-16.8)
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 from gates_proveniencia import (           # noqa: E402 — [T11-G6] G-1..G-4 + B-15
-    gates_de_proveniencia, motivo_e_sancionado, especie_do_none)
+    gates_de_proveniencia, motivo_e_sancionado, especie_do_none,
+    MARCA_NAO_AFERIVEL)
 
 #: alg → cartão do accept. R3 = branches dedicados; R1/R2 = rótulo informativo
 #: (o catch-all F0-01 roteia pelo `--alg`, não pelo nome do cartão).
@@ -112,14 +113,32 @@ def gates_de_um_run(exp: str, alg: str, problema: str, semente,
     out = list(gates_de_proveniencia(exp, alg, problema, semente, data_root,
                                      modo=modo))
     card = CARTAO_POR_ALG[alg]
-    # (accept.py não expõe --data-root: opera sempre sobre data/ — o
-    #  passthrough de data_root do portão vale p/ o final_eval)
-    ok, det = _sub(["scripts/accept.py", card, "--alg", alg,
-                    "--problema", problema, "--semente", str(semente),
-                    "--exp", exp])
-    out.append((f"accept[{card}]", ok, det))
+    # ⚠ [conserto 2026-07-30 · achado #42] O `accept.py` NÃO expõe `--data-root`:
+    # ele opera sempre sobre `data/`. Até agora o portão o chamava assim mesmo e
+    # publicava o veredito como se fosse da célula pedida — PROVADO: gatear uma
+    # célula INEXISTENTE num sandbox devolvia `accept=VERDE`, porque ele foi
+    # olhar a célula de mesmo nome em produção.
+    # Isso importa no gate **F4 do RUNBOOK**, que roda o portão sobre o corpus
+    # CONSOLIDADO: 2 dos 8 gates estariam avaliando outro corpus.
+    # Expor `--data-root` no accept exigiria fiar o parâmetro por dezenas de
+    # `check_*` num arquivo de 2.500 linhas — refatoração às cegas num gate.
+    # A escolha aqui é ADMITIR QUE NÃO SABE: fora de `data/`, o accept vira
+    # NÃO-AFERÍVEL (⛔, exit 2) em vez de mentir verde.
+    _fora_de_producao = os.path.abspath(
+        data_root if os.path.isabs(data_root) else os.path.join(ROOT, data_root)
+    ) != os.path.abspath(os.path.join(ROOT, "data"))
+    if _fora_de_producao:
+        out.append((f"accept[{card}]", None,
+                    f"{MARCA_NAO_AFERIVEL}: accept.py não aceita --data-root e "
+                    f"leria data/ em vez de {data_root!r} (achado #42)"))
+    else:
+        ok, det = _sub(["scripts/accept.py", card, "--alg", alg,
+                        "--problema", problema, "--semente", str(semente),
+                        "--exp", exp])
+        out.append((f"accept[{card}]", ok, det))
+    # o `auditar` ganhou `--data-root` no mesmo conserto — este já é confiável
     ok, det = _sub(["scripts/auditar.py", alg, problema, str(semente),
-                    "--exp", exp])
+                    "--exp", exp, "--data-root", data_root])
     out.append(("auditar", ok, det))
     if alg in OFFLINE_ALGS:
         ok, det = _sub(["scripts/final_eval.py", "--exp", exp, "--alg", alg,

@@ -130,9 +130,19 @@ def gate_3x1(caminho_terceira: str, caminho_primeira: str) -> tuple[bool, str]:
                        f"apontam ids que não existem na ①")
     d = np.abs(X3[achados] - X1[[alvo[k] for k in achados]]).max(axis=1)
     n_bit = int((d == 0).sum())
-    frac = n_bit / len(achados)
-    det = (f"{n_bit}/{len(achados)} bit-idênticos (frac={frac:.6f}, "
-           f"max|ΔX|={float(d.max()):.6g}, {len(marcadas) - len(achados)} sem id)")
+    # ⚠ [conserto 2026-07-30 · achado #48] O denominador é `len(MARCADAS)`, não
+    # `len(achados)`. Uma linha da ③ que declara `real_solution_id` INEXISTENTE
+    # na ① saía de `achados` e, com ela, do denominador — então uma ③ com ids
+    # {0, 777, 888} contra uma ① com {0} fechava `frac=1.000000` VERDE sobre UMA
+    # linha, escondendo duas órfãs. Um id que não existe na ① é exatamente o que
+    # o gate 3×1 existe para pegar: a ③ afirma ter copiado o X de uma avaliação
+    # real que não está lá.
+    orfas = len(marcadas) - len(achados)
+    frac = n_bit / len(marcadas)
+    det = (f"{n_bit}/{len(marcadas)} bit-idênticos (frac={frac:.6f}, "
+           f"max|ΔX|={float(d.max()):.6g}, {orfas} com id ÓRFÃO na ①)")
+    if orfas:
+        det += f" → {orfas} linha(s) da ③ apontam solution_id inexistente"
     return (frac == 1.0), det
 
 
@@ -384,6 +394,29 @@ def _rec_de_geracao(alg: str, recs_vistos: set) -> frozenset:
     return frozenset({"decision"})
 
 
+#: Placeholders que passavam como "chave presente" — o gate testava só
+#: `in (None, "", {})`. Medido no achado #49: `params=[]`, `0`, `False`,
+#: `'None'`, `'  '` e `0.0` fechavam "⑤ 6/6 chaves". As 6 chaves do
+#: `quinto_obrigatorio` são dicts ou strings; nenhuma tem 0/False/[] como valor
+#: legítimo, então rejeitá-los não cria falso-vermelho.
+_PLACEHOLDERS = {"", "none", "null", "nan", "n/a", "-", "todo", "tbd", "?"}
+
+
+def _vazio(v) -> bool:
+    """A chave está AUSENTE de fato? (None, vazio, zero ou placeholder textual)"""
+    if v is None:
+        return True
+    if isinstance(v, str):
+        return v.strip().lower() in _PLACEHOLDERS
+    if isinstance(v, (dict, list, tuple, set)):
+        return len(v) == 0
+    if isinstance(v, bool):
+        return v is False
+    if isinstance(v, (int, float)):
+        return v == 0
+    return False
+
+
 def campos_contratados(alg: str) -> tuple[set, set, dict]:
     """(campos do ⑥, campos do ⑤, não-se-aplica) para o config — do artefato."""
     art = _artefato("contrato_61.json")
@@ -418,7 +451,7 @@ def gate_contrato_61(alg: str, caminho_jsonl: str, man: dict,
         # (o ⑥ é obrigatório em todo run). Vira NÃO-AFERÍVEL, e o ⑤ é auditado
         # assim mesmo — camadas independentes.
         q2 = quinto - ({"campanha_id", "repo_hash"} if modo != "campanha" else set())
-        f5 = sorted(k for k in q2 if man.get(k) in (None, "", {}))
+        f5 = sorted(k for k in q2 if _vazio(q2 and man.get(k)))
         if f5:
             return False, (f"⑥ AUSENTE ({MARCA_NAO_AFERIVEL}) · ⑤ "
                            f"{len(q2) - len(f5)}/{len(q2)} chaves → FALTA ⑤{f5}")
@@ -478,7 +511,7 @@ def gate_contrato_61(alg: str, caminho_jsonl: str, man: dict,
             vistos |= _chaves(rec)
     if modo != "campanha":      # a s42 não tinha campanha_id nem repo_hash
         quinto = quinto - {"campanha_id", "repo_hash"}
-    falta5 = sorted(k for k in quinto if man.get(k) in (None, "", {}))
+    falta5 = sorted(k for k in quinto if _vazio(man.get(k)))
     if not n_eventos:
         # ⚠ [conserto 2026-07-30] Aqui o gate devolvia "não-aplicável" e ia
         # embora SEM NUNCA OLHAR O ⑤ — o `treed_media` escapava 100% da

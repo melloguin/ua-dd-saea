@@ -727,18 +727,54 @@ consegue auditar nem reproduzir — e três deles decidem o que entra no censo.
 **Um algoritmo pode estar profundamente errado e passar nos 6 portões.** Os
 gates conferem **estrutura**; nenhum confere **valor**.
 
-### 15.2 · Onde estão os smokes que você vai auditar
+### 15.2 · 📁 ONDE ESTÃO OS SMOKES — o caminho exato
 
-| stack | onde | células |
+> ⚠ **Eles NÃO estão dentro do repo `ua-dd-saea`.** Rodaram em tempdirs (para
+> nunca tocar `data/`) e foram **preservados** num diretório irmão, porque
+> `/tmp` é volátil e a evidência sumiria no primeiro reboot.
+
+```
+/Users/gmello/Documents/python_repos/mestrado/evidencia_T11/     ← 53 MB
+├── LEIA-ME.md          ← comece por aqui
+├── smoke_matlab/       ← os 13 smokes MATLAB (15 células)
+├── g6_com/  g6_sem/    ← os pares §3.1 (9 + 9 células)
+└── teto_c154/          ← a célula do rito de teto
+```
+
+| pasta | conteúdo | células |
 |---|---|---|
-| **MATLAB** (13 configs) | `/tmp/smoke_matlab/experiments/` | b1·b3·b4·c141·c217·c238·e7·e74(×3)·moead·nsga2·nsga3·smsemoa em `main`; e103 em `off` |
-| **Python** (11 configs) | tempdirs **já removidos** — os vereditos dos gates estão em §5 | — |
-| **Pares §3.1** (com × sem sonda) | `/tmp/g6_com` e `/tmp/g6_sem` | b1·b3·b4·c141·c217·c238·e7·e74·e103 |
-| **Teto** | `/tmp/teto_c154_*/experiments/main/c154/` | `DTLZ2/s42`, truncada em `teto_wall` |
+| `smoke_matlab/experiments/main/` | b1·b3·b4·c141·c217·c238·e7·**e74 (×3: MMF1, DTLZ2, ZDT1)**·moead·nsga2·nsga3·smsemoa | 14 |
+| `smoke_matlab/experiments/off/` | **e103** (offline, com a ⑦ gerada pelo `final_eval`) | 1 |
+| `g6_com/` × `g6_sem/` | a MESMA célula rodada **com** e **sem** sonda: b1·b3·b4·c141·c217·c238·e7·e74·e103 | 9 + 9 |
+| `teto_c154/experiments/main/c154/` | `DTLZ2/s42` (D=12) truncada em `motivo_parada=teto_wall` | 1 |
 
-⚠ Os tempdirs Python foram limpos por desenho (nenhum smoke escreveu em
-produção — verificado: **0 manifestos com `campanha_id`** em `data/experiments`).
-Para re-gerar qualquer um: `RUNBOOK §X` traz a invocação de SMOKE.
+**Como gatear qualquer uma:**
+```bash
+cd /Users/gmello/Documents/python_repos/mestrado/ua-dd-saea
+PY=/Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao/bin/python
+D=/Users/gmello/Documents/python_repos/mestrado/evidencia_T11
+
+$PY -c "
+import sys; sys.path.insert(0,'.'); sys.path.insert(0,'scripts')
+import gates_proveniencia as G
+for n,ok,det in G.gates_de_proveniencia('main','b1','MMF1',42,'$D/smoke_matlab',modo='campanha'):
+    print('%-18s %s %s' % (n, {True:'OK',False:'RUIM',None:'n/a'}[ok], det))"
+```
+Verificado: `b1` e `e103` dão **6/6** sobre a cópia preservada.
+
+⚠ **Use `gates_proveniencia` diretamente, NÃO o `portao.py`**, para auditar
+essas pastas: o `accept.py` não aceita `--data-root` e leria `data/` (achado
+#42). O portão já sabe disso e marca o `accept` como NÃO-AFERÍVEL fora de
+`data/`, mas o caminho direto é mais limpo.
+
+**Os 11 smokes PYTHON não estão preservados** — rodaram em tempdirs removidos ao
+fim de cada run (disciplina de não deixar lixo). **Os vereditos estão
+registrados** em §5 e no `T11-CONFORMIDADE.md`. Para regenerar qualquer um
+(1 s a 45 min conforme o config): `RUNBOOK §X`, a invocação de SMOKE.
+
+**Nenhum smoke escreveu em produção** — verificado por duas medidas
+independentes: **0 manifestos com `campanha_id`** (obrigatório desde o G3) e
+**0 arquivos modificados** em `data/experiments`.
 
 ### 15.3 · As DIVERGÊNCIAS código×paper já conhecidas — comece por aqui
 

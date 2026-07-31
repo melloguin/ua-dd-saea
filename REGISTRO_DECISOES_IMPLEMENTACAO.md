@@ -2094,7 +2094,18 @@ desvio (F5, 25 células): a metade "classificador guia" OPERA (elite em 96,7% do
 e a metade "incerteza escolhe" é INERTE (argmax em só 12,24%; rank mediano 43/100) + 13,31% dos
 ciclos em no-op. **Não invalidou resultados** (e74 = 9,0 aceitar+caveat), mas 1 das 3
 contribuições do artigo não se reproduzia. Obrigatório junto: preservar a telemetria
-`n_desalinhado` (para PROVAR na validação da semente 1 que o argmax passou a valer) + re-lacre
+`n_desalinhado` (~~para PROVAR na validação da semente 1 que o argmax passou a valer~~ — ⚠ **ERRATA 15
+  (2026-07-30): ISTO ESTÁ ERRADO.** O `n_desalinhado` **NÃO mede** o desalinhamento que a
+  DI-45 corrigiu. São DOIS sítios distintos no e74: a DI-45 corrigiu
+  `ClassifierSelect.m:56-58` (o `index` era posição DENTRO de `S` e indexava `Parent`
+  inteiro); o `n_desalinhado` mede `Local_infill.m` (máscara(Offspring)×Parent), que
+  **permanece por decisão registrada** — o próprio `src/e74_instrument.m:184` traz o
+  comentário `% mascara(Offspring)×Parent (fix opcional NAO aplicado)`.
+  MEDIDO: s42 pré-fix **93,49%** (2.860/3.059) × smoke pós-fix **89,80%** (273/304) — a
+  diferença é de célula, não efeito do fix. Ele NÃO cai e cair seria suspeito.
+  **A prova real do DI-45 é o gate ±3σ**, que PASSOU em 3 células (8 gates verdes cada,
+  2026-07-30), mais o `preflight`: âncora `e74-classifierselect-idx` APLICADO e lacre
+  `867ae5f56d8b` OK. Quem seguir a instrução original fará a verificação ERRADA) + re-lacre
 de âncora/`repos.lock` do e74 (vendorizado tocado).
 
 **🏁 PLACAR FINAL DA MESA T11: 13/13 DECIDIDAS.** D1-D3 (re-runs/quimera/⑦) · D4+D5 (DI-43+44) ·
@@ -2405,3 +2416,76 @@ staleness passa a ser o ÚLTIMO passo antes de declarar conformidade.
 | `b1/WFG1` perdeu **39 de 413 gerações** por splice — irrecuperável nas cópias locais | **do autor** — e o V2 já re-roda exatamente essa célula |
 | wrapper do gatilho do `adapt` (A3/I-05 item 4) nunca implementado | **declarado**: é cirurgia vendorizada ⇒ âncora + re-lacre + ~90 min de nova prova. A cadeia A8 já é observável na CAUSA (`flag_vetores_degenerados`) e no EFEITO (`p_wrong_stats`≡0) |
 | 33 médios + 15 baixos + 8 cosméticos | **não entraram** nesta rodada — pela nota dos próprios auditores não bloqueiam a campanha; ficam no handoff |
+
+---
+
+## PARTE A39 — 🔬 O DIAGNÓSTICO DOS 56 RESIDUAIS (T11, 2026-07-30, noite)
+
+> Os 22 achados de maior gravidade da varredura foram tratados no mesmo dia. Os
+> **56 restantes** (33 MÉDIO · 15 BAIXO · 8 COSMÉTICO) nunca tinham passado por
+> refutação — a fase adversarial processou 27 de ~156 votos antes de ser
+> encerrada por orçamento. Um agente cético dedicado os verificou **um a um**,
+> read-only, sequencialmente.
+
+### A39.1 · O placar
+
+| classe | n | o que significa |
+|---|---|---|
+| **FALSO_POSITIVO** | **6** | não reproduz, ou é comportamento intencional documentado, ou leitura de dado velho |
+| **SÉRIO** | **7** | pode produzir dado errado, perda de dado, ou afirmação falsa no dossiê |
+| **GATE_CEGO** | **9** | não corrompe dado, mas deixa uma verificação incapaz de reprovar |
+| **OPCIONAL** | **34** | estilo, redação, duplicação, processo já assumido |
+
+**Fato que o cético levantou primeiro:** o HEAD avançou **13 commits** entre a
+medição da varredura e a refutação. Ele verificou contra o HEAD, não contra o
+snapshot — e 3 dos 6 falso-positivos são exatamente achados **já corrigidos**
+nesse intervalo.
+
+### A39.2 · O que foi CORRIGIDO (commit `947cfc2`)
+
+| # | achado | conserto |
+|---|---|---|
+| **#42** | `accept.py` e `auditar.py` **ignoravam `--data-root`** e liam sempre `data/`. PROVADO: gatear célula INEXISTENTE num sandbox devolvia `accept=VERDE · auditar=VERDE`. Importa no **gate F4**, que roda o portão sobre o corpus CONSOLIDADO | `auditar` ganhou a flag (a função já a recebia); o `accept` vira **NÃO-AFERÍVEL** fora de `data/` — admitir que não sabe, em vez de mentir verde |
+| **#48** | G-1: `frac = n_bit / len(achados)` escondia ids ÓRFÃOS no denominador. ③ com {0,777,888} × ① com {0} fechava `frac=1.000000` sobre UMA linha | denominador passa a `len(marcadas)`; o detalhe reporta quantas são órfãs |
+| **#49** | G-7 aceitava `params=[]`, `0`, `False`, `'None'`, `'  '` como "⑤ 6/6 chaves" | `_vazio()` — vazio de coleção, zero, False e 9 placeholders textuais. 14 casos de borda verificados |
+
+### A39.3 · ERRATA 16 — o `e0_trace` degenerado do b1
+
+**Achado #20, reproduzido ao dígito:** em **597 dos 1.029 ciclos** em que "a 1ª
+geração interna venceu" (o número que sustenta a leitura do VD-b1), o
+`e0_trace` é **CONSTANTE** — o GA interno de aquisição rodou N gerações e o
+melhor EI **nunca melhorou**. E as duas células da tese do "efeito concentrado",
+`BBOB_F37` e `BBOB_F49`, são **85,8%** e **87,1%** degeneradas.
+
+**O que isso muda.** Eu concluí que o torneio defeituoso pesa "~6,1% dos ciclos,
+concentrado em F37/F49". Nessas células, "a 1ª geração venceu" quase sempre
+significa **"nenhuma geração melhorou nada"**, não "a 1ª foi boa". **O número
+SUPERESTIMA o peso do torneio.**
+
+**O que NÃO muda.** O dado está correto e é válido; o que estava errado era a
+minha leitura. E o achado **reforça** a classificação 🟠 IMPL → CÓDIGO do
+VD-b1 (o torneio é ainda mais inerte do que a ERRATA 10 já dizia), não a
+contradiz. **Nada muda no b1.**
+
+**Escopo: 1 config.** Medido — `e0_trace` é emitido **só pelo b1** (é a
+instrumentação do GA interno do ParEGO). Nenhum dos outros 23 tem o campo.
+
+### A39.4 · O que foi ARQUIVADO — decisão do autor em 2026-07-30
+
+| bloco | decisão | motivo |
+|---|---|---|
+| **População contaminada** (#21,#22,#23,#25) — números medidos em `data/experiments` (744 células) em vez das 666 oficiais | **MANTER como está** | não afeta código nem campanha; **os resultados que vão para a dissertação saem do BUCKET**, não desta pasta |
+| **7 GATE_CEGO restantes** — incl. testes que nunca rodaram em ambiente nenhum (#7,#8) e `python tests/test_gates_g6.py` dando 45 testes contra 56 via discovery | **ARQUIVAR**, revisitar no M8 | nenhum produz dado errado; são cobertura de teste |
+| **34 OPCIONAL** | **ARQUIVAR com nota** | o cético mediu que **16 deles** se resolvem com uma regra de redação: trocar contagem absoluta por `≥N` na prosa |
+
+### A39.5 · As lacunas que o cético DECLAROU
+
+Registradas porque uma lacuna não declarada é pior que um achado:
+1. **Não gateou o corpus oficial das 666** (layout incompatível com
+   `--data-root`) — logo refutou o `#47` por população errada, **não por
+   medição**. É a lacuna mais importante.
+2. **Nenhum comportamento MATLAB foi executado** — aceitou os 19 hashes do G-6
+   registrados no `T11_STATUS:80-84` sem reproduzi-los.
+3. **#42:** provou o mecanismo, mas não achou log de qual ferramenta gerou a
+   tabela de smoke desta sessão.
+4. #17/#18 verificados por **amostragem**; #1 com denominador divergente.

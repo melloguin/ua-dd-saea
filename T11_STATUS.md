@@ -226,6 +226,14 @@
       (trocá-los derruba a reprodução de 6.268/6.268 para 1.252/6.268) · `y_treino_dist`
       DERIVADO de `rr`×`n_treino`, sem tocar o vendorizado
 - [~] A8 · e74 — **FIX DI-45 APLICADO**
+      · ⚠ **ERRATA 16 (2026-07-30, noite):** o `e0_trace` do b1 é **CONSTANTE em 597 dos
+        1.029 ciclos** em que "a 1ª geração interna venceu" — o GA de aquisição rodou N
+        gerações e o melhor EI NUNCA melhorou. `BBOB_F37` e `BBOB_F49`, as 2 células da minha
+        tese do "efeito concentrado", são **85,8%** e **87,1%** degeneradas. Ou seja: ali,
+        "a 1ª geração venceu" quase sempre significa "nenhuma melhorou nada". **Meu ~6,1%
+        SUPERESTIMA o peso do torneio.** O dado é válido; a leitura é que estava errada — e
+        o achado REFORÇA a classificação 🟠 do VD-b1 (ainda mais inerte), não a contradiz.
+        Escopo medido: **1 config** — só o b1 emite `e0_trace`
       · ⚠ **ERRATA 15 (2026-07-30):** eu registrei aqui, e repeti ao autor duas vezes, que
         "`n_desalinhado` cai a ~0 é a PROVA do fix". **É FALSO, e a resposta estava a uma
         linha do campo:** `src/e74_instrument.m:184` diz

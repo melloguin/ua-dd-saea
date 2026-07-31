@@ -128,3 +128,22 @@ estava **10× errada** — ela media células de produção, não a mais barata.
 4. **13 erratas nasceram nesta campanha de "verifique antes de escrever"** —
    e 4 delas eram falso-positivo de gate MEU. Nenhum número deste relatório foi
    copiado de documento: todos foram re-medidos hoje.
+
+---
+
+## 7. Os 56 achados residuais — diagnóstico e destino (2026-07-30, noite)
+
+Um agente cético dedicado refutou os 56 um a um, read-only. Placar:
+**6 FALSO_POSITIVO · 7 SÉRIO · 9 GATE_CEGO · 34 OPCIONAL**.
+
+| destino | itens | decisão do autor |
+|---|---|---|
+| **CORRIGIDO** (`947cfc2`) | #42 (portão mentia verde sobre outro corpus) · #48 (G-1 escondia ids órfãos no denominador) · #49 (G-7 aceitava placeholder como chave) | tratar |
+| **ERRATA 16** | #20 — `e0_trace` constante em 597/1.029 ciclos do b1 | registrar e encerrar |
+| **ERRATA 15 no ledger** | #33 — o REGISTRO mandava usar `n_desalinhado` como prova do DI-45 | corrigir |
+| **MANTER** | #21,#22,#23,#25 — população contaminada nos números descritivos | não afeta código; **os resultados da dissertação saem do BUCKET** |
+| **ARQUIVAR, revisitar no M8** | os 7 GATE_CEGO restantes | nenhum produz dado errado |
+| **ARQUIVAR com nota** | os 34 OPCIONAL | 16 se resolvem trocando contagem absoluta por `≥N` na prosa |
+
+Detalhe completo, com as lacunas que o cético declarou, em
+`REGISTRO_DECISOES_IMPLEMENTACAO.md` PARTE **A39**.

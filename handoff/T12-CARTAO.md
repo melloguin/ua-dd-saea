@@ -100,8 +100,13 @@ Pmid: nenhum re-lacre necessário. Nenhum outro item toca árvore vendorizada.
       0/1.144). ⚠ **A expectativa do cartão não se confirmou e o dado manda**: `n_norma_zero = 0`
       em 381/381, `norma_min≈norma_max≈1`, `n_substituicoes` 3–12/geração (Σ 7.769), `P_wrong.max`
       até 1,0 — **o DTLZ2 é célula SADIA**. Pelo `f5/t11/relatorios_config/b5m.md` as congeladas são
-      **DTLZ3 (380/380) e DTLZ1 (370)**, não DTLZ2. Controle positivo rodando em `off/b5m/DTLZ3/s42`
-      (fecha também o BL-22). Ver §7 · pendência (a) `moead_media`.
+      **DTLZ3 (380/380) e DTLZ1 (370)**, não DTLZ2. **Controle positivo COLHIDO em
+      `off/b5m/DTLZ3/s42`** (2.736 s — fecha também o **BL-22**, o smoke que faltava da cadeia A8):
+      flag não-nula **381/381**, `n_norma_zero = 105 de 105 vetores` em **381/381 gerações**,
+      `norma_min = norma_max = 0,0`, `n_substituicoes = 0` (soma 0) e `P_wrong.max = 0,0`. **A
+      cadeia A8 inteira — `adapt` → norma 0 → PBI NaN → P_wrong ≡ 0 → zero substituições — está
+      medida em célula real pela primeira vez**, e o par DTLZ3 (colapsada) × DTLZ2 (sadia) é o
+      controle positivo/negativo do campo. Ver §7 · pendência (a) `moead_media`.
 - [x] T12.3 · BL-05 y_treino_dist c217 — os DOIS defeitos: rótulo **binário {1,2}**
       (`CalFitnessPC.m:69-71`), não ternário, e conjunto = **TrainIn**, não Input. Agora
       `classe_melhor`/`classe_pior`/`prevalencia` + `n_input` + `confere_com_TrainIn` (o controle
@@ -138,7 +143,21 @@ Pmid: nenhum re-lacre necessário. Nenhum outro item toca árvore vendorizada.
       scipy **instalado** e trava o **sha256 do lote de Owen** de `_sobol_batch01` em 3 pontos
       (D=2/10/30) + controle de determinismo por semente. Controle negativo: sem o pin, 1 falha
       + 1 erro. ⚠ `numpy` segue `>=2,<3` — ver §7 · pendência (e).
-- [ ] T12.7 · gates texto→comportamento (2 arquivos)
+- [x] T12.7 · gates texto→comportamento (2 arquivos) — **a conversão pegou o BL-03 no 1º disparo.**
+      `tests/test_a2_c122.py`: os 5 gates do bloco `sonda_estratificada` (220-260) agora EXECUTAM
+      `emit_sonda_estratificada` e aferem a LINHA emitida; o `meta` do `emit_sonda_block` é aferido
+      no evento, não na assinatura; o RNG é aferido no ESTADO (não no texto do `with`).
+      `tests/test_piso_off.py`: o gancho do mode 12 aferia `inspect.getsource` do `__init__`/
+      `_next_gen` — agora casa o objeto (`mod.MOEAD_select is MOEAD_select`, e **não** o
+      probabilístico) e constrói uma `Population` VENDORIZADA real para provar que os 3 archives
+      são indexados por geração. **Cirurgia BL-03** (`src/standalone_harness.py`): o emissor
+      estratificado não ramificava por `pred_tipo` — o score par-a-par do c122 ia para `mu_0` e a
+      confiança para `sigma_0`, com `pred_score` NULL em 10.500/10.500 linhas. Ramificado como a
+      função irmã. **Smoke real `main/c122/MMF1/s42`** (51,8 s): **11.000/11.000** linhas
+      `sonda_estratificada` com `pred_score` e `pred_confianca` preenchidos e `mu_0`/`sigma_0`
+      NULL. ⚠ 4 gates de texto do `test_a2_c122.py` exigem artefato de run real
+      (`n_ref` do ⑥, `REGRA_DO_ROTULO` do ⑤, `n_front1` do sobol_batch, `geracoes_derivadas` do
+      ⑤ MATLAB) e foram **movidos para o T12.8**, que é onde os testes sobre smoke vivem.
 - [ ] T12.8 · varredura de VALOR de todos os campos T11 (1 teste/campo)
 - [ ] T12.D1 · piso de ruído → `piso_ruido.json` + regra no CONTRATO (após OK do autor)
 - [ ] T12.D2 · retificação N=20 (após confirmação do autor)

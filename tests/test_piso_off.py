@@ -160,15 +160,77 @@ class TestPuros(unittest.TestCase):
 class TestGanchos(unittest.TestCase):
 
     def test_import_vendored_e_o_MOEA_D_do_mode12(self):
+        # [T12.7] Era `inspect.getsource` + `assertIn`: aferia o TEXTO do
+        # `__init__` e do `_next_gen`. Um `MOEAD_select` que aparecesse só num
+        # comentário, ou um `individuals_archive` que a classe deixasse de
+        # popular, passariam verdes. Agora se afere o OBJETO.
         DataProblem, SurrogateKriging, MOEA_D = P._import_vendored()
-        import inspect
         # o MODE 12 é o MOEA_D de ProbMOEAD.py (PBI + MOEAD_select), NÃO o de MOEAD.py
         self.assertEqual(MOEA_D.__module__, "desdeo_emo.EAs.ProbMOEAD")
-        self.assertIn("MOEAD_select", inspect.getsource(MOEA_D.__init__))
-        src_ng = inspect.getsource(MOEA_D._next_gen)
-        self.assertIn("individuals_archive", src_ng)   # arquiva por geração (③ nativa)
-        self.assertIn("objectives_archive", src_ng)
-        self.assertIn("uncertainty_archive", src_ng)   # existe, mas o piso NÃO a reporta
+        # o seletor do mode 12 é uma CLASSE resolvível no módulo do evolver —
+        # e é a do MOEAD_select, não a probabilística do b5m (mode 72)
+        import sys as _sys
+        mod = _sys.modules[MOEA_D.__module__]
+        from desdeo_emo.selection.MOEAD_select import MOEAD_select
+        from desdeo_emo.selection.ProbMOEAD_select import ProbMOEAD_select
+        self.assertIs(mod.MOEAD_select, MOEAD_select)
+        self.assertIsNot(MOEAD_select, ProbMOEAD_select,
+                         "o piso resolveria para o seletor PROBABILÍSTICO — a "
+                         "ablação estaria contaminada com a maquinaria que ela "
+                         "existe para NÃO ter")
+
+    def test_a_populacao_arquiva_as_tres_series_por_geracao(self):
+        """[T12.7] A ③ nativa do piso É o archive — aferida no objeto vivo.
+
+        `run_piso_offline` reconstrói a ③ inteira pelo replay de
+        `individuals_archive`/`objectives_archive` com chave `str(gen_count)`;
+        se a classe parasse de arquivar, a ③ sairia VAZIA e o runner
+        levantaria *"nenhum arquivo de geração"*. Aqui a `Population`
+        VENDORIZADA é construída de verdade (com um `problem` duplo mínimo) e
+        alimentada duas vezes: o que se afere são as CHAVES e o CONTEÚDO dos
+        três arquivos, não o texto do `_next_gen`.
+        """
+        import numpy as _np
+        P._import_vendored()
+        from desdeo_emo.population import Population
+
+        class _Res:
+            def __init__(self, X):
+                self.objectives = _np.asarray(X)[:, :1] * 2.0
+                self.fitness = self.objectives
+                self.constraints = None
+                self.uncertainity = _np.asarray(X)[:, :1] * 0.0 + 0.5
+
+        class _ProblemaDuplo:
+            n_of_constraints = 0
+            ideal = None
+            nadir = None
+            _max_multiplier = 1
+
+            def get_variable_lower_bounds(self):
+                return _np.zeros(2)
+
+            def get_variable_upper_bounds(self):
+                return _np.ones(2)
+
+            def evaluate(self, X, use_surrogates=False):
+                return _Res(X)
+
+        X0 = _np.array([[0.1, 0.2], [0.3, 0.4]])
+        pop = Population(_ProblemaDuplo(), 2,
+                         pop_params={"design": "InitSamples", "init_pop": X0})
+        self.assertEqual(list(pop.individuals_archive), ["1"],
+                         "a construção não arquivou a geração 1")
+        pop.add(_np.array([[0.5, 0.6]]))
+        for nome in ("individuals_archive", "objectives_archive",
+                     "uncertainty_archive"):
+            with self.subTest(archive=nome):
+                arq = getattr(pop, nome)
+                self.assertEqual(sorted(arq), ["1", "2"],
+                                 "`%s` não é indexado por geração" % nome)
+        self.assertTrue(_np.array_equal(
+            _np.asarray(pop.individuals_archive["1"]), X0),
+            "o archive da geração 1 não guarda os indivíduos daquela geração")
 
     def test_root_first_e_pydoe_patch(self):
         P._import_vendored()

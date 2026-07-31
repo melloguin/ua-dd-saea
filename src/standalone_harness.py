@@ -945,15 +945,32 @@ def emit_sonda_estratificada(buf, log, *, geracao, fe, arquivo_X, xl, xu,
                                   semente_bloco=semente_bloco)
         if X.shape[0] == 0:
             return 0.0
-        mu, sigma = predict(X)
+        a, b = predict(X)
         for i in range(X.shape[0]):
+            # [BL-03] RAMIFICA por `pred_tipo`, como a irmã `emit_sonda_block`
+            # (:846-854) e como a docstring dela EXIGE: score/classe vão para
+            # `pred_score`/`pred_classe` + `pred_confianca`, "NUNCA para
+            # mu_*/sigma_*, que significam outra coisa e envenenariam a leitura
+            # da ③ pela R4". Sem a ramificação, o `pred_tipo` default deste
+            # emissor ('score' — o c122 é classificador par-a-par) gravava o
+            # e(z) em `mu_0` e a confiança em `sigma_0`, com `pred_score` NULL:
+            # 10.500/10.500 linhas. O guard do writer (export.py:468-478) não
+            # pega, porque `len(mu)=1 < M=2` é o caso legítimo do b1
+            # mono-output.
+            if pred_tipo == "classe":
+                extra = {"pred_classe": (None if a[i] is None else str(a[i])),
+                         "pred_confianca": (None if b is None else float(b[i]))}
+            elif pred_tipo == "score":
+                extra = {"pred_score": float(a[i]),
+                         "pred_confianca": (None if b is None else float(b[i]))}
+            else:                                 # 'valor' / 'hibrido'
+                extra = {"mu": (None if a is None else a[i]),
+                         "sigma": (None if b is None else b[i])}
             buf.add_surrogate(_export.surrogate_row(
                 (None if geracao is None else int(geracao)), X[i],
                 regime="sonda_estratificada", real_solution_id=None,
-                mu=(None if mu is None else mu[i]),
-                sigma=(None if sigma is None else sigma[i]),
                 pred_tipo=pred_tipo, modelo_flag=modelo_flag,
-                fe_treino_max=fe_treino_max))
+                fe_treino_max=fe_treino_max, **extra))
         # ⚠ O `f` VERDADEIRO NÃO vai à ③: o schema dela é contrato (§3) e
         # mudá-lo custaria re-run de tudo por ZERO informação nova — os
         # problemas são ANALÍTICOS e determinísticos, então a análise recompõe

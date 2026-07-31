@@ -119,11 +119,43 @@ class TestRegraDoRotuloI2(unittest.TestCase):
 @unittest.skipUnless(_TEM, "stack do c122 ausente")
 class TestSondaLevaOsMetadados(unittest.TestCase):
 
-    def test_emit_sonda_block_aceita_meta(self):
-        import inspect
+    def test_emit_sonda_block_LEVA_o_meta_ao_evento(self):
+        # [T12.7] Era `assertIn("meta", signature(...))`: provava que o
+        # parâmetro EXISTE, não que ele chega ao ⑥. Um `meta` aceito e
+        # descartado passaria verde — e o bloco sairia com o rótulo velho.
+        import numpy as np
 
         from src.standalone_harness import emit_sonda_block
-        self.assertIn("meta", inspect.signature(emit_sonda_block).parameters)
+
+        class _Buf:
+            def __init__(self):
+                self.rows = []
+
+            def add_surrogate(self, row):
+                self.rows.append(row)
+
+        class _Log:
+            def __init__(self):
+                self.eventos = []
+
+            def event(self, kind, **campos):
+                self.eventos.append((kind, campos))
+
+        buf, log = _Buf(), _Log()
+        X = np.array([[0.1, 0.2], [0.3, 0.4]])
+        sonda = {"X": X, "x_hash": "abc", "f_hash": "def"}
+        emit_sonda_block(
+            buf, log, geracao=2, fe=9, sonda=sonda,
+            predict=lambda Z: (np.zeros(Z.shape[0]), np.ones(Z.shape[0])),
+            fe_treino_max=8, pred_tipo="score",
+            meta={"n_ref": 21, "n_ref_nominal": 11, "ref_ids": [1, 2, 3]})
+        kind, campos = log.eventos[0]
+        self.assertEqual(kind, "sonda")
+        self.assertEqual(campos["n_ref"], 21)
+        self.assertEqual(campos["n_ref_nominal"], 11)
+        self.assertEqual(campos["ref_ids"], [1, 2, 3])
+        # e o `meta` NÃO contamina a ③ (ele é do ⑥, por contrato)
+        self.assertNotIn("n_ref", buf.rows[0])
 
     def test_TODAS_as_emissoes_do_c122_levam_meta(self):
         # 3 sítios: a sonda da cadência, a sonda FINAL (que a §3.1 torna
@@ -218,35 +250,113 @@ class TestA11SondaEstratificada(unittest.TestCase):
         X = amostra_estratificada(np.empty((0, 2)), [0, 0], [1, 1], n=10)
         self.assertEqual(X.shape[0], 0)
 
+    # ── [T12.7] Os 5 gates abaixo eram `inspect.getsource` + `assertIn` ──────
+    # Eles aferiam o TEXTO da função e passaram VERDES sobre o BL-03 (10.500 de
+    # 10.500 linhas com o score par-a-par gravado em `mu_0` e `pred_score`
+    # NULL). Agora cada um EXECUTA `emit_sonda_estratificada` e afere a LINHA
+    # emitida — é a diferença entre "a função menciona X" e "a ③ contém X".
+
+    @staticmethod
+    def _emite(pred_tipo="score", n=8, true_f=None):
+        """Roda o emissor de verdade e devolve `(linhas da ③, evento do ⑥)`."""
+        from src import standalone_harness as H
+
+        class _Buf:
+            def __init__(self):
+                self.rows = []
+
+            def add_surrogate(self, row):
+                self.rows.append(row)
+
+        class _Log:
+            def __init__(self):
+                self.eventos = []
+
+            def event(self, kind, **campos):
+                self.eventos.append((kind, campos))
+
+        buf, log = _Buf(), _Log()
+        A = np.array([[0.5, 0.5], [0.2, 0.8]])
+        # `predict` do CLASSIFICADOR par-a-par: (valor, confiança) 1-D — a
+        # mesma forma que o `emit_sonda_block` documenta para score/classe.
+        def predict(X):
+            return (np.linspace(-1.0, 1.0, X.shape[0]),
+                    np.full(X.shape[0], 0.25))
+
+        H.emit_sonda_estratificada(
+            buf, log, geracao=3, fe=17, arquivo_X=A, xl=[0, 0], xu=[1, 1],
+            predict=predict, true_f=true_f, fe_treino_max=16,
+            pred_tipo=pred_tipo, n=n, semente_bloco=5)
+        return buf.rows, log.eventos[0]
+
     def test_o_regime_e_SEPARADO_da_regua(self):
         # NUNCA misturar: cada algoritmo tem um arquivo diferente, então o bloco
-        # não é comparável ENTRE configs (a ressalva da opção (b) do laudo §6)
-        import inspect
+        # não é comparável ENTRE configs (a ressalva da opção (b) do laudo §6).
+        rows, (kind, _) = self._emite()
+        self.assertEqual(kind, "sonda_estratificada")
+        self.assertTrue(rows)
+        self.assertEqual({r["regime"] for r in rows}, {"sonda_estratificada"},
+                         "alguma linha entrou na régua Sobol")
 
-        from src import standalone_harness as H
-        src = inspect.getsource(H.emit_sonda_estratificada)
-        self.assertIn('regime="sonda_estratificada"', src)
-        self.assertIn("NUNCA misturar", src)
+    def test_o_score_vai_para_pred_score_e_NAO_para_mu(self):
+        """[BL-03] O defeito que os 5 gates de texto deixaram passar.
+
+        `mu_j` significa "média do posterior de um regressor". Gravar ali o
+        score par-a-par do c122 (que é um CLASSIFICADOR) envenena a leitura da
+        ③ pela R4 — e deixa `pred_score` NULL, que é onde a análise procura.
+        A função irmã (`emit_sonda_block`) já ramifica por `pred_tipo`; esta
+        não ramificava, e o guard do writer não pega porque `len(mu)=1 < M=2`
+        é o caso legítimo do b1 mono-output.
+        """
+        rows, _ = self._emite(pred_tipo="score")
+        for r in rows:
+            self.assertIsNone(r["mu"], "o score foi para `mu` — BL-03")
+            self.assertIsNone(r["sigma"], "a confiança foi para `sigma` — BL-03")
+            self.assertIsNotNone(r["pred_score"], "`pred_score` saiu NULL")
+            self.assertIsNotNone(r["pred_confianca"])
+        self.assertEqual([float(r["pred_score"]) for r in rows],
+                         list(np.linspace(-1.0, 1.0, len(rows))),
+                         "o score emitido não é o que o `predict` devolveu")
+
+    def test_o_regressor_continua_indo_para_mu_e_sigma(self):
+        """O controle do teste acima: ramificar não pode quebrar o `valor`."""
+        rows, _ = self._emite(pred_tipo="valor")
+        for r in rows:
+            self.assertIsNotNone(r["mu"])
+            self.assertIsNone(r["pred_score"])
 
     def test_o_f_verdadeiro_NAO_vai_para_a_terceira(self):
         # o schema da ③ é contrato (§3): mudá-lo custaria re-run de tudo por
         # ZERO informação nova — os problemas são analíticos e o f é
-        # recomputável do X gravado (mesma doutrina do I-12)
-        import inspect
-
-        from src import standalone_harness as H
-        src = inspect.getsource(H.emit_sonda_estratificada)
-        self.assertIn("prevalencia_nd_no_bloco", inspect.getsource(H))
-        self.assertNotIn("f_verdadeiro=", src)
+        # recomputável do X gravado (mesma doutrina do I-12). O que vai ao ⑥ é
+        # o AGREGADO: a prevalência da classe positiva no bloco.
+        rows, (_, campos) = self._emite(
+            true_f=lambda X: np.column_stack([X[:, 0], 1.0 - X[:, 0]]))
+        self.assertNotIn("f_verdadeiro", rows[0])
+        self.assertIn("prevalencia_nd_no_bloco", campos)
+        prev = campos["prevalencia_nd_no_bloco"]
+        self.assertIsNotNone(prev, "a prevalência saiu NULL com `true_f` dado")
+        self.assertGreater(prev, 0.0)
+        self.assertLessEqual(prev, 1.0)
 
     def test_roda_sob_preserve_all_rng(self):
         # a amostragem E a predição consomem RNG; sem a guarda, MEDIR MOVERIA A
-        # BUSCA e o run inteiro seria inválido (invariante §3.1)
-        import inspect
-
-        from src import standalone_harness as H
-        self.assertIn("with preserve_all_rng():",
-                      inspect.getsource(H.emit_sonda_estratificada))
+        # BUSCA e o run inteiro seria inválido (invariante §3.1). Aferido no
+        # ESTADO do RNG global, não no texto do `with`.
+        import random
+        np.random.seed(4242)
+        random.seed(4242)
+        antes_np = np.random.get_state()
+        antes_py = random.getstate()
+        self._emite(n=200)
+        depois_np = np.random.get_state()
+        self.assertEqual(antes_np[0], depois_np[0])
+        self.assertTrue(np.array_equal(antes_np[1], depois_np[1]),
+                        "o bloco estratificado MOVEU o RNG do numpy — a busca "
+                        "sai diferente com e sem instrumento (§3.1)")
+        self.assertEqual(antes_np[2:], depois_np[2:])
+        self.assertEqual(antes_py, random.getstate(),
+                         "o bloco estratificado MOVEU o RNG do `random`")
 
     def test_o_c122_usa_uso_id_proprio_no_RNG(self):
         # a semente do bloco sai do catálogo D62/D91 com `uso_id` dedicado —

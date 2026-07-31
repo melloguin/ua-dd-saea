@@ -584,20 +584,35 @@ novo máximo** (tmp+rename), a mesma doutrina do checkpoint do G5. **As duas
 tentativas anteriores morreram deixando NADA**, e foi esse conserto que
 transformou "sem resultado" em "resultado parcial utilizável".
 
-**Teto adotado: 6 GB por job — 5× o medido** (decisão do autor). Um teto
-conservador custa paralelismo; um teto otimista custa a campanha inteira quando
-o OS começar a matar processos de madrugada.
+**Há um SEGUNDO ponto medido, e ele é maior:** o `c154/DTLZ2` (D=12) chegou a
+**2,2 GB** observado por `ps` durante as 6 h. Também é piso — parou no teto com
+282 de 371 FEs.
 
-| máquina | vCPU | RAM | **`--n-jobs`** | gargalo |
+⚠ **Por que os dois são pisos, e por que isso importa.** Em métodos baseados em
+GP a memória cresce com o número de observações (a matriz de covariância é
+O(n²)). O consumo real ao FIM de um run é maior que ambas as medidas.
+
+**Teto adotado: 4 GB por job, com `n-jobs` sobre 80% da RAM** (decisão do autor,
+2026-07-31). A primeira versão usava 6 GB e dividia a RAM INTEIRA — o que
+escondia a margem de segurança dentro do número por-job, tornando impossível
+saber quanta folga existia. **Teto e folga são coisas separadas.**
+
+| máquina | vCPU | RAM | 80% utilizável | **`--n-jobs`** |
 |---|---|---|---|---|
-| Mac A | 8 | 16 GB | **2** | RAM |
-| VM-1 `v5-mestrado` | 32 | 64 GB | **10** | RAM |
-| VM-2 `mestrado-v6` | 32 | 64 GB | **10** | RAM |
-| VM-3 | 16 | 32 GB | **5** | RAM |
+| Mac A | 8 | 16 GB | 12,8 GB | **3** |
+| VM-1 `v5-mestrado` | 32 | 64 GB | 51,2 GB | **12** |
+| VM-2 `mestrado-v6` | 32 | 64 GB | 51,2 GB | **12** |
+| VM-3 | 16 | 32 GB | 25,6 GB | **6** |
 
-**A RAM é o gargalo em TODA máquina do parque.** Com 1 thread por run (D79)
-caberiam tantos jobs quantos vCPU — mas a memória esgota antes. Detalhe e
-comandos no **RUNBOOK §Y**.
+🚨 **REGRA DE ARRANQUE:** o primeiro lote roda com **METADE** desses valores; o
+autor observa o pico real por ~1 h e só então sobe. **Nenhum `n-jobs` derivado
+de duas medições INCOMPLETAS merece confiança cega**, e o custo de errar para
+cima não é lentidão — é o OS matando células de madrugada, sem aviso e sem
+dado. Foi exatamente o que aconteceu com o probe desta campanha, DUAS vezes.
+
+**A RAM é o gargalo em TODA máquina.** Com 1 thread por run (D79) caberiam
+tantos jobs quantos vCPU (16 no VM-1), mas com a folga de SO a memória esgota
+antes. Detalhe e comandos no **RUNBOOK §Y**.
 
 ---
 
@@ -690,3 +705,131 @@ consegue auditar nem reproduzir — e três deles decidem o que entra no censo.
 | `handoff/T11-parcial-2026-07-29.md` | 159 | o parcial da FASE G |
 | `handoff/T11-FINAL.md` | 152 | ⚠ **OBSOLETO** — fotografia de 30/07 08:27, com aviso no topo |
 | `handoff/T11-CONFORMIDADE.md` | 130 | os 24 configs: smoke, portões, §3.1 |
+
+---
+
+## 15. 🔬 PARA O AGENTE VALIDADOR DE FIDELIDADE
+
+> **Leia esta seção primeiro se sua missão é validar FIDELIDADE.** Ela existe
+> porque a validação de fidelidade é **explicitamente MANUAL e do autor (D97)** —
+> nada nesta campanha a fez, e é a maior lacuna do trabalho (confiança 25%, §8).
+
+### 15.1 · O que esta campanha PROVOU, e o que ela NÃO prova
+
+| provado | NÃO provado |
+|---|---|
+| Cada config **roda ponta a ponta** e escreve as 7 camadas contratadas | Que os **valores** produzidos estão certos |
+| O ⑤ traz `campanha_id`/`repo_hash`/schema v2 e as 6 chaves | Que o algoritmo faz o que o **artigo** descreve |
+| O ⑥ tem header+footer e zero linha malformada | Que a busca converge como deveria |
+| A **sonda não perturba a busca** (§3.1, 19/19 configs, ① bit-idêntica) | Que os hiperparâmetros são os do paper |
+| A proveniência fecha e o dado é rastreável | Que as divergências código×paper são aceitáveis |
+
+**Um algoritmo pode estar profundamente errado e passar nos 6 portões.** Os
+gates conferem **estrutura**; nenhum confere **valor**.
+
+### 15.2 · Onde estão os smokes que você vai auditar
+
+| stack | onde | células |
+|---|---|---|
+| **MATLAB** (13 configs) | `/tmp/smoke_matlab/experiments/` | b1·b3·b4·c141·c217·c238·e7·e74(×3)·moead·nsga2·nsga3·smsemoa em `main`; e103 em `off` |
+| **Python** (11 configs) | tempdirs **já removidos** — os vereditos dos gates estão em §5 | — |
+| **Pares §3.1** (com × sem sonda) | `/tmp/g6_com` e `/tmp/g6_sem` | b1·b3·b4·c141·c217·c238·e7·e74·e103 |
+| **Teto** | `/tmp/teto_c154_*/experiments/main/c154/` | `DTLZ2/s42`, truncada em `teto_wall` |
+
+⚠ Os tempdirs Python foram limpos por desenho (nenhum smoke escreveu em
+produção — verificado: **0 manifestos com `campanha_id`** em `data/experiments`).
+Para re-gerar qualquer um: `RUNBOOK §X` traz a invocação de SMOKE.
+
+### 15.3 · As DIVERGÊNCIAS código×paper já conhecidas — comece por aqui
+
+A SPEC as classifica com uma bússola única: *"o parâmetro muda o mecanismo que a
+tese mede (o surrogate e o uso da incerteza)?"*
+
+| config | divergência | classe SPEC | onde |
+|---|---|---|---|
+| **b1** ParEGO | λ=100/91 vs 11/15 · subset top-determinístico vs ½ melhores+½ aleatórias · GA geracional c/ truncamento elitista vs steady-state pop 20 · MLE boxmin sem restarts vs Nelder-Mead 20 restarts · **torneio bugado** | 🟠 **IMPL → CÓDIGO** (D30/D47) | `SPEC:500` |
+| **c217** PC-SAEA | spread da PNN 0,1925 (paper: 0,2) · operadores GA η_c=15/η_m=5 (Balde C: 20/20) · pares todos×todos | 🟠 CÓDIGO documentado (K.3) | `SPEC:559,564` |
+| **c122** | `random.sample` | 🟠 IMPL | `SPEC:434` |
+| **e74** CLMEA | **DI-45 CORRIGIDO** (índice de subconjunto usado como absoluto). ⚠ Há um **SEGUNDO** desalinhamento em `Local_infill.m` (máscara(Offspring)×Parent) **deliberadamente NÃO corrigido** | 🔴 → corrigido / 🟠 mantido | `e74_instrument.m:184` |
+| **c149** | `[:, :2]`→`[:, :M]` | 🔴 BUG → **ARTIGO** | `SPEC:434` |
+| **e103** | `pm=1/D²`→`1/D` | 🔴 BUG → **ARTIGO** | `SPEC:434` |
+| **c262/e81** | kernel RBF→**Matérn 5/2 ARD** | 🔵 VERSÃO → **ARTIGO** (toca a incerteza) | `SPEC:434` |
+| **c311** | σ das folhas | 🟢 EXTENSÃO nossa | `SPEC:434` |
+| **c238** EIM | GA de aquisição (paper usa DE 50×50) · anti-clustering **não existe no repo** | ⚠ divergência aberta | `SPEC:811` |
+| **c141** MMRAEA | `Problem.N` é POR subpopulação · crash real D≤4 com N=100 | fixes documentados | `SPEC:809` |
+
+### 15.4 · Os dois achados 🔴 desta campanha — leia antes de decidir qualquer coisa
+
+**VD-b1 · o torneio do ParEGO.** `TournamentSelection(K,N,PCheby)` devolve
+índices no domínio de `PCheby` (o subconjunto pós-cap e pós-dedup) e o chamador
+os usa em `Dec` (o arquivo INTEIRO). Dois danos: linhas `|PCheby|+1..|Dec|`
+nunca podem ser pais, e a aptidão que ganha o torneio pertence a outro
+indivíduo. **NADA FOI MUDADO** — a SPEC já o classifica 🟠 e o `EvolALG.m:9-10`
+registra "fica (CODIGO K.3)".
+**Números medidos, com DUAS erratas contra minha própria leitura:**
+· afeta a metade-crossover da **PRIMEIRA** geração interna do GA de aquisição;
+  da 2ª em diante os domínios CASAM (`EvolALG.m:65`) — **ERRATA 10**
+· o ramo é **3,87%** dos candidatos scorados; inerte em **~93,9%** dos ciclos
+· ⚠ **ERRATA 16:** em **597 dos 1.029** ciclos onde "a 1ª geração venceu", o
+  `e0_trace` é **CONSTANTE** — o GA não melhorou nada. `BBOB_F37`/`BBOB_F49`
+  (as células do "efeito concentrado") são **85,8%/87,1%** degeneradas. **O
+  número superestima o peso do torneio**
+· o conserto seria **um token** (`Population.decs` → `PDec` em `ParEGO.m:92`,
+  onde `PDec` já existe em lockstep com `PCheby`) — mas isso também estreitaria
+  o ramo de MUTAÇÃO, que hoje varre o arquivo inteiro
+
+**VD-b3 · o `Next` do `UpdataArchive` (K-RVEA).** No ramo 1, `current` é posição
+em `Via` (vetores de referência) e é usado para indexar `Total` (soluções) —
+dois domínios. `nzero=0` em **1.619/1.619** ciclos **não discrimina qual ramo
+rodou**, porque nem `size(Via,1)` nem `NI−mu` são logados. **Fechado como
+forense read-only.** Se a validação de fidelidade quiser transformar isso em
+número, são **2 linhas read-only** no `b3_instrument`.
+
+### 15.5 · O que a instrumentação oferece para a auditoria de fidelidade
+
+Cada config grava no ⑥ (`.jsonl`) um evento de geração com os campos DI-10 do
+seu contrato (`claude_code_context/artifacts/contrato_61.json`). Os mais úteis:
+
+| campo | config | o que permite auditar |
+|---|---|---|
+| `sigma_dict` (⑤) | **todos** | **LEITURA OBRIGATÓRIA antes de usar a ③** (DEF-C4) — o dicionário semântico de cada coluna |
+| `REGRA_DO_ROTULO` (⑤) | b4, c217, c122 | como recuperar o rótulo VERDADEIRO de uma linha da sonda. ⚠ **A do c217 é POSICIONAL E CÍCLICA** (`RBFNNPC.m:61`), não a do b4 |
+| `regime='sonda'` (③) | 19 configs | a **régua Sobol** — 2.000 pontos FIXOS, iguais para todos: "o modelo é bom GLOBALMENTE?" |
+| `regime='sonda_estratificada'` (③) | 4 classificadores | ~500 pontos perto do arquivo: "ele acerta ONDE a decisão acontece?". Prevalência **7,4% × 0,4%** da régua |
+| `p_wrong_stats` + `flag_vetores_degenerados` | b5m | a **cadeia A8**: `adapt` zera `values` → PBI NaN → P_wrong ≡ 0 → zero substituições (congelamento) |
+| `n_ref` + `ref_ids` | c122 | a referência REAL usada (21 = 11D−1 no g=1 × 11 = MU no g≥2) |
+| `pmid_ids` | c217 | a identidade das referências Pmid do ciclo |
+| `margem_3sigma_stats` | e103 | a estatística do gate ±3σ |
+| `e0_trace` | **b1 apenas** | o melhor EI por geração interna — ⚠ **constante em 58% dos ciclos** (ERRATA 16) |
+
+### 15.6 · Regras de leitura que a auditoria DEVE respeitar
+
+Do `CONTRATO_DE_DADOS.md` §10 — as duas últimas são desta campanha:
+
+1. Dedup/joins por `solution_id`, **nunca** pelo X float32 armazenado
+3. **Antes de ler a ③: leia o `sigma_dict` do manifesto** (DEF-C4)
+5. Sonda: join com o gabarito **POR POSIÇÃO** dentro do bloco
+9. `fe_treino_max` **NÃO é monotônico** em b1/b4/c217 (subamostram o treino)
+11. ⚠ **Dominância sobre ① ou ⑦ é LOSSY** — `f0`/`f1` são **float32** e o
+    algoritmo decidiu em float64. Duas soluções que a busca distinguiu podem
+    sair EMPATADAS no parquet. **Diferenças abaixo da resolução do float32 não
+    são conclusivas**
+12. ⚠ **`regime='sonda_estratificada'` NUNCA entra na mesma análise que
+    `regime='sonda'`** — a régua é comparável entre configs; o bloco
+    estratificado não (cada config tem um arquivo diferente)
++ **I-12** (c154/c262): a ordem da ③ BoTorch é regra de leitura, não campo
+
+### 15.7 · Roteiro sugerido
+
+1. **Leia §15.3** — as divergências já classificadas. Não re-descubra o que a
+   SPEC já decidiu; **valide se a classificação continua defensável**.
+2. **Para cada config, cruze o smoke com o artigo:** os hiperparâmetros do
+   `params` do ⑤ batem com a Tabela do paper? A `sigma_dict` descreve o que o
+   modelo realmente é?
+3. **Use a sonda como régua de qualidade do surrogate** — ela existe para isso.
+   Nos 4 classificadores, o bloco estratificado responde a pergunta que a régua
+   não responde.
+4. **Os 🔴 abertos:** o 2º desalinhamento do e74 e o VD-b3 sem medida.
+5. **Desconfie dos meus números.** Esta campanha produziu **16 erratas**, cinco
+   delas falso-positivo de gates que eu mesmo escrevi, e duas contra minha
+   própria leitura do VD-b1. **Re-meça o que for usar.**

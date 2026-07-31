@@ -31,7 +31,26 @@ BASE = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
     HOME, "Documents/python_repos/mestrado/resultados_experimentos")
 REPO = sys.argv[2] if len(sys.argv) > 2 else os.path.join(
     HOME, "Documents/python_repos/mestrado/ua-dd-saea")
-MAQS = ["mac", "v5", "v6", "vm3"]
+# [T13/C5] A lista era FECHADA nas 4 máquinas da rodada-42; a campanha roda em
+# 9 e a alocação passou a ser por SEMENTE, então o conjunto de máquinas deixa de
+# ser conhecido de antemão. Deriva do disco (as pastas que existirem sob
+# `_maquinas/`), com as 4 antigas como fallback para reproduzir a s42 quando a
+# árvore ainda não estiver montada. `MAQS=` no ambiente sobrepõe.
+def _maqs_descobertas():
+    env = os.environ.get("MAQS")
+    if env:
+        return [m for m in env.replace(",", " ").split() if m]
+    raiz = os.path.join(BASE, "_maquinas")
+    if os.path.isdir(raiz):
+        achadas = sorted(d for d in os.listdir(raiz)
+                         if os.path.isdir(os.path.join(raiz, d))
+                         and not d.startswith("."))
+        if achadas:
+            return achadas
+    return ["mac", "v5", "v6", "vm3"]
+
+
+MAQS = _maqs_descobertas()
 SEMENTE = "42"
 
 # ── 1. grade esperada ────────────────────────────────────────────────────────

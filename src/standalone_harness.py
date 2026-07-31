@@ -198,6 +198,28 @@ def pin_runtime() -> dict:
     return state
 
 
+def _host_info() -> dict:
+    """[C2/BL-07] `(host, plataforma)` — a identidade da MÁQUINA no ⑤.
+
+    `host` é o nome curto (sem domínio), a mesma convenção do
+    `scripts/censo42.py`. `UA_DD_SAEA_HOST` sobrepõe, para o operador poder
+    rotular a máquina com o nome do roster em vez do hostname do provedor.
+    Nunca levanta: um ⑤ sem host é ruim, um run derrubado por causa dele é pior.
+    """
+    import platform
+    import socket
+    try:
+        host = os.environ.get("UA_DD_SAEA_HOST") or \
+            socket.gethostname().split(".")[0]
+    except Exception:                        # noqa: BLE001
+        host = None
+    try:
+        plataforma = "%s/%s" % (platform.system(), platform.machine())
+    except Exception:                        # noqa: BLE001
+        plataforma = None
+    return {"host": host, "plataforma": plataforma}
+
+
 def env_info(*, extra_mods: tuple[str, ...] = ()) -> dict:
     """Versões do stack CORRENTE para o manifesto (§17.7 / L.18).
 
@@ -210,6 +232,20 @@ def env_info(*, extra_mods: tuple[str, ...] = ()) -> dict:
     import platform
     info: dict = {"python": platform.python_version(),
                   "executable": sys.executable,
+                  # [C2/BL-07] A MÁQUINA viaja com o dado. Até aqui ela não
+                  # viajava: o ⑤ declarava versões de biblioteca e pinos de
+                  # thread, e a única atribuição de máquina era a coluna
+                  # `maquina_dona` do censo, DERIVADA DO ROSTER planejado — que
+                  # rotula errado toda célula recuperada noutra máquina (foi o
+                  # que aconteceu na s42 quando a vm3 caiu). Com a campanha
+                  # alocada POR SEMENTE, as 30 repetições de um config passam a
+                  # vir de máquinas diferentes de propósito: sem estes dois
+                  # campos não há como DEMONSTRAR que a diluição aconteceu, nem
+                  # responder "isto é o algoritmo ou a máquina?".
+                  # `plataforma` importa tanto quanto o host: a divergência
+                  # cross-máquina medida nasce no 1º fit do GP e é efeito de
+                  # BLAS/libm — ou seja, de SO+arquitetura, não do nome do host.
+                  **_host_info(),
                   "numpy": np.__version__}
     for mod in ("scipy", "pymoo", "sklearn", "torch", "gpytorch",
                 "pandas", "pyarrow") + tuple(extra_mods):
@@ -249,16 +285,47 @@ def interpreter_for_alg(alg: str, *, envs: dict | None = None) -> tuple[str, str
             f"algoritmo {alg!r} não está em envs.json:alg_to_env "
             f"(D79). Conhecidos: {sorted(envs['alg_to_env'])}") from exc
     spec = envs.get("environments", {}).get(env_id, {})
-    interp = spec.get("mac_interpreter")
-    if not interp:
-        venv = envs.get("provisioning", {}).get("envs", {}).get(
-            env_id, {}).get("venv")
-        interp = os.path.join(venv, "bin", "python") if venv else None
-    if not interp:
+    declarados = [spec.get("mac_interpreter")]
+    venv = envs.get("provisioning", {}).get("envs", {}).get(
+        env_id, {}).get("venv")
+    if venv:
+        declarados.append(os.path.join(venv, "bin", "python"))
+    candidatos = [c for c in declarados if c]
+    # [C1] O caminho declarado no artefato é ABSOLUTO e de macOS
+    # (`/Users/gmello/...`): em qualquer VM Linux ele não existe, e o
+    # `run_in_venv` pára-e-loga. Enquanto TODO config de venv próprio rodava só
+    # no Mac isso nunca apareceu ("mac: TODO o venv-próprio — únicos venvs do
+    # projeto", perfil do lote3s.sh). Com a campanha alocada POR SEMENTE, cada
+    # máquina passa a rodar TODOS os pares, e o caminho fixo vira bloqueador.
+    #
+    # A resolução agora é por CANDIDATOS, na mesma doutrina que o driver já usa
+    # para achar repo/python/MATLAB: (1) override explícito do operador,
+    # (2) o que o artefato declara, (3) os prefixos conhecidos, pelo NOME do
+    # venv — que é a identidade estável (o gate G-3 já compara pelo nome, não
+    # pelo caminho: "o mesmo venv vive em /Users/... no Mac e em
+    # /home/jupyter/... na VM"). O primeiro que EXISTIR ganha; se nenhum
+    # existir, devolve o declarado para o `run_in_venv` dar a mensagem
+    # acionável (esta função é resolução de nome, não validação).
+    nome_venv = os.path.basename(os.path.dirname(os.path.dirname(candidatos[0]))) \
+        if candidatos else None
+    override = os.environ.get("UA_DD_SAEA_VENVS")
+    prefixos = ([override] if override else []) + [
+        os.path.expanduser("~/python_venvs"),
+        os.path.expanduser("~/venvs"),
+        os.path.expanduser("~/Documents/python_venvs"),
+        "/home/jupyter/python_venvs",
+    ]
+    if nome_venv:
+        candidatos += [os.path.join(p, nome_venv, "bin", "python")
+                       for p in prefixos]
+    if not candidatos:
         raise KeyError(
             f"env {env_id!r} (alg {alg!r}) não declara interpretador em "
             f"envs.json (nem `mac_interpreter` nem `provisioning.envs.venv`).")
-    return env_id, interp
+    for c in candidatos:
+        if os.path.exists(c):
+            return env_id, c
+    return env_id, candidatos[0]
 
 
 def child_env(*, env_id: str | None = None,

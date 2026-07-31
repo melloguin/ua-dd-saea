@@ -73,11 +73,27 @@ REFAZER="${LOTE_REFAZER:-nao}"
 TETO_S="${LOTE_TETO_S:-0}"
 JITTER="${LOTE_MATLAB_JITTER:-12}"
 
-# ── perfis · alocação de 3 sementes (ver quadro no chat) ────────────────────
-# Regra de ouro: um config NUNCA muda de máquina entre sementes. A tabela de
-# tempo do M7 compara wall entre algoritmos; se a semente 42 do c149 rodasse no
-# v5 e as sementes 1/30 no v6, a variância dentro da célula viraria variância de
-# máquina. Por isso o desbalanço v5/v6 é aceito de propósito.
+# ── perfis · alocação ───────────────────────────────────────────────────────
+# ⚠ [T13/D1 — 2026-07-31] A REGRA O-16 ("um config, uma máquina") ESTÁ APOSENTADA
+# para a campanha das 30 sementes. Ela dizia: "um config NUNCA muda de máquina
+# entre sementes", e a justificativa era a tabela de TEMPO do M7 (comparar wall
+# entre algoritmos exige a mesma máquina). Continua válida PARA O TEMPO — e é só
+# para isso que ela vale.
+#
+# Para o RESULTADO ela era contraproducente, e a medição mostrou por quê: rodar
+# a mesma célula em máquinas diferentes diverge (medido nos 15 pares Mac×vm3:
+# 7 batem bit-a-bit, 6 estouram o piso O-18 de HV ≤1,55% — e em IGD+, o endpoint
+# PRIMÁRIO, o c238/MMF1 chega a 80,03%). Sob a O-16 a máquina fica CONSTANTE nas
+# 30 sementes de um config ⇒ vira um offset sistemático que a mediana das 30
+# **não** dilui: média dilui ruído ALEATÓRIO, não viés.
+#
+# Decisão do autor: alocar POR SEMENTE — cada máquina roda TODOS os pares em
+# algumas sementes. Aí a máquina varia DENTRO de cada config ao longo das
+# repetições, vira ruído aleatório entre elas, e a mediana das 30 dilui de fato.
+#   LOTE_MAQ=<qualquer> LOTE_SEEDS="0 1 2" LOTE_PARES=todos bash lote3s.sh
+# `LOTE_PARES=todos` deriva os pares do ARTEFATO (runs_matrix.csv) — nunca de
+# uma lista digitada, que envelhece. Os perfis abaixo ficam como estão para
+# reprodução da rodada-42; não são mais o caminho da campanha.
 case "$MAQ" in
   # 12 jobs · env_main pesado que já morava aqui (c149 e c154)
   v5)  BUCKET_DEF=1; JOBS_DEF=12; PARES="main/c149" ;;
@@ -131,6 +147,20 @@ for c in "/Applications/MATLAB_R2025a.app/bin/matlab" "/usr/local/MATLAB/R2025a/
 done
 
 cd "$REPO" || exit 2
+
+# [T13/C4] `LOTE_PARES=todos` = o roster COMPLETO, DERIVADO do artefato do grid.
+# É o modo da campanha por semente: a máquina roda TUDO e o recorte é a semente.
+# Derivar (em vez de digitar 51 pares) é o que impede a lista de envelhecer em
+# silêncio quando o grid mudar. Depende do `cd "$REPO"` acima — por isso mora
+# aqui e não junto do `case $MAQ`.
+if [ "$PARES" = "todos" ]; then
+  PARES="$("${PY:-python3}" -c "
+import csv
+with open('claude_code_context/artifacts/runs_matrix.csv', encoding='utf-8') as fh:
+    pares = sorted({(r['exp'], r['alg']) for r in csv.DictReader(fh)})
+print(' '.join('%s/%s' % e for e in pares))")"
+  [ -n "$PARES" ] || { echo "FATAL: LOTE_PARES=todos nao derivou par do runs_matrix.csv"; exit 2; }
+fi
 
 # ── pino de thread: 1 core por run (D79 / envs.json thread_pin / O-15) ──────
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \

@@ -3091,7 +3091,18 @@ function man = build_manifest(exp, alg, problema, semente, maxfe, fe_final, ...
     % aspecto declarativo (pins, patches, ancoras).
     man.repo_hash = string(repo_hash_corrente());
     man.algo_version = "stub-R1-00";
+    % [C2/BL-07] `host`/`plataforma`: a MAQUINA viaja com o dado. Ate aqui nao
+    % viajava — a unica atribuicao era a coluna `maquina_dona` do censo,
+    % DERIVADA do roster planejado, que rotula errado toda celula recuperada
+    % noutra maquina. Com a campanha alocada POR SEMENTE (as 30 repeticoes de um
+    % config vindo de maquinas diferentes de proposito), sem estes campos nao ha
+    % como DEMONSTRAR a diluicao nem responder "isto e o algoritmo ou a
+    % maquina?". `plataforma` importa tanto quanto o host: a divergencia
+    % cross-maquina medida nasce no 1o fit do GP e e efeito de BLAS/libm, isto
+    % e, de SO+arquitetura. Gemeo do `standalone_harness._host_info`.
     man.env = struct('matlab', string(version), 'stack', "matlab-platemo", ...
+                     'host', string(host_curto()), ...
+                     'plataforma', string(plataforma_curta()), ...
                      'pymoo', "0.6.2");
     % [v5.2.1/§17.6 — OBRIGATORIO] O bloco `timing` nascia zerado aqui e so o
     % e103 o preenchia (auditoria da torre: ZERADO em 10/12). Agora e derivado
@@ -3336,6 +3347,54 @@ end
 function ensure_dir(path)
     d = fileparts(path);
     if ~isempty(d) && ~isfolder(d), mkdir(d); end
+end
+
+
+function h = host_curto()
+% [C2/BL-07] Nome curto da maquina (sem dominio) — mesma convencao do
+% scripts/censo42.py. `UA_DD_SAEA_HOST` sobrepoe, p/ o operador rotular a
+% maquina com o nome do roster. NUNCA levanta: um ⑤ sem host e ruim; um run
+% derrubado por causa disso e pior.
+    h = "";
+    try
+        h = string(getenv('UA_DD_SAEA_HOST'));
+        if strlength(h) == 0
+            [st, out] = system('hostname');
+            if st == 0
+                p = split(strtrim(string(out)), ".");
+                h = p(1);
+            end
+        end
+    catch
+        h = "";
+    end
+end
+
+function p = plataforma_curta()
+% [C2/BL-07] "<SO>/<arquitetura>" — o discriminante que de fato governa a
+% divergencia numerica entre maquinas (BLAS/libm), mais informativo que o host.
+% A arquitetura e NORMALIZADA para o vocabulario do `platform.machine()` do
+% Python (arm64/x86_64): o `computer('arch')` do MATLAB fala 'maca64'/'glnxa64',
+% e duas grafias para a MESMA maquina obrigariam a R4 a conhecer dois
+% vocabularios so porque a celula mudou de stack.
+    p = "";
+    try
+        if ismac,          so = "Darwin";
+        elseif isunix,     so = "Linux";
+        else,              so = "Windows";
+        end
+        a = string(computer('arch'));
+        switch a
+            case "maca64", arq = "arm64";      % Apple Silicon
+            case "maci64", arq = "x86_64";     % Mac Intel
+            case "glnxa64", arq = "x86_64";    % Linux x64
+            case "win64",  arq = "AMD64";
+            otherwise,     arq = a;            % desconhecida: grava como veio
+        end
+        p = so + "/" + arq;
+    catch
+        p = "";
+    end
 end
 
 

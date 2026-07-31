@@ -49,10 +49,16 @@ if not MAQ:
     elif H.startswith("mestrado-v6"): MAQ = "v6"
     elif H.startswith("matlab-vm3"):  MAQ = "vm3"
     elif sys.platform == "darwin":    MAQ = "mac"
+    # [C3] O mapa acima e uma lista FECHADA de 4 maquinas, herdada da rodada-42.
+    # A campanha passa a rodar em 9, e um host desconhecido derrubava o censo
+    # com `sys.exit`. Agora o proprio HOST vira o rotulo: o censo nunca deixa de
+    # rodar por nao reconhecer a maquina, e o `MAQ=` continua disponivel para
+    # quem quiser o nome do roster. Rotulo derivado != rotulo planejado — e essa
+    # e a correcao de fundo: a `maquina_dona` do censo era DERIVADA DO ROSTER e
+    # rotulava errado toda celula recuperada noutra maquina (s42, queda da vm3).
+    else:                             MAQ = H or "desconhecida"
 if ROSTER == "todos":
     MAQ = MAQ or "todos"
-elif not MAQ:
-    sys.exit("FATAL: nao reconheci o host '%s'. Rode com MAQ=v5|v6|vm3|mac." % H)
 
 # ── rosters: quem é dono de quais pares (exp/alg) ───────────────────────────
 # Soma 695 = 50 (v5) + 70 (v6, inclui os 5 de batch/c154 retirados) + 345 (vm3)

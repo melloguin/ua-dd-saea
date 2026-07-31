@@ -142,6 +142,8 @@ def env_info() -> dict:
     import pymoo
     import scipy
 
+    from src.standalone_harness import _host_info as _standalone_host_info
+
     if botorch.__version__ == "Unknown":
         raise RuntimeError(
             "botorch.__version__ == 'Unknown' — este é o FORK do device "
@@ -156,6 +158,9 @@ def env_info() -> dict:
         # impede o desastre silencioso do N.1.2. A quimera do c149 só pôde ser
         # DIAGNOSTICADA porque o ⑤ dela declarava o intérprete.
         "executable": sys.executable,
+        # [C2/BL-07] a MÁQUINA viaja com o dado — mesma justificativa e mesma
+        # fonte do `standalone_harness._host_info` (fonte única, sem gêmeo).
+        **_standalone_host_info(),
         "numpy": np.__version__,
         "scipy": scipy.__version__,          # L.18 (fonte de não-repro bit-a-bit)
         "pymoo": pymoo.__version__,

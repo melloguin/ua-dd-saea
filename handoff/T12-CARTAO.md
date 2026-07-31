@@ -181,7 +181,7 @@ Pmid: nenhum re-lacre necessário. Nenhum outro item toca árvore vendorizada.
       seria desfeito na próxima regeneração), e `cards/INDEX.md:67` passa a declarar `SUB-varN` =
       **PRÉ-REQUISITO do M8**. A SPEC (:1682) e o `01_regras_globais.md` já diziam "provisório" —
       estavam certos, não mudaram.
-- [ ] REGISTRO A41 (fechamento) + handoff `handoff/T12-FINAL.md`
+- [x] REGISTRO A41 (fechamento) + handoff `handoff/T12-FINAL.md`
 
 ## §6 · DEFINIÇÃO DE PRONTO DO CARTÃO
 

@@ -2198,6 +2198,35 @@ errado se eu tivesse seguido o texto:
 
 ---
 
+## PARTE A40 — VALIDAÇÃO DA TORRE SOBRE O T11: as 2 CAUSAS-RAIZ dos campos sentinela (2026-07-30)
+
+**A torre validou o T11 de forma independente** (suíte **627 OK/0 falhas** re-rodada · `staleness`
+0 · `preflight` exit 0 com 1 pendência conhecida de 58 manifestos forasteiros · git limpo). O
+validador de fidelidade tinha nomeado a assinatura **"campo verde, dado sentinela"** (o campo
+novo existe, passa nos gates, e o DADO é inútil) mas não achou a mecânica. **A torre achou as
+duas, e ambas são de 1 linha:**
+
+**(1) `c217.pmid_ids = -1` em 426/426.** `pmid_ids_c217` chama `bud.solutionIdOf(Pmid(i,:))`,
+que casa **bit-a-bit no X nativo (D colunas)**. Mas o `Pmid` vem de `CalFitnessPC.m:67-73`, onde
+`Input = [PopDec(...), Fitness(...)]` — ou seja, **`Pmid` tem D+1 colunas** (a última é o
+Fitness anexado). O match nunca ocorre ⇒ sentinela −1 sempre. **Fix: `Pmid(i, 1:end-1)`.**
+
+**(2) `b5m.flag_vetores_degenerados = null` em 1.144/1.144.** `_vetores_degenerados`
+(`src/b5_prob.py:113-118`) acessa `evolver.population.problem.reference_vectors.values` — mas
+`reference_vectors` **não existe** em `Population.py`/`Problem.py` do DESDEO (grep vazio): no
+DESDEO os vetores de referência vivem no **EVOLVER** (RVEA/MOEAD), não no problem.
+`AttributeError` → `except Exception: return None` (o guard D97, correto em si) **mascara o
+caminho errado**. **Fix: apontar para o evolver.**
+
+**A LIÇÃO ESTRUTURAL (vale mais que os 2 fixes):** os dois passaram por 6 portões verdes porque
+**os gates da instrumentação testam TEXTO, não COMPORTAMENTO** (`inspect.getsource` + `assertIn`
+— 2 arquivos de teste hoje). Regra nova proposta pela torre e endossada pelo validador: **todo
+gate novo exige CONTROLE NEGATIVO** — um teste que REPROVA no código de hoje e PASSA depois do
+fix; e todo campo novo de instrumentação exige **asserção sobre o VALOR** medido num run real
+(ex.: "≥1 id ≠ −1", "flag não-null em ≥1 evento"), nunca sobre a existência da chave.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

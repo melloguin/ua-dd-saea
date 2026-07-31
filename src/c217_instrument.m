@@ -131,8 +131,9 @@ function c217_instrument(Problem, Arc, Next, delta, Error1, Error2, TestPre, tfi
             'pmid_ids', pmid_ids_c217(bud, Pmid, Problem.D), ...
             ... % [I-5] prevalencia das classes no TREINO desta geracao — sem
             ... % ela nao se separa "classificador ruim" de "problema
-            ... % desbalanceado". O c217 e ternario {-1,0,+1} (Output).
-            'y_treino_dist', y_treino_dist_c217(Output), ...
+            ... % desbalanceado". O rotulo do c217 e BINARIO {1,2} (Output) e o
+            ... % conjunto e o TrainIn, nao o Input (A40/BL-05).
+            'y_treino_dist', y_treino_dist_c217(Output, size(TrainIn, 1)), ...
             ... % ── DI-10: minimo comum dos 21 (S.7.1) ──
             'fe', bud.fe, ...
             'f_best', min(Arc.objs, [], 1), ...
@@ -213,17 +214,44 @@ function ids = pmid_ids_c217(bud, Pmid, D)
     end
 end
 
-function d = y_treino_dist_c217(Output)
+function d = y_treino_dist_c217(Output, n_treino)
 % [I-5] Distribuicao das classes no alvo de treino do PNN par-a-par.
-% O `Output` do c217 e ternario: -1 (pior), 0 (empate/incomparavel), +1 (melhor).
+%
+% [A40/BL-05] Dois constrangimentos que a versao anterior violava, cada um
+% degenerando o campo em 42/42 geracoes:
+%
+%  (1) O rotulo e BINARIO {1,2}, nao ternario {-1,0,+1}: CalFitnessPC.m:69-71
+%      faz `Output=zeros(ceil(N/2),1); Output(1:ceil(N/4))=2; resto=1` —
+%      2 = "melhor" (quartil superior do fitness da Eq. 4), 1 = "pior".
+%      Contar y<0 / y==0 / y>0 dava SEMPRE (0, 0, n): o campo dizia "100% de
+%      uma classe so, problema totalmente desbalanceado", o oposto da verdade
+%      (a prevalencia real e ~52%/48% no steady). A codificacao certa ja
+%      estava 106 linhas acima, no n_best/n_worst (:109-110).
+%
+%  (2) O conjunto e o TREINO, nao o Input: o campo promete "no TREINO" e
+%      recebia o Output de TODO o Input (ceil(|P|/2) linhas). O alvo real e o
+%      `TrainOut`, descartado em PCSAEA.m:41 (`[TrainIn,~,...]`) mas
+%      DETERMINISTICO a partir do Output — DataProcess.m:14-21 mantem
+%      ceil(3/4) de CADA estrato. `confere_com_TrainIn` publica o controle:
+%      a derivacao TEM de reproduzir |TrainIn|; se um dia nao reproduzir, o
+%      campo diz isso em vez de mentir em silencio.
     d = [];
     try
         y = double(Output(:));
         if isempty(y), return; end
-        d = struct('n', numel(y), ...
-                   'classe_menos1', sum(y < 0), ...
-                   'classe_zero',   sum(y == 0), ...
-                   'classe_mais1',  sum(y > 0));
+        n_melhor = ceil(3/4 * sum(y >  1));      % estrato "melhor" no treino
+        n_pior   = ceil(3/4 * sum(y <= 1));      % estrato "pior" no treino
+        n = n_melhor + n_pior;
+        d = struct('n', n, ...
+                   'classe_melhor', n_melhor, ...
+                   'classe_pior',   n_pior, ...
+                   'prevalencia_classe_melhor', n_melhor / n, ...
+                   'n_input', numel(y), ...
+                   'confere_com_TrainIn', n == double(n_treino), ...
+                   'nota', "rotulo BINARIO do CalFitnessPC (Output): " + ...
+                           "2='melhor' (quartil superior do fitness da Eq. 4), " + ...
+                           "1='pior'; o treino mantem ceil(3/4) de cada " + ...
+                           "estrato (DataProcess.m:14-21)");
     catch
         d = [];
     end

@@ -102,7 +102,13 @@ Pmid: nenhum re-lacre necessário. Nenhum outro item toca árvore vendorizada.
       até 1,0 — **o DTLZ2 é célula SADIA**. Pelo `f5/t11/relatorios_config/b5m.md` as congeladas são
       **DTLZ3 (380/380) e DTLZ1 (370)**, não DTLZ2. Controle positivo rodando em `off/b5m/DTLZ3/s42`
       (fecha também o BL-22). Ver §7 · pendência (a) `moead_media`.
-- [ ] T12.3 · BL-05 y_treino_dist c217
+- [x] T12.3 · BL-05 y_treino_dist c217 — os DOIS defeitos: rótulo **binário {1,2}**
+      (`CalFitnessPC.m:69-71`), não ternário, e conjunto = **TrainIn**, não Input. Agora
+      `classe_melhor`/`classe_pior`/`prevalencia` + `n_input` + `confere_com_TrainIn` (o controle
+      interno publicado). 4 testes novos em `tests/test_t12_c217_instrument.py` (8 no total, MATLAB
+      real) + mutante que reproduz o `(0,0,n)`. Controle negativo contra o fonte de ontem:
+      3 erros (`KeyError: 'classe_melhor'`) + 1 falha. ⚠ `params.surrogate` do ⑤ ainda repete a
+      ficção do ternário — é **BL-15**, endereçado no T12.8 (o cartão o põe na varredura de `params`).
 - [ ] T12.4 · BL-06 finalProbe sob teto_wall (c154/c262)
 - [ ] T12.5 · BL-09 fflush por linha (MATLAB; ⚠ engine)
 - [ ] T12.6 · BL-08 pin scipy (autorização D10 do autor)

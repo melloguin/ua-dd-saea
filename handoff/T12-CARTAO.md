@@ -92,7 +92,16 @@ Pmid: nenhum re-lacre necessário. Nenhum outro item toca árvore vendorizada.
       mutante que reproduz o −1). Controle negativo demonstrado: contra o fonte de ontem o teste
       REPROVA (`[-1,-1,-1,-1] != [2,6,10,14]`). Smoke real `main/c217/MMF1/s42` em tempdir:
       **426/426 com id ≥ 0** (min 0, max 59, 0 sentinelas) onde a s42 tinha 426/426 = −1. Suíte 631 OK.
-- [ ] T12.2 · BL-02 flag_vetores_degenerados (fix + prova no DTLZ2/A8)
+- [x] T12.2 · BL-02 flag_vetores_degenerados — `src/b5_prob.py` lê `evolver.reference_vectors`
+      (o `desdeo_problem` vendorizado tem **0 ocorrências** do atributo); `tests/test_t12_b5_vetores.py`
+      (5 testes sobre a classe `ReferenceVectors` VENDORIZADA real: sadio, colapso A8 total, colapso
+      PARCIAL, mutante). Controle negativo: contra o fonte de ontem, 2 falhas + 2 erros.
+      **Smoke real `off/b5m/DTLZ2/s42`** (2.808 s, env_b5, tempdir): **381/381 não-nulo** (era
+      0/1.144). ⚠ **A expectativa do cartão não se confirmou e o dado manda**: `n_norma_zero = 0`
+      em 381/381, `norma_min≈norma_max≈1`, `n_substituicoes` 3–12/geração (Σ 7.769), `P_wrong.max`
+      até 1,0 — **o DTLZ2 é célula SADIA**. Pelo `f5/t11/relatorios_config/b5m.md` as congeladas são
+      **DTLZ3 (380/380) e DTLZ1 (370)**, não DTLZ2. Controle positivo rodando em `off/b5m/DTLZ3/s42`
+      (fecha também o BL-22). Ver §7 · pendência (a) `moead_media`.
 - [ ] T12.3 · BL-05 y_treino_dist c217
 - [ ] T12.4 · BL-06 finalProbe sob teto_wall (c154/c262)
 - [ ] T12.5 · BL-09 fflush por linha (MATLAB; ⚠ engine)

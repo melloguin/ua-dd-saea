@@ -112,10 +112,18 @@ def _n_subs_da_geracao(g):
 
 def _vetores_degenerados(evolver):
     """[I-05 item 3] `flag_vetores_degenerados`: a norma dos vetores de
-    referência colapsou a zero? É a CAUSA a montante do PBI NaN (A8)."""
+    referência colapsou a zero? É a CAUSA a montante do PBI NaN (A8).
+
+    [A40-2] Os vetores vivem no EVOLVER, não no problem: `BaseEA.__init__`
+    (`desdeo_emo/EAs/BaseEA.py:182`) faz `self.reference_vectors =
+    ReferenceVectors(...)` e é `self.reference_vectors.adapt()` (:244) que os
+    encolhe — o `problem` do DESDEO nunca teve o atributo. Ler pelo `problem`
+    levantava `AttributeError` que o `except` abaixo engolia: **0/1.144
+    valores não-nulos** na campanha T11, com o campo verde em 1.144/1.144.
+    """
     try:
         import numpy as _np
-        V = evolver.population.problem.reference_vectors.values
+        V = evolver.reference_vectors.values
         n = _np.linalg.norm(_np.asarray(V, dtype=float), axis=1)
         nmin, nmax = float(_np.min(n)), float(_np.max(n))
         return {"n_vetores": int(n.size),

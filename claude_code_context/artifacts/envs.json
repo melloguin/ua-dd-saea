@@ -93,7 +93,7 @@
         "pyarrow(zstd)",
         "joblib",
         "tqdm",
-        "scipy(versão REGISTRADA no manifesto)",
+        "scipy==1.17.1 ⟦BL-08/T12: PIN EXATO (fila D10). O scramble de Owen do sobol_batch vem do scipy.stats.qmc (src/sobol_batch.py:72-73); a bit-identidade dele é provada cross-OS/cross-arquitetura SÓ sob numpy 2.4.6 + scipy 1.17.1 nos dois lados. Mesma lição do torch (DI-34/Q4): intenção solta = o pip da VM resolve outra versão⟧",
         "pymoo==0.6.2",
         "botorch==0.18.1",
         "gpytorch(compatível)",

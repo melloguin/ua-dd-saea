@@ -131,7 +131,13 @@ Pmid: nenhum re-lacre necessário. Nenhum outro item toca árvore vendorizada.
       `tests/test_t12_jsonl_matlab.py` (4 testes, writer REAL extraído do `experiment.m`) tranca o
       que é determinístico e **re-mede em cada máquina** — se a libc do Linux bufferizar, fica
       vermelho lá. Decisão em §7 · pendência (d).
-- [ ] T12.6 · BL-08 pin scipy (autorização D10 do autor)
+- [x] T12.6 · BL-08 pin scipy — `scipy==1.17.1` nos **três** sítios (`envs.json` `key_pins`,
+      `repos.lock` ao lado do botorch, `requirements/env_main.txt`), com o motivo do torch
+      (DI-34/Q4: intenção solta = o pip da VM resolve outra). `tests/test_t12_pin_scipy.py`
+      (4 testes) não afere a linha no artefato: casa os 3 artefatos entre si, casa o pin com o
+      scipy **instalado** e trava o **sha256 do lote de Owen** de `_sobol_batch01` em 3 pontos
+      (D=2/10/30) + controle de determinismo por semente. Controle negativo: sem o pin, 1 falha
+      + 1 erro. ⚠ `numpy` segue `>=2,<3` — ver §7 · pendência (e).
 - [ ] T12.7 · gates texto→comportamento (2 arquivos)
 - [ ] T12.8 · varredura de VALOR de todos os campos T11 (1 teste/campo)
 - [ ] T12.D1 · piso de ruído → `piso_ruido.json` + regra no CONTRATO (após OK do autor)
@@ -179,6 +185,14 @@ mesma célula. O caminho está provado e é local: `jsonl_write(fid, linha)` usa
 sítios já passam, e todos os guards `fid > 2` seguem valendo. ⚠ O comentário do `jsonl_open`
 (B-11) descreve um co-escritor Python "durante a chamada MATLAB" que **não existe na arquitetura
 de hoje** — vale corrigir o comentário junto (armadilha doc×código).
+
+**(e) O `numpy` do env_main continua solto (`>=2,<3`).** O próprio BL-08 diz que a bit-identidade
+do scramble de Owen vale *"SÓ sob numpy 2.4.6 **+** scipy 1.17.1 nos dois lados"* — pinei só o
+scipy porque só ele estava autorizado (fila D10). Com o numpy solto, o pip de VM-1/VM-2 pode
+resolver 2.5.x e o pin do scipy protege metade do par. **Recomendação: `numpy==2.4.6` no mesmo
+movimento** (o `tests/test_t12_pin_scipy.py` já falharia no hash do lote se isso mudasse o
+scramble — mas falharia DEPOIS do provisionamento, não antes). 1 linha × 3 artefatos, decisão do
+autor (D80).
 
 **(c) `flag_vetores_degenerados` continua sendo colhido no replay pós-busca**
 (`b5_prob.py:536`) ⇒ valor CONSTANTE nas gerações, contra o que o comentário do próprio código

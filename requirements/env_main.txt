@@ -12,7 +12,13 @@ numpy>=2,<3            # 2.4.6
 pandas>=2,<3           # 2.3.3  (fixado <3 de propósito — pandas 3.0 evitado p/ reprodutibilidade)
 pyarrow               # 25.0.0 (parquet; brotli/zstd)
 pymoo==0.6.2          # fonte única dos 25 problemas (src/problems.py)
-scipy                 # 1.17.1
+scipy==1.17.1         # [BL-08/T12] PIN EXATO (autorizado na fila D10). O
+                      # scramble de Owen do sobol_batch sai do `scipy.stats.qmc`
+                      # (src/sobol_batch.py:72-73): a bit-identidade dele está
+                      # provada cross-OS/cross-arquitetura, mas SÓ sob numpy
+                      # 2.4.6 + scipy 1.17.1 nos dois lados — a estabilidade
+                      # cross-VERSÃO segue no teto T. Mesma lição do torch
+                      # (DI-34/Q4): intenção solta = o pip da VM resolve outra.
 joblib
 tqdm
 scikit-learn          # 1.9.0 — uso do HARNESS; NÃO é o sklearn dos algoritmos b5/c311

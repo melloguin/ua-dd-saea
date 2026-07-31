@@ -12,6 +12,11 @@
       "pin_kind": "pypi",
       "version": "0.18.1"
     },
+    "scipy": {
+      "pin_kind": "pypi",
+      "version": "1.17.1",
+      "nota": "[BL-08/T12] O scramble de Owen do sobol_batch sai do scipy.stats.qmc (src/sobol_batch.py:72-73). A bit-identidade do lote esta provada cross-OS/cross-arquitetura, mas SO sob numpy 2.4.6 + scipy 1.17.1 nos dois lados; a estabilidade cross-VERSAO segue no teto T. Gate: tests/test_t12_pin_scipy.py casa este pin com a versao instalada E com o sha256 do lote."
+    },
     "c122_thetadeadp": {
       "sha": null,
       "pin_kind": "content-hash",

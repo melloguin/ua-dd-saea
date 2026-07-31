@@ -175,7 +175,12 @@ Pmid: nenhum re-lacre necessário. Nenhum outro item toca árvore vendorizada.
       `flag_vetores_degenerados` (T12.2), `p_wrong_stats`/`n_substituicoes` (medidos nos 2 smokes
       b5m: DTLZ2 Σ7.769 × DTLZ3 Σ0), `pred_score` da sonda estratificada (T12.7).
 - [ ] T12.D1 · piso de ruído → `piso_ruido.json` + regra no CONTRATO (após OK do autor)
-- [ ] T12.D2 · retificação N=20 (após confirmação do autor)
+- [x] T12.D2 · retificação N=20 — **autor confirmou (2026-07-31): a DI-39 prevalece.** Retificação
+      formal no REGISTRO (PARTE A41.4 / DI-41) + os 3 textos varridos: A20/A2 marcado como superado,
+      `40_subestudos/varredura_N_pisos.md` **e o `gen_bundles.py` que o gera** (corrigir só o `.md`
+      seria desfeito na próxima regeneração), e `cards/INDEX.md:67` passa a declarar `SUB-varN` =
+      **PRÉ-REQUISITO do M8**. A SPEC (:1682) e o `01_regras_globais.md` já diziam "provisório" —
+      estavam certos, não mudaram.
 - [ ] REGISTRO A41 (fechamento) + handoff `handoff/T12-FINAL.md`
 
 ## §6 · DEFINIÇÃO DE PRONTO DO CARTÃO

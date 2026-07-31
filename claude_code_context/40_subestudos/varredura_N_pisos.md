@@ -2,7 +2,7 @@
 
 > ⚠ **ARQUIVO GERADO** da `SPEC_experimentos_v5.2.md` (fonte única da verdade) por `gen_bundles.py` — **não edite à mão; regenere**. Em conflito entre este bundle e a SPEC, **vale a SPEC** (precedência global: Anexo S > §22 > Anexo D > corpo > E/I/K/L > históricos).
 
-**D65:** N∈{10,20,30,50} × (5 problemas do sweep + 2 reps alta-D) × 5 sementes; critério = **mediana do IGD+ final (D70)**; escolhe **1 N por faixa de D** (baixa ≤5 / média / alta ≥20) ANTES da bateria. Piso offline mantém o lattice do b5m (50 M=2 / 105 M=3 — DI-16.4). **[DI-32/A2] N=20 dos pisos ONLINE RATIFICADO DEFINITIVO pelo autor; esta varredura vira sub-estudo OPCIONAL do M11.**
+**D65:** N∈{10,20,30,50} × (5 problemas do sweep + 2 reps alta-D) × 5 sementes; critério = **mediana do IGD+ final (D70)**; escolhe **1 N por faixa de D** (baixa ≤5 / média / alta ≥20) ANTES da bateria. Piso offline mantém o lattice do b5m (50 M=2 / 105 M=3 — DI-16.4). **[DI-32/A2 → RETIFICADO pela DI-39, 2026-07-25 — ver REGISTRO PARTE A41/T12.D2] N=20 dos pisos ONLINE é PROVISÓRIO; esta varredura é PRÉ-REQUISITO do M8, não sub-estudo opcional do M11.**
 
 ---
 

@@ -1467,6 +1467,10 @@ robustez da CAMADA DE ANÁLISE não dos dados, e103 smoke sob `main/`) consolida
   semente-42 completa (estratégia do autor, refinada pela torre no chat de 2026-07-23 — 3 máquinas,
   todos os configs × 25 problemas, seed 42; o protocolo Fable de 3 classes vira o método oficial).
 - **A2**: N=20 dos pisos online = DEFINITIVO; SUB-varN vira sub-estudo OPCIONAL do M11 (epígrafe
+  ⚠ **RETIFICADO — VER PARTE A41 / T12.D2 (2026-07-31).** Esta decisão foi **superada** pela
+  **DI-39** (2026-07-25), posterior e do mesmo autor: o N=20 é **PROVISÓRIO** e o **SUB-varN
+  volta a ser pré-requisito do M8**. O texto abaixo permanece como registro histórico do que se
+  decidiu em 2026-07-23; ele **não** é o estado vinculante.
   do bundle atualizada). **A3/A5**: teto/orçamento por config (incl. c154/ZDT1 e teto_s do c311)
   decididos no M7 com os walls da varredura-42. **A6**: batch/sobol_batch = escopo M10.
   **A7**: dossiê itens 3/4/5 ANTES do M8 — o item 5 (smoke semente 42) é SUBSUMIDO pela
@@ -2533,3 +2537,111 @@ Registradas porque uma lacuna não declarada é pior que um achado:
 3. **#42:** provou o mecanismo, mas não achou log de qual ferramenta gerou a
    tabela de smoke desta sessão.
 4. #17/#18 verificados por **amostragem**; #1 com denominador divergente.
+
+---
+
+## PARTE A41 — T12: o acabamento final (2026-07-31)
+
+Cartão `handoff/T12-CARTAO.md`. Fecha os 8 bloqueadores da validação de fidelidade do T11, as
+2 causas-raiz da PARTE A40 e a conversão dos gates decorativos. Doutrina do cartão, cumprida em
+todos os itens: **todo fix exige controle negativo — um teste que REPROVA no código de ontem e
+PASSA depois — e todo campo de instrumentação exige asserção sobre o VALOR medido em run real.**
+
+### A41.1 — O placar
+
+| item | bloqueio | veredito | prova de valor (run REAL) |
+|---|---|---|---|
+| T12.1 | BL-01 `pmid_ids` | corrigido | **426/426 com id ≥ 0** (era 426/426 = −1) |
+| T12.2 | BL-02 `flag_vetores_degenerados` | corrigido | **381/381 não-nulo** (era 0/1.144) |
+| T12.3 | BL-05 `y_treino_dist` | corrigido | 42/42 com `n = \|TrainIn\| ≠ \|Input\|` (era `(0,0,n)`) |
+| T12.4 | BL-06 finalProbe sob teto | corrigido | bloco final na iteração truncada, ①②③ bit-idênticas |
+| T12.5 | BL-09 `fflush` | **NÃO APLICADO — medido** | ver A41.3 |
+| T12.6 | BL-08 pin `scipy` | pinado 1.17.1 × 3 artefatos | sha256 do lote de Owen travado |
+| T12.7 | gates decorativos | convertidos → **acharam o BL-03** | **11.000/11.000** com `pred_score` |
+| T12.8 | varredura de VALOR | **achou BL-04 e BL-15** | ⑤ do c217 com as 3 chaves corrigidas |
+
+Suíte: **627 → 671, 0 falhas.** 6 commits, todos com controle negativo demonstrado.
+
+### A41.2 — A cadeia A8, medida em célula real pela primeira vez
+
+O `flag_vetores_degenerados` foi o campo que a F5 pediu para fechar o laço do congelamento do
+b5m e que a T11 entregou morto. Com o fix (os vetores vivem no EVOLVER, não no `problem` —
+`BaseEA.py:182`), dois smokes reais dão o par de controle que faltava:
+
+* `off/b5m/**DTLZ2**/s42` (célula SADIA): `n_norma_zero = 0` em 381/381, normas ≈ 1,
+  `n_substituicoes` 3–12 por geração (Σ **7.769**), `P_wrong.max` até 1,0.
+* `off/b5m/**DTLZ3**/s42` (célula CONGELADA): `n_norma_zero = **105 de 105**` em **381/381**,
+  `norma_min = norma_max = 0,0`, `n_substituicoes = **0**`, `P_wrong.max = **0,0**`.
+
+A cadeia inteira — `adapt` → norma 0 → PBI NaN → `P_wrong ≡ 0` → zero substituições — deixa de
+ser inferência de bancada e passa a ser leitura direta do ⑥. **Fecha também o BL-22** (o smoke
+b5m da célula congelada que nunca existira). ⚠ O cartão esperava o congelamento no DTLZ2; o dado
+disse o contrário e o dado prevaleceu — as congeladas são DTLZ3 e DTLZ1
+(`f5/t11/relatorios_config/b5m.md`).
+
+### A41.3 — BL-09: o bloqueio não sobreviveu à medição, e o fix certo é outro
+
+Com o engine MATLAB disponível, os dois modos de perda foram medidos em vez de aceitos:
+
+1. **`fflush` não existe no MATLAB** (`exist('fflush') = 0`). O `jsonl_line` não tem `try/catch`:
+   a "1 linha" prescrita **derrubaria todo run MATLAB da campanha**. É função do Octave.
+2. **Perda de cauda: REFUTADA.** Uma linha de 64 B sobrevive a `kill -9` com o processo em
+   busy-loop. O `fprintf` para arquivo em `'a'` não é bufferizado.
+3. **SPLICE: CONFIRMADO — e o fix é ATOMICIDADE, não flush.** 4 escritores × 300 linhas de
+   6,4 KB: `fprintf` **30 partidas**, `fwrite` **26**, `java.io.FileOutputStream` (append) **0**.
+   Em 5 repetições do caso de produção: bytes SEMPRE 7.765.968 e newlines SEMPRE 1.200, com
+   0/10/36/20/10 partidas — **nada se PERDE; o que quebra é a fronteira da linha.**
+
+**Nenhum código mudou**: o splice exige ≥2 escritores no MESMO ⑥, e hoje o ⑥ do MATLAB tem
+escritor único. A decisão de trocar o writer fica com o autor (§7(d) do cartão), com o caminho
+provado e local.
+
+### A41.4 — DI-41 (T12.D2): retificação formal do N=20 — a DI-39 prevalece
+
+**A contradição.** A **DI-32/A2** (2026-07-23) declarou *"N=20 dos pisos online = DEFINITIVO;
+SUB-varN vira sub-estudo OPCIONAL do M11"*. A **DI-39** (2026-07-25), **posterior e do mesmo
+autor**, declarou o N=20 **provisório** e o **SUB-varN pré-requisito do M8**. As duas ficaram
+vivas no repositório, e `cards/INDEX.md:67` seguia ⬜ sem qualificar qual valia.
+
+**Decisão do autor (2026-07-31, T12.D2): a DI-39 PREVALECE.** Por posterioridade e porque a
+justificativa dela é a mais forte — dispensar um pré-registro *depois* de ver o resultado é
+metodologicamente mais frágil do que mantê-lo, e o custo de refazer os 4 pisos é **~3,3 h-core**,
+desprezível contra o risco de descartar 25 células por piso.
+
+**Textos varridos** (o estado vinculante passa a ser único):
+1. `REGISTRO_DECISOES_IMPLEMENTACAO.md` (PARTE A20/A2) — marcado como superado, mantido como
+   registro histórico.
+2. `claude_code_context/40_subestudos/varredura_N_pisos.md` — epígrafe corrigida **e também em
+   `gen_bundles.py`**, que é a fonte real dela (o bundle é GERADO; corrigir só o `.md` seria
+   desfeito na próxima regeneração).
+3. `cards/INDEX.md:67` — `SUB-varN` passa a declarar **PRÉ-REQUISITO do M8**.
+
+A SPEC (`:1682`) e o bundle `01_regras_globais.md` já diziam *"valor provisório cravado"* —
+estavam corretos e não precisaram de mudança.
+
+### A41.5 — O que fica ABERTO para o autor (nada disto foi decidido sozinho)
+
+* **(a) `moead_media`** — o `flag_vetores_degenerados` nunca foi escrito no `piso_offline.py`
+  (0 ocorrências): é item NOVO, não conserto. O `MOEA_D` (mode 12) **tem** `reference_vectors`
+  (`MOEAD.py:111`), então o contraste piso × b5 sobre a causa do A8 é mensurável.
+* **(b) Contaminação de estado global (PRÉ-EXISTENTE)** entre teste-com-mock de BoTorch e run
+  REAL no mesmo processo — sem risco para a campanha (1 célula = 1 processo); mitigado nos testes
+  novos por subprocesso.
+* **(c) A coleta do `flag_vetores_degenerados` segue no replay pós-busca** ⇒ valor constante nas
+  gerações, contra o que o comentário do próprio código promete.
+* **(d) O writer ⑥ do MATLAB não é atômico por linha** — ver A41.3.
+* **(e) O `numpy` do env_main segue solto** (`>=2,<3`) enquanto o BL-08 exige o par
+  numpy 2.4.6 **+** scipy 1.17.1.
+* **T12.D1 (BL-07) — o piso de ruído: EM ABERTO, aguardando o autor.** Medição dos 15 pares
+  Mac×vm3: **7 são bit-idênticos** (Δ = 0,0 — os 4 pisos puros + b4 + c217 + e103, isto é, os
+  configs que NÃO ajustam surrogate por otimização numérica) e **8 divergem**, com **6 acima do
+  piso O-18 (HV ≤ 1,55%)**: `e74/DTLZ2` 10,16% · `c238/MMF1` 9,69% · `e74/ZDT1` 3,54% ·
+  `e74/MMF1` 2,93% · `c141/MMF1` 2,31% · `b1/MMF1` 2,10%. **Em IGD+ — o endpoint PRIMÁRIO (D70) —
+  o piso declarado nem existe**, e é lá que está o pior número: `c238/MMF1` **80,03%**.
+  A campanha passa a rodar em **9 máquinas** (2 delas Python-only), o que torna a máquina um
+  confundidor **correlacionado com o config**. Recomendação levada ao autor: bloquear por
+  **(problema, stack)** — toda comparação da R4 é intra-problema, então o contraste vira
+  intra-máquina e o confundidor some por construção — **mais** o `artifacts/piso_ruido.json` por
+  (config, problema) como rede de segurança, **mais** 2 células-calibradoras
+  (`c238/MMF1/s42` e `e74/DTLZ2/s42`) em cada uma das 9 máquinas, para não extrapolar um piso
+  Mac×vm3 a 7 máquinas nunca medidas.

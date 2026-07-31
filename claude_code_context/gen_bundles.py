@@ -220,7 +220,7 @@ write('40_subestudos/sweep_offline.md','Sub-estudo SWEEP offline (tamanho × dis
       epigraph="**D67 (MVNS):** amostrar em **[0,1]^D**; **μ=0,3·𝟙 FIXO** (viés consistente; semente varia só as amostras); **Σ=diag(0,1)**; clip aos bounds; mapear a nativo. **Roster:** b5r+b5m+e103 (small/medium) e c311 (small/medium/big) — D56. `run_id`: `sweep-{tier}-{dist}` (D55).")
 write('40_subestudos/varredura_N_pisos.md','Varredura pré-registrada do N dos pisos online [D65]',
       [sec(r'^### 3\.2 ', r'^### 3\.3 '), sec(r'^### 6\.3 ', r'^### 6\.4 ')],
-      epigraph="**D65:** N∈{10,20,30,50} × (5 problemas do sweep + 2 reps alta-D) × 5 sementes; critério = **mediana do IGD+ final (D70)**; escolhe **1 N por faixa de D** (baixa ≤5 / média / alta ≥20) ANTES da bateria. Piso offline mantém o lattice do b5m (50 M=2 / 105 M=3 — DI-16.4). **[DI-32/A2] N=20 dos pisos ONLINE RATIFICADO DEFINITIVO pelo autor; esta varredura vira sub-estudo OPCIONAL do M11.**")
+      epigraph="**D65:** N∈{10,20,30,50} × (5 problemas do sweep + 2 reps alta-D) × 5 sementes; critério = **mediana do IGD+ final (D70)**; escolhe **1 N por faixa de D** (baixa ≤5 / média / alta ≥20) ANTES da bateria. Piso offline mantém o lattice do b5m (50 M=2 / 105 M=3 — DI-16.4). **[DI-32/A2 → RETIFICADO pela DI-39, 2026-07-25 — ver REGISTRO PARTE A41/T12.D2] N=20 dos pisos ONLINE é PROVISÓRIO; esta varredura é PRÉ-REQUISITO do M8, não sub-estudo opcional do M11.**")
 
 print("== ANALISE (R4) ==")
 write('50_analise_R4/metricas_estatistica_caracteristicas.md','R4 — Métricas, testes estatísticos e análise por característica (§12–§15 + Anexo O)',

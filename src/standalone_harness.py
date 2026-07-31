@@ -656,6 +656,13 @@ def load_offline_budget(problema: str, semente, *,
             f"carga do dataset offline não esgotou o orçamento "
             f"(fe={bud.fe} de {bud.maxfe}) — o invariante 'o orçamento É o "
             f"dataset' (D90) foi violado. Pára-e-loga (D81).")
+    # [BL-04] A CARGA não é avaliação. O laço acima passa pelo portão só para
+    # atribuir `solution_id` (D57) e esgotar o orçamento (D90) — o `f` já está
+    # congelado no parquet e o `true_f` apenas devolve a linha. Sem descartar o
+    # cronômetro, o `tempo_aval_real_s` do ⑤ dos 5 offline publicaria o tempo de
+    # INGESTÃO no lugar do custo de avaliar (medido: 0,0003 s no b5m/DTLZ2).
+    # No regime offline a resposta honesta é NULL: não há avaliação real a medir.
+    bud.descarta_cronometro_de_aval()
     return bud, ds
 
 

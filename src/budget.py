@@ -201,6 +201,26 @@ class FEBudget:
             return None
         return self._tempo_aval_real_s
 
+    def descarta_cronometro_de_aval(self) -> None:
+        """[BL-04] Zera o cronômetro I-02 — e o CONTADOR junto, para que a
+        property volte a devolver **None**.
+
+        Existe por causa de um único chamador: a CARGA do dataset offline
+        (`standalone_harness.load_offline_budget`), que empurra as n linhas do
+        artefato pelo portão de avaliação para atribuir `solution_id` (D57) e
+        esgotar o orçamento (D90). Aquilo não é avaliação: o `f` já está
+        congelado no parquet e o `true_f` só devolve a linha. Sem este descarte,
+        o `tempo_aval_real_s` do ⑤ dos 5 configs offline publica o tempo de
+        INGESTÃO — 0,0003 s medido no b5m/DTLZ2 — como se fosse o custo de
+        avaliar a função-objetivo. Zerar só o relógio não bastaria: com o
+        contador > 0 a property devolveria `0.0`, que é a afirmação "avaliar
+        custou zero" — exatamente o sentinela que o I-02 nasceu para matar.
+
+        NÃO mexe em `fe`, `solution_id`, catálogo nem em nada que a busca veja.
+        """
+        self._tempo_aval_real_s = 0.0
+        self._n_avals_cronometradas = 0
+
     @property
     def records(self) -> list[RealEval]:
         """As linhas do Catálogo REAL ① (ordem de 1ª avaliação = fe_index)."""

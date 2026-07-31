@@ -158,7 +158,22 @@ Pmid: nenhum re-lacre necessário. Nenhum outro item toca árvore vendorizada.
       NULL. ⚠ 4 gates de texto do `test_a2_c122.py` exigem artefato de run real
       (`n_ref` do ⑥, `REGRA_DO_ROTULO` do ⑤, `n_front1` do sobol_batch, `geracoes_derivadas` do
       ⑤ MATLAB) e foram **movidos para o T12.8**, que é onde os testes sobre smoke vivem.
-- [ ] T12.8 · varredura de VALOR de todos os campos T11 (1 teste/campo)
+- [x] T12.8 · varredura de VALOR de todos os campos T11 — **mais 2 reprovaram, e foram operados.**
+      **BL-04** (`tempo_aval_real_s` dos 5 offline): a CARGA do dataset era cronometrada, então o
+      ⑤ publicava o tempo de INGESTÃO como custo de avaliar (medido **0,0003 s** no b5m/DTLZ2; era
+      `0.0` exato na s42). `FEBudget.descarta_cronometro_de_aval()` zera relógio **e contador** —
+      zerar só o relógio devolveria `0.0`, que é a afirmação "avaliar custou zero", o sentinela que
+      o I-02 nasceu para matar. Agora o offline publica **NULL**. **BL-15** (`params` do ⑤ do c217):
+      as 3 chaves eram AFIRMAÇÃO ERRADA — `treino` dizia "do arquivo" (vem da POPULAÇÃO),
+      `surrogate` dizia alvo ternário (é BINÁRIO {1,2}) e `operadores` dizia "Balde C 20/20"
+      (o stock roda `{1,15,1,5}` e a SPEC §567 diz que Balde C não se aplica). Corrigidas e
+      **provadas no ⑤ de um run MATLAB real**. `tests/test_t12_valores_t11.py` (9 testes): o
+      `params` é cruzado com o LITERAL do vendorizado (não com um texto esperado); `n_front1`/
+      `f_best` são medidos num `FEBudget` real com front conhecido + controle degenerado;
+      `repo_hash` é validado com `git cat-file`. Controle negativo: 5 falhas + 1 erro.
+      Campos já cobertos em arquivo próprio: `pmid_ids`/`y_treino_dist`/`fe_treino_max` (T12.1/3),
+      `flag_vetores_degenerados` (T12.2), `p_wrong_stats`/`n_substituicoes` (medidos nos 2 smokes
+      b5m: DTLZ2 Σ7.769 × DTLZ3 Σ0), `pred_score` da sonda estratificada (T12.7).
 - [ ] T12.D1 · piso de ruído → `piso_ruido.json` + regra no CONTRATO (após OK do autor)
 - [ ] T12.D2 · retificação N=20 (após confirmação do autor)
 - [ ] REGISTRO A41 (fechamento) + handoff `handoff/T12-FINAL.md`

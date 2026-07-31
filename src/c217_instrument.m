@@ -128,7 +128,7 @@ function c217_instrument(Problem, Arc, Next, delta, Error1, Error2, TestPre, tfi
             ... % qualidade do classificador vira NAO-MENSURAVEL — irrecuperavel
             ... % a posteriori. Molde: o b4 (b4_instrument.m:91-95). ~2 linhas,
             ... % `bud.solutionIdOf` e deterministico e nao consome RNG.
-            'pmid_ids', pmid_ids_c217(bud, Pmid), ...
+            'pmid_ids', pmid_ids_c217(bud, Pmid, Problem.D), ...
             ... % [I-5] prevalencia das classes no TREINO desta geracao — sem
             ... % ela nao se separa "classificador ruim" de "problema
             ... % desbalanceado". O c217 e ternario {-1,0,+1} (Output).
@@ -189,16 +189,24 @@ function s = iso_now_c217()
 end
 
 
-function ids = pmid_ids_c217(bud, Pmid)
+function ids = pmid_ids_c217(bud, Pmid, D)
 % [I-1] Os solution_id das linhas do Pmid (a referencia do gate). -1 = ponto
 % que ainda nao foi avaliado na funcao real (nao tem id).
+% [A40-1] A fatia `1:D` e OBRIGATORIA: o Pmid tem D+1 colunas porque
+% CalFitnessPC.m:67-68 concatena o Fitness escalar ao PopDec
+% (`Input = [PopDec, Fitness]`) e :73 recorta LINHAS de Input. A chave de
+% identidade do catalogo e o X NATIVO bit-a-bit em 8*D bytes (D89/D57): passar
+% D+1 colunas monta uma chave de 8*(D+1) bytes que NUNCA existe no keymap ->
+% -1 em 100% das linhas, com o catch abaixo silenciando qualquer pista. Mesma
+% fatia que o `fe_treino_max` ja aplica ao TrainIn (:32), que vem do MESMO
+% `Input`.
     ids = [];
     try
         if isempty(Pmid), return; end
         n = size(Pmid, 1);
         ids = -ones(1, n);
         for i = 1:n
-            ids(i) = bud.solutionIdOf(Pmid(i, :));
+            ids(i) = bud.solutionIdOf(Pmid(i, 1:D));
         end
     catch
         ids = [];   % instrumentacao NUNCA derruba o run (D97)

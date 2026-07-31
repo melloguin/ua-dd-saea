@@ -87,7 +87,11 @@ Pmid: nenhum re-lacre necessário. Nenhum outro item toca árvore vendorizada.
 
 ## §5 · CHECKLIST (atualizar aqui mesmo)
 
-- [ ] T12.1 · BL-01 pmid_ids (fix + controle negativo + smoke com ids ≥0)
+- [x] T12.1 · BL-01 pmid_ids (fix + controle negativo + smoke com ids ≥0) — `src/c217_instrument.m`
+      fatia `Pmid(i, 1:D)`; `tests/test_t12_c217_instrument.py` (4 testes, MATLAB real: valor +
+      mutante que reproduz o −1). Controle negativo demonstrado: contra o fonte de ontem o teste
+      REPROVA (`[-1,-1,-1,-1] != [2,6,10,14]`). Smoke real `main/c217/MMF1/s42` em tempdir:
+      **426/426 com id ≥ 0** (min 0, max 59, 0 sentinelas) onde a s42 tinha 426/426 = −1. Suíte 631 OK.
 - [ ] T12.2 · BL-02 flag_vetores_degenerados (fix + prova no DTLZ2/A8)
 - [ ] T12.3 · BL-05 y_treino_dist c217
 - [ ] T12.4 · BL-06 finalProbe sob teto_wall (c154/c262)

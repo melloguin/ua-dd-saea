@@ -2227,6 +2227,21 @@ fix; e todo campo novo de instrumentação exige **asserção sobre o VALOR** me
 
 ---
 
+## PARTE A41 — CARTÃO T12 ABERTO: o acabamento final (torre, 2026-07-31)
+
+**Escopo** (`handoff/T12-CARTAO.md`): os 8 bloqueadores da validação de fidelidade do T11
+(BL-01/02/05/06/08/09 = ~15 linhas de código; BL-07/10 = decisões) + as 2 causas-raiz da A40
+embutidas (Pmid D+1 colunas; reference_vectors no evolver) + a conversão dos gates decorativos
+(texto→comportamento) + varredura de VALOR de todos os campos de instrumentação do T11.
+**Doutrina do cartão: CONTROLE NEGATIVO OBRIGATÓRIO** (todo fix demonstra o defeito antes) +
+asserção de VALOR (nunca de existência de chave). **2 decisões na mesa: BL-07** piso de ruído
+entre máquinas (rec.: re-caracterizar dos dados existentes → `piso_ruido.json` POR problema +
+regra no CONTRATO) e **BL-10** N=20 (rec.: DI-39 prevalece sobre DI-32/A2 — retificar e manter
+SUB-varN pré-disparo). Score da torre pré-T12: 80% p/ disparo; projetado pós-T12: **93%**.
+Banner do CLAUDE.md atualizado (campanha = T12). Pós-T12: tag final → fila D10 → DISPARO.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

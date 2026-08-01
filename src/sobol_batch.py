@@ -228,9 +228,18 @@ def run_sobol_batch(exp: str, alg: str, problema: str, semente, *,
             "gerador": "scipy.stats.qmc.Sobol",
             "semeadura": ("um `seed` por iteração, derivado da semente do run — "
                           "o lote i não repete o lote i-1"),
-            "nota_potencia_de_2": ("q=10 não é potência de 2: usamos `random(q)`, "
-                                   "e o scipy avisa que a propriedade de "
-                                   "balanceamento do Sobol não vale para o lote"),
+            # [BL-20] f-string, não literal fixa: a nota afirmava `q=10` mesmo
+            # quando o run correu com outro `q` (o smoke da própria campanha
+            # rodou q=1 e o ⑤ dizia 10). O `sigma_dict` do MESMO manifesto já
+            # derivava do `q` real — a omissão era local, e é ela que faz um
+            # metadado descrever OUTRO run.
+            "nota_potencia_de_2": (
+                f"q={q} {'não é' if q & (q - 1) else 'é'} potência de 2"
+                + (f": usamos `random({q})`, e o scipy avisa que a propriedade "
+                   f"de balanceamento do Sobol não vale para o lote"
+                   if q & (q - 1) else
+                   f": `random({q})` preserva a propriedade de balanceamento do "
+                   f"Sobol (não há aviso do scipy)")),
             "surrogate": "NENHUM (é o piso — a comparação existe para isolar o efeito do modelo)",
             "sigma": "NULL por construção (sem modelo, não há incerteza a reportar)",
             "D": int(D), "M": int(M), "maxfe": int(bud.maxfe),

@@ -107,7 +107,12 @@ desbalanceamento máximo ≤10%.
       §7.3 (não trocar o writer antes da tag), não aplicar o writer Java. A exceção virou
       **tripwire** (a CLI recusar config MATLAB é aferido por comportamento). Comentário do
       `jsonl_open` corrigido. Se a intenção era APLICAR o Java: 1 função, caminho medido.
-- [ ] T14.11 · mapa_sementes.json balanceado (2 mapas, ≤10% desbalanceamento)
+- [x] T14.11 · mapa_sementes.json balanceado — `d263669`
+      **6,02%** de desbalanceamento (critério ≤10%) · 14.019 h-core · wall máx 252,8 h.
+      3 grupos (os 2 do cartão + `env_main` separado dos venvs próprios — a restrição de env
+      virou consequência). Driver consome o artefato (verificado com `LOTE_MAQ=vm1`).
+      ⚠ **PENDENTE do autor:** nomes/`jobs`/`envs` das 5 máquinas NOVAS são PLACEHOLDER
+      (§12.2). Editar `artifacts/frota.json` + rodar `scripts/mapa_sementes.py` refaz tudo.
 - [ ] REGISTRO A44 + handoff/T14-FINAL.md
 
 ## §6 · DEFINIÇÃO DE PRONTO

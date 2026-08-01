@@ -36,6 +36,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
+
+from tests import TIMEOUT_MATLAB   # [M8] teto unico — nunca literal
 import warnings
 
 _RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -177,7 +179,7 @@ class TestCelulasReaisEspacoModelo(unittest.TestCase):
         cls.proc = subprocess.run(
             [MATLAB, "-sd", cls.tmp, "-batch",
              "drv_t14_espaco('%s','%s')" % (_RAIZ, dr)],
-            capture_output=True, text=True, timeout=1800)
+            capture_output=True, text=True, timeout=TIMEOUT_MATLAB)
         cls.dr = dr
 
     @classmethod

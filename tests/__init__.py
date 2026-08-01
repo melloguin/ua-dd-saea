@@ -67,3 +67,41 @@ def impressao_data_experiments(raiz: str | None = None) -> tuple[int, str]:
 
 #: Fotografia tirada no IMPORT do pacote de testes (antes do 1º teste).
 IMPRESSAO_INICIAL = impressao_data_experiments()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  [M8 · 2026-08-01] TETO ÚNICO dos subprocessos que sobem MATLAB
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _teto_matlab() -> float:
+    """Segundos de teto para um `subprocess` que sobe MATLAB.
+
+    **Por que existe.** Havia 10 tetos HARD-CODED espalhados pelos testes (900s,
+    1800s, 600s…), todos calibrados no Mac. Eles são guarda contra TRAVA, não
+    asserção de desempenho — mas na `matlab-vm2` o
+    `test_t12_c217_instrument.setUpClass` estourou os 900s e derrubou a máquina
+    no portão de aceitação do M8, por disco lento e não por defeito.
+
+    **A medida.** A suíte inteira leva **325 s no Mac** e **1.639 s na vm2** —
+    5,0× mais lenta. A vm2 é a única com `pd-standard` (achado O-19: *"o gargalo
+    aparece no startup do MATLAB, que é I/O-bound"*), e o startup do MATLAB é
+    justamente o que estes testes pagam N vezes.
+
+    **O valor.** 2.700 s (45 min) cobre 5–8× de lentidão sobre o pior teste do
+    Mac e continua pegando uma trava de verdade, que nunca termina. Override por
+    `UA_DD_SAEA_TIMEOUT_MATLAB` para máquina mais lenta ainda — em vez de mais um
+    número hard-coded.
+    """
+    v = os.environ.get("UA_DD_SAEA_TIMEOUT_MATLAB")
+    if v:
+        try:
+            n = float(v)
+            if n > 0:
+                return n
+        except ValueError:
+            pass
+    return 2700.0
+
+
+#: Teto dos subprocessos que sobem MATLAB. Use SEMPRE este, nunca um literal.
+TIMEOUT_MATLAB = _teto_matlab()

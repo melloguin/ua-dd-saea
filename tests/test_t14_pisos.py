@@ -37,6 +37,8 @@ import sys
 import tempfile
 import unittest
 
+from tests import TIMEOUT_MATLAB   # [M8] teto unico — nunca literal
+
 _RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, _RAIZ)
 
@@ -281,7 +283,7 @@ class TestCelulasReaisMatlab(unittest.TestCase):
             [MATLAB, "-sd", cls.tmp, "-batch",
              "drv_t14_pisos('%s','%s','%s')"
              % (_RAIZ, dr, json.dumps(cls.ALVOS).replace("'", "''"))],
-            capture_output=True, text=True, timeout=1800)
+            capture_output=True, text=True, timeout=TIMEOUT_MATLAB)
         alvo = os.path.join(dr, "resultado.json")
         cls.res = None
         if os.path.exists(alvo):

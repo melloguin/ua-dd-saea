@@ -36,6 +36,8 @@ import subprocess
 import tempfile
 import unittest
 
+from tests import TIMEOUT_MATLAB   # [M8] teto unico — nunca literal
+
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXPERIMENT_M = os.path.join(RAIZ, "src", "experiment.m")
 
@@ -133,7 +135,7 @@ class TestPisoNNominal(unittest.TestCase):
             env["UA_DD_SAEA_PISO_N"] = valor
         p = subprocess.run(
             [MATLAB, "-batch", "cd('%s'); %s" % (self.tmp, script)],
-            capture_output=True, text=True, timeout=600, env=env)
+            capture_output=True, text=True, timeout=TIMEOUT_MATLAB, env=env)
         m = re.search(r"<<<(.*?)>>>", p.stdout, re.DOTALL)
         self.assertTrue(m, "MATLAB não devolveu o JSON:\n%s\n%s"
                             % (p.stdout[-1500:], p.stderr[-800:]))

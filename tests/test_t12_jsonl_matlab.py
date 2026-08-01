@@ -50,6 +50,8 @@ import tempfile
 import time
 import unittest
 
+from tests import TIMEOUT_MATLAB   # [M8] teto unico — nunca literal
+
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXPERIMENT_M = os.path.join(RAIZ, "src", "experiment.m")
 
@@ -161,7 +163,7 @@ class TestWriterJsonlMatlab(unittest.TestCase):
         proc = subprocess.run(
             [MATLAB, "-batch",
              "fprintf('EXISTE=%d\\n', exist('fflush'));"],
-            capture_output=True, text=True, timeout=900)
+            capture_output=True, text=True, timeout=TIMEOUT_MATLAB)
         self.assertIn("EXISTE=0", proc.stdout,
                       "`fflush` passou a existir neste MATLAB — reabrir o "
                       "BL-09 com a prescrição original vira opção de novo")
@@ -195,7 +197,7 @@ class TestWriterJsonlMatlab(unittest.TestCase):
         open(alvo, "w").close()          # o dono já truncou (rito B-11)
         procs = [self._matlab(modo, alvo, tag=t)
                  for t in ("A", "B", "C", "D")[:N_ESCRITORES]]
-        rcs = [p.wait(timeout=900) for p in procs]
+        rcs = [p.wait(timeout=TIMEOUT_MATLAB) for p in procs]
         if any(rc != 0 for rc in rcs):
             # K MATLABs simultâneos competem por licença/RAM com o resto da
             # suíte; um arranque que falha é problema de MÁQUINA, não defeito

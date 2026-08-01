@@ -30,6 +30,8 @@ import subprocess
 import tempfile
 import unittest
 
+from tests import TIMEOUT_MATLAB   # [M8] teto unico — nunca literal
+
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FONTE = os.path.join(RAIZ, "src", "c217_instrument.m")
 
@@ -157,7 +159,7 @@ class TestC217Instrument(unittest.TestCase):
         cls.proc = subprocess.run(
             [MATLAB, "-sd", cls.tmp, "-batch",
              "drv_t12_c217('%s','%s','%s')" % (RAIZ, cls.tmp, mut)],
-            capture_output=True, text=True, timeout=900)
+            capture_output=True, text=True, timeout=TIMEOUT_MATLAB)
         alvo_json = os.path.join(cls.tmp, "resultado.json")
         cls.res = None
         if os.path.exists(alvo_json):

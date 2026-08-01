@@ -42,6 +42,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
+
+from tests import TIMEOUT_MATLAB   # [M8] teto unico — nunca literal
 from collections import defaultdict
 
 _RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -200,7 +202,7 @@ class TestOSigmaDictChegaAoQuintoDeVerdade(unittest.TestCase):
         cls.proc = subprocess.run(
             [_matlab_bin(), "-sd", cls.tmp, "-batch",
              "drv_t14_b4('%s','%s')" % (_RAIZ, dr)],
-            capture_output=True, text=True, timeout=1800)
+            capture_output=True, text=True, timeout=TIMEOUT_MATLAB)
         cls.man = None
         alvo = glob.glob(os.path.join(dr, "experiments", "main", "b4",
                                       "*.manifest.json"))

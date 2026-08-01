@@ -49,6 +49,8 @@ import sys
 import tempfile
 import unittest
 
+from tests import TIMEOUT_MATLAB   # [M8] teto unico — nunca literal
+
 _RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, _RAIZ)
 sys.path.insert(0, os.path.join(_RAIZ, "scripts"))
@@ -298,7 +300,7 @@ class TestOLote3sCONSOMEOMapa(unittest.TestCase):
         env = dict(os.environ, CENSO="1", LOTE_MAQ=maq)
         env.pop("LOTE_SEEDS", None)
         return subprocess.run(["bash", LOTE], cwd=_RAIZ, env=env,
-                              capture_output=True, text=True, timeout=900)
+                              capture_output=True, text=True, timeout=TIMEOUT_MATLAB)
 
     def test_uma_maquina_QUE_SO_EXISTE_NO_MAPA_roda(self):
         # vm1 não tem perfil no `case` do driver: se ele não lesse o artefato,
@@ -320,7 +322,7 @@ class TestOLote3sCONSOMEOMapa(unittest.TestCase):
         # o modo manual continua existindo (reprodução da s42, diagnóstico)
         env = dict(os.environ, CENSO="1", LOTE_MAQ="vm3", LOTE_SEEDS="42")
         p = subprocess.run(["bash", LOTE], cwd=_RAIZ, env=env,
-                           capture_output=True, text=True, timeout=900)
+                           capture_output=True, text=True, timeout=TIMEOUT_MATLAB)
         self.assertNotIn("MAPA T14.11", p.stdout)
         self.assertIn("sementes=42", p.stdout)
 
@@ -328,7 +330,7 @@ class TestOLote3sCONSOMEOMapa(unittest.TestCase):
         env = dict(os.environ, CENSO="1", LOTE_MAQ="vm3", LOTE_MAPA="0")
         env.pop("LOTE_SEEDS", None)
         p = subprocess.run(["bash", LOTE], cwd=_RAIZ, env=env,
-                           capture_output=True, text=True, timeout=900)
+                           capture_output=True, text=True, timeout=TIMEOUT_MATLAB)
         self.assertNotIn("MAPA T14.11", p.stdout)
 
     def test_maquina_FORA_do_mapa_falha_com_mensagem_acionavel(self):

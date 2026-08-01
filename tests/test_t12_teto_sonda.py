@@ -43,6 +43,8 @@ import sys
 import tempfile
 import unittest
 
+from tests import TIMEOUT_MATLAB   # [M8] teto unico — nunca literal
+
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if RAIZ not in sys.path:
     sys.path.insert(0, RAIZ)
@@ -111,7 +113,7 @@ def _roda_truncado(alg):
             fh.write(DRIVER)
         proc = subprocess.run(
             [sys.executable, drv, RAIZ, str(IT_TETO), alg, dr],
-            capture_output=True, text=True, timeout=1800)
+            capture_output=True, text=True, timeout=TIMEOUT_MATLAB)
         base = os.path.join(naming.run_dir("main", alg, data_root=dr),
                             "exp_main_%s_MMF1_42" % alg)
         if not os.path.exists(base + ".manifest.json"):

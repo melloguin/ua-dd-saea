@@ -2347,6 +2347,36 @@ forasteiros (autor) → tag → fila D10 → DISPARO.
 
 ---
 
+## PARTE A45 — VALIDAÇÃO DA TORRE SOBRE O T14: APROVADO — e a prova definitiva da doutrina (2026-07-31)
+
+**Re-medição integral:** suíte **826 OK/0 falhas** ✓ · staleness 0 ✓ · forense 39 arquivos
++4.174/−89 com **zero toques** em algorithms//f5//data/experiments ✓ · **controle negativo
+genuíno via worktree** (test_t14_rotulos vs 7ecc0d5^: 40 falhas — o defeito existia) ✓ ·
+**mapa_sementes re-verificado independentemente**: 3 mapas (9/7/6 máquinas), 30 sementes,
+zero duplicatas, cobertura total, desbalanceamento 6,02% ≤ 10% ✓.
+
+**A prova definitiva da doutrina:** o T14 encontrou o CARTÃO DA TORRE errado em 4 pontos e o
+dado venceu em todos — (1) BL-11 não era inflação em 7/8 runners, era **buraco não-atribuível**
+(o I/O caía no vão entre gerações; caso extremo: 72,6% do wall sem nome no sobol_batch);
+(2) o AUC de calibração era 0,5075, não 0,5065; (3) o `+1` prescrito pelo BL-13 acertava
+**0/28** (sem ele, 28/28); (4) o BL-18 valia p/ e103+c217, não os 3 do texto. Duas rodadas
+seguidas em que a medição corrigiu a prescrição — o pipeline agora se defende até de nós.
+
+**Decisões fechadas pela torre:** (1) **B3 RATIFICADO como formalização + tripwire** (aplicar
+o writer Java = 19 sítios × 13 configs na véspera da tag — contra a doutrina; fica no backlog
+pós-M8); (2) **célula moead_media/sweep-small-lhs/ZDT1_42 (3 footers, 2 discordantes)**:
+recomendação = REGRA DE LEITURA, não mutação — o ⑤ desempata (gates F5 verdes, fe=929=maxfe
+nos dois footers, parquets íntegros; o footer `failed` é resíduo do incidente 2-escritores já
+adjudicado na F5 §4-8) → registrar no CONTRATO §10 + anomalia no censo. **Pendente do AUTOR:**
+preencher `claude_code_context/artifacts/frota.json` (nomes/jobs/envs REAIS das 5 máquinas
+novas — hoje placeholder) e re-rodar `python3 scripts/mapa_sementes.py`.
+
+**Score: ~94%.** Caminho final: limpar os 58 forasteiros → frota.json real → TAG (autor) →
+fila D10 (envs/lib gcs/datasets 29 sementes/SUB-varN) → **DISPARO M8**. O residual (~5%) só
+cai com a validação de fidelidade na semente 1 e a 1ª rodada real da frota de 9.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

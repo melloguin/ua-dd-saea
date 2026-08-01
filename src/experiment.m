@@ -3460,9 +3460,15 @@ end
 function fid = jsonl_open(path)
 % [B-11] O dono da celula TRUNCA 1x e passa a escrever em APPEND.
 % O handle 'w' escreve no deslocamento PROPRIO: a descarga do buffer dele passa
-% por cima do que outro escritor ja pos no fim do arquivo (o footer do
-% despachante Python, que mantem o ⑥ aberto em 'a' durante a chamada MATLAB, ou
-% um 2o processo da mesma celula). Medido no gemeo Python deste writer: com dois
+% por cima do que outro escritor ja pos no fim do arquivo — p.ex. um 2o processo
+% da MESMA celula (re-execucao concorrente, retry sobreposto).
+% ⚠ [BL-B3/T14.10 — correcao de doc x codigo] A versao anterior citava tambem
+% "o footer do despachante Python, que mantem o ⑥ aberto em 'a' durante a
+% chamada MATLAB". Essa arquitetura NAO EXISTE: o `experiments.py` despacha SO
+% o roster Python (o `KNOWN_ALGORITHMS` dele e DERIVADO do `_DISPATCH_LOADERS`,
+% e a CLI RECUSA os 13 configs MATLAB), entao nenhum processo Python abre o ⑥ de
+% uma celula MATLAB. O rito do 'a' continua CERTO pelo outro motivo, e o motivo
+% e MEDIDO: com dois
 % escritores 'w' na mesma celula sobram 5.000 de 10.000 linhas; com 'w' + 'a',
 % os outros escritores perdem 2.903 de 10.000 e sai 1 linha malformada — a
 % familia do main/b1/WFG1 (49 de 931 spliced, 0 footer) e do

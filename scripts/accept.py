@@ -661,6 +661,7 @@ def check_r2_00(exp="main", problema="MMF1", semente=0, gcs_smoke=False):
         from src import export as _export, gcs as _gcs, doe as _doe
         from src import manifest as _man
         from src import botorch_harness as _bh
+        from src import audit_log as _audit          # [BL-21] footer_fechado
     except Exception as e:  # noqa: BLE001 — import-gate do stack R2
         return [("import do stack R2 (botorch/torch/harness)",
                  (False, f"{type(e).__name__}: {e}"))]
@@ -793,7 +794,10 @@ def check_r2_00(exp="main", problema="MMF1", semente=0, gcs_smoke=False):
             guards = {r.get("name") for r in recs if r.get("rec") == "guard"}
             n_ch_guards = sum(1 for r in recs if r.get("rec") == "guard"
                               and r.get("name") == "cache_hit")
-            footer = recs[-1] if recs else {}
+            # [BL-21] o footer FECHADO (o que porta `fe_final`), não a última
+            # linha: numa célula com pares espúrios (B-01) a última é um footer
+            # vazio e o gate reprovaria um run sadio por artefato de leitura.
+            footer = _audit.footer_fechado(jp) or {}
             jsonl_ok = (bool(recs) and kinds[0] == "header"
                         and "decision" in kinds and "timing" in kinds
                         and {"cache_hit", "hard_stop"} <= guards

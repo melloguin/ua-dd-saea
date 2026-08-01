@@ -55,10 +55,14 @@ class RunJaFechado(RuntimeError):
 
     Reabrir em append empilharia pares header/footer sobre a certidão de um run
     encerrado: foi assim que `batch/e81/q10_ZDT4` acumulou **94 pares
-    espúrios** (747→767 linhas, todos com `D`/`maxfe`/`params`/`sigma_dict`
-    NULL) e que 34 das 666 células da rodada-42 ficaram com a auditoria de
-    término indecidível — todo consumidor que lê o ÚLTIMO footer
-    (`scripts/progress.py:95`, `scripts/accept.py:794`) é enganado por eles.
+    espúrios** (⟦BL-21, re-medido 2026-08-01: **559→747** linhas — 95 headers e
+    95 footers, e só **1** footer porta `fe_final`; a versão anterior dizia
+    "747→767", que corresponderia a 10 pares, não 94⟧, todos com
+    `D`/`maxfe`/`params`/`sigma_dict` NULL) e que 34 das 666 células da
+    rodada-42 ficaram com a auditoria de término indecidível — todo consumidor
+    que lê o ÚLTIMO footer é enganado por eles (era o caso de
+    `scripts/progress.py` e `scripts/accept.py`; ambos convertidos à primitiva
+    no T14.2).
     Quem de fato vai RE-EXECUTAR a célula abre com `append=False`: o dono do
     arquivo o trunca (rito dos runners e do harness MATLAB).
     """

@@ -9,9 +9,13 @@ READ-ONLY. Lê os `.jsonl` (streaming, §17.5) e os manifestos (§17.2) e mostra
       que o autor pediu): status, wall, nº de retries, por (exp, alg, problema, semente);
   (c) o **placar** (ok / retried_ok / failed / pendente) contra o `runs_matrix.csv`.
 
-Um run é "ativo" quando o `.jsonl` tem header mas ainda não tem footer (o footer é o
-sinal canônico de término — lição das sessões MATLAB: NÃO monitorar pelo processo,
-que sobrevive ao fim do run por causa dos MathWorksServiceHost).
+Um run é "ativo" quando o `.jsonl` tem header mas ainda não tem footer FECHADO (o
+footer com `fe_final` é o sinal canônico de término — lição das sessões MATLAB: NÃO
+monitorar pelo processo, que sobrevive ao fim do run por causa dos MathWorksServiceHost).
+⚠ [BL-21] "footer fechado" é `src.audit_log.footer_fechado`, não "o último footer":
+o append cego (B-01) empilha pares header/footer VAZIOS, e ler o último faz o painel
+mentir sobre o estado da célula DURANTE a campanha — que é justamente quando alguém
+está olhando para ele.
 
 Uso:
     python3 scripts/progress.py                 # snapshot
@@ -30,6 +34,8 @@ from collections import Counter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
+
+from src.audit_log import footer_fechado          # noqa: E402  [BL-21]
 
 DATA = os.path.join(ROOT, "data", "experiments")
 GRID = os.path.join(ROOT, "claude_code_context", "artifacts", "runs_matrix.csv")
@@ -92,7 +98,12 @@ def _scan(exp_f=None, alg_f=None) -> list[dict]:
                 p = os.path.join(d_alg, fn)
                 head = _head_json(p) or {}
                 tail = _tail_json(p)
-                foot = next((r for r in reversed(tail) if r.get("rec") == "footer"), None)
+                # [BL-21] a primitiva, NÃO o último footer da cauda: numa célula
+                # com pares espúrios (append cego, B-01) o último footer é um dos
+                # vazios e o painel MENTE o run inteiro. Medido em
+                # `batch/e81/ZDT4_42`: 95 footers, 1 só com `fe_final` — o último
+                # dá `fe_final=None`, a primitiva dá 2109/200 gerações.
+                foot = footer_fechado(p)
                 gens = [r for r in tail if str(r.get("rec", "")).endswith("_gen")
                         or str(r.get("rec", "")) in ("c262_iter", "c154_iter")]
                 last = gens[-1] if gens else None

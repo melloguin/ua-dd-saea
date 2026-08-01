@@ -638,7 +638,12 @@ def backfill_timing_from_jsonl(exp: str, alg: str, problema: str, semente, *,
     timing_recs: dict[int, dict] = {}
     decision_recs: dict[int, dict] = {}
     sonda_recs: dict[int, dict] = {}
-    footer_ts: float | None = None
+    # [BL-21] Aqui havia um `footer_ts` que capturava o ts do ÚLTIMO `footer` —
+    # o padrão do BL-21 — e que NUNCA era lido. Removido em vez de "corrigido":
+    # o footer não é âncora de tempo de geração nenhuma (ele vem DEPOIS da
+    # escrita das camadas e do upload, que não são custo da geração; é o que a
+    # chave `procedencia.ultima_geracao` deste retorno declara), e uma variável
+    # morta com a semântica errada é um convite a fiar o defeito de volta.
     with open(jpath, encoding="utf-8") as fh:
         for line in fh:
             line = line.strip()
@@ -655,8 +660,6 @@ def backfill_timing_from_jsonl(exp: str, alg: str, problema: str, semente, *,
                 decision_recs[int(it)] = r
             elif rec == "sonda" and it is not None:
                 sonda_recs[int(it)] = r
-            elif rec == "footer":
-                footer_ts = _jsonl_ts(r)
     if not timing_recs:
         raise RuntimeError(
             f"backfill da ④: nenhum evento `timing` em {jpath} — nada a "

@@ -243,6 +243,18 @@ tempo total de execução do algoritmo em cada geração e no total"* — o ④ 
 | `tempo_busca_s` | aquisição/otimização interna da iteração (OBRIGATÓRIO — era opcional/NaN) |
 | **`tempo_pred_sonda_s`** | custo da sonda na iteração (0 quando não roda) |
 | **`tempo_geracao_s`** | wall da geração **EXCLUINDO a sonda** = fit+busca+aval+overhead da busca, **SEM** `tempo_pred_sonda_s` (⟦DI-13.10 ratificada; corrigido — dizia "wall TOTAL", que incluiria a sonda⟧). A sonda é instrumentação DESTE estudo e contaminaria a curva de escalabilidade de forma desigual (só roda a cada k=2). Provado nos dados: `fit+busca ≤ tempo_geracao_s` em 100% das gerações, mas `fit+busca+sonda > tempo_geracao_s` exatamente nas gerações com sonda (1.129/1.129, 6 configs MATLAB + os 2 BoTorch). **O projetor de teto, ao contrário, vê o wall CHEIO** (paga a sonda). |
+| **`tempo_checkpoint_s`** ⟦BL-11, 2026-07-31⟧ | I/O do **checkpoint atômico** (DI-43) atribuído àquela geração. **Segunda aplicação da MESMA regra da sonda:** o checkpoint é instrumentação desta campanha, não custo do algoritmo ⇒ fica FORA de `tempo_busca_s` e de `tempo_geracao_s`. Semântica dos valores: **`0.0`** = "o config faz checkpoint e a cadência não venceu nesta geração"; **NULL** = "este config não tem checkpoint" (os 13 MATLAB, b5r/b5m/moead_media, piso_offline). Nos 8 runners com checkpoint (c262, c154, c122, c149, e81, c311, treed_media, sobol_batch) a coluna é **preenchida em toda linha**. |
+
+> **[BL-11] Onde o checkpoint contaminava e onde não.** Auditado nos 8 runners: em **7** o
+> `talvez_gravar` já roda DEPOIS de a ④ da geração fechar, e o I/O caía no vão ENTRE gerações —
+> fora de `tempo_geracao_s`, mas invisível (o buraco entre Σ`tempo_geracao_s` e `tempo_total_s`
+> não tinha nome). Só o **`treed_media`** contaminava de fato: a ④ dele é 1 linha só e fecha
+> DEPOIS do laço inteiro, então o `t_busca_total` engolia todos os checkpoints — medido
+> **3,270 s → 6,970 s** de `tempo_busca_s` na mesma célula (53,9% de inflação; 49,5% do
+> `tempo_geracao_s`; wall 2,00×). A correção **desconta** no treed_media e **publica** nos 8 —
+> assim a R4 fecha a conta `Σ(geracao) + Σ(checkpoint) + sonda ≈ total` em vez de estimar.
+> **O projetor de teto continua vendo o wall CHEIO** (paga o checkpoint, como paga a sonda): lá
+> a pergunta é o relógio de parede.
 
 **[DI-13.2] `tempo_fit_s` é NULLABLE:** os **4 pisos ONLINE** não têm surrogate (⚠ **[P1/DI-16.1] o piso OFFLINE TEM** — treina um GP e grava `tempo_fit_s` real) ⇒ gravam `NULL` ("não se
 aplica", ≠ `0.0` que significaria "treinou e custou zero" e poluiria a média de custo). O
@@ -251,6 +263,9 @@ aplica", ≠ `0.0` que significaria "treinou e custou zero" e poluiria a média 
 **+ o bloco `timing` do MANIFESTO vira OBRIGATÓRIO nos 21** (estava ZERADO em 10/12 — auditoria
 da torre): `tempo_total_s` (wall do run), `tempo_fit_surrogate_s`, `tempo_busca_s`,
 `tempo_aval_real_s` (agregados). Pisos: ④ por geração com `tempo_geracao_s` (fit=NULL).
+⟦BL-11⟧ Os 8 runners com checkpoint acrescentam **`tempo_checkpoint_s`** ao bloco (o agregado do
+run); nos demais a chave é **omitida** — ausência = "não se aplica", `0.0` seria "faz checkpoint
+e nunca gravou".
 - ⚠ Ressalva de stack (§19): wall MATLAB×Python é confundido pela linguagem — comparar custo
   DENTRO de cada stack; a curva (n_acumulado, tempo_fit_s) é robusta (mede a FORMA, não segundos).
 - **Alimenta:** a ⭐ curva de escalabilidade (O(n³) do GP vs ~linear do BNN/treed-GP — c238 n^2,3

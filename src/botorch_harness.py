@@ -656,7 +656,8 @@ class SnapshotBuffer:
     def add_timing(self, geracao: int, n_acumulado: int, tempo_fit_s: float,
                    tempo_busca_s: float | None = None,
                    tempo_pred_sonda_s: float | None = None,
-                   tempo_geracao_s: float | None = None) -> None:
+                   tempo_geracao_s: float | None = None,
+                   tempo_checkpoint_s: float | None = None) -> None:
         """Um evento de retreino → série `(n_acumulado, tempo_fit_s)` (§17.6).
 
         Os runners BoTorch chamam este método IMEDIATAMENTE após o fit (para
@@ -672,6 +673,11 @@ class SnapshotBuffer:
                                    else float(tempo_pred_sonda_s)),
             "tempo_geracao_s": (None if tempo_geracao_s is None
                                 else float(tempo_geracao_s)),
+            # [BL-11] custo do checkpoint DESTA geração — entra por
+            # `update_timing` DEPOIS do `talvez_gravar` (o I/O acontece no fim
+            # da iteração, e nunca dentro do `tempo_geracao_s`).
+            "tempo_checkpoint_s": (None if tempo_checkpoint_s is None
+                                   else float(tempo_checkpoint_s)),
         })
 
     def update_timing(self, geracao: int, **campos) -> None:

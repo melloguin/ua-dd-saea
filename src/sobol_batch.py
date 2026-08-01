@@ -161,6 +161,10 @@ def run_sobol_batch(exp: str, alg: str, problema: str, semente, *,
                                   tempo_pred_sonda_s=0.0,
                                   tempo_geracao_s=(time.time() - t_g0))
                 ckpt.talvez_gravar(bud, buf, iteracao=g)   # [DI-43]
+                # [BL-11] I/O do checkpoint à parte — roda DEPOIS de a ④ da
+                # geração fechar, logo fica FORA do `tempo_geracao_s` (DI-13.10).
+                buf.update_timing(g,
+                                  tempo_checkpoint_s=ckpt.consumir_tempo_s())
                 # [I-03] o MÍNIMO COMUM DI-10 pelo helper, não à mão. Este era
                 # o ÚNICO dos 47 pares (alg,exp) do estudo sem `n_front1` — o
                 # evento era montado aqui em vez de chamar
@@ -202,7 +206,8 @@ def run_sobol_batch(exp: str, alg: str, problema: str, semente, *,
             # estudo com `tempo_aval_real_s` = zero EXATO (0 zeros em 416
             # células alheias), e o valor real medido é 4,110 s-VM nas 5 —
             # 20,6% do wall, 57,15% no WFG9.
-            tempo_aval_real_s=bud.tempo_aval_real_s, tempo_pred_sonda_s=0.0)
+            tempo_aval_real_s=bud.tempo_aval_real_s, tempo_pred_sonda_s=0.0,
+            tempo_checkpoint_s=ckpt.tempo_total_s)      # [BL-11]
         # [I-07/C2] `params` — a config EFETIVA no ⑤. O CONTRATO §5 lista
         # `params` entre as chaves obrigatórias do manifesto, e o sobol_batch era
         # o ÚNICO config Python que ainda não o gravava (medido nos smokes de

@@ -82,6 +82,7 @@ class Checkpointer:
         self.ativo = bool(ativo)
         self.n_checkpoints = 0
         self.tempo_total_s = 0.0
+        self._tempo_creditado_s = 0.0
         self._ultimo_t = time.time()
         self._ultima_iter = 0
 
@@ -150,6 +151,22 @@ class Checkpointer:
                                       'gravado por último, então um kill pode '
                                       'deixar as camadas 1 checkpoint à frente')}
         _manifest.write_manifest(man, self.data_root)
+
+    # -- contabilidade de tempo (BL-11) -------------------------------------
+    def consumir_tempo_s(self) -> float:
+        """O I/O de checkpoint acumulado DESDE a última chamada; zera o ponteiro.
+
+        [BL-11] `tempo_busca_s`/`tempo_geracao_s` medem o ALGORITMO; o
+        checkpoint é instrumentação DESTA campanha (mesma doutrina da sonda,
+        DI-13.10) e tem de sair da conta — mas não pode sumir, senão a R4 não
+        explica o buraco entre Σ`tempo_geracao_s` e `tempo_total_s`. Esta é a
+        primitiva que os 8 runners usam para publicá-lo em `tempo_checkpoint_s`
+        (④) por geração: devolve **0.0** quando nada foi gravado no intervalo,
+        que é o valor honesto (≠ NULL = "este config não faz checkpoint").
+        """
+        dt = self.tempo_total_s - self._tempo_creditado_s
+        self._tempo_creditado_s = self.tempo_total_s
+        return dt
 
     # -- relato -------------------------------------------------------------
     def resumo(self) -> dict:

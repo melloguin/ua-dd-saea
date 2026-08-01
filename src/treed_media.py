@@ -389,7 +389,7 @@ def run_treed_media(exp: str, alg: str, problema: str, semente, *,
     pop_final = None
     n_nd = 0
     final_gen_last = 0
-    t_fit = t_busca_total = t_snd = 0.0
+    t_fit = t_busca_total = t_snd = t_ckpt = 0.0
 
     try:
         log.header(alg=alg, versao=ALGO_VERSION, problema=problema, D=D, M=M,
@@ -458,7 +458,14 @@ def run_treed_media(exp: str, alg: str, problema: str, semente, *,
                     H.iteration_cleanup()
                     ckpt.talvez_gravar(bud, buf,
                                        iteracao=int(evf._current_gen_count))
-            t_busca_total = time.time() - t_f0
+            # [BL-11] o `t_f0`..agora contém o I/O do checkpoint, que roda DENTRO
+            # do laço (aqui, ao contrário dos outros 7 runners, a ④ é 1 linha só
+            # e fecha DEPOIS do laço inteiro). Medido: 3,270 s → 6,970 s de
+            # `tempo_busca_s` na mesma célula, 53,9% de inflação. O instrumento
+            # sai da conta do algoritmo e vai publicado à parte — mesma doutrina
+            # da sonda (DI-13.10).
+            t_ckpt = ckpt.consumir_tempo_s()
+            t_busca_total = (time.time() - t_f0) - t_ckpt
             final_gen_last = int(evf._current_gen_count)
             pop_final = np.ascontiguousarray(
                 evf.population.individuals, dtype=np.float64)
@@ -484,9 +491,11 @@ def run_treed_media(exp: str, alg: str, problema: str, semente, *,
             F_final.astype(np.float32).astype(np.float64)))
         n_nd = len(nd_idx)
 
-        # ── ④ = 1 LINHA: completa fit + busca (EXCLUINDO a sonda, DI-13.10) ─────
+        # ── ④ = 1 LINHA: completa fit + busca (EXCLUINDO a sonda, DI-13.10, e
+        #    o checkpoint, BL-11 — os dois são instrumento, não algoritmo) ──────
         buf.update_timing(1, tempo_busca_s=t_busca_total,
                           tempo_pred_sonda_s=t_snd,
+                          tempo_checkpoint_s=t_ckpt,
                           tempo_geracao_s=t_fit + t_busca_total)
 
     except H.OfflineBudgetViolation:
@@ -523,7 +532,8 @@ def run_treed_media(exp: str, alg: str, problema: str, semente, *,
         # devolve None quando nenhuma avaliação passou pelo portão.
         tempo_busca_s=t_busca_total,
         tempo_aval_real_s=bud.tempo_aval_real_s,
-        tempo_pred_sonda_s=t_snd)
+        tempo_pred_sonda_s=t_snd,
+        tempo_checkpoint_s=ckpt.tempo_total_s)      # [BL-11]
 
     res = H.write_run_outputs(
         exp, alg, problema, semente, bud, buf, D=D, M=M,

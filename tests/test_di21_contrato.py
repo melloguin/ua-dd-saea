@@ -57,8 +57,21 @@ class TestD01NAcumuladoNullable(unittest.TestCase):
         if not os.path.exists(p):
             self.skipTest("run do piso ausente")
         t = pq.read_table(p)
-        norm = export.normalize_schema(t)
-        norm.cast(export.timing_schema())          # não pode levantar
+        # [BL-11] `cast_completo`, não `normalize_schema(...).cast(...)`: este é
+        # um artefato REAL de piso MATLAB, gravado antes de a ④ ganhar o
+        # `tempo_checkpoint_s`. O cast ingênuo casa por NOME de campo e estoura
+        # a cada coluna nova — é justamente o que `cast_completo` (a leitura
+        # canônica do R4) existe para absorver, e é como o irmão
+        # `test_timing_real_casta_ao_canonico` já lê o corpus inteiro.
+        out = export.cast_completo(t, export.timing_schema())
+        # asserção de VALOR: o piso MATLAB não faz checkpoint ⇒ a coluna nova
+        # sai NULL ("não se aplica"), NUNCA 0.0 ("faz e não gravou").
+        self.assertEqual(
+            set(out.column("tempo_checkpoint_s").to_pylist()), {None})
+        # e o D-01 original segue trancado: o piso não TREINA ⇒ n_acumulado
+        # NULL em toda linha, atravessando o `double`+NaN do writer MATLAB.
+        self.assertEqual(out.column("n_acumulado").null_count, out.num_rows)
+        self.assertGreater(out.num_rows, 0)
 
 
 class TestD02NormalizeConcat(unittest.TestCase):

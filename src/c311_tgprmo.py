@@ -646,6 +646,10 @@ def run_c311(exp: str, alg: str, problema: str, semente, *,
                                   tempo_pred_sonda_s=0.0,
                                   tempo_geracao_s=t_fit_it + t_busca_it)
                 ckpt.talvez_gravar(bud, buf, iteracao=n_iter_build)   # [DI-43]
+                # [BL-11] I/O do checkpoint à parte — roda DEPOIS de a ④ da
+                # geração fechar, logo fica FORA do `tempo_geracao_s` (DI-13.10).
+                buf.update_timing(g_it,
+                                  tempo_checkpoint_s=ckpt.consumir_tempo_s())
                 t_fit_total += t_fit_it
                 t_busca_total += t_busca_it
                 log.decision(
@@ -755,7 +759,8 @@ def run_c311(exp: str, alg: str, problema: str, semente, *,
         # devolve None quando nenhuma avaliação passou pelo portão.
         tempo_busca_s=t_busca_total,
         tempo_aval_real_s=bud.tempo_aval_real_s,
-        tempo_pred_sonda_s=t_sonda_total)
+        tempo_pred_sonda_s=t_sonda_total,
+        tempo_checkpoint_s=ckpt.tempo_total_s)      # [BL-11]
 
     res = H.write_run_outputs(
         exp, alg, problema, semente, bud, buf, D=D, M=M,

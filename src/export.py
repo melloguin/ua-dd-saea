@@ -196,6 +196,12 @@ def timing_schema():
         pa.field("tempo_busca_s", pa.float32(), nullable=True),
         pa.field("tempo_pred_sonda_s", pa.float32(), nullable=True),
         pa.field("tempo_geracao_s", pa.float32(), nullable=True),
+        # [BL-11] I/O do checkpoint (DI-43) da geração — instrumentação DESTA
+        # campanha, medida à parte pelo MESMO princípio da sonda (DI-13.10) e
+        # portanto FORA de `tempo_busca_s`/`tempo_geracao_s`. `0.0` = "o config
+        # faz checkpoint e não gravou nesta geração"; NULL = "este config não
+        # tem checkpoint" (os 13 MATLAB, b5r/b5m/moead_media, piso_offline).
+        pa.field("tempo_checkpoint_s", pa.float32(), nullable=True),
     ])
 
 
@@ -538,6 +544,7 @@ def write_timing(exp: str, alg: str, problema: str, semente,
         "tempo_busca_s": opt("tempo_busca_s"),
         "tempo_pred_sonda_s": opt("tempo_pred_sonda_s"),
         "tempo_geracao_s": opt("tempo_geracao_s"),
+        "tempo_checkpoint_s": opt("tempo_checkpoint_s"),      # [BL-11]
     }).cast(timing_schema())
     return _write_table(
         naming.layer_path(exp, alg, problema, semente, "timing", data_root), table)
@@ -548,6 +555,7 @@ def write_timing(exp: str, alg: str, problema: str, semente,
 def manifest_timing_block(*, tempo_total_s: float, tempo_fit_surrogate_s: float,
                           tempo_busca_s: float, tempo_aval_real_s: float | None,
                           tempo_pred_sonda_s: float | None = None,
+                          tempo_checkpoint_s: float | None = None,
                           casas: int = 4, **extra) -> dict:
     """Monta o bloco `timing` agregado do manifesto (§17.6(1) / CONTRATO §4).
 
@@ -573,6 +581,11 @@ def manifest_timing_block(*, tempo_total_s: float, tempo_fit_surrogate_s: float,
     }
     if tempo_pred_sonda_s is not None:
         blk["tempo_pred_sonda_s"] = round(float(tempo_pred_sonda_s), casas)
+    # [BL-11] o agregado do I/O de checkpoint (DI-43). Omitido nos configs SEM
+    # checkpoint — a ausência da chave é a declaração de "não se aplica", e o
+    # `0.0` fica reservado para "faz checkpoint e a cadência nunca venceu".
+    if tempo_checkpoint_s is not None:
+        blk["tempo_checkpoint_s"] = round(float(tempo_checkpoint_s), casas)
     blk.update({k: v for k, v in extra.items() if v is not None})
     return blk
 

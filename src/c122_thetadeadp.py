@@ -983,6 +983,9 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                            tempo_pred_sonda_s=t_snd,
                            tempo_geracao_s=(time.time() - t_g0) - t_snd)
             ckpt.talvez_gravar(bud, buf, iteracao=g)     # [DI-43]
+            # [BL-11] I/O do checkpoint à parte — roda DEPOIS de a ④ da geração
+            # fechar, então nunca entra no `tempo_geracao_s` (doutrina DI-13.10).
+            buf.update_timing(g, tempo_checkpoint_s=ckpt.consumir_tempo_s())
 
             # ── ⑥ jsonl: mínimo comum DI-10 + os campos do c122 (S.7.1) ────
             F_arc = np.asarray([ind.fitness.values for ind in archive],
@@ -1071,7 +1074,8 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
             tempo_total_s=time.time() - t_run,
             tempo_fit_surrogate_s=t_fit_total, tempo_busca_s=t_busca_total,
             tempo_aval_real_s=adapter.tempo_aval_real_s,
-            tempo_pred_sonda_s=t_sonda_total)
+            tempo_pred_sonda_s=t_sonda_total,
+            tempo_checkpoint_s=ckpt.tempo_total_s)      # [BL-11]
         # [DI-23] status/motivo REAIS no manifesto — cumpre a promessa do
         # docstring (:576-579): um aborto por teto/cache-cap grava `failed`,
         # não o 'ok' hard-coded que o harness carimbava (achado §3.3 do c149).

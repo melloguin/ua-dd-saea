@@ -1174,7 +1174,8 @@ class SnapshotBuffer:
                    tempo_fit_s: float | None,
                    tempo_busca_s: float | None = None,
                    tempo_pred_sonda_s: float | None = None,
-                   tempo_geracao_s: float | None = None) -> None:
+                   tempo_geracao_s: float | None = None,
+                   tempo_checkpoint_s: float | None = None) -> None:
         """Abre a linha ④ da geração (§17.6 expandida).
 
         Chame IMEDIATAMENTE após o fit — assim a curva O(n³) retém o fit mesmo
@@ -1193,6 +1194,11 @@ class SnapshotBuffer:
                                    else float(tempo_pred_sonda_s)),
             "tempo_geracao_s": (None if tempo_geracao_s is None
                                 else float(tempo_geracao_s)),
+            # [BL-11] I/O do checkpoint DESTA geração (DI-43) — medido à parte
+            # pelo mesmo princípio da sonda: `tempo_busca_s`/`tempo_geracao_s`
+            # medem o algoritmo, não o instrumento.
+            "tempo_checkpoint_s": (None if tempo_checkpoint_s is None
+                                   else float(tempo_checkpoint_s)),
         })
 
     def update_timing(self, geracao: int, **campos) -> None:

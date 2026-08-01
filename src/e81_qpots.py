@@ -1056,6 +1056,12 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                         g, tempo_busca_s=t_busca, tempo_pred_sonda_s=t_snd,
                         tempo_geracao_s=(time.time() - t_g0) - t_snd)
                 ckpt.talvez_gravar(bud, buf, iteracao=g)   # [DI-43]
+                if linha_timing_aberta:
+                    # [BL-11] I/O do checkpoint à parte — roda DEPOIS de a ④
+                    # fechar (logo acima), então nunca entra no
+                    # `tempo_geracao_s` (mesma doutrina da sonda, DI-13.10).
+                    buf.update_timing(
+                        g, tempo_checkpoint_s=ckpt.consumir_tempo_s())
                 # higiene D86: soltar os tensores/objetos da iteração antes
                 # do `gc.collect()`. O `mo` NÃO entra aqui — fica retido de
                 # propósito em `estado_sonda` (a sonda final o usa); é 1
@@ -1124,7 +1130,8 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
             tempo_total_s=time.time() - t_run,
             tempo_fit_surrogate_s=t_fit_total, tempo_busca_s=t_busca_total,
             tempo_aval_real_s=oracle.tempo_aval_real_s,
-            tempo_pred_sonda_s=t_sonda_total)
+            tempo_pred_sonda_s=t_sonda_total,
+            tempo_checkpoint_s=ckpt.tempo_total_s)      # [BL-11]
         res = H.write_run_outputs(
             exp, alg, problema, semente, bud, buf, D=D, M=M,
             cp_hashes={"doe_hash": doe["doe_hash"]},

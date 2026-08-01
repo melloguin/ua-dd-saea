@@ -763,6 +763,9 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                 n_blocos_sonda += 1
                 buf.update_timing(it, tempo_busca_s=tempo_busca,
                                   tempo_pred_sonda_s=t_snd,
+                                  # [BL-11] 0.0 aqui: o checkpoint desta iteração
+                                  # nunca chegou a rodar (o hard-stop corta antes).
+                                  tempo_checkpoint_s=ckpt.consumir_tempo_s(),
                                   tempo_geracao_s=(time.time() - t_it0) - t_snd)
                 raise
             sid = bud.solution_id_of(X_cand_nat[best])
@@ -800,6 +803,7 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                     buf.update_timing(
                         it, tempo_busca_s=tempo_busca,
                         tempo_pred_sonda_s=t_snd,
+                        tempo_checkpoint_s=ckpt.consumir_tempo_s(),   # [BL-11]
                         tempo_geracao_s=(time.time() - t_it0) - t_snd)
                     raise
                 sid_i = bud.solution_id_of(X_i[best_i])
@@ -854,6 +858,10 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
             # camadas parciais existem ANTES do fim, então uma morte matada
             # (spot revogada, OOM, SIGKILL) não zera o run.
             ckpt.talvez_gravar(bud, buf, iteracao=it)
+            # [BL-11] o I/O do checkpoint é publicado à parte — e roda DEPOIS do
+            # `tempo_geracao_s` fechar, de propósito: o instrumento não entra na
+            # conta do algoritmo (mesma doutrina da sonda, DI-13.10).
+            buf.update_timing(it, tempo_checkpoint_s=ckpt.consumir_tempo_s())
 
             # [BL-06] O `del model` (D86) desceu para DEPOIS do teto: sob
             # truncamento esta É a última iteração, e o §17.2.2 promete bloco
@@ -919,7 +927,8 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
         tempo_fit_surrogate_s=tempo_fit_total,
         tempo_busca_s=tempo_busca_total,
         tempo_aval_real_s=adapter.tempo_aval_real_s,
-        tempo_pred_sonda_s=tempo_sonda_total)
+        tempo_pred_sonda_s=tempo_sonda_total,
+        tempo_checkpoint_s=ckpt.tempo_total_s)          # [BL-11]
     out = write_run_outputs(
         exp, alg, problema, semente, bud, buf, adapter=adapter,
         doe_hash_sidecar=doe_art["doe_hash"], env=env, pinning=pinning,

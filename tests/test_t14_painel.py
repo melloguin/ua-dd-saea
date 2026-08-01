@@ -242,6 +242,18 @@ class TestVarreduraDoPadrao(unittest.TestCase):
 #  O corpus REAL — o número do docstring é MEDIDO, não copiado
 # ═══════════════════════════════════════════════════════════════════════════
 
+#: [M8 · 2026-08-01] GUARDA DE PORTABILIDADE — ver `test_t14_pisos.py`.
+#: `data/experiments/` é gitignored; o corpus da s42 mora no BUCKET e localmente
+#: só no Mac. Esta classe afirma sobre UMA célula concreta da s42 — numa VM ela
+#: não existe, e o teste reprovava a máquina por um dado que nunca esteve lá.
+_CELULA_ALVO = os.path.join(_RAIZ, "data", "experiments", "batch", "e81",
+                            "exp_batch_e81_ZDT4_42.jsonl")
+_TEM_CORPUS = os.path.exists(_CELULA_ALVO)
+_SEM_CORPUS = ("a célula da s42 usada por esta classe não existe nesta máquina "
+               "(%s) — gitignored, mora no bucket" % os.path.basename(_CELULA_ALVO))
+
+
+@unittest.skipUnless(_TEM_CORPUS, _SEM_CORPUS)
 class TestCorpusReal(unittest.TestCase):
     """A errata do docstring do `RunJaFechado` (747→767 ⇒ 559→747).
 

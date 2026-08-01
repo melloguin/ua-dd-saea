@@ -153,6 +153,29 @@ def _corpus_pisos() -> list[dict]:
 #  O controle negativo: o corpus da rodada-42, gravado pelo código ANTIGO
 # ═══════════════════════════════════════════════════════════════════════════
 
+#: [M8 · 2026-08-01] GUARDA DE PORTABILIDADE — o corpus da s42 NÃO viaja.
+#:
+#: `data/experiments/` é **gitignored** (`.gitignore:6`): o corpus da rodada-42
+#: mora no BUCKET e, localmente, só no Mac do autor. Numa VM recém-clonada ele
+#: não existe — medido em 2026-08-01: Mac ~666 células, vm10 6, vm2 5, vm1 **0**.
+#:
+#: Sem esta guarda, um teste que AFIRMA sobre o corpus reprova a máquina por um
+#: motivo que não é a máquina — e foi o que aconteceu: as 4 VMs "reprovaram" o
+#: portão de aceitação do M8 medindo dados que nunca estiveram lá. É a MESMA
+#: disciplina do `skipUnless(MATLAB, ...)` deste arquivo: onde o insumo não
+#: está, PULA-SE; não se inventa vermelho.
+_N_CORPUS_PISOS = sum(
+    len(glob.glob(os.path.join(_RAIZ, "data", "experiments", "main", _a, "*.jsonl")))
+    for _a in ("nsga2", "nsga3", "moead", "smsemoa"))
+#: 112 no Mac (4 pisos × 28 células); 0–6 nas VMs. O limiar separa os dois mundos
+#: sem depender do número exato, que pode crescer.
+_TEM_CORPUS = _N_CORPUS_PISOS >= 100
+_SEM_CORPUS = ("corpus da s42 ausente/parcial nesta máquina (%d células de piso; "
+               "`data/experiments/` é gitignored e o corpus mora no bucket)"
+               % _N_CORPUS_PISOS)
+
+
+@unittest.skipUnless(_TEM_CORPUS, _SEM_CORPUS)
 class TestCorpusS42(unittest.TestCase):
 
     @classmethod
@@ -231,6 +254,7 @@ class TestFiacaoNoExperimentM(unittest.TestCase):
 # ═══════════════════════════════════════════════════════════════════════════
 
 @unittest.skipUnless(MATLAB, "MATLAB ausente nesta máquina")
+@unittest.skipUnless(_TEM_CORPUS, _SEM_CORPUS)   # o A/B é CONTRA o corpus da s42
 class TestCelulasReaisMatlab(unittest.TestCase):
     """Roda as 4 células erradas + 4 de controle e compara com a s42.
 

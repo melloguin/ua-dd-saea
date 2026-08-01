@@ -99,7 +99,20 @@ class TestFiacaoEspacoModelo(unittest.TestCase):
                       "o sigma_dict deixou de declarar o espaço")
 
 
+#: [M8 · 2026-08-01] GUARDA DE PORTABILIDADE — ver `test_t14_pisos.py`.
+#: Estas classes leem a camada ③ do corpus da s42 (`data/experiments/`, que é
+#: gitignored e mora no bucket). Numa VM recém-clonada não há o que ler.
+_N_TERCEIRA = sum(
+    len(glob.glob(os.path.join(_RAIZ, "data", "experiments", "main", _a,
+                               "*__surrogate.parquet")))
+    for _a in ("c217", "e103"))
+_TEM_CORPUS = _N_TERCEIRA >= 20
+_SEM_CORPUS = ("corpus da s42 ausente/parcial (%d camadas ③ de c217/e103; "
+               "gitignored, mora no bucket)" % _N_TERCEIRA)
+
+
 @unittest.skipUnless(_TEM_ARROW, "pyarrow ausente")
+@unittest.skipUnless(_TEM_CORPUS, _SEM_CORPUS)
 class TestAssimetriaNoCorpusS42(unittest.TestCase):
     """O corpus é o registro do defeito — gravado pelo código ANTIGO."""
 
@@ -137,6 +150,7 @@ class TestAssimetriaNoCorpusS42(unittest.TestCase):
 
 
 @unittest.skipUnless(MATLAB and _TEM_ARROW, "MATLAB/pyarrow ausentes")
+@unittest.skipUnless(_TEM_CORPUS, _SEM_CORPUS)   # o A/B e CONTRA a ③ da s42
 class TestCelulasReaisEspacoModelo(unittest.TestCase):
     """Células REAIS: a ③ inteira passa a declarar o espaço.
 

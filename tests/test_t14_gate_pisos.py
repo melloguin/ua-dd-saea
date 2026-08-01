@@ -188,6 +188,19 @@ class TestMutanteDoSexto(unittest.TestCase):
 #  O corpus REAL — ligar a vigilância não acende falso-vermelho
 # ═══════════════════════════════════════════════════════════════════════════
 
+#: [M8 · 2026-08-01] GUARDA DE PORTABILIDADE — ver `test_t14_pisos.py`.
+#: `data/experiments/` é gitignored: o corpus da s42 mora no BUCKET e localmente
+#: só no Mac. Medido em 2026-08-01: Mac ~666 células, vm10 6, vm2 5, vm1 **0**.
+#: Afirmar sobre ele reprova a máquina por um motivo que não é a máquina.
+_N_CORPUS_PISOS = sum(
+    len(glob.glob(os.path.join(_RAIZ, "data", "experiments", "main", _a, "*.jsonl")))
+    for _a in ("nsga2", "nsga3", "moead", "smsemoa"))
+_TEM_CORPUS = _N_CORPUS_PISOS >= 100
+_SEM_CORPUS = ("corpus da s42 ausente/parcial nesta máquina (%d células de piso; "
+               "gitignored, mora no bucket)" % _N_CORPUS_PISOS)
+
+
+@unittest.skipUnless(_TEM_CORPUS, _SEM_CORPUS)
 class TestCorpusRealNaoFicaVermelho(unittest.TestCase):
 
     def test_os_3_campos_estao_em_TODOS_os_eventos_dos_4_pisos(self):

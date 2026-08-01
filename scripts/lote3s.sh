@@ -179,7 +179,18 @@ MAPA_JSON="claude_code_context/artifacts/mapa_sementes.json"
 MAPA_ALLOW=""
 if [ "${LOTE_MAPA:-1}" != "0" ] && [ -n "$MAQ" ] && [ -f "$MAPA_JSON" ] \
    && [ -z "${LOTE_SEEDS:-}" ]; then
-  MAPA_ALLOW="$(mktemp -t lote3s_mapa)"
+  # ⚠ PORTABILIDADE (achado 2026-08-01, nas 4 VMs). `mktemp -t PREFIXO` funciona
+  # no BSD/macOS (o -t trata o argumento como PREFIXO e acrescenta o aleatorio),
+  # mas o GNU/Linux exige que o TEMPLATE termine em >=3 X e falha com
+  # "too few X's in template". A falha era SILENCIOSA e catastrofica: MAPA_ALLOW
+  # ficava vazio, o bloco do mapa inteiro quebrava, e o driver caia no
+  # "FATAL: defina LOTE_MAQ" — ou seja, o disparo do M8 por mapa NAO FUNCIONAVA
+  # em nenhuma VM Linux. Template completo funciona identico nos dois.
+  MAPA_ALLOW="$(mktemp "${TMPDIR:-/tmp}/lote3s_mapa.XXXXXX")"
+  [ -n "$MAPA_ALLOW" ] && [ -f "$MAPA_ALLOW" ] || {
+    echo "FATAL: mktemp falhou ao criar o allowlist do mapa (\$TMPDIR=${TMPDIR:-/tmp})"
+    exit 2
+  }
   MAPA_OUT="$("${PY:-python3}" - "$MAPA_JSON" "$MAQ" "$MAPA_ALLOW" <<'PYMAPA'
 import json, sys
 mapa, maq, saida = sys.argv[1], sys.argv[2], sys.argv[3]

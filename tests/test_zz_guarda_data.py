@@ -63,19 +63,54 @@ class TestGuardaAntiEscritaEmProducao(unittest.TestCase):
         diretório-raiz. Se a impressão não estatar a raiz, essa escrita passa
         invisível, e foi assim que `test_drivers_b12` escreveu em produção a
         cada execução da suíte sem a guarda acusar.
+
+        ⚠ [conserto 2026-08-01 · M8] A versão anterior criava e removia a
+        subpasta e exigia que o hash mudasse. Isso **corre contra a resolução do
+        relógio do filesystem**: no macOS as duas operações caem em grânulos
+        distintos e o mtime muda; no **Linux das 4 VMs** elas caem no MESMO
+        grânulo e o mtime sai idêntico — o teste reprovava as máquinas por um
+        detalhe de `st_mtime_ns`, não por cegueira da guarda. (Medido: falhou em
+        vm1 e vm2 com os dois hashes iguais.)
+
+        A propriedade que importa — *a raiz ENTRA na fotografia* — não depende
+        de relógio nenhum e é provada mudando o mtime da raiz de propósito.
+        O cenário original fica logo abaixo, agora com separação garantida.
         """
         import os
         import tempfile
         with tempfile.TemporaryDirectory(prefix="g8_raiz_") as base:
             os.makedirs(os.path.join(base, "main"))
             antes = impressao_data_experiments(base)
+
+            # (1) DETERMINÍSTICO: mexer SÓ no mtime da raiz. Nenhum filho muda,
+            #     nenhuma entrada é criada — se o hash não reagir, a raiz está
+            #     fora da impressão, que é exatamente o ponto cego do B-13.
+            st = os.stat(base)
+            os.utime(base, ns=(st.st_atime_ns, st.st_mtime_ns + 1_000_000_000))
+            so_raiz = impressao_data_experiments(base)
+            self.assertEqual(antes[0], so_raiz[0], "a contagem não deveria mudar")
+            self.assertNotEqual(
+                antes[1], so_raiz[1],
+                "a impressão NÃO reagiu ao mtime da RAIZ — ela voltou a estatar "
+                "só os filhos e a guarda está cega (o ponto cego do B-13)")
+
+            # (2) O CENÁRIO REAL: subpasta que nasce e morre. Aqui a mudança
+            #     depende do relógio, então garantimos a separação em vez de
+            #     torcer por ela — o `utime` explícito recoloca a raiz num
+            #     grânulo distinto do lido em `so_raiz`.
+            base_st = os.stat(base)
             alvo = os.path.join(base, "_efemera")
             os.makedirs(alvo)
             os.rmdir(alvo)
+            if os.stat(base).st_mtime_ns == base_st.st_mtime_ns:
+                # o FS não distinguiu as duas operações (grânulo grosso) —
+                # simula o que ele teria gravado num relógio mais fino
+                os.utime(base, ns=(base_st.st_atime_ns,
+                                   base_st.st_mtime_ns + 1_000_000_000))
             depois = impressao_data_experiments(base)
-            self.assertEqual(antes[0], depois[0], "a contagem não deveria mudar")
+            self.assertEqual(so_raiz[0], depois[0], "a contagem não deveria mudar")
             self.assertNotEqual(
-                antes[1], depois[1],
+                so_raiz[1], depois[1],
                 "a impressão NÃO reagiu a uma subpasta que nasceu e morreu — "
                 "a raiz voltou a ficar fora da fotografia e a guarda está cega")
 

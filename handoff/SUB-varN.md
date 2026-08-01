@@ -81,6 +81,12 @@ o maior `H` com `C(H+2,2) ≤ N`.
 Recalculando: `N=20 → H=4 → 15` ✓ · `N=30 → H=6 → 28` ✓ · `N=50 → H=8 → 45` ✓.
 Mas **`N=10 → H=3 → C(5,2) = 10`**, não 6. O 6 corresponde a `H=2`.
 
+> ### ✅ MEDIDO (2026-08-01) — a suspeita se confirmou
+> `UniformPoint(N,3)` do PlatEMO real devolve **`{10, 15, 28, 45}`**. O `10` está
+> certo por construção; o `6` do bundle é o único errado dos quatro. **Errata
+> registrada** no `SUB-varN_RELATORIO.md` §2.3 e na PARTE A46 do REGISTRO — vale
+> para o bundle `40_subestudos/varredura_N_pisos.md` §6.3 e para a SPEC.
+
 Pode ser que o `UniformPoint` use desigualdade estrita, ou outra convenção. **Não
 assuma nenhuma das duas.** Primeira tarefa da sessão, custa segundos:
 

@@ -2851,3 +2851,59 @@ para os 4 pisos) · **BL-14** (`frente1_excede_pop` usa `N_nominal` em vez de `N
 busca e 'cru' na sonda, na MESMA ③) · **BL-19** (b4: 2 edições de doc da F5.4) · **BL-20**
 (sobol_batch: `nota_potencia_de_2` literal fixa) · **BL-21** (e81: `progress.py` lê `footers[-1]`).
 **Não os fiz por estarem fora do cartão (D81), e os registro aqui para o autor decidir.**
+
+---
+
+## PARTE A46 — SUB-varN EXECUTADO: `N=20` CONFIRMADO + 3 achados (2026-08-01)
+
+**O pré-registro da D65 foi cumprido.** A varredura `N∈{10,20,30,50}` × 4 pisos
+online × 6 problemas × 5 sementes rodou (**440 células**, dataRoot fora do repo,
+corpus do M8 intocado) e **CONFIRMOU o `N=20`** nas três faixas de `D`. Os runs do
+`R1-pisos` já feitos são definitivos; zero re-execução. Relatório completo com os
+números em `handoff/SUB-varN_RELATORIO.md`.
+
+**A DECISÃO (delegada pelo autor após ver os números).** `N=20` nas faixas baixa
+(`D≤5`), média e alta (`D≥20`). As 4 justificativas do cravamento de 2026-07-18
+sobrevivem, e o dado acrescenta uma quinta: **`N=20` é o único valor factível nas
+três faixas ao mesmo tempo.**
+
+Duas alternativas foram descartadas com motivo:
+
+- **`N=10`** vence em quase toda linha onde existe, **mas quebra o MOEA/D** — não
+  degrada, quebra, em 30/30 células. Causa provada no fonte: `MOEAD.m:26`
+  `T=ceil(N/10)` dá `T=1`, `:31` deixa a vizinhança com 1 coluna, e o `P(2)` de
+  `:42` estoura. Como os 4 pisos são CASADOS por princípio de seleção
+  (MOEA/D→decomposição é a régua de `b3`/`c122`/`b1`), perdê-lo custa a atribuição
+  limpa do ganho ao surrogate. ⇒ **`N ≥ 11` é restrição estrutural.**
+- **`N=30`** vence as medianas AGREGADAS da faixa média, mas é **artefato de
+  agregação**: o 13,15 do agregado É o número do `moead`, e piso a piso o `N=30` é
+  PIOR que o `N=20` no `nsga2` (21,96 × 16,23) e no `smsemoa` (17,81 × 14,75). Na
+  faixa alta a margem agregada é de **3%**, que 5 sementes não separam — e
+  fabricar um teste estatístico DEPOIS de ver o dado seria trocar o critério
+  pré-registrado (mediana do IGD+) para caber no resultado.
+
+**OS TRÊS ACHADOS que não estavam em lugar nenhum:**
+
+1. **MOEA/D exige `N ≥ 11`.** O bundle §3.2 registrava o vizinho disto ("com N=20
+   a vizinhança é T=2, mínima") sem notar que N=10 leva a T=1 e o algoritmo não
+   roda. Eleito no papel, seriam 30 células mortas no meio do M8.
+2. **`N=30`/`N=50` são infactíveis em `D=2`** (população > DoE de 21 pontos). A
+   guarda `piso_init` trunca e loga — a célula RODARIA, com `N` efetivo 21,
+   produzindo um ponto rotulado 30 que rodou em 21. As 40 células foram
+   EXCLUÍDAS por desenho, não deixadas falhar.
+3. **ERRATA no §6.3 do bundle/SPEC.** A tabela de `N` efetivo em M=3 afirma
+   `{10,20,30,50} → {6,15,28,45}`. Medido no `UniformPoint` real do PlatEMO:
+   **`{10,15,28,45}`** — o `10` está certo por construção (`C(H+2,2) ≤ N` com
+   `H=3` dá `C(5,2)=10 ≤ 10`); o `6` seria `H=2`. Três dos quatro conferiam.
+
+**CÓDIGO.** O `N` era literal em ponto único de `src/experiment.m`; virou
+`piso_n_nominal()`, que lê `UA_DD_SAEA_PISO_N` e cai em 20 na ausência dela. Valor
+inválido PÁRA (`ua_dd_saea:pisoNInvalido`) em vez de cair no default — o typo
+`3O` produziria uma célula rotulada N=30 que rodou em N=20, contaminando
+exatamente a comparação que a varredura faz. E `piso_n_origem()` grava no ⑤/⑥
+QUAL caminho produziu a célula: o corpus oficial só admite piso com
+`N_origem = CRAVADO`.
+
+⚠ **`UA_DD_SAEA_PISO_N` deve ficar AUSENTE na campanha M8.**
+
+**LIBERA:** a tag `m8-freeze`, que estava segurada esperando esta decisão.

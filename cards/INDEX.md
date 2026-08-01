@@ -64,7 +64,7 @@
 |---|---|---|---|---|
 | SUB-batch | Large-batch q=10 (D66) | R2,R3 | 40_subestudos/batch_largebatch | ⬜ |
 | SUB-sweep | Sweep offline (tier×dist; run_id sweep-{tier}-{dist}) | R1-e103,R3 | 40_subestudos/sweep_offline | ⬜ |
-| SUB-varN | Varredura N dos pisos (D65) — **PRÉ-REQUISITO do M8** (DI-39 prevalece sobre DI-32/A2; retificado no T12.D2) | R1-pisos | 40_subestudos/varredura_N_pisos | ⬜ |
+| SUB-varN | Varredura N dos pisos (D65) — **PRÉ-REQUISITO do M8** (DI-39 prevalece sobre DI-32/A2; retificado no T12.D2). **FECHADO 2026-08-01: N=20 CONFIRMADO nas 3 faixas** (440 células; `handoff/SUB-varN_RELATORIO.md`) | R1-pisos | 40_subestudos/varredura_N_pisos | ✅ |
 | R4-analise | Métricas + testes + análise por característica (camada de análise — **o autor refina/implementa, D100**) | bateria completa | 50_analise_R4 | ⬜ |
 
 **Pré-flight (antes de F0):** `python scripts/preflight.py` — preenche content-hashes do `repos.lock`, valida `anchors.json` contra o código, checa placeholders.

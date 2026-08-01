@@ -82,7 +82,9 @@ desbalanceamento máximo ≤10%.
 - [x] T14.3 · BL-14 N_efetivo (moead+nsga3) — `73391b1`
       Controle = o corpus da s42 (112 células): a flag antiga erra exatamente 4 e reproduz
       `|F1| > N_nominal` em 112/112. A/B em MATLAB real: `n_frente1` idêntico, flag corrigida.
-- [ ] T14.4 · BL-17 linha dos pisos no contrato_61.json (+mutante como controle)
+- [x] T14.4 · BL-17 linha dos pisos no contrato_61.json (+mutante como controle) — `3b101cd`
+      Mutante reproduzido: antes VERDE com "⑥ 3/3 campos", agora REPROVA. Raiz fechada
+      (os 3 nomes em CRASE no §6.1). Corpus: 1.840/1.840 eventos com os 3 ⇒ sem falso-vermelho.
 - [ ] T14.5 · BL-12 calibração do b4 re-medida
 - [ ] T14.6 · BL-13 string dos pisos ramificada
 - [ ] T14.7 · BL-18 espaco_modelo do e103

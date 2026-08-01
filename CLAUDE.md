@@ -1,9 +1,13 @@
 # CLAUDE.md — porta de entrada do repositório `ua-dd-saea`
 
-> **🚨 CAMPANHA ATUAL (2026-07-31): T14 — a calibragem final dos instrumentos.** Se você é
-> uma sessão de implementação: leia **`handoff/T14-CARTAO.md`** (missão + checklist) e
-> **`handoff/T11-PROMPT-SESSAO.md`** §3-§4 (regras de operação e armadilhas). T11/T12/T13
-> estão CONCLUÍDOS e validados (REGISTRO A36-A43). Contexto geral: `MAPA_ARTEFATOS.md`.
+> **🚨 ESTADO (2026-08-01): T14 CONCLUÍDO — 11/11 itens, suíte 826/0 falhas.** Leia
+> **`handoff/T14-FINAL.md`** (placar, os 4 pontos em que o dado desmentiu o cartão, e o que
+> ainda precisa do AUTOR) + REGISTRO **PARTE A44**. T11/T12/T13 estão CONCLUÍDOS e validados
+> (REGISTRO A36-A43). Regras de operação e armadilhas: `handoff/T11-PROMPT-SESSAO.md` §3-§4.
+> **Antes da tag, 2 itens do autor:** a frota do `mapa_sementes.json` (5 máquinas com nomes
+> PLACEHOLDER — `artifacts/frota.json` + `scripts/mapa_sementes.py`) e o B3 (aplicar o writer
+> ⑥ atômico do MATLAB ou manter a exceção, hoje fechada com tripwire). Contexto geral:
+> `MAPA_ARTEFATOS.md`.
 
 > Este repositório executa o **pipeline experimental do mestrado** (survey + análise experimental
 > de 16 algoritmos SA-MOEA). Toda a especificação, contexto e protocolo de implementação vivem

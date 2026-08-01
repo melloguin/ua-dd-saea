@@ -113,7 +113,7 @@ desbalanceamento máximo ≤10%.
       virou consequência). Driver consome o artefato (verificado com `LOTE_MAQ=vm1`).
       ⚠ **PENDENTE do autor:** nomes/`jobs`/`envs` das 5 máquinas NOVAS são PLACEHOLDER
       (§12.2). Editar `artifacts/frota.json` + rodar `scripts/mapa_sementes.py` refaz tudo.
-- [ ] REGISTRO A44 + handoff/T14-FINAL.md
+- [x] REGISTRO A44 + handoff/T14-FINAL.md
 
 ## §6 · DEFINIÇÃO DE PRONTO
 

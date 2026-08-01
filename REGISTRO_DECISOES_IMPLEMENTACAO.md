@@ -2282,6 +2282,71 @@ frota nova.
 
 ---
 
+## PARTE A44 — T14 EXECUTADO: 11/11 itens · 4 desmentidos do dado · 1 decisão na mesa (2026-08-01)
+
+**Os 9 bloqueadores residuais + B3 + os 2 de operação: FECHADOS.** 20 commits
+(`7ecc0d5`…`92b5cde`), suíte **688 → 826 · 0 falhas**, staleness 0, ZERO toques em
+`algorithms/` (vendorizado), `f5/` (evidência congelada) e `data/experiments/`. Nada pushado.
+Handoff completo em `handoff/T14-FINAL.md`.
+
+**⚠ O DADO DESMENTIU O CARTÃO/BLOQUEADOR EM 4 ITENS — e prevaleceu nos 4:**
+
+1. **BL-11 (T14.1)** — o cartão diz "o padrão é o mesmo nos 8 runners". **Em 7 já estava
+   certo:** o `talvez_gravar` roda DEPOIS de a ④ fechar e o I/O caía no vão ENTRE gerações
+   (fora do `tempo_geracao_s`, mas SEM NOME). Medido em célula real: **4,153 s de checkpoint
+   num run de 5,723 s = 72,6% do wall**, contra Σ`tempo_geracao_s` = 0,109 s — não era
+   inflação, era buraco não-atribuível. Só o `treed_media` inflava. Controle negativo (célula
+   real, env_c311): `tempo_busca_s` 3,2089 (OFF) × 3,2798 (cadência 1) = **+2,2%**; pré-fix
+   seria +85,2%.
+2. **BL-12 (T14.5)** — o cartão manda gravar `AUC 0,5065`; a re-medição das baterias dá
+   **0,5075** (o valor da §6.3 do b4.md, da regra 12 e do controle cruzado; o 0,5065 aparece
+   1× só, no §E1). Também caiu a frase *"elas medem outra coisa"*: em M=2 — **19/25** células
+   do b4 — a leitura alternativa é numericamente IDÊNTICA à DI-18.
+3. **BL-13 (T14.6)** — a fórmula que o bloqueador prescreve para o moead
+   (`floor((20D+clones)/N_ef) + 1`) acerta **0/28**; sem o `+1`, **28/28**. E o "erra +1 em
+   28/28" do smsemoa não reproduz (lá `N_ef`=20 sempre e os denominadores coincidem).
+   Ramificada por família de operador: **103/112 → 110/112**.
+4. **BL-18 (T14.7)** — o bloqueador nomeia 3 configs; pelo SEU PRÓPRIO critério (assimetria
+   INTRA-run) só **2** têm o defeito: e103 e **c217** (que não está no texto do cartão). O
+   c262 é uniforme-NULL ⇒ não é defeito, e declara o espaço no `sigma_dict`. Ficou de fora.
+
+**Achados de escopo que a varredura entregou de graça:** o 3º sítio do padrão `[-1]`
+(`export.py`) era **código morto** — removido em vez de "corrigido"; um **3º sítio** na SPEC
+com o par inexistente `(p1,p2)` que o cartão não lista (`:1486`); e a errata do docstring do
+`RunJaFechado` re-medida no corpus (**559→747**, 94 pares × 2 linhas — não "747→767").
+
+**A DECISÃO QUE A SESSÃO TOMOU (reversível em 1 linha) — B3/T14.10:** *"fechar a exceção do
+writer MATLAB"* foi lido como FORMALIZAR a recomendação do T12 §7.3 (não trocar o writer antes
+da tag), não como aplicar o writer Java — porque é literalmente a exceção que o repasse
+recomenda, porque 19 sítios em 13 configs é o oposto de "~15 linhas · nada toca mecanismo", e
+porque o §12.6 escalou a pergunta ao autor e ela nunca foi respondida. **O que entrou no lugar
+é mais forte que a prosa anterior:** a exceção virou TRIPWIRE — o escritor único é consequência
+mecânica de o `experiments.py` derivar o roster dos loaders e a CLI RECUSAR os 13 MATLAB
+(aferido por comportamento), e se um config MATLAB entrar no dispatch Python o teste fica
+vermelho ANTES de a campanha gravar ⑥ spliced.
+
+**T14.11 — o mapa semente→máquina existe e o driver o consome.** 14.019 h-core, wall máximo
+252,8 h, **desbalanceamento 6,02%** (critério ≤10%; o guloso LPT sozinho dava 30,6% — o
+gargalo nasce da interação entre grupos). Os pares são agrupados por CONJUNTO DE MÁQUINAS
+ELEGÍVEIS (stack × `alg_to_env` × `envs` da máquina), então a restrição de env do
+e103/env_b5/env_c311 é consequência da estrutura, não remendo. As 30 células sem wall medido
+(19 c154 · 9 c262 · 1 b1 · 1 c311 — as mais caras do estudo) são imputadas pela mediana do alg
+e vão DECLARADAS uma a uma no artefato.
+**🔴 PENDENTE DO AUTOR:** nomes/`jobs`/`envs` das **5 máquinas NOVAS** são PLACEHOLDER (item
+§12.2, nunca respondido). Editar `artifacts/frota.json` + `python3 scripts/mapa_sementes.py`
+refaz o mapa inteiro — e o `jobs` (capacidade) é o que mais move o resultado.
+
+**Achado fora de escopo, NÃO tocado:** `sweep-small-lhs/moead_media/ZDT1_42` tem 3 footers e os
+dois primeiros DISCORDAM (`ok`/929 e `failed`/929/`erro_RuntimeError`). A primitiva devolve o
+primeiro e o ⑤ diz `ok`. É a armadilha "status mente, motivo_parada não" (B1) numa célula real
+da s42 — escolher entre dois footers FECHADOS é semântica de término (mapa_termino/O-21), não
+conserto de leitura. Vale a mesa antes da R4.
+
+**Caminho até o disparo:** frota (§4.1 do handoff, 1 comando) · B3 sim/não · limpeza dos 58
+forasteiros (autor) → tag → fila D10 → DISPARO.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

@@ -41,3 +41,41 @@ six==1.17.0
 statsmodels==0.13.5
 typing_extensions==4.7.1
 wrapt==1.16.0
+
+# ──────────────────────────────────────────────────────────────────────────
+# [M8 · 2026-08-01] google-cloud-storage==3.9.0 + transitivas — env_b5 (b5r, b5m)
+#
+# POR QUE. A lib existia SO no env_main. Sem ela, com LOTE_BUCKET=1 todo
+# upload deste stack falha; a blindagem DI-42.3 impede que isso mate a
+# rodada, mas a celula fica SEM ESPELHO OFICIAL — e "oficial = bucket"
+# (DI-42.2). Na rodada-42 runs do c311 morreram exatamente disso.
+#
+# O PIN (3.9.0). Medido, nao escolhido: e a ULTIMA versao cujo
+#   requires-python aceita py3.7.12 — a serie declara >=3.7 ate a 3.9.0; da 3.10.0 em diante exige >=3.10.
+#
+# A RESOLUCAO. `pip install --dry-run --report` RODADO NO PROPRIO
+#   interpretador (env_b5), nao inferido. Resultado: 20 pacotes novos e
+#   ZERO colisoes com os pinos ja existentes deste lock — nenhuma versao
+#   travada se move. E o que torna esta adicao segura sob D80.
+#   Instalar SEMPRE do lock; nos venvs micromamba, com --no-deps.
+# ──────────────────────────────────────────────────────────────────────────
+cachetools==5.5.2
+certifi==2026.7.22
+charset-normalizer==3.4.9
+google-api-core==2.29.0
+google-auth==2.45.0
+google-cloud-core==2.5.0
+google-cloud-storage==3.9.0
+google-crc32c==1.5.0
+google-resumable-media==2.8.1
+googleapis-common-protos==1.73.0
+idna==3.10
+importlib-metadata==6.7.0
+proto-plus==1.27.1
+protobuf==4.24.4
+pyasn1-modules==0.3.0
+pyasn1==0.5.1
+requests==2.31.0
+rsa==4.9.1
+urllib3==2.0.7
+zipp==3.15.0

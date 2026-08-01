@@ -184,6 +184,42 @@ cd ~/Documents/python_repos/mestrado/ua-dd-saea && md5 -q data/sonda/sonda_MMF1.
 
 ---
 
+## B-2.5 · `google-cloud-storage` nos 3 venvs (P4)  *(pré-req: B-5, o pull)*
+
+A lib existia **só** no `env_main`. Sem ela, com `LOTE_BUCKET=1`, todo upload de
+`b5r/b5m` (env_b5), `c311/treed_media` (env_c311) e `e81` (env_e81_qpots) falha —
+a célula sobrevive (blindagem DI-42.3) mas fica **sem espelho oficial**. O `e81`
+é o pior caso: é *bucket-only*, então sem a lib ele nem consegue saber se já rodou.
+
+Os pins foram **medidos**, não escolhidos — `pip install --dry-run --report` em
+cada interpretador real, com **zero colisões** com os pinos já existentes:
+
+| venv | python | pin | +pacotes |
+|---|---|---|---|
+| `env_b5` | 3.7.12 | `google-cloud-storage==3.9.0` | 20 |
+| `env_c311` | 3.8.20 | `google-cloud-storage==3.9.0` | 20 |
+| `env_e81_qpots` | 3.11.9 | `google-cloud-storage==3.13.0` | 17 |
+
+(A série declara `requires-python >=3.7` até a **3.9.0**; da **3.10.0** em diante
+exige `>=3.10`. Por isso py3.7 e py3.8 param na 3.9.0.)
+
+Nas 4 VMs — os dois primeiros são micromamba e vão **com `--no-deps`**, porque o
+lock já é a árvore resolvida e deixar o pip re-resolver contra py3.7 viola D80 em
+silêncio:
+
+```bash
+source ~/frota_m8.env
+M=matlab-vm1; F=("${VM1[@]}")               # <<< repita para vm2/VM2, vm3/VM3, vm10/VM10
+gcloud compute ssh "$M" "${F[@]}" --command='L=~/ua-dd-saea/requirements/locks; export PATH="$HOME/bin:$PATH"; export MAMBA_ROOT_PREFIX="$HOME/micromamba"; micromamba run -n env_b5 pip install -q --no-deps -r $L/env_b5.lock.txt && echo "  env_b5 OK" || echo "  FALHOU env_b5"; micromamba run -n env_c311 pip install -q --no-deps -r $L/env_c311.lock.txt && echo "  env_c311 OK" || echo "  FALHOU env_c311"; ~/venvs/env_e81_qpots/bin/pip install -q -r $L/env_e81_qpots.lock.txt && echo "  env_e81_qpots OK" || echo "  FALHOU env_e81_qpots"; echo "--- smoke: a lib importa nos 3? ---"; micromamba run -n env_b5 python -c "import google.cloud.storage as s;print(\"  env_b5        \", s.__version__)" 2>&1 | tail -1; micromamba run -n env_c311 python -c "import google.cloud.storage as s;print(\"  env_c311      \", s.__version__)" 2>&1 | tail -1; ~/venvs/env_e81_qpots/bin/python -c "import google.cloud.storage as s;print(\"  env_e81_qpots \", s.__version__)" 2>&1 | tail -1' 2>&1 || echo "FALHOU: gcs em $M"
+```
+
+Esperado: `env_b5 3.9.0` · `env_c311 3.9.0` · `env_e81_qpots 3.13.0`. Qualquer
+`ModuleNotFoundError` que sobre ⇒ **pare**, é o defeito que este batch existe para
+fechar. ⚠ No Mac o `LOTE_BUCKET` continua **0** por outro motivo (D80 histórico) —
+este batch é das VMs.
+
+---
+
 ## B-3 · Exports por máquina (P11 — o item novo mais importante)
 
 `UA_DD_SAEA_CAMPANHA_ID` **não é exportada pelo driver**. O default deriva da

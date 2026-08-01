@@ -89,7 +89,10 @@ desbalanceamento máximo ≤10%.
       ⚠ **errata do cartão:** o AUC do smoke é **0,5075**, não 0,5065 (re-medido das baterias;
       o 0,5065 do §E1 é o outlier). Também caiu a frase falsa "elas medem outra coisa" (em M=2,
       19/25 células, as duas leituras são idênticas). Célula b4 REAL prova a string no ⑤.
-- [ ] T14.6 · BL-13 string dos pisos ramificada
+- [x] T14.6 · BL-13 string dos pisos ramificada — `c1ed7e4`
+      103/112 → **110/112** (medido). ⚠ **o bloqueador estava errado:** o `+1` que ele prescreve
+      para o moead acerta **0/28** (sem ele, 28/28), e o "erra +1 em 28/28" do smsemoa não
+      reproduz (lá os dois denominadores coincidem, N_ef=20 sempre).
 - [ ] T14.7 · BL-18 espaco_modelo do e103
 - [ ] T14.8 · BL-20 f-string do sobol_batch
 - [ ] T14.9 · BL-19 doc p0/p1 + regen bundle

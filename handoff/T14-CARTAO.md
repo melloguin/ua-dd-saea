@@ -72,7 +72,10 @@ desbalanceamento máximo ≤10%.
 
 ## §5 · CHECKLIST (atualizar aqui)
 
-- [ ] T14.1 · BL-11 tempo_checkpoint_s próprio + desconto (8 runners + CONTRATO §17.6)
+- [x] T14.1 · BL-11 tempo_checkpoint_s próprio + desconto (8 runners + CONTRATO §17.6) — `7ecc0d5`
+      ⚠ **o cartão errava a premissa:** só o `treed_media` inflava; nos outros 7 o I/O caía no vão
+      ENTRE gerações (fora do `tempo_geracao_s`, mas SEM NOME). Controle negativo em célula real:
+      `tempo_busca_s` 3,2089 (ckpt OFF) × 3,2798 (cadência 1) = +2,2%; antes seria +85,2%.
 - [ ] T14.2 · BL-21 footer_fechado() no progress + varredura do padrão [-1]
 - [ ] T14.3 · BL-14 N_efetivo (moead+nsga3)
 - [ ] T14.4 · BL-17 linha dos pisos no contrato_61.json (+mutante como controle)

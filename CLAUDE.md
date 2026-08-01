@@ -1,10 +1,9 @@
 # CLAUDE.md — porta de entrada do repositório `ua-dd-saea`
 
-> **🚨 CAMPANHA ATUAL (2026-07-31): T12 — o acabamento final.** Se você é uma sessão de
-> implementação: leia **`handoff/T12-CARTAO.md`** (a missão + checklist) e
-> **`handoff/T11-PROMPT-SESSAO.md`** §3-§4 (regras de operação e armadilhas). Contexto geral:
-> `MAPA_ARTEFATOS.md`. O T11 está CONCLUÍDO (`T11_STATUS.md` = histórico). As regras deste
-> arquivo e do `claude_code_context/CLAUDE.md` seguem valendo.
+> **🚨 CAMPANHA ATUAL (2026-07-31): T14 — a calibragem final dos instrumentos.** Se você é
+> uma sessão de implementação: leia **`handoff/T14-CARTAO.md`** (missão + checklist) e
+> **`handoff/T11-PROMPT-SESSAO.md`** §3-§4 (regras de operação e armadilhas). T11/T12/T13
+> estão CONCLUÍDOS e validados (REGISTRO A36-A43). Contexto geral: `MAPA_ARTEFATOS.md`.
 
 > Este repositório executa o **pipeline experimental do mestrado** (survey + análise experimental
 > de 16 algoritmos SA-MOEA). Toda a especificação, contexto e protocolo de implementação vivem

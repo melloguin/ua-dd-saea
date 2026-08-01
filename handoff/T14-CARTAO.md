@@ -93,8 +93,11 @@ desbalanceamento máximo ≤10%.
       103/112 → **110/112** (medido). ⚠ **o bloqueador estava errado:** o `+1` que ele prescreve
       para o moead acerta **0/28** (sem ele, 28/28), e o "erra +1 em 28/28" do smsemoa não
       reproduz (lá os dois denominadores coincidem, N_ef=20 sempre).
-- [ ] T14.7 · BL-18 espaco_modelo do e103
-- [ ] T14.8 · BL-20 f-string do sobol_batch
+- [x] T14.7 · BL-18 espaco_modelo do e103 **e do c217** — `1dc9f9e`
+      Medido: só e103 e c217 têm a assimetria INTRA-run; o c262 é uniforme-NULL ⇒ não é
+      defeito pelo critério do próprio BL-18 (e declara o espaço no `sigma_dict`). Ficou fora.
+- [x] T14.8 · BL-20 f-string do sobol_batch — `1dc9f9e`
+      A nota é conferida contra o comportamento REAL do scipy (avisa só se q não é potência de 2).
 - [ ] T14.9 · BL-19 doc p0/p1 + regen bundle
 - [ ] T14.10 · B3 + comentário jsonl_open
 - [ ] T14.11 · mapa_sementes.json balanceado (2 mapas, ≤10% desbalanceamento)

@@ -79,7 +79,9 @@ desbalanceamento máximo ≤10%.
 - [x] T14.2 · BL-21 footer_fechado() no progress + varredura do padrão [-1] — `2fc3e78`
       3 sítios: progress ✔ · accept:796 ✔ · export `footer_ts` era CÓDIGO MORTO ⇒ removido.
       Errata do docstring RE-MEDIDA: 559→747 (94 pares × 2 linhas), não 747→767.
-- [ ] T14.3 · BL-14 N_efetivo (moead+nsga3)
+- [x] T14.3 · BL-14 N_efetivo (moead+nsga3) — `73391b1`
+      Controle = o corpus da s42 (112 células): a flag antiga erra exatamente 4 e reproduz
+      `|F1| > N_nominal` em 112/112. A/B em MATLAB real: `n_frente1` idêntico, flag corrigida.
 - [ ] T14.4 · BL-17 linha dos pisos no contrato_61.json (+mutante como controle)
 - [ ] T14.5 · BL-12 calibração do b4 re-medida
 - [ ] T14.6 · BL-13 string dos pisos ramificada

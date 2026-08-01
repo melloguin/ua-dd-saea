@@ -2246,6 +2246,42 @@ Banner do CLAUDE.md atualizado (campanha = T12). Pós-T12: tag final → fila D1
 
 ---
 
+## PARTE A43 — VALIDAÇÃO DA TORRE SOBRE T12/T13: APROVADO com 9 residuais → T14 (2026-07-31)
+
+**Protocolo cumprido: nada aceito por leitura — a torre RE-MEDIU.** (1) Suíte re-rodada:
+**688 OK/0 falhas** ✓ · staleness 0 ✓ · preflight exit=1 = **a guarda anti-forasteiro fazendo
+o trabalho** (58 manifestos das VMs no disco local; ação do AUTOR: limpar antes do disparo).
+(2) **Controle negativo GENUÍNO verificado por worktree**: `test_t12_b5_vetores` contra o
+código pré-T12 (4b4834f) = `failures=2, errors=2` — EXATAMENTE o reportado. (3) **Smoke
+re-executado PELA TORRE** (c217/MMF1/s42, MATLAB, tempdir — caindo e saindo da armadilha O-01
+do dataRoot no caminho): **426 pmid_ids, ZERO sentinelas** + `y_treino_dist` real com
+`confere_com_TrainIn=true` e a nota honesta do rótulo binário. Reprodução independente = 100%.
+(4) Forense git: 32 arquivos, +3.487/−97, **zero toques em vendorizado**, 11 commits limpos.
+
+**Qualidade da campanha: EXEMPLAR.** A doutrina do controle negativo pagou 3× (achou 3 defeitos
+sozinha); o dado corrigiu o cartão 2× (DTLZ2 sadio/DTLZ3 congelado; rótulo binário); a sessão
+auto-reportou 6 erros com custo; e entregou ALÉM do cartão (T13: driver multimáquina p/ a frota
+expandida de 8-9 máquinas, 695 células derivadas, venv-por-máquina).
+
+**Os 9 bloqueadores residuais (BL-11..14,17..21): TODOS marcados `antes_do_disparo=False` pelo
+próprio validador — mas a torre recomenda o micro-cartão T14 (~2h) ANTES da tag:** 6 são fixes
+de 1 linha/1 token (BL-11 ⚠ o mais material: I/O do checkpoint DENTRO de `tempo_busca_s` —
+53,9% de inflação medida numa célula; timing é resultado de 1ª classe §17.6/D50 · BL-14 flag
+errada 2/25 · BL-17 gate G-7 sem a linha dos pisos · BL-18 literal · BL-20 f-string · BL-21
+progress.py lê footers[-1] — mentiria DURANTE a campanha) e 3 são doc (BL-12/13/19). + B3
+(writer MATLAB) e o comentário do jsonl_open na mesma leva.
+
+**Triagem das 8 definições do repasse:** 1=T14 (sim) · 2=infra do autor (fila D10; frota agora
+8-9 máquinas — risco env_b5/Rosetta) · 3=mapa semente→máquina balanceado por custo (aceitar a
+oferta; gerar no T14) · 4=tabela de tempo do M7 sai do ④/⑤ APÓS BL-11 · 5=piso_ruido → mesa
+BL-07 (pendente do autor) · 6=B3→T14 · 7=SUB-varN pré-disparo (DI-39, já decidido) · 8=doc→T14.
+
+**Score da torre: 92% hoje · ~95% pós-T14+infra.** Os últimos pontos não saem de leitura de
+código — saem da validação de fidelidade na SEMENTE 1 (já planejada) e da 1ª rodada real da
+frota nova.
+
+---
+
 ## PARTE B — Histórico retroativo (decisões de implementação anteriores a este lote)
 
 | ID | Data | Decisão | Detalhe |

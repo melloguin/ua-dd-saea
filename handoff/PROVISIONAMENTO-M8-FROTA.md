@@ -64,6 +64,37 @@ Tudo abaixo foi conferido diretamente no repo/máquinas — não é relato.
 
 ---
 
+## §0.2 — 🔴 LEIA ANTES DE QUALQUER OUTRO DOCUMENTO: OS NOMES MUDARAM (2026-08-01)
+
+**A frota foi consolidada e uma máquina foi RENOMEADA.** Todo documento escrito
+antes de 2026-08-01 — este inclusive, acima desta seção — usa a nomenclatura
+antiga. A tabela de tradução:
+
+| documento antigo diz | hoje é | o que é a máquina |
+|---|---|---|
+| `vm1` / `matlab-vm1` | **`vm2`** | 12 vCPU / 6 físicos / **96 GB** / 1000 GB pd-standard · `core-cascade-341902` · sem `objects.delete` |
+| — (não existia) | **`vm1`** | **MÁQUINA NOVA** · 32 vCPU / 16 físicos / 251 GB / 492 GB pd-balanced · `skilled-text-480300-d9` · **com `objects.delete`** (projeto dono do bucket) |
+| `vm3` | `vm3` | cresceu: 16→**32 vCPU**, 62→**251 GB**, 300→**492 GB** · `objectAdmin` |
+| `vm10` | `vm10` | cresceu: 62→**96 GB**, 200→**246 GB** |
+| `v5`, `v6` | — | **FORA da frota** (Workbench `e2`, TERMINATED; quota migrou para a `vm1` nova) |
+| `mac` | — | **FORA do grid do M8** (ver `artifacts/frota.json:_mac_fora`) |
+
+⚠ **O erro que isto evita:** ler *"vm1/vm3/vm10 já têm os 5 venvs e o DoE"* (§0
+acima, §1.1 do handoff da vm10) e concluir que a `vm1` está pronta. **Não está** —
+a `vm1` de hoje nasceu em 2026-08-01 e o provisionamento dela é o item aberto.
+Quem tem os 5 venvs é a **`vm2`**.
+
+**Frota vigente:** `claude_code_context/artifacts/frota.json` (fonte única) e o
+mapa derivado `artifacts/mapa_sementes.json` — 4 máquinas, 1 grupo de
+elegibilidade, **11/4/4/11 sementes**, desbalanceamento 1,54%, wall máx 321 h.
+
+**Ordem de execução do M8 [autor, 2026-08-01]:** `LOTE_ORDEM=semente` —
+SEMENTE-major, do mais barato ao mais caro dentro de cada semente. É modo NOVO
+do `lote3s.sh`; o default `hibrida` faz o oposto (custo-major ENTRE sementes) e
+**não serve** para esta campanha.
+
+---
+
 ## §1 — TAREFA 0: A FROTA REAL (`frota.json`)
 
 O mapa `claude_code_context/artifacts/mapa_sementes.json` foi gerado com a frota DEFAULT

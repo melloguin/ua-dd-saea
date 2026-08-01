@@ -4,7 +4,7 @@
   "gerado_por": "scripts/mapa_sementes.py (T14.11 / cartão §4)",
   "decisao": "T13/D1 — a O-16 foi aposentada PARA O RESULTADO: a alocação é POR SEMENTE, para a máquina virar ruído aleatório entre repetições em vez de offset sistemático (média dilui ruído, não viés).",
   "custo": "wall MEDIDO da s42 (`f5/tempo_f52d.csv`, mediana por célula) × 30 sementes. O grid é SIMÉTRICO em semente, então o custo de uma semente independe de QUAL semente — balancear é repartir contagens.",
-  "objetivo": "minimizar max_i(carga_i / jobs_i) = o wall da máquina mais carregada. Guloso LPT (grupo mais caro primeiro) + busca local GLOBAL de 1 semente: 10 movimentos aceitos.",
+  "objetivo": "minimizar max_i(carga_i / jobs_i) = o wall da máquina mais carregada. Guloso LPT (grupo mais caro primeiro) + busca local GLOBAL de 1 semente: 0 movimentos aceitos.",
   "imputacao": "30 células sem wall medido na s42 receberam a MEDIANA DO PRÓPRIO ALG (são as mais caras do estudo — descartá-las subestimaria o Python).",
   "celulas_imputadas_h": {
    "batch/c154/DTLZ2": 6.5477,
@@ -41,106 +41,63 @@
   "grupos": "os pares são agrupados por CONJUNTO DE MÁQUINAS ELEGÍVEIS (stack MATLAB × `envs.json:alg_to_env` × os `envs` de cada máquina). Numa frota homogênea isso dá exatamente os DOIS mapas do cartão.",
   "consumidor": "scripts/lote3s.sh (LOTE_SEEDS derivado de LOTE_MAQ)",
   "frota": {
-   "_pendente_autor": "Os nomes, o `jobs` e os `envs` das 5 máquinas NOVAS são PLACEHOLDER — o repo só conhece mac/v5/v6/vm3 (perfis do lote3s.sh). Corrija aqui e rode `python3 scripts/mapa_sementes.py` para refazer o mapa.",
+   "_decisao": "Frota REAL do M8, fechada em 2026-08-01 pelo autor + torre. Substitui o bloco FROTA_DEFAULT de scripts/mapa_sementes.py (que era placeholder: vm2/vm4/vm7/vm8 nunca existiram, e v5/v6 saíram da frota).",
+   "_nomenclatura": "⚠ ATENÇÃO AO LER DOCUMENTOS ANTERIORES A 2026-08-01: a máquina que eles chamam de `vm1` (12 vCPU / 35 GB / disco pd-standard, projeto core-cascade-341902) foi RENOMEADA para `vm2`. A `vm1` DESTE artefato é uma máquina NOVA (n2-highmem-32, projeto skilled-text-480300-d9). Ver handoff/PROVISIONAMENTO-M8-FROTA.md §0.2.",
+   "_ordem_importa": "A ordem desta lista NÃO é cosmética: mapa_sementes.py fatia as sementes em blocos CONTÍGUOS da lista canônica [0..28, 42] na ordem em que as máquinas aparecem aqui (mapa_sementes.py:271-273). Esta ordem foi escolhida para que as sementes SUJAS no bucket caiam em máquina com `objects.delete`: s0 (506 objetos) e s1 (6) → vm1; s42 (4.541, FECHADA) → vm3. Reordenar esta lista quebra o cross-check IAM do §1.1 do handoff.",
+   "_jobs": "`jobs` = runs simultâneos (1 run = 1 core, D79). O valor é o da COLUNA BoTorch, que é 73,4% do custo da campanha (343,2 das 467,3 h-core/semente) e é limitada por RAM, não por CPU: pico medido 7,6 GiB/processo (HANDOFF_aceitacao_vm10 §7.2, medição TRUNCADA em 330 de 929 FE). Todas as 4 máquinas ficam em ~48% de ocupação de RAM nessa coluna — a frota é homogênea justamente na dimensão que aperta.",
+   "_mac_fora": "O Mac (M1 Pro, 16 GB) NÃO entra no grid do M8. Dois motivos: (a) 4 jobs × 7,6 GiB = 30,4 GiB numa máquina de 16 GB — a coluna BoTorch não cabe; (b) com ele dentro (2 sementes ÷ 4 jobs) o desbalanceamento vai a 18,9% e o critério ≤10% do cartão T14.11 REPROVA. Ele segue disponível para smokes, portões e o SUB-varN.",
    "maquinas": [
     {
-     "nome": "mac",
-     "jobs": 4,
-     "matlab": true,
-     "envs": [
-      "env_main",
-      "env_b5",
-      "env_c311",
-      "env_e81_qpots"
-     ],
-     "fonte": "lote3s.sh perfil `mac` + envs.json (único host com os 4 venvs)"
-    },
-    {
-     "nome": "vm3",
-     "jobs": 6,
-     "matlab": true,
-     "envs": [
-      "env_main"
-     ],
-     "fonte": "lote3s.sh perfil `vm3` — 'única máquina com licença' na s42"
-    },
-    {
-     "nome": "v5",
-     "jobs": 12,
-     "matlab": false,
-     "envs": [
-      "env_main"
-     ],
-     "fonte": "lote3s.sh perfil `v5` · PYTHON-ONLY (repasse §12.3)"
-    },
-    {
-     "nome": "v6",
-     "jobs": 6,
-     "matlab": false,
-     "envs": [
-      "env_main"
-     ],
-     "fonte": "lote3s.sh perfil `v6` · PYTHON-ONLY (repasse §12.3)"
-    },
-    {
      "nome": "vm1",
-     "jobs": 6,
+     "jobs": 16,
      "matlab": true,
      "envs": [
+      "env_matlab",
       "env_main",
       "env_b5",
       "env_c311",
       "env_e81_qpots"
      ],
-     "fonte": "PLACEHOLDER (§12.2 — provisionamento do autor)"
+     "fonte": "matlab-vm1 · gdmello.nunes@gmail.com · skilled-text-480300-d9 · us-east1-b · n2-highmem-32 (32 vCPU / 16 físicos / 251 GB) · 492 GB pd-balanced · CRIADA 2026-08-01. IAM: SA default do projeto DONO do bucket ⇒ tem objects.delete nativo (verificado no setup de 2026-07-15). ⚠ envs declarados = estado ALVO; o provisionamento dos 5 venvs é o item A4 e o portão P13 o afere antes do disparo."
     },
     {
      "nome": "vm2",
      "jobs": 6,
      "matlab": true,
      "envs": [
+      "env_matlab",
       "env_main",
       "env_b5",
       "env_c311",
       "env_e81_qpots"
      ],
-     "fonte": "PLACEHOLDER (§12.2)"
+     "fonte": "matlab-vm2 · melloguinn@gmail.com · core-cascade-341902 · us-east1-b · n2-custom-12-98304 (12 vCPU / 6 físicos / 96 GB) · 1000 GB pd-standard (O-19: ROTA=1, disco lento; quota SSD do projeto é 250 GB e não comporta pd-balanced deste tamanho). EX-`matlab-vm1`, renomeada em 2026-08-01. IAM: objectViewer+objectCreator, SEM delete ⇒ só sementes de prefixo limpo."
     },
     {
-     "nome": "vm4",
+     "nome": "vm10",
      "jobs": 6,
      "matlab": true,
      "envs": [
+      "env_matlab",
       "env_main",
       "env_b5",
       "env_c311",
       "env_e81_qpots"
      ],
-     "fonte": "PLACEHOLDER (§12.2)"
+     "fonte": "matlab-vm10 · mellohr@gmail.com · project-0a70dd69-8e73-4d58-819 · us-east1-b · n2-custom-12-98304 (12 vCPU / 6 físicos / 96 GB) · 246 GB pd-balanced. Aceita em 2026-07-30 (3 portões VERDES, fidelidade bit-idêntica vs bucket). IAM: objectViewer+objectCreator, SEM delete ⇒ só sementes de prefixo limpo."
     },
     {
-     "nome": "vm7",
-     "jobs": 6,
+     "nome": "vm3",
+     "jobs": 16,
      "matlab": true,
      "envs": [
+      "env_matlab",
       "env_main",
       "env_b5",
       "env_c311",
       "env_e81_qpots"
      ],
-     "fonte": "PLACEHOLDER (§12.2)"
-    },
-    {
-     "nome": "vm8",
-     "jobs": 6,
-     "matlab": true,
-     "envs": [
-      "env_main",
-      "env_b5",
-      "env_c311",
-      "env_e81_qpots"
-     ],
-     "fonte": "PLACEHOLDER (§12.2)"
+     "fonte": "matlab-vm3 · invest.gdmn@gmail.com · project-2aa33d8c-94a7-488b-89e · us-east1-b · n2-highmem-32 (32 vCPU / 16 físicos / 251 GB) · 492 GB pd-balanced. É a REFERÊNCIA de fidelidade D97 da rodada-42. IAM: objectAdmin (tem delete) ⇒ recebe a s42, que tem 4.541 objetos residuais no bucket."
     }
    ]
   }
@@ -178,88 +135,34 @@
   42
  ],
  "mapas": {
-  "mac,vm3,v5,v6,vm1,vm2,vm4,vm7,vm8": {
+  "vm1,vm2,vm10,vm3": {
    "pares": [
     "batch/c149",
     "batch/c154",
     "batch/c262",
+    "batch/e81",
     "batch/sobol_batch",
+    "main/b1",
+    "main/b3",
+    "main/b4",
     "main/c122",
+    "main/c141",
     "main/c149",
     "main/c154",
-    "main/c262"
-   ],
-   "n_celulas_por_semente": 120,
-   "custo_semente_h": 343.2201,
-   "elegiveis": [
-    "mac",
-    "vm3",
-    "v5",
-    "v6",
-    "vm1",
-    "vm2",
-    "vm4",
-    "vm7",
-    "vm8"
-   ],
-   "sementes_por_maquina": {
-    "mac": [
-     0,
-     1
-    ],
-    "vm3": [
-     2,
-     3
-    ],
-    "v5": [
-     4,
-     5,
-     6,
-     7,
-     8,
-     9,
-     10,
-     11
-    ],
-    "v6": [
-     12,
-     13,
-     14,
-     15
-    ],
-    "vm1": [
-     16,
-     17
-    ],
-    "vm2": [
-     18,
-     19,
-     20
-    ],
-    "vm4": [
-     21,
-     22,
-     23
-    ],
-    "vm7": [
-     24,
-     25,
-     26
-    ],
-    "vm8": [
-     27,
-     28,
-     42
-    ]
-   }
-  },
-  "mac,vm1,vm2,vm4,vm7,vm8": {
-   "pares": [
-    "batch/e81",
+    "main/c217",
+    "main/c238",
+    "main/c262",
+    "main/e7",
+    "main/e74",
     "main/e81",
+    "main/moead",
+    "main/nsga2",
+    "main/nsga3",
+    "main/smsemoa",
     "off/b5m",
     "off/b5r",
     "off/c311",
+    "off/e103",
     "off/moead_media",
     "sweep-big-lhs/c311",
     "sweep-big-lhs/treed_media",
@@ -268,112 +171,36 @@
     "sweep-medium-lhs/b5m",
     "sweep-medium-lhs/b5r",
     "sweep-medium-lhs/c311",
+    "sweep-medium-lhs/e103",
     "sweep-medium-lhs/moead_media",
     "sweep-medium-mvns/b5m",
     "sweep-medium-mvns/b5r",
     "sweep-medium-mvns/c311",
+    "sweep-medium-mvns/e103",
     "sweep-medium-mvns/moead_media",
     "sweep-small-lhs/b5m",
     "sweep-small-lhs/b5r",
     "sweep-small-lhs/c311",
+    "sweep-small-lhs/e103",
     "sweep-small-lhs/moead_media",
     "sweep-small-mvns/b5m",
     "sweep-small-mvns/b5r",
     "sweep-small-mvns/c311",
+    "sweep-small-mvns/e103",
     "sweep-small-mvns/moead_media"
    ],
-   "n_celulas_por_semente": 230,
-   "custo_semente_h": 66.8662,
+   "n_celulas_por_semente": 695,
+   "custo_semente_h": 467.3013,
    "elegiveis": [
-    "mac",
     "vm1",
     "vm2",
-    "vm4",
-    "vm7",
-    "vm8"
+    "vm10",
+    "vm3"
    ],
    "sementes_por_maquina": {
-    "mac": [
+    "vm1": [
      0,
      1,
-     2
-    ],
-    "vm1": [
-     3,
-     4,
-     5,
-     6,
-     7,
-     8,
-     9,
-     10,
-     11
-    ],
-    "vm2": [
-     12,
-     13,
-     14,
-     15,
-     16,
-     17
-    ],
-    "vm4": [
-     18,
-     19,
-     20,
-     21
-    ],
-    "vm7": [
-     22,
-     23,
-     24,
-     25
-    ],
-    "vm8": [
-     26,
-     27,
-     28,
-     42
-    ]
-   }
-  },
-  "mac,vm3,vm1,vm2,vm4,vm7,vm8": {
-   "pares": [
-    "main/b1",
-    "main/b3",
-    "main/b4",
-    "main/c141",
-    "main/c217",
-    "main/c238",
-    "main/e7",
-    "main/e74",
-    "main/moead",
-    "main/nsga2",
-    "main/nsga3",
-    "main/smsemoa",
-    "off/e103",
-    "sweep-medium-lhs/e103",
-    "sweep-medium-mvns/e103",
-    "sweep-small-lhs/e103",
-    "sweep-small-mvns/e103"
-   ],
-   "n_celulas_por_semente": 345,
-   "custo_semente_h": 57.215,
-   "elegiveis": [
-    "mac",
-    "vm3",
-    "vm1",
-    "vm2",
-    "vm4",
-    "vm7",
-    "vm8"
-   ],
-   "sementes_por_maquina": {
-    "mac": [
-     0,
-     1
-    ],
-    "vm3": [
      2,
      3,
      4,
@@ -382,33 +209,29 @@
      7,
      8,
      9,
-     10,
+     10
+    ],
+    "vm2": [
      11,
      12,
      13,
-     14,
-     15
+     14
     ],
-    "vm1": [
+    "vm10": [
+     15,
      16,
      17,
-     18,
-     19
+     18
     ],
-    "vm2": [
-     20
-    ],
-    "vm4": [
+    "vm3": [
+     19,
+     20,
      21,
      22,
-     23
-    ],
-    "vm7": [
+     23,
      24,
      25,
-     26
-    ],
-    "vm8": [
+     26,
      27,
      28,
      42
@@ -417,24 +240,19 @@
   }
  },
  "resumo": {
-  "n_maquinas": 9,
+  "n_maquinas": 4,
   "n_celulas_por_semente": 695,
   "n_celulas_total": 20850,
   "custo_total_h_core": 14019.04,
   "wall_por_maquina_h": {
-   "mac": 250.37,
-   "vm3": 247.91,
-   "v5": 228.81,
-   "v6": 228.81,
-   "vm1": 252.85,
-   "vm2": 248.01,
-   "vm4": 244.8,
-   "vm7": 244.8,
-   "vm8": 244.8
+   "vm1": 321.27,
+   "vm2": 311.53,
+   "vm10": 311.53,
+   "vm3": 321.27
   },
-  "wall_medio_h": 243.46,
-  "wall_max_h": 252.85,
-  "desbalanceamento_max": 0.060164,
+  "wall_medio_h": 316.4,
+  "wall_max_h": 321.27,
+  "desbalanceamento_max": 0.015385,
   "criterio": "desbalanceamento_max <= 0.10 (cartão T14.11)"
  }
 }

@@ -19,10 +19,24 @@ soma das células dos mapas = grid completo · interseção vazia · desbalancea
 máximo ≤10%. Mais: que o `lote3s.sh` de fato CONSOME o artefato (comportamento,
 não texto) e que a máquina Python-only nunca recebe par MATLAB.
 
-⚠ **Pendente do autor:** os nomes/`jobs`/`envs` das 5 máquinas NOVAS são
-PLACEHOLDER — o repo só conhece mac/v5/v6/vm3 (§12.2, "quem provisiona?").
-Corrigir `artifacts/frota.json` e re-rodar `scripts/mapa_sementes.py` refaz o
-mapa inteiro; estes testes continuam valendo.
+⚠ **⟦M8, 2026-08-01⟧ A FROTA DEIXOU DE SER PLACEHOLDER.** O autor fechou a frota
+real em `artifacts/frota.json`: **4 máquinas** (vm1, vm2, vm10, vm3), todas com
+MATLAB e os 4 venvs; v5/v6 saíram e o Mac ficou fora do grid. Três premissas
+destes testes morreram com isso e foram atualizadas — cada uma preservando a
+proteção que dava:
+
+1. o `_pendente_autor` era cobrado como VISÍVEL (para ninguém disparar 14 mil
+   h-core contra máquina fictícia); agora se cobra o inverso — **nenhum
+   placeholder** pode sobreviver até o disparo;
+2. a existência de máquina **Python-only** (v5/v6) era premissa de um teste;
+   virou `skipTest` quando não há nenhuma, e o invariante segue valendo se houver;
+3. um grupo com alg MATLAB tinha de ser **puramente** MATLAB. Isso valia com
+   frota heterogênea (as Python-only faziam o conjunto de elegíveis do Python
+   diferir do de MATLAB, separando os grupos). Com as 4 máquinas rodando tudo,
+   os conjuntos coincidem e o gerador colapsa num **grupo só** — que é o
+   comportamento CORRETO e desejado: é o que faz uma máquina rodar TODOS os
+   pares das suas sementes. O invariante que fica é o que importa: par MATLAB
+   nunca cai em máquina sem licença.
 """
 from __future__ import annotations
 
@@ -143,13 +157,17 @@ class TestRestricoesDeEnvEStack(unittest.TestCase):
                      for m in cls.mapa["_meta"]["frota"]["maquinas"]}
 
     def test_par_MATLAB_so_cai_em_maquina_com_matlab(self):
+        """⟦M8⟧ A pureza do GRUPO caiu; o invariante da LICENÇA continua.
+
+        Ver §3 do docstring do módulo: com a frota homogênea o gerador colapsa
+        num grupo só, que MISTURA MATLAB e Python de propósito. O que não pode
+        acontecer nunca é o que este teste guarda: um par MATLAB numa máquina
+        sem licença.
+        """
         for g in self.mapa["mapas"].values():
             algs = {p.split("/", 1)[1] for p in g["pares"]}
             if not (algs & MATLAB_ALGS):
                 continue
-            self.assertTrue(
-                algs <= MATLAB_ALGS,
-                "grupo mistura MATLAB com Python: %r" % sorted(algs))
             for maq in g["sementes_por_maquina"]:
                 with self.subTest(maquina=maq):
                     self.assertTrue(self.frota[maq].get("matlab"),
@@ -157,8 +175,10 @@ class TestRestricoesDeEnvEStack(unittest.TestCase):
 
     def test_as_PYTHON_ONLY_nunca_recebem_MATLAB(self):
         py_only = [n for n, m in self.frota.items() if not m.get("matlab")]
-        self.assertTrue(py_only, "a frota não tem máquina Python-only — "
-                                 "o repasse §12.3 diz que v5/v6 são")
+        if not py_only:
+            self.skipTest("⟦M8⟧ a frota é 100% MATLAB (v5/v6 saíram) — o "
+                          "invariante não tem alvo, mas segue codificado para "
+                          "quando uma máquina Python-only voltar à frota")
         for g in self.mapa["mapas"].values():
             algs = {p.split("/", 1)[1] for p in g["pares"]}
             if not (algs & MATLAB_ALGS):
@@ -197,14 +217,28 @@ class TestProcedenciaDoCusto(unittest.TestCase):
         self.assertIn("tempo_f52d.csv", self.meta["custo"])
         self.assertTrue(os.path.exists(TEMPO))
 
-    def test_o_pendente_do_autor_esta_VISIVEL_no_artefato(self):
-        # os nomes/jobs das 5 máquinas novas são placeholder — quem consumir o
-        # artefato tem de topar com isso antes de disparar 10 mil h-core.
+    def test_a_frota_e_REAL__nenhum_placeholder_sobrevive_ao_disparo(self):
+        """⟦M8, 2026-08-01⟧ INVERTIDO — e agora é uma trava mais forte.
+
+        Enquanto a frota era placeholder, este teste cobrava que o
+        `_pendente_autor` estivesse VISÍVEL no artefato: quem fosse consumir o
+        mapa tinha de topar com o aviso antes de disparar 14 mil h-core contra
+        5 máquinas que não existiam. O autor fechou a frota real, então a
+        cobrança se inverte: o que não pode existir agora é placeholder.
+        """
         frota = self.meta["frota"]
-        self.assertIn("_pendente_autor", frota)
         placeholders = [m["nome"] for m in frota["maquinas"]
-                        if "PLACEHOLDER" in m.get("fonte", "")]
-        self.assertEqual(len(placeholders), 5)
+                        if "PLACEHOLDER" in (m.get("fonte") or "")]
+        self.assertEqual(placeholders, [],
+                         "máquina PLACEHOLDER na frota do disparo: %r"
+                         % placeholders)
+        self.assertNotIn("_pendente_autor", frota,
+                         "a frota ainda se declara pendente do autor")
+        for m in frota["maquinas"]:
+            with self.subTest(maquina=m["nome"]):
+                self.assertTrue((m.get("fonte") or "").strip(),
+                                "máquina sem procedência declarada")
+                self.assertGreater(int(m.get("jobs", 0)), 0)
 
 
 class TestGeradorDeterministico(unittest.TestCase):
@@ -220,10 +254,18 @@ class TestGeradorDeterministico(unittest.TestCase):
                          json.dumps(b["mapas"], sort_keys=True))
 
     def test_o_artefato_no_disco_e_o_que_o_gerador_produz(self):
+        """Anti-stale: o mapa commitado tem de ser o que o gerador produz HOJE.
+
+        ⟦M8⟧ A frota de referência passa a ser `M._frota(None)` — que resolve
+        `artifacts/frota.json` quando ele existe e só cai no `FROTA_DEFAULT`
+        se não existir. Comparar contra o `FROTA_DEFAULT` fixo passou a ser
+        errado no instante em que a frota real foi escrita: o teste acusaria
+        stale num artefato correto.
+        """
         if not os.path.exists(TEMPO):
             self.skipTest("f5/tempo_f52d.csv ausente")
         import mapa_sementes as M
-        novo = M.construir(M.FROTA_DEFAULT)
+        novo = M.construir(M._frota(None))
         self.assertEqual(json.dumps(novo["mapas"], sort_keys=True),
                          json.dumps(_mapa()["mapas"], sort_keys=True),
                          "o artefato está stale — rode scripts/mapa_sementes.py")

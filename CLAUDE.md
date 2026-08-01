@@ -1,5 +1,13 @@
 # CLAUDE.md — porta de entrada do repositório `ua-dd-saea`
 
+> **🚨 CAMPANHA ATUAL: PROVISIONAMENTO DA FROTA PARA O M8.** Porta de entrada:
+> **`handoff/PROVISIONAMENTO-M8-FROTA.md`** — comece pela **§0.2**, que traduz a
+> nomenclatura: a máquina que TODO documento anterior chama de `vm1` é hoje a
+> **`vm2`**, e existe uma **`vm1` NOVA** (criada 2026-08-01) que não tem nada
+> provisionado. A frota vigente é `claude_code_context/artifacts/frota.json`
+> (4 máquinas: vm1, vm2, vm10, vm3 — o Mac e as v5/v6 estão FORA do grid).
+> Ordem de execução do M8: **`LOTE_ORDEM=semente`** (semente-major, barato→caro).
+>
 > **🚨 ESTADO (2026-08-01): T14 CONCLUÍDO — 11/11 itens, suíte 826/0 falhas.** Leia
 > **`handoff/T14-FINAL.md`** (placar, os 4 pontos em que o dado desmentiu o cartão, e o que
 > ainda precisa do AUTOR) + REGISTRO **PARTE A44**. T11/T12/T13 estão CONCLUÍDOS e validados

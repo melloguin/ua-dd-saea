@@ -52,7 +52,12 @@
 #                      projeção (D>=12) sem digitar lista de problema.
 #   LOTE_REFAZER=nao|falhas|tudo   default nao
 #   LOTE_BUCKET        default do perfil (1 nas VMs, 0 no mac — D80)
-#   LOTE_ORDEM=hibrida|barata|cara
+#   LOTE_ORDEM=hibrida|barata|cara|semente
+#                      hibrida (default) = CUSTO-major ENTRE sementes: todo o
+#                        barato de TODAS as sementes antes de qualquer coisa cara.
+#                      semente [M8] = SEMENTE-major: TODAS as células da semente
+#                        0 (da mais barata à mais cara), depois todas as da 1, …
+#                      Valor fora deste vocabulário ⇒ pára-e-loga (D81).
 #   LOTE_MATLAB_JITTER=12
 # =============================================================================
 set -uo pipefail
@@ -360,9 +365,26 @@ for r in todas:
 LIM = 900.0
 if   ordem == "barata": linhas.sort()
 elif ordem == "cara":   linhas.sort(reverse=True)
-else:
+elif ordem == "semente":
+    # [M8] SEMENTE-major. A linha é (custo, srank, exp, alg, problema, semente,
+    # stack): ordenar por (srank, custo) põe TODA a semente 0 na fila — da mais
+    # barata à mais cara — antes de qualquer célula da semente 1.
+    # NÃO é uma barreira: o `xargs -P` não espera a semente fechar, então na
+    # virada alguns núcleos ainda estão na anterior enquanto outros já pegaram a
+    # seguinte. O que se controla aqui é a ORDEM DE ENTRADA na fila.
+    # Desempate por (exp, alg, problema) para a fila ser determinística entre
+    # execuções — sem ele, células de mesmo custo modelado (os 4 pisos MATLAB
+    # têm âncora 1 s) sairiam em ordem de leitura do CSV.
+    linhas.sort(key=lambda l: (l[1], l[0], l[2], l[3], l[4]))
+elif ordem == "hibrida":
     linhas = sorted([l for l in linhas if l[0] <  LIM]) + \
              sorted([l for l in linhas if l[0] >= LIM], key=lambda l: (-l[0], l[1]))
+else:
+    # Antes, QUALQUER valor caía no `else` e virava `hibrida` em SILÊNCIO — um
+    # `LOTE_ORDEM=sementes` (plural) rodaria a campanha inteira na ordem errada
+    # sem uma linha de aviso. D81: pára-e-loga.
+    sys.stderr.write("ORDEM_INVALIDA %s\n" % ordem)
+    sys.exit(4)
 for c, _, e, a, p, s, st in linhas:
     print("%s %s %s %s %s %.0f" % (e, a, p, s, st, c))
 sys.stderr.write("PREFILTRO %d %d\n" % (jaok, caras))

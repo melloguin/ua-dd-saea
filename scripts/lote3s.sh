@@ -123,7 +123,9 @@ esac
 PARES="${LOTE_PARES:-$PARES}"
 USE_BUCKET="${LOTE_BUCKET:-$BUCKET_DEF}"
 JOBS="${LOTE_JOBS:-$JOBS_DEF}"
-[ -n "$PARES" ] || { echo "FATAL: defina LOTE_MAQ (v5|v6|vm3|mac) ou LOTE_PARES"; exit 2; }
+# [T14.11] A checagem de PARES desceu para DEPOIS do mapa: uma maquina da frota
+# nova (vm1..vm8) nao tem perfil no `case` acima e recebe os pares do ARTEFATO —
+# abortar aqui a mataria antes de o mapa ser lido.
 
 # ── repo / interpretador / MATLAB ───────────────────────────────────────────
 REPO=""
@@ -162,6 +164,58 @@ print(' '.join('%s/%s' % e for e in pares))")"
   [ -n "$PARES" ] || { echo "FATAL: LOTE_PARES=todos nao derivou par do runs_matrix.csv"; exit 2; }
 fi
 
+# [T14.11] MAPA SEMENTE->MAQUINA. Se o artefato existe e LOTE_MAQ esta setado,
+# as SEMENTES e os PARES desta maquina saem DELE — nao da linha de comando.
+# O mapa e por GRUPO de elegibilidade (stack/env), entao uma maquina pode ter
+# sementes diferentes para MATLAB e para Python: por isso alem de SEEDS/PARES
+# sai tambem um ALLOWLIST de (exp,alg,semente), que e o recorte de verdade.
+# LOTE_MAPA=0 desliga (volta ao modo manual); LOTE_SEEDS explicito tem prioridade.
+MAPA_JSON="claude_code_context/artifacts/mapa_sementes.json"
+MAPA_ALLOW=""
+if [ "${LOTE_MAPA:-1}" != "0" ] && [ -n "$MAQ" ] && [ -f "$MAPA_JSON" ] \
+   && [ -z "${LOTE_SEEDS:-}" ]; then
+  MAPA_ALLOW="$(mktemp -t lote3s_mapa)"
+  MAPA_OUT="$("${PY:-python3}" - "$MAPA_JSON" "$MAQ" "$MAPA_ALLOW" <<'PYMAPA'
+import json, sys
+mapa, maq, saida = sys.argv[1], sys.argv[2], sys.argv[3]
+d = json.load(open(mapa, encoding="utf-8"))
+seeds, pares, linhas = set(), set(), []
+for g in d["mapas"].values():
+    meus = g["sementes_por_maquina"].get(maq) or []
+    if not meus:
+        continue
+    seeds.update(meus)
+    pares.update(g["pares"])
+    for par in g["pares"]:
+        exp, alg = par.split("/", 1)
+        for s in meus:
+            linhas.append("%s %s %s" % (exp, alg, s))
+with open(saida, "w", encoding="utf-8") as fh:
+    fh.write("\n".join(sorted(linhas)) + ("\n" if linhas else ""))
+print(" ".join(str(s) for s in sorted(seeds)))
+print(" ".join(sorted(pares)))
+print(len(linhas))
+PYMAPA
+)"
+  if [ -n "$MAPA_OUT" ]; then
+    SEEDS="$(printf '%s\n' "$MAPA_OUT" | sed -n 1p)"
+    PARES="$(printf '%s\n' "$MAPA_OUT" | sed -n 2p)"
+    NMAPA="$(printf '%s\n' "$MAPA_OUT" | sed -n 3p)"
+    if [ -z "$SEEDS" ]; then
+      echo "FATAL: '$MAQ' nao aparece em $MAPA_JSON."
+      echo "   Maquinas do mapa: $("${PY:-python3}" -c \
+        "import json,sys;d=json.load(open('$MAPA_JSON'));print(' '.join(sorted(d['resumo']['wall_por_maquina_h'])))")"
+      echo "   Use LOTE_MAPA=0 para o modo manual."
+      exit 2
+    fi
+    echo "── MAPA T14.11: $MAQ recebeu $NMAPA celulas-semente do artefato"
+  else
+    rm -f "$MAPA_ALLOW"; MAPA_ALLOW=""
+  fi
+fi
+[ -n "$PARES" ] || { echo "FATAL: defina LOTE_MAQ (uma maquina do mapa, ou \
+v5|v6|vm3|mac) ou LOTE_PARES"; exit 2; }
+
 # ── pino de thread: 1 core por run (D79 / envs.json thread_pin / O-15) ──────
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
        NUMEXPR_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 PYTHONHASHSEED=0
@@ -174,10 +228,22 @@ GRID="$OUT/grid.txt"; DONE="$OUT/done.txt"; INI="$OUT/inicio.txt"; CENSOTXT="$OU
 # ── grade + censo, a partir do ARTEFATO ─────────────────────────────────────
 {
 python3 - "$REPO" "$SEEDS" "$PARES" "$ORDEM" "$DATA_ROOT" "$CUSTO_MAX" "$REFAZER" \
-         "$CENSOTXT" "$DMAX" > "$GRID" <<'PYEOF'
+         "$CENSOTXT" "$DMAX" "$MAPA_ALLOW" > "$GRID" <<'PYEOF'
 import csv, sys, os, math, json, collections
 repo, seeds, pares, ordem, droot, cmax, refazer, censo_out, dmax = sys.argv[1:10]
+mapa_allow = sys.argv[10] if len(sys.argv) > 10 else ""
 dmax = int(dmax)
+# [T14.11] o recorte de VERDADE da maquina: (exp,alg,semente). Sem ele, SEEDS x
+# PARES cruzaria sementes de MATLAB com pares de Python (a maquina tem um
+# conjunto de sementes POR GRUPO de elegibilidade, nao um so).
+ALLOW = None
+if mapa_allow and os.path.exists(mapa_allow):
+    ALLOW = set()
+    with open(mapa_allow, encoding="utf-8") as fh:
+        for ln in fh:
+            t = ln.split()
+            if len(t) == 3:
+                ALLOW.add((t[0], t[1], t[2]))
 seeds = seeds.split()
 alvo  = {tuple(p.split("/", 1)) for p in pares.split()}
 cmax  = float(cmax)
@@ -280,6 +346,8 @@ srank = {s: i for i, s in enumerate(seeds)}
 linhas, jaok, caras = [], 0, 0
 for r in todas:
     if r["semente"] not in srank or (r["exp"], r["alg"]) not in alvo: continue
+    if ALLOW is not None and (r["exp"], r["alg"], r["semente"]) not in ALLOW:
+        continue                                                   # [T14.11]
     if r["exp"] == "batch" and r["alg"] == "c154": continue        # DI-40
     e, _ = estado(r["exp"], r["alg"], r["problema"], r["semente"])
     if refazer == "nao"    and e != "ausente":                 jaok += 1; continue

@@ -1,0 +1,440 @@
+{
+ "_meta": {
+  "artefato": "mapa_sementes.json",
+  "gerado_por": "scripts/mapa_sementes.py (T14.11 / cartão §4)",
+  "decisao": "T13/D1 — a O-16 foi aposentada PARA O RESULTADO: a alocação é POR SEMENTE, para a máquina virar ruído aleatório entre repetições em vez de offset sistemático (média dilui ruído, não viés).",
+  "custo": "wall MEDIDO da s42 (`f5/tempo_f52d.csv`, mediana por célula) × 30 sementes. O grid é SIMÉTRICO em semente, então o custo de uma semente independe de QUAL semente — balancear é repartir contagens.",
+  "objetivo": "minimizar max_i(carga_i / jobs_i) = o wall da máquina mais carregada. Guloso LPT (grupo mais caro primeiro) + busca local GLOBAL de 1 semente: 10 movimentos aceitos.",
+  "imputacao": "30 células sem wall medido na s42 receberam a MEDIANA DO PRÓPRIO ALG (são as mais caras do estudo — descartá-las subestimaria o Python).",
+  "celulas_imputadas_h": {
+   "batch/c154/DTLZ2": 6.5477,
+   "batch/c154/MMF16_20": 6.5477,
+   "batch/c154/WFG9": 6.5477,
+   "batch/c154/ZDT1": 6.5477,
+   "batch/c154/ZDT4": 6.5477,
+   "batch/c262/DTLZ2": 0.4065,
+   "batch/c262/MMF16_20": 0.4065,
+   "batch/c262/WFG9": 0.4065,
+   "batch/c262/ZDT1": 0.4065,
+   "batch/c262/ZDT4": 0.4065,
+   "main/b1/DTLZ4": 0.1199,
+   "main/c154/BBOB_F55": 6.5477,
+   "main/c154/DTLZ2": 6.5477,
+   "main/c154/DTLZ3": 6.5477,
+   "main/c154/DTLZ4": 6.5477,
+   "main/c154/DTLZ7": 6.5477,
+   "main/c154/MMF16_20": 6.5477,
+   "main/c154/WFG1": 6.5477,
+   "main/c154/WFG2": 6.5477,
+   "main/c154/WFG4": 6.5477,
+   "main/c154/WFG5": 6.5477,
+   "main/c154/WFG9": 6.5477,
+   "main/c154/ZDT1": 6.5477,
+   "main/c154/ZDT3": 6.5477,
+   "main/c154/ZDT6": 6.5477,
+   "main/c262/DTLZ7": 0.4065,
+   "main/c262/MMF16_20": 0.4065,
+   "main/c262/WFG1": 0.4065,
+   "main/c262/ZDT3": 0.4065,
+   "sweep-big-mvns/c311/MMF16_20": 0.0093
+  },
+  "grupos": "os pares são agrupados por CONJUNTO DE MÁQUINAS ELEGÍVEIS (stack MATLAB × `envs.json:alg_to_env` × os `envs` de cada máquina). Numa frota homogênea isso dá exatamente os DOIS mapas do cartão.",
+  "consumidor": "scripts/lote3s.sh (LOTE_SEEDS derivado de LOTE_MAQ)",
+  "frota": {
+   "_pendente_autor": "Os nomes, o `jobs` e os `envs` das 5 máquinas NOVAS são PLACEHOLDER — o repo só conhece mac/v5/v6/vm3 (perfis do lote3s.sh). Corrija aqui e rode `python3 scripts/mapa_sementes.py` para refazer o mapa.",
+   "maquinas": [
+    {
+     "nome": "mac",
+     "jobs": 4,
+     "matlab": true,
+     "envs": [
+      "env_main",
+      "env_b5",
+      "env_c311",
+      "env_e81_qpots"
+     ],
+     "fonte": "lote3s.sh perfil `mac` + envs.json (único host com os 4 venvs)"
+    },
+    {
+     "nome": "vm3",
+     "jobs": 6,
+     "matlab": true,
+     "envs": [
+      "env_main"
+     ],
+     "fonte": "lote3s.sh perfil `vm3` — 'única máquina com licença' na s42"
+    },
+    {
+     "nome": "v5",
+     "jobs": 12,
+     "matlab": false,
+     "envs": [
+      "env_main"
+     ],
+     "fonte": "lote3s.sh perfil `v5` · PYTHON-ONLY (repasse §12.3)"
+    },
+    {
+     "nome": "v6",
+     "jobs": 6,
+     "matlab": false,
+     "envs": [
+      "env_main"
+     ],
+     "fonte": "lote3s.sh perfil `v6` · PYTHON-ONLY (repasse §12.3)"
+    },
+    {
+     "nome": "vm1",
+     "jobs": 6,
+     "matlab": true,
+     "envs": [
+      "env_main",
+      "env_b5",
+      "env_c311",
+      "env_e81_qpots"
+     ],
+     "fonte": "PLACEHOLDER (§12.2 — provisionamento do autor)"
+    },
+    {
+     "nome": "vm2",
+     "jobs": 6,
+     "matlab": true,
+     "envs": [
+      "env_main",
+      "env_b5",
+      "env_c311",
+      "env_e81_qpots"
+     ],
+     "fonte": "PLACEHOLDER (§12.2)"
+    },
+    {
+     "nome": "vm4",
+     "jobs": 6,
+     "matlab": true,
+     "envs": [
+      "env_main",
+      "env_b5",
+      "env_c311",
+      "env_e81_qpots"
+     ],
+     "fonte": "PLACEHOLDER (§12.2)"
+    },
+    {
+     "nome": "vm7",
+     "jobs": 6,
+     "matlab": true,
+     "envs": [
+      "env_main",
+      "env_b5",
+      "env_c311",
+      "env_e81_qpots"
+     ],
+     "fonte": "PLACEHOLDER (§12.2)"
+    },
+    {
+     "nome": "vm8",
+     "jobs": 6,
+     "matlab": true,
+     "envs": [
+      "env_main",
+      "env_b5",
+      "env_c311",
+      "env_e81_qpots"
+     ],
+     "fonte": "PLACEHOLDER (§12.2)"
+    }
+   ]
+  }
+ },
+ "sementes": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  17,
+  18,
+  19,
+  20,
+  21,
+  22,
+  23,
+  24,
+  25,
+  26,
+  27,
+  28,
+  42
+ ],
+ "mapas": {
+  "mac,vm3,v5,v6,vm1,vm2,vm4,vm7,vm8": {
+   "pares": [
+    "batch/c149",
+    "batch/c154",
+    "batch/c262",
+    "batch/sobol_batch",
+    "main/c122",
+    "main/c149",
+    "main/c154",
+    "main/c262"
+   ],
+   "n_celulas_por_semente": 120,
+   "custo_semente_h": 343.2201,
+   "elegiveis": [
+    "mac",
+    "vm3",
+    "v5",
+    "v6",
+    "vm1",
+    "vm2",
+    "vm4",
+    "vm7",
+    "vm8"
+   ],
+   "sementes_por_maquina": {
+    "mac": [
+     0,
+     1
+    ],
+    "vm3": [
+     2,
+     3
+    ],
+    "v5": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11
+    ],
+    "v6": [
+     12,
+     13,
+     14,
+     15
+    ],
+    "vm1": [
+     16,
+     17
+    ],
+    "vm2": [
+     18,
+     19,
+     20
+    ],
+    "vm4": [
+     21,
+     22,
+     23
+    ],
+    "vm7": [
+     24,
+     25,
+     26
+    ],
+    "vm8": [
+     27,
+     28,
+     42
+    ]
+   }
+  },
+  "mac,vm1,vm2,vm4,vm7,vm8": {
+   "pares": [
+    "batch/e81",
+    "main/e81",
+    "off/b5m",
+    "off/b5r",
+    "off/c311",
+    "off/moead_media",
+    "sweep-big-lhs/c311",
+    "sweep-big-lhs/treed_media",
+    "sweep-big-mvns/c311",
+    "sweep-big-mvns/treed_media",
+    "sweep-medium-lhs/b5m",
+    "sweep-medium-lhs/b5r",
+    "sweep-medium-lhs/c311",
+    "sweep-medium-lhs/moead_media",
+    "sweep-medium-mvns/b5m",
+    "sweep-medium-mvns/b5r",
+    "sweep-medium-mvns/c311",
+    "sweep-medium-mvns/moead_media",
+    "sweep-small-lhs/b5m",
+    "sweep-small-lhs/b5r",
+    "sweep-small-lhs/c311",
+    "sweep-small-lhs/moead_media",
+    "sweep-small-mvns/b5m",
+    "sweep-small-mvns/b5r",
+    "sweep-small-mvns/c311",
+    "sweep-small-mvns/moead_media"
+   ],
+   "n_celulas_por_semente": 230,
+   "custo_semente_h": 66.8662,
+   "elegiveis": [
+    "mac",
+    "vm1",
+    "vm2",
+    "vm4",
+    "vm7",
+    "vm8"
+   ],
+   "sementes_por_maquina": {
+    "mac": [
+     0,
+     1,
+     2
+    ],
+    "vm1": [
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11
+    ],
+    "vm2": [
+     12,
+     13,
+     14,
+     15,
+     16,
+     17
+    ],
+    "vm4": [
+     18,
+     19,
+     20,
+     21
+    ],
+    "vm7": [
+     22,
+     23,
+     24,
+     25
+    ],
+    "vm8": [
+     26,
+     27,
+     28,
+     42
+    ]
+   }
+  },
+  "mac,vm3,vm1,vm2,vm4,vm7,vm8": {
+   "pares": [
+    "main/b1",
+    "main/b3",
+    "main/b4",
+    "main/c141",
+    "main/c217",
+    "main/c238",
+    "main/e7",
+    "main/e74",
+    "main/moead",
+    "main/nsga2",
+    "main/nsga3",
+    "main/smsemoa",
+    "off/e103",
+    "sweep-medium-lhs/e103",
+    "sweep-medium-mvns/e103",
+    "sweep-small-lhs/e103",
+    "sweep-small-mvns/e103"
+   ],
+   "n_celulas_por_semente": 345,
+   "custo_semente_h": 57.215,
+   "elegiveis": [
+    "mac",
+    "vm3",
+    "vm1",
+    "vm2",
+    "vm4",
+    "vm7",
+    "vm8"
+   ],
+   "sementes_por_maquina": {
+    "mac": [
+     0,
+     1
+    ],
+    "vm3": [
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15
+    ],
+    "vm1": [
+     16,
+     17,
+     18,
+     19
+    ],
+    "vm2": [
+     20
+    ],
+    "vm4": [
+     21,
+     22,
+     23
+    ],
+    "vm7": [
+     24,
+     25,
+     26
+    ],
+    "vm8": [
+     27,
+     28,
+     42
+    ]
+   }
+  }
+ },
+ "resumo": {
+  "n_maquinas": 9,
+  "n_celulas_por_semente": 695,
+  "n_celulas_total": 20850,
+  "custo_total_h_core": 14019.04,
+  "wall_por_maquina_h": {
+   "mac": 250.37,
+   "vm3": 247.91,
+   "v5": 228.81,
+   "v6": 228.81,
+   "vm1": 252.85,
+   "vm2": 248.01,
+   "vm4": 244.8,
+   "vm7": 244.8,
+   "vm8": 244.8
+  },
+  "wall_medio_h": 243.46,
+  "wall_max_h": 252.85,
+  "desbalanceamento_max": 0.060164,
+  "criterio": "desbalanceamento_max <= 0.10 (cartão T14.11)"
+ }
+}

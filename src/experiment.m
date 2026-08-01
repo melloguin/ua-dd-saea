@@ -2391,8 +2391,14 @@ function [status, info] = run_piso(alg, problema, semente, exp, dataRoot)
     % DETERMINISTICOS (UniformPoint(N,M)) e constantes no run, entao vao 1x, nao
     % por geracao. Sem eles a decisao "qual vetor guiou qual escolha" fica
     % inauditavel a jusante. NSGA-II e SMS-EMOA nao decompoem: nada a emitir.
+    % [BL-14] `N_lattice` = o N EFETIVO da populacao, conhecido ANTES do Solve:
+    % moead/nsga3 reajustam N pelo lattice do UniformPoint (M=3: 20 -> 15);
+    % nsga2/smsemoa nao decompoem e ficam no nominal. `Problem.N` (o N_efetivo do
+    % manifesto) so existe DEPOIS do Solve, e a flag de seeding e gravada antes.
+    N_lattice = N_nominal;
     if any(strcmp(char(alg), {'moead','nsga3'}))
         [Wdec, Nlat] = UniformPoint(N_nominal, M);
+        N_lattice = Nlat;
         jsonl_line(fid, 'decomposicao', {'alg', string(alg), ...
             'N_nominal', N_nominal, 'N_lattice', Nlat, 'M', M, ...
             'vetores', Wdec, ...
@@ -2428,7 +2434,12 @@ function [status, info] = run_piso(alg, problema, semente, exp, dataRoot)
     Xsel = X0(ord, :);
     jsonl_line(fid, 'seeding', {'n_doe', n_init, 'n_frentes', max(FrontNo), ...
         'n_frente1', sum(FrontNo == 1), 'N_nominal', N_nominal, ...
-        'frente1_excede_pop', sum(FrontNo == 1) > N_nominal, ...
+        ... % [BL-14] contra o N EFETIVO, nao o nominal: a D88 nomeia a clausula
+        ... % "a frente-1 do DoE excede A POPULACAO", e a populacao do moead/nsga3
+        ... % em M=3 e 15 (o proprio `initFcn` corta por ela). Medido nos 112 ⑥ da
+        ... % s42: a flag antiga erra 4 celulas — moead e nsga3 em DTLZ1 (|F1|=17)
+        ... % e DTLZ3 (|F1|=19), exatamente a faixa 16-20 que so existe com lattice.
+        'frente1_excede_pop', sum(FrontNo == 1) > N_lattice, ...
         'criterio', "NDSort + CrowdingDistance (D88) — desempate final por indice"});
 
     % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.

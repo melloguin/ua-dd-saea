@@ -85,7 +85,10 @@ desbalanceamento máximo ≤10%.
 - [x] T14.4 · BL-17 linha dos pisos no contrato_61.json (+mutante como controle) — `3b101cd`
       Mutante reproduzido: antes VERDE com "⑥ 3/3 campos", agora REPROVA. Raiz fechada
       (os 3 nomes em CRASE no §6.1). Corpus: 1.840/1.840 eventos com os 3 ⇒ sem falso-vermelho.
-- [ ] T14.5 · BL-12 calibração do b4 re-medida
+- [x] T14.5 · BL-12 calibração do b4 re-medida — `decebe2`
+      ⚠ **errata do cartão:** o AUC do smoke é **0,5075**, não 0,5065 (re-medido das baterias;
+      o 0,5065 do §E1 é o outlier). Também caiu a frase falsa "elas medem outra coisa" (em M=2,
+      19/25 células, as duas leituras são idênticas). Célula b4 REAL prova a string no ⑤.
 - [ ] T14.6 · BL-13 string dos pisos ramificada
 - [ ] T14.7 · BL-18 espaco_modelo do e103
 - [ ] T14.8 · BL-20 f-string do sobol_batch

@@ -2374,7 +2374,14 @@ function [status, info] = run_piso(alg, problema, semente, exp, dataRoot)
     % NSGA-III e MOEA/D reajustam N pelo lattice do UniformPoint (M=3, N=20 ->
     % 15) — o N EFETIVO e lido do Problem APOS o Solve e vai no manifesto
     % (precedente §6.3: "todos os N efetivos vao para a dissertacao").
-    N_nominal = 20;
+    %
+    % [SUB-varN/D65] O valor e INJETAVEL pela env `UA_DD_SAEA_PISO_N`, que
+    % existe SO para a varredura pre-registrada (cartao SUB-varN). Sem a env o
+    % caminho e bit-identico ao de antes desta mudanca — e o teste cobra isso
+    % com controle negativo. O manifesto grava a PROCEDENCIA do valor, entao
+    % uma celula da varredura e distinguivel de uma celula da campanha M8 para
+    % sempre (ver `piso_n_origem`).
+    N_nominal = piso_n_nominal();
 
     % (2) DoE 11D-1 do artefato (D63/D87) — CARREGADO, NUNCA regenerado.
     doe = load_doe(problema, semente, D, dataRoot);
@@ -2397,7 +2404,7 @@ function [status, info] = run_piso(alg, problema, semente, exp, dataRoot)
         'piso', true, 'surrogate', false, ...
         'principio', spec.principio, 'casamento', spec.casamento, ...
         'N_nominal', N_nominal, ...
-        'N_origem', "20 CRAVADO 2026-07-18 (Knowles/ParEGO; ponto comum entre ~20-25 do §3.2 e {10,20,30,50} da D65; varredura SUB-varN reconfirma)", ...
+        'N_origem', piso_n_origem(N_nominal), ...
         'seeding', "melhores N das 11D-1 do DoE por NDSort + CrowdingDistance (§3.2/D88, deterministico)", ...
         'operadores', "Balde C: SBX proC=1 dis_c=20 + PM proM=1 dis_m=20 (defaults OperatorGA do PlatEMO)"});
     % [DI-10] Os VETORES DE DECOMPOSICAO do moead/nsga3 no HEADER — sao
@@ -2587,7 +2594,7 @@ function [status, info] = run_piso(alg, problema, semente, exp, dataRoot)
         "PM proM=1 dis_m=20)";
     man.params = struct( ...
         'N_nominal', N_nominal, 'N_efetivo', N_efetivo, ...
-        'N_decisao', "20 CRAVADO 2026-07-18 (§3.2 — Knowles/ParEGO; ponto comum ~20-25 x D65 {10,20,30,50}); SUB-varN reconfirma antes da bateria", ...
+        'N_decisao', piso_n_origem(N_nominal), ...
         'N_efetivo_nota', "NSGA-III/MOEA-D reajustam N pelo lattice do UniformPoint (M=3, 20 -> 15); NSGA-II/SMS-EMOA mantem o nominal. Precedente §6.3 (N=100 -> 91 vetores em M=3)", ...
         'seeding', "melhores N das 11D-1 do DoE por NDSort + CrowdingDistance, desempate final por indice (§3.2/D88) — os N entram como cache-hit (0 FE)", ...
         'geracoes_derivadas', geracoes_derivadas_txt, ...
@@ -2659,6 +2666,49 @@ function spec = piso_spec(alg)
             spec.casamento     = "BO-Hipervolume (c262 qNEHVI) — espelho mecanico exato, D25/§3.2";
         otherwise
             error('piso_spec:desconhecido', 'piso desconhecido: %s', char(alg));
+    end
+end
+
+
+function N = piso_n_nominal()
+% [SUB-varN/D65] O N NOMINAL da populacao dos 4 pisos ONLINE.
+%
+% Default 20, CRAVADO pelo autor em 2026-07-18 (§3.2). A env
+% `UA_DD_SAEA_PISO_N` existe SO para a varredura pre-registrada da D65 e deve
+% estar AUSENTE na campanha M8 — o `piso_n_origem` grava no manifesto qual dos
+% dois casos produziu a celula, entao a distincao sobrevive ao dado.
+%
+% PARA-E-LOGA (D81) em valor invalido, em vez de cair no default. O modo de
+% falha que isto fecha e o pior possivel para uma varredura: um typo
+% (`UA_DD_SAEA_PISO_N=3O`) viraria 20 em silencio e produziria uma celula
+% ROTULADA N=30 que rodou em N=20 — contaminando exatamente a comparacao que a
+% varredura existe para fazer. E a mesma classe do `LOTE_ORDEM` invalido que
+% virava `hibrida` sem avisar.
+    N = 20;
+    v = getenv('UA_DD_SAEA_PISO_N');
+    if isempty(v), return; end
+    n = str2double(v);
+    if ~isfinite(n) || n ~= fix(n) || n < 2
+        error('ua_dd_saea:pisoNInvalido', ...
+              ['UA_DD_SAEA_PISO_N invalido: "%s". Esperado inteiro >= 2, ou a ' ...
+               'variavel AUSENTE para o default cravado (20). Para-e-loga (D81).'], v);
+    end
+    N = n;
+end
+
+
+function s = piso_n_origem(N)
+% [SUB-varN/D65] A PROCEDENCIA do N, para o header ⑥ e o manifesto ⑤.
+%
+% Sem isto, uma celula da varredura e uma celula da campanha ficam
+% indistinguiveis no corpus depois de gravadas — e a varredura escreve celulas
+% com N que a campanha nunca usaria. A string diz qual dos dois caminhos rodou.
+    if isempty(getenv('UA_DD_SAEA_PISO_N'))
+        s = "20 CRAVADO 2026-07-18 (Knowles/ParEGO; ponto comum entre ~20-25 do §3.2 e {10,20,30,50} da D65; varredura SUB-varN reconfirma antes da bateria)";
+    else
+        s = "N=" + string(N) + " INJETADO por UA_DD_SAEA_PISO_N — celula da " + ...
+            "VARREDURA SUB-varN (D65), NAO e celula da campanha M8. O corpus " + ...
+            "oficial so admite celulas de piso com N_origem CRAVADO.";
     end
 end
 

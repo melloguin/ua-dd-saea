@@ -133,18 +133,33 @@ custaram tempo neste projeto:
   portões da campanha — o critério dele é o IGD+ mediano, computado da camada ①
   com `src/metrics.py`. Só não tente rodar `portao.py` sobre estas células.
 
-### 2.3 · O que falta no código
+### 2.3 · A via de injeção — ✅ IMPLEMENTADA (2026-08-01)
 
-**Não há flag pronta** para variar o `N` dos pisos: o valor é fixo no caminho do
-piso. A sessão precisa de uma via de injeção — parâmetro do runner ou variável de
-ambiente lida no ponto único onde o `N` é definido. **Requisitos:**
+O `N` era um literal (`N_nominal = 20;`) num **ponto único** de
+`src/experiment.m`. Agora sai de `piso_n_nominal()`, que lê a env
+**`UA_DD_SAEA_PISO_N`** e cai em `20` quando ela está ausente.
 
-1. O `N` efetivo (não só o nominal) tem de ir para o **manifesto** de cada run —
-   é o que o bundle §6.3 exige e é o que torna a tabela auditável.
-2. O caminho default (sem a flag) tem de continuar dando **exatamente `N=20`**.
-   Teste com controle negativo: uma célula default antes e depois da mudança, com
-   `sha256` idêntico da camada ①.
-3. Nada de tocar em `algorithms/` (vendorizado) sem re-lacre de âncora.
+| requisito | como ficou |
+|---|---|
+| `N` nominal **e** efetivo no manifesto | já existiam (`N_nominal`/`N_efetivo`); o que faltava era a **procedência**, agora em `piso_n_origem()` |
+| default intocado | `tests/test_subvarn_piso_n.py` roda a função de produção sob MATLAB e exige `20` sem a env |
+| `algorithms/` intocado | a mudança é só em `src/experiment.m` |
+
+**O que a implementação acrescentou além do pedido — e por quê.** Um valor
+inválido **pára** (`ua_dd_saea:pisoNInvalido`) em vez de cair no default. O modo
+de falha que isso fecha é o pior possível para uma varredura: um typo
+(`UA_DD_SAEA_PISO_N=3O`, com letra O) viraria `20` em silêncio e produziria uma
+célula **rotulada N=30 que rodou em N=20** — contaminando exatamente a
+comparação que a varredura existe para fazer. É a mesma classe do `LOTE_ORDEM`
+fora do vocabulário que virava `hibrida` sem avisar.
+
+E o manifesto passa a declarar **qual dos dois caminhos** produziu a célula: sem
+isso, uma célula da varredura e uma da campanha ficam indistinguíveis no corpus
+depois de gravadas — e a varredura escreve células com `N` que a campanha nunca
+usaria.
+
+⚠ A env tem de estar **AUSENTE** na campanha M8. O portão é o próprio manifesto:
+toda célula de piso do corpus oficial tem de trazer `N_origem` com `CRAVADO`.
 
 ---
 

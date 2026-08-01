@@ -98,7 +98,10 @@ desbalanceamento máximo ≤10%.
       defeito pelo critério do próprio BL-18 (e declara o espaço no `sigma_dict`). Ficou fora.
 - [x] T14.8 · BL-20 f-string do sobol_batch — `1dc9f9e`
       A nota é conferida contra o comportamento REAL do scipy (avisa só se q não é potência de 2).
-- [ ] T14.9 · BL-19 doc p0/p1 + regen bundle
+- [x] T14.9 · BL-19 doc p0/p1 + regen bundle — `9143998`
+      Fonte re-conferida: `CSEA.m:77-79` (`p0`=rótulo 1, `p1`=rótulo 0). ⚠ a varredura do teste
+      achou um **3º sítio** que o cartão não lista (SPEC :1486, cartão S.4 do b4) com o par
+      inexistente `(p1,p2)`. Bundle regenerado (só `alg_b4_csea.md` mudou).
 - [ ] T14.10 · B3 + comentário jsonl_open
 - [ ] T14.11 · mapa_sementes.json balanceado (2 mapas, ≤10% desbalanceamento)
 - [ ] REGISTRO A44 + handoff/T14-FINAL.md

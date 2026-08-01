@@ -234,5 +234,110 @@ class TestOSigmaDictChegaAoQuintoDeVerdade(unittest.TestCase):
         self.assertEqual(self.man["fe_final"], self.man["maxfe"])
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+#  T14.9 / BL-19 — a convenção p0/p1 do b4 sai do run e entra no CONTRATO/SPEC
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# `p0`/`p1` NÃO são "probabilidade da classe 0/1": são MAE por classe no
+# conjunto de teste, com os nomes NATIVOS do PlatEMO. A glosa existia só dentro
+# do `sigma_dict` de cada run — e quem lê o CONTRATO/SPEC sem abrir um ⑤ troca
+# os dois. A F5.4 mediu o custo da troca: a contagem de acertos do log cai de
+# **6.268 para 1.252**.
+#
+# Fonte única, conferida linha a linha (`CSEA.m:77-79`):
+#     IndexGood = TestOut==1;
+#     p0 = MAE sobre  IndexGood   ⇒ classe RÓTULO 1 (categoria II)
+#     p1 = MAE sobre ~IndexGood   ⇒ classe RÓTULO 0 (categoria I)
+
+CSEA_M = os.path.join(
+    _RAIZ, "algorithms", "_PlatEMO", "PlatEMO", "Algorithms",
+    "Multi-objective optimization", "CSEA", "CSEA.m")
+SPEC = os.path.join(_RAIZ, "claude_code_context", "SPEC_experimentos_v5.2.md")
+CONTRATO = os.path.join(_RAIZ, "CONTRATO_DE_DADOS.md")
+BUNDLE_B4 = os.path.join(_RAIZ, "claude_code_context", "10_rodada1_matlab",
+                         "alg_b4_csea.md")
+
+
+class TestConvencaoP0P1(unittest.TestCase):
+
+    def _texto(self, p):
+        if not os.path.exists(p):
+            self.skipTest("%s ausente" % os.path.basename(p))
+        with open(p, encoding="utf-8", errors="replace") as fh:
+            return fh.read()
+
+    # ── a FONTE (o que a doc tem de descrever) ──────────────────────────────
+    def test_a_FONTE_diz_o_que_a_doc_afirma(self):
+        """Doc×código: se o vendor mudar, a afirmação cai aqui, não no leitor."""
+        src = self._texto(CSEA_M).splitlines()
+        self.assertIn("IndexGood = TestOut==1;", src[76],
+                      "CSEA.m:77 não é mais a definição de IndexGood")
+        # :78 mede sobre IndexGood (rótulo 1) e :79 sobre o complemento
+        self.assertTrue(src[77].strip().startswith("p0 ="), src[77])
+        self.assertIn("TestOut(IndexGood)", src[77])
+        self.assertNotIn("~IndexGood", src[77])
+        self.assertTrue(src[78].strip().startswith("p1 ="), src[78])
+        self.assertIn("TestOut(~IndexGood)", src[78])
+
+    # ── os 3 sítios de doc ──────────────────────────────────────────────────
+    def test_o_CONTRATO_publica_a_convencao(self):
+        t = self._texto(CONTRATO)
+        self.assertIn("BL-19", t)
+        self.assertIn("`p0` = MAE da categoria II (rótulo 1", t)
+        self.assertIn("`p1` = MAE da categoria I (rótulo 0)", t)
+        self.assertIn("CSEA.m:77-79", t)
+
+    def test_a_SPEC_publica_a_convencao_nos_TRES_sitios(self):
+        # ⚠ o cartão nomeia :803 e :1875; a varredura deste teste achou um
+        # TERCEIRO — o cartão S.4 do b4 (:1486), que também trazia `(p1,p2)`.
+        t = self._texto(SPEC)
+        self.assertEqual(t.count("BL-19"), 3, "a SPEC tem 3 sítios do p0/p1")
+        self.assertIn("`p0` = MAE do rótulo 1 (categoria II)", t)
+        self.assertIn("`p1` = MAE do rótulo 0", t)
+
+    def test_o_par_INEXISTENTE_p1_p2_saiu_da_SPEC(self):
+        # `(p1,p2)` não existe no código: era o resíduo que a F5.4 apontou
+        self.assertNotIn("(p1,p2,rr,tr)", self._texto(SPEC))
+
+    def test_o_bundle_do_b4_foi_REGENERADO(self):
+        # "corrigir o gerador, não o gerado": o bundle sai da SPEC por
+        # `gen_bundles.py`; se ele não for regenerado, o leitor do bundle
+        # continua sem a glosa.
+        t = self._texto(BUNDLE_B4)
+        self.assertIn("BL-19", t)
+        self.assertIn("`p0` = MAE do rótulo 1 (categoria II)", t)
+        self.assertNotIn("(p1,p2,rr,tr)", t)
+
+    # ── o alarme contra a inversão ──────────────────────────────────────────
+    def test_os_TRES_sitios_avisam_que_a_ORDEM_NAO_se_inverte(self):
+        for nome, p in (("CONTRATO", CONTRATO), ("SPEC", SPEC),
+                        ("bundle", BUNDLE_B4)):
+            with self.subTest(sitio=nome):
+                t = self._texto(p).lower()
+                self.assertTrue(
+                    "não se inverte" in t or "nunca invertíveis" in t
+                    or "não-corrigir" in t,
+                    "o sítio não alerta contra a inversão")
+
+    def test_o_custo_MEDIDO_da_inversao_esta_publicado(self):
+        # número em doc vem com a medida: 6.268 → 1.252 (F5.4)
+        for nome, p in (("CONTRATO", CONTRATO), ("SPEC", SPEC)):
+            with self.subTest(sitio=nome):
+                t = self._texto(p)
+                self.assertIn("6.268", t)
+                self.assertIn("1.252", t)
+
+    def test_o_sigma_dict_do_run_continua_dizendo_o_MESMO(self):
+        # a glosa nova não pode divergir da que já viaja dentro de cada ⑤
+        with open(EXPERIMENT_M, encoding="utf-8") as fh:
+            src = fh.read()
+        i = src.index("'p0_p1'")
+        # a string do ⑤ é concatenada com `+ ...`: normaliza antes de comparar
+        bloco = " ".join(src[i:i + 400].split())
+        self.assertIn('p0 = MAE da categoria II (rotulo 1, CSEA.m:78)', bloco)
+        self.assertIn('categoria I (rotulo 0, CSEA.m:79)', bloco)
+        self.assertIn("NAO devem ser trocados", bloco)
+
+
 if __name__ == "__main__":
     unittest.main()

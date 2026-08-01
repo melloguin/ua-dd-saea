@@ -333,7 +333,23 @@ inacessíveis sem patch invasivo no miolo stock NÃO entram — anotadas no fim.
 |---|---|---|
 | b1 | λ; min/max da norm.; θ/dmodel; Gbest; μ/σ pop GA; guards mse<0/NaN/near-dup | **λ VETOR completo (M valores); `ei_best` (EI do escolhido — como o BO escolheu); `n_pool_ga`** |
 | b3 | \|A1\|; u efetivo; NumV1/NumV2/Flag; ramo APD×σ; index; pop_por_w; nzero | **`apd_sel` (APD do escolhido no ramo APD) e `sigma_sel` (σ do escolhido no ramo incerteza) — o PORQUÊ numérico da escolha; `n_vetores_vazios` (de pop_por_w); `adapt_delta_V` (norma da adaptação dos vetores de referência por ciclo — o mecanismo K-RVEA)** |
-| b4 | (p0,p1,rr,tr); regime R1–R4; L dos selecionados; \|lote\|; stalls | **os 6 `solution_id` das REFERÊNCIAS radiais da geração (o contexto da classe); `rr`/`tr` efetivos conferidos** |
+| b4 | (`p0`,`p1`,`rr`,`tr`); regime R1–R4; L dos selecionados; \|lote\|; stalls | **os 6 `solution_id` das REFERÊNCIAS radiais da geração (o contexto da classe); `rr`/`tr` efetivos conferidos** |
+
+> **⟦BL-19, 2026-08-01⟧ `p0`/`p1` do b4 — os nomes são NATIVOS do PlatEMO e NUNCA se invertem.**
+> Eles **não** são "probabilidade da classe 0/1": são **MAE (erro absoluto médio) por classe**
+> medido no conjunto de TESTE, e a numeração é a do código, não a do rótulo. Fonte única,
+> conferida linha a linha em `CSEA.m:77-79`:
+> ```matlab
+> IndexGood = TestOut==1;                                   % :77
+> p0 = mean(|TestOut(IndexGood)  − TestPre(IndexGood)|);    % :78  ⇒ classe RÓTULO 1
+> p1 = mean(|TestOut(~IndexGood) − TestPre(~IndexGood)|);   % :79  ⇒ classe RÓTULO 0
+> ```
+> Ou seja: **`p0` = MAE da categoria II (rótulo 1, "não é pior que TODAS as refs" — DI-18);
+> `p1` = MAE da categoria I (rótulo 0).** ⚠ **Trocar os dois é destrutivo e está no
+> NÃO-CORRIGIR:** a F5.4 mediu que a inversão derruba a contagem de acertos do log de
+> **6.268 → 1.252** (a acurácia sai de 0,35 para 0,995 — é o mesmo par que a leitura errada
+> do BL-12 exibia). O glossário também vive no `sigma_dict` de cada run (é onde o leitor da ③
+> vai procurar); esta linha existe porque quem lê só o CONTRATO/SPEC não sabe que precisa abri-lo.
 | e7 | Ratio/flag; min(A.objs); μ/σ̄; dup-infill; guard sqrt | **`n_clusters_efetivo`; ramo/cluster de CADA um dos K=3 infills; `loss_treino` da EDN (B1)** |
 | c217 | p+/p−/δ; n_contradicoes; ESTADO+motivo; \|lote\|; scores | **`n_best`/`n_worst` do treino; \|Pmid\| (tamanho da referência do gate)** |
 | c141 | Fit1/2/3; ranks/Q/U; nível+telemetria (Q,U); \|subpops\| | **`n_por_nivel` (contagem de candidatos por nível da cascata); hp do RBF (B1)** |

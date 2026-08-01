@@ -102,7 +102,11 @@ desbalanceamento máximo ≤10%.
       Fonte re-conferida: `CSEA.m:77-79` (`p0`=rótulo 1, `p1`=rótulo 0). ⚠ a varredura do teste
       achou um **3º sítio** que o cartão não lista (SPEC :1486, cartão S.4 do b4) com o par
       inexistente `(p1,p2)`. Bundle regenerado (só `alg_b4_csea.md` mudou).
-- [ ] T14.10 · B3 + comentário jsonl_open
+- [x] T14.10 · B3 + comentário jsonl_open — `92a88c1`
+      ⚠ **DECISÃO minha, reversível:** "fechar a exceção" = FORMALIZAR a recomendação do T12
+      §7.3 (não trocar o writer antes da tag), não aplicar o writer Java. A exceção virou
+      **tripwire** (a CLI recusar config MATLAB é aferido por comportamento). Comentário do
+      `jsonl_open` corrigido. Se a intenção era APLICAR o Java: 1 função, caminho medido.
 - [ ] T14.11 · mapa_sementes.json balanceado (2 mapas, ≤10% desbalanceamento)
 - [ ] REGISTRO A44 + handoff/T14-FINAL.md
 

@@ -229,13 +229,28 @@ source ~/frota_m8.env; gcloud compute ssh matlab-vm10 "${VM10[@]}" --command='rm
 ## B-5 · `git pull` + suíte nas 4  🔒 *BLOQUEADO até a tag existir*
 
 Regra do projeto: **`git pull` somente após o aviso de congelamento do autor.**
-As VMs estão na era "394 testes"; o repo congelado tem **826**.
+
+⚠ **Correção de premissa (verificada em 2026-08-01):** o `origin` **já contém o
+T11/T12/T14** — `28c6c0d`, `c797018`, `b2e8283` e `eb1e0b1` são todos ancestrais
+de `origin/experiment/definitive_algorythms`. O *"Nada foi pushado"* do
+`T14-FINAL.md §8` era verdade quando o T14 fechou; o autor empurrou depois.
+Consequências:
+
+- **`vm1`** foi clonada em 2026-08-01, então **já nasceu com o código congelado**
+  (836 testes após este commit). O `pull` nela é no-op — o que interessa é a suíte.
+- **`vm2`, `vm3`, `vm10`** foram clonadas em julho e estão na era **"394 testes"**;
+  para elas o `pull` é obrigatório.
+- Falta empurrar **só** o commit `[M8]` (frota + `LOTE_ORDEM=semente` + batches).
+  Sem ele, nenhuma VM tem o `frota.json`, o mapa novo nem o modo de ordenação —
+  e o disparo sairia na ordem errada. **Este push é o P5, e é ato seu.**
+
+Esperado na suíte após o pull: **`Ran 836`** · **`OK`** · `skipped=37`.
 
 ```bash
 source ~/frota_m8.env; for X in "matlab-vm1|VM1" "matlab-vm2|VM2" "matlab-vm3|VM3" "matlab-vm10|VM10"; do M="${X%%|*}"; N="${X##*|}"; eval "F=(\"\${$N[@]}\")"; echo "===== $M ====="; gcloud compute ssh "$M" "${F[@]}" --command='cd ~/ua-dd-saea && git pull --ff-only 2>&1 | tail -3 && git log -1 --format="HEAD %h %s" && ~/venvs/env_main/bin/python -m unittest discover -s tests > ~/suite_$(hostname).log 2>&1; tail -3 ~/suite_$(hostname).log' 2>&1 || echo "FALHOU: pull/suite em $M"; done
 ```
 
-Esperado em cada uma: **`Ran 826`** · **`OK`** · `skipped≈36`. **Qualquer outro
+Esperado em cada uma: **`Ran 836`** · **`OK`** · `skipped=37`. **Qualquer outro
 número ⇒ pare** (D81).
 
 ---

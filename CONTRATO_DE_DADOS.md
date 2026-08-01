@@ -347,7 +347,7 @@ inacessíveis sem patch invasivo no miolo stock NÃO entram — anotadas no fim.
 | b5 | modo; geração/arquivamento; n_restarts GPR; substituições P_wrong (b5m) | **os PESOS de decomposição do b5m no HEADER (determinísticos — 1×); `p_wrong_stats` (min/med/max por geração)** |
 | c311 | dict_gps; points_per_model; early-stop; folha pior-MSE | **`n_folhas` + `profundidade` da árvore por iteração (o particionamento É o mecanismo treed-GP)** |
 | e103 | CurGen; KFlag; √MSE; μ dos 2 modelos; quase-singularidade | **`divergencia_modelos` (mean\|μ_Krig−μ_RBFN\| por geração — o desacordo entre as 2 cabeças); `margem_3sigma` (o valor que decide o KFlag)** |
-| **pisos (5)** | só o mínimo comum | **`n_front1`; `f_best[]`; ideal/nadir da pop por geração; os VETORES de decomposição do moead/nsga3 no HEADER (determinísticos — UniformPoint(N,M), 1×)** |
+| **pisos (5)** | só o mínimo comum | **`n_front1`; `f_best[]`; `ideal`/`nadir_pop`/`nadir_front1` da pop por geração ⟦BL-17: os 3 nomes entraram em CRASE — o `contrato_61.json` é construído por extração dos identificadores em crase desta tabela, e em prosa eles ficavam fora da vigilância do G-7⟧; os VETORES de decomposição do moead/nsga3 no HEADER (determinísticos — UniformPoint(N,M), 1×)** |
 
 **Rejeitados no DI-10 (inacessíveis sem patch invasivo no miolo stock — viola patch-mínimo/D30):**
 contagem de substituições por geração do MOEA/D; niching por referência do NSGA-III; genealogia

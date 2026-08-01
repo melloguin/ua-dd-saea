@@ -15,7 +15,8 @@
   "achado_novo": "Além de reproduzir I-03/I-05/I-07, a medição acusou 4 campos DI-10 contratados e AUSENTES que nenhum item do T11 cobria (`adapt_delta_V` do b3 · `mll_final` do c262 · `loss_treino` do e7 · `margem_3sigma` do e103) e 112 células de piso online sem `sigma_dict` (nsga2/nsga3/moead/smsemoa, 28 cada). Ver `pendencias_medidas`.",
   "errata_2026-07-30": "3 das 5 'pendências' da 1ª medição eram FALSO-POSITIVO DO GATE, não do código: `mll_final` (c154/c262) e `loss_treino` (e7) estão ANINHADOS dentro de `modelo_hp`, e o gate só olhava o TOPO do evento. Um campo aninhado está no ⑥ e é auditável — o gate afere PRESENÇA, não POSIÇÃO. Corrigido para varrer em profundidade (≤4 níveis). `n_baseline` no c154 virou não-se-aplica (o sigma_dict do próprio runner já o declarava). Restam 2 pendências REAIS: `adapt_delta_V` (b3) e `margem_3sigma` (e103).",
   "errata_12_2026-07-30": "`p_wrong_stats` era exigido de b5m, b5r E moead_media — mas so o b5m (mode 72, Prob-MOEA/D) passa pelo `ProbMOEAD_select`, onde vive o acumulador. b5r (mode 7, Prob-RVEA) e moead_media (mode 12, MOEA/D-media) usam OUTROS seletores. Evidencia no proprio codigo: src/b5_prob.py:78-79 ('Vazio no b5r ... nao passa pelo ProbMOEAD_select') e src/piso_offline.py:9-11 ('mode 12 usa MOEAD_select'). O b5r escapava do vermelho por ACIDENTE (b5_prob.py:522 grava a chave vazia); o moead_media acusava porque o piso_offline nao grava. Falso-positivo do ARTEFATO, nao do codigo — familia da ERRATA 6.",
-  "errata_14_2026-07-30": "O contrato cobrava `tempo_busca_s`/`tempo_fit_s` do e103 — campos que ele NUNCA emitiu (0 de 5.148 eventos da s42 E 0 no smoke fresco). E a QUINTA errata desta familia (6,7,8,12,14): eu escrevi o artefato a partir do TEXTO do §6.1 sem confrontar com o que cada runner de fato emite. Varredura dos 24 configs sobre DADO FRESCO (nao a s42, que e pre-T11) em 2026-07-30: este era o UNICO remanescente — os outros 3 candidatos (b3/adapt_delta_V, b5m/p_wrong_stats, sobol_batch/n_front1) eram falso-positivo de ler dado velho, e hoje saem verdes."
+  "errata_14_2026-07-30": "O contrato cobrava `tempo_busca_s`/`tempo_fit_s` do e103 — campos que ele NUNCA emitiu (0 de 5.148 eventos da s42 E 0 no smoke fresco). E a QUINTA errata desta familia (6,7,8,12,14): eu escrevi o artefato a partir do TEXTO do §6.1 sem confrontar com o que cada runner de fato emite. Varredura dos 24 configs sobre DADO FRESCO (nao a s42, que e pre-T11) em 2026-07-30: este era o UNICO remanescente — os outros 3 candidatos (b3/adapt_delta_V, b5m/p_wrong_stats, sobol_batch/n_front1) eram falso-positivo de ler dado velho, e hoje saem verdes.",
+  "errata_17_2026-08-01": "[BL-17/T14.4] A linha 'pisos' do §6.1 exige, alem de `n_front1` e `f_best[]`, o IDEAL e o NADIR da populacao por geracao — e os 3 campos (`ideal`, `nadir_pop`, `nadir_front1`) estavam FORA da vigilancia nos 4 pisos online. Causa: a construcao por extracao automatica dos identificadores em crase, declarada em `como_foi_construido` — na l.335 do §6.1 so `n_front1` e `f_best[]` estao em crase; ideal/nadir aparecem em prosa. Prova por MUTANTE (relatada na F5 e reproduzida no T14.4): removendo os 3 de um ⑥ de smoke, os 6 portoes seguiam VERDES com o G-7 relatando '⑥ 3/3 campos'. Hoje os campos existem (medido 2026-08-01: 1.840/1.840 eventos `_gen` das 112 celulas de piso da s42, ZERO ausencias), entao ligar a vigilancia NAO produz falso-vermelho — o que ela impede e a perda SILENCIOSA em 30 sementes, que apagaria as bases de §P5 (787 medicoes) e §P6 (376) sem acender gate. Sexta errata da mesma familia (6,7,8,12,14,17): o artefato nasceu do TEXTO, e o que fecha e sempre confrontar com o que o runner de fato emite."
  },
  "minimo_comum_di10": {
   "campos": [
@@ -193,7 +194,10 @@
   "nsga2": {
    "di10": [
     "f_best",
-    "n_front1"
+    "n_front1",
+    "ideal",
+    "nadir_pop",
+    "nadir_front1"
    ],
    "nao_se_aplica": {
     "tempo_fit_s": "[DI-13.2] piso ONLINE não treina surrogate: `tempo_fit_s` é NULL por contrato",
@@ -203,7 +207,10 @@
   "nsga3": {
    "di10": [
     "f_best",
-    "n_front1"
+    "n_front1",
+    "ideal",
+    "nadir_pop",
+    "nadir_front1"
    ],
    "nao_se_aplica": {
     "tempo_fit_s": "idem nsga2",
@@ -213,7 +220,10 @@
   "moead": {
    "di10": [
     "f_best",
-    "n_front1"
+    "n_front1",
+    "ideal",
+    "nadir_pop",
+    "nadir_front1"
    ],
    "nao_se_aplica": {
     "tempo_fit_s": "idem nsga2",
@@ -223,7 +233,10 @@
   "smsemoa": {
    "di10": [
     "f_best",
-    "n_front1"
+    "n_front1",
+    "ideal",
+    "nadir_pop",
+    "nadir_front1"
    ],
    "nao_se_aplica": {
     "tempo_fit_s": "idem nsga2",

@@ -76,7 +76,9 @@ desbalanceamento máximo ≤10%.
       ⚠ **o cartão errava a premissa:** só o `treed_media` inflava; nos outros 7 o I/O caía no vão
       ENTRE gerações (fora do `tempo_geracao_s`, mas SEM NOME). Controle negativo em célula real:
       `tempo_busca_s` 3,2089 (ckpt OFF) × 3,2798 (cadência 1) = +2,2%; antes seria +85,2%.
-- [ ] T14.2 · BL-21 footer_fechado() no progress + varredura do padrão [-1]
+- [x] T14.2 · BL-21 footer_fechado() no progress + varredura do padrão [-1] — `2fc3e78`
+      3 sítios: progress ✔ · accept:796 ✔ · export `footer_ts` era CÓDIGO MORTO ⇒ removido.
+      Errata do docstring RE-MEDIDA: 559→747 (94 pares × 2 linhas), não 747→767.
 - [ ] T14.3 · BL-14 N_efetivo (moead+nsga3)
 - [ ] T14.4 · BL-17 linha dos pisos no contrato_61.json (+mutante como controle)
 - [ ] T14.5 · BL-12 calibração do b4 re-medida

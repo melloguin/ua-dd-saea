@@ -78,17 +78,29 @@ function drv_t14_pisos(raiz, dr, especifico)
     end
     jp = fullfile(dr, 'experiments', 'main', a, ...
                   sprintf('exp_main_%s_%s_42.jsonl', a, p));
+    mp = strrep(jp, '.jsonl', '.manifest.json');
     if ~isfile(jp), continue; end
+    reg = struct();
     linhas = splitlines(string(fileread(jp)));
     for k = 1:numel(linhas)
       if strlength(linhas(k)) > 0 && contains(linhas(k), '"rec":"seeding"')
         r = jsondecode(linhas(k));
-        out.(sprintf('%s__%s', a, p)) = struct( ...
-          'n_frente1', r.n_frente1, 'N_nominal', r.N_nominal, ...
-          'frente1_excede_pop', r.frente1_excede_pop);
+        reg.n_frente1 = r.n_frente1;
+        reg.N_nominal = r.N_nominal;
+        reg.frente1_excede_pop = r.frente1_excede_pop;
         break
       end
     end
+    if isfile(mp)                       % [T14.6] os params do ⑤ (BL-13)
+      man = jsondecode(fileread(mp));
+      reg.N_efetivo   = man.params.N_efetivo;
+      reg.n_geracoes  = man.n_geracoes;
+      reg.cache_hits  = man.cache_hits;
+      reg.maxfe       = man.maxfe;
+      reg.operadores  = man.params.operadores;
+      reg.ger_deriv   = man.params.geracoes_derivadas;
+    end
+    out.(sprintf('%s__%s', a, p)) = reg;
   end
   % o N EFETIVO vem do lattice — deterministico, sem run nenhum
   out.uniformpoint_M3 = numel(UniformPoint(20, 3)) / 3;
@@ -304,6 +316,193 @@ class TestCelulasReaisMatlab(unittest.TestCase):
                     self.assertEqual(bool(r["frente1_excede_pop"]),
                                      self.corpus[chave]["flag_gravada"],
                                      "o fix mexeu num piso que não tem lattice")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  T14.6 / BL-13 — `geracoes_derivadas` RAMIFICADA por família de operador
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# A string única declarava o mecanismo do NSGA-II para os 4 pisos. Mas
+# `MOEAD.m:45` e `SMSEMOA.m:29` chamam **`OperatorGAhalf`** (1 prole por
+# subproblema ⇒ `N_efetivo` por geração) e `NSGAII.m:27`/`NSGAIII.m:29` chamam
+# **`OperatorGA`** (prole em PARES ⇒ `2*floor(N_ef/2)`). Os dois denominadores
+# só DIVERGEM com `N_efetivo` ÍMPAR — as células M=3 do lattice (N_ef=15) —, e é
+# exatamente ali que o moead errava.
+#
+# ⚠ O bloqueador BL-13 prescreve `floor((20D+clones)/N_ef) + 1` para o moead.
+# MEDIDO: o `+1` acerta **0/28**; sem ele, **28/28**. A prescrição está errada e
+# foi corrigida pelo dado (o teste abaixo tranca isso).
+
+PAR = ("nsga2", "nsga3")          # OperatorGA      → prole em pares
+HALF = ("moead", "smsemoa")       # OperatorGAhalf  → 1 prole por subproblema
+
+
+def _prev(alg: str, D: int, n_dup: int, n_ef: int) -> int:
+    """A fórmula RAMIFICADA — a que este item passa a publicar no ⑤."""
+    den = 2 * (n_ef // 2) if alg in PAR else n_ef
+    return (20 * D + n_dup) // den
+
+
+def _corpus_geracoes() -> list[dict]:
+    linhas = []
+    for alg in PISOS:
+        for mp in sorted(glob.glob(os.path.join(
+                _RAIZ, "data", "experiments", "main", alg, "*.manifest.json"))):
+            with open(mp, encoding="utf-8") as fh:
+                m = json.load(fh)
+            pr = m.get("params") or {}
+            if None in (pr.get("N_efetivo"), m.get("n_geracoes"),
+                        m.get("cache_hits"), m.get("maxfe")):
+                continue
+            linhas.append({
+                "alg": alg, "celula": os.path.basename(mp),
+                "D": (int(m["maxfe"]) + 1) // 31,
+                "N_efetivo": int(pr["N_efetivo"]),
+                "n_dup": int(m["cache_hits"]),
+                "n_geracoes": int(m["n_geracoes"]),
+            })
+    return linhas
+
+
+class TestGeracoesDerivadasCorpus(unittest.TestCase):
+    """A fórmula é aferida contra o `n_geracoes` REAL das 112 células."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.linhas = _corpus_geracoes()
+
+    def setUp(self):
+        if len(self.linhas) < 100:
+            self.skipTest("corpus de pisos ausente/raso no disco local")
+
+    def test_a_ramificada_acerta_mais_que_a_formula_unica(self):
+        ram = sum(_prev(x["alg"], x["D"], x["n_dup"], x["N_efetivo"])
+                  == x["n_geracoes"] for x in self.linhas)
+        # a fórmula ÚNICA de antes: denominador em pares para TODOS
+        uni = sum(((20 * x["D"] + x["n_dup"]) // (2 * (x["N_efetivo"] // 2)))
+                  == x["n_geracoes"] for x in self.linhas)
+        self.assertEqual((uni, ram), (103, 110),
+                         "os acertos mudaram — re-meça antes de mexer no texto")
+
+    def test_o_moead_fecha_28_de_28_com_o_denominador_certo(self):
+        for alg, esperado in (("moead", 28), ("smsemoa", 28),
+                              ("nsga2", 27), ("nsga3", 27)):
+            with self.subTest(alg=alg):
+                sub = [x for x in self.linhas if x["alg"] == alg]
+                ok = sum(_prev(alg, x["D"], x["n_dup"], x["N_efetivo"])
+                         == x["n_geracoes"] for x in sub)
+                self.assertEqual((len(sub), ok), (28, esperado))
+
+    def test_CONTROLE_o_mais_um_do_bloqueador_acerta_ZERO(self):
+        """O BL-13 prescreve `floor(.../N_ef)+1` para o moead. Medido: 0/28."""
+        sub = [x for x in self.linhas if x["alg"] == "moead"]
+        com_mais_um = sum(((20 * x["D"] + x["n_dup"]) // x["N_efetivo"]) + 1
+                          == x["n_geracoes"] for x in sub)
+        self.assertEqual(com_mais_um, 0,
+                         "o `+1` do bloqueador acertou algo — re-avalie")
+
+    def test_os_denominadores_so_divergem_com_N_efetivo_IMPAR(self):
+        # é a explicação de por que o defeito só aparecia no moead: em N_ef=20
+        # `2*floor(N/2) == N`, então as duas famílias dão o MESMO número.
+        for x in self.linhas:
+            par = 2 * (x["N_efetivo"] // 2)
+            with self.subTest(alg=x["alg"], celula=x["celula"]):
+                self.assertEqual(par == x["N_efetivo"], x["N_efetivo"] % 2 == 0)
+
+    def test_o_smsemoa_nao_muda_de_numero_apesar_de_mudar_de_familia(self):
+        # honestidade: no smsemoa o N_ef é sempre 20 (não decompõe) ⇒ a troca de
+        # denominador é semanticamente certa e numericamente NEUTRA.
+        for x in [y for y in self.linhas if y["alg"] == "smsemoa"]:
+            with self.subTest(celula=x["celula"]):
+                self.assertEqual(x["N_efetivo"] % 2, 0)
+                self.assertEqual(_prev("smsemoa", x["D"], x["n_dup"], x["N_efetivo"]),
+                                 (20 * x["D"] + x["n_dup"]) // (2 * (x["N_efetivo"] // 2)))
+
+
+class TestGeracoesDerivadasFonte(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        with open(os.path.join(_RAIZ, "src", "experiment.m"), encoding="utf-8") as fh:
+            cls.src = fh.read()
+
+    def test_a_string_ramifica_pelas_DUAS_familias(self):
+        self.assertIn('if any(strcmp(char(alg), {\'moead\',\'smsemoa\'}))', self.src)
+        self.assertIn('familia_op  = "OperatorGAhalf";', self.src)
+        self.assertIn('familia_op  = "OperatorGA";', self.src)
+
+    def test_a_string_unica_para_os_4_pisos_saiu(self):
+        self.assertNotIn(
+            'gerando prole em PARES — 2*floor(N_efetivo/2) por " + ...', self.src)
+
+    def test_os_sitios_do_vendor_estao_citados(self):
+        for sitio in ("MOEAD.m:45", "SMSEMOA.m:29", "NSGAII.m:27", "NSGAIII.m:29"):
+            with self.subTest(sitio=sitio):
+                self.assertIn(sitio, self.src)
+
+    def test_os_sitios_citados_EXISTEM_no_vendor(self):
+        """Doc×código: a linha citada tem de chamar o operador que a string diz."""
+        base = os.path.join(_RAIZ, "algorithms", "_PlatEMO", "PlatEMO",
+                            "Algorithms", "Multi-objective optimization")
+        alvos = {
+            os.path.join(base, "MOEA-D", "MOEAD.m"): (45, "OperatorGAhalf"),
+            os.path.join(base, "SMS-EMOA", "SMSEMOA.m"): (29, "OperatorGAhalf"),
+            os.path.join(base, "NSGA-II", "NSGAII.m"): (27, "OperatorGA("),
+            os.path.join(base, "NSGA-III", "NSGAIII.m"): (29, "OperatorGA("),
+        }
+        for p, (linha, token) in alvos.items():
+            with self.subTest(arquivo=os.path.basename(p)):
+                if not os.path.exists(p):
+                    self.skipTest("árvore vendorizada ausente")
+                with open(p, encoding="utf-8", errors="replace") as fh:
+                    linhas = fh.read().splitlines()
+                self.assertIn(token, linhas[linha - 1],
+                              "a citação da string aponta para a linha errada")
+
+
+@unittest.skipUnless(MATLAB, "MATLAB ausente nesta máquina")
+class TestGeracoesDerivadasNoQuintoReal(unittest.TestCase):
+    """As 8 células reais do A/B também carregam o ⑤ ramificado."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.res = TestCelulasReaisMatlab.res
+
+    def test_cada_piso_declara_a_sua_familia(self):
+        for alg in PISOS:
+            esperado = "OperatorGAhalf" if alg in HALF else "OperatorGA"
+            for prob in ("DTLZ1", "DTLZ3"):
+                chave = "%s__%s" % (alg, prob)
+                if chave not in self.res:
+                    continue
+                with self.subTest(alg=alg, problema=prob):
+                    ops = self.res[chave]["operadores"]
+                    self.assertIn(esperado, ops)
+                    if esperado == "OperatorGA":       # não pode casar o irmão
+                        self.assertNotIn("OperatorGAhalf", ops)
+
+    def test_a_formula_do_texto_bate_com_o_n_geracoes_do_MESMO_run(self):
+        """Dado FRESCO, não a s42: o ⑤ tem de ser autoconsistente."""
+        for alg in PISOS:
+            for prob in ("DTLZ1", "DTLZ3"):
+                chave = "%s__%s" % (alg, prob)
+                if chave not in self.res or "n_geracoes" not in self.res[chave]:
+                    continue
+                r = self.res[chave]
+                D = (int(r["maxfe"]) + 1) // 31
+                with self.subTest(alg=alg, problema=prob):
+                    self.assertEqual(
+                        _prev(alg, D, int(r["cache_hits"]), int(r["N_efetivo"])),
+                        int(r["n_geracoes"]),
+                        "a fórmula publicada no ⑤ não reproduz o `n_geracoes` "
+                        "do próprio run")
+
+    def test_o_manda_LER_continua_na_string(self):
+        # a string prescreve "não derive, LEIA" — é a regra que sobrevive a
+        # qualquer fórmula aproximada, e não pode sumir na reescrita.
+        r = self.res["moead__DTLZ1"]
+        self.assertIn("nao derive, LEIA", r["ger_deriv"])
+        self.assertIn("110/112", r["ger_deriv"])
 
 
 if __name__ == "__main__":

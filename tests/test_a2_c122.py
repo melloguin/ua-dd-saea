@@ -180,6 +180,8 @@ class TestA6SobolBatchENsga3(unittest.TestCase):
       aproximação (`floor((20D+n_dup)/(2⌊N_ef/2⌋))`) acerta **103/112**. Logo:
       `n_geracoes` é EMERGENTE, e o metadado passa a dizer isso em vez de
       prometer uma fórmula fechada que não existe.
+      ⟦BL-13/T14.6, 2026-08-01⟧ A aproximação passou a RAMIFICAR por família de
+      operador (`OperatorGA` × `OperatorGAhalf`) e subiu para **110/112**.
     """
 
     def test_sobol_batch_usa_o_minimo_comum(self):
@@ -191,13 +193,19 @@ class TestA6SobolBatchENsga3(unittest.TestCase):
         self.assertNotIn('f_best=[float(v) for v in', src)
 
     def test_a_string_do_piso_nao_promete_formula_fechada(self):
+        # ⟦BL-13/T14.6⟧ A âncora saiu de `'geracoes_derivadas'` (que hoje só
+        # aponta para a variável) para a montagem da string, que RAMIFICA por
+        # família de operador. A acurácia medida subiu de 103/112 para 110/112 —
+        # e é a NOVA que o texto tem de publicar; o `test_t14_pisos.py` afere as
+        # duas contra o `n_geracoes` real das 112 células.
         with open(os.path.join(_RAIZ, "src", "experiment.m"),
                   encoding="utf-8", errors="replace") as fh:
             m = fh.read()
-        i = m.index("'geracoes_derivadas'")
-        bloco = m[i:i + 1200]
+        i = m.index("geracoes_derivadas_txt = ")
+        bloco = m[i:i + 1600]
         self.assertIn("EMERGENTE", bloco)
-        self.assertIn("103/112", bloco)          # a acurácia MEDIDA da aproximação
+        self.assertIn("110/112", bloco)          # a acurácia MEDIDA da aproximação
+        self.assertIn("103/112", bloco)          # e a da fórmula única, p/ contraste
         self.assertNotIn('"20D ÷ N_efetivo', bloco)
         self.assertIn("nao derive, LEIA", bloco)
 

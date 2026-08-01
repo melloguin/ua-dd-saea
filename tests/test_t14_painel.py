@@ -244,13 +244,23 @@ class TestVarreduraDoPadrao(unittest.TestCase):
 
 #: [M8 · 2026-08-01] GUARDA DE PORTABILIDADE — ver `test_t14_pisos.py`.
 #: `data/experiments/` é gitignored; o corpus da s42 mora no BUCKET e localmente
-#: só no Mac. Esta classe afirma sobre UMA célula concreta da s42 — numa VM ela
-#: não existe, e o teste reprovava a máquina por um dado que nunca esteve lá.
+#: só no Mac. Esta classe afirma sobre UMA célula concreta da s42.
+#:
+#: ⚠ [conserto no mesmo dia] "o arquivo existe" NÃO basta como guarda: vm2/vm3/
+#: vm10 têm exatamente esta célula como HERANÇA do provisionamento de julho
+#: (handoff vm10 §12 — "manifesto de batch/e81/ZDT4 rastreado até a cópia de
+#: data/"), com conteúdo DIFERENTE do canônico — a guarda passava e o conteúdo
+#: falhava (`footer_fechado` → None). O sinal robusto é o TAMANHO do corpus:
+#: só o Mac tem ~1.000 manifests; as VMs têm 0–6, herdados.
 _CELULA_ALVO = os.path.join(_RAIZ, "data", "experiments", "batch", "e81",
                             "exp_batch_e81_ZDT4_42.jsonl")
-_TEM_CORPUS = os.path.exists(_CELULA_ALVO)
-_SEM_CORPUS = ("a célula da s42 usada por esta classe não existe nesta máquina "
-               "(%s) — gitignored, mora no bucket" % os.path.basename(_CELULA_ALVO))
+_N_CORPUS = len(glob.glob(os.path.join(
+    _RAIZ, "data", "experiments", "*", "*", "*.manifest.json")))
+_TEM_CORPUS = os.path.exists(_CELULA_ALVO) and _N_CORPUS >= 300
+_SEM_CORPUS = ("corpus da s42 ausente/parcial nesta máquina (%d manifests; a "
+               "célula-alvo %s pode existir como HERANÇA de provisionamento, "
+               "com conteúdo != canônico) — o corpus mora no bucket"
+               % (_N_CORPUS, os.path.basename(_CELULA_ALVO)))
 
 
 @unittest.skipUnless(_TEM_CORPUS, _SEM_CORPUS)

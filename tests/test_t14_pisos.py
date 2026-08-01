@@ -487,6 +487,10 @@ class TestGeracoesDerivadasFonte(unittest.TestCase):
 
 
 @unittest.skipUnless(MATLAB, "MATLAB ausente nesta máquina")
+@unittest.skipUnless(_TEM_CORPUS, _SEM_CORPUS)   # [M8] herda o resultado da
+# TestCelulasReaisMatlab — que agora PULA sem corpus, e aí `.res` nunca nasce
+# (setUpClass de classe pulada não roda). Sem esta guarda, o skip da classe-mãe
+# vira AttributeError aqui: foi exatamente a falha nas 4 VMs em 2026-08-01.
 class TestGeracoesDerivadasNoQuintoReal(unittest.TestCase):
     """As 8 células reais do A/B também carregam o ⑤ ramificado."""
 

@@ -2907,3 +2907,69 @@ QUAL caminho produziu a célula: o corpus oficial só admite piso com
 ⚠ **`UA_DD_SAEA_PISO_N` deve ficar AUSENTE na campanha M8.**
 
 **LIBERA:** a tag `m8-freeze`, que estava segurada esperando esta decisão.
+
+## PARTE A47 — O DIA DO DISPARO: dois achados de determinismo, o recorte da 1ª onda, e a campanha no ar (2026-08-02)
+
+**1 · Veredito final do stress de 12 h: ZERO falha algorítmica.** ~430 células/VM
+(todas as stacks, todos os regimes, seed 2, `data_stress` isolado, teto artificial
+de 7.200 s). Os 45 "failed" se decompõem SEM resto: **40 por dataset de tier
+ausente** (o achado real — ver §2) e **5 por `motivo: teto_wall`** (abortos
+SANCIONADOS no teto de 2 h: `batch/e81` ×3 e `main/c122/DTLZ4` ×2, só nas máquinas
+de 16 jobs — contenção, não algoritmo; no teto real de 43.200 s fecham com folga).
+Um caso operacional: `main/c238/DTLZ4` na vm3 pendurado 11,5 h com CPU 0 %
+(a lacuna DI-35.5 — MATLAB sem teto de wall-clock — materializada). Morto a mão,
+o lote fechou sozinho. **Regra operacional derivada:** célula MATLAB longa com
+CPU ~0 % ⇒ `kill`; a re-passada do MESMO comando recolhe (resume, §4).
+
+**2 · Datasets de tier: a lacuna e a geração.** O grid da campanha exige 95
+tier-células/semente e os pares `{small-mvns, medium-*, big-*}` só existiam para
+s0(parcial)/s42. Sonda de plataforma ANTES de gerar: **`x_hash` bit-idêntico
+arm64↔x86_64** (PCG64/LHS estável, como o D87 promete) mas **`f_hash` DIVERGE**
+(libm — `cos/sin` por ULPs). Consequência: geração nas 4 VMs (x86 idênticas), com
+igualdade cruzada de hashes como verificação. Resultado: **724 gerados + 26
+pré-existentes validados por hash = 750/VM em ~6 min**, contagens idênticas nas 4.
+
+**3 · Segundo achado: OpenBLAS × contagem de threads.** O digest 4×4 REPROVOU —
+em DOIS grupos perfeitos que coincidem com os tipos de máquina (32 vs 12 vCPU).
+Diagnóstico completo: **58 arquivos divergentes, TODOS `WFG9 × big × s0–28`,
+TODOS só no `f_hash`** (`x_hash` 100 % igual; a s42, vinda do git, idêntica).
+Causa provada: a avaliação do WFG9 passa por `np.dot` (`problems.py:662`); com
+threads livres a OpenBLAS particiona o GEMV de 50 k pontos e soma parciais em
+ordem dependente do nº de threads; `medium` (2 k) fica abaixo do limiar de
+multithreading. O gerador rodou SEM os pins que o driver exporta
+(`lote3s.sh:236`). **DECISÃO DO AUTOR: divergência ACEITA** — cada máquina consome
+exatamente as sementes que gerou e o CP valida cada arquivo contra o próprio
+sidecar. Regras derivadas: (a) geração de dataset SEMPRE com os pins de thread do
+driver (backlog pós-freeze: embutir no `doe.py`); (b) **na expansão D1, semente
+migrada LEVA seus datasets junto — nunca regerar na máquina nova**; (c) a 1ª onda
+(main+off) nem toca sweep-big: hoje o corpus em disputa não entra em nada.
+
+**4 · P14/H1'.** Resume PROVADO nas 4: o comando literal do P10 com
+`LOTE=CONFIRMA` deu `9 já tinham manifesto` + `grade VAZIA` + exit 0 — re-colar o
+comando da campanha é sempre inofensivo. H1' (auto-updater): o knob
+`matlab.addons.autoupdatecheck` NÃO EXISTE no R2025a Linux ("não aplicável —
+anotar", como o próprio comando previa; erro registrado em `~/upd.log` das VMs).
+Risco residual baixo: o runtime Linux não se auto-atualiza.
+
+**5 · O recorte da 1ª onda (decisão do autor, minutos antes do disparo).** Só os
+25 problemas principais em main+off: **main = 13 online (b1 b3 b4 c122 c141 c149
+c154 c217 c238 c262 e7 e74 e81) + 4 pisos (nsga2 nsga3 moead smsemoa); off SEM
+c311 (b5m b5r e103 moead_media)** = 21 pares × 25 = 525 células/semente = 15.750.
+**c311 REMOVIDO DA CAMPANHA INTEIRA** — a 2ª onda (sweep+batch, a decidir) também
+sai sem ele. Detalhe de driver que definiu a forma do comando: **o modo-mapa
+SOBRESCREVE `LOTE_PARES`** (o artefato manda em SEEDS e PARES), então o recorte
+exigiu modo manual — `LOTE_MAPA=0` + `LOTE_SEEDS` explícito com a MESMA partição
+do mapa (vm1=0–10 · vm2=11–14 · vm10=15–18 · vm3=19–28,42, s42 por último).
+
+**6 · DISPARO: 2026-08-02, 12:39–12:41Z.** Grades: 5.766/2.091/5.766/2.091 =
+**15.714 células** (36 do P10 + 1 extra na vm3 já prontas), `bucket: LIGADO`,
+`LOTE_ORDEM=semente`, `setsid nohup` (sobrevive a desconexão — provado no stress
+com o Mac desligado a noite inteira), guard anti-lote-duplo e guards de
+CID/PISO_N no próprio comando. Makespan previsto: ~215,5 h (vm1/vm3, 16 proc) e
+~209 h (vm2/vm10, 6 proc) ⇒ término ~11/08. Painel a 4 min de voo: **347 ok · 0
+failed** na frota, ordem semente-major visível. (Cosmético: o banner diz
+`máquina=custom` no modo manual — o rótulo, não a máquina.)
+
+**Backlog reafirmado:** `--force` re-roda a célula mas NÃO vira `sobrescrever=True`
+no mirror (código≠docstring); teste SUB-varN em sessão única de MATLAB; pins de
+thread dentro do `doe.py`.

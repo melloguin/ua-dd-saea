@@ -305,6 +305,15 @@ source ~/frota_m8.env; for X in "matlab-vm1|VM1" "matlab-vm2|VM2" "matlab-vm3|VM
 
 ## B-7 · Portões de aceitação, por máquina (P13)
 
+⚠ **[conserto 2026-08-02] `portao.py` JULGA, não executa.** Ele lê as camadas da
+célula e dá veredito — se a célula ainda não existe em `data/`, o portão sai
+VERMELHO por ausência, não por defeito (foi exatamente o P9 de 2026-08-01:
+portões rodados antes de qualquer célula ⇒ vermelho geral nas 4). A ordem
+obrigatória é: **primeiro um lote pequeno REAL via driver grava as células
+(o P10 fez `main/{nsga2,c154,c262}` × 3 problemas D≤2 na semente da máquina),
+DEPOIS o portão julga essas células.** O comando abaixo pressupõe as células já
+gravadas.
+
 ⚠ `accept.py` e `auditar.py` **ignoram `--data-root` POR DESENHO**
 (`portao.py:94`) — a célula de aceitação **tem de viver em `data/`**. Smoke em
 dataRoot isolado nunca passa nos portões 1 e 2; isso já custou dois lotes.

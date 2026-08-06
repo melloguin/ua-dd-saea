@@ -107,6 +107,19 @@ micromamba create -y -q -n env_c311 python=3.8 \
   && micromamba run -n env_c311 pip install -q --no-deps -r "$L/env_c311.lock.txt" \
   && ok env_c311 || ko env_c311
 
+echo "=== SYMLINKS ~/venvs -> micromamba — OBRIGATORIO (achado 2026-08-06, vm4) ==="
+# O harness resolve o venv pelo NOME, varrendo prefixos fixos
+# (`standalone_harness.py:312-317`): ~/python_venvs · ~/venvs ·
+# ~/Documents/python_venvs · /home/jupyter/python_venvs. `~/micromamba/envs`
+# NAO esta na lista. Sem estes symlinks o harness cai no caminho declarado no
+# envs.json — que e o do MAC — e TODA celula de b5r/b5m/moead_media morre com
+# `FileNotFoundError: /Users/gmello/Documents/python_venvs/env_b5/bin/python`
+# numa VM Linux. Custo medido na vm4: 75 celulas perdidas (uma semente inteira
+# dos 3 algs do env_b5) antes de alguem notar.
+ln -sfn "$HOME/micromamba/envs/env_b5"   "$HOME/venvs/env_b5"
+ln -sfn "$HOME/micromamba/envs/env_c311" "$HOME/venvs/env_c311"
+ls -l "$HOME/venvs/" | grep -E "env_b5|env_c311" && ok "symlinks" || ko "symlinks"
+
 echo
 echo "=== CONFERENCIA ==="
 for E in env_bridge env_main env_e81_qpots; do
@@ -114,7 +127,9 @@ for E in env_bridge env_main env_e81_qpots; do
   echo "  $E -> $V"
 done
 for E in env_b5 env_c311; do
-  V=$(micromamba run -n $E python -c "import sys;print('.'.join(map(str,sys.version_info[:3])))" 2>&1)
+  # ⚠ conferir pelo SYMLINK (~/venvs/$E), que e o caminho que o harness usa —
+  # `micromamba run` funciona mesmo com o symlink ausente e mascara o defeito.
+  V=$("$HOME/venvs/$E/bin/python" -c "import sys;print('.'.join(map(str,sys.version_info[:3])))" 2>&1)
   echo "  $E -> $V"
 done
 echo "########## VENVS CONCLUIDO $(date -u) ##########"

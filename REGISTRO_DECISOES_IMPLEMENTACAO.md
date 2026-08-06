@@ -2973,3 +2973,50 @@ failed** na frota, ordem semente-major visível. (Cosmético: o banner diz
 **Backlog reafirmado:** `--force` re-roda a célula mas NÃO vira `sobrescrever=True`
 no mirror (código≠docstring); teste SUB-varN em sessão única de MATLAB; pins de
 thread dentro do `doe.py`.
+
+## PARTE A48 — A 5ª MÁQUINA (vm4) E O DEFEITO DO SYMLINK: 75 células perdidas por um prefixo (2026-08-06)
+
+**A expansão.** Conta nova (`ollem.anaileh`) provisionada ponta-a-ponta em 10
+bateladas, do projeto vazio ao disparo. Três achados de infraestrutura:
+(1) o gargalo real da conta trial é **`CPUS_ALL_REGIONS=12` GLOBAL** — as cotas
+regionais de 32 são miragem, e o erro só aparece onde HÁ estoque; (2) N2 highmem
+estava em stockout em TODAS as 28 zonas US naquele horário — a máquina saiu como
+`n2-highmem-8` em `us-east4-a` e foi redimensionada a frio para
+`n2-custom-12-98304` (12 vCPU / 96 G / 6 jobs — o shape das vm2/vm10);
+(3) **a 5ª sessão MATLAB concorrente da licença `40904996` FUNCIONA** — abriu de
+primeira, versão idêntica (`25.1.0.2973910`). O maior risco da expansão morreu
+como fato medido.
+
+**O defeito (meu).** O `venvs_m8.sh` do B-1 cria `env_b5`/`env_c311` via
+micromamba e o doc afirmava "não há symlinks, o PATH é exportado" — **errado para
+o harness**. `standalone_harness.py:312-317` resolve o venv pelo NOME varrendo
+`~/python_venvs · ~/venvs · ~/Documents/python_venvs · /home/jupyter/python_venvs`;
+`~/micromamba/envs` NÃO está na lista. Sem o symlink, a resolução cai no caminho
+declarado no `envs.json` — o do **Mac** — e a célula morre com
+`FileNotFoundError: /Users/gmello/Documents/python_venvs/env_b5/bin/python` numa
+VM Linux. **Custo: 75 células da s10** (b5r 25 + b5m 25 + moead_media 25 — os três
+algs do env_b5, uma semente inteira). Conserto: dois `ln -sfn`, aplicados **sem
+parar o lote** (cada célula resolve o interpretador num subprocesso novo), com
+prova via `interpreter_for_alg` devolvendo caminho Linux. B-1 do
+`M8-BATCHES-OPERADOR.md` corrigido (symlinks + conferência PELO symlink, já que
+`micromamba run` funciona sem ele e mascara o defeito).
+
+**O que o censo de falhas revelou nas 4 irmãs (o contraste que validou o método).**
+~87 % das "falhas" é `teto_wall` — a classe SANCIONADA, concentrada em
+`c154`/`c262`/`c122`/`c149`, e que o próprio modelo já previa (`lote3s.sh:306`
+atribui `ABORTO` ao `c154` com `fe>=371`; `lote3s.sh:319` classifica `teto_wall`
+como "abortou", não "FALHOU"). O resto (~10 %, `checkpoint_em_andamento`) são
+falhas numéricas legítimas do BoTorch — `ModelFittingError`, gradiente NaN,
+`random_search_optimizer` sem óptimos. **`WFG1` aparece nas QUATRO máquinas, em
+sementes diferentes**: é propriedade determinística do problema, não
+infraestrutura — resultado científico, não defeito.
+
+**Vazão medida (98 h de campanha).** A frota roda a **~55-60 % do ritmo-modelo**
+(o modelo foi calibrado com medianas SEM contenção): 16-jobs a ~35 h/semente
+(modelo: 19,6 h), 6-jobs a ~100 h/semente (modelo: 52 h). Projeção das 30
+sementes: **~18-19/08**. **Decisão do autor: não parar nenhuma irmã** — a vm4
+roda as últimas sementes programadas delas (s10, s14, s18, s42) com DUPLICIDADE
+ACEITA; `colidiu_412` nessas sementes passa a ser esperado, não anomalia.
+Recusada (por mim, com justificativa) a proposta de subir para 18/7 jobs:
+oversubscription não cria núcleos, e esticar célula cara converte finalizadora em
+`teto_wall` — progresso negativo.

@@ -363,16 +363,57 @@ source ~/frota_m8.env; gcloud compute ssh matlab-vm5 "${VM5[@]}" --command="bash
 
 ---
 
-## §3 · POR QUE ESTAS SEMENTES (`42 9 8 28 27 7 26`)
+## §3 · O MAPA DE SEMENTES DA FROTA (estado em 06/08, ~98 h de campanha)
 
-A campanha termina quando **cada** semente estiver completa **por alguém**. Estas
-sete são as que hoje sairiam por último (as caudas das filas de `vm1`, `vm3` e
-`vm4`). Cobrindo-as, o caminho crítico cai de ~19/08 para ~14/08.
+**A frota completa e o que cada máquina tem na fila.** As 30 sementes sancionadas
+são `{0…28, 42}` (a 29 e a 30 **não existem**).
+
+| VM | conta / projeto | zona | jobs | fila (nesta ordem) | ✅ concluídas | 🔄 em curso | ⏳ faltam |
+|---|---|---|---|---|---|---|---|
+| **vm1** | `gdmello.nunes` / `skilled-text-480300-d9` | us-east1-b | 16 | s0→s10 | s0, s1 | **s2** (97 %) | s3…s10 |
+| **vm2** | `melloguinn` / `core-cascade-341902` | us-east1-b | 6 | s11→s14 | s11 | — | s12, s13, s14 |
+| **vm3** | `invest.gdmn` / `project-2aa33d8c-94a7-488b-89e` | us-east1-b | 16 | s19→s28→s42 | s19, s20 | **s21** (84 %) | s22…s28, s42 |
+| **vm10** | `mellohr` / `project-0a70dd69-8e73-4d58-819` | us-east1-b | 6 | s16→s15→s17→s18 | s16 | **s15** (63 %) | s17, s18 |
+| **vm4** | `ollem.anaileh` / `project-922af1ae-1760-4822-aea` | us-east4-a | 6 | s10→s14→s18→s42 | — | **s10** (78 %)¹ | s14, s18, s42 |
+| **vm5** | `gdmello.nunes` / `skilled-text-480300-d9` | us-east4-a | **24** | **s42→s9→s8→s28→s27→s7→s26** | — | (a provisionar) | as 7 |
+
+¹ A `s10` da `vm4` tem um buraco de **75 células** (`b5r`/`b5m`/`moead_media`)
+causado pelo defeito de symlink já corrigido (§4 nº 4). Elas serão refeitas
+depois — ou pela `vm1`, que também tem a `s10` na fila.
+
+**Cobertura de cada semente (quem a fará, e quando sairia sem a `vm5`):**
+
+| semente | máquina(s) | previsão SEM a vm5 |
+|---|---|---|
+| s0, s1, s11, s16, s19, s20 | ✅ prontas | — |
+| s2, s21 | vm1, vm3 | ~1 dia |
+| s3–s6 | vm1 (sequencial) | 2,5 – 7 dias |
+| **s7, s8, s9** | vm1 (fim da fila) | **8,5 – 11,5 dias** |
+| s10 | vm4 (agora) + vm1 (fim) | ~1 dia |
+| s12, s13 | vm2 | 4 – 8 dias |
+| s14 | vm4 (2ª) + vm2 (fim) | ~5 dias |
+| s15, s17 | vm10 | 1,5 – 5,5 dias |
+| s18 | vm10 (fim) + vm4 (3ª) | ~9 dias |
+| s22–s25 | vm3 (sequencial) | 2,5 – 7 dias |
+| **s26, s27, s28** | vm3 (fim da fila) | **8 – 11 dias** |
+| **s42** | vm3 (última) + vm4 (última) | **12,5 – 13 dias** ← a mais atrasada |
+
+### Por que a `vm5` recebe `42 9 8 28 27 7 26`
+
+A campanha termina quando **cada** semente estiver completa **por alguém**. As
+sete escolhidas são exatamente as de previsão mais longa — as caudas de `vm1`,
+`vm3` e `vm4`. Cobrindo-as, o caminho crítico cai de **~19/08 para ~14/08**.
 
 `LOTE_ORDEM=semente` põe TODA a semente na fila — da célula mais barata à mais
-cara — antes de passar à seguinte, na ordem em que aparecem em `LOTE_SEEDS`.
-Logo a `s42` (a mais atrasada) sai primeiro. Se a `vm5` não chegar às últimas da
-lista, as irmãs as cobrem de qualquer forma — não há perda.
+cara — antes de passar à seguinte, **na ordem em que aparecem em `LOTE_SEEDS`**.
+Por isso a `s42` (a mais atrasada de todas) vem primeiro. Com 24 jobs, a `vm5`
+faz ~23 h por semente, ou seja ~6-7 dias para as sete.
+
+Se a `vm5` não chegar às últimas da lista, **as irmãs as cobrem de qualquer
+forma** — não há perda, só sobreposição. E a sobreposição é **decisão explícita
+do autor**: nenhuma máquina em produção será parada para "limpar" duplicidade;
+quem gravar primeiro no bucket vence, e o segundo toma `colidiu_412`, que é
+benigno.
 
 ---
 
@@ -440,7 +481,141 @@ lista, as irmãs as cobrem de qualquer forma — não há perda.
 
 ---
 
-## §6 · RELATÓRIO FINAL (traga isto de volta ao chat mestre)
+## §6 · ACOMPANHAMENTO (durante e depois do disparo)
+
+### 6.1 · Painel ao vivo, uma máquina por terminal
+
+Atualiza a cada 60 s; `Ctrl-C` sai **sem afetar** o lote (o painel é só um visor).
+
+```bash
+source ~/frota_m8.env; gcloud compute ssh matlab-vm5 "${VM5[@]}" --command="bash ~/painel.sh"
+```
+
+As irmãs (exigem que as contas delas continuem autenticadas no `gcloud` deste
+laptop; se der erro de credencial, ignore — não é problema da `vm5`):
+
+```bash
+gcloud compute ssh matlab-vm1 --account=gdmello.nunes@gmail.com --project=skilled-text-480300-d9 --zone=us-east1-b --command="bash ~/painel.sh"
+```
+```bash
+gcloud compute ssh matlab-vm2 --account=melloguinn@gmail.com --project=core-cascade-341902 --zone=us-east1-b --command="bash ~/painel.sh"
+```
+```bash
+gcloud compute ssh matlab-vm3 --account=invest.gdmn@gmail.com --project=project-2aa33d8c-94a7-488b-89e --zone=us-east1-b --command="bash ~/painel.sh"
+```
+```bash
+gcloud compute ssh matlab-vm10 --account=mellohr@gmail.com --project=project-0a70dd69-8e73-4d58-819 --zone=us-east1-b --command="bash ~/painel.sh"
+```
+```bash
+gcloud compute ssh matlab-vm4 --account=ollem.anaileh@gmail.com --project=project-922af1ae-1760-4822-aea --zone=us-east4-a --command="bash ~/painel.sh"
+```
+
+**Como ler:** `RODANDO` deve ficar cravado no número de jobs da máquina. Células
+com `min` subindo por horas são **normais** na cauda cara (`c154`, `c262`,
+`e81`). O alarme real é **CPU ~0 % por horas** — que o painel não mostra, mas o
+censo (6.3) pega.
+
+### 6.2 · Kit M1 — o pulso da frota em um comando (rotina 2×/dia)
+
+```bash
+for M in "matlab-vm1|gdmello.nunes@gmail.com|skilled-text-480300-d9|us-east1-b" "matlab-vm2|melloguinn@gmail.com|core-cascade-341902|us-east1-b" "matlab-vm3|invest.gdmn@gmail.com|project-2aa33d8c-94a7-488b-89e|us-east1-b" "matlab-vm10|mellohr@gmail.com|project-0a70dd69-8e73-4d58-819|us-east1-b" "matlab-vm4|ollem.anaileh@gmail.com|project-922af1ae-1760-4822-aea|us-east4-a" "matlab-vm5|gdmello.nunes@gmail.com|skilled-text-480300-d9|us-east4-a"; do N="${M%%|*}"; R="${M#*|}"; C="${R%%|*}"; R="${R#*|}"; P="${R%%|*}"; Z="${R##*|}"; echo; echo "======= $N ======="; gcloud compute ssh "$N" --account="$C" --project="$P" --zone="$Z" --command="D=\$(ls -td /tmp/lote3s_* 2>/dev/null | head -1); echo \"lote \$(basename \$D) · grade \$(wc -l < \$D/grid.txt) · done \$(wc -l < \$D/done.txt)\"; awk '{c[\$5]++} END {for (k in c) printf \"  %s=%d\", k, c[k]; print \"\"}' \$D/done.txt; echo \"  disco: \$(df -h \$HOME | sed -n 2p)\"; echo \"  MATLAB >3h com CPU<5%: \$(ps -eo etimes,pcpu,comm | grep -i matlab | awk '\$1>10800 && \$2<5' | wc -l)\"; echo \"  colidiu_412 nos logs: \$(grep -rl colidiu_412 \$D/logs 2>/dev/null | wc -l)\"" 2>&1 || echo "FALHOU: $N"; done
+```
+
+**Como agir:**
+
+| sinal | leitura | ação |
+|---|---|---|
+| `failed` crescendo na cauda | quase sempre `teto_wall` sancionado | nada — confirme com 6.4 |
+| `MATLAB >3h com CPU<5%: 1+` | o travamento da DI-35.5 | mate **só** aquele processo; a re-passada recolhe |
+| `colidiu_412 > 0` em s10/s14/s18/s42 | **esperado** (duplicidade aceita) | nada |
+| `colidiu_412` em outra semente | investigar | reporte |
+| disco > 80 % | inesperado | reporte |
+| `done == grade` | a máquina terminou | re-cole o comando de disparo: a grade renasce só com o que faltou |
+
+### 6.3 · Censo completo com veredito de ritmo (o diagnóstico geral)
+
+Coleta em paralelo nas 6 e analisa localmente: sementes concluídas, ritmo real
+contra o modelo, ETA por máquina e as células em voo.
+
+```bash
+mkdir -p /tmp/censo6; for M in "matlab-vm1|gdmello.nunes@gmail.com|skilled-text-480300-d9|us-east1-b|16" "matlab-vm2|melloguinn@gmail.com|core-cascade-341902|us-east1-b|6" "matlab-vm3|invest.gdmn@gmail.com|project-2aa33d8c-94a7-488b-89e|us-east1-b|16" "matlab-vm10|mellohr@gmail.com|project-0a70dd69-8e73-4d58-819|us-east1-b|6" "matlab-vm4|ollem.anaileh@gmail.com|project-922af1ae-1760-4822-aea|us-east4-a|6" "matlab-vm5|gdmello.nunes@gmail.com|skilled-text-480300-d9|us-east4-a|24"; do N="${M%%|*}"; R="${M#*|}"; C="${R%%|*}"; R="${R#*|}"; P="${R%%|*}"; R="${R#*|}"; Z="${R%%|*}"; J="${R##*|}"; ( gcloud compute ssh "$N" --account="$C" --project="$P" --zone="$Z" --command="D=\$(ls -td /tmp/lote3s_* 2>/dev/null | head -1); if [ -z \"\$D\" ]; then echo NOLOTE; exit 0; fi; B=\$(basename \$D); DP=\${B%_*}; DP=\${DP##*_}; TP=\${B##*_}; T0=\$(date -d \"\${DP:0:4}-\${DP:4:2}-\${DP:6:2} \${TP:0:2}:\${TP:2:2}:\${TP:4:2}\" +%s); echo LOTE \$B; echo EL \$(( \$(date +%s) - T0 )); awk '{s+=\$6} END {printf \"GRID %d %.0f\n\", NR, s}' \$D/grid.txt; awk '{t++; c[\$5]++; m[\$4]++; if (\$5==\"ok\" || \$5==\"retried_ok\") d+=\$6} END {printf \"DONE %d %d %d %d %.0f\n\", t+0, c[\"ok\"]+c[\"retried_ok\"], c[\"failed\"]+0, t-c[\"ok\"]-c[\"retried_ok\"]-c[\"failed\"], d+0; printf \"SEM\"; for (s in m) printf \" %s=%d\", s, m[s]; printf \"\n\"}' \$D/done.txt; echo VIVO; tail -$J \$D/inicio.txt 2>/dev/null | awk '{print \"  \" \$1 \"/\" \$2, \$3, \"s\" \$4}'" > /tmp/censo6/$N.txt 2>&1 ) & done; wait; echo "coletado: $(ls /tmp/censo6 | wc -l)"
+python3 - <<'PY'
+import datetime
+JOBS = {"matlab-vm1":16,"matlab-vm2":6,"matlab-vm3":16,"matlab-vm10":6,"matlab-vm4":6,"matlab-vm5":24}
+now = datetime.datetime.now()
+for vm in JOBS:
+    print(f"\n======= {vm} (jobs={JOBS[vm]}) =======")
+    try: linhas = open(f"/tmp/censo6/{vm}.txt").read().splitlines()
+    except FileNotFoundError: print("  (sem coleta)"); continue
+    if not linhas or linhas[0].startswith("NOLOTE"): print("  sem lote nesta maquina"); continue
+    d={}; vivo=[]; em=False
+    for ln in linhas:
+        if ln.startswith("VIVO"): em=True; continue
+        if em: vivo.append(ln); continue
+        p=ln.split()
+        if p and p[0] in ("LOTE","EL","GRID","DONE","SEM"): d[p[0]]=p[1:]
+    if not {"EL","GRID","DONE"} <= set(d): print("  coleta incompleta:", linhas[:3]); continue
+    el=int(d["EL"][0]); j=JOBS[vm]
+    ng,gs=int(d["GRID"][0]),float(d["GRID"][1])
+    tot,okr,fail,outros,ds=int(d["DONE"][0]),int(d["DONE"][1]),int(d["DONE"][2]),int(d["DONE"][3]),float(d["DONE"][4])
+    print(f"  decorrido {el/3600:.1f} h · grade {ng} celulas ({gs/3600:.0f} h-core-modelo)")
+    print(f"  prontas: {okr} ok · {fail} failed · {outros} outros · {'  '.join(sorted(d.get('SEM',[])))}")
+    cap=el*j; r=ds/cap if cap else 0
+    print(f"  ritmo vs modelo: {r*100:.0f}%  (o normal MEDIDO da frota e 55-60%: o modelo ignora contencao)")
+    if r>0:
+        resta=(gs-ds)/(j*r)/3600
+        print(f"  ETA no ritmo atual: ~{resta:.0f} h -> ~{(now+datetime.timedelta(hours=resta)).strftime('%d/%m %H:%M')}")
+    if vivo: print("  em execucao agora:"); [print(v) for v in vivo]
+PY
+```
+
+⚠ **Leitura honesta do "ritmo":** o índice **subconta**, porque o trabalho das
+células em voo (até J por máquina) não entra na soma — numa máquina parada na
+cauda cara ele despenca sem que nada esteja errado. A régua confiável é
+**parede por semente completa**: ~35 h/semente com 16 jobs, ~100 h com 6 jobs,
+~23 h com 24 jobs.
+
+### 6.4 · Autópsia das falhas (por que uma célula morreu)
+
+```bash
+source ~/frota_m8.env; gcloud compute ssh matlab-vm5 "${VM5[@]}" --command='D=$(ls -td /tmp/lote3s_* 2>/dev/null | head -1); cd ~/ua-dd-saea && ~/venvs/env_main/bin/python -c "
+import json, collections, sys
+d = sys.argv[1]
+L = [l.split() for l in open(d + \"/done.txt\")]
+F = [x for x in L if len(x) > 4 and x[4] == \"failed\"]
+mot = collections.Counter(); alg = collections.Counter(); ex = []
+for r in F:
+    e, a, p, s = r[0], r[1], r[2], r[3]
+    alg[e + \"/\" + a] += 1
+    f = \"data/experiments/%s/%s/exp_%s_%s_%s_%s.manifest.json\" % (e, a, e, a, p, s)
+    try: m = json.load(open(f))
+    except Exception: mot[\"SEM_MANIFESTO\"] += 1; continue
+    k = str(m.get(\"motivo_parada\") or \"?\")
+    mot[k] += 1
+    if k not in (\"teto_wall\",) and len(ex) < 3:
+        t = (m.get(\"stack_trace\") or \"\").strip().splitlines()
+        ex.append((e + \"/\" + a, p, s, k, t[-1][:130] if t else \"-\"))
+print(\"  total\", len(F), \"|\", dict(mot))
+print(\"  por alg\", dict(alg.most_common(6)))
+for x in ex: print(\"  ex\", x)
+" "$D"'
+```
+
+**Como classificar o que sair:**
+
+| `motivo_parada` | o que é | ação |
+|---|---|---|
+| `teto_wall` | **classe sancionada** (DI-38a). Domina em `c154`/`c262`/`c122`/`c149`; o próprio modelo já prevê que `c154` com D≥12 aborte. As camadas parciais são gravadas. | nenhuma |
+| `checkpoint_em_andamento` com `ModelFittingError` / gradiente `NaN` / `random_search_optimizer` | falha numérica legítima do BoTorch. `WFG1` faz isso nas 4 máquinas em sementes distintas ⇒ é **propriedade do problema**, resultado científico | nenhuma — anotar |
+| `SEM_MANIFESTO` ou `FileNotFoundError …/venvs/…` | **defeito de ambiente** (foi o caso do symlink, §4 nº 4) | **PARE e reporte** |
+
+Referência da frota (06/08): ~87 % `teto_wall`, ~10 % numérico do BoTorch. Uma
+máquina saudável fica em **3-4 % de falhas** sobre as células despachadas; a
+`vm4` chegou a 16 % e isso denunciou o defeito do symlink.
+
+---
+
+## §7 · RELATÓRIO FINAL (traga isto de volta ao chat mestre)
 
 ```
 VM: matlab-vm5 · n2-highmem-48 · us-east4-a · 24 jobs
@@ -454,5 +629,6 @@ B7 ponte .............. [ ] PONTE_NUMPY_OK + 3 algs em /home/gmello/venvs/env_b5
 B8 portao ............. [ ] LEITURA OK + lote ok + portoes (verde/poda esperada)
 B9 dry-run ............ [ ] sementes=42,9,8,28,27,7,26 · celulas=~3666
 B10 disparo ........... [ ] ✅ vm5 NO AR
+Painel apos 30 min .... [ ] RODANDO=24, ok subindo, failed baixo
 Imprevistos: ...
 ```

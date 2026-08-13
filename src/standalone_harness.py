@@ -779,7 +779,14 @@ def load_sonda(problema: str, *,
     A ORDEM DAS LINHAS é a ordem Sobol do artefato e é o que o writer da ③ tem
     de preservar: o gabarito (`F`) casa com o bloco POR POSIÇÃO (§3.1 / R4
     regra 5). Nenhum algoritmo GERA pontos de sonda — todos CARREGAM.
+
+    [D102.10] `problema in experiment.PROBLEMAS_SEM_SONDA` ⇒ devolve **None**
+    (ausência declarada e legítima POR PROBLEMA — o runner desarma a sonda e o
+    ⑤ declara `sem_sonda_por_problema`; espelho do `sd=[]` do MATLAB).
     """
+    from src.experiment import PROBLEMAS_SEM_SONDA  # leve/lazy (sem ciclo)
+    if problema in PROBLEMAS_SEM_SONDA:
+        return None
     _ck = (problema, regime, os.path.abspath(data_root))
     if _ck in _SONDA_CACHE:
         return _SONDA_CACHE[_ck]

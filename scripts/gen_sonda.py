@@ -19,7 +19,19 @@ import argparse, hashlib, json, os, sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.experiment import ALL_PROBLEMS, _instantiate_problem  # noqa: E402
+from src.experiment import (ALL_PROBLEMS, PROBLEMAS_SEM_SONDA,  # noqa: E402
+                            _instantiate_problem)
+
+
+def _sem_sonda(problema: str) -> bool:
+    """[D102.10] True se o problema está declaradamente FORA da régua de sonda.
+
+    Não é economia: é invalidez do instrumento (docstring da constante em
+    `src/experiment.py`). Vale para a GERAÇÃO e para o `--check` — um artefato
+    de sonda desses problemas não deve existir, e gerá-lo custaria horas-core
+    de régua constante (DDMOP7: 20.000 × 6,267 s ≈ 34,8 h-core de f1 ≡ 1,0).
+    """
+    return problema in PROBLEMAS_SEM_SONDA
 
 #: [DI-13.5, autor 2026-07-19] O artefato tem 20.000 pontos e serve aos DOIS regimes:
 #:   ONLINE  → lê as PRIMEIRAS 2.000 linhas, a cada k=2 gerações (S_ONLINE);
@@ -65,6 +77,9 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     fails = 0
     for pid, problema in enumerate(ALL_PROBLEMS):
+        if _sem_sonda(problema):
+            print(f"  {problema:12} SEM SONDA (D102.10) — pulado")
+            continue
         X, F, D, M, seed = gen_one(problema, pid)
         xh, fh = _decoded_hash(X), _decoded_hash(F)
         pdir = os.path.join(OUT)

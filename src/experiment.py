@@ -85,6 +85,17 @@ FIDELITY_PROBLEMS: dict[str, tuple[str, dict]] = {
     'DTLZ2_d15': ('DTLZ2', {'k': 13}),
 }
 
+#: [D102.10/REAL-2.10] Problemas SEM régua de sonda — por INVALIDEZ do
+#: instrumento, não por custo: no DDMOP7 o f1 ("ratio of nonzero weights") é
+#: constante em todo ponto sem coordenada exatamente zero, e a sonda é Sobol
+#: embaralhado (contínuo ⇒ nunca produz zero exato) ⇒ os 20.000 pontos sairiam
+#: todos com f1 ≡ 1,0 — régua constante não mede nada. Fonte ÚNICA do opt-out:
+#: `gen_sonda.py` pula, os dois `load_sonda` devolvem None, o ⑤ declara
+#: `status='sem_sonda_por_problema'` e os gates exigem ZERO linhas de sonda.
+#: Precedente da gramática ("ausência declarada, não sumida"):
+#: `experiment.m:2928-2944` (sonda ausente ⇒ run segue e o ⑤ declara).
+PROBLEMAS_SEM_SONDA: frozenset = frozenset({'DDMOP7'})
+
 
 def is_known_problem(short_name: str) -> bool:
     return short_name in PROBLEM_CLASSES or short_name in FIDELITY_PROBLEMS

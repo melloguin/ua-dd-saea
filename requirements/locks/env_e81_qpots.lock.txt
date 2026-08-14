@@ -86,3 +86,14 @@ pyasn1==0.6.4
 pyasn1_modules==0.4.2
 requests==2.34.2
 urllib3==2.7.0
+
+# [T15.10 · achados nº 4/5 da revisão adversarial] matlab.engine NÃO entra
+# como linha executável deste lock: a versão da árvore local (25.1) NÃO
+# existe no PyPI (só 25.1.1/25.1.2+), e um pin PyPI quebraria o matching
+# exato exigido com o MATLAB instalado. INSTALAÇÃO = passo de provisionamento
+# FORA do `pip install -r` (batelada DDMOP7 da receita PROVISIONAR-VM-DO-ZERO):
+#   <venv>/bin/python -m pip install /opt/matlab/R2025a/extern/engines/python
+# (Mac: /Applications/MATLAB_R2025a.app/extern/engines/python). Conferência:
+#   <venv>/bin/python -c "import matlab.engine"
+# Exigido em TODO env que a runs_matrix declare ponte=matlab_engine:
+# env_main E env_e81_qpots (30 células main/e81/DDMOP7 morrem sem ele).

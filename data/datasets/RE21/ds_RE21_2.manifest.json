@@ -1,0 +1,57 @@
+{
+  "artifact": "dataset",
+  "spec_version": "5.2",
+  "decision": "D90",
+  "generator_version": 1,
+  "problema": "RE21",
+  "problema_id": 25,
+  "semente": 2,
+  "tier": "small",
+  "dist": "lhs",
+  "tier_id": 0,
+  "dist_id": 0,
+  "D": 4,
+  "M": 2,
+  "n": 123,
+  "bounds": {
+    "xl": [
+      1.0,
+      1.4142135623730951,
+      1.4142135623730951,
+      1.0
+    ],
+    "xu": [
+      3.0,
+      3.0,
+      3.0,
+      3.0
+    ]
+  },
+  "sampler": "lhs-maximin",
+  "K": 100,
+  "seed_formula": "SeedSequence((semente, problema_id, tier_id, dist_id))",
+  "seed_tuple": [
+    2,
+    25,
+    0,
+    0
+  ],
+  "columns": [
+    "x0",
+    "x1",
+    "x2",
+    "x3",
+    "f0",
+    "f1"
+  ],
+  "dtype": "float64",
+  "row_major": true,
+  "numpy_version": "2.4.6",
+  "bitgen": "PCG64",
+  "x_hash": "d9a66370e8adc62d88ad58cda614dddc69d3d0adabe76cab8dd0c46db493d764",
+  "f_hash": "765e3b7b0b8a9bab3e094eb1e882f426d5111cce10fa46cc7933c59b351ec1f7",
+  "dataset_hash": "8d814b43869ab6d44be9615701407aa3262e4c47f0aa9b157ad1370a9547ad63",
+  "n_rows": 123,
+  "n_cols": 6,
+  "created_at": "2026-08-14T00:17:07+00:00"
+}

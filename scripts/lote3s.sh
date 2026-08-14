@@ -302,6 +302,13 @@ def custo(exp, alg, prob):
         return OFF.get(alg, 600.0) * TIER.get(exp.split("-")[1], 1.0)
     if exp == "off":   return OFF.get(alg, 600.0)
     fe = 31 * D[prob] - 1
+    # [T15.10 · achado nº 13 da revisão] DDMOP7: cada FE custa ~6,3 s no .p
+    # (medido: nsga2/DDMOP7/s0 = 3.290 s / 526 FE; B-27 idem) — dominA o custo
+    # de QUALQUER config online. Sem este termo a fila valia 1 s para pisos de
+    # ~55 min e o makespan mentia em ~450 h-core na onda dos problemas reais.
+    if prob == "DDMOP7":
+        v = por_fe(alg, fe) + fe * 6.3
+        return min(v, TETO)
     v = por_fe(alg, fe)
     if alg == "c154" and fe >= 371: v = ABORTO
     return min(v, TETO)

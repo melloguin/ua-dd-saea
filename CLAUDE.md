@@ -1,21 +1,21 @@
 # CLAUDE.md — porta de entrada do repositório `ua-dd-saea`
 
-> **🚨 CAMPANHA ATUAL: PROVISIONAMENTO DA FROTA PARA O M8.** Porta de entrada:
-> **`handoff/PROVISIONAMENTO-M8-FROTA.md`** — comece pela **§0.2**, que traduz a
-> nomenclatura: a máquina que TODO documento anterior chama de `vm1` é hoje a
-> **`vm2`**, e existe uma **`vm1` NOVA** (criada 2026-08-01) que não tem nada
-> provisionado. A frota vigente é `claude_code_context/artifacts/frota.json`
-> (4 máquinas: vm1, vm2, vm10, vm3 — o Mac e as v5/v6 estão FORA do grid).
-> Ordem de execução do M8: **`LOTE_ORDEM=semente`** (semente-major, barato→caro).
+> **🚨 ESTADO (2026-08-14): ONDA T15 CONCLUÍDA — 3 problemas de DADOS REAIS integrados.**
+> RE21=25 · DDMOP7=26 · ESTOQUE40=27 no catálogo; grid **22.740** células (runs_matrix
+> ×14 col); 21 configs × 30 sementes = 1.890 células novas (SEM q10/sweep/c311 —
+> D102.16). DDMOP7 é caixa-preta MATLAB (D102.5): 3 rotas de avaliação, sem sonda
+> (D102.10), sem front D72 (D102.4), ⑦ offline PÓS-HOC via final_eval (D102.9).
+> Portas de entrada: **REGISTRO PARTE A49** (a integração inteira) ·
+> **handoff/C5-DOSSIE-FIDELIDADE-T15.md** (veredito D97 do autor, pendente) ·
+> laudos D0 em handoff/ (falhas da main + c238 resolvido).
+> **Frota de execução ATUAL: vm1 + vm5 SOMENTE** (decisão do autor 14/08;
+> `artifacts/frota.json`). Tag `m8-freeze` = a 1ª rodada (25 problemas); a tag do
+> T15 sai após o veredito C5. Provisionamento DDMOP7 nas VMs: batelada própria em
+> handoff/PROVISIONAR-VM-DO-ZERO.md (engine nos 2 venvs, clone do .p pinado,
+> Processo A ANTES do disparo offline).
 >
-> **🚨 ESTADO (2026-08-01): T14 CONCLUÍDO — 11/11 itens, suíte 826/0 falhas.** Leia
-> **`handoff/T14-FINAL.md`** (placar, os 4 pontos em que o dado desmentiu o cartão, e o que
-> ainda precisa do AUTOR) + REGISTRO **PARTE A44**. T11/T12/T13 estão CONCLUÍDOS e validados
-> (REGISTRO A36-A43). Regras de operação e armadilhas: `handoff/T11-PROMPT-SESSAO.md` §3-§4.
-> **Antes da tag, 2 itens do autor:** a frota do `mapa_sementes.json` (5 máquinas com nomes
-> PLACEHOLDER — `artifacts/frota.json` + `scripts/mapa_sementes.py`) e o B3 (aplicar o writer
-> ⑥ atômico do MATLAB ou manter a exceção, hoje fechada com tripwire). Contexto geral:
-> `MAPA_ARTEFATOS.md`.
+> ⚠ Handoffs de frota anteriores a 14/08 descrevem frotas mortas (4-6 máquinas) —
+> vale o frota.json.
 
 > Este repositório executa o **pipeline experimental do mestrado** (survey + análise experimental
 > de 16 algoritmos SA-MOEA). Toda a especificação, contexto e protocolo de implementação vivem

@@ -9,8 +9,15 @@
 
 **NÃO leia** os `alg_*.md` de outros algoritmos, outras rodadas, nem a SPEC inteira — cada patch de fidelidade pertence a UM algoritmo (aplicar o dropout do e7 ou o kernel do c262 em outro lugar é o erro clássico). A SPEC completa existe para consulta pontual (grep de uma seção citada), nunca para leitura integral.
 
-## 1. Ordem de precedência (em QUALQUER conflito) — D83
-**Anexo S > §22 > Anexo D (decisões) > corpo (§1–§21) > anexos E/I/K/L > anexos históricos (F/G/R).** Bundles são GERADOS da SPEC (`gen_bundles.py`); em divergência bundle×SPEC, **vale a SPEC** — e reporte a divergência em vez de escolher sozinho. O estado vinculante é **Anexo D §D.3 (D53–D86) + Anexo S**.
+## 1. Ordem de precedência
+
+> ⚠ **[T15] Para D101/D102.x (os 3 problemas de dados reais): `artifacts/decisions.json`
+> VENCE o texto da SPEC** — a SPEC v5.2 ainda não absorveu esse delta (dívida
+> registrada; texto canônico em `mestrado2/_real_experiments/docs/DECISOES_REAL_D101_D102.md`).
+> Não trate o decidido como divergência a favor da SPEC.
+
+## 1b. Ordem de precedência (texto original) (em QUALQUER conflito) — D83
+**Anexo S > §22 > Anexo D (decisões) > corpo (§1–§21) > anexos E/I/K/L > anexos históricos (F/G/R).** Bundles são GERADOS da SPEC (`gen_bundles.py`); em divergência bundle×SPEC, **vale a SPEC** — e reporte a divergência em vez de escolher sozinho. O estado vinculante é **Anexo D §D.3 (D53–D102.16) + Anexo S**.
 
 ## 2. Protocolo de falha ("pára-e-loga") — D81
 Gate vermelho (fidelidade ±3σ, bounds, sinal, hard-stop, DoE bit-a-bit, smoke da métrica) ⇒ **INTERROMPA o cartão, grave o diagnóstico no `.jsonl`/manifesto e devolva o controle ao autor**. **NUNCA** auto-conserte fidelidade, **NUNCA** invente uma definição ausente — pare e pergunte. Divergência entre o código do autor e o paper segue a bússola D29 (🔴 bug→artigo · 🔵 versão→artigo se toca o surrogate · 🟠 impl→código · 🟣 erratum→código · 🟢 extensão→nossa, declarada).
@@ -21,21 +28,21 @@ claude_code_context/
 ├── CLAUDE.md                    ← você está aqui (leia SEMPRE, primeiro)
 ├── PROMPT_MESTRE.md             ← modelo de prompt por sessão (para o AUTOR, não para você)
 ├── SPEC_experimentos_v5.2.md    ← referência passiva completa (consulta pontual; nunca leitura integral)
-├── REGISTRO_DECISOES_pingpong_v5.md ← o PORQUÊ rico de cada decisão D53–D86 (consulta)
+├── REGISTRO_DECISOES_pingpong_v5.md ← o PORQUÊ rico de cada decisão D53–D102.16 (consulta)
 ├── gen_bundles.py               ← regenera os bundles a partir da SPEC (rode após editar a SPEC)
 ├── artifacts/                   ← dados que você CONSOME (não parseie a SPEC p/ isto)
-│   ├── runs_matrix.csv          ← as 20.850 linhas do grid — DI-35 (run_id, exp, alg, problema, semente, q, tier, dist, stack, env)
-│   ├── decisions.json           ← índice vinculante D53–D86 (id → título, supersedes, seções)
+│   ├── runs_matrix.csv          ← as 22.740 linhas do grid (20.850 + 1.890 dos 3 problemas reais, D101/D102.16) — DI-35 (run_id, exp, alg, problema, semente, q, tier, dist, stack, env)
+│   ├── decisions.json           ← índice vinculante D53–D102.16 (id → título, supersedes, seções)
 │   ├── envs.json                ← tabela alg→env + pin de threads (D79) + 6 ambientes
-│   ├── characteristics.csv      ← matriz 25×8 da análise por característica (D71)
+│   ├── characteristics.csv      ← matriz 28×12 da análise por característica (D71; +RE21/DDMOP7/ESTOQUE40 e a coluna real_world)
 │   ├── repos.lock               ← SHA por repo (D80; <SHA> preenchidos no pre-flight)
 │   └── anchors.json             ← âncoras de patch (D80; o patcher ABORTA em divergência)
 ├── 00_fundacao/                 ← Fase 0 (leia os 5, em ordem, UMA vez)
-│   ├── 01_regras_globais.md     ← §0 + §1 + §5 (orçamento/DoE/sementes/FE/bounds) + §16 + TODAS as decisões D53–D86
+│   ├── 01_regras_globais.md     ← §0 + §1 + §5 (orçamento/DoE/sementes/FE/bounds) + §16 + TODAS as decisões D53–D102.16
 │   ├── 02_arquitetura_harness.md← §2 (A2) + §16.5 (repo/despachantes/adapters) + §18/§19/§21 + N.4 + S.6 (envs)
 │   ├── 03_contrato_export.md    ← §17 completo (3 camadas, solution_id, timing, .jsonl, persistência/bucket) + S.7
 │   ├── 04_plano_F0_piloto_gates.md ← §22.0/22.1 (Fase 0) + §22.5 (piloto = GATE) + §22.6 (gates) + cartões S.4 + S.8
-│   └── 05_problemas.md          ← §4 (os 25) + S.5 (f_min/f_max) + L.19 (notas do problems.py)
+│   └── 05_problemas.md          ← §4 (os 25 sintéticos; +3 reais via decisions.json D101/D102) + S.5 (f_min/f_max) + L.19 (notas do problems.py)
 ├── 10_rodada1_matlab/           ← R1: contrato transversal + 1 arquivo por algoritmo MATLAB + pisos
 ├── 20_rodada2_botorch/          ← R2: contrato + c262 + c154
 ├── 30_rodada3_standalone/       ← R3: contrato + c122, b5(b5r/b5m), c311, c149, e81 + piso offline (D77)

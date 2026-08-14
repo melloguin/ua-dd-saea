@@ -1,37 +1,42 @@
 {
- "_decisao": "Frota REAL do M8, fechada em 2026-08-01 pelo autor + torre. Substitui o bloco FROTA_DEFAULT de scripts/mapa_sementes.py (que era placeholder: vm2/vm4/vm7/vm8 nunca existiram, e v5/v6 saíram da frota).",
+ "_decisao": "Frota do disparo T15 (1.890 células dos 3 problemas reais) + fechamento da main: SOMENTE vm1 e vm5 — decisão do autor em 2026-08-14 ('só vou trabalhar com a vm1 e vm5 a partir de agora'). vm2/vm3/vm10/vm4 aposentadas da execução (dados coletados; máquinas parQUEADAS). Substitui a frota de 4 de 2026-08-01.",
  "_nomenclatura": "⚠ ATENÇÃO AO LER DOCUMENTOS ANTERIORES A 2026-08-01: a máquina que eles chamam de `vm1` (12 vCPU / 35 GB / disco pd-standard, projeto core-cascade-341902) foi RENOMEADA para `vm2`. A `vm1` DESTE artefato é uma máquina NOVA (n2-highmem-32, projeto skilled-text-480300-d9). Ver handoff/PROVISIONAMENTO-M8-FROTA.md §0.2.",
- "_ordem_importa": "A ordem desta lista NÃO é cosmética: mapa_sementes.py fatia as sementes em blocos CONTÍGUOS da lista canônica [0..28, 42] na ordem em que as máquinas aparecem aqui (mapa_sementes.py:271-273). Esta ordem foi escolhida para que as sementes SUJAS no bucket caiam em máquina com `objects.delete`: s0 (506 objetos) e s1 (6) → vm1; s42 (4.541, FECHADA) → vm3. Reordenar esta lista quebra o cross-check IAM do §1.1 do handoff.",
- "_jobs": "`jobs` = runs simultâneos (1 run = 1 core, D79). O valor é o da COLUNA BoTorch, que é 73,4% do custo da campanha (343,2 das 467,3 h-core/semente) e é limitada por RAM, não por CPU: pico medido 7,6 GiB/processo (HANDOFF_aceitacao_vm10 §7.2, medição TRUNCADA em 330 de 929 FE). Todas as 4 máquinas ficam em ~48% de ocupação de RAM nessa coluna — a frota é homogênea justamente na dimensão que aperta.",
- "_mac_fora": "O Mac (M1 Pro, 16 GB) NÃO entra no grid do M8. Dois motivos: (a) 4 jobs × 7,6 GiB = 30,4 GiB numa máquina de 16 GB — a coluna BoTorch não cabe; (b) com ele dentro (2 sementes ÷ 4 jobs) o desbalanceamento vai a 18,9% e o critério ≤10% do cartão T14.11 REPROVA. Ele segue disponível para smokes, portões e o SUB-varN.",
+ "_ordem_importa": "A ordem fatia as sementes em blocos CONTÍGUOS de [0..28,42] (mapa_sementes.py). vm1 primeiro: tem objects.delete (projeto dono do bucket) e recebe as sementes baixas — s0/s1 têm resíduo no bucket.",
+ "_historico_frotas": {
+  "2026-08-01": [
+   "vm1",
+   "vm2",
+   "vm10",
+   "vm3"
+  ],
+  "nota": "specs da frota de 4 preservadas no git (versão anterior deste arquivo)."
+ },
  "maquinas": [
   {
    "nome": "vm1",
    "jobs": 16,
    "matlab": true,
-   "envs": ["env_matlab", "env_main", "env_b5", "env_c311", "env_e81_qpots"],
-   "fonte": "matlab-vm1 · gdmello.nunes@gmail.com · skilled-text-480300-d9 · us-east1-b · n2-highmem-32 (32 vCPU / 16 físicos / 251 GB) · 492 GB pd-balanced · CRIADA 2026-08-01. IAM: SA default do projeto DONO do bucket ⇒ tem objects.delete nativo (verificado no setup de 2026-07-15). ⚠ envs declarados = estado ALVO; o provisionamento dos 5 venvs é o item A4 e o portão P13 o afere antes do disparo."
+   "envs": [
+    "env_main",
+    "env_b5",
+    "env_c311",
+    "env_e81_qpots",
+    "env_matlab"
+   ],
+   "fonte": "n2-highmem-32 (16 físicos/251GB/492GB pd-balanced), projeto skilled-text-480300-d9 (dono do bucket ⇒ objects.delete). jobs=16 = medido na 1ª onda M8 (REGISTRO A47)."
   },
   {
-   "nome": "vm2",
-   "jobs": 6,
+   "nome": "vm5",
+   "jobs": 24,
    "matlab": true,
-   "envs": ["env_matlab", "env_main", "env_b5", "env_c311", "env_e81_qpots"],
-   "fonte": "matlab-vm2 · melloguinn@gmail.com · core-cascade-341902 · us-east1-b · n2-custom-12-98304 (12 vCPU / 6 físicos / 96 GB) · 1000 GB pd-standard (O-19: ROTA=1, disco lento; quota SSD do projeto é 250 GB e não comporta pd-balanced deste tamanho). EX-`matlab-vm1`, renomeada em 2026-08-01. IAM: objectViewer+objectCreator, SEM delete ⇒ só sementes de prefixo limpo."
-  },
-  {
-   "nome": "vm10",
-   "jobs": 6,
-   "matlab": true,
-   "envs": ["env_matlab", "env_main", "env_b5", "env_c311", "env_e81_qpots"],
-   "fonte": "matlab-vm10 · mellohr@gmail.com · project-0a70dd69-8e73-4d58-819 · us-east1-b · n2-custom-12-98304 (12 vCPU / 6 físicos / 96 GB) · 246 GB pd-balanced. Aceita em 2026-07-30 (3 portões VERDES, fidelidade bit-idêntica vs bucket). IAM: objectViewer+objectCreator, SEM delete ⇒ só sementes de prefixo limpo."
-  },
-  {
-   "nome": "vm3",
-   "jobs": 16,
-   "matlab": true,
-   "envs": ["env_matlab", "env_main", "env_b5", "env_c311", "env_e81_qpots"],
-   "fonte": "matlab-vm3 · invest.gdmn@gmail.com · project-2aa33d8c-94a7-488b-89e · us-east1-b · n2-highmem-32 (32 vCPU / 16 físicos / 251 GB) · 492 GB pd-balanced. É a REFERÊNCIA de fidelidade D97 da rodada-42. IAM: objectAdmin (tem delete) ⇒ recebe a s42, que tem 4.541 objetos residuais no bucket."
+   "envs": [
+    "env_main",
+    "env_b5",
+    "env_c311",
+    "env_e81_qpots",
+    "env_matlab"
+   ],
+   "fonte": "n2-highmem-48 (24 físicos/384GB), projeto skilled-text-480300-d9, us-east4-a. jobs=24 = proporcional aos núcleos físicos (vazão medida 451 cel/dia na main) — A CALIBRAR no primeiro lote (nota T15.10). Provisionada por PROVISIONAR-VM-DO-ZERO.md; pré-T15: precisa da batelada DDMOP7 (engine nos 2 venvs, clone do .p, artefatos T15)."
   }
  ]
 }

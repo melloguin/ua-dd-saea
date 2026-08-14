@@ -79,11 +79,22 @@ parar_tudo() {
   pkill -9 -f 'experiments\.py --exp' >/dev/null 2>&1
   pkill -9 -f 'maxNumCompThreads'     >/dev/null 2>&1
   sleep 1
+  # [T15.10 · achado nº 12 da revisão] MATLAB ENGINES das células Python do
+  # DDMOP7 (matlab.engine.start_matlab): a cmdline delas não casa com nenhum
+  # padrão acima — pai morto deixava a Engine ÓRFÃ (~1-1,5 GB presa cada) e o
+  # placar mentia "sobrou 0". A Engine nasce com -nodisplay -nosplash: mate a
+  # classe e CONTE-A no placar.
+  pkill -f 'MATLAB.*-nodisplay.*-nosplash'    >/dev/null 2>&1
+  sleep 2
+  pkill -9 -f 'MATLAB.*-nodisplay.*-nosplash' >/dev/null 2>&1
+  sleep 1
   local n
   n=$(pgrep -f 'experiments\.py --exp' 2>/dev/null | wc -l | tr -d ' ')
   local m
   m=$(pgrep -f 'maxNumCompThreads' 2>/dev/null | wc -l | tr -d ' ')
-  echo "   sobrou: $n run(s) python · $m run(s) matlab   (o certo é 0 e 0)"
+  local e
+  e=$(pgrep -f 'MATLAB.*-nodisplay.*-nosplash' 2>/dev/null | wc -l | tr -d ' ')
+  echo "   sobrou: $n run(s) python · $m run(s) matlab · $e engine(s)   (o certo é 0, 0 e 0)"
 }
 
 estado() {

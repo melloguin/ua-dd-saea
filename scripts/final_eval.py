@@ -329,6 +329,14 @@ def check_final(exp: str, alg: str, problema: str, semente, *,
                          for j in range(M)])
     try:
         F_re = evaluate_final(problema, X).astype(np.float32).astype(np.float64)
+    except RuntimeError as exc:
+        # [T15.10 · achado nº 15 da revisão / B-07] NÃO CONSEGUIR MEDIR não é
+        # REPROVAR: sem matlab.engine/.p nesta máquina, a ⑦ do DDMOP7 é
+        # NÃO-AFERÍVEL aqui (⛔), nunca vermelho — pintar incapacidade de
+        # medição como reprovação de dado mascara vermelhos verdadeiros.
+        if "matlab.engine" in str(exc) or "DDMOP7.p" in str(exc):
+            return None, (f"⑦: NÃO-AFERÍVEL nesta máquina — {exc}")
+        return False, f"⑦: não foi possível reavaliar o X gravado ({exc})"
     except Exception as exc:  # noqa: BLE001
         # Um check TEM de devolver veredito, nunca estourar: `check_r3_00` não
         # protege a chamada, e um traceback aqui abortava o gate ANTES dos
@@ -438,12 +446,19 @@ def main() -> int:
 
     sementes = (list(range(29)) + [42]) if a.all_seeds else [int(a.semente)]
     falhou = False
+    inconclusivo = False
     for s in sementes:
         try:
             if a.check:
                 ok, msg = check_final(a.exp, a.alg, a.problema, s, data_root=dr)
-                mark = "OK  " if ok else "FAIL"
-                falhou = falhou or not ok
+                # [T15.10/B-07] ok=None = NÃO-AFERÍVEL nesta máquina (sem
+                # Engine/.p) — exit 2, nunca vermelho (DI-41 aceita exit 2).
+                if ok is None:
+                    mark = "N/AF"
+                    inconclusivo = True
+                else:
+                    mark = "OK  " if ok else "FAIL"
+                    falhou = falhou or not ok
             else:
                 r = final_eval_run(a.exp, a.alg, a.problema, s, data_root=dr,
                                    force=a.force)
@@ -455,8 +470,15 @@ def main() -> int:
         except Exception as exc:  # noqa: BLE001 — pára-e-loga com diagnóstico
             mark, msg, falhou = "FAIL", f"{type(exc).__name__}: {exc}", True
         print(f"  [{mark}] {a.alg}/{a.problema}/{s}: {msg}")
-    print("\n  >>> " + ("VERMELHO — pára-e-loga (D81)" if falhou else "VERDE"))
-    return 1 if falhou else 0
+    if falhou:
+        print("\n  >>> VERMELHO — pára-e-loga (D81)")
+        return 1
+    if inconclusivo:
+        print("\n  >>> NÃO-AFERÍVEL nesta máquina (B-07) — rode onde houver "
+              "matlab.engine + DDMOP7.p")
+        return 2
+    print("\n  >>> VERDE")
+    return 0
 
 
 if __name__ == "__main__":

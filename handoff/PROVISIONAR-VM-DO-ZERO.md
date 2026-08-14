@@ -268,13 +268,13 @@ cd ~/Documents/python_repos/mestrado/ua-dd-saea && tar -czf /tmp/vmkit/ua_prereq
 source ~/frota_m8.env
 gcloud compute scp "${VM5[@]}" /tmp/vmkit/ua_prereq.tgz matlab-vm5:/tmp/ua_prereq.tgz && \
 gcloud compute scp "${VM5[@]}" /tmp/vmkit/painel.sh matlab-vm5:'~/painel.sh' && \
-gcloud compute ssh matlab-vm5 "${VM5[@]}" --command='cd ~/ua-dd-saea || exit 1; md5sum /tmp/ua_prereq.tgz; tar -xzf /tmp/ua_prereq.tgz --skip-old-files && echo "--- contagens (esperado: doe 751 · sonda 25 · datasets 785) ---" && for d in doe sonda datasets; do echo "  $d: $(find data/$d -name "*.parquet" | wc -l) parquet / $(find data/$d -name "*.manifest.json" | wc -l) sidecar"; done; echo "--- md5 de amostra ---"; md5sum data/sonda/sonda_MMF1.parquet data/doe/ZDT1/doe_ZDT1_0.parquet; echo "--- exports P11 ---"; grep -q UA_DD_SAEA_CAMPANHA_ID ~/.bashrc || printf "%s\n%s\n" "export UA_DD_SAEA_HOST=vm5" "export UA_DD_SAEA_CAMPANHA_ID=\"7f4f0e429a46_M8\"" >> ~/.bashrc; grep -q UA_DD_SAEA_CAMPANHA_ID ~/.profile || printf "%s\n%s\n" "export UA_DD_SAEA_HOST=vm5" "export UA_DD_SAEA_CAMPANHA_ID=\"7f4f0e429a46_M8\"" >> ~/.profile; bash -lc "echo conferencia-nohup: HOST=\$UA_DD_SAEA_HOST CID=\$UA_DD_SAEA_CAMPANHA_ID"; echo "--- drivers ---"; cp ~/ua-dd-saea/scripts/lote3s.sh ~/lote3s.sh && cp ~/ua-dd-saea/scripts/plano3s.sh ~/plano3s.sh && echo "ORDEM_INVALIDA: $(grep -c ORDEM_INVALIDA ~/lote3s.sh) (1 = driver novo)"; chmod +x ~/painel.sh ~/lote3s.sh ~/plano3s.sh; echo "== B6 CONCLUIDA =="'
+gcloud compute ssh matlab-vm5 "${VM5[@]}" --command='cd ~/ua-dd-saea || exit 1; md5sum /tmp/ua_prereq.tgz; tar -xzf /tmp/ua_prereq.tgz --skip-old-files && echo "--- contagens (esperado: doe 841 · sonda 27 · datasets 845) ---" && for d in doe sonda datasets; do echo "  $d: $(find data/$d -name "*.parquet" | wc -l) parquet / $(find data/$d -name "*.manifest.json" | wc -l) sidecar"; done; echo "--- md5 de amostra ---"; md5sum data/sonda/sonda_MMF1.parquet data/doe/ZDT1/doe_ZDT1_0.parquet; echo "--- exports P11 ---"; grep -q UA_DD_SAEA_CAMPANHA_ID ~/.bashrc || printf "%s\n%s\n" "export UA_DD_SAEA_HOST=vm5" "export UA_DD_SAEA_CAMPANHA_ID=\"7f4f0e429a46_M8\"" >> ~/.bashrc; grep -q UA_DD_SAEA_CAMPANHA_ID ~/.profile || printf "%s\n%s\n" "export UA_DD_SAEA_HOST=vm5" "export UA_DD_SAEA_CAMPANHA_ID=\"7f4f0e429a46_M8\"" >> ~/.profile; bash -lc "echo conferencia-nohup: HOST=\$UA_DD_SAEA_HOST CID=\$UA_DD_SAEA_CAMPANHA_ID"; echo "--- drivers ---"; cp ~/ua-dd-saea/scripts/lote3s.sh ~/lote3s.sh && cp ~/ua-dd-saea/scripts/plano3s.sh ~/plano3s.sh && echo "ORDEM_INVALIDA: $(grep -c ORDEM_INVALIDA ~/lote3s.sh) (1 = driver novo)"; chmod +x ~/painel.sh ~/lote3s.sh ~/plano3s.sh; echo "== B6 CONCLUIDA =="'
 echo "== md5 de amostra NO LAPTOP (tem de bater) =="
 md5 -q ~/Documents/python_repos/mestrado/ua-dd-saea/data/sonda/sonda_MMF1.parquet
 md5 -q ~/Documents/python_repos/mestrado/ua-dd-saea/data/doe/ZDT1/doe_ZDT1_0.parquet
 ```
 
-**Aceita se:** md5 do tgz igual nos dois lados · contagens `751 / 25 / 785` ·
+**Aceita se:** md5 do tgz igual nos dois lados · contagens `841 / 27 / 845` (T15: +90 doe, +2 sondas RE21/ESTOQUE40, +60 datasets; o dataset DDMOP7 NÃO vem no tgz — nasce do Processo A, batelada T15-d) ·
 os 2 md5 de amostra **idênticos** · `conferencia-nohup: HOST=vm5
 CID=7f4f0e429a46_M8` · `ORDEM_INVALIDA: 1` · `B6 CONCLUIDA`.
 
@@ -624,7 +624,7 @@ B2 kit ................ [ ] startup.m md5 3e06ae44…
 B3 bootstrap .......... [ ] PARTE A CONCLUIDA, zero FALHOU, libpython PRESENTE
 B4 licenca ............ [ ] 25.1.0.2973910 (6a sessao concorrente: OK / recusada?)
 B5 venvs .............. [ ] 3.11.9×3, 3.7.x, 3.8.x + gcs + symlinks
-B6 pre-requisitos ..... [ ] 751/25/785, md5 batendo, CID no nohup, driver novo
+B6 pre-requisitos ..... [ ] 841/27/845, md5 batendo, CID no nohup, driver novo
 B7 ponte .............. [ ] PONTE_NUMPY_OK + 3 algs em /home/gmello/venvs/env_b5
 B8 portao ............. [ ] LEITURA OK + lote ok + portoes (verde/poda esperada)
 B9 dry-run ............ [ ] sementes=42,9,8,28,27,7,26 · celulas=~3666
@@ -632,3 +632,64 @@ B10 disparo ........... [ ] ✅ vm5 NO AR
 Painel apos 30 min .... [ ] RODANDO=24, ok subindo, failed baixo
 Imprevistos: ...
 ```
+
+
+---
+
+## BATELADA T15 — DDMOP7 NA VM (OBRIGATÓRIA ANTES DO DISPARO DA ONDA DOS 3 PROBLEMAS REAIS)
+
+> [T15.10 · revisão adversarial, achados nº 3/4/5/8] Sem esta batelada, 630/1.890
+> células morrem: o `.p` não existe na VM, o matlab.engine não vem dos locks
+> (o pin da árvore local NÃO existe no PyPI — instalação é ESTE passo), e o
+> dataset offline do DDMOP7 nasce do Processo A AQUI.
+
+### T15-a · matlab.engine nos DOIS venvs (env_main E env_e81_qpots)
+```bash
+for V in env_main env_e81_qpots; do ~/venvs/$V/bin/python -m pip install /opt/matlab/R2025a/extern/engines/python > ~/engine_$V.log 2>&1; ~/venvs/$V/bin/python -c "import matlab.engine; print('$V: engine OK')"; done
+```
+Esperado: `env_main: engine OK` e `env_e81_qpots: engine OK`. Sem os dois, as
+células R2 do DDMOP7 (c122/c149/c154/c262 no env_main; e81 no próprio venv)
+morrem no bind. ⚠ qpots instala um matlab.engine FALSO que engana `import` —
+por isso o teste é nos DOIS venvs após ESTA instalação.
+
+### T15-b · clone do DDMOP no SHA pinado + export permanente
+```bash
+cd "$HOME" && git clone https://github.com/HandingWang/DDMOP.git && cd DDMOP && git checkout 0f45d2c171943c058a18a2fc014a1d796e15209e && git rev-parse HEAD
+```
+```bash
+echo 'export UA_DD_SAEA_DDMOP_DIR="$HOME/DDMOP/DDMOP_Exp/Problems"' >> ~/.bashrc; echo 'export UA_DD_SAEA_DDMOP_DIR="$HOME/DDMOP/DDMOP_Exp/Problems"' >> ~/.profile; export UA_DD_SAEA_DDMOP_DIR="$HOME/DDMOP/DDMOP_Exp/Problems"; ls -la "$UA_DD_SAEA_DDMOP_DIR/DDMOP7.p"
+```
+SHA tem de ser EXATAMENTE `0f45d2c1…` (um `.p` diferente = função objetivo
+diferente — D81, pare). O export vai nos DOIS arquivos de perfil (workers do
+lote não são login shells).
+
+### T15-c · âncora de VALOR no `.p` real (o aceite da máquina)
+```bash
+cd ~/ua-dd-saea && ~/venvs/env_main/bin/python -c "
+import os, numpy as np
+os.environ.setdefault('UA_DD_SAEA_DDMOP_DIR', os.path.expanduser('~/DDMOP/DDMOP_Exp/Problems'))
+from src.ddmop7_bridge import _MotorMatlab
+m = _MotorMatlab(None)
+x = np.zeros((1,17)); x[0,2]=0.5; x[0,6]=-0.2
+f = m.avalia(x); m.encerra()
+assert abs(f[0,0]-4/17)<1e-9 and abs(f[0,1]-307/690)<1e-9, f
+print('ANCORA DDMOP7 OK: f =', f[0].tolist())" 
+```
+Esperado: `ANCORA DDMOP7 OK: f = [0.2352941..., 0.4449275...]`. Qualquer outro
+número = pare-e-loga (clone/versão divergente).
+
+### T15-d · Processo A (dataset offline com f real) — ANTES do disparo offline
+```bash
+cd ~/ua-dd-saea && nohup ~/venvs/env_main/bin/python -u scripts/gen_dataset_ddmop7.py --sementes <AS SEMENTES DESTA MÁQUINA no mapa> > ~/processoA_$(hostname -s).log 2>&1 &
+```
+~53 min/semente (serial). Rode em paralelo nas 2 VMs (cada uma as SUAS
+sementes do mapa). Conferência: `--check` com as mesmas sementes = todos OK.
+Célula offline DDMOP7 disparada SEM o dataset falha rápido e `LOTE_REFAZER=nao`
+NUNCA a re-enfileira — Processo A vem PRIMEIRO, sempre.
+
+### T15-e · artefatos dos 3 problemas (vêm no git/pull — conferir)
+```bash
+cd ~/ua-dd-saea && ls data/doe/DDMOP7 | wc -l && ls data/doe/RE21 data/doe/ESTOQUE40 data/datasets/RE21 data/datasets/ESTOQUE40 2>/dev/null | grep -c parquet; ls data/sonda/ | grep -cE "RE21|ESTOQUE40"
+```
+Esperado: 60 (DDMOP7) · 120 (doe+ds dos 2) · 4 (sondas novas). Se faltar:
+`git pull` não trouxe (versionados no T15.10) — pare e avise a torre.

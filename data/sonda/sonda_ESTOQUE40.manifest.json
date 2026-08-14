@@ -1,0 +1,17 @@
+{
+ "schema_version": 2,
+ "problema": "ESTOQUE40",
+ "problema_id": 27,
+ "S": 20000,
+ "S_online": 2000,
+ "x_hash_online": "97c226a39b4d4342e245995e45de40df04c8ec23fd969ece9d3c66c9f99e08d2",
+ "f_hash_online": "9e07d0199bacc65979322e5b10432a48fe411610c18c26fff5d02cdc0bf550f2",
+ "D": 40,
+ "M": 3,
+ "base_seed": 4242,
+ "sobol_seed_32": 2058290917,
+ "scramble": true,
+ "x_hash": "e29da4240ebfe7ef43057847203f625087f219bd5bc95ddd7b0c0c3a8caa413e",
+ "f_hash": "705cc6c0bed4712cec312e2f01fa218392ba25dc2f9ac77e3c4db65503cde0c0",
+ "convencao": "sha256 dos bytes float64 row-major (D87); ordem das linhas = ordem de geracao Sobol (join por posicao). ONLINE le [0:S_online] e confere x_hash_online; OFFLINE le tudo e confere x_hash. Sobol e ANINHADO: as S_online primeiras sao identicas as de uma geracao de tamanho S_online (DI-13.5)."
+}

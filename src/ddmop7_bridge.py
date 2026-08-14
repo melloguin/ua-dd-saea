@@ -64,6 +64,7 @@ from __future__ import annotations
 import gc
 import json
 import os
+import threading
 import time
 import warnings
 from dataclasses import dataclass, field
@@ -103,6 +104,45 @@ class RunTimeout(Exception):
 
 class StalledRun(Exception):
     """D60(c): N iteracoes consecutivas sem consumir FE."""
+
+
+#: [T15.10 · O-18 MEDIDO 2026-08-14] `start_matlab` NAO tem prazo interno: o
+#: Processo A ficou 37 min com o MATLAB de pe e OCIOSO (run loop vazio) e o
+#: Python dormindo no poll do handshake — slot morto para sempre, sem
+#: excecao, sem manifesto. A partida sadia na MESMA maquina, minutos depois,
+#: levou 10,6 s (probe) — jitter transitorio, nao defeito. 300 s = ~28x a
+#: partida medida; estourou ⇒ BridgeTimeout, run failed, processo novo
+#: (a Engine orfa e coberta pelo parar_tudo/pkill do plano3s).
+TIMEOUT_PARTIDA = 300.0
+
+
+def _boot_com_prazo(fn, prazo: float, rotulo: str):
+    """Roda `fn()` numa thread-daemon com prazo; estourou ⇒ BridgeTimeout.
+
+    E o watchdog da PARTIDA (O-18): as chamadas de avaliacao ja tem o d60a
+    (`background=True` + poll), mas o boot (`start_matlab` + cd + init) e
+    sincrono e sem prazo na API da MathWorks. A thread abandonada e daemon —
+    nao segura o exit do processo; um MATLAB orfao pode sobrar (aceito,
+    ver TIMEOUT_PARTIDA)."""
+    caixa: dict = {}
+
+    def _alvo():
+        try:
+            caixa["ok"] = fn()
+        except BaseException as exc:  # noqa: BLE001 — atravessa a thread
+            caixa["exc"] = exc
+
+    th = threading.Thread(target=_alvo, daemon=True, name="ddmop7-boot")
+    th.start()
+    th.join(prazo)
+    if th.is_alive():
+        raise BridgeTimeout(
+            f"{rotulo} nao completou em {prazo:.0f}s (O-18/T15.10) — "
+            f"handshake da Engine pendurado; processo deve morrer e "
+            f"tentar de novo em processo novo (D88.5)")
+    if "exc" in caixa:
+        raise caixa["exc"]
+    return caixa["ok"]
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -240,18 +280,26 @@ class _MotorMatlab:
         if not os.path.exists(os.path.join(problems_dir, "DDMOP7.p")):
             raise FileNotFoundError(f"DDMOP7.p nao encontrado em {problems_dir}")
 
-        self.eng = matlab.engine.start_matlab("-nodisplay -nosplash -nodesktop")
-        self.eng.cd(problems_dir, nargout=0)
-        self.eng.maxNumCompThreads(1, nargout=0)                  # D79
-        self.eng.eval("clear DDMOP7", nargout=0)
-        # [MEDIDO, B-26 2026-08-13] O .p EXIGE um DDMOP7('init') por processo
-        # ANTES de 'value' (estado persistente; 'value' a frio morre num
-        # assert interno "condition ... scalar logical"). O sorteio devolvido
-        # e DESCARTADO: amostragem gratis (nao-FE, nao-dado; nao toca o
-        # contador de 600 — medido: 4 inits = 744 draw-points + value OK).
-        # O DoE do run vem BIT-A-BIT do artefato congelado, jamais deste init.
-        # Mesmo fix do ddmop7_value_local.m (rota R1) — as duas rotas pareadas.
-        self.eng.eval("descarte_init = DDMOP7('init');", nargout=0)
+        def _boot():
+            eng = matlab.engine.start_matlab(
+                "-nodisplay -nosplash -nodesktop")
+            eng.cd(problems_dir, nargout=0)
+            eng.maxNumCompThreads(1, nargout=0)                   # D79
+            eng.eval("clear DDMOP7", nargout=0)
+            # [MEDIDO, B-26 2026-08-13] O .p EXIGE um DDMOP7('init') por
+            # processo ANTES de 'value' (estado persistente; 'value' a frio
+            # morre num assert interno "condition ... scalar logical"). O
+            # sorteio devolvido e DESCARTADO: amostragem gratis (nao-FE,
+            # nao-dado; nao toca o contador de 600 — medido: 4 inits = 744
+            # draw-points + value OK). O DoE do run vem BIT-A-BIT do artefato
+            # congelado, jamais deste init. Mesmo fix do ddmop7_value_local.m
+            # (rota R1) — as duas rotas pareadas.
+            eng.eval("descarte_init = DDMOP7('init');", nargout=0)
+            return eng
+
+        # [T15.10 · O-18] boot INTEIRO sob prazo — ver TIMEOUT_PARTIDA.
+        self.eng = _boot_com_prazo(_boot, TIMEOUT_PARTIDA,
+                                   "boot da Engine (start+init)")
         self.problems_dir = problems_dir
 
     #: [MEDIDO, B-27 2026-08-13] ~6 s/avaliacao TAMBEM no Mac arm64 — um lote
@@ -289,6 +337,14 @@ class _MotorMatlab:
                     fut.cancel()
                 except Exception:
                     pass
+                try:
+                    fut.cancel()
+                finally:
+                    # [T15.10 · achado nº 11 da revisão] a Engine acabou de
+                    # provar que está TRAVADA — qualquer chamada síncrona a
+                    # ela (o eval de higiene do encerra) penduraria o worker
+                    # PARA SEMPRE (slot morto, sem manifesto, teto inócuo).
+                    self._travada = True
                 raise BridgeTimeout(
                     f"DDMOP7('value', {X.shape[0]}x{X.shape[1]}) nao retornou "
                     f"em {self.timeout_chamada:.0f}s (D60a)")
@@ -297,11 +353,16 @@ class _MotorMatlab:
         return np.atleast_2d(F)
 
     def encerra(self):
-        """D86: nada de estado retido entre runs; o processo inteiro morre."""
-        try:
-            self.eng.eval("clear DDMOP7; clear functions", nargout=0)
-        except Exception:
-            pass
+        """D86: nada de estado retido entre runs; o processo inteiro morre.
+
+        [T15.10] Engine marcada TRAVADA (pós-BridgeTimeout) ⇒ PULA o eval
+        síncrono de higiene (penduraria para sempre) e vai direto ao quit —
+        o processo morre inteiro de qualquer forma (D88.5)."""
+        if not getattr(self, "_travada", False):
+            try:
+                self.eng.eval("clear DDMOP7; clear functions", nargout=0)
+            except Exception:
+                pass
         try:
             self.eng.quit()
         except Exception:

@@ -441,3 +441,32 @@ fantasia") [DI-13.8]`; escrita PÓS-HOC pela torre/harness Python; NÃO conta no
     mesmo ao longo do tempo**. O manifesto declara `comparavel_entre_configs=false`. No stack
     MATLAB o campo `prevalencia_nd_no_bloco` sai **NaN por desenho** (a análise o recompõe do X da
     ③ — a ponte Python custaria 1 round-trip por ponto); no Python ele vem preenchido.
+
+
+---
+
+## §T15 — OS 3 PROBLEMAS DE DADOS REAIS (D101/D102, integrados 2026-08-14)
+
+**Sonda (emenda ao §3):** a régua de sonda NÃO é mais universal — problemas em
+`experiment.PROBLEMAS_SEM_SONDA` (hoje: DDMOP7, D102.10 — invalidez do
+instrumento, não custo) têm a ③ PRESENTE com **zero** linhas `regime='sonda'`
+e o ⑤ declara `sonda.status='sem_sonda_por_problema'`. **As TRÊS ausências de
+sonda são inconfundíveis:** `nao_se_aplica` (config sem surrogate) ·
+`artefato_ausente` (acidente/piloto) · `sem_sonda_por_problema` (decisão por
+problema). Sonda onde não devia = vermelho no auditar (tão grave quanto falta).
+
+**Camada ⑦ (emenda ao §7):** para problemas em
+`experiment.PROBLEMAS_FINAL_POS_HOC` (avaliação real exige processo EXTERNO —
+DDMOP7 via MATLAB Engine), os runners OFFLINE **não** avaliam a ⑦ inline: o ⑤
+declara `params.nd_final = FINAL_POS_HOC_INFO`, o footer ⑥ carrega
+`final_pos_hoc`, `n_nd_pos_real` fica **NULL-declarado** (nunca 0 fingido), e
+a ⑦ nasce por `scripts/final_eval.py` (ramo DDMOP7, motor da ponte, guard de
+600) — o MESMO trilho retroativo do e103. Gates: ⑦ ausente segue vermelha até
+o final_eval rodar; máquina sem Engine ⇒ NÃO-AFERÍVEL (exit 2), nunca
+vermelho. `is_run_done` considera o run offline PRONTO sem a ⑦ **somente** com
+a declaração no ⑤.
+
+**DoE do DDMOP7 (emenda ao §2/D63):** 30 sorteios CONGELADOS de
+`DDMOP7('init')` (não-LHS; SeedSequence INERTE — semente = índice de bloco no
+CSV congelado; sha da fonte no sidecar). Dataset offline: X congelado + f
+avaliado no Processo A (`scripts/gen_dataset_ddmop7.py`, só Linux — D102.14).

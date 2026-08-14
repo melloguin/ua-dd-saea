@@ -63,7 +63,10 @@ def _sub(args: list[str]) -> tuple[bool, str]:
     """Roda um gate em subprocesso; devolve (verde?, última linha útil)."""
     r = subprocess.run([PY] + args, cwd=ROOT, capture_output=True, text=True)
     linhas = [ln for ln in (r.stdout + r.stderr).strip().splitlines() if ln.strip()]
-    return r.returncode == 0, (linhas[-1][:110] if linhas else "")
+    # [T15.10/B-07/DI-41] exit 2 = INCONCLUSIVO/NÃO-AFERÍVEL (None), não
+    # vermelho — a distinção que impede incapacidade-de-medir virar reprovação.
+    verde = True if r.returncode == 0 else (None if r.returncode == 2 else False)
+    return verde, (linhas[-1][:110] if linhas else "")
 
 
 def _manifesto_do_run(exp, alg, problema, semente, data_root) -> dict:

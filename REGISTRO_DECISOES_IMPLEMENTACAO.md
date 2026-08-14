@@ -3107,3 +3107,112 @@ fluxo offline ganha o passo `final_eval.py --all-seeds` pós-lote (como o e103).
 **Fechamento (14/08): SUÍTE FINAL 966 testes · 0 falhas · 38 skips** (janela
 limpa, com o `.p` real ligado). Smokes C3: R1 nsga2/DDMOP7 E R2 c149/DDMOP7
 com PORTÃO VERDE (8 gates, 0 vermelhos cada). Dossiê C5 entregue ao autor.
+
+---
+
+## PARTE A50 — T15.10: JANELA EXAUSTIVA DE VALIDAÇÃO + REVISÃO ADVERSARIAL EXECUTADA (torre, 2026-08-14)
+
+Mandato do autor: "rode todos os testes necessários para te dar 100% de certeza…
+seja exaustivo" (janela de ~6h antes do check-in). A torre rodou a bateria
+completa + uma revisão adversarial multi-agente do T15 inteiro (39 achados
+brutos → 20 confirmados, 7 ALTA). Causa-raiz da família dominante: **"prosa não
+provisiona VM"** — código e grid evoluíram, mas locks/receitas/frota/gates
+antigos ficaram com literais velhos (a MESMA classe do BL-04).
+
+### Defeitos que a bateria pegou (e que teriam manchado a campanha)
+1. **BL-04 writer×gate (latente desde T12.8)**: 3 checks offline do accept
+   exigiam `tempo_aval_real_s` NÃO-nulo; o writer grava null-declarado (I-02)
+   desde d17644a. Teria REPROVADO TODA célula offline da campanha. Fix:
+   presença-da-chave nos 3 sítios. O corpus s42 (0.0 gravado) mascarava.
+2. **F0-02**: gate de alg_id preso em 22 (sobol_batch/treed_media de julho não
+   contados). Fix → 24 + comentário-tripwire.
+3. **F0-04**: semântica do selo desatualizada no MESMO dia (DEC-2 preencheu a
+   régua DDMOP7 à tarde). Fix → `n_seladas==0` + `REGUAS_PROVISORIAS` como fonte.
+
+### T15.10 — os fixes de runtime da revisão (todos aplicados + testados)
+nº 7 `is_run_done`: exceção DECLARADA pós-hoc (D102.9) — offline DDMOP7 com
+`params.nd_final` no ⑤ está PRONTO sem a ⑦ (sem isso: ~26,6 h-core re-executadas
+POR PASSE de resume + janela de quimera OP-6). A3/DI-20 intacto p/ o resto.
+nº 11 `encerra()`: Engine pós-BridgeTimeout marcada `_travada` ⇒ pula o eval de
+higiene (penduraria o worker para sempre) e vai direto ao quit.
+nº 15 `check_final`/portão: máquina sem Engine ⇒ `(None, NÃO-AFERÍVEL)` + exit 2
+⇒ `_sub` mapeia para ⛔ INCONCLUSIVO (B-07/DI-41) — nunca vermelho falso.
+Locks: linha executável `matlabengine==25.1` REMOVIDA (não existe no PyPI;
+quebrava `pip install -r` na VM) → bloco-comentário: instalar da ÁRVORE do
+MATLAB nos 2 venvs. frota.json reescrito vm1+vm5 (decisão 14/08) + env_matlab
+na convenção. mapa_sementes: custo DDMOP7 imputado 526×6,3s (erro anterior de
+até 703×); lote3s idem; plano3s `parar_tudo` mata Engines órfãs. treed_media e
+c311: paridade pós-hoc (footer sem zero fingido; guard `_FinalPosHoc`).
+
+### O-18 PROMOVIDO: watchdog de partida da Engine (MEDIDO em produção)
+O Processo A v3 ficou **37 min** "travado". ERRATA da 1ª autópsia (que culpou o
+handshake): a causa MEDIDA é o **macOS congelar o app MATLAB em coalizões de
+processo de FUNDO** neste Mac (M1 Pro) — MATLAB órfão/de-fundo: 0,03 s de CPU
+em 90 s (v4/v5/v6, com e sem `taskpolicy -B`, com e sem `NSAppSleepDisabled`);
+o MESMO boot+aval em chamada FOREGROUND, no mesmo instante e sob a mesma
+carga: 6,4 s de boot e 6,24 s/aval cravados (A/B decisivo). `nice` é
+irrelevante (o foreground voa até com RN). A vítima é o MATLAB de ENGINE
+(`-layeredTransport`); os MATLAB de lote direto desta manhã não sofreram.
+Consequências: (a) `_boot_com_prazo` (thread-daemon + join) embrulha o boot
+INTEIRO (start+cd+init) com `TIMEOUT_PARTIDA=300s` ⇒ pendurou vira
+BridgeTimeout, run failed, processo novo — nas VMs Linux o quirk não existe,
+mas o watchdog fica (partida sob carga é a mesma classe); (b) o dataset s0 do
+Mac nasceu por **driver FATIADO em foreground** (7 chamadas ≤10 min, cache
+atômico de F, montagem canônica `gen_one`+`check_one` com motor-replay que
+confere X fatia a fatia; 526/526 a 6,24 s/pt; sidecar com wall 0.0 = assinatura
+da montagem — artefato de smoke, D102.14: os F oficiais nascem nas VMs).
+
+### Incidente: DOIS escritores na mesma célula (evitado)
+O relançamento do smoke e81/ESTOQUE40 desta manhã deixou o filho da 1ª
+tentativa VIVO (a "falha" era só do wrapper) e criou um segundo filho
+IDÊNTICO — dois processos órfãos escrevendo a MESMA célula main/s0 (quimera
+OP-6 em potencial). Detectado pelo censo de processos da tarde; payloads
+comparados por md5 (idênticos, ambos pinados); morto o mais novo (44 min a
+menos de progresso). Lição operacional: após "falha" de wrapper em launch de
+fundo, SEMPRE censar filhos órfãos (`pgrep -f`) antes de relançar.
+
+### Prosa re-provisionada + artefatos versionados
+CLAUDE.md raiz (banner T15) · claude_code_context/CLAUDE.md (5 menções: grid
+22.740, D102.16, 28×12, precedência decisions.json p/ D101+) · CONTRATO §T15
+(3 ausências de sonda inconfundíveis; ⑦ pós-hoc; DoE congelado do init) ·
+PROVISIONAR-VM-DO-ZERO: contagens B6 841/27/845 + **BATELADA T15 obrigatória**
+(engine nos 2 venvs, clone .p pinado 0f45d2c1, export nos 2 perfis, âncora
+f=[4/17, 307/690], Processo A ANTES do disparo offline, conferência de
+artefatos). `git add` explícito dos 244 artefatos RE21/ESTOQUE40 (ALTA nº 1 —
+sem eles o clone das VMs matava 1.260 células). Testes novos:
+`tests/test_t15_10_fixes.py` — 13/13 (pós-hoc ×5, travada ×2, boot ×3,
+não-aferível ×2, exit-2 ×1).
+
+### Onda B executada (fecho desta parte, 14/08 tarde)
+**Dataset DDMOP7 s0 REAL**: 526/526 pts do `.p` (driver fatiado), `gen_one`
+canônico + `check_one` OK (hash round-trip). **b5r/DDMOP7/s0 offline
+(exp=off, o canônico do grid)**: 526/526 exato, 928 ger, `final_pos_hoc=true`
+com `n_nd_pos_real` NULL-declarado, `is_run_done=True` SEM a ⑦ (fix nº 7 em
+produção); ⑦ pós-hoc com Engine real = 47 finais/2 ND pós-real, `--check`
+VERDE; PORTÃO 9 gates: **0 vermelhos** (G-1 ⚪ estrutural sem-sonda). Bônus de
+reprodutibilidade: o run tinha saído idêntico (47/2, ger 928) num primeiro
+disparo com exp=main errado — mesmo seed ⇒ mesma trajetória, bit-a-bit.
+**e103/RE21/s0 offline (MATLAB -batch, receita do driver)**: PORTÃO **VERDE
+9/9** (G-1 com sonda VERDE). Gap 3 do C5: FECHADO. Achados de rota: offline
+roda com **exp='off'** (grid; o accept remapeia e denuncia) e e103 NÃO passa
+pelo dispatch python — só pelo `experiments.m` (receita do lote3s linha ~506).
+**Quarentena**: as 11 células-smoke Mac dos 3 problemas (nsga2×3, c149, c154,
+b5r×4, e103, moead_media — 84 arquivos com os finais) movidas para
+`data/_quarentena_smokes/` (D102.14: Mac não produz célula de campanha;
+e81/ESTOQUE40 segue em voo e vai para lá após o portão).
+
+### Pendências ao fechar esta parte
+e81/ESTOQUE40 aterrissar → portão → quarentena (gap 2) · suíte final em
+janela limpa (G-8: espera o e81) → commit T15.10 · adendo C5 → veredito do
+autor → tag `t15-problemas-reais` + push (autor) · BAIXA nº 1 (chamadasP
+persistent) descartada por inspeção: trilho R1 = `src/ddmop7_value_local.m`,
+sessão única sem parfor; nº 6 coberta pela batelada T15-d da receita.
+
+**Fechamento (14/08 noite): e81/ESTOQUE40/s0 ATERRISSOU** — 7h25, 1239/1239
+exato, manifesto auto-curado da marca do gêmeo, **PORTÃO VERDE 8/8** (o
+timeline engoliu o trecho intercalado); célula → quarentena (90 arquivos).
+GAP 2 FECHADO. **SUÍTE FINAL: 979 testes · 0 falhas** — em COMPOSTO imposto
+pelo quirk do Mac: fundo = 978 não-Engine (0 falhas; 46 skips = 38 permanentes
++ 8 gateados por Engine) + foreground com `.p` real = `test_t15_ddmop7_bridge`
+25/25 e `test_t15_ddmop7_matlab` 22/22 (cobrem o erro-de-env e os 8 skips do
+fundo). Commit T15.10 na sequência.

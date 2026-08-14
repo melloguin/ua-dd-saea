@@ -115,9 +115,20 @@ def _custo_por_celula() -> tuple[dict, dict]:
     for (_, alg, _), v in custo.items():
         por_alg[alg].append(v)
     imputadas = {}
+    #: [T15.10 · achado nº 14 da revisão adversarial] custo por AVALIAÇÃO do
+    #: DDMOP7 no .p, MEDIDO (nsga2/DDMOP7/s0 = 3.290s / 526 FE; B-27 idem):
+    #: a imputação pela mediana do alg (sintéticos, µs/aval) erraria até 703×
+    #: e o balanceamento sairia de uma coluna falsa. Vale para os exps ONLINE
+    #: (o run offline dele NÃO chama o .p — o f vem do dataset do Processo A).
+    DDMOP7_S_POR_FE = 6.3
+    DDMOP7_FE_ONLINE = 31 * 17 - 1        # 526
     for r in _grid():
         k = (r["exp"], r["alg"], r["problema"])
         if k in custo:
+            continue
+        if r["problema"] == "DDMOP7" and r["exp"] not in ("off",):
+            custo[k] = DDMOP7_FE_ONLINE * DDMOP7_S_POR_FE
+            imputadas["/".join(k)] = round(custo[k], 3)
             continue
         if not por_alg.get(r["alg"]):
             raise SystemExit(f"sem base para imputar {k} — pára-e-loga (D81).")

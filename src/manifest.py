@@ -257,8 +257,23 @@ def is_run_done(exp: str, alg: str, problema: str, semente,
     # ÚNICA avaliação real do ND final (§11) e a VM que a segura é efêmera. Sem
     # esta linha, um run offline SEM a ⑦ contava como pronto, a esteira não a
     # gerava, e o dado se perdia sem sintoma (achado A3 da auditoria DI-20).
+    #
+    # [T15.10/D102.9 — achado nº 7 da revisão adversarial] EXCEÇÃO DECLARADA:
+    # problemas em PROBLEMAS_FINAL_POS_HOC (hoje: DDMOP7) NÃO produzem a ⑦
+    # dentro do run — ela nasce PÓS-HOC via scripts/final_eval.py (Processo
+    # B). Exigi-la aqui re-executava do zero, A CADA RESUME, células offline
+    # COMPLETAS (~26,6 h-core por passe) e reabria a janela de quimera OP-6.
+    # A exceção vale SOMENTE quando o ⑤ DECLARA o pós-hoc (params.nd_final) —
+    # célula sem a declaração continua exigindo a ⑦ (o achado A3 segue
+    # fechado para todo o resto).
+    exige_final = alg in OFFLINE_ALGS
+    if exige_final:
+        from src.experiment import PROBLEMAS_FINAL_POS_HOC  # leve/lazy
+        if problema in PROBLEMAS_FINAL_POS_HOC and \
+                (man.get("params") or {}).get("nd_final"):
+            exige_final = False
     camadas = naming.LAYERS + ((naming.FINAL_LAYER,)
-                               if alg in OFFLINE_ALGS else ())
+                               if exige_final else ())
     for ly in camadas:
         p = naming.layer_path(exp, alg, problema, semente, ly, data_root)
         if not os.path.exists(p):

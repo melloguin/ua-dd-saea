@@ -573,10 +573,15 @@ def run_treed_media(exp: str, alg: str, problema: str, semente, *,
         tier=tier, dist=dist,
         data_root=data_root, enable_bucket=enable_bucket)
 
+    # [T15.10 · BAIXA nº 4 da revisão / I-02] no ramo PÓS-HOC (paridade
+    # b5/piso): n_nd = NULL declarado + marcador, nunca 0 fingido ("avaliei e
+    # deu zero" seria mentira — a ⑦ ainda não existe).
+    _pos_hoc = params.get("nd_final") is not None
     log.footer(status=status, motivo=motivo_parada, fe_final=bud.fe, cp_init=True,
                cache_hits=bud.cache_hits, n_geracoes=n_geracoes,
                n_final=(0 if pop_final is None else int(pop_final.shape[0])),
-               n_nd_pos_real=n_nd)
+               n_nd_pos_real=(None if _pos_hoc else n_nd),
+               final_pos_hoc=(params.get("nd_final") if _pos_hoc else None))
     log.close()
 
     return {
@@ -587,7 +592,8 @@ def run_treed_media(exp: str, alg: str, problema: str, semente, *,
         "n_timing_rows": len(buf.timing_rows),
         "n_sonda_blocos": (1 if emitir_sonda else 0),
         "n_final": (0 if pop_final is None else int(pop_final.shape[0])),
-        "n_nd_pos_real": n_nd, "regime": "offline", "cache_hits": bud.cache_hits,
+        "n_nd_pos_real": (None if _pos_hoc else n_nd),
+        "regime": "offline", "cache_hits": bud.cache_hits,
         "tempo_pred_sonda_s": t_snd, "emitir_sonda": bool(emitir_sonda),
         "alg": _ALG,
     }

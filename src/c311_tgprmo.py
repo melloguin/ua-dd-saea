@@ -717,6 +717,17 @@ def run_c311(exp: str, alg: str, problema: str, semente, *,
 
         # ── ⑦ __final: TODOS os finais avaliados 1x na verdade; ND filtrado DEPOIS ──
         from src import problems as _problems
+        # [T15.10 · BAIXA nº 3 da revisão] guarda de PARIDADE b5/piso/treed
+        # (D102.9/Processo B): problema de avaliação EXTERNA ⇒ ⑦ é PÓS-HOC
+        # (declarada no ⑤), nunca inline — sem ela o run inteiro morreria no
+        # último passo. c311 está FORA do roster do DDMOP7 (A47), mas a guarda
+        # custa poucas linhas e fecha a família.
+        from src.experiment import (FINAL_POS_HOC_INFO,
+                                    PROBLEMAS_FINAL_POS_HOC)
+        if problema in PROBLEMAS_FINAL_POS_HOC:
+            params["nd_final"] = FINAL_POS_HOC_INFO
+            nd_idx, n_nd = None, None
+            raise _FinalPosHoc()
         F_final = np.ascontiguousarray(
             _problems.evaluate_problem(H._instantiate(problema), pop_final),
             dtype=np.float64)
@@ -738,6 +749,10 @@ def run_c311(exp: str, alg: str, problema: str, semente, *,
             F_final.astype(np.float32).astype(np.float64)))
         n_nd = len(nd_idx)
 
+    except _FinalPosHoc:
+        # [T15.10] fluxo declarado, não erro: a busca terminou ok e a ⑦ fica
+        # para o final_eval (Processo B). status segue o curso normal.
+        pass
     except H.OfflineBudgetViolation:
         # o offline_guard ja gravou guard+footer(failed) e re-levantou: uma avaliacao
         # REAL na busca e desenho ERRADO (nao termino) — para-e-loga HARD (D81), sem
@@ -808,6 +823,10 @@ def run_c311(exp: str, alg: str, problema: str, semente, *,
         "n_nd_pos_real": n_nd, "regime": "offline", "cache_hits": bud.cache_hits,
         "tempo_pred_sonda_s": t_sonda_total, "emitir_sonda": bool(emitir_sonda),
     }
+
+
+class _FinalPosHoc(RuntimeError):
+    """[T15.10] fluxo declarado: a ⑦ é pós-hoc (D102.9) — não é falha."""
 
 
 class _TetoWall(RuntimeError):

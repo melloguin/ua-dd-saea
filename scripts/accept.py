@@ -246,11 +246,16 @@ def check_f0_02():
             sj = json.load(_sf)
     except Exception as e:  # noqa: BLE001
         return False, f"seeds.json ilegível: {e}"
-    if len(sj.get("alg_id", {})) != 22:
-        return False, f"seeds.json alg_id != 22 configs ({len(sj.get('alg_id', {}))})"
+    # [T15 bateria] 24 = as 22 originais + sobol_batch(22) + treed_media(23),
+    # apensadas nas eras T6-batch/T8-piso-big — o literal 22 ficou VERMELHO
+    # LATENTE por semanas sem ninguém rodar o F0-02 (mesma classe da BL-04:
+    # gate parado no tempo enquanto o artefato evolui). Tripwire deliberado:
+    # novo config ⇒ atualizar AQUI com registro.
+    if len(sj.get("alg_id", {})) != 24:
+        return False, f"seeds.json alg_id != 24 configs ({len(sj.get('alg_id', {}))})"
     shared = sj.get("shared_init_artifacts", {})
     if shared.get("problema_id") != doe.PROBLEMA_ID:
-        return False, "seeds.json problema_id diverge de doe.PROBLEMA_ID (25 canônicos)"
+        return False, "seeds.json problema_id diverge de doe.PROBLEMA_ID (28 canônicos)"
     if shared.get("tier_id") != doe.TIER_ID or shared.get("dist_id") != doe.DIST_ID:
         return False, "seeds.json tier_id/dist_id divergem do código"
     if "SeedSequence" not in sj.get("materializacao", ""):
@@ -1899,7 +1904,14 @@ def check_r3_b5(alg, exp="off", problema="MMF1", semente=0, data_root=None):
                     "regime offline + status ok",
                     (all(tb.get(k) is not None for k in
                          ("tempo_total_s", "tempo_fit_surrogate_s",
-                          "tempo_busca_s", "tempo_aval_real_s"))
+                          "tempo_busca_s"))
+                     # [T12.8/BL-04/I-02] OFFLINE: tempo_aval_real_s é
+                     # NULL-DECLARADO (nenhuma avaliação real DENTRO do run —
+                     # zero fingiria custo). O gate exige a CHAVE presente
+                     # (declaração), nunca o valor. Divergência latente
+                     # writer×gate desde 31/07, pega pela bateria T15 (o
+                     # corpus s42 pré-T12.8 gravava 0.0 e mascarava).
+                     and "tempo_aval_real_s" in tb
                      and bool(man.get("sigma_dict")) and bool(man.get("sonda"))
                      and man.get("regime") == "offline"
                      and man.get("status") == "ok",
@@ -2076,7 +2088,14 @@ def check_r3_c311(exp="off", problema="MMF1", semente=0, data_root=None):
                     "regime offline + status ok",
                     (all(tb.get(k) is not None for k in
                          ("tempo_total_s", "tempo_fit_surrogate_s",
-                          "tempo_busca_s", "tempo_aval_real_s"))
+                          "tempo_busca_s"))
+                     # [T12.8/BL-04/I-02] OFFLINE: tempo_aval_real_s é
+                     # NULL-DECLARADO (nenhuma avaliação real DENTRO do run —
+                     # zero fingiria custo). O gate exige a CHAVE presente
+                     # (declaração), nunca o valor. Divergência latente
+                     # writer×gate desde 31/07, pega pela bateria T15 (o
+                     # corpus s42 pré-T12.8 gravava 0.0 e mascarava).
+                     and "tempo_aval_real_s" in tb
                      and bool(man.get("sigma_dict")) and bool(man.get("sonda"))
                      and man.get("regime") == "offline"
                      and man.get("status") == "ok",
@@ -2260,7 +2279,14 @@ def check_r3_piso_off(exp="off", problema="MMF1", semente=0, data_root=None):
                     "regime offline + status ok",
                     (all(tb.get(k) is not None for k in
                          ("tempo_total_s", "tempo_fit_surrogate_s",
-                          "tempo_busca_s", "tempo_aval_real_s"))
+                          "tempo_busca_s"))
+                     # [T12.8/BL-04/I-02] OFFLINE: tempo_aval_real_s é
+                     # NULL-DECLARADO (nenhuma avaliação real DENTRO do run —
+                     # zero fingiria custo). O gate exige a CHAVE presente
+                     # (declaração), nunca o valor. Divergência latente
+                     # writer×gate desde 31/07, pega pela bateria T15 (o
+                     # corpus s42 pré-T12.8 gravava 0.0 e mascarava).
+                     and "tempo_aval_real_s" in tb
                      and bool(man.get("sigma_dict")) and bool(man.get("sonda"))
                      and man.get("regime") == "offline"
                      and man.get("status") == "ok",
@@ -2580,13 +2606,18 @@ def check_f0_04():
     from src import experiment
     front_nadir = metrics.true_front_raw("BBOB_F1", 2000).max(axis=0)
     n_probs = len(metrics.F_MIN_MAX)
+    # [REAL-2.15 aplicada 14/08] régua fase-1 do DDMOP7 PREENCHIDA (opção A):
+    # zero valores None; o selo de substituição obrigatória vive em
+    # REGUAS_PROVISORIAS (exatamente 1 = DDMOP7, até a fase 2 pós-runs).
     n_seladas = sum(1 for v in metrics.F_MIN_MAX.values() if v is None)
     tbl_ok = (n_probs == 28
               and set(metrics.F_MIN_MAX) == set(experiment.ALL_PROBLEMS)
-              and n_seladas == 1
+              and n_seladas == 0
+              and len(getattr(metrics, "REGUAS_PROVISORIAS", {})) == 1
+              and "DDMOP7" in getattr(metrics, "REGUAS_PROVISORIAS", {})
               and np.allclose(nadir, front_nadir, rtol=1e-3))
     results.append((
-        "normalização D69 = tabela S.5 (28 problemas, 1 selo; F1 nadir = front vivo)",
+        "normalização D69 = tabela S.5 (28 réguas; 1 provisória selada; F1 nadir = front vivo)",
         (tbl_ok, f"|F_MIN_MAX|={n_probs}, F1 nadir S.5={nadir.tolist()} "
                  f"~ front {front_nadir.round(3).tolist()}")))
 

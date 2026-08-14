@@ -130,3 +130,42 @@ não mudam; só as 28 falhadas re-rodam** (já no briefing da dupla vm1+vm5).
 Diga "aprovo o C5" e eu te devolvo os comandos finais do D2 (tag+push) com o
 estado exato do repo. Se houver QUALQUER ponto que você queira ver mais fundo
 antes (uma célula, um manifest, um teste), me pede que eu abro.
+
+---
+
+## §7 · ADENDO — janela exaustiva de 14/08 (o que mudou desde a §5)
+
+Você pediu: fechar os gaps 2 e 3 antes da tag + "seja exaustivo". Resultado:
+
+**Gap 3 (offline DDMOP7 real) — FECHADO.** O dataset s0 nasceu do `.p` REAL
+neste Mac (526/526; `check_one` de hash VERDE) e a célula b5r/DDMOP7/s0
+offline rodou completa no exp canônico `off`: 526/526 exato, ⑦ pós-hoc com
+Engine real (47 finais, 2 ND pós-real), `final_eval --check` VERDE, PORTÃO
+com **0 vermelhos** (o ⚪ do G-1 é o estrutural sem-sonda do DDMOP7). De
+quebra, a mecânica nova inteira provou-se em produção: `is_run_done` aceitou
+a célula sem ⑦ SÓ pela declaração do ⑤ (fix nº 7), e o footer veio
+NULL-declarado, sem zero fingido. A observação da §5.2 continua válida num
+ponto: o f deste Mac é arm64 — a célula foi para a QUARENTENA e as VMs
+regeneram tudo (D102.14); o que se aprova aqui é o ENCANAMENTO, agora provado
+de ponta a ponta com Engine real também no offline.
+
+**e103/RE21/s0 offline — PORTÃO VERDE 9/9** (MATLAB -batch pela receita do
+driver; ⑦ 100 finais/100 ND; G-1 de sonda VERDE).
+
+**Gap 2 (ESTOQUE40 surrogate completo)**: e81/ESTOQUE40/s0 em voo há ~4 h
+(pinado, saudável). Portão na aterrissagem; este adendo ganha o veredito dele.
+
+**Validações extra da janela** (detalhe: REGISTRO PARTE A50): bateria pegou 3
+gates com literais velhos que teriam REPROVADO células legítimas da campanha
+(BL-04 `tempo_aval_real_s`; alg_id 22→24; selo DDMOP7) — corrigidos; revisão
+adversarial 39→20 achados confirmados, todos os de runtime corrigidos e
+testados (13/13); 244 artefatos RE21/ESTOQUE40 versionados; receita da VM
+ganhou a BATELADA DDMOP7 obrigatória; e um bug NOVO medido em produção — o
+macOS congela MATLAB de Engine em processos de fundo — virou watchdog de
+partida (300 s) que protege também as VMs. 11 células-smoke Mac dos 3
+problemas: todas em `data/_quarentena_smokes/`.
+
+**Pendente no fechamento deste adendo**: e81 aterrissar (portão+quarentena) e
+a suíte final da leva T15.10 em janela limpa (0 falhas é condição da tag,
+como na §5.5). Fora isso, nada mudou no §6: seu fluxo continua "aprovo o C5"
+→ eu devolvo os comandos D2 com o estado exato do repo.

@@ -69,3 +69,22 @@ Achados negativos importantes: `cache_hit_travado` = **zero** ocorrências na co
 5. **Contabilidade**: rodapé O-21 é a autoridade; `teto_wall` no manifest com rodapé ok = ⚪, não falha; `checkpoint_em_andamento` é sentinela ambíguo; **células MATLAB (b1) não geram manifest** — censo delas só por `.jsonl` (jsonl órfãos em 6 VMs).
 6. **Sem ajuste necessário** para: cache (cache_hit_travado inexistente; "falhas rápidas" do monitor eram oks por cache-hit), symlinks A48, projeção O-20 (não aborta ninguém).
 7. **Recensear tudo pós-sync**: os censos deste laudo vieram de um espelho parcial (vm5 a meio, vm3/vm4 divergentes entre autópsias); as classes e causas ficam de pé, os totais não.
+
+---
+
+## 5. DECISÕES DO AUTOR (14/08/2026) — atualizam o briefing §4
+
+- **DEC-5 → encerrada por confirmação da DI-44**: as 481 células teto_wall
+  (medição da torre: TODAS pararam entre 12,00h e 12,49h; zero antes) são
+  truncamento-com-dado VÁLIDO. Nada a re-rodar; a análise usa fe_final.
+- **DEC-6 → SIM**: incluir no grid as 12 sementes pendentes de b1×DTLZ4
+  (falha determinística ~2 min/célula; o protocolo fecha "0/30 tentadas").
+- **DEC-7 → SIM**: devolver ao grid as sementes NÃO-TENTADAS das famílias
+  seed-dependentes — c262×WFG1 e c154×{ZDT6, WFG1, BBOB_F5/F22/F49/F55}.
+  NÃO re-tentar sementes já falhadas (determinístico por semente).
+  c238×BBOB continua FORA até a investigação da torre.
+- **CORREÇÃO DA TORRE ao item MMF1_30 do §2.A.3**: a semente 30 NÃO existe
+  no protocolo ({0–28, 42}) — as 2 células exp_main_{c154,c262}_MMF1_30 da
+  vm10 são fantasmas da herança de julho. Ação certa: QUARENTENAR os
+  arquivos; JAMAIS materializar doe_MMF1_30 (legitimaria célula fora do
+  grid). O item original do laudo está superseded por esta nota.

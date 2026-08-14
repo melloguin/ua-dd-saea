@@ -50,6 +50,21 @@ partir de pontos que a ③ não registrou — o caso clássico é usar a PROLE d
 consegue reconstituir nem auditar, e para o e103 (cuja ③ é a única fonte) o
 retroativo simplesmente avaliaria outro conjunto. O erro é silencioso: as duas
 camadas ficam bem-formadas e o run passa em todo o resto.
+
+[T15.7b/D102.9 — "Processo B"] RAMO DDMOP7. Para problemas em
+`experiment.PROBLEMAS_FINAL_POS_HOC` (avaliação real exige processo EXTERNO —
+o DDMOP7.p via MATLAB Engine), os runners offline NÃO avaliam a ⑦ inline: eles
+a DECLARAM no ⑤ (`params.nd_final`) e ESTE script a grava pós-hoc — o MESMO
+mecanismo retroativo do e103, mesma fonte (③, última geração), MESMO contrato
+DI-08. A única diferença é o avaliador: em vez de `problems.py`, o motor da
+ponte (`src/ddmop7_bridge._MotorMatlab`, fatiamento ≤64) sob o guard de 600
+chamadas/processo (D88.5). Contabilidade NÃO se aplica (a ⑦ é MEDIÇÃO
+pós-hoc, fora do orçamento — nenhum FEBudget, nenhuma dedup). A máquina
+precisa de matlab.engine (ex.: o venv `env_matlab_engine`, ou uma VM
+provisionada) — sem ele o script FALHA com mensagem acionável. O `--check`
+re-avalia pelo MESMO caminho (custa |⑦|×~6 s por célula numa máquina com
+Engine). Os gates não mudam de veredito: ⑦ ausente segue vermelha até este
+script rodar — exatamente o estado do e103 hoje.
 """
 
 from __future__ import annotations
@@ -145,6 +160,57 @@ def read_final_candidates(exp: str, alg: str, problema: str, semente, *,
             "n_total": n_total, "n_sonda": n_sonda}
 
 
+def _motor_pos_hoc():
+    """[T15.7b/D102.9] O motor do ramo pós-hoc do DDMOP7 — a MATLAB Engine da
+    ponte oficial. Função-fábrica DE PROPÓSITO: os testes a substituem por um
+    motor determinístico; produção SEMPRE abre a Engine real (não há knob de
+    mock aqui — uma ⑦ de mentira seria silenciosa e fatal)."""
+    _MSG_SEM_ENGINE = (
+        "matlab.engine ausente neste interpretador — o ramo pós-hoc do "
+        "DDMOP7 (D102.9/Processo B) avalia no DDMOP7.p via MATLAB Engine. "
+        "Rode este script num interpretador com matlab.engine (ex.: "
+        "/Users/gmello/Documents/python_venvs/env_matlab_engine/bin/python "
+        "no Mac, ou o venv provisionado da VM) e com UA_DD_SAEA_DDMOP_DIR "
+        "apontando para .../DDMOP_Exp/Problems. Pára-e-loga (D81).")
+    try:
+        import matlab.engine  # noqa: F401 — só detecção; o motor importa de novo
+    except ImportError as exc:
+        raise RuntimeError(_MSG_SEM_ENGINE) from exc
+    from src import ddmop7_bridge as B
+    try:
+        return B._MotorMatlab(None)      # resolve por env → default (T15.7)
+    except ImportError as exc:
+        # [medido na suíte] o qpots (e81, tsemo_runner.py) registra um
+        # matlab.engine FALSO cujo start_matlab levanta ImportError — a
+        # detecção acima passa e o erro cru vazaria aqui. Mesmo veredito.
+        raise RuntimeError(_MSG_SEM_ENGINE) from exc
+
+
+def _avalia_pos_hoc(problema: str, X: np.ndarray) -> np.ndarray:
+    """F real de um problema PROCESSO-EXTERNO (hoje: DDMOP7) — medição
+    pós-hoc, FORA de qualquer contabilidade (não é busca: nenhum FEBudget,
+    nenhuma dedup). Ficam os guards que não são contabilidade: teto de 600
+    chamadas de 'value' por processo (D88.5) e forma/finito (D81). A ponte
+    fatia em ≤64 pontos/chamada (watchdog D60a)."""
+    from src import ddmop7_bridge as B
+    if X.shape[0] > B.P_CODE_CAP:
+        raise RuntimeError(
+            f"⑦ com {X.shape[0]} pontos passaria o teto de {B.P_CODE_CAP} "
+            f"chamadas do DDMOP7.p num processo (D88.5) — |ND| offline "
+            f"esperado é ~10²; isto indica ③ corrompida. Pára-e-loga (D81).")
+    motor = _motor_pos_hoc()
+    try:
+        F = np.atleast_2d(np.asarray(motor.avalia(X), dtype=np.float64))
+    finally:
+        motor.encerra()                              # D86 — inclusive em falha
+    if F.shape != (X.shape[0], 2):
+        raise RuntimeError(f"DDMOP7('value') devolveu {F.shape}, esperado "
+                           f"({X.shape[0]}, 2) — pára-e-loga (D81).")
+    if not np.all(np.isfinite(F)):
+        raise RuntimeError("DDMOP7('value') devolveu não-finito — D81.")
+    return F
+
+
 def evaluate_final(problema: str, X: np.ndarray) -> np.ndarray:
     """Avalia `X` na função VERDADEIRA, em float64, FORA do orçamento.
 
@@ -153,6 +219,11 @@ def evaluate_final(problema: str, X: np.ndarray) -> np.ndarray:
     o gabarito da sonda —, então o `f` desta camada é comparável com tudo o
     mais sem nenhuma conversão. Nenhum `FEBudget` é envolvido: por construção,
     é impossível esta chamada consumir orçamento.
+
+    [T15.7b/D102.9] Problema em `PROBLEMAS_FINAL_POS_HOC` (DDMOP7): a MESMA
+    porta, mas o `f` sai do `.p` oficial via `_avalia_pos_hoc` (Engine +
+    guard 600). O check de bounds/clip continua o daqui — a casca desligada
+    dá xl/xu de graça (sem Engine).
     """
     prob = _exp._instantiate_problem(problema)
     X = np.ascontiguousarray(X, dtype=np.float64)
@@ -180,6 +251,8 @@ def evaluate_final(problema: str, X: np.ndarray) -> np.ndarray:
     # Violações DENTRO da tolerância são ruído de armazenamento, não do
     # algoritmo: clipamos para que o problema não receba um X fora do domínio.
     X = np.clip(X, xl, xu)
+    if problema in _exp.PROBLEMAS_FINAL_POS_HOC:     # [T15.7b/D102.9]
+        return _avalia_pos_hoc(problema, X)
     return np.ascontiguousarray(
         _problems.evaluate_problem(prob, X), dtype=np.float64)
 
@@ -197,6 +270,11 @@ def final_eval_run(exp: str, alg: str, problema: str, semente, *,
     cand = read_final_candidates(exp, alg, problema, semente,
                                  data_root=data_root)
     F = evaluate_final(problema, cand["X"])
+    # [T15.7b] Certidão HONESTA do avaliador: no ramo pós-hoc o f NÃO vem do
+    # problems.py — o sidecar tem de dizer (auditoria da procedência).
+    pos_hoc = problema in _exp.PROBLEMAS_FINAL_POS_HOC
+    avaliador = ("DDMOP7.p oficial via src/ddmop7_bridge (MATLAB Engine) — "
+                 "⑦ POS-HOC, D102.9/Processo B" if pos_hoc else None)
     # `nd_pos_real` fica a cargo do `write_final`, que o computa sobre a vista
     # float32 PERSISTIDA — a mesma que o `--check` relê. Computá-lo aqui, no
     # float64 cru, criava a assimetria que reprovava uma ⑦ correta.
@@ -206,6 +284,7 @@ def final_eval_run(exp: str, alg: str, problema: str, semente, *,
         origem_geracao=[cand["geracao"]] * F.shape[0],
         origem_linha=cand["linhas"],
         origem_precisao="float32 (decs lidos da ③ — ver caveat do módulo)",
+        avaliador=avaliador,
         data_root=data_root)
     with open(_sidecar_path(out_path), encoding="utf-8") as fh:
         side = json.load(fh)

@@ -592,24 +592,36 @@ def _run_b5(alg, exp, problema, semente, *,
         # ── ⑦ __final: o ND final avaliado 1× na VERDADE (DI-08/DI-13.9) ────
         #    Caminho NATIVO (decs float64 em memoria) — fora do orcamento; o ND
         #    e filtrado DEPOIS da avaliacao real (nunca pela fantasia do modelo).
+        #    [T15.7b/D102.9 Processo B] EXCETO problema cuja avaliacao exige
+        #    processo EXTERNO (PROBLEMAS_FINAL_POS_HOC — DDMOP7: o .p via
+        #    MATLAB Engine nao existe neste venv): a ⑦ NAO e avaliada inline —
+        #    fica POS-HOC via scripts/final_eval.py (o precedente retroativo
+        #    do e103), DECLARADA no ⑤ (params.nd_final) e no ⑥ (footer).
         from src import problems as _problems
-        F_final = np.ascontiguousarray(
-            _problems.evaluate_problem(H._instantiate(problema), pop_final),
-            dtype=np.float64)
-        n_fin = int(pop_final.shape[0])
-        # nd_pos_real: NAO passar — o write_final o calcula sobre a vista FLOAT32
-        # (a que a ⑦ persiste e que o final_eval --check re-le). Calcula-lo no
-        # float64 cru cria assimetria float32/float64 em empates proximos (medido
-        # em b5m/ZDT1: 20 vs 19) e reprova uma ⑦ correta (docstring do write_final).
-        H.write_final(
-            exp, alg, problema, semente, pop_final, F_final,
-            origem_solution_id=[None] * n_fin,        # sem vinculo c/ o dataset
-            origem_geracao=[gen_final] * n_fin,
-            origem_linha=np.arange(n_fin),
-            data_root=data_root)
-        # footer/retorno: conta o ND sobre a MESMA vista float32 da ⑦.
-        nd_idx = set(int(i) for i in _problems._nds_filter(
-            F_final.astype(np.float32).astype(np.float64)))
+        from src.experiment import (FINAL_POS_HOC_INFO,
+                                    PROBLEMAS_FINAL_POS_HOC)
+        final_pos_hoc = problema in PROBLEMAS_FINAL_POS_HOC
+        if final_pos_hoc:
+            n_fin, nd_idx = None, None
+        else:
+            F_final = np.ascontiguousarray(
+                _problems.evaluate_problem(H._instantiate(problema), pop_final),
+                dtype=np.float64)
+            n_fin = int(pop_final.shape[0])
+            # nd_pos_real: NAO passar — o write_final o calcula sobre a vista
+            # FLOAT32 (a que a ⑦ persiste e que o final_eval --check re-le).
+            # Calcula-lo no float64 cru cria assimetria float32/float64 em
+            # empates proximos (medido em b5m/ZDT1: 20 vs 19) e reprova uma ⑦
+            # correta (docstring do write_final).
+            H.write_final(
+                exp, alg, problema, semente, pop_final, F_final,
+                origem_solution_id=[None] * n_fin,    # sem vinculo c/ o dataset
+                origem_geracao=[gen_final] * n_fin,
+                origem_linha=np.arange(n_fin),
+                data_root=data_root)
+            # footer/retorno: conta o ND sobre a MESMA vista float32 da ⑦.
+            nd_idx = set(int(i) for i in _problems._nds_filter(
+                F_final.astype(np.float32).astype(np.float64)))
 
         # ── ④ = 1 LINHA: completa fit + busca (EXCLUINDO a sonda) ───────────
         buf.update_timing(1, tempo_busca_s=t_busca_total,
@@ -634,7 +646,11 @@ def _run_b5(alg, exp, problema, semente, *,
             sigma_dict=sigma_dict, regime="offline",
             # [I-07/A3] a config EFETIVA no ⑤ (CONTRATO §5): b5r e b5m tinham
             # 45 células cada SEM a chave — 1.350 por config em 30 sementes.
-            params=_params_efetivos(alg, mode, n_ds),
+            # [T15.7b] ⑦ pos-hoc ⇒ a declaracao canonica entra no params
+            # (`nd_final`), a MESMA gramatica do e103.
+            params=(dict(_params_efetivos(alg, mode, n_ds),
+                         nd_final=FINAL_POS_HOC_INFO) if final_pos_hoc
+                    else _params_efetivos(alg, mode, n_ds)),
             sonda_info=(_sonda_decl() if sonda is None else   # [D102.10]
                         {"S": sonda["S"], "cadencia": "offline: 1x por modelo",
                          "n_blocos": 1 if sonda_on else 0,
@@ -645,7 +661,11 @@ def _run_b5(alg, exp, problema, semente, *,
 
         log.footer(status=status, fe_final=bud.fe, cp_init=True,
                    cache_hits=bud.cache_hits, n_geracoes=gen_final,
-                   n_final=n_fin, n_nd_pos_real=len(nd_idx))
+                   n_final=n_fin,
+                   n_nd_pos_real=(None if nd_idx is None else len(nd_idx)),
+                   # [T15.7b] NULL + declaracao ≠ esquecimento: a ⑦ e pos-hoc
+                   final_pos_hoc=(FINAL_POS_HOC_INFO if final_pos_hoc
+                                  else None))
     except Exception as exc:                          # noqa: BLE001 — D23/D60
         # [T7-sweep] Parada anômala = `failed` NO MANIFESTO, nunca silenciosa.
         # Antes: a exceção subia e o run não deixava manifesto — e um run sem
@@ -669,7 +689,9 @@ def _run_b5(alg, exp, problema, semente, *,
     return {
         "fe_final": bud.fe, "maxfe": bud.maxfe, "n_dataset": n_ds,
         "cp_init_ok": bool(res["cp_init_ok"]), "n_geracoes": gen_final,
-        "n_final": n_fin, "n_nd_pos_real": len(nd_idx),
+        "n_final": n_fin,
+        "n_nd_pos_real": (None if nd_idx is None else len(nd_idx)),
+        "final_pos_hoc": final_pos_hoc,               # [T15.7b/D102.9]
         "alg": alg, "mode": mode,
     }
 

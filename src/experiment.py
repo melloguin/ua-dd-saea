@@ -118,6 +118,33 @@ SONDA_AUSENTE_INFO: dict = {
     "n_blocos": 0, "n_linhas": 0, "S": 0,
 }
 
+#: [T15.7b/D102.9 — "Processo B"] Problemas cuja avaliação REAL exige processo
+#: EXTERNO ao runner — hoje só o DDMOP7: o f mora no `DDMOP7.p` (MATLAB
+#: Engine), impossível nos venvs offline congelados (env_b5 py3.7, env_c311
+#: py3.8). Consequência ÚNICA: nos runners OFFLINE a camada ⑦ (`__final`,
+#: DI-08) NÃO é avaliada inline — o run DECLARA no ⑤ (`params.nd_final` =
+#: FINAL_POS_HOC_INFO) e no ⑥ (footer), e a ⑦ é gravada PÓS-HOC por
+#: `scripts/final_eval.py` (ramo DDMOP7: motor da ponte + guard de 600) numa
+#: máquina com matlab.engine — o MESMO mecanismo retroativo que o e103
+#: (MATLAB) sempre usou. Os gates NÃO mudam de veredito: ⑦ ausente segue
+#: VERMELHA até o final_eval rodar — exatamente como o e103 hoje.
+#: O discriminador é "avaliação exige processo externo", NÃO "sem sonda":
+#: coincidem no DDMOP7 mas são decisões distintas (D102.10 vs D102.9).
+PROBLEMAS_FINAL_POS_HOC: frozenset = frozenset({'DDMOP7'})
+
+#: [T15.7b] A declaração canônica do ⑤ (`params.nd_final`) quando a ⑦ fica
+#: pós-hoc — a MESMA gramática do e103 (`experiment.m::run_e103`,
+#: `params.nd_final`), com a decisão tomada (D102.9/Processo B) no lugar do
+#: "DEFINICAO EM ABERTO" histórico. Fonte única: os runners gravam ESTA
+#: string, nunca um dialeto próprio.
+FINAL_POS_HOC_INFO: str = (
+    "AVALIACAO REAL DO ND FINAL (§11/B7.5) NAO acontece neste run "
+    "(D102.9/Processo B: a avaliacao do problema exige processo EXTERNO — "
+    "DDMOP7.p via MATLAB Engine, ausente neste venv): os decs finais estao "
+    "na ③ (ultima geracao); a ⑦ e gravada POS-HOC por scripts/final_eval.py "
+    "numa maquina com matlab.engine, no MESMO contrato DI-08 — o precedente "
+    "retroativo do e103.")
+
 
 def is_known_problem(short_name: str) -> bool:
     return short_name in PROBLEM_CLASSES or short_name in FIDELITY_PROBLEMS

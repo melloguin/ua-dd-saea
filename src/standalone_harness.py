@@ -1506,6 +1506,7 @@ def write_final(exp: str, alg: str, problema: str, semente,
                 origem_precisao: str = "float64 (decs em memória — "
                                        "caminho nativo R3)",
                 origem_camada: str = "surrogate (③), última geração da busca",
+                avaliador: str | None = None,
                 data_root: str = naming.DEFAULT_DATA_ROOT) -> str:
     """Escreve a camada ⑦ `__final.parquet` (DI-08), atomicamente.
 
@@ -1579,7 +1580,10 @@ def write_final(exp: str, alg: str, problema: str, semente,
                                                     for b in nd_pos_real)),
         "origem_camada": origem_camada,
         "origem_precisao": origem_precisao,
-        "avaliador": "src/problems.py::evaluate_problem (float64)",
+        # [T15.7b] o avaliador é declarável: no ramo pós-hoc do DDMOP7 o f NÃO
+        # vem do problems.py — o default afirma o caminho canônico dos demais.
+        "avaliador": (avaliador or
+                      "src/problems.py::evaluate_problem (float64)"),
         "fora_do_orcamento": True,
         "convencao": ("B7.5 — avaliar TODOS os finais e filtrar a "
                       "não-dominância PÓS-real (coluna nd_pos_real, computada "
@@ -1815,6 +1819,31 @@ def _instantiate(problema: str):
     return _exp._instantiate_problem(problema)
 
 
+def problema_ligado(problema: str, semente=None):
+    """[T15.7 §1.2/D102.5] Gêmeo do `botorch_harness.problema_ligado`:
+    instancia o problema (A2) e, se vier uma casca de LIGAÇÃO TARDIA
+    desligada (`ligado is False` — hoje só o DDMOP7) e houver semente, faz
+    `bind(semente)` — a MATLAB Engine abre AQUI (1 por run, D88.5; a
+    contabilidade fica EXTERNA por default da casca, D89). No-op para os 27
+    problemas Python. Sem semente a casca segue DESLIGADA e avaliar levanta
+    RuntimeError pára-e-loga (D81 — o comportamento certo). Quem liga também
+    ENCERRA: chame `encerra_problema` em finally (D86)."""
+    p = _instantiate(problema)
+    if getattr(p, "ligado", True) is False and semente is not None:
+        p.bind(int(semente))
+    return p
+
+
+def encerra_problema(problema) -> None:
+    """[T15.7 §1.4/D86] Gêmeo do `botorch_harness.encerra_problema`: fecha os
+    recursos do problema (a MATLAB Engine da casca do DDMOP7). Idempotente;
+    no-op para problemas sem `encerra` e para `None`. Chamar SEMPRE em
+    `finally` — inclusive em falha (D88.5: 1 Engine por run)."""
+    enc = getattr(problema, "encerra", None)
+    if callable(enc):
+        enc()
+
+
 def _bounds(problema: str):
     p = _instantiate(problema)
     return (np.asarray(p.xl, dtype=np.float64),
@@ -1837,6 +1866,7 @@ __all__ = [
     "iteration_cleanup",
     "load_doe", "load_dataset", "load_offline_budget", "offline_guard",
     "OfflineBudgetViolation",
+    "problema_ligado", "encerra_problema",
     "load_sonda", "sonda_due", "emit_sonda_block",
     "minimo_comum_di10", "SnapshotBuffer",
     "write_run_outputs", "dual_write_run",

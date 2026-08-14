@@ -80,12 +80,14 @@ from src.botorch_harness import (
     SnapshotBuffer,
     di10_minimo_comum,
     emit_sonda_block,
+    encerra_problema,
     env_info,
     iteration_cleanup,
     iteration_seed,
     load_doe,
     load_sonda,
     pin_runtime,
+    problema_ligado,
     sonda_due,
     torch_seed_for,
     write_run_outputs,
@@ -556,13 +558,18 @@ def run_c262(exp: str, alg: str, problema: str, semente, *,
 
     log = AuditLogger.for_run(exp, alg, problema, semente,
                               data_root=data_root, append=False)
+    # [T15.7] O problema nasce/liga DEPOIS de abrir o log (bind do DDMOP7 abre
+    # a MATLAB Engine; falha do bind vira footer failed) e é encerrado no
+    # finally — inclusive em falha (D86/D88.5, cartão §1.4). No-op p/ os 27.
+    prob_obj = None
     try:
+        prob_obj = problema_ligado(problema, semente)
         return _run_c262_body(exp, alg, problema, semente, t0, pinning, env,
                               fused_policy, doe_art, sonda_art, ref_f,
                               ideal_s5, nadir_s5,
                               log, data_root, enable_bucket, max_wall_s,
                               int(q),
-                              sonda_on=sonda_on)
+                              sonda_on=sonda_on, prob_obj=prob_obj)
     except Exception:
         # D23/D60: parada anômala NUNCA silenciosa — footer failed no jsonl
         # (o despachante decide retry; o BudgetExhausted não chega aqui — é
@@ -571,17 +578,19 @@ def run_c262(exp: str, alg: str, problema: str, semente, *,
         log.footer(status="failed", stack=traceback.format_exc()[-2000:])
         raise
     finally:
+        encerra_problema(prob_obj)
         log.close()
 
 
 def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
                    doe_art, sonda_art, ref_f, ideal_s5, nadir_s5, log,
-                   data_root, enable_bucket, max_wall_s, q=1, sonda_on=True) -> dict:
+                   data_root, enable_bucket, max_wall_s, q=1, sonda_on=True,
+                   prob_obj=None) -> dict:
     # [T6-batch] o orçamento é POR EXP (D66): main = 31D−1; batch = 11D−1+200q.
     _D0 = doe_art["X"].shape[1]
     bud = _budget.FEBudget(
         D=_D0, maxfe=_budget.maxfe_por_exp(exp, _D0, q), logger=log)
-    adapter = BoTorchProblemAdapter(problema, bud)
+    adapter = BoTorchProblemAdapter(problema, bud, problem=prob_obj)
     D, M = adapter.D, adapter.M
     buf = SnapshotBuffer()
     ref_max = (-ref_f).tolist()               # aquisição maximiza −f (§5.5)

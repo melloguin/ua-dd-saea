@@ -241,9 +241,12 @@ class _Adapter:
     `ind.normalized_var`, para a entrada das redes).
     """
 
-    def __init__(self, problema: str, bud: FEBudget):
-        from src import experiment as _exp
-        self._p = _exp._instantiate_problem(problema)
+    def __init__(self, problema: str, bud: FEBudget, semente=None):
+        # [T15.7 §1.2] casca de ligação tardia (DDMOP7) liga AQUI à semente
+        # (a Engine abre; contabilidade EXTERNA — o FEBudget é o único
+        # contador, D89). No-op p/ os 27 problemas Python. Quem constrói o
+        # adapter ENCERRA o problema em finally (H.encerra_problema, D86).
+        self._p = H.problema_ligado(problema, semente)
         self._bud = bud
         self.name = problema
         self.n_var = int(self._p.n_var)
@@ -701,7 +704,7 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
     doe = H.load_doe(problema, semente, data_root=data_root)
     D = int(doe["X"].shape[1])
     bud = FEBudget(D=D, logger=log)
-    adapter = _Adapter(problema, bud)
+    adapter = _Adapter(problema, bud, semente=semente)     # [T15.7] bind DDMOP7
     M = adapter.n_obj
     if doe["X"].shape[0] != bud.n_init:
         raise RuntimeError(
@@ -1069,6 +1072,7 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
     except Exception as exc:                                # pragma: no cover
         status, motivo_parada = "failed", f"{type(exc).__name__}: {exc}"
         log.footer(status="failed", fe_final=bud.fe, erro=motivo_parada)
+        H.encerra_problema(adapter._p)     # [T15.7 §1.4/D86] também em falha
         log.close()
         raise
 
@@ -1105,6 +1109,7 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                    n_skip_treino=n_skip_treino,
                    n_cache_infill=n_cache_infill)
     finally:
+        H.encerra_problema(adapter._p)     # [T15.7 §1.4/D86] fecha a Engine
         log.close()
 
     return {

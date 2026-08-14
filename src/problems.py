@@ -1469,10 +1469,14 @@ class DDMOP7(Problem):
     AQUI NÃO SE CALCULA f. Esta classe é a CASCA que dá ao DDMOP7 a mesma
     porta dos outros 27 (subclasse de `Problem`, instanciação sem argumento);
     a avaliação DELEGA ao `DDMOP7.p` oficial via `ddmop7_bridge.DDMOP7Matlab`
-    (D102.5/D88.5) — que conta FE, aplica o hard-stop exato em 526 (D21/D61),
-    deduplica por X bit-a-bit (D57/D89) e monta a camada ①. O port aritmético
-    exigia 3 definições que o paper não dá (EPS, ativação, normalização) —
-    escolhê-las é o que o D81 proíbe; foram DISSOLVIDAS pela caixa-preta.
+    (D102.5/D88.5). [T15.7] Pela casca a ponte entra com contabilidade
+    EXTERNA (avaliador cru + guards de forma/finito/teto-600): quem conta FE,
+    aplica o hard-stop exato em 526 (D21/D61), deduplica por X bit-a-bit e
+    monta a ① é o FEBudget do harness — UM contador só (D89). O arnês próprio
+    da ponte (contabilidade='propria') fica para o standalone/smoke. O port
+    aritmético exigia 3 definições que o paper não dá (EPS, ativação,
+    normalização) — escolhê-las é o que o D81 proíbe; foram DISSOLVIDAS pela
+    caixa-preta.
 
     VARIÁVEIS DE DECISÃO (17), em [−1,1]^17 — mapa dos slots MEDIDO no oráculo
     (TD-18; 5 batimentos exatos, `ddmop7_VEREDICTO.md` §7 + evidência em
@@ -1516,7 +1520,13 @@ class DDMOP7(Problem):
             self.bind(semente)
 
     def bind(self, semente, **kw_ponte):
-        """Liga esta casca à ponte oficial, para UMA semente. Devolve `self`."""
+        """Liga esta casca à ponte oficial, para UMA semente. Devolve `self`.
+
+        [T15.7 §1.3/D89] Default `contabilidade='externa'`: TODO consumidor
+        desta casca é um runner de harness (R2/R3), onde o FEBudget já conta,
+        deduplica e monta a ① — a ponte entra como avaliador CRU (um contador
+        só). O modo 'propria' (arnês completo da ponte, standalone/smoke) segue
+        disponível por override explícito no kw."""
         if self._ponte is not None:
             raise RuntimeError(
                 f"DDMOP7 ja esta ligado a semente {self.semente} (D88.5: um "
@@ -1525,6 +1535,7 @@ class DDMOP7(Problem):
         DDMOP7Matlab = _importa_ponte_ddmop7()
         kw = dict(self._kw_ponte)
         kw.update(kw_ponte)
+        kw.setdefault("contabilidade", "externa")
         self._ponte = DDMOP7Matlab(semente=int(semente), **kw)
         self.semente = int(semente)
         return self

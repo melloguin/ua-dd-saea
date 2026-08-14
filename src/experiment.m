@@ -147,8 +147,9 @@ function [status, info] = run_stub(alg, problema, semente, exp, dataRoot)
         'semente', semente, 'D', D, 'M', M, 'regime', "online", ...
         'maxfe', maxfe, 'doe_hash', string(doe.hash)});
 
-    % evalFcn: a PONTE (A2) — f(x) por py.problems.evaluate_problem (bounds nativos).
-    evalFcn = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    % evalFcn: a PONTE (A2) — f(x) por py.problems.evaluate_problem (bounds
+    % nativos). [T15.7] DDMOP7 desvia da ponte (avaliador local do .p, D102.5).
+    evalFcn = eval_fcn_por_x(ctx, pp, problema);
 
     % (4a) INIT = os 11D-1 pontos do DoE (fase 'init'), injetados pela PONTE.
     for i = 1:n_init
@@ -418,7 +419,7 @@ function [status, info] = run_c217(alg, problema, semente, exp, dataRoot)
         'delta', 0.8, 'gmax', 3000});
 
     % (4) evalFcn por-x (a ponte, bounds nativos) + embrulho de LOTE (D61).
-    evalFcnPerX = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    evalFcnPerX = eval_fcn_por_x(ctx, pp, problema);   % [T15.7] DDMOP7 desvia da ponte
     batchEval   = @(X, varargin) c217_batch_eval(X, bud, evalFcnPerX);
 
     % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.
@@ -659,7 +660,7 @@ function [status, info] = run_c141(alg, problema, semente, exp, dataRoot)
 
     % (4) evalFcn por-x (a ponte, bounds nativos) + embrulho de LOTE (D61) — o
     %     c217_batch_eval e GENERICO (handoff R1-c217 §7): hard-stop no meio do lote.
-    evalFcnPerX = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    evalFcnPerX = eval_fcn_por_x(ctx, pp, problema);   % [T15.7] DDMOP7 desvia da ponte
     batchEval   = @(X, varargin) c217_batch_eval(X, bud, evalFcnPerX);
 
     % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.
@@ -838,7 +839,7 @@ function [status, info] = run_b1(alg, problema, semente, exp, dataRoot)
 
     % (4) evalFcn por-x (a ponte, bounds nativos) + embrulho de LOTE (D61) — o
     %     c217_batch_eval e GENERICO (handoff R1-c217 §7): hard-stop no meio do lote.
-    evalFcnPerX = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    evalFcnPerX = eval_fcn_por_x(ctx, pp, problema);   % [T15.7] DDMOP7 desvia da ponte
     batchEval   = @(X, varargin) c217_batch_eval(X, bud, evalFcnPerX);
 
     % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.
@@ -1016,7 +1017,7 @@ function [status, info] = run_b3(alg, problema, semente, exp, dataRoot)
 
     % (4) evalFcn por-x (a ponte, bounds nativos) + embrulho de LOTE (D61) — o
     %     c217_batch_eval e GENERICO (handoff R1-c217 §7): hard-stop no meio do lote.
-    evalFcnPerX = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    evalFcnPerX = eval_fcn_por_x(ctx, pp, problema);   % [T15.7] DDMOP7 desvia da ponte
     batchEval   = @(X, varargin) c217_batch_eval(X, bud, evalFcnPerX);
 
     % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.
@@ -1178,7 +1179,7 @@ function [status, info] = run_b4(alg, problema, semente, exp, dataRoot)
 
     % (4) evalFcn por-x (a ponte, bounds nativos) + embrulho de LOTE (D61) — o
     %     c217_batch_eval e GENERICO (handoff R1-c217 §7): hard-stop no meio do lote.
-    evalFcnPerX = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    evalFcnPerX = eval_fcn_por_x(ctx, pp, problema);   % [T15.7] DDMOP7 desvia da ponte
     batchEval   = @(X, varargin) c217_batch_eval(X, bud, evalFcnPerX);
 
     % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.
@@ -1392,7 +1393,7 @@ function [status, info] = run_e7(alg, problema, semente, exp, dataRoot)
 
     % (4) evalFcn por-x (a ponte, bounds nativos) + embrulho de LOTE (D61) — o
     %     c217_batch_eval e GENERICO (handoff R1-c217 §7): hard-stop no meio do lote.
-    evalFcnPerX = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    evalFcnPerX = eval_fcn_por_x(ctx, pp, problema);   % [T15.7] DDMOP7 desvia da ponte
     batchEval   = @(X, varargin) c217_batch_eval(X, bud, evalFcnPerX);
 
     % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.
@@ -1594,7 +1595,7 @@ function [status, info] = run_c238(alg, problema, semente, exp, dataRoot)
 
     % (4) evalFcn por-x (a ponte, bounds nativos) + embrulho de LOTE (D61) — o
     %     c217_batch_eval e GENERICO (handoff R1-c217 §7): hard-stop no meio do lote.
-    evalFcnPerX = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    evalFcnPerX = eval_fcn_por_x(ctx, pp, problema);   % [T15.7] DDMOP7 desvia da ponte
     batchEval   = @(X, varargin) c217_batch_eval(X, bud, evalFcnPerX);
 
     % (5) UserProblem (contrato N.0/L.0): once=true (lote), bounds nativos, minimiza.
@@ -1803,7 +1804,7 @@ function [status, info] = run_e74(alg, problema, semente, exp, dataRoot)
 
     % (4) evalFcn POR INDIVIDUO (N.0-4.1): [dec,obj,con] por chamada 1xD, sob o
     % FEBudget (cache-hit=0 FE D89; hard-stop D61 propaga pelo CallFcn/addCause).
-    evalFcnPerX = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    evalFcnPerX = eval_fcn_por_x(ctx, pp, problema);   % [T15.7] DDMOP7 desvia da ponte
     % [DI-09/DI-19.1] UM SondaState POR CABECA ('boot'/'s1'/'s2'/'s3' — o struct
     % que o e74_sonda espera). Motivo: o g do hook bumpa 4x POR CICLO (boot g=1;
     % ciclo c: s1=4c-2, s2=4c-1, s3=4c) — sob UM estado com k=2 o s2 (a RBF
@@ -2428,7 +2429,7 @@ function [status, info] = run_piso(alg, problema, semente, exp, dataRoot)
 
     % (4) evalFcn por-x (a ponte, bounds nativos) + embrulho de LOTE (D61) — o
     %     c217_batch_eval e GENERICO (handoff R1-c217 §7): hard-stop no meio do lote.
-    evalFcnPerX = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    evalFcnPerX = eval_fcn_por_x(ctx, pp, problema);   % [T15.7] DDMOP7 desvia da ponte
     batchEval   = @(X, varargin) c217_batch_eval(X, bud, evalFcnPerX);
 
     % (4b) ── SEMEADURA DOS PISOS (§3.2 + D88) — o passo NOVO deste cartao ────
@@ -2815,12 +2816,30 @@ end
 
 function pp = py_problem(ctx, problema)
     % Instancia o problema pelo short name e le D/M/bounds (bounds NATIVOS).
+    % [T15.7] Para o DDMOP7 isto instancia a CASCA DESLIGADA (barata: sem
+    % MATLAB Engine, sem DoE) — so D/M/bounds saem daqui; a AVALIACAO desvia
+    % em eval_fcn_por_x. Avaliar a casca desligada = RuntimeError (D81).
     obj = ctx.inst(problema);
     pp.obj = obj;
     pp.D = double(obj.n_var);
     pp.M = double(obj.n_obj);
     pp.xl = double(py.numpy.asarray(obj.xl));
     pp.xu = double(py.numpy.asarray(obj.xu));
+end
+
+function f = eval_fcn_por_x(ctx, pp, problema)
+    % [T15.7/D102.5 caso 3] O evalFcn por-x da rota R1 — ponto UNICO de
+    % decisao da via de avaliacao. Padrao: a PONTE (A2), f(x) por
+    % py.problems.evaluate_problem em bounds nativos. DDMOP7: desvia ANTES da
+    % ponte para o avaliador local do .p (src/ddmop7_value_local.m) — nao ha
+    % Python nenhum na avaliacao; o FEBudget do harness segue a UNICA
+    % autoridade de FE/dedup/camada-1 (D89), e o avaliador local so guarda o
+    % que nao e contabilidade (forma/finito D81 + teto de 600 do .p, D88.5).
+    if strcmp(char(problema), 'DDMOP7')
+        f = @(x) ddmop7_value_local(x);
+    else
+        f = @(x) double(ctx.prm.evaluate_problem(pp.obj, py.numpy.array(x)));
+    end
 end
 
 
@@ -2922,6 +2941,19 @@ function sd = load_sonda(problema, D, M, dataRoot, regime)
 % Custo de FE: ZERO — a sonda nunca chama o avaliador real (exceção contabil
 % documentada, precedente do __final DI-08).
     if nargin < 5 || isempty(regime), regime = 'online'; end
+
+    % [T15.7/D102.10] Problema DECLARADAMENTE sem sonda (PROBLEMAS_SEM_SONDA,
+    % fonte unica em src/experiment.py — hoje: DDMOP7): devolve [] SEM aviso,
+    % espelho dos dois load_sonda Python (que devolvem None). O warning
+    % abaixo ficaria FALSO aqui — o problema ESTA no grid; a ausencia e por
+    % decisao, nao por acidente — e o (5) declara `sem_sonda_por_problema`
+    % (fill_manifest_timing -> sonda_bloco_declarado).
+    [~, semSonda] = sonda_bloco_declarado(problema);
+    if semSonda
+        sd = [];
+        return;
+    end
+
     pq  = nm_sonda_path(problema, dataRoot);
     man = nm_sonda_manifest_path(problema, dataRoot);
 
@@ -3310,15 +3342,27 @@ function man = fill_manifest_timing(man, trows, bud, tempo_total_s, snd)
     end
     man.fit_series = fs;
 
-    % Bloco `sonda` (DI-09): a certidao da regua usada neste run. Quando o
-    % problema esta FORA do grid dos 25 (piloto), o artefato nao existe e o
-    % bloco registra a AUSENCIA explicitamente — "sem sonda" nunca pode ser
-    % lido como "sonda vazia".
+    % Bloco `sonda` (DI-09): a certidao da regua usada neste run. Sem sonda,
+    % ha DUAS ausencias distintas — e elas nao podem se confundir (doutrina
+    % das "duas especies de None"; o auditar do T15.3 as separa):
+    %   * [T15.7 §3b/D102.10] problema DECLARADAMENTE sem regua
+    %     (PROBLEMAS_SEM_SONDA — hoje: DDMOP7): o (5) grava o bloco DECLARADO
+    %     `sem_sonda_por_problema` (mesmos campos do SONDA_AUSENTE_INFO do
+    %     src/experiment.py, via sonda_bloco_declarado — fonte unica);
+    %   * problema FORA do grid (piloto, ex.: DTLZ2_d15): acidente/limitacao
+    %     de artefato -> `artefato_ausente`, como sempre.
+    % (Os pisos sobrescrevem com 'nao_se_aplica' DEPOIS desta funcao — a
+    % terceira especie, config sem surrogate.)
     if nargin >= 5 && ~isempty(snd)
         man.sonda = snd.manifestBlock();
     else
-        man.sonda = struct('status', "artefato_ausente", ...
-            'motivo', "problema fora do grid dos 25 (sonda e por problema, Sobol d=D)");
+        [bloco, semSonda] = sonda_bloco_declarado(char(man.problema));
+        if semSonda
+            man.sonda = bloco;
+        else
+            man.sonda = struct('status', "artefato_ausente", ...
+                'motivo', "problema fora do grid dos 25 (sonda e por problema, Sobol d=D)");
+        end
     end
 end
 

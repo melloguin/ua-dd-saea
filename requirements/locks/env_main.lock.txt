@@ -68,3 +68,11 @@ typing_extensions==4.16.0
 tzdata==2026.3
 urllib3==2.7.0
 wrapt==2.2.2
+
+# [T15.7/D102.5 · torre 2026-08-14] Rota R2 do DDMOP7: o runner (env_main)
+# abre a MATLAB Engine para avaliar no DDMOP7.p. Instalado da arvore do
+# MATLAB R2025a (pip install /Applications/MATLAB_R2025a.app/extern/engines/python
+# no Mac; /opt/matlab/R2025a/extern/engines/python nas VMs) — o PyPI
+# 'matlabengine' exige matching exato de versao; a arvore local e o caminho
+# hermetico. Pin da release: 25.1 (= R2025a Update 1).
+matlabengine==25.1

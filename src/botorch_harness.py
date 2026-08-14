@@ -539,6 +539,31 @@ def di10_minimo_comum(bud, *, u_infill=None, train_U=None) -> dict:
 #  Adapter de problema §5.5 (bounds [0,1]↔nativo · sinal −f · Standardize)
 # ═══════════════════════════════════════════════════════════════════════════
 
+def problema_ligado(problema_id: str, semente=None):
+    """[T15.7 §1.2/D102.5] Instancia o problema (A2) e, se vier uma casca de
+    LIGAÇÃO TARDIA desligada (`ligado is False` — hoje só o DDMOP7) e houver
+    semente, faz `bind(semente)` — a MATLAB Engine abre AQUI (1 por run,
+    D88.5; a contabilidade fica EXTERNA por default da casca, D89). No-op
+    para os 27 problemas Python. Sem semente a casca segue DESLIGADA e
+    avaliar levanta RuntimeError pára-e-loga (D81 — o comportamento certo).
+    Quem liga também ENCERRA: chame `encerra_problema` em finally (D86)."""
+    from src import experiment as _exp  # lazy (evita ciclo de import)
+    p = _exp._instantiate_problem(problema_id)
+    if getattr(p, "ligado", True) is False and semente is not None:
+        p.bind(int(semente))
+    return p
+
+
+def encerra_problema(problema) -> None:
+    """[T15.7 §1.4/D86] Fecha os recursos do problema — a MATLAB Engine da
+    casca do DDMOP7. Idempotente; no-op para problemas sem `encerra` e para
+    `None`. Chamar SEMPRE em `finally` — inclusive em falha (D88.5: 1 Engine
+    por run; 2 runs no mesmo processo estourariam o teto de 600 do .p)."""
+    enc = getattr(problema, "encerra", None)
+    if callable(enc):
+        enc()
+
+
 class BoTorchProblemAdapter:
     """O contrato §5.5 da família BoTorch, amarrado ao `FEBudget`.
 
@@ -555,11 +580,18 @@ class BoTorchProblemAdapter:
       (desdobramento do manifesto — §17.6).
     """
 
-    def __init__(self, problema_id: str, bud: _budget.FEBudget):
-        from src import experiment as _exp  # lazy (evita ciclo de import)
+    def __init__(self, problema_id: str, bud: _budget.FEBudget,
+                 problem=None, semente=None):
         from src import problems as _problems
         self.problema_id = problema_id
-        self.problem = _exp._instantiate_problem(problema_id)
+        # [T15.7 §1.2] `problem` pronto (o runner o criou/ligou e o encerra em
+        # finally) OU instanciação aqui — e se vier a casca DESLIGADA do
+        # DDMOP7 (ligação tardia por semente), o bind acontece já: sem ele,
+        # avaliar levanta RuntimeError pára-e-loga (D81, comportamento certo).
+        if problem is not None:
+            self.problem = problem
+        else:
+            self.problem = problema_ligado(problema_id, semente)
         self._evaluate_problem = _problems.evaluate_problem
         self.bud = bud
         self.D = int(self.problem.n_var)
@@ -866,17 +898,24 @@ def run_stubpy(exp: str, alg: str, problema: str, semente, *,
     doe_art = load_doe(problema, semente, data_root=data_root)
     log = AuditLogger.for_run(exp, alg, problema, semente,
                               data_root=data_root, append=False)
+    # [T15.7] O problema nasce/liga AQUI (DDMOP7: bind abre a Engine) e é
+    # encerrado no finally — inclusive em falha (D86/D88.5, cartão §1.4).
+    prob_obj = None
     try:
+        prob_obj = problema_ligado(problema, semente)
         return _run_stubpy_body(exp, alg, problema, semente, t0, pinning, env,
-                                doe_art, log, data_root, enable_bucket)
+                                doe_art, log, data_root, enable_bucket,
+                                prob_obj=prob_obj)
     finally:
+        encerra_problema(prob_obj)
         log.close()
 
 
 def _run_stubpy_body(exp, alg, problema, semente, t0, pinning, env,
-                     doe_art, log, data_root, enable_bucket) -> dict:
+                     doe_art, log, data_root, enable_bucket,
+                     prob_obj=None) -> dict:
     bud = _budget.FEBudget(D=doe_art["X"].shape[1], logger=log)
-    adapter = BoTorchProblemAdapter(problema, bud)
+    adapter = BoTorchProblemAdapter(problema, bud, problem=prob_obj)
     D, M = adapter.D, adapter.M
     buf = SnapshotBuffer()
 

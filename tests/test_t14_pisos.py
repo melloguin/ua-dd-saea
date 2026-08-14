@@ -131,6 +131,12 @@ def _corpus_pisos() -> list[dict]:
     for alg in PISOS:
         for p in sorted(glob.glob(os.path.join(
                 _RAIZ, "data", "experiments", "main", alg, "*.jsonl"))):
+            # [T15] o corpus é PRÉ-D101 por definição (as 112 células medidas
+            # na era T14): células dos problemas REAIS (smokes do T15+) não
+            # entram — sem isto, cada smoke novo mudaria números congelados.
+            if any(f"_{pr}_" in os.path.basename(p)
+                   for pr in ("RE21", "DDMOP7", "ESTOQUE40")):
+                continue
             mp = p[:-len(".jsonl")] + ".manifest.json"
             if not os.path.exists(mp):
                 continue
@@ -374,6 +380,10 @@ def _corpus_geracoes() -> list[dict]:
     for alg in PISOS:
         for mp in sorted(glob.glob(os.path.join(
                 _RAIZ, "data", "experiments", "main", alg, "*.manifest.json"))):
+            # [T15] corpus PRÉ-D101 (ver nota em _corpus_pisos).
+            if any(f"_{pr}_" in os.path.basename(mp)
+                   for pr in ("RE21", "DDMOP7", "ESTOQUE40")):
+                continue
             with open(mp, encoding="utf-8") as fh:
                 m = json.load(fh)
             pr = m.get("params") or {}

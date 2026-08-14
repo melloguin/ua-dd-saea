@@ -483,24 +483,33 @@ def run_treed_media(exp: str, alg: str, problema: str, semente, *,
 
         # ── ⑦ __final: TODOS os finais avaliados 1× na verdade; ND filtrado DEPOIS.
         #    Emitida MESMO na parada por teto (rito do piso: curva parcial). ──────
+        #    [T15.7b/D102.9 Processo B — guarda de PARIDADE com b5/piso_offline:
+        #    o treed_media nao roda DDMOP7 no grid, mas se rodasse a ⑦ seria
+        #    POS-HOC via scripts/final_eval.py, declarada no ⑤ params.nd_final.]
         from src import problems as _problems
-        F_final = np.ascontiguousarray(
-            _problems.evaluate_problem(H._instantiate(problema), pop_final),
-            dtype=np.float64)
-        n_fin = int(pop_final.shape[0])
-        # [DI-27/A15] `nd_pos_real`: NÃO passar — o `write_final` o calcula sobre a
-        # vista FLOAT32 que a ⑦ PERSISTE (a mesma do `final_eval --check`). Molde
-        # b5/c311: no float64 cru cria assimetria em empates de borda.
-        H.write_final(
-            exp, alg, problema, semente, pop_final, F_final,
-            origem_solution_id=[None] * n_fin,       # ② vazia ⇒ sem vínculo c/ dataset
-            origem_geracao=[final_gen_last] * n_fin,
-            origem_linha=np.arange(n_fin),
-            origem_camada="surrogate (③), ultima geracao treed_media (RVEA final)",
-            data_root=data_root)
-        nd_idx = set(int(i) for i in _problems._nds_filter(
-            F_final.astype(np.float32).astype(np.float64)))
-        n_nd = len(nd_idx)
+        from src.experiment import (FINAL_POS_HOC_INFO,
+                                    PROBLEMAS_FINAL_POS_HOC)
+        if problema in PROBLEMAS_FINAL_POS_HOC:
+            params["nd_final"] = FINAL_POS_HOC_INFO
+        else:
+            F_final = np.ascontiguousarray(
+                _problems.evaluate_problem(H._instantiate(problema), pop_final),
+                dtype=np.float64)
+            n_fin = int(pop_final.shape[0])
+            # [DI-27/A15] `nd_pos_real`: NÃO passar — o `write_final` o calcula
+            # sobre a vista FLOAT32 que a ⑦ PERSISTE (a mesma do `final_eval
+            # --check`). Molde b5/c311: no float64 cru cria assimetria em
+            # empates de borda.
+            H.write_final(
+                exp, alg, problema, semente, pop_final, F_final,
+                origem_solution_id=[None] * n_fin,   # ② vazia ⇒ sem vínculo c/ dataset
+                origem_geracao=[final_gen_last] * n_fin,
+                origem_linha=np.arange(n_fin),
+                origem_camada="surrogate (③), ultima geracao treed_media (RVEA final)",
+                data_root=data_root)
+            nd_idx = set(int(i) for i in _problems._nds_filter(
+                F_final.astype(np.float32).astype(np.float64)))
+            n_nd = len(nd_idx)
 
         # ── ④ = 1 LINHA: completa fit + busca (EXCLUINDO a sonda, DI-13.10, e
         #    o checkpoint, BL-11 — os dois são instrumento, não algoritmo) ──────

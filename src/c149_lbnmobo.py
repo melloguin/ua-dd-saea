@@ -173,9 +173,12 @@ class _Oracle:
     é NOVA, criada pelo adapter (L.14), porque MMF1 vive em xl=[1,−1].
     """
 
-    def __init__(self, problema: str, bud: FEBudget):
-        from src import experiment as _exp
-        self._p = _exp._instantiate_problem(problema)
+    def __init__(self, problema: str, bud: FEBudget, semente=None):
+        # [T15.7 §1.2] casca de ligação tardia (DDMOP7) liga AQUI à semente
+        # (a Engine abre; contabilidade EXTERNA — o FEBudget segue a FONTE
+        # ÚNICA do orçamento, D89). No-op p/ os 27 problemas Python. Quem
+        # constrói o oracle ENCERRA o problema em finally (D86).
+        self._p = H.problema_ligado(problema, semente)
         self._bud = bud
         self.name = problema
         self.n_var = int(self._p.n_var)
@@ -594,7 +597,7 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
     D = int(doe["X"].shape[1])
     # [T6-batch] orcamento POR EXP (D66): main = 31D-1; batch = 11D-1+200q.
     bud = FEBudget(D=D, maxfe=maxfe_por_exp(exp, D, q), logger=log)
-    oracle = _Oracle(problema, bud)
+    oracle = _Oracle(problema, bud, semente=semente)       # [T15.7] bind DDMOP7
     M = oracle.n_obj
     if doe["X"].shape[0] != bud.n_init:
         raise RuntimeError(
@@ -965,6 +968,7 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
     except Exception as exc:                          # pragma: no cover
         status, motivo_parada = "failed", f"{type(exc).__name__}: {exc}"
         log.footer(status="failed", fe_final=bud.fe, erro=motivo_parada)
+        H.encerra_problema(oracle._p)      # [T15.7 §1.4/D86] também em falha
         log.close()
         raise
 
@@ -1019,6 +1023,7 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                    n_cache_infill=n_cache_infill,
                    n_clamp_sigma2=n_clamp_sigma2)
     finally:
+        H.encerra_problema(oracle._p)      # [T15.7 §1.4/D86] fecha a Engine
         log.close()
 
     return {

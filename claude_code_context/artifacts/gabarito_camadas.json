@@ -324,8 +324,8 @@
           "ORDEM_DE_COMMIT": "o opt-out da sonda (T-11) tem de entrar ANTES do append do DDMOP7 no catalogo (B-33). Na ordem inversa, o primeiro gen_sonda queima 34,8 h-core em silencio."
         }
       ],
-      "camada_1_de_onde_vem": "nao e o wrapper de FE padrao: e a ponte (ddmop7_bridge.camada1()), que ja devolve solution_id/first_fe_index/x/f em float32 (D53/D57.2). A contagem de FE, o hard-stop exato em 526 e o dedup bit-a-bit por X acontecem DENTRO da ponte (D61/D89).",
-      "camada_7_final": "vale a regra normal: so nas 5 configs offline."
+      "camada_1_de_onde_vem": "[atualizado T15.7, decisao do cartao §1.3] o wrapper de FE PADRAO de cada rota: R1 = FEBudget MATLAB do harness (a avaliacao desvia p/ src/ddmop7_value_local.m, SEM contador proprio); R2/R3 online = FEBudget Python do harness — a ponte (src/ddmop7_bridge) entra como avaliador CRU com contabilidade EXTERNA (um contador so, D89): fe/dedup/hard-stop/camada-① sao do harness. O arnes proprio da ponte (contabilidade='propria', com camada1()/hard-stop internos, o texto antigo deste campo) segue existindo SO para o modo standalone/smoke, fora dos harnesses.",
+      "camada_7_final": "[atualizado T15.7b, D102.9/Processo B] vale a regra normal (so nas configs offline), mas AVALIADA POS-HOC: os runners offline NAO avaliam a ⑦ inline p/ problemas em experiment.PROBLEMAS_FINAL_POS_HOC (a avaliacao exige processo externo — o .p via MATLAB Engine nao existe nos venvs offline); o run DECLARA no ⑤ (params.nd_final = FINAL_POS_HOC_INFO) e scripts/final_eval.py (ramo DDMOP7: motor da ponte + guard 600) grava o __final no MESMO contrato DI-08 — o precedente retroativo do e103. Gates inalterados: ⑦ ausente segue vermelha ate o final_eval rodar, exatamente como o e103."
     },
     "_o_que_e": "gabarito de camadas por PROBLEMA. O `configs` acima é indexado por config (algoritmo) — este eixo é outro. A camada ③ do DDMOP7 é a única exceção declarada (D102.10); RE21 e ESTOQUE40 seguem o padrão."
   }

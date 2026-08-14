@@ -72,11 +72,22 @@ def gen_one(problema: str, pid: int):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--check', action='store_true')
+    ap.add_argument('--only', nargs='+', default=None, metavar='PROBLEMA',
+                    help='gera/confere SÓ estes problemas (os artefatos dos '
+                         'demais NUNCA são re-gravados — a régua é congelada; '
+                         'sem --only, o laço cobre ALL_PROBLEMS)')
     args = ap.parse_args()
+    if args.only:
+        desconhecidos = [p for p in args.only if p not in ALL_PROBLEMS]
+        if desconhecidos:
+            raise SystemExit(f"--only com problema fora do catálogo: "
+                             f"{desconhecidos}")
     import pandas as pd
     os.makedirs(OUT, exist_ok=True)
     fails = 0
     for pid, problema in enumerate(ALL_PROBLEMS):
+        if args.only and problema not in args.only:
+            continue
         if _sem_sonda(problema):
             print(f"  {problema:12} SEM SONDA (D102.10) — pulado")
             continue

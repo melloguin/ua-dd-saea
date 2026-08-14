@@ -61,7 +61,9 @@ class TestDI13_5_SondaAninhada(unittest.TestCase):
     def test_artefato_20k_e_fatia_online_2k(self):
         import glob
         mans = glob.glob('data/sonda/*.manifest.json')
-        self.assertEqual(len(mans), 25)
+        # 27 = 28 problemas − DDMOP7 (sem sonda POR DECISÃO, D102.10 — o
+        # opt-out é testado em test_d102_sem_sonda; sonda dele aqui = BUG)
+        self.assertEqual(len(mans), 27)
         for f in mans:
             m = json.load(open(f))
             self.assertEqual(m['S'], 20000)

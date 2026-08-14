@@ -132,7 +132,7 @@
     },
     {
      "nome": "vm5",
-     "jobs": 24,
+     "jobs": 16,
      "matlab": true,
      "envs": [
       "env_main",
@@ -141,7 +141,7 @@
       "env_e81_qpots",
       "env_matlab"
      ],
-     "fonte": "n2-highmem-48 (24 físicos/384GB), projeto skilled-text-480300-d9, us-east4-a. jobs=24 = proporcional aos núcleos físicos (vazão medida 451 cel/dia na main) — A CALIBRAR no primeiro lote (nota T15.10). Provisionada por PROVISIONAR-VM-DO-ZERO.md; pré-T15: precisa da batelada DDMOP7 (engine nos 2 venvs, clone do .p, artefatos T15)."
+     "fonte": "⚠ MEDIDO 2026-08-14 23:00 UTC: nproc=32 (16 físicos) — DIVERGE da anotação anterior 'n2-highmem-48 (24 físicos)'. Hipótese: redimensionada; CONFIRMAR com o autor se volta a 48 para o T15. jobs=16 PROVISÓRIO (paridade com vm1, 1 job/físico) — a calibrar no 1º lote; com 48 vCPU voltaria a 24. Projeto skilled-text-480300-d9, us-east4-a. Provisionamento T15 EXECUTADO 14/08: clone 0f45d2c + engine env_main (workaround raiz-fake) + âncora bit-idêntica + artefatos 841/4/60; falta engine env_e81_qpots + pull (bloqueados pelo lote em voo)."
     }
    ]
   }
@@ -252,12 +252,12 @@
      8,
      9,
      10,
-     11
-    ],
-    "vm5": [
+     11,
      12,
      13,
-     14,
+     14
+    ],
+    "vm5": [
      15,
      16,
      17,
@@ -283,11 +283,11 @@
   "n_celulas_total": 22740,
   "custo_total_h_core": 15197.38,
   "wall_por_maquina_h": {
-   "vm1": 379.93,
-   "vm5": 379.93
+   "vm1": 474.92,
+   "vm5": 474.92
   },
-  "wall_medio_h": 379.93,
-  "wall_max_h": 379.93,
+  "wall_medio_h": 474.92,
+  "wall_max_h": 474.92,
   "desbalanceamento_max": 0.0,
   "criterio": "desbalanceamento_max <= 0.10 (cartão T14.11)"
  }

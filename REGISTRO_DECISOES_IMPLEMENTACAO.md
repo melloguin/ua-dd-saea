@@ -3020,3 +3020,90 @@ ACEITA; `colidiu_412` nessas sementes passa a ser esperado, não anomalia.
 Recusada (por mim, com justificativa) a proposta de subir para 18/7 jobs:
 oversubscription não cria núcleos, e esticar célula cara converte finalizadora em
 `teto_wall` — progresso negativo.
+
+## PARTE A49 — T15: OS 3 PROBLEMAS DE DADOS REAIS INTEGRADOS + FILA MATLAB + D0 (torre, 2026-08-13/14)
+
+**Escopo cravado pelo autor (13/08, = D102.16/REAL-2.16):** RE21=25 · DDMOP7=26 ·
+ESTOQUE40=27 em **21 configs** (13 online + b5m/b5r/e103 + 5 pisos) × 30 sementes =
+**1.890 células**; SEM q10/sweep (futuro provável) e SEM c311 (consistente com A47).
+Grid 20.850 → **22.740**. Frota-alvo do disparo (decisão de 14/08): **vm1 + vm5**.
+
+### A fila MATLAB do DDMOP7 — de "nunca executada" a fechada NO MESMO DIA (13/08)
+Pré-flight VERDE no Mac (pin exato `25.1.0.2973910`); congelamento dos 120 sorteios em
+**7 segundos** (init é amostragem pura — Mundo 1; PF-1 estocástico max|Δ|=1,89; PF-1b
+zeros 0,494; validação independente da torre no CSV: 22.320×17, sorteios distintos);
+derivação B-24/25 toda verde (DoE 30×186 sha `9fc4268d…` · dataset 30×526 sha
+`03056b6e…` · disjunção ponto-a-ponto · KS p=0,915); **B-26 VERDE após 2 defeitos
+REAIS medidos e consertados** (o `.p` EXIGE `DDMOP7('init')` 1×/processo antes de
+'value' — init não consome o contador de 600, lote pós-init é ponto-a-ponto fiel a
+chamadas individuais [3 sondagens]; e `exist()` devolve 2 OU 6 p/ .p conforme o pwd);
+**B-27 VERDE** (ponte com Engine real: 526/526 hard-stop exato, 526 soluções únicas,
+12 cache-hits a 0 FE; 2 defeitos no caminho: pymoo ausente no venv; BridgeTimeout do
+lote de 186 → fatiamento ≤64, valor-idêntico por pureza D102.11). Medido: **~6,3 s/FE
+também no Mac arm64**.
+
+### Os commits do T15 (suíte verde antes de cada leva)
+`f21533b` T15.1 opt-out sonda (ordem inegociável: ANTES do append; controle negativo
+em worktree) · `207692f` T15.2 catálogo+guardas 25→28+régua (com **REAL-2.15=opção A
+do autor e ERRATA MEDIDA**: nadir f2 da fase 1 = 468/690 = 0,6783 — os docs do pacote
+citavam 0,44493 de memória, padrão D85; venceu a fonte `ddmop7_probe_v6.csv`) ·
+`31b72fc` T15.3 sonda-None nos 10 runners+gates (agente re-medido 76/76; matou crash
+latente do braço DESLIGADA de c311/treed) · `bceae0e` T15.4/5 artefatos (DoE congelado
+→parquet com −0 preservado e controle de adulteração; CSVs congelados versionados;
+materialização RE21/ESTOQUE40; sonda dos 2 com DDMOP7 pulado pelo opt-out EM PRODUÇÃO)
+· `ed98eaa` T15.6/8 delta aplicado (kit filtrado 1.890 com **remap de 630 envs** —
+achado vermelho do recon: o delta usava nomes de env inexistentes; dry-run T-20 =
+22.740 run_ids únicos) + decisions.json 48→66 (D101+D102.1-.16) · `659e6a8` cartão
+T15.7 · T15.7/7b (commit desta parte): runner das 3 rotas.
+
+### T15.7/7b — o runner do DDMOP7 (agente com cartão; torre re-mediu tudo)
+R2: `src/ddmop7_bridge.py` (fixes medidos embutidos; DoE do artefato com fallback CSV
++hash; contabilidade `externa` sob FEBudget — UM contador só, D89). R1:
+`eval_fcn_por_x` = ponto ÚNICO de desvio no `experiment.m` (propriedade estrutural:
+1 lambda, 10 sítios), `ddmop7_value_local.m` (cd-em-volta com onCleanup),
+⑤ declarado via `sonda_bloco_declarado.m` LENDO a fonte única Python (zero literal
+duplicado — resolve o achado §3b do T15.3). Offline: **surpresa que desmentiu o
+cartão** (§3.1 "zero mudança" era FALSO — a ⑦ inline re-avalia via evaluate_problem e
+morreria na casca desligada) → resolvida SEM inventar: **Processo B da D102.9 mapeado
+no precedente do e103** (⑦ retroativa via `final_eval.py`; constantes
+`PROBLEMAS_FINAL_POS_HOC`+`FINAL_POS_HOC_INFO`; gates com o MESMO veredito do e103,
+nenhum estado novo; paridade provada ponta-a-ponta — o achado do auditar SOME após o
+final_eval). Processo A: `scripts/gen_dataset_ddmop7.py` pronto (roda nas VMs).
+Validação da torre: 123/123 py + **22/22 MATLAB com o `.p` REAL (0 skips)** — âncoras
+f=[4/17, 307/690] ≤1e-12, guard 600 pré-Engine, recusa DDMOP_Plat. 12 decisões [T]
+do agente ratificadas (destaque: motor determinístico via seam da fábrica — produção
+sem knob de mock; NULL declarado ≠ 0 fingido no footer).
+
+### Smokes de célula real (C1/C2 parciais)
+c154/RE21/s0: **PORTÃO VERDE — 8 gates, 0 vermelhos** (1ª célula real de problema
+novo aprovada pela bateria inteira). nsga2×{RE21,ESTOQUE40}: ok=2/2, portões com
+0 vermelhos (G-1 não-aplicável é ESTRUTURAL de piso — conferido contra o corpus s42,
+que ainda carrega 1 vermelho de esquema antigo no G-7; as células novas estão mais
+limpas que a baseline). c122/ESTOQUE40 (parede D=40): em execução.
+
+### D0 — autópsia das "450 falhas sistemáticas" da main (laudos em handoff/)
+c154: 125 teto_wall SANCIONADO (todas 12,00–12,49h, zero antes — medição da torre
+sobre 481 células teto_wall da coleta) + 35 falhas reais (24 escada-RS; 10
+ModelFittingError todas WFG1; 1 fantasma s30) + 12 em-voo. b1×DTLZ4: 18/18
+determinístico (`dacefit.m:102`; NO_RETRY já certificava; aceitar = incapacidade
+documentada). c262: teto_wall a 85–99% com dados; projeção O-20 NUNCA abortou
+("seguindo até o relógio" — DI-43/44 funcionando como especificado). Mito desfeito:
+"falhas rápidas em massa" eram OKs de piso por cache-hit. **c238×BBOB RESOLVIDO pela
+torre**: bug latente UPSTREAM (`Infill_EIM.m:25` — `min(reshape(...))` colapsa para
+escalar com front singleton; separação 28/28 vs 0/617 por `n_front1==1`; censura
+NÃO-aleatória = viés). Decisões do autor: DEC-5 confirmada (DI-44, aceitar ⚪);
+DEC-6 sim (12 sementes b1×DTLZ4 por simetria); DEC-7 sim (sementes não-tentadas das
+famílias seed-dependentes voltam ao grid); DEC-8 (fix `,[],1` sob freeze) NA MESA.
+Correção da torre ao laudo: semente 30 é fantasma — QUARENTENAR, jamais materializar.
+
+### Pendências ao fechar esta parte
+Smokes C3 do DDMOP7 (R1+R2 no Mac como prova de encanamento; offline real nas VMs
+pós-Processo A) · dossiê C5 → veredito de fidelidade do AUTOR (D97) · tag+push
+(autor) · provisionamento vm1+vm5 (matlab.engine, clone DDMOP pinado, transporte,
+exports) · Processo A (27,5 h-core) · grid 1.890 · disparo. Notas operacionais do
+7b: o portão da ⑦ DDMOP7 exige Engine e custa |⑦|×6s/célula — planejar ONDE roda;
+fluxo offline ganha o passo `final_eval.py --all-seeds` pós-lote (como o e103).
+
+**Fechamento (14/08): SUÍTE FINAL 966 testes · 0 falhas · 38 skips** (janela
+limpa, com o `.p` real ligado). Smokes C3: R1 nsga2/DDMOP7 E R2 c149/DDMOP7
+com PORTÃO VERDE (8 gates, 0 vermelhos cada). Dossiê C5 entregue ao autor.

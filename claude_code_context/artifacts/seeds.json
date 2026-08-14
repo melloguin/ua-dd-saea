@@ -83,7 +83,10 @@
       "BBOB_F22": 21,
       "BBOB_F37": 22,
       "BBOB_F49": 23,
-      "BBOB_F55": 24
+      "BBOB_F55": 24,
+      "RE21": 25,
+      "DDMOP7": 26,
+      "ESTOQUE40": 27
     },
     "tier_id": {
       "small": 0,

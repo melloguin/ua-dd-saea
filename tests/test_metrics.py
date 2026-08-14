@@ -34,10 +34,39 @@ except Exception:  # noqa: BLE001
 @unittest.skipUnless(_HAVE_METRICS, "sem numpy/pymoo (env-main)")
 class TestBoundsNormalize(unittest.TestCase):
 
-    def test_table_covers_25_problems(self):
+    def test_table_covers_28_problems(self):
+        # 28 chaves (25 sintéticos + 3 reais, D101), todas com régua concreta
+        # — a do DDMOP7 é a FASE 1 (REAL-2.15/opção A) e carrega o SELO.
         from src import experiment as _E
-        self.assertEqual(len(metrics.F_MIN_MAX), 25)
+        self.assertEqual(len(metrics.F_MIN_MAX), 28)
         self.assertEqual(set(metrics.F_MIN_MAX), set(_E.ALL_PROBLEMS))
+        self.assertTrue(all(v is not None for v in metrics.F_MIN_MAX.values()))
+
+    def test_regua_fase1_ddmop7_medida_na_fonte(self):
+        # [REAL-2.15 = opção A] min/max dos 62 pontos do probe v6. ⚠ o nadir
+        # de f2 dos DOCS (0,44493) estava errado — o MEDIDO é 468/690.
+        ideal, nadir = metrics.reference_bounds("DDMOP7")
+        self.assertTrue(np.allclose(ideal, [4 / 17, 202 / 690]))
+        self.assertTrue(np.allclose(nadir, [1.0, 468 / 690]))
+
+    def test_selo_de_substituicao_obrigatoria_vivo(self):
+        # [D102.3/TD-13] o selo NÃO sai antes da fase 2 — tripwire de auditoria.
+        self.assertIn("DDMOP7", metrics.REGUAS_PROVISORIAS)
+
+    def test_regua_none_para_e_loga(self):
+        # o mecanismo do selo-null continua vivo p/ problemas futuros: régua
+        # None ⇒ erro DESENHADO, nunca número inventado.
+        metrics.F_MIN_MAX["_TESTE_SELO"] = None
+        try:
+            with self.assertRaises(RuntimeError):
+                metrics.reference_bounds("_TESTE_SELO")
+        finally:
+            del metrics.F_MIN_MAX["_TESTE_SELO"]
+
+    def test_sem_front_d72_barreira(self):
+        # [TD-08] true_front_raw barra ANTES de instanciar (21,76 dias-core).
+        with self.assertRaises(NotImplementedError):
+            metrics.true_front_raw("DDMOP7", 10)
 
     def test_reference_bounds_known(self):
         ideal, nadir = metrics.reference_bounds("BBOB_F1")

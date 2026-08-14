@@ -65,7 +65,7 @@ _RANGE_FLOOR = 1e-12
 #  `f_max` aqui é o **nadir CRU** (a margem de 10% NÃO está embutida — ela entra
 #  via ref=1,1). Chaves = short names de `experiment.PROBLEM_CLASSES`.
 #  Fonte congelada: 00_fundacao/05_problemas.md · S.5.
-F_MIN_MAX: dict[str, tuple[tuple[float, ...], tuple[float, ...]]] = {
+F_MIN_MAX: dict[str, tuple[tuple[float, ...], tuple[float, ...]] | None] = {
     "MMF1":     ((0.0005, 0.0),          (1.0, 0.9776)),
     "MMF4":     ((0.001, 0.0),           (1.0, 1.0)),
     "MMF11_L":  ((0.1, 0.9523),          (1.1, 10.4757)),
@@ -91,6 +91,44 @@ F_MIN_MAX: dict[str, tuple[tuple[float, ...], tuple[float, ...]]] = {
     "BBOB_F37": ((17.8485, 23.3374),     (1724.6925, 390.3391)),
     "BBOB_F49": ((25.3176, 0.0123),      (1243.2907, 84.7479)),
     "BBOB_F55": ((0.0002, 0.1473),       (75.1174, 63.0222)),
+    # [D101] Problemas de DADOS REAIS — réguas MEDIDAS dos fronts D72
+    # (fonte congelada: S5_ideal_nadir.json do pacote de fusão do Agente 8).
+    "RE21":      ((1237.8414665029802, 0.002761428901174483),
+                  (2886.3687781863305, 0.03999999758374547)),
+    # [D102.3/REAL-2.15, autor 2026-08-13 = opção A] DDMOP7: régua FASE 1
+    # PROVISÓRIA = min/max coordenada-a-coordenada sobre os 62 pontos do probe
+    # v6 (os únicos com f MEDIDO; dado anterior a qualquer busca). Computada
+    # NA FONTE (`sources/ddmop7_probe_v6.csv`, 62×19, sem header) em
+    # 2026-08-13. ⚠ ERRATA: o nadir de f2 citado nos docs do pacote (0,44493)
+    # estava ERRADO — o medido é 468/690 = 0,678260869565217 (padrão D85:
+    # números citados de memória; venceu a fonte). A FASE 2 é OBRIGATÓRIA
+    # (ver REGUAS_PROVISORIAS abaixo): z*/z_nad pooled sobre as runs reais do
+    # DDMOP7 substituem estes valores e a §12 re-roda (D102.3).
+    "DDMOP7":    ((0.235294117647059, 0.292753623188406),
+                  (1.0, 0.678260869565217)),
+    "ESTOQUE40": ((-17484.620452644827, 183.96099397447864,
+                   0.00021709970828132528),
+                  (-6248.165327706775, 6413.046970097603,
+                   4.2561157380901555)),
+}
+
+#: [D102.4/TD-08] Problemas SEM front de referência D72 — o consumidor de
+#: `true_pareto_front`/`true_front_raw` DEVE pular estes (só HV; sem IGD+/GD).
+#: No DDMOP7 a classe levanta NotImplementedError por para-raios (uma chamada
+#: distraída custaria 21,76 dias-core no `.p`); este conjunto é o mecanismo de
+#: skip para quem itera problemas. Precedente de métrica por subconjunto: o
+#: IGDX pós-hoc dos 4 MMF (D99) — "as 2 vias" (decisão do autor, M1b).
+PROBLEMAS_SEM_FRONT_D72: frozenset = frozenset({"DDMOP7"})
+
+#: [D102.3/TD-13] SELO de régua PROVISÓRIA — substituição OBRIGATÓRIA na fase
+#: 2 (pós-hoc, pooled sobre as runs reais; re-roda a §12). Qualquer análise
+#: que leia F_MIN_MAX de um problema listado aqui está usando número
+#: PROVISÓRIO e deve declará-lo. O selo só sai quando a fase 2 gravar os
+#: definitivos — auditoria que veja esta constante não-vazia sabe que há
+#: pendência. Espelho do `provisorio: true` do S5_ideal_nadir.json.
+REGUAS_PROVISORIAS: dict[str, str] = {
+    "DDMOP7": "fase 1 = 62 pontos do probe v6 (REAL-2.15, opção A); "
+              "fase 2 pós-hoc obrigatória (D102.3)",
 }
 
 
@@ -105,6 +143,14 @@ def reference_bounds(problema: str) -> tuple[np.ndarray, np.ndarray]:
     if problema not in F_MIN_MAX:
         raise KeyError(f"problema sem f_min/f_max na S.5: {problema!r} "
                        f"(conhecidos: {sorted(F_MIN_MAX)})")
+    if F_MIN_MAX[problema] is None:
+        # [D102.3/TD-13] selo provisório: régua ainda não cravada — erro
+        # DESENHADO no lugar do KeyError tardio. NUNCA preencha com um número
+        # improvisado: régua é fidelidade (D81).
+        raise RuntimeError(
+            f"régua S.5 de {problema!r} está PROVISÓRIA (selo D102.3): a "
+            f"fase 1 aguarda a decisão REAL-2.15 do autor e a fase 2 é "
+            f"pós-hoc sobre as runs. Pára-e-loga (D81) — não invente valor.")
     ideal, nadir = F_MIN_MAX[problema]
     return np.asarray(ideal, dtype=np.float64), np.asarray(nadir, dtype=np.float64)
 
@@ -210,6 +256,12 @@ def true_front_raw(problema: str, n: int = REF_SET_SIZE) -> np.ndarray:
 
     Analítico para a maioria; EMPÍRICO (cache NSGA-II) para os BBOB≠F1 (§12.1).
     Retorna só `F` (o `X` do front não é usado nas métricas em objetivos)."""
+    if problema in PROBLEMAS_SEM_FRONT_D72:
+        # [D102.4/TD-08] barreira ANTES de instanciar: no DDMOP7 o caminho
+        # empírico custaria 21,76 dias-core no `.p`. Só HV para estes.
+        raise NotImplementedError(
+            f"{problema} não tem front D72 (D102.4) — reporte só HV; o "
+            f"consumidor deve pular PROBLEMAS_SEM_FRONT_D72.")
     from src import experiment            # lazy (puxa problems/pymoo)
     prob = experiment._instantiate_problem(problema)
     _, F = prob.true_pareto_front(n)

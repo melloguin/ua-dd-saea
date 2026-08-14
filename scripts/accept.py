@@ -177,9 +177,11 @@ def check_scaffold():
     except Exception as e:  # noqa: BLE001
         return False, f"import de módulo de infra falhou: {type(e).__name__}: {e}"
 
-    # Catálogo A2: 25 problemas, MMF16_L3 removido; dispatch vazio na Fase 0.
-    if len(experiment.ALL_PROBLEMS) != 25 or "MMF16_L3" in experiment.ALL_PROBLEMS:
-        return False, f"catálogo != 25 canônicos (A2/§4): {len(experiment.ALL_PROBLEMS)}"
+    # Catálogo A2: 28 problemas (25 sintéticos + 3 reais, D101), MMF16_L3
+    # removido; dispatch vazio na Fase 0. O 28 é TRIPWIRE anti-drift
+    # deliberado — não derive de len().
+    if len(experiment.ALL_PROBLEMS) != 28 or "MMF16_L3" in experiment.ALL_PROBLEMS:
+        return False, f"catálogo != 28 canônicos (A2/§4/D101): {len(experiment.ALL_PROBLEMS)}"
     if experiment.ALGORITHM_DISPATCH:
         return False, "ALGORITHM_DISPATCH deveria estar vazio na Fase 0 (R1/R2/R3 preenche)"
 
@@ -2474,15 +2476,19 @@ def check_f0_04():
     results.append(("lê a ① ponta-a-ponta: normaliza → métricas + trajetória",
                     (read_ok, msg)))
 
-    # (6) normalização D69 = S.5 congelada (25 problemas; F1 bate com o front vivo).
+    # (6) normalização D69 = S.5 congelada (28 problemas; F1 bate com o front
+    # vivo). O DDMOP7 entra com selo provisório None (D102.3/TD-13) — a
+    # cobertura de CHAVES é 28, e as réguas concretas são 27.
     from src import experiment
     front_nadir = metrics.true_front_raw("BBOB_F1", 2000).max(axis=0)
     n_probs = len(metrics.F_MIN_MAX)
-    tbl_ok = (n_probs == 25
+    n_seladas = sum(1 for v in metrics.F_MIN_MAX.values() if v is None)
+    tbl_ok = (n_probs == 28
               and set(metrics.F_MIN_MAX) == set(experiment.ALL_PROBLEMS)
+              and n_seladas == 1
               and np.allclose(nadir, front_nadir, rtol=1e-3))
     results.append((
-        "normalização D69 = tabela S.5 (25 problemas; F1 nadir = front vivo)",
+        "normalização D69 = tabela S.5 (28 problemas, 1 selo; F1 nadir = front vivo)",
         (tbl_ok, f"|F_MIN_MAX|={n_probs}, F1 nadir S.5={nadir.tolist()} "
                  f"~ front {front_nadir.round(3).tolist()}")))
 

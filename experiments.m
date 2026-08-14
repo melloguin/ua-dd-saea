@@ -171,11 +171,14 @@ end
 
 
 function probs = default_problems()
-% Os 25 problemas canonicos (A2/§4; MMF16_L3 removido) — espelha
+% Os 28 problemas canonicos (A2/§4; MMF16_L3 removido; +3 reais D101) — espelha
 % src/experiment.py::PROBLEM_CLASSES (BBOB canonico = BBOB_F1..BBOB_F55).
+% ATENCAO: lista HARDCODED (o MATLAB nao tem de onde derivar) — todo append no
+% catalogo Python TEM de ser replicado aqui, NO FIM (ids posicionais, D62/Q1).
 probs = {'MMF1','MMF4','MMF11_L','MMF16_20', ...
          'ZDT1','ZDT3','ZDT4','ZDT6', ...
          'DTLZ1','DTLZ2','DTLZ3','DTLZ4','DTLZ7', ...
          'WFG1','WFG2','WFG4','WFG5','WFG9', ...
-         'BBOB_F1','BBOB_F5','BBOB_F17','BBOB_F22','BBOB_F37','BBOB_F49','BBOB_F55'};
+         'BBOB_F1','BBOB_F5','BBOB_F17','BBOB_F22','BBOB_F37','BBOB_F49','BBOB_F55', ...
+         'RE21','DDMOP7','ESTOQUE40'};
 end

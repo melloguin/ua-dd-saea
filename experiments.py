@@ -59,7 +59,7 @@ KNOWN_ALGORITHMS: frozenset = frozenset(
 _OFFLINE = frozenset({'b5r', 'b5m', 'c311', 'moead_media', 'e103', 'treed_media'})
 DEFAULT_ALGORITHMS: list[str] = sorted(KNOWN_ALGORITHMS - _OFFLINE)
 
-# ── Problemas: os 25 canônicos (A2/§4; MMF16_L3 removido) ──────────────────
+# ── Problemas: os 28 canônicos (A2/§4; MMF16_L3 removido) ──────────────────
 DEFAULT_PROBLEMS: list[str] = list(_adapter.ALL_PROBLEMS)
 
 # ── Sementes: {0..28} ∪ {42} = 30 (§5.3/D85) ───────────────────────────────
@@ -453,7 +453,7 @@ def main(argv=None):
     p.add_argument('--algorithms', nargs='+', default=None,
                    help="Roster (subset do stack Python). 'none' = só monta o grid.")
     p.add_argument('--problems', nargs='+', default=DEFAULT_PROBLEMS,
-                   help='Problemas (short names; 25 canônicos).')
+                   help='Problemas (short names; 28 canônicos).')
     p.add_argument('--seeds', nargs='+', type=int, default=DEFAULT_SEEDS,
                    help='Sementes (default: 30 = {0..28} ∪ {42}).')
     p.add_argument('--n-jobs', type=int, default=1,

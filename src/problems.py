@@ -1339,6 +1339,314 @@ class BBOB_F55_Gallagher101_Gallagher101(_BBOBBiobjBase):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+#  PROBLEMAS DE DADOS REAIS (D101/REAL-1) — RE21 · DDMOP7 · ESTOQUE40
+#
+#  Escada de dimensionalidade D = 4 → 17 → 40 (maxFE 31D−1 = 123 → 526 → 1239)
+#  e escada de "modo de realidade": fórmula física → dado como ambiente de
+#  avaliação → dado como distribuição empírica. Transplantados BIT-A-BIT de
+#  `real_problems.py` do pacote de fusão do Agente 8 (2026-08-04), com três
+#  adaptações declaradas: (i) caminhos de dados re-ancorados na raiz do repo;
+#  (ii) docstring dos slots do DDMOP7 corrigido pelo mapa MEDIDO (TD-18);
+#  (iii) o port aritmético morto do DDMOP7 NÃO veio — é registro histórico e
+#  vive no arquivo de fusão (`mestrado2/_real_experiments/real_problems.py`).
+#  Posições no catálogo (Q1, IRREVERSÍVEL): RE21=25 · DDMOP7=26 · ESTOQUE40=27.
+# ═══════════════════════════════════════════════════════════════════════════
+
+#: Espelha `_BBOB_PF_CACHE_DIR`: <repo-root>/data/real_pf_cache (D72).
+_REAL_PF_CACHE_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "data", "real_pf_cache")
+
+#: Fontes congeladas dos problemas reais: <repo-root>/data/real_sources.
+_REAL_SOURCES_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "data", "real_sources")
+
+
+class _EmpiricalFrontMixin:
+    """Front de referência D72 para problemas sem forma fechada.
+
+    Mesma abordagem dos BBOB: acumula os não-dominados de `n_seeds` runs
+    independentes de NSGA-II (pop 200 × 300 ger × 5 sementes), cacheia em
+    `data/real_pf_cache/` e subamostra para `n`. NUNCA recompute em laço —
+    o ESTOQUE40 custa 164 s por recomputação; o cache é a via."""
+
+    def true_pareto_front(self, n=1000, pop_size=200, n_gen=300,
+                          n_seeds=5, seed=0):
+        cache = os.path.join(_REAL_PF_CACHE_DIR,
+                             f"{type(self).__name__}_d{self.n_var}.npz")
+        if os.path.exists(cache):
+            d = np.load(cache)
+            X, F = d["X"], d["F"]
+        else:
+            X, F = self._nsga2_front(pop_size, n_gen, n_seeds, seed)
+            os.makedirs(_REAL_PF_CACHE_DIR, exist_ok=True)
+            np.savez_compressed(cache, X=X, F=F)
+        if len(F) > n:
+            idx = self._subsample_front(F, n)
+            X, F = X[idx], F[idx]
+        return X, F
+
+    def _nsga2_front(self, pop_size, n_gen, n_seeds, seed):
+        from pymoo.algorithms.moo.nsga2 import NSGA2
+        from pymoo.optimize import minimize
+        Xs, Fs = [], []
+        for s in range(seed, seed + n_seeds):
+            res = minimize(self, NSGA2(pop_size=pop_size), ("n_gen", n_gen),
+                           seed=s, verbose=False)
+            if res.X is not None:
+                Xs.append(np.atleast_2d(res.X))
+                Fs.append(np.atleast_2d(res.F))
+        X, F = np.vstack(Xs), np.vstack(Fs)
+        idx = _nds_filter(F)
+        return X[idx], F[idx]
+
+    @staticmethod
+    def _subsample_front(F, n):
+        order = np.argsort(F[:, 0])
+        pick = np.unique(np.linspace(0, len(order) - 1, n).round().astype(int))
+        return order[pick]
+
+
+class RE21(_EmpiricalFrontMixin, Problem):
+    """RE21 — four-bar truss design (Tanabe & Ishibuchi 2020). M=2, D=4.
+
+    x1..x4 = áreas de seção das quatro barras. Constantes: F=10, sigma=10,
+    E=2e5, L=200; a = F/sigma = 1. Bounds: x1,x4 ∈ [a,3a]; x2,x3 ∈ [√2·a,3a].
+    Objetivos (ambos minimizados, genuinamente conflitantes):
+      f1 = L·(2·x1 + √2·x2 + √x3 + x4)                    (volume estrutural)
+      f2 = (F·L/E)·(2/x1 + 2√2/x2 − 2√2/x3 + 2/x4)        (deslocamento nodal)
+    Fidelidade: EXATA — bit-verificada contra o `reproblem.py` oficial
+    (dif = 0,0; IGD⁺ cruzado 4,82e-4/1,28e-4). Formulação: Cheng & Li (1999).
+    Front de referência = D72 empírico (D102.13); o oficial da suíte RE fica
+    como cross-check em `front_oficial_suite_RE()` e não alimenta métrica."""
+    _F, _SIGMA, _E, _L = 10.0, 10.0, 2.0e5, 200.0
+
+    def __init__(self):
+        a = self._F / self._SIGMA          # = 1.0
+        s2a = np.sqrt(2.0) * a
+        bounds = [[a, 3 * a], [s2a, 3 * a], [s2a, 3 * a], [a, 3 * a]]
+        xl, xu = _make_bounds(bounds)
+        super().__init__(n_var=4, n_obj=2, xl=xl, xu=xu)
+
+    def _evaluate(self, X, out, *args, **kwargs):
+        x1, x2, x3, x4 = X[:, 0], X[:, 1], X[:, 2], X[:, 3]
+        s2 = np.sqrt(2.0)
+        f1 = self._L * (2.0 * x1 + s2 * x2 + np.sqrt(x3) + x4)
+        f2 = (self._F * self._L / self._E) * (
+            2.0 / x1 + 2.0 * s2 / x2 - 2.0 * s2 / x3 + 2.0 / x4)
+        out["F"] = np.column_stack([f1, f2])
+
+    @staticmethod
+    def front_oficial_suite_RE():
+        """Front aproximado OFICIAL da suíte RE — só `F`, cross-check citável.
+
+        NÃO é a referência das métricas (não tem X; o contrato D72 pede o
+        par). `None` se o arquivo congelado não estiver presente."""
+        f = os.path.join(_REAL_SOURCES_DIR, "RE21_reference_front.npy")
+        return np.load(f) if os.path.exists(f) else None
+
+
+def _importa_ponte_ddmop7():
+    """Importa `DDMOP7Matlab` (a ponte oficial). Import TARDIO de propósito:
+    importar o catálogo não pode puxar a MATLAB Engine — o F0 importa
+    `problems.py` em máquina sem MATLAB nenhum. [TD-07 resolvido: a ponte
+    mora em `src/ddmop7_bridge.py`; o fallback plano cobre execução avulsa.]"""
+    erros = []
+    for mod in ("src.ddmop7_bridge", "ddmop7_bridge"):
+        try:
+            return __import__(mod, fromlist=["DDMOP7Matlab"]).DDMOP7Matlab
+        except Exception as e:                                    # noqa: BLE001
+            erros.append(f"{mod}: {type(e).__name__}: {e}")
+    raise ImportError(
+        "nao encontrei DDMOP7Matlab (a ponte oficial do DDMOP7). Tentativas:\n  "
+        + "\n  ".join(erros))
+
+
+class DDMOP7(Problem):
+    """DDMOP7 — treino de rede neural (Statlog Australian Credit). M=2, D=17.
+
+    AQUI NÃO SE CALCULA f. Esta classe é a CASCA que dá ao DDMOP7 a mesma
+    porta dos outros 27 (subclasse de `Problem`, instanciação sem argumento);
+    a avaliação DELEGA ao `DDMOP7.p` oficial via `ddmop7_bridge.DDMOP7Matlab`
+    (D102.5/D88.5) — que conta FE, aplica o hard-stop exato em 526 (D21/D61),
+    deduplica por X bit-a-bit (D57/D89) e monta a camada ①. O port aritmético
+    exigia 3 definições que o paper não dá (EPS, ativação, normalização) —
+    escolhê-las é o que o D81 proíbe; foram DISSOLVIDAS pela caixa-preta.
+
+    VARIÁVEIS DE DECISÃO (17), em [−1,1]^17 — mapa dos slots MEDIDO no oráculo
+    (TD-18; 5 batimentos exatos, `ddmop7_VEREDICTO.md` §7 + evidência em
+    `docs/exemplos/DDMOP7_evidencia_slots.csv` do pacote de fusão):
+        x[0]    viés do neurônio oculto
+        x[1:15] os 14 pesos de entrada (atributo j ↔ x[j])
+        x[15]   viés de saída
+        x[16]   peso oculta→saída
+    OBJETIVOS (ambos minimizados), verbatim do paper:
+        f1 = "the ratio of nonzero weights" ⇒ k/17, um DEGRAU (o treino
+             interno nunca poda: 55/62 pontos do oráculo deram f1 = 1,0)
+        f2 = "the classification error rate" (quantizado em múltiplos de 1/690)
+    Referência: He, Tian, Wang & Jin, Complex & Intelligent Systems 6(1) (2020).
+
+    LIGAÇÃO TARDIA À SEMENTE: `DDMOP7()` instancia BARATO (sem MATLAB, sem
+    DoE, sem FE — serve ao catálogo/F0/gates); `prob.bind(semente=s)` liga à
+    ponte e ao DoE congelado daquela semente; `DDMOP7_SEMENTE=<s>` no ambiente
+    liga sozinho no __init__; avaliar sem ligar = RuntimeError pára-e-loga
+    (D81). Um objeto ligado = UM run (D88.5) — para outra semente, outro
+    objeto. Regime especial: SEM sonda (D102.10, ver
+    `experiment.PROBLEMAS_SEM_SONDA`), SEM front D72 (D102.4 — só HV), régua
+    S.5 em duas fases com selo (D102.3)."""
+
+    D = 17
+    BOUND = 1.0
+    DOE_N = 11 * 17 - 1                 # 186   (D63)
+    MAX_FE = 31 * 17 - 1                # 526   (D21/D61, hard-stop exato)
+    P_CODE_CAP = 600                    # teto interno do próprio DDMOP7.p
+
+    def __init__(self, semente=None, **kw_ponte):
+        super().__init__(n_var=self.D, n_obj=2,
+                         xl=np.full(self.D, -self.BOUND),
+                         xu=np.full(self.D, +self.BOUND))
+        self._ponte = None
+        self._kw_ponte = dict(kw_ponte)
+        self.semente = None
+        if semente is None:
+            env = os.environ.get("DDMOP7_SEMENTE", "").strip()
+            semente = int(env) if env else None
+        if semente is not None:
+            self.bind(semente)
+
+    def bind(self, semente, **kw_ponte):
+        """Liga esta casca à ponte oficial, para UMA semente. Devolve `self`."""
+        if self._ponte is not None:
+            raise RuntimeError(
+                f"DDMOP7 ja esta ligado a semente {self.semente} (D88.5: um "
+                f"objeto = um run). Para a semente {semente}, construa outro "
+                f"objeto. Se o run anterior acabou, chame encerra() antes.")
+        DDMOP7Matlab = _importa_ponte_ddmop7()
+        kw = dict(self._kw_ponte)
+        kw.update(kw_ponte)
+        self._ponte = DDMOP7Matlab(semente=int(semente), **kw)
+        self.semente = int(semente)
+        return self
+
+    @property
+    def ligado(self):
+        return self._ponte is not None
+
+    @property
+    def ponte(self):
+        self._exige_ligado("acessar a ponte")
+        return self._ponte
+
+    def _exige_ligado(self, acao):
+        if self._ponte is None:
+            raise RuntimeError(
+                f"DDMOP7 nao esta ligado a nenhuma semente -- nao da para "
+                f"{acao}. Pare-e-logue (D81): esta classe e so a casca; a "
+                f"avaliacao mora no DDMOP7.p oficial. Ligue com "
+                f"prob.bind(semente=<s>), construa com DDMOP7(semente=<s>), "
+                f"ou exporte DDMOP7_SEMENTE=<s> no ambiente. "
+                f"NUNCA presuma uma semente: o DoE do DDMOP7 vem de sorteios "
+                f"CONGELADOS de DDMOP7('init'), que e ESTOCASTICO (D102.1).")
+
+    def _evaluate(self, X, out, *args, **kwargs):
+        """Delega ao `.p` oficial — ponto único de FE, hard-stop, solution_id.
+        Sem aritmética aqui DE PROPÓSITO (qualquer conta seria o port morto
+        de volta pela janela)."""
+        self._exige_ligado("avaliar")
+        return self._ponte._evaluate(X, out, *args, **kwargs)
+
+    @property
+    def doe(self):
+        self._exige_ligado("ler o DoE")
+        return self._ponte.doe
+
+    @property
+    def fe(self):
+        self._exige_ligado("ler o contador de FE")
+        return self._ponte.fe
+
+    def camada1(self):
+        self._exige_ligado("montar a camada ①")
+        return self._ponte.camada1()
+
+    def manifesto(self, status="ok", extra=None):
+        self._exige_ligado("emitir o manifesto")
+        return self._ponte.manifesto(status, extra)
+
+    def encerra(self):
+        """Fecha a MATLAB Engine (D86). Idempotente e seguro se desligado."""
+        if self._ponte is not None:
+            self._ponte.encerra()
+
+    def true_pareto_front(self, n=1000, *args, **kwargs):
+        """SEMPRE levanta — PARA-RAIOS do D72 (D102.4), não preguiça.
+
+        Se esta classe herdasse a maquinaria empírica, uma chamada distraída
+        dispararia 300.000 avaliações REAIS no `.p` = 21,76 DIAS-core em
+        silêncio. O DDMOP7 é reportado só por HV (f1 = k/17 quantizado ⇒
+        |ND| ≤ 18; um IGD⁺ contra um "front" desses mediria ruído). Quem itera
+        problemas chamando fronts DEVE pular `PROBLEMAS_SEM_FRONT_D72`
+        (`src/metrics.py`) — falhar alto aqui é o comportamento certo."""
+        raise NotImplementedError("D102.4: DDMOP7 não tem front D72")
+
+
+class ESTOQUE40(_EmpiricalFrontMixin, Problem):
+    """ESTOQUE40 — reposição semanal dos top-40 produtos. M=3, D=40.
+
+    Construído do dado REAL UCI Online Retail II (CC BY 4.0, DOI
+    10.24432/C5CG6D) por `data_estoque.py` (pacote de fusão), que congela as
+    distribuições empíricas de demanda semanal em `data/estoque_problem.npz`
+    (106 semanas completas, 2009-11-30 a 2011-12-11).
+
+    x (40) = quantidade de reposição semanal por produto, bounds [0, q95_i].
+    Objetivos (todos minimizados; receita NEGADA para virar minimização):
+      f1 = − Σ_i price_i · E_w[min(x_i, D_{i,w})]      (receita esperada, neg.)
+      f2 =   Σ_i hold_i  · E_w[max(x_i − D_{i,w}, 0)]  (custo de sobra)
+      f3 =   Σ_c (cov_c − mean)²  (desequilíbrio de cobertura por categoria;
+             8 × a variância — acopla variáveis, não-separável)
+    E_w[·] é a média empírica EXATA sobre as semanas; contínuo por partes.
+    Categoria = família `StockCode[:3]` → índice de ordem lexicográfica entre
+    as 26 famílias → mod 8 (regra A1 — NÃO é "dígitos mod 8")."""
+
+    def __init__(self, npz_path=None):
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        npz_path = npz_path or os.path.join(root, "data",
+                                            "estoque_problem.npz")
+        d = np.load(npz_path)
+        self._D = d["demand"].astype(float)            # (P, W)
+        self._price = d["price"].astype(float)         # (P,)
+        self._hold = d["hold"].astype(float)           # (P,)
+        self._cat = d["category"].astype(int)          # (P,)
+        self._stock = d["current_stock"].astype(float)  # (P,)
+        self._meandem = self._D.mean(axis=1)           # (P,)
+        self._cats = np.unique(self._cat)
+        self._stock_c = np.array([self._stock[self._cat == c].sum()
+                                  for c in self._cats])
+        self._meandem_c = np.array([self._meandem[self._cat == c].sum()
+                                    for c in self._cats])
+        P = self._D.shape[0]
+        xl = np.zeros(P)
+        xu = d["xu"].astype(float)
+        super().__init__(n_var=P, n_obj=3, xl=xl, xu=xu)
+
+    def _evaluate(self, X, out, *args, **kwargs):
+        X = np.atleast_2d(np.asarray(X, dtype=float))       # (N,P)
+        Dm = self._D                                        # (P,W)
+        xexp = X[:, :, None]                                # (N,P,1)
+        sold = np.minimum(xexp, Dm[None, :, :]).mean(axis=2)        # (N,P)
+        over = np.maximum(xexp - Dm[None, :, :], 0.0).mean(axis=2)  # (N,P)
+        f1 = -np.sum(self._price[None, :] * sold, axis=1)
+        f2 = np.sum(self._hold[None, :] * over, axis=1)
+        added_c = np.stack([X[:, self._cat == c].sum(axis=1)
+                            for c in self._cats], axis=1)           # (N,C)
+        cov = (self._stock_c[None, :] + added_c) / np.maximum(
+            self._meandem_c[None, :], 1e-9)
+        f3 = np.sum((cov - cov.mean(axis=1, keepdims=True)) ** 2, axis=1)
+        out["F"] = np.column_stack([f1, f2, f3])
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 #  Utility
 # ═══════════════════════════════════════════════════════════════════════════
 

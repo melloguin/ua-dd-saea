@@ -1,0 +1,32 @@
+{
+  "problema": "RE21",
+  "n_var": 4,
+  "n_obj": 2,
+  "decisao": "D72 (front de referência por acumulação de NSGA-II)",
+  "receita": {
+    "pop_size": 200,
+    "n_gen": 300,
+    "sementes": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "avaliacoes_totais": 300000
+  },
+  "n_pontos_front": 702,
+  "ideal_cru": [
+    1237.8414665029802,
+    0.002761428901174483
+  ],
+  "nadir_cru": [
+    2886.3687781863305,
+    0.03999999758374547
+  ],
+  "erro_max_reavaliacao_X": 0.0,
+  "arquivo": "RE21_d4.npz",
+  "sha256": "ba42c555751ac482881cee8c816e3b2b6c123c23e5b61c06920d29b618de717c",
+  "segundos": 13.4,
+  "gerado_por": "gerar_caches_front_D72.py (A-16/C-16)"
+}

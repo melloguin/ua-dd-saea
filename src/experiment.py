@@ -39,7 +39,8 @@ mantém o despachante e o runner de aceitação rodando no `python3` base.
 from __future__ import annotations
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  Catálogo de problemas — fonte ÚNICA (A2/§2/§4). 25 classes concretas.
+#  Catálogo de problemas — fonte ÚNICA (A2/§2/§4). 28 classes concretas
+#  (25 sintéticos + 3 de dados reais, D101).
 #  MMF16_L3 (d=3) foi REMOVIDO (Anexo D/REF-1); mantém-se só MMF16_20.
 #  short name (usado no grid/CLI) → nome da classe em src.problems.
 # ═══════════════════════════════════════════════════════════════════════════
@@ -70,14 +71,23 @@ PROBLEM_CLASSES: dict[str, str] = {
     'BBOB_F37':   'BBOB_F37_SharpRidge_Rastrigin',
     'BBOB_F49':   'BBOB_F49_Rastrigin_Gallagher101',
     'BBOB_F55':   'BBOB_F55_Gallagher101_Gallagher101',
+    # [D101/Q1] Os 3 problemas de DADOS REAIS — append ESTRITAMENTE no fim:
+    # PROBLEMA_ID é posicional (doe.py) e alimenta a SeedSequence (D62) —
+    # inserir no meio re-semearia DoE/dataset/sonda de todos os posteriores.
+    # Ordem = escada de D (4→17→40), cravada pelo autor; um 4º problema real
+    # entra por append no fim, nunca no meio. ids: RE21=25 DDMOP7=26
+    # ESTOQUE40=27.
+    'RE21':      'RE21',
+    'DDMOP7':    'DDMOP7',
+    'ESTOQUE40': 'ESTOQUE40',
 }
 
 ALL_PROBLEMS: list[str] = list(PROBLEM_CLASSES)
 
 # ── Instâncias NÃO-canônicas p/ a validação MANUAL de fidelidade do autor (D97) ──
-# [R1-c217] Fora dos 25 do A2 e do grid: existem só para o autor reproduzir a
+# [R1-c217] Fora dos 28 do A2 e do grid: existem só para o autor reproduzir a
 # config EXATA do paper de um algoritmo e comparar com a âncora (Anexo J). NÃO
-# entram em ALL_PROBLEMS/PROBLEMA_ID (os gates F0 exigem exatamente 25; seeds.json
+# entram em ALL_PROBLEMS/PROBLEMA_ID (os gates F0 exigem exatamente 28; seeds.json
 # == doe.PROBLEMA_ID), nem na bateria. `short → (classe, kwargs)`.
 #   DTLZ2_d15: DTLZ2 com n_var=2+13=15, m=3 = a config do paper do c217 PC-SAEA
 #   (âncora IGD≈6,9212e-2; a bateria usa o canônico 'DTLZ2' = d=12).
@@ -106,7 +116,7 @@ def _instantiate_problem(short_name: str):
 
     Import de `src.problems` **lazy** de propósito (puxa pymoo/numpy) — só é
     exigido quando um problema é de fato instanciado (nas rodadas), nunca só
-    por importar este módulo. Além dos 25 canônicos, resolve as instâncias de
+    por importar este módulo. Além dos 28 canônicos, resolve as instâncias de
     FIDELITY_PROBLEMS (não-canônicas, D97) — que NÃO estão em ALL_PROBLEMS.
     """
     from src import problems as _problems_mod  # lazy (pymoo/numpy)

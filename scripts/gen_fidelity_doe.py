@@ -8,7 +8,7 @@ algoritmo e comparar com a âncora (Anexo J). Como estão FORA de `ALL_PROBLEMS`
 canônico as rejeita. Este script gera o artefato reusando as MESMAS primitivas do
 `src.doe` (LHS-maximin D87, `_to_native`, `decoded_hash`, `_write_matrix_parquet`,
 round-trip bit-a-bit) mas por um caminho paralelo, com um `problema_id` de fidelidade
-distinto (>=1000, fora dos ids canônicos 0..24) para descolar a semente sem colidir.
+distinto (>=1000, fora dos ids canônicos 0..27) para descolar a semente sem colidir.
 
 Uso:  python3 scripts/gen_fidelity_doe.py [NOME ...] [--semente N] [--force]
       (sem NOME = todas as de FIDELITY_PROBLEMS; default semente 0)
@@ -26,7 +26,7 @@ import numpy as np
 from src import doe, naming
 from src.experiment import FIDELITY_PROBLEMS, _instantiate_problem
 
-#: offset dos ids de fidelidade (fora dos canônicos 0..24; sem pareamento cross-stack
+#: offset dos ids de fidelidade (fora dos canônicos 0..27; sem pareamento cross-stack
 #: — só o algoritmo dono usa este DoE, então o id é livre, apenas reprodutível).
 _FID_PID_BASE = 1000
 FIDELITY_PID = {name: _FID_PID_BASE + i for i, name in enumerate(sorted(FIDELITY_PROBLEMS))}

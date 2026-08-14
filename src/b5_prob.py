@@ -439,6 +439,8 @@ def _run_b5(alg, exp, problema, semente, *,
 
     # ── sonda OFFLINE: as 20.000 do artefato, 1× por modelo treinado ─────────
     sonda = H.load_sonda(problema, regime="offline", data_root=data_root)
+    if sonda is None:          # [D102.10] sem sonda POR PROBLEMA — desarma, não some
+        sonda_on = False
 
     buf = H.SnapshotBuffer()
     # [I-05] o acumulador de P_wrong é MÓDULO-nível: zerar no arranque, senão
@@ -459,7 +461,9 @@ def _run_b5(alg, exp, problema, semente, *,
                    n_dataset=n_ds, doe_hash=ds["x_hash"], f_hash=ds["f_hash"],
                    dataset_hash=ds.get("dataset_hash"),
                    ambiente=env, pinning=pinning, sigma_dict=sigma_dict,
-                   sonda_x_hash=sonda["x_hash"], sonda_S=sonda["S"],
+                   # [D102.10] sem sonda POR PROBLEMA ⇒ declara em vez do hash.
+                   **({"sonda": _sonda_decl()} if sonda is None else
+                      {"sonda_x_hash": sonda["x_hash"], "sonda_S": sonda["S"]}),
                    tier=tier, dist=dist,             # [T7] a célula do grid
                    dataset_path=ds.get("path"))      # o arquivo REALMENTE lido
 
@@ -631,9 +635,10 @@ def _run_b5(alg, exp, problema, semente, *,
             # [I-07/A3] a config EFETIVA no ⑤ (CONTRATO §5): b5r e b5m tinham
             # 45 células cada SEM a chave — 1.350 por config em 30 sementes.
             params=_params_efetivos(alg, mode, n_ds),
-            sonda_info={"S": sonda["S"], "cadencia": "offline: 1x por modelo",
-                        "n_blocos": 1 if sonda_on else 0,
-                        "x_hash": sonda["x_hash"], "f_hash": sonda["f_hash"]},
+            sonda_info=(_sonda_decl() if sonda is None else   # [D102.10]
+                        {"S": sonda["S"], "cadencia": "offline: 1x por modelo",
+                         "n_blocos": 1 if sonda_on else 0,
+                         "x_hash": sonda["x_hash"], "f_hash": sonda["f_hash"]}),
             status=status, motivo_parada=motivo_parada, q=1,
             tier=tier, dist=dist,
             data_root=data_root, enable_bucket=enable_bucket)
@@ -667,6 +672,12 @@ def _run_b5(alg, exp, problema, semente, *,
         "n_final": n_fin, "n_nd_pos_real": len(nd_idx),
         "alg": alg, "mode": mode,
     }
+
+
+def _sonda_decl() -> dict:
+    """[D102.10] Bloco DECLARADO de sonda ausente POR PROBLEMA (⑤ e header ⑥)."""
+    from src.experiment import SONDA_AUSENTE_INFO  # leve/lazy (sem ciclo)
+    return dict(SONDA_AUSENTE_INFO)
 
 
 def _null_sonda_geracao(buf, S):

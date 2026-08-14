@@ -223,6 +223,12 @@ def _null_sonda_geracao(buf, S):
         row["geracao"] = None
 
 
+def _sonda_decl() -> dict:
+    """[D102.10] Bloco DECLARADO de sonda ausente POR PROBLEMA (⑤ e header ⑥)."""
+    from src.experiment import SONDA_AUSENTE_INFO  # leve/lazy (sem ciclo)
+    return dict(SONDA_AUSENTE_INFO)
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  sigma_dict (DEF-C4) — o dicionário que torna a ③ auditável
 # ═══════════════════════════════════════════════════════════════════════════
@@ -361,6 +367,8 @@ def run_treed_media(exp: str, alg: str, problema: str, semente, *,
     fe_treino_max = n_ds - 1                        # DI-09/A1: constante no offline
 
     sonda = H.load_sonda(problema, regime="offline", data_root=data_root)
+    if sonda is None:       # [D102.10] sem sonda POR PROBLEMA — desarma, não some
+        emitir_sonda = False
     buf = H.SnapshotBuffer()
     buf.set_fe_treino_max(fe_treino_max)
     log = H.AuditLogger.for_run(exp, alg, problema, semente,
@@ -397,7 +405,10 @@ def run_treed_media(exp: str, alg: str, problema: str, semente, *,
                    n_dataset=n_ds, doe_hash=ds["x_hash"], f_hash=ds["f_hash"],
                    dataset_hash=ds.get("dataset_hash"),
                    ambiente=env, pinning=pinning, sigma_dict=sigma_dict,
-                   sonda_x_hash=sonda["x_hash"], sonda_S=sonda["S"], params=params,
+                   # [D102.10] sem sonda POR PROBLEMA ⇒ declara em vez do hash.
+                   **({"sonda": _sonda_decl()} if sonda is None else
+                      {"sonda_x_hash": sonda["x_hash"], "sonda_S": sonda["S"]}),
+                   params=params,
                    emitir_sonda=bool(emitir_sonda),
                    tier=tier, dist=dist,              # [T7] a célula do grid
                    dataset_path=ds.get("path"))       # o arquivo REALMENTE lido
@@ -541,7 +552,8 @@ def run_treed_media(exp: str, alg: str, problema: str, semente, *,
         env=env, pinning=pinning, n_geracoes=n_geracoes,
         algo_version=ALGO_VERSION, timing_totais=timing_totais,
         sigma_dict=sigma_dict, regime="offline", params=params,
-        sonda_info=({"S": sonda["S"], "cadencia": "offline: 1 bloco (modelo unico)",
+        sonda_info=(_sonda_decl() if sonda is None else       # [D102.10]
+                    {"S": sonda["S"], "cadencia": "offline: 1 bloco (modelo unico)",
                      "n_blocos": (1 if emitir_sonda else 0),
                      "modelo_flags": [_MODELO_FLAG],
                      "x_hash": sonda["x_hash"], "f_hash": sonda["f_hash"]}

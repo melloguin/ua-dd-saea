@@ -47,9 +47,13 @@ def audita(alg, prob, sem, exp="main", data_root="data", *,
            regime=None, piso=None) -> list[str]:
     import pyarrow.parquet as pq
     from src import naming
+    from src.experiment import PROBLEMAS_SEM_SONDA
     from src.export import ESPACOS
 
     piso = piso if piso is not None else alg in PISOS_ONLINE
+    # [D102.10] ausência DECLARADA POR PROBLEMA (≠ piso, ≠ acidente): a ③
+    # existe (busca), mas ZERO linhas regime='sonda' e o ⑤ declara.
+    sem_sonda = prob in PROBLEMAS_SEM_SONDA
     offline = (regime == "offline") or alg in OFFLINE
     achados: list[str] = []
     base = naming.layer_path(exp, alg, prob, sem, "surrogate", data_root)
@@ -98,6 +102,12 @@ def audita(alg, prob, sem, exp="main", data_root="data", *,
         if idx_sonda:
             achados.append(f"③ piso ONLINE com {len(idx_sonda)} linhas de "
                            f"sonda (contrato: nenhuma)")
+    elif sem_sonda:
+        # [D102.10] sonda onde não devia é tão grave quanto falta onde devia.
+        if idx_sonda:
+            achados.append(f"③ problema SEM SONDA (D102.10) com "
+                           f"{len(idx_sonda)} linhas regime='sonda' "
+                           f"(contrato: nenhuma)")
     else:
         if not idx_sonda:
             achados.append("③ SEM nenhuma linha de sonda (retrofit ausente?)")
@@ -157,12 +167,13 @@ def audita(alg, prob, sem, exp="main", data_root="data", *,
                 elif fe_final is not None and \
                         max(v for v in f_sonda) > int(fe_final):
                     achados.append("③ fe_treino_max > fe_final")
-        # enum do espaco_modelo (DI-19.8)
-        if "espaco_modelo" in t.schema.names:
-            fora = {v for v in t.column("espaco_modelo").to_pylist()
-                    if v not in (None, "")} - set(ESPACOS)
-            if fora:
-                achados.append(f"③ espaco_modelo fora do enum: {sorted(fora)}")
+    # enum do espaco_modelo (DI-19.8) — vale p/ toda ③ com surrogate, inclusive
+    # a de problema SEM SONDA (D102.10: a busca continua auditável).
+    if not piso and "espaco_modelo" in t.schema.names:
+        fora = {v for v in t.column("espaco_modelo").to_pylist()
+                if v not in (None, "")} - set(ESPACOS)
+        if fora:
+            achados.append(f"③ espaco_modelo fora do enum: {sorted(fora)}")
 
     # ── ④ ───────────────────────────────────────────────────────────────────
     t4 = pq.read_table(naming.layer_path(exp, alg, prob, sem, "timing",
@@ -186,6 +197,17 @@ def audita(alg, prob, sem, exp="main", data_root="data", *,
         if not (isinstance(snd, dict)
                 and snd.get("status") == "nao_se_aplica"):
             achados.append("⑤ piso sem o bloco sonda 'nao_se_aplica'")
+    elif sem_sonda:
+        # [D102.10] o ⑤ tem de DECLARAR a ausência por problema — status
+        # distinto de 'nao_se_aplica' (config sem surrogate) e de
+        # 'artefato_ausente' (acidente): as 3 ausências inconfundíveis.
+        if not (isinstance(snd, dict)
+                and snd.get("status") == "sem_sonda_por_problema"):
+            achados.append("⑤ problema SEM SONDA sem o bloco declarado "
+                           "'sem_sonda_por_problema' (D102.10)")
+        if not man.get("sigma_dict"):
+            achados.append("⑤ sigma_dict ausente (DEF-C4 — a ③ vira leitura "
+                           "proibida pela regra 3 do R4)")
     else:
         if not snd:
             achados.append("⑤ manifesto sem o bloco sonda")

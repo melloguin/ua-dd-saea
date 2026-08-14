@@ -106,6 +106,18 @@ FIDELITY_PROBLEMS: dict[str, tuple[str, dict]] = {
 #: `experiment.m:2928-2944` (sonda ausente ⇒ run segue e o ⑤ declara).
 PROBLEMAS_SEM_SONDA: frozenset = frozenset({'DDMOP7'})
 
+#: [D102.10] O bloco ⑤ DECLARADO da ausência de sonda POR PROBLEMA — fonte
+#: única: os runners gravam `dict(SONDA_AUSENTE_INFO)` e os gates o exigem.
+#: O status é DISTINTO de 'nao_se_aplica' (config sem surrogate —
+#: `sobol_batch.py:257`) e de 'artefato_ausente' (acidente/piloto —
+#: `experiment.m:3320`): as três ausências têm de ser inconfundíveis
+#: (doutrina das "duas espécies de None", `gates_proveniencia.py:334-352`).
+SONDA_AUSENTE_INFO: dict = {
+    "status": "sem_sonda_por_problema",
+    "motivo": "D102.10 — problema declaradamente fora da régua de sonda (§17.2.2)",
+    "n_blocos": 0, "n_linhas": 0, "S": 0,
+}
+
 
 def is_known_problem(short_name: str) -> bool:
     return short_name in PROBLEM_CLASSES or short_name in FIDELITY_PROBLEMS

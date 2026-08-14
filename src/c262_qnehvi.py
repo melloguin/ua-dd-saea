@@ -154,9 +154,13 @@ def disable_fused_kernel() -> dict:
             "_load_attempted": True, "_C_is_none": _mo_logei._C is None}
 
 
-def _sonda_header(sonda_art: dict) -> dict:
+def _sonda_header(sonda_art: "dict | None") -> dict:
     """O bloco `sonda` do header do jsonl — a certidão de QUAL régua foi usada
-    (o hash é o CP da sonda; §17.2.2)."""
+    (o hash é o CP da sonda; §17.2.2). `None` (problema em PROBLEMAS_SEM_SONDA,
+    D102.10) ⇒ o bloco DECLARADO de ausência, nunca hash."""
+    if sonda_art is None:                          # [D102.10] ausência declarada
+        from src.experiment import SONDA_AUSENTE_INFO  # leve/lazy (sem ciclo)
+        return dict(SONDA_AUSENTE_INFO)
     return {"S": sonda_art["S"], "k": _H.SONDA_K,
             "cadencia": "1ª iteração, a cada k=2, e SEMPRE a última",
             "x_hash": sonda_art["x_hash"], "f_hash": sonda_art["f_hash"],
@@ -546,6 +550,8 @@ def run_c262(exp: str, alg: str, problema: str, semente, *,
     # SONDA DI-09/§17.2.2: CARREGADA 1× (hash conferido) antes de abrir o log —
     # artefato ausente/corrompido pára o run ANTES de gastar FE (como o DoE).
     sonda_art = load_sonda(problema, data_root=data_root)
+    if sonda_art is None:      # [D102.10] sem sonda POR PROBLEMA — desarma, não some
+        sonda_on = False
     ref_f, ideal_s5, nadir_s5 = acqf_ref_point(problema)
 
     log = AuditLogger.for_run(exp, alg, problema, semente,
@@ -944,9 +950,12 @@ def _run_c262_body(exp, alg, problema, semente, t0, pinning, env, fused_policy,
     out["manifest"]["acqf_ref_f"] = ref_f.tolist()
     out["manifest"]["fused_kernel"] = fused_policy["fused_kernel"]
     out["manifest"]["sigma_dict"] = _sigma_dict()       # DEF-C4 (obrigatório)
-    out["manifest"]["sonda"] = {**_sonda_header(sonda_art),
-                                "n_blocos": n_blocos_sonda,
-                                "n_linhas": n_blocos_sonda * sonda_art["S"]}
+    if sonda_art is None:      # [D102.10] o ⑤ DECLARA a ausência por problema
+        out["manifest"]["sonda"] = _sonda_header(None)
+    else:
+        out["manifest"]["sonda"] = {**_sonda_header(sonda_art),
+                                    "n_blocos": n_blocos_sonda,
+                                    "n_linhas": n_blocos_sonda * sonda_art["S"]}
     from src import manifest as _manifest
     _manifest.write_manifest(out["manifest"], data_root)
 

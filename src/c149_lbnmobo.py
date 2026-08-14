@@ -602,6 +602,8 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
             f"— pára-e-loga (D81).")
 
     sonda = H.load_sonda(problema, regime="online", data_root=data_root)
+    if sonda is None:          # [D102.10] sem sonda POR PROBLEMA — desarma, não some
+        sonda_on = False
     buf = H.SnapshotBuffer()
     # [DI-43] checkpoint atômico periódico — 25 gerações OU 30 min.
     ckpt = _Checkpointer(exp, alg, problema, semente, D=D, M=M,
@@ -706,7 +708,9 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                    n_init=bud.n_init, doe_hash=doe["doe_hash"],
                    ambiente=env, pinning=pinning, sigma_dict=sigma_dict,
                    params=params,
-                   sonda_x_hash=sonda["x_hash"], sonda_S=sonda["S"])
+                   # [D102.10] sem sonda POR PROBLEMA ⇒ declara em vez do hash.
+                   **({"sonda": _sonda_info(None, buf)} if sonda is None else
+                      {"sonda_x_hash": sonda["x_hash"], "sonda_S": sonda["S"]}))
 
         # ── init: o DoE do artefato, bit-a-bit, na ORDEM do arquivo (D88) ───
         for x in doe["X"]:
@@ -997,11 +1001,7 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
             env=env, pinning=pinning, n_geracoes=g,
             algo_version=ALGO_VERSION, timing_totais=timing_totais,
             sigma_dict=sigma_dict, regime="online", params=params, q=int(q),
-            sonda_info={"S": sonda["S"], "regime": "online",
-                        "cadencia": f"online: k={H.SONDA_K} (g=1,2,4,6,…) + "
-                                    f"1a e ultima (finalProbe)",
-                        "n_blocos": _n_blocos(buf, sonda["S"]),
-                        "x_hash": sonda["x_hash"], "f_hash": sonda["f_hash"]},
+            sonda_info=_sonda_info(sonda, buf),          # [D102.10] None ⇒ declara
             data_root=data_root, enable_bucket=enable_bucket)
         # `write_run_outputs` carimba status='ok' hard-coded (lacuna do
         # harness, sinalizada no handoff): acrescenta-se `motivo_parada` e,
@@ -1027,7 +1027,8 @@ def _run_c149_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
         "motivo_parada": motivo_parada,
         "n_surrogate_rows": len(buf.surr_rows), "n_pop_rows": len(buf.pop_rows),
         "n_timing_rows": len(buf.timing_rows),
-        "n_blocos_sonda": _n_blocos(buf, sonda["S"]), "regime": "online",
+        "n_blocos_sonda": (0 if sonda is None                    # [D102.10]
+                           else _n_blocos(buf, sonda["S"])), "regime": "online",
         "cache_hits": bud.cache_hits, "n_cache_infill": n_cache_infill,
         "n_clamp_sigma2": n_clamp_sigma2, "n_front1": n_front1,
         "tempo_pred_sonda_s": t_sonda_total,
@@ -1066,6 +1067,20 @@ def _dist_min(x_nat: np.ndarray, X_arc_nat: np.ndarray) -> float | None:
 
 def _n_blocos(buf, S: int) -> int:
     return sum(1 for r in buf.surr_rows if r.get("regime") == "sonda") // S
+
+
+def _sonda_info(sonda: "dict | None", buf) -> dict:
+    """O bloco `sonda` do ⑤ (e do header ⑥ na ausência). [D102.10] `sonda is
+    None` (problema em PROBLEMAS_SEM_SONDA) ⇒ o bloco DECLARADO único — status
+    distinto de 'nao_se_aplica' e 'artefato_ausente'."""
+    if sonda is None:
+        from src.experiment import SONDA_AUSENTE_INFO  # leve/lazy (sem ciclo)
+        return dict(SONDA_AUSENTE_INFO)
+    return {"S": sonda["S"], "regime": "online",
+            "cadencia": f"online: k={H.SONDA_K} (g=1,2,4,6,…) + "
+                        f"1a e ultima (finalProbe)",
+            "n_blocos": _n_blocos(buf, sonda["S"]),
+            "x_hash": sonda["x_hash"], "f_hash": sonda["f_hash"]}
 
 
 def _f(v):

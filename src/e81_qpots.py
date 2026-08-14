@@ -505,6 +505,12 @@ def _n_blocos(buf, S: int) -> int:
     return int(n // int(S)) if S else 0
 
 
+def _sonda_decl() -> dict:
+    """[D102.10] Bloco DECLARADO de sonda ausente POR PROBLEMA (⑤ e header ⑥)."""
+    from src.experiment import SONDA_AUSENTE_INFO  # leve/lazy (sem ciclo)
+    return dict(SONDA_AUSENTE_INFO)
+
+
 def _maximin_do_escolhido(front: np.ndarray, X01_treino: np.ndarray,
                           idx: int) -> float | None:
     """A distância maximin do candidato escolhido (instrumentação S.7).
@@ -600,6 +606,8 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
             f"— pára-e-loga (D81).")
 
     sonda = H.load_sonda(problema, regime="online", data_root=data_root)
+    if sonda is None:          # [D102.10] sem sonda POR PROBLEMA — desarma, não some
+        sonda_on = False
     buf = H.SnapshotBuffer()
     # [DI-43] checkpoint atômico periódico — 25 gerações OU 30 min.
     ckpt = _Checkpointer(exp, alg, problema, semente, D=D, M=M,
@@ -753,7 +761,9 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                    ambiente=env, pinning=pinning, sigma_dict=sigma_dict,
                    params=params,
                    dtype_check=str(torch.get_default_dtype()),
-                   sonda_x_hash=sonda["x_hash"], sonda_S=sonda["S"])
+                   # [D102.10] sem sonda POR PROBLEMA ⇒ declara em vez do hash.
+                   **({"sonda": _sonda_decl()} if sonda is None else
+                      {"sonda_x_hash": sonda["x_hash"], "sonda_S": sonda["S"]}))
 
         # ── init: o DoE do artefato, bit-a-bit, na ORDEM do arquivo (D88) ───
         for x in doe["X"]:
@@ -1141,11 +1151,12 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
             # DI-23/§3.3: o manifesto nasce HONESTO — nada de reescrever
             # por fora (o contorno que o c149 precisou antes destes kwargs).
             status=status, motivo_parada=motivo_parada, q=int(q),
-            sonda_info={"S": sonda["S"], "regime": "online",
-                        "cadencia": f"online: k={k_sonda} (g=1,2,4,6,…) + "
-                                    f"1a e ultima (finalProbe)",
-                        "n_blocos": _n_blocos(buf, sonda["S"]),
-                        "x_hash": sonda["x_hash"], "f_hash": sonda["f_hash"]},
+            sonda_info=(_sonda_decl() if sonda is None else   # [D102.10]
+                        {"S": sonda["S"], "regime": "online",
+                         "cadencia": f"online: k={k_sonda} (g=1,2,4,6,…) + "
+                                     f"1a e ultima (finalProbe)",
+                         "n_blocos": _n_blocos(buf, sonda["S"]),
+                         "x_hash": sonda["x_hash"], "f_hash": sonda["f_hash"]}),
             data_root=data_root, enable_bucket=enable_bucket)
         # [T6-batch] `q` carimbado DIRETO no `write_run_outputs` (o harness já
         # o repassa ao `new_manifest`) — o remendo de reescrita pós-hoc (2
@@ -1165,7 +1176,8 @@ def _run_e81_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
         "status": status, "motivo_parada": motivo_parada,
         "n_surrogate_rows": len(buf.surr_rows), "n_pop_rows": len(buf.pop_rows),
         "n_timing_rows": len(buf.timing_rows),
-        "n_blocos_sonda": _n_blocos(buf, sonda["S"]), "regime": "online",
+        "n_blocos_sonda": (0 if sonda is None                    # [D102.10]
+                           else _n_blocos(buf, sonda["S"])), "regime": "online",
         "cache_hits": bud.cache_hits, "n_cache_infill": n_cache_infill,
         "n_lote_menor": n_lote_menor,
         "n_lote_completado": n_lote_completado, "n_front1": n_front1,

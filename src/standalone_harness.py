@@ -766,6 +766,12 @@ def clear_sonda_cache() -> None:
     _SONDA_CACHE.clear()
 
 
+def _sonda_decl() -> dict:
+    """[D102.10] Bloco DECLARADO de sonda ausente POR PROBLEMA (⑤ e header ⑥)."""
+    from src.experiment import SONDA_AUSENTE_INFO  # leve/lazy (sem ciclo)
+    return dict(SONDA_AUSENTE_INFO)
+
+
 def load_sonda(problema: str, *,
                regime: str = 'online',
                data_root: str = naming.DEFAULT_DATA_ROOT) -> dict:
@@ -1654,6 +1660,8 @@ def run_stubr3(exp: str, alg: str, problema: str, semente, *,
     # [DI-13.5] o STUB do R3-00 é OFFLINE ⇒ lê o artefato INTEIRO (20.000).
     # Os cartões R3 ONLINE (c122/c149/e81) passam regime='online' (fatia 2.000).
     sonda = load_sonda(problema, regime='offline', data_root=data_root)
+    # [D102.10] sonda None = problema em PROBLEMAS_SEM_SONDA — desarma, não
+    # some: o stub segue sem o bloco e o ⑤ DECLARA a ausência.
     buf = SnapshotBuffer()
     log = AuditLogger.for_run(exp, alg, problema, semente,
                               data_root=data_root, append=False)
@@ -1672,7 +1680,9 @@ def run_stubr3(exp: str, alg: str, problema: str, semente, *,
                    n_dataset=n_ds, doe_hash=ds["x_hash"], f_hash=ds["f_hash"],
                    dataset_hash=ds.get("dataset_hash"),
                    ambiente=env, pinning=pinning, sigma_dict=sigma_dict,
-                   sonda_x_hash=sonda["x_hash"], sonda_S=sonda["S"])
+                   # [D102.10] sem sonda POR PROBLEMA ⇒ declara em vez do hash.
+                   **({"sonda": _sonda_decl()} if sonda is None else
+                      {"sonda_x_hash": sonda["x_hash"], "sonda_S": sonda["S"]}))
 
         # ── fit ÚNICO (offline não retreina) ────────────────────────────────
         t0 = time.time()
@@ -1686,10 +1696,12 @@ def run_stubr3(exp: str, alg: str, problema: str, semente, *,
         # inclui o custo da sonda (a semântica A-2/D-1 que o retrofit R2
         # cravou — instrumentar não pode contaminar a medida do mecanismo, e
         # contaminaria de forma DESIGUAL). O custo vive em `tempo_pred_sonda_s`.
-        t_sonda = emit_sonda_block(
-            buf, log, geracao=1, fe=bud.fe, sonda=sonda, predict=predict,
-            fe_treino_max=n_ds - 1, modelo_flag="STUB-IDW",
-            motivo="offline: 1x por modelo treinado")
+        t_sonda = 0.0
+        if sonda is not None:                     # [D102.10] None ⇒ sem bloco
+            t_sonda = emit_sonda_block(
+                buf, log, geracao=1, fe=bud.fe, sonda=sonda, predict=predict,
+                fe_treino_max=n_ds - 1, modelo_flag="STUB-IDW",
+                motivo="offline: 1x por modelo treinado")
 
         # ── MOEA interno sobre o surrogate — ZERO FE ────────────────────────
         rng = np.random.default_rng(
@@ -1775,9 +1787,10 @@ def run_stubr3(exp: str, alg: str, problema: str, semente, *,
             env=env, pinning=pinning, n_geracoes=_STUB_GERACOES,
             algo_version="stubr3-1.0", timing_totais=timing_totais,
             sigma_dict=sigma_dict, regime="offline",
-            sonda_info={"S": sonda["S"], "cadencia": "offline: 1x por modelo",
-                        "n_blocos": 1, "x_hash": sonda["x_hash"],
-                        "f_hash": sonda["f_hash"]},
+            sonda_info=(_sonda_decl() if sonda is None else   # [D102.10]
+                        {"S": sonda["S"], "cadencia": "offline: 1x por modelo",
+                         "n_blocos": 1, "x_hash": sonda["x_hash"],
+                         "f_hash": sonda["f_hash"]}),
             data_root=data_root, enable_bucket=enable_bucket)
         log.footer(status="ok", fe_final=bud.fe, cp_init=True,
                    cache_hits=bud.cache_hits, n_geracoes=_STUB_GERACOES,
@@ -1789,7 +1802,8 @@ def run_stubr3(exp: str, alg: str, problema: str, semente, *,
         "fe_final": bud.fe, "maxfe": bud.maxfe, "n_dataset": n_ds,
         "cp_init_ok": bool(res["cp_init_ok"]), "n_geracoes": _STUB_GERACOES,
         "n_surrogate_rows": len(buf.surr_rows), "n_pop_rows": len(buf.pop_rows),
-        "n_timing_rows": len(buf.timing_rows), "n_sonda_pontos": sonda["S"],
+        "n_timing_rows": len(buf.timing_rows),
+        "n_sonda_pontos": (0 if sonda is None else sonda["S"]),  # [D102.10]
         "n_final": int(pop_final.shape[0]), "n_nd_pos_real": len(nd_idx),
         "regime": "offline", "cache_hits": bud.cache_hits,
         "tempo_pred_sonda_s": t_sonda,

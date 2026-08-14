@@ -919,29 +919,44 @@ def check_r3_c149(exp="main", problema="MMF1", semente=0, data_root=None):
                                              "surrogate", data_root=data_root))
     reg = _np.asarray(surr.column("regime").to_pylist())
     n_snd = int((reg == "sonda").sum())
-    ok = n_snd > 0 and n_snd % 2000 == 0
-    out.append(("③ blocos de sonda ×2000",
-                (ok, f"{n_snd} linhas 'sonda' = {n_snd / 2000:g} blocos; "
-                     f"{int((reg == 'online').sum())} linhas de busca")))
-
-    # ordem do artefato: o join com o gabarito é POSICIONAL (R4 regra 5)
-    from src import standalone_harness as _sh
-    snd_art = _sh.load_sonda(problema, regime="online", data_root=data_root)
-    xs = _np.column_stack([surr.column(f"x{i}").to_numpy() for i in range(D)])
+    # [D102.10] problema declaradamente SEM sonda: exige ZERO linhas, pula a
+    # ordem-do-artefato (não há artefato) e o ⑤ tem de DECLARAR a ausência.
+    from src.experiment import PROBLEMAS_SEM_SONDA as _PSS
+    sem_sonda = problema in _PSS
     idx = _np.where(reg == "sonda")[0]
-    ok_ordem = True
-    b = 0
-    for b in range(len(idx) // 2000):
-        bloco = xs[idx[b * 2000:(b + 1) * 2000]]
-        if not _np.allclose(bloco, snd_art["X"].astype(bloco.dtype),
-                            rtol=0, atol=1e-5):
-            ok_ordem = False
-            break
-    out.append(("③ sonda na ORDEM do artefato",
-                (ok_ordem, "todos os blocos batem posicionalmente com "
-                           "data/sonda/ (join posicional, R4 regra 5)"
-                 if ok_ordem else f"bloco {b} FORA de ordem — a R4 casaria "
-                                  f"predição com o gabarito ERRADO")))
+    if sem_sonda:
+        out.append(("③ ZERO sonda (problema SEM SONDA — D102.10)",
+                    (n_snd == 0,
+                     f"{n_snd} linhas 'sonda' (contrato: 0); "
+                     f"{int((reg == 'online').sum())} linhas de busca")))
+        out.append(("③ sonda na ORDEM do artefato",
+                    (None, "SKIP — sem artefato de sonda POR PROBLEMA "
+                           "(D102.10)")))
+    else:
+        ok = n_snd > 0 and n_snd % 2000 == 0
+        out.append(("③ blocos de sonda ×2000",
+                    (ok, f"{n_snd} linhas 'sonda' = {n_snd / 2000:g} blocos; "
+                         f"{int((reg == 'online').sum())} linhas de busca")))
+
+        # ordem do artefato: o join com o gabarito é POSICIONAL (R4 regra 5)
+        from src import standalone_harness as _sh
+        snd_art = _sh.load_sonda(problema, regime="online",
+                                 data_root=data_root)
+        xs = _np.column_stack([surr.column(f"x{i}").to_numpy()
+                               for i in range(D)])
+        ok_ordem = True
+        b = 0
+        for b in range(len(idx) // 2000):
+            bloco = xs[idx[b * 2000:(b + 1) * 2000]]
+            if not _np.allclose(bloco, snd_art["X"].astype(bloco.dtype),
+                                rtol=0, atol=1e-5):
+                ok_ordem = False
+                break
+        out.append(("③ sonda na ORDEM do artefato",
+                    (ok_ordem, "todos os blocos batem posicionalmente com "
+                               "data/sonda/ (join posicional, R4 regra 5)"
+                     if ok_ordem else f"bloco {b} FORA de ordem — a R4 casaria "
+                                      f"predição com o gabarito ERRADO")))
 
     ftm = surr.column("fe_treino_max").to_pylist()
     out.append(("③ fe_treino_max sem nulos",
@@ -1034,15 +1049,27 @@ def check_r3_c149(exp="main", problema="MMF1", semente=0, data_root=None):
               encoding="utf-8") as fh:
         man = json.load(fh)
     tblk = man.get("timing") or {}
-    ok = (all(k in tblk for k in ("tempo_total_s", "tempo_fit_surrogate_s",
-                                  "tempo_busca_s", "tempo_aval_real_s"))
-          and bool(man.get("sigma_dict")) and bool(man.get("sonda"))
-          and (man.get("sonda") or {}).get("regime") == "online")
-    out.append(("⑤ manifesto (timing+sigma_dict+sonda.regime)",
-                (ok, f"timing={sorted(tblk)}; sigma_dict="
-                     f"{len(man.get('sigma_dict') or {})} chaves; "
-                     f"sonda.n_blocos={(man.get('sonda') or {}).get('n_blocos')}"
-                     f"; regime={(man.get('sonda') or {}).get('regime')}")))
+    _snd5 = man.get("sonda") or {}
+    if sem_sonda:
+        # [D102.10] o ⑤ DECLARA a ausência (sem `regime`; status único).
+        ok = (all(k in tblk for k in ("tempo_total_s", "tempo_fit_surrogate_s",
+                                      "tempo_busca_s", "tempo_aval_real_s"))
+              and bool(man.get("sigma_dict"))
+              and _snd5.get("status") == "sem_sonda_por_problema")
+        out.append(("⑤ manifesto (timing+sigma_dict+sonda DECLARADA D102.10)",
+                    (ok, f"timing={sorted(tblk)}; sigma_dict="
+                         f"{len(man.get('sigma_dict') or {})} chaves; "
+                         f"sonda.status={_snd5.get('status')}")))
+    else:
+        ok = (all(k in tblk for k in ("tempo_total_s", "tempo_fit_surrogate_s",
+                                      "tempo_busca_s", "tempo_aval_real_s"))
+              and bool(man.get("sigma_dict")) and bool(man.get("sonda"))
+              and _snd5.get("regime") == "online")
+        out.append(("⑤ manifesto (timing+sigma_dict+sonda.regime)",
+                    (ok, f"timing={sorted(tblk)}; sigma_dict="
+                         f"{len(man.get('sigma_dict') or {})} chaves; "
+                         f"sonda.n_blocos={_snd5.get('n_blocos')}"
+                         f"; regime={_snd5.get('regime')}")))
     return out
 
 
@@ -1123,29 +1150,44 @@ def check_r3_e81(exp="main", problema="MMF1", semente=0, data_root=None):
                                              "surrogate", data_root=data_root))
     reg = _np.asarray(surr.column("regime").to_pylist())
     n_snd = int((reg == "sonda").sum())
-    ok = n_snd > 0 and n_snd % 2000 == 0
-    out.append(("③ blocos de sonda ×2000",
-                (ok, f"{n_snd} linhas 'sonda' = {n_snd / 2000:g} blocos; "
-                     f"{int((reg == 'online').sum())} linhas de busca")))
-
-    # ordem do artefato: o join com o gabarito é POSICIONAL (R4 regra 5)
-    from src import standalone_harness as _sh
-    snd_art = _sh.load_sonda(problema, regime="online", data_root=data_root)
-    xs = _np.column_stack([surr.column(f"x{i}").to_numpy() for i in range(D)])
+    # [D102.10] problema declaradamente SEM sonda: exige ZERO linhas, pula a
+    # ordem-do-artefato (não há artefato) e o ⑤ tem de DECLARAR a ausência.
+    from src.experiment import PROBLEMAS_SEM_SONDA as _PSS
+    sem_sonda = problema in _PSS
     idx = _np.where(reg == "sonda")[0]
-    ok_ordem = True
-    b = 0
-    for b in range(len(idx) // 2000):
-        bloco = xs[idx[b * 2000:(b + 1) * 2000]]
-        if not _np.allclose(bloco, snd_art["X"].astype(bloco.dtype),
-                            rtol=0, atol=1e-5):
-            ok_ordem = False
-            break
-    out.append(("③ sonda na ORDEM do artefato",
-                (ok_ordem, "todos os blocos batem posicionalmente com "
-                           "data/sonda/ (join posicional, R4 regra 5)"
-                 if ok_ordem else f"bloco {b} FORA de ordem — a R4 casaria "
-                                  f"predição com o gabarito ERRADO")))
+    if sem_sonda:
+        out.append(("③ ZERO sonda (problema SEM SONDA — D102.10)",
+                    (n_snd == 0,
+                     f"{n_snd} linhas 'sonda' (contrato: 0); "
+                     f"{int((reg == 'online').sum())} linhas de busca")))
+        out.append(("③ sonda na ORDEM do artefato",
+                    (None, "SKIP — sem artefato de sonda POR PROBLEMA "
+                           "(D102.10)")))
+    else:
+        ok = n_snd > 0 and n_snd % 2000 == 0
+        out.append(("③ blocos de sonda ×2000",
+                    (ok, f"{n_snd} linhas 'sonda' = {n_snd / 2000:g} blocos; "
+                         f"{int((reg == 'online').sum())} linhas de busca")))
+
+        # ordem do artefato: o join com o gabarito é POSICIONAL (R4 regra 5)
+        from src import standalone_harness as _sh
+        snd_art = _sh.load_sonda(problema, regime="online",
+                                 data_root=data_root)
+        xs = _np.column_stack([surr.column(f"x{i}").to_numpy()
+                               for i in range(D)])
+        ok_ordem = True
+        b = 0
+        for b in range(len(idx) // 2000):
+            bloco = xs[idx[b * 2000:(b + 1) * 2000]]
+            if not _np.allclose(bloco, snd_art["X"].astype(bloco.dtype),
+                                rtol=0, atol=1e-5):
+                ok_ordem = False
+                break
+        out.append(("③ sonda na ORDEM do artefato",
+                    (ok_ordem, "todos os blocos batem posicionalmente com "
+                               "data/sonda/ (join posicional, R4 regra 5)"
+                     if ok_ordem else f"bloco {b} FORA de ordem — a R4 casaria "
+                                      f"predição com o gabarito ERRADO")))
 
     ftm = surr.column("fe_treino_max").to_pylist()
     out.append(("③ fe_treino_max sem nulos",
@@ -1248,14 +1290,25 @@ def check_r3_e81(exp="main", problema="MMF1", semente=0, data_root=None):
     tblk = man.get("timing") or {}
     sd = man.get("sigma_dict") or {}
     pr = man.get("params") or {}
-    ok = (all(k in tblk for k in ("tempo_total_s", "tempo_fit_surrogate_s",
-                                  "tempo_busca_s", "tempo_aval_real_s"))
-          and bool(sd) and bool(man.get("sonda"))
-          and (man.get("sonda") or {}).get("regime") == "online")
-    out.append(("⑤ manifesto (timing+sigma_dict+sonda.regime)",
-                (ok, f"timing={sorted(tblk)}; sigma_dict={len(sd)} chaves; "
-                     f"sonda.n_blocos={(man.get('sonda') or {}).get('n_blocos')}"
-                     f"; regime={(man.get('sonda') or {}).get('regime')}")))
+    _snd5 = man.get("sonda") or {}
+    if sem_sonda:
+        # [D102.10] o ⑤ DECLARA a ausência (sem `regime`; status único).
+        ok = (all(k in tblk for k in ("tempo_total_s", "tempo_fit_surrogate_s",
+                                      "tempo_busca_s", "tempo_aval_real_s"))
+              and bool(sd)
+              and _snd5.get("status") == "sem_sonda_por_problema")
+        out.append(("⑤ manifesto (timing+sigma_dict+sonda DECLARADA D102.10)",
+                    (ok, f"timing={sorted(tblk)}; sigma_dict={len(sd)} chaves; "
+                         f"sonda.status={_snd5.get('status')}")))
+    else:
+        ok = (all(k in tblk for k in ("tempo_total_s", "tempo_fit_surrogate_s",
+                                      "tempo_busca_s", "tempo_aval_real_s"))
+              and bool(sd) and bool(man.get("sonda"))
+              and _snd5.get("regime") == "online")
+        out.append(("⑤ manifesto (timing+sigma_dict+sonda.regime)",
+                    (ok, f"timing={sorted(tblk)}; sigma_dict={len(sd)} chaves; "
+                         f"sonda.n_blocos={_snd5.get('n_blocos')}"
+                         f"; regime={_snd5.get('regime')}")))
 
     # ⑤ os kwargs OBRIGATÓRIOS do checklist §22.4·3.5, no dado
     kw = pr.get("qpots_kwargs") or {}
@@ -1366,28 +1419,43 @@ def check_r3_c122(exp="main", problema="MMF1", semente=0, data_root=None):
                                              "surrogate", data_root=data_root))
     reg = _np.asarray(surr.column("regime").to_pylist())
     n_snd = int((reg == "sonda").sum())
-    ok = n_snd > 0 and n_snd % 2000 == 0
-    out.append(("③ blocos de sonda ×2000",
-                (ok, f"{n_snd} linhas 'sonda' = {n_snd / 2000:g} blocos; "
-                     f"{int((reg == 'online').sum())} linhas de busca")))
-
-    # ordem do artefato: o join com o gabarito é POSICIONAL (R4 regra 5)
-    from src import standalone_harness as _sh
-    snd_art = _sh.load_sonda(problema, regime="online", data_root=data_root)
-    xs = _np.column_stack([surr.column(f"x{i}").to_numpy() for i in range(D)])
+    # [D102.10] problema declaradamente SEM sonda: exige ZERO linhas, pula a
+    # ordem-do-artefato (não há artefato) e o ⑤ tem de DECLARAR a ausência.
+    from src.experiment import PROBLEMAS_SEM_SONDA as _PSS
+    sem_sonda = problema in _PSS
     idx = _np.where(reg == "sonda")[0]
-    ok_ordem = True
-    for b in range(len(idx) // 2000):
-        bloco = xs[idx[b * 2000:(b + 1) * 2000]]
-        if not _np.allclose(bloco, snd_art["X"].astype(bloco.dtype),
-                            rtol=0, atol=1e-5):
-            ok_ordem = False
-            break
-    out.append(("③ sonda na ORDEM do artefato",
-                (ok_ordem, "todos os blocos batem posicionalmente com "
-                           "data/sonda/ (join posicional, R4 regra 5)"
-                 if ok_ordem else f"bloco {b} FORA de ordem — a R4 casaria "
-                                  f"predição com o gabarito ERRADO")))
+    if sem_sonda:
+        out.append(("③ ZERO sonda (problema SEM SONDA — D102.10)",
+                    (n_snd == 0,
+                     f"{n_snd} linhas 'sonda' (contrato: 0); "
+                     f"{int((reg == 'online').sum())} linhas de busca")))
+        out.append(("③ sonda na ORDEM do artefato",
+                    (None, "SKIP — sem artefato de sonda POR PROBLEMA "
+                           "(D102.10)")))
+    else:
+        ok = n_snd > 0 and n_snd % 2000 == 0
+        out.append(("③ blocos de sonda ×2000",
+                    (ok, f"{n_snd} linhas 'sonda' = {n_snd / 2000:g} blocos; "
+                         f"{int((reg == 'online').sum())} linhas de busca")))
+
+        # ordem do artefato: o join com o gabarito é POSICIONAL (R4 regra 5)
+        from src import standalone_harness as _sh
+        snd_art = _sh.load_sonda(problema, regime="online",
+                                 data_root=data_root)
+        xs = _np.column_stack([surr.column(f"x{i}").to_numpy()
+                               for i in range(D)])
+        ok_ordem = True
+        for b in range(len(idx) // 2000):
+            bloco = xs[idx[b * 2000:(b + 1) * 2000]]
+            if not _np.allclose(bloco, snd_art["X"].astype(bloco.dtype),
+                                rtol=0, atol=1e-5):
+                ok_ordem = False
+                break
+        out.append(("③ sonda na ORDEM do artefato",
+                    (ok_ordem, "todos os blocos batem posicionalmente com "
+                               "data/sonda/ (join posicional, R4 regra 5)"
+                     if ok_ordem else f"bloco {b} FORA de ordem — a R4 casaria "
+                                      f"predição com o gabarito ERRADO")))
 
     ftm = surr.column("fe_treino_max").to_pylist()
     out.append(("③ fe_treino_max sem nulos",
@@ -1426,13 +1494,25 @@ def check_r3_c122(exp="main", problema="MMF1", semente=0, data_root=None):
                                     data_root=data_root), encoding="utf-8") as fh:
         man = json.load(fh)
     tblk = man.get("timing") or {}
-    ok = (all(k in tblk for k in ("tempo_total_s", "tempo_fit_surrogate_s",
-                                  "tempo_busca_s", "tempo_aval_real_s"))
-          and bool(man.get("sigma_dict")) and bool(man.get("sonda")))
-    out.append(("⑤ manifesto (timing+sigma_dict+sonda)",
-                (ok, f"timing={sorted(tblk)}; sigma_dict="
-                     f"{len(man.get('sigma_dict') or {})} chaves; "
-                     f"sonda.n_blocos={(man.get('sonda') or {}).get('n_blocos')}")))
+    _snd5 = man.get("sonda") or {}
+    if sem_sonda:
+        # [D102.10] o ⑤ DECLARA a ausência (status único, inconfundível).
+        ok = (all(k in tblk for k in ("tempo_total_s", "tempo_fit_surrogate_s",
+                                      "tempo_busca_s", "tempo_aval_real_s"))
+              and bool(man.get("sigma_dict"))
+              and _snd5.get("status") == "sem_sonda_por_problema")
+        out.append(("⑤ manifesto (timing+sigma_dict+sonda DECLARADA D102.10)",
+                    (ok, f"timing={sorted(tblk)}; sigma_dict="
+                         f"{len(man.get('sigma_dict') or {})} chaves; "
+                         f"sonda.status={_snd5.get('status')}")))
+    else:
+        ok = (all(k in tblk for k in ("tempo_total_s", "tempo_fit_surrogate_s",
+                                      "tempo_busca_s", "tempo_aval_real_s"))
+              and bool(man.get("sigma_dict")) and bool(man.get("sonda")))
+        out.append(("⑤ manifesto (timing+sigma_dict+sonda)",
+                    (ok, f"timing={sorted(tblk)}; sigma_dict="
+                         f"{len(man.get('sigma_dict') or {})} chaves; "
+                         f"sonda.n_blocos={_snd5.get('n_blocos')}")))
     return out
 
 
@@ -1761,14 +1841,20 @@ def check_r3_b5(alg, exp="off", problema="MMF1", semente=0, data_root=None):
     rsid = surr.column("real_solution_id").to_pylist()
     idx_s = [i for i, r in enumerate(reg) if r == "sonda"]
     idx_b = [i for i, r in enumerate(reg) if r == "offline"]
-    sonda_art = _sh.load_sonda(problema, regime="offline", data_root=dr)
-    ok_sonda = (len(idx_s) == sonda_art["S"]
-                and all(ger[i] is None for i in idx_s)
-                and all(ftm[i] is not None for i in idx_s))
-    results.append(("③ sonda OFFLINE: S=20000 · geracao NULL (DI-13.5) · "
-                    "fe_treino_max sem nulo",
-                    (ok_sonda, f"n_sonda={len(idx_s)} (esperado {sonda_art['S']}) "
-                     f"geracao_all_null={all(ger[i] is None for i in idx_s)}")))
+    if problema in _exp.PROBLEMAS_SEM_SONDA:            # [D102.10]
+        # sem sonda POR PROBLEMA: ZERO linhas; sem artefato p/ carregar.
+        results.append(("③ ZERO sonda (problema SEM SONDA — D102.10)",
+                        (len(idx_s) == 0,
+                         f"n_sonda={len(idx_s)} (contrato: 0)")))
+    else:
+        sonda_art = _sh.load_sonda(problema, regime="offline", data_root=dr)
+        ok_sonda = (len(idx_s) == sonda_art["S"]
+                    and all(ger[i] is None for i in idx_s)
+                    and all(ftm[i] is not None for i in idx_s))
+        results.append(("③ sonda OFFLINE: S=20000 · geracao NULL (DI-13.5) · "
+                        "fe_treino_max sem nulo",
+                        (ok_sonda, f"n_sonda={len(idx_s)} (esperado {sonda_art['S']}) "
+                         f"geracao_all_null={all(ger[i] is None for i in idx_s)}")))
     gb = [ger[i] for i in idx_b]
     # [DI-31] contiguidade 1..N (mesmo endurecimento que a DI-29 deu ao c311;
     # o b5 é single-fase, então basta o conjunto ser {1..max}).
@@ -1923,18 +2009,24 @@ def check_r3_c311(exp="off", problema="MMF1", semente=0, data_root=None):
     mflag = surr.column("modelo_flag").to_pylist()
     idx_s = [i for i, r in enumerate(reg) if r == "sonda"]
     idx_b = [i for i, r in enumerate(reg) if r == "offline"]
-    sonda_art = _sh.load_sonda(problema, regime="offline", data_root=dr)
-    S = sonda_art["S"]
-    n_build = sum(1 for i in idx_s if mflag[i] == "treedGP_build")
-    n_final = sum(1 for i in idx_s if mflag[i] == "treedGP_final")
-    ok_sonda = (len(idx_s) == 2 * S and n_build == S and n_final == S
-                and all(ger[i] is None for i in idx_s)
-                and all(ftm[i] is not None for i in idx_s))
-    results.append(("③ sonda OFFLINE: 2 BLOCOS treedGP_build+treedGP_final (DI-16.12) "
-                    "· S=20000 cada · geracao NULL (DI-13.5) · fe_treino_max sem nulo",
-                    (ok_sonda, f"n_sonda={len(idx_s)} (esperado {2*S}) "
-                     f"build={n_build} final={n_final} "
-                     f"ger_all_null={all(ger[i] is None for i in idx_s)}")))
+    if problema in _exp.PROBLEMAS_SEM_SONDA:            # [D102.10]
+        # sem sonda POR PROBLEMA: ZERO linhas; sem artefato p/ carregar.
+        results.append(("③ ZERO sonda (problema SEM SONDA — D102.10)",
+                        (len(idx_s) == 0,
+                         f"n_sonda={len(idx_s)} (contrato: 0)")))
+    else:
+        sonda_art = _sh.load_sonda(problema, regime="offline", data_root=dr)
+        S = sonda_art["S"]
+        n_build = sum(1 for i in idx_s if mflag[i] == "treedGP_build")
+        n_final = sum(1 for i in idx_s if mflag[i] == "treedGP_final")
+        ok_sonda = (len(idx_s) == 2 * S and n_build == S and n_final == S
+                    and all(ger[i] is None for i in idx_s)
+                    and all(ftm[i] is not None for i in idx_s))
+        results.append(("③ sonda OFFLINE: 2 BLOCOS treedGP_build+treedGP_final (DI-16.12) "
+                        "· S=20000 cada · geracao NULL (DI-13.5) · fe_treino_max sem nulo",
+                        (ok_sonda, f"n_sonda={len(idx_s)} (esperado {2*S}) "
+                         f"build={n_build} final={n_final} "
+                         f"ger_all_null={all(ger[i] is None for i in idx_s)}")))
     gb = [ger[i] for i in idx_b]
     flags_b = set(mflag[i] for i in idx_b)
     # [DI-29] Endurecido pós-auditoria do fechamento 21/21: o check anunciava o
@@ -2098,16 +2190,22 @@ def check_r3_piso_off(exp="off", problema="MMF1", semente=0, data_root=None):
     mflag = surr.column("modelo_flag").to_pylist()
     idx_s = [i for i, r in enumerate(reg) if r == "sonda"]
     idx_b = [i for i, r in enumerate(reg) if r == "offline"]
-    sonda_art = _sh.load_sonda(problema, regime="offline", data_root=dr)
-    S = sonda_art["S"]
-    ok_sonda = (len(idx_s) == S
-                and all(ger[i] is None for i in idx_s)
-                and all(ftm[i] is not None for i in idx_s)
-                and all(mflag[i] == _MODELO_FLAG_PISO for i in idx_s))
-    results.append(("③ sonda OFFLINE: 1 BLOCO S=20000 · geracao NULL (DI-13.5) · "
-                    "fe_treino_max sem nulo · modelo_flag único",
-                    (ok_sonda, f"n_sonda={len(idx_s)} (esperado {S}) "
-                     f"geracao_all_null={all(ger[i] is None for i in idx_s)}")))
+    if problema in _exp.PROBLEMAS_SEM_SONDA:            # [D102.10]
+        # sem sonda POR PROBLEMA: ZERO linhas; sem artefato p/ carregar.
+        results.append(("③ ZERO sonda (problema SEM SONDA — D102.10)",
+                        (len(idx_s) == 0,
+                         f"n_sonda={len(idx_s)} (contrato: 0)")))
+    else:
+        sonda_art = _sh.load_sonda(problema, regime="offline", data_root=dr)
+        S = sonda_art["S"]
+        ok_sonda = (len(idx_s) == S
+                    and all(ger[i] is None for i in idx_s)
+                    and all(ftm[i] is not None for i in idx_s)
+                    and all(mflag[i] == _MODELO_FLAG_PISO for i in idx_s))
+        results.append(("③ sonda OFFLINE: 1 BLOCO S=20000 · geracao NULL (DI-13.5) · "
+                        "fe_treino_max sem nulo · modelo_flag único",
+                        (ok_sonda, f"n_sonda={len(idx_s)} (esperado {S}) "
+                         f"geracao_all_null={all(ger[i] is None for i in idx_s)}")))
     gb = [ger[i] for i in idx_b]
     # [DI-31] contiguidade 1..N (antes só min==1; buraco de geração passava VERDE).
     gset_b = set(g for g in gb if g is not None)

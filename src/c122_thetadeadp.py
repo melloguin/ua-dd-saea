@@ -720,6 +720,8 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
     T_MAX = 11 * D + 24                                    # janela do update
     counter = PerCounter(MU)                               # NOVO por run
     sonda = H.load_sonda(problema, regime="online", data_root=data_root)
+    if sonda is None:          # [D102.10] sem sonda POR PROBLEMA — desarma, não some
+        sonda_on = False
 
     buf = H.SnapshotBuffer()
     # [DI-43] checkpoint atômico periódico — 25 gerações OU 30 min.
@@ -798,7 +800,10 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
                    n_init=bud.n_init, doe_hash=doe["doe_hash"],
                    ambiente=env, pinning=pinning, sigma_dict=sigma_dict,
                    params=params, n_ref=MU,
-                   sonda_x_hash=sonda["x_hash"], sonda_S=sonda["S"])
+                   # [D102.10] sem sonda POR PROBLEMA ⇒ o header declara a
+                   # ausência em vez do hash (não há artefato para certificar).
+                   **({"sonda": _sonda_decl()} if sonda is None else
+                      {"sonda_x_hash": sonda["x_hash"], "sonda_S": sonda["S"]}))
 
         # ── init: o DoE do artefato vira a população inicial ────────────────
         t0 = time.time()
@@ -1086,11 +1091,12 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
             algo_version=ALGO_VERSION, timing_totais=timing_totais,
             status=status, motivo_parada=motivo_parada,
             sigma_dict=sigma_dict, regime="online", params=params,
-            sonda_info={"S": sonda["S"], "cadencia": f"online: k={H.SONDA_K} "
-                        f"(g=1,2,4,6,…) + 1a e ultima",
-                        "n_blocos": _n_blocos(buf), "n_ref": MU,
-                        "referencia": "populacao selecionada [P2/DI-16.2]",
-                        "x_hash": sonda["x_hash"], "f_hash": sonda["f_hash"]},
+            sonda_info=(_sonda_decl() if sonda is None else   # [D102.10]
+                        {"S": sonda["S"], "cadencia": f"online: k={H.SONDA_K} "
+                         f"(g=1,2,4,6,…) + 1a e ultima",
+                         "n_blocos": _n_blocos(buf), "n_ref": MU,
+                         "referencia": "populacao selecionada [P2/DI-16.2]",
+                         "x_hash": sonda["x_hash"], "f_hash": sonda["f_hash"]}),
             data_root=data_root, enable_bucket=enable_bucket)
         log.footer(status=status, fe_final=bud.fe, cp_init=True,
                    cache_hits=bud.cache_hits, n_geracoes=g,
@@ -1106,7 +1112,8 @@ def _run_c122_inner(exp, alg, problema, semente, *, torch, pinning, env, t_run,
         "cp_init_ok": bool(res["cp_init_ok"]), "status": status,
         "motivo_parada": motivo_parada,
         "n_surrogate_rows": len(buf.surr_rows), "n_pop_rows": len(buf.pop_rows),
-        "n_timing_rows": len(buf.timing_rows), "n_sonda_pontos": sonda["S"],
+        "n_timing_rows": len(buf.timing_rows),
+        "n_sonda_pontos": (0 if sonda is None else sonda["S"]),  # [D102.10]
         "n_blocos_sonda": _n_blocos(buf), "n_ref": MU, "regime": "online",
         "cache_hits": bud.cache_hits, "n_spin_total": n_spin_total,
         "n_cache_infill": n_cache_infill, "n_archive": len(archive),
@@ -1254,6 +1261,12 @@ def _nds(F: np.ndarray) -> np.ndarray:
 
 def _n_blocos(buf) -> int:
     return sum(1 for r in buf.surr_rows if r.get("regime") == "sonda") // 2000
+
+
+def _sonda_decl() -> dict:
+    """[D102.10] Bloco DECLARADO de sonda ausente POR PROBLEMA (⑤ e header ⑥)."""
+    from src.experiment import SONDA_AUSENTE_INFO  # leve/lazy (sem ciclo)
+    return dict(SONDA_AUSENTE_INFO)
 
 
 def _f(v):

@@ -644,9 +644,17 @@ Imprevistos: ...
 > dataset offline do DDMOP7 nasce do Processo A AQUI.
 
 ### T15-a · matlab.engine nos DOIS venvs (env_main E env_e81_qpots)
+
+> ⚠ [EXECUTADO 14/08 · env_main das 2 VMs — o pip direto da árvore FALHA]
+> (1) `Permission denied`: o setup grava `egg_info` DENTRO de /opt/matlab
+> (root); (2) cópia solta ⇒ "MATLAB is corrupted" (o setup acha o matlabroot
+> pela própria localização); (3) o caminho de build fica GRAVADO no
+> `_arch.txt` do pacote. Receita que FUNCIONA (raiz-fake + patch do arch):
 ```bash
-for V in env_main env_e81_qpots; do ~/venvs/$V/bin/python -m pip install /opt/matlab/R2025a/extern/engines/python > ~/engine_$V.log 2>&1; ~/venvs/$V/bin/python -c "import matlab.engine; print('$V: engine OK')"; done
+for V in env_main env_e81_qpots; do rm -rf ~/mlroot && mkdir -p ~/mlroot/extern/engines && cp -r /opt/matlab/R2025a/extern/engines/python ~/mlroot/extern/engines/python && ln -s /opt/matlab/R2025a/bin ~/mlroot/bin && { [ -d /opt/matlab/R2025a/extern/bin ] && ln -s /opt/matlab/R2025a/extern/bin ~/mlroot/extern/bin; }; ~/venvs/$V/bin/pip install -q ~/mlroot/extern/engines/python > ~/engine_$V.log 2>&1; A=$(find ~/venvs/$V/lib -name "_arch.txt" -path "*matlab*" | head -1); sed -i "s|$HOME/mlroot|/opt/matlab/R2025a|g" "$A"; rm -rf ~/mlroot; ~/venvs/$V/bin/python -c "import matlab.engine; print('$V: engine OK')"; done
 ```
+> Conferência REAL = a âncora T15-c (import sozinho não prova os libs nativos
+> — o probe `~/probe_ancora.py` já está nas 2 VMs).
 Esperado: `env_main: engine OK` e `env_e81_qpots: engine OK`. Sem os dois, as
 células R2 do DDMOP7 (c122/c149/c154/c262 no env_main; e81 no próprio venv)
 morrem no bind. ⚠ qpots instala um matlab.engine FALSO que engana `import` —

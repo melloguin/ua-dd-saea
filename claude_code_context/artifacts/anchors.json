@@ -216,6 +216,36 @@
    "expect_after": "P_WRONG_STATS = {}",
    "kind": "[INSTRUMENTACAO] read-only (DI-12.1)",
    "nota": "[T11-A3/I-05] Acumulador modulo-nivel de P_wrong lido pelo replay do runner. `p_wrong_stats` era o UNICO campo DI-10 com 0/N no estudo (0 de 30.165 eventos do b5; zeros absolutos so em b5m/b5r/moead_media). Sem ele a cadeia A8 (congelamento: adapt zera values -> PBI NaN -> P_wrong = 0,0 -> zero substituicoes) fica INFERIDA em 4.050 celulas e o congelamento PARCIAL (8 celulas do piso, 8/8 por face do lattice) invisivel. Nao consome RNG, nao altera retorno, nao entra em ramo de decisao; custo medido 0,022 s/run (0,0008% de tempo_busca_s mediano = 2.868,2 s). Prova de nao-perturbacao: run com x sem o patch, ①③⑦ byte-identicas. ⚠ O `expect_before` inclui a linha SEGUINTE (`class ProbMOEAD_select`) de proposito: o patch e ADITIVO (insere entre as duas), entao um expect_before de 1 linha sobrevive a ele e o validador reportaria STOCK num arquivo patchado. ERRATA 9 (2026-07-30): eu reescrevi este acumulador em O(1) alegando que ele causava 2,5x de lentidao no b5m. Microbenchmark isolado (100k chamadas, array de 20 = o tamanho real de `probabilities`) REFUTA: 30,5 us/chamada na versao vigente x 7,1 us na O(1); com ~80k chamadas por run a diferenca e ~1,9 s, nao 23 min. O wall de 43 min tinha CONTENCAO DE CPU (um b5m zumbi de 6h51) e o proprio b5m/MMF1 custa ~44 min nesta maquina (medido: 2619 s). Como o motivo caiu, a reescrita foi REVERTIDA e a versao PLANEJADA (min/mediana/max por chamada, com a MEDIANA preservada) e a que vale — regra do autor: mudar so o essencial. O ponto de coleta E hot-loop (`_next_gen` chama `_select` uma vez por individuo), mas o custo medido nao justifica mexer. Se algum dia a memoria (~3 tuplas x 80k chamadas por run) virar problema medido, a versao O(1) esta no historico desta nota."
+  },
+  {
+   "id": "c238-infill-min-dim-euclidean",
+   "repo": "c238_eim",
+   "file": "Infill_EIM.m",
+   "line": 34,
+   "expect_before": "y = min(reshape(sqrt(sum(EIM.^2,2)),[num_pareto,num_x]))';",
+   "expect_after": "y = min(reshape(sqrt(sum(EIM.^2,2)),[num_pareto,num_x]),[],1)';",
+   "kind": "[FIDELIDADE] bug do codigo original -> segue o ARTIGO (bussola D29)",
+   "nota": "[T15.9/DEC-8 autor 2026-08-14] Front singleton (num_pareto==1) colapsava min(reshape(...)) a ESCALAR -> badsubscript no Optimizer_GA:17 (censura NAO-aleatoria: matava os runs cujo infill dominava o arquivo). `,[],1` explicita a dim de reducao: IDENTIDADE p/ num_pareto>=2 (617 celulas ok bit-exatas). Laudo: handoff/D0-LAUDO-C238-BADSUBSCRIPT.md; separacao 28/28 vs 0/617 por n_front1==1."
+  },
+  {
+   "id": "c238-infill-min-dim-maximin",
+   "repo": "c238_eim",
+   "file": "Infill_EIM.m",
+   "line": 36,
+   "expect_before": "y = min(reshape(max(EIM,[],2),[num_pareto,num_x]))';",
+   "expect_after": "y = min(reshape(max(EIM,[],2),[num_pareto,num_x]),[],1)';",
+   "kind": "[FIDELIDADE] bug do codigo original -> segue o ARTIGO (bussola D29)",
+   "nota": "[T15.9/DEC-8 autor 2026-08-14] Front singleton (num_pareto==1) colapsava min(reshape(...)) a ESCALAR -> badsubscript no Optimizer_GA:17 (censura NAO-aleatoria: matava os runs cujo infill dominava o arquivo). `,[],1` explicita a dim de reducao: IDENTIDADE p/ num_pareto>=2 (617 celulas ok bit-exatas). Laudo: handoff/D0-LAUDO-C238-BADSUBSCRIPT.md; separacao 28/28 vs 0/617 por n_front1==1."
+  },
+  {
+   "id": "c238-infill-min-dim-hv",
+   "repo": "c238_eim",
+   "file": "Infill_EIM.m",
+   "line": 39,
+   "expect_before": "y = min(reshape(prod(ref_point-f_matrix+EIM,2)-prod(ref_point-f_matrix,2),[num_pareto,num_x]))';",
+   "expect_after": "y = min(reshape(prod(ref_point-f_matrix+EIM,2)-prod(ref_point-f_matrix,2),[num_pareto,num_x]),[],1)';",
+   "kind": "[FIDELIDADE] bug do codigo original -> segue o ARTIGO (bussola D29)",
+   "nota": "[T15.9/DEC-8 autor 2026-08-14] Front singleton (num_pareto==1) colapsava min(reshape(...)) a ESCALAR -> badsubscript no Optimizer_GA:17 (censura NAO-aleatoria: matava os runs cujo infill dominava o arquivo). `,[],1` explicita a dim de reducao: IDENTIDADE p/ num_pareto>=2 (617 celulas ok bit-exatas). Laudo: handoff/D0-LAUDO-C238-BADSUBSCRIPT.md; separacao 28/28 vs 0/617 por n_front1==1."
   }
  ]
 }

@@ -60,7 +60,24 @@
       "version": "R2025a",
       "note": "Mac M1 Pro; parquet brotli (zstd ausente); toolboxes: Deep Learning, Statistics, Optimization, Parallel",
       "venvs_aceitos": [],
-      "venvs_aceitos_nota": "MATLAB nao tem intérprete Python: o ⑤ do stack matlab nao traz `env.executable` (medido: 654 celulas da s42 sem o campo). O gate G-3 pula a checagem de intérprete nesses configs e cobra campanha_id + repo_hash."
+      "venvs_aceitos_nota": "MATLAB nao tem intérprete Python: o ⑤ do stack matlab nao traz `env.executable` (medido: 654 celulas da s42 sem o campo). O gate G-3 pula a checagem de intérprete nesses configs e cobra campanha_id + repo_hash.",
+      "hospeda_problema": [
+        "DDMOP7"
+      ],
+      "hospedeiro": {
+        "nota": "o env_matlab do envs.json de hoje diz 'Mac M1 Pro'. Pela D102.14 (frota de 9 hosts: 8 Linux + 1 Mac) o env_matlab passa a ser servido pelos 8 hosts LINUX; o Mac fica com carga somente-Python e NAO recebe celula de DDMOP7.",
+        "so": "Linux x86-64",
+        "matlab": "R2025a Update 1 / 25.1.0.2973910 (identico nos 8)",
+        "por_que_nao_o_Mac": "arm64/Accelerate x x86-64/MKL. Linux->Linux e bit-identico (medido); Mac->Linux nao foi medido, e o f2 do DDMOP7 atravessa BLAS.",
+        "ver": "repos_lock_DELTA.json::matlab_pin.frota"
+      },
+      "problema_binario": {
+        "arquivo": "DDMOP7.p (P-code, nao legivel)",
+        "origem": "repo DDMOP (He, Tian, Wang & Jin 2020)",
+        "licenca": "NENHUMA no repo => all-rights-reserved",
+        "regra": "usar COMO DISTRIBUIDO e CITAR o paper. NAO redistribuir o binario dentro do ua-dd-saea.",
+        "teto_interno": "600 FE por PROCESSO (eva = [400,300,400,600,800,300,600]); o nosso orcamento e 526 = 31D-1, logo cabe -- mas so 1 run por processo."
+      }
     },
     "env_e81_qpots": {
       "stack": "python",
@@ -306,5 +323,41 @@
       "env": "env_c311"
     }
   },
-  "note_v52": "Higiene v5.2: env_desdeo SEPARADO em env_b5 (sklearn 0.21.3) e env_c311 (sklearn 1.1.2 + GPy) — pins mutuamente exclusivos, D79/N.1.2 proíbe co-importar; c149 movido p/ env-main c/ fallback; env-main renomeia env_botorch (harness+BO+c122+c149); seeds via artifacts/seeds.json (D91); DoE/dataset em parquet (D87/D90)."
+  "note_v52": "Higiene v5.2: env_desdeo SEPARADO em env_b5 (sklearn 0.21.3) e env_c311 (sklearn 1.1.2 + GPy) — pins mutuamente exclusivos, D79/N.1.2 proíbe co-importar; c149 movido p/ env-main c/ fallback; env-main renomeia env_botorch (harness+BO+c122+c149); seeds via artifacts/seeds.json (D91); DoE/dataset em parquet (D87/D90).",
+  "problema_to_env": {
+    "_default": {
+      "env_problema": "inproc",
+      "ponte": "",
+      "nota": "vale para os 25 sinteticos e tambem para RE21 e ESTOQUE40 -- sao classes puras de problems.py, avaliadas no processo do algoritmo (A2). NENHUM ambiente novo e necessario para eles."
+    },
+    "RE21": {
+      "env_problema": "inproc",
+      "ponte": ""
+    },
+    "ESTOQUE40": {
+      "env_problema": "inproc",
+      "ponte": ""
+    },
+    "DDMOP7": {
+      "env_problema": "env_matlab",
+      "ponte_por_stack": {
+        "matlab": {
+          "ponte": "nativo",
+          "como": "DDMOP7_evalFcn.m chamado in-process pelo proprio algoritmo MATLAB. 12 algoritmos x 30 sementes = 360 runs.",
+          "custo_extra": "zero (mesmo processo)"
+        },
+        "python": {
+          "ponte": "matlab_engine",
+          "como": "ddmop7_bridge.DDMOP7Matlab abre a MATLAB Engine e avalia o .p. 5 configs online x 30 = 150 runs.",
+          "custo_extra": "1 processo MATLAB por run"
+        },
+        "offline": {
+          "ponte": "matlab_pos_hoc",
+          "como": "o dataset offline ja vem avaliado (526 linhas congeladas por semente); o run Python nao chama MATLAB nenhum. 4 configs x 30 = 120 runs (c311 REMOVIDO, A47).",
+          "custo_extra": "zero em execucao; o custo foi pago no congelamento (27,5 h-core)"
+        }
+      },
+      "atencao_D79": "com ponte=matlab_engine, o run ocupa DOIS processos (o Python e o MATLAB). O maxNumCompThreads(1) tem de ser aplicado DENTRO da Engine, nao so no venv -- senao o MATLAB abre 1 thread por core e o 1-run-1-core vira ficcao. Ver repos_lock_DELTA.json::matlab_pin."
+    }
+  }
 }

@@ -1,592 +1,786 @@
 {
-  "spec_version": "5.2",
-  "source": "REGISTRO_DECISOES_pingpong_v5.md",
-  "precedence": "Anexo S > §22 > Anexo D > corpo(§1-§21) > E/I/K/L > históricos(F/G/R)",
-  "decisions": [
-    {
-      "id": "D53",
-      "block": "A",
-      "area": "export",
-      "title": "Fim do arredondamento; float32 em tudo",
-      "supersedes": [
-        "D32",
-        "D35"
-      ],
-      "sections": [
-        "17.2",
-        "17.4",
-        "17.7",
-        "0"
-      ]
-    },
-    {
-      "id": "D54",
-      "block": "A",
-      "area": "export",
-      "title": "Salvar TUDO + topologia bucket-only (5 volumosos)",
-      "supersedes": [
-        "D27"
-      ],
-      "sections": [
-        "17.4",
-        "17.7"
-      ]
-    },
-    {
-      "id": "D55",
-      "block": "A",
-      "area": "export",
-      "title": "run_id com token de experimento",
-      "supersedes": [
-        "REF-4"
-      ],
-      "sections": [
-        "17.7"
-      ]
-    },
-    {
-      "id": "D56",
-      "block": "A",
-      "area": "grid",
-      "title": "b5 = 2 configs (b5r/b5m) -> 16.500 runs",
-      "supersedes": [],
-      "sections": [
-        "0",
-        "1.5",
-        "3.3",
-        "6.4",
-        "14"
-      ]
-    },
-    {
-      "id": "D57",
-      "block": "A",
-      "area": "export",
-      "title": "solution_id = identidade da solução, bit-a-bit",
-      "supersedes": [],
-      "sections": [
-        "17.2",
-        "5.4"
-      ]
-    },
-    {
-      "id": "D58",
-      "block": "A",
-      "area": "pipeline",
-      "title": "Run pronto: escrita atômica + manifesto + skip",
-      "supersedes": [],
-      "sections": [
-        "19",
-        "17.7"
-      ]
-    },
-    {
-      "id": "D59",
-      "block": "B",
-      "area": "matlab",
-      "title": "parfor + rng depois do probe (isolado)",
-      "supersedes": [
-        "D24",
-        "L7"
-      ],
-      "sections": [
-        "16.5.3",
-        "N.0.2",
-        "N.4",
-        "22.2"
-      ]
-    },
-    {
-      "id": "D60",
-      "block": "B",
-      "area": "pipeline",
-      "title": "Watchdog de 3 guardas",
-      "supersedes": [],
-      "sections": [
-        "19",
-        "N.0",
-        "N.1"
-      ]
-    },
-    {
-      "id": "D61",
-      "block": "B",
-      "area": "pipeline",
-      "title": "Hard-stop no meio do lote (exato 31D-1)",
-      "supersedes": [],
-      "sections": [
-        "5.4",
-        "17"
-      ]
-    },
-    {
-      "id": "D62",
-      "block": "B",
-      "area": "seeds",
-      "title": "SeedSequence canônico",
-      "supersedes": [],
-      "sections": [
-        "5.3",
-        "L"
-      ]
-    },
-    {
-      "id": "D63",
-      "block": "B",
-      "area": "doe",
-      "title": "DoE como artefato persistido, bit-a-bit",
-      "supersedes": [],
-      "sections": [
-        "5.2",
-        "22.1"
-      ]
-    },
-    {
-      "id": "D64",
-      "block": "B",
-      "area": "backup",
-      "title": "Sem backup automático MATLAB",
-      "supersedes": [],
-      "sections": [
-        "17.7"
-      ]
-    },
-    {
-      "id": "D65",
-      "block": "C",
-      "area": "pisos",
-      "title": "N dos pisos online por varredura pré-registrada",
-      "supersedes": [],
-      "sections": [
-        "6.3",
-        "3.2"
-      ]
-    },
-    {
-      "id": "D66",
-      "block": "C",
-      "area": "batch",
-      "title": "V-B.4 fechada: q=10, K=200",
-      "supersedes": [],
-      "sections": [
-        "V-B.4",
-        "0"
-      ]
-    },
-    {
-      "id": "D67",
-      "block": "C",
-      "area": "sweep",
-      "title": "MVNS especificada (mu=0.3, Sigma=diag0.1)",
-      "supersedes": [],
-      "sections": [
-        "11.5",
-        "9"
-      ]
-    },
-    {
-      "id": "D68",
-      "block": "C",
-      "area": "offline",
-      "title": "Sem cap do |ND| final",
-      "supersedes": [],
-      "sections": [
-        "11",
-        "12"
-      ]
-    },
-    {
-      "id": "D69",
-      "block": "D",
-      "area": "metric",
-      "title": "Ref-point HV no espaço normalizado",
-      "supersedes": [],
-      "sections": [
-        "12",
-        "12.2",
-        "6.2",
-        "S.5"
-      ]
-    },
-    {
-      "id": "D70",
-      "block": "D",
-      "area": "stats",
-      "title": "IGD+ primária + 4 testes operacionais",
-      "supersedes": [],
-      "sections": [
-        "14",
-        "12",
-        "15.1"
-      ]
-    },
-    {
-      "id": "D71",
-      "block": "D",
-      "area": "stats",
-      "title": "§15 matriz 25x8 (unidade=problema)",
-      "supersedes": [],
-      "sections": [
-        "15"
-      ]
-    },
-    {
-      "id": "D72",
-      "block": "D",
-      "area": "metric",
-      "title": "Reference set 2-obj por segmento + cache BBOB",
-      "supersedes": [],
-      "sections": [
-        "12.1",
-        "12.2"
-      ]
-    },
-    {
-      "id": "D73",
-      "block": "D",
-      "area": "honesty",
-      "title": "3 enquadramentos de honestidade",
-      "supersedes": [],
-      "sections": [
-        "2.4",
-        "6.2",
-        "15",
-        "M.6",
-        "M.17"
-      ]
-    },
-    {
-      "id": "D74",
-      "block": "E",
-      "area": "e74",
-      "title": "CalHV interno do e74 normalizado (DEF-L5)",
-      "supersedes": [],
-      "sections": [
-        "12",
-        "M.6"
-      ]
-    },
-    {
-      "id": "D75",
-      "block": "E",
-      "area": "c154",
-      "title": "JES: §6.4 dona; random_search principal (DEF-B9.5)",
-      "supersedes": [],
-      "sections": [
-        "6.4",
-        "22.3",
-        "K"
-      ]
-    },
-    {
-      "id": "D76",
-      "block": "E",
-      "area": "e74",
-      "title": "Máscara e74 obrigatória + L4/L8 no Anexo D",
-      "supersedes": [],
-      "sections": [
-        "22",
-        "K.5.2",
-        "6.5"
-      ]
-    },
-    {
-      "id": "D77",
-      "block": "E",
-      "area": "offline_piso",
-      "title": "Piso offline = DESDEO mode 12 (GP-média)",
-      "supersedes": [
-        "§22.2-listagem"
-      ],
-      "sections": [
-        "22.2",
-        "E.9",
-        "14"
-      ]
-    },
-    {
-      "id": "D78",
-      "block": "E",
-      "area": "spof",
-      "title": "Fallbacks c149/c311 pré-registrados",
-      "supersedes": [],
-      "sections": [
-        "M.17",
-        "2.4",
-        "19"
-      ]
-    },
-    {
-      "id": "D79",
-      "block": "F",
-      "area": "infra",
-      "title": "Multi-env subprocess + 1 thread por pilha",
-      "supersedes": [],
-      "sections": [
-        "16.5.2",
-        "17.7",
-        "N.1",
-        "18"
-      ]
-    },
-    {
-      "id": "D80",
-      "block": "F",
-      "area": "repro",
-      "title": "Pinagem total (SHA 9 repos + anchors + lockfiles)",
-      "supersedes": [],
-      "sections": [
-        "3.5",
-        "18",
-        "12",
-        "19"
-      ]
-    },
-    {
-      "id": "D81",
-      "block": "F",
-      "area": "quality",
-      "title": "Gate ±3σ + pára-e-loga + F0 expandido",
-      "supersedes": [
-        "±1σ-§22.2"
-      ],
-      "sections": [
-        "22.2",
-        "F0",
-        "16.5",
-        "N.5"
-      ]
-    },
-    {
-      "id": "D82",
-      "block": "F",
-      "area": "cards",
-      "title": "Cartões faltantes (grade/sub-estudos/consol/R4)",
-      "supersedes": [],
-      "sections": [
-        "22",
-        "S.4"
-      ]
-    },
-    {
-      "id": "D83",
-      "block": "F",
-      "area": "handoff",
-      "title": "Precedência + CLAUDE.md + 6 artefatos",
-      "supersedes": [],
-      "sections": [
-        "0",
-        "22"
-      ]
-    },
-    {
-      "id": "D84",
-      "block": "F",
-      "area": "schedule",
-      "title": "Escada de prioridade + piloto = gate bloqueante",
-      "supersedes": [],
-      "sections": [
-        "22",
-        "22.5",
-        "S.8"
-      ]
-    },
-    {
-      "id": "D85",
-      "block": "F",
-      "area": "seeds",
-      "title": "Semente 42 mantida (preferência do autor)",
-      "supersedes": [],
-      "sections": [
-        "5"
-      ]
-    },
-    {
-      "id": "D86",
-      "block": "G",
-      "area": "memory",
-      "title": "Higiene de memória intra-run (torch no_grad+gc por iteração; reset do Problem na ponte MATLAB) + eixo de pico de RAM no piloto (gate D84)",
-      "supersedes": [],
-      "sections": [
-        "N.0.8",
-        "N.1.5",
-        "22.5.7"
-      ]
-    },
-    {
-      "id": "D87",
-      "block": "v5.2",
-      "area": "init/export",
-      "title": "LHS-maximin próprio; DoE/dataset em parquet, hash do array decodificado",
-      "supersedes": [
-        "D63"
-      ],
-      "sections": [
-        "5.2",
-        "22.1"
-      ]
-    },
-    {
-      "id": "D88",
-      "block": "v5.2",
-      "area": "init",
-      "title": "Invariante de inicialização unificada dos 21 configs + CP-init",
-      "supersedes": [],
-      "sections": [
-        "5.2",
-        "5.5",
-        "3.2"
-      ]
-    },
-    {
-      "id": "D89",
-      "block": "v5.2",
-      "area": "FE",
-      "title": "Cache-hit = 0 FE (X nativo bit-a-bit); wrapper como fonte única do orçamento — DECISÃO DO AUTOR (contra rec inicial)",
-      "supersedes": [],
-      "sections": [
-        "5.4",
-        "22.1",
-        "17"
-      ]
-    },
-    {
-      "id": "D90",
-      "block": "v5.2",
-      "area": "offline",
-      "title": "Dataset offline (e sweep) como artefato parquet — estende D63 ao offline",
-      "supersedes": [
-        "D63"
-      ],
-      "sections": [
-        "7",
-        "9",
-        "11.5"
-      ]
-    },
-    {
-      "id": "D91",
-      "block": "v5.2",
-      "area": "sementes",
-      "title": "artifacts/seeds.json (alg_id→int, catálogo uso_id, materialização); desambigua D22×D62",
-      "supersedes": [],
-      "sections": [
-        "5.3"
-      ]
-    },
-    {
-      "id": "D92",
-      "block": "v5.2",
-      "area": "métrica",
-      "title": "Âncora do smoke re-derivada sob D69: HV(F1)=1,0433; notação 1,1 por coordenada",
-      "supersedes": [
-        "D82(âncora)"
-      ],
-      "sections": [
-        "0",
-        "12.2",
-        "22.1"
-      ]
-    },
-    {
-      "id": "D93",
-      "block": "v5.2",
-      "area": "e103",
-      "title": "Centros da RBFN = ceil(sqrt(n_dataset)); mata o patch NO-OP (CRÍTICO)",
-      "supersedes": [
-        "S.2-e103(NO-OP)"
-      ],
-      "sections": [
-        "22.2",
-        "S.2",
-        "L.15"
-      ]
-    },
-    {
-      "id": "D94",
-      "block": "v5.2",
-      "area": "b1/e7",
-      "title": "Injeção do DoE substitui o par gera+re-escala (bit-exato)",
-      "supersedes": [],
-      "sections": [
-        "22.2",
-        "L.1",
-        "L.4"
-      ]
-    },
-    {
-      "id": "D95",
-      "block": "v5.2",
-      "area": "e74",
-      "title": "Opção A: árvore PlatEMO 4.1 própria + adendo N.0-4.1 (sem 'once', ponte por indivíduo)",
-      "supersedes": [],
-      "sections": [
-        "22.2",
-        "N.0-4.1",
-        "L.8"
-      ]
-    },
-    {
-      "id": "D96",
-      "block": "v5.2",
-      "area": "c149",
-      "title": "HVI-greedy q=1 fechada: normalização observada, ref=nadir-obs×1,1, desempate σ², fallback aleatório",
-      "supersedes": [
-        "D41"
-      ],
-      "sections": [
-        "22.4",
-        "L.14"
-      ]
-    },
-    {
-      "id": "D97",
-      "block": "v5.2",
-      "area": "fidelidade",
-      "title": "Validação de fidelidade = análise MANUAL do autor, a posteriori; não é código — REFORMULAÇÃO DO AUTOR",
-      "supersedes": [
-        "D81(reenquadra)"
-      ],
-      "sections": [
-        "20",
-        "17.5",
-        "22.6",
-        "D81",
-        "D84"
-      ]
-    },
-    {
-      "id": "D98",
-      "block": "v5.2",
-      "area": "§15",
-      "title": "characteristics.csv = propriedade objetiva, critério por coluna; re-derivada pelo autor (CRÍTICO)",
-      "supersedes": [],
-      "sections": [
-        "15"
-      ]
-    },
-    {
-      "id": "D99",
-      "block": "v5.2",
-      "area": "§12",
-      "title": "IGDX pós-hoc para os 4 MMF (multimodalidade decisória)",
-      "supersedes": [],
-      "sections": [
-        "12",
-        "15"
-      ]
-    },
-    {
-      "id": "D100",
-      "block": "v5.2",
-      "area": "escopo",
-      "title": "Fronteira implementação×análise; deferimentos do autor (multiplicidade/backup/consolidação)",
-      "supersedes": [],
-      "sections": [
-        "PARTE VI",
-        "14",
-        "D64"
-      ]
-    }
-  ]
+ "spec_version": "5.2",
+ "source": "REGISTRO_DECISOES_pingpong_v5.md",
+ "precedence": "Anexo S > §22 > Anexo D > corpo(§1-§21) > E/I/K/L > históricos(F/G/R)",
+ "decisions": [
+  {
+   "id": "D53",
+   "block": "A",
+   "area": "export",
+   "title": "Fim do arredondamento; float32 em tudo",
+   "supersedes": [
+    "D32",
+    "D35"
+   ],
+   "sections": [
+    "17.2",
+    "17.4",
+    "17.7",
+    "0"
+   ]
+  },
+  {
+   "id": "D54",
+   "block": "A",
+   "area": "export",
+   "title": "Salvar TUDO + topologia bucket-only (5 volumosos)",
+   "supersedes": [
+    "D27"
+   ],
+   "sections": [
+    "17.4",
+    "17.7"
+   ]
+  },
+  {
+   "id": "D55",
+   "block": "A",
+   "area": "export",
+   "title": "run_id com token de experimento",
+   "supersedes": [
+    "REF-4"
+   ],
+   "sections": [
+    "17.7"
+   ]
+  },
+  {
+   "id": "D56",
+   "block": "A",
+   "area": "grid",
+   "title": "b5 = 2 configs (b5r/b5m) -> 16.500 runs",
+   "supersedes": [],
+   "sections": [
+    "0",
+    "1.5",
+    "3.3",
+    "6.4",
+    "14"
+   ]
+  },
+  {
+   "id": "D57",
+   "block": "A",
+   "area": "export",
+   "title": "solution_id = identidade da solução, bit-a-bit",
+   "supersedes": [],
+   "sections": [
+    "17.2",
+    "5.4"
+   ]
+  },
+  {
+   "id": "D58",
+   "block": "A",
+   "area": "pipeline",
+   "title": "Run pronto: escrita atômica + manifesto + skip",
+   "supersedes": [],
+   "sections": [
+    "19",
+    "17.7"
+   ]
+  },
+  {
+   "id": "D59",
+   "block": "B",
+   "area": "matlab",
+   "title": "parfor + rng depois do probe (isolado)",
+   "supersedes": [
+    "D24",
+    "L7"
+   ],
+   "sections": [
+    "16.5.3",
+    "N.0.2",
+    "N.4",
+    "22.2"
+   ]
+  },
+  {
+   "id": "D60",
+   "block": "B",
+   "area": "pipeline",
+   "title": "Watchdog de 3 guardas",
+   "supersedes": [],
+   "sections": [
+    "19",
+    "N.0",
+    "N.1"
+   ]
+  },
+  {
+   "id": "D61",
+   "block": "B",
+   "area": "pipeline",
+   "title": "Hard-stop no meio do lote (exato 31D-1)",
+   "supersedes": [],
+   "sections": [
+    "5.4",
+    "17"
+   ]
+  },
+  {
+   "id": "D62",
+   "block": "B",
+   "area": "seeds",
+   "title": "SeedSequence canônico",
+   "supersedes": [],
+   "sections": [
+    "5.3",
+    "L"
+   ]
+  },
+  {
+   "id": "D63",
+   "block": "B",
+   "area": "doe",
+   "title": "DoE como artefato persistido, bit-a-bit",
+   "supersedes": [],
+   "sections": [
+    "5.2",
+    "22.1"
+   ]
+  },
+  {
+   "id": "D64",
+   "block": "B",
+   "area": "backup",
+   "title": "Sem backup automático MATLAB",
+   "supersedes": [],
+   "sections": [
+    "17.7"
+   ]
+  },
+  {
+   "id": "D65",
+   "block": "C",
+   "area": "pisos",
+   "title": "N dos pisos online por varredura pré-registrada",
+   "supersedes": [],
+   "sections": [
+    "6.3",
+    "3.2"
+   ]
+  },
+  {
+   "id": "D66",
+   "block": "C",
+   "area": "batch",
+   "title": "V-B.4 fechada: q=10, K=200",
+   "supersedes": [],
+   "sections": [
+    "V-B.4",
+    "0"
+   ]
+  },
+  {
+   "id": "D67",
+   "block": "C",
+   "area": "sweep",
+   "title": "MVNS especificada (mu=0.3, Sigma=diag0.1)",
+   "supersedes": [],
+   "sections": [
+    "11.5",
+    "9"
+   ]
+  },
+  {
+   "id": "D68",
+   "block": "C",
+   "area": "offline",
+   "title": "Sem cap do |ND| final",
+   "supersedes": [],
+   "sections": [
+    "11",
+    "12"
+   ]
+  },
+  {
+   "id": "D69",
+   "block": "D",
+   "area": "metric",
+   "title": "Ref-point HV no espaço normalizado",
+   "supersedes": [],
+   "sections": [
+    "12",
+    "12.2",
+    "6.2",
+    "S.5"
+   ]
+  },
+  {
+   "id": "D70",
+   "block": "D",
+   "area": "stats",
+   "title": "IGD+ primária + 4 testes operacionais",
+   "supersedes": [],
+   "sections": [
+    "14",
+    "12",
+    "15.1"
+   ]
+  },
+  {
+   "id": "D71",
+   "block": "D",
+   "area": "stats",
+   "title": "§15 matriz 25x8 (unidade=problema)",
+   "supersedes": [],
+   "sections": [
+    "15"
+   ]
+  },
+  {
+   "id": "D72",
+   "block": "D",
+   "area": "metric",
+   "title": "Reference set 2-obj por segmento + cache BBOB",
+   "supersedes": [],
+   "sections": [
+    "12.1",
+    "12.2"
+   ]
+  },
+  {
+   "id": "D73",
+   "block": "D",
+   "area": "honesty",
+   "title": "3 enquadramentos de honestidade",
+   "supersedes": [],
+   "sections": [
+    "2.4",
+    "6.2",
+    "15",
+    "M.6",
+    "M.17"
+   ]
+  },
+  {
+   "id": "D74",
+   "block": "E",
+   "area": "e74",
+   "title": "CalHV interno do e74 normalizado (DEF-L5)",
+   "supersedes": [],
+   "sections": [
+    "12",
+    "M.6"
+   ]
+  },
+  {
+   "id": "D75",
+   "block": "E",
+   "area": "c154",
+   "title": "JES: §6.4 dona; random_search principal (DEF-B9.5)",
+   "supersedes": [],
+   "sections": [
+    "6.4",
+    "22.3",
+    "K"
+   ]
+  },
+  {
+   "id": "D76",
+   "block": "E",
+   "area": "e74",
+   "title": "Máscara e74 obrigatória + L4/L8 no Anexo D",
+   "supersedes": [],
+   "sections": [
+    "22",
+    "K.5.2",
+    "6.5"
+   ]
+  },
+  {
+   "id": "D77",
+   "block": "E",
+   "area": "offline_piso",
+   "title": "Piso offline = DESDEO mode 12 (GP-média)",
+   "supersedes": [
+    "§22.2-listagem"
+   ],
+   "sections": [
+    "22.2",
+    "E.9",
+    "14"
+   ]
+  },
+  {
+   "id": "D78",
+   "block": "E",
+   "area": "spof",
+   "title": "Fallbacks c149/c311 pré-registrados",
+   "supersedes": [],
+   "sections": [
+    "M.17",
+    "2.4",
+    "19"
+   ]
+  },
+  {
+   "id": "D79",
+   "block": "F",
+   "area": "infra",
+   "title": "Multi-env subprocess + 1 thread por pilha",
+   "supersedes": [],
+   "sections": [
+    "16.5.2",
+    "17.7",
+    "N.1",
+    "18"
+   ]
+  },
+  {
+   "id": "D80",
+   "block": "F",
+   "area": "repro",
+   "title": "Pinagem total (SHA 9 repos + anchors + lockfiles)",
+   "supersedes": [],
+   "sections": [
+    "3.5",
+    "18",
+    "12",
+    "19"
+   ]
+  },
+  {
+   "id": "D81",
+   "block": "F",
+   "area": "quality",
+   "title": "Gate ±3σ + pára-e-loga + F0 expandido",
+   "supersedes": [
+    "±1σ-§22.2"
+   ],
+   "sections": [
+    "22.2",
+    "F0",
+    "16.5",
+    "N.5"
+   ]
+  },
+  {
+   "id": "D82",
+   "block": "F",
+   "area": "cards",
+   "title": "Cartões faltantes (grade/sub-estudos/consol/R4)",
+   "supersedes": [],
+   "sections": [
+    "22",
+    "S.4"
+   ]
+  },
+  {
+   "id": "D83",
+   "block": "F",
+   "area": "handoff",
+   "title": "Precedência + CLAUDE.md + 6 artefatos",
+   "supersedes": [],
+   "sections": [
+    "0",
+    "22"
+   ]
+  },
+  {
+   "id": "D84",
+   "block": "F",
+   "area": "schedule",
+   "title": "Escada de prioridade + piloto = gate bloqueante",
+   "supersedes": [],
+   "sections": [
+    "22",
+    "22.5",
+    "S.8"
+   ]
+  },
+  {
+   "id": "D85",
+   "block": "F",
+   "area": "seeds",
+   "title": "Semente 42 mantida (preferência do autor)",
+   "supersedes": [],
+   "sections": [
+    "5"
+   ]
+  },
+  {
+   "id": "D86",
+   "block": "G",
+   "area": "memory",
+   "title": "Higiene de memória intra-run (torch no_grad+gc por iteração; reset do Problem na ponte MATLAB) + eixo de pico de RAM no piloto (gate D84)",
+   "supersedes": [],
+   "sections": [
+    "N.0.8",
+    "N.1.5",
+    "22.5.7"
+   ]
+  },
+  {
+   "id": "D87",
+   "block": "v5.2",
+   "area": "init/export",
+   "title": "LHS-maximin próprio; DoE/dataset em parquet, hash do array decodificado",
+   "supersedes": [
+    "D63"
+   ],
+   "sections": [
+    "5.2",
+    "22.1"
+   ]
+  },
+  {
+   "id": "D88",
+   "block": "v5.2",
+   "area": "init",
+   "title": "Invariante de inicialização unificada dos 21 configs + CP-init",
+   "supersedes": [],
+   "sections": [
+    "5.2",
+    "5.5",
+    "3.2"
+   ]
+  },
+  {
+   "id": "D89",
+   "block": "v5.2",
+   "area": "FE",
+   "title": "Cache-hit = 0 FE (X nativo bit-a-bit); wrapper como fonte única do orçamento — DECISÃO DO AUTOR (contra rec inicial)",
+   "supersedes": [],
+   "sections": [
+    "5.4",
+    "22.1",
+    "17"
+   ]
+  },
+  {
+   "id": "D90",
+   "block": "v5.2",
+   "area": "offline",
+   "title": "Dataset offline (e sweep) como artefato parquet — estende D63 ao offline",
+   "supersedes": [
+    "D63"
+   ],
+   "sections": [
+    "7",
+    "9",
+    "11.5"
+   ]
+  },
+  {
+   "id": "D91",
+   "block": "v5.2",
+   "area": "sementes",
+   "title": "artifacts/seeds.json (alg_id→int, catálogo uso_id, materialização); desambigua D22×D62",
+   "supersedes": [],
+   "sections": [
+    "5.3"
+   ]
+  },
+  {
+   "id": "D92",
+   "block": "v5.2",
+   "area": "métrica",
+   "title": "Âncora do smoke re-derivada sob D69: HV(F1)=1,0433; notação 1,1 por coordenada",
+   "supersedes": [
+    "D82(âncora)"
+   ],
+   "sections": [
+    "0",
+    "12.2",
+    "22.1"
+   ]
+  },
+  {
+   "id": "D93",
+   "block": "v5.2",
+   "area": "e103",
+   "title": "Centros da RBFN = ceil(sqrt(n_dataset)); mata o patch NO-OP (CRÍTICO)",
+   "supersedes": [
+    "S.2-e103(NO-OP)"
+   ],
+   "sections": [
+    "22.2",
+    "S.2",
+    "L.15"
+   ]
+  },
+  {
+   "id": "D94",
+   "block": "v5.2",
+   "area": "b1/e7",
+   "title": "Injeção do DoE substitui o par gera+re-escala (bit-exato)",
+   "supersedes": [],
+   "sections": [
+    "22.2",
+    "L.1",
+    "L.4"
+   ]
+  },
+  {
+   "id": "D95",
+   "block": "v5.2",
+   "area": "e74",
+   "title": "Opção A: árvore PlatEMO 4.1 própria + adendo N.0-4.1 (sem 'once', ponte por indivíduo)",
+   "supersedes": [],
+   "sections": [
+    "22.2",
+    "N.0-4.1",
+    "L.8"
+   ]
+  },
+  {
+   "id": "D96",
+   "block": "v5.2",
+   "area": "c149",
+   "title": "HVI-greedy q=1 fechada: normalização observada, ref=nadir-obs×1,1, desempate σ², fallback aleatório",
+   "supersedes": [
+    "D41"
+   ],
+   "sections": [
+    "22.4",
+    "L.14"
+   ]
+  },
+  {
+   "id": "D97",
+   "block": "v5.2",
+   "area": "fidelidade",
+   "title": "Validação de fidelidade = análise MANUAL do autor, a posteriori; não é código — REFORMULAÇÃO DO AUTOR",
+   "supersedes": [
+    "D81(reenquadra)"
+   ],
+   "sections": [
+    "20",
+    "17.5",
+    "22.6",
+    "D81",
+    "D84"
+   ]
+  },
+  {
+   "id": "D98",
+   "block": "v5.2",
+   "area": "§15",
+   "title": "characteristics.csv = propriedade objetiva, critério por coluna; re-derivada pelo autor (CRÍTICO)",
+   "supersedes": [],
+   "sections": [
+    "15"
+   ]
+  },
+  {
+   "id": "D99",
+   "block": "v5.2",
+   "area": "§12",
+   "title": "IGDX pós-hoc para os 4 MMF (multimodalidade decisória)",
+   "supersedes": [],
+   "sections": [
+    "12",
+    "15"
+   ]
+  },
+  {
+   "id": "D100",
+   "block": "v5.2",
+   "area": "escopo",
+   "title": "Fronteira implementação×análise; deferimentos do autor (multiplicidade/backup/consolidação)",
+   "supersedes": [],
+   "sections": [
+    "PARTE VI",
+    "14",
+    "D64"
+   ]
+  },
+  {
+   "id": "D101",
+   "chave_estavel": "REAL-1",
+   "block": "reais",
+   "area": "§4/§2",
+   "title": "3 problemas de DADOS REAIS no grid principal — escada D=4·17·40 (RE21=25, DDMOP7=26, ESTOQUE40=27; append irreversível no fim do catálogo)",
+   "supersedes": [],
+   "sections": [
+    "4",
+    "2",
+    "S.5"
+   ]
+  },
+  {
+   "id": "D102",
+   "chave_estavel": "REAL-2",
+   "block": "reais",
+   "area": "DDMOP7",
+   "title": "Regime especial do DDMOP7 (f1 degenerado ⇒ reportado SÓ por HV; sub-decisões .1–.16)",
+   "supersedes": [],
+   "sections": [
+    "12"
+   ]
+  },
+  {
+   "id": "D102.1",
+   "chave_estavel": "REAL-2.1",
+   "block": "reais",
+   "area": "DoE",
+   "title": "DoE do DDMOP7 = 30 sorteios oficiais CONGELADOS de DDMOP7('init') — não-LHS; congelados 2026-08-13, irreproduzíveis por construção",
+   "supersedes": [],
+   "sections": [
+    "5"
+   ]
+  },
+  {
+   "id": "D102.2",
+   "chave_estavel": "REAL-2.2",
+   "block": "reais",
+   "area": "DoE",
+   "title": "Sorteio↔semente por ORDEM DE GERAÇÃO; SeedSequence INERTE neste DoE (reprodutibilidade = artefato+sha256)",
+   "supersedes": [],
+   "sections": [
+    "5.2"
+   ]
+  },
+  {
+   "id": "D102.3",
+   "chave_estavel": "REAL-2.3",
+   "block": "reais",
+   "area": "métrica",
+   "title": "Régua S.5 do DDMOP7 em DUAS FASES com selo (fase 2 pós-hoc pooled OBRIGATÓRIA); ref-point próprio revogado — vale a D69",
+   "supersedes": [],
+   "sections": [
+    "12",
+    "S.5"
+   ]
+  },
+  {
+   "id": "D102.4",
+   "chave_estavel": "REAL-2.4",
+   "block": "reais",
+   "area": "métrica",
+   "title": "DDMOP7 SEM front D72 e SEM IGD+ (|ND|≤18; matriz de métricas esparsa: 28 no HV, 27 no IGD+ — 'as 2 vias')",
+   "supersedes": [],
+   "sections": [
+    "12"
+   ]
+  },
+  {
+   "id": "D102.5",
+   "chave_estavel": "REAL-2.5",
+   "block": "reais",
+   "area": "arquitetura",
+   "title": "Exceção declarada à A2: DDMOP7 avaliado 100% no DDMOP7.p MATLAB; 4 casos de ponte; wrapper de FE no lado comum (caso 3 não passa por Python)",
+   "supersedes": [],
+   "sections": [
+    "2",
+    "16.5"
+   ]
+  },
+  {
+   "id": "D102.6",
+   "chave_estavel": "REAL-2.6",
+   "block": "reais",
+   "area": "piloto",
+   "title": "DDMOP7 e ESTOQUE40 são curingas do piloto de timing (§22.5, gate D84)",
+   "supersedes": [],
+   "sections": [
+    "22.5"
+   ]
+  },
+  {
+   "id": "D102.7",
+   "chave_estavel": "REAL-2.7",
+   "block": "reais",
+   "area": "escopo",
+   "title": "CREDITO17 morto (a vaga B é do DDMOP7)",
+   "supersedes": [],
+   "sections": []
+  },
+  {
+   "id": "D102.8",
+   "chave_estavel": "REAL-2.8",
+   "block": "reais",
+   "area": "análise",
+   "title": "Ranking agregado do DDMOP7 diferido para o R4 (HV separa por classe de operador — expectativa estrutural)",
+   "supersedes": [],
+   "sections": [
+    "12"
+   ]
+  },
+  {
+   "id": "D102.9",
+   "chave_estavel": "REAL-2.9",
+   "block": "reais",
+   "area": "offline",
+   "title": "Rota D do offline: dataset = 3 sorteios init concatenados truncados a 526, disjuntos do online; f avaliado no Processo A (30×, um por semente, só Linux)",
+   "supersedes": [],
+   "sections": [
+    "PARTE V"
+   ]
+  },
+  {
+   "id": "D102.10",
+   "chave_estavel": "REAL-2.10",
+   "block": "reais",
+   "area": "sonda",
+   "title": "DDMOP7 FORA da régua de sonda — por INVALIDEZ do instrumento (Sobol contínuo ⇒ f1≡1), não por custo; opt-out em PROBLEMAS_SEM_SONDA",
+   "supersedes": [],
+   "sections": [
+    "17.2.2"
+   ]
+  },
+  {
+   "id": "D102.11",
+   "chave_estavel": "REAL-2.11",
+   "block": "reais",
+   "area": "determinismo",
+   "title": "DDMOP7('value') é função PURA (D89 vale sem exceção; cache-hit=0 FE); 'init' NÃO é reprodutível ⇒ congela-se uma vez",
+   "supersedes": [],
+   "sections": []
+  },
+  {
+   "id": "D102.12",
+   "chave_estavel": "REAL-2.12",
+   "block": "reais",
+   "area": "entrega",
+   "title": "Entrega em onda única após a fila MATLAB (executada 2026-08-13: B-21..B-27)",
+   "supersedes": [],
+   "sections": []
+  },
+  {
+   "id": "D102.13",
+   "chave_estavel": "REAL-2.13",
+   "block": "reais",
+   "area": "métrica",
+   "title": "Front de referência do RE21 = D72 empírico (régua única); o oficial da suíte RE fica como cross-check citável",
+   "supersedes": [],
+   "sections": [
+    "12"
+   ]
+  },
+  {
+   "id": "D102.14",
+   "chave_estavel": "REAL-2.14",
+   "block": "reais",
+   "area": "frota",
+   "title": "DDMOP7 roda APENAS em hosts Linux x86-64 com MATLAB pinado 25.1.0.2973910 (gate de admissão); Mac fora do f-que-vira-dado; licença concorrente PROVADA em produção (5+ sessões simultâneas, 08/2026)",
+   "supersedes": [],
+   "sections": []
+  },
+  {
+   "id": "D102.15",
+   "chave_estavel": "REAL-2.15",
+   "block": "reais",
+   "area": "métrica",
+   "title": "Fase 1 da régua S.5 do DDMOP7 = min/max dos 62 pontos do probe v6 (opção A, autor 2026-08-13); ERRATA: nadir f2 MEDIDO = 468/690 = 0,6783 (docs citavam 0,44493); selo de fase 2 mantido",
+   "supersedes": [],
+   "sections": [
+    "S.5"
+   ]
+  },
+  {
+   "id": "D102.16",
+   "chave_estavel": "REAL-2.16",
+   "block": "reais",
+   "area": "escopo",
+   "title": "Recorte da extensão (autor, 2026-08-13): os 3 problemas reais rodam em 21 configs (13 online + b5m/b5r/e103 + 5 pisos) × 30 sementes = 1.890 células; SEM q10/sweep (decisão posterior provável) e SEM c311 (consistente com A47); grid 20.850→22.740",
+   "supersedes": [],
+   "sections": [
+    "4"
+   ]
+  }
+ ]
 }

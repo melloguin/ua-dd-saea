@@ -6,7 +6,11 @@
     "cartao": "T11-G6",
     "o_que_e": "A tabela NORMATIVA de camadas obrigatórias por config. Declarada, não inferida.",
     "por_que": "O censo derivava o gabarito da assinatura MODAL do próprio config: se NENHUMA célula tem a camada ⑦, a ausência dela é INVISÍVEL. Foi exatamente o que aconteceu na F5.1 — 44 dos 49 vermelhos eram `e103` sem a ⑦ (25/25 off + 19/20 sweep), e o censo não acusou. Em 30 sementes isso é 1.350 células sem o ENDPOINT OFICIAL do offline (DI-08), e o dano é silencioso: sem a ⑦ não existe a única avaliação real do ND final.",
-    "consumidores": ["scripts/gates_proveniencia.py (G-4)", "scripts/censo42.py", "scripts/censo_bucket.py"],
+    "consumidores": [
+      "scripts/gates_proveniencia.py (G-4)",
+      "scripts/censo42.py",
+      "scripts/censo_bucket.py"
+    ],
     "teste_de_aceitacao": "Apagar a ⑦ de células e103 em sandbox ⇒ o gate acusa (com o gabarito MODAL não acusava). Ver tests/test_gates_g6.py::TestGabaritoCamadas.",
     "medido_na_rodada_42": "Presença por camada nos ⑥/parquets locais: real/pop/surrogate/timing/manifest em 100% das células de todos os 24 configs; `final` (⑦) em 100% das células de b5m(48) b5r(49) c311(58) e103(49) moead_media(48) treed_media(10) e em 0% dos 18 configs online — exatamente a lista `manifest.OFFLINE_ALGS`."
   },
@@ -19,35 +23,310 @@
     "manifest": "⑤ .manifest.json — a certidão do run",
     "final": "⑦ __final.parquet — SÓ OFFLINE (DI-08): o ND final avaliado 1× na função real"
   },
-  "obrigatorias_default": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"],
-  "obrigatorias_offline": ["real", "pop", "surrogate", "timing", "jsonl", "manifest", "final"],
+  "obrigatorias_default": [
+    "real",
+    "pop",
+    "surrogate",
+    "timing",
+    "jsonl",
+    "manifest"
+  ],
+  "obrigatorias_offline": [
+    "real",
+    "pop",
+    "surrogate",
+    "timing",
+    "jsonl",
+    "manifest",
+    "final"
+  ],
   "regra": "A ⑦ é obrigatória para os 6 configs de `configs_offline` em QUALQUER `exp` — inclusive nas 3 células `main/e103` que o roster default do experiments.m produziu (DI-42, bloco 4). O regime é propriedade do CONFIG, não do token de experimento.",
-  "configs_offline": ["e103", "b5r", "b5m", "c311", "moead_media", "treed_media"],
+  "configs_offline": [
+    "e103",
+    "b5r",
+    "b5m",
+    "c311",
+    "moead_media",
+    "treed_media"
+  ],
   "configs": {
-    "b1": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"]},
-    "b3": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"]},
-    "b4": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"]},
-    "c122": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"]},
-    "c141": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"]},
-    "c149": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"]},
-    "c154": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"]},
-    "c217": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"]},
-    "c238": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"]},
-    "c262": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"]},
-    "e7": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"]},
-    "e74": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"]},
-    "e81": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"]},
-    "moead": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"],
-              "nota": "piso ONLINE: ③ existe mas sem linhas de surrogate (não há modelo) — presença ≠ conteúdo"},
-    "nsga2": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"], "nota": "piso ONLINE (idem moead)"},
-    "nsga3": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"], "nota": "piso ONLINE (idem moead)"},
-    "smsemoa": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"], "nota": "piso ONLINE (idem moead)"},
-    "sobol_batch": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest"], "nota": "piso do batch (q=10), ONLINE sem surrogate"},
-    "b5m": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest", "final"]},
-    "b5r": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest", "final"]},
-    "c311": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest", "final"]},
-    "e103": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest", "final"]},
-    "moead_media": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest", "final"]},
-    "treed_media": {"obrigatorias": ["real", "pop", "surrogate", "timing", "jsonl", "manifest", "final"]}
+    "b1": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ]
+    },
+    "b3": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ]
+    },
+    "b4": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ]
+    },
+    "c122": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ]
+    },
+    "c141": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ]
+    },
+    "c149": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ]
+    },
+    "c154": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ]
+    },
+    "c217": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ]
+    },
+    "c238": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ]
+    },
+    "c262": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ]
+    },
+    "e7": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ]
+    },
+    "e74": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ]
+    },
+    "e81": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ]
+    },
+    "moead": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ],
+      "nota": "piso ONLINE: ③ existe mas sem linhas de surrogate (não há modelo) — presença ≠ conteúdo"
+    },
+    "nsga2": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ],
+      "nota": "piso ONLINE (idem moead)"
+    },
+    "nsga3": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ],
+      "nota": "piso ONLINE (idem moead)"
+    },
+    "smsemoa": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ],
+      "nota": "piso ONLINE (idem moead)"
+    },
+    "sobol_batch": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest"
+      ],
+      "nota": "piso do batch (q=10), ONLINE sem surrogate"
+    },
+    "b5m": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest",
+        "final"
+      ]
+    },
+    "b5r": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest",
+        "final"
+      ]
+    },
+    "c311": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest",
+        "final"
+      ]
+    },
+    "e103": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest",
+        "final"
+      ]
+    },
+    "moead_media": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest",
+        "final"
+      ]
+    },
+    "treed_media": {
+      "obrigatorias": [
+        "real",
+        "pop",
+        "surrogate",
+        "timing",
+        "jsonl",
+        "manifest",
+        "final"
+      ]
+    }
+  },
+  "por_problema": {
+    "RE21": {
+      "gabarito": "padrao",
+      "excecoes": [],
+      "nota": "classe pura em problems.py; sonda barata (custo medido desprezivel). Nada de especial."
+    },
+    "ESTOQUE40": {
+      "gabarito": "padrao",
+      "excecoes": [],
+      "nota": "classe pura em problems.py; sonda medida em 10,96 s por celula (item C-19) -- cara, mas paga."
+    },
+    "DDMOP7": {
+      "gabarito": "padrao MENOS a camada ③",
+      "excecoes": [
+        {
+          "camada": "surrogate (③)",
+          "estado": "AUSENTE POR DECISAO (D102.10)",
+          "por_que": "a camada ③ registra TODA predicao do surrogate, inclusive a SONDA -- a varredura que avalia o modelo substituto na funcao real. No DDMOP7 cada avaliacao real custa 6,267 s dentro do MATLAB: gerar a sonda para as 630 celulas (c311 removido) custaria 34,8 h-core so para medir o surrogate, num problema que a D88.3/D102.4 reporta SO por hipervolume. O autor pediu a excecao registrada explicitamente porque vai explica-la na defesa.",
+          "consequencia_operacional": "os gates que hoje exigem a ③ (piso_offline.py:340-341, standalone_harness.py:155) precisam TOLERAR a ausencia -- item T-11, que e da torre.",
+          "ORDEM_DE_COMMIT": "o opt-out da sonda (T-11) tem de entrar ANTES do append do DDMOP7 no catalogo (B-33). Na ordem inversa, o primeiro gen_sonda queima 34,8 h-core em silencio."
+        }
+      ],
+      "camada_1_de_onde_vem": "nao e o wrapper de FE padrao: e a ponte (ddmop7_bridge.camada1()), que ja devolve solution_id/first_fe_index/x/f em float32 (D53/D57.2). A contagem de FE, o hard-stop exato em 526 e o dedup bit-a-bit por X acontecem DENTRO da ponte (D61/D89).",
+      "camada_7_final": "vale a regra normal: so nas 5 configs offline."
+    },
+    "_o_que_e": "gabarito de camadas por PROBLEMA. O `configs` acima é indexado por config (algoritmo) — este eixo é outro. A camada ③ do DDMOP7 é a única exceção declarada (D102.10); RE21 e ESTOQUE40 seguem o padrão."
   }
 }

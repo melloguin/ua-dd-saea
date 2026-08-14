@@ -67,5 +67,43 @@
       "pin_kind": "content-hash",
       "sha256_tree": "cb222e8346ce6c1fe35cfebe9d5b0694db6c92b8c01cf10fa8410616b6874911"
     }
+  },
+  "matlab_pin": {
+    "release": "R2025a Update 1",
+    "version": "25.1.0.2973910",
+    "install_dir": "/opt/matlab/R2025a",
+    "symlink": "/usr/local/bin/matlab",
+    "licenca": "40904996",
+    "licenciamento": "online, ancorado em mello.guilherme@dcc.ufmg.br",
+    "thread_pin_obrigatorio": "maxNumCompThreads(1)",
+    "onde_aplicar_o_pin": [
+      "no topo de matlab/DDMOP7_evalFcn.m (rota nativa, 360 runs)",
+      "na abertura da Engine em ddmop7_bridge._MotorMatlab.__init__ (rota matlab_engine, 150 runs)"
+    ],
+    "informado_por": "autor, 2026-07-31",
+    "fecha": [
+      "B-28",
+      "T-18",
+      "Q2 (handoff)"
+    ],
+    "frota": {
+      "_decisao": "REAL-2.14 / D102.14 -- a campanha roda em 9 hosts: 8 Linux + 1 Mac (autor, 2026-07-31). Isto RESOLVE a divergencia que estava aberta como Q2 ('o hospedeiro do MATLAB e o Mac ou a VM Linux?'): a resposta e nem um nem outro isolado -- e uma frota.",
+      "hospedeiros_matlab": "os 8 hosts LINUX. install_dir /opt/matlab/R2025a, symlink /usr/local/bin/matlab, TODOS na mesma versao 25.1.0.2973910.",
+      "mac": {
+        "papel": "carga somente-Python. NAO recebe celula de DDMOP7.",
+        "matlab_local": "/Applications/MATLAB_R2025a.app/bin/matlab -- existe, mas fica fora do roster do DDMOP7.",
+        "por_que": "o Mac e arm64/Accelerate; os Linux sao x86-64/MKL. A identidade bit-a-bit Linux->Linux ESTA medida (vm10 x vm3: 7 colunas maxabsdiff=0.000e+00, identicos=61/61, HANDOFF_aceitacao_vm10). Mac->Linux NAO esta medida. O f2 do DDMOP7 e taxa de erro de uma rede neural: ele atravessa BLAS. Vale a regra O-16 do proprio autor ('um config, uma maquina').",
+        "custo_de_throughput": "zero relevante -- a fila do DDMOP7 e 19,46 dias-core e cabe nos 8 Linux; o Mac fica com as colunas Python, onde ele e bit-identico por construcao (mesmo problems.py, sem BLAS no caminho do f)."
+      },
+      "gate_de_admissao": "host so entra no roster do DDMOP7 se o preflight reportar EXATAMENTE 25.1.0.2973910. Versao diferente => o host nao recebe celula de DDMOP7. Isto NAO se conserta sozinho: e D81 (para-e-loga), decisao de fidelidade e do autor.",
+      "lacuna_de_rastreabilidade": "o host NAO e gravado por run. A coluna `maquina_dona` do censo_bucket.py e DERIVADA do roster, nao medida -- se uma celula for recuperada por outra maquina (ja aconteceu: HANDOFF_operacao_multimaquina §16.2, main/c238 x6 e main/b1/DTLZ4 migraram da vm3 para o Mac), o censo continua dizendo o nome errado. Mitigacao barata: gravar `maquina_real` no .manifest.json, para o host virar covariavel AUDITAVEL no R4 em vez de confundidor invisivel.",
+      "PENDENCIA_BLOQUEANTE": {
+        "o_que": "teste de licenca MATLAB CONCORRENTE -- NUNCA foi feito.",
+        "onde": "HANDOFF_aceitacao_vm10.md §1.4 e §13 item 1; o HANDOFF_vm3_recriacao.md §3 diz que ele 'decide o M8'.",
+        "por_que_virou_bloqueio_agora": "com 1 hospedeiro a pergunta era teorica. Com 8 hosts Linux dividindo a MESMA licenca 40904996 (online, ancorada em mello.guilherme@dcc.ufmg.br), a resposta decide se as colunas MATLAB rodam em PARALELO ou em SERIE -- ou seja, decide o cronograma da fila do DDMOP7 e o desenho do M8.",
+        "estado": "ACAO DO AUTOR, antes de disparar a fila."
+      }
+    },
+    "nao_redistribuir": "DDMOP7.p -- repo DDMOP sem licenca => all-rights-reserved. Citar o paper."
   }
 }

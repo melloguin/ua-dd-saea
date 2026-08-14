@@ -210,7 +210,9 @@ class TestProcedenciaDoCusto(unittest.TestCase):
 
     def test_a_imputacao_esta_DECLARADA_celula_a_celula(self):
         imp = self.meta["celulas_imputadas_h"]
-        self.assertEqual(len(imp), 30, "mudou o nº de células sem wall medido")
+        # 93 = 30 da s42 (19 c154 · 9 c262 · 1 b1 · 1 c311) + 63 dos 3
+        # problemas REAIS (21 configs × 3 — nunca rodaram; D101/T15.6).
+        self.assertEqual(len(imp), 93, "mudou o nº de células sem wall medido")
         # são as mais CARAS do estudo: descartá-las subestimaria o Python
         self.assertTrue(any(k.startswith("main/c154/") for k in imp))
         self.assertTrue(all(v > 0 for v in imp.values()))

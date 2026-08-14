@@ -102,9 +102,10 @@ class TestOrdemSemente(unittest.TestCase):
 
     def test_a_grade_foi_montada(self):
         self.assertEqual(self.rc, 0, f"bloco falhou (rc={self.rc}): {self.err}")
-        # 3 sementes × (25 nsga2 + 25 c238 + 25 e103) = 225 células.
-        self.assertEqual(len(self.grade), 225,
-                         f"grade com {len(self.grade)} células, esperado 225")
+        # 3 sementes × (28 nsga2 + 28 c238 + 28 e103) = 252 células
+        # (o grid ganhou RE21/DDMOP7/ESTOQUE40 — D101/T15.6).
+        self.assertEqual(len(self.grade), 252,
+                         f"grade com {len(self.grade)} células, esperado 252")
 
     def test_a_fila_e_semente_major(self):
         """TODA a semente 0 entra antes de QUALQUER célula da semente 1."""
@@ -194,7 +195,7 @@ class TestOrdemInvalidaParaELoga(unittest.TestCase):
             with self.subTest(modo=modo):
                 rc, grade, err = _roda(modo)
                 self.assertEqual(rc, 0, f"modo {modo} falhou: {err}")
-                self.assertEqual(len(grade), 225)
+                self.assertEqual(len(grade), 252)
 
 
 if __name__ == "__main__":                                   # pragma: no cover

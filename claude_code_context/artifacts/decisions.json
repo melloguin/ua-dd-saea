@@ -781,6 +781,51 @@
    "sections": [
     "4"
    ]
+  },
+  {
+   "id": "D102.17",
+   "chave_estavel": "REAL-2.17",
+   "block": "reais",
+   "area": "protocolo",
+   "title": "ZONA MORTA na codificação do DDMOP7 (autor, 2026-08-15): |x_i|<τ=0,5 ⇒ 0 EXATO, aplicada IDENTICAMENTE aos 21 configs e SOMENTE às propostas da busca (pós-DoE; medição 15/08: aplicá-la ao DoE congelado zeraria 50,1% das coordenadas não-zero e mudaria 99,2% dos pontos). Motivo (laudo de fidelidade): o front exige 6–13 pesos exatamente zero e aquisição contínua nunca produz zero exato — busca do c149 contribuiu 0/340 vs 320/340 do GA. τ=0,5 ⇒ nnz~Binomial(17;0,5), 83,5% das propostas na faixa do front [2,10]. A ① grava o x PROPOSTO; efetivo = zona_morta(proposto,τ) determinística (τ declarado em params.zona_morta do ⑤). Rotas: R2 ddmop7_bridge.DDMOP7Matlab.avalia · R1 ddmop7_value_local.m (par bit-a-bit) · ⑦ final_eval._avalia_pos_hoc. GATE: smoke c149×s0 na vm1 — ND da busca deve sair de 0/340 ANTES do disparo das 1.890.",
+   "supersedes": [],
+   "sections": [
+    "S.5",
+    "§11"
+   ]
+  },
+  {
+   "id": "D102.18",
+   "chave_estavel": "REAL-2.18",
+   "block": "reais",
+   "area": "dados",
+   "title": "Contrato da ⑦ dos problemas PÓS-HOC (DDMOP7): candidatos = NÃO-DOMINADOS da última geração SEGUNDO A PREDIÇÃO da ③ (bloqueador 2 do laudo: população 1.000 do c149 estourava o teto de 600 do .p; a mensagem do guard já pressupunha |ND|~10²). Configs fora do rol pós-hoc: semântica DI-08 INALTERADA (corpus coletado canônico). Gerador e --check derivam da MESMA função (read_final_candidates).",
+   "supersedes": [],
+   "sections": [
+    "§11"
+   ]
+  },
+  {
+   "id": "D102.19",
+   "chave_estavel": "REAL-2.19",
+   "block": "reais",
+   "area": "protocolo",
+   "title": "Espaço de entrada do GP do PISO OFFLINE (bloqueador 3 do laudo: moead_media/ESTOQUE40 CONGELADO — 0/380 transições; kernel DI-28 limita length_scale a 100 vs distância típica 3.577; underflow ⇒ prior): entradas min-max para [0,1] QUANDO d_típica(dataset) > teto do length_scale (critério mecânico, determinístico, sem RNG; retro-consistente — sintéticos coletados ficam crus como foram). Probe 15/08: cru std=[0,0,0] vs minmax std=[1163,8·544,8·~1,2]. Espec do kernel (DI-28) INTOCADA; camadas ①③⑦ permanecem NATIVAS; declarado em sigma_dict.espaco_entrada_gp + ⑥. Limitação conhecida REGISTRADA: fit do f2 instável sob alpha=0 (pode aterrissar ls=0,01 degenerado; determinístico por semente). EXTENSÃO DE PARIDADE (mesma decisão): o critério aplica-se IGUALMENTE ao b5r/b5m (src/b5_prob.py, mesma função _espaco_entrada_gp) — o piso é 'o b5 sem σ' (DI-16.1/DI-28); só o piso normalizado confundiria uso-de-σ com espaço-de-entrada na ablação, e o probe prova que o GP do b5 no ESTOQUE40 cru está igualmente no prior (movimento do RVEA = dinâmica às cegas).",
+   "supersedes": [],
+   "sections": [
+    "§10"
+   ]
+  },
+  {
+   "id": "D102.20",
+   "chave_estavel": "REAL-2.20",
+   "block": "reais",
+   "area": "métrica",
+   "title": "Régua D69 do ESTOQUE40 ESTENDIDA pelos 2 cantos da caixa (C3-01 do laudo: front verdadeiro furava a régua nos 3 objetivos; os cantos são membros extremos do front — x=0 ⇒ f=[0,0,0]; x=xu ⇒ melhor f₁). MEDIDO 15/08: ideal=[-17909,135471698115, 0, 0] · nadir=[0, 7492,938905660378, 4,2561157380901555]. Sem isto, reparo-aos-bounds tocaria um canto e o HV normalizado passaria de 1.",
+   "supersedes": [],
+   "sections": [
+    "§12"
+   ]
   }
  ]
 }

@@ -106,9 +106,16 @@ F_MIN_MAX: dict[str, tuple[tuple[float, ...], tuple[float, ...]] | None] = {
     # DDMOP7 substituem estes valores e a §12 re-roda (D102.3).
     "DDMOP7":    ((0.235294117647059, 0.292753623188406),
                   (1.0, 0.678260869565217)),
-    "ESTOQUE40": ((-17484.620452644827, 183.96099397447864,
-                   0.00021709970828132528),
-                  (-6248.165327706775, 6413.046970097603,
+    # [T15.12 · C3-01 do laudo de fidelidade 15/08] Régua ESTENDIDA pelos DOIS
+    # CANTOS da caixa, que sao membros EXTREMOS do front verdadeiro e furavam
+    # a regua anterior nos 3 objetivos (f1 por 424,515 = 2,37%; f2 por
+    # 183,961; f3 por 2,171e-04): x=xl=0 ("nao compra nada") da f=[0,0,0] e
+    # x=xu da o melhor f1 alcancavel. MEDIDO em 15/08 via problems.py:
+    # f(xl)=[-0,0,0] · f(xu)=[-17909.135471698115, 7492.938905660378,
+    # 3.199116]. Sem isto, com 30 sementes x 21 configs, um reparo-aos-bounds
+    # tocaria um canto e o HV normalizado passaria de 1.
+    "ESTOQUE40": ((-17909.135471698115, 0.0, 0.0),
+                  (0.0, 7492.938905660378,
                    4.2561157380901555)),
 }
 

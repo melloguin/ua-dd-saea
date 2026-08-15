@@ -110,6 +110,22 @@ end
 X = reshape(X, [], D);
 n = size(X, 1);
 
+% [T15.12/D102.17] ZONA MORTA pos-DoE — PAR BIT-A-BIT do python
+% (src/ddmop7_bridge.py: TAU_ZONA_MORTA/N_DOE_ONLINE/zona_morta; paridade
+% testada em tests/test_t15_zona_morta.py). Os primeiros 186 pontos enviados
+% ao .p sao o DoE congelado (CRUS); todo ponto alem e proposta da BUSCA:
+% |x_i| < tau vira EXATAMENTE 0 (codificacao declarada, identica aos 21
+% configs — o front do DDMOP7 exige zeros exatos que operador continuo nunca
+% produz; medicao 0/340 no laudo de fidelidade).
+TAU_ZONA_MORTA = 0.5;
+N_DOE_ONLINE = 11*D - 1;                       % 186
+ini_dz = max(0, N_DOE_ONLINE - chamadasP);     % pontos DoE restantes no lote
+if ini_dz < n
+    Xdz = X(ini_dz+1:end, :);
+    Xdz(abs(Xdz) < TAU_ZONA_MORTA) = 0;
+    X(ini_dz+1:end, :) = Xdz;
+end
+
 if chamadasP + n > P_CODE_CAP
     error('DDMOP7:TetoPCode', ...
         ['%d chamadas ao DDMOP7.p neste processo passariam o teto de %d -- ' ...

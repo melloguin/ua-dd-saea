@@ -154,8 +154,32 @@ def read_final_candidates(exp: str, alg: str, problema: str, semente, *,
     sids = (np.asarray(tbl.column("real_solution_id").to_pylist(), dtype=object)[idx]
             if "real_solution_id" in cols else np.array([None] * len(idx),
                                                         dtype=object))
+    linhas = np.arange(len(idx), dtype=np.int64)
+
+    # [T15.12 · bloqueador 2 do laudo] Problema PÓS-HOC (DDMOP7): a ⑦ passa
+    # pelo teto de 600 chamadas do `.p` POR PROCESSO, e config de população
+    # grande (c149: última geração = 1.000 linhas) estourava o guard adiante
+    # ("isto indica ③ corrompida" — falso: é população por desenho). Contrato
+    # da ⑦ para estes problemas: candidatos = NÃO-DOMINADOS da última geração
+    # SEGUNDO A PREDIÇÃO da ③ (o front-no-modelo — o que a DI-08 sempre quis
+    # avaliar; a mensagem do guard já pressupunha |ND|~10²). `linhas` continua
+    # sendo a posição no bloco da geração (o join posicional à ③ sobrevive:
+    # gerador e --check derivam ambos DESTA função). Config fora do rol
+    # pós-hoc: comportamento INALTERADO (corpus coletado permanece canônico).
+    from src.experiment import PROBLEMAS_FINAL_POS_HOC
+    if problema in PROBLEMAS_FINAL_POS_HOC and M:
+        mu = np.column_stack([
+            np.asarray(tbl.column(f"mu_{j}"), dtype=np.float64)[idx]
+            for j in range(M)])
+        if np.all(np.isfinite(mu)):
+            from src import problems as _problems
+            nd = sorted(int(i) for i in _problems._nds_filter(mu))
+            if 0 < len(nd) < len(idx):
+                X, linhas = X[nd], linhas[nd]
+                sids = sids[nd]
+
     return {"X": X, "geracao": g_final,
-            "linhas": np.arange(len(idx), dtype=np.int64),
+            "linhas": linhas,
             "solution_ids": list(sids), "D": D, "M": M,
             "n_total": n_total, "n_sonda": n_sonda}
 
@@ -196,8 +220,14 @@ def _avalia_pos_hoc(problema: str, X: np.ndarray) -> np.ndarray:
     if X.shape[0] > B.P_CODE_CAP:
         raise RuntimeError(
             f"⑦ com {X.shape[0]} pontos passaria o teto de {B.P_CODE_CAP} "
-            f"chamadas do DDMOP7.p num processo (D88.5) — |ND| offline "
-            f"esperado é ~10²; isto indica ③ corrompida. Pára-e-loga (D81).")
+            f"chamadas do DDMOP7.p num processo (D88.5) — os candidatos já "
+            f"chegam ND-filtrados (T15.12); isto indica ③ corrompida. "
+            f"Pára-e-loga (D81).")
+    # [T15.12/D102.17] os candidatos da ⑦ são PROPOSTAS DA BUSCA (nunca DoE):
+    # a codificação zona-morta aplica-se a TODOS — tanto na geração quanto no
+    # --check (que re-avalia o x PROPOSTO gravado; f reproduz porque o dz é
+    # determinístico). Mesma função canônica das rotas R1/R2.
+    X = B.zona_morta(X)
     motor = _motor_pos_hoc()
     try:
         F = np.atleast_2d(np.asarray(motor.avalia(X), dtype=np.float64))

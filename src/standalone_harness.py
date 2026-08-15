@@ -1386,6 +1386,16 @@ def write_run_outputs(exp: str, alg: str, problema: str, semente,
         man["motivo_parada"] = motivo_parada
     if params is not None:
         man["params"] = params
+    # [T15.12/D102.17] Problema com CODIFICACAO zona-morta: a declaracao vai
+    # no (5) AUTOMATICAMENTE (ponto unico — nenhum runner precisa saber). O
+    # x_efetivo e reconstrutivel: zona_morta(x_proposto, tau) deterministica.
+    if problema == "DDMOP7":
+        from src import ddmop7_bridge as _B
+        man.setdefault("params", {})
+        man["params"]["zona_morta"] = {
+            "tau": _B.TAU_ZONA_MORTA, "escopo": "propostas da busca "
+            f"(pos-DoE; os {_B.N_DOE_ONLINE} do DoE ficam crus)",
+            "decisao": "REAL-2.17/D102.17 (T15.12)"}
     if regime == "offline":
         man["cp_init_offline"] = {"x_hash": cp_hashes.get("x_hash"),
                                   "f_hash": cp_hashes.get("f_hash")}

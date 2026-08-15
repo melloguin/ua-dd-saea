@@ -66,10 +66,13 @@ A ③ (`__surrogate.parquet`) tem coluna `regime` por linha (busca vs `sonda`) e
 
 ## 3 · CAVEATS DE PROVENIÊNCIA (leia antes de julgar qualquer número)
 
-1. **Tudo aqui é Mac arm64/Accelerate.** O f-que-vira-dado nasce nas VMs
-   Linux (D102.14). Estas células provam MECÂNICA e comportamento
-   algorítmico; micro-diferenças numéricas vs VM são esperadas onde BLAS
-   atravessa (f₂ do DDMOP7 em especial).
+1. **[CORRIGIDO 15/08 pela auditoria] Proveniência de stack é MISTA, não
+   arm64 uniforme:** as 4 células b5r e a moead_media rodaram
+   **Darwin/x86_64 sob Rosetta** (py3.7.12, numpy 1.21.6 — o env_b5); as
+   demais, arm64 nativo. E o BLAS é **OpenBLAS** nos dois venvs (não
+   Accelerate, como este handoff dizia). Implicação: b5 no Mac vs b5 na VM
+   Linux não é "micro-diferença de BLAS" — são gerações de stack numérico
+   distintas. O f-que-vira-dado segue nascendo nas VMs (D102.14).
 2. **e81 (#7): das 12:41 às 13:40 houve um SEGUNDO processo idêntico** rodando
    a mesma célula (incidente detectado e morto — REGISTRO A50). O `.jsonl`
    tem registros INTERCALADOS dos dois nessa janela de ~1h. O footer e as
@@ -78,8 +81,13 @@ A ③ (`__surrogate.parquet`) tem coluna `regime` por linha (busca vs `sonda`) e
    ignore a janela 12:41–13:40 ou filtre por continuidade de `geracao`.
 3. **Timing do e81 contaminado**: ~1h42 dividindo CPU com o gêmeo + máquina
    carregada. NÃO use `__timing` desta célula para régua de custo.
-4. **b5r em dose dupla (#8/#9)**: mesma semente, mesmo dataset ⇒ trajetórias
-   idênticas. É evidência de determinismo, não duas amostras independentes.
+4. **b5r em dose dupla (#8/#9) — VERIFICADO 15/08 após contestação**: a
+   auditoria alegou "mesma gravação sob dois nomes" (①③⑦ com sha256
+   idêntico). Os `.jsonl` porém DIFEREM: main executou 17:50:41–17:53:23 UTC
+   e off executou 18:17:20–18:20:03 UTC (930 linhas cada, timestamps
+   distintos linha a linha) — **são duas execuções reais**, e as camadas
+   byte-idênticas entre elas são determinismo bit-exato demonstrado (parquet
+   não embute timestamp). Segue valendo: 1 semente, não é amostra dupla.
 5. **Dataset DDMOP7 s0 do Mac**: X = bloco 0 do CSV congelado dos sorteios
    oficiais do `DDMOP7('init')`; F = 526 avaliações do `.p` REAL neste Mac,
    geradas em 7 fatias foreground e montadas pelo caminho canônico
@@ -87,7 +95,11 @@ A ③ (`__surrogate.parquet`) tem coluna `regime` por linha (busca vs `sonda`) e
    assinatura honesta da montagem fatiada (motivo: macOS congela Engine em
    fundo; laudo na A50). Local: `data/datasets/DDMOP7/ds_DDMOP7_0.parquet`
    (+manifest) — FORA do git de propósito.
-6. **c122 (#6) é incompleta por decisão** — não julgue convergência nela.
+6. **c122 (#6) é incompleta por DECISÃO** (registro versionado: REGISTRO
+   PARTE A49 §C2, commit `8463e55` — "interrompido 3h33, dado do piloto").
+   A auditoria tem razão que o ARTEFATO sozinho não distingue decisão de
+   morte (`motivo_parada='checkpoint_em_andamento'` é assinatura de kill):
+   fé no registro, não no manifesto. Não julgue convergência nela.
 
 ## 4 · Referências de verdade (contra o que balizar)
 

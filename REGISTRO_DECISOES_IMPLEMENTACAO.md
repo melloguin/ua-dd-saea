@@ -3216,3 +3216,75 @@ pelo quirk do Mac: fundo = 978 não-Engine (0 falhas; 46 skips = 38 permanentes
 + 8 gateados por Engine) + foreground com `.p` real = `test_t15_ddmop7_bridge`
 25/25 e `test_t15_ddmop7_matlab` 22/22 (cobrem o erro-de-env e os 8 skips do
 fundo). Commit T15.10 na sequência.
+
+---
+
+## PARTE A51 — T15.12: O LAUDO DE FIDELIDADE E OS 3 BLOQUEADORES EXECUTADOS (torre, 2026-08-15)
+
+A validação de fidelidade do autor (11 agentes, laudo em
+`handoff/T15-LAUDO-FIDELIDADE-PROBLEMAS-REAIS.md`) fechou: **RE21 9,4 ACEITAR**
+(reimplementação cega bit-exata, 0 ULP em 20.825 pontos) · **ESTOQUE40 9,2
+ACEITAR** (npz re-derivado bit-a-bit; regra da categoria 40/40) · **DDMOP7 8,0
+com 2 bloqueadores** · **pisos 7,0 com 1**. O autor cravou as soluções
+("sigo 100% sua recomendação em tudo") e a torre executou as QUATRO decisões
+novas — D102.17–20 no decisions.json:
+
+### D102.17 — ZONA MORTA na codificação do DDMOP7 (bloqueador 1)
+O front exige 6–13 dos 17 pesos EXATAMENTE zero; aquisição contínua nunca
+produz zero exato ⇒ busca do c149 contribuiu **0/340** pontos (f₁=1,0 em
+todos) vs 320/340 do GA que herda zeros por crossover — os 13 surrogates
+produziriam o MESMO front (o do DoE). Codificação genótipo→fenótipo declarada:
+|xᵢ|<τ=0,5 ⇒ 0 exato, idêntica aos 21 configs, SÓ nas propostas da busca
+(medição da torre: aplicá-la ao DoE zeraria 50,1% das coordenadas não-zero e
+mudaria 99,2% dos pontos — o DoE já é esparso pelo init). τ=0,5 ⇒
+nnz~Binomial(17;½), 83,5% das propostas na faixa do front [2,10]; τ=0,1
+(cogitado pelo autor) daria 0,1% — reintroduziria a doença; racional
+apresentado e τ=0,5 adotado com aval. Implementação: função canônica
+`zona_morta` em `ddmop7_bridge` + corte em `DDMOP7Matlab.avalia` (fronteira
+DoE/busca pelo contador `chamadas_p`, lote fronteiriço fatiado) + PAR bit-a-bit
+no `ddmop7_value_local.m` (R1) + `_avalia_pos_hoc` do final_eval (⑦, gera E
+confere pelo mesmo caminho). ① grava o x PROPOSTO (efetivo reconstrutível:
+transformação determinística + τ declarado em `params.zona_morta`, injeção
+automática no ⑤ via write_run_outputs). **GATE pendente: smoke c149×s0 na vm1
+pós-push — ND da busca deve sair de 0/340.**
+
+### D102.18 — contrato da ⑦ pós-hoc (bloqueador 2)
+População grande estourava o teto de 600 do `.p` (c149: última geração = 1.000
+linhas ⇒ RuntimeError com diagnóstico falso "③ corrompida"). Contrato novo SÓ
+para problemas pós-hoc: candidatos da ⑦ = **não-dominados da última geração
+segundo a PREDIÇÃO da ③** (o que o guard já pressupunha; join posicional
+preservado — gerador e `--check` derivam da mesma função). Corpus coletado:
+semântica DI-08 INTOCADA.
+
+### D102.19 — piso offline descongelado (bloqueador 3)
+moead_media/ESTOQUE40: **0/380 transições com mudança** — kernel DI-28 limita
+length_scale a 100 vs distância típica 3.577 ⇒ underflow ⇒ GP no prior.
+Conserto de INSTRUMENTO (autor: 🔴): entradas min-max→[0,1] QUANDO
+d_típica(dataset) > teto do ls — critério mecânico em `_espaco_entrada_gp`,
+determinístico, sem RNG, retro-consistente (sintéticos coletados: cru como
+foram). Probe MEDIDO: cru std=[0,0,0] vs minmax std=[1163,8·544,8·~1,2].
+Espec do kernel INTOCADA; camadas ①③⑦ nativas (de/para só no GP/evolver);
+declarado em sigma_dict + ⑥. Limitação REGISTRADA: fit do f₂ instável sob
+alpha=0 (pode aterrissar ls=0,01; determinístico por semente; propriedade da
+espec congelada, não do conserto). Smoke de validação em voo.
+
+### D102.20 — régua D69 do ESTOQUE40 estendida (C3-01)
+O front verdadeiro furava a régua nos 3 objetivos; os furadores são os DOIS
+CANTOS da caixa (membros extremos do front: x=0 ⇒ f=[0,0,0]; x=xu ⇒ melhor
+f₁=-17909,14). Régua = envelope com os cantos (medidos 15/08 via problems.py).
+
+### Correções cruzadas de auditoria (nos dois sentidos)
+Aceitas do validador: caveat 1 (b5/moead_media = Rosetta x86_64 + OpenBLAS,
+não arm64/Accelerate) e caveat 6 (artefato não distingue decisão de morte —
+fé no REGISTRO versionado). **Devolvida com prova**: a alegação "gêmeo = mesma
+gravação sob dois nomes" está REFUTADA — os `.jsonl` diferem (main
+17:50:41–17:53:23 UTC; off 18:17:20–18:20:03 UTC, 930 linhas cada) ⇒ duas
+execuções reais, e as ①③⑦ byte-idênticas são determinismo bit-exato
+demonstrado. Handoff de fidelidade corrigido nos 3 pontos.
+
+### Estado ao fechar esta parte
+Processo A: 30/30 datasets `--check` OK nas 2 VMs. Testes novos:
+`tests/test_t15_zona_morta.py` 9/9 (função canônica ×2, isenção DoE/lote
+fronteiriço, paridade R1↔R2 por parsing, ⑦ ND ×2, espaço-GP ×3). Pendências:
+smoke moead_media/ESTOQUE40 (em voo) → suíte → commit → push do autor → smoke
+DDMOP7 na vm1 (o gate) → decisão final de disparo.

@@ -470,3 +470,21 @@ a declaração no ⑤.
 `DDMOP7('init')` (não-LHS; SeedSequence INERTE — semente = índice de bloco no
 CSV congelado; sha da fonte no sidecar). Dataset offline: X congelado + f
 avaliado no Processo A (`scripts/gen_dataset_ddmop7.py`, só Linux — D102.14).
+
+**Codificação zona-morta (emenda T15.12/D102.17):** problemas com codificação
+declarada (hoje: DDMOP7, τ=0,5) avaliam o oráculo sobre
+`x_efetivo = zona_morta(x_proposto, τ)` **somente nas propostas da busca**
+(pós-DoE). A ① grava o **x PROPOSTO**; o efetivo é reconstrutível
+(transformação determinística + `params.zona_morta.tau` no ⑤ — injeção
+automática do harness). Auditoria que re-avalie decs da ①③⑦ destes problemas
+DEVE aplicar a codificação antes (a função canônica é
+`ddmop7_bridge.zona_morta`; o `final_eval --check` já a aplica).
+
+**⑦ dos problemas PÓS-HOC (emenda T15.12/D102.18):** candidatos = os
+não-dominados da última geração SEGUNDO A PREDIÇÃO da ③ (não a população
+inteira — teto de 600 do `.p`). Demais configs: DI-08 intocada.
+
+**Espaço de entrada do GP do piso offline (T15.12/D102.19):** quando
+`sigma_dict.espaco_entrada_gp.modo == "minmax_caixa"`, as linhas da ③ levam
+`espaco_modelo='transformado'` + `transf_tipo='minmax_caixa'` +
+`transf_params` (o critério e a d_típica); os DECS das camadas seguem NATIVOS.

@@ -472,10 +472,33 @@ def _run_b5(alg, exp, problema, semente, *,
         #    testbench e nao conhece MMF1/DTLZ2/ZDT1.) ────────────────────────
         import pandas as pd
         xl, xu = H._bounds(problema)
+
+        # [T15.12/D102.19 — o MESMO criterio do piso, pela PARIDADE DI-28]
+        # Caixa grande congela o GP (kernel limita length_scale a 100 vs
+        # d_tipica ~3.577 no ESTOQUE40 => prior; probe MEDIDO 15/08). O piso
+        # e "o b5 sem sigma": se so o piso normalizasse, a ablacao piso x b5
+        # confundiria uso-de-sigma com espaco-de-entrada. Criterio mecanico
+        # identico (funcao unica em piso_offline._espaco_entrada_gp);
+        # sinteticos coletados: cru como foram. Camadas NATIVAS sempre.
+        from src.piso_offline import _espaco_entrada_gp
+        (_nat2gp, _gp2nat, X_gp, xl_gp, xu_gp,
+         _gp_info) = _espaco_entrada_gp(X_ds, xl, xu)
+        _gp_transformado = _gp_info["modo"] == "minmax_caixa"
+        _espaco_modelo = "transformado" if _gp_transformado else "cru"
+        _transf_tipo = "minmax_caixa" if _gp_transformado else None
+        _transf_params = (_gp_info if _gp_transformado else None)
+        sigma_dict["espaco_entrada_gp"] = _gp_info
+        log.decision(caminho="b5_espaco_entrada_gp",
+                     motivo="d_tipica=%s vs teto ls=100 => entradas do GP em "
+                            "modo '%s' (paridade com o piso, D102.19)"
+                            % (_gp_info["d_tipica_dataset"],
+                               _gp_info["modo"]),
+                     geracao=0, fe=bud.fe)
+
         xn = ["x%d" % i for i in range(1, D + 1)]
         yn = ["f%d" % i for i in range(1, M + 1)]
-        df = pd.DataFrame(np.hstack((X_ds, F_ds)), columns=xn + yn)
-        bounds_df = pd.DataFrame(np.vstack((xl, xu)), columns=xn,
+        df = pd.DataFrame(np.hstack((X_gp, F_ds)), columns=xn + yn)
+        bounds_df = pd.DataFrame(np.vstack((xl_gp, xu_gp)), columns=xn,
                                  index=["lower_bound", "upper_bound"])
         problem = DataProblem(data=df, variable_names=xn, objective_names=yn,
                               bounds=bounds_df)
@@ -495,8 +518,7 @@ def _run_b5(alg, exp, problema, semente, *,
         def _predict(Xnat):
             # DataProblem.evaluate(decision_vectors, use_surrogate) — SINGULAR
             # (o motor chama posicionalmente; aqui explicito o nome correto).
-            r = problem.evaluate(np.asarray(Xnat, dtype=np.float64),
-                                 use_surrogate=True)
+            r = problem.evaluate(_nat2gp(Xnat), use_surrogate=True)
             mu = np.asarray(r.objectives, dtype=np.float64).reshape(-1, M)
             sg = np.asarray(r.uncertainity, dtype=np.float64).reshape(-1, M)
             return mu, sg
@@ -509,7 +531,9 @@ def _run_b5(alg, exp, problema, semente, *,
                 buf, log, geracao=1, fe=bud.fe, sonda=sonda, predict=_predict,
                 fe_treino_max=n_ds - 1, modelo_flag=modelo_flag,
                 pred_tipo="valor", motivo="offline: 1x por modelo treinado",
-                c3={"espaco_modelo": "cru"})
+                c3={"espaco_modelo": _espaco_modelo,
+                    "transf_tipo": _transf_tipo,
+                    "transf_params": _transf_params})
             _null_sonda_geracao(buf, sonda["S"])
 
         # ── MOEA interno sobre o surrogate — ZERO FE real ───────────────────
@@ -561,6 +585,7 @@ def _run_b5(alg, exp, problema, semente, *,
             Xg = np.asarray(ind_arc[k], dtype=np.float64)
             if Xg.ndim == 1:
                 Xg = Xg.reshape(1, -1)
+            Xg = _gp2nat(Xg)          # [T15.12] evolver no espaco do GP; ③ NATIVA
             ng = Xg.shape[0]
             Og = np.asarray(obj_arc[k], dtype=np.float64).reshape(ng, M)
             raw_u = unc_arc.get(k)
@@ -570,7 +595,8 @@ def _run_b5(alg, exp, problema, semente, *,
                 buf.add_surrogate(_export.surrogate_row(
                     g, Xg[i], regime="offline", real_solution_id=None,
                     mu=Og[i], sigma=Ug[i], pred_tipo="valor",
-                    modelo_flag=modelo_flag, espaco_modelo="cru",
+                    modelo_flag=modelo_flag, espaco_modelo=_espaco_modelo,
+                    transf_tipo=_transf_tipo, transf_params=_transf_params,
                     fe_treino_max=n_ds - 1))
             # ⑥ (jsonl DI-10) por geracao — excecoes offline: modelo_hp/
             # dist_min_arquivo/tempo_busca_s = NULL (caixa-preta); tempo_fit_s

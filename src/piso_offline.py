@@ -234,6 +234,54 @@ def _patch_lhs_seeding():
     _CI._piso_lhs_patched = True
 
 
+#: [T15.12 · bloqueador 3] teto do length_scale do RBF congelado (DI-28) — o
+#: criterio mecanico do espaco de entrada do GP (ver _espaco_entrada_gp).
+_LS_TETO = 100.0
+
+
+def _espaco_entrada_gp(X_ds, xl, xu):
+    """Decide o ESPACO DE ENTRADA do GP do piso (T15.12/bloqueador 3).
+
+    Caixa grande congela o GP: o kernel herdado limita length_scale a 100 e
+    no ESTOQUE40 a distancia tipica entre pontos e ~3.577 — o RBF fora da
+    diagonal faz underflow e o GP reverte ao prior (0/380 transicoes com
+    mudanca, MEDIDO). Criterio mecanico e retro-consistente: entradas
+    min-max para [0,1] QUANDO a distancia tipica do dataset (mediana das
+    nn-distancias numa fatia deterministica) estoura o teto do length_scale;
+    senao, cru como sempre foi (sinteticos coletados: d_tip < teto).
+    Deterministico, sem consumir RNG. Devolve
+    (nat2gp, gp2nat, X_gp, xl_gp, xu_gp, info_dict).
+    """
+    X_ds = np.asarray(X_ds, dtype=np.float64)
+    D = X_ds.shape[1]
+    sub = X_ds[:: max(1, X_ds.shape[0] // 200)][:200]
+    dm = np.sqrt(((sub[:, None, :] - sub[None, :, :]) ** 2).sum(-1))
+    np.fill_diagonal(dm, np.inf)
+    d_tip = float(np.median(dm.min(axis=1)))
+    if d_tip > _LS_TETO:
+        escala = np.where((xu - xl) > 0, xu - xl, 1.0)
+
+        def nat2gp(A):
+            return (np.asarray(A, dtype=np.float64) - xl) / escala
+
+        def gp2nat(A):
+            return xl + np.asarray(A, dtype=np.float64) * escala
+
+        X_gp, xl_gp, xu_gp = nat2gp(X_ds), np.zeros(D), np.ones(D)
+        modo = "minmax_caixa"
+    else:
+        def nat2gp(A):
+            return np.asarray(A, dtype=np.float64)
+
+        gp2nat = nat2gp
+        X_gp, xl_gp, xu_gp = X_ds, np.asarray(xl, float), np.asarray(xu, float)
+        modo = "cru"
+    info = {"modo": modo, "d_tipica_dataset": round(d_tip, 3),
+            "criterio": "minmax se d_tipica > %.0f (teto do length_scale do "
+                        "kernel DI-28) — T15.12/bloq.3" % _LS_TETO}
+    return nat2gp, gp2nat, X_gp, xl_gp, xu_gp, info
+
+
 def _params_efetivos(n_ds) -> dict:
     """[I-07] A config EFETIVA do moead_media para o ⑤ (CONTRATO §5)."""
     return {"alg": "moead_media", "mode": 12,
@@ -408,10 +456,31 @@ def _run(exp, problema, semente, *,
         #    testbench e nao conhece MMF1/DTLZ2/ZDT1.) ────────────────────────
         import pandas as pd
         xl, xu = H._bounds(problema)
+
+        # [T15.12 · bloqueador 3] espaco de entrada do GP — probe MEDIDO no
+        # ESTOQUE40: cru std=[0,0,0] (prior congelado, 0/380 transicoes) vs
+        # minmax std=[1163.8, 544.8, ~1.2]. Racional/criterio na docstring de
+        # `_espaco_entrada_gp`. Camadas (1)(3)(7) permanecem NATIVAS: de/para
+        # so no GP e no evolver.
+        (_nat2gp, _gp2nat, X_gp, xl_gp, xu_gp,
+         _gp_info) = _espaco_entrada_gp(X_ds, xl, xu)
+        # Vocabulario CANONICO da (3) (export.ESPACOS + C3): "transformado"
+        # com transf_tipo/transf_params quando ha de/para; "cru" senao.
+        _gp_transformado = _gp_info["modo"] == "minmax_caixa"
+        _espaco_modelo = "transformado" if _gp_transformado else "cru"
+        _transf_tipo = "minmax_caixa" if _gp_transformado else None
+        _transf_params = (_gp_info if _gp_transformado else None)
+        sigma_dict["espaco_entrada_gp"] = _gp_info
+        log.decision(caminho="piso_espaco_entrada_gp",
+                     motivo="d_tipica=%s vs teto ls=%.0f => entradas do GP "
+                            "em modo '%s'" % (_gp_info["d_tipica_dataset"],
+                                              _LS_TETO, _espaco_modelo),
+                     geracao=0, fe=bud.fe)
+
         xn = ["x%d" % i for i in range(1, D + 1)]
         yn = ["f%d" % i for i in range(1, M + 1)]
-        df = pd.DataFrame(np.hstack((X_ds, F_ds)), columns=xn + yn)
-        bounds_df = pd.DataFrame(np.vstack((xl, xu)), columns=xn,
+        df = pd.DataFrame(np.hstack((X_gp, F_ds)), columns=xn + yn)
+        bounds_df = pd.DataFrame(np.vstack((xl_gp, xu_gp)), columns=xn,
                                  index=["lower_bound", "upper_bound"])
         problem = DataProblem(data=df, variable_names=xn, objective_names=yn,
                               bounds=bounds_df)
@@ -431,8 +500,8 @@ def _run(exp, problema, semente, *,
         #    trivial); o problem.evaluate ainda computa .uncertainity, mas ela
         #    nunca e reportada.
         def _predict(Xnat):
-            r = problem.evaluate(np.asarray(Xnat, dtype=np.float64),
-                                 use_surrogate=True)
+            # [T15.12] a sonda chega NATIVA; o GP opera no espaco declarado.
+            r = problem.evaluate(_nat2gp(Xnat), use_surrogate=True)
             mu = np.asarray(r.objectives, dtype=np.float64).reshape(-1, M)
             return mu, None                       # σ NULL (DI-16.1)
 
@@ -444,7 +513,9 @@ def _run(exp, problema, semente, *,
                 buf, log, geracao=1, fe=bud.fe, sonda=sonda, predict=_predict,
                 fe_treino_max=n_ds - 1, modelo_flag=modelo_flag,
                 pred_tipo="valor", motivo="offline: 1x por modelo treinado",
-                c3={"espaco_modelo": "cru"})
+                c3={"espaco_modelo": _espaco_modelo,
+                    "transf_tipo": _transf_tipo,
+                    "transf_params": _transf_params})
             _null_sonda_geracao(buf, sonda["S"])
 
         # ── MOEA/D interno (mode 12) sobre o surrogate — ZERO FE real ────────
@@ -490,13 +561,16 @@ def _run(exp, problema, semente, *,
             Xg = np.asarray(ind_arc[k], dtype=np.float64)
             if Xg.ndim == 1:
                 Xg = Xg.reshape(1, -1)
+            # [T15.12] o evolver opera no espaco do GP; a ③ e NATIVA sempre.
+            Xg = _gp2nat(Xg)
             ng = Xg.shape[0]
             Og = np.asarray(obj_arc[k], dtype=np.float64).reshape(ng, M)
             for i in range(ng):
                 buf.add_surrogate(_export.surrogate_row(
                     g, Xg[i], regime="offline", real_solution_id=None,
                     mu=Og[i], sigma=None, pred_tipo="valor",   # σ NULL (DI-16.1)
-                    modelo_flag=modelo_flag, espaco_modelo="cru",
+                    modelo_flag=modelo_flag, espaco_modelo=_espaco_modelo,
+                    transf_tipo=_transf_tipo, transf_params=_transf_params,
                     fe_treino_max=n_ds - 1))
             # ⑥ (jsonl DI-10) por geracao — excecoes offline: modelo_hp/
             # dist_min_arquivo/tempo_busca_s = NULL (caixa-preta); tempo_fit_s

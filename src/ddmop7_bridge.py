@@ -106,6 +106,33 @@ class StalledRun(Exception):
     """D60(c): N iteracoes consecutivas sem consumir FE."""
 
 
+#: [T15.12 · REAL-2.17/D102.17 — ZONA MORTA na codificacao, 2026-08-15]
+#: O front do DDMOP7 exige pesos EXATAMENTE zero (6-13 dos 17), e aquisicao
+#: continua nunca produz zero exato — MEDIDO no laudo de fidelidade: 0/340
+#: propostas da busca do c149 com algum zero (f1=1.0 em todas) vs 320/340 do
+#: GA (que herda zeros do DoE por crossover). A busca surrogate contribuia
+#: ZERO pontos ao front. Solucao do autor (15/08): codificacao declarada
+#: genotipo->fenotipo, |x_i| < TAU => 0, aplicada IDENTICAMENTE aos 21
+#: configs, SOMENTE aos pontos propostos pela busca (pos-DoE): aplicar ao DoE
+#: congelado zeraria 50,1% das coordenadas nao-zero e mudaria 99,2% dos
+#: pontos (MEDIDO 15/08 nos 30 blocos) — o DoE ja e esparso por construcao
+#: do init. TAU=0,5: nnz ~ Binomial(17; 0,5), 83,5% das propostas na faixa
+#: do front (nnz 2-10, com Delta=k-nnz=+1/+2 medido nessa regiao). A (1)
+#: grava o x PROPOSTO; o efetivo e reconstrutivel deterministicamente por
+#: esta funcao + o tau declarado no (5) (params.zona_morta). O PAR desta
+#: constante vive em src/ddmop7_value_local.m (rota R1) — teste de paridade
+#: em tests/test_t15_zona_morta.py. Gate de validacao: smoke c149 s0 na vm1
+#: (ND da busca deve sair de 0/340) ANTES do disparo das 1.890.
+TAU_ZONA_MORTA = 0.5
+N_DOE_ONLINE = 11 * D - 1                        # 186 (o DoE fica CRU)
+
+
+def zona_morta(X: np.ndarray, tau: float = TAU_ZONA_MORTA) -> np.ndarray:
+    """A codificacao D102.17: coordenada com |x| < tau vira EXATAMENTE 0."""
+    X = np.asarray(X, dtype=np.float64)
+    return np.where(np.abs(X) < tau, 0.0, X)
+
+
 #: [T15.10 · O-18 MEDIDO 2026-08-14] `start_matlab` NAO tem prazo interno: o
 #: Processo A ficou 37 min com o MATLAB de pe e OCIOSO (run loop vazio) e o
 #: Python dormindo no poll do handshake — slot morto para sempre, sem
@@ -457,6 +484,7 @@ class DDMOP7Matlab(_PymooProblem):
         self.max_iters_sem_fe = int(max_iters_sem_fe)
         self._iters_sem_fe = 0
         self.n_cache_hits = 0
+        self.n_pontos_zona_morta = 0              # [T15.12] p/ footer/laudo
 
         # [T15.7 §1.1(a)] DoE LAZY: carregado do ARTEFATO oficial no 1o acesso
         # (fallback CSV com aviso). No modo 'externa' o DoE do run e injetado
@@ -501,6 +529,18 @@ class DDMOP7Matlab(_PymooProblem):
         NAO conta FE, NAO deduplica, NAO grava catalogo."""
         X = np.atleast_2d(np.ascontiguousarray(np.asarray(X, dtype=np.float64)))
         m = X.shape[0]
+        # [T15.12/D102.17] ZONA MORTA pos-DoE: os primeiros N_DOE_ONLINE
+        # pontos enviados ao .p sao o DoE congelado (ficam CRUS — 50,1% das
+        # coordenadas nao-zero dele tem |x|<tau e seriam corrompidas); todo
+        # ponto alem e proposta da BUSCA => codificacao aplicada. O contador
+        # `chamadas_p` e a fronteira (cache-hits nao chegam aqui, entao ele
+        # conta exatamente os pontos REAIS ja enviados). A (1)/o catalogo
+        # guardam o x PROPOSTO (ver docstring de `zona_morta`).
+        ini_dz = max(0, N_DOE_ONLINE - self.chamadas_p)
+        if ini_dz < m:
+            X = X.copy()
+            X[ini_dz:] = zona_morta(X[ini_dz:])
+            self.n_pontos_zona_morta += int(m - ini_dz)
         if self.chamadas_p + m > P_CODE_CAP:
             raise RuntimeError(
                 f"{self.chamadas_p + m} chamadas ao DDMOP7.p neste processo "

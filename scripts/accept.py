@@ -1869,10 +1869,14 @@ def check_r3_b5(alg, exp="off", problema="MMF1", semente=0, data_root=None):
                 and gset_b == set(range(1, max(gset_b) + 1))
                 and all(int(ftm[i]) == n_ds - 1 for i in idx_b)
                 and all(rsid[i] is None for i in idx_b)
-                and esp <= {"cru"})
+                # [T15.12/D102.19 — tripwire BL-04: era `{"cru"}` literal]
+                # caixa grande => GP com entrada minmax => 'transformado'
+                # (+transf_tipo/params); caixa pequena segue 'cru'.
+                and esp <= {"cru", "transformado"})
     ger_rng = f"{min(gb)}..{max(gb)}" if gb else "∅"   # guarda ③-vazia [DI-29]
     results.append(("③ busca: geracao inteira CONTÍGUA 1..N · fe_treino_max=n_ds−1 · "
-                    "real_solution_id NULL (② vazia — DI-16.17) · espaco_modelo∈{cru}",
+                    "real_solution_id NULL (② vazia — DI-16.17) · "
+                    "espaco_modelo∈{cru,transformado} (D102.19)",
                     (ok_busca, f"n_busca={len(idx_b)} "
                      f"ger∈[{ger_rng}] espaco={esp} "
                      f"rsid_all_null={all(rsid[i] is None for i in idx_b)}")))
@@ -2233,10 +2237,14 @@ def check_r3_piso_off(exp="off", problema="MMF1", semente=0, data_root=None):
                 and gset_b == set(range(1, max(gset_b) + 1))
                 and all(int(ftm[i]) == n_ds - 1 for i in idx_b)
                 and all(rsid[i] is None for i in idx_b)
-                and esp <= {"cru"})
+                # [T15.12/D102.19 — tripwire BL-04: era `{"cru"}` literal]
+                # caixa grande => GP com entrada minmax => 'transformado'
+                # (+transf_tipo/params); caixa pequena segue 'cru'.
+                and esp <= {"cru", "transformado"})
     ger_rng = f"{min(gb)}..{max(gb)}" if gb else "∅"   # guarda ③-vazia [DI-29]
     results.append(("③ busca: geracao inteira CONTÍGUA 1..N · fe_treino_max=n_ds−1 · "
-                    "real_solution_id NULL (② vazia — DI-16.17) · espaco_modelo∈{cru}",
+                    "real_solution_id NULL (② vazia — DI-16.17) · "
+                    "espaco_modelo∈{cru,transformado} (D102.19)",
                     (ok_busca, f"n_busca={len(idx_b)} ger∈[{ger_rng}] "
                      f"espaco={esp} rsid_all_null={all(rsid[i] is None for i in idx_b)}")))
     # μ_* preenchido · σ_* NULL em TODA a ③ — o piso é "b5 sem σ" (DI-16.1).

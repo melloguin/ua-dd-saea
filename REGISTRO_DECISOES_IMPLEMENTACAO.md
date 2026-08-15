@@ -3455,3 +3455,28 @@ computa sobre o EFETIVO, com a receita canônica; no espaço de objetivos a
 distinção não existe (o `f` já é do efetivo). Suíte: **990 no fundo (1 erro
 ambiental de env var) + 93/93 em foreground** com Engine real, métricas, zona
 morta e fixes — 0 falhas reais.
+
+### Diagnóstico do b1×DDMOP7 (a 16ª célula do smoke): FALHA FREQUENTE, NÃO determinística
+O b1 (ParEGO) morre com `least squares problem is underdetermined` — o MESMO
+erro do `dacefit.m` que o laudo D0 registrou no b1×DTLZ4. A torre rodou 3
+sementes novas na vm5 para medir se é determinístico: **s0 falha · s1 OK
+(526/526) · s2 falha · s3 falha** ⇒ **3 de 4 (75%), estocástico**, diferente do
+b1×DTLZ4 (18/18 determinístico). Leitura: o kriging DACE degenera quando a
+matriz de regressão fica mal condicionada, e objetivo QUANTIZADO (f₁ com 18
+valores possíveis; f₂ múltiplo de 1/690) produz empates suficientes para isso
+em boa parte das sementes — mas não em todas. Projeção para a campanha: ~7 a
+10 das 30 células do b1×DDMOP7 devem produzir dado. **Não bloqueia o disparo**
+— é incapacidade PARCIAL documentada, e é achado sobre o algoritmo (limitação
+do ParEGO diante de objetivos quantizados), material do capítulo 5.
+
+### Foto offline sob a codificação (item não-bloqueante do laudo): FEITA
+b5r ✅ 526/526 · 928 gerações · moead_media ✅ 801 gerações · e103 ✅ ok=1 ·
+b5m em execução ao fechar esta parte. A rota offline opera normalmente sob a
+zona morta (a codificação atinge a ⑦ pós-hoc, não a busca no dataset).
+
+### ⚠ PRÉ-REQUISITO DO DISPARO NA vm5 (ato do autor)
+O `c122` normaliza o PBI e o `c262` deriva o ref-point da aquisição por
+`reference_bounds` **em tempo de busca**. Disparar o DDMOP7 na vm5 ANTES do
+`git pull` da régua nova reproduziria o bloqueador original (normalização
+negativa em ~50% dos pontos). Ordem obrigatória: **push do autor → pull na
+vm5 → disparo**.

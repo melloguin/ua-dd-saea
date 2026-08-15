@@ -3273,6 +3273,49 @@ O front verdadeiro furava a régua nos 3 objetivos; os furadores são os DOIS
 CANTOS da caixa (membros extremos do front: x=0 ⇒ f=[0,0,0]; x=xu ⇒ melhor
 f₁=-17909,14). Régua = envelope com os cantos (medidos 15/08 via problems.py).
 
+### REAL-2.15 ERRATA 2 — o ideal do DDMOP7 vira o ÍNFIMO TEÓRICO [0;0]
+**Autor, 2026-08-15**, sobre laudo da validação de fidelidade (T15.13). A fase 1
+da régua era a ESTIMATIVA min/max sobre os 62 pontos do probe v6 (`[4/17 ;
+202/690]`, opção A de 13/08). Com a zona morta no ar, ela **furou**: medido nos
+15 smokes, **3.203 de 7.156 pontos (44,8%) são MELHORES que o ideal**, chegando
+a `z = [−0,231 ; −0,421]`.
+
+**O que elevou isto de ressalva a bloqueador:** o furo não era só de análise. Dois
+algoritmos consomem a régua **em tempo de execução** — `c122_thetadeadp.py:137`
+normaliza o PBI por ela (**209/425 = 49,2%** dos pontos dele abaixo do ideal) e
+`c262_qnehvi.py:208` deriva daqui o ref-point da aquisição (**221/398 = 55,5%**).
+A fase 2 é pós-hoc e **não podia** corrigir: eles precisam de régua *durante* as
+runs. Sem a errata, as 30 sementes de ambos rodariam com normalização negativa.
+
+**Por que ínfimo TEÓRICO e não outra estimativa:** os objetivos são contagens
+normalizadas — `f1 = k/17` com k ≥ 0 e `f2 = n/690` com n ≥ 0 (verificado em
+15/15 células, 100% dos pontos). Logo `[0;0]` é o ínfimo **por construção**:
+nenhuma semente futura pode furá-lo. Uma segunda estimativa repetiria o modo de
+falha. Contraste com a D102.20 (ESTOQUE40): lá os furadores eram os **cantos da
+caixa**, determinísticos e enumeráveis, então estender bastou; aqui não há canto
+conhecido. Custo: HV menor em valor absoluto, **igualmente comparável** entre
+configs — que é tudo o que a comparação exige (D81: não inventar valor).
+
+**Nadir intocado** (468/690 — errata 1, de 13/08). **Fase 2 pooled segue
+OBRIGATÓRIA** (D102.3); o selo `REGUAS_PROVISORIAS` continua vivo.
+
+**Verificação (controle positivo e negativo, regra da casa):** com a régua nova,
+**0 furos em 7.156 pontos**, `z_min = [+0,059 ; +0,192]`; `c122` e `c262` saem de
+~50% de normalizado negativo para **0/425 e 0/398**. Não-regressão: **28/28**
+problemas passam o guard; suíte `test_metrics.py` **24/24**; âncora D92
+`hv_smoke_bbob_f1() = 1,0433` **exata**.
+
+### T15.13 — guard EXECUTÁVEL da régua (`metrics.checa_regua`)
+O selo `REGUAS_PROVISORIAS` era **declarativo** e `reference_bounds` só levantava
+com régua `None` — a fase 1 do DDMOP7 tinha valores, então **nada disparava**. É
+o padrão que a T11 §4.1 provou inútil (*"gate que testa texto, não
+comportamento"*). Novo guard: qualquer `f < ideal` (folga float32 de 1e-6, D53) é
+`RuntimeError` pára-e-loga (D81), nomeando objetivo, ideal e melhor observado, e
+dizendo se a régua é provisória. Chamado por `metrics_of_set` antes de
+normalizar. Nasce com **controle negativo** em `tests/test_metrics.py`
+(`test_checa_regua_reprova_dado_melhor_que_o_ideal`) + um teste que varre os
+12.438 pares possíveis do DDMOP7 e prova que o ínfimo não pode ser furado.
+
 ### Correções cruzadas de auditoria (nos dois sentidos)
 Aceitas do validador: caveat 1 (b5/moead_media = Rosetta x86_64 + OpenBLAS,
 não arm64/Accelerate) e caveat 6 (artefato não distingue decisão de morte —
@@ -3356,3 +3399,59 @@ já produziam esparsidade em vez de discriminar aquisições):
 `handoff/T15-HANDOFF-GATE-ZONA-MORTA.md`. Lacunas honestas: n=1 semente · 4
 células no teto · zero cobertura offline sob codificação · τ=0,5 não comparado
 empiricamente com 0,6.
+
+---
+
+## PARTE A53 — T15.13b: A TORRE RE-MEDE O GUARD DA RÉGUA (e acha 2 bloqueadores) — 2026-08-15
+
+O agente de fidelidade implementou o `checa_regua` e a errata REAL-2.15
+(ideal do DDMOP7 → ínfimo teórico `[0;0]`) e declarou GATE VERDE. A torre
+re-mediu antes de commitar — e a re-medição achou **dois problemas que a
+validação dele não cobriu**, ambos corrigidos aqui.
+
+### 🔴 Bloqueador 1 — o guard quebraria a análise de 533 células JÁ COLETADAS
+O agente validou o guard contra os 15 smokes e "28/28 problemas". A torre rodou
+o guard contra a **coleta M8 inteira** (9.580 células com camada ① no staging):
+**533 células reprovariam** — ZDT6 411/603 · MMF4 87/623 · MMF1 35/629. Causa:
+os ideais desses três estão declarados **ARREDONDADOS** (0,2809 · 0,001 ·
+0,0005) e o dado real os fura por 1,1e-4 a 3,6e-4 em valor absoluto. Como o
+guard levanta `RuntimeError` dentro de `metrics_of_set`, a análise R4 dessas
+células **explodiria**.
+
+**Correção (T15.13b): folga proporcional ao RANGE**, calibrada por medição —
+a separação entre os dois modos de falha é de TRÊS ORDENS DE GRANDEZA:
+
+| caso | furo / (nadir−ideal) | natureza |
+|---|---|---|
+| ZDT6 · MMF4 · MMF1 | 1,5e-4 · 3,6e-4 · 2,3e-4 | régua declarada com arredondamento |
+| DDMOP7 fase-1 (o caso real) | **0,231 e 0,421** | régua genuinamente errada |
+
+Corte em **1e-3 do range** (≈3× acima do pior arredondamento, ≈230× abaixo do
+furo real). Re-testado: **0 explosões em 9.580 células** da coleta, e o
+controle positivo (régua antiga do DDMOP7 + dado real do smoke) **continua
+sendo pego**. Limiar aferido nos dois sentidos: furo de 0,5% do range explode,
+de 0,05% passa. Furo tolerado NÃO some: vira `metrics.avisos_regua`
+(problema → n_pontos, pior furo relativo), consultável por quem publica.
+
+### 🟠 Achado de FIDELIDADE escalado ao autor (a torre não corrige régua — D97)
+Os ideais de **ZDT6 (0,2809), MMF4 (0,001) e MMF1 (0,0005)** são furados pelo
+dado real da campanha. Não é ruído de float32 (1e-7): é imprecisão da régua
+declarada. Impacto: normalizado levemente negativo (≤3,6e-4) em 533 células —
+efeito desprezível no HV, mas a régua está objetivamente errada. **Decisão do
+autor**: manter (declarando a precisão) ou recomputar os três ideais do front
+verdadeiro na fase de análise.
+
+### 🔴 Bloqueador 2 — a vm5 tinha 15 dos 30 datasets do DDMOP7
+O disparo recomendado (DDMOP7 na vm5) mataria **300 células offline**: o
+Processo A distribuiu s0–s14 para a vm1 e s15–s28/42 para a vm5, e o dataset
+é insumo obrigatório do regime offline (D90). Corrigido: 15 datasets
+transportados vm1→vm5 (md5 do tgz idêntico nos dois lados) e conferidos com
+`gen_dataset_ddmop7.py --check` — **15/15 OK, vm5 agora com 30/30**.
+
+### Demais tarefas fechadas nesta parte
+`CONTRATO_DE_DADOS.md` §T15.13: **regra de leitura do `x_efetivo`** — toda
+contagem por identidade de ponto (|ND|, diversidade, spacing em decisão) se
+computa sobre o EFETIVO, com a receita canônica; no espaço de objetivos a
+distinção não existe (o `f` já é do efetivo). Suíte: **990 no fundo (1 erro
+ambiental de env var) + 93/93 em foreground** com Engine real, métricas, zona
+morta e fixes — 0 falhas reais.

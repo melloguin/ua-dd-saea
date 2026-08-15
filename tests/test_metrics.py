@@ -42,12 +42,39 @@ class TestBoundsNormalize(unittest.TestCase):
         self.assertEqual(set(metrics.F_MIN_MAX), set(_E.ALL_PROBLEMS))
         self.assertTrue(all(v is not None for v in metrics.F_MIN_MAX.values()))
 
-    def test_regua_fase1_ddmop7_medida_na_fonte(self):
-        # [REAL-2.15 = opção A] min/max dos 62 pontos do probe v6. ⚠ o nadir
-        # de f2 dos DOCS (0,44493) estava errado — o MEDIDO é 468/690.
+    def test_regua_fase1_ddmop7_ideal_e_infimo_teorico(self):
+        # [REAL-2.15 ERRATA 2, autor 2026-08-15] O `ideal` deixou de ser a
+        # ESTIMATIVA sobre os 62 pontos do probe (`[4/17 ; 202/690]`, opção A)
+        # e passou a ser o ÍNFIMO TEÓRICO `[0 ; 0]`. Motivo medido: a
+        # estimativa furou em 3.203 de 7.156 pontos dos smokes pós-zona-morta,
+        # e o furo tocava a BUSCA (c122 normaliza o PBI por ela;
+        # c262 deriva daqui o ref-point da aquisição), não só a análise.
+        # O nadir segue como a ERRATA 1 (468/690; o 0,44493 dos docs era
+        # errado). A fase 2 pooled continua obrigatória (selo abaixo).
         ideal, nadir = metrics.reference_bounds("DDMOP7")
-        self.assertTrue(np.allclose(ideal, [4 / 17, 202 / 690]))
+        self.assertTrue(np.allclose(ideal, [0.0, 0.0]))
         self.assertTrue(np.allclose(nadir, [1.0, 468 / 690]))
+
+    def test_infimo_ddmop7_nao_pode_ser_furado(self):
+        # A propriedade que motivou a errata 2, como TESTE e não como comentário:
+        # os objetivos do DDMOP7 são contagens normalizadas (f1 = k/17, k ≥ 0;
+        # f2 = n/690, n ≥ 0), logo NENHUM ponto legítimo fica abaixo de [0;0].
+        # Varre toda a grade de valores possíveis (18 × 691 = 12.438 pares).
+        k = np.arange(0, 18) / 17.0
+        n = np.arange(0, 691) / 690.0
+        F = np.stack(np.meshgrid(k, n, indexing="ij"), -1).reshape(-1, 2)
+        metrics.checa_regua(F, "DDMOP7")            # não pode levantar
+        ideal, nadir = metrics.reference_bounds("DDMOP7")
+        Z = (F - ideal) / (nadir - ideal)
+        self.assertTrue((Z[:, 0] >= 0).all() and (Z[:, 1] >= 0).all())
+
+    def test_checa_regua_reprova_dado_melhor_que_o_ideal(self):
+        # [T15.13] CONTROLE NEGATIVO do guard: um gate que nunca reprova é
+        # decorativo (T11 §4.1). Um ponto melhor que o ideal tem de PARAR.
+        ideal, _ = metrics.reference_bounds("ZDT1")
+        metrics.checa_regua(np.atleast_2d(ideal), "ZDT1")        # no ideal: passa
+        with self.assertRaises(RuntimeError):
+            metrics.checa_regua(np.atleast_2d(ideal - 1.0), "ZDT1")
 
     def test_selo_de_substituicao_obrigatoria_vivo(self):
         # [D102.3/TD-13] o selo NÃO sai antes da fase 2 — tripwire de auditoria.

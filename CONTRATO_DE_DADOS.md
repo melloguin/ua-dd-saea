@@ -488,3 +488,36 @@ inteira — teto de 600 do `.p`). Demais configs: DI-08 intocada.
 `sigma_dict.espaco_entrada_gp.modo == "minmax_caixa"`, as linhas da ③ levam
 `espaco_modelo='transformado'` + `transf_tipo='minmax_caixa'` +
 `transf_params` (o critério e a d_típica); os DECS das camadas seguem NATIVOS.
+
+---
+
+## §T15.13 — REGRA DE LEITURA DO `x_efetivo` (codificação zona-morta, D102.17)
+
+**O fato.** Em problema com codificação declarada (hoje: DDMOP7, τ=0,5), a
+camada ① grava o **x PROPOSTO** pelo algoritmo — não o x que o oráculo avaliou.
+O efetivo é `zona_morta(x_proposto, τ)`, transformação determinística cujo τ
+está em `params.zona_morta` do ⑤.
+
+**Por que a ① grava o proposto.** É o que o algoritmo escolheu, e portanto o
+único registro fiel da DECISÃO dele; o efetivo é derivável, o proposto não
+seria (a transformação não é inversível). A D89 (identidade do ponto) opera
+sobre o efetivo — é o que o oráculo viu.
+
+**A regra, para quem publica número.** Toda contagem que dependa de
+IDENTIDADE de ponto — `|ND|`, número de soluções distintas, diversidade,
+spacing no espaço de decisão — **DEVE ser computada sobre o x EFETIVO**, e o
+texto deve declarar qual foi usado. Medido em 15/08 nos smokes: até 70% das
+propostas distintas colapsam no mesmo ponto efetivo, e o `|ND|` bruto chega a
+257 onde existem 2 valores objetivo distintos (b3). Publicar o bruto sem a
+distinção é reportar diversidade que não existe.
+
+**Receita canônica** (uma linha, mesma função das 3 rotas):
+
+```python
+from src.ddmop7_bridge import zona_morta          # τ default = o da decisão
+X_efetivo = zona_morta(X_proposto)                # ① → o que o oráculo viu
+```
+
+**No espaço de OBJETIVOS a distinção não existe** — o `f` da ① já é o do ponto
+efetivo (veio do oráculo). Logo métricas de qualidade (HV, IGD+) não mudam; o
+que muda são as contagens de cardinalidade e as medidas no espaço de decisão.

@@ -95,16 +95,35 @@ F_MIN_MAX: dict[str, tuple[tuple[float, ...], tuple[float, ...]] | None] = {
     # (fonte congelada: S5_ideal_nadir.json do pacote de fusão do Agente 8).
     "RE21":      ((1237.8414665029802, 0.002761428901174483),
                   (2886.3687781863305, 0.03999999758374547)),
-    # [D102.3/REAL-2.15, autor 2026-08-13 = opção A] DDMOP7: régua FASE 1
-    # PROVISÓRIA = min/max coordenada-a-coordenada sobre os 62 pontos do probe
-    # v6 (os únicos com f MEDIDO; dado anterior a qualquer busca). Computada
-    # NA FONTE (`sources/ddmop7_probe_v6.csv`, 62×19, sem header) em
-    # 2026-08-13. ⚠ ERRATA: o nadir de f2 citado nos docs do pacote (0,44493)
-    # estava ERRADO — o medido é 468/690 = 0,678260869565217 (padrão D85:
-    # números citados de memória; venceu a fonte). A FASE 2 é OBRIGATÓRIA
-    # (ver REGUAS_PROVISORIAS abaixo): z*/z_nad pooled sobre as runs reais do
-    # DDMOP7 substituem estes valores e a §12 re-roda (D102.3).
-    "DDMOP7":    ((0.235294117647059, 0.292753623188406),
+    # [REAL-2.15 ERRATA 2 · autor 2026-08-15] DDMOP7: o `ideal` da fase 1 passa
+    # a ser o ÍNFIMO TEÓRICO `[0/17 ; 0/690]`, não mais a estimativa sobre os
+    # 62 pontos do probe v6 (`[4/17 ; 202/690]`, opção A de 2026-08-13).
+    #
+    # POR QUÊ (laudo de fidelidade 15/08, com a zona morta D102.17 no ar): a
+    # estimativa FUROU. Medido nos 15 smokes (7.156 pontos): **3.203 pontos
+    # (44,8%) melhores que o ideal estimado**, chegando a `z = [−0,231;
+    # −0,421]`. E o furo NÃO era só de análise: `c122_thetadeadp.py:137`
+    # normaliza o PBI por esta régua DURANTE a busca (209/425 = 49,2% dos
+    # pontos dele abaixo do ideal) e `c262_qnehvi.py:208` deriva daqui o
+    # ref-point da aquisição (221/398 = 55,5%). A fase 2 (pós-hoc) não podia
+    # corrigir isso — os dois precisam de régua EM TEMPO DE EXECUÇÃO.
+    #
+    # POR QUE O ÍNFIMO TEÓRICO: os objetivos do DDMOP7 são contagens
+    # normalizadas — `f1 = k/17` com k ≥ 0 (pesos não-nulos) e `f2 = n/690`
+    # com n ≥ 0 (erros de classificação), medido em 15/15 células a 100%.
+    # Logo `[0;0]` é o ínfimo POR CONSTRUÇÃO, não por medição: nenhuma semente
+    # futura pode furá-lo. Verificado: **0 furos em 7.156 pontos**. É a única
+    # escolha que não introduz parâmetro arbitrário (D81 — não inventar valor)
+    # e não repete o modo de falha da estimativa. Precedente próximo: a
+    # D102.20 estendeu a régua do ESTOQUE40 pelos CANTOS da caixa (objetos
+    # determinísticos); aqui não há canto conhecido, então sobe-se ao ínfimo.
+    # Custo: HV menor em valor absoluto, IGUALMENTE comparável entre configs.
+    #
+    # O `nadir` fica como estava (468/690 — errata 1, de 2026-08-13). A FASE 2
+    # segue OBRIGATÓRIA (REGUAS_PROVISORIAS abaixo): z*/z_nad pooled sobre as
+    # runs reais substituem isto e a §12 re-roda (D102.3). O guard executável
+    # `checa_regua` (T15.13) faz o cálculo FALHAR se esta régua for furada.
+    "DDMOP7":    ((0.0, 0.0),
                   (1.0, 0.678260869565217)),
     # [T15.12 · C3-01 do laudo de fidelidade 15/08] Régua ESTENDIDA pelos DOIS
     # CANTOS da caixa, que sao membros EXTREMOS do front verdadeiro e furavam
@@ -328,10 +347,97 @@ def load_real(exp: str, alg: str, problema: str, semente, *,
 
 # ── Métricas de um conjunto + trajetória ────────────────────────────────────
 
+#: [T15.13 · laudo de fidelidade 15/08] Folga numérica do guard de régua: o
+#: export é float32 (D53), logo um ponto que ESTÁ no ideal pode ler ~1e-7
+#: abaixo dele. Abaixo disso é ruído de persistência; acima é régua furada.
+_GUARD_FOLGA_REL = 1e-6
+
+#: [T15.13b · CALIBRAÇÃO MEDIDA da torre, 15/08 — ver `checa_regua`] Folga
+#: proporcional ao RANGE da régua (nadir−ideal). A folga só-absoluta acima
+#: (1e-6) reprovava 533 células JÁ COLETADAS da campanha M8 — ZDT6 411/603,
+#: MMF4 87/623, MMF1 35/629 — cujos ideais foram declarados ARREDONDADOS
+#: (0,2809 · 0,001 · 0,0005) e são furados pelo dado real por 1,1e-4 a 3,6e-4
+#: em valor absoluto. Isso NÃO é ruído de float32 (1e-7): é imprecisão da
+#: régua declarada, e é achado de FIDELIDADE escalado ao autor (D97) — a
+#: torre não corrige régua. Mas também NÃO é o modo de falha que este guard
+#: existe para pegar. A medição separa os dois casos por TRÊS ORDENS DE
+#: GRANDEZA, em unidade de range: arredondamento 1,5e-4…3,6e-4 · régua
+#: genuinamente errada (DDMOP7 fase-1) 0,231…0,421. O corte em 1e-3 do range
+#: fica ~3x acima do pior arredondamento e ~230x abaixo do furo real.
+#: Furos tolerados NÃO somem: viram aviso auditável (`avisos_regua`).
+_GUARD_FOLGA_RANGE = 1e-3
+
+#: [T15.13b] Registro dos furos TOLERADOS (abaixo do corte), para auditoria:
+#: {problema: (n_pontos, pior_furo_relativo_ao_range)}. Não é log — é estado
+#: consultável por quem publica número (a R4 deve reportá-lo junto do HV).
+avisos_regua: dict[str, tuple[int, float]] = {}
+
+
+def checa_regua(F_raw, problema: str) -> None:
+    """Guard EXECUTÁVEL da régua S.5 (D69): o dado não pode ser melhor que o ideal.
+
+    O `ideal` é, por definição, o melhor valor alcançável por objetivo. Um ponto
+    com `f < ideal` prova que a régua está errada — e, sob D69 (`f′ =
+    (f−ideal)/(nadir−ideal)`), produz **normalizado negativo**, o que torna o HV
+    com `ref=1,1` sem sentido (o ponto fica FORA do hipercubo).
+
+    Por que isto existe (achado do laudo de fidelidade de 15/08): o selo
+    `REGUAS_PROVISORIAS` é DECLARATIVO — ele não impede ninguém de calcular. E
+    `reference_bounds` só levanta quando a régua é `None`; a fase 1 do DDMOP7
+    NÃO é None, então nada disparava. Medido nos smokes de 15/08 com a zona
+    morta: o melhor ponto alcançado é `[1/17 ; 90/690]` contra o ideal fase-1
+    `[4/17 ; 202/690]` — **dominado nos DOIS eixos**, normalizado
+    `[−0,231 ; −0,421]`. A errata do nadir (D102.3) não corrige isto: o furo é
+    no ideal. A fase 2 pooled (D102.3) é a correção; este guard garante que
+    ninguém publique um HV antes dela. Precedente da casa: gate que testa
+    COMPORTAMENTO, não texto (T11 §4.1).
+
+    Levanta `RuntimeError` (pára-e-loga D81). Não corrige nada sozinho —
+    régua é fidelidade, e fidelidade é do autor (D97)."""
+    F = np.atleast_2d(np.asarray(F_raw, dtype=np.float64))
+    if F.size == 0:
+        return
+    ideal, nadir = reference_bounds(problema)
+    # [T15.13b] folga = max(ruído de persistência, 1e-3 do range) — a
+    # calibração medida que separa régua arredondada de régua errada.
+    rng = np.abs(np.asarray(nadir, float) - np.asarray(ideal, float))
+    folga = np.maximum(_GUARD_FOLGA_REL * np.maximum(1.0, np.abs(ideal)),
+                       _GUARD_FOLGA_RANGE * np.maximum(rng, 1e-12))
+    viol = F < (ideal - folga)
+    if not viol.any():
+        # [T15.13b] furo ABAIXO do corte não explode, mas fica AUDITÁVEL.
+        leve = F < ideal
+        if leve.any():
+            pior = float(np.max((ideal - F)[leve] /
+                                np.maximum(rng[np.where(leve)[1]], 1e-12)))
+            n, p0 = avisos_regua.get(problema, (0, 0.0))
+            avisos_regua[problema] = (n + int(leve.any(axis=1).sum()),
+                                      max(p0, pior))
+        return
+    j = np.flatnonzero(viol.any(axis=0))
+    pior = [(int(k), float(ideal[k]), float(F[:, k].min())) for k in j]
+    prov = problema in REGUAS_PROVISORIAS
+    raise RuntimeError(
+        f"régua S.5 FURADA em {problema!r}: {int(viol.any(axis=1).sum())} de "
+        f"{F.shape[0]} pontos são MELHORES que o ideal declarado. Por objetivo "
+        f"(índice, ideal, melhor observado): {pior}. "
+        + (f"A régua deste problema é PROVISÓRIA ({REGUAS_PROVISORIAS[problema]}) "
+           f"— este é exatamente o caso que a fase 2 pós-hoc (D102.3) existe para "
+           f"resolver. " if prov else
+           f"A régua deste problema é DEFINITIVA — logo ou o ideal está errado, "
+           f"ou o dado está. ")
+        + "Sob D69 o normalizado fica NEGATIVO e o HV com ref=1,1 perde sentido. "
+        "Pára-e-loga (D81): não invente valor, escale ao autor (D97).")
+
+
 def metrics_of_set(F_raw, problema: str, *, ref_norm=None) -> dict:
     """As 5 métricas do conjunto-aproximação `F_raw` (objetivos CRUS) vs o front
-    verdadeiro do `problema`. Normaliza (D69), filtra não-dominado, mede."""
+    verdadeiro do `problema`. Normaliza (D69), filtra não-dominado, mede.
+
+    [T15.13] Passa pelo `checa_regua` ANTES de normalizar — régua furada é
+    pára-e-loga, não número silencioso."""
     ideal, nadir = reference_bounds(problema)
+    checa_regua(F_raw, problema)
     nd = nondominated_front(np.atleast_2d(np.asarray(F_raw, dtype=np.float64)))
     A = normalize(nd, ideal, nadir)
     R = reference_set(problema) if ref_norm is None else np.asarray(ref_norm, float)

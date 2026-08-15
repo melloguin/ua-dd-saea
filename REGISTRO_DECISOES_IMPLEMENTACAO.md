@@ -3336,6 +3336,23 @@ caixa — onde a incerteza é alta — e não produz redes esparsas.
 0,1377 dos pisos). É exatamente a pergunta que a D102.17 queria devolver ao
 problema: *que aquisição ACHA as redes esparsas boas?*
 
-**Veredito da torre: GATE VERDE.** τ=0,5 mantido (nenhum sinal de viés denso
-generalizado — a contingência τ=0,6 fica arquivada). O c149 entra na campanha
-como caso nomeado, com o perfil de propostas como evidência.
+### 🔴 ERRATA da própria torre, mesma sessão: o |ND| bruto é EMPATE
+Ao ver |ND|=257 no smsemoa desconfiei (f₁=k/17 só tem 18 valores possíveis) e
+medi os valores DISTINTOS: **o front efetivo de cada célula tem 1 a 6 pontos
+distintos, mediana 3** (c122 6 · c141 4 · nsga2/nsga3 4 · e7/moead/smsemoa/c217
+3 · b3/c238/c262 2 · c154/e74 1). O |ND| de 195–257 é quase todo ponto EMPATADO
+no espaço de objetivos. Consequências: o HV do DDMOP7 medirá o melhor
+compromisso alcançado (a ponta), não a distribuição do front; a discriminação
+existe mas é estreita (melhor f₂ de 0,1304 a 0,1594 ≈ 18% de amplitude; k mínimo
+de 1 a 5). **A zona morta consertou a DEGENERESCÊNCIA (13 fronts idênticos), não
+a QUANTIZAÇÃO (18 degraus) — e a quantização é do problema, não nossa.**
+
+**Veredito da torre: GATE VERDE COM RESSALVA DECLARADA.** τ=0,5 mantido
+(contingência τ=0,6 arquivada). Recomendo o disparo com o DDMOP7 como problema
+de comparação **de resolução declaradamente baixa**; o c149 entra como caso
+nomeado. Handoff completo ao validador de fidelidade, com as 5 perguntas em
+aberto (inclusive a que mais preocupa: se a codificação favorece operadores que
+já produziam esparsidade em vez de discriminar aquisições):
+`handoff/T15-HANDOFF-GATE-ZONA-MORTA.md`. Lacunas honestas: n=1 semente · 4
+células no teto · zero cobertura offline sob codificação · τ=0,5 não comparado
+empiricamente com 0,6.

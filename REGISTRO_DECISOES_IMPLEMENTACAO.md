@@ -3288,3 +3288,54 @@ Processo A: 30/30 datasets `--check` OK nas 2 VMs. Testes novos:
 fronteiriço, paridade R1↔R2 por parsing, ⑦ ND ×2, espaço-GP ×3). Pendências:
 smoke moead_media/ESTOQUE40 (em voo) → suíte → commit → push do autor → smoke
 DDMOP7 na vm1 (o gate) → decisão final de disparo.
+
+---
+
+## PARTE A52 — O SMOKE-GATE DA ZONA MORTA: VERDE (torre, 2026-08-15)
+
+Smoke abrangente pedido pelo autor (20 células DDMOP7 s0, τ=0,5, teto 2h, 10 por
+VM). Resultado: **11 células completas 526/526 · 4 no teto com curva parcial · 1
+em voo · 4 offline não rodaram** (dataset s0 ausente na vm5 — o Processo A gerou
+as sementes 15–28/42 lá; a s0 mora na vm1. Sem impacto no gate: a rota offline
+já fora validada em 14/08).
+
+### O critério do validador: ND vindo da busca sai de 0/340?
+**SAIU — em 14 dos 15 configs online.** Medição sobre a camada ① (o `f₁` vem do
+oráculo, que vê o x EFETIVO; a ① grava o PROPOSTO — por isso "zeros" na ① não
+mede a codificação, o `f₁<1` mede):
+
+| config | f₁<1 (busca) | ND da busca | melhor f₂ | (antes: 0/340 · ND 0) |
+|---|---|---|---|---|
+| b3 | 340/340 | **195** | 0,1406 | surrogate EA |
+| c262 | 212/212 | **202** | 0,1449 | BO hipervolume |
+| c217 | 333/340 | 172 | 0,1406 | surrogate EA |
+| c141 | 322/340 | 79 | **0,1304** (melhor global) | surrogate EA |
+| e74 | 214/340 | 82 | 0,1449 | surrogate EA |
+| c122 | 238/239 | 34 | 0,1594 | surrogate EA |
+| c154 | 22/22 | 7 | 0,1449 | BO especiais |
+| e7 | 331/340 | 6 | 0,1435 | surrogate EA |
+| c238 | 183/340 | 2 | 0,1449 | BO Pareto |
+| e81 | 303/340 | 2 | 0,1507 | BO especiais |
+| **c149** | **1/153** | **0** | 0,1594 (= o do DoE) | **caso nomeado, ver abaixo** |
+| pisos (nsga2/nsga3/moead/smsemoa) | 339–340/340 | 212–257 | 0,1377 | régua |
+
+### O c149 é RESULTADO, não falha da solução — e está medido
+A fronteira DoE/busca está correta nele (1ª decisão de busca em fe=187, igual ao
+c154 que passou). O perfil das propostas explica: **o c149 propõe |x| ≥ τ em
+98,8% das coordenadas** (0,2 coordenada por ponto na zona morta; nnz médio
+**16,8** de 17 — rede quase cheia), enquanto todos os demais ficam entre 51,8% e
+92,2% de coordenadas na zona morta (nnz 1,3–8,2). Ou seja: a codificação dá a
+TODOS a mesma capacidade de propor esparsidade; a aquisição de cada um decide se
+a usa. A do c149 (deep ensemble + desempate por σ) empurra para os extremos da
+caixa — onde a incerteza é alta — e não produz redes esparsas.
+
+**Consequência científica, e é a boa:** o DDMOP7 saiu de "não discrimina nada"
+(0/340 para todo surrogate; o piso vencia por acidente de crossover) para
+"discrimina fortemente por estratégia de aquisição" — com o piso ainda forte
+(212–257 ND) mas agora batido em qualidade por surrogates (c141 f₂=0,1304 vs
+0,1377 dos pisos). É exatamente a pergunta que a D102.17 queria devolver ao
+problema: *que aquisição ACHA as redes esparsas boas?*
+
+**Veredito da torre: GATE VERDE.** τ=0,5 mantido (nenhum sinal de viés denso
+generalizado — a contingência τ=0,6 fica arquivada). O c149 entra na campanha
+como caso nomeado, com o perfil de propostas como evidência.

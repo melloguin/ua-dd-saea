@@ -40,6 +40,7 @@
 #   LOTE_SEEDS="42 1 2"   (o conjunto sancionado é 0..28 e 42 — a 30 NÃO existe)
 #   LOTE_PARES         "exp/alg exp/alg ..." — sobrepõe o perfil
 #   LOTE_JOBS          processos simultâneos
+#   LOTE_PROBLEMAS     "RE21 ESTOQUE40" — recorte por problema (vazio = todos)
 #   LOTE_PRAZO_H=0     0 = sem prazo (horas a contar de AGORA)
 #   LOTE_PRAZO_TS      prazo ABSOLUTO (epoch). Tem precedência sobre PRAZO_H e é o
 #                      certo quando se encadeia várias passadas: senão cada passada
@@ -244,10 +245,13 @@ GRID="$OUT/grid.txt"; DONE="$OUT/done.txt"; INI="$OUT/inicio.txt"; CENSOTXT="$OU
 # ── grade + censo, a partir do ARTEFATO ─────────────────────────────────────
 {
 python3 - "$REPO" "$SEEDS" "$PARES" "$ORDEM" "$DATA_ROOT" "$CUSTO_MAX" "$REFAZER" \
-         "$CENSOTXT" "$DMAX" "$MAPA_ALLOW" > "$GRID" <<'PYEOF'
+         "$CENSOTXT" "$DMAX" "$MAPA_ALLOW" "${LOTE_PROBLEMAS:-}" > "$GRID" <<'PYEOF'
 import csv, sys, os, math, json, collections
 repo, seeds, pares, ordem, droot, cmax, refazer, censo_out, dmax = sys.argv[1:10]
 mapa_allow = sys.argv[10] if len(sys.argv) > 10 else ""
+# [T15.13] LOTE_PROBLEMAS="RE21 ESTOQUE40" — recorte por PROBLEMA (a onda dos
+# problemas reais roda sem tocar o grid sintetico). Vazio = todos, como sempre.
+probs_ok = set((sys.argv[11] if len(sys.argv) > 11 else "").split()) or None
 dmax = int(dmax)
 # [T14.11] o recorte de VERDADE da maquina: (exp,alg,semente). Sem ele, SEEDS x
 # PARES cruzaria sementes de MATLAB com pares de Python (a maquina tem um
@@ -372,6 +376,7 @@ for r in todas:
     if ALLOW is not None and (r["exp"], r["alg"], r["semente"]) not in ALLOW:
         continue                                                   # [T14.11]
     if r["exp"] == "batch" and r["alg"] == "c154": continue        # DI-40
+    if probs_ok is not None and r["problema"] not in probs_ok: continue  # [T15.13]
     e, _ = estado(r["exp"], r["alg"], r["problema"], r["semente"])
     if refazer == "nao"    and e != "ausente":                 jaok += 1; continue
     if refazer == "falhas" and e in ("ok", "abortou"):         jaok += 1; continue

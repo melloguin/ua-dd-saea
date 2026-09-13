@@ -1,0 +1,53 @@
+{
+  "schema_version": 2,
+  "campanha_id": "659e6a8cc35a_2026-08-14",
+  "run_id": "main_c122_ESTOQUE40_0",
+  "exp": "main",
+  "alg": "c122",
+  "problema": "ESTOQUE40",
+  "semente": 0,
+  "regime": "online",
+  "q": 1,
+  "tier": null,
+  "dist": null,
+  "status": "failed",
+  "n_retries": 0,
+  "stack_trace": null,
+  "maxfe": 1239,
+  "fe_final": 764,
+  "n_geracoes": 325,
+  "doe_hash": null,
+  "repo_hash": "e6b4e1fcb3135ff92655657966996daecf3ba683",
+  "algo_version": null,
+  "env": {},
+  "timing": {
+    "tempo_total_s": null,
+    "tempo_fit_surrogate_s": null,
+    "tempo_busca_s": null,
+    "tempo_aval_real_s": null
+  },
+  "fit_series": [],
+  "fallback_ativado": false,
+  "paths": {
+    "local": {
+      "real": "data/experiments/main/c122/exp_main_c122_ESTOQUE40_0__real.parquet",
+      "pop": "data/experiments/main/c122/exp_main_c122_ESTOQUE40_0__pop.parquet",
+      "surrogate": "data/experiments/main/c122/exp_main_c122_ESTOQUE40_0__surrogate.parquet",
+      "timing": "data/experiments/main/c122/exp_main_c122_ESTOQUE40_0__timing.parquet",
+      "jsonl": "data/experiments/main/c122/exp_main_c122_ESTOQUE40_0.jsonl",
+      "manifest": "data/experiments/main/c122/exp_main_c122_ESTOQUE40_0.manifest.json"
+    },
+    "bucket": null
+  },
+  "upload_status": null,
+  "created_at": "2026-08-14T13:51:33+00:00",
+  "updated_at": "2026-08-14T13:51:33+00:00",
+  "motivo_parada": "checkpoint_em_andamento",
+  "checkpoint": {
+    "iteracao": 325,
+    "fe": 764,
+    "n_checkpoints": 13,
+    "ts": "2026-08-14T13:51:33+00:00",
+    "nota": "fe/fe_final = PISO das camadas: o ⑤ é gravado por último, então um kill pode deixar as camadas 1 checkpoint à frente"
+  }
+}

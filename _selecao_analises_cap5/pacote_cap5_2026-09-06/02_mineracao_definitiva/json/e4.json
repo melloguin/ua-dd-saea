@@ -1,0 +1,212 @@
+{
+  "id": "e4",
+  "sigla": "TSEMO",
+  "titulo": "Efficient multiobjective optimization employing Gaussian processes, spectral sampling and a genetic algorithm",
+  "ano": 2018,
+  "roster": false,
+  "setup": {
+    "benchmarks": "9 problemas sinteticos de Knowles [19] / Cristescu & Knowles [62] (Table 4), 2 a 8 variaveis de decisao e 2 a 3 objetivos: KNO1 (2 var, 2 obj — frente verdadeira alem de uma frente localmente otima com bacia de atracao maior), VLMOP2 (2 var, 2 obj — frente concava), VLMOP3 (2 var, 3 obj — conjunto de Pareto desconectado, frente em curva por caminho convoluto), OKA1 (2 var, 2 obj — densidade de solucoes cai perto da frente), OKA2 (3 var, 2 obj — otimos em espiral, densidade cai fortemente perto da frente), DTLZ1a (6 var, 2 obj — nivel aumentado de rugosidade), DTLZ2a (8 var, 3 obj — frente esferica), DTLZ4a (8 var, 3 obj — frente esferica com densidade enviesada), DTLZ7a (8 var, 3 obj — frente com 4 regioes desconectadas). Nenhum problema real/de engenharia e rodado nos experimentos numericos deste artigo (o metodo e citado, en passant na Introducao, como ja aplicado a um caso real de engenharia quimica em outro artigo, ref. [32], mas isso nao e reexecutado nem reportado aqui — 'so mencionado').",
+    "orcamento": "150 avaliacoes de funcao no total, incluindo o dataset inicial ('A budget of 150 total function evaluations was set including the initial dataset'). Dataset inicial de tamanho 11d-1 via desenho de hipercubo latino (d = numero de variaveis de decisao do problema), usado para TSEMO, BS-TSEMO, ParEGO e EHV ('The initial datasets for TSEMO, ParEGO, EHV and BS-TSEMO were generated using a Latin hypercube design with an initial dataset size of 11d-1'); NSGA-II nao e descrito como recebendo o mesmo desenho inicial — usa populacao propria de tamanho 20 por 8 geracoes (~160 avaliacoes, ajustado 'to match the small number of function evaluations allowed').",
+    "execucoes": "20 execucoes independentes por combinacao algoritmo x problema de teste ('20 independent runs were carried out for each constellation of algorithm and test problem').",
+    "baselines": "NSGA-II (piso sem surrogate; implementacao de Lin [54]/NGPM em MATLAB, populacao 20, 8 geracoes), ParEGO (Knowles [19]; dados/implementacao 'ParEGO_Eigen' do GitHub de Cristescu [60]), EHV = implementacao de expected hypervolume do toolbox SUMO [61] (criterio de amostragem otimizado por particle swarm, populacao 100, 100 iteracoes, 'to match the NSGA-II algorithm used within TSEMO'). TSEMO (proposto, b=1 ponto/iteracao) e comparado a esses 3 mais a sua propria variante em lote BS-TSEMO (b=4 pontos/iteracao). Ha piso sem surrogate (NSGA-II) — e o unico caso do artigo em que a maquinaria interna de busca do TSEMO (NSGA-II rodado sobre as amostras espectrais da GP) coincide estruturalmente com o proprio algoritmo-piso usado como baseline externo, embora as 20 execucoes nao sejam pareadas por semente nem compartilhem o mesmo desenho inicial entre os cinco algoritmos.",
+    "metricas_principais": [
+      "Hypervolume",
+      "IGD modificado (modified inverted generational distance, Ishibuchi et al. [66] — fracamente Pareto-compliant, distinto do IGD+ usado na dissertacao mas do mesmo espirito)",
+      "Generalized spread (Delta*, Zhou et al. [67] — Pareto nao-compliant, so diversidade)"
+    ],
+    "testes": [
+      "nenhum teste de hipotese em lugar nenhum do artigo (sem Wilcoxon, Friedman, Nemenyi, sinal etc.); comparacao feita apenas por leitura visual de boxplots (20 execucoes) e por afirmacoes textuais sobre mediana/media/desvio-padrao no texto da Sec. 8.7"
+    ],
+    "apresentacao": "Resultados apresentados exclusivamente em boxplots (Fig. 6 = HV, Fig. 7 = IGD modificado, Fig. 8 = spread generalizado; um boxplot por problema x algoritmo, 20 execucoes) e em superficies de pior caso de attainment ('worst summary attainment surface' — cada ponto fracamente dominado por TODAS as 20 execucoes daquele algoritmo/problema; Fig. 9 para os 5 problemas 2D num unico grafico por problema, Figs. 10-13 para os 4 problemas 3D com um grafico separado por algoritmo, frente verdadeira sobreposta em vermelho). Nao ha nenhuma tabela numerica de resultados no corpo do artigo: nem medias, medianas ou desvios-padrao exatos sao reportados como numeros — apenas descritos qualitativamente no texto (ex.: 'orders of magnitude lower', 'outperforms... on 4 of the 9 test problems'). Nao ha simbolos +/=/-, nem negrito, nem uso de 'execucao mediana' para as figuras de fronteira (usa-se a superficie de PIOR caso, nao a mediana).",
+    "codigo_plataforma": "MATLAB. GPs ajustados via toolbox GPML (Rasmussen & Nickisch [55]); estimativa MAP dos hiperparametros via algoritmo DIRECT [53] seguido de busca local com fmincon; amostragem espectral (Hernandez-Lobato et al. [40]) para obter preditores lineares aproximados de cada GP; NSGA-II interno (sobre as amostras) e o baseline externo via implementacao NGPM de Lin [54]; delta-HV exato (2-3 objetivos) via codigo C++/MATLAB de moda.liacs.nl (Emmerich et al. [27], Yang et al. [28], Emmerich & Fonseca [51]), Monte Carlo (hypervolume.m [57]) para mais de 3 objetivos; EHV via toolbox SUMO [61]; ParEGO via implementacao Eigen do GitHub de Cristescu [60]. Codigo do proprio TSEMO disponibilizado no GitHub (Bradford & Schweidtmann [58])."
+  },
+  "analises": [
+    {
+      "fichas": [
+        44
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Antes dos experimentos numericos, o artigo mostra passo a passo, num problema-brinquedo 1D biobjetivo (funcao de Schaffer No. 1, x em [-10,10]), como o TSEMO se comporta: desenho inicial de 3 pontos e 3 iteracoes sucessivas, cada uma plotando a funcao verdadeira, a amostra espectral da GP (linha tracejada) para cada objetivo e o proximo ponto escolhido. A narrativa liga explicitamente o comportamento observado a exploracao (amostra distante da funcao real, ponto escolhido fora do conjunto de Pareto verdadeiro, nas duas primeiras iteracoes) e a explotacao (amostra proxima da funcao real, ponto dentro do conjunto de Pareto, a partir da 3a iteracao), conforme a incerteza cai com mais dados.",
+      "literal": "Initially, the samples deviate substantially from the function in the first two iterations, which leads to a sampling point outside of the Pareto set.",
+      "localizador": "Sec. 7, Fig. 4",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execucao unica e ilustrativa (n=1); 3 pontos de design inicial (circulos abertos); 3 iteracoes sucessivas mostradas de cima para baixo; pontos de amostragem sugeridos em circulos pretos preenchidos; sem estatistica, sem repeticao, sem metrica escalar reportada.",
+      "achado": "Com poucos dados as amostras da GP divergem substancialmente da funcao verdadeira e o ponto escolhido cai fora do conjunto de Pareto (exploracao); apos poucas iteracoes (aqui, 2) a incerteza reduzida faz as amostras se aproximarem da funcao real, e os pontos de amostragem seguintes caem dentro do conjunto de Pareto verdadeiro (explotacao) — uma validacao de sanidade qualitativa do mecanismo de exploracao->explotacao do TS antes de qualquer experimento numerico propriamente dito.",
+      "aplicabilidade": "Nao reproduz a quantificacao geometrica da ficha 44 (distancia de cada infill ao ponto avaliado mais proximo, fracao no bordo, ao longo do orcamento) — o artigo mostra a mesma dinamica exploracao->explotacao apenas qualitativamente, numa unica execucao-brinquedo de 3 iteracoes em problema 1D, fora do protocolo de 28 problemas/30 sementes da dissertacao. Uma leitura quantitativa equivalente exigiria camada ① (posicoes x dos infills) e calculo ad-hoc de distancia ao ponto mais proximo, nao fornecido pelo artigo."
+    },
+    {
+      "fichas": [
+        1,
+        8
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para os 9 problemas de teste, o artigo compara TSEMO (b=1), BS-TSEMO (b=4), ParEGO, EHV e NSGA-II via boxplots do indicador de hipervolume apos 20 execucoes independentes e orcamento de 150 avaliacoes (Fig. 6). A discussao textual (Sec. 8.7) compara os algoritmos por mediana, media e, em varios problemas, desvio-padrao entre as 20 execucoes, problema a problema, sem tabela numerica nem teste estatistico formal.",
+      "literal": "TSEMO outperforms the other 3 algorithms on 4 of the 9 test problems: KNO1, VLMOP2, VLMOP3 and DTLZa7 based on both median and mean of the hypervolume.",
+      "localizador": "Sec. 8.3, Fig. 6; Sec. 8.7",
+      "metricas": [
+        "Hypervolume"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Boxplots de 20 execucoes independentes por problema x algoritmo; comparacao narrada por mediana e media no texto (sem valores numericos exatos); em 3 problemas o artigo tambem compara o desvio-padrao (dispersao) entre algoritmos ('orders of magnitude lower'); sem simbolos +/=/-, sem negrito, sem tabela.",
+      "achado": "TSEMO vence os outros 3 algoritmos em 4/9 problemas (KNO1, VLMOP2, VLMOP3, DTLZ7a) por mediana e media, com desvio-padrao ordens de magnitude menor em 3 deles (excecao: KNO1, onde o dp de TSEMO e levemente maior que o do EHV); fica em segundo lugar proximo em 3/9 (OKA1, OKA2, DTLZ2a), perdendo para o ParEGO — atribuido a informacao extra que o ParEGO recebe a priori sobre os limites dos outputs, enquanto a precisao do ponto de referencia do TSEMO depende da propria acuracia das GPs; tem desempenho ruim em 1/9 (DTLZ4a), atribuido a nao-estacionariedade de 2 dos 3 objetivos, que viola a suposicao de estacionariedade da GP Matern usada.",
+      "aplicabilidade": "① endpoint: ND acumulado de todas as avaliacoes reais por execucao, metrica HV calculada sobre esse conjunto — corresponde diretamente ao conceito da ficha 1 (usando boxplots de 20 execucoes como alternativa as matrizes de mediana da dissertacao); a dispersao entre execucoes (ficha 8) e obtida do mesmo conjunto de 20 corridas por celula."
+    },
+    {
+      "fichas": [
+        1,
+        8
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "A mesma bateria de 9 problemas x 5 algoritmos x 20 execucoes e reavaliada com a distancia geracional invertida modificada (IGD de Ishibuchi et al. [66], fracamente Pareto-compliant) em vez do hipervolume, tambem em boxplots (Fig. 7). O artigo compara os resultados de IGD com os de HV problema a problema, apontando onde os dois indicadores concordam e onde divergem (DTLZ1a, DTLZ2a, DTLZ7a).",
+      "literal": "The modified IGD indicator agrees with the results of the hypervolume indicator nearly exactly on the test-functions KNO1, VLMOP2, VLMOP3, OKA1, OKA2 and DTLZ4a.",
+      "localizador": "Sec. 8.4, Fig. 7; Sec. 8.7",
+      "metricas": [
+        "IGD modificado (Ishibuchi et al.)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesma convencao de boxplots de 20 execucoes por problema x algoritmo; comparacao por mediana narrada no texto; sem valores numericos exatos, sem tabela, sem teste estatistico.",
+      "achado": "IGD modificado concorda quase exatamente com HV em 6/9 problemas (KNO1, VLMOP2, VLMOP3, OKA1, OKA2, DTLZ4a); diverge em DTLZ1a (EHV e ParEGO tidos como melhores sob IGD), DTLZ2a (NSGA-II passa a superar TSEMO sob IGD, embora com maior variacao) e DTLZ7a (EHV levemente melhor que TSEMO sob IGD, enquanto por HV os dois empatavam como melhores). Pelo IGD, TSEMO e o melhor em KNO1/VLMOP2/VLMOP3 e fica proximo segundo em OKA1/OKA2/DTLZ7a.",
+      "aplicabilidade": "① endpoint: mesmo ND acumulado do item anterior, mas com o IGD modificado de Ishibuchi et al. em vez do IGD+ da dissertacao (formulas relacionadas — ambas fracamente Pareto-compliant — mas nao identicas); reproduzivel via ① + frente verdadeira conhecida dos problemas sinteticos."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "A mesma bateria e reavaliada com o espalhamento generalizado (Delta*, metrica de diversidade nao Pareto-compliant, Zhou et al. [67]), em boxplots (Fig. 8). O artigo relaciona os resultados de espalhamento com os de hipervolume, incluindo casos em que a diversidade parece nao importar para o HV (OKA1/OKA2) e um caso em que um algoritmo vence nos outros indicadores mas perde no espalhamento (ParEGO em DTLZ1a).",
+      "literal": "For the test-functions KNO1, VLMOP2, VLMOP3 and DTLZ7, TSEMO has the highest median for the generalized spread, which is most likely due to a good identification of the underlying function",
+      "localizador": "Sec. 8.5, Fig. 8; Sec. 8.7",
+      "metricas": [
+        "Generalized spread (Delta*)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesma convencao de boxplots de 20 execucoes por problema x algoritmo; Delta* menor = melhor (mais proximo dos extremos da frente real e bem distribuido); comparacao apenas por mediana, narrada no texto.",
+      "achado": "O espalhamento concorda majoritariamente com o HV: TSEMO tem o maior espalhamento (melhor) em KNO1/VLMOP2/VLMOP3/DTLZ7; em OKA1/OKA2 os algoritmos sao quase indistinguiveis em diversidade, sugerindo que ali a diversidade nao e o fator limitante do HV; em DTLZ1a o espalhamento de ParEGO e o pior apesar de ParEGO vencer nos outros indicadores nesse problema; em DTLZ2a e DTLZ4a o EHV se destaca no espalhamento.",
+      "aplicabilidade": "① endpoint + frente verdadeira conhecida; a dissertacao nao usa Delta* como metrica principal, mas o mesmo calculo poderia ser aplicado ao ND final de ① como metrica secundaria de diversidade nos problemas sinteticos com frente verdadeira conhecida."
+    },
+    {
+      "fichas": [
+        54,
+        55,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para os 5 problemas biobjetivo, o artigo plota, num unico grafico por problema (Fig. 9), a superficie de pior caso de attainment (fracamente dominada por TODAS as 20 execucoes) de cada algoritmo sobreposta; para os 4 problemas de 3 objetivos, plota um grafico separado por algoritmo (Figs. 10-13; frente verdadeira em vermelho, pontos pretos = superficie de pior caso). O objetivo declarado e visualizar onde e como cada algoritmo falha, complementando os indicadores escalares das secoes anteriores; a discussao nota que NSGA-II (o piso sem surrogate) tem a pior superficie na maioria dos problemas.",
+      "literal": "the worst summary attainment surfaces were plotted for each test problem for all algorithms since these give a good indication on the weaknesses of the algorithms",
+      "localizador": "Sec. 8.2.4; Sec. 8.6, Figs. 9-13; Sec. 8.7",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Superficie de PIOR caso (todas as 20 execucoes dominam fracamente cada ponto da superficie), nao mediana nem melhor caso; problemas 2D num unico grafico com todos os algoritmos sobrepostos; problemas 3D com um grafico separado por algoritmo; frente verdadeira sobreposta em vermelho nas Figs. 10-13; leitura puramente visual/qualitativa, sem metrica escalar de cobertura.",
+      "achado": "As superficies de pior caso confirmam os resultados de HV ('overall, the worst-attainment plots confirm the results of the hypervolume indicator'); NSGA-II tem a pior superficie de attainment em 7 dos 9 problemas (KNO1, OKA1, OKA2, DTLZ1a, VLMOP3, DTLZ4a, DTLZ7a), levando o artigo a concluir de forma ampla que 'algoritmos de otimizacao assistidos por surrogate sao mais robustos'; TSEMO, exceto em DTLZ4a, mostra boas aproximacoes da frente verdadeira; superficies com poucos pontos de Pareto (ex. EHV em DTLZ4a) tomam formato de caixa por definicao geometrica.",
+      "aplicabilidade": "① todas as avaliacoes reais por execucao; a superficie de pior caso agregando as 30 fronteiras ND (uma por semente) por problema x algoritmo e o analogo direto da ficha 55 da dissertacao. A comparacao 'NSGA-II e o pior na maioria dos problemas, logo os assistidos sao mais robustos' e um paralelo qualitativo (nao pareado por semente, sem DoE compartilhado, sem Delta explicito) da ideia de ficha 9 — nao e a mesma metodologia (a dissertacao usa Delta IGD+ pareado por semente com DoE compartilhado), apenas a mesma pergunta de fundo (assistido bate o piso?)."
+    },
+    {
+      "fichas": [
+        64
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo estende a heuristica gulosa de selecao em lote do TSEMO (a cada iteracao, escolher sequencialmente 4 pontos do conjunto candidato que mais aumentam o hipervolume, um a um, Eqs. 34-36) e reexecuta a mesma bateria de 9 problemas, 20 execucoes, orcamento de 150 avaliacoes, chamando essa variante de BS-TSEMO. Os resultados aparecem nas mesmas figuras de HV/IGD/espalhamento/attainment (Figs. 6-13) e sao comparados textualmente ao TSEMO sequencial (b=1) na Sec. 8.7 e retomados na Conclusao (Sec. 9), especificamente para avaliar se adicionar pontos em lote a cada iteracao degrada a qualidade da busca a orcamento igual.",
+      "literal": "This heuristic was tested on the same test problems with a budget of 150 function evaluations adding 4 points each iteration. The comparison showed that this implementation performed very similarly to the nominal TSEMO algorithm.",
+      "localizador": "Sec. 8.1; Sec. 8.7; Sec. 9 (Conclusoes)",
+      "metricas": [
+        "Hypervolume",
+        "IGD modificado",
+        "Generalized spread (Delta*)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesmas figuras/convencoes dos 4 itens anteriores (boxplots de 20 execucoes + superficies de pior caso), com BS-TSEMO como uma configuracao adicional nas mesmas figuras; comparacao textual explicita e especifica contra o TSEMO sequencial (b=1), problema a problema.",
+      "achado": "BS-TSEMO (b=4, lote) tem desempenho muito similar ao TSEMO sequencial (b=1): 'performs well on algorithms [problems] that TSEMO performs well on and performs poorly on algorithms [problems] that TSEMO performs poorly on'; da resultados marginalmente piores em KNO1, OKA1 e DTLZ7a, e ligeiramente melhores em DTLZ4a (mas ainda pior que os outros algoritmos ali) — evidencia de que, a orcamento de 150 avaliacoes igual, a heuristica gulosa de selecao em lote (q=4) nao degrada de forma relevante a qualidade da busca do TSEMO.",
+      "aplicabilidade": "Exige rodar uma variante de lote (q=4) do algoritmo, que nao existe nas 15 configuracoes SA-MOO da dissertacao (o regime online da dissertacao e sequencial, q=1); nao reproduzivel com as 7 camadas sem executar novos experimentos com q>1. A ficha 64 da dissertacao cobre um estudo analogo (q=10, sobol_batch/qNEHVI/qPOTS), tambem nao executado — ambos sao sub-estudos secundarios de lote vs. sequencial a FE igual."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "Nao mede empiricamente a calibracao/cobertura do sigma do modelo ajustado nos experimentos numericos. A unica mencao a uma faixa de confianca de 95% e puramente ilustrativa e generica, na Sec. 2.2 (metodos), sobre o conceito de posterior de GP em geral (Fig. 1) — nao uma avaliacao empirica do sigma do TSEMO nos 9 problemas de teste.",
+    "literal": "The grey area is a 95% confidence area. The black crosses on the right indicate the data used to update the GP.",
+    "localizador": "Sec. 2.2, Fig. 1"
+  },
+  "custo": {
+    "reporta": false,
+    "o_que": "Nenhuma medicao empirica de tempo computacional (segundos/minutos) e reportada em lugar nenhum do artigo — nem tempo total, nem por iteracao, nem separacao fit/busca/avaliacao. Ha apenas argumentos TEORICOS de complexidade assintotica, usados para motivar o desenho do algoritmo (Introducao/Sec. 1.3): o calculo exato de delta-HV e O(l log l) para 2-3 objetivos (l = numero de pontos na frente de Pareto aproximada), reduzivel a O(l) se ordenado; para mais de 3 objetivos usa-se aproximacao Monte Carlo. O artigo tambem alega, sem medir, que a amostragem espectral e o NSGA-II interno escalam linearmente com o numero de objetivos, enquanto o calculo de hipervolume escala exponencialmente — e que, ao restringir o calculo de HV a saida do NSGA-II (em vez de calcula-lo a cada avaliacao candidata como no EHV), o TSEMO 'reduces hypervolume calculations to approach linear scaling'. Nenhuma dessas alegacoes e verificada empiricamente com tempos medidos nos 9 problemas de teste.",
+    "literal": "Both spectral sampling of independent GPs and the incorporated NSGA-II algorithm scale linearly, while the hypervolume calculation scales exponentially with respect to the number of objectives.",
+    "localizador": "Sec. 1.3 (Outline of the paper)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Falha do modelo por descasamento entre a hipotese de estacionariedade da GP (covariancia Matern) e a nao-estacionariedade real de 2 dos 3 objetivos de DTLZ4a, levando o TSEMO a ter o pior desempenho relativo entre os 9 problemas de teste — um caso conclusivo de o surrogate (nao o criterio de aquisicao) ser o fator limitante.",
+      "literal": "In this case two of the three functions, f2 and f3, are highly non-stationary and, hence, the GPs yield very poor predictions.",
+      "localizador": "Sec. 8.7 (Discussion of results)"
+    },
+    {
+      "descricao": "Em 3 dos 9 problemas (OKA1, OKA2, DTLZ2a) o TSEMO fica atras do ParEGO no hipervolume; o artigo atribui isso, em parte, ao fato de a precisao do ponto de referencia do TSEMO (usado no calculo de hipervolume) depender diretamente da acuracia das proprias GPs ajustadas, ao passo que o ParEGO recebe informacao a priori sobre os limites reais dos outputs — um caso em que a auto-suficiencia do TSEMO (nao exigir conhecimento a priori, alegada como vantagem no resumo) se traduz em desempenho pior quando as GPs ainda nao sao precisas.",
+      "literal": "TSEMO reference point accuracy is linked to the accuracy of the GPs through Equation 33.",
+      "localizador": "Sec. 8.7 (Discussion of results)"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "nao-estacionariedade de 2 das 3 funcoes-objetivo (DTLZ4a)",
+      "afirmacao": "GPs de covariancia Matern (estacionarias) produzem previsoes muito ruins em funcoes objetivo nao-estacionarias, causando o pior desempenho de hipervolume do TSEMO entre os 9 problemas testados; EHV e ParEGO se saem melhor ali porque seus pontos de referencia limitam a area de amostragem por outros meios, nao dependentes da acuracia da GP.",
+      "literal": "two of the three functions, f2 and f3, are highly non-stationary and, hence, the GPs yield very poor predictions.",
+      "localizador": "Sec. 8.7"
+    },
+    {
+      "caracteristica": "frente verdadeira alem de uma frente localmente otima com bacia de atracao maior, explorada por escalarizacao limitada (KNO1; padrao similar em VLMOP2)",
+      "afirmacao": "O ParEGO, que depende de escalarizacao aleatoria, encontra no maximo cerca de 6 pontos de Pareto repetidamente devido ao numero limitado de escalarizacoes distintas amostradas, enquanto o TSEMO (que modela cada objetivo individualmente, sem escalarizar) nao sofre dessa limitacao.",
+      "literal": "ParEGO struggles to find more than 6 Pareto points, which is the result of a large drawback from the scalarization carried out, i.e. the limited number of scalarizations leads to the same Pareto points repeatedly.",
+      "localizador": "Sec. 8.7"
+    },
+    {
+      "caracteristica": "frente de Pareto concava/desconectada (VLMOP2, VLMOP3, DTLZ7a) e frente alem de armadilha local (KNO1)",
+      "afirmacao": "TSEMO supera os demais algoritmos nestes 4 problemas tanto na mediana quanto na media do hipervolume, com desvio-padrao entre execucoes ordens de magnitude menor em 3 deles — indicio de que a combinacao TS + selecao por melhoria de hipervolume identifica bem a frente verdadeira nesses geometrias, de forma consistente entre sementes.",
+      "literal": "TSEMO outperforms the other 3 algorithms on 4 of the 9 test problems: KNO1, VLMOP2, VLMOP3 and DTLZa7 based on both median and mean of the hypervolume. Further, the standard deviation is also orders of magnitude lower",
+      "localizador": "Sec. 8.7"
+    },
+    {
+      "caracteristica": "poucos pontos na frente de Pareto aproximada / estrutura de caixa da superficie de pior caso (DTLZ4a para EHV)",
+      "afirmacao": "Quando a superficie de pior caso de attainment consiste em poucos pontos de Pareto (ex.: EHV em DTLZ4a), ela assume necessariamente uma estrutura de caixa, por definicao geometrica de como o espaco de objetivos e dividido em regiao fracamente dominada e nao-dominada por um conjunto pequeno de pontos.",
+      "literal": "The worst summary attainment surfaces in three dimensions take a box-like structure if they consist of only a small number of Pareto points, e.g. DTLZ4a for EHV.",
+      "localizador": "Sec. 8.7"
+    },
+    {
+      "caracteristica": "densidade de solucoes decrescente perto da frente / densidade enviesada (OKA1, OKA2)",
+      "afirmacao": "Nesses dois problemas todos os algoritmos parecem ter quase a mesma diversidade de solucoes segundo o espalhamento generalizado, sugerindo que ali a diversidade das solucoes nao e o fator que determina um bom valor de hipervolume (ao contrario de outros problemas, onde espalhamento e HV concordam).",
+      "literal": "For OKA1 and OKA2 the algorithms seem to have nearly the same diversity of solutions, which may indicate that for these functions diversity of solutions is not important to obtain a good hypervolume value.",
+      "localizador": "Sec. 8.7"
+    },
+    {
+      "caracteristica": "nivel aumentado de rugosidade da funcao (DTLZ1a)",
+      "afirmacao": "O ParEGO tem o pior espalhamento generalizado (Delta*) em DTLZ1a apesar de ser o algoritmo com melhor desempenho nos outros indicadores (hipervolume, IGD modificado) nesse mesmo problema — um caso em que convergencia/dominancia e diversidade divergem entre algoritmos.",
+      "literal": "For DTLZ1a the generalized spread is worse for ParEGO, while it is the highest performing algorithm according to the other indicators.",
+      "localizador": "Sec. 8.7"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Artigo fundacional/metodologico (propoe o algoritmo TSEMO), com apenas UMA secao de experimentos numericos (Sec. 8) sobre 9 problemas sinteticos padrao da literatura de MOO (nao ZDT/DTLZ/WFG/BBOB da dissertacao, mas problemas classicos de Knowles/Cristescu — DTLZ1a/2a/4a/7a sao variantes 'a' das DTLZ classicas usadas por esses autores). Nenhum teste estatistico de hipotese e usado em lugar nenhum do artigo; toda comparacao e feita por boxplots (20 execucoes) e por leitura textual de mediana/media/desvio-padrao, sem nenhuma tabela numerica de resultados no corpo do texto (confirmado por busca — as unicas 'Table' do artigo sao a Tabela 1 e 2 de pseudocodigo dos algoritmos, a Tabela 3 de opcoes-padrao do TSEMO, e a Tabela 4 de descricao dos problemas de teste; nenhuma delas e uma tabela de resultados). Nao ha secao de Apendice nem material suplementar (confirmado por busca de 'Appendix'/'Supplementary' no texto integral, incluindo o ANEXO de camada de texto bruto e o ANEXO de OCR de figuras). Nao ha ablacao propria do TSEMO no artigo: a unica alternativa de mecanismo mencionada e a possibilidade de escolher um ponto ALEATORIO do conjunto de Pareto amostrado em vez de usar o criterio de melhoria de hipervolume (Sec. 5.2.3) — mas essa alternativa e apenas ARGUMENTADA teoricamente como provavelmente pior ('this is not particularly efficient... due to the randomness involved'), nunca implementada nem comparada empiricamente; nao virou analise nem 'equivalencia_criterios' por falta de dado. O artigo tambem menciona, sem testar, que o TSEMO pode lidar com ruido via o termo de ruido da GP ('Only noiseless cases are treated here, however the algorithm can identify noise through the noise-term implemented in the GPs and could be used for cases with noise as well', Sec. 8) — capacidade alegada, nao demonstrada nos experimentos deste artigo. A aplicacao a um caso real de engenharia quimica (life-cycle assessment vs custo de processo) e citada na Introducao apenas como trabalho ja publicado em outro artigo (ref. [32]), nao reexecutada aqui — 'so mencionada'. Tabela 3 (opcoes-padrao do TSEMO, nao extraida como analise por ser configuracao, nao resultado): Matern nu=1, 4000 pontos MC para amostragem espectral, 3000 pontos MC para hipervolume (>3 objetivos), NSGA-II interno com populacao 100 e 100 geracoes, prior de variancia 10 nos log-hiperparametros, prior de media -6 para log(sigma_n). roster_bloco = null por instrucao do pedido (artigo fora do roster experimental). Leitura completa: 38 paginas / 3025 linhas do markdown, cobertas integralmente (corpo estruturado ate a Sec. 9 + Referencias + Agradecimentos; ANEXO de camada de texto bruto do PDF, pagina a pagina, com conteudo identico ao corpo estruturado, usado para conferir literais exatos; ANEXO final de OCR das imagens, que so confirma que as Figs. 6-8 sao boxplots com algoritmos no eixo x e o nome da metrica no eixo y, sem nenhum valor numerico novo, e que a Fig. 2 e o fluxograma do algoritmo — nenhum conteudo substantivo adicional em relacao ao texto)."
+}

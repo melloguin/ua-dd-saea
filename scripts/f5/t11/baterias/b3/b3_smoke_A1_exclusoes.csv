@@ -1,0 +1,9 @@
+ciclo,n_disponivel,dlog_ge_dall,n_igualdade,n_provado_fora,provado_fora
+1,21,True,5,0,[]
+2,26,True,5,0,[]
+3,31,True,2,2,"[3, 8]"
+4,36,True,4,1,[3]
+5,41,True,3,1,[23]
+6,46,True,3,6,"[3, 8, 34, 35, 39, 40]"
+7,51,True,1,4,"[21, 22, 24, 38]"
+8,56,True,4,6,"[23, 33, 36, 44, 45, 46]"

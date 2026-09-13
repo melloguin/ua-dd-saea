@@ -1,0 +1,12 @@
+corpus,exp,alg,prob,sem,regime,maxfe,n_ds,t_aval_real,t_total,us_por_fe
+smokeT11,off,b5m,MMF1,0,offline,61,61,0.0001,2725.3105,1.639344262295082
+smokeT11,off,b5r,BBOB_F22,42,offline,309,309,0.0003,133.6644,0.970873786407767
+smokeT11,off,c311,BBOB_F17,42,offline,309,309,0.0003,8.5543,0.970873786407767
+smokeT11,off,moead_media,MMF1,0,offline,61,61,0.0001,36.4907,1.639344262295082
+smokeT11,sweep-big-mvns,treed_media,ZDT4,42,offline,50000,50000,0.0572,11.724,1.144
+smokeT11,main,c122,MMF1,0,online,61,61,0.0021,49.5786,34.42622950819672
+smokeT11,main,c149,MMF1,0,online,61,61,0.0015,253.6387,24.59016393442623
+smokeT11,main,c154,MMF1,0,online,61,61,0.0016,101.4506,26.229508196721312
+smokeT11,main,c262,MMF1,0,online,61,61,0.0014,33.2591,22.950819672131146
+smokeT11,main,e81,MMF1,0,online,61,61,0.0016,11.8276,26.229508196721312
+smokeT11,batch,sobol_batch,ZDT4,42,online,309,309,0.0037,2.0217,11.974110032362459

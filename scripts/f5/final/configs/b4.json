@@ -1,0 +1,155 @@
+{
+ "config": "b4 · CSEA (Pan/He/Tian/Wang/Zhang/Jin, IEEE TEVC 23(1):74-88, 2019) · exp=main · RODADA FINAL sobre corpus CONGELADO. Válidas: 791 células (738 sintéticas herdadas do F30 + 30 RE21 + 23 DDMOP7). ESTOQUE40: 0 células (lacuna compartilhada com b1/b3/b5m/c122/c311/e7/sobol_batch/treed_media). Auditoria: 53/53 células novas varridas INTEGRALMENTE (camadas ①②④⑤⑥ + ③ completa; 8.923 gerações com a query-joia recomputada, 10.167 infills com verdade recomputada, 53 DoE conferidos contra o artefato, checa_regua executado, régua Sobol do RE21 com verdade f64 pela fórmula fechada); sintéticas reconciliadas por mtime (0 mudanças pós-F30) + spot-check de 8 células (8/8 reproduzem o F30, incl. DTLZ7 s23 com 19.395 gerações). Nenhuma célula rodada, nenhum experiments.py/MATLAB invocado; escrita só no scratchpad.",
+ "celulas_final": "SINTÉTICAS (25 problemas, nominal 750): 738 ok-verde (rodapé status=ok termino=normal 738/738; mtime máx 14/08 22:52, ZERO alteradas desde o F30 — herdam o veredito F30 com spot-check 8/8) + 5 falha-real badsubscript (BBOB_F5 s12 fe111, BBOB_F55 s9 fe221/s26 fe111/s27 fe109, ZDT6 s28 fe109 — inalteradas em disco) + 2 abortadas-sem-rodapé (WFG1 s25/s26, livelock, decisão de estado pendente do F30) + 5 nominais inexistentes da campanha (ZDT1 s13/s26, ZDT3 s13/s26, ZDT4 s13). RE21 (nominal 30): 30 ok-verde (30/30, rodapé ok, termino=normal; 2 com hard_stop D61). DDMOP7 (nominal 30): 23 ok-verde (21 com hard_stop D61, aritmética fecha) + 6 falha-real badsubscript com rodapé failed (s0 fe195, s4 fe191, s10 fe196, s14 fe186, s26 fe190, s42 fe186; só .jsonl em disco, sem ①③⑤) + 1 não-executada (s8: nem diretório existe). ESTOQUE40: 0. Sob O-21: nenhuma célula ⚪ teto_wall no b4; nenhum conflito manifesto×rodapé (o censo_final lista exatamente as 791 com rodapé ok). Total analisável: 791.",
+ "novas_desde_f30": "+53 células desde o F30 (T15/pós-congelamento): 30 RE21 (campanha 3240f4b26fae_2026-08-15, repo 3240f4b2…, host matlab-vm1, 15/08, D=4, maxfe=123) e 23 DDMOP7 (campanha 7be66e65522c_2026-08-18, repo 7be66e65…, host matlab-vm5, 18/08 — TODAS na vm5 pós-degrau de 14/08, sem duplicatas cross-VM para medir deriva; D=17, maxfe=526). Sintéticas: contagens idênticas ao F30 (738 ok) e mtime disco==censo 738/738, máximo 14/08 — nada re-rodado. Contrato nas 53 novas: orçamento 31D-1 exato 53/53 (|①|==maxfe==fe_final; resíduo maxfe−(init+Σlote−(cache−1)) == 0 nas sem hard-stop e 1..8 só nas 23 com hard-stop — a aritmética F30 fecha); DoE 11D-1 do artefato 53/53 (max|ΔX| f32=0,0; doe_hash header==⑤==artefato; RE21 seed_tuple=[s,25] lhs-maximin, DDMOP7 sampler frozen-ddmop7-init INERTE conforme D102.2); geração fantasma 53/53; timing fit+busca<=geração 100%; ⑤ completo 53/53 (campanha_id/repo_hash/params/sigma_dict; sigma_dict com o texto E1 CORRIGIDO, hash único dba3b4bb92d6 nas 53); ③ com mu/sigma/pred_score NULL 100% e classe⟺L>=0,5 100%; DDMOP7 SEM sonda 23/23 (D102.10; ⑤ declara sem_sonda_por_problema; ⑦ inline por desenho — b4 é online, regra pós-hoc não se aplica); RE21 régua Sobol blocos 2000 e estratificada 500 completos, cadência sem furos, grade X idêntica entre células.",
+ "mecanismo_nos_novos": "Query-joia da família (rótulo GetOutput: AND sobre 6 refs, OR sobre objetivos, sanduíche float32 n1_lo<=n1_log<=n1_hi) recomputada em TODAS as 53 células novas, não amostra: 8.923/8.923 gerações = 100,000% (RE21 2.653/2.653; DDMOP7 6.270/6.270), ZERO quebras, e nas 2.572 gerações DECIDIDAS (sanduíche fecha) igualdade EXATA 2.572/2.572. Identidades irmãs 8.923/8.923 cada: tr==0,5·min(rr,1−rr); rr==classe_1/n_treino inteiro exato; n_acumulado==⌈¾|D0|⌉+⌈¾|D1|⌉==modelo_hp.n_treino_fit<n_treino; y_treino_dist consistente; p0=NaN⟺⌊¼|D1|⌋=0; gate p0<0,4∨(p1<tr∧p0<1−tr) separa ramo1/ramo4 100%; lote==1 em 6.137/6.137 do ramo 4; L>0,9 nas férteis do ramo 1 (mín 0,90007); lote<=12 100%; ref_ids REAIS (I-1) 8.923/8.923 com 6 ids válidos <|arquivo|, 0 sentinelas −1 (31 gerações DDMOP7 com refs clonadas = clones reais na população, análogo do A4/F30). Particularidade DDMOP7: só 30 gerações decididas (0,5%) — empates REAIS da grade de objetivos (f0=k/17, f1=n/690), não artefato de exportação float32 (o espaçamento da grade 1/690 >> eps f32); o sanduíche fica largo mas NUNCA quebra. RE21 ①: f re-verificado contra a formulação fechada (F=10,σ=10,E=2e5,L=200) em 3.690 linhas, erro relativo máx 2,4e-07 = float32.",
+ "reais": "RE21 (30/30): mecanismo 100%; ramo1 em 18,8% das gerações, 84,4% estéreis; 11,0% dos FEs gateados (265/2.419); precisão do ramo 1 = 84,5% cat-II verdadeira vs 43,5% do aleatório (+41 pontos), por semente r1>r4 em 27/28, Wilcoxon pareado p=1,0e-06; AUC não-viesada (ramo 4) pooled 0,672, por semente [0,522;0,826]; régua Sobol: AUC média por célula 0,744, TODAS as 30 em [0,683;0,799] acima do acaso, prevalência 17,6%, acurácia 0,770 — o classificador FUNCIONA no primeiro problema real. Sem livelock (máx corrida estéril 7). DDMOP7 (23/30): mecanismo 100%; é o problema onde o CSEA MAIS usa o surrogate do corpus inteiro — 48,6% dos FEs gateados (3.765/7.748, vs 27,0% na main sintética) — e onde o classificador MELHOR separa: AUC (ramo 4) pooled 0,825, por semente [0,741;0,893] nas 23/23; precisão ramo1 95,9% (leitura <=) vs 51,9%, 23/23 sementes, p=2,4e-07; curva de calibração monótona 16,8%→91,3%. RESSALVA DE LEITURA (nova): sob leitura estrita (<) a fração cat-II cai de 73,2% para 3,8% (19x) — o rótulo em problema-grade é dominado por EMPATES; o GetOutput usa <=, logo <= é a regra, mas o texto deve declarar a convenção. checa_regua PASSA 23/23 (ideal [0;0], zero avisos; melhor ponto 1/17 e 89/690); f1>nadir(468/690) ocorre em 23/23 células (pontos dominados/DoE) — fase 2 pooled D102.3 segue obrigatória. Zona morta D102.17 PROVADA no dado: 3.044 propostas distintas colapsam no mesmo x_efetivo com f IDÊNTICO em 100% (0 violações D89); |ND| por x_efetivo mediana 47 vs 176 bruto (razão 0,34; extremos s6 211→6, s27 122→7) — a regra §T15.13 é indispensável. CUSTO: 6/29 execuções (20,7%) morrem MATLAB:badsubscript (ver classe 3) e s8 nunca executou. ESTOQUE40 (0/30): b4 não cobre o terceiro problema real — não medido: células inexistem (lacuna do congelamento, compartilhada com 8 configs).",
+ "aspectos_mudados": [
+  {
+   "id": "A1/A21",
+   "o_que": "Orçamento 31D-1 + aritmética de cache/fantasma",
+   "antes": "738/738 sintéticas, hard_stop em 14% (105 células)",
+   "agora": "53/53 reais fecham exato; hard_stop vira regime dominante no DDMOP7 (21/23, resíduos 1..8 só nelas) por lotes férteis de 12 — conforme D21/D61"
+  },
+  {
+   "id": "A5",
+   "o_que": "Query-joia (rótulo GetOutput)",
+   "antes": "234.335/234.335 gerações, 51,5% decididas",
+   "agora": "+8.923/8.923 nos reais (100%), mas DDMOP7 decide só 0,5% — empates REAIS da grade k/17·n/690, variante NOVA da armadilha DTLZ4 (lá: float32 de exportação; aqui: empate verdadeiro do problema)"
+  },
+  {
+   "id": "A10/A13",
+   "o_que": "Uso do surrogate (FEs gateados)",
+   "antes": "27,0% dos FEs na main; 9/25 problemas com 0 FE gateado",
+   "agora": "DDMOP7 = 48,6% (máximo do corpus) e AUC 0,825; RE21 = 11,0% e AUC 0,672 — o gate por prevalência FAVORECE o problema desbalanceado-esparso"
+  },
+  {
+   "id": "A14/A26",
+   "o_que": "Esterilidade/terminação",
+   "antes": "79,5% do ramo 1 estéril; 2 células WFG1 em livelock; 41,6% do h-core sem FE",
+   "agora": "reais SEM livelock: RE21 84,4% estéril mas corrida máx 7; DDMOP7 49,6%, corrida máx 25; 53/53 terminaram normal"
+  },
+  {
+   "id": "A23",
+   "o_que": "Proveniência",
+   "antes": "2 campanha_ids (7f4f0e…M8 + 63db46…14/08), repo único",
+   "agora": "4 campanhas/repos declarados e rastreáveis: RE21 3240f4b2…@vm1 15/08, DDMOP7 7be66e65…@vm5 18/08 (100% na vm5 pós-degrau, sem duplicatas p/ medir deriva); sigma_dict E1-corrigido com hash único nas 53"
+  },
+  {
+   "id": "A28",
+   "o_que": "MATLAB:badsubscript (classe 3 do F30)",
+   "antes": "5 células sintéticas, 'mesma assinatura do c238', escalado sem investigar",
+   "agora": "+6 DDMOP7 (20,7% das executadas, 30x a taxa sintética); atribuição ao laudo c238 REFUTADA com dado (c238: n_front1==1 separa 28/28 vs 0/617; no b4 células ok SOBREVIVEM a n_front1==1 — s13/s15/s17/s19/s20/s25 — e as caídas mostram 2..8); sítio APONTADO por aritmética de FE: RefSelect (células com fe_final=11D-1 = crash no RefSelect pré-gen-1; células com fe avançado +1 além do último evento = crash no RefSelect(Arc,N) da CSEA.m:101, único código entre Evaluation:96 e instrument:111); hipótese de mecanismo lida do fonte: RadarGrid.m normaliza por YU-YL que ZERA com objetivos totalmente empatados → NaN → ismember devolve Site=0 → LastSelection CrowdG(temp(:,1)) indexa 0 → exatamente 'Array indices must be positive integers'"
+  },
+  {
+   "id": "A30v2",
+   "o_que": "Precisão do rótulo em problema-grade (paralelo do A30)",
+   "antes": "A30: float32 da ① inverte DTLZ4 24x; convenção f64 p/ régua",
+   "agora": "no DDMOP7 a divergência <= vs < é 19x (73,2% vs 3,8% cat-II nos infills) e NÃO é de exportação — é empate real; exige regra de leitura declarada"
+  },
+  {
+   "id": "A31-novo",
+   "o_que": "Zona morta D102.17 / identidade D89 sobre x_efetivo",
+   "antes": "não existia (problema novo)",
+   "agora": "provada no dado: 0 violações de f em 3.044 colapsos; |ND| efetivo = 0,34x o bruto (§T15.13 verificada); MAS params.zona_morta AUSENTE do ⑤ (ver classe 3)"
+  },
+  {
+   "id": "A32-novo",
+   "o_que": "Régua DDMOP7 (REAL-2.15 errata 2)",
+   "antes": "régua fase-1 furada (laudo 15/08)",
+   "agora": "ideal=[0;0] SEGURA: checa_regua passa 23/23 sem avisos; grids exatos (dev máx 4,8e-07 em 17·f0, 2,1e-05 em 690·f1 = float32); f1>nadir em 23/23 células reforça a fase 2 pooled"
+  },
+  {
+   "id": "C3-T11",
+   "o_que": "ref_ids reais (I-1) — pergunta da rodada",
+   "antes": "6.268/6.268 na s42; 234.335/234.335 no F30",
+   "agora": "segue funcionando nos reais: 8.923/8.923 gerações, 0 sentinelas, 0 fora de faixa; 31 gerações DDMOP7 com refs não-distintas são clones reais (benigno, análogo A4)"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C3-1v2",
+   "descricao": "MATLAB:badsubscript agora soma 11 células do b4: 5 sintéticas (F30, inalteradas) + 6 DDMOP7 novas (s0/s4/s10/s14/s26/s42; fe_final 186-196 com 11D-1=186; 20,7% das 29 execuções — 30x a taxa sintética de 0,7%). NOVO NESTA RODADA: (i) a atribuição ao bug do c238 (laudo D0 de 14/08: Infill_EIM/Optimizer_GA com n_front1==1) está REFUTADA para o b4 — é código diferente, e no b4 n_front1==1 NÃO separa (6 células ok sobreviveram a front=1; as caídas morrem com front 2-8); (ii) o sítio está apontado por aritmética de FE nas 6+5 células: RefSelect — s14/s42 (e as 3 sintéticas fe=109) morrem ANTES da 1ª avaliação (RefSelect pré-geração sobre o DoE) e s0/s4/s10/s26 (e BBOB fe=111/221) morrem com exatamente +1 FE além do último evento, entre Evaluation (CSEA.m:96) e b4_instrument (:111), onde só existe RefSelect(Arc,N) (:101); (iii) hipótese de mecanismo lida do fonte upstream: RadarGrid.m:26-28 divide por YU-YL, que zera quando os objetivos empatam em bloco (grade do DDMOP7!) → NRLoc=NaN → ismember(...,'rows') dá Site=0 → LastSelection 'CrowdG(temp(:,1))' indexa posição 0 → a mensagem exata observada; o 'if Pmax > Pmin' vetorial do RefSelect.m também pula a normalização inteira quando UM objetivo empata. NÃO PROVADO por execução (veto MATLAB) — hipótese triangulada por dado+fonte. RISCO: censura não-aleatória (mata execuções com população degenerada = arquivos dominados por poucos pontos de grade), pode enviesar os 23 sobreviventes.",
+   "gravidade": "alta no DDMOP7 (20,7% de perda no problema real caixa-preta) · media no config",
+   "acao": "ESCALAR (D81): abrir laudo próprio do b4 apensando a refutação-c238 + o sítio RefSelect + a hipótese RadarGrid; bússola D29 = bug upstream do PlatEMO (mesma classe do c238: vendorizado, latente no cenário do autor) → documentar como incapacidade com taxa por problema (DDMOP7 23/29 executadas, 23/30 nominais) e declarar o caveat de censura na escrita; fix de 1 guarda pós-freeze é possível mas o autor declarou não re-rodar",
+   "arquivo_linha": "resultados_experimentos/b4/DDMOP7/{0,4,10,14,26,42}/*.jsonl · algorithms/_PlatEMO/PlatEMO/Algorithms/Multi-objective optimization/CSEA/RefSelect.m:21-27 + RadarGrid.m:26-28 + LastSelection (CrowdG) · CSEA.m:96-111"
+  },
+  {
+   "id": "C3-2",
+   "descricao": "params.zona_morta AUSENTE do ⑤ das 23 células DDMOP7 do b4, contra a emenda T15.12/D102.17 do CONTRATO ('τ está em params.zona_morta do ⑤ — injeção automática do harness'). Medido: ausente também em b1/b3/nsga2/e103; presente SÓ no c122 (stack Python). MITIGADO: τ canônico vive em ddmop7_bridge.zona_morta e a transformação está PROVADA no próprio dado do b4 (3.044 colapsos de x_efetivo com f idêntico, 0 violações) — a leitura é recuperável sem o campo.",
+   "gravidade": "baixa",
+   "acao": "errata do CONTRATO ou nota de proveniência: a autodeclaração do ⑤ falha nos configs MATLAB; quem auditar DDMOP7 de configs MATLAB deve buscar τ na função canônica, não no manifesto",
+   "arquivo_linha": "resultados_experimentos/b4/DDMOP7/*/exp_main_b4_DDMOP7_*.manifest.json (params sem zona_morta) · CONTRATO_DE_DADOS.md §T15.12-13 · src/ddmop7_bridge.py:130-133"
+  }
+ ],
+ "celulas_invalidas": [
+  {
+   "celula": "DDMOP7 s0",
+   "motivo": "rodapé failed MATLAB:badsubscript fe=195/526 (9 gerações pós-DoE); só .jsonl em disco, sem ①③⑤",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "DDMOP7 s4",
+   "motivo": "idem, fe=191/526 (4 gerações)",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "DDMOP7 s10",
+   "motivo": "idem, fe=196/526 (9 gerações)",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "DDMOP7 s14",
+   "motivo": "idem, fe=186/526 = crash no RefSelect pré-geração-1, só o DoE avaliado",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "DDMOP7 s26",
+   "motivo": "idem, fe=190/526 (3 gerações)",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "DDMOP7 s42",
+   "motivo": "idem, fe=186/526 = crash pré-geração-1",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "DDMOP7 s8",
+   "motivo": "NÃO-EXECUTADA: nenhum diretório/arquivo em disco (nem jsonl); lacuna do congelamento, não falha",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "BBOB_F5 s12 · BBOB_F55 s9/s26/s27 · ZDT6 s28",
+   "motivo": "badsubscript herdadas do F30, inalteradas em disco (mtimes 08-14/08), mesma família do C3-1v2",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "WFG1 s25 · WFG1 s26",
+   "motivo": "não-terminação (livelock do gate L>0,9), sem rodapé — herdadas do F30; re-run não resolveria (mecânica do artigo); estado no censo pendente de decisão do autor desde o F30",
+   "recuperavel_sem_rerun": "NAO_excluir"
+  },
+  {
+   "celula": "ZDT1 s13/s26 · ZDT3 s13/s26 · ZDT4 s13",
+   "motivo": "nominais inexistentes da campanha main (ausência compartilhada com c238/e103/e7 etc.), não específicas do b4",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "ESTOQUE40 (30 células nominais)",
+   "motivo": "config nunca disparado no problema; lacuna compartilhada com b1/b3/b5m/c122/c311/e7/sobol_batch/treed_media; b4 cobre 2/3 problemas reais",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  }
+ ],
+ "score_final": 8.5,
+ "trajetoria_scores": "F5 9,0 (mecanismo provado na s42 por queries; 1 classe (3) aberta — semântica p0/p1) → T11 9,5 (+0,5: o (3) caiu via F5.4/fonte CSEA.m:77-79; smoke bit-idêntico à s42 provou não-perturbação; sanduíche float32 formalizado; ERRATA E1 aberta) → F30 9,0 (−0,5: 5 crashes badsubscript classe (3); não-terminação WFG1 exposta por 30 sementes — 41,6% do h-core sem FE; teto novo A30 float32/DTLZ4; a favor: E1 corrigida e verificada, 2 tetos T caíram, R1 provada com réplicas) → FINAL 8,5 (−0,5: a família badsubscript ESCALA no problema real — 6/29 execuções DDMOP7 = 20,7%, 30x a taxa sintética, com risco de censura não-aleatória, mais lacunas de cobertura: DDMOP7 23/30, s8 nunca executada, ESTOQUE40 ausente; a favor, o que impediu queda maior: mecanismo 100,000% nos reais em 8.923 gerações sem uma quebra, sintéticas intactas herdando o F30, doutrina T15 integralmente cumprida no dado — checa_regua 23/23, zona morta provada com 0 violações D89, sem sonda conforme D102.10 —, refutação da hipótese c238 com sítio RefSelect apontado, e a pergunta da rodada respondida POSITIVA: ref_ids 100% e o classificador atinge no DDMOP7 sua melhor AUC do corpus, 0,825).",
+ "veredito": "ACEITAR COM RESSALVAS (recomendação; o veredito é do autor — D97). O dado VÁLIDO do b4 é fiel: a query-joia e as 8 identidades irmãs fecham 100,000% nos três corpora (s42 → 738 sintéticas → 53 reais; total acumulado 243.258 gerações sem uma única quebra), o contrato fecha nas 53 células novas camada a camada, e a doutrina dos reais (D101/D102/T15.13) está cumprida E verificada no dado — incluindo a régua ideal=[0;0] do DDMOP7 (checa_regua 23/23) e a zona morta (0 violações de identidade em 3.044 colapsos). A pergunta desta rodada tem resposta afirmativa e forte: o classificador do CSEA FUNCIONA nos problemas reais — RE21 AUC de régua 0,744 (30/30 acima do acaso) e DDMOP7 AUC 0,825 com 48,6% dos FEs gateados, o máximo do corpus, com a região R1 do artigo confirmada em 27/28 e 23/23 sementes (p<=1e-06). As ressalvas são de COBERTURA e LEITURA, não de mecanismo: (1) DDMOP7 entra com n=23/30 — 6 células mortas pelo badsubscript upstream (20,7%, censura possivelmente não-aleatória, a declarar) e s8 não-executada; (2) ESTOQUE40 não existe para o b4 (2/3 problemas reais cobertos); (3) três regras de leitura precisam estar fixadas por escrito antes de publicar número (x_efetivo para |ND|; rótulo <= com empates de grade; A30/float64 na régua).",
+ "decisoes_ao_autor": [
+  "ESCALADO (D81) — badsubscript do b4: a atribuição do F30 ao laudo do c238 está REFUTADA com dado (código distinto; a assinatura n_front1==1 do c238 não separa no b4 — 6 células ok sobreviveram a front=1). O sítio está apontado por aritmética de FE em 11/11 células (RefSelect: pré-geração-1 quando fe_final==11D-1; RefSelect(Arc,N) da CSEA.m:101 quando fe avança +1 além do último evento) e há hipótese de mecanismo lida do fonte (RadarGrid.m YU-YL==0 sob empates → Site=0 → CrowdG(0)). NÃO provada por execução (veto MATLAB). Decisão: abrir laudo D0 próprio do b4 (recomendo) e documentar como incapacidade upstream com taxa por problema — DDMOP7 6/29 executadas — declarando o viés de censura (mata execuções com população degenerada pela grade).",
+  "DECLARAR na escrita — DDMOP7 do b4 entra com n=23 e a taxa de falha 20,7% é RESULTADO (robustez do CSEA/PlatEMO sob objetivos-grade), não acidente: a mesma degenerescência de empates que faz o classificador brilhar (AUC 0,825, 48,6% FEs gateados) é a que derruba o RefSelect. Os dois lados vêm do mesmo mecanismo e a escrita ganha se os contar juntos.",
+  "FIXAR REGRA DE LEITURA (paralelo da decisão A30) — em problema-grade (DDMOP7) o rótulo DI-18 é dominado por empates: fração cat-II 73,2% sob <= vs 3,8% sob < (19x). O GetOutput usa <=, logo <= é a regra do algoritmo; qualquer número de 'precisão do gate' publicado deve declarar a convenção de empate. Diferente do DTLZ4/A30: aqui o empate é REAL (grade 1/17 e 1/690 >> eps float32), não artefato de exportação — não há correção f64 a fazer.",
+  "PUBLICAR |ND| do DDMOP7 SEMPRE por x_efetivo (§T15.13, verificada no b4: mediana 47 vs 176 bruto, razão 0,34, extremos 211→6): o bruto reporta diversidade que não existe. Registrar também a errata C3-2: params.zona_morta falta no ⑤ dos configs MATLAB (presente só no c122) — a leitura recupera via ddmop7_bridge.zona_morta.",
+  "CONFIRMAR a lacuna ESTOQUE40×b4 como aceita e declarada (0 células; compartilhada com b1/b3/b5m/c122/c311/e7/sobol_batch/treed_media): b4 cobre 2/3 problemas reais. Idem DDMOP7 s8 (nunca executada, nem jsonl — lacuna, não falha).",
+  "NOTA DE PROVENIÊNCIA — as células reais têm 2 campanhas/repos novos (RE21 3240f4b2…@vm1 15/08; DDMOP7 7be66e65…@vm5 18/08), declarados e únicos por onda; DDMOP7 está 100% na vm5 pós-degrau de 14/08 SEM duplicatas cross-VM: contrastes cross-config no DDMOP7 valem sob a doutrina RUNBOOK 6.2 (fidelidade estatística), e o piso de deriva medido no F30 (1e-7..9e-4 perto do limiar L>0,9) permanece a referência.",
+  "PENDENTE DO F30 (reitero) — estado no censo das WFG1 s25/s26 (não-terminadas): recomendo contá-las como falha do método (a não-terminação é resultado do CSEA sob 31D-1), não excluí-las silenciosamente; e a fixação por escrito da convenção float64-na-régua/float32-no-arquivo (A30), sem a qual DTLZ4 publica errado.",
+  "NÃO MEDIDO, com motivo — (i) deriva cross-máquina nos reais: não há duplicatas; (ii) f verdadeiro dos infills das 6 células DDMOP7 caídas: exigiria o .p (vetado no Mac); (iii) critério Con/Crowd, ablação em K, comparação canônica com a Tab. III: tetos herdados inalterados do F30; (iv) ⑦ pós-hoc DDMOP7: não se aplica ao b4 (config online, ⑦ inline por desenho)."
+ ]
+}

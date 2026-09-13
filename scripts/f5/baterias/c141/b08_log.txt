@@ -1,0 +1,31 @@
+D1 kernel ok
+ok BBOB_F1
+ok BBOB_F17
+ok BBOB_F22
+ok BBOB_F37
+ok BBOB_F49
+ok BBOB_F5
+ok BBOB_F55
+ok DTLZ1
+ok DTLZ2
+ok DTLZ3
+ok DTLZ4
+ok DTLZ7
+ok MMF1
+ok MMF11_L
+ok MMF16_20
+ok MMF4
+ok WFG1
+ok WFG2
+ok WFG4
+ok WFG5
+ok WFG9
+ok ZDT1
+ok ZDT3
+ok ZDT4
+ok ZDT6
+
+D2 arquivo VERDADEIRO 1649 x PREDITO 1575 de 1967
+D3 sigma_1 rel mediana ddof1=9.04e-04  ddof0=0.184
+D4 residuo nivel1: 318/1967 falhas; explicadas por empate exato: 317 (99.7%)
+D5 regras: R1=1649 R2=178 R3=1371 R4=178 de 1967

@@ -1,0 +1,70 @@
+  BBOB_F1    D=10 M=2  n_max=308  5 amostras (0.8s)
+  BBOB_F17   D=10 M=2  n_max=308  5 amostras (0.6s)
+  BBOB_F22   D=10 M=2  n_max=308  5 amostras (0.6s)
+  BBOB_F37   D=10 M=2  n_max=308  5 amostras (0.5s)
+  BBOB_F49   D=10 M=2  n_max=308  5 amostras (0.6s)
+  BBOB_F5    D=10 M=2  n_max=308  5 amostras (0.6s)
+  BBOB_F55   D=10 M=2  n_max=308  5 amostras (1.0s)
+  DTLZ1      D= 7 M=3  n_max=215  5 amostras (0.4s)
+  DTLZ2      D=12 M=3  n_max=370  5 amostras (1.8s)
+  DTLZ3      D=12 M=3  n_max=370  5 amostras (1.3s)
+  DTLZ4      D=12 M=3  n_max=370  5 amostras (1.1s)
+  DTLZ7      D=22 M=3  n_max=680  5 amostras (3.9s)
+  MMF1       D= 2 M=2  n_max=60  5 amostras (0.0s)
+  MMF11_L    D= 2 M=2  n_max=60  5 amostras (0.0s)
+  MMF16_20   D=20 M=3  n_max=618  5 amostras (3.6s)
+  MMF4       D= 2 M=2  n_max=60  5 amostras (0.0s)
+  WFG1       D=22 M=2  n_max=680  5 amostras (3.3s)
+  WFG2       D=22 M=2  n_max=680  5 amostras (3.1s)
+  WFG4       D=22 M=2  n_max=680  5 amostras (3.2s)
+  WFG5       D=22 M=2  n_max=680  5 amostras (2.8s)
+  WFG9       D=22 M=2  n_max=680  5 amostras (2.5s)
+  ZDT1       D=30 M=2  n_max=928  5 amostras (4.9s)
+  ZDT3       D=30 M=2  n_max=928  5 amostras (5.9s)
+  ZDT4       D=10 M=2  n_max=308  5 amostras (0.9s)
+  ZDT6       D=10 M=2  n_max=308  5 amostras (0.7s)
+===============================================================================================
+CONDICIONAMENTO de R no theta LOGADO (isotropico=theta_media), 280 pontos (25 celulas x 5 geracoes x M)
+  cond(R): mediana=107  p90=1.97e+15  max=9.09e+15
+  cond>1e8 : 47/280 (16.8%) | cond>1e12: 39 (13.9%) | cond>1e15: 32
+  chol FALHOU (no proxy isotropico): 0/280
+
+  cond(R) na ULTIMA geracao amostrada, por celula:
+           D    n      cond_max   theta_med
+problema                                   
+MMF11_L    2   60  9.094811e+15    0.503971
+BBOB_F5   10  308  4.496496e+15    2.580020
+BBOB_F1   10  308  4.372217e+15    0.001000
+ZDT1      30  928  3.547126e+15    0.033645
+MMF1       2   60  2.685397e+15    1.000000
+MMF4       2   60  2.581904e+15    1.000078
+ZDT3      30  928  9.184194e+08    1.233219
+DTLZ2     12  370  4.826169e+07    0.322177
+DTLZ7     22  680  2.637503e+07    0.061864
+BBOB_F22  10  308  5.033184e+06    0.550007
+BBOB_F49  10  308  5.828130e+05  500.582936
+BBOB_F37  10  308  2.425856e+05    0.844116
+WFG2      22  680  3.380900e+04    2.703861
+BBOB_F17  10  308  1.897653e+04    2.756654
+BBOB_F55  10  308  1.983577e+03  111.429108
+WFG9      22  680  1.101176e+02  447.169193
+ZDT4      10  308  1.043981e+02  188.273096
+WFG5      22  680  8.178226e+01    2.381629
+MMF16_20  20  618  6.284400e+01    1.883362
+DTLZ3     12  370  2.675596e+01    4.648080
+ZDT6      10  308  1.836404e+01  135.765905
+WFG4      22  680  1.517794e+01    1.734395
+DTLZ4     12  370  7.811681e+00  184.092229
+DTLZ1      7  215  4.316639e+00   44.555909
+WFG1      22  680  1.000000e+00   65.075830
+
+  correlacao log10(cond) x log10(theta_media): -0.749  (theta pequeno => R quase singular)
+  cond mediana por faixa de theta_media:
+              count        median           max
+faixa                                          
+(-3.1, -2.0]     23  4.366369e+15  9.094811e+15
+(-2.0, -1.0]     23  2.067137e+07  3.547126e+15
+(-1.0, 0.0]      73  1.227740e+05  2.762039e+15
+(0.0, 1.0]       89  1.535994e+01  2.586617e+15
+(1.0, 2.0]       36  1.796247e+00  5.452482e+03
+(2.0, 3.1]       36  1.001298e+00  1.043981e+02

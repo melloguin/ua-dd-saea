@@ -1,0 +1,40 @@
+import pandas as pd, numpy as np, json
+pd.set_option('display.width',300); pd.set_option('display.max_columns',80)
+df=pd.read_csv("estrutural_e7.csv")
+n=len(df)
+def allT(c): return int(df[c].sum()), n
+print("N celulas:",n)
+for c in ['U1_fe_exato','U1_feidx_denso','U1_solid_denso','U2_init_exato','U2_opt_exato','U2_hash_ok',
+          'U10_ngen_eq_C1','U10_timing_C1','U10_pop_eq_C1','U10_pop_prog_ok','U10_pop_total_ok','U10_ger1_dup',
+          'lote3_all','fe_ciclo3_all','n_treino_const','n_acum_const','fe_ok','fetm_ok','fetm_mono',
+          'esp_resto_ok','nclu3','sonda_cad_ok','sonda_gers_eq_man','sonda_npontos_ok','sonda_ok_all','sonda_xhash_ok',
+          'U9_ok','U14_ok','hp_batch_eq_D','hp_drop_all','hp_T_all','hp_loss_all','tfi_so_em_c1','ratio_quant_ok']:
+    if c in df: print(f"  {c}: {df[c].sum() if df[c].dtype!=object else '-'} / {n}")
+print("\nTOTAIS:")
+print("  ciclos e7_gen:",df.C_e7gen.sum(),"| transicoes ymin:",df.ymin_chain_n.sum(),"| infills:",df.n_opt.sum())
+print("  blocos sonda:",df.sonda_n_blocos.sum(),"| linhas sonda:",df.sonda_n_blocos.sum()*2000)
+print("  linhas ④:",df.C_e7gen.sum()+n,"| linhas ②:",df.n_pop_rows.sum(),"| linhas ① :",df.n_real.sum())
+print("  linhas ③ busca:",(df.C_e7gen*1900).sum())
+print("\nGATILHO: ok",df.gat_ok.sum(),"/",df.gat_n.sum(),"| motivo_ok",df.motivo_ok.sum())
+print("  ramos: conv",df.n_conv.sum(),"inc",df.n_inc.sum(),"| se paper(0.08,'>'): inc =",df.n_inc_se_paper.sum())
+print("  delta sets:",set(df.delta_set))
+print("\nRatio quant: ok",df.ratio_quant_ok.sum(),"/",df.gat_n.sum(),"max err",df.ratio_quant_max.max())
+print("  NW:",df.groupby(['M'])['NW'].unique().to_dict(),"| N_pop:",df.N_pop.unique())
+print("\npop_por_w len:",set(df.pop_por_w_len),"vals:",set(df.pop_por_w_vals))
+print("\nGUARDS: n_std_neg",df.n_std_neg_tot.sum(),"| n_dup_infill",df.n_dup_infill_tot.sum(),"| stall",df.stall_tot.sum())
+print("  cache_hits man:",df.cache_hits_man.unique(),"guard:",df.n_cache_guard.unique())
+print("\nymin chain max err:",df.ymin_chain_max.max(),"| esp_c1:",df.esp_c1.unique())
+print("\nU7: violacoes",df.U7_viol.sum(),"/",df.U7_n.sum(),"| com sonda:",df.U7_viol_com_sonda.sum(),"| blocos sonda",df.sonda_n_blocos.sum())
+print("\nrazao 80k/8k: med",df.razao_80k_8k.median().round(3),"min",df.razao_80k_8k.min().round(3),"max",df.razao_80k_8k.max().round(3))
+print(df[['problema','razao_80k_8k','tempo_fit_inicial_s','tempo_fit_upd_c1','hp_batch','D']].to_string())
+print("\nHP:",df.hp_T.unique(),df.hp_drop.unique(),df.hp_lr.unique(),df.hp_wd.unique(),df.hp_neuron.unique(),df.hp_pi.unique(),df.hp_pu.unique(),df.hp_loss.unique())
+print("\nn_front1 min/max por celula:"); print(df[['problema','nfront1_c1','nfront1_min','nfront1_max','nfront1_last']].to_string())
+print("\ndist_min_arquivo: n",df.distmin_n.sum(),"| min global",df.distmin_min.min(),"| zeros",df.distmin_zeros.sum())
+print(df[['problema','distmin_min','distmin_med']].to_string())
+print("\nrss_mb max:",df.rss_max.max(),"| por celula:",df.rss_max.describe().round(1).to_dict())
+print("\nsonda: blocos",df.sonda_n_blocos.tolist())
+print("  faltantes:",df.sonda_gers_falt.unique(),"extras:",df.sonda_gers_extra.unique())
+print("\nfooter:",df.footer_n.unique(),df.termino.unique(),df.cp_init.unique(),"| motivo_parada no ⑤:",df.tem_motivo_parada.unique())
+print("status:",df.status.unique(),"retries:",df.n_retries.unique(),"fallback:",df.fallback.unique())
+print("\nWALL total (h):",round(df.tempo_total_s.sum()/3600,2))
+print(df[['problema','tempo_total_s','tempo_fit_tot','tempo_busca_tot','tempo_sonda_tot','tempo_aval_tot']].to_string())

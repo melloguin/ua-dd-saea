@@ -1,0 +1,26 @@
+prob,D,M,doe_dX,doe_hash_ok,dup_pop,ids_validos,geracoes_seq,n_pop_rows,esperado,pop_ok,fases,n_init,n_opt
+BBOB_F1,10,2,,,0,True,True,220,220,True,"['init', 'opt']",109,200
+BBOB_F17,10,2,,,2,True,True,220,220,True,"['init', 'opt']",109,200
+BBOB_F22,10,2,,,9,True,True,220,220,True,"['init', 'opt']",109,200
+BBOB_F37,10,2,,,3,True,True,220,220,True,"['init', 'opt']",109,200
+BBOB_F49,10,2,,,0,True,True,220,220,True,"['init', 'opt']",109,200
+BBOB_F5,10,2,,,3,True,True,220,220,True,"['init', 'opt']",109,200
+BBOB_F55,10,2,,,6,True,True,220,220,True,"['init', 'opt']",109,200
+DTLZ1,7,3,,,2,True,True,165,165,True,"['init', 'opt']",76,140
+DTLZ2,12,3,,,0,True,True,270,270,True,"['init', 'opt']",131,240
+DTLZ3,12,3,,,5,True,True,270,270,True,"['init', 'opt']",131,240
+DTLZ4,12,3,,,0,True,True,270,270,True,"['init', 'opt']",131,240
+DTLZ7,22,3,,,3,True,True,495,495,True,"['init', 'opt']",241,440
+MMF1,2,2,,,1,True,True,60,60,True,"['init', 'opt']",21,40
+MMF11_L,2,2,,,0,True,True,60,60,True,"['init', 'opt']",21,40
+MMF16_20,20,3,,,2,True,True,450,450,True,"['init', 'opt']",219,400
+MMF4,2,2,,,1,True,True,60,60,True,"['init', 'opt']",21,40
+WFG1,22,2,,,2,True,True,460,460,True,"['init', 'opt']",241,440
+WFG2,22,2,,,5,True,True,460,460,True,"['init', 'opt']",241,440
+WFG4,22,2,,,1,True,True,460,460,True,"['init', 'opt']",241,440
+WFG5,22,2,,,2,True,True,460,460,True,"['init', 'opt']",241,440
+WFG9,22,2,,,9,True,True,460,460,True,"['init', 'opt']",241,440
+ZDT1,30,2,,,10,True,True,620,620,True,"['init', 'opt']",329,600
+ZDT3,30,2,,,3,True,True,620,620,True,"['init', 'opt']",329,600
+ZDT4,10,2,,,3,True,True,220,220,True,"['init', 'opt']",109,200
+ZDT6,10,2,,,4,True,True,220,220,True,"['init', 'opt']",109,200

@@ -1,0 +1,39 @@
+== S1/S2 ⑤
+   schema_version   s42=1            smoke=2
+   campanha_id      s42=None         smoke='t11-smoke-195f64e'
+   repo_hash        s42=''           smoke='195f64ed0a69dc3f6c64c66912076e243be90c49'
+   sonda.desligada  s42=False smoke=True
+   params BIT-IDÊNTICOS      : True
+   sigma_dict BIT-IDÊNTICOS  : True
+== S3/S8 ⑥
+   s42: censo={'decision': 1, 'e103_busca': 1, 'e103_gen': 99, 'e103_setup': 1, 'f_best_dataset': 1, 'footer': 1, 'guard': 1, 'header': 1, 'sonda': 2}
+        e103_gen com margem_3sigma_stats=99/99 · com margem_3sigma(plano)=0 · com tempo_busca_s=0 · com tempo_fit_s=0
+        e103_busca campos=['rec', 'tempo_busca_s', 'tempo_fit_s', 'tempo_pred_sonda_s', 'ts']
+   smoke: censo={'decision': 1, 'e103_busca': 1, 'e103_gen': 99, 'e103_setup': 1, 'f_best_dataset': 1, 'footer': 1, 'guard': 1, 'header': 1, 'sonda': 2}
+        e103_gen com margem_3sigma_stats=99/99 · com margem_3sigma(plano)=0 · com tempo_busca_s=0 · com tempo_fit_s=0
+        e103_busca campos=['rec', 'tempo_busca_s', 'tempo_fit_s', 'tempo_geracao_s', 'tempo_pred_sonda_s', 'ts']
+== S4 ④ tempo_geracao_s
+   s42    fit=1.254051 busca=20.152946 sonda=2.801370 geracao=nan | fit+busca=21.406998 igual=False
+   smoke  fit=0.225116 busca=4.808621 sonda=0.782890 geracao=5.033736705780029 | fit+busca=5.033737 igual=True
+   g6com  fit=0.266548 busca=4.094898 sonda=0.528282 geracao=4.361446380615234 | fit+busca=4.361446 igual=True
+   g6sem  fit=0.169421 busca=4.027520 sonda=0.000000 geracao=4.196941375732422 | fit+busca=4.196941 igual=True
+== S5 G-6 (não-perturbação sobre a BUSCA)
+   linhas de busca com/sem : 19800 19800
+   sha256(X+μ) com         : 82f7e224337ae8de
+   sha256(X+μ) sem         : 82f7e224337ae8de
+   BIT-IDÊNTICAS           : True
+   σ nan-safe iguais       : True
+   modelo_flag idêntico    : True
+   sha256 dos BYTES da ①   : a94d2766d257185a / a94d2766d257185a
+== S6 cross-arquitetura (vm3 × Mac)
+   linhas de busca com X diferente : 12044/19800
+   PRIMEIRA geração divergente     : 37
+   kflag idêntico nas 99 gerações  : True
+   n_ds_membros idêntico           : True
+== S7 sonda por modelo (join POSICIONAL, espaço cru)
+   s42    Kriging-DACE  dX_max=0.0 WAPE=[0.039754, 0.606139]
+   s42    RBFN          dX_max=0.0 WAPE=[0.124131, 0.735381]
+   smoke  Kriging-DACE  dX_max=0.0 WAPE=[0.039754, 0.606139]
+   smoke  RBFN          dX_max=0.0 WAPE=[0.124131, 0.735381]
+   g6com  Kriging-DACE  dX_max=0.0 WAPE=[0.039754, 0.606139]
+   g6com  RBFN          dX_max=0.0 WAPE=[0.124131, 0.735381]

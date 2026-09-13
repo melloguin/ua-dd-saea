@@ -1,0 +1,370 @@
+{
+  "id": "c107",
+  "sigla": "MS-VHGP-EIHV",
+  "titulo": "Multiobjective Optimization Based on Expensive Robotic Experiments under Heteroscedastic Noise",
+  "ano": 2017,
+  "roster": false,
+  "setup": {
+    "benchmarks": "4 funções de teste sintéticas biobjetivo, 2 entradas x 2 saídas (M=2, D=2): MAT (proposta em Tesch et al. [3], HV verdadeiro = 5.1013); T3, T4, T6 (adaptadas de Zitzler-Deb-Thiele 2000, que eram 30-entradas-2-saídas, aqui reduzidas para 2 entradas e convertidas de minimização para maximização; T5 foi omitida por ser função binária; HV verdadeiro: T3=10.0444, T4=44.6667, T6=6.7989 — Tabela I). T3 é testada também em versão 10-D (D=10, mesmo HV verdadeiro 10.0444, pois a frente/HV de T3 são invariantes a D). 1 aplicação real: marcha sidewinding de um robô-cobra físico (Fig. 24) — 2 parâmetros otimizados (amplitude Aodd ∈ [0.23,1] e defasagem de fase φ ∈ [0,2π], com demais parâmetros da marcha fixados), 2 objetivos (velocidade da cabeça; estabilidade da cabeça, definida como o negativo da integral da variância da aceleração medida). Nenhum benchmark da bateria da dissertação (ZDT/DTLZ/WFG/MMF/BBOB ou RE21/ESTOQUE40/DDMOP7) é usado.",
+    "orcamento": "Variável por configuração, sempre com DoE inicial por hipercubo latino: MAT com Ni=5 ou Ni=15 (Fig. 9, teste de sensibilidade) e Ni=15 nas comparações principais (Figs. 12-16), Nm=40 avaliações no total (explícito em Sec. III-E1: 'A maximum of 40 evaluations were performed for each trial'); T3(2-D) e T4 com Ni=20 (Nm total não redeclarado explicitamente no texto para a comparação de 3 métodos, Sec. III-E4); T6 com Ni=40; T3 em 10-D com Ni=50 iniciais e Nm=100 no total ('50 initial points and 100 points in total are sampled'). As Linhas 11-13 do Algoritmo 1 (parada antecipada por epsilon*HV) NÃO foram usadas em nenhum teste numérico nem experimento robótico — o orçamento total sempre foi consumido integralmente. Robô real: Ni=20 (hipercubo latino, compartilhado entre os 2 métodos) + 20 avaliações sequenciais escolhidas por cada método = Nm=40 no total, por conjunto de experimentos.",
+    "execucoes": "60 execuções/trials independentes para cada configuração dos testes numéricos (função x tipo de ruído x Ni), usadas para calcular mediana e percentis 25/75 ('We ran 60 trials for each setting'). No experimento robótico real: 10 conjuntos de experimentos independentes por método (proposto e existente), com as mesmas 20 avaliações iniciais compartilhadas por conjunto; 5 execuções de busca aleatória (random search) como referência adicional na Fig. 27. No teste de verificação da heterocedasticidade (Tabela II): 5 réplicas (reamostragens no mesmo x) em cada um de 3 pontos fixos do espaço de entrada.",
+    "baselines": "'Existing method' = Tesch et al. [3]: GP padrão (homocedástico) + EIHV, SEM mecanismo de seleção de modelo — é ele mesmo um método assistido por surrogate (GP), não um piso evolutivo sem surrogate. 'VHGP regression only': GP heterocedástico (VHGP) sozinho, também sem seleção de modelo — segunda variante de ablação. No experimento robótico real (Fig. 27) também é mostrada a mediana de 5 execuções de busca aleatória (random search, sem banda de erro) como único piso 'sem surrogate' do artigo inteiro. NÃO há, em nenhum ponto do artigo, comparação contra NSGA-II, MOEA/D ou qualquer EA populacional: o método proposto e ambos os baselines de GP são estritamente SEQUENCIAIS (um único ponto novo por iteração, sem população nem gerações).",
+    "metricas_principais": [
+      "Hypervolume (HV) indicator [Zitzler & Thiele 1998], calculado sobre os valores VERDADEIROS (sem ruído) da função nos pontos do conjunto de Pareto aproximado retornado — nunca sobre as amostras ruidosas, para evitar sub/superestimação do HV"
+    ],
+    "testes": [
+      "Nenhum teste de hipótese é usado para comparar desempenho de algoritmos em lugar nenhum do artigo — apenas comparação visual de mediana + percentis 25/75 sobre as execuções. O ÚNICO teste estatístico formal do artigo inteiro é um teste F de duas amostras (α = 1%) para verificar heterocedasticidade do ruído bruto do robô real (Tabela II), que não compara algoritmos, apenas caracteriza o ruído do sistema físico."
+    ],
+    "apresentacao": "Linha grossa = mediana; área colorida = região entre os percentis 25 e 75 (explicitamente NÃO média +/- desvio-padrão, 'because the distribution of hypervolumes after a fixed number of evaluations is skewed'). HV plotado contra número de avaliações (não fração do orçamento normalizada). Sem tabela final consolidada, sem negrito, sem símbolos +/=/-; toda a evidência quantitativa de desempenho é apresentada como curvas HV x avaliações. Tabela I fornece o HV verdadeiro (teto) de cada função de teste sintética, usado como referência externa às figuras (não normaliza os eixos das curvas).",
+    "codigo_plataforma": "Não especificada explicitamente no artigo — nenhuma menção a PlatEMO, BoTorch, MATLAB, etc.; tudo indica implementação própria dos autores (GP padrão + VHGP + critério LOO + aproximação do EIHV), sem framework nomeado."
+  },
+  "analises": [
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara o GP padrão (homocedástico) sozinho — o 'método existente' [3] — contra o VHGP (heterocedástico) sozinho, SEM nenhum mecanismo de seleção entre os dois, na função MAT sob ruído homocedástico (σ̄n=0.15), variando o número de avaliações iniciais (Ni=5 vs Ni=15), Nm=40 no total, 60 trials. O objetivo explícito é motivar a necessidade do mecanismo de seleção de modelo proposto no artigo.",
+      "literal": "In the case with five initial evaluations, the existing method (standard GP regression only) clearly outperforms the other (VHGP regression only).",
+      "localizador": "Sec. III-E1, Fig. 9",
+      "metricas": [
+        "Hypervolume (HV) — mediana, percentil 25, percentil 75, sobre 60 execuções"
+      ],
+      "testes": [
+        "nenhum — comparação visual de mediana e banda 25-75% sobre 60 execuções"
+      ],
+      "convencoes": "Mediana (linha grossa) + banda entre percentis 25 e 75 (não desvio-padrão); HV x número de avaliações; 2 painéis (Ni=5, Ni=15).",
+      "achado": "Com 5 avaliações iniciais, o GP padrão supera claramente o VHGP sozinho (que superajusta a amostra pequena, por ser mais complexo); com 15 iniciais, os dois desempenham igualmente bem — evidenciando que, sem seleção de modelo, o resultado depende de forma imprevisível do tamanho do DoE inicial, o que os autores usam para justificar a necessidade de um mecanismo de escolha entre os dois GPs.",
+      "aplicabilidade": "não reproduzível diretamente — exigiria rodar variantes ablacionadas (GP homocedástico puro x VHGP puro, sem o mecanismo de seleção do próprio artigo) de um algoritmo que não pertence ao roster da dissertação. O padrão de análise em si (curva de HV x avaliações via camada ①, mediana+IQR sobre execuções) é o que a ficha 26 da dissertação produz para os algoritmos online do roster."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Fidelidade numérica da aproximação do critério de aquisição (EIHV exato x aproximado)",
+      "grupo_sugerido": "E",
+      "descricao": "Compara, em cortes axiais da superfície de -log(EIHV) após 40 avaliações (função MAT, VHGP sozinho, Ni=15, ruído homocedástico σ̄n=0.15 e ruído senoidal σn=0.2), o cálculo exato via quadratura de Gauss-Hermite (eq. 14, 9 nós 3x3) contra a aproximação Gaussiana da densidade preditiva (eq. 16), medindo a discrepância entre as duas superfícies nos cortes que passam pelo ponto de maior erro.",
+      "literal": "the discrepancy becomes large at the maxima of the negative log EIHV, and at the points with small negative log EIHV, the discrepancy becomes small.",
+      "localizador": "Sec. III-E2, Figs. 10-11",
+      "metricas": [
+        "discrepância entre -log(EIHV) exato e aproximado, em cortes axiais da superfície"
+      ],
+      "testes": [
+        "nenhum — comparação gráfica de superfícies/cortes"
+      ],
+      "convencoes": "4 painéis por figura (função exata, função aproximada, discrepância em 2 cortes axiais que passam pelo ponto de maior erro); sem replicação (uma única execução até 40 avaliações).",
+      "achado": "A discrepância entre os dois cálculos é grande exatamente nos máximos da superfície -log(EIHV) (região de MENOR interesse prático) e pequena nos pontos de baixo -log(EIHV) (candidatos a maximizador do EIHV, de MAIOR interesse); como só o maximizador importa (não o valor absoluto do EIHV), e como σ*/|μ*| é da ordem de 1e-5 a 1e-10 no minimizador de -log(EIHV), a aproximação é considerada válida para o planejamento do experimento.",
+      "aplicabilidade": "não reproduzível — exige recalcular o EIHV por dois métodos numéricos distintos (quadratura vs. aproximação Gaussiana) sobre o mesmo par de modelos, procedimento interno da implementação deste artigo específico, sem contrapartida nas 7 camadas da dissertação."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara o desempenho (HV x avaliações) obtido usando o EIHV exato (quadratura de Gauss-Hermite) versus o EIHV aproximado (aproximação Gaussiana), no mesmo cenário da análise anterior (MAT, VHGP sozinho, Ni=15, ruído homocedástico e senoidal, 60 trials).",
+      "literal": "we concluded that the approximation (16) should be applied instead.",
+      "localizador": "Sec. III-E2, Fig. 12",
+      "metricas": [
+        "Hypervolume (HV) — mediana e banda 25-75% sobre 60 execuções"
+      ],
+      "testes": [
+        "nenhum — comparação visual de mediana e banda 25-75%"
+      ],
+      "convencoes": "Mediana + banda 25-75%; 2 painéis (ruído homocedástico, ruído senoidal); gráfico começa em 16 avaliações (Ni=15).",
+      "achado": "As curvas de HV do cálculo exato e do aproximado são equivalentes na prática — a aproximação, muito mais barata (ver análise de custo), não piora o desempenho de otimização alcançado.",
+      "aplicabilidade": "não reproduzível com os dados já gravados da dissertação — mas o padrão (curva de HV x avaliações comparando duas formulações do MESMO critério de aquisição sobre o mesmo surrogate) é o que a ficha 26 (via camada ①) produziria se a dissertação rodasse variantes internas de um critério de um algoritmo do roster."
+    },
+    {
+      "fichas": [
+        47
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mede o tempo de parede (wall-clock) necessário para completar cada passo do procedimento usando o EIHV exato (quadratura de Gauss-Hermite) versus a aproximação Gaussiana, no cenário com ruído senoidal, e integra a curva para obter o tempo total por trial.",
+      "literal": "The total time required for one trial was the integral of the curve, which was about 6 h where Gauss-Hermite quadrature was used, and about 44 min in the other case.",
+      "localizador": "Sec. III-E2, Fig. 13(a)",
+      "metricas": [
+        "tempo de parede (wall-clock) total por execução, integrado ao longo dos passos"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tempo por passo do procedimento plotado contra o número de avaliações; tempo total = integral da curva (~6h vs. ~44min).",
+      "achado": "O cálculo exato via quadratura de Gauss-Hermite custa cerca de 8x mais tempo total (~6h) do que a aproximação Gaussiana (~44min) para o mesmo número de avaliações, sem ganho de desempenho que justifique o custo extra (ver análise anterior) — por isso os autores adotam a aproximação (16) no restante do artigo.",
+      "aplicabilidade": "reproduzível em espírito via camada ④ (tempos por geração/passo) caso a dissertação quisesse comparar o custo de duas implementações do MESMO critério de aquisição em um algoritmo do roster; não aplicável a este artigo especificamente pois exige a implementação própria do EIHV exato/aproximado, que não existe no roster."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara o desempenho (HV x avaliações) de duas alternativas para o critério de seleção de modelo (GP padrão vs. VHGP) na função MAT, Ni=15, ruído homocedástico e senoidal: o critério LOO proposto (Sec. II-C, baseado nos indicadores a_i, p_i) versus a seleção pelo modelo de maior verossimilhança marginal estimada por Monte Carlo (MC, ver Apêndice).",
+      "literal": "the performance is slightly better if LOO is used, but required time is also less with LOO if there are less than about 40 points.",
+      "localizador": "Sec. III-E3, Fig. 14",
+      "metricas": [
+        "Hypervolume (HV) — mediana e banda 25-75% sobre 60 execuções"
+      ],
+      "testes": [
+        "nenhum — comparação visual de mediana e banda 25-75%"
+      ],
+      "convencoes": "Mediana + banda 25-75%; 2 painéis (ruído homocedástico, ruído senoidal).",
+      "achado": "LOO produz desempenho ligeiramente melhor do que a seleção via verossimilhança marginal por Monte Carlo, atribuído à baixa precisão da estimativa MC (proporcional à raiz quadrada do tamanho da amostra, amplificada pelo uso do logaritmo da verossimilhança).",
+      "aplicabilidade": "não reproduzível — exige rodar duas variantes do critério de seleção de modelo (LOO vs. MC) sobre o mesmo par GP/VHGP, mecanismo interno específico deste artigo, sem análogo no roster da dissertação."
+    },
+    {
+      "fichas": [
+        47
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mede o tempo de parede por passo do procedimento para o critério LOO versus o critério MC de seleção de modelo, e discute a complexidade assintótica de cada um em função do número de pontos N (ambos os ajustes GP/HGP são O(N^3); LOO requer O(N^4)).",
+      "literal": "The computation requires that both the GP and HGP regressions are proportional to O(N3). Therefore, LOO will require O(N4) calculations.",
+      "localizador": "Sec. II-C; Sec. III-E3, Fig. 13(b)",
+      "metricas": [
+        "tempo de parede por passo do algoritmo (segundos por iteração)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tempo por passo plotado contra o número de avaliações.",
+      "achado": "Para menos de ~40 pontos, LOO também é mais rápido que MC; porém, como o custo de LOO escala com O(N^4) (dois ajustes O(N^3) repetidos N vezes) contra o crescimento mais lento do MC, LOO se torna proporcionalmente mais lento conforme o número de avaliações cresce — 'LOO can easily be parallelized, and this will reduce the calculation time considerably' é a mitigação proposta pelos autores.",
+      "aplicabilidade": "não reproduzível diretamente; o padrão de decompor custo por escolha de mecanismo interno (em vez de por fase fit/busca/avaliação) não tem ficha própria — mais próximo, por analogia, da ficha 48 (decomposição de custo), reproduzível via camada ④ para algoritmos GP do roster que também têm ajuste O(N^3)."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara 3 métodos — proposto (GP+VHGP com seleção de modelo por LOO), existente [3] (GP padrão sozinho) e VHGP sozinho — nas 4 funções de teste 2-D (MAT, T3, T4, T6), cada uma sob ruído homocedástico e ruído senoidal (heterocedástico), com Ni=15/20/20/40 respectivamente, 60 trials por configuração.",
+      "literal": "except for T6, the proposed method outperforms the other two, or at least performs equally well.",
+      "localizador": "Sec. III-E4, Figs. 15-22",
+      "metricas": [
+        "Hypervolume (HV) — mediana e banda 25-75% sobre 60 execuções"
+      ],
+      "testes": [
+        "nenhum — comparação visual de mediana e banda 25-75%"
+      ],
+      "convencoes": "Mediana + banda 25-75%; 2 painéis por figura (ruído homocedástico, ruído senoidal); uma figura 'proposto vs. existente' e outra 'proposto vs. VHGP-só' por função (8 figuras no total, Figs. 15-22).",
+      "achado": "Exceto em T6, o método proposto supera ou empata com os outros dois em todas as 4 funções x 2 tipos de ruído. Em T6 sob ruído homocedástico (σ̄n=0.1), o método proposto é superado pelo método existente — os próprios autores tratam isso como falha do mecanismo de seleção de modelo (ver resultados_negativos); e o VHGP sozinho é o pior dos três mesmo sob ruído senoidal em T6, resultado que os autores chamam de contraintuitivo e atribuem a superajuste da oscilação rápida da função latente de T6 como se fosse ruído.",
+      "aplicabilidade": "não reproduzível — exige rodar o próprio algoritmo do artigo (fora do roster) sobre suas 4 funções de teste próprias (MAT, T3, T4, T6), que não fazem parte da bateria de 28 problemas da dissertação."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Testa a versão 10-D de T3 (D=10 em (22), mesmo HV verdadeiro 10.0444, Ni=50, Nm=100 no total), comparando apenas o método proposto contra o método existente [3] — único teste do artigo em dimensão maior que 2.",
+      "literal": "our proposed method outperforms the existing one in terms of final values.",
+      "localizador": "Sec. III-E5, Fig. 23",
+      "metricas": [
+        "Hypervolume (HV) — mediana e banda 25-75% sobre 60 execuções"
+      ],
+      "testes": [
+        "nenhum — comparação visual de mediana e banda 25-75%"
+      ],
+      "convencoes": "Mediana + banda 25-75%; 2 painéis (ruído homocedástico σ̄n=0.1, senoidal σn=0.2), mesmos níveis de ruído do T3 2-D.",
+      "achado": "Ambos os métodos melhoram rapidamente a partir dos valores iniciais dentro de poucas avaliações; o método proposto supera o existente nos valores finais de hipervolume. É o único ponto de dados sobre dimensionalidade no artigo (não há uma tendência sobre vários D, apenas 2-D vs. 10-D para uma única função).",
+      "aplicabilidade": "não reproduzível — mesmo algoritmo fora do roster, em função própria; o espírito da análise (checar se a vantagem do assistido se mantém quando D cresce) é o mesmo da ficha 7, que a dissertação responde com seus próprios 28 problemas em múltiplos D via camada ① + ⑦, mas não há como usar os dados deste artigo para isso."
+    },
+    {
+      "fichas": [
+        23,
+        38
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Estudo de caso no robô-cobra físico real (sidewinding gait): compara as frentes de Pareto (velocidade x estabilidade de cabeça) obtidas pelo método proposto e pelo método existente [3] após 25, 30, 35 e 40 avaliações (mesmas 20 iniciais compartilhadas), e mostra a superfície de resposta e o mapa de variância preditiva do GP/VHGP após 39 experimentos, usado para planejar o 40º.",
+      "literal": "By comparing the points that are the best in terms of speed, it is clear that the proposed method found solutions better (i.e., faster) than the existing method.",
+      "localizador": "Sec. IV, Figs. 25-26",
+      "metricas": [
+        "frente de Pareto observada (velocidade x estabilidade de cabeça)",
+        "variância preditiva do GP/VHGP (mapa de cor)"
+      ],
+      "testes": [
+        "nenhum — visualização qualitativa"
+      ],
+      "convencoes": "Pontos observados marcados como x; elementos do conjunto de Pareto como círculos; 4 cortes temporais (25/30/35/40 avaliações); mapa de variância como cor (painéis c-d da Fig. 26).",
+      "achado": "O método proposto encontra soluções de Pareto mais rápidas (melhor velocidade) e também melhores em estabilidade do que o método existente, usando as mesmas avaliações iniciais. Os mapas de variância preditiva (Fig. 26c-d) mostram explicitamente que a incerteza NÃO é uniforme no domínio de entrada — evidência visual direta de heterocedasticidade no problema físico real, embora sem verificação contra erro verdadeiro (não há 'sonda' com f conhecido para o robô real).",
+      "aplicabilidade": "não reproduzível — depende de hardware físico (robô-cobra) fora do escopo da dissertação (problemas em simulação/benchmark). O mapa de variância (Fig. 26c-d) é conceitualmente próximo da ficha 38 (heterocedasticidade por região), que a dissertação pode obter via camada ③ (sonda) para seus próprios algoritmos GP/heterocedásticos, caso existam no roster — mas ali seria erro verificado contra f verdadeiro, não apenas σ predito como aqui."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara o HV do método proposto, do método existente e da mediana de 5 execuções de busca aleatória (random search, sem banda de erro), no experimento robótico real (10 conjuntos de experimentos por método de GP).",
+      "literal": "From this, it is clear that both the existing and proposed methods are much more efficient than the random search.",
+      "localizador": "Sec. IV, Fig. 27",
+      "metricas": [
+        "Hypervolume (HV) — mediana e banda 25-75% sobre 10 execuções; mediana de 5 execuções de busca aleatória"
+      ],
+      "testes": [
+        "nenhum — comparação visual de mediana e banda 25-75%"
+      ],
+      "convencoes": "Mediana + banda 25-75% para os 2 métodos de GP; linha pontilhada sem banda de erro para a busca aleatória (omitida 'to keep the figure from becoming cluttered').",
+      "achado": "Ambos os métodos baseados em GP superam amplamente a busca aleatória em hipervolume no problema físico real; o método proposto supera o existente também nessa métrica agregada — único ponto do artigo em que um piso verdadeiramente sem surrogate (busca aleatória) é comparado, e ele perde claramente em ambos os casos.",
+      "aplicabilidade": "não reproduzível — experimento físico específico; o padrão 'comparação com busca aleatória como piso' é análogo ao espírito da ficha 26 (curva com banda dos pisos) e reproduzível via camada ① para o roster, caso se quisesse adicionar busca aleatória como piso extra."
+    },
+    {
+      "fichas": [
+        38
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Verificação empírica direta da heterocedasticidade no robô real: escolhe 3 pontos fixos do espaço de entrada (x1=[0.7177,0.3569], x2=[0.5634,0.0538], x3=[0.3767,0.5500]), toma 5 réplicas (reavaliações no MESMO ponto) da estabilidade de cabeça em cada um (Tabela II), e aplica um teste F de duas amostras para testar se as variâncias do ruído diferem entre pontos.",
+      "literal": "the null hypothesis, that the variances between these two sets of samples are equal, is rejected by a two-sample F-test with a 1% significance level.",
+      "localizador": "Sec. IV, Table II",
+      "metricas": [
+        "desvio-padrão amostral (estimador não-viesado) da estabilidade de cabeça, 5 réplicas por ponto"
+      ],
+      "testes": [
+        "Teste F de duas amostras (razão de variâncias), α = 1% (nível de significância de 1%)"
+      ],
+      "convencoes": "Tabela com 3 linhas (x1, x2, x3) x 5 colunas de amostra + 1 coluna de desvio-padrão; sem replicação adicional além das 5 por ponto.",
+      "achado": "O desvio-padrão observado varia de 0.2644 (em x3) a 2.8252 (em x1) — mais de 10x de diferença ('the standard deviation for x1 is more than ten times larger than that for x3') — e a hipótese nula de variâncias iguais é rejeitada pelo teste F a 1% de significância, confirmando estatisticamente que o ruído do robô real é heterocedástico (não constante no espaço de entrada). Este é o único teste de hipótese formal do artigo inteiro.",
+      "aplicabilidade": "não reproduzível — exige reamostragem repetida (5 réplicas) no MESMO ponto x, desenho de coleta que não existe nas 7 camadas da dissertação (cujos algoritmos sempre avaliam pontos novos, sem repetição deliberada do mesmo x)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Comparação informal LOO x log-pseudo-verossimilhança como critério de seleção de modelo",
+      "grupo_sugerido": "E",
+      "descricao": "Menção breve, sem tabela/figura de suporte, de que a métrica alternativa de log pseudo-verossimilhança (L_LOO, eq. 20) para seleção de modelo teria desempenho empírico semelhante ao critério LOO (a_i, p_i) efetivamente proposto e usado no restante do artigo (só mencionada — sem dado quantitativo ou figura apresentados).",
+      "literal": "Detailed examination on this metric compared to ours is left to our future work, but empirically, these two metrics results in similar performances.",
+      "localizador": "Sec. II-C",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "nenhuma — apenas menção textual, sem figura/tabela de suporte",
+      "achado": "Menciona que a métrica alternativa teria desempenho similar ao critério LOO proposto, sem apresentar nenhum dado; exame detalhado é deixado para trabalho futuro.",
+      "aplicabilidade": "não reproduzível — o próprio artigo não fornece os dados desta comparação, apenas a menção textual do resultado."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "MCMC x Monte Carlo ingênuo para a verossimilhança marginal (aparte do Apêndice)",
+      "grupo_sugerido": "E",
+      "descricao": "No Apêndice (detalhamento do cálculo de MC da verossimilhança marginal usado como alternativa ao LOO), menciona — sem tabela/figura de suporte — que métodos MCMC mais sofisticados (Chib & Jeliazkov [50],[51]) foram também experimentados como alternativa ao MC ingênuo (eq. 30, M ∈ [2x10^5, 1x10^6] amostras).",
+      "literal": "they make no significant difference in hypervolume from the basic calculation (30)",
+      "localizador": "Appendix",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "nenhuma — apenas menção textual no apêndice, sem figura/tabela",
+      "achado": "MCMC mais sofisticado não melhora significativamente o hipervolume final em relação ao MC ingênuo, apesar de reduzir o tempo de cálculo; além disso, a amostragem MCMC é frequentemente mal condicionada e por vezes falha completamente em gerar amostras (caso em que o MC ingênuo também falha).",
+      "aplicabilidade": "não reproduzível — o artigo não fornece dados quantitativos desta comparação específica, apenas menção textual no apêndice."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo de parede (wall-clock) total por execução/trial, comparando duas formas de calcular o EIHV (quadratura exata ~6h vs. aproximação Gaussiana ~44min, Fig. 13a) e dois critérios de seleção de modelo (LOO vs. Monte Carlo, tempo por passo, Fig. 13b, com LOO mais rápido para <~40 pontos mas escalando pior assintoticamente: O(N^4) para LOO contra O(N^3) por ajuste GP/HGP). Não há decomposição explícita fit/busca/avaliação como na dissertação (camada ④) — o tempo reportado é agregado por 'passo do procedimento' (que inclui ajuste do modelo + seleção de modelo + busca do próximo ponto).",
+    "literal": "The total time required for one trial was the integral of the curve, which was about 6 h where Gauss-Hermite quadrature was used, and about 44 min in the other case.",
+    "localizador": "Sec. III-E2/III-E3, Fig. 13"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "O achado mais crítico do artigo para o tema da incerteza: um dos dois tipos de superajuste específicos da regressão heterocedástica (VHGP) faz com que o EIHV fique ALTO perto de pontos JÁ AMOSTRADOS (em vez de em regiões inexploradas), levando a experimentos densos e não-informativos concentrados em poucos pontos fixos — a incerteza reportada engana diretamente o critério de aquisição exploratório.",
+      "literal": "This leads to large EIHV values around sampled points, rather than unevaluated regions, and leads to dense, noninformative experiments at a few fixed points.",
+      "localizador": "Sec. II-C"
+    },
+    {
+      "descricao": "Em T6 sob ruído homocedástico, o método proposto (com seleção de modelo) é superado pelo método existente (GP padrão sozinho) — os próprios autores tratam isso como falha do mecanismo de seleção de modelo.",
+      "literal": "For T6, the proposed method is outperformed by the existing method in the case where the noise is homoscedastic.",
+      "localizador": "Sec. III-E4"
+    },
+    {
+      "descricao": "Em T6, o VHGP usado sozinho é o pior dos três métodos mesmo sob ruído heterocedástico (o cenário em que, a priori, deveria ser favorecido) — resultado que os próprios autores chamam de contraintuitivo, atribuído a superajuste da oscilação da função latente como ruído.",
+      "literal": "This is a somewhat counterintuitive result because VHGP regression seemed appropriate for fitting samples wherein the noise level is actually a function of input and should, therefore, provide a good surrogate.",
+      "localizador": "Sec. III-E4"
+    },
+    {
+      "descricao": "A falha do método proposto em T6 sob ruído homocedástico não é um artefato isolado do critério LOO: uma tendência semelhante aparece mesmo usando o critério alternativo de seleção de modelo por máxima verossimilhança marginal via Monte Carlo.",
+      "literal": "we note that a similar trend is observed, even when we used the maximization of the marginal likelihood calculated by MC.",
+      "localizador": "Sec. III-E4"
+    },
+    {
+      "descricao": "Limitação declarada pelos próprios autores na conclusão: o método não é eficiente quando a dimensionalidade do espaço de busca é muito alta, como em robôs hiper-redundantes.",
+      "literal": "it is not so efficient if the dimensionality of the search space is very large, as is the case for hyper-redundant robots.",
+      "localizador": "Sec. V (Conclusion)"
+    },
+    {
+      "descricao": "O custo do critério de seleção de modelo proposto (LOO) escala como O(N^4) — pior do que o MC — tornando-se proporcionalmente mais lento conforme o número de avaliações aumenta, apesar de ser mais rápido para poucos pontos (<~40).",
+      "literal": "The computation requires that both the GP and HGP regressions are proportional to O(N3). Therefore, LOO will require O(N4) calculations.",
+      "localizador": "Sec. II-C"
+    },
+    {
+      "descricao": "O método alternativo de seleção de modelo (Monte Carlo para a verossimilhança marginal) tem precisão fundamentalmente limitada pela raiz quadrada do tamanho da amostra, amplificada pelo uso do logaritmo — exigiria centenas de vezes mais amostras para melhorar a precisão em 10x.",
+      "literal": "Because precision through MC is proportional to the square root of the sample size, it is difficult to precisely calculate the marginal likelihood, which is typically much smaller than 1.",
+      "localizador": "Sec. III-E3"
+    },
+    {
+      "descricao": "Métodos MCMC mais sofisticados para a verossimilhança marginal (Chib & Jeliazkov) reduzem o tempo de cálculo mas não mudam significativamente o hipervolume final; além disso, a amostragem MCMC é por vezes mal condicionada ou falha completamente em gerar amostras.",
+      "literal": "we found that although they reduce the calculation time, they make no significant difference in hypervolume from the basic calculation (30)",
+      "localizador": "Appendix"
+    },
+    {
+      "descricao": "Ao contrário do caso sem ruído (HV cresce monotonicamente com mais avaliações), o hipervolume estimado desta abordagem PODE DIMINUIR ao longo das avaliações, porque o algoritmo planeja experimentos e retorna o conjunto de Pareto aproximado com base em amostras ruidosas — diferente do invariante de monotonicidade que a dissertação obtém computando IGD+/HV sobre o ND acumulado de todas as avaliações reais (ficha 30).",
+      "literal": "because the algorithm plans the experiments and returns the approximated Pareto set based on the noisy samples, the corresponding estimated hypervolume can decrease.",
+      "localizador": "Sec. III-C"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "A aproximação Gaussiana do EIHV (eq. 16) e o cálculo exato via quadratura de Gauss-Hermite (eq. 14) divergem na superfície geral, mas convergem para a mesma decisão (o maximizador) na vizinhança do ótimo — a diferença de formulação não muda a escolha do próximo ponto nem o desempenho final medido em HV.",
+      "literal": "the discrepancy becomes small at the neighbor of the maximum of EIHV, which implies that this approximation is sufficient for experiment planning.",
+      "localizador": "Sec. II-B / III-E2"
+    },
+    {
+      "descricao": "O artigo relata, sem mostrar dados, que a métrica alternativa de seleção de modelo (log pseudo-verossimilhança, L_LOO) teria desempenho empírico semelhante ao critério LOO (a_i, p_i) proposto — dois critérios distintos para a mesma decisão (qual GP usar) rendendo resultado parecido.",
+      "literal": "Detailed examination on this metric compared to ours is left to our future work, but empirically, these two metrics results in similar performances.",
+      "localizador": "Sec. II-C"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "amostra inicial pequena (DoE inicial reduzido, Ni=5)",
+      "afirmacao": "Com poucos pontos iniciais, o VHGP (mais complexo) superajusta os dados e é dominado pelo GP homocedástico mais simples; com mais pontos iniciais (Ni=15), os dois empatam.",
+      "literal": "This is because the VHGP model is more complex than the standard GP model, and tends to overfit to the small size data.",
+      "localizador": "Sec. III-E1"
+    },
+    {
+      "caracteristica": "função latente com alta frequência de oscilação (T6: f1 = -1+exp(-4x1)*sin^6(6·π·x1))",
+      "afirmacao": "O VHGP superajusta a oscilação rápida da função latente como se fosse ruído, produzindo uma superfície substituta bem mais achatada do que a função real e degradando o desempenho mesmo sob ruído heterocedástico.",
+      "literal": "This can lead to a much flatter surrogate surface than the true latent function.",
+      "localizador": "Sec. III-E4"
+    },
+    {
+      "caracteristica": "alta dimensionalidade do espaço de busca (D muito grande, ex.: robôs hiper-redundantes)",
+      "afirmacao": "O método é declarado pelos próprios autores como pouco eficiente quando a dimensionalidade do espaço de busca é muito alta.",
+      "literal": "it is not so efficient if the dimensionality of the search space is very large, as is the case for hyper-redundant robots.",
+      "localizador": "Sec. V (Conclusion)"
+    },
+    {
+      "caracteristica": "ruído heterocedástico dependente da amplitude do movimento (sistema robótico físico real)",
+      "afirmacao": "Quanto maior o movimento do robô, maior o nível de ruído nas medições — heterocedasticidade fisicamente motivada a priori e depois confirmada estatisticamente (Tabela II, teste F a 1%).",
+      "literal": "it is appropriate to consider that the larger the movement, the greater the noise level.",
+      "localizador": "Sec. IV"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) Artigo NÃO pertence ao roster experimental da dissertação (roster_bloco=null, conforme instrução do pedido); é classificado na taxonomia como motor=BO-Hipervolume, função da incerteza=O1 (aquisição exploratória), surrogate=GP+VHGP heterocedástico, medição=VAR-GP, regime=online. (2) O algoritmo proposto é estritamente SEQUENCIAL — um único ponto novo por iteração (q=1), SEM estrutura de população/gerações — logo a camada ② (população por geração) da dissertação não tem análogo aqui; também não há nenhum estudo de lote (q>1), o que torna a ficha 64 inaplicável. (3) Nenhum teste de hipótese estatístico é usado para comparar desempenho de algoritmos em lugar nenhum do artigo — só mediana + banda de percentis 25/75% sobre as execuções, justificada explicitamente pela distribuição assimétrica do HV; o ÚNICO teste estatístico formal de todo o artigo é um teste F de duas amostras (α=1%) sobre variâncias de ruído bruto (Tabela II), não sobre desempenho de algoritmos. (4) Não há nenhuma comparação com piso evolutivo populacional (NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) em nenhum ponto do artigo; o único 'piso' é busca aleatória, usada apenas na seção experimental do robô real (Fig. 27), nunca nos testes numéricos sintéticos. (5) As Figs. 2, 3 e 4 são diagramas puramente ilustrativos/didáticos (conceito de EI; os dois tipos de superajuste do GP/VHGP; os 4 padrões típicos de validação cruzada LOO) que explicam o método em si, sem reportar dados de uma comparação empírica específica — por isso foram excluídos de `analises`, mas o texto que os acompanha (Sec. II-C) originou o resultado negativo mais importante do artigo (EIHV alto em pontos já amostrados). (6) `calibracao_do_sigma.mede`=false: o artigo NUNCA verifica a calibração/cobertura do σ preditivo do GP/VHGP contra erro real held-out (não há 'sonda' com f verdadeiro conhecido). O mais próximo disso é (a) a observação de que σ*/|μ*| ~ 1e-5 a 1e-10 no maximizador do EIHV, usada apenas para justificar a validade de uma APROXIMAÇÃO NUMÉRICA (não para validar calibração do modelo), e (b) o teste de heterocedasticidade da Tabela II, que mede a variância BRUTA de reamostragens repetidas no robô real (não o σ ajustado do GP/VHGP contra erro). (7) A Seção III-C observa que o próprio protocolo de cálculo do HV do artigo (baseado no conjunto de Pareto 'corrente', não necessariamente todos os pontos já avaliados) NÃO garante monotonicidade da curva de HV — ao contrário do invariante de pipeline da ficha 30 da dissertação (IGD+/HV sobre o ND acumulado de todas as avaliações reais é não-decrescente por construção); os próprios autores reconhecem que o HV estimado 'can decrease' devido ao ruído (ver resultados_negativos). (8) A Sec. III-C também observa, citando [46], que construir a frente aproximada a partir do surrogate (em vez de apenas dos pontos avaliados, como o artigo faz) daria uma aproximação melhor — logo os próprios autores classificam seus números de HV reportados como um 'lower limit' (limite inferior) do verdadeiro desempenho do método. (9) Todos os testes numéricos são estritamente biobjetivo (M=2); D=2 em todas as funções exceto um único teste com D=10 em T3; a função MAT vem do trabalho anterior dos mesmos autores [3] (que é o 'existing method' usado como baseline em todo o artigo), e T3/T4/T6 são adaptações de Zitzler-Deb-Thiele 2000 (30-D-2-obj originais, reduzidas a 2 entradas e convertidas para maximização). (10) Camadas de texto (estruturada + ANEXO get_text + ANEXO OCR de imagens) foram lidas por inteiro; a camada OCR de imagens só recupera rótulos de eixo (Iterations/Hypervolume/Speed/Head stability/Input 1/Input 2) sem nenhum número novo além do que já está na camada de texto estruturada."
+}

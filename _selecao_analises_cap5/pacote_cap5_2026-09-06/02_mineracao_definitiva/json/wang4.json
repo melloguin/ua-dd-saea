@@ -1,0 +1,285 @@
+{
+  "id": "wang4",
+  "sigla": "SA-NSGA-II",
+  "titulo": "Data-Driven Surrogate-Assisted Multi-Objective Evolutionary Optimization of A Trauma System",
+  "ano": 2016,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Um único problema REAL (não sintético, não faz parte de nenhuma suíte ZDT/DTLZ/WFG/MMF/BBOB): o desenho do sistema de trauma da Escócia, bi-objetivo (M=2) e combinatorial/discreto (D=18 genes, cada gene em {0,1,2} codificando LEH/TU/MTC para um dos 18 hospitais candidatos). f1 = tempo total de viagem de todos os pacientes (Eq. 1); f2 = nº de exceções (paciente que deveria ir a um MTC mas foi enviado a uma TU por tempo de viagem inaceitável, Eq. 2). Restrições: uso de helicóptero por depósito (h, data-driven, Eq. 3), volume mínimo de casos por MTC (g, data-driven, Eq. 4), distância mínima entre TUs (não data-driven, Eq. 5) — nd+nMTC restrições são data-driven. Avaliação de f1, f2, h, g depende de ~40.000 incidentes (registros de pacientes do serviço de ambulância) coletados ao longo de 1 ano; não há função analítica. Motor de busca: NSGA-II (seleção por dominância + crowding) com cruzamento de 3 pontos (p=1), mutação pontual (p=0.2), população=100, MAIS uma busca local VNS (3 vizinhanças NB1/NB2/NB3) aplicada aos não-dominados a cada geração — portanto o motor efetivo é NSGA-II+VNS, não NSGA-II puro.",
+    "orcamento": "Não há orçamento de avaliações reais no sentido do protocolo da dissertação (31D−1 + DoE compartilhado): é um problema OFFLINE data-driven sobre um dataset fixo de ~40.000 incidentes/1 ano, sem coleta de dados durante a busca. O 'surrogate' (redução de dados por clustering hierárquico, Sec. IV-A) tem sua fidelidade controlada por K = nº de clusters (cada cluster contribui 1 ponto representativo, ponderado por Ni, Eqs. 6-9); o custo por avaliação é o nº de chamadas ao algoritmo de alocação de pacientes: ≈40.000 chamadas numa avaliação exata completa, ou K chamadas numa avaliação aproximada. K varia por experimento: fixo de 100 a 2000 (passo 100), 200 gerações, gerenciamento NÃO adaptativo (Sec. V-B, Fig. 12); adaptativo com Kmax em {500,1000,1500,2000}, 20 execuções cada (Sec. V-C1, Fig. 13); adaptativo com Kmax=1000 (Sec. V-C2, Figs. 14-16); K mínimo inicial = nº de centros de trauma = 18 (Algoritmo 1). Comparação final de custo (Sec. V-D): 100 gerações fixas (Table II) OU 1 hora de tempo de parede como critério de parada (Table III, Figs. 17-19) — este segundo caso substitui orçamento por avaliações por orçamento por TEMPO.",
+    "execucoes": "Padrão geral: 20 execuções independentes por configuração com dados agrupados (fixo ou adaptativo); 5 execuções independentes para o NSGA-II com avaliação exata em Table II/Fig. 9/Fig. 12 (custo proibitivo: ~45h por execução completa de 100 gerações com todos os 40.000 registros) — uma comparação ASSIMÉTRICA e NÃO pareada por semente (20 vs. 5 execuções, sem DoE/semente compartilhados descritos no texto). O conjunto de referência para IGD é o ND da UNIÃO das 5 execuções exatas (Sec. V-A). Em Table III, diferentemente, as TRÊS configurações (incluindo o NSGA-II exato, agora também parado em 1h) são 'averaged over 20 independent runs' — 20 vs. 20 vs. 20, aparentemente pareadas por índice de execução (exigido pelo teste de Wilcoxon signed-rank ali aplicado), embora o artigo não descreva explicitamente um DoE ou semente compartilhados entre as 3 configurações, ao contrário do desenho pareado por semente da dissertação. O 'reference set' de Fig. 9/Sec. IV-B é uma execução exata ÚNICA (100 gerações, pop.=100), distinta do conjunto de referência de 5 execuções combinadas usado em Table II/III.",
+    "baselines": "Piso sem surrogate = NSGA-II com avaliação EXATA (usa todos os ~40.000 registros a cada avaliação), mesmo motor evolutivo (NSGA-II+VNS) que as variantes assistidas — portanto há sim um piso, da MESMA classe de motor, mas comparado de forma não pareada por semente (ver 'execucoes'). Não há comparação com MOEA/D, NSGA-III, SMS-EMOA nem com outros algoritmos surrogate-assisted da literatura — apenas duas variantes internas do próprio método proposto (SA-NSGA-II com controle de suavidade 'CS' vs. sem CS, Algoritmo 1 linhas 10-12) comparadas entre si e contra esse único piso exato.",
+    "metricas_principais": [
+      "IGD (inverted generational distance) — não IGD+; conjunto de referência = ND da união de 5 execuções exatas; objetivos normalizados pelos extremos do conjunto de referência",
+      "purity (fração de soluções não-dominadas no conjunto união dos algoritmos comparados) — usada só em Fig. 13",
+      "MAPE (erro percentual absoluto médio) dos dois objetivos e das duas restrições data-driven, vs. avaliação exata",
+      "acurácia de seleção (%) — fração de pais selecionados sob avaliação aproximada que coincidem com os selecionados sob avaliação exata",
+      "tempo computacional (s) e tempo de parede como critério de parada (1h)",
+      "nº de chamadas ao algoritmo de alocação de pacientes (proxy de custo computacional)"
+    ],
+    "testes": [
+      "Wilcoxon signed-rank test [83] — usado APENAS em Table III (comparação sob orçamento de tempo fixo de 1h); nenhum outro teste estatístico é aplicado em nenhuma outra figura/tabela do artigo (Table II, Figs. 9, 12, 13, 14, 15, 16 não têm teste)."
+    ],
+    "apresentacao": "Média ± desvio-padrão (nunca mediana) para IGD e tempo em Table II/III; melhor valor em NEGRITO só em Table III (SA-NSGA-II com CS); nenhum símbolo +/=/− é usado; a execução com IGD MEDIANO (dentre as 20 do experimento de 1h) é escolhida para as visualizações de fronteira não-dominada (Figs. 17-19) — mesma convenção de 'execução mediana' da dissertação. Curvas de Figs. 9, 12, 13, 14, 15 são médias sobre execuções/gerações, sem banda de dispersão (IQR/desvio-padrão) plotada. Nenhuma menção a escala logarítmica nos eixos. Notação científica (ex.: 2.47e-02±1.96e-02) nas tabelas.",
+    "codigo_plataforma": "Não mencionado no texto (nenhuma plataforma como PlatEMO, MATLAB ou BoTorch é citada)."
+  },
+  "analises": [
+    {
+      "fichas": [
+        31,
+        32
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Varre o nº de clusters K (o parâmetro de fidelidade do surrogate por redução de dados) e mede, contra uma execução de referência do NSGA-II com avaliação exata (100 gerações, pop.=100): (i) a acurácia de seleção — % dos 100 pais selecionados a cada geração que coincidem com os selecionados na execução exata, média sobre 100 gerações; (ii) o MAPE dos dois objetivos e das duas restrições data-driven, média sobre 200 indivíduos (população combinada antes da seleção) e sobre 100 gerações, para cada K.",
+      "literal": "As K increases, the average MAPE of the objectives and constraints decrease rapidly. Accordingly, the accuracy of selection increases.",
+      "localizador": "Sec. IV-B, Fig. 9",
+      "metricas": [
+        "acurácia de seleção (%)",
+        "MAPE de f1 (tempo de viagem)",
+        "MAPE de f2 (exceções)",
+        "MAPE de h (uso de helicóptero)",
+        "MAPE de g (volume MTC)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Referência = execução ÚNICA (não 5) do NSGA-II exato, 100 gerações, pop.=100 — distinta do conjunto de referência de Table II/III. Médias sobre 100 gerações para cada K testado; curvas de acurácia de seleção (painel esquerdo) e MAPE (painel direito) contra K na mesma figura; restrição de proximidade de TU excluída por não ser data-driven.",
+      "achado": "Acurácia de seleção e precisão dos objetivos/restrições aproximados melhoram monotonicamente com K, mas SATURAM por volta de K=2000: acima disso o erro não cai mais de forma significativa e a acurácia de seleção para de melhorar, apesar do custo computacional continuar subindo — investir em mais fidelidade deixa de compensar depois de certo ponto.",
+      "aplicabilidade": "Estruturalmente próximo de uma checagem de acurácia/ordem do surrogate (③), mas SEM sonda de 2.000 pontos fixos nem retreinos: o 'surrogate' aqui é reavaliado por K distinto em execuções SEPARADAS, e o conjunto de teste é a população corrente (200 indivíduos), não um conjunto de prova fixo comparável entre execuções. Não reproduzível literalmente com as 7 camadas — nenhum algoritmo do roster usa fidelidade por reamostragem/clustering de dados (surrogate não-ML); a analogia mais próxima seria tratar K como equivalente a um orçamento de treino do surrogate."
+    },
+    {
+      "fichas": [
+        47,
+        49
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Fixa K (sem adaptação) em dez níveis de 100 a 2000 (passo 100), 20 execuções independentes por nível, e reporta o IGD médio (contra o conjunto de referência das 5 execuções exatas) e o nº de pacientes alocados (proxy do custo computacional) para cada K, evidenciando o trade-off custo × qualidade de um esquema de fidelidade FIXA (não adaptativa).",
+      "literal": "the improvement of the IGD is minor when K is larger than 1500 in comparison to the increases in the computational cost.",
+      "localizador": "Sec. V-B, Fig. 12",
+      "metricas": [
+        "IGD (média)",
+        "nº de pacientes alocados (custo computacional)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Médias sobre 20 execuções independentes por K; sem desvio-padrão nem teste estatístico reportado nesta figura.",
+      "achado": "O custo cresce aproximadamente LINEAR com K, enquanto o IGD melhora com K mas com retornos decrescentes: o ganho de IGD passa a ser pequeno frente ao aumento de custo quando K>1500 — motivando a necessidade de um esquema ADAPTATIVO de K em vez de um K fixo grande (a lógica que justifica a Sec. V-C inteira).",
+      "aplicabilidade": "Reproduzível em espírito cruzando a camada ④ (tempo/custo por geração, aqui substituído por nº de chamadas ao avaliador) com ① (avaliações reais → IGD+ do ND acumulado), mas não há K/clustering em nenhum algoritmo do roster; a analogia estrutural seria a curva de custo × qualidade de QUALQUER hiperparâmetro de fidelidade fixo (ex.: tamanho do lote de treino de um surrogate ML)."
+    },
+    {
+      "fichas": [
+        47,
+        49
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Com o esquema adaptativo de K ativo, varia o limite superior Kmax em {500, 1000, 1500, 2000}, 20 execuções independentes por valor, e reporta o trade-off entre 'purity' (fração de soluções não-dominadas no conjunto união dos algoritmos comparados) e o tempo computacional.",
+      "literal": "there is a knee point in the trade-off between purity and computational cost when Kmax = 1000.",
+      "localizador": "Sec. V-C1, Fig. 13",
+      "metricas": [
+        "purity",
+        "tempo computacional"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Médias sobre 20 execuções por Kmax; gráfico de trade-off (tempo no eixo x, purity no eixo y, um ponto por Kmax).",
+      "achado": "Existe um 'joelho' (knee point) em Kmax=1000: valores maiores de Kmax melhoram a purity mas custam desproporcionalmente mais tempo — Kmax=1000 é identificado como o melhor compromisso custo-benefício para este problema, e é o valor usado no restante do artigo (Sec. V-C2 em diante).",
+      "aplicabilidade": "Mesma observação de reprodutibilidade da análise anterior (Fig. 12): equivalente conceitual a uma fronteira custo×qualidade (grupo F, ficha 49) para um hiperparâmetro de TETO de fidelidade; não há Kmax em nenhum algoritmo do roster, mas a leitura do 'joelho' é o mesmo tipo de leitura que a ficha 49 faria para configurações discretas do roster."
+    },
+    {
+      "fichas": [
+        33
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Durante a otimização adaptativa (Kmax=1000, 20 execuções), registra a evolução de ER (o erro empírico REAL de aproximação, medido comparando a avaliação aproximada com a exata nos indivíduos não-dominados correntes) e de ER* (o erro máximo aceitável, calculado pela Eq. 10 a partir da separação geométrica entre a 1ª e a última fronteira não-dominada) à medida que K é ajustado; médias sobre as 20 execuções.",
+      "literal": "ER is larger than ER∗, which is the reason why K keeps being changed. Once ER is smaller than ER∗, K stops changing.",
+      "localizador": "Sec. V-C2, Fig. 14",
+      "metricas": [
+        "ER (erro de aproximação real, MAPE de f1)",
+        "ER* (erro máximo aceitável)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Médias sobre 20 execuções independentes; curvas de ER e ER* sobrepostas em função de K (ou do nº de atualizações).",
+      "achado": "O mecanismo funciona como projetado: enquanto o erro medido (ER) excede o limiar aceitável (ER*), o algoritmo continua aumentando K; quando ER cai abaixo de ER*, K se estabiliza. Perto de Kmax=1000, a diferença entre ER e ER* torna-se pequena, indicando convergência do mecanismo de confiança para este problema.",
+      "aplicabilidade": "É o análogo mais próximo, neste artigo, de uma calibração do 'σ' ao longo da busca (③), mas usando um erro empírico direto (não uma variância de modelo probabilístico) como proxy de confiança, e sem sonda fixa — o 'ground truth' usado para calcular ER a cada passo é a reavaliação exata dos próprios não-dominados correntes, não um conjunto de prova independente. Não reproduzível literalmente com as 7 camadas (nenhum algoritmo do roster usa esse mecanismo de erro-limiar); estruturalmente corresponderia a cruzar ① (avaliação real dos pontos escolhidos) com ③ (predição do surrogate desses mesmos pontos) para obter um erro instantâneo comparável a ER."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Convergência dos parâmetros do modelo de regressão que estima o erro do surrogate (β1, β2)",
+      "grupo_sugerido": "E",
+      "descricao": "Registra, ao longo da adaptação de K durante a busca (Kmax=1000, médias sobre 20 execuções), a evolução dos dois parâmetros β1 e β2 do modelo de regressão ER=1/(β1+β2·K) (Eq. 11) que estima o erro esperado do surrogate a partir de K — um diagnóstico de estabilidade do MODELO INTERNO que traduz 'quanto de fidelidade compra quanto de confiança', distinto de medir a acurácia do surrogate objetivo em si (isso é feito em Figs. 9 e 14).",
+      "literal": "the estimation of the parameters in the regression model is able to converge",
+      "localizador": "Sec. V-C2, Fig. 15",
+      "metricas": [
+        "β1 (parâmetro da regressão)",
+        "β2 (parâmetro da regressão)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Médias sobre 20 execuções independentes; curvas de β1 e β2 versus K (ou nº de atualizações) ao longo da busca.",
+      "achado": "Os parâmetros do modelo de regressão que estima o erro em função de K convergem ao longo da busca, validando que o mecanismo interno de decisão sobre quando/quanto aumentar K se apoia numa estimativa estável, não ruidosa/oscilante.",
+      "aplicabilidade": "Não reproduzível com as 7 camadas — é um diagnóstico interno de um META-modelo (a regressão do erro do surrogate em função de K), sem equivalente entre os 15 algoritmos do roster (nenhum ajusta uma regressão sobre seu próprio erro empírico para decidir a fidelidade); em espírito, é o tipo de coisa que a camada ⑥ (filme) registraria se algum algoritmo do roster tivesse um parâmetro interno adaptativo com esse tipo de mecanismo de controle explícito."
+    },
+    {
+      "fichas": [
+        45
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara, na mesma otimização adaptativa (Kmax=1000), o número de vezes que K é alterado COM e SEM o controle de suavidade (CS: limita a redução máxima do erro aceitável à metade do erro atual, linhas 10-12 do Algoritmo 1) — uma contagem de acionamentos do mecanismo de confiança, análoga a contar quantas vezes 'o gate abriu'.",
+      "literal": "without the smoothness control, K increased dramatically and altogether 11 changes are needed, whereas with the change smoothness control, K increases more smoothly and only 10 changes are needed.",
+      "localizador": "Sec. V-C2, Fig. 16",
+      "metricas": [
+        "nº de mudanças de K"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curva do valor de K a cada mudança (não por geração), comparando a variante com e sem CS; ligada às 20 execuções da Sec. V-C2.",
+      "achado": "Sem o controle de suavidade, K salta de forma mais abrupta e precisa de mais atualizações (11 vs. 10) para estabilizar — o controle de suavidade reduz o nº de re-clusterizações E (achado da análise seguinte, Table II) melhora ligeiramente o desempenho final.",
+      "aplicabilidade": "Mapeamento direto para a camada ⑥ (o filme das decisões internas): cada mudança de K é um evento discreto de 'o gate de fidelidade abriu'; contável em qualquer algoritmo do roster que tenha um mecanismo de gate/threshold sobre a incerteza (ex.: b3, e7, c217) registrado na camada ⑥."
+    },
+    {
+      "fichas": [
+        1,
+        9,
+        47
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara, sob o MESMO número de gerações (100), o IGD (contra o conjunto de referência da avaliação exata) e o tempo computacional (s) de três configurações: SA-NSGA-II com controle de suavidade (CS), SA-NSGA-II sem CS, e NSGA-II com avaliação exata (o piso, mesmo motor evolutivo NSGA-II+VNS). Médias±desvio-padrão sobre 20 execuções (SA-NSGA-II) e 5 execuções (NSGA-II exato) — comparação NÃO pareada por semente.",
+      "literal": "the IGD values of both SA-NSGA-II variants are very close to 0, which means that the solution sets they obtained are very similar to the reference set.",
+      "localizador": "Sec. V-D, Table II",
+      "metricas": [
+        "IGD (média±dp)",
+        "tempo computacional em segundos (média±dp)"
+      ],
+      "testes": [
+        "nenhum (nesta tabela; o Wilcoxon é aplicado só na Table III)"
+      ],
+      "convencoes": "Média±desvio-padrão (não mediana); notação científica (2.47e-02±1.96e-02 etc.); NSGA-II exato tem IGD=0.00e+00±0.00e+00 por construção (define a própria referência). Ficha 1 aplicada de forma reduzida: é uma única 'célula' de problema (não uma matriz algoritmo×problema), 3 configurações, sem matching de semente entre grupos de execução de tamanhos diferentes (20 vs. 5).",
+      "achado": "SA-NSGA-II (ambas as variantes) obtém IGD muito próximo de zero (2.47e-02 com CS; 2.51e-02 sem CS) — muito similar ao conjunto de referência exato — usando só uma fração do tempo: 6.54e+03s (CS) e 1.031e+04s (sem CS) contra 8.14e+04s do NSGA-II exato (reduções de ~92% e ~87%, respectivamente, consistente com o 'até 90%' do Abstract). O controle de suavidade (CS) reduz ainda mais o tempo e melhora ligeiramente o IGD frente à variante sem CS.",
+      "aplicabilidade": "Estruturalmente próximo do par 'assistido × piso casado' da ficha 9 (mesmo motor NSGA-II, com e sem surrogate) cruzado com custo (④), MAS sem o pareamento por semente que a ficha 9 pressupõe (DoE compartilhado) — aqui os grupos nem têm o mesmo nº de execuções (20 vs. 5). Reproduzível em espírito cruzando ① (IGD+ do ND acumulado) com ④ (tempo por execução) para qualquer algoritmo do roster comparado ao seu piso homônimo, mas o 'orçamento' de comparação aqui é nº de gerações, não FEs reais equivalentes ao protocolo de 31D−1 avaliações da dissertação."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        9,
+        27
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Recomputa a comparação sob orçamento apertado, mas medido em TEMPO DE PAREDE (1 hora de execução, não gerações/avaliações) para as mesmas três configurações — agora as TRÊS rodando 20 execuções cada, paradas após 1h; reporta IGD médio±dp e aplica teste de Wilcoxon signed-rank, concluindo que ambas as variantes assistidas são significativamente melhores que o NSGA-II exato dentro desse orçamento de tempo.",
+      "literal": "By using the Wilcoxon signed-rank test [83], it has been found that the IGD values of the two SA-NSGA-II variants are significantly better than that of the NSGA-II.",
+      "localizador": "Sec. V-D, Table III",
+      "metricas": [
+        "IGD (média±dp)"
+      ],
+      "testes": [
+        "Wilcoxon signed-rank test [83]"
+      ],
+      "convencoes": "Média±desvio-padrão sobre 20 execuções independentes cada; melhor valor em NEGRITO (SA-NSGA-II com CS: 2.69e-02±1.93e-02); NSGA-II parado após 1h sem completar as 100 gerações (uma execução completa leva ~8.14e4 s ≈ 22.6h, conforme Table II).",
+      "achado": "Sob orçamento de TEMPO igual (1h) — em vez de gerações iguais — o NSGA-II exato mal avança (IGD=9.57e-02±5.08e-02) porque uma geração completa é extremamente cara, enquanto SA-NSGA-II com CS atinge IGD=2.69e-02±1.93e-02 e sem CS atinge 4.31e-02±1.01e-01 (desvio-padrão maior que a própria média, indicando alta variabilidade), ambos significativamente melhores que o piso pelo teste de Wilcoxon: o surrogate compra desempenho quando o recurso escasso é TEMPO real, não apenas gerações.",
+      "aplicabilidade": "Equivalente a uma leitura de placar sob orçamento apertado (ficha 27), mas com o corte em TEMPO REAL, não fração de avaliações — variação não coberta literalmente pela camada ④ da dissertação (que registra tempo por geração, permitindo em princípio recortar por tempo decorrido em vez de por FE); reproduzível cruzando ④ (tempo acumulado) com ① (IGD+ do ND acumulado no instante de corte) para qualquer par assistido×piso do roster."
+    },
+    {
+      "fichas": [
+        54,
+        23
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Plota o conjunto não-dominado da execução com IGD MEDIANO (dentre as 20 de 1h) para as três configurações da Table III (Fig. 17), e detalha sobre um mapa geográfico da Escócia as configurações concretas de quatro soluções específicas do ND obtido por SA-NSGA-II com CS — rotuladas A, B, C, D — comparando o nº e a localização de MTCs/TUs escolhidos e interpretando clinicamente os trade-offs (tempo de viagem vs. exceções) de cada uma (Fig. 18).",
+      "literal": "in solutions A and B one MTC is established in Aberdeen, and in solutions C and D one MTC in Glasgow",
+      "localizador": "Sec. V-D, Fig. 17 e Fig. 18",
+      "metricas": [
+        "f1 (tempo total de viagem)",
+        "f2 (nº de exceções)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução MEDIANA (por IGD, não a melhor nem uma execução arbitrária) usada para a visualização — mesma convenção da dissertação; soluções específicas do ND rotuladas por letra (A-D) e re-identificadas num mapa geográfico.",
+      "achado": "As soluções do ND se agrupam em duas famílias segundo onde fica o único MTC da configuração (Aberdeen vs. Glasgow), refletindo as duas regiões de maior densidade de incidentes (Fig. 7); Aberdeen (mais central) reduz o tempo total de viagem mas aumenta exceções no sul da Escócia, enquanto Glasgow inverte esse trade-off (C e D têm menos exceções que A e B) — e todas as soluções ótimas usam apenas 1 MTC, menos que os 4 MTCs da configuração real vigente na Escócia.",
+      "aplicabilidade": "Não reproduzível com as 7 camadas — é uma interpretação qualitativa específica do domínio (geografia clínica da Escócia), sem equivalente instrumentado; a camada aplicável para ESCOLHER as soluções seria ⑦ (ND final reavaliado, já que o regime é offline), mas a interpretação clínica em si é extra-instrumentação. Corresponde, em ESPÍRITO (não em corpus — não é um dos 3 problemas reais da dissertação), ao mesmo tipo de 'caso nomeado' que a ficha 23 descreve para RE21/ESTOQUE40/DDMOP7, aqui aplicado a um problema real externo ao roster.",
+      "observacoes": "wang4 é ele próprio um caso real (fora do roster), não um dos 3 problemas reais da dissertação — o mapeamento à ficha 23 é por analogia de TIPO de análise, não de identidade de corpus."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Confronto do ND obtido com a configuração real vigente do sistema (status quo), sob restrições relaxadas",
+      "grupo_sugerido": "H",
+      "descricao": "Relaxa as restrições do problema até que a configuração REALMENTE implantada na Escócia (4 MTCs) se torne factível (ela viola a restrição de volume de casos por MTC, Eq. 4, no problema original) e roda SA-NSGA-II com CS 20 vezes (parando após 1h cada) sob essas restrições relaxadas; plota o ND obtido junto com o ponto da configuração real vigente.",
+      "literal": "Some of the obtained solutions dominate the currently proposed configuration.",
+      "localizador": "Sec. V-D (final), Fig. 19",
+      "metricas": [
+        "f1 (tempo total de viagem)",
+        "f2 (nº de exceções)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Restrições relaxadas especificamente para tornar a configuração real vigente factível (diferentes das restrições 'clinicamente razoáveis' usadas no resto do artigo, conforme os próprios autores reconhecem); ND de 20 execuções plotado versus 1 único ponto de referência real.",
+      "achado": "Algumas soluções do ND obtido DOMINAM (em ambos os objetivos) a configuração real atualmente em uso no sistema de trauma da Escócia — evidência de que o algoritmo entrega, na prática, opções estritamente melhores que o status quo, além de outras soluções não-dominadas que ampliam o menu de escolha para os tomadores de decisão.",
+      "aplicabilidade": "Não reproduzível com as 7 camadas da dissertação — pressupõe a existência de uma configuração REAL, historicamente implantada, como ponto de comparação externo; nenhum dos 28 problemas da bateria (sintéticos + RE21/EST40/DDMOP7) tem esse tipo de 'baseline institucional' documentado. É um tipo de validação (superioridade sobre o status quo real) ortogonal às 64 fichas, que comparam sempre algoritmo×algoritmo ou algoritmo×frente/conjunto de referência CALCULADO, nunca algoritmo×decisão humana já tomada."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "O artigo mede diretamente a qualidade/erro do 'surrogate' (aqui um estimador por redução de dados via clustering hierárquico, não um modelo probabilístico com σ): (i) MAPE dos dois objetivos e das duas restrições data-driven, e acurácia de seleção de pais, em função do nº de clusters K (Fig. 9); (ii) ER (erro real medido comparando a avaliação aproximada com a exata nos não-dominados correntes) versus ER* (erro máximo aceitável, derivado da separação geométrica entre a 1ª e a última fronteira, Eq. 10) ao longo da adaptação de K (Fig. 14); (iii) a convergência dos parâmetros do modelo de regressão que estima esse erro a partir de K (Fig. 15). Não há σ probabilístico nem cobertura de intervalo — a 'incerteza' (classe A3, gestão de confiança) é operacionalizada como um erro empírico direto (MAPE/ER) comparado a um limiar de confiança adaptativo (ER*), não como uma variância prevista.",
+    "literal": "we calculate the mean absolute percentage error (MAPE) averaged over 200 individuals (the combined population before selection) at each generation for the two objectives and two constraints, respectively.",
+    "localizador": "Sec. IV-B, Fig. 9; Sec. IV-C (Eqs. 10-11); Sec. V-C2, Figs. 14-15"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo total por execução (s) para 3 configurações sob 100 gerações iguais (Table II); tempo como CRITÉRIO DE PARADA (1h) numa segunda comparação (Table III); custo-proxy = nº de chamadas ao algoritmo de alocação de pacientes (=nº de pacientes na avaliação exata, ~40.000; =K na avaliação aproximada) (Sec. V-A); tempo de execução completo do NSGA-II exato reportado como ~45h (Sec. V-A, com 40.000 registros) e como ~1 dia numa citação a trabalho anterior com menos dados [10] (Sec. IV); redução de até 90% do tempo computacional é a manchete do Abstract. Não há decomposição explícita entre tempo de 'ajuste do modelo' (clustering) e tempo de 'avaliação' — só a observação qualitativa de que a clusterização hierárquica adiciona overhead (mais chamadas no esquema sem CS, que precisa reclusterizar mais vezes) mas esse overhead é pequeno frente à economia obtida.",
+    "literal": "Experimental results show that the proposed algorithm is able to save up to 90% of computation time without much sacrifice of the solution quality.",
+    "localizador": "Abstract; Sec. V-A; Table II"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "O ganho de acurácia de seleção e a queda do MAPE saturam por volta de K=2000 (Fig. 9), e o ganho de IGD já é pequeno frente ao aumento de custo quando K>1500 no esquema fixo (Fig. 12): investir em mais fidelidade (mais dados reais por avaliação) deixa de compensar depois de certo ponto.",
+      "literal": "the improvement of the IGD is minor when K is larger than 1500 in comparison to the increases in the computational cost.",
+      "localizador": "Sec. V-B, após Fig. 12"
+    },
+    {
+      "descricao": "Mesmo a melhor variante do surrogate (SA-NSGA-II com CS) não reproduz exatamente o resultado do NSGA-II exato sob o mesmo nº de gerações: o IGD fica em 2.47e-02±1.96e-02 (não zero) — um custo de qualidade residual em troca da economia de ~92% do tempo.",
+      "literal": "SA-NSGA-II with CS 2.47e-02±1.96e-02",
+      "localizador": "Sec. V-D, Table II"
+    },
+    {
+      "descricao": "Remover o controle de suavidade (CS) do mecanismo de confiança piora o resultado: SA-NSGA-II sem CS precisa de mais mudanças de K (11 vs. 10, Fig. 16), gasta mais tempo (1.031e+04s vs. 6.54e+03s, Table II) e tem IGD pior tanto sob gerações iguais (Table II) quanto sob tempo igual (Table III, onde o desvio-padrão do IGD sem CS, 1.01e-01, chega a superar a própria média, 4.31e-02) — evidência de que um mecanismo de confiança mal regulado (sem limitar o salto de K) é fonte de instabilidade, não só de lentidão.",
+      "literal": "SA-NSGA-II without CS 4.31e-02±1.01e-01",
+      "localizador": "Sec. V-D, Table III"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "densidade espacial desigual dos DADOS brutos (não da frente de Pareto)",
+      "afirmacao": "A localização dos ~40.000 incidentes é fortemente correlacionada espacialmente (concentrada perto de grandes centros populacionais), premissa que torna o agrupamento hierárquico eficaz como redutor de dados/surrogate: poucos clusters já capturam boa parte do sinal geoespacial relevante para a avaliação dos objetivos/restrições. NOTA: isto é densidade dos DADOS de entrada, não da geometria da frente de Pareto (sentido usual de 'densidade enviesada' na tipologia, ficha 38).",
+      "literal": "the geographical distribution of the incidents shows a high degree of spatial correlation [20], which is related to the population density",
+      "localizador": "Sec. IV, texto entre a introdução da Seção IV e a Fig. 7"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) Classificação recebida no pedido e como se manifesta no artigo: motor=EA-Dominância → NSGA-II (seleção por dominância+crowding), aqui combinado com busca local VNS (não muda a classificação, mas é um componente adicional do motor de busca não capturado pelo rótulo isolado). função da incerteza=A3·Gestão de confiança → o algoritmo mede seu próprio erro empírico (ER) e só aumenta a fidelidade (K) quando esse erro excede um limiar de confiança (ER*) que ele mesmo deriva da geometria das fronteiras — não há gate binário sobre indivíduos, mas um gate sobre o NÍVEL DE FIDELIDADE de toda a avaliação. surrogate=Resíduo (estimador por redução de dados, não-ML) → confirmado explicitamente pelo próprio artigo, que se distingue de surrogates computacionais (redes neurais, polinômios): 'by surrogates in this work, we mean estimated function values calculated using part of the data records instead of using all' (Sec. IV). medição=ERR-EMP (erro empírico vs. verdade) → ER é sempre calculado comparando a avaliação aproximada com uma reavaliação EXATA dos mesmos pontos (não-dominados correntes), nunca uma variância/score de um modelo interno. regime=offline → explícito e central ao artigo: 'no incremental data can be made available during the optimization' (Sec. III-C); o dataset de ~40.000 incidentes é fixo desde o início. (2) O artigo contém uma ablação NATURAL de um detalhe do próprio mecanismo de confiança: SA-NSGA-II com vs. sem controle de suavidade (CS, linhas 10-12 do Algoritmo 1). Isto NÃO é uma ablação do USO da incerteza em si (ficha 11) — ambas as variantes usam o mecanismo ER/ER* para decidir K; o que muda é apenas um limite de salto (quanto ER* pode cair de uma vez). Registrado nas análises de Figs. 16, Table II e Table III. (3) É um estudo de caso real ÚNICO e offline, não uma bateria de problemas sintéticos: não há suíte ZDT/DTLZ/WFG/MMF/BBOB, não há 30 sementes, não há orçamento 31D−1, não há sonda de 2.000 pontos fixos, não há camadas ②-⑥ instrumentadas como na dissertação — só IGD, purity, MAPE, tempo, e uma tabela final com teste de Wilcoxon. Por isso a maioria das fichas de 'sonda' (31-38) e de placar multi-problema (1-8) foram mapeadas de forma REDUZIDA/analógica (generosamente, seguindo a Regra 5 do cartão e o exemplo âncora do próprio cartão — 'tabela IGD média±dp' → [1,3] — mesmo sem matriz multi-problema), com a ressalva explícita registrada em cada 'convencoes'/'aplicabilidade'. (4) As comparações de Table II (20 vs. 5 execuções) e Table III (20 vs. 20 vs. 20, pareamento não descrito mas exigido pelo teste signed-rank) usam protocolos de execução DIFERENTES entre si e sem DoE/semente compartilhado explícito — diferente do desenho pareado por semente da dissertação (onde todas as configurações partem do mesmo DoE). (5) Figuras/seções conceituais ou puramente ilustrativas foram EXCLUÍDAS de 'analises' por não serem resultados experimentais (Regra 3 do cartão — não inventar análise onde não há): Fig. 1-3 (frameworks genéricos), Fig. 4-5 (diagramas do algoritmo de alocação), Fig. 6 (exemplo didático de VNS com 4 centros fictícios), Fig. 7 (mapas de densidade — descritivo dos dados brutos, não uma comparação), Fig. 8 (exemplo didático de clustering hierárquico com 12 pacientes fictícios), Fig. 10-11 (diagramas ilustrativos do conceito de erro/adaptação de K, sem dados de execução real). (6) Camadas de texto adicionais (ANEXO get_text = camada de texto bruto do PDF; ANEXO OCR = texto de imagens) foram lidas por inteiro: confirmam integralmente o conteúdo da seção estruturada (mesmas Eqs. 1-11, mesmo Algoritmo 1 completo linhas 1-20, mesmas Tables II-III) sem number novo; a OCR de imagens só recupera rótulos internos de eixos/legendas de figuras (ex.: 'No. of clusters K', 'Error of surrogate'), sem valores numéricos adicionais utilizáveis. (7) Não há material suplementar mencionado nem apêndice separado — o artigo é autocontido (16 páginas: abstract + 6 seções + referências + biografias)."
+}

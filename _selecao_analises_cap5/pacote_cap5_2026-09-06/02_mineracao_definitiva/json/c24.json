@@ -1,0 +1,189 @@
+{
+  "id": "c24",
+  "sigla": "DTK-MODE",
+  "titulo": "A Numerically Efficient Multi-Objective Optimization Algorithm: Combination of Dynamic Taylor Kriging and Differential Evolution",
+  "ano": 2015,
+  "roster": false,
+  "setup": {
+    "benchmarks": "(1) Função analítica bidimensional multimodal usada só para testar acurácia de ajuste do surrogate (não é um problema de otimização): F = [sum_{i=1..5} i*cos((i+1)x1+i)] * [sum_{i=1..5} i*cos((i+1)x2+i)], x1,x2 in [-2,0] (D=2), Eq. (11); testada com NTS=40x40=1600 pontos de teste uniformes. (2) TEAM 22, versão multiobjetivo: projeto de um dispositivo SMES (superconducting magnetic energy storage) com 8 parâmetros de projeto (D=8), M=2 objetivos — f1 = B_stray^2/B_norm^2 e f2 = |Energy-E_ref|/E_ref — e 2 restrições de densidade de corrente (Eq. 13). Nenhuma suíte padrão (ZDT/DTLZ/WFG/BBOB) é usada; são só esses dois casos.",
+    "orcamento": "Não segue o esquema '31D-1' da dissertação. Fase A (construção do DTK, único uso de FEA): N_init pontos via Latin Hypercube Design (LHD) + amostragem adaptativa incremental (N_step pontos por rodada, escolhidos pelos maiores d(x)) até max{d(x)} <= epsilon = 1e-4 sobre os NTS pontos de teste (Eqs. 9-10); o modelo do TEAM22 usado na Fig. 4 foi construído com 350 pontos de amostragem. Fase B (MODE assistido por DTK): 100 indivíduos, máximo de 200 iterações, arquivo externo de 100 — SEM nenhuma chamada adicional de FEA durante essa fase (a busca inteira ocorre sobre o DTK já treinado e congelado), o que caracteriza o regime offline. O baseline 'MODE combinado diretamente com FEA' usa da ordem de 20.000 avaliações reais como referência (valor citado nos números de Table III via OCR, não replicado textualmente em prosa).",
+    "execucoes": "\"For the comparison, both the algorithms have 30 independent runs\" — 30 execuções independentes tanto do MODE assistido por DTK quanto do MODE combinado diretamente com FEA, apenas no TEAM22 (a Seção IV-A, função analítica, não menciona replicação/sementes — é um ajuste determinístico). Não fica claro se as 30 execuções são pareadas por semente entre os dois algoritmos, nem se a Tabela III reporta um run único, o run mediano, ou uma agregação das 30.",
+    "baselines": "MODE combinado diretamente com FEA (sem surrogate) é o único baseline de algoritmo completo — mesma maquinaria evolutiva (non-dominated ranking + multi-guiders + crowding distance + DE), funcionando como o 'piso' desta comparação (herdado das refs. [10],[11] do mesmo grupo). Não há comparação com NSGA-II/MOEA/D/outros MOEAs nem com outros métodos surrogate-assistidos publicados por terceiros. Separadamente, no estudo de ajuste (Sec. IV-A), o DTK é comparado com Simple/Ordinary Kriging (SK/OK), Universal Kriging de 2a ordem (UK) e Taylor Kriging convencional (TK) como baselines de MODELO (não de algoritmo de otimização completo).",
+    "metricas_principais": [
+      "RMSE (acurácia de ajuste do surrogate na função analítica)",
+      "d(x) — largura da banda do intervalo de predição (1-alpha), derivada da variância posterior do Kriging",
+      "proximidade das soluções extremas e da solução mais próxima do ponto utópico ao resultado do MODE com FEA direta (TEAM22)",
+      "número de chamadas de FEA (custo)"
+    ],
+    "testes": [
+      "nenhum (nenhum teste estatístico de hipótese é reportado em todo o artigo — nem Wilcoxon, nem Friedman, nem outro)"
+    ],
+    "apresentacao": "Tabela II: RMSE (e d(x)) numéricos por número de pontos de amostragem, função determinística sem repetições. Tabela III: valores pontuais em notação científica (coordenadas f1,f2) por configuração; nenhuma indicação explícita de média+-dp, mediana, ou execução única, apesar de 30 execuções serem mencionadas para o TEAM22 — convenção de apresentação ambígua. Fig. 3 aparenta usar log(RMSE) no eixo (rótulo capturado pelo OCR da figura). Nenhum símbolo de significância (+/=/-), nenhum negrito de melhor valor mencionado no texto extraído.",
+    "codigo_plataforma": "Não informado no texto (nenhuma menção a PlatEMO, BoTorch, MATLAB ou outra plataforma nomeada); aparenta ser implementação própria do grupo de pesquisa, em continuidade direta com os algoritmos MODE das refs. [10] e [11] dos mesmos autores."
+  },
+  "analises": [
+    {
+      "fichas": [
+        31
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo compara a acurácia de ajuste (RMSE) de quatro tipos de modelo Kriging — Ordinary Kriging (OK), Universal Kriging de 2a ordem (UK), Taylor Kriging convencional (TK) e o DTK proposto — todos ajustados à mesma função analítica bidimensional multimodal (Eq. 11) e avaliados sobre a mesma malha fixa de 1600 pontos de teste (NTS=40x40). O objetivo é mostrar que a seleção dinâmica de funções-base do DTK (via B-PSO) produz menor erro de ajuste do que os Krigings de ordem fixa, à medida que o número de pontos de amostragem varia.",
+      "literal": "Fig. 3 compares the fitting errors for OK, second-order UK, conventional TK, and developed DTK. It can be seen that the DTK has a better fitting accuracy than any other Kriging.",
+      "localizador": "Sec. IV-A, Fig. 3",
+      "metricas": [
+        "RMSE"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curva de erro de ajuste (aparenta ser log(RMSE), conforme rótulo de eixo capturado no OCR da figura) por tipo de Kriging, função de teste determinística (sem ruído, sem sementes/repetições).",
+      "achado": "O DTK obtém menor RMSE de ajuste do que OK, UK de 2a ordem e TK convencional na função de teste multimodal — a seleção dinâmica de funções-base supera esquemas de ordem fixa.",
+      "aplicabilidade": "não reproduzível diretamente com as 7 camadas tal como instrumentadas — exigiria treinar múltiplos TIPOS de surrogate (não apenas o do algoritmo do roster) sobre os mesmos dados e comparar RMSE numa malha de teste fixa; conceitualmente análogo à camada ③ (sonda, dimensão 1), mas aplicado a uma comparação de arquiteturas de modelo, não ao algoritmo tal como rodou na bateria."
+    },
+    {
+      "fichas": [
+        31,
+        33
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para o DTK especificamente, a Tabela II reporta o RMSE de ajuste à medida que o número de pontos de amostragem aumenta (via o processo de amostragem adaptativa da Sec. II-C), mostrando que o erro cai com mais pontos. O texto acrescenta que essa queda 'pode ser predita' pelo comportamento de d(x) — a largura da banda do intervalo de predição (1-alpha), derivada em forma fechada da variância posterior do Kriging — sugerindo que d(x) rastreia o erro real e por isso pode servir de critério de parada da amostragem adaptativa (Eq. 10).",
+      "literal": "It is also found, from the Table II, that the fitting error decreases as the number of sampling points increases, and furthermore it can be predicted through the behavior of d(x)",
+      "localizador": "Sec. IV-A, Table II",
+      "metricas": [
+        "RMSE",
+        "d(x) (largura da banda do intervalo de predição, proxy de incerteza/VAR-GP)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tabela numérica RMSE x nº de pontos de amostragem, função determinística; sem repetições/sementes (processo de amostragem adaptativa sequencial único, não estocástico quanto aos dados de treino).",
+      "achado": "O erro de ajuste do DTK cai à medida que mais pontos de amostragem adaptativa são inseridos, e a magnitude de d(x) acompanha essa queda — d(x), calculado em forma fechada a partir da variância posterior do Kriging (VAR-GP), funciona como proxy observável do erro real sem conhecer a função verdadeira, o que justifica seu uso como critério de parada da amostragem adaptativa.",
+      "aplicabilidade": "parcialmente reprodutível via camada ③ (sonda): a curva RMSE x nº de pontos é análoga à ficha 31; a relação entre d(x) e o erro real é análoga à ficha 33 (calibração), mas aqui medida sobre os próprios pontos de teste da amostragem adaptativa do artigo, não sobre os 2.000 pontos fixos da sonda da dissertação — reprodutível em espírito, não literalmente com os mesmos pontos."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Superfície do surrogate vs função verdadeira (inspeção visual pontual)",
+      "grupo_sugerido": "E",
+      "descricao": "A Fig. 2 mostra lado a lado a superfície predita pelo DTK (construído com 83 pontos de amostragem) e a superfície verdadeira da função analítica (Eq. 11), para uma inspeção visual/qualitativa de quão bem o modelo captura a forma multimodal (oscilatória) da função. É um complemento visual, para uma única configuração de 83 pontos, ao RMSE numérico reportado nas Figs. 3/Table II.",
+      "literal": "Fig. 2 shows the predicted function values by the developed DTK using 83 sampling points together with the true ones.",
+      "localizador": "Sec. IV-A, Fig. 2",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Par de superfícies (predita vs. verdadeira) para uma única configuração (83 pontos); nenhuma métrica numérica anexada à própria figura.",
+      "achado": "A superfície predita pelo DTK com apenas 83 pontos reproduz visualmente bem a forma da função multimodal verdadeira.",
+      "aplicabilidade": "não reproduzível com as 7 camadas tal como instrumentadas — exigiria uma malha de visualização específica desta função de teste 2-D, fora do escopo dos 28 problemas da bateria da dissertação; não há ficha equivalente na tipologia porque as fichas de visualização (54/55) tratam de fronteiras de Pareto em MOO, não de superfícies de resposta escalares de uma função de teste de ajuste de surrogate."
+    },
+    {
+      "fichas": [
+        1,
+        9,
+        39
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "No problema real TEAM 22 (SMES, D=8, M=2), a Tabela III compara, ao longo de configurações do DTK com números crescentes de pontos de amostragem (reduzindo max{d(x)}), as soluções extremas do front e a solução mais próxima do ponto utópico obtidas pelo MODE assistido por DTK contra as mesmas quantidades obtidas pelo MODE combinado diretamente com FEA (usado como referência, da ordem de 20.000 avaliações), sobre 30 execuções independentes de cada configuração. A convergência dos valores mostra que, à medida que o surrogate fica mais preciso (mais pontos, menor d(x)), o resultado do MODE assistido se aproxima do obtido com avaliação direta.",
+      "literal": "Table III compares the performances of the MODEs. The proposed algorithm gives the extreme solutions approaching to those from the FEA combined MODE as the number of sampling points increases.",
+      "localizador": "Sec. IV-B, Table III",
+      "metricas": [
+        "proximidade da solução ao ponto utópico",
+        "soluções extremas do front (f1_min, f2_min)",
+        "número de avaliações FEA (referência ~20.000)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tabela com valores pontuais (coordenadas f1,f2) em notação científica, por configuração/nº de pontos de amostragem; não é explicitado se os valores são de uma execução única, a mediana, ou uma média das 30 execuções mencionadas em prosa.",
+      "achado": "As soluções do MODE assistido por DTK convergem para as do MODE-FEA-direto à medida que o nº de pontos de amostragem do DTK aumenta (max{d(x)} diminui); pequenas discrepâncias residuais persistem mesmo na maior configuração testada, atribuídas pelos autores à amostragem insuficiente, ao nº máximo de iterações, ou à imperfeição do próprio MODE — ou seja, o surrogate 'compra' quase todo o resultado do piso, mas não 100% dele.",
+      "aplicabilidade": "não diretamente reproduzível com as 7 camadas — TEAM22 não está entre os 28 problemas da bateria da dissertação, e a métrica usada (proximidade a soluções extremas/ponto utópico) não é IGD+/HV; a lógica é análoga à camada ① (avaliações reais) para computar a diferença assistido-vs-piso (ficha 9), e à relação entre qualidade do surrogate e proximidade do teto de desempenho (ficha 39), mas exigiria replicar o desenho específico (MODE com e sem FEA direta) fora do roster da dissertação."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "A Fig. 4 mostra visualmente as fronteiras de Pareto obtidas pelo MODE assistido por DTK (modelo construído com 350 pontos de amostragem) comparadas às obtidas pelo MODE combinado diretamente com FEA, no problema TEAM 22, para inspeção qualitativa da cobertura/coincidência dos dois conjuntos não-dominados.",
+      "literal": "Fig. 4 shows that the quality of the Pareto-front is not affected by the approximation of the objective function values using the DTK.",
+      "localizador": "Sec. IV-B, Fig. 4",
+      "metricas": [
+        "Pareto-front (comparação visual/qualitativa)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Figura única de comparação de fronteiras; não fica claro se representa uma execução específica ou um resumo das 30 execuções.",
+      "achado": "A fronteira de Pareto obtida com o DTK (350 pontos de amostragem) é visualmente equivalente à obtida com FEA direta — a aproximação do valor objetivo pelo surrogate não degrada perceptivelmente a qualidade do front.",
+      "aplicabilidade": "reproduzível em espírito via camada ① (avaliações reais, ND final) comparando visualmente o ND do assistido vs. o do piso no espaço de objetivos — análogo à ficha 54, mas em TEAM22 (fora dos 28 problemas da bateria)."
+    },
+    {
+      "fichas": [
+        47
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo quantifica o ganho de eficiência numérica central da proposta: o número de chamadas de FEA (avaliações reais, caras) necessárias pelo MODE assistido por DTK, comparado ao número usado pelo MODE que adota FEA diretamente (a referência de ~20.000 avaliações), no problema TEAM22.",
+      "literal": "On the number of FEA calls, the suggested algorithm, in this example, requires only 1 ∼ 2% of the MODE algorithm.",
+      "localizador": "Sec. IV-B",
+      "metricas": [
+        "número de avaliações FEA (contagem/custo)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Razão percentual simples relatada em prosa (1~2%); não há tabela de tempo de parede nem decomposição fit/busca/avaliação.",
+      "achado": "O algoritmo assistido por DTK atinge qualidade de solução muito próxima da referência com FEA direta usando apenas 1-2% do número de chamadas de FEA — a alegação central de 'eficiência numérica' anunciada no título do artigo.",
+      "aplicabilidade": "reproduzível via camada ① (contagem de avaliações reais) e ⑤ (manifesto) comparando o nº de FEs do assistido vs. o piso; mais próximo em espírito das fichas 47/49 (custo x qualidade), mas sem a dimensão de tempo de parede — aqui é só contagem de FEs."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "O artigo compara o erro de ajuste do modelo (RMSE, Table II) com o comportamento de d(x) — a largura da banda do intervalo de predição (1-alpha) do Kriging, derivada em forma fechada da variância posterior (VAR-GP) — mostrando que a diminuição do erro de ajuste acompanha a diminuição de d(x) à medida que mais pontos de amostragem são inseridos via amostragem adaptativa, e usando esse d(x) como critério de parada/aceitação do modelo (Eq. 10). Também compara a acurácia de ajuste do DTK com a de OK, UK (2a ordem) e TK convencional (Fig. 3), embora isso seja mais uma comparação de arquitetura de modelo do que de calibração de incerteza per se.",
+    "literal": "It is also found, from the Table II, that the fitting error decreases as the number of sampling points increases, and furthermore it can be predicted through the behavior of d(x), i.e., the bandwidth of prediction interval.",
+    "localizador": "Sec. IV-A, Table II"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Número de chamadas de FEA (avaliações reais) requeridas pelo MODE assistido por DTK comparado ao número usado pelo MODE que adota FEA diretamente (referência de ~20.000 avaliações, TEAM22): o assistido usa apenas 1-2% desse total. Também comenta qualitativamente que o tempo extra do B-PSO para seleção das funções-base do DTK é desprezível frente ao custo da FEA, mas sem números de tempo de parede.",
+    "literal": "On the number of FEA calls, the suggested algorithm, in this example, requires only 1 ∼ 2% of the MODE algorithm.",
+    "localizador": "Sec. IV-B"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Pequenas discrepâncias residuais entre as soluções mais próximas do ponto utópico obtidas pelo MODE assistido por DTK e pelo MODE com FEA direta são admitidas mesmo na maior configuração de amostragem testada, e atribuídas pelos autores à falta de pontos de amostragem, ao número máximo de iterações, ou à imperfeição do próprio algoritmo MODE — um caveat sobre os limites do surrogate, não uma falha franca.",
+      "literal": "The small discrepancies are thought to be caused by the lack of sampling points and maximum number of iterations or the imperfection of the MODE algorithm itself.",
+      "localizador": "Sec. IV-B"
+    },
+    {
+      "descricao": "Krigings de ordem fixa têm fraquezas conhecidas que motivam a proposta do DTK: Simple Kriging (SK) e Ordinary Kriging (OK) tendem a ter maior erro de ajuste para funções com flutuações acentuadas, enquanto Taylor Kriging (TK) e Universal Kriging (UK) de ordem fixa alta produzem oscilação em funções estacionárias.",
+      "literal": "It is expected that, as shown in Table I, simple Kriging (SK) and ordinary Kriging (OK) may have a bigger fitting error for a function with sharp fluctuations, while TK and universal Kriging (UK) give oscillation for a stationary function.",
+      "localizador": "Sec. II-B"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "O MODE (mesmo motor/critério de seleção) atinge desempenho cada vez mais próximo do MODE-FEA-direto à medida que a precisão do surrogate (DTK) aumenta com mais pontos de amostragem — sugerindo que é a qualidade do modelo, e não o critério/motor de busca do MODE, que limita o quão perto o assistido chega do resultado com FEA direta.",
+      "literal": "The proposed algorithm gives the extreme solutions approaching to those from the FEA combined MODE as the number of sampling points increases.",
+      "localizador": "Sec. IV-B, Table III"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "função de resposta com flutuações acentuadas / alta oscilação (multimodalidade da superfície a ser ajustada pelo surrogate)",
+      "afirmacao": "Simple Kriging e Ordinary Kriging tendem a ter maior erro de ajuste nessas funções, enquanto TK/UK de ordem fixa alta oscilam demais em funções estacionárias; o DTK, ao selecionar dinamicamente a ordem/combinação de funções-base via B-PSO, busca reduzir o erro em ambos os regimes. A própria função de teste usada no artigo (Eq. 11, produto de somas de cossenos) é deliberadamente multimodal/oscilatória para estressar essa característica.",
+      "literal": "It is expected that, as shown in Table I, simple Kriging (SK) and ordinary Kriging (OK) may have a bigger fitting error for a function with sharp fluctuations, while TK and universal Kriging (UK) give oscillation for a stationary function.",
+      "localizador": "Sec. II-B"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Artigo curto (4 páginas, IEEE Trans. Magnetics), sem bateria de problemas nem testes estatísticos — é um artigo de PROPOSTA DE MÉTODO com validação pontual (1 função analítica de ajuste + 1 problema de engenharia real, TEAM22), não um estudo de benchmarking amplo; por isso 'analises' aqui é mais curto do que em artigos de benchmarking do corpus. A incerteza (d(x), derivada em forma fechada da variância posterior do Kriging — VAR-GP) é usada EXCLUSIVAMENTE na fase A, offline, de construção do modelo: (a) dentro da otimização do B-PSO para selecionar as funções-base do DTK (Eq. 7, minimizando a média de d(x) nos pontos de teste) e (b) como critério de amostragem adaptativa e de parada (Eq. 10: inserir novos pontos onde d(x)>epsilon; parar quando max{d(x)}<=epsilon) — o que justifica a classificação 'função da incerteza = O3 Aprendizado ativo/reparo'. Essa incerteza NUNCA entra na fase B (a busca do MODE em si), que opera apenas sobre a média predita (mu) do DTK já congelado, tratando-a como se fosse a função verdadeira. Consequentemente, NÃO existe (e não poderia existir) um 'contrafactual sigma=0 na aquisição' (ficha 15) para este artigo: a incerteza já não participa da busca/seleção do MODE; a única alavanca de incerteza é 'quantos pontos amostrar, e onde, ANTES de começar a otimizar' — uma diferença estrutural importante frente aos algoritmos online do roster que usam sigma dentro do próprio critério de seleção/aquisição geração a geração. A Tabela III (TEAM22) tem células numéricas com OCR degradado pela extração de duas colunas lado a lado (números de linhas/colunas não são inequivocamente reconstituíveis a partir do texto extraído disponível); por isso os 'literal' desta ficha citam apenas a PROSA ao redor da tabela, não os valores de célula brutos, para evitar transcrição incerta de números — o valor '20.000' avaliações do MODE-FEA-direto e os valores de max{d(x)}/coordenadas f1,f2 aparecem só no ANEXO de OCR e não puderam ser mapeados com confiança a linhas/colunas específicas. Não fica claro se os '30 independent runs' mencionados para o TEAM22 correspondem a 30 reconstruções completas do DTK (30 sequências de amostragem adaptativa) ou a 30 rodadas do MODE sobre um único DTK já fixado — o texto não distingue. Leitura completa: as 4 páginas do corpo do artigo (Introdução, Seção II Dynamic Taylor Kriging with Adaptive Sampling, Seção III MODE Algorithm Assisted by DTK, Seção IV Optimization Results A/B, Seção V Conclusion, Acknowledgment, Referências) mais o ANEXO de camada de texto completa (conferido como duplicata equivalente do corpo estruturado) e o ANEXO de OCR de imagens/figuras (flowchart do B-PSO, fórmulas das Tabelas I/II, painel de coordenadas da Fig. 4) foram lidos por inteiro; não há apêndice nem material suplementar separado neste artigo de 4 páginas — nada foi pulado. roster_bloco = null por instrução explícita do pedido (artigo fora do roster experimental)."
+}

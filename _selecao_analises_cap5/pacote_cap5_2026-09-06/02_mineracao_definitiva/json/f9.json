@@ -1,0 +1,208 @@
+{
+  "id": "f9",
+  "sigla": "UA-IBEA",
+  "titulo": "On Dealing with Uncertainties from Kriging Models in Offline Data-Driven Evolutionary Multiobjective Optimization",
+  "ano": 2019,
+  "roster": false,
+  "setup": {
+    "benchmarks": "DTLZ2, DTLZ4, DTLZ5, DTLZ6, DTLZ7 (n=10 variáveis de decisão), cada um com k=2, 3 e 5 objetivos. Problemas adicionais (DTLZ1, DTLZ3, WFG1-WFG3, WFG5, WFG9) são apenas MENCIONADOS como testados em material suplementar externo, sem nenhum dado reproduzido no artigo. Nenhum problema real-world.",
+    "orcamento": "Regime 100% offline: nenhuma avaliação real ocorre durante a busca. O dataset offline inicial (único dado real disponível) tem tamanho 109 (= 11n-1, com n=10), gerado por LHS, amostragem aleatória uniforme, ou amostragem 'optimal-random' (50% soluções não-dominadas do próprio dataset + 50% amostras aleatórias uniformes). Durante a busca, o IBEA otimiza somente sobre os modelos Kriging: população 100, máximo de 40.000 avaliações NO SURROGATE (nenhuma avaliação real adicional).",
+    "execucoes": "31 execuções independentes por combinação problema x k x técnica de amostragem x abordagem (4 abordagens: Generic, Approach 1, Approach 2, Approach 3).",
+    "baselines": "Não há piso sem surrogate. A comparação é inteiramente entre 4 formulações do MESMO motor EMO (IBEA com indicador Iepsilon+) sobre o MESMO Kriging, variando apenas como a incerteza entra no vetor de objetivos: 'Generic' (só médias preditas, Eq. 2, sem incerteza), 'Approach 1' (médias + todos os sigma como objetivos separados, Eq. 5, dobra k), 'Approach 2' (médias + sigma médio como objetivo único, Eq. 6), 'Approach 3' (Expected Improvement por objetivo, Eq. 7).",
+    "metricas_principais": [
+      "IGD (métrica primária; 5000 pontos no conjunto de referência)",
+      "RMSE (métrica secundária; só Fig. 3, k=2, amostragem LHS)"
+    ],
+    "testes": [
+      "nenhum teste estatístico em lugar nenhum do artigo — apenas média +/- desvio-padrão por célula, melhor valor em negrito"
+    ],
+    "apresentacao": "Tabela única (Tabela 1) com média +/- desvio-padrão do IGD por problema x k x amostragem x abordagem (45 linhas x 4 abordagens), melhor valor por linha em negrito, sem símbolos +/=/-, sem teste estatístico. Figuras (Fig. 3, Fig. 4) usam a convenção de 'execução com valor de IGD mediano' para a visualização qualitativa das frentes.",
+    "codigo_plataforma": "MATLAB para os modelos de Kriging (função de regressão polinomial de primeira ordem + kernel/função de correlação Gaussiana). A plataforma/implementação do IBEA (o motor EMO) não é explicitada."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        13,
+        63
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela 1 reporta média e desvio-padrão do IGD (5000 pontos de referência) do arquivo final não-dominado -- obtido após a busca sobre os modelos Kriging, reavaliação na função objetivo verdadeira e remoção de soluções dominadas -- para 4 configurações (Generic, Approach 1, Approach 2, Approach 3) cruzadas com 5 problemas DTLZ (2,4,5,6,7), 3 contagens de objetivos (k=2,3,5) e 3 técnicas de amostragem do dataset offline inicial (LHS, aleatória uniforme, optimal-random), sobre 31 execuções independentes por célula. O melhor valor médio de cada linha é destacado em negrito; nenhum teste estatístico é aplicado.",
+      "literal": "Means and standard deviations of IGD values of the final archive, evaluated on the true objective functions, obtained by each approach, for various problems and sampling techniques.",
+      "localizador": "Sec. 4 (Experimental Results), Table 1, p. 471",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum — apenas média +/- desvio-padrão, melhor em negrito"
+      ],
+      "convencoes": "Média +/- desvio-padrão por célula (problema x k x amostragem x abordagem); melhor valor em negrito; 31 execuções por célula; IGD calculado com 5000 pontos de referência; o 'arquivo final' já é o ND reavaliado na função verdadeira, com dominados removidos.",
+      "achado": "Approaches 1 e 2 (incerteza como objetivo adicional) obtêm em geral IGD médio menor (melhor) que Generic e que Approach 3 na maioria das combinações problema/k/amostragem, com Approach 3 sendo o pior em quase todas as células; a vantagem de Approaches 1/2 é muito maior e mais consistente sob amostragem optimal-random do que sob LHS/aleatória uniforme.",
+      "aplicabilidade": "① (avaliações reais restritas ao dataset inicial compartilhado, regime 100% offline) + ⑦ (ND final reavaliado na função verdadeira) reproduzem a leitura de placar por configuração x problema; não há piso sem surrogate para comparar (todas as 4 colunas usam Kriging+IBEA). A variação por técnica de amostragem (LHS/aleatória/optimal-random) é análoga -- mas parcial, só no eixo distribuição, não no eixo tamanho -- ao sweep da ficha 63."
+    },
+    {
+      "fichas": [
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Lendo a Tabela 1 como ablação: a mesma maquinaria IBEA/Kriging roda com (Approach 1/2) e sem (Generic) sigma incluído no vetor de objetivos otimizado, isolando o efeito de usar a incerteza. O texto afirma explicitamente que Approaches 1/2 batem Generic para amostragem LHS/aleatória em quase todos os casos, com as exceções nomeadas de DTLZ6 e DTLZ7, e descreve uma vantagem mais forte e consistente sob amostragem optimal-random.",
+      "literal": "It was observed that Approaches 1 and 2 performed better than the generic approach for LHS and uniform random sampling for all the problems with various numbers of objectives with the exception of DTLZ6 and DTLZ7.",
+      "localizador": "Sec. 4, p. 469 (parágrafo após a Tabela 1)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Leitura comparativa direta das médias de IGD entre a coluna Generic e as colunas Approach 1/Approach 2 na Tabela 1, por técnica de amostragem e problema; sem teste estatístico formal de significância da diferença.",
+      "achado": "Usar sigma como objetivo extra (Approach 1/2) supera a linha de base sem incerteza (Generic) para amostragem LHS e aleatória em todos os problemas/objetivos, EXCETO DTLZ6 e DTLZ7, onde Generic vence -- um resultado negativo explícito para a estratégia de incerteza-como-objetivo, ligado a geometrias específicas de frente de Pareto (frente degenerada em DTLZ6; objetivos separáveis em DTLZ7).",
+      "aplicabilidade": "⑦ (ND final reavaliado na função verdadeira) comparando pares de configurações com e sem sigma no vetor de objetivos, mesma maquinaria (motor+surrogate) e mesmo dataset por execução -- reproduzível diretamente com a camada ⑦, análogo offline à lógica da ficha 11 da bateria (ablação exata do sigma)."
+    },
+    {
+      "fichas": [
+        52
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "As três formulações de incerteza compartilham o mesmo motor EMO (IBEA/Iepsilon+) e os mesmos modelos Kriging, diferindo apenas em como sigma entra no vetor de objetivos: Approach 1 mantém o sigma de cada objetivo como objetivo separado (dobrando k, Eq. 5), Approach 2 tira a média dos sigmas num único objetivo extra (Eq. 6), e Approach 3 substitui médias+sigma por Expected Improvement por objetivo (Eq. 7). O artigo contrasta o desempenho relativo das três, isolando Approach 3 como sistematicamente ineficaz.",
+      "literal": "Approach 3 did not produce good results for any of the problems, objectives or sampling technique.",
+      "localizador": "Sec. 4, p. 469 (+ definições em Eqs. 5-7, Sec. 3, pp. 467-468)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Leitura comparativa das médias de IGD entre as colunas Approach 1, Approach 2 e Approach 3 na Tabela 1, mesma maquinaria (IBEA+Kriging) em todas as três.",
+      "achado": "Entre as três formas de usar a incerteza, Approach 3 (EI por objetivo) é uniformemente a pior em todos os problemas, contagens de objetivos e técnicas de amostragem -- falha explicada mecanicamente pelo fato de o EI balancear convergência e diversidade, podendo escolher soluções de alta incerteza por causa desse trade-off. Approach 1 (sigma separados) e Approach 2 (sigma médio) ajudam ambas em relação a Generic mas não coincidem exatamente entre si -- a forma específica de agregar sigma ainda importa.",
+      "aplicabilidade": "⑦ (ND final reavaliado) comparando 3 configurações que mudam apenas a função/medição da incerteza (sigma separados; sigma médio; EI) sob a mesma maquinaria -- 'lupa da incerteza' via camada ⑦; não exige rodar variante do algoritmo, apenas trocar a função de agregação do sigma na etapa de seleção. Difere da leitura literal da ficha 52 (pares do roster) por não envolver algoritmos do roster, mas exemplifica a mesma lógica analítica (mesma maquinaria, incerteza distinta)."
+    },
+    {
+      "fichas": [
+        40,
+        42
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para os casos biobjetivo (k=2) sob amostragem LHS, a Fig. 3 traz o RMSE entre os valores das soluções finais e seus valores verdadeiros, para cada uma das 4 configurações, mostrando qual formulação de incerteza produz respostas finais mais precisas -- complementando a Tabela 1 baseada em IGD com uma métrica direta de erro de predição do surrogate no conjunto final.",
+      "literal": "Figure 3 shows the root mean square error (RMSE) of the final solutions obtained by different approaches with LHS sampling on problems with two objectives.",
+      "localizador": "Sec. 4, Fig. 3, p. 470",
+      "metricas": [
+        "RMSE"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Gráfico por problema (DTLZ2,4,5,6,7), k=2 apenas, amostragem LHS apenas; 4 abordagens rotuladas 'Gen', 'Appr1', 'Appr2', 'Appr3'; comparação visual, sem tabela numérica nem dispersão entre execuções reportada para esta figura.",
+      "achado": "Para os problemas biobjetivo sob LHS, as soluções finais de Approaches 1 e 2 têm RMSE menor (mais próximas do valor real) que Generic e Approach 3 na maioria dos casos, sustentando que usar incerteza como objetivo produz soluções finais mais precisas, não só melhor IGD.",
+      "aplicabilidade": "③ (predições do surrogate, mu nos pontos do ND final) + ⑦ (f verdadeiro após reavaliação) -- RMSE(mu,f) sobre o ND final por configuração; análogo offline de ficha 40 (erro de fantasia) sem a quebra 'por terço do orçamento' (não há avaliações intermediárias no regime 100% offline) e de ficha 42 (fantasia offline), embora aqui o número reportado seja erro pontual, não a fração do ND que permanece não-dominado."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "A Fig. 4 mostra, só para DTLZ2, o gráfico no espaço de objetivos das soluções finais não-dominadas (após reavaliação na função verdadeira) da execução com IGD mediano, para as 4 configurações, sob amostragem LHS (3 linhas superiores) e optimal-random (3 linhas inferiores), cruzando k=2,3,5 -- uma checagem qualitativa de cobertura/forma da frente contra a frente verdadeira de DTLZ2.",
+      "literal": "Final solutions obtained of the run with the median IGD value using different approaches for LHS sampling (top three rows) and optimal-random sampling (bottom three rows) for the DTLZ2 problem.",
+      "localizador": "Sec. 4, Fig. 4, p. 472",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução com IGD mediano escolhida para plotagem (convenção de 'execução mediana'); apenas DTLZ2; grade de 6 linhas (3 k x 2 amostragens) x 4 abordagens; leitura puramente visual/qualitativa, sem métrica numérica anexada à figura.",
+      "achado": "Qualitativamente, as frentes ND de Approaches 1/2 acompanham a frente verdadeira de DTLZ2 mais de perto que Generic e Approach 3, tanto sob LHS quanto sob optimal-random, consistente com os resultados quantitativos de IGD (Tabela 1) e RMSE (Fig. 3).",
+      "aplicabilidade": "① + ⑦ (execução mediana pelo IGD, ND final reavaliado na função verdadeira) plotado contra a frente verdadeira -- reproduzível diretamente com a camada ⑦ e a convenção de 'execução mediana' já usada na dissertação."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo afirma que resultados adicionais -- para mais problemas (DTLZ1, DTLZ3, WFG1-3, WFG5, WFG9) além dos 5 problemas DTLZ detalhados no artigo -- existem como material suplementar num site externo do grupo de pesquisa, mas não os reproduz no texto nem em figura/tabela.",
+      "literal": "Due to space limitations, further analysis is available at http://www.mit.jyu.fi/optgroup/extramaterial.html as additional material.",
+      "localizador": "Sec. 4, p. 470 (parágrafo final antes da Fig. 3)",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "não aplicável -- nenhum dado é reproduzido no artigo.",
+      "achado": "Não reportado no artigo -- apenas apontado para site externo (material suplementar); achado específico indisponível no corpus.",
+      "aplicabilidade": "não reproduzível -- resultados apenas mencionados, hospedados em site externo não incluído no artigo nem no corpus; sem literal detalhado além da menção. Listado por instrução da Regra 3 do cartão (análise só mencionada)."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": false,
+    "o_que": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Em DTLZ6 (frente de Pareto degenerada/enviesada), Approaches 1 e 2 (incerteza como objetivo extra) desempenham muito pior que a linha de base Generic (sem incerteza) em todas as contagens de objetivos, sob LHS e amostragem aleatória -- o caso de falha mais claro para a estratégia de incerteza-como-objetivo.",
+      "literal": "no noticeable performance improvement is observed in DTLZ6 when using Approaches 1 and 2 is because the problem consists has a non-uniform (or biased) [7] degenerated Pareto front.",
+      "localizador": "Sec. 4, p. 469"
+    },
+    {
+      "descricao": "Em DTLZ7 (objetivos completamente separáveis), Approaches 1 e 2 também apresentam desempenho pior que Generic; os autores atribuem isso ao fato de os objetivos extras de incerteza adicionarem dificuldade sem benefício num problema já separável.",
+      "literal": "For DTLZ7, a possible explanation for the worse performance of Approaches 1 and 2 is that the objective functions are completely separable [14].",
+      "localizador": "Sec. 4, p. 469"
+    },
+    {
+      "descricao": "Approach 3, que otimiza Expected Improvement por objetivo em vez de médias+sigma brutos, é uniformemente pior que as outras abordagens (frequentemente pior que Generic também) em todos os problemas, contagens de objetivos e técnicas de amostragem testadas -- um resultado negativo explícito e sem exceções para essa forma de usar a incerteza.",
+      "literal": "Approach 3 did not produce good results for any of the problems, objectives or sampling technique.",
+      "localizador": "Sec. 4, p. 469"
+    },
+    {
+      "descricao": "Os autores explicam mecanicamente a falha de Approach 3: o EI balanceia convergência e diversidade e por isso pode escolher uma solução de alta incerteza (imprecisa) só para satisfazer esse trade-off -- ou seja, o termo de incerteza pode enganar a busca.",
+      "literal": "balance between convergence and diversity. Therefore, it can select a solution with a high uncertainty for achieving its goal.",
+      "localizador": "Sec. 4, pp. 469-470 (frase 'This is because EI tries to' quebra entre páginas no PDF; citação retomada logo após a quebra)"
+    },
+    {
+      "descricao": "Ressalva geral de interpretabilidade para usar incerteza como objetivo(s) extra(s): como a paisagem de aptidão dos termos de incerteza é majoritariamente desconhecida, explicar o efeito dos objetivos adicionados na otimização é difícil.",
+      "literal": "Adding uncertainties as additional objectives pose a major problem in explaining the effect of optimization as the fitness landscape of the uncertainties is mostly unknown.",
+      "localizador": "Sec. 4, p. 469"
+    },
+    {
+      "descricao": "Approach 1 dobra o número de objetivos (uma média predita mais um sigma por objetivo original), o que os próprios autores notam poder aumentar a dificuldade de resolver o problema de otimização resultante -- uma ressalva estrutural/de custo dessa formulação específica de incerteza.",
+      "literal": "We double the number of objectives which may increase the complexity of solving the resulting optimization problem.",
+      "localizador": "Sec. 3, p. 467"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Mesmo quando o dataset offline inicial já contém muitos pontos quase-ótimos (não-dominados), sob amostragem optimal-random, a abordagem Generic (sem incerteza) ainda falha em produzir boas soluções; os autores atribuem isso ao modelo Kriging em si ser uma representação imperfeita dos objetivos verdadeiros, não ao critério de seleção usado -- o modelo, não o critério, é o limitante.",
+      "literal": "This is because the surrogate models do not provide a perfect representation of the true objectives.",
+      "localizador": "Sec. 4, pp. 469-470"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "frente de Pareto degenerada/não-uniforme (enviesada) -- DTLZ6",
+      "afirmacao": "Adicionar incerteza como objetivo(s) extra(s) (Approaches 1/2) não ajuda e desempenha muito pior que Generic em DTLZ6, cuja frente de Pareto degenerada/enviesada torna os objetivos extras de incerteza mais difíceis de otimizar e resulta em menos soluções não-dominadas.",
+      "literal": "the problem consists has a non-uniform (or biased) [7] degenerated Pareto front. Adding additional uncertainty objectives makes the problem even harder to solve and fewer nondominated solutions are obtained.",
+      "localizador": "Sec. 4, p. 469"
+    },
+    {
+      "caracteristica": "objetivos completamente separáveis -- DTLZ7",
+      "afirmacao": "Em DTLZ7, cujas funções objetivo são completamente separáveis, Approaches 1/2 desempenham pior que Generic porque os objetivos de incerteza adicionados só aumentam a dificuldade do problema sem benefício compensatório.",
+      "literal": "the objective functions are completely separable [14]. Thus, the additional objectives added by Approaches 1 and 2 only make the problem more difficult than the generic approach.",
+      "localizador": "Sec. 4, p. 469"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Artigo curto de conferência (EMO 2019, LNCS 11411, 12 páginas), sem seções dedicadas de ablação/sensibilidade/custo/calibração separadas do corpo principal: praticamente toda a evidência quantitativa está na Tabela 1 (única tabela do artigo) + Fig. 3 (RMSE, só k=2/LHS) + Fig. 4 (qualitativa, só DTLZ2). Não há nenhum teste estatístico (nem Wilcoxon, nem Friedman, nem qualquer p-valor) em lugar nenhum do artigo -- só média +/- desvio-padrão com melhor valor em negrito (confirmado por busca textual). Não há piso sem surrogate: as 4 colunas de comparação (Generic/Approach 1/Approach 2/Approach 3) são todas baseadas em Kriging+IBEA, mudando somente a formulação da incerteza no vetor de objetivos -- por isso fichas 9/10/16 (assistido x piso) não se aplicam a nenhuma análise. O tamanho do dataset offline usado (109 = 11n-1, com n=10) segue a mesma família de fórmula do orçamento 31D-1 da dissertação, mas aqui é o TOTAL de dados disponíveis (sem nenhuma avaliação real durante a busca -- regime 100% offline: as 40.000 avaliações do Algoritmo 1 são todas sobre os modelos Kriging substitutos, nunca sobre a função real). O parâmetro kappa do indicador Iepsilon+ (IBEA) varia com k (0.51/0.87/0.48 para k=2/3/5, e 0.5 para outros k), mas é um valor FIXO citado da referência [1] (Bezerra et al. 2018), não uma varredura de sensibilidade -- não gerou análise mapeável à ficha 45. Não há menção a número de objetivos (k) como eixo de discussão própria além de ser uma dimensão da Tabela 1 -- por isso não foi criada uma análise separada de escalabilidade em objetivos, nem entrada em caracteristica_x_desempenho para 'muitos objetivos' (sem afirmação textual explícita ligando tendência a k). 'Approach 1/2/3' e 'Generic' são os nomes usados pelo próprio artigo, refletidos na sigla não-oficial UA-IBEA do cartão de metadados. Seção de material suplementar (site externo do grupo de pesquisa) é mencionada mas não reproduzida -- ver análise com fichas=[1] marcada 'só mencionada'. Leitura: arquivo inteiro (1364 linhas / 12 páginas) lido integralmente, incluindo a seção estruturada (texto+tabelas via pymupdf4llm) E o ANEXO com a camada de texto bruta completa (repetição integral do mesmo conteúdo, útil para confirmar números da Tabela 1 dígito a dígito) e o ANEXO de OCR das figuras (que não trouxe conteúdo textual novo além de rótulos de eixo/legenda já cobertos pelas figuras). roster_bloco = null por instrução explícita do pedido (artigo fora do roster experimental). Nenhum problema de leitura: PDF convertido é limpo, sem páginas faltantes, sem tabelas truncadas -- os 45 valores numéricos da Tabela 1 (5 problemas x 3 k x 3 amostragens) puderam ser conferidos integralmente contra a repetição no ANEXO."
+}

@@ -1,0 +1,6 @@
+problema,stem_off,stem_sweep,eq_real,eq_surrogate,eq_final,doe_hash_igual,ngen_off,ngen_sweep,sha_real_igual
+DTLZ2,exp_off_b5r_DTLZ2_42,exp_sweep-small-lhs_b5r_DTLZ2_42,True,True,True,True,504,504,True
+MMF16_20,exp_off_b5r_MMF16_20_42,exp_sweep-small-lhs_b5r_MMF16_20_42,True,True,True,True,595,595,True
+WFG9,exp_off_b5r_WFG9_42,exp_sweep-small-lhs_b5r_WFG9_42,True,True,True,True,906,906,True
+ZDT1,exp_off_b5r_ZDT1_42,exp_sweep-small-lhs_b5r_ZDT1_42,True,True,True,True,878,878,True
+ZDT4,exp_off_b5r_ZDT4_42,exp_sweep-small-lhs_b5r_ZDT4_42,True,True,True,True,3845,3845,True

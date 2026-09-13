@@ -1,0 +1,139 @@
+{
+ "config": "nsga3 · exp=main · PISO ONLINE (NSGA-III stock do PlatEMO 4.15, algo_version=piso-NSGAIII-PlatEMO4.15, zero patches) · RODADA FINAL sobre corpus CONGELADO. 28 problemas × 30 sementes {0–28,42} = 840 células (750 sintéticas herdadas do F30 + 90 REAIS novas: RE21 D=4/M=2, DDMOP7 D=17/M=2 caixa-preta .p, ESTOQUE40 D=40/M=3). Sem artigo (piso): gabarito = fonte vendorizado + bundle alg_pisos_online.md + reimplementações independentes. Evidências (read-only, nada do harness executado): /private/tmp/claude-501/-Users-gmello/16c0ba84-843b-49d1-9ce6-6cecc418b734/scratchpad/nsga3_final/{bateria.py, final_reais.csv, o21_sweep.csv}; todos os agregados RE-DERIVADOS e spot-checks RE-EXECUTADOS nesta passada final antes de selar.",
+ "celulas_final": "840 células no censo e 840 no disco (0 divergência de existência; 6 arquivos/célula em 840/840, sem ⑦ — correto p/ config online). POR GRUPO × ESTADO O-21 (rodapé = autoridade): SINTÉTICAS 750 = 748 rodapé ok + 1 rodapé status:failed de OUTRO run (DTLZ3/17, C-1) + 1 SEM rodapé (última linha = guard; MMF1/14, C-2) — ambas com ⑤①②④ válidos e substância provada nos espelhos (F30); REAIS 90 = 90/90 rodapé ok (RE21 30 · DDMOP7 30 · ESTOQUE40 30), 0 ⚪ teto_wall, 0 fail, termino='normal' 90/90, orçamento 31D−1 EXATO 90/90 (123/526/1239) com fe_index denso. O censo (visão manifesto) diz ok 840/840 — diverge do rodapé exatamente nas 2 células conhecidas. hard_stop presente em 79/90 reais; nas 11 sem (7 RE21 + 4 EST40) fe_final==maxfe==31D−1 (orçamento na fronteira do lote — mesmo fenômeno dos 39/750 do F30).",
+ "novas_desde_f30": "90 células novas = 3 problemas reais × 30 sementes. As 750 sintéticas estão INALTERADAS desde o F30: max mtime 2026-08-14T11:01:38Z (08:01:38 local) < corte da auditoria F30 — herdam o veredito F30, selado por spot-check RE-EXECUTADO nesta passada: 10 células (M=2 e M=3, sementes 0–28+42, incl. MMF16_20 e BBOB_F55) com lattice max|ΔW|=0,0, D88 set idêntico, resíduo A10=0, forma fechada, A14 e guardas — 10/10. C-1/C-2 NÃO foram corrigidas pelo congelamento (mtimes 2026-08-10 e 2026-08-08 intactos, rodapés re-conferidos hoje). Linha do tempo das 90: RE21+ESTOQUE40+DDMOP7 parcial na vm1 em 15/08 (commit 3240f4b26fae, 61 células); DDMOP7 restante na vm5 em 18–19/08 (commit 7be66e65522c, 29 células) — frota vm1+vm5 conforme frota.json, vm5 pós-degrau de hardware.",
+ "mecanismo_nos_novos": "CENSO COMPLETO das 90 novas (não amostra — 30 sementes × 3 problemas), 7 camadas: JOIA nº1 (lattice): UniformPoint(N,M,'NBI') traduzido e comparado linha a linha com o registro decomposicao — max|ΔW| = 0,0 em 90/90 (100,00%, erro máx ZERO), incluindo o FOCO da rodada: lattice de referência M=3 do ESTOQUE40 com H1=4, 15 vetores, N_lattice≡N_efetivo≡|pop|=15 em 30/30 (RE21/DDMOP7: H1=19, 20 vetores, N_ef=20). JOIA nº2 (semeadura D88, NDSort+CrowdingDistance+índice recomputados do zero): conjunto de solution_id da geração 1 da ② IDÊNTICO em 90/90 — o DDMOP7, apesar dos objetivos discretos (f1=k/17, f2=n/690, empates exatos em massa), NÃO repete o padrão DTLZ4; sids da geração 1 todos < 11D−1 em 90/90. JOIA nº3 (aritmética ①×②×⑥): resíduo 0 em 84/90 e ±1 em 6/90, 100% dos resíduos em cache-hit carimbado na fronteira (4 de −1 com hit em fe==fe_última; 2 de +1 são as únicas células N_ef+2 no arranque: RE21/21 e EST40/16) — a mesma convenção declarada do F30. Forma fechada ⌊(20D+dup_desc)/2⌊N_ef/2⌋⌋+1 = n_geracoes em 90/90 (RE21 5/5/5, DDMOP7 18/18/18, EST40 59/60/61 min/med/max). Bateria de contrato: A1 orçamento 90/90 · DoE bit-a-bit vs artefato max|ΔX|=0,0 90/90 e doe_hash ⑤≡⑥ 90/90 · init=11D−1/opt=20D 90/90 · gerações densas, grupos ②≡N_ef, sids ②⊆① 90/90 · A14 sem geração fantasma (⑤≡rodapé≡eventos≡②≡④) 90/90 · guardas só {cache_hit,hard_stop} e hits⑥≡⑤ 90/90 · ⑥ íntegra (1 header+1 decomposicao+1 seeding+1 rodapé) 90/90 · ⑤ completo (12 chaves, schema v2, sigma_dict/sonda nao_se_aplica conferidos contra ③=0 linhas e 3 timings null) 90/90 · Σ④≤total 90/90 · ideal≡f_best e nadir≥ideal 90/90.",
+ "reais": "RE21: oráculo bit-verificado contra reimplementação independente minha (four-bar truss F=10,σ=10,E=2e5,L=200): erro rel máx 2,35e-7 nas 3.690 avaliações — resolução float32, coerente com o 3,3e-7 do T15. 5 gerações/célula (D=4); |F1|==|pop| em 52/150 gerações (34,7%). DDMOP7: checa_regua RODADO nas 30 células (15.780 pontos): 0 furos e 0 avisos — ínfimo [0;0] (REAL-2.15 ERRATA 2) segura; f1=k/17 e f2=n/690 EXATOS em 100% (desvio máx 4,8e-7/2,1e-5 = eps float32); DoE gravado CRU (25,05% das coords em 0<|x|<0,5) e propostas da busca com 64,8% na zona morta — a ① grava x_PROPOSTO como manda o §T15.13; |ND| final DEDUPADO por x_efetivo (regra aplicada com zona_morta do bridge): médias 230,2 por solution_id → 65,0 por x_efetivo → 2,9 vetores-objetivo distintos (faixas 133–276 / 28–132 / 2–5) — publicar o bruto reportaria 3,5× a diversidade real e o front final tem 2–5 pontos-objetivo; |F1|==|pop| em 377/540 (69,8%); custo: 27,47 h-core com 99,81% em tempo_aval_real (~55 min/célula no .p — 'custo trivial do piso' vale para o ALGORITMO, não para o oráculo). ESTOQUE40: lattice M=3 exato (foco da rodada: max|ΔW|=0,0 em 30/30); |F1|==|pop| em 1.791/1.791 gerações = 100,0% (re-medido por mim célula a célula) — o regime mais extremo de todo o corpus nsga3 (MMF16_20 tinha 99,89%), só o nicho decide em TODA geração; consequência medida: ideal (pop corrente) regride em 728/5.283 transições = 13,78%, todas materiais (RE21 e DDMOP7: 0,00%) — mecanismo niche-preserving + N_ef=15, não sentinela (ideal≡f_best e nadir≥ideal 30/30; Zmin interno segue teto A17); RE21+EST40 juntos custam 394 s (6,2% aval). Deriva cross-máquina das 90: NÃO MEDIDA — não existem espelhos duplicados da onda T15 (vm1 rodou RE21/EST40, vm5 rodou DDMOP7); nota: EST40 com |F1|==|pop| 100% é, pelo mecanismo N4 (randi dependente do dado em LastSelection), o candidato máximo a re-sorteio cross-máquina — mas há 1 execução por célula.",
+ "aspectos_mudados": [
+  {
+   "id": "A5+A4",
+   "o_que": "Joia do lattice + N_efetivo estendidos aos reais (foco: lattice de referência M=3 no EST40)",
+   "antes": "F30: max|ΔW|=0,0 em 750/750; M=3 só nos 6 problemas sintéticos (180 células)",
+   "agora": "840/840 (90 novas + spot re-executado 10/10): EST40 M=3 com H1=4/15 vetores/N_ef=15≡|pop| exato em 30/30; RE21/DDMOP7 H1=19/N_ef=20; erro máximo segue 0,0"
+  },
+  {
+   "id": "A7",
+   "o_que": "Semeadura D88 em objetivos DISCRETOS",
+   "antes": "F30: 720/750, únicas falhas = DTLZ4 30/30 (underflow float32, regra 11)",
+   "agora": "90/90 nas novas — DDMOP7 (empates exatos em k/17) NÃO reproduz o padrão DTLZ4; conjunto idêntico até no EST40 M=3"
+  },
+  {
+   "id": "A10+A24",
+   "o_que": "Aritmética inter-camadas e forma fechada nas novas",
+   "antes": "F30: 750/750 sob convenção de fronteira; forma fechada 750/750",
+   "agora": "84/90 resíduo 0 + 6/90 resíduo ±1 TODOS em cache-hit de fronteira (medido hit a hit); forma fechada 90/90; acumulado do config: 840/840"
+  },
+  {
+   "id": "A13",
+   "o_que": "Arranque N_ef+1",
+   "antes": "F30: 719/750 exato, 31 com N_ef+2",
+   "agora": "88/90 exato, 2 com N_ef+2 (RE21/21, EST40/16) — mesma taxa, mesmo mecanismo"
+  },
+  {
+   "id": "A18",
+   "o_que": "Não-monotonia do ideal: novo REGIME no EST40",
+   "antes": "F30: 1,75% total, 0,73% material, concentrado em M=3",
+   "agora": "RE21 0% · DDMOP7 0% · EST40 13,78% (728/5.283) TODAS materiais — |F1|==|pop| em 100,0% das 1.791 gerações do EST40; regra de leitura obrigatória: ideal logado = pop corrente ≠ Zmin interno (teto A17)"
+  },
+  {
+   "id": "A19",
+   "o_que": "Ausência de surrogate em 6 camadas",
+   "antes": "750/750",
+   "agora": "840/840 (③ 0 linhas, fit_series=[], sonda/sigma_dict nao_se_aplica conferidos contra o dado, 3 timings null); sem ⑦ em 840/840 — correto p/ online (D102.9 é do offline)"
+  },
+  {
+   "id": "A23",
+   "o_que": "repo_hash em produção",
+   "antes": "F30: UM commit único 63db46b1 nas 750",
+   "agora": "as 90 novas em DOIS commits (3240f4b26fae vm1 15/08 ×61 · 7be66e65522c vm5 18–19/08 ×29) — onda T15 atravessou mudança de código; mecânica INVARIANTE medida (todas as joias fecham nos dois lados); resíduo árvore-suja segue não medido"
+  },
+  {
+   "id": "A26/C-3",
+   "o_que": "campanha_id — o furo CRESCEU",
+   "antes": "F30: 38/750 com default 63db46b10063_2026-08-14 (lote vm5 sem env)",
+   "agora": "90/90 das novas com DEFAULT {commit12}_{dataUTC} em TRÊS valores (3240f4b26fae_2026-08-15 ×61 · 7be66e65522c_2026-08-18 ×3 · 7be66e65522c_2026-08-19 ×26 — split na virada UTC DENTRO do mesmo lote vm5 = risco D-G literal); transversal confirmada em nsga2 (EST40/0 idem); total nsga3 não-canônico: 128/840 em 4 valores; nenhuma campanha T15 foi cunhada"
+  },
+  {
+   "id": "custo",
+   "o_que": "'Piso custo trivial' ganhou exceção",
+   "antes": "750 células = 1,43 h-core (83% arranque MATLAB)",
+   "agora": "DDMOP7 = 27,47 h-core com 99,81% no oráculo .p (~55 min/célula); RE21+EST40 = 394 s (6,2% aval). O caveat é do ORÁCULO, não do algoritmo"
+  },
+  {
+   "id": "regua",
+   "o_que": "Guard executável da régua DDMOP7 rodado em produção",
+   "antes": "T15: guard criado sobre smokes; fase 1 furava 44,8%",
+   "agora": "checa_regua 30/30 células OK, 0 furos e 0 avisos em 15.780 pontos com ideal=[0;0] nadir=[1;468/690]; fase 2 pooled segue OBRIGATÓRIA e agora computável"
+  },
+  {
+   "id": "C-1/C-2",
+   "o_que": "Proveniência da ⑥ nas 2 células",
+   "antes": "F30 recomendou troca pelos espelhos",
+   "agora": "INALTERADAS (mtimes 10/08 e 08/08 re-conferidos hoje, rodapés idem); espelhos seguem em ~/mestrado_coleta_m8/matlab-vm{1,5}; o congelamento não aplicou a correção barata"
+  }
+ ],
+ "celulas_invalidas": [
+  {
+   "celula": "nsga3/main/DTLZ3/17",
+   "motivo": "⑥ canônica é o log de OUTRO run, ABORTADO (rodapé status:failed, MathWorks Licensing Error 15, fe_final=145, 1 geração, vm10 10/08) enquanto ⑤①②④ são do run bom da vm1 14/08 (18 gerações) — sob O-21 a célula é reprovada pela ⑥; censo diz ok porque lê o manifesto (C-1, herdada do F30, NÃO corrigida no congelamento)",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "nsga3/main/MMF1/14",
+   "motivo": "⑥ canônica SEM rodapé (última linha = guard; processo morreu após gravar parquets, vm4 08/08) — INJULGÁVEL pela ⑥ sob O-21; substância provada: parquets byte-idênticos aos da vm5 (F30, sha256) (C-2, herdada, NÃO corrigida)",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "(caveat, NÃO inválidas) 128 células com campanha_id não-canônico: 38 sintéticas (63db46b10063_2026-08-14, C-3/F30) + 90 reais (3 defaults da onda T15)",
+   "motivo": "dado e mecanismo VÁLIDOS (todas as joias fecham); o que falha é o carimbo de pertencimento à campanha — agregação por campanha_id parte o config em 5 shards",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C-1",
+   "descricao": "DTLZ3/17: ⑥ canônica de run abortado por erro de licença; única quebra de A14/A20/A21 nas 750. Estado FINAL: ABERTA — corpus congelado sem aplicar a troca; espelho byte-idêntico segue disponível (vm1 10.900 B rodapé ok, vm5 10.901 B)",
+   "gravidade": "media",
+   "acao": "trocar a ⑥ pelo espelho (zero re-run) + corrigir _FONTES.csv; OU registrar exceção O-21 nominal. Sem um dos dois, qualquer leitor O-21 reprova a célula que o censo aprova",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/nsga3/DTLZ3/17/exp_main_nsga3_DTLZ3_17.jsonl"
+  },
+  {
+   "id": "C-2",
+   "descricao": "MMF1/14: ⑥ sem rodapé (vm4); ⑤ da vm5; parquets byte-idênticos entre as duas VMs. Estado FINAL: ABERTA, inalterada",
+   "gravidade": "baixa",
+   "acao": "trocar pela ⑥ completa da vm5 (~/mestrado_coleta_m8/matlab-vm5/.../exp_main_nsga3_MMF1_14.jsonl, rodapé ok) OU exceção O-21 nominal",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/nsga3/MMF1/14/exp_main_nsga3_MMF1_14.jsonl"
+  },
+  {
+   "id": "C-3-FINAL",
+   "descricao": "campanha_id: o furo do F30 (38 células M8 com default) CRESCEU — a onda T15 INTEIRA saiu com default {commit12}_{dataUTC}: 90/90 células reais do nsga3 em 3 valores, incluindo split na virada UTC 18→19/08 dentro do MESMO lote vm5 (risco D-G de M8-BATCHES-OPERADOR.md:240 materializado). Transversal: nsga2/EST40/0 confirmado idem nesta passada. Agravante documental: NENHUM campanha_id T15 foi cunhado — handoff/PROVISIONAR-VM-DO-ZERO.md só define 7f4f0e429a46_M8 e o gate FATAL da linha 353 exigiria exatamente esse valor. Total nsga3: 128/840 (15,2%) não-canônico em 4 valores",
+   "gravidade": "media",
+   "acao": "decisão do autor (D81/D97): cunhar regra de leitura no R4 — {63db46b10063_2026-08-14}→alias de 7f4f0e429a46_M8; {3240f4b26fae_2026-08-15, 7be66e65522c_2026-08-18/19}→alias de campanha nominal 'T15'; e promover o gate camp de presença para VALOR∈{aliases}. Regravar viola não-editar-dado-colhido; re-run vetado pelo congelamento",
+   "arquivo_linha": "final_reais.csv (colunas campanha_id/host/repo_hash); handoff/PROVISIONAR-VM-DO-ZERO.md:47,353"
+  },
+  {
+   "id": "C-4",
+   "descricao": "A meta-alegação FALSA 'n_geracoes é EMERGENTE, nao fechada' está nos 840 manifestos — inclusive nos 90 novos (re-conferida hoje no ⑤ do EST40/0). Sobreviveu à TERCEIRA auditoria consecutiva (F5 pediu, T11 refutou 100/100, F30 refutou 750/750); a forma fechada ⌊(20D+dup_desc)/2⌊N_ef/2⌋⌋+1 acerta 90/90 nas reais — acumulado 840/840",
+   "gravidade": "baixa",
+   "acao": "errata documental: trocar a frase pela forma fechada com n_dup DEFINIDO como duplicatas de DESCENDENTE; manter o conselho 'não derive, LEIA'",
+   "arquivo_linha": "src/experiment.m (params.geracoes_derivadas) — ecoado em 840/840 manifestos"
+  },
+  {
+   "id": "C-5",
+   "descricao": "6 células ZDT6 com n_frentes ±1 no seeding — HERDADA do F30, não re-medida (células inalteradas), segue não-provada (exigiria objetivos em double)",
+   "gravidade": "baixa",
+   "acao": "manter como resíduo conhecido; n_frentes do log é diagnóstico, não contrato",
+   "arquivo_linha": "F30 nsga3.json C-5"
+  }
+ ],
+ "score_final": 9,
+ "trajetoria_scores": "F5 10 → T11 10 → F30 9 → FINAL 9. F5→T11 MANTEVE 10: não-perturbação provada bit-a-bit (sha256 ①② idênticos s42×smoke). T11→F30 PERDEU 1: não pelo mecanismo (três joias exatas em 750/750) mas pela camada de COLETA/PROVENIÊNCIA que só 30 sementes × 6 VMs expõem (C-1 ⑥ de run abortado, C-2 ⑥ sem rodapé, C-3 38 campanha_id default com gate verde por cima, C-4 string falsa, C-5 ZDT6). F30→FINAL MANTÉM 9, com os dois pratos medidos: A FAVOR — o mecanismo estendeu-se aos 3 problemas reais SEM UM ÚNICO DESVIO (lattice 0,0 em 90/90 incl. o foco M=3/EST40, D88 90/90 vencendo os objetivos discretos do DDMOP7, aritmética com resíduos 100% explicados, forma fechada 90/90, régua DDMOP7 0 furos em 15.780 pontos, RE21 a 2,35e-7 de reimplementação independente); CONTRA — NENHUMA das pendências recuperáveis do F30 foi fechada no congelamento e a de proveniência CRESCEU 3,4× (campanha_id não-canônico: 38→128 células, com o D-G da virada UTC consumado). Não sobe a 10 porque a régua da casa exige contrato perfeito e há 130 células (2+128) onde o contrato de proveniência não fecha sem regra de leitura ainda não-escrita; não desce a 8 porque a natureza do débito é idêntica à do F30 (zero defeito de algoritmo, 100% recuperável sem re-run) e o crescimento é do MESMO mecanismo já nomeado (env ausente no disparo), não de um modo de falha novo.",
+ "veredito": "RECOMENDO ACEITAR O MECANISMO E CONDICIONAR A PROVENIÊNCIA — a sentença é do autor (D97). O nsga3 chega ao corpus final com a identidade estrutural mais forte do lote: as três joias exatas em 840/840 células acumuladas, o lattice de referência M=3 do EST40 (foco da rodada) exato a 0,0 em 30/30, a semeadura D88 invicta nos 3 regimes novos (contínuo, discreto k/17, M=3 com |F1|==|pop| em 100% das gerações), a régua DDMOP7 [0;0] sem um furo em produção e o oráculo RE21 a eps-float32 da minha reimplementação independente. As 90 células reais são VÁLIDAS e utilizáveis já — com três regras de leitura obrigatórias: |ND| do DDMOP7 SÓ dedupado por x_efetivo (bruto superestima 3,5×; front final real tem 2–5 pontos-objetivo), ideal do EST40 regride em 13,78% das transições por construção (pop corrente + nicho, não bug), e HV do DDMOP7 só após fase 2 pooled (selo REGUAS_PROVISORIAS vigente). A condição: as 3 pendências documentais baratas (alias de campanha_id + destino das ⑥ de DTLZ3/17 e MMF1/14 + errata da string EMERGENTE) precisam de decisão registrada ANTES da análise R4 agregar por campanha ou ler ⑥ em massa — nenhuma exige re-run, todas cabem numa errata.",
+ "decisoes_ao_autor": [
+  "D81 · ESCALADA nº1 (a única NOVA desta rodada): a onda T15 inteira rodou SEM campanha_id declarado — 90/90 células reais do nsga3 carregam o default {commit12}_{dataUTC} em 3 valores (61× 3240f4b26fae_2026-08-15 vm1 · 3× 7be66e65522c_2026-08-18 + 26× _2026-08-19 vm5, split na virada UTC dentro do MESMO lote = D-G consumado), e o nsga2 (EST40/0) confirma o padrão transversal. Não existe valor 'certo' a exigir: nenhuma campanha T15 foi cunhada (o procedimento só define 7f4f0e429a46_M8 e o gate FATAL de PROVISIONAR-VM-DO-ZERO.md:353 não rodou no disparo T15). Decisão sua: cunhar alias nominal 'T15' no R4 + promover o gate camp de presença para valor. Sem isso, qualquer agregação por campanha_id parte o corpus real em 4 shards fantasmas.",
+  "D81 · reiteração F30 nº1: C-1/C-2 (⑥ de DTLZ3/17 e MMF1/14) chegaram INTACTAS ao corpus congelado — re-conferi hoje mtime e rodapé a rodapé (DTLZ3/17: status failed de run abortado; MMF1/14: sem rodapé). Os espelhos byte-idênticos seguem em ~/mestrado_coleta_m8/matlab-vm{1,5}. A troca é cópia de arquivo, não re-run — não viola 'o que não executou, não vou executar'. Se preferir não tocar o acervo: registre a exceção O-21 nominal das 2 células, senão todo leitor que honrar 'rodapé é autoridade' reprova o que o censo aprova.",
+  "C-4 · terceira auditoria, mesmo pedido: a frase 'EMERGENTE, nao fechada' está em 840/840 manifestos (re-conferida hoje no manifesto novo do EST40/0). Forma fechada acerta 840/840. É a única frase errada que a dissertação vai citar do manifesto do nsga3.",
+  "REGRAS DE LEITURA para a dissertação (medidas, não opiniões): (a) |ND| DDMOP7 dedupado por x_efetivo (§T15.13, zona_morta aplicada): médias 230,2→65,0→2,9 (sid→x_efetivo→f-únicos), faixas 133–276/28–132/2–5 — o front final tem 2 a 5 pontos-objetivo distintos; (b) EST40: ideal logado regride em 13,78% das transições (728/5.283, todas materiais) porque |F1|==|pop| em 100,0% das 1.791 gerações — só o nicho decide, e ele não preserva extremos; o Zmin interno (teto A17) é outra grandeza; (c) 'piso custo trivial' precisa do caveat DDMOP7: 27,47 h-core, 99,81% no oráculo .p; (d) 'sem sonda, sem IGD+' do DDMOP7 confere: sem ⑦ em 90/90, checa_regua 0 furos/0 avisos, fase 2 pooled pendente e agora computável.",
+  "RESSALVAS DO QUE NÃO MEDI: (a) deriva cross-máquina das 90 reais — sem espelhos duplicados da onda T15 (vm1=RE21/EST40, vm5=DDMOP7); nota de risco: EST40 com |F1|==|pop| 100% é o candidato máximo ao mecanismo de re-sorteio do N4 (randi dependente do dado em LastSelection), mas há 1 execução por célula — irremediável sem re-run, que está vetado; (b) oráculo EST40 não re-verificado por mim (formulação NOSSA, D101 — verificação herdada do laudo T15); (c) os 2 commits da onda (3240f4b26fae→7be66e65522c) não foram diffados — a invariância mecânica está medida pelo dado (joias fecham dos dois lados), não pelo fonte; (d) C-5 (ZDT6 n_frentes) segue não-provada — células inalteradas, teto de verificabilidade mantido; (e) fase 2 pooled do DDMOP7 não computada — é decisão de análise (D100/D102.3), não de fidelidade deste config."
+ ]
+}

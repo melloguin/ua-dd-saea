@@ -1,0 +1,404 @@
+{
+ "config": "c238 (EIM · Zhan/Cheng/Liu, IEEE TEVC 21(6):956-975, 2017 · EIMe euclidiano) · exp=main · campanha de 30 sementes",
+ "cobertura": "676 de 750 células planejadas EXISTEM (90,1%); 74 nunca foram produzidas. Auditei as 676 que existem — cobertura 676/676 = 100% do que há. Como amostrei, por profundidade: (a) VARREDURA TOTAL do ⑥ em streaming — 676 .jsonl, 264.545 linhas, 0 malformadas; (b) VARREDURA TOTAL da query-joia (identidade EIMe) — 645 células ok × todas as gerações = 173.440 gerações, reconstruindo a frente ND incrementalmente da ① e comparando com u_best/s_best/norm_* do ⑥; (c) VARREDURA TOTAL do MLE — 391.400 componentes-geração de θ/lnL; (d) VARREDURA TOTAL das métricas — IGD+/HV/IGD/GD/spacing nas 645 células ok, via src/metrics.py com reference_set de 5.000 pontos (mesma convenção D69/D70 da F5/T11); (e) VARREDURA TOTAL dos 645 manifestos; (f) AMOSTRA ESTRATIFICADA do pool ③ — 195 células (90 D=2 completas + sementes {0,9,19,28,42} nos outros 22 problemas), 37.100 gerações, 6.457.000 linhas de pool, cobrindo os 25 problemas e as 30 sementes; (g) AMOSTRA ESTRATIFICADA da sonda — 158 células (sementes {0,6,12,19,24,28,42}), primeiro e último bloco, 712 pares célula×bloco×objetivo, contra o gabarito data/sonda/sonda_<PROB>.parquet; (h) AMOSTRA da semântica de frente (paretofront weak-sequential, custo O(n²) em Python) — 50 células (2 sementes × 25 problemas), 14.040 gerações; (i) TOTALIDADE das duplicatas cross-máquina — 20/20; (j) TOTALIDADE do par s42-julho × s42-agosto — 25/25 células, 7.020 gerações. Nenhuma célula foi rodada; experiments.py/experiment.run/experiments.m NUNCA foram invocados; escrevi só em /private/tmp/claude-501/-Users-gmello/33c29160-6eb6-4277-a041-db4855486063/scratchpad/c238/.",
+ "N1_invariancia": "A identidade EIMe do Apêndice A (`lamda=(F-1*u)./(1*s); EIM=(F-1*u).*Phi(lamda)+1*s.*phi(lamda); y=min(sqrt(sum(EIM.^2,2)))`) fecha em 173.413 de 173.440 gerações = 99,9844%, com |Δ| mediano 8,61e-10, p99 7,21e-08, p99,9 1,07e-07. Não é amostra: é a campanha inteira — 645 células ok, 25 problemas, 30 sementes. Erro MÁXIMO 3,98e-03 (absoluto), concentrado em 27 gerações. Por problema: 22 dos 25 problemas fecham 100% das gerações com |Δ| máximo 4,75e-07 (WFG1) — dentro do piso float32 do export. Por semente: 28 das 30 sementes fecham 100%; a semente 17 fecha 99,023% (1.723/1.740) e a semente 26 fecha 99,333% (1.490/1.500). As 27 exceções são MMF1 (13), MMF4 (12) e MMF11_L (2) — exatamente as três células D=2 com kriging degenerado — e TODAS nas sementes 17 e 26, TODAS na vm5, TODAS rodadas na janela de 30 segundos 2026-08-14T11:01:58Z–11:02:25Z. Investigadas até a raiz (ver classe (3) C3-1): não é a semântica da frente (recomputei as 27 com paretofront weak-sequential e com ND-padrão — dá o MESMO valor) e não é arredondamento float32 (a perturbação implícita em F seria 0,03–0,04 em unidades do objetivo, ~1e6 ULPs). É que, nessas gerações, o pool de 20 candidatos — todos com o MESMO x em float32 (A2: colapso do GA em D=2) — carrega DUAS predições distintas do GP para o mesmo ponto: `eim_best` vem de uma e `u_best`/`s_best` do outro. Pela via do pool a identidade fecha: |max_pool - eim_best| < 1e-5 em 37.092/37.100 gerações da amostra (mediana 2,73e-09), inclusive nessas células. VEREDITO N1: a identidade estrutural que a F5/T11 fecharam em 1 semente é INVARIANTE DE SEMENTE — nenhuma semente quebra o mecanismo; a única fratura é metrológica, localizada em 1 máquina, 1 dia, 6 células.",
+ "N2_tetos_caidos": "CAÍRAM 5 tetos e 1 débito da T11. (1) 'Comportamento sob 30 sementes' (§9-v da T11, teto explícito) — CAI inteiro: este relatório. (2) 'Se a divergência Mac×vm3 é atribuível à máquina isoladamente — o par cruzado disponível é 1 célula' (§9-vi) — CAI: agora são 34 células de controle e 11 de tratamento, com atribuição inequívoca (ver N4). (3) 'Crash latente stock Infill_EIM.m:25→Optimizer_GA.m:17 NÃO exercitado (n_front==1 em 0 de 7.020)' (E14, T11) — CAI, e no sentido ruim: o crash É exercitado em 29 células (MATLAB:badsubscript, 'Index exceeds the number of array elements. Index must not exceed 1.'), 11,2% das 258 células D=10. Além disso a hipótese-gatilho da T11 é REFUTADA: n_front==1 não ocorre em NENHUMA das 173.440 gerações logadas, e as 29 células que quebram tinham n_front ∈ [2,10] na última geração completa. (Causa NÃO investigada — instrução 🔴 respeitada.) (4) 'Contabilidade de RNG / fórmula de semeadura' (T da T11, §9) — CAI PARCIALMENTE e passa a mensurável: os 676 `doe_hash` são 676 valores DISTINTOS e cada um bate com o sha256 do array float64 do artefato `data/doe/<prob>/doe_<prob>_<seed>.parquet` em 676/676; a ① `fase=='init'` reproduz o artefato arredondado a float32 com Δ = 0,0 EXATO em 645/645; 0 colisões de trajetória entre sementes em 645 células (as únicas 5 coincidências de PRIMEIRO infill, todas em MMF11_L, são cantos exatos da caixa — (0,1;0,1) em 4 sementes e (0,1;1,1) em 3 — não são colisão de semente). (5) 'B-03/I-09: a s42 não tem campanha_id/repo_hash e não terá' (N2 da T11, 0/25) — o DÉBITO É QUITADO na campanha nova: schema_version=2, campanha_id e repo_hash presentes em 645/645 manifestos, com `repo_hash` ÚNICO `63db46b100635a5cc21e8f5594271f481bc41416` nas 645, MATLAB único (25.1.0.2973910 R2025a Update 1), algo_version único, n_retries=0, fallback_ativado=False, cache_hits=1 e sonda.desligada=False em 645/645. (6) 'Determinismo/variância/taxa de sucesso' — todos medidos (N3 e N5). CONTINUAM T: T2 (operadores internos do GA — SBX/PM/torneio e as ~200 populações intermediárias; agora são 6.262.160.000 avaliações da aquisição irrecuperáveis, contra 259.880.000 na s42); o miolo do fmincon sqp (só θ_min/θ_max/θ_média e lnL são logados, nunca θ componente a componente); a frente float64 nas células que saturam em float32 (regra 11 do CONTRATO — reconfirmada: bracket vale em 14.040/14.040 gerações da amostra, exato em 12.714/14.040, discordâncias só em DTLZ4 480/480 e ZDT6 293/400); as 5 outras agregações do artigo (EIMm, EIMh, EIe, EIm, EIh) e o DE 50×50 — não existem braços; o remédio anti-clustering (§V-B(5)c) — nunca foi escrito no repo.",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "Propriedade de monotonicidade N1: se s1 = s2 e ŷ1 ≺ ŷ2 então EIMe(x1) > EIMe(x2) — o critério é monotonicamente decrescente na média predita.",
+   "onde_no_artigo": "§IV-C ('Monotonicity Properties of the Proposed Multiobjective EIM Criteria'), parágrafo 1",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA em 173.440/173.440 gerações (100,000%), 645 células, 25 problemas, 30 sementes. Teste: perturbei u_best em +1e-3·max(|u|,1) (piora da média predita, s fixo) e verifiquei que o EIMe reconstruído contra a frente ND da própria iteração NUNCA aumenta. Zero violações. Script n1n2.py."
+  },
+  {
+   "afirmacao": "Propriedade de monotonicidade N2: se ŷ1 = ŷ2 e s1 ≻ s2 então EIMe(x1) > EIMe(x2) — o critério é monotonicamente crescente na incerteza.",
+   "onde_no_artigo": "§IV-C, parágrafo 1 (e §VI, discussão do EIe que NÃO tem a propriedade)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA duas vezes. (a) No ponto do infill: σ×1,01 nunca diminui o EIMe em 173.440/173.440 gerações. (b) Sobre o POOL INTEIRO (todos os 10D candidatos de cada geração): 37.100/37.100 gerações da amostra de 195 células, isto é, 6.457.000 pontos, nenhuma violação. É a confirmação empírica mais forte que o corpus permite do teorema central do artigo."
+  },
+  {
+   "afirmacao": "Amostragem densa: 'the next point selected by the EIM criteria to evaluate would be anywhere but the sampled points'; logo a amostragem iterativa é densa e a convergência é garantida.",
+   "onde_no_artigo": "§IV-D, parágrafo 3 (linha 358 do .md)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA na parte empírica: min_dist_infill mínimo GLOBAL = 8,556e-05 (MMF4) em 173.440 gerações; 0 gerações abaixo de 1e-6 (o gatilho do próprio artigo é 1e-8, 4 ordens abaixo); 0 de 6.457.000 linhas de pool coincidem com ponto avaliado ANTERIORMENTE; n_dedup = 0 em 645/645 células. Fecha `SPEC:811` (anti-clustering ausente) com 25× mais evidência que a T11: o hazard não se materializa em NENHUMA das 30 sementes."
+  },
+  {
+   "afirmacao": "Premissa da convergência: 'if the studying point is not the same as any of the sampled points, the uncertainty would be positive (s>0) and thus the EI would be positive... When all the EIs in EI matrix are positive, the EIM criteria would be positive'.",
+   "onde_no_artigo": "§IV-D, parágrafo 3",
+   "testavel_com_30": true,
+   "resultado": "REFUTADA EM ARITMÉTICA DE PONTO FLUTUANTE, e agora com escala e reprodutibilidade. (a) eim_best == 0 EXATO em 4.423 gerações — TODAS em BBOB_F1, em 24/24 sementes, 92,1% do orçamento da célula, começando na geração 4-12 de 200 (mediana 8). Não é acidente de semente: é lei do config naquele problema. Consequência de leitura: em ~92% dos infills de BBOB_F1 o critério não decide nada e a busca é quase-aleatória na caixa — ainda assim IGD+ mediano 0,0226 com ganho de 24,1× sobre o DoE. (b) Contra-exemplo direto à premissa: MMF4 semente 3, geração 34, tem s_best com componente == 0 EXATO num ponto a min_dist = 0,0662 do vizinho amostrado mais próximo (1 em 173.440). O artigo é FIEL (a fórmula tem exatamente essa propriedade); é a CONCLUSÃO dele sobre convergência que é vazia em IEEE-754."
+  },
+  {
+   "afirmacao": "'The (multiobjective) EGO algorithm has poor performance on objective functions which are difficult for the Kriging model to approximate... often extremely multi-modal' — motivo declarado para o artigo EVITAR essas suítes.",
+   "onde_no_artigo": "§V-A ('Test Suites'), parágrafo 1",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA com 30 réplicas e sem ambiguidade. Os 3 piores resultados absolutos do config são exatamente os 3 casos que o artigo evitou: DTLZ3 (IGD+ mediano 231,59), DTLZ1 (71,67) e ZDT4 (49,21) — e HV = 0 em 30/30, 28/28 e 29/29 células respectivamente (87 de 87 células, sem uma única exceção de semente). DTLZ4 (α=100) soma HV=0 em 16/28. O elo causal também está medido: pela régua Sobol da sonda, os piores ajustes do kriging no bloco final são MMF1 (WAPE mediana 0,879), DTLZ4 (0,828), DTLZ1 (0,386), MMF4 (0,268), WFG9 (0,239) e DTLZ3 (0,238), contra 0,0002 em DTLZ7/BBOB_F1. NUANCE MEDIDA: ZDT4 falha (HV=0 em 29/29) apesar de o kriging ajustar bem na régua global (WAPE 0,077) — ali a dificuldade é a multimodalidade do g de Rastrigin, não a inaproximabilidade; o artigo funde as duas causas."
+  },
+  {
+   "afirmacao": "Estabilidade entre execuções: o artigo reporta mediana, média e desvio-padrão de HV e IGD sobre 10 execuções independentes e conclui competitividade/estabilidade do EIMe.",
+   "onde_no_artigo": "§V-B(1)d ('The number of independent runs is 10') e §V-C (Tabelas II-V, linhas 's.t.d')",
+   "testavel_com_30": true,
+   "resultado": "PARCIALMENTE CONFIRMADA — a ORDENAÇÃO reproduz, a MAGNITUDE não. Nas 3 instâncias compartilhadas com o artigo, CV = std/média do IGD do EIMe: artigo DTLZ2(m=3) 0,0205 < ZDT1 0,208 < ZDT3 0,376; nosso IGD+ em 30 sementes DTLZ2 0,123 < ZDT1 0,344 < ZDT3 0,448. Mesma ordenação 3/3, com dispersão nossa 1,2× a 6× maior — coerente com D 2× a 5× maior (12/30 contra n=6). Já a afirmação implícita de que o HV é ordens de grandeza mais estável que o IGD NÃO se sustenta no nosso regime: artigo ZDT1 CV(HV)=9,4e-05 contra CV(IGD)=0,208 (2.200×); nosso ZDT1 CV(HV)=0,071 contra CV(IGD+)=0,344 (4,8×). E a ordenação de dispersão do HV entre ZDT1 e ZDT3 INVERTE (artigo 0,0105 > 9,4e-05; nosso 0,065 < 0,071). CV(IGD+) por problema nas 30 sementes: mediana 0,173, mínimo 0,052 (WFG1), máximo 1,562 (ZDT6 — cauda pesada, IGD+ vai de 0,028 a 0,832)."
+  },
+  {
+   "afirmacao": "'the EIe criterion... is not able to improve the current Pareto front approximation constantly during the iterations' — por contraste, o EIMe, que TEM as propriedades de monotonicidade, melhora constantemente a aproximação.",
+   "onde_no_artigo": "§VI-A, parágrafo 2 (comentário sobre ZDT, linha 488 do .md)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA mas com valor probatório BAIXO, e digo por quê: o arquivo do c238 é puramente acumulativo (nenhum ponto é removido; ②=(init-1)+g em 645/645, 0 duplicatas), logo o IGD+ da frente do arquivo é não-crescente POR CONSTRUÇÃO e o teste é quase tautológico. O que é informativo e está medido é a MAGNITUDE do ganho de trajetória (IGD+ do DoE / IGD+ final, mediana entre sementes): mediana 2,7×, mínimo 1,1× (BBOB_F49), máximo 130,0× (ZDT6), com 56,1× em BBOB_F5, 28,3× em ZDT1, 24,1× em BBOB_F1, 23,8× em ZDT3 — e apenas 1,28× em DTLZ4, 1,32× em WFG4, 1,55× em WFG1. Isto é: em 4 dos 25 problemas as 200-600 iterações EGO valem menos que 60% de ganho sobre o LHS inicial."
+  },
+  {
+   "afirmacao": "§VI-D: EIMe e EIMm têm vantagem sobre a melhoria de hipervolume na identificação de frentes de Pareto DESCONTÍNUAS (ZDT3, DTLZ7).",
+   "onde_no_artigo": "§VI-A parágrafo 4 e §VI-C parágrafo 2",
+   "testavel_com_30": false,
+   "resultado": "NÃO TESTÁVEL com este corpus: é uma comparação INTERNA entre os 6 braços do artigo e nós temos só o EIMe (E12 — `criterion == 'Euclidean'` em 173.440/173.440). Não medido: os pisos (nsga2/nsga3/smsemoa/moead) não foram recalculados em 30 sementes nesta auditoria, então nem a âncora indireta que a T11 usou na s42 pode ser repetida. Para registro descritivo (sem veredito): ZDT3 IGD+ mediano 0,0493 em 23 sementes (8º melhor dos 25 problemas) e DTLZ7 0,1438 em 24 sementes."
+  },
+  {
+   "afirmacao": "Resumo: os critérios EIM são 'significantly cheaper to evaluate' que os critérios EI do estado da arte (integração por partes / Monte Carlo).",
+   "onde_no_artigo": "Resumo e §VI-E ('Comparison of the computational time')",
+   "testavel_com_30": false,
+   "resultado": "NÃO TESTÁVEL: não há braço EI no nosso grid e o benchmark de tempo do artigo é sintético (µ=10, s=2,5 fixos, 1.000 execuções). Só posso registrar o custo ABSOLUTO da nossa instância, que é dado: 6.262.160.000 avaliações do critério de aquisição nas 645 células (10D × 200 gerações do GA por infill), 171 h de tempo_busca contra 321 h de tempo_fit e 499,2 h de wall total — ou seja, no nosso regime o critério NÃO é o gargalo (o kriging é, 1,9× mais caro), o que é consistente com a tese do artigo mas não a testa."
+  }
+ ],
+ "N4_deriva": "A deriva cross-máquina do c238 NÃO é uma constante: é ZERO dentro da frota Linux homogênea e GRANDE quando o alvo muda. Medida em três eixos independentes. EIXO A — duplicatas vm1×vm5 (20 células, o recurso do §Proveniência 3): 16 células (todas semente 7, rodadas em 13/08 — vm1 ~02h UTC, vm5 ~19h UTC) são BIT-IDÊNTICAS: sha256 do `__real.parquet` igual, e todos os campos do ⑥ (eim_best, u_best, s_best, θ_min/max/média, lnL, norm_min/max/range, n_front, f_best, min_dist_infill) com Δ = 0,0 EXATO em 2.540 gerações, cobrindo D ∈ {2,7,10,12}; ΔIGD+ = ΔHV = 0,00%. As outras 4 (semente 12, rodadas em 14/08 — vm1 03h, vm5 12h47-13h) DIVERGEM a partir da GERAÇÃO 1, com o init bit-idêntico (ΔX=0 no DoE) e 200/200 infills diferentes, |ΔX| até 10 = 100% da amplitude da caixa: ΔIGD+ = +42,84% (BBOB_F17), −33,26% (BBOB_F37), +0,11% (BBOB_F49), −29,78% (ZDT6); ΔHV = 3,01% / 11,21% / 3,35% / 3,52%. EIXO B — a s42 foi RE-RODADA nesta campanha (agosto, vm5) e a T11 guardou a s42 de julho (7 Mac / 18 vm3) em `f5/t11/baterias/c238/mecanismo_s42.csv`: comparei geração a geração as 25 células. As 18 células que rodaram na VM3 EM JULHO têm `eim_best` BIT-IDÊNTICO à vm5 em agosto nas 3.980 gerações — ΔIGD+ mediano 0,0019% e máximo 0,028%, que é só o arredondamento a 5 casas da tabela da T11. As 7 células que rodaram no MAC em julho (DTLZ7, WFG1, WFG2, WFG4, WFG5, WFG9, MMF16_20 — exatamente as 7 marcadas 'mac' na §6 da T11) divergem a partir da geração 1 nas 3.040 gerações: ΔIGD+ mediano 4,78%, máximo 47,00% (DTLZ7 0,10952 → 0,16100). Correspondência 7/7 e 18/18 — é um experimento natural limpo. EIXO C — deriva INTRA-execução: as 6 únicas células de toda a campanha em que a identidade EIMe se afasta acima de 1e-6 (MMF1/17, MMF1/26, MMF4/17, MMF4/26, MMF11_L/17, MMF11_L/26) rodaram TODAS na vm5 dentro da janela 2026-08-14T11:01:58Z–11:02:25Z; nelas, pontos do pool com x idêntico em float32 recebem μ do GP diferindo em até 5,30% (MMF4) e 1,94% (MMF1), contra ≤ 4e-06 (piso do export float32) nos outros 22 problemas e nas outras 15 células D=2 da própria vm5 rodadas entre 07 e 12/08. NÚMERO PARA O AUTOR: para o c238, deriva = 0 (bit-exata) entre VMs Linux/x86_64 da frota m8 até 13/08 — 34 células e 6.520 gerações de evidência; deriva ≠ 0 e ACIMA DO PISO O-18 (HV ≤ 1,55%) por fator de até 7,2× quando o par cruza macOS↔Linux ou envolve a vm5 a partir de 14/08 (quando ela virou e2-standard-32 sem CPU fixada). Isto RESOLVE a escalação E-2 da T11: a divergência que ela mediu Mac×vm3 em 1 célula É atribuível à plataforma, e a doutrina 'floats não são bit-idênticos entre plataformas ⇒ fidelidade estatística' é CONSERVADORA DEMAIS para este config dentro da frota homogênea. 44 células canônicas do c238 rodaram em 14/08 (16 vm5, 16 vm1, 12 matlab-vm1) e são as que carregam a margem. Nota separada: NENHUMA célula canônica do c238 termina depois de 2026-08-14T15:20Z, logo a janela de swap da vm5 NÃO contamina o ④ deste config (wall total 499,2 h; célula mais cara ZDT3 semente 9, 22.328 s = 6h12, bem abaixo do teto de 12 h — o G5/checkpoint continua não exercitado).",
+ "N5_cauda": "Não há células ⚪ no c238 (0 de 501 da campanha). A cauda é 29 crashes + 2 truncadas + 74 ausentes. (A) CRASHES — 29 células, todas com rodapé `status:'failed'`, `identifier:'MATLAB:badsubscript'`, erro 'Index exceeds the number of array elements. Index must not exceed 1.' Causa NÃO investigada (instrução 🔴). O que MEDI: são EXCLUSIVAMENTE problemas D=10 (maxfe=309, init=109) — 29 de 258 células D=10 = 11,2%; zero em D=2, 7, 12, 20, 22, 30. Sempre nas 10 primeiras iterações EGO: fe_final ∈ {109,110,111,112,114,119}, com n_gens completas ∈ {0,1,2,3,5,10} — 22 das 29 morrem na PRIMEIRA iteração EGO (fe=110), logo o DoE inteiro é gasto e o EIM nunca chega a rodar. Taxa de sucesso POR PROBLEMA (ok/existentes, e ok/30 planejadas): BBOB_F5 17/27 = 63,0% (17/30 = 56,7%) · BBOB_F22 19/27 = 70,4% (63,3%) · ZDT6 27/30 = 90,0% · BBOB_F1 24/27 = 88,9% (80,0%) · BBOB_F55 24/27 = 88,9% (80,0%) · BBOB_F37 29/30 = 96,7% · ZDT4 29/30 = 96,7% · BBOB_F17 30/30 · BBOB_F49 30/30 · todos os 16 problemas não-D=10: 100% das existentes. DUAS CORREÇÕES AO LAUDO D0: (i) ele lista `c238×BBOB_{F1,F5,F22,F55} + ZDT6` — faltam BBOB_F37 (1/30) e ZDT4 (1/30); (ii) ele diz 'em fe≈110' — é 109–119. E uma REFUTAÇÃO: a hipótese da T11 (E14) de que o gatilho é `n_front==1` não se sustenta — n_front==1 não ocorre em NENHUMA das 173.440 gerações logadas do config, e as 29 células que quebram tinham n_front ∈ [2,10] na última geração completa. Leitura para o artigo: uma incapacidade de 11,2% concentrada em D=10 é um RESULTADO — o artigo roda tudo com n=6 e nunca expõe esse regime. (B) TRUNCADAS — ZDT1/7 e ZDT3/7: ⑥ SEM rodapé (547 e 527 gerações de 600), sem manifesto, sem `erro` e sem `motivo_parada`. Pelo O-21 não são ⚪ (não têm sentinela de checkpoint) nem falha do algoritmo (não têm exceção): são interrupção de processo. Estado indefinido — escalado. (C) AUSENTES — 74 células (9,9% do grid) nunca produzidas, concentradas nas sementes 12, 13, 17, 18, 25, 26 e nos 16 problemas mais caros (todos os D≥20 perdem 6-7 sementes; WFG9 perde também a semente 2; WFG4 a 24). Não há laudo cobrindo isso. (D) O QUE A CAUDA DIZ DO ALGORITMO, além do crash: o EIM é ESTRUTURALMENTE INERTE em BBOB_F1 — `eim_best == 0` EXATO em 4.423 de 4.800 gerações (92,1%) em 24/24 sementes, a partir da geração 4–12 de 200; e o kriging é NUMERICAMENTE INVÁLIDO (cota rigorosa σ̂² ≥ exp(−2·lnL/n) ≥ 1 com Y∈[0,1]) em 3.710 de 391.400 componentes-geração (0,95%), agora com escopo MAIOR que o da T11: MMF1 60/60 pares (30/30 sementes, cota até 2,17e+06), MMF4 60/60 (30/30, 5,10e+04), MMF11_L 30/60 (30/30, 5,29e+03) e — NOVO, a T11 não podia ver — ZDT6 11 pares em 7/30 sementes com cota até 1,06e+07, mais ZDT3 (1) e ZDT4 (1). Ou seja: a degeneração N1 não é privilégio de D=2.",
+ "N4_deriva_ignore": "n/a",
+ "aspectos": [
+  {
+   "id": "U1",
+   "aspecto": "Orçamento FE = 31D−1 com hard-stop exato",
+   "classe": "2",
+   "medicao": "fe_final == maxfe == 31D−1 em 645/645; termino='normal' 645/645; cp_init=true 645/645; ΣFE = 268.187 (contra 10.856 na s42). Sancionado por D21/D61/D63.",
+   "veredito": "conforme",
+   "muda_vs_s42": false,
+   "arquivo_linha": "scratchpad/c238/cells.csv"
+  },
+  {
+   "id": "U2",
+   "aspecto": "DoE 11D−1 vindo do artefato (D63/D88)",
+   "classe": "1",
+   "medicao": "doe_hash == sha256(float64 do artefato) em 676/676; 676 hashes DISTINTOS (uma por (problema,semente)); ①init == artefato arredondado a float32 com max|ΔX| = 0,0 EXATO em 645/645; n_doe == 11D−1 em 676/676.",
+   "veredito": "conforme — e agora a fórmula de semeadura é verificável, não assumida",
+   "muda_vs_s42": true,
+   "arquivo_linha": "data/doe/<prob>/doe_<prob>_<seed>.parquet"
+  },
+  {
+   "id": "U3",
+   "aspecto": "Um fit de kriging por iteração",
+   "classe": "1",
+   "medicao": "n_gens == n_geracoes−1 == n_infills em 645/645 ⇒ 173.440 fits (7.020 na s42).",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "U4",
+   "aspecto": "Cadência da sonda (g==1 ∨ g%2==0) + finalProbe",
+   "classe": "2",
+   "medicao": "cadência ok 645/645; finalProbe 645/645; 87.365 blocos × 2.000 pontos = 174.730.000 linhas; sonda.n_falhas = 0 em 645/645; ok=true em 100% dos blocos. Sancionado por DI-12.5.",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "U5",
+   "aspecto": "Join posicional sonda × gabarito",
+   "classe": "2",
+   "medicao": "não re-medido bit-a-bit em 30 sementes (a T11 provou em 1 célula). Evidência indireta: nos 712 pares amostrados o WAPE e a correlação contra o gabarito data/sonda/sonda_<PROB>.parquet são coerentes (corr mediana 0,98) e 0 σ-NaN — um join desalinhado não produziria isso.",
+   "veredito": "conforme por evidência indireta; prova bit-a-bit não medida nesta rodada",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "U6",
+   "aspecto": "WAPE / cobertura da sonda (definição §5)",
+   "classe": "2",
+   "medicao": "712 medições (158 células × 2 blocos × M objetivos); n_pontos=2.000 em 100% dos blocos; σ-NaN = 0; modelo_flag='OK-Forrester' em 712/712; espaco_modelo='cru' em 712/712 (a armadilha dos dois espaços da ③ confirmada).",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "U7",
+   "aspecto": "Invariante de tempo: tempo_fit + tempo_busca ≤ tempo_geracao",
+   "classe": "2",
+   "medicao": "0 violações em 174.555 registros. tempo_fit total 321 h, tempo_busca total 171 h, wall total 499,2 h. Sancionado por DI-13.10.",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "U8",
+   "aspecto": "fe_treino_max conforme o regime (arquivo inteiro)",
+   "classe": "1",
+   "medicao": "monotônico em 645/645 células; == n_amostra−1 em 173.440/173.440 gerações; n_dedup = 0 em 645/645.",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "U9",
+   "aspecto": "Reconciliação de guards ⑥ ≡ ⑤",
+   "classe": "2",
+   "medicao": "censo do ⑥ = {header:1, guard:1, sonda:n_blocos, c238_gen:n_gens, footer:1} em 645/645; único guard é cache_hit e bate com manifest.cache_hits=1 em 645/645.",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "U10",
+   "aspecto": "Aritmética entre camadas + ledger pós-infill (A1)",
+   "classe": "2",
+   "medicao": "② com n_gens+1 gerações em 645/645; n_front1(g) ≡ n_front(g+1) em 172.795/172.795 transições (6.995/6.995 na s42); c0 = 1 em 645/645 (cache_hits=1, dup_infill=0).",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "U11",
+   "aspecto": "Erro de fantasia do infill (viés otimista, cobertura 2σ)",
+   "classe": "2",
+   "medicao": "não medido nesta rodada: exigiria des-transformar μ/σ do infill em 173.440 gerações contra a ① — fora do orçamento. Fica com o número da T11 (otimista 73,84%, cobertura 76,27% em 15.740 componentes).",
+   "veredito": "não medido: escopo",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "E1",
+   "aspecto": "QUERY-JOIA — identidade fechada do EIMe (Apêndice A / eq. 22+23)",
+   "classe": "1",
+   "medicao": "|Δ| < 1e-5 em 173.413/173.440 gerações (99,9844%), mediana 8,61e-10, p99 7,21e-08, máximo 3,98e-03; pela via do pool, |max_pool − eim_best| < 1e-5 em 37.092/37.100 (mediana 2,73e-09). 22 dos 25 problemas em 100%; 28 das 30 sementes em 100%. As 27 exceções → C3-1.",
+   "veredito": "conforme — o uso da incerteza está PROVADO em escala de campanha",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/c238/joia_all.csv"
+  },
+  {
+   "id": "E2",
+   "aspecto": "argmax do pool ≡ infill e planura do pool",
+   "classe": "1",
+   "medicao": "argmax exato em 26.759/37.100 (72,1%; s42: 68,1%); gap relativo < 1e-6 em 36.955/37.100 (99,6%), gap máximo 5,37e-03; pool mediana/máximo 0,999999 (p05 0,995560), mínimo/máximo 0,999998.",
+   "veredito": "conforme — o critério correto é o gap, não o índice",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "E3",
+   "aspecto": "Contrafactual σ→0 (a incerteza é load-bearing?) + N2 do artigo",
+   "classe": "1",
+   "medicao": "σ→0 muda o argmax em 25.714/37.100 (69,3%); 76,2% excluindo as células D=2 (onde o pool colapsa); 78,6% excluindo também BBOB_F1 (saturação). Reproduz a s42 (75,7% / 77,0% / 79,2%) em 25 problemas × 30 sementes. N2 do artigo vale em 37.100/37.100 no pool e 173.440/173.440 no infill; N1 do artigo em 173.440/173.440.",
+   "veredito": "conforme — em ~3 de 4 iterações é a INCERTEZA, não a média predita, que escolhe o ponto",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "E4",
+   "aspecto": "Frente ND == paretofront (FEX-17251, dominância fraca sequencial)",
+   "classe": "1",
+   "medicao": "amostra de 50 células (2 sementes × 25 problemas, 14.040 gerações): n_front logado EXATO sob a semântica weak-sequential em 12.714/14.040 (90,6%) e DENTRO do bracket [weak, strict] em 14.040/14.040 (100%). Discordâncias só em DTLZ4 (480/480) e ZDT6 (293/400) — saturação float32, regra 11 do CONTRATO. n_front mínimo global = 2 em 173.440 gerações.",
+   "veredito": "conforme com teto float32 declarado",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "E5",
+   "aspecto": "Amostragem densa (§IV-D) com anti-clustering AUSENTE no repo (B10.7)",
+   "classe": "1",
+   "medicao": "min_dist_infill mínimo GLOBAL = 8,556e-05 em 173.440 gerações; 0 gerações < 1e-6 (gatilho do artigo: 1e-8); mínimo por problema entre 8,6e-05 (MMF4) e 11,47 (WFG4); 0 de 6.457.000 linhas de pool coincidem com ponto antigo; n_dedup=0 em 645/645.",
+   "veredito": "conforme — `SPEC:811` (anti-clustering) medida como NÃO-MATERIALIZADA em 30 sementes, não só em 1",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "E6",
+   "aspecto": "Saturação EIM ≡ 0 por underflow de Φ/φ",
+   "classe": "1",
+   "medicao": "eim_best == 0 EXATO em 4.423 gerações, TODAS em BBOB_F1, em 24/24 sementes, 92,1% do orçamento da célula, começando na geração 4–12 de 200 (mediana 8). ZERO ocorrências nos outros 24 problemas.",
+   "veredito": "conforme (a fórmula tem essa propriedade) — mas vira LEI do config, não acidente de semente: caveat de 1ª ordem",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "E7",
+   "aspecto": "Re-escala min-max de y para [0,1] (§V-B(5)a)",
+   "classe": "1",
+   "medicao": "verificado INDIRETAMENTE em 173.440 gerações: norm_min e norm_range_efetivo entram na reconstrução da frente da query-joia; se estivessem errados a identidade não fecharia em 99,984%. Verificação direta campo a campo não refeita (a T11 mediu desvio relativo máximo 5,71e-08 / 5,08e-08 e guard Δ=0 exato).",
+   "veredito": "conforme por evidência indireta em escala",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "E8",
+   "aspecto": "Kriging Forrester próprio (≠ DACE do artigo) — E.5/D29",
+   "classe": "2",
+   "medicao": "modelo_flag = 'OK-Forrester' em 712/712 linhas de sonda amostradas e no header de 645/645; 0 σ nulos na sonda; eco declarativo em params/sigma_dict/header. Sancionado por E.5/D29 (adotamos o código do 1º autor).",
+   "veredito": "desvio sancionado",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "E9",
+   "aspecto": "θ₀=1, bounds [1e-3,1e3] (do artigo) e motor de MLE (fmincon sqp single-start, MaxFunEvals=20D — do repo)",
+   "classe": "2",
+   "medicao": "0 violações de bound em 391.400 componentes-geração; saturação 145.766 no piso (37,2%) e 34.305 no teto (8,8%) — mesma assinatura da s42 (39,7%/7,1%); lnL final > inicial em 1.301/1.452 pares (célula,objetivo) e ABAIXO do máximo da própria trajetória em 838/1.452 (s42: 51/56 e 31/56); θ ≡ θ₀ = 1 EXATO (o fmincon não sai do lugar) em 1.180/391.400, em MMF1 (30/30 sementes), MMF11_L (30/30), MMF4 (26/30) e ZDT6 (1).",
+   "veredito": "desvio sancionado; o miolo do sqp permanece T",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "E10",
+   "aspecto": "GA nativo do repo no lugar do DE do artigo (DEF-B10.2/D30)",
+   "classe": "2",
+   "medicao": "ga_pop == 10D e ga_gens == 200 em 173.440/173.440 ⇒ 6.262.160.000 avaliações do critério de aquisição (contra 259.880.000 na s42; contra 10.000 fixos por infill do DE do artigo). Desvio é PARA MAIS em D≥10.",
+   "veredito": "desvio sancionado (D30/DEF-B10.2) e medido",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "E11",
+   "aspecto": "③ = população final do GA (DEF-C2) + eim_mediana_pool (DI-10)",
+   "classe": "2",
+   "medicao": "pool_n == 10D em 37.100/37.100 gerações amostradas (6.457.000 linhas); identidade da mediana recomputada ≡ eim_mediana_pool com rel<1e-5 em 36.606/37.100. Em D=2 o número de x ÚNICOS no pool é 1 (mediana) — colapso total do GA (A2), contra 299 em D=30.",
+   "veredito": "desvio sancionado; DI-10 quase redundante neste config",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "E12",
+   "aspecto": "EIMe hardcoded (o artigo propõe 3 agregações e não elege default)",
+   "classe": "2",
+   "medicao": "criterion == 'Euclidean' em 173.440/173.440 eventos + eco no header de 645/645. Consequência canônica: temos 1 dos 6 braços do artigo.",
+   "veredito": "desvio sancionado",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "E13",
+   "aspecto": "Calibração de σ ao longo do run (régua Sobol da sonda)",
+   "classe": "2",
+   "medicao": "158 células, 356 pares (célula,objetivo): WAPE melhora do 1º ao último bloco em 163/356 (45,8%); cobertura 2σ mediana 0,897 → 0,938; 130/356 pares terminam com cobertura < 0,90. Extremos do bloco final: DTLZ7 WAPE 0,0002 / BBOB_F1 0,0002 contra MMF1 0,879 (cobertura 0,504) e DTLZ4 0,828.",
+   "veredito": "desvio sancionado (instrumentação nossa); confirma o padrão 'aprende onde é suave, explode fora do suporte'",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "E14",
+   "aspecto": "Guards [IMPL] silenciosos + crash latente stock",
+   "classe": "2",
+   "medicao": "guards: n_eim_nan = n_range0 = n_dedup = 0 somados sobre 173.440 gerações; n_front == 1 em 0/173.440. MAS o crash stock DEIXOU DE SER LATENTE: 29 células abortam com MATLAB:badsubscript, 11,2% das 258 células D=10 (0% fora de D=10).",
+   "veredito": "desvio sancionado (D81 — o hazard foi deliberadamente não consertado); mas o teto 'não exercitado' CAIU",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "T1",
+   "aspecto": "Não-perturbação da sonda (invariante 🔴 do CONTRATO §3.1)",
+   "classe": "2",
+   "medicao": "o par G-6 não foi refeito (é da T11). Evidência nova, declarativa e de orçamento: sonda.desligada = False em 645/645, n_falhas = 0 em 87.365 blocos, e fe_final == maxfe == 31D−1 em 645/645 — a sonda não consome FE em nenhuma das 30 sementes.",
+   "veredito": "conforme; prova bit-a-bit permanece a da T11",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "N1",
+   "aspecto": "Degeneração numérica do kriging quando R fica quase-singular (cota σ̂² ≥ exp(−2·lnL/n); lnL ≤ 0 ⟹ σ̂² ≥ 1 com Y∈[0,1])",
+   "classe": "2",
+   "medicao": "3.710 de 391.400 componentes-geração (0,95%) com lnL ≤ 0, em 163/1.452 pares (célula,objetivo). ESCOPO AMPLIADO vs T11: MMF1 60/60 pares em 30/30 sementes (cota até 2,17e+06), MMF4 60/60 em 30/30 (5,10e+04), MMF11_L 30/60 em 30/30 (5,29e+03) e — NOVO — ZDT6 11 pares em 7/30 sementes (cota até 1,06e+07), ZDT3 1 par, ZDT4 1 par. Isto é: a degeneração NÃO é privilégio de D=2.",
+   "veredito": "desvio sancionado na CAUSA (nugget (10+n)·eps e motor de MLE são do código oficial; bounds de θ são do artigo), mas caveat de 1ª ordem na CONSEQUÊNCIA — agora com 6 problemas, não 3",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/c238/mle_pares.csv"
+  },
+  {
+   "id": "N2",
+   "aspecto": "Proveniência de campanha (B-03 campanha_id / I-09 repo_hash / schema v2)",
+   "classe": "2",
+   "medicao": "645/645 manifestos com schema_version=2, campanha_id e repo_hash; repo_hash ÚNICO (63db46b100635a5cc21e8f5594271f481bc41416) em 645/645; MATLAB único; algo_version único; n_retries=0; fallback=False; params presente em 645/645. Ressalva: DOIS campanha_id — 7f4f0e429a46_M8 (633) e 63db46b10063_2026-08-14 (12, o re-despacho da semente 12).",
+   "veredito": "conforme — o débito que a T11 registrou (0/25 na s42) está QUITADO",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "N3",
+   "aspecto": "Reprodutibilidade entre máquinas / piso de ruído O-18",
+   "classe": "2",
+   "medicao": "deriva = 0 BIT-EXATA entre VMs Linux/x86_64 até 13/08 (34 células, 6.520 gerações: 18 vm3-jul↔vm5-ago com eim_best idêntico e ΔIGD+ ≤ 0,028%; 16 vm1↔vm5 com sha256 da ① idêntico e ΔIGD+ = ΔHV = 0,00%). Deriva GRANDE macOS↔Linux (7/7 células, ΔIGD+ mediano 4,78%, máximo 47,00%) e vm1↔vm5 em 14/08 (4/4, ΔIGD+ 0,11–42,84%, ΔHV 3,01–11,21% = até 7,2× o piso O-18 de 1,55%).",
+   "veredito": "desvio sancionado e AGORA QUANTIFICADO — resolve a escalação E-2 da T11",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/c238/tempos.csv + ~/mestrado_coleta_m8/matlab-vm{1,5}/experiments/main/c238/"
+  },
+  {
+   "id": "T2",
+   "aspecto": "Operadores internos do GA (SBX/PM/torneio, populações intermediárias)",
+   "classe": "T",
+   "medicao": "continua invisível: só o pool final é logado. Agora são 6.262.160.000 avaliações da aquisição e ~34,7 milhões de populações intermediárias irrecuperáveis.",
+   "veredito": "teto de verificabilidade — fora do denominador",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "P1",
+   "aspecto": "Integridade do ⑥ em append (G1/B-11) em escala de campanha",
+   "classe": "1",
+   "medicao": "0 linhas malformadas em 264.545 linhas de 676 arquivos; 645/645 com header=1 e footer=1; 31/676 sem footer (29 com rodapé de falha, 2 sem rodapé nenhum).",
+   "veredito": "conforme",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "P2",
+   "aspecto": "Presença de camadas por célula (⑦ ausente por desenho — c238 é main/online)",
+   "classe": "1",
+   "medicao": "645/645 células ok têm exatamente ①②③④⑤⑥ e NENHUM arquivo inesperado; 31/31 células quebradas têm só o ⑥. ⑦ ausente em 676/676 — correto para main/online.",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "P3",
+   "aspecto": "Determinismo / não-colisão entre sementes",
+   "classe": "1",
+   "medicao": "0 trajetórias de infill repetidas entre sementes distintas em 645 células; 676 doe_hash distintos. As únicas 5 coincidências de PRIMEIRO infill (MMF11_L) são cantos exatos da caixa — (0,1;0,1) em 4 sementes, (0,1;1,1) em 3 — máximo da aquisição na fronteira, não colisão de RNG.",
+   "veredito": "conforme",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "P4",
+   "aspecto": "Cobertura do grid (células existentes vs planejadas)",
+   "classe": "3",
+   "medicao": "676 de 750 = 90,1%; 74 ausentes sem laudo, concentradas nas sementes 12,13,17,18,25,26 e nos 16 problemas mais caros (todos os D≥20 perdem 6-7 sementes).",
+   "veredito": "inexplicado 🎯 — escalado (C3-3)",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "P5",
+   "aspecto": "Consistência interna do ⑥ (eim_best vs u_best/s_best do mesmo registro)",
+   "classe": "3",
+   "medicao": "quebra em 27 de 173.440 gerações (0,016%), 6 células, todas na vm5 na janela 2026-08-14T11:01:58Z–11:02:25Z. Amplificação medida: pontos do pool com x idêntico em float32 recebem μ diferindo em até 5,30% (MMF4) e 1,94% (MMF1), contra ≤ 4e-06 nos outros 22 problemas.",
+   "veredito": "inexplicado 🎯 mas INVESTIGADO E BENIGNO (C3-1) — o x avaliado é o mesmo; a identidade fecha pela via do pool",
+   "muda_vs_s42": true
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C3-1",
+   "descricao": "INCONSISTÊNCIA INTERNA DO ⑥ EM REGIME DEGENERADO. Em 27 de 173.440 gerações (0,016%), o `eim_best` logado NÃO é reproduzível a partir do `u_best`/`s_best` do MESMO registro contra a frente ND da própria iteração — resíduo absoluto até 3,98e-03 (relativo até 5,4e-03). Descartei as duas explicações baratas: (a) NÃO é semântica de frente — recomputei as 27 sob paretofront weak-sequential e sob ND-padrão e o valor é idêntico; (b) NÃO é float32 — a perturbação implícita em F seria 0,03–0,04 em unidades do objetivo, ~1e6 ULPs. A causa medida: nessas gerações o pool de 20 candidatos tem TODOS o mesmo x em float32 (colapso A2 do GA em D=2), mas carrega DUAS predições distintas do GP para ele — em MMF1/17 geração 34, 8 linhas com mu_1=−3,399930 (EIM = 3,560883 = eim_best) e 12 linhas com mu_1=−3,396024 (EIM = 3,557403 = o que u_best/s_best dão). Ou seja, duas avaliações da mesma predição divergem em 0,1%, o que com cond(R) ≈ 1e15 (T11-N1) corresponde a uma diferença de entrada ~1e-8. Escopo exato: MMF1 (13 gens), MMF4 (12), MMF11_L (2); sementes 17 e 26; TODAS na vm5, TODAS na janela de 30 s 2026-08-14T11:01:58Z–11:02:25Z — o dia em que a vm5 virou e2-standard-32 sem CPU fixada. As outras 15 células D=2 da própria vm5, rodadas entre 07 e 12/08, têm resíduo ≤ 2,8e-08.",
+   "gravidade": "menor — benigno para o resultado (o ponto avaliado é o mesmo; a identidade fecha pela via do pool em 37.092/37.100), mas invalida o ⑥ como fonte auto-consistente nessas 6 células",
+   "acao": "declarar caveat de leitura para MMF1/MMF4/MMF11_L sementes 17 e 26; NÃO re-rodar (m8-freeze). Item para o PLANO_RODADA_PERFEITA: fixar a CPU das VMs (ou exigir shape homogênea) quando o config tiver kriging mal-condicionado. Decisão de fidelidade do autor (D81).",
+   "arquivo_linha": "scratchpad/c238/joia_all.csv (filtro abs>=1e-5) + joia_outliers.py"
+  },
+  {
+   "id": "C3-2",
+   "descricao": "CONTRA-EXEMPLO À PREMISSA §IV-D DO ARTIGO. Em MMF4 semente 3, geração 34, `s_best` tem uma componente == 0,0 EXATO num ponto cuja distância ao vizinho amostrado mais próximo é min_dist_infill = 0,0662. O artigo afirma explicitamente que a incerteza é positiva em qualquer ponto que não coincida com um ponto amostrado (é a premissa de onde ele deriva a garantia de convergência). Aqui a mse do kriging foi clampada a 0 pelo guard `sqrt(max(mse,0))`. Frequência: 1 em 173.440 gerações; 1 de 391.400 componentes. O EIM da geração continua positivo (0,2958) porque o outro objetivo tem s>0.",
+   "gravidade": "mínima em frequência, mas conceitual: é a refutação empírica direta da premissa da garantia de convergência",
+   "acao": "registrar como errata de leitura do artigo (a garantia §IV-D é verdadeira em aritmética exata e falsa em IEEE-754); nenhuma ação de código. Somar ao caso maciço de BBOB_F1 (4.423 gerações com EIM≡0 em 24/24 sementes)."
+  },
+  {
+   "id": "C3-3",
+   "descricao": "COBERTURA INCOMPLETA DO GRID SEM LAUDO. 74 das 750 células (9,9%) simplesmente não existem — não são ⚪, não são falha, não têm ⑥. Padrão: sementes 13, 17 e 26 faltam em 16 problemas; 12, 18 e 25 faltam nos 13 problemas mais caros; WFG9 perde também a semente 2 e WFG4 a semente 24. Todos os problemas com D≥20 (DTLZ7, MMF16_20, WFG1/2/4/5/9, ZDT1, ZDT3) ficam com 23 ou 24 sementes. Nenhum dos laudos citados no briefing cobre isto.",
+   "gravidade": "média — não é fidelidade do algoritmo, é do corpus; mas desbalanceia as comparações por semente e reduz o n das células mais caras justo onde a variância importa",
+   "acao": "ESCALAR ao autor (D81): decidir se completa as 74 células, se declara o grid como 676 células, ou se documenta a ausência. Nada foi decidido por mim."
+  },
+  {
+   "id": "C3-4",
+   "descricao": "O LAUDO D0 DAS INCAPACIDADES ESTÁ INCOMPLETO E A HIPÓTESE-GATILHO DA T11 ESTÁ REFUTADA. (a) O laudo lista `c238×BBOB_{F1,F5,F22,F55} + ZDT6`; as 30 sementes mostram também BBOB_F37 (1/30) e ZDT4 (1/30) com o MESMO MATLAB:badsubscript. (b) O laudo diz 'em fe≈110'; o medido é 109–119, sempre nas 10 primeiras iterações EGO, e 22 das 29 morrem na PRIMEIRA (fe=110). (c) O escopo real é 'todos os problemas D=10': 29 de 258 células D=10 = 11,2%, e ZERO fora de D=10. (d) A E14 da T11 inferiu que o gatilho seria `n_front==1` (o crash stock Infill_EIM.m:25→Optimizer_GA.m:17): n_front==1 NÃO ocorre em nenhuma das 173.440 gerações logadas, e as 29 células que quebram tinham n_front ∈ [2,10] na última geração completa. NÃO investiguei a causa (instrução 🔴 respeitada).",
+   "gravidade": "média — corrige um laudo em uso e remove uma hipótese falsa que pode desviar a investigação pendente da torre",
+   "acao": "ESCALAR: atualizar o LAUDO_D0_falhas_sistematicas.md com os 7 problemas D=10, a faixa 109–119 e a refutação de n_front==1. A investigação da causa continua com a torre.",
+   "arquivo_linha": "~/mestrado_coleta_m8/_analise/LAUDO_D0_falhas_sistematicas.md"
+  },
+  {
+   "id": "C3-5",
+   "descricao": "DUAS CÉLULAS EM ESTADO INDEFINIDO PELO O-21. ZDT1 semente 7 e ZDT3 semente 7: ⑥ SEM rodapé, truncados em 547 e 527 de 600 gerações, sem manifesto, sem campo `erro` e sem `motivo_parada`. Pelo O-21 o rodapé é a autoridade — e aqui não há rodapé. Não são ⚪ (não têm sentinela de checkpoint), não são falha do algoritmo (não têm exceção): são interrupção de processo. Ambas em 13/08 às 22:57 UTC. Observação relacionada: a semente 7 é a única que tem cópia completa em DUAS VMs para 17 problemas, o que sugere re-despacho.",
+   "gravidade": "menor — 2 células de 676, mas o censo as conta como 'fail' sem distinguir do crash determinístico, o que polui a taxa de sucesso do ZDT1/ZDT3",
+   "acao": "ESCALAR: classificar como interrupção de infraestrutura (não incapacidade do algoritmo) e separá-las das 29 do MATLAB:badsubscript na contabilidade. Verificar se as cópias das VMs vm1/vm5 têm versão completa."
+  },
+  {
+   "id": "C3-6",
+   "descricao": "HETEROGENEIDADE DE campanha_id. 633 células em `7f4f0e429a46_M8` e 12 em `63db46b10063_2026-08-14` — o re-despacho da semente 12 em 14/08, com o campo `env.host` grafado `matlab-vm1` em vez de `vm1` (as outras 633 usam nome curto). O `repo_hash` é IDÊNTICO nos dois lotes, então não há risco de código; mas o lote de 14/08 é exatamente onde a identidade bit-a-bit cross-máquina quebra (4/4 duplicatas divergem).",
+   "gravidade": "menor — registro de proveniência",
+   "acao": "registrar; marcar as 44 células canônicas rodadas em 14/08 (16 vm5 + 16 vm1 + 12 matlab-vm1) como o lote que carrega a margem de deriva cross-máquina."
+  }
+ ],
+ "score": 9,
+ "score_t11": 9.5,
+ "veredito_recomendado": "RECOMENDO ACEITAR com 4 caveats de leitura declarados. (Recomendação, não sentença — o veredito de fidelidade é do autor, D97.) O MECANISMO está mais provado do que estava: a query-joia do Apêndice A fecha em 173.413/173.440 gerações (25× o corpus da T11, mediana 8,61e-10), as duas propriedades de monotonicidade do §IV-C do artigo valem em 173.440/173.440, a propriedade §IV-D de amostragem densa vale com folga de 4 ordens em 30 sementes, o contrafactual σ→0 reproduz a s42 (69,3% global / 78,6% fora dos regimes patológicos) e os 18 desvios continuam todos com decisão sancionadora citável e assinatura medida conforme o declarado. ZERO defeitos de mecanismo em 645 células. Os 4 caveats: (a) BBOB_F1 — o critério satura em 0 EXATO em 92,1% do orçamento em 24/24 sementes; aquela célula mede DoE + busca quase-aleatória, não EIM; (b) N1 — o kriging fica numericamente inválido (σ̂² ≥ 1 com Y∈[0,1]) em MMF1, MMF4 e MMF11_L nas 30/30 sementes e AGORA TAMBÉM em ZDT6 em 7/30 (cota até 1,06e+07): não é mais 'as 3 células D=2'; (c) D=10 — o config tem incapacidade de 11,2% (29/258) por MATLAB:badsubscript e as taxas de sucesso por problema (BBOB_F5 56,7%, BBOB_F22 63,3%) precisam entrar na análise como resultado, não como falha operacional; (d) máquina — comparações que cruzem macOS↔Linux ou envolvam a vm5 a partir de 14/08 carregam ΔHV de até 11,2% (7,2× o piso O-18) e ΔIGD+ de até 47%; dentro da frota Linux até 13/08 a deriva é ZERO bit-exata e o piso pode ser 0.",
+ "decisoes_ao_autor": [
+  "MOVIMENTO DO SCORE 9,5 → 9,0 · CAUSA NOMEADA: não é o mecanismo (esse SUBIU de nível de prova — 7.020 → 173.440 gerações na query-joia, e as propriedades N1/N2 do artigo fecharam 100% em 25 problemas × 30 sementes). É a passagem de 0 para 6 aspectos classe (3), NENHUM deles no algoritmo: 2 de instrumentação em regime degenerado (C3-1 inconsistência eim_best×u_best na vm5 de 14/08; C3-2 s_best=0 exato), 3 de corpus/censo (C3-3 74 células ausentes; C3-5 2 células em estado indefinido; C3-6 dois campanha_id) e 1 de correção do laudo D0 (C3-4). Pela régua da casa ('9 = com (3) menores investigados e provados benignos') a nota é 9,0. Se o autor considerar os itens de corpus (C3-3, C3-5, C3-6) fora do denominador de FIDELIDADE, a nota sobe para 9,3 — decisão dele.",
+  "ESCALAÇÃO 1 (a mais importante) — A DOUTRINA RUNBOOK §6.2 É CONSERVADORA DEMAIS PARA ESTE CONFIG, E ISSO TEM VALOR. Medi 34 células e 6.520 gerações em que duas VMs Linux/x86_64 DIFERENTES produziram resultado BIT-IDÊNTICO (sha256 da ① igual; θ, lnL, eim_best, u_best, s_best com Δ=0,0 exato). O piso de ruído entre VMs homogêneas do c238 é ZERO, não 1,55%. A quebra é atribuível e datável: macOS↔Linux (7/7 células, ΔIGD+ até 47%) e vm5 a partir de 14/08 (4/4, ΔHV até 11,2%). RECOMENDO: substituir o piso único O-18 por um piso CONDICIONADO à plataforma no c238 — 0 dentro da frota Linux homogênea, e marcar como não-comparáveis os pares que cruzam OS ou que envolvem vm5 pós-14/08. Isto RESOLVE a escalação E-2 que a T11 deixou aberta (ela só tinha 1 célula).",
+  "ESCALAÇÃO 2 — O CRASH DEIXOU DE SER LATENTE E O LAUDO ESTÁ DESATUALIZADO. 29 células (11,2% das 258 D=10) morrem com MATLAB:badsubscript entre fe=109 e fe=119. O laudo D0 lista 5 problemas; são 7 (faltam BBOB_F37 e ZDT4). E a hipótese-gatilho da T11 (n_front==1) está REFUTADA: n_front==1 não ocorre em nenhuma das 173.440 gerações e as células que quebram tinham n_front ∈ [2,10]. NÃO investiguei a causa (instrução 🔴). RECOMENDO: atualizar o laudo com os 7 problemas, a faixa correta e a refutação, para não desviar a investigação pendente da torre; e reportar a taxa de sucesso por problema no artigo como RESULTADO (o artigo roda tudo com n=6 e nunca expõe o regime D=10).",
+  "ESCALAÇÃO 3 — N1 SAIU DE D=2. A T11 fechou a degeneração numérica do kriging como 'MMF1/MMF4/MMF11_L, todas D=2'. Com 30 sementes ela aparece também em ZDT6 (D=10) em 7 de 30 sementes, com cota σ̂² até 1,06e+07 — a MAIOR de todo o config — mais 1 par em ZDT3 e 1 em ZDT4. O caveat de leitura do D97 precisa incluir ZDT6, e as sementes afetadas estão listadas em scratchpad/c238/mle_pares.csv. Nas 3 células D=2 a degeneração é UNIVERSAL: 30/30 sementes, não uma peculiaridade da s42.",
+  "ESCALAÇÃO 4 — DECIDIR O QUE FAZER COM AS 74 CÉLULAS AUSENTES (9,9% do grid) E COM AS 2 TRUNCADAS. Não escolhi por você (D81). As ausências desbalanceiam justamente os problemas caros (todo D≥20 fica com 23-24 sementes) e as sementes 12/13/17/18/25/26. As 2 truncadas (ZDT1/7, ZDT3/7) estão contadas como 'fail' no censo junto com os 29 crashes determinísticos, o que distorce a taxa de sucesso de ZDT1 e ZDT3.",
+  "PARA O ARTIGO (o que 30 sementes autorizam escrever e 1 não autorizava): (i) as duas propriedades de monotonicidade do §IV-C valem em 173.440/173.440 avaliações — é a confirmação empírica mais forte que o corpus permite do teorema central do paper; (ii) a propriedade §IV-D de amostragem densa vale com min_dist ≥ 8,6e-05, quatro ordens acima do gatilho do próprio artigo, o que ARQUIVA `SPEC:811` (anti-clustering ausente) com 30 sementes — RECOMENDO reclassificar de ⚠ ABERTA para 🟠 CÓDIGO documentado + MEDIDA; (iii) a garantia de convergência do §IV-D é VAZIA em ponto flutuante — 4.423 gerações com EIM ≡ 0 exato em 24/24 sementes de BBOB_F1 (92,1% do orçamento) mais 1 contra-exemplo direto de s=0 a distância 0,066; (iv) a afirmação §V-A do artigo ('desempenho ruim onde o Kriging não aproxima') CONFIRMA-SE de forma limpa: HV=0 em 87 de 87 células de DTLZ1/DTLZ3/ZDT4, com o elo causal medido na sonda — mas com a nuance de que ZDT4 falha apesar de um kriging bom na régua global (WAPE 0,077), o que separa 'inaproximável' de 'multimodal', duas causas que o artigo funde; (v) a ORDENAÇÃO de estabilidade do artigo (DTLZ2 < ZDT1 < ZDT3 em CV do IGD) reproduz 3/3 em 30 sementes, com dispersão nossa 1,2× a 6× maior — coerente com D 2× a 5× maior.",
+  "ARTEFATOS DESTA AUDITORIA (todos em /private/tmp/claude-501/-Users-gmello/33c29160-6eb6-4277-a041-db4855486063/scratchpad/c238/, nada escrito no repo, nenhuma célula rodada, experiments.py/experiment.m nunca invocados): scan6.py + cells.csv + gens_slim.csv (varredura total do ⑥, 676 arquivos) · joia_all.py + joia_all.csv (query-joia, 173.440 gerações) · joia_outliers.py (autópsia das 27 exceções) · pool.py + pool.csv (E2/E3/E11 + amplificação, 195 células) · n1n2.py (N1/N2 do artigo, 173.440 gerações) · mle.py + mle_pares.csv + mle_comp.csv (E9/N1, 391.400 componentes) · metr2.py + metricas30.csv (IGD+/HV/IGD/GD/spacing nas 645 células) · sonda.py + sonda30.csv (qualidade do kriging, 712 pares) · manifests.csv + tempos.csv (proveniência e datas) · bracket.log (semântica da frente, 14.040 gerações)."
+ ]
+}

@@ -1,0 +1,134 @@
+{
+ "config": "b5r (Prob-RVEA mode 7; exp=off; DESDEO vendorizado; env_b5 py3.7.12/sklearn 0.21.3/numpy 1.21.6, Linux/x86_64, pinning BLAS=1) — RODADA FINAL: 725 sintéticas herdadas do F30 + 90 reais (o ÚNICO config com cobertura completa RE21+DDMOP7+ESTOQUE40). Bateria READ-ONLY: nenhuma célula executada, experiments.py/MATLAB nunca invocados; artefatos em /private/tmp/claude-501/-Users-gmello/16c0ba84-843b-49d1-9ce6-6cecc418b734/scratchpad/ (b5r_final_bateria1.csv, b5r_final_bateria2.csv, b5r_final_fe40.csv, b5r_final_teto32.csv, b5r_final_hv7.csv)",
+ "celulas_final": "TOTAL b5r no censo_final: 836 = 815 `off` + 21 sweeps de ondas antigas (sweep-small-lhs 6 · sweep-small-mvns 5 · sweep-medium-lhs 5 · sweep-medium-mvns 5; todas ok, herdadas, não re-auditadas nesta rodada). As 815 `off`: 725 sintéticas (25 problemas × 29 sementes; s26 segue AUSENTE) + 90 reais (RE21 30 · DDMOP7 30 · ESTOQUE40 30, sementes {0–28,42} COMPLETAS incl. s26). Estados O-21: **815/815 ok · motivo=orcamento · 0 ⚪ teto_wall · 0 failed · 0 manifest×rodapé em conflito**. Rodapé (autoridade): 2 rodapés `ok` em 814; 1 rodapé `ok` válido em DDMOP7/0 (foto A53 — ver invalidas/ressalvas). ⑥ das 90 reais: 680.748 eventos decision (1 por geração, 90/90), fe≡maxfe em 680.748/680.748, 0 guard, flag_vetores_degenerados populado 100% (norma ∈[1−2e−16;1], n_norma_zero=0), n_retries=0, fallback=False, cache_hits=0, tempo_aval_real_s=null 90/90",
+ "celulas_invalidas": [
+  {
+   "celula": "DDMOP7/* (30 células)",
+   "motivo": "⑦ (endpoint real) AUSENTE em 30/30 — o rodapé e params.nd_final DECLARAM: D102.9/Processo B, ⑦ é pós-hoc via scripts/final_eval.py em máquina com MATLAB Engine — mas o final_eval NUNCA rodou para a campanha (nenhum __final.parquet de DDMOP7 em nenhum dos 21 configs). Células VÁLIDAS sob O-21 (rodapé ok, contrato próprio completo); a camada pendente impede HV/comparação de endpoint e a régua fase-2 pooled (D102.3)",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "DDMOP7/0",
+   "motivo": "é a 'foto offline sob a codificação' do REGISTRO A53 (bate exato: 526/526, 928 gerações): rodou 80 min antes das irmãs, na vm5, sob o commit 3240f4b2 (as outras 29: 7be66e65), com 1 rodapé (falta o do despachante) e SEM etapa de upload. git diff 3240f4b2..7be66e65 toca SÓ src/metrics.py (guard pós-hoc), scripts/lote3s.sh, docs e tests — ZERO código de algoritmo ⇒ mecanismo idêntico. Válida sob O-21 (rodapé 1 com status ok, fe_final, n_geracoes coerentes com ⑤)",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  },
+  {
+   "celula": "ESTOQUE40/10 e ESTOQUE40/27",
+   "motivo": "LHS da geração 1 com 39/40 dimensões perfeitas (as outras 88 células: D/D). Causa MEDIDA: colisão de estrato por quantização float32 — os pontos colididos estão a 0,0 e 1,5e−06 do limiar do estrato (u·105 exatamente no limiar); não é quebra de LHS, é persistência float32 (regra 11)",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  }
+ ],
+ "novas_desde_f30": "+90 células reais, todas com mtime 2026-08-15 (a campanha T15, pós m8-freeze): RE21 30 (vm1) · ESTOQUE40 30 (vm1) · DDMOP7 30 (vm5: 1 foto A53 sob commit 3240f4b26fae + 29 sob 7be66e65522c, diff sem código de algoritmo). SINTÉTICAS: conjunto de células IDÊNTICO ao F30 (725=725, diff vazio nas duas direções), campanha 7f4f0e429a46_M8/repo 63db46b1 e mtimes 08-02..08-13 nos spot-checks ⇒ mesmos artefatos que o F30 auditou — HERDAM o veredito F30. Spot-check de herança (10 células, 10 problemas × 10 sementes): campanha/repo/2-rodapés/fe≡maxfe/⑦≡③ = 10/10; query-jóia > 0,5 em 9/10 (mediana 0,637 ≈ F30); a exceção DTLZ3/42 dá jóia 0,0000 exato = a assinatura de célula degenerada que o próprio F30 catalogou (s42 é a exceção μ-constante do DTLZ3, não σ-teto — consistente com N5 do F30)",
+ "mecanismo_nos_novos": "QUERY-JÓIA A11 (σ(descartado)>σ(mantido) por transição pai→filho, X bit-a-bit) rodada na ÍNTEGRA das 90 células novas — 30/30 sementes, 343.181 transições válidas: **186.614 hits = 54,38%, z = 51,3** contra a nula σ-cega. POR PROBLEMA: **DDMOP7 65,98% (z=55,4; 29/30 células>0,5)** · RE21 53,62% (z=37,0; 14/30) · ESTOQUE40 51,51% (z=7,0; 24/30). Decomposição que importa: nas 23 RE21 SADIAS a fração pooled é **49,86% — o efeito σ SOME** (GP quase-interpolante em D=4 com N=123: σ minúsculo e quase-constante, população colapsa a 1–2 membros ⇒ comparações 1×1 sem contraste); nas 7 RE21 com f1-GP colapsado a jóia volta a 0,50–0,77 via o canal σ do f2. O mecanismo declarado do artigo está VIVO e invariante de semente onde há σ para discriminar (DDMOP7), e morre exatamente onde a teoria prevê (σ constante — mesmo modo de morte que o F30 mediu nos sintéticos). Erro/nula: sob H0 a fração esperada é 50%; os 54,38% têm desvio-padrão binomial 0,085 pp",
+ "reais": "**RE21 (30 células, N=31·4−1=123 ✓)**: formulação fechada RE-VERIFICADA nesta rodada — reimplementação independente minha reproduz f do ① (3.690 pontos) com erro rel máx 1,6e−07 e a ⑦ com 2,0e−07 (float32); bounds 100%. n_geracoes bimodal 2.128–19.953: pop sobrevivente colapsa a 1–2 em 26/30 (40k FE ÷ 2/ger ≈ 20k gerações). **7/30 células (s3,s9,s10,s11,s12,s13,s42) com GP do f1 colapsado ao prior** (σ0 no teto float32 √1000=31,62277603 em ≥99,9% da sonda) — e o custo INVERTE: HV D69 mediano 0,299 (colapsadas) × 0,119 (sadias), p=0,061 — as 'sadias' de σ minúsculo fazem fronts piores. **DDMOP7 (30, N=526 ✓)**: SEM sonda 30/30 com S=0 e motivo D102.10 DECLARADOS no ⑤ ✓; zona morta τ=0,5 no params 30/30; DoE CRU 30/30 e propostas CRUAS na ③ 30/30 (regra §T15.13 aplicável); f0·17 inteiro (máx dev 4,8e−07) e f1·690 inteiro (2,1e−05 ≤ quantum float32 8e−05) nos 15.780 pontos de ①; checa_regua OFICIAL (src/metrics.py): 150/150 chamadas passam, avisos_regua VAZIO. **A pergunta da rodada: o padrão ⑦ f1=1,0 em 47/47 (confirmado por mim na ⑦ do smoke de 14/08 em _quarentena_smokes) ESTÁ MORTO — frac(nnz_efetivo=17) na última geração = 0,0 em 30/30**; nnz(x_efetivo) mediano 0–4, ND μ-space com nnz 0–6 (faixa do front); dedup por x_efetivo MUDA |ND| em 12/30 células (Δ até 11; 1.296 pontos finais → 988 únicos) — a regra de leitura é obrigatória. ⑦ pós-hoc PENDENTE 30/30 (última geração 22–48 pontos < P_CODE_CAP 600 ⇒ final_eval passa quando rodar); f2 do ① chega a 0,855 > nadir fase-1 0,678 — mais um dado de que a fase 2 pooled é obrigatória. **ESTOQUE40 (30, N=1239 ✓)**: minmax_caixa (D102.19) ATIVO e correto 30/30 (d_tipica ~2.372 > teto ls=100; RE21/DDMOP7 ficam 'cru' 30/30 — gate perfeito); recomputação independente de f1/f2/f3 do .npz congelado (sha256 660b5896 ✓) fecha a ⑦ com erro rel máx 2,0e−07. **A BIMODALIDADE que anotei ESTÁ EXPLICADA: são 4/30 células (s1,s2,s27 no f1; s16 no f2) com o GP de UM objetivo colapsado ao prior — σ do objetivo cravado no teto √1000 em 100% de busca E sonda, μ constante (spread ≤5e−13) ⇒ seleção naquele eixo vira ruído MC ⇒ churn ~100% das transições (vs 46–57% nas 26 sadias), runs mais longos (2.914–4.856 ger vs 2.850–2.861), fronts menores (6–7 ND vs 14/14 nas 26 sadias) e HV mediano 0,269 × 0,826 (Mann-Whitney p=7,3e−05)**. Eco A35 medido: {s1,s2,s27} ⊂ {1,2,4,27} = as sementes que colapsavam 7/7 BBOBs no F30 (P(overlap≥3 de 4 ao acaso) ≈ 0,4%); s1/s27 degeneram também no DDMOP7 (μ-flatness) — o acoplamento de semente entre problemas atravessou para os reais. Invariantes de contrato nas 90: orçamento interno 40.000 fecha 90/90 com a regra de prole do SBX vendorizado (ímpar arredonda PARA CIMA, l.51-54): FE_antes ∈[39.954;40.000] ≤ 40.000 < FE_final ∈[40.001;40.046], overshoot mediano 5 ≤ |prole|; ② vazia 90/90; real_solution_id NULL 90/90; ④ 1 linha 90/90; interseção X(busca)×X(dataset)=0 90/90; ⑦≡③ última geração 60/60; ND recomputado ≡ nd_pos_real 60/60 e ≡ rodapé 60/60; f_best ⑥×③ exato float32 em 23.635/23.635 gerações (3 células); U7 falha 9/90 com gap 1,5e−05–6,1e−05 = 1–2 ULP float32 (regra 11, mesmo artefato do A29)",
+ "aspectos_mudados": [
+  {
+   "id": "A6/A36",
+   "o_que": "colapso do GP ao prior — agora nos problemas REAIS, com custo assimétrico",
+   "antes": "F30: 104/725 sintéticas (14,3%), σ no teto √1000, HV mediano 0,0000 vs 0,1851 (p=2,3e−13); leitura semente-dependente",
+   "agora": "11/90 reais (12,2%): EST40 4/30 (s1/s2/s27 f1 · s16 f2 — 100% busca+sonda no teto, μ constante; é a explicação da bimodalidade; HV 0,269×0,826, p=7,3e−05) e RE21 7/30 (f1 ≥99,9% da sonda) onde o custo INVERTE (HV 0,299×0,119, p=0,061); DDMOP7 0/30"
+  },
+  {
+   "id": "A11",
+   "o_que": "query-jóia (mecanismo do artigo)",
+   "antes": "sintéticos: 59,91% em 165.461 transições, z=80,6; zerada nas colapsadas",
+   "agora": "reais: 54,38% em 343.181 transições (z=51,3), na ÍNTEGRA das 90 células; gradiente DDMOP7 66,0% > RE21 53,6% > EST40 51,5%; NOVA morte medida: 49,86% nas 23 RE21 sadias (σ quase-constante e pops de 1–2 — sem contraste para discriminar)"
+  },
+  {
+   "id": "A16/A17",
+   "o_que": "orçamento 40k + overshoot",
+   "antes": "75/75 sintéticas, overshoot ∈[1;47]",
+   "agora": "90/90 reais, overshoot ∈[1;46] mediana 5, com a regra de prole ímpar→par-para-cima do SBX vendorizado explicitada (SimulatedBinaryCrossover.py:51-54)"
+  },
+  {
+   "id": "A23",
+   "o_que": "sonda/⑤.sonda",
+   "antes": "20.000×1 bloco em 725/725, sonda_x_hash constante por problema",
+   "agora": "RE21/EST40 20.000×1 com f_hash constante por problema 60/60; DDMOP7 S=0 com motivo D102.10 DECLARADO no ⑤ 30/30 — a exceção é sancionada e auditável"
+  },
+  {
+   "id": "A37/C1",
+   "o_que": "upload_status",
+   "antes": "upload_failed AttributeError em 725/725 (M8)",
+   "agora": "PERSISTE em 89/90 da campanha T15 (mesma exceção) — o uploader não foi consertado entre campanhas; exceção: DDMOP7/0 (foto, sem etapa de upload)"
+  },
+  {
+   "id": "A38/C2",
+   "o_que": "semente 26",
+   "antes": "ausente em 25/25 problemas (29 réplicas)",
+   "agora": "PRESENTE nos 3 reais (30 réplicas {0–28,42}) e segue ausente nos 25 sintéticos ⇒ denominador HÍBRIDO 29×30 dentro do próprio config"
+  },
+  {
+   "id": "A39 (novo)",
+   "o_que": "D102.19 — espaço de entrada do GP",
+   "antes": "não existia (piso congelado no EST40 era bloqueador 🔴 do T15)",
+   "agora": "gate vivo, declarado (⑥ b5_espaco_entrada_gp + 20ª chave do sigma_dict) e CORRETO 90/90: cru (RE21 d_tipica 0,36; DDMOP7 1,35) · minmax_caixa (EST40 2.372,6 > teto ls=100); b5r/EST40 anda em 30/30 células (churn ≥46%)"
+  },
+  {
+   "id": "A40 (novo)",
+   "o_que": "D102.17 — zona morta τ=0,5 (DDMOP7)",
+   "antes": "smoke 14/08 pré-codificação: ⑦ com f1=1,0 exato em 47/47 (re-lido por mim na quarentena)",
+   "agora": "τ declarado no ⑤ 30/30; DoE cru 30/30; ③ grava x_PROPOSTO cru 30/30 (regra §T15.13); o canto degenerado MORREU: frac(nnz_efetivo=17)=0,0 em 30/30, nnz efetivo do ND μ-space 0–6"
+  },
+  {
+   "id": "A41 (novo)",
+   "o_que": "⑦ do DDMOP7 (D102.9 pós-hoc)",
+   "antes": "smoke tinha ⑦ de Engine real (hoje em _quarentena_smokes)",
+   "agora": "0/30 células da campanha com ⑦ — declarado no rodapé e no params.nd_final, mas o final_eval nunca rodou (em nenhum dos 21 configs); recuperável sem re-run"
+  },
+  {
+   "id": "A13/A26-LHS",
+   "o_que": "LHS da geração 1",
+   "antes": "1.053/1.053 dimensões perfeitas (sintéticos)",
+   "agora": "3.148/3.150 nos reais; as 2 colisões (EST40/10 d4, EST40/27 d11) estão a ≤1,5e−06 do limiar do estrato = quantização float32, não quebra"
+  },
+  {
+   "id": "A29/U7",
+   "o_que": "coerência de tempo",
+   "antes": "83/725 violações de 1–2 ULP float32",
+   "agora": "9/90, gaps 1,5e−05–6,1e−05 — mesmo artefato (regra 11), taxa compatível"
+  },
+  {
+   "id": "A31/A34",
+   "o_que": "proveniência da campanha",
+   "antes": "M8: campanha e repo únicos em 725/725",
+   "agora": "T15: DOIS commits na config (3240f4b2: 61 células; 7be66e65: 29 DDMOP7 pós-pull-da-vm5) — diff auditado por mim: só metrics.py/lote3s.sh/docs/tests, ZERO código de algoritmo; DDMOP7/0 = foto A53 documentada no REGISTRO"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C3-NOVO",
+   "descricao": "⑦ do DDMOP7 ausente em 30/30 células do b5r (e em TODOS os 21 configs): o passo pós-hoc D102.9 (scripts/final_eval.py com MATLAB Engine numa VM) nunca foi executado para a campanha. Sem ele: sem endpoint real, sem HV do DDMOP7, e a régua fase-2 pooled (D102.3, OBRIGATÓRIA — o próprio dado fura o nadir fase-1: f2 até 0,855 > 0,678) não pode ser gravada. As últimas gerações têm 22–48 pontos < P_CODE_CAP 600 ⇒ o final_eval passa quando rodar. Não é omissão silenciosa (rodapé e params declaram), mas o corpus 'congelado' está com uma camada faltando",
+   "gravidade": "alta para a ANÁLISE (o único config com DDMOP7 offline completo fica sem HV), nula para o mecanismo (③ íntegra)",
+   "acao": "ESCALAR (D81): decisão do autor — disparar o final_eval pós-hoc nas VMs (é leitura pós-hoc do .p, não re-run de célula; eu NÃO disparei nada — MATLAB Engine é proibido no Mac e a execução é ato do autor). Alternativa: declarar DDMOP7 comparável só em espaço μ/③ com a regra x_efetivo",
+   "arquivo_linha": "resultados_experimentos/b5r/DDMOP7/*/exp_off_b5r_DDMOP7_*.jsonl (rodapé final_pos_hoc) · scripts/final_eval.py:196-199"
+  },
+  {
+   "id": "C1-PERSISTE",
+   "descricao": "upload_failed: AttributeError('Request' object has no attribute 'session') em 89/90 manifestos da campanha T15 — a MESMA falha dos 725/725 do M8 (F30/C1); o uploader não foi consertado entre campanhas e o b5r segue sem réplica de bucket. A escalação do F30 sobre os configs bucket-only continua em aberto",
+   "gravidade": "média — zero impacto no algoritmo; impacto em redundância/proveniência",
+   "acao": "escalar (D81), reiterando o F30: varredura de upload_status nos 5 configs bucket-only da D54 antes de qualquer análise que dependa da ③ deles; para o b5r, declarar 'sem réplica remota'",
+   "arquivo_linha": "exp_off_b5r_<prob>_<seed>.manifest.json, chave upload_status (89/90)"
+  },
+  {
+   "id": "C2-MUTOU",
+   "descricao": "denominador de réplicas HÍBRIDO dentro do config: sintéticos 29 sementes (s26 ausente — o buraco de despacho do regime off do F30), reais 30 sementes (s26 presente). Qualquer agregação por-config ou comparação sintético×real do b5r cruza n=29 com n=30",
+   "gravidade": "baixa-média — não corrompe dado; corrompe denominador declarado se não for explicitado",
+   "acao": "decisão do autor (já escalada no F30): sob congelamento, declarar no texto '29 réplicas nos sintéticos offline, 30 nos reais'",
+   "arquivo_linha": "f5/final/censo_final.csv (alg=b5r, exp=off, coluna semente)"
+  }
+ ],
+ "score_final": 9.1,
+ "trajetoria_scores": "F5 9,0 (bateria s42, 666 células: mecanismo fiel, caveats científicos, 1 classe-(3) fechado) → T11 9,0 (MANTEVE: 2 novos (3) de instrumentação read-only, benignos e com causa provada) → F30 9,2 (+0,2: os 2 (3) da T11 corrigidos e medidos em censo total; A31 elevado a 36 pares cross-VM bit-exatos; contra: C1 upload e C2 semente 26) → **FINAL 9,1 (−0,1)**. Causa nomeada do movimento: (+) o corpus real completo entra com ZERO defeito de mecanismo — as 7 camadas fecham nas 90 células (①regua/recomputação exata · ②vazia · ③LHS/40k/interseção-zero · ④1-linha · ⑤completo com zona_morta/sonda-D102.10/D102.19 declarados · ⑥íntegro 680.748 eventos · ⑦≡③+ND 60/60), o checa_regua oficial passa 150/150, e o canto degenerado f1=1,0 do DDMOP7 morreu sob a codificação (0/30 vs 47/47 no smoke); (−0,1) TRÊS pontas que o F30 não tinha ou não fechou: a camada ⑦ do DDMOP7 está PENDENTE em 30/30 (C3 — buraco de endpoint no corpus congelado, ainda que recuperável sem re-run), o C1 atravessou intacto para a campanha nova (era consertável), e o colapso do GP atravessou para os reais (11/90, com custo catastrófico no EST40 e sinal invertido no RE21). Não desce a 9,0 porque nada disso toca mecanismo, contrato ou métrica das células existentes — e a herança dos sintéticos foi verificada (725=725, spot 10/10)",
+ "veredito": "RECOMENDO **ACEITAR AS 815 CÉLULAS `off` COMO VÁLIDAS SOB O-21** (725 sintéticas herdando o veredito F30 + 90 reais novas), **COM 1 PENDÊNCIA DE CAMADA (⑦ DDMOP7, recuperável pós-hoc), 3 ESCALAÇÕES D81 E 2 CAVEATS CIENTÍFICOS PARA O TEXTO** — o veredito é do autor (D97); eu produzo evidência e recomendação. Zero células a excluir; zero re-run necessário (coerente com o congelamento). O b5r chega ao fim da série como o config mais bem provado do corpus: mecanismo do artigo vivo e invariante de semente nos sintéticos (F30) e agora medido nos 3 problemas reais (jóia 54,38%, z=51,3, com o gradiente DDMOP7>RE21/EST40 explicado pela teoria do próprio artigo), determinismo cross-VM bit-exato (F30), formulação RE21 e ESTOQUE40 re-verificadas por reimplementação independente com erro ≤2e−07, e a codificação D102.17 comprovadamente funcionando onde o T15 mediu que ela era necessária. As fraquezas remanescentes são de protocolo (⑦ pendente, uploader, denominador híbrido) e de ciência (colapso do GP agora nos reais) — nenhuma de fidelidade de implementação",
+ "decisoes_ao_autor": [
+  "**D81/C3 — disparar (ou dispensar) o final_eval pós-hoc do DDMOP7.** A ⑦ não existe em nenhuma célula DDMOP7 da campanha (21 configs). Para o b5r: últimas gerações com 22–48 pontos < P_CODE_CAP 600 ⇒ passa. Sem isso o DDMOP7 não tem HV e a régua fase-2 pooled (D102.3) — que o próprio dado exige (f2 do ① até 0,855 > nadir fase-1 0,678) — não pode ser gravada. É leitura pós-hoc do .p nas VMs, não re-run de célula; a decisão de que isso cabe sob 'não vou executar mais' é sua. Eu não disparei nada.",
+  "**D81/C1 — o uploader continua quebrado** (89/90 manifestos novos com a mesma AttributeError do M8). Reitero a escalação do F30 sobre os 5 configs bucket-only; para o b5r basta declarar 'sem réplica remota'.",
+  "**D81/C2 — denominador híbrido**: 29 sementes nos 25 sintéticos × 30 nos 3 reais, dentro do mesmo config. Sob congelamento, declarar os dois denominadores no texto.",
+  "**Caveat científico nº 1 — o colapso do GP ao prior atravessou para os reais e o custo NÃO é monotônico.** 11/90 células (12,2%): no EST40 (4/30: s1,s2,s27 no f1; s16 no f2) é catastrófico — HV 0,269×0,826 (p=7,3e−05), churn 100%, fronts 6–7 vs 14 — e É a explicação da bimodalidade que eu tinha anotado (agora com 4 membros, não 2); no RE21 (7/30, f1 na sonda ≥99,9%) o sinal INVERTE: as colapsadas fazem HV MAIOR que as 'sadias' (0,299×0,119, p=0,061), porque as sadias têm σ quase-nulo, população de 1–2 e 20 mil gerações de deriva. Vai para o texto, não para a lista de bugs.",
+  "**Caveat científico nº 2 — o eco do A35 nos reais**: {s1,s2,s27} do colapso EST40 ⊂ {1,2,4,27} que colapsavam 7/7 BBOBs (P≈0,4% ao acaso), e s1/s27 degeneram também no DDMOP7 — as réplicas seguem não-independentes entre problemas para o modo de falha do surrogate, mesmo com (M,D) distintos.",
+  "**Regra de leitura §T15.13 é OBRIGATÓRIA em qualquer contagem DDMOP7**: dedup por x_efetivo muda |ND| em 12/30 células (Δ até 11; 1.296 pontos finais → 988 únicos). E a resposta à pergunta da rodada: o padrão pré-zona-morta (⑦ 47/47 com f1=1,0, confirmado por mim na quarentena) está morto — 0/30 células com ponto denso na última geração; quando a ⑦ pós-hoc rodar, espere f1 ≈ (nnz+1..2)/17 com nnz 0–6 no ND.",
+  "**Nota de leitura para a jóia em problemas 'fáceis' (RE21)**: com D=4 e N=123 o GP quase interpola, σ é minúsculo e quase-constante, e a seleção probabilística degenera na genérica POR CONSTRUÇÃO (jóia 49,86% nas 23 células sadias). Se o texto usar a jóia como evidência do mecanismo, o enquadramento certo é 'o efeito existe onde há incerteza para discriminar' — DDMOP7 66,0% é o caso forte.",
+  "**DDMOP7/0 = foto A53**: recomendo declará-la no texto como célula da campanha com proveniência distinta (commit anterior — diff sem código de algoritmo, medido por mim —, 1 rodapé, sem upload). Nenhuma ação além de declarar."
+ ]
+}

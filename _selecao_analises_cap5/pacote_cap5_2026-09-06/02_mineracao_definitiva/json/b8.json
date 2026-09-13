@@ -1,0 +1,326 @@
+{
+  "id": "b8",
+  "sigla": "KTA2",
+  "titulo": "A Kriging-Assisted Two-Archive Evolutionary Algorithm for Expensive Many-Objective Optimization",
+  "ano": 2021,
+  "roster": false,
+  "setup": {
+    "benchmarks": "DTLZ1-DTLZ7 e WFG1-WFG9 (suítes-padrão, Huband et al. [52]), M in {3,4,6,8,10} objetivos; D=10 para todos os problemas DTLZ; D=10,10,9,9,11 para WFG em M=3,4,6,8,10 respectivamente (config. de [31]/HSMEA). 80 instâncias no total (35 DTLZ + 45 WFG). Nenhum problema real, MMF ou BBOB.",
+    "orcamento": "Máximo de 300 avaliações reais por execução; tamanho de dados iniciais = tamanho de população = N = 100 (DoE via Latin hypercube sampling); portanto ~200 FEs de busca; eta=5 novas amostras selecionadas por ciclo (a cada 10 gerações de CCA/CDA).",
+    "execucoes": "30 execuções independentes por instância (algoritmo x problema x M).",
+    "baselines": "5 SAEAs da literatura: ParEGO, MOEA/D-EGO, KRVEA, CSEA, HSMEA. Todos são surrogate-assisted; NAO ha piso evolutivo sem surrogate (nem NSGA-II, NSGA-III, MOEA/D ou SMS-EMOA) na comparacao.",
+    "metricas_principais": [
+      "IGD",
+      "IGD+ (indicador principal nas Tabelas III e IV)",
+      "PD - pure diversity (só no material suplementar, Table S-I)"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum (WRS) test, alfa=0.05, símbolos +/aprox/- relativos a KTA2 (o artigo chama o mesmo teste também de 'Wilcoxon signed rank test' em um ponto)"
+    ],
+    "apresentacao": "média(desvio-padrão) sobre 30 execuções independentes; melhor resultado em negrito; símbolo (+/aprox/-) do teste de Wilcoxon ao lado de cada baseline, relativo a KTA2 (superior/inferior/equivalente); linha final de cada tabela com contagem agregada de +/aprox/- por baseline; contagem narrativa de 'melhores resultados' por algoritmo.",
+    "codigo_plataforma": "PlatEMO (MATLAB) para todos os algoritmos comparados, exceto HSMEA (código próprio dos autores originais, cedido pelos autores - agradecido nos Acknowledgments); modelos Kriging construídos com o Matlab Toolbox DACE, hiperparâmetros no intervalo [1e-5, 1e5]."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade ao parâmetro de amostragem aleatória da estratégia de incerteza (phi)",
+      "grupo_sugerido": "E",
+      "descricao": "O artigo varia o parâmetro phi (número de indivíduos sorteados aleatoriamente de CDA antes de escolher, entre eles, o de maior incerteza, na Estratégia de Amostragem por Incerteza - Algoritmo 3) em {0.1N,0.3N,0.5N,0.7N,0.9N}, com tau fixo em 0.80, no problema DTLZ1 com 10 objetivos, ao longo de 30 execuções independentes. Compara o IGD médio resultante entre os cinco valores via gráfico de perfil de desempenho (Fig. 8a). phi controla o quão 'puro'/guloso é o critério de incerteza dentro do subconjunto amostrado.",
+      "literal": "To evaluate the effects of different values of φ, we first test a series of values φ ∈ {0.1N, 0.3N, 0.5N, 0.7N, 0.9N} when τ = 0.80",
+      "localizador": "Sec. IV-B, Fig. 8(a)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum teste estatístico formal - comparação por gráfico de perfil de desempenho (performance profile) sobre 30 execuções"
+      ],
+      "convencoes": "IGD médio (não mediana) sobre 30 execuções independentes; um gráfico de perfil por valor de phi; DTLZ1, M=10, D=10.",
+      "achado": "phi=0.1N obteve o melhor resultado; phi=0.9N o segundo melhor; os autores justificam a escolha final de phi=0.1N (o menor valor testado, não um intermediário) citando o risco de que indivíduos de incerteza muito alta prejudiquem a convergência do algoritmo.",
+      "aplicabilidade": "não reproduzível - KTA2 e suas variantes internas não estão no roster experimental da dissertação; nenhuma camada foi gravada para este algoritmo, e a sensibilidade a phi exigiria re-executar o algoritmo com valores diferentes do parâmetro, o que a dissertação não faz (só análises pós-hoc)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade ao limiar de pontos influentes do modelo substituto (tau)",
+      "grupo_sugerido": "E",
+      "descricao": "Com phi fixado em 0.1N (valor escolhido no estudo anterior), o artigo varia tau em {0.70,0.75,0.80,0.85,0.90,0.95} - o limiar que define a fração de dados 'não influentes' usada para construir os dois modelos insensíveis - no mesmo problema DTLZ1 (M=10), 30 execuções independentes, reportando o IGD médio (Fig. 8b). tau=0.75 é escolhido como ajuste padrão para os demais experimentos do artigo.",
+      "literal": "Next, we vary parameter τ to examine the effects of different τ values. In this set of experiments, τ ∈ {0.70, 0.75, 0.80, 0.85, 0.90, 0.95} are tested on DTLZ1",
+      "localizador": "Sec. IV-B, Fig. 8(b)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum teste estatístico formal"
+      ],
+      "convencoes": "IGD médio sobre 30 execuções independentes; um ponto por valor de tau; DTLZ1, M=10, D=10, phi=0.1N fixo.",
+      "achado": "tau=0.75 é o melhor; aumentar tau (menos pontos tratados como influentes) piora o desempenho porque DTLZ1 é multimodal e gera muitos pontos influentes que passam a contaminar o modelo; tau=0.70 (mais pontos tratados como influentes) também piora, porque dados normais passam a ser descartados junto com os influentes - um trade-off em U.",
+      "aplicabilidade": "não reproduzível - mesma limitação: KTA2 não está no roster; tau é um parâmetro de construção do modelo substituto (robustez da média predita a outliers), não de medição/uso da incerteza propriamente dita, e exigiria reconstruir o modelo com dados removidos, o que não é recuperável a partir das camadas gravadas de outros algoritmos."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo substitui o modelo substituto de KTA2 (o modelo insensível a pontos influentes) pelo Kriging original, criando a variante KTA2(O), e compara ambos em IGD médio(dp) sobre 30 execuções independentes em DTLZ1 com M em {3,4,6,8,10}, com teste de Wilcoxon rank-sum (alfa=0.05) e símbolos +/aprox/-. É uma ablação de componente que isola o efeito do tratamento de pontos influentes na qualidade da média predita - não da incerteza (sigma) em si.",
+      "literal": "The average IGD results of KTA2(O) and KTA2 based on 30 independent runs on DTLZ1 problems with different numbers of objectives are presented in Table I",
+      "localizador": "Sec. IV-C, Table I",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum (WRS), alfa=0.05, símbolos +/aprox/-, referência fixa = KTA2 vs KTA2(O)"
+      ],
+      "convencoes": "média(desvio-padrão) de IGD sobre 30 execuções independentes; melhor resultado em negrito; símbolo relativo à comparação KTA2 vs KTA2(O).",
+      "achado": "KTA2 (com o modelo insensível a pontos influentes) vence KTA2(O) (Kriging original) nos 5 níveis de M testados em DTLZ1, com diferença estatisticamente significativa em M=4 e M=10 (símbolo '+'); nos demais M o símbolo é 'aprox' apesar do valor médio de KTA2 ser sempre melhor. O ganho é atribuído ao maior número de pontos influentes gerados pela paisagem multimodal de DTLZ1.",
+      "aplicabilidade": "não reproduzível - exige rodar a variante KTA2(O) (Kriging original sem tratamento de pontos influentes), que não existe nas camadas gravadas; KTA2 não está no roster da dissertação."
+    },
+    {
+      "fichas": [
+        11,
+        15
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo compara KTA2 (amostragem adaptativa completa: convergência+diversidade+incerteza, escolhida por um mecanismo de avaliação de estado) contra seis variantes que usam subconjuntos das três estratégias - puras (KTA2(C), KTA2(D), KTA2(U)) ou pares (KTA2(D+U), KTA2(C+U), KTA2(C+D)) - em DTLZ1, DTLZ2, DTLZ4 e WFG5 (M=3), 30 execuções independentes, reportando IGD médio(dp) e rank médio por algoritmo (Tabela II). É uma ablação fatorial dos três componentes do critério de infill, incluindo o braço 'somente incerteza' (KTA2(U)) e o braço 'sem incerteza' (KTA2(C+D)).",
+      "literal": "To further discuss the role of the adaptive sampling strategy in KTA2, we compare KTA2 with the other six variants which are described as follows.",
+      "localizador": "Sec. IV-D, Table II",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum teste estatístico formal - ranking pela média do IGD entre os 7 métodos (rank médio sobre 4 problemas)"
+      ],
+      "convencoes": "média(desvio-padrão) de IGD sobre 30 execuções independentes; melhor em negrito; coluna adicional de rank médio sobre os 4 problemas.",
+      "achado": "A estratégia adaptativa completa (KTA2) obtém o melhor rank médio (1.00/7); KTA2(U) (somente incerteza) fica entre as três piores tanto em DTLZ1 quanto em DTLZ2 (rank médio geral 5.75/7, penúltimo lugar) - a incerteza isolada não é suficiente e só é competitiva quando combinada com convergência e/ou diversidade conforme o estado detectado; já em WFG5 (problema enganoso) KTA2(U) sozinho obtém o 3º lugar, sugerindo que a incerteza pura ajuda mais em paisagens enganosas.",
+      "aplicabilidade": "não reproduzível - exige rodar as 6 variantes internas KTA2(C)/(D)/(U)/(D+U)/(C+U)/(C+D), nenhuma das quais foi executada na dissertação; KTA2(C+D) equivale ao contrafactual sigma=0 e KTA2(U) ao 'somente sigma' da ficha 15, mas apenas o próprio artigo os executou - a dissertação não recria essas variantes (não roda novos experimentos)."
+    },
+    {
+      "fichas": [
+        45
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para os mesmos quatro problemas do estudo de ablação (DTLZ1, DTLZ2, DTLZ4, WFG5, M=3), o artigo conta quantas vezes cada uma das três estratégias de amostragem (convergência, diversidade, incerteza) foi de fato acionada pelo mecanismo de avaliação de estado, em média sobre 30 execuções independentes (Fig. 9). É uma contagem do acionamento do mecanismo interno, não um resultado de desempenho.",
+      "literal": "we collect the number of using each sampling strategy on different problems in 30 independent runs. The average outcome is summarized in Fig. 9.",
+      "localizador": "Sec. IV-D, Fig. 9",
+      "metricas": [
+        "contagem média de acionamentos por estratégia (convergência/diversidade/incerteza)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "número médio de vezes que cada estratégia foi escolhida pelo mecanismo de avaliação de estado, sobre 30 execuções independentes, por problema; gráfico de barras agrupado.",
+      "achado": "A estratégia de convergência domina em DTLZ1; a de diversidade domina em DTLZ2 e (junto com uso alto de convergência) em DTLZ4; em WFG5 a diversidade também é a mais usada, mas a estratégia de incerteza é usada visivelmente mais vezes do que nos outros três problemas - evidência mecânica, alinhada ao achado da Tabela II, de que a demanda por incerteza é detectada com mais frequência em paisagens enganosas (deceptive).",
+      "aplicabilidade": "não reproduzível diretamente - corresponderia à camada 6 (o 'filme') da dissertação, mas exige rodar KTA2 (fora do roster) para gerar o log de decisões internas; nenhum dado equivalente foi capturado para este algoritmo."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparação principal do artigo: KTA2 contra 5 SAEAs da literatura (HSMEA, CSEA, KRVEA, MOEA/D-EGO, ParEGO) em 35 instâncias DTLZ1-DTLZ7 (M em {3,4,6,8,10}), 30 execuções independentes, métrica IGD+, teste de Wilcoxon (alfa=0.05) com símbolos +/aprox/- relativos a KTA2, melhor valor em negrito. Ao final da tabela, contagem agregada de +/aprox/- por baseline.",
+      "literal": "The results of IGD+ values achieved by the six algorithms under comparison over 30 independent runs on DTLZ1 to DTLZ7 are summarized in Table III",
+      "localizador": "Sec. IV-E-1, Table III",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum / signed-rank (o artigo usa as duas denominações), alfa=0.05, símbolos +/aprox/-, referência fixa = KTA2 (não 'o melhor de cada problema')"
+      ],
+      "convencoes": "média(desvio-padrão) de IGD+ sobre 30 execuções independentes; melhor em negrito; símbolo ao lado de cada baseline relativo a KTA2; linha final com contagem agregada de +/aprox/- por baseline (ex.: HSMEA 13/7/15).",
+      "achado": "KTA2 e HSMEA lideram com 10 melhores resultados cada entre as 35 instâncias, seguidos por KRVEA (9) e CSEA (6); KTA2 é o melhor em DTLZ1 e DTLZ3 (multimodais); em DTLZ4 KRVEA e CSEA lideram; em DTLZ5-DTLZ7 (PFs irregulares/degeneradas) HSMEA e KRVEA lideram, com KTA2 em terceiro - KTA2 não domina uniformemente, é melhor especificamente em paisagens multimodais.",
+      "aplicabilidade": "não reproduzível - nem KTA2 nem o protocolo (300 FEs, D=10, DTLZ1-7) correspondem ao roster/orçamento (31D-1, 28 problemas) da dissertação; mesmo que algum baseline citado (p.ex. KRVEA) esteja no roster da dissertação, os números aqui vêm de uma execução do próprio artigo sob protocolo distinto."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma comparação de 6 algoritmos (KTA2 vs HSMEA, CSEA, KRVEA, MOEA/D-EGO, ParEGO), agora em 45 instâncias WFG1-WFG9 (M em {3,4,6,8,10}, D em {10,10,9,9,11}), 30 execuções independentes, IGD+, Wilcoxon (alfa=0.05) com símbolos +/aprox/- e melhor em negrito.",
+      "literal": "The statistical results of compared algorithms on WFG problems are summarized in Table IV, where the best results are highlighted.",
+      "localizador": "Sec. IV-E-2, Table IV",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum (WRS), alfa=0.05, símbolos +/aprox/-, referência fixa = KTA2"
+      ],
+      "convencoes": "média(desvio-padrão) de IGD+ sobre 30 execuções independentes; melhor em negrito; contagem final de +/aprox/- por baseline (ex.: HSMEA 19/8/18).",
+      "achado": "KTA2 é o melhor algoritmo geral em WFG, com 18 melhores resultados entre 45 instâncias, seguido por KRVEA (14) e HSMEA (8); porém em WFG1 e WFG3 HSMEA lidera (múltiplos modelos substitutos + vetores de referência ajudam em paisagens com muitas funções de transformação/PF degenerada); em WFG2/WFG3 (PF desconectada/degenerada) apenas KRVEA e KTA2 pioram quando a PF fica conectada, e no WFG3 o KTA2 explicitamente amostra 'too many uncertain solutions' - um resultado negativo direto sobre a amostragem por incerteza nessa paisagem.",
+      "aplicabilidade": "não reproduzível - mesmas razões da Tabela III (KTA2 fora do roster; protocolo e benchmark distintos dos da dissertação)."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo menciona que as soluções não-dominadas finais da execução com IGD+ mediano, para os 6 algoritmos comparados, nos 16 problemas de 3 objetivos (DTLZ1-7 e WFG1-9), são plotadas - mas as figuras (Figs. S1-16) estão apenas no material suplementar, não reproduzidas no corpo do artigo nem neste documento.",
+      "literal": "the final non-dominated solutions obtained by six algorithms on 3 objectives DTLZ1-7 and WFG1-9 in the run associated with the median IGD+ values are plotted in Figs. S1-16 in the supplementary file.",
+      "localizador": "Sec. IV-E (abertura), Figs. S1-S16 (material suplementar - não incluído neste documento)",
+      "metricas": [
+        "nenhuma métrica numérica - visualização qualitativa do conjunto não-dominado"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "seleção da execução pela mediana do IGD+ entre as 30 execuções; apenas 3 objetivos; 16 problemas x 6 algoritmos.",
+      "achado": "Só mencionada - não há números nem descrição qualitativa no corpo do artigo além da existência das figuras; nenhum achado extraível deste documento.",
+      "aplicabilidade": "não reproduzível - material não disponível (arquivo suplementar fora deste corpus); mesmo se disponível, corresponderia à ficha 54 mas exigiria as avaliações reais de uma execução de KTA2, que não está no roster."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo reporta, apenas no material suplementar (Table S-I), os resultados sob a métrica PD (pure diversity) para os 6 algoritmos comparados - a mesma estrutura de tabela usada para IGD+ (Tabelas III/IV), mas com uma métrica de diversidade em vez de convergência. Nenhum número aparece no corpo do artigo.",
+      "literal": "The results under PD metric are presented in Table S-I of the supplementary file.",
+      "localizador": "Sec. IV-E (abertura), Table S-I (material suplementar - não incluído neste documento)",
+      "metricas": [
+        "PD (pure diversity)"
+      ],
+      "testes": [
+        "desconhecido - não descrito no corpo do artigo"
+      ],
+      "convencoes": "desconhecida - provavelmente segue o mesmo formato das Tabelas III/IV, mas não verificável sem o suplemento.",
+      "achado": "Só mencionada - não há números disponíveis no corpo do artigo para extração; não é possível saber se o PD favorece ou prejudica KTA2 frente aos baselines sem acesso ao suplemento.",
+      "aplicabilidade": "não reproduzível - material fora deste corpus; e mesmo se disponível, exigiria execuções de KTA2 fora do roster."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Apenas complexidade computacional teórica (assintótica), sem nenhuma medição empírica de tempo de parede e sem decomposição fit/busca/avaliação/instrumentação. O artigo deriva que construir um modelo Kriging tem complexidade O(N^3); como o modelo insensível a pontos influentes soma 2 modelos extras sobre subconjuntos de tamanho tau*N, a complexidade sobe para O(N^3)+2*O((tau*N)^3), permanecendo cúbica no total.",
+    "literal": "Given N training data, building one Kriging model has a complexity of O(N3). Since the influential point-insensitive model contains three Kriging models, the computational complexity is increased from O(N3) to O(N3)+2O((τN)3)",
+    "localizador": "Sec. III-A (último parágrafo)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Em WFG3 (PF em curva degenerada), tanto KRVEA quanto KTA2 pioram seu desempenho ao amostrarem excessivamente por incerteza - um efeito colateral negativo explícito do critério de incerteza nessa geometria de frente.",
+      "literal": "Since the PF of WFG3 is a degenerated curve, KRVEA and KTA2 frequently sample too many uncertain solutions which result in poor performance.",
+      "localizador": "Sec. IV-E-2, Discussions (comentário sobre WFG3)"
+    },
+    {
+      "descricao": "Os autores evitam valores altos de phi (que tornariam a escolha do infill por incerteza mais pura/gulosa) por temerem que indivíduos de incerteza muito alta prejudiquem a convergência do algoritmo - um caveat explícito sobre o risco de sobre-explorar pela incerteza.",
+      "literal": "Considering that individuals with large uncertainty may may cause the algorithm converged, φ is set to 0.1N as a general setting for all test instances.",
+      "localizador": "Sec. IV-B"
+    },
+    {
+      "descricao": "Na ablação da estratégia adaptativa (Tabela II), a variante que usa SOMENTE a estratégia de incerteza (KTA2(U)) figura entre as três piores tanto em DTLZ1 (sem convergência) quanto em DTLZ2 (sem diversidade) - a incerteza isolada, sem os outros dois critérios, não é competitiva.",
+      "literal": "KTA2(D), KTA2(U), and KTA2(D+U) without the convergence sampling strategy rank the last three ranks on DTLZ1. KTA2(C), KTA2(U), and KTA2(C+U) without the diversity sampling strategy rank the last three ranks on DTLZ2.",
+      "localizador": "Sec. IV-D"
+    },
+    {
+      "descricao": "O próprio mecanismo de avaliação de estado (que decide quando acionar a amostragem por incerteza) falha em distinguir corretamente o 'estado de demanda por diversidade' quando a frente de Pareto é irregular, o que os autores apontam como a causa do desempenho ruim de KTA2 em DTLZ4-7 e WFG1-3.",
+      "literal": "the irregularity of the current PF will lead to the inability to distinguish the diversity-demand state. That is the reason why the performance of KTA2 is not good on DTLZ4-7 and WFG1-3.",
+      "localizador": "Sec. IV-E-3, Discussions"
+    },
+    {
+      "descricao": "Limitação assumida pelos autores na conclusão: KTA2 (e por extensão seu mecanismo de amostragem adaptativa, que inclui o braço de incerteza) carece de estratégias para lidar com frentes de Pareto irregulares.",
+      "literal": "However, KTA2 lacks strategies to handle irregular PFs.",
+      "localizador": "Sec. V, Conclusions"
+    },
+    {
+      "descricao": "Limitação de escalabilidade assumida pelos autores: por depender de Kriging (custo cúbico, degradação em alta dimensão), o método só é aplicável a problemas de baixa dimensão; sugerem substituir o Kriging por RBFN ou redes com dropout para obter incerteza em dimensões maiores.",
+      "literal": "as the dimension limitation of Kriging model, our method can be only applied to low-dimensional problems.",
+      "localizador": "Sec. V, Conclusions"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "multimodalidade (DTLZ1, DTLZ3)",
+      "afirmacao": "Paisagens multimodais geram muitos pontos influentes; KRVEA sofre nessas duas, enquanto KTA2 (com o modelo insensível a pontos influentes) é o melhor algoritmo em ambas.",
+      "literal": "Both DTLZ1 and DTLZ3 have multimodal landscapes that are hard to converge. This might be the reason that KRVEA has a poor performance on DTLZ1 and DTLZ3. KTA2 is the best-performing algorithm on DTLZ1 and DTLZ3",
+      "localizador": "Sec. IV-E-1"
+    },
+    {
+      "caracteristica": "diversidade inicial pobre / sensibilidade ao DoE inicial (DTLZ4)",
+      "afirmacao": "Um dataset inicial com diversidade pobre torna o substituto impreciso em alguns objetivos; KRVEA e CSEA (que lidam melhor com isso via vetores de referência / classificação) lideram em DTLZ4, à frente de HSMEA e KTA2.",
+      "literal": "an initial training dataset with poor diversity will cause the surrogate model inaccurate on some objectives... KRVEA and CSEA are the top two algorithms for all DTLZ4 problems, followed by HSMEA and KTA2.",
+      "localizador": "Sec. IV-E-1"
+    },
+    {
+      "caracteristica": "PF irregular / degenerada (DTLZ5, DTLZ6, DTLZ7)",
+      "afirmacao": "Manter diversidade é difícil quando a PF verdadeira é uma curva degenerada (DTLZ5/6) ou descontínua (DTLZ7); HSMEA e KRVEA (que usam vetores de referência) lideram, com KTA2 em terceiro.",
+      "literal": "Since DTLZ5-7 have irregular PFs, maintaining diversity in solving these problems is challenging... for DTLZ5 and DTLZ7, HSMEA and KRVEA have achieved the best results, followed by KTA2.",
+      "localizador": "Sec. IV-E-1"
+    },
+    {
+      "caracteristica": "não separável-redutível (DTLZ6)",
+      "afirmacao": "Sendo DTLZ6 não separável-redutível (diferente de DTLZ5), HSMEA é o melhor ali, o que os autores atribuem aos vetores de referência baseados no ponto nadir, mais flexíveis a diferentes formatos de PF.",
+      "literal": "Different from DTLZ5, DTLZ6 is a nonseparable-reduced problem. HSMEA is the best-performing algorithm on DTLZ6.",
+      "localizador": "Sec. IV-E-1"
+    },
+    {
+      "caracteristica": "muitas funções de transformação (WFG1)",
+      "afirmacao": "WFG1 tem o maior número de funções de transformação entre os problemas WFG, dificultando a diversidade; HSMEA vence ali por usar múltiplos modelos substitutos (mais robustez de aproximação).",
+      "literal": "WFG1 has the most transformation functions t among the WFG problems, which makes it hard for MOEAs to achieve a good diversity... it has advantages to handle problems with many transform functions.",
+      "localizador": "Sec. IV-E-2 / Discussions"
+    },
+    {
+      "caracteristica": "PF desconectada (WFG2)",
+      "afirmacao": "WFG2 tem PF desconectada e irregular; apenas KRVEA e KTA2 pioram quando a versão 'conectada' do mesmo problema (WFG3) é usada, sugerindo que ambos lidam relativamente bem com desconexão mas mal com degenerescência em curva.",
+      "literal": "WFG2 is a disconnected problem which has an irregular PF... only KRVEA and KTA2 degrade their performance when the disconnected problem connected",
+      "localizador": "Sec. IV-E-2 / Discussions"
+    },
+    {
+      "caracteristica": "PF em curva degenerada (WFG3)",
+      "afirmacao": "No WFG3, KRVEA e KTA2 amostram excessivamente por incerteza, o que piora seu desempenho - um efeito negativo específico da amostragem por incerteza nesse tipo de frente.",
+      "literal": "Since the PF of WFG3 is a degenerated curve, KRVEA and KTA2 frequently sample too many uncertain solutions which result in poor performance.",
+      "localizador": "Sec. IV-E-2 / Discussions"
+    },
+    {
+      "caracteristica": "multimodalidade (WFG4)",
+      "afirmacao": "WFG4 tem paisagem multimodal, difícil de convergir para MOEAs em geral (caracterização genérica do benchmark, sem achado específico atribuído a KTA2).",
+      "literal": "WFG4 has a multi-modal landscape, which is hard for MOEAs to converge.",
+      "localizador": "Sec. IV-E-2"
+    },
+    {
+      "caracteristica": "problema enganoso / deceptive (WFG5)",
+      "afirmacao": "WFG5 é um problema enganoso (deceptive); a estratégia de amostragem por incerteza (isolada, KTA2(U)) tem vantagem particular nesse tipo de problema, segundo a ablação da Tabela II e a contagem de uso da Fig. 9.",
+      "literal": "WFG5 is a deceptive problem... the uncertainty sampling strategy might have advantages in dealing with the deceptive problems.",
+      "localizador": "Sec. IV-D / Sec. IV-E-2"
+    },
+    {
+      "caracteristica": "não separável-redutível (WFG6, WFG9)",
+      "afirmacao": "WFG6 e WFG9 são problemas não separáveis-redutíveis (caracterização do benchmark, sem achado específico de mecanismo de incerteza atribuído).",
+      "literal": "Both WFG6 and WFG9 are nonseparable-reduced problems.",
+      "localizador": "Sec. IV-E-2"
+    },
+    {
+      "caracteristica": "separável e unimodal (WFG7)",
+      "afirmacao": "WFG7 é separável e unimodal - o problema WFG caracterizado como mais fácil, usado como contraste com os demais.",
+      "literal": "WFG7 is a separable and uni-modal problem.",
+      "localizador": "Sec. IV-E-2"
+    },
+    {
+      "caracteristica": "não separável, difícil manter diversidade (WFG8)",
+      "afirmacao": "WFG8 é não separável e difícil para MOEAs manterem diversidade; de modo geral os autores notam que é mais difícil manter soluções diversas nos problemas WFG do que nos DTLZ.",
+      "literal": "WFG8 is a nonseparable problem that is hard for MOEAs to maintain diversity. Thus, comparing with the DTLZ problems, it is more difficult to maintain diverse solutions on the WFG problems.",
+      "localizador": "Sec. IV-E-2"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "KTA2 (b8) não integra o roster experimental da dissertação (roster_bloco=null por instrução do pedido) - nenhuma das 7 camadas de instrumentação foi gravada para KTA2 ou suas variantes, então TODAS as 9 análises acima foram marcadas 'não reproduzível' em aplicabilidade. O artigo NÃO mede a calibração/qualidade do sigma que usa operacionalmente (sem cobertura, sem correlação sigma-erro, sem RMSE do sigma) - o sigma (média dos desvios-padrão dos 2 modelos insensíveis, para os m objetivos) só é usado como critério de seleção na Estratégia de Amostragem por Incerteza (Algoritmo 3) e como um dos sinais (com convergência/PD) que decidem o 'estado' de otimização (Fig. 7). Nenhum piso evolutivo sem surrogate é comparado - os 5 baselines (ParEGO, MOEA/D-EGO, KRVEA, CSEA, HSMEA) são todos SAEAs. Benchmarks são exclusivamente sintéticos (DTLZ1-7, WFG1-9); não há problemas reais, MMF nem BBOB, portanto as fichas sobre famílias/casos reais/MMF (21-25) não se aplicam a este artigo. O artigo compara variantes do próprio método em dois níveis distintos - KTA2(O) vs KTA2 (ablação da técnica de modelagem robusta a pontos influentes, Tabela I) e os 6 subconjuntos da amostragem adaptativa (Tabela II) - exemplificando a nota do cartão sobre 'ablação natural'. Duas peças de material (fronteiras da execução mediana, Figs. S1-16; tabela de PD, Table S-I) são apenas mencionadas - residem no arquivo suplementar do artigo, que não faz parte deste corpus/documento, logo sem números extraíveis aqui. Nas Tabelas III/IV, o teste de Wilcoxon usa KTA2 como referência FIXA (não 'o melhor de cada problema'), diferente da formulação estrita da ficha 3 - mapeado por analogia/generosidade seguindo o próprio exemplo do cartão de extração ('tabela IGD média±dp com Wilcoxon rank-sum e símbolos +/=/-' -> [1,3]). O anexo com a camada de texto bruta do PDF (get_text, ~15 páginas) e o anexo de OCR das imagens foram lidos por completo e conferidos em múltiplos trechos ao longo de todo o arquivo (início, meio, tabelas, discussão, conclusão, referências, biografias, fim); ambos são fiéis duplicatas do conteúdo já capturado na seção estruturada, sem apêndices numerados nem achados adicionais além do corpo do artigo (I-V) + agradecimentos + referências + biografias dos autores. Nenhum problema de leitura foi encontrado (arquivo íntegro, tabelas e equações recuperáveis via o anexo de texto bruto quando a conversão estruturada as omitiu)."
+}

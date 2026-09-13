@@ -1,0 +1,688 @@
+{
+  "id": "b15",
+  "sigla": "U-RankMOEA",
+  "titulo": "U-RankMOEA: A Unified Rank-Based and Uncertainty-Aware Framework for High-Dimensional Expensive Multi-Objective Optimization",
+  "ano": 2026,
+  "roster": false,
+  "setup": {
+    "benchmarks": "DTLZ1-7 e ZDT1,2,3,4,6 (bi- e tri-objetivo), D em {30,50,100,200}, M em {2,3} (Sec. 4.1-4.3, Tabelas 1-3). Extensao no Apendice L para D=500, M=5, mesmas DTLZ1-7 (Tabela 11). Um problema real proprio do artigo: reservatorio geotermico fraturado com 160 variaveis de decisao (taxas de injecao/producao variaveis no tempo) e 2 objetivos (receita de curto prazo x sustentabilidade de longo prazo), Sec. 4.5/Fig. 12 - NAO pertence ao roster de 28 problemas da dissertacao (nao e RE21/ESTOQUE40/DDMOP7). Nao ha WFG, MMF nem BBOB.",
+    "orcamento": "300 avaliacoes reais TOTAIS, fixas para todo D em {30,50,100,200} (Sec. 4.1: 'Maximum function evaluations: 300'); DoE inicial de 100 pontos (D<100) ou 200 pontos (D>=100), populacao 50. Na extensao D=500/M=5 (Apendice L) o DoE inicial e 1,5% do orcamento total (poucos pontos). Diferente da convencao 31D-1 da dissertacao: aqui o orcamento NAO escala com D, entao a fatia de busca pos-DoE cai de ~200 avaliacoes (D=30) para ~100 (D>=100) e para uma fracao ainda menor no caso D=500 (Apendice L, mesmo teto de 300).",
+    "execucoes": "20 execucoes independentes nas Tabelas 1-3 (Wilcoxon rank-sum, alfa=0,05) e nas Tabelas 12-15 e na validacao de calibracao (Apendice I.4); 15 execucoes independentes na extensao D=500 (Apendice L, Tabela 11); numero de execucoes NAO explicitado para o estudo de caso geotermico (Sec. 4.5/Fig. 12).",
+    "baselines": "10 metodos assistidos: GP-EI (Jones et al. 1998), RF-EI (Hutter et al. 2011), GP-HV (Daulton et al. 2020) e CL-EGO (Zhang et al. 2015) como 'gold-standard' MOBO; CPS-MOEA, K-RVEA, CSEA, EDN-ARMOEA, MCEA/D e CLMEA como SA-MOEAs assistidos por classificador/surrogate. No Apendice M, 3 baselines MOBO recentes adicionais (MORBO, EGBO, CDM-PSL) num subconjunto de problemas. NAO ha piso evolutivo puro sem surrogate (nenhum NSGA-II/MOEA-D/NSGA-III/SMS-EMOA cru) entre os baselines - todas as comparacoes sao assistido-vs-assistido.",
+    "metricas_principais": [
+      "IGD (Inverted Generational Distance)",
+      "HV (Hypervolume)"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum (alfa=0,05) - declarado no protocolo geral (Sec. 4.1) para 20 execucoes independentes; nao aparece como simbolo/anotacao celula-a-celula nas Tabelas 1-3, so e citado como 'estatisticamente significativo' de forma agregada para a Tabela 11 ('in most cases')",
+      "Wilcoxon signed-rank pareado (Tabela 12: Static-EHVI vs aquisicao aprendida, p<0,01; Apendice I.4: comparacao de metodos de calibracao, alfa=0,05)"
+    ],
+    "apresentacao": "Tabelas 1, 2, 3 e 11 (as tabelas-placar principais): um unico valor por celula, sem desvio/erro-padrao e sem simbolos +/=/-, melhor em negrito; ambiguo se o valor e media ou mediana apesar de o texto declarar 20 (ou 15) execucoes independentes. Tabelas 12, 13, 14, 15: media +/- desvio-padrao ou erro-padrao. Tabelas 6 e 7: mediana explicita + erro-padrao. Tabela 8 e rotulada 'Median hypervolume (mean +/- standard error)' na propria legenda - mistura mediana e media no mesmo titulo. Conversao para markdown (pymupdf4llm) corrompeu a grade de varias tabelas grandes (Tabelas 1-3, 11) mesclando linhas de dimensoes diferentes com <br>, dificultando a leitura celula-a-celula com certeza.",
+    "codigo_plataforma": "Nao nomeado - nenhuma mencao a PlatEMO, BoTorch, GPyTorch ou MATLAB. Unico detalhe de hardware citado e uma GPU RTX-4090 (tempo de ajuste do Deep GP, Apendice A/Algoritmo 1). O artigo promete 'released implementation' junto da submissao, sem nomear o framework."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela algoritmo x problema do IGD final apos 300 avaliacoes nos problemas DTLZ1-7 biobjetivo, D em {30,50,100,200}, comparando U-RankMOEA contra 10 baselines (GP-EI, RF-EI, GP-HV, CL-EGO, CPS-MOEA, K-RVEA, CSEA, EDN-ARMOEA, MCEA/D, CLMEA). Melhor valor por celula em negrito.",
+      "literal": "Table 1 presents comprehensive results on bi-objective DTLZ problems. The proposed U-RankMOEA demonstrates superior performance across 92% of test instances, with particularly significant advantages in high-dimensional cases (100D and 200D).",
+      "localizador": "Sec. 4.2, Table 1",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum (declarado no protocolo geral, Sec. 4.1; nao mostrado celula-a-celula nesta tabela)"
+      ],
+      "convencoes": "Valor unico por celula (media ou mediana nao especificado), melhor em negrito, sem desvio-padrao, sem simbolos de significancia por celula.",
+      "achado": "U-RankMOEA supera os 10 baselines em 92% das instancias testadas, com vantagem crescente em D mais alto; no melhor caso citado (200D DTLZ1) alcanca 46% de melhoria de IGD sobre o segundo melhor metodo (CLMEA): 1620,0 vs 1990,6.",
+      "aplicabilidade": "① endpoint - recomputar IGD sobre o nao-dominado das avaliacoes reais acumuladas ao final do orcamento, por algoritmo x problema x dimensao, exatamente como a ficha 1 ja prevê."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma tabela algoritmo x problema do IGD final, agora nos problemas ZDT1, ZDT2, ZDT3, ZDT4 e ZDT6 biobjetivo, D em {30,50,100,200}, mesmos 10 baselines e mesmo orcamento de 300 avaliacoes.",
+      "literal": "Table 2 demonstrates U-RankMOEA's robust performance on ZDT problems, achieving 15-28% improvement over the best baselines across dimensional scales.",
+      "localizador": "Sec. 4.2, Table 2",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum (declarado no protocolo geral, Sec. 4.1; nao mostrado celula-a-celula nesta tabela)"
+      ],
+      "convencoes": "Mesmo formato da Tabela 1: valor unico por celula, melhor em negrito, sem dispersao nem simbolos por celula.",
+      "achado": "U-RankMOEA supera os melhores baselines em 15-28% de IGD nos problemas ZDT ao longo das dimensoes testadas; o texto associa as curvas de convergencia (Fig. 15) a 'exploracao guiada por incerteza' no inicio da busca e 'precisao final superior' vinda do Deep GP.",
+      "aplicabilidade": "① endpoint - mesma reproducao da ficha 1, agora para a familia ZDT."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela algoritmo x problema do IGD final nos problemas DTLZ1-7 triobjetivo (M=3), D em {30,50,100,200}, mesmos 10 baselines, mesmo orcamento de 300 avaliacoes.",
+      "literal": "Table 3 confirms U-RankMOEA's scalability to three-objective problems, maintaining performance advantages across 89% of test cases.",
+      "localizador": "Sec. 4.3, Table 3",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum (declarado no protocolo geral, Sec. 4.1; nao mostrado celula-a-celula nesta tabela)"
+      ],
+      "convencoes": "Mesmo formato das Tabelas 1-2.",
+      "achado": "U-RankMOEA mantem vantagem em 89% dos casos ao escalar de 2 para 3 objetivos; o artigo liga esse ganho a caracteristica do problema (ver caracteristica_x_desempenho): maiores melhorias em DTLZ3 e DTLZ6, problemas de frente de Pareto complexa/multimodal (28-42% melhor que CLMEA).",
+      "aplicabilidade": "① endpoint - mesma reproducao da ficha 1, agora para M=3."
+    },
+    {
+      "fichas": [
+        7
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Reivindicacao textual, cruzando as Tabelas 1, 3 e 11, de que a vantagem de U-RankMOEA sobre os baselines CRESCE com a dimensao de decisao D (30 -> 50 -> 100 -> 200 -> 500), em vez de ser indiferente ou decrescente - o oposto do resultado tipicamente negativo que a ficha 7 descreve na bateria da dissertacao.",
+      "literal": "The proposed U-RankMOEA demonstrates superior performance across 92% of test instances, with particularly significant advantages in high-dimensional cases (100D and 200D).",
+      "localizador": "Sec. 4.2 (Table 1); Apendice L (Table 11, D=500)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum teste formal de tendencia (regressao, correlacao); a afirmacao e qualitativa/narrativa"
+      ],
+      "convencoes": "Comparacao informal entre percentuais de melhoria citados por dimensao (ex.: 46% em 200D DTLZ1) sem tabela de tendencia dedicada.",
+      "achado": "O artigo afirma que a vantagem do metodo cresce com D, testado ate D=500/M=5 (Apendice L), onde U-RankMOEA vence em todos os 7 problemas DTLZ (~10-15% melhor que o segundo colocado) - controverso frente ao 'resultado negativo' que a ficha 7 registra tipicamente na literatura assistida.",
+      "aplicabilidade": "① endpoint cruzado com D - reprodutivel juntando os checkpoints finais de cada D testado e observando o Delta IGD/HV pareado vs piso em funcao de D, exatamente como a ficha 7 propoe."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Extensao de escala: tabela algoritmo x problema do IGD final nos 7 problemas DTLZ, agora com D=500 e M=5 (5 objetivos), orcamento de 300 avaliacoes, DoE inicial de 1,5% do orcamento, mesmos 10 baselines, 15 execucoes independentes.",
+      "literal": "Table 11 summarizes IGD results on the 500-dimensional, 5-objective DTLZ suite under 300 evaluations.",
+      "localizador": "Apendice L.2, Table 11",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum (alfa=0,05)"
+      ],
+      "convencoes": "Valor unico por celula, melhor em negrito; 15 execucoes (nao 20, como no corpo principal).",
+      "achado": "U-RankMOEA obtem o melhor IGD nos 7 problemas testados; melhoria de ~10% a 15% sobre o segundo melhor metodo, confirmada por Wilcoxon 'na maioria dos casos' segundo o texto (sem tabela de simbolos +/=/-).",
+      "aplicabilidade": "① endpoint em escala extrema de D e M - reproducao direta da ficha 1."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparacao adicional contra 3 metodos MOBO recentes do estado da arte (MORBO, EGBO, CDM-PSL), em DTLZ2-100D, ZDT3-100D e DTLZ2-200D, reportando IGD e HV com media +/- desvio-padrao sobre 20 execucoes.",
+      "literal": "U-RankMOEA consistently outperforms all baselines across different problem types and dimensionalities.",
+      "localizador": "Apendice M, Table 13",
+      "metricas": [
+        "IGD",
+        "HV"
+      ],
+      "testes": [
+        "nao especificado explicitamente para esta tabela (sem simbolo de significancia)"
+      ],
+      "convencoes": "Media +/- desvio-padrao por celula, melhor em negrito - diferente das Tabelas 1-3, que nao trazem dispersao.",
+      "achado": "U-RankMOEA supera MORBO, EGBO e CDM-PSL nos 3 cenarios testados tanto em IGD quanto em HV; o artigo atribui a vantagem a tres fatores: classificador de incerteza para exploracao-explotacao, Deep GP mais fiel em alta dimensao, e aquisicao aprendida adaptativa.",
+      "aplicabilidade": "① endpoint - mesma reproducao da ficha 1, com um conjunto de baselines diferente (SOTA recente em vez dos 10 classificadores/SA-MOEAs)."
+    },
+    {
+      "fichas": [
+        46,
+        47,
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparacao de tempo de parede (total e por iteracao) entre U-RankMOEA e 6 baselines (CPS-MOEA, K-RVEA, CSEA, EDN-ARMOEA, MCEA/D, CLMEA) em 3 cenarios (DTLZ2-100D, ZDT3-100D, DTLZ2-200D), mais decomposicao percentual do tempo de U-RankMOEA em 5 componentes (classificador, Deep GP, rede de aquisicao, avaliacao de candidatos, overhead).",
+      "literal": "U-RankMOEA has substantially lower wall-clock time across the considered benchmarks.",
+      "localizador": "Apendice N.1, Table 14 e Table 15; Sec. 4.4, Fig. 14",
+      "metricas": [
+        "tempo de parede total (s)",
+        "tempo por iteracao (s)",
+        "percentual de tempo por componente"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Media +/- desvio-padrao (Tabela 14) ou media +/- erro-padrao (Tabela 15) sobre 20 execucoes; speedup calculado contra o baseline mais rapido de cada coluna.",
+      "achado": "U-RankMOEA e ~1,3x mais rapido que o baseline mais veloz (K-RVEA) apesar de ter mais componentes (classificador+Deep GP+aquisicao); overhead medio de 8,3s/iteracao considerado 'negligenciavel' frente a avaliacoes reais caras (minutos/horas); Deep GP domina o tempo (~34-38% do total), seguido de avaliacao de candidatos (~28-30%).",
+      "aplicabilidade": "④ tempos por geracao - reprodutivel diretamente, decompondo em ajuste do modelo, busca da aquisicao e avaliacao, como a ficha 48 ja prevê; ficha 47 (quadrante custo x qualidade) exigiria cruzar esses tempos com o rank de IGD, o que o artigo nao faz explicitamente."
+    },
+    {
+      "fichas": [
+        46
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "No estudo de escalabilidade estendida (D=500, M=5), o artigo reporta como o tempo de parede por iteracao cresce ao ir de 200D para 500D, e como a triagem em dois estagios reduz o numero de avaliacoes caras do Deep GP.",
+      "literal": "On average, wall-clock time per iteration increased by 40% going from 200-D to 500-D, while the two-stage screening reduced expensive surrogate evaluations by 68%, maintaining feasible runtimes for the reported experiments.",
+      "localizador": "Apendice L.3",
+      "metricas": [
+        "tempo por iteracao (variacao %)",
+        "numero de avaliacoes caras do surrogate (reducao %)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Percentuais agregados de variacao, sem tabela numerica dedicada (so texto corrido).",
+      "achado": "Overhead computacional cresce sublinearmente com D (so +40% ao multiplicar D por 2,5x, de 200 para 500) gracas a triagem em dois estagios e inducao adaptativa, que cortam 68% das avaliacoes caras do Deep GP - a 'parede do retreino' e mitigada por desenho, nao eliminada.",
+      "aplicabilidade": "④ tempos por geracao cruzados com D - reprodutivel diretamente, exatamente como a ficha 46 (tempo de ajuste x D) ja prevê, embora aqui o artigo tambem controle o efeito de uma triagem em dois estagios que a dissertacao nao instrumenta."
+    },
+    {
+      "fichas": [
+        23
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Estudo de caso real proprio do artigo: otimizacao de extracao de calor num reservatorio geotermico fraturado, 160 variaveis de decisao (taxas de injecao/producao variaveis no tempo), 2 objetivos conflitantes (receita de curto prazo x sustentabilidade de longo prazo), comparando Pareto encontrado por U-RankMOEA contra MCEA/D.",
+      "literal": "The framework discovers 16 well-distributed Pareto solutions, doubling the coverage compared to MCEA/D, which identifies only 8.",
+      "localizador": "Sec. 4.5, Fig. 12",
+      "metricas": [
+        "numero de solucoes nao-dominadas encontradas",
+        "HV (melhoria percentual)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Contagem bruta de solucoes e percentual de ganho de HV; sem execucoes replicadas declaradas (nao fica claro se e execucao unica ou agregada).",
+      "achado": "U-RankMOEA encontra o dobro de solucoes nao-dominadas bem distribuidas que MCEA/D (16 vs 8) e ganha 23% de HV, alem de revelar estruturas de gradiente termico via analise de incerteza que orientam amostragem mais eficiente.",
+      "aplicabilidade": "nao reproduzivel com as camadas da dissertacao - e um problema real proprio do artigo (reservatorio geotermico, D=160), fora do roster de 28 problemas (nao e RE21, ESTOQUE40 nem DDMOP7); serve apenas como exemplo do TIPO de analise de caso nomeado que a ficha 23 documenta."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade da HV final ao numero de pontos indutores (M_ind) do Deep GP esparso",
+      "grupo_sugerido": "E",
+      "descricao": "Estudo de sensibilidade de hiperparametro: HV final em DTLZ2-100D variando o numero de pontos indutores M_ind em {100, 200, 400, 800} do Deep GP esparso variacional, com barras de erro-padrao sobre 5 sementes.",
+      "literal": "The curve shows that performance improvements taper off beyond Mind = 400 while computational cost continues to grow substantially.",
+      "localizador": "Apendice B.2, Fig. 2",
+      "metricas": [
+        "HV final"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curva de HV x M_ind com erro-padrao sobre 5 sementes (numero de sementes bem menor que o resto do artigo, que usa 20).",
+      "achado": "Ganhos de HV saturam a partir de M_ind=400, enquanto o custo computacional continua a crescer - motivando a escolha de M_ind=400 como padrao para todos os experimentos do artigo.",
+      "aplicabilidade": "nao reproduzivel com as camadas da dissertacao - M_ind e um hiperparametro interno de capacidade do surrogate (nao registrado nas 7 camadas) e nao define o USO da incerteza na decisao, apenas a fidelidade/custo do modelo; exigiria reexecutar o algoritmo com variantes de M_ind."
+    },
+    {
+      "fichas": [
+        11,
+        15
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ablacao de componentes em DTLZ2-100D (300 avaliacoes): compara o U-RankMOEA completo contra 5 variantes - excluindo a quantificacao de incerteza bayesiana, substituindo o Deep GP por um GP padrao, removendo a funcao de aquisicao aprendida, removendo o escalonamento de temperatura (calibracao), e o CLMEA original como piso de referencia - todas medidas por IGD final.",
+      "literal": "The deep Gaussian process surrogate proves most critical, with its removal causing 83% performance degradation.",
+      "localizador": "Apendice D, Table 5 (citada no corpo como 'Table D', Sec. 4.1)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum teste estatistico reportado (valores pontuais, sem dispersao)"
+      ],
+      "convencoes": "Valor unico de IGD por configuracao (sem media/dp, sem numero de execucoes declarado para esta tabela especifica), sem negrito/marcacao.",
+      "achado": "Remover o Deep GP (substituir por GP padrao) e o pior corte (IGD 3,1546, +83% de degradacao); excluir a quantificacao de incerteza bayesiana tambem piora bastante (IGD 2,4124, alta relevancia do uso de incerteza); remover a aquisicao aprendida (IGD 2,0342) e a calibracao por temperatura (IGD 1,8943) tem impacto menor mas ainda positivo. NOTA: este e um dos TRES conjuntos de numeros de 'contribuicao de componente' do artigo que se contradizem entre si - ver observacoes gerais.",
+      "aplicabilidade": "nao reproduzivel sem reexecucao - exige rodar variantes estruturais do proprio algoritmo (sem UQ, GP raso, sem aquisicao aprendida, sem calibracao); a dissertacao so tem o contrafactual sigma=0 cravado (ficha 15) e nao outras variantes estruturais como 'trocar o tipo de surrogate'."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade da HV mediana ao tamanho do pool de candidatos na triagem em dois estagios",
+      "grupo_sugerido": "E",
+      "descricao": "Mediana de HV apos 300 avaliacoes em DTLZ2-100D variando o tamanho do pool de candidatos gerado antes da triagem (200, 500, 1.000, 2.000), mantendo fixo o numero de avaliacoes caras do Deep GP por iteracao.",
+      "literal": "increasing the pool from 200 to 1,000 candidates, while holding the number of full GP calls constant, improved median hypervolume by approximately 4.2%.",
+      "localizador": "Apendice E, Table 6",
+      "metricas": [
+        "HV mediana",
+        "erro-padrao"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mediana + erro-padrao por tamanho de pool.",
+      "achado": "HV mediana melhora de 0,836 (pool=200) para um pico de 0,873 (pool=1.000), caindo levemente para 0,870 em pool=2.000 - ganho de ~4,2% ao aumentar o pool de candidatos baratos sem aumentar o numero de avaliacoes caras do surrogate.",
+      "aplicabilidade": "nao reproduzivel com as camadas da dissertacao - tamanho do pool de candidatos e um parametro de implementacao interno do mecanismo de triagem em dois estagios, nao registrado nas 7 camadas e sem equivalente direto nos algoritmos do roster."
+    },
+    {
+      "fichas": [
+        32
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Correlacao de postos (Spearman) entre o proxy de triagem barato e a contribuicao real de HV, para um pool grande de candidatos, comparando um proxy 'so media' contra um proxy 'penalizado por incerteza' (que soma um termo de variancia epistemica).",
+      "literal": "The uncertainty-penalized proxy achieves substantially higher alignment with the true contribution.",
+      "localizador": "Apendice E, Fig. 3",
+      "metricas": [
+        "correlacao de Spearman (proxy vs contribuicao real de HV)"
+      ],
+      "testes": [
+        "nenhum teste formal de significancia da diferenca entre correlacoes"
+      ],
+      "convencoes": "Grafico de dispersao proxy-vs-HV-real com mediana binada, uma curva por variante de proxy; correlacao de Spearman reportada na legenda de cada curva.",
+      "achado": "O texto corrido afirma que o proxy penalizado por incerteza tem alinhamento 'substancialmente maior', mas a legenda da propria figura (capturada via OCR da imagem) mostra o OPOSTO: Spearman rho=0,23 para o proxy so-media contra rho=0,18 para o proxy penalizado por incerteza - ou seja, pelos numeros da legenda, adicionar o termo de incerteza PIOROU a preservacao de ordem. Ver observacoes gerais e resultados_negativos.",
+      "aplicabilidade": "parcialmente reproduzivel - a ideia geral (correlacao de postos entre um escore interno e a utilidade real) e a da ficha 32 e poderia ser calculada via ③ sonda cruzando sigma/score com o erro real; mas aqui o 'proxy' e uma combinacao especifica de classificador+RFF do algoritmo, nao a media/sigma do GP diretamente, entao a reproducao exata exigiria a logica interna do algoritmo."
+    },
+    {
+      "fichas": [
+        31
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Densidade log-preditiva negativa (NLPD) de validacao do Deep GP ao longo das iteracoes de otimizacao, comparando a variante com triagem seletiva (poucas avaliacoes completas do Deep GP por iteracao) contra avaliar o Deep GP completo em todos os candidatos.",
+      "literal": "Selective full-GP evaluation mitigates posterior drift and maintains better calibration than evaluating all candidates.",
+      "localizador": "Apendice E, Fig. 4",
+      "metricas": [
+        "NLPD (negative log predictive density) de validacao"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curva de NLPD x iteracao, uma linha por configuracao (com triagem vs sem triagem).",
+      "achado": "Restringir avaliacoes completas do Deep GP a um subconjunto de elite (via triagem) mantem o NLPD de validacao mais baixo ao longo do tempo do que reavaliar todos os candidatos - evidencia de que atualizacoes amortizadas frequentes demais causam 'fadiga' do surrogate (deriva do posterior).",
+      "aplicabilidade": "③ sonda - NLPD e diretamente calculavel a partir de mu, sigma da sonda e do f verdadeiro conhecido a cada retreino, reproduzindo o espirito da ficha 31 (curva de qualidade do surrogate ao longo do orcamento), embora aqui a metrica seja NLPD (nao RMSE) e a comparacao seja entre duas variantes de implementacao (com/sem triagem), nao entre algoritmos do roster."
+    },
+    {
+      "fichas": [
+        38
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Corte unidimensional da incerteza preditiva (media, banda epistemica, banda aleatoria) numa fatia do problema DTLZ2-100D, ilustrando como a banda epistemica se alarga em regioes com poucos dados e a banda aleatoria se alarga em regioes de alta curvatura/variabilidade local.",
+      "literal": "The epistemic envelope widens correctly in data-sparse regions while the aleatoric component inflates near high-curvature areas where observation noise is expected to be larger.",
+      "localizador": "Apendice E.1, Fig. 5",
+      "metricas": [
+        "variancia epistemica",
+        "variancia aleatoria (ambas em funcao da posicao no espaco de entrada)"
+      ],
+      "testes": [
+        "nenhum - ilustracao qualitativa de um unico corte 1-D"
+      ],
+      "convencoes": "Grafico de linha 1-D com banda de incerteza sombreada (epistemica e aleatoria separadas) sobre a media predita e as observacoes reais.",
+      "achado": "A decomposicao heterocedastica funciona como esperado nesse corte qualitativo: incerteza epistemica cresce longe dos pontos observados, incerteza aleatoria cresce em regioes de alta curvatura - padrao que, segundo o artigo, um GP esparso homocedastico nao reproduz.",
+      "aplicabilidade": "③ sonda cruzada com posicao no espaco de decisao (distancia ao arquivo de treino, curvatura local) - reproducao direta do espirito da ficha 38, ainda que aqui seja apenas uma ilustracao qualitativa de um unico corte 1-D, nao uma varredura sistematica quantitativa."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablacao da estrutura do surrogate: Deep GP heterocedastico x GP esparso homocedastico x GP raso RBF",
+      "grupo_sugerido": "E",
+      "descricao": "Mediana de HV apos 300 avaliacoes em DTLZ2-100D comparando tres variantes estruturais de surrogate: o Deep GP heterocedastico proposto, um GP esparso homocedastico (variancia de ruido global, nao dependente da entrada), e um GP raso com kernel RBF (sem camadas profundas).",
+      "literal": "The performance loss when reverting to a homoscedastic sparse GP confirms that faithful uncertainty decomposition materially benefits downstream acquisition and final optimization quality.",
+      "localizador": "Apendice E.1, Table 7",
+      "metricas": [
+        "HV mediana",
+        "variacao percentual relativa"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mediana de HV e variacao percentual relativa ao Deep GP heterocedastico (referencia), sem dispersao/erro reportado nesta tabela especifica.",
+      "achado": "GP esparso homocedastico perde 6,3% de HV mediana (0,818 vs 0,873) e o GP raso RBF perde 9,4% (0,791) em relacao ao Deep GP heterocedastico completo - decompor a incerteza em epistemica/aleatoria de forma dependente da entrada tem valor mensuravel, mas moderado, frente a simplificacoes do surrogate.",
+      "aplicabilidade": "nao reproduzivel com as camadas da dissertacao - exige rodar variantes estruturais do modelo (trocar heterocedastico por homocedastico, ou raso por profundo) que nao existem como algoritmos separados no roster; relacionado, mas nao identico, as fichas 11/15 (que ablacionam presenca/ausencia de sigma, nao a estrutura fina do sigma)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade da HV e da calibracao (ECE) ao numero de categorias de rank K do classificador",
+      "grupo_sugerido": "E",
+      "descricao": "HV mediana em DTLZ2-100D (300 avaliacoes, 20 execucoes) variando o numero de categorias de nao-dominancia K do classificador bayesiano em {3,4,5,6,7}, junto com a observacao de como o erro de calibracao esperado (ECE) do classificador se comporta com K.",
+      "literal": "expected calibration error (ECE) increases when K ≥6, which aligns with the intuition that excessive granularity yields too few samples per bin to produce well-calibrated uncertainty estimates.",
+      "localizador": "Apendice F, Fig. 6",
+      "metricas": [
+        "HV mediana",
+        "ECE do classificador"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum (p<0,05) para K=3 vs demais"
+      ],
+      "convencoes": "Curva de HV mediana x K com erro-padrao sobre 20 execucoes; ECE mencionado qualitativamente no texto, sem tabela numerica dedicada.",
+      "achado": "K=3 produz resultados significativamente piores (Wilcoxon p<0,05); a HV melhora ate K=5 e depois estagna (K>=6 nao traz ganho adicional de HV) enquanto a calibracao (ECE) PIORA para K>=6 por falta de amostras por categoria - resolucao excessiva de rank nao ajuda e ainda piora a confiabilidade da incerteza reportada.",
+      "aplicabilidade": "nao reproduzivel com as camadas da dissertacao - K e um hiperparametro interno do classificador de rank do proprio algoritmo, sem equivalente direto nas 7 camadas; a relacao K-vs-ECE e relevante para o tema de calibracao (ficha 33) mas nao existe como parametro do roster."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "GP independente por objetivo x GP com correlacao entre objetivos (coregionalizacao linear)",
+      "grupo_sugerido": "E",
+      "descricao": "Compara o Deep GP padrao do artigo (um GP independente por objetivo) contra uma variante multi-saida com modelo linear de coregionalizacao (LMC, R=M latentes compartilhados) que modela explicitamente a correlacao entre objetivos, medindo HV mediana em 100D-DTLZ2 e 200D-DTLZ4; tambem mostra a matriz de correlacao preditiva estimada pelo LMC.",
+      "literal": "The independent model attains higher median hypervolume in both cases. A plausible explanation is that the extra parameters introduced by the LMC formulation increase estimation variance when only a few hundred observations are available.",
+      "localizador": "Apendice G, Table 8 e Fig. 7",
+      "metricas": [
+        "HV mediana +/- erro-padrao",
+        "correlacao de Pearson entre objetivos (Fig. 7)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tabela intitulada 'Median hypervolume (mean +/- standard error)' - mistura mediana e media no mesmo titulo (ver observacoes).",
+      "achado": "RESULTADO NEGATIVO: modelar a correlacao entre objetivos explicitamente (LMC) PIORA a HV mediana nos dois problemas testados (100D-DTLZ2: 0,873 independente vs 0,851 LMC; 200D-DTLZ4: 0,836 vs 0,818) - complexidade extra do modelo aumenta variancia de estimacao com poucos dados; correlacoes reais entre objetivos sao fracas (|rho|<0,3) nas regioes exploradas, o que explica a baixa utilidade da modelagem explicita.",
+      "aplicabilidade": "nao reproduzivel com as camadas da dissertacao - exige uma variante multi-saida do surrogate (LMC) que nao existe no roster; e um bom exemplo do padrao 'complexidade extra do modelo nao ajuda sob orcamento apertado', relevante para resultados_negativos e equivalencia_criterios do catalogo."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Custo de re-tuning de hiperparametros ao transferir para uma nova tarefa (protocolo de 2 estagios)",
+      "grupo_sugerido": "F",
+      "descricao": "Estimativa do overhead, em numero de avaliacoes reais, de um protocolo de 2 estagios (transferencia de um conjunto reduzido de configuracoes + refinamento local opcional de 3 hiperparametros sensiveis) para adaptar os hiperparametros do U-RankMOEA a uma nova tarefa sem repetir a busca em grade exaustiva original.",
+      "literal": "The combined pilot cost of transfer plus optional refinement is at most twenty-four evaluations, corresponding to an eight percent overhead for the 300-evaluation case.",
+      "localizador": "Apendice G.1, Table 9",
+      "metricas": [
+        "numero de avaliacoes de re-tuning",
+        "percentual do orcamento total"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tabela de cenarios (grade exaustiva original vs nova tarefa) com avaliacoes absolutas e percentuais do orcamento.",
+      "achado": "Re-tuning leve custa ~8% do orcamento de 300 avaliacoes (24 avaliacoes) e ~4,8% de um orcamento de 500 avaliacoes, ordens de grandeza menor que a grade exaustiva original (~3.000 avaliacoes, Apendice B.3) - a transferencia das top-3 configuracoes de DTLZ2-100D generalizou bem para outras instancias DTLZ/ZDT de M e orcamento semelhantes.",
+      "aplicabilidade": "nao reproduzivel com as camadas da dissertacao - as 7 camadas registram a execucao final do algoritmo, nao o custo de busca de hiperparametros que a precedeu; nao ha registro equivalente de 'avaliacoes gastas em tuning' no desenho da dissertacao."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Fidelidade do proxy de ganho de informacao (MC-Dropout) contra uma referencia gold-standard num problema de brinquedo",
+      "grupo_sugerido": "E",
+      "descricao": "Verifica se o proxy de incerteza epistemica do classificador (ganho de informacao sob o posterior variacional de Dropout, Eq. 7/33) rastreia bem uma medida de informacao mutua de referencia computada por um amostrador 'gold-standard' (implicitamente HMC, ver OCR), num problema pequeno de regressao 1-D sintetico (fora dos benchmarks principais).",
+      "literal": "The Dropout proxy correlates strongly with the reference information measure (high Pearson correlation and small bias), supporting its use as a practical uncertainty index.",
+      "localizador": "Apendice H, Fig. 8",
+      "metricas": [
+        "correlacao de Pearson (proxy Dropout vs referencia gold-standard)"
+      ],
+      "testes": [
+        "nenhum teste formal, so correlacao"
+      ],
+      "convencoes": "Grafico de dispersao proxy-vs-referencia com linha de identidade; correlacao de Pearson rho=0,96 aparece na legenda (via OCR da imagem).",
+      "achado": "Correlacao de Pearson de 0,96 entre o proxy barato (Dropout) e a referencia cara (HMC) num problema de brinquedo 1-D - suporta usar o proxy de informacao mutua como substituto pratico, mas o teste e feito FORA dos benchmarks reais do artigo (DTLZ/ZDT), num problema sintetico a parte.",
+      "aplicabilidade": "nao reproduzivel com as camadas da dissertacao - e um teste de fidelidade num problema de brinquedo 1-D sintetico especifico do artigo, sem relacao com os 28 problemas do roster nem com as 7 camadas de instrumentacao."
+    },
+    {
+      "fichas": [
+        33
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Validacao empirica da calibracao do classificador bayesiano de rank apos escalonamento de temperatura + MC-Dropout adaptativo, reportando ECE, MCE e ACE agregados sobre folds de teste, e comparando o metodo combinado contra usar so MC-Dropout (sem temperatura) ou so temperatura (sobre uma unica passagem deterministica).",
+      "literal": "the combined temperature-scaled MC-Dropout achieves consistently lower ECE and MCE than either raw MC-Dropout (no temperature scaling) or temperature scaling applied to a single deterministic forward pass.",
+      "localizador": "Apendice I.4 (Eq. 40-42)",
+      "metricas": [
+        "ECE (expected calibration error)",
+        "MCE (maximum calibration error)",
+        "ACE (adaptive calibration error)"
+      ],
+      "testes": [
+        "Wilcoxon pareado (alfa=0,05) comparando ECE entre metodos"
+      ],
+      "convencoes": "Media +/- desvio-padrao sobre 20 sementes, 15 bins de probabilidade igualmente espacados.",
+      "achado": "ECE=0,032+/-0,004, MCE=0,056+/-0,006, ACE=0,028+/-0,003 para o metodo combinado (temperatura+Dropout), reportado como significativamente melhor que as duas alternativas isoladas (Wilcoxon p<0,05). CONTRADITO pela Fig. 18 (ver observacoes): a legenda da propria figura mostra temperatura isolada com ECE=0,009, MELHOR que o combinado (0,032).",
+      "aplicabilidade": "③ sonda - ECE/MCE/ACE sao diretamente calculaveis se a sonda registrar as probabilidades de classe previstas pelos classificadores do roster (b4, c217); e o tipo exato de medicao de calibracao que a ficha 33 (e a observacao do projeto sobre ECE/MCE/ACE/Brier/NLPD) busca capturar, ainda que aqui o alvo seja um classificador de rank, nao diretamente o sigma de um GP."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Estimacao empirica do fator de fidelidade da aquisicao (rho) e das constantes do limite teorico de HV",
+      "grupo_sugerido": "E",
+      "descricao": "Protocolos e valores exemplo para estimar empiricamente as constantes do limite teorico de regret de HV (Proposicao 2, Apendice J): a constante de Lipschitz L_H (perturbacao de HV por perturbacao de objetivo), o fator de fidelidade da aquisicao rho (razao entre o ganho de HV realizado pela aquisicao aprendida e o ganho oraculo) e a perda maxima de HV num unico passo H_max, medidos em DTLZ2-100D/200D e ZDT3-100D.",
+      "literal": "the median ratio was 0.82, hence ρ = 0.82.",
+      "localizador": "Apendice J.7, Table 10",
+      "metricas": [
+        "rho (fidelidade da aquisicao)",
+        "L_H (constante de Lipschitz de HV)",
+        "H_max (perda maxima de HV por passo)"
+      ],
+      "testes": [
+        "nenhum - estimacao pontual via quantil/mediana empirica"
+      ],
+      "convencoes": "rho estimado como a mediana da razao ganho-realizado/ganho-oraculo sobre um conjunto de validacao de 5% do arquivo; tabela com rho por benchmark (0,84; 0,81; 0,83; mediana 0,82).",
+      "achado": "A aquisicao aprendida realiza, em mediana, 82% do ganho de HV que um oraculo perfeito obteria por avaliacao (rho=0,82), consistente entre DTLZ2-100D/200D e ZDT3-100D (0,81-0,84) - suporte empirico ao limite teorico de convergencia, mas nao e uma metrica de desempenho fim-a-fim, e sim uma constante auxiliar da prova.",
+      "aplicabilidade": "nao reproduzivel diretamente com as camadas da dissertacao - exigiria um oraculo de ganho de HV por candidato e a logica de selecao especifica do algoritmo; aproximavel de forma aproximada cruzando ⑥ filme (candidato escolhido) com ① (ganho de HV real) e um oraculo construido a posteriori sobre a mesma geracao, mas nao e um calculo direto ja previsto pelas 7 camadas."
+    },
+    {
+      "fichas": [
+        31,
+        38
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Evolucao media da incerteza epistemica e aleatoria do Deep GP ao longo da otimizacao em DTLZ2-100D, mostrando a incerteza epistemica caindo a medida que o modelo aprende e a incerteza aleatoria revelando estrutura do problema.",
+      "literal": "Epistemic uncertainty decreases monotonically as the model's knowledge improves, while aleatoric uncertainty highlights structurally complex regions in the decision space.",
+      "localizador": "Apendice K, Fig. 13",
+      "metricas": [
+        "incerteza epistemica media",
+        "incerteza aleatoria media (ao longo do orcamento)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curvas de incerteza media x iteracao, para um unico problema (DTLZ2-100D), sem comparacao entre algoritmos.",
+      "achado": "Incerteza epistemica cai monotonicamente com o progresso da busca (o modelo 'aprende'); incerteza aleatoria se mantem e destaca regioes estruturalmente complexas; a 'incerteza integrada' mantem pressao de exploracao consistente ao longo de toda a busca segundo o texto - mas sem validacao explicita contra o erro real nesta secao (isso e feito separadamente no Apendice H/E.1).",
+      "aplicabilidade": "③ sonda - decomposicao epistemica/aleatoria ao longo do orcamento e exatamente a ficha 31 (curva de aprendizado) cruzada com a ficha 38 (heterocedasticidade), diretamente reprodutivel se o algoritmo do roster expuser essa decomposicao (caso de VAR-GP); aqui e feito para um unico problema, nao como sonda multiproblema padronizada."
+    },
+    {
+      "fichas": [
+        11,
+        15
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Segunda ablacao de contribuicao de componentes, desta vez na extensao de alta dimensao (D=500, M=5): estima a fracao do gap de desempenho entre U-RankMOEA e o melhor baseline atribuivel a cada um dos 3 modulos (Deep GP, classificador bayesiano de rank, aquisicao aprendida).",
+      "literal": "the Deep GP surrogate accounts for the largest single contribution (roughly 45% of the cumulative improvement), the Bayesian rank classifier contributes about 30% via efficient candidate screening",
+      "localizador": "Apendice L.3",
+      "metricas": [
+        "fracao percentual do gap de desempenho atribuida a cada componente"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Percentuais agregados (45%/30%/25%), somando 100% do 'gap' entre U-RankMOEA e o melhor baseline - formato diferente do IGD absoluto da Tabela 5 e dos deltas da Fig. 16.",
+      "achado": "Deep GP contribui ~45% do ganho, classificador ~30%, aquisicao aprendida ~25% (D=500,M=5) - ORDEM relativa (Deep GP > classificador > aquisicao) e compativel com a Tabela 5 (100D), mas os NUMEROS (percentuais que somam 100%) nao sao redutiveis nem comparaveis aos deltas absolutos de IGD da Tabela 5 nem aos deltas da Fig. 16 - terceira quantificacao de 'contribuicao de componente' mutuamente inconsistente no artigo (ver observacoes).",
+      "aplicabilidade": "nao reproduzivel sem reexecucao - mesma limitacao da Tabela 5 (fichas 11/15): exige rodar variantes estruturais do proprio algoritmo em D=500, nao apenas o contrafactual sigma=0."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Aquisicao aprendida on-line x combinacao linear fixa (Static-EHVI) sobre as mesmas features",
+      "grupo_sugerido": "E",
+      "descricao": "Ablacao controlada do mecanismo de aprendizado da rede de aquisicao: constroi um comparador 'Static-EHVI' que usa exatamente as mesmas features (medias preditas, variancias epistemica/aleatoria por objetivo, probabilidade do classificador, estatisticas da janela deslizante de HV) mas combinadas por uma soma linear de pesos fixos (busca em grade offline), em vez da rede neural aprendida on-line; compara HV final em DTLZ2-100D.",
+      "literal": "A paired Wilcoxon signed-rank test confirms that the learned policy significantly outperforms the static rule (p < 0.01).",
+      "localizador": "Apendice L.6, Table 12 e Fig. 9",
+      "metricas": [
+        "HV final +/- desvio-padrao",
+        "ganho relativo percentual"
+      ],
+      "testes": [
+        "Wilcoxon signed-rank pareado (p<0,01)"
+      ],
+      "convencoes": "Media +/- desvio-padrao sobre 20 sementes; ganho relativo percentual explicito na tabela (+23,1%).",
+      "achado": "A rede de aquisicao aprendida atinge HV=0,863+/-0,011 contra HV=0,701+/-0,013 do melhor Static-EHVI (ganho de +23,1%, p<0,01) - evidencia de que aprender a combinacao das mesmas variaveis de incerteza/media supera uma combinacao linear fixa por busca em grade, ainda que ambas usem exatamente os mesmos sinais de incerteza como entrada (nao e uma ablacao de incerteza, e uma ablacao de APRENDIZADO da forma de combinar a incerteza).",
+      "aplicabilidade": "nao reproduzivel sem reexecucao - exige implementar e rodar uma variante 'Static-EHVI' do proprio algoritmo com os mesmos sinais internos; conceitualmente e uma 'ablacao exata' no espirito da ficha 11 (isola um fator controlando os demais), mas para o mecanismo de aprendizado da aquisicao, nao para a presenca/ausencia de incerteza."
+    },
+    {
+      "fichas": [
+        11,
+        15
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Figura de barras (visualizacao) da mesma ablacao de componentes de 100D-DTLZ2, mostrando o aumento de IGD ao remover cada um de 4 modulos: classificador de rank, Deep GP (so surrogate), aquisicao aprendida, calibracao.",
+      "literal": "Ablation study on 100D DTLZ2: contribution of each component to final IGD. Removing key modules degrades performance, showing their individual importance.",
+      "localizador": "Apendice O, Fig. 16 (legenda interna via OCR: 'w/o Rank Classifier +0.055', 'w/o DeepGP (only surrogate) +0.120', 'w/o Acquisition Learner +0.070', 'w/o Calibration +0.030')",
+      "metricas": [
+        "delta de IGD (aumento absoluto ao remover o componente)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Grafico de barras com o delta de IGD por componente removido, rotulado diretamente na barra.",
+      "achado": "Ordem relativa de importancia bate com a Tabela 5 (Deep GP > aquisicao > classificador/calibracao), mas os valores absolutos dos deltas (+0,055 a +0,120) sao uma ORDEM DE GRANDEZA menores que os deltas da Tabela 5 (+0,17 a +1,43) e usam um conjunto de categorias diferente ('w/o Rank Classifier' nao aparece na Tabela 5, que tem 'Excluding Bayesian uncertainty quantification' em vez disso) - mesma ablacao conceitual, terceira quantificacao numerica incompativel (junto com a Tabela 5 e o Apendice L.3). Ver observacoes.",
+      "aplicabilidade": "mesma da Tabela 5 (fichas 11/15) - nao reproduzivel sem reexecucao de variantes estruturais."
+    },
+    {
+      "fichas": [
+        33
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Diagrama de confiabilidade (reliability diagram) comparando visualmente a calibracao do escalonamento de temperatura contra a do MC-Dropout (isolados), com a diagonal representando calibracao perfeita.",
+      "literal": "Reliability diagram comparing temperature scaling and MC-Dropout. The closer the curve to the diagonal, the better calibrated the predictive uncertainties.",
+      "localizador": "Apendice O, Fig. 18 (legenda interna via OCR: 'Temperature scaling (ECE=0.009)', 'MC-Dropout (ECE=0.031)', 'Perfectly calibrated')",
+      "metricas": [
+        "ECE (por curva/metodo)"
+      ],
+      "testes": [
+        "nenhum nesta figura especificamente"
+      ],
+      "convencoes": "Curva empirica de confianca prevista x frequencia observada, uma linha por metodo, com ECE anotado na legenda.",
+      "achado": "Temperatura isolada obtem ECE=0,009 (bem calibrada) e MC-Dropout isolado ECE=0,031, segundo a legenda desta figura - mas isso e INCOMPATIVEL com a afirmacao do Apendice I.4 de que o metodo COMBINADO (temperatura+Dropout) obtem ECE=0,032+/-0,004 e supera consistentemente cada metodo isolado: 0,032 e PIOR que 0,009 (temperatura sozinha). Ver observacoes.",
+      "aplicabilidade": "③ sonda - reliability diagram e ECE sao diretamente calculaveis a partir das probabilidades previstas pela sonda para classificadores do roster (b4, c217), reproduzindo o espirito da ficha 33 para uma medicao de tipo classificatorio."
+    },
+    {
+      "fichas": [
+        7
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Figura de escalonamento em alta dimensao: IGD final em funcao do orcamento disponivel (escala log), afirmando estabilidade do metodo ate D=500 e orcamentos grandes.",
+      "literal": "High-dimensional scaling: final IGD as a function of available budget (log-scale). The method remains stable up to 500D and large budgets (e.g., 5M evaluations).",
+      "localizador": "Apendice O, Fig. 17",
+      "metricas": [
+        "IGD final x orcamento (escala log)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curva IGD x orcamento em escala log, series para 200D e 500D.",
+      "achado": "PROBLEMA GRAVE DE CONSISTENCIA: a legenda cita estabilidade ate '5M evaluations' (5 milhoes de avaliacoes), o que contradiz frontalmente a premissa de orcamento 'expensive'/escasso do artigo inteiro - TODOS os outros experimentos (incluindo a propria extensao D=500 do Apendice L) usam exatamente 300 avaliacoes reais. Nao ha nenhuma secao do texto corrido que descreva um experimento com milhoes de avaliacoes.",
+      "aplicabilidade": "① endpoint cruzado com D e orcamento - reprodutivel em espirito (ficha 7), mas o valor de '5M evaluations' citado e incompativel tanto com o orcamento real deste artigo (300) quanto com o da dissertacao (31D-1); tratar como ruido de legenda, nao como parametro replicavel."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de convergencia de IGD (e HV, no caso do estudo Static-EHVI) ao longo das avaliacoes reais, para varios problemas/dimensoes: 'Type A problems' (Fig. 10), problemas biobjetivo 100D (Fig. 11) e a bateria principal (Fig. 15), comparando U-RankMOEA aos baselines.",
+      "literal": "Convergence curves (IGD) over function evaluations. U-RankMOEA demonstrates faster convergence and lower final IGD compared to the baselines.",
+      "localizador": "Sec. 4.2 (texto) e Apendice O, Fig. 10, Fig. 11, Fig. 15",
+      "metricas": [
+        "IGD (e HV para a Fig. 9 do estudo Static-EHVI) ao longo das avaliacoes"
+      ],
+      "testes": [
+        "nenhum teste estatistico nas curvas; bandas de erro-padrao (Fig. 9) ou nao especificado (Fig. 10/11/15)"
+      ],
+      "convencoes": "Curva de IGD x avaliacoes reais, uma linha por algoritmo, sem declarar se e execucao mediana ou media das curvas.",
+      "achado": "U-RankMOEA mostra convergencia inicial acelerada (atribuida a exploracao guiada por incerteza), progresso sustentado (atribuido a aquisicao adaptativa) e precisao final superior (atribuida ao Deep GP) - segundo a discussao da Tabela 2; padrao qualitativo repetido nas 3 figuras de convergencia.",
+      "aplicabilidade": "① avaliacoes reais acumuladas por checkpoint de orcamento - reproducao direta da ficha 26 (trajetorias de convergencia), desde que se defina se a curva reportada e mediana ou media sobre as sementes (o artigo nao deixa isso explicito)."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparacao visual 2-D entre a frente de Pareto verdadeira e as solucoes encontradas por U-RankMOEA (e possivelmente outros metodos) num problema biobjetivo sintetico.",
+      "literal": "Pareto front approximation (2D): comparison between the true Pareto front and found solutions.",
+      "localizador": "Apendice O, Fig. 19 (legenda interna via OCR: 'True Pareto Front', 'Enhanced CLMEA (n=16)', 'Front 2', 'Front 3')",
+      "metricas": [
+        "cobertura/proximidade visual da frente encontrada em relacao a frente verdadeira"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Grafico de dispersao no espaco de objetivos com a frente verdadeira e a(s) frente(s) encontrada(s) sobrepostas.",
+      "achado": "ANOMALIA DE ROTULO: a legenda capturada via OCR mostra 'Enhanced CLMEA (n=16)' como uma das series comparadas a frente verdadeira - CLMEA e um baseline (nao o metodo proposto), e 'n=16' coincide exatamente com a contagem de solucoes atribuida ao U-RankMOEA no estudo de caso geotermico (Sec. 4.5, nao neste contexto sintetico) - sugere contaminacao de rotulo entre figuras/experimentos distintos.",
+      "aplicabilidade": "① + execucao mediana - reproducao direta da ficha 54, atentando para o rotulo anomalo observado nesta figura especifica antes de usa-la como referencia de convencao visual."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "O artigo mede calibracao em varias frentes, mas majoritariamente do CLASSIFICADOR bayesiano de rank (nao diretamente do sigma do Deep GP): (1) ECE/MCE/ACE do classificador apos escalonamento de temperatura + MC-Dropout adaptativo, com comparacao contra metodos isolados (Apendice I.4); (2) reliability diagram comparando temperatura vs MC-Dropout isolados (Fig. 18) - cujos numeros contradizem os de I.4 (ver observacoes); (3) ECE citado piorando com granularidade excessiva do rank K>=6 (Apendice F); (4) NLPD de validacao do Deep GP ao longo das iteracoes, comparando com/sem triagem seletiva (Apendice E, Fig. 4); (5) checagem de fidelidade do proxy de ganho de informacao (Dropout) contra uma referencia 'gold-standard' num problema de brinquedo 1-D (Apendice H, Fig. 8, Pearson rho=0,96); (6) ilustracao qualitativa da decomposicao espacial epistemica/aleatoria (Fig. 5, Fig. 13), sem metrica de cobertura formal (nao ha calculo explicito de fracao dentro de mu+/-2sigma nos benchmarks principais).",
+    "literal": "ECE = 0.032 ± 0.004, (40) MCE = 0.056 ± 0.006, (41) ACE = 0.028 ± 0.003, (42)",
+    "localizador": "Apendice I.4 (Eq. 40-42); Fig. 18; Apendice F; Apendice E (Fig. 4); Apendice H (Fig. 8)"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo de parede total e por iteracao por algoritmo em 3 cenarios, com speedup vs o baseline mais rapido (Table 14); decomposicao percentual do tempo de U-RankMOEA em 5 componentes - classificador, Deep GP, rede de aquisicao, avaliacao de candidatos, overhead (Table 15); overhead medio de 8,3s/iteracao chamado de 'negligenciavel' frente a avaliacoes reais caras (Fig. 14); crescimento do tempo por iteracao com D (+40% de 200D para 500D) e efeito da triagem em 2 estagios na reducao de avaliacoes caras do surrogate (-68%), no Apendice L.3; custo (em avaliacoes) do re-tuning de hiperparametros entre tarefas (~8% do orcamento de 300, Table 9, Apendice G.1); custo do proprio grid-search inicial (~3.000 avaliacoes, Apendice B.3). Hardware citado: GPU RTX-4090. NAO ha decomposicao fit/busca/avaliacao MEDIDA para as Tabelas 1-3/11 principais (so no detalhamento a parte do Apendice N); nao ha grafico de quadrante custo x qualidade (rank de IGD vs tempo) explicito.",
+    "literal": "U-RankMOEA has substantially lower wall-clock time across the considered benchmarks.",
+    "localizador": "Sec. 4.4 (Fig. 14); Apendice N (Table 14, Table 15); Apendice L.3; Apendice G.1 (Table 9); Apendice B.3"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Modelar explicitamente a correlacao entre objetivos (Deep GP multi-saida via coregionalizacao linear, LMC) PIORA a HV mediana em vez de melhorar, nos dois problemas testados - atribuido a variancia de estimacao extra introduzida pelos parametros adicionais sob poucos dados.",
+      "literal": "The independent model attains higher median hypervolume in both cases. A plausible explanation is that the extra parameters introduced by the LMC formulation increase estimation variance when only a few hundred observations are available.",
+      "localizador": "Apendice G, Table 8"
+    },
+    {
+      "descricao": "Segundo a legenda da Fig. 3 (capturada via OCR da imagem), o proxy de triagem 'penalizado por incerteza' tem correlacao de Spearman MENOR (rho=0,18) que o proxy 'so media' (rho=0,23) - o oposto do que o texto corrido afirma ('alinhamento substancialmente maior'); se os numeros da legenda estiverem corretos, incorporar o termo de incerteza ao proxy de triagem PIOROU a preservacao de ordem em vez de melhora-la.",
+      "literal": "Mean-only proxy (Spearman p=0.23)\n- Uncertainty-penalised proxy (Spearman p=0.18)",
+      "localizador": "Fig. 3, texto de imagem via OCR, pag. 17 (contradiz a legenda textual da Sec. E/Apendice E)"
+    },
+    {
+      "descricao": "Granularidade excessiva do classificador de rank (K>=6 categorias) nao melhora a HV final e ainda piora a calibracao (ECE aumenta); K muito pequeno (K=3) tambem piora significativamente o desempenho - expondo que mais 'resolucao' na representacao de rank/incerteza nao ajuda e pode ate atrapalhar a confiabilidade da incerteza reportada.",
+      "literal": "Differences between K = 5 and K ≥ 6 are not accompanied by additional HV gains, while smaller choices (e.g., K = 3) produce significantly worse outcomes",
+      "localizador": "Apendice F, Fig. 6"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "O artigo atribui o fraco desempenho da modelagem explicita de correlacao entre objetivos (LMC) em parte ao fato de que o mecanismo de aquisicao ja captura implicitamente trade-offs inter-objetivo via informacao condicionada a rank, tornando a covariancia explicita redundante - o mecanismo existente, nao a falta de um criterio mais sofisticado, ja resolveria o problema.",
+      "literal": "mechanism already leverages rank-conditioned information, which captures important aspects of inter-objective trade-offs and therefore reduces the marginal utility of an explicit covariance model.",
+      "localizador": "Apendice G"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "Frentes de Pareto complexas/multimodais (DTLZ3, DTLZ6)",
+      "afirmacao": "Ganhos relativos de IGD do U-RankMOEA sobre o melhor baseline (CLMEA) sao maiores nesses dois problemas (28-42%) do que na media da bateria triobjetivo.",
+      "literal": "The most significant improvements occur in problems with complex Pareto front structures (DTLZ3, DTLZ6), where U-RankMOEA achieves 28-42% better IGD values compared to CLMEA.",
+      "localizador": "Sec. 4.3"
+    },
+    {
+      "caracteristica": "Alta dimensao extrema (D=500) nos mesmos problemas complexos (DTLZ3, DTLZ6)",
+      "afirmacao": "Mesmo com vantagem relativa consistente sobre os baselines em D=500, o desempenho ABSOLUTO nesses dois problemas segue fraco, indicando que a dificuldade estrutural persiste mesmo quando o metodo vence a comparacao relativa.",
+      "literal": "The absolute performance on challenging landscapes such as DTLZ3 and DTLZ6 indicates room for improvement, while extreme-scale problems (D > 1000) may require further surrogate simplifications or distributed evaluations",
+      "localizador": "Apendice L.4"
+    },
+    {
+      "caracteristica": "Alta dimensao de decisao num problema real (D=160, reservatorio geotermico)",
+      "afirmacao": "Em um problema real de alta dimensao, o metodo dobra o numero de solucoes nao-dominadas bem distribuidas encontradas e ganha 23% de HV sobre o melhor baseline testado no caso, alem de adaptar a aquisicao a estruturas de gradiente termico reveladas pela analise de incerteza.",
+      "literal": "It achieves a 23% improvement in hypervolume and uncovers superior operational trade-offs between short-term revenue and long-term sustainability.",
+      "localizador": "Sec. 4.5"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "LEITURA COMPLETA CONFIRMADA: arquivo lido inteiro (7195 linhas) em blocos via Read com offset/limit, cobrindo as 3 camadas de conversao do PDF (41 paginas): (1) secao estruturada pymupdf4llm (linhas 1-1009): corpo do artigo (Abstract, Sec. 1 Introduction, Sec. 2 Related Work, Sec. 3 Proposed Method 3.1-3.5, Sec. 4 Experimental Analysis 4.1-4.5, Sec. 5 Conclusion, References) + Apendices A-O completos (A Algoritmo; B tuning+Fig.2; C implementacao+diversidade; D Table 5; E Table 6/7+Fig.3-5; F Fig.6; G Table 8+Fig.7; H Fig.8; I calibracao+Fig.18-area; J limites teoricos+Table 10; K Fig.13; L D=500+Table 11-12+Fig.9; M Table 13; N Table 14-15; O lista de Fig.10-19) - a extracao estruturada pymupdf4llm por si so tinha COLAPSADO/reordenado o meio dos Apendices A-H em varias tabelas grandes (celulas mescladas com <br> nas Tabelas 1-3, 11, 4), exigindo cruzar com a camada seguinte; (2) ANEXO 'Camada de texto completa do PDF' (get_text bruto, linhas ~1010-6991): confirmado, por seções, como reproducao em prosa linear do MESMO conteudo (Introducao, Related Work, Metodo, Tabelas 1-3, Apendices A-O) - usada para ler os Apendices A-G sem a ambiguidade da grade markdown, e para confirmar celula a celula as Tabelas 4-9; (3) ANEXO 'Conteudo textual das imagens (OCR)' (linhas 6997-7195): capturou rotulos e valores DENTRO das figuras que nao aparecem em nenhuma camada de texto (Fig. 2,3,4,5,6,7,8,9,13,14,16,17,18,19) - foi essa camada que revelou a maioria das inconsistencias numericas abaixo, invisíveis so no texto corrido. Nenhuma das 3 camadas sozinha bastava.\n\nINCONSISTENCIAS INTERNAS ENCONTRADAS (registradas porque o pedido do projeto ja trata os NUMEROS deste artigo como nao confiaveis; o DESENHO das analises de calibracao foi extraido normalmente):\n(1) Tres quantificacoes DIFERENTES e nao reconciliaveis de 'contribuicao de cada componente' aparecem no artigo para o mesmo tipo de pergunta: a Table 5/Apendice D (100D-DTLZ2, IGD absoluto por configuracao: excluir UQ bayesiana da IGD 1,7226 para 2,4124, delta +0,69; excluir Deep GP para 3,1546, delta +1,43); a Fig. 16/Apendice O (mesmo problema 100D-DTLZ2, mas via OCR mostra categorias parcialmente diferentes e deltas de IGD uma ordem de grandeza menores: 'w/o Rank Classifier +0.055, w/o DeepGP +0.120, w/o Acquisition Learner +0.070, w/o Calibration +0.030'); e o Apendice L.3 (D=500/M=5, contribuicoes em PORCENTAGEM do gap total somando 100%: Deep GP ~45%, classificador ~30%, aquisicao ~25%). As tres nao sao derivaveis umas das outras, embora a ORDEM relativa de importancia (Deep GP > aquisicao > classificador/calibracao) seja consistente entre elas.\n(2) A Fig. 3 (Apendice E) tem no texto corrido a afirmacao de que o proxy 'penalizado por incerteza' tem alinhamento de rank (Spearman) 'substancialmente maior' que o proxy 'so media', mas a legenda da propria figura (via OCR) mostra o oposto: rho=0,23 (so media) vs rho=0,18 (penalizado por incerteza).\n(3) A Fig. 18 (reliability diagram, via OCR) mostra 'Temperature scaling (ECE=0.009)' e 'MC-Dropout (ECE=0.031)' isolados, mas o Apendice I.4 afirma que o metodo COMBINADO (temperatura+Dropout) atinge ECE=0,032+/-0,004 e que esse combinado supera consistentemente cada metodo isolado - o que e incompativel com os proprios numeros da Fig. 18, ja que 0,032 (combinado) e PIOR que 0,009 (temperatura isolada).\n(4) A legenda da Fig. 17 (escalonamento em alta dimensao, via OCR) cita estabilidade 'up to 500D and large budgets (e.g., 5M evaluations)' - 5 milhoes de avaliacoes contradiz frontalmente a premissa de orcamento escasso/caro do artigo inteiro (300 avaliacoes em todos os demais experimentos, inclusive na propria extensao D=500 do Apendice L).\n(5) A Table 8 (Apendice G) e intitulada 'Median hypervolume (mean +/- standard error)' - mistura mediana (no titulo) e media (no conteudo declarado) na mesma legenda.\n(6) A legenda da Fig. 19 (via OCR, pag. 39) lista 'Enhanced CLMEA (n=16)' como uma das series comparadas a frente de Pareto verdadeira num problema sintetico - CLMEA e um baseline (nao o metodo proposto), e 'n=16' coincide com a contagem de solucoes atribuida ao U-RankMOEA no estudo de caso GEOTERMICO (Sec. 4.5), sugerindo contaminacao de rotulo entre figuras de experimentos distintos.\n(7) O texto principal (Sec. 4.1) refere-se ao estudo de ablacao como 'Table D' ('as summarized in Table D'), mas no apendice o mesmo estudo esta rotulado 'Table 5' dentro do 'Apendice D' - a convencao de nomeacao cruzada capitulo-letra / tabela-numero nao e 1:1 explicita.\n(8) As Tabelas 1, 2, 3 e 11 (as tabelas-placar principais) reportam um unico valor por celula sem desvio/erro-padrao e sem simbolos de significancia, apesar de a Sec. 4.1 declarar '20 independent trials' com Wilcoxon rank-sum - nao fica claro se o valor tabelado e media ou mediana, nem onde a significancia foi de fato testada celula a celula (so e mencionada de forma agregada para a Table 11, 'in most cases').\n\nOUTRAS OBSERVACOES DE DESENHO (nao sao erros, mas afetam comparabilidade com a dissertacao):\n- Orcamento FIXO em 300 avaliacoes reais para todo D em {30,50,100,200} (e para a extensao D=500), diferente da convencao 31D-1 da dissertacao que escala o orcamento com D; a fatia de busca pos-DoE cai de ~200 avaliacoes (D=30) para ~100 (D>=100) - quanto maior D, proporcionalmente MENOS busca sobra, o oposto do desenho da dissertacao.\n- Nao ha piso evolutivo puro sem surrogate (nenhum NSGA-II/MOEA-D/NSGA-III/SMS-EMOA cru) entre os 10-13 baselines testados - todas as comparacoes sao assistido-vs-assistido.\n- Nao ha teste de Friedman/Nemenyi/diagrama de diferenca critica (ficha 4), nem GD/epsilon-indicator/spacing discutidos em prosa (embora 'Spacing Metric' apareca isoladamente como rotulo de eixo de uma figura via OCR, pag. 39, sem nenhuma discussao no texto corrido), nem estudo sistematico caracteristica-por-caracteristica (fichas 17/18) - so 2 mencoes pontuais de characteristica-x-desempenho (Sec. 4.3 sobre DTLZ3/DTLZ6; Apendice L.4).\n- Benchmarks sao so DTLZ1-7 e ZDT1,2,3,4,6 (mais a extensao D=500/M=5 das mesmas DTLZ) - sem WFG, MMF ou BBOB, e sem nenhum dos 3 problemas reais do roster da dissertacao (RE21/ESTOQUE40/DDMOP7); o unico problema real do artigo (reservatorio geotermico fraturado, D=160, M=2) e proprio e fora do roster.\n- Plataforma/framework de implementacao nao e nomeado (sem PlatEMO/BoTorch/GPyTorch/MATLAB); so cita GPU RTX-4090 como hardware.\n- Apendice C.1 (estimacao do score de diversidade) e partes dos Apendices I.1-I.3 e J (limites teoricos de ECE e de HV) sao majoritariamente teoricos/dedutivos, nao analises empiricas - nao geraram itens em 'analises', mas sustentam os experimentos de calibracao (I.4) e o fator rho (Table 10) que foram registrados.\n- O artigo e um preprint anonimo em revisao dupla-cega para ICLR 2026 ('Under review as a conference paper at ICLR 2026'), nao uma publicacao revisada por pares. O proprio texto esclarece que, apesar do nome 'U-RankMOEA', o metodo e fundamentalmente um algoritmo de Otimizacao Bayesiana hibrido: 'the proposed method is fundamentally a hybrid Bayesian optimization algorithm; the suffix ‘EA’ emphasizes the use of rank-based population operators rather than indicating a traditional evolutionary algorithm' (Introduction) - compativel com a classificacao motor=BO-Especiais do projeto."
+}

@@ -1,0 +1,90 @@
+{
+ "problema": "RE21 (four-bar truss, D=4, M=2) — auditoria final em escala sobre o corpus congelado",
+ "celulas": "566 células medidas (disco E censo_final.csv concordam): 19 configs × até 30 sementes (b3 e nsga2 com 28; sementes ⊂ {0-28,42}, nenhuma inválida), campanha única 3240f4b26fae_2026-08-15, host único matlab-vm1 (sem exposição à deriva vm5 pós-14/08). O enunciado dizia '~626, 21 configs' — NÃO confere: b5m e c154 sem RE21 (lacunas sancionadas), c311/treed_media/sobol_batch só têm ondas antigas sem RE21; os ~60 restantes não existem em disco nem na _quarentena (achado A3).",
+ "bateria": [
+  {
+   "checagem": "(1) Fidelidade numérica — reimplementação independente do four-bar truss (f1=L(2x1+√2x2+√x3+x4), f2=(FL/E)(2/x1+2√2/x2−2√2/x3+2/x4), F=10,E=2e5,L=200) conferida contra o F gravado em TODAS as células",
+   "resultado": "69.618 pontos da ① (566×123): erro relativo máx 5,48e-07, p99 << 1e-6, ZERO pontos acima de 1e-6 (tolerância O-21/float32-D53); 38.938/69.618 bit-exatos já em float32 (o resto é o round-trip float32 do x). Camada ⑦ (60 células b5r+moead_media): erro máx 3,80e-07, 0 violações. Reconcilia e ESTENDE o T15 (que provara bit-exato em float64 nos smokes) para o corpus inteiro",
+   "veredito": "(1) conforme"
+  },
+  {
+   "checagem": "(2) Caixa x1,x4∈[a,3a]=[1,3], x2,x3∈[√2a,3a]=[√2,3] com folga float32",
+   "resultado": "0 violações com folga 1e-6 nas ① e ⑦; pior excursão assinada = −2,42e-08, que é EXATAMENTE √2−float32(√2) (o bound inferior de x2/x3 representado em float32)",
+   "veredito": "(1) conforme (excursão = artefato de representação sancionado pela D53)"
+  },
+  {
+   "checagem": "(3) Orçamento 123=31·4−1 e contrato das 7 camadas",
+   "resultado": "566/566: ①=123 linhas, fe_index 0..122 único; online fase init:43 (=11·4−1, DoE) + opt:80; offline init:123 (dataset 31D−1); manifest maxfe=123 e rodapé do RUNNER fe_final=123 em 566/566. DoE bit-idêntico entre os 16 online por semente (x E f — D88) e dataset offline bit-idêntico nas 3 configs por semente (sha). 6 camadas presentes em 566/566; ②=0 linhas em b5r/moead_media (sancionado DI-03: membership do dataset vazio, série no jsonl); ③=0 nos 4 EA puros (sem surrogate, CONTRATO §3.2); ④ com 1 linha nos offline (D-09/T-8). Sonda: régua única online 2000pts (hash f46989…) nos 12 surrogates online, régua única offline 20000pts (hash e4c1ca…) nas 3 offline, nao_se_aplica nos EA puros, e74 ok_multi_cabeca (58k sonda + 13,5k estratificada na ③). ⑥ íntegro: header 1º e footer último em 566/566; stack Python (6 configs, 180 células) com os 2 rodapés conhecidos da F30 — no RE21 runner e despachante CONCORDAM (ok/123) em 180/180, zero ⚪",
+   "veredito": "(1) conforme, com desvios sancionados citados (DI-03, D-09/T-8, §3.2)"
+  },
+  {
+   "checagem": "(4) Semântica da ⑦ nos offline (B7.5/DI-08/DI-13.8-9)",
+   "resultado": "b5r 30/30 e moead_media 30/30 com __final.parquet + manifest próprio ('avaliar TODOS os finais, filtrar PÓS-real'): n_final==manifest e n_nd_pos_real==manifest em 60/60; nd_pos_real RE-DERIVADO por dominância fraca padrão (duplicatas mutuamente ND) bate em 60/60; avaliador float64 (problems.py), fora do orçamento (① intacta em 123). e103: ⑦ AUSENTE em 30/30 (só o legado s42 dos sintéticos a tem) — reconstituível: rodapé declara n_final=100 e a ③ ger 99 tem 200 linhas (2 cabeças × 100 decisões)",
+   "veredito": "b5r/moead_media (1) conforme; e103 (2) sancionado em princípio (T15 §7/F30: 'trilho retroativo') mas NÃO EXECUTADO no RE21 — pendência real (achado A1)"
+  },
+  {
+   "checagem": "(5) Fronts — |ND| por config e poder discriminativo",
+   "resultado": "|ND| mediano: c141/c262 72 · c238 59 · e81 57 · c122 51 · b1 46 · e74 43 · e7 42,5 · b3 41 · c149 38,5 · smsemoa 29 · nsga2 26,5 · nsga3 25,5 · moead 23 · b4/c217 21 · b5r 2 · moead_media 50 (degenerado). HV normalizado (régua pooled, ref(1,1)): c238 0,7426 > c262 0,7408 > c141 0,7389 > e74 0,7347 > b1 0,7286 > e81 0,7270 > b3/c122/e7 0,705-0,713 > EA pisos 0,608-0,657 > b5r 0,219 > moead_media 0,0001; IQRs online 0,0004-0,034; Kruskal-Wallis 19 configs H=511, p=9,1e-98. O RE21 DISCRIMINA: ~8,5 p.p. entre melhor surrogate e melhor piso (>> contraste empírico de 1,2% do piso morto O-18) e ordenações estáveis. Ressalvas: b4, c217 e c149 (surrogates) performam NO nível dos pisos EA; offline colapsa (achado A5)",
+   "veredito": "(1) discrimina — com estratificação informativa inclusive dentro da classe surrogate"
+  },
+  {
+   "checagem": "(6) T01 da T15 — cadeia de citação (suplementar S.1.1 / Cheng & Li 1999 no acervo?)",
+   "resultado": "NÃO entrou. corpus_artigos/problemas/ tem só real1.pdf (Tanabe&Ishibuchi, 21 pp — não define o RE21, manda p/ o suplementar); busca por *suppl*/*cheng*/*four*bar* no acervo inteiro e em Downloads: zero; _artigos_markdown: só menções incidentais em outros artigos. A pasta fusao tem reproblem_official.py + RE21_reference_front.npy (cadeia de IMPLEMENTAÇÃO fechada; a de CITAÇÃO continua aberta)",
+   "veredito": "(3) pendência documental — ação 9 do T15 segue aberta"
+  }
+ ],
+ "achados": [
+  {
+   "id": "A1",
+   "descricao": "⑦ (__final.parquet) ausente em 30/30 células e103/RE21, enquanto b5r e moead_media têm 30/30. A métrica oficial do regime offline do e103 no RE21 é INCOMPUTÁVEL hoje. Reconstituível sem re-execução: FinalDec ≡ decisões da ③ ger 99 (100 decisões, 2 cabeças; rodapé declara n_final=100), avaliador pós-hoc Python DI-08, fora do orçamento, com o caveat float32 já sancionado (DI-13.21). A F30 já classificara o trilho retroativo do e103 como sancionado-com-ressalva (forma do T15 §7 não aplicada: sem final_pos_hoc no rodapé, sem n_nd_pos_real NULL-declarado)",
+   "classe": "(2) desvio sancionado em princípio, com execução PENDENTE no RE21",
+   "gravidade": "alta",
+   "acao": "🟠 impl→código: rodar o avaliador pós-hoc DI-08 para e103×RE21 (30 células) na forma T15 §7; NÃO requer MATLAB nem re-rodar célula"
+  },
+  {
+   "id": "A2",
+   "descricao": "Os 2 rodapés do ⑥ no stack Python (b5r, c122, c149, c262, e81, moead_media — 180 células RE21) reproduzem o padrão da F30 (runner rico + append cego do despachante/AuditLogger). No RE21 é INÓCUO: runner e despachante concordam (status=ok, runner fe_final=123) em 180/180, zero ⚪ — mas qualquer tail -1 lê o despachante, e a fixação de autoridade na O-21 (escalação da F30) segue aberta",
+   "classe": "(2) padrão conhecido/escalado na F30; no RE21 sem efeito medido",
+   "gravidade": "baixa",
+   "acao": "manter a escalação F30: fixar na O-21 qual rodapé é a autoridade"
+  },
+  {
+   "id": "A3",
+   "descricao": "Contabilidade do enunciado não confere: '~626 células, 21 configs' vs medido 566/19 (censo e disco concordam; b5m e c154 sem RE21 são lacunas sancionadas; c311/treed_media/sobol_batch não têm RE21; nada na _quarentena). ~60 células da expectativa não existem em lugar nenhum",
+   "classe": "(3) divergência de contabilidade no ENUNCIADO (o dado está íntegro)",
+   "gravidade": "baixa",
+   "acao": "D81: registrado e escalado — corrigir a expectativa para 566/19 ou apontar a fonte dos ~60"
+  },
+  {
+   "id": "A4",
+   "descricao": "T01 permanece aberto: nem o suplementar (Seção S.1.1) de Tanabe & Ishibuchi nem Cheng & Li (1999) entraram no acervo — a fonte designada (real1.pdf) não define a formulação do RE21. A fidelidade NÃO é afetada (bit-verificado contra reproblem_official.py, presente na fusao; reimplementação independente desta auditoria fecha em 5,5e-7 sobre 69.618 pontos), mas a cadeia de citação da dissertação continua exposta",
+   "classe": "(3) pendência documental (T15 ação 9)",
+   "gravidade": "media",
+   "acao": "autor: baixar o suplementar e/ou Cheng & Li e citar a fonte que contém a formulação"
+  },
+  {
+   "id": "A5",
+   "descricao": "Colapso do conjunto final offline no RE21: moead_media tem 22/30 células cuja ⑦ é 1 ÚNICO x duplicado 50× (tipicamente o canto f0-mín da caixa, f=(1237,84; 0,040)) — NÃO é o congelamento do ESTOQUE40 (aqui a pop MOVE: 11-24/800 transições com mudança, converge cedo e degenera); b5r decide 1-2 pontos (12 células com 1, 16 com 2). Consequências medidas: nd_pos_real trivialmente verdadeiro sob dominância fraca (duplicatas idênticas não se dominam — re-derivação bate 60/60, o dado está CORRETO), e HV offline mediano 0,0001 (moead_media) / 0,219 (b5r)",
+   "classe": "(1) dado conforme; comportamento degenerado do MECANISMO no regime offline",
+   "gravidade": "media",
+   "acao": "autor: decidir a redação na dissertação (piso offline degenerado no RE21; nd_pos_real vacuo sob duplicatas) — 🟢 leitura nossa declarada, nenhum fix de código"
+  },
+  {
+   "id": "A6",
+   "descricao": "Rodapés do stack Python não carregam fe_final/termino/cache_hits (dialeto do despachante); os campos vivem no rodapé do runner (1º footer) e no manifesto — no RE21 todos os 3 concordam em 123/ok",
+   "classe": "(2) sancionado (padrão F30 §2.1)",
+   "gravidade": "baixa",
+   "acao": "nenhuma além de A2"
+  }
+ ],
+ "fase2_regua": "RE21 (não-DDMOP7) → coerência da régua vigente: COERENTE em 3 vias independentes. (i) ideal do front D72 (RE21_reference_front.npy, 1000 pts) = [1237,84142; 0,00276142]; (ii) ideal TEÓRICO derivado analiticamente dos cantos da caixa = idêntico (f0 em x=lb: 200·(2+2+2^0.25+1); f1 em x=(3,3,√2,3): 0,01·0,276142); (iii) ideal empírico pooled das 566 células = [1237,84143; 0,00276142] — toca o teórico a ~1e-8 relativo (float32). Extremos do front: f0_max=2886,370 e f1_max=0,040000 (D72) reproduzidos analiticamente; o nadir pooled dos fronts por célula (2886,47; 0,0506) excede o f1_max do front verdadeiro só por pontos ND-locais de células offline degeneradas (dominados globalmente — usar o D72, não o pooled, como régua oficial). ZERO dos 69.618 pontos gravados fura o ideal (o guard checa_regua passaria em 566/566).",
+ "score": 9.3,
+ "veredito": "ACEITAR — fidelidade numérica confirmada em escala total (566 células × 123 FE, erro ≤5,5e-7, zero acima da tolerância O-21), caixa limpa, orçamento e contrato das 7 camadas conformes (desvios todos sancionados e citados), régua coerente com o front D72 e com a derivação analítica, e o problema discrimina (p≈1e-97, ~8,5 p.p. surrogate vs piso). Duas pendências impedem o 10, nenhuma de fidelidade: a ⑦ do e103 não materializada no RE21 (30 células — métrica offline incomputável até rodar o pós-hoc DI-08) e o T01 documental ainda aberto.",
+ "decisoes_ao_autor": [
+  "DECISÃO 1 (🟠 impl→código, alta): autorizar a execução do avaliador pós-hoc DI-08 para e103×RE21 (30 células) — Python puro, fora do orçamento, reconstituível da ③ ger 99 (100 decisões × 2 cabeças; rodapé já declara n_final=100), na forma exigida pelo T15 §7 (params.nd_final=FINAL_POS_HOC_INFO, rodapé final_pos_hoc, caveat float32). Sem isso o e103 fica fora de qualquer tabela offline do RE21.",
+  "DECISÃO 2 (documental, media — banca): fechar o T01 baixando o arquivo SUPLEMENTAR de Tanabe & Ishibuchi (Seção S.1.1) e/ou Cheng & Li (1999) e citando a fonte que de fato contém a formulação do four-bar truss; hoje o acervo só tem o artigo principal (que não a define) — a cadeia de implementação está fechada (reproblem_official.py na fusao), a de citação não.",
+  "DECISÃO 3 (redação, media): como reportar o regime offline do RE21 — moead_media colapsa a 1 ponto (canto f0-mín) em 22/30 células (não é o congelamento do ESTOQUE40: a pop move e converge) e b5r decide 1-2 pontos; nd_pos_real fica trivial sob duplicatas idênticas (o dado está correto; a métrica é vácua). Sugestão: nota explícita na dissertação + reportar |X únicos| junto de n_nd_pos_real.",
+  "DECISÃO 4 (O-21, baixa): fixar por escrito qual dos 2 rodapés do ⑥ é a autoridade (runner vs despachante) — escalação da F30 ainda aberta; no RE21 os dois concordam em 180/180, mas o risco de leitura persiste para quem faz tail -1.",
+  "DECISÃO 5 (contabilidade, baixa): corrigir a expectativa de escopo do RE21 para 566 células/19 configs (censo e disco concordam; '~626/21' não tem lastro em disco — b5m e c154 sem RE21 são lacunas já aceitas do corpus congelado)."
+ ]
+}

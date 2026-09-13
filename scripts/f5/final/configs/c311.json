@@ -1,0 +1,101 @@
+{
+ "aspectos_mudados": [
+  {
+   "id": "ESC-1",
+   "o_que": "Escopo do config no corpus da dissertacao",
+   "antes": "T11 deixava aberto o re-run V2 da celula reprovada e uma possivel extensao futura; F30/T15 ainda por definir",
+   "agora": "Corpus CONGELADO ('o que nao executou, nao vou executar mais'): c311 = 55 celulas, 100% semente 42, off (25, tier small) + sweep D51/D38 (30). F30 (30 sementes) e T15 (reais) NUNCA incluiram c311 — exclusao SANCIONADA por D102.16 ('SEM q10/sweep/c311'); RELATORIO_FINAL_F30.md tem zero mencoes a c311. O canto MVNS x big x D=20 do sweep fica permanentemente vazio (MMF16_20 5/6)."
+  },
+  {
+   "id": "A25",
+   "o_que": "tempo_aval_real_s no offline — o unico classe (3) do T11",
+   "antes": "Classe (3) medido no smoke POS-T11 (0,0003 s = laco de injecao do dataset, nao avaliacao; contraria a decisao I-02 que manda NULL)",
+   "agora": "FORA DO CORPUS: re-medido hoje, timing.tempo_aval_real_s = 0.0 literal em 55/55 manifestos do corpus final (todas as celulas sao pre-T11, schema v1). A assinatura discriminativa de A01 ('zero FE real na busca') esta INTACTA no corpus que vai para a dissertacao. A25 permanece pendencia de CODIGO, sem celula afetada neste config."
+  },
+  {
+   "id": "T3",
+   "o_que": "Checkpoint DI-43 (item novo do teto T no T11)",
+   "antes": "T — ligado ao c311 (c311_tgprmo.py:497-500,648), nao exercido no smoke",
+   "agora": "Sai do escopo do corpus: nenhuma das 55 celulas finais foi gerada com o checkpoint (todas pre-T11) e nao havera rodada futura. O teto T efetivo do corpus volta a 2 itens (T1 kernel/GPy · T2 selection='mean')."
+  },
+  {
+   "id": "F7-ABORT",
+   "o_que": "A camada 7 da celula reprovada — ERRATA contra o T11",
+   "antes": "T11 registrou '⑦ vazia' para sweep-big-mvns/MMF16_20",
+   "agora": "MEDIDO HOJE: a ⑦ EXISTE — 105 linhas, n_final=105, n_nd_pos_real=105 (100% marcadas ND), origem_geracao=2141 = a geracao do aborto no meio da construcao (iter 42), SEM fase final e SEM os 2 blocos de sonda. E um endpoint INVALIDO que parece completo a um leitor ingenuo. Regra de leitura obrigatoria: nunca consumir a ⑦ de celula com motivo_parada classificado como falha."
+  },
+  {
+   "id": "CEN-1",
+   "o_que": "Visao do despachante persistida no censo final",
+   "antes": "B1 corrigido no ⑤ pela DI-42.1; residual conhecido no ⑥ (footer ok do despachante gravado no finally antes da mescla)",
+   "agora": "censo_final.csv carrega status=ok + motivo=gpy_bfgs_linalg para a celula reprovada, e o manifesto dela segue status=ok (celula pre-DI-42.1, nunca re-escrita). Sob O-21 o rodape do RUNNER (failed|gpy_bfgs_linalg, presente no ⑥) e a autoridade. Triagem por status e proibida; usar motivo + motivos_parada.json (classifica 'falha')."
+  }
+ ],
+ "celulas_final": "55 no disco ≡ 55 no censo (bijecao exata, 0 divergencias; 100% semente 42; 0 celulas em outras sementes). Estados O-21: ✅ 54 validas — off 25/25 (25 problemas sinteticos, tier small 31D-1) · sweep-small 10/10 (lhs+mvns x {DTLZ2,MMF16_20,WFG9,ZDT1,ZDT4}) · sweep-medium 10/10 · sweep-big 9/10; ✗ 1 falha real (sweep-big-mvns/MMF16_20/42, gpy_bfgs_linalg); ⚪ teto_wall 0; NOVAS 0; REAIS 0. Rodapes (⑥): 45 celulas com 2 footers ok|ok · 2 com 1 footer ok do runner (sweep-big-lhs e big-mvns ZDT4, onda mais antiga 2026-07-24) · 7 SEM rodape (sweep-small-lhs MMF16_20/WFG9/ZDT1/ZDT4 + sweep-small-mvns DTLZ2/MMF16_20/WFG9 — caveat de ESCRITA ja dissecado na F5: header + 4 decisions + 2 sondas presentes, bateria completa passa; validas por regra de leitura) · 1 failed|ok (a reprovada — runner honesto failed, mascara do despachante).",
+ "celulas_invalidas": [
+  {
+   "celula": "c311/sweep-big-mvns/MMF16_20/42",
+   "motivo": "Falha real: LinAlgError do GPy ('not positive definite, even with jitter') no addGPs da iteracao 42 — hazard 'bfgs sem try' do vendor, unico disparo em toda a campanha c311. Medido hoje: ③ truncada (220.011 linhas so treedGP_build ate a geracao 2.141), 0 blocos de sonda, rodape do runner=failed|gpy_bfgs_linalg + rodape ok do despachante (residual B1 no ⑥), manifesto e censo dizem status=ok (visao do despachante). ERRATA ao T11: a ⑦ NAO esta vazia — tem 105 linhas 100% nd_pos_real ancoradas na geracao do aborto, endpoint INVALIDO que parece completo.",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c311/sweep-small-lhs/MMF16_20/42",
+   "motivo": "Sem rodape no ⑥ (caveat de escrita; guard hard_error de UPLOAD na familia — ModuleNotFoundError google em gcs.py). Ciencia completa: spot-check desta rodada deu 11/11 checagens OK incluindo congelamento bit-identico e ⑦ exata.",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  },
+  {
+   "celula": "c311/sweep-small-lhs/WFG9/42",
+   "motivo": "Sem rodape no ⑥ (mesmo caveat de escrita); header + 4 decisions + 2 sondas presentes, n_ger=1204, bateria F5/T11 completa passou.",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  },
+  {
+   "celula": "c311/sweep-small-lhs/ZDT1/42",
+   "motivo": "Sem rodape no ⑥ (mesmo caveat de escrita); ciencia completa.",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  },
+  {
+   "celula": "c311/sweep-small-lhs/ZDT4/42",
+   "motivo": "Sem rodape no ⑥ (mesmo caveat de escrita); ciencia completa.",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  },
+  {
+   "celula": "c311/sweep-small-mvns/DTLZ2/42",
+   "motivo": "Sem rodape no ⑥ + 1 guard hard_error de upload + 1 retry; ciencia completa (2 sondas, 4 decisions).",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  },
+  {
+   "celula": "c311/sweep-small-mvns/MMF16_20/42",
+   "motivo": "Sem rodape no ⑥ (mesmo caveat de escrita); ciencia completa.",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  },
+  {
+   "celula": "c311/sweep-small-mvns/WFG9/42",
+   "motivo": "Sem rodape no ⑥ + 1 guard hard_error de upload + 1 retry; ciencia completa.",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "A25-herdado",
+   "descricao": "tempo_aval_real_s do regime offline mede o laco de injecao do dataset (~1,1 us/linha, escala com N), nao avaliacao real — contraria a decisao I-02 que manda NULL; a trava e um teste que le o TEXTO do fonte. HERDADO do T11 e FORA DO CORPUS FINAL: re-medido hoje, 0.0 literal em 55/55 manifestos (todas as celulas sao pre-T11); zero celulas do c311 afetadas.",
+   "gravidade": "baixa para este corpus (0 celulas afetadas; assinatura A01 intacta); media para o projeto se houver qualquer rodada offline futura",
+   "acao": "Manter a proibicao: nenhuma analise de tempo pode usar tempo_aval_real_s de configs offline. Conserto de 1 linha (nao cronometrar a injecao) + teste comportamental, SOMENTE se houver rodada futura — o corpus congelado nao exige nada.",
+   "arquivo_linha": "src/standalone_harness.py:653 · src/budget.py:249-251 · tests/test_g7_instrumentacao.py:118-127"
+  }
+ ],
+ "config": "c311 — TGPR-MO (Mazumdar, Lopez-Ibanez, Chugh, Hakanen & Miettinen 2023, Evolutionary Computation 31(4) · treed-GP offline · Python/DESDEO/sklearn/GPy, vendor intocado)",
+ "mecanismo_nos_novos": "NAO HA CELULAS NOVAS (0 desde F30/T11). A query-joia da familia foi rodada na amostra de HERANCA (8/55 celulas, cobrindo os 3 tiers, os 2 eixos LHS/MVNS, M=2 e M=3, I_eff de 4 a 99): (i) joia do congelamento — blocos treedGP_build x treedGP_final BIT-IDENTICOS em 8/8 (0 diferencas em 8 pares de 20.000 pontos, todas as colunas X/mu/sigma, NaN-aware; erro = 0,0); (ii) ND da ⑦ recomputado ≡ nd_pos_real 8/8 (exato) com link posicional a ③ Dmax = 0,0 e origem_geracao = n_geracoes 8/8; (iii) ledger n_ger = 51*I_eff+1000 e contador denso 8/8; (iv) sentinela delta=1,0 p/ it<=5 e early_stop ⟺ delta==0 em 8/8; (v) sigma 100% NaN nas geracoes 1-50 em 8/8; (vi) orcamento fe_final==maxfe==len(①), fase='init' 100% em 8/8; (vii) invariante do timing (ULP-relativa) 8/8. 88/88 checagens — a heranca do veredito T11 esta confirmada. Cobertura de 30 sementes: INAPLICAVEL — o config so existe em s42 (este E o achado de escopo).",
+ "novas_desde_f30": "ZERO. Disco ≡ censo (55=55, bijecao exata); mtime maximo global 2026-07-28T12:50Z e minimo 2026-07-24T01:35Z — 0 celulas modificadas apos 2026-08-01, i.e., o corpus e byte-o-mesmo que o T11 (2026-07-31) auditou. F30 nao examinou c311 (fora da bateria main por D102.16; zero mencoes no RELATORIO_FINAL_F30.md) e T15 nao criou celulas reais para ele. repo_hash/campanha_id ausentes em 55/55 (schema v1 pre-T11) — portao.py exige a flag --historico para este config.",
+ "reais": "ZERO celulas reais: RE21 = 0 · DDMOP7 = 0 · ESTOQUE40 = 0 (conferido no disco — resultados_experimentos/c311/ tem so os 25 diretorios sinteticos — e no censo — as 55 linhas sao todas sinteticas). A ausencia e SANCIONADA por D102.16: a onda T15 integrou os 3 problemas reais em 21 configs x 30 sementes explicitamente 'SEM q10/sweep/c311'. Consequencia direta: nada de checa_regua, dedup por x_efetivo (T15.13) ou Fase 2 pooled se aplica ao c311; o config NAO pode aparecer nos capitulos de problemas reais da dissertacao.",
+ "score_final": 9.5,
+ "trajetoria_scores": "F5 9,5 → T11 9,5 → F30 — (sem exame) → FINAL 9,5. Causas nomeadas: piloto v1.0 8,5 → F5.3a-v1.1 9,5 (mecanismo reconstruido dos dados: arvore 125/125, colocacao de GP 99,5%, congelamento bit-identico 54/54). F5 → T11 MANTEVE com composicao trocada: +0,5 por dois itens sairem do teto T (formula do early-stop LIDA no fonte — total_point_gps conta FOLHAS — e reconstruida a 91,6%/94,9%; determinismo provado por re-run ①②③⑦ byte-identico) e −0,5 por um classe (3) novo criado pela propria T11 (A25 tempo_aval_real_s na instrumentacao pos-T11). T11 → F30: sem movimento — c311 excluido da bateria main de 30 sementes por D102.16, nenhuma celula nova, nenhum exame. F30 → FINAL MANTEVE 9,5: corpus bit-o-mesmo (0 mtime pos-2026-08-01), heranca confirmada por spot-check 8/8 celulas x 11 checagens = 88/88 (joia do congelamento com 0 diferencas), e o unico classe (3) do T11 medido hoje como FORA do corpus (0.0 em 55/55 — assinatura A01 intacta). Nao sobe a 10 porque: teto T remanescente (kernel GPy; selection='mean'), a celula reprovada segue dado ruim agora DEFINITIVO (NAO_rerun), e o caveat cientifico do tier small fora do envelope do paper permanece.",
+ "veredito": "RECOMENDACAO (a decisao e do autor, D97): ACEITAR o corpus c311 como esta — 54/55 celulas validas, mecanismo TGPR-MO fechado em 3 exames sem nenhum classe (3) no laco do algoritmo — COM O ESCOPO DECLARADO EXPLICITAMENTE NA DISSERTACAO: c311 e um config SWEEP-ONLY DE SEMENTE UNICA (s42), cujo papel e o eixo de sensibilidade a dados D51 (LHS x MVNS) x D90/D38 (tiers small/medium/big ate 50k, exclusivo do c311), NAO a comparacao estatistica principal. PROIBICOES decorrentes: (1) c311 fora de qualquer analise de 30 sementes, teste estatistico ou tabela da bateria main; (2) fora dos capitulos de problemas reais (D102.16); (3) excluir sweep-big-mvns/MMF16_20 de toda analise e NUNCA consumir sua ⑦ (105 linhas de endpoint abortado que parecem completas); (4) metricas da ① empatam por desenho entre os 5 offline — ranquear so pela ⑦; (5) triagem por motivo_parada + motivos_parada.json, nunca por status. Caveat cientifico a carregar no texto: o tier small (N=61-929) roda 1-2 ordens abaixo do menor N do paper — fora do envelope em que o TGPR-MO se justifica, por desenho nosso (D90); comparacao numerica com o artigo e incomensuravel em 25/25 problemas (3 ancoras direcionais confirmadas: escalabilidade @50k, convergencia antes de I_max, DTLZ como maior consumidor de iteracoes).",
+ "decisoes_ao_autor": [
+  "D-1 (escopo, a principal): ratificar que o c311 entra na dissertacao como estudo de sensibilidade a dados (sweep D51/D38, semente unica 42) e nao como competidor da bateria de 30 sementes — a lacuna nao e acidental, e desenho (D102.16); o texto deve dize-lo.",
+  "D-2 (exclusao definitiva): ratificar NAO_rerun para sweep-big-mvns/MMF16_20/42 (corpus congelado) e declarar no texto a lacuna do canto MVNS x big x D=20 — com a nota de que e o unico disparo do hazard 'bfgs sem try' do vendor em 55 celulas (informativo em si).",
+  "D-3 (errata ao T11, requer sua ciencia): a ⑦ da celula reprovada NAO esta vazia — tem 105 linhas 100% nd_pos_real ancoradas na geracao 2.141 do aborto. Recomendo registrar a regra de leitura 'nunca consumir ⑦ de celula com motivo_parada de falha' no CONTRATO, porque o arquivo parece um endpoint completo.",
+  "D-4 (regra de leitura do censo): status=ok + motivo=gpy_bfgs_linalg no censo_final e FALHA (motivos_parada.json); qualquer contagem de validas do c311 que use status dara 55 em vez de 54.",
+  "D-5 (aceite dos caveats de escrita): ratificar as 7 celulas sem rodape + 2 com rodape unico do runner como validas por regra de leitura (bateria completa substitui o rodape) — ja aceitas em F5/T11, agora em carater definitivo.",
+  "D-6 (codigo, so se houver rodada futura): o conserto do A25 (tempo_aval_real_s offline) e de 1 linha + teste comportamental; para o corpus congelado, basta manter a proibicao de uso do campo em analise de custo."
+ ]
+}

@@ -1,0 +1,92 @@
+=== C1 massa da distribuicao do bloco-1 ===
+problema  N  n_init  frac_gt_2N_b1     med_b1     p90_b1     p99_b1     max_b1    max_b2  razao_max_b1_b2  frac_gt0_b1  frac_gt0_b2
+ BBOB_F1 11     109         0.6695  36.196507  82.475471 113.071290 130.344101  9.439170        13.808852       0.9915       0.1275
+BBOB_F17 11     109         0.5035  22.387397  64.947540 106.737660 146.824081  8.737175        16.804526       0.9635       0.0975
+BBOB_F22 11     109         0.8180  49.338024  92.125917 109.540733 122.396278  6.116595        20.010526       0.9925       0.1115
+BBOB_F37 11     109         0.7140  42.957441  95.221305 124.611674 137.341232 10.076811        13.629434       0.9820       0.5755
+BBOB_F49 11     109         0.6565  33.681055  76.294321 101.163445 119.640846  9.238160        12.950722       0.9785       0.6910
+ BBOB_F5 11     109         0.7780  49.795906 107.388976 143.513369 164.055862 11.348036        14.456763       0.9845       0.1145
+BBOB_F55 11     109         0.8280  57.141489 111.344981 150.366316 173.859283 10.359949        16.781867       0.9960       0.1175
+   DTLZ1 15      76         0.0930   7.388508  28.858156  59.477245  84.346146  9.981734         8.450049       0.9565       0.2525
+   DTLZ2 15     131         0.0745   9.721109  27.616197  44.997549  65.171974  3.941624        16.534294       0.9745       0.1215
+   DTLZ3 15     131         0.1490  10.258174  36.477671  70.915875  94.918182  6.998885        13.561901       0.9435       0.1980
+   DTLZ4 15     131         0.8680  79.779873 140.104179 185.501671 235.120850 16.501326        14.248604       0.9910       0.6885
+   DTLZ7 15     241         0.6980  51.790577 138.529250 244.829928 325.246918 11.982631        27.143198       0.9900       0.1250
+    MMF1 11      21         0.0000   5.950773  17.146718  21.131894  21.436804  8.788486         2.439192       0.9860       0.6485
+ MMF11_L 11      21         0.0000   1.678766  12.680353  16.132028  16.689751  7.290735         2.289173       0.7605       0.5705
+MMF16_20 15     219         0.2405  17.500131  43.512175  70.509389 127.255463  3.814496        33.361016       0.9760       0.1260
+    MMF4 11      21         0.0000   5.586339  13.817182  15.930176  16.840143  7.087204         2.376134       0.9375       0.7535
+    WFG1 11     241         0.9160 128.826622 234.395284 305.902347 342.248993  6.912459        49.511899       0.9905       0.0460
+    WFG2 11     241         0.8560  71.903988 147.164163 206.095981 254.917587  8.397141        30.357663       0.9940       0.1560
+    WFG4 11     241         0.7360  35.917488  70.336242 104.256501 140.329742  2.968406        47.274444       0.9980       0.0965
+    WFG5 11     241         0.5865  26.651869  61.509225 102.708357 135.211533  5.806901        23.284627       0.9945       0.1160
+    WFG9 11     241         0.6285  29.674508  78.489891 152.258939 224.408768  5.975342        37.555801       0.9945       0.1750
+    ZDT1 11     329         0.8920  80.022549 182.658191 266.447714 369.387543  5.999576        61.568945       0.9970       0.0420
+    ZDT3 11     329         0.9000  77.670116 163.233868 241.378716 289.150055  3.997090        72.340148       0.9990       0.0300
+    ZDT4 11     109         0.5185  23.640697  67.035920  97.772374 108.944778  8.009268        13.602339       0.9190       0.0625
+    ZDT6 11     109         0.8255  66.879406 151.083456 198.920609 209.658661 14.955448        14.018882       0.9945       0.1790
+
+mediana da frac>2N no bloco-1 (22 celulas discriminantes): 0.706
+
+=== C2 custo por referencia (s / ponto-de-referencia / bloco de 2000) ===
+problema  D  N  n_init      t_g1    t_med  t_prev_H1  overhead_abs_s  t_por_ref_g1  t_por_ref_rest
+ BBOB_F1 10 11     109  5.389490 0.471909   4.676187        0.713302      0.049445        0.042901
+BBOB_F17 10 11     109  5.394851 0.471590   4.673025        0.721826      0.049494        0.042872
+BBOB_F22 10 11     109  5.339263 0.469228   4.649618        0.689644      0.048984        0.042657
+BBOB_F37 10 11     109  5.345633 0.471928   4.676379        0.669254      0.049043        0.042903
+BBOB_F49 10 11     109  5.498518 0.474828   4.705112        0.793406      0.050445        0.043166
+ BBOB_F5 10 11     109  5.340156 0.469190   4.649249        0.690907      0.048992        0.042654
+BBOB_F55 10 11     109  5.319317 0.471198   4.669145        0.650172      0.048801        0.042836
+   DTLZ1  7 15      76  3.477995 0.573085   2.903633        0.574362      0.045763        0.038206
+   DTLZ2 12 15     131  6.755818 0.685755   5.988927        0.766891      0.051571        0.045717
+   DTLZ3 12 15     131  6.739010 0.688196   6.010241        0.728768      0.051443        0.045880
+   DTLZ4 12 15     131  6.677531 0.681715   5.953640        0.723891      0.050974        0.045448
+   DTLZ7 22 15     241 15.034767 0.890006  14.299433        0.735334      0.062385        0.059334
+    MMF1  2 11      21  0.904318 0.352187   0.672358        0.231960      0.043063        0.032017
+ MMF11_L  2 11      21  0.873655 0.356818   0.681198        0.192457      0.041603        0.032438
+MMF16_20 20 15     219 12.886716 0.850861  12.422572        0.464144      0.058843        0.056724
+    MMF4  2 11      21  0.862855 0.356414   0.680426        0.182429      0.041088        0.032401
+    WFG1 22 11     241 14.862064 0.655854  14.369167        0.492897      0.061668        0.059623
+    WFG2 22 11     241 15.330159 0.650216  14.245636        1.084523      0.063611        0.059111
+    WFG4 22 11     241 14.869284 0.653446  14.316399        0.552885      0.061698        0.059404
+    WFG5 22 11     241 14.979218 0.652102  14.286951        0.692267      0.062154        0.059282
+    WFG9 22 11     241 14.957969 0.652846  14.303262        0.654707      0.062066        0.059350
+    ZDT1 30 11     329 25.403954 0.804712  24.068210        1.335744      0.077216        0.073156
+    ZDT3 30 11     329 24.160902 0.765856  22.906043        1.254859      0.073437        0.069623
+    ZDT4 10 11     109  2.709381 0.239907   2.377258        0.332123      0.024857        0.021810
+    ZDT6 10 11     109  5.375699 0.471029   4.667471        0.708228      0.049318        0.042821
+
+t_por_ref(g1)/t_por_ref(g>=2): med=1.139 min=1.034 max=1.345   (1.0 = mesmo custo unitario => a diferenca de tempo e SO o tamanho da referencia)
+overhead absoluto (s): med=0.691 min=0.182 max=1.336
+
+=== C3 ② do g=1 ===
+celulas com |②(g1)| == N: 25/25
+
+=== C4/C5 ver saida do bloco seguinte ===
+
+=== C5 CONTROLE TRANSVERSAL (sonda.n_ref por config) ===
+     config            exemplo  n_ref                         referencia                                                                              chaves
+         b1            BBOB_F1    NaN                               None S,artefato,f_hash,geracoes,k,n_blocos,n_falhas,n_linhas,regime,tempo_total_s,x_hash
+         b3            BBOB_F1    NaN                               None S,artefato,f_hash,geracoes,k,n_blocos,n_falhas,n_linhas,regime,tempo_total_s,x_hash
+         b4            BBOB_F1    NaN                               None S,artefato,f_hash,geracoes,k,n_blocos,n_falhas,n_linhas,regime,tempo_total_s,x_hash
+        b5m            BBOB_F1    NaN                               None                                                   S,cadencia,f_hash,n_blocos,x_hash
+        b5r            BBOB_F1    NaN                               None                                                                                    
+       c122            BBOB_F1   11.0 populacao selecionada [P2/DI-16.2]                                  S,cadencia,f_hash,n_blocos,n_ref,referencia,x_hash
+       c141            BBOB_F1    NaN                               None S,artefato,f_hash,geracoes,k,n_blocos,n_falhas,n_linhas,regime,tempo_total_s,x_hash
+       c149            BBOB_F1    NaN                               None                                            S,cadencia,f_hash,n_blocos,regime,x_hash
+       c154            BBOB_F1    NaN                               None                          S,cadencia,custo_fe,f_hash,k,n_blocos,n_linhas,path,x_hash
+       c217            BBOB_F1    NaN                               None S,artefato,f_hash,geracoes,k,n_blocos,n_falhas,n_linhas,regime,tempo_total_s,x_hash
+       c238            BBOB_F1    NaN                               None S,artefato,f_hash,geracoes,k,n_blocos,n_falhas,n_linhas,regime,tempo_total_s,x_hash
+       c262            BBOB_F1    NaN                               None                          S,cadencia,custo_fe,f_hash,k,n_blocos,n_linhas,path,x_hash
+       c311            BBOB_F1    NaN                               None                                      S,cadencia,f_hash,modelo_flags,n_blocos,x_hash
+       e103            BBOB_F1    NaN                               None S,artefato,f_hash,geracoes,k,n_blocos,n_falhas,n_linhas,regime,tempo_total_s,x_hash
+         e7            BBOB_F1    NaN                               None S,artefato,f_hash,geracoes,k,n_blocos,n_falhas,n_linhas,regime,tempo_total_s,x_hash
+        e74            BBOB_F1    NaN                               None                                                       cabecas,decisao,regime,status
+        e81            BBOB_F1    NaN                               None                                            S,cadencia,f_hash,n_blocos,regime,x_hash
+      moead            BBOB_F1    NaN                               None                                                     motivo,n_blocos,n_linhas,status
+moead_media            BBOB_F1    NaN                               None                                                   S,cadencia,f_hash,n_blocos,x_hash
+      nsga2            BBOB_F1    NaN                               None                                                     motivo,n_blocos,n_linhas,status
+      nsga3            BBOB_F1    NaN                               None                                                     motivo,n_blocos,n_linhas,status
+    smsemoa            BBOB_F1    NaN                               None                                                     motivo,n_blocos,n_linhas,status
+sobol_batch          q10_DTLZ2    NaN                               None                                                            S,motivo,n_blocos,status
+treed_media swap_big-lhs_DTLZ2    NaN                               None                                      S,cadencia,f_hash,modelo_flags,n_blocos,x_hash

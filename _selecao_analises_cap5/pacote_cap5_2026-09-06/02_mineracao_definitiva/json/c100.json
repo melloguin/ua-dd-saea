@@ -1,0 +1,240 @@
+{
+  "id": "c100",
+  "sigla": "qEHVI",
+  "titulo": "Differentiable Expected Hypervolume Improvement for Parallel Multi-Objective Bayesian Optimization",
+  "ano": 2020,
+  "roster": false,
+  "setup": {
+    "benchmarks": "4 problemas na bateria principal da Sec. 5, todos M=2 exceto o real de segurança veicular (M=3): (1) Branin-Currin (d=2, M=2, frente de Pareto convexa) — sintético; (2) C2-DTLZ2 (d=12, M=2, V=1 restrição, frente côncava) — sintético, restrito, benchmark padrão da literatura MOO; (3) VEHICLESAFETY (d=5 — espessura de 5 peças reforçadas do chassi frontal, M=3 — minimizar massa, aceleração de colisão e intrusão do toe-board) — real, usa o surrogate de Tanabe e Ishibuchi como função-verdade; (4) ABR / controle de bitrate adaptativo (d=4 parâmetros da política de controle, M=2 — maximizar qualidade de vídeo/bitrate, minimizar tempo de stall) — real, simulador Park. Além disso, DTLZ2 sem restrição (d=6, M=2) é usado só nas ablações internas da Fig. 2 (Secs. 4.2-4.3), não fazendo parte da bateria comparativa da Sec. 5. O artigo menciona (Apêndice F.1, ausente deste corpus) 'additional synthetic benchmarks' não detalhados no corpo principal, e uma demonstração em espaços de objetivos de maior dimensão via decomposição aproximada (Apêndice F.4, também ausente). Nenhum problema das suítes ZDT/WFG/MMF/BBOB da dissertação aparece; DTLZ aparece só na forma C2-DTLZ2 (restrita) e no DTLZ2 das ablações (não-restrito), ambos com D diferentes dos usados na dissertação.",
+    "orcamento": "Para as ablações da Fig. 2 (DTLZ2, d=6,M=2): 100 avaliações reais de busca mais o desenho inicial quase-aleatório ('a budget of 100 evaluations (plus the initial quasi-random design)'). Para a bateria principal (Sec. 5, Table 1, Figs. 3-4): o orçamento específico por problema não é dado explicitamente no corpo do artigo (as figuras usam 'Function Evaluations' como eixo x sem anotar o total); os detalhes de orçamento, pontos de referência e espaços de busca são remetidos ao Apêndice E.2, ausente deste corpus.",
+    "execucoes": "20 execuções independentes ('trials') em todas as figuras e na Table 1 — 'We report means and 2 standard errors across 20 trials', repetido em todas as legendas de figura e na legenda da Table 1. Não há menção a 30 sementes nem a nenhum outro número de execuções em nenhuma parte do texto lido.",
+    "baselines": "PESMO (predictive entropy search), SMS-EGO (HV em critério UCB), TS-TCH (Thompson Sampling + escalarização de Tchebyshev aleatória), qPAREGO (extensão própria dos autores do ParEGO para paralelismo/restrições — contribuição adicional do artigo), EHVI analítico com gradiente exato via autodiferenciação (formulação fechada preexistente [Yang et al. 2019], mas o gradiente exato para M>=2 é também contribuição deste artigo), e um piso quase-aleatório Sobol (scrambled Sobol sequence). NÃO há piso evolutivo sem surrogate (nenhum NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) — todos os comparadores são métodos de otimização bayesiana/surrogate; o único 'piso' é o Sobol quase-aleatório. Nem todo baseline suporta o cenário completo: 'NA' na Table 1 marca ausência de suporte a restrições (afeta PESMO, SMS-EGO, TS-TCH e EHVI analítico no problema C2DTLZ2); só qPAREGO e qEHVI suportam paralelismo (q>1) nativamente entre os comparadores principais, com TS-TCH também avaliado em q>1 na Fig. 4/Table 1 GPU.",
+    "metricas_principais": [
+      "log hypervolume difference (problemas sintéticos com frente verdadeira conhecida/aproximável)",
+      "hypervolume indicator (problemas reais, frente verdadeira desconhecida)",
+      "tempo de parede da otimização da aquisição (s, CPU e GPU)"
+    ],
+    "testes": [
+      "nenhum teste de hipótese formal (sem Wilcoxon/Friedman/sinal); todas as comparações usam média ± 2 erros-padrão sobre 20 execuções, em figura ou tabela"
+    ],
+    "apresentacao": "Curvas de convergência e tabela de tempo com média + 2 erros-padrão (~IC 95% assumindo normalidade) sobre 20 execuções; nenhuma mediana/IQR; nenhum negrito ou símbolo +/=/− de significância (é uma tabela de custo, não de desempenho, e as figuras de desempenho não usam marcação de significância); 'NA' explícito para células onde o algoritmo não suporta a condição testada (restrições); IGD/IGD+ nunca é usado — a métrica de qualidade é sempre hipervolume (diferença de HV log ou HV bruto).",
+    "codigo_plataforma": "BoTorch (biblioteca open-source dos próprios autores, sobre PyTorch) para qEHVI, EHVI analítico e qPAREGO — código público em github.com/pytorch/botorch; SMS-EGO e PESMO via implementações existentes da biblioteca Spearmint (fork 'PESM'); simulador Park para o problema ABR. Hardware reportado: CPU 2x Intel Xeon E5-2680 v4 @2.40GHz e GPU Tesla V100-SXM2-16GB."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Custo do método de otimização da aquisição (gradiente exato vs. aproximado vs. livre)",
+      "grupo_sugerido": "F",
+      "descricao": "Compara três métodos de otimização numérica da própria função de aquisição — L-BFGS-B com gradientes exatos (via autodiferenciação), L-BFGS-B com gradientes aproximados por diferenças finitas, e CMA-ES (sem gradientes) — para EHVI (q=1) e qEHVI (q=2), medindo o tempo cumulativo médio de otimização da aquisição ao longo da busca. Executado no problema DTLZ2 (d=6, M=2), orçamento de 100 avaliações reais mais o desenho inicial quase-aleatório, 20 execuções independentes.",
+      "literal": "The cumulative time spent optimizing the acquisition function is an order of magnitude less when using exact gradients rather than approximate gradients or zeroth order methods.",
+      "localizador": "Sec. 4.2, Fig. 2a",
+      "metricas": [
+        "tempo cumulativo de otimização da aquisição (s)"
+      ],
+      "testes": [
+        "nenhum — média e 2 erros-padrão sobre 20 execuções"
+      ],
+      "convencoes": "Curvas de tempo cumulativo médio de otimização da aquisição; 6 curvas (EHVI e qEHVI(q=2) cruzados com 3 métodos de gradiente: 'Exact Gradient', 'Approx. Gradient', 'Gradient Free', confirmado por OCR da legenda da figura); média + 2 erros-padrão sobre 20 trials; eixo y em segundos (ticks de OCR sugerem escala de 5000 a 20000s); sem mediana/IQR; sem teste estatístico formal.",
+      "achado": "Gradientes exatos via autodiferenciação reduzem o tempo cumulativo de otimização da aquisição em uma ordem de magnitude em relação a gradientes aproximados por diferenças finitas ou ao método sem gradiente (CMA-ES), tanto para EHVI (q=1) quanto para qEHVI (q=2).",
+      "aplicabilidade": "não reproduzível com as camadas da dissertação — é uma comparação de métodos numéricos de otimização da própria função de aquisição (autodiff exato vs. diferenças finitas vs. CMA-ES), não uma comparação entre algoritmos SA-MOO. A camada ④ (tempos por geração) registra o tempo de busca por execução, mas os algoritmos do roster não alternam método de gradiente da aquisição como ablação interna registrada."
+    },
+    {
+      "fichas": [
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara três estratégias de construção do lote de q candidatos que competem entre si só na forma como tratam a incerteza sobre os pontos pendentes ainda não observados: otimização conjunta dos q pontos; seleção sequencial gulosa com integração própria sobre a posterior desses pontos pendentes; e seleção sequencial gulosa substituindo essa integração pela média da posterior (heurística 'kriging believer'). Testado para q=2,4,8 (mais qEHVI q=1 de referência) no problema DTLZ2 (d=6,M=2), mesmo orçamento e nº de execuções da ablação anterior.",
+      "literal": "Figure 2b empirically demonstrates the improved optimization performance from properly integrating over the unobserved outcomes rather than using the posterior mean or jointly optimizing the q candidates.",
+      "localizador": "Sec. 4.3, Fig. 2b",
+      "metricas": [
+        "desempenho de otimização (proxy de hipervolume; eixo y não nomeado explicitamente no corpo do texto)"
+      ],
+      "testes": [
+        "nenhum — média e 2 erros-padrão sobre 20 execuções"
+      ],
+      "convencoes": "Curvas por 'Batch Iteration' (eixo x, confirmado por OCR); rótulos de legenda via OCR: 'qEHVI Joint q=2/4/8', 'qEHVI Post. Mean q=2/4/8', 'qEHVI Seq. Greedy q=2/4/8', 'qEHVI q=1'; média + 2 erros-padrão sobre 20 trials; mesmo DoE/orçamento de 100 avaliações do painel (a).",
+      "achado": "Integrar propriamente sobre a incerteza (posterior completa) dos pontos pendentes supera tanto a heurística de substituí-la pela média posterior quanto a otimização conjunta dos q candidatos — a única ablação do artigo que isola o efeito de usar a incerteza sobre observações ainda não feitas (vs. um substituto pontual, a média) na mesma maquinaria de seleção em lote.",
+      "aplicabilidade": "não reproduzível diretamente com as camadas atuais da dissertação — exigiria rodar variantes do mesmo algoritmo em modo lote (q>1) alternando entre integração posterior completa e substituição pela média nos pontos pendentes. A dissertação tem o sub-estudo de lote (ficha 64, q=10) mas não compara essas duas estratégias de integração internamente; a camada ③ (predições do surrogate) seria a base necessária caso se quisesse instrumentar tal ablação."
+    },
+    {
+      "fichas": [
+        47,
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela única de tempo de parede — apenas da etapa de otimização da aquisição, não do ajuste do modelo nem da avaliação real — em CPU e GPU, para PESMO, SMS-EGO, TS-TCH, qPAREGO, EHVI analítico e qEHVI, nos 4 problemas de benchmark (2 sintéticos, 2 reais). Na GPU, TS-TCH, qPAREGO e qEHVI são também medidos em q=1,2,4,8 para mostrar o efeito do tamanho do lote no custo computacional. 'NA' marca algoritmos sem suporte a restrições no problema C2DTLZ2.",
+      "literal": "Table 1 shows that qEHVI achieves wall times that are an order of magnitude smaller than those of PESMO on a CPU in sequential optimization, and maintains competitive wall times even relative to qPAREGO",
+      "localizador": "Sec. 5.1, Table 1",
+      "metricas": [
+        "tempo de otimização da aquisição (s)"
+      ],
+      "testes": [
+        "nenhum — média e 2 erros-padrão sobre 20 execuções"
+      ],
+      "convencoes": "Tabela dividida em bloco CPU e bloco GPU; célula = média (± 2 erros-padrão) sobre 20 execuções; 'NA' explícito para algoritmo sem suporte a restrições; sem negrito, sem símbolos de significância (tabela de custo, não de desempenho).",
+      "achado": "qEHVI é uma ordem de magnitude mais rápido que PESMO em CPU e mantém tempo competitivo com qPAREGO (que tem carga computacional bem menor por não decompor em subespaços) mesmo em q grande na GPU; TS-TCH é de longe o mais rápido de todos os métodos, mas — como mostrado na Fig. 3 — com desempenho de otimização muito inferior; EHVI analítico não suporta o problema restrito (C2DTLZ2, célula NA).",
+      "aplicabilidade": "parcialmente reprodutível — a camada ④ (tempos por geração) da dissertação separa, por execução, tempo de ajuste do modelo e tempo de busca (otimização da aquisição), permitindo montar uma tabela de custo de 'busca' análoga por algoritmo/problema; não replica, porém, a comparação explícita CPU vs. GPU nem os métodos específicos de gradiente deste artigo."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de convergência da otimização sequencial (q=1) em 4 problemas — Branin-Currin, C2-DTLZ2 (restrito), VEHICLESAFETY e ABR — medidas em log-hypervolume-difference (sintéticos, frente verdadeira conhecida/aproximável) ou hipervolume indicador (problemas reais, frente verdadeira desconhecida), comparando qEHVI com Sobol, SMS-EGO, PESMO, TS-TCH, qPAREGO e EHVI analítico (onde aplicável, dado o suporte a restrições de cada baseline).",
+      "literal": "Figure 3 shows that qEHVI outperforms all baselines in terms of sequential optimization performance on all evaluated problems.",
+      "localizador": "Sec. 5.1, Fig. 3(a-d)",
+      "metricas": [
+        "log hypervolume difference",
+        "hypervolume indicator"
+      ],
+      "testes": [
+        "nenhum — média e 2 erros-padrão sobre 20 execuções"
+      ],
+      "convencoes": "Um painel por problema (4 painéis); eixo x = avaliações de função (confirmado por OCR: 'Function Evaluations'); eixo y = diferença de hipervolume (provavelmente em escala log, dado o nome da métrica) ou hipervolume; média + 2 erros-padrão sobre 20 trials; sem mediana/IQR.",
+      "achado": "qEHVI supera todos os baselines em desempenho de otimização sequencial (q=1) nos quatro problemas avaliados, incluindo os dois problemas do mundo real (VEHICLESAFETY e ABR).",
+      "aplicabilidade": "a camada ① (avaliações reais) permitiria construir curvas de convergência HV/IGD+ análogas (ficha 26) para os algoritmos do roster da dissertação; os algoritmos e problemas específicos deste artigo (PESMO, SMS-EGO, TS-TCH, qPAREGO, EHVI analítico; Branin-Currin, C2-DTLZ2, VEHICLESAFETY, ABR) não fazem parte do roster nem da bateria de 28 problemas da dissertação."
+    },
+    {
+      "fichas": [
+        26,
+        64
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Desempenho de otimização paralela no problema ABR variando o tamanho do lote q em {1,2,4,8}, visto por (a) iteração de BO (lote) e (b) avaliações de função reais (equalizando pelo custo real) — mostrando que maior paralelismo acelera a convergência por iteração para todos os algoritmos, mas apenas o qEHVI mantém eficiência amostral (por avaliação) praticamente estável quando q cresce.",
+      "literal": "Increasing the level of parallelism leads to faster convergence for all algorithms (Figure 4a). In contrast with other algorithms, qEHVI's sample complexity does not deteriorate substantially when high levels of parallelism are used (Figure 4b).",
+      "localizador": "Sec. 5.1, Fig. 4(a-b)",
+      "metricas": [
+        "hypervolume indicator (ou diferença de hipervolume; eixo y não nomeado explicitamente no corpo do texto)"
+      ],
+      "testes": [
+        "nenhum — média e 2 erros-padrão sobre 20 execuções"
+      ],
+      "convencoes": "Dois painéis com o mesmo conjunto de execuções, eixos x diferentes ('Batch Iteration' vs. 'Function Evaluations', confirmados por OCR); rótulos de legenda via OCR incluem 'Sobol q=8', 'TS q=1/2/4/8', 'qEHVI q=1/2/4/8'; média + 2 erros-padrão sobre 20 trials.",
+      "achado": "Por iteração de BO, mais paralelismo sempre ajuda (painel a); por avaliação real — o recurso escasso — qEHVI mantém eficiência amostral praticamente estável entre q=1 e q=8, enquanto os demais algoritmos pioram por avaliação conforme q cresce (painel b): qEHVI paga menos 'imposto de paralelismo' que os baselines.",
+      "aplicabilidade": "análogo à ficha 64 (sub-estudo de lote) da dissertação — usar a camada ① (avaliações reais) para comparar, a FEs iguais, os algoritmos de lote do roster (qNEHVI/qPOTS) em q=1 vs. q>1; não replica os valores específicos de q (1,2,4,8) nem os baselines (TS-TCH, Sobol) deste artigo."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Acurácia da estimativa Monte Carlo do qEHVI vs. EHVI analítico",
+      "grupo_sugerido": "E",
+      "descricao": "Menção a uma comparação entre o valor do EHVI analítico exato (forma fechada, M=2) e o valor estimado por integração (quasi-)Monte-Carlo do qEHVI, para avaliar o erro de estimação introduzido pela aproximação MC. O gráfico e os números estão no Apêndice, ausente deste corpus (a conversão do PDF cobre apenas as 14 páginas do artigo principal, sem apêndices).",
+      "literal": "(see Figure 5a in the Appendix for a comparison of analytic EHVI and (quasi-)MC-based qEHVI)",
+      "localizador": "Fig. 5a (Apêndice — ausente deste corpus); citado na Sec. 3.3",
+      "metricas": [
+        "erro de estimação Monte Carlo (não especificado no corpo principal)"
+      ],
+      "testes": [
+        "não especificado — conteúdo no Apêndice, ausente"
+      ],
+      "convencoes": "Desconhecidas — só mencionada; conteúdo integral no Apêndice, fora deste corpus de 14 páginas.",
+      "achado": "O corpo principal apenas afirma observar empiricamente 'low estimation error' da aproximação (quasi-)MC, sem detalhar números; o gráfico de comparação com o EHVI analítico está no Apêndice, indisponível neste corpus.",
+      "aplicabilidade": "não reproduzível — conteúdo do Apêndice ausente deste corpus; note-se ainda que, mesmo se disponível, essa análise trata do erro de estimação do próprio estimador MC do critério de aquisição, não da calibração da incerteza (σ) do GP."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Acurácia do gradiente amostral do qEHVI vs. gradiente exato do EHVI (M=3)",
+      "grupo_sugerido": "E",
+      "descricao": "Menção a uma comparação entre o gradiente exato (analítico, via autodiferenciação) do EHVI e o gradiente da média amostral ('sample average') do estimador MC do qEHVI, especificamente para M=3 objetivos, para validar que o gradiente aproximado se alinha ao exato. Conteúdo no Apêndice, ausente deste corpus.",
+      "literal": "see Figure 5b in the Appendix for a comparison of the exact gradients of EHVI and the sample average gradients of qEHVI for M = 3",
+      "localizador": "Fig. 5b (Apêndice — ausente deste corpus); citado na Sec. 4.1",
+      "metricas": [
+        "concordância/erro entre gradiente exato e gradiente amostral (não detalhado no corpo principal)"
+      ],
+      "testes": [
+        "não especificado — conteúdo no Apêndice, ausente"
+      ],
+      "convencoes": "Desconhecidas — só mencionada.",
+      "achado": "Não descrito no corpo principal além da existência da comparação; conteúdo no Apêndice, indisponível neste corpus.",
+      "aplicabilidade": "não reproduzível — conteúdo do Apêndice ausente deste corpus."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Escalabilidade do tempo de computação do qEHVI com o tamanho do lote q (saturação de hardware)",
+      "grupo_sugerido": "F",
+      "descricao": "Menção a um gráfico, em GPU, do tempo de computação do qEHVI conforme q aumenta, mostrando que o tempo é quase constante até um ponto de inflexão em que a carga de trabalho satura os núcleos disponíveis. Conteúdo no Apêndice, ausente deste corpus.",
+      "literal": "as is shown in Figure 11 in the Appendix, the computation time is nearly constant with increasing q until an inflection point at which the workload saturates the available cores",
+      "localizador": "Fig. 11 (Apêndice — ausente deste corpus); citado na Sec. 3.3",
+      "metricas": [
+        "tempo de computação (s) vs. tamanho do lote q"
+      ],
+      "testes": [
+        "não especificado — conteúdo no Apêndice, ausente"
+      ],
+      "convencoes": "Desconhecidas — só mencionada.",
+      "achado": "Reivindicação textual (sem números no corpo principal) de que o custo de computar qEHVI em hardware GPU altamente paralelo é quase insensível a q até saturar os núcleos — consistente com a análise de complexidade teórica do caminho crítico T∞=O(1) da Sec. 3.3.",
+      "aplicabilidade": "não reproduzível — conteúdo do Apêndice ausente deste corpus. Relacionar-se-ia à ficha 46 (parede do retreino) se fosse sobre o custo de ajuste do GP, mas aqui é sobre o custo de computar/otimizar a própria aquisição em função de q, não do ajuste do modelo."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Benchmarks sintéticos adicionais (conteúdo não descrito)",
+      "grupo_sugerido": "D",
+      "descricao": "Menção à existência de benchmarks sintéticos adicionais além de Branin-Currin e C2-DTLZ2, remetidos ao Apêndice F.1; o corpo principal não diz quantos problemas, quais, nem os resultados. Conteúdo ausente deste corpus.",
+      "literal": "see Appendix F.1 for additional synthetic benchmarks",
+      "localizador": "Apêndice F.1 (ausente deste corpus); citado na Sec. 5",
+      "metricas": [
+        "não especificado — conteúdo no Apêndice, ausente"
+      ],
+      "testes": [
+        "não especificado"
+      ],
+      "convencoes": "Desconhecidas — só mencionada; presumivelmente segue o mesmo formato de curvas de convergência da Fig. 3, mas isso não é confirmado no corpo principal.",
+      "achado": "Não descrito no corpo principal.",
+      "aplicabilidade": "não reproduzível — conteúdo do Apêndice ausente deste corpus."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "qEHVI em espaços de objetivos de alta dimensão via decomposição aproximada",
+      "grupo_sugerido": "C",
+      "descricao": "Menção a uma demonstração do uso do qEHVI em espaços de objetivos de maior dimensão (many-objective) substituindo a decomposição exata em caixas por um algoritmo aproximado de decomposição (Couckuyt et al.), como forma de contornar a limitação de escalabilidade do método com M. Conteúdo no Apêndice F.4, ausente deste corpus.",
+      "literal": "the algorithm proposed by Couckuyt et al. [11], which we examine briefly in Appendix F.4",
+      "localizador": "Apêndice F.4 (ausente deste corpus); citado nas Sec. 3.3 e 6",
+      "metricas": [
+        "não especificado — conteúdo no Apêndice, ausente"
+      ],
+      "testes": [
+        "não especificado"
+      ],
+      "convencoes": "Desconhecidas — só mencionada.",
+      "achado": "Não descrito no corpo principal além de que é uma demonstração breve ('briefly') de viabilidade em M alto usando partição aproximada.",
+      "aplicabilidade": "não reproduzível — conteúdo do Apêndice ausente deste corpus; relacionar-se-ia a fichas de característica × desempenho (muitos objetivos) se o conteúdo estivesse disponível."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo de parede da ETAPA DE OTIMIZAÇÃO DA AQUISIÇÃO especificamente (não do ajuste do GP nem da avaliação real) — Table 1, em CPU e GPU, por algoritmo e por tamanho de lote q (1,2,4,8 para métodos paralelos); comparação do tempo cumulativo de otimização entre métodos de gradiente (exato/aproximado/livre) na Fig. 2a; complexidade teórica (não medida empiricamente) do cálculo de qEHVI — T1 = O(MNK(2^q − 1)) em máquina single-thread, caminho crítico paralelizável T∞ = O(1); menção (Apêndice, ausente) de escalabilidade do tempo com q até saturação de hardware (Fig. 11). Não há decomposição de tempo de ajuste do GP separado do tempo de busca no corpo principal — só o componente 'busca' é isolado e medido.",
+    "literal": "Table 1: Acquisition Optimization wall time in seconds on a CPU (2x Intel Xeon E5-2680 v4 @ 2.40GHz) and a GPU (Tesla V100-SXM2-16GB).",
+    "localizador": "Table 1 e Sec. 5.1; Fig. 2a (Sec. 4.2); complexidade teórica na Sec. 3.3"
+  },
+  "resultados_negativos": [],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "muitos objetivos / alta dimensão do espaço de objetivos (M grande)",
+      "afirmacao": "qEHVI tem escalabilidade limitada pelo algoritmo de decomposição em caixas usado para computar hipervolume, o que impede seu uso em espaços de objetivos de alta dimensão sem recorrer a uma decomposição aproximada (Apêndice F.4, ausente deste corpus).",
+      "literal": "Another limitation of qEHVI is that its scalability is limited the partitioning algorithm, precluding its use in high-dimensional objective spaces.",
+      "localizador": "Sec. 6 (Discussion)"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "COMPLETUDE DO CORPUS (achado central desta leitura): o arquivo-fonte contém apenas as 14 páginas do artigo principal (formato NeurIPS 2020: abstract, Secs. 1-7, Acknowledgments, Referências), confirmado pelos marcadores '<!-- página N -->' (1 a 14) na camada de texto completa e pelo fim do documento logo após a referência [73]. O artigo cita extensivamente um Apêndice com múltiplas seções e figuras (A, A.3, A.4, B, C, E.1, E.1.1, E.2, F.1, F.4; Figuras 5 e 11; possivelmente mais) que NÃO estão presentes neste corpus — portanto todo conteúdo remetido ao Apêndice foi registrado em 'analises' com 'nova: true' e observação 'só mencionada' (fichas A6-A10 acima), nunca inventado. Isso inclui a validação da acurácia da aproximação MC do qEHVI (Fig. 5a-b), o comportamento do tempo de computação com q em GPU (Fig. 11), benchmarks sintéticos extras (Apêndice F.1) e a demonstração em alta dimensão (Apêndice F.4). Uma 'ANEXO — Conteúdo textual das imagens (OCR)' adicional (Apple Vision) forneceu rótulos de eixo e legendas das Figs. 2, 3 e 4 que não apareciam na camada de texto (usados para precisar 'convencoes' acima), mas não trouxe números novos. Nenhuma seção do que EXISTE neste corpus foi pulada — as três camadas (extração estruturada, texto completo página-a-página, e OCR de imagens) foram lidas integralmente, do abstract à última referência.\n\nNATUREZA DO ARTIGO: é um artigo de método/algoritmo (introduz qEHVI: uma formulação MC diferenciável e paralela do EHVI, com gradiente exato via autodiferenciação), não um survey comparativo no estilo da dissertação. Não há piso evolutivo sem surrogate (nenhum NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) — o 'piso' é só Sobol quase-aleatório; todos os demais comparadores são também métodos de BO/surrogate. A métrica primária da dissertação (IGD+) NUNCA é usada aqui — a métrica de qualidade é sempre hipervolume (diferença de HV em log, ou HV bruto quando a frente verdadeira é desconhecida). Não há teste estatístico de hipótese em nenhuma análise (sempre média ± 2 erros-padrão sobre 20 execuções, nunca mediana/IQR nem símbolos de significância).\n\nCALIBRAÇÃO DO σ: calibracao_do_sigma.mede=false porque o artigo em nenhum momento avalia a qualidade/calibração da incerteza (σ) do GP em si (sem RMSE, cobertura, ou correlação σ×erro) — o GP e seu σ são tratados como blocos padrão dados (via BoTorch/gpytorch); todo o esforço empírico do artigo está em (a) mostrar que qEHVI supera baselines em desempenho de otimização e (b) mostrar que a otimização da PRÓPRIA função de aquisição fica muito mais barata com gradientes exatos — nunca em avaliar se o σ do GP subjacente é confiável.\n\nRESULTADOS_NEGATIVOS VAZIO: a Sec. 6 (Discussion) lista duas limitações do próprio método — (1) assume observações sem ruído ('currently assumes noiseless observations'), e (2) escalabilidade limitada pelo algoritmo de partição em M alto (capturada acima em 'caracteristica_x_desempenho'). Nenhuma das duas foi contada como 'resultados_negativos' porque são limitações estruturais de escopo do método (o que ele não faz), não um caso empírico em que a incerteza/surrogate mediu mal, atrapalhou ou divergiu durante os experimentos reportados — por isso a lista fica vazia, e não por falta de leitura.\n\nFICHA 64 (sub-estudo de lote): mapeada apenas à Fig. 4/Sec. 5 (comparação de desempenho a FEs iguais entre q=1 e q>1); deliberadamente NÃO mapeada à Table 1 (que também varia q, mas mede custo, não desempenho) para manter a ficha fiel à sua definição de 'desempenho a FEs iguais'.\n\nCLASSIFICAÇÃO NA TAXONOMIA: consistente com o conteúdo lido — motor=BO-Hipervolume (o critério é hipervolume/EHVI), função da incerteza=O1 Aquisição exploratória (a incerteza entra via expectativa sobre a posterior conjunta do GP na definição do EHVI/qEHVI), surrogate=GP, medição=VAR-GP (a posterior fechada do GP alimenta diretamente a estimativa MC do qEHVI), regime=online (avaliações reais intercaladas com re-ajuste do GP, sem dataset offline). DTLZ2 aparece em duas variantes com D diferentes (d=6 sem restrição nas ablações da Fig. 2; d=12 com V=1 restrição como C2-DTLZ2 na bateria principal) — nenhuma coincide com a configuração DTLZ usada na bateria da dissertação, e nenhum problema das suítes ZDT/WFG/MMF/BBOB aparece."
+}

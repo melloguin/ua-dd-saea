@@ -1,0 +1,122 @@
+{
+ "config": "c154 (JES · Joint Entropy Search · Python/BoTorch 0.18.1) · RODADA FINAL sobre corpus CONGELADO · foco: +30 DDMOP7 +30 ESTOQUE40 (SEM RE21 — lacuna aceita pelo autor). Novas células em 2 campanhas: DDMOP7 s1-28+42 = vm5 @7be66e65522c (16/08); DDMOP7 s0 + EST40 30/30 = vm1 @3240f4b26fae (15/08 e 17-19/08). git diff entre os 2 hashes = 6 arquivos (CONTRATO, REGISTRO, handoff, scripts/lote3s.sh, src/metrics.py, tests) — NENHUM no caminho de execução do c154 (c154_jes.py/ddmop7_bridge.py/experiment.py intocados) => heterogeneidade de repo provada não-perturbativa por diff; ressalva: o metrics.py da vm1 ainda tinha a régua DDMOP7 pré-errata, mas c154 não importa metrics em runtime (grep vazio) e a régua só afeta c122/c262.",
+ "celulas_final": "TOTAL c154 = 699 células NO DISCO (censo_final.csv vê 698 — omite DTLZ4/7, kill só-⑥ sem manifesto). Sob O-21 (rodapé = autoridade): SINTÉTICAS 639 (idênticas ao F30: zero arquivos pós 14/08 12:00; herda o censo F30) = 259 ok · 300 ⚪ teto_wall · 15 ⚪ kill-com-dado · 65 fail determinístico. DDMOP7 30 = 18 ⚪ teto_wall (manifesto failed + rodapé externo ok em 17; s0 sem rodapé externo, rodapé interno failed/teto_wall — smoke adotado) · 12 fail rs_escada_esgotada (0 ok — taxa de morte 40%). ESTOQUE40 30 = 30 ⚪ teto_wall (0 ok, 0 fail — resposta à pergunta do briefing: 30/30 teto_wall, fe 447-448/1239 = 36% do orçamento, 8-9 infills apenas). GRAND TOTAL: 259 ok · 348 ⚪ teto_wall · 15 ⚪ kill · 77 fail (259+348+15+77=699).",
+ "novas_desde_f30": "60 células novas (mtime 15-19/08, todas pós-F30; sintéticas intactas — mtime máx 14/08 11:24 e contagens batem com o F30 incl. s7=7 com DTLZ4/7). DDMOP7: mtimes 15-16/08; 29 células vm5, 1 célula (s0) vm1 — s0 é o SMOKE de 15/08 ADOTADO como célula de campanha: sem rodapé de despachante, paths absolutos no ⑤, upload_status null, campanha 3240f4b26fae_2026-08-15, truncada a 208 FE (22 its) vs 266-280 FE (80-94 its) das irmãs vm5. EST40: 17-19/08, 30/30 vm1, corte uniforme 447-448 FE (sem confundimento de máquina dentro do problema). Spot-check das sintéticas (herança F30): 8 células cobrindo ok/⚪/fail/kill — query-joia 713/713, estados idênticos aos do F30.",
+ "mecanismo_nos_novos": "Query-joia (acqf_escolhido == max(finitos de acqf_todos_restarts)) rodada em TODAS as 60 células novas, não em amostra: 2.446/2.446 decisões (100%), igualdade BIT-A-BIT, erro relativo máximo 0,0 — cobre as 30 sementes nos 2 problemas. Identidades correlatas, todas 100%: num_restarts=5D/raw_samples=1000D em 2.446/2.446 (85/17.000 em D=17 e 200/40.000 em D=40 — primeira vez que o knob escala para D fora do envelope sintético); pf_shape/ps_shape (10,10,2)/(10,10,17) e (10,10,3)/(10,10,40) em 2.446/2.446 (primeiro M=3 do c154); acqf>0 (MI≥0) 2.446/2.446; hs_paths 24.460 com 10 distintos/decisão; nan_guard_argmax Σ=7 == 7 não-finitos nos arrays (reconciliação exata); n_train monotônico 60/60; dist_min_arquivo com 0 zeros e 0 cache_hits; rs_fallbacks_total do rodapé == contagem de eventos em 48/48 ⚪. Bateria 7 camadas: ① len==fe_final 59/59 (incl. as 11 mortas com checkpoint), fe_index/solution_id densos, init=11D−1 (186/439), DoE do artefato com erro rel máx 5,95e-08 < 2^-24 em 59/59; ② lei init+g−1 (+bloco g0) exata 59/59; ③ online == 5D·gerações exato 59/59, DDMOP7 sem sonda (D102.10 declarado no header) e EST40 com sonda 2000pts cadência sem falta + finalProbe sob teto em gen ímpar com motivo 'ultima iteracao (teto_wall DI-43/44)' em 4/4 (J32 segue FECHADO); ④==gerações; ⑤ com campanha_id/repo_hash/schema=2 60/60, params+jes não-sentinela nas 48 ⚪. checa_regua (src/metrics.py:376, régua REAL-2.15 ERRATA 2 ideal=[0;0] nadir=[1;468/690]): PASSA 59/59. C3 ESTENDIDA aos reais: torch_seed e hs_paths função de (semente,it) IDÊNTICA entre DDMOP7×EST40 (236/236) e vs sintética MMF1 (82/82).",
+ "reais": "DDMOP7 (D=17, M=2, caixa-preta .p): 12/30 MORTES (40%) por rs_escada_esgotada — RuntimeError em c154_jes.py:333 'Only found K optimal points instead of 10', K∈{6,7,8,9}, morte nas its 2-85, amostra falha espalhada 1..9 (o mesmo hazard Bernoulli-por-iteração do F30, sem parede) — a incapacidade documentada NOVA: o smoke tinha 8 falhas, a taxa final é 12/30; fica entre BBOB_F5 (25%) e BBOB_F55 (62,5%) na escala do config. Causa estrutural: empates massivos da quantização (f1=k/17, f2=n/690 — inteiros em 7.580/7.580 pontos) inflam a escada para ~2,6 disparos/decisão (64-255/célula, ~6.400 total) vs 0,72 nos sintéticos; degrau2==mortes 12/12 (reconciliação exata, mesma lei 47/47 do F30). As 18 ⚪ truncam a 266-280/526 FE (51%) na vm5; s0 (vm1/smoke) a 208. Busca melhora o próprio DoE em f2 em 29/29 células (melhor global 92/690, s6). |ND| dedupado por x_efetivo (τ=0,5): colapso de até 54% (s7: 41→19; s1: 18→9); F-distintos no ND: 1-4, mediana 2 — resolução baixa é do problema, confirma T15. Identidade k=nnz(x) NÃO-verificável: a caixa-preta conta k internamente (DoE com 4 zeros exatos no artefato → k=17) — teto novo declarado; o verificável (quantização, régua, estrutura) fecha 100%. EST40 (D=40, M=3): 30/30 ⚪ teto_wall com APENAS 8-9 infills sobre DoE de 439 (fe 447-448/1239 = 36%; iteração ~1,4h; overshoot do relógio até 4.793s = 1 iteração); zero falhas de algoritmo, zero disparos de escada; wall_projection_warning 0/30 com CAUSA LIDA NO CÓDIGO (projetor só projeta pós-10-amostras — c262_qnehvi.py:502 — e nenhum run chegou à it 10; DDMOP7 avisa na it 10 em 29/29 que lá chegaram). J4 nos reais: piso 1e-4 não-vinculante (fração 0,000/0,001, std entre sementes ≤0,007) — a lei 'propriedade do problema, não da semente' vale. J26: optimize_acqf_warning em 100% das iterações nos 2 problemas.",
+ "aspectos_mudados": [
+  {
+   "id": "J9/J10",
+   "o_que": "Custo da divergência sancionada D75 (escada RS)",
+   "antes": "F30: 47 mortes/639 sintéticas (7,4%); 48.257 disparos (0,72/decisão); degrau2==mortes 47/47",
+   "agora": "+12 mortes/30 DDMOP7 (40% — a maior taxa de um problema real do config); ~6.400 disparos (~2,6/decisão, inflado pelos empates da quantização); degrau2==mortes 12/12; EST40: 0 disparos. Total do config: 59 mortes pela escada + 18 ModelFitting (WFG1)"
+  },
+  {
+   "id": "J8/J11",
+   "o_que": "S=10/p=10 e knob 5D/1000D em regimes novos",
+   "antes": "provado em D∈{2..30}, M∈{2,3} sintéticos, 66.590 decisões",
+   "agora": "escala exata para D=17 (85/17.000) e D=40 (200/40.000) e para o primeiro M=3 do c154 em problema real — shapes (10,10,3)/(10,10,40) em 2.446/2.446, sem uma quebra"
+  },
+  {
+   "id": "J32",
+   "o_que": "finalProbe sob teto_wall",
+   "antes": "F30: fechado em 148/148 sintéticas de gerações ímpares",
+   "agora": "re-confirmado em problema/D/M novos: 4/4 EST40 com 9 gerações trazem o bloco final com motivo 'ultima iteracao (teto_wall DI-43/44)'; DDMOP7 não exercita (sem sonda, D102.10)"
+  },
+  {
+   "id": "C3/J33",
+   "o_que": "RNG comum entre problemas dentro da semente",
+   "antes": "F30: 0 violações nos 25 sintéticos; não-declarado",
+   "agora": "ESTENDE aos reais: torch_seed/hs_paths idênticos DDMOP7×EST40×MMF1 (236/236, 82/82) — a correlação intra-semente agora cobre os 27 problemas do c154; segue não-declarada (mantém classe 3 menor do F30)"
+  },
+  {
+   "id": "C2",
+   "o_que": "③ perdida por upload_failed",
+   "antes": "F30: 149 células sintéticas sem ③ em disco nenhum (grave)",
+   "agora": "NÃO RECORRE na onda nova: 59/59 células novas têm surrogate.parquet LOCAL (upload 'uploaded_bucket_only' + arquivo presente); as 149 antigas seguem como estavam"
+  },
+  {
+   "id": "J29",
+   "o_que": "Rito de teto DI-43/44",
+   "antes": "300 ⚪ sintéticas com 1 warning + 1 truncamento",
+   "agora": "+48 ⚪ reais com 1 truncamento/célula e camadas completas; warning ausente nas 30 EST40 POR DESENHO (projeção pós-10-amostras; runs de 8-9 its) — assimetria explicada por código, não defeito"
+  },
+  {
+   "id": "J31/O-21",
+   "o_que": "Rótulo motivo_parada do ⑤",
+   "antes": "F30: sentinela 'checkpoint_em_andamento' falso em 51/65 sintéticas",
+   "agora": "reproduz nos reais: falso em 11/12 mortes DDMOP7 (+1 None em s26); o stack_trace REAL está no ⑤ em 12/12 (o despachante enxerga a causa; só o rótulo mente); rodapé-autoridade confirmado de novo"
+  },
+  {
+   "id": "T-novo",
+   "o_que": "Fidelidade de VALOR do DDMOP7 (k=nnz)",
+   "antes": "—",
+   "agora": "TETO declarado: a .p conta k internamente (≠ nnz do x recebido; DoE com zeros exatos → k=17); verificável apenas a quantização (7.580/7.580) e a régua (checa_regua 59/59)"
+  }
+ ],
+ "celulas_invalidas": [
+  {
+   "celula": "c154/DDMOP7/{9,10,11,16,18,20,23,24,25,28,42}",
+   "motivo": "morte determinística rs_escada_esgotada (RuntimeError c154_jes.py:333, escada D75 esgota com K∈{6..9}<10) nas its 39-85; rótulo ⑤ 'checkpoint_em_andamento' é FALSO (rodapé O-21 = exceção real); ①②③④ PARCIAIS válidos via checkpoint atômico até fe 224-268",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c154/DDMOP7/26",
+   "motivo": "mesma morte (it 2, K=8, 1.536s); SEM camada nenhuma além de ⑥+⑤ (morreu antes do 1º checkpoint); manifesto com motivo_parada=None e fe_final=None",
+   "recuperavel_sem_rerun": "NAO_excluir"
+  },
+  {
+   "celula": "c154/DTLZ4/7 (herdada do F30)",
+   "motivo": "kill de campanha 13/08 com só ⑥ (12 decisões, sem rodapé, sem manifesto); AUSENTE do censo_final.csv — o censo conta 698 onde o disco tem 699",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  },
+  {
+   "celula": "48 ⚪ novas (18 DDMOP7 + 30 EST40)",
+   "motivo": "NÃO são inválidas — teto_wall = truncamento-com-dado DI-43/44, camadas completas e coerentes; leitura obrigatória em orçamento de FE comum (O-21); EST40 com apenas 8-9 infills exige declaração explícita",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "CF-1",
+   "descricao": "τ da zona-morta AUSENTE do ⑤ do c154: o CONTRATO §T15.13 declara 'o τ está em params.zona_morta do ⑤', mas nenhum manifesto DDMOP7 do c154 (nem do nsga2) carrega a chave — c122 e c149 carregam. Um leitor da célula c154 não recupera τ do próprio dado.",
+   "gravidade": "baixa",
+   "acao": "recuperável sem re-run: τ=0,5 é constante global (src/ddmop7_bridge.py:126 TAU_ZONA_MORTA) e está nos ⑤ de c122/c149 da mesma campanha; registrar regra de leitura no CONTRATO ou errata 🟣 pós-freeze",
+   "arquivo_linha": "src/ddmop7_bridge.py:126 · CONTRATO_DE_DADOS.md:494-519"
+  },
+  {
+   "id": "CF-2",
+   "descricao": "Rótulo motivo_parada falso nas mortes dos reais: 11/12 mortes DDMOP7 trazem 'checkpoint_em_andamento' e 1 traz None, todas com rodapé de exceção real — o sentinela ambíguo do F30 reproduz-se na onda nova (12/12 têm o stack_trace verdadeiro no próprio ⑤)",
+   "gravidade": "media",
+   "acao": "já escalado no F30; manter a regra O-21 (rodapé = autoridade) sem exceção; pós-freeze: ⑤ distinguir kill de exceção",
+   "arquivo_linha": "scratchpad/c154_final_footers.csv"
+  },
+  {
+   "id": "CF-3",
+   "descricao": "Confundimento máquina×semente (C1 do F30) reaparece no DDMOP7: 29 células vm5 + 1 vm1, e a vm1 truncou a 208 FE vs 266-280 da vm5 — o ponto de corte das ⚪ segue decidido pela máquina/carga, não separável da semente. EST40 é imune (30/30 vm1, corte uniforme 447-448).",
+   "gravidade": "media",
+   "acao": "declarar na dissertação; ler DDMOP7 em orçamento de FE comum = min(fe_final)=208 (ou excluir s0 do pool ⚪ e usar 266)",
+   "arquivo_linha": "scratchpad/c154_final_bateria6.csv (colunas host/f_inner_fe)"
+  },
+  {
+   "id": "CF-4",
+   "descricao": "DDMOP7/0 é o SMOKE de 15/08 ADOTADO como célula de campanha: proveniência distinta (vm1, fora do despachante — sem rodapé externo, paths absolutos no ⑤, upload_status null, campanha 3240f4b26fae_2026-08-15, repo pré-A53). Mecanismo idêntico (joia 22/22; C3 fecha com as irmãs), mas o leitor não tem como saber sem esta auditoria.",
+   "gravidade": "baixa",
+   "acao": "declarar a proveniência; benigna para o mecanismo (diff de repo vazio no caminho executado do c154)",
+   "arquivo_linha": "resultados_experimentos/c154/DDMOP7/0/ (manifest created_at 2026-08-15T16:23)"
+  }
+ ],
+ "score_final": 9.3,
+ "trajetoria_scores": "F5 8,5 → T11 9,0 → F30 9,2 → FINAL 9,3. Causas nomeadas: F5→T11 (+0,5): o único classe-3 da F5 (J27, ordem da ③-online) REFUTADO por dado com a regra I-12 (7 ordens de grandeza de separação) + contrato ⑤ fechado + rito de teto DI-43/44 validado; nasce J32. T11→F30 (+0,2): J32 fechado por dado (300/300), 5 tetos T viraram número (semeadura como função exata, determinismo bit-exato cross-máquina/campanha, taxas, variâncias), evidência ×36 sem quebra; contrapeso: nascem C1 (máquina×semente) e C2 (③ de 149 células fora de alcance) e o custo da D75 sobe de 2 para 47 células. F30→FINAL (+0,1): o mecanismo sobrevive BIT-EXATO a dois problemas reais em regimes nunca exercitados (D=17/40, M=3, caixa-preta quantizada, escada sob stress 3,6×) — 2.446/2.446 decisões sem uma quebra, bateria de 7 camadas 59/59, checa_regua 59/59, J32 re-confirmado em problema novo, C3 estendida e C2 NÃO recorrendo na onda nova; o que SEGURA o movimento em +0,1: a incapacidade DDMOP7 de 40% (custo D75, o maior de um problema real), o EST40 reduzido a 8-9 infills (36% do orçamento), o classe-3 novo CF-1 (τ fora do ⑤), o rótulo falso persistente (CF-2) e o confundimento C1 reaparecendo (CF-3). Se CF-1 for sanado por regra de leitura e as declarações CF-3/CF-4 entrarem no texto, o teto prático deste config é ~9,5 — o resto é estrutural (D75 + relógio).",
+ "veredito": "ACEITAR + CAVEAT (recomendação; o veredito é do autor — D97). O mecanismo do c154 está provado agora em TRÊS regimes: sintético em escala (66.590 decisões, F30), truncamento profundo (300 ⚪) e problemas reais com quantização, caixa-preta, D=40 e M=3 (2.446 decisões, esta rodada) — sempre com igualdade bit-a-bit da query-joia e zero quebras estruturais em qualquer camada. Zero bugs de algoritmo em 4 exames. Os caveats obrigatórios para a dissertação: (i) DDMOP7 entra com taxa de incapacidade 12/30 = 40% — custo documentado e ESTOCÁSTICO-NA-SEMENTE da substituição sancionada D75, exacerbado pelos empates massivos do problema quantizado (escada a 2,6 disparos/decisão), não infidelidade ao paper (a rota original não pode falhar; o paper prescreve fallback só onde falha é possível); (ii) EST40 entra como 30/30 truncadas a 8-9 infills — qualquer comparação é sobre 'DoE + meia-dúzia de pontos JES' e deve ser lida em orçamento de FE comum; (iii) as 4 pendências classe-3 (CF-1 a CF-4) são todas declaráveis/recuperáveis sem re-run, nenhuma toca o mecanismo.",
+ "decisoes_ao_autor": [
+  "D81/D29 🟣 — CF-1: o τ da zona-morta não está no ⑤ do c154 como o CONTRATO §T15.13 promete (c122/c149 têm; c154/nsga2 não). Decisão: errata do CONTRATO (regra de leitura: τ=0,5 global em src/ddmop7_bridge.py:126) ou nota por-config? Sem re-run em ambos os casos.",
+  "D81 — CENSO: censo_final.csv conta 698 células c154 mas o disco tem 699 — c154/DTLZ4/7 (kill só-⑥, sem manifesto) é invisível ao despachante. Decidir: corrigir o censo (o corpus total 16.811 pode estar subcontado em outras configs pelo mesmo mecanismo) ou declarar a exclusão como regra.",
+  "DDMOP7 — enunciado da incapacidade: reportar 12/30 (40%) como TAXA por semente (morte nas its 2-85, hazard por iteração, K=6-9), na mesma família de ZDT6 (87,5%)/BBOB_F55 (62,5%)/BBOB_F5 (25%); as 11 células mortas com camadas parciais (fe 224-268) valem como EVIDÊNCIA de mecanismo, não como réplicas comparáveis.",
+  "EST40 — declarar explicitamente que o c154 contribui 8-9 infills sobre DoE de 439 (36% do orçamento; iteração ~1,4h em D=40): comparação SÓ em orçamento de FE comum (fe=447), e a leitura honesta é 'o que o JES faz com meia dúzia de decisões'.",
+  "DDMOP7 — orçamento de FE comum para as 18 ⚪: min(fe_final)=208 (por causa do s0/vm1) ou 266 excluindo s0. Recomendo declarar s0 como smoke adotado (CF-4) e usar 266 com n=17.",
+  "FASE 2 POOLED DDMOP7 (D102.3, obrigatória antes de qualquer HV publicado): decidir se as camadas ① das 11 células mortas entram no pool z*/z_nad (recomendo SIM — são avaliações reais do oráculo; checa_regua passa nelas).",
+  "C3 segue não-declarada e agora cobre 27 problemas (estendida aos reais 236/236): declarar a convenção de RNG comum entre problemas dentro da semente antes de qualquer agregação por semente.",
+  "Registro pós-freeze (sem pedido de fix sob congelamento): (a) rótulo motivo_parada distinguindo kill/exceção (CF-2, reproduz nos reais); (b) params.zona_morta no ⑤ de TODOS os configs em problema codificado (CF-1); (c) projetor DI-43: avisar também com <10 amostras quando cada iteração já excede max_wall/10 (caso EST40)."
+ ]
+}

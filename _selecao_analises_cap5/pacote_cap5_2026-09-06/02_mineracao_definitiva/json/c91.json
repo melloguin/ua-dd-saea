@@ -1,0 +1,216 @@
+{
+  "id": "c91",
+  "sigla": "EHVIMOPSO",
+  "titulo": "Effective optimization on Bump inlet using meta-model multi-objective particle swarm assisted by expected hyper-volume improvement",
+  "ano": 2019,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Para validar o algoritmo: (a) comparação EHVI dinâmica x estática em ZDT1, ZDT2, ZDT3 (M=2, n=30, Tabela 1); (b) comparação EHVIMOPSO x MOPSO-CD em 9 funções bi-objetivo — \"the benchmark functions ZDT1-ZDT3, ZDT6, DTLZ2, DTLZ4, DTLZ6, Srinivas [36] and Tanaka [37] are selected for validating the proposed algorithm\" (Sec. 3.4.3): ZDT1/ZDT2/ZDT3 (n=30, convexa/côncava/convexa-descontínua), ZDT6 (n=10, côncava), DTLZ2/DTLZ4/DTLZ6 (n=12, côncavas, DTLZ4 com viés e DTLZ6 com g(x)=Σx_i^0.1 degenerada), Srinivas (n=2, restrita, convexa) e Tanaka (n=2, restrita, não-convexa, descontínua) — Tabela 2. Problema real: bump de um inlet supersônico sem separador (DSI) — otimização biobjetivo (minimizar a distorção de pressão total D em condição transônica Ma=0,75 e supersônica Ma=1,70 simultaneamente), 20 variáveis de projeto via free-form deformation (FFD, deformação da coordenada Y de uma malha de controle 7x3x6), 4 restrições de desigualdade (vazão mássica e recuperação de pressão nas duas condições), avaliada por CFD RANS de alta-fidelidade (malha hexaédrica de ~1,6 milhão de células, ICEMCFD). Os dois pontos de projeto (transônico/supersônico) correspondem ao 'joelho' das curvas características ('cane curves', Figs. 22-23) do inlet, prática usual do domínio para escolher pontos de avaliação de inlets. Não há problema real do tipo RE21/ESTOQUE40/DDMOP7 da dissertação; EHVIMOPSO e MOPSO-CD-KD não estão no roster experimental.",
+    "orcamento": "Comparação dinâmica x estática (Tabela 1): enxame 200 partículas, arquivo externo 50, 150 iterações, 3 amostras reais por iteração para atualizar o surrogate (contagem de DoE inicial não informada nesta comparação específica). Comparação EHVIMOPSO x MOPSO-CD (Tabela 3): amostras iniciais (LHD ótimo) por função = 100/100/100/50/100/100/100/20/20 (ZDT1,ZDT2,ZDT3,ZDT6,DTLZ2,DTLZ4,DTLZ6,Srinivas,Tanaka); custo real total do EHVIMOPSO (ActualSimulationCost) = 850/400/850/800/850/1900/1900/320/470 avaliações; custo real total do MOPSO-CD (sem surrogate) = 6550/6050/15050/2550/6050/12060/8800/1020/6030 avaliações — \"the cost call number of MOPSO-CD is three times than that of the proposed algorithm at least\" (Sec. 3.4.3). Cada iteração do EHVIMOPSO custa exatamente 3 avaliações reais (2 do arquivo temporário REP2 + 1 do arquivo de partículas factíveis REP3), fora a amostragem inicial por LHD. Aplicação real DSI: \"In the design process, 130 deign simulations (40 samples plus 90 design simulations) are performed in all\" (Sec. 4.4; nota: 'deign' é grafia exata do artigo/extração, provável artefato de digitação/OCR de 'design') — 40 amostras iniciais (LHD ótimo) + 90 avaliações reais de infill = 130 avaliações CFD no total. Não há a fórmula 31D-1 da dissertação em nenhuma das três frentes experimentais deste artigo.",
+    "execucoes": "20 execuções independentes (Tabela 1) — \"the statistical results with respect to IGD, MS and computational time are listed in Table 1 after 20 independent trials\" (Sec. 3.4.2). 40 execuções independentes (Tabelas 4-5) — \"The statistical results are gained from performing 40 independent runs for each algorithm are shown in Table 4 and Table 5\" (Sec. 3.4.3). Aplicação real (DSI): execução única, sem repetição/sementes reportadas — apenas uma frente de Pareto final é apresentada (Fig. 17).",
+    "baselines": "MOPSO-CD (crowding-distance MOPSO, mesma maquinaria de dominância+distância de multidão do EHVIMOPSO, mas SEM surrogate — avalia toda a população/gerações diretamente na função real) — é o piso casado por construção, já que EHVIMOPSO é literalmente MOPSO-CD acoplado ao Kriging+EHVI. Há também uma comparação/ablação interna (não um algoritmo publicado externo): EHVI 'estática' (critério original, usa todas as soluções ND para particionar o grid de hipervolume) x EHVI 'dinâmica' (proposta pelos autores, usa um subconjunto dinâmico de soluções ND) — ambas dentro do próprio EHVIMOPSO. Nenhum outro algoritmo publicado (ParEGO, MOEA/D-EGO, K-MOGA etc., citados só na Introdução) é executado sob o mesmo protocolo neste artigo.",
+    "metricas_principais": [
+      "IGD (Inverted/Inverter Generational Distance) — não é IGD+",
+      "MS (Maximum Spread) — não é HV, embora hyper-volume seja usado internamente como base do critério de amostragem EHVI"
+    ],
+    "testes": [
+      "nenhum — apenas média e desvio-padrão (Ave/Std ou Mean/Std) são reportados; não há Wilcoxon, Friedman, Nemenyi nem símbolos de significância"
+    ],
+    "apresentacao": "Média ± desvio-padrão em notação científica (Tabelas 1, 4, 5); sem mediana, sem símbolos +/=/-, sem negrito para o melhor valor; frentes de Pareto plotadas para uma única execução estocástica por função (não explicitamente a execução mediana) sobrepostas à frente verdadeira (Figs. 4-12); no caso real (DSI), resultado de execução única (sem sementes), com uma solução do ND ('Pareto A') selecionada manualmente para comparação ponto-a-ponto com o design inicial (Tabela 6).",
+    "codigo_plataforma": "\"All codes mentioned above are programmed with MATLAB 16a\" (Sec. 3.4.2) — para EHVIMOPSO, MOPSO-CD, Kriging e cálculo do EHVI. CFD: RANS de alta-fidelidade com modelo de turbulência k-omega SST de Menter [38]; malha hexaédrica gerada no ICEMCFD (\"The total number of computational grids is about 1.6 million which are generated by ICEMCFD mesh generation software\", Sec. 4.1). O nome do solver CFD (aparentemente 'Fluent') só aparece via OCR de um rótulo na Fig. 13 (fluxograma), não é citado no texto corrido — tratar com cautela/baixa confiança. Processamento: \"analyzed on a super-micro cluster supported by Linux OS using 144 Intel Xeon E5-2690 processors\" (Sec. 4.4)."
+  },
+  "analises": [
+    {
+      "fichas": [
+        47
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara duas variantes do próprio critério de amostragem do EHVIMOPSO — EHVI 'estática' (usa todas as soluções não-dominadas correntes para particionar o grid de hipervolume) contra EHVI 'dinâmica' (proposta pelos autores; usa um subconjunto dinâmico das soluções ND, reduzindo o número de células do grid) — ambas acopladas ao mesmo MOPSO-CD, nas funções ZDT1, ZDT2 e ZDT3 (enxame 200, arquivo 50, 150 iterações, 3 amostras reais/iteração), ao longo de 20 execuções independentes. Mede IGD, MS e tempo de parede (s), reportando média e desvio-padrão.",
+      "literal": "the dynamic operator is almost identical to the static operator in terms of IGD and MS metrics, but they are different in computational time consumption.",
+      "localizador": "Sec. 3.4.2, Table 1",
+      "metricas": [
+        "IGD",
+        "MS (Maximum Spread)",
+        "tempo computacional (s)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Média ± desvio-padrão (Ave/Std) sobre 20 execuções independentes; notação científica; sem teste estatístico; sem símbolos; sem negrito.",
+      "achado": "O critério dinâmico obteve IGD e MS descritos como 'quase idênticos' ao estático, com redução de tempo de 19,19% (ZDT1), 51,29% (ZDT2) e 11,69% (ZDT3). Mas os números da Tabela 1 mostram duas divergências não destacadas pelo texto: (a) em ZDT1, o desvio-padrão do MS do dinâmico é quase 9x maior que o do estático (0,0488 vs 0,0055); (b) em ZDT3, o IGD médio do dinâmico é PIOR que o do estático (4,5442e-02 vs 2,9788e-02) — uma reversão do sentido esperado, já que o método mais barato perde em qualidade nessa função. O artigo também nota que o tempo medido inclui o retreino do Kriging (comum às duas variantes), o que dilui a vantagem real do critério dinâmico isoladamente.",
+      "aplicabilidade": "Não reproduzível diretamente com as 7 camadas da dissertação: exige rodar duas variantes de implementação (grid completo x grid reduzido) do cálculo do EHVI dentro do mesmo algoritmo, e nenhum algoritmo do roster implementa essa alternância. Seria parcialmente reconstruível via camada ④ (tempos por geração — separar tempo de 'busca'/cálculo de aquisição) e camada ① (endpoint IGD/MS) se algum algoritmo do roster tivesse essa variante registrada. Não é uma ablação do USO da incerteza (fichas 11/12/15): as duas variantes usam μ e σ do Kriging integralmente na EHVI — a diferença é só em qual subconjunto de soluções ND define o grid de integração; mapeamento à ficha 47 é generoso (posição em custo x qualidade de 2 configurações, não de uma bateria ampla)."
+    },
+    {
+      "fichas": [
+        1,
+        9,
+        47
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara o algoritmo proposto (EHVIMOPSO, assistido por Kriging) com seu piso sem surrogate (MOPSO-CD, mesma maquinaria de dominância + distância de multidão, mas avaliando toda a população diretamente na função real a cada geração) em 9 funções-teste (ZDT1, ZDT2, ZDT3, ZDT6, DTLZ2, DTLZ4, DTLZ6, Srinivas, Tanaka), com parâmetros ajustados por função (Tabela 3) e 40 execuções independentes por algoritmo. Reporta IGD e MS (média±desvio-padrão, Tabelas 4-5) e, separadamente, o número de avaliações reais efetivamente gasto por cada algoritmo e a razão de eficiência (EfficiencyRatio = custo do piso / custo do assistido, Tabela 3).",
+      "literal": "the cost call number of MOPSO-CD is three times than that of the proposed algorithm at least.",
+      "localizador": "Sec. 3.4.3, Tables 3-5",
+      "metricas": [
+        "IGD",
+        "MS (Maximum Spread)",
+        "número de avaliações reais (ActualSimulationCost)",
+        "EfficiencyRatio"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Média ± desvio-padrão (Mean/Std) de 40 execuções independentes, notação científica; nenhum teste estatístico; EfficiencyRatio calculado como custo do piso (MOPSO-CD) dividido pelo custo do assistido (EHVIMOPSO), por função; parâmetros do MOPSO-CD (tamanho de população, gerações) diferem por função 'according to the optimization difficulty of simulation functions' (não é sensibilidade controlada, é tuning por problema).",
+      "achado": "EHVIMOPSO obteve IGD e MS iguais ou ligeiramente melhores que MOPSO-CD nas 9 funções (ex.: IGD Tanaka 5,96e-03 vs 8,75e-03; IGD ZDT3 1,54e-02 vs 2,19e-02; MS ZDT1 0,9998 vs 0,9840), usando de 3,19x (ZDT6, Srinivas) a 17,70x (ZDT3) menos avaliações reais da função-objetivo (EfficiencyRatio, Tabela 3) — sem nenhum teste estatístico de significância, apenas média±desvio-padrão. Os próprios autores admitem que a diferença de qualidade a favor do EHVIMOPSO foi arranjada deliberadamente: 'mean values of IGD and MS metrics from MOPSO-CD simulations are worse than our proposed algorithm slightly, we set this deliberately, but the actual simulation costs are more than our proposed algorithm' (Sec. 3.4.3) — uma ressalva metodológica sobre a justeza da comparação.",
+      "aplicabilidade": "Equivalente às fichas 1 (placar algoritmo x problema) e 9 (assistido x piso casado da mesma maquinaria), reproduzíveis na dissertação via camada ① (avaliações reais -> ND acumulado -> IGD+/HV) comparando um algoritmo do roster ao piso da sua própria classe de motor. O componente de custo (nº de avaliações reais, EfficiencyRatio) equivale à ficha 47 (posição em custo x qualidade). Não reproduzível com os dados já coletados da dissertação porque nem EHVIMOPSO nem MOPSO-CD-KD estão no roster experimental, e o protocolo (orçamento fixo por função, parâmetros tunados por função, 40 execuções, IGD/MS em vez de IGD+/HV, sem teste estatístico) difere do protocolo único da dissertação (31D-1, 30 sementes, IGD+/HV, Wilcoxon)."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para cada uma das 9 funções-teste, plota a frente de Pareto verdadeira sobreposta ao resultado de uma execução estocástica de cada um dos dois algoritmos (EHVIMOPSO e MOPSO-CD), permitindo inspeção visual/qualitativa de cobertura e proximidade à frente real (Figs. 4 a 12, uma figura por função).",
+      "literal": "comparison graphs of benchmark functions between true Pareto front and a stochastic optimization result generated by two algorithms are displayed in Figs. 4 to 12.",
+      "localizador": "Sec. 3.4.3, Figs. 4-12",
+      "metricas": [
+        "cobertura visual da frente de Pareto (qualitativo)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Uma execução estocástica por função e por algoritmo (não explicitamente a execução mediana, convenção diferente da dissertação); eixos f1 x f2; frente verdadeira sobreposta como referência em cada painel.",
+      "achado": "Descrito apenas qualitativamente no texto ('comparison graphs... are displayed'); não há achado numérico ou descrição textual específica de qual algoritmo cobre melhor cada frente além do que já está nas Tabelas 4-5 — as figuras servem como evidência visual complementar da cobertura, sem discussão textual figura-a-figura.",
+      "aplicabilidade": "Equivalente à ficha 54 (fronteiras da execução mediana x frente verdadeira), reproduzível na dissertação via camada ① (ND acumulado da execução escolhida, sobreposto à frente verdadeira analítica). Diferença de convenção: aqui a execução usada não é comprovadamente a mediana, é 'a stochastic optimization result' qualquer."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Caso real de engenharia com aplicação única do método (sem baseline algorítmico nem frente verdadeira conhecida)",
+      "grupo_sugerido": "C",
+      "descricao": "Aplica o EHVIMOPSO a um problema real de engenharia aeroespacial: otimização biobjetivo da geometria do bump de um inlet supersônico sem separador (DSI), minimizando a distorção de pressão total em condição transônica (Ma=0,75) e supersônica (Ma=1,70) simultaneamente, com 20 variáveis de projeto (FFD) e 4 restrições de vazão/recuperação de pressão, usando CFD RANS de alta-fidelidade como função-verdade. Após 40 amostras iniciais + 90 avaliações reais (130 no total), obtém uma frente de Pareto com 14 soluções (Fig. 17); uma solução do ND, 'Pareto A', é selecionada manualmente ('the Pareto solution A in Fig. 17 is selected as optimal solution to compare with initial DSI inlet') e comparada ponto-a-ponto com o design inicial (Tabela 6) nas duas condições de voo.",
+      "literal": "the total pressure distortions of DSI are reduced by 1.08% and 6.5% from that of the initial configuration in two design points.",
+      "localizador": "Sec. 4.4, Fig. 17, Table 6",
+      "metricas": [
+        "contagem de soluções não-dominadas obtidas",
+        "Ma_exit (número de Mach na saída)",
+        "sigma (recuperacao de pressao total)",
+        "D (distorcao de pressao total)",
+        "W (vazao massica, kg/s)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Valores pontuais de uma execução única (sem sementes/repetição); comparação da solução selecionada 'Pareto A' vs. design inicial, em 2 condições de voo; nenhuma frente verdadeira conhecida (problema real); nenhum outro algoritmo executado no mesmo problema para comparação.",
+      "achado": "A solução selecionada 'Pareto A' reduziu a distorção de pressão total (D) em 1,08% na condição transônica (Ma=0,75: D de 0,1202 para 0,1189) e em 6,5% na condição supersônica (Ma=1,70: D de 0,1508 para 0,1410), com pequena melhora de vazão mássica (W) em ambas as condições (49,40->49,71 kg/s; 101,23->101,00 kg/s), mas leve piora de recuperação de pressão (sigma) na condição supersônica (0,9097->0,9084) — ainda acima da restrição de 90,5%. Os autores ressalvam que 'Pareto front obtained in this optimization process is not the true optimal solution set because of the limitation of computer resources' (Sec. 4.4).",
+      "aplicabilidade": "Não reproduzível com as 7 camadas da dissertação — é um problema real de engenharia aeroespacial (CFD/RANS) fora do conjunto de bancada (28 problemas: ZDT/DTLZ/WFG/MMF/BBOB + RE21/ESTOQUE40/DDMOP7); não há frente verdadeira conhecida nem comparação com outro algoritmo/piso no mesmo problema — é aplicação única do método proposto, sem sementes/repetição. Diferente das fichas 22-24 (que assumem um roster de algoritmos testado nos mesmos problemas reais), este é um estudo de caso de UM único método validado por métricas físicas de domínio (Ma_exit, sigma, D, W), não por IGD+/HV."
+    },
+    {
+      "fichas": [
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Reporta o custo computacional decomposto da aplicação real (DSI): tempo de geração de malha, tempo de simulação CFD por amostra, tempo combinado de treino do Kriging + cálculo do EHVI + execução do MOPSO por iteração, e tempo total de projeto — atribuindo a maior parte do custo às simulações CFD e não ao surrogate/critério de aquisição.",
+      "literal": "The mesh generation and CFD simulation time for a single sample is 25 seconds and 9106 seconds respectively in wall clock during optimization.",
+      "localizador": "Sec. 4.4 (texto)",
+      "metricas": [
+        "tempo de geracao de malha (s/amostra)",
+        "tempo de simulacao CFD (s/amostra)",
+        "tempo de ajuste do Kriging + calculo do EHVI + execucao do MOPSO (s/iteracao)",
+        "tempo total de projeto (s)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Prosa narrativa com estimativas pontuais (não estatístico, execução única/não repetida); tempos em segundos, wall clock, em cluster de 144 processadores Intel Xeon E5-2690.",
+      "achado": "O artigo decompõe o tempo da aplicação real: geração de malha ~25 s/amostra, simulação CFD ~9106 s/amostra, e ~1100 s por iteração para treinar o Kriging, calcular o EHVI e rodar o MOPSO; o tempo total de projeto é de aproximadamente 8,23E+05 segundos (excluindo a amostragem inicial). O texto afirma explicitamente que a maior parte do tempo computacional é gasta em simulações CFD, não no surrogate/aquisição.",
+      "aplicabilidade": "Parcialmente análogo à ficha 48 (decomposição fit/busca/sonda/avaliação): aqui a decomposição é malha+CFD (avaliação real) vs. Kriging+EHVI+MOPSO (ajuste+busca), sem componente de 'sonda' (③), já que este artigo não tem instrumentação equivalente à da dissertação. Reproduzível apenas parcialmente via camada ④ (tempos por geração) para algoritmos do roster; não há dado equivalente para o problema real (DSI), que está fora da bateria da dissertação."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Validacao fisica qualitativa do design via campo de escoamento (ondas de choque, contornos de pressao)",
+      "grupo_sugerido": "H",
+      "descricao": "Valida fisicamente a solução ótima selecionada ('Pareto A') contra o design inicial através de visualizações qualitativas do campo de escoamento: a configuração de ondas de choque próximas à entrada do inlet na condição supersônica (Fig. 18) e os contornos de distribuição de pressão total no plano de saída (Figs. 19-20, nas duas condições de voo) e ao longo do duto interno (Fig. 21, condição supersônica).",
+      "literal": "The Fig. 18 displays three shock wave sections near the entrance of inlet at supersonic design point.",
+      "localizador": "Sec. 4.4, Figs. 18-21",
+      "metricas": [
+        "distribuicao de pressao total (contorno, qualitativo)",
+        "configuracao de onda de choque (qualitativo)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Contornos de campo de escoamento (CFD) comparando otimizado vs. inicial, lado a lado, execução única, sem métrica numérica agregada — apenas descrição textual do que se vê.",
+      "achado": "Na condição transônica (Ma=0,75) há pouca diferença visual entre o inlet inicial e o otimizado, com a região de alta pressão total do otimizado 'larger than the baseline inlet slightly'. Na condição supersônica (Ma=1,70) a diferença é bem maior: 'the area of high total pressure region get remarkably bigger and pressure value of high pressure region become smaller' — indicando que a deformação geométrica do bump tem efeito mais pronunciado no regime supersônico. No duto interno, a região de baixa pressão do otimizado é menor que a do inicial, embora ainda apareça no canto superior esquerdo das seções.",
+      "aplicabilidade": "Não reproduzível — exige simulação de campo de escoamento 3D (RANS/CFD) e visualização de grandezas físicas (ondas de choque, contornos de pressão) que nenhuma das 7 camadas da dissertação registra (que guardam x, f, mu/sigma, tempos e decisões — não campos de escoamento completos). É uma análise específica do domínio aeroespacial, não do comportamento do algoritmo/surrogate."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Curvas de desempenho ao longo de uma faixa continua de condicao operacional (envelope operacional)",
+      "grupo_sugerido": "H",
+      "descricao": "Compara curvas características ('cane curves') de distorção de pressão total e recuperação de pressão total em função da razão de vazão (phi) — uma varredura da condição operacional além do ponto de projeto único — entre o inlet otimizado e o inicial, nas duas condições de voo (Figs. 22-23), incluindo o efeito da restrição de recuperação de pressão (90,5%) em condição sub-crítica.",
+      "literal": "Comparison characteristic “cane” curves of distortion and total pressure recovery versus flow ratio ( ϕ ) between optimal and baseline inlet are shown in Fig. 22 and Fig. 23.",
+      "localizador": "Sec. 4.4, Figs. 22-23",
+      "metricas": [
+        "D (distorcao)",
+        "sigma (recuperacao de pressao total)",
+        "razao de vazao phi"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curvas contínuas (não pontos discretos) de duas grandezas físicas vs. razão de vazão, otimizado vs. inicial sobrepostos, uma figura por condição de voo; execução única, sem repetição.",
+      "achado": "Na condição transônica, o inlet otimizado tem distorção e recuperação de pressão levemente melhores que o inicial ('but with little quantity'); na condição supersônica, a distorção melhora bem mais ('much better than initial one'), mas a recuperação de pressão piora ligeiramente — permanecendo, porém, acima do valor de restrição (90,5%) na condição sub-crítica ('the total pressure recovery of the optimal inlet is still bigger than constraint value 90.5% at sub-critical operating conditions').",
+      "aplicabilidade": "Não reproduzível — é uma varredura de condição operacional física (razão de vazão) específica do domínio de inlets aeroespaciais, sem equivalente nas 7 camadas da dissertação (que variam orçamento/geração, não uma condição de contorno física contínua pós-otimização)."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "(a) Tempo de parede (Time/s, média±desvio-padrão) comparando EHVI estática x dinâmica em ZDT1-3 (Tabela 1). (b) Número de avaliações reais (ActualSimulationCost) e razão de eficiência (EfficiencyRatio) entre EHVIMOPSO e MOPSO-CD nas 9 funções-teste (Tabela 3) — não é tempo de parede, é contagem de chamadas à função real. (c) Decomposição do tempo da aplicação real (DSI): geração de malha (25 s/amostra), simulação CFD (9106 s/amostra), treino do Kriging + cálculo do EHVI + execução do MOPSO (~1100 s/iteração), e tempo total de projeto (~8,23E+05 s, excluindo a amostragem inicial).",
+    "literal": "The overall design time cost is about 8.23E+05 seconds without calculating the initial sample time. The vast majority of computational time during design optimization is spent on CFD simulations.",
+    "localizador": "Sec. 4.4 (texto); Table 1; Table 3."
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Apesar do texto descrever o critério dinâmico (proposto, mais barato) como 'quase idêntico' ao estático em IGD e MS, os números da Tabela 1 mostram duas divergências: (a) em ZDT1, o desvio-padrão do MS do dinâmico é quase 9x maior que o do estático (0,0488 vs 0,0055), indicando menor consistência de cobertura entre execuções; (b) em ZDT3, o IGD médio do dinâmico é PIOR que o do estático (4,5442e-02 vs 2,9788e-02) — uma reversão do sentido esperado.",
+      "literal": "the dynamic operator is almost identical to the static operator in terms of IGD and MS metrics",
+      "localizador": "Sec. 3.4.2, Table 1 (ZDT1, ZDT3)"
+    },
+    {
+      "descricao": "Os autores reconhecem explicitamente que o grau de infactibilidade aproximado usado durante a busca (IFD, calculado a partir da média predita pelo Kriging mais uma margem beta x mse baseada na incerteza do modelo, Eq. 12) é DIFERENTE do grau de infactibilidade real (Eq. 11, calculado com a função verdadeira) — decisões de factibilidade tomadas via o surrogate podem divergir do valor real, e o artigo não quantifica a magnitude dessa divergência nem informa o valor numérico usado para o coeficiente beta.",
+      "literal": "the symbol IFD is an approximate value of infeasibility degree, which is calculated on the basis of the mean values predicted by Kriging model, it is different from the real infeasibility degree IFD",
+      "localizador": "Sec. 3.3 (apos o passo 6 do algoritmo)"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Passagem de contextualização da Introdução (não um teste empírico do próprio artigo) observando que o EHVI é estruturalmente uma alternativa de agregação à abordagem mais antiga de tratar cada EI por objetivo como um objetivo separado do próprio processo de busca — ambas as formas usam a mesma informação (mu, sigma) do surrogate, mudando apenas como ela é agregada num único critério escalar (EHVI) versus mantida multiobjetivo (muitos EIs).",
+      "literal": "which updates surrogate model using a single criterion rather than giving many EIs as the objective functions",
+      "localizador": "Sec. 1 (Introducao)"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "frente concava / alta densidade de solucoes nao-dominadas obtidas (ZDT2)",
+      "afirmacao": "O critério estático (que particiona o grid de hipervolume usando TODAS as soluções não-dominadas correntes) sofre mais em problemas onde muitas soluções de Pareto são obtidas rapidamente, como ZDT2 (côncava): o número de células do grid cresce e a redução de tempo do critério dinâmico proposto é a maior das três funções testadas nesse caso.",
+      "literal": "The time reduction ratio of ZDT2 is maximal in three functions because it obtains plenty of Pareto solutions in fewer number of iterations",
+      "localizador": "Sec. 3.4.2 (texto apos Table 1)"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) Confirmação das classes da taxonomia recebidas no pedido, com evidência literal. motor=EA-Dominância — confirmado: o núcleo de seleção do MOPSO-CD (e, por extensão, do EHVIMOPSO) é dominância de Pareto para manter o arquivo externo ('Perform Pareto dominance compare and store non-dominated solutions in A', Step 3) mais distância de multidão para diversidade/truncamento ('Computes the crowding distance values of each solution in A, and sort the non-dominated solutions in descending crowding distance values', Step 4.1) — o mesmo par dominância+crowding-distance do NSGA-II, embora o operador de variação seja PSO (velocidade/posição), não crossover/mutação de GA. função da incerteza=O1 - Aquisição exploratória — confirmado: sigma do Kriging entra diretamente na EHVI, que guia ONDE amostrar em seguida ('The EHVI is a unary indicator, which measures the expected value of how much the hyper-volume indicator may be improved with a new unobserved points predicted by Kriging surrogate model', Sec. 3.2.2) — critério de aquisição clássico tipo EI, não um gate de confiança nem robustez. surrogate=GP - confirmado: 'The Kriging surrogate model [14,15] is an efficient interpolation model to predict the approximate response of unobserved points through the sample points' (Sec. 3.2.1); Kriging = GP. medição=VAR-GP (posterior fechada) - confirmado: a EHVI é calculada analiticamente a partir de Y_j(x) ~ N(y_j(x), sigma_j^2(x)) da posterior do Kriging ('The expected hyper-volume improvement value can be calculated analytically', Sec. 3.2.2) — sem ensemble/dropout. regime=online - confirmado: o modelo é reajustado a cada iteração com o conjunto de amostras atualizado ('Increment the iteration counter t; Construct Kriging model via updated sample set', passo j do Algoritmo). (2) Estrutura do documento: 3 camadas (estruturada, texto bruto 'ANEXO - Camada de texto completa do PDF (get_text)', OCR 'ANEXO - Conteudo textual das imagens (OCR)') foram lidas INTEGRALMENTE (2668 linhas). A camada de texto bruto duplica exatamente o conteudo da camada estruturada (Tabelas 1-6 conferidas celula a celula, identicas). A camada de OCR traz apenas rotulos de eixo/legenda de figuras (nomes dos algoritmos, valores de eixo de graficos, rotulos do fluxograma) ja presentes ou implicitos nas legendas do texto — nenhum dado numerico ou achado novo. Nao ha apendice nem material suplementar no artigo (17 paginas: Introducao, Definicoes, Algoritmo, Aplicacao DSI, Conclusoes, Referencias). (3) Nenhuma calibração/cobertura do sigma do Kriging é medida (calibracao_do_sigma.mede=false): mu e sigma sao usados só operacionalmente (na EHVI, Eqs. 9-10, e no grau de infactibilidade aproximado IFD, Eq. 12, via beta x mse), nunca validados contra o erro real do modelo — nao ha RMSE do surrogate, nao ha sonda, nao ha curva de aprendizado. (4) Nao ha curva de convergencia (IGD/MS x avaliacoes/iteracoes) em nenhuma das duas baterias sintéticas — só numeros finais apos orçamento fixo (Tabelas 1, 4, 5); portanto a ficha 26 (trajetorias) nao se aplica. (5) Ressalva metodologica sobre a comparacao EHVIMOPSO x MOPSO-CD (Tabelas 3-5): os proprios autores afirmam ter ajustado deliberadamente os parametros para que MOPSO-CD tivesse qualidade um pouco pior a um custo maior — 'we set this deliberately' (Sec. 3.4.3) — o que e uma admissao explicita de que a comparacao nao e as-cegas/nao-tunada; nao classificado como resultado_negativo por nao envolver diretamente a incerteza/surrogate, mas relevante para julgar a forca da evidencia do placar (ficha 1/9). (6) O beta do IFD aproximado (Eq. 12, beta x mse do Kriging = margem baseada na incerteza para a decisao de factibilidade) nunca recebe um valor numerico explicito no texto — o artigo so diz 'beta is a coefficient within [0, 1]' (Sec. 3.3); nao ha sensibilidade a esse parametro nem contagem de quantas vezes a margem de incerteza mudou uma decisao de factibilidade (o que impede mapear como ficha 45, 'mecanismo em acao', apesar do mecanismo existir). (7) IGD nao e diretamente comparavel em magnitude entre problemas de escalas de objetivo muito diferentes: os valores de IGD do Srinivas (~0,86-1,08, Tabela 4) sao ordens de grandeza maiores que os das funcoes ZDT/DTLZ normalizadas (~1e-2 a 3e-2), refletindo a escala nao normalizada dos objetivos de Srinivas, nao necessariamente pior qualidade relativa — o artigo nao discute essa ressalva de escala. (8) O artigo nao compara com nenhum outro algoritmo SA-MOO publicado (ParEGO, MOEA/D-EGO, K-MOGA, os citados na Introducao) sob o mesmo protocolo — a unica comparacao externa e contra o proprio piso casado (MOPSO-CD) e a unica ablacao e interna (EHVI estatica x dinamica); portanto fichas que pressupoem um roster de multiplos algoritmos (2, 4, 5, 6, 10, 20, 21, 51, 52, 60) nao se aplicam a este artigo."
+}

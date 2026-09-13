@@ -120,9 +120,10 @@ F_MIN_MAX: dict[str, tuple[tuple[float, ...], tuple[float, ...]] | None] = {
     # Custo: HV menor em valor absoluto, IGUALMENTE comparável entre configs.
     #
     # O `nadir` fica como estava (468/690 — errata 1, de 2026-08-13). A FASE 2
-    # segue OBRIGATÓRIA (REGUAS_PROVISORIAS abaixo): z*/z_nad pooled sobre as
-    # runs reais substituem isto e a §12 re-roda (D102.3). O guard executável
-    # `checa_regua` (T15.13) faz o cálculo FALHAR se esta régua for furada.
+    # foi COMPUTADA e a régua RATIFICADA pelo autor em 2026-08-22 (ver
+    # REGUAS_PROVISORIAS abaixo — o DDMOP7 saiu do selo). O guard executável
+    # `checa_regua` (T15.13) faz o cálculo FALHAR se esta régua for furada —
+    # verificado: 0 furos em 302.643 pontos do corpus final.
     "DDMOP7":    ((0.0, 0.0),
                   (1.0, 0.678260869565217)),
     # [T15.12 · C3-01 do laudo de fidelidade 15/08] Régua ESTENDIDA pelos DOIS
@@ -153,8 +154,19 @@ PROBLEMAS_SEM_FRONT_D72: frozenset = frozenset({"DDMOP7"})
 #: definitivos — auditoria que veja esta constante não-vazia sabe que há
 #: pendência. Espelho do `provisorio: true` do S5_ideal_nadir.json.
 REGUAS_PROVISORIAS: dict[str, str] = {
-    "DDMOP7": "fase 1 = 62 pontos do probe v6 (REAL-2.15, opção A); "
-              "fase 2 pós-hoc obrigatória (D102.3)",
+    # [REAL-2.15 RATIFICADA · autor 2026-08-22] O DDMOP7 SAIU deste selo. A fase 2
+    # pooled (D102.3) foi COMPUTADA na validação final sobre 568 células válidas
+    # (293.944 pontos de ①): z* = [1/17 ; 84/690] · znad da nuvem = [1 ; 593/690]
+    # · front pooled de 6 pontos, 100% vindos da busca. Decisão do autor: MANTER
+    # ideal = [0;0] (dedutivo — e foi a régua EM EXECUÇÃO no c122/c262, que a
+    # consomem durante a busca; trocar dessincronizaria busca e análise) e
+    # MANTER nadir = 468/690 (nunca excedido por ND válido; máx n=383). O z*
+    # pooled NÃO é adotado (uma estimativa voltaria a poder ser furada); o nadir
+    # do front pooled NÃO é adotado (cliparia ND válidos). Sensibilidade medida:
+    # Spearman(ranking fase-1 × pooled) = 0,9993 — a escolha não move ranking.
+    # Os valores pooled ficam DECLARADOS no texto (f5/final/reais/DDMOP7.json).
+    # 17 células s0 rodadas pré-errata (commit 3240f4b) sancionadas como classe
+    # (2): os configs delas não usam a régua na busca; a métrica é pós-hoc.
 }
 
 

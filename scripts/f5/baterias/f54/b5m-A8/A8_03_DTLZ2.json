@@ -1,0 +1,63 @@
+{
+ "problema": "DTLZ2",
+ "adapt": [
+  {
+   "gen_arquivada": 1,
+   "amp": [
+    2.1929453380002997,
+    1.9715547222533587,
+    2.312174903828236
+   ],
+   "amp_min": 1.9715547222533587,
+   "amp_exato_zero": false,
+   "n_amp_zero": 0,
+   "linhas_norma0": 0,
+   "n_linhas": 105,
+   "norma_min": 0.9999999999999998,
+   "norma_max": 1.0,
+   "nan_values": 0
+  },
+  {
+   "gen_arquivada": 12,
+   "amp": [
+    1.6658965066088527,
+    1.7410353877076545,
+    1.3970785359633737
+   ],
+   "amp_min": 1.3970785359633737,
+   "amp_exato_zero": false,
+   "n_amp_zero": 0,
+   "linhas_norma0": 0,
+   "n_linhas": 105,
+   "norma_min": 0.9999999999999998,
+   "norma_max": 1.0000000000000002,
+   "nan_values": 0
+  }
+ ],
+ "iterates": [
+  {
+   "iterate": 1,
+   "chamadas_do": 1050,
+   "subst": 2218,
+   "p_nan": 0,
+   "p_zero": 6606,
+   "p_maior05": 2218,
+   "p_n": 21000,
+   "p_med": 0.006758
+  },
+  {
+   "iterate": 2,
+   "chamadas_do": 1050,
+   "subst": 577,
+   "p_nan": 0,
+   "p_zero": 10015,
+   "p_maior05": 577,
+   "p_n": 21000,
+   "p_med": 6e-06
+  }
+ ],
+ "pbi_nan": 0,
+ "pbi_tot": 84000,
+ "gens_iguais": 21,
+ "n_gens_conferidas": 21
+}

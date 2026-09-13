@@ -1,0 +1,368 @@
+{
+ "config": "nsga2 (exp=main) — piso NSGA-II stock PlatEMO 4.15, campanha M8 completa, 25 problemas x 30 sementes",
+ "cobertura": "750/750 celulas auditadas = 100% (VARREDURA TOTAL, nao amostra — o config inteiro pesa 55 MB, entao amostrar seria pior que varrer). Camadas lidas integralmente: (5) manifesto 750/750; (6) jsonl 750/750 (35.331 registros: 750 header + 750 seeding + 21.790 guard + 11.291 nsga2_gen + 750 footer); (1) real.parquet 750/750 (325.680 linhas de FE); (2) pop.parquet 750/750 (225.820 linhas); (3) surrogate.parquet 750/750 (contagem de linhas via metadados: 0 em 750/750); (4) timing.parquet 750/750 (11.291 linhas). Artefatos de DoE: 750/750 comparados bit-a-bit contra a fase init. Espelhos por VM (~/mestrado_coleta_m8/matlab-vm{1,2,3,4,5,10}): 851 copias de nsga2 -> 100 celulas em 2+ copias -> 101 pares, todos comparados (1 par incompleto). Metricas de endpoint (IGD+/HV/GD/spacing/n_nd) recomputadas com src/metrics.py em 750/750. Censo conferido contra f5/f30/censo_completo_22.csv (alg=nsga2): 750 celulas, 750 'ok', 0 branca, 0 fail — bate exatamente. READ-ONLY: nada escrito no repo, experiments.py/experiments.m NUNCA invocados, todo trabalho em /private/tmp/.../scratchpad/nsga2_aud/.",
+ "score": 9,
+ "score_t11": 10,
+ "veredito_recomendado": "RECOMENDO ACEITAR (o veredito e do autor — D97). O mecanismo esta MAIS provado do que na T11, nao menos: a query-joia D88 fecha 750/750, o ledger D89 fecha 750/750, 34.174 transicoes de elitismo+monotonia sem uma violacao, o DoE injetado bate com dX=0,0 EXATO em 750/750, e a deriva cross-maquina foi medida e e 7 ordens abaixo do export. O movimento 10 -> 9 NAO e regressao de mecanismo: e AMPLIACAO DE ESCOPO. Trinta replicas expuseram tres defeitos de instrumentacao/proveniencia que uma semente unica nao podia mostrar (C1 campanha_id/host partidos em 30 celulas; C2 a formula de n_geracoes que o proprio manifesto publica erra por +1 e a acuracia declarada nao e reproduzivel; C3 o header da (6) segue sem os 4 campos do CONTRATO §6 l.296 em 750/750). Os tres sao benignos para o algoritmo e nenhum toca o dado do surrogate — provados benignos, nao supostos. Pela regua da casa (9 = classe (3) menores investigados e provados benignos), o score e 9. Caveat de LEITURA, nao de fidelidade, para a analise: a variancia entre sementes do endpoint deste piso e grande (CV mediano 22,2% de IGD+, razao max/min ate 10,9x), logo qualquer contraste piso x SA-MOEA construido sobre 1 semente e ruido — o que CONFIRMA a DI-39 com numero.",
+ "N1_invariancia": "VARRIDA A CAMPANHA INTEIRA (750/750, nao amostra). As identidades estruturais que a F5/T11 fecharam em 1 semente:\n\nFECHAM 750/750 (invariancia total): query-joia D88 (recomputo de NDSort+CrowdingDistance+desempate por indice fora do MATLAB reproduz o conjunto de 20 eleitos de (2)(g=1) — 720/750 exatas ja na (1) float32, e as 30 celulas do DTLZ4 restauradas recomputando f em float64 a partir do X, i.e. 750/750); DoE 11D-1 injetado (max|dX| = 0,0 EXATO em 750/750, doe_hash do (5) == sidecar 750/750); len((1)) == 31D-1 == maxfe == fe_final (750/750); fe_index denso 0-based e solution_id unico (750/750); init = prefixo contiguo (750/750); 1 header + 1 seeding + 1 footer, termino='normal', status='ok' (750/750); N_nominal=N_efetivo=20 e n_pop=20 em 11.291/11.291 geracoes; (2) com exatamente 20 linhas/geracao e n_geracoes grupos (750/750); set((2)) ⊆ set((1)) (750/750); cache_hits (6) == (5) == footer (750/750); zero guards fora de {cache_hit, hard_stop} (750/750); hard_stop <=> resto>0 (750/750: 726 com, 24 sem); bloco de seeding = 21 guards POSICIONAIS antes do 1o registro de geracao, com 20 solution_id distintos, todos com fe=11D-1 e sid<11D-1, e o 1o guard duplicado (o c0 do wrapper) — 750/750; elitismo (2)(g+1) ⊆ (2)(g) ∪ {avaliados na janela} — 0 violacoes em 10.541 transicoes; monotonia do ideal — 0 violacoes em 23.633 comparacoes geracao x objetivo; f_best ≡ ideal e nadir_front1 <= nadir_pop (750/750); 0 NaN em X e f; (3) com 0 linhas e tempos fit/busca/sonda NULL (750/750); os 6 literais de \"stock puro\" (patches/parameter/surrogate/algo_version/piso/surrogate=false) e os 4 do casamento §3.2 — 1 unico valor distinto em 750/750; repo_hash unico (63db46b100635a5cc21e8f5594271f481bc41416) em 750/750.\n\nQUEBRAM (os achados): (a) \"n_geracoes = D+1 e lei\" (T11, 25/25) — FALSIFICADA: vale em 739/750 (98,53%); 11 celulas dao D+2 (DTLZ7 s17, WFG1 s8, WFG4 s6, WFG9 s19, ZDT1 s5/12/23, ZDT3 s4/12/23/26). A forma exata e n_geracoes = D + 1 + floor(dups_em_rounds_completos / 20) — 750/750, com mecanismo provado (quando as duplicatas acumulam 20 slots, nasce um round inteiro a mais). (b) \"resto ≡ duplicatas nos rounds completos\" (T11, 25/25 por dois caminhos) — vale 739/750; nas mesmas 11 celulas erra por exatamente 20. O caminho robusto Σ(20-Δfe_g) ≡ dups_completos fecha 750/750. (c) \"o bloco de seeding sao 21 cache-hits em fe=11D-1\" — contado por FILTRO DE fe vale 724/750: em 26 celulas ha um 22o cache-hit com fe=11D-1 que e clone de prole do round 1 (cai DEPOIS do registro g=1); contado por POSICAO fecha 750/750. Isto e armadilha nova: quem separar o bloco por fe superestima o seeding e subestima o ledger em 26 celulas. (d) o rec:seeding n_frentes recomputado da (1) float32 diverge em 36/750 (DTLZ4 30/30 + ZDT6 6/30); recomputando f em float64 do X fecha 750/750 nos dois — e o mesmo artefato de export da regra 11 (D53), agora com um problema novo (ZDT6) que a s42 nao mostrava.",
+ "N2_tetos_caidos": "A T11 deixou 2 itens em T (P9 operadores do Balde C; P10 miolo do stock) e uma lista do \"que este corpus NAO permite verificar\". Com 30 sementes:\n\nCAIU — P9 (parcialmente) e P10 (parcialmente), pelo mesmo experimento. A taxa de duplicata bit-exata da prole deixou de ser \"vestigio indireto nao discriminante\" e virou MEDIDA COM MECANISMO IDENTIFICADO: 5.314 duplicatas em 215.914 slots = 2,4612% e, decisivo, 5.313 de 5.314 (99,981%) colidem com um individuo da POPULACAO VIGENTE daquela geracao. Isso e a assinatura exata do unico caminho bit-exato do OperatorGA stock (li a fonte em algorithms/_PlatEMO/PlatEMO/Algorithms/Utility functions/OperatorGA.m:80-101): quando TournamentSelection(2,N,FrontNo,-CrowdDis) sorteia MatingPool[i]==MatingPool[i+N/2], (P+P)/2 ± beta*(P-P)/2 = P BIT-EXATO qualquer que seja beta, e o filho sobrevive como clone se nenhum sitio de PM disparar (P = (1-1/D)^D, pois proM*D/D = 1). O caminho beta≡1 NAO gera clone bit-exato (a soma (a+b)/2+(a-b)/2 nao devolve a em ponto flutuante). Predicao fechada: taxa = p_colisao x (1-1/D)^D com p_colisao = Σp_j^2 = 0,06662 para torneio binario sobre 20 em ordem estrita. Medido vs predito: D=30 2,3808% vs 2,4096% (IC95 ±0,156); D=22 2,3548% vs 2,3942% (±0,104); D=20 2,3199% vs 2,3884% (±0,266); D=12 2,5974% vs 2,3452% (±0,209); D=10 2,5183% vs 2,3231% (±0,131); D=7 2,5522% vs 2,2647% (±0,471); D=2 4,2553% vs 1,6656% (o unico fora, e esperado: em D=2 o espaco converge e a colisao com o arquivo domina). Invertendo, p_colisao empirico = 0,0657 (D=30), 0,0662 (D=22), 0,0647 (D=20) — 1 a 3% do valor teorico. CONCLUSAO: proM=1 e o pareamento em pares do OperatorGA + o torneio binario ficaram MENSURAVEIS e batem. disC=20 e disM=20 SEGUEM EM T (o caminho do clone e independente da magnitude de beta) e proC=1 tambem segue em T.\n\nCAIU — \"determinismo: dois runs da mesma semente selecionam o mesmo subconjunto\" (D88, era nao-verificavel com 1 execucao). Agora MEDIDO em 101 pares de execucoes independentes (mesma celula, maquinas diferentes, ate 12 dias de intervalo): sha256 de X e de f da (1) identicos em 101/101, (2) identica em 101/101, n_geracoes/cache_hits/fe_final identicos em 100/100. Alem disso 3 pares CROSS-VERSAO DE CODIGO (MMF1 s0 nas copias vm2/vm3 com schema_version=1 e repo_hash='' vs a copia M8 da vm1; MMF1 s42 na vm10 antiga vs vm5 M8): (1) e (2) bit-identicas — prova de nao-perturbacao mais forte que o par unico da T11.\n\nCAIU — \"taxa de sucesso / variancia entre execucoes\". 750/750 ok, 0 branca, 0 fail. Variancia do endpoint medida (ver N3/N5).\n\nCAIU — \"a formula de semeadura e de n_geracoes\": ver N1. A forma exata n_ger = D+1+floor(dup_compl/20) so podia ser descoberta com a cauda da distribuicao de duplicatas, que 1 semente nao tem.\n\nSEGUEM EM T: (i) disC/disM/proC (sem assinatura recuperavel); (ii) a ordem interna do randperm/RNG e a truncagem da ultima fronteira (o RESULTADO fecha, a mecanica nao); (iii) comportamento sob N != 20 (DI-39/SUB-varN nao executado — nao ha dado); (iv) se o repo_hash corresponde a arvore LIMPA (repo_hash_corrente() nao checa git status --porcelain); (v) n_retries (0 em 750/750), fallback_ativado (false em 750/750) e env.pymoo (\"0.6.2\" literal) seguem CONSTANTES DE FONTE — a uniformidade em 750 celulas NAO e evidencia de saude, e a prova disso e que sao constantes no codigo.",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "NAO EXISTE ARTIGO. Nao ha arquivo comecando por 'nsga2.' em .../corpus_artigos/_artigos_markdown/ (conferido: o indice tem b1..b15, c1..c311, e7..e103; nenhum nsga2, nenhum Deb-2002). O config e PISO/regua sem paper. O gabarito e, portanto: (a) a implementacao de referencia PlatEMO 4.15 (li a fonte: NSGAII.m, EnvironmentalSelection.m, CrowdingDistance.m, NDSort, TournamentSelection.m, OperatorGA.m), e (b) o bundle do estudo claude_code_context/10_rodada1_matlab/alg_pisos_online.md §3.2, que faz as afirmacoes a priori testaveis abaixo.",
+   "onde_no_artigo": "ausencia verificada no corpus + algorithms/_PlatEMO/PlatEMO/... + alg_pisos_online.md",
+   "testavel_com_30": false,
+   "resultado": "declarado, nao medido (e uma constatacao de escopo)"
+  },
+  {
+   "afirmacao": "'as geracoes sao derivadas: = K ÷ populacao ... rende 2 geracoes no pior caso (D=2), 12 no DTLZ2 (D=12) e 30 no ZDT1 (D=30)' — i.e. n_geracoes = 20D/N = D",
+   "onde_no_artigo": "alg_pisos_online.md §3.2, linhas 24-30 e tabela linha 60",
+   "testavel_com_30": true,
+   "resultado": "FALSIFICADA em 750/750 (0 acertos). Real: D+1 em 739/750 e D+2 em 11/750. MMF4/MMF1/MMF11_L (D=2) dao 3 geracoes, DTLZ2 da 13, ZDT1 da 31 (32 em 3 sementes). O erro de +1 e o registro g=1 da populacao semeada, que nao consome round. Forma exata medida: n_ger = D + 1 + floor(dups_em_rounds_completos/20) — 750/750. Errata do §3.2 (o codigo esta certo; o texto do protocolo, nao). Bussola D29: roxo (errata do documento) -> fica o codigo."
+  },
+  {
+   "afirmacao": "D88: 'crowding distance, deterministico (o criterio nativo do NSGA-II) — dois runs da mesma semente selecionam o mesmo subconjunto'",
+   "onde_no_artigo": "alg_pisos_online.md §3.2 linha 34 (v5.2 / D88)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA. (i) Recomputo independente do criterio (NDSort + CrowdingDistance normalizada por fronteira, extremos ±inf, lexsort front↑/cd↓/indice↑) reproduz o conjunto eleito em 750/750 (720 direto na (1) float32; 30 do DTLZ4 restauradas em float64). (ii) Determinismo entre execucoes: 101/101 pares independentes (maquinas diferentes) com (2)(g=1..n) IDENTICA e sha256 da (1) identico; + 3 pares cross-versao-de-codigo idem."
+  },
+  {
+   "afirmacao": "'no NSGA-II o torneio binario sobre 20 mantem diversidade de pares' — a taxa de duplicata bit-exata NAO explode como no MOEA/D (que a SPEC mediu em ~23% dos offspring com T=2)",
+   "onde_no_artigo": "alg_pisos_online.md §3.2 ponto 5 (efeito colateral CONHECIDO e ACEITO, D89)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA E QUANTIFICADA. 5.314 duplicatas de prole em 215.914 slots = 2,4612% global (contra os ~23% do MOEA/D). Por problema: 2,25% (WFG5) a 4,45% (MMF1); por celula 0,00% a 13,04%. A s42 sozinha da 2,541% e as outras 29 sementes 2,458% — a semente 42 NAO era enviesada aqui. Alem disso o MECANISMO foi identificado (99,981% das colisoes sao com a populacao vigente = pais identicos no MatingPool) e a taxa bate com a predicao analitica do stock (ver N2)."
+  },
+  {
+   "afirmacao": "'N=20 ... rende 2 a 30 geracoes: evolucao real em todo o grid, sem colapsar a diversidade populacional'",
+   "onde_no_artigo": "alg_pisos_online.md §3.2 justificativa 4",
+   "testavel_com_30": true,
+   "resultado": "PARCIALMENTE CONFIRMADA. Diversidade de PROLE: sim — turnover (multiconjunto) nunca zero em 10.541/10.541 transicoes, min 1, max 15, media 8,317 de 20 (~41,6%/geracao). Pressao SELETIVA: nao — n_front1 satura em N=20 em 430/750 celulas (57,3%) e ja na geracao 1 em 230/750 (30,7%); a partir dai so a crowding distance seleciona. Satura em 30/30 sementes em DTLZ2, DTLZ3, DTLZ7, MMF16_20, WFG1, WFG4, WFG5, WFG9, ZDT3; nunca satura em BBOB_F55, MMF1, ZDT4, ZDT6 (0/30). E o modo de falha canonico do NSGA-II em M=3/front largo sob N pequeno — comportamento do stock, nao infidelidade, mas o texto '§3.2 sem colapsar a diversidade' precisa da ressalva."
+  },
+  {
+   "afirmacao": "Deb et al. 2002 (mecanismo canonico, via PlatEMO): substituicao elitista R_t = P_t ∪ Q_t truncada em N por (fronteira, crowding)",
+   "onde_no_artigo": "EnvironmentalSelection.m do PlatEMO 4.15 (implementacao de referencia)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA. (2)(g+1) ⊆ (2)(g) ∪ {avaliados na janela [fe(g), fe(g+1))} em 10.541/10.541 transicoes, ZERO violacoes; turnover < 20 em 100% (prova de elitismo, nao geracional-puro) e > 0 em 100% (prova de variacao produtiva)."
+  },
+  {
+   "afirmacao": "Consequencia logica do elitismo: o ponto ideal e monotonicamente nao-crescente por componente",
+   "onde_no_artigo": "propriedade canonica do NSGA-II elitista",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA. 23.633 comparacoes geracao x objetivo, ZERO violacoes em 750/750. Somando com o elitismo: 34.174 transicoes verificadas, zero violacoes."
+  },
+  {
+   "afirmacao": "'o piso e gratuito' (custo desprezivel — regua sem preco)",
+   "onde_no_artigo": "alg_pisos_online.md §3.2 / T11 §5",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA. 750 celulas = 4.880,2 s = 1,3556 h-core (mediana 5,48 s/celula, min 3,26 s, max 15,96 s). A avaliacao real e 2,5% do wall (mediana) — o resto e startup do MATLAB, exatamente como a T11 mediu na s42."
+  },
+  {
+   "afirmacao": "IMPLICITA no papel de regua (§3.2 / DEF-A13 / D25): o piso e uma referencia ESTAVEL contra a qual se le o ganho do surrogate",
+   "onde_no_artigo": "alg_pisos_online.md §3.2 linhas 15-22; usada pela T11 §5 para 'nsga2 melhor dos 4 pisos em 11/25, rank medio 1,80'",
+   "testavel_com_30": true,
+   "resultado": "NAO CONFIRMADA COMO LEITURA DE 1 SEMENTE. IGD+ recomputado nas 750 celulas (src/metrics.py, convencoes D69/D70): CV entre as 30 sementes com mediana 22,2% por problema, de 1,86% (WFG1) a 48,4% (DTLZ1); razao max/min mediana 2,27x, ate 10,91x (BBOB_F55) e 5,92x (DTLZ1). A propria s42 cai no decil extremo em 5/25 problemas (percentil 0,0 no ZDT1 — a MELHOR das 30; 6,7% no BBOB_F49; 96,7% no DTLZ7; 93,3% no ZDT4; 90,0% no MMF16_20). Consequencia: qualquer ranking piso-x-piso ou piso-x-SA construido sobre 1 semente esta dentro do ruido. Isto CONFIRMA a DI-39 ('a rodada-42 e validacao de fidelidade e piloto de timing, nao a bateria de comparacao') com numero, e e um caveat de LEITURA, nao de fidelidade."
+  },
+  {
+   "afirmacao": "Doutrina vigente (RUNBOOK §6.2): 'floats NAO sao bit-identicos entre plataformas => a fidelidade e ESTATISTICA por semente, NAO bit-exata'",
+   "onde_no_artigo": "RUNBOOK_VALIDACAO_42.md §6.2 (premissa desta auditoria)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA NO NIVEL float64, MAS SEM CONSEQUENCIA AQUI. Ver N4: a divergencia existe (5,697e-15 relativo, ate 30 ULP float64, em 267 de 13.008 valores) e nunca vazou para o export nem para uma decisao do algoritmo. Para o nsga2, o padrao de prova pode ser bit-exato no que foi exportado."
+  }
+ ],
+ "N4_deriva": "MEDIDA, e o numero e pequeno. Das 851 copias de nsga2 nos 6 espelhos, 100 celulas existem em 2+ maquinas => 101 pares (1 par incompleto: ZDT1 s7, a copia da vm5 nao tem os parquets — e um rsync interrompido, nao uma execucao). Comparacao par a par:\n\nNIVEL DO EXPORT (1)/(2) — DERIVA ZERO. sha256(X) identico em 101/101; sha256(f) identico em 101/101; max|dX| = 0,0 e max|df| = 0,0 (exatos, nao \"abaixo de eps\"); solution_id e fase identicos coluna a coluna em 101/101; a (2) (geracao, solution_id, ordem) identica em 101/101; n_geracoes, cache_hits e fe_final identicos em 100/100. Pares por combinacao: vm1xvm5 73, vm1xvm2 25, vm1xvm3 1, vm2xvm3 1, vm5xvm10 1 — cobre as 3 shapes N2/Intel diferentes da frota.\n\nNIVEL float64 DA (6) — DERIVA REAL, MINUSCULA. Os campos ideal/nadir_pop/nadir_front1/f_best sao gravados em float64 no jsonl. Divergem 267 de 13.008 valores comparados (2,0526%), em 10 de 100 pares — TODOS eles vm1 x vm5. Magnitude: erro RELATIVO maximo 5,697e-15; distancia maxima 30 ULP de float64. Piores: BBOB_F37 s26 (77/88 valores, 2,4e-15), BBOB_F22 s26 (51/88, 3,2e-15), BBOB_F49 s26 (46/88, 5,7e-15), BBOB_F55 s13 (46/88), WFG4 s26 (18/184), WFG5 s13 (14/184), ZDT6 s26 (5/88), WFG1 s26 (4/184), WFG9 s13 (4/184), DTLZ4 s13 (2/156). Nenhum par de ZDT1/ZDT3/DTLZ2/MMF/DTLZ1 diverge.\n\nLEITURA: a deriva cross-maquina do nsga2 e ~5,7e-15 relativo — SETE ordens de grandeza abaixo da resolucao do export float32 (~6e-8) e treze abaixo do piso de ruido O-18 do estudo. Ela nunca flipou uma decisao: se tivesse flipado uma comparacao de dominancia ou de crowding em qualquer das ~300 avaliacoes de uma celula, a trajetoria teria bifurcado e a (2) divergiria — e nao divergiu em 101/101. Portanto, para ESTE config, o padrao de prova pode ser bit-exato sobre o exportado, e a doutrina \"estatistica, nao bit-exata\" e verdadeira mas ociosa. Isto NAO se extrapola para os configs com surrogate (BLAS/LAPACK e outra historia). NOTA DE PROVENIENCIA: as 10 copias que derivam sao exatamente as que declaram env.host='matlab-vm5' (as sementes 13 e 26 da sessao de 14/08 10:26-10:42Z), i.e. a deriva esta ancorada na maquina/sessao, nao dispersa. NOTA 2: nenhuma celula do nsga2 caiu na janela de swap da vm5 (o created_at maximo do config e 2026-08-14T11:00:29Z, antes do corte de 15:20Z) — o (4) deste config esta limpo para tabela de custo.",
+ "N5_cauda": "NAO HA CAUDA. 750/750 celulas 'ok' — 0 brancas (teto) e 0 fails, tanto no meu censo direto (rodape do .jsonl: 750 footers com status='ok', termino='normal', fe_final==maxfe==31D-1) quanto no censo_completo_22.csv da torre (alg=nsga2: 750 'ok'). Taxa de sucesso por problema: 30/30 em TODOS os 25 problemas. Todos os 6 arquivos de camada presentes em 750/750 celulas; 0 linhas malformadas no jsonl; 0 parquets ilegiveis.\n\nO QUE ISSO DIZ SOBRE O ALGORITMO: o nsga2 e o unico regime em que a regra O-21 (rodape manda, manifesto e visao do despachante) nao precisa arbitrar nada — manifesto e rodape concordam em 750/750. Ele fica FORA da lista de incapacidades documentadas (b1xDTLZ4 0/30, c262xWFG1 2/30, c154, c238) e, por isso, e o unico dos 4 pisos que cobre o grid inteiro sem furo — o que importa para o papel de regua: a banda min-max dos pisos tem, deste lado, denominador cheio em todos os 25 problemas e todas as 30 sementes.\n\nA CAUDA QUE EXISTE E OUTRA — e de comportamento, nao de execucao, e sim vale como resultado: (i) 147/750 celulas (19,6%) terminam com HV = 0 no espaco normalizado (front mal-convergido para alem do ref-point): DTLZ1 30/30, DTLZ3 30/30, ZDT4 30/30, ZDT6 30/30, DTLZ7 24/30, ZDT1 3/30. Nesses casos o HV nao discrimina e a leitura tem de se apoiar no IGD+ (que la e enorme: mediana 249,9 no DTLZ3, 67,0 no DTLZ1, 35,0 no ZDT4). Isto e determinismo de problema, reproduzido em 30/30 sementes em 4 problemas — uma \"incapacidade\" do orcamento 31D-1 com N=20, nao do codigo, e o artigo (que nao existe) nao a previu porque o protocolo e do estudo. (ii) 430/750 celulas saturam n_front1=20 (230 ja na geracao 1) — colapso de pressao seletiva, canonico. (iii) n_nd final vai de 1 (celula unica) a 245, media 30,1. (iv) 11/750 celulas correm uma geracao a mais que a lei D+1 (a cauda da distribuicao de duplicatas) e 26/750 tem um clone de prole ja no primeiro round — os dois eventos so aparecem com replicas e sao as unicas quebras de identidade da campanha.",
+ "aspectos": [
+  {
+   "id": "T1",
+   "aspecto": "Nao-perturbacao cross-campanha E cross-maquina (o dado de hoje mede o mecanismo de hoje?)",
+   "classe": "(1)",
+   "medicao": "3 pares CROSS-VERSAO-DE-CODIGO: MMF1 s0 (copias vm2 e vm3, schema_version=1, repo_hash='', sem sigma_dict, criadas 2026-07-29) vs a copia M8 da vm1 (schema 2, repo_hash 63db46b1, 2026-08-01); e MMF1 s42 (vm10 antiga 2026-07-30 vs vm5 M8 2026-08-07). Nos 3: sha256(X), sha256(f) e sha256((2)) IDENTICOS, n_geracoes e cache_hits iguais; a unica diferenca no (6) e uma string de header (N_origem). Mais 101 pares cross-maquina identicos.",
+   "veredito": "Mais forte que o par unico da T11: a nao-perturbacao esta provada atraves de um retrofit de instrumentacao E de 3 maquinas.",
+   "muda_vs_s42": true,
+   "arquivo_linha": "~/mestrado_coleta_m8/matlab-vm{1,2,3,5,10}/experiments/main/nsga2/exp_main_nsga2_MMF1_{0,42}.*"
+  },
+  {
+   "id": "U1",
+   "aspecto": "Orcamento de FE e termino (D21/D61)",
+   "classe": "(2)",
+   "medicao": "len((1)) == 31D-1 == maxfe == fe_final em 750/750 (325.680 FE); fe_index denso 0-based e 750x solution_id unicos; footer termino='normal' e status='ok' em 750/750, exatamente 1 footer; hard_stop presente <=> resto>0 em 750/750 (726 com guard, 24 sem, todas com resto=0).",
+   "veredito": "conforme, ancorado em D21/D61",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "U2",
+   "aspecto": "DoE 11D-1 LHS injetado do artefato (D63)",
+   "classe": "(2)",
+   "medicao": "Comparacao bit-a-bit do artefato data/doe/{prob}/doe_{prob}_{seed}.parquet (float64->float32) contra fase=='init': max|dX| = 0,0 EXATO em 750/750; doe_hash do (5) == hash do sidecar em 750/750; init e prefixo contiguo fe_index 0..11D-2 em 750/750; fases == {init, opt} em 750/750.",
+   "veredito": "conforme, ancorado em D63 — a injecao e exata nas 30 sementes, nao so na 42",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "U3",
+   "aspecto": "Ausencia de surrogate declarada (3 vazia, tempos NULL, sigma_dict)",
+   "classe": "(2)",
+   "medicao": "(3) com 0 linhas em 750/750; tempo_fit_s / tempo_busca_s / tempo_pred_sonda_s NULL em 750/750 no (5) e em 11.291/11.291 linhas do (4); fit_series=[] em 750/750; sigma_dict presente com status='nao_se_aplica' em 750/750 (na s42 era AUSENTE em 25/25 — a correcao G-7 da T11 chegou a producao).",
+   "veredito": "conforme, ancorado em DI-13.2/13.7/16.1 + G-7",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "U4",
+   "aspecto": "Sonda inexistente por desenho, declarada",
+   "classe": "(2)",
+   "medicao": "bloco sonda com status='nao_se_aplica', n_blocos=0, n_linhas=0 em 750/750; ZERO registros rec:'sonda' nos 35.331 registros do (6) da campanha.",
+   "veredito": "conforme, ancorado no CONTRATO §6 l.210",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "U7",
+   "aspecto": "Invariantes de timing (4)<->(6)<->(5)",
+   "classe": "(2)",
+   "medicao": "tempo_geracao_s do (4) casado linha a linha com o evento nsga2_gen: |delta| < 1e-6 s em 750/750 celulas (11.291 linhas); geracao sequencial 1..n em 750/750; nenhuma celula na janela de swap da vm5 (created_at max = 2026-08-14T11:00:29Z < 15:20Z). Custo: 4.880,2 s totais, mediana 5,48 s/celula; tempo_aval_real/wall mediano = 2,5%.",
+   "veredito": "conforme, ancorado em DI-13.10; o (4) deste config esta limpo para tabela de custo",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "U9",
+   "aspecto": "Guards == (5) == footer; anatomia do bloco de seeding",
+   "classe": "(2)",
+   "medicao": "cache_hits do (6) == manifesto == footer em 750/750; 21.790 guards = 21.064 cache_hit + 726 hard_stop; ZERO guards de outro nome. Bloco de seeding (contado POR POSICAO, antes do 1o registro de geracao) = exatamente 21 = N+1 em 750/750, com 20 solution_id distintos, todos com fe=11D-1 e sid<11D-1, e o 1o guard logado duas vezes (c0 do wrapper) em 750/750.",
+   "veredito": "conforme, ancorado em D89/D57. ARMADILHA NOVA: contar o bloco por FILTRO DE fe da 22 em 26/750 celulas.",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "U10",
+   "aspecto": "Aritmetica entre camadas e a forma fechada de n_geracoes",
+   "classe": "(1)",
+   "medicao": "manifest.n_geracoes == len((6) gen) == len((4)) == n_grupos((2)) em 750/750 (11.291 = 11.291 = 11.291 = 11.291); (2) com 20 linhas/geracao em 750/750 (225.820 linhas); set((2)) subset de set((1)) em 750/750. n_ger == D+1: 739/750 (11 celulas dao D+2). n_ger == D + 1 + floor(dups_completos/20): 750/750. Σ(20-Δfe_g) ≡ dups em rounds completos: 750/750. resto ≡ dups em rounds completos: 739/750 (erra por exatamente 20 nas mesmas 11).",
+   "veredito": "conforme; mas a 'lei D+1' da T11 esta FALSIFICADA e substituida pela forma exata. Errata contra a T11.",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "U12",
+   "aspecto": "Camada (7) ausente (regime online)",
+   "classe": "(2)",
+   "medicao": "6 arquivos por celula em 750/750, zero (7); (3) presente e vazia (contrato de camadas).",
+   "veredito": "conforme, ancorado em DI-08",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "P1",
+   "aspecto": "QUERY-JOIA: a selecao de semeadura D88 reproduzida fora do MATLAB",
+   "classe": "(2)",
+   "medicao": "NDSort + CrowdingDistance (normalizada por fronteira, extremos ±inf) + lexsort(front↑, cd↓, indice↑) sobre o bloco init da (1), comparado ao conjunto de (2)(g=1): coincidencia EXATA em 720/750 pela (1) float32; as 30 divergencias sao TODAS DTLZ4 e as 30 se restauram recomputando f em float64 do X (formula PlatEMO x^100) => 750/750. n_frentes/n_frente1 do rec:seeding reproduzidos em 714/750 e 720/750 pela float32; em float64 fecham 750/750 (DTLZ4 30/30 e ZDT6 30/30 restaurados). frente1_excede_pop == (n_frente1>20) em 750/750.",
+   "veredito": "conforme, ancorado em D88/§3.2 — a joia e INVARIANTE A SEMENTE. Minha reimplementacao foi conferida contra a fonte (EnvironmentalSelection.m).",
+   "muda_vs_s42": true,
+   "arquivo_linha": "algorithms/_PlatEMO/PlatEMO/Algorithms/Multi-objective optimization/NSGA-II/EnvironmentalSelection.m:13-24"
+  },
+  {
+   "id": "P2",
+   "aspecto": "N = 20 cravado e provisorio (DI-39)",
+   "classe": "(2)",
+   "medicao": "N_nominal == N_efetivo == 20 no (5), header e footer em 750/750; n_pop == 20 em 11.291/11.291 geracoes; (2) com 20 linhas/geracao em 11.291/11.291.",
+   "veredito": "conforme, ancorado em D65/§3.2/§6.3 + DI-39 (N=20 PROVISORIO ate o SUB-varN — pendencia do autor, nao achado meu)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "P3",
+   "aspecto": "Geracoes derivadas — a string I-13/A24 gravada no proprio (5)",
+   "classe": "(2)",
+   "medicao": "Orcamento de infill == 20D exato em 750/750. A formula LITERAL da string, floor((20D + n_dup)/(2*floor(N_ef/2))), acerta: 0/750 se n_dup = duplicatas de prole (falta +1); 745/750 se n_dup = cache_hits do manifesto (as 5 falhas sao exatamente as celulas com cache_hits=40 — MMF16_20 s16, WFG2 s5, ZDT1 s28, ZDT1 s42, ZDT3 s9). Com +1 sobre as duplicatas de prole: 750/750. A acuracia declarada na propria string ('acerta 27/28 em cada um dos dois', '110/112') NAO e reproduzivel no corpus canonico.",
+   "veredito": "(2) quanto ao dado (o valor real esta em n_geracoes e esta certo em 750/750); o NUMERO publicado na string e defeituoso -> classe (3) C2",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "P4",
+   "aspecto": "Elitismo P∪Q->N e turnover",
+   "classe": "(1)",
+   "medicao": "(2)(g+1) subset de (2)(g) ∪ {avaliados na janela}: 10.541/10.541 transicoes, ZERO violacoes. Turnover (multiconjunto): nunca zero em 10.541 transicoes; min 1, max 15, media 8,317 de 20.",
+   "veredito": "conforme ao NSGA-II canonico",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "P5",
+   "aspecto": "Monotonia do ideal / f_best == ideal",
+   "classe": "(1)",
+   "medicao": "23.633 comparacoes geracao x objetivo, ZERO violacoes em 750/750; f_best identico a ideal componente a componente em 750/750; nadir_front1 <= nadir_pop em 750/750.",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "P6",
+   "aspecto": "n_front1 e o filme da convergencia",
+   "classe": "(1)",
+   "medicao": "n_front1 <= N em 11.291/11.291. Satura N=20 em alguma geracao em 430/750 celulas (57,3%); ja na geracao 1 em 230/750 (30,7%); nunca em 320/750. Satura 30/30 sementes em DTLZ2, DTLZ3, DTLZ7, MMF16_20, WFG1, WFG4, WFG5, WFG9, ZDT3; 0/30 em BBOB_F55, MMF1, ZDT4, ZDT6.",
+   "veredito": "comportamento canonico do NSGA-II sob N=20 em M=3/front largo — saude, nao infidelidade",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "P7",
+   "aspecto": "Clone-hazard D89 (duplicata gasta SLOT, nao FE) — o ledger",
+   "classe": "(2)",
+   "medicao": "Ledger fecha em 750/750 pelo caminho robusto: Σ(20 - Δfe_g) ≡ n de duplicatas em rounds completos. Total 5.314 duplicatas de prole em 215.914 slots = 2,4612%; cache_hits totais = 21 (seeding) + duplicatas em 750/750. Por problema, de 2,245% (WFG5) a 4,455% (MMF1). s42 sozinha 2,541% vs 2,458% nas outras 29.",
+   "veredito": "conforme, ancorado em D89/D57; o prior 'é o stock, nao e bug' segue confirmado, agora com n=750",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "P8",
+   "aspecto": "A (2) e a populacao do (6) (sem off-by-one)",
+   "classe": "(1)",
+   "medicao": "ideal e nadir_pop recomputados do join (2)->(1) contra o (6): erro RELATIVO <= 5,893e-08 (ULP do float32) em 721/750; as 29 excecoes sao TODAS DTLZ4 e todas com erro relativo 1,0 porque o ideal float64 do (6) (ex. 1,47e-261) subborda para 0 no export float32 — nao e desalinhamento, e underflow.",
+   "veredito": "conforme; confirmado que NAO ha off-by-one na (2) (aplicar aqui o teste do c217 reprova 750/750 falsamente)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "P9",
+   "aspecto": "Operadores do Balde C (SBX proC=1 disC=20 + PM proM=1 disM=20)",
+   "classe": "(1)",
+   "medicao": "PARCIALMENTE MENSURAVEL AGORA. 99,981% (5.313/5.314) das duplicatas de prole colidem com um individuo da POPULACAO VIGENTE = assinatura do unico caminho bit-exato do OperatorGA (pais identicos no MatingPool => (P+P)/2 ± beta*0/2 = P). Taxa medida vs predicao analitica p_colisao*(1-1/D)^D com p_colisao=0,06662: D=30 2,3808 vs 2,4096%; D=22 2,3548 vs 2,3942%; D=20 2,3199 vs 2,3884%; D=12 2,5974 vs 2,3452%; D=10 2,5183 vs 2,3231%; D=7 2,5522 vs 2,2647%; D=2 4,2553 vs 1,6656% (unica fora). p_colisao empirico invertido: 0,0657/0,0662/0,0647 para D=30/22/20 — 1 a 3% do teorico.",
+   "veredito": "proM=1 e o pareamento em pares do OperatorGA + torneio binario CONFIRMADOS por estatistica; disC=20, disM=20 e proC=1 SEGUEM EM T",
+   "muda_vs_s42": true,
+   "arquivo_linha": "algorithms/_PlatEMO/PlatEMO/Algorithms/Utility functions/OperatorGA.m:80-101"
+  },
+  {
+   "id": "P10",
+   "aspecto": "Miolo do stock (torneio binario por crowded-comparison, randperm/RNG, truncagem interna)",
+   "classe": "T",
+   "medicao": "O RESULTADO fecha (P1 750/750, P4 10.541/10.541, P5 23.633/23.633, P8 721+29/750) e o torneio ficou parcialmente aferido via P9 (p_colisao empirico 0,065-0,066 contra 0,06662 teorico). A ORDEM interna do randperm e a truncagem da ultima fronteira seguem sem assinatura recuperavel.",
+   "veredito": "teto parcial: o resultado e auditavel, a mecanica interna nao",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "P11",
+   "aspecto": "Casamento declarado NSGA-II <-> dominancia/Pareto (§3.2)",
+   "classe": "(1)",
+   "medicao": "principio='dominancia/Pareto' e casamento='EA-Dominancia (b4, c217, c141, e74) + BO-Melhoria-de-Pareto (c238) — §3.2' com 1 unico valor distinto em 750/750 (header e (5)).",
+   "veredito": "conforme (direta-declarativa)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "N1",
+   "aspecto": "Stock puro (sem patch, sem parameter)",
+   "classe": "(1)",
+   "medicao": "patches='NENHUM — piso e stock do PlatEMO 4.15 por design', parameter='nenhum (NSGA-II stock nao expoe parametro)', surrogate='NENHUM (piso = MOEA puro)', algo_version='piso-NSGAII-PlatEMO4.15', header.piso=true, header.surrogate=false, mais operadores/seeding/geracoes_derivadas/criterio: 13 campos literais com 1 UNICO valor distinto em 750/750.",
+   "veredito": "conforme; o config com a menor superficie de divergencia do estudo",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "N2",
+   "aspecto": "Colapso de dominancia pelo export float32 (regra 11 do CONTRATO)",
+   "classe": "(2)",
+   "medicao": "n_front1 recomputado da (1) float32 diverge do (6) float64 em 1.639 de 11.291 geracoes (14,5%; a T11 mediu 13,3% na s42). Concentracao: ZDT3 438, ZDT1 376, DTLZ4 375, DTLZ7 286, ZDT6 69, ZDT4 45, MMF11_L 15, MMF1 14, MMF4 8, BBOB_F17 6, DTLZ1 2, BBOB_F55 2. Alcanca tambem o rec:seeding (DTLZ4 30/30, ZDT6 6/30) e o ideal do DTLZ4 (underflow para 0 em 29/30 celulas).",
+   "veredito": "conforme, ancorado em D53 -> regra 11 (T11/A37.2). ACHADO NOVO: o ZDT6 tambem e afetado — a s42 nao mostrava.",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "N3",
+   "aspecto": "Pares de X duplicados na (1) (quase-clone de SBX que colide DEPOIS do cast)",
+   "classe": "(2)",
+   "medicao": "200 pares em 144 de 750 celulas (19,2%) — a T11 achou 1 par em 25 celulas. Concentracao em D=2 (MMF4 em 21/30 sementes, MMF11_L 18/30, MMF1 15/30) e nos BBOB. Nao e falha do dedup: o x_key do guard e float64; sao pontos distintos em float64 que colidem no export float32 (ULP relativo ~6e-8).",
+   "veredito": "conforme, ancorado em D53/D57; a raridade da s42 era artefato de n=25 — a taxa real e ~1 par a cada 5 celulas",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "N4",
+   "aspecto": "Sanidade numerica (NaN, guards anomalos)",
+   "classe": "(1)",
+   "medicao": "0 NaN em X e em f nas 750 celulas (325.680 x 21..33 valores); ZERO guards com nome fora de {cache_hit, hard_stop} em 21.790 registros; 0 linhas malformadas no jsonl; 750/750 celulas com os 6 arquivos.",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "N5",
+   "aspecto": "Contrato do (6) na linha 'pisos' (f_best, n_front1, ideal, nadir da pop)",
+   "classe": "(1)",
+   "medicao": "os 4 campos exigidos presentes em 11.291/11.291 eventos de geracao, mais nadir_front1 de brinde, em 750/750 celulas.",
+   "veredito": "conforme quanto ao DADO. (A lacuna do gate G-7 apontada pela T11 — configs.nsga2.di10 cobre 2 dos 4 — nao foi re-testada por mim: nao medido, fora de escopo desta varredura.)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "N6",
+   "aspecto": "Elo codigo<->run: repo_hash e campanha_id no (5)",
+   "classe": "(3)",
+   "medicao": "repo_hash preenchido e UNICO em 750/750 (63db46b100635a5cc21e8f5594271f481bc41416) — a lacuna da s42 ('' em 25/25) fechou. MAS campanha_id tem DOIS valores: '7f4f0e429a46_M8' em 720/750 e o DEFAULT baseado em data '63db46b10063_2026-08-14' em 30/750 (4,0%); e essas mesmas 30 celulas declaram env.host='matlab-vm5' (27) / 'matlab-vm1' (3) em vez de 'vm5'/'vm1'. O gate f30 da torre marca camp=True nas 750 (checa presenca, nao consistencia).",
+   "veredito": "classe (3) C1 — e a materializacao em producao do item aberto D-G da T11",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "N7",
+   "aspecto": "Deriva de fronteira cross-maquina (NOVO)",
+   "classe": "(1)",
+   "medicao": "101 pares cross-VM: sha256(X) e sha256(f) identicos 101/101; (2) identica 101/101; n_geracoes/cache_hits/fe_final iguais 100/100. No float64 do (6): 267 de 13.008 valores divergem (2,05%) em 10/100 pares, todos vm1xvm5; max erro relativo 5,697e-15, max 30 ULP float64.",
+   "veredito": "a deriva existe e e ~5,7e-15 — 7 ordens abaixo do export float32 e sem NENHUM efeito em decisao do algoritmo",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "N8",
+   "aspecto": "Variancia entre sementes do endpoint (NOVO — a regua e estavel?)",
+   "classe": "(1)",
+   "medicao": "IGD+ recomputado nas 750 celulas (src/metrics.py, D69/D70): CV entre 30 sementes com mediana 22,2% por problema (1,86% WFG1 a 48,43% DTLZ1); razao max/min mediana 2,27x, max 10,91x (BBOB_F55). HV=0 em 147/750 (DTLZ1 30/30, DTLZ3 30/30, ZDT4 30/30, ZDT6 30/30, DTLZ7 24/30, ZDT1 3/30). A s42 cai no decil extremo em 5/25 problemas (percentil 0,0 no ZDT1; 6,7% BBOB_F49; 96,7% DTLZ7; 93,3% ZDT4; 90,0% MMF16_20).",
+   "veredito": "saude/leitura, nao fidelidade: CONFIRMA a DI-39 com numero — leitura comparativa de 1 semente e ruido",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "N9",
+   "aspecto": "Header do (6) sem run_id / ambiente / params / sigma_dict (CONTRATO §6 l.296)",
+   "classe": "(3)",
+   "medicao": "os 4 campos AUSENTES em 750/750 (1 unico conjunto de chaves no header em toda a campanha: D, M, N_nominal, N_origem, alg, algo, casamento, doe_hash, maxfe, operadores, piso, principio, problema, rec, regime, seeding, semente, surrogate, ts). Identico ao que a T11 mediu na s42 e no smoke.",
+   "veredito": "classe (3) C3 — nao-conformidade de contrato sem decisao que a sancione. A T11 arquivou isto dentro do (2)/N6; pela letra da regua e (3). ESCALO em vez de decidir (D81).",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "T-a",
+   "aspecto": "Comportamento sob N != 20",
+   "classe": "T",
+   "medicao": "nao medido: nao existe dado — o SUB-varN (D65/DI-39) nao foi executado.",
+   "veredito": "teto; pendencia de pre-registro do autor",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "T-b",
+   "aspecto": "repo_hash corresponde a arvore LIMPA?",
+   "classe": "T",
+   "medicao": "nao medido: repo_hash_corrente() usa git rev-parse HEAD sem --porcelain; o dado nao carrega estado da arvore.",
+   "veredito": "teto (mesmo da T11)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "T-c",
+   "aspecto": "Campos-sentinela do (5) MATLAB (n_retries, fallback_ativado, env.pymoo)",
+   "classe": "T",
+   "medicao": "n_retries=0 em 750/750; fallback_ativado=false em 750/750; env.matlab com 1 unico valor em 750/750. Sao CONSTANTES DE FONTE (experiment.m:3073/3093/3083) — a uniformidade em 750 celulas nao e evidencia de nada.",
+   "veredito": "teto; NAO usar como sinal de saude",
+   "muda_vs_s42": false
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C1",
+   "descricao": "PROVENIENCIA PARTIDA EM 30/750 CELULAS (4,0%). O campanha_id tem dois valores: '7f4f0e429a46_M8' em 720 celulas e o DEFAULT baseado em data '63db46b10063_2026-08-14' em 30; as MESMAS 30 declaram env.host='matlab-vm5' (27 celulas, sementes 13 e 26 e algumas outras, sessao de 2026-08-14 10:26-10:42Z) ou 'matlab-vm1' (3 celulas, DTLZ3 s18, DTLZ3 s27, MMF11_L s27, sessao de 2026-08-14 00:24Z), em vez de 'vm5'/'vm1'. Sao sessoes que rodaram sem a env UA_DD_SAEA_CAMPANHA_ID e com outra convencao de hostname. Consequencias medidas: (i) qualquer group-by por env.host parte a frota em 8 rotulos para 6 maquinas; (ii) 4,0% do config nao se identifica com a campanha M8 pelo campanha_id; (iii) o gate f30 da torre marca camp=True nas 750 porque checa PRESENCA, nao consistencia — e o padrao 'campo verde, dado sentinela' da T11 na sua terceira encarnacao ('campo verde, valor inconsistente'). NAO toca o mecanismo: repo_hash e identico nas 750, e as 30 celulas passam todas as identidades estruturais. Correlacao adicional: as copias que exibem a deriva float64 de N4 sao exatamente as de host='matlab-vm5'.",
+   "gravidade": "media",
+   "acao": "ESCALAR ao autor (D81): decidir se (a) re-carimba o campanha_id/host dessas 30 celulas por um script de metadados (sem re-rodar), (b) declara a excecao num registro, ou (c) troca o gate de presenca por gate de CONSISTENCIA (1 unico campanha_id por campanha; env.host num vocabulario fechado). Item aberto D-G da T11, agora com dado.",
+   "arquivo_linha": "resultados_experimentos/nsga2/{BBOB_F1,BBOB_F17,BBOB_F22,BBOB_F37,BBOB_F49,BBOB_F5,BBOB_F55,DTLZ7,MMF1,MMF16_20,MMF4,WFG1,WFG2,WFG4,ZDT1,ZDT3,ZDT4,ZDT6}/13/*.manifest.json + .../{BBOB_F5,BBOB_F55,DTLZ1,DTLZ2,DTLZ4,MMF11_L,WFG5,WFG9}/26/ + DTLZ3/{18,27}, MMF11_L/27, MMF4/22, WFG5/6"
+  },
+  {
+   "id": "C2",
+   "descricao": "A FORMULA DE n_geracoes QUE O PROPRIO (5) PUBLICA ESTA ERRADA POR +1, E A ACURACIA QUE ELA DECLARA NAO E REPRODUZIVEL. O campo params.geracoes_derivadas (identico em 750/750) diz: 'Melhor aproximacao MEDIDA: floor((20D + n_dup) / 2*floor(N_efetivo/2)), que acerta 27/28 em cada um dos dois nas celulas da s42 — 110/112 somando os 4 pisos'. Medido na campanha completa do nsga2: a formula LITERAL com n_dup = duplicatas de prole acerta 0/750 (falta um +1); com n_dup = cache_hits (o campo homonimo do manifesto) acerta 745/750, falhando exatamente nas 5 celulas com cache_hits=40 (MMF16_20 s16, WFG2 s5, ZDT1 s28, ZDT1 s42, ZDT3 s9). A forma EXATA e n_geracoes = D + 1 + floor(dups_em_rounds_completos / 20) = floor((20D + dups_de_prole)/20) + 1 — 750/750. Alem disso a formula fechada 'D+1' que a T11 publicou como lei (25/25) vale 739/750. Impacto: nulo para quem le n_geracoes (o conselho final da string, 'nao derive, LEIA', esta certo e o valor real esta certo em 750/750); real para quem confiar no numero declarado.",
+   "gravidade": "baixa",
+   "acao": "Substituir a string por 'n_geracoes = D + 1 + floor(n_dup_prole/20), exato em 750/750 do nsga2' OU manter so o conselho de ler n_geracoes, e retirar as acuracias '27/28'/'110/112'. NAO re-rodar nada — e edicao de texto de manifesto para campanhas futuras. Registrar errata contra a T11 (a 'lei D+1').",
+   "arquivo_linha": "src/experiment.m (bloco params.geracoes_derivadas, I-13/A24/BL-13) — string espelhada em resultados_experimentos/nsga2/*/*/**.manifest.json"
+  },
+  {
+   "id": "C3",
+   "descricao": "HEADER DA (6) SEM OS 4 CAMPOS EXIGIDOS PELO CONTRATO §6 l.296, EM 750/750. O contrato lista para o header do jsonl: run_id, alg+versao, problema, D, M, semente, regime, maxFE, doe_hash, ambiente, params, sigma_dict, ts. Medido: existe UM unico conjunto de chaves em toda a campanha e nele faltam run_id, ambiente, params e sigma_dict (750/750). Nao ha decisao D-xx/DI-xx que sancione a ausencia — a I-09/B-03 corrigiu o (5), nao o (6). Impacto pratico baixo (o (5) vizinho tem tudo e o run_id e derivavel do nome do arquivo), mas o (6) e a AUTORIDADE pela regra O-21: um jsonl orfao do seu manifesto nao diz qual codigo o produziu.",
+   "gravidade": "baixa",
+   "acao": "ESCALAR (D81): ou o CONTRATO §6 l.296 passa a declarar esses 4 campos como opcionais para a familia MATLAB, ou o writer passa a emiti-los. Nao decido — registro a divergencia de classificacao: a T11 arquivou isto dentro do (2)/N6; pela letra da regua da casa e (3).",
+   "arquivo_linha": "CONTRATO_DE_DADOS.md §6 l.296 vs resultados_experimentos/nsga2/*/*/*.jsonl (registro rec='header')"
+  }
+ ],
+ "decisoes_ao_autor": [
+  "ERRATA CONTRA A T11 (nao e defeito do dado, e do relatorio): 'n_geracoes = D+1 e lei, 25/25' vale 739/750. Onze celulas dao D+2 (DTLZ7 s17, WFG1 s8, WFG4 s6, WFG9 s19, ZDT1 s5/12/23, ZDT3 s4/12/23/26) porque as duplicatas acumulam 20 slots e nasce um round inteiro a mais. Forma exata: n_ger = D + 1 + floor(dups_completos/20), 750/750. Consequencia: a identidade 'resto ≡ duplicatas nos rounds completos' tambem cai para 739/750 (erra por exatamente 20 nas mesmas 11); o caminho robusto e Σ(20-Δfe_g) ≡ dups_completos, 750/750.",
+  "ERRATA CONTRA A T11 (metodo de leitura): o bloco de seeding deve ser separado POR POSICAO (guards antes do 1o registro nsga2_gen), nao por filtro fe==11D-1. Contado por fe da 22 em 26/750 celulas, porque nelas o primeiro round produz um clone antes de qualquer FE ser gasta. Por posicao fecha 21 = N+1 em 750/750, com 20 sids distintos e o c0 duplicado. Quem usar o filtro por fe superestima o seeding e subestima o ledger em 26 celulas.",
+  "ARMADILHA NOVA para o CADERNO: a regra 11 (dominancia sobre a (1) e lossy) atinge tambem o ZDT6, nao so o DTLZ4. O n_frentes do rec:seeding diverge em 6/30 sementes do ZDT6 pela float32 e fecha 30/30 recomputando f em float64 do X. Na s42 isso nao aparecia (a semente 42 do ZDT6 e uma das que batem).",
+  "ARMADILHA NOVA: o ideal do DTLZ4 SUBBORDA no export. Em 29/30 celulas o erro relativo do recomputo ideal/nadir contra o (6) e exatamente 1,0, porque o (6) grava valores float64 da ordem de 1e-261 que viram 0 em float32. Nas outras 721 celulas o erro relativo maximo e 5,893e-08 (ULP). Quem checar tolerancia relativa uniforme reprova 29 celulas do DTLZ4 falsamente.",
+  "PARA A ANALISE (nao e fidelidade, e leitura — e confirma a DI-39 com numero): a variancia entre sementes do IGD+ deste piso e grande (CV mediano 22,2%; razao max/min mediana 2,27x, ate 10,91x no BBOB_F55 e 5,92x no DTLZ1) e a s42 cai no decil extremo em 5/25 problemas — inclusive percentil 0,0 no ZDT1 (a MELHOR das 30). Qualquer ranking piso-x-piso ou piso-x-SA-MOEA construido sobre a semente 42 (inclusive o 'nsga2 melhor dos 4 pisos em 11/25, rank medio 1,80' da T11 §5) e ruido e nao deve entrar na dissertacao sem as 30 replicas.",
+  "PARA A DISSERTACAO: 147/750 celulas (19,6%) terminam com HV = 0 no espaco normalizado — DTLZ1, DTLZ3, ZDT4 e ZDT6 em 30/30 sementes, DTLZ7 em 24/30, ZDT1 em 3/30. Nesses 4-6 problemas o HV nao discrimina nada para o piso e a leitura tem de se apoiar no IGD+. Isso e reprodutivel em 30/30, logo e RESULTADO (o orcamento 31D-1 com N=20 nao chega ao ref-point), nao ruido.",
+  "ERRATA CONTRA O §3.2 do bundle alg_pisos_online.md (linhas 24-30 e 60): 'geracoes = 20D ÷ populacao', que preveria 2 geracoes em D=2, 12 no DTLZ2 e 30 no ZDT1, acerta 0/750. Os valores reais sao 3, 13 e 31 (32 em 3 sementes do ZDT1). Bussola D29: roxo — errata do documento, fica o codigo; mas o texto que for para a banca precisa do numero certo.",
+  "OBSERVACAO DE PROVENIENCIA (positiva, para registro): a reorganizacao escolheu a copia CERTA em 750/750. Existem no espelho copias de 3 celulas produzidas por codigo pre-I-09 (schema_version=1, repo_hash='', sem sigma_dict) e o canonico ficou com a copia M8 nas 3. Alem disso, essas copias antigas sao BIT-IDENTICAS as novas na (1) e na (2) — o que reprova a nao-perturbacao do retrofit de instrumentacao em 3 pares independentes, e nao so no par unico da T11.",
+  "NAO MEDIDO, declaro: (a) nao re-testei a lacuna do gate G-7/contrato_61.json apontada pela T11 (configs.nsga2.di10 cobre 2 dos 4 campos) — o DADO tem os 4 campos em 11.291/11.291, mas a cobertura do gate ficou fora do meu escopo; (b) nao medi o env.pymoo celula a celula (so confirmei que env.matlab tem valor unico em 750/750); (c) nao ha como aferir disC=20/disM=20/proC=1 com este corpus — seguem em T."
+ ]
+}

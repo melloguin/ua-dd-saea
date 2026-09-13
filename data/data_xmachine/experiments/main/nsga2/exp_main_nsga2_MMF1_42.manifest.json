@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "run_id": "main_nsga2_MMF1_42",
+  "exp": "main",
+  "alg": "nsga2",
+  "problema": "MMF1",
+  "semente": 42,
+  "regime": "online",
+  "q": 1,
+  "tier": "",
+  "dist": "",
+  "status": "ok",
+  "n_retries": 0,
+  "stack_trace": "",
+  "maxfe": 61,
+  "fe_final": 61,
+  "n_geracoes": 3,
+  "doe_hash": "b4682dc218d24077819efadd43764db3ed8403bb3e48c5c8cf66329cc191fcc7",
+  "repo_hash": "",
+  "algo_version": "piso-NSGAII-PlatEMO4.15",
+  "env": {
+    "matlab": "25.1.0.2973910 (R2025a) Update 1",
+    "stack": "matlab-platemo",
+    "pymoo": "0.6.2"
+  },
+  "timing": {
+    "tempo_total_s": 4.517526208333333,
+    "tempo_fit_surrogate_s": null,
+    "tempo_busca_s": null,
+    "tempo_aval_real_s": 0.0099855000000000031,
+    "tempo_pred_sonda_s": null
+  },
+  "fit_series": [],
+  "cache_hits": 22,
+  "fallback_ativado": false,
+  "paths": {
+    "local": {
+      "real": "data_xmachine/experiments/main/nsga2/exp_main_nsga2_MMF1_42__real.parquet",
+      "pop": "data_xmachine/experiments/main/nsga2/exp_main_nsga2_MMF1_42__pop.parquet",
+      "surrogate": "data_xmachine/experiments/main/nsga2/exp_main_nsga2_MMF1_42__surrogate.parquet",
+      "timing": "data_xmachine/experiments/main/nsga2/exp_main_nsga2_MMF1_42__timing.parquet",
+      "jsonl": "data_xmachine/experiments/main/nsga2/exp_main_nsga2_MMF1_42.jsonl",
+      "manifest": "data_xmachine/experiments/main/nsga2/exp_main_nsga2_MMF1_42.manifest.json"
+    }
+  },
+  "created_at": "2026-07-26T02:25:24Z",
+  "updated_at": "2026-07-26T02:25:24Z",
+  "sonda": {
+    "status": "nao_se_aplica",
+    "motivo": "piso ONLINE = MOEA puro, sem surrogate a sondar (CONTRATO §3.2)",
+    "n_blocos": 0,
+    "n_linhas": 0
+  },
+  "params": {
+    "N_nominal": 20,
+    "N_efetivo": 20,
+    "N_decisao": "20 CRAVADO 2026-07-18 (§3.2 — Knowles/ParEGO; ponto comum ~20-25 x D65 {10,20,30,50}); SUB-varN reconfirma antes da bateria",
+    "N_efetivo_nota": "NSGA-III/MOEA-D reajustam N pelo lattice do UniformPoint (M=3, 20 -> 15); NSGA-II/SMS-EMOA mantem o nominal. Precedente §6.3 (N=100 -> 91 vetores em M=3)",
+    "seeding": "melhores N das 11D-1 do DoE por NDSort + CrowdingDistance, desempate final por indice (§3.2/D88) — os N entram como cache-hit (0 FE)",
+    "geracoes_derivadas": "20D ÷ N_efetivo (o DoE 11D-1 e gasto ANTES do Solve)",
+    "operadores": "Balde C: OperatorGA stock (SBX proC=1 dis_c=20; PM proM=1 dis_m=20)",
+    "parameter": "nenhum (NSGA-II stock nao expoe parametro)",
+    "surrogate": "NENHUM (piso = MOEA puro) -> tabela ③ vazia e serie §17.6 vazia",
+    "patches": "NENHUM — piso e stock do PlatEMO 4.15 por design",
+    "principio": "dominancia/Pareto",
+    "casamento": "EA-Dominancia (b4, c217, c141, e74) + BO-Melhoria-de-Pareto (c238) — §3.2"
+  }
+}

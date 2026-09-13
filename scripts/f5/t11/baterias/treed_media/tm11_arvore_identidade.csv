@@ -1,0 +1,11 @@
+label,status,n_blocos_c311,doe_igual,sonda_hash_igual,pts_sem_GP,identicos,pct,divergentes,dmax
+swap_big-lhs_DTLZ2,ok,2,True,True,89412,89412,100.0,0,0.0
+swap_big-lhs_MMF16_20,ok,2,True,True,96408,96408,100.0,0,0.0
+swap_big-lhs_WFG9,ok,2,True,True,79590,79590,100.0,0,0.0
+swap_big-lhs_ZDT1,ok,2,True,True,73992,73992,100.0,0,0.0
+swap_big-lhs_ZDT4,ok,2,True,True,72244,72244,100.0,0,0.0
+swap_big-mvns_DTLZ2,ok,2,True,True,75616,75604,99.9841,12,2.5868705051834695e-05
+swap_big-mvns_MMF16_20,ok,0,True,True,0,0,,0,0.0
+swap_big-mvns_WFG9,ok,2,True,True,78848,78848,100.0,0,0.0
+swap_big-mvns_ZDT1,ok,2,True,True,55348,55332,99.9711,16,1.1422915122238919e-05
+swap_big-mvns_ZDT4,ok,2,True,True,73572,73568,99.9946,4,1.7964553990168497e-05

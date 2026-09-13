@@ -1,0 +1,30 @@
+id,aspecto,classe,verificabilidade,sintese
+A1,Orcamento FE=31D-1 + hard-stop exato,(2) D21/D61,D,25/25 maxfe=fe_final=|1|; hard_stop em fe==maxfe 25/25; smoke idem
+A2,DoE init 11D-1 bit-a-bit + doe_hash,(2) D63/D88,D,"max|dX|=0,0 em 25/25 + smoke; hash sidecar==manifesto 26/26"
+A3,"N=20 CRAVADO, PROVISORIO ate SUB-varN",(2) 3.2/D65/DI-39,DD,eco triplo 25/25; SUB-varN segue branco em cards/INDEX.md:67
+A4,N efetivo=15 em M=3 (lattice),(2) DI-18/6.3,D,"|pop|=15 em 6 celulas M=3, 20 em 19 M=2, 413/413 geracoes"
+A5,Lattice UniformPoint NBI identidade,(1),D-joia,"max|dW|=0,0 em 25/25 na ordem logada; s42 x smoke tambem 0,0"
+A6,Vetores fixos 1x/run (stock != A-NSGA-III),(1),D,1 registro decomposicao por run em 25/25 + smoke
+A7,Semeadura D88 NDSort+CrowdingDistance,(2) D88,D-joia,conjunto identico 24/25 (excecao DTLZ4 = underflow float32) + smoke OK
+A8,|pop| constante == N_efetivo,(1),D,413/413 geracoes; grupos da 2 == n_ger em 25/25
+A9,Descendentes = 2*floor(N/2),(1),D+fonte,moda 14 (M=3)/20 (M=2) 25/25; OperatorGA.m:56-58 confirma
+A10,Aritmetica 1x2x6 fecha,(1),D-joia,25/25 exato; 7.028 descendentes = 6.849 FE + 179 dup
+A11,Dedup D57/D89 + modelo do operador,(2) D57/D89,D,"179/7.028 = 2,55% medido x 1,91% previsto do fonte; r=0,81"
+A12,Colisao float32 no export da 1,(2) armadilha + regra 11,D,"4 linhas em 10.856 (0,037%)"
+A13,Arranque: N_ef+1 cache-hits,(2) D57,D,"25/25 exatamente N_ef+1, com N_ef sids distintos"
+A14,Sem geracao fantasma,(1),D,n_ger == |eventos| == grupos(2) == linhas(4) em 25/25
+A15,Operadores Balde C SBX 1/20 + PM 1/D/20,(2) Balde C,D+fonte,"string 25/25 + OperatorGA.m:48 deal(1,20,1,20)"
+A16,Selecao ambiental por nicho,T,I,"nao exportada; spacing rank 1,67/4 em M=3; fonte EnvironmentalSelection.m:55-83"
+A17,Normalizacao interna / Zmin acumulado,T,NV,"nao exportado; NSGAIII.m:25,31 confirma Zmin acumulado"
+A18,Ideal/nadir: semantica de pop corrente,(1),D,"ideal==f_best 25/25; 12/898 nao-monotonias, 10 delas <=1e-17"
+A19,Ausencia total de surrogate (6 camadas),(2) 3.2/DI-13.7,D,3 com 0 linhas 25/25 + sigma_dict declarado no smoke
+A20,"Timing: 4 == 6, Sigma4 <= total",(2) 17.6/DI-13.10,D,"max|dt|=1,3e-8; Sigma4=20,97s=17,0% do wall"
+A21,U9 guards do 6 == cache_hits do 5,(1),D,675==675 celula a celula
+A22,Contrato do 5/6,(1),D,0 linhas em contrato_f52b; footer unico; termino='normal'
+A23,Elo codigo->log (repo_hash),(2) T11/I-09,D,s42 vazio 25/25; smoke = 195f64ed... commit REAL de 30/07 18:00
+A24,Formula de geracoes derivadas,(2) doc,D,T11 corrigiu 0/25->25/25; mas a meta-alegacao 'EMERGENTE' e REFUTADA (100/100)
+A25,sigma_dict DECLARADO (T11-P0/G-7),(2) G-7,D,ausente em 25/25 na s42; presente e verdadeiro no smoke
+A26,campanha_id + schema v2 (B-03),(2) B-03,D,ausente/v1 em 25/25; 't11-smoke-195f64e'/v2 no smoke
+A27,patches: NENHUM agora MEDIDO,(1),D,"git status do PlatEMO: 12 sujos, 0 em NSGA-III/UniformPoint/NDSort/CD/OperatorGA"
+A28,Mating pool uniformemente aleatorio,(1),fonte,TournamentSelection.m:26-29 com cons=0 => randi puro (NSGA-III stock)
+A29,Instrumentacao T11 nao perturba a busca,(1),D,sha256 da 1 e da 2 IDENTICOS s42 x smoke (DTLZ2)

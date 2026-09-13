@@ -1,0 +1,179 @@
+{
+  "id": "c222",
+  "sigla": "MESMO",
+  "titulo": "Max-value Entropy Search for Multi-Objective Bayesian Optimization",
+  "ano": 2019,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Convenção de nomenclatura observada: <nome>-K,d (K = número de objetivos, d = dimensão de entrada). 4 sintéticos: BC-2,2 (Branin + Currin, K=2, d=2); PRDZPS-6,6 (Powell, Rastrigin, Dixon, Zakharov, Perm, SumSquares, K=6, d=6); OKA2-2,3 (2 funções definidas em [16], K=2, d=3); DTLZ1-4,5 (4 funções definidas em [4], K=4, d=5) — OKA2-2,3 e DTLZ1-4,5 só aparecem citados na Seção 5.1; seus resultados ficam em 'Figure 3 of the Appendix', não presente nesta extração (Fig. 1 do corpo mostra só BC-2,2 e PRDZPS-6,6). 4 reais, com dados de [31, 21]: (a) ajuste de hiperparâmetros de rede neural densa sobre MNIST — K=2 (acurácia, tempo de predição); hiperparâmetros: nº de camadas ocultas, nº de neurônios por camada, probabilidade de dropout, taxa de aprendizado, penalidades l1 e l2 (6 hiperparâmetros nomeados; d não rotulado explicitamente como 'd=N' no texto, diferente dos sintéticos); (b) SW-LLVM (ajuste de compilador) — K=2 (footprint de memória, desempenho), d=10 entradas binárias, 1024 configurações no dataset; (c) SNW (rede de ordenação/FPGA) — K=2 (área, throughput), d=4, 206 implementações de hardware; (d) NOC (network-on-chip) — K=2 (energia, runtime em ASICs no workload Coremark), d=4 (width, complexity, FIFO, multiplier), 259 configurações.",
+    "orcamento": "Não fixado por fórmula explícita como 11D−1/31D−1 (diferente da convenção da dissertação); eixo x das Figs. 1-2 é apenas 'Iterations (t)' (nº de avaliações reais), sem Tmax numérico declarado no texto principal. Inicialização dos GPs por 'sampling initial points at random from a Sobol grid... same as the one in-built in the Spearmint library' — o nº de pontos iniciais (N0 no pseudocódigo do Algoritmo 1) não é quantificado no texto.",
+    "execucoes": "10 execuções independentes por configuração ('We run all experiments 10 times').",
+    "baselines": "ParEGO [11], PESMO [7] (com S=1,10,100 amostras Monte-Carlo), SMSego [19], EHI [5], SUR [17] — todos via a biblioteca BO Spearmint (fork PESM); PyGMO para cálculo de PHV nos métodos que exigem. PAL [31] foi EXPLICITAMENTE EXCLUÍDO ('We did not include PAL... as it is known to have similar performance as SMSego... and works only for finite discrete input space'). NÃO há piso evolutivo sem surrogate: todos os baselines são métodos de BO multiobjetivo assistidos por GP/surrogate — MESMO é comparado só contra outras aquisições de BO, nunca contra NSGA-II/MOEA-D puro.",
+    "metricas_principais": [
+      "PHV_diff (log da diferença entre o hipervolume do Pareto front ideal Y* e o do Pareto front estimado Yt)",
+      "R2 Indicator (distância média entre Y* e Yt; métrica que 'degenerates to the regret metric presented in the theoretical analysis')"
+    ],
+    "testes": [
+      "nenhum teste estatístico formal em nenhuma parte do artigo (nem Wilcoxon, nem Friedman) — comparação por inspeção visual de curvas de média±variância sobre 10 execuções (Figs. 1-2) e por comparação direta de médias±desvio-padrão (Table 1)"
+    ],
+    "apresentacao": "Curvas de MÉDIA e VARIÂNCIA (não mediana/IQR) de PHV_diff (log) e R2 ao longo de 'Iterations (t)', uma figura por família de benchmarks (sintéticos: Fig. 1; reais: Fig. 2), todos os algoritmos sobrepostos na mesma figura por benchmark, sem tabela numérica de endpoint e sem símbolos de significância. Tabela de tempo médio±desvio-padrão em segundos (Table 1). Nenhuma menção a 'execução mediana' nem a IQR.",
+    "codigo_plataforma": "Biblioteca BO Spearmint (fork PESM: github.com/HIPS/Spearmint/tree/PESM) para os algoritmos MO-BO comparados; PyGMO (esa.github.io/pygmo) para cálculo de PHV, empregando o algoritmo de Nowak et al. [15] para o least hypervolume contributor; GP com kernel exponencial-quadrado (SE), hiperparâmetros reestimados a cada 5 avaliações; NSGA-II [3] como o 'cheap MO solver' interno do MESMO, resolvendo a otimização multiobjetivo barata sobre as K funções amostradas da posterior via random Fourier features; máquina de teste para a medição de tempo: Intel i7-7700K @ 4.20GHz, 8 núcleos, 32GB RAM."
+  },
+  "analises": [
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de PHV_diff (log da diferença entre o hipervolume ideal e o estimado) e de R2 Indicator ao longo das iterações (avaliações reais), comparando MESMO (S=1,10,100 amostras Monte-Carlo) contra ParEGO, PESMO (S=1,10,100), SMSego, EHI e SUR nos 2 benchmarks sintéticos efetivamente mostrados no corpo do artigo (BC-2,2 e PRDZPS-6,6); os outros dois sintéticos definidos na Seção 5.1 (OKA2-2,3, DTLZ1-4,5) são remetidos à Fig. 3 do Appendix (ver análise separada, só mencionada).",
+      "literal": "The log of the hypervolume difference and the R2 Indicator are shown with different number of function evaluations. The mean and variance of 10 different runs are plotted.",
+      "localizador": "Sec. 5.2, Fig. 1",
+      "metricas": [
+        "PHV_diff (log)",
+        "R2 Indicator"
+      ],
+      "testes": [
+        "nenhum teste estatístico formal — leitura visual/qualitativa das curvas"
+      ],
+      "convencoes": "Curvas de média (não mediana) ± variância (não IQR/desvio-padrão) sobre 10 execuções independentes; eixo x = 'Iterations (t)'; um painel por métrica × benchmark; todos os algoritmos sobrepostos na mesma figura por benchmark; sem teste de significância, sem tabela de valor final.",
+      "achado": "MESMO converge mais rápido e consistentemente melhor que todos os baselines nos dois benchmarks sintéticos mostrados; a taxa de convergência de MESMO varia pouco com o número de amostras Monte-Carlo S, enquanto a de PESMO é 'dramatically affected' por S (100 amostras bem melhor que 10 e 1); ParEGO tem desempenho muito inconsistente entre problemas, 'expected due to random scalarization'.",
+      "aplicabilidade": "Camada ① (avaliações reais x,f) permitiria reconstruir uma curva de convergência análoga por checkpoint — mas a métrica aqui (PHV_diff contra o Pareto front IDEAL Y*, que exige o front verdadeiro conhecido a priori) e a convenção (média±variância de 10 execuções, não mediana+IQR de 30 sementes) diferem da convenção-padrão da dissertação (IGD+/HV medianas). MESMO não está no roster de 15 algoritmos; reproduzir exigiria implementá-lo e rodá-lo nos 28 problemas da bateria."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "As mesmas duas curvas (PHV_diff log e R2 × iterações), para os mesmos algoritmos, nos benchmarks do mundo real (ajuste de hiperparâmetros de rede neural sobre MNIST, SW-LLVM, SNW, NOC) descritos na Seção 5.1. A camada de OCR desta conversão confirma visualmente os títulos 'SW-LLVM' e 'Neural Network' entre os sub-painéis da figura; SNW e NOC, embora descritos no texto corrido como testados, não tiveram seus títulos de sub-painel individualmente confirmados pela OCR.",
+      "literal": "Figure 2: Results of different multi-objective BO algorithms including MESMO on real-world benchmarks. The log of the hypervolume difference and R2 Indicator are shown with different number of function evaluations.",
+      "localizador": "Sec. 5.2, Fig. 2",
+      "metricas": [
+        "PHV_diff (log)",
+        "R2 Indicator"
+      ],
+      "testes": [
+        "nenhum teste estatístico formal — leitura visual/qualitativa das curvas"
+      ],
+      "convencoes": "Idêntica à Fig. 1 (média±variância sobre 10 execuções, eixo x = 'Iterations (t)').",
+      "achado": "Mesmo padrão geral da Fig. 1 nos problemas reais: MESMO converge mais rápido e melhor que os baselines ('MESMO consistently performs better than all baselines and also converges much faster'); o texto não separa achados específicos por benchmark real individual (não há uma frase dedicada a, por exemplo, só NOC ou só SNW).",
+      "aplicabilidade": "Mesma leitura de camadas da análise anterior (①, com ressalvas de convenção); os quatro problemas reais aqui (MNIST-NN, SW-LLVM, SNW, NOC) são distintos dos três problemas reais da dissertação (RE21, ESTOQUE40, DDMOP7) — não há sobreposição direta de benchmark, só de tipo de análise (curva de convergência real-world)."
+    },
+    {
+      "fichas": [
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela de tempo médio±desvio-padrão (segundos) de otimização da FUNÇÃO DE AQUISIÇÃO (excluindo explicitamente o tempo de ajuste do GP, dito igual entre todos os algoritmos), para MESMO-{1,10,100}, PESMO-{1,10,100}, ParEGO e SMSego, nos benchmarks BC-2,2 (K=2) e PRDZPS-6,6 (K=6) — usada para validar empiricamente a complexidade assintótica teórica enunciada na Seção 3: O(SK) para MESMO contra O(SKm³) para PESMO (S=nº de amostras Monte-Carlo, K=nº de objetivos, m=tamanho do Pareto set amostrado em PESMO).",
+      "literal": "We do not account for the time to fit GP models since it is same for all the algorithms. We measure the average acquisition function optimization time across all iterations.",
+      "localizador": "Sec. 5.2, Table 1",
+      "metricas": [
+        "tempo de otimização da função de aquisição (segundos, média±desvio-padrão sobre as iterações)"
+      ],
+      "testes": [
+        "nenhum teste estatístico — comparação direta de médias±desvio-padrão"
+      ],
+      "convencoes": "Célula = média±desvio-padrão do tempo em segundos, medido numa única máquina (Intel i7-7700K, 8 núcleos, 32GB); tempo de ajuste do GP explicitamente excluído da medição (não decomposto em fit/busca/sonda/avaliação como na ficha 48 completa — só a perna de 'busca/otimização da aquisição' é reportada); d e K variam confundidos entre os dois benchmarks da tabela (BC-2,2: d=2,K=2; PRDZPS-6,6: d=6,K=6) — não é um sweep de K isolado com d fixo (esse desenho mais limpo, d=5 fixo, fica na Fig. 4 do Appendix, não presente nesta extração).",
+      "achado": "Tempo de MESMO cresce pouco com K (S) e é sempre muito menor que o de PESMO com o mesmo S: MESMO-1=3.5±0.34s / PESMO-1=13.6±3.2s (BC-2,2, K=2); MESMO-100=242.434±8.9s / PESMO-100=1128.3±15.3s (BC-2,2); em PRDZPS-6,6 (K=6) a distância cresce: MESMO-100=377.53±4.29s vs PESMO-100=6092.96±53.1s. MESMO-1 é comparável a ParEGO (3.5±0.34 vs 3.2±1.6 em BC-2,2; 4.56±0.71 vs 5.3±2.3 em PRDZPS-6,6) — 'MESMO with one sample is comparable to ParEGO, which relies on scalarization'. O crescimento do tempo de PESMO e SMSego de K=2 para K=6 é descrito como muito maior que o de MESMO.",
+      "aplicabilidade": "Camada ④ (tempos por geração) permitiria decompor tempo de ajuste vs. busca por geração, análogo a esta Table 1 — mas exigiria implementar MESMO (fora do roster de 15) e variar K deliberadamente; a bateria da dissertação não varia K por problema (K é fixo por definição de cada problema de benchmark: ZDT/DTLZ/WFG/MMF/BBOB têm M declarado por instância), então o eixo específico desta análise (custo × K crescente) não tem equivalente direto na bateria tal como desenhada."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Robustez da qualidade e do custo ao número de amostras Monte-Carlo (S) do termo de entropia",
+      "grupo_sugerido": "E",
+      "descricao": "Leitura cruzada das Figs. 1-2 e da Table 1 focada especificamente no efeito do número de amostras Monte-Carlo S (usado para aproximar o termo de expectativa sobre o Pareto front amostrado Ys*, Eq. 4.8) tanto na qualidade de convergência (PHV_diff, R2) quanto no custo (tempo de otimização da aquisição) de MESMO comparado a PESMO, testando S∈{1,10,100} para ambos — o próprio artigo trata este resultado como um dos seus achados centrais, repetindo-o em três pontos do texto (fim da Related Work, discussão de resultados, e implicitamente no Summary).",
+      "literal": "In contrast, MESMO maintains a better performance consistently even with a single sample!",
+      "localizador": "Sec. 5.2 (parágrafo 'MESMO vs. State-of-the-art', entre a Fig. 2 e a Table 1)",
+      "metricas": [
+        "PHV_diff (log)",
+        "R2 Indicator",
+        "tempo de otimização da aquisição (Table 1)"
+      ],
+      "testes": [
+        "nenhum — leitura comparativa qualitativa/numérica de curvas e tabela por valor de S, não uma figura dedicada"
+      ],
+      "convencoes": "Mesma convenção das Figs. 1-2 (média±variância, 10 execuções) e da Table 1 (média±desvio-padrão); a variação de S aparece como 3 curvas/colunas por método (MESMO-1/10/100, PESMO-1/10/100) dentro das MESMAS figuras/tabela das análises anteriores, não uma figura dedicada a S.",
+      "achado": "PESMO degrada fortemente com menos amostras ('100 samples lead to better results than 10 and 1'); MESMO mantém desempenho consistentemente bom mesmo com S=1, sendo descrito como 'much more robust to the number of Monte-Carlo samples than PESMO'. Com S=1, o custo de MESMO já cai a um patamar comparável ao de ParEGO (o baseline mais barato), tornando S=1 uma configuração prática viável para MESMO mas não para PESMO — a vantagem de MESMO combina desempenho ROBUSTO a S com um CUSTO que cresce muito menos com S (e com K) que o do concorrente direto (PESMO), ambos atribuídos à forma fechada do primeiro termo da entropia (Eq. 4.7) e à complexidade O(SK) vs. O(SKm³).",
+      "aplicabilidade": "Não reprodutível com as camadas da dissertação tal como definidas: S é um hiperparâmetro interno da aproximação Monte-Carlo da própria função de aquisição de MESMO, não instrumentado por nenhuma das 7 camadas (que registram predições ③/tempos ④/decisões ⑥ de um algoritmo já configurado, não uma varredura interna de S); exigiria implementar MESMO com múltiplos valores de S e rodar cada configuração como um algoritmo separado — MESMO não está no roster."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo MENCIONA resultados adicionais nos dois benchmarks sintéticos definidos na Seção 5.1 mas não plotados na Fig. 1 do corpo principal (OKA2-2,3 e DTLZ1-4,5), remetidos à Figura 3 do Appendix — presumivelmente o mesmo tipo de curva (PHV_diff log e R2 × iterações) da Fig. 1, mas para esses outros dois benchmarks.",
+      "literal": "We present additional results of synthetic benchmarks in Figure 3 of the Appendix.",
+      "localizador": "Sec. 5.2 (menção); Fig. 3 do Appendix — não presente nesta extração (o documento convertido tem 11 páginas e termina nas Referências, sem seção de Appendix)",
+      "metricas": [
+        "PHV_diff (log) — não reportado nesta extração",
+        "R2 Indicator — não reportado nesta extração"
+      ],
+      "testes": [
+        "não especificado no texto principal"
+      ],
+      "convencoes": "Presumivelmente igual à Fig. 1 (média±variância, 10 execuções) — não confirmável nesta extração.",
+      "achado": "Não reportado nesta extração — nenhum número, tendência ou conclusão específica de OKA2-2,3/DTLZ1-4,5 está presente no documento; só a existência da figura é mencionada.",
+      "aplicabilidade": "Não reprodutível a partir deste documento — depende do Appendix (Fig. 3), não presente nesta extração.",
+      "observacoes": "só mencionada"
+    },
+    {
+      "fichas": [
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo MENCIONA uma comparação de tempo adicional, com desenho mais limpo que a Table 1: dimensão de entrada d fixada em 5 e número de objetivos K variando, isolando o efeito de K sobre o tempo de otimização da aquisição — remetida à Figura 4 do Appendix.",
+      "literal": "We present additional time comparison results in Figure 4 of the Appendix. We fix the input space dimensions to d = 5 and vary the number of objective functions to show how different algorithms scale with increasing number of objectives.",
+      "localizador": "Sec. 5.2 (menção); Fig. 4 do Appendix — não presente nesta extração",
+      "metricas": [
+        "tempo de otimização da função de aquisição (segundos), em função de K com d=5 fixo — não reportado nesta extração"
+      ],
+      "testes": [
+        "não especificado no texto principal"
+      ],
+      "convencoes": "Não especificada além do desenho (d=5 fixo, K variando) — não confirmável nesta extração.",
+      "achado": "Não reportado nesta extração — só a intenção de desenho experimental (d fixo em 5, K variando) é descrita no texto; nenhum número ou conclusão específica de Fig. 4 está presente no documento.",
+      "aplicabilidade": "Não reprodutível a partir deste documento — depende do Appendix (Fig. 4), não presente nesta extração.",
+      "observacoes": "só mencionada"
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo NÃO mede calibração/cobertura do σ do GP contra erro real. O σ (variância preditiva de cada GP, σ_i²(x)) entra apenas como insumo ALGÉBRICO da própria função de aquisição: na forma fechada da entropia da gaussiana K-dimensional H(y|D,x) = K(1+ln(2π))/2 + Σ ln(σ_i(x)) (Eq. 4.7), e — via a distribuição gaussiana truncada — na entropia condicional ao Pareto front amostrado (Eq. 4.11, através de γ_s^j(x) = (y_s^{j*} − µ^j(x)) / σ^j(x)). Em nenhum ponto o artigo verifica se essa incerteza é confiável (cobertura de intervalo, correlação σ×erro, RMSE do próprio σ) — o σ é usado, não auditado.",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo médio (segundos, média±desvio-padrão) de OTIMIZAÇÃO DA FUNÇÃO DE AQUISIÇÃO — explicitamente excluindo o tempo de ajuste do GP, dito igual entre todos os algoritmos — para MESMO-{1,10,100}, PESMO-{1,10,100}, ParEGO e SMSego, nos dois benchmarks sintéticos BC-2,2 (K=2) e PRDZPS-6,6 (K=6): Table 1. Complementado por um desenho mais limpo (d=5 fixo, K variando), remetido à Fig. 4 do Appendix (só mencionada, não presente nesta extração). Também reporta, em prosa (Seção 3, Related Work), a complexidade ASSINTÓTICA teórica da computação da função de aquisição — O(SKm³) para PESMO vs. O(SK) para MESMO (S=nº de amostras Monte-Carlo, K=nº de objetivos, m=tamanho do Pareto set amostrado em PESMO) — da qual a Table 1 funciona como validação empírica.",
+    "literal": "the time complexities of acquisition function computation in PESMO and MESMO ignoring the time to solve cheap MO problem that is common for both algorithms are O(SKm3) and O(SK) respectively",
+    "localizador": "Sec. 3 (afirmação teórica); Sec. 5.2, Table 1 (medição empírica)"
+  },
+  "resultados_negativos": [],
+  "equivalencia_criterios": [
+    {
+      "descricao": "O artigo justifica a exclusão do baseline PAL da bateria comparativa porque, segundo a literatura citada, PAL (que classifica pontos em Pareto-ótimo/não-ótimo/incerto) tem desempenho similar ao de SMSego (que otimiza hipervolume sobre as médias preditas do GP) — dois mecanismos de uso da incerteza claramente distintos (classificação por conjunto incerto vs. melhoria de hipervolume sobre μ) convergindo, segundo a citação, para desempenho parecido.",
+      "literal": "We did not include PAL [31] as it is known to have similar performance as SMSego [7] and works only for finite discrete input space.",
+      "localizador": "Sec. 5.1"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "número de objetivos K (crescente de 2 para 6 entre os dois benchmarks sintéticos da Table 1 — confundido com d, que também cresce de 2 para 6 nesses mesmos dois benchmarks)",
+      "afirmacao": "O tempo de otimização da aquisição de PESMO e SMSego cresce muito com o número de objetivos; o de MESMO cresce pouco — atribuído à complexidade assintótica O(SK) do MESMO contra O(SKm³) do PESMO.",
+      "literal": "the time for PESMO and SMSego increases significantly as the number of objectives grow from two to six, whereas the corresponding growth in time is relatively small for MESMO.",
+      "localizador": "Sec. 5.2"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) O documento convertido tem 11 páginas (texto principal + referências) e NÃO inclui o Appendix do artigo, embora o texto principal remeta a ele quatro vezes: Fig. 3 (resultados sintéticos adicionais para OKA2-2,3 e DTLZ1-4,5), Fig. 4 (comparação de tempo adicional com d=5 fixo e K variável), a derivação completa da Eq. 4.11, e a prova completa do Teorema 1 — nenhum desses quatro conteúdos está presente nesta extração (nem na camada estruturada, nem no ANEXO get_text, nem na OCR, que só cobre as páginas 7 e 8, correspondentes às Figs. 1 e 2 do corpo principal). Isso limita a extração aos dois benchmarks sintéticos (BC-2,2, PRDZPS-6,6) efetivamente mostrados na Fig. 1 e à Table 1; as menções às Figs. 3 e 4 foram listadas como análises com observação 'só mencionada'. (2) A Fig. 2 (benchmarks reais) tem, na camada de OCR, confirmação visual dos títulos de apenas 2 dos 4 benchmarks reais descritos na Seção 5.1 (SW-LLVM e Neural Network); SNW e NOC são descritos no texto corrido como testados, mas seus subtítulos de figura não foram recuperados pela OCR desta conversão — tratado como provável limitação da OCR, já que (ao contrário do caso sintético) não há, no texto principal, nenhuma frase remetendo SNW/NOC a uma figura de Appendix separada. (3) A Table 1 mistura d e K entre os dois benchmarks que usa (BC-2,2: d=2,K=2; PRDZPS-6,6: d=6,K=6) — a afirmação textual de que o tempo 'cresce com o número de objetivos de dois para seis' não isola K de d nesta tabela; o desenho que de fato isola K com d fixo (=5) é o da Fig. 4 do Appendix, não presente nesta extração (ver item 1). (4) O artigo não relata NENHUM resultado negativo, caveat de calibração do σ, ou caso em que MESMO perde para um baseline — é um artigo de proposta de método com discurso consistentemente favorável ao próprio algoritmo do início ao fim; por isso `resultados_negativos` ficou vazio. A Seção 4.1 (Teorema 1, cota de regret sub-linear) é uma garantia teórica sobre o próprio MESMO, não uma análise empírica (não há tabela/figura/comparação — é uma prova matemática), por isso não foi listada em `analises`, mas é mencionada aqui por completude. (5) Não há ablação interna 'com incerteza vs. sem incerteza' porque a entropia baseada em incerteza (σ do GP) É a própria função de aquisição proposta (MESMO) — os 'baselines' comparados (PESMO, ParEGO, SMSego, EHI, SUR) são algoritmos EXTERNOS com mecanismos próprios diferentes (a maioria também usa σ do GP de alguma forma: PESMO via entropia no espaço de entrada; SMSego/EHI/SUR via PHV sobre a posterior), não uma variante do próprio MESMO com σ removido — por isso as fichas 11/15 (ablação exata do σ / contrafactual σ=0 online) não se aplicam a este artigo, e `roster_bloco` fica null tanto por ele não ser do roster quanto por não haver, de fato, um 'mecanismo próprio' isolável por ablação interna. (6) MESMO usa NSGA-II internamente como 'cheap MO solver' para computar a amostra do Pareto front a partir de funções amostradas via random Fourier features da posterior do GP — um detalhe de implementação do próprio mecanismo de incerteza (a amostragem tipo Thompson via RFF alimenta o termo de entropia), não uma análise experimental separada. (7) Nenhum teste estatístico de significância (Wilcoxon, Friedman, Bayesiano etc.) é usado em nenhuma parte do artigo — todas as comparações são leitura visual de curvas média±variância (10 execuções) ou tabela de média±desvio-padrão (Table 1); convenção bem mais informal que a da dissertação (mediana+IQR, 30 sementes, testes de postos). (8) A frase 'Table 1 shows the time in seconds two for synthetic benchmarks' (Sec. 5.2) é citada verbatim na camada de texto — a ordem de palavras 'seconds two for' é estranha e provavelmente um artefato da extração do PDF original (a frase pretendida é provavelmente 'the time in seconds for two synthetic benchmarks'); não usada como `literal` de nenhuma análise por essa razão, preferindo-se outras citações mais limpas do mesmo trecho. (9) O artigo também observa que 'Prior work [17] has shown that R2 and Pareto Hypervolume indicator show similar behavior. Indeed, our experiments validate this claim for MESMO' (Sec. 4.1) — uma nota de concordância ENTRE MÉTRICAS (R2 ≈ PHV), não entre critérios/aquisições distintos, por isso não foi incluída em `equivalencia_criterios`; é a mesma dupla de métricas (PHV_diff log e R2) já plotada lado a lado nas Figs. 1-2."
+}

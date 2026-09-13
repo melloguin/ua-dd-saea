@@ -1,0 +1,372 @@
+{
+  "id": "jin3",
+  "sigla": "GS-MOMA / GSM (mono: GS-SOMA)",
+  "titulo": "Generalizing Surrogate-assisted Evolutionary Computation",
+  "ano": 2010,
+  "roster": false,
+  "setup": {
+    "benchmarks": "SOO: 10 problemas F1-F10 (d=30) — Ackley (F1), Griewank (F2), Rosenbrock (F3), Shifted Rotated Rastrigin (F4), Shifted Rotated Weierstrass (F5), Shifted Expanded Griewank+Rosenbrock (F6), e 4 funções híbridas de composição do CEC'2005 (F7-F10, definições remetidas a [63]), retirados de [62][63]. MOO: 6 problemas MF1-MF6 (rotulados conforme Zitzler-Deb-Thiele [64]) — MF1 (d=30, frente convexa), MF2 (d=30, frente não-convexa), MF3 (d=50, frente convexa desconexa), MF4 (d=50, frente não-convexa com base estreita), MF5 (d=20, 3 objetivos, frente não-convexa), MF6 (d=10, tipo ZDT4, múltiplos ótimos de Pareto locais).",
+    "orcamento": "SOO: 8000 avaliações exatas; Gdb=20 gerações de banco de dados inicial (sem surrogate); kterm=3 iterações de busca local por trust-region; Npop=100. MOO: orçamento varia por problema — MF1-MF2: 8000; MF3-MF4: 16000; MF5: 30000; MF6: 20000 avaliações exatas; Gdb=10 gerações (MF1-2, MF5-6) ou 20 (MF3-4); kterm=2; Npop=100. Não há DoE tipo LHS nem relação declarada com 31D-1 (orçamento e Gdb são fixados por problema, não por fórmula de D).",
+    "execucoes": "20 execuções independentes por configuração, tanto em SOO quanto em MOO.",
+    "baselines": "SOO: GA (piso evolutivo, sem surrogate), SS-SOMA-GP, SS-SOMA-PR, SS-SOMA-RBF (cada um com M1 = um único modelo, sem M2/suavização), SS-SOMA-Perfect (oracle, modelo com RMSE=0), GS-SOMA (M1 = ensemble ponderado de GP+PR+RBF, M2 = PR de suavização). MOO: NSGA-II (piso evolutivo, sem surrogate), SS-MOMA-I (M1 = ensemble de GP+PR+RBF, SEM M2), SS-MOMA-II (M1 = PR apenas, sem M2), SS-MOMA-Perfect (oracle), GS-MOMA (M1 = ensemble + M2 = PR de suavização). Há piso sem surrogate testado em ambos os contextos (GA e NSGA-II).",
+    "metricas_principais": [
+      "fitness bruto (valor objetivo, contexto mono-objetivo, F1-F10)",
+      "Generational Distance (GD)",
+      "Maximum Spread (MS)",
+      "Hypervolume Ratio (HR)",
+      "N-RMSE (erro quadrático médio normalizado da predição do surrogate)",
+      "ImpM1 / ImpM2 (fração da melhoria de fitness atribuída a cada submodelo)",
+      "Gamma — razão de arquivamento para substituição (archiving-to-replacement ratio)"
+    ],
+    "testes": [
+      "t-test, 95% confidence level — usado apenas na comparação SOO (Table XV), resumido em símbolos s+/s-/aprox.igual; nenhum teste formal é citado para as comparações MOO (Figs. 15-20)."
+    ],
+    "apresentacao": "SOO: uma tabela por problema (Tables V-XIV) com média +/- desvio-padrão, mediana, melhor e pior sobre as 20 execuções; o GS-SOMA e o melhor SS-SOMA de cada tabela aparecem destacados (negrito/realce na tabela original, refletido como tachado na conversão para markdown). Comparação estatística resumida em símbolos s+/s-/aprox.igual (teste-t, 95%) numa matriz algoritmo x problema (Table XV). MOO: painéis de dispersão/variação por algoritmo (rotulados A-E) para GD/MS/HR, um conjunto de 3 painéis por problema (Figs. 15-20); frentes de Pareto combinando todas as 20 execuções, lado a lado por algoritmo (Figs. 9-14); curvas de convergência do fitness em escala de log natural (SOO, Fig. 4).",
+    "codigo_plataforma": "Não mencionada explicitamente no artigo (implementação própria dos autores; nenhuma referência a PlatEMO, BoTorch, MATLAB Toolbox ou biblioteca específica)."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para cada um dos 10 problemas SOO (F1-F10, d=30), o artigo reporta em tabela separada (Tables V a XIV) as estatísticas — média, desvio-padrão, mediana, melhor e pior — da qualidade final da solução ao fim de 8000 avaliações exatas, sobre 20 execuções independentes, para GA (piso), SS-SOMA-GP, SS-SOMA-PR, SS-SOMA-RBF (surrogate único) e GS-SOMA (framework generalizado); os melhores valores por tabela são destacados.",
+      "literal": "In Tables V-XIV, the detailed statistical results of 20 independent runs for SS-SOMAs, GS-SOMA, and GA are presented.",
+      "localizador": "Sec. IV-B-1, Tables V-XIV",
+      "metricas": [
+        "fitness/valor objetivo bruto (contexto mono-objetivo, não IGD+/HV)"
+      ],
+      "testes": [
+        "nenhum teste nesta tabela em si (o teste estatístico correspondente está na Table XV, análise separada)"
+      ],
+      "convencoes": "Média +/- desvio-padrão, mediana, melhor e pior de 20 execuções independentes; GS-SOMA e o melhor SS-SOMA de cada tabela aparecem destacados.",
+      "achado": "GS-SOMA obtém desempenho consistentemente competitivo nos 10 problemas, enquanto nenhum SS-SOMA individual domina em todos eles (SS-SOMA-PR vence em F1, F5, F9; SS-SOMA-GP excele em F3; SS-SOMA-RBF é competitivo em F3, F4, F7, F8) — GA (sem surrogate) é sempre o pior de todos.",
+      "aplicabilidade": "① endpoint: análogo à ficha 1, mas em contexto mono-objetivo (fitness bruto, não IGD+/HV) — reproduzível via camada ① tomando estatísticas descritivas (média/mediana/desvio/melhor/pior) sobre as sementes."
+    },
+    {
+      "fichas": [
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Teste-t com 95% de confiança comparando GS-SOMA contra cada um dos cinco algoritmos de referência (GA, SS-SOMA-GP, SS-SOMA-PR, SS-SOMA-RBF, SS-SOMA-Perfect) em cada um dos 10 problemas F1-F10, resumido em símbolos s+/s-/aprox.igual (GS-SOMA significativamente melhor, pior, ou indiferente).",
+      "literal": "The t-test results, i.e., at 95% confidence level, for the different algorithms as reported in Table XV confirms that GS-SOMA outperforms or is competitive to the SS-SOMAs on 43/50 cases.",
+      "localizador": "Sec. IV-B-1, Table XV",
+      "metricas": [
+        "fitness/valor objetivo bruto"
+      ],
+      "testes": [
+        "t-test, 95% confidence level"
+      ],
+      "convencoes": "Símbolos s+ / s- / aprox.igual por célula (algoritmo de referência x problema); 5 algoritmos x 10 problemas = 50 células.",
+      "achado": "GS-SOMA é melhor ou indiferente em 43/50 comparações; nas 7 restantes é pior (s-), mas o texto nota que mesmo aí exibe qualidade próxima da do melhor SS-SOMA — não domina sempre, mas é o mais consistentemente competitivo sem conhecimento a priori de qual surrogate escolher.",
+      "aplicabilidade": "① endpoint + teste de hipótese por célula (algoritmo x problema) sobre as sementes — análogo direto à ficha 3, trocando teste de postos (Wilcoxon) por t-test paramétrico, e 'o melhor de cada problema' por múltiplos baselines nomeados individualmente."
+    },
+    {
+      "fichas": [
+        15
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo introduz SS-SOMA-Perfect (e seu análogo MOO, SS-MOMA-Perfect), uma variante com modelo substituto 'perfeito' (RMSE=0: usa a função exata mas conta as avaliações como se fossem do surrogate), eliminando por construção qualquer erro de aproximação. Comparando os SS-SOMAs reais contra esse oracle, o artigo classifica cada problema como manifestando 'curse' (nenhum surrogate supera o oracle) ou 'bless' (surrogates superam o oracle) de uncertainty.",
+      "literal": "SS-SOMA-Perfect refers to an SS-SOMA that employs an imaginary approximation technique that generates error-free surrogates, i.e., RMSE = 0. Hence the notion of curse or bless of uncertainty does not exist.",
+      "localizador": "Sec. IV-B (nota de rodapé 5), Sec. IV-B-2",
+      "metricas": [
+        "fitness bruto comparado ao oracle RMSE=0"
+      ],
+      "testes": [
+        "nenhum teste formal citado para esta comparação específica (leitura qualitativa por problema)"
+      ],
+      "convencoes": "Comparação direta contra a coluna/curva SS-SOMA-Perfect nas mesmas tabelas e figuras dos demais algoritmos.",
+      "achado": "Em F1 (Ackley, multimodal) todos os surrogate-assisted superam o Perfect -> 'bless of uncertainty'; em F3 (Rosenbrock, paisagem já suave) nenhum supera o Perfect -> 'curse of uncertainty' — resultado NEGATIVO explícito para o uso de surrogate nesse problema específico.",
+      "aplicabilidade": "Não reproduzível com os dados da dissertação — exigiria implementar uma variante-oracle (RMSE=0) de cada algoritmo do roster, o que corresponde exatamente ao contrafactual sigma=0 da ficha 15, descrita ali como 'nunca executado' na própria bateria da dissertação; este artigo mostra que tal execução é factível e foi feita externamente (precedente direto)."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de convergência (fitness em escala log natural ou linear, conforme o problema, x avaliações exatas em milhares) para GS-SOMA, SS-SOMA-Perfect e SS-SOMA-AV (média dos três SS-SOMA-GP/PR/RBF, representando a expectativa de escolher um surrogate ao acaso) nos 10 problemas F1-F10.",
+      "literal": "The search convergence trends of GS-SOMA, SS-SOMA-AV, and SS-SOMA-Perfect are also plotted in Fig. 4.",
+      "localizador": "Sec. IV-B-1, Fig. 4",
+      "metricas": [
+        "fitness bruto ao longo do orçamento (Exact Function Evaluations x1e3)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Eixo x = avaliações exatas em milhares (até 8); eixo y = fitness (log natural em vários painéis); 3 curvas por problema (GS-SOMA, SS-SOMA-AV, SS-SOMA-Perfect); não é explicitado se a curva plotada é a execução mediana, a média, ou outra agregação das 20 execuções.",
+      "achado": "GS-SOMA converge de forma consistentemente superior ao SS-SOMA-AV nos 10 problemas — evidência de que o framework generalizado é mais confiável do que apostar num único tipo de modelo sem conhecimento prévio de qual se ajusta melhor à paisagem.",
+      "aplicabilidade": "① endpoint acumulado por checkpoint de avaliações reais — reproduzível diretamente pela camada ①, análogo direto à ficha 26 trocando IGD+ por fitness bruto em contexto mono-objetivo."
+    },
+    {
+      "fichas": [
+        31,
+        36
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Erro quadrático médio normalizado (N-RMSE) das predições de GP, PR, RBF e do modelo ensemble (M1) para cada um dos 10 problemas F1-F10, calculado sobre pontos de validação retidos dentre os m vizinhos mais próximos usados na construção do surrogate a cada busca local (não uma sonda fixa global).",
+      "literal": "the consistently low N-RMSE of the ensemble model generated in the GS-SOMA search across all benchmark problems, demonstrates the high reliability of the fitness prediction generated by M1.",
+      "localizador": "Sec. IV-B-2, Fig. 5, Eq. (19)",
+      "metricas": [
+        "N-RMSE (RMSE de cada modelo normalizado pela soma dos RMSE dos n modelos)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Barras por problema (F1-F10), uma barra por modelo (GP, PR, RBF, Ensemble/M1); RMSE calculado sobre pontos de validação locais e variáveis a cada iteração, não uma sonda fixa.",
+      "achado": "O modelo ensemble (M1) mantém N-RMSE consistentemente baixo em todos os problemas, superando qualquer surrogate único isolado — a combinação por peso inverso ao RMSE produz previsões mais confiáveis do que apostar num único tipo de modelo.",
+      "aplicabilidade": "③ sonda (aproximado): mediria o erro do mu predito vs f verdadeiro; aqui os pontos de validação são locais e mudam a cada busca (não uma sonda fixa de 2.000 pontos re-avaliada a cada retreino), portanto reproduzível apenas de forma aproximada via camada ③."
+    },
+    {
+      "fichas": [
+        45
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Melhoria de fitness normalizada atribuída à busca local via M1 (ensemble) versus M2 (PR de suavização) durante as buscas do GS-SOMA, para os 10 problemas F1-F10 — mede qual dos dois submodelos concorrentes mais contribuiu para os replacements aceitos (Lamarckian).",
+      "literal": "it is worth noting that the use of M2 contributes to the fitness improvement in GS-SOMA, which confirms the possible benefits of bless of uncertainty in surrogate model.",
+      "localizador": "Sec. IV-B-2, Fig. 6, Eq. (20)",
+      "metricas": [
+        "Normalized ImpM1",
+        "Normalized ImpM2 (fração da melhoria total atribuída a cada submodelo)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Barras normalizadas somando 1 por problema, uma fração para M1 e uma para M2.",
+      "achado": "Em F1 (Ackley) a maior parte da melhoria vem de M2 (suavização — explica por que SS-SOMA-PR é o melhor ali); em F3 (Rosenbrock, paisagem já suave) M2 contribui pouco e é o ensemble (M1) que sustenta a melhoria via previsões acuradas — a atribuição por submodelo explica mecanicamente os resultados de desempenho final.",
+      "aplicabilidade": "⑥ filme: contagem/magnitude de qual ramo de decisão interna (M1 vs M2) produziu a solução aceita — análogo à ficha 45, mas os algoritmos do roster em geral não têm dois submodelos concorrentes com essa estrutura de replacement dupla; não diretamente reproduzível sem adaptar o desenho experimental."
+    },
+    {
+      "fichas": [
+        54,
+        55
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para cada um dos 6 problemas MOO (MF1-MF6), o artigo plota as frentes de Pareto obtidas combinando (sobrepondo) os pontos das 20 execuções independentes, lado a lado para NSGA-II, GS-MOMA, SS-MOMA-I, SS-MOMA-II e SS-MOMA-Perfect.",
+      "literal": "The obtained Pareto fronts of the benchmark problems for 20 independent runs are combined and depicted in Figs. 9-14.",
+      "localizador": "Sec. IV-C-1, Figs. 9-14",
+      "metricas": [
+        "cobertura/forma visual da frente no espaço de objetivos (f1 x f2, ou f1 x f2 x f3 em MF5)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Overlay bruto de todos os pontos não-dominados das 20 execuções combinadas — não é a execução mediana isolada, nem uma superfície de attainment formal calculada.",
+      "achado": "Visualmente, GS-MOMA e os SS-MOMAs cobrem a frente verdadeira de forma mais completa que o NSGA-II em MF1, MF2, MF5 e MF6; em MF3/MF4 a cobertura de alguns SS-MOMAs se aproxima ou piora frente à do NSGA-II.",
+      "aplicabilidade": "① avaliações reais (união de todas as sementes) — reproduzível via camada ①, mas é um overlay bruto de 20 execuções combinadas, misturando informalmente os conceitos da ficha 54 (execução mediana) e da ficha 55 (superfície de attainment), sem calcular nenhum dos dois formalmente."
+    },
+    {
+      "fichas": [
+        1,
+        6,
+        16
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para cada um dos 6 problemas MOO, três painéis com Generational Distance (GD), Maximum Spread (MS) e Hypervolume Ratio (HR) por algoritmo (A:NSGA-II, B:GS-MOMA, C:SS-MOMA-I, D:SS-MOMA-II, E:SS-MOMA-Perfect), com faixas de variação aparentes sobre as 20 execuções.",
+      "literal": "all surrogate-assisted multi-objective evolutionary algorithms, i.e., SS-MOMAs and GS-MOMA, are shown to outperform the standard NSGA-II on MF1, MF2, MF5, and MF6.",
+      "localizador": "Sec. IV-C-1, Figs. 15-20",
+      "metricas": [
+        "Generational Distance (GD)",
+        "Maximum Spread (MS)",
+        "Hypervolume Ratio (HR)"
+      ],
+      "testes": [
+        "nenhum teste formal citado"
+      ],
+      "convencoes": "Um painel por métrica (GD, MS, HR) e por problema; algoritmos rotulados A-E no eixo x; pontos/marcas com variação vertical indicada (não é um boxplot explícito rotulado como tal).",
+      "achado": "GS-MOMA supera todos os SS-MOMA e o NSGA-II nos 6 problemas nas 3 métricas, e supera até o SS-MOMA-Perfect (oracle) na maioria dos benchmarks — sinergia positiva entre ensemble e suavização. Em MF3/MF4 (d=50) a vantagem do surrogate sobre o piso NSGA-II se estreita ou se inverte (situação de piso competitivo, ficha 16); no recorte '4 problemas favoráveis / 2 problemas mistos' por família de dimensão/geometria (ficha 6).",
+      "aplicabilidade": "① endpoint — reproduzível diretamente trocando GD/MS/HR por IGD+/HV; a quebra '4 problemas favoráveis / 2 problemas mistos' é análoga à taxa de comparações favoráveis por família de problema (ficha 6), e os casos MF3/MF4 são análogos à ficha 16 (onde o piso aparece competitivo ou vencedor)."
+    },
+    {
+      "fichas": [
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "SS-MOMA-I usa exatamente o mesmo M1 (ensemble de GP+PR+RBF) que o GS-MOMA, mas SEM o modelo de suavização M2 (PR) — a diferença de desempenho entre SS-MOMA-I e GS-MOMA isola o efeito causal de adicionar a busca local paralela em M2, mantendo o ensemble fixo; ambos aparecem lado a lado nas mesmas Figs. 9-20.",
+      "literal": "Single surrogate MOMA with M1: Ensemble of GP, PR, and RBF",
+      "localizador": "Table XVII (definição de SS-MOMA-I); resultados em Figs. 9-20",
+      "metricas": [
+        "GD, MS, HR (indiretamente, lidas das mesmas figuras da análise de Figs. 15-20)"
+      ],
+      "testes": [
+        "nenhum teste isolado reportado para este par especificamente"
+      ],
+      "convencoes": "Mesma convenção das Figs. 9-20; não há uma tabela de diferença pareada isolando SS-MOMA-I vs GS-MOMA — a comparação precisa ser lida indiretamente das figuras multi-algoritmo.",
+      "achado": "O texto afirma que 'GS-MOMA searches more efficiently than all the SS-MOMA variants... on the 6 benchmark problems considered', o que inclui SS-MOMA-I — sugerindo que a busca local paralela via suavização (M2) contribui incremento real de desempenho além do ensemble sozinho; uma ablação exata do componente de suavização, análoga em espírito à ficha 11 da dissertação (que isola o sigma mantendo a maquinaria fixa).",
+      "aplicabilidade": "Não reproduzível com os dados da dissertação — nenhum dos algoritmos do roster tem essa estrutura de dois submodelos concorrentes (ensemble + suavização) com um substituto 'apenas ensemble' comparável; exigiria rodar uma variante do algoritmo, o que a dissertação não faz (só análises pós-hoc sobre dados já gravados)."
+    },
+    {
+      "fichas": [
+        15
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Análogo à análise da SS-SOMA-Perfect, mas para o contexto multiobjetivo: GS-MOMA e os SS-MOMAs são comparados contra SS-MOMA-Perfect (oracle com modelo de erro zero) nas Figs. 15-20, avaliando se o framework consegue superar o limite teórico de um surrogate perfeito sob o mesmo orçamento de iterações de busca local.",
+      "literal": "GS-MOMA also outperforms the SS-MOMA-Perfect on a majority of the MOO benchmarks with respect to all three performance metrics, thus suggesting the positive synergy of the ensemble and smoothing surrogate models in the GSM framework.",
+      "localizador": "Sec. IV-C-1",
+      "metricas": [
+        "GD, MS, HR"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesma convenção das Figs. 15-20 (SS-MOMA-Perfect é o algoritmo 'E' em cada painel).",
+      "achado": "GS-MOMA supera o próprio oracle (SS-MOMA-Perfect) na maioria dos benchmarks e métricas — resultado forte de 'bless of uncertainty': a suavização evita ótimos locais que a busca sobre a função exata, mesmo com poucas iterações de busca local por indivíduo, não evitaria sob o mesmo orçamento de chamadas de busca.",
+      "aplicabilidade": "Mesma limitação da análise da SS-SOMA-Perfect — exigiria variante-oracle de cada algoritmo do roster, correspondente ao contrafactual nunca executado da ficha 15."
+    },
+    {
+      "fichas": [
+        31,
+        36
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Igual à análise de N-RMSE do contexto SOO, mas para os 6 problemas MOO (MF1-MF6): N-RMSE de GP, PR, RBF e Ensemble (M1) na predição da função agregada faggr (soma ponderada aleatória dos objetivos, ver Eq. 3).",
+      "literal": "the ensemble model, M1, is shown to arrive at low N-RMSE on all the multi-objective test problems considered, which is consistent with observations obtained in the single-objective context.",
+      "localizador": "Sec. IV-C-2, Fig. 7",
+      "metricas": [
+        "N-RMSE"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesma convenção da Fig. 5, aplicada a MF1-MF6 (escala do eixo y até 0.7).",
+      "achado": "Confirma para o contexto MOO o mesmo padrão do SOO: o ensemble mantém erro normalizado baixo e mais consistente do que qualquer surrogate individual, generalizando a conclusão através de domínios de problema (mono e multiobjetivo).",
+      "aplicabilidade": "Mesma aplicabilidade da análise de N-RMSE em SOO — ③ sonda aproximada, com pontos de validação locais e variáveis, não uma sonda fixa global."
+    },
+    {
+      "fichas": [
+        45
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Razão Gamma entre arquivamento (novas soluções não-dominadas guardadas em Al) e substituição (Lamarckian replacement), derivada das 6 ações possíveis do procedimento Replace&Archive (Table I / Algorithm 5), medida para GS-MOMA em cada um dos 6 problemas MF1-MF6.",
+      "literal": "the solution archiving to replacement ratio, labeled here as Gamma, of the GS-MOMA search is also reported in Figure 8.",
+      "localizador": "Sec. IV-C-2, Fig. 8, Table I, Algorithm 5",
+      "metricas": [
+        "Gamma = razão arquivamento/substituição"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Barras de 'Replacement' e 'Archiving' por problema (MF1-MF6), normalizadas de 0 a 1.",
+      "achado": "Gamma é alto em todos os problemas, indicando descoberta frequente de soluções não-dominadas potenciais quando M1 e M2 são usados com refinamento local — interpretado pelos autores como manifestação de 'bless of uncertainty' na forma de maior diversidade de soluções, além de convergência mais rápida via Lamarckian learning.",
+      "aplicabilidade": "⑥ filme: contagem de eventos de arquivamento vs substituição por geração — diretamente análogo à ficha 45 se o filme do algoritmo do roster registrar eventos equivalentes; a maioria dos algoritmos do roster não usa uma estrutura Replace&Archive com learning archive explícito, portanto a reprodução exigiria adaptar a definição do evento a contar."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Validação cruzada com resultado publicado na literatura",
+      "grupo_sugerido": "G",
+      "descricao": "O artigo compara diretamente seu resultado em MF6 (ZDT4) com os números publicados por Deb & Nain [28] para o mesmo problema — número de avaliações exatas necessárias e medida de spread alcançada — usando a referência externa como padrão de comparação, não um dado gerado internamente pela mesma bateria de experimentos do artigo.",
+      "literal": "While [28] reported to solve ZDT4 with from 21781 to 22730 exact function evaluations with an achieved spread measure of 0.332 to 0.422, GS-MOMA requires only 20000 exact evaluations at a competitive spread measure of 0.410+/-0.046.",
+      "localizador": "Sec. IV-C-1",
+      "metricas": [
+        "número de avaliações exatas até convergência",
+        "spread metric [72]"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Comparação pontual: faixa de valores relatada pelo artigo de referência [28] contra a média +/- desvio-padrão do próprio artigo (0.410+/-0.046).",
+      "achado": "GS-MOMA resolve o ZDT4/MF6 com menos avaliações exatas (20000) do que o intervalo relatado por Deb & Nain (21781-22730), com spread competitivo — usado como evidência externa de eficiência do framework.",
+      "aplicabilidade": "não reproduzível — é uma comparação com um número publicado em outro artigo, não um dado produzido pelas 7 camadas de instrumentação da dissertação; não há equivalente de 'validação contra a literatura' entre as fichas existentes."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Decomposição analítica (não-empírica) do custo computacional",
+      "grupo_sugerido": "F",
+      "descricao": "Formaliza o custo computacional total (Tcomp) do GS-SOMA/MOMA e dos SS-SOMA/MOMA como fórmulas fechadas (Eq. 24-25), decompostas em geração do banco de dados inicial (Gdb, Npop), avaliações exatas (F), tempo de ajuste dos modelos (Tens, TPR, Tm) e overhead (predição, busca de vizinhos), argumentando ANALITICAMENTE — sem medir tempos reais — que o termo de avaliação exata F domina o custo total quando o problema é de fato caro.",
+      "literal": "Tens, TPR, Toverhead and Tm are generally considered to be negligible, otherwise such frameworks should never be used.",
+      "localizador": "Sec. IV-D, Eq. (24)-(25)",
+      "metricas": [
+        "nenhuma medição empírica — apenas a fórmula de custo Tcomp em função de Gdb, Gmax, Npop, r, kterm, F, Tens, TPR, Toverhead, Tm"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Fórmula fechada; nenhum número empírico de tempo de parede é reportado em lugar nenhum do artigo.",
+      "achado": "Não é um resultado empírico, mas um argumento estrutural: o custo extra do framework generalizado (ajustar 2 modelos por indivíduo em vez de 1) é justificado como desprezível frente ao custo da avaliação exata — uma premissa nunca verificada empiricamente neste artigo.",
+      "aplicabilidade": "④ tempos por geração — a dissertação poderia popular diretamente os termos Gdb, Tens, TPR, Toverhead, Tm desta fórmula a partir da camada ④ e testar empiricamente a premissa (nunca testada aqui) de que F domina; o artigo não cita nenhuma medição de tempo real para comparar."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo mede a ACURÁCIA empírica do modelo (RMSE / N-RMSE, comparando a predição do surrogate ao valor real em pontos de validação retidos), não a CALIBRAÇÃO de um sigma probabilístico. 'Incerteza' é redefinida no próprio artigo (nota de rodapé 1, Eq. 2) como o erro de aproximação determinístico e(x) = |f(x) - f_hat(x)|, alinhado à classe de medição ERR-EMP do cabeçalho — nenhum modelo (nem mesmo o GP, que poderia produzir uma variância preditiva) tem seu sigma/variância reportado, usado na seleção, ou testado quanto a cobertura/coerência com o erro real.",
+    "literal": "In the present context, the definition of 'uncertainty' refers to the approximation errors in the fitness function due to the use of surrogate models based on the definitions given in [45].",
+    "localizador": "Sec. II, nota de rodapé 1, Eq. (2)"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Fórmula analítica (não medição empírica) do custo total: Tcomp = Gdb*Npop*sum(Fi) + (Gmax-Gdb)*[Npop*(Tens+TPR+2*kterm*sum(Fi)+Toverhead)] para GS-SOMA/GS-MOMA (Eq. 24), versus Tcomp = Gdb*Npop*sum(Fi) + (Gmax-Gdb)*[Npop*(Tm+kterm*sum(Fi)+Toverhead)] para SS-SOMA/SS-MOMA (Eq. 25); argumenta que quando F (custo da função exata) é grande, os termos de ajuste do modelo (Tens, TPR, Toverhead, Tm) são desprezíveis frente a F. Não há nenhuma medição de tempo de parede real (segundos/minutos) em nenhum lugar do artigo, nem decomposição empírica fit/busca/avaliação.",
+    "literal": "when working with computationally expensive problems, the most significant part contributing to the total computational effort incurred is F.",
+    "localizador": "Sec. IV-D"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Nenhum SS-SOMA nem o GS-SOMA supera o SS-SOMA-Perfect (oracle sem erro) em F3 (Rosenbrock) — evidência explícita de 'curse of uncertainty' nesse problema específico.",
+      "literal": "neither SS-SOMAs nor GS-SOMA manage to outperform the SS-SOMA-Perfect on F3(Rosenbrock), suggesting the presence of 'curse of uncertainty' due to the surrogate(s).",
+      "localizador": "Sec. IV-B-2"
+    },
+    {
+      "descricao": "Em 7 das 50 comparações da Table XV, GS-SOMA é estatisticamente pior (s-) que o baseline comparado (SS-SOMA-PR em F1, F5, F9; SS-SOMA-Perfect em F2, F3; SS-SOMA-GP em F3; SS-SOMA-RBF em F4) — o artigo reconhece essas 7 exceções à sua própria conclusão de superioridade.",
+      "literal": "On the remaining 7 cases, GS-SOMA also displays solution qualities close to that of the superior SS-SOMA, see the highlighted results in Tables V-XIV.",
+      "localizador": "Sec. IV-B-1, Table XV"
+    },
+    {
+      "descricao": "Em MF3 e MF4 (d=50, os dois problemas MOO de maior dimensão da bateria), alguns SS-MOMAs têm desempenho competitivo ou ligeiramente pior do que o piso NSGA-II sem surrogate.",
+      "literal": "On MF3 and MF4, some SS-MOMAs perform competitively or slightly poorer than NSGA-II (see Figs. 11(d) and 12(d)).",
+      "localizador": "Sec. IV-C-1"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "multimodalidade / paisagem rugosa (Ackley, F1)",
+      "afirmacao": "Todos os métodos assistidos por surrogate superam o modelo 'perfeito' (oracle) nesse problema, e o modelo de suavização PR (M2) é o que mais contribui para a melhoria — a imprecisão deliberada da suavização ajuda a escapar de ótimos locais ('bless of uncertainty').",
+      "literal": "Further, the fact that SS-SOMA-PR is the most superior on F1 (Ackley) highlights the strength of the PR model in contributing to the search via smoothing the rugged landscape of the Ackley function.",
+      "localizador": "Sec. IV-B-2"
+    },
+    {
+      "caracteristica": "paisagem originalmente suave / vale unimodal (Rosenbrock, F3)",
+      "afirmacao": "Nenhum surrogate supera o oracle nesse problema; o modelo de suavização (M2/PR) não contribui de forma significativa porque a paisagem já é suave por natureza — é a acurácia do ensemble (M1), não a suavização, que sustenta o ganho de desempenho ali.",
+      "literal": "M2 (i.e., the smoothing PR model) did not contribute significantly to the search since the problem landscape of this function is originally smooth.",
+      "localizador": "Sec. IV-B-2"
+    },
+    {
+      "caracteristica": "alta dimensão de decisão (d=50, MF3/MF4)",
+      "afirmacao": "A vantagem dos algoritmos assistidos por surrogate sobre o piso NSGA-II se reduz ou desaparece nos dois problemas de maior dimensão de decisão da bateria MOO, em contraste com os problemas de dimensão menor (d=10 a 30), onde a vantagem é clara.",
+      "literal": "On MF3 and MF4, some SS-MOMAs perform competitively or slightly poorer than NSGA-II (see Figs. 11(d) and 12(d)).",
+      "localizador": "Sec. IV-C-1"
+    },
+    {
+      "caracteristica": "múltiplos ótimos de Pareto locais (MF6, tipo ZDT4)",
+      "afirmacao": "GS-MOMA lida bem com esse problema classicamente difícil e multimodal no espaço de decisão, batendo em eficiência (menos avaliações exatas) um resultado publicado na literatura, com spread competitivo.",
+      "literal": "MF6 (ZDT4) is generally regarded as a challenging problem and hence commonly used by many in the literature.",
+      "localizador": "Sec. IV-C-1"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Artigo fundacional (2010), anterior em paradigma à maioria dos SA-MOO do roster: usa busca local regulada por REGIÃO DE CONFIANÇA (trust-region, razão rho_k entre melhoria real e prevista, Eqs. 6-9) dentro de um algoritmo memético (GS-SOMA/GS-MOMA), SEM função de aquisição explícita (nada de EI/EHVI/UCB/Thompson) e sem sigma probabilístico usado na decisão de seleção — 'incerteza' é redefinida no próprio artigo (nota de rodapé 1, Eq. 2) como erro de aproximação determinístico e(x) = |f - f_hat|, medido empiricamente via (N-)RMSE, o que alinha o artigo à classe de medição ERR-EMP do cabeçalho do pedido; a classe de função da incerteza A3 (Gestão de confiança) se manifesta concretamente no mecanismo de trust-region que expande/contrai o raio de busca conforme a fidelidade local do surrogate. O framework tem DOIS submodelos concorrentes por indivíduo — M1 (ensemble ponderado pelo RMSE inverso de GP+PR+RBF, Eqs. 3-5) e M2 (PR de baixa ordem, usado deliberadamente para suavizar a paisagem, Sec. III-B) — cada um faz busca local independente e o melhor resultado substitui o indivíduo (aprendizado Lamarckiano); no caso MOO, o excedente vira arquivo de aprendizado Al via o procedimento Replace&Archive (Algorithm 5, Table I, 6 ações possíveis). A comparação SS-MOMA-I (M1 apenas) vs GS-MOMA (M1+M2) é uma ablação externa relativamente limpa do componente de suavização, incomum na literatura, e relevante à ficha 11 da dissertação. As variantes '-Perfect' (RMSE=0, oracle) realizam de fato o contrafactual 'sigma=0' que a ficha 15 da dissertação descreve como nunca executado na própria bateria — um precedente externo direto e citável. Não há dados por semente nem camadas equivalentes às ②-⑦ da dissertação; apenas agregados (média/mediana/desvio/melhor/pior) sobre 20 execuções independentes, o que impede qualquer reanálise pareada por semente (as fichas 5 e 9, que exigem pareamento por semente, não são aplicáveis aqui por falta de dado bruto). As métricas MOO usadas (Generational Distance, Maximum Spread, Hypervolume Ratio) não são IGD+/HV diretamente, mas são análogas em espírito (GD ~ direção-GD sem o termo de spread, HR ~ HV normalizado pelo HV da frente verdadeira). Plataforma/código não é mencionada explicitamente em lugar nenhum do artigo. Observado um possível artefato de transcrição na Table X (F6): 'Worst' de SS-SOMA-GP = -9.74e+02, destoante em ordem de grandeza das demais células da mesma coluna/tabela (todas ~-1e+02); reproduzido literalmente do documento-fonte (confirmado idêntico tanto na conversão estruturada quanto na camada de texto bruta do PDF), não corrigido. Leitura completa: 53 páginas, cobertas duas vezes (conversão estruturada com tabelas + camada de texto bruta completa no ANEXO), conteúdo idêntico entre as duas versões (a camada bruta não acrescenta números além dos já capturados na estruturada, apenas confirma-os); o ANEXO final de OCR de imagens contém só ruído ilegível de rótulos de eixo rotacionados/invertidos nas figuras, sem conteúdo substantivo novo. equivalencia_criterios ficou vazio porque este artigo não tem o conceito de 'critério de aquisição' (EI/EHVI/UCB/Thompson) — é um framework pré-Bayesiano de busca local por trust-region, sem acquisition function separada do modelo. roster_bloco = null por instrução do pedido (artigo fora do roster experimental)."
+}

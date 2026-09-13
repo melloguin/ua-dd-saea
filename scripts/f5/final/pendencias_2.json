@@ -1,0 +1,92 @@
+{
+ "itens": [
+  {
+   "id": "C1-rodape-⑥",
+   "origem": "tarefa C1 + F30 achados #1 (quimera b1) e #6 (c141 órfão)",
+   "o_que_era": "varrer os 16.811 ⑥ do corpus final por rodapé ausente/malformado (streaming, só tail)",
+   "estado_final": "ABERTO",
+   "evidencia": "Varri 16.931 ⑥ (16.811 células com ⑤ = exatamente o censo + 120 células só-⑥ fora do censo) em /Users/gmello/Documents/python_repos/mestrado/resultados_experimentos. 0 ⑥ ausentes, 0 tails malformados (última linha parseia em 16.931/16.931), 118 sem rodapé: (a) 28 com ⑤=ok e censo=ok → ⚪ por O-21, censo superconta: quimera b1/BBOB_F17/8 (tail=b1_gen, 384.900B, ⑤ fe 309/309) NÃO reparada desde F30; c141/ZDT4/9 (368B, header-only) NÃO reparado; NOVOS pós-F30: c238×ESTOQUE40 14 células (s14,s16–s28, ~1,2MB, tail=c238_gen, ⑤ fe 1239/1239), c149×DDMOP7 s19/s20 (⑥ de 4.359B, tail=header, ⑤ ok fe 526/526), c217/WFG4/12, nsga3/MMF1/14, c311 6 células sweep, treed_media 1; (b) 71 com ⑤=failed motivo=checkpoint_em_andamento (motivo ambíguo por O-21); (c) 19 sem ⑤. Inventário célula-a-célula: /private/tmp/claude-501/-Users-gmello/16c0ba84-843b-49d1-9ce6-6cecc418b734/scratchpad/custodia_cells.csv",
+   "acao_restante": "Reclassificar as 28 censo-ok para ⚪ (O-21: rodapé é a autoridade) ou sancionar por decisão; decidir reparo/descarte da quimera b1 e do órfão c141 (espelho íntegro da vm5 citado no F30 já não existe — frota deletada 21/08); D81 para o cluster novo c238×ESTOQUE40 (14/29 células do par)."
+  },
+  {
+   "id": "C1b-O21-status",
+   "origem": "tarefa C1/O-21 + recomendação de censo do F30 não aplicada",
+   "o_que_era": "conferir rodapé×⑤×censo (autoridade O-21)",
+   "estado_final": "ABERTO",
+   "evidencia": "608/16.811 células com rodapé=ok e ⑤=failed (c154 347, c262 112, c122 85, c149 50, e81 14): censo registra status=failed motivo=teto_wall em 608/608. Dessas, 604 têm ⑤.fe_final<maxfe (⚪ teto_wall legítimo — o motivo está certo, mas o campo status='failed' engana quem filtra por status) e 4 têm fe_final==maxfe (orçamento COMPLETO, deviam ser ok puro): c122/WFG2/42 (681/681), c122/ZDT3/0 (929/929), c154/BBOB_F37/27 (309/309), c262/ZDT1/23 (929/929). Inverso: 1 célula nsga3/DTLZ3/17 com rodapé=failed e ⑤=ok, censo=ok — por O-21 é falha contada como ok.",
+   "acao_restante": "Corrigir no censo as 4 células orçamento-completo para ok e a nsga3/DTLZ3/17 para failed; documentar que status=failed+motivo=teto_wall lê-se ⚪ (ou trocar o status dessas 604 para um valor próprio)."
+  },
+  {
+   "id": "C2-manifesto-⑤",
+   "origem": "tarefa C2",
+   "o_que_era": "contar ⑤ sem params/sigma_dict/campanha_id/repo_hash no corpus final",
+   "estado_final": "FECHADO",
+   "evidencia": "16.811/16.931 células têm ⑤ (o censo é exatamente o conjunto com ⑤; 0 erros de parse). Sem params: 249/16.811 = 180 failed (morreram antes da escrita: c154 91, c262 46, c149 21, c122 13, e81 8, sobol 1) + 69 ok TODAS de ondas antigas schema_version=1 (sweeps b5m/b5r/moead_media 61, sobol_batch 7, e81 batch 1). Sem sigma_dict: 181 = 180 failed + 1 ok (e81/batch/ZDT4/42 — ver item C3b). Sem campanha_id e sem repo_hash: 169/16.811, 100% ondas antigas schema v1 (c311 55, sweeps 81, batch 23, sobol 8+2) — coerente com o corpus congelado que só tem c311/treed_media/sobol_batch das ondas antigas. Campanha M8/T15 (schema v2): 0 células ok sem qualquer um dos 4 campos. As 120 sem ⑤ (só-⑥, 101 com rodapé failed): b1×DTLZ4 30, b1×DDMOP7 29, c238 31, b4 13, b5m-off 7, e81×EST40 5, b3 1, c154 1, e74 1, e7 0 — falhas conhecidas (ex.: dacefit underdetermined), fora do censo por construção.",
+   "acao_restante": "nenhuma (lacunas de ondas antigas já aceitas pelo congelamento; failed sem params é consequência, não causa)."
+  },
+  {
+   "id": "C3-duplicatas-quarentena",
+   "origem": "tarefa C3 + F30 achado #7 (s42 M8 ≠ s42 F5/T11)",
+   "o_que_era": "duplicatas de célula e correção da _quarentena no corpus final",
+   "estado_final": "FECHADO",
+   "evidencia": "Árvore canônica: 16.931 chaves (exp,alg,prob,semente) ÚNICAS — 0 duplicatas internas. Sementes: 100% ∈ {0–28,42}, nenhuma fora. _quarentena correta: só c154_MMF1_30 e c262_MMF1_30 (semente 30 inexistente), e nenhuma semente 30 na árvore. Fora da árvore (tudo dentro de ua-dd-saea): 782 ⑥ — data/experiments 729 (inclui _baseline_pre_retrofit 42 e stubs/diags 21 nomes não-corpus), data_xmachine 8, data/_quarentena_smokes 13 (12 nomes sobrepõem células reais s0 do corpus, com tamanhos DIFERENTES — smokes corretamente quarentenados; um deles duplicado dentro da própria quarentena). 683 nomes sobrepõem o canônico: 152 bit-tamanho-idênticos, 597 divergentes — na s42 474/626 divergem em bytes, o que corrobora em escala o F30 #7 (o s42 do repo é OUTRA execução; o canônico/censo é o M8).",
+   "acao_restante": "nenhuma para o corpus (canônico único e limpo); opcional: mover/rotular os 782 residuais do repo para não serem lidos por engano."
+  },
+  {
+   "id": "C3b-e81-batch-ZDT4-42",
+   "origem": "achado meu desta varredura (C3), classe (3) inexplicado 🎯",
+   "o_que_era": "—",
+   "estado_final": "ABERTO",
+   "evidencia": "exp_batch_e81_ZDT4_42: o canônico (/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/e81/ZDT4/42/) tem ⑥ de 620 bytes (header+rodapé ok, sem filme) e é a única célula ok do corpus sem sigma_dict; existe cópia ÍNTEGRA de 651.590 bytes em /Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/batch/e81/ — a redistribuição parece ter escolhido a cópia errada. Onda antiga (batch, schema v1), 1 célula.",
+   "acao_restante": "D81: autor decide se substitui pelo arquivo do repo ou aceita (batch é onda antiga fora das análises principais)."
+  },
+  {
+   "id": "C4-camada③-bucket-only",
+   "origem": "F30 achados #2/#3/#4 (③ bucket-only c122 220 / c149 210 / c154 149; 'os 5')",
+   "o_que_era": "③ existia só no bucket (upload 403) em ~580+ células de c122/c149/c154 (+e81/c262 mesma assinatura)",
+   "estado_final": "FECHADO",
+   "evidencia": "No corpus final o ⑤ ainda REGISTRA upload 403 Forbidden em 994 células dos 5 configs (c122 220, c149 214, c154 149, e81 217, c262 194) + 75 em b5m/b5r/moead_media — mas a ③ LOCAL existe em 100% das células ok: as únicas 21 células com ⑤ e sem ③ no disco são failed (c154 15, c262 6, todas censo=failed, sem dado a perder na régua principal). A redistribuição pós-campanha resolveu o achado: ③ ausente-local total = 141 = 120 células sem ⑤ + essas 21 failed. EA puros: 3.355/3.355 com ③. (b5m/b5r/moead_media têm ainda 2.261 ⑤ com upload_failed:AttributeError — bug do uploader, dado local presente.)",
+   "acao_restante": "nenhuma — o 'gsutil ls' que o F30 pedia ficou moot: o dado está no disco local e o bucket ≡ Mac foi provado em 21/08 (105.746/105.746 nomes)."
+  },
+  {
+   "id": "C4-camada⑦-regime",
+   "origem": "tarefa C4 + F30 achado #5 (e103 ⑦ 0/669)",
+   "o_que_era": "⑦ só offline; e103 100% sem ⑦",
+   "estado_final": "ABERTO",
+   "evidencia": "⑦ em main: 0/13.658 ✓; em batch: 0/23 (regime=online ✓); sweeps: 121/121 com ⑦ e regime=offline no ⑤ ✓ (conforme DI-08). Off sem ⑦: 830/3.129 — e103 PERSISTE: 733/758 sem ⑦ (sintéticos 644/669; os 25 com ⑦ são campanha M8; reais 89/89 sem), b5m/b5r/e103/moead_media × DDMOP7-off: 120/120 sem ⑦ (⑦ é pós-hoc do Python canônico, que não avalia o .p MATLAB — explicável, coerente com D102.4/D102.10, mas não achei decisão explícita), b5m 7 restantes = células só-⑥. b5r e moead_media: RE21/EST40 off 100% com ⑦.",
+   "acao_restante": "e103: rodar o pós-hoc ⑦ nas 644 sintéticas off (o código canônico existe e as outras 3 configs offline têm 100%) ou sancionar a lacuna; formalizar decisão de que DDMOP7-off não tem ⑦ (senão vira classe 3)."
+  },
+  {
+   "id": "C4-DDMOP7-sonda",
+   "origem": "tarefa C4 + D102.10 (DDMOP7 sem sonda)",
+   "o_que_era": "confirmar 0 linhas 'sonda' em DDMOP7",
+   "estado_final": "FECHADO",
+   "evidencia": "⑥: grep em 629/629 jsonl de DDMOP7 → 0 arquivos com qualquer linha rec:sonda. ⑤: sonda.n_linhas=0 em 570/570 manifests que têm o bloco (24 failed de c149/c154 sem o bloco). Não existe data/sonda/sonda_DDMOP7.parquet (só RE21 e ESTOQUE40, que têm sonda legitimamente — n_linhas até 84.000/802.000). Conforme D102.10.",
+   "acao_restante": "nenhuma."
+  },
+  {
+   "id": "C5-sentinela-reais",
+   "origem": "tarefa C5 (padrão T11 de campo sentinela)",
+   "o_que_era": "varrer ⑤ dos REAIS por campos constantes/-1/None em ~100%",
+   "estado_final": "FECHADO",
+   "evidencia": "1.597/1.597 ⑤ dos reais (RE21 566, DDMOP7 594, EST40 437) achatados campo a campo: NENHUM sentinela de dado padrão T11 (nenhum campo -1/None em ~100%). Únicos ~100% vazios: tier (1.597/1.597) e dist (1.597/1.597) — campos do grid de sweep, vazios também nos sintéticos (estruturais, não perda de dado) — e stack_trace vazio em 1.585/1.597 (os 12 preenchidos são failed DDMOP7, correto). Constantes legítimas: schema_version=2, q=1, n_retries=0, fallback_ativado=False, env.matlab R2025a U1 (1.005/1.005 células MATLAB). Timing e sonda carregam valores reais.",
+   "acao_restante": "nenhuma."
+  },
+  {
+   "id": "C6-repo_hash-reais",
+   "origem": "tarefa C6 (errata REAL-2.15 ERRATA 2, régua ideal=[0;0])",
+   "o_que_era": "reais TODOS com commit pós-errata (89655e4+)? listar DDMOP7 pré-régua (c122/c262 usavam a régua NA BUSCA)",
+   "estado_final": "ABERTO",
+   "evidencia": "Medido por git no repo ua-dd-saea: a errata entrou em src/metrics.py NO commit 89655e4 (T15.13, 15/08 15:04, git blame das linhas 98–110); 3240f4b (T15.12) é ANCESTRAL de 89655e4 (pré-errata) e 7be66e6 (A53) é descendente (pós-errata). DDMOP7 (594 ⑤): 577 @7be66e6 pós-errata; 17 @3240f4b PRÉ-errata — exatamente 1 célula por config, a primeira da onda (semente 0; b1 é s1): b1/s1, b3, b5r-off, c141, c149(failed), c154(failed), c217, c238, e103-off, e7, e74, e81, moead, moead_media, nsga2, nsga3, smsemoa. O QUE IMPORTA: c122 30/30 e c262 30/30 @7be66e6 — as duas configs que usam a régua NA BUSCA são 100% pós-errata; nas 17 pré-errata a régua era só métrica pós-hoc, que é recomputada pelo metrics.py atual (com checa_regua) — impacto zero no dado gravado. RE21 566/566 e EST40 437/437 @3240f4b: pré-89655e4 mas a errata é exclusiva da régua DDMOP7; D102.17-20 (zona morta etc.) estão no 3240f4b. Não medido: repo_hash de 35 DDMOP7 + 5 EST40 sem ⑤ (T — células failed só-⑥, sem certidão).",
+   "acao_restante": "Decisão do autor: sancionar as 17 células DDMOP7-s0 pré-errata (recomendo aceitar: régua não usada na busca nesses configs e métrica é pós-hoc) ou excluí-las da fase 2 pooled; registrar a decisão para fechar como (2)."
+  },
+  {
+   "id": "F30-#7-s42-reconciliado",
+   "origem": "F30 achado #7 (s42 da M8 diverge da s42 F5/T11)",
+   "o_que_era": "decidir qual corpus é canônico",
+   "estado_final": "ABERTO_ACEITO",
+   "evidencia": "Não re-medi IGD (fora do escopo); no nível de bytes confirmo o substrato: 474/626 ⑥ de s42 em ua-dd-saea/data/experiments divergem em tamanho do canônico (152 idênticos), e o censo/corpus final usa exclusivamente resultados_experimentos (M8). A escolha de canônico está de facto feita pela _FONTES.csv + censo; as afirmações numéricas de F5/T11 sobre s42 seguem referindo-se a OUTRA execução.",
+   "acao_restante": "registrar formalmente (D81/D29) que o corpus canônico é o M8 e que números de F5/T11 sobre s42 não são re-emitíveis sem recomputo — pendência de escrita, não de dado."
+  }
+ ]
+}

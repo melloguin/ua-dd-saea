@@ -1,0 +1,304 @@
+{
+  "id": "mtm4",
+  "sigla": "MAES",
+  "titulo": "Single- and Multiobjective Evolutionary Optimization Assisted by Gaussian Random Field Metamodels",
+  "ano": 2006,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Testes matemáticos, todos sem suíte-padrão (ZDT/DTLZ/WFG não usados; artigo pré-data essas convenções): (a) 4 funções mono-objetivo sem restrição, 20-D: esfera (convexa, isotrópica, Apêndice A), elipsoide/esfera escalada (convexa, NÃO isotrópica, Apêndice B), degrau (descontínua, Apêndice C), Ackley (altamente multimodal, Apêndice D); (b) 1 função mono-objetivo restrita e multimodal, 10-D: problema de Keane (\"bump\", restrições não-lineares, Apêndice E); (c) 3 problemas biobjetivo sintéticos, 10-D: família de Schaffer generalizada (Apêndice F), com curvatura da frente de Pareto controlada por γ (γ=2 convexa, γ=1 linear, γ=0.5 côncava); (d) 1 problema real de engenharia aerodinâmica: redesenho do aerofólio RAE 2822 (3 objetivos = arrasto Cd em 3 pontos operacionais de voo; 6 restrições aerodinâmicas de sustentação/momento + 4 restrições geométricas verificadas a priori; 6 variáveis de projeto via pontos de controle Bezier; avaliação via CFD).",
+    "orcamento": "Mono-objetivo sem restrição (esfera/elipsoide/degrau/Ackley): µ=5 pais, λ=100 filhos, ν≤20 pré-selecionados para avaliação exata por geração; até 1000 avaliações reais por execução (um run de longo prazo com 2000 avaliações no estudo da Fig. 16). Keane (restrito): (15+15<100)-MAES; 1000 avaliações. Schaffer (multiobjetivo): (20+20<100)-M-NSGA-II; 1000 avaliações. RAE 2822 (real): (20+4<20)-M-NSGA-II; até 1000 avaliações por execução. Metamodelo local ativado a partir de mais de 2d pontos na base, com Nr=2d vizinhos mais próximos (não há DoE inicial explícito tipo LHS — a base cresce a partir da população inicial aleatória; passo inicial de mutação = 0,05% da largura do espaço de busca).",
+    "execucoes": "20 execuções independentes (sementes distintas) para esfera, elipsoide, degrau, Ackley e Keane; 10 execuções para os problemas de Schaffer (multiobjetivo sintético); 5 execuções para o caso real RAE 2822.",
+    "baselines": "ES/NSGA-II padrão SEM metamodelo, em várias configurações de população, servindo de piso em todos os estudos: (1+10)-ES, (5+20)-ES, (5+35)-ES, (5+100)-ES nos testes mono-objetivo sem restrição; ES padrão em ~3 configurações de população (aprox. 1+10, 5+20, 5+100/15+100 — rótulos das legendas das Figs. 27/28 não totalmente consistentes entre si) no Keane; (20+100)-NSGA-II e (20+20)-NSGA-II padrão no multiobjetivo sintético e no RAE 2822. Sim — há piso evolutivo sem surrogate em TODAS as comparações do artigo.",
+    "metricas_principais": [
+      "melhor valor de função encontrado (mono-objetivo): mediana e 80%-quantil (16º pior de 20 execuções), e média±desvio-padrão no final",
+      "recall(t) e precision(t) da retenção do pré-crivo (qualidade de retrieval do metamodelo, Eqs. 47-49)",
+      "erro absoluto de predição |ŷ−y| nos pontos escolhidos para avaliação exata",
+      "superfície de atingimento (attainment surface) de 50%, BEST e AVG, no espaço de objetivos (multiobjetivo)",
+      "número/razão de soluções factíveis por execução (RAE 2822, problema restrito)"
+    ],
+    "testes": [
+      "nenhum teste de significância formal (sem Wilcoxon/Friedman/Holm) — o artigo é de 2006 e reporta apenas mediana, 80%-quantil e média±desvio-padrão, com leitura visual das curvas/superfícies de atingimento"
+    ],
+    "apresentacao": "Curvas de mediana (ou 80%-quantil) do melhor valor encontrado × nº de avaliações reais, em escala log no eixo y; gráficos de barra de média±desvio-padrão para o resultado final por estratégia; superfícies de atingimento de 50% (sintético) ou BEST/AVG sobre a união/interseção das execuções (RAE 2822); gráficos de dispersão y×ŷ e y×y_lb para checagem pontual de acurácia/calibração numa única execução; sem símbolos +/=/−, sem negrito, sem matriz combinada algoritmo×problema (cada problema tem seu próprio gráfico).",
+    "codigo_plataforma": "Implementação própria dos autores (ES/MAES/NSGA-II com metamodelos GRFM/Kriging locais, treinados por máxima verossimilhança com métodos de busca direta/quase-Newton); não menciona PlatEMO, BoTorch ou MATLAB. A ferramenta \"Krigifier\" [27] é citada apenas para gerar os exemplos ilustrativos de paisagens GRF (Figs. 2-3), não para os experimentos de otimização propriamente ditos. Avaliação do RAE 2822 via ferramenta de CFD (malha + solver de escoamento) não detalhada no artigo."
+  },
+  "analises": [
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para 5 problemas de teste (esfera, elipsoide/esfera escalada, degrau e Ackley, 20-D, sem restrição; e o problema de Keane, 10-D, restrito e multimodal), o artigo plota a mediana (sobre 20 execuções) do melhor valor de função encontrado até cada nº de avaliações reais (até 1000), em escala log no eixo y, comparando 3-4 configurações de ES/EA padrão sem metamodelo (pisos, variando o tamanho de população) contra 4 variantes do MAES/M-NSGA-II que usam critérios de pré-crivo distintos (valor médio MI/MLI, limite inferior LB/LBI, probabilidade de melhoria PoI, melhoria esperada ExI).",
+      "literal": "All metamodel-based strategies outperformed conventional strategies (i.e. (5+20)-ES, (5+35)-ES, (5+100)-ES) since they ask considerably less function evaluations.",
+      "localizador": "Sec. V-D e V-F, Figs. 10, 11, 12, 13, 27 (pp. 10-12)",
+      "metricas": [
+        "melhor valor de função encontrado (mediana)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mediana sobre 20 execuções; eixo y em escala logarítmica; nº de avaliações reais no eixo x (até 1000); uma curva por estratégia/piso; dispersão tratada à parte (Figs. 14/28, item seguinte).",
+      "achado": "Nos problemas convexos/unimodais (esfera, elipsoide) o pré-crivo por valor médio (MI) tem o melhor desempenho médio, superando inclusive os critérios com incerteza; no degrau (descontínuo) e em Ackley (multimodal) os critérios com incerteza (LB, PoI, ExI) superam claramente o MI, que estagna; no Keane (multimodal+restrito) qualquer MAES supera a EA padrão e os critérios com incerteza superam nitidamente o MI.",
+      "aplicabilidade": "① (todas as avaliações reais, x/f, ordem) — reproduzível diretamente: mediana do melhor-f-até-o-momento por checkpoint, por algoritmo × problema, sobre as sementes; equivalente à ficha 26 usando 'melhor f encontrado' em vez de IGD+/HV (aqui os problemas são mono-objetivo)."
+    },
+    {
+      "fichas": [
+        1,
+        8
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para a função de Ackley (Fig. 14) e para o problema de Keane (Fig. 28), o artigo apresenta um gráfico de barras com a média e o desvio-padrão do melhor valor de função encontrado após o orçamento fixo (1000 avaliações), uma barra por estratégia (3-4 configurações de EA padrão + 4 critérios do MAES), resumindo o resultado final de cada configuração.",
+      "literal": "Summary of the results on Ackley's function after 1000 evaluations each. The mean value and the standard deviation of the best found result is displayed.",
+      "localizador": "Sec. V-D e V-F, Fig. 14 (p.11) e Fig. 28 (p.12)",
+      "metricas": [
+        "melhor valor de função encontrado (média ± desvio-padrão)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Média ± desvio-padrão (não mediana) sobre 20 execuções; um gráfico de barras por problema (não uma matriz algoritmo × problema combinada); sem teste estatístico, sem símbolos +/=/−, sem negrito.",
+      "achado": "Confirma numericamente o padrão das curvas de convergência: em Ackley, os critérios com incerteza têm média final menor; em Keane, o MAES com incerteza é claramente superior à EA padrão e ao MI, com barras de erro aparentemente menores para as estratégias com incerteza — ou seja, o surrogate com incerteza tende a reduzir, não aumentar, a dispersão entre execuções nesses dois problemas difíceis.",
+      "aplicabilidade": "① (endpoint por semente) + agregação média±desvio-padrão sobre as 30 sementes da dissertação — diretamente reprodutível, embora a dissertação normalmente reporte mediana (não média) por convenção; a leitura de dispersão entre sementes (desvio-padrão) corresponde diretamente à ficha 8."
+    },
+    {
+      "fichas": [
+        45
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Estudo de sensibilidade paramétrica na função de Ackley (20-D): o artigo varia o fator de confiança ω (0, 1, 2, 3) do critério de limite inferior (LB = ŷ − ω·ŝ, o parâmetro que pesa diretamente a incerteza na aquisição) e o número máximo de indivíduos pré-selecionados ν (1, 5, 15, 20) por geração, plotando o quantil de 80% do melhor valor encontrado ao longo das avaliações para cada combinação.",
+      "literal": "Figure 15 displays the results and reveals that an optimal value for ω exists. For high ω values (ω = 3), the intensive exploration led to low convergence speed.",
+      "localizador": "Sec. V-D, Fig. 15 (p.11)",
+      "metricas": [
+        "melhor valor de função encontrado (80%-quantil, ou seja, o 16º pior de 20 execuções)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "80%-quantil (16º pior valor de 20 execuções) ao longo do nº de avaliações; uma curva por combinação (ω, ν); configuração de referência ω=2, ν=20.",
+      "achado": "Existe um ω ótimo (≈2): ω alto (3) causa exploração excessiva e convergência lenta; ω baixo (≤1) causa convergência prematura a ótimo local por exploração fraca. ν baixo acelera o início da busca (mais gerações pelo mesmo custo) mas aumenta o risco de estagnação prematura, embora essa estagnação ocorra mais tarde do que a causada por um ω mal escolhido; ω=2,ν=20 comporta-se de modo semelhante às estratégias ExI/PoI com ν=20.",
+      "aplicabilidade": "não reproduzível diretamente com as 7 camadas — exige rodar variantes do algoritmo com hiperparâmetros (ω, ν) diferentes dos congelados na bateria de 30 sementes; é um estudo de sensibilidade ao parâmetro que pesa a incerteza na aquisição (papel análogo ao β do UCB/LCB), não coberto pelos dados já gravados de uma única configuração fixa por algoritmo."
+    },
+    {
+      "fichas": [
+        40,
+        31
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Execução isolada de longo prazo (2000 avaliações reais) do PoI-MAES no problema elipsoide 20-D: plota, ao longo do nº de avaliações (escala log), o valor amostrado e o erro absoluto de predição |ŷ−y| do ponto que o algoritmo de fato escolheu avaliar, mostrando a evolução da acurácia do modelo ao longo de uma busca prolongada.",
+      "literal": "the absolute error of the prediction shrinks proportionally to the distance from the optimum",
+      "localizador": "Sec. V-D, Fig. 16 (p.11)",
+      "metricas": [
+        "erro absoluto de predição |ŷ−y| nos pontos escolhidos para avaliação exata"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Escala log-log; execução única (não agregada sobre sementes); pontos plotados ao longo de todo o histórico de 2000 avaliações.",
+      "achado": "O MAES converge com alta precisão a um ótimo local; o erro absoluto da predição diminui proporcionalmente à distância ao ótimo — ou seja, o modelo fica mais preciso à medida que a busca se concentra numa vizinhança menor e mais densamente amostrada.",
+      "aplicabilidade": "① (avaliações reais, x/f) cruzada com a predição feita no momento da escolha (parte do filme ⑥, se a predição do candidato aceito for registrada) — reproduzível parcialmente; exige orçamento maior (2000 avals) do que o padrão 31D−1 se D for pequeno, e exige registrar μ/σ do ponto no instante da decisão, não apenas o f final."
+    },
+    {
+      "fichas": [
+        32
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para os 4 problemas mono-objetivo sem restrição (esfera, elipsoide, degrau, Ackley) e os 4 critérios de pré-crivo (MI, LB, PoI, ExI), o artigo mede e plota ao longo das avaliações duas medidas de qualidade de retenção (recall e precision, Eqs. 47-49): a fração dos µ melhores indivíduos 'verdadeiros' de cada geração que o pré-crivo de fato recupera (recall) e a fração dos indivíduos recuperados que eram de fato relevantes (precision), médias sobre 20 execuções.",
+      "literal": "The best recall values have been obtained through the LB, ExI, and PoI criteria (figures 19, 21, and 23). Their ability to capture a large part of the really top-most individuals",
+      "localizador": "Sec. V-B (definição) e V-E (discussão), Figs. 17-24 (pp. 11-13)",
+      "metricas": [
+        "recall(t)",
+        "precision(t) da retenção do pré-crivo"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Médias sobre 20 execuções; uma curva por problema dentro de cada gráfico; recall e precision definidos via Eqs. 47-49 comparando o subconjunto Qt selecionado pelo pré-crivo com o subconjunto Mµ(Gt∪Pt) que teria sido selecionado com avaliação exata de tudo.",
+      "achado": "LB, PoI e ExI atingem recall alto (>40%) mas precisão muito baixa (<20%) — retêm quase todos os bons indivíduos mas à custa de avaliar muitos irrelevantes; o MI tem melhor equilíbrio (precisão >40% na maior parte do tempo, recall <40% exceto no degrau). Resultado negativo/caveat explícito dos autores: recall/precision sozinhos não explicam totalmente o bom desempenho final do LB em problemas multimodais/com platôs (ver resultados_negativos).",
+      "aplicabilidade": "não reproduzível diretamente com as 7 camadas — exige conhecer, a cada geração, o ranking VERDADEIRO de TODOS os descendentes (não só os aceitos pela ①), o que demandaria avaliar exatamente todo Gt (não só Qt) — contradiz o próprio propósito da triagem e não é o que a instrumentação da dissertação grava (grava só as aceitas em ①, e as predições da sonda em ③, que são pontos fixos, não os descendentes de cada geração)."
+    },
+    {
+      "fichas": [
+        40,
+        31
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para uma única execução do PoI-MAES na função de Ackley (20-D, multimodal), o artigo compara, num gráfico de dispersão, o valor predito ŷ contra o valor real y para todas as 1000 avaliações reais realizadas durante a busca (ou seja, os pontos que o próprio algoritmo escolheu avaliar).",
+      "literal": "There is a strong correlation between predicted and observed values. However, there is also a deviation between these two values.",
+      "localizador": "Sec. V-D/E, Fig. 25 (p.14)",
+      "metricas": [
+        "correlação/erro entre valor predito (ŷ) e valor real (y) nos pontos avaliados"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Gráfico de dispersão y × ŷ; execução única (1000 pontos, não agregado sobre sementes); sem métrica numérica de correlação/RMSE reportada (apenas leitura visual).",
+      "achado": "Forte correlação entre predito e observado, mas com desvio visível — o modelo é razoavelmente acurado nos pontos que ele mesmo escolheu avaliar, mas não perfeito, mesmo numa função multimodal difícil.",
+      "aplicabilidade": "① (avaliações reais) cruzada com a predição feita no momento da escolha (⑥, se registrada) — mesmas ressalvas do item anterior (Fig. 16): exige μ do candidato no instante da decisão, não apenas nos 2000 pontos fixos da sonda."
+    },
+    {
+      "fichas": [
+        33
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para a mesma execução do PoI-MAES em Ackley (Fig. 25), o artigo verifica a validade do limite inferior de confiança: plota y (valor real) contra y_lb = ŷ − 2ŝ (o limite inferior com ω=2, ~97% de confiança nominal) para as mesmas 1000 avaliações, checando se y_lb é de fato um limite inferior 'afiado' (válido e próximo) para os valores reais.",
+      "literal": "It turns out that ylb is a good approximation to the sharp lower bound for the true function values.",
+      "localizador": "Sec. V-D/E, Fig. 26 (p.14)",
+      "metricas": [
+        "validade/aperto do limite inferior de confiança y_lb = ŷ−2ŝ frente ao y real"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Gráfico de dispersão y × y_lb; ω fixo em 2 (confiança nominal ≈97%); mesma execução única de Fig. 25, sem agregação sobre sementes; leitura visual, sem métrica de cobertura numérica reportada.",
+      "achado": "y_lb é uma boa aproximação do limite inferior afiado dos valores reais — evidência qualitativa de que o σ do GRFM está razoavelmente calibrado nesta execução (resultado POSITIVO para a incerteza; sustenta o uso do LB com ω=2).",
+      "aplicabilidade": "③ (sonda, se disponível para o problema) permitiria uma versão mais rigorosa e agregada sobre sementes desta checagem de calibração/cobertura (a própria ficha 33); tal como feito no artigo — usando os pontos aceitos de uma única execução, não uma sonda fixa com f verdadeiro conhecido — a réplica exata exigiria registrar μ/σ do candidato no instante da decisão (parte do filme ⑥), não apenas usar a sonda."
+    },
+    {
+      "fichas": [
+        55
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para os problemas de Schaffer generalizados 10-D com frente de Pareto de curvatura escalável por γ (γ=2 convexa, γ=1 linear, γ=0.5 côncava), o artigo plota a superfície de atingimento de 50% (10 execuções, 1000 avaliações) no espaço de objetivos f1×f2, comparando NSGA-II padrão em duas configurações de população contra o M-NSGA-II usando os 4 critérios de pré-crivo (MI/MLI, LB/LBI, PoI, ExI).",
+      "literal": "The ExI criterion yields the best performance, followed by the lower bound and PoI criteria.",
+      "localizador": "Sec. V-G, Figs. 29, 30, 31 (p.13)",
+      "metricas": [
+        "superfície de atingimento (50% attainment surface) no espaço de objetivos"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Superfície de atingimento de 50% (resumo distribucional) sobre 10 execuções; uma curva por estratégia; sem HV/IGD+ numérico reportado nesta figura (leitura visual da superfície).",
+      "achado": "O pré-crivo por valor médio é, em média, menos bem-sucedido que os critérios com incerteza; ExI tem o melhor desempenho geral, seguido por LB e PoI; a vantagem do ExI é significativamente maior nas frentes côncava e linear do que na convexa, mas ExI depende da escolha do ponto de referência e é o critério mais caro computacionalmente entre os quatro. Desvio de desempenho entre todas as versões assistidas e as duas versões do NSGA-II padrão é significativo nos três problemas.",
+      "aplicabilidade": "① (ND de cada semente, avaliações reais verdadeiras) — diretamente reprodutível: cálculo de superfícies de atingimento sobre o ND de cada execução, exatamente como a ficha 55 propõe (worst-case/mediana/melhor)."
+    },
+    {
+      "fichas": [
+        55
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "No caso real de otimização aerodinâmica do perfil RAE 2822 (3 objetivos — arrasto em 3 pontos operacionais — e 6 restrições de sustentação/momento, mais restrições geométricas verificadas a priori), o artigo plota superfícies de atingimento para os 3 pares de objetivos (f1×f2, f1×f3, f2×f3), com o melhor front (BEST, união não-dominada de 5 execuções) e o front médio (AVG), comparando NSGA-II padrão contra M-NSGA-II com pré-crivo por valor médio e por limite inferior.",
+      "literal": "The plots demonstrate the gain in solution quality achieved using the new techniques, with almost the same CPU cost.",
+      "localizador": "Sec. VI, Figs. 33, 34, 35 (pp.15-16)",
+      "metricas": [
+        "superfícies de atingimento (BEST/AVG) no espaço de objetivos, 3 pares de objetivos"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "BEST = ND da união de todos os pontos de 5 execuções; AVG = pontos não-dominados fracamente dominados por pelo menos 2 dos outros 4 fronts da mesma estratégia; 1000 avaliações por execução; sem HV/IGD+ numérico reportado.",
+      "achado": "O uso de metamodelos melhora a diversidade e a precisão do conjunto ótimo obtido com custo de CPU quase igual ao NSGA-II padrão (mesmo nº de avaliações exatas); usar o intervalo de confiança (LB) traz melhoria adicional sobre usar só a média, reamostrando regiões insuficientemente exploradas; foi possível melhorar o desenho baseline do RAE 2822.",
+      "aplicabilidade": "não reproduzível na dissertação — é um caso real próprio do artigo (aerofólio RAE 2822 via CFD), fora do roster/bateria da dissertação; conceitualmente equivalente à ficha 55 (attainment surfaces) se aplicada aos 3 problemas reais da dissertação via ①."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Taxa de soluções factíveis por execução (eficiência de tratamento de restrições)",
+      "grupo_sugerido": "A",
+      "descricao": "Para o caso RAE 2822 (5 execuções, até 1000 avaliações cada), o artigo conta e compara em gráfico de barras o número de soluções factíveis (que satisfazem as restrições aerodinâmicas de sustentação e momento) obtidas em cada execução, para NSGA-II padrão vs. M-NSGA-II com pré-crivo por média e por limite inferior.",
+      "literal": "the metamodel assistance made it possible to achieve a significantly higher ratio of feasible solutions in all five cases of the RAE 2822 problem",
+      "localizador": "Sec. VI, Fig. 32 (p.15)",
+      "metricas": [
+        "número/taxa de soluções factíveis obtidas por execução"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Contagem bruta (não %) de soluções factíveis por execução, uma barra por estratégia × execução, 5 execuções.",
+      "achado": "A assistência por metamodelo aumenta significativamente a razão de soluções factíveis encontradas em todas as 5 execuções do RAE 2822, em comparação com o NSGA-II padrão — um benefício da triagem preditiva também no tratamento de restrições, não só na qualidade objetivo.",
+      "aplicabilidade": "não reproduzível diretamente com as 7 camadas da dissertação tal como descritas — exigiria que a bateria registrasse a factibilidade de cada indivíduo avaliado por execução (possível em princípio via ① se os problemas restritos gravarem g(x), mas não é uma leitura padrão das fichas existentes)."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "Verificação pontual (não sistemática/agregada) da validade do limite inferior de confiança (LB, ω=2, ~97% de confiança nominal, Eq. 36 com ny=1): para todas as 1000 avaliações reais de UMA execução do PoI-MAES na função de Ackley, plota-se y (valor real) contra y_lb = ŷ − 2ŝ (o limite inferior predito no momento da escolha) para checar se y_lb é de fato um limite inferior 'afiado' e válido para os valores reais (Fig. 26); complementado por um gráfico y×ŷ (Fig. 25) mostrando a acurácia geral da média predita nos mesmos pontos.",
+    "literal": "It turns out that ylb is a good approximation to the sharp lower bound for the true function values.",
+    "localizador": "Sec. V (fim da subseção de resultados D/E, antes da Sec. VI), Figs. 25-26, p.14"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Apenas complexidade TEÓRICA (Big-O), sem medição empírica de tempo de parede/CPU em segundos e sem decomposição fit/busca/avaliação: treino do metamodelo custa O(N·m³·d + m²·d) (N iterações da otimização de verossimilhança, m pontos na base, d dimensões); cada predição custa O(n·m²) se σ̂ também for calculado, ou O(n·m) se só ŷ. Recomenda-se metamodelagem LOCAL (Nr=2d vizinhos mais próximos) precisamente para conter esse custo, em vez de metamodelagem global. O único dado empírico (qualitativo, sem números) sobre custo aparece no caso real RAE 2822: o método assistido obtém ganho de qualidade com custo de CPU 'quase igual' ao do NSGA-II padrão, usando o mesmo nº de avaliações exatas (1000) — mas nenhum tempo em segundos/horas é reportado em nenhum experimento do artigo.",
+    "literal": "Note that the time complexity for the training of the metamodel is O(Nm3d + m2d)... each prediction requires O(nm2) elementary operations (if sˆ(x) is to be computed) or O(nm) (if yˆ(x) is to be computed).",
+    "localizador": "Sec. II, p.4 (complexidade teórica); Sec. VI, p.16 ('almost the same CPU cost', RAE 2822)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Nos problemas mais simples e bem comportados (esfera e elipsoide, convexos/unimodais, 20-D), o pré-crivo por valor médio (MI, SEM uso de incerteza) obteve o melhor desempenho médio, superando as três variantes que usam σ (LB, PoI, ExI) — a incerteza não ajuda, e até atrapalha relativamente, quando o problema já é fácil para o modelo.",
+      "literal": "The best average performance was obtained using the mean value pre-screening.",
+      "localizador": "Sec. V-D, p.10 (parágrafo sobre a função esfera)"
+    },
+    {
+      "descricao": "As estratégias baseadas em confiança (LB, PoI, ExI) atingem alto recall mas precisão muito baixa (<20%), ou seja, de fato avaliam um grande excedente de indivíduos irrelevantes; os próprios autores atribuem a isso o desempenho ruim dessas estratégias nos casos de teste mais simples — um custo escondido do uso da incerteza que não aparece na curva de convergência final, mas explica por que ela não é sempre a melhor escolha.",
+      "literal": "In all aforementioned cases, the precision is very low. This indicates that high recall values can be achieved by evaluating a large surplus of designs in each generation with the exact evaluation software. The low number of generations needed is probably the reason for the bad performance of these strategies on the simpler test-cases.",
+      "localizador": "Sec. V-E (Discussion on precision and recall), p.11"
+    },
+    {
+      "descricao": "Caveat metodológico explícito na conclusão: os autores reconhecem que as próprias métricas de recall/precisão que definiram e usaram ao longo do artigo NÃO bastam para explicar por que o pré-crivo por limite inferior (LB) funciona particularmente bem em funções multimodais e com platôs — um limite reconhecido da capacidade explicativa das métricas de proxy do próprio artigo.",
+      "literal": "The same results indicate that measuring recall and precision may not suffice to explain the good performance of the lower bound pre-screening in case of multimodal and flat functions.",
+      "localizador": "Sec. VII (Conclusions), p.16"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Os autores provam uma equivalência formal entre versões dos critérios de pré-crivo: uma versão de limiar (threshold τ) do PoI equivale a um pré-crivo LB com um ω tal que τ=Φ(−ω); em particular, o limiar PoI com τ=0.5 é formalmente equivalente ao pré-crivo por valor médio (MI, que ignora a incerteza) — ou seja, a álgebra dos critérios de aquisição tem parentescos matemáticos previstos a priori, não descobertas empíricas.",
+      "literal": "It turns out, that this strategy is equivalent to a LB pre-screening using a value of ω such that τ = Φ(−ω). In particular, a threshold version of the PoI pre-screening with τ = 0.5 is formally equivalent to a MI pre-screening.",
+      "localizador": "Sec. IV-A (fim), p.7"
+    },
+    {
+      "descricao": "No problema restrito e multimodal de Keane, as diferenças de desempenho entre os três critérios que usam informação de confiança (limite inferior, PoI e ExI) foram pouco significativas entre si — sugerindo que, uma vez que se usa ALGUMA forma de incerteza, o critério específico escolhido importa menos do que a decisão binária de usar incerteza ou não.",
+      "literal": "The differences between the three pre-screening criteria that use confidence information (lower bound, PoI and ExI) are less significant for this problem.",
+      "localizador": "Sec. V-F (Discussion of results on constrained optimizations), p.11"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "descontinuidade / platôs (função degrau, step function)",
+      "afirmacao": "O pré-crivo por valor médio (MI) tem desempenho ruim em função descontínua com platôs, pois tende a ficar preso em regiões já exploradas ou de custo pouco variável; os critérios baseados em incerteza (LB, PoI, ExI) são superiores porque direcionam a busca para regiões inexploradas onde ŝ(x) é alto — ExI é o melhor, LB fica levemente atrás.",
+      "literal": "the mean value criterion performance was expected not to be good, since the step function is discontinuous... the mean value pre-screening or the conventional ES use to keep searching over already adequately explored regions or areas with negligibly varying cost values (plateaus).",
+      "localizador": "Sec. V-D, p.11 (parágrafo sobre a função degrau)"
+    },
+    {
+      "caracteristica": "multimodalidade (função de Ackley, 20-D)",
+      "afirmacao": "A medida de confiança ŝ(x) é crucial para guiar a busca para fora de ótimos locais; sem ela, o pré-crivo por valor médio estagna após cerca de 200 avaliações no quantil de 80%, enquanto todas as estratégias que usam incerteza continuam melhorando.",
+      "literal": "The advantage of strategies using sˆ(x) becomes significant when looking at the 80% quantile, where all strategies using the uncertainty information outperform those based on the mean value pre-screening; the latter stagnates after about 200 evaluations.",
+      "localizador": "Sec. V-D, p.11 (parágrafo sobre Ackley)"
+    },
+    {
+      "caracteristica": "não-isotropia / desalinhamento do kernel do metamodelo (elipsoide = esfera escalada)",
+      "afirmacao": "Mesmo usando um kernel de correlação isotrópico (mal especificado para a função elipsoide, que não é isotrópica), o método se mostrou pouco sensível a esse erro de especificação do modelo, com resultados semelhantes aos da esfera isotrópica.",
+      "literal": "the metamodel was expected to be less precise than in the isotropic case. However, the results show that the approach is quite insensitive to small \"errors\" in the model assumptions.",
+      "localizador": "Sec. V-D, p.10-11 (parágrafo sobre a função elipsoide)"
+    },
+    {
+      "caracteristica": "curvatura da frente de Pareto (côncava/linear/convexa — Schaffer generalizado, γ)",
+      "afirmacao": "O critério ExI tem a melhor performance entre os quatro critérios multiobjetivo, mas sua vantagem é significativamente maior nos problemas côncavo e linear do que no convexo; o critério ExI também é o mais caro computacionalmente entre os quatro e depende da escolha do ponto de referência, ao contrário de PoI e LB.",
+      "literal": "In particular, on the concave and linear problems, the ExI criterion leads to significantly better results. However, we note that - unlike the PoI and the lower bound criteria - the performance of the ExI criterion depends on the choice of the reference point",
+      "localizador": "Sec. V-G (Results on Multi-objective functions), p.11"
+    },
+    {
+      "caracteristica": "multimodalidade + restrições não-lineares (problema de Keane)",
+      "afirmacao": "Qualquer estratégia assistida por metamodelo supera significativamente a EA correspondente sem metamodelo; e estratégias que usam informação de confiança superam claramente a que usa só o valor predito — o ganho da incerteza é ainda mais evidente aqui do que nos testes sem restrição.",
+      "literal": "any metamodel assisted strategy performs significantly better than the corresponding EA without metamodel assistance. Second, strategies using the confidence information perform much better than the ones utilizing only the predicted function value.",
+      "localizador": "Sec. V-F, p.11"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Este é muito provavelmente um dos artigos-fonte originais/seminais por trás da entrada 'MAES' (variante MO: M-NSGA-II) da taxonomia da dissertação: estabelece a família de critérios de pré-crivo MI/LB/PoI/ExI (valor médio / limite inferior de confiança / probabilidade de melhoria / melhoria esperada) que recorre por todo o corpus sob outros nomes (mean/UCB-LCB/PI/EI na literatura bayesiana posterior); a Sec. IV prova formalmente equivalências algébricas entre esses critérios (PoI-limiar ≡ LB para ω adequado; PoI-limiar@0.5 ≡ MI), evidência direta e citável para o enquadramento de abertura da §5.1 da dissertação sobre equivalência de critérios (ficha 53). O artigo é de 2006 e antecede as convenções da dissertação: não usa IGD+/HV nem testes de significância formal (Wilcoxon/Friedman/Holm); mono-objetivo reporta 'melhor valor de função encontrado' (mediana, 80%-quantil, média±desvio-padrão); multiobjetivo reporta superfícies de atingimento (BEST/AVG/50%), sem HV/IGD+ numérico. Introduz também uma metodologia própria de 'qualidade de retrieval' (recall/precision do pré-crivo, Eqs. 47-49) não vista em outros artigos do corpus até este ponto — metodologicamente interessante como proxy de acurácia do modelo, mas exige avaliação verdadeira de TODOS os descendentes de cada geração (não só os aceitos), o que a instrumentação de 7 camadas da dissertação não grava por desenho (só grava as avaliações aceitas via ① e a sonda fixa via ③). A extração PDF→Markdown reordenou as subseções B/C/D da Sec. V (leitura de colunas fora da ordem visual) e partiu algumas frases ao redor de blocos de figura (ex.: a legenda da Fig. 16); nenhum conteúdo foi perdido — checado contra a camada de texto completa (ANEXO) incluída no arquivo-fonte, que confirma a mesma redação. Leitura completa: 18 páginas, todas as seções (I-VII + Apêndices A-F + Referências) cobertas; o ANEXO final de OCR de imagens não acrescentou conteúdo substantivo novo (só fragmentos ilegíveis de rótulos de eixo já capturados pela camada de texto limpa). roster_bloco = null por instrução do pedido (artigo fora do roster experimental)."
+}

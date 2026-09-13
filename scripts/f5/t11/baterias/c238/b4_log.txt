@@ -1,0 +1,36 @@
+(i) ⑤ sonda:
+   COM: {'desligada': False, 'n_blocos': 21, 'n_linhas': 42000, 'S': 2000, 'k': 2, 'n_falhas': 0}
+   SEM: {'desligada': True, 'n_blocos': 0, 'n_linhas': 0, 'S': 2000, 'k': 2, 'n_falhas': 0}
+   campanha_id COM=195f64ed0a69_2026-07-30 SEM=195f64ed0a69_2026-07-30
+   repo_hash  COM=195f64ed0a69dc3f6c64c66912076e243be90c49 SEM=195f64ed0a69dc3f6c64c66912076e243be90c49  (iguais? True)
+
+(ii) ③ encolhendo:
+   COM shape=(42800, 21) regimes={'sonda': 42000, 'online': 800}
+   SEM shape=(800, 21) regimes={'online': 800}
+
+(iii) ① bit-identica:
+   COM    n=61 sha256(X|F float32)=6acb79522aa2237502285e591a5cfe6dc6934a55d0a958b63ccb63067465ddba
+   SEM    n=61 sha256(X|F float32)=6acb79522aa2237502285e591a5cfe6dc6934a55d0a958b63ccb63067465ddba
+   SMOKE  n=61 sha256(X|F float32)=6acb79522aa2237502285e591a5cfe6dc6934a55d0a958b63ccb63067465ddba
+   COM == SEM ? True   COM == SMOKE ? True
+   hash do handoff §5 para c238: 43f533269741c82f  (prefixo bate? False)
+
+(iv) ⑥ das duas pernas — censo + identidade dos eventos de geracao:
+   COM  censo={'header': 1, 'guard': 1, 'sonda': 21, 'c238_gen': 40, 'footer': 1}
+   SEM  censo={'header': 1, 'guard': 1, 'c238_gen': 40, 'footer': 1}
+   eim_best           max|delta| COM x SEM = 0.0
+   eim_mediana_pool   max|delta| COM x SEM = 0.0
+   n_front            max|delta| COM x SEM = 0.0
+   min_dist_infill    max|delta| COM x SEM = 0.0
+   infill_sid         max|delta| COM x SEM = 0.0
+   fe_treino_max      max|delta| COM x SEM = 0.0
+   theta_media        max|delta| COM x SEM = 0.0
+   lnL                max|delta| COM x SEM = 0.0
+   norm_min           max|delta| COM x SEM = 0.0
+   norm_max           max|delta| COM x SEM = 0.0
+   u_best             max|delta| COM x SEM = 0.0
+   s_best             max|delta| COM x SEM = 0.0
+
+(v) tempo: o custo da sonda
+   COM timing: {'tempo_total_s': 7.192656166666667, 'tempo_fit_surrogate_s': 2.4993333555758, 'tempo_busca_s': 1.9530965518206358, 'tempo_aval_real_s': 0.021425624999999997, 'tempo_pred_sonda_s': 1.2209153750000001}
+   SEM timing: {'tempo_total_s': 5.196741666666667, 'tempo_fit_surrogate_s': 2.074022580869496, 'tempo_busca_s': 2.0102107226848602, 'tempo_aval_real_s': 0.01909029166666667, 'tempo_pred_sonda_s': 0}

@@ -1,0 +1,151 @@
+{
+ "problema": "DDMOP7 (D=17, M=2, caixa-preta .p, f1=k/17 esparsidade, f2=n/690; zona morta τ=0,5 D102.17; sem sonda D102.10, sem front D72 => só HV D102.4; régua vigente ERRATA-2: ideal=[0;0], nadir=[1;468/690]). Primeira visão das 30 sementes sob zona morta. Scripts e CSVs da medição: /private/tmp/claude-501/-Users-gmello/16c0ba84-843b-49d1-9ce6-6cecc418b734/scratchpad/ (inv2_ddmop7.py/.csv, analise_ddmop7.py, celulas_ddmop7.csv, agrega_ddmop7.py, checks_extra.py, final_checks.py). Dado: /Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/*/DDMOP7/*/ (READ-ONLY, nada alterado).",
+ "celulas": "630 nominais (21 cfg × 30 sementes) · 629 diretórios em disco (b4/s8 INEXISTENTE — lacuna do congelamento, já registrada no b4.json) · 593 com ① (302.643 avaliações reais) · O-21 (rodapé=autoridade): 549 ok + 19 ⚪ teto_wall (c154 18 + c149 1) = 568 VÁLIDAS (90,2% do grid) · 47 falhas reais (b1 29 dacefit-underdetermined · b4 6 badsubscript · c154 12 escada-RS) · 14 c149 sem rodapé (12 kill manifest:failed fe 206–506 + 2 com manifesto ok, ① completa 526 e ⑥ amputada — s19/s20, classe 3 já no c149.json). censo_final.csv vê 594: as 35 falhas sem manifesto (b1 29 + b4 6) ficam fora da visão do despachante. Aproveitamento por config: 17 configs 30/30 · b4 23/30 · c154 18/30 (todas truncadas) · c149 16/30 estrito (18/30 pelo manifesto) · b1 1/30.",
+ "bateria": [
+  {
+   "checagem": "(1) Identidade f1=k/17 — streaming, tolerância float32 (5e-4 na escala k)",
+   "resultado": "593/593 células, 302.643 pontos: 0 violações; resíduo máx 4,8e-07 na escala k; k∈[1,17] sempre",
+   "veredito": "CONFIRMA — o 15/15 do smoke estende ao corpus inteiro a 100%"
+  },
+  {
+   "checagem": "(1) Identidade f2=n/690 — idem",
+   "resultado": "0 violações; resíduo máx 2,05e-05 na escala n = exatamente o esperado do float32 (D53); n∈[84,593]",
+   "veredito": "CONFIRMA"
+  },
+  {
+   "checagem": "(1+) Cota nunca-poda k ≥ nnz(x_efetivo) (Δ≥0 do laudo T15, zona morta aplicada só na fase opt, DoE cru)",
+   "resultado": "0 violações em 302.643 pontos (todas as células, inclusive falhas/kills)",
+   "veredito": "CONFIRMA a mecânica declarada da zona morta no oráculo"
+  },
+  {
+   "checagem": "(1+) Determinismo do .p — intra-célula (grupos de x_efetivo duplicado) e cross-config/cross-VM (DoE compartilhado, sementes 0/7/42; s0 inclui o par vm1×vm5)",
+   "resultado": "0 grupos com F divergente em 593 células; F do DoE bit-idêntico (Δ=0,0 exato) entre os 14-15 configs online por semente testada",
+   "veredito": "CONFIRMA — o 'noisy during training' do artigo não se manifesta; oráculo estável entre máquinas (bate o b3.json)"
+  },
+  {
+   "checagem": "(3) checa_regua com ideal=[0;0] (réplica exata da folga T15.13b: f0<-1e-3 ou f1<-6,78e-4)",
+   "resultado": "0 furos e 0 avisos (nem f<0 leve) em 593 células; mínimo global = [1/17; 84/690]; nenhum ponto ND de célula válida excede o nadir 468/690 (máx ND: n=383, z=0,818)",
+   "veredito": "CONFIRMA — ideal não é furado; a régua ERRATA-2 é funcional de ponta a ponta"
+  },
+  {
+   "checagem": "(2) Zona morta a 30 sementes — melhora sobre o melhor-f2 do DoE, por célula online válida",
+   "resultado": "404/448 (90,2%) melhoram; excluindo b1/c149: 401/431 (93,0%). Por config: b3 30/30 · c122 30/30 · c154 18/18 · e7 30/30 · nsga2 30/30 · c141/c217/c262/e74/nsga3/smsemoa 29/30 · c238 24/30 · e81 23/30 · b4 21/23 · moead 21/30 · c149 3/16 · b1 0/1",
+   "veredito": "SUSTENTA o 13/15 do smoke — e o front pooled é 100% da fase busca (0 pontos do DoE)"
+  },
+  {
+   "checagem": "(2) Tabela config × {mediana melhor-f2 (n/690), IQR, ND-da-busca mediano dedup x_efetivo}",
+   "resultado": "b3 97[97-99]/129,5 · b4 99[97-99,5]/47 · c122 96[92-97]/53,5 · c141 97[93-97]/100 · c149 121,5[110-128]/0 · c154 97[97-98]/24 · c217 97[97-97]/56,5 · c238 97[97-100]/25 · c262 97[97-100]/260 · e7 94[92-97]/6 · e74 97[97-100]/26,5 · e81 107,5[100-111]/2 · moead 100[100-110]/5,5 · nsga2 99[97-100]/67,5 · nsga3 97[97-100]/62,5 · smsemoa 97[97-100]/93,5 · b1 126/2 · offline 107,5[100-116]/0 (dataset)",
+   "veredito": "MEDIDO — o típico converge em 97/690 para quase todo config com busca populacional; e7 tem a melhor mediana (94)"
+  },
+  {
+   "checagem": "(2) 'c141 campeão 90/690 batendo pisos' do smoke",
+   "resultado": "c141 detém o melhor-f2 GLOBAL (84/690) e é o ÚNICO a alcançar os 2 pontos mais profundos do front pooled ((6,88),(7,84)); mas mediana 97 = a dos pisos nsga3/smsemoa; máx 108, moda 97 em 12/30",
+   "veredito": "CONFIRMA COM CORREÇÃO — campeão por extremo, não por típico (converge bit a bit com o c141.json: min 84/med 97/max 108)"
+  },
+  {
+   "checagem": "(2) 'c149 0-ND propondo na borda' do smoke",
+   "resultado": "ND-da-busca mediana 0 nas 16 válidas; melhora-DoE 3/16 (7/30 contando kills: s3/6/10/12/19/20/23 — idêntico ao c149.json); melhor-f2 mediano 121,5 = pior config online",
+   "veredito": "CONFIRMA — o outlier estrutural se mantém nas 30"
+  },
+  {
+   "checagem": "(7) Resolução: |ND| por x_efetivo vs por F distinto — 'front efetivo 1-6 pontos' vale nas 30?",
+   "resultado": "|ND| x_efetivo mediano varia 2-260 por config (operadores populacionais inflam); |ND| por F: mediana 3, faixa 1-8, histograma {1:24, 2:133, 3:247, 4:81, 5:52, 6:16, 7:9, 8:6} — 553/568 (97,4%) em 1-6",
+   "veredito": "SUSTENTA COM EXTENSÃO — o máximo sobe de 6 para 8 (15 células, 2,6%); publicar |ND| bruto segue superestimando (contrato §T15.13 obrigatório)"
+  },
+  {
+   "checagem": "(7) O HV discrimina os configs? (régua ERRATA-2, ref=1,1, HV 2D exato)",
+   "resultado": "Amplitude de medianas 0,6155 (c149) a 0,8763 (c217/nsga3) = 0,261 (29,8%); KW 16 grupos online H=207, p=9,2e-36; MAS no cluster de topo (8 configs pop-op: c217/nsga3/c122/c262/smsemoa/b4/nsga2/c238, medianas dentro de 0,006) H=12,1, p=0,096; 98/568 células empatam no MESMO HV 0,876327; só 213 valores distintos de HV em 568 células. HV@fe≤208 (orçamento comum c/ c154): KW p=8,6e-39, mesmo padrão",
+   "veredito": "DISCRIMINA CLASSE DE OPERADOR, NÃO CONFIG — B-16c/D102.8 confirmada como expectativa estrutural nas 30 sementes"
+  },
+  {
+   "checagem": "(6) TETO vs FALHA sob O-21 — rodapé como autoridade, incl. o caso manifest:failed+rodapé:ok",
+   "resultado": "17 células c154 com rodapé DUPLO: algoritmo failed/teto_wall + wrapper ok 1s depois = ⚪ teto (o caso O-21 canônico; manifesto diz failed). Total: 568/630 válidas (90,2%); 47 falhas reais; 14 sem rodapé (ambíguas, c149)",
+   "veredito": "MEDIDO — a visão do despachante (censo: c154 0 válidas) inverte para 18 ⚪ válidas sob O-21"
+  },
+  {
+   "checagem": "(4) c154 — taxa final nas 30 e fe_final dos teto",
+   "resultado": "0 ok a orçamento pleno · 18/30 ⚪ teto_wall: fe_final {208(=smoke s0), 266, 268×3, 270×2, 271×2, 272, 273×4, 274, 276, 277, 280}, mediana 271,5 = 51,6% de 526, IQR [268-273], hard_stopped=false 18/18, wall ~12h · 12/30 falha 'rota (a): random_search_optimizer falhou nas 3 tentativas da escada' (K∈{6..9}, its 2-85, amostra falha 1..9); 11 falhas têm ① parcial fe 223-267, s26 sem parquet (morreu it 2)",
+   "veredito": "CONFIRMA o c154.json (40% de morte, hazard Bernoulli/iteração) e QUANTIFICA o teto: c154 só é comparável em FE comum ≤266 (DI-43/44)"
+  },
+  {
+   "checagem": "(5) b1 — A53 no dado que existe",
+   "resultado": "29/30 rodapé 'least squares problem is underdetermined' (dacefit), fe_stop 186-429 (s14 morre no 1º fit); a célula única s1: 526 FE, melhor-f2 126/690 = o do DoE (busca NÃO melhora f2 mas contribui 2 dos 4 pontos ND — diversidade em k), HV 0,6859",
+   "veredito": "CONFIRMA o mecanismo A53 e a emenda do b1.json (taxa medida 29/30=96,7%, não a projeção ~7-10/30; determinístico por semente)"
+  },
+  {
+   "checagem": "(6+) Quarteto offline b5m/b5r/e103/moead_media — a ① discrimina?",
+   "resultado": "① (X+F) sha256-IDÊNTICA entre os 4 configs em 3/3 sementes testadas (0/13/42) — é o mesmo dataset D102.9 gravado 4×; fase 100% init, ND-da-busca=0 por construção; ⑦ (final_eval pós-hoc) AUSENTE em disco",
+   "veredito": "MEDIDO — sem a ⑦, o DDMOP7 offline não tem endpoint discriminante (120 células = 30 datasets × 4)"
+  }
+ ],
+ "achados": [
+  {
+   "id": "D7F-01",
+   "descricao": "c149: 14 células sem rodapé na ⑥ — 12 kill (manifest failed, fe 206-506, dado parcial válido até o checkpoint) + 2 (s19/s20) com manifesto ok, ① COMPLETA (526 pontos) e ⑥ amputada. O-21 estrito dá c149=16 válidas; o manifesto dá 18. Sensibilidade medida: incluir as 14 não muda o quadro (best-f2 med 120, ND-busca med 0, HV med 0,634 ≈ as válidas). Converge com a classe 3 já registrada no c149.json — reconciliado, não refeito.",
+   "classe": "3",
+   "gravidade": "MEDIA",
+   "acao": "Autor decide o estatuto (D81): recomendo aceitar s19/s20 como ok (① íntegra + manifesto) e as 12 kill como ⚪ kill-com-dado em FE comum; o resultado do c149 é insensível à escolha."
+  },
+  {
+   "id": "D7F-02",
+   "descricao": "c154 não tem UMA célula a orçamento pleno: as 18 válidas são ⚪ teto a ~51,6% do orçamento (fe mediana 271,5/526) e as outras 12 morreram antes (escada RS, 40%). Qualquer métrica de c154 no DDMOP7 compara truncamento com orçamento cheio se não fixar FE comum.",
+   "classe": "2",
+   "gravidade": "ALTA",
+   "acao": "Sancionado por O-21/DI-43/44: a R4 DEVE ler c154×DDMOP7 em FE comum ≤266; declarar no texto '0 células a orçamento pleno'."
+  },
+  {
+   "id": "D7F-03",
+   "descricao": "O HV sob a régua vigente NÃO separa o cluster de topo: 8 configs de operador populacional com medianas dentro de 0,006 (KW p=0,096), 98/568 células no mesmo valor exato 0,876327, 213 valores distintos de HV no corpus válido. Separa CLASSES (p=9,2e-36: pop-op ~0,87 > e7/e74/moead/b3/c141/c154 ~0,82-0,85 > e81 0,70 > b1 0,69 > offline 0,67 > c149 0,62). É a quantização do benchmark (front efetivo 1-8 pontos), não defeito nosso — B-16c prevista, agora medida nas 30.",
+   "classe": "1",
+   "gravidade": "ALTA",
+   "acao": "Alimenta a decisão D102.8 (ver decisões ao autor)."
+  },
+  {
+   "id": "D7F-04",
+   "descricao": "Nadir vigente 468/690: nunca excedido por ponto ND de célula válida (máx ND n=383, z=0,818) — a régua funciona; a NUVEM dominada chega a n=593 (informativo, não afeta HV). O ideal [0;0] jamais furado (mín global [1/17; 84/690]).",
+   "classe": "1",
+   "gravidade": "BAIXA",
+   "acao": "Nenhuma correção necessária; registrar os pooled na fase 2."
+  },
+  {
+   "id": "D7F-05",
+   "descricao": "Visão do despachante: censo_final.csv registra 594 células DDMOP7, mas há 629 diretórios — as 35 falhas sem manifesto (b1 29 + b4 6) são invisíveis ao censo; e b4/s8 não existe nem como diretório (630→629). Ambos já registrados nos configs b1.json/b4.json — reconciliado.",
+   "classe": "2",
+   "gravidade": "MEDIA",
+   "acao": "Anotar no censo/R4 que a taxa de falha do DDMOP7 lida do censo subestima (594 vê 19 failed; o disco tem 47 falhas + 14 sem rodapé)."
+  },
+  {
+   "id": "D7F-06",
+   "descricao": "c141 (MMRAEA) é o único config a alcançar os 2 pontos mais profundos do front pooled — (6,88) em s4 e (7,84) em s10, ocorrência única cada — e detém o melhor-f2 global 84/690; (5,92) só c122/c141. Mas a mediana (97) empata com os pisos. O 'campeão 90/690' do smoke era um quantil, não o típico (idêntico ao c141.json).",
+   "classe": "1",
+   "gravidade": "INFO",
+   "acao": "Material para o texto: a discriminação no DDMOP7 existe nos EXTREMOS da distribuição, não no típico."
+  },
+  {
+   "id": "D7F-07",
+   "descricao": "Regime offline sem endpoint: a ⑦ pós-hoc (final_eval, D102.9) não existe em disco para nenhuma célula DDMOP7, e a ① dos 4 configs offline é sha-idêntica por semente (mesmo dataset). Hoje as 120 células offline do DDMOP7 não discriminam nada. Pendência conhecida do T15 (§5 do laudo: contrato da ⑦ + P_CODE_CAP) — segue aberta no corpus final.",
+   "classe": "3",
+   "gravidade": "ALTA",
+   "acao": "🎯 Autor decide: rodar a final_eval (com o filtro ND antes do cap 600, recomendação (a) do laudo T15) ou declarar o quarteto offline fora do DDMOP7."
+  },
+  {
+   "id": "D7F-08",
+   "descricao": "c122/c262 comprovadamente rodaram DEPOIS da errata do ideal (c262.json: header ideal_s5=[0;0] e acqf_ref_f=nadir+0,1·range com Δ=0,0 em 30/30) — o bloqueador da régua-na-busca do T15-IMPLEMENTACAO foi de fato neutralizado antes do disparo. Consequência: trocar o ideal na fase 2 pós-hoc dessincronizaria a análise da régua que esses 2 configs usaram em execução.",
+   "classe": "1",
+   "gravidade": "INFO",
+   "acao": "Sustenta a recomendação de manter ideal=[0;0] na fase 2."
+  }
+ ],
+ "fase2_regua": "COMPUTADO (pooled sobre 568 células válidas ok+⚪teto, ① INTEIRA = 293.944 pontos; resultado IDÊNTICO incluindo as 25 inválidas-com-dado): z* = [1/17; 84/690] = [0,0588235; 0,1217391] · znad da nuvem ① inteira = [17/17; 593/690] = [1,0; 0,8594203] · front POOLED (6 pontos, 100% vindos da busca): (k,n) = (1,307),(3,100),(4,97),(5,92),(6,88),(7,84) → nadir do front pooled = [7/17; 307/690] = [0,4117647; 0,4449275]. checa_regua: ideal=[0;0] JAMAIS furado (0 furos, 0 avisos leves; o mínimo alcançado é exatamente z*). RECOMENDAÇÃO (D97 — não apliquei): (i) ideal: MANTER [0;0] — é dedutivo, e é a régua que c122/c262 usaram EM TEMPO DE EXECUÇÃO (D7F-08); adotar z*=[1/17;84/690] pós-hoc dessincronizaria análise e busca sem ganho (só desloca o zero); (ii) nadir: manter 468/690 é FUNCIONAL (nunca excedido por ponto ND válido — máx n=383) ou subir à cota da nuvem 593/690; (iii) NÃO usar o nadir do front pooled (307/690) — pontos ND válidos chegam a n=383 > 1,1×307 e seriam clipados do HV, degradando exatamente as células que a comparação precisa enxergar.",
+ "score": 8.5,
+ "veredito": "APROVAR o DDMOP7 no corpus final como problema de comparação de RESOLUÇÃO DECLARADAMENTE BAIXA — com leitura estratificada por classe de operador. A fidelidade é impecável na primeira visão das 30 sementes: identidades k/17 e n/690 a 100% em 302.643 pontos (resíduo = float32 puro), oráculo .p determinístico intra-célula e bit-estável cross-VM, cota nunca-poda 0/302.643, ideal [0;0] jamais furado. A zona morta D102.17 cumpriu o que prometia: 93% das células online (excl. b1/c149) melhoram o DoE e o front pooled inteiro (6 pontos) vem da busca — a degenerescência pré-codificação (0/340) está morta. Os limites são do benchmark e dos configs, não do problema: front efetivo mediano de 3 valores (1-8), HV que separa classes (p=9e-36) mas não o topo (p=0,096), c154 truncado a 51% (⚪), c149 com 26% de perda + 14 ambíguas, b1 1/30 (A53). Aproveitamento real: 568/630 = 90,2%. Sobe de 8,0 (T15) para 8,5: os dois bloqueadores do laudo foram resolvidos e verificados no dado (zona morta funcionou; régua em execução correta em c122/c262); segura o 10 a resolução estrutural e a ⑦ offline ausente (D7F-07).",
+ "decisoes_ao_autor": [
+  "D102.8 — o DDMOP7 entra no ranking agregado? RECOMENDO SIM, ESTRATIFICADO: o HV separa classe de operador (KW p=9,2e-36, amplitude de medianas 29,8%) mas NÃO separa os 8 configs do cluster de topo (p=0,096; 98 células no mesmo valor exato). Entrar no agregado fino diluiria sinal com empate estrutural; alternativa igualmente defensável: excluir do agregado e reportar em seção própria com o par {HV, melhor-f2} + a história metodológica (colapso→zona morta→resolução). A decisão é sua (D97).",
+  "Fase 2 da régua (D102.3) — cravar com os pooled computados: z*=[1/17;84/690], znad-nuvem=[1;593/690], nadir-front-pooled=[7/17;307/690]. Recomendo MANTER ideal=[0;0] (dedutivo; régua usada em execução por c122/c262 — D7F-08) e manter nadir 468/690 (funcional: nunca excedido por ND válido) declarando os pooled no texto; NÃO adotar o nadir do front pooled (cliparia pontos ND válidos até n=383). Se cravar, retirar o selo REGUAS_PROVISORIAS.",
+  "c149 — estatuto das 14 células sem rodapé: aceitar s19/s20 como ok (① completa + manifesto ok, ⑥ amputada = classe 3 do c149.json) e as 12 kill como ⚪ kill-com-dado em FE comum? A sensibilidade é nula no quadro qualitativo (medido). O-21 estrito dá 16 válidas; manifesto dá 18.",
+  "c154 — aceitar as 18 ⚪ teto como o corpus do config no DDMOP7, com leitura EXCLUSIVAMENTE em FE comum ≤266 (DI-43/44), e declarar no texto: 0 células a orçamento pleno, 40% de morte pela escada RS (falha do config, já 🔴-classificada no c154.json, não do problema).",
+  "Offline — decidir a ⑦ do DDMOP7 (D7F-07): sem final_eval pós-hoc, as 120 células offline são 30 datasets repetidos 4× e o regime offline não tem endpoint neste problema. Rodar a ⑦ (com filtro ND antes do P_CODE_CAP, recomendação (a) do laudo T15 §5) ou declarar o quarteto fora do DDMOP7.",
+  "A53 — emendar o registro conforme b1.json (convergência independente): taxa medida 29/30 (não ~7-10/30), mesma assinatura dacefit nas 29, determinística por semente; a célula s1 existe e é íntegra (526 FE, melhor-f2 = o do DoE).",
+  "Censo — registrar que censo_final.csv (594 linhas DDMOP7) não enxerga as 35 falhas sem manifesto (b1 29 + b4 6) nem distingue b4/s8 (célula nunca executada, nem diretório): a taxa de falha lida só do censo subestima. Rodapé continua a autoridade (O-21) — o caso canônico está medido: 17 células c154 manifest:failed + rodapé-wrapper:ok = ⚪ teto."
+ ]
+}

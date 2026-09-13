@@ -1,0 +1,217 @@
+{
+  "id": "c48",
+  "sigla": "IBE-CSEA",
+  "titulo": "An improved bagging ensemble surrogate-assisted evolutionary algorithm for expensive many-objective optimization",
+  "ano": 2021,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Sintéticos: DTLZ1–DTLZ5 [33] e MaF1–MaF5 [34], cada um testado com M=3,4,6,8,10 objetivos e D (variáveis de decisão) fixado em 10 — 10 problemas × 5 contagens de objetivo = 50 células. Real: problema de otimização de crashworthiness veicular (vehicle crashworthiness optimization design [8]), 9 objetivos (ex.: abdomen load, rib deflection, pubic symptom force), D=11 variáveis de decisão.",
+    "orcamento": "Sintéticos: FEmax=400 avaliações reais. Real: FEmax=200 avaliações reais. O framework geral (Sec. 3.2) define a população inicial via amostragem hipercubo latino (LHS) de tamanho 11d−1 [27]; nos sintéticos (D=10), porém, o tamanho populacional evolutivo foi ajustado para ≈100 'for easy comparison' entre os 7 algoritmos (N=100 exato para CPS-MOEA/KTA2/CSEA/IBE-CSEA; (p1,p2) específico por M para NSGA-III/MOEA/D-EGO/K-RVEA — Table 2, N variando 65–105); no problema real (D=11) foi usado 11d−1=120 diretamente, seguindo a fórmula do framework geral.",
+    "execucoes": "20 execuções independentes nos problemas sintéticos (DTLZ, MaF), com teste de Wilcoxon rank-sum (α=0,05) célula a célula contra o IBE-CSEA; 10 execuções no problema real (veicular), reportando apenas a média (sem desvio-padrão, sem teste estatístico).",
+    "baselines": "NSGA-III [1] (único piso evolutivo sem surrogate, usado explicitamente para provar que os SAEAs superam EAs convencionais com poucas avaliações); CPS-MOEA [16] (classificação + kNN k=5 + árvore de classificação/regressão); MOEA/D-EGO [36] (GP por subproblema, decomposição); K-RVEA [15] (Kriging por objetivo; δ=0,05N; Wmax=20); KTA2 [37] (modelo insensível a pontos influentes por objetivo + critério de infill adaptativo, arquivo duplo); CSEA [17] (classificação via rede neural artificial, k=6 referências) — precursor direto do IBE-CSEA, do qual este herda a seleção assistida por confiabilidade (Sec. 2.3). Há, portanto, 1 piso sem surrogate e 5 SAEAs concorrentes além do próprio IBE-CSEA.",
+    "metricas_principais": [
+      "IGD",
+      "HV"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum (α=0,05), símbolos +/=/−, ancorado no IBE-CSEA (não no melhor de cada linha)"
+    ],
+    "apresentacao": "Sintéticos: média (desvio-padrão) entre execuções (não mediana); melhor resultado da linha destacado em cinza; símbolo +/=/− por célula relativo ao IBE-CSEA; linha de contagem agregada +/=/− ao final de cada tabela. Real: apenas média de 10 execuções, sem desvio-padrão nem símbolos nem teste.",
+    "codigo_plataforma": "NÃO LOCALIZADO"
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação da arquitetura do classificador substituto (modelo único × ensemble completo × ensemble podado)",
+      "grupo_sugerido": "B",
+      "descricao": "O artigo compara três variantes do próprio framework classificatório: BE-CSEA− (um único modelo RBF como surrogate), BE-CSEA (ensemble bagging completo, sem poda) e IBE-CSEA (ensemble bagging com poda por seleção de modelos), mantendo fixo o resto da maquinaria (seleção de fronteira one-by-one; seleção assistida por confiabilidade herdada do CSEA). Mede o IGD em DTLZ1 (multimodal), DTLZ2 (frente regular/simples) e DTLZ5 (frente degenerada), para M=3,4,6,8,10, com D=10.",
+      "literal": "we compared the IGD values of IBE-CSEA using improved bagging ensemble with BE-CSEA using original bagging ensemble and BE-CSEA using a single RBF model on DTLZ1, DTLZ2 and DTLZ5 problems.",
+      "localizador": "Sec. 4.2, Table 1",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Média (desvio-padrão); presumivelmente as mesmas 20 execuções independentes do resto do estudo (não reafirmado explicitamente nesta subseção); sem símbolos de significância; 3 configurações do mesmo framework lado a lado, em apenas 3 dos 10 problemas sintéticos (1 por característica: multimodal, simples, degenerada).",
+      "achado": "Em quase todas as 15 células (3 problemas × 5 M), IBE-CSEA < BE-CSEA < BE-CSEA− (menor IGD é melhor), confirmando que ensemble-com-poda > ensemble-sem-poda > modelo único — mas a melhoria não é estritamente monotônica: em DTLZ1 M=6 (BE-CSEA 2.3293e+1 vs IBE-CSEA 2.3818e+1), DTLZ2 M=10 (BE-CSEA 5.5599e-1 vs IBE-CSEA 5.6270e-1) e DTLZ5 M=4 (BE-CSEA 8.8565e-2 vs IBE-CSEA 8.9644e-2) o ensemble sem poda supera ligeiramente o ensemble podado; em DTLZ2 M=4 (BE-CSEA− 2.7592e-1 vs BE-CSEA 2.8936e-1) e DTLZ5 M=6/M=10 o ensemble completo é até pior que o modelo único.",
+      "aplicabilidade": "não reproduzível com as camadas atuais — exigiria implementar e rodar variantes internas do surrogate (ensemble sem poda; modelo único RBF) do IBE-CSEA, que não fazem parte do roster da dissertação; nenhuma das 7 camadas captura arquitetura interna alternativa de um algoritmo não instrumentado."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade do hiperparâmetro de poda do ensemble (Q) medida na acurácia/erro do classificador",
+      "grupo_sugerido": "E",
+      "descricao": "Antes dos experimentos principais, o artigo varia o número de modelos base selecionados após a poda (Q, como % do pool T=200: 10/20/30/50/70%, i.e. Q=20,40,60,100,140) e mede o efeito na taxa de erro de classificação do ensemble final, em 'vários DTLZ diferentes', com 20 execuções independentes por valor de Q (média reportada). O objetivo é escolher o Q final usado no resto do artigo (Q=40), não avaliar desempenho de otimização (IGD/HV).",
+      "literal": "We set the number of selected models Q as 10%T, 20%T, 30%T, 50%T and 70%T respectively, i.e. Q = 20, 40, 60, 100 and 140.",
+      "localizador": "Sec. 4.4.2, Fig. 4",
+      "metricas": [
+        "taxa de erro de classificação (não IGD/HV)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Gráfico de barras da taxa de erro médio de classificação por valor de Q; 20 execuções por Q; problemas não listados individualmente ('several different DTLZ').",
+      "achado": "Q=40 (20% de T) produziu a menor taxa de erro de classificação entre os 5 valores testados, sendo adotado como parâmetro final do IBE-CSEA em todos os demais experimentos — nem o menor (Q=20) nem os maiores (Q=100,140) foram ótimos, indicando um ponto ótimo intermediário de poda.",
+      "aplicabilidade": "não reproduzível com as camadas atuais — exige o conjunto de teste interno de classificação do IBE-CSEA e variar seu hiperparâmetro Q; não corresponde à sonda ③ da dissertação (que usa 2.000 pontos fixos comuns a todos os algoritmos, não um split de treino/teste interno variável por hiperparâmetro)."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela principal de comparação: IGD (Table 3) e HV (Table 4) do IBE-CSEA contra NSGA-III (piso) e 5 SAEAs (CPS-MOEA, MOEA/D-EGO, K-RVEA, KTA2, CSEA) em DTLZ1-5 e MaF1-5, cada um com M=3,4,6,8,10 objetivos (50 células), 20 execuções independentes, D=10. Cada célula reporta média(desvio-padrão) e um símbolo de teste de Wilcoxon rank-sum (α=0,05) comparando o comparador contra o IBE-CSEA; melhor resultado da linha em cinza; linha de contagem agregada +/=/− ao final de cada tabela.",
+      "literal": "the Wilcoxon rank sum test is used to compare the results of IBE-CSEA and the other six algorithms. The significance level of the six algorithms is 0.05.",
+      "localizador": "Sec. 4.1/4.5/4.6, Table 3 (IGD), Table 4 (HV)",
+      "metricas": [
+        "IGD",
+        "HV"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum (α=0,05)"
+      ],
+      "convencoes": "Média(desvio-padrão), não mediana; 20 execuções; melhor da linha em cinza; símbolo +/=/− por célula relativo ao IBE-CSEA (referência fixa, não o melhor de cada linha); linha de contagem agregada ao final — Table 3 (IGD): NSGA-III 0/46/4, CPS-MOEA 3/44/3, MOEA/D-EGO 2/42/6, K-RVEA 11/30/9, KTA2 16/21/13, CSEA 7/30/13 (trincas na ordem +/−/=, verificada célula a célula pela extração); Table 4 (HV): NSGA-III 0/34/16, CPS-MOEA 1/32/17, MOEA/D-EGO 2/28/20, K-RVEA 8/16/26, KTA2 9/18/23, CSEA 5/15/30.",
+      "achado": "IBE-CSEA nunca perde para NSGA-III (0 '+' em 50 comparações de IGD e de HV) e vence a maioria das comparações contra os demais SAEAs, mas KTA2 é o concorrente mais forte (16 '+' de IGD e 9 '+' de HV contra o IBE-CSEA, incluindo vitórias claras em DTLZ2, DTLZ4 de M baixo, e MaF2); em HV de DTLZ1/DTLZ3 quase todos os algoritmos empatam em 0.0000e+0, mostrando que nenhum se aproxima da frente verdadeira nesses dois problemas multimodais com o orçamento dado.",
+      "aplicabilidade": "① endpoint (média/desvio do IGD e HV por célula algoritmo×problema) mais teste de postos — reproduzível diretamente pela camada ① das avaliações reais; note que a ficha 3 da dissertação compara cada algoritmo ao MELHOR de cada problema, enquanto aqui a referência de comparação é fixa (o próprio IBE-CSEA, o método proposto) — anotar essa diferença de desenho ao reproduzir."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Visualização qualitativa das soluções não-dominadas da execução de IGD mediana dos 7 algoritmos em DTLZ1: painéis (a)-(g) mostram a dispersão das soluções contra a frente verdadeira para M=3 objetivos; painéis (h)-(n) mostram as mesmas soluções via coordenadas paralelas para M=10 objetivos (onde a dispersão deixa de ser informativa).",
+      "literal": "Figure 5 (a)-(g) show the corresponding non-dominated solutions of the median IGD obtained by the seven algorithms on the 3 objectives DTLZ1.",
+      "localizador": "Sec. 4.5, Fig. 5",
+      "metricas": [
+        "IGD (usado só para selecionar a execução mediana exibida) — a figura em si é qualitativa/visual"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução única por algoritmo (a de IGD mediana entre as 20); painéis (a)-(g) dispersão para M=3; painéis (h)-(n) coordenadas paralelas para M=10 (mesma figura, dois blocos de painéis); sem números reportados na própria figura.",
+      "achado": "Em M=3, IBE-CSEA está visualmente mais próximo da frente verdadeira que os demais, seguido por CSEA; em M=10 (coordenadas paralelas), IBE-CSEA e KTA2 têm melhor distribuição de soluções, enquanto NSGA-III e CPS-MOEA têm a pior.",
+      "aplicabilidade": "② população por geração (ou ① avaliações reais) da execução de IGD mediana, para reconstruir o conjunto não-dominado plotado; a técnica de coordenadas paralelas para M=10 é só uma escolha de renderização, sem exigência extra de instrumentação além da ①/②."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de convergência do IGD ao longo do número de avaliações (eixo confirmado pelo OCR da figura — 'Number of evaluations') para os 7 algoritmos em DTLZ5, com um subgráfico por contagem de objetivos (M=3,4,6,8,10).",
+      "literal": "Figure 6 shows the IGD value of the 7 algorithms on DTLZ5 of 3, 4, 6, 8 and 10 objectives.",
+      "localizador": "Sec. 4.5, Fig. 6",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "5 subgráficos (a)-(e), um por M; eixo x = número de avaliações (confirmado via OCR do rótulo do eixo, ausente da camada de texto extraída); não é explicitado se a curva é de 1 execução (mediana?) ou média das 20.",
+      "achado": "Para M=3 ou 4, KTA2 mostra a melhor convergência; para M>4, a queda do KTA2 desacelera nas iterações finais e o IBE-CSEA passa a ter o melhor desempenho; CPS-MOEA e NSGA-III mostram tendência estável ou até crescente (piora) nas iterações finais em algumas configurações, indicando aprisionamento em ótimos locais no espaço de objetivos de alta dimensão.",
+      "aplicabilidade": "① avaliações reais acumuladas por fração do orçamento — a curva de IGD × avaliações é obtida diretamente do ND acumulado a cada FE real, mesma lógica da ficha 26 da dissertação; incerto se a dissertação reproduziria com a execução mediana ou a média das sementes, pois o artigo não especifica."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma análise visual da Fig. 5, agora para MaF1: painéis (a)-(g) mostram as soluções não-dominadas finais dos 7 algoritmos com M=3 objetivos contra a frente verdadeira; painéis (h)-(n) mostram coordenadas paralelas para M=10 objetivos.",
+      "literal": "Figure 7 (a)-(g) draws the final non-dominated solutions generated by the seven algorithms on MaF1 with three objectives.",
+      "localizador": "Sec. 4.6, Fig. 7",
+      "metricas": [
+        "nenhuma métrica numérica — visual/qualitativo"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Diferente da legenda de Fig. 5, a legenda de Fig. 7 diz apenas 'final' (não 'da mediana de IGD') — não fica claro se segue a mesma convenção de execução mediana ou é uma execução arbitrária/última.",
+      "achado": "K-RVEA e KTA2 têm a melhor diversidade em MaF1 (M=3), seguidos por IBE-CSEA — descrito como 'muito melhorado' em relação ao seu antecessor direto CSEA; em M=10 (coordenadas paralelas), NSGA-III tem o pior desempenho e KTA2/CSEA/IBE-CSEA são descritos como similares e os melhores.",
+      "aplicabilidade": "mesma lógica da Fig. 5 — ② população por geração ou ① avaliações reais da execução relevante (mediana ou não, ambíguo) em MaF1."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Estudo de caso real: problema de otimização de crashworthiness veicular, 9 objetivos (ex.: carga abdominal, deflexão de costela, força púbica), D=11 variáveis de decisão, FEmax=200, população=11d−1=120. Os 7 algoritmos são executados 10 vezes; reporta-se a MÉDIA (sem desvio-padrão) do IGD e HV. Como a frente verdadeira é desconhecida, o conjunto de referência para o IGD é o conjunto não-dominado agregado de TODAS as soluções de TODOS os algoritmos.",
+      "literal": "The average value of IGD and HV obtained from 10 runs on the actual problem are used as the evaluation result.",
+      "localizador": "Sec. 4.7, Table 5",
+      "metricas": [
+        "IGD",
+        "HV"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Apenas média (sem desvio-padrão, sem símbolos +/=/−, sem teste estatístico); 10 execuções (menos que as 20 dos sintéticos); referência do IGD = ND agregado de todos os algoritmos, não uma frente verdadeira conhecida nem uma reavaliação em separado.",
+      "achado": "KTA2 obtém o melhor IGD (5.7882) e HV (0.0094); IBE-CSEA fica em segundo lugar (IGD=5.9294; HV=0.0090), à frente de K-RVEA (5.9882/0.0088), CSEA (6.0764/0.0083), MOEA/D-EGO (6.0998/0.0078), CPS-MOEA (7.5094/0.0051) e NSGA-III, o pior (9.1566/0.0042).",
+      "aplicabilidade": "① endpoint no problema real — mas o conjunto de referência aqui é o ND agregado de todos os algoritmos, não a frente verdadeira nem uma reavaliação; diferente dos 3 problemas reais da dissertação (RE21/ESTOQUE40 com frente/objetivo próprios; DDMOP7 offline com reavaliação ⑦) — não diretamente equivalente em desenho."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "Mede a taxa de erro de classificação (error rate) do ensemble podado final variando o hiperparâmetro Q (número de modelos selecionados, de 10% a 70% de T=200) sobre 'vários DTLZ diferentes', 20 execuções por valor de Q, para escolher o Q que minimiza o erro — não usa uma sonda comum a todos os algoritmos, nem mede calibração de intervalo/cobertura de um σ contínuo (o surrogate aqui é um classificador, não produz variância); é, estritamente, uma medição de acurácia do classificador em função de um hiperparâmetro de construção do ensemble, feita uma única vez antes dos experimentos principais.",
+    "literal": "The influence of different values of Q on the error rate of the final model was verified on several different DTLZ respectively, and 20 independent experiments were carried out for each Q and the average value was obtained.",
+    "localizador": "Sec. 4.4.2, Fig. 4"
+  },
+  "custo": {
+    "reporta": false,
+    "o_que": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "A narrativa do artigo (Sec. 4.2) afirma que IBE-CSEA supera BE-CSEA que supera BE-CSEA− de forma consistente, mas os próprios números da Tabela 1 mostram exceções: em pelo menos 3 células o ensemble sem poda (BE-CSEA) iguala ou supera ligeiramente o ensemble podado (IBE-CSEA), e em pelo menos 3 células o ensemble completo (BE-CSEA) é pior que o modelo único (BE-CSEA−) — ou seja, nem 'mais ensemble' nem 'poda do ensemble' ajudam de forma monotônica célula a célula, mesmo sendo essas as duas melhorias centrais propostas pelo artigo.",
+      "literal": "DTLZ2, M=10: BE-CSEA 5.5599e-1 (2.73e-2) vs. IBE-CSEA 5.6270e-1 (4.44e-2); DTLZ5, M=10: BE-CSEA− 1.2067e-2 (1.33e-3) vs. BE-CSEA 1.3850e-2 (2.98e-3)",
+      "localizador": "Sec. 4.2, Table 1"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "multimodalidade / grande número de frentes de Pareto locais (DTLZ1, DTLZ3)",
+      "afirmacao": "IBE-CSEA (e, em segundo lugar, CSEA) — ambos baseados em classificação — mostram os melhores resultados nesses problemas; o artigo atribui a vantagem à exploração do espaço desconhecido feita pelos classificadores, mais eficaz que os modelos de regressão direta em problemas multimodais com múltiplos ótimos locais.",
+      "literal": "DTLZ1 and DTLZ3 have a large amount of local PFs, the difficulty of this kind of problem lies in its multimodal characteristics.",
+      "localizador": "Sec. 4.5"
+    },
+    {
+      "caracteristica": "manutenção de diversidade em frente regular/simples de convergir (DTLZ2, DTLZ4)",
+      "afirmacao": "Nesses problemas o KTA2 (regressão via modelo insensível a pontos influentes) supera o IBE-CSEA; o artigo atribui isso à capacidade do KTA2 de manter melhor a diversidade das soluções ao longo de toda a frente, sugerindo que a abordagem baseada em classificação (IBE-CSEA) é menos eficaz que uma boa regressão direta para esse objetivo específico.",
+      "literal": "DTLZ2 and DTLZ4 problems converge easily, but it is troublesome to maintain the population diversity to obtain the solution set uniformly distributed on the whole PF.",
+      "localizador": "Sec. 4.5"
+    },
+    {
+      "caracteristica": "frente de Pareto com viés/distribuição fortemente não uniforme (DTLZ4)",
+      "afirmacao": "K-RVEA obtém os melhores resultados em DTLZ4 porque seu vetor de referência predefinido localiza rapidamente a região preferencial da frente enviesada, superando a fronteira de classificação do IBE-CSEA e dos demais.",
+      "literal": "the difficulty of DTLZ4 lies in the strong bias of the points on its PF. K-RVEA gets the best results. This is because K-RVEA can locate the preferred region quickly by using its predefined reference vector.",
+      "localizador": "Sec. 4.5"
+    },
+    {
+      "caracteristica": "frente de Pareto degenerada (DTLZ5)",
+      "afirmacao": "IBE-CSEA tem o melhor desempenho de IGD e HV em DTLZ5, apontado no texto como evidência de que o método (classificação + ensemble podado) lida bem especificamente com frentes degeneradas.",
+      "literal": "DTLZ5 is characterized by its degradation. The IGD and HV indicators can show that IBE-CSEA has the best performance, which indicates that IBE-CSEA is good at dealing with this kind of degenerate problems.",
+      "localizador": "Sec. 4.5"
+    },
+    {
+      "caracteristica": "problema real de engenharia com muitos objetivos (M=9, crashworthiness veicular)",
+      "afirmacao": "No único problema real testado, o artigo não atribui uma razão mecânica específica para a ordem observada (KTA2 melhor, IBE-CSEA em segundo), apenas relata a ordem de desempenho — diferente do tratamento qualitativo dado aos problemas sintéticos por característica.",
+      "literal": "Vehicle crashworthiness optimization design is a 9 objectives optimization problem with optimization objectives such as abdomen load, rib deflection and pubic symptom force.",
+      "localizador": "Sec. 4.7, Table 5"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Leitura completa e integral do artigo (17 páginas), incluindo o ANEXO com a camada de texto bruta completa do PDF (confirma e reproduz integralmente o conteúdo já visto na conversão estruturada — mesmas Tabelas 1, 3, 4, 5, sem seções adicionais) e o ANEXO de OCR das imagens (apenas rótulos fragmentados de eixo/legenda das Figs. 4-7 — ex.: 'Number of evaluations' na Fig. 6, confirmando tratar-se de curva de convergência por avaliações, e 'Dimension No.' nas Figs. 5/7, confirmando as coordenadas paralelas). Não há Apêndice formal nem menção a material suplementar no artigo — as duas seções ANEXO são artefatos da extração (camada de texto bruta + OCR de imagem), não conteúdo do artigo em si. O artigo compara 3 variantes do próprio método (BE-CSEA−, BE-CSEA, IBE-CSEA na Table 1) — uma ablação natural nos termos do CARTAO — mas a dimensão variada é a ARQUITETURA do classificador substituto (modelo único → ensemble → ensemble podado), nunca o uso da confiabilidade/incerteza em si: a seleção assistida por confiabilidade herdada do CSEA (Sec. 2.3, regiões R1/R2/R3 de m1/m2, Eq. 6-7) permanece ativa e inalterada nas 3 variantes — não há neste artigo nenhum contrafactual que desligue a 'gestão de confiança' (A3); ela está sempre 'ligada', só a qualidade do modelo que a alimenta muda. Não foi encontrado nenhum relato de tempo computacional, complexidade ou custo em nenhuma das duas camadas de texto (nem o argumento genérico O(n³) do GP, já que o surrogate aqui não é um GP mas um ensemble de classificadores RBF). Consistência com as classes atribuídas ao artigo: motor=EA-Dominância (a construção da fronteira de classificação no Algoritmo 2 é pura dominância de Pareto — 'not dominated by all solutions in PR'); função da incerteza=A3 Gestão de confiança (as regiões de confiabilidade R1/R2/R3 decidem SE e QUAL grupo — A, B ou nenhum — é usado para gerar prole, com base no erro de classificação medido no conjunto de teste; não há exploração dirigida por incerteza, é um gate binário/ternário de confiança); surrogate=CL Classificação/Relação (ensemble bagging de classificadores RBF prevendo a relação de dominância, não valores de fitness); medição=ERR-EMP (a 'confiabilidade' m1/m2 é literalmente o erro empírico de classificação — MAE — medido num conjunto de teste retido contra rótulos de dominância verdadeiros, não uma variância ou posterior bayesiana); regime=online (o modelo é retreinado a cada geração com os pontos reais acumulados, dentro do laço evolutivo principal)."
+}

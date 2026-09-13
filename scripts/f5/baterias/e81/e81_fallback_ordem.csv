@@ -1,0 +1,33 @@
+label,geracao,n_front,n_fill,asc_dataset,asc_selecionados,asc_uniao,desc_dataset,desc_selecionados,desc_uniao,d_dataset,d_selec,d_uniao
+q10_WFG9,6,7,3,True,False,True,False,True,False,"[np.float64(1.4179), np.float64(1.4301), np.float64(1.5242)]","[np.float64(2.0432), np.float64(2.0003), np.float64(1.9802)]","[np.float64(1.4179), np.float64(1.4301), np.float64(1.5242)]"
+q10_WFG9,13,9,1,True,True,True,True,True,True,[np.float64(1.5491)],[np.float64(2.0649)],[np.float64(1.5491)]
+q10_WFG9,15,9,1,True,True,True,True,True,True,[np.float64(1.5219)],[np.float64(2.0916)],[np.float64(1.5219)]
+q10_WFG9,171,8,2,False,False,False,True,True,True,"[np.float64(1.3137), np.float64(1.169)]","[np.float64(2.1422), np.float64(2.128)]","[np.float64(1.3137), np.float64(1.169)]"
+q10_ZDT4,5,7,3,True,False,True,False,True,False,"[np.float64(0.4961), np.float64(0.5635), np.float64(0.595)]","[np.float64(1.1965), np.float64(1.1224), np.float64(1.1202)]","[np.float64(0.4961), np.float64(0.5635), np.float64(0.595)]"
+q10_ZDT4,8,8,2,False,False,False,True,True,True,"[np.float64(0.8562), np.float64(0.4759)]","[np.float64(1.1685), np.float64(1.1119)]","[np.float64(0.8562), np.float64(0.4759)]"
+q10_ZDT4,19,9,1,True,True,True,True,True,True,[np.float64(0.655)],[np.float64(1.2219)],[np.float64(0.655)]
+q10_ZDT4,20,9,1,True,True,True,True,True,True,[np.float64(0.7282)],[np.float64(1.3267)],[np.float64(0.7282)]
+q10_ZDT4,21,9,1,True,True,True,True,True,True,[np.float64(0.4859)],[np.float64(1.2027)],[np.float64(0.4859)]
+q10_ZDT4,23,9,1,True,True,True,True,True,True,[np.float64(0.8268)],[np.float64(1.2366)],[np.float64(0.8268)]
+q10_ZDT4,29,9,1,True,True,True,True,True,True,[np.float64(0.5823)],[np.float64(1.0193)],[np.float64(0.5823)]
+q10_ZDT4,35,9,1,True,True,True,True,True,True,[np.float64(0.6483)],[np.float64(1.1714)],[np.float64(0.6483)]
+q10_ZDT4,43,6,4,False,False,False,False,True,False,"[np.float64(0.5205), np.float64(0.5717), np.float64(0.5155), np.float64(0.6197)]","[np.float64(1.1764), np.float64(1.1679), np.float64(1.1144), np.float64(1.1099)]","[np.float64(0.5205), np.float64(0.5717), np.float64(0.5155), np.float64(0.6197)]"
+q10_ZDT4,54,9,1,True,True,True,True,True,True,[np.float64(0.4865)],[np.float64(1.0362)],[np.float64(0.4865)]
+q10_ZDT4,55,7,3,False,False,False,False,True,False,"[np.float64(0.7221), np.float64(0.6036), np.float64(0.6631)]","[np.float64(1.3404), np.float64(1.2333), np.float64(1.1104)]","[np.float64(0.7221), np.float64(0.6036), np.float64(0.6631)]"
+q10_ZDT4,56,8,2,True,False,True,False,True,False,"[np.float64(0.4653), np.float64(0.6602)]","[np.float64(1.3229), np.float64(1.2435)]","[np.float64(0.4653), np.float64(0.6602)]"
+q10_ZDT4,57,8,2,False,False,False,True,True,True,"[np.float64(0.5386), np.float64(0.429)]","[np.float64(1.2329), np.float64(1.1278)]","[np.float64(0.5386), np.float64(0.429)]"
+q10_ZDT4,61,8,2,True,False,True,False,True,False,"[np.float64(0.5278), np.float64(0.5451)]","[np.float64(1.226), np.float64(1.1195)]","[np.float64(0.5278), np.float64(0.5451)]"
+q10_ZDT4,65,9,1,True,True,True,True,True,True,[np.float64(0.6469)],[np.float64(1.0384)],[np.float64(0.6469)]
+q10_ZDT4,68,7,3,False,False,False,True,True,True,"[np.float64(0.6492), np.float64(0.6137), np.float64(0.5787)]","[np.float64(1.1633), np.float64(1.0358), np.float64(0.9848)]","[np.float64(0.6492), np.float64(0.6137), np.float64(0.5787)]"
+q10_ZDT4,70,9,1,True,True,True,True,True,True,[np.float64(0.5474)],[np.float64(1.2243)],[np.float64(0.5474)]
+q10_ZDT4,81,6,4,False,False,False,False,True,False,"[np.float64(0.274), np.float64(0.5702), np.float64(0.6346), np.float64(0.4395)]","[np.float64(1.1713), np.float64(1.1696), np.float64(1.1217), np.float64(1.0966)]","[np.float64(0.274), np.float64(0.5702), np.float64(0.6346), np.float64(0.4395)]"
+q10_ZDT4,85,9,1,True,True,True,True,True,True,[np.float64(0.5139)],[np.float64(1.043)],[np.float64(0.5139)]
+q10_ZDT4,101,9,1,True,True,True,True,True,True,[np.float64(0.5268)],[np.float64(1.1076)],[np.float64(0.5268)]
+q10_ZDT4,112,9,1,True,True,True,True,True,True,[np.float64(0.4192)],[np.float64(1.0789)],[np.float64(0.4192)]
+q10_ZDT4,113,8,2,False,False,False,True,True,True,"[np.float64(0.8062), np.float64(0.5135)]","[np.float64(1.2549), np.float64(1.0962)]","[np.float64(0.8062), np.float64(0.5135)]"
+q10_ZDT4,128,6,4,True,False,True,False,True,False,"[np.float64(0.3865), np.float64(0.4712), np.float64(0.4884), np.float64(0.6217)]","[np.float64(1.3595), np.float64(1.2476), np.float64(1.2082), np.float64(1.1953)]","[np.float64(0.3865), np.float64(0.4712), np.float64(0.4884), np.float64(0.6217)]"
+q10_ZDT4,133,9,1,True,True,True,True,True,True,[np.float64(0.3981)],[np.float64(1.0835)],[np.float64(0.3981)]
+q10_ZDT4,147,6,4,False,False,False,False,True,False,"[np.float64(0.5344), np.float64(0.2112), np.float64(0.4719), np.float64(0.3746)]","[np.float64(1.1928), np.float64(1.1562), np.float64(1.0844), np.float64(1.0421)]","[np.float64(0.5344), np.float64(0.2112), np.float64(0.4719), np.float64(0.3746)]"
+q10_ZDT4,159,9,1,True,True,True,True,True,True,[np.float64(0.5047)],[np.float64(1.149)],[np.float64(0.5047)]
+q10_ZDT4,164,6,4,False,False,False,False,True,False,"[np.float64(0.5084), np.float64(0.43), np.float64(0.5481), np.float64(0.3991)]","[np.float64(1.2226), np.float64(1.1943), np.float64(1.0905), np.float64(1.0683)]","[np.float64(0.5084), np.float64(0.43), np.float64(0.5481), np.float64(0.3991)]"
+q10_ZDT4,173,8,2,True,False,True,False,True,False,"[np.float64(0.4468), np.float64(0.4721)]","[np.float64(1.0618), np.float64(1.0468)]","[np.float64(0.4468), np.float64(0.4721)]"

@@ -1,0 +1,10 @@
+exp,problema,status,motivo_parada,n_retries,maxfe,fe_final,progresso,q_header,n_decisoes,wall_s,excerto
+main,WFG1,failed,,2,,,,1,40,998.8701,botorch.exceptions.errors.ModelFittingError: All attempts to fit the model have failed.
+main,ZDT3,failed,teto_wall,0,929.0,736.0,79.2,1,463,13893.4037,"WallClockAbort(""teto de wall-clock do piloto estourado por 'projecao': 13891s decorridos + 29832s projetados > 43200s (fe=736/929). Aborto LIMPO — cur"
+main,DTLZ7,failed,teto_wall,0,681.0,478.0,70.2,1,372,15525.8989,"WallClockAbort(""teto de wall-clock do piloto estourado por 'projecao': 15524s decorridos + 27795s projetados > 43200s (fe=478/681). Aborto LIMPO — cur"
+main,MMF16_20,failed,teto_wall,0,619.0,524.0,84.7,1,303,24157.4168,"WallClockAbort(""teto de wall-clock do piloto estourado por 'projecao': 24155s decorridos + 19047s projetados > 43200s (fe=524/619). Aborto LIMPO — cur"
+batch,DTLZ2,failed,teto_wall,0,2131.0,301.0,14.1,10,17,7827.5217,"WallClockAbort(""teto de wall-clock do piloto estourado por 'projecao': 7825s decorridos + 168610s projetados > 172800s (fe=301/2131). Aborto LIMPO — c"
+batch,MMF16_20,failed,teto_wall,0,2219.0,369.0,16.6,10,15,6982.5152,"WallClockAbort(""teto de wall-clock do piloto estourado por 'projecao': 6980s decorridos + 167660s projetados > 172800s (fe=369/2219). Aborto LIMPO — c"
+batch,WFG9,failed,teto_wall,0,2241.0,1461.0,65.2,10,142,14508.389,"WallClockAbort(""teto de wall-clock do piloto estourado por 'projecao': 14506s decorridos + 28989s projetados > 43200s (fe=1461/2241). Aborto LIMPO — c"
+batch,ZDT1,failed,teto_wall,0,2329.0,946.0,40.6,10,63,23082.1221,"WallClockAbort(""teto de wall-clock do piloto estourado por 'projecao': 23080s decorridos + 157984s projetados > 172800s (fe=946/2329). Aborto LIMPO — "
+batch,ZDT4,failed,teto_wall,0,2109.0,209.0,9.9,10,186,238.9169,"WallClockAbort(""teto de wall-clock do piloto estourado por 'projecao': 237s decorridos + 52138s projetados > 43200s (fe=209/2109). Aborto LIMPO — curv"

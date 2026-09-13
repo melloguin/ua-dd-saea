@@ -1,0 +1,207 @@
+{
+  "id": "c29",
+  "sigla": "MO P-algorithm",
+  "titulo": "A statistical model-based algorithm for 'black-box' multi-objective optimisation",
+  "ano": 2014,
+  "roster": false,
+  "setup": {
+    "benchmarks": "4 problemas de teste bi-objetivo, todos funções analíticas simples tratadas como 'caixa-preta cara' (nenhum vem de ZDT/DTLZ/WFG/MMF/BBOB): (10) modificação da função de Rastrigin, d=1, x∈[-1,1], f1(x)=(x+0.5)²-cos(18(x+0.5)), f2(x)=(x-0.5)²-cos(18(x-0.5)) — multimodal; (11) 'SCH2' (Fonseca&Fleming/Deb 2009), d=1, x∈[1,8], f1 linear por partes (unimodal mas não-convexa), f2(x)=(x-5)² — Pareto set descontínuo; (12) soma de duas funções de Shekel, d=2, x∈[0,1]², cada objetivo com 2 minimizadores (multimodal 'relativamente simples', ilustrado por curvas de nível na Fig. 1); (13) função de Fonseca & Fleming (1995), definida para d arbitrário mas testada em d=2, xi∈[-4,4] — resposta quase constante numa grande parte da região viável com um número desconhecido de picos agudos, dita 'especially difficult from the point of view of global minimisation'.",
+    "orcamento": "100 avaliações reais da função-objetivo por execução: as primeiras 50 escolhidas aleatoriamente com distribuição uniforme sobre a região viável (usadas também para estimar os parâmetros do modelo estatístico), e as 50 seguintes escolhidas sequencialmente, uma de cada vez, pelo multi-objective P-algorithm maximizando a probabilidade de melhoria (Eq. 8) — regime online, q=1. Não há DoE inicial compartilhado entre 'algoritmos' no sentido da dissertação: o próprio Monte Carlo roda 100 pontos totalmente aleatórios, sem a fase de 50 pontos comuns.",
+    "execucoes": "1000 execuções independentes por algoritmo, explicitamente reportado para os problemas (10) e (11): 'Both algorithms have been run for 1000 times for test problems (10) and (11)'. Para (12)/(13) o texto não repete esse número junto à Table 2, mas a frase sobre o problema (13) — 'the average of 1000 values of the estimates computed using 50 observations' — sugere que o mesmo protocolo de 1000 execuções foi reaproveitado; não afirmamos isso como fato citado literalmente para a Table 2.",
+    "baselines": "Único piso: Monte Carlo (amostragem aleatória uniforme sobre a região viável), justificado explicitamente por ser 'parameter-free' e por 'defining the origin on the efficiency axis'. NÃO há piso evolutivo (nenhum NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) nem qualquer outro algoritmo assistido por surrogate na comparação — é o multi-objective P-algorithm (proposto no artigo) contra busca aleatória pura.",
+    "metricas_principais": [
+      "NN",
+      "NP",
+      "MD",
+      "DP",
+      "GD",
+      "EI (epsilon indicator, Zitzler et al. 2003)"
+    ],
+    "testes": [
+      "nenhum teste de hipótese formal — apenas média ± desvio-padrão sobre execuções independentes"
+    ],
+    "apresentacao": "Figuras de dispersão no espaço de objetivos (pontos não-dominados em marcador mais grosso, 'thicker points') para inspeção visual qualitativa; duas tabelas de média±desvio-padrão (Tables 1 e 2); o vetor-limiar y^on é variado manualmente por problema para ilustrar sensibilidade qualitativa (não é tratado como hiperparâmetro tunado); não há convenção explícita de 'execução mediana' para as figuras — não fica claro se a execução plotada é típica ou arbitrária dentre as 1000; sem escala logarítmica.",
+    "codigo_plataforma": "MATLAB (implementação própria do multi-objective P-algorithm); maximização da probabilidade de melhoria por 'a very simple version of multistart': avaliação em 1000 pontos aleatórios uniformes seguida de descida local a partir do melhor ponto, usando a MATLAB Optimization Toolbox."
+  },
+  "analises": [
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparação visual/qualitativa, no espaço de objetivos, entre os pontos gerados pelo multi-objective P-algorithm (com limiar 'ideal', mais exploratório) e pelo Monte Carlo, contra a região viável/Pareto set verdadeiro conhecido, nos problemas (10), (11) e (12): os pontos não-dominados do P-algorithm ficam mais próximos/ao longo da frente verdadeira, enquanto os do Monte Carlo se espalham e não a representam bem.",
+      "literal": "the non-dominated solutions found (thicker points) do not represent the Pareto front well",
+      "localizador": "Sec. 7, Figs. 2, 3 (esquerda), 4, 5, 6 (esquerda), p. 87-90",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "gráficos de dispersão no espaço de objetivos; pontos não-dominados marcados com marcador mais grosso; um único conjunto de pontos mostrado por painel (execução única, não fica claro se mediana ou arbitrária); comparação puramente qualitativa — a quantificação correspondente está nas Tables 1-2 (ver outras análises).",
+      "achado": "Nos três problemas o P-algorithm concentra visualmente os pontos não-dominados mais perto/ao longo da frente de Pareto verdadeira do que o Monte Carlo, que dispersa os pontos pela região viável inteira e não recupera bem a forma da frente (exigindo, por amostragem uniforme no espaço de decisão, 'a large number of uniformly distributed points' para uma impressão aceitável — problema 12). No problema (11), porém, o próprio artigo qualifica a vantagem como mais fraca (ver resultados_negativos).",
+      "aplicabilidade": "não reproduzível tal como está — exigiria reimplementar o multi-objective P-algorithm e rodá-lo nesses 4 problemas de brinquedo de baixa dimensão, fora do escopo dos 28 problemas/15 algoritmos do roster da dissertação; se rodado dentro do pipeline da dissertação, seria reconstituível via ① (avaliações reais x,f) plotadas no espaço de objetivos — equivalente conceitual da ficha 54."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade ao vetor-limiar de aspiração (exploração uniforme vs. localização)",
+      "grupo_sugerido": "E",
+      "descricao": "O artigo varia o vetor-limiar y^on (o alvo de aspiração que define 'melhoria' na probabilidade de melhoria, Eq. 5-8 — o único parâmetro que governa como a incerteza do GP é convertida em decisão de busca) em dois problemas: com o limiar igual ao vetor ideal (bem além da frente observada), a distribuição dos pontos não-dominados é aproximadamente uniforme sobre todo o Pareto set; com o limiar mais próximo da frente já observada, os pontos não-dominados se concentram mais perto da região do limiar.",
+      "literal": "For the threshold closer to the Pareto set, some localisation of observations can be expected in the sense of increased density of the nondominated points closer to the threshold vector.",
+      "localizador": "Sec. 7, ¶3-4 (problem 10, Fig. 3) e ¶ sobre Fig. 6 (problem 12), p. 87-90",
+      "metricas": [
+        "contagem de pontos não-dominados (NN)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "comparação visual entre dois valores do vetor-limiar por problema, mesma execução/seed não controlada explicitamente; contagens pontuais de NN citadas em prosa (não tabuladas).",
+      "achado": "Problema (10): limiar ideal (-1,-1)^T produziu 35 pontos não-dominados espalhados quase uniformemente sobre o Pareto set; limiar mais próximo (-0.75,-0.75)^T produziu 51 pontos não-dominados mais concentrados perto do limiar — 'Figure 3 illustrates the realisation of the hypothesized properties'. Problema (12): limiar ideal (-1,-1)^T deu boa cobertura geral da região viável; limiar (-0.6,-0.6)^T concentrou soluções 'more densely close to the central part of the Pareto set' — confirmando, nos dois casos, que o limiar controla o trade-off exploração global × refinamento localizado, como previsto pela teoria de decisão do P-algorithm.",
+      "aplicabilidade": "não reproduzível com as camadas atuais — exigiria reimplementar o multi-objective P-algorithm com y^on variável nos problemas de teste do artigo; nenhum algoritmo do roster expõe um parâmetro de aspiração diretamente análogo instrumentado em ①-⑦."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Viés do modelo estatístico por paisagem quase-plana com picos (localização do limiar na direção errada)",
+      "grupo_sugerido": "E",
+      "descricao": "No problema (13) (Fonseca-Fleming, resposta quase constante com picos agudos desconhecidos), o limiar (0.6,0.6)^T (mais próximo do Pareto set) NÃO produz o aumento esperado de densidade perto do centro do Pareto set; ao contrário, a densidade de não-dominados aumenta perto dos pontos-limite (extremos) do Pareto set. O artigo explica isso pelas estimativas enviesadas dos parâmetros do campo gaussiano (médias e variâncias por objetivo), reportando os valores médios — de 1000 execuções, cada uma estimando os parâmetros a partir de 50 observações — μ1=0.9496, μ2=0.9512, σ1²=0.0269, σ2²=0.0339: enviesados para a parte quase-constante da superfície, o que faz os valores-objetivo perto dos extremos do Pareto set parecerem enganosamente bons e atrair mais observações ali.",
+      "literal": "Contrary to the expectations, increase of the density is seen near to the limit points of the Pareto set.",
+      "localizador": "Sec. 7, ¶ sobre Fig. 8 / problem (13), p. 91-92",
+      "metricas": [
+        "estimativas de média (μ) e variância (σ²) do campo gaussiano, por objetivo"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "médias sobre 1000 execuções, cada uma estimando μ/σ² a partir das 50 observações iniciais; valores reportados com 4 casas decimais, sem teste de significância.",
+      "achado": "Resultado NEGATIVO/surpreendente para o uso da incerteza: o mecanismo de localização controlado pelo limiar de aspiração funciona na direção OPOSTA à esperada nesse problema, por causa do viés induzido na estimação dos parâmetros (média/variância) do campo gaussiano homogêneo pela grande região quase-plana da superfície de resposta — um caso claro de discrepância entre o modelo estatístico assumido (campo homogêneo isotrópico) e a função real, prejudicando a alocação de amostras do algoritmo.",
+      "aplicabilidade": "não reproduzível com as camadas atuais — exigiria reimplementar o P-algorithm original e instrumentar as estimativas de μ/σ² do campo gaussiano ao longo da busca; seria parcialmente análogo a ③ (predições do surrogate) e à discussão de heterocedasticidade da ficha 38, se adaptado ao pipeline de 7 camadas da dissertação."
+    },
+    {
+      "fichas": [
+        1,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela (Table 1) com médias e desvios-padrão, sobre 1000 execuções independentes, de quatro métricas (NP, NN, MD, DP) do multi-objective P-algorithm e do Monte Carlo, para os problemas de uma variável (10) e (11), após 100 avaliações da função-objetivo (50 iniciais aleatórias + 50 sequenciais). Funciona como o placar final do artigo (ficha 1) e, ao mesmo tempo, como a comparação direta entre o método assistido por surrogate e um piso sem modelo (ficha 9) — embora sem pareamento por semente/execução e com um piso de busca aleatória em vez de um motor evolutivo da própria classe.",
+      "literal": "Both algorithms have been run for 1000 times for test problems (10) and (11). The minimisation was stopped after 100 observations",
+      "localizador": "Sec. 7, Table 1, p. 89-90",
+      "metricas": [
+        "NN (nº de pontos não-dominados encontrados)",
+        "NP (nº de pontos do Pareto set verdadeiro efetivamente atingidos)",
+        "MD (maior 'buraco' no Pareto set)",
+        "DP (distância máxima dos não-dominados 'errados' ao Pareto set)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "média ± desvio-padrão sobre 1000 execuções independentes; distâncias em norma euclidiana; a 'error ratio' (NN−NP)/NN é definida em prosa mas não tabulada; sem pareamento por semente entre P-algorithm e Monte Carlo (cada um roda suas 1000 execuções independentes).",
+      "achado": "Em ambos os problemas o P-algorithm domina o Monte Carlo nas 4 métricas. Problem (10): NP=31.4±2.3 (P-alg) vs 6.9±2.5 (MC); NN=34.3±2.4 vs 9.9±2.3; MD=0.095±0.011 vs 0.29±0.05; DP=0.038±0.014 vs 0.18±0.18. Problem (11): NP=41.9±3.0 (P-alg) vs 22.4±4.2 (MC); NN=43.5±3.0 vs 24.3±4.1; MD=0.099±0.015 vs 0.36±0.11; DP=0.013±0.009 vs 0.06±0.06 — ou seja, o P-algorithm acerta mais pontos do Pareto set verdadeiro, deixa 'buracos' menores e comete erros menores, nos dois problemas.",
+      "aplicabilidade": "não reproduzível tal como está — exigiria rodar o P-algorithm/GP e o Monte Carlo nos 2 problemas de teste do artigo com 1000 execuções e computar NP/NN/MD/DP contra o Pareto set verdadeiro (só conhecido em d=1); métricas distintas de IGD+/HV, sem camada ⑦ (regime não é offline) — equivalente conceitual a ① (avaliações reais) + Pareto set de referência."
+    },
+    {
+      "fichas": [
+        1,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela (Table 2) com médias e desvios-padrão de três métricas (NN, GD, EI) do multi-objective P-algorithm e do Monte Carlo, para os problemas de duas variáveis (12) e (13), após 100 avaliações; GD é a distância geracional (máximo das distâncias dos não-dominados aos vizinhos mais próximos no Pareto set) e EI é o epsilon-indicator (min-max, Eq. 14, Zitzler et al. 2003) contra um conjunto de referência densamente distribuído sobre o Pareto set. Mesma função de placar final + comparação assistido×piso que a Table 1, agora para d=2.",
+      "literal": "The statistics of the approximation metrics for problem (13) are presented in Table 2.",
+      "localizador": "Sec. 7, Table 2, Eq. 14, p. 90-92",
+      "metricas": [
+        "NN (nº de não-dominados)",
+        "GD (generational distance)",
+        "EI (epsilon indicator)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "média ± desvio-padrão; para (12) o P-algorithm usou limiar ideal (-1,-1)^T, para (13) limiar ideal (0,0)^T; nº de execuções não reafirmado explicitamente nesta passagem (ver setup.execucoes).",
+      "achado": "P-algorithm supera o Monte Carlo nos dois problemas, em todas as métricas. Problem (12): NN=15.7±2.0 vs 12.1±3.0; GD=0.070±0.051 vs 0.23±0.081; EI=0.13±0.053 vs 0.26±0.056. Problem (13): NN=9.87±1.4 vs 6.6±1.6; GD=0.015±0.0061 vs 0.11±0.068; EI=0.20±0.034 vs 0.33±0.097 — a vantagem relativa (razão MC/P-alg) em GD e EI é ainda maior no problema (13), apesar do problema (13) ser justamente o caso em que o mecanismo de localização pelo limiar falhou na direção esperada (ver análise anterior).",
+      "aplicabilidade": "não reproduzível tal como está — exigiria rodar os dois algoritmos nos problemas de teste de 2 variáveis do artigo e computar GD/EI contra um conjunto de referência do Pareto set; equivalente conceitual à ficha 1 (placar final) com métricas distintas de IGD+/HV."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Equivalência de avaliações — quantas avaliações o piso precisa para igualar a qualidade do assistido",
+      "grupo_sugerido": "B",
+      "descricao": "Para quantificar a vantagem do P-algorithm em termos de amostras (não apenas de métrica), o artigo testa o Monte Carlo com diferentes números máximos de avaliações até que ele alcance, em média, os valores de EI e GD que o P-algorithm atinge após 100 avaliações, nos problemas (12) e (13).",
+      "literal": "the Monte Carlo method, while solving problem (12), needs about 600 observations to reach average values of EI (0.1316) and GD (0.0959)",
+      "localizador": "Sec. 7, último parágrafo, p. 92",
+      "metricas": [
+        "EI",
+        "GD",
+        "nº de avaliações necessárias para igualar o desempenho do assistido"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Monte Carlo testado com diferentes números máximos de avaliações (orçamento variável) até casar a média de EI/GD do P-algorithm@100 avaliações; comparação apenas nos dois problemas de 2 variáveis.",
+      "achado": "No problema (12), o Monte Carlo precisa de cerca de 600 avaliações (≈6× o orçamento do P-algorithm) para igualar EI≈0.1316 e GD≈0.0959. No problema (13), precisa de apenas cerca de 200 avaliações (≈2×) para igualar EI≈0.2331 e GD≈0.0810 — 'in that case Monte Carlo methods needs only twice as many observations to mach up the P-algorithm'. Ou seja, o ganho relativo em eficiência amostral do surrogate é bem maior no problema (12) (multimodal, tipo Shekel) do que no (13) (platô com picos), mesmo o P-algorithm vencendo o Monte Carlo nas Tables 1-2 em ambos os casos.",
+      "aplicabilidade": "não reproduzível com as camadas atuais tal como está (exigiria rodar o piso com múltiplos orçamentos até igualar a métrica do assistido a um orçamento fixo); relacionável à ficha 26 (trajetórias de convergência) se estendido a uma curva completa de orçamento em vez de dois pontos de igualdade calculados ad hoc."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "Não mede calibração/cobertura do σ do GP; a incerteza entra apenas como insumo direto da probabilidade de melhoria (a CDF gaussiana G(y_on, μ, σ) na Eq. 9), sem nenhuma validação contra o erro real do modelo. A única menção quantitativa a parâmetros do campo gaussiano (μ, σ² médios de 1000 execuções, problema 13) aparece de forma incidental, para EXPLICAR um achado negativo de localização (ver análise 'Viés do modelo...'), não como um estudo de calibração desenhado.",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Apenas complexidade computacional teórica — não há tempos de parede/wall-clock empíricos reportados. A cada passo, o cálculo da probabilidade de melhoria (Eq. 9, produto de m CDFs gaussianas usando médias/variâncias condicionais) é O(m·n²) (multiplicação de matriz n×n por vetor, mais produto escalar de dois vetores n-dimensionais). A operação mais cara do passo é a inversão da matriz de correlação n×n, feita uma única vez por passo e reaproveitada nas repetidas avaliações de μ/σ durante o multistart (1000 pontos aleatórios + descida local via MATLAB Optimization Toolbox).",
+    "literal": "The complexity of those computations is O(m  n2).",
+    "localizador": "Sec. 4, ¶ final (equivalente à p. 84-85 do artigo; ANEXO camada de texto, página 4)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "No problema (13) (Fonseca-Fleming), usar um limiar mais próximo do conjunto de Pareto (em vez do vetor ideal) NÃO produz o aumento esperado de densidade de soluções não-dominadas perto do centro do Pareto set; ao contrário, a densidade aumenta perto dos pontos-limite (extremos), um resultado oposto à expectativa teórica, atribuído ao viés das estimativas de média/variância do campo gaussiano causado pela grande região quase-plana da superfície de resposta.",
+      "literal": "Contrary to the expectations, increase of the density is seen near to the limit points of the Pareto set.",
+      "localizador": "Sec. 7, ¶ sobre Fig. 8 / problem (13), p. 91-92"
+    },
+    {
+      "descricao": "Para o problema (11) (SCH2), a vantagem visual do P-algorithm sobre o Monte Carlo é descrita pelos próprios autores como bem mais fraca do que a observada no problema (10).",
+      "literal": "the advantage over the Monte Carlo method seems not so strong.",
+      "localizador": "Sec. 7, ¶ sobre Fig. 4 / problem (11), p. 87-89"
+    },
+    {
+      "descricao": "Antes mesmo dos experimentos, os autores alertam (Sec. 6, a propósito do problema 13) que a discrepância entre o modelo estatístico assumido (campo gaussiano homogêneo e isotrópico) e a forma real da função-objetivo (platô quase constante com picos agudos) pode prejudicar negativamente a eficiência do P-algorithm — um caveat explícito sobre os limites do uso da incerteza modelada quando o modelo é mal especificado.",
+      "literal": "The discrepancy between the statistical model and the modelled functions can negatively influence the efficiency of the P-algorithm.",
+      "localizador": "Sec. 6, último parágrafo, p. 86-87"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "dimensão da variável de decisão (d=1 vs d=2)",
+      "afirmacao": "Em d=1, os pontos não-dominados encontrados podem de fato pertencer ao Pareto set verdadeiro (métricas NP/NN/MD/DP diretamente aplicáveis); em d=2 (e além) apenas convergência assintótica dos não-dominados correntes ao Pareto set pode ser esperada, e os pontos não-dominados normalmente não pertencem ao Pareto set verdadeiro, exigindo outras métricas (GD, EI).",
+      "literal": "The experimentation with objective functions of a single variable has an advantage to obtain non-dominated solutions that really belong to the Pareto set, while in the case of several variables only the asymptotic convergence of the current non-dominated solutions to the Pareto set can be expected.",
+      "localizador": "Sec. 7, ¶1, p. 87-89"
+    },
+    {
+      "caracteristica": "multimodalidade (múltiplos mínimos por objetivo)",
+      "afirmacao": "Os problemas de teste (10) [modificação da Rastrigin] e (12) [soma de duas funções de Shekel] são deliberadamente multimodais; para (12) o número de minimizadores de cada objetivo foi fixado em dois para manter um caso multimodal 'relativamente simples', ilustrado por curvas de nível na Fig. 1.",
+      "literal": "A rather simple multimodal case is intended to be considered, so the number of minimisers of both objectives is selected equal to two.",
+      "localizador": "Sec. 6, ¶ sobre problem (12), p. 86-87"
+    },
+    {
+      "caracteristica": "não-convexidade / frente de Pareto descontínua",
+      "afirmacao": "No problema (11) (SCH2), embora ambas as funções-objetivo sejam unimodais, f1 não é convexa, tornando o problema multiobjetivo não-convexo, e o conjunto de Pareto é descontínuo.",
+      "literal": "Although both objective functions of (11) are unimodal, f1(x) is not convex implying that the multiobjective problem is not convex. The Pareto set of (11) is discontinuous.",
+      "localizador": "Sec. 6, ¶ sobre problem (11), p. 86"
+    },
+    {
+      "caracteristica": "paisagem quase-plana com picos agudos desconhecidos (platô + spikes)",
+      "afirmacao": "No problema (13) [Fonseca & Fleming], a superfície de resposta é quase constante numa grande parte da região viável e tem um número desconhecido de picos agudos; as estimativas dos parâmetros do modelo estatístico ficam enviesadas para a parte 'plana', e essa discrepância entre modelo e função pode prejudicar a eficiência do P-algorithm — o que de fato se observa como localização errada perto dos extremos do Pareto set em vez do centro (ver resultados_negativos).",
+      "literal": "functions f1(X) and f2(X) in (13) are similar to the most difficult objective function whose response surface is almost constant over a large part of the feasible decision region, and has the unknown number of sharp spikes.",
+      "localizador": "Sec. 6, ¶ sobre problem (13), p. 86-87"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) Classificação recebida no pedido e como se manifesta no artigo: motor=BO-Melhoria-de-Pareto → o multi-objective P-algorithm escolhe o próximo ponto por argmax da probabilidade CONJUNTA de melhoria simultânea em todos os objetivos (Eqs. 6-8), extensão direta do P-algorithm de otimização global de Zilinskas (1985) — este artigo é plausivelmente a referência seminal dessa classe de motor na taxonomia da dissertação, mas o algoritmo em si NÃO faz parte do roster experimental (roster=false, roster_bloco=null, conforme instrução do pedido). função da incerteza=O1·Aquisição exploratória → a incerteza (σ do GP) entra dentro do cálculo fechado da CDF gaussiana G(y_on, μ, σ) que define a 'probabilidade de melhoria' (Eq. 9) — uma aquisição clássica do tipo probability-of-improvement. surrogate=GP → confirmado: campo gaussiano vetorial (Eq. 2) com médias/variâncias condicionais fechadas (Eq. 3). medição=VAR-GP → confirmado: μ_i(X|·) e σ_i²(X|·) são a média/variância condicional fechada do GP, usadas diretamente na Eq. 9 (sem amostragem Monte Carlo nem ensemble). regime=online → confirmado: os 50 pontos da segunda metade são escolhidos sequencialmente, um de cada vez, sem dataset offline pré-fixado. (2) Exclusões de 'analises' (Regra 3 do cartão): Eqs. 1-9 e as Seções 2-4 (definição do problema, modelo estatístico, derivação do algoritmo) são método/teoria, não resultado experimental. A discussão de complexidade O(m·n²) (Sec. 4) é teórica, não uma medição empírica de tempo — registrada só em 'custo'. A Fig. 1 (curvas de nível das funções-objetivo do problema 12) é definição do problema-teste, não resultado. (3) Artigo curto (13 páginas), sem apêndices nem material suplementar mencionado — nenhuma análise 'só mencionada'. (4) Domínio muito distante da bateria da dissertação: problemas analíticos de baixíssima dimensão (d=1 ou d=2), orçamento de 100 avaliações (vs. 31D−1), único piso é Monte Carlo (busca aleatória, não evolutivo — sem NSGA-II/MOEA-D/NSGA-III/SMS-EMOA). Não há sonda (③), filme (⑥) nem regime offline (⑦); a instrumentação de 7 camadas da dissertação não tem equivalente direto no artigo, por isso todas as 'analises' foram marcadas como não-reproduzíveis com as camadas atuais. (5) O GP usado é uma formulação simplificada/antiga: campo homogêneo e isotrópico por objetivo, kernel exponencial com comprimento de correlação fixado por regra heurística (c√d=7 no hipercubo unitário, não estimado por MLE), média/variância estimadas por estatísticas amostrais simples dos 50 pontos iniciais, objetivos tratados como independentes (sem correlação cruzada) — bem mais simples que um GP moderno com ARD. (6) Não fica claro se as figuras (2-8) mostram uma execução 'mediana'/típica ou uma execução arbitrária dentre as 1000 — o texto não especifica o critério de seleção da execução plotada. (7) fichas 1 e 9 foram atribuídas às Tables 1-2 de forma generosa: a Table 1/2 exemplifica bem o 'placar final por problema' (ficha 1) e a pergunta central 'o surrogate compra?' (ficha 9), mas SEM o desenho exato da ficha 9 (não há pareamento por semente, o piso é Monte Carlo — não um motor evolutivo da mesma classe — e as métricas são NN/NP/MD/DP/GD/EI, não IGD+/HV); registrado aqui para transparência do critério de mapeamento."
+}

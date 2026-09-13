@@ -1,0 +1,473 @@
+{
+  "id": "c262",
+  "sigla": "qNEHVI (NEHVI sequencial; qNEHVI-1 = aprox. sample-path RFF)",
+  "titulo": "Parallel Bayesian Optimization of Multiple Noisy Objectives with Expected Hypervolume Improvement",
+  "ano": 2021,
+  "roster": true,
+  "setup": {
+    "benchmarks": "Sinteticos: BraninCurrin (M=2,d=2), DTLZ2 (M=2,d=6; variantes com M=3,4,5 objetivos e d in {5,10,15,20} nos estudos de escalabilidade), ZDT1 (M=2,d=4), SphereEllipsoidal (M=2,d=5, suite BBOB biobjetivo, Brockhoff et al. 2019). Simulados/quase-reais: VehicleSafety (M=3,d=5, superficie de resposta ajustada a simulador de colisao frontal, Tanabe & Ishibuchi 2020), CarSideImpact (M=4,d=7, superficie de resposta de colisao lateral), ConstrainedBraninCurrin (M=2, V=2 restricoes, d=2), Adaptive Bitrate/ABR (M=2,d=4, via Park simulator, politicas de streaming de video), AutoML (M=2,d=8, hiperparametros de DNN treinada no MNIST). Nao ha sobreposicao com os problemas reais da dissertacao (RE21, ESTOQUE40, DDMOP7); DTLZ2/ZDT1 sao da mesma familia dos sinteticos da bateria (instancias possivelmente distintas) e SphereEllipsoidal e da mesma suite BBOB.",
+    "orcamento": "Inicializacao: 2(d+1) pontos de sequencia de Sobol embaralhada (nao 31D-1 como na dissertacao). Orcamento total varia por experimento: 200 avaliacoes reais nos experimentos sequenciais principais (Fig. 3, Fig. 9a, Fig. 15a); 400 no estudo de nivel de ruido (Fig. 14) e no estudo de M=5 objetivos (Fig. 16); 224 avaliacoes totais nos experimentos em lote (Fig. 4, 9b-c, 10-13, 15b), com q em {1,8,16,32}.",
+    "execucoes": "100 execucoes independentes por celula metodo x problema (declarado explicitamente na legenda da Fig. 3); apenas 20 para PESMO 'due to large runtimes'. O experimento AutoML usa adicionalmente 3 replicas por AVALIACAO so para estimar o objetivo sem ruido (nao e a contagem de sementes/replicacoes do BO).",
+    "baselines": "12 metodos comparados no corpo principal: qNEHVI e qNEHVI-1 (propostos), qEHVI, qEHVI-PM-CBD, qParEGO, qNParEGO, TS-TCH, DGEMO, MOEA/D-EGO, TSEMO, MESMO (estendido para ruido via a informacao de ganho ruidosa de Takeno et al. 2020), PESMO, PFES. HA piso sem surrogate: COMO-CMA-ES (CMA-ES multiobjetivo, Apendice H.9) e Sobol/busca quase-aleatoria (Apendices H.8 e H.9) -- nenhum dos quatro pisos evolutivos da dissertacao (NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) e usado aqui.",
+    "metricas_principais": [
+      "log hypervolume difference (log da diferenca entre o HV da frente de Pareto verdadeira sem ruido e o HV da frente recuperada, calculada sobre os pontos in-sample de cada metodo); variante alternativa no Apendice J recalcula a mesma metrica sobre o conjunto in-sample identificado pela media posterior do modelo, em vez do conjunto nao-dominado bruto observado"
+    ],
+    "testes": [
+      "nenhum teste de hipotese formal em lugar nenhum do artigo (confirmado por busca textual: sem Wilcoxon, sem Friedman, sem Nemenyi, sem diagrama de diferenca critica); todas as comparacoes usam bandas de +/-2 erros-padrao da media sobre as replicacoes nos graficos de convergencia; as tabelas de tempo reportam media +/- 2 erros-padrao"
+    ],
+    "apresentacao": "Quase toda a evidencia e grafica (curvas de log-HV-diff x avaliacoes/iteracoes de lote, com banda de 2 SE); nao ha tabelas finais de desempenho com testes estatisticos nem simbolos +/=/-. As unicas tabelas numericas (Tabela 3 e 4) sao exclusivamente de tempo de parede (media +/- 2 SE), separadas por CPU/GPU, metodo, problema e tamanho de lote q.",
+    "codigo_plataforma": "BoTorch/PyTorch (implementacoes de qEHVI, qNParEGO, TS-TCH ja disponiveis; qNEHVI, MESMO e PFES implementados pelos proprios autores, com promessa de open-source no MIT apos publicacao); Spearmint (HIPS/Spearmint, ramo PESM) para PESMO; repositorio yunshengtian/DGEMO para DGEMO, MOEA/D-EGO e TSEMO; Park simulator (open-source) para ABR; pycomocma (CMA-ES/pycomocma) para COMO-CMA-ES."
+  },
+  "analises": [
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ilustracao qualitativa em um unico problema (BraninCurrin, ruido gaussiano aditivo de 5% do range de cada objetivo, q=1 sequencial): mostra o conjunto nao-dominado observado por NEHVI, EHVI e EHVI-PM sobreposto a frente de Pareto verdadeira (sem ruido) e ao ponto de referencia. E a evidencia visual central da patologia que motiva o artigo inteiro.",
+      "literal": "EHVI proceeds to spend its evaluation budget trying to optimize noise, resulting in a clumped Pareto frontier that lacks diversity.",
+      "localizador": "Sec. 5 (texto, antes da eq. 2); Fig. 1",
+      "metricas": [
+        "hypervolume (visual, cobertura da frente verdadeira)"
+      ],
+      "testes": [
+        "nenhum -- visualizacao de execucao(oes) ilustrativa(s), sem replicacao estatistica reportada nesta figura"
+      ],
+      "convencoes": "Dispersao no espaco de objetivos (2D); pontos coloridos por algoritmo; ponto de referencia e frente verdadeira marcados explicitamente; ruido gaussiano aditivo de media zero, sigma=5% do range de cada objetivo -- 5x o nivel tipicamente testado por trabalhos anteriores (nota de rodape 3).",
+      "achado": "NEGATIVO para EHVI e EHVI-PM: sem integrar corretamente a incerteza sobre a fronteira de Pareto observada, ambos 'gastam' avaliacoes em falsos otimos de Pareto criados por ruido, produzindo uma frente final aglomerada ('clumped') e pouco diversa -- nem mesmo a heuristica de plug-in da media posterior (EHVI-PM) resolve o problema. NEHVI, que integra essa incerteza, recupera uma frente bem distribuida mesmo sob ruido 5x maior que o testado em trabalhos anteriores.",
+      "aplicabilidade": "nao reproduzivel diretamente -- exigiria rodar, sob o mesmo DoE/orcamento, as variantes 'ignorar ruido' (usar Yn bruto) e 'plug-in de mu' do proprio qNEHVI, que nao fazem parte do roster tal como executado; corresponde ao contrafactual da ficha 15 ('sigma=0 online'), marcado como nunca executado na dissertacao."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de convergencia (log da diferenca de hipervolume x avaliacoes de funcao, sequencial q=1) para 8 problemas -- BraninCurrin, DTLZ2, ABR, VehicleSafety no corpo principal; AutoML, CarSideImpact, ConstrainedBraninCurrin, ZDT1 no Apendice H.3 -- comparando os 12 metodos, sobre 100 execucoes independentes (20 para PESMO).",
+      "literal": "The shaded region indicates two standard errors of the mean over 100 replications (only 20 replications were feasible for PESMO due to large runtimes).",
+      "localizador": "Fig. 3 (Sec. 9); Fig. 9(a) (Apendice H.3)",
+      "metricas": [
+        "log hypervolume difference"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curvas medias com banda de 2 SE; escala do eixo y ja e o valor log-transformado (varia por problema); uma cor por metodo, 12 metodos por painel.",
+      "achado": "qNEHVI e qNEHVI-1 superam todos os outros metodos nos benchmarks ruidosos, seguidos de perto por qEHVI-PM(-CBD) e, em alguns casos, por qEHVI puro; TS-TCH fica no meio da tabela; os metodos de teoria da informacao (PESMO, MESMO, PFES) tem o pior desempenho geral.",
+      "aplicabilidade": "camada 1 -- trajetoria do IGD+/HV acumulado por FE, celula algoritmo x problema, sobre as sementes; diretamente analogo a ficha 26 usando os dados ja coletados na dissertacao (embora os problemas e o protocolo de orcamento sejam distintos dos usados aqui)."
+    },
+    {
+      "fichas": [
+        64
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Qualidade final da frente de Pareto (log HV diff) sob orcamento fixo de 224 avaliacoes, variando o tamanho do lote q em {1,8,16,32}, para os mesmos 8 problemas e um subconjunto de metodos paralelizaveis (qEHVI incluido so ate q=8 pela explosao exponencial da IEP).",
+      "literal": "The quality of the final Pareto frontier identified by each method with increasing batch sizes q given a budget of 224 function evaluations.",
+      "localizador": "Fig. 4 (Sec. 9); Fig. 13 (Apendice H.3, mesma analise reapresentada)",
+      "metricas": [
+        "log hypervolume difference"
+      ],
+      "testes": [
+        "nenhum -- pontos/curvas sem barra de erro explicita no texto"
+      ],
+      "convencoes": "Eixo x categorico (q=1,8,16,32); uma linha por metodo; DGEMO omitido em ABR e VehicleSafety por falhas/lentidao da implementacao open-source usada.",
+      "achado": "qNEHVI atinge o maior hipervolume para tamanhos de lote crescentes e escala mais suavemente que TS-TCH e as variantes ParEGO; qNEHVI supera consistentemente qEHVI-PM-CBD em todos os tamanhos de lote testados.",
+      "aplicabilidade": "nao reproduzivel com a bateria online (q=1) da dissertacao -- corresponde exatamente a ficha 64 ('exige lote q>1'); seria aplicavel apenas as celulas 'batch' do sub-estudo ja previsto (qNEHVI/qPOTS em lote)."
+    },
+    {
+      "fichas": [
+        26,
+        64
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de 'anytime performance' (log HV diff x avaliacoes de funcao OU x iteracao de lote) decompostas por tamanho de lote q, para os metodos paralelizaveis nao limitados pela IEP (DGEMO, MOEA/D-EGO, TS-TCH, TSEMO, qNEHVI, qNParEGO), nos 8 problemas.",
+      "literal": "Optimization performance of batch acquisition functions using various q over the number of BO iterations.",
+      "localizador": "Fig. 9(b,c) (Apendice H.3); Fig. 11 (mesmos dados, eixo x em avaliacoes)",
+      "metricas": [
+        "log hypervolume difference"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Uma curva por (metodo, q); qEHVI(-PM) omitido destas figuras 'to improve readability' por nao escalar alem de q=8 (ver a analise seguinte para essa comparacao em separado).",
+      "achado": "qNEHVI mantem bom desempenho 'a qualquer momento' da busca para todos os valores de q testados; a vantagem sobre TS-TCH e as variantes ParEGO cresce com q.",
+      "aplicabilidade": "mesma limitacao da analise anterior -- exige lote q>1 (ficha 64) combinado com leitura de trajetoria por checkpoint de orcamento (ficha 26); nao reproduzivel com a bateria online sequencial da dissertacao sem um sub-estudo de lote dedicado."
+    },
+    {
+      "fichas": [
+        26,
+        64
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma familia de curvas 'anytime', restrita a comparacao dentro da familia EHVI: qNEHVI (via CBD) vs. qEHVI-PM-CBD, em varios q, isolando o efeito especifico de a CBD permitir lotes maiores do que a IEP permitiria.",
+      "literal": "Optimization performance of qNEHVI under various batch sizes q vs qEHVI(-PM). Note that using the IEP, qEHVI(-PM) cannot scale beyond q = 8",
+      "localizador": "Fig. 10 (Apendice H.3); Fig. 12 (mesmos dados, eixo x em avaliacoes)",
+      "metricas": [
+        "log hypervolume difference"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesma convencao da analise anterior, restrita a qNEHVI/qNEHVI-1/qEHVI-PM-CBD.",
+      "achado": "Dentro da propria familia EHVI, qNEHVI mantem vantagem sobre qEHVI-PM-CBD em todos os tamanhos de lote em que ambos podem ser comparados; a CBD permite a qNEHVI ir alem de q=8, onde a IEP ja estoura memoria.",
+      "aplicabilidade": "mesma limitacao das duas analises anteriores -- nao reproduzivel sem um sub-estudo de lote dedicado (ficha 64)."
+    },
+    {
+      "fichas": [
+        47,
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabelas de tempo de parede (CPU e GPU) para a etapa de otimizacao da funcao de aquisicao (incluindo decomposicoes de caixa), para os 12 metodos, nos 8 problemas e tamanhos de lote q em {1,8,16,32} (quando aplicavel).",
+      "literal": "Acquisition function optimization wall time (including box decompositions) in seconds on a CPU (2x Intel Xeon E5-2680 v4 @ 2.40GHz) and a Tesla V100 SXM2 GPU (16GB RAM). The mean and two standard errors are reported.",
+      "localizador": "Table 3, Table 4 (Apendice H.1)",
+      "metricas": [
+        "tempo de parede (segundos), media +/- 2 erros-padrao"
+      ],
+      "testes": [
+        "nenhum teste formal; apenas media +/- 2 SE"
+      ],
+      "convencoes": "Uma linha por (metodo, q); 'NA' para combinacoes nao suportadas (ex.: DGEMO em problemas com M>3 objetivos ou pacotes incompativeis); 'OOM' explicitamente marcado quando a memoria da GPU estoura (ex.: qEHVI q=8 em CarSideImpact).",
+      "achado": "Em GPU, qNEHVI-1 tem o menor tempo de qualquer metodo testado em todos os problemas; qNEHVI e mais rapido que os metodos de teoria da informacao em todos os problemas e frequentemente mais rapido que qNParEGO (gracas as atualizacoes de Cholesky de baixo posto). qEHVI(-PM) e mais rapido apenas em q pequeno (1 e 8) mas nao escala.",
+      "aplicabilidade": "camada 4 (tempos por geracao), parcialmente -- a camada 4 da dissertacao distingue ajuste do modelo / busca / sonda, enquanto este artigo so mede o componente de busca (otimizacao da aquisicao); comparavel apenas a essa fatia da camada 4, nao ao tempo total de execucao."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "CBD x IEP -- escalabilidade do custo de otimizacao da aquisicao com o lote q",
+      "grupo_sugerido": "F",
+      "descricao": "Comparacao de engenharia entre duas formulacoes matematicamente equivalentes do mesmo calculo de EHVI/NEHVI conjunta -- CBD (cached box decompositions, proposta do artigo) vs. IEP (inclusion-exclusion principle, formulacao anterior) -- medindo tempo de parede da otimizacao da aquisicao em funcao do tamanho do lote q, para problemas com 2, 3 e 4 objetivos, em CPU e GPU.",
+      "literal": "CBD enables scaling to much larger batch sizes q than using the IEP and avoids running out-of-memory (OOM) on a GPU.",
+      "localizador": "Fig. 2 (Sec. 6); Fig. 6 (Apendice H.2); derivacao teorica no Apendice D",
+      "metricas": [
+        "tempo de otimizacao da aquisicao (segundos) em funcao de q"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curvas de tempo vs. q; anotacao explicita de 'OOM' onde a IEP estoura a memoria da GPU; DTLZ2 (6 dimensoes) inicializado com 20 pontos, GPs independentes por objetivo.",
+      "achado": "A IEP cresce exponencialmente em tempo e espaco com q (multiplicativa no numero de hiper-retangulos), tornando-se inviavel (estoura GPU) mesmo para q modesto quando M>=3; a CBD reduz isso a polinomial em q, permitindo lotes de ate q=100 nos testes de escalabilidade.",
+      "aplicabilidade": "nao reproduzivel -- e uma comparacao de duas implementacoes internas equivalentes do mesmo calculo (nao uma comparacao de algoritmos SA-MOO distintos); nenhuma das 7 camadas da dissertacao captura o custo interno da otimizacao da propria funcao de aquisicao."
+    },
+    {
+      "fichas": [
+        64
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Reanalise diagnostica dos dados da analise 'Fig. 4/13' focada num achado especifico e contra-intuitivo: em varios problemas, qEHVI (que ignora ruido) tem desempenho MELHOR com q=8 do que com q=1, ao contrario de qNEHVI/qNParEGO (que ja tratam o ruido), cujo desempenho nao mostra esse padrao.",
+      "literal": "Interestingly, on many test problems qEHVI performs better with q = 8 than q = 1.",
+      "localizador": "Apendice H.4",
+      "metricas": [
+        "log hypervolume difference"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Discussao textual referenciando os mesmos dados de Fig. 4/13, sem novo grafico dedicado.",
+      "achado": "Achado contra-intuitivo: aumentar o tamanho do lote pode mitigar indiretamente o problema de ruido para metodos que nao o tratam explicitamente (qEHVI, qParEGO), possivelmente porque integrar sobre mais pontos in-sample suaviza a superficie de aquisicao, tornando-a menos enganada pelo ruido sequencial -- efeito NAO observado nos metodos ja robustos a ruido (qNEHVI, qNParEGO).",
+      "aplicabilidade": "mesma limitacao da analise 'Fig. 4/13' -- exige lote q>1 sob o mesmo protocolo (ficha 64); a hipotese causal proposta pelos autores (superficie de aquisicao mais suave) nao e diretamente testavel com as 7 camadas coletadas pos-hoc."
+    },
+    {
+      "fichas": [
+        18
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Desempenho sequencial (hipervolume e log HV diff) no DTLZ2 biobjetivo com ruido fixo (sigma=5%), variando a dimensao de entrada d em {5,10,15,20}, comparando qNEHVI, qNEHVI-1, qNParEGO e TS-TCH; extensao em lote (q em {1,8,16,32}) restrita a qNEHVI vs qNEHVI-1.",
+      "literal": "Figures 8 and 7 show that qNEHVI-1 does not perform as well a qNEHVI on higher dimensional problems.",
+      "localizador": "Apendice H.5; Fig. 7, Fig. 8",
+      "metricas": [
+        "hypervolume",
+        "log hypervolume difference"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Um painel por valor de d; curvas de convergencia (Fig. 7) e pontos finais por q (Fig. 8).",
+      "achado": "Escada de dificuldade pela dimensao: qNEHVI (amostragem exata da posterior do GP) permanece o melhor metodo independentemente de d; qNEHVI-1 (aproximacao de trajetoria unica via Random Fourier Features) e competitivo em baixa dimensao mas degrada visivelmente quando d cresce, atribuido a erro de aproximacao crescente das RFF com poucas (500) funcoes de base.",
+      "aplicabilidade": "nao reproduzivel com a bateria congelada da dissertacao -- exigiria variar D dentro do MESMO problema; a dissertacao varia D apenas entre instancias de uma familia (aproximando-se parcialmente da ficha 7, mas sem controle estrito dos demais fatores)."
+    },
+    {
+      "fichas": [
+        18
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Desempenho sequencial no DTLZ2 (d=6, M=2) sob niveis de ruido crescentes (sigma = 1%, 2%, 3%, 4%, 5%, 10%, 15%, 20% do range de cada objetivo; discussao textual estende a 30%), comparando qNEHVI, qEHVI, qNEHVI-1 e qNParEGO.",
+      "literal": "qNEHVI-1 achieves the best final hypervolume when the noise standard deviation sigma is less than 15% of the range of each objective, but performs worse than qNEHVI earlier in the optimization. qNEHVI is the top performer in high-noise environments.",
+      "localizador": "Apendice H.6, Fig. 14",
+      "metricas": [
+        "log hypervolume difference"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Um painel por nivel de ruido sigma; mesma escala de eixos entre paineis para comparacao visual direta da degradacao.",
+      "achado": "Escada de dificuldade pelo ruido: todos os metodos degradam com mais ruido, mas qNEHVI degrada menos e permanece o melhor em toda a faixa (ate 30%, muito acima do 1% tipicamente testado antes); qNEHVI-1 so e competitivo quando sigma<15%, perdendo a vantagem sobre qNEHVI em alto ruido.",
+      "aplicabilidade": "nao reproduzivel com a bateria congelada -- exigiria reexecutar o(s) mesmo(s) problema(s) sob multiplos niveis de ruido injetado; a bateria da dissertacao tem um regime de ruido fixo (ou nenhum) por problema, nao uma varredura controlada."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Controle sem ruido -- placar sob sigma=0",
+      "grupo_sugerido": "A",
+      "descricao": "Repeticao do desempenho sequencial e em lote (mesmos 8 problemas e metodos das analises anteriores) em versoes SEM ruido injetado dos benchmarks, como condicao de controle para verificar se o mecanismo de robustez a ruido de qNEHVI tem algum custo de desempenho quando a incerteza extra e desnecessaria.",
+      "literal": "Figure 15 shows that qNEHVI performs competitively with qEHVI(-PM-CBD) and outperforms DGEMO, TS-TCH and qNParEGO across all benchmark problems.",
+      "localizador": "Apendice H.7, Fig. 15",
+      "metricas": [
+        "log hypervolume difference"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesmas convencoes visuais das analises sequencial/lote (curvas de convergencia), aplicadas as versoes noiseless dos mesmos problemas.",
+      "achado": "Sem ruido, qNEHVI e qNEHVI-1 continuam entre os melhores (competitivos com qEHVI/qEHVI-PM-CBD, superando DGEMO/TS-TCH/qNParEGO) e mostram pouca degradacao com o aumento do paralelismo -- ou seja, tratar o ruido explicitamente nao penaliza o desempenho quando nao ha ruido a tratar.",
+      "aplicabilidade": "camada 1 diretamente, SE os problemas sinteticos da dissertacao ja forem avaliados sem ruido injetado -- nesse caso o desempenho de qNEHVI ja registrado na bateria congelada corresponde ao regime 'noiseless' investigado aqui, sem necessidade de nova execucao."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Escalabilidade em numero de objetivos (M=5)",
+      "grupo_sugerido": "C",
+      "descricao": "Demonstracao de viabilidade em M=5 objetivos (DTLZ2, d=6, sigma=5%), comparando qNEHVI-1 (unica variante testada nesse M, por custo) contra qNParEGO e busca Sobol pura; reporta tambem o tempo medio por candidato gerado.",
+      "literal": "To our knowledge, no previous methods leveraging EHVI or HVI (e.g. DGEMO, TSEMO) considers 5-objective problems because of the super-polynomial complexity of the hypervolume indicator.",
+      "localizador": "Apendice H.8, Fig. 16",
+      "metricas": [
+        "log hypervolume difference",
+        "tempo medio por candidato (segundos, com SEM)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Painel unico, 400 avaliacoes de funcao; tempo por candidato reportado no texto como media +/- erro-padrao da media (SEM), nao em tabela.",
+      "achado": "qNEHVI-1 supera qNParEGO e Sobol em M=5 objetivos -- um regime em que nenhum metodo baseado em melhoria de hipervolume havia sido demonstrado antes, segundo os autores -- mas a um custo de ~73,53s por candidato contra ~11,37s do qNParEGO (cerca de 6,5x mais lento).",
+      "aplicabilidade": "nao diretamente comparavel -- a dissertacao ja testa varios M via DTLZ/WFG (endpoint por M na camada 1), mas a alegacao especifica aqui ('primeiro metodo baseado em HVI a escalar a M=5') e sobre viabilidade de ENGENHARIA, nao sobre desempenho relativo a um piso; sem camada correspondente direta."
+    },
+    {
+      "fichas": [
+        9,
+        10
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparacao de qNEHVI, qNEHVI-1, qNParEGO, TS-TCH e busca Sobol pura contra o COMO-CMA-ES -- uma estrategia evolutiva multiobjetivo SEM surrogate, ja mostrada superior ao MO-CMA-ES na literatura -- no problema SphereEllipsoidal (M=2, d=5, sigma=5%, suite BBOB biobjetivo).",
+      "literal": "As shown in Figure 17, the BO methods vastly outperform COMO-CMA-ES. qNEHVI and qNParEGO perform best and are closely followed by qNEHVI-1.",
+      "localizador": "Apendice H.9, Fig. 17",
+      "metricas": [
+        "log hypervolume difference"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curva de convergencia unica (200 avaliacoes); COMO-CMA-ES configurado com 5 kernels, mesmo DoE inicial quase-aleatorio dos metodos BO, populacao 10, passo inicial 0,2.",
+      "achado": "POSITIVO para a tese 'o surrogate compra': todos os metodos assistidos por Bayesian Optimization (e ate o proprio Sobol quase-aleatorio, usado aqui como um segundo piso) superam largamente o piso evolutivo forte sem surrogate (COMO-CMA-ES); qNEHVI e qNParEGO empatam na lideranca, seguidos de perto por qNEHVI-1.",
+      "aplicabilidade": "camada 1 diretamente -- e exatamente o desenho da ficha 9/10 (assistido x piso, por semente); a dissertacao usa NSGA-II/MOEA-D/NSGA-III/SMS-EMOA como pisos (nao COMO-CMA-ES nem Sobol), mas a logica da comparacao ja esta reproduzida com os dados coletados da bateria congelada."
+    },
+    {
+      "fichas": [
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ablacao de tres variantes de DGEMO (um metodo de lote diferente de qNEHVI) no BraninCurrin ruidoso (sigma=5%, q=1): DGEMO puro (usa a fronteira observada bruta), DGEMO-PM (troca por media posterior so na geracao de candidatos) e DGEMO-PM-NEHVI (adicionalmente usa qNEHVI, em vez de HVI sob a media, como criterio final de selecao do lote).",
+      "literal": "The right plot in Figure 18 shows that DGEMO exhibits the same clumping behavior in objective space in the noisy setting as EHVI.",
+      "localizador": "Apendice H.10, Fig. 18",
+      "metricas": [
+        "hypervolume (visual, cobertura da frente verdadeira)"
+      ],
+      "testes": [
+        "nenhum -- visualizacao de execucao unica, sem replicacao estatistica reportada"
+      ],
+      "convencoes": "Tres paineis de dispersao no espaco de objetivos, um por variante de DGEMO, mesma convencao visual da Fig. 1.",
+      "achado": "Ablacao em cascata: DGEMO puro aglomera sob ruido (mesma patologia da EHVI); trocar so a estimativa da fronteira in-sample pela media posterior (DGEMO-PM) ja resolve a maior parte do problema; adicionar qNEHVI como criterio de selecao do lote (DGEMO-PM-NEHVI) melhora ainda mais a cobertura, especialmente no canto inferior-direito da frente, mas o ganho marginal de qNEHVI sobre DGEMO-PM e modesto porque ele so filtra um conjunto discreto ja gerado pela aproximacao de primeira ordem do DGEMO.",
+      "aplicabilidade": "nao reproduzivel -- exige implementar e rodar variantes aumentadas de um algoritmo (DGEMO-PM, DGEMO-PM-NEHVI) que nao fazem parte do roster tal como executado na dissertacao; nenhuma camada cobre uma variante de algoritmo nunca instrumentada."
+    },
+    {
+      "fichas": [
+        41,
+        60
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Recomputacao do desempenho dos metodos principais usando uma definicao alternativa de 'resposta do algoritmo': em vez do conjunto nao-dominado bruto entre os pontos in-sample observados, usa o conjunto in-sample que o MODELO (via media posterior) acredita ser Pareto-otimo, e depois avalia esse conjunto escolhido pelo hipervolume da frente verdadeira sem ruido.",
+      "literal": "Several methods have worse performance over time (e.g. qEHVI and qPAREGO on the ZDT1 problem), likely due to the collection of outlier observations that degrade the model fit.",
+      "localizador": "Apendice J, Fig. 19",
+      "metricas": [
+        "log hypervolume difference (variante: sobre o conjunto selecionado pela media posterior, nao o bruto)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesmos paineis/problemas das analises sequencial/lote principais, mas com a metrica recalculada sob a politica alternativa de selecao do conjunto de resposta.",
+      "achado": "A escolha de politica de avaliacao importa: sob essa metrica alternativa, alguns metodos que nao tratam bem o ruido (qEHVI, qParEGO) PIORAM ao longo do tempo em vez de convergir -- atribuido a observacoes-outlier que degradam o ajuste do modelo, o que por sua vez degrada o conjunto 'acreditado'. qNEHVI continua com o melhor desempenho sob essa metrica alternativa tambem.",
+      "aplicabilidade": "camadas 1 e 3, parcialmente -- reavaliar o ND com base no mu do modelo (nao no valor bruto observado) e proximo da logica da 'fantasia' (ficha 41: ND acreditado via mu vs. ND real via f verdadeiro); reproduzivel se a camada 3 registrar mu em todos os pontos in-sample, mas e uma politica de metrica alternativa (ficha 60: sensibilidade do veredito a politica de leitura), nao uma nova execucao."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "Nao mede calibracao do GP nos benchmarks (sem cobertura, sem correlacao sigma-vs-erro, sem RMSE do modelo reportado). Apenas cita, como pressuposto geral de fundo -- nao verificado empiricamente nos dados dos proprios benchmarks --, que GPs sao conhecidos por 'incerteza preditiva bem calibrada' (citando Rasmussen 2004). O artigo assume o GP bem especificado (Matern 5/2 ARD, MAP) e concentra-se em como INTEGRAR corretamente essa incerteza na aquisicao, nao em auditar a qualidade do sigma do modelo em si.",
+    "literal": "the surrogate is a Gaussian Process (GP), a flexible, non-parametric model known for its well-calibrated predictive uncertainty [47]",
+    "localizador": "Sec. 2 Preliminaries"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo de parede da otimizacao da aquisicao (incluindo decomposicoes de caixa), em CPU e GPU, por metodo x problema x tamanho de lote q (Tabelas 3-4, Apendice H.1); NAO decompoe separadamente tempo de ajuste do GP nem de avaliacao verdadeira -- mede apenas o componente de busca. Reporta tambem complexidade assintotica teorica de tempo/espaco da CBD vs IEP em funcao de q, n (pontos observados) e M (objetivos) (Apendice D), validada empiricamente (Fig. 2, Fig. 6). Um numero pontual de custo por candidato aparece no estudo de 5 objetivos (73,53s do qNEHVI-1 vs 11,37s do qNParEGO, Apendice H.8).",
+    "literal": "Acquisition function optimization wall time (including box decompositions) in seconds on a CPU (2x Intel Xeon E5-2680 v4 @ 2.40GHz) and a Tesla V100 SXM2 GPU (16GB RAM).",
+    "localizador": "Legenda da Table 3 / Table 4; Apendice D; Apendice H.1"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Achado central do artigo (a passagem citada pela dissertacao): sem tratamento adequado do ruido, a EHVI gasta o orcamento de avaliacoes tentando otimizar picos de ruido que PARECEM otimos de Pareto, produzindo uma frente final aglomerada ('clumped'), pouco diversa.",
+      "literal": "EHVI proceeds to spend its evaluation budget trying to optimize noise, resulting in a clumped Pareto frontier that lacks diversity.",
+      "localizador": "Sec. 5 (antes da eq. 2); Fig. 1"
+    },
+    {
+      "descricao": "A heuristica de 'plug-in' (usar a media posterior do GP como estimativa pontual dos valores verdadeiros nos pontos ja avaliados) -- uma tentativa razoavel de regularizar contra o ruido -- TAMBEM falha e produz frentes aglomeradas.",
+      "literal": "we find that this heuristic also leads to clustered Pareto frontiers (EHVI-PM in Fig. 1)",
+      "localizador": "Sec. 5"
+    },
+    {
+      "descricao": "O mesmo padrao de falha (clumping sob ruido) aparece em DGEMO, um metodo de lote que nao modela ruido, e em outras baselines que usam a media posterior em vez dos valores observados ao computar melhoria de hipervolume -- o problema nao e especifico da familia EHVI.",
+      "literal": "Similar patterns emerge with DGEMO (which does not account for noise), and other baselines that utilize the posterior mean rather than the observed values when computing hypervolume improvement",
+      "localizador": "Sec. 5; detalhado no Apendice H.10"
+    },
+    {
+      "descricao": "Contraste explicito com a literatura de simulacao anterior: outros autores concluiram que MODELAR o ruido explicitamente NAO melhorava o desempenho da otimizacao (um deles recomendou simplesmente ignora-lo); os autores de c262 relatam o oposto para o metodo deles. E um achado negativo de OUTROS artigos, nao de c262, mas relevante como contraponto historico ao tema da incerteza.",
+      "literal": "Horn et al. [26] suggest that the best approach is to ignore noise, and Koch et al. [33] concluded that further research was needed to determine if modeling techniques such as re-interpolation could improve BO performance with noisy observations.",
+      "localizador": "Sec. 3 Related Work"
+    },
+    {
+      "descricao": "Os metodos de busca baseados em teoria da informacao/entropia (PESMO, MESMO, PFES) -- uma abordagem alternativa, tambem bayesiana, de tratar incerteza -- tem o PIOR desempenho entre os 12 metodos testados nos benchmarks ruidosos do artigo.",
+      "literal": "information-theoretic acquisition functions appear to perform the worst",
+      "localizador": "Sec. 9.1"
+    },
+    {
+      "descricao": "A variante de amostra unica (qNEHVI-1, que aproxima o GP por Random Fourier Features em vez de amostrar exatamente a posterior) degrada em espacos de busca de alta dimensao -- uma limitacao propria do mecanismo aproximado de incerteza do artigo.",
+      "literal": "qNEHVI-1 does not perform as well a qNEHVI on higher dimensional problems. We hypothesize that the RFF approximation degrades in higher dimensional search spaces",
+      "localizador": "Apendice H.5"
+    },
+    {
+      "descricao": "Sob a metrica de avaliacao alternativa (conjunto in-sample escolhido pela media do modelo, nao pelo valor observado bruto), alguns metodos pioram ao longo do tempo -- presumivelmente porque observacoes-outlier causadas por ruido degradam o ajuste do modelo, o que por sua vez degrada a escolha do conjunto 'acreditado'.",
+      "literal": "Several methods have worse performance over time (e.g. qEHVI and qPAREGO on the ZDT1 problem), likely due to the collection of outlier observations that degrade the model fit.",
+      "localizador": "Apendice J"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "NEHVI reduz-se EXATAMENTE a EHVI no caso sem ruido -- nao e coincidencia empirica, e uma equivalencia matematica direta da formulacao (a integral sobre a incerteza da fronteira de Pareto colapsa quando nao ha ruido nas observacoes).",
+      "literal": "in noiseless environments, NEHVI is equivalent to EHVI",
+      "localizador": "Sec. 5.1"
+    },
+    {
+      "descricao": "Confirmacao empirica da equivalencia acima: em benchmarks SEM ruido injetado, qNEHVI tem desempenho equivalente/competitivo (nao superior) ao par qEHVI/qEHVI-PM-CBD -- a vantagem de qNEHVI so aparece quando ha ruido; sem ruido, os criterios convergem para o mesmo comportamento esperado.",
+      "literal": "Figure 15 shows that qNEHVI performs competitively with qEHVI(-PM-CBD) and outperforms DGEMO, TS-TCH and qNParEGO across all benchmark problems.",
+      "localizador": "Apendice H.7"
+    },
+    {
+      "descricao": "A formulacao CBD (cached box decompositions) e a formulacao IEP (inclusion-exclusion principle) para calcular qNEHVI/qEHVI sao matematicamente EXATAMENTE equivalentes (mesmo valor de aquisicao para o mesmo conjunto de candidatos, via metodo de numeros aleatorios comuns) -- a unica diferenca e o custo computacional (polinomial vs exponencial em q); nao e uma equivalencia de desempenho aproximada, e uma identidade algebrica provada.",
+      "literal": "using the method of common random numbers, the CBD formulation is mathematically equivalent to IEP formulation, but the computing qNEHVI with the CBD trick is much more efficient",
+      "localizador": "Apendice C.2"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "ruido nas observacoes (nivel/magnitude, sigma como % do range do objetivo)",
+      "afirmacao": "qNEHVI mantem desempenho superior consistente em toda a faixa testada (1% a 20%, com discussao estendendo a 30%) -- muito alem do 1% tipicamente testado em trabalhos anteriores; qNEHVI-1 (aproximacao de amostra unica) so e competitivo em baixo ruido (sigma<15%), perdendo para qNEHVI em regimes de alto ruido.",
+      "literal": "qNEHVI-1 achieves the best final hypervolume when the noise standard deviation sigma is less than 15% of the range of each objective, but performs worse than qNEHVI earlier in the optimization. qNEHVI is the top performer in high-noise environments.",
+      "localizador": "Apendice H.6, Fig. 14"
+    },
+    {
+      "caracteristica": "alta dimensao do espaco de busca (d)",
+      "afirmacao": "Ao variar d de 5 a 20 no mesmo problema (DTLZ2 biobjetivo, sigma=5%), qNEHVI permanece robusto (amostragem exata da posterior do GP), enquanto qNEHVI-1 (aproximacao via Random Fourier Features) degrada por erro de aproximacao crescente com d.",
+      "literal": "As shown in Figure 7, qNEHVI consistently outperforms all tested methods regardless of the dimension of the design space.",
+      "localizador": "Apendice H.5, Fig. 7-8"
+    },
+    {
+      "caracteristica": "numero de objetivos M (muitos objetivos)",
+      "afirmacao": "O custo de otimizar a aquisicao cresce fortemente com M (mais hiper-retangulos na decomposicao de caixas, complexidade super-polinomial em M); apesar disso, qNEHVI-1 (via CBD + amostra unica) e o primeiro metodo baseado em melhoria de hipervolume a demonstrar escalabilidade a M=5 objetivos, superando qNParEGO e busca Sobol.",
+      "literal": "using CBD and a single sample path approximation, qNEHVI-1 can be used for 5-objective optimization",
+      "localizador": "Apendice H.8, Fig. 16"
+    },
+    {
+      "caracteristica": "tamanho do lote (batch) q, avaliacao paralela em larga escala",
+      "afirmacao": "Sob a formulacao IEP (qEHVI, qEHVI-PM), tempo e espaco crescem exponencialmente com q, levando a estouro de memoria (OOM) em GPU ja em q=8 (CarSideImpact) e tornando q>8 inviavel em geral; sob CBD, qNEHVI escala polinomialmente com q e permanece tratavel ate q=32 mesmo com M=3-4 objetivos.",
+      "literal": "CBD enables scaling to much larger batch sizes q than using the IEP and avoids running out-of-memory (OOM) on a GPU",
+      "localizador": "Sec. 6.1; Fig. 2, Fig. 6; Table 4 (qEHVI q=8 = OOM no CarSideImpact)"
+    }
+  ],
+  "roster_bloco": {
+    "mecanismo_proprio": [
+      {
+        "descricao": "Comparacao-ilustracao de tres tratamentos da incerteza na fronteira de Pareto sob ruido, com toda a maquinaria (mesmo GP, mesmo problema, mesmo q=1) mantida fixa: NEHVI (integra a distribuicao posterior completa sobre a fronteira), EHVI (ignora o ruido, usa a fronteira observada bruta) e EHVI-PM (usa a media posterior como estimativa pontual). E a ablacao mais direta do mecanismo de incerteza do proprio metodo.",
+        "literal": "EHVI proceeds to spend its evaluation budget trying to optimize noise, resulting in a clumped Pareto frontier that lacks diversity.",
+        "localizador": "Sec. 5, Fig. 1"
+      },
+      {
+        "descricao": "Versao sistematica da mesma ablacao (NEHVI vs EHVI vs EHVI-PM, sob CBD) estendida a 8 problemas, sequencial e em lote (q ate 32), com 100 execucoes -- qNEHVI supera consistentemente qEHVI-PM-CBD, que por sua vez frequentemente supera qEHVI puro.",
+        "literal": "qNEHVI also consistently outperforms qEHVI-PM-CBD",
+        "localizador": "Sec. 9.1"
+      },
+      {
+        "descricao": "Varredura do nivel de ruido do problema (1% a 20%, discussao a 30%) isolando como a vantagem de integrar a incerteza cresce com a magnitude do ruido -- o mecanismo 'em acao': mais ruido, maior o beneficio relativo de NEHVI sobre EHVI/EHVI-PM.",
+        "literal": "We observe that all methods degrade as the noise level increases, however qNEHVI consistently exhibits excellent performance relative to other methods",
+        "localizador": "Apendice H.6, Fig. 14"
+      },
+      {
+        "descricao": "Condicao de controle sem ruido: a formulacao teorica preve que NEHVI colapsa a EHVI quando sigma=0; confirmado empiricamente (qNEHVI ~= qEHVI(-PM-CBD) nos benchmarks sem ruido) -- mostra que usar a maquinaria de NEHVI nao tem custo de desempenho quando a incerteza extra e desnecessaria.",
+        "literal": "in noiseless environments, NEHVI is equivalent to EHVI",
+        "localizador": "Sec. 5.1 (teorico); Apendice H.7, Fig. 15 (confirmacao empirica)"
+      },
+      {
+        "descricao": "Ablacao cruzada em um algoritmo hospedeiro diferente (DGEMO): DGEMO puro (fronteira observada bruta) vs. DGEMO-PM (media posterior so na geracao de candidatos) vs. DGEMO-PM-NEHVI (adicionalmente usa qNEHVI, em vez de HVI sob a media, como criterio de selecao do lote) -- isola a contribuicao especifica do criterio qNEHVI quando acoplado a uma maquinaria de geracao de candidatos alheia.",
+        "literal": "using qNEHVI to integrate over the uncertainty in the Pareto frontier over the previously evaluated points, results in identifying higher quality Pareto frontiers",
+        "localizador": "Apendice H.10, Fig. 18"
+      }
+    ],
+    "reprodutivel_com_camadas": [
+      {
+        "mecanismo": "NEHVI vs EHVI vs EHVI-PM (ablacao direta, Fig. 1, e sua versao sistematica, Sec. 9.1)",
+        "camada": "nao reproduzivel com as camadas -- corresponde ao contrafactual 'sigma=0 online' da ficha 15, nunca executado na dissertacao; exigiria rodar qEHVI/qEHVI-PM como configuracoes adicionais sob o mesmo DoE/orcamento/protocolo do roster."
+      },
+      {
+        "mecanismo": "Varredura de nivel de ruido do problema (Apendice H.6)",
+        "camada": "nao reproduzivel -- a bateria congelada tem ruido fixo (ou ausente) por problema; exigiria reexecucao com ruido injetado em multiplos niveis, fora do escopo pos-hoc."
+      },
+      {
+        "mecanismo": "Controle sem ruido, sigma=0 (Apendice H.7)",
+        "camada": "camada 1 (avaliacoes reais) diretamente, SE os sinteticos da dissertacao ja forem avaliados sem ruido injetado -- nesse caso o desempenho de qNEHVI ja registrado na bateria congelada corresponde ao regime noiseless investigado aqui, sem necessidade de nova execucao."
+      },
+      {
+        "mecanismo": "Ablacao cruzada em DGEMO (DGEMO x DGEMO-PM x DGEMO-PM-NEHVI, Apendice H.10)",
+        "camada": "nao reproduzivel -- exige implementar e rodar variantes aumentadas de um algoritmo (DGEMO-PM, DGEMO-PM-NEHVI) que nao fazem parte do roster tal como executado."
+      }
+    ],
+    "parametros_do_uso_da_incerteza": {
+      "N_amostras_qmc": "N = 128 amostras quasi-Monte Carlo para a expectativa externa sobre a incerteza da fronteira de Pareto, em todas as funcoes de aquisicao MC (Apendice G.2)",
+      "sigma_ruido_observacional": "Sigma_i (variancia/covariancia do ruido de observacao): assumida CONHECIDA/observada em todos os problemas, EXCETO ABR, onde e inferida junto aos hiperparametros do GP via MAP (Sec. 9)",
+      "qnehvi1_rff": "qNEHVI-1 (variante de amostra unica) aproxima a trajetoria do GP via Random Fourier Features com 500 funcoes de base (Apendice G.2, Sec. 8)",
+      "kernel_gp": "Matern 5/2 ARD, um GP independente por objetivo, hiperparametros via estimacao MAP (Sec. 9)",
+      "ponto_referencia": "r = f_nadir(x) - beta*(f_ideal(x) - f_nadir(x)), com beta = 0,1 (Apendice G.4)",
+      "poda_dominancia": "poda opcional de Xn: remocao de pontos dominados com alta probabilidade, estimada via MC (nota de rodape 4 do artigo); sem limiar numerico explicitado",
+      "tamanho_lote_q": "q em {1, 8, 16, 32} -- interage diretamente com o mecanismo de incerteza via selecao sequencial-gulosa, com amostras-base redesenhadas a cada novo candidato i (Apendice G.2)"
+    }
+  },
+  "observacoes": "(1) Artigo do NeurIPS 2021 (arXiv:2105.08195), fundamentalmente teorico-metodologico: a contribuicao central (CBD, prova de Bayes-optimalidade de NEHVI/qNEHVI, cota de regret da selecao sequencial-gulosa) e majoritariamente teorica; a secao experimental principal (Sec. 9, ~2 paginas) e enxuta, mas os Apendices G-J concentram uma bateria extensa de estudos suplementares (H.1 a H.10, mais a extensao a restricoes ruidosas em I e a metrica alternativa em J) -- padrao tipico de material suplementar do NeurIPS. (2) Nenhum teste de hipotese formal aparece em lugar nenhum do artigo (confirmado por busca textual por 'Wilcoxon/Friedman/Nemenyi/rank-sum/signed-rank/p-value/significance/t-test'): todas as comparacoes sao visuais (bandas de +/-2 erro-padrao) ou descritivas. (3) Os problemas 'reais' usados aqui (ABR via Park simulator; AutoML/MNIST; VehicleSafety e CarSideImpact como superficies de resposta de simuladores de colisao) sao inteiramente distintos dos tres problemas reais da dissertacao (RE21, ESTOQUE40, DDMOP7) -- nao ha sobreposicao direta, exceto DTLZ2/ZDT1 (mesma familia de sinteticos) e SphereEllipsoidal (mesma suite BBOB). (4) A quase totalidade das analises do artigo (Fig. 1 a Fig. 15, mais o Apendice H.10) constitui, na pratica, uma bateria natural e muito rica de ablacoes do proprio mecanismo de incerteza do algoritmo (NEHVI vs. EHVI vs. EHVI-PM, sob ruido variavel, sob dimensao variavel, sob lote variavel, com e sem CBD) -- mas NENHUMA delas e diretamente reproduzivel com as 7 camadas da dissertacao, porque todas exigem executar VARIANTES do proprio qNEHVI (ou de outro algoritmo, DGEMO) que nao fazem parte do roster tal como executado; corresponde ao contrafactual 'sigma=0 online' que a propria ficha 15 da tipologia ja assinala como nunca executado na dissertacao. (5) A excecao mais clara de reprodutibilidade direta com os dados ja coletados e a comparacao com piso forte nao-BO (Apendice H.9: COMO-CMA-ES e Sobol), que tem a mesma logica da ficha 9/10 e ja esta coberta pela bateria congelada da dissertacao (embora com pisos diferentes: NSGA-II/MOEA-D/NSGA-III/SMS-EMOA em vez de CMA-ES/Sobol). (6) O Apendice I (derivacao de NEHVI restrita/'Constrained NEHVI') e puramente teorico -- os resultados empiricos do problema ConstrainedBraninCurrin que ele viabiliza ja estao cobertos pelas analises de convergencia/lote (Fig. 9a, Fig. 13); nao gera uma analise experimental separada. O Apendice A (impacto social) tambem nao contem experimentos. (7) A leitura do arquivo cobriu o corpo estruturado (linhas 1-1092), a camada de texto bruta completa 'ANEXO -- Camada de texto completa do PDF' (linhas 1093-5279, verificada redundante com o corpo estruturado apos checagem cruzada de multiplos trechos, incluindo as Tabelas 3-4 e as derivacoes matematicas dos Apendices C-F e I) e o anexo final de OCR de imagens (linhas 5280-5312), que contem apenas fragmentos ilegiveis de legendas rasterizadas e nao acrescenta conteudo. Nenhuma secao ou apendice foi pulado. (8) Nenhum problema de leitura: o PDF->Markdown produziu bastante 'sopa' de sub/sobrescritos nas equacoes da secao estruturada, mas a camada de texto bruta ('ANEXO') reproduz as mesmas equacoes de forma legivel e permitiu confirmar todos os numeros das Tabelas 2, 3 e 4 e das figuras citadas."
+}

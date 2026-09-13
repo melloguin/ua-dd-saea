@@ -1,0 +1,27 @@
+=== T07 · EVIDENCIA DAS CORRECOES T11 NO c311 ===
+
+[1] RE-RUN BIT-IDENTICO s42 (2026-07-26) x smoke T11 (2026-07-31, HEAD 9ad0138)
+  __real.parquet           IDENTICO  07530706e23cdddd609fa2ff1c62b486
+  __pop.parquet            IDENTICO  d0c59b0cc8002dcea0c2500755423a8d
+  __surrogate.parquet      IDENTICO  f38c82a708d9fa142b0f8b5c8152d5f9
+  __final.parquet          IDENTICO  021c23b28b0bf26745ccfe899b4e5bb8
+  __final.manifest.json    IDENTICO  7866647238704d1f98ead2878fda2ed2
+  __timing.parquet         DIFERE    7dbf3a1baed74586cffb37dee3817095
+
+[2] tempo_aval_real_s nos 5 offline PYTHON (smoke T11) — escala com N, nao com o problema
+  b5m            MMF1       N=61     tempo_aval_real_s=0.0001     -> 1.64 us/linha
+  b5r            BBOB_F22   N=309    tempo_aval_real_s=0.0003     -> 0.97 us/linha
+  c311           BBOB_F17   N=309    tempo_aval_real_s=0.0003     -> 0.97 us/linha
+  moead_media    MMF1       N=61     tempo_aval_real_s=0.0001     -> 1.64 us/linha
+  treed_media    ZDT4       N=50000  tempo_aval_real_s=0.0572     -> 1.14 us/linha
+
+[3] campos NOVOS no ⑤ do smoke ausentes na s42
+  campanha_id      s42="<AUSENTE>"  T11="9ad0138aa9a4_2026-07-31"
+  repo_hash        s42=null      T11="9ad0138aa9a464a7d9f89d247f81092f8c4ef26f"
+  schema_version   s42=1         T11=2
+  params.AVISO_n_sigma_valido  s42=<AUSENTE>  T11=presente
+
+[4] B1 na celula REPROVADA (s42, swap_big-mvns_MMF16_20) — a assinatura
+  ⑤ status=ok  motivo_parada=gpy_bfgs_linalg
+  ⑥ footer status=failed motivo=gpy_bfgs_linalg
+  ⑥ footer status=ok motivo=<sem campo>

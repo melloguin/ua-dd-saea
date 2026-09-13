@@ -1,0 +1,220 @@
+
+===== Métricas (freq.)
+Métrica / indicador | Nº de artigos (de 38) | Artigos
+HV / hipervolume (incl. log-regret) | 23 | BS-MOBO, CSEA, EMMI, EMMOEA, IBE-CSEA, IBEA-MS, JES, K-RVEA, MOBO, MOEA/D-EGO, NSGAII-DR, NSGAIII-EHVI, ParEGO, SAEA/ME, SMS-EGO, SP-RV-MOEANet, TC-SAEA, U-RankMOEA, USeMO, não reportado, não reportado (autores não cunham uma sigla única para o framework; usam Prob-RVEA/Prob-MOEA-D para a abordagem probabilística e Hyb-RVEA/Hyb-MOEA-D para a abordagem híbrida, como as quatro instanciações propostas), qEHVI, qNEHVI
+IGD | 16 | AdaMoR-DDMOEA, BS-MOBO, CSEA, EDN-ARMOEA, EHVIMOPSO, EMMOEA, IBE-CSEA, IBEA-MS, K-RVEA, MOEA/D-EGO, NSGAIII-EHVI, PAL-SAPSO, SAEA/ME, SA²-MOEA, TC-SAEA, U-RankMOEA
+tempo / wall-clock | 14 | CSEA, EDN-ARMOEA, EHVIMOPSO, JES, K-RVEA, MOBO, NSGAIII-EHVI, RL-Diffusion (uncertainty-aware), SP-RV-MOEANet, UA-DBO, USeMO, não reportado, qEHVI, qNEHVI
+RMSE/MAE do surrogate | 12 | AdaMoR-DDMOEA, CSEA, DTK-MODE, EDN-ARMOEA, IBE-CSEA, IBEA-MS, NSGAII-DR, PAL-SAPSO, U-RankMOEA, UA-DBO, não reportado, não reportado (autores não cunham uma sigla única para o framework; usam Prob-RVEA/Prob-MOEA-D para a abordagem probabilística e Hyb-RVEA/Hyb-MOEA-D para a abordagem híbrida, como as quatro instanciações propostas)
+ε-indicator | 5 | EMMI, MO P-algorithm, ParEGO, SMS-EGO, não reportado (sem nome/sigla próprio; referido apenas como um framework offline de otimização multiobjetivo — 'offline MOOA' — com estratégia de amostragem por score F=0,5·R(dc)+0,5·R(∇G))
+IGD+ | 3 | EMMOEA, NSGAII-DR, RVMM
+contagem de vitórias/empates/derrotas | 3 | EDN-ARMOEA, NSGAIII-EHVI, RVMM
+spacing / spread | 3 | EHVIMOPSO, RVMM, U-RankMOEA
+ECE (Expected Calibration Error) | 2 | U-RankMOEA, UA-DBO
+GD | 2 | MO P-algorithm, RVMM
+R2-indicator | 2 | SMS-EGO, USeMO
+R² (ajuste) | 2 | NSGAIII-EHVI, RL-Diffusion (uncertainty-aware)
+regret | 2 | USeMO, qEHVI
+taxa de acerto / erro do classificador | 2 | CSEA, IBEA-MS
+(L/D)cruise (razão sustentação/arrasto em condiç | 1 | UA-DBO
+ACE (Adaptive Calibration Error) | 1 | U-RankMOEA
+AUCE (Area Under the Calibration Error curve) | 1 | RL-Diffusion (uncertainty-aware)
+Atom Stability (ASta, %) / Molecular Stability ( | 1 | RL-Diffusion (uncertainty-aware)
+Brier score | 1 | U-RankMOEA
+CICP (Confidence Interval Coverage Probability) | 1 | NSGAII-DR
+CL,buffet (coeficiente de sustentação de início  | 1 | UA-DBO
+Cobertura empírica do intervalo de confiança de  | 1 | UA-DBO
+Correlação de Pearson entre objetivos | 1 | RL-Diffusion (uncertainty-aware)
+Correlação de postos de Spearman (ρ) | 1 | U-RankMOEA
+D (distância média entre nós) | 1 | SP-RV-MOEANet
+DP — distância máxima das soluções 'erradas' ao  | 1 | MO P-algorithm
+Desvio-padrão empírico (amostral) das réplicas | 1 | não reportado
+Distorção de pressão total (D), recuperação de p | 1 | EHVIMOPSO
+Distância média à frente de Pareto real (analíti | 1 | SMS-EGO
+EI (Expected Improvement) sobre o indicador IP | 1 | EMMOEA
+Erro do modelo no ótimo (|predição do modelo − a | 1 | UA-DBO
+Error ratio (NN−NP)/NN | 1 | MO P-algorithm
+Expected Improvement (EI) — critério de infill c | 1 | SMS-EGO
+GHV (HV generalizado) | 1 | JES
+Ganho de informação / informação mútua sob o pos | 1 | U-RankMOEA
+IGD-NS (fitness interno) | 1 | EDN-ARMOEA
+IP (Indicador de Performance proposto) — indicad | 1 | EMMOEA
+Incerteza de estimativa (desvio padrão preditivo | 1 | não reportado (sem nome/sigla próprio; referido apenas como um framework offline de otimização multiobjetivo — 'offline MOOA' — com estratégia de amostragem por score F=0,5·R(dc)+0,5·R(∇G))
+Incerteza média normalizada (normalized average  | 1 | não reportado
+MCE (Maximum Calibration Error) | 1 | U-RankMOEA
+MD — 'maximum hole length' (dispersão/uniformida | 1 | MO P-algorithm
+Mediana do melhor custo encontrado (valor bruto  | 1 | ParEGO
+NLPD/NLL (negative log predictive density / log- | 1 | U-RankMOEA
+NN — número de soluções não-dominadas encontrada | 1 | MO P-algorithm
+NP — número de pontos no Pareto set verdadeiro | 1 | MO P-algorithm
+Número de avaliações de função (Neval) | 1 | SABBa
+Número de avaliações reais (ActualSimulationCost | 1 | EHVIMOPSO
+Número de avaliações/chamadas da FEA (função obj | 1 | DTK-MODE
+PD — Pure Diversity | 1 | SA²-MOEA
+PI (Percentage Improvement) | 1 | EMMOEA
+POP — Pareto Optimal Probability (POPtrue e POPm | 1 | SABBa
+PPO — probabilidade (média) de Pareto-otimalidad | 1 | não reportado (sem nome/sigla próprio; referido apenas como um framework offline de otimização multiobjetivo — 'offline MOOA' — com estratégia de amostragem por score F=0,5·R(dc)+0,5·R(∇G))
+Probabilidade de dominância p(x≺x′) | 1 | não reportado
+QB — distância de Hausdorff modificada esperada  | 1 | SABBa
+R | 1 | SP-RV-MOEANet
+RE (erro relativo do valor médio previsto do sur | 1 | MOEA/D-EGO
+RMSD (nm) de simulação de MD | 1 | RL-Diffusion (uncertainty-aware)
+Rank médio (average rank) | 1 | BS-MOBO
+Razão de eficiência relativa ('EGO wins' / 'no d | 1 | ParEGO
+Redução de C̄D (drag counts, 1 count = 1×10⁻⁴) | 1 | UA-DBO
+Reliability (nível de confiabilidade) | 1 | não reportado
+Resíduo de predição de salinidade (surrogate/ens | 1 | não reportado
+Rl | 1 | SP-RV-MOEANet
+STD da variância estimada (σ) | 1 | EDN-ARMOEA
+Taxa de erro de classificação do ensemble final  | 1 | IBE-CSEA
+Top Molecules (Top, %) | 1 | RL-Diffusion (uncertainty-aware)
+Uniqueness (Uni, %) / Novelty (Nov, %) / VUN (%) | 1 | RL-Diffusion (uncertainty-aware)
+Validity (Val, %) | 1 | RL-Diffusion (uncertainty-aware)
+Valor bruto do objetivo de engenharia (V(x), ΔP, | 1 | SABBa
+Valores-objetivo nas soluções extremas e na solu | 1 | DTK-MODE
+Variação percentual entre extremos da frente (in | 1 | não reportado
+a_i (resíduo padronizado de validação cruzada le | 1 | não reportado
+custo de movimentação (distância) | 1 | MOBO
+d(x) — largura (bandwidth) do intervalo de predi | 1 | DTK-MODE
+escore médio (ranking Friedman) | 1 | RVMM
+nº de vetores de referência inativos | 1 | K-RVEA
+p_i (indicador de proximidade da predição LOO) | 1 | não reportado
+probabilidade/fração de restrição satisfeita | 1 | MOBO
+r (assortatividade) | 1 | SP-RV-MOEANet
+ΔG_bind (kcal/mol) e Kd previsto (µM) via FEP | 1 | RL-Diffusion (uncertainty-aware)
+ρ(z) — probabilidade máxima de dominância de um  | 1 | não reportado
+
+===== Testes (freq.)
+Teste estatístico | Nº de artigos (de 38) | Artigos
+nenhum teste formal (só estatística descritiva: média±dp/SEM) | 17 | DTK-MODE, EHVIMOPSO, EMMI, JES, MO P-algorithm, MOBO, MOEA/D-EGO, NSGAII-DR, PAL-SAPSO, RL-Diffusion (uncertainty-aware), SABBa, UA-DBO, USeMO, não reportado, não reportado (sem nome/sigla próprio; referido apenas como um framework offline de otimização multiobjetivo — 'offline MOOA' — com estratégia de amostragem por score F=0,5·R(dc)+0,5·R(∇G)), qEHVI, qNEHVI
+Wilcoxon rank-sum (Mann-Whitney) | 16 | AdaMoR-DDMOEA, BS-MOBO, CSEA, EDN-ARMOEA, EMMOEA, IBE-CSEA, IBEA-MS, K-RVEA, NSGAIII-EHVI, ParEGO, RVMM, SAEA/ME, SA²-MOEA, SP-RV-MOEANet, TC-SAEA, U-RankMOEA
+Friedman (+ pós-teste) | 3 | RVMM, SA²-MOEA, não reportado
+Bayesian signed-rank (c/ ROPE) | 1 | IBEA-MS
+Kruskal-Wallis unicaudal (p<0,01) | 1 | SMS-EGO
+Sistema de pontuação/ranking agregado (+1/0/−1)  | 1 | não reportado (autores não cunham uma sigla única para o framework; usam Prob-RVEA/Prob-MOEA-D para a abordagem probabilística e Hyb-RVEA/Hyb-MOEA-D para a abordagem híbrida, como as quatro instanciações propostas)
+Teste F de duas amostras (igualdade de variância | 1 | não reportado
+Wilcoxon signed-rank (pareado) | 1 | U-RankMOEA
+correção múltipla (Bonferroni/Holm) | 1 | não reportado (autores não cunham uma sigla única para o framework; usam Prob-RVEA/Prob-MOEA-D para a abordagem probabilística e Hyb-RVEA/Hyb-MOEA-D para a abordagem híbrida, como as quatro instanciações propostas)
+
+===== Cobertura (38 artigos)
+ID | Sigla | Motor | Surrogate | Função da incerteza | Regime | Nº análises | Nº anál. incerteza
+b1 | ParEGO | BO-Decomposição (a cada iteração sortei… | GP — Processo Gaussiano/Kriging (modelo… | O1 · Aquisição exploratória (Expected I… | online (o… | 6 | 1
+b13 | AdaMoR-DDMOEA | EA-Decomposição | NN — Rede Neural + RG — Regressor Cláss… | A3 · Gestão de confiança | offline | 9 | 3
+b14 | SA²-MOEA | EA-Dominância. Nota: o artigo propõe ex… | RG — Regressor Clássico (não-GP). Model… | O3 · Aprendizado ativo / reparo. Nota: … | online | 11 | 3
+b15 | U-RankMOEA | BO-Especiais (o próprio artigo declara … | GP — Processo Gaussiano/Kriging (Deep G… | O1 · Aquisição exploratória (rede de aq… | online (l… | 18 | 6
+b2 | MOEA/D-EGO | BO-Decomposição (MOEA/D decompõe o MOP … | GP — Processo Gaussiano/Kriging (um mod… | O1 · Aquisição exploratória (Expected I… | online (P… | 10 | 3
+b3 | K-RVEA | EA-Decomposição (RVEA — reference vecto… | GP/Kriging (um modelo de Kriging indepe… | O3 aprendizado ativo — o desvio-padrão … | online (a… | 15 | 3
+b4 | CSEA | EA-Dominância | CL classificação | A3 gestão de confiança | online | 10 | 2
+b5 | não reportado (autores não cunham uma sigla única para o framework; usam Prob-RVEA/Prob-MOEA-D para a abordagem probabilística e Hyb-RVEA/Hyb-MOEA-D para a abordagem híbrida, como as quatro instanciações propostas) | EA-Decomposição (RVEA — assinalação a v… | GP — Processo Gaussiano/Kriging (um mod… | A2 · Dominância probabilística (o mecan… | offline (… | 8 | 3
+b7 | NSGAII-DR | EA-Dominância (NSGA-II — ordenação não-… | GP — Processo Gaussiano/Kriging (RBF e … | A1 · Penalização avessa a risco — f_UA-… | offline (… | 7 | 4
+b9 | USeMO | BO-Especiais (framework de busca em doi… | GP — Processo Gaussiano/Kriging (um GP … | O1 · Aquisição exploratória (qualquer f… | online (l… | 8 | 3
+c1 | BS-MOBO | BO-Hipervolume | NN — Rede Neural (Bayesiana, MC dropout) | O1 · Aquisição exploratória | online | 16 | 2
+c10 | SP-RV-MOEANet | EA-Decomposição | RG — Regressor Clássico (não-GP) | O3 · Aprendizado ativo / reparo | online | 13 | 2
+c100 | qEHVI | BO-Hipervolume | GP — Processo Gaussiano/Kriging | O1 · Aquisição exploratória | online | 14 | 1
+c105 | SMS-EGO | BO-Hipervolume (SMS-EGO: a contribuição… | GP — Processo Gaussiano/Kriging (modelo… | O1 · Aquisição exploratória (a incertez… | online (c… | 7 | 2
+c106 | EMMI | BO-Melhoria-de-Pareto | GP — Processo Gaussiano/Kriging | O1 · Aquisição exploratória | online | 8 | 2
+c107 | não reportado | BO-Hipervolume | GP — Processo Gaussiano/Kriging | O1 · Aquisição exploratória | online | 11 | 4
+c154 | JES | BO-Especiais (entropy search) | GP/Kriging | O2 ganho de informação | online | 15 | 6
+c24 | DTK-MODE | EA-Dominância | GP — Processo Gaussiano/Kriging | O3 · Aprendizado ativo / reparo | offline | 5 | 1
+c241 | EMMOEA | EA-Indicador | GP/Kriging | O1 aquisição exploratória | online | 13 | 1
+c262 | qNEHVI | BO-Hipervolume | GP/Kriging | O1 aquisição exploratória | online (o… | 17 | 7
+c29 | MO P-algorithm | BO-Melhoria-de-Pareto | GP — Processo Gaussiano/Kriging | O1 · Aquisição exploratória | online | 7 | 3
+c45 | não reportado (sem nome/sigla próprio; referido apenas como um framework offline de otimização multiobjetivo — 'offline MOOA' — com estratégia de amostragem por score F=0,5·R(dc)+0,5·R(∇G)) | BO-Especiais — abordagem bayesiana (GP … | GP — Processo Gaussiano/Kriging — kerne… | A2 · Dominância probabilística — probab… | offline —… | 6 | 3
+c48 | IBE-CSEA | EA-Dominância | CL - Relação/Classificação | A3 · Gestão de confiança | online | 9 | 2
+c49 | não reportado | EA-Decomposição | GP — Processo Gaussiano/Kriging | Resíduo | offline | 3 | 3
+c50 | não reportado | EA-Dominância | GP — Processo Gaussiano/Kriging | A2 · Dominância probabilística | offline | 11 | 5
+c59 | UA-DBO | EA-Dominância | NN — Rede Neural | A1 · Penalização avessa a risco | offline | 13 | 5
+c65 | SABBa | Resíduo | GP — Processo Gaussiano/Kriging | A2 · Dominância probabilística | online | 12 | 4
+c66 | PAL-SAPSO | EA-Dominância | GP — Processo Gaussiano/Kriging | A2 · Dominância probabilística | online | 6 | 1
+c71 | SAEA/ME | BO-Especiais | GP — Processo Gaussiano/Kriging | O1 · Aquisição exploratória | online | 6 | 2
+c81 | RL-Diffusion (uncertainty-aware) | Resíduo — RL (PPO-style, clipped policy… | NN — Rede Neural (Chemprop Directed-MPN… | A1 · Penalização avessa a risco — a inc… | offline —… | 15 | 5
+c82 | TC-SAEA | EA-Decomposição | GP — Processo Gaussiano/Kriging | A3 · Gestão de confiança | online | 9 | 2
+c91 | EHVIMOPSO | EA-Dominância (motor de busca é o MOPSO… | GP/Kriging (um único modelo de Kriging … | O1 aquisição exploratória — a incerteza… | online — … | 9 | 1
+c97 | não reportado | EA-Dominância | RG — Regressor Clássico (não-GP) | Resíduo | offline | 9 | 4
+e103 | IBEA-MS | EA-Indicador (IBEA_eps+ adaptativo, Alg… | GP/Kriging (modelo principal, fornece i… | A3 gestão de confiança — a incerteza (R… | offline | 11 | 3
+e104 | RVMM | EA — o otimizador é o RVEA (Reference V… | GP/Kriging — um modelo de Processo Gaus… | A1 penalização de risco — a função de a… | online — … | 12 | 2
+e17 | MOBO | BO (Bayesian Optimization single- e mul… | GP/Kriging (um GP independente por obje… | O1 aquisição exploratória — UCB-HVI (Up… | online (f… | 12 | 2
+e7 | EDN-ARMOEA | EA-Indicador (AR-MOEA, baseado no indic… | NN (Efficient Dropout Neural Network — … | O3 aprendizado ativo — a incerteza (var… | online (r… | 11 | 5
+e86 | NSGAIII-EHVI | EA-Indicador (EHVI/hipervolume), com fr… | GP/Kriging (fornece média e MSE/variânc… | O1 aquisição exploratória — mas com uso… | online (i… | 10 | 2
+
+===== Plano (SPEC × análises)
+PLANO DE ANÁLISES — concatena o que a SPEC v3.3 gera (Exp 1a/1b online-offline · 2 large-batch · 3 sweep offline) com as análises recomendadas, no melhor set p/ a dissertação. 'Suficiente?' = dados já exportados pela SPEC. |  |  |  |  | 
+Bloco | Análise (melhor set concatenado) | Origem (recomendação ↔ SPEC) | Experimento(s) que alimenta(m) | Fonte de dados (camadas da SPEC) | Suficiente?
+1 · Comparativo (quem ganha) | Tabela de qualidade final + significância | rec#1 + SPEC §12/§14 | 1a online + 1b offline | ① Catálogo REAL + true_PF + §14 | SIM
+1 · Comparativo | Diagrama de diferença crítica (Friedman/Nemenyi/Demšar/Holm) | rec#2 + SPEC §14 | 1a + 1b | métricas por problema (①) | SIM
+1 · Comparativo | Trajetórias de convergência (mediana + IQR) | rec#4 + SPEC §13 | 1a (online) | ① + fe_index | SIM
+1 · Comparativo | Superfícies de attainment worst-case (Knowles) | SPEC §13-D52 (adotar — eu não listara) | 1a (19 probl. 2-obj) | fronts de ① | SIM
+1 · Comparativo | Visualização de fronteira representativa (objetivos + decisão p/ MMF) | rec#8 | 1a + 1b | ① (F e X) | SIM
+2 · Explicativo (a tese ⭐) | Característica-do-problema × mecanismo-do-algoritmo | rec#3 + SPEC §15 | todos | ① + rótulos de característica (+ IGDX p/ MMF via X de ①) | SIM (IGDX = cálculo, não export)
+2 · Explicativo | Atribuição seminal → SOTA (b4→c217, b1→c262, b3→e7) | rec#7 + SPEC §15 | 1a | ① dos pares | SIM
+2 · Explicativo | Análise por dimensão + interação D×algoritmo | SPEC §15-D50 | todos | ① agregado por D | SIM (só rankings intra-D; ressalva D50)
+3 · Uso da incerteza (diferencial) | 'O filme' — fronteira acreditada (surrogate) vs. real (erro de fantasia) | rec#5 + SPEC §15-D49 / §17.1 | 1a + 1b | ③ μ/σ por geração + ② real sincronizada (D31) | SIM
+3 · Uso da incerteza | Acurácia/calibração do surrogate: RMSE↔HV (regressores) + acurácia/precisão/revocação (classificadores) | rec#6 + SPEC §15-D49 | todos | ③ × ① (via real_solution_id) | SIM (held-out global independente = opcional)
+4 · Escalabilidade (2ª história) | Custo × escalabilidade: parede O(n³) do GP vs BNN (online) / treed-GP (offline) | rec#9 + SPEC V-B.3 + §11.5 | Exp 2 (batch) + Exp 3-big (offline) | manifesto (wall-clock/FEs) + ⚠ timing por retreino | PARCIAL → exportar timing de fit por retreino
+4 · Escalabilidade | Sweep offline: tamanho × distribuição {LHS, MVNS} | rec#10 + SPEC §11.5 | Exp 3 | ① + tamanho/distribuição (manifesto) | SIM
+5 · Large-batch (Exp 2) | Performance batch + contraste q=1 × q=10 a FEs-iguais | SPEC V-B (recorte fe_index≤31D−1) | Exp 2 | ① + manifesto(q) + recorte de fe_index | SIM
+5 · Large-batch | Utilidade do infill (nº de soluções que melhoraram o IGD ao longo dos FEs) | SPEC §13 (métrica do e7) | 1a + Exp 2 | ① + fe_index | SIM
+
+
+##########  PILOTO 10 ##########
+
+===== Leia-me
+Análises experimentais do corpus SA-MOO-UU — AMOSTRA PILOTO
+O que é este arquivo: uma AMOSTRA (piloto) construída a partir de 10 dos 130 artigos do corpus, para você validar a
+qualidade da extração, a categorização das análises e o layout, ANTES de eu escalar para os 130.
+Os 10 artigos do piloto (escolhidos p/ máxima diversidade de tipos de análise):
+   b3 K-RVEA · b4 CSEA · c241 EMMOEA · e86 NSGAIII-EHVI · e7 EDN-ARMOEA  (EA; GP/CL/NN; online/offline)
+   c154 JES · c262 qNEHVI · e17 MOBO  (BO; GP; online)   ·   e103 IBEA-MS  (EA; GP; offline)   ·   e104 RVMM  (EA; GP; online)
+Abas:
+   • Ranking 1 — Recomendadas: as análises que EU recomendo para a SUA dissertação, com score (0-10) e justificativa.
+       É a minha síntese casada ao seu recorte (foco explicativo característica×mecanismo, sem ruído/erro epistêmico,
+       16 algoritmos × 26 problemas × 30 sementes, famílias seminal↔SOTA, export de 2 camadas, Demšar já planejado).
+   • Ranking 2 — + frequentes: os tipos de análise que mais aparecem nos artigos (aqui, nos 10 do piloto).
+   • Métricas (freq.) e Testes (freq.): indicadores e testes estatísticos distintos usados, por nº de artigos.
+   • Cobertura: os 10 artigos e quantas análises cada um rendeu.
+Como ler os números do Ranking 2 (e das abas de freq.): são contagens sobre 10 artigos. Com os 130, as ORDENS devem
+se manter, mas as magnitudes mudam. O Ranking 1 é qualitativo (recomendação) e muda pouco — os 130 servem p/ juntar
+mais evidência e exemplos nas justificativas.
+Achado que já salta no piloto: há um SPLIT por comunidade. Artigos EA/PlatEMO usam IGD/IGD+ + Wilcoxon/Friedman +
+tabela final; artigos BO/BoTorch (JES, qNEHVI, MOBO) usam só hipervolume (log-regret) + média±erro-padrão, SEM teste
+formal. Isso importa para você decidir o protocolo unificado da dissertação.
+
+===== Ranking 2 — + frequentes
+RANKING 2 — Tipos de análise que mais aparecem (contagem sobre os 10 artigos do piloto; ordens devem se manter nos 130). |  |  |  |  |  |  |  | 
+# | Análise (tipo de estudo) | Nº de artigos (de 10) | Em quais algoritmos | Métricas/indicadores usados | Testes usados | O que ela analisa | Como ela funciona | Objetivo
+1 | Custo computacional / tempo de execução (empírico) | 10 | CSEA, EDN-ARMOEA, EMMOEA, IBEA-MS, JES, K-RVEA, MOBO, NSGAIII-EHVI, RVMM, qNEHVI | IGD, complexidade assintótica, tempo / wall-clock | Wilcoxon rank-sum (Mann-Whitney), nenhum teste formal (só estatística descritiva: média±dp/SEM) | Custo prático (wall-clock) de treinar o surrogate e/ou rodar o algoritmo. | Mede tempo por etapa vs. nº de avaliações/dimensão; ressalva de linguagem/implementação. | Expor o preço da maquinaria de incerteza (ex.: GP O(N³) vs. NN/RG).
+2 | Sensibilidade de parâmetro/hiperparâmetro | 9 | CSEA, EDN-ARMOEA, EMMOEA, IBEA-MS, JES, K-RVEA, MOBO, NSGAIII-EHVI, RVMM |  , (, ), /, D, Frequência média de acionamento do critério de d, G, H, HV / hipervolume (incl. log-regret), I, IGD, V, a, c, d, e, i, l, m, n, o, p, r, t, tempo / wall-clock, v, ã |  , a, c, d, e, i, l, n, o, p, r, t, ã | Robustez do desempenho a variações nos hiperparâmetros do método. | Varre um parâmetro por vez e observa a métrica; reporta o valor adotado. | Justificar as escolhas de configuração e medir robustez.
+3 | Estudo de ablação / contribuição de componente | 8 | CSEA, EDN-ARMOEA, EMMOEA, IBEA-MS, JES, NSGAIII-EHVI, RVMM, qNEHVI |  , GD, HV / hipervolume (incl. log-regret), IGD, IGD+, a, c, contagem de vitórias/empates/derrotas, d, e, escore médio (ranking Friedman), i, l, n, o, p, r, spacing / spread, t, tempo / wall-clock, ã |  , Friedman (+ pós-teste), Wilcoxon rank-sum (Mann-Whitney), a, c, contagem de vitórias/empates/derrotas, d, e, i, l, n, nenhum teste formal (só estatística descritiva: média±dp/SEM), notação '−' reaproveitada do teste de significân, o, p, r, t, ã | Contribuição isolada de um componente do algoritmo (frequentemente o próprio mecanismo de uso da incerteza). | Cria variantes que ligam/desligam o componente (ex.: AUCB vs. UCB vs. só média) e compara sob o mesmo protocolo. | Provar que o mecanismo estudado (não outro fator) é responsável pelo ganho.
+4 | Análise por característica do problema | 7 | CSEA, EMMOEA, IBEA-MS, JES, K-RVEA, NSGAIII-EHVI, RVMM | GHV (HV generalizado), IGD, IGD+, nº de vetores de referência inativos | Wilcoxon rank-sum (Mann-Whitney) | Relação entre uma característica estrutural do problema (geometria da PF, multimodalidade, dimensão, nº de objetivos) e o desempenho relativo dos mecanismos. | Agrupa os problemas por característica e discute/mede qual família vence em cada grupo e por quê. | Explicar o 'porquê' — cruzar característica-do-problema × mecanismo-do-algoritmo.
+5 | Tabela de qualidade final + teste de significância | 7 | CSEA, EDN-ARMOEA, EMMOEA, IBEA-MS, K-RVEA, NSGAIII-EHVI, RVMM | HV / hipervolume (incl. log-regret), IGD, IGD+, contagem de vitórias/empates/derrotas | Teste de significância par-a-par (+/−/∼), Wilcoxon rank-sum (Mann-Whitney) | Desempenho final de cada algoritmo em cada problema (média±dp sobre as sementes), com marcação de significância par-a-par e contagem agregada de vitórias/empates/derrotas. | Uma célula por (algoritmo × problema) com média(dp) da métrica ao fim do orçamento; melhor valor destacado; símbolo +/=/− vs. o algoritmo de referência; linha final somando +/=/−. | Estabelecer o veredito factual e auditável de 'quem ganha onde' — o substrato de todas as leituras posteriores.
+6 | Visualização da fronteira de Pareto / conjunto de soluções | 7 | CSEA, EMMOEA, JES, K-RVEA, MOBO, RVMM, qNEHVI | IGD, IGD+ | — | Cobertura e distribuição espacial das soluções não-dominadas obtidas vs. a fronteira de Pareto verdadeira. | Plota o conjunto não-dominado da execução de métrica mediana, sobreposto à PF verdadeira, em 2-3 objetivos. | Dar intuição visual do que os números dizem; expor problemas específicos (degenerado, desconexo).
+7 | Curvas de convergência (métrica × avaliações) | 6 | EDN-ARMOEA, EMMOEA, JES, K-RVEA, MOBO, qNEHVI | HV / hipervolume (incl. log-regret), IGD, nº de vetores de referência inativos | nenhum teste formal (só estatística descritiva: média±dp/SEM) | Perfil e velocidade de convergência da métrica ao longo do orçamento de avaliações reais. | Plota mediana (ou média) ± faixa (IQR/dp) da métrica vs. nº de avaliações, uma curva por algoritmo, por problema representativo. | Mostrar QUANDO cada método ganha (início vs. fim do orçamento) e expor a adaptatividade.
+8 | Acurácia/calibração da incerteza do surrogate | 5 | CSEA, EDN-ARMOEA, IBEA-MS, MOBO, NSGAIII-EHVI | RMSE/MAE do surrogate, R² (ajuste), STD da variância estimada (σ), taxa de acerto / erro do classificador, tempo / wall-clock | — |  |  | 
+9 | Escalabilidade em número de objetivos | 5 | EDN-ARMOEA, K-RVEA, NSGAIII-EHVI, RVMM, qNEHVI | HV / hipervolume (incl. log-regret), IGD, IGD+, R² (ajuste), contagem de vitórias/empates/derrotas, tempo / wall-clock | Teste de significância par-a-par (+/−/∼), Wilcoxon rank-sum (Mann-Whitney), nenhum teste formal (só estatística descritiva: média±dp/SEM) | Como o desempenho relativo muda ao aumentar o número de objetivos. | Repete o desenho variando M (ex.: 2/3/5/10), mantendo o resto fixo; lê a métrica dentro de cada nível. | Testar robustez do mecanismo ao crescimento da dimensão objetiva.
+10 | Estudo de caso / aplicação real | 5 | CSEA, EDN-ARMOEA, EMMOEA, K-RVEA, RVMM | HV / hipervolume (incl. log-regret), IGD, IGD+, PI (percentage improvement) | Teste de significância par-a-par (+/−/∼), Wilcoxon rank-sum (Mann-Whitney) | Validação em um problema real de engenharia/ciência, além dos benchmarks sintéticos. | Aplica o método a um problema-aplicação e reporta métricas/soluções. | Demonstrar relevância prática.
+11 | Escalabilidade em dimensão de decisão (D) | 4 | CSEA, EDN-ARMOEA, RVMM, qNEHVI | HV / hipervolume (incl. log-regret), IGD, IGD+, contagem de vitórias/empates/derrotas | Wilcoxon rank-sum (Mann-Whitney), nenhum teste formal (só estatística descritiva: média±dp/SEM) | Como o desempenho se degrada ao aumentar o número de variáveis de decisão. | Repete o desenho variando D (ex.: 10/20/30/50), muitas vezes com surrogate incremental para conter custo. | Mapear o limite prático de cada família em D.
+12 | Análise teórica (complexidade Big-O / provas) | 3 | EDN-ARMOEA, NSGAIII-EHVI, qNEHVI | complexidade assintótica | — | Custo assintótico e/ou garantias teóricas (regret, convergência). | Derivação analítica (não empírica) de complexidade ou provas de otimalidade/convergência. | Fundamentar teoricamente as escolhas de projeto.
+13 | Outras / mistas | 3 | EMMOEA, JES, K-RVEA | HV / hipervolume (incl. log-regret), IGD | Wilcoxon rank-sum (Mann-Whitney) | (categoria heterogênea) | (vários) | (vários)
+14 | Avaliação in-sample vs fora-da-amostra / etapa de decisão | 2 | JES, qNEHVI | HV / hipervolume (incl. log-regret) | — | Como a incerteza afeta a recomendação final (pontos avaliados vs. média posterior sobre todo o espaço). | Recalcula a métrica usando o conjunto de Pareto identificado pela média posterior do modelo. | Expor o trade-off exploração-via-incerteza vs. desempenho imediato.
+15 | Coordenadas paralelas | 2 | EMMOEA, K-RVEA | IGD | — | Distribuição por objetivo das soluções em espaços de muitos objetivos (onde não cabe dispersão 2D/3D). | Eixo = índice do objetivo; linha = uma solução; compara faixa/cobertura vs. a PF verdadeira. | Visualizar diversidade e cobertura em cenários many-objective.
+16 | Ilustração conceitual do uso da incerteza (motivacional) | 2 | EMMOEA, JES | EI por objetivo (valores numéricos únicos, não d, desvio-padrão do GP (s_k(x), incerteza), entropia / ganho de informação | — | Diagrama/exemplo didático de como μ e σ se combinam (NÃO é estudo empírico sistemático). | Figura esquemática ou exemplo numérico único, tipicamente na introdução/motivação. | Explicar visualmente o mecanismo — útil como figura conceitual, não como evidência.
+17 | Sensibilidade ao nível de ruído | 2 | JES, qNEHVI | HV / hipervolume (incl. log-regret) | nenhum teste formal (só estatística descritiva: média±dp/SEM) | Degradação do desempenho conforme aumenta o ruído de observação (incerteza aleatória). | Injeta ruído de magnitude crescente e mede a métrica por nível. | Avaliar robustez a ruído — fonte de incerteza ALEATÓRIA (fora do recorte epistêmico desta tese).
+18 | Sensibilidade ao tamanho do lote (batch) | 2 | JES, qNEHVI | HV / hipervolume (incl. log-regret) | nenhum teste formal (só estatística descritiva: média±dp/SEM) | Como a qualidade final varia com o grau de paralelismo (q pontos por iteração). | Fixa o orçamento e compara q ∈ {1,8,16,...}. | Caracterizar o trade-off paralelismo × qualidade (relevante só p/ métodos em lote).
+19 | Comparação vs. heurística forte não-BO (piso) | 1 | qNEHVI | HV / hipervolume (incl. log-regret) | nenhum teste formal (só estatística descritiva: média±dp/SEM) | Desempenho relativo frente a uma heurística forte não-surrogate (ex.: CMA-ES). | Roda a heurística no mesmo protocolo e compara a métrica. | Situar o ganho do surrogate contra um piso competitivo.
+20 | Diagnóstico do valor das amostras selecionadas | 1 | EDN-ARMOEA | IGD, Nº de soluções contribuintes | — | Quantas amostras reais escolhidas de fato melhoram a métrica ao longo da busca. | Conta soluções 'contribuintes' por avaliação, comparando estratégias de seleção. | Medir a eficácia prática da seleção guiada por incerteza.
+21 | Efeito de restrição / preferência | 1 | MOBO | custo de movimentação (distância), probabilidade/fração de restrição satisfeita | — | Como restrições probabilísticas ou preferências guiam a busca. | Modela a restrição via surrogate e pondera a aquisição pela probabilidade de satisfação; mede fração válida/trajetória. | Caracterizar mecanismos de restrição/preferência (fora do recorte irrestrito desta tese).
+22 | Hipervolume generalizado / por região (GHV) | 1 | JES | GHV (HV generalizado), HV / hipervolume (incl. log-regret) | Prova formal da Proposição 3 (invariância à repa | Qualidade da fronteira sob diferentes parametrizações/regiões do espaço de objetivos. | Pondera o HV por uma família de pesos e mede o desempenho por região. | Ir além da sensibilidade de escala do HV padrão.
+23 | Sensibilidade aos dados offline (amostragem/tamanho) | 1 | IBEA-MS |  , a, c, d, e, i, l, n, o, p, r, t, ã |  , a, c, d, e, i, l, n, o, p, r, t, ã | Efeito do dataset offline (método de amostragem e/ou tamanho) no desempenho. | Varia LHS vs. aleatório e/ou o tamanho do dataset e mede a métrica. | Caracterizar a dependência de dados dos métodos offline.
+24 | Teste estatístico agregado / ranking (Friedman/Bayes/CD) | 1 | IBEA-MS | HV / hipervolume (incl. log-regret), IGD | Bayesian signed-rank (c/ ROPE), Wilcoxon rank-sum (Mann-Whitney) | Comparação global de muitos algoritmos across muitos problemas, colapsada em ranking/probabilidade. | Friedman + pós-teste (Nemenyi/Holm) com diagrama de diferença crítica, ou teste bayesiano signed-rank com região de equivalência. | Contrastar (não catalogar) — o veredito global em uma figura.
+
+===== Cobertura (10 artigos)
+ID | Sigla | Motor | Surrogate | Função da incerteza | Regime | Nº análises | Nº anál. incerteza
+b3 | K-RVEA | EA-Decomposição (RVEA — reference vecto… | GP/Kriging (um modelo de Kriging indepe… | O3 aprendizado ativo — o desvio-padrão … | online (a… | 15 | 3
+b4 | CSEA | EA-Dominância | CL classificação | A3 gestão de confiança | online | 10 | 2
+c154 | JES | BO-Especiais (entropy search) | GP/Kriging | O2 ganho de informação | online | 15 | 6
+c241 | EMMOEA | EA-Indicador | GP/Kriging | O1 aquisição exploratória | online | 13 | 1
+c262 | qNEHVI | BO-Hipervolume | GP/Kriging | O1 aquisição exploratória | online (o… | 17 | 7
+e103 | IBEA-MS | EA-Indicador (IBEA_eps+ adaptativo, Alg… | GP/Kriging (modelo principal, fornece i… | A3 gestão de confiança — a incerteza (R… | offline | 11 | 3
+e104 | RVMM | EA — o otimizador é o RVEA (Reference V… | GP/Kriging — um modelo de Processo Gaus… | A1 penalização de risco — a função de a… | online — … | 12 | 2
+e17 | MOBO | BO (Bayesian Optimization single- e mul… | GP/Kriging (um GP independente por obje… | O1 aquisição exploratória — UCB-HVI (Up… | online (f… | 12 | 2
+e7 | EDN-ARMOEA | EA-Indicador (AR-MOEA, baseado no indic… | NN (Efficient Dropout Neural Network — … | O3 aprendizado ativo — a incerteza (var… | online (r… | 11 | 5
+e86 | NSGAIII-EHVI | EA-Indicador (EHVI/hipervolume), com fr… | GP/Kriging (fornece média e MSE/variânc… | O1 aquisição exploratória — mas com uso… | online (i… | 10 | 2

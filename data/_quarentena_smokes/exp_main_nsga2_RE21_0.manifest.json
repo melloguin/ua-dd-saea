@@ -1,0 +1,76 @@
+{
+  "schema_version": 2,
+  "campanha_id": "659e6a8cc35a_2026-08-14",
+  "run_id": "main_nsga2_RE21_0",
+  "exp": "main",
+  "alg": "nsga2",
+  "problema": "RE21",
+  "semente": 0,
+  "regime": "online",
+  "q": 1,
+  "tier": "",
+  "dist": "",
+  "status": "ok",
+  "n_retries": 0,
+  "stack_trace": "",
+  "maxfe": 123,
+  "fe_final": 123,
+  "n_geracoes": 5,
+  "doe_hash": "8ea1fc7d5259997da266954b90e5e1648b823c49aa63e55970c14e4816f3be74",
+  "repo_hash": "659e6a8cc35a830d2122b71346198f8f817df15a",
+  "algo_version": "piso-NSGAII-PlatEMO4.15",
+  "env": {
+    "matlab": "25.1.0.2973910 (R2025a) Update 1",
+    "stack": "matlab-platemo",
+    "host": "Guilhermes-MacBook-Pro",
+    "plataforma": "Darwin/arm64",
+    "pymoo": "0.6.2"
+  },
+  "timing": {
+    "tempo_total_s": 3.269007375,
+    "tempo_fit_surrogate_s": null,
+    "tempo_busca_s": null,
+    "tempo_aval_real_s": 0.019319500000000007,
+    "tempo_pred_sonda_s": null
+  },
+  "fit_series": [],
+  "cache_hits": 22,
+  "fallback_ativado": false,
+  "paths": {
+    "local": {
+      "real": "data/experiments/main/nsga2/exp_main_nsga2_RE21_0__real.parquet",
+      "pop": "data/experiments/main/nsga2/exp_main_nsga2_RE21_0__pop.parquet",
+      "surrogate": "data/experiments/main/nsga2/exp_main_nsga2_RE21_0__surrogate.parquet",
+      "timing": "data/experiments/main/nsga2/exp_main_nsga2_RE21_0__timing.parquet",
+      "jsonl": "data/experiments/main/nsga2/exp_main_nsga2_RE21_0.jsonl",
+      "manifest": "data/experiments/main/nsga2/exp_main_nsga2_RE21_0.manifest.json"
+    }
+  },
+  "created_at": "2026-08-14T10:22:55Z",
+  "updated_at": "2026-08-14T10:22:55Z",
+  "sonda": {
+    "status": "nao_se_aplica",
+    "motivo": "piso ONLINE = MOEA puro, sem surrogate a sondar (CONTRATO §3.2)",
+    "n_blocos": 0,
+    "n_linhas": 0
+  },
+  "sigma_dict": {
+    "status": "nao_se_aplica",
+    "motivo": "piso ONLINE = MOEA puro: a ③ existe (contrato de camadas) mas nasce VAZIA — nao ha modelo cujas colunas descrever",
+    "terceira": "0 linhas por desenho (sem surrogate)"
+  },
+  "params": {
+    "N_nominal": 20,
+    "N_efetivo": 20,
+    "N_decisao": "20 CRAVADO 2026-07-18 (Knowles/ParEGO; ponto comum entre ~20-25 do §3.2 e {10,20,30,50} da D65; varredura SUB-varN reconfirma antes da bateria)",
+    "N_efetivo_nota": "NSGA-III/MOEA-D reajustam N pelo lattice do UniformPoint (M=3, 20 -> 15); NSGA-II/SMS-EMOA mantem o nominal. Precedente §6.3 (N=100 -> 91 vetores em M=3)",
+    "seeding": "melhores N das 11D-1 do DoE por NDSort + CrowdingDistance, desempate final por indice (§3.2/D88) — os N entram como cache-hit (0 FE)",
+    "geracoes_derivadas": "EMERGENTE, nao fechada [I-13/A24 corrigido contra o dado em 2026-07-30; RAMIFICADA POR OPERADOR em 2026-08-01, BL-13]. O laco roda ate o hard-stop (31D-1 FE EXATAS) e cada duplicata bit-a-bit (cache-hit D89, 0 FE) ADIA o fim. Este config usa OperatorGA (NSGAII.m:27 / NSGAIII.m:29): prole em PARES — 2*floor(N_efetivo/2) por geracao (MatingPool). Melhor aproximacao MEDIDA: floor((20D + n_dup) / 2*floor(N_efetivo/2)), que acerta 27/28 em cada um dos dois nas celulas da s42 — 110/112 somando os 4 pisos, contra 103/112 da formula unica que valia para todos. As que restam erram por 1 porque o efeito de um cache-hit depende de QUANDO ele cai, nao so de quantos sao. ⚠ Os dois denominadores so divergem com N_efetivo IMPAR (as celulas M=3 do lattice, N_ef=15) — em N_ef=20 sao o MESMO numero, e e por isso que o defeito so aparecia no moead. O valor REAL de cada run esta em `n_geracoes`, neste mesmo manifesto — nao derive, LEIA.",
+    "operadores": "Balde C: OperatorGA stock (SBX proC=1 dis_c=20; PM proM=1 dis_m=20)",
+    "parameter": "nenhum (NSGA-II stock nao expoe parametro)",
+    "surrogate": "NENHUM (piso = MOEA puro) -> tabela ③ vazia e serie §17.6 vazia",
+    "patches": "NENHUM — piso e stock do PlatEMO 4.15 por design",
+    "principio": "dominancia/Pareto",
+    "casamento": "EA-Dominancia (b4, c217, c141, e74) + BO-Melhoria-de-Pareto (c238) — §3.2"
+  }
+}

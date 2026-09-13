@@ -1,0 +1,134 @@
+{
+ "config": "e81 (qPOTS · Carlson & Renganathan 2025) · RODADA FINAL sobre corpus CONGELADO · READ-ONLY (nenhuma célula executada; experiments.py NUNCA invocado; MATLAB nunca tocado). Censo-base: /Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/final/censo_final.csv (811 linhas e81). Herança F30 verificada por mtime + spot-check; bateria integral nas 82 células novas do censo + 5 órfãs de disco. Artefatos da rodada em /private/tmp/claude-501/-Users-gmello/16c0ba84-843b-49d1-9ce6-6cecc418b734/scratchpad/ (prefixo e81_/bateria_reais; ATENÇÃO: scratchpad compartilhado com outra torre — o bateria_reais.py foi sobrescrito pela torre do moead_media após minha execução; resultados preservados neste retorno).",
+ "celulas_final": "TOTAL CENSO e81 = 811 (806 main + 5 batch). Por grupo e estado O-21 (rodapé = autoridade): (a) SINTÉTICAS main 724/724 ✅ok — byte-inalteradas desde a F30 (mtime máx 2026-08-14T19:43:52, ZERO células pós-corte; as 26 ausentes seguem sendo fronteira de campanha das sementes 18/25/26). (b) RE21 30/30 ✅ok (rodapé fechado, fe_final=123=31·4−1, motivo=orcamento). (c) DDMOP7 30/30 ✅ok (fe_final=526=31·17−1; célula s0 com 1 rodapé em vez de 2 — falta o do despachante, rodapé fechado do runner presente). (d) ESTOQUE40: 14 ⚪ teto_wall (sementes 0-13; rodapé FECHADO com status=failed/motivo_parada=teto_wall + registro guard 'teto_wall' com teto_s=43.200s e ação 'ABORTO LIMPO — curva parcial preservada (D-07/DI-23)'; fe_final 955-963 de 1.239 = 77,1-77,7% do orçamento; sob DI-43/44 = truncamento-com-dado VÁLIDO, comparar em FE comum) + 8 SEM RODAPÉ (sementes 14-21; manifesto failed/checkpoint_em_andamento = assinatura de kill; fe do manifesto 464-950; parquets = último checkpoint; ⑥ à frente dos parquets em 1-13 decisões — exatamente a assinatura X8 do laudo T15) + 5 ÓRFÃS FORA DO CENSO (sementes 22-26; só ⑥-prefixo de 3-21 decisões, sem ⑤①②③④, mtime 21/08 17:58). Sementes 22-28+42 do EST40 nunca rodaram além disso — lacuna ACEITA pelo autor. (e) BATCH s42: 4 ✅ok promovidas à árvore canônica BIT-IDÊNTICAS ao legado (WFG9, MMF16_20, DTLZ2, ZDT1 — sha256 dos 6 arquivos confere) + 1 NÃO-EXECUÇÃO (ZDT4/42: ⑥ ainda é o stub de 620 B/4 linhas e ⑤ o stub q=1 sem fe_final, MAS os 4 parquets REAIS foram promovidos ao lado, bit-idênticos ao legado — célula quimera que o censo conta como ok). Conferência: 788 ok + 14 teto + 8 fail + 1 stub = 811 ✓ bate com o censo.",
+ "celulas_invalidas": [
+  {
+   "celula": "e81/ESTOQUE40/{14,15,16,17,18,19,20,21} (8 células)",
+   "motivo": "kill sem rodapé (manifesto failed/checkpoint_em_andamento — 'nada no artefato distingue decisão de morreu', caveat 6 do T15); ⑥ com 1-13 decisões além da ① exportada (X8: append cego à frente do flush por checkpoint); manifesto parcial sem doe_hash/algo_version/host (header≡sidecar do DoE conferem)",
+   "recuperavel_sem_rerun": "SIM_poshoc — o prefixo até o checkpoint é mecanicamente VÁLIDO (joia fecha 100% no verificável, incl. 4 níveis na s17: 494/494; parquets≡checkpoint; fe 464-950); regra de corte: truncar ⑥ em len(①) e comparar em FE comum; a sanção é do autor (D81/D97) — sem ela, excluir"
+  },
+  {
+   "celula": "e81/ESTOQUE40/{22,23,24,25,26} (5 órfãs, FORA do censo)",
+   "motivo": "só ⑥-prefixo (3-21 decisões), sem manifesto, sem NENHUM parquet — não há ① para validar nada; joia inverificável",
+   "recuperavel_sem_rerun": "NAO_excluir — nada utilizável; sugerir quarentena para tirar da árvore canônica"
+  },
+  {
+   "celula": "e81/ZDT4/42 batch (stub ⑥+⑤)",
+   "motivo": "⑥ = 620 B/4 linhas (2 headers de despachante + 2 footers sem fe_final) e ⑤ stub (q=1, maxfe=null) ENSOMBRANDO os parquets reais q=10 promovidos ao lado; censo conta estado=ok",
+   "recuperavel_sem_rerun": "SIM_poshoc — o ⑥ real (651.590 B) e o ⑤ real (28.300 B) existem bit-verificados em ua-dd-saea/data/experiments/batch/e81/; completar a promoção é cópia, não re-run (decisão do autor; eu não escrevo)"
+  }
+ ],
+ "novas_desde_f30": "Desde a F30 (censo 14/08): (1) +82 células REAIS no censo — 30 RE21 (campanha 3240f4b26fae_2026-08-15, vm1, tudo em ~3 min/célula) + 30 DDMOP7 (s0 em 15/08 e s1-28+42 na campanha 7be66e65522c_2026-08-18, TODAS vm5) + 22 ESTOQUE40 (3240f4b26fae_2026-08-21, vm1; 14 ⚪ wall-12h + 8 kill); +5 órfãs EST40 fora do censo. (2) PROMOÇÃO DO BATCH s42 à árvore canônica (dirs mtime 19/08 23:43): 4/5 células completas e bit-idênticas ao legado; ZDT4 SEMI-promovida (parquets sim, ⑥/⑤ não — o stub E81-30-01 persiste). (3) Sintéticas main: ZERO mudanças (724 células, mtime máx 14/08). Nota de proveniência MEDIDA: dois repo_hash nos novos (3240f4b26fae, 15/08 e 21/08 na vm1 · 7be66e65522c, 18/08 na vm5); git diff 3240f4b2→7be66e65 = 6 arquivos (CONTRATO/REGISTRO/handoff/lote3s.sh/src/metrics.py/tests) — NENHUM toca o runner ou o e81; e o `params` das duas campanhas difere EXATAMENTE nas 2 chaves de semente (A26 agora cross-campanha e cross-repo); env pins idênticos aos 724 do M8. Custo novo: 276,78 h-core (EST40 235,0 · DDMOP7 41,2 · RE21 0,5).",
+ "mecanismo_nos_novos": "QUERY-JOIA (recomputo do maximin) nas células NOVAS: (a) NÍVEL VALOR — varredura INTEGRAL, não amostra: **22.938/22.938 decisões verificáveis fecham** (RE21 2.400/2.400, |Δ|máx 1,354e-07 · DDMOP7 10.200/10.200, |Δ|máx 3,2e-08 · EST40 10.338/10.338, |Δ|máx 7,1e-08) — piso float32 da ①, mesmo patamar da F30 (1,054e-07). As 53 decisões das 8 células kill além do checkpoint + 66 das órfãs não têm ① exportada = teto de verificabilidade, ZERO falhas. Identidade-irmã `dist_min_arquivo` no espaço NATIVO: desvio relativo máx 1,35e-06 (piso float32). (b) 4 NÍVEIS via ③ (que nas células T15 está NO DISCO, não no bucket — a limitação D54 não se aplica aos reais): amostra de 6 células cobrindo os 3 problemas incl. 1 célula kill — **1.858/1.858 gerações fecham em CONJUNTO+ORDEM+MARCAÇÃO+LINK** (X escolhido bit-idêntico à ①), |Δ|máx 1,236e-07. (c) A identidade só fecha NORMALIZADA e o EST40 dá ao A6 seu caso mais extremo do corpus inteiro: larguras de bounds com razão **3.097,5×** (40 larguras distintas, xu de 1 a 3098) — nenhuma constante converte os espaços, e a joia fecha 10.338/10.338 em [0,1]^40. (d) Bateria de contrato nas 82: orçamento 31D−1 exato (123/526/1239), n_init=11D−1 (43/186/439), fe==n_train+q, seed_gp==1024+iter+1000s E seed_nsga2==2430+1000s em 22.938/22.938, draws 10 chamadas/1000·D pontos, nystrom=0, assert_lote 100%, lengthscale muda em 100% dos pares consecutivos, DoE↔artefato ≤7,5e-08 (ULP float32) nas 6 amostradas, doe_hash 3-vias ✓, inv-1 timing 22.938/22.938 e inv-2 6.423/6.423, ⑥ com zero linhas malformadas nas 87.",
+ "reais": "RE21 (D=4, four-bar truss): 30/30 ok; |ND| médio 57,6/123; front ND cabe na régua com folga mínima — f1 normalizado máx **1,087 de 1,1** (dentro por 1,2%); fração de FE em pontos μ-dominados 31,9% mediana; sonda 41 blocos/célula, cadência exata; 0,50 h-core no config todo. DDMOP7 (D=17, caixa-preta .p, M=2): 30/30 ok; SEM sonda conforme D102.10 (0 blocos + header/⑤ declaram 'sem_sonda_por_problema' 30/30); **checa_regua: ZERO violações e zero avisos leves nas 82 células dos 3 problemas** (ideal=[0;0] pós-ERRATA confirmado no reference_bounds); f1·17 inteiro (desvio máx 4,8e-07) e f2·690 inteiro (2,1e-05) = estrutura k/17 · n/690 preservada no float32; REGRA §T15.13 aplicada com a zona_morta canônica do src/ddmop7_bridge: **colapso proposto→efetivo = 0 em 10.200 propostas; |ND| bruto ≡ dedup por x_efetivo (97 ≡ 97 na soma)** — a regra não morde o e81 (o maximin foge do arquivo), mas deve ser declarada; fronts minúsculos (mediana 10/1700 = 0,6% da pop — dominância quase-discreta); ND jamais excede o nadir (norm máx [1,0; 0,818]); dominados chegam a 1,267 mas não entram no HV; μ-dominados 92,2%; melhor esparsidade alcançada f1=3/17. ESTOQUE40 (D=40, M=3, invenção nossa D101): a resposta do briefing — **o qPOTS em D=40 real NÃO degenera e NÃO falha; ele SATURA O RELÓGIO**: fit_retries=0 e zero erros de fit em 10.457 ajustes com n até 962, front nunca engole a pop (máx 7,7% de 4000 — contraste com o q10_MMF16_20 da T11), μ-dominados 97,5% (a maior expressão do TS em todo o corpus; M8 tinha 82,7%), MAS a busca (NSGA-II pop=4000 sobre os caminhos) consome 88,4% de 235 h-core e a célula bate o wall de 12h em ~960/1239 FE (77,6%) — 14 ⚪ limpos + 8 kill; mediana 79,5 s/geração ⇒ fechar 1239 custaria ~17,7 h/célula, consistente com a cauda de ~9 dias que o autor aceitou não rodar. RESSALVA DE RÉGUA (escalo): 6/22 células têm exatamente 1 ponto ND com f3 normalizado ACIMA de 1,1 (até **1,356**; no corte comum FE=464 cai a 1/22) — o canto D102.20 do nadir de f3 não envelopa o dado; pontos fora da ref contribuem zero ao HV.",
+ "aspectos_mudados": [
+  {
+   "id": "A1/A2",
+   "o_que": "orçamento 31D−1 + DoE 11D−1 do artefato",
+   "antes": "provado em D∈{2..30} sintéticos (724 células)",
+   "agora": "estende a D∈{4,17,40} reais: 123/526/1239 e 43/186/439 exatos em 82/82; DoE↔artefato ≤7,5e-08 (ULP float32); doe_hash 3-vias; DDMOP7 init vem de CSV congelado (fonte_csv no sidecar) com zeros exatos — armazenado CRU como manda o T15.13"
+  },
+  {
+   "id": "A5",
+   "o_que": "query-joia",
+   "antes": "198.600/198.600 valor + 2.880/2.880 4-níveis (limitados às 17 células com ③, semente 7)",
+   "agora": "+22.938/22.938 valor nos reais E 4 níveis em células NOVAS de 3 problemas (1.858/1.858) porque a ③ dos T15 está no disco — a prova de 4 níveis deixou de depender da exceção da semente 7"
+  },
+  {
+   "id": "A6",
+   "o_que": "maximin em [0,1]^D",
+   "antes": "caso extremo = WFG com razão de larguras 22×",
+   "agora": "EST40 real com razão 3.097,5× (40 larguras distintas) e joia fechando 10.338/10.338 — o patch §22.4·3.5 tem agora seu invariante mais forte"
+  },
+  {
+   "id": "A7/A11/A12",
+   "o_que": "③-online = rank-0/universo da decisão",
+   "antes": "cobertura limitada pela D54 (17 células)",
+   "agora": "linhas==n_front_acq em 1.858/1.858 nas amostras dos reais; degeneração front==pop: ZERO em 22.991 gerações novas (D=40 incluso)"
+  },
+  {
+   "id": "A14",
+   "o_que": "sonda",
+   "antes": "cadência DI-12.5 em 100.024 blocos",
+   "agora": "RE21/EST40 conformes (hash_check ok, 2000 pts, finalProbe onde há rodapé; prefixo válido nos kill); DDMOP7 = primeira família SEM sonda por desenho (D102.10), declarada em header+⑤ 30/30"
+  },
+  {
+   "id": "A17/A18/A20",
+   "o_que": "batch q=10 (fallback DI-25, extrapolação, B17.5)",
+   "antes": "F30: 'fora da árvore canônica — não auditável daqui'",
+   "agora": "4/5 células batch promovidas bit-idênticas (sha256) — A17/A18/A20 voltam a ser auditáveis de resultados_experimentos; ZDT4/42 segue ensombrada pelo stub"
+  },
+  {
+   "id": "A19",
+   "o_que": "invariantes de timing + custo",
+   "antes": "198.600 gerações, 748,74 h-core, gargalo busca 81,6%",
+   "agora": "inv-1 22.938/22.938 e inv-2 6.423/6.423 nos novos; +276,78 h-core (EST40 sozinho 235,0 h com busca 88,4% — pop=100D=4000 domina o relógio em D=40)"
+  },
+  {
+   "id": "A22",
+   "o_que": "contrafactual G5 (incerteza load-bearing)",
+   "antes": "82,7% dos FE μ-dominados (17 células, semente 7)",
+   "agora": "medido nos reais: RE21 31,9% · DDMOP7 92,2% · EST40 97,5% — em D=40 real a incerteza determina praticamente TODA decisão"
+  },
+  {
+   "id": "A25",
+   "o_que": "checkpoint DI-43 (K=25 OU 30 min)",
+   "antes": "F30: 'o gatilho de tempo NUNCA disparou' (7.722/7.722 em iter%25==0)",
+   "agora": "PRIMEIRO disparo em campo do gatilho de 30 min: EST40 com gaps 30,0-31,8 min e iterações irregulares (174, 198, 222…) após as 6 primeiras em K=25 — a cadência OR está agora exercida nos dois ramos; o invariante n_ckpt==n_ger//25 deixa de ser universal E isso é conforme"
+  },
+  {
+   "id": "A26",
+   "o_que": "invariância do contrato entre sementes",
+   "antes": "2 chaves de semente diferem entre as 27-30 sementes de cada problema (1 campanha, 1 repo)",
+   "agora": "vale CROSS-CAMPANHA e CROSS-REPO: DDMOP7 s0 (repo 3240f4b2, 15/08) vs s1-42 (7be66e65, 18/08) diferem EXATAMENTE nas 2 chaves; sigma_dict byte-igual; git diff entre os repos não toca o runner"
+  },
+  {
+   "id": "A28",
+   "o_que": "higiene da árvore canônica",
+   "antes": "2 itens (stub batch ZDT4 + ③ truncada MMF16_20/7)",
+   "agora": "MMF16_20/7 inalterado (herdado); stub ZDT4 MUTOU para pior forma (quimera: parquets reais + ⑥/⑤ stub); +5 órfãs EST40 e +8 kill com manifesto ambíguo — a higiene piorou na margem enquanto o mecanismo seguiu impecável"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "E81-F-01",
+   "descricao": "HERDA E MUTA o E81-30-01: a promoção do batch à árvore canônica (19/08) foi PARCIAL no ZDT4/42 — os 4 parquets REAIS (q=10, ①=2.109 FE) estão lá, bit-idênticos ao legado, mas o ⑥ segue sendo o stub de 620 B/4 linhas e o ⑤ o stub (q=1, maxfe=null, sem fe_final). Célula-quimera: dado real com diário e manifesto de não-execução; o censo conta estado=ok; qualquer consumidor que leia ⑤/⑥ conclui q=1 e zero execução sobre parquets q=10. Os arquivos reais existem bit-verificados no legado (⑥ 651.590 B, ⑤ 28.300 B).",
+   "gravidade": "moderada",
+   "acao": "completar a promoção copiando ⑥+⑤ reais do legado (cópia, não re-run) OU reverter os parquets e reclassificar a célula no censo; decisão do autor — não escrevi nada",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/e81/ZDT4/42/exp_batch_e81_ZDT4_42.{jsonl,manifest.json} (stubs) vs /Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/batch/e81/ (reais)"
+  },
+  {
+   "id": "E81-F-02",
+   "descricao": "HERDADO INALTERADO da F30 (E81-30-02): ③ do MMF16_20/7 truncada em 100/400 gerações sem sinal em ⑤/⑥/censo; árvore sintética byte-inalterada desde 14/08 — nada foi retocado.",
+   "gravidade": "moderada",
+   "acao": "igual à F30: gravar cobertura efetiva da ③ no censo ou repuxar do bucket",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/e81/MMF16_20/7/exp_main_e81_MMF16_20_7__surrogate.parquet"
+  },
+  {
+   "id": "E81-F-03",
+   "descricao": "NOVO: 5 células-órfãs ESTOQUE40 (sementes 22-26) na árvore canônica — só ⑥-prefixo (11-54 linhas, 3-21 decisões), sem manifesto e sem NENHUM parquet; mortas no kill de 21/08 ~17:58 antes do 1º checkpoint. Invisíveis ao censo (coerente), mas visíveis a qualquer glob; nada nelas é validável (não há ①).",
+   "gravidade": "baixa",
+   "acao": "quarentena/remoção pelo autor; nenhum dado aproveitável",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/e81/ESTOQUE40/{22,23,24,25,26}/"
+  },
+  {
+   "id": "E81-F-04",
+   "descricao": "NOVO (leve): DDMOP7/0 tem 1 rodapé em vez de 2 (falta o do despachante; único caso nas 82 novas — as demais têm 2). Rodapé fechado do runner presente e íntegro (fe_final=526); ok sob O-21. É também a única célula DDMOP7 da campanha de 15/08 (as outras 29 são de 18/08) — heterogeneidade de campanha benigna e MEDIDA (params difere só nas 2 chaves de semente; repo-diff não toca o runner).",
+   "gravidade": "baixa",
+   "acao": "nenhuma necessária; registrar no censo se houver campo de contagem de footers",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/e81/DDMOP7/0/exp_main_e81_DDMOP7_0.jsonl"
+  }
+ ],
+ "score_final": 9.6,
+ "trajetoria_scores": "F5 9,5 → T11 9,7 → F30 9,6 → FINAL 9,6. CAUSAS NOMEADAS: 9,5→9,7 (T11): a contaminação do ⑥ do q10_ZDT4 (único classe-3 da F5) teve causa confirmada e corrigida no código (B-01/B-02), o smoke pós-T11 provou o mecanismo intacto e o par pré×pós-T11 da MESMA célula fechou bit-idêntico em 4 camadas. 9,7→9,6 (F30): o mecanismo saiu de 1 para 30 sementes sem rachadura (198.600/198.600) e 6 tetos caíram, mas surgiram 2 classe-3 NOVOS na árvore canônica (stub ZDT4 contado como ok + ③ truncada silenciosa). 9,6→9,6 (FINAL): empate de forças MEDIDO — SOBE: o mecanismo estendeu-se aos 3 problemas reais sem UMA falha (joia 22.938/22.938 no piso float32, 4 níveis com ③ em disco, A6 em razão de larguras 3.098×, checa_regua 0 violações em 82 células, regra T15.13 com colapso zero, gatilho de 30 min do DI-43 exercido pela primeira vez, batch 4/5 promovido bit-idêntico reabrindo A17/A18/A20 à auditoria); DESCE (impede subir): o stub E81-30-01 NÃO foi resolvido e mutou para quimera (parquets reais + ⑥/⑤ stub), o E81-30-02 segue intocado, e o kill da cauda EST40 deixou 8 manifestos ambíguos + 5 órfãs na árvore. Nenhum item toca uma decisão do algoritmo — por isso o score segura em 9,6 e não cai; a higiene é o único degrau que falta ao 9,8+, e o batch/D54/cauda continuam vetando o 10.",
+ "veredito": "RECOMENDO ACEITAR o e81 na rodada final (a validação de fidelidade é MANUAL e do AUTOR — D97; isto é evidência e recomendação, não sentença). O e81 chega ao corpus congelado como o config mais bem provado do conjunto: mecanismo exatamente recomputável em 221.538 decisões acumuladas (198.600 M8 + 22.938 reais) com erro no piso float32 e ZERO exceções; único regressor com 100% de sucesso onde rodou (788 células ok, 0 falhas de fit em toda a história, incl. 10.457 fits em D=40 com n até 962); deriva cross-máquina 0 (F30, sem par novo para re-medir nos reais — não medido lá); e nos 3 problemas reais NENHUMA premissa do artigo quebra (concordando com o laudo T15, agora em escala de 30 sementes). Estados a declarar no texto: EST40 entra como 14 ⚪ teto_wall a ~77,6% do orçamento (comparação em FE comum; a limitação é de RELÓGIO — busca 88,4% do custo — não do algoritmo) + 8 kill cuja admissão pós-hoc é decisão do autor; DDMOP7 com contagens de |ND| pela regra §T15.13 (medido: não muda nada no e81, colapso zero); RE21 completo e folgado. Os 4 itens classe-3 são todos de HIGIENE DE ÁRVORE (nenhum toca decisão de algoritmo) e 2 deles se resolvem por cópia sem re-run.",
+ "decisoes_ao_autor": [
+  "D81 — ZDT4/42 batch: a promoção de 19/08 ficou PELA METADE. Os parquets reais estão na árvore canônica bit-idênticos ao legado, mas ⑥/⑤ seguem sendo o stub (q=1, sem fe_final) e o censo conta ok. Escolha: (a) completar a promoção copiando exp_batch_e81_ZDT4_42.jsonl (651.590 B) + .manifest.json (28.300 B) de ua-dd-saea/data/experiments/batch/e81/ — cópia verificada, sem re-run; ou (b) reverter os parquets e reclassificar. Como está, qualquer leitor de ⑤/⑥ nega a existência dos dados que estão do lado.",
+  "D97/D81 — as 8 células EST40 kill (sementes 14-21): sem rodapé, manifesto 'checkpoint_em_andamento' (assinatura de kill, caveat 6 do T15). O prefixo até o checkpoint é mecanicamente válido (joia 100% no verificável; parquets≡checkpoint) e utilizável em corte de FE comum com a regra 'truncar ⑥ em len(①)'. Decida se entram como ⚪-equivalentes ou se excluem; se entrarem, o corte comum do EST40 desce de 955 (14 ⚪) para 464 (s21). Recomendo admiti-las no corte comum com a regra declarada.",
+  "RÉGUA EST40 (D102.20) — o canto do nadir de f3 (4,256) NÃO envelopa o dado: 6/22 células têm exatamente 1 ponto ND com f3 normalizado entre 1,11 e 1,356; esses pontos contribuem ZERO ao HV com ref 1,1. Menor no corte FE=464 (1/22). Decidir: declarar o clipping no texto (suficiente, é ≤1 ponto/célula) ou re-derivar o canto de f3. RE21 passa raspando (máx 1,087) e DDMOP7 folga (ND ≤ 1,0; só dominados excedem, até 1,267 — não entram no HV).",
+  "ÓRFÃS EST40 22-26: 5 ⑥-prefixos sem nenhuma outra camada na árvore canônica, invisíveis ao censo. Sugiro quarentena (_quarentena/), pelo precedente da semente 30.",
+  "PROVENIÊNCIA DOS NOVOS — 2 repos (3240f4b26fae vm1 15/08 e 21/08 · 7be66e65522c vm5 18/08). Medi: o diff não toca runner/e81 (docs + guard do metrics.py + tests) e o contrato é invariante cross-campanha (2 chaves de semente). DERIVA NOS REAIS: NÃO MEDIDA — não existe par duplicado vm1×vm5 nos T15 do e81; a deriva 0 da F30 é evidência M8. O DDMOP7 rodou inteiro na vm5 pós-degrau de 14/08; irrelevante para comparações internas ao e81 (config inteiro numa VM por problema), relevante se cruzar com rival de outra VM.",
+  "COBERTURA FINAL — e81 fecha 25/25 sintéticos (724/750 células; 26 = fronteira aceita), RE21 30/30, DDMOP7 30/30, EST40 22/30 (14 ⚪ + 8 kill; 8 sementes nunca rodadas — lacuna aceita: 'o que não executou, não vou executar mais'). Fechar o EST40 custaria ~17,7 h/célula (mediana 79,5 s/geração) — os ~9 dias que você decidiu não pagar; registro, não recomendo reabrir.",
+  "NOTA AO CENSO/TORRE CENTRAL — o gatilho de 30 min do DI-43 disparou pela primeira vez (EST40): o invariante 'n_ckpt==n_geracoes//25' que a F30 mediu como universal deixa de valer e NÃO é anomalia; leitores do ⑥ não devem usá-lo como gate. E o campo motivo='checkpoint_em_andamento' segue sendo a assinatura ambígua de kill — um campo explícito 'kill_externo' resolveria (mesma sugestão do laudo T15, agora com 8 casos no e81)."
+ ]
+}

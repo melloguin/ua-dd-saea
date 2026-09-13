@@ -1,0 +1,139 @@
+{
+  "id": "c71",
+  "sigla": "SAEA/ME",
+  "titulo": "Surrogate Assisted Evolutionary Algorithm for Medium Scale Expensive Multi-Objective Optimisation Problems",
+  "ano": 2020,
+  "roster": false,
+  "setup": {
+    "benchmarks": "12 problemas de teste sintéticos padrão: ZDT1, ZDT2, ZDT3, ZDT4, ZDT6 (2 objetivos, sem ZDT5) e DTLZ1–DTLZ7 (3 objetivos) — 'we choose 12 test problems from the widely used 2-objective ZDT [27] and 3-objective DTLZ [36] benchmark suites' (Sec. 4). Cada um dos 12 problemas é testado em D = 10, 20 e 50 variáveis de decisão — 'The number of decision variables for each test problem considered in our experiments are 10, 20 and 50' (Sec. 4), totalizando 36 células problema×D e 108 comparações pareadas (3 pares × 36). Nenhum problema real (tipo RE21/ESTOQUE40/DDMOP7) é usado. SAEA/ME não está no roster executado da dissertação (instrução do pedido), então nenhuma dessas 36 células é reaproveitável diretamente dos dados já coletados.",
+    "orcamento": "Avaliações reais totais FIXAS por D (não a fórmula 31D−1 da dissertação): 300 (D=10), 400 (D=20) e 800 (D=50) — 'The number of function evaluations is set to 300, 400 and 800 for n = 10, 20 and 50, respectively' (Sec. 4). Tamanho de população do NSGA-II interno (que otimiza o problema surrogate 2m-objetivo da Eq. 9): 50, 100 e 300, respectivamente, para n=10/20/50. O DoE inicial (N_I nos Algoritmos 1–2) aparece só simbolicamente — nenhum valor numérico de N_I é dado no texto disponível, e o 'experimental design method' usado para amostrá-lo não é nomeado (não diz Latin Hypercube explicitamente). Em cada iteração do laço principal (Algoritmo 2), um subconjunto de ATÉ k=10 candidatos (interseção de dois top-k por contribuição de HV — Algoritmo 4) é avaliado na função real e usado para atualizar o modelo — ou seja, regime online com infill em lote (batch), não um ponto por vez como no Algoritmo 1 genérico de referência.",
+    "execucoes": "20 execuções independentes por célula (algoritmo × problema × D) — 'Each experiment is repeated 20 times' (Sec. 4).",
+    "baselines": "ParEGO, MOEA/D-EGO e K-RVEA — três SAEAs do estado da arte, todas baseadas em GP/Kriging. NÃO há piso evolutivo sem surrogate (tipo NSGA-II/MOEA-D/NSGA-III/SMS-EMOA puros): as 4 configurações comparadas usam modelo surrogate, portanto a comparação inteira é 'assistido vs. assistido', nunca 'assistido vs. piso' no sentido das fichas 9/16 da dissertação.",
+    "metricas_principais": [
+      "IGD (única métrica de qualidade usada — sem HV, sem IGD+, sem GD, sem spacing)"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum test, α = 5% — \"the widely used Wilcoxon's rank sum test at 5% significance level\" (Sec. 4)"
+    ],
+    "apresentacao": "Média (desvio-padrão) entre parênteses sobre 20 execuções; símbolo † quando SAEA/ME é significativamente melhor que o par (Wilcoxon, 5%), ‡ no sentido oposto — sem símbolo de empate '='; melhor valor de cada linha (problema×D) destacado em negrito com fundo cinza; a comparação estatística é sempre relativa ao SAEA/ME como referência fixa, não ao 'melhor de cada problema' (diferença em relação à ficha 3 literal da dissertação). As Figuras 2–8 (fronteiras finais) usam a execução de MELHOR IGD entre as 20 execuções, não a execução mediana.",
+    "codigo_plataforma": "Não especificado no texto — nenhuma plataforma (PlatEMO, MATLAB, BoTorch, etc.) é nomeada em nenhuma das 3 camadas do documento (estruturada, texto bruto, OCR)."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        3,
+        7
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela única (Table 1) compara SAEA/ME contra três SAEAs do estado da arte (ParEGO, MOEA/D-EGO, K-RVEA) nos 12 problemas (ZDT1,2,3,4,6; DTLZ1–7) com D=10,20,50 (36 células), reportando IGD médio±desvio-padrão sobre 20 execuções, com teste de Wilcoxon rank-sum (5%) marcando cada célula com † ou ‡. O mesmo texto também lê a tabela para descrever explicitamente a tendência de cada algoritmo conforme D cresce (10→20→50), concluindo que os três pares degradam fortemente com o aumento de D enquanto o SAEA/ME permanece estável ou melhora.",
+      "literal": "SAEA/ME outperforms those peer algorithms in 95 out of 108 comparisons.",
+      "localizador": "Sec. 4.1, Table 1",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α = 5%"
+      ],
+      "convencoes": "Média (desvio-padrão) sobre 20 execuções; símbolos † (SAEA/ME significativamente melhor) e ‡ (peer significativamente melhor) — sem símbolo de empate; melhor valor por célula em negrito com fundo cinza; comparação sempre relativa ao SAEA/ME como referência fixa, não ao melhor de cada linha (mapeamento à ficha 3 é aproximado, não literal).",
+      "achado": "SAEA/ME vence em 95/108 comparações (>85%, conforme a Conclusão). Com o aumento de D, ParEGO, MOEA/D-EGO e K-RVEA 'degenerate dramatically when having more variables' (ex.: IGD de MOEA/D-EGO em ZDT1 vai de 1.634E-1 em n=10 a 1.120E+2 em n=50), enquanto o SAEA/ME é 'relatively consistent across n = 10 to n = 50' e chega a MELHORAR com D maior em ZDT6 (6.603E-2 em n=50 vs. 1.188E-1 em n=10) e em DTLZ7. Exceções claras a favor dos pares (‡): DTLZ4 em n=10 e 20 (K-RVEA vence: 'K-RVEA shows better performance than SAEA/ME when n = 10 and 20'); e vários casos de DTLZ1/DTLZ3 em D pequeno, onde ParEGO e/ou MOEA/D-EGO batem o SAEA/ME. Em ZDT4, DTLZ1 e DTLZ3 (todos multimodais) os QUATRO algoritmos falham (IGD>10 em todas as instâncias).",
+      "aplicabilidade": "o tipo de leitura (placar final por célula + tendência com D) equivale às fichas 1/3/7 da dissertação, lá reproduzíveis via camada ① (avaliações reais → ND acumulado → IGD+/HV) para os algoritmos do roster; esta comparação específica não é reproduzível com os dados já coletados da dissertação porque SAEA/ME está fora do roster executado e o protocolo (orçamento fixo de 300–800 FE por D, população variável, 20 execuções, IGD em vez de IGD+/HV) difere do protocolo único (31D−1, 30 sementes) da dissertação."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Sete figuras (Figs. 2–8), cada uma com 4 painéis (um por algoritmo), mostram, apenas para n=50, o conjunto não-dominado obtido na execução de MELHOR IGD, sobreposto à fronteira de Pareto verdadeira, para ZDT1, ZDT3, ZDT6, DTLZ2, DTLZ6, DTLZ7 e DTLZ1 — ilustrando qualitativamente cobertura/convergência (ou a falta dela) em geometrias difíceis (descontínua, enviesada, degenerada, multimodal).",
+      "literal": "Non-dominated solutions obtained by four algorithms on ZDT1 (n = 50) with the best IGD value.",
+      "localizador": "Figs. 2–8 (Sec. 4.1)",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução de MELHOR IGD entre as 20 (não a execução mediana da convenção da dissertação); apenas para n=50 (o caso mais difícil); eixos f1×f2 (problemas bi-objetivo) ou f1×f2×f3 (tri-objetivo); PF verdadeira sobreposta como referência em cada painel. O artigo cita explicitamente que os gráficos populacionais equivalentes para n=10 (Figs. 1 e 4 de um documento suplementar) NÃO estão no corpo do texto, apenas mencionados com link externo — 'the comprehensive results of population plots can be found from https://tinyurl.com/yx4pmwwq' (nota de rodapé, Sec. 4.1) — material suplementar não incluído nesta extração (só mencionado).",
+      "achado": "Para ZDT1, ZDT3, ZDT6, DTLZ6 e DTLZ7 apenas o SAEA/ME encontra soluções próximas/sobre a PF verdadeira; as soluções dos três pares ficam 'way beyond the PF'. Para DTLZ1 (multimodal), 'solutions obtained by all algorithms are way beyond the PF' — nenhum dos quatro converge, corroborando visualmente a falha coletiva em problemas multimodais já vista na Tabela 1.",
+      "aplicabilidade": "equivalente à ficha 54 (camada ① reavaliada → ND final plotado contra a PF verdadeira); não reproduzível com os dados da dissertação porque SAEA/ME está fora do roster, e porque o artigo usa a execução de MELHOR IGD (não a mediana, convenção da dissertação) e delega os gráficos de n=10 a um documento suplementar externo não capturado nesta extração."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Não reporta tempo de execução (wall-clock), nem custo de ajuste do GP separado da busca, nem decomposição fit/busca/avaliação/instrumentação como na camada ④ da dissertação. Reporta apenas um argumento de COMPLEXIDADE em número de avaliações reais extras exigidas pela etapa de análise de correlação (Algoritmo 3, usada para podar variáveis antes de construir o GP de cada objetivo): n+1 avaliações, contra O(n²) de uma alternativa de agrupamento de variáveis citada como referência.",
+    "literal": "the correlation analysis in Algorithm 3 only requires n + 1 function evaluations which is acceptable even under a computationally expensive optimisation scenario",
+    "localizador": "Sec. 3.1"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Falha coletiva dos 4 algoritmos (incluindo o proposto) nos 3 problemas multimodais da bateria (ZDT4, DTLZ1, DTLZ3): IGD acima de 10 em todas as instâncias/D, atribuída pelos autores à multimodalidade agravando a dificuldade de modelagem do surrogate.",
+      "literal": "The poor performance of all these algorithms on ZDT4, DTLZ1 and DTLZ3 can be attributed to their multi-modality which makes the surrogate modelling become even more difficult.",
+      "localizador": "Sec. 4.1"
+    },
+    {
+      "descricao": "Em vários problemas multimodais/enviesados com D pequeno (DTLZ4 n=10,20; DTLZ1 n=10,20; DTLZ3 n=10,20; e alguns casos de ZDT1/ZDT2/ZDT3 em n=10), pelo menos um dos pares (K-RVEA, ParEGO ou MOEA/D-EGO) é ESTATISTICAMENTE MELHOR que o SAEA/ME (símbolo ‡ na Tabela 1) — o mecanismo do SAEA/ME (poda por correlação + objetivo de limite de confiança inferior + seleção por subconjunto) nem sempre é vantajoso em baixa dimensão.",
+      "literal": "‡ denotes an opposite conclusion",
+      "localizador": "Table 1, nota de rodapé (Sec. 4.1)"
+    },
+    {
+      "descricao": "Autocrítica dos próprios autores na Conclusão: usar NSGA-II para otimizar o problema many-objective transformado (2m objetivos, que é onde a incerteza entra como objetivo extra) é discutível, dado que o NSGA-II tem fraquezas documentadas em otimização com muitos objetivos — ou seja, o próprio veículo de busca que consome a incerteza pode estar comprometido.",
+      "literal": "It is arguable to use NSGA-II to optimise a many-objective optimisation problem in the model-based search process, given its reported drawbacks for many-objective optimisation",
+      "localizador": "Sec. 5 (Conclusions)"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Passagem das Preliminares (não um resultado empírico do próprio artigo) observando que as três funções de aquisição clássicas (PI, EI, UCB) são, estruturalmente, formas agregadas de combinar a média e a variância preditas pelo GP — sugerindo parentesco estrutural entre critérios, embora o artigo não teste isso empiricamente nem use nenhuma delas diretamente (o método proposto usa, em vez disso, um objetivo adicional de limite de confiança inferior dentro de uma reformulação many-objective, e não uma aquisição escalar agregada).",
+      "literal": "all these acquisition functions are designed as a combination of the predicted mean and its associated variance",
+      "localizador": "Sec. 2.2"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "multimodalidade / muitos ótimos locais",
+      "afirmacao": "Nos três problemas com muitos ótimos locais da bateria (ZDT4, DTLZ1, DTLZ3), os quatro algoritmos falham completamente (IGD>10 em todas as instâncias e D); a multimodalidade agrava especificamente a dificuldade de modelagem do surrogate, segundo os autores.",
+      "literal": "The poor performance of all these algorithms on ZDT4, DTLZ1 and DTLZ3 can be attributed to their multi-modality which makes the surrogate modelling become even more difficult.",
+      "localizador": "Sec. 4.1"
+    },
+    {
+      "caracteristica": "frente descontínua (segmentos desconexos)",
+      "afirmacao": "Em ZDT3 (PF em cinco segmentos desconexos) e DTLZ7 (PF também desconexa), os três pares degradam com o aumento de D exceto o SAEA/ME; em DTLZ7 o SAEA/ME melhora com D maior, mas o K-RVEA ainda é o melhor especificamente em n=20.",
+      "literal": "ZDT3 is a discontinuous problem whose PF is five disconnected segments.",
+      "localizador": "Sec. 4.1"
+    },
+    {
+      "caracteristica": "distribuição enviesada da frente (biased PF)",
+      "afirmacao": "Em ZDT6 (PF com distribuição enviesada), o SAEA/ME acompanha a PF verdadeira mesmo em n=10 enquanto os três pares ficam bem além dela; em DTLZ4 (viés forte, mesma forma de PF que DTLZ2), o K-RVEA supera o SAEA/ME especificamente em n=10 e 20.",
+      "literal": "The PF of ZDT6 has a biased distribution.",
+      "localizador": "Sec. 4.1"
+    },
+    {
+      "caracteristica": "frente degenerada (dimensão reduzida da PF)",
+      "afirmacao": "Em DTLZ5 e DTLZ6 (MOPs com PF degenerada), apenas o SAEA/ME encontra soluções próximas da PF verdadeira; as soluções dos três pares ficam 'way beyond the PF' segundo a Fig. 6.",
+      "literal": "DTLZ5 and DTLZ6 are MOPs with a degenerated PF.",
+      "localizador": "Sec. 4.1"
+    },
+    {
+      "caracteristica": "alta dimensão / escalabilidade com D",
+      "afirmacao": "O desempenho de MOEA/D-EGO e K-RVEA degrada drasticamente com o aumento de D (10→20→50); o do SAEA/ME permanece relativamente consistente entre n=10 e n=50 — atribuído pelos autores à redução de dimensionalidade obtida pela análise de correlação variável-objetivo (Algoritmo 3), que é o motivo declarado de o artigo existir (título: 'Medium Scale Expensive Multi-Objective Optimisation').",
+      "literal": "the performance of MOEA/D-EGO and K-RVEA degenerate dramatically when having more variables",
+      "localizador": "Sec. 4.1"
+    },
+    {
+      "caracteristica": "muitos objetivos (busca no problema surrogate transformado, 2m objetivos)",
+      "afirmacao": "Autocrítica interna do próprio método: o problema de busca que consome a incerteza (Eq. 9, 2m objetivos: média + limite de confiança inferior por objetivo original) é otimizado com NSGA-II, cujas fraquezas em contextos de muitos objetivos são reconhecidas pelos próprios autores como uma limitação não resolvida do método.",
+      "literal": "given its reported drawbacks for many-objective optimisation",
+      "localizador": "Sec. 5 (Conclusions)"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) Confirmação das classes da taxonomia recebidas no pedido, com evidência literal: motor=BO-Especiais — confirmado por exclusão: o laço de controle do SAEA/ME (Algoritmo 2: ajustar GP → buscar no problema surrogate transformado → selecionar subconjunto → avaliar na função real → repetir) é uma construção sequencial do tipo Bayesian Optimization sob medida, não uma extensão rotulável de um dos quatro motores casáveis (NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) com piso direto; note-se que o NSGA-II aparece SOMENTE como sub-rotina interna do passo de busca no espaço surrogate ('Use NSGA-II to optimise the problem shown in equation (9)', Algoritmo 2 linha 5), não como identidade algorítmica externa, consistente com o mesmo padrão dos BO-especiais sem piso casável citados na ficha 10 (JES, qPOTS, LBN-MOBO). função da incerteza=O1·Aquisição exploratória — confirmado: a variância do GP entra diretamente como um objetivo adicional de limite de confiança inferior na busca (h_2i(x) = g_i(x) − V[g_i(x)], Eq. 9) e novamente na seleção de subconjunto (S^l usa g_i(x) − 2V[g_i(x)], Algoritmo 4) — um mecanismo de exploração direta via incerteza, não um gate de confiança nem dominância probabilística. surrogate=GP — confirmado, um GP por objetivo (Sec. 2.1/3), eventualmente sobre um subconjunto podado de variáveis por objetivo (Algoritmo 3). medição=VAR-GP — confirmado: a variância V[g(z*)] vem analiticamente da posterior fechada do GP (Eq. 2), sem ensemble/dropout. regime=online — confirmado: o laço principal intercala ajuste do modelo, busca e avaliação real a cada iteração até o orçamento acabar; mais especificamente é 'online em lote' (batch), pois cada iteração avalia até k=10 candidatos simultâneos (interseção de dois top-k por contribuição de HV), não um ponto por vez — nuance próxima da ficha 64 (sub-estudo de lote) da dissertação, embora aqui não haja comparação q=1 vs. q>1 dentro do próprio artigo (não é uma análise, é apenas uma característica do desenho do algoritmo). (2) O documento fonte tem 3 camadas (estruturada; texto bruto 'ANEXO — Camada de texto completa do PDF (get_text)'; OCR 'ANEXO — Conteúdo textual das imagens (OCR)') que foram lidas INTEGRALMENTE (1972 linhas) — a camada de texto bruto duplica exatamente o mesmo conteúdo da camada estruturada (Tabela 1 conferida célula a célula, idêntica nas duas camadas) e a camada de OCR traz somente rótulos de eixo/legenda de figura (nomes dos 4 algoritmos, 'PF', eixos f1/f2/f3) já presentes nas legendas das Figs. 2–8 — nenhuma das duas camadas adicionais contém dado numérico ou análise ausente da parte estruturada. (3) Nenhuma ablação isola o efeito do σ mantendo a mesma maquinaria de seleção pela média (diferente da ablação exata da ficha 11): os 3 pares (ParEGO, MOEA/D-EGO, K-RVEA) são algoritmos publicados inteiramente distintos, não variantes do SAEA/ME com a incerteza desligada — portanto não há ablação própria neste artigo, e a diferença de desempenho mistura muitos fatores (modelo, aquisição, motor de busca) além da incerteza isoladamente. (4) Nenhuma calibração/cobertura do σ é medida (calibracao_do_sigma.mede=false): a incerteza é usada só operacionalmente (como termo do objetivo de busca e como critério de seleção de subconjunto), nunca validada contra o erro real do modelo. (5) Trechos excluídos de 'analises' por serem método/framework teórico ou exemplo ilustrativo de pseudocódigo, não resultado experimental (Regra 3 do cartão): Algoritmos 1–4 (GP-EA genérico, SAEA/ME, CorrelationAnalysis, SubsetSelection) e a Fig. 1 (exemplo de brinquedo com 5 soluções ilustrando o Algoritmo 4, sem dado real); Eqs. 1–9 (definições de MOP, GP, kernel, PI/EI/UCB, problema transformado); a análise de correlação em si (Sec. 3.1, com o exemplo de ZDT1) não é avaliada empiricamente com uma tabela própria (não há relatório de quantas variáveis foram podadas por problema/objetivo), por isso não gerou uma análise própria, apenas a nota em 'custo'. (6) Nenhum estudo de sensibilidade aos hiperparâmetros próprios do método (δ=10⁻⁶ do limiar de correlação; k=10 do tamanho do subconjunto) é feito — ambos são fixados sem variação comparativa, e nenhum dos dois é o tipo de parâmetro que define o USO da incerteza no sentido da ficha 45 (δ é limiar de correlação variável-objetivo, não um gate de confiança sobre σ)."
+}

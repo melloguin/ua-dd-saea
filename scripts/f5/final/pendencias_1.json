@@ -1,0 +1,84 @@
+{
+ "itens": [
+  {
+   "id": "P1",
+   "origem": "F30 (e103.json: ⑦ 0/669)",
+   "o_que_era": "e103 sem __final.parquet (⑦) em toda a campanha F30; hoje haveria 45 __final; verificar por problema/regime e se a ⑦ dos reais existe",
+   "estado_final": "ABERTO",
+   "evidencia": "MEDIDO no corpus /Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/e103: 778 jsonl, 45 __final.parquet, TODOS semente 42 — off: 25 (1 por problema sintético, 25 problemas); sweeps: 20 (DTLZ2/MMF16_20/WFG9/ZDT1/ZDT4 × 4 regimes sweep-small/medium-lhs/mvns). ⑦ dos REAIS: NÃO EXISTE (RE21 0/30, DDMOP7 0/30, ESTOQUE40 0/29). CONSEQUÊNCIA MEDIDA no cache da análise (data/analysis_cache/metricas_endpoint_snapshot_2026-08-17.parquet): as 758 linhas e103 têm erro='final_ausente', hv/igd_plus não-nulos = 0/758 — e103 está SILENCIOSAMENTE fora de TODAS as análises de endpoint, enquanto b5m/b5r/moead_media têm 679/785/785 células com métrica.",
+   "acao_restante": "ESCALAR (D81): decidir entre (a) reconstruir a ⑦ pós-hoc da ⑤/① (offline: sem re-execução; validar contra as 45 células s42 que TÊM ⑦) ou (b) declarar e103 fora das análises de endpoint na dissertação. O estado atual (exclusão silenciosa) não é nenhuma das duas."
+  },
+  {
+   "id": "P2",
+   "origem": "F30 (c122/c149/c154.json, escalação C3-1; transversal ~994 células)",
+   "o_que_era": "upload_status destruído por 403 (storage.objects.delete) nas ③ bucket-only de c122(220)/c149(210-214)/c154(149)/c262(194)/e81(217) — ③ possivelmente perdida",
+   "estado_final": "FECHADO",
+   "evidencia": "MEDIDO hoje. (1) Bucket acessível: CLOUDSDK_CORE_ACCOUNT=gdmello.nunes@gmail.com gsutil ls gs://mestrado_experiments/experiments/main/<cfg>/*__surrogate.parquet → c122 786 · c149 804 · c154 606 · c262 744 · e81 797 objetos (listas no scratchpad bucket_<cfg>_sur.txt). (2) Cruzamento manifesto-a-manifesto no corpus consolidado: as células com upload_status={erro:403} têm ③ LOCAL presente em 220/220 (c122), 214/214 (c149), 149/149 (c154), 194/194 (c262), 217/217 (e81) — 994/994. (3) As únicas células main sem ③ em lugar nenhum são failed/stub que nunca produziram ③: c154 16 (14 failed no censo + DTLZ4/7 e ZDT6/28 truncadas), c262 1 (WFG1/42 failed), e81 5 (ESTOQUE40 s22-26, só jsonl). Veredito: o 403 destruiu o REGISTRO, não o dado — classe 2 do C3-1 ('instrumentação perdeu o registro'). Ressalva: conferi EXISTÊNCIA local+bucket, não md5.",
+   "acao_restante": "Nenhuma no acervo. Registrar nos relatórios F30 (c122/c149/c154/c262/e81) que a escalação C3-1 se resolve como classe 2; o caveat de exclusão de 29% da ③ cai."
+  },
+  {
+   "id": "P3",
+   "origem": "F30 → rodada final (f5/final/configs/b1.json)",
+   "o_que_era": "b1/BBOB_F17/s8 quimera: ①②③④⑥ de uma execução (09/08), ⑤ de outra (14/08) — reparada?",
+   "estado_final": "ABERTO",
+   "evidencia": "RE-MEDIDO em /Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/b1/BBOB_F17/8: jsonl/pop/real/surrogate/timing mtime 2026-08-09 15:47; manifest.json mtime 2026-08-14 08:25 (created_at 2026-08-14T11:25:41Z, campanha 7f4f0e429a46_M8, repo 63db46b1). jsonl: 337 linhas, última = registro de GERAÇÃO (ger. 202, fe 309) SEM rodapé; manifest diz status=ok, fe_final=309, n_geracoes=201 (≠ 202 do jsonl). QUIMERA NÃO REPARADA. censo_final.csv linha 'b1,main,BBOB_F17,8,ok' — diverge do O-21 (sem rodapé ⇒ ⚪); a correção de censo recomendada no F30 segue NÃO aplicada (concorda com a re-medição da rodada final em f5/final/configs/b1.json).",
+   "acao_restante": "Decisão do autor: reclassificar a célula como ⚪ no censo/análises (recomendado — o rodapé é a autoridade) ou recuperar a ⑤ da execução de 09/08 (se existir no bucket _backup) para desfazer a quimera. Corrigir censo_final.csv em qualquer dos casos."
+  },
+  {
+   "id": "P4",
+   "origem": "F30 (c141.json)",
+   "o_que_era": "c141/ZDT4/9: ① (jsonl) órfão de 368 bytes — segue órfão? espelho ainda existe?",
+   "estado_final": "ABERTO",
+   "evidencia": "MEDIDO: no corpus consolidado (resultados_experimentos/c141/ZDT4/9) o jsonl segue com 368 bytes (mtime 08/08 08:24, SÓ o header da execução abortada), enquanto manifest+4 parquets são de 14/08 08:04 (M8, status ok, fe 309/309, 58 ger.) — virou quimera invertida: ① velho + ②③④⑤⑥ novos. O ESPELHO EXISTE: /Users/gmello/mestrado_coleta_m8/matlab-vm5/experiments/main/c141/exp_main_c141_ZDT4_9.jsonl = 62.076 bytes, 91 linhas, rodapé rec='footer' status=ok, mtime idêntico aos parquets (14/08 08:04:02).",
+   "acao_restante": "Reparo trivial (1 cópia): substituir o jsonl de 368 bytes do corpus pelo do espelho vm5 (mesma execução dos demais artefatos, rodapé fecha). Não executei — read-only."
+  },
+  {
+   "id": "P5",
+   "origem": "F30 (c122.json, G2: s42 do M8 ≠ s42 da F5/T11, 0/25 IGD idênticos)",
+   "o_que_era": "c122 tem duas s42; qual delas o notebook novo (commit cea23a5) analisa?",
+   "estado_final": "FECHADO",
+   "evidencia": "MEDIDO: '4. analises_resultados.ipynb' (cea23a5) usa CORPUS='/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos' (célula 1) e caches em data/analysis_cache gerados desse corpus (metricas snapshot 17/08: 26 células c122 s42). No corpus, TODAS as c122 s42 são do M8: manifests campanha_id=7f4f0e429a46_M8, created 2026-08-07/08, repo 63db46b1, fonte matlab-vm5 (_FONTES.csv). ⇒ A ANÁLISE USA A s42 DO M8 (coerente com o resto da campanha). A s42 da F5/T11 (created 2026-07-27) está preservada em /Users/gmello/mestrado_coleta_backup42/experiments/main/c122/ — nada foi perdido.",
+   "acao_restante": "Ressalva documental na dissertação: os vereditos de fidelidade da F5/T11 sobre c122 ancoram numa execução s42 ANTERIOR à analisada (o mecanismo de semente é invariante — 100% de query-joias no censo — então as conclusões transferem, mas os números célula-a-célula não são os mesmos)."
+  },
+  {
+   "id": "P6",
+   "origem": "F30 (transversal_ruido.md: O-18 morto, substituir por piso empírico)",
+   "o_que_era": "qual piso a análise usa: O-18 (HV≤1,55%) ou o empírico (contraste HV 1,225%/IGD+ 3,238%)?",
+   "estado_final": "ABERTO",
+   "evidencia": "MEDIDO por grep integral: '4. analises_resultados.ipynb' (cea23a5) NÃO menciona O-18 nem piso de ruído — a significância vem de testes pareados (Wilcoxon rank-sum, Friedman+Nemenyi CD, signed-rank por semente; células 17-18), conforme D70/D48 do doc R4 (/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/claude_code_context/50_analise_R4/metricas_estatistica_caracteristicas.md — que também não cita O-18 nem o piso empírico). ⇒ O-18 morto CONFIRMADO (0 usos na análise); mas a recomendação F30 (declarar o piso empírico de dois níveis como ressalva de reprodutibilidade cross-máquina: contraste real HV 1,225%/IGD+ 3,238%; exposição total 5,012%/10,876%; homogêneo = deriva exatamente zero; 6 configs surrogate = sensíveis a microarquitetura) NÃO foi incorporada em lugar nenhum. NB: o 'PISO' do notebook é outro conceito (os 4 EAs baseline).",
+   "acao_restante": "Incorporar a ressalva do piso empírico (transversal_ruido.md, seção de recomendação) ao texto de reprodutibilidade da dissertação — os testes pareados não cobrem ruído de máquina entre células de VMs diferentes. 🔵 D29: toca surrogate ⇒ artigo."
+  },
+  {
+   "id": "P7",
+   "origem": "T15/A53 (commit 7be66e6) + rodada final b1",
+   "o_que_era": "b1×DDMOP7 1/30 — confirmar o registro A53 e classificar como incapacidade documentada",
+   "estado_final": "FECHADO_POR_DECISAO",
+   "evidencia": "REGISTRO CONFIRMADO: commit 7be66e6 gravou em REGISTRO_DECISOES_IMPLEMENTACAO.md o diagnóstico A53 (dacefit 'least squares underdetermined', NÃO-determinístico: smoke s0/s2/s3 falham, s1 ok 526/526; causa = objetivos quantizados f1=k/17, f2=n/690 ⇒ empates degeneram o kriging; 'não bloqueia, incapacidade PARCIAL documentada, material do cap. 5'). ESTADO ATUAL MEDIDO: 30/30 células existem no disco; 1 ok (s1, censo) + 29 failed (29/29 jsonl contêm 'underdetermined'). A projeção do A53 (~7-10/30 produziriam dado) NÃO se confirmou: taxa real = 1/30.",
+   "acao_restante": "Entrar na tabela de taxa de sucesso do cap. 5 como incapacidade documentada: b1×DDMOP7 = 1/30 (usar o medido, não a projeção do A53). É a mesma classe do b1×DTLZ4 (0/30 determinístico), agravada pela quantização dos objetivos."
+  },
+  {
+   "id": "P8",
+   "origem": "D0-LAUDO-C238-BADSUBSCRIPT + T15.9/DEC-8 (commit 746408b)",
+   "o_que_era": "c238 badsubscript: decisão final? fix ,[],1 aplicado no DDMOP7? 105 sintéticas não re-rodadas",
+   "estado_final": "FECHADO_POR_DECISAO",
+   "evidencia": "VERIFICADO: commit 746408b '[T15.9/DEC-8] fix do front singleton no c238 — autorizado pelo autor' aplica ,[],1 nas 3 linhas fatais; o código vigente (algorithms/c238_EIM/Infill_EIM.m:33/35/38) contém o fix (identidade p/ front≥2, zero re-run das ok). EFEITO MEDIDO: c238×DDMOP7 30/30 ok no censo (o problema que motivou o fix). SINTÉTICOS (m8-freeze mantido): 645/750 ok no censo = 105 lacunas, decompostas por medição em 74 nunca-rodadas + 31 rodadas-inválidas (29 jsonl com badsubscript ainda no disco). Censura NÃO-aleatória documentada no laudo (mata runs com front singleton precoce; F5 -37%, F22 -30% das sementes).",
+   "acao_restante": "As 105 sintéticas = ABERTO_ACEITO (corpus congelado): reportar taxa 645/750 (86%) com a ressalva de viés de censura do laudo D0. Nada mais a fazer no código."
+  },
+  {
+   "id": "P9",
+   "origem": "A53 (commit 7be66e6: 'foto offline sob codificação FEITA')",
+   "o_que_era": "conferir o artefato da foto offline sob a zona morta (b5r 526/526·928 ger, moead_media 801 ger, e103 ok, b5m em execução)",
+   "estado_final": "FECHADO",
+   "evidencia": "ARTEFATO CONFERIDO: data/_quarentena_smokes/exp_off_b5r_DDMOP7_0.manifest.json = status ok, fe_final 526/526, n_geracoes 928 — bate exatamente com o registro A53 (28 arquivos DDMOP7 na quarentena de smokes). Não localizei o smoke e103×DDMOP7 na quarentena (só e103×RE21), mas a claim está superada: o corpus final tem 30/30 ok em TODOS os 4 offline×DDMOP7 (b5r, b5m, e103, moead_media; censo), campanha 3240f4b26fae_2026-08-15 = commit com a zona morta no código executado (T15.12).",
+   "acao_restante": "Nenhuma."
+  },
+  {
+   "id": "P10",
+   "origem": "censo final (corpus congelado, 'o que não executou não vou executar mais')",
+   "o_que_era": "consolidar a lista final de células não-rodadas por config×problema como lacunas aceitas",
+   "estado_final": "FECHADO",
+   "evidencia": "MEDIDO POR EXISTÊNCIA NO DISCO (resultados_experimentos; 'não-rodada' = nenhum artefato; failed/stub contam como rodadas): grid 21 configs × 28 problemas × 30 sementes {0-28,42} = 17.640; existem 16.762; NÃO-RODADAS = 878 = 430 sintéticas main (bate EXATO com o declarado) + 195 sintéticas offline (que o '430' não cobria) + 253 reais (declarado era 257; 4 a menos porque stubs/failed existem no disco). POR CONFIG (sint | RE21/DDMOP7/EST40): b4 5|0/1/30 · c238 74|0/0/1 · b3 3|2/0/30 · c122 12|0/0/30 · b1 17|0/0/30 (DDMOP7: 30/30 rodadas, 29 failed — P7) · e7 86|0/0/30 · c262 63|0/0/0 · c154 111|30/0/0 · e81 26|0/0/3 · c149 33|0/0/0 · nsga2 0|2/0/3 · b5m[off] 64|30/0/30 · b5r[off] 25|0/0/0 · e103[off] 81|0/0/1 · moead_media[off] 25|0/0/0 · c217/e74/c141/moead/nsga3/smsemoa 0. Padrões: sementes 18/25/26 (c262/b5m/e81/c149/c154), 13/17/26 (e103/e7 parcial), 26 (b5r/moead_media) — lacunas concentradas em sementes inteiras, não aleatórias. NB: contagem via censo daria 705/293 porque o censo omite células rodadas sem manifesto (b1×DDMOP7 29, e81×EST40 s22-26, c154 DTLZ4/7 e ZDT6/28).",
+   "acao_restante": "Declarar na dissertação: 878 lacunas aceitas (430 main-sint + 195 off-sint + 253 reais) com a tabela acima; separar 'nunca-rodada' de 'rodada-e-falhada' (estas entram na tabela de incapacidades: b1×DTLZ4 30, b1×DDMOP7 29, c238 31, etc.)."
+  }
+ ]
+}

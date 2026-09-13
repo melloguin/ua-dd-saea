@@ -1,0 +1,11 @@
+label,n3,wall_s42,custo_ckpt_proj,wall_proj,inflacao_pct
+swap_big-lhs_DTLZ2,124895,10.9692,5.16,16.13,47.0
+swap_big-lhs_MMF16_20,124818,11.5296,5.16,16.69,44.7
+swap_big-lhs_WFG9,65294,7.2242,3.91,11.13,54.1
+swap_big-lhs_ZDT1,69874,13.2831,4.0,17.28,30.1
+swap_big-lhs_ZDT4,57073,6.7214,3.75,10.47,55.8
+swap_big-mvns_DTLZ2,121957,13.9358,5.1,19.04,36.6
+swap_big-mvns_MMF16_20,121102,15.7127,5.08,20.79,32.3
+swap_big-mvns_WFG9,66596,7.5384,3.93,11.47,52.1
+swap_big-mvns_ZDT1,67737,7.8988,3.96,11.85,50.1
+swap_big-mvns_ZDT4,57281,5.8615,3.75,9.62,64.0

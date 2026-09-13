@@ -1,0 +1,2 @@
+problema,it,n_baseline,n_dentro_estrito,n_train,melhor_margem,f_do_melhor,ref,n_com_margem_ge_0,n_com_margem_gt_m1e3
+DTLZ4,23,1,0,153,-0.0016778945922850674,"[1.1016778945922852, 4.5482690272916585e-33, 1.7871512917547877e-13]","[1.1, 1.1, 1.1]",0,0

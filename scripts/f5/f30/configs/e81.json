@@ -1,0 +1,340 @@
+{
+ "config": "e81 (qPOTS · Carlson & Renganathan 2025) · exp=main · campanha M8 de 30 sementes {0–28,42} · 25 problemas · READ-ONLY (nenhuma célula executada, experiments.py NUNCA invocado). Interpretador: /Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao/bin/python. Artefatos da bateria em /private/tmp/claude-501/-Users-gmello/33c29160-6eb6-4277-a041-db4855486063/scratchpad/{sweep.py,sweep_e81.parquet,n4.py,n4_drift.csv,n3.py,n3_hv.csv,n3_traj.csv,joia3.py,joia3.csv}.",
+ "cobertura": "NÃO amostrei: varri o config INTEIRO em streaming. 725/725 células existentes auditadas — 724 boas + 1 stub dissecado linha a linha. Volumes re-medidos do zero: 198.600 decisões = 198.600 fits = 198.600 linhas de ④ · 100.024 blocos de sonda · 75.714.900 linhas de ② · 307.106 FE na ① · 7.722 checkpoints · 748,74 h-core. Método: 1 passe multiprocessado sobre os 398 MB de ⑥ (json por linha, só os campos necessários) + ① e ② e ④ por parquet + os 841 sidecars de DoE. As 25 células/problema × 30 sementes estão todas cobertas (724 de 750 existem; as 26 ausentes são fronteira de campanha, ver N5). LIMITE REAL: a ③ é bucket-only (D54) e existe no disco em apenas 17 células (semente 7, vindas da vm5) — tudo que exige a ③ (joia nos níveis conjunto/ordem/marcação, A7, A11, A12, A22, A23) foi medido só ali, e está declarado célula a célula. Rivais lidos para N3: c262 (564 células ok), c154 (259), nsga2 (724).",
+ "N1_invariancia": "A query-joia do e81 (recomputo do maximin) FECHA EM 100% DA CAMPANHA, não numa amostra. (a) NÍVEL VALOR — recomputado de ①+⑥ (não precisa da ③): `maximin_escolhido == min_j ||x_novo − X_j||₂` com X = ①[0:n_train] normalizado em [0,1]^D, em **198.600/198.600 decisões · 724/724 células · 25/25 problemas · 30/30 sementes**, com |Δ| máximo global **1,054e-07** — o piso de armazenamento float32 da ① (a T11 mediu 8,087e-08 em 1 semente; mesma ordem). (b) NÍVEIS CONJUNTO+ORDEM+MARCAÇÃO+LINK — só possíveis com a ③, feitos nas 17 células com surrogate: **2.880/2.880 gerações** fecham nos quatro níveis (`set(argsort(dmin)[-q:]) == set(idx_escolhidos)`, lista idêntica elemento a elemento, `real_solution_id` exatamente nas posições escolhidas, e X dessas linhas bit-idêntico ao da ①), |Δ| máximo **6,709e-08**. Isto reproduz, numa SEGUNDA semente e em 17 problemas, o nível de prova que a T11 só tinha na s42. (c) ESPAÇO — a identidade só fecha normalizada: nas **435 células com largura de bounds ≠ 1** o recomputo nativo falha em **109.800/109.800 decisões**, e fecha nas 289 em que normalizado e nativo são matematicamente a mesma métrica (259 com bounds [0,1]^D + 30 MMF11_L, que é translação pura [0,1;1,1]²). Dentro das 435, **165 células (5 WFG + ZDT4) têm larguras heterogêneas (razão até 22×)**, onde NENHUMA constante multiplicativa converte um espaço no outro — o A6 deixa de ser \"patch declarado\" e vira invariante medido em 30 sementes. (d) Identidade irmã, também de cobertura total: `dist_min_arquivo == min_{k∈lote} min_j ||x_k − X_j||₂` no espaço NATIVO em **198.600/198.600** (desvio relativo máx 1,747e-06, piso float32). NENHUMA semente quebra NENHUMA das identidades — zero achados neste eixo.",
+ "N2_tetos_caidos": "Caíram 6 tetos T da T11; 5 continuam de pé. CAÍRAM: (T-1) **Fórmula de semeadura A6/D22** — era o teto nomeado no briefing. `seed_gp == 1024 + iteracao + 1000·s` em **198.600/198.600 decisões** e `seed_nsga2 == 2430 + 1000·s` em **198.600/198.600**, sobre **30 sementes distintas**. A T11 tinha 2 pontos (s=0 do smoke, s=42) e chamava a fórmula de \"determinada\"; com 30 pontos ela é SOBREDETERMINADA — qualquer outro polinômio em s é falsificado. (T-2) **Determinismo / a célula é função pura da semente** — a T11 registrou explicitamente \"qualquer coisa em 30 sementes\" como não verificável. Medido: 17 pares duplicados vm1×vm5 são bit-idênticos em float64 (ver N4). (T-3) **Deriva cross-máquina** — quantificada em ZERO (N4). (T-4) **Corroboração física do kernel ARD (A9) era 1 semente** — agora é invariante de semente: a razão `lengthscale_max/lengthscale_min` tem como argmin, entre os 25 problemas, o **BBOB_F1 (Sphere/Sphere, isotrópico) em 30/30 sementes** (mediana 1,050; faixa 1,035–1,068) e como argmax DTLZ4 (α=100) ou WFG1 em 29/30; ARD >1,05 em **437.933/446.400** iterações-objetivo (98,1%), e 98% das exceções estão exatamente nas duas esferas (BBOB_F1 43,7%, BBOB_F5 25,3%) — o \"desvio\" é a física correta. (T-5) **Invariância do contrato entre sementes** — a T11 mediu que \"as únicas 2 diferenças do `params` entre s42 e s0 são as strings de semente\"; agora, varrendo as 27–30 sementes de cada problema, **exatamente 2 chaves diferem** (`nsga2_interno`, que carrega `seed`, e `seed_base`) e nada mais; `sigma_dict` tem 61 textos distintos, todos explicados por (D,M,pop,q); `algo_version` e o pin de ambiente são valor ÚNICO em 724/724. (T-6) **Cadência do checkpoint DI-43 (K=25 OU 30 min)** — a T11 viu 1 disparo em 40 iterações e não podia separar os dois gatilhos. Medido: **n_ckpt == n_geracoes//25 em 724/724** e `iteracao % 25 == 0` em 7.722/7.722 → o gatilho de tempo NUNCA disparou; nenhum registro dependente de relógio entrou no ⑥ da campanha. CONTINUAM T: (i) os draws de Thompson em si (só min/med/máx gravados); (ii) a semântica fina \"1 caminho coerente × TS acoplado à população\" (A8) — `n_chamadas=10` continua consistente com as duas leituras; (iii) os priors Gamma(3,6)/Gamma(2,0.15); (iv) os operadores internos do pymoo (SBX/PM defaults); (v) o argmax da completação DI-25 dentro do pool rank-1+ — e piorou: no main q=1 a guarda é INALCANÇÁVEL (0 guards em 198.600 decisões), e o corpus batch que a exercia não está na árvore canônica.",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "\"the seed is fixed for each repetition across all acquisition policies to keep the comparison fair\" — o protocolo de justiça entre políticas",
+   "onde_no_artigo": "§4.1, linha 271 (md) / p.11",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO, e numa forma mais forte que a do artigo. O DoE é artefato congelado por (problema,semente): 841 sidecars, 30 hashes por problema, ZERO colisões. Spot-check em 8 pares (prob,seed) × 5 configs (e81,c262,c154,c149,c122): os cinco consomem o MESMO artefato, com desvio relativo idêntico ao dígito (2,387e-08 … 4,807e-08 = ULP float32 do export). No e81 a identidade ①[0:n_init] ≡ artefato fecha em 724/724 células com desvio relativo global ≤ 5,949e-08, e `doe_hash` ⑤≡header≡sidecar em 724/724."
+  },
+  {
+   "afirmacao": "\"n = 10×d seed samples ... chosen uniformly at random\"",
+   "onde_no_artigo": "§4.1, linha 271",
+   "testavel_com_30": true,
+   "resultado": "DIVERGÊNCIA SANCIONADA (D63/Anexo J, global-override): usamos 11D−1 LHS-maximin do artefato, razão 1,1× sobre o 10×d e determinístico em vez de uniforme. Medido em 724/724 (`n_init == 11D−1`, `(fase=='init').sum() == n_init`). O artigo re-sorteia por repetição; nós congelamos por (prob,semente) — o que é mais forte para reprodutibilidade e é a razão de N4 dar zero."
+  },
+  {
+   "afirmacao": "\"plots show mean and ±1 standard deviation out of 10 repetitions\" — a quantificação de incerteza do artigo repousa em 10 réplicas",
+   "onde_no_artigo": "Fig. 4 (linha 290) e Fig. 5 (linha 307)",
+   "testavel_com_30": true,
+   "resultado": "MEDIDO com 30 réplicas. CV entre sementes do HV final (normalizado, ref=1,1^M sobre o min-max do conjunto): mediana 1,10%, faixa 0,03% (BBOB_F17) a 30,43% (BBOB_F55). Só DOIS problemas passam de 10%: BBOB_F49 (19,64%) e BBOB_F55 (30,43%) — exatamente o par Gallagher-101-peaks. Erro-padrão relativo da média: 0,349% com n=10 contra 0,212% com n=30 (medianas) ⇒ **10 repetições seriam suficientes em 23/25 problemas e insuficientes nos 2 Gallagher**, onde o SE com n=10 chega a 9,6%. É a validação (e o limite) empírica do desenho amostral do artigo."
+  },
+  {
+   "afirmacao": "\"qPOTS (blue) is consistently the best performer, or is amongst the best\" no regime sequencial q=1",
+   "onde_no_artigo": "§4.1, linhas 275 e 1292 (discussão da Fig. 4)",
+   "testavel_com_30": true,
+   "resultado": "NÃO REPRODUZIDO NO NOSSO ENVELOPE — e agora com poder estatístico, não com 1 semente. Pareado por (problema,semente), orçamento IDÊNTICO (verificado: maxFE igual nos 4 configs em todos os 25 problemas): e81 vence em HV **110/564 (19,5%) contra c262/qNEHVI**, **95/259 (36,7%) contra c154/JESMO**, **239/724 (33,0%) contra nsga2**. Wilcoxon pareado por problema vs c262: 18/21 problemas com p<0,05, dos quais **16 contra o e81 e 2 a favor**. C-metric (livre de referência): mediana C(c262→e81)=0,923 contra C(e81→c262)=0,000. E o achado que só 30 réplicas dão: **o sinal é estável, não ruído** — o resultado é o mesmo em ≥90% (ou ≤10%) das sementes em 17/23 problemas contra c262 e 18/25 contra nsga2. Onde o e81 ganha, ganha consistentemente (BBOB_F17 96,3%, MMF1 73,3%, DTLZ3 70,4% vs c262; BBOB_F1 100%, MMF11_L 100% vs c154). RESSALVAS que sustento: (i) viés de sobrevivência — só células ok dos rivais entraram, e c154 tem 300 teto + 80 fail, c262 tem 90 + 33, então o rival compete com o seu melhor subconjunto; (ii) o envelope é 31D−1 (~31 FE/dim) contra ~80/dim do artigo em d=10, e D até 30 contra ≤10; (iii) isto é COMPORTAMENTO, não infidelidade — o mecanismo está provado em N1 a 198.600/198.600."
+  },
+  {
+   "afirmacao": "\"qPOTS outperforms all competitors, but the benefit is more pronounced in the batch case\" / \"the cost of batch sampling is practically the same as sequential\"",
+   "onde_no_artigo": "Fig. 5 (linha 307) e §4.1 (linha 277)",
+   "testavel_com_30": false,
+   "resultado": "NÃO TESTÁVEL — teto T. A campanha M8 de 30 sementes é 100% q=1: a ÚNICA entrada batch do e81 na árvore canônica é o stub vazio de 4 linhas (classe 3 nº 1). As 5 células batch q=10 reais existem só em ua-dd-saea/data/experiments/batch/e81/ (s42, corpus congelado da F5/T11) e não entram nesta auditoria. Consequência: A17 (fallback DI-25), A18 (q=10) e A20 (ambiguidade B17.5) NÃO foram re-exercidos pelo código de hoje."
+  },
+  {
+   "afirmacao": "§5.3 — \"qPOTS maintains stable convergence relative to baselines up to the tested noise levels\" (σ² ∈ {0, 1e-6, 1e-4, 1e-3}), curvas mean ± std sobre 10 repetições",
+   "onde_no_artigo": "§5.3, linhas 1901–1904 e Fig. 12",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO na parte que o nosso ruído efetivo permite (nugget passado 1e-12, EFETIVO 1e-6 pelo clamp do gpytorch — dentro da faixa ablacionada). Estabilidade medida em 4 checkpoints de orçamento (25/50/75/100%): HV **não-decrescente em 724/724 células**, zero violações; e a dispersão entre sementes ESTREITA monotonicamente com o orçamento — CV mediano 3,73% → 1,92% → 1,47% → 1,10%. Zero células com perda ponta-a-ponta real (o mínimo é −1,1e-16, ruído de float). Ganho médio 25%→100% de 0,7% (BBOB_F17, já saturado) a 444% (BBOB_F55)."
+  },
+  {
+   "afirmacao": "\"the population size for all problems is fixed at 100×d\" (NSGA-II interno)",
+   "onde_no_artigo": "§4.1, linha 273",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO em 724/724 células, e por DADO INDEPENDENTE: `draws_thompson.n_pontos == 100·D·ngen` em 198.600/198.600 decisões (2.000 em D=2 … 30.000 em D=30). Se pop ou ngen fossem outros, os dois campos discordariam. O `ngen=10` continua sendo escolha nossa (D46; o artigo é omisso)."
+  },
+  {
+   "afirmacao": "\"we default to the anisotropic Matérn class kernel with ν = 5/2\"",
+   "onde_no_artigo": "§4.1, linha 273",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO declarativamente em 198.600/198.600 fits (`kernel == get_matern_kernel_with_gamma_prior(D)`, 🔵 D30 restaurando o artigo sobre o RBF-ARD default do BoTorch 0.16.1) E corroborado fisicamente de forma SEED-INVARIANTE: o argmin da anisotropia aprendida entre os 25 problemas é a esfera BBOB_F1 em 30/30 sementes. Priors Gamma seguem T."
+  },
+  {
+   "afirmacao": "\"We add Gaussian noise with variance τ² = 10⁻³ to all our observations to assist with the conditioning of the GP covariance matrix\"",
+   "onde_no_artigo": "§4.1, linha 271/1275",
+   "testavel_com_30": true,
+   "resultado": "DIVERGÊNCIA SANCIONADA (🟠 E.6): `train_Yvar == 1e-12` em 198.600/198.600 decisões, valor ÚNICO em 724/724 células. O `params` (idêntico em todas as 724) declara o clamp do gpytorch para 1e-6 ⇒ o nugget EFETIVO é 1e-6, três ordens abaixo do τ² do texto principal, mas DENTRO da faixa ablacionada em §5.3. A T11 já havia feito essa autocorreção na s42; agora está confirmada como invariante da campanha."
+  },
+  {
+   "afirmacao": "\"we don't turn on the Nyström approximation for the CRM experiment\" (o passo 2 do Alg. 1 é opcional)",
+   "onde_no_artigo": "§4.2, linha 330",
+   "testavel_com_30": true,
+   "resultado": "CONFORME ao próprio artigo: `nystrom == 0` em 198.600/198.600 decisões, 724/724 células (E.6). O Cholesky é EXATO em todo o regime (n ≤ 929)."
+  },
+  {
+   "afirmacao": "Desiderato (iii) do artigo: \"robustness to noisy objective evaluations\" e (i) \"sample efficiency\" — implícita fiabilidade do ajuste de GP a cada iteração",
+   "onde_no_artigo": "§3 (linha 1249-1250) e Abstract",
+   "testavel_com_30": true,
+   "resultado": "É O RESULTADO MAIS FORTE DA CAMPANHA A FAVOR DO ARTIGO. Em **198.600 ajustes de GP do zero** (2–3 modelos cada, n de treino até 928): `fit_retries == 0` em 724/724, `cache_hits == 0` e `n_cache_infill == 0` em 724/724, zero `ModelFittingError`, zero `NotPSDError`, zero NaN nas 307.106 linhas de ①. Taxa de sucesso 724/724 células = 100%, contra c154 (300 teto + 80 fail) e c262 (90 + 33) no MESMO orçamento e nos MESMOS problemas. O e81 é, junto com os EAs puros, o único config sem NENHUMA incapacidade documentada."
+  },
+  {
+   "afirmacao": "Implícito no protocolo: uma repetição é função determinística da semente (\"the seed is fixed for each repetition\"), e as repetições são paralelizadas sem estado compartilhado (\"repetitions are parallelized across the cores\")",
+   "onde_no_artigo": "§4.1, linhas 271 e 1277",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO NO NÍVEL DE BIT, e em máquinas diferentes — ver N4. 17 pares (mesma semente 7, vm1 × vm5), 2.904 decisões pareadas, 37.752 comparações de campo float64: ZERO diferenças. Nenhuma célula do e81 compartilha estado com outra: o config inteiro é função pura de (problema, semente)."
+  }
+ ],
+ "N4_deriva": "**A deriva cross-máquina do e81 é EXATAMENTE ZERO — e isso contraria (para este config) a premissa do briefing de que a fidelidade só pode ser estatística.** Material: as duplicatas listadas nos reorg_conflitos.log dão 17 células main do e81 em 2 cópias — semente 7, `matlab-vm1` × `matlab-vm5` — mais 1 batch em 3 cópias (o stub). MEDIDA: (a) ① bit-idêntica em X e F nas 17 (16 pares de comprimento completo, 309–371 linhas; o 17º, MMF16_20, tem a cópia da vm5 abortada em 319 de 619 FE e é idêntico no prefixo comum); (b) no ⑥, comparando os campos float64 decisão a decisão — `maximin_escolhido`, `dist_min_arquivo`, `mu_sel_nat`, `sigma_sel_nat`, `modelo_hp` inteiro (todos os lengthscale_min/med/max e outputscale), `draws_thompson` (min/med/max por objetivo), `f_best`, `n_front_acq`, `n_front1`, `idx_escolhidos`, `solution_id`, `n_train`, `fe` — **2.904 decisões pareadas × 13 campos = 37.752 comparações, ZERO diferenças**; `maximin_dev_max = 0.0` exato; a série de `lengthscale_med` (saída do L-BFGS sobre a MLL, a grandeza mais sensível do pipeline) coincide em **2.904/2.904 gerações**. (c) As duas execuções são genuinamente distintas: os carimbos diferem em ~19 h e o wall-clock por fit difere **1,5× a 2,4×** (ex.: DTLZ2/7 — fit 165,7 s na vm1 contra 247,1 s na vm5). PROVA CRUZADA INDEPENDENTE: as 17 ③ que existem no disco vieram da **vm5** (`_FONTES.csv`), enquanto ①②④⑤⑥ dessas mesmas células vieram da **vm1** — e a joia completa fecha 2.880/2.880 (|Δ| ≤ 6,709e-08): o front amostrado na vm5 seleciona, por maximin, exatamente o ponto que a vm1 avaliou. MECANISMO: 1 thread pinado (D79/OMP=1 em 724/724), float64 forçado, Nyström OFF ⇒ Cholesky exato, base samples de Thompson congelados por `manual_seed`, e pins de ambiente idênticos byte a byte (python 3.11.9, torch 2.11.0+cu130, gpytorch 1.14.2, botorch 0.16.1, pymoo 0.6.1.6, numpy 2.2.6) em 724/724. RESSALVAS QUE ESCALO: (i) **não medido — o modelo de CPU**: o ⑥ só grava `plataforma=\"Linux/x86_64\"`, não o microarquitetura; pelo `frota.json` a vm1 é n2-highmem-32 (us-east1-b) e a vm5 estava documentada como n2-highmem-48 (us-east4-a, medida com nproc=32 em 14/08). Instâncias e zonas diferentes, mesma família N2 — NÃO posso afirmar que as microarquiteturas diferiam, só que as máquinas eram distintas; (ii) o par disponível é vm1×vm5; **não medido** para vm2/vm3/vm4/vm10 (nenhuma duplicata do e81 com elas). CONSEQUÊNCIA PARA A LEITURA: para o e81 o piso de ruído cross-VM medido é **0** — nenhum contraste que envolva o e81 está confundido por máquina, e o piso de 58,98% que a F5/T11 aplicava ao comparar com rivais em outras VMs é conservador do lado do e81 (o que sobra é o piso do RIVAL). JANELA DE SWAP DA VM5: **nenhuma célula do e81 está nela** — a última célula do e81 na vm5 fecha em 2026-08-14T12:58:23Z, antes das ~15:20Z; a única que fecha depois (MMF16_20/26, 19:43Z) rodou na vm1. O ④ do e81 é utilizável integralmente para tabela de custo.",
+ "N5_cauda": "**O e81 não tem cauda: 724/724 células ok, ZERO ⚪ e ZERO fail — a única no conjunto dos 9 regressores.** Rodapé fechado (único footer com `fe_final`) em 724/724, `status=ok` em 724/724, `motivo_parada='orcamento'` em 724/724, `fe_final == maxfe == len(①)` em 724/724, `n_retries=0` e `fallback_ativado=False` em 724/724, `n_linhas_ruins=0`, `n_header==1` e `n_footer==2` em 724/724. Taxa de sucesso por problema = **100% em todos os 25**. O que substitui a cauda é uma FRONTEIRA DE CAMPANHA: faltam 26 células (724/750 = 96,5%), concentradas nas sementes 18, 25 e 26 dos problemas mais caros (DTLZ7, WFG1/2/4/5/9, ZDT1, ZDT3, +DTLZ2/26 e DTLZ4/26). Isto NÃO é do e81: o corpus inteiro tem 344/345/309 células nessas três sementes contra 425 nas completas — a campanha estava em voo no instante do censo (a última célula do e81 fecha 2026-08-14T19:43Z, no dia do censo). O e81 tem 25/25 em 27 das 30 sementes. O QUE ISSO DIZ SOBRE O ALGORITMO: (1) a fragilidade que derruba os rivais de MOBO — subdeterminação do kriging (b1), fit do GP em região flat (c262×WFG1), escada RS/ModelFittingError (c154) — **não existe no qPOTS sob este envelope**, e a razão é mecânica e está medida: o nugget efetivo 1e-6 condiciona a covariância, o retreino do zero a cada iteração evita hiperparâmetros presos, e o maximin FOGE ativamente do arquivo (`cache_hits=0` em 724/724 e `dist_min_arquivo` sempre longe do ε de dedup), de modo que duplicata exata — a causa do `NotPSDError` — nunca chega perto de acontecer. É um resultado que o artigo afirma como desiderato (\"robustness to noisy objective evaluations\", \"simplicity of implementation\") e nunca mediu. (2) O contrapeso: essa robustez custa desempenho no nosso envelope (N3, item 4). O e81 nunca falha e quase nunca ganha; o c262 ganha muito mais quando roda, mas em 123 de 687 células não roda. (3) A guarda DI-25 (A17) é INALCANÇÁVEL em q=1: 0 registros `guard` em 198.600 decisões e `n_lote_menor=n_lote_completado=0` em 724/724 — o `argsort()[-q:]` com q=1 sempre devolve 1 ponto. Ela existe, está no código, e este corpus não a testa. (4) Único elemento da \"cauda\" no sentido literal: 1 célula-fantasma (o stub batch, classe 3 nº 1) que o censo conta como `ok` e não é execução nenhuma.",
+ "N4_deriva_extra_ignorar": "n/a",
+ "aspectos": [
+  {
+   "id": "A1",
+   "aspecto": "Orçamento 31D−1, hard-stop exato e lote de q",
+   "classe": "2",
+   "medicao": "maxfe == 31D−1 em 724/724 (61,216,309,371,619,681,929); len(①) == maxfe == fe_final em 724/724; fe == n_train+q em 198.600/198.600; n_lote == q em 198.600/198.600; fe_index e solution_id densos 0-based em 724/724",
+   "veredito": "conforme, ancorado em D21/D61",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A2",
+   "aspecto": "DoE init 11D−1 LHS-maximin carregado do artefato (global-override sobre o 10×d do paper)",
+   "classe": "2",
+   "medicao": "n_init == 11D−1 em 724/724; doe_hash ⑤≡header≡sidecar em 724/724; ΔX relativo à largura ≤ 5,949e-08 (ULP float32) em 724/724; 841 artefatos, 30 hashes por problema, 0 colisões; fórmula SeedSequence((semente,problema_id)) verificada em 810/841 (as 31 exceções são DDMOP7/DTLZ2_d15, fora do e81)",
+   "veredito": "conforme, ancorado em D63/D87/D88/Anexo J",
+   "muda_vs_s42": true,
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/doe/<prob>/doe_<prob>_<s>.manifest.json"
+  },
+  {
+   "id": "A3",
+   "aspecto": "Retreino do zero a cada iteração (passo 6 do Alg. 1)",
+   "classe": "1",
+   "medicao": "rec='fit' == rec='decision' == linhas de ④ == n_geracoes em 198.600 = 198.600 = 198.600; passo +q em 197.876/197.876 transições; n_modelos == M em 198.600/198.600; dtype float64 em 198.600/198.600",
+   "veredito": "conforme ao artigo",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A4",
+   "aspecto": "GP não congelado — prova positiva do anti-bug do `Acquisition` stale",
+   "classe": "1",
+   "medicao": "lengthscale_med muda entre gerações consecutivas em 197.876/197.876 pares (100% das 724 células, 30 sementes). Zero repetições.",
+   "veredito": "conforme; hipótese nula 'GP congelado' falsificada em 197.876 pontos",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A5",
+   "aspecto": "QUERY-JOIA — a decisão é exatamente recomputável (maximin top-q)",
+   "classe": "1",
+   "medicao": "VALOR: 198.600/198.600 decisões, |Δ|máx 1,054e-07 (piso float32). CONJUNTO+ORDEM+MARCAÇÃO+LINK: 2.880/2.880 gerações nas 17 células com ③, |Δ|máx 6,709e-08",
+   "veredito": "conforme; a evidência mais forte do relatório, agora com cobertura total",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A6",
+   "aspecto": "O maximin vive em [0,1]^D (patch §22.4·3.5)",
+   "classe": "2",
+   "medicao": "recomputo normalizado fecha 198.600/198.600; recomputo NATIVO falha em 109.800/109.800 decisões das 435 células com largura≠1, e só 'fecha' nas 289 onde as duas métricas são idênticas por construção (259 unit + 30 MMF11_L translação pura). 165 células com larguras heterogêneas (razão até 22×, WFG/ZDT4) onde nenhuma constante converte",
+   "veredito": "conforme, ancorado em SPEC §22.4·3.5; invariante em 30 sementes",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A7",
+   "aspecto": "③-online = rank-0 do NSGA-II interno (universo da decisão)",
+   "classe": "2",
+   "medicao": "linhas da ③-online por geração == n_front_acq em 2.880/2.880 gerações — só nas 17 células com ③ (D54 bucket-only). Nas 707 restantes: não medido, ③ ausente por desenho",
+   "veredito": "conforme, ancorado em DI-24/DEF-C2; cobertura limitada pela D54",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A8",
+   "aspecto": "TS re-amostrado POR GERAÇÃO interna; pop=100D, ngen=10",
+   "classe": "2",
+   "medicao": "draws_thompson.n_chamadas == ngen == 10 em 198.600/198.600; n_pontos == 100·D·10 em 198.600/198.600 (2.000 a 30.000); pop == 100D em 724/724",
+   "veredito": "conforme, ancorado em SPEC v2.2 (🟠) + D46; semântica fina permanece T",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A9",
+   "aspecto": "Kernel Matérn ν=5/2 ARD (🔵 D30 restaura o artigo sobre o RBF-ARD default do BoTorch)",
+   "classe": "1",
+   "medicao": "declarativo em 198.600/198.600 fits e decisões; anisotropia >1,05 em 437.933/446.400 iterações-objetivo (98,1%); argmin da anisotropia entre os 25 problemas = BBOB_F1 (Sphere/Sphere) em 30/30 SEMENTES, mediana 1,050; argmax = DTLZ4/WFG1 em 29/30; 98% das exceções <1,05 concentradas em BBOB_F1+BBOB_F5",
+   "veredito": "conforme, corroborado por dado independente e agora SEED-INVARIANTE",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A10",
+   "aspecto": "Nugget train_Yvar=1e-12 (efetivo 1e-6 pelo clamp do gpytorch) contra τ²=1e-3 do artigo",
+   "classe": "2",
+   "medicao": "train_Yvar == 1e-12 em 198.600/198.600, valor único em 724/724; o clamp para 1e-6 declarado no `params`, idêntico em 724/724. Efeito ρ(σ,dist): não re-medido em escala (③ bucket-only)",
+   "veredito": "conforme, ancorado em E.6 (🟠); efeito com cobertura T",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A11",
+   "aspecto": "Sinal invertido + des-padronização em dois estágios",
+   "classe": "1",
+   "medicao": "corr(μ,f) no último bloco de sonda POSITIVA em 39/39 célula-objetivo (17 células, semente 7), mínimo 0,3228 (BBOB_F55 — mesmo valor da T11 na s42); espaco_modelo='cru' e transf_tipo='zscore' em 100% das linhas de ③",
+   "veredito": "conforme; cobertura limitada pela D54",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A12",
+   "aspecto": "σ exportada é a epistêmica do GP (VAR-GP, sem ruído de observação)",
+   "classe": "1",
+   "medicao": "σ > 0 e ZERO NaN em 3.132.249 linhas de ③ (17 células). Nas 707 restantes: não medido (③ no bucket)",
+   "veredito": "conforme; cobertura limitada pela D54",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A13",
+   "aspecto": "Guardas assert/dedup/retry + semântica de `dist_min_arquivo`",
+   "classe": "2",
+   "medicao": "assert_lote_eq_q True em 198.600/198.600; cache_hits=0, n_cache_infill=0 e fit_retries=0 em 724/724 (reconciliação footer≡manifesto); identidade `dist_min_arquivo` no espaço NATIVO fecha em 198.600/198.600 (desvio relativo ≤ 1,747e-06)",
+   "veredito": "conforme, ancorado em DI-25/D57; a semântica não-documentada do campo agora confirmada em 30 sementes",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A14",
+   "aspecto": "Sonda: cadência DI-12.5, hash-check e join posicional",
+   "classe": "2",
+   "medicao": "cadência (g==1 ∨ g%2==0) ∪ {última geração} EXATA em 724/724 (100.024 blocos); n_pontos==2000 e hash_check='ok' em 100.024/100.024; `sonda_x_hash` ≡ `x_hash_online` do artefato e `sonda_S` ≡ `S_online` em 724/724; join posicional com desvio relativo ≤ 5,964e-08 (17 células)",
+   "veredito": "conforme, ancorado em DI-12.5",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A15",
+   "aspecto": "Nyström OFF + fórmula de semeadura A6/D22 + pins de ambiente",
+   "classe": "2",
+   "medicao": "nystrom==0 em 198.600/198.600; seed_gp == 1024+iteracao+1000·s em 198.600/198.600; seed_nsga2 == 2430+1000·s em 198.600/198.600 — sobre 30 SEMENTES DISTINTAS; ambiente valor único em 724/724 (python 3.11.9, torch 2.11.0+cu130, gpytorch 1.14.2, botorch 0.16.1, pymoo 0.6.1.6, numpy 2.2.6, OMP=1, float64)",
+   "veredito": "conforme, ancorado em E.6/A6/D22/DI-22 — TETO PRINCIPAL DERRUBADO",
+   "muda_vs_s42": true,
+   "arquivo_linha": "src/e81_qpots.py via acquisition.py:219 e :366 (declarado no `params`)"
+  },
+  {
+   "id": "A16",
+   "aspecto": "Treino sobre o dataset inteiro; fe_treino_max monotônico",
+   "classe": "1",
+   "medicao": "fe_treino_max == n_train−1 em 198.600/198.600 eventos de fit; série não-decrescente em 724/724; faixa exata [11D−2, maxFE−q−1]",
+   "veredito": "conforme ao artigo (passos 5-6, sem poda)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A17",
+   "aspecto": "Fallback qmaximin DI-25 (completar o lote quando |ND|<q)",
+   "classe": "2",
+   "medicao": "ZERO registros rec='guard' em 198.600 decisões; n_lote_menor == n_lote_completado == 0 em 724/724 rodapés. Em q=1 a guarda é estruturalmente inalcançável",
+   "veredito": "não exercido; a verificabilidade do mecanismo REGRIDE a T nesta campanha (o corpus batch que o exercia não está na árvore canônica)",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A18",
+   "aspecto": "Batch q=10 (🟢 D66, extrapola o q∈{1,2,4} publicado)",
+   "classe": "T",
+   "medicao": "0 células batch reais na árvore canônica do e81; a única entrada batch é o stub de 4 linhas (classe 3 nº 1)",
+   "veredito": "teto — fora do escopo da campanha de 30 sementes",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A19",
+   "aspecto": "Invariantes de timing DI-13.10 e anatomia do custo",
+   "classe": "2",
+   "medicao": "inv-1 (fit+busca ≤ tempo_geracao_s) em 198.600/198.600 com ZERO exceções (a T11 tinha 1 no batch); inv-2 (fit+busca+sonda > tempo_geracao_s) em 100.024/100.024 gerações COM sonda e 0 violações nas 98.576 SEM sonda. Custo: 748,74 h-core; busca 81,6% · fit 15,1% · checkpoint 1,0% · sonda 0,9% · aval real 0,0%. Célula mais cara ZDT3/42 (vm5) 6,12 h. Nenhuma célula na janela de swap da vm5",
+   "veredito": "conforme, ancorado em DI-13.10; ④ integralmente utilizável",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A20",
+   "aspecto": "Ambiguidade B17.5 (Eq.6-greedy × top-q sem diversidade mútua)",
+   "classe": "2",
+   "medicao": "em q=1 as duas leituras COINCIDEM por construção: 0 divergências possíveis em 198.600 decisões. A quantificação (364/955 lotes divergentes) fica com o corpus s42 batch, fora desta árvore",
+   "veredito": "conforme, ancorado em E.6/B17.5 (🟠); inerte no main — segue como item ao D97 pelo batch",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A21",
+   "aspecto": "② = dataset acumulado APÓS o infill; n_baseline não se aplica",
+   "classe": "2",
+   "medicao": "linhas da ② por geração == fe (= n_train+q) em 198.600/198.600; sem geração 0 em 724/724; 75.714.900 linhas totais; n_baseline ausente em 198.600/198.600",
+   "veredito": "conforme, ancorado em DI-16.6/P6",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A22",
+   "aspecto": "Contrafactual G5 — a incerteza é load-bearing (Σ^{1/2}Z é o único canal)",
+   "classe": "1",
+   "medicao": "nas 17 células com ③ (semente 7): a fração média de FE que vai a pontos μ-DOMINADOS é 82,7% (16/17 células acima de 50%; máx 98,8% no DTLZ4); σ(escolhido)/σ(front) > 1 em 17/17 (mediana 1,426); fração mediana do front que é ND em μ = 0,455",
+   "veredito": "conforme; propriedade reproduzida numa segunda semente e mais forte que na s42 (69,5%)",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A23",
+   "aspecto": "Elo causal lengthscale → WAPE/σ (comutação de regime da MLL)",
+   "classe": "T",
+   "medicao": "não medido em escala: exige a ③-sonda pareada por bloco, disponível só na semente 7, e a célula mais informativa (MMF16_20) tem a ③ truncada em 25%",
+   "veredito": "teto — a D54 (bucket-only) impede",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A24",
+   "aspecto": "Resíduo T11 — consumidores que liam `footers[-1]` em vez de `footer_fechado`",
+   "classe": "1",
+   "medicao": "FECHADO no código: scripts/progress.py:106 e scripts/accept.py:807 chamam `_audit.footer_fechado` (marca [BL-21], convertidos no T14.2); o docstring de `RunJaFechado` foi corrigido de '747→767' para '559→747'. Na árvore M8 do e81: exatamente 1 header, 2 footers e 1 footer fechado em 724/724 células — zero contaminação",
+   "veredito": "o único classe (3) da T11 está resolvido; a contaminação remanescente vive só no corpus congelado s42, fora desta árvore",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scripts/progress.py:106 · scripts/accept.py:807 · src/audit_log.py:53-71"
+  },
+  {
+   "id": "A25",
+   "aspecto": "Camada T11 — proveniência (campanha_id/repo_hash/schema v2) e checkpoint DI-43",
+   "classe": "2",
+   "medicao": "schema_version=2, campanha_id='7f4f0e429a46_M8' e repo_hash='63db46b100635a5cc21e8f5594271f481bc41416' em 724/724 (valor ÚNICO, zero nulos, zero sentinelas); 7.722 checkpoints, `iteracao % 25 == 0` em 7.722/7.722 e n_ckpt == n_geracoes//25 em 724/724 ⇒ o gatilho de 30 min NUNCA disparou; 0 células sem checkpoint",
+   "veredito": "conforme, ancorado em G1–G7/DI-43; o padrão 'campo verde, dado sentinela' da T11 NÃO ocorre no e81",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A26",
+   "aspecto": "🆕 Invariância do contrato entre sementes (o que muda quando só a semente muda)",
+   "classe": "1",
+   "medicao": "entre as 27–30 sementes de cada problema, o `params` difere em EXATAMENTE 2 chaves — `nsga2_interno` (que carrega `seed`) e `seed_base` — e em nada mais; `sigma_dict` tem 61 textos distintos, todos explicados por (D,M,pop,q); `algo_version` e `versao` do header são valor único em 724/724",
+   "veredito": "conforme; generaliza para 30 sementes o achado que a T11 fez com 2",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A27",
+   "aspecto": "🆕 Determinismo bit-exato cross-máquina",
+   "classe": "1",
+   "medicao": "17 pares vm1×vm5 (semente 7): ① bit-idêntica em X e F; 2.904 decisões pareadas × 13 campos float64/estruturais = 37.752 comparações com ZERO diferenças; wall-clock 1,5–2,4× distinto ⇒ execuções genuinamente separadas; a ③ da vm5 reproduz as decisões do ⑥ da vm1 em 2.880/2.880 (|Δ| ≤ 6,709e-08)",
+   "veredito": "conforme; deriva medida = 0 (não medido: o modelo de CPU de cada VM, ausente do ⑥)",
+   "muda_vs_s42": true,
+   "arquivo_linha": "/Users/gmello/mestrado_coleta_m8/reorg_conflitos.log · /private/tmp/.../scratchpad/n4_drift.csv"
+  },
+  {
+   "id": "A28",
+   "aspecto": "🆕 Higiene da árvore canônica (célula-fantasma e mistura de camadas)",
+   "classe": "3",
+   "medicao": "1 stub batch de 620 bytes / 4 linhas contado como `estado=ok` pelo censo; 17 células com a ③ vinda de outra VM que as demais camadas, uma delas (MMF16_20/7) com a ③ truncada em 100 de 400 gerações sem nenhum sinal no ⑤/⑥/censo",
+   "veredito": "inexplicado 🎯 — dois itens, ambos benignos ao algoritmo e nocivos ao consumidor a jusante",
+   "muda_vs_s42": true
+  }
+ ],
+ "classe3": [
+  {
+   "id": "E81-30-01",
+   "descricao": "CÉLULA-FANTASMA QUE ENSOMBRA DADO REAL. `resultados_experimentos/e81/ZDT4/42/exp_batch_e81_ZDT4_42.jsonl` tem 620 bytes e 4 linhas: 2 headers do DESPACHANTE (chaves `run_id`/`modo_rapido`, sem D/maxfe/params/sigma_dict) + 2 footers, NENHUM com `fe_final`, `tempo_total_s=0,0003 s`, carimbo 2026-07-29T16:00:06Z. O manifesto par declara `status='ok'`, `schema_version=1`, `q=1` (errado para uma célula batch, que é q=10), `maxfe=null`, `fe_final=null`, `repo_hash=null`, `env={}`. Está presente em 3 VMs (vm2, vm3, vm10) — assadura de imagem, não execução —, e o `_FONTES.csv` registra a vm3 como fonte. Consequências medidas: (a) o `censo_completo_22.csv` e o `gates_f30.csv` contam essa célula como `estado=ok` — é a ÚNICA das 725 do e81 com fe/mx/camp/repo/par/sig todos NaN/False; (b) o NOME colide com a célula batch REAL da s42, que tem 747 linhas, ①=2.109 FE, 200 decisões e 28 fallbacks DI-25, e que existe SÓ em `ua-dd-saea/data/experiments/batch/e81/` — na árvore canônica ela foi ensombrada pelo stub e os 5 parquets do batch não estão lá; (c) sob a regra O-21 (o rodapé é a autoridade) a célula não tem rodapé fechado ⇒ não é `ok`, não é ⚪ e não é fail: é NÃO-EXECUÇÃO. Nota de datação: o stub é de 2026-07-29, ANTERIOR ao fix B-02 (`experiments.py:116-124`, que move o `is_run_done` para antes do AuditLogger) — nenhum stub pós-fix existe no e81, então o remédio funciona; o que falhou foi o saneamento da imagem antes de replicá-la para 3 VMs.",
+   "gravidade": "moderada",
+   "acao": "(1) Reclassificar a célula no censo/gates: excluir do denominador `ok` do e81 (que passa a 724/724) ou marcá-la com um estado próprio ('nao-execucao'); (2) decidir se o corpus batch REAL da s42 entra em `resultados_experimentos` — hoje qualquer análise batch do e81 feita a partir da árvore canônica lê zero linhas e não percebe; (3) checar transversalmente se o mesmo carimbo 2026-07-29T16:00 produziu stubs em outros configs (o e81 é o único dos 21 arquivos <3 KB do corpus que não é falha conhecida de c238/b4/c141).",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/e81/ZDT4/42/exp_batch_e81_ZDT4_42.jsonl (4 linhas) e .manifest.json · original real em /Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/batch/e81/exp_batch_e81_ZDT4_42.jsonl (747 linhas)"
+  },
+  {
+   "id": "E81-30-02",
+   "descricao": "③ TRUNCADA EM SILÊNCIO E MISTURA DE PROVENIÊNCIA POR CAMADA. Nas 17 células com surrogate no disco (semente 7), o `_FONTES.csv` mostra que ①②④⑤⑥ vieram da `matlab-vm1` e a ③ veio da `matlab-vm5`. Em 16 delas isso é inócuo e eu PROVEI: a joia recomputada sobre a ③ da vm5 reproduz exatamente as decisões gravadas no ⑥ da vm1 (2.880/2.880, |Δ| ≤ 6,709e-08), e o par vm1×vm5 é bit-idêntico em float64. Mas a 17ª — `e81/MMF16_20/7`, a célula mais cara do problema mais caro — teve a execução da vm5 ABORTADA em 124 de 400 decisões, e o que foi promovido a canônico é essa ③ parcial: `geracao` máxima na ③-online = 100 de 400 (25% de cobertura), sonda com 51 de 201 blocos. Nada no manifesto, no ⑥, no censo ou no `camadas` do censo (que registra '①②③④⑥', como se completa) sinaliza a truncagem. Um consumidor que cruze ③ e ⑥ por `geracao` obtém silenciosamente um quarto da célula e conclui, por exemplo, que o front do NSGA-II interno nunca chegou ao regime saturado.",
+   "gravidade": "moderada",
+   "acao": "(1) Gravar no censo/manifesto a cobertura efetiva da ③ (geracao_max_③ vs n_geracoes) para as 5 configs bucket-only, ou repuxar a ③ completa dessa célula do bucket; (2) registrar no `_FONTES.csv` (ou num campo derivado) que a proveniência é POR CAMADA, não por célula — hoje isso só se descobre lendo o CSV linha a linha; (3) verificar o mesmo padrão nas outras 4 configs bucket-only (c154, c122, c149, c262), onde a ③ também é a camada de proveniência divergente.",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/e81/MMF16_20/7/exp_main_e81_MMF16_20_7__surrogate.parquet · linha `e81,main,MMF16_20,surrogate,matlab-vm5:...` do _FONTES.csv"
+  }
+ ],
+ "score": 9.6,
+ "score_t11": 9.7,
+ "veredito_recomendado": "RECOMENDO ACEITAR (a validação de fidelidade é manual e do autor — D97; isto é evidência e recomendação, não sentença). MOVIMENTO: 9,7 (T11) → 9,6. NOMEIO AS CAUSAS, e são de sinais opostos. SOBE (não pontuou porque já estava perto do teto, mas muda a natureza da prova): o mecanismo saiu de 1 semente para 30 sem UMA rachadura — a query-joia fecha em 198.600/198.600 decisões (|Δ|máx 1,054e-07) e nos quatro níveis em 2.880/2.880 onde a ③ existe; caíram 6 tetos T, entre eles os três que o briefing e a própria T11 tratavam como intransponíveis (a fórmula de semeadura, agora sobredeterminada por 30 pontos; o determinismo; e a deriva cross-máquina, medida em ZERO em 37.752 comparações float64); o único classe (3) da T11 foi fechado no código (BL-21/T14.2, `footer_fechado` adotado em progress.py:106 e accept.py:807, docstring corrigido); e o config entrega 724/724 células ok, taxa de sucesso 100% em 25/25 problemas, contra 300 teto/80 fail do c154 e 90/33 do c262. DESCE (−0,1): aparecem DOIS classe (3) NOVOS, e ambos moram na árvore CANÔNICA — pior lugar que a contaminação da T11, que vivia num corpus congelado e legível. O E81-30-01 é uma célula-fantasma que o censo conta como `ok` e que ENSOMBRA, pelo nome, o corpus batch real; o E81-30-02 é uma ③ truncada em 75% sem nenhum sinal. Nenhum dos dois toca uma decisão do algoritmo — por isso −0,1 e não mais. NÃO SOBE A 10 por três razões, todas medidas: (i) o regime batch, onde vivem a guarda DI-25 (A17), a extensão q=10 (A18) e a ambiguidade B17.5 (A20), NÃO foi re-exercido — em q=1 a guarda é inalcançável (0 guards em 198.600 decisões) e as duas leituras da Eq. 6 coincidem por construção; (ii) a D54 (③ bucket-only) reduz A7/A11/A12/A22 a 17 células e manda A23 para o teto; (iii) a cobertura é 724/750 (fronteira de campanha, não falha). REGISTRO SEPARADO, porque não é item de fidelidade e sim o maior achado desta auditoria: a afirmação central do artigo para q=1 — 'qPOTS is consistently the best performer, or is amongst the best' — NÃO se reproduz no nosso envelope, agora com poder estatístico (e81 vence 19,5% dos pares contra o qNEHVI, perde com p<0,05 em 16 de 21 problemas, C-metric mediana 0,923 contra 0,000) E com sinal estável entre sementes em 17/23 problemas. Isto é comportamento sob 31D−1 FE e D até 30, não infidelidade: o mecanismo está provado.",
+ "decisoes_ao_autor": [
+  "D81 — ESCALO E NÃO DECIDO: `resultados_experimentos/e81/ZDT4/42/exp_batch_e81_ZDT4_42` é um stub de 4 linhas que o censo conta como `estado=ok`, e o corpus batch REAL da s42 (5 células q=10, ①=2.109 no ZDT4) existe só em `ua-dd-saea/data/experiments/batch/e81/`. Duas fontes em conflito sobre o que é 'a célula batch do e81'. Preciso da sua decisão: (a) reclassificar o stub e deixar o batch fora da árvore canônica, ou (b) promover o corpus batch s42 para a árvore canônica. A escolha muda o denominador do e81 e muda se A17/A18/A20 são auditáveis a partir de resultados_experimentos.",
+  "D97 — a ambiguidade B17.5 do PRÓPRIO artigo (Eq. 6 lida como sequência de subproblemas maximin, §3.2 descrita como top-q de um único ranking) fica INERTE nesta campanha: em q=1 as duas leituras coincidem. Ela volta a morder se o batch entrar. O item que a T11 escalou continua aberto, mas fora do escopo do main.",
+  "DECISÃO DE DOUTRINA — o RUNBOOK §6.2 diz que floats não são bit-idênticos entre plataformas e que a fidelidade é estatística por semente. Para o e81 medi o oposto: deriva EXATAMENTE ZERO em 37.752 comparações float64 entre vm1 e vm5, com wall-clock 1,5–2,4× distinto. O mecanismo (1 thread D79 + float64 + Cholesky exato + base samples congelados) sugere que a doutrina é conservadora para os configs Python pinados a 1 thread. NÃO generalizo — não medi MATLAB, não medi vm2/3/4/10, e não medi o modelo de CPU (o ⑥ só grava 'Linux/x86_64'). Sugiro que a torre central replique este teste nas outras duplicatas antes de relaxar a doutrina.",
+  "COBERTURA — o e81 tem 724/750 células; as 26 ausentes são as sementes 18/25/26 dos problemas caros e faltam em TODO o corpus (344/345/309 células contra 425 nas sementes completas). Se a campanha for retomada, o e81 fecha em 750 sem nenhuma pendência conhecida. Decida se a análise final espera o fechamento ou reporta n=27 nesses 8 problemas.",
+  "PERGUNTA ABERTA DO BRIEFING (⑦ do e103) — não investiguei: o e81 é online/main e não tem ⑦ por desenho; nada no meu material toca o e103. Fica com quem auditar o e103.",
+  "ITEM À TORRE CENTRAL — a proveniência do corpus é POR CAMADA, não por célula (o `_FONTES.csv` já registra isso, mas nada derivado dele o expõe). No e81, 17 células misturam ③ da vm5 com ①②④⑤⑥ da vm1, e uma delas tem a ③ truncada em 25% aparecendo como completa no campo `camadas` do censo. Sugiro um campo de cobertura efetiva da ③ no censo para as 5 configs bucket-only."
+ ]
+}

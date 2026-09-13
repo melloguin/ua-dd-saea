@@ -1,0 +1,82 @@
+{
+  "id": "mtm6",
+  "sigla": "EHVI (EI_H) / EHVI-EGO",
+  "titulo": "Hypervolume-based Expected Improvement: Monotonicity Properties and Exact Computation",
+  "ano": 2011,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Um único problema-brinquedo, sem suíte padrão (não usa ZDT/DTLZ/WFG/BBOB): o 'generalized sphere problem' biobjetivo 2-D — minimize f1(x) = ||x−1||, minimize f2(x) = ||x+1||, x ∈ [−2,2]×[−2,2] ⊂ R^2 (M=2 objetivos, D=2 variáveis de decisão). Frente de Pareto conhecida analiticamente (segmento de reta de (0, 2·√2) a (2·√2, 0)); conjunto eficiente = segmento de reta entre (−1,−1) e (1,1). Nenhum outro problema é usado no artigo.",
+    "orcamento": "DoE inicial de 10 pontos ('the size of the initial population was set to 10') mais 15 pontos de infill escolhidos via Algoritmo 1 guiado por EI_H ('15 new points were generated using the Algorithm 1'); orçamento total = 25 avaliações reais da função objetivo. Não há menção a LHS nem a outro esquema específico de amostragem do DoE inicial.",
+    "execucoes": "1 execução única — não há replicação por sementes. O próprio artigo classifica isso como prova de conceito: 'A single numerical experiment will serve here as a proof of concept'.",
+    "baselines": "Nenhum. Não há piso sem surrogate nem outro algoritmo/critério comparado empiricamente neste artigo — é uma demonstração isolada do Algoritmo 1 genérico (BGO/EGO multiobjetivo guiado por EI_H), rodado uma única vez, sem comparação de desempenho com nenhuma outra estratégia.",
+    "metricas_principais": [],
+    "testes": [],
+    "apresentacao": "Inteiramente qualitativa/visual (Fig. 6, grade 3×2): topo = média do campo aleatório gaussiano (GRF) para f1 e f2 sobre x ∈ [−2,2]×[−2,2]; meio = variância do GRF para f1 e f2; base-esquerda = pontos avaliados no espaço de objetivos (estrelas; quadrados azuis = DoE inicial; círculos = pontos eficientes/não-dominados); base-direita = paisagem do EI_H (níveis de cinza, mais escuro = valor menor) após a 25ª iteração. Nenhuma tabela numérica, nenhuma métrica agregada, nenhum símbolo +/=/−; a única quantificação é a contagem de avaliações (25) e uma frase qualitativa de resultado ('a fairly close approximation to the Pareto front').",
+    "codigo_plataforma": "MATLAB — 'The MATLAB implementation of the expected improvement is made available under natcomp.liacs.nl'. Metamodelo = campo aleatório gaussiano (GRF/Kriging) com kernel gaussiano exp(−θ||x−x'||²), θ estimado da amostra inicial em 0,0001 e mantido fixo durante toda a execução; implementação do Kriging creditada a Johannes Kruisselbrink nos agradecimentos."
+  },
+  "analises": [
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo roda uma única vez o Algoritmo 1 (otimização bayesiana multiobjetivo genérica guiada por EI_H) no problema-esfera generalizado 2-D biobjetivo, com DoE inicial de 10 pontos e mais 15 pontos de infill (orçamento total 25). O painel inferior-esquerdo da Fig. 6 mostra a dispersão dos pontos avaliados no espaço de objetivos, com os pontos eficientes (não-dominados) circulados, contra a frente de Pareto verdadeira conhecida analiticamente (um segmento de reta). A avaliação é inteiramente qualitativa: o texto afirma que a aproximação obtida está 'fairly close' à frente verdadeira, sem qualquer métrica numérica (HV/IGD) e sem comparação com outro algoritmo.",
+      "literal": "In summary, using only 25 evaluations of the original objective functions, including already the initial 10 evaluations, the algorithm discovers a fairly close approximation to the Pareto front.",
+      "localizador": "Sec. V-A (Numerical Experiment), parágrafo 'Result' (item c), Fig. 6 (painel inferior-esquerdo)",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "Execução única (não há médias/medianas de múltiplas sementes); pontos eficientes marcados com círculo; pontos do DoE inicial marcados com quadrado azul; demais pontos avaliados marcados com estrela; frente de Pareto verdadeira conhecida analiticamente e usada apenas como referência visual (nenhuma distância numérica é calculada entre o ND obtido e a frente verdadeira).",
+      "achado": "Com apenas 25 avaliações reais (10 do DoE inicial + 15 de infill), o algoritmo guiado por EI_H obtém uma aproximação qualitativamente próxima da frente de Pareto verdadeira do problema-esfera generalizado 2-D — apresentado explicitamente como prova de conceito ('proof of concept'), sem quantificação e sem comparação com outro método ou piso.",
+      "aplicabilidade": "não diretamente reproduzível com os dados já coletados da dissertação — este artigo não corresponde a nenhum dos 15 algoritmos do roster (é uma demonstração isolada do critério EI_H/EHVI num esquema de BGO genérico ponto-a-ponto de único critério, não uma das configurações comparadas). Se fosse replicada à parte, o análogo mais próximo seria a camada ① (avaliações reais, x, f, ordem) para reconstruir a dispersão de pontos vs. frente verdadeira, como na ficha 54 — mas aqui com execução única, não 'execução mediana' entre várias sementes."
+    },
+    {
+      "fichas": [
+        44
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Na mesma execução única do Algoritmo 1 (Sec. V-A), o artigo descreve textualmente a ordem/geometria em que os pontos de infill são escolhidos: nas primeiras 4 iterações o algoritmo avalia cada um dos quatro cantos da caixa de busca [−2,2]×[−2,2] (comportamento exploratório, no bordo da caixa); depois passa a escolher pontos próximos à frente de Pareto, cada um não-dominado em relação aos já avaliados e preenchendo uma lacuna da aproximação corrente (comportamento de preenchimento/explotação perto da frente). Não há quantificação de distância nem gráfico dedicado — é uma narrativa textual do que se observa na Fig. 6.",
+      "literal": "Within the first 4 loops the algorithm places an evaluation in each of the four corners of the search space.",
+      "localizador": "Sec. V-A (Numerical Experiment), parágrafo 'Result' (item c)",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "Descrição puramente narrativa/textual da ordem de escolha dos pontos (não há gráfico de distância explotação-vs-exploração nem métrica quantificada de proximidade); execução única, sem agregação sobre sementes.",
+      "achado": "A busca guiada por EI_H explora primeiro os quatro cantos da caixa de busca (nas 4 primeiras das 15 iterações de infill) e só depois direciona as escolhas para perto da frente de Pareto, com cada novo ponto permanecendo não-dominado em relação aos anteriores e preenchendo uma lacuna da aproximação — um padrão qualitativo de exploração inicial (cantos/bordo) seguida de explotação/preenchimento de lacunas perto da frente.",
+      "aplicabilidade": "mesma ressalva do item anterior — não reproduzível com os dados já coletados (não é um algoritmo do roster). O análogo mais próximo seria a camada ① (posição x e ordem/fe_index de cada avaliação real) para reconstruir a geometria dos infills, exigindo rodar o Algoritmo 1 à parte no mesmo problema-brinquedo."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Mapa visual do surrogate (μ/σ) e da paisagem do critério de aquisição",
+      "grupo_sugerido": "E",
+      "descricao": "A Fig. 6 também exibe, para a mesma execução, as superfícies de média e de variância do modelo de campo aleatório gaussiano (GRF/Kriging) ajustado separadamente para cada objetivo (f1 e f2) sobre todo o domínio x ∈ [−2,2]×[−2,2] (linhas do topo e do meio da figura), e a paisagem do próprio critério EI_H (o valor de EI_H para cada par de coordenadas (x1,x2)) após a 25ª iteração (painel inferior-direito). É uma visualização direta e integral do surrogate e do critério de aquisição sobre todo o espaço de busca, sem qualquer medição de erro, calibração ou acurácia contra a função verdadeira.",
+      "literal": "On the right hand side of the same row the hypervolume-based expected improvement values after the 25th iteration are displayed.",
+      "localizador": "Sec. V-A (Numerical Experiment), parágrafo 'Result' (item c), Fig. 6 (painéis do topo, do meio, e inferior-direito)",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "Escala de níveis de cinza (mais escuro = valor menor) para média, variância e EI_H; grade completa de avaliação sobre x ∈ [−2,2]×[−2,2]; sem barra de erro nem quantificação numérica — leitura puramente visual/qualitativa.",
+      "achado": "As superfícies de média e variância do GRF (uma por objetivo) e a paisagem do EI_H resultante são exibidas visualmente após a 25ª iteração, mas sem nenhuma quantificação (não há RMSE, cobertura ou correlação com a função verdadeira) — é uma ilustração do comportamento do modelo/critério, não uma medição de qualidade da incerteza.",
+      "aplicabilidade": "não reproduzível — nenhum dos 15 algoritmos do roster expõe a superfície μ/σ do GP como grade completa sobre todo o espaço de decisão (a instrumentação da dissertação usa uma sonda ③ de 2.000 pontos fixos, não uma grade densa contínua), e a paisagem do próprio critério de aquisição avaliada sobre toda a caixa de busca não corresponde a nenhuma das 7 camadas gravadas."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Apenas uma menção qualitativa de tempo total de parede para a única execução do experimento (25 avaliações, incluindo re-ajustes do modelo a cada iteração), sem decomposição por fase (ajuste do modelo vs. otimização do critério de aquisição vs. avaliação da função) nem por iteração, e sem número exato de segundos/minutos — apenas 'da ordem de alguns minutos'. Nenhuma outra menção a custo/complexidade computacional aparece no restante do artigo (as Seções III-IV, sobre monotonicidade e computação exata do EI_H, discutem apenas a forma fechada/exatidão do cálculo, não seu custo assintótico).",
+    "literal": "The total time of the experiment was in the order of a couple of minutes on a modest Pentium 6 processor.",
+    "localizador": "Sec. V-A (Numerical Experiment), parágrafo 'Result' (item c)"
+  },
+  "resultados_negativos": [],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [],
+  "roster_bloco": null,
+  "observacoes": "Artigo predominantemente TEÓRICO, não empírico: das seis seções (I Introdução, II Preliminares, III Propriedades de monotonicidade, IV Computação, V Algoritmo de otimização global, VI Conclusão), apenas a Seção V-A contém qualquer conteúdo experimental, e mesmo esse é um único experimento numérico ('a single numerical experiment... as a proof of concept'), sem sementes repetidas, sem piso/baseline, sem métrica quantitativa (IGD/HV) e sem teste estatístico — por isso o campo 'analises' aqui é muito mais curto do que em artigos empíricos do corpus (ex.: mtm4). O verdadeiro núcleo do artigo é teórico e não se encaixa no catálogo de 64 fichas (que é sobre análises experimentais): o Teorema 1 prova ANALITICAMENTE, para m=1 e m=2, a propriedade N2 — que, mantendo a média predita ŷ fixa, aumentar o desvio-padrão σ em uma ou ambas as direções aumenta estritamente o EI_H. Isso substitui a evidência puramente empírica que a referência [22] (Wagner et al. 2010) havia dado para N2: 'While N1 was proven to be correct, N2 could only be supported by empirical evidence. This paper will replace empirical results by analytical proofs.' (Sec. I) — ou seja, é a justificativa matemática de por que o termo de incerteza numa aquisição do tipo EI recompensa a exploração, tema central da classificação 'função da incerteza = O1 · Aquisição exploratória' deste artigo na taxonomia, mas não é uma 'análise experimental' e por isso NÃO foi listada em 'analises' (Regra 3 do cartão: não inventar análise que o artigo não faz). A Lema 3 também mostra, teoricamente, que 0 ≤ EI_H ≤ EI_H(r) (sempre finito) e que EI_H > 0 estritamente mesmo para vetores de média DOMINADOS, desde que σ>0 — contrastando explicitamente com o critério 'most likely improvement' (MLI), que é zero nesse caso; também puramente teórico, sem medição. Os próprios autores demarcam o escopo da prova de N2 como limitado a m≤2: 'it needs to be verified whether the theorem on property N2 holds also for more than two dimensions' (Sec. VI, Conclusion) — uma ressalva de generalidade da prova matemática, não um resultado negativo sobre desempenho empírico do uso da incerteza (por isso não foi incluída em 'resultados_negativos', que é especificamente sobre desempenho/calibração empírica). O Algoritmo 1 (pseudocódigo, Sec. V) confirma a classificação 'regime=online': laço sequencial ponto-a-ponto que reajusta o modelo gaussiano a cada nova avaliação real ('Update the Gaussian model based on Xt, Yt, t←t+1; choose x(t)...; y(t)=f(x(t))'). Problema de leitura possível: o pseudocódigo do Algoritmo 1 registra 'x(t) ∈ arg minx∈X EI_H(x, Ynd_t)' (arg MIN) em ambas as camadas de extração (markdown estruturado e ANEXO de texto bruto) — isso é logicamente inconsistente com o objetivo de MAXIMIZAR o ganho esperado em hipervolume descrito em todo o resto do artigo, e é muito provavelmente um artefato de extração do símbolo 'arg max' do PDF original (comum em extração de fórmulas via pymupdf4llm); mantido literal aqui, sinalizado para quem for consumir este JSON. Seções II-IV têm muitas fórmulas/equações renderizadas de forma incompleta ou corrompida pela extração PDF→Markdown (símbolos de integral, somatórios e super/subscritos truncados ou ausentes) — comportamento típico de pymupdf4llm em math-heavy content; isso não impede a extração das análises experimentais (todas em prosa, na Seção V-A), que foi lida por completo e com clareza. O ANEXO de OCR de imagens (rótulos de eixo/figura) não acrescenta conteúdo experimental novo além do já descrito no corpo do texto — apenas confirma os rótulos dos 6 painéis da Fig. 6 ('Gaussian Process f1/f2', 'Gaussian Process Variance f1/f2', 'Evaluated points in objective space'). Leitura completa: 8 páginas (conforme cabeçalho do arquivo-fonte), texto estruturado + ANEXO de camada de texto completa (duplicata idêntica, conferida) + ANEXO de OCR de figuras, todas as seções e a lista de referências cobertas; nada foi pulado. roster_bloco = null por instrução do pedido (artigo fora do roster experimental)."
+}

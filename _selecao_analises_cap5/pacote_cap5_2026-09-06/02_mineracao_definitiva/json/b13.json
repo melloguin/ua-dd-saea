@@ -1,0 +1,298 @@
+{
+  "id": "b13",
+  "sigla": "AdaMoR-DDMOEA",
+  "titulo": "AdaMoR-DDMOEA: Adaptive Model Selection with a Reliable Individual-Based Model Management Framework for Offline Data-Driven Multi-Objective Optimization",
+  "ano": 2025,
+  "roster": false,
+  "setup": {
+    "benchmarks": "ZDT1, ZDT2, ZDT3, ZDT4, ZDT6 (M=2) e DTLZ1–DTLZ7 (M ∈ {2,3}), D=10 variáveis de decisão para todos (Tabela 1 caracteriza separabilidade/modalidade/geometria de cada instância; 19 instâncias ao todo contando DTLZ com M=2 e M=3 separadamente). Mais um caso real: otimização de forma de aerofólio transônico RAE 2822 (D=10 via parametrização CST, M=2: −CL e CD, avaliado por CFD via Xfoil).",
+    "orcamento": "Regime 100% offline: dataset offline inicial de tamanho 11D amostrado por LHS, amostrado independentemente a cada execução/algoritmo (\"the offline data are sampled individually for each iteration of the algorithm\"); nenhuma avaliação real ocorre durante a busca. AdaMoR-DDMOEA e NSGA-II-DNN rodam até 500 iterações (gerações) do EA sobre o surrogate. Na Sec. 5.3, o tamanho do dataset offline é varrido em {1D,5D,10D,15D,20D,25D,30D}; na Sec. 5.5.1 o número máximo de iterações é varrido em [10,600]; no caso real, dataset offline = 11×D = 110 pontos.",
+    "execucoes": "21 execuções independentes por algoritmo × problema (\"Over the course of 21 separate runs for all the algorithms, each occurrence of each issue is investigated\", Sec. 4.4). Não há repetição de sementes relatada para o caso real do aerofólio (Sec. 5.6).",
+    "baselines": "4 DDMOEAs offline do estado da arte, todos surrogate-assisted (NENHUM piso sem surrogate é usado em lugar nenhum do artigo): IBEA-MS (Kriging + RBFN, troca para RBFN quando a incerteza do Kriging excede um erro aceitável), MS-RV (surrogate grosso de regressão polinomial + surrogate fino RBFN, com transferência de conhecimento), NSGA-II-DNN (NSGA-II + DNN), e BDDEA-LDG (introduzido só na Sec. 5.4/Tabela 5, sem descrição metodológica nem citação própria em nenhum lugar do artigo — ver observações). Variantes internas usadas como ablação: DNN-DDMOEA (mono-surrogate DNN), XGBOOST-DDMOEA (mono-surrogate XGBoost), AdaMoR-DDMOEA(WO/MU) (sem a fase de atualização por indivíduos confiáveis).",
+    "metricas_principais": [
+      "IGD (métrica principal de desempenho da otimização, Eq. 18)",
+      "MAE (erro do surrogate; usado para calibrar a seleção adaptativa de modelo, não é medida de desempenho do MOEA, Eq. 19)",
+      "CL e CD (coeficientes de sustentação e arrasto; métricas de engenharia usadas apenas no estudo de caso real do aerofólio, Sec. 5.6)"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum test, α=0.05, símbolos +/≈/− relativos ao AdaMoR-DDMOEA, usado em todas as tabelas de IGD (Tabelas 4 e 5); o mesmo teste (Wilcoxon rank-sum, α=0.05) é também usado INTERNAMENTE pelo próprio algoritmo (Sec. 3.2) para decidir qual surrogate (DNN ou XGBoost) selecionar a cada ajuste, comparando os MAEs de validação cruzada — não é usado para anotar as Tabelas 2–3."
+    ],
+    "apresentacao": "Média (desvio padrão) por célula; melhor resultado de cada linha/instância em negrito; símbolos +/≈/− relativos ao AdaMoR-DDMOEA (Wilcoxon rank-sum); notação Xe±y = X × 10^(±y); linha final de cada tabela com contagem agregada (+/≈/−) por algoritmo comparado somada sobre as 19 instâncias. Não há menção a \"execução mediana\" explícita para as figuras de frente de Pareto (Fig. 4, Fig. 7).",
+    "codigo_plataforma": "AdaMoR-DDMOEA e NSGA-II-DNN implementados em Python 3.9.14 na plataforma pymoo; IBEA-MS e MS-RV implementados em MATLAB R2022b. DNN construída com Keras (1 camada de entrada, 6 camadas ocultas densas, 1 camada de saída; ativação relu nas ocultas e linear na saída; otimizador adam; loss MAE). XGBoost multi-output construído com a biblioteca xgboost (grid search com validação cruzada para hiperparâmetros; learning rate 0.1). Hardware de teste: CPU Core i5 de 8ª geração, 8 GB RAM."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Comparação treino × validação (k-fold CV) entre dois candidatos a surrogate (diagnóstico de overfitting)",
+      "grupo_sugerido": "E",
+      "descricao": "O artigo compara DNN e XGBoost como candidatos a surrogate multi-saída, reportando média(dp) do MAE de treino e do MAE de validação cruzada (10-fold) para cada problema ZDT (M=2, Tabela 2) e DTLZ (M=3, Tabela 3), separadamente. O objetivo é diagnosticar qual modelo generaliza melhor para cada problema antes de começar a busca, evidenciando overfitting do XGBoost (MAE de treino baixo, MAE de validação alto) versus a maior estabilidade de generalização do DNN na maioria dos casos.",
+      "literal": "a higher MAE on the validation set and a lower MAE on the training set also indicate that the XGBoost model is overfitting the training data.",
+      "localizador": "Sec. 5.1, Tables 2 e 3",
+      "metricas": [
+        "MAE (treino)",
+        "MAE (validação cruzada 10-fold)"
+      ],
+      "testes": [
+        "nenhum teste estatístico é usado para reportar as Tabelas 2–3 em si (só média ± dp); o próprio algoritmo usa Wilcoxon rank-sum (α=0.05) internamente para decidir qual surrogate escolher a cada ajuste, conforme Sec. 3.2, mas essa comparação formal não aparece anotada nestas duas tabelas"
+      ],
+      "convencoes": "Média (desvio padrão) do MAE por problema; melhor valor em negrito por coluna; duas tabelas separadas (MAE de treino e MAE de validação) para cada conjunto de problemas (ZDT, DTLZ); não há repetição de sementes explicitada além do k-fold.",
+      "achado": "XGBoost obtém MAE de treino sistematicamente menor que DNN em todos os 12 problemas, mas na validação cruzada o DNN vence em todos os 5 problemas ZDT e em 3 dos 7 DTLZ (DTLZ3, DTLZ4, DTLZ7); para DTLZ1, DTLZ2, DTLZ5 e DTLZ6, porém, XGBoost generaliza melhor que DNN também na validação — evidenciando que nenhum dos dois modelos domina universalmente, o que motiva e sustenta a necessidade da seleção adaptativa do artigo.",
+      "aplicabilidade": "não reproduzível com as 7 camadas da dissertação nesta forma exata — exige treinar dois candidatos a surrogate (rede neural e árvore/boosting) e comparar erro de treino vs. validação cruzada k-fold antes da busca; a camada ③ (predições do surrogate) só aproximaria isso se registrasse, no ajuste inicial, o erro num fold de validação separado do ajuste, o que não está entre os 7 registros padrão da instrumentação."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela de IGD (média ± dp, teste de Wilcoxon rank-sum, símbolos +/≈/−, melhor em negrito) comparando AdaMoR-DDMOEA (seleção adaptativa DNN/XGBoost) contra duas variantes mono-surrogate — DNN-DDMOEA e XGBOOST-DDMOEA — nas mesmas 19 instâncias (5 ZDT × M=2; 7 DTLZ × M ∈ {2,3}). Isola o efeito específico da seleção ADAPTATIVA de modelo em relação a usar sempre um único tipo de surrogate fixo.",
+      "literal": "AdaMoR-DDMOEA produces statistically significantly superior outcomes than DNN-DDMOEA, XGB-DDMOEA, and AdaMoR-DDMOEA(WO/MU) in 5, 10, and 15 instances out of 19, respectively.",
+      "localizador": "Sec. 5.2, Table 4 (colunas DNN-DDMOEA e XGBOOST-DDMOEA)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05"
+      ],
+      "convencoes": "Média (dp) por instância problema × M; símbolos +/≈/− relativos ao AdaMoR-DDMOEA; melhor valor em negrito; linha final com contagem agregada (+/≈/−) por variante sobre as 19 instâncias; 21 execuções independentes; notação Xe±y.",
+      "achado": "AdaMoR-DDMOEA vence (+) DNN-DDMOEA em 5/19 instâncias e empata (≈) nas outras 14/19 — nunca perde; vence XGB-DDMOEA em 10/19 e empata em 9/19 — também nunca perde. A seleção adaptativa nunca piora e frequentemente melhora sobre usar qualquer um dos dois modelos sozinho, porque escolhe dinamicamente o que generaliza melhor em cada instância: \"out of 19 cases with different features, DNN fitted better and worse than XGBoost in 12 and 7 instances, respectively\".",
+      "aplicabilidade": "não reproduzível diretamente com as 7 camadas — exigiria rodar variantes mono-surrogate do próprio algoritmo (fixar sempre DNN, ou sempre XGBoost) e comparar contra a versão com seleção adaptativa, usando a camada ⑦ (ND final reavaliado na função verdadeira, regime offline) como endpoint de cada variante."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma Tabela 4, coluna AdaMoR-DDMOEA (WO/MU): variante do algoritmo SEM a fase de atualização do surrogate por indivíduos confiáveis (Algoritmo 3 desativado — o surrogate nunca é retreinado com pseudo-rótulos de indivíduos \"confiáveis\" do offspring), comparada ao AdaMoR-DDMOEA completo, em IGD sobre as mesmas 19 instâncias. É a ablação mais direta do mecanismo de confiança que dá nome ao método (Reliable individual-based Model management).",
+      "literal": "AdaMoR-DDMOEA performed better than AdaMoR-DDMOEA(WO/MU) in every benchmark issue, demonstrating the effectiveness of reliable individual selection-based model management as a method for enhancing the performance of the model.",
+      "localizador": "Sec. 5.2, Table 4 (coluna AdaMoR-DDMOEA (WO/MU))",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05"
+      ],
+      "convencoes": "Mesmas do item anterior (média ± dp, símbolos +/≈/−, negrito, 21 execuções, notação Xe±y).",
+      "achado": "AdaMoR-DDMOEA supera AdaMoR-DDMOEA(WO/MU) — a variante sem atualização por indivíduos confiáveis — em 15 das 19 instâncias (+), empatando nas outras 4/19, e NUNCA perde; é a maior margem de vitórias entre as três comparações internas da Tabela 4 (5/19, 10/19 e 15/19 para DNN-DDMOEA, XGB-DDMOEA e WO/MU respectivamente), indicando que o mecanismo de atualização por indivíduos confiáveis é o componente que mais contribui para o desempenho — mais até que a própria escolha adaptativa do tipo de modelo.",
+      "aplicabilidade": "não reproduzível com as 7 camadas — é uma ablação exata do mecanismo de confiança do próprio artigo (remover a atualização/retreino do surrogate com pseudo-rótulos de indivíduos \"confiáveis\"); análogo, para algoritmos do roster, ao papel que a ficha 11 cumpre (Prob-MOEA/D × MOEA/D-média) — exigiria rodar uma variante do algoritmo com o retreino desligado, usando a camada ⑦ como endpoint de cada variante."
+    },
+    {
+      "fichas": [
+        63
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Sensibilidade do AdaMoR-DDMOEA ao TAMANHO do dataset offline inicial: tamanhos 1D, 5D, 10D, 15D, 20D, 25D e 30D (D = nº de variáveis de decisão), amostrados por LHS, testados em DTLZ3 (M=3) e ZDT4 (M=2) — os dois problemas escolhidos por terem IGD que \"deviate greatly across different sizes\". Reporta média e desvio-padrão do MAE do surrogate e do IGD final em função do tamanho do dataset (Figura 3).",
+      "literal": "the IGD value decreases until 10D or 15D, and then it increases sharply. As a result, it achieves its best IGD value when the amount of data is close to 11D.",
+      "localizador": "Sec. 5.3, Figure 3",
+      "metricas": [
+        "MAE",
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Média e desvio-padrão por tamanho de dataset; apenas 2 problemas testados (DTLZ3 M=3, ZDT4 M=2); eixo x = múltiplo de D (1,5,10,15,20,25,30); sem símbolos de teste estatístico.",
+      "achado": "O MAE do surrogate cai monotonicamente com mais dados offline (melhor generalização), mas o IGD final NÃO acompanha essa tendência: melhora até ~10D–15D e depois piora fortemente em 20D–30D, porque o mecanismo de atualização por indivíduos confiáveis passa a overfitar quando há mais dados iniciais disponíveis — confirmando 11D (o padrão usado no resto do artigo, seguindo [26]) como o tamanho de dataset ótimo, não apenas convencional.",
+      "aplicabilidade": "análogo à ficha 63 do roster (sweep de volume small/medium/big × LHS/MVNS para os offline b5m/b5r/e103/moead_media/c311), mas aqui como um sweep contínuo de multiplicador de D só com LHS, sem variante MVNS nem tiers discretos; reproduzível via camada ⑦ (ND final reavaliado) recomputada para cada tamanho de dataset inicial."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela final de IGD (média ± dp, Wilcoxon rank-sum, símbolos +/≈/− relativos ao AdaMoR-DDMOEA, melhor em negrito) comparando AdaMoR-DDMOEA contra 4 DDMOEAs offline do estado da arte (IBEA-MS, MS-RV, NSGA-II-DNN, BDDEA-LDG) nas mesmas 19 instâncias ZDT/DTLZ, cada método usando dados offline amostrados independentemente por execução (\"these five offline DDMOEAs take distinct beginning data for each run, all of which are sampled individually\").",
+      "literal": "AdaMoR-DDMOEA attains the most wins (12 out of 19), followed by IBEA-MS (7 out of 19), according to the Wilcoxon rank-sum test.",
+      "localizador": "Sec. 5.4, Table 5",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05"
+      ],
+      "convencoes": "Média (dp); símbolos +/≈/− vs. AdaMoR-DDMOEA; melhor em negrito por linha; contagem agregada (+/≈/−) por baseline ao final da tabela; 21 execuções independentes; notação Xe±y.",
+      "achado": "AdaMoR-DDMOEA vence (+) IBEA-MS em 8/19 (empata 7/19, perde 4/19), MS-RV em 14/19 (empata 3/19, perde 2/19), NSGA-II-DNN em 16/19 (empata 3/19, nunca perde) e BDDEA-LDG em 12/19 (empata 6/19, perde 1/19); pela contagem de \"melhor da linha\" (negrito entre os 5 métodos), AdaMoR-DDMOEA é o melhor em 12/19 instâncias e IBEA-MS em 7/19. IBEA-MS e MS-RV usam RBFN como surrogate (fino, no caso de MS-RV) e falham especificamente em problemas de baixa dimensão; BDDEA-LDG, desenhado para mono-objetivo, degrada com o aumento do número de objetivos.",
+      "aplicabilidade": "camada ⑦ (ND final reavaliado na função verdadeira, regime offline) — reproduzível para os offline do roster (b5m, b5r, e103, moead_media) comparados entre si, análogo ao papel da ficha 13."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Visualização qualitativa (Figura 4) do conjunto não-dominado obtido pelos algoritmos offline contra a frente de Pareto verdadeira, na legenda para os problemas ZDT1 (M=2), DTLZ5 (M=3) e ZDT3 (M=2) — usada para explicar visualmente por que AdaMoR-DDMOEA converge bem em alguns problemas e falha em cobrir regiões desconexas/degeneradas em outros.",
+      "literal": "for ZDT2, AdaMoR-DDMOEA cannot discover some regions of the true Pareto front, and the obtained Pareto front is at some distance from the original one.",
+      "localizador": "Sec. 5.4, Figure 4",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Gráfico de dispersão do espaço de objetivos, frente obtida vs. frente de Pareto teórica; não fica explícito se é a execução mediana ou uma execução específica dentre as 21.",
+      "achado": "Boa cobertura/proximidade da frente verdadeira em ZDT1; em DTLZ5 os pontos se distribuem ao longo da frente mas com convergência insuficiente (atribuída a ter apenas 11D de dados offline); no problema discutido no texto como ZDT2, o algoritmo não descobre regiões desconexas/degeneradas da frente verdadeira, atribuído à tendência do mecanismo de indivíduos confiáveis de buscar perto dos dados offline em vez de todo o espaço de busca.",
+      "aplicabilidade": "camada ⑦ (ND final reavaliado) contra a frente verdadeira — reproduzível para os offline do roster, análogo à ficha 54."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Sensibilidade do IGD final ao número máximo de iterações (gerações) do AdaMoR-DDMOEA, varrido de 10 a 600 (execuções completas separadas para cada valor testado), avaliado em DTLZ3 (M=3) e ZDT4 (M=2); reporta média e desvio-padrão do IGD por valor de max-iteration (Figura 5), para justificar o valor usado no resto do artigo (500).",
+      "literal": "when the maximum iteration for AdaMoR-DDMOEA is taken as 500, the IGD value drops to its lowest point. The IGD value typically rises after 500 iterations.",
+      "localizador": "Sec. 5.5.1, Figure 5",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Média e desvio-padrão do IGD por valor testado de max-iteration; apenas os mesmos 2 problemas de Sec. 5.3 (DTLZ3, ZDT4); eixo x = número máximo de iterações (10 a 600).",
+      "achado": "O IGD atinge seu mínimo por volta de 500 iterações e PIORA (sobe) além disso — buscar por mais tempo sobre o mesmo surrogate offline, sem qualquer nova avaliação real, degrada a qualidade da solução final: um sinal de que a busca passa a otimizar excessivamente a crença do surrogate (deriva/overfitting da busca ao modelo) além de certo ponto, além do custo computacional extra.",
+      "aplicabilidade": "equivalente, na forma, a uma curva de convergência (ficha 26) por fração do orçamento/iterações, mas obtida por execuções completas separadas para cada valor de max-iteration testado, em vez de uma única trajetória lida em múltiplos checkpoints de uma só execução; reproduzível via camada ② (população por geração) com reavaliação verdadeira a cada geração (equivalente a aplicar a camada ⑦ em cada checkpoint), já que é regime offline."
+    },
+    {
+      "fichas": [
+        45
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Sensibilidade do MAE (do surrogate escolhido) ao número k de folds usado na validação cruzada que decide a seleção adaptativa de modelo — o parâmetro que define diretamente a granularidade do mecanismo de confiança do artigo —, testando k ∈ {2,4,6,8,10,12}, nos mesmos DTLZ3 e ZDT4; reporta média e desvio-padrão do MAE por valor de k (Figura 6), justificando k=10 no restante do artigo.",
+      "literal": "we observe that taking k as 10 results in the lowest MAE score for the validation set. This means the 10-fold cross-validation provides a more robust evaluation of the model's ability to generalize to new, unseen data.",
+      "localizador": "Sec. 5.5.2, Figure 6",
+      "metricas": [
+        "MAE"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Média e desvio-padrão do MAE por valor de k; apenas os mesmos 2 problemas (DTLZ3, ZDT4).",
+      "achado": "k=10 produz o menor MAE de validação entre os valores testados {2,4,6,8,10,12}, sendo adotado como padrão no restante do artigo — k é o parâmetro que define a granularidade com que a decisão de seleção adaptativa de modelo (o mecanismo de confiança do artigo, A3) é estimada; k pequeno demais ou grande demais degrada essa estimativa.",
+      "aplicabilidade": "sensibilidade a um parâmetro que define o USO do mecanismo de confiança — análogo à ficha 45 (mecanismo em ação); não reproduzível diretamente pelas 7 camadas padrão da dissertação, pois nenhum algoritmo do roster usa k-fold CV para escolher entre dois surrogates candidatos — exigiria instrumentação extra (registrar o erro de CV do ajuste inicial variando k)."
+    },
+    {
+      "fichas": [
+        23
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Estudo de caso real: otimização de forma de aerofólio transônico RAE 2822 (offline; 10 variáveis de decisão via parametrização CST — 5 parâmetros da superfície inferior + 5 da superior —; dataset offline de 11×D pontos amostrados no domínio especificado; avaliado por CFD via Xfoil com M=0.7, Re=6×10^6, AOA=2°); dois objetivos: minimizar −CL (maximizar sustentação) e CD (arrasto). Reporta a frente de Pareto aproximada obtida (Figura 7) e as formas geométricas de aerofólios otimizados (soluções inicial, do meio e final — Figura 8).",
+      "literal": "we use a transonic RAE 2822 airfoil test case from the UIUC airfoil coordinate database",
+      "localizador": "Sec. 5.6, Table 6, Figures 7–8",
+      "metricas": [
+        "CL (coeficiente de sustentação)",
+        "CD (coeficiente de arrasto)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Sem sementes/execuções repetidas explicitadas para este caso real; frente aproximada plotada diretamente sem frente verdadeira de referência (problema real, sem solução analítica conhecida); 3 soluções de Pareto (inicial, meio, final) escolhidas para ilustrar formas geométricas na Fig. 8.",
+      "achado": "AdaMoR-DDMOEA converge para uma frente de Pareto aproximada plausível para o par (CL, CD) usando apenas 11×D=110 pontos offline (nenhuma avaliação real de CFD durante a busca), validando a aplicabilidade do método a um problema real caro sem simulação disponível durante a otimização.",
+      "aplicabilidade": "não reproduzível com as 7 camadas da dissertação — exige um problema real de engenharia (CFD/Xfoil) fora da bateria de 28 problemas (ZDT/DTLZ/WFG/MMF/BBOB + RE21/ESTOQUE40/DDMOP7); é o análogo, para este artigo, do papel que RE21/ESTOQUE40/DDMOP7 cumprem no roster (ficha 23)."
+    },
+    {
+      "fichas": [
+        23
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparação, em gráficos de barras empilhadas (stacked charts), dos valores brutos de CL e CD (não do IGD) para pontos de Pareto obtidos pelo AdaMoR-DDMOEA (8 pontos, Figura 9) e para os dois melhores pontos de cada um dos 4 algoritmos comparados (IBEA-MS, MS-RV, NSGA-II-DNN, BDDEA-LDG) (Figura 10), todos contra o desenho baseline do RAE 2822 (Tabela 6).",
+      "literal": "using our algorithm, the lift coefficient can be increased, and the drag coefficient can be decreased and gives a better result (more lift and less drag) than the compared algorithms.",
+      "localizador": "Sec. 5.6, Figures 9–10",
+      "metricas": [
+        "CL",
+        "CD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Gráficos de barras empilhadas comparando CL e CD relativos ao baseline; sem estatística formal (caso único, sem repetição de sementes reportada).",
+      "achado": "Nas soluções de Pareto 1, 2 e 3, o AdaMoR-DDMOEA melhora simultaneamente CL (aumenta) e CD (diminui) sobre o desenho baseline do RAE 2822, e obtém melhor par (CL, CD) do que os dois melhores pontos de cada um dos 4 algoritmos comparados — a única validação de desempenho no caso real feita diretamente nas métricas de engenharia originais, não em IGD.",
+      "aplicabilidade": "não reproduzível pelas 7 camadas — usa métricas específicas do domínio (CL, CD) em vez do indicador padrão (IGD+/HV); papel análogo ao que métricas específicas de DDMOP7 (ficha 24) cumprem no roster para métricas fora do padrão."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "O artigo compara o MAE de treino vs. MAE de validação cruzada (10-fold) dos dois candidatos a surrogate (DNN e XGBoost) em cada problema (Tabelas 2 e 3), diagnosticando overfitting (MAE de treino baixo mas validação alta) e argumentando que o modelo com menor MAE de validação de fato generaliza melhor e produz melhor IGD final — validando indiretamente que o critério de seleção adotado (erro empírico de validação cruzada, medição classe ERR-EMP) é um proxy útil de confiabilidade do modelo. Não há sigma/intervalo/cobertura probabilística em lugar nenhum do artigo: a \"confiança\" é inteiramente baseada em erro empírico (MAE) e em distância euclidiana ao ponto ideal/preferido (Eq. 17), nunca em quantificação de incerteza estatística.",
+    "literal": "a higher MAE on the validation set and a lower MAE on the training set also indicate that the XGBoost model is overfitting the training data.",
+    "localizador": "Sec. 5.1, Tables 2–3"
+  },
+  "custo": {
+    "reporta": false,
+    "o_que": "Não há tempo de execução, decomposição fit/busca/avaliação, nem complexidade computacional reportados em lugar nenhum do artigo — apenas uma única menção ao hardware de teste, sem números de tempo associados.",
+    "literal": "We conducted all of the testing on a computer with an 8th generation Core i5 CPU and 8 GB of RAM.",
+    "localizador": "Sec. 5, parágrafo introdutório"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Mais dados offline não implica menor erro do modelo virar melhor IGD: aumentar o tamanho do dataset inicial de ~15D para 30D piora fortemente o IGD final, porque o mecanismo de atualização por indivíduos confiáveis passa a overfitar com datasets iniciais maiores, mesmo com o MAE do surrogate caindo monotonicamente.",
+      "literal": "the mechanism overfits the model when it is already trained on 30D data, lowering its accuracy and IGD value.",
+      "localizador": "Sec. 5.3"
+    },
+    {
+      "descricao": "Buscar por mais iterações sobre o mesmo surrogate offline (sem novas avaliações reais) piora o IGD final além de ~500 iterações — a busca passa a otimizar excessivamente a crença do modelo em vez da frente real.",
+      "literal": "The IGD value typically rises after 500 iterations. If the maximum iteration is taken as a very high value, then it may incur a greater computational burden.",
+      "localizador": "Sec. 5.5.1"
+    },
+    {
+      "descricao": "O mecanismo de seleção de indivíduos \"confiáveis\" (baseado em proximidade euclidiana ao ponto ideal/preferido, Eq. 17) faz o algoritmo buscar perto dos dados offline em vez de todo o espaço, o que o impede de descobrir regiões desconexas/degeneradas da frente verdadeira.",
+      "literal": "The reason may be that AdaMoR-DDMOEA searches close to offline data and not the entire search space, causing it to miss some disconnected or degenerated Pareto fronts.",
+      "localizador": "Sec. 5.4"
+    },
+    {
+      "descricao": "O próprio artigo reconhece que o método completo perde para 3 dos 4 baselines em ZDT3 (frente desconexa) e para o IBEA-MS em vários DTLZ degenerados, admitindo mau desempenho geral em geometrias difíceis apesar do mecanismo de confiança.",
+      "literal": "it performs poorly on degenerated or disconnected problems.",
+      "localizador": "Sec. 5.4"
+    },
+    {
+      "descricao": "Diagnóstico de overfitting do candidato a surrogate XGBoost: MAE de treino muito menor que o de validação cruzada — sinal de que confiar apenas no erro de treino (sem validação cruzada) enganaria a escolha do modelo mais confiável para o model management subsequente.",
+      "literal": "a higher MAE on the validation set and a lower MAE on the training set also indicate that the XGBoost model is overfitting the training data.",
+      "localizador": "Sec. 5.1"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "frente desconexa / degenerada (disconnected / degenerate Pareto front)",
+      "afirmacao": "AdaMoR-DDMOEA tem mau desempenho em problemas de frente desconexa ou degenerada, porque seu mecanismo de indivíduos confiáveis busca perto dos dados offline em vez de todo o espaço de decisão.",
+      "literal": "it performs poorly on degenerated or disconnected problems.",
+      "localizador": "Sec. 5.4"
+    },
+    {
+      "caracteristica": "baixa dimensionalidade combinada com pouca exigência de diversidade",
+      "afirmacao": "IBEA-MS (Kriging com troca para RBFN por limiar de incerteza) supera AdaMoR-DDMOEA especificamente em problemas que não exigem muita diversidade (ZDT2, ZDT3, DTLZ6, DTLZ7), mas seu surrogate RBF não é bom o bastante em outros problemas multimodais de baixa dimensão.",
+      "literal": "it performs badly in other 2- and 3-dimensional multi-modal problems, as the chosen RBF surrogate model is not good enough on small dimensional problems.",
+      "localizador": "Sec. 5.4"
+    },
+    {
+      "caracteristica": "multimodalidade (uni- vs. multi-modal)",
+      "afirmacao": "A seleção adaptativa DNN/XGBoost combinada com a atualização por indivíduos confiáveis do AdaMoR-DDMOEA alcança bom desempenho especificamente em problemas de baixa dimensão uni- e multi-modais.",
+      "literal": "AdaMoR-DDMOEA dynamically selects a better-fitted model between DNN and XGBoost and combines that with a reliable individual-based model updation strategy to achieve good performance in low dimensional uni- and multi-modal problems.",
+      "localizador": "Sec. 5.4"
+    },
+    {
+      "caracteristica": "número de objetivos crescente (M=2 para M=3)",
+      "afirmacao": "BDDEA-LDG, desenhado para problemas mono-objetivo, degrada à medida que o número de objetivos aumenta.",
+      "literal": "Due to its special design for single-objective problems, BDDEA-LDG performs poorly when the number of objectives increases.",
+      "localizador": "Sec. 5.4"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) A Tabela 4 (Sec. 5.2) é uma ablação natural do próprio método: isola tanto a seleção adaptativa de modelo (DNN-DDMOEA / XGB-DDMOEA mono-surrogate) quanto o mecanismo de atualização por indivíduos confiáveis (AdaMoR-DDMOEA(WO/MU)) — as duas análises mais próximas de uma \"ablação exata\" (ficha 11) que o artigo oferece, já que cada uma isola exatamente um componente do mecanismo de confiança (A3, Gestão de confiança) mantendo o resto fixo. (2) Há uma inconsistência entre a legenda da Figura 4 (\"Obtained Pareto front against actual Pareto front on ZDT1, DTLZ5, and ZDT3, respectively\") e o texto que a discute logo em seguida, que fala de \"ZDT2\" em vez de ZDT3 (\"However, for ZDT2, AdaMoR-DDMOEA cannot discover some regions of the true Pareto front...\", Sec. 5.4) — reportado tal como está no artigo, sem tentar resolver a discrepância. (3) O artigo não reporta nenhum tempo de execução, decomposição fit/busca, ou complexidade computacional — só cita o hardware de teste (Core i5, 8GB RAM) uma única vez, de passagem. (4) A \"função da incerteza\" aqui é puramente determinística/baseada em erro (medição ERR-EMP): não há sigma, intervalo, ensemble ou dropout em lugar nenhum do artigo; a \"confiança\" vem de (a) MAE de validação cruzada k-fold para escolher entre DNN e XGBoost (Sec. 3.2), e (b) uma distância euclidiana ao ponto ideal/preferido (Eq. 17) para escolher quais indivíduos do offspring são \"confiáveis\" o bastante para virarem pseudo-rótulos de retreino (Algoritmo 3) — um mecanismo de gestão de confiança individual-based, sem nenhuma quantificação probabilística de incerteza, consistente com a classe A3 da taxonomia. (5) Nenhum baseline do artigo é um piso sem surrogate — os 4 comparados (IBEA-MS, MS-RV, NSGA-II-DNN, BDDEA-LDG) e as 3 variantes internas usam todos algum surrogate — então não há como isolar \"o surrogate compra ou não\" (fichas do bloco B do tipo assistido-vs-piso) da forma como o roster da dissertação faz; todas as comparações deste artigo são internas ao universo de métodos surrogate-assisted. (6) BDDEA-LDG aparece como baseline nas Tabelas 5, nas Figuras 9-10 e na Conclusão, mas NUNCA é descrito nem citado explicitamente na Seção 2 (Related Work) nem na lista de métodos comparados da Seção 4.3 (\"we take the following three state-of-the-art offline DDMOEAs into consideration: IBEA-MS, MS-RV, and NSGA-II-DNN\") — é um baseline introduzido tardiamente no artigo sem descrição metodológica própria nem referência bibliográfica claramente associada na lista de 43 referências; registrado aqui como lacuna do artigo-fonte, não um erro de leitura nosso. (7) O caso real (Sec. 5.6, aerofólio RAE 2822) não reporta sementes/execuções repetidas nem teste estatístico — é uma ilustração de execução única. (8) D é fixo em 10 em todos os experimentos (sintéticos e reais) — não há estudo de escalabilidade com a dimensão de decisão. (9) As três análises de sensibilidade (tamanho do dataset offline Sec. 5.3, número máximo de iterações Sec. 5.5.1, número de folds k Sec. 5.5.2) usam sempre apenas os mesmos dois problemas (DTLZ3 com M=3 e ZDT4 com M=2), nunca a bateria completa de 12 problemas ZDT/DTLZ — os autores justificam essa escolha apenas na primeira (\"Because the IGD values in these two cases deviate greatly across different sizes, we chose DTLZ3...and ZDT4...\", Sec. 5.3) e reaproveitam os mesmos dois problemas nos dois estudos seguintes sem nova justificativa. (10) Erro de digitação no próprio artigo, mantido aqui apenas como registro: \"on teh ZDT and DTLZ benchmark test suites\" (Conclusão, Sec. 6). (11) Leitura completa: 26 páginas (cabeçalho do arquivo-fonte), corpo estruturado (introdução, related work, método, setup experimental, seção 5 completa com todas as 6 subseções 5.1–5.6, conclusão, referências) + ANEXO de camada de texto integral do PDF (conferido como duplicata fiel do corpo estruturado, sem conteúdo experimental adicional) + ANEXO de OCR de figuras (só rótulos de eixo/legenda já cobertos pelo texto — nenhuma tabela ou número novo). Nada foi pulado; nenhuma seção ou apêndice ficou de fora. roster_bloco = null por instrução do pedido (artigo fora do roster experimental)."
+}

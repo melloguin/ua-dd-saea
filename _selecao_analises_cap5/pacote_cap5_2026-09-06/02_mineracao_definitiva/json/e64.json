@@ -1,0 +1,336 @@
+{
+  "id": "e64",
+  "sigla": "SA-MOPSO (PPD)",
+  "titulo": "A Probabilistic Approach to Surrogate-Assisted Multi-Objective Optimization of Complex Groundwater Problems",
+  "ano": 2025,
+  "roster": false,
+  "setup": {
+    "benchmarks": "3 funções de benchmark analíticas (Tabela 1): KUR (Kursawe, 1991; no=2, nd=3, nc=0), ZDT (Zitzler et al., 2000; no=2 mas só o 2o objetivo e emulado -- o 1o e simplesmente o valor de uma variável de decisão; nd=30, nc=0), OSY (Osyczka & Kundu, 1995; no=2, nd=6, nc=6, fortemente restringido, todas as 6 restrições emuladas). Mais 1 problema real: gestão de aquífero costeiro contra intrusão salina (Dominguez Gap, Los Angeles; modelo MODFLOW-6 de fluxo + transporte de soluto, seção 2D vertical de 90 m x 8.000 m, 360.000 células, simulação transiente de 100 anos após 1.000 anos de pre-desenvolvimento): no=2 (taxa total de injeção nas barreiras; salinidade média ponderada pelo fluxo extraído), nd=10 (8 vazões de poços de extração + 2 taxas de injeção de barreira), nc=4 (demanda mínima de 28,5 m3/d; injeção total máxima de 8,0 m3/d; salinidade máxima de 1,0 g/L; rebaixamento máximo de 5,75 m no wetland).",
+    "orcamento": "Não há DoE fixo do tipo 31D-1 nem sonda ligada ao orçamento. Delineamento inicial por Latin Hypercube Sampling (LHS): 100 vetores de decisão (aplicação real, Run A, totalmente inviável) ou 100 vetores viáveis as restrições simples selecionados de 25.200 gerados (Run B). Avaliações reais (PBM) por configuração nos benchmarks (Tabela 2, mesmo número para SA-MOPSO e PB-MOPSO): KUR=400, ZDT=300, OSY=500. Aplicação real (Tabela 4): Run A = 500 PBM (120.000 chamadas ao GPR); Run B = 400 PBM (90.000 chamadas ao GPR). Chamadas ao GPR (avaliações do surrogate durante as iterações internas via MOPSO) na ordem de 10.000 a 120.000 por execução.",
+    "execucoes": "NÃO HÁ sementes/réplicas independentes com estatística em lugar nenhum do artigo -- cada configuração (cada função de benchmark; cada valor de beta em {0.40,0.50,0.60,0.70,0.80}; cada valor de lambda_m em {0.10,0.25,0.40,0.50}) e UMA única execução, sem média+-dp, sem IQR, sem teste de significância. Na aplicação real há 2 execuções nomeadas (Run A, iniciada 100% inviável; Run B, iniciada com população viável as restrições simples), tratadas como validação cruzada qualitativa (as duas convergem para frentes semelhantes), não como réplicas estatísticas de uma mesma configuração. E o oposto do protocolo de 30 sementes da dissertação.",
+    "baselines": "Sim, há piso: PB-MOPSO ('process-based MOPSO'). Mas PB-MOPSO e a MESMA metaheurística MOPSO do SA-MOPSO, rodando diretamente sobre o modelo verdadeiro (PBM) sem GPR/surrogate algum -- não e um piso evolutivo de outra família (não usa NSGA-II/MOEA-D/NSGA-III/SMS-EMOA); e a versão 'sem surrogate' do próprio algoritmo proposto, mais próxima de uma ablação total do surrogate do que do piso multi-família da ficha 9/10 da dissertação.",
+    "metricas_principais": [
+      "número de soluções não-dominadas obtidas (contagem simples, não HV/IGD+)",
+      "comparação visual/qualitativa da frente obtida vs. frente verdadeira (benchmarks) ou vs. frente 'provavelmente verdadeira' validada por reexecução do PB-MOPSO (caso real)",
+      "tempo de execução (forward run) e tempo de parede (wall time, 100 nucleos HPC) do GPR vs. do PBM",
+      "hypervolume (HV) -- mencionado apenas como comparado em Table S1 do material suplementar, não reproduzido no corpo principal",
+      "RHD (relative hypervolume difference) e HVI (hypervolume improvement) -- definidas no Apêndice C (Eq. C1) como possíveis critérios de parada, mas nunca reportadas com números no corpo principal"
+    ],
+    "testes": [
+      "nenhum (nenhum teste estatístico formal em nenhum lugar do artigo; sem sementes/réplicas que permitissem testar hipóteses)"
+    ],
+    "apresentacao": "Tabelas de contagem simples (no. de execuções do PBM, no. de execuções/chamadas do GPR, no. de soluções não-dominadas) -- Tabelas 2 e 4, com nota de rodapé esclarecendo quando soluções reportadas 'are not Pareto optimal, but the best thus far'; tabela de tempo médio de execução e tempo de parede paralelizado -- Tabela 3; extensa comparação visual de frentes de Pareto e 'nuvens' de Pareto (posições emuladas com elipsoides de incerteza cinzas) em vários estágios (inner/outer iteration). Sem média+-dp, sem negrito para 'melhor', sem símbolos +/=/-, sem escala log mencionada; sempre execução única por configuração (não execução mediana sobre sementes).",
+    "codigo_plataforma": "PESTPP-MOU (White et al., 2022), modificado pelos autores para incorporar os cálculos de PD/PPD e a função de fitness baseada em PD (código-fonte completo aberto no Zenodo, doi 10.5281/zenodo.13263937; dados/scripts dos benchmarks e da aplicação em doi 10.5281/zenodo.13262713); GPR via pacote R 'laGP' (Gramacy, 2016); MHA = MOPSO (Coello et al., 2004; Siade et al., 2019); modelo físico do caso real em MODFLOW-6 (fluxo densidade-dependente + transporte de soluto, Langevin et al., 2017, 2022); execução paralela em cluster HPC (CSIRO Petrichor) com ate 100 nucleos."
+  },
+  "analises": [
+    {
+      "fichas": [
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Antes de propor a PPD, os autores relatam um teste preliminar feito durante o desenvolvimento do algoritmo: aplicar o critério de dominância de Pareto CONVENCIONAL (determinístico) diretamente sobre as posições emuladas pelo GPR -- ou seja, ignorando sigma e usando só a média mu, com a MESMA maquinaria (MOPSO + GPR) que depois originaria o SA-MOPSO. O resultado (mostrado só nas Figuras S1-S6 do material suplementar) foi soluções subótimas e dificuldade de achar soluções em alguns segmentos da frente verdadeira, sobretudo perto de descontinuidades e nas extremidades da frente -- o que motiva diretamente a introdução da PPD.",
+      "literal": "the Pareto dominance criteria are directly applied on the emulated positions resulted in suboptimal solutions ... particularly where there is discontinuity, and at the ends of the front (see Figures S1-S6 in Supporting Information S1).",
+      "localizador": "Sec. 3 (parágrafo de abertura, antes de 3.1); Figs. S1-S6 (Supporting Information S1)",
+      "metricas": [
+        "nenhuma métrica numérica reportada -- descrição qualitativa/textual (soluções subótimas; segmentos da frente não cobertos)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Resultado relatado apenas em texto no corpo principal, sem números; a demonstração visual (frentes obtidas) está inteiramente no material suplementar (Figs. S1-S6), não reproduzida no artigo principal; execução única (fase de desenvolvimento preliminar, não um experimento sistemático com múltiplas sementes).",
+      "achado": "Ignorar a incerteza do GPR (dominância determinística sobre a média mu) leva a soluções subótimas e falha em cobrir partes da frente verdadeira, especialmente onde há descontinuidade e nas pontas da frente -- evidência de que considerar sigma (via PPD) e necessário, não apenas uma melhoria incremental. E a mesma maquinaria (MOPSO+GPR) com e sem uso de sigma na dominância, portanto uma ablação quase-exata do papel do sigma na etapa de seleção/dominância.",
+      "aplicabilidade": "não reproduzível com as 7 camadas -- exigiria implementar e rodar uma variante do próprio SA-MOPSO com dominância determinística sobre mu (sigma=0 na Eq. 9), análoga ao contrafactual da ficha 15 ('sigma=0 online'), mas aqui e o PRÓPRIO artigo de origem que já fez esse teste (fora do roster da dissertação); além disso a demonstração visual está só no SI, não no corpo, então nem o próprio artigo dá números reproduzíveis."
+    },
+    {
+      "fichas": [
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para gerir o repositório de posições não-dominadas dentro das iterações internas, os autores primeiro testaram uma função de fitness baseada em CROWDING DISTANCE ESPERADA (probabilística), somando ao quadrado da distância euclidiana entre médias emuladas um termo de variância (Eq. 12, derivado de Mathai & Provost, 1992) -- uma forma alternativa e mais direta de incorporar sigma na métrica de diversidade/'loneliness'. Esse critério favorece posições muito incertas (sigma alto) como se fossem mais 'solitárias', mesmo quando não são realmente isoladas no espaço de objetivos.",
+      "literal": "as evident by the second term in Equation 12. Employing this criterion for crowding distance calculations actually results in divergence of the algorithm.",
+      "localizador": "Sec. 3.4.1; Fig. S7 (Supporting Information S1), problema ZDT (Apêndice A)",
+      "metricas": [
+        "distância esperada E(Di,j) entre posições emuladas (Eq. 12) -- soma do quadrado da distância euclidiana das médias + soma das variâncias"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Resultado demonstrado apenas na Figura S7 do material suplementar (problema ZDT), não reproduzida no corpo principal; execução única; sem números, só a descrição textual do comportamento divergente.",
+      "achado": "RESULTADO NEGATIVO: usar a variância (sigma) diretamente como termo aditivo numa métrica de distância/crowding enviesa o algoritmo para exploração extrema (pontos muito incertos parecem 'menos aglomerados' e recebem fitness alta mesmo sem estarem isolados de fato), o que efetivamente FAZ O ALGORITMO DIVERGIR da frente de Pareto -- não e uma perda marginal de eficiência, e divergência franca. Por isso os autores abandonaram essa formulação e desenvolveram, na Sec. 3.4.2, um critério alternativo baseado em contagem de vizinhos via probabilidade de dominância (PD), com uma pseudo-variância mínima para evitar degenerar quando sigma->0.",
+      "aplicabilidade": "não reproduzível com as 7 camadas -- exigiria implementar a variante alternativa (não adotada) do próprio SA-MOPSO com a métrica de crowding da Eq. 12 e rodar no ZDT; fora do roster; a demonstração está só no SI (Fig. S7), sem números no corpo principal."
+    },
+    {
+      "fichas": [
+        1,
+        9,
+        43,
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para cada uma das 3 funções de benchmark (KUR, ZDT, OSY), SA-MOPSO (assistido por GPR) e PB-MOPSO (a mesma MOPSO rodando direto sobre a função verdadeira, sem surrogate) são comparados sob o MESMO número de avaliações reais (400, 300 e 500 respectivamente): a Tabela 2 reporta o no. de execuções do PBM, o no. de chamadas ao GPR e o no. de soluções não-dominadas obtidas por cada algoritmo; a Figura 8 sobrepõe as frentes obtidas (após a 1a retreinagem e ao final) as frentes verdadeiras conhecidas dessas funções analíticas; a Figura 9 detalha o caso OSY (fortemente restringido), mostrando como a PPD ajuda a nuvem de Pareto a alcançar regiões de interesse já nas primeiras iterações internas.",
+      "literal": "SA-MOPSO outperformed PB-MOPSO in all the benchmarks in terms of the number of expensive function evaluations required to achieve convergence on the true front.",
+      "localizador": "Sec. 5.1.1, Table 2, Fig. 8, Fig. 9",
+      "metricas": [
+        "número de soluções não-dominadas obtidas (contagem)",
+        "número de avaliações do PBM (real)",
+        "número de chamadas ao GPR",
+        "cobertura visual/qualitativa da frente obtida vs. frente verdadeira"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tabela de contagens simples (sem média+-dp; execução única por configuração); nota de rodapé na Tabela 2 esclarece que as soluções do PB-MOPSO reportadas 'are not Pareto optimal, but the best thus far' (isto e, o PB-MOPSO ainda não havia convergido sob o mesmo orçamento); frentes plotadas sobrepostas por iteração/outer-iteration, sem execução mediana (só uma execução).",
+      "achado": "SA-MOPSO supera PB-MOPSO nos 3 benchmarks em termos de no. de avaliações reais necessárias para convergir: KUR obtém 101 soluções não-dominadas em 400 avaliações reais (vs. 7 'melhores ate agora' do PB-MOPSO); ZDT obtém 108 em 300 (vs. 8); OSY obtém 101 em 500 (vs. 4). Para KUR, o PB-MOPSO precisou de pelo menos 20 iterações para alcançar o que SA-MOPSO fez em 3 outer-iterations; para ZDT, PB-MOPSO precisou de mais de 10 iterações. Em OSY (restringido), a PPD foi mais importante nos estágios iniciais, quando o modelo tem pouco conhecimento do problema.",
+      "aplicabilidade": "parcialmente análogo a ficha 9 (assistido x piso pareado), mas não reproduzível tal como está com as 7 camadas: não há sementes/réplicas (execução única por configuração, não 30 sementes), a métrica e contagem de soluções não-dominadas -- não IGD+/HV --, e os problemas (KUR, ZDT-1-obj-emulado, OSY) não são exatamente os 28 da bateria (embora ZDT seja da mesma família nominal). (1) avaliações reais e (2) população seriam a camada mais próxima para replicar a lógica de contagem, mas exigiria rodar SA-MOPSO como algoritmo adicional fora do roster."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo menciona, sem reproduzir no corpo do texto, que uma comparação de métricas de hipervolume entre os resultados de SA-MOPSO e PB-MOPSO nos 3 benchmarks está disponível na Tabela S1 do material suplementar.",
+      "literal": "A comparison of hypervolume metrics for these results is also provided in supporting information Table S1in Supporting Information S1.",
+      "localizador": "Sec. 5.1.1 (menção); Table S1 (Supporting Information S1, não disponível neste PDF)",
+      "metricas": [
+        "hypervolume (mencionado, não reportado numericamente no corpo)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Não aplicável -- nenhum número e dado no corpo principal. SÓ MENCIONADA (Regra 3 do cartão): a Tabela S1 vive no material suplementar, não reproduzida neste PDF.",
+      "achado": "Não determinável a partir do corpo principal do artigo -- a tabela com os valores de hipervolume está apenas no material suplementar, ao qual este PDF extraído não dá acesso.",
+      "aplicabilidade": "não reproduzível -- depende do conteúdo da Tabela S1 do Supporting Information S1, não disponível nesta extração."
+    },
+    {
+      "fichas": [
+        45,
+        31
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "No benchmark KUR, 5 execuções de SA-MOPSO com beta em {0.40, 0.50, 0.60, 0.70, 0.80} (cada uma com 50 iterações internas por 4 iterações externas) mostram como o parâmetro de confiança da PPD (beta e o limiar em PDi,j >= beta que define dominância probabilística) controla a largura/ruído da nuvem de Pareto (Fig. 10a-e) e a velocidade de aprendizado do GPR, medida por uma curva de erro l (Eq. 20: soma normalizada das distâncias euclidianas entre a média predita e o valor objetivo verdadeiro, nas posições Pareto-ótimas conhecidas P, a cada outer-iteration) -- Fig. 10f.",
+      "literal": "Probabilistic Pareto dominance with β = 0.40 is too lenient for dominance resulting in positions getting discarded too easily ... a value of 0.50 seems to perform best",
+      "localizador": "Sec. 5.1.2, Fig. 10; Eq. 20",
+      "metricas": [
+        "l_j -- soma normalizada das distâncias euclidianas entre a predição da média do GPR e o valor objetivo verdadeiro, nas posições Pareto-ótimas conhecidas P, por outer-iteration (Eq. 20)",
+        "largura/ruído qualitativo da nuvem de Pareto (visual)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução única por valor de beta (5 execuções no total, sem repetição/sementes); curva de l por outer-iteration (0 a 3), uma linha por valor de beta, sem banda de incerteza; l próximo de 0 = muito aprendido, próximo/acima de 1 = nada aprendido; resultados de ZDT e OSY para diferentes beta só no material suplementar (Figs. S16-S25), mencionados mas não reproduzidos no corpo.",
+      "achado": "beta=0.40 (limiar de dominância pouco tolerante a incerteza) e 'too lenient for dominance', descarta posições cedo demais, gera uma nuvem localmente aglomerada perto do ótimo da iteração anterior e o infill fica redundante -- aprendizado ruim e consistente (l grande). beta=0.80 gera a nuvem mais ruidosa/ampla, mas 'higher beta does not necessarily benefit the optimization' -- aprendizado degrada com leve alta em l3 (ver resultados_negativos). beta=0.50 e o melhor para KUR; de modo geral, beta entre 0.50 e 0.70 funciona bem na maioria dos casos, com desvios corrigíveis por 1-2 outer-iterations extras.",
+      "aplicabilidade": "não reproduzível com as 7 camadas -- beta e um hiperparâmetro específico da PPD do SA-MOPSO (fora do roster), sem equivalente direto nos 15 algoritmos; a curva l e conceitualmente próxima da (3) sonda-dimensão-1 (acurácia da média ao longo do orçamento, ficha 31), mas medida nos pontos Pareto-ótimos verdadeiros conhecidos P (não numa sonda fixa de 2.000 pontos aleatórios) e reavaliada a cada outer-iteration, não a cada retreino."
+    },
+    {
+      "fichas": [
+        45
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "No benchmark OSY (6 restrições, todas emuladas), 4 execuções de SA-MOPSO com lambda_m em {0.10, 0.25, 0.40, 0.50} (limiar de probabilidade de factibilidade, PFm >= lambda_m) mostram como esse parâmetro -- que define quanto de violação de restrição emulada e tolerado por causa da incerteza -- afeta a cobertura da frente verdadeira após 4 outer-iterations (Fig. 11).",
+      "literal": "λm = 0.25 is most effective in completely converging to the entire true front in this benchmark.",
+      "localizador": "Sec. 5.1.3, Fig. 11; Eq. 17",
+      "metricas": [
+        "cobertura qualitativa/visual da frente verdadeira por segmento (dominado por restrição vs. não)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução única por valor de lambda_m (4 execuções, sem repetição/sementes); frentes finais (outer-iteration 4) sobrepostas na Fig. 11 para os 4 valores testados; sem métrica numérica -- leitura visual de cobertura da frente.",
+      "achado": "lambda_m=0.50 (equivalente a tratar a restrição de forma determinística/pela média) NÃO cobre toda a frente verdadeira mesmo com mais iterações; reduzir lambda_m (mais tolerância a violação emulada) permite explorar o segmento superior da frente dominado por restrição. lambda_m=0.25 e o melhor valor testado para OSY; lambda_m=0.10 e 0.40 melhorariam com mais outer-iterations. Determinar um lambda_m ótimo geral fica fora do escopo do estudo (e problema-específico).",
+      "aplicabilidade": "não reproduzível -- lambda_m e específico do mecanismo de probabilidade de factibilidade do SA-MOPSO (fora do roster); não há equivalente direto nas 7 camadas, embora o espírito (parâmetro que define o USO da incerteza, aqui em restrições) seja análogo a um gate de confiança."
+    },
+    {
+      "fichas": [
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "No problema real de gestão de aquífero costeiro, com um desenho inicial de 100 vetores por LHS completamente INVIÁVEL (nenhum vetor satisfaz as restrições), SA-MOPSO (beta=0.7, lambda_m testado em {0.10, 0.25, 0.40}) e PB-MOPSO partem do mesmo Outer-0. SA-MOPSO supera a inviabilidade já na 1a outer-iteration (após 300 iterações internas), enquanto PB-MOPSO NÃO produz nenhuma solução factível em 4 iterações -- nem após ser estendido a 42 iterações (6 dias em HPC de 100 nucleos).",
+      "literal": "PB-MOPSO was not able to produce a single feasible solution in 4 iterations ... When continued up to iteration 42, which took 6 days to complete ... PB-MOPSO still failed to find any feasible solution.",
+      "localizador": "Sec. 5.2.1, Figs. 12-13",
+      "metricas": [
+        "número de soluções factíveis e não-dominadas encontradas",
+        "número de iterações/outer-iterations ate superar a inviabilidade"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução única por algoritmo (Run A); nenhuma repetição/semente; comparação binária qualitativa (achou/não achou solução factível) mais contagem de soluções não-dominadas por outer-iteration.",
+      "achado": "Vantagem extrema e qualitativa do surrogate quando o desenho inicial e 100% inviável: SA-MOPSO usa a probabilidade de factibilidade (Eq. 17) sobre as restrições emuladas para explorar rumo a região factível com poucas avaliações reais, enquanto PB-MOPSO (sem surrogate) fica preso na região inviável por dezenas de iterações e nunca converge dentro do orçamento de tempo prático testado (6 dias). E o caso mais extremo do 'assistido vs. piso' no artigo: o piso não apenas perde, ele falha categoricamente.",
+      "aplicabilidade": "não reproduzível com as 7 camadas -- exigiria rodar o próprio SA-MOPSO/PB-MOPSO num problema de aquífero costeiro específico (MODFLOW-6) fora dos 28 problemas da bateria; o padrão qualitativo (piso falha categoricamente sob inviabilidade inicial severa) poderia inspirar uma leitura da (1) avaliações reais e (5) manifesto/status nos problemas restringidos da bateria (RE21, ESTOQUE40) para checar se algum piso da dissertação também falha em achar QUALQUER solução factível."
+    },
+    {
+      "fichas": [
+        47,
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "A Tabela 3 decompõe, para a aplicação real (aquífero costeiro), o tempo médio de execução (forward run) e o tempo de parede paralelizado (100 nucleos HPC) separadamente para o GPR e para o PBM, tanto por iteração interna quanto por iteração externa, comparando SA-MOPSO e PB-MOPSO; o texto complementa com uma extrapolação: rodar PB-MOPSO ate convergência (~100 iterações) levaria 13,94 dias projetados, contra 1,10 dias reais gastos pelo SA-MOPSO -- uma redução de 13x.",
+      "literal": "SA-MOPSO, on the other hand, took 1.10 days—a 13x reduction in computational cost.",
+      "localizador": "Table 3; Sec. 5.2.1",
+      "metricas": [
+        "tempo médio de execução (forward run, minutos) -- GPR vs. PBM",
+        "tempo de parede paralelizado (wall time, minutos, 100 nucleos) -- por iteração interna e por iteração externa",
+        "tempo total do estudo (dias)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tabela de médias simples (sem dispersão/dp); tempo de parede explicitamente distinto do tempo de execução por run (o de parede inclui overhead de rede, tempo variável entre vetores de decisão e reexecuções de falhas); a estimativa de 13,94 dias para PB-MOPSO e uma PROJEÇÃO (não uma medição completa, já que PB-MOPSO nunca convergiu de fato).",
+      "achado": "O GPR e ordens de magnitude mais rápido por avaliação que o PBM (0,033 min vs. 199,67 min de forward run); mesmo somando o tempo de busca interna (iteração interna com GPR: 0,12 min de parede) ao custo das iterações externas (avaliação real via PBM: 286,83 min de parede para SA-MOPSO), o custo total do estudo caiu de ~13,94 dias projetados (PB-MOPSO) para 1,10 dias medidos (SA-MOPSO) -- redução de 13x, citada como estimativa CONSERVADORA (o fator real poderia ser maior, já que PB-MOPSO nem sequer tinha achado solução factível ate então).",
+      "aplicabilidade": "(1) avaliações reais com timestamps e (4) tempos por geração (ajuste do modelo, busca, sonda) da dissertação cobririam diretamente esse tipo de decomposição fit/busca/avaliação, mas para os 15+4 algoritmos do roster/pisos, não para o SA-MOPSO (fora do roster) nem para este problema de aquífero costeiro (fora da bateria de 28 problemas)."
+    },
+    {
+      "fichas": [
+        1,
+        9,
+        43,
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Além do Run A (desenho inicial 100% inviável), um Run B usa uma população inicial 100% viável as restrições simples (100 de 25.200 vetores gerados por LHS); a Tabela 4 compara SA-MOPSO e PB-MOPSO em ambos os runs (no. de avaliações do PBM, no. de chamadas ao GPR, no. de soluções não-dominadas); a Fig. 14 sobrepõe as frentes finais dos runs (SA-MOPSO-A, SA-MOPSO-B, PB-MOPSO-A [sem solução], PB-MOPSO-B). Uma validação adicional reinicia 50 iterações de PB-MOPSO a partir do repositório final (Outer-4) de SA-MOPSO-A para confirmar que a frente obtida e de fato (aproximadamente) a frente de Pareto verdadeira.",
+      "literal": "Overall, SA-MOPSO runs A and B obtained solutions where actual trade-off is present ... which are more critical in decision-making. This conclusively suggests that the solutions have converged and are indeed Pareto optimal.",
+      "localizador": "Sec. 5.2.2, Table 4, Fig. 14",
+      "metricas": [
+        "número de soluções não-dominadas obtidas (Run A: 125 SA-MOPSO / 0 PB-MOPSO; Run B: 61 SA-MOPSO / 5* PB-MOPSO)",
+        "comparação visual das frentes finais entre runs"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Duas execuções nomeadas (Run A, Run B) tratadas como validação cruzada qualitativa, não réplicas estatísticas; nota de rodapé esclarece que as 5 soluções do PB-MOPSO-B 'are not Pareto optimal, but the best thus far'; PB-MOPSO-B rodou ate a iteração 25 (não convergiu).",
+      "achado": "SA-MOPSO-A (500 PBM, 125 ND) e SA-MOPSO-B (400 PBM, 61 ND) obtém frentes finais similares onde o trade-off e mais significativo, apesar de SA-MOPSO-A ter partido de um desenho 100% inviável (1 outer-iteration a mais); PB-MOPSO-A não obtém NENHUMA solução (0), PB-MOPSO-B obtém só 5 soluções 'ate agora' após 400 avaliações, nenhuma delas Pareto-ótima confirmada. A reexecução de PB-MOPSO por 50 iterações a partir do repositório de SA-MOPSO-A não encontra melhorias adicionais relevantes, confirmando que a frente do SA-MOPSO já e (aproximadamente) a verdadeira.",
+      "aplicabilidade": "parcialmente análogo as fichas 1/9 (placar final e delta assistido x piso) e 43 (utilidade do infill, dado que a tabela dá tanto no. de avaliações quanto no. de soluções não-dominadas, permitindo calcular a fração aproveitada), mas não reproduzível com as 7 camadas por não usar IGD+/HV nem 30 sementes, e por ser um problema real fora da bateria de 28; a validação por reinício do PB-MOPSO a partir do repositório do SA-MOPSO não tem análogo direto nas 7 camadas da dissertação."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Interpretação físico-decisória dos projetos ótimos do caso real (segmentos x variáveis de decisão x física do domínio)",
+      "grupo_sugerido": "H",
+      "descricao": "Examina qualitativamente a frente de Pareto final do caso do aquífero costeiro, identificando 3 segmentos (S1-S3) delimitados por 2 pontos de inflexão, e relacionando cada segmento a padrões específicos das variáveis de decisão (quais poços operam a plena capacidade, quanto vem da barreira B2 vs. B1) e a física da intrusão salina (posição da cunha salina, rebaixamento no wetland) -- Figs. 14-15.",
+      "literal": "there are two inflection points in the Pareto front which divides it into three distinct segments ... S2 has the highest consequence in decision-making as this is where the biggest trade-off between the objectives is happening.",
+      "localizador": "Sec. 5.2.3, Figs. 14-15",
+      "metricas": [
+        "nenhuma métrica de otimização -- interpretação física/decisória (contribuição percentual de B2 a injeção total; rebaixamento no wetland; posição do contorno de salinidade 1,0 g/L)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Leitura qualitativa de 3 soluções Pareto-ótimas específicas (uma por segmento), com mapas de concentração/carga hidráulica do MODFLOW-6 sobrepostos (Fig. 15c-e); nenhuma estatística, nenhuma repetição.",
+      "achado": "A barreira B2 (profunda) faz quase todo o trabalho de conter a cunha salina; o padrão prevalente e operar 6 dos 8 poços a plena capacidade e desligar 2, com os 4 poços profundos preferidos por estarem perto de B2; o segmento S2 concentra o trade-off mais relevante para decisão; S3 e limitado pela restrição de rebaixamento (ativa), não pela salinidade.",
+      "aplicabilidade": "não reproduzível -- depende da física específica de um aquífero costeiro (MODFLOW-6, intrusão salina) sem equivalente nos 28 problemas ou nos 3 problemas reais (RE21, ESTOQUE40, DDMOP7) da dissertação; e interpretação de domínio, não um tipo de análise metodológica generalizável a bateria."
+    },
+    {
+      "fichas": [
+        40,
+        41
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Nas primeiras iterações do Run A (desenho inicial concentrado perto de salinidade 0 g/L, incapaz de capturar a sensibilidade real da salinidade a bombagem), o GPR produz posições não-dominadas na nuvem surrogate com salinidade emulada NEGATIVA (fisicamente impossível) -- Fig. 12. O artigo rastreia o que acontece quando esses mesmos infills são avaliados no PBM verdadeiro: muitos passam a ter salinidade não-negativa e permanecem não-dominados (Outer-2), confirmando que a 'crença' inicial do modelo (fantasia) era só um artefato de pouco treino, corrigido pela avaliação real.",
+      "literal": "many of the chosen infill, which have negative salinity values, turned out to have non-negative values when evaluated in the PBM and are actually non-dominated (Outer-2).",
+      "localizador": "Sec. 5.2.1, Figs. 12-13",
+      "metricas": [
+        "comparação qualitativa entre valor emulado (mu do GPR, possivelmente negativo/irrealista) e valor real (PBM) para os pontos de infill escolhidos"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Discussão qualitativa amparada nas Figs. 12 (nuvem/repositório por outer-iteration) e 13 (posições emuladas vs. dataset de treino); sem RMSE numérico entre mu e f real -- só a observação de que valores negativos 'se corrigem' após reavaliação real.",
+      "achado": "O modelo emulado 'acredita' (fantasia) em valores de salinidade negativos -- irreais -- nas primeiras iterações por falta de dados de treino informativos; ao permitir essa exploração (em vez de descartar como inviável), o algoritmo aprende com o erro e, após a avaliação real (PBM), esses mesmos pontos revelam-se de fato não-dominados com salinidade não-negativa; após Outer-3 não há mais soluções não-dominadas com salinidade negativa no repositório -- o gap fantasia-vs-real se fecha com o retreino.",
+      "aplicabilidade": "análogo conceitual as fichas 40/41 (erro de fantasia; fronteira acreditada vs. real) -- comparação mu emulado x f real para os MESMOS pontos escolhidos como infill -- mas não reproduzível com as 7 camadas tal como está: seria a camada (3) predições do surrogate cruzada com (1) avaliação real para os índices dos infills escolhidos, disponível apenas para os 15 algoritmos do roster, não para o SA-MOPSO."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "Não mede calibração/cobertura do sigma do GPR (não há verificação de intervalo de confiança nominal, não há correlação sigma x erro). A única métrica de acurácia do surrogate e a curva de aprendizado l (Eq. 20, Fig. 10f), que mede o erro da MÉDIA emulada (não do sigma) nas posições Pareto-ótimas verdadeiras conhecidas P, a cada outer-iteration, para diferentes valores de beta -- mais próxima da acurácia da média (ficha 31) do que de calibração do sigma (fichas 33/34).",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo médio de execução (forward run, minutos) separado por tipo -- GPR vs. PBM -- e tempo de parede paralelizado (100 nucleos HPC) por iteração interna (só GPR) e por iteração externa (Tabela 3), para SA-MOPSO e PB-MOPSO na aplicação real. Também tempo total do estudo em dias (SA-MOPSO = 1,10 dias; PB-MOPSO projetado a 100 iterações = 13,94 dias -- redução de 13x) e o fato de PB-MOPSO ter rodado 42 iterações reais em 6 dias sem achar solução factível. Não há decomposição de custo nos benchmarks sintéticos (só no. de avaliações do PBM/GPR, Tabela 2), nem complexidade assintótica (O(n^3) etc.) discutida explicitamente.",
+    "literal": "SA-MOPSO, on the other hand, took 1.10 days—a 13x reduction in computational cost.",
+    "localizador": "Table 3; Sec. 5.2.1"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "O RESULTADO NEGATIVO central do artigo (citado no pedido): a função de fitness alternativa para o repositório, baseada em distância esperada (que soma variância como termo aditivo, Eq. 12), enviesa o algoritmo para exploração extrema porque pontos muito incertos parecem 'menos aglomerados' -- e isso literalmente FAZ O ALGORITMO DIVERGIR da frente de Pareto no benchmark ZDT, levando os autores a abandonar essa formulação em favor do critério baseado em probabilidade de dominância (Sec. 3.4.2).",
+      "literal": "employing such a measure of distance in a fitness function biases the algorithm toward extreme exploration as highly uncertain points are deemed less crowded ... Employing this criterion for crowding distance calculations actually results in divergence of the algorithm.",
+      "localizador": "Sec. 3.4.1 (parágrafo final)"
+    },
+    {
+      "descricao": "Caveat sobre o próprio mecanismo VENCEDOR (a função de fitness PD/Ni, Sec. 3.4.2): sem uma 'pseudo-variância' artificial (Eq. 15), o método perde totalmente a eficácia quando as variâncias emuladas ficam muito pequenas (perto da convergência) -- toda posição recebe fitness 1.0 independentemente da aglomeração real, ou seja, o mecanismo baseado em sigma degenera sozinho e precisa de um piso artificial de variância para não falhar.",
+      "literal": "each position in the repository will result in Ni = 0 and therefore have an assigned fitness of 1.0, regardless of the crowding taking place.",
+      "localizador": "Sec. 3.4.2 (antes da introdução da pseudo-variância)"
+    },
+    {
+      "descricao": "Na sensibilidade a beta (limiar de confiança da PPD), valores altos demais (beta=0.80) degradam a eficiência de aprendizado do GPR e produzem 'disinformation': a exploração fica excessiva por confiar demais no modelo ainda pouco treinado, resultando em aprendizado ineficiente -- um caso claro de o USO (excessivo) da incerteza atrapalhando.",
+      "literal": "learning efficiency starts to deteriorate and some disinformation may happen as seen in slight increase of ℓ3 when β = 0.80. This disinformation arises from overshooting the sampling too far from the vicinity of emulated P",
+      "localizador": "Sec. 5.1.2"
+    },
+    {
+      "descricao": "Ainda na sensibilidade a beta, um valor intermediário (beta=0.60) também prejudicou o aprendizado nos estágios iniciais: a PPD 'desinformou levemente' o algoritmo sobre bons candidatos de infill, causando um início lento (embora corrigível com outer-iterations extras) -- evidência de que mesmo dentro da faixa geralmente recomendada, a PPD pode atrapalhar o aprendizado se mal calibrada.",
+      "literal": "β = 0.60 had a slow start for GPR's learning progress as a result of PPD slightly misinforming the algorithm of good infill candidates at the early stages of the optimization.",
+      "localizador": "Sec. 5.1.2"
+    },
+    {
+      "descricao": "Caveat geral (abstract/introdução) sobre o risco estrutural que motiva todo o artigo: a incerteza preditiva do surrogate pode enganar a otimização assistida, ou levando a pouca economia computacional (retreino excessivo) ou a soluções subótimas/inviáveis -- moldura de risco, não um resultado empírico isolado desta bateria de experimentos.",
+      "literal": "surrogate model predictive uncertainty remains a profound challenge for MOO, as it could mislead surrogate-assisted optimization, which may result in either little computational savings from excessive retraining, or lead to suboptimal and/or infeasible solutions.",
+      "localizador": "Abstract"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Ao justificar por que lambda_m deve ser < 0,50 (tolerando alguma violação de restrição emulada em vez de trata-la deterministicamente), os autores reconhecem explicitamente que o MODELO (não o critério/threshold em si) e a fonte de erro/imperfeição que precisa ser acomodada -- um caso do padrão 'o modelo e o limitante, não o critério'.",
+      "literal": "This relaxation is in line with the idea of handling constraints through probability of feasibility ... because we recognize that surrogate model predictions are imperfect.",
+      "localizador": "Sec. 5.2.1"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "descontinuidade da frente e extremidades da frente (ends of the front)",
+      "afirmacao": "Quando a dominância de Pareto determinística e aplicada diretamente as posições emuladas (sem considerar incerteza), o algoritmo produz soluções subótimas ou luta para encontrar soluções nesses segmentos; a abordagem probabilística (PPD) resolve isso.",
+      "literal": "the Pareto dominance criteria are directly applied on the emulated positions resulted in suboptimal solutions ... particularly where there is discontinuity, and at the ends of the front",
+      "localizador": "Sec. 3 (parágrafo de abertura, antes de 3.1)"
+    },
+    {
+      "caracteristica": "problema fortemente restringido (Pareto front com segmentos dominados por restrição)",
+      "afirmacao": "Em OSY (6 restrições emuladas), tratar as restrições de forma próxima ao determinístico (lambda_m=0,50) impede cobrir toda a frente verdadeira; tolerar mais violação emulada (lambda_m menor, ótimo em 0,25) permite alcançar os segmentos da frente dominados por restrição.",
+      "literal": "P after four outer iterations did not fully span the true front, even when continued for a few more iterations",
+      "localizador": "Sec. 5.1.3"
+    },
+    {
+      "caracteristica": "número de objetivos que de fato precisam ser emulados (parte do problema e barata/analítica)",
+      "afirmacao": "No ZDT, só o 2o objetivo precisa ser emulado (o 1o e só uma variável de decisão); isso torna o problema o mais simples dos 3 benchmarks e contribui para a convergência muito rápida do SA-MOPSO nele.",
+      "literal": "The first objective of ZDT is simply the value of one of the decision variables; hence, emulating this objective is unnecessary and only the second objective was emulated.",
+      "localizador": "Sec. 5.1.1"
+    },
+    {
+      "caracteristica": "problema real com região inicial totalmente inviável (restrições apertadas de domínio)",
+      "afirmacao": "No caso do aquífero costeiro, com desenho inicial 100% inviável por LHS, o piso sem surrogate (PB-MOPSO) não encontra NENHUMA solução factível mesmo após 42 iterações (6 dias em HPC), enquanto o SA-MOPSO supera a inviabilidade já na 1a outer-iteration.",
+      "literal": "PB-MOPSO was not able to produce a single feasible solution in 4 iterations ... When continued up to iteration 42, which took 6 days to complete ... PB-MOPSO still failed to find any feasible solution.",
+      "localizador": "Sec. 5.2.1"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Leitura completa: 32 páginas (10.1029/2024WR038554), todas as seções cobertas (1. Introduction; 2. Process-Based MOO; 3. Surrogate-Assisted MOO [3.1-3.6]; 4. Numerical Experiments [4.1-4.2]; 5. Results and Discussion [5.1.1-5.1.3, 5.2.1-5.2.3]; 6. Summary and Conclusions; Apêndices A [funções de benchmark], B [parâmetros do modelo de intrusão salina], C [métricas de hipervolume]; Referencias), verificadas duas vezes (conversão estruturada + camada de texto bruta completa do ANEXO), com conteúdo idêntico entre as duas versões (confirmado por amostragem extensa ao longo de todo o documento, incluindo as 4 tabelas numéricas e a citação-chave da divergência). O ANEXO final de OCR de imagens (~470 linhas) contém só rótulos de eixos/figuras ilegíveis ou fragmentados (mapas do domínio do aquífero, fluxograma do algoritmo), sem conteúdo textual substantivo adicional. Nenhum problema relevante de leitura; a única limitação e externa ao PDF-fonte: o material suplementar (Figs. S1-S35, Table S1) e mencionado repetidamente no texto mas não está incluído neste arquivo, então análises que o artigo diz terem sido feitas la (as duas ablações preliminares de sigma, a sensibilidade de beta/lambda para ZDT e OSY, a comparação de HV) só puderam ser registradas pelo que o corpo principal AFIRMA textualmente, não pelo que os gráficos mostram. Este e um artigo de MÉTODO/ALGORITMO (propõe o SA-MOPSO com PPD), não um estudo de benchmarking comparativo amplo: usa apenas 3 funções analíticas de teste (KUR, ZDT, OSY -- nenhuma das quais e formulada aqui exatamente como nas suites-padrão ZDT/DTLZ/WFG/BBOB da dissertação, embora ZDT seja da mesma família nominal) mais 1 estudo de caso real (gestão de aquífero costeiro com intrusão salina via MODFLOW-6). NÃO há sementes múltiplas nem réplicas independentes em lugar nenhum do artigo -- e o oposto do protocolo de 30 sementes da dissertação: cada configuração (cada função x cada valor de beta/lambda, cada Run A/B) e UMA execução, sem média+-dp, sem IQR, sem teste estatístico algum (busca textual por 'Wilcoxon'/'Friedman'/'IGD'/'p-value' não encontra nenhuma ocorrência). A métrica primária de 'desempenho' e a contagem de soluções não-dominadas obtidas sob um no. fixo de avaliações reais (Tabelas 2 e 4), complementada por comparação visual/qualitativa das frentes; HV e mencionado como comparado em Table S1 do material suplementar (não reproduzida aqui) e RHD/HVI são definidas no Apêndice C mas nunca reportadas com números no corpo principal (usadas só como possíveis critérios de parada, com ressalva explícita de uso cauteloso -- 'these should be used with caution because the numbers may look like convergence has been achieved, but solutions may not be diverse'). O piso comparativo (PB-MOPSO) NÃO e um piso evolutivo de outra família (não e NSGA-II/MOEA-D/NSGA-III/SMS-EMOA): e a MESMA MOPSO do SA-MOPSO, rodando direto sobre o PBM sem GPR algum -- mais parecido com uma ablação total do surrogate (equivalente a rodar 'sem surrogate' o próprio algoritmo) do que com o piso multi-família das fichas 9/10 da dissertação. Achado metodológico mais importante para a taxonomia da dissertação: o artigo relata DUAS ablações internas de como a incerteza e usada, em direções opostas -- (a) dominância determinística sobre a média mu (ignorando sigma) no início do desenvolvimento: PIORA (motiva a criação da PPD -- omitir a incerteza prejudica); (b) crowding distance esperada (usando sigma como termo aditivo, Eq. 12): DIVERGE (motiva o abandono dessa formulação em favor do critério baseado em contagem de vizinhos por probabilidade de dominância, Sec. 3.4.2 -- usar mal a incerteza também prejudica). A frase-gatilho deste pedido ('actually results in divergence of the algorithm') refere-se exatamente a (b) e está registrada em resultados_negativos com literal e localizador exatos (Sec. 3.4.1); (a) NÃO foi classificada em resultados_negativos porque descreve o oposto (ausência de incerteza prejudicando, não o uso dela) -- foi mapeada como ablação (ficha 11) e como caracteristica_x_desempenho (descontinuidade/extremidades). Note-se que a demonstração visual de ambas as ablações está apenas no material suplementar (Figs. S1-S6 e S7, respectivamente); o texto principal afirma o resultado textualmente mas sem números. Uma nuance adicional: mesmo o mecanismo VENCEDOR (a função de fitness PD/Ni, Sec. 3.4.2) usa uma 'pseudo-variância' artificial (Eq. 15) para não degenerar quando sigma->0 perto da convergência -- outro caveat sobre a fragilidade de mecanismos baseados em sigma, também logado em resultados_negativos. Classe de medição de incerteza (eixo da dissertação): VAR-GP (posterior fechada do GPR -- Eqs. 4-5, via pacote R laGP), usada tanto na dominância (PPD, beta) quanto na factibilidade (PF, lambda_m) quanto na fitness/crowding (Ni, gamma/gamma'); e o mesmo sigma-hat reaproveitado em todos os mecanismos do algoritmo. Função da incerteza: A2 (dominância probabilística) e o núcleo do método (PPD = extensão de Khosravi et al., 2021, para GPR). Nenhum dado de RE21/ESTOQUE40/DDMOP7 nem qualquer um dos 28 problemas da bateria aparece neste artigo -- o único problema real e próprio (aquífero costeiro/MODFLOW-6), tratado como estudo de caso narrativo (Sec. 5.2.3), não como parte de uma bateria comparativa. roster_bloco = null por instrução do pedido (artigo fora do roster experimental)."
+}

@@ -1,0 +1,403 @@
+{
+ "config": "c149 (LBN-MOBO, Ansari et al. 2023 · arXiv:2306.01095) · exp=main · campanha M8 30 sementes",
+ "cobertura": "717 células existentes de 750 planejadas (33 ausentes: sementes 18/25/26, truncadas por 3 mortes de máquina — vm4/vm3/vm1 — confirmadas em ~/mestrado_coleta_m8/_analise/autopsia_vmpad.md §1). AUDITEI, em varredura TOTAL (streaming, sem carregar tudo): ⑥ jsonl + ⑤ manifesto + ④ timing + ① real + ② pop das 717/717 = 100% — 193.873 decisões, 193.873 fits (=1.938.730 treinos de rede), 97.658 blocos de sonda, 72.726.856 linhas da ②, 301.260 linhas da ①. A QUERY-JOIA (recomputo de HVI, exige ①+⑥) rodou em AMOSTRA DECLARADA de 75 células / 4.318 gerações cobrindo os 25 problemas e as 30 sementes: 3 sementes por problema pelo rodízio pos=(i·7+k·10) mod 30 sobre a lista ordenada de sementes (i=índice do problema, k=0,1,2), com preenchimento final para garantir que as 30 sementes aparecem — sem correlação problema×semente. A ③ é bucket-only (D54): existe em disco em 16/717 células (2,2%) e foi auditada em 100% dessas 16 (1.635 gerações). As DUPLICATAS cross-máquina: 13/13 pares existentes (vm1×vm5, semente 7), 1.101 gerações comuns. Scripts em /private/tmp/claude-501/-Users-gmello/33c29160-6eb6-4277-a041-db4855486063/scratchpad/c149/ (01_varredura, 02_dup, 03_deriva, 04_identidades, 05_queryjoia, 06_terceira, 07_n3_n5, 08_wape). NENHUMA escrita no repo, nenhuma célula executada, experiments.py/experiment.run NUNCA invocados.",
+ "N1_invariancia": "A query-joia do c149 é a regra FECHADA D41/D96 (HVI-greedy sobre μ, normalizado pelo min/max do arquivo OBSERVADO, ref=1,1 literal no espaço normalizado, HVI=HV(ND∪{c})−HV(ND)). Reconstituí `hvi_escolhido` a partir de ① (arquivo) + ⑥ (mu_sel_nat) em 75 células / 25 problemas / 30 sementes / 4.318 gerações: **4.318/4.318 = 100,0000%**, pior erro absoluto **1,0e-6** = exatamente um dígito da 6ª casa, isto é, o QUANTUM DE ARREDONDAMENTO do log (`_f` em src/c149_lbnmobo.py:1096 faz round(v,6)) — erro real ZERO. Restrito às gerações em que o HVI discrimina (hvi>0): 2.572/2.572. ZERO células com qualquer falha. O refutador (hipótese-B, ref=1,1×nadir do front ND) fecha 2.530/4.318 = 58,59% — REFUTADO de novo, agora em 30 sementes (a T11 refutou a 61,6% em 1 semente). Nas 16 células com ③ fechei também o ARGMAX recomputando o HVI de TODO o front de aquisição: escolhido = argmax em **1.635/1.635**, valor em 1.635/1.635, `n_hvi_pos` ⑥≡recomputo 1.635/1.635, `n_empatados` 1.633/1.635 (as 2 diferenças são contagem exata de empates sob o round-trip float32 da ③). Além disso, as identidades internas da ⑥ fecharam na varredura TOTAL das 717 células: sigma2_agg_sel_z ≡ Σ(std_ensemble_sel/z_std)² **193.873/193.873**; μ_sel em z dentro de [acq_mu_z_min, acq_mu_z_max] **193.873/193.873**; σ²_z(escolhido) ≤ acq_sigma2_z_max **193.873/193.873**; n_hvi_pos=0 ⇒ n_empatados=n_front_acq **54.628/54.628**; caminho=hvi ⇒ n_empatados=1 **138.955/138.955**; f_best monótono **193.156/193.156**; solution_id=fe−1 **193.873/193.873**. NENHUMA semente quebra qualquer identidade. VEREDITO N1: a estrutura fechada em 1 semente pela F5/T11 vale em TODAS as 30, com 24× o volume de evidência.",
+ "N2_tetos_caidos": "A T11 deixou 4 tetos (T1 init de pesos · T3 operadores SBX/PM · T4 DataLoader/Adam · T5 preserve_all_rng) e 6 itens em §9.3 \"o que este corpus NÃO permite verificar\". CAÍRAM 3, todos de §9.3, e nenhum dos 4 T. (1) §9.3-1 — \"a trava anti-colisão B-10 na prática: o smoke roda enable_bucket=False; o caminho 412 nunca foi exercitado com GCS real; só o M8/M9 dirá\". CAIU E FOI MEDIDA: `upload_status.surrogate = \"colidiu_412\"` em 4 células reais do c149 (vm5, semente 7: MMF1, MMF4, MMF11_L, DTLZ1 — 24 eventos artefato-a-artefato, todos os 6 artefatos de cada célula), e a cópia local SOBREVIVEU exatamente como o desenho promete (os 4 parquets ③ estão em ~/mestrado_coleta_m8/matlab-vm5/experiments/main/c149/). Na frota inteira: 46 células com colidiu_412. E o gate_3x1 que eu re-executei nas 16 células com ③ fecha **1.635/1.635 com max|ΔX| = 0,0** — a quimera NÃO se repetiu em 30 sementes. (2) §9.3-2 — \"o checkpoint na escala do c149: validado a 51.000 linhas / 1 evento contra 1.202.000 / 23 reais (23,6×/23×)\". CAIU: 7.666 eventos de checkpoint, `n_linhas_terceira` chegando a 1.202.000 como projetado, custo total **51.894,89 s de 8.402.367,52 s de wall = 0,6176%** — a projeção da T11 era 0,109%, logo **5,67× abaixo do real** (média 6,77 s/evento contra 0,1747 s medido no smoke; a projeção não modelou o crescimento do buffer da ③ dentro da célula). Pior célula 1,4564% (ZDT1/9). O instrumento continua barato e o invariante U7 segue intacto (0 violações em 193.873, i.e. `tempo_checkpoint_s` não contamina `tempo_geracao_s`, BL-11). E ele PAGOU: nas 3 mortes de máquina foi o checkpoint que salvou a célula, com ①②③④⑤ mutuamente coerentes no piso (DTLZ3/18 G=100, ZDT1/7 G=325, ZDT3/7 G=275; `fe_final` do ⑤ ≡ |①| ao dígito nas 3). (3) A30 (⑤ schema v2 + campanha_id + repo_hash) era medida SÓ no smoke; agora é medida em campanha real: `schema_version=2` · `campanha_id=7f4f0e429a46_M8` · `repo_hash=63db46b100635a5cc21e8f5594271f481bc41416` · `algo_version=c149-lbnmobo-1.0` em **717/717**. NÃO CAÍRAM: T1/T3/T4/T5 continuam T pelas mesmas razões (o estado inicial dos pesos e os 100×1.000 indivíduos internos não deixam rastro; não há curva de loss por época; o efeito do preserve_all_rng é nulo por desenho no pymoo 0.6.2). A29 (não-perturbação da sonda) VOLTA AO TETO T neste corpus: as 717 células rodaram com sonda LIGADA, não há par com/sem, e o artefato do par do c149 continua não preservado (pendência P3 da T11). A22 (regra q=10 / D42) fica FORA DE ESCOPO: a campanha de 30 sementes não tem regime batch para o c149 (exp=main em 717/717) — o número 424/424 da T11 permanece o melhor disponível e não foi re-testado.",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "\"LBN-MOBO not only retrieves a superior Pareto front but also ENHANCES THE SURROGATE MODEL THROUGHOUT THE OPTIMIZATION PROCESS, making it closely resemble the NFP\" — a tese de aprendizado ativo do método. Exige réplicas: com 1 execução não se distingue tendência de acaso.",
+   "onde_no_artigo": "§6 CONCLUSION (linha 309); ecoa §4.2 (\"leading to a more informative surrogate model\")",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA, com taxa de exceção medida. Comparei o WAPE da predição do infill (mu_sel_nat da ⑥ contra o f REAL do ponto que virou FE, na ①) na 1ª metade vs 2ª metade de cada célula, nas 717/717: o erro MELHORA em 557/717 = 77,7% das células, Δ mediano global = −0,0689 (−6,9 pontos percentuais de WAPE). PIORA em 160/717 = 22,3%, concentrado em MMF4 (23/30), DTLZ7 (20/27), DTLZ1 (14/30), WFG9 (14/27). WAPE mediano global 0,3077 (faixa 0,0307 em WFG1 a 2,8248 em ZDT4/uma semente). ⚠ NÃO CONTRADIZ a T11 §6.1 (+15,61% de ΔWAPE em q=1): aquela mede o modelo na régua Sobol FIXA de 2.000 pontos (fidelidade GLOBAL, mora na ③ bucket-only, indisponível em 701/717 células); esta mede o modelo NO PONTO QUE ELE ESCOLHEU (fidelidade LOCAL na região de query). São grandezas diferentes e podem andar em sentidos opostos — o modelo concentra-se e piora globalmente enquanto acerta melhor onde consulta. Registro como leitura do autor (D81)."
+  },
+  {
+   "afirmacao": "\"Our method can retrieve a dense Pareto front at each iteration which results in CONVERGENCE IN MINIMAL ITERATIONS\" / \"the immediate convergence of LBN-MOBO to Pareto front\" (ZDT1/ZDT2 30D).",
+   "onde_no_artigo": "§1 Contributions (linha 54); Fig. 12 / §C.1.5 (linha 761)",
+   "testavel_com_30": true,
+   "resultado": "NÃO SE SUSTENTA NO NOSSO ORÇAMENTO, e o padrão é reprodutível entre sementes. Métrica auto-contida declarada (proxy INTERNO, NÃO é o IGD+ do estudo): HV com ref=1,1 no espaço normalizado pelo min/max do arquivo FINAL da própria célula; ganho = (HV_final − HV_só-DoE)/HV_só-DoE; e it90 = nº de infills até 90% do ganho. Nas 717 células: ZDT1 it90 mediano = 312 infills (de 600), ZDT3 = 385,5, WFG9 = 296, WFG5 = 264, WFG4 = 248 — o ganho acumula ATÉ O FIM, não em iterações mínimas. Convergência rápida só em MMF11_L (it90=1), MMF4 (5,5), BBOB_F22 (8), DTLZ1 (17), ZDT4 (18). Ressalva honesta de regime: o artigo roda 11.000 FE com lote 1.000 (11 iterações de 1.000 avaliações); nós rodamos 929 FE com q=1 (929 iterações de 1 avaliação) — 11,8× menos orçamento e um regime de sub-seleção que é NOSSO (D41/D96), não do artigo. A afirmação é sobre ITERAÇÕES do lote grande, e o nosso desenho não a instancia; o que MEDI é que, no orçamento da SPEC, a curva não satura cedo."
+  },
+  {
+   "afirmacao": "\"the SOLE LIMITING FACTOR for executing LBN-MOBO is our parallel processing or experimentation capability when querying the NFP\" — o método pressupõe que a avaliação real domina o custo.",
+   "onde_no_artigo": "§4.2 (linha 196)",
+   "testavel_com_30": true,
+   "resultado": "REFUTADA no nosso banco, agora com o número de campanha inteira (é desencaixe de regime DECLARADO, não infidelidade). Somando `timing.tempo_aval_real_s` dos 717 manifestos: 104,3389 s de avaliação real em 8.402.367,52 s de wall = **0,001242%** — ainda mais extremo que os 0,00219% que a T11 mediu na s42. Decomposição do wall: fit 74,80% · busca (NSGA-II da aquisição) 24,10% · checkpoint 0,6176% · sonda 0,0336% · avaliação real 0,001242%. O surrogate custa ~80.500× o que ele existe para poupar. Confirma A32 em escala 24× maior."
+  },
+  {
+   "afirmacao": "Ensemble com \"a DIVERSE COLLECTION OF ACTIVATION FUNCTIONS, to enhance the precision of epistemic uncertainty quantification\" — §D.1 fixa Tanh×2, ReLU×2, CELU×2, LeakyReLU×2, ELU, Hardswish. Só réplicas separam sinal de ruído no perfil de erro por rede.",
+   "onde_no_artigo": "§D.1 IMPLEMENTATION DETAILS / DEEP ENSEMBLES (linha 970)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA e RECONSTRUÍDA DO DADO, com 24× a evidência da T11. Rank médio do `val_mse` por índice de rede sobre 193.873 fits = 1.938.730 treinos: net0 7,1748 · net1 6,7441 · net2 4,7242 · net3 4,0094 · net4 4,7228 · net5 4,9842 · net6 7,1817 · net7 6,7467 · net8 4,7230 · net9 3,9891. σ(ranks)=1,2375. Os pares (i, i+6) da convenção da RAIZ colam: tanh |Δ|=0,0070 · ReLU 0,0026 · CELU 0,0012 · LeakyReLU 0,0204. ACHADO NOVO que a T11 não tinha: como CELU(α=1) ≡ ELU(α=1) MATEMATICAMENTE, net2/net8 (CELU) e net4 (ELU) deveriam formar um TRIPLETO — e formam, coincidindo a 0,0014 (4,7242/4,7230/4,7228). Agrupando por ATIVAÇÃO: spread INTRA-ativação máximo 0,0204 contra menor gap ENTRE ativações 0,2608 — razão 12,8×. Ordem estável: LeakyReLU 4,00 < CELU/ELU 4,72 < Hardswish 4,98 < ReLU 6,75 < tanh 7,18. Por problema a estrutura separa em 16/25; os 9 que não separam são os de poucos fits (MMF1/MMF11_L/MMF4: 1.200 fits cada) e os degenerados — é POTÊNCIA amostral, não contradição (a mesma limitação que a T11 registrou no smoke a 40 fits)."
+  },
+  {
+   "afirmacao": "\"including aleatoric information can make LBN-MOBO UNSTABLE\" ⇒ removê-la \"enhances STABILITY and simplicity in the training stage\" — o método é declarado estável no treino.",
+   "onde_no_artigo": "§4.1 (linha 170) e §E.1 (linha 1026)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA no eixo TREINO, PARCIAL no eixo RESULTADO. Treino: em 193.873 fits (1.938.730 treinos) NÃO houve um único evento de instabilidade — `n_clamp_sigma2` = 0 em 717/717 (nenhum σ² negativo residual), `cache_hits` = 0, `fallback_ativado` = False em 717/717, `n_retries` = 0 em 717/717, zero NaN, zero divergência. Resultado: a estabilidade ENTRE SEMENTES é forte onde o artigo olhou e fraca onde ele não olhou. CV do ganho sobre o DoE entre as ~30 sementes: ZDT1 0,043 (ganho 0,2897–0,3425 em 27 sementes) · ZDT3 0,158 · WFG5 0,146 · MMF16_20 0,210 · DTLZ3 0,269 · DTLZ1 0,295 — famílias ZDT/DTLZ/WFG estáveis; contra BBOB_F22 1,467 · WFG4 0,840 · ZDT4 0,544 e BBOB_F55 BIMODAL (17/29 sementes com ganho ZERO, 1 semente com 1,1028). CV do WAPE: <0,10 em 9 problemas, >0,40 em ZDT4 (1,158), BBOB_F22 (0,756), DTLZ3 (0,469), DTLZ1 (0,451). \"O método é estável\" é verdade nas famílias que o artigo testou (ZDT/DTLZ) e falso nas BBOB, que ele nunca testou."
+  },
+  {
+   "afirmacao": "A qualidade da incerteza epistêmica do Deep Ensemble é o motor da exploração: \"samples chosen partially or entirely due to their HIGH UNCERTAINTY\"; e o artigo reconhece que estimar incerteza é \"a fundamental limitation of Bayesian neural networks\".",
+   "onde_no_artigo": "§4.2 (inset, linha 196) e §4.1 (linha 170)",
+   "testavel_com_30": true,
+   "resultado": "MEDIDA, e a limitação que o próprio artigo antecipa é REPRODUTÍVEL EM 30/30 SEMENTES. Nas 193.873 decisões, o caminho de seleção foi: `hvi` 138.955 (71,67%) · `desempate_sigma` 52.564 (27,11%, escolha puramente por σ² agregada em z) · `fallback_aleatorio` 2.354 (1,21%, sorteio entre empatados). Ou seja, 28,3% das decisões NÃO são governadas pelo ganho de hipervolume — são governadas pela incerteza ou pelo acaso, exatamente o mecanismo que o artigo descreve. E o colapso é ESTRUTURAL POR PROBLEMA, não por semente: em MMF1 o HVI é ≡ 0 em **1.200/1.200 gerações de 30/30 sementes** (zero decisões pelo caminho `hvi`; 832 fallback + 368 desempate_sigma); em BBOB_F55, HVI>0 em 0/5.800 gerações de 29/29 sementes. Isto é o \"modo (I)\" que a F5 §6.2 isolou na s42 — colapso do HVI ⇒ σ²-máx ⇒ vértices do hipercubo — REPRODUZIDO em todas as sementes. É um RESULTADO do método no nosso regime, não um bug: uma incapacidade determinística."
+  },
+  {
+   "afirmacao": "\"ParetoFront(F(x), S) returns the SET OF S PARETO-EFFICIENT SOLUTIONS\" — o tamanho do front rank-0 devolvido pelo NSGA-II da aquisição.",
+   "onde_no_artigo": "§4.2 (linha 196)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA e a TAXA é invariante à semente. |front| = 1000 (a pop inteira) em 193.739/193.873 = **99,9309%**; |front| < 1000 em apenas **134/193.873 = 0,0691%**, mínimo global 1. A T11 mediu 5/8.020 = 0,0623% na s42 — a taxa é a MESMA a menos de ruído. E a concentração é causal, não aleatória: 85 das 134 estão em BBOB_F55, 22 em MMF4, 12 em MMF1 — exatamente as células de μ quase-constante em que o NSGA-II converge e a diversidade em 2M colapsa. Confirma a armadilha 7 da T11 (um gate que exija 1.000 linhas por geração reprova 134 gerações FIÉIS)."
+  }
+ ],
+ "N4_deriva": "DERIVA MEDIDA = **EXATAMENTE ZERO (bit-idêntica)**. Existem 13 pares duplicados no c149, todos da semente 7, todos vm1×vm5 (mapa completo em dup_map.csv; nenhuma outra célula do c149 tem cópia em 2 VMs). São execuções GENUINAMENTE INDEPENDENTES: header `ambiente.host` = vm1 vs vm5, timestamps distintos (ex.: ZDT4 04:46:06 UTC em vm1 contra 22:34:58 UTC em vm5), walls distintos, e a cópia de vm5 é truncada (a máquina foi interrompida) — não é um arquivo copiado. Sobre 1.101 gerações comuns e 2.010 pontos avaliados: `seed_nsga2` idêntico 1.101/1.101 · `solution_id` escolhido idêntico 1.101/1.101 · `caminho` (hvi/desempate/fallback) idêntico 1.101/1.101 · `val_mse` (10 redes × 1.104 fits = 11.040 floats) **BIT-IDÊNTICO, erro relativo máximo 0,0** · `z_mean`/`z_std` bit-idênticos 1.104/1.104 · `mu_sel_nat` bit-idêntico 1.101/1.101 · `hvi_escolhido` diferença relativa máxima 0,0 · ① X **bit-idêntico em 13/13 células, max|ΔX| = 0,0** · ① F max|ΔF| = 0,0. CONSEQUÊNCIA PARA A DOUTRINA: o RUNBOOK §6.2 (\"floats NÃO são bit-idênticos entre plataformas ⇒ a fidelidade é ESTATÍSTICA por semente\") é CONSERVADOR DEMAIS para o c149. ESCOPO EXATO DO QUE MEDI (não extrapole): duas VMs do mesmo shape family em Linux/x86_64, mesmo stack pinado (python 3.11.9, numpy 2.4.6, torch 2.11.0+cu130, pymoo 0.6.2, OMP/OPENBLAS/MKL/NUMEXPR_NUM_THREADS=1, torch_num_threads=1, device cpu). NÃO medi deriva cross-ARQUITETURA (o caso arm64/Mac da quimera A26 da T11 é outro problema). Dentro desse escopo o piso de ruído é 0 e QUALQUER diferença entre células é sinal, não ruído — o que ENDURECE a leitura de todo contraste do c149.",
+ "N5_cauda": "TAXA DE SUCESSO: 688 ok / 26 ⚪ / 3 fail em 717 existentes; 33 ausentes de 750 planejadas. 688/750 = 91,73%; 688/717 = 95,96%. (a) AS 26 ⚪ NÃO SÃO DO ALGORITMO — são teto de PAREDE, e são um resultado sobre o CUSTO do método, não sobre sua capacidade. Todas em ZDT1 (12/27) e ZDT3 (14/27), os únicos dois problemas D=30 do grid (maxfe=929, n_init=329); todas com `motivo_parada=teto_wall`, `status` do manifesto `failed` e **rodapé do .jsonl `ok`** (regra O-21 aplicada: ⚪, não falha); todas pararam entre 12,002 h e 12,057 h de wall. fe_final 795–927 de 929. ORÇAMENTO DE FE COMUM para análise de ZDT1+ZDT3 no c149: **795 FE** (mínimo sobre as 54 células com rodapé ok) — ou reportar o ponto de truncamento célula a célula (a matriz está em varredura_c149.csv). A causa é o preço do config: 2.334,0 h-core em 717 células (projeção 2.441,4 h-core para 750 — 14,6% acima da projeção de 2.130 h-core da T11), 74,80% do wall em fit. ⚠ E o truncamento MORDE onde mais importa: ZDT1 e ZDT3 são justamente os problemas em que o it90 é 312 e 385,5 infills — o método ainda estava ganhando quando o relógio o cortou; qualquer leitura de desempenho do c149 em ZDT1/ZDT3 mede um método CENSURADO. (b) AS 3 FAIL NÃO SÃO DO ALGORITMO — são morte de máquina (O-22): DTLZ3/18 (vm4), ZDT1/7 (vm1), ZDT3/7 (vm1), as três com `motivo_parada=checkpoint_em_andamento` e SEM RODAPÉ, batendo com os eventos por VM catalogados na autopsia da torre (vm1 semente 7, vm4 semente 18). Nelas o checkpoint DI-43 fez exatamente o que prometeu: ①②③④⑤ coerentes no PISO (G=100/325/275; `fe_final` do ⑤ ≡ |①| ao dígito), com a ⑥ append-only 15/11/22 gerações à frente — comportamento DECLARADO (\"fe_final é PISO das camadas\"), mas armadilha de análise: quem cruzar ⑥ com ① nessas 3 células precisa truncar no piso. (c) AS 33 AUSENTES são o rabo da coleta, não do algoritmo: sementes 26 (14 células), 18 (10) e 25 (9), os três lotes interrompidos. (d) O QUE A CAUDA DIZ DO ALGORITMO — e isto o artigo não previu: a incapacidade real do c149 não é crashar, é NÃO SAIR DO DoE. Pelo proxy interno de HV, **188/717 células (26,2%) terminam com ZERO contribuição dos infills ao front ND final** — nenhum dos 929/309/61 pontos comprados pelo BO entra no front. E é DETERMINÍSTICO POR PROBLEMA, reproduzido em todas as sementes: BBOB_F5 30/30, BBOB_F37 30/30, MMF1 30/30, BBOB_F1 29/29 (100%); BBOB_F49 27/29 (93%); e ESTOCÁSTICO em BBOB_F17 18/30 (60%), BBOB_F55 17/29 (59%), BBOB_F22 5/29 (17%), WFG4 2/27 (7%); ZERO nos outros 16 problemas. O mecanismo do ganho-zero está medido no mesmo dado: em MMF1 o HVI é ≡0 em 1.200/1.200 gerações de 30/30 sementes e a seleção é 69,3% sorteio + 30,7% σ²-máximo. Uma incapacidade determinística reproduzida em 30/30 é RESULTADO, e este merece entrar no veredito do config: o c149 é fiel ao artigo e, no regime da SPEC, inerte em 4 dos 25 problemas.",
+ "aspectos": [
+  {
+   "id": "A01",
+   "aspecto": "Orçamento FE 31D−1 + hard-stop",
+   "classe": "2",
+   "medicao": "maxfe == 31D−1 em 717/717; fe_final == maxfe em 688/688 células ok; overshoot (fe>maxfe) em 0/717",
+   "veredito": "conforme (desvio sancionado D21/D61/D66)",
+   "arquivo_linha": "src/budget.py (FEBudget) · manifest.maxfe/fe_final",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A02",
+   "aspecto": "DoE LHS-maximin 11D−1 do artefato",
+   "classe": "2",
+   "medicao": "n_init == 11D−1 em 717/717; doe_hash ÚNICO em 717/717 (nenhuma reutilização de DoE entre sementes)",
+   "veredito": "conforme (D63/D87/D88)",
+   "arquivo_linha": "src/doe.py · header.doe_hash",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A03",
+   "aspecto": "1 fit por iteração; treino = arquivo INTEIRO (sem cap)",
+   "classe": "1",
+   "medicao": "n_treino == n_init + (g−1) em 193.873/193.873 fits, 717/717 células",
+   "veredito": "conforme",
+   "arquivo_linha": "src/c149_lbnmobo.py:756",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A04",
+   "aspecto": "Sonda k=2 (g=1,2,4,6,…) + artefato fixo de 2.000 pontos",
+   "classe": "2",
+   "medicao": "97.658 blocos; n_pontos=2000 em 717/717; sonda presente em g=1 em 717/717; UM único par (sonda_x_hash, sonda_f_hash) em 717/717 células",
+   "veredito": "conforme (DI-12.5/DI-21)",
+   "arquivo_linha": "src/c149_lbnmobo.py:771",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A05",
+   "aspecto": "U7 — fit + busca ≤ tempo_geracao (sonda e checkpoint fora)",
+   "classe": "1",
+   "medicao": "0 violações em 193.873 gerações, 0 células com violação (717/717)",
+   "veredito": "conforme",
+   "arquivo_linha": "④ timing.parquet · src/c149_lbnmobo.py:893",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A06",
+   "aspecto": "U8 — fe_treino_max = n_treino−1, monotônico",
+   "classe": "1",
+   "medicao": "193.873/193.873; monotonicidade em 717/717",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A07",
+   "aspecto": "U9 — guards ⑥≡⑤ (cache, clamp de σ², fallback, retries)",
+   "classe": "1",
+   "medicao": "cache_hits = 0 · n_clamp_sigma2 = 0 · fallback_ativado = False · n_retries = 0, em 717/717 e 193.873/193.873 decisões",
+   "veredito": "conforme; a rota de cache-hit (D89) NUNCA disparou em 30 sementes",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A08",
+   "aspecto": "U10 — aritmética entre camadas |②| = Σ_g(11D−1+q·g), |①| = 11D−1+G",
+   "classe": "1",
+   "medicao": "714/717 exatos (72.726.856 linhas da ②, 301.260 da ①); os 3 desvios são as 3 mortes de máquina, em que ①②③④⑤ são coerentes no piso do checkpoint e só a ⑥ (append-only) avança — comportamento DECLARADO em DI-43",
+   "veredito": "conforme; os 3 desvios são classe (2) DI-43, não defeito",
+   "arquivo_linha": "src/checkpoint.py:_manifesto_parcial",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A09",
+   "aspecto": "U11 — erro de fantasia do infill (μ predito vs f real)",
+   "classe": "1",
+   "medicao": "WAPE mediano 0,3077 em 717/717 células (faixa 0,0307 WFG1 – 2,8248 ZDT4); melhora da 1ª p/ 2ª metade em 557/717 = 77,7%, Δ mediano −0,0689",
+   "veredito": "conforme; e é a evidência da afirmação de aprendizado ativo do artigo",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A10",
+   "aspecto": "Deep ensemble K=10 (Eq. 1–2)",
+   "classe": "1",
+   "medicao": "10 val_mse em 193.873/193.873 fits (1.938.730 treinos de rede)",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A11",
+   "aspecto": "Arquitetura D→100→50→100→M, Adam lr0=5e-4 ×0,95/época, sum_mse, batch 10, 60 épocas",
+   "classe": "1",
+   "medicao": "epocas = 60 em 193.873/193.873; arch/lr0/lr_decay/batch ecoados em 717/717 manifestos; declarativa com corroboração no custo por rede/época",
+   "veredito": "conforme (marca declarativa visível)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A12",
+   "aspecto": "Ativações DIVERSAS na convenção da RAIZ (§D.1)",
+   "classe": "1",
+   "medicao": "1.938.730 treinos: spread INTRA-ativação máx 0,0204 vs menor gap ENTRE ativações 0,2608 (razão 12,8×); σ(ranks)=1,2375; TRIPLETO CELU/ELU (matematicamente equivalentes) coincide a 0,0014; separa por problema em 16/25 (os 9 restantes são de baixa contagem de fits — potência, não contradição)",
+   "veredito": "conforme; indireta FORTE — a convenção da RAIZ é reconstruída do dado, agora com 24× a evidência da T11",
+   "arquivo_linha": "src/c149_lbnmobo.py:615-616",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A13",
+   "aspecto": "Split 90/10 + semente por rede 1000·s + net_n + 1",
+   "classe": "2",
+   "medicao": "n_train == int(0,9·n) e n_val == n − int(0,9·n) em 193.873/193.873 (regra EXATA de Forward_BNN.py:56 conferida no código, não por tolerância)",
+   "veredito": "conforme (D22/A6)",
+   "arquivo_linha": "src/c149_lbnmobo.py:257-260",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A14",
+   "aspecto": "σ² epistêmica = variância POPULACIONAL (ddof=0) ENTRE as K=10 redes (Eq. 2b)",
+   "classe": "1",
+   "medicao": "identidade sigma2_agg_sel_z ≡ Σ_j (std_ensemble_sel_j / z_std_j)² fecha 193.873/193.873 em 717/717 (pior erro absoluto 8,66e-4 sobre valores de ordem 5e2 ⇒ 1,7e-6 relativo = arredondamento a 6 casas do log)",
+   "veredito": "conforme",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A15",
+   "aspecto": "Aquisição 2MD F = [μ ⊕ −σ²] (Eq. 3), front reconstituível da ③",
+   "classe": "1",
+   "medicao": "nas 16 células com ③: acq_resF_mu_z_min/max e acq_resF_sigma2_z_max reconstituídos do front, 1.635/1.635 em erro RELATIVO ≤1,6e-6 (o pior caso absoluto, 8,36e-4 sobre 542,28 em ZDT3/7 g=38, é o export float32 da ③ — D53); nas 717: μ_sel dentro do range do front 193.873/193.873 e σ²_sel ≤ σ²_max do front 193.873/193.873",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A16",
+   "aspecto": "NSGA-II interno pop 1000 × 100 ger., SBX 0,9/15, PM 0,9/20 com prob_var default do pymoo",
+   "classe": "1",
+   "medicao": "ecoado em 717/717 manifestos; DI-23 (prob_var = min(0,5, 1/D), não 1/30 hard-coded) confirmada nos 7 valores de D",
+   "veredito": "conforme (declarativa)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A17",
+   "aspecto": "res.X = front rank-0 da população final (≤ pop, não fixo)",
+   "classe": "1",
+   "medicao": "|front| < 1000 em 134/193.873 = 0,0691% (mín 1); a s42 dava 5/8.020 = 0,0623% — MESMA taxa. Concentração causal: BBOB_F55 85, MMF4 22, MMF1 12",
+   "veredito": "conforme; a errata da T11 (5 e não 33) confirma-se em taxa nas 30 sementes",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A18",
+   "aspecto": "z-score de Y por objetivo, refeito por iteração (extensão 🟢 nossa)",
+   "classe": "2",
+   "medicao": "transf_params da ③ ≡ z_mean/z_std da ⑥ em 1.635/1.635 gerações (16 células), atol 5e-7",
+   "veredito": "conforme (B13.4/D30 — extensão DECLARADA)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A19",
+   "aspecto": "fix [:, :2] → [:, :M] (🔴 bug do autor ⇒ vai para o ARTIGO)",
+   "classe": "1",
+   "medicao": "mu_sel_nat com 3 componentes em 173/173 células M=3 (DTLZ1/2/3/4/7, MMF16_20) e 2 em 544/544 células M=2 — a truncagem em M=2 não ocorre em nenhuma das 717",
+   "veredito": "conforme via D30 (🔴 → artigo)",
+   "arquivo_linha": "params.fix_M no ⑤",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A20",
+   "aspecto": "QUERY-JOIA — regra q=1 = HVI-greedy(μ) D96 FECHADA (ref=1,1 literal no espaço normalizado pelo arquivo observado)",
+   "classe": "2",
+   "medicao": "4.318/4.318 = 100,0000% em 75 células / 25 problemas / 30 sementes (pior erro 1,0e-6 = quantum de arredondamento); ARGMAX sobre o front inteiro 1.635/1.635 nas 16 com ③; n_hvi_pos ⑥≡recomputo 1.635/1.635; refutador hipótese-B (1,1×nadir do ND) 58,59%",
+   "veredito": "conforme (D41/D96 — regra NOSSA, declarada). A identidade é INVARIANTE À SEMENTE",
+   "arquivo_linha": "src/c149_lbnmobo.py:359-416",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A21",
+   "aspecto": "Desempate por σ² agregada EM Z + fallback aleatório-do-front (RNG do harness, uso 2)",
+   "classe": "2",
+   "medicao": "caminho=hvi ⇒ n_empatados=1 em 138.955/138.955; n_hvi_pos=0 ⇒ n_empatados=n_front_acq em 54.628/54.628; distribuição em 193.873 decisões: hvi 71,67% · desempate_sigma 27,11% · fallback_aleatorio 1,21%; 0 caminhos fora do vocabulário",
+   "veredito": "conforme (DI-25.2/D91)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A22",
+   "aspecto": "Regra q=10 = HVI-greedy sequencial sem reposição (D42)",
+   "classe": "T",
+   "medicao": "SEM CORPUS: a campanha de 30 sementes não tem regime batch para o c149 (exp=main em 717/717 células). O 424/424 da T11 (s42) permanece o melhor número disponível e NÃO foi re-testado",
+   "veredito": "teto por ausência de corpus — não medido nesta rodada",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A23",
+   "aspecto": "Retreino DO ZERO, K×60 épocas por iteração (sem warm-start)",
+   "classe": "1",
+   "medicao": "epocas = 60 em 193.873/193.873; tempo_fit_s cresce monotonicamente com n em 717/717 (fit_series do ⑤)",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A24",
+   "aspecto": "Sementes internas por iteração — SeedSequence((1000·s, 12, g, 1)) & 0xFFFFFFFF (D22/D62/D91)",
+   "classe": "2",
+   "medicao": "seed_nsga2 recomputado e comparado BIT-A-BIT: 193.873/193.873 em 717/717 células e nas 30 sementes. ZERO divergências. A T11 tinha 8.020/8.020 numa semente",
+   "veredito": "conforme (D22/D62/D91) — a fórmula de semeadura é a peça mais bem provada do config",
+   "arquivo_linha": "src/standalone_harness.py:492-506",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A25",
+   "aspecto": "Guards do harness + integração in-memory (D78/D89)",
+   "classe": "2",
+   "medicao": "instaladas e NUNCA disparadas em 717/717 (0 guard de split_quebrado, 0 sigma2_negativa_float32, 0 cache travado)",
+   "veredito": "conforme (DI-21/D78/D89)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A27",
+   "aspecto": "Escalabilidade M.11 (α do custo de fit vs n)",
+   "classe": "T",
+   "medicao": "não re-medido: exigiria refazer o ajuste por célula e não é o que 30 sementes acrescentam; o α=0,956 da T11 permanece",
+   "veredito": "teto declarado — fora do denominador",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A28",
+   "aspecto": "Checkpoint atômico periódico DI-43/DI-44 — custo e eficácia NA ESCALA REAL",
+   "classe": "2",
+   "medicao": "7.666 eventos; 51.894,89 s de 8.402.367,52 s de wall = 0,6176% (média 6,77 s/evento; pior célula 1,4564%; n_linhas_terceira até 1.202.000). A T11 projetou 0,109% ⇒ o real é 5,67× a projeção. U7 intacto (0/193.873) ⇒ não contamina tempo_geracao_s. Salvou 3 células de perda TOTAL com ①②③④⑤ coerentes no piso",
+   "veredito": "conforme (DI-43/DI-44). O instrumento funciona e continua barato; o NÚMERO da projeção da T11 fica corrigido — ela não modelou o crescimento do buffer da ③ dentro da célula",
+   "arquivo_linha": "src/c149_lbnmobo.py:604,886 · src/checkpoint.py:105-131",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A29",
+   "aspecto": "Não-perturbação da sonda (flag sonda_on, G-6)",
+   "classe": "T",
+   "medicao": "VOLTA AO TETO neste corpus: as 717 células rodaram com sonda LIGADA; não há par com/sem sonda, e o artefato do par do c149 continua não preservado (pendência P3 da T11). Só o veredito registrado 38b5584b existe",
+   "veredito": "teto declarado — não verificável com este corpus",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A30",
+   "aspecto": "⑤ schema v2 + campanha_id + repo_hash (B-03/G-3/G-7)",
+   "classe": "2",
+   "medicao": "schema_version = 2 · campanha_id = 7f4f0e429a46_M8 · repo_hash = 63db46b100635a5cc21e8f5594271f481bc41416 · algo_version = c149-lbnmobo-1.0, em 717/717 (algo_version em 714/717 — as 3 ausências são os manifestos parciais de checkpoint). A T11 só tinha isto no smoke",
+   "veredito": "conforme (B-03/G-3/G-7) — agora medido em campanha real, campanha única, HEAD único",
+   "arquivo_linha": "src/manifest.py:219-236",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A31",
+   "aspecto": "Trava estrutural anti-colisão de blob (B-10, if_generation_match=0) + gate_3x1",
+   "classe": "2",
+   "medicao": "A TRAVA DISPAROU EM DADO REAL: colidiu_412 em 4 células do c149 (vm5, semente 7: MMF1, MMF4, MMF11_L, DTLZ1), 24 eventos artefato-a-artefato, e a cópia LOCAL da ③ sobreviveu nas 4 (é a promessa do desenho). Frota inteira: 46 células. gate_3x1 re-executado por mim nas 16 células com ③: 1.635/1.635, max|ΔX| = 0,0 ⇒ ZERO quimeras em 30 sementes",
+   "veredito": "conforme (B-10/D58) — o teto §9.3-1 da T11 CAIU com dado medido. ⚠ mas ver A34: a cobertura do gate caiu para 2,2%",
+   "arquivo_linha": "src/gcs.py:151-236 · scripts/gates_proveniencia.py:89-149",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A32",
+   "aspecto": "O oráculo é GRATUITO no nosso banco (desencaixe de regime declarado)",
+   "classe": "2",
+   "medicao": "tempo_aval_real_s somado nos 717 manifestos = 104,3389 s de 8.402.367,52 s de wall = 0,001242%. Decomposição: fit 74,80% · busca 24,10% · checkpoint 0,6176% · sonda 0,0336% · avaliação 0,001242%",
+   "veredito": "conforme — consequência sancionada da escolha de banco (§4) + orçamento (D21/D61)",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A33",
+   "aspecto": "NOVO — Determinismo cross-máquina (a prova que 1 semente não podia dar)",
+   "classe": "1",
+   "medicao": "13 pares vm1×vm5, 1.101 gerações comuns, 2.010 pontos avaliados: seed_nsga2, solution_id, caminho, val_mse (11.040 floats), z_mean/z_std, mu_sel_nat, hvi_escolhido, ① X e ① F TODOS bit-idênticos. Deriva = 0,0",
+   "veredito": "conforme — o c149 é bit-determinístico dada a semente, dentro do escopo Linux/x86_64 com stack pinado",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A34",
+   "aspecto": "NOVO — a ③ de 210 células (29,3%) tem status de upload DESTRUÍDO por um except genérico, e a ③ é bucket-only",
+   "classe": "3",
+   "medicao": "210/717 células (vm2 73, vm10 73, vm4 64) têm upload_status = {\"erro\": \"upload_failed: Forbidden 403 … does not have storage.objects.delete access\"} — um ÚNICO campo, sem status por artefato. 214/717 têm alguma chave de erro; 217/717 não têm a chave 'surrogate'. A ③ dessas células NÃO está em disco (nem no canônico nem no staging das VMs) e não pude verificar o bucket",
+   "veredito": "INEXPLICADO 🎯 — ESCALADO (D81)",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A35",
+   "aspecto": "NOVO — 9 células canônicas da semente 7 carregam ③ TRUNCADA vinda de uma SEGUNDA execução, sem flag",
+   "classe": "3",
+   "medicao": "①②④⑥ vêm da vm1 e a ③ vem da re-execução PARCIAL da vm5 (o consolidador escolheu por camada). Cobertura da ③: BBOB_F1 100/200 ger. · BBOB_F17 100/200 · BBOB_F22/F37/F49/F5/F55 75/200 · ZDT4 50/200 · ZDT6 50/200 (as outras 4 — DTLZ1, MMF1, MMF11_L, MMF4 — têm ③ COMPLETA). NÃO é quimera: gate_3x1 1.635/1.635 com max|ΔX|=0 e A33 prova bit-identidade entre as duas execuções",
+   "veredito": "INEXPLICADO 🎯 quanto ao CONTRATO (nada na célula declara a truncagem); benigno quanto à FIDELIDADE (provado)",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "T1",
+   "aspecto": "Init de pesos N(0, 1e-3²) / bias 0",
+   "classe": "T",
+   "medicao": "só eco no ⑤ (717/717); o estado inicial dos pesos não sobrevive ao run",
+   "veredito": "teto declarado — 30 sementes não mudam nada",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "T3",
+   "aspecto": "Operadores SBX/PM ao longo das 100 gerações internas do NSGA-II",
+   "classe": "T",
+   "medicao": "só res.X é gravado; 100 ger. × 1.000 indivíduos não deixam rastro em nenhuma das 193.873 gerações",
+   "veredito": "teto declarado",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "T4",
+   "aspecto": "Ordem do DataLoader (sem shuffle) e nº real de passos de Adam",
+   "classe": "T",
+   "medicao": "epocas/batch/n_train/n_val são eco; não há curva de loss por época em nenhuma das 193.873 fits",
+   "veredito": "teto declarado",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "T5",
+   "aspecto": "preserve_all_rng() / guarded_pymoo_minimize()",
+   "classe": "T",
+   "medicao": "efeito nulo por desenho no pymoo 0.6.2 (E-02/DI-16.10); as sementes vêm de fórmula, não de fluxo, o que torna a guarda indetectável pelo log",
+   "veredito": "teto declarado",
+   "muda_vs_s42": false
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C3-1",
+   "descricao": "A ③ de 210/717 células (29,3%) está em estado de existência NÃO VERIFICÁVEL, e o instrumento que deveria dizer onde ela está foi apagado por um except genérico. MEDIDO: 210 células (vm2 73, vm10 73, vm4 64) têm upload_status contendo APENAS a chave 'erro' com Forbidden 403 ('…does not have storage.objects.delete access…'), emitida por três service accounts distintas (541145963381-, 894264959151-, 997970619490-compute@developer). O c149 é bucket-only (D54): a ③ dessas células não está no canônico nem no staging das VMs. DEDUZIDO DO CÓDIGO (não medido): em gcs.mirror_run a poda local (os.remove) só roda DEPOIS de um upload confirmado por md5 (verificar=podar, D58) e a ordem do plano é real→pop→surrogate→timing→jsonl→manifest; como a ③ local sumiu, o upload dela terá sido bem-sucedido e verificado, e o 403 terá caído num artefato POSTERIOR — o que implicaria a ③ no bucket. Mas isso é inferência: standalone_harness.py:1446 faz `status = {\"erro\": f\"upload_failed: {e!r}\"}`, SUBSTITUINDO o dicionário por-artefato inteiro e destruindo as 6 verdades que ele carregava. É a família de defeito que a T11 nomeou como achado transversal ('campo verde, dado sentinela') na sua forma inversa: um campo de erro que apaga o registro. CONSEQUÊNCIA DE 2ª ORDEM, esta sim medida: a cobertura do gate_3x1 — o ÚNICO detector de quimera do c149, instalado por recomendação da própria F5 — caiu de 30/30 células na s42 para 16/717 = 2,2% nesta campanha. TRANSVERSAL: o mesmo 403 atinge os 5 configs bucket-only — c149 214/717 (29,8%), c122 220/738 (29,8%), c154 149/638 (23,4%), c262 194/687 (28,2%), e81 217/725 (29,9%) — ~994 células. Bússola D29: NÃO dispara (não toca o artigo, nem o código do autor, nem o surrogate) — é persistência, como a A26 da T11.",
+   "gravidade": "alta para o CONTRATO (29,3% da camada mais volumosa em estado indeterminado + gate anti-quimera cego em 97,8%); NULA para a FIDELIDADE do mecanismo",
+   "acao": "ESCALAR AO AUTOR (D81), 2 ações: (a) LISTAR o bucket (gsutil ls -l gs://mestrado_experiments/experiments/main/c149/*__surrogate.parquet) e cruzar com as 210 células — 1 comando, read-only, resolve a pergunta em minutos. Se a ③ estiver lá, C3-1 vira classe (2) 'instrumentação perdeu o registro' e o score sobe a ~9,6; se não estiver, 29,3% da ③ do c149 está PERDIDA e o caveat vira exclusão. (b) Corrigir standalone_harness.py:1446 e botorch_harness.py:846 para PRESERVAR o status parcial por artefato antes de anexar o erro (status.update({'erro': …}) em vez de reatribuir) — é a diferença entre saber e não saber, e custa uma linha.",
+   "arquivo_linha": "src/standalone_harness.py:1446 · src/botorch_harness.py:846 · src/gcs.py:151-236 (mirror_run/upload)"
+  },
+  {
+   "id": "C3-2",
+   "descricao": "9 células canônicas da semente 7 carregam uma ③ TRUNCADA proveniente de uma SEGUNDA execução, e nada na célula declara isso. O consolidador escolhe a fonte POR CAMADA: ①②④⑥ vieram da vm1 (execução completa) e a ③ veio da re-execução parcial da vm5 (que a vm1 morreu no meio da semente 7 e a vm5 reassumiu). Cobertura medida da ③ contra as gerações da ⑥: BBOB_F1 100/200 · BBOB_F17 100/200 · BBOB_F22 75/200 · BBOB_F37 75/200 · BBOB_F49 75/200 · BBOB_F5 75/200 · BBOB_F55 75/200 · ZDT4 50/200 · ZDT6 50/200 (37,5%–50% do run). NÃO É QUIMERA: o gate_3x1 fecha 1.635/1.635 com max|ΔX| = 0,0 e a A33 prova bit-identidade entre as duas execuções em 1.101 gerações. Mas o ⑤ dessas células é BYTE-IDÊNTICO ao da vm1 (md5 7c0ada72… em ZDT4/7) e diz fe_final=309 / n_geracoes=200 — logo o manifesto AFIRMA cobertura total sobre uma ③ que tem metade. Quem ler a ③ de c149/BBOB_F22/7 assumindo o run inteiro usa 37,5% dela sem saber. Bússola D29: não dispara.",
+   "gravidade": "média para o CONTRATO (9 células, silenciosa, e a análise não tem como perceber); NULA para a FIDELIDADE (provado bit-idêntico onde há sobreposição)",
+   "acao": "(a) Registrar as 9 células no caveat do config e no consolidador. (b) RECOMENDO um invariante de consolidação, análogo ao gate_3x1 e mais barato: exigir que geracao.max() do regime 'online' da ③ == n_geracoes do ⑤; hoje ele reprovaria estas 9 e passaria as outras 7 — separação binária, custo de uma leitura de metadados do parquet. (c) A rota de reparo existe e é trivial: a ③ COMPLETA da vm1 dessas 9 células deve estar no bucket (elas têm upload_status.surrogate = 'uploaded_bucket_only').",
+   "arquivo_linha": "~/mestrado_coleta_m8/reorg.py (escolha de fonte por camada) · resultados_experimentos/_FONTES.csv (camada=surrogate ⇒ matlab-vm5; camada=jsonl ⇒ matlab-vm1)"
+  }
+ ],
+ "N2_tetos_caidos_dup": "placeholder",
+ "score": 9.2,
+ "score_t11": 9.5,
+ "veredito_recomendado": "ACEITAR + CAVEAT (mecanismo REFORÇADO, contrato com 1 pendência de infraestrutura a escalar). RECOMENDAÇÃO, não sentença — a validação de fidelidade é manual e do autor (D97). MOVIMENTO 9,5 → 9,2 e a CAUSA, nomeada: NÃO foi o mecanismo. O mecanismo SUBIU. Toda identidade estrutural que podia ser re-testada fechou 100% com 24× o volume da T11 — sementes bit-a-bit 193.873/193.873 (contra 8.020/8.020), query-joia D96 4.318/4.318 em 25 problemas × 30 sementes com o refutador hipótese-B em 58,59%, argmax do HVI 1.635/1.635, sete identidades internas da ⑥ em 193.873/193.873, split exato 193.873/193.873, U7 zero violações, cache/clamp/fallback/retries zero em 717/717 — e dois itens que a T11 declarou NÃO VERIFICÁVEIS em §9.3 caíram com DADO MEDIDO (a trava B-10 disparou 4× e segurou, com gate_3x1 max|ΔX|=0; o checkpoint foi exercitado 7.666× na escala real e salvou 3 células). Somou-se uma prova que 1 semente não podia dar: a deriva cross-máquina do c149 é EXATAMENTE ZERO (bit-idêntica) em 13 pares independentes vm1×vm5. O que DESCEU foi o CONTRATO, e por um defeito de infraestrutura novo: um 403 de IAM em três VMs deixou 210/717 células (29,3%) com o upload_status reduzido a uma única chave de erro por um `except` que reatribui o dicionário (standalone_harness.py:1446), pondo a ③ bucket-only dessas células em estado de existência não verificável e derrubando a cobertura do gate anti-quimera de 30/30 (s42) para 16/717 = 2,2%; e o consolidador montou 9 células da semente 7 com ③ truncada de uma segunda execução, sem qualquer marca. Ambos são persistência, não fidelidade — a bússola D29 não dispara em nenhum dos dois. DESCONTO EXPLÍCITO E REVERSÍVEL: −0,4 por C3-1 (não consegui provar que a ③ existe) e −0,1 por C3-2 (provado benigno, mas silencioso), contra +0,2 pelo reforço do mecanismo e pelos dois tetos derrubados. UM comando read-only do autor (listar gs://mestrado_experiments/experiments/main/c149/*__surrogate.parquet e cruzar com as 210 células) resolve C3-1: se a ③ estiver no bucket, C3-1 vira classe (2) e a minha recomendação passa a 9,6. CAVEATS DE USO que a análise precisa herdar: (i) ZDT1/ZDT3 do c149 são um método CENSURADO — 26 ⚪ por teto de parede de 12 h, orçamento de FE COMUM = 795 de 929, e o it90 medido (312 e 385,5 infills) mostra que ainda ganhavam quando o relógio cortou; (ii) nas 3 células mortas (DTLZ3/18, ZDT1/7, ZDT3/7) truncar no PISO das camadas (G=100/325/275) — a ⑥ está 15/11/22 gerações à frente por ser append-only, comportamento declarado do DI-43; (iii) a ③ das 9 células de C3-2 cobre 37,5%–50% do run; (iv) o ganho-zero sobre o DoE em 188/717 células é RESULTADO reprodutível (determinístico em 30/30 sementes em BBOB_F5, BBOB_F37 e MMF1, e 29/29 em BBOB_F1), não defeito — assim como o HVI ≡ 0 em 1.200/1.200 gerações de MMF1; (v) o custo do checkpoint é 0,6176% do wall, 5,67× a projeção da T11, número a substituir onde ela for citada.",
+ "decisoes_ao_autor": [
+  "ESCALAÇÃO PRINCIPAL (D81) — C3-1: 210/717 células do c149 (29,3%) têm upload_status = {'erro': 'Forbidden 403 … storage.objects.delete'} e a ③ é bucket-only. NÃO CONSEGUI DETERMINAR se a ③ dessas células existe: não está no canônico, não está no staging de nenhuma VM, e eu não acessei o bucket. O código (gcs.mirror_run + verificar=podar, D58) IMPLICA que ela foi subida e verificada por md5 antes da poda — mas isso é dedução, não medição. PEÇO: um `gsutil ls -l gs://mestrado_experiments/experiments/main/c149/*__surrogate.parquet` cruzado com a lista das 210 células (varredura_c149.csv, coluna upload_sur nula). É read-only e decide entre 'instrumentação perdeu o registro' (classe 2, score 9,6) e '29,3% da ③ perdida' (caveat de exclusão). TRANSVERSAL: o mesmo 403 atinge os 5 configs bucket-only (~994 células: c122 220, e81 217, c149 214, c262 194, c154 149) — as outras torres precisam saber.",
+  "DECISÃO DE CONTABILIDADE que eu NÃO tomei sozinho: mantive C3-1 e C3-2 DENTRO do denominador de fidelidade (2/31 = 6,5%), ao contrário do que a T11 fez com a A26 (que ela moveu para fora depois de provar a causa-raiz). Fiz isso porque a causa de C3-1 NÃO está provada — só deduzida do código. Se o autor confirmar a ③ no bucket, C3-1 sai do denominador exatamente pelo critério da T11 e a distribuição vira (1) 16/30 = 53,3% · (2) 13/30 = 43,3% · (3) 1/30 = 3,3%. Publico os dois cenários porque a escolha do denominador é minha e o autor tem de poder auditá-la.",
+  "CONFLITO ENTRE DOUTRINA E MEDIÇÃO (D81) — o RUNBOOK §6.2 diz que 'floats NÃO são bit-idênticos entre plataformas ⇒ a fidelidade é ESTATÍSTICA por semente, NÃO bit-exata'. Para o c149 eu MEDI deriva EXATAMENTE ZERO em 13 pares vm1×vm5 (1.101 gerações, 11.040 val_mse, 2.010 pontos de ①, tudo bit-idêntico). Não proponho mudar a doutrina — o meu escopo é estreito (duas VMs Linux/x86_64 com o MESMO stack pinado e 1 thread; não medi cross-arquitetura, que é o caso arm64 da quimera A26). Mas registro que, PARA O c149 NESSE ESCOPO, o piso de ruído é 0 e portanto qualquer diferença entre células é sinal — o que endurece a leitura de todo contraste do config. O autor decide se isso vira uma nota de escopo no RUNBOOK.",
+  "TENSÃO APARENTE COM A T11 §6.1 que registro sem resolver: a T11 concluiu 'em q=1 o surrogate PIORA com o tempo' (ΔWAPE +15,61% na régua Sobol da s42). Eu medi o CONTRÁRIO (melhora em 557/717 = 77,7%, Δ mediano −6,9 p.p.) — mas em outra grandeza: a T11 mede o modelo nos 2.000 pontos Sobol FIXOS (fidelidade global, mora na ③, indisponível em 701/717 células); eu meço o modelo no ponto que ele ESCOLHEU (fidelidade local na região de query). São compatíveis (o modelo concentra-se: piora fora, melhora onde consulta) mas não são a mesma afirmação. NÃO É contradição e NÃO reescrevo a T11; a régua Sobol das 30 sementes só poderá ser medida quando C3-1 for resolvido.",
+  "CORREÇÃO DE NÚMERO PUBLICADO — a T11 §4.3 projetou o custo do checkpoint DI-43 em 0,109% do wall a partir de 1 evento de 51.000 linhas no smoke. Na escala real: 7.666 eventos, 51.894,89 s / 8.402.367,52 s = 0,6176%, ou 5,67× a projeção (média 6,77 s/evento contra 0,1747 s). O método de projeção não modelou o crescimento do buffer da ③ DENTRO da célula. O instrumento continua barato e correto (U7 intacto, 0/193.873) e ele PAGOU-SE nas 3 mortes de máquina; só o número precisa ser substituído onde for citado. Idem: o wall total do c149 main em 717 células é 2.334,0 h-core (projeção 2.441,4 para 750), contra a projeção de 2.130 h-core da T11 — 14,6% acima.",
+  "RECOMENDAÇÃO DE GATE (barata, e é a lição §4.2-1 da própria T11 aplicada de novo): instalar o invariante de consolidação `geracao.max() do regime online da ③ == n_geracoes do ⑤`. Hoje ele reprovaria as 9 células de C3-2 e aprovaria as outras 7 com ③ — separação binária, custo de uma leitura de metadados do parquet, e é o único detector possível para uma truncagem que o gate_3x1 NÃO vê (o gate_3x1 passa 1.635/1.635 nessas mesmas células). Como o gate_3x1 está cego em 97,8% da campanha, este invariante e o complementar que o adversarial já propôs (transf_params(③) ≡ z_mean/z_std(⑥), que eu fechei em 1.635/1.635) são o que resta de detecção para a ③ do c149.",
+  "PENDÊNCIA HERDADA E NÃO RESOLVIDA: o par G-6 (com/sem sonda) do c149 continua não preservado — a A29 VOLTOU ao teto T neste corpus, porque as 717 células rodaram com sonda ligada e não há controle. A T11 estimou ~9 min para preservá-lo (`naoperturbacao.py --par c149 MMF1 0`). Enquanto não existir, a não-perturbação da sonda do config Python mais caro da grade é veredito registrado (38b5584b), não dado auditável.",
+  "ESCOPO QUE ESTA RODADA NÃO COBRE, para não gerar falsa segurança: (a) o regime BATCH q=10 do c149 NÃO EXISTE na campanha de 30 sementes (exp=main em 717/717), logo a regra D42 (A22) não foi re-testada — o 424/424 da T11 na s42 permanece o único número; (b) a régua Sobol (cobertura95, correlação, ΔWAPE por bloco) mora na ③ e só está disponível em 16/717 células, insuficiente para agregado; (c) não recomputei IGD+/HV contra reference_set — usei um proxy INTERNO de HV auto-contido (ref=1,1 no espaço do próprio arquivo final) e o declaro como proxy em todo lugar onde o cito; os agregados de métrica são da torre de análise, não desta.",
+  "AS 33 CÉLULAS AUSENTES (sementes 26 com 14, 18 com 10, 25 com 9) não são falha do algoritmo: são os três lotes interrompidos por morte de máquina, batendo com os eventos por VM já catalogados em ~/mestrado_coleta_m8/_analise/autopsia_vmpad.md §1 (vm1 semente 7, vm3 semente 25, vm4 semente 18). Se o autor quiser fechar o grid 25×30, são 33 células a re-disparar — mas o c149 é o config mais caro da grade (2.334 h-core em 717 células), o que é decisão de orçamento, não de fidelidade."
+ ]
+}

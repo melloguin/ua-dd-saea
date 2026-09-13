@@ -1,0 +1,50 @@
+BBOB_F1    gens= 200  |D|<1e-5  200/ 200  argmax==infill  195  s0muda    1  N2  200  eim0 189  (1s)
+BBOB_F17   gens= 200  |D|<1e-5  200/ 200  argmax==infill  104  s0muda  169  N2  200  eim0   0  (0s)
+BBOB_F22   gens= 200  |D|<1e-5  200/ 200  argmax==infill   99  s0muda  165  N2  200  eim0   0  (0s)
+BBOB_F37   gens= 200  |D|<1e-5  200/ 200  argmax==infill  117  s0muda  136  N2  200  eim0   0  (0s)
+BBOB_F49   gens= 200  |D|<1e-5  200/ 200  argmax==infill  121  s0muda  144  N2  200  eim0   0  (1s)
+BBOB_F5    gens= 200  |D|<1e-5  200/ 200  argmax==infill  144  s0muda   65  N2  200  eim0   0  (1s)
+BBOB_F55   gens= 200  |D|<1e-5  200/ 200  argmax==infill  119  s0muda  161  N2  200  eim0   0  (1s)
+DTLZ1      gens= 140  |D|<1e-5  140/ 140  argmax==infill   62  s0muda   75  N2  140  eim0   0  (0s)
+DTLZ2      gens= 240  |D|<1e-5  240/ 240  argmax==infill   75  s0muda  213  N2  240  eim0   0  (1s)
+DTLZ3      gens= 240  |D|<1e-5  240/ 240  argmax==infill   63  s0muda  221  N2  240  eim0   0  (1s)
+DTLZ4      gens= 240  |D|<1e-5  240/ 240  argmax==infill   89  s0muda  171  N2  240  eim0   0  (1s)
+DTLZ7      gens= 440  |D|<1e-5  440/ 440  argmax==infill  332  s0muda  408  N2  440  eim0   0  (4s)
+MMF1       gens=  40  |D|<1e-5   40/  40  argmax==infill   39  s0muda    2  N2   40  eim0   0  (0s)
+MMF11_L    gens=  40  |D|<1e-5   40/  40  argmax==infill   39  s0muda    1  N2   40  eim0   0  (0s)
+MMF16_20   gens= 400  |D|<1e-5  400/ 400  argmax==infill  119  s0muda  338  N2  400  eim0   0  (5s)
+MMF4       gens=  40  |D|<1e-5   40/  40  argmax==infill   38  s0muda    3  N2   40  eim0   0  (0s)
+WFG1       gens= 440  |D|<1e-5  440/ 440  argmax==infill  308  s0muda  370  N2  440  eim0   0  (4s)
+WFG2       gens= 440  |D|<1e-5  440/ 440  argmax==infill  372  s0muda  373  N2  440  eim0   0  (2s)
+WFG4       gens= 440  |D|<1e-5  440/ 440  argmax==infill  374  s0muda  428  N2  440  eim0   0  (3s)
+WFG5       gens= 440  |D|<1e-5  440/ 440  argmax==infill  189  s0muda  217  N2  440  eim0   0  (4s)
+WFG9       gens= 440  |D|<1e-5  440/ 440  argmax==infill  426  s0muda  413  N2  440  eim0   0  (2s)
+ZDT1       gens= 600  |D|<1e-5  600/ 600  argmax==infill  556  s0muda  493  N2  600  eim0   0  (4s)
+ZDT3       gens= 600  |D|<1e-5  600/ 600  argmax==infill  593  s0muda  494  N2  600  eim0   0  (4s)
+ZDT4       gens= 200  |D|<1e-5  200/ 200  argmax==infill  101  s0muda  150  N2  200  eim0   0  (1s)
+ZDT6       gens= 200  |D|<1e-5  200/ 200  argmax==infill  109  s0muda  105  N2  200  eim0   0  (0s)
+
+==========================================================================================
+TOTAL geracoes = 7020  (celulas=25)
+E1 identidade EIMe |D|<1e-5 : 7020/7020   med=2.17e-09 p99=7.01e-08 max=5.81e-06
+E1 relativo rel<1e-5        : 6889/7020   (so gens de frente EXATA: 6556/6557)
+E2 argmax==infill           : 4783/7020 (68.1%)  gap<1e-6 em 7000  max gap=7.26e-05
+E2 pool achatado med/max    : mediana=0.999998  p05=0.995324  min/max mediana=0.999998
+E3 sigma->0 muda argmax     : 5316/7020 (75.7%)
+E3 N2 vale                  : 7020/7020
+E3 frac exploracao mediana por celula: 0.2128
+E4 front exato / bracket    : 6557 / 7020  de 7020
+   discordantes por celula  : {'DTLZ4': 240, 'ZDT6': 185, 'MMF11_L': 38}
+E5 min_dist_infill min glob : 0.001508  gens<1e-8: 0  pool coincidindo c/ ANTIGO: 0 de 1299400 linhas
+   min_dist logado==recomputado max|D| = 2.87e-06
+E6 eim_best==0 EXATO        : 189 gens  -> {'BBOB_F1': 189}
+E7 rescaling desvio rel max : norm_min=5.71e-08 norm_max=5.08e-08 ; guard range max|D|=0
+E11 mediana do pool rel<1e-5: 6888/7020
+E14 guards n_eim_nan=0 n_range0=0 n_dedup=0 ; n_front min=2 (n_front==1 em 0)
+E10 ga_pop==10D em 7020/7020 ; ga_gens==200 em 7020/7020 ; aval-aquisicao total = 259880000
+E11 pool linhas/geracao == 10D em 7020/7020 ; total de linhas de pool = 1299400
+E12 criterion unico         : ['Euclidean']
+U11 otimista 11623/15740 componentes ; cobertura2s 12005/15740
+A1 ledger pos-infill: f_best==norm_min(g+1) 6995/6995 ; n_front1==n_front(g+1) 6995/6995
+U8 fe_treino_max monotonico em 25/25 celulas ; == n_amostra-1 em 7020/7020 gens
+salvo mecanismo_s42.csv (7020, 49)

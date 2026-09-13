@@ -1,0 +1,12 @@
+OK DTLZ4
+OK MMF11_L
+OK ZDT6
+OK WFG5
+OK ZDT1
+            n  bate_weak  bate_std  bate_strict  k_med  k_max  add_dup_med  rel_weak_lt1e5  rel_std_lt1e5  rel_strict_lt1e5  rel_add_lt1e5   rel_add_med   rel_add_max
+problema                                                                                                                                                              
+DTLZ4     240          0         0            0   25.0     26          0.0             240            240               240            240  2.597023e-08  8.260876e-08
+MMF11_L    40          2         2            3    1.0      1          0.0              40             40                40             38  4.992071e-08  5.057245e-07
+WFG5      440        440         5            5    0.0      0         -1.0             440            440               440              0           NaN           NaN
+ZDT1      600        600       600          600    0.0      0         -1.0             599            599               599              0           NaN           NaN
+ZDT6      200         15        19           29    2.0      4          0.0              70             70                70             55  7.904597e-05  1.845203e-03

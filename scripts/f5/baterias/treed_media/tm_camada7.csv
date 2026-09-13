@@ -1,0 +1,11 @@
+label,problema,dist,D,M,n_final,nd,fantasia,igd_plus_c7,hv_c7,wape_fantasia,ND_identico,link_bit
+swap_big-lhs_DTLZ2,DTLZ2,lhs,12,3,105,61,0.581,0.135395,0.430553,0.35564,True,True
+swap_big-lhs_MMF16_20,MMF16_20,lhs,20,3,105,79,0.7524,0.039227,0.700019,0.0809,True,True
+swap_big-lhs_WFG9,WFG9,lhs,22,2,46,16,0.3478,0.340881,0.02516,0.311,True,True
+swap_big-lhs_ZDT1,ZDT1,lhs,30,2,50,11,0.22,2.352774,0.0,0.09336,True,True
+swap_big-lhs_ZDT4,ZDT4,lhs,10,2,36,7,0.1944,62.24888,0.0,0.21199,True,True
+swap_big-mvns_DTLZ2,DTLZ2,mvns,12,3,102,37,0.3627,0.384245,0.068487,0.1399,True,True
+swap_big-mvns_MMF16_20,MMF16_20,mvns,20,3,102,69,0.6765,0.051502,0.676314,0.08729,True,True
+swap_big-mvns_WFG9,WFG9,mvns,22,2,47,11,0.234,0.291531,0.039033,0.27534,True,True
+swap_big-mvns_ZDT1,ZDT1,mvns,30,2,48,10,0.2083,1.931461,0.0,0.24106,True,True
+swap_big-mvns_ZDT4,ZDT4,mvns,10,2,37,8,0.2162,107.511319,0.0,0.21242,True,True

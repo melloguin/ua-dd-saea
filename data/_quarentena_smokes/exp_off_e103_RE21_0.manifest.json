@@ -1,0 +1,106 @@
+{
+  "schema_version": 2,
+  "campanha_id": "8463e55b10a6_2026-08-14",
+  "run_id": "off_e103_RE21_0",
+  "exp": "off",
+  "alg": "e103",
+  "problema": "RE21",
+  "semente": 0,
+  "regime": "offline",
+  "q": 1,
+  "tier": null,
+  "dist": null,
+  "status": "ok",
+  "n_retries": 0,
+  "stack_trace": "",
+  "maxfe": 123,
+  "fe_final": 123,
+  "n_geracoes": 99,
+  "doe_hash": "9d9a2332ae9d03b98db06e6a9288d736ba12763169f48f4e4a42d921b462e812",
+  "repo_hash": "8463e55b10a6435c79fddfca7f1ed367c272b162",
+  "algo_version": "e103-IBEAMS-offline-L15",
+  "env": {
+    "matlab": "25.1.0.2973910 (R2025a) Update 1",
+    "stack": "matlab-platemo",
+    "host": "Guilhermes-MacBook-Pro",
+    "plataforma": "Darwin/arm64",
+    "pymoo": "0.6.2"
+  },
+  "timing": {
+    "tempo_total_s": 12.507206458333334,
+    "tempo_fit_surrogate_s": 0.61359435319900513,
+    "tempo_busca_s": 4.9669451713562012,
+    "tempo_aval_real_s": 0.003258500000000001,
+    "tempo_pred_sonda_s": 0.79812695833333325
+  },
+  "fit_series": [
+    {
+      "geracao": 0,
+      "n_acumulado": 123,
+      "tempo_fit_s": 0.61359435319900513
+    }
+  ],
+  "cache_hits": 0,
+  "fallback_ativado": false,
+  "paths": {
+    "local": {
+      "real": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/e103/exp_off_e103_RE21_0__real.parquet",
+      "pop": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/e103/exp_off_e103_RE21_0__pop.parquet",
+      "surrogate": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/e103/exp_off_e103_RE21_0__surrogate.parquet",
+      "timing": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/e103/exp_off_e103_RE21_0__timing.parquet",
+      "jsonl": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/e103/exp_off_e103_RE21_0.jsonl",
+      "manifest": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/e103/exp_off_e103_RE21_0.manifest.json"
+    }
+  },
+  "created_at": "2026-08-14T18:18:29Z",
+  "updated_at": "2026-08-14T18:18:29Z",
+  "dataset": {
+    "path": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/datasets/RE21/ds_RE21_0.parquet",
+    "n": 123,
+    "tier": "small",
+    "dist": "lhs",
+    "x_hash": "9d9a2332ae9d03b98db06e6a9288d736ba12763169f48f4e4a42d921b462e812",
+    "f_hash": "32e8c4f925e12333f29e8312e73f5d5791511a12a15a9b8da9bb39e63be5649b",
+    "dataset_hash": "f3e98bf91022e23cee753a44ec9588321535ce178bdf24fa18baf18ce6920a56",
+    "cp_x": true,
+    "cp_f": true
+  },
+  "sonda": {
+    "artefato": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/sonda/sonda_RE21.parquet",
+    "x_hash": "e4c1ca5373e544cac7f2f810522474e65371765254484b4e6babf8adb9a6b3e0",
+    "f_hash": "e4b1deb96903d486e0efcdfd7817d9f3c18dacccd3de5deae59a3eaeeaa9058d",
+    "regime": "offline",
+    "S": 20000,
+    "k": 2,
+    "n_blocos": 2,
+    "n_linhas": 40000,
+    "n_falhas": 0,
+    "tempo_total_s": 0.79812695833333325,
+    "desligada": false,
+    "geracoes": [
+      null,
+      null
+    ]
+  },
+  "params": {
+    "regime": "OFFLINE (D90): dataset 31D-1 injetado; ZERO FE real na busca; treino UNICO dos 2 modelos; 99 geracoes IBEA no surrogate",
+    "N": 100,
+    "kappa": 0.05,
+    "generations": "100 nominais -> 99 executadas (while CurGen<100 com CurGen=1 — off-by-one CODIGO, registrado)",
+    "ibea": "I_eps+ (CalFitness normaliza min-max na pop corrente), kappa=0.05; TournamentSelection K=2; GA SBX disC=20 + PM disM=20",
+    "pm": "proM=1 na chamada (:43) -> pm efetiva 1/D (GA.m:69 divide por D — convencao PlatEMO); stock passava 1/Global.D = 1/D^2 (🔴 ARTIGO, ancora e103-pm-D93a)",
+    "judgemodel": "gate booleano de ORDEM par-a-par: |f_i-f_j| vs 3sqrt(MSE_i)+3sqrt(MSE_j), eps=1e-5, relaxacao UF>=M-1; diagonal i==j EXCLUIDA (🔴 ARTIGO, ancora e103-judgemodel — stock zerava o teste com qualquer MSE>0); KFlag STATELESS (re-testado por geracao — B7.8)",
+    "kriging": "DACE dacefit(@regpoly1,@corrgauss), theta0=10*ones(1,D), bounds [1e-3,1e3] (B7.7); 1 modelo/objetivo; treino UNICO (offline — nunca retreina); AmendKriCal preserva o F REAL de quem tem MSE=0 (membros do dataset) e duplica ponto se N==1 (workaround stock)",
+    "rbfn": "1 rede multi-saida: centros k-means (k-means++ — RNG do setup) = ceil(sqrt(n_dataset)) com o n INJETADO (D93 — ancora e103-centros-D93; stock usava 11D-1 do paper), spread = 5*max(pdist(centros)) (kernel quase-plano — warnings de quase-singularidade ESPERADOS, contados no e103_setup), pesos LSQ via mldivide (inv(Z'Z)Z' -> (Z'Z)\\\\(Z'PopObj) — §22-e103); kernel despachado por eval() de string (stock, registrado)",
+    "off_mse_marcador": "no ramo RBFN o OffMSE=ones marca o offspring como 'surrogate' na geracao seguinte — MARCADOR de contabilidade, nao sigma (S.2-e103)",
+    "rng": "rng(semente,'twister') unico ANTES do IBEAMS (D59; sem probe). Consumidores: kmeans 1x no setup (fonte de variancia entre sementes do treino), TournamentSelection randi + GA rand/randi por geracao. seeds.json _default: NENHUMA semente criada pelo harness (uso_id catalogo vazio p/ e103)",
+    "watchdog": "guardas D60 de FE nao se aplicam (offline: zero FE na busca); rede = FEBudget esgotado (qualquer avaliacao nova -> PlatEMO:Termination = violacao, pára-e-loga)",
+    "nd_final": "AVALIACAO REAL DO ND FINAL (§11/B7.5) NAO acontece neste run (a ① = SO o dataset; gate 31D-1): 'avaliado 1x FORA' — os decs finais estao na ③ (ultima geracao) e em FinalDec; DEFINICAO EM ABERTO p/ a torre: onde persiste (recomendacao: pos-hoc Python canonico, uniforme p/ todo o offline, antes do R3)",
+    "divergencias_stock_mantidas": "off-by-one 99 ger; relaxacao M-1 (custa acuracia em M=2 — M.6/D73); spread 5*max(pdist) quase-plano; CalFitness com min==max -> NaN (hazard stock, nao consertado — falha honesta se disparar); AmendKriCal reordena a pop (dataset p/ o fim)"
+  },
+  "sigma_dict": {
+    "mu_j": "μ do modelo da LINHA (modelo_flag): Kriging-DACE = predictor por objetivo; RBFN = RBFN_cal INCONDICIONAL (mesmo quando o Kriging liderou — C4/L.15, o 'μ dos DOIS modelos'). Re-predicao READ-ONLY sobre os decs da pop SELECIONADA por geracao (2 linhas/membro); membros do dataset inclusos (DACE interpola ≈exato, MSE≈0)",
+    "sigma_j": "sqrt(max(MSE,0)) do predictor DACE por objetivo — SO nas linhas Kriging-DACE (guard mse_neg conta MSE<0 do erro float); linhas RBFN = NULL (RBF sem incerteza). NAO confundir com o papel do MSE no mecanismo: gate booleano de ORDEM (JudgeModel 3sigma) + marcador real/surrogate (0/1)",
+    "kflag": "a decisao Kriging<->RBFN da geracao esta no .jsonl (e103_gen: kflag/modelo_lider) — nao ha coluna na ③; join por geracao"
+  }
+}

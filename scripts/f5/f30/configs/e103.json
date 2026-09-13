@@ -1,0 +1,403 @@
+{
+ "config": "e103 · IBEA-MS (Liu, Wang & Jin 2023, IEEE TCYB 53(10):6263-6276) · exp=off · regime OFFLINE puro · campanha M8 30 sementes · repo_hash 63db46b100635a5cc21e8f5594271f481bc41416 · algo_version e103-IBEAMS-offline-L15 · MATLAB R2025a Update 1 · Linux/x86_64 em 6 VMs (vm1 198, vm3 172, vm5 124, vm4 75, vm2 50, vm10 50)",
+ "cobertura": "669/669 celulas existentes auditadas (100%) — o censo do e103 e 669 ok, ZERO ⚪, ZERO fail. NAO houve amostragem para as identidades estruturais: varri as 669 ⑥ (jsonl, 45,2 MB, 66.231 registros e103_gen, 0 linhas rasgadas) e os 669 ⑤ integralmente em streaming; varri as 669 ① (291.072 linhas) contra o artefato `data/datasets/<prob>/ds_<prob>_<seed>.parquet`; as 669 ② (1.109.661 linhas); e as 669 ③ nas colunas de contrato + na sonda inteira (40.006.200 linhas: 13.246.200 de busca + 26.760.000 de sonda). Amostragem estratificada SO nos testes caros de join: (a) X-da-sonda vs gabarito Sobol em 100 celulas (todas as sementes 0/7/14/42 x 25 problemas); (b) identidade Amend* (join ③→① por real_solution_id, 122.831 linhas de membro) em 75 celulas = 3 sementes por problema sorteadas com seed 11; (c) espelho x canonico por md5 em 669 celulas x 6 arquivos = 4.014 arquivos. N4 usou as 24 duplicatas cross-VM que existem (todas semente 7, vm1 x vm5) + 25 pares cross-campanha (F5-julho/vm3 x M8-agosto/vm5, semente 42). Endpoint recomputado por mim nas 669 celulas (nao oficial — ver classe3 C1). Scripts e CSVs em /private/tmp/claude-501/-Users-gmello/33c29160-6eb6-4277-a041-db4855486063/scratchpad/ (e103_cells.csv, e103_gens.csv, e103_sonda.csv, e103_cam12.csv, e103_deriva.csv, e103_endpoint.csv, e103_timing.csv, e103_amend.csv). ZERO escrita no repo, ZERO celula executada, ZERO chamada a experiments.py/experiment.run/experiments.m.",
+ "N1_invariancia": "A QUERY-JOIA DA FAMILIA (A15 da T11) — \"KFlag=1 ⟺ (nº de objetivos com R_m=1 em TODOS os N² pares) ≥ M−1\" — FECHA EM 66.231/66.231 GERACOES, 669/669 CELULAS, 25/25 PROBLEMAS, 27 SEMENTES. Fracao = 1,000000. ERRO MAXIMO = 0 excecoes. Nao amostrei: recomputei a identidade linha a linha sobre o `margem_3sigma_stats` de TODAS as 66.231 gerações (n_pares_ok_por_objetivo vs n_pares_total), o que e possivel porque a ⑥ e barata (45 MB no total).\n\nAs demais identidades estruturais tambem fecham SEM EXCECAO em 669/669: A14 `n_pares_total == n_julgados²` em 66.231/66.231 · A05 `n_sel==100` em 66.231/66.231 · A04 `n_julgados(g1)==n_dataset+100` e `==200` de g2 em diante em 669/669 · A09 `fe_treino_max` valor unico == n_dataset−1 e `fit_series` de comprimento 1 em 669/669 · A10 `center_num == ceil(sqrt(n_dataset))` em 669/669 (8·15·18·20·25·27·31) · A02 tier 31D−1 exato em 669/669 · A01 `fe_final==maxfe==n_dataset` em 669/669 e `fase=='init'` em 291.072/291.072 linhas da ① · A18 (nº de objetivos com krig_sigma2<1e−20) ≥ M−1 ⟺ KFlag em 669/669 · A23 `len(②) == Σ n_ds_membros` em 669/669.\n\nMARGEM DA IDENTIDADE (so 30 sementes permitem): nas 52.965 gerações RBFN o nº de objetivos 100%-confiaveis e EXATAMENTE 0 em todas — nenhum objetivo chega perto: a maior fracao ja atingida por um objetivo que nao fechou 100% foi 0,961267, e so 15 gerações de 52.965 passaram de 0,95, ZERO passaram de 0,99. Nas 13.266 gerações Kriging o nº e exatamente M−1 (1 nas M=2 em 10.692; 2 nas M=3 em 2.574), NUNCA M. A separacao causal e brutal: o σ² do objetivo degenerado e ≤3,764e−32 (2 celulas com 0,0 exato) contra ≥1,183e−02 do nao-degenerado — razao mediana 1,02e+32, minima 3,19e+29, ZERO sobreposicao entre os dois grupos. Nenhuma das 535 celulas RBFN tem um unico objetivo degenerado; todas as 134 celulas Kriging tem exatamente M−1.\n\nINVARIANCIA ENTRE SEMENTES (o achado novo): a escolha do modelo e UNANIME nos 25/25 problemas — nenhum problema mistura Kriging e RBFN entre as 26-27 sementes. Kriging em 134 celulas (DTLZ7 26/26, MMF11_L 27/27, ZDT1 27/27, ZDT3 27/27, ZDT4 27/27), RBFN nas outras 535. Zero celulas mistas. A T11 so podia afirmar constancia DENTRO de uma execucao; agora esta provado que a escolha e propriedade do PROBLEMA e nao do sorteio do dataset.",
+ "N2_tetos_caidos": "A T11 declarou 4 tetos (T1' stream RNG · T2 Fit/torneio · T3 detalhes de codigo · T4 comportamento em 30 sementes). CAIRAM 2 e MEIO; SOBRARAM 2 e nasceram 2 novos.\n\nCAI **T4 (comportamento em 30 sementes)** — integralmente. Medido: (a) escolha de modelo unanime em 25/25 problemas; (b) CV do IGD+ do endpoint entre sementes: mediana 0,1799 entre os 25 problemas, min 0,0697 (DTLZ4), max 0,9041 (MMF11_L); (c) CV do WAPE do modelo lider: mediana 0,0339, max 1,157 (MMF4-RBFN); (d) taxa de sucesso 669/669 = 100% das celulas despachadas.\n\nCAI **A29/determinismo** num patamar MUITO acima do da T11 (que usara os 5 pares off x swap_small-lhs da mesma maquina): 24 duplicatas vm1 x vm5 byte-a-byte em ①②③ + 25 pares F5-julho(vm3) x M8-agosto(vm5) bit-identicos em X, μ e σ das 19.800 linhas de busca — 49 pares de replica independentes, deriva 0,0. Detalhe: no par cross-campanha o UNICO delta na ③ e a coluna `espaco_modelo` (0 → 19.800 'cru'), ou seja o fix BL-18 e cirurgico e nao mexeu em um unico numero.\n\nCAI o teto implicito da **FORMULA DE SEMEADURA** (a F5/T11 nunca pode testar): 669 `x_hash` distintos, 669 `f_hash` distintos, 669 `dataset_hash` distintos — ZERO colisao; cada semente da um dataset diferente em cada problema e o mesmo problema nunca repete dataset entre sementes; `doe_hash == x_hash` em 669/669 (o que o despachante declarou e o que o algoritmo carregou).\n\nCAI parcialmente **T3**: as 3 ancoras 🔴/D93 foram lidas por conteudo NO COMMIT DA CAMPANHA (`git show 63db46b1:algorithms/e103_IBEA-MS/...`): `IBEAMS.m:61` `GA(Global, decs(...), {1,20,1,20})`; `JudgeModel.m:38` `Msite = (sum(site,3)>=(M-1)) | logical(eye(N));`; `construct_Rnets.m:10` `center_num = ceil(sqrt(Global.n_dataset));`. Continuam T os detalhes internos (eval() do kernel, mldivide, AmendKriCal com N==1, OffMSE=ones).\n\nCAI o expoente empirico do **J5 (Kriging O(N³))**, que a T11 so pode estimar por 2 pontos e errou na F5: com 669 celulas em 7 tamanhos de dataset (61·216·309·371·619·681·929) a regressao log-log das medianas de `tempo_fit_kriging_s` da **a = 2,601**; restrita a vm1 (198 celulas, maquina unica, sem heterogeneidade de frota) da **a = 2,583**. O CV entre sementes do custo de fit cai de 0,49 (n=61) para 0,16 (n=929).\n\nCAI a duvida da **janela de swap da vm5**: ZERO celulas e103 na janela. Todas as 669 foram criadas entre 2026-08-02T12:42:52Z e 2026-08-13T09:40:28Z; a janela comeca em 2026-08-14T15:20Z. O ④ do e103 e utilizavel para tabela de custo sem ressalva.\n\nCONTINUAM T: **T1'** (qual consumidor puxa qual trecho do stream RNG — exigiria log de estado) e **T2** (identidade fechada do Fit IBEA eq.6 e do torneio binario — a ③ grava so os 100 selecionados, nunca os 200 candidatos nem os Fit). T2 e agora mais caro do que era: e ele que impede testar a afirmacao AF5/Fig.5 do artigo no criterio do proprio artigo.\n\nNASCEM 2 TETOS NOVOS, ambos por lacuna de campanha e nao por instrumentacao: **T5 — endpoint oficial**: a camada ⑦ nao existe em 669/669, logo IGD+/HV/spacing/fantasia oficiais do e103 sao NAO MEDIVEIS nesta campanha (contornei com recomputo proprio, validado, mas nao oficial). **T6 — G-6 (a sonda nao perturba a busca)**: a campanha M8 nao tem par com/sem sonda para o e103 (`sonda.desligada=false` em 669/669), entao NAO re-medi a nao-perturbacao; a prova forte da T11 (19.800 linhas de ③ bit-identicas no par g6_com x g6_sem) permanece valida para o mesmo caminho de codigo, mas nao foi reproduzida aqui.",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "\"the adaptive model selection mechanism always selects one specific model during the optimization of one problem\"",
+   "onde_no_artigo": "Sec. IV-A, paragrafo que abre a discussao da Fig. 5 (linha 438 do .md)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO, e em patamar mais forte do que o artigo afirma. Dentro da execucao: 0 trocas de KFlag em 669/669 celulas (66.231 decisoes). ENTRE execucoes: a escolha e UNANIME nas 26-27 sementes de 25/25 problemas — zero problema misto. O artigo so alega constancia intra-run; a campanha mostra que a escolha e propriedade do problema. Prova de que o teste e genuinamente refeito (e nao memorizado): a estatistica do gate VARIA entre gerações em 669/669 celulas (amplitude mediana 0,6458, maxima 0,9048) enquanto o veredito nunca muda."
+  },
+  {
+   "afirmacao": "\"the relaxation of the model selection criterion causes the incorrect model selection on the ZDT4 problem, which has only two objectives\" (ablacao IBEA-MS-NT: UF=1 so se SUM R = M)",
+   "onde_no_artigo": "Sec. IV-A + Fig. 4 (linhas 422-424 do .md)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO quantitativamente em 27 replicas. ZDT4 escolhe Kriging em 27/27 sementes e 2.673/2.673 gerações; sob o criterio ESTRITO do IBEA-MS-NT o Kriging seria escolhido em 0/2.673 — a relaxacao e a UNICA razao da escolha, exatamente o diagnostico do artigo. E ZDT4 e de fato o pior caso do grid: bate o proprio dataset em apenas 10/27 sementes, ganho relativo mediano de IGD+ = -5,87%, fantasia mediana 0,06, CV do IGD+ 0,292. Generalizando: sob o criterio estrito o Kriging seria escolhido em 0/66.231 gerações de TODO o grid — as 669 celulas virariam R-IBEA puro."
+  },
+  {
+   "afirmacao": "\"IBEA-MS has poor performance on DTLZ1 and DTLZ3 problems with two and three objectives ... Therefore, IBEA-MS chooses the RBFN model to assist the optimization\"",
+   "onde_no_artigo": "Sec. IV-B (linha 448 do .md)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO — e esta e a previsao mais diretamente falsificavel do artigo. DTLZ1 (M=3) escolhe RBFN em 27/27 sementes; DTLZ3 (M=3) em 26/26. Total 53/53 celulas confirmam a escolha que o artigo declara. E o desempenho acompanha: DTLZ1 IGD+ mediano 79,80 e DTLZ3 250,62 (os dois piores do grid junto com ZDT4)."
+  },
+  {
+   "afirmacao": "\"Most of the tested problems can be assigned to the better surrogate models except DTLZ1 and ZDT4\" (Tabela I, celulas sombreadas = decisao correta)",
+   "onde_no_artigo": "Sec. IV-A, discussao da Tabela I (linha 408 do .md)",
+   "testavel_com_30": true,
+   "resultado": "PARCIAL / criterio divergente, mas os 2 contra-exemplos do artigo reproduzem. Pela nossa regua (WAPE fora da amostra, 20.000 pontos Sobol por modelo, 669 celulas): o modelo escolhido e o mais acurado em 273/669 = 40,8%. Decomposto: 134/134 = 100,0% quando escolhe Kriging, e apenas 139/535 = 26,0% quando escolhe RBFN (a T11 media 13/13 e 8/32 = 25% na s42 — replica quase exata). Os 2 problemas que o artigo aponta como decisao ERRADA sao errados tambem aqui: DTLZ1 acerta 0/27; ZDT4 acerta 27/27 pela acuracia mas produz o pior endpoint do grid (10/27 batem o dataset) — que e exatamente a tese do artigo de que a relaxacao induz escolha incorreta apesar do criterio de incerteza. ACHADO NOVO das 30 sementes: em 15/25 problemas a taxa de acerto e 0,000 ou 1,000 (determinada pelo problema), mas em 10/25 ela e INTERMEDIARIA e depende da semente (BBOB_F22 3/27, BBOB_F17 4/27, ZDT6 3/27, DTLZ2 5/27, DTLZ3 2/27) — ou seja: a DECISAO do gate e invariante a semente, mas a ordenacao de acuracia que a justificaria NAO e. Em 10 problemas o gate so esta certo por sorteio do dataset."
+  },
+  {
+   "afirmacao": "\"the selected models perform better than the unselected ones\" — medido pela taxa de acerto da SELECAO AMBIENTAL (proporcao dos individuos escolhidos pelo modelo que tambem seriam escolhidos sob a f real), em DTLZ2, DTLZ5, ZDT1 e ZDT2 sobre 30 execucoes",
+   "onde_no_artigo": "Sec. IV-A + Fig. 5 (linhas 438-442 do .md)",
+   "testavel_com_30": false,
+   "resultado": "NAO MEDIDO no criterio do artigo: a ③ grava apenas os 100 individuos SELECIONADOS, nunca os 2N=200 candidatos nem os valores de Fit — e o teto T2, herdado da F5/T11 e nao derrubado pelas 30 sementes. Medivel so o proxy de MAGNITUDE (WAPE): ZDT1 (caso do artigo) o Kriging e escolhido E e o mais acurado em 27/27 sementes (WAPE 0,0112 x 0,0142) ✓; DTLZ2 (caso do artigo) a RBFN e escolhida — MESMA escolha do artigo ✓ — mas o Kriging e o mais acurado em 22/27 sementes (0,1662 x 0,2390), logo pelo nosso criterio a afirmacao falha em 22/27 nesse problema. Divergencia de CRITERIO (ordem x magnitude), nao de fidelidade."
+  },
+  {
+   "afirmacao": "\"the predicted values and predicted variances of the Kriging models are unreliable when the dimension of the decision space is high\" / \"the limited computation budget for hyperparameter optimization makes it hard to obtain their global optimal values\"",
+   "onde_no_artigo": "Conclusao (limitacoes, linha 506) e Sec. II-B3 (motivacao do fallback)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO MECANISTICAMENTE, com uma funcao-degrau perfeita e invariante a semente. O θ ajustado pelo `boxmin` do DACE fica EXATAMENTE no θ0=10 (nao progride) em 242/242 celulas com D>=20 (D=20: 27 · D=22: 161 · D=30: 54) e em 0/427 celulas com D<=12. Sem uma unica excecao em 27 sementes. Nas D<=12 o θ se move e chega aos limites em 198 celulas (piso 1e-3) e 17 (teto 1e3). A T11 media 21/45 na s42; agora e 242/242 vs 0/427."
+  },
+  {
+   "afirmacao": "\"All of the compared algorithms are performed over 30 independent runs in the experiments\"",
+   "onde_no_artigo": "Sec. IV-7 (Performance Indicator), linha 400 do .md",
+   "testavel_com_30": true,
+   "resultado": "NAO ATENDIDO pela campanha (nao pelo algoritmo): 27 sementes em 19 problemas e 26 em 6, total 669/750 celulas = 89,2%. As sementes 13, 17 e 26 estao AUSENTES nos 25 problemas. Ver classe3 C2 — e lacuna de despacho, nao falha de execucao."
+  },
+  {
+   "afirmacao": "\"the robustness of the proposed algorithm to the initial offline data is also examined\" / \"the proposed algorithm is insensitive to the parameter settings of the surrogate models and initial data\" (Tabelas S.III/S.IV)",
+   "onde_no_artigo": "Sec. IV-1 (linha 380) e Sec. IV, paragrafo de abertura (linha 402)",
+   "testavel_com_30": true,
+   "resultado": "PARCIALMENTE CONFIRMADO — e a nuance so aparece com replicas. INSENSIVEL onde importa mais: a escolha de modelo e identica em 25/25 problemas sob 26-27 datasets LHS distintos, e o CV do WAPE do modelo lider tem mediana 0,0339 entre problemas. SENSIVEL num canto especifico: nos 3 problemas D=2 / n_dataset=61 a RBFN e numericamente instavel entre sementes — CV do WAPE 1,157 (MMF4), 0,672 (MMF11_L), 0,391 (MMF1) — e sao exatamente as 80 celulas (MMF1 27 + MMF11_L 27 + MMF4 26) em que o setup dispara o guard `MATLAB:nearlySingularMatrix` (kernel quase-plano do spread 5*max(pdist)). O CV do endpoint acompanha: IGD+ CV 0,904 (MMF11_L), 0,780 (MMF1), 0,772 (MMF4) contra mediana 0,180 do grid. Com 1 semente esta instabilidade e literalmente invisivel."
+  },
+  {
+   "afirmacao": "Complexidade: Kriging O(N³) (Sec. II-B1) e \"IBEA-MS has the lowest computational complexity\" (Sec. III-B)",
+   "onde_no_artigo": "Sec. II-B1 e Sec. III-B",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO, com o expoente agora MEDIDO e nao estimado. Regressao log-log do `tempo_fit_kriging_s` mediano sobre os 7 tamanhos de dataset (669 celulas): a = 2,601; restrita a vm1 (maquina unica, 198 celulas): a = 2,583. Medianas: 0,264 s (n=61) -> 377,3 s (n=929). Razao fit Kriging/RBFN: mediana 6,6x, min 0,49x, max 1.157x. O fit do Kriging consome 11,2% do wall na mediana e 81,7% na pior celula. Corrige o \"2,35-2,84\" da T11 e o \"2,9\" da F5."
+  },
+  {
+   "afirmacao": "\"it performs particularly poorly on the DTLZ4 problem ... requires the optimization algorithm to have the ability to maintain a good distribution of solutions\"",
+   "onde_no_artigo": "Sec. IV-B (linha 448 do .md)",
+   "testavel_com_30": true,
+   "resultado": "COMPATIVEL mas INCOMENSURAVEL em valor (D=12 nosso x 10/20/30 do artigo, dataset 371 x 109, IGD+ normalizado x IGD bruto). Medido: DTLZ4 escolhe RBFN em 27/27; IGD+ mediano 0,5680 — o 3o pior perfil entre os problemas com front finito — mas com o MENOR CV do grid (0,0697), isto e, ruim de forma muito estavel; bate o proprio dataset em 27/27 (ganho mediano +19,2%). NUNCA reportar como \"artigo melhor\" (Botao 4)."
+  },
+  {
+   "afirmacao": "\"Most offline data-driven EAs directly select the achieved optimal solutions or use the solutions generated in the last generation as the final output. However, these solutions are not reliable in the offline data-driven optimization cases.\"",
+   "onde_no_artigo": "Conclusao, paragrafo sobre \"selection of the final output\" (linha 512 do .md)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO CONTRA O PROPRIO ALGORITMO, e este e o resultado que o artigo nao previu para si. Avaliando na f REAL os 100 finais das 669 celulas (recomputo meu, validado — ver classe3 C1): a fantasia (nd_pos_real/100) tem mediana 0,26 no ramo RBFN e 0,39 no ramo Kriging — ou seja, tipicamente 3 de cada 4 solucoes que o algoritmo entrega como nao-dominadas NAO sao. E em 177/669 celulas o endpoint e PIOR que o proprio dataset de entrada; em MMF16_20 isso vale em 27/27 sementes (ganho mediano -886%), em WFG9 25/27, em WFG2 24/27, em ZDT4 17/27. O gate continua sendo um bom preditor: as celulas Kriging batem o dataset em 115/134 = 85,8% (ganho mediano +98,0%) contra 377/535 = 70,5% (ganho mediano +18,5%) das RBFN."
+  }
+ ],
+ "N4_deriva": "DERIVA CROSS-MAQUINA MEDIDA = **0,0 EXATO**. Bit-identidade, nao equivalencia estatistica.\n\nCorpus 1 — as duplicatas do §Proveniencia 3: `reorg_conflitos.log` lista 4.014 arquivos do e103, dos quais 144 aparecem em 2 VMs; correspondem a **24 celulas duplicadas, todas semente 7, par matlab-vm1 x matlab-vm5**, cobrindo 24 dos 25 problemas. Sao execucoes genuinamente independentes: hosts diferentes (vm1 x vm5), criadas com ~19 h de intervalo (12/08 22:28-23:11 x 13/08 17:25-17:48), inodes e mtimes distintos, e **wall 1,60x a 2,66x diferente** (vm5 sempre mais lenta). Resultado: **md5 identico em ① ② e ③ nas 24/24 celulas**; `krig_sigma2` com diferenca relativa maxima **0,0** (bit-identico); θ, `center_num` e `rbfn_spread` identicos; sequencia de 99 kflag identica; `n_ds_membros` e `n_front1` identicos gerado a gerado; X das 19.800 linhas de busca bit-identico; primeira geracao de divergencia do `f_best` = nenhuma. A UNICA camada que difere e a ④ (timing), 0/24 identicas — como deve ser.\n\nCorpus 2 — o par CROSS-CAMPANHA que descobri: as celulas semente 42 da F5/T11 (julho, **vm3**, per `f5/tempo_f52d.csv` que da vm3 em 45/45) contra as celulas semente 42 da M8 (agosto, **vm5**), 25 problemas. O `dataset_hash` e o mesmo; o wall e 1,4-1,5x menor na M8; e **X, μ e σ das 19.800 linhas de busca sao BIT-IDENTICOS em 25/25 problemas**, junto com θ, σ², centros, spread e as 99 decisoes de kflag. Isso e ~495.000 valores numericos por celula batendo bit a bit atraves de 5 semanas, 2 maquinas e um commit de instrumentacao no meio. O UNICO delta na ③ e a coluna `espaco_modelo` (0 -> 19.800 'cru'): o fix BL-18 e cirurgico.\n\nTOTAL: **49 pares de replica independentes, deriva 0,0 em todos**.\n\nCONSEQUENCIA DOUTRINARIA (escalo, D81): o RUNBOOK §6.2 diz \"floats NAO sao bit-identicos entre plataformas => a fidelidade e ESTATISTICA por semente, NAO bit-exata\". Para o e103 **dentro da frota x86-64/Linux essa doutrina e falsificada**: 49/49 pares bit-exatos, incluindo pares que atravessam 3 shapes N2/Intel distintos e a vm5. NAO estou contradizendo a T11: a armadilha 32 dela mediu **vm3 x86 contra Mac arm64** e achou divergencia a partir da geracao 37 (12.044/19.800 linhas diferentes, endpoint estavel a 0,12% de IGD+) — isso continua valendo e NAO foi re-medido por mim. A leitura correta e: a deriva do e103 e **zero entre ARQUITETURAS IGUAIS e nao-zero entre ARQUITETURAS DIFERENTES**. Como as 669 celulas da campanha sao 100% `Linux/x86_64` e 100% MATLAB `25.1.0.2973910 (R2025a) Update 1`, **nao ha piso de ruido cross-maquina a descontar em nenhum contraste do e103 nesta campanha** — qualquer diferenca observada entre duas celulas e sinal, nao ruido de frota.\n\nBonus medido no mesmo eixo: espelho de VM x canonico, 4.014 arquivos por md5 -> **4.014/4.014 identicos, ZERO divergencia** (a T11 achara 1 na s42, o sidecar A30; aqui nao ha analogo).",
+ "N5_cauda": "**NAO HA CAUDA ⚪ NEM fail NO e103.** O censo (`f5/f30/censo_completo_22.csv`, alg=e103) da **669 celulas, 669 'ok', 0 ⚪, 0 fail** — e a autoridade do rodape confirma: `status='ok'` no footer da ⑥ E no ⑤ em 669/669, `termino='normal'` em 669/669, `n_retries=0` em 669/669, `cache_hits=0`, `fallback_ativado=false`, `n_geracoes=99` em 669/669 (66.231 eventos densos 1..99, zero furo), `fe_final==maxfe==n_dataset` em 669/669, ZERO guard de orcamento, ZERO `n_mse_neg`, ZERO σ negativo em 40 milhoes de linhas de ③, ZERO linha rasgada na ⑥ (a F5 tinha 4). Taxa de sucesso por problema: **100% em 25/25**. O e103 e o oposto das incapacidades documentadas (b1xDTLZ4 0/30, c262xWFG1 2/30, c154, c238): ele nunca quebrou.\n\nA \"cauda\" do e103 e de outra natureza — sao **81 celulas que NUNCA FORAM PRODUZIDAS** (669 de 750 = 89,2%), e a distribuicao delas e informativa:\n- **sementes 13 e 17: ausentes nos 25 problemas** (50 celulas). Elas EXISTEM em 20 outros configs (449 celulas cada). O e103 e o unico config nao-batch que nao as tem. Busca no staging das 6 VMs (`~/mestrado_coleta_m8/matlab-vm*/experiments/off/e103/`): **nenhum arquivo** de semente 13 ou 17 — nao foram executadas e falharam, simplesmente nao existem.\n- **semente 26: ausente nos 25 problemas** (25 celulas). Esta e uma lacuna do REGIME: falta tambem em b5m, b5r e moead_media — o lote offline da semente 26 nao foi despachado.\n- **6 celulas esparsas** (BBOB_F49/23, BBOB_F5/1, DTLZ3/23, DTLZ7/19, MMF4/4, ZDT6/28), todas presentes nos 3 outros configs offline.\n\nA UNICA anomalia de execucao reproduzida e **nao-fatal e deterministica por problema**: 80 celulas gravam 108 registros na ⑥ em vez de 107, sempre por um `warn_setup = MATLAB:nearlySingularMatrix` na geracao 0. Sao **exatamente e integralmente os 3 problemas D=2 / n_dataset=61 / 8 centros** — MMF1 27/27, MMF11_L 27/27, MMF4 26/26 — em 80/80 das celulas desses problemas e em 0/589 das demais. Nao e falha: e a consequencia esperada de `spread = 5*max(pdist(centros))` (kernel quase-plano => colunas quase colineares => `mldivide` avisa), pre-registrada no hazard L.15, e o warning nao foi silenciado. **Mas ela TEM consequencia comportamental que so 27 sementes revelam**: sao esses mesmos 3 problemas que carregam a maior instabilidade entre sementes de todo o grid (CV do WAPE da RBFN 1,157 / 0,672 / 0,391; CV do IGD+ 0,780 / 0,904 / 0,772 contra mediana 0,180). O guard nao derruba a celula — degrada a variancia dela. Isso e resultado, nao defeito, e o artigo nao o preve.\n\nSegundo resultado de cauda, este contra o algoritmo: em **177/669 celulas o endpoint real e PIOR que o dataset de entrada**. Concentrado e sistematico: MMF16_20 0/27 batem (ganho mediano **-886%**), WFG9 2/27, WFG2 3/27, BBOB_F17 8/27, ZDT4 10/27, MMF4 11/27, BBOB_F55 13/27. Em WFG2, 10 celulas terminam com >=93 dos 100 individuos finais ainda sendo membros do dataset (3 delas com os 100) — a busca de 99 gerações nao produziu nada que sobrevivesse a selecao ambiental. Do outro lado, 225/669 celulas substituem 100% do dataset ate a g99 e a meia-vida mediana da ② e de 3 gerações.",
+ "aspectos": [
+  {
+   "id": "A01",
+   "aspecto": "Regime offline puro: zero FE real na busca; dataset = orcamento",
+   "classe": "1",
+   "medicao": "fe_final==maxfe==n_dataset em 669/669; fase=='init' em 291.072/291.072 linhas da ①; tempo_aval_real_s 0,8-8,3 ms (registro da ponte metadata-only, NAO avaliacao — armadilha 26 reconfirmada: 0 celulas com valor zero); zero guard de orcamento",
+   "veredito": "conforme",
+   "muda_vs_s42": false,
+   "arquivo_linha": "scratchpad/e103_cells.csv (a01_offline); scratchpad/e103_timing.csv"
+  },
+  {
+   "id": "A02",
+   "aspecto": "Tier 31D-1 (artigo: 11D-1); sem tier big; sem sweep na M8",
+   "classe": "2",
+   "medicao": "31D-1 exato em 669/669 (61,216,309,371,619,681,929 para D=2,7,10,12,20,22,30). A M8 nao tem celulas de sweep para o e103 (censo: exp='off' em 669/669) — o eixo D51/D55-56 ficou so na s42",
+   "veredito": "desvio sancionado por D90 (mesmo orcamento real da trilha online); efeito: 2,82x mais dado que o artigo",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/e103_cells.csv (a02_tier)"
+  },
+  {
+   "id": "A03",
+   "aspecto": "Proveniencia e integridade da ① contra o artefato do dataset",
+   "classe": "1",
+   "medicao": "669/669 celulas: max|dX| = max|df| = 0,0 EXATO na comparacao float32<->float32 contra data/datasets/<prob>/ds_<prob>_<seed>.parquet; comparacao crua da 2,4e-7 em X e 3,98 em f (BBOB_F17, escala 1e5-1e7) — armadilha 29 reconfirmada; 0 duplicatas de X em 291.072 linhas; solution_id e fe_index densos em 669/669",
+   "veredito": "conforme",
+   "muda_vs_s42": false,
+   "arquivo_linha": "scratchpad/e103_cam12.csv (dX_f32, df_f32, dup_X)"
+  },
+  {
+   "id": "A04",
+   "aspecto": "Populacao inicial = dataset INTEIRO (B7.9)",
+   "classe": "1",
+   "medicao": "n_julgados(g1) == n_dataset+100 em 669/669; == 200 de g2 a g99 em 669/669 (65.562 gerações)",
+   "veredito": "conforme",
+   "muda_vs_s42": false,
+   "arquivo_linha": "scratchpad/e103_cells.csv (a04_g1, a04_g2)"
+  },
+  {
+   "id": "A05",
+   "aspecto": "N=100, kappa=0,05, SBX/PM eta=20, torneio binario",
+   "classe": "1",
+   "medicao": "n_sel==100 em 66.231/66.231 gerações; params do ⑤ presentes em 669/669 com N=100 e kappa=0,05. Marca DECLARATIVA (Botao 3): o valor de kappa e o torneio nao tem consequencia observavel isolada na ③",
+   "veredito": "conforme (direta-declarativa)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "scratchpad/e103_cells.csv (a05_nsel, params_ok)"
+  },
+  {
+   "id": "A06",
+   "aspecto": "pm = 1/D (fix 🔴 D30 do bug 1/D²)",
+   "classe": "1",
+   "medicao": "literal lido NO COMMIT DA CAMPANHA: git show 63db46b1:algorithms/e103_IBEA-MS/IBEAMS.m linha 61 = GA(Global, decs(Population(MatingPool)), {1,20,1,20}); GA.m mantem rand<proM/D. Consequencia observavel medida: renovacao da populacao (1 - n_ds_membros mantido) incompativel com 1/D²",
+   "veredito": "conforme (🔴 bug->ARTIGO, D30)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "ua-dd-saea/algorithms/e103_IBEA-MS/IBEAMS.m:61"
+  },
+  {
+   "id": "A07",
+   "aspecto": "99 gerações executadas (100 nominais) => 9.900 avaliacoes-surrogate",
+   "classe": "2",
+   "medicao": "n_geracoes==99 no ⑤ e no footer em 669/669; eventos densos 1..99 sem furo (66.231); ③ de busca com 19.800 linhas exatas (2 modelos x 100 x 99) em 669/669 = 13.246.200 linhas. Deficit 1,0%",
+   "veredito": "desvio sancionado 🟠 impl->CODIGO (off-by-one `while CurGen<100` com CurGen=1), mantido deliberadamente e declarado no header da ⑥",
+   "muda_vs_s42": false,
+   "arquivo_linha": "scratchpad/e103_cells.csv (a07_ger); scratchpad/e103_sonda.csv (n_busca)"
+  },
+  {
+   "id": "A08",
+   "aspecto": "Kriging DACE regpoly1+corrgauss, bounds [1e-3,1e3], e o theta congelado em theta0=10 nas altas dimensoes",
+   "classe": "1",
+   "medicao": "FUNCAO-DEGRAU PERFEITA E INVARIANTE A SEMENTE: theta == 10 em todas as coordenadas e objetivos em 242/242 celulas com D>=20 (D=20:27, D=22:161, D=30:54) e em 0/427 celulas com D<=12. Nas D<=12: 198 celulas encostam no piso 1e-3, 17 no teto 1e3. Bounds respeitados em 669/669 (T11 media 21/45)",
+   "veredito": "conforme — e e a evidencia mecanistica do J4/limitacao declarada na Conclusao do artigo",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/e103_cells.csv (a08_theta_frozen/lo/hi)"
+  },
+  {
+   "id": "A09",
+   "aspecto": "1 Kriging por objetivo, treino UNICO (nunca retreina)",
+   "classe": "1",
+   "medicao": "fit_series de comprimento 1 no ⑤ em 669/669; ④ com 1 linha (geracao 0, n_acumulado==n_dataset); fe_treino_max e valor UNICO na ③ inteira E nos 66.231 eventos, igual a n_dataset-1, em 669/669",
+   "veredito": "conforme",
+   "muda_vs_s42": false,
+   "arquivo_linha": "scratchpad/e103_cells.csv (a09_ftm_unico, n_fit_series)"
+  },
+  {
+   "id": "A10",
+   "aspecto": "RBFN: centros = ceil(sqrt(n_dataset)) (D93 restaura a formula do artigo sobre o codigo)",
+   "classe": "1",
+   "medicao": "center_num == ceil(sqrt(n_dataset)) em 669/669: 8(61) 15(216) 18(309) 20(371) 25(619) 27(681) 31(929), contra o stock ceil(sqrt(11D-1)) que daria 5,9,11,12,15,16,19. Literal lido no commit da campanha (construct_Rnets.m:10)",
+   "veredito": "conforme — o resultado E a formula do ARTIGO; a D93 foi o que a restaurou",
+   "muda_vs_s42": false,
+   "arquivo_linha": "ua-dd-saea/algorithms/e103_IBEA-MS/construct_Rnets.m:10; scratchpad/e103_cells.csv (a10_ok)"
+  },
+  {
+   "id": "A11",
+   "aspecto": "spread = 5*max(pdist(centros)) e a quase-singularidade ESPERADA",
+   "classe": "1",
+   "medicao": "rbfn_spread escala com a caixa: 4,324 a 305,424 em 669 celulas. Guards: EXATAMENTE 80, todos MATLAB:nearlySingularMatrix, todos na geracao 0, todos nos 3 problemas D=2/n=61/8 centros (MMF1 27/27, MMF11_L 27/27, MMF4 26/26) e em 0/589 das demais. Warning nao silenciado",
+   "veredito": "conforme (hazard L.15 pre-registrado) — mas ver N5: e nessas 80 celulas que mora toda a instabilidade entre sementes do grid",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/e103_cells.csv (n_recs==108, warn_setup, a11_spread)"
+  },
+  {
+   "id": "A12",
+   "aspecto": "1 RBFN multi-saida (agente-4 §3.2 afirma 'dois modelos por objetivo')",
+   "classe": "2",
+   "medicao": "cada linha modelo_flag='RBFN' traz mu_0..mu_{M-1} juntos, em 669/669, inclusive nas 214 celulas M=3; 20.003.100 linhas RBFN na ③",
+   "veredito": "desvio sancionado por precedencia do bundle ⟦v2.2⟧ sobre o agente-4 (🟠 impl->codigo); contradicao registrada, nao re-litigada",
+   "muda_vs_s42": false,
+   "arquivo_linha": "scratchpad/e103_sonda.csv (n_rbfn)"
+  },
+  {
+   "id": "A13",
+   "aspecto": "JudgeModel: diagonal i==j EXCLUIDA (fix 🔴 D30 — o stock zerava o teste com qualquer MSE>0)",
+   "classe": "1",
+   "medicao": "literal no commit da campanha: JudgeModel.m:38 `Msite = (sum(site,3)>=(M-1)) | logical(eye(N));`. Efeito por contraste medido: COM o fix, 134/669 celulas operam com Kriging em 99/99; SEM ele qualquer geracao com algum MSE>0 (todas as 66.231) cairia para RBFN => 0/669",
+   "veredito": "conforme (🔴 bug->ARTIGO, D30)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "ua-dd-saea/algorithms/e103_IBEA-MS/JudgeModel.m:38"
+  },
+  {
+   "id": "A14",
+   "aspecto": "Matriz N² completa (sem o early-exit do Alg. 3)",
+   "classe": "2",
+   "medicao": "n_pares_total == n_julgados² em 66.231/66.231 gerações (g1 de ZDT1: 1.029²=1.058.841; g2-99: 40.000)",
+   "veredito": "desvio sancionado DI-13.4 (🟠 resultado-equivalente: o switch e um OU logico, interromper cedo ou varrer tudo da o MESMO veredito) — e e a varredura completa que produz A15/A16/A18",
+   "muda_vs_s42": false,
+   "arquivo_linha": "scratchpad/e103_gens.csv (n_pares_total, n_julgados)"
+  },
+  {
+   "id": "A15",
+   "aspecto": "QUERY-JOIA: identidade fechada do gate 3-sigma — KFlag=1 ⟺ (nº de objetivos com R_m=1 em TODOS os N² pares) >= M-1",
+   "classe": "1",
+   "medicao": "66.231/66.231 gerações, 669/669 celulas, 25/25 problemas, 27 sementes. ZERO excecoes. Margem: nas 52.965 gerações RBFN o contador de objetivos 100%-confiaveis e exatamente 0 em TODAS (maior fracao ja alcancada por um objetivo nao-fechado: 0,961267; >0,99 em 0 gerações); nas 13.266 gerações Kriging e exatamente M-1, nunca M",
+   "veredito": "conforme — o uso da incerteza esta PROVADO pelos dados, agora com invariancia de semente",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/e103_gens.csv (kflag, byobj, n_pares_total)"
+  },
+  {
+   "id": "A16",
+   "aspecto": "Relaxacao UF>=M-1 e o contrafactual IBEA-MS-NT do artigo",
+   "classe": "1",
+   "medicao": "sob o criterio ESTRITO (SUM R = M) o Kriging seria escolhido em 0/66.231 gerações — as 669 celulas virariam R-IBEA puro. A relaxacao e a UNICA razao do Kriging no grid, e vira o jogo em exatamente 134 celulas (5 problemas x 26-27 sementes: DTLZ7, MMF11_L, ZDT1, ZDT3, ZDT4). Nas celulas Kriging o objetivo 'sobressalente' tem fracao de pares confiaveis mediana de apenas 0,0072",
+   "veredito": "conforme — replicacao quantitativa da ablacao da Fig. 4 do artigo em 27 replicas",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/e103_gens.csv (nfull vs M)"
+  },
+  {
+   "id": "A17",
+   "aspecto": "KFlag STATELESS (re-testado a cada geracao) e constancia por problema",
+   "classe": "1",
+   "medicao": "0 trocas de KFlag em 669/669 celulas (66.231 decisoes). Prova de que o teste e genuinamente refeito e nao memorizado: a estatistica do gate VARIA entre gerações em 669/669 celulas (amplitude mediana 0,6458, maxima 0,9048) enquanto o contador de objetivos 100%-confiaveis nunca muda em nenhuma celula. NOVO: a escolha e UNANIME entre as 26-27 sementes em 25/25 problemas",
+   "veredito": "conforme — e supera o que o artigo alega (ele so afirma constancia intra-run)",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/e103_cells.csv (a17_trocas, kflag_mode); scratchpad/e103_gens.csv"
+  },
+  {
+   "id": "A18",
+   "aspecto": "Objetivo degenerado (sigma->0) como raiz causal da escolha",
+   "classe": "1",
+   "medicao": "(nº de objetivos com krig_sigma2 < 1e-20) >= M-1 ⟺ KFlag em 669/669. Separacao BIMODAL sem sobreposicao: sigma² do objetivo degenerado <= 3,764e-32 (2 celulas com 0,0 exato) contra >= 1,183e-02 do nao-degenerado; razao mediana 1,02e+32, minima 3,19e+29. ZERO das 535 celulas RBFN tem objetivo degenerado; TODAS as 134 Kriging tem exatamente M-1. Confirmado na sonda: WAPE do Kriging nesses objetivos = 0,0000 (DTLZ7)",
+   "veredito": "conforme — explica mecanisticamente por que a escolha e invariante a semente",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/e103_cells.csv (krig_sigma2, a18_ndegen, a18_ok)"
+  },
+  {
+   "id": "A19",
+   "aspecto": "sigma exportado (Kriging) / NULL (RBFN) e a calibracao",
+   "classe": "2",
+   "medicao": "sigma NULL em 0 das 20.003.100 linhas Kriging e em 20.003.100/20.003.100 das RBFN; ZERO sigma negativo em 40.006.200 linhas; ZERO evento com n_mse_neg>0 em 66.231 gerações. Cobertura +-1,96sigma na sonda (20.000 pts, 669 celulas): 0,9422-0,9791 nos 20 problemas nao-degenerados (nominal 0,95) — bem calibrado. Nos 5 problemas com objetivo degenerado a cobertura DEFLACIONA como previsto pela armadilha 20: DTLZ7 0,0630 · MMF11_L 0,4256 · ZDT4 0,5021 · ZDT3 0,5052 · ZDT1 0,5089",
+   "veredito": "desvio sancionado (sigma exportado = extensao 🟢 nossa, declarada no sigma_dict de 669/669)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "scratchpad/e103_sonda.csv (sigma_null_krig/rbfn, cob95_med, sigma_neg)"
+  },
+  {
+   "id": "A20",
+   "aspecto": "Amend*: membros do dataset mantem o f REAL (MSE=0)",
+   "classe": "1",
+   "medicao": "amostra de 75 celulas (3 sementes/problema, seed 11), join ③->① por real_solution_id: 122.831 linhas de membro no ramo Kriging com **WAPE = 0,0 e desvio absoluto maximo 2,27e-13** — interpolacao exata do f real. O sigma nesses mesmos pontos e 2-6 ordens de grandeza menor que o dos nao-membros (p.ex. ZDT1/0: mediana 2,51e-08 x 5,11e-03; razao 2,0e+05), coerente com interpolador. A coluna RBFN dos MESMOS pontos da WAPE mediana 0,3642 (min 0,0017, max 1,2753) — e a re-predicao INCONDICIONAL, armadilha 23 reconfirmada",
+   "veredito": "conforme (direta)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "scratchpad/e103_amend.csv"
+  },
+  {
+   "id": "A21",
+   "aspecto": "Motor IBEA_eps+: elitismo pais uniao filhos com truncamento iterativo",
+   "classe": "1",
+   "medicao": "verificavel por consequencia (a ③ grava so os 100 selecionados): n_sel==100 em 66.231/66.231; n_front1 sobe de mediana 18 na g1 para 94 na g99; a ② decai com meia-vida mediana de 3 gerações (min 2, max 98), 225/669 celulas zeram antes da g99 e 444 nunca zeram",
+   "veredito": "conforme (indireta) — a identidade fechada do Fit fica no teto T2",
+   "muda_vs_s42": false,
+   "arquivo_linha": "scratchpad/e103_cells.csv (nf1_g1, nf1_g99, ds_meia_vida)"
+  },
+  {
+   "id": "A22",
+   "aspecto": "Sonda: 2 blocos POR MODELO (nao 2 fases), sobre a regua Sobol congelada",
+   "classe": "2",
+   "medicao": "n_blocos=2 e n_falhas=0 no ⑤ em 669/669; 40.000 linhas de sonda com geracao=null em 669/669 (26.760.000 no total); em 100 celulas conferidas o X e BIT-IDENTICO entre os 2 blocos e o join posicional com o gabarito data/sonda/sonda_<prob>.parquet da max|dX| = 0,0 EXATO; os mu NAO sao identicos entre blocos (por desenho — sao 2 modelos)",
+   "veredito": "desvio sancionado DI-13.5 (sonda offline no setup); o congelamento se prova por A09",
+   "muda_vs_s42": false,
+   "arquivo_linha": "scratchpad/e103_sonda.csv (sonda_X_bloco_bitig, sonda_X_vs_gab_f32)"
+  },
+  {
+   "id": "A23",
+   "aspecto": "② = registro de quais membros do dataset ainda estao na populacao; decay",
+   "classe": "2",
+   "medicao": "len(②) == SUM n_ds_membros da ⑥ em 669/669 (1.109.661 linhas); meia-vida mediana 3 gerações; 225/669 celulas chegam a zero antes da g99; 10 celulas terminam com >=90 membros do dataset ainda na populacao (WFG2 em 8 delas, 3 com os 100 intactos)",
+   "veredito": "desvio sancionado (no e103 a ② NAO e vazia, ao contrario do c311/DI-16.17 — armadilha 21 reconfirmada)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "scratchpad/e103_cam12.csv (n2); scratchpad/e103_gens.csv (n_ds_membros)"
+  },
+  {
+   "id": "A26",
+   "aspecto": "Censo do ⑥, termino, e o contrato do ⑤",
+   "classe": "1",
+   "medicao": "censo canonico 107 registros (header 1 + decision 1 + e103_setup 1 + sonda 2 + e103_gen 99 + e103_busca 1 + f_best_dataset 1 + footer 1) em 589/669 e 108 nas 80 com guard — sem nenhuma outra variacao. ZERO linhas rasgadas em 669 arquivos (a F5 tinha 4 celulas com JSONL_1LINHA_RASGADA). status='ok' no ⑤ E no footer em 669/669; termino='normal' 669/669; params e sigma_dict presentes em 669/669",
+   "veredito": "conforme — SUBIU de (2) para (1) versus a T11 porque as 4 caudas nao-parseaveis desapareceram",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/e103_cells.csv (n_recs, censo_ok, n_rasgadas)"
+  },
+  {
+   "id": "A28",
+   "aspecto": "tempo_geracao_s na ④/evento e103_busca (correcao I-7/A5 da T11)",
+   "classe": "2",
+   "medicao": "presente e CORRETO em 669/669: tempo_geracao_s == tempo_fit_s + tempo_busca_s com tolerancia 1e-6 em 669/669, ZERO NaN. Na s42 da T11 o campo era NaN — o fix (commit 5aa31e3) chegou ao dado de producao",
+   "veredito": "desvio sancionado (instrumentacao nossa 🟢, §17.6 do contrato) — e funciona de fato, agora em producao",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/e103_cells.csv (a28_tempo_ger_ok, t_ger)"
+  },
+  {
+   "id": "A29",
+   "aspecto": "Determinismo do run / reprodutibilidade bit-a-bit",
+   "classe": "1",
+   "medicao": "49 pares de replica independentes, deriva 0,0 em todos: (a) 24 duplicatas vm1 x vm5 (semente 7, 24 problemas, ~19h de intervalo, wall 1,60-2,66x diferente) com md5 identico em ①②③ e krig_sigma2 bit-identico; (b) 25 pares F5-julho/vm3 x M8-agosto/vm5 (semente 42) com X, mu e sigma das 19.800 linhas de busca bit-identicos, alem de theta, sigma², centros, spread e as 99 decisoes de kflag. Ver N4",
+   "veredito": "conforme — patamar muito acima do da T11 (que usara 5 pares da mesma maquina)",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/e103_deriva.csv"
+  },
+  {
+   "id": "A31",
+   "aspecto": "espaco_modelo nas linhas de BUSCA da ③ (era o classe (3) da T11)",
+   "classe": "1",
+   "medicao": "**RESOLVIDO E MEDIDO**: espaco_modelo=='cru' em 19.800/19.800 linhas de busca em 669/669 celulas (13.246.200 linhas), e 'cru' em 40.000/40.000 de sonda — ZERO NULL. O fix e o commit 1dc9f9e [T14.7+T14.8] BL-18, que nomeia e103 E c217, exatamente os dois configs que a T11 flagrou. E o par cross-campanha prova que o fix foi CIRURGICO: entre a s42 de julho e a de agosto o unico delta na ③ inteira e essa coluna (0 -> 19.800 'cru'), com X, mu e sigma bit-identicos em 25/25 problemas",
+   "veredito": "conforme — classe (3) da T11 fechada, com o loop diagnostico->fix->medicao completo",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/e103_sonda.csv (esp_busca_cru, esp_busca_null); ua-dd-saea/src/e103_instrument.m:132,138"
+  },
+  {
+   "id": "A32",
+   "aspecto": "A ⑦ do e103 e POS-HOC por desenho (o runner MATLAB nao tem caminho write_final; a ③ float32 e a unica fonte)",
+   "classe": "2",
+   "medicao": "confirmado no proprio codigo: scripts/final_eval.py declara o e103 em OFFLINE_CONFIGS e a docstring diz literalmente que a ⑦ ausente 'segue vermelha ate este script rodar — exatamente o estado do e103 hoje'; o caveat de precisao (decs float32 da ③, desvio relativo em f de ate 9,7e-6) esta registrado. Os manifestos ⑦ dos configs R3 (b5m) trazem origem_precisao='float64 (decs em memoria — caminho nativo R3)', que o e103 nao tem",
+   "veredito": "desvio sancionado por DI-08 + arquitetura declarada em final_eval.py (o MECANISMO da ausencia e legitimo; a NAO-EXECUCAO na M8 e outra coisa — ver classe3 C1)",
+   "muda_vs_s42": true,
+   "arquivo_linha": "ua-dd-saea/scripts/final_eval.py:41-67,136-152,441-444"
+  },
+  {
+   "id": "A34",
+   "aspecto": "NOVO — Invariancia da escolha do modelo entre sementes (so testavel com replicas)",
+   "classe": "1",
+   "medicao": "unanimidade em 25/25 problemas sobre 26-27 datasets LHS distintos cada: Kriging em DTLZ7 26/26, MMF11_L 27/27, ZDT1 27/27, ZDT3 27/27, ZDT4 27/27; RBFN nos outros 20 problemas em 535/535. ZERO celulas mistas, ZERO trocas dentro de celula",
+   "veredito": "conforme — confirma e ENDURECE a afirmacao J1 do artigo",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/e103_cells.csv (kflag_mode por problema)"
+  },
+  {
+   "id": "A35",
+   "aspecto": "NOVO — Formula de semeadura: unicidade e correspondencia do dataset por (problema, semente)",
+   "classe": "1",
+   "medicao": "669 x_hash distintos, 669 f_hash distintos, 669 dataset_hash distintos em 669 celulas — ZERO colisao; para cada semente o nº de x_hash distintos == nº de problemas, e para cada problema == nº de sementes; doe_hash (o que o despachante declarou) == x_hash (o que o algoritmo carregou) em 669/669",
+   "veredito": "conforme — teto que 1 semente nao podia tocar",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/e103_cells.csv (x_hash, f_hash, ds_hash, doe_eq_xhash)"
+  },
+  {
+   "id": "A36",
+   "aspecto": "NOVO — Espelho de VM x canonico (integridade da coleta)",
+   "classe": "1",
+   "medicao": "4.014 arquivos (669 celulas x 6 camadas) conferidos por tamanho + md5 contra o caminho de origem declarado em _FONTES.csv: **4.014/4.014 identicos, ZERO divergencia**. A T11 achara 1 divergencia na s42 (o sidecar A30); aqui nao ha analogo",
+   "veredito": "conforme",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/e103_cam12.csv (espelho_ok, espelho_tot)"
+  },
+  {
+   "id": "A37",
+   "aspecto": "NOVO — Contrato ⑤ schema v2 e portoes da M8 (correcao C5 da T11)",
+   "classe": "1",
+   "medicao": "schema_version=2, campanha_id='7f4f0e429a46_M8', repo_hash='63db46b1...' em 669/669 (na s42 da T11 eram v1, None e string vazia); sonda.desligada presente (=false) em 669/669; gates_f30.csv da camp/repo/par/sig VERDES em 669/669 e mot=NaN em 669/669",
+   "veredito": "conforme — a correcao C5 da T11 chegou a producao",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/e103_cells.csv (schema, campanha, repo_hash); f5/f30/gates_f30.csv"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C1",
+   "descricao": "CAMADA ⑦ AUSENTE EM 669/669 CELULAS (0,0%), enquanto os outros 3 configs offline da MESMA campanha estao em 100%: b5m 679/679, b5r 725/725, moead_media 725/725. O que MEDI: (a) nenhum arquivo __final.parquet nem __final.manifest.json em resultados_experimentos/e103/**; (b) _FONTES.csv lista exatamente 4.014 linhas do e103 = 669 x 6 camadas, sem 'final', enquanto lista 'final' para os outros 3 (1.358 / 1.450 / 1.450 linhas); (c) o footer da ⑥ declara n_final=100 em 669/669 mas o manifesto nao tem entrada paths.local.final; (d) o corpus antigo da F5/T11 (ua-dd-saea/data/experiments/off/e103/) TEM a ⑦ de todas as 25 celulas s42. CAUSA-RAIZ PROVADA no codigo, nao inferida: o runner MATLAB do e103 nao possui caminho write_final (a ③ float32 e a unica fonte) e a ⑦ dele e escrita POS-HOC por scripts/final_eval.py, cuja propria docstring diz 'a ⑦ ausente segue vermelha ate este script rodar — exatamente o estado do e103 hoje'. Os b5m/b5r/moead_media sao runners R3 nativos e gravam a ⑦ inline com decs float64. Ou seja: o desenho e legitimo (A32, classe 2); a NAO-EXECUCAO do passo pos-hoc na campanha M8 e a lacuna. IMPACTO MEDIDO E NAO ESTIMADO: sem ⑦ nao existe endpoint oficial do e103 na M8 — nem IGD+, nem HV, nem spacing, nem fantasia, nem nd_pos_real — e a armadilha 25 da T11 fecha a saida alternativa: as metricas oficiais lidas da ① EMPATAM EXATAMENTE entre os 5 offline porque leem o mesmo dataset compartilhado. Logo o e103 nao pode ser ranqueado contra nenhum outro config hoje. Para dimensionar o que esta bloqueado, recomputei o endpoint eu mesmo (669 celulas, avaliando os 100 finais da g99 na f real via src/problems.py, funcao pura, e medindo com src/metrics.py) e VALIDEI o metodo contra a ⑦ oficial da F5 (f5/transversal_offline_camada7.csv): reproduz 25/25 problemas da s42, max |dIGD+| = 2,19e-6 e max |dHV| = 4,95e-7; o unico aparente desencontro (DTLZ4, nd 39 x 22) resolve-se exatamente ao aplicar a convencao B7.5 de filtrar a nao-dominancia sobre a VISTA FLOAT32 do f — recomputado com ela, da 22, digito a digito.",
+   "gravidade": "ALTA",
+   "acao": "ESCALAR ao autor (D81) e, se ele autorizar, rodar `$PY scripts/final_eval.py --alg e103 --all-seeds` (o script ja aceita e103 e ja tem o dedup DI-41 por modelo_flag em final_eval.py:136-152, indispensavel aqui porque a ③ do e103 grava 200 linhas na g99 — 100 por modelo — e sem o filtro a ⑦ nasceria com o dobro e com spacing 0,0). Confirmei que o filtro e SEGURO neste corpus: o X dos dois blocos de modelo e bit-identico em 18/18 amostras (g1, g50, g99), logo escolher o primeiro bloco nao muda o conjunto de pontos. Ate isso rodar, NENHUMA leitura de endpoint do e103 deve entrar na dissertacao; o meu recomputo fica como evidencia de dimensionamento, NAO como camada oficial.",
+   "arquivo_linha": "ua-dd-saea/scripts/final_eval.py:41-67 e :136-152; resultados_experimentos/_FONTES.csv; scratchpad/e103_endpoint.csv"
+  },
+  {
+   "id": "C2",
+   "descricao": "81 DE 750 CELULAS NUNCA FORAM PRODUZIDAS (669 = 89,2%), com um padrao que nao e aleatorio. As sementes 13 e 17 faltam nos 25 problemas (50 celulas) — e elas EXISTEM em 20 outros configs (449 celulas cada); o e103 e o unico config nao-batch da campanha que nao as tem. A semente 26 falta nos 25 problemas (25 celulas), mas esta e uma lacuna do REGIME: falta igualmente em b5m, b5r e moead_media. Sobram 6 celulas esparsas (BBOB_F49/23, BBOB_F5/1, DTLZ3/23, DTLZ7/19, MMF4/4, ZDT6/28), todas presentes nos 3 outros offline. Procurei residuos nos 6 espelhos de VM (~/mestrado_coleta_m8/matlab-vm{1,2,3,4,5,10}/experiments/off/e103/): ZERO arquivos de semente 13, 17 ou 26 — nao ha execucao truncada, ha ausencia de despacho. Nao e falha do algoritmo (669/669 ok, 0 ⚪, 0 fail), mas colide com a afirmacao de protocolo do artigo: 'All of the compared algorithms are performed over 30 independent runs' (Sec. IV-7). Efeito pratico: 19 problemas com n=27 e 6 com n=26.",
+   "gravidade": "MEDIA",
+   "acao": "ESCALAR ao autor: (a) re-despachar as 50 celulas das sementes 13 e 17 (que so faltam ao e103) e as 6 esparsas — custo estimavel pelo wall medido: mediana ~44 s/celula, ~85% do corpus abaixo de 250 s, so as 54 celulas ZDT1/ZDT3 (n=929) passam de 400 s; (b) decidir se a semente 26 entra para os 4 configs offline juntos ou fica fora do protocolo; (c) se nada for re-rodado, DECLARAR no texto que o n do e103 e 27 (26 em 6 problemas) e nao 30, com o par (problema, semente) faltante listado.",
+   "arquivo_linha": "f5/f30/censo_completo_22.csv (alg=e103); ~/mestrado_coleta_m8/matlab-vm*/experiments/off/e103/"
+  },
+  {
+   "id": "C3",
+   "descricao": "O campo `line` das 3 ancoras do e103 no anchors.json continua defasado — herdado da armadilha 33 da T11 e NAO corrigido no commit da campanha. Medido por leitura direta: anchors.json declara e103-pm-D93a em IBEAMS.m:43, e103-judgemodel em JudgeModel.m:32 e e103-centros-D93 em construct_Rnets.m:4; os literais estao de fato em :61, :38 e :10 (a deriva de +18/+6/+6 e exatamente o comentario que o proprio patch introduziu). Confirmei os 3 literais em `git show 63db46b1:` — os patches ESTAO aplicados e o preflight.py casa por conteudo (substring), entao o portao passa e nenhum numero e afetado. O risco e de auditoria humana: quem for pela linha nao encontra o patch.",
+   "gravidade": "BAIXA",
+   "acao": "Atualizar os 3 campos `line` em claude_code_context/artifacts/anchors.json (43->61, 32->38, 4->10). Item de higiene para a rodada perfeita, junto com o mesmo problema em outros configs. Nenhuma re-execucao envolvida.",
+   "arquivo_linha": "ua-dd-saea/claude_code_context/artifacts/anchors.json (ids e103-pm-D93a, e103-judgemodel, e103-centros-D93)"
+  }
+ ],
+ "score": 9,
+ "score_t11": 9.5,
+ "veredito_recomendado": "RECOMENDACAO (o veredito e do autor — D97): **ACEITAR O MECANISMO SEM RESSALVA + BLOQUEAR TODA LEITURA DE ENDPOINT ATE A ⑦ SER GERADA.**\n\nScore 9,0 contra 9,5 da T11. Denominador 35 aspectos (os 6 tetos ficam fora): (1) conforme 23/35 = 65,7% · (2) desvio sancionado com decisao citada 9/35 = 25,7% · (3) inexplicado 3/35 = 8,6% · T 6 (T1' stream RNG · T2 Fit/torneio · T3 detalhes de codigo · T5 endpoint oficial 🆕 · T6 G-6 nao re-medido 🆕; T4 CAIU).\n\nCAUSA DO MOVIMENTO, NOMEADA — e ela NAO esta no algoritmo. O mecanismo MELHOROU em relacao a T11 em todas as dimensoes medidas, e por larga margem:\n1. As DUAS classes (3) da T11 fecharam. A31 (espaco_modelo NULL na busca) foi corrigida no commit 1dc9f9e/BL-18 e eu MEDI o fix em producao: 19.800/19.800 'cru' em 669/669, e o par cross-campanha prova que a correcao nao tocou um unico numero. A30 (sidecar da ⑦ dessincronizado) nao tem analogo — a varredura md5 de 4.014 arquivos espelho x canonico deu 4.014/4.014 identicos.\n2. As identidades estruturais deixaram de ser \"fechadas em 1 semente\" e passaram a \"fechadas em 27\": a query-joia em 66.231/66.231 gerações sem excecao, o criterio causal sigma->0 em 669/669, e a margem quantificada (o gate nunca chega a 4 pp de virar; a separacao de sigma² e de 29 a 32 ordens de grandeza).\n3. Tres tetos cairam: T4 (comportamento), a formula de semeadura (669 hashes distintos, 0 colisoes) e o expoente O(N^2,58-2,60) por regressao sobre 7 tiers.\n4. A deriva cross-maquina, que a doutrina mandava assumir como ruido, foi MEDIDA e e ZERO: 49 pares de replica independentes bit-identicos.\n5. A qualidade do artefato subiu: 0 linhas rasgadas na ⑥ (a F5 tinha 4), ⑤ schema v2 completo em 669/669, tempo_geracao_s correto em 669/669 (era NaN na s42), 4 portoes verdes em 669/669.\n\nO que puxa de 9,5 para 9,0 sao duas lacunas de COMPLETUDE DE CAMPANHA que o corpus s42 nao tinha e que nenhuma decisao sanciona para a M8: a camada ⑦ ausente em 669/669 (contra 45/45 presentes na s42, e contra 100% nos outros 3 offline da mesma campanha), que remove o endpoint inteiro do config; e as 81 celulas nunca produzidas, incluindo as sementes 13 e 17 que so faltam ao e103. Nenhuma das duas e benigna no sentido da regua (\"9 = com (3) menores investigados e provados benignos\"): a primeira bloqueia a analise, a segunda contradiz o protocolo de 30 execucoes do artigo. Ambas, porem, estao integralmente diagnosticadas e tem acao de um comando cada, e nenhuma toca a fidelidade do algoritmo — por isso 9,0 e nao menos.\n\nSe a ⑦ for gerada e as 56 celulas do e103 (sementes 13/17 + as 6 esparsas) forem re-despachadas, este config vai para 9,5-10: nao sobra nenhum (3) exceto a linha defasada do anchors.json, e o mecanismo ja esta em condicao melhor do que a T11 encontrou.\n\nO QUE ESTE CORPUS NAO PERMITE AFIRMAR, e que nao afirmei: (i) qualquer desempenho comparado ao artigo (D, M, orcamento e metrica incomensuraveis — o dataset e 2,82x maior e a metrica e IGD+ normalizado contra IGD bruto com 5.000 pontos; NUNCA \"artigo melhor\", Botao 4); (ii) o Fit do IBEA e o torneio (T2), o que tambem impede testar a Fig. 5 do artigo no criterio dele; (iii) o endpoint OFICIAL (T5); (iv) a nao-perturbacao da sonda nesta campanha (T6 — a prova forte da T11 permanece, mas nao foi reproduzida); (v) qual consumidor puxa qual trecho do stream RNG (T1'). Os numeros de endpoint que reportei sao RECOMPUTO MEU em scratchpad, validado contra a ⑦ oficial da s42 em 25/25 problemas, e nao substituem a camada.",
+ "decisoes_ao_autor": [
+  "**D81 — A PERGUNTA ABERTA DO BRIEFING, RESPONDIDA E ESCALADA.** A ausencia da ⑦ nas 669 celulas e DESENHO **e** PASSO PENDENTE, nas duas metades: e desenho que o runner MATLAB do e103 nao escreva a ⑦ inline (nao ha caminho write_final; a ③ float32 e a unica fonte — final_eval.py:41-67 documenta isso e ate diz 'exatamente o estado do e103 hoje'); e e passo pendente que o pos-hoc nao tenha rodado na M8, porque b5m/b5r/moead_media estao em 100% (679/679, 725/725, 725/725) e a s42 da F5 tinha 45/45. Nao e defeito de celula. DECISAO NECESSARIA: autorizar `$PY scripts/final_eval.py --alg e103 --all-seeds`? Sem isso o e103 nao entra em nenhuma comparacao de endpoint — e a armadilha 25 fecha a saida alternativa (as metricas oficiais lidas da ① EMPATAM em 0,000000 entre os 5 offline por lerem o mesmo dataset).",
+  "**Convencao de precisao da ⑦ do e103.** Se autorizar o final_eval, registrar que o e103 e o unico offline cuja ⑦ nasce de decs float32 (os R3 usam float64 em memoria). Medi o efeito exato dessa convencao: no meu recomputo de DTLZ4/s42, nd_pos_real da 39 em float64 e 22 na vista float32 — e 22 e o valor da ⑦ oficial. A diferenca e concentrada em problemas de baixa diversidade (DTLZ4 e o caso). Vale declarar a convencao no texto e nao so no sidecar.",
+  "**As 56 celulas que so faltam ao e103.** Sementes 13 e 17 (50 celulas) existem em 20 outros configs; as 6 esparsas (BBOB_F49/23, BBOB_F5/1, DTLZ3/23, DTLZ7/19, MMF4/4, ZDT6/28) existem nos 3 outros offline. Re-despachar, ou declarar n=27? O artigo pede 30 execucoes (Sec. IV-7). A semente 26 e caso separado — falta aos 4 offline juntos, e decisao de regime, nao de config.",
+  "**A doutrina RUNBOOK §6.2 precisa de um qualificador.** Medi 49 pares de replica independentes do e103 (24 duplicatas vm1 x vm5 + 25 pares F5-julho/vm3 x M8-agosto/vm5) e a deriva e **bit-exata, 0,0**, incluindo krig_sigma2 e as 19.800 linhas de busca. A doutrina 'floats nao sao bit-identicos entre plataformas => fidelidade estatistica' e verdadeira para CROSS-ARQUITETURA (a T11 mediu x86 x arm64 e achou divergencia a partir da geracao 37) mas FALSA dentro da frota x86-64/Linux, que e onde estao 669/669 celulas desta campanha. Proponho ao autor narrar como 'bit-exata dentro de arquitetura, estatistica entre arquiteturas' — a consequencia pratica e que NAO ha piso de ruido de frota a descontar em nenhum contraste do e103.",
+  "**Achado que o artigo nao previu e que so 27 sementes revelam — vale para o texto.** A DECISAO do gate e invariante a semente em 25/25 problemas, mas a ORDENACAO DE ACURACIA que a justificaria nao e: em 10 dos 25 problemas a taxa de 'o modelo escolhido e o mais acurado' e intermediaria e depende do sorteio do dataset (BBOB_F22 3/27, BBOB_F17 4/27, ZDT6 3/27, DTLZ2 5/27, DTLZ3 2/27). Global: 273/669 = 40,8%, decomposto em 134/134 = 100% quando escolhe Kriging e 139/535 = 26,0% quando escolhe RBFN. Isto qualifica a afirmacao da Sec. IV-A do artigo de um jeito que 1 semente nao alcanca.",
+  "**Segundo achado para o texto: a instabilidade mora no guard.** Os 3 problemas D=2 / n_dataset=61 (MMF1, MMF11_L, MMF4) sao 80/80 celulas com `MATLAB:nearlySingularMatrix` no setup da RBFN — deterministico por problema, nao por semente — e sao exatamente os que carregam o maior CV entre sementes do grid (WAPE da RBFN 1,157 / 0,672 / 0,391; IGD+ 0,780 / 0,904 / 0,772 contra mediana 0,180). O guard nao derruba a celula: degrada a variancia dela. Isso confronta a afirmacao 'insensitive to the initial data' (Tabelas S.III/S.IV) num canto especifico e mensuravel.",
+  "**Terceiro achado, contra o proprio algoritmo, e o mais citavel.** A Conclusao do artigo adverte que usar a ultima geracao como saida final 'is not reliable in the offline data-driven optimization cases'. Medido no proprio e103 (recomputo validado): fantasia mediana 0,26 no ramo RBFN e 0,39 no Kriging, e **177/669 celulas terminam PIORES que o dataset de entrada** — MMF16_20 em 27/27 sementes (ganho mediano -886%), WFG9 25/27, WFG2 24/27, ZDT4 17/27. O ZDT4 e a replicacao integral da Fig. 4: escolhe Kriging em 27/27 por causa da relaxacao (sob o criterio estrito seria RBFN em 2.673/2.673) e e o pior perfil do grid. Sugiro que estes numeros so entrem no texto DEPOIS que a ⑦ oficial exista, com os valores dela e nao com os meus.",
+  "**Higiene:** os 3 campos `line` do anchors.json do e103 seguem defasados (43/32/4 declarados x 61/38/10 reais). O preflight casa por conteudo e passa; o custo e para auditoria humana. Item da rodada perfeita.",
+  "**Sobre o que eu NAO fiz, para o autor conferir:** nao executei nenhuma celula, nao chamei experiments.py / experiment.run / experiments.m, nao escrevi nada no repo nem no bucket, nao desliguei VM, nao deletei nada. Importei `src.experiment` (modulo inerte — o unico import de nivel de modulo e `from __future__`, zero referencias a AuditLogger), `src.problems` (catalogo pymoo puro) e `src.metrics` apenas para avaliar em memoria e medir; todos os artefatos que produzi estao em /private/tmp/claude-501/-Users-gmello/33c29160-6eb6-4277-a041-db4855486063/scratchpad/."
+ ]
+}

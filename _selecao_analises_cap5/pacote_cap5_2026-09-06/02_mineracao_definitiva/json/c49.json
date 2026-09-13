@@ -1,0 +1,132 @@
+{
+  "id": "c49",
+  "sigla": "Interactive Offline DD-MOEA Framework (sigla não-oficial)",
+  "titulo": "An Interactive Framework for Offline Data-Driven Multiobjective Optimization",
+  "ano": 2020,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Estudo de caso único num problema real offline: GAA (general aviation aircraft design), conforme a formulação de [15], com 27 variáveis de decisão, K=10 objetivos e 1 restrição (tratada como objetivo adicional, pois o framework não trata restrições nativamente — ver observações). Também um problema-teste biobjetivo de minimização genérico/não identificado (sem nome, sem D/M declarados), usado apenas para ilustrar visualmente o mecanismo de pré-filtragem em duas etapas (Fig. 2 e Fig. 3). O artigo cita ainda que há 'further analysis on benchmark problems' disponível como material suplementar externo (URL), não incluída no texto nem neste corpus.",
+    "orcamento": "Regime totalmente offline: 1000 amostras via Latin Hypercube Sampling (LHS), avaliadas uma única vez pela função verdadeira do GAA (usando a implementação MATLAB de [1]) para formar o dataset fixo — nenhuma avaliação real adicional ocorre durante a otimização. Sobre os surrogates de Kriging, o RVEA roda 100 gerações por iteração interativa; a demonstração do artigo usa 2 iterações (2 rodadas de preferência do DM).",
+    "execucoes": "Não relata número de execuções/sementes independentes — é um estudo de caso/demonstração único (a Fig. 5 mostra 1 execução ao longo de 2 iterações interativas), sem replicação estatística.",
+    "baselines": "Nenhuma comparação experimental com outro algoritmo nem com um piso sem surrogate é feita neste artigo. Há apenas uma menção conceitual (não reproduzida aqui) de que, em Mazumdar et al. 2019 [11] — trabalho anterior dos mesmos autores —, tratar a incerteza como objetivo(s) adicional(is) produziu 'better hypervolume and accuracy in RMSE' do que a 'generic approach' (abordagem genérica sem essa incerteza como objetivo).",
+    "metricas_principais": [
+      "nenhuma métrica quantitativa de desempenho (IGD/HV/GD/RMSE) é calculada nos resultados deste artigo — usa-se apenas a 'incerteza média normalizada' como codificação visual de cor"
+    ],
+    "testes": [
+      "nenhum"
+    ],
+    "apresentacao": "Resultados apresentados exclusivamente por gráficos de dispersão no espaço de objetivos (Fig. 3 e Fig. 5), coloridos pela incerteza média normalizada das soluções (azul = menor incerteza, amarelo = maior); pontos cinza = soluções rejeitadas em cada etapa de pré-filtragem; ponto/linha vermelha = ponto de referência do DM. Nenhuma tabela numérica de resultados em todo o artigo.",
+    "codigo_plataforma": "Não informado explicitamente para o framework/algoritmo proposto (RVEA + Kriging). Os dados offline do problema GAA foram gerados usando a implementação MATLAB de Castro-Gama (ref. [1], repositório 'GAA-problem-MATLAB' no GitHub)."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ilustração da 1ª etapa de pré-filtragem por hipercone (preferência de objetivo)",
+      "grupo_sugerido": "H",
+      "descricao": "O artigo ilustra, com um problema-teste biobjetivo de minimização não identificado, como a primeira etapa de pré-filtragem do framework (o 'hipercone' definido pelos vetores de referência adaptados às preferências do DM) reduz o arquivo de soluções de todas as gerações às soluções que respeitam a preferência de objetivo do DM. A Fig. 2 mostra o esquema geométrico (ângulos entre vetores-aresta e uma solução, pontos aceitos em verde e rejeitados em vermelho); a Fig. 3(a)→(b) mostra o efeito real sobre um arquivo de soluções coloridas por incerteza.",
+      "literal": "Sub-figure (b) shows the solutions after the first stage pre-filtering. It can be observed that only the solutions following the preferences for objectives (here the reference point in red) are filtered.",
+      "localizador": "Sec. 3.1, Fig. 2 e Fig. 3(a)-(b)",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Dispersão no espaço de objetivos f1×f2 (problema biobjetivo de minimização); cor = incerteza média normalizada; pontos cinza = rejeitados pela etapa 1; ponto/linha vermelha = ponto de referência do DM; execução única, sem réplicas/sementes.",
+      "achado": "A etapa de hipercone restringe efetivamente o arquivo às soluções alinhadas com a preferência de objetivo do DM (ponto de referência), descartando as que caem fora do cone definido pelos vetores-aresta adaptados — mas, isoladamente, não considera a incerteza (as soluções remanescentes ainda podem ter incerteza alta).",
+      "aplicabilidade": "não reproduzível com as 7 camadas da dissertação — exige implementar o mecanismo próprio do framework (arquivo de todas as soluções de todas as gerações, vetores de referência adaptáveis por ponto de referência do DM, e o teste geométrico de ângulo por hipercone), que não corresponde a nenhuma das camadas ①–⑦ registradas pela instrumentação da dissertação."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ilustração da 2ª etapa de pré-filtragem por ordenação não-dominada com incerteza",
+      "grupo_sugerido": "H",
+      "descricao": "Sobre o mesmo problema-teste biobjetivo, o artigo mostra o efeito da segunda etapa de pré-filtragem: ordenação não-dominada que inclui a incerteza como componente adicional do vetor (além dos valores de objetivo), aplicada às soluções que já passaram pela etapa do hipercone (como feito em [11]). O resultado (Fig. 3c) é um subconjunto que representa o trade-off entre valor de objetivo e incerteza.",
+      "literal": "Considering uncertainty while performing nondominated sorting finds the solutions representing the trade-off between objective values and uncertainty.",
+      "localizador": "Sec. 3.1, Fig. 3(b)-(c)",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesma convenção visual da Fig. 3(a)-(b) (dispersão f1×f2, cor = incerteza média normalizada, cinza = rejeitados); execução única.",
+      "achado": "Ao incluir a incerteza como componente extra na ordenação não-dominada, o subconjunto final passa a privilegiar soluções que equilibram bom valor de objetivo E baixa incerteza — diferente de manter apenas o critério de objetivo (etapa 1), que por si só não elimina soluções de alta incerteza.",
+      "aplicabilidade": "não reproduzível — mesma limitação da análise anterior: exige o arquivo interativo e a ordenação não-dominada 'aumentada' com incerteza como dimensão extra, mecanismo específico deste framework, sem correspondência direta nas 7 camadas."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Efeito da preferência de objetivo (ponto de referência) entre iterações — estudo de caso GAA",
+      "grupo_sugerido": "H",
+      "descricao": "No estudo de caso do problema real GAA (offline, 27 variáveis, 10 objetivos + 1 restrição-como-objetivo, Kriging+RVEA), o artigo mostra como o arquivo de soluções da 1ª iteração (sem preferência de objetivo) é reduzido pela pré-filtragem em duas etapas; ao trocar o ponto de referência do DM na 2ª iteração, obtém-se um novo subconjunto pré-filtrado com incerteza média visualmente menor do que o da 1ª iteração.",
+      "literal": "The solutions after pre-filtering, as shown in sub-figure (c) not only follow the DM's preferences for objectives but also have a lower uncertainty.",
+      "localizador": "Sec. 4, Fig. 5(a)-(c)",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Estudo de caso único (1 execução, 2 iterações interativas); dispersão no espaço de objetivos, cor = incerteza média normalizada (azul=menor, amarelo=maior); ponto de referência do DM em vermelho; sem estatística sobre múltiplas sementes.",
+      "achado": "A escolha do ponto de referência (preferência de objetivo) na 2ª iteração levou a um conjunto pré-filtrado com incerteza visualmente menor do que na 1ª iteração — ilustrando que a realimentação do DM pode, incidentalmente, direcionar a busca para regiões de menor incerteza, mesmo sem a incerteza guiar diretamente a seleção do MOEA.",
+      "aplicabilidade": "não reproduzível — exige rodar o próprio framework interativo (RVEA+Kriging, arquivo, hipercone, ordenação não-dominada com incerteza) sobre o problema GAA (fora do corpus/roster da dissertação) com múltiplas iterações de realimentação simulada do DM; nenhuma das 7 camadas cobre um 'arquivo de todas as gerações filtrado interativamente por preferência'."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Efeito da tolerância de incerteza do DM sobre o conjunto mostrado — estudo de caso GAA",
+      "grupo_sugerido": "H",
+      "descricao": "Ainda no estudo de caso GAA, o artigo demonstra a Etapa 4 do framework: a partir do conjunto pré-filtrado da 2ª iteração, aplicam-se funções de corte de tolerância de indiferença (Eq. 3, baseadas em 1.96·σ̂ e um percentual τ_k por objetivo) fornecidas hipoteticamente pelo DM, reduzindo ainda mais o conjunto de soluções mostradas a um pequeno subconjunto dentro da incerteza aceitável.",
+      "literal": "In sub-figure (d) only a few solutions that are within the preferred uncertainty of the DM are shown.",
+      "localizador": "Sec. 4, Fig. 5(d)",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesmo estudo de caso único; tolerâncias de incerteza hipotéticas (não reais) fornecidas apenas para demonstrar a funcionalidade; sem números exatos de quantas soluções restaram.",
+      "achado": "Aplicar a tolerância de incerteza do DM (Etapa 4) filtra o conjunto já pré-filtrado por objetivo a poucas soluções que atendem simultaneamente às preferências de objetivo e ao limite de incerteza aceitável — demonstrando qualitativamente a funcionalidade, mas sem quantificar quantas soluções sobraram nem comparar com nenhuma alternativa.",
+      "aplicabilidade": "não reproduzível — exige as funções de corte de tolerância (Eq. 3) aplicadas sobre o σ̂ do Kriging do próprio framework e tolerâncias hipotéticas de um DM simulado; não há camada correspondente nas 7 camadas da dissertação (que não incluem um mecanismo de 'tolerância de indiferença' fornecida interativamente)."
+    },
+    {
+      "fichas": [],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo menciona a existência de uma análise adicional em problemas de benchmark, disponibilizada como material suplementar num site externo, mas não descreve seu conteúdo, os problemas usados, métricas ou resultados no corpo do texto.",
+      "literal": "Due to space limitations, further analysis on benchmark problems is available at http://www.mit.jyu.fi/optgroup/extramaterial.html as additional material.",
+      "localizador": "Sec. 4, 1º parágrafo",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "não informado no texto (material externo não incluído no corpus)",
+      "achado": "não aplicável — conteúdo do material suplementar não descrito no artigo; não é possível saber se inclui métricas, comparações, ou quantos/quais problemas de benchmark.",
+      "aplicabilidade": "não reproduzível a partir deste artigo — o material suplementar (URL externa) não faz parte do corpus_md e seu conteúdo é desconhecido; se recuperável, poderia conter comparações em problemas de benchmark sintéticos não cobertas pelo texto principal.",
+      "observacoes": "só mencionada"
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo apenas assume que a predição do Kriging é Gaussiana e usa 1.96·σ̂ como o intervalo de 95% na função de corte de tolerância (Eq. 3); não há nenhuma verificação empírica dessa calibração (sem teste de cobertura, sem comparação σ vs. erro real contra a função verdadeira).",
+    "literal": "The distribution of the predicted objective value is Gaussian while using Kriging surrogates and the predicted standard deviation of the kth objectives' surrogate is ˆσk(x).",
+    "localizador": "Sec. 3.2"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Apenas afirmações qualitativas, não quantificadas: a filtragem por incerteza (Etapa 4) e a re-visualização com diferentes tolerâncias têm 'baixo custo computacional' porque reaproveitam o arquivo já construído, sem novas avaliações reais nem nova execução do MOEA. Nenhum tempo de execução (total, por geração, ajuste do modelo vs. busca) nem complexidade assintótica é reportado com números.",
+    "literal": "As this step consists of just filtering solutions obtained after Step 3, it can be repeated with a very low computational cost.",
+    "localizador": "Sec. 3.3, Step 4"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Os autores alertam que a função de corte de tolerância (baseada em 1.96·σ̂, assumindo distribuição Gaussiana da predição do Kriging) pode precisar ser modificada dependendo da real distribuição de predição do surrogate usado — ou seja, a validade do cutoff de 95% não está garantida se o surrogate não for Gaussiano.",
+      "literal": "However, it has to be noted that the cutoff tolerance function can be modified depending on the prediction distribution of the surrogate.",
+      "localizador": "Sec. 3.2, final do parágrafo"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "muitos objetivos (many-objective)",
+      "afirmacao": "O framework é apresentado como capaz de lidar com problemas many-objective, demonstrado pelo estudo de caso GAA com 10 objetivos (+1 restrição tratada como objetivo adicional).",
+      "literal": "We also demonstrated it by solving the GAA problem that proved its capability in solving many-objective problems.",
+      "localizador": "Sec. 5, Conclusions"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Artigo curto de workshop (BIOMA 2020, LNCS 12438, 14 páginas), predominantemente METODOLÓGICO/de design, não uma bateria empírica comparativa: propõe um framework interativo de apoio à decisão para MOO offline (pré-filtragem em duas etapas + tolerância de incerteza do DM) e o demonstra num único estudo de caso (GAA) mais um exemplo ilustrativo biobjetivo — por isso o campo 'analises' é curto e nenhuma ficha do catálogo (1-64) se aplica com precisão (todas as 4 análises substantivas foram marcadas 'nova', grupo H, por serem essencialmente demonstrações visuais de um mecanismo de interação DM/incerteza que a tipologia não cobre). Achado arquitetural central para a taxonomia: a incerteza (σ̂ do Kriging) NÃO entra na seleção do MOEA (RVEA) — é usada só depois, para pré-filtrar/visualizar o arquivo e nas funções de corte de tolerância do DM: 'The proposed way of providing preferences for uncertainties does not modify the selection process of the MOEA. Hence, the solution process is not affected.' (Sec. 3.3, após a descrição do Passo 5). Isso é coerente com a classificação função da incerteza=Resíduo desta ficha na taxonomia (a incerteza é reportada/consumida a posteriori, não usada para guiar a busca em si). O framework não trata restrições nativamente; no estudo de caso GAA, a violação de restrição foi tratada como um objetivo adicional: 'As our framework does not support constraint handling, we considered the constraint violation as an additional objective function for the demonstration.' (Sec. 4) — e nas conclusões: 'the framework is not designed to handle constraints. Handling constraints for offline data-driven problems deserves further attention.' (Sec. 5). Não há reavaliação das soluções finais escolhidas pelo DM contra a função verdadeira do GAA (sem equivalente à camada ⑦) — a qualidade real (não apenas a incerteza predita) das soluções entregues nunca é verificada; a implementação MATLAB do GAA [1] só é usada para gerar o dataset offline de 1000 pontos, não para validar o resultado final. Trabalhos futuros declarados pelos próprios autores (Sec. 5, Conclusions): 'more work should be done in the field of reference vectors adaptation and development of comparison metrics for interactive approaches. We also need to perform tests with different types of preferences for objectives.' O artigo é do mesmo grupo de autores de Mazumdar et al. 2019 [11] ('On dealing with uncertainties from Kriging models in offline data-driven evolutionary multiobjective optimization'), citado como base para a ideia de incluir a incerteza como componente extra na ordenação não-dominada (Sec. 3.1) e para o achado de que essa inclusão melhora hipervolume/RMSE frente à 'generic approach' (Sec. 3, Intro) — mas esse achado é DE [11], não verificado experimentalmente neste artigo (c49); se [11] também estiver no corpus, os dois formam uma linhagem relacionada (método-base → extensão interativa) mas sem comparação empírica direta entre si dentro deste artigo. O ANEXO de OCR (Apple Vision) da Fig. 5 (página 11) mostra rótulos de eixo fragmentados (f_2 a f_11 repetidos, com escalas numéricas distintas por eixo — ex. valores negativos ~-14 a -20, ~1600-2000, e ~40-45K) sugerindo que a Fig. 5 é, na verdade, uma grade de dispersões par-a-par cobrindo vários dos 10 objetivos da GAA, não um único gráfico bidimensional f1×f2 como as Fig. 2-3; os valores numéricos exatos dos eixos não são interpretáveis de forma confiável a partir do OCR (dígitos/sinais truncados), então não foram usados como achado quantitativo. Nenhuma tabela numérica em todo o artigo; apenas 3 equações (Eq. 1 definição do MOP, Eq. 2 adaptação dos vetores de referência, Eq. 3 função de corte de tolerância) e 5 figuras (Fig. 1 esquema genérico; Fig. 2 esquema do hipercone; Fig. 3 pré-filtragem num problema-teste biobjetivo; Fig. 4 diagrama de blocos do framework; Fig. 5 estudo de caso GAA). Leitura completa: 14 páginas (conforme cabeçalho do arquivo-fonte) — corpo do artigo (título/metadados de auto-arquivamento, Abstract, Sec. 1 Introduction, Sec. 2 Background com 2.1-2.2, Sec. 3 The Proposed Framework com 3.1-3.3, Sec. 4 Numerical Results, Sec. 5 Conclusions, Acknowledgements, 21 Referências) + ANEXO de camada de texto completa (duplicata, conferida, idêntica em conteúdo) + ANEXO de OCR de figuras (rótulos/eixos de 5 páginas, sem conteúdo experimental novo além do já descrito no corpo); todas as seções e a lista de referências foram cobertas, nada foi pulado. roster_bloco = null por instrução do pedido (artigo fora do roster experimental)."
+}

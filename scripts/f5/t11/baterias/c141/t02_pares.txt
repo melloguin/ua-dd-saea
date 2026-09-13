@@ -1,0 +1,54 @@
+--- sha256 da (1) [solution_id,x,f,fe_index,fase] ---
+  smoke  n= 61 sha=228b6fb55b749d482ae81aff7a8ea987
+  g6com  n= 61 sha=228b6fb55b749d482ae81aff7a8ea987
+  g6sem  n= 61 sha=228b6fb55b749d482ae81aff7a8ea987
+  r42    n= 61 sha=b3cedb9deaf385477ff8b1a4c6fa111f
+
+--- manifesto: sonda / n_geracoes / batches ---
+  smoke  n_ger= 11 fe=61 cache=1 desligada=False n_blocos=7 ger=[1, 2, 4, 6, 8, 10, 11] n_acum=[21, 25, 26, 29, 36, 41, 43, 49, 51, 54]
+  g6com  n_ger= 11 fe=61 cache=1 desligada=False n_blocos=7 ger=[1, 2, 4, 6, 8, 10, 11] n_acum=[21, 25, 26, 29, 36, 41, 43, 49, 51, 54]
+  g6sem  n_ger= 11 fe=61 cache=1 desligada=True n_blocos=0 ger=[] n_acum=[21, 25, 26, 29, 36, 41, 43, 49, 51, 54]
+  r42    n_ger= 13 fe=61 cache=1 desligada=None n_blocos=8 ger=[1, 2, 4, 6, 8, 10, 12, 13] n_acum=[21, 24, 27, 29, 32, 36, 39, 44, 46, 50, 52, 56]
+
+--- (3) online: linhas por regime ---
+  smoke  {'sonda': 14000, 'online': 420}
+  g6com  {'sonda': 14000, 'online': 420}
+  g6sem  {'online': 420}
+  r42    {'sonda': 16000, 'online': 504}
+
+--- COM x SEM: (1) bit-a-bit ---
+  shapes (61, 10) (61, 10)
+   max|Dx0| = 0.000e+00
+   max|Dx1| = 0.000e+00
+   max|Df0| = 0.000e+00
+   max|Df1| = 0.000e+00
+  solution_id identicos: True
+  fase identica: True
+  sha iguais: True
+
+--- smoke x g6com: mesma configuracao? ---
+  sha smoke == sha g6com: True
+
+--- T11 x R42: onde diverge a (1)? ---
+  primeiro fe_index divergente: 21  n_divergentes: 40
+  init (fase==init) T11: 21  R42: 21
+  init max|Dx|: 0.0
+  init max|Df|: 0.0
+
+--- guards no (6) ---
+  smoke  Counter({'cache_hit': 1, 'hard_stop': 1}) [('cache_hit', 1), ('hard_stop', 61)]
+  g6com  Counter({'cache_hit': 1, 'hard_stop': 1}) [('cache_hit', 1), ('hard_stop', 61)]
+  g6sem  Counter({'cache_hit': 1, 'hard_stop': 1}) [('cache_hit', 1), ('hard_stop', 61)]
+  r42    Counter({'cache_hit': 1, 'hard_stop': 1}) [('cache_hit', 1), ('hard_stop', 61)]
+
+--- footer ---
+  smoke  n_footer=1 {"ts": "2026-07-30T21:46:18Z", "rec": "footer", "status": "ok", "fe_final": 61, "maxfe": 61, "n_geracoes": 11, "cache_hits": 1, "cp_init": true, "termino": "normal"}
+  g6com  n_footer=1 {"ts": "2026-07-30T22:34:50Z", "rec": "footer", "status": "ok", "fe_final": 61, "maxfe": 61, "n_geracoes": 11, "cache_hits": 1, "cp_init": true, "termino": "normal"}
+  g6sem  n_footer=1 {"ts": "2026-07-30T22:41:23Z", "rec": "footer", "status": "ok", "fe_final": 61, "maxfe": 61, "n_geracoes": 11, "cache_hits": 1, "cp_init": true, "termino": "normal"}
+  r42    n_footer=1 {"ts": "2026-07-26T10:37:26Z", "rec": "footer", "status": "ok", "fe_final": 61, "maxfe": 61, "n_geracoes": 13, "cache_hits": 1, "cp_init": true, "termino": "normal"}
+
+--- header ---
+  smoke  {"ts": "2026-07-30T21:46:16Z", "rec": "header", "alg": "c141", "problema": "MMF1", "semente": 42, "D": 2, "M": 2, "regime": "online", "maxfe": 61, "doe_hash": "b4682dc218d24077819efadd43764db3ed8403bb3e48c5c8cf66329cc191fcc7", "algo": "c141-MMRAEA-porte4.15", "N_subpop": 21, "wmax": 20, "sigma_dict": "sigma_0=U_ranks_pop_completa(D45 nativa); sigma_1=std_bruto_3_modos(D45 ensemble-proxy)"}
+  g6com  {"ts": "2026-07-30T22:34:48Z", "rec": "header", "alg": "c141", "problema": "MMF1", "semente": 42, "D": 2, "M": 2, "regime": "online", "maxfe": 61, "doe_hash": "b4682dc218d24077819efadd43764db3ed8403bb3e48c5c8cf66329cc191fcc7", "algo": "c141-MMRAEA-porte4.15", "N_subpop": 21, "wmax": 20, "sigma_dict": "sigma_0=U_ranks_pop_completa(D45 nativa); sigma_1=std_bruto_3_modos(D45 ensemble-proxy)"}
+  g6sem  {"ts": "2026-07-30T22:41:21Z", "rec": "header", "alg": "c141", "problema": "MMF1", "semente": 42, "D": 2, "M": 2, "regime": "online", "maxfe": 61, "doe_hash": "b4682dc218d24077819efadd43764db3ed8403bb3e48c5c8cf66329cc191fcc7", "algo": "c141-MMRAEA-porte4.15", "N_subpop": 21, "wmax": 20, "sigma_dict": "sigma_0=U_ranks_pop_completa(D45 nativa); sigma_1=std_bruto_3_modos(D45 ensemble-proxy)"}
+  r42    {"ts": "2026-07-26T10:37:20Z", "rec": "header", "alg": "c141", "problema": "MMF1", "semente": 42, "D": 2, "M": 2, "regime": "online", "maxfe": 61, "doe_hash": "b4682dc218d24077819efadd43764db3ed8403bb3e48c5c8cf66329cc191fcc7", "algo": "c141-MMRAEA-porte4.15", "N_subpop": 21, "wmax": 20, "sigma_dict": "sigma_0=U_ranks_pop_completa(D45 nativa); sigma_1=std_bruto_3_modos(D45 ensemble-proxy)"}

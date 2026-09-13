@@ -1,0 +1,380 @@
+{
+  "id": "c122",
+  "sigla": "θ-DEA-DP",
+  "titulo": "Expensive Multi-Objective Evolutionary Optimization Assisted by Dominance Prediction",
+  "ano": 2022,
+  "roster": true,
+  "setup": {
+    "benchmarks": "ZDT1-ZDT4 (2 obj., n=10) — convexo/côncavo/desconexo/multimodal; DTLZ1 (2 obj., n=6, termo do g modificado: 2π em vez de 20π para reduzir rugosidade), DTLZ2 (3 obj., n=8, côncavo), DTLZ4 (3 obj., n=8, enviesado), DTLZ7 (3 obj., n=8, misto/desconexo); WFG6 (3 obj., n=10, não-separável), WFG7 (3 obj., n=10, enviesado) — 10 problemas na Tabela IV (2-3 objetivos). DTLZ1/DTLZ2/DTLZ4/DTLZ7 e WFG6/WFG7 também escalados para 5 e 8 objetivos (n=10 em ambos), 6 problemas cada nas Tabelas V e VI. Material suplementar (externo, IEEE Xplore, NÃO incluído neste .md): mais quatro problemas WFG (WFG4, WFG5, WFG8, WFG9) e quatro problemas reais de engenharia (vaso de pressão, treliça de duas barras, viga soldada, projeto conceitual de embarcação marinha) — só mencionados no corpo do artigo, sem números.",
+    "orcamento": "MaxEval = 250 (2-3 objetivos), 300 (5 objetivos), 400 (8 objetivos) avaliações reais totais por execução, incluindo o DoE inicial de 11n−1 pontos via Latin Hypercube Sampling (n = nº de variáveis de decisão). Mesmo método/orçamento aplicado a todos os 6 algoritmos comparados, mas o artigo não confirma que seja literalmente o MESMO conjunto de pontos LHS compartilhado entre algoritmos por execução/semente (diferente do DoE explicitamente compartilhado da dissertação).",
+    "execucoes": "21 execuções independentes por algoritmo × problema (não 30 sementes, como na dissertação).",
+    "baselines": "θ-DEA [42] — piso interno do próprio artigo: mesma engine evolutiva de θ-DEA-DP (mesmos vetores de peso, PBI, SBX/mutação, tamanho de população), mas avalia TODA a prole em cada geração em vez de preselecionar 1 solução via surrogate; NÃO é um dos 4 pisos canônicos da dissertação (NSGA-II/MOEA-D/NSGA-III/SMS-EMOA). Também comparados: ParEGO [8], DomRank [16], MOEA/D-EGO [9], CSEA [35] (outro surrogate de classificação, mesma família conceitual do roster b4/CSEA). θ-DEA nunca vence θ-DEA-DP em nenhuma das 22 linhas das Tabelas IV+V+VI — só empata estatisticamente ('≈') em 2/6 problemas de 8 objetivos (o único ponto de paridade em toda a bateria).",
+    "metricas_principais": [
+      "IGD"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum test (não pareado), α=5%, símbolos +/−/≈ contra θ-DEA-DP nas Tabelas IV/V/VI (convenção INVERTIDA: '+' = algoritmo comparado significativamente PIOR; '−' = significativamente MELHOR; '≈' = comparável)",
+      "Correção de Holm-Bonferroni para múltiplas comparações",
+      "Wilcoxon rank-sum test, α=5%, símbolos +/−/≈ contra Pareto-Net/θ-Net na Tabela VIII (acurácia de classificação de dominância)"
+    ],
+    "apresentacao": "Melhor/mediana/pior IGD por célula (3 valores empilhados); melhor (menor) valor da linha em negrito; símbolos +/−/≈ por algoritmo comparado (convenção invertida — ver testes); linha de placar agregado +/−/≈ no rodapé de cada tabela de comparação; execução com IGD mediano usada nas figuras de fronteira (Fig. 4); mediana ao longo de 21 execuções usada nas curvas de convergência (Fig. 5, 6) e no estudo de sensibilidade (Fig. 7); mediana(desvio-padrão) usada na Tabela VIII (acurácia de classificação).",
+    "codigo_plataforma": "θ-DEA-DP e θ-DEA implementados em Python (surrogates em PyTorch); ParEGO e DomRank em Python (implementação pública de Rahat et al.); MOEA/D-EGO e CSEA em MATLAB via plataforma PlatEMO. Código-fonte de θ-DEA-DP disponibilizado publicamente em https://github.com/yyxhdy/tdeadp."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        3,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela de comparação final entre θ-DEA-DP e cinco algoritmos (θ-DEA — piso interno sem preselecão via surrogate, mesma engine evolutiva — ParEGO, DomRank, MOEA/D-EGO, CSEA) em 10 problemas de 2-3 objetivos (ZDT1-4, DTLZ1/2/4/7, WFG6/7), métrica IGD (melhor/mediana/pior sobre 21 execuções), com teste de Wilcoxon rank-sum (5%) e símbolos +/−/≈ relativos a θ-DEA-DP, mais linha de placar agregado.",
+      "literal": "θ-DEA-DP significantly outperforms all the other algorithms on 8 out of 10 problems.",
+      "localizador": "Sec. IV-B, Table IV",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=5%, símbolos +/−/≈ contra θ-DEA-DP (convenção invertida: '+' = comparado significativamente PIOR, '−' = comparado significativamente MELHOR, '≈' = comparável)",
+        "Holm-Bonferroni para múltiplas comparações"
+      ],
+      "convencoes": "Melhor/mediana/pior IGD por célula (3 valores empilhados); melhor (menor) valor da linha em negrito; símbolos +/−/≈ por algoritmo comparado; linha de placar agregado +/−/≈ no rodapé; 21 execuções independentes.",
+      "achado": "θ-DEA-DP vence significativamente (bold + '+' dos outros) em 8/10 problemas; nos 2 restantes (DTLZ4 vs CSEA, DTLZ7 vs MOEA/D-EGO) o segundo colocado é apenas estatisticamente comparável ('≈'), nunca melhor; vence por cerca de uma ordem de magnitude sobre o melhor concorrente em ZDT2 e DTLZ1; θ-DEA (piso, mesma engine sem surrogate) perde em todos os 10 problemas (10/0/0).",
+      "aplicabilidade": "① endpoint (ND de todas as avaliações reais da célula) → mediana de IGD+/HV por algoritmo×problema (ficha 1); teste de postos vs. melhor (ficha 3) recomputável com as 30 sementes da dissertação. Nota: o artigo usa Wilcoxon rank-sum NÃO PAREADO (21 execuções independentes, sem confirmação de DoE/semente compartilhada entre os 6 algoritmos) — diferente do desenho pareado-por-semente da dissertação (ficha 5). θ-DEA como piso (ficha 9) não é um dos 4 pisos canônicos da dissertação — é o piso interno do próprio artigo, útil como controle mas não diretamente substituível pelo piso que a dissertação de fato usará para θ-DEA-DP."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma estrutura da Tabela IV, agora nos 6 problemas escalados para 5 objetivos (DTLZ1/2/4/7, WFG6/7, n=10 variáveis) — primeira leitura de desempenho em regime many-objective (MaOP).",
+      "literal": "As can be seen from Table V, θ-DEA-DP still shows overwhelming advantage over all other algorithms compared.",
+      "localizador": "Sec. IV-C, Table V",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=5%, símbolos +/−/≈ contra θ-DEA-DP",
+        "Holm-Bonferroni para múltiplas comparações"
+      ],
+      "convencoes": "Idêntica à Tabela IV; 21 execuções independentes; 6 problemas.",
+      "achado": "θ-DEA-DP vence em 5/6 problemas; em DTLZ7 (5 objetivos, até 16 regiões desconexas de PF) é significativamente SUPERADO por ParEGO ('−') — o único caso claro de derrota de θ-DEA-DP em toda a bateria principal do artigo — e comparável a DomRank/MOEA/D-EGO; θ-DEA (piso) perde em todos os 6 problemas (6/0/0).",
+      "aplicabilidade": "Mesma aplicabilidade do item anterior (① endpoint, fichas 1/3/9), agora na escala de 5 objetivos; reprodução exata exigiria que a bateria da dissertação inclua estas mesmas famílias de problema (DTLZ1/2/4/7, WFG6/7) na variante m=5."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma estrutura, nos mesmos 6 problemas escalados para 8 objetivos (n=10) — segunda leitura em regime many-objective, no limite superior testado pelo artigo.",
+      "literal": "θ-DEA-DP is compared favorably with any of the other algorithms on these problems.",
+      "localizador": "Sec. IV-C, Table VI",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=5%, símbolos +/−/≈ contra θ-DEA-DP",
+        "Holm-Bonferroni para múltiplas comparações"
+      ],
+      "convencoes": "Idêntica às Tabelas IV/V; 21 execuções independentes; 6 problemas.",
+      "achado": "θ-DEA-DP ainda vence (bold) em todos os 6 problemas, mas as margens estatísticas se estreitam: θ-DEA (piso) empata ('≈') em 2/6 problemas (DTLZ7, WFG7) — o único momento em que o piso alcança paridade estatística em toda a bateria; em DTLZ7 especificamente, θ-DEA-DP é significativamente superado por 3 dos 5 concorrentes (ParEGO, DomRank, MOEA/D-EGO).",
+      "aplicabilidade": "Mesma aplicabilidade dos itens anteriores, agora m=8 — o ponto de maior tensão da bateria do próprio artigo entre surrogate e piso."
+    },
+    {
+      "fichas": [
+        9,
+        18
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Discussão textual (não uma tabela/figura isolada, mas comentário comparativo cruzando as Tabelas IV/V/VI) sobre como a relação competitiva entre θ-DEA-DP e os concorrentes muda à medida que o número de objetivos m cresce de 2/3 para 5 e para 8: o piso θ-DEA fecha o gap, DTLZ7 piora progressivamente (mais regiões desconexas de PF), e o ranking relativo de CSEA em DTLZ1 se inverte.",
+      "literal": "θ-DEA becomes competitive to all surrogate-assisted algorithms including θ-DEA-DP in the eight-objective case.",
+      "localizador": "Sec. IV-C (texto entre Table VI e Fig. 6)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Mesmo teste das Tabelas IV/V/VI, apenas reinterpretado através dos 3 níveis de m"
+      ],
+      "convencoes": "Leitura comparativa cruzando as três tabelas de placar (IV, V, VI); não introduz números novos.",
+      "achado": "A vantagem de θ-DEA-DP sobre o piso θ-DEA encolhe com m crescente (de 10/10 e 6/6 vitórias em m≤5 para 4/6 com 2 empates em m=8), atribuído à dificuldade crescente de treinar surrogates precisos em espaços de objetivo de alta dimensão; o ranking de CSEA em DTLZ1 se inverte (pior entre todos em m=2, segundo melhor — atrás só de θ-DEA-DP — em m=8); DTLZ7 piora monotonicamente para θ-DEA-DP conforme m sobe (2-3 obj: só '≈' com MOEA/D-EGO; 5 obj: perde para ParEGO; 8 obj: perde para 3 algoritmos), atribuído ao crescimento exponencial do nº de regiões desconexas da PF com m.",
+      "aplicabilidade": "Recomputável (fichas 9/18) se a bateria da dissertação incluir as mesmas famílias-base (DTLZ1, DTLZ7 etc.) em múltiplos níveis de m, usando m ('muitos objetivos') como o eixo de 'degrau de dificuldade' da ficha 18, cruzado com o Δ pareado assistido×piso (ficha 9) em cada degrau."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Visualização do conjunto não-dominado final de cada um dos 5 algoritmos comparados no espaço de objetivos (θ-DEA-DP, ParEGO, DomRank, MOEA/D-EGO, CSEA — θ-DEA excluído da figura), na execução com IGD mediano, para 4 problemas (ZDT2, ZDT3, DTLZ1, DTLZ2), contra a frente de Pareto verdadeira.",
+      "literal": "Fig. 4 shows final non-dominated solutions obtained in the run with median IGD value for each surrogate-assisted algorithm for ZDT2, ZDT3, DTLZ1 and DTLZ2.",
+      "localizador": "Sec. IV-B, Fig. 4",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "Execução de IGD mediano (não média) escolhida para representar cada algoritmo; um painel por algoritmo×problema; frente de Pareto verdadeira sobreposta em cada painel.",
+      "achado": "θ-DEA-DP cobre bem a PF de ZDT2 enquanto ParEGO/DomRank/MOEA-D-EGO perdem diversidade e CSEA nem converge; em ZDT3 (5 partes desconexas) θ-DEA-DP dá a melhor aproximação, mas nenhum método cobre todas as partes; em DTLZ1 (g multimodal) θ-DEA-DP converge bem e com boa dispersão enquanto os demais falham (ParEGO quase não chega perto da PF, os outros ficam longe); em DTLZ2 todas as soluções de θ-DEA-DP ficam perto da PF enquanto os outros quatro têm soluções distantes.",
+      "aplicabilidade": "① (avaliações reais) + seleção da execução de IGD mediano entre as sementes — reproduzível diretamente (ficha 54)."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de evolução da mediana do IGD (sobre 21 execuções) versus o número de avaliações de função, para θ-DEA-DP e os 5 comparados, nos problemas ZDT e DTLZ (2-3 objetivos).",
+      "literal": "Fig. 5. Evolution of the median of IGD values (over 21 runs) versus the number of function evaluations on ZDT and DTLZ problems.",
+      "localizador": "Sec. IV-B, Fig. 5",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [],
+      "convencoes": "Mediana do IGD sobre as 21 execuções em cada checkpoint de avaliação; uma curva por algoritmo, um painel por problema.",
+      "achado": "θ-DEA-DP converge mais rápido E chega a um IGD final mais baixo que θ-DEA (piso) em toda a trajetória, evidenciando o poder do surrogate; permanece competitivo em qualquer ponto do orçamento (útil para orçamentos variáveis); ParEGO frequentemente converge mais rápido no início (às vezes mais rápido que θ-DEA-DP) mas depois estagna — padrão claro em ZDT2, ZDT3, DTLZ1, onde ParEGO lidera cedo mas é ultrapassado depois; os autores conjecturam que ParEGO seria mais adequado para orçamentos bem menores (ex. 120 avaliações).",
+      "aplicabilidade": "① (avaliações reais em ordem) → ND acumulado por checkpoint → curva de IGD+ mediana × fração do orçamento (ficha 26); direto a partir da camada ①."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma estrutura da Fig. 5, agora para os problemas de 5 e 8 objetivos (subconjunto de DTLZ/WFG), permitindo comparar visualmente a velocidade de convergência em regime many-objective.",
+      "literal": "Fig. 6. Evolution of the median of IGD values (over 21 runs) versus the number of function evaluations on five- and eight-objective test problems.",
+      "localizador": "Sec. IV-C, Fig. 6",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [],
+      "convencoes": "Idêntica à Fig. 5, agora para m=5 e m=8.",
+      "achado": "θ-DEA-DP reduz o IGD mais rapidamente que os demais na maioria dos painéis mostrados, consistente com as Tabelas V/VI; a figura ilustra visualmente o efeito reportado no texto (item 1 da discussão pós-Tabela VI) de θ-DEA se tornar competitivo em m=8.",
+      "aplicabilidade": "Mesma aplicabilidade da Fig. 5 (① → curva de IGD+ mediana × orçamento, ficha 26), agora para m=5,8."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Custo agregado (CPU) de gerenciar os surrogates, comparado entre subconjunto de algoritmos",
+      "grupo_sugerido": "F",
+      "descricao": "Tempo médio de CPU (minutos), agregado sobre todas as execuções, gasto em 'gerenciar os surrogates' (ajuste do modelo + predição, não decomposto), comparando θ-DEA-DP, ParEGO e DomRank — os três únicos algoritmos implementados em Python no mesmo ambiente computacional (MOEA/D-EGO e CSEA, em MATLAB/PlatEMO, são excluídos por não serem comparáveis entre plataformas).",
+      "literal": "So we can fairly compare average CPU times over all runs consumed by these three algorithms in managing the surrogates.",
+      "localizador": "Sec. IV-C, Table VII",
+      "metricas": [
+        "tempo de CPU (minutos)"
+      ],
+      "testes": [
+        "Nenhum teste estatístico — apenas três números agregados (37.74, 31.36, 41.45 min)"
+      ],
+      "convencoes": "Um único número (minutos) por algoritmo, sem desvio-padrão, sem decomposição fit/busca/avaliação, sem quebra por problema ou fração do orçamento; escopo exato de 'over all runs' (quais problemas/quantas execuções entram na média) não é detalhado.",
+      "achado": "θ-DEA-DP (37.74 min) fica entre ParEGO (31.36 min, mais barato) e DomRank (41.45 min, mais caro) — custo de mesma ordem de grandeza apesar da vantagem grande em IGD; os autores minimizam a importância prática dessa métrica, argumentando que avaliações de função reais dominam o tempo total em otimização cara de verdade.",
+      "aplicabilidade": "Camada ④ (tempos por geração: ajuste do modelo, busca, sonda) somada por execução reproduziria um agregado comparável, e mais detalhado do que o artigo oferece (que não decompõe fit vs. busca); a dissertação pode ir além do artigo aqui em vez de apenas replicá-lo."
+    },
+    {
+      "fichas": [
+        32
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara a acurácia (%) de classificação de dominância Pareto e θ dos classificadores Pareto-Net/θ-Net (FNN profunda com perda ponderada por classe) contra SVM, RF, CNB, e contra variantes sem ponderação de classe (Pareto-Net*/θ-Net*), num conjunto de teste sintético (1000 exemplos/classe, 3000 total) gerado uma vez logo após o LHS inicial, em 9 dos 10 problemas de 2-3 objetivos (ZDT4 ausente desta tabela). Mediana±DP sobre 21 execuções, com Wilcoxon rank-sum (5%) contra Pareto-Net/θ-Net.",
+      "literal": "Pareto-Net (θ-Net) generally achieves much higher accuracy than SVM, RF and CNB on Pareto (θ) dominance prediction, demonstrating the superiority of deep learning algorithms.",
+      "localizador": "Sec. IV-D, Table VIII",
+      "metricas": [
+        "acurácia de classificação de dominância Pareto (%)",
+        "acurácia de classificação de θ-dominância (%)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=5%, símbolos +/−/≈ contra Pareto-Net (θ-Net)"
+      ],
+      "convencoes": "Mediana(desvio-padrão) por célula sobre 21 execuções (treino sobre LHS diferente a cada execução); melhor valor da linha em negrito; símbolos +/−/≈; duas metades da tabela (acurácia de dominância Pareto | acurácia de θ-dominância), 5 colunas cada.",
+      "achado": "Pareto-Net/θ-Net superam SVM/RF/CNB com folga na quase totalidade das células; a versão com perda ponderada (Pareto-Net/θ-Net) supera a versão sem ponderação (Pareto-Net*/θ-Net*) na maioria dos problemas, confirmando que tratar o desbalanceamento de classes é necessário; a acurácia de θ-dominância é sistematicamente mais baixa que a de Pareto-dominância em todos os 9 problemas, indicando que a relação θ é mais difícil de aprender; exceção notável: em DTLZ4, RF (80.87%) e SVM (54.53%) superam SIGNIFICATIVAMENTE θ-Net (53.67%) na predição de θ-dominância — o único caso em que um modelo clássico bate a rede profunda do próprio método (ver análise dedicada abaixo); os autores notam que Pareto-Net/θ-Net têm acurácia muito alta em ZDT2, o que 'pode em parte explicar' o IGD muito baixo de θ-DEA-DP nesse problema — correlação pontual mencionada em texto, não uma análise sistemática tipo 'lei do teto'.",
+      "aplicabilidade": "Camada ③ (predições do surrogate) adaptada para classificação em PARES (o classificador prediz relação de dominância entre DOIS pontos, não uma propriedade de ponto único): aplicar Pareto-Net/θ-Net aos pares formados pelos 2.000 pontos-sonda (ou subamostra) a cada retreino, comparar classe prevista × classe real (calculável via f verdadeiro conhecido dos pontos-sonda) → acurácia por classe (ficha 32), estendendo a métrica ao longo de todo o orçamento.",
+      "observacoes": "Medição feita uma única vez por execução, logo após a inicialização (LHS), sobre um conjunto de teste GERADO à parte (não os próprios pontos-sonda fixos da dissertação) — não há curva de acurácia ao longo do orçamento neste artigo (diferente do que as fichas 31/33 pedem para μ/σ ao longo da busca)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade multiparâmetro do surrogate/evolução (U, D, N*, Qmax, Tmax, γ) medida no IGD final",
+      "grupo_sugerido": "E",
+      "descricao": "Estudo de sensibilidade de 6 hiperparâmetros de θ-DEA-DP (nº de neurônios ocultos U; profundidade da rede D; nº de descendentes amostrados N*; tamanho máximo de categoria Qmax; janela de dados para retreino Tmax; limiar de acurácia γ que decide se retreina), cada um variado isoladamente (mantendo os demais no valor padrão da Tabela III), medindo a curva de mediana de IGD (21 execuções) nas últimas 100 avaliações, em DTLZ1 2-objetivos.",
+      "literal": "Fig. 7 plots the evolutionary trajectories of median IGD for two-objective DTLZ1 under various parameter settings.",
+      "localizador": "Sec. IV-D, Fig. 7",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Nenhum teste estatístico — comparação visual de curvas por valor de parâmetro"
+      ],
+      "convencoes": "6 painéis (um por parâmetro: U, D, N*, Qmax, Tmax, γ); curvas de IGD mediano (21 execuções) restritas às últimas 100 avaliações do orçamento; escala log no eixo Y (IGD (log)); um único problema (DTLZ1, 2 objetivos) usado para todo o estudo.",
+      "achado": "U, N* e Qmax precisam ser suficientemente grandes, mas valores maiores nem sempre ajudam (podem piorar o desempenho final); D e γ maiores tendem a ajudar mas custam mais tempo de computação; Tmax menor é geralmente preferível (foco nos dados mais recentemente avaliados ao retreinar); redes muito complexas (maior U/D) podem sobreajustar dado o tamanho limitado dos dados de treino.",
+      "aplicabilidade": "Não reproduzível diretamente com o desenho fatorial padrão das 7 camadas — exigiria rodar múltiplas configurações de hiperparâmetro (U, D, N*, Qmax, Tmax, γ) como execuções extras fora do desenho padrão (28 problemas × 30 sementes × 1 config por algoritmo); SE a dissertação registrar essas configs alternativas no manifesto (camada ⑤), a curva IGD+×orçamento (camada ①) seria recomputável por config.",
+      "observacoes": "γ e Qmax são os dois parâmetros deste sweep mais diretamente ligados ao USO da probabilidade/confiança do classificador (γ governa a decisão de retreinar, com base na acurácia mínima estimada acc_min; Qmax trunca candidatos usando a soma de probabilidades p_sum) — ver roster_bloco.parametros_do_uso_da_incerteza; os demais (U, D, N*, Tmax) são parâmetros de arquitetura/amostragem menos diretamente ligados à 'incerteza' em si."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo MENCIONA, mas não mostra neste texto, experimentos adicionais em outros quatro problemas WFG (WFG4, WFG5, WFG8, WFG9), remetendo os resultados ao material suplementar hospedado externamente no IEEE Xplore.",
+      "literal": "In the supplementary material, we report on additional experiments that have been conducted on another four WFG problems (i.e., WFG4, WFG5, WFG8 and WFG9).",
+      "localizador": "Sec. IV-A1",
+      "metricas": [
+        "IGD (presumido, mesmo padrão do corpo principal)"
+      ],
+      "testes": [],
+      "convencoes": "",
+      "achado": "Não reportado neste artigo — apenas mencionado; números/tabelas estariam no material suplementar (não disponível para esta extração).",
+      "aplicabilidade": "Não reproduzível — o artigo não fornece números aqui; material suplementar ausente do corpus (o arquivo .md contém só o corpo principal + camada de texto bruta redundante + OCR de figuras, sem o suplemento externo do IEEE Xplore).",
+      "observacoes": "só mencionada — sem números/figuras no corpo principal do artigo."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo MENCIONA, mas não mostra neste texto, experimentos em quatro problemas reais de engenharia (projeto de vaso de pressão, treliça de duas barras, viga soldada, projeto conceitual de embarcação marinha), avaliados via HV (não IGD, já que a PF verdadeira é desconhecida), remetidos ao material suplementar externo.",
+      "literal": "So in the supplementary material, we use HV for the performance evaluation on four real-world problems.",
+      "localizador": "Sec. IV-A2",
+      "metricas": [
+        "HV"
+      ],
+      "testes": [],
+      "convencoes": "",
+      "achado": "Não reportado neste artigo — apenas mencionado; números/tabelas estariam no material suplementar (não disponível para esta extração).",
+      "aplicabilidade": "Não reproduzível — mesmo motivo do item anterior; adicionalmente, mesmo que disponíveis, seriam problemas reais distintos dos três problemas reais da própria dissertação (RE21, ESTOQUE40, DDMOP7) — não diretamente comparáveis.",
+      "observacoes": "só mencionada — sem números/figuras no corpo principal do artigo; é o único ponto do artigo em que HV (não IGD) seria usado como métrica, mas fica inteiramente fora do texto disponível."
+    },
+    {
+      "fichas": [
+        32
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Sub-achado dentro da Tabela VIII: no problema DTLZ4 (3 objetivos, espaço de busca enviesado), a acurácia de predição de θ-dominância do próprio θ-Net (53.67%) é SIGNIFICATIVAMENTE inferior à de dois modelos clássicos testados como baseline — Random Forest (80.87%) e SVM (54.53%) — o único caso, entre os 9 problemas × 2 relações (Pareto/θ) da tabela, em que um modelo não-profundo bate o classificador do próprio método em acurácia.",
+      "literal": "DTLZ4 ... θ-Net 53.67(2.29); θ-Net* 54.33(2.06)≈; SVM 54.53(2.40)−; RF 80.87(4.33)−; CNB 37.30(1.99)+",
+      "localizador": "Table VIII, linha DTLZ4, colunas de acurácia de θ-dominância",
+      "metricas": [
+        "acurácia de classificação de θ-dominância (%)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=5%, símbolo '−' (RF e SVM significativamente melhores que θ-Net)"
+      ],
+      "convencoes": "Mesma convenção da Tabela VIII (mediana(DP) sobre 21 execuções, símbolos +/−/≈ contra θ-Net).",
+      "achado": "Em DTLZ4, RF (80.87%) supera θ-Net (53.67%) por larga margem na predição de θ-dominância — RF é até mais preciso que a própria variante sem ponderação, θ-Net* (54.33%), nesse quesito específico; o texto do artigo não comenta essa exceção diretamente (só a observação genérica de que Pareto-Net/θ-Net 'geralmente' vencem os baselines), mas os números da tabela a documentam claramente.",
+      "aplicabilidade": "Mesma aplicabilidade da Tabela VIII (③ sonda adaptada a pares) — reproduzível SE a dissertação também rodar/registrar modelos-baseline (RF/SVM) para comparação de acurácia de classificação em DTLZ4, o que não é o desenho padrão da bateria (que registra só o modelo de fato usado por cada algoritmo).",
+      "observacoes": "Candidato natural a 'resultado negativo' do mecanismo de incerteza do próprio algoritmo (ver resultados_negativos e roster_bloco.mecanismo_proprio)."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "Mede a ACURÁCIA (%) de classificação de dominância (Pareto e θ) dos classificadores Pareto-Net/θ-Net (Table VIII) num conjunto de teste sintético (1000 exemplos/classe, 3000 total) gerado uma vez após o LHS inicial de cada execução — mediana±DP sobre 21 execuções, comparado contra SVM/RF/CNB e contra variantes sem ponderação de classe (Pareto-Net*/θ-Net*), com Wilcoxon rank-sum a 5%. Isso é o análogo operacional de 'qualidade da incerteza' neste artigo (A2 · dominância probabilística: a 'incerteza' É a probabilidade/confiança de classificação). NÃO mede calibração de probabilidade (não verifica se p=0,9 acerta 90% das vezes) nem cobertura — só acurácia de classe (correto/incorreto), e apenas num ponto do orçamento (logo após a inicialização), não ao longo da busca.",
+    "literal": "Table VIII shows the median prediction accuracy (over 21 runs) and the standard deviation of different algorithms.",
+    "localizador": "Sec. IV-D, Table VIII"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo médio de CPU (minutos), agregado 'over all runs', gasto em gerenciar os surrogates (ajuste + predição, não decomposto em fit/busca/avaliação, sem quebra por problema ou por fração do orçamento), comparável apenas entre os 3 algoritmos implementados em Python no mesmo ambiente (θ-DEA-DP, ParEGO, DomRank); MOEA/D-EGO e CSEA (MATLAB/PlatEMO) excluídos da comparação por não serem comparáveis entre plataformas. Os autores explicitamente minimizam a importância prática dessa métrica, já que avaliações de função reais dominariam o custo total em otimização cara de verdade.",
+    "literal": "Note that this metric is not very important in practice since function evaluations usually dominate the overall computation time in expensive optimization.",
+    "localizador": "Sec. IV-C, Table VII"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Dropout, técnica de regularização comum em redes profundas (e usada por outros métodos como estimador de incerteza via MC-dropout), foi testado e EXPLICITAMENTE REJEITADO no treino de Pareto-Net/θ-Net por piorar o desempenho final de otimização; os autores usam apenas weight decay modesto, sem dropout.",
+      "literal": "we find that it usually worsens the final optimization performance in our experiments and a very modest weight decay without dropout is usually a better configuration.",
+      "localizador": "Sec. III-E"
+    },
+    {
+      "descricao": "Os próprios autores reconhecem, na conclusão, que θ-DEA-DP não tem desempenho satisfatório em problemas com número muito alto de objetivos (10 ou mais), deixando o aprimoramento para trabalho futuro.",
+      "literal": "Currently, the performance of θ-DEA-DP is not satisfactory on problems with very high numbers of objectives (e.g., 10 or more), which needs to be improved by the further study.",
+      "localizador": "Sec. V (Conclusion)"
+    },
+    {
+      "descricao": "Em 8 objetivos, o piso θ-DEA (sem surrogate) se torna competitivo com todos os algoritmos assistidos por surrogate, incluindo θ-DEA-DP — atribuído à dificuldade crescente de treinar surrogates precisos quando o número de objetivos é alto, o que limita a orientação útil que o surrogate pode fornecer.",
+      "literal": "the higher number of objectives makes it much more difficult to build surrogates with good accuracy, so that the guidance provided by surrogates may become very limited.",
+      "localizador": "Sec. IV-C"
+    },
+    {
+      "descricao": "Em DTLZ7 (frente de Pareto desconexa, cujo nº de regiões cresce exponencialmente com o nº de objetivos), θ-DEA-DP perde para ParEGO em 5 objetivos e para três dos cinco concorrentes em 8 objetivos — atribuído ao mecanismo de preservação de diversidade baseado em θ-dominância/vetores de peso, que assume uma forma regular de PF e não funciona bem quando a PF é fragmentada.",
+      "literal": "the diversity preservation mechanism in θ-DEA-DP, which assumes the PF shape is regular, may not work well.",
+      "localizador": "Sec. IV-C"
+    },
+    {
+      "descricao": "Em DTLZ4, o classificador θ-Net do próprio método é significativamente superado em acurácia de predição de θ-dominância por dois modelos clássicos (Random Forest, 80.87% vs. 53.67%; SVM, 54.53% vs. 53.67%) — o único caso, entre 9 problemas × 2 relações de dominância testadas, em que um baseline não-profundo bate o mecanismo de predição do próprio θ-DEA-DP.",
+      "literal": "RF 80.87(4.33)− [supera θ-Net 53.67(2.29) na predição de θ-dominância, linha DTLZ4]",
+      "localizador": "Table VIII, linha DTLZ4"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "multimodalidade",
+      "afirmacao": "DTLZ1 (função g multimodal) é vencido com folga por θ-DEA-DP mesmo sendo difícil de convergir; já ZDT4 (multimodal, 21^9 frentes locais) é vencido numericamente mas nenhum método, incluindo θ-DEA-DP, chega perto da frente verdadeira, dado o nível extremo de rugosidade.",
+      "literal": "ZDT4 is another problem with a multi-modal feature, but its fitness landscape is too rugged, containing 21^9 local PFs.",
+      "localizador": "Sec. IV-B"
+    },
+    {
+      "caracteristica": "frente desconexa",
+      "afirmacao": "ZDT3 (5 partes desconexas): todos os algoritmos têm dificuldade em cobrir todas as partes, mas θ-DEA-DP obtém a melhor aproximação; DTLZ7 (frente mista/desconexa) piora com m crescente — θ-DEA-DP perde para 3 baselines em 8 objetivos porque o nº de regiões desconexas cresce exponencialmente com m e o mecanismo de diversidade de θ-DEA-DP assume forma regular de PF.",
+      "literal": "The PF of ZDT3 has five disconnected parts. All algorithms considered have difficulty in covering them all, but θ-DEA-DP can obtain the best approximation in terms of both convergence and diversity.",
+      "localizador": "Sec. IV-B (ZDT3); Sec. IV-C (DTLZ7, m=5,8)"
+    },
+    {
+      "caracteristica": "muitos objetivos (many-objective, m=8)",
+      "afirmacao": "Com m=8, o piso θ-DEA (sem preselecão via surrogate) torna-se estatisticamente comparável ao assistido em 2/6 problemas — o único momento em que o piso alcança paridade estatística em toda a bateria; atribuído à dificuldade de treinar surrogates precisos em alta dimensão do espaço de objetivos.",
+      "literal": "θ-DEA becomes competitive to all surrogate-assisted algorithms including θ-DEA-DP in the eight-objective case.",
+      "localizador": "Sec. IV-C"
+    },
+    {
+      "caracteristica": "densidade enviesada (biased search space, DTLZ4)",
+      "afirmacao": "CSEA (outro surrogate de classificação) empata estatisticamente com θ-DEA-DP em DTLZ4 nos níveis m=3 e m=5, mas perde claramente em m=8; os autores sugerem que CSEA lida bem com espaços de busca enviesados.",
+      "literal": "CSEA may be good at handling a biased search space.",
+      "localizador": "Sec. IV-C"
+    }
+  ],
+  "roster_bloco": {
+    "mecanismo_proprio": [
+      {
+        "descricao": "Comparação de acurácia (%) de classificação de dominância dos classificadores Pareto-Net/θ-Net contra SVM/RF/CNB e contra variantes sem ponderação de classe (Pareto-Net*/θ-Net*), em 9 problemas de 2-3 objetivos, mediana±DP sobre 21 execuções com Wilcoxon rank-sum. É ao mesmo tempo (i) acurácia do classificador que É o mecanismo de incerteza do próprio algoritmo (A2 · dominância probabilística) e (ii) ablação do componente de tratamento de desbalanceamento de classe (perda ponderada vs. não ponderada).",
+        "literal": "Table VIII shows the median prediction accuracy (over 21 runs) and the standard deviation of different algorithms.",
+        "localizador": "Sec. IV-D, Table VIII"
+      },
+      {
+        "descricao": "Sensibilidade do IGD final (DTLZ1, 2 objetivos, últimas 100 avaliações) a 6 hiperparâmetros, dos quais γ (limiar de acurácia que decide se o classificador é retreinado, com base na acurácia mínima estimada acc_min) e Qmax (tamanho máximo de categoria, que trunca candidatos pela soma de probabilidades preditas p_sum) são os que mais diretamente definem COMO a probabilidade/confiança do classificador é usada na seleção.",
+        "literal": "Fig. 7 plots the evolutionary trajectories of median IGD for two-objective DTLZ1 under various parameter settings.",
+        "localizador": "Sec. IV-D, Fig. 7"
+      },
+      {
+        "descricao": "Sub-achado da Tabela VIII: em DTLZ4, RF (80.87%) e SVM (54.53%) superam significativamente θ-Net (53.67%) na predição de θ-dominância — diagnóstico direto de uma fraqueza pontual do mecanismo de predição do próprio método, não comentada em prosa pelos autores mas presente nos números.",
+        "literal": "θ-Net 53.67(2.29) ... RF 80.87(4.33)− [linha DTLZ4, colunas de θ-dominância]",
+        "localizador": "Table VIII, linha DTLZ4"
+      }
+    ],
+    "reprodutivel_com_camadas": "Item 1 (Table VIII, acurácia do classificador) é reproduzível de forma ADAPTADA via camada ③ (predições do surrogate): como Pareto-Net/θ-Net classificam PARES de soluções (não pontos únicos), a 'sonda' de 2.000 pontos fixos da dissertação precisaria ser usada em pares (entre si, ou pontos-sonda × arquivo) — comparando classe prevista × classe real (computável via f verdadeiro conhecido dos pontos-sonda) — para produzir uma acurácia por classe análoga à Table VIII, e essa métrica poderia ser estendida ao longo de todo o orçamento (o artigo só mede uma vez, na inicialização). O sub-achado da anomalia em DTLZ4 (item 3) usa a mesma adaptação, mas exigiria também rodar/registrar classificadores-baseline (RF/SVM) para comparação — fora do desenho padrão da bateria, que registra só o modelo de fato usado por cada algoritmo. Item 2 (Fig. 7, sensibilidade a γ/Qmax/U/D/N*/Tmax) NÃO é reproduzível com o desenho fatorial padrão das 7 camadas (28 problemas × 30 sementes × 1 config por algoritmo) — exigiria execuções extras com hiperparâmetros variados; seria reconstruível via camada ④ (tempos) + camada ⑤ (manifesto de params) + camada ① (endpoint/curva) SE a dissertação decidir rodar essas configs alternativas como um estudo dedicado. Nenhum dos três itens fornece, no corpo do artigo, uma contagem explícita de quantas vezes cada categoria (Q1/Q2/Q3/Q5) foi de fato selecionada durante as execuções reais — essa contagem (ficha 45) teria de ser reconstruída do zero pela dissertação usando a camada ⑥ (filme); não está no artigo.",
+    "parametros_do_uso_da_incerteza": [
+      "γ (gamma) — limiar de acurácia mínima (acc_min) acima do qual o classificador NÃO é retreinado na iteração corrente; valor usado no artigo: 0.9 (Table III). É o parâmetro mais próximo de um 'gate de confiança', mas gate SOBRE O PRÓPRIO CLASSIFICADOR (decide se retreina), não um gate de exploração na aquisição.",
+      "Qmax — tamanho máximo de categoria (Q1/Q2/Q3/Q5) mantido após truncar pelo somatório de probabilidades preditas p_sum(z); valor usado no artigo: 300 (Table III). Define quantos candidatos 'sobrevivem' com base na confiança agregada do classificador.",
+      "Tmax — janela de dados mais recentes (11n+24 pontos) usada para retreinar Pareto-Net/θ-Net a cada iteração; valor usado no artigo: 11n+24 (Table III). Não gate de confiança em si, mas afeta a base empírica de onde a confiança é calculada; Fig. 7 mostra que Tmax MENOR tende a ser melhor.",
+      "Mecanismo de desempate (Eq. 4) — quando [u,v] e [v,u] dão predições inconsistentes, usa-se o vetor de entrada com MAIOR probabilidade/confiança (p(u,v) vs p(v,u)) para decidir a relação de dominância final; não tem um único hiperparâmetro nomeado, é regra fixa.",
+      "EDN — expected dominance number (Eq. 6-7): métrica de ranqueamento dos candidatos dentro da categoria escolhida, soma ponderada pela probabilidade predita de cada comparação par-a-par; sem hiperparâmetro livre, mas é o ponto onde a 'incerteza' (confiança) entra diretamente no ranqueamento final.",
+      "αk (peso de classe na entropia cruzada, Eq. 3) = frequência inversa de cada classe no conjunto de treino corrente — não um valor fixo, recalculado a cada retreino; é o mecanismo de tratamento de desbalanceamento ablado na Table VIII (Pareto-Net vs Pareto-Net*)."
+    ]
+  },
+  "observacoes": "(1) θ-DEA (piso interno usado em todas as Tabelas IV/V/VI) NÃO é um dos 4 pisos canônicos da dissertação (NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) — é a mesma engine evolutiva de θ-DEA-DP sem a preselecão via surrogate (avalia toda a prole), útil como 'ablação natural liga/desliga do surrogate como um todo', mas via Wilcoxon rank-sum NÃO PAREADO (21 execuções independentes, sem confirmação de que as 6 configurações compartilhem o mesmo DoE/semente) — diferente do desenho pareado-por-semente da dissertação (fichas 5 e, em parte, 9). (2) O artigo usa IGD simples (Eq. 8) em TODO o corpo principal, não IGD+ (a métrica primária da dissertação); HV só é mencionado para os 4 problemas reais do material suplementar (Sec. IV-A2), nunca calculado no texto disponível. (3) NÃO há, no corpo do artigo, uma ablação fim-a-fim (IGD final) de 'só Pareto-Net' vs. 'só θ-Net' vs. 'os dois' — a justificativa para combinar as duas redes é só conceitual/geométrica (Sec. III-E, apoiada na Fig. 3), sem tabela experimental dedicada; a Table VIII (Pareto-Net vs Pareto-Net*) é uma ablação de COMPONENTE (perda ponderada por classe) medida em ACURÁCIA de classificação num conjunto de teste sintético gerado uma vez, não uma ablação de USO da rede medida em desempenho de otimização — não corresponde à 'ablação exata do σ' da ficha 11/12 (que não existe neste artigo). (4) Dropout foi tentado e removido do treino de Pareto-Net/θ-Net por piorar o IGD final (Sec. III-E) — não é MC-dropout para estimar incerteza, é regularização padrão; achado listado em resultados_negativos. (5) Material suplementar (WFG4/5/8/9; 4 problemas reais — vaso de pressão, treliça de duas barras, viga soldada, projeto marinho conceitual; métrica HV) está hospedado externamente no IEEE Xplore e NÃO está incluído neste arquivo .md — só as menções no corpo do artigo foram registradas (2 análises marcadas 'só mencionada'). (6) A 'incerteza' (função A2 · Dominância probabilística) neste artigo é a PROBABILIDADE/CONFIANÇA de classificação (softmax) das redes Pareto-Net/θ-Net, usada em três lugares mecanicamente distintos: (i) desempate entre [u,v] e [v,u] (Eq. 4); (ii) soma de probabilidades p_sum para truncar categorias a Qmax; (iii) 'expected dominance number' (EDN, Eq. 6-7) ponderado pela probabilidade para ranquear candidatos dentro da categoria escolhida. Nenhuma calibração de probabilidade (prob. prevista vs. taxa de acerto real) é verificada — só acurácia de classe (ver calibracao_do_sigma). (7) Nenhuma seção ou apêndice do arquivo foi pulada: o corpo estruturado (linhas 1-861), o ANEXO de camada de texto bruta do PDF (get_text, linhas 863-3427, conteúdo redundante com o corpo estruturado, sem seções adicionais) e o ANEXO de OCR de figuras (linhas 3433-3642, rótulos de eixo/legenda das Figs. 4-7, sem números novos além dos já capturados nas Tabelas IV-VIII) foram todos lidos integralmente do título/abstract às biografias dos autores."
+}

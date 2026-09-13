@@ -1,0 +1,385 @@
+{
+ "bloqueadores": [
+  {
+   "id": "BL-01",
+   "descricao": "c217 I-1: `pmid_ids` grava -1 em 100% dos valores. `pmid_ids_c217` passa `Pmid(i, :)` (largura D+1, porque `CalFitnessPC.m:67-68` concatena o fitness escalar ao PopDec) para `bud.solutionIdOf`, cujo `keyOf` (`src/FEBudget.m:167`) monta chave de 8*(D+1) bytes que nunca casa com o catálogo; o `catch` do próprio instrumento silencia. Fix: `Pmid(i, 1:size(Pmid,2)-1)` (ou passar Problem.D). ABERTO E CONFIRMADO POR MIM no código.",
+   "arquivo_linha": "src/c217_instrument.m:201 (chamado de :131); causa em algorithms/_PlatEMO/PlatEMO/Algorithms/Multi-objective optimization/PC-SAEA/CalFitnessPC.m:67-68,73",
+   "configs": [
+    "c217"
+   ],
+   "impacto_se_ignorado": "Relatado (não re-medido por mim): 426/426 valores = -1 no smoke; em escala ~625.000 gerações com pmid_ids sentinela. A REGRA_DO_ROTULO do c217 morre no passo (3) por falta desse campo (0/3.410 + 0/22 blocos aplicáveis) ⇒ a acurácia do classificador do c217 fica NÃO-MENSURÁVEL na dissertação inteira. Não há regra de leitura que recupere a identidade da referência ex-post.",
+   "custo_do_fix": "1 linha + 1 teste de controle (`all(pmid_ids>=0) & all(pmid_ids<=fe-1)`, que tem de REPROVAR na versão de hoje).",
+   "antes_do_disparo": true
+  },
+  {
+   "id": "BL-02",
+   "descricao": "b5m/b5r/moead_media: `flag_vetores_degenerados` é código morto. `src/b5_prob.py:118` lê `evolver.population.problem.reference_vectors.values`, mas o atributo só existe no evolver (`BaseEA.py:182`); o `except Exception: return None` engole o AttributeError. Fix: `evolver.reference_vectors`. Defeito secundário: a coleta está no replay pós-busca (`b5_prob.py:536`) ⇒ valor constante nas gerações, contra o comentário do próprio código. E no piso (`src/piso_offline.py`) o wrapper pedido pela F5.4 NUNCA foi escrito — CONFIRMEI: 0 ocorrências de `reference_vectors` no arquivo.",
+   "arquivo_linha": "src/b5_prob.py:118 (chamada em :536); src/piso_offline.py (ausente por completo)",
+   "configs": [
+    "b5m",
+    "b5r",
+    "moead_media"
+   ],
+   "impacto_se_ignorado": "Relatado: `None` em 801/801 (b5m) e 1.144/1.144 (b5r) eventos. Em 30 sementes ~4.050 células offline (b5m/b5r) + ~450 (moead_media) nascem com o campo nulo. A cadeia A8 (adapt zerando o lattice -> PBI NaN -> P_wrong=0 -> 0 substituições) é o que DOMINA a dinâmica do config e permanece invisível no log; a assinatura restante (p_wrong_stats=0) não distingue colapso-de-vetores de 'offspring genuinamente pior'. Irrecuperável ex-post — o estado dos vetores não sobrevive ao run.",
+   "custo_do_fix": "1 token (b5m/b5r) + ~3 linhas para mover a coleta ao acumulador módulo-nível com chave `gen_count`; no piso, portar o mesmo wrapper (~90 min já dimensionados).",
+   "antes_do_disparo": true
+  },
+  {
+   "id": "BL-03",
+   "descricao": "c122 N3: `emit_sonda_estratificada` monta a linha da ③ com `mu=`/`sigma=` SEM ramificar por `pred_tipo`, ao contrário da função irmã `emit_sonda_block` (que ramifica em classe/score/valor). Resultado: o score par-a-par e(z) do c122 vai para `mu_0` e a confiança para `sigma_0`, com `pred_score` NULL. CONFIRMEI as duas funções no código; o guard do writer (`export.py:468-478`) não pega porque `len(mu)=1 < M=2` é o caso legítimo do b1 mono-output, e os 5 testes do bloco (`tests/test_a2_c122.py:220-260`) são `inspect.getsource` + `assertIn` (aferem o TEXTO, nunca a LINHA emitida).",
+   "arquivo_linha": "src/standalone_harness.py:949-956 (irmã correta em :846-854; docstring que proíbe o padrão em :808-813)",
+   "configs": [
+    "c122"
+   ],
+   "impacto_se_ignorado": "Relatado: 10.500/10.500 linhas do smoke com `mu_0` preenchido e `pred_score` NULL; em campanha ~1,77 M linhas/semente ≈ 53 M linhas em 30 sementes na coluna errada. Toda query transversal por `mu_0.notna()` colhe e(z) do c122 como se fosse μ. Viola CONTRATO §3 e o `sigma_dict` do próprio run. 100% recuperável por regra de leitura (`config=='c122' & regime=='sonda_estratificada' -> mu_0 é e(z)`).",
+   "custo_do_fix": "4 linhas (a ramificação idêntica à da irmã) + trocar os 5 testes de texto por um teste da linha emitida.",
+   "antes_do_disparo": false
+  },
+  {
+   "id": "BL-04",
+   "descricao": "TRANSVERSAL 5 configs offline Python: `tempo_aval_real_s` mede a INGESTÃO do dataset, não avaliação. `load_offline_budget` empurra as n linhas do artefato pelo portão (`bud.evaluate(X[i], lambda _x,_f=F[i]: _f)`), o cronômetro do I-02 incrementa `_n_avals_cronometradas`, e a property nunca devolve `None`. CONFIRMEI as três linhas. O teste que deveria pegar (`tests/test_g7_instrumentacao.py:118-126`) é grep de texto-fonte e passa verde.",
+   "arquivo_linha": "src/standalone_harness.py:653 (dentro de load_offline_budget, :617); cronômetro em src/budget.py:249-252; property em src/budget.py:200-202",
+   "configs": [
+    "b5m",
+    "b5r",
+    "c311",
+    "moead_media",
+    "treed_media"
+   ],
+   "impacto_se_ignorado": "Relatado: 0,0001–0,0572 s em 5/5 configs offline do smoke (0,97–1,64 µs/linha, contra 22,95–34,43 µs/FE nos online = ~21–22×); zero NULLs. Em 30 sementes ~1.600 células publicam um número que parece medição e escala com N. Destrói a assinatura de fidelidade A01/U1 (`tempo_aval_real_s == 0` em 100% das offline) que a auditoria usava. Recuperável por regra de leitura (nenhuma análise de tempo pode usar o campo nos offline), mas a assinatura em si não volta.",
+   "custo_do_fix": "1 linha em 1 de 2 lugares (não cronometrar a carga, ou o runner offline passar `tempo_aval_real_s=None`) + trocar o teste de texto por um comportamental que rode um offline e afirme `is None`.",
+   "antes_do_disparo": false
+  },
+  {
+   "id": "BL-05",
+   "descricao": "c217 I-5: `y_treino_dist` degenerado `(0, 0, n)`. O instrumento assume codificação ternária {-1,0,+1} (contam-se `y<0`, `y==0`, `y>0`), mas o `Output` real do PC-SAEA é `{1,2}`. CONFIRMEI nos dois lados: `CalFitnessPC.m:69-71` faz `Output=zeros(...); Output(1:ceil(N/4))=2; Output(ceil(N/4)+1:end)=1`. O próprio `params.surrogate` do ⑤ (`src/experiment.m:540`) repete a ficção do ternário. Além disso o `n` gravado é `|Input|`, não `|TrainIn|`.",
+   "arquivo_linha": "src/c217_instrument.m:216-218 (função em :208, chamada em :135); verdade em CalFitnessPC.m:69-71",
+   "configs": [
+    "c217"
+   ],
+   "impacto_se_ignorado": "Relatado: 42/42 eventos com `classe_menos1=0, classe_zero=0, classe_mais1=n`. Em escala, ~625.000 gerações com a distribuição de classes do alvo de treino ilegível. Combinado com BL-01, o classificador do c217 fica sem nenhuma via de auditoria. Irrecuperável ex-post (o `Output` não é exportado em nenhuma camada).",
+   "custo_do_fix": "1-3 linhas (`sum(y>1)`/`sum(y<=1)` e declarar honestamente `n = |Input|`, ou capturar `TrainOut` em `PCSAEA.m:41`) + controle `classe_melhor+classe_pior==n` e `classe_melhor==ceil(|P|/4)`.",
+   "antes_do_disparo": true
+  },
+  {
+   "id": "BL-06",
+   "descricao": "c154 J32: sob `motivo_parada=teto_wall` o finalProbe não roda — a última geração fica sem bloco de sonda, contra o `sonda.cadencia` declarado no manifesto ('1ª iteração, a cada k=2, e SEMPRE a última'). CONFIRMEI: o finalProbe existe SÓ no ramo `BudgetExhausted` (`src/c154_jes.py:799-808`); o ponto de emissão da cadência normal traz o comentário 'a última é coberta no ramo do hard-stop acima' (:867-869); e o `break` do teto (:926) sai do laço sem passar por nenhum dos dois.",
+   "arquivo_linha": "src/c154_jes.py:926 (break do teto) — o relatório cita :868-869 para o comentário; a linha exata é :867-869; finalProbe em :799-808",
+   "configs": [
+    "c154",
+    "c262"
+   ],
+   "impacto_se_ignorado": "Relatado: no smoke de teto, 151 gerações e 76 blocos com o último na geração 150; o conjunto observado é exatamente {g==1 ∨ g%2==0}. Como a T11 converte as 12 células D≥12 do c154 (e as do c262) em células TRUNCADAS, o estado final do surrogate de TODA célula truncada fica sem régua — e é justamente o estado que interessa. Irrecuperável: o bloco nunca é emitido.",
+   "custo_do_fix": "1 linha (emitir o bloco final no ramo do teto, custo medido ~0,08 s) OU tornar `sonda.cadencia` condicional ao motivo de parada. Sem re-run.",
+   "antes_do_disparo": true
+  },
+  {
+   "id": "BL-07",
+   "descricao": "Piso de ruído O-18 desatualizado × campanha em 3 máquinas. A O-16 (mesma máquina ⇒ bit-identidade) está rompida; o par cruzado Mac×vm3 do c238/MMF1 tem código, MATLAB e doe_hash provadamente idênticos, init bit-idêntico e TODOS os 40 infills divergentes (|ΔX| até 2,0 = 100% da amplitude da caixa), nascendo no 1º fit (θ_média 992,18 × 718,37, Δ lnL 9,8e-05 nat).",
+   "arquivo_linha": "não é defeito de código — é parâmetro de campanha (O-18/O-19); tabela pronta em f5/t11/baterias/c141/t12_piso_maquina.csv",
+   "configs": [
+    "c238",
+    "c141",
+    "b1",
+    "e74",
+    "todos os 695×30"
+   ],
+   "impacto_se_ignorado": "Relatado: c238/MMF1 ΔHV −9,69% = 6,3× o piso declarado de 1,55%, ΔIGD+ +80,0%. Em 15 células com par: ΔHV acima do piso em 6/15, máximo 10,16% (e74/DTLZ2); ΔIGD+ máximo 80,03%. Configs que decidem por CLASSE (b4, c217) e os sem surrogate dão 0,00%. Se 695×30 saírem de 3 máquinas sem piso re-medido nem atribuição de máquina no dado, nenhuma comparação de HV entre células é segura e o erro é irrecuperável (não há como saber ex-post qual máquina rodou o quê se `_logs_lotes` não acompanhar até a R4).",
+   "custo_do_fix": "Zero CPU se for re-medir com os 15 pares já existentes (tabela pronta); custo real é decisão + garantir que a atribuição de máquina viaje com o dado até a R4.",
+   "antes_do_disparo": true
+  },
+  {
+   "id": "BL-08",
+   "descricao": "sobol_batch: pinar `scipy` junto com o `torch` na `envs.json`/`repos.lock` do disparo em escala. A bit-identidade do scramble de Owen está provada cross-OS/cross-arquitetura, mas SÓ sob numpy 2.4.6 + scipy 1.17.1 nos dois lados; a estabilidade cross-VERSÃO segue no teto T e a T11 não a moveu.",
+   "arquivo_linha": "claude_code_context/artifacts/envs.json + repos.lock (parâmetro de ambiente, não código do algoritmo)",
+   "configs": [
+    "sobol_batch"
+   ],
+   "impacto_se_ignorado": "Se as 3 máquinas resolverem scipy em versões diferentes, a sequência Sobol scrambled do piso batch muda e o piso deixa de ser a régua absoluta do sub-estudo batch (que já perdeu c262 e c154 e vive de 3 configs). Irrecuperável: nenhuma regra de leitura reconstrói a sequência.",
+   "custo_do_fix": "1 linha na envs.json/repos.lock.",
+   "antes_do_disparo": true
+  },
+  {
+   "id": "BL-09",
+   "descricao": "b1: `experiment.m:jsonl_line` grava sem `fflush` por linha. O modo de perda por truncamento (`w`) foi eliminado pelo fix de append da T11 (gêmeo em tempdir: `a+a` perde 0/10.000; `w+w` perde exatamente 5.000; `w+a` ainda perde 3.987–4.913), mas o modo SPLICE (entrelaçamento parcial de linha sob concorrência) não está provadamente eliminado e o smoke não testa concorrência.",
+   "arquivo_linha": "src/experiment.m — função `jsonl_line` (escritores auditados: experiment.m:3347 e src/audit_log.py:130)",
+   "configs": [
+    "b1",
+    "todos os MATLAB"
+   ],
+   "impacto_se_ignorado": "Este writer já destruiu 15,6% do filme de auditoria de uma célula (b1/WFG1: 69 de 443 gerações perdidas no ⑥, ausências NÃO contíguas). Em 695 células × 30 sementes sob concorrência de 3 máquinas, qualquer linha rasgada é perda irrecuperável do ⑥ daquela geração. (Nota: `integridade_f52a.csv` já registra 4 `JSONL_1LINHA_RASGADA` no e103.)",
+   "custo_do_fix": "1 linha.",
+   "antes_do_disparo": true
+  },
+  {
+   "id": "BL-10",
+   "descricao": "Pré-registro do N=20 em contradição documental viva: a DI-32/A2 (2026-07-23) diz 'N=20 = DEFINITIVO; SUB-varN vira opcional do M11' e a DI-39 (2026-07-25), POSTERIOR, o reverte declarando N=20 provisório e o SUB-varN pré-requisito do M8. `cards/INDEX.md:67` continua ⬜.",
+   "arquivo_linha": "cards/INDEX.md:67 (⬜) + REGISTRO_DECISOES_IMPLEMENTACAO.md (DI-32/A2 × DI-39)",
+   "configs": [
+    "nsga2",
+    "nsga3",
+    "moead",
+    "smsemoa",
+    "todos os pisos"
+   ],
+   "impacto_se_ignorado": "Se o SUB-varN rodar depois e eleger N≠20, as 25 células de cada piso (e a régua casada de todo o estudo) são DESCARTADAS. É pendência de pré-registro, não de fidelidade — e por isso não há regra de leitura que a conserte a posteriori.",
+   "custo_do_fix": "Decisão do autor + reconciliar bundle e REGISTRO (0 CPU) OU rodar o SUB-varN antes do M8.",
+   "antes_do_disparo": true
+  },
+  {
+   "id": "BL-11",
+   "descricao": "treed_media N4: o custo de I/O do checkpoint (DI-43) está DENTRO de `tempo_busca_s` e `tempo_geracao_s`. `t_f0` é tomado antes do laço, `ckpt.talvez_gravar` roda dentro dele, e `t_busca_total` fecha depois. A DI-13.10 (ratificada) manda excluir a instrumentação do tempo; a DI-43/44 é silenciosa sobre contabilidade de tempo ⇒ não há decisão que sancione a contaminação.",
+   "arquivo_linha": "src/treed_media.py:444 (t_f0), :459-461 (ckpt.talvez_gravar), :462 (t_busca_total — o relatório cita :461), :487-490 (tempo_geracao_s). O acumulador já existe: src/checkpoint.py:122 (`self.tempo_total_s += dt`).",
+   "configs": [
+    "treed_media",
+    "+ os 8 runners com checkpoint"
+   ],
+   "impacto_se_ignorado": "Relatado: `tempo_busca_s` 3,270 → 6,970 s na mesma célula; Σ `tempo_checkpoint_s` = 3,754 s ⇒ 53,9% do `tempo_busca_s` e 49,5% do `tempo_geracao_s` são I/O; wall 2,00×. Projeção: inflação 30,1%–64,0% (mediana 48,5%), proporcionalmente MAIOR nas células baratas, o que distorce o ranking de custo entre configs no `tempo_heatmap`/M8. Recuperável: `tempo_checkpoint_s` está no ⑥ e a R4 pode subtrair (regra de leitura), desde que exista em todos os 8 runners.",
+   "custo_do_fix": "1-2 linhas (descontar `checkpoint.tempo_total_s` de `t_busca_total`, ou publicá-lo no bloco `timing` do ⑤).",
+   "antes_do_disparo": false
+  },
+  {
+   "id": "BL-12",
+   "descricao": "b4 ⚠E1: os 3 números de calibração dentro de `sigma_dict.REGRA_DO_ROTULO` (prevalência 65,5%, acurácia 0,350, AUC 0,716) não reproduzem em nenhum corpus. A REGRA em si está correta (confere com `GetOutput.m:16-19`); os números parecem transplantados de outro config/piloto — pior, o par 0,40%/0,995 atribuído a uma leitura 'errada' é o par que a regra 12 do CONTRATO atribui ao c122, e em M=2 (19/25 células do b4) essa leitura é numericamente IDÊNTICA à DI-18.",
+   "arquivo_linha": "src/experiment.m — bloco `sigma_dict.REGRA_DO_ROTULO` do b4 (string de calibração)",
+   "configs": [
+    "b4"
+   ],
+   "impacto_se_ignorado": "Relatado: medido 28,43% / 0,5743 / 0,5065 na régua do smoke e 8,32% / 0,9035 / 0,6646 na s42 inteira; nenhuma das 5 leituras testadas produz 65,5%. Quem calibrar expectativa pelos números do próprio run erra a prevalência por 2–8× e o AUC por +0,2 — e a string viaja em 30 sementes. Recuperável por errata publicada.",
+   "custo_do_fix": "~20 min, 0 h-core, sem re-run (substituir por números medidos com o corpus citado).",
+   "antes_do_disparo": false
+  },
+  {
+   "id": "BL-13",
+   "descricao": "String `params.geracoes_derivadas` do ⑤ declara o mecanismo do NSGA-II para os 4 pisos. Afirma 'prole em PARES — 2*floor(N_efetivo/2) por geração (MatingPool do OperatorGA)', mas moead (`MOEAD.m:40,45`) e smsemoa (`SMSEMOA.m:27-29`) usam `OperatorGAhalf` = 1 prole por subproblema (N_ef por geração). CORREÇÃO DE CITAÇÃO: o relatório do moead cita `src/experiment.m:2453-2463`; ABRI o arquivo e o único sítio é `src/experiment.m:2516-2527` (que é o que smsemoa e nsga3 citam corretamente) — a string é compartilhada pelos 4 pisos.",
+   "arquivo_linha": "src/experiment.m:2516-2527 (NÃO :2453-2463 como diz o relatório do moead)",
+   "configs": [
+    "moead",
+    "smsemoa",
+    "nsga2",
+    "nsga3"
+   ],
+   "impacto_se_ignorado": "Relatado: a fórmula com denominador em pares deixa `k` ILEGAL em 5/25 células do moead e acerta 1/25 (literal) ou 19/25 (caridosa); com o denominador certo (`floor((20D+clones)/N_ef)+1`) acerta 25/25. No smsemoa erra por +1 determinístico em 28/28. Metadado errado gravado 695 × 30 vezes. Impacto analítico nulo (ninguém deriva `n_geracoes`; a própria string manda 'não derive, LEIA'), logo recuperável por regra de leitura.",
+   "custo_do_fix": "1 edição, 0 CPU (ramificar a string por família de operador).",
+   "antes_do_disparo": false
+  },
+  {
+   "id": "BL-14",
+   "descricao": "`frente1_excede_pop` compara com `N_nominal` em vez de `N_efetivo`. CONFIRMEI no código: `'frente1_excede_pop', sum(FrontNo == 1) > N_nominal`. Para M=2 coincidem (20); para M=3 o lattice do `UniformPoint` reduz para 15.",
+   "arquivo_linha": "src/experiment.m:2419",
+   "configs": [
+    "moead",
+    "nsga3"
+   ],
+   "impacto_se_ignorado": "Relatado: flag `true` em 6/25 contra a verdade 8/25 ⇒ erra em 2/25 (DTLZ1 e DTLZ3), e nsga3 erra nas MESMAS 2 = 4/100 células de piso, exclusivamente nos 2 configs com lattice. Campo descritivo, nenhum passo do MOEA/D o lê, e a seleção real está correta (②(g=1) reproduzida em conjunto E ordem 25/25 em float64). Recuperável por regra de leitura explícita: comparar `n_frente1 > params.N_efetivo`.",
+   "custo_do_fix": "1 token, 0 CPU (vale para moead e nsga3 no mesmo movimento).",
+   "antes_do_disparo": false
+  },
+  {
+   "id": "BL-15",
+   "descricao": "c217 I-07: `params.operadores` do ⑤ é FALSO (não sentinela — afirmação errada). CONFIRMEI os dois lados: `src/experiment.m:541` grava 'Balde C: OperatorGA stock (SBX proC=1 dis_c=20; PM proM=1 dis_m=20)' — copy-paste byte-a-byte do bloco dos pisos (`:2528`) — enquanto `SurrogateAssistedSelectionPC.m:14/28/46` roda `OperatorGA(...,{1,15,1,5})` e a SPEC §567 diz 'Balde C não se aplica'. No mesmo struct, `params.treino` diz 'do arquivo' quando é da população, e `params.surrogate` declara 'score ternario {-1,0,+1}' que não existe (ver BL-05).",
+   "arquivo_linha": "src/experiment.m:538-541",
+   "configs": [
+    "c217"
+   ],
+   "impacto_se_ignorado": "Metadado falso em 695×30 manifestos do c217. 'Campo presente, dado FALSO' é pior que sentinela — um sentinela se reconhece, uma afirmação errada não. Recuperável por errata + leitura do vendorizado.",
+   "custo_do_fix": "1 linha + um teste que faz grep de `{1,15,1,5}` no vendorizado e casa com a string do `params`.",
+   "antes_do_disparo": false
+  },
+  {
+   "id": "BL-16",
+   "descricao": "Gates decorativos: 4 testes que aferem o TEXTO do fonte e nunca o comportamento, e por isso passaram verdes sobre os defeitos BL-03, BL-04 e BL-01. É o antipadrão que a própria §4.2 do handoff T11 diz ter extinguido, reincidindo nos artefatos que a lição gerou.",
+   "arquivo_linha": "tests/test_g7_instrumentacao.py:118-127 (BL-04); tests/test_a2_c122.py:220-260 (BL-03); tests/test_a9_regra_rotulo_c217.py (BL-01); tests/test_c262.py:125 (asserção vazia do prune_baseline)",
+   "configs": [
+    "transversal"
+   ],
+   "impacto_se_ignorado": "Sem trocar por testes comportamentais, os fixes de BL-01..BL-05 não têm controle: nada garante que o campo passe a produzir dado, só que a string mudou. Cada teste tem de REPROVAR na versão de hoje.",
+   "custo_do_fix": "4 testes reescritos (rodar 1 célula e afirmar sobre a LINHA/valor emitido).",
+   "antes_do_disparo": false
+  },
+  {
+   "id": "BL-17",
+   "descricao": "nsga2/pisos: o `contrato_61.json` do gate G-7 não cobre a linha 'pisos' do CONTRATO §6.1. `configs.nsga2.di10 = [\"f_best\",\"n_front1\"]`, mas o §6.1 l.335 exige também ideal/nadir da população por geração. Causa-raiz declarada no `_meta` do artefato: construção por 'extração automática dos identificadores em crase', e na l.335 só `n_front1` e `f_best[]` estão em crase.",
+   "arquivo_linha": "claude_code_context/artifacts/contrato_61.json (linha `configs.nsga2.di10`, replicar nos 4 pisos); norma em CONTRATO_DE_DADOS.md §6.1 l.335",
+   "configs": [
+    "nsga2",
+    "nsga3",
+    "moead",
+    "smsemoa"
+   ],
+   "impacto_se_ignorado": "Prova por mutante (relatada): removendo `ideal`, `nadir_pop` e `nadir_front1` de 13/13 eventos do smoke, os 6 gates seguem VERDES com o G-7 relatando '⑥ 3/3 campos'. Hoje os campos existem (376/376 e 13/13), então o dano é potencial: em 30 sementes a perda silenciosa apagaria as bases de §P5 (787 medições) e §P6 (376) sem acender gate — e aí é irrecuperável.",
+   "custo_do_fix": "1 linha no artefato, replicada nos 4 pisos.",
+   "antes_do_disparo": false
+  },
+  {
+   "id": "BL-18",
+   "descricao": "e103: `espaco_modelo` é NULL nas 19.800 linhas de busca da ③ e 'cru' nas 40.000 de sonda, na MESMA ③, em 45/45 células (e igual no smoke T11 — não corrigido). DEF-C3 do CONTRATO §3 manda declarar o espaço; c311/b5r/b5m/moead_media/b4 preenchem, e103/c217/c262 não. É a assimetria INTRA-run que faz disto defeito e não escolha.",
+   "arquivo_linha": "src/e103_instrument.m (literal ausente na montagem das linhas de busca)",
+   "configs": [
+    "e103",
+    "c217",
+    "c262"
+   ],
+   "impacto_se_ignorado": "Cosmético — a semântica é inequívoca pelo `sigma_dict` e pelas linhas de sonda do mesmo run. Recuperável por regra de leitura.",
+   "custo_do_fix": "1 literal.",
+   "antes_do_disparo": false
+  },
+  {
+   "id": "BL-19",
+   "descricao": "b4: 2 das 3 edições de documentação que a F5.4 pediu não foram feitas. A convenção `p0`/`p1` (nomes NATIVOS do PlatEMO; `p0` = MAE da categoria II, `CSEA.m:78`) foi glosada só dentro do run (`sigma_dict`), e não no CONTRATO nem na SPEC/bundle.",
+   "arquivo_linha": "CONTRATO_DE_DADOS.md §6.1 (linha 321) e SPEC_experimentos_v5.2.md:803 / :1875 + regeneração do bundle",
+   "configs": [
+    "b4"
+   ],
+   "impacto_se_ignorado": "Quem ler o CONTRATO/SPEC sem abrir o `sigma_dict` de um run troca p0 e p1 — e a F5.4 mediu que trocá-los faz o log deixar de reproduzir o gate executado (6.268/6.268 → 1.252/6.268). Recuperável, mas o leitor não sabe que precisa recuperar.",
+   "custo_do_fix": "~20 min, 0 h-core, sem re-run.",
+   "antes_do_disparo": false
+  },
+  {
+   "id": "BL-20",
+   "descricao": "sobol_batch T31: `params.nota_potencia_de_2` é literal fixa que afirma `q=10` enquanto `params.q=1` no smoke da própria campanha. O `sigma_dict` do MESMO manifesto acerta, o que prova que a derivação existe no arquivo ao lado e a omissão é local (f-string ausente).",
+   "arquivo_linha": "src/sobol_batch.py:226-228 (racional contrariado em :212-214)",
+   "configs": [
+    "sobol_batch"
+   ],
+   "impacto_se_ignorado": "Nulo no grid — `runs_matrix.csv` tem q=10 em 150/150 linhas, logo a string é verdadeira em toda célula da campanha. Dano hipotético (um `--q` diferente num diagnóstico) e de metadado, nunca de dado.",
+   "custo_do_fix": "1 linha (f-string).",
+   "antes_do_disparo": false
+  },
+  {
+   "id": "BL-21",
+   "descricao": "e81: o resíduo da correção B28 — `scripts/progress.py:95` ainda lê `footers[-1]` em vez de `footer_fechado()`, e varre o corpus real (é enganado hoje pela célula `batch/q10_ZDT4`, que tem 95 footers, 94 deles vazios). `scripts/accept.py:794` idem, mas com exposição prática nula.",
+   "arquivo_linha": "scripts/progress.py:95 (primitiva correta em src/manifest.py:305)",
+   "configs": [
+    "e81",
+    "transversal"
+   ],
+   "impacto_se_ignorado": "Relatório de progresso mente sobre o estado das células com múltiplos footers. Verificar o mesmo padrão nos outros bucket-only (c154, c122, c149, c262) — se existir, é achado transversal. Recuperável por leitura manual.",
+   "custo_do_fix": "1 linha + corrigir o número '747→767' do docstring para 559→747.",
+   "antes_do_disparo": false
+  },
+  {
+   "id": "BL-22",
+   "descricao": "b5m: nenhum artefato preservado exercita a cadeia A8 com a instrumentação da T11. O único smoke b5m é MMF1 (célula sadia, 0/800 gerações congeladas); o comportamento congelado só existe na s42, que é PRÉ-T11. Ou seja: a instrumentação da A8 nunca foi testada contra o caso que ela existe para observar — e é o controle positivo do fix de BL-02.",
+   "arquivo_linha": "n/a — falta um smoke de `off/b5m/DTLZ3/s42`",
+   "configs": [
+    "b5m",
+    "b5r",
+    "moead_media"
+   ],
+   "impacto_se_ignorado": "O fix de BL-02 vai a 30 sementes sem controle positivo: nada garante que o campo passe a discriminar colapso-total de colapso-parcial (o parcial é 649 das 2.237 transições).",
+   "custo_do_fix": "~10 min de smoke (célula pequena e já conhecida).",
+   "antes_do_disparo": false
+  }
+ ],
+ "decisoes_autor": [
+  {
+   "id": "DA-01",
+   "pergunta": "O piso de ruído O-18 (HV ≤1,55% / IGD+ ≤58,98%) não cobre a divergência cross-máquina medida. Como tratar as 695 células × 30 sementes que sairão de 3 máquinas (Mac A, VM-1, VM-2)?",
+   "opcoes": "(a) Re-medir o piso O-18 com os 15 pares cross-máquina já existentes (tabela pronta em f5/t11/baterias/c141/t12_piso_maquina.csv) e publicar um piso por regime; (b) registrar um piso ESPECÍFICO para o regime D=2 / orçamento ≤61 FE, onde o excesso é máximo; (c) fixar arquitetura POR CONFIG na campanha (cada config sempre na mesma máquina); (d) marcar as células D=2 do c238 como não-comparáveis entre máquinas.",
+   "recomendacao": "c141 e c238 convergem: decidir ANTES do disparo M8/M9. Evidência: c238/MMF1 ΔHV −9,69% (6,3× o piso) e ΔIGD+ +80,0% com código, MATLAB e doe_hash provadamente idênticos; em 15 pares, ΔHV acima do piso em 6/15 (máx 10,16% em e74/DTLZ2). O c141 recomenda (a) ou (c); o c238 recomenda (b) ou (d). Em qualquer rota, a atribuição de máquina (`_logs_lotes`) TEM de acompanhar o dado até a R4, e o piso O-18 tem de ser aplicado DENTRO do config (armadilha 14 do b1). Configs que decidem por CLASSE (b4, c217) e os 4 pisos + e103 dão 0,00% e não precisam de piso."
+  },
+  {
+   "id": "DA-02",
+   "pergunta": "N=20 é DEFINITIVO ou o SUB-varN é pré-requisito do M8? Há contradição documental viva entre DI-32/A2 (2026-07-23: 'N=20 definitivo, SUB-varN vira opcional do M11') e DI-39 (2026-07-25: 'N=20 PROVISÓRIO, SUB-varN pré-requisito do M8').",
+   "opcoes": "(a) Rodar o SUB-varN {10,20,30,50} antes do M8 — se eleger N≠20, as 25 células de cada piso são descartadas; (b) ratificar N=20 como definitivo (precedente Knowles/ParEGO, viabilidade em D=2, densidade de gerações) e mover o SUB-varN para o M11 opcional, revogando explicitamente a DI-39.",
+   "recomendacao": "nsga3, nsga2 e moead escalam o mesmo item. Pela precedência cronológica do REGISTRO vale a DI-39 (posterior) ⇒ opção (a). Mas os relatórios pedem, antes de tudo, que o bundle e o REGISTRO PASSEM A CONCORDAR — hoje `cards/INDEX.md:67` está ⬜ e a contradição está viva. É pendência de PRÉ-REGISTRO, não de fidelidade: nenhum relatório opina sobre o valor de N, só sobre a incoerência."
+  },
+  {
+   "id": "DA-03",
+   "pergunta": "`tempo_aval_real_s` no regime offline: o campo mede a ingestão do dataset, não avaliação. Qual das três rotas?",
+   "opcoes": "(a) `load_offline_budget` ingere FORA do cronômetro (`FEBudget.evaluate(..., cronometrar=False)` ou caminho de carga dedicado); (b) o runner offline passa `tempo_aval_real_s=None` explicitamente; (c) remover o comentário/decisão I-02 e passar a ler o campo como 'wall da ingestão do dataset'.",
+   "recomendacao": "moead_media marca este item explicitamente como 'decisão do autor, D81 — NÃO implementar sozinho'. Quatro relatórios (b5m A22, b5r A33, c311 A25, treed_media N3, moead_media A25) convergem: as duas afirmações (campo e comentário) NÃO podem coexistir. Recomendação majoritária: (a) ou (b), 1 linha em 1 de 2 lugares, sem re-run — mais trocar `tests/test_g7_instrumentacao.py:118-127` por um teste COMPORTAMENTAL que rode um offline e afirme `is None`. Enquanto não corrigido: nenhuma análise de tempo pode usar `tempo_aval_real_s` dos configs offline, nem para custo nem para o heatmap da F5.2d."
+  },
+  {
+   "id": "DA-04",
+   "pergunta": "Adotar a classe residual '(d) defeito de instrumentação/doc' que a F5.4 propôs, separada da classe (3) 'desvio de mecanismo inexplicado'?",
+   "opcoes": "(a) Adotar — os itens de instrumentação/doc saem do denominador de fidelidade; (b) manter a régua atual, em que um defeito de texto/telemetria desconta score de fidelidade.",
+   "recomendacao": "moead: 'se o autor adotar a classe residual (d) que a F5.4 propôs — e ambos os itens são exatamente isso — o config vai a 10,0 sem nenhuma outra mudança'. e103 e c149 já enquadram os seus achados nessa classe. b4 registra o precedente da própria F5.4 ('um defeito de texto não é desvio de comportamento vs o artigo'). Decisão de régua que move vários scores de uma vez — precisa ser tomada UMA vez e aplicada a todos os 24 configs, não caso a caso."
+  },
+  {
+   "id": "DA-05",
+   "pergunta": "Vários relatórios expõem 'botões de score' que dependem de uma escolha de régua do autor. Fechar todos com uma decisão única?",
+   "opcoes": "c141: contar o (3) transversal do harness contra o config ⇒ 9,0 em vez de 9,5. smsemoa: penalizar afirmação-medida-que-não-se-sustenta no ⑤ ⇒ 9 em vez de 9,5. c149: publicar o denominador COM ou SEM o A26 como (3) ⇒ (1) 50,0%/(2) 46,9%/(3) 3,1% vs o denominador reduzido. moead_media: comparar contra o 9,0 impresso na F5 ('MELHOROU +0,3') ou contra o 9,5 do veredito adversarial ('MANTEVE').",
+   "recomendacao": "Os quatro deixam o botão exposto e dizem explicitamente que é decisão do autor (D97). A recomendação convergente dos próprios relatores: NÃO descontar do config um defeito transversal do harness (c141), e usar como base de comparação o último veredito adversarial, não o número impresso na F5 (moead_media). Uma decisão de régua única resolve os quatro; ela interage diretamente com DA-04."
+  },
+  {
+   "id": "DA-06",
+   "pergunta": "c238 · SPEC:811 continua sendo a única divergência ⚠ ABERTA do config. Reclassificar?",
+   "opcoes": "(a) Manter ⚠ ABERTA; (b) reclassificar para 🟠 CÓDIGO documentado + MEDIDA, com os números do §5 do relatório como lastro.",
+   "recomendacao": "Recomendação explícita do relatório: (b). A §5 do relatório do c238 fecha a divergência com número."
+  },
+  {
+   "id": "DA-07",
+   "pergunta": "c238 · O kriging degenera numericamente em 3 das 25 células (MMF1, MMF4, MMF11_L — todas D=2, e MMF11_L é um dos 3 primeiros lugares absolutos do config). Corrigir o código ou declarar caveat?",
+   "opcoes": "(a) Nugget adaptativo; (b) `MaxFunEvals` com piso (hoje 20D = 40 avaliações para D=2); (c) apenas caveat declarado na leitura do D97, sem tocar código. As opções (a) e (b) são divergências NOVAS do código oficial do autor do paper ⇒ decisão de fidelidade, D81.",
+   "recomendacao": "O relatório recomenda (c) — NÃO é re-run: caveat declarado para MMF1/MMF4/MMF11_L ('o surrogate perde validade numérica na segunda metade do orçamento'), com (a)/(b) como item do `PLANO_RODADA_PERFEITA`, não do M8. Lastro medido: cota rigorosa σ̂² ≥ exp(−2·lnL/n) com Y∈[0,1] ⇒ lnL≤0 ⟹ σ̂²≥1; 118/15.740 componentes-geração violam, com σ̂² ≥ 9,0e+04 no MMF1; cond(R) 2,7e+15–9,1e+15 nessas três contra ~1e+02 nas saudáveis."
+  },
+  {
+   "id": "DA-08",
+   "pergunta": "sobol_batch · O scrambling de Owen é 'por SEMENTE' na letra da D37/§V-B.2 e 'por ITERAÇÃO' no implementado. Ratificar o implementado?",
+   "opcoes": "(a) Ratificar o por-iteração (é o que `seeds.json` de 2026-07-23/DI-33 e o `sigma_dict` de cada run declaram, e pela cadeia de precedência do protocolo §0 o `sigma_dict` manda); (b) reimplementar por-semente conforme a letra da D37.",
+   "recomendacao": "Item nº 1 de ratificação do D97 do config, SEGUE ABERTO após a T11 (a campanha não o tocou). Efeito medido: discrepância centrada 1,19×–6,43× pior que a sequência única (decai com D), ΔIGD+ +1,8%/+13,4%/+8,2%/+16,0% em 4/5 células e −8,8% em 1/5 — todos muito abaixo do piso de ruído de 58,98% e vindos de 1 semente. O que é conclusivo é a CD, que é determinística. O relatório recomenda (a): o racional (determinismo por-iteração exigido pelo D62/D91 e robustez a hard-stop/resume) é real, e o desvio já está SANCIONADO pelo `sigma_dict`."
+  },
+  {
+   "id": "DA-09",
+   "pergunta": "e81 · A Eq. 6 do paper é ambígua: 'sequência de subproblemas maximin' (leitura formal = greedy com diversidade mútua) × o parágrafo de implementação da §3.2 (top-q de um único ranking). Adotamos top-q. Manter?",
+   "opcoes": "(a) Manter top-q (é o que o código faz e é uma das duas leituras do artigo), documentando a ambiguidade; (b) migrar para o Eq.6-greedy.",
+   "recomendacao": "Item nº 1 escalado ao D97 pelo e81. Recomendação: (a), com a ambiguidade QUANTIFICADA no texto — contrafactual executado nas 955 gerações q=10 sem fallback: os lotes diferem em 364 (38,1%); o top-q maximiza a SOMA dos maximin em 955/955 (é o ótimo global desse funcional), o greedy maximiza a dispersão interna em 364/364 das divergentes; pior caso: separação mútua mínima 0,00133 (top-q) × 0,627 (greedy) no q10_DTLZ2. Não é infidelidade — a ambiguidade é DO PAPER — e q=1 é imune por construção."
+  },
+  {
+   "id": "DA-10",
+   "pergunta": "e74 · O 2º desalinhamento `classe_parent ≠ y_label` (§22/K.5.2/D81) foi deliberadamente NÃO corrigido, com só a telemetria `n_desalinhado`. Promover o fix?",
+   "opcoes": "(a) Promover o fix; (b) manter o desvio sancionado e corrigir apenas a documentação.",
+   "recomendacao": "Recomendação do relatório: com 4,12% medido, promover o fix é OPCIONAL; corrigir a documentação é OBRIGATÓRIO — o `anchors.json` ainda manda a verificação errada. Correção de localização importante: o sítio é `ClassifierSelect.m:39-40/:80`, NÃO `Local_infill.m` como consta. Âncora do próprio autor do método (ablação §IV-C, Tab. S-III, ZDT1 D=30): CLMEA-s2 sozinha entrega 87% do CLMEA completo, logo o efeito esperado de restaurar a eq. 7-8 é modesto em média."
+  },
+  {
+   "id": "DA-11",
+   "pergunta": "e74 · As 25 células da s42 do e74 descrevem um algoritmo DIFERENTE do que rodará no M8 (o DI-45 foi aplicado depois). Como tratá-las?",
+   "opcoes": "(a) Descartar; (b) manter como evidência de fidelidade da s2/s3 e do protocolo, MAS proibir agregação com runs pós-fix e proibir uso como baseline de qualidade do e74 na R4/F5.5.",
+   "recomendacao": "(b) — é literalmente o 'caveat duro de corpus' do relatório, e é o ÚNICO config em que isso vale. Precisa virar regra de leitura explícita antes da R4, senão a agregação é feita por engano."
+  },
+  {
+   "id": "DA-12",
+   "pergunta": "b5m/b5r · Os pesos de decomposição no HEADER do ⑥ são exigidos pelo CONTRATO_DE_DADOS.md:332 (linha `b5`, coluna '+ DI-10 (novo)'), mas o header tem 22 chaves e nenhuma é pesos/vetores — e o requisito sumiu do contrato EXECUTÁVEL sem errata.",
+   "opcoes": "(a) Implementar (1 linha); (b) registrar formalmente a retirada no §6.1 do CONTRATO.",
+   "recomendacao": "Qualquer das duas, mas UMA delas antes do M8 — hoje o contrato escrito e o executável discordam e o gate G-7 fica verde de qualquer jeito. O relatório do b5m não elege; só exige que a discordância acabe."
+  },
+  {
+   "id": "DA-13",
+   "pergunta": "b3 · O ramo (a) do `UpdataArchive` (divergência 🟠 D29 + B3.5) roda de fato nas 3 células D=2 do grid (MMF1, MMF4, MMF11_L) e é impossível em 21/25. Instrumentar nas 30 sementes?",
+   "opcoes": "(a) Só registrar no caveat da dissertação que, no tier D=2, a gestão do A1 do b3 não é o Alg. 4 do paper e sim o comportamento do código oficial; (b) se o autor quiser o número em TODOS os ciclos das 30 sementes, logar `size(Via,1)` e `NI−mu` em `UpdataArchive.m:41`.",
+   "recomendacao": "(a) é suficiente para a fidelidade — o relator já discriminou o ramo célula a célula por reconstrução determinística, SEM tocar código, e provou que o defeito é index-safe por construção (`size(Via,1) ≤ |Total|`): não derruba run, não muda |A1|, não aparece em `nzero`. (b) são 2 linhas read-only já dimensionadas pela T11, e só se justifica se o autor quiser a exposição do ramo em ciclos ≥2 (hoje limitada a ciclo-1 exato + Monte Carlo)."
+  },
+  {
+   "id": "DA-14",
+   "pergunta": "e7 · A SPEC §1784 e §1878 e o bundle I.4 afirmam uma divergência paper×código que NÃO EXISTE ('treino em [−1,1] do paper × transladado-pelo-ideal no código'). Corrigir?",
+   "opcoes": "(a) Corrigir §1784/§1878 e regenerar o bundle; (b) manter.",
+   "recomendacao": "(a) — o código faz AS DUAS operações do paper: `SelectTrainData.m:18` translada pelo mínimo (§III-B-2) e `EDNARMOEA.m:38-39,121-123` faz `mapminmax` em X e Y para [−1,1] (Alg. 2 L4), com `Estimate.m:13/:18` aplicando e revertendo. O erro foi ler o espaço de TREINO a partir do espaço do LOG (a instrumentação está pós-`reverse`). Duas assinaturas nos dados confirmam: Spearman(log10 escala, WAPE) = −0,053 com escala variando 3,62e7×; `μ_max/amplitude` mediana 1,0345 em 25/25 células. Corrigir BAIXA a contagem de divergências código×paper do e7 de 6 para 5 e AUMENTA a fidelidade declarada. DEF-B6.6 não é afetada."
+  },
+  {
+   "id": "DA-15",
+   "pergunta": "Sub-estudo batch (D66): dos 5 configs do roster, a rodada-42 produziu 3 (sobol_batch, e81, c149); o c262 abortou 5/5 por teto de projeção e o c154 está fora (DI-40/DI-37.iii). Rodar as 5 células batch do c262 no M8?",
+   "opcoes": "(a) Rodar as 5 células batch do c262 sob a DI-43/44 (checkpoint), fechando o maior buraco de fidelidade do config; (b) aceitar o teto T e declarar que o sequential greedy q>1 — a contribuição-título do qNEHVI, Eq. (6), §6.1, Apêndice F e Figs. 4/6 — permanece 100% não exercitado por dado nosso.",
+   "recomendacao": "O relatório do c262 é explícito: 'o único bloqueio real ao 10 é o mesmo de sempre e não é de fidelidade: o batch nunca rodou'; e 'fecha-se rodando as 5 células batch sob a DI-43/44'. O sobol_batch acrescenta o custo de (b): 'o piso é a única régua absoluta que o sub-estudo tem', o que eleva o peso do piso no D97 e enfraquece a comparação. Decisão de escopo/orçamento do autor."
+  },
+  {
+   "id": "DA-16",
+   "pergunta": "Células com dado ruim que a T11 corrigiu na CAUSA mas não no DADO: reparar antes do M8 ou carregar como caveat?",
+   "opcoes": "c311 · `swap_big-mvns_MMF16_20` (mascaramento corrigido pela DI-42.1, dado não — está na lista V2 do autor). c149 · `batch/ZDT4` (③ inutilizável para Classe A; rota A0 mede 2 min, 17,6 MB, versionamento do bucket ON — não executada). b1 · `main/b1/WFG1` (⑥ perdeu 69 de 443 gerações = 15,6%; ①②③④⑤ ÍNTEGRAS e todas as identidades fecham nos 374 eventos sobreviventes). b1 · DTLZ4 nunca produzida (falha determinística do `dacefit` em duas arquiteturas).",
+   "recomendacao": "Reparos com custo trivial e recomendados: c149/`batch/ZDT4` (2 min, rota A0) e c311/`swap_big-mvns_MMF16_20`. b1/WFG1 NÃO precisa de re-run para a análise R4 — perdeu-se filme de auditoria, não dado experimental; e o relator já computou a métrica que faltava (IGD+ 0,518932, HV 0,180537, n_nd 118), fechando o único buraco do b1 na matriz de 15 algoritmos × WFG1. Também vale preservar o par G-6 do c149 (~9 min, o smoke leva 251 s) e o do c141 estendido a UMA célula de D alto (DTLZ2 D=12 ou ZDT1 D=30), porque os pares existentes são MMF1 D=2 com 61 FE — o regime mais benigno."
+  },
+  {
+   "id": "DA-17",
+   "pergunta": "Bloco de caveats CIENTÍFICOS (não de fidelidade) que o texto do D97 precisa carregar. Ratificar o conjunto?",
+   "opcoes": "b5m: DTLZ1 e DTLZ3 são cientificamente VAZIOS (a ⑦ é a amostra LHS inicial; HV-surrogate 1,331 = 1,1³ = o máximo teórico, com HV real 0,000). b5r: o GPR do código oficial (`normalize_y=False`, ConstantKernel ≤1e3, α=0) COLAPSA AO PRIOR em DTLZ3 (3/3 objetivos), DTLZ1/f2 e DTLZ4/f2 — ali o algoritmo otimiza uma função constante e a seleção é ruído MC puro. moead_media: em 15/45 células (33,3%) o contraste não mede σ, mede 'busca morta × busca viva' — as leituras de ablação devem ser reportadas DUAS vezes, nas 45 e nas 30. c311: o tier small (N=61–929) roda 1–2 ordens ABAIXO do menor N do paper (2.000) ⇒ fora do envelope em que o TGPR-MO se justifica (D90). b4: '\"o b4 usou o surrogate\" deve ser lido como 25,8%, não 100%' (74,2% dos FEs vieram do ramo aleatório; 8/25 células nunca gatearam um FE pelo classificador). c238: em 193 dos 200 infills de BBOB_F1 o EIM ≡ 0 por underflow IEEE-754 e não decidiu nada. moead: ler como UMA das quatro bordas da banda (DEF-A13), NUNCA como 'o piso' isolado — trocar 'melhor piso' por 'moead' move a taxa de sucesso dos SA de 50,8% para 80,0%, viés de +29,2 pp.",
+   "recomendacao": "Todos os relatores classificam estes itens como caveats de LEITURA para o texto da dissertação, não como bugs nem como classe (3). A recomendação convergente é ratificá-los em bloco e fazê-los viajar com a R4 — em particular o de b5r ('isso vai para o texto da dissertação, não para a lista de bugs') e o do moead (que é quantitativamente o mais perigoso, com viés de +29,2 pp na conclusão principal do estudo)."
+  },
+  {
+   "id": "DA-18",
+   "pergunta": "Erratas de documentação da própria campanha T11 que estão mandando validadores futuros descartar evidência ou concluir errado. Corrigir antes do M8?",
+   "opcoes": "(1) `evidencia_T11/LEIA-ME.md` e T11 §15.2 dizem que os smokes Python não existem — existem, 11 células em `evidencia_T11/smoke_python/` (2026-07-31 10:45–11:41). (2) `handoff/T11-CONFORMIDADE.md` §2 está STALE para os 13 configs MATLAB (diz '⚪ falta' para smoke e par G-6 do e7 quando os artefatos existem e passam 6/6). (3) T11 §12.1 diz que DTLZ2 é 'a única célula D≥12 do grid' — são 12, e DTLZ2 é a MENOR; e diz que ela 'levou 14,6 h e terminou ok' na rodada-42, quando a célula `c154/DTLZ2/42` NÃO EXISTE. (4) c262: retirar da F5.7 o item de doc-sync do `cache_root` — a F5 estava errada na direção (`cache_root=None` LIGA o cache).",
+   "recomendacao": "Corrigir todas — custo de texto, zero CPU. A (1) é a mais urgente: está mandando os validadores de fidelidade jogarem fora evidência que existe. A (3) é a que mais engana quem for planejar o rito de teto: 12 problemas do roster `main/c154` têm D≥12 e TODOS foram abortados, então o rito de teto foi exercitado na MENOR delas."
+  }
+ ]
+}

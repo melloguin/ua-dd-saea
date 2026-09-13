@@ -1,0 +1,122 @@
+repo_hash smoke=195f64ed0a69dc3f6c64c66912076e243be90c49  r42=
+algo_version smoke=c238-EIM-embrulho-N5  r42=c238-EIM-embrulho-N5
+env smoke={'matlab': '25.1.0.2973910 (R2025a) Update 1', 'stack': 'matlab-platemo', 'pymoo': '0.6.2'}
+env r42  ={'matlab': '25.1.0.2973910 (R2025a) Update 1', 'stack': 'matlab-platemo', 'pymoo': '0.6.2'}
+doe_hash igual? True
+sonda x_hash igual? True  f_hash igual? True
+
+① max|delta| por fe_index — primeiros 30:
+   fe= 0 fase=init  delta=0
+   fe= 1 fase=init  delta=0
+   fe= 2 fase=init  delta=0
+   fe= 3 fase=init  delta=0
+   fe= 4 fase=init  delta=0
+   fe= 5 fase=init  delta=0
+   fe= 6 fase=init  delta=0
+   fe= 7 fase=init  delta=0
+   fe= 8 fase=init  delta=0
+   fe= 9 fase=init  delta=0
+   fe=10 fase=init  delta=0
+   fe=11 fase=init  delta=0
+   fe=12 fase=init  delta=0
+   fe=13 fase=init  delta=0
+   fe=14 fase=init  delta=0
+   fe=15 fase=init  delta=0
+   fe=16 fase=init  delta=0
+   fe=17 fase=init  delta=0
+   fe=18 fase=init  delta=0
+   fe=19 fase=init  delta=0
+   fe=20 fase=init  delta=0
+   fe=21 fase=opt   delta=0.666376
+   fe=22 fase=opt   delta=3.23398
+   fe=23 fase=opt   delta=0.413502
+   fe=24 fase=opt   delta=0.58994
+   fe=25 fase=opt   delta=5.30875
+   fe=26 fase=opt   delta=1.21804
+   fe=27 fase=opt   delta=0.234645
+   fe=28 fase=opt   delta=0.910652
+   fe=29 fase=opt   delta=4.09325
+  primeiro fe_index com delta>0: 21  (init = 0..20)
+  init (0..20) identico? True
+  n de fe com delta>0: 40 de 61
+
+⑥ geracao 1 — smoke x r42 (o fit inicial é sobre o MESMO DoE):
+   n_amostra        smoke=21
+                    r42  =21
+   n_treino         smoke=21
+                    r42  =21
+   n_front          smoke=7
+                    r42  =7
+   theta_min        smoke=[989.4157585983935, 1000]
+                    r42  =[624.9259366051979, 1000]
+   theta_max        smoke=[994.9366606632009, 1000]
+                    r42  =[811.8165811580086, 1000]
+   theta_media      smoke=[992.1762096307972, 1000]
+                    r42  =[718.3712588816032, 1000]
+   lnL              smoke=[25.672417192389815, 27.836271441561045]
+                    r42  =[25.672514777000764, 27.836271441561045]
+   norm_min         smoke=[0.001620903509469418, 0.18268371865167302]
+                    r42  =[0.001620903509469418, 0.18268371865167302]
+   norm_max         smoke=[0.9916745470611366, 7.611906080607454]
+                    r42  =[0.9916745470611366, 7.611906080607454]
+   eim_best         smoke=0.07881571367814554
+                    r42  =0.085323074443593
+   u_best           smoke=[0.5699623500468687, 0.14790662680551359]
+                    r42  =[0.4640706674691236, 0.08329681983938195]
+   s_best           smoke=[0.2780511152894667, 0.251232577744377]
+                    r42  =[0.19635664816985052, 0.19090707630688256]
+   min_dist_infill  smoke=0.06442464994295596
+                    r42  =0.037883970983419696
+   infill_sid       smoke=21
+                    r42  =21
+
+⑥ delta por geracao (eim_best, theta_media[0], lnL[0]):
+   g= 1  d_eim=0.00650736  d_theta0=273.805  d_lnL0=9.75846e-05  d_nfront=0
+   g= 2  d_eim=0.202468  d_theta0=45.3476  d_lnL0=5.15185  d_nfront=-1
+   g= 3  d_eim=0.103398  d_theta0=27.7705  d_lnL0=12.8423  d_nfront=-1
+   g= 4  d_eim=0.00386117  d_theta0=131.267  d_lnL0=38.3014  d_nfront=0
+   g= 5  d_eim=0.0342325  d_theta0=19.9038  d_lnL0=4.91273  d_nfront=-1
+   g= 6  d_eim=0.281989  d_theta0=22.4991  d_lnL0=63.0031  d_nfront=-1
+   g= 7  d_eim=0.0613026  d_theta0=1.32515e-06  d_lnL0=4.21146  d_nfront=-1
+   g= 8  d_eim=0.10481  d_theta0=106.63  d_lnL0=10.2411  d_nfront=-1
+   g= 9  d_eim=0.00715028  d_theta0=1.32515e-06  d_lnL0=4.44307  d_nfront=0
+   g=10  d_eim=0.0154069  d_theta0=38.3451  d_lnL0=17.2291  d_nfront=0
+   g=11  d_eim=0.417928  d_theta0=170.234  d_lnL0=44.9145  d_nfront=-1
+   g=12  d_eim=0.00997663  d_theta0=74.3354  d_lnL0=58.3307  d_nfront=-2
+   g=13  d_eim=0.0995557  d_theta0=65.4523  d_lnL0=54.4441  d_nfront=-1
+   g=14  d_eim=82.3098  d_theta0=292.084  d_lnL0=164.805  d_nfront=-1
+   g=15  d_eim=116.747  d_theta0=182.748  d_lnL0=200.523  d_nfront=-2
+   g=16  d_eim=0.457303  d_theta0=0.0331935  d_lnL0=12.1721  d_nfront=-2
+   g=17  d_eim=0.0467631  d_theta0=539.384  d_lnL0=101.336  d_nfront=-1
+   g=18  d_eim=19.6396  d_theta0=304.485  d_lnL0=73.1271  d_nfront=0
+   g=19  d_eim=52.029  d_theta0=0.992057  d_lnL0=108.752  d_nfront=-1
+   g=20  d_eim=3.80522  d_theta0=0.000108993  d_lnL0=5.64963  d_nfront=-1
+   g=21  d_eim=11.0207  d_theta0=16.0644  d_lnL0=219.806  d_nfront=0
+   g=22  d_eim=155.935  d_theta0=1.42598e-09  d_lnL0=7.78663  d_nfront=-1
+   g=23  d_eim=7.71648  d_theta0=6.98732e-10  d_lnL0=9.03641  d_nfront=-1
+   g=24  d_eim=71.0727  d_theta0=0.000155684  d_lnL0=11.5512  d_nfront=-1
+   g=25  d_eim=72.1975  d_theta0=0.000155684  d_lnL0=12.0506  d_nfront=-1
+   g=26  d_eim=0.64904  d_theta0=2.61675e-05  d_lnL0=5.98736  d_nfront=-1
+   g=27  d_eim=17.1767  d_theta0=6.98732e-10  d_lnL0=2.72016  d_nfront=-1
+   g=28  d_eim=87.3629  d_theta0=0.000317797  d_lnL0=19.9601  d_nfront=-1
+   g=29  d_eim=7.88484  d_theta0=3.42379e-10  d_lnL0=21.9839  d_nfront=-1
+   g=30  d_eim=4.71004  d_theta0=6.98732e-10  d_lnL0=24.266  d_nfront=0
+   g=31  d_eim=3.56094  d_theta0=6.98732e-10  d_lnL0=24.9816  d_nfront=0
+   g=32  d_eim=1.06902  d_theta0=6.98732e-10  d_lnL0=24.4257  d_nfront=0
+   g=33  d_eim=1.97261  d_theta0=0.000155708  d_lnL0=28.8585  d_nfront=0
+   g=34  d_eim=7.40454  d_theta0=1.87969e-08  d_lnL0=18.0516  d_nfront=0
+   g=35  d_eim=3.06819  d_theta0=3.42379e-10  d_lnL0=19.078  d_nfront=0
+   g=36  d_eim=4.4938  d_theta0=0.000926806  d_lnL0=13.4128  d_nfront=0
+   g=37  d_eim=1.44931  d_theta0=0.000454028  d_lnL0=16.8182  d_nfront=0
+   g=38  d_eim=1.32041  d_theta0=0.613538  d_lnL0=71.7026  d_nfront=0
+   g=39  d_eim=0.211266  d_theta0=0.000155708  d_lnL0=0.65637  d_nfront=0
+   g=40  d_eim=11.9808  d_theta0=6.98732e-10  d_lnL0=0.455952  d_nfront=0
+
+③ sonda bloco g=1 (GP treinado no DoE IDENTICO):
+   x0       max|delta| = 0
+   x1       max|delta| = 0
+   mu_0     max|delta| = 0.0825003
+   mu_1     max|delta| = 0
+   sigma_0  max|delta| = 0.0331863
+   sigma_1  max|delta| = 0
+   mu_0 smoke[:3]= [0.49744406 0.50463945 0.49743265]  r42[:3]= [0.49734282 0.5279169  0.49723116]

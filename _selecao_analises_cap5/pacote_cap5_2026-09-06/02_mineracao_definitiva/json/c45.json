@@ -1,0 +1,110 @@
+{
+  "id": "c45",
+  "sigla": "GP-DGS",
+  "titulo": "An Efficient Surrogate-based Multi-objective Optimisation Framework with Novel Sampling Strategy for Sustainable Island Groundwater Management",
+  "ano": 2024,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Estudo de caso único (não é suíte de benchmarks sintéticos): problema real de gerenciamento de bombeamento de água subterrânea (GPO) num aquífero insular 3D (grade de diferenças finitas de 60 000 células), representando de forma simplificada a lente de água doce da Ilha de San Salvador (Bahamas). 2 objetivos: minimizar o custo de suprimento fOC (bombeamento + dessalinização), maximizar o suprimento de água doce Qp; 3 restrições/saídas adicionais também surrogadas: rebaixamento Δs1 e Δs2 em dois locais de bombeamento, e aumento de massa de sal ΔSM (ambos indicadores de controle de SWI). Espaço de decisão D=6: D1, Q1 (profundidade e vazão do poço central) e D2, Q2, X2, Y2 (profundidade, vazão e coordenadas dos 4 poços simétricos).",
+    "orcamento": "Quatro estratégias de amostragem offline para o dataset de treino dos GPs: T1 = estratégia proposta (seleção ativa/adaptativa via score F = 0,5·R(dc) + 0,5·R(∇G), combinando distância ao ponto de treino mais próximo (dc) e gradiente local da estimativa do GP (∇G)), NM=400 pontos; T2 = 700 pontos uniformemente distribuídos no espaço de DVs; T3 e T4 = duas realizações independentes de 1000 pontos aleatoriamente distribuídos. Não há DoE inicial compartilhado entre as quatro estratégias (cada T é seu próprio dataset completo). A qualidade é avaliada por PPO (Monte Carlo, 100 amostras por ponto) e por NRMSE contra SEAWAT sobre as 30 soluções PO de maior PPO.",
+    "execucoes": "Sem sementes/réplicas múltiplas no sentido da dissertação: cada cenário (T1, T2, T3, T4) corresponde a UMA única execução completa do framework offline. T3 e T4 são as únicas réplicas do desenho (duas realizações independentes da mesma distribuição aleatória, N=1000), funcionando como uma checagem informal, não estatística, de variabilidade run-a-run; T1 e T2 não têm réplica alguma.",
+    "baselines": "T2 (grade uniforme) e T3/T4 (amostragem aleatória) funcionam como baselines 'tradicionais' de amostragem/DoE offline contra a estratégia ativa proposta (T1) — a comparação é inteiramente ENTRE ESTRATÉGIAS DE AMOSTRAGEM DE TREINO para o MESMO framework/algoritmo offline baseado em GP (GP-DGS), não entre algoritmos SA-MOO distintos. NÃO há piso evolutivo sem surrogate (NSGA-II, MOEA/D, NSGA-III, SMS-EMOA) nem qualquer outro algoritmo SA-MOO da literatura na comparação.",
+    "metricas_principais": [
+      "PPO — probabilidade de Pareto-otimalidade por solução e média por cenário (estimada por simulação de Monte Carlo, amostra de tamanho 100, a partir da posterior do GP)",
+      "NRMSE por saída do surrogate — εOC, εQP, εΔs1, εΔs2, εΔSM — entre predições do GP e valores 'verdadeiros' (SEAWAT), calculado sobre as 30 soluções PO de maior PPO"
+    ],
+    "testes": [
+      "nenhum teste de hipótese estatística (sem Wilcoxon, sem Friedman); comparação direta dos valores de NRMSE tabulados (Tabela 1) e leitura qualitativa/visual da Fig. 2"
+    ],
+    "apresentacao": "Tabela única (Tabela 1) com um valor de NRMSE por célula, sem média±dp, sem símbolos +/=/−, sem melhor em negrito, 4 linhas (T1–T4) × 5 colunas (uma por saída do GP). Figura de dispersão (Fig. 2) dos POPS no espaço de objetivos (Qp × fOC), cor de cada ponto = PPOi (escala de cor), barras de erro horizontais/verticais = incerteza do surrogate; 4 painéis (a)–(d) para T1–T4, com valor médio de PPO anotado em cada painel. Nenhuma 'execução mediana' (cada cenário é uma única execução determinística, ou uma realização aleatória, não um conjunto de 30 sementes).",
+    "codigo_plataforma": "SEAWAT versão 4 (USGS) como simulador numérico de referência ('verdade'); scikit-learn (Python) para os modelos de Processo Gaussiano (kernel exponencial quadrático); simulação de Monte Carlo e seleção de novos pontos de amostragem implementadas em Python (pandas, numpy); matplotlib para as figuras. Framework/algoritmo próprio dos autores (não usa PlatEMO nem BoTorch)."
+  },
+  "analises": [
+    {
+      "fichas": [
+        31,
+        37,
+        63
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela 1: o artigo reporta o erro quadrático médio normalizado (NRMSE) entre as predições dos GPs e os valores 'verdadeiros' calculados por SEAWAT, separadamente para cada uma das 5 saídas surrogadas (custo εOC, suprimento de água doce εQP, rebaixamento εΔs1 e εΔs2, aumento de massa de sal εΔSM), calculado sobre as 30 soluções PO de maior PPO, comparando as quatro estratégias de amostragem offline T1–T4 (tamanhos e métodos de geração do dataset de treino distintos).",
+      "literal": "NMRSE values reported in Table 1 confirm the better reliability of results obtained in T1.",
+      "localizador": "Sec. 2.2 (definição da métrica) e Table 1, Sec. 3 Results and Discussion",
+      "metricas": [
+        "NRMSE — εOC",
+        "NRMSE — εQP",
+        "NRMSE — εΔs1",
+        "NRMSE — εΔs2",
+        "NRMSE — εΔSM"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tabela com um único valor por célula (sem média±dp, sem símbolos +/=/−, sem negrito de melhor); 4 linhas (T1–T4) × 5 colunas; valores com 2 casas decimais; T3 e T4 são duas realizações independentes da mesma estratégia aleatória (N=1000), reportadas em linhas separadas, não agregadas.",
+      "achado": "T1 (estratégia proposta, apenas 400 pontos) tem o menor ou empatado-menor NRMSE nas 5 saídas, apesar de usar MENOS pontos de treino que T2 (700, uniforme) e T3/T4 (1000 cada, aleatório): εOC=0.18 (vs. 0.32–0.42 nos demais); εQP=0.31 (vs. 0.39–0.44 — a menor vantagem relativa entre as 5 saídas, embora T1 ainda seja o menor valor); εΔs1=0.00 (empatado com T3 e T4; só T2=0.21 tem erro não-nulo); εΔs2=0.00 (único cenário com erro nulo; T2=0.35, T3=0.30, T4=0.47); εΔSM=0.00 em TODOS os quatro cenários (métrica não discrimina as estratégias nesse caso). O achado central é de eficiência amostral: a amostragem ativa/adaptativa (T1, score de distância+gradiente) iguala ou supera desenhos passivos maiores (uniforme e aleatório, com 1,75× a 2,5× mais pontos) em acurácia do surrogate. Nota: as duas realizações aleatórias de mesmo N (T3 vs. T4) diferem sensivelmente entre si em εΔs2 (0.30 vs. 0.47), evidenciando variabilidade run-a-run do desenho aleatório mesmo sem variar o tamanho da amostra.",
+      "aplicabilidade": "não diretamente reproduzível com a sonda ③ da dissertação no sentido estrito (a sonda usa 2 000 pontos fixos re-preditos a cada retreino ao longo do orçamento ONLINE; aqui o NRMSE é calculado uma única vez, ao final de cada estratégia OFFLINE de amostragem, sobre as 30 soluções de maior PPO — não sobre um conjunto de sonda fixo, nem 'ao longo do orçamento'); o princípio (RMSE/NRMSE do μ do GP contra valor verdadeiro, reportado por saída, não agregado em um escalar) é análogo ao espírito das fichas 31/37; reproduzir exigiria adaptar a extração para comparar ESTRATÉGIAS DE DoE offline (tamanho e método de amostragem) em vez de FRAÇÃO DE ORÇAMENTO consumida por um único algoritmo."
+    },
+    {
+      "fichas": [
+        42,
+        54,
+        63
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Figura 2: o artigo apresenta os conjuntos Pareto-ótimos (POPS) obtidos em cada cenário de treino (T1–T4) no espaço de objetivos (Qp vs. fOC), com cada ponto colorido conforme sua probabilidade de Pareto-otimalidade individual (PPOi, estimada por Monte Carlo com 100 amostras) e barras de erro horizontais/verticais indicando a incerteza do surrogate; o valor médio de PPO por painel está anotado na própria figura.",
+      "literal": "Each point is plotted with a colour depending on PPOi (see scale), and horizontal and vertical error bars indicative of the surrogate uncertainty.",
+      "localizador": "Fig. 2 e Sec. 3 Results and Discussion; anotações de PPO na Fig. 2 (ANEXO — OCR, Página 2)",
+      "metricas": [
+        "PPO (probabilidade de Pareto-otimalidade, por ponto e média por cenário)",
+        "incerteza do surrogate (magnitude das barras de erro, comparação qualitativa entre cenários)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Gráfico de dispersão do POPS de cada cenário (execução única/determinística, não mediana de várias execuções); cor = PPOi por ponto (escala de cor); barras de erro = incerteza do surrogate; 4 painéis (a)–(d) para T1–T4; sem sobreposição de uma 'frente verdadeira' analítica — a validação contra o valor verdadeiro é feita à parte, via NRMSE na Tabela 1, não nesta figura.",
+      "achado": "T1 produz o POPS com incerteza visivelmente menor e maior PPO média entre os quatro cenários; pela leitura OCR (aproximada) dos rótulos da Fig. 2, os valores médios de PPO por painel são aproximadamente T1≈0.45, T2≈0.30, T3≈0.41, T4≈0.36 — consistente com o texto ('PPO in T1 is significantly higher than in T2, T3 and T4'). A partir do formato da Fig. 2a (T1), os autores também leem que fOC cresce gradualmente com Qp até 950 m3 d−1 e depois cresce abruptamente, apontando 950 m3 d−1 como limiar de sustentabilidade entre viabilidade econômica e controle de SWI — um achado de domínio (hidrogeologia/engenharia de recursos hídricos) lido a partir da forma do trade-off, não uma comparação de mecanismo de incerteza.",
+      "aplicabilidade": "parcialmente análoga à ficha 42 (fantasia offline: o que o modelo 'acredita' ser Pareto-ótimo — aqui quantificado ponto a ponto como PPOi via Monte Carlo sobre a posterior do GP — checado a posteriori pela reavaliação/validação contra o valor verdadeiro) e à ficha 54 (visual do ND obtido), mas sem overlay de frente verdadeira nem reavaliação binária de não-dominância; reproduzir exigiria registrar, para o ND final 'acreditado' de um regime offline, uma probabilidade de Pareto-otimalidade via amostragem da posterior do GP — mecanismo não definido nas 7 camadas da dissertação tal como estão especificadas."
+    },
+    {
+      "fichas": [
+        63
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo menciona, sem apresentar dados (nem tabela, nem figura), testes preliminares que variam o número de pontos de treino permitido (NM) na abordagem offline, observando que a PPO aumenta com NM mas os ganhos se tornam marginais a partir de NM≈400 — resultado usado para justificar a escolha de NM=400 em T1.",
+      "literal": "Preliminary tests (not presented here) indicate that the performance of the offline training approach depends on the number of allowed training points NM.",
+      "localizador": "Sec. 3 Results and Discussion, parágrafo de abertura",
+      "metricas": [
+        "PPO (probabilidade de Pareto-otimalidade)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Não apresentado (nem tabela nem figura); apenas descrição narrativa do comportamento (PPO cresce com NM, com ganhos marginais decrescentes perto de NM=400).",
+      "achado": "PPO cresce com NM, mas com retornos marginais decrescentes ao se aproximar de NM=400 — usado para justificar a escolha de NM=400 em T1, sem quantificar a curva nem publicar os valores de PPO para outros NM testados.",
+      "aplicabilidade": "não reproduzível — motivo: o próprio artigo não apresenta os dados desses testes preliminares ('not presented here'); em espírito é análoga a uma varredura de orçamento/tamanho de dataset offline (ficha 63), mas sem nenhum número publicado para extrair."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo NÃO realiza verificação formal de calibração do σ (não há cobertura de intervalo, nem correlação σ×erro, nem checagem de que a magnitude da incerteza reportada corresponde ao erro real). A incerteza (barras de erro na Fig. 2) é usada apenas qualitativa/visualmente, como indício de robustez/confiabilidade, comparando o TAMANHO das barras entre T1–T4 — 'menor incerteza' é equiparado a 'mais confiável' sem checagem de que essa incerteza é bem-calibrada (magnitude correta) ou apenas menor em valor absoluto. A acurácia da MÉDIA do GP (NRMSE, Tabela 1) é medida separadamente, mas não é uma medida de calibração do σ.",
+    "literal": "POPS in T1 are characterized by a remarkably smaller uncertainty than those in T2, T3 and T4, indicating that the former are more robust and more reliable than the latter.",
+    "localizador": "Sec. 3 Results and Discussion; Fig. 2"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Apenas afirmação qualitativa (sem números de tempo de parede, sem complexidade, sem decomposição fit/busca/avaliação) de que a estratégia de amostragem proposta é computacionalmente menos intensiva que os métodos tradicionais de treino offline (uniforme, aleatório). Não há tabela nem figura de custo computacional — a alegação aparece apenas em texto corrido, tanto nos Resultados quanto na Conclusão.",
+    "literal": "PPO in T1 is significantly higher than in T2, T3 and T4, suggesting that the training approach is more effective, other than computationally less intensive, than traditional methods.",
+    "localizador": "Sec. 3 Results and Discussion; reafirmado na Sec. 4 Conclusions ('the proposed strategy can generate more reliable POPS and consume a lower computational cost')"
+  },
+  "resultados_negativos": [],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [],
+  "roster_bloco": null,
+  "observacoes": "Artigo curto (extended-abstract/conference paper de 4 páginas, Advances in Geosciences, special issue EGU2024 HS8.2.1), com um único caso de estudo real (aquífero insular 3D, San Salvador) e SEM piso evolutivo (NSGA-II etc.) e SEM outros algoritmos SA-MOO da literatura como baseline: toda a comparação experimental é ENTRE ESTRATÉGIAS DE AMOSTRAGEM/DoE OFFLINE (T1 ativa/adaptativa proposta vs. T2 grade uniforme vs. T3/T4 amostragem aleatória) para o MESMO framework offline baseado em GP (GP-DGS). Não há sementes múltiplas nem replicação estatística no sentido da dissertação — T3 e T4 são apenas 2 realizações independentes da estratégia aleatória (N=1000 cada); nenhum teste de hipótese estatística é usado em lugar nenhum do artigo. O mecanismo de incerteza (PPO via Monte Carlo sobre a posterior do GP, n=100 amostras, para estimar a probabilidade de não-dominância/Pareto-otimalidade de cada candidato) é um exemplo limpo e minimalista da classe 'A2 · Dominância probabilística' da taxonomia, útil como ilustração mesmo estando fora do roster experimental. A calibração do σ (magnitude correta da incerteza) NÃO é validada formalmente — ver campo calibracao_do_sigma. Metodologicamente, o artigo propõe uma estratégia de DoE offline ATIVA/ADAPTATIVA (pontuação por distância ao ponto de treino mais próximo + gradiente local da estimativa do GP corrente, escolhendo iterativamente o ponto de score máximo F=0,5·R(dc)+0,5·R(∇G), até um critério de parada); pelo OCR do fluxograma da Fig. 1b (aproximado, rótulos parcialmente ilegíveis), os critérios de parada/atualização envolvem algo como 'davg' (distância média), 'E ≤ 0.005' (limiar de erro/convergência) e 'Ns ≤ NM' (nº de simulações SEAWAT já gastas ≤ máximo permitido), além de 'σavg: average standard deviations of estimates' — sugerindo que a incerteza média do GP também pode integrar o critério de parada do laço offline, embora o texto principal não descreva essa mecânica interna em prosa (só a fórmula do score F e a Fig. 1b). Esse tipo de comparação (DoE ATIVO/sequencial vs. desenhos ESTÁTICOS como grade uniforme ou amostragem aleatória) é mais amplo em espécie do que o enquadramento atual da ficha 63 (tamanho small/medium/big × distribuição LHS/MVNS, específico dos algoritmos do roster) — registra-se aqui para a autora da dissertação avaliar se vale a pena estender a ficha 63 ou criar uma ficha nova dedicada a 'DoE ativo/adaptativo vs. desenhos offline estáticos' ao revisar a tipologia. Nenhuma passagem foi encontrada qualificável como resultado_negativo (caveat explícito de calibração/incerteza atrapalhando) — o artigo não se defende do σ em nenhum momento; note-se apenas, como observação numérica minha (não framing dos autores), que mesmo T1 (melhor cenário) deixa εOC=0.18 e εQP=0.31 de erro residual não-nulo, isto é, o surrogate está longe de ser perfeito mesmo na estratégia vencedora. Nenhuma passagem de equivalência_criterios foi encontrada (não há comparação entre critérios/aquisições alternativas sob o mesmo surrogate — só entre estratégias de amostragem de TREINO). Nenhuma passagem com terminologia explícita de característica de problema (multimodalidade, não separabilidade, frente côncava/desconexa, alta dimensão, ruído) foi encontrada com afirmação de comportamento associada, por isso caracteristica_x_desempenho ficou vazio. A Fig. 1 (conceitualização do domínio + fluxograma do framework offline) é um diagrama de MÉTODO, não uma análise experimental, e por isso não gerou entrada em 'analises'. Li o artigo INTEIRO (543 linhas: corpo estruturado + ANEXO de texto completo do PDF, redundante em conteúdo mas usado para confirmar cada citação, incluindo variações de hifenização/OCR do texto bruto — ex. o typo original 'NMRSE' em vez de 'NRMSE' foi preservado no campo literal por fidelidade — + ANEXO de OCR de imagens, usado para as anotações numéricas de PPO na Fig. 2 e para os rótulos aproximados do fluxograma da Fig. 1b). Nenhum problema de leitura do arquivo; a única limitação é que os valores de PPO por painel da Fig. 2 e os rótulos do fluxograma da Fig. 1b vêm de OCR aproximado (a própria imagem não foi vista), não da camada de texto estruturada do PDF. roster_bloco = null por instrução explícita do pedido (artigo fora do roster experimental)."
+}

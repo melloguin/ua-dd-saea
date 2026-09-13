@@ -1,0 +1,290 @@
+{
+  "id": "c123",
+  "sigla": "EPBII / EIPBII",
+  "titulo": "Expected Improvement of Penalty-Based Boundary Intersection for Expensive Multiobjective Optimization",
+  "ano": 2017,
+  "roster": false,
+  "setup": {
+    "benchmarks": "ZDT1-4,6 (Deb 1999; M=2, m=8); LZ08-F1-4 (Li & Zhang 2009; M=2, m=8, POS com valores ótimos diferentes por variável, mais difícil para o Kriging que ZDT); DTLZ2 (Deb et al. 2002; M=2,3; k=4; m=M+k-1); e três variantes de MAXIMIZAÇÃO propostas pelos próprios autores — DTLZ2max1 (sem POS fracos), DTLZ2max2 (g(xM) desenhado para imitar uma PF real que cobre só parte da região viável, motivado por um caso de aerofólio hipersustentador citado de outro artigo, Fig. 11), DTLZ2max3 (g(xM) com múltiplos ótimos locais, gera PFs locais) — cada uma em M=2,3,4 objetivos, com k=4 e (só DTLZ2max3) também k=8, i.e. m=M+k-1 maior nesse caso. Nenhuma suíte WFG/MMF/BBOB nem problema real é otimizado pelos próprios autores (Fig. 11 só ilustra um resultado publicado alhures, para motivar o desenho de DTLZ2max2).",
+    "orcamento": "DoE inicial por Latin Hypercube Sampling = 11m−1 pontos (m = nº de variáveis de decisão); nadd (pontos adicionados por iteração) = 1 para EHVI, 5 para os demais cinco critérios (EST, EI, EHVI+EST, EPBII, EIPBII); total de amostras (inicial+adicional) até 200 para problemas de 2 objetivos (exceto DTLZ2max3 com k=8) ou 300 para os demais (3-obj., 4-obj., e também DTLZ2max3 k=8 mesmo com 2 objetivos). A Sec. VI-C testa adicionalmente nadd = 3, 5 e 10 no problema LZ08-F2, mantendo os demais parâmetros do EPBII/EIPBII iguais aos usados nas Tabelas I-IV (nadd=5).",
+    "execucoes": "10 execuções independentes por configuração (critério × problema), cada uma partindo de um DoE inicial LHS diferente ('10 independent runs starting with different initial sample points'). Estatística principal usada nas Tabelas I-IV é a MÉDIA (não a mediana); desvio padrão, melhor e pior valor entre as 10 execuções são reportados à parte, nos Apêndices A-D.",
+    "baselines": "Comparação interna entre SEIS funções de infill, todas dentro do MESMO framework EGO próprio dos autores (mesmo modelo Kriging ordinário, mesmo NSGA-II como otimizador de cada critério — inclusive para as maximizações single-objective de EHVI/EPBII/EIPBII —, mesmo DoE LHS por execução): EST (sem incerteza, só estimativa pontual), EI/EGOMOP (Jeong et al. 2006), EHVI (só 2 objetivos), EHVI+EST (Shimoyama et al. 2013), e as duas propostas EPBII e EIPBII. NÃO há piso evolutivo sem surrogate (NSGA-II 'puro' nunca é rodado nos experimentos — só como otimizador interno de cada critério sobre o modelo). A única comparação com outro algoritmo externo é com valores de MOEA/D-EGO (Zhang et al. 2010) CITADOS de outro artigo — os próprios autores alertam explicitamente que essa comparação não é sob as mesmas condições (DoE diferente, otimizador de EI diferente — differential evolution com informação de vizinhança —, mais vetores de peso, múltiplos modelos Kriging locais por cluster de amostras).",
+    "metricas_principais": [
+      "IH (déficit de hipervolume: hipervolume do conjunto Pareto-ótimo verdadeiro menos hipervolume das amostras obtidas; quanto menor, melhor)",
+      "IGD (inverted generational distance; quanto menor, melhor)"
+    ],
+    "testes": [
+      "nenhum teste estatístico formal em lugar nenhum do artigo — só destaque em negrito com fundo cinza (menor valor médio) e negrito simples (segundo menor) nas Tabelas I-IV; sem p-valor, sem símbolos +/=/-, sem Wilcoxon/Friedman"
+    ],
+    "apresentacao": "Tabelas I-IV reportam o valor MÉDIO (não mediana) de IH e IGD ao final do orçamento sobre 10 execuções; melhor valor em negrito com fundo cinza, segundo melhor em negrito simples. Apêndices A-D acrescentam desvio padrão, melhor e pior valor por célula, com a mesma convenção de negrito aplicada a cada uma dessas quatro estatísticas separadamente. Figuras de NDS (13-20, 22-23) mostram a execução cujo IH está mais próximo da MÉDIA (não da mediana) entre as 10 execuções, plotada contra a fronteira/POS verdadeira (linha ou pontos cinza) ou, no caso da Fig. 23, contra todas as amostras da execução. Figuras 21, 24 e 25 mostram curvas do valor médio de IH/IGD × número de amostras ou × número de atualizações do modelo, sem banda de dispersão (IQR/desvio) desenhada.",
+    "codigo_plataforma": "Framework EGO próprio dos autores (não nomeado como pacote); nota do repositório indica que o código original do artigo foi implementado em Fortran, e a versão Python 3.6.5 publicada em github.com/Nobuo-Namura/EPBII é uma conversão POSTERIOR — os próprios autores/mantenedores alertam que 'some results may differ from the article' nessa versão convertida. Kriging ordinário com função de correlação gaussiana de distância ponderada (anisotrópico); NSGA-II implementado internamente como otimizador de todos os critérios de infill, inclusive para as maximizações single-objective (EHVI, EPBII, EIPBII); integração numérica por Monte Carlo (500 pontos) para EPBII, EIPBII e EHVI — só a EI de objetivo único (Eq. 8) usa forma fechada analítica (função erro)."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabelas I e II reportam o valor médio (sobre 10 execuções) de IH e IGD ao final do orçamento de amostragem, para os seis critérios de infill (EST, EI, EHVI, EHVI+EST, EPBII, EIPBII) em 11 problemas 'bem conhecidos' da literatura (ZDT1-4,6; LZ08-F1-4; DTLZ2 M=2,3), com valores de MOEA/D-EGO citados de outro artigo incluídos como coluna de referência adicional (não controlada).",
+      "literal": "For each test problem, the lowest (top) values among the six criteria are highlighted in bold face with gray background and the second lowest values are highlighted in bold face.",
+      "localizador": "Sec. VI-A, Table I, Table II",
+      "metricas": [
+        "IH (déficit de hipervolume)",
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Valor MÉDIO (não mediana) sobre 10 execuções independentes; melhor valor em negrito com fundo cinza, segundo melhor em negrito simples; MOEA/D-EGO citado de outro artigo (condições diferentes de DoE/otimizador/nº de vetores de peso), sem reexecução própria pelos autores deste artigo.",
+      "achado": "EPBII, EIPBII e EHVI+EST superam EST, EI e EHVI na maioria dos problemas ZDT e são comparáveis a MOEA/D-EGO (ex.: EIPBII IH=0.01041 e IGD=0.00807 em ZDT2, melhores que os 0.0198/0.0156 citados de MOEA/D-EGO); em DTLZ2 (2 e 3 obj.) EPBII e EIPBII obtêm os menores IH/IGD; já em LZ08 (mais difícil para o Kriging porque os POS têm valores diferentes por variável, espalhados no espaço de decisão) é o EHVI — que só adiciona 1 ponto por iteração — quem vence a maioria dos casos, porque atualizar o modelo com mais frequência compensa não explorar em paralelo.",
+      "aplicabilidade": "① endpoint — recalcular IGD+/HV sobre o ND acumulado de avaliações reais ao final do orçamento, por configuração × problema (ficha 1 da dissertação), trocando 'valor médio' por mediana e comparando a robustez da leitura entre as duas convenções."
+    },
+    {
+      "fichas": [
+        1,
+        8
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Apêndices A e B reproduzem as Tabelas I e II acrescentando desvio padrão, melhor e pior valor entre as 10 execuções, célula a célula, para o mesmo conjunto de 11 problemas 'bem conhecidos'.",
+      "literal": "STATISTICS OF IH FOR WELL-KNOWN TEST PROBLEMS OBTAINED BY SIX CRITERIA AND MOEA/D-EGO",
+      "localizador": "Appendix A (Table, IH), Appendix B (Table, IGD)",
+      "metricas": [
+        "IH",
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Estatísticas descritivas por célula (média, desvio padrão, melhor, pior) sobre as 10 execuções; sem teste de hipótese; a célula 'Worst' de MOEA/D-EGO aparece como '-' em todas as linhas (não reportada na fonte original citada).",
+      "achado": "O desvio padrão e a amplitude (melhor−pior) variam fortemente por problema: em ZDT3, por exemplo, o EPBII tem desvio padrão de IH = 1.79163 e pior caso = 6.14987 — muito acima do seu próprio melhor caso, 0.01516 —, evidenciando alta variância execução-a-execução nesse problema de frente descontínua, enquanto o EIPBII é bem mais estável no mesmo problema (desvio 0.06694, pior 0.20163), consistente com o texto dizer que só EIPBII/EHVI+EST 'robustly find all five discontinuous PFs in 10 runs'.",
+      "aplicabilidade": "① endpoint — mesma matriz da ficha 1, mas agregando desvio-padrão/amplitude entre sementes por célula (ficha 8: dispersão entre sementes), embora aqui não haja piso para a pergunta 'o surrogate adiciona variância?' ser respondida por comparação (todas as 6 configurações usam Kriging)."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabelas III e IV reportam o valor médio de IH e IGD ao final do orçamento para os seis critérios, nas três variantes de maximização propostas pelos próprios autores (DTLZ2max1/2/3), cada uma em 2, 3 e 4 objetivos (e, para DTLZ2max3, também em k=4 e k=8).",
+      "literal": "Tables III and IV summarize the IH and IGD values for the six criteria at the end of the EGO iterations, where the lowest values are in bold with a grey background",
+      "localizador": "Sec. VI-B, Table III, Table IV",
+      "metricas": [
+        "IH",
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesma convenção das Tabelas I/II (média sobre 10 execuções, negrito+fundo cinza para o melhor, negrito para o segundo); sem coluna de MOEA/D-EGO nesta bateria, já que os problemas DTLZ2max1-3 são propostos pelos próprios autores (não usados por Zhang et al.).",
+      "achado": "EPBII e EIPBII dominam nas três variantes: em DTLZ2max1 (sem POS fracos) ambos empatam como melhores; em DTLZ2max2 o EIPBII é sistematicamente o melhor (2, 3 e 4 objetivos) e o EPBII o segundo; em DTLZ2max3 de 4 objetivos (k=8) o EPBII é o melhor mas o EIPBII cai ao nível de EST/EI/EHVI+EST. O EHVI vence em DTLZ2max1 e em DTLZ2max3 (k=4) de 2 objetivos, mas tem IH médio muito alto em DTLZ2max3 (k=8) de 2 objetivos, quando o Kriging é impreciso.",
+      "aplicabilidade": "① endpoint — mesma leitura da ficha 1 (matriz configuração×problema), aqui sobre uma bateria desenhada para estressar POS fracos/frente côncava/PF local, equivalente a cruzar a matriz da ficha 1 com a característica do problema (ver caracteristica_x_desempenho abaixo, próximo em espírito à ficha 17/20 da dissertação)."
+    },
+    {
+      "fichas": [
+        1,
+        8
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Apêndices C e D reproduzem as Tabelas III e IV acrescentando desvio padrão, melhor e pior valor entre as 10 execuções, para cada critério × variante DTLZ2max1-3 × número de objetivos (e k).",
+      "literal": "it achieves the second lowest best and worst IH and IGD value, respectively (see Appendices C and D), for the two-objective DTLZ2max3 (k = 4).",
+      "localizador": "Sec. VI-B-3 (texto que remete às tabelas); Appendix C, Appendix D",
+      "metricas": [
+        "IH",
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Estatísticas descritivas (média, desvio padrão, melhor, pior) sobre 10 execuções; melhor e segundo melhor em negrito por linha de estatística, mesma convenção das tabelas principais.",
+      "achado": "No DTLZ2max3 de 2 objetivos (k=4), apesar de ter IH/IGD MÉDIOS piores que EHVI, EHVI+EST e EIPBII, o EPBII tem o segundo melhor best e o segundo melhor worst nessa mesma célula — evidência de que ele encontra boas soluções quando não cai na armadilha de PF local, mas sua média é puxada para cima pelas execuções em que cai (consistente com o texto: 'it is likely to fall into the local PF, leading to high mean values of the two metrics').",
+      "aplicabilidade": "① endpoint — mesma leitura da ficha 8 (dispersão entre sementes/execuções), aplicada à bateria de problemas com características estressadas (POS fraco, frente local)."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para praticamente todos os problemas testados, o artigo plota as soluções não-dominadas obtidas contra a fronteira/POS verdadeira (Figs. 13-20, 22-23), para a execução cujo IH está mais próximo do valor MÉDIO entre as 10 execuções (não a mediana) — ilustração visual de cobertura/diversidade e de casos de falha (agrupamento em poucos pontos da PF, armadilha de frente local).",
+      "literal": "NDSs with the values of IH that are closest to the mean value in 10 runs are presented.",
+      "localizador": "Sec. VI-A/VI-B, Figs. 13-20, 22, 23",
+      "metricas": [
+        "IH (usado só como critério para escolher a execução ilustrada)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução 'mais próxima da MÉDIA' (não mediana) do IH é escolhida para ilustração; PF/POS verdadeira mostrada como linha ou pontos cinza; ND obtido como círculos/pontos pretos; em Fig. 23 todas as amostras da execução (não só o ND) também são mostradas.",
+      "achado": "EI e EHVI+EST convergem para poucos pontos específicos da fronteira em vez de cobri-la uniformemente (Fig. 22 mostra as NDSs de EI concentradas em cinco posições), enquanto EPBII/EIPBII cobrem toda a fronteira ao longo dos vetores de peso mesmo em 3 objetivos (Fig. 20); em DTLZ2max3 (Fig. 23) EPBII e EIPBII chegam mais perto da PF verdadeira que os demais critérios e alcançam a PF verdadeira no melhor caso, mas caem em frentes locais em algumas execuções.",
+      "aplicabilidade": "① endpoint (x,f da execução escolhida) + fronteira/POS analítica verdadeira do problema — reproduzível diretamente para qualquer problema com POS conhecida (ficha 54 da dissertação), trocando 'execução mais próxima da média' por 'execução mediana'."
+    },
+    {
+      "fichas": [
+        26,
+        64
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Estudo de sensibilidade ao tamanho do lote de pontos adicionados por iteração (nadd = 3, 5, 10) para EPBII e EIPBII no problema LZ08-F2, plotando o IH médio contra o número de amostras totais (Fig. 24) e contra o número de atualizações do modelo (Fig. 25).",
+      "literal": "exploration capabilities of EPBII and EIPBII with nadd = 3, 5, and 10 are compared in LZ08-F2",
+      "localizador": "Sec. VI-C, Figs. 24, 25",
+      "metricas": [
+        "IH"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curvas de IH médio × número de amostras (Fig. 24) e × número de atualizações do modelo (Fig. 25); demais parâmetros mantidos iguais aos usados nas Tabelas I-IV (nadd=5 como referência).",
+      "achado": "A um mesmo número de amostras, nadd maior implica IH final pior (menos atualizações de modelo, menos ganho de acurácia), mas a um mesmo número de atualizações de modelo, nadd=10 chega a um IH baixo muito mais rápido que nadd=3 ou 5 — um trade-off explícito entre paralelismo (nº de avaliações simultâneas) e eficiência amostral, vantagem que os autores atribuem diretamente ao EPBII/EIPBII como critérios multipontuais.",
+      "aplicabilidade": "não reproduzível diretamente com o desenho atual da bateria — exigiria rodar as mesmas configurações (mesmo algoritmo, mesmo problema, mesmas sementes) com nadd/q variável, o que não está previsto para os algoritmos do roster; parcialmente comparável às células 'batch' (q=10) da bateria (ficha 64) contra as células q=1 equivalentes, usando ① endpoint sob FE comum."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para o problema DTLZ2max2 de 4 objetivos, o artigo plota a evolução do valor médio de IGD (Fig. 21a) e de IH (Fig. 21b) ao longo do número de amostras acumuladas — não só o valor final —, para cinco dos seis critérios (presumivelmente excluindo o EHVI, que só roda em problemas de 2 objetivos).",
+      "literal": "Mean value of performance metrics obtained by five criteria against number of sample points for the four-objective DTLZ2max2.",
+      "localizador": "Sec. VI-B-2, Fig. 21",
+      "metricas": [
+        "IH",
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curva do valor médio (presumivelmente sobre as 10 execuções) × número de amostras acumuladas; sem banda de dispersão (IQR/desvio) desenhada na figura.",
+      "achado": "O EIPBII tem IGD PIOR que os demais critérios no início da busca (poucas amostras), mesmo com IH comparável nesse mesmo estágio — sinal de que, cedo na busca, o EIPBII sacrifica cobertura ampla da frente (o que penaliza IGD) por causa da sensibilidade do seu ponto de referência (nadir) a POS fracos, revertendo essa desvantagem só mais tarde no orçamento, quando a Tabela III/IV mostra o EIPBII como o melhor critério no problema.",
+      "aplicabilidade": "① endpoint em checkpoints intermediários — reproduzível como a ficha 26 (trajetória de IGD+/HV × fração do orçamento), tomando o ND acumulado a cada checkpoint em vez de só no final do orçamento."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Discussão qualitativa de sensibilidade a θ_PBI e H (não tabulada)",
+      "grupo_sugerido": "E",
+      "descricao": "O artigo discute qualitativamente (sem nenhuma tabela/figura) o efeito do parâmetro de penalidade da PBI/IPBI (que define o ângulo/raio da região de referência onde a EPBII tem suporte positivo) e do número de vetores de peso H: menciona 'preliminary tests' com esse parâmetro valendo 12 (problema de 2 objetivos), em que o EGO nunca converge porque a região de integração encolhe até cobrir só a área de baixa incerteza do modelo; recomenda esse parâmetro ≤ 1 e H escolhido para que Nref tenha a mesma ordem de grandeza do orçamento de pontos adicionais.",
+      "literal": "Our preliminary tests showed that most of the multidimensional Gaussian distribution corresponding to the uncertainty fits inside the reference region at the position with the maximum EPBII.",
+      "localizador": "Sec. III-B-6 (Discussion on the arbitrariness of the parameters)",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Só mencionada: nenhuma tabela ou figura é mostrada; a descrição é inteiramente textual, citando apenas um valor ilustrativo do parâmetro (=12) sem nenhum número de IH/IGD reportado. Nota de extração: o glifo grego (θ) do parâmetro de penalidade não aparece no texto convertido do PDF (nem na camada estruturada nem na camada bruta) — o texto extraído mostra literalmente só 'PBI' onde o artigo original teria 'θ_PBI'.",
+      "achado": "θPBI grande demais faz a integral da EPBII atingir seu máximo onde a incerteza (σ) do Kriging é baixa, e o modelo nunca melhora — um resultado negativo específico do próprio mecanismo de exploração via incerteza da EPBII quando mal configurado, mas sem dados quantitativos publicados (só a conclusão qualitativa é relatada).",
+      "aplicabilidade": "não reproduzível — motivo: exigiria reimplementar e rodar a própria variante EPBII/EIPBII com o parâmetro de penalidade variável; nenhum algoritmo do roster da dissertação corresponde a EPBII/EIPBII."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": false,
+    "o_que": "Apenas discussão qualitativa, sem nenhum número medido: o artigo afirma que aumentar o número de pontos adicionados por iteração (nadd) não muda o custo computacional de calcular EPBII/EIPBII (só muda quantos clusters de vetores de peso existem, Sec. VI-E), e que o EHVI computado analiticamente (não implementado neste estudo) evitaria o ruído numérico da integração por Monte Carlo (Sec. VI-E). A Sec. III-B-4 também comenta, sem números, que a avaliação da função objetivo pelos modelos de Kriging envolve 'large matrix operations' que tornam a velocidade de execução do NSGA-II comparável à do MOEA/D. Não há NENHUMA medição de tempo de execução (segundos/minutos), complexidade ou decomposição de custo (ajuste do modelo vs. busca vs. avaliação) em nenhuma tabela ou figura do artigo inteiro.",
+    "literal": "The number of sample points that is added simultaneously does not affect the computational cost for calculating EPBII/EIPBII, since only the number of weight vector clusters changes.",
+    "localizador": "Sec. VI-E"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Nenhum dos seis critérios consegue alcançar a fronteira verdadeira em ZDT4 e ZDT6, devido à baixa acurácia do modelo Kriging nesses problemas.",
+      "literal": "no criterion can reach PF in ZDT4 and 6 due to the poor approximation accuracy of the Kriging models.",
+      "localizador": "Sec. VI-A-1"
+    },
+    {
+      "descricao": "Em DTLZ2 de 3 objetivos, o EIPBII tem o pior IGD entre os critérios (exceto MOEA/D-EGO), apesar de ter o segundo melhor IH — a busca guiada por um ponto de referência nadir sensível a POS fracos melhora a cobertura de hipervolume mas prejudica a cobertura do centro da PF (medida pelo IGD).",
+      "literal": "EIPBII has the highest IGD among the criteria, except for MOEA/D-EGO, for the three-objective DTLZ2, even though EIPBII has the second lowest IH.",
+      "localizador": "Sec. VI-A-3"
+    },
+    {
+      "descricao": "Tanto o EST (sem incerteza) quanto o EI (usa EI por objetivo, portanto usa incerteza) falham igualmente em obter NDSs diversos: a maioria dos pontos amostrais é adicionada perto dos centros dos clusters de k-means — usar EI no lugar de EST não resolve, por si só, o problema de diversidade quando o mecanismo de seleção (clustering) é o gargalo.",
+      "literal": "EI and EST fail to obtain suitably diverse NDSs in multiobjective optimization, since most of the sample points are added around the centers of each cluster that is obtained by the k-means method.",
+      "localizador": "Sec. VI-B-2"
+    },
+    {
+      "descricao": "Com modelo pouco acurado (DTLZ2max3, k=8, 2 objetivos), o EHVI tem IH e IGD médios muito altos — o critério baseado só em hipervolume não consegue obter boas NDSs quando a acurácia do modelo Kriging é ruim.",
+      "literal": "We note that when model accuracy is poor, EHVI cannot efficiently obtain good NDSs.",
+      "localizador": "Sec. VI-B-3"
+    },
+    {
+      "descricao": "Em DTLZ2max3 de 4 objetivos (k=8), o EIPBII iguala o desempenho de EST, EI e EHVI+EST (os critérios mais fracos no restante da bateria), por causa do aumento de vetores de peso cujo território deixa de cruzar a PF — a vantagem de usar a incerteza via IPBI desaparece nesse regime de muitos objetivos com PF restrita.",
+      "literal": "EIPBII has nearly the same IH and IGD as EST, EI, and EHVI+EST for the four-objective DTLZ2max3 (k = 8) due to the increase in weight vectors that do not cross the PF",
+      "localizador": "Sec. VI-B-3"
+    },
+    {
+      "descricao": "Quando o parâmetro de penalidade da PBI é grande demais (=12, testado informalmente em problema de 2 objetivos), a região de referência efetiva encolhe até que o EPBII atinge seu máximo onde a incerteza do modelo é baixa, e o EGO nunca converge porque a acurácia do modelo nunca melhora.",
+      "literal": "EGO is never achieved with such additional sample points, since the accuracy of the model is not improved.",
+      "localizador": "Sec. III-B-6"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Em ZDT1-3, a diversidade das NDSs obtidas por EST (sem incerteza) e por EI (usa EI por objetivo) é igualmente pobre, mesmo com os seis critérios convergindo bem devido à alta acurácia do Kriging nesses problemas — trocar EST por EI não resolve o problema de diversidade; o gargalo está no mecanismo de seleção/clustering, não na presença ou ausência de incerteza na fórmula do critério.",
+      "literal": "the diversity of the NDSs that are obtained by EST and EI is poor, even though all six criteria, including these two, can find suitably converging NDSs due to the high approximation accuracy of the Kriging models.",
+      "localizador": "Sec. VI-A-1"
+    },
+    {
+      "descricao": "Em DTLZ2max3 de 4 objetivos (k=8), o EIPBII (usa incerteza via IPBI) iguala EST/EI/EHVI+EST — o mecanismo geométrico dos vetores de peso (território deixando de cruzar a PF), não a presença de incerteza na fórmula do critério, é o fator limitante nesse regime.",
+      "literal": "EIPBII has nearly the same IH and IGD as EST, EI, and EHVI+EST for the four-objective DTLZ2max3 (k = 8)",
+      "localizador": "Sec. VI-B-3"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "frente de Pareto descontínua (PF desconexa em segmentos)",
+      "afirmacao": "A Pareto ranking entre candidatos permite ao EPBII e ao EIPBII explorar eficientemente NDSs em ZDT3 (frente descontínua); EIPBII e EHVI+EST encontram robustamente os cinco segmentos descontínuos nas 10 execuções, enquanto o EPBII tem desempenho bem mais instável ali (ver Apêndice A: worst=6.14987 para EPBII vs. best=0.01516).",
+      "literal": "The IH values of EIPBII and EHVI+EST are significantly lower than the other values for ZDT3, since these criteria can robustly find all five discontinuous PFs in 10 runs.",
+      "localizador": "Sec. VI-A-1, ZDT1-4,6"
+    },
+    {
+      "caracteristica": "frente de Pareto côncava",
+      "afirmacao": "Com o parâmetro de penalidade fixado em 1, tanto EPBII quanto EIPBII resolvem com sucesso a ZDT2 (frente côncava) tal como resolvem a ZDT1 (frente convexa), porque os territórios (as regiões de suporte de cada vetor de peso) funcionam bem em ambos os casos.",
+      "literal": "Both EPBII and EIPBII with PBI = 1 successfully solve ZDT1 with convex PF and ZDT2 with concave PF, since territories perform well.",
+      "localizador": "Sec. VI-A-1"
+    },
+    {
+      "caracteristica": "soluções Pareto-ótimas fracas (weak POS) em 3+ objetivos",
+      "afirmacao": "O EIPBII tende a adicionar muitos pontos amostrais na região onde há POS fracos, porque os vetores de peso mais externos perdem seu NDS designado a cada iteração com o deslocamento do ponto de referência (nadir); a capacidade de exploração do EIPBII depende fortemente da definição desse ponto de referência, sobretudo com 3 ou mais objetivos e POS fracos.",
+      "literal": "EIPBII tends to add many sample points to the region where weak POSs exist, since the outermost weight vectors lose their assigned NDSs at every iteration with the movement of the reference points.",
+      "localizador": "Sec. VI-A-3, DTLZ2 (M=3)"
+    },
+    {
+      "caracteristica": "frentes de Pareto locais (armadilha de ótimo local; g(x) multimodal)",
+      "afirmacao": "EPBII e EIPBII superam os demais critérios na maioria dos problemas DTLZ2max3 (difíceis de aproximar pelo Kriging por terem múltiplos ótimos locais); o EIPBII evita frentes locais com mais robustez em muitas execuções, enquanto o EPBII tende a cair na PF local, elevando seus valores MÉDIOS de IH/IGD mesmo quando os valores de melhor caso continuam competitivos (ver Apêndices C/D).",
+      "literal": "EIPBII successfully avoids local PFs and attains better NDSs on next (local) PFs in many runs",
+      "localizador": "Sec. VI-B-3, DTLZ2max3"
+    },
+    {
+      "caracteristica": "região viável que cobre só uma fração do espaço de objetivos (mimetiza problema real, ex. otimização de aerofólio)",
+      "afirmacao": "DTLZ2max2 foi desenhado para imitar problemas reais cuja PF cobre só uma porção da região viável (como a otimização de aerofólio hipersustentador citada de outro artigo, Fig. 11); nesse regime, o número de vetores de peso cujo território não cruza a PF aumenta com o número de objetivos, levando o EIPBII a adicionar amostras em posições indesejadas (regiões viáveis sem POS).",
+      "literal": "PFs of real-world problems usually cover only a portion of the feasible region, as shown in Fig. 11.",
+      "localizador": "Sec. V-A (motivação do desenho); Sec. VI-B-2 (efeito observado)"
+    },
+    {
+      "caracteristica": "número de objetivos M (2 a 4) / muitos objetivos",
+      "afirmacao": "Para problemas com mais de dois objetivos, o uso do EPBII é preferível ao EIPBII, pois obtém NDSs diversos de forma robusta até quatro objetivos; o EIPBII é recomendado só para dois objetivos, sobretudo quando a forma da PF é desconhecida e o orçamento de pontos adicionais é pequeno.",
+      "literal": "For problems with more than two objectives, using EPBII is preferable, since it can robustly obtain diverse NDSs in up to four-objective problems.",
+      "localizador": "Sec. VI-D"
+    },
+    {
+      "caracteristica": "POS espalhados/não separáveis no espaço de decisão (Pareto set complicado) vs. POS simples e alinhados",
+      "afirmacao": "Os POS dos problemas LZ08 têm valores ótimos diferentes por variável de decisão (espalhados por todo o espaço), exigindo melhorar a acurácia do modelo no espaço inteiro para obter NDSs diversos; já nos problemas ZDT quase todas as variáveis têm o mesmo valor ótimo, tornando mais fácil obter diversidade assim que uma NDS perto da PF é encontrada — por isso adicionar 1 amostra por iteração (mais atualizações de modelo) favorece sobretudo os problemas LZ08.",
+      "literal": "The POSs of the LZ08 problems have different optimal values of the design variables.",
+      "localizador": "Sec. VI-A-2, LZ08-F1-4"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Artigo é uma proposta METODOLÓGICA (introduz EPBII/EIPBII), não um estudo de benchmark amplo: TODAS as comparações ocorrem dentro do mesmo framework EGO próprio dos autores (mesmo Kriging ordinário, mesmo NSGA-II como otimizador de cada critério, mesmo DoE LHS por execução), comparando 6 funções de infill entre si — não há piso evolutivo sem surrogate rodado nos experimentos (fichas 6/9/10/16, que pressupõem comparação assistido×piso, não se aplicam a este artigo). A única comparação com outro algoritmo (MOEA/D-EGO) usa valores citados de Zhang et al. 2010, executado sob condições diferentes (outro DoE, outro otimizador de EI — differential evolution com vizinhança —, mais vetores de peso, Kriging local por cluster de amostras); os próprios autores alertam para isso explicitamente ('MOEA/D-EGO was executed with different conditions from those of our EGO with the six criteria', Sec. VI-A) — não deve ser lida como comparação controlada. A integral de EPBII/EIPBII (Eq. 13/25) — e também a do EHVI neste artigo — é resolvida por integração numérica de Monte Carlo (500 pontos) sobre a Gaussiana multidimensional da posterior do Kriging, NÃO por fórmula fechada; só a EI de objetivo único (Eq. 8) tem forma fechada analítica (função erro). Os autores citam explicitamente que versões analíticas exatas de EHVI já existem na literatura ([27-29]) mas optam por não as usar aqui, deixando a comparação EPBII/EIPBII vs. EHVI-exato como trabalho futuro (Sec. VII, Conclusion). O parâmetro de penalidade da PBI/IPBI é fixado em 1 em TODOS os experimentos principais (nunca varrido sistematicamente, só mencionado informalmente em Sec. III-B-6 — ver análise 'nova' acima); H (nº de vetores de peso) varia só com o número de objetivos (H=100/20/10 para M=2/3/4), escolhido por regra prática para que Nref tenha a mesma ordem de grandeza do orçamento de pontos adicionais — não é uma varredura de sensibilidade independente. As Seções VI-D (escolha entre EPBII e EIPBII) e VI-E (superioridade de EPBII/EIPBII e EHVI) são só síntese/recomendação textual, sem tabela ou figura nova — seu conteúdo foi incorporado aos campos 'achado' das Análises 1, 3, 5 e 6, ao campo caracteristica_x_desempenho, e ao campo custo, e não foram listadas como análises separadas. O código original do método foi escrito em Fortran; a versão Python publicada no GitHub (github.com/Nobuo-Namura/EPBII) é uma conversão posterior, e os próprios autores/mantenedores alertam que pode divergir dos resultados publicados no artigo. Nota sobre a taxonomia da dissertação: o rótulo 'medição=VAR-GP (posterior fechada de GP)' vale para o σ em si (Eq. 4, forma fechada de Kriging ordinário), mas a INTEGRAL da melhoria esperada multiobjetivo (EPBII/EIPBII/EHVI) usa essa posterior fechada apenas como distribuição de onde amostrar 500 pontos por Monte Carlo — a melhoria esperada resultante não tem forma fechada neste artigo, ao contrário da EI de objetivo único (Eq. 8, função erro analítica); vale a pena o revisor humano decidir se isso muda algo na classificação de 'função da incerteza=O1 · Aquisição exploratória' já atribuída. Leitura completa: 22 páginas, cobertas duas vezes (conversão estruturada, linhas 1-969, incluindo Tabelas I-IV e Apêndices A-D; e camada de texto bruta completa do PDF, linhas 971-6345, get_text página a página), com conteúdo idêntico verificado por amostragem cruzada entre as duas versões (inclusive checagem de que o glifo grego do parâmetro de penalidade da PBI está ausente em AMBAS as camadas, um artefato de extração do PDF, não uma omissão da mineração). Um terceiro ANEXO de OCR de figuras (linhas 6346-6539) só confirma rótulos de eixos/legendas de fluxogramas e gráficos já descritos no texto (nenhum dado numérico novo). roster_bloco = null por instrução do pedido (artigo fora do roster experimental)."
+}

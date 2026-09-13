@@ -1,0 +1,40 @@
+BBOB_F1      D=10 N=11 n_init=109 | max_ez(g1)=  130.344 (2N=22, 2n_init=218) | max_ez(g>=2)=   9.439 | t_g1/t_med= 11.42 (prev H1  9.91)
+BBOB_F17     D=10 N=11 n_init=109 | max_ez(g1)=  146.824 (2N=22, 2n_init=218) | max_ez(g>=2)=   8.737 | t_g1/t_med= 11.44 (prev H1  9.91)
+BBOB_F22     D=10 N=11 n_init=109 | max_ez(g1)=  122.396 (2N=22, 2n_init=218) | max_ez(g>=2)=   6.117 | t_g1/t_med= 11.38 (prev H1  9.91)
+BBOB_F37     D=10 N=11 n_init=109 | max_ez(g1)=  137.341 (2N=22, 2n_init=218) | max_ez(g>=2)=  11.655 | t_g1/t_med= 11.33 (prev H1  9.91)
+BBOB_F49     D=10 N=11 n_init=109 | max_ez(g1)=  119.641 (2N=22, 2n_init=218) | max_ez(g>=2)=   9.238 | t_g1/t_med= 11.58 (prev H1  9.91)
+BBOB_F5      D=10 N=11 n_init=109 | max_ez(g1)=  164.056 (2N=22, 2n_init=218) | max_ez(g>=2)=  11.348 | t_g1/t_med= 11.38 (prev H1  9.91)
+BBOB_F55     D=10 N=11 n_init=109 | max_ez(g1)=  173.859 (2N=22, 2n_init=218) | max_ez(g>=2)=  11.383 | t_g1/t_med= 11.29 (prev H1  9.91)
+DTLZ1        D= 7 N=15 n_init= 76 | max_ez(g1)=   84.346 (2N=30, 2n_init=152) | max_ez(g>=2)=   9.982 | t_g1/t_med=  6.07 (prev H1  5.07)
+DTLZ2        D=12 N=15 n_init=131 | max_ez(g1)=   65.172 (2N=30, 2n_init=262) | max_ez(g>=2)=   3.942 | t_g1/t_med=  9.85 (prev H1  8.73)
+DTLZ3        D=12 N=15 n_init=131 | max_ez(g1)=   94.918 (2N=30, 2n_init=262) | max_ez(g>=2)=   7.999 | t_g1/t_med=  9.79 (prev H1  8.73)
+DTLZ4        D=12 N=15 n_init=131 | max_ez(g1)=  235.121 (2N=30, 2n_init=262) | max_ez(g>=2)=  16.528 | t_g1/t_med=  9.80 (prev H1  8.73)
+DTLZ7        D=22 N=15 n_init=241 | max_ez(g1)=  325.247 (2N=30, 2n_init=482) | max_ez(g>=2)=  11.983 | t_g1/t_med= 16.89 (prev H1 16.07)
+MMF1         D= 2 N=11 n_init= 21 | max_ez(g1)=   21.437 (2N=22, 2n_init=42) | max_ez(g>=2)=  10.655 | t_g1/t_med=  2.57 (prev H1  1.91)
+MMF11_L      D= 2 N=11 n_init= 21 | max_ez(g1)=   16.690 (2N=22, 2n_init=42) | max_ez(g>=2)=   9.358 | t_g1/t_med=  2.45 (prev H1  1.91)
+MMF16_20     D=20 N=15 n_init=219 | max_ez(g1)=  127.255 (2N=30, 2n_init=438) | max_ez(g>=2)=   4.740 | t_g1/t_med= 15.15 (prev H1 14.60)
+MMF4         D= 2 N=11 n_init= 21 | max_ez(g1)=   16.840 (2N=22, 2n_init=42) | max_ez(g>=2)=   7.087 | t_g1/t_med=  2.42 (prev H1  1.91)
+WFG1         D=22 N=11 n_init=241 | max_ez(g1)=  342.249 (2N=22, 2n_init=482) | max_ez(g>=2)=   6.912 | t_g1/t_med= 22.66 (prev H1 21.91)
+WFG2         D=22 N=11 n_init=241 | max_ez(g1)=  254.918 (2N=22, 2n_init=482) | max_ez(g>=2)=   8.397 | t_g1/t_med= 23.58 (prev H1 21.91)
+WFG4         D=22 N=11 n_init=241 | max_ez(g1)=  140.330 (2N=22, 2n_init=482) | max_ez(g>=2)=  10.915 | t_g1/t_med= 22.76 (prev H1 21.91)
+WFG5         D=22 N=11 n_init=241 | max_ez(g1)=  135.212 (2N=22, 2n_init=482) | max_ez(g>=2)=   5.990 | t_g1/t_med= 22.97 (prev H1 21.91)
+WFG9         D=22 N=11 n_init=241 | max_ez(g1)=  224.409 (2N=22, 2n_init=482) | max_ez(g>=2)=  14.000 | t_g1/t_med= 22.91 (prev H1 21.91)
+ZDT1         D=30 N=11 n_init=329 | max_ez(g1)=  369.388 (2N=22, 2n_init=658) | max_ez(g>=2)=   6.000 | t_g1/t_med= 31.57 (prev H1 29.91)
+ZDT3         D=30 N=11 n_init=329 | max_ez(g1)=  289.150 (2N=22, 2n_init=658) | max_ez(g>=2)=   4.000 | t_g1/t_med= 31.55 (prev H1 29.91)
+ZDT4         D=10 N=11 n_init=109 | max_ez(g1)=  108.945 (2N=22, 2n_init=218) | max_ez(g>=2)=  11.000 | t_g1/t_med= 11.29 (prev H1  9.91)
+ZDT6         D=10 N=11 n_init=109 | max_ez(g1)=  209.659 (2N=22, 2n_init=218) | max_ez(g>=2)=  14.955 | t_g1/t_med= 11.41 (prev H1  9.91)
+
+=== VEREDITO DOS TESTES ===
+celulas: 25
+T-A  bloco-1 excede o teto H0 (2N): 22/25
+T-A  bloco-1 excede o teto H1 (2*(11D-1)): 0/25   (esperado 0 sob H1)
+T-A  blocos g>=2 que violam 2N: 0/3512
+T-C  razao t_g1/t_med  mediana=11.41  vs prevista H1 mediana=9.91
+T-C  correlacao Pearson(razao_obs, razao_prevista) = 0.9990
+T-C  razao_obs/razao_prevista: min=1.034 med=1.139 max=1.345
+
+D=2 (nao-discriminantes no teto):
+problema  N  n_init  max_ez_g1  teto_H0  teto_H1  razao_t_g1_med  razao_prevista_H1
+    MMF1 11      21  21.436804       22       42        2.567717           1.909091
+ MMF11_L 11      21  16.689751       22       42        2.448460           1.909091
+    MMF4 11      21  16.840143       22       42        2.420939           1.909091

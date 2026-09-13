@@ -1,0 +1,359 @@
+{
+  "id": "e103",
+  "sigla": "IBEA-MS",
+  "titulo": "Performance Indicator-Based Adaptive Model Selection for Offline Data-Driven Multiobjective Evolutionary Optimization",
+  "ano": 2023,
+  "roster": true,
+  "setup": {
+    "benchmarks": "DTLZ1-7 [52], ZDT1-4 e ZDT6 [53], IDTLZ1-2 [54], WFG1-9 [55], UF1-12 [56], MaF1-9 [57]; M ∈ {2,3,5,10} conforme a suíte/instância (a conclusão descreve os testes como cobrindo problemas de “two-, three-, five-, and ten-objective”). D ∈ {10,20,30}: as comparações DTLZ/ZDT contra as 3 variantes AK-IBEA cobrem D=10,20,30; a comparação com NSGA-II-GP é restrita a D=10 (o algoritmo não suporta alta dimensão pela exigência de dados da regressão polinomial de baixa ordem que usa); IDTLZ1-2/WFG1-9/UF1-12/MaF1-9 são comparados só contra as 3 variantes AK-IBEA (não contra NSGA-II-GP), sem a dimensão exata isolada no texto principal (ver análise sobre a Fig. 6 e observações).",
+    "orcamento": "Dataset offline inicial = 11D−1 pontos por Latin Hypercube Sampling (LHS); robustez a LHS vs. amostragem aleatória testada à parte (Table S.VIII, só mencionada). Avaliações contadas são SEMPRE do surrogate, nunca da função real (regime 100% offline, nenhuma avaliação real após o dataset inicial): IBEA-MS e as 3 variantes AK-IBEA usam até 10000 avaliações; NSGA-II-GP usa 50000 (para viabilizar 50 gerações na camada interna do seu processo de duas camadas, já que 10000 só permitiriam 10 gerações, dito insuficiente pelos próprios autores).",
+    "execucoes": "30 execuções independentes por configuração, em todas as comparações reportadas.",
+    "baselines": "NSGA-II-GP (Guo et al. 2016 [25], processo evolutivo de duas camadas outer/inner, GP + regressão polinomial de 2ª ordem, EI como critério) e três variantes AK-IBEA de Mazumdar et al. 2019 [35] (AK-IBEA1: RMSEs de todos os Kriging como 2M objetivos extras; AK-IBEA2: média dos RMSEs como 1 objetivo extra, M+1 no total; AK-IBEA3: EI de todos os Kriging como M objetivos extras) — todos usam Kriging e reaproveitam a incerteza de formas diferentes das de IBEA-MS. Ablação interna do próprio artigo: K-IBEA (só Kriging, sempre, ignorando a checagem de confiabilidade) e R-IBEA (só RBFN, sempre, sem incerteza disponível) contra IBEA-MS (adaptativo); mais a variante de sensibilidade IBEA-MS-NT (sem tolerância de relaxação no critério de troca). NÃO há piso evolutivo sem surrogate (nenhum NSGA-II/MOEA-D puro com avaliações reais) em nenhuma comparação — coerente com o regime 100% offline, em que nenhuma avaliação real é possível durante a busca.",
+    "metricas_principais": [
+      "IGD (inverted generational distance)",
+      "HV (hypervolume)"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum, α=0,05, símbolos +/−/= (quase sempre contra IBEA-MS como referência)",
+      "Teste Bayesiano de postos sinalizados (Bayesian signed-rank) com ROPE=0,05, comparação global sobre uma matriz 131×4 (problema×D×M × {AK-IBEA1,2,3,IBEA-MS}) — IGD no corpo do artigo (Fig. 8, Table II); HV só mencionado (Section S.VI)"
+    ],
+    "apresentacao": "Tabelas com média(desvio-padrão) por célula + símbolo de significância (MÉDIA, não mediana/IQR — difere da convenção da dissertação); células sombreadas marcando acerto/erro do mecanismo de seleção de modelo; grid colorido (vermelho/azul/laranja) para visão ampla de significância entre muitos problemas/algoritmos (Fig. 6); curvas de MÉDIA (não mediana) ± 1 desvio-padrão sombreado ao longo de iterações/gerações; triângulo de dispersão + tabela de proporções para o teste Bayesiano. Os valores numéricos de célula da Table I e da Table II NÃO vieram na camada estruturada nem na camada de texto bruto (ANEXO get_text) desta conversão — só as legendas; os números só aparecem, de forma aproximada, na camada de OCR de imagens.",
+    "codigo_plataforma": "PlatEMO (MATLAB) [51]; Kriging via MATLAB Toolbox DACE (intervalo de θ em [10⁻³,10³], tendência global de 1ª ordem); RBFN com centros por K-means (número de centros = ⌈√Nini⌉, espalhamento α = 5×distância máxima entre centros); resultados completos do teste Bayesiano signed-rank publicados em repositório GitHub externo (github.com/HandingWangXDGroup/Bayesin-Signed-Rank-Tests-Results-)."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        3,
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela algoritmo×problema (média±desvio-padrão de IGD sobre 30 execuções, DTLZ1-7 e ZDT1-4,6, D=10) comparando K-IBEA (sempre Kriging, ignora a checagem de confiabilidade), R-IBEA (sempre RBFN, sem incerteza) e IBEA-MS (adaptativo via σ/RMSE do Kriging), com teste de Wilcoxon rank-sum (+/−/=) de K-IBEA e R-IBEA contra IBEA-MS. Células sombreadas marcam os problemas em que o mecanismo adaptativo escolheu o modelo que de fato teve melhor desempenho isolado — é a ablação exata do componente central do artigo (a troca Kriging↔RBFN guiada pela incerteza).",
+      "literal": "The results are shown in Table I, where the shaded cells represent the adaptive model selection mechanism with a correct decision between the Kriging models and the RBFNs.",
+      "localizador": "Sec. IV-A, Table I",
+      "metricas": [
+        "IGD (média ± desvio-padrão sobre 30 execuções)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos +/−/= (K-IBEA e R-IBEA vs. IBEA-MS)"
+      ],
+      "convencoes": "Célula = média(desvio-padrão) de IGD sobre 30 execuções; símbolo +/−/= indica se K-IBEA/R-IBEA é significativamente melhor/pior/empatado com IBEA-MS; células sombreadas assinalam onde o mecanismo escolheu o modelo empiricamente melhor. Os números de célula só foram recuperáveis via OCR de imagem (aproximado) — não citados aqui como valores exatos.",
+      "achado": "Em quase todos os 12 problemas o mecanismo adaptativo escolheu o modelo certo, EXCETO em DTLZ1 e ZDT4; em ZDT4 especificamente IBEA-MS ficou significativamente PIOR que R-IBEA — o único caso da tabela em que a adaptação ativamente piora o resultado em vez de igualar ou melhorar.",
+      "aplicabilidade": "Não reprodutível diretamente com o roster padrão de 15 algoritmos: exigiria implementar e rodar as duas variantes auxiliares do próprio e103 (K-IBEA e R-IBEA) sobre os problemas da bateria, além do próprio IBEA-MS; feito isso, a camada ⑦ (ND final reavaliado, regime offline) forneceria o endpoint de cada variante e um teste de postos por célula reproduziria esta leitura."
+    },
+    {
+      "fichas": [
+        26,
+        45
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de IGD média (±1 desvio-padrão sombreado, 30 execuções) ao longo das iterações no problema ZDT4 (D=10), comparando K-IBEA, R-IBEA, IBEA-MS e uma nova variante IBEA-MS-NT, que substitui o critério de relação padrão (≥ M−1 de M objetivos julgados confiáveis, Eq. 26) por um critério estrito sem tolerância (= M de M) — uma sensibilidade direta do parâmetro-gate que decide a troca de modelo.",
+      "literal": "A version of the adaptive model selection with no reliability tolerance of the Kriging models (IBEA-MS-NT) is also tested",
+      "localizador": "Sec. IV-A, Fig. 4",
+      "metricas": [
+        "IGD (média ao longo de 30 execuções, com desvio-padrão sombreado)"
+      ],
+      "testes": [
+        "nenhum teste estatístico formal nesta figura — leitura visual das curvas"
+      ],
+      "convencoes": "Curvas de IGD média (não mediana) ± 1 desvio-padrão sombreado; eixo x = 'Number of Iterations' (gerações); problema único (ZDT4, D=10, M=2); 4 curvas (K-IBEA, R-IBEA, IBEA-MS, IBEA-MS-NT).",
+      "achado": "A relaxação do critério de seleção de modelo (tolerar 1 objetivo não-confiável) é a CAUSA da escolha errada em ZDT4: 'R-IBEA and IBEA-MS-NT perform well but K-IBEA and IBEA-MS have poor performance'. Sem essa relaxação, o desempenho é bom; conclusão dos autores: a exigência de acurácia do Kriging sob o critério relaxado cresce com o número de objetivos, sendo máxima (mais exigente) em problemas biobjetivo.",
+      "aplicabilidade": "Camada ⑥ (filme) permitiria contar, geração a geração, quantas vezes o flag switch=1 dispararia sob cada critério (M−1 vs M) se a variante IBEA-MS-NT fosse implementada e rodada; a camada ⑦ daria o endpoint de cada variante para uma curva de convergência análoga (mediana+IQR de 30 sementes em vez de média±dp de 30 execuções). Não reprodutível sem implementar a variante NT, que não faz parte do roster padrão."
+    },
+    {
+      "fichas": [
+        32
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Taxa de acerto ('correct rate') da seleção ambiental por geração: a proporção de indivíduos que a seleção baseada em Kriging (e, separadamente, a baseada em RBFN) escolheria e que COINCIDEM com os escolhidos pela seleção baseada na função real, em DTLZ2 (M=3), DTLZ5 (M=3), ZDT1 (M=2) e ZDT2 (M=2), sobre 30 execuções — uma validação indireta de que o modelo escolhido pelo mecanismo adaptativo é de fato o mais confiável para aquele problema.",
+      "literal": "the proportion of the individuals selected by the Kriging and RBFN models in the individuals selected under the real function evaluation is calculated as the correct rate.",
+      "localizador": "Sec. IV-A, Fig. 5",
+      "metricas": [
+        "taxa de acerto da seleção ambiental (proporção de indivíduos selecionados pelo modelo que coincidem com os selecionados pela função real)"
+      ],
+      "testes": [
+        "nenhum teste estatístico — curvas descritivas sobre 30 execuções"
+      ],
+      "convencoes": "Uma curva por modelo (Kriging, RBFN) e por problema, ao longo do número de gerações, sobre 30 execuções independentes.",
+      "achado": "RBFN tem taxa de acerto maior que Kriging em DTLZ2/DTLZ5; o oposto ocorre em ZDT1/ZDT2 (Kriging mais acertivo) — em ambos os casos, o modelo que o mecanismo adaptativo de fato ESCOLHE para aquele problema é o de maior taxa de acerto, confirmando que a escolha segue o modelo mais confiável.",
+      "aplicabilidade": "Camada ③ (predições do surrogate) registrando as predições de AMBOS Kriging e RBFN a cada geração — mesmo quando só um dos dois é o 'escolhido' — cruzada com ① (avaliação real da mesma população), reproduziria esta taxa de acerto por geração; a instrumentação padrão precisaria garantir a predição do modelo NÃO usado também, o que a sonda fixa (pontos comuns) não cobre por definição — aqui a checagem é sobre a população evolutiva corrente, não uma sonda fixa."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparação principal de IBEA-MS contra NSGA-II-GP e as 3 variantes AK-IBEA, via Wilcoxon rank-sum (base IGD) em DTLZ1-7, ZDT1-4 e ZDT6 (D=10) e, só contra AK-IBEA, também em IDTLZ1-2, WFG1-9, UF1-12, MaF1-9, D=10/20/30 (conforme aplicável); visualizada como um grid colorido de significância (Fig. 6) — vermelho=IBEA-MS melhor, azul=pior, laranja=sem diferença — com uma linha por algoritmo comparador e uma coluna por problema/configuração. HV também calculado, com resultado dito semelhante ao de IGD, mas só tabelado no material suplementar.",
+      "literal": "Each square represents that a certain compared algorithm is significantly better than, similar to, or worse than IBEA-MS on a certain problem.",
+      "localizador": "Sec. IV-B, Fig. 6; tabelas numéricas completas só em Tables S.V/S.IX (material suplementar)",
+      "metricas": [
+        "IGD (base da significância do grid da Fig. 6)",
+        "HV (calculado, resultado dito semelhante ao de IGD; tabela só em material suplementar)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos +/−/= (cada um dos 4 comparadores vs. IBEA-MS, por problema)"
+      ],
+      "convencoes": "Grid colorido por célula (vermelho/azul/laranja); tabelas numéricas completas (média±dp de IGD/HV) só no material suplementar (Tables S.V, S.IX); a estrutura exata de quais das 7 linhas do grid correspondem a quais D não é totalmente recuperável do texto desta conversão (só a legenda da figura, sem OCR do conteúdo célula-a-célula).",
+      "achado": "A D=10, IBEA-MS tem grande vantagem pareada sobre os 4 comparadores; mas em problemas de dez objetivos IBEA-MS não vai bem (exceto DTLZ6), sendo particularmente fraco em DTLZ4 — atribuído a usar a incerteza SÓ para seleção de modelo, não para manter diversidade (diferente de AK-IBEA/NSGA-II-GP); em DTLZ1/DTLZ3 (multimodais) IBEA-MS vai mal com poucos objetivos (2-3) mas bem com muitos (5-10).",
+      "aplicabilidade": "Camada ⑦ (endpoint offline, IGD/HV) permitiria reconstruir um teste de postos por célula análogo, mas exigiria implementar e rodar NSGA-II-GP e as 3 variantes AK-IBEA (nenhuma faz parte do roster padrão de 15 algoritmos)."
+    },
+    {
+      "fichas": [
+        18,
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Estudo de escalabilidade com a dimensão de decisão D (10→20→30) para IBEA-MS vs. as 3 variantes AK-IBEA (Tables S.IX-S.XI, mencionadas) mais um caso ilustrativo em texto/figura: curvas de IGD média±desvio-padrão (30 execuções) no problema DTLZ4 (M=3) para D=10 e D=20 lado a lado, mostrando por que a vantagem de IBEA-MS cresce com D.",
+      "literal": "IBEA-MS is far better than AK-IBEA variants on 20- and 30-dimensional problems.",
+      "localizador": "Sec. IV-B, Fig. 7; Tables S.IX–S.XI (material suplementar)",
+      "metricas": [
+        "IGD (média ± desvio-padrão sobre 30 execuções, DTLZ4 M=3, D=10 e D=20)"
+      ],
+      "testes": [
+        "nenhum teste estatístico formal nesta figura; a comparação de D usa as tabelas Wilcoxon de S.IX-S.XI (mencionadas, não mostradas)"
+      ],
+      "convencoes": "Curvas de IGD média (não mediana) ± desvio-padrão sombreado ao longo do número de iterações, para IBEA-MS e as 3 variantes AK-IBEA, no mesmo problema (DTLZ4) em dois D lado a lado.",
+      "achado": "A D=10, IBEA-MS e as variantes AK-IBEA perdem a direção correta de otimização com desempenho semelhante (ruim); a D=20, IBEA-MS passa a superar as demais — atribuído à capacidade do RBFN de capturar a tendência global em paisagens mais complexas/alta dimensão. Apesar da vantagem crescente, os autores recomendam NÃO usar IBEA-MS para D>30, pela perda de confiabilidade do próprio Kriging em alta dimensão.",
+      "aplicabilidade": "Camada ⑦ (endpoint) em função de D, nas mesmas sementes/algoritmos, reproduziria a tendência agregada; camada ① reconstruiria uma curva de convergência (mediana+IQR, seguindo a convenção da dissertação) análoga à Fig. 7; exigiria rodar as mesmas 4 configurações (IBEA-MS + 3 AK-IBEA) nos mesmos D, nenhuma no roster padrão."
+    },
+    {
+      "fichas": [
+        4
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Teste Bayesiano de postos sinalizados (ROPE=0,05) comparando IBEA-MS contra cada uma das 3 variantes AK-IBEA, sobre uma matriz 131×4 (todas as combinações problema×D×M consideradas, base IGD): a probabilidade posterior de que IBEA-MS seja melhor, equivalente, ou pior que cada comparador, visualizada num triângulo de dispersão (Fig. 8) e tabulada em proporções (Table II).",
+      "literal": "It can be observed that the points locate in the bottom-right region of the triangle in all comparisons.",
+      "localizador": "Sec. IV-B, Fig. 8, Table II",
+      "metricas": [
+        "IGD (matriz 131×4: problema×D×M × {AK-IBEA1, AK-IBEA2, AK-IBEA3, IBEA-MS})"
+      ],
+      "testes": [
+        "Teste Bayesiano de postos sinalizados (Bayesian signed-rank), ROPE=0,05, IBEA-MS vs. cada comparador separadamente"
+      ],
+      "convencoes": "Distribuição posterior da diferença média amostrada e plotada num triângulo de 3 regiões ([-∞,-rope],[-rope,rope],[rope,∞]); proporção de pontos por região na Table II. Metodologicamente distinto de Friedman+Nemenyi+CD (ficha 4): é um teste Bayesiano PAREADO (IBEA-MS vs. um comparador de cada vez), não um teste global conjunto dos 4 algoritmos simultâneos — mapeado à ficha 4 por ser a comparação estatística GLOBAL (sobre todos os problemas) mais próxima disponível na tipologia.",
+      "achado": "Os pontos concentram-se na região 'IBEA-MS melhor' nas 3 comparações. Table II (via camada de OCR de imagem, aproximada): AK-IBEA1 → P(melhor que IBEA-MS)≈0,113 / P(equivalente)≈0,0003 / P(pior)≈0,887; AK-IBEA2 → ≈0,172 / ≈0,0002 / ≈0,828; AK-IBEA3 → ≈0,0005 / [valor não recuperável pelo OCR] / ≈0,999. IBEA-MS supera as 3 variantes AK-IBEA com alta probabilidade posterior, mais fortemente contra AK-IBEA3.",
+      "aplicabilidade": "Reanálise estatística pura sobre endpoints (camada ⑦) já coletados — reprodutível como pós-processamento, desde que as 3 variantes AK-IBEA sejam implementadas e rodadas; não fazem parte do roster padrão."
+    },
+    {
+      "fichas": [
+        4
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O mesmo teste Bayesiano de postos sinalizados (ROPE=0,05, matriz 131×4) da análise anterior, repetido usando HV em vez de IGD como métrica de base — só mencionado, sem figura/tabela mostrada no corpo principal do artigo.",
+      "literal": "We also present the Bayesian signed-rank test results on all problems based on the HV performance in Section S.VI in the supplementary material due to the page limit.",
+      "localizador": "Sec. IV-B; Section S.VI (material suplementar)",
+      "metricas": [
+        "HV (mesma matriz 131×4, mesma metodologia da análise anterior)"
+      ],
+      "testes": [
+        "Teste Bayesiano de postos sinalizados, ROPE=0,05 (mesmo método, aplicado a HV)"
+      ],
+      "convencoes": "Não mostrado no corpo do artigo, só mencionado; resultados completos por problema individual (IGD e HV) declarados como publicados num repositório GitHub externo, também fora do alcance desta extração.",
+      "achado": "Não reportado no texto principal — o artigo só afirma, de forma geral (cobrindo IGD e HV), que os resultados 'further prove that IBEA-MS performs better than AK-IBEA variants as a whole', sem repetir números específicos de HV.",
+      "aplicabilidade": "Não reprodutível a partir deste documento — depende do material suplementar (Section S.VI) e/ou do repositório GitHub externo, nenhum dos dois presente nesta extração.",
+      "observacoes": "só mencionada"
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Análise de complexidade computacional assintótica (Big-O) por fase, entre 7 algoritmos",
+      "grupo_sugerido": "F",
+      "descricao": "Decomposição analítica (não empírica) da complexidade computacional de 7 algoritmos — IBEA-MS; os offline AK-IBEA e NSGA-II-GP; os online Par-EGO, MOEA/D-EGO, K-RVEA, CSEA — em 4 fases (construção inicial do modelo; avaliação via modelo; gerenciamento do modelo; seleção ambiental), concluindo que IBEA-MS tem a menor complexidade teórica das 7; detalhamento completo só na Table S.I (material suplementar).",
+      "literal": "It can be conclude that IBEA-MS has the lowest computational complexity compared with other six algorithms.",
+      "localizador": "Sec. III-B; Table S.I (material suplementar)",
+      "metricas": [
+        "complexidade computacional teórica (notação O), por fase"
+      ],
+      "testes": [
+        "nenhum — análise analítica/teórica, não estatística"
+      ],
+      "convencoes": "Tabela comparativa (só no material suplementar) decompondo cada algoritmo em 4 fases de custo; não há medição de tempo de parede (segundos) em lugar nenhum do artigo. Textualmente nota-se também que o próprio Kriging tem complexidade O(N³), que cresce mais se a busca dos hiperparâmetros θ usar um algoritmo de otimização complexo (Sec. II-B1).",
+      "achado": "IBEA-MS tem a menor complexidade computacional teórica entre os 7 algoritmos comparados — mas é uma conclusão assintótica (Big-O), não uma medição empírica de tempo.",
+      "aplicabilidade": "Não reprodutível pelas camadas — é análise teórica/assintótica, não medição empírica; a camada ④ (tempos por geração) daria o custo REAL medido de IBEA-MS isoladamente, comparável à predição assintótica do artigo — mas isso seria uma análise NOVA (custo medido vs. teórico), não a reprodução desta."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Escolha do motor evolutivo de base para o framework offline (piloto)",
+      "grupo_sugerido": "B",
+      "descricao": "O artigo MENCIONA um estudo piloto testando o efeito da escolha do algoritmo evolutivo de base (MOEA) sobre o desempenho do framework proposto, concluindo a favor de IBEAε+ como otimizador de base para problemas offline — mas não detalha, no texto principal, quais MOEAs alternativos foram testados nem mostra números.",
+      "literal": "In the first, the effect of the MOEAs is discussed on the proposed algorithm in Table S.II in the supplementary material.",
+      "localizador": "Sec. IV (abertura); Table S.II (material suplementar)",
+      "metricas": [
+        "não especificado no texto principal (presumivelmente IGD/HV)"
+      ],
+      "testes": [
+        "não especificado no texto principal"
+      ],
+      "convencoes": "",
+      "achado": "The results indicate that IBEAε+ has advantage on the offline data-driven problems — sem números, tabela ou lista de MOEAs alternativos visível no texto principal.",
+      "aplicabilidade": "Não reprodutível a partir deste documento — depende do material suplementar (Table S.II), não presente nesta extração; não é possível nem saber quais motores alternativos foram testados.",
+      "observacoes": "só mencionada"
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Robustez a hiperparâmetros do surrogate e ao dataset offline inicial",
+      "grupo_sugerido": "J",
+      "descricao": "O artigo MENCIONA dois estudos de robustez/sensibilidade — aos parâmetros dos modelos surrogate (presumivelmente o intervalo de θ do Kriging e/ou o espalhamento α do RBFN) e ao dataset offline inicial — reportando insensibilidade do algoritmo a ambos; a redação não deixa claro se cada tabela (S.III, S.IV) cobre um tema isoladamente ou se as duas cobrem os dois temas em conjunto.",
+      "literal": "the robustness of the parameters in the surrogate models and the initial offline data are also tested in Tables S.III and S.IV in the supplementary material",
+      "localizador": "Sec. IV (abertura); Tables S.III e S.IV (material suplementar)",
+      "metricas": [
+        "não especificado no texto principal"
+      ],
+      "testes": [
+        "não especificado no texto principal"
+      ],
+      "convencoes": "",
+      "achado": "It can be observed that the proposed algorithm is insensitive to the parameter settings of the surrogate models and initial data — resultado de robustez/insensibilidade, sem números visíveis no texto principal.",
+      "aplicabilidade": "Não reprodutível a partir deste documento — depende do material suplementar (Tables S.III–S.IV), não presente nesta extração; não é possível separar com segurança o que é atribuível a S.III vs. S.IV.",
+      "observacoes": "só mencionada"
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Robustez ao método de amostragem do dataset offline (LHS × aleatória)",
+      "grupo_sugerido": "J",
+      "descricao": "O artigo MENCIONA um teste comparando duas formas de gerar o dataset offline inicial (11D−1 pontos) — Latin Hypercube Sampling (a convenção padrão usada em todo o resto do artigo) contra amostragem puramente aleatória — concluindo que o método de amostragem tem pouco efeito no desempenho final.",
+      "literal": "it has little effect on the algorithm’s performance whether the offline data are collected by adopting LHS or random sampling",
+      "localizador": "Sec. IV-B (parágrafo sobre aplicação a problemas reais); Table S.VIII (material suplementar)",
+      "metricas": [
+        "não especificado no texto principal (presumivelmente IGD/HV)"
+      ],
+      "testes": [
+        "não especificado no texto principal"
+      ],
+      "convencoes": "",
+      "achado": "LHS vs. amostragem aleatória para o dataset offline inicial tem pouco efeito no desempenho — sem números visíveis no texto principal (Table S.VIII não incluída nesta extração).",
+      "aplicabilidade": "Conceitualmente próximo da ficha 63 da tipologia (sweep de volume/distribuição do dataset offline, que já cita 'e103' nominalmente para os tiers small/medium) — mas aqui o artigo testa só LHS vs. aleatória (não LHS vs. MVNS) e não varia o TAMANHO do dataset; não reprodutível a partir deste documento (Table S.VIII só no material suplementar).",
+      "observacoes": "só mencionada"
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo NÃO mede calibração/cobertura do σ do Kriging (não há checagem da fração de pontos cujo f cai dentro de um intervalo μ±kσ contra o nominal, nem correlação σ×erro real, nem RMSE do próprio σ). O σ (via RMSE/MSE do Kriging) é usado apenas OPERACIONALMENTE como limiar de decisão binária (Kriging confiável vs. não-confiável, Eq. 25-26), assumindo a priori que o intervalo [f̃−3s, f̃+3s] tem 99,7% de confiança nominal, sem validar essa cobertura contra o erro real observado. A Fig. 5 ('correct rate of environmental selection') é o mais próximo de uma checagem indireta — mas mede a taxa de acerto da SELEÇÃO resultante, não a calibração do σ como quantidade própria.",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Só complexidade computacional TEÓRICA (Big-O), sem tempo de parede medido em segundos/minutos: Seção III-B decompõe cada um dos 7 algoritmos (IBEA-MS; os offline AK-IBEA e NSGA-II-GP; os online Par-EGO, MOEA/D-EGO, K-RVEA, CSEA) em 4 fases — construção inicial do modelo, avaliação via modelo, gerenciamento do modelo, seleção ambiental — concluindo que IBEA-MS tem a MENOR complexidade das 7; detalhamento completo só na Table S.I (material suplementar, não presente nesta extração). Nota-se também textualmente que o próprio Kriging tem complexidade O(N³), que cresce mais se a busca dos hiperparâmetros θ usar um algoritmo de otimização complexo (Sec. II-B1).",
+    "literal": "It can be conclude that IBEA-MS has the lowest computational complexity compared with other six algorithms.",
+    "localizador": "Sec. III-B; Table S.I (material suplementar)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Os próprios autores admitem que a incerteza (variância predita do Kriging) fica pouco confiável em alta dimensão e pode enganar o próprio mecanismo de seleção de modelo que ela alimenta — o caveat mais direto do artigo sobre o risco de confiar no σ.",
+      "literal": "the predicted values and predicted variances of the Kriging models are unreliable when the dimension of the decision space is high. This may mislead the proposed adaptive model selection mechanism.",
+      "localizador": "Sec. V (Conclusion)"
+    },
+    {
+      "descricao": "No problema ZDT4 (D=10, M=2), a versão adaptativa (IBEA-MS) fica significativamente PIOR que a versão fixa 'sempre-RBFN' (R-IBEA) — caso em que o mecanismo de incerteza ativamente escolhe errado, atribuído à relaxação do critério de confiabilidade (ver Fig. 4). No texto do artigo esta frase ('The only concern is that IBEA-MS is significantly [...] worse than R-IBEA on the ZDT4 problem') é interrompida, em ambas as camadas de texto, pela inserção de nota de rodapé + legenda da Table I + legenda da Fig. 4 no meio da sentença — artefato da conversão do PDF; o trecho citado abaixo é o fragmento contíguo e exato que segue essa interrupção.",
+      "literal": "worse than R-IBEA on the ZDT4 problem.",
+      "localizador": "Sec. IV-A (frase iniciada como \"The only concern is that IBEA-MS is significantly worse than R-IBEA on the ZDT4 problem\", partida por uma nota de rodapé e pelas legendas da Table I / Fig. 4 na conversão do PDF)"
+    },
+    {
+      "descricao": "IBEA-MS usa a incerteza SOMENTE para decidir qual modelo usar, nunca para manter diversidade da população — ao contrário dos comparadores (AK-IBEA, NSGA-II-GP), que reaproveitam a mesma incerteza para isso — e essa escolha de design é apontada como a causa direta da fraqueza em problemas de alta demanda por diversidade (ex.: DTLZ4, dez objetivos).",
+      "literal": "IBEA-MS is slightly weak in dealing with the practical problems with very high demand for solutions diversity.",
+      "localizador": "Sec. IV-B"
+    },
+    {
+      "descricao": "Ao listar limitações, os autores admitem que talvez NENHUM dos dois modelos disponíveis (Kriging ou RBFN) consiga de fato guiar a população rumo ao conjunto ótimo em certos casos — o gargalo pode estar no par de modelos disponível, não só no mecanismo que escolhe entre eles.",
+      "literal": "it is likely that neither the Kriging nor the RBFN model can guide the population toward the optimal solution set.",
+      "localizador": "Sec. V (Conclusion)"
+    },
+    {
+      "descricao": "Apesar da vantagem crescente de IBEA-MS com a dimensão D (10→20→30), os próprios autores estabelecem um limite declarado de aplicabilidade acima de D=30, pela perda de confiabilidade do Kriging nessas dimensões.",
+      "literal": "it is not recommended to perform IBEA-MS for the practical problems with decision dimensions greater than 30.",
+      "localizador": "Sec. IV-B"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Ao discutir limitações, o artigo admite que o gargalo de desempenho pode estar no MODELO disponível (Kriging e RBFN, ambos potencialmente inadequados) e não no critério/mecanismo que arbitra entre eles — eco direto do padrão 'modelo imperfeito é o limitante' que a dissertação já antecipa em outros artigos do roster.",
+      "literal": "it is likely that neither the Kriging nor the RBFN model can guide the population toward the optimal solution set",
+      "localizador": "Sec. V (Conclusion)"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "alta dimensão de decisão (D=10→20→30)",
+      "afirmacao": "A vantagem de IBEA-MS sobre as variantes AK-IBEA CRESCE com D: a D=10 ambos perdem a direção correta de forma semelhante (ruim) em DTLZ4, mas a D=20 IBEA-MS passa a superar as demais, graças à capacidade do RBFN de capturar a tendência global em paisagens complexas de alta dimensão; ainda assim, D>30 não é recomendado, pela perda de confiabilidade do próprio Kriging.",
+      "literal": "IBEA-MS is far better than AK-IBEA variants on 20- and 30-dimensional problems.",
+      "localizador": "Sec. IV-B (vantagem crescente); e mais adiante na mesma seção, o limite declarado: \"it is not recommended to perform IBEA-MS for the practical problems with decision dimensions greater than 30\""
+    },
+    {
+      "caracteristica": "muitos objetivos (M=10) e alta demanda por diversidade de soluções",
+      "afirmacao": "IBEA-MS é fraco em problemas de dez objetivos que exigem boa distribuição de soluções (ex.: DTLZ4), porque usa a incerteza SOMENTE para escolher entre modelos, não para promover diversidade — diferente de AK-IBEA e NSGA-II-GP, que reaproveitam a mesma incerteza justamente para aumentar a diversidade da população.",
+      "literal": "Both the AK-IBEA variants and NSGA-II-GP use the uncertainty information of the Kriging models to increase the diversity of the population. Instead, our algorithm uses the uncertainty information for model selection.",
+      "localizador": "Sec. IV-B"
+    },
+    {
+      "caracteristica": "multimodalidade (DTLZ1, DTLZ3)",
+      "afirmacao": "Nos problemas multimodais DTLZ1 e DTLZ3, IBEA-MS tem desempenho ruim com poucos objetivos (2-3, onde mesmo um Kriging impreciso ainda supera o RBFN) mas bom desempenho com muitos objetivos (5-10, onde a suavização do RBFN passa a ajudar mais em paisagens mais complexas).",
+      "literal": "The reason could be that DTLZ1 and DLTZ3 are multimodal problems. Therefore, IBEA-MS chooses the RBFN model to assist the optimization.",
+      "localizador": "Sec. IV-B"
+    },
+    {
+      "caracteristica": "poucos objetivos (biobjetivo, M=2) sob o critério relaxado de troca de modelo",
+      "afirmacao": "Sob o critério de relaxação padrão (tolerância a 1 objetivo não-confiável), a exigência de acurácia do Kriging para uma troca de modelo correta é INVERSAMENTE proporcional ao número de objetivos — problemas biobjetivo (M=2, como ZDT4) são os mais difíceis para o mecanismo de seleção acertar.",
+      "literal": "the accuracy requirement of the Kriging models increases with the expanding of the objective numbers. This accuracy requirement is minimized when dealing with biobjective problems.",
+      "localizador": "Sec. IV-A"
+    }
+  ],
+  "roster_bloco": {
+    "mecanismo_proprio": [
+      {
+        "descricao": "Ablação que isola o efeito do mecanismo adaptativo de troca Kriging↔RBFN: K-IBEA (sempre Kriging, ignora a checagem de confiabilidade) e R-IBEA (sempre RBFN, sem incerteza) comparados contra IBEA-MS (adaptativo, via σ/RMSE do Kriging) em DTLZ1-7 e ZDT1-4,6 (D=10), com Wilcoxon rank-sum e marcação de acerto/erro do mecanismo por problema.",
+        "literal": "The results are shown in Table I, where the shaded cells represent the adaptive model selection mechanism with a correct decision between the Kriging models and the RBFNs.",
+        "localizador": "Sec. IV-A, Table I"
+      },
+      {
+        "descricao": "Sensibilidade do critério de relaxação (parâmetro-gate) que decide a troca de modelo: comparação entre o critério padrão (≥ M−1 de M objetivos julgados 'confiáveis', Eq. 26) e uma variante estrita sem tolerância (IBEA-MS-NT, exige M de M) no problema ZDT4 (D=10, M=2).",
+        "literal": "A version of the adaptive model selection with no reliability tolerance of the Kriging models (IBEA-MS-NT) is also tested",
+        "localizador": "Sec. IV-A, Fig. 4"
+      },
+      {
+        "descricao": "Verificação indireta da correção do mecanismo: taxa de acerto da seleção ambiental sob Kriging e sob RBFN (cada um comparado à seleção sob a função real) por geração, em DTLZ2, DTLZ5, ZDT1, ZDT2 — confirmando que o modelo de maior taxa de acerto em cada problema é o que o mecanismo adaptativo de fato escolhe.",
+        "literal": "the proportion of the individuals selected by the Kriging and RBFN models in the individuals selected under the real function evaluation is calculated as the correct rate.",
+        "localizador": "Sec. IV-A, Fig. 5"
+      }
+    ],
+    "reprodutivel_com_camadas": [
+      {
+        "mecanismo": "Ablação K-IBEA/R-IBEA/IBEA-MS (Table I)",
+        "camada": "⑦ (ND final reavaliado, regime offline) para o endpoint de cada variante + reteste de postos por célula — exige implementar e rodar K-IBEA e R-IBEA explicitamente (variantes próprias do artigo-fonte, não algoritmos do roster de 15)."
+      },
+      {
+        "mecanismo": "Sensibilidade da tolerância de relaxação (IBEA-MS-NT)",
+        "camada": "⑥ (filme) para contar disparos do flag de troca sob cada critério (M−1 vs. M) + ⑦ para o endpoint — exige implementar a variante NT, que não é um parâmetro exposto na configuração padrão do roster."
+      },
+      {
+        "mecanismo": "Correct rate da seleção ambiental (Fig. 5)",
+        "camada": "③ (predições do surrogate) registrando AMBOS Kriging e RBFN por geração — mesmo o modelo 'não escolhido' — cruzada com ① (avaliação real da mesma população); a sonda fixa padrão (2000 pontos comuns) não cobre isso por definição, pois aqui a checagem é sobre a população evolutiva corrente, não uma sonda fixa."
+      }
+    ],
+    "parametros_do_uso_da_incerteza": {
+      "epsilon_limiar_proximidade": "ε = 1e-5 — limiar abaixo do qual Dm(i,j) e Em(i,j) são tratados como 'quase zero' e a relação é considerada confiável por definição (Eq. 25)",
+      "fator_do_intervalo_de_confianca": "k=3 desvios-padrão (RMSE) em torno da média predita, [f̃m−3sm, f̃m+3sm], correspondendo a 99,7% de confiança nominal (não validada empiricamente — ver calibracao_do_sigma)",
+      "criterio_de_relaxacao_do_gate": "UF(i,j)=1 requer que pelo menos M−1 dos M objetivos tenham Rm(i,j)=1 (padrão, Eq. 26); a variante de sensibilidade IBEA-MS-NT exige os M de M (sem tolerância)",
+      "flag_de_troca_de_modelo": "switch binário e GLOBAL por geração: switch=1 assim que UF(i,j)=0 é encontrado para QUALQUER par (i,j) na população — não há score contínuo nem troca parcial/gradual, é tudo-ou-nada Kriging→RBFN para a geração inteira"
+    }
+  },
+  "observacoes": "(1) A camada estruturada (pymupdf4llm) e a camada de texto bruto (ANEXO get_text) OMITIRAM os valores numéricos de célula da Table I (ablação K-IBEA/R-IBEA/IBEA-MS) e da Table II (proporções do teste Bayesiano) — só as legendas vieram nessas duas camadas. Os números foram parcialmente recuperados na camada de OCR de imagens (ANEXO, Apple Vision), que é aproximada, especialmente em notação científica (ex.: um valor aparece como '2.11e+D', provável erro de OCR; a linha de DTLZ1 não veio explicitamente rotulada, inferida pela posição antes de 'DTLZ2'); por isso esses números não foram usados como `literal` de nenhuma análise (que exige citação exata do TEXTO), só relatados com ressalva dentro de `achado`. (2) O grid de significância da Fig. 6 não teve seu conteúdo célula-a-célula recuperado por OCR nesta conversão (só a legenda/caption) — a estrutura exata de quais das 7 linhas correspondem a quais D não é totalmente determinável a partir do texto. (3) Convenção de apresentação do artigo difere da dissertação: usa MÉDIA (não mediana) ± desvio-padrão nas curvas de convergência (Fig. 4, Fig. 7) e nas células da Table I — nenhuma menção a 'execução mediana' nem a IQR. (4) O regime é 100% offline SEM NENHUMA avaliação real durante a busca (nem um pequeno orçamento de reavaliação/infill): as '10000/50000 avaliações' mencionadas são todas do SURROGATE; a função real só entra para (a) gerar o dataset offline inicial (11D−1 pontos) e (b) calcular IGD/HV finais por reavaliação — casa diretamente com a camada ⑦ da dissertação e explica por que fichas de infill/exploração (43, 44) simplesmente não se aplicam a este artigo. (5) Quatro das 11 análises listadas têm `observacoes: \"só mencionada\"` por dependerem de material suplementar não incluído no corpus_md fornecido: três delas (complexidade computacional teórica à parte — essa tem conteúdo real na Sec. III-B do corpo do artigo, só o detalhamento fica em Table S.I — não entra nesta contagem) recebem também `nova: true`/fichas vazias (escolha do motor evolutivo de base, Table S.II; robustez a hiperparâmetros do surrogate e ao dataset inicial, Tables S.III-S.IV; robustez ao método de amostragem, Table S.VIII), e uma quarta (a réplica do teste Bayesiano em HV, Section S.VI) usa a mesma metodologia da análise Bayesiana em IGD já mapeada à ficha 4, por isso `nova: false`. Os resultados Bayesianos completos por problema individual foram declarados publicados num repositório GitHub externo (github.com/HandingWangXDGroup/Bayesin-Signed-Rank-Tests-Results-), também fora do alcance desta extração. (6) A ficha 13 da tipologia já cita 'e103' nominalmente como um dos algoritmos offline avaliados pela camada ⑦ da dissertação (junto com b5m, b5r, moead_media) — mas essa comparação cross-algoritmo é uma análise FUTURA da própria dissertação, não algo que o artigo de e103 faça; por isso a ficha 13 não foi mapeada a nenhum item de `analises` aqui. A ficha 63 também cita 'e103' nominalmente (sweep offline small/medium/big × LHS/MVNS); o teste PRÓPRIO e mais restrito do artigo nessa direção (LHS vs. aleatória, sem variar tamanho, Table S.VIII) foi listado como análise nova, ver aplicabilidade. (7) K-IBEA e R-IBEA (as duas pontas da ablação central do artigo) são nomenclatura PRÓPRIA de e103, sem correspondência com siglas de outros algoritmos do roster da dissertação."
+}

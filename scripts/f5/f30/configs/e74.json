@@ -1,0 +1,356 @@
+{
+ "config": "e74 (CLMEA, Chen et al. 2023 · exp=main · árvore PlatEMO 4.1 própria D95/N.0-4.1) — campanha completa 25 problemas × 30 sementes = 750 células (749 ok · 0 ⚪ · 1 fail)",
+ "cobertura": "⑥ (jsonl): **750/750 = 100%** — varredura completa em streaming (218.147 eventos `e74_gen`, 325.619 FE reais, 148.418 blocos de sonda). ⑤ (manifesto): 749/749 (a célula fail não tem). ① (real.parquet): **749/749 = 100%** (bateria C: métricas finais + atribuição de ganho de IGD+ por estratégia, com IGD+ incremental EXATO — validado contra o pymoo, |Δ| ≤ 9,4e−13). ③ (surrogate.parquet): **74 células** = 25 problemas × 3 sementes, amostragem determinística (problema i → sementes de índice (3i)%30, (3i+1)%30, (3i+2)%30 sobre {0..28,42}) ⇒ **cobre os 25 problemas e as 30 sementes**, 1.400.258 linhas online; + **18 células** (18 sementes distintas, D∈{2..30}, M∈{2,3}) para a identidade FORTE da s3, o D74 e os spreads; + 8 células no refino do D74. ④: 75 células (linhas == eventos+boot em 75/75). ②: coerência verificada em 2 células (pop == n_treino da s2 em 276/276 gerações ⇒ ② é membership do arquivo corrente). Duplicatas cross-VM: 35 pares (100% dos pares físicos vm1∩vm5). Scripts em /private/tmp/claude-501/-Users-gmello/33c29160-6eb6-4277-a041-db4855486063/scratchpad/{scan_jsonl,batA,batB,batB2,batC,batD}.py",
+ "N1_invariancia": "**As identidades estruturais são invariantes de semente — e a joia da s2 é exata em 100,0000%.** (a) **s2 (eq. 9, argmax do HV-improvement)**: o infill aceito é o argmax global de `sigma_0` no bloco em **7.067/7.067 = 100,0000%** dos infills, em 74 células / 25 problemas / 30 sementes; casamento X ①↔③ com **max|ΔX| = 0,0**; identidade `sigma_0 ≡ pred_score − hv_base` com **|Δ|máx = 5,69e−08** (piso do float32 da ③); e o padrão de NaN é contrato, não defeito: **nan(sigma_0) == N − n_front em 7.067/7.067 blocos** (o `score` do `Hv_Select.m:78` só existe sobre o pseudo-front). (b) **s3 (eqs. 10-11, identidade FORTE com a receita da T11: y_treino = N vizinhos em objetivos, RefPoint por CrowdingDistance com inf→0)**: **1.737/1.737 = 100,0000%** em 18 células / 18 sementes / D de 2 a 30 / M=2 e 3; escolhido dentro do front em 1.737/1.737. (c) **s1 (eqs. 7-8)**: argmax global **5.420/6.337 = 85,53%**, argmax restrito a {pred_classe=nivel_1} **93,86%**, razão dist(escolhido)/dist_max mediana **1,0000** (média 0,9912; p10 0,978), rank p50 = 1, escolhido ∈ S em **6.337/6.337 = 100,00%**. **ZERO sementes quebram qualquer identidade**: a menor taxa por semente é 81,43% (s15) e por problema 80,00% (MMF1) no argmax RESTRITO, e o resíduo tem causa fechada (A12: blocos com n_desalinhado==0 ⇒ argmax_S = **100,00%** em 644 blocos; com n_desal>0 ⇒ 93,17%). Erro máximo observado em qualquer identidade: **5,69e−08** = o piso do float32.",
+ "N2_tetos_caidos": "**Cai o T8 (o teto central da T11) e caem 3 itens de \"só com réplicas\".** (1) **T8 — \"o efeito do DI-45 nos outros 22 problemas\"**: agora medido nos **25 problemas × 30 sementes** — argmax global 85,53% (era 12,24% PRÉ-fix) e 93,86% restrito, com o pior caso nos D=2 (MMF1 80,0% restrito, n=30) e o melhor nos MMF16_20/WFG1 (97,7%/96,8%). O regime que a T11 apontou como não testado (ZDT4, \"68,6% dos slots de s1 perdidos\" PRÉ-fix) foi medido: **slot perdido de s1 no ZDT4 caiu para 32,54%** (global 11,55%, 8.418 de 72.910 slots, 100% em s1, 0 em s2/s3). (2) **Fórmula de semeadura / independência das réplicas**: **750/750 `doe_hash` distintos**, exatamente 30 por problema, e distintos entre problemas de mesmo D (ex.: 9 hashes distintos para D=10, semente 0) ⇒ o DoE é função injetora de (problema, semente). (3) **Taxa de sucesso**: 749/750 = **99,87%**, 30/30 em 24 problemas e 29/30 em MMF1; `fe_final == maxfe == 31D−1` em 749/749, overshoot 0. (4) **Variância entre execuções**: CV do IGD+ final por problema **mediana 21,6%** (mín 0,5% WFG1 · máx 101,7% ZDT6; razão máx/mín até 90× no ZDT6). (5) **T3 (gerações internas)** continua teto formal, mas ganhou perfil de custo com 30 sementes: expoente empírico do fit da RBF global (D=30, vm1, n=4.215 eventos) = **1,61**; mediana de `tempo_fit_s` 0,033 s (n≤200) → 0,189 s (600<n≤1000). **Permanecem**: T2 (CR=1,0 no OperatorDE do Hv_Select:14, sem instrumentação por indivíduo), T6 (pesos/kernel de newpnn/newrbe), T7 (bloco `sonda_estratificada` sem gabarito — presente em 749/749 células, 73.486 blocos, 0 falhas, `prevalencia_nd_no_bloco` NULL em 100% por desenho). **Dois tetos NOVOS**: T9 — o float32 da ① impede reconstruir o front-1 do **DTLZ4** (componentes de objetivo ~1e−100 viram 0 exato ⇒ meu front dá 8-10 membros contra os 21-30 logados); T10 — a **não-reprodutibilidade entre despachos** (ver N4) tem causa não medível deste lado (hipótese não verificada: ordem de redução do BLAS multithread).",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "Contribuição 1, eqs. 7-8: 'the most uncertain first-ranking solution in the decision space is selected to conduct real FEs' — o candidato avaliado é o argmax de g(u)=min_{x∈A}dist(u,x) entre os de 1º nível.",
+   "onde_no_artigo": "§III-B, Alg. 2 l.9-10, eqs. 7 e 8",
+   "testavel_com_30": true,
+   "resultado": "REALIZA-SE (a campanha é PÓS-DI-45). argmax global 5.420/6.337 = 85,53%; argmax restrito a nivel_1 = 93,86%; razão dist/dist_max mediana 1,0000; rank p50 = 1; escolhido ∈ S em 100,00%. PRÉ-fix (F5/T11, s42): 12,24% e rank p50 43. O resíduo de 6,14% é o 2º desalinhamento: com n_desalinhado==0 o argmax_S é 100,00% (644 blocos)."
+  },
+  {
+   "afirmacao": "'HV-based non-dominated search shows promising convergence speed in the early optimization period'",
+   "onde_no_artigo": "§IV-C (parágrafo da ablação) + §III-C",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA. Com orçamento 1:1:1 (s1 63.645, s2 72.724, s3 72.513 FE), a s2 responde por 58,17% do ganho de IGD+ da 1ª metade dos FE de infill e só 13,50% da 2ª; lidera a fase inicial em 360/749 células (48,1%) e a final em apenas 114/749 (15,2%). 80,80% de todo o ganho ocorre na 1ª metade."
+  },
+  {
+   "afirmacao": "'However, it [CLMEA-s2] is prone to trap into local optima, resulting in unstable optimization performance'",
+   "onde_no_artigo": "§IV-C",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA direcionalmente. CV entre sementes do share de ganho: s2 0,522 contra s3 0,368 (s1 1,333); a s2 contribui ganho EXATAMENTE ZERO em 94/749 células contra 21/749 da s3; e o share dela desaba de 58,2% (cedo) para 13,5% (tarde)."
+  },
+  {
+   "afirmacao": "'Classifier-assisted rank-based learning pre-screening is able to infill the non-dominated front to enhance the diversity of the non-dominated front'",
+   "onde_no_artigo": "§IV-C + §III-B + Conclusão",
+   "testavel_com_30": true,
+   "resultado": "NÃO SUSTENTADA no sentido operacional (e este é o maior achado das 30 sementes). Com FE idênticos por estratégia, a s1 tem a MENOR taxa de acerto no front: 9,64% dos seus infills são não-dominados no instante da inserção (s2 16,22%, s3 39,22%); fica com 9,78% do front final (s2 28,44%, s3 53,82%); e contribui ZERO ganho de IGD+ em 349/749 células (46,6%), sem nenhum ponto no front final em 333/749. Wilcoxon pareado sobre as 749 células (o teste do próprio artigo): front_s2>front_s1 p=2,1e−27; dig_s2>dig_s1 p=2,2e−55. Leitura: PÓS-DI-45 a s1 é, por construção da eq. 8, um explorador PURO do espaço de DECISÃO — coerente com a Tabela II do artigo (CLMEA-s1 é a pior variante em 28/28), mas incompatível com a frase 'infill the non-dominated front'."
+  },
+  {
+   "afirmacao": "'The most uncertain non-dominated solutions in the objective space are selected for real FEs, thus improving the diversity of solutions' (s3 / busca local esparsa)",
+   "onde_no_artigo": "§III-D, Alg. 4 l.11-14, eqs. 10-11",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA e é a estratégia mais produtiva: maior taxa de não-dominados (39,22%), maior fatia do front final (53,82%), lidera o ganho da 2ª metade em 522/749 células (69,7%) e responde por 75,71% do ganho tardio. A identidade mecânica fecha 1.737/1.737."
+  },
+  {
+   "afirmacao": "'The loop continues until the proportion of offspring belonging to the first level is higher than 0.9' (única condição de saída da Alg. 2)",
+   "onde_no_artigo": "§III-B, Alg. 2 l.5",
+   "testavel_com_30": true,
+   "resultado": "PARCIAL: o código sai com frac ≥ 0,9 (não > 0,9) e tem uma 2ª saída, `count>50`, que NÃO está no artigo. Partição fecha exatamente: 72.068 ciclos produtivos = 60.391 (≥90%) + 11.884 (guarda) − 207 (ambas). 16,20% dos ciclos saem por regra extra-artigo — de 1,7% (MMF16_20) a 60,9% (BBOB_F5 e MMF1)."
+  },
+  {
+   "afirmacao": "'All the results of benchmark functions are replicated 20 independent runs for statistical analysis' + Wilcoxon signed-rank",
+   "onde_no_artigo": "§IV-A e §IV-C",
+   "testavel_com_30": true,
+   "resultado": "TESTADA e marginal: com o CV medido (mediana 21,6%), 20 réplicas dão meia-largura de IC95 da média de IGD+ de ±9,5% (mediana) e 11/25 problemas ficam acima de ±10%; com 30 réplicas, ±7,7% e ainda 9/25 acima. No ZDT6 (CV 101,7%) 20 réplicas dão ±44,6%. As réplicas são genuinamente independentes (750/750 DoE distintos)."
+  },
+  {
+   "afirmacao": "'One infill solution is set for each infill strategy' / rotação das 3 estratégias 1:1:1",
+   "onde_no_artigo": "§IV-A + Alg. 1 l.11-19",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA em 749/749 células: n_s2 = C−1+[k≥2] e n_s3 = C−1+[k≥3] com C = n_s1, e a aritmética n_geracoes = 4C−2+k / eventos = 3(C−1)+k fecha em 749/749."
+  },
+  {
+   "afirmacao": "'m real function evaluations on the extreme points of the surrogate' (bootstrap de extremos, Alg. 1 l.5-9)",
+   "onde_no_artigo": "§III-A, Alg. 1 l.5-9",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA: aceitos == M em 749/749, ZERO rejeitados em 1.678 extremos, uma RBF mono-saída por objetivo (n_redes == M, M_saidas == 1) treinada sobre o DoE inteiro (n_treino == 11D−1 em 749/749). Os extremos só contribuem 0,22% do front final e 1,46% do ganho de IGD+."
+  },
+  {
+   "afirmacao": "§IV-G: complexidade de treino da RBF/PNN é desprezível frente ao Kriging e ao custo da simulação real",
+   "onde_no_artigo": "§IV-G (Complexity Analysis) + Fig. 12",
+   "testavel_com_30": true,
+   "resultado": "PARCIAL — as fórmulas do artigo se perderam na extração do PDF (não medível a expressão exata). Medido: expoente empírico do fit da RBF global vs n = 1,61 (D=30, vm1, 4.215 eventos), tempo_fit_s mediano 0,033 s (n≤200) → 0,189 s (600<n≤1000); custo de parede total por problema entre 0,32 h (MMF1, 30 sementes) e 10,14 h (MMF16_20). Compatível com 'negligible' no regime testado; a comparação com Kriging não é reproduzível aqui."
+  },
+  {
+   "afirmacao": "'CLMEA captures the entire PF on 30D ZDT2' / distribuições finais por dimensão (Fig. 8, 11)",
+   "onde_no_artigo": "§IV-E e §IV-F",
+   "testavel_com_30": false,
+   "resultado": "NÃO TESTÁVEL: ZDT2 não está nos nossos 25 problemas e os D do artigo (30/50/100/200) não são os nossos (D 2..30, regra D21/D61). Fica a estatística própria: n_ND final mediano 18 (máx 133), spacing mediano 0,060."
+  }
+ ],
+ "N4_deriva": "**A deriva cross-máquina medida DENTRO da campanha é EXATAMENTE ZERO — as células são bit-idênticas entre vm1 e vm5.** Das 35 duplicatas físicas vm1∩vm5, **25 (a semente 7 em TODOS os 25 problemas, ambas as cópias da campanha `7f4f0e429a46_M8`) são bit-idênticas**: max|ΔX| = 0,0 e max|Δf| = 0,0 em **todos** os FE de cada célula (61 a 929 linhas), ΔIGD+ = 0,0 e ΔHV = 0,0 em 25/25. Isso é MAIS FORTE do que a doutrina do RUNBOOK §6.2 exige (fidelidade estatística): para o e74 nesta frota, a mesma célula em máquinas diferentes reproduz bit a bit. **As outras 10 duplicatas NÃO são cross-máquina — são cross-CAMPANHA**: o lado vm1 delas vem de `campanha_id = 63db46b10063_2026-08-14` (host declarado \"matlab-vm1\" em vez de \"vm1\"), mesmo `repo_hash` (63db46b100635a5c…) e mesma MATLAB (25.1.0.2973910 R2025a Update 1). Nelas: DoE **bit-idêntico**, trajetória **bit-idêntica até o FE 142–333 (mediana 249, ≈40% do orçamento)** e então um **flip de decisão** — o primeiro FE divergente já difere por |ΔX| = 0,22 a 9,58 (não é epsilon: é outro ponto), com a MESMA estratégia nos dois lados; daí em diante 61% das linhas diferem (mediana), |ΔX| chega a 44. Efeito no resultado: **ΔIGD+ relativo mediana 11,8%, máx 40,3%; ΔHV relativo mediana 7,0%, máx 29,0%** — abaixo do piso de ruído de IGD+ (O-18: 58,98%) e da própria dispersão entre sementes (CV mediana 21,6%). **Consequência de proveniência**: 24 das 749 células canônicas (22× semente 12 + DTLZ2/27 + WFG4/10) vêm dessa 2ª campanha; o IGD+ delas é indistinguível do resto (Mann-Whitney p = 0,958; z médio −0,006), então não corrige nada — mas precisa ser DECLARADO. **④ não é comparável entre VMs**: nas duplicatas de mesma campanha, t(vm5)/t(vm1) tem mediana 1,52 (0,94–2,83) com ① bit-idêntica.",
+ "N5_cauda": "**O e74 não tem ⚪ (0 de 750) e tem 1 fail — e a causa, que o LAUDO D0 deixou como \"não investigada\", está identificada.** Célula: **MMF1 semente 3** (`/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/e74/MMF1/3/`), rodapé `status=failed`, `fe_final=37` de 61, `erro=\"X and Y must have the same number of columns\"`, `identifier=\"stats:pdist2:SizeMismatch\"`, sem manifesto e sem parquets (só ⑥, 14 eventos). O último evento é a s2 da geração 19 ⇒ a morte é no slot da **s3**. **Mecanismo (leitura de código + log; NÃO re-rodei)**: `Local_infill.m` inicializa `x_candidates = []` (0×0) e só o preenche dentro de `if ~isempty(index)` (:72) — quando nenhum offspring alcança o 1º front do `NDSort([y_train; y_offspring])`, ele devolve 0×0; `CLMEA.m:137` faz `min(pdist2(x_candidates3, Arc.decs),[],2)` **sem guarda de vazio** ⇒ 0 colunas contra D colunas ⇒ SizeMismatch. O mesmo buraco existe em `CLMEA.m:122` (s2, quando `Pseudo_PS` é vazio). A **s1 é imune** porque o vazio dela é 0×D (`Parent(S(index(1:0)),:)`) — e é por isso que os **847 `cand_vazio` da s1 não matam ninguém** (37,7% dos slots de s1 no MMF1, 33,5% no MMF11_L, 22,1% no MMF4). Ou seja: o edge é o MESMO nas três estratégias, mas só duas delas estouram. **Taxas de sucesso**: 30/30 em 24 problemas, 29/30 no MMF1 (96,7%); nenhuma incapacidade determinística por problema (contraste com b1×DTLZ4, c262×WFG1, c154, c238). **O que a cauda diz do algoritmo**: (i) o e74 é barato e nunca bateu teto de tempo — 0 ⚪, parede de 0,32 h (MMF1) a 10,14 h (MMF16_20) por problema × 30 sementes; (ii) o risco real dele não é orçamento, é **degeneração em D=2**, onde o candidato vazio é regra e não exceção; (iii) a perda é de 1 célula em 750 = 0,13%, e o artigo não prevê o caso (Alg. 4 l.12 'If … in the first sort' admite ciclo sem infill — o código não).",
+ "aspectos": [
+  {
+   "id": "A1",
+   "aspecto": "Orçamento FE = 31D−1 com hard-stop exato",
+   "classe": "2",
+   "medicao": "fe_final == maxfe == 31D−1 em 749/749; overshoot 0; 325.619 FE reais no corpus",
+   "veredito": "conforme sob D21/D61 (régua uniforme sobre 25 problemas; o paper usa 300 fixo)",
+   "arquivo_linha": "rodapé de todas as 750 ⑥",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A2",
+   "aspecto": "DoE inicial 11D−1 do artefato (não LHS interno)",
+   "classe": "2",
+   "medicao": "boot n_treino == 11D−1 em 749/749; ① fase=='init' == 11D−1 em 74/74; 750/750 doe_hash distintos, 30 por problema",
+   "veredito": "conforme sob D63/D88/D94; a semeadura é injetora em (problema, semente)",
+   "arquivo_linha": "CLMEA.m:44 (Problem.Evaluation(Problem.data.X0))",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A3",
+   "aspecto": "Bootstrap de extremos = M FEs reais (Alg. 1 l.5-9)",
+   "classe": "1",
+   "medicao": "aceitos == M em 749/749; 0 rejeitados em 1.678 extremos; n_redes == M e M_saidas == 1 em 749/749",
+   "veredito": "conforme ao artigo",
+   "arquivo_linha": "CLMEA.m:62-83",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A4",
+   "aspecto": "Rotação 1:1:1 das 3 estratégias, num_infill=1",
+   "classe": "1",
+   "medicao": "n_s2 = C−1+[k≥2] e n_s3 = C−1+[k≥3] em 749/749 (C = n_s1)",
+   "veredito": "conforme ao artigo",
+   "arquivo_linha": "CLMEA.m:101-158",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A5",
+   "aspecto": "N das estratégias = min(100,|Arc|)",
+   "classe": "2",
+   "medicao": "0 violações em 218.147 eventos (s1/s2/s3)",
+   "veredito": "conforme sob D20/L.8 (paper: NP=50 e 100/200)",
+   "arquivo_linha": "CLMEA.m:105/120/135",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A6",
+   "aspecto": "k_local = min(20,|Arc|)",
+   "classe": "2",
+   "medicao": "k_local_efetivo == min(20,|Arc|) em 100% dos eventos de s3 (0 violações)",
+   "veredito": "conforme sob código+L.8 (🟠 D29 impl→código)",
+   "arquivo_linha": "Local_infill.m:8",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A7",
+   "aspecto": "Gen_max1=200 / Gen_max2=50 (paper: 50/10)",
+   "classe": "2",
+   "medicao": "echo literal em 750/750 headers e 749/749 manifestos; contagem interna fica no teto T3",
+   "veredito": "conforme sob ⟦v2.7⟧ — verificabilidade DECLARATIVA",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A8",
+   "aspecto": "s2 — joia: argmax do HV-improvement (eq. 9)",
+   "classe": "1",
+   "medicao": "7.067/7.067 = 100,0000% em 74 células/30 sementes; max|ΔX| = 0,0; σ0 ≡ pred_score − hv_base com |Δ|máx 5,69e−08; nan(σ0) == N − n_front em 7.067/7.067",
+   "veredito": "conforme ao artigo — identidade fechada e INVARIANTE de semente",
+   "arquivo_linha": "Hv_Select.m:70-88",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A9",
+   "aspecto": "D74: CalHV normalizado pelo front-1 do arquivo + guard hv_range0",
+   "classe": "2",
+   "medicao": "Ymin/Ymax recomputados fecham com erro ≤5,7e−08 em ~1.536 eventos de 16 células; DTLZ4 não reconstrói (teto float32, T9); 215 eventos com colapso escalar (ver ③-1); guard range0 disparou 106×, 100% no DTLZ7",
+   "veredito": "conforme sob D74 no regime normal; furo de borda isolado em ③-1",
+   "arquivo_linha": "Hv_Select.m:44-52",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A10",
+   "aspecto": "s3 — identidade FORTE (front do NDSort + argmax da incerteza em objetivos) + patch D76",
+   "classe": "1",
+   "medicao": "1.737/1.737 = 100,0000% em 18 células/18 sementes/D 2..30/M 2 e 3; escolhido dentro do front 1.737/1.737",
+   "veredito": "conforme ao artigo; o patch D76 segue ativo em toda a campanha",
+   "arquivo_linha": "Local_infill.m:47 e :72-79",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A11",
+   "aspecto": "s1 — eqs. 7-8 (Contribuição 1) com o fix DI-45",
+   "classe": "1",
+   "medicao": "argmax global 85,53% (5.420/6.337), restrito a nivel_1 93,86%, razão mediana 1,0000, rank p50 = 1, escolhido ∈ S 100,00%; PRÉ-fix era 12,24% e rank 43",
+   "veredito": "conforme ao artigo — a campanha INTEIRA é PÓS-DI-45 (inclusive a semente 42, re-rodada em 07/08)",
+   "arquivo_linha": "ClassifierSelect.m:56-58",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A12",
+   "aspecto": "2º desalinhamento (classe_parent ≠ y_label) deliberadamente NÃO corrigido",
+   "classe": "2",
+   "medicao": "n_desalinhado > 0 em 91,97% de 72.068 ciclos produtivos, média 17,80; custo medido = 6,14% dos infills de s1 (n_desal==0 ⇒ argmax_S 100,00% em 644 blocos; n_desal>0 ⇒ 93,17%)",
+   "veredito": "desvio sancionado (§22/K.5.2/D81); custo agora medido em 750 células, não em 3",
+   "arquivo_linha": "ClassifierSelect.m:39-40 (telemetria em :80) — NÃO em Local_infill.m",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A13",
+   "aspecto": "Dedup ε=1e−5, slot perdido e no-op silencioso",
+   "classe": "2",
+   "medicao": "8.418 slots perdidos (11,55%), 100% em s1 (0 em s2/s3); 847 cand_vazio, 100% em s1; count==0 ⟺ slot_perdido em 749/749 células",
+   "veredito": "conforme ao código (o paper não menciona dedup); o vazamento de slot da s1 permanece",
+   "arquivo_linha": "CLMEA.m:107/122/137",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A14",
+   "aspecto": "Pré-triagem por classe sobrevive (candidato é nivel_1)",
+   "classe": "1",
+   "medicao": "cand_classe == nivel_1 em 63.645/63.645 = 100,00% dos infills aceitos de s1 (as 6 exceções de classe 2 e as 56 vazias são todas de slots REJEITADOS)",
+   "veredito": "conforme ao artigo",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A15",
+   "aspecto": "Guarda do laço (≥90% de nível-1 | count>50)",
+   "classe": "2",
+   "medicao": "partição fecha exatamente: 72.068 = 60.391 (frac≥0,9) + 11.884 (count>50) − 207; count satura em 51; 16,20% das saídas são pela guarda extra-artigo (1,7% MMF16_20 → 60,9% BBOB_F5/MMF1)",
+   "veredito": "desvio sancionado ⟦v2.2⟧ (🟠 impl→código); a regra do artigo governa 83,8% dos ciclos",
+   "arquivo_linha": "ClassifierSelect.m:30 e :42-44",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A16",
+   "aspecto": "Quotas de nível + NDSort sobre OBJETIVOS (D30)",
+   "classe": "2",
+   "medicao": "Σ n_por_nivel_pop == n_treino em 749/749; a classe do escolhido em ⑥ bate com a linha da ③ em 100%",
+   "veredito": "conforme sob D30/DI-07a (patch AO ARTIGO)",
+   "arquivo_linha": "ClassifierSelect.m:18-23",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A17",
+   "aspecto": "Spreads da PNN e das RBF (fórmulas do código)",
+   "classe": "1",
+   "medicao": "RBF global: erro relativo ≤3,2e−08 em 1.760 eventos de s2 de 18 células (TODAS as gerações, não só no-op); PNN: ≤1,1e−08 em 160 blocos no-op; boot: ≤3,2e−08 em 18/18",
+   "veredito": "conforme — verificação mais forte que a da T11 (que só usava blocos no-op)",
+   "arquivo_linha": "ClassifierSelect.m:5-6 · Hv_Select.m:5-6 · Local_infill.m:31-32",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A18",
+   "aspecto": "Pseudo-σ POR ESTRATÉGIA (sigma_dict)",
+   "classe": "2",
+   "medicao": "|σ0(escolhido) − telemetria ⑥| ≤ 1,9e−06 (s1, = cand_dist_dec) e ≤ 2,9e−08 (s2, = hv_gain), em 74 células",
+   "veredito": "extensão nossa DECLARADA (🟢 D29 · B16.4/DEF-C4)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A19",
+   "aspecto": "Ausência de σ de modelo ⇒ cobertura N/A",
+   "classe": "1",
+   "medicao": "pred_confianca NaN em 1.400.258/1.400.258 linhas online do sample",
+   "veredito": "conforme — CLMEA não tem incerteza probabilística; cobertura95 é N/A por desenho",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A20",
+   "aspecto": "pred_tipo POR LINHA (classe|valor)",
+   "classe": "2",
+   "medicao": "s1 → 'classe' e s2 → 'valor' em 100% dos blocos; 0 blocos híbridos; pred_classe NULL em 100% das 699.145 linhas de s2",
+   "veredito": "conforme à regra C1",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A21",
+   "aspecto": "Régua Sobol + bloco estratificado (cadência DI-19.1)",
+   "classe": "2",
+   "medicao": "74.932 blocos de sonda + 73.486 estratificados em 749/749 células, ZERO com ok=false; prevalencia_nd_no_bloco NULL em 73.486/73.486 (regra 12)",
+   "veredito": "conforme sob DI-19.1/D-11; o gabarito do bloco estratificado continua ausente (T7)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A22",
+   "aspecto": "U3/U7 — 1 fit por bloco e invariante de timing",
+   "classe": "1",
+   "medicao": "0 violações de tempo_fit_s + tempo_busca_s ≤ tempo_geracao_s em 218.147 linhas; ④ com linhas == eventos+boot em 75/75 células",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A23",
+   "aspecto": "U9/U10 — guards, aritmética entre camadas",
+   "classe": "1",
+   "medicao": "n_geracoes = 4C−2+k e eventos = 3(C−1)+k em 749/749; 10.120 guards, todos de nomes previstos (cache_hit 749, cand_vazio 847, dedup_slot_perdido 8.418, hv_range0 106) e reconciliados com a ⑥",
+   "veredito": "conforme — 0 guards inesperados em 750 células",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A24",
+   "aspecto": "Árvore PlatEMO 4.1 própria + LACRE de content-hash",
+   "classe": "2",
+   "medicao": "tree_sha256 do disco == repos.lock == 867ae5f56d8bbeed95665410ea1fb48ee20a0dc21d611f65f9665419a47fe742; repo_hash idêntico (63db46b100635a5c…) em 749/749 manifestos; MATLAB idêntica em 749/749",
+   "veredito": "conforme sob D95/N.0-4.1 — corpus de UMA versão de código só",
+   "arquivo_linha": "claude_code_context/artifacts/repos.lock",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A25",
+   "aspecto": "sonda_estratificada + ⑤ schema v2 / campanha_id",
+   "classe": "2",
+   "medicao": "schema_version=2 e campanha_id em 749/749; 725 células da campanha 7f4f0e429a46_M8 e 24 de 63db46b10063_2026-08-14",
+   "veredito": "conforme (T11-D11); a mistura de campanhas é ressalva de proveniência, ver N4",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A26",
+   "aspecto": "Guard hv_range0 vs front-1 UNITÁRIO (colapso escalar de Ymin/Ymax)",
+   "classe": "3",
+   "medicao": "215 de 72.729 eventos de s2 (0,296%), em 30/750 células, logam Ymin/Ymax ESCALARES; range0=false em 211 deles; ZDT4 concentra 184 eventos em 6 células",
+   "veredito": "inexplicado 🎯 — a guarda que o D74 criou justamente para 'front degenerado, ex. 1 ponto' NÃO dispara nesse caso",
+   "arquivo_linha": "Hv_Select.m:44-48",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A27",
+   "aspecto": "Caminho de candidato VAZIO não guardado nas estratégias s2/s3",
+   "classe": "3",
+   "medicao": "1 célula perdida de 750 (MMF1 semente 3, fe 37/61, stats:pdist2:SizeMismatch); a s1 é imune (vazio 0×D) e absorve 847 cand_vazio sem crash",
+   "veredito": "inexplicado 🎯 — defeito de borda do código stock, não previsto pelo artigo (Alg. 4 l.12 admite ciclo sem infill)",
+   "arquivo_linha": "CLMEA.m:122 e :137 (pdist2 sem isempty) · Local_infill.m:23 e :72",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A28",
+   "aspecto": "Declaração do header ⑥ (campo `patches`) não menciona o DI-45",
+   "classe": "3",
+   "medicao": "750/750 headers listam e74-mask + e74-ndsort-obj + mins L.8 + D74 + syncs D89 e OMITEM o DI-45; o comportamento medido (argmax 85,53%) prova que ele está ativo",
+   "veredito": "inexplicado 🎯 (classe documental) — é a família 'gate que testa TEXTO, não COMPORTAMENTO' da T11, na variante inversa: o texto SUBdeclara o código",
+   "arquivo_linha": "src/e74_instrument.m (string do header) — comparar com ClassifierSelect.m:46-58",
+   "muda_vs_s42": true
+  }
+ ],
+ "classe3": [
+  {
+   "id": "③-1",
+   "descricao": "O guard `hv_range0` do D74 não cobre o front-1 UNITÁRIO. Quando o front-1 do arquivo tem exatamente 1 membro, `Ymin = min(y_archive(FrontNo==1,:))` sobre uma matriz 1×M colapsa para ESCALAR (idioma MATLAB), `range_e74 = Ymax − Ymin` vira um escalar positivo e `any(range<=0)` é FALSO ⇒ a normalização do CalHV aplica o MESMO deslocamento/escala a todos os objetivos naquela geração e a guarda não avisa. Medido: 215 de 72.729 eventos de s2 (0,296%), em 30 de 750 células, com `range0=false` em 211; ZDT4 concentra 184 (6 células), DTLZ7 17, BBOB_F55 8. Assinatura no log: `hv_base` constante 0,17355371900826455 nesses eventos. A identidade A8 (escolhido = argmax de sigma_0) continua valendo — o que muda é a ESCALA do score, não a consistência interna.",
+   "gravidade": "baixa-média (0,296% dos eventos de s2; não altera nenhuma identidade estrutural, mas contraria a intenção declarada do D74)",
+   "acao": "ESCALAR ao autor (D81). Não sei atribuir origem: o upstream `mestrado_algoritmos` NÃO existe nesta máquina (não medido), e o comentário do próprio Hv_Select diz que o RefPoint stock também usava Ymin/Ymax ⇒ o idioma pode ser stock. Se o autor quiser, o conserto é 1 linha (`min(...,[],1)`), mas isso MUDA número sob m8-freeze.",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/algorithms/e74_CLMEA/CLMEA_Code/Algorithms/Multi-objective optimization/CLMEA/Hv_Select.m:44-48"
+  },
+  {
+   "id": "③-2",
+   "descricao": "Candidato vazio das estratégias s2/s3 estoura o run. `Local_infill.m` inicializa `x_candidates = []` (0×0) e só preenche dentro de `if ~isempty(index)`; `Hv_Select.m` faz o mesmo quando `Pseudo_PS` é vazio. O laço principal chama `min(pdist2(x_candidatesK, Arc.decs),[],2)` SEM checar vazio ⇒ 0 colunas contra D colunas ⇒ `stats:pdist2:SizeMismatch`. A s1 é imune porque o vazio dela é 0×D. É a causa da única falha do config (MMF1 semente 3, fe 37/61) — que o LAUDO_D0 registrava como 'causa não investigada, re-rodar e observar'. O risco é concentrado nos problemas D=2, onde o candidato vazio da s1 ocorre em 22-38% dos slots.",
+   "gravidade": "média (perde a célula inteira; 1/750 = 0,13% nesta campanha; determinístico por semente, mas NÃO reproduzido por mim — proibido re-rodar)",
+   "acao": "REPORTAR ao autor e atualizar o LAUDO_D0 com a causa. Sob m8-freeze, NÃO consertar: declarar como modo de falha conhecido com taxa medida. Se algum dia for consertado, é `if ~isempty(x_candidatesK)` — muda número.",
+   "arquivo_linha": "CLMEA.m:122 e :137 · Local_infill.m:23 e :72 · evidência: /Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/e74/MMF1/3/exp_main_e74_MMF1_3.jsonl (rodapé)"
+  },
+  {
+   "id": "③-3",
+   "descricao": "O campo `patches` do header ⑥ não declara o DI-45 em 750/750 células — lista apenas e74-mask, e74-ndsort-obj, mins L.8, D74 e syncs D89, e ainda afirma 'fix opcional re-sim do PNN NAO aplicado'. Quem auditar o corpus pelo header conclui que ele é PRÉ-DI-45; o comportamento (argmax 85,53% contra 12,24% PRÉ) prova o contrário. Some-se a isso que o `anchors.json` AINDA manda usar `n_desalinhado` como 'a PROVA do fix' e diz que ele 'deve CAIR a ~0' — refutado agora em escala: n_desalinhado > 0 em 91,97% de 72.068 ciclos PÓS-fix, com média 17,80 (dívida da T11 ainda aberta).",
+   "gravidade": "média (documental, mas induz classificação errada do corpus inteiro — é exatamente o risco que a T11 nomeou)",
+   "acao": "Corrigir a string do header no `src/e74_instrument.m` (pós-freeze) e a nota da âncora `e74-classifierselect-idx` no `claude_code_context/artifacts/anchors.json`; registrar errata no REGISTRO. Enquanto não corrigido, a prova do DI-45 é o argmax, e está nesta auditoria.",
+   "arquivo_linha": "src/e74_instrument.m (header.patches) · claude_code_context/artifacts/anchors.json (id e74-classifierselect-idx, campo 'nota')"
+  }
+ ],
+ "score": 9.2,
+ "score_t11": 9.5,
+ "veredito_recomendado": "**ACEITAR o mecanismo — com 3 classe (3) menores e 2 ressalvas de proveniência para decisão do autor (D97).** As três identidades que definem o CLMEA são invariantes de semente e fecham em erro de float32: s2 100,0000% (7.067/7.067), s3 100,0000% (1.737/1.737), s1 (eqs. 7-8) 93,86% restrito com resíduo integralmente explicado pelo 2º desalinhamento sancionado. **A Contribuição 1 do paper SE REALIZA na campanha inteira** — as 749 células são PÓS-DI-45 (argmax 85,53% vs 12,24% PRÉ), inclusive as 25 de semente 42, que foram re-rodadas em 07/08. **Contrato impecável em escala**: 749/749 `status=ok`/`termino=normal`/`cp_init=true`, 0 violações de timing em 218.147 linhas, 0 sondas com falha em 148.418 blocos, 0 guards inesperados, `fe_final == 31D−1` exato em 749/749, lacre de conteúdo da árvore idêntico ao repos.lock e `repo_hash` único nas 749. **Movimento de score −0,3 vs a T11 (9,5 → 9,2), com causa nomeada**: NÃO houve regressão de mecanismo — ao contrário, o teto T8 caiu e as identidades ficaram mais fortes (74 células em vez de 3, 30 sementes em vez de 1). O que mudou é que 750 células revelaram **três bordas que 1 semente não podia ver**: o furo do guard hv_range0 no front unitário (③-1, 0,296% dos eventos de s2), o caminho de candidato vazio não guardado que matou 1 célula (③-2, 0,13%), e a subdeclaração do DI-45 no header (③-3). A régua da casa dá 9 para \"(3) menores investigados e provados benignos\": ③-1 e ③-3 são benignos e provados; ③-2 custa uma célula real — por isso 9,2 e não 9,5, e não 9,0.",
+ "decisoes_ao_autor": [
+  "**D81 — ③-1 (guard hv_range0 × front unitário)**: preciso saber se as linhas `Ymin = min(y_archive(FrontNo==1,:))` / `Ymax = max(...)` são STOCK ou entraram com o D74. O repositório upstream `mestrado_algoritmos` NÃO está nesta máquina (não medido). Se forem stock, é 🟠/errata do artigo; se forem do D74, é defeito nosso dentro de um desvio sancionado — e a classificação do aspecto A9 muda. Não escolhi sozinho.",
+  "**③-2 (crash do candidato vazio)**: o LAUDO_D0 diz 'causa não investigada — re-rodar e observar'. A causa está identificada por leitura de código + rodapé (CLMEA.m:122/:137 sem guarda de vazio). NÃO re-rodei (proibido). Decidir: (a) atualizar o LAUDO com a causa e fechar sem re-rodar; (b) manter o m8-freeze e declarar MMF1 29/30 como taxa de sucesso reportada; (c) se algum dia consertar, é `if ~isempty(...)` e MUDA número.",
+  "**O corpus PRÉ-fix da s42 NÃO EXISTE MAIS no disco.** As 25 células em `resultados_experimentos/e74/*/42/` são de 07/08 e são PÓS-DI-45 (argmax medido 86,04%, rank p50 = 1). O 'CAVEAT DURO DE CORPUS' da T11 está portanto RESOLVIDO — o e74 tem hoje um corpus homogêneo de 749 células, uma versão de código só. Em contrapartida, todo número 'PRE s42' citado pela F5/T11 (argmax 12,24%, 2.449 ciclos, IGD+ 0,0789 do ZDT1) só sobrevive nos CSVs de evidência da T11 (`ua-dd-saea/f5/t11/baterias/e74/`): qualquer citação futura tem de apontar para lá, não para o disco.",
+  "**Mistura de campanhas no corpus canônico**: 24 das 749 células (22× semente 12 + DTLZ2/27 + WFG4/10) vêm da campanha `63db46b10063_2026-08-14` (host 'matlab-vm1'), o resto de `7f4f0e429a46_M8`. Mesmo repo_hash e mesma MATLAB; IGD+ estatisticamente indistinguível (Mann-Whitney p=0,958). Não corrige nada, mas precisa ser DECLARADO na R4.",
+  "**Fato novo de reprodutibilidade (T10)**: a mesma célula, mesmo repo_hash, mesma MATLAB e mesma VM, re-despachada, é bit-idêntica por 142–333 FE e depois FLIPA uma decisão, terminando com ΔIGD+ de até 40,3%. Já a mesma célula em MÁQUINAS DIFERENTES dentro da mesma campanha é bit-idêntica em 25/25 pares. Ou seja: a unidade reproduzível é o DESPACHO, não a máquina. Decidir se a R4 declara isso (a doutrina RUNBOOK §6.2 hoje diz o contrário do que eu medi — ela é conservadora demais para o e74). A causa do flip não é medível daqui (hipótese não verificada: ordem de redução do BLAS multithread).",
+  "**③-3 / dívida da T11 ainda aberta**: o `anchors.json` continua instruindo que `n_desalinhado` 'deve CAIR a ~0' e que é 'a PROVA do fix'. Refutado agora em 72.068 ciclos PÓS-fix (n_desal>0 em 91,97%, média 17,80). Corrigir o artefato machine-readable e a string `patches` do `src/e74_instrument.m`, senão a próxima auditoria classifica a campanha como PRÉ-fix.",
+  "**Insumo para a R4 (não é achado de fidelidade, é resultado)**: com orçamento 1:1:1, a decomposição por estratégia sobre as 749 células dá s3 53,8% do front final e 75,7% do ganho tardio, s2 28,4% e 58,2% do ganho inicial, s1 9,8% e ganho ZERO em 46,6% das células. A frase do artigo 'a pré-triagem por rank-based learning infila o front não-dominado' NÃO se sustenta operacionalmente PÓS-DI-45 — a eq. 8, cumprida à risca, faz da s1 um explorador puro do espaço de decisão. Isto é material para o texto (é uma medida que o artigo não tem, com 30 réplicas e teste de Wilcoxon)."
+ ]
+}

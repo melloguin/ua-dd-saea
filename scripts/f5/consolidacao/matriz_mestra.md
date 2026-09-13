@@ -1,0 +1,26 @@
+| config | stack | família | cél | score | rec | %1/%2/%3 | P1 | P2 | P3 | P4 | P5 | P6 | P7 |
+|---|---|---|---:|---:|---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| **e7** | MAT | NN-ensemble | 25 | **10.0** | aceitar | 53.6/46.4/0.0 | ✅ | ✅ | ✅ | ⚠ | ⚠ | ⚠ | N/A |
+| **nsga2** | MAT | piso-online | 25 | **10.0** | aceitar | 39.1/60.9/0.0 | ✅ | ✅ | ✅ | ✅ | N/A | ✅ | N/A |
+| **nsga3** | MAT | piso-online | 25 | **10.0** | aceitar | 42.9/57.1/0.0 | ✅ | ✅ | ✅ | ✅ | N/A | ✅ | N/A |
+| **smsemoa** | MAT | piso-online | 25 | **10.0** | aceitar | 27.3/72.7/0.0 | ✅ | ✅ | ✅ | ✅ | N/A | N/A | N/A |
+| **b3** | MAT | GP-BO | 25 | **9.6** | aceitar | 29.6/70.4/0.0 | ✅ | ✅ | ✅ | ✅ | ⚠ | ✅ | ⚠ |
+| **c122** | Pyt | classificador | 25 | **9.5** | aceitar+caveat | 32.1/64.3/3.6 | ✅ | ✅ | ✅ | ✅ | ⚠ | ✅ | ⚠ |
+| **c141** | MAT | NN-ensemble | 25 | **9.5** | aceitar | 33.3/66.7/0.0 | ✅ | ✅ | ✅ | ⚠ | ✅ | ✅ | N/A |
+| **c217** | MAT | classificador | 25 | **9.5** | aceitar | 38.5/61.5/0.0 | ✅ | ⚠ | ✅ | ⚠ | ⚠ | ⚠ | N/A |
+| **c238** | MAT | GP-BO | 25 | **9.5** | aceitar+caveat | 40.0/60.0/0.0 | ✅ | ✅ | ✅ | ✅ | ⚠ | ✅ | N/A |
+| **c262** | Pyt | GP-BO | 21 | **9.5** | aceitar | 33.3/66.7/0.0 | ✅ | ⚠ | ✅ | ✅ | ✅ | ✅ | N/A |
+| **c311** | Pyt | offline/treed | 54 | **9.5** | aceitar | 29.6/70.4/0.0 | ⚠ | ✅ | ✅ | ⚠ | ⚠ | ⚠ | N/A |
+| **e81** | Pyt | GP-BO | 30 | **9.5** | aceitar | 35.7/60.7/3.6 | ✅ | ⚠ | ✅ | ✅ | ⚠ | ⚠ | ⚠ |
+| **treed_media** | Pyt | offline/treed | 10 | **9.5** | aceitar | 25.9/74.1/0.0 | ✅ | ⚠ | ✅ | ⚠ | N/A | ⚠ | N/A |
+| **b1** | MAT | GP-BO | 23 | **9.4** | aceitar+caveat | 25.0/75.0/0.0 | ✅ | ⚠ | ✅ | ⚠ | ✅ | ✅ | ⚠ |
+| **e103** | MAT | offline/treed | 45 | **9.3** | aceitar+caveat | 61.5/34.6/3.8 | ⚠ | ⚠ | ⚠ | ✅ | ⚠ | N/A | ✅ |
+| **b4** | MAT | classificador | 25 | **9.0** | aceitar+caveat | 36.0/60.0/4.0 | ✅ | ✅ | ⚠ | ⚠ | ✅ | ⚠ | ✅ |
+| **b5r** | Pyt | offline/treed | 45 | **9.0** | aceitar+caveat | 26.9/69.2/3.8 | ✅ | ⚠ | ✅ | ⚠ | ⚠ | ⚠ | ✅ |
+| **c149** | Pyt | NN-ensemble | 30 | **9.0** | aceitar+caveat | 59.3/37.0/3.7 | ✅ | ⚠ | ✅ | ⚠ | ⚠ | ⚠ | ⚠ |
+| **e74** | MAT | classificador | 25 | **9.0** | aceitar+caveat | 43.3/56.7/0.0 | ✅ | ✅ | ✅ | ⚠ | ⚠ | ✅ | N/A |
+| **moead** | MAT | piso-online | 25 | **9.0** | aceitar | 29.6/66.7/3.7 | ✅ | ✅ | ⚠ | ⚠ | N/A | ⚠ | ✅ |
+| **moead_media** | Pyt | offline/treed | 45 | **9.0** | aceitar+caveat | 32.1/64.3/3.6 | ✅ | ⚠ | ✅ | ⚠ | N/A | ⚠ | ✅ |
+| **sobol_batch** | Pyt | piso-batch | 5 | **9.0** | aceitar+caveat | 24.0/64.0/12.0 | ⚠ | 🔴 | ⚠ | ⚠ | N/A | ⚠ | ⚠ |
+| **c154** | Pyt | GP-BO | 11 | **8.5** | aceitar+caveat | 37.0/59.3/3.7 | ✅ | ⚠ | ✅ | ⚠ | ⚠ | ⚠ | ✅ |
+| **b5m** | Pyt | offline/treed | 45 | **8.0** | aceitar+caveat | 45.5/50.0/4.5 | ⚠ | ⚠ | ✅ | ⚠ | ⚠ | ⚠ | ⚠ |

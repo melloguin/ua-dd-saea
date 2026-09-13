@@ -1,0 +1,101 @@
+{
+ "config": "c217 · PC-SAEA (Tian et al., Swarm Evo. Comp. 80:101323, 2023) · RODADA FINAL (corpus congelado) · 840 celulas = 750 sinteticas (25 probs x 30 sementes, herdadas do F30) + 90 REAIS NOVAS (RE21/DDMOP7/ESTOQUE40 x 30). Codigo de decisao IDENTICO ao F30, provado por git: diff 63db46b1..7be66e65 VAZIO em PCSAEA.m / SurrogateAssistedSelectionPC.m / RBFNNPC.m / CalFitnessPC.m / FEBudget.m / DataProcess.m / c217_instrument.m / c217_sonda.m (so entraram src/ddmop7_value_local.m, runner D102.5/D102.9 em experiment.m, e metrics.py pos-hoc). Scripts desta rodada em /private/tmp/claude-501/-Users-gmello/16c0ba84-843b-49d1-9ce6-6cecc418b734/scratchpad/ (scan_final.py, joia_reais.py, camada1_reais.py, rotulo_reais.py, spot_sinteticas.py) — nada escrito no repo, nada re-rodado, nenhum experimento invocado, zero MATLAB Engine.",
+ "celulas_final": "TOTAL 840 (censo_final.csv alg=c217: 840 ok, motivo vazio; sementes validas {0-28,42} em 28/28 problemas, zero semente 30). ESTADOS O-21 (rodape = autoridade, lido por mim nas 840): ✅ ok-com-rodape = 839 (749 sinteticas + 90 reais; fe_final==maxfe e n_geracoes==eventos+1 em 839/839); SEM AUTORIDADE = 1 (WFG4/12 — ⑥ canonico truncado sem linha de rodape, manifesto ok vindo da vm5; e a C1 do F30, INALTERADA); ⚪ teto_wall = 0; falha = 0; branca = 0; manifest:failed+rodape:ok = 0. Por grupo: ZDT 4x30, DTLZ 5x30, WFG 5x30, MMF 4x30, BBOB 7x30 (todos ✅ exceto WFG4/12), RE21 30/30 ✅, DDMOP7 30/30 ✅, ESTOQUE40 30/30 ✅. Orcamentos exatos: RE21 123 (D=4), DDMOP7 526 (D=17), EST40 1239 (D=40) — 31D-1 em 90/90; |①|==31D-1 e init==11D-1 em 90/90; hard_stop 0/90 (58/750 no sintetico); cache_hit >=1 em 90/90. O c217 e config SEM LACUNA: 100% do grid em todos os 28 problemas.",
+ "novas_desde_f30": "Reconciliacao por mtime (F30 emitido 2026-08-15T00:26): 0 das 750 sinteticas mudaram (mtime max de qualquer arquivo < F30) => herdam o veredito F30, confirmado por spot-check de 10 celulas (2.304 geracoes, ZERO quebras — ver mecanismo). NOVAS: exatamente as 90 reais, em DUAS bateladas: (i) 2026-08-15, repo 3240f4b2, campanha '3240f4b26fae_2026-08-15': RE21 30/30 + EST40 30/30 (host matlab-vm1) + DDMOP7 semente 0 (matlab-vm5); (ii) 2026-08-18, repo 7be66e65, campanha '7be66e65522c_2026-08-18': DDMOP7 sementes 1-28+42 (29 celulas, matlab-vm5). O diff entre os dois repos toca SO docs, src/metrics.py (pos-hoc), tests e scripts/lote3s.sh — zero .m de decisao; comportamento homogeneo entre bateladas medido (fracao estado-3 do seed 0 = 0,9806, dentro do range 0,9614-0,9940 das 29 do dia 18). Frota T15 respeitada (vm1+vm5 somente). MATLAB unico 840/840 (R2025a U1); schema_version=2, params 10 chaves, REGRA_DO_ROTULO (texto sha1 UNICO, identico ao sintetico) e sigma_dict em 840/840.",
+ "mecanismo_nos_novos": "COBERTURA TOTAL, nao amostra: as 9 identidades estruturais do F30 rodadas nas 35.633 geracoes c217_gen das 90 celulas novas — FRACAO 1,000000, ERRO MAXIMO 0: (i-iii) split n_best/n_worst/n_treino (com |P|(g=1)=DoE cru 11D-1, o modelo corrigido do F30 — vale tambem com DoE<N no RE21, D=4); (iv) n_pares=n_tr(n_tr-1); (v) n_Pmid=2*floor(|P|/8)+1; (vi) tricotomia p+*|Dv|+p-*|Dv|+contrad==|Dv|; (vii) p+*|Dv| inteiro; (viii) recomputo D17 da regra tripla == estado gravado; (ix) lote (floor(ceil(|P|/4)/2) st1/2, 1 st3); + score diagonal {+1,-1,0}, delta=0,8, spread=0,1925, arc_size==arc_inicio+lote — tudo 35.633/35.633. pmid_ids NOS REAIS: ZERO sentinelas, len==n_Pmid e todos em [0,fe-1] em 35.633/35.633 (a pergunta da T11 respondida: o defeito nao voltou); ids repetidos so no padrao benigno do F30 (DDMOP7: 20 geracoes em 3 celulas, TODAS com cache_hits>1 — condicao necessaria fecha 3/3). REGRA_DO_ROTULO PROVADA POR DESFECHO COM VERDADE TABELADA (upgrade sobre o F30, que so tinha proxy de dominancia): no RE21 o artefato data/sonda/sonda_RE21.parquet tem o f VERDADEIRO; join posicional bit-exato sob float32 em 1.239/1.239 blocos (max|dX|=0,0), 2.478.000 pares: acuracia com o offset da regra (j+1 mod n) = 0,9040 media/0,9174 mediana por bloco sobre 430.868 pares comparaveis (17,4%), contra 0,8537 do offset errado (j mod n) — a regra vence em 1054/1239 blocos, binomial p=2,7e-148. Spot sintetico (heranca F30): 10 celulas x 2.304 geracoes, mesmas identidades + camadas ①② — ZERO quebras (unico registro: o rodape ausente ja conhecido de WFG4/12). mu/sigma/pred_classe 100% NULL e pred_score dominio {-1,0,+1} tambem nos reais (M16 mantido).",
+ "reais": "RE21 (D=4, M=2, 123 FE): 2.401 ger; disparo 0,25% (6 estado-1, 0 estado-2, 6/30 celulas); formulacao RE-VERIFICADA analiticamente por mim nas 30 celulas x 123 pontos: erro rel max 2,3e-07 (=float32; as 15 'violacoes' de caixa sao EXATAMENTE o offset float32 de sqrt(2)=2,42e-08 — nao-achado, a armadilha do falso REFUTA evitada); checa_regua 0 violacoes; sonda 42/43/41/40/39 blocos conforme ⑤==⑥ 30/30; acuracia com rotulo VERDADEIRO 0,9040 (acima). DDMOP7 (D=17, M=2, 526 FE, caixa-preta .p, SEM sonda D102.10 — ⑤ declara 'sem_sonda_por_problema · D102.10' 30/30, ③ so online 340 linhas = 526-186 exato): disparo 2,12% (134 e1 + 62 e2, 30/30 celulas com >=1); grids f1=k/17 e f2=n/690 fecham em 100% dos 15.780 pontos (tolerancia float32); checa_regua (ideal=[0;0], ERRATA 2/89655e4) RODADO: 0 violacoes e 0 furos leves em 30/30; 0 pontos ND acima do nadir [1;468/690] em 30/30 (os 2-11 pontos/celula com f2>nadir sao todos dominados — inofensivos ao HV); x em [-1,1] 30/30. DEDUP POR x_EFETIVO (CONTRATO §T15.13) QUANTIFICADO: |ND| bruto medio 175,1 -> 57,1 apos dedup por zona_morta(x_proposto) (inflacao media 67,7%, max 86,5%; por F unico: ~3,2) — a regra de leitura e OBRIGATORIA em qualquer |ND| publicado. NOTA: f1 NAO e funcao direta de nnz(x) — k = pesos nao-zero da rede POS-treino interno do .p (T15-LAUDO:32); a checagem executavel possivel e o grid+regua, feita; f==p(x_efetivo) e teto para mim (caixa-preta + proibicao Engine), validado pelo laudo T15 (15/15 celulas 100%). Pareado gated x vizinhanca (novo, no real): estado 1 gated 0,7393 x viz 0,7156 = 1,033x, vence 81/134, p=9,7e-3 (uso direto entrega tambem no real); estado 2 0,6943 x 0,7076 = 0,981x, vence 27/62, p=0,87 (uso inverso NAO entrega; direcao consistente com o achado F30, n pequeno). ESTOQUE40 (D=40, M=3, 1239 FE, invencao nossa D101): 24.000 ger (800/celula exato), disparo 0,00000 em 30/30 — e o modelo emite EMPATE em 100,00% dos 1.020.000 pontos de sonda amostrados (510 blocos, 10 celulas, join bit-exato 510/510): o EST40 ENTRA NO CLUBE dos WFG/MMF16_20 — sob 31D-1 o c217 ali e amostrador aleatorio do arquivo + SPEA2, deterministico em 30/30; f1<=0 (receita negada) 30/30, checa_regua (regua D102.20 pelos cantos) 0 violacoes; POREM 7 pontos ND de 2 celulas (26: 5 pts; 5: 2 pts) EXCEDEM o nadir de f3=4,2561 em ate +1,18 — regua fase-1 cortaria front real (ver decisoes). ⑤ sonda n_blocos==⑥ em 30/30 (401==401).",
+ "aspectos_mudados": [
+  {
+   "id": "A1",
+   "o_que": "Cobertura do config",
+   "antes": "750 celulas, 25 problemas sinteticos (F30)",
+   "agora": "840 celulas, 28 problemas — config 100% SEM lacuna no corpus congelado; os 90 reais todos ✅ sob O-21"
+  },
+  {
+   "id": "A2",
+   "o_que": "Prova da REGRA_DO_ROTULO / acuracia da sonda",
+   "antes": "F30: rotulo-PROXY de dominancia com referencia da ①, acc 0,7560 (169.208 pares), offset-controle p=6,4e-22",
+   "agora": "RE21 com f VERDADEIRO tabelado no artefato: acc 0,9040 sobre 430.868 pares comparaveis, offset-controle p=2,7e-148, join bit-exato 1.239/1.239 blocos — o teto ⑪ agora esta fechado com verdade, nao so com proxy"
+  },
+  {
+   "id": "A3",
+   "o_que": "pmid_ids nos reais (pergunta da rodada)",
+   "antes": "T11: sentinela -1 em 426/426; F30: corrigido no sintetico (2.635.790 ids)",
+   "agora": "validos em 35.633/35.633 geracoes novas, zero sentinelas, [0,fe-1], len==n_Pmid; repeticoes so no padrao cache_hit (20 ger/3 celulas DDMOP7, 3/3 com cache>1)"
+  },
+  {
+   "id": "A4",
+   "o_que": "Clube 'mecanismo nunca dispara'",
+   "antes": "6 problemas / 180 celulas (WFG1/2/4/5/9, MMF16_20), modelo 100% empate",
+   "agora": "7 problemas / 210 celulas: ESTOQUE40 entra (0 disparos em 24.000 ger 30/30; empate em 100,00% de 1,02M pontos de sonda)"
+  },
+  {
+   "id": "A5",
+   "o_que": "Sonda por problema",
+   "antes": "sonda.desligada=False em 750/750",
+   "agora": "DDMOP7 sem sonda POR DESENHO, declarado e sancionado no ⑤: status='sem_sonda_por_problema', motivo cita D102.10 §17.2.2, 30/30 — desvio classe (2) auto-declarante"
+  },
+  {
+   "id": "A6",
+   "o_que": "Proveniencia",
+   "antes": "1 repo_hash, 2 campanha_id, 7 grafias de host (C3: 10 celulas s12)",
+   "agora": "3 repo_hash / 4 campanha_id / 8 grafias ('matlab-vm1/vm5' nos reais): os valores novos sao FIEIS (2 bateladas reais distintas, 15/08 e 18/08; diff de codigo de decisao VAZIO por git; comportamento homogeneo medido) — mas a heterogeneidade de rotulo do C3 cresceu e segue sem gate de valor"
+  },
+  {
+   "id": "A7",
+   "o_que": "Deficit do bloco estratificado (C2)",
+   "antes": "298/750 celulas com deficit de exatamente 1 bloco (finalProbe/fantasma), nao declarado no ⑤",
+   "agora": "+17 celulas RE21 (42 reguas x 41 estrat; as 13 restantes 0) = 315/840; EST40 0/30 (ultima geracao par, 800, coerente com a causa nomeada no F30); segue SEM n_blocos_estrat no ⑤"
+  },
+  {
+   "id": "A8",
+   "o_que": "Pareado uso-direto/uso-inverso",
+   "antes": "so sintetico: direto 1,153x p=7,9e-109; inverso 0,923x p=1,6e-13 (pior que sorteio)",
+   "agora": "replicado num problema REAL (DDMOP7): direto 1,033x p=9,7e-3 (entrega); inverso 0,981x p=0,87 (nao entrega; n=62 nao permite afirmar dano, direcao consistente)"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C1",
+   "descricao": "HERDADA DO F30, ABERTA E INALTERADA: WFG4/12 e a unica das 840 sem linha de rodape no ⑥ canonico (montagem hibrida vm1/vm5). Sob O-21 a celula nao tem autoridade; censo e gates continuam cegos a isso (leem o manifesto). Verifiquei HOJE que o gemeo vm5 (~/mestrado_coleta_m8/matlab-vm5/experiments/main/c217/exp_main_c217_WFG4_12.jsonl) existe e fecha ok/681/441; o F30 ja provara as 440 geracoes bit-identicas.",
+   "gravidade": "baixa p/ resultado, media p/ auditoria — e a mesma avaliacao do F30; nada mudou porque nenhuma decisao foi tomada",
+   "acao": "RE-ESCALO (D81): decidir entre re-montar o ⑥ da vm5 (recuperavel SEM re-run), registrar excecao no censo, ou aceitar; recomendo de novo o gate que exija rodape em toda celula 'ok'",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/c217/WFG4/12/exp_main_c217_WFG4_12.jsonl (sem rodape) x espelho vm5 (com rodape ok)"
+  },
+  {
+   "id": "C2",
+   "descricao": "HERDADA, CRESCEU: deficit nao-declarado de 1 bloco de sonda_estratificada — agora 315/840 celulas (298 sinteticas + 17 RE21 novas; EST40 0/30 porque a ultima geracao e par, o que CONFIRMA a causa nomeada no F30: finalProbe/geracao fantasma escapam da condicao snd.due). O ⑤ segue sem contador estratificado; nenhuma leitura de manifesto ve a assimetria.",
+   "gravidade": "baixa (instrumentacao pos-decisao, D97; 1 bloco de ~40-400); reincidencia em rodada nova sem correcao",
+   "acao": "REGISTRO: mesma recomendacao do F30 (declarar n_blocos_estrat no ⑤; alinhar disparo ao finalProbe se houver rodada futura). Sem acao de acervo — o dado existente esta correto",
+   "arquivo_linha": "src/c217_sonda.m:50-53"
+  },
+  {
+   "id": "C3",
+   "descricao": "HERDADA, CRESCEU EM EXTENSAO: rotulos de proveniencia heterogeneos — agora 8 grafias de host para 6 maquinas (reais usam 'matlab-vm1'/'matlab-vm5' vs 'vm1'/'vm5' do sintetico) e 4 campanha_id + 3 repo_hash no mesmo config. DIFERENCA vs F30: nos reais os valores sao FIEIS (bateladas reais distintas de 15/08 e 18/08, repos medidos por git com diff vazio no laco de decisao), entao nao ha rotulo FALSO novo — mas o gate continua testando presenca, nao valor, e a grafia continua sem normalizacao.",
+   "gravidade": "baixa; zero suspeita de contaminacao (MATLAB/plataforma unicos 840/840; homogeneidade comportamental entre bateladas medida)",
+   "acao": "REGISTRO: normalizar env.host e validar VALOR de campanha_id contra lista esperada; documentar as 2 bateladas dos reais na declaracao de dados da dissertacao",
+   "arquivo_linha": "manifests c217/{RE21,DDMOP7,ESTOQUE40}/*/; git 3240f4b2..7be66e65"
+  }
+ ],
+ "celulas_invalidas": [
+  {
+   "celula": "c217/WFG4/12 (sintetica, herdada do F30 — NENHUMA celula nova e invalida)",
+   "motivo": "⑥ canonico sem linha de rodape (copia truncada da vm1 montada com ⑤ da vm5); sob O-21 o rodape e a autoridade => celula sem autoridade na arvore canonica, embora dados provados integros (F30: 440/440 geracoes bit-identicas ao gemeo; hoje: gemeo vm5 re-verificado com rodape ok/fe_final=681=maxfe/n_geracoes=441)",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  }
+ ],
+ "score_final": 9.5,
+ "trajetoria_scores": "F5 9,5 -> T11 9,0 -> F30 9,5 -> FINAL 9,5. CAUSAS: (F5->T11, -0,5) os 3 classe-(3) de instrumentacao declarativa que a propria T11 introduziu (pmid_ids sentinela, y_treino_dist degenerado, params.operadores falso). (T11->F30, +0,5) os 3 corrigidos antes do disparo e confirmados em 202.016/202.016 geracoes; teto ⑪ (acuracia da sonda) caiu; deriva cross-maquina medida = 0; restaram C1/C2/C3 benignos e provados. (F30->FINAL, mantem 9,5) o lado NOVO e impecavel — 35.633/35.633 geracoes nas 9 identidades com erro 0, pmid_ids validos, acuracia com verdade TABELADA 0,904 (p_offset=2,7e-148), grids e reguas dos 3 reais 100%, corpus do config 100% completo, bateladas homogeneas — mas nao sobe a 10 porque NENHUM dos 3 classe-(3) foi resolvido entre as rodadas (C1 segue aguardando decisao, C2 cresceu para 315 celulas ainda nao-declarado, C3 ganhou grafias novas) e a rodada abriu 2 tetos novos proprios dos reais (⑦/final_eval do DDMOP7 ainda inexistente no acervo; f==DDMOP7.p(x_efetivo) nao re-executavel por mim — caixa-preta + proibicao de Engine — validado so via grid+regua+laudo T15).",
+ "veredito": "RECOMENDO ACEITAR as 840 celulas do c217 como corpus final de mecanismo e de resultado — 839 com autoridade O-21 plena e WFG4/12 condicionada a decisao pendente do F30 (dados provados integros; recuperavel sem re-run). O veredito e do autor (D97). FUNDAMENTO: (1) o mecanismo e INVARIANTE tambem nos problemas reais — 9 identidades x 35.633 geracoes novas, fracao 1,000000, erro 0, com o codigo de decisao provadamente identico ao do F30 (diff git vazio); somado ao F30, o c217 fecha 237.649 geracoes sem UMA quebra estrutural em 840 celulas; (2) a pergunta desta rodada (pmid_ids sentinela nos reais?) tem resposta NAO medida em 100% das novas, e a REGRA_DO_ROTULO subiu de prova-por-proxy para prova-por-VERDADE-tabelada (RE21 0,904, controle de offset p=2,7e-148); (3) as doutrinas dos reais foram verificadas com guard executavel: checa_regua 0 violacoes em 90/90, grids k/17 e n/690 100%, zona morta quantificada no que ela realmente exige (dedup de |ND| por x_efetivo: inflacao media 67,7% sem a regra — numero que o autor PRECISA usar), RE21 re-verificado analiticamente a 2,3e-07; (4) nenhum classe-(3) NOVO nasceu nos 90 reais — os 3 abertos sao os herdados do F30, dois deles com extensao medida (C2 +17, C3 +grafias). LIMITES HONESTOS: EST40 junta-se aos WFG/MMF16_20 como problema onde o c217 NUNCA e assistido por surrogate (agora 210/840 celulas = 25% do corpus do config, deterministico 30/30) — condicao, nao desempenho; o ⑦ pos-hoc do DDMOP7 (D102.9) ainda nao existe no acervo; e o pareado do uso inverso no DDMOP7 (n=62) nao replica a significancia do sintetico, apenas a direcao. Nao re-rodei nem re-varri o que nao mudou (0 sinteticas com mtime novo; spot de 10 celulas limpo).",
+ "decisoes_ao_autor": [
+  "RE-ESCALO C1 (D81, 2a vez): WFG4/12 segue sem rodape no ⑥ canonico e nenhuma decisao foi registrada desde o F30. O gemeo vm5 com rodape ok existe (re-verificado hoje). Decida: re-montar da vm5 (SEM re-run), registrar excecao no censo, ou aceitar como esta — e considere o gate de rodape para celulas 'ok', pela 2a rodada consecutiva.",
+  "|ND| DO DDMOP7 — REGRA DE LEITURA E OBRIGATORIA E O CUSTO E GRANDE: sem dedup por x_efetivo o |ND| final do c217 infla em media 67,7% (max 86,5%; 175,1 bruto -> 57,1 dedupado; ~3,2 por F unico). Qualquer tabela com |ND| do DDMOP7 sem a regra do CONTRATO §T15.13 esta errada por ~3x. Recomendo que o pipeline de analise aplique zona_morta(x_proposto) ANTES de qualquer contagem.",
+  "ESTOQUE40 = 7o PROBLEMA DO CLUBE 'NUNCA DISPARA': 0 disparos em 24.000 geracoes 30/30 e empate do modelo em 100,00% de 1,02M pontos de sonda. Sob 31D-1 o c217 no EST40 e amostrador aleatorio+SPEA2, deterministico. Somado aos 5 WFG + MMF16_20, sao 210/840 celulas (25%). A mesma decisao de escrita do F30 (condicao vs desempenho nas comparativas) agora cobre um problema REAL e nosso (D101).",
+  "REGUA DO EST40 FUROU NO NADIR DE f3: 7 pontos ND de 2 celulas (26 e 5) excedem o nadir 4,2561 em ate +1,18 (f3=5,433). A extensao pelos cantos (D102.20) nao bastou — um HV de regua fixa CORTA front real do c217 nessas celulas. Decida: fase-2 pooled tambem para o EST40 (analoga a D102.3 do DDMOP7), nova errata do nadir, ou clip declarado. No DDMOP7 o problema NAO existe (0 pontos ND acima do nadir em 30/30).",
+  "⑦ DO DDMOP7 AINDA NAO EXISTE: nao ha artefato final_eval no acervo (so scripts/final_eval.py + testes). O CONTRATO:463 diz que a ⑦ nasce por final_eval com Engine — que eu nao posso rodar (Mac trava; proibicao absoluta). Decidir: rodar nas VMs antes do fechamento ou declarar a ⑦ fora do corpus do c217. A fase-2 pooled do DDMOP7 (D102.3) e computavel ja com as ① (629 celulas no corpus; as 30 do c217 estao limpas para isso).",
+  "ACURACIA DA SONDA COM VERDADE TABELADA (RE21): 0,9040 sobre 430.868 pares comparaveis e o primeiro numero do c217 com rotulo VERDADEIRO (nao proxy). Decida qual acuracia entra na dissertacao (a proxy global 0,756 do F30, a verdadeira 0,904 do RE21, ou ambas com os nomes certos) — a do RE21 e incomensuravel com a Tab. 5 do artigo pelos mesmos motivos ja registrados (Botao 4).",
+  "USO INVERSO NOS REAIS: no DDMOP7 o estado 2 nao entrega (0,981x, vence 27/62, p=0,87) — direcao consistente com o achado sintetico do F30 (0,923x, p=1,6e-13), sem poder estatistico para afirmar dano. Se o achado do uso inverso entrar na dissertacao, o real corrobora a direcao mas nao adiciona significancia; o uso direto entrega tambem no real (1,033x, p=9,7e-3, n=134).",
+  "REGISTRO C2/C3 (sem decisao urgente): C2 cresceu para 315/840 (17 RE21 novas; EST40 0/30 confirma a causa) e segue invisivel ao ⑤; C3 ganhou as grafias 'matlab-vm1/vm5' e 2 campanhas reais FIEIS (bateladas 15/08 e 18/08, diff de decisao vazio, homogeneidade medida) — normalizar host e validar valor de campanha_id se houver rodada futura; documentar as 2 bateladas na declaracao de dados.",
+  "NAO MEDIDO (por regra ou por ausencia de dado): tetos T2 (regime-NaN: 0 disparos tambem nos reais — latente com denominador 237.649), T3 (fitness Eq.4/SDE), T4 (sonda nos estados 1/2), T6 (valor numerico); f==DDMOP7.p(x_efetivo) por re-execucao (caixa-preta .p + proibicao de Engine no Mac — validado indiretamente por grid 100% + checa_regua + laudo T15 15/15); duplicatas cross-VM dos 90 reais (nao ha par duplicado nos espelhos que eu tenha localizado para os reais — a prova de deriva-zero do F30 cobre so o sintetico)."
+ ]
+}

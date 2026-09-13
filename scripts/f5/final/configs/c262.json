@@ -1,0 +1,137 @@
+{
+ "config": "c262 — qNEHVI (Daulton, Balandat & Bakshy, NeurIPS'21), Python/BoTorch 0.18.1, variante qLogNEHVI L.10, exp=main. RODADA FINAL sobre corpus CONGELADO: censo 782 células (777 main + 5 batch legadas jul/26), 28 problemas (25 sintéticos + RE21/DDMOP7/ESTOQUE40), sementes {0-28,42}. Disco ≡ censo: 782/782, 0 divergências. Nada foi executado (nenhuma invocação de experiments.py/experiment.run/MATLAB; escrita só no scratchpad).",
+ "celulas_final": "MAIN 777 sob O-21 (rodapé do .jsonl = autoridade): OK 624 (sintéticos 564 + RE21 30/30 + DDMOP7 30/30, todos com hard-stop D21/D61 e rodapé duplo ok) · ⚪ teto_wall 112 = truncamento-com-dado DI-43/44 (sintéticos 90: DTLZ7 26, ZDT3 25, MMF16_20 25, ZDT1 14 — herdados do F30; + ESTOQUE40 22 novos, critério ÚNICO 'elapsed' 12h em 22/22, 12,01-12,05h, fe 852-946/1239 = 68,8-76,4%) · FALHA DE ALGORITMO 26 (WFG1 25 ModelFittingError = 2/27 sucesso, ZDT6/17 1 — herdadas, intocadas) · KILL DE INFRA sem NENHUM rodapé 15 (7 sintéticos de 13/08 herdados + 8 ESTOQUE40 novos: sementes 0-7, janela única 23:50-00:09 UTC 19→20/08, vm1, motivo='checkpoint_em_andamento', ⑤ sem params, camadas ①②④ no último checkpoint com ⑥ adiante — fe 612-689). BATCH legado 5 (26/07, schema v1, q=10 no header, 181 decisões |lote|=10, aborto por PROJEÇÃO DI-38a revogada, SÓ ⑥ — sem ①-⑤): fora do corpus main. Reconciliação com o briefing: '117 teto' = 112 ⚪ main + 5 batch; '41 fail' = 26 falhas + 15 kills. Orçamento de FE comum p/ EST40: ≤852 (22 ⚪) ou ≤612 se o autor sancionar incluir os kills.",
+ "novas_desde_f30": "+90 células, exatamente as 3×30 dos reais (mtime/ts >14/08): RE21 30 ok (15/08 18:26-18:50 UTC, vm1, repo 3240f4b) · DDMOP7 30 ok (16-17/08, vm5, repo 7be66e6) · ESTOQUE40 22 ⚪ + 8 kills (19-21/08, vm1, repo 3240f4b). Os 687 sintéticos main têm mtime ≤14/08 — INTOCADOS desde o F30: herdam o veredito F30 por reconciliação de mtime + spot-check em 10 células cobrindo ok/⚪/kill/falha (QJ1 3.309/3.309 bit-a-bit; QJ4 7.482/7.482, erro máx 3,5e-7 — inclui ZDT6/5, a célula da exceção F5; rodapés idênticos ao registrado no F30, incl. ZDT1/42 ⚪ e MMF16_20/7 kill). O censo também passou a listar 5 células exp=batch de 26/07 que o F30 filtrava — não são novas, são o legado q=10 da era s42 (T2).",
+ "mecanismo_nos_novos": "CENSO das 90 novas, não amostra. QJ1 (argmax da aquisição, a joia da família): acqf_escolhido == max(acqf_todos_restarts) BIT-A-BIT (Δmax=0,0 em float64) em 24.616/24.616 decisões (RE21 2.430 + DDMOP7 10.230 + EST40 11.956, kills inclusos), n_restarts==10 em 24.616/24.616, α não-finito 0. QJ4 (identidade fechada do ruído sob Standardize): noise_j == max(1e-6, 1e-6/Var_ddof1(f_j[:n_train])) em 60.735/60.735 objetivo-iterações, erro relativo máx 1,01e-7. F2 (elo ⑥→③→①): blocos online com exatamente 10 linhas, 1 marcada no infill / 0 no hard-stop, marcada é a ÚLTIMA, max|Δx| ③×① = 0,0 bit-a-bit — 90/90 células, 0 exceções. α<0 em 12.615/24.616 (51,3%) = assinatura numérica qLogNEHVI (E.2) presente também nos reais. h1≠h2 e triplas RNG distintas em 24.616/24.616; fe==n_train(+1) em 24.616/24.616; U10 (ng == fe−n_init + cache + hard_stop) fecha 82/82 células com rodapé; inv-1/inv-2 de timing: 0 violações em 24.616 gerações (7.212 com sonda); 0 linhas não-parseáveis em ~2,9M linhas.",
+ "reais": "RE21 (D=4, maxfe=123=31D-1): 30/30 ok em ~8-16 min/célula (3,9 h-core no total); DoE 43=11D-1 bit-igual ao artefato sob cast f32 (0,0) em 30/30; checa_regua PASSA 30/30 com 56 furos LEVES (30 em f1, 26 em f2; pior 2,2e-8/1,4e-7 do range = ruído float32 D53 — a régua D72 é tocada pelo dado, esperado, reportar via avisos_regua); sonda 1.274 blocos, U5 join posicional max|Δx|=0,0 sob f32 em TODOS os blocos; U6 (premissa EHVI): ΔWAPE 1º→último bloco mediana −81,5%/−30,0%, 30/30 melhoram nos 2 objetivos, cobertura final 1,0/0,9985, 0 σ-NaN; 42 cache-hits em 20 células; n_baseline>0 em 2.472/2.472. DDMOP7 (D=17, maxfe=526, caixa-preta .p, vm5): 30/30 ok em 3,9-9,1 h/célula (189,3 h-core); SEM sonda por D102.10 (declarado no header: status='sem_sonda_por_problema'); RODARAM DEPOIS DA ERRATA REAL-2.15/2 — tripla evidência: repo_hash 7be66e6 (16/08) DESCENDE de 89655e4 (15/08 15:04 -0300, confirmado git merge-base), ts de início ≥16/08 11:49 UTC, e header ideal_s5=[0;0]/nadir=[1;0,678260869565217] com acqf_ref_f=[1,1;0,7460869565217387] = nadir+0,1·(nadir−ideal) com Δ=0,0 em 30/30 e régua == metrics.py atual com Δ=0,0; checa_regua PASSA 30/30 com 0 furos (o ínfimo teórico não é furável — melhor f1 observado = 1/17, nunca 0); estrutura de contagem confirmada: f1·17 inteiro (maxdev 4,8e-7) e f2·690 inteiro (maxdev 2,1e-5, float32) em 15.780/15.780 pontos; CONSEQUÊNCIA OPERACIONAL da régua [0;0]: n_baseline>0 em 10.230/10.230 decisões — a aquisição SEMPRE teve baseline (o oposto da patologia DTLZ1/DTLZ3/ZDT4 do F30); §T15.13 medido: 15.780 propostas → 14.674 x_efetivos únicos (colapso 7,0%), |ND| bruto 8.594 → 7.509 dedupado por x_efetivo (−12,6%) → e só 88 valores F distintos (≈3/célula) — publicar |ND| bruto reportaria diversidade inexistente; nota: minha hipótese f1·17==nnz(x_efetivo) NÃO fecha (11/10.200; k−nnz∈{1,2} na busca, irregular no DoE) — é hipótese minha sobre o interior da caixa-preta REFUTADA, não defeito do dado (não medido: semântica interna do k). ESTOQUE40 (D=40, maxfe=1239, vm1): 0/30 completa — 22 ⚪ teto 12h a 68,8-76,4% do orçamento (284,5 h-core) + 8 kills de infra em janela única; domínio ok: f1≤0 (receita negada) e f2,f3≥0 em 30/30, checa_regua PASSA 30/30, 0 furos; DoE 439=11D-1, Δf32=0,0 em 30/30 (f64 1,2e-4 = quantização f32 relativa da escala ~10³); sonda 5.992 blocos (2000 pts, hash ok em 100%), U5 Δ=0,0 f32 em todos; U6: ΔWAPE −34,5%/−49,3%/−25,9%, 30/30 melhoram nos 3 objetivos, cobertura 0,9915/0,995/0,9325 (≥0,90 em 30/30/28). Fração da busca no wall: medianas 0,97/0,94/0,91 — a parede segue sendo a AQUISIÇÃO, não o GP (coerente com a refutação de 'competitive wall-times' do F30, agora com D=40).",
+ "aspectos_mudados": [
+  {
+   "id": "A1",
+   "o_que": "Corpus do censo",
+   "antes": "F30: 687 células exp=main, 25 problemas sintéticos",
+   "agora": "782: +90 reais (RE21/DDMOP7/EST40 ×30) +5 exp=batch legadas de 26/07 que o censo passou a listar; sintéticas main bit-intocadas (mtime ≤14/08 + spot-check)"
+  },
+  {
+   "id": "A2",
+   "o_que": "Verificabilidade da ③ (U5/U6/U11)",
+   "antes": "F30: ③ bucket-only, local em 40/687 enviesadas p/ WFG1 — U6/U11 rebaixados a teto parcial",
+   "agora": "③ LOCAL E COMPLETA nas 90 novas: U5 join posicional Δ=0,0 f32 em 7.266 blocos de 60 células; U6 medido em RE21/EST40 (melhora 30/30 em todos os objetivos, cobertura ≥0,93) — a regressão do F30 está LEVANTADA nos reais (segue nos sintéticos)"
+  },
+  {
+   "id": "A3",
+   "o_que": "Régua DDMOP7 do ref da aquisição",
+   "antes": "Fase-1 estimada [4/17;202/690] que FURAVA (T15: 44,8% dos pontos abaixo do ideal; c262_qnehvi.py:208 usava em runtime)",
+   "agora": "Ínfimo teórico [0;0] (REAL-2.15 ERRATA 2, commit 89655e4): as 30 células rodaram DEPOIS (repo 7be66e6 descendente, ts 16-17/08), álgebra do ref Δ=0,0 em 30/30, checa_regua 0 furos, n_baseline>0 em 100% das decisões"
+  },
+  {
+   "id": "A4",
+   "o_que": "Instrumentação do teto de parede",
+   "antes": "F30: ⚪ identificadas por Σtempo_geracao ∈[11,87;12,10]h + manifest teto_wall",
+   "agora": "Rec explícito 'teto_wall_truncamento' no ⑥ com criterio='elapsed' declarado (22/22 EST40), elapsed 12,01-12,05h; rodapé do runner failed/teto_wall + rodapé do despachante ok (mesma classificação O-21)"
+  },
+  {
+   "id": "A5",
+   "o_que": "campanha_id",
+   "antes": "'7f4f0e429a46_M8' fixo nas 687",
+   "agora": "formato {repo12}_{data}: 3240f4b26fae_2026-08-{15,19,20,21} e 7be66e65522c_2026-08-{16,17} — proveniência por remessa"
+  },
+  {
+   "id": "A6",
+   "o_que": "Frota",
+   "antes": "6 VMs Linux/x86_64 (vm1 202, vm3 154, vm5 127, vm2 75, vm10 75, vm4 54)",
+   "agora": "vm1+vm5 SOMENTE (60/30 nas novas), conforme frota.json de 14/08; env/pinning/botorch_record_sha256 e08d996fce78 IDÊNTICOS ao F30 em 90/90 — mesma assinatura de reprodutibilidade"
+  },
+  {
+   "id": "A7",
+   "o_que": "C3-1 do F30 (params ausente no ⑤ de exceção)",
+   "antes": "33/687 (100% das falhas)",
+   "agora": "41/782: +8 kills EST40 com o MESMO padrão — a não-conformidade segue aberta e cresceu"
+  },
+  {
+   "id": "A8",
+   "o_que": "Contador n_blocos_sonda do rodapé",
+   "antes": "correto (problemas com sonda)",
+   "agora": "DDMOP7: rodapé diz 1 com 0 blocos reais em 30/30 — c262_qnehvi.py:778 incrementa no hard-stop mesmo com sonda_on=False (D102.10); o header declara corretamente n_blocos:0"
+  },
+  {
+   "id": "A9",
+   "o_que": "Texto embarcado da regra I-12",
+   "antes": "'89% de falso-mismatch' (errata pedida pelo F30: medido 85,86%)",
+   "agora": "INALTERADO — texto bit-idêntico ao do F30 nas 90 novas; a errata segue não aplicada"
+  }
+ ],
+ "celulas_invalidas": [
+  {
+   "celula": "c262/ESTOQUE40/{0,1,2,3,4,5,6,7} (8 células)",
+   "motivo": "kill de infra em janela única 23:50-00:09 UTC 19→20/08 (vm1, 1ª remessa inteira): SEM nenhum rodapé, motivo_parada='checkpoint_em_andamento' (sentinela ambíguo O-21), ⑤ sem params, ①②④ no último checkpoint (fe 612-689/1239) com ⑥ adiante — padrão idêntico aos 7 kills de 13/08 do F30. QJ1/QJ4/F2 fecham 100% no trecho gravado: o DADO parcial é íntegro",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  },
+  {
+   "celula": "c262/{DTLZ7,MMF16_20,WFG5,ZDT1,ZDT3}/7 + c262/{ZDT1,ZDT3}/17 (7 células, 13/08)",
+   "motivo": "kills de infra herdados do F30 (§C: vm1/vm10, sem rodapé, checkpoint_em_andamento); F30 já recomendou tratar como célula perdida — mantido",
+   "recuperavel_sem_rerun": "NAO_excluir"
+  },
+  {
+   "celula": "c262/WFG1/{25 sementes} + c262/ZDT6/17 (26 células)",
+   "motivo": "falha REAL do algoritmo (ModelFittingError, guards determinista_nao_retriavel/hard_error) — reproduzida em 25 sementes independentes; NÃO é célula inválida: é o RESULTADO de robustez (WFG1 2/27 = 7,4% de sucesso). Excluir da análise de desempenho; manter como achado",
+   "recuperavel_sem_rerun": "NAO_excluir"
+  },
+  {
+   "celula": "c262/{ZDT1,DTLZ2,ZDT4,WFG9,MMF16_20}/42 exp=batch (5 células, 26/07)",
+   "motivo": "legado q=10 da era s42: schema v1, sem campanha_id/repo_hash/params, aborto por projeção DI-38a (revogada), SÓ ⑥ (0 parquets), rodapé failed — fora do corpus main; únicas testemunhas de q>1 (181 decisões |lote|=10) mas de código pré-M8",
+   "recuperavel_sem_rerun": "NAO_excluir"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "CF-1",
+   "descricao": "zona_morta AUSENTE do ⑤.params nas 30 células c262×DDMOP7 (e também b3/c141/c154/c217/c238; c122/c149 TÊM). O CONTRATO §T15.13 diz que o τ 'está em params.zona_morta do ⑤'; o writer único é standalone_harness.py:1395 ('ponto único — nenhum runner precisa saber'), mas o c262 não passa por ele. Mitigação: τ=0,5 é constante em src/ddmop7_bridge.py:126 (TAU_ZONA_MORTA) e a transformação é determinística — x_efetivo segue reconstruível",
+   "gravidade": "baixa",
+   "acao": "propagar o writer ao caminho do c262 ou decisão isentando; até lá o ⑤ do c262×DDMOP7 não é autocontido para a regra de leitura",
+   "arquivo_linha": "src/standalone_harness.py:1395 vs resultados_experimentos/c262/DDMOP7/*/exp_main_*.manifest.json (params sem chave)"
+  },
+  {
+   "id": "CF-2",
+   "descricao": "Rodapé do runner grava n_blocos_sonda=1 com ZERO blocos de sonda no ⑥, em 30/30 DDMOP7: o contador incrementa incondicionalmente no hard-stop (t_snd=0.0 if not sonda_on else emit...; n_blocos_sonda += 1) mesmo com a sonda desarmada por D102.10. O header da MESMA célula declara corretamente sonda.n_blocos=0",
+   "gravidade": "cosmética (🟠 impl→código)",
+   "acao": "regra de leitura: para PROBLEMAS_SEM_SONDA o contador do rodapé superconta 1; corrigir o incremento condicional",
+   "arquivo_linha": "src/c262_qnehvi.py:773-778"
+  },
+  {
+   "id": "CF-3",
+   "descricao": "8 kills EST40 em janela única de 19 min (23:50-00:09 UTC 19→20/08, vm1, sementes 0-7 = a 1ª remessa inteira do problema), nunca re-despachadas — 26,7% da grade EST40 do c262 perdida para infra, não para o algoritmo. Nenhum artefato registra a causa do kill",
+   "gravidade": "media",
+   "acao": "ESCALAR (D81): decidir a leitura — perda seca (EST40 fica 22/30, orçamento comum ≤852 FE) ou curva truncada sancionada (30/30 entram, orçamento comum cai a ≤612 FE). Sem re-run por decisão do autor",
+   "arquivo_linha": "resultados_experimentos/c262/ESTOQUE40/{0..7}/ (manifests checkpoint_em_andamento)"
+  },
+  {
+   "id": "CF-4",
+   "descricao": "C3-1 do F30 RECORRENTE e crescendo: params ausente no ⑤ escrito pelo caminho de exceção do despachante — agora 41/782 (33 do F30 + 8 kills EST40). Segue sem decisão que sancione a isenção. Fallback verificado: header do ⑥ carrega params em 777/777 main",
+   "gravidade": "baixa",
+   "acao": "mesma do F30: propagar _params_efetivos ao writer de exceção OU decisão isentando manifesto de falha do §5",
+   "arquivo_linha": "experiments.py:_run_one (caminho de exceção)"
+  },
+  {
+   "id": "CF-5",
+   "descricao": "HERDADOS SEM MUDANÇA do F30 (verificados como ainda-abertos): C3-2 lacuna das 63 células sintéticas (sementes 18/25/26 em 21 problemas); C3-3 corpus s42 da T11 substituído in loco; C3-4 excesso de argmax na posição 0 do WFG1; C3-5 asserção decorativa em tests/test_c262.py:124-125 e zero gates p/ acqf_hp/fit_retries; errata do texto I-12 ('89%' vs 85,86% medido) — texto embarcado bit-idêntico nas 90 novas, não corrigido",
+   "gravidade": "baixa-media",
+   "acao": "manter na fila do autor; nenhum bloqueia o mecanismo",
+   "arquivo_linha": "ver F30 c262.json §classe3"
+  }
+ ],
+ "score_final": 9.6,
+ "trajetoria_scores": "F5 9,5 (s42, 21 células: mecanismo fecha mas com 2 tetos grandes — acqf_hp não observável e batch q>1 100% não exercitado) → T11 9,7 (+0,2: teto do acqf_hp LEVANTADO contra o objeto BoTorch com controle negativo, 3 correções levadas a produção, F5§2 leis de refit) → F30 9,6 (−0,1: mecanismo 100,0000% em 179.996 decisões/30 sementes, mas 5 achados classe-3 de contrato/campanha/proveniência — params no ⑤, lacuna de 63 células, corpus s42 substituído — e REGRESSÃO de verificabilidade da ③ bucket-only; T2 agravado) → FINAL 9,6 (MANTÉM: os ganhos — mecanismo 100% também nos 3 problemas reais (+24.616 decisões, QJ1 bit-a-bit e QJ4 a 1,0e-7), régua DDMOP7 pós-errata verificada por tripla evidência, U5/U6 RECUPERADOS nos reais pela ③ local (premissa de calibração da EHVI confirmada onde a dissertação mais precisa), frota homogênea vm1+vm5 com assinatura de ambiente idêntica — compensam as perdas: 8 kills de infra na EST40 (CF-3), 2 não-conformidades declarativas novas (CF-1 zona_morta no ⑤, CF-2 contador do rodapé) e a recorrência do C3-1 (CF-4). O único bloqueio real ao 10 segue sendo T2: q>1 continua 0% exercitado no corpus main — as 5 batch legadas são de código pré-M8 e não servem de prova).",
+ "veredito": "ACEITAR as 90 células novas no corpus final e manter o veredito ACEITAR do config (recomendação — o veredito é do autor, D97). O mecanismo do c262 é agora o mais provado da campanha: 204.612 decisões acumuladas (179.996 F30 + 24.616 novas) com o argmax bit-a-bit em 100,0000% e a identidade do ruído fechada a ≤1e-6 relativo, atravessando 28 problemas, 30 sementes, 2 repos e 2 VMs — incluindo uma caixa-preta MATLAB (DDMOP7) e um problema nosso de dados reais (EST40). As 30 DDMOP7 rodaram comprovadamente DEPOIS da errata da régua (repo descendente de 89655e4 + ideal [0;0] no header + Δ=0,0 na álgebra do ref + checa_regua limpo 30/30) — a pergunta do briefing está fechada no sentido bom. Nenhum aspecto do MECANISMO caiu em classe 3 nesta rodada; os 5 achados são de contrato/campanha (2 novos declarativos + 1 infra + 2 recorrentes). CONDIÇÕES DE USO que acompanham a recomendação: (1) EST40 só é analisável em orçamento de FE comum (nenhuma célula completa 1239); (2) |ND| e cardinalidades do DDMOP7 SÓ dedupadas por x_efetivo (§T15.13 — medi: 8.594→7.509, e só 88 F distintos); (3) HV do DDMOP7 permanece IMPUBLICÁVEL até a fase 2 pooled (REGUAS_PROVISORIAS não vazio — agora computável com as 629 células); (4) os 41 'fail' do censo NÃO são 41 falhas: 26 são resultado de robustez, 15 são infra.",
+ "decisoes_ao_autor": [
+  "D81 — OS 8 KILLS DA ESTOQUE40 (sementes 0-7, janela única 23:50-00:09 UTC 19→20/08, vm1, 1ª remessa inteira, nunca re-despachada): decidir a leitura. (a) perda seca → EST40 = 22/30 células, orçamento comum ≤852 FE (68,8%); (b) sancionar como curva truncada (o dado parcial é íntegro: QJ1/QJ4/F2 100% no trecho) → 30/30 entram mas o orçamento comum cai a ≤612 FE (49,4%). A escolha muda toda comparação transversal na EST40.",
+  "D81 — ESTOQUE40 SEM NENHUMA RÉPLICA COMPLETA (0/30 chega a 1239 FE; teto 12h 'elapsed' em 22/22): o achado anti-'competitive wall-times' do F30 agora tem um problema INTEIRO sem fecho, com a busca a 91% do wall em D=40. Decidir como o capítulo de resultados reporta o c262×EST40 (só orçamento comum + declarar o teto).",
+  "CONTRATO §T15.13 — zona_morta ausente do ⑤.params do c262 (e b3/c141/c154/c217/c238; c122/c149 têm): o 'ponto único' standalone_harness.py:1395 não cobre os writers desses configs. Propagar ou emitir decisão isentando; até lá o ⑤ não é autocontido para reconstruir x_efetivo.",
+  "CONTRATO §5 — C3-1 RECORRENTE: params ausente no ⑤ de exceção agora em 41/782 (+8 EST40). A decisão pedida pelo F30 (corrigir writer OU isentar manifesto de falha) segue pendente e o defeito segue se reproduzindo.",
+  "🟠 CÓDIGO — contador n_blocos_sonda do rodapé superconta 1 em problema sem sonda (DDMOP7 30/30: rodapé=1, real=0; incremento incondicional no hard-stop, c262_qnehvi.py:778). Corrigir ou registrar regra de leitura; o header da célula já declara o valor certo.",
+  "PUBLICAÇÃO DDMOP7 — (i) toda cardinalidade dedupada por x_efetivo (medido: colapso de 7,0% das propostas; |ND| 8.594→7.509; e SÓ 88 valores F distintos nos NDs ≈3/célula — o |ND| bruto reporta diversidade que não existe); (ii) fase 2 pooled da régua OBRIGATÓRIA antes de qualquer HV (provisória; agora computável, 629 células); (iii) melhor f1 alcançado = 1/17 — o ínfimo [0;0] não é atingido, como previsto pela errata.",
+  "AVISOS_REGUA RE21 — 56 pontos (30 f1, 26 f2, ~2/célula) ABAIXO do ideal por 2,2e-8..1,4e-7 do range = ruído float32 (D53), dentro da folga T15.13b; a régua D72 é tocada pelo dado (o ideal é atingível). Reportar avisos_regua junto do HV como o guard prevê — não é furo.",
+  "ERRATAS PENDENTES DO F30 QUE SEGUEM ABERTAS (verificado): texto I-12 embarcado ainda diz '89%' (medido 85,86%; bit-idêntico nas 90 novas); lacuna das 63 células sintéticas (18/25/26 × 21 problemas) segue sem registro; corpus s42 da T11 segue substituído (T11 = documento histórico); T2 q>1 segue 0% exercitado — as 5 batch de 26/07 (schema v1, q=10, 181 decisões, só ⑥) não servem de prova do código M8.",
+  "NOTA FAVORÁVEL DE PROVENIÊNCIA — as 90 novas têm assinatura de ambiente IDÊNTICA ao F30 (mesmos pins, mesmo botorch_record_sha256 e08d996fce78, Linux/x86_64, 1 thread, fused OFF) em 90/90, na frota vm1+vm5 do frota.json: o padrão de prova bit-exato do F30 (deriva zero) permanece aplicável ao corpus inteiro do c262.",
+  "HIPÓTESE MINHA REFUTADA, REGISTRO POR HONESTIDADE (D97): f1·17 do DDMOP7 NÃO é nnz(x_efetivo) (fecha 11/10.200; k−nnz∈{1,2} na busca, irregular no DoE cru — o DoE artefato contém zeros exatos por construção). A estrutura k/17 e n/690 em grade FECHA (maxdev 4,8e-7/2,1e-5). A semântica interna do k é teto de verificabilidade da caixa-preta .p — não medido, e não precisa ser."
+ ]
+}

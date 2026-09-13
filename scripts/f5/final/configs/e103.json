@@ -1,0 +1,137 @@
+{
+ "config": "e103 · IBEA-MS (Liu, Wang & Jin 2023, IEEE TCYB 53(10)) · regime OFFLINE puro · CORPUS FINAL = 778 celulas em 28 problemas: 669 sint off (campanha M8, repo 63db46b1, vm1-vm10, 02-13/08) + 20 sweep s42 (onda F5, 26/07, herdadas) + 89 REAIS novas (15/08: RE21 30 e ESTOQUE40 29 na vm1 sob commit 3240f4b2; DDMOP7 30 na vm5 — seed 0 sob 3240f4b2 e 1-28+42 sob 7be66e65; git diff entre os 2 commits toca SO docs/metrics.py/lote3s.sh — nenhum arquivo do caminho de execucao => heterogeneidade INERTE, provada). NOTA D81: o T15-LAUDO linha 363 rotula e103 como \"(TSEMO)\" — e engano de rotulo (e103 e IBEA-MS em TODOS os artefatos: header \"e103-IBEAMS-offline-L15\", artigo, F5/T11/F30); a frase \"o TSEMO sob zona morta\" do briefing herda esse deslize. Auditoria READ-ONLY: zero escrita no repo, zero celula executada, zero MATLAB; scripts/CSVs em /private/tmp/claude-501/-Users-gmello/16c0ba84-843b-49d1-9ce6-6cecc418b734/scratchpad/ (audit_e103_final.py, audit_e103_reais_c6.py, audit_gate_coded.py, audit_re21_gate.py, audit_reais_parquet.py, audit_endpoint_reais.py, e103_final_censo.csv, e103_final_reais_c6.csv).",
+ "celulas_final": "O-21 (rodape=autoridade): **778 ok · 0 ⚪ · 0 fail**; manifesto==rodape em 778/778 (zero divergencia); termino='normal', n_geracoes=99, fe_final==maxfe==n_dataset, n_retries=0, cache_hits=0 em 778/778. Por grupo: sint-off 669 ok (25 problemas × 26-27 sementes; 13/17/26 ausentes — nunca despachadas); sweep-s42 20 ok (n=929 small e n=2000 medium — eixo D51/D55 sancionado, auditado F5/T11; gate 0 falhas nas 4 conferidas); RE21 30/30 ok (sementes 0-28+42 completas); DDMOP7 30/30 ok; ESTOQUE40 29/30 ok (semente 2 nunca produzida — zero residuo nos 6 espelhos de VM; artefato ds_ESTOQUE40_2 existe). Tier 31D-1 exato em 89/89 reais (123/526/1239 p/ D=4/17/40). CAMADA ⑦ (foco re-medido): presente em **45/778** — exatamente as celulas s42 (25 off + 20 sweep), TODAS com mtime 01/08 19:12-19:14, i.e. geradas na onda F5 a partir da ③ de julho (o run_id bate e a F30 provou ③ bit-identica cross-campanha, logo o CONTEUDO vale; a proveniencia e defasada); **ausente em 733/778, incluindo 89/89 reais**; rodape declara n_final=100 em 778/778. A ⑦ da s42 tem 100 linhas (DI-41 aplicado) e origem_precisao='float32' declarada.",
+ "novas_desde_f30": "Sinteticas off: **NADA mudou** — 669/669 com mtime dentro da janela F30 (2026-08-02T12:42:52Z a 2026-08-13T09:40:28Z), 0 celulas fora; herdam o veredito F30 com spot-check de 10 celulas (10/10 verdes: censo 107/108, gate, footer, A04/A05/A10/A17/A18) + re-varredura barata da identidade do gate nas 669 (66.231/66.231). Novidades: (1) **+89 celulas REAIS** (RE21 30 · DDMOP7 30 · EST40 29), criadas 15/08 sob commits novos 3240f4b2/7be66e65 (pos-T15), frota vm1+vm5; (2) o censo final passa a incluir as **20 sweep s42** da onda F5 (26/07, inalteradas — herdam F5/T11); (3) as **45 ⑦ da s42** (mtime 01/08) agora visiveis no canonico — na F30 o _FONTES.csv nao as listava. As 81 lacunas sinteticas (sementes 13/17/26 + 6 esparsas) e a EST40/s2 permanecem nao-produzidas — agora sob congelamento declarado do autor.",
+ "mecanismo_nos_novos": "Rodei o gate em TODAS as gerações (⑥ e barata — sem amostragem): **a identidade COMO CODIFICADA (JudgeModel.m:38: KFlag=1 ⟺ n_pares_ok==n_pares_total, i.e. TODO par com ≥M−1 objetivos distinguiveis alem de 3σi+3σj) fecha em 8.811/8.811 gerações das 89 celulas novas — fracao 1,000000, ZERO excecoes** — e re-fecha nas 669 sinteticas (66.231/66.231) e nas 4 sweep testadas (396/396): total 75.438/75.438. ACHADO CENTRAL DA RODADA: a formulacao POR OBJETIVO da T11/F30 (\"nº de objetivos com R=1 em TODOS os pares ≥ M−1\") **FALHA em 34/2.970 gerações do RE21** — ela e suficiente mas nao necessaria, e o corpus sintetico (onde 1 objetivo degenerado fecha todos os pares sozinho) nunca podia separa-las. O RE21 separa: na g1 os 49.729/49.729 pares fecham pela UNIAO dos objetivos (por-objetivo: 99,81% e 98,62% — nenhum fecha sozinho) => KFlag=1 compositivo, primeiro do corpus inteiro; na g2 o gate perde por 4 pares em 40.000 e vira RBFN. Consequencias medidas: primeiras TROCAS de KFlag ja observadas (32, todas RE21, transiente g1-g4; 30/30 sementes comecam Kriging e assentam RBFN; DDMOP7/EST40: 0 trocas, RBFN de g1 a g99); o criterio A18 (σ²<1e-20 ⟺ Kriging) vale em DDMOP7/EST40 (59/59) mas o Kriging transiente do RE21 ocorre SEM objetivo degenerado (σ² min 8,6e-6) — σ→0 e regularidade do corpus sintetico, nao o mecanismo. Margens: max fracao de pares ok em geracao RBFN = 0,99995 (RE21) vs 0,9256 (EST40) e 0,7579 (DDMOP7); em geracao Kriging sempre 1,0 exato. Bateria de contrato 89/89: censo ⑥ 107 recs (105 no DDMOP7, sem os 2 de sonda), gerações densas 1-99, A04 (g1=n_dataset+100; 200 depois), A05 n_sel=100, A10 centros=ceil(sqrt(n)) (12/23/36), A14 n_pares=n_julgados², 0 warn_setup, 0 n_mse_neg, ② == Σ n_ds_membros 89/89, ③ = 19.800 busca (200/geracao, X bit-identico entre os 2 blocos de modelo) + 40.000 sonda (RE21/EST40; ==gabarito Sobol f32-exato 59/59) / 0 sonda (DDMOP7, declarada 'sem_sonda_por_problema' D102.10 30/30), espaco_modelo='cru' 100%, σ nunca negativo, NULL exatamente nas linhas RBFN. Amend: μ==f_real com delta 0,0 EXATO nas 6 celulas amostradas. Proveniencia: ① == artefato do dataset bit-exata f32 em 59/59 (RE21/EST40) e ==CSV congelado dos sorteios (sha 03056b6e conferido) em 30/30 DDMOP7. θ do DACE: ponto NOVO no degrau A08 — D=17 (DDMOP7) MOVE 30/30 (o congelamento em θ0=10 comeca entre 17 e 20); D=40 congela 29/29; D=4 move 30/30.",
+ "reais": "**RE21 (30 ok)** — o melhor caso do e103 em TODO o corpus: endpoint (recomputo meu via src/problems.py + src/metrics.py, NAO oficial) bate o dataset em 30/30, IGD+ mediano 0,0091 contra 0,0777 do dataset (+88,6%), HV 0,871, fantasia 0,98 (98/100 finais genuinamente nao-dominados — os sinteticos davam mediana 0,26-0,39); checa_regua passa com 72 furos tolerados de 1,5e-7 (float32); dataset morre rapido (n_ds_membros g99 mediana 1); reimplementacao independente da formulacao fechada: erro rel max 1,56e-7 = float32; σ² do Kriging bimodal entre sementes (14× ~1e0 vs 16× ~1e5-1e6, dois regimes do boxmin) sem efeito no gate. **DDMOP7 (30 ok)** — e103 devolve ~o dataset: n_ds_membros(g99)=100 em 16/30, ≥93 em 27/30 (min 16) — a patologia WFG2 em forma extrema; RBFN 30/30; checa_regua (ideal=[0;0] ERRATA 2) 30/30 passam, 0 furos; f1=k/17 e f2=n/690 confirmados na malha (err f32 4,8e-7/2,1e-5); DoE cru mas NATURALMENTE esparso (50,04% dos componentes sao zero EXATO no CSV congelado; 7.897/15.780 pontos com f1=1,0); zona morta: 79,9% dos componentes das propostas da busca em |x|<0,5, 59,3% ja zero exato (herdado do DoE via SBX); dedup por x_efetivo na g99: 100 propostos → 92-100 efetivos (mediana 99), nnz mediano 3/17 — colapso MUITO menor que os 70% dos smokes online, porque a pop final e ~dataset; **endpoint NAO MEDIVEL por mim** (exige DDMOP7.p/Engine — final_eval.py ramo Processo B, que aplica zona_morta na :230, e so HV sem IGD+ por D102.4); wall mediano 34s na vm5 POS-degrau de 14/08 (④ nao comparavel com pre-degrau sem ressalva). **ESTOQUE40 (29 ok)** — modo MMF16_20 num problema real: endpoint (recomputo) PIOR que o dataset em 28/29 (ganho mediano −120%, fantasia 0,34, IGD+ 0,221 vs 0,101); f1≤0 (receita negada) e f3≥0 em 29/29; θ congelado@10 29/29 (D=40); dataset zerado na g99 em 28/29; wall mediano 641s (vm1). Esses numeros de endpoint sao EVIDENCIA de dimensionamento — a leitura oficial segue bloqueada ate a ⑦ existir (D97).",
+ "aspectos_mudados": [
+  {
+   "id": "A15",
+   "o_que": "Query-joia do gate 3σ",
+   "antes": "F30: 'KFlag=1 ⟺ (nº de objetivos com R=1 em TODOS os pares) ≥ M−1' fecha 66.231/66.231 — formulada POR OBJETIVO",
+   "agora": "A formulacao por-objetivo FALHA em 34/2.970 gerações do RE21 (transiente g1-g4). A identidade COMO CODIFICADA (per-PAR: todo par com ≥M−1 objetivos distinguiveis; JudgeModel.m:38) fecha 75.438/75.438 gerações em 762 celulas, 0 excecoes — mecanismo intacto, ERRATA de formulacao nos laudos T11/F30"
+  },
+  {
+   "id": "A17",
+   "o_que": "KFlag stateless / constancia",
+   "antes": "0 trocas em 669/669; escolha unanime por problema — 'propriedade do problema'",
+   "agora": "RE21 produz as primeiras 32 trocas do corpus (30/30 comecam Kriging, assentam RBFN em g2-g4; s9 flip-flopa 1-0-1-0); DDMOP7/EST40 0 trocas. A alegacao do artigo 'always selects one specific model during one problem' e FALSIFICADA num problema real que o artigo nunca testou; o estado estacionario segue unanime (RBFN 89/89)"
+  },
+  {
+   "id": "A18",
+   "o_que": "σ→0 como raiz causal da escolha",
+   "antes": "(nº objetivos com σ²<1e-20) ≥ M−1 ⟺ KFlag em 669/669 — 'explica mecanisticamente'",
+   "agora": "Vale em DDMOP7/EST40 (59/59, RBFN sem degenerado), mas o Kriging transiente do RE21 ocorre SEM objetivo degenerado (σ² ∈ [8,6e-6; 1,4e6]) — o σ→0 e uma regularidade do corpus sintetico; o mecanismo real e o teste per-par, que no RE21 fecha por UNIAO de objetivos (g1: 99,81%+98,62% → 100%)"
+  },
+  {
+   "id": "A08",
+   "o_que": "θ do DACE congelado em θ0=10",
+   "antes": "degrau perfeito: 0/427 em D≤12 · 242/242 em D≥20",
+   "agora": "Ponto novo: D=17 (DDMOP7) MOVE em 30/30 (piso 20×, teto 18×) — o limiar do congelamento esta estritamente entre 17 e 20; D=40 (EST40) congela 29/29; D=4 (RE21) move 30/30 com piso"
+  },
+  {
+   "id": "A32/C1",
+   "o_que": "Camada ⑦",
+   "antes": "F30: 0/669 na M8; s42 antiga tinha 45/45 no corpus F5",
+   "agora": "45/778 no canonico final — SO as s42, mtime 01/08 (geradas da ③ F5-julho; conteudo valido por bit-identidade cross-campanha provada na F30, proveniencia defasada); 733/778 sem ⑦ INCLUINDO 89/89 reais; DDMOP7 agora tem rota propria (Processo B com Engine + zona_morta em final_eval.py:230)"
+  },
+  {
+   "id": "A22",
+   "o_que": "Sonda",
+   "antes": "desligada=false em 669/669; X == gabarito Sobol",
+   "agora": "RE21/EST40: 2 blocos, 40.000 linhas, X==gabarito f32-exato 59/59; DDMOP7: 0 linhas com declaracao formal 'sem_sonda_por_problema' (D102.10) em 30/30 — desvio SANCIONADO e declarado"
+  },
+  {
+   "id": "A29",
+   "o_que": "Deriva/frota",
+   "antes": "49 pares bit-exatos, deriva 0,0; zero celulas na janela da vm5",
+   "agora": "NAO MEDIDO nos reais (sem duplicata cross-VM); frota real = vm1 (RE21+EST40) + vm5 (DDMOP7), TODAS pos-degrau 14/08T10:26Z → ④ do DDMOP7 nao comparavel com walls pre-degrau sem ressalva"
+  },
+  {
+   "id": "A35",
+   "o_que": "Semeadura/proveniencia",
+   "antes": "669 hashes distintos, doe_hash==x_hash",
+   "agora": "Estende aos reais: ① == artefato bit-exata f32 59/59 (RE21/EST40); DDMOP7 ① X == CSV congelado dos sorteios oficiais (sha 03056b6e confere) em 30/30 — proveniencia fechada para TODAS as sementes, nao so a 0 (unico artefato parquet local)"
+  },
+  {
+   "id": "A05/A37",
+   "o_que": "Contrato ⑤",
+   "antes": "schema v2, campanha M8 663db46b1 em 669/669",
+   "agora": "Reais: schema v2, n_retries=0, params/sigma_dict presentes 89/89; campanha 3240f4b26fae (RE21+EST40+DDMOP7/s0) e 7be66e65522c (DDMOP7 demais) — split INERTE (diff so docs/metrics); ⑤ do DDMOP7 NAO declara params.zona_morta (contrato T15.13 preve; no offline nao ha avaliacao real in-run, mas a ⑦ pos-hoc precisara do τ da bridge)"
+  },
+  {
+   "id": "N5-novo",
+   "o_que": "Comportamento nos reais (so replicas mostram)",
+   "antes": "—",
+   "agora": "e103 exibe os DOIS extremos em problemas reais: melhor caso do corpus no RE21 (bate dataset 30/30, fantasia 0,98) e fracasso no EST40 (pior que dataset 28/29, −120%) e DDMOP7 (devolve o dataset em 27/30); a fantasia 0,98 do RE21 e um regime que os sinteticos nunca produziram — exatamente a nota do T15"
+  }
+ ],
+ "celulas_invalidas": [
+  {
+   "celula": "e103/* — 733 celulas SEM camada ⑦ (669−25 sint off + 20−20... precisamente: 644 sint off nao-s42 + 89 reais; as 45 s42 tem ⑦ de proveniencia defasada)",
+   "motivo": "⑦ e POS-HOC por desenho no e103 (sem write_final no runner MATLAB; DI-08/A32) e o passo final_eval nao rodou para a M8 nem para os reais; sem ela nao ha endpoint OFICIAL (IGD+/HV/fantasia) de nenhuma celula — e a armadilha 25 impede ler da ①",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "e103 sinteticas nunca produzidas: sementes 13/17 (50), semente 26 (25), 6 esparsas (BBOB_F49/23, BBOB_F5/1, DTLZ3/23, DTLZ7/19, MMF4/4, ZDT6/28)",
+   "motivo": "ausencia de despacho (zero residuo em staging) — corpus CONGELADO pelo autor ('o que nao executou, nao vou executar mais')",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "e103/ESTOQUE40/2",
+   "motivo": "nunca despachada (artefato ds_ESTOQUE40_2 existe; zero residuo nos 6 espelhos de VM) — n do EST40 e 29",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C1",
+   "descricao": "⑦ AUSENTE em 733/778 (incl. 89/89 reais) e DEFASADA nas 45 s42 (mtime 01/08, geradas da ③ F5-julho — conteudo bit-valido, sidecar de outra campanha). Persiste da F30 e agora cobre os 3 problemas reais; para o DDMOP7 a rota exige MATLAB Engine + DDMOP7.p (Processo B, indisponivel neste Mac e vedado a torre)",
+   "gravidade": "ALTA",
+   "acao": "ESCALAR (D81): autorizar `$PY scripts/final_eval.py --alg e103 --all-seeds` — a rota Python cobre 703 celulas (644 sint + 30 RE21 + 29 EST40) em qualquer maquina; as 30 DDMOP7 rodam numa VM provisionada (final_eval aplica zona_morta:230 e o dedup DI-41 ja validado). Recomendo INCLUIR as 45 s42 no lote para proveniencia uniforme. Ate la, NENHUMA leitura de endpoint do e103 na dissertacao (os meus recomputos RE21/EST40 sao dimensionamento)",
+   "arquivo_linha": "ua-dd-saea/scripts/final_eval.py:54-67,159,230; resultados_experimentos/e103/*/42/*__final*"
+  },
+  {
+   "id": "C2",
+   "descricao": "82 celulas nunca produzidas (81 sinteticas + EST40/s2) — agora sob congelamento DECLARADO do autor; deixa de ser pendencia de despacho e vira obrigacao textual: n do e103 = 27 sinteticas (26 em 6 problemas), 30/30/29 nos reais, contra os '30 independent runs' da Sec. IV-7 do artigo",
+   "gravidade": "BAIXA (rebaixada de MEDIA pela decisao de congelamento)",
+   "acao": "Declarar no texto o n por problema e o par (problema,semente) faltante; sem re-run",
+   "arquivo_linha": "f5/final/censo_final.csv (alg=e103)"
+  },
+  {
+   "id": "C3",
+   "descricao": "anchors.json segue com `line` defasado nas 3 ancoras do e103 (43/32/4 declarados vs 61/38/10 reais) — herdado da T11/F30, NAO corrigido; preflight casa por conteudo e passa",
+   "gravidade": "BAIXA",
+   "acao": "Higiene: atualizar os 3 campos line (43→61, 32→38, 4→10)",
+   "arquivo_linha": "ua-dd-saea/claude_code_context/artifacts/anchors.json (e103-pm-D93a, e103-judgemodel, e103-centros-D93)"
+  },
+  {
+   "id": "C4",
+   "descricao": "ERRATA DE LAUDO: a query-joia A15 esta formulada POR OBJETIVO na T11 (A15) e na F30 (N1) e essa formulacao NAO e a do codigo (per-PAR, JudgeModel.m:38) — o RE21 as separa (34 falhas vs 0). Nenhum dado esta errado; os textos dos dois laudos anteriores afirmam uma identidade mais forte do que a codificada",
+   "gravidade": "MEDIA (toca a narrativa do mecanismo na dissertacao)",
+   "acao": "Re-escrever a identidade nos textos como 'todo par com ≥M−1 objetivos distinguiveis' e registrar que no corpus sintetico as duas formulacoes coincidem por causa do objetivo degenerado",
+   "arquivo_linha": "f5/t11/relatorios_config/e103.md (A15); f5/f30/configs/e103.json (N1); JudgeModel.m:38"
+  },
+  {
+   "id": "C5",
+   "descricao": "⑤ do DDMOP7 sem `params.zona_morta` — o CONTRATO §T15.13 declara que o τ mora ali; no e103 offline nao ha avaliacao real in-run (τ so importa na ⑦ pos-hoc, que o final_eval puxa do default da bridge), mas o consumidor da ⑤ nao ve o τ",
+   "gravidade": "BAIXA (declarativo)",
+   "acao": "Registrar; se a ⑦ for gerada, o sidecar dela deve declarar o τ usado",
+   "arquivo_linha": "CONTRATO_DE_DADOS.md:494-523; resultados_experimentos/e103/DDMOP7/*/exp_off_*.manifest.json (params)"
+  }
+ ],
+ "score_final": 9,
+ "trajetoria_scores": "F5 9,3 → T11 9,5 → F30 9,0 → FINAL 9,0. Causas nomeadas: F5→T11 (+0,2) os caveats do F5 (plumbing da ⑦ da s42, sidecar A30, coluna cosmetica) fecharam sem tocar o mecanismo. T11→F30 (−0,5) duas lacunas de CAMPANHA: ⑦ ausente em 669/669 (T5, bloqueia o endpoint) e 81 celulas nunca produzidas. F30→FINAL (0,0 — dois movimentos que se cancelam): SOBE porque os 89 reais entram 100% conformes (bateria 7-camadas verde, proveniencia bit-exata ate o CSV congelado do DDMOP7, Amend 0,0 exato) e o mecanismo atinge o patamar mais alto ja medido — identidade re-fechada NA FORMA CODIFICADA em 75.438/75.438 gerações com o primeiro regime de troca de modelo documentado (RE21) e um ponto novo do degrau do θ (D=17); NAO SOBE porque a lacuna dominante (⑦/T5) persiste intacta e se amplia em cobertura (733/778, agora incluindo os 3 problemas reais, com o DDMOP7 exigindo Engine em VM), a errata C4 mostra que a narrativa do gate nos dois laudos anteriores precisa de correcao textual, e o congelamento do corpus converte C2 em limitacao permanente (n=27/26 sinteticas, 29 EST40) que contradiz o protocolo de 30 runs do artigo. Com a ⑦ gerada (1 comando Python p/ 703 celulas + 1 lote de VM p/ 30 DDMOP7) e a errata aplicada, este config vai a 9,5+.",
+ "veredito": "RECOMENDACAO (o veredito e do autor — D97): **ACEITAR O MECANISMO SEM RESSALVA — agora tambem nos 3 problemas reais — E MANTER O BLOQUEIO DE TODA LEITURA DE ENDPOINT ATE A ⑦ SER GERADA (rota Python p/ 703 celulas + rota Engine/VM p/ as 30 DDMOP7).** O corpus final do e103 e 778/778 ok sob O-21, sem uma unica celula invalida, e as 89 celulas novas passaram a bateria inteira: orcamento 31D-1 exato, ⑥ integra (censo 107/105, gerações densas, 0 warns), ⑤ completo, proveniencia da ① bit-exata contra artefato e contra o CSV congelado dos sorteios do DDMOP7, sonda==gabarito, ②==Σ⑥, e a identidade do gate — corrigida para a forma do codigo — fechando em 100,000% das 75.438 gerações do config. Os reais pagaram exatamente o que 30 sementes prometem: o RE21 produziu o primeiro KFlag compositivo e as primeiras trocas do corpus (falsificando a constancia intra-run do artigo num problema que ele nunca testou), o DDMOP7 mostrou que o e103 devolve o dataset (≥93/100 membros em 27/30) e o EST40 replicou o modo de fracasso MMF16_20 em dado real (pior que o dataset em 28/29). Nada disso e infidelidade — e RESULTADO, com a instrumentacao provando cada mecanismo. O que segue bloqueado e exclusivamente o endpoint oficial (C1), a um comando de distancia nas 703 celulas Python e a um lote de VM nas 30 DDMOP7; e a dissertacao deve declarar n=27/26 nas sinteticas congeladas e a errata da formulacao do gate nos laudos anteriores (C4).",
+ "decisoes_ao_autor": [
+  "**D81/D97 — A DECISAO QUE DESTRAVA O CONFIG: autorizar `scripts/final_eval.py --alg e103 --all-seeds`.** Rota Python (qualquer maquina, sem MATLAB): 644 sint off + 30 RE21 + 29 EST40 = 703 celulas. Rota Processo B (VM com Engine + DDMOP7.p, D102.9): as 30 DDMOP7 — o script ja aplica a zona_morta (:230) e o dedup DI-41; so HV, sem IGD+ (D102.4), e a fase 2 pooled (D102.3) segue obrigatoria antes de publicar HV do DDMOP7. Recomendo incluir as 45 celulas s42 no lote: as ⑦ atuais (mtime 01/08) foram geradas da ③ F5-julho — conteudo bit-valido (F30 provou ③ identica cross-campanha), proveniencia defasada.",
+  "**Errata dos laudos T11/F30 (C4): a query-joia esta escrita mais forte do que o codigo.** A formulacao por-objetivo falha em 34 gerações do RE21; a codificada (todo par com ≥M−1 objetivos distinguiveis, JudgeModel.m:38) fecha 75.438/75.438. No texto da dissertacao, descrever o gate na forma per-par; a coincidencia das duas formas no corpus sintetico e ela mesma um achado (o objetivo degenerado fecha todos os pares sozinho).",
+  "**Achado novo para o texto — o RE21 falsifica a constancia intra-run do artigo.** 'always selects one specific model during the optimization of one problem': no RE21 o KFlag comeca Kriging em 30/30 sementes por fechamento COMPOSITIVO (g1: uniao 100% com 99,81%/98,62% por objetivo) e assenta RBFN em g2-g4, perdendo por 4 pares em 40.000 — e o Kriging transiente ocorre SEM objetivo degenerado, quebrando tambem a leitura σ→0 como mecanismo universal. E resultado (nao bug): decidir se entra como qualificacao da Sec. IV-A do artigo.",
+  "**Comportamento nos reais para a §12 (apos a ⑦):** RE21 = melhor caso do corpus (bate dataset 30/30, +88,6% IGD+ mediano, fantasia 0,98 — regime inedito); EST40 = pior que o dataset em 28/29 (−120% mediano); DDMOP7 = devolve o dataset (n_ds_membros g99=100 em 16/30, ≥93 em 27/30) — o 'ganho' do e103 no DDMOP7 sera ~zero por construcao; reportar |ND| e cardinalidades SO por x_efetivo (T15.13; colapso medido na g99: 100→92-100, mediana 99, nnz mediano 3/17).",
+  "**Declaracoes textuais sob o congelamento:** n do e103 = 27 sinteticas (26 em BBOB_F49/F5, DTLZ3, DTLZ7, MMF4, ZDT6), RE21 30, DDMOP7 30, EST40 29 (s2 nunca despachada) — contra os '30 independent runs' da Sec. IV-7; listar pares faltantes.",
+  "**Frota/④:** os reais rodaram 15/08 — vm1 (RE21+EST40) e vm5 (DDMOP7) POS-degrau de 14/08T10:26Z: nao comparar o wall do DDMOP7 com nenhuma medicao pre-degrau sem ressalva; a deriva cross-VM dos reais NAO foi medida (sem duplicatas).",
+  "**Split de campanha do DDMOP7 (3240f4b2 na s0 vs 7be66e65 nas demais): INERTE, provado** — o diff entre os commits toca so CONTRATO/REGISTRO/handoff/metrics.py/lote3s.sh, nenhum arquivo do caminho de execucao. Registrar e seguir.",
+  "**Higiene:** anchors.json com line 43/32/4 vs reais 61/38/10 (3a rodada); ⑤ do DDMOP7 sem params.zona_morta (T15.13) — declarar o τ no sidecar da ⑦ quando ela nascer; T15-LAUDO linha 363 rotula e103 como '(TSEMO)' — corrigir o rotulo para IBEA-MS.",
+  "**O que NAO fiz (para conferencia):** zero execucao de celula, zero experiments.py/experiment.run/experiments.m, zero MATLAB, zero escrita no repo; importei so src.problems/src.metrics (puros) para recomputo em memoria; artefatos em /private/tmp/claude-501/-Users-gmello/16c0ba84-843b-49d1-9ce6-6cecc418b734/scratchpad/."
+ ]
+}

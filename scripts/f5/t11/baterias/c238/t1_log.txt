@@ -1,0 +1,140 @@
+====================================================================================================
+A) MANIFESTO — smoke T11 vs s42 (MMF1)
+====================================================================================================
+chaves SO no smoke  : ['campanha_id']
+chaves SO na s42    : []
+chaves em comum     : 30
+  schema_version     smoke=2                                                            s42=1
+  campanha_id        smoke='t11-smoke-195f64e'                                          s42='<AUSENTE>'
+  repo_hash          smoke='195f64ed0a69dc3f6c64c66912076e243be90c49'                   s42=''
+  status             smoke='ok'                                                         s42='ok'
+  motivo_parada      smoke='<AUSENTE>'                                                  s42='<AUSENTE>'
+  fe_final           smoke=61                                                           s42=61
+  maxfe              smoke=61                                                           s42=61
+  cache_hits         smoke=1                                                            s42=1
+  doe_hash           smoke='b4682dc218d24077819efadd43764db3ed8403bb3e48c5c8cf66329cc191fcc7' s42='b4682dc218d24077819efadd43764db3ed8403bb3e48c5c8cf66329cc191fcc7'
+
+-- params (smoke) --
+{
+ "criterion": "Euclidean (EIMe)",
+ "kriging": "OK-Forrester proprio (nao-DACE): mu constante, kernel gaussiano, ARD theta 1xD",
+ "theta0": 1,
+ "theta_bounds": "[1e-3,1e3]",
+ "mle": "fmincon sqp em log10(theta), single-start, MaxFunEvals=20D, tol 1e-20 (CODIGO)",
+ "x_norm": "[0,1] pelos bounds (GP_Train)",
+ "nugget": "(10+n)*eps",
+ "y_rescaling": "min-max por iteracao (PAPER §V-B(5)a) + guard max(range,eps) [IMPL]",
+ "ga_interno": "pop=10D, 200 ger, torneio k=2, SBX dis_c=10 por-variavel (p=0.5), PM dis_m=20 pm=1/D, (mu+lambda) elitista -> 2000D aval-aquisicao/iter (CODIGO; paper: DE/rand/1/bin 50x50 F=0.8 CR=0.8 x4 — B10.2/D30, UNICA divergencia material)",
+ "anti_clustering": "AUSENTE no repo (CODIGO — B10.7); telemetria min_dist_infill no jsonl",
+ "init_maxfe": "global-override: 11D-1 (artefato) / 31D-1 (repo fixava 100/200)",
+ "sem_dedup_infill": "duplicata = cache-hit 0 FE (D89), slot perdido (dup_infill); dedup SO no treino (guard chol [IMPL])",
+ "embrulho": "classdef EIM < ALGORITHM (N.5, 8 pontos) — script oficial nao roda no harness"
+}
+
+-- params: chaves smoke x s42 --
+  so smoke: [] | so s42: [] | comum: 13
+
+-- sigma_dict: chaves --
+  so smoke: [] | so s42: []
+
+-- sonda block --
+ smoke: {"artefato": "/tmp/smoke_matlab/sonda/sonda_MMF1.parquet", "x_hash": "186b726e7d62abaa46a814ce785a97727367ec1c10f936570b6a49ad20e9f59f", "f_hash": "0d6547d63f920a20740de1282b89f9f9738b5714d1a719dae43f49f3670f5497", "regime": "online", "S": 2000, "k": 2, "n_blocos": 21, "n_linhas": 42000, "n_falhas": 0, "tempo_total_s": 1.3081575416666666, "desligada": false, "geracoes": [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]}
+ s42  : {"artefato": "data/sonda/sonda_MMF1.parquet", "x_hash": "186b726e7d62abaa46a814ce785a97727367ec1c10f936570b6a49ad20e9f59f", "f_hash": "0d6547d63f920a20740de1282b89f9f9738b5714d1a719dae43f49f3670f5497", "regime": "online", "S": 2000, "k": 2, "n_blocos": 21, "n_linhas": 42000, "n_falhas": 0, "tempo_total_s": 1.944285, "geracoes": [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]}
+
+-- timing --
+ smoke: {"tempo_total_s": 7.261968291666666, "tempo_fit_surrogate_s": 2.4422025149688125, "tempo_busca_s": 1.9190010651946068, "tempo_aval_real_s": 0.022262250000000004, "tempo_pred_sonda_s": 1.3081575416666666}
+ s42  : {"tempo_total_s": 15.440227, "tempo_fit_surrogate_s": 2.9578190008178353, "tempo_busca_s": 4.552216991782188, "tempo_aval_real_s": 0.03353199999999999, "tempo_pred_sonda_s": 1.944285}
+
+-- campos T11 procurados no manifesto --
+  REGRA_DO_ROTULO      smoke=None                                                                     s42=None
+  campanha_id          smoke=t11-smoke-195f64e                                                        s42=None
+  repo_hash            smoke=195f64ed0a69dc3f6c64c66912076e243be90c49                                 s42=
+  y_treino_dist        smoke=None                                                                     s42=None
+  pmid_ids             smoke=None                                                                     s42=None
+  ref_ids              smoke=None                                                                     s42=None
+  executable           smoke=None                                                                     s42=None
+  host                 smoke=None                                                                     s42=None
+
+====================================================================================================
+B) ⑥ jsonl — censo de rec e campos NOVOS (smoke vs s42)
+====================================================================================================
+
+[smoke] n_linhas=64 malformadas=0 censo={'header': 1, 'guard': 1, 'sonda': 21, 'c238_gen': 40, 'footer': 1}
+  campos do c238_gen (40): ['criterion', 'dist_min_arquivo', 'eim_best', 'eim_mediana_pool', 'f_best', 'fe', 'fe_iter', 'fe_treino_max', 'ga_gens', 'ga_pop', 'geracao', 'infill_sid', 'iter', 'lnL', 'lote', 'min_dist_infill', 'modelo_hp', 'n_amostra', 'n_dedup', 'n_eim_nan', 'n_front', 'n_front1', 'n_range0', 'n_treino', 'norm_max', 'norm_min', 'norm_range_efetivo', 'rec', 's_best', 'stall_iters', 'tempo_busca_s', 'tempo_fit_s', 'tempo_geracao_s', 'tempo_pred_sonda_s', 'theta_max', 'theta_media', 'theta_min', 'ts', 'u_best', 'y_best']
+  exemplo g1: {"ts": "2026-07-30T21:46:31Z", "rec": "c238_gen", "geracao": 1, "iter": 1, "fe": 22, "criterion": "Euclidean", "norm_min": [0.001620903509469418, 0.18268371865167302], "norm_max": [0.9916745470611366, 7.611906080607454], "norm_range_efetivo": [0.9900536435516671, 7.429222361955781], "n_amostra": 21, "n_treino": 21, "n_dedup": 0, "n_front": 7, "theta_min": [989.4157585983935, 1000], "theta_max": [994.9366606632009, 1000], "theta_media": [992.1762096307972, 1000], "lnL": [25.672417192389815, 27.836271441561045], "ga_pop": 20, "ga_gens": 200, "eim_best": 0.07881571367814554, "eim_mediana_pool": 0.07881571367814554, "y_best": 0.07881571367814554, "u_best": [0.5699623500468687, 0.14790662680551359], "s_best": [0.2780511152894667, 0.251232577744377], "infill_sid": 21, "lote": 1, "fe_iter": 1, "min_dist_infill": 0.06442464994295596, "stall_iters": 0, "n_eim_nan": 0, "n_range0": 0, "tempo_fit_s": 0.6055002083333333, "f_best": [0.001620903509469418, 0.18268371865167302], "n_front1": 7, "fe_treino_max": 20, "tempo_busca_s": 0.2671091666666667, "tempo_geracao_s": 0.988419875, "tempo_pred_sonda_s": 0.08409525, "dist_min_arquivo": 0.06442464994295596, "modelo_hp": {"modelo": "OK-Forrester", "th
+    tempo_aval_real_s      presente=0/40  nao-nulo=0
+    min_dist_infill        presente=40/40  nao-nulo=40
+    eim_best               presente=40/40  nao-nulo=40
+    eim_mediana_pool       presente=40/40  nao-nulo=40
+    criterion              presente=40/40  nao-nulo=40
+    ga_pop                 presente=40/40  nao-nulo=40
+    ga_gens                presente=40/40  nao-nulo=40
+    n_front                presente=40/40  nao-nulo=40
+    n_front1               presente=40/40  nao-nulo=40
+    f_best                 presente=40/40  nao-nulo=40
+    norm_min               presente=40/40  nao-nulo=40
+    norm_max               presente=40/40  nao-nulo=40
+    modelo_hp              presente=40/40  nao-nulo=40
+    n_eim_nan              presente=40/40  nao-nulo=40
+    n_range0               presente=40/40  nao-nulo=40
+    n_dedup                presente=40/40  nao-nulo=40
+    fe_treino_max          presente=40/40  nao-nulo=40
+  header: {"ts": "2026-07-30T21:46:30Z", "rec": "header", "alg": "c238", "problema": "MMF1", "semente": 42, "D": 2, "M": 2, "regime": "online", "maxfe": 61, "doe_hash": "b4682dc218d24077819efadd43764db3ed8403bb3e48c5c8cf66329cc191fcc7", "algo": "c238-EIM-embrulho-N5", "criterion": "Euclidean (EIMe — default do driver; paper nao elege)", "kriging": "OK-Forrester proprio (nao-DACE), kernel gaussiano, ARD 1xD", "theta0": 1, "theta_bounds": "[1e-3,1e3]", "mle": "fmincon sqp em log10(theta), single-start, MaxFunEvals=20D", "nugget": "(10+n)*eps", "ga": "pop=10D, 200 ger (CODIGO; paper DE — B10.2)", "sigma_dict": "mu_j/sigma_j=media/sqrt(max(mse,0)) do kriging proprio POR OBJETIVO, no ESPACO DO MODELO (y min-max por iteracao — paper; C3 transf_params={min,range} -> cru=mu*range+min)"}
+  footer: {"ts": "2026-07-30T21:46:37Z", "rec": "footer", "status": "ok", "fe_final": 61, "maxfe": 61, "n_geracoes": 41, "cache_hits": 1, "cp_init": true, "termino": "normal"}
+
+[s42] n_linhas=64 malformadas=0 censo={'header': 1, 'guard': 1, 'sonda': 21, 'c238_gen': 40, 'footer': 1}
+  campos do c238_gen (40): ['criterion', 'dist_min_arquivo', 'eim_best', 'eim_mediana_pool', 'f_best', 'fe', 'fe_iter', 'fe_treino_max', 'ga_gens', 'ga_pop', 'geracao', 'infill_sid', 'iter', 'lnL', 'lote', 'min_dist_infill', 'modelo_hp', 'n_amostra', 'n_dedup', 'n_eim_nan', 'n_front', 'n_front1', 'n_range0', 'n_treino', 'norm_max', 'norm_min', 'norm_range_efetivo', 'rec', 's_best', 'stall_iters', 'tempo_busca_s', 'tempo_fit_s', 'tempo_geracao_s', 'tempo_pred_sonda_s', 'theta_max', 'theta_media', 'theta_min', 'ts', 'u_best', 'y_best']
+  exemplo g1: {"ts": "2026-07-26T10:45:14Z", "rec": "c238_gen", "geracao": 1, "iter": 1, "fe": 22, "criterion": "Euclidean", "norm_min": [0.001620903509469418, 0.18268371865167302], "norm_max": [0.9916745470611366, 7.611906080607454], "norm_range_efetivo": [0.9900536435516671, 7.429222361955781], "n_amostra": 21, "n_treino": 21, "n_dedup": 0, "n_front": 7, "theta_min": [624.9259366051979, 1000], "theta_max": [811.8165811580086, 1000], "theta_media": [718.3712588816032, 1000], "lnL": [25.672514777000764, 27.836271441561045], "ga_pop": 20, "ga_gens": 200, "eim_best": 0.085323074443593, "eim_mediana_pool": 0.085323074443593, "y_best": 0.085323074443593, "u_best": [0.4640706674691236, 0.08329681983938195], "s_best": [0.19635664816985052, 0.19090707630688256], "infill_sid": 21, "lote": 1, "fe_iter": 1, "min_dist_infill": 0.037883970983419696, "stall_iters": 0, "n_eim_nan": 0, "n_range0": 0, "tempo_fit_s": 1.87606, "f_best": [0.001620903509469418, 0.18268371865167302], "n_front1": 8, "fe_treino_max": 20, "tempo_busca_s": 0.848529, "tempo_geracao_s": 3.055318, "tempo_pred_sonda_s": 0.224361, "dist_min_arquivo": 0.037883970983419696, "modelo_hp": {"modelo": "OK-Forrester", "theta0": 1, "theta_bounds": "
+    tempo_aval_real_s      presente=0/40  nao-nulo=0
+    min_dist_infill        presente=40/40  nao-nulo=40
+    eim_best               presente=40/40  nao-nulo=40
+    eim_mediana_pool       presente=40/40  nao-nulo=40
+    criterion              presente=40/40  nao-nulo=40
+    ga_pop                 presente=40/40  nao-nulo=40
+    ga_gens                presente=40/40  nao-nulo=40
+    n_front                presente=40/40  nao-nulo=40
+    n_front1               presente=40/40  nao-nulo=40
+    f_best                 presente=40/40  nao-nulo=40
+    norm_min               presente=40/40  nao-nulo=40
+    norm_max               presente=40/40  nao-nulo=40
+    modelo_hp              presente=40/40  nao-nulo=40
+    n_eim_nan              presente=40/40  nao-nulo=40
+    n_range0               presente=40/40  nao-nulo=40
+    n_dedup                presente=40/40  nao-nulo=40
+    fe_treino_max          presente=40/40  nao-nulo=40
+  header: {"ts": "2026-07-26T10:45:09Z", "rec": "header", "alg": "c238", "problema": "MMF1", "semente": 42, "D": 2, "M": 2, "regime": "online", "maxfe": 61, "doe_hash": "b4682dc218d24077819efadd43764db3ed8403bb3e48c5c8cf66329cc191fcc7", "algo": "c238-EIM-embrulho-N5", "criterion": "Euclidean (EIMe — default do driver; paper nao elege)", "kriging": "OK-Forrester proprio (nao-DACE), kernel gaussiano, ARD 1xD", "theta0": 1, "theta_bounds": "[1e-3,1e3]", "mle": "fmincon sqp em log10(theta), single-start, MaxFunEvals=20D", "nugget": "(10+n)*eps", "ga": "pop=10D, 200 ger (CODIGO; paper DE — B10.2)", "sigma_dict": "mu_j/sigma_j=media/sqrt(max(mse,0)) do kriging proprio POR OBJETIVO, no ESPACO DO MODELO (y min-max por iteracao — paper; C3 transf_params={min,range} -> cru=mu*range+min)"}
+  footer: {"ts": "2026-07-26T10:45:22Z", "rec": "footer", "status": "ok", "fe_final": 61, "maxfe": 61, "n_geracoes": 41, "cache_hits": 1, "cp_init": true, "termino": "normal"}
+
+====================================================================================================
+C) ③ surrogate — regimes presentes (smoke vs s42)
+====================================================================================================
+
+[smoke] linhas=42800 cols=['algoritmo', 'problema', 'semente', 'regime', 'geracao', 'x0', 'x1', 'real_solution_id', 'mu_0', 'mu_1', 'sigma_0', 'sigma_1', 'pred_tipo', 'pred_classe', 'pred_score', 'pred_confianca', 'modelo_flag', 'espaco_modelo', 'transf_tipo', 'transf_params', 'fe_treino_max']
+  regimes: {'sonda': 42000, 'online': 800}
+  espaco_modelo: {'cru': 42000, 'transformado': 800}
+  transf_tipo: {'None': 42000, 'minmax': 800}
+  modelo_flag: {'OK-Forrester': 42800}
+  pred_tipo: {'valor': 42800}
+
+[s42] linhas=42800 cols=['algoritmo', 'problema', 'semente', 'regime', 'geracao', 'x0', 'x1', 'real_solution_id', 'mu_0', 'mu_1', 'sigma_0', 'sigma_1', 'pred_tipo', 'pred_classe', 'pred_score', 'pred_confianca', 'modelo_flag', 'espaco_modelo', 'transf_tipo', 'transf_params', 'fe_treino_max']
+  regimes: {'sonda': 42000, 'online': 800}
+  espaco_modelo: {'cru': 42000, 'transformado': 800}
+  transf_tipo: {'None': 42000, 'minmax': 800}
+  modelo_flag: {'OK-Forrester': 42800}
+  pred_tipo: {'valor': 42800}
+
+====================================================================================================
+D) PAR G-6 (nao-perturbacao) — c238/MMF1
+====================================================================================================
+  COM sonda: {"artefato": "/tmp/g6_com/sonda/sonda_MMF1.parquet", "x_hash": "186b726e7d62abaa46a814ce785a97727367ec1c10f936570b6a49ad20e9f59f", "f_hash": "0d6547d63f920a20740de1282b89f9f9738b5714d1a719dae43f49f3670f5497", "regime": "online", "S": 2000, "k": 2, "n_blocos": 21, "n_linhas": 42000, "n_falhas": 0, "tempo_total_s": 1.2209153750000001, "desligada": false, "geracoes": [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]}
+  SEM sonda: {"artefato": "/tmp/g6_sem/sonda/sonda_MMF1.parquet", "x_hash": "186b726e7d62abaa46a814ce785a97727367ec1c10f936570b6a49ad20e9f59f", "f_hash": "0d6547d63f920a20740de1282b89f9f9738b5714d1a719dae43f49f3670f5497", "regime": "online", "S": 2000, "k": 2, "n_blocos": 0, "n_linhas": 0, "n_falhas": 0, "tempo_total_s": 0, "desligada": true, "geracoes": []}
+  fe_final : 61 61 | status: ok ok
+  __real       sha256 IDENTICO | linhas COM=61 SEM=61 | 43f533269741c82f 43f533269741c82f
+  __pop        sha256 IDENTICO | linhas COM=1681 SEM=1681 | b93cc44bc117dca6 b93cc44bc117dca6
+  __surrogate  sha256 DIFERE | linhas COM=42800 SEM=800 | 94490dffe7b2ef28 e6f917c7aec12da3
+  __timing     sha256 DIFERE | linhas COM=40 SEM=40 | 43edd7cd89d8b98d 06a2ce7c2045a4c5
+Traceback (most recent call last):
+  File "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/t11/baterias/c238/t1_smoke_instrumentacao.py", line 130, in <module>
+    print(f"  ① max|ΔX| = {np.abs(da[xc].values-db[xc].values).max():.3e} | max|Δf| = {np.abs(da[fc].values-db[fc].values).max():.3e}")
+                                                                                              ~~~~~~~~~~~~~^~~~~~~~~~~~~~
+TypeError: unsupported operand type(s) for -: 'str' and 'str'

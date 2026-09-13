@@ -1,0 +1,111 @@
+{
+ "problema": "swap_medium-mvns_ZDT4",
+ "adapt": [
+  {
+   "gen_arquivada": 1,
+   "amp": [
+    0.9754710495471954,
+    173.09133318564673
+   ],
+   "amp_min": 0.9754710495471954,
+   "amp_exato_zero": false,
+   "n_amp_zero": 0,
+   "linhas_norma0": 0,
+   "n_linhas": 50,
+   "norma_min": 0.9999999999999999,
+   "norma_max": 1.0,
+   "nan_values": 0
+  },
+  {
+   "gen_arquivada": 12,
+   "amp": [
+    4.887580871582031e-06,
+    0.4212740919478204
+   ],
+   "amp_min": 4.887580871582031e-06,
+   "amp_exato_zero": false,
+   "n_amp_zero": 0,
+   "linhas_norma0": 0,
+   "n_linhas": 50,
+   "norma_min": 0.9999999999999999,
+   "norma_max": 1.0,
+   "nan_values": 0
+  },
+  {
+   "gen_arquivada": 22,
+   "amp": [
+    3.546476364135742e-06,
+    1.6264753248381982
+   ],
+   "amp_min": 3.546476364135742e-06,
+   "amp_exato_zero": false,
+   "n_amp_zero": 0,
+   "linhas_norma0": 0,
+   "n_linhas": 50,
+   "norma_min": 0.9999999999999999,
+   "norma_max": 1.0000000000000002,
+   "nan_values": 0
+  },
+  {
+   "gen_arquivada": 32,
+   "amp": [
+    0.0,
+    0.0
+   ],
+   "amp_min": 0.0,
+   "amp_exato_zero": true,
+   "n_amp_zero": 2,
+   "linhas_norma0": 50,
+   "n_linhas": 50,
+   "norma_min": 0.0,
+   "norma_max": 0.0,
+   "nan_values": 0
+  }
+ ],
+ "iterates": [
+  {
+   "iterate": 1,
+   "chamadas_do": 500,
+   "subst": 1960,
+   "p_nan": 0,
+   "p_zero": 0,
+   "p_maior05": 1960,
+   "p_n": 10000,
+   "p_med": 0.4292475
+  },
+  {
+   "iterate": 2,
+   "chamadas_do": 500,
+   "subst": 1720,
+   "p_nan": 0,
+   "p_zero": 0,
+   "p_maior05": 1720,
+   "p_n": 10000,
+   "p_med": 0.29655699999999996
+  },
+  {
+   "iterate": 3,
+   "chamadas_do": 500,
+   "subst": 1691,
+   "p_nan": 0,
+   "p_zero": 0,
+   "p_maior05": 1691,
+   "p_n": 10000,
+   "p_med": 0.071908
+  },
+  {
+   "iterate": 4,
+   "chamadas_do": 500,
+   "subst": 0,
+   "p_nan": 0,
+   "p_zero": 10000,
+   "p_maior05": 0,
+   "p_n": 10000,
+   "p_med": 0.0
+  }
+ ],
+ "pbi_nan": 20000,
+ "pbi_tot": 80000,
+ "gens_iguais": 41,
+ "n_gens_conferidas": 41
+}

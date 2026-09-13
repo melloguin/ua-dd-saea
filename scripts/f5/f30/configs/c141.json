@@ -1,0 +1,368 @@
+{
+ "config": "c141 (MMRAEA · Shen et al. 2025 · Complex & Intelligent Systems 11:147) · exp=main · campanha completa de 30 sementes (750 células · 25 problemas). Artigo em `/Users/gmello/Documents/python_repos/mestrado/arquivos/Revisão Bibliográfica/corpus_artigos/_artigos_markdown/c141. Optimization of High-Dimensional Expensive Multi-Objective Problems Using Multi-Mode Radial Basis Functions.md`. Código: repo_hash `63db46b100635a5cc21e8f5594271f481bc41416` em 749/749 manifestos (elo D80 fechado, valor ÚNICO). MEDIDO por `git diff 195f64ed..63db46b1 -- src/c141_instrument.m src/c141_sonda.m algorithms/c141_MMRAEA src/FEBudget.m src/SondaState.m` = VAZIO: o binário que produziu as 750 células é byte-idêntico ao que a T11 validou (últimos commits do mecanismo em 2026-07-19). Artefatos desta auditoria (só leitura do acervo; nada escrito no repo; nenhuma invocação de experiments.py/experiment.run): /private/tmp/claude-501/-Users-gmello/33c29160-6eb6-4277-a041-db4855486063/scratchpad/c141/{scan_universal.py,scan_ciclos.py,deep_joia.py,deep_kernel.py,n3_metricas.py,n3_fantasia.py,n3_regua.py,n4_deriva.py} → {u30_universal.csv, u30_ciclos.csv, u30_joia.csv, u30_kernel.csv, u30_metricas.csv, u30_fantasia.csv, u30_regua.csv, u30_deriva.csv}. Interpretador: /Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao/bin/python.",
+ "cobertura": "CENSO: 750/750 células ok (25 problemas × 30 sementes), 0 ⚪ e 0 fail — confere com `f5/f30/censo_completo_22.csv` filtrado em alg=c141. COBERTURA POR CAMADA: ⑤+⑥ (manifesto+jsonl) = **750/750 = 100%** varridos linha a linha em streaming (58.360 eventos `c141_gen`, 30.398 eventos `sonda`, 2.537 `guard`, 749 header+footer) — 1 célula (ZDT4/9) com ⑥ truncada, ver classe (3) C3-A. ① (`__real.parquet`) = **750/750** para métricas, + 4 pisos (nsga2/nsga3/smsemoa/moead) × 750 = **3.750 células** medidas. ③ (`__surrogate.parquet`) = **750/750** para a fantasia genuína (222.317 linhas com `real_solution_id`); **74 células × 3 gerações = 222 pontos-teste** para a query-joia (reconstrução do kernel + cascata + σ) e 74.445 pares (linha,objetivo) para a interpolação; **175 células × 2 blocos = 350 blocos Sobol** (700.000 predições) para a régua global. Duplicatas cross-VM: **41/41 pares** medidos. COMO AMOSTREI (determinístico, sem aleatório oculto): (a) query-joia = 25 problemas × 3 sementes com deslocamento `SEEDS[(3·i+k) mod 30]`, i=índice do problema, SEEDS={0..28,42} → varre AS 30 SEMENTES e OS 25 PROBLEMAS (74 células; ZDT4/9 caiu fora por não ter ⑥); dentro de cada célula, gerações {primeira, mediana, última}; (b) régua Sobol = 7 sementes fixas espalhadas {0,5,11,17,23,28,42} × 25 problemas, blocos primeiro e último; (c) DoE = 2 sementes sorteadas por problema (random.seed(1)) = 50 células; (d) duplicatas = população completa (41). Nada foi lido \"todo\": os parquets ③ foram lidos com projeção de coluna + filtro `regime` no pyarrow.",
+ "N1_invariancia": "A query-joia do c141 (cascata de níveis sobre kernel MQ c=1 / poly=0 / SEM scaling) foi RECONSTRUÍDA DO ZERO em **222 pontos-teste = 74 células cobrindo os 25 problemas e as 30 sementes**. Resultado peça a peça: (i) **KERNEL (F1)** — reconstruindo μ a partir da ① com X CRU, MQ c=1, poly=0 e `np.linalg.solve` (LU, o equivalente do `mldivide` denso; NÃO usei lstsq/SVD, que trunca valores singulares e é regularização implícita), o erro relativo mediano contra a ③ é **1,37e-04** (p95 2,43e-02), inteiramente compatível com o float32 do export (D53) amplificado por cond(Φ). Contra **10 variantes estruturais** (MQ c=0,5/2/5, gaussiana, inversa-multiquádrica, cúbica, linear, thin-plate, cauda polinomial grau 1, e MQ c=1 COM scaling min-max de X) o oficial vence **individualmente cada uma em 201–222 dos 222 pontos (90,5%–100%)** e vence **as 10 simultaneamente em 166/222 = 74,8%**, com ≥1 vitória em **25/25 problemas** e **73/74 células**; a razão mediana (melhor variante estrutural)/(oficial) é **1,87×**, e por variante vai de 4,5× (scaled) a 187× (gaussiana). Os 25,2% em que o oficial não vence TODAS simultaneamente concentram-se onde a reconstrução inteira é instável — a correlação de Spearman entre log10(1/cond Φ) e o erro do oficial é **0,752**, e no bin 1/cond<1e-12 a vitória sobe para 91,7%. (ii) **INTERPOLAÇÃO SEM REGULARIZAÇÃO (F2)** — μ−f é **EXATAMENTE 0,0 em 73.438 de 74.445 pares (98,647%)** nas 74 células (a T11 mediu 98,571% em 1 semente: **reproduz**), com 46/74 células a 100% de zeros e resíduo relativo p95 máximo **2,72e-07** (abaixo do eps-float32). Um ridge de 1e-8 é indistinguível no espaço do artefato (razão mediana 1,00003) — quem o exclui é este teste, não o de kernel. (iii) **NÍVEL 1 = F1(Ptot∪A)∩Ptot com ARQUIVO VERDADEIRO (F3)** — bate o `n_front1` logado em **178/222 = 80,2%** com arquivo verdadeiro contra **161/222 = 72,5%** com arquivo predito; nos **30 pontos discriminativos** (onde as duas hipóteses divergem) o VERDADEIRO acerta **18** e o predito **1**. (iv) **Fit1 = SDE Eq.7 min-max (F4)** — rel<1e-5 em **219/222 = 98,6%** (erro relativo mediano 1,72e-07); condicionado a F3 fechar, **177/178 = 99,4%**. (v) **σ_0 = U de ranks do POOL COMPLETO (F7)** — σ_0 inteiro em 222/222 blocos, 0 NaN, e a identidade `max(σ_0) ≡ U_pool_max` do ⑥ fecha em **222/222** (na s42 fechava em 90,0%). VEREDITO N1: **a identidade estrutural do c141 é invariante de semente**. FRAÇÃO E ERRO MÁXIMO: as identidades exatas (σ_0≡U_pool_max, integralidade, pool=2N, teto de U) valem em **222/222 e 58.360/58.360**; as identidades sujeitas ao teto float32 valem em 80,2% (nível 1), 98,6% (Fit1), 98,647% (interpolação); **erro máximo medido em qualquer reconstrução: 5,31e-02 relativo (kernel, ZDT6 semente 12, 1/cond=2,07e-19)** e **2,72e-07 relativo (resíduo de interpolação)**. **NENHUMA semente quebra uma identidade que as outras 29 respeitem** — os resíduos são contínuos em cond(Φ), não categóricos por semente.",
+ "N2_tetos_caidos": "A T11 deixou **1 aspecto T (C5, o miolo do código)** e uma lista de 5 itens em §9 \"o que este corpus NÃO permite verificar\". Caíram: **(a) §9-item-3 \"o comportamento sob 30 sementes — tudo aqui é semente 42\"** → CAIU INTEIRO: todas as identidades acima estão agora medidas em 750 células. **(b) §9-item-2 \"se o c141 é fiel em D≥12 no CÓDIGO DE HOJE — o único smoke é MMF1 D=2, 61 FE, 10 ciclos\"** → CAIU: `git diff 195f64ed..63db46b1` nos 5 arquivos do caminho do c141 é VAZIO, logo a campanha inteira É o código de hoje, incluindo ZDT1 D=30 (mediana 153 ciclos, 929 FE), DTLZ7/WFG D=22 e MMF16_20 D=20; a cascata reconstrói nesses regimes com os números do N1. **(c) §9-item-4 \"se `mldivide` degrada diferente em D alto entre arquiteturas — o par de máquinas só existe em MMF1\"** → CAIU PARCIALMENTE: as 41 duplicatas cobrem D=2,7,10,12,20,22,30 (ver N4). **(d) C4/DEF-L4 \"guard `+eps` do SDE: 0 disparos, instalado e nunca necessário\"** → AGORA MENSURÁVEL E DISPAROU: **4 eventos `{\"rec\":\"guard\",\"name\":\"sde_eps\",\"site\":\"infill_fit1\"}`**, todos em MMF1, sementes **1, 18, 19, 26** (gerações 10, 9, 9, 14). Taxa: 4/58.360 ciclos = 0,0069%; 4/30 células de MMF1 = 13,3% das réplicas do problema onde o front colapsa. O hazard \"SDE via min-max → NaN se fmax=fmin\" do bundle é REAL e o guard é NECESSÁRIO — a s42 simplesmente não o exercitou. **(e) determinismo/reprodutibilidade do MIOLO de C5 (CSO r1/r2 escalares, SBX/PM, ES_PDR, as 20 gerações internas do bi-pop)** → PARCIALMENTE MENSURÁVEL: **30 dos 41 pares de duplicatas são BIT-IDÊNTICOS na ① inteira** (max|ΔX| = 0,0), incluindo a sequência completa de lotes e os cache-hits, em problemas de até 929 FE e 173 gerações. Isso prova que TODO o miolo não-logado é determinístico e reprodutível sob shape de CPU fixo — não identifica as fórmulas (C5 permanece T para a IDENTIFICAÇÃO), mas fecha a metade \"determinismo\" do teto. **(f) fórmula de semeadura (D62/SeedSequence)** → MEDIDA: os **749 `doe_hash` são 749 valores DISTINTOS**, 30 distintos por problema e 25 distintos por semente (função injetora de (problema,semente)); o DoE injetado (D63/D88/D94) é **bit-exato em float32 em 50/50 células amostradas** (max|ΔX| = 0,0) contra `data/doe/{pb}/doe_{pb}_{seed}.parquet`, e `|fase=='init'| == 11D−1` em 749/749. **(g) taxa de sucesso** → 750/750 = 100% (ver N5). PERMANECEM T: a identificação das fórmulas do miolo (C5); o mecanismo abaixo do float32 (teto D53); F9 (o papel de Pb=argmax U) porque o ⑥ da campanha registra `n_por_nivel.selecionados == lote` em 57.976/57.976 ciclos e NÃO separa Pa de Pb — não repeti a medida da F5/T11 (87,80% em s42); U11 (não-perturbação da sonda) porque a campanha tem `sonda.desligada=false` em 749/749 e não há par G-6 — herdado da T11, não re-medido.",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "Protocolo estatístico: 'The number of independent runs of each instance is set to 20, and the Wilcoxon rank sum test is adopted to each test instance with the significance level of 0.05'",
+   "onde_no_artigo": "§Experimental studies on benchmark problems (linha 305 do .md)",
+   "testavel_com_30": true,
+   "resultado": "EXECUTADO. Nossa campanha tem 30 réplicas (>20). Apliquei o teste do próprio artigo (rank-sum, α=0,05) em c141 × cada um dos 4 pisos, nos 25 problemas = 100 comparações por métrica, com HV e IGD+ recomputados por mim para 3.750 células. PLACAR HV: 64 vitórias · 10 derrotas · 26 empates. PLACAR IGD+ (endpoint primário D70): 67 · 14 · 19; rank 1/5 em 18/25 problemas, rank médio 1,80. Calibração: meu HV bate |Δ|=0,0 EXATO contra `f5/metricas_finais_f52c.csv` nas 125 células de s42, e |ND| bate 125/125; meu IGD+ bate a 1,5e-15 mediano nos 2-obj e diverge até 26% nos 3-obj (meu ref-set é subamostra por passo, não o re-espaçamento fino) — mesmo ref-set para os 5 algoritmos, logo as comparações internas são válidas."
+  },
+  {
+   "afirmacao": "'For DTLZ2 with regular PF, MMRAEA significantly outperforms other algorithms on all the test instances'",
+   "onde_no_artigo": "§Comparison with state-of-the-art (linha 573)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMA (direcional, contra os 4 pisos e não contra os baselines do paper). DTLZ2 D=12: 4/4 vitórias em HV e em IGD+, todas com p = 2,9e-11; HV mediano 0,7157 × 0,4020 do melhor piso; IGD+ 0,0397 × 0,1488 (razão 0,267); rank 1/5. É também o problema mais ESTÁVEL do config depois do BBOB_F1: CV(HV) = 0,0059 entre as 30 sementes."
+  },
+  {
+   "afirmacao": "'DTLZ7 which has a disconnected PF, MMRAEA significantly outperforms the compared algorithms on all the test instances'",
+   "onde_no_artigo": "§Comparison with state-of-the-art (linha 581)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMA, e é a maior margem do config. DTLZ7 D=22: 4/4 vitórias em HV e IGD+ com p = 2,9e-11; IGD+ 0,0545 × 1,0267 do melhor piso (razão 0,053, 19×); HV 0,509 contra HV=0,000 dos quatro pisos. |ND| mediano 177,5."
+  },
+  {
+   "afirmacao": "'MMRAEA shows the best performance on nearly all the instances of the ZDT test suite, except for ZDT3 with 20 decision variables and ZDT4 problems'",
+   "onde_no_artigo": "§Comparison with state-of-the-art (linha 583)",
+   "testavel_com_30": true,
+   "resultado": "PARCIALMENTE REFUTADA na nossa grade. A parte 'best on nearly all ZDT' CONFIRMA com folga: ZDT1 D=30 4/4 p=2,9e-11 (IGD+ razão 0,026, 38×); ZDT6 D=10 4/4 p=1,0e-07 (razão 0,017, 59×). Mas as DUAS EXCEÇÕES DECLARADAS NÃO se reproduzem como exceções: ZDT3 vence 4/4 (p≤9,3e-10, razão 0,438) e ZDT4 vence 4/4 em IGD+ (27,85 × 34,95, razão 0,797). CAVEAT que impede leitura forte: ZDT4 tem HV=0 em 30/30 sementes e |ND| mediano 3 (8 sementes com |ND|=1) — o c141 'ganha' em ZDT4 porque todos colapsam, e ele colapsa menos longe. Eixo X: nossas dimensões (D=30 no ZDT1/3; D=10 no ZDT4/6) não são as d∈{20,40,60,100} do paper."
+  },
+  {
+   "afirmacao": "'DTLZ1 and DTLZ3 are two problems with a large number of local optima... All the algorithms show poor performance on the two problems. Comparatively, MCEA/D shows the best performance on the two problems, and MMRAEA ranks second'",
+   "onde_no_artigo": "§Comparison with state-of-the-art (linha 573)",
+   "testavel_com_30": true,
+   "resultado": "A FRAQUEZA CONFIRMA, A POSIÇÃO NÃO. 'All algorithms poor': HV=0 em 30/30 sementes para os CINCO algoritmos, em DTLZ1 e em DTLZ3 — nenhum ponto abaixo do ref 1,1 normalizado, em 150 execuções. 'MMRAEA ranks second' NÃO se reproduz contra os pisos: em IGD+ o c141 é o PIOR dos 5 no DTLZ1 (76,43 × 47,02 do moead; 0 vitórias, 3 derrotas, 1 empate) e 4/5 no DTLZ3 (226,9 × 175,6; 1 vitória, 2 derrotas, 1 empate). O ranking do paper é contra outros SAEAs, não contra MOEAs de piso — registro como incomensurável na POSIÇÃO e confirmado no SENTIDO."
+  },
+  {
+   "afirmacao": "'DTLZ4 is a variant of DTLZ2 which is hard to achieve a well-distributed set of solutions. MOEA/D-RBF and MCEA/D achieve the top two... EDN-ARMOEA performs best on DTLZ4 with 20 decision variables' (isto é: MMRAEA NÃO vence em DTLZ4)",
+   "onde_no_artigo": "§Comparison with state-of-the-art (linha 581)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMA, com mecanismo medido. DTLZ4 D=12: 0 vitórias, 2 derrotas (nsga3 p=1,8e-04; smsemoa p=1,5e-06), 2 empates em HV; IGD+ razão 1,513, rank 4/5. E a CAUSA é medida: DTLZ4 tem a PIOR acurácia global de surrogate entre os 25 problemas depois de ZDT6/WFG5 — correlação de Spearman mediana no último bloco Sobol = 0,119 (7 sementes, sd 0,046), com a amplitude de μ 3,3× a amplitude verdadeira de f. É o α=100 (x^100 vira quase função-degrau) contra multiquádrica c=1 sem scaling. Além disso a dispersão entre sementes é quase total: HV vai de 0,003 a 0,265 (amplitude relativa 99,0%)."
+  },
+  {
+   "afirmacao": "'It can be concluded that RBFs are not suitable for approximating the objective functions of the WFG problems, and the SVM classifiers perform well on them'",
+   "onde_no_artigo": "§Comparison with state-of-the-art, parágrafo das WFG (linha 585)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA POR DADO — e é o teste mais forte desta auditoria para o artigo. Régua Sobol (2.000 pontos fixos, join posicional, max|ΔX| = 1,9e-06 = 1 ULP-float32) no ÚLTIMO bloco de 175 células: correlação de Spearman(μ, f) mediana **WFG = 0,217 (n=35 blocos) × não-WFG = 0,821 (n=140)**, Mann-Whitney **p = 3,53e-12**. As 5 WFG ocupam as posições 2ª, 4ª, 5ª, 7ª e 9ª PIORES do ranking de 25 problemas (WFG5 0,087 · WFG4 0,151 · WFG9 0,217 · WFG2 0,378 · WFG1 0,448). A afirmação é ESTÁVEL entre sementes: desvio-padrão da correlação nas 7 réplicas é 0,023–0,113 nas WFG. RESSALVA QUE O ARTIGO NÃO PREVIU: a inadequação é GLOBAL, não LOCAL — nos pontos que o algoritmo de fato escolhe (222.317 linhas de fantasia genuína) a correlação nas WFG é 0,47–0,88, e o desempenho NÃO colapsa (WFG5 vence 4/4 pisos com p=2,9e-11; WFG9 1 vitória + 3 empates). Ou seja: o modo de RBF é ruim no espaço todo e utilizável na vizinhança do arquivo, e é a cascata que compensa."
+  },
+  {
+   "afirmacao": "'Since MMRAEA utilizes the estimation information of multi-mode RBFs, it should have a more accurate prediction of the quality of candidate solutions and shows strong robustness on different kinds of MOPs'",
+   "onde_no_artigo": "§Effectiveness of multi-mode RBFs (linha 345)",
+   "testavel_com_30": true,
+   "resultado": "PARCIALMENTE REFUTADA — só 30 réplicas podiam testar isto, e ela não se sustenta como afirmação distribucional. CV(HV) entre as 30 sementes: mediana 0,043, mas amplitude de **0,0020 (BBOB_F1) a 0,817 (ZDT6)**, ou seja 400×. Em 5 problemas o resultado é instável ou bimodal: ZDT6 (HV=0 em 6/30 sementes; amplitude relativa 100%), DTLZ4 (99,0%), BBOB_F55 (80,8%), ZDT3 (73,6%), WFG9 (62,4%). Em 3 problemas o resultado é degenerado em 30/30 (DTLZ1, DTLZ3, ZDT4, HV=0). 'Strong robustness on different kinds of MOPs' descreve bem 12 dos 25 problemas (CV<0,05) e descreve mal os outros 13."
+  },
+  {
+   "afirmacao": "'Firstly, MMRAEA only uses RBFs as surrogate models, which may be caught in a dilemma when the RBF models show low accuracy'",
+   "onde_no_artigo": "§Conclusion / limitações declaradas (linha 767)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA ENTRE PROBLEMAS, REFUTADA ENTRE SEMENTES — resultado que exige exatamente 30 réplicas. ENTRE problemas o dilema é nítido: os 5 problemas de pior surrogate (ZDT6 0,123 · MMF1 0,210 · ZDT4 0,317 · DTLZ1 0,335 · WFG1 0,469 de Spearman na fantasia) são exatamente os de HV degenerado ou instável, e os 5 melhores (BBOB_F1 0,999 · BBOB_F5 0,997 · BBOB_F55 0,993 · DTLZ2 0,985 · DTLZ7 0,984) são exatamente os de 4/4 vitórias. DENTRO de cada problema, porém, a acurácia do surrogate NÃO prevê qual semente vai bem: Spearman(acurácia, HV) entre as 30 sementes é positiva em 17/22 problemas mas significativa (p<0,05) em apenas 5 — DTLZ7 ρ=0,684 (p<1e-4), BBOB_F55 0,452, BBOB_F5 0,396, BBOB_F17 0,371, e uma NEGATIVA significativa: **ZDT3 ρ=−0,464 (p=0,0098)**, onde as sementes de surrogate melhor terminam PIOR. Leitura: a acurácia do RBF explica QUAL problema é difícil, não QUAL execução terá sorte."
+  },
+  {
+   "afirmacao": "'the maximum number of new samples in each generation is set to 5' (u=5; Alg.3 l.3 e l.9 'if |P| > u')",
+   "onde_no_artigo": "§Parameter settings, item 5 (linha 337) + Algorithm 3 (linha 271)",
+   "testavel_com_30": true,
+   "resultado": "REFUTADA no código oficial em escala — e já sancionada por v2.2/DI-18, portanto classe (2), não (3). Distribuição do lote nos 58.360 ciclos: 1:734 · 2:10.273 · 3:19.470 · 4:15.467 · 5:7.878 · 6:3.036 · 7:1.048 · 8:290 · 9:104 · 10:31 · 11:13 · 12:5 · 13:2 · 14:5 · 15:3 · **19:1**. Lote>5 em **4.538/58.360 = 7,8%**, máximo **19** (ZDT6) — sob u=5 nada passaria de 6 e a cauda 7–19 seria impossível. O gatilho real ('resta >1 candidato') está provado com força nova: **0 saídas no nível 1 em 58.360 ciclos** e **as 384 saídas do nível 2 têm TODAS n_front2 == 1** (384/384); ramo (Q,U) em 57.976/58.360 = 99,34%; lote ≥ 1 em 58.360/58.360 (a 'iteração 0-FE' prevista pelo bundle nunca ocorreu)."
+  },
+  {
+   "afirmacao": "'The population size N is set to 50, wmax is set to 20' e '|P1| = |P2| = |Ptot| = 100' na ablação",
+   "onde_no_artigo": "§Parameter settings item 5 (linha 337) e §Effectiveness of bi-population (linha 351)",
+   "testavel_com_30": false,
+   "resultado": "Não é afirmação distribucional — é parâmetro, e o desvio já é sancionado (D20/DEF-A5/B12.6: N = min(100, 11D−1) POR subpopulação, com o piso anti-crash da faixa D≤4). MEDIDO em 100% mesmo assim: `N_subpop == min(100, 11D−1)` em 749/749; `n_pool == 2N` e `n_sub1 == n_sub2 == N` em **58.360/58.360 ciclos**; `n_por_nivel.entrada == 2N` em 58.360/58.360; wmax=20 e kernel 'MQ c=1 poly=0 x3' e ds_dsmerge=1e-14 idênticos em 749/749 (eco declarativo). As 90 células D=2 (MMF1, MMF4, MMF11_L × 30 sementes) rodaram com N=21 e status ok em 90/90 — o fix anti-crash de `ES_PDR.m:20` sobreviveu a 30 réplicas."
+  },
+  {
+   "afirmacao": "'the solution with the maximum values of uncertainty is also selected for re-evaluation' (Pb = argmax U é ponto EXTRA)",
+   "onde_no_artigo": "§Sampling strategy (linha 261) + Alg.3 l.15",
+   "testavel_com_30": false,
+   "resultado": "NÃO MEDIDO nesta campanha: motivo declarado — o ⑥ registra `n_por_nivel.selecionados == lote` em 57.976/57.976 ciclos de nível 3 e portanto NÃO separa |Pa| de |Pa ∪ Pb|; reconstruir Pa exige Q e U por indivíduo, e o ⑥ só grava {min,med,max} e a ③ só grava μ (não Fit2/Fit3 por indivíduo). Herdado da F5/T11 (Pb extra em 1.727/1.967 = 87,80% na s42). Para medir em 30 sementes seria preciso re-derivar Fit2/Fit3 do modelo, o que não é reconstruível sem os alvos SDE/front-number logados."
+  },
+  {
+   "afirmacao": "Ablações: 'MMRAEA significantly outperforms MMRAEA-GA and MMRAEA-CSO on 38 and 17 out of 48 instances' e as 3 variantes de modo único",
+   "onde_no_artigo": "§Effectiveness of bi-population (linha 353) e §Effectiveness of multi-mode RBFs (linha 345)",
+   "testavel_com_30": false,
+   "resultado": "NÃO TESTÁVEL: as variantes MMRAEA-CSO, MMRAEA-GA e as 3 de modo único não existem na nossa bateria (não foram portadas). Fora do escopo desta campanha; registro como teto do desenho experimental, não do dado."
+  }
+ ],
+ "N4_deriva": "MEDIDA na população COMPLETA de duplicatas: **41 pares** de células (mesmo problema, mesma semente) presentes em 2 espelhos de VM distintos (`~/mestrado_coleta_m8/matlab-vm{1,2,5}/experiments/main/c141/`) — 24 pares de semente 7 (vm1×vm5, cobrindo 24 dos 25 problemas) mais 17 pares esparsos. Contexto de controle: `doe_hash` IGUAL em 41/41, `repo_hash` igual em 41/41 (63db46b1…), versão do MATLAB igual em 41/41 (25.1.0.2973910 R2025a Update 1), `plataforma` = 'Linux/x86_64' em 41/41, e as **linhas de `init` bit-idênticas em 41/41**. RESULTADO: **30 dos 41 pares são BIT-IDÊNTICOS na ① inteira** — max|ΔX| = **0,0 exato**, sequência de lotes idêntica, `cache_hits` idêntico, **ΔHV = 0,000000%** — em problemas de até D=30 / 929 FE / 173 gerações. Os **11 pares divergentes** divergem, em **10 dos 11**, exatamente no **PRIMEIRO INFILL** (`fe_index` = 11D−1 = 21, 109, 219, 241 ou 329); o 11º (ZDT1/27) diverge 3 FE depois. A REGRA QUE SEPARA OS 41 PARES COM 100% DE ACERTO (0 falsos positivos, 0 falsos negativos): **uma das cópias foi produzida em vm5/matlab-vm5 em ou após 2026-08-14** — que é a data em que a vm5 virou e2-standard-32 com CPU não fixada pelo GCP (Proveniência §1 do briefing). Todos os 30 pares bit-idênticos têm as duas cópias em shapes anteriores; todos os 11 divergentes têm exatamente uma cópia pós-troca. MAGNITUDE DA DERIVA, em HV normalizado (ref 1,1, D69/D92): nos 30 pares de mesmo shape, **0,000%**; nos 11 pares que cruzam a fronteira de shape, **mediana 4,65%**, p90 24,8%, **máximo 100,0%** (ZDT6 semente 11: HV 0,4108 numa cópia e 0,0000 na outra — a mesma semente colapsa numa máquina e não na outra). Por par: ZDT1/12 0,05% · MMF16_20/12 0,42% · ZDT1/27 0,33% · BBOB_F5/10 1,20% · WFG2/12 2,93% · WFG4/12 4,65% · MMF4/13 5,42% · WFG5/12 6,84% · BBOB_F49/12 23,99% · WFG9/12 24,77% · ZDT6/11 100,0%. **7 dos 11 excedem o piso O-18 de HV (1,55%)**, e o excesso máximo é 64×. ESCOPO DA CONTAMINAÇÃO NO ACERVO CANÔNICO DO c141: **41 de 749 células (5,5%)** foram criadas em vm5 em/após 2026-08-14; espalham-se pelos **25 problemas** e concentram-se nas sementes **{1, 13, 17, 26}**. INTERPRETAÇÃO (D97, é evidência, não sentença): sob shape de CPU FIXO o c141 é **bit-reprodutível cross-máquina** — o que REFORÇA a fidelidade e derruba a metade 'determinismo' do teto C5; a doutrina RUNBOOK §6.2 ('floats não são bit-idênticos entre plataformas ⇒ fidelidade estatística') é generosa demais para dentro da frota M8 e insuficiente para a fronteira de 14/08. O impacto sobre a FIDELIDADE do mecanismo é NULO (a cascata reconstrói igual dos dois lados); o impacto sobre a COMPARABILIDADE é grande e agora quantificado. CAVEAT medido: **1 célula** (BBOB_F22 semente 17, vm5, created 2026-08-14T15:23:05Z) cai na janela de swap da vm5 (>15:20Z) — só o ④ dela é suspeito, o resultado numérico não.",
+ "N5_cauda": "O c141 é um dos 6 configs com **750/750 = cobertura 100%**: **zero ⚪ e zero fail**, `status='ok'` e `termino='normal'` em 749/749 rodapés (a 750ª, ZDT4/9, tem rodapé 'ok' no espelho da vm5 — ver classe 3 C3-A), `n_retries = 0` em 749/749, 0 linhas malformadas em ~92 mil eventos de ⑥, `contrato_f52b.csv` e `integridade_f52a.csv` sem linha para c141. Portanto a cauda do c141 NÃO é operacional — é **algorítmica**, e ela é reprodutível em 30/30 sementes. AS INCAPACIDADES DETERMINÍSTICAS MEDIDAS: (i) **DTLZ1 — HV = 0 em 30/30 sementes** (|ND| mediano 15,5; IGD+ mediano 76,43); (ii) **DTLZ3 — HV = 0 em 30/30** (|ND| 11; IGD+ 226,9); (iii) **ZDT4 — HV = 0 em 30/30**, e é o pior caso: |ND| mediano **3**, mínimo 1, com **8 das 30 sementes terminando com um único ponto não-dominado** e 21 das 30 com |ND|<5 — colapso quase total do arquivo; (iv) **ZDT6 — HV = 0 em 6/30 sementes** (taxa de sucesso 80%), com HV variando de 0,000 a 0,458 entre réplicas. Total: **96 de 750 células (12,8%) terminam com HV = 0**. O QUE ISSO DIZ SOBRE O ALGORITMO, e o que o artigo previu: DTLZ1/DTLZ3 o artigo **previu** ('All the algorithms show poor performance on the two problems') e a nossa medida CONFIRMA de forma mais dura do que o paper — os 4 pisos também dão HV=0 em 30/30 nesses dois, então é o problema, não o método. ZDT4 o artigo **previu como exceção** ('except for ZDT3 with 20 decision variables and ZDT4 problems') e o dado confirma o SENTIDO, mas o artigo não previu a MAGNITUDE (colapso a 1–3 pontos em 30/30). ZDT6 o artigo declara como um dos seus MELHORES ('best performance on nearly all the instances of the ZDT test suite') e o dado **contradiz parcialmente**: em 6/30 sementes o c141 termina com HV=0, embora em IGD+ ainda esmague os pisos (0,105 × 6,198, razão 0,017) — os pisos dão HV=0 em 30/30 ali. TAXAS DE SUCESSO POR PROBLEMA (HV>0): 21 problemas em 30/30 = 100%; ZDT6 24/30 = 80%; DTLZ1, DTLZ3 e ZDT4 em 0/30 = 0%. MECANISMO da cauda, medido: os 4 problemas colapsados são exatamente os de pior régua Sobol e maior extrapolação da RBF — ZDT6 corr −0,037 e amplitude de μ **35,6× a de f**; DTLZ1 corr 0,617 mas amplitude 10,2×; ZDT4 corr 0,465; DTLZ4 (não colapsa mas quase) corr 0,119 e amplitude 3,3×. Em 132 dos 175 blocos Sobol medidos o μ sai da faixa verdadeira de f. É a assinatura do `mldivide` denso sem regularização com dsmerge frouxo (ds=1e-14): interpola exato nos nós (98,647% de zeros exatos) e diverge fora do suporte — comportamento FIEL ao código oficial, e a causa mecânica da cauda. NADA na cauda do c141 é incapacidade de infraestrutura: não há uma única célula que tenha parado por checkpoint, retry, crash ou orçamento.",
+ "aspectos": [
+  {
+   "id": "U1",
+   "aspecto": "orçamento de FE = 31D−1 com hard-stop exato (não 11d+119 do paper)",
+   "classe": "2",
+   "medicao": "maxfe == 31D−1 == fe_final em 749/749; termino='normal' e status='ok' em 749/749; Σ fe_final = 325.371 FE reais. hard_stop disparou em 567/749 (75,7%) e em 567/567 com fe == maxfe (corte exato, zero overshoot); as 182 células sem guard pousaram exatas — e `hard_stop==0 ⇔ lote_final==1` é identidade perfeita nas 182.",
+   "veredito": "conforme o sancionado (D21/D61); verificabilidade direta; 100% de cobertura",
+   "muda_vs_s42": false,
+   "arquivo_linha": "scratchpad/c141/u30_universal.csv (colunas maxfe_ok, hard_stop, hs_exato, residual)"
+  },
+  {
+   "id": "U2",
+   "aspecto": "DoE LHS 11D−1 injetado do artefato (contagem do paper, proveniência nossa)",
+   "classe": "1",
+   "medicao": "|fase=='init'| == 11D−1 em 749/749; doe_hash do ⑥ ≡ do ⑤ em 749/749; **749 doe_hash DISTINTOS** (30 por problema, 25 por semente) — a fórmula de semeadura D62 é injetora em (problema,semente); DoE bit-exato em float32 contra `data/doe/{pb}/doe_{pb}_{seed}.parquet` em **50/50 células amostradas**, max|ΔX| = 0,0.",
+   "veredito": "conforme o artigo, com proveniência declarativa D63/D88/D94; agora com o teste de injetividade da semeadura que a s42 não permitia",
+   "muda_vs_s42": false,
+   "arquivo_linha": "data/doe/*; u30_universal.csv (doe_hash, doe_hash_mf)"
+  },
+  {
+   "id": "U3",
+   "aspecto": "um retreino dos 3 modos por ciclo externo",
+   "classe": "1",
+   "medicao": "|④ timing| == |c141_gen| == |fit_series do ⑤| em 749/749 (Σ = 58.360 ciclos); n_geracoes do rodapé == |c141_gen| + 1 em 749/749 (a geração final é iniciada e cortada pelo hard-stop).",
+   "veredito": "conforme Alg.1 l.6–8; ledger fechado por construção",
+   "muda_vs_s42": false,
+   "arquivo_linha": "u30_universal.csv (fitseries_ok, ngen_id)"
+  },
+  {
+   "id": "U4",
+   "aspecto": "sonda: cadência g==1 ∨ g%2==0 + finalProbe, bloco S=2.000, join POSICIONAL (Sobol aninhado, DI-13.5)",
+   "classe": "2",
+   "medicao": "30.398 blocos × 2.000 pontos exatos (60,796 milhões de predições); cadência+finalProbe respeitada em 749/749; `ok=true` em 30.398/30.398 e n_falhas=0 em 749/749; x_hash único por célula em 749/749 e n_blocos ≡ manifesto em 749/749; **finalProbe exercitado em 371 células (49,5%)**; join posicional verificado contra `data/sonda/sonda_{pb}.parquet[0:2000]` em 350 blocos: max|ΔX| = **1,907e-06** (1 ULP-float32 da amplitude do bound).",
+   "veredito": "instrumentação sancionada (DI-09/DI-12.5/regra 5 do CONTRATO §10)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "u30_universal.csv (cad_ok, npts_ok, sonda_ok, xhash_unico); u30_regua.csv (maxdX)"
+  },
+  {
+   "id": "U5",
+   "aspecto": "WAPE por bloco no espaço cru; cobertura ±1,96σ N/A por desenho",
+   "classe": "2",
+   "medicao": "ΔWAPE 1º→último bloco em 175 células: **mediana global +0,1%**, com a bimodalidade da T11 confirmada e ampliada — melhoram DTLZ7 −20,2%, BBOB_F1 −14,0%, BBOB_F17 −13,9%, BBOB_F5 −10,9%; explodem ZDT6 **+2.866%**, MMF1 +611%, MMF11_L +349%, WFG1 +258%, DTLZ4 +234%, ZDT1 +110%. 89/175 células pioram. cobertura95 permanece N/A (σ_0 é inteiro de ranks, σ_1 é std entre alvos incomensuráveis).",
+   "veredito": "definição congelada §5; a métrica é sancionada e o número reproduz a s42 com 7× mais réplicas",
+   "muda_vs_s42": false,
+   "arquivo_linha": "u30_regua.csv"
+  },
+  {
+   "id": "U6",
+   "aspecto": "invariante de timing: tempo_fit + tempo_busca ≤ tempo_geracao (a sonda fora do relógio do algoritmo)",
+   "classe": "2",
+   "medicao": "**0 violações em 58.360 linhas de ④** (749/749 células), tolerância 1e-6 s.",
+   "veredito": "conforme DI-13.10; o cronômetro do ciclo continua parando na chamada da sonda",
+   "muda_vs_s42": false,
+   "arquivo_linha": "u30_universal.csv (timing_viol) / u30_ciclos.csv"
+  },
+  {
+   "id": "U7",
+   "aspecto": "fe_treino_max monotônico (arquivo só cresce, sem subamostragem de treino)",
+   "classe": "3",
+   "medicao": "monotônico em **747/749 células**; **2 células com uma queda de exatamente −1**: BBOB_F1 semente 4 (g57→g58: 289→288) e BBOB_F1 semente 6 (g52→g53: 303→302) — 2 de 57.611 transições = 0,0035%. Nos mesmos ciclos `modelo_hp.n` CRESCE (290→292 e 304→306) e `arquivo` cresce; `modelo_hp.n` é monotônico em 749/749 e `arquivo` em 749/749. Correlato estrutural: `hp_n > ftm+1` em 1.139 ciclos (1,95%) e `hp_n < ftm+1` em 44 — ou seja o campo já não é uma função exata do prefixo da ①.",
+   "veredito": "INEXPLICADO 🎯 e menor: o MECANISMO (A ← A ∪ Pnew) está intacto (arquivo e tamanho de treino monotônicos em 749/749); o que quebra é a monotonicidade do CAMPO de instrumentação, contra o que a regra 9 do CONTRATO §10 declara (não-monotônico só em b1/b4/c217). Escalo em vez de decidir (D81).",
+   "muda_vs_s42": true,
+   "arquivo_linha": "resultados_experimentos/c141/BBOB_F1/{4,6}/exp_main_c141_BBOB_F1_{4,6}.jsonl (eventos c141_gen g=57 e g=52)"
+  },
+  {
+   "id": "U9",
+   "aspecto": "ledger de FE entre camadas: 11D−1 + Σlote − cache_hits + lote_final = fe_final",
+   "classe": "2",
+   "medicao": "Fecha em **749/749** com resíduo (lote_final) ∈ [1, 9] e distribuição 1:182 · 2:220 · 3:170 · 4:108 · 5:49 · 6:14 · 7:5 · 9:1. cache_hits do ⑥ ≡ rodapé ≡ manifesto em 749/749 (Σ = 1.966).",
+   "veredito": "conforme D57/D89; verificado em 100% da campanha",
+   "muda_vs_s42": false,
+   "arquivo_linha": "u30_universal.csv (residual, cache_id)"
+  },
+  {
+   "id": "U10",
+   "aspecto": "erro de fantasia dos infills (μ predito × f real do ponto que virou FE depois)",
+   "classe": "2",
+   "medicao": "**222.317 linhas de fantasia genuína** em 750 células; **otimismo (μ < f) mediano 66,6%** por célula (s42: 66,8% — reproduz), variando de 33,8% (BBOB_F1) a 82,1% (MMF1) por problema; Spearman(μ, f) mediano por problema de 0,123 (ZDT6) a 0,999 (BBOB_F1).",
+   "veredito": "análise nossa sobre D57, sancionada; o viés otimista é invariante de semente",
+   "muda_vs_s42": false,
+   "arquivo_linha": "u30_fantasia.csv"
+  },
+  {
+   "id": "U11",
+   "aspecto": "não-perturbação da sonda (invariante 🔴 do CONTRATO §3.1)",
+   "classe": "1",
+   "medicao": "NÃO RE-MEDIDO nesta campanha — motivo declarado: `sonda.desligada = false` em 749/749 e não existe par G-6 (com/sem sonda) na campanha de 30 sementes. Herdado da T11, que mediu ① e ② com sha256 idêntico (`d7f20cd0c4648c3f`) com e sem sonda, ③ 14.420→420, ⑥ 7→0 eventos.",
+   "veredito": "conforme, por evidência HERDADA da T11; esta auditoria não acrescenta nem contradiz",
+   "muda_vs_s42": false,
+   "arquivo_linha": "f5/t11/relatorios_config/c141.md §2.10"
+  },
+  {
+   "id": "F1",
+   "aspecto": "kernel: multiquádrica c=1, poly=0, SEM scaling de X (query-joia)",
+   "classe": "1",
+   "medicao": "222 pontos-teste (74 células · 25 problemas · 30 sementes). Reconstrução do zero com LU (equivalente a `mldivide`): erro relativo mediano **1,37e-04**, p95 2,43e-02. Contra 10 variantes estruturais, o oficial vence **individualmente** cada uma em 90,5%–100% dos pontos (MQ c=0,5: 201/222 · MQ c=2: 211 · MQ c=5: 219 · gaussiana: 222 · IMQ: 222 · cúbica: 218 · linear: 210 · TPS: 215 · poly grau 1: 206 · COM scaling: 211) e vence **as 10 simultaneamente em 166/222 = 74,8%**, com ≥1 vitória em 25/25 problemas e 73/74 células. Razão mediana da melhor alternativa: 1,87×; por variante, de 4,5× a 187×. `modelo_hp = {MQ, c=1, poly=0}` em 58.360/58.360 ciclos (eco redundante).",
+   "veredito": "conforme o artigo, provado por DADO em toda a grade de sementes; a fração de 25,2% em que não vence todas simultaneamente é explicada pelo condicionamento (Spearman log10(1/cond) × erro = 0,752; no bin 1/cond<1e-12 a vitória sobe a 91,7%)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "u30_kernel.csv; deep_kernel.py"
+  },
+  {
+   "id": "F2",
+   "aspecto": "`mldivide` denso SEM regularização (interpolação exata nos nós)",
+   "classe": "2",
+   "medicao": "**73.438 de 74.445 pares (linha,objetivo) com μ − f EXATAMENTE 0,0 = 98,647%** (T11 na s42: 98,571% — reproduz a 0,08 p.p.); 46/74 células a 100% de zeros; resíduo relativo mediano 0,0 e p95 máximo por célula **2,72e-07** (abaixo do eps-float32 1,19e-07 em quase toda a distribuição). Condicionamento medido: 1/cond(Φ) mediano 2,03e-08, mínimo **2,07e-19**, e 10,8% dos pontos-teste abaixo de 1e-12. Um ridge de 1e-8 NÃO é separável pelo teste de kernel (razão 1,00003) — é este teste que o exclui.",
+   "veredito": "sancionado (D30 🟠 'risco de mau condicionamento, mantido'); a assinatura de solve interpolante backward-estável sem regularização se mantém em 30 sementes",
+   "muda_vs_s42": false,
+   "arquivo_linha": "u30_joia.csv (n_pares_interp, n_zero_interp, resid_p95, rcond)"
+  },
+  {
+   "id": "F3",
+   "aspecto": "nível 1 = F1(Ptot ∪ A) ∩ Ptot com o ARQUIVO VERDADEIRO (contra a letra do paper, que diz predito)",
+   "classe": "2",
+   "medicao": "Teste discriminativo hipótese-a-hipótese em 222 pontos-teste: **arquivo VERDADEIRO acerta n_front1 em 178/222 = 80,2%** contra **arquivo PREDITO em 161/222 = 72,5%**. Nos **30 pontos em que as duas hipóteses divergem** (o subconjunto discriminativo), verdadeiro acerta **18** e predito **1**. Fecha 9/9 em 9 problemas (BBOB_F17, BBOB_F49, DTLZ1–4, MMF1, MMF4, ZDT3).",
+   "veredito": "sancionado no bundle (🟠 impl→código); o resíduo continua explicado pelos empates que o float32 do export CRIA (regra 11 do CONTRATO §10)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "u30_joia.csv (n1_log, n1_verd, n1_pred, ok_verd, ok_pred)"
+  },
+  {
+   "id": "F4",
+   "aspecto": "Fit1 = fitness SDE (Eq. 7) com normalização min-max sobre os μ do nível 1",
+   "classe": "1",
+   "medicao": "Reconstruído do zero: `fit1.max` do ⑥ bate a rel<1e-5 em **219/222 = 98,6%** (erro relativo mediano **1,72e-07**, p95 1,98e-06); condicionado a F3 fechar, **177/178 = 99,4%** com mediana 1,31e-07.",
+   "veredito": "conforme o artigo (Eq. 7), invariante de semente",
+   "muda_vs_s42": false,
+   "arquivo_linha": "u30_joia.csv (fit1_relerr, ok_fit1)"
+  },
+  {
+   "id": "F5",
+   "aspecto": "nível 2 = ND de [−Fit1, Fit2, −Fit3] (DI-18: troca de NOMES Fit2↔Fit3, não de semântica)",
+   "classe": "1",
+   "medicao": "A semântica provada por ESCALA em **58.360 ciclos**: |fit3|/|fit1| mediana **1,470** (mesma ordem — ambos SDE) contra |fit2|/|fit1| mediana **200,9** (ordem de front number). fit2 vai a negativo por extrapolação em 20.699 ciclos e fit3 em 2.905; **fit1 nunca é negativo (0/58.360)**, como exige o SDE.",
+   "veredito": "conforme o artigo; DI-18 é reconciliação de nomes. Validar contra a letra (−Fit1,−Fit2,Fit3) reprovaria um run fiel",
+   "muda_vs_s42": false,
+   "arquivo_linha": "u30_ciclos.csv (f1med, f2med, f3med)"
+  },
+  {
+   "id": "F6",
+   "aspecto": "Q e U (Eq. 8) e o nível 3 (Pa = F1(Q,U), Pb = argmax U)",
+   "classe": "1",
+   "medicao": "Limites teóricos respeitados em **57.976/57.976 ciclos de nível 3**: Q ∈ [3, 3|P|] e U ∈ [0, 2(|P|−1)], sem uma exceção. IDENTIDADE ESTRUTURAL NOVA, que a s42 não podia expor: **U é sempre PAR** — `U_pool_max` par em **58.360/58.360** e `U.max` do nível 2 par em 57.976/57.976 — consequência algébrica de U = |R1−R2| + |R1−R3| + |R2−R3| sobre três permutações. `n_por_nivel` internamente coerente em 58.360/58.360 (entrada==2N, nivel1==n_front1, nivel2==n_front2, lote==lote).",
+   "veredito": "conforme o artigo; a paridade é um invariante novo e é uma checagem barata para a R4",
+   "muda_vs_s42": false,
+   "arquivo_linha": "u30_ciclos.csv (upm, Umin, Umax, Qmin, Qmax)"
+  },
+  {
+   "id": "F7",
+   "aspecto": "σ do c141: σ_0 = U de ranks do POOL COMPLETO · σ_1 = std bruto dos 3 modos (extensão D45 🟢)",
+   "classe": "2",
+   "medicao": "σ_0 inteiro em 222/222 blocos amostrados, **par em 222/222**, 0 NaN em σ_0 e σ_1. Identidade `max(σ_0 da ③) ≡ U_pool_max do ⑥`: **222/222 = 100%** (na s42 fechava em 1.771/1.967 = 90,0% — MELHOROU). Teto teórico 2(2N−1): **nunca excedido em 58.360/58.360 ciclos**; **ATINGIDO exatamente em 700/749 células (93,5%)**, e nas 49 restantes a folga é sempre PAR (2, 4 ou 6) — coerente com a paridade de U. `sigma_dict` idêntico em 749/749.",
+   "veredito": "extensão nossa sancionada (D45 🟢). ⚠ ERRATA CONTRA A T11: ela afirmou 'o máximo observado por célula é exatamente esse teto em 25/25 — nenhuma excede nem fica aquém'; com 30 sementes o correto é **nunca excede (58.360/58.360) e fica aquém em 6,5% das células**. Sobregeneralização de 1 semente, não defeito.",
+   "muda_vs_s42": true,
+   "arquivo_linha": "u30_universal.csv (teto_exato, upm_over); u30_joia.csv (ok_s0_upm, s0_par)"
+  },
+  {
+   "id": "F9",
+   "aspecto": "papel da incerteza: Pb = argmax U como ponto EXTRA no lote",
+   "classe": "1",
+   "medicao": "NÃO RE-MEDIDO — motivo declarado: o ⑥ registra `n_por_nivel.selecionados == lote` em **57.976/57.976** ciclos de nível 3, ou seja não separa |Pa| de |Pa ∪ Pb|; reconstruir Pa exige Q e U POR INDIVÍDUO e nem o ⑥ (só {min,med,max}) nem a ③ (só μ) os guardam. Herdado da F5/T11: Pb extra em 1.727/1.967 = 87,80% na s42.",
+   "veredito": "conforme o artigo por evidência herdada; medida distribucional em 30 sementes fica como teto de instrumentação",
+   "muda_vs_s42": false,
+   "arquivo_linha": "u30_ciclos.csv (selec vs lote)"
+  },
+  {
+   "id": "C1",
+   "aspecto": "N = min(100, 11D−1) por subpopulação + piso anti-crash da faixa D≤4 (ES_PDR.m:20)",
+   "classe": "2",
+   "medicao": "`N_subpop == min(100, 11D−1)` em **749/749**: 21 nas 90 células D=2 (MMF1, MMF4, MMF11_L × 30 sementes), 76 nas 30 do DTLZ1 (D=7), 100 nas 629 restantes. **90/90 células da faixa de crash terminaram com status ok e fe_final == maxfe** — o fix anti-crash sobreviveu a 30 réplicas em 3 problemas.",
+   "veredito": "sancionado (D20/DEF-A5/B12.6); fidelidade ao paper seria N=50, ficamos em 100 — divergência declarada",
+   "muda_vs_s42": false,
+   "arquivo_linha": "u30_universal.csv (N_ok)"
+  },
+  {
+   "id": "C2",
+   "aspecto": "bi-população: N por subpopulação, pool Ptot = 2N, wmax = 20",
+   "classe": "1",
+   "medicao": "`n_pool == 2N` e `n_sub1 == n_sub2 == N` em **58.360/58.360 ciclos**; `n_por_nivel.entrada == 2N` em 58.360/58.360. wmax = 20 em 749/749 (eco declarativo — o loop interno não é logado).",
+   "veredito": "conforme o artigo; a invariância do contador em 58 mil ciclos prova que a seleção ambiental NSGA-II corta as duas subpopulações de volta a N em todas as 20 gerações internas",
+   "muda_vs_s42": false,
+   "arquivo_linha": "u30_ciclos.csv (n_pool, entrada)"
+  },
+  {
+   "id": "C3",
+   "aspecto": "u=5 REVOGADO · gatilho real 'resta >1 candidato' · batch variável e nunca zero",
+   "classe": "2",
+   "medicao": "**0 saídas no nível 1 em 58.360 ciclos**; **384 saídas no nível 2, TODAS com n_front2 == 1** (384/384) — o gatilho é literalmente '|P| > 1', em 216 células distintas; ramo (Q,U) em 57.976/58.360 = **99,34%**; lote ≥ 1 em 58.360/58.360 (batch-zero nunca ocorreu); **lote > 5 em 4.538 ciclos (7,8%), máximo 19**. Mediana de n_front1 = 59% do pool; mediana de n_front2 = 14.",
+   "veredito": "sancionado (v2.2/DI-18); a cauda 7–19 é impossível sob u=5 e torna a revogação irrefutável",
+   "muda_vs_s42": true,
+   "arquivo_linha": "u30_ciclos.csv (nivel, lote, n_front2, ramo)"
+  },
+  {
+   "id": "C4",
+   "aspecto": "guards: hard-stop exato, cache-hit (c0=1), DEF-L4 (+eps do SDE), batch-vazio, dsmerge ds=1e-14",
+   "classe": "2",
+   "medicao": "Só TRÊS nomes de guard em toda a campanha: `cache_hit` (1.966), `hard_stop` (567) e **`sde_eps` (4)**. hard_stop com fe == maxfe em 567/567. **`c0 = 1` é lei: exatamente 1 cache-hit cai no init em 749/749 células** (466 células têm APENAS esse; máximo 28 numa célula). **DEF-L4 DISPAROU pela primeira vez**: 4 eventos `sde_eps` com `site='infill_fit1'`, todos em MMF1, sementes 1/18/19/26 — na s42 eram 0. Guard batch-vazio: 0 disparos em 58.360 ciclos.",
+   "veredito": "sancionado (D21/D61/DEF-L4/D89/[IMPL]). O disparo do DEF-L4 é ganho de verificabilidade: o hazard 'SDE min-max → NaN se fmax=fmin' é REAL e o guard é necessário, não decorativo",
+   "muda_vs_s42": true,
+   "arquivo_linha": "resultados_experimentos/c141/MMF1/{1,18,19,26}/*.jsonl (rec=guard, name=sde_eps)"
+  },
+  {
+   "id": "C5",
+   "aspecto": "miolo do código: CSO r1/r2 escalares, SBX proC=1,0/disC=20, PM proM=1/d, ES_PDR, 20 gerações internas, arbitragem de empates do NDSort",
+   "classe": "T",
+   "medicao": "Continua sem rastro nos dados para IDENTIFICAÇÃO. Mas a metade 'determinismo' do teto CAIU: **30 dos 41 pares de duplicatas cross-VM são bit-idênticos na ① inteira** (max|ΔX| = 0,0), em problemas de até 929 FE e 173 gerações — o miolo é determinístico e reprodutível sob shape fixo. Elo D80 fechado: repo_hash `63db46b1…` em 749/749, e `git diff 195f64ed..63db46b1` nos 5 arquivos do caminho do c141 é VAZIO.",
+   "veredito": "T — não-verificável por artefato quanto às FÓRMULAS; fora do denominador. O que era declaração agora tem âncora de commit e prova de determinismo",
+   "muda_vs_s42": true,
+   "arquivo_linha": "u30_deriva.csv (bit_ident)"
+  },
+  {
+   "id": "T1",
+   "aspecto": "instrumentação DI-10 + os campos transversais da T11 (schema_version, campanha_id, repo_hash, sonda.desligada)",
+   "classe": "2",
+   "medicao": "`schema_version = 2` em 749/749 (s42: 1 em 25/25); `campanha_id` presente em 749/749 (s42: ausente em 25/25) com 2 valores — `7f4f0e429a46_M8` (726) e `63db46b10063_2026-08-14` (23, a onda de re-despacho); `repo_hash` = SHA-1 real ÚNICO em 749/749 (s42: '' em 25/25); `sonda.desligada` declarado em 749/749; telemetria DI-10 completa em 58.360/58.360 ciclos; **0 linhas malformadas** em ~92 mil eventos; header=1 ∧ footer=1 em 749/749; `params`/`sigma_dict` idênticos em 749/749. **Procurei o padrão 'campo verde, dado sentinela' da T11 e NÃO o encontrei**: nenhum campo com valor constante-de-preenchimento, nenhum id −1, nenhum null estrutural.",
+   "veredito": "instrumentação sancionada (DI-10 + B-03/I-09/G-6b), agora com o elo de proveniência efetivamente povoado em 100% da campanha",
+   "muda_vs_s42": true,
+   "arquivo_linha": "u30_universal.csv (schema, campanha, repo_hash, desligada, malformed)"
+  },
+  {
+   "id": "T2",
+   "aspecto": "reprodutibilidade do mecanismo entre MÁQUINAS (o classe-3 herdado da T11), agora quantificado com controle",
+   "classe": "3",
+   "medicao": "41 pares de duplicatas, todos com doe_hash/repo_hash/versão-MATLAB/plataforma iguais e init bit-idêntico em 41/41. **30/41 BIT-IDÊNTICOS** (max|ΔX| = 0,0; ΔHV = 0,000000%); **11/41 divergentes**, 10 deles no PRIMEIRO infill. Regra que separa **41/41 sem erro**: uma cópia produzida em vm5 em/após 2026-08-14 (troca de shape para e2-standard-32). ΔHV nos divergentes: mediana **4,65%**, p90 24,8%, máximo **100,0%** (ZDT6/11: 0,4108 × 0,0000); **7 dos 11 excedem o piso O-18 de 1,55%**. Escopo no acervo canônico: **41/749 células (5,5%)**, todas as 25 problemas, sementes {1,13,17,26}.",
+   "veredito": "INEXPLICADO 🎯 — não há decisão que sancione não-reprodutibilidade cross-shape no stack MATLAB (a simétrica existe no stack Python: DI-05/DEF-L2). É achado TRANSVERSAL do harness, não defeito do c141, e o impacto sobre a FIDELIDADE do c141 é medido como NULO (a cascata reconstrói igual). O que ameaça é a comparabilidade — e agora o número está na mesa",
+   "muda_vs_s42": true,
+   "arquivo_linha": "u30_deriva.csv; ~/mestrado_coleta_m8/matlab-vm{1,2,5}/experiments/main/c141/"
+  },
+  {
+   "id": "N-A",
+   "aspecto": "integridade da camada ⑥ no acervo canônico (ZDT4 semente 9)",
+   "classe": "3",
+   "medicao": "`resultados_experimentos/c141/ZDT4/9/exp_main_c141_ZDT4_9.jsonl` tem **368 bytes e 1 única linha (só o header)**, com ts `2026-08-08T11:24:15Z` e link-count 1, enquanto ⑤ e os 4 parquets são de `2026-08-14T11:04:02Z` (vm5, campanha M8) com link-count 2. A ⑥ VERDADEIRA existe intacta em `~/mestrado_coleta_m8/matlab-vm5/experiments/main/c141/exp_main_c141_ZDT4_9.jsonl` — 91 linhas, 62.076 bytes, header ts 2026-08-14T11:03:38Z, 57 eventos c141_gen, 30 blocos de sonda e rodapé `{status:ok, fe_final:309, maxfe:309, n_geracoes:58, cache_hits:1, cp_init:true, termino:normal}`, coerente com o manifesto. Varredura de órfãos: só 3 arquivos com link-count 1 em todo o c141 — este e os manifestos de BBOB_F17/0 e /1, que são BENIGNOS (byte-idênticos às cópias dos espelhos).",
+   "veredito": "INEXPLICADO 🎯 de origem OPERACIONAL: a reorganização deixou no canônico o jsonl órfão de uma tentativa de 2026-08-08 e não sobrescreveu com o da rodada válida. Não toca o algoritmo (①②③④⑤ estão íntegros e a célula entra nas métricas normalmente). Recuperável por cópia — que eu NÃO fiz (read-only)",
+   "muda_vs_s42": true,
+   "arquivo_linha": "resultados_experimentos/c141/ZDT4/9/exp_main_c141_ZDT4_9.jsonl (368 B, 1 linha)"
+  },
+  {
+   "id": "N-B",
+   "aspecto": "saúde estatística e trajetória do config nas 30 sementes (contexto, não fidelidade)",
+   "classe": "1",
+   "medicao": "HV recomputado por mim bate **|Δ| = 0,0 EXATO** contra `f5/metricas_finais_f52c.csv` nas 125 células de s42 e |ND| bate 125/125 — a régua está calibrada. Nas 30 sementes: bate o MELHOR dos 4 pisos (mediana IGD+) em **18/25 problemas**, rank 1/5 em 18/25, rank médio 1,80; placar de rank-sum 67 vitórias · 14 derrotas · 19 empates em 100 comparações. Tempo de parede total 15,9 h; 1 célula na janela de swap da vm5 (BBOB_F22/17, só o ④ é suspeito).",
+   "veredito": "conforme; contexto para o R4, não julgamento de fidelidade (Botão 4 respeitado: nenhuma comparação declarada sob incomensurabilidade de eixo X)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "u30_metricas.csv"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C3-A",
+   "descricao": "A camada ⑥ canônica da célula `main/c141/ZDT4/9` é um ÓRFÃO TRUNCADO: 368 bytes, 1 linha (só o header), ts 2026-08-08T11:24:15Z, link-count 1 — enquanto o manifesto e os 4 parquets da mesma pasta são da rodada válida de 2026-08-14T11:04:02Z na vm5 (campanha 7f4f0e429a46_M8). A ⑥ íntegra daquela rodada existe no espelho de auditoria (`~/mestrado_coleta_m8/matlab-vm5/experiments/main/c141/exp_main_c141_ZDT4_9.jsonl`, 91 linhas, 57 c141_gen, 30 blocos de sonda, rodapé status=ok/fe_final=309/n_geracoes=58/termino=normal, coerente com o ⑤). É a ÚNICA célula das 750 sem rodapé no acervo canônico; nenhuma outra anomalia de link/órfão relevante (os manifestos de BBOB_F17/0 e /1 têm link-count 1 mas são byte-idênticos às cópias dos espelhos).",
+   "gravidade": "média-baixa — não toca o algoritmo (①②③④⑤ íntegros; a célula entra nas métricas e conta como ok no censo), mas quebra a autoridade do rodapé prescrita pela regra O-21 nessa célula e a exclui de qualquer análise que dependa da ⑥ (foi o único buraco na minha cobertura de 100%)",
+   "acao": "ESCALO ao autor (D81): copiar `~/mestrado_coleta_m8/matlab-vm5/experiments/main/c141/exp_main_c141_ZDT4_9.jsonl` sobre o canônico e re-rodar o recenso da célula. NÃO executei a cópia (read-only). Vale a pena varrer os outros 21 configs pelo mesmo padrão (jsonl com link-count 1 e/ou sem rodapé) antes do R4 — se o reorg falhou aqui, pode ter falhado noutro lugar.",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/c141/ZDT4/9/exp_main_c141_ZDT4_9.jsonl"
+  },
+  {
+   "id": "C3-B",
+   "descricao": "DERIVA CROSS-SHAPE (refinamento quantificado do T2 da T11). Nas 41 duplicatas cross-VM do c141 — todas com o MESMO doe_hash, o MESMO repo_hash (63db46b1…), a MESMA versão do MATLAB e o MESMO string de plataforma, e com as linhas de `init` bit-idênticas em 41/41 — 30 pares saem BIT-IDÊNTICOS na ① inteira (max|ΔX| = 0,0, sequência de lotes idêntica, ΔHV = 0,000000%) e 11 divergem, 10 deles já no PRIMEIRO infill. A separação é perfeita (41/41) por uma única regra: **uma das cópias foi produzida em vm5 em ou após 2026-08-14**, a data da troca de shape para e2-standard-32 com CPU não fixada pelo GCP. Magnitude nos divergentes: ΔHV mediana 4,65%, máximo 100,0% (ZDT6 semente 11 colapsa numa máquina — HV=0 — e não na outra), com 7 dos 11 acima do piso O-18 de 1,55%. Escopo no acervo canônico do c141: 41 de 749 células (5,5%), espalhadas pelos 25 problemas e concentradas nas sementes {1, 13, 17, 26}.",
+   "gravidade": "alta no eixo TRANSVERSAL (comparabilidade da campanha de 30 sementes × 22 configs × 3+ shapes), baixa no eixo de FIDELIDADE do c141 (a cascata reconstrói igual dos dois lados; nenhuma identidade estrutural quebra)",
+   "acao": "ESCALO ao autor (D81/D97). Três decisões que não são minhas: (i) re-medir o piso O-18 com estes 41 pares — ele está desatualizado por até 64×; (ii) decidir se as 41 células pós-14/08 são re-rodadas em shape fixo, marcadas como estrato, ou aceitas sob a doutrina RUNBOOK §6.2 (que diz 'fidelidade estatística, não bit-exata' — mas a medida mostra que DENTRO da frota pré-14/08 o c141 é BIT-EXATO, o que torna a doutrina generosa demais para o caso comum e insuficiente para a fronteira); (iii) verificar se os outros 21 configs têm as MESMAS sementes {1,13,17,26} do outro lado da fronteira — se não tiverem, comparações pareadas por semente ficam contaminadas de forma assimétrica.",
+   "arquivo_linha": "scratchpad/c141/u30_deriva.csv (41 linhas, colunas bit_ident/primeiro_div/dHV_rel_pct/created_a/created_b)"
+  },
+  {
+   "id": "C3-C",
+   "descricao": "`fe_treino_max` NÃO-MONOTÔNICO em 2 células de 749: BBOB_F1 semente 4 (geração 57→58: 289 → 288) e BBOB_F1 semente 6 (geração 52→53: 303 → 302). Queda de exatamente −1 nos dois casos, 2 de 57.611 transições (0,0035%). Nos mesmos ciclos `modelo_hp.n` CRESCE (290→292 e 304→306) e o contador `arquivo` cresce; ambos são monotônicos em 749/749. Correlato: `modelo_hp.n == fe_treino_max + 1` vale em 57.177/58.360 ciclos (97,97%), com 1.139 ciclos acima (correlacionados com cache-hits, que injetam solution_id repetido no arquivo) e 44 abaixo (BBOB_F5 e DTLZ3, compatível com fusão do dsmerge).",
+   "gravidade": "baixa — o MECANISMO do artigo (Alg.1 l.18, `A ← A ∪ Pnew`, arquivo só cresce) está intacto e medido em 749/749 por duas vias independentes; o que quebra é a monotonicidade do CAMPO de instrumentação, que a regra 9 do CONTRATO §10 (DI-13.15) declara não-monotônico apenas em b1/b4/c217",
+   "acao": "ESCALO ao autor (D81) — não escolho sozinho entre as duas leituras possíveis: (a) errata da regra 9 (o campo pode recuar em qualquer config quando o dedup/dsmerge funde o ponto de maior índice) ou (b) defeito pontual do instrumento em `src/c141_instrument.m`. Custo de fechar: inspecionar as 2 gerações no ⑥ e a ① correspondente comparando o conjunto de treino real; ~1 h, não bloqueante.",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/c141/BBOB_F1/4/exp_main_c141_BBOB_F1_4.jsonl (evento c141_gen geracao=58) e .../BBOB_F1/6/... (geracao=53)"
+  }
+ ],
+ "score": 9.3,
+ "score_t11": 9.5,
+ "veredito_recomendado": "ACEITAR — recomendação, não sentença (D97). O mecanismo do c141 é FIEL e a fidelidade é INVARIANTE DE SEMENTE: a query-joia (kernel MQ c=1 / poly=0 / sem scaling → interpolação sem regularização → cascata de três níveis com arquivo verdadeiro → SDE Eq.7 → σ_0 = U de ranks) foi reconstruída do zero em 222 pontos-teste cobrindo os 25 problemas e as 30 sementes, e nenhuma semente quebra uma identidade que as outras respeitem. As camadas ⑤ e ⑥ foram auditadas em 100% (750/750 células, 58.360 ciclos), e todas as invariantes universais fecham em 749/749 ou 58.360/58.360, com quatro exceções todas nomeadas e nenhuma delas de mecanismo. Ficam três classe (3) — a ⑥ truncada de ZDT4/9 (defeito de acervo, recuperável do espelho), a deriva cross-shape de 14/08 (transversal do harness, impacto nulo sobre a fidelidade e grande sobre a comparabilidade) e a queda de −1 do `fe_treino_max` em 2/749 (instrumentação) — e um T (a identificação das fórmulas do miolo, C5). Nenhuma é bloqueante para aceitar o config; a C3-A e a C3-B são bloqueantes para a ANÁLISE (R4) e devem ser decididas antes.",
+ "decisoes_ao_autor": [
+  "**(1) ZDT4/9 — restaurar a ⑥ canônica.** É a única das 750 células sem rodapé no acervo. A ⑥ íntegra está em `~/mestrado_coleta_m8/matlab-vm5/experiments/main/c141/exp_main_c141_ZDT4_9.jsonl` (91 linhas, rodapé ok/309/58/normal, coerente com o ⑤). Não copiei (read-only). Recomendo também varrer os outros 21 configs pelo mesmo padrão — jsonl com link-count 1 e/ou sem rodapé — porque um reorg que falhou uma vez pode ter falhado em silêncio noutro lugar, e o rodapé é a AUTORIDADE pela regra O-21.",
+  "**(2) A fronteira de 14/08 na vm5 é uma variável experimental, e agora tem número.** Dentro da frota pré-14/08 o c141 é BIT-EXATO cross-máquina (30/30 pares, max|ΔX| = 0,0); atravessando a troca de shape ele diverge no primeiro infill em 11/11 pares, com ΔHV mediana 4,65% e máxima 100%. Isso significa que a doutrina vigente do RUNBOOK §6.2 ('floats não são bit-idênticos entre plataformas ⇒ fidelidade estatística') está calibrada errado nos DOIS sentidos para este config: é generosa demais para o caso comum (onde há bit-identidade e ela poderia ser exigida como gate) e insuficiente para a fronteira. Precisa de decisão sua: re-medir o piso O-18 com estes 41 pares, e decidir o destino das 41 células pós-troca (5,5% do c141, sementes {1,13,17,26}).",
+  "**(3) Verificar a SIMETRIA da contaminação entre configs.** As 41 células do c141 do outro lado da fronteira estão nas sementes {1,13,17,26}. Se os outros 21 configs NÃO tiverem exatamente as mesmas sementes do outro lado, qualquer comparação pareada por semente (que é como o protocolo compara algoritmos) fica contaminada de forma ASSIMÉTRICA — e isso não é ruído, é viés. Barato de checar com o `created_at`/`host` dos manifestos, e vale a pena antes do R4.",
+  "**(4) `fe_treino_max` recuando −1 em BBOB_F1 sementes 4 e 6 — errata da regra 9 ou defeito do instrumento?** Não escolho (D81). O mecanismo está provado intacto por duas vias (`arquivo` e `modelo_hp.n` monotônicos em 749/749). Se for errata, a regra 9 do CONTRATO §10 deve dizer que o campo pode recuar em QUALQUER config quando o dedup funde o ponto de maior índice, e não só em b1/b4/c217.",
+  "**(5) DUAS ERRATAS QUE EU LEVANTO CONTRA O RELATÓRIO T11 do c141, ambas de sobregeneralização de uma semente, nenhuma reclassificando aspecto.** (a) F7: a T11 diz 'o máximo observado por célula é EXATAMENTE esse teto em 25/25 — nenhuma excede nem fica aquém'; com 30 sementes o correto é **nunca excede (58.360/58.360 ciclos) e fica aquém em 49/749 células (6,5%)**, sempre por um valor PAR. (b) U7: a T11 diz 'fe_treino_max monotônico em 25/25, sem exceção'; o correto é **747/749**. Sugiro anotar as duas no índice de martelos junto com a errata do F2 que a própria T11 já registrou.",
+  "**(6) O achado do artigo que vale para a escrita.** A confissão do paper ('RBFs are not suitable for approximating the objective functions of the WFG problems') está CONFIRMADA POR DADO com 7 réplicas — correlação Sobol mediana WFG 0,217 × não-WFG 0,821, Mann-Whitney p = 3,5e-12 — mas com uma ressalva que o artigo não previu e que a nossa régua permite dizer: a inadequação é GLOBAL e não LOCAL (nos pontos de infill a correlação nas WFG é 0,47–0,88) e o desempenho não colapsa (WFG5 vence os 4 pisos com p=2,9e-11). Simetricamente, a afirmação de 'strong robustness on different kinds of MOPs' NÃO sobrevive a 30 réplicas: o CV(HV) entre sementes varia 400× entre problemas (0,0020 no BBOB_F1 a 0,817 no ZDT6), e a limitação que o próprio artigo declara ('dilemma when the RBF models show low accuracy') vale ENTRE problemas mas NÃO entre sementes (significativa em 5/22, e uma delas NEGATIVA: ZDT3, ρ = −0,464, p = 0,0098).",
+  "**(7) Movimento do score, com a causa nomeada.** T11 = 9,5 → agora **9,3**. A fidelidade do MECANISMO não caiu — subiu: a cascata inteira foi reconstruída em 25 problemas × 30 sementes contra 1 semente, dois tetos da T11 caíram (DEF-L4 disparou 4×; o determinismo do miolo C5 ficou provado por 30 pares bit-idênticos), e `git diff 195f64ed..63db46b1` nos arquivos do c141 é VAZIO, o que significa que a validação da T11 vale LITERALMENTE para o binário que produziu as 750 células. O que desconta 0,2 é que a escala revelou **dois classe (3) novos** que uma semente não podia mostrar (a ⑥ truncada de ZDT4/9 e o `fe_treino_max` recuando) e transformou o classe (3) herdado (T2) de 'existe' em '5,5% do acervo, ΔHV até 100%, com regra causal identificada' — ou seja, o problema não piorou, ficou VISÍVEL. Se você preferir contar T2 como transversal do harness e não do config (foi como a T11 argumentou), o score é **9,5**; se preferir contá-lo integralmente contra o c141, é **9,0**. Deixo o botão exposto — a decisão é sua (D97)."
+ ]
+}

@@ -1,0 +1,440 @@
+{
+  "id": "c261",
+  "sigla": "DirHV-EGO",
+  "titulo": "Hypervolume-Guided Decomposition for Parallel Expensive Multiobjective Optimization",
+  "ano": 2024,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Sec. V-A: ZDT test suite (m=2, d=8, problemas ZDT1-4 e ZDT6 — sem ZDT5, que é binário) e DTLZ test suite (m=3, d=6, DTLZ1-7), ambas listadas na Tabela II com d/m FIXOS (não varia por problema dentro da suíte, ao contrário do uso mais comum de DTLZ com d configurável). Mais 5 problemas reais da suíte 'easy-to-use real-world MOP' de Tanabe & Ishibuchi [52]: RE1 (Hatch cover design, m=2,d=2), RE2 (Four bar truss design, m=2,d=4), RE3 (Two bar truss design, m=3,d=3), RE4 (Welded beam design, m=3,d=4), RE5 (Rocket injector design, m=3,d=4) — nenhum coincide nominalmente com RE21/ESTOQUE40/DDMOP7 da dissertação, mas RE2 (m=2,d=4, treliça de 4 barras) tem a mesma assinatura e desenho do problema comumente citado como 'RE21' na literatura de SAMO (mesma suíte-fonte [52]) — possível sobreposição a confirmar. Seção suplementar III-C acrescenta DTLZ1-7 com m=4 e m=6 (d=6 fixo) para avaliar desempenho many-objective.",
+    "orcamento": "Nº de amostras iniciais C0 = 11d−1 (mesma fórmula clássica de Jones/Schonlau/Welch citada na dissertação, mas aqui aplicada apenas ao DoE inicial, não ao orçamento total); DoE via optimal Latin hypercube sampling. Orçamento total Ctotal FIXO (não escala com d): 200 avaliações reais para m=2 (ZDT, RE1-2) e 300 para m=3 (DTLZ, RE3-5); no estudo de tempo (Fig.6), Ctotal=65+50q. Não há fórmula do tipo 31D−1 usada na dissertação.",
+    "execucoes": "21 execuções independentes por configuração/problema (vs. 30 sementes na dissertação), cada uma com DoE inicial próprio via LHS ótimo (não fica explícito se o DoE é compartilhado entre algoritmos dentro da mesma execução/semente, ao contrário do desenho pareado por semente da dissertação); no estudo de tempo (Fig.6), 10 execuções independentes.",
+    "baselines": "NÃO há piso evolutivo sem surrogate em nenhuma comparação do artigo — todos os métodos comparados usam GP (ou, no estudo many-objective, também um classificador). q=1 (Sec.V-B/C): EHVI, ADirHV-EI, ETI, DirHV-EI (quatro critérios EI sob a mesma maquinaria GP+DACE). Paralelo (Sec.V-C a V-E): KB&EHVI-EGO (aproximação sequencial gulosa de q-EHVI), PEIM-EGO (matriz de EI pseudo-esperada), MOEA/D-EGO (ETI com ajuste adaptativo de z*, FuzzyCM removida), DirHV-EGO (proposto). Many-objective (Supl. Sec.III-C): EIM-EGO (MOEGO), NSGAIII-EHVI e K-RVEA (SAEAs baseadas em GP), CSEA (SAEA baseada em classificador de dominância).",
+    "metricas_principais": [
+      "IGD+ (Inverted Generational Distance plus) — problemas sintéticos com PF conhecida",
+      "Hypervolume (HV) — problemas reais, PF desconhecida; espaço normalizado [0,1]^m, ponto de referência (1.1,...,1.1)"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum, α=0.05, símbolos +/−/≈ (significativamente melhor/pior/competitivo) SEMPRE relativos ao método proposto da seção (DirHV-EI na Tabela III; DirHV-EGO nas Tabelas IV, V e nas Tabelas I-IV suplementares), não ao melhor algoritmo de cada problema — difere da convenção estrita da ficha 3 da tipologia"
+    ],
+    "apresentacao": "Tabelas com MÉDIA±desvio-padrão (não mediana+IQR) de 21 execuções; melhor média por problema/linha destacada (highlighted/fundo cinza); linha final soma quantos problemas cada método venceu/perdeu/empatou (+/−/≈) contra o método de referência da tabela. Curvas de convergência sempre em log IGD+ (ou HV, nos reais) × nº de avaliações de função, linha sólida = média de 21 execuções, faixa sombreada = desvio-padrão (nunca IQR). Figuras de fronteira mostram a execução com valor MÉDIO (corpo principal, Fig.7) ou MEDIANO (a maioria das figuras suplementares, Figs.14-22) da métrica, não deixando sempre explícito o critério de seleção da execução plotada.",
+    "codigo_plataforma": "Todos os algoritmos implementados em MATLAB sobre a plataforma PlatEMO [62] (exceto onde indicado uso de implementações de terceiros do PlatEMO para NSGAIII-EHVI/CSEA/K-RVEA, e código próprio de NSGAIII-EHVI do GitHub Pang-Yong). GP construído com a toolbox DACE [60] (regpoly0, corrgauss, θ_i ∈ [1e-6,1e2]). Código do DirHV-EGO disponível em https://github.com/mobo-d/DirHV-EGO."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Com q=1 (busca sequencial, sem seleção de lote), compara quatro critérios de EI multiobjetivo — EHVI, ADirHV-EI (média ponderada do DirHV-EI), ETI e DirHV-EI — todos usando a mesma modelagem GP/DACE, medindo IGD+ média±dp sobre 21 execuções em ZDT1-4/6 e DTLZ1-7, com símbolos de Wilcoxon rank-sum relativos à coluna DirHV-EI.",
+      "literal": "Table III shows that DirHV-EI can achieve mean IGD+ values that are comparable to or even lower than those attained by ETI.",
+      "localizador": "Sec. V-B/V-C, p.8-9, Table III",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05, símbolos +/−/≈ relativos a DirHV-EI (não ao melhor de cada problema)"
+      ],
+      "convencoes": "Média±desvio-padrão de 21 execuções independentes; melhor média por problema destacada; linha final +/−/≈ soma vitórias/derrotas/empates de EHVI e de ETI contra DirHV-EI (0/5/7 e 0/7/5, respectivamente, nos 12 problemas); ADirHV-EI não recebe símbolo de significância nesta tabela — é comparado a EHVI apenas em prosa ('7 de 12'), não por linha.",
+      "achado": "ADirHV-EI (média ponderada de DirHV-EI) se aproxima de EHVI em 7 de 12 problemas, confirmando empiricamente a Proposição 3 (equivalência teórica); DirHV-EI (otimizado via MOEA/D) obtém IGD+ igual ou melhor que EHVI e ETI na maioria dos problemas, sem nunca perder significativamente de nenhum dos dois.",
+      "aplicabilidade": "① endpoint (mediana/HV por algoritmo×problema) — mesma lógica da ficha 1, mas aqui a estatística é MÉDIA (não mediana) e os símbolos comparam cada critério contra o proposto (DirHV-EI), não contra 'o melhor de cada problema' como na definição estrita da ficha 3. Nenhum dos quatro critérios (EHVI puro, ADirHV-EI, ETI, DirHV-EI) corresponde a um algoritmo do roster da dissertação; a comparação inter-critérios sob maquinaria idêntica não tem instância direta no roster."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de convergência (log IGD+ × nº de avaliações de função) para os mesmos quatro critérios EI (q=1) da análise anterior. O corpo principal mostra 4 problemas representativos escolhidos por geometria da PF (ZDT1 convexa, ZDT2 côncava, DTLZ5 degenerada, DTLZ7 desconexa); o material suplementar (Fig.10) mostra o conjunto completo dos 12 problemas.",
+      "literal": "Fig. 4 shows that DirHV-EI converges faster than ETI on ZDT1 and ZDT2.",
+      "localizador": "Sec. V-C, p.9, Fig. 4 (+ Fig. 10, Supplementary Sec. VI)",
+      "metricas": [
+        "IGD+ (log)"
+      ],
+      "testes": [
+        "nenhum — leitura visual de média±dp de 21 execuções"
+      ],
+      "convencoes": "Linha sólida = média de 21 execuções; faixa sombreada = desvio-padrão; eixo y em escala log; 4 painéis (corpo principal) ou 12 (suplemento), um por problema.",
+      "achado": "DirHV-EI converge mais rápido que ETI em ZDT1 e ZDT2 porque a Tchebycheff improvement (IT, usada por ETI) depende fortemente da estimativa do ponto utópico z*, enquanto o DirHV-EI depende principalmente do ponto de interseção ξ da superfície de atingimento, sendo menos sensível a z*.",
+      "aplicabilidade": "① trajetória do ND acumulado ao longo do orçamento — mesma lógica da ficha 26; aqui o eixo é FE absoluto (não fração de 31D−1) e a curva é média±dp (não mediana+IQR). Nenhum dos 4 critérios está no roster."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        64
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara os quatro algoritmos paralelos completos (KB&EHVI-EGO, PEIM-EGO, MOEA/D-EGO, DirHV-EGO — cada um com sua própria estratégia de seleção de q pontos) em três tamanhos de lote (q=2, 5, 10), medindo IGD+ média sobre 21 execuções em ZDT1-4/6 e DTLZ1-7, com símbolos de Wilcoxon relativos a DirHV-EGO.",
+      "literal": "DirHV-EGO obtains the best mean IGD+ values on ZDT1-2 and DTLZ1-2 with different settings of batch size.",
+      "localizador": "Sec. V-C, p.9-10, Table IV",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05, símbolos +/−/≈ relativos a DirHV-EGO"
+      ],
+      "convencoes": "Apenas média (sem desvio-padrão reportado nesta tabela) de 21 execuções; melhor média por linha (problema×q) destacada; q∈{2,5,10} como dimensão extra da tabela; linha final soma +/−/≈ de cada método contra DirHV-EGO (3/18/15, 3/25/8, 4/15/17).",
+      "achado": "DirHV-EGO vence de forma consistente em ZDT1-2/DTLZ1-3/5, mas perde para KB&EHVI-EGO e PEIM-EGO em ZDT4 quando q≥5 (f2 de ZDT4 é difícil e exige foco, não diversidade) e perde para MOEA/D-EGO em DTLZ6 (em todos os q) e DTLZ7 (q=2) — MOEA/D-EGO com z* adaptativo é competitivo mesmo sem a seleção submodular.",
+      "aplicabilidade": "não reproduzível diretamente — nenhum dos quatro algoritmos (KB&EHVI-EGO, PEIM-EGO, esta implementação de MOEA/D-EGO, DirHV-EGO) está no roster da dissertação; a lógica de variar q e recomputar o placar (fichas 1/9) seria reproduzível via ① para algoritmos do roster que suportam lote (q>1), análogo à ficha 64."
+    },
+    {
+      "fichas": [
+        26,
+        64
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de convergência (log IGD+ × FE) para os quatro algoritmos paralelos da análise anterior. O corpo principal mostra q=5 (12 problemas); o suplemento acrescenta q=2 (Fig.11) e q=10 (Fig.12), cobrindo os três tamanhos de lote testados na Tabela IV de forma visual e completa ao longo de todo o orçamento.",
+      "literal": "We can find that DirHV-EGO significantly outperforms the others on ZDT1-3, DTLZ1-3, and DTLZ5.",
+      "localizador": "Sec. V-C, p.9, Fig. 5 (+ Figs. 11-12, Supplementary Sec. VI)",
+      "metricas": [
+        "IGD+ (log)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Linha sólida = média de 21 execuções; faixa sombreada = dp; escala log; marcadores a cada 2ª/5ª/10ª iteração conforme a figura.",
+      "achado": "Em q=5, a vantagem de DirHV-EGO em ZDT1-3/DTLZ1-3/5 é visível ao longo de todo o orçamento (não só no ponto final), confirmando visualmente o padrão da Tabela IV; o mesmo padrão se mantém qualitativamente em q=2 e q=10.",
+      "aplicabilidade": "① trajetória — mesma limitação da análise anterior (nenhum algoritmo no roster); reproduzível em espírito para algoritmos do roster com q configurável."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Decomposição analítica (não-empírica) do custo computacional por fase (ajuste do GP, maximização da EI, seleção de lote)",
+      "grupo_sugerido": "F",
+      "descricao": "Derivação teórica (Big-O) do custo por iteração de DirHV-EGO, decomposto em três fases — treino dos modelos GP O(mn³), maximização do DirHV-EI via MOEA/D O((mn²+mN)Ntmax), e seleção submodular de q pontos O(mN²+qN) — comparada com a complexidade de pior caso de KB&EHVI-EGO. Retomada no suplemento (Sec. III-D.2) para o caso many-objective (m=4,6), derivando o limiar nk<log2(N) abaixo do qual KB&EHVI-EGO seria mais eficiente.",
+      "literal": "the complexity in each iteration of DirHV-EGO is cubic to parameter n, quadratic to parameter N, and linear to parameters m and tmax.",
+      "localizador": "Sec. V-D.1, p.10-11 (texto principal); Supplementary Sec. III-D.2",
+      "metricas": [
+        "complexidade assintótica (Big-O)"
+      ],
+      "testes": [
+        "nenhum — derivação analítica, não medição"
+      ],
+      "convencoes": "Notação Big-O por componente do algoritmo; comparação de pior caso com KB&EHVI-EGO assumindo o algoritmo WFG para EHVI quando m≥4.",
+      "achado": "A complexidade de DirHV-EGO é cúbica em n (nº de observações), quadrática em N (nº de vetores de direção) e linear em m e tmax; para q=1, KB&EHVI-EGO só seria mais eficiente que DirHV-EGO quando o nº de pontos não-dominados nk for menor que log2(N) — na prática (N=295/462), log2(N)≈8.2/8.9, um limiar baixo que DirHV-EGO tipicamente ultrapassa.",
+      "aplicabilidade": "não reproduzível pelas camadas (é derivação analítica, não cronometragem); a decomposição conceitual (ajuste do GP / maximização da aquisição / seleção de lote) ecoa a granularidade que a camada ④ mede empiricamente (tempo de ajuste do modelo, busca, sonda), mas aqui os números vêm de Big-O, não de relógio — análogo teórico da ficha 48, não uma instância dela."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Escalabilidade do tempo de CPU com o tamanho do lote (batch size q)",
+      "grupo_sugerido": "F",
+      "descricao": "Mede empiricamente o tempo de CPU (parede) de DirHV-EGO, MOEA/D-EGO, KB&EHVI-EGO e PEIM-EGO em função do batch size q (1 a 15), em DTLZ2 (m=3,d=6), 50 iterações de EGO, hardware fixo (i7-9700, 64GB), 10 execuções independentes — isolando o custo do próprio algoritmo (assumindo avaliação verdadeira paralela em q máquinas).",
+      "literal": "When q = 15, the mean computational time is 9066 seconds (about 2.5 hours) for KB&EHVI-EGO, but only 818 seconds (about 13.6 minutes) for DirHV-EGO.",
+      "localizador": "Sec. V-D.2, p.11, Fig. 6",
+      "metricas": [
+        "tempo de CPU (segundos)"
+      ],
+      "testes": [
+        "nenhum — média de 10 execuções, sem dispersão reportada no gráfico"
+      ],
+      "convencoes": "Gráfico log-log de tempo de CPU × q; 4 algoritmos; único problema (DTLZ2); Ctotal=65+50q.",
+      "achado": "O tempo de KB&EHVI-EGO e PEIM-EGO cresce rapidamente com q; o de DirHV-EGO e MOEA/D-EGO (ambos baseados em decomposição) cresce muito mais devagar — em q=15, DirHV-EGO é 11× mais rápido que KB&EHVI-EGO; DirHV-EGO também é mais rápido que MOEA/D-EGO porque a aproximação de ETI é mais complexa que o cálculo fechado do DirHV-EI e MOEA/D-EGO ajusta z* adaptativamente a cada iteração.",
+      "aplicabilidade": "④ tempos por execução — parcialmente análogo à ficha 47 (tempo×qualidade), mas aqui só o eixo tempo é medido (sem qualidade emparelhada no mesmo gráfico) e a variável de varredura é o batch size q, não uma configuração fixa; reproduzível para algoritmos do roster com q configurável somando a camada ④ por execução em função de q."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Testa DirHV-EGO contra os mesmos três concorrentes paralelos em cinco problemas reais de engenharia (RE1-RE5: hatch cover, treliça de 4 barras, treliça de 2 barras, viga soldada, injetor de foguete), q=5, medindo hypervolume médio±dp sobre 21 execuções (IGD+ indisponível por não haver PF verdadeira conhecida).",
+      "literal": "DirHV-EGO significantly outperforms the other algorithms on RE1-4. On RE5, EHVI-EGO performs the best, followed by DirHV-EGO.",
+      "localizador": "Sec. V-E, p.11, Table V",
+      "metricas": [
+        "Hypervolume (HV)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05, símbolos +/−/≈ relativos a DirHV-EGO"
+      ],
+      "convencoes": "Média±dp de 21 execuções; q=5 fixo; 5 problemas reais; linha final soma +/−/≈ (1/4/0, 0/5/0, 0/5/0).",
+      "achado": "DirHV-EGO vence significativamente em RE1-RE4; em RE5 (o único com m=3 objetivos entre os reais testados aqui, junto de RE3/RE4), KB&EHVI-EGO (chamado EHVI-EGO no texto) vence, com DirHV-EGO em segundo lugar.",
+      "aplicabilidade": "① endpoint (HV) em problemas reais — mesma lógica das fichas 1/22/23 aplicada a problemas reais, mas com apenas 21 execuções (não 30) e problemas (RE1-RE5) que não coincidem nominalmente com RE21/ESTOQUE40/DDMOP7; RE2 (four-bar truss, m=2,d=4) pode ser o mesmo problema citado como 'RE21' na literatura (mesma suíte-fonte [52]) — a confirmar."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Visualização qualitativa do conjunto não-dominado final obtido pelos quatro algoritmos paralelos (q=5) na execução com hypervolume MÉDIO (não mediano) entre as 21, apenas para RE5 (rocket injector, o único problema em que DirHV-EGO não vence no endpoint).",
+      "literal": "With a limited computational budget, DirHV-EGO does not approximate the upper right corner of PF very well compared with KB&EHVI-EGO. But it could find more nondominated solutions in the upper left corner.",
+      "localizador": "Sec. V-E, p.11, Fig. 7",
+      "metricas": [
+        "ND front (visual)"
+      ],
+      "testes": [],
+      "convencoes": "Execução com HV médio (critério distinto da maioria das figuras suplementares, que usam a execução MEDIANA); 4 painéis lado a lado, um por algoritmo; apenas RE5.",
+      "achado": "Em RE5, DirHV-EGO cobre pior o canto superior direito da PF que KB&EHVI-EGO, mas encontra mais soluções não-dominadas no canto superior esquerdo — um trade-off espacial de cobertura da frente, não uma superioridade ou inferioridade uniforme, que a métrica agregada HV sozinha não revela.",
+      "aplicabilidade": "não reproduzível quantitativamente pelas 7 camadas (é visualização qualitativa); análogo à ficha 54 usando a camada ① (avaliações reais) para plotar o ND acumulado da execução escolhida em RE21/ESTOQUE40/DDMOP7."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de convergência (HV × nº de avaliações de função) para os quatro algoritmos paralelos nos cinco problemas reais (RE1-RE5), q=5, média±dp de 21 execuções — trajetória completa que o corpo principal não mostra (lá só há o endpoint da Tabela V e o ND visual de RE5).",
+      "literal": "Fig. 13. The hypervolume w.r.t. the number of function evaluations achieved by four parallel MOEGO algorithms on five real-world problems with q = 5.",
+      "localizador": "Supplementary Sec. VI, Fig. 13",
+      "metricas": [
+        "Hypervolume (HV)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Linha sólida = média de 21 execuções; faixa sombreada = dp; 5 painéis, um por problema real.",
+      "achado": "As curvas confirmam ao longo de todo o orçamento (não só no ponto final) que DirHV-EGO domina em RE1-RE4 e fica atrás de KB&EHVI-EGO em RE5 — a vantagem/desvantagem já está estabelecida cedo na busca, não é um efeito só do ponto final.",
+      "aplicabilidade": "① trajetória de HV acumulado em problemas reais — ficha 26 aplicada a problemas reais, diretamente análoga ao que a dissertação poderia reproduzir para RE21/ESTOQUE40/DDMOP7 via camada ①, exceto pela diferença de problemas concretos."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Conjunto exaustivo de visualizações do ND final (execução com IGD+ ou HV MEDIANO entre as 21) cobrindo todos os 12 problemas sintéticos × os 4 critérios EI (q=1, Figs.14-15), × os 4 algoritmos paralelos em q=2 (Figs.16-17), q=5 (Figs.18-19) e q=10 (Figs.20-21), mais os 5 problemas reais em q=5 (Fig.22) — a versão completa e sistemática do que o corpo principal só mostra para RE5 (Fig.7).",
+      "literal": "Figs. 14-22 plots the final solutions obtained in the run with the mean IGD+ or mean hypervolume value of each algorithm for each test instance.",
+      "localizador": "Supplementary Sec. VI, Figs. 14-22",
+      "metricas": [
+        "ND front (visual)"
+      ],
+      "testes": [],
+      "convencoes": "Execução com métrica MEDIANA (nota: o texto do parágrafo introdutório da Seção VI diz 'mean', mas as legendas individuais de cada figura dizem 'median' — inconsistência textual do próprio artigo); painéis por problema × algoritmo/critério; PF verdadeira sobreposta nos sintéticos (não nos reais).",
+      "achado": "As visualizações completas confirmam qualitativamente, problema a problema, os padrões quantitativos já lidos nas Tabelas III/IV/V — cobertura da PF verdadeira nos sintéticos (inclusive onde DirHV-EI/DirHV-EGO cobre menos o extremo de algum eixo) e distribuição espacial dos pontos ND nos reais.",
+      "aplicabilidade": "não reproduzível quantitativamente pelas 7 camadas; mesmo uso análogo à ficha 54 da análise anterior, aqui em escala exaustiva (todos os problemas/configurações, não só um caso)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade ao ponto de referência z* (Utopian point) da decomposição/Tchebycheff",
+      "grupo_sugerido": "B",
+      "descricao": "Varia o ponto utópico z*_i (idêntico em todos os m objetivos: −1, −0.1, −0.01, −0.0001, −0.000001, 0) — a referência que ancora os vetores de direção da decomposição de DirHV-EGO — e mede o IGD+ resultante em ZDT1-4/6 e DTLZ1-7, 21 execuções por valor.",
+      "literal": "Intuitively, DirHV-EGO is not very sensitive to z∗ on many test problems except on ZDT1-3 and DTLZ7.",
+      "localizador": "Supplementary Sec. III-A.1, p.5-6, Fig. 5 (Supplementary)",
+      "metricas": [
+        "IGD+ (log)"
+      ],
+      "testes": [
+        "nenhum — leitura visual/qualitativa das curvas por valor de z*"
+      ],
+      "convencoes": "6 valores de z*_i testados, mesmo valor em todos os objetivos; curvas log IGD+ × valor de z*_i; média±dp de 21 execuções; só DirHV-EGO (não os concorrentes).",
+      "achado": "DirHV-EGO é pouco sensível a z* na maioria dos problemas; exceções: em ZDT1/ZDT3 o desempenho piora quando z*→0, enquanto em DTLZ7 melhora quando z*→0, e em ZDT2 o valor ótimo é especificamente z*=−0.01 — os autores recomendam z*_i=−0.01 como ajuste único razoável para todos os problemas.",
+      "aplicabilidade": "não reproduzível — z* é um hiperparâmetro específico da decomposição de DirHV-EGO/MOEA/D-EGO (a referência que ancora os vetores de direção), sem análogo direto em nenhuma camada da instrumentação; não define o USO da incerteza (não é um gate de confiança), então não mapeia à ficha 45."
+    },
+    {
+      "fichas": [
+        64
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Varre o tamanho de lote q ∈ {1,2,5,8,10,15,20} para DirHV-EGO sozinho (mantendo Ctotal fixo, então q maior implica menos iterações/retreinos do GP) e mede o IGD+ final em ZDT1-4/6 e DTLZ1-7, 21 execuções por valor de q.",
+      "literal": "It indicates that adding multiple query points in each iteration can be better than sequentially adding a number of samples (i.e., q = 1) for some expensive MOPs.",
+      "localizador": "Supplementary Sec. III-A.2, p.6, Fig. 6 (Supplementary)",
+      "metricas": [
+        "IGD+ (log)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "7 valores de batch size no eixo x; curvas log IGD+ × q; média±dp de 21 execuções; só DirHV-EGO.",
+      "achado": "Não há batch size ótimo único: o desempenho piora com q maior em ZDT3/DTLZ6 (menos iterações para atualizar o GP), mas melhora ligeiramente em DTLZ2/DTLZ5 com q maior (a busca se beneficia de amostrar diversidade simultaneamente); q=5 é aceitável na maioria dos casos — um achado que contraria a intuição de BO mono-objetivo (onde q maior tipicamente piora o resultado a orçamento fixo), atribuído à necessidade de equilibrar convergência E diversidade em MOO.",
+      "aplicabilidade": "① endpoint por checkpoint final variando q — análogo direto à ficha 64 (sub-estudo de lote), aqui varrendo 7 valores em vez de comparar só q=1 vs q=10; reproduzível para algoritmos do roster com q configurável (qNEHVI, qPOTS) via camada ①."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação da estratégia de seleção de lote (submodular-greedy × aleatória × k-means)",
+      "grupo_sugerido": "B",
+      "descricao": "Isola o componente 'seleção de q pontos a partir do conjunto candidato Q' de DirHV-EGO, comparando três variantes que diferem SÓ nessa etapa: DirHV-EGO-R (seleção aleatória, descartando candidatos com EID=0), DirHV-EGO-K (k-means sobre distância nas variáveis de decisão + valor de EI) e DirHV-EGO (seleção submodular-gulosa proposta) — IGD+ em ZDT1-4/6 e DTLZ1-7, 21 execuções.",
+      "literal": "both DirHV-EGO-K and DirHV-EGO outperform the variant using random selection. This is because some subproblems might be unnecessary, and a proper batch selection method is usually required.",
+      "localizador": "Supplementary Sec. III-B.1, p.6-7, Table I (Supplementary)",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05, símbolos +/−/≈ relativos a DirHV-EGO"
+      ],
+      "convencoes": "Média (dp entre parênteses) de 21 execuções; melhor média por linha destacada; 3 variantes (aleatória, k-means, submodular).",
+      "achado": "A seleção submodular-gulosa (proposta) nunca perde significativamente para nenhuma das duas alternativas em nenhum problema, vencendo a aleatória em 8/12 e o k-means em 5/12 — a estratégia de seleção de lote importa (random claramente pior em ZDT1-3/6/DTLZ2/5/7), mas o ganho da submodular sobre k-means é mais marginal.",
+      "aplicabilidade": "não reproduzível diretamente pelas 7 camadas — exige reexecutar o próprio algoritmo trocando o componente de seleção (não é algo que a instrumentação pós-hoc da dissertação registra passivamente); análogo conceitual a uma ablação de componente algorítmico (grupo B), mas não do σ."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação do otimizador interno usado para maximizar a EI (MOEA/D-GR × MOEA/D-DE)",
+      "grupo_sugerido": "B",
+      "descricao": "Isola o componente 'otimizador interno que maximiza DirHV-EI sobre os N subproblemas', comparando MOEA/D-GR (proposto, com esquema de global replacement) contra uma variante DirHV-EGO-DE que usa MOEA/D-DE [22] no lugar — IGD+ em ZDT1-4/6 e DTLZ1-7, 21 execuções.",
+      "literal": "DirHV-EGO with MOEA/D-GR is better than or at least similar to DirHV-EGO-DE on all the test problems. This is attributed to the global replacement scheme in MOEA/D-GR.",
+      "localizador": "Supplementary Sec. III-B.2, p.7, Table II (Supplementary)",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05, símbolos +/−/≈ relativos a DirHV-EGO"
+      ],
+      "convencoes": "Média (dp entre parênteses) de 21 execuções; 2 variantes (MOEA/D-DE vs MOEA/D-GR); soma final 0/7/5 (MOEA/D-DE nunca vence).",
+      "achado": "MOEA/D-GR (com global replacement, mas maior custo — exige EID de todas as N direções a cada offspring) é melhor ou empata com MOEA/D-DE em todos os 12 problemas, sem nenhuma vitória de MOEA/D-DE — o esquema de substituição global compensa seu custo extra.",
+      "aplicabilidade": "não reproduzível pelas 7 camadas — exige reexecutar o algoritmo trocando o otimizador interno; ablação de componente algorítmico (grupo B), não do σ (ambas variantes usam a mesma EID/GP)."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Testa DirHV-EGO (N=295 para m=4, N=462 para m=6 direções via incremental lattice design, q=5) contra quatro algoritmos de otimização many-objective cara — EIM-EGO (MOEGO), NSGAIII-EHVI e K-RVEA (SAEAs baseadas em GP), CSEA (SAEA baseada em classificador) — em DTLZ1-7 com m=4 e m=6 (d=6), medindo IGD+ média±dp sobre 21 execuções.",
+      "literal": "DirHV-EGO performs similarly or better than the others on DTLZ1-3 and DTLZ6.",
+      "localizador": "Supplementary Sec. III-C, p.8-9, Table III (Supplementary)",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05, símbolos +/−/≈ relativos a DirHV-EGO"
+      ],
+      "convencoes": "Média (dp entre parênteses) de 21 execuções; melhor média destacada (fundo cinza); m∈{4,6}, d=6 fixo; DTLZ1-7; linha final soma +/−/≈ (4/8/2, 2/8/4, 3/8/3, 4/9/1).",
+      "achado": "DirHV-EGO empata ou vence em DTLZ1-3/6, mas perde para as 3 SAEAs (NSGAIII-EHVI, CSEA, K-RVEA) em DTLZ4 (m=4 e m=6) — a única inversão sistemática do artigo em favor de métodos que NÃO maximizam EI.",
+      "aplicabilidade": "① endpoint em problemas com m>3 objetivos — análogo a fichas 1/3 mas para 'muitos objetivos'; nenhum dos 5 algoritmos está no roster; mapeável em espírito a uma leitura por característica 'muitos objetivos' se o roster tiver problemas com m>3 (checar suíte BBOB/WFG many-objective da dissertação)."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de convergência (log IGD+ × FE) para a comparação many-objective da análise anterior, m=4 e m=6 lado a lado, DTLZ1-7, 5 algoritmos, 21 execuções.",
+      "literal": "the performance of DirHV-EGO deteriorates on DTLZ5 and DTLZ6 as m increases. However, when m = 4, DirHV-EGO is competitive with other methods on DTLZ5 and DTLZ6.",
+      "localizador": "Supplementary Sec. III-C.4/III-D.1, p.9-10, Fig. 7 (Supplementary)",
+      "metricas": [
+        "IGD+ (log)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Linha sólida = média de 21 execuções; faixa sombreada = dp; 14 painéis (DTLZ1-7 × m=4,6).",
+      "achado": "O desempenho de DirHV-EGO piora em DTLZ5/DTLZ6 (PF degenerada, curva 2-D) e DTLZ7 (PF descontínua) conforme m sobe de 4 para 6, atribuído a vetores de direção que perdem interseção com a PF verdadeira e tornam subproblemas 'desnecessários' — mas a seleção submodular no segundo passo de DirHV-EGO mitiga parcialmente esse efeito.",
+      "aplicabilidade": "① trajetória em problemas many-objective — mesma limitação da análise anterior (nenhum algoritmo no roster); a característica 'PF degenerada/descontínua + muitos objetivos' é reproduzível via caracteristica_x_desempenho para problemas equivalentes do roster."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação da estratégia adaptativa do ponto de referência z* + comparação pareada sob seleção k-means comum",
+      "grupo_sugerido": "B",
+      "descricao": "Duas comparações controladas simultâneas: (a) Variant-Z (z*_i=−0.01 fixo) vs. a implementação de MOEA/D-EGO do artigo (z* ajustado adaptativamente ao mínimo das médias preditas do GP a cada iteração) — isolando o efeito do ajuste adaptativo de z*; (b) DirHV-EGO-K (seleção k-means, z* fixo) vs. MOEA/D-EGO (seleção k-means, z* adaptativo) — comparando DirHV-EI × ETI sob o MESMO método de seleção de lote (k-means em ambos, em vez da seleção submodular de DirHV-EGO padrão).",
+      "literal": "the adaptive adjustment strategy we used for z∗ is helpful for improving the convergence speed of MOEA/D-EGO.",
+      "localizador": "Supplementary Sec. IV-A/IV-B, p.9-10, Table IV (Supplementary) + Fig. 8 (Supplementary)",
+      "metricas": [
+        "IGD+",
+        "IGD+ (log, trajetória)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05, símbolos +/−/≈"
+      ],
+      "convencoes": "Média (dp entre parênteses) de 21 execuções; Variant-Z vs MOEA/D-EGO (símbolos relativos a MOEA/D-EGO); DirHV-EGO-K vs MOEA/D-EGO (mesma seleção k-means); Fig.8 traz as curvas de convergência correspondentes às 3 variantes com q=5.",
+      "achado": "O ajuste adaptativo de z* melhora a velocidade de convergência de MOEA/D-EGO (Variant-Z, com z* fixo, perde significativamente em ZDT1-2 e ZDT6, embora vença em ZDT3); quando a seleção de lote é igualada (k-means em ambos), DirHV-EGO-K (z* fixo simples) empata com MOEA/D-EGO (z* adaptativo) em 8/12 problemas e vence em 4/12 — sugerindo que parte do que antes parecia vantagem do critério DirHV-EI sobre ETI é, na verdade, uma vantagem do critério em si mesmo (já que aqui DirHV-EGO-K usa z* fixo mais simples e ainda assim não perde de MOEA/D-EGO com z* adaptativo).",
+      "aplicabilidade": "não reproduzível pelas 7 camadas — exige reexecutar variantes do próprio algoritmo (z* fixo vs adaptativo; método de seleção pareado); ablação de componente algorítmico (grupo B), não do σ."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo não mede empiricamente a calibração, cobertura ou acurácia do σ do GP em nenhum momento — σ_i(x) entra apenas ANALITICAMENTE dentro da fórmula fechada de DirHV-EI (Proposição 5, via τ_i=(ξ_i−μ̂_i)/σ̂_i e as funções Φ/φ de Gauss), de forma idêntica em todos os critérios EI comparados (EHVI, ADirHV-EI, ETI, DirHV-EI, EIM-EGO, etc.). Não há verificação de quão bem esse σ reflete o erro real do modelo (sem RMSE-vs-erro, sem cobertura empírica, sem análise de heterocedasticidade).",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Duas frentes: (1) derivação ANALÍTICA de complexidade Big-O por iteração, decomposta em ajuste do GP O(mn³), maximização da EI via MOEA/D O((mn²+mN)Ntmax) e seleção de lote O(mN²+qN), com extensão ao caso many-objective no suplemento; (2) medição EMPÍRICA de tempo de CPU (parede) total por execução em função do batch size q (Fig.6, DTLZ2, 4 algoritmos, 10 execuções) — não há decomposição empírica separada de fit/busca/avaliação (só o tempo total do algoritmo é cronometrado).",
+    "literal": "the mean computational time is 9066 seconds (about 2.5 hours) for KB&EHVI-EGO, but only 818 seconds (about 13.6 minutes) for DirHV-EGO. In this case, DirHV-EGO is 11 times faster than KB&EHVI-EGO.",
+    "localizador": "Sec. V-D, p.10-11 (texto principal); Supplementary Sec. III-D.2"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Em DTLZ4 (m=4 e m=6), os três métodos SAEA (NSGAIII-EHVI, CSEA, K-RVEA — que usam seleção ambiental sobre a população, não maximização de EI) vencem significativamente DirHV-EGO; os autores atribuem isso ao fato de que maximizar EI pode gastar avaliações melhorando a acurácia do modelo sem necessariamente melhorar a fronteira estimada.",
+      "literal": "MOEGO methods may require more observations to improve the accuracy of surrogate models, yet this may not directly result in an improved estimated PF.",
+      "localizador": "Supplementary Sec. III-C.4, p.9 (texto após Table III)"
+    },
+    {
+      "descricao": "Em ZDT4 com batch size q≥5, os métodos baseados em decomposição (DirHV-EGO, MOEA/D-EGO) — que espalham a busca por N direções/subproblemas para manter diversidade — perdem para os métodos sequenciais-gulosos baseados em indicador (KB&EHVI-EGO, PEIM-EGO), porque ZDT4 exige foco no objetivo f2 (difícil) em vez de diversidade.",
+      "literal": "DirHV-EGO and MOEA/D-EGO waste computational resources for maintaining the diversity of query points when the batch size is large.",
+      "localizador": "Sec. V-C, p.10 (texto principal, após Table IV)"
+    },
+    {
+      "descricao": "Limitação explícita dos autores: como DirHV-EGO usa modelos GP para aproximar os objetivos, e GPs sofrem da maldição da dimensionalidade, o método enfrenta dificuldade em problemas de alta dimensão de decisão — um caveat sobre o próprio surrogate, não sobre o critério de aquisição.",
+      "literal": "DirHV-EGO uses GP models to approximate the objectives. Due to the fact that GP models are prone to suffer from the curse of dimensionality, it can be a challenge for DirHV-EGO to deal with high-dimensional MOPs.",
+      "localizador": "Sec. VI CONCLUSION (Limitations), p.12"
+    },
+    {
+      "descricao": "Em problemas com PF degenerada (DTLZ5/6, curva 2-D mesmo com m objetivos) ou descontínua (DTLZ7), conforme m aumenta, muitos vetores de direção deixam de ter interseção com a PF verdadeira, tornando os subproblemas correspondentes 'desnecessários' e desperdiçando recursos computacionais — uma falha estrutural do princípio de decomposição por direção, não do GP em si.",
+      "literal": "when direction or weight vectors have no intersection with the true PF, the corresponding subproblems might be unnecessary and result in an inefficient use of computing resources",
+      "localizador": "Supplementary Sec. III-D.1, p.9-10"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "ADirHV-EI (a média do DirHV-EI sobre os vetores de direção, provada na Proposição 3 como uma hipervolume improvement ponderada) tem desempenho semelhante ao EHVI padrão em mais da metade dos problemas testados, confirmando empiricamente a equivalência teórica entre os dois quando ambos são maximizados pelo mesmo otimizador (DE).",
+      "literal": "ADirHV-EI, i.e. the mean of DirHV-EI with respect to Pλ, performs similarly to EHVI on 7 out of 12 test problems.",
+      "localizador": "Sec. V-C, p.9"
+    },
+    {
+      "descricao": "Quando o método de seleção de lote é igualado (k-means em ambos), DirHV-EGO-K (usa o critério DirHV-EI) e MOEA/D-EGO (usa o critério ETI, com z* adaptativo) têm desempenho semelhante na maioria dos problemas — evidência de que boa parte da diferença de desempenho antes atribuída ao critério de EI vinha do método de seleção e do ajuste de z*, não da forma funcional da aquisição em si.",
+      "literal": "DirHV-EGO-K performs similarly with MOEA/D-EGO on 8 out of 12 test problems.",
+      "localizador": "Supplementary Sec. IV-B, p.10"
+    },
+    {
+      "descricao": "Prova teórica de que o critério de probabilidade de melhoria (PI) induzido por IT (Tchebycheff) e por ID (direction-based hypervolume) são EXATAMENTE equivalentes como eventos de probabilidade (P(IT>0)=P(ID>0)), mas suas ESPERANÇAS (os critérios EI efetivamente usados, ETI e DirHV-EI) não são equivalentes — um caso explícito de equivalência parcial: mesmo limiar de decisão binária, magnitude diferente.",
+      "literal": "the probability of improvement (PI) criteria induced by IT (y|λ) and ID(y|λ) are equivalent... However, their expectations... are not equivalent.",
+      "localizador": "Supplementary Sec. I-C.2, p.4"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "geometria da PF (convexa/côncava: ZDT1/ZDT2) e sensibilidade à estimativa do ponto utópico z*",
+      "afirmacao": "DirHV-EI converge mais rápido que ETI em ZDT1 (convexa) e ZDT2 (côncava) porque a Tchebycheff improvement (IT, base de ETI) depende diretamente de z* e degrada quando z* é mal estimado, enquanto o DirHV-EI depende principalmente do ponto de interseção ξ da superfície de atingimento, sendo menos afetado por essa estimativa.",
+      "literal": "the values of IT (y|λ) are directly related to z∗... By contrast, the values of ID(y|λ) mainly rely on the intersection points ξ and may be less affected by z∗.",
+      "localizador": "Sec. V-C, p.9"
+    },
+    {
+      "caracteristica": "muitos objetivos (m=4,6) combinados com PF degenerada (DTLZ5/6, curva 2-D) ou descontínua (DTLZ7)",
+      "afirmacao": "O desempenho de DirHV-EGO deteriora conforme m aumenta de 4 para 6 nesses problemas, porque mais vetores de direção deixam de ter interseção com a PF verdadeira; em m=4, DirHV-EGO ainda é competitivo, mitigado parcialmente pela seleção submodular do segundo passo do algoritmo.",
+      "literal": "the performance of DirHV-EGO deteriorates on DTLZ5 and DTLZ6 as m increases",
+      "localizador": "Supplementary Sec. III-C.4/III-D.1, p.9-10"
+    },
+    {
+      "caracteristica": "DTLZ4 (viés de densidade de soluções perto do contorno / região multimodal difícil de amostrar)",
+      "afirmacao": "É o único problema (entre DTLZ1-7, m=4 e m=6) em que os métodos SAEA (seleção ambiental sobre a população: NSGAIII-EHVI, CSEA, K-RVEA) vencem sistematicamente os métodos MOEGO baseados em EI (DirHV-EGO, e parcialmente EIM-EGO) — atribuído a diferenças na filosofia de seleção de pontos de consulta entre as duas famílias.",
+      "literal": "on the DTLZ4 benchmark, SAEAs can obtain lower mean IDG+ values than MOEGO methods. This disparity can be attributed to the different ways in which MOEGO and SAEA select query points.",
+      "localizador": "Supplementary Sec. III-C.4, p.9"
+    },
+    {
+      "caracteristica": "ZDT4 (multimodal, f2 enganoso/difícil de otimizar) combinado com batch size grande",
+      "afirmacao": "Com q≥5, os métodos de decomposição (DirHV-EGO, MOEA/D-EGO), que espalham a busca por várias direções para manter diversidade, perdem para os métodos sequenciais-gulosos baseados em indicador (KB&EHVI-EGO, PEIM-EGO), porque ZDT4 exige foco em f2 em vez de diversificação — o único problema sintético em que o batch size interage claramente com a característica do problema para inverter o ranking.",
+      "literal": "the f2 of ZDT4 is difficult to optimize and should be minimized first with more budget. But DirHV-EGO and MOEA/D-EGO waste computational resources for maintaining the diversity",
+      "localizador": "Sec. V-C, p.10"
+    },
+    {
+      "caracteristica": "alta dimensionalidade de decisão (maldição da dimensionalidade do GP)",
+      "afirmacao": "Limitação declarada: por depender de modelos GP, DirHV-EGO deve enfrentar dificuldade crescente em problemas de alta dimensão de decisão, independente do critério de aquisição usado — uma limitação do surrogate, não do mecanismo de decomposição ou do critério EI.",
+      "literal": "GP models are prone to suffer from the curse of dimensionality, it can be a challenge for DirHV-EGO to deal with high-dimensional MOPs",
+      "localizador": "Sec. VI CONCLUSION (Limitations), p.12"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "roster_bloco = null por instrução do pedido (artigo fora do roster experimental). Não há piso evolutivo sem surrogate em NENHUMA das comparações do artigo (q=1: EHVI/ADirHV-EI/ETI/DirHV-EI; paralelo: KB&EHVI-EGO/PEIM-EGO/MOEA/D-EGO/DirHV-EGO; many-objective: EIM-EGO/NSGAIII-EHVI/CSEA/K-RVEA) — todos usam GP (ou, no caso de CSEA, um classificador). Nenhuma ablação isola a incerteza (σ) em si: todos os critérios EI comparados na Tabela III integram sobre a posterior completa do GP (usam μ E σ via Φ/φ); não existe, em lugar nenhum do artigo, uma variante 'seleção pela média apenas' (σ=0) — portanto as fichas 11/15 (ablação exata do σ) não têm instância aqui, apesar de o artigo comparar extensivamente formas alternativas de agregar essa mesma incerteza (EHVI vs ADirHV-EI vs ETI vs DirHV-EI) e de ablacionar duas OUTRAS componentes da maquinaria (seleção de lote, otimizador interno) e um hiperparâmetro de referência (z*). 21 execuções (não 30); DoE inicial C0=11d−1 (mesma fórmula clássica de Jones/Schonlau/Welch citada como referência na dissertação, mas o orçamento TOTAL aqui é fixo — Ctotal=200/300 — e não segue uma fórmula do tipo 31D−1). Convenção de apresentação é sempre MÉDIA±dp (nunca mediana+IQR), e os símbolos de significância são sempre relativos ao método PROPOSTO da seção (DirHV-EI ou DirHV-EGO), não ao melhor algoritmo de cada linha — uma diferença metodológica sistemática frente à ficha 3 da tipologia, que compara contra 'o melhor de cada problema'. Possível sobreposição de problema real: 'RE2 (Four bar truss design, m=2, d=4)' deste artigo tem a mesma assinatura (m,d) e mesmo desenho de treliça de 4 barras comumente citado como 'RE21' na literatura de otimização multiobjetivo cara (mesma suíte-fonte Tanabe & Ishibuchi [52] citada na dissertação) — hipótese razoável mas não confirmada aqui; os outros 4 problemas reais (RE1/RE3/RE4/RE5) não parecem coincidir com ESTOQUE40 ou DDMOP7. Código aberto disponível em https://github.com/mobo-d/DirHV-EGO. A Seção V do material suplementar ('Comparison with Multiplied EI') é puramente conceitual (compara definições de 4 critérios EI numa tabela, sem dado empírico novo) e não gerou item de análise própria. A Proposição 6 (prova formal, não análise empírica) estabelece que, com médias preditas iguais, EID favorece o ponto de maior incerteza σ — a base teórica que classifica o artigo como O1·Aquisição exploratória na taxonomia da dissertação. Artigo lido INTEGRALMENTE: passagem estruturada (pymupdf4llm) cobrindo o corpo principal (13 páginas: Seções I-VI + Referências) e todo o material suplementar (Seções I-VI: técnicas preliminares, provas, Seção III de análise adicional com sensibilidade a z*/batch size/ablações de componentes/many-objective, implementação de MOEA/D-EGO, comparação com mEI, e Seção VI com Figs.10-22 cobrindo exaustivamente todas as combinações problema×algoritmo×q) — total 22 figuras e 10 tabelas (5 no corpo + 5 no suplemento), todas contabilizadas via varredura completa do arquivo (nenhuma numeração de Fig./Table pulada). Em seguida, um ANEXO com a camada de texto bruta completa do PDF (redundante, conferido por amostragem contra a versão estruturada — os valores da Tabela III suplementar batem exatamente, número a número) e um ANEXO final de OCR de imagens das páginas 37-39 que só trouxe ruído ilegível de rótulos de eixo/números fragmentados, sem conteúdo substantivo novo além do já capturado na passagem estruturada."
+}

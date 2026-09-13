@@ -1,0 +1,415 @@
+{
+  "id": "e7",
+  "sigla": "EDN-ARMOEA",
+  "titulo": "Evolutionary Optimization of High-Dimensional Multi- and Many-Objective Expensive Problems Assisted by a Dropout Neural Network",
+  "ano": 2022,
+  "roster": true,
+  "setup": {
+    "benchmarks": "2 suítes sintéticas de baixo custo computacional (usadas como proxy de problema caro, orçamento artificialmente restrito): DTLZ1-DTLZ7 (7 problemas) e WFG1-WFG9 (9 problemas) = 16 problemas no total. Dois estudos de escalabilidade ortogonais, ambos só no corpo principal para DTLZ (WFG equivalente fica em Tables SIII/SIV do Supplementary, ausente deste corpus): (a) variação de d∈{20,40,60,100} com m=3 fixo (Table II); (b) variação de m∈{3,5,10,20} com d=40 fixo (Table III). Maior configuração testada: d=100 (com m=3) e m=20 (com d=40) — nunca d=100 E m=20 simultaneamente. Nenhum problema MMF, BBOB ou real da bateria da dissertação é usado nos experimentos DISPONÍVEIS neste corpus; um problema real de engenharia de processos (unidades de destilação de petróleo bruto) É usado, mas inteiramente no Seç. VII do material suplementar (só mencionado na Conclusão, ver análise 'A16' e observações).",
+    "orcamento": "DoE inicial = 11d−1 (Latin Hypercube Sampling), igual à convenção 11D−1 já vista em outros algoritmos do roster (não 31D−1 como a dissertação). Orçamento de busca fixo e INDEPENDENTE de d: 120 avaliações reais adicionais sempre, a k=5 por geração (24 ciclos de retreino/seleção no total, sempre, seja d=20 ou d=100) — logo FEmax = 11d+119. Isso significa que, em termos RELATIVOS ao tamanho do DoE, problemas de d maior recebem uma fase de busca proporcionalmente muito menor (p.ex. d=100: DoE=1099, busca=120 ≈ 11% extra; d=20: DoE=219, busca=120 ≈ 55% extra) — um desenho não discutido explicitamente pelos autores. Dentro de cada ciclo de retreino, a AR-MOEA interna roda iter=20 gerações sobre uma população de P=50 usando o surrogate como fitness (não avaliações reais) — esse 'iter' é diferente do número de ciclos de retreino/seleção externos (24).",
+    "execucoes": "20 execuções independentes por algoritmo × problema (não 30 como na dissertação).",
+    "baselines": "NENHUM piso evolutivo sem surrogate é rodado em lugar nenhum do artigo (nem AR-MOEA puro, nem NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) — todas as comparações são entre métodos assistidos por surrogate. (i) Ablação própria da estratégia de gerenciamento do modelo, todos usando GP como surrogate: GP-ARMOEA (estratégia balanceada proposta, δ=0,08), GPC-ARMOEA (só critério de convergência, nunca usa σ), GPD-ARMOEA (só critério de diversidade, sempre usa σ) — Table I. (ii) HeE-ARMOEA — AR-MOEA assistida pelo ensemble heterogêneo (SVM + 2×RBF) do próprio primeiro autor (D. Guo et al. 2018, ref. [31]); esse artigo é o próprio 'e3' (HeE-MOEA) do roster da dissertação, ainda não minerado neste conjunto — aqui HeE aparece só como BASELINE de comparação, não como o método próprio deste artigo. (iii) Estado da arte externo (Seç. IV-E): K-RVEA — que É o próprio 'b3' já minerado no roster (K-RVEA, EA-Indicador/RVEA com Kriging, mecanismo de gate δ estruturalmente muito próximo ao delta de EDN-ARMOEA, ver observações) — e MOEA/D-EGO, que É o 'b2' do roster (ainda não minerado neste conjunto). (iv) Validação real (só mencionada, Seç. VII do suplemento, ausente deste corpus): AEMOEA (acrônimo nunca definido no texto disponível), GP-ARMOEA e HeE-ARMOEA, em unidades de destilação de petróleo bruto.",
+    "metricas_principais": [
+      "IGD (inverted generational distance; NÃO é IGD+)"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum test, α=5% (0,05), símbolos +/−/≈ — em Table I a referência da comparação é GP-ARMOEA (a estratégia proposta, para isolar o efeito do critério de seleção); em Tables II/III/SVIII/SIX a referência é EDN-ARMOEA (o método proposto do artigo como um todo)"
+    ],
+    "apresentacao": "Média (desvio-padrão) entre parênteses por célula — NÃO mediana/IQR (diverge da convenção-padrão da dissertação); símbolo de significância (+/−/≈) por célula, comparado sempre contra um único algoritmo de referência por tabela (não 'o melhor da linha'); linha final agregando contagem +/−/≈ por comparação/coluna. Nenhuma menção a negrito para o melhor valor da linha no texto disponível (diferente de outros artigos do roster, ex. c217). Figuras de convergência (Fig. 2) e de custo (Fig. 3) usam 'error bars' (presumivelmente média ± desvio, não declarado explicitamente qual estatística as barras representam).",
+    "codigo_plataforma": "Matlab R2014a sobre o toolbox PlatEMO; GP implementado via DACE (Matlab Kriging toolbox) — kernel gaussiano, regressão polinomial de ordem zero, parâmetros de correlação iniciais=5, limites [1e-5, 100]. Hardware: Intel Core i7 3,4GHz, Windows 7 Enterprise SP1 64-bit."
+  },
+  "analises": [
+    {
+      "fichas": [
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparação de três variantes que isolam o efeito do CRITÉRIO de seleção de novos pontos reais, todas usando GP como surrogate (não EDN) e a mesma AR-MOEA de base: GP-ARMOEA (a estratégia balanceada proposta — alterna entre convergência e diversidade/incerteza conforme o gate δ), GPC-ARMOEA (SEMPRE seleciona pela distância euclidiana ao ideal — nunca usa σ), e GPD-ARMOEA (SEMPRE seleciona pela incerteza média máxima — sempre usa σ). IGD média±dp em 16 problemas (DTLZ1-7, WFG1-9), d=20, m=3, com Wilcoxon rank-sum (α=5%) contra GP-ARMOEA como referência.",
+      "literal": "GP-ARMOEA achieves the best performance in terms of convergence and diversity on eight out of the sixteen test instances, while GPC-ARMOEA and GPD-ARMOEA perform best on DTLZ2 and WFG1, respectively.",
+      "localizador": "Sec. IV-B, Table I",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos +/−/≈ contra GP-ARMOEA"
+      ],
+      "convencoes": "Média (desvio-padrão) entre parênteses; símbolo de teste após GPC-ARMOEA e após GPD-ARMOEA (cada um comparado individualmente contra GP-ARMOEA); linha final com DUAS contagens agregadas +/−/≈ (uma por comparação); 20 execuções independentes; d=20, m=3 fixos.",
+      "achado": "A estratégia balanceada (GP-ARMOEA) vence em 8/16 problemas, mas NENHUMA das três domina universalmente — GPC-ARMOEA (nunca usa σ) vence em DTLZ2, GPD-ARMOEA (sempre usa σ) vence em WFG1. Mais revelador: a MAIORIA das comparações é estatisticamente EMPATADA (linha final: 5/1/10 para GPC-ARMOEA vs. GP-ARMOEA — 10 de 16 ≈; 8/1/7 para GPD-ARMOEA vs. GP-ARMOEA — 7 de 16 ≈), sugerindo que o CRITÉRIO específico de seleção pesa menos do que a maquinaria (GP + AR-MOEA + clustering) em si — ver campo equivalencia_criterios.",
+      "aplicabilidade": "É a ablação MAIS DIRETA do mecanismo de uso da incerteza do próprio EDN-ARMOEA (o critério de seleção 'diversidade' É, literalmente, 'selecionar pelo σ máximo'), mas NÃO é reproduzível com as 7 camadas de uma única execução real — exige rodar duas variantes do algoritmo (só-convergência e só-incerteza) que não fazem parte do roster experimental da dissertação tal como executado. Se essas variantes fossem rodadas, o resultado seria diretamente comparável via camada ① (endpoint IGD por problema)."
+    },
+    {
+      "fichas": [
+        1,
+        7
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela de desempenho final EDN-ARMOEA × GP-ARMOEA × HeE-ARMOEA em DTLZ1-7, para d∈{20,40,60,100} com m=3 fixo — testando o efeito da DIMENSÃO DE DECISÃO sobre o desempenho relativo dos três surrogates (EDN vs. GP vs. ensemble heterogêneo), IGD média±dp, Wilcoxon rank-sum contra EDN-ARMOEA como referência.",
+      "literal": "EDN-ARMOEA outperforms GP-ARMOEA and HeE-ARMOEA on 60, and perform comparably with GP-ARMOEA and HeE-ARMOEA on 36, respectively, out of a total of 64 test instances.",
+      "localizador": "Sec. IV-C, Table II (DTLZ1-7); número agregado citado no texto combina com Table SIII (WFG1-9, Supplementary material, ausente deste corpus)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos +/−/≈ contra EDN-ARMOEA"
+      ],
+      "convencoes": "Média (desvio-padrão); símbolo de teste após GP-ARMOEA e após HeE-ARMOEA (cada um vs. EDN-ARMOEA); linha final com duas contagens +/−/≈ (9/2/17 para GP-ARMOEA; 9/11/8 para HeE-ARMOEA, somando 28 células = 7 problemas × 4 valores de d); d∈{20,40,60,100}, m=3; 20 execuções.",
+      "achado": "EDN-ARMOEA tem o melhor desempenho geral, seguido por HeE-ARMOEA; supera GP-ARMOEA significativamente em 41 de 64 instâncias combinadas (DTLZ+WFG); 'HeE-ARMOEA also shows promising performance, its performance degrades as the number of objectives increases' — nota que aponta para a Table III, não para esta tabela de d. Em DTLZ2/4/5, HeE-ARMOEA VENCE claramente ambos GP e EDN em d baixo (20,40,60) mas perde em d=100 — um cruzamento de vantagem relacionado à dimensão, não comentado explicitamente pelos autores.",
+      "aplicabilidade": "① endpoint (IGD sobre o ND acumulado das avaliações reais) por algoritmo × problema × d — diretamente reproduzível pela camada ①; equivale à ficha 1 (placar) cruzada com a ficha 7 (tendência com D), exceto que aqui NENHUM dos três é um piso sem surrogate, então a leitura de 'tendência com D' é entre dois surrogates concorrentes (GP, ensemble), não assistido-vs-piso."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma estrutura da tabela anterior, mas variando o NÚMERO DE OBJETIVOS m∈{3,5,10,20} com d=40 fixo, em DTLZ1-7 — testando o efeito da escalada em muitos-objetivos sobre EDN-ARMOEA × GP-ARMOEA × HeE-ARMOEA.",
+      "literal": "the impact of the number of objectives is examined by setting m = 3, 5, 10, 20 when d = 40.",
+      "localizador": "Sec. IV-C, Table III (DTLZ1-7); equivalente WFG em Table SIV (Supplementary material, ausente deste corpus)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos +/−/≈ contra EDN-ARMOEA"
+      ],
+      "convencoes": "Mesmo formato de Table II; linha final 15/0/13 (GP-ARMOEA vs. EDN) e 15/3/10 (HeE-ARMOEA vs. EDN), 28 células = 7×4; m∈{3,5,10,20}, d=40; 20 execuções.",
+      "achado": "'the best overall performance on all the test instances is achieved by EDN-ARMOEA, confirming the scalability of EDN-ARMOEA' — GP-ARMOEA NUNCA vence EDN-ARMOEA nesta tabela (0 vitórias na linha final); HeE vence em 3/28. Nota curiosa não comentada pelos autores: em DTLZ1 com m=20, os três algoritmos reportam o MESMO valor até a 4ª casa decimal (11,90; dp≈5e-15, ordens de grandeza menor que qualquer outra célula) — sinal de que o orçamento (11×40+119=559) é insuficiente para qualquer progresso além do DoE nessa configuração extrema, um platô/teto que os três compartilham por desenho, análogo em espírito à ficha 29 da dissertação (embora não seja o mesmo mecanismo — lá é 'teto de parede' por limite de FE comum entre células, aqui é estagnação genuína por orçamento insuficiente).",
+      "aplicabilidade": "① endpoint por algoritmo × problema × m — reproduzível pela camada ①. Não há ficha dedicada na tipologia para 'tendência com o número de objetivos m' (só a ficha 7, específica para D) — candidato a extensão futura da tipologia, não criado aqui como 'nova' por já haver cobertura suficiente via ficha 1 (placar) e via caracteristica_x_desempenho ('muitos objetivos')."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de convergência (IGD médio com barras de erro versus número de avaliações reais, no intervalo 450-550 FEs) para 4 problemas amostrados (DTLZ4, WFG1, WFG5, WFG9), comparando EDN-ARMOEA, GP-ARMOEA e HeE-ARMOEA, d=40, m=3.",
+      "literal": "Fig. 2 plots the change of the average IGD values over the number of real FEs when d is 40 and m is 3.",
+      "localizador": "Fig. 2 (a-d)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Barras de erro (estatística não declarada explicitamente — presumivelmente média±dp, consistente com o resto do artigo) versus FE; apenas a janela final do orçamento (450-550 de um total de 559 FEs para d=40) é mostrada, não a trajetória completa desde o DoE inicial; 4 de 16 problemas amostrados (regra editorial implícita, não declarada).",
+      "achado": "'The IGD values of EDN-ARMOEA decrease quickly on WFG1 and WFG5 as the evolution proceeds, while the IGD values of HeE-ARMOEA decrease quickly on the other two test problems [DTLZ4, WFG9]' — nenhum dos dois algoritmos domina a taxa de convergência final em todos os problemas amostrados, mesmo que EDN-ARMOEA vença mais no placar global (Table II/III).",
+      "aplicabilidade": "① trajetória de IGD acumulado por checkpoint de FE — diretamente reproduzível pela camada ① da dissertação (ficha 26), mas só para a JANELA final do orçamento como o artigo mostrou (não a curva completa desde o DoE)."
+    },
+    {
+      "fichas": [
+        46,
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tempo de treino do surrogate e tempo total de otimização por execução, medidos em segundos, versus d∈{20,40,60,100} (m=3) e versus m∈{3,5,10,20} (d=40), no problema DTLZ7 apenas, comparando EDN-ARMOEA vs. GP-ARMOEA (painéis a-d) e EDN-ARMOEA vs. HeE-ARMOEA (painéis e-h) separadamente.",
+      "literal": "the proposed EDN is much more scalable than GP and HeE to the increase in the number of training samples and the number of objectives, which confirms our theoretical analysis of the computational complexity of the EDN.",
+      "localizador": "Fig. 3 (a-h); DTLZ7",
+      "metricas": [
+        "tempo de treino do surrogate (s)",
+        "tempo de otimização por execução (s)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Barras de erro de tempo (s) versus d e versus m; um único problema (DTLZ7) representa toda a bateria — generalização apoiada pela derivação analítica de complexidade (Sec. III-C: O(itertrain·batchsize·J·K + m·P³) para EDN-ARMOEA vs. O(N³·m·iters) para GP-assistido), não por replicação empírica nos outros 15 problemas.",
+      "achado": "O tempo de treino do EDN cresce muito mais devagar com d e m que o do GP (parede O(n³) do GP, confirmando a análise teórica). Achado contraintuitivo: o tempo de TREINO do EDN é MAIOR que o do HeE ('That is why the training time for EDN-ARMOEA is more than that for HeE-ARMOEA') — mas o tempo TOTAL de otimização do EDN é MENOR, porque a seleção de features do HeE é feita off-line uma única vez e seu custo não entra na contagem de treino por geração ('Since feature selection in HeE is performed off-line only once... the time consumption for feature selection is not included in the training time of HeE-ARMOEA').",
+      "aplicabilidade": "④ tempos por geração (ajuste do modelo separado de busca/avaliação) — diretamente reproduzível pela camada ④; fichas 46 (parede do retreino vs. D) e 48 (decomposição fit/busca), embora a decomposição aqui seja apenas 2-way (treino vs. 'otimização total', sem separar busca no modelo de avaliação real nem de instrumentação/sonda, como a camada ④ da dissertação faria)."
+    },
+    {
+      "fichas": [
+        31,
+        33,
+        36
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparação da acurácia de fitness (erro absoluto médio, MAE) e da capacidade de expressar incerteza (desvio-padrão médio da variância estimada σ̂², usado como proxy de 'quão informativa' é a incerteza) entre EDN, HeE e GP, treinados nos MESMOS dados em cada execução, avaliados em 50 amostras de teste aleatórias e também nos próprios dados de treino, sobre 20 execuções independentes.",
+      "literal": "the smallest absolute error of the predictions for the test data is achieved by the proposed EDN, indicating that the estimated objective values obtained by EDN is the closest to the real objective values.",
+      "localizador": "Sec. IV-D; resultados completos em Tables SV-SVII (Supplementary material, ausentes deste corpus — achados descritos em prosa no texto principal)",
+      "metricas": [
+        "MAE (erro absoluto médio) da estimativa de fitness (teste e treino)",
+        "STD (desvio-padrão médio) da variância estimada σ̂² (proxy de informatividade da incerteza)"
+      ],
+      "testes": [
+        "nenhum teste estatístico formal citado — comparação direta de médias sobre 20 execuções, com hipótese declarada a priori (menor MAE = mais acurado; maior STD = melhor capacidade de expressar incerteza)"
+      ],
+      "convencoes": "Mesma base de treino compartilhada entre os 3 modelos por execução; 50 amostras de teste aleatórias; MAE calculado tanto em teste quanto em treino; STD calculado a partir de σ̂² nos dados de teste; médias sobre 20 execuções independentes.",
+      "achado": "EDN tem o menor MAE tanto em teste quanto em treino (mais acurado que GP e HeE). Achado NEGATIVO para GP (ver resultados_negativos): 'the mean STD of ŝ obtained by GP is the smallest... indicating that GP fails to properly predict the uncertainty for high-dimensional problems when the number of training data is small' — GP colapsa para uma incerteza pouco informativa em alta dimensão com poucos dados; EDN mantém capacidade de expressar incerteza nesse regime.",
+      "aplicabilidade": "③ sonda (RMSE/WAPE da média = ficha 31; magnitude/informatividade do σ = proxy grosseiro para calibração/discriminação, fichas 33-34) — diretamente reproduzível pela camada ③; comparação entre classes de medição (ficha 36): GP≈VA (posterior fechada) vs. EDN≈DE (dropout, ensemble de passagens estocásticas) vs. HeE≈DE (dispersão de ensemble explícito) — mas NÃO é calibração por cobertura (não checa fração dentro de μ±2σ) nem correlação σ×erro; é uma medida mais crua de magnitude/informatividade do σ.",
+      "observacoes": "É a única medição de qualidade do σ do artigo — ver campo calibracao_do_sigma para detalhes."
+    },
+    {
+      "fichas": [
+        43
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Número de soluções que contribuíram para a melhoria do IGD (soluções não-dominadas/relevantes no momento em que foram avaliadas) versus número de FEs reais consumidos, para EDN-ARMOEA, HeE-ARMOEA e GP-ARMOEA, em 4 problemas de teste.",
+      "literal": "EDN-ARMOEA finds the most contributing solutions on DTLZ4 and WFG9, while HeE-ARMOEA is most efficient in identifying contributing solutions on WFG1 and WFG5.",
+      "localizador": "Sec. IV-D; Fig. S1 (Supplementary material, ausente deste corpus — achado descrito em prosa no texto principal)",
+      "metricas": [
+        "número de soluções contribuintes (que melhoram o IGD) acumulado por FE real"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Contagem cumulativa de soluções contribuintes versus FEs reais consumidos, 4 problemas (não declarado se são os mesmos 4 da Fig. 2).",
+      "achado": "Tanto EDN-ARMOEA quanto HeE-ARMOEA encontram mais soluções contribuintes que GP-ARMOEA (o único não citado como 'mais eficiente' em nenhum problema); o padrão de qual algoritmo lidera em cada problema é 'consistent with the observed differences in the performance of the three compared algorithms' — coerência interna entre esta métrica auxiliar e o IGD final.",
+      "aplicabilidade": "Equivalente à ficha 43 (utilidade do infill) — reproduzível pela camada ① reconstituindo o ND corrente a cada avaliação real e contando quais avaliações o alteraram."
+    },
+    {
+      "fichas": [
+        1,
+        7
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparação de EDN-ARMOEA com dois métodos de estado da arte externos — K-RVEA (GP-assistido, RVEA) e MOEA/D-EGO (GP-assistido, MOEA/D) — na suíte DTLZ, em dois blocos: variação de d e variação de m, mesmo desenho experimental do resto do artigo.",
+      "literal": "EDN-ARMOEA significantly outperforms K-RVEA and MOEA/D-EGO on nine and eleven, respectively, out of 21 problems in total, while K-RVEA and MOEA/D-EGO achieve the best results on two and three instances with d = 20, respectively.",
+      "localizador": "Sec. IV-E; Tables SVIII-SIX (Supplementary material, ausentes deste corpus — achados descritos em prosa no texto principal)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos +/−/≈ contra EDN-ARMOEA (mesmo protocolo do resto do artigo)"
+      ],
+      "convencoes": "Mesmo formato mean(std) com símbolo vs. EDN-ARMOEA como referência; DTLZ suite; 21 problemas no bloco de d (presumivelmente 7 problemas × 3 valores de d, já que d=20 é citado como o único onde os concorrentes vencem).",
+      "achado": "EDN-ARMOEA supera K-RVEA e MOEA/D-EGO na maioria das instâncias de alta dimensão; as vitórias dos concorrentes concentram-se EXCLUSIVAMENTE em d=20 (a menor dimensão testada neste bloco) — evidência direta de que a vantagem de EDN-ARMOEA sobre os dois SOTA cresce com d. 'Similar conclusion regarding the number of objectives can be drawn from Table SIX' — mas sem números específicos reportados no texto principal para o bloco de m.",
+      "aplicabilidade": "① endpoint — mas K-RVEA (o próprio 'b3' do roster da dissertação) e MOEA/D-EGO ('b2' do roster, ainda não minerado) teriam que ser rodados especificamente sob o protocolo de e7 (d/m variando, orçamento 11d+119) para reproduzir; sob o protocolo DA DISSERTAÇÃO (31D−1, 28 problemas, 30 sementes) o resultado não é diretamente comparável, mas a DIREÇÃO do achado (vantagem cresce com D) é testável via ficha 7."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade às iterações de treino do surrogate (itertrain, iterr)",
+      "grupo_sugerido": "E",
+      "descricao": "Sensibilidade do IGD final de EDN-ARMOEA ao número de passagens forward-backward usadas para construir a EDN pela primeira vez (itertrain) e para atualizá-la a cada retreino (iterr), em 4 problemas WFG (WFG1-4).",
+      "literal": "EDN-ARMOEA performs well on WFG1 as itertrain increases, while the IGD values on WFG2, WFG3 and WFG4 are not very sensitive to itertrain.",
+      "localizador": "Sec. IV-F.1; Figs. S2-S3 (Supplementary material, ausentes deste corpus — achado descrito em prosa no texto principal)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "IGD médio (barras de erro) versus itertrain e versus iterr, separadamente; WFG1-4; 20 execuções; valores finais adotados: itertrain=8×10⁴, iterr=8×10³.",
+      "achado": "Recomendação prática dos autores: 'Since the EDN has 353 parameters in total, we recommend that itertrain and iterr should be about 30 times and 3 times of the number of the parameters in EDN, respectively' — regra de bolso ligando hiperparâmetro de treino ao tamanho da rede; sensibilidade heterogênea entre problemas (WFG1 sensível a itertrain, WFG2-4 pouco).",
+      "aplicabilidade": "Não reproduzível com as 7 camadas de uma única execução — exige re-treinar a EDN com múltiplos valores do hiperparâmetro, algo que a instrumentação da dissertação (execução única por configuração) não registra. Não classificado nas fichas 31-34 (sonda) porque a métrica de saída é o IGD fim-a-fim da otimização, não o RMSE/calibração do surrogate isoladamente.",
+      "observacoes": "Não é um parâmetro que define o USO da incerteza (afeta a qualidade de treino da rede como um todo, média e σ juntos) — por isso não mapeado à ficha 45, seguindo a mesma lógica do exemplo do próprio CARTÃO ('sensibilidade ao parâmetro do gate de confiança → ficha 45 SE o parâmetro define o uso da incerteza, senão nova')."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade ao tamanho da rede (neurônios ocultos J=K)",
+      "grupo_sugerido": "E",
+      "descricao": "Sensibilidade do IGD final de EDN-ARMOEA ao número de neurônios nas duas camadas ocultas da EDN (J=K, assumidos iguais por simplicidade), em 4 problemas WFG (WFG1-4), sob 4 configurações de tamanho.",
+      "literal": "the IGD on WFG4 hardly changes when the number of hidden neurons is more than 20, while the IGD values on the other three problems decrease as J and K increase except on WFG1 when J and K are 50.",
+      "localizador": "Sec. IV-F.2; Fig. S4 (Supplementary material, ausente deste corpus — achado descrito em prosa no texto principal)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "IGD médio versus J=K (4 configurações testadas); WFG1-4; 20 execuções; valor final adotado: J=K=40 ('in consideration of the computational time').",
+      "achado": "Efeito de saturação em WFG4 (>20 neurônios não ajuda mais) e não-monotonicidade em WFG1 (piora especificamente em J=K=50 e em WFG2 quando J=K=40) — a escolha final (J=K=40) é um compromisso computacional, não o ótimo estrito de todos os 4 problemas testados.",
+      "aplicabilidade": "Não reproduzível com as 7 camadas de uma execução única — exige re-treinar com diferentes tamanhos de rede."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade à taxa de dropout — parâmetro central do próprio mecanismo de incerteza",
+      "grupo_sugerido": "E",
+      "descricao": "Sensibilidade do IGD médio de EDN-ARMOEA à taxa de dropout (1−pI para a camada de entrada, 1−pR para a camada oculta) — o hiperparâmetro que LITERALMENTE define a magnitude da incerteza estocástica produzida pelo mecanismo MC-dropout do EDN (equivalente conceitual ao 'nº de passagens do dropout' citado como exemplo no próprio CARTÃO, embora aqui o parâmetro variado seja a TAXA, não o Nº DE PASSAGENS itertest, que fica fixo em 100 e nunca é varrido).",
+      "literal": "indicating that a dropout probability between 0.1 and 0.2 for both input and hidden layers should work well for most problems.",
+      "localizador": "Sec. IV-F.3; Fig. S5 (Supplementary material, ausente deste corpus — achado descrito em prosa no texto principal)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "IGD médio (barras de erro) versus taxa de dropout (1−pI, 1−pR); valor final adotado: 0,1 para ambas as camadas (isto é, pI=pR=0,9, probabilidade de RETENÇÃO).",
+      "achado": "'There is no theoretic guidance for setting the dropout probability, meaning that this parameter needs to be properly tuned for different problems' — os próprios autores admitem que este parâmetro central do mecanismo de incerteza não tem justificativa teórica, só empírica; faixa 0,1-0,2 recomendada como razoável na maioria dos problemas testados.",
+      "aplicabilidade": "Diagnostica diretamente o MECANISMO DE INCERTEZA do próprio algoritmo (a taxa de dropout determina a variância σ̂² produzida pela Eq. 11), mas a sensibilidade FIM-A-FIM medida via IGD não é reproduzível com as 7 camadas de uma única execução; a QUALIDADE do σ resultante para a taxa fixa de fato usada (0,1/0,1) seria reproduzível via camada ③ (sonda), fichas 33-34 — mas não HÁ uma varredura de taxa dentro da instrumentação de execução única da dissertação.",
+      "observacoes": "Registrada como 'nova' na tipologia de 64 fichas por medir o efeito FIM-A-FIM (IGD) e não a qualidade do σ em si (que exigiria a métrica das fichas 33/34); listada com destaque no bloco roster_bloco.mecanismo_proprio por ser, EM ESPÍRITO, a análise mais próxima de uma 'sensibilidade do parâmetro do mecanismo' que o roster_bloco pede."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade ao tamanho do lote k de avaliações reais por geração",
+      "grupo_sugerido": "E",
+      "descricao": "Sensibilidade do IGD médio de EDN-ARMOEA a k (número de soluções avaliadas pela função real a cada geração / ciclo de retreino, também o número de clusters do k-means), em 4 problemas WFG (WFG1-4).",
+      "literal": "The best IGD values are achieved on WFG1 and WFG2 when k is set to 3, while the best IGD values are achieved on WFG3 and WFG4 when k equals to 5.",
+      "localizador": "Sec. IV-F.4; Fig. S6 (Supplementary material, ausente deste corpus — achado descrito em prosa no texto principal)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "IGD médio versus k; WFG1-4; valor final adotado: k=5 ('as a compromise'); não fica claro no texto disponível se k=1 (seleção puramente sequencial) fez parte da varredura.",
+      "achado": "'The performance change is relatively small except on WFG1' — efeito pequeno na maioria dos problemas testados; k=5 escolhido como meio-termo entre os melhores valores por problema (3 para WFG1/2, 5 para WFG3/4).",
+      "aplicabilidade": "Análogo em espírito a um sub-estudo de tamanho de lote (ficha 64 — 'q pontos escolhidos por iteração... contra q=1'), mas SEM comparação explícita contra k=1 sequencial reportada no texto disponível, e sem separar quantos dos k pontos por geração vieram do critério de convergência vs. do critério de diversidade — por isso não mapeado à ficha 64 (o par de leitura q>1 vs. q=1 que a ficha exige não está demonstrado). Não reproduzível com as 7 camadas de uma execução única."
+    },
+    {
+      "fichas": [
+        45
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Sensibilidade da FREQUÊNCIA média com que o critério de diversidade/incerteza é acionado (isto é, quantas vezes o ramo 'usar σ para selecionar' é escolhido em vez do ramo 'usar distância ao ideal') em função do parâmetro δ (delta) — o limiar que compara a queda na proporção de pontos de referência válidos entre gerações consecutivas contra δ para decidir se a diversidade precisa ser reforçada.",
+      "literal": "Fig. S7 in the Supplementary material shows the influence of delta on the mean frequency of enhancing diversity. The frequency decreases quickly as delta increases, and the effect of delta on the frequency is different for different problems.",
+      "localizador": "Sec. IV-F.5; Fig. S7 (Supplementary material, ausente deste corpus — achado descrito em prosa no texto principal)",
+      "metricas": [
+        "frequência média de acionamento do ramo 'diversidade' (uso de σ na seleção)",
+        "IGD (indiretamente, para justificar o δ final adotado)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Frequência média (sobre execuções e gerações, presumivelmente) do acionamento do ramo diversidade versus δ; comportamento problema-dependente, sem números exatos no texto principal; valor final adotado: δ=0,08.",
+      "achado": "'an increase in delta decreases the frequency of selecting the uncertain solutions for the real FE' — δ é, EXPLICITAMENTE, o parâmetro que controla com que frequência a incerteza (σ) determina quais pontos recebem avaliação real; é o análogo funcional exato do que a ficha 45 pede ('quantas vezes o ramo incerteza foi escolhido'). A TIPOLOGIA CITA 'e7' EXPLICITAMENTE como exemplo canônico desta ficha 45 (ao lado de 'b3').",
+      "aplicabilidade": "⑥ filme (contagem de acionamentos do ramo diversidade/incerteza por geração) — diretamente reproduzível pela camada ⑥ SE o log de decisões registrar qual critério (convergência vs. diversidade) foi usado a cada seleção de k pontos; mas nenhuma contagem NUMÉRICA absoluta (só a direção qualitativa do efeito de δ) é dada no texto disponível — a dissertação teria que reconstruir os números do zero a partir de uma execução real de EDN-ARMOEA."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Estudo piloto de tamanho de população e nº de gerações (P, iter) da AR-MOEA interna",
+      "grupo_sugerido": "E",
+      "descricao": "Menção a um estudo piloto (não detalhado no texto principal disponível) usado para fixar o tamanho de população P=50 e o número máximo de gerações iter=20 da AR-MOEA interna a cada ciclo de retreino.",
+      "literal": "the size of the population and the maximum number of generation are set based on our pilot study.",
+      "localizador": "Sec. IV-F (abertura); ver também Sec. IV-A item 2) ('based on our pilot study given in the Supplementary material')",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "",
+      "achado": "Nenhum resultado é reportado no texto principal disponível — apenas os valores finais (P=50, iter=20) são dados, sem tabela/figura de sensibilidade visível neste corpus.",
+      "aplicabilidade": "não reproduzível — conteúdo integral no material suplementar, ausente deste corpus.",
+      "observacoes": "só mencionada"
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Estudo de caso real — unidades de destilação de petróleo bruto",
+      "grupo_sugerido": "J",
+      "descricao": "Validação de EDN-ARMOEA em um problema real de otimização operacional (unidades de destilação de petróleo bruto), comparado com AEMOEA (acrônimo nunca definido no texto principal disponível), GP-ARMOEA e HeE-ARMOEA.",
+      "literal": "The results confirm the advantage of the proposed EDN-ARMOEA over the three compared algorithms, demonstrating its capability in solving real-world optimization problems.",
+      "localizador": "Sec. V (Conclusão); estudo completo no Sec. VII do Supplementary material (ausente deste corpus)",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "",
+      "achado": "Nenhum número, métrica, problema formal ou tabela é dado no texto principal disponível — apenas a afirmação qualitativa de vantagem sobre os 3 comparados. 'AEMOEA' não é definido em nenhum outro ponto do corpo do artigo lido (nem nas referências numeradas [1]-[63]) — presumivelmente introduzido e explicado só no Sec. VII do suplemento.",
+      "aplicabilidade": "não reproduzível — conteúdo pleno do estudo de caso está inteiramente no material suplementar, ausente deste corpus.",
+      "observacoes": "só mencionada"
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "Não é calibração por cobertura (fração de pontos dentro de μ±2σ) nem correlação σ×erro — é uma medida mais crua de MAGNITUDE/informatividade: o desvio-padrão médio (STD) da variância estimada σ̂² sobre 50 amostras de teste aleatórias, comparando EDN/HeE/GP treinados nos mesmos dados, ao longo de 20 execuções independentes, com a hipótese declarada a priori de que 'maior STD = melhor capacidade de expressar incerteza' (i.e., um modelo cujo σ̂ nunca varia — colapsa para quase-constante — é considerado pouco informativo). Complementarmente, o MAE da estimativa de fitness (ŷ) é medido em teste E em treino, para os mesmos 3 modelos.",
+    "como_extra": "Detalhes exatos (valores numéricos de MAE/STD por problema) estão nas Tables SV-SVII do material suplementar, ausentes deste corpus; o que se sabe vem inteiramente da prosa da Seç. IV-D.",
+    "literal": "we calculate the mean standard deviation (STD) of the estimated variance (ŝ2) to assess the ability of the compared models to provide uncertainty information... the larger the mean STD, the better ability of estimating the uncertainty.",
+    "localizador": "Sec. IV-D; Tables SV-SVII (Supplementary material, ausentes deste corpus)"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo de treino do surrogate (separado) e tempo total de otimização por execução, versus d∈{20,40,60,100} e versus m∈{3,5,10,20}, mas medido em UM ÚNICO problema (DTLZ7), comparando EDN vs. GP e EDN vs. HeE (Fig. 3); complementado por complexidade computacional teórica derivada analiticamente (Sec. III-C): O(itertrain·batchsize·J·K + m·P³) para EDN-ARMOEA vs. O(N³·m·iters) para métodos GP-assistidos — a decomposição é só 2-way (treino do surrogate vs. 'otimização total', que agrupa busca no modelo + avaliação real + tudo mais), sem separar busca/avaliação/sonda como a camada ④ da dissertação faria.",
+    "literal": "The computational complexity for constructing the EDN is O(itertrain · batchsize · J · K)... the total computational complexity of the GP model in GP-assisted MOEAs is O(N3 · m · iters).",
+    "localizador": "Sec. III-C; Fig. 3"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "GP produz estimativas de incerteza (σ) sistematicamente menos informativas (STD colapsada) que EDN e HeE em problemas de alta dimensão com poucos dados de treino — falha em expressar incerteza útil justamente no regime em que EDN-ARMOEA opera.",
+      "literal": "the mean STD of ŝ obtained by GP is the smallest, which agrees with the observations obtained in [31], [62], indicating that GP fails to properly predict the uncertainty for high-dimensional problems when the number of training data is small.",
+      "localizador": "Sec. IV-D"
+    },
+    {
+      "descricao": "Autocrítica explícita dos autores: a EDN usada é deliberadamente simples (poucos neurônios/camadas, dado o tamanho limitado do treino), o que pode reduzir a acurácia tanto da estimativa de fitness quanto da estimativa de incerteza.",
+      "literal": "The EDN we used in this work is relatively simple, which may reduce the accuracy in fitness and uncertainty estimation.",
+      "localizador": "Sec. III-C"
+    },
+    {
+      "descricao": "Trade-off reconhecido na Conclusão: comparado à abordagem baseada em ensemble (HeE), o EDN tem escalabilidade computacional melhor, mas desempenho de OTIMIZAÇÃO ligeiramente PIOR em problemas de alta dimensão — a vantagem de velocidade não é gratuita.",
+      "literal": "Compared with the ensemble-based approach, the EDN has better computational scalability, but slightly worse performance in optimization of high-dimensional problems.",
+      "localizador": "Sec. V (Conclusão)"
+    },
+    {
+      "descricao": "A estratégia de seleção proposta (balanceada, GP-ARMOEA) não domina universalmente mesmo dentro da própria ablação interna do artigo: variantes de critério único (só convergência OU só incerteza) vencem em problemas específicos, e a maioria das comparações é estatisticamente empatada.",
+      "literal": "GPC-ARMOEA and GPD-ARMOEA perform best on DTLZ2 and WFG1, respectively.",
+      "localizador": "Sec. IV-B, Table I"
+    },
+    {
+      "descricao": "Não há orientação teórica para ajustar a taxa de dropout — o parâmetro central do próprio mecanismo de incerteza do EDN precisa ser sintonizado empiricamente por problema, sem garantia de generalização.",
+      "literal": "There is no theoretic guidance for setting the dropout probability, meaning that this parameter needs to be properly tuned for different problems.",
+      "localizador": "Sec. IV-F.3"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Na ablação de Table I (16 instâncias), a maioria das comparações entre a estratégia balanceada (GP-ARMOEA) e as variantes de critério único (GPC-ARMOEA: só convergência; GPD-ARMOEA: só incerteza) é estatisticamente EMPATADA — 10 de 16 problemas ≈ contra GPC-ARMOEA, 7 de 16 ≈ contra GPD-ARMOEA — sugerindo que, com a MAQUINARIA fixa (mesmo surrogate GP, mesma AR-MOEA, mesmo clustering), o critério específico de seleção pesa menos do que se poderia esperar.",
+      "literal": "+/−/≈ ... 5/1/10 ... 8/1/7 (linha final da Table I)",
+      "localizador": "Sec. IV-B, Table I"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "alta dimensão de decisão (d até 100)",
+      "afirmacao": "EDN-ARMOEA escala melhor que GP-ARMOEA e HeE-ARMOEA com o aumento de d (Table II); a vantagem sobre os dois métodos de estado da arte externos GP-based (K-RVEA, MOEA/D-EGO) também cresce com d — as poucas vitórias desses concorrentes concentram-se exclusivamente em d=20, a menor dimensão testada no bloco de comparação SOTA.",
+      "literal": "EDN-ARMOEA significantly outperforms K-RVEA and MOEA/D-EGO on nine and eleven, respectively, out of 21 problems in total... while K-RVEA and MOEA/D-EGO achieve the best results on two and three instances with d = 20, respectively.",
+      "localizador": "Sec. IV-E"
+    },
+    {
+      "caracteristica": "muitos objetivos (m até 20)",
+      "afirmacao": "HeE-ARMOEA (ensemble heterogêneo baseado em SVM+RBF, single-output) degrada com o aumento do número de objetivos, ao contrário de EDN-ARMOEA (rede neural multi-saída), que os autores concluem ser especialmente adequado quando m é grande.",
+      "literal": "although HeE-ARMOEA also shows promising performance, its performance degrades as the number of objectives increases... we conclude that the proposed EDN-ARMOEA is well suited for high-dimensional problems, especially when the number of objectives is large.",
+      "localizador": "Sec. IV-C"
+    },
+    {
+      "caracteristica": "frentes desconexas / degeneradas / côncavas / enviesadas (geometria do PF)",
+      "afirmacao": "O motor de base (AR-MOEA, não o surrogate) é projetado especificamente para ser menos sensível a essas geometrias de fronteira, via o indicador IGD-NS e adaptação de pontos de referência — propriedade herdada e citada como motivação de design, não decomposta empiricamente por característica de PF neste artigo (nenhuma tabela separa resultados por geometria de fronteira).",
+      "literal": "AR-MOEA aims to remedy this issue by developing a versatile algorithm whose performance is less sensitive to various MOPs or MaOPs having disconnected, degenerate, concave or biased PFs.",
+      "localizador": "Sec. II-B"
+    }
+  ],
+  "roster_bloco": {
+    "mecanismo_proprio": [
+      {
+        "descricao": "A ablação MAIS DIRETA do critério de seleção que governa quando o algoritmo usa σ: GP-ARMOEA (estratégia balanceada, alterna via gate δ) vs. GPC-ARMOEA (NUNCA usa σ — só distância ao ideal) vs. GPD-ARMOEA (SEMPRE usa σ — máxima incerteza média). Mesma maquinaria (GP + AR-MOEA + k-means) nos três, isolando o efeito do critério.",
+        "literal": "GP-ARMOEA achieves the best performance in terms of convergence and diversity on eight out of the sixteen test instances, while GPC-ARMOEA and GPD-ARMOEA perform best on DTLZ2 and WFG1, respectively.",
+        "localizador": "Sec. IV-B, Table I"
+      },
+      {
+        "descricao": "Sensibilidade à taxa de dropout (1−pI, 1−pR) — o hiperparâmetro que literalmente define a magnitude estocástica de σ̂² produzida pela Eq. (11); medida via IGD fim-a-fim, não via qualidade direta do σ.",
+        "literal": "The error bars of the mean IGD of EDN-ARMOEA over 1 − pI and 1 − pR is plotted in Fig. S5... indicating that a dropout probability between 0.1 and 0.2 for both input and hidden layers should work well for most problems.",
+        "localizador": "Sec. IV-F.3; Fig. S5 (Supplementary)"
+      },
+      {
+        "descricao": "Sensibilidade do gate δ, medida diretamente como a FREQUÊNCIA com que o ramo 'diversidade/incerteza' é acionado (contagem de decisões, não só o IGD resultante) — o experimento mais próximo, na literatura, de uma contagem de acionamentos do mecanismo de incerteza (ficha 45, que cita 'e7' explicitamente como exemplo canônico na própria tipologia).",
+        "literal": "an increase in delta decreases the frequency of selecting the uncertain solutions for the real FE... The frequency decreases quickly as delta increases, and the effect of delta on the frequency is different for different problems.",
+        "localizador": "Sec. III-B; Sec. IV-F.5, Fig. S7 (Supplementary)"
+      },
+      {
+        "descricao": "Comparação de MAE (acurácia da média) e STD de σ̂² (informatividade da incerteza) entre EDN, GP e HeE, sob os mesmos dados de treino — valida se o mecanismo de incerteza do próprio EDN (dropout estocástico) produz um σ mais útil que os dois concorrentes.",
+        "literal": "the mean STD of ŝ obtained by GP is the smallest... indicating that GP fails to properly predict the uncertainty for high-dimensional problems when the number of training data is small. By the contrast, the proposed EDN is still able to provide the uncertainty information for high-dimensional problems.",
+        "localizador": "Sec. IV-D"
+      }
+    ],
+    "reprodutivel_com_camadas": "Item 1 (Table I, ablação GP-ARMOEA×GPC×GPD): NÃO reproduzível — exige rodar duas variantes do algoritmo (só-convergência, só-incerteza) que não fazem parte da execução real de EDN-ARMOEA no roster da dissertação; SE fossem rodadas, o resultado seria comparável via camada ① (endpoint). Item 2 (sensibilidade a pI/pR): NÃO reproduzível fim-a-fim (exige re-treinar com múltiplas taxas de dropout, fora do desenho de execução única); mas a QUALIDADE do σ resultante para a taxa REALMENTE usada (0,1/0,1) é diretamente reproduzível via camada ③ (sonda), cruzando as fichas 33-34 (calibração/discriminação do σ). Item 3 (frequência de acionamento do gate δ): a versão MAIS diretamente reproduzível de todo o bloco — a camada ⑥ (filme, 1 evento por linha) permitiria, PARA A EXECUÇÃO REAL com δ=0,08 de fato usado, contar exatamente quantas vezes cada ciclo de retreino escolheu o ramo convergência vs. o ramo diversidade/incerteza, algo que o PRÓPRIO ARTIGO nunca reporta como número absoluto (só a direção qualitativa do efeito de δ na Fig. S7, ausente deste corpus) — essa contagem exata teria que ser inteiramente reconstruída do zero pela dissertação a partir do log de decisões da execução real de EDN-ARMOEA. Item 4 (MAE/STD comparativo EDN×GP×HeE): a parte referente à QUALIDADE PRÓPRIA de EDN-ARMOEA (MAE e STD de σ̂² nos próprios dados) é diretamente reproduzível via camada ③ (sonda: RMSE = ficha 31; magnitude/informatividade do σ ≈ fichas 33-34); a comparação SIMULTÂNEA com GP e HeE sob o mesmo split de treino exigiria rodar variantes-surrogate específicas fora do desenho padrão de execução única por algoritmo do roster.",
+    "parametros_do_uso_da_incerteza": [
+      "δ (delta) = 0,08 — o parâmetro CENTRAL do gate: compara a queda na proporção de pontos de referência válidos (r_{i-1} − r_i) entre gerações consecutivas contra δ; se a queda excede δ, o ramo 'diversidade' (seleciona pela incerteza média máxima em cada cluster) é escolhido em vez do ramo 'convergência' (distância euclidiana mínima ao ideal); sensibilidade testada em Fig. S7 (Supplementary, ausente deste corpus) via a frequência resultante de acionamento do ramo diversidade.",
+      "itertest (nº de passagens estocásticas do dropout no teste) = 100 — fixo em TODOS os experimentos; é o parâmetro mais diretamente análogo ao 'nº de passagens do dropout' citado como exemplo no próprio CARTÃO, mas NUNCA tem sensibilidade testada neste artigo (só delta, pI/pR, J/K, itertrain/iterr e k são varridos).",
+      "pI, pR (probabilidade de RETENÇÃO de neurônios no dropout, camada de entrada e ocultas) = 0,9 / 0,9 (isto é, taxa de dropout 0,1/0,1) — determina a magnitude estocástica de σ̂² (Eq. 7/11); sensibilidade testada em Fig. S5, faixa recomendada 0,1-0,2 de taxa de dropout, sem justificativa teórica declarada.",
+      "k (nº de soluções avaliadas pela função real por geração / nº de clusters do k-means) = 5 — determina QUANTOS pontos por ciclo de retreino são escolhidos sob o critério ativo (convergência OU diversidade, todo o lote sob o mesmo critério na mesma geração); sensibilidade testada entre k=3 e k=5 (Fig. S6); não fica claro se k=1 (puramente sequencial) fez parte da varredura."
+    ]
+  },
+  "observacoes": "(1) TAXONOMIA CONSISTENTE com o texto lido: motor=EA-Indicador (AR-MOEA — seleção via indicador IGD-NS + pontos de referência adaptativos, Algoritmo 1); função da incerteza=O3·Aprendizado ativo/reparo (o critério 'diversidade' seleciona ativamente o ponto de MAIOR incerteza média em cada cluster para avaliação real, Sec. III-B); surrogate=NN-Rede Neural (EDN, rede feedforward de 2 camadas ocultas com dropout em treino E teste, Fig. 1); medição=DISC-ENS (a incerteza σ̂² vem da discordância entre itertest=100 passagens estocásticas do MESMO modelo com dropout — um ensemble implícito de sub-redes, Eq. 7/11 — análogo em espírito à dispersão de um ensemble explícito, mas de um único modelo). As 5 classificações são consistentes com o texto lido. (2) NENHUM PISO SEM SURROGATE em nenhuma comparação do artigo (nem AR-MOEA pura) — todas as 6+ comparações (GP-ARMOEA/GPC/GPD, HeE-ARMOEA, K-RVEA, MOEA/D-EGO) são entre métodos assistidos; a ficha 9 (assistido×piso) e a ficha 16 (piso vence) não têm dado correspondente extraível deste artigo, teriam que ser construídas do zero pela dissertação rodando EDN-ARMOEA contra um piso EA-Indicador (AR-MOEA pura, ou o mais próximo do roster). (3) A ficha 45 da tipologia CITA EXPLICITAMENTE 'e7' (junto de 'b3') como exemplo de 'quantas vezes o ramo incerteza foi escolhido' — confirmado neste JSON como a análise de sensibilidade de δ / frequência de acionamento da diversidade (Sec. III-B, Sec. IV-F.5, Fig. S7); nenhuma contagem numérica absoluta é dada no texto disponível, só a direção qualitativa do efeito — teria que ser reconstruída via camada ⑥ a partir de execução real. (4) CRUZAMENTOS COM O ROSTER: (a) K-RVEA, um dos dois baselines SOTA externos (Seç. IV-E), é o próprio 'b3' já minerado — e tem um mecanismo de gate δ estruturalmente muito próximo ao delta de EDN-ARMOEA (compara queda de diversidade contra um limiar para alternar entre critério de convergência/APD e critério de incerteza), tornando K-RVEA↔EDN-ARMOEA candidato natural a 'par quase-gêmeo' cross-artigo (ficha 52), sujeito a confirmação de que estão de fato entre os pares pré-definidos do roster — não assumido aqui; (b) MOEA/D-EGO, o outro baseline SOTA da Seç. IV-E, corresponde a 'b2' do roster (ainda não minerado neste conjunto); (c) HeE-ARMOEA, usado como baseline em TODO o artigo (Tables II/III, Figs. 2/3, Seç. IV-D), é a mesma técnica do artigo 'e3' (HeE-MOEA) do próprio roster, mesmo primeiro autor (D. Guo) do próprio e7 — aqui aparece só como baseline, não como método próprio; e3 ainda não foi minerado neste conjunto. (5) MÉTRICA/CONVENÇÃO diverge da dissertação em 3 pontos simultâneos: usa IGD simples (nunca IGD+ nem HV, apesar de uma frase na abertura da Seç. IV-C mencionar a expressão IGD and HV values — as legendas de Table II e Table III dizem explicitamente IGD VALUES nas duas, sem HV em lugar nenhum do texto disponível — aparente inconsistência/erro de redação do próprio artigo, mantido como lido, sem correção); reporta MÉDIA±DESVIO-PADRÃO (nunca mediana/IQR); usa 20 execuções (não 30). (6) COMPLETUDE DA LEITURA: o artigo (14 páginas) foi lido INTEGRALMENTE — a seção estruturada inicial (Abstract às bios dos autores, incluindo Algoritmos 1-3, Equações 1-11, Tabelas I-III, Figs. 2-3), a camada de texto bruta duplicada (ANEXO — get_text, todas as páginas, conferida trecho a trecho e confirmada 100% redundante com a seção estruturada, sem números ou tabelas adicionais) e o ANEXO final de OCR de figuras (só rótulos ruidosos de eixo/legenda truncados, ex. 'chsizexd', 'B2: 1xK', sem conteúdo numérico novo). NENHUMA seção do corpo do artigo foi pulada. (7) LIMITAÇÃO ESTRUTURAL IMPORTANTE: o material suplementar do artigo (Algoritmo S1; Tables SI-SIX; Figs. S1-S7; Seç. VI-VII incluindo o estudo de caso real de destilação de petróleo bruto) é referenciado extensivamente ao longo do corpo do texto mas NÃO está presente neste corpus (só o PDF principal foi convertido) — cerca de 8 das 15 análises catalogadas dependem de achados relatados em PROSA no texto principal, sem acesso às tabelas/figuras-fonte com os números exatos; marcado explicitamente em cada 'localizador' afetado. (8) 'AEMOEA', citado só na Conclusão como um dos comparados no estudo de caso real, nunca é definido/expandido em nenhum ponto do corpo do artigo disponível (nem nas 63 referências)."
+}

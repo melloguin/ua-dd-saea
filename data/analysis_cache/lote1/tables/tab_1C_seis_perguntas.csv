@@ -1,0 +1,7 @@
+pergunta,texto,grupo,problemas,vence_rank,melhor_piso,melhor_delta,assistidos_batem_piso,degrau_de_falha_por_classe
+1,multimodalidade: a incerteza impediu a busca de ficar presa numa bacia errada?,1,"ZDT4, DTLZ1, DTLZ3, WFG4, MMF1, MMF4, MMF11_L, MMF16_20, F17, F37, F49, F55",qNEHVI,SMS-EMOA,θ-DEA-DP (+50%),7/13,AM: desde o 1º; AR: nunca falha; AV: nunca falha; OL: desde o 1º; OM: desde o 1º; OV: desde o 1º
+2,"não separabilidade: quando as variáveis interagem, o modelo erra mais — e o σ sabe?",2,"WFG2, WFG9, F5, F17, F22, F37, F49, F55",MMRAEA,SMS-EMOA,θ-DEA-DP (+65%),8/13,AM: desde o 1º; AR: nunca falha; AV: nunca falha; OL: nunca falha; OM: nunca falha; OV: 3
+3,paisagens enganosas: o σ avisa ou o modelo fica confiante no erro?,3,"WFG5, WFG9, MMF11_L, MMF16_20, F49, F55",MMRAEA,SMS-EMOA,θ-DEA-DP (+58%),8/13,AM: desde o 1º; AR: nunca falha; AV: nunca falha; OL: desde o 1º; OM: nunca falha; OV: E chefe
+4,"regiões planas: no platô, a incerteza ainda dá direção à busca?",4,"WFG1, DDMOP7",SMS-EMOA,SMS-EMOA,K-RVEA (+28%),3/11,AM: desde o 1º; AR: desde o 1º; AV: desde o 1º; OL: sem dado; OM: desde o 1º; OV: desde o 1º
+5,"frentes desconexas: o modelo alucinou pontes, e o σ marcou a ponte?",6/desconexa,"ZDT3, DTLZ7, WFG2",qNEHVI,NSGA-II,K-RVEA (+97%),9/12,AM: desde o 1º; AR: nunca falha; AV: D3; OL: sem dado; OM: D3; OV: D3
+6,"densidade não uniforme: o σ é maior onde há menos dado, e isso levou a busca à região rara?",5,"ZDT6, DTLZ4, F22",θ-DEA-DP,SMS-EMOA,ParEGO (+92%),10/13,AM: 2; AR: nunca falha; AV: 2; OL: nunca falha; OM: 2; OV: 2

@@ -1,0 +1,348 @@
+{
+  "id": "b14",
+  "sigla": "SA²-MOEA",
+  "titulo": "Formulating approximation error as noise in surrogate-assisted multi-objective evolutionary algorithm",
+  "ano": 2024,
+  "roster": false,
+  "setup": {
+    "benchmarks": "DTLZ1-DTLZ7 e WFG1-WFG9 (2 ou 3 objetivos); D=31,51 quando M=2 e D=30,50 quando M=3 - problemas 'medium-scale' (20-50 variáveis de decisão, citando explicitamente antenna design, manufacturing engineering, structural optimization, mechanical engineering como motivação real). No estudo comparativo principal (Sec. 4.6): 'a total of 64 test problems in the DTLZ and WFG test suites' - 28 configurações DTLZ (Tabela 5: 7 problemas x 4 combinações M/D) + 36 configurações WFG (Tabela 6: 9 problemas x 4 combinações M/D). Nenhum problema real nomeado (RE21/ESTOQUE40/DDMOP7 ou equivalentes) é efetivamente testado, apesar de a introdução citar aplicações reais como motivação.",
+    "orcamento": "Orçamento fixo de 300 avaliações de função reais por execução para TODOS os experimentos de Sec. 4.2-4.7, independente de D (não escalado como 31D-1 da dissertação: D varia de 30 a 51 com o mesmo teto de 300 FEs). Tamanho de população N=100; inicialização da população/arquivo A por Latin Hypercube Sampling (LHS). O experimento motivador da Sec. 2.2 usa um orçamento totalmente diferente e muito maior: 'The population size and the maximum number of function evaluations are set to 100 and 50000, respectively.'",
+    "execucoes": "30 execuções independentes por configuração problema x algoritmo em todos os experimentos de Sec. 4.2 a 4.7 ('each test problem is run 30 times independently', repetido em cada subseção). O experimento motivador da Sec. 2.2 (Tabela 1, IBEA vs NSGAII sob ruído) NÃO declara explicitamente o número de execuções independentes.",
+    "baselines": "6 SA-MOEAs da literatura como comparação principal: ADSAPSO, HeEMOEA, MOEA/D-EGO, KRVEA, KTA2, PCSAEA - todos 'implemented with the assistance of PlatEMO'. NÃO há piso evolutivo sem surrogate (tipo NSGA-II puro) na bateria comparativa principal (Sec. 4.6) nem nas ablações internas (Sec. 4.2-4.5). O único contraste 'sem surrogate' do artigo é o experimento motivador isolado da Sec. 2.2, que compara IBEA puro vs NSGA-II puro (nenhum dos dois usa qualquer surrogate) sob ruído gaussiano sintético injetado - não é parte da bateria SA-MOEA, é justificativa de design para o otimizador híbrido.",
+    "metricas_principais": [
+      "IGD (inverted generational distance) - única métrica usada em todos os experimentos de Sec. 4.1 a 4.7",
+      "PD (pure diversity) - usada apenas no experimento motivador da Sec. 2.2, junto com IGD"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum (WRS), α=0.05 - único teste estatístico usado em todo o artigo, em toda tabela comparativa (Tabelas 1,2,3,4,5,6); símbolos +/-/≈; nenhuma menção a Friedman, Nemenyi, diagrama de diferença crítica, ou correção de Holm"
+    ],
+    "apresentacao": "Média (desvio-padrão) entre parênteses em toda tabela; melhor resultado de cada linha/problema marcado (negrito no PDF); símbolos '+'/'-'/'≈' relativos ao SA²-MOEA (ou a NSGAII na Tabela 1 motivadora) indicando inferioridade/superioridade/equivalência estatística do comparado; linha final 'Average rank' e linha final '-/≈/+' de contagem de derrotas/empates/vitórias ao fim de cada tabela comparativa (Tabelas 1,2,3,4,5,6); figuras de sensibilidade de parâmetro (Fig. 2, 'Average values profile plots') e de convergência (Fig. 3, 'Mean IGD values profile plots') usam valores MÉDIOS ao longo das avaliações/valores de parâmetro - não há menção a mediana, IQR, ou 'execução mediana' em lugar nenhum do artigo.",
+    "codigo_plataforma": "PlatEMO (MATLAB) - 'All of them are implemented with the assistance of PlatEMO [62]', citando Y. Tian et al., PlatEMO: A MATLAB platform for evolutionary multi-objective optimization."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Robustez de mecanismos de seleção ambiental (dominância+crowding vs. indicador Iε+) a ruído gaussiano injetado - motivação, sem surrogate",
+      "grupo_sugerido": "C",
+      "descricao": "Experimento preliminar/motivador (fora da bateria SA-MOEA principal): compara IBEA (seleção por indicador binário aditivo Iε+) e NSGA-II (dominância de Pareto + crowding distance) - nenhum dos dois usa surrogate - em DTLZ1 e DTLZ2 com ruído gaussiano aditivo injetado diretamente nos objetivos, ε ~ N(0,σ), σ ∈ {0, 0.2, 1}. Mede IGD e PD (pure diversity), população=100, maxFE=50000, teste WRS α=0.05. Serve para justificar o desenho do 'otimizador híbrido' (alternância IBEA/NSGA-II) do SA²-MOEA proposto.",
+      "literal": "DTLZ1 and DTLZ2 with the additive noise ε are used for the test problems, where the noise satisfies the Gaussian distribution, i.e. ε ∼ N(0, σ).",
+      "localizador": "Sec. 2.2.2, Table 1",
+      "metricas": [
+        "IGD",
+        "PD (pure diversity)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum (WRS), α=0.05, símbolos relativos a NSGAII"
+      ],
+      "convencoes": "Média (desvio-padrão) entre parênteses; melhor marcado; average rank e contagem -/≈/+ ao final; número de execuções independentes NÃO explicitado no texto (apenas população=100, maxFE=50000, σ ∈ {0,0.2,1} são declarados).",
+      "achado": "IBEA supera NSGA-II em IGD no DTLZ1 sob qualquer nível de ruído (problema difícil de convergir, e Iε+ é indicador de convergência); NSGA-II supera IBEA em PD (diversidade) em TODOS os casos testados; com ruído não-nulo, IBEA passa a superar também NSGA-II no IGD do DTLZ2 (problema fácil de convergir com σ=0, onde NSGA-II vencia), evidenciando a tolerância a ruído do indicador Iε+ e motivando diretamente a hibridização dos dois mecanismos no algoritmo proposto.",
+      "aplicabilidade": "não reproduzível - não envolve surrogate algum (é IBEA/NSGA-II 'puros'); usa ruído gaussiano SINTÉTICO injetado diretamente nos valores de f (não erro real de aproximação de um modelo) e orçamento de 50.000 avaliações (muito acima do regime 'caro' de 31D-1 da dissertação); é um estudo de robustez a ruído de dois mecanismos de seleção ambiental, não uma análise de surrogate-assisted MOO."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade a hiperparâmetros próprios do algoritmo (capacidade do pool de modelos Smax; período de controle de probabilidade T)",
+      "grupo_sugerido": "E",
+      "descricao": "Estudo de sensibilidade de dois hiperparâmetros próprios do SA²-MOEA, não relacionados a um 'gate' de uso da incerteza: a capacidade máxima do pool de modelos históricos (Smax ∈ {1,3,5,7,9}, com T=20 fixo) e o período de controle de probabilidade da amostragem adaptativa (T ∈ {10,20,30,40,50}, com Smax=5 fixo). Avaliados via IGD em DTLZ1 (multimodal, difícil de convergir) e WFG3 (não-separável), m=3, D=30, 30 execuções independentes, sem teste estatístico (apenas curvas de perfil, Fig. 2).",
+      "literal": "we conduct the parameter experiments on DTLZ1 and WFG3 followed by analysis of the sensitivity of parameters.",
+      "localizador": "Sec. 4.2, Fig. 2",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curvas de perfil de valores médios ('Average values profile plots') por valor testado do parâmetro, 30 execuções independentes; sem barras de erro/IQR explicitadas no texto; um perfil azul (Smax) e um vermelho (T) por problema.",
+      "achado": "Desempenho ótimo em Smax=5: pool pequeno demais (poucos modelos históricos) prejudica a capacidade de aproximação do ensemble; pool grande demais acumula modelos desatualizados que também degradam o ensemble e a capacidade de atualização contínua. Desempenho ótimo em T=30: período curto demais não acumula amostras suficientes para diagnosticar corretamente a demanda do estágio; período longo demais atrasa a reação do controle de probabilidade à mudança de demanda.",
+      "aplicabilidade": "não reproduzível - SA²-MOEA não está no roster experimental da dissertação; Smax e T são hiperparâmetros específicos da própria arquitetura do artigo (tamanho do pool de modelos RBFN históricos; período do controle de probabilidade da amostragem adaptativa), sem equivalente direto nos algoritmos re-executados pela dissertação."
+    },
+    {
+      "fichas": [
+        11,
+        15,
+        52
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ablação do método de quantificação de incerteza do SA²-MOEA: compara o método proposto (baseado na mudança de rank entre o melhor ensemble EMbest e o modelo mais recente LM - uma medida de discordância entre modelos) contra duas alternativas dentro da MESMA arquitetura (mesmo modelo, mesmo otimizador híbrido, mesma lógica de estágio): SA²-MOEA-D (distância euclidiana ao ponto avaliado mais próximo no espaço de decisão - não usa nenhum sinal do modelo) e SA²-MOEA-MSE (erro quadrático médio entre as predições dos sub-modelos do ensemble). Avaliado por IGD em DTLZ1, DTLZ2, WFG3, WFG5 (m=3, D=30), 30 execuções, WRS α=0.05.",
+      "literal": "SA2-MOEA performs the best on all test problems. It demonstrates that the rank change-based uncertainty quantification method has better performance than the distance-based and MSE-based methods.",
+      "localizador": "Sec. 4.3, Table 2",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum (WRS), α=0.05, símbolos relativos ao SA²-MOEA"
+      ],
+      "convencoes": "Média (desvio-padrão); melhor marcado; average rank; contagem -/≈/+; 30 execuções independentes; 4 problemas apenas (não os 64 da bateria principal).",
+      "achado": "SA²-MOEA (rank-change) vence com folga nos 4 problemas testados e tem o melhor rank médio (1, contra 2 do SA²-MOEA-D e 3 do SA²-MOEA-MSE); resultado NEGATIVO/matizado explicitado pelos próprios autores: a semelhança de desempenho entre SA²-MOEA e SA²-MOEA-D em DTLZ1 e WFG5 (marcados '≈', não '+') é atribuída à baixa qualidade de aproximação do surrogate nesses dois problemas, não à equivalência real dos critérios de quantificação de incerteza - quando o modelo é ruim, o método específico de medir incerteza deixa de fazer diferença.",
+      "aplicabilidade": "não reproduzível - exige rodar as variantes SA²-MOEA-D/-MSE, inexistentes no roster da dissertação; o padrão 'quando o modelo é ruim, os critérios convergem' que os autores relatam é conceitualmente análogo ao que a camada ③ (sonda, fichas 33/34/39) mais a ficha 52 (pares quase-gêmeos) testariam formalmente para os pares do roster."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação do otimizador híbrido (alternância de seleção ambiental IBEA/NSGA-II por paridade de geração)",
+      "grupo_sugerido": "B",
+      "descricao": "Ablação do otimizador híbrido do SA²-MOEA (endpoint): compara SA²-MOEA (alterna seleção ambiental de IBEA e NSGA-II a cada geração, ímpar/par) contra SA²-MOEA-IBEA (só IBEA) e SA²-MOEA-NSGA-II (só NSGA-II), mantendo o resto da arquitetura (modelo ensemble RBFN, amostragem de preenchimento adaptativa por estágio) fixo. A amostragem baseada em incerteza permanece presente e idêntica nas 3 variantes - o que muda é apenas o operador de seleção ambiental do laço de busca assistida. IGD em DTLZ1, DTLZ2, WFG3, WFG5 (m=3, D=30), 30 execuções, WRS α=0.05.",
+      "literal": "SA2-MOEA achieves the most promising results on all test problems, which reflects the advantages of the hybrid optimizer.",
+      "localizador": "Sec. 4.4, Table 3",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum (WRS), α=0.05, símbolos relativos ao SA²-MOEA"
+      ],
+      "convencoes": "Média (desvio-padrão); melhor marcado; average rank; contagem -/≈/+; 30 execuções.",
+      "achado": "SA²-MOEA (híbrido) vence ou empata em todos os 4 problemas, com o melhor rank médio (1, contra 2.75 do -IBEA e 2.25 do -NSGA-II); a vantagem é pequena/estatisticamente equivalente em vários casos (DTLZ2, WFG3, WFG5 majoritariamente '≈'); a vantagem só é clara ('+') no DTLZ1, onde NSGA-II sozinho falha por falta de capacidade de convergência - o ganho do híbrido é mais robustez em problemas difíceis de convergir do que uma melhoria uniforme.",
+      "aplicabilidade": "não reproduzível - exige rodar as variantes SA²-MOEA-IBEA/-NSGA-II, inexistentes no roster; SA²-MOEA em si não é algoritmo do roster experimental da dissertação."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de convergência (trajetória, não só endpoint) para a mesma ablação do otimizador híbrido da análise anterior: IGD médio ao longo das avaliações de função (function evaluations) para SA²-MOEA, SA²-MOEA-IBEA e SA²-MOEA-NSGA-II, nos mesmos 4 problemas (DTLZ1, DTLZ2, WFG3, WFG5), permitindo ver a DINÂMICA da convergência (não só o valor final), com 4 sub-figuras (a)-(d).",
+      "literal": "Mean IGD values profile plots over the SA2-MOEA, SA2-MOEA-IBEA, and SA2-MOEA-NSGA-II on DTLZ1, DTLZ2, WFG3, and WFG5 based on 30 independent runs.",
+      "localizador": "Fig. 3, Sec. 4.4",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum (comparação visual das curvas)"
+      ],
+      "convencoes": "Curvas de valor MÉDIO (não mediana/IQR) por avaliação de função, 30 execuções independentes, sem banda de piso (não há algoritmo sem surrogate nesta ablação).",
+      "achado": "Em DTLZ1, SA²-MOEA-IBEA converge mais rápido no início (Iε+ é indicador de convergência) mas é ultrapassado por SA²-MOEA depois (falta de diversidade do IBEA sozinho no fim da busca); em WFG5 as três curvas ficam bem próximas ao longo de toda a busca, atribuído pelos autores à má aproximação do ensemble nesse problema enganoso (deceptive) - a escolha do otimizador deixa de importar quando o modelo é ruim.",
+      "aplicabilidade": "o TIPO de análise (trajetória de IGD x avaliações de função, ficha 26) é diretamente reprodutível para os algoritmos do roster via camada ① (ND acumulado das avaliações reais a cada FE); esta instância específica (SA²-MOEA e variantes de otimizador híbrido) não é reproduzível, pois nenhuma delas pertence ao roster."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação da amostragem de preenchimento adaptativa por estágio (early-only / late-only / sem controle de probabilidade)",
+      "grupo_sugerido": "E",
+      "descricao": "Ablação da amostragem de preenchimento adaptativa por estágio: SA²-MOEA-ES (usa só a lógica de estágio inicial - alternância convergência/incerteza - durante toda a busca, nunca troca para a lógica tardia), SA²-MOEA-LS (usa só a lógica de estágio final - alternância diversidade/incerteza - durante toda a busca) e SA²-MOEA-PC (sem o controle de probabilidade adaptativo que pondera as estratégias) contra o SA²-MOEA completo. A amostragem baseada em incerteza permanece presente em TODAS as 4 variantes (o que é removido é a detecção adaptativa de estágio e/ou o controle de probabilidade, não a incerteza em si). IGD em DTLZ1, DTLZ2, WFG3, WFG5 (m=3, D=30), 30 execuções, WRS α=0.05.",
+      "literal": "SA2-MOEA-ES stands for SA2-MOEA only using the infill sampling strategy in the early stage.",
+      "localizador": "Sec. 4.5, Table 4",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum (WRS), α=0.05, símbolos relativos ao SA²-MOEA"
+      ],
+      "convencoes": "Média (desvio-padrão); melhor marcado; average rank; contagem -/≈/+; 30 execuções.",
+      "achado": "SA²-MOEA completo tem o melhor rank médio (1.5); SA²-MOEA-ES (só estágio inicial) tem pior desempenho no DTLZ2 por não atender à demanda de diversidade tardia; SA²-MOEA-LS (só estágio final) tem pior desempenho no DTLZ1 (difícil de convergir) por não atender à demanda de convergência inicial - confirmando que a detecção adaptativa de estágio é necessária nos dois sentidos. SA²-MOEA-PC (sem controle de probabilidade) perde no WFG3, ilustrando dificuldade em analisar corretamente a demanda do estágio sem esse mecanismo. Em WFG5, todas as 4 variantes ficam parecidas, de novo atribuído pelos autores à má aproximação do ensemble nesse problema, não à irrelevância do mecanismo de amostragem.",
+      "aplicabilidade": "não reproduzível - exige rodar as variantes SA²-MOEA-ES/-LS/-PC, inexistentes no roster experimental da dissertação."
+    },
+    {
+      "fichas": [
+        1,
+        2,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparação final de IGD entre SA²-MOEA e 6 SA-MOEAs da literatura (ADSAPSO, HeEMOEA, MOEA/D-EGO, KRVEA, KTA2, PCSAEA) nos 7 problemas DTLZ1-DTLZ7, cada um em 4 configurações (M=2,D=31), (M=2,D=51), (M=3,D=30), (M=3,D=50) - 28 configurações no total, 30 execuções independentes cada, WRS α=0.05 com símbolos relativos ao SA²-MOEA, rank médio agregado e contagem de vitórias/empates/derrotas. Acompanhada de discussão extensa por problema relacionando desempenho a características (multimodalidade, região preferida, PF degenerada/descontínua, não-separabilidade).",
+      "literal": "SA2-MOEA achieves the best results on 14 of all 28 test problems, ranking first, followed by ADSAPSO, KTA2, MOEA/D-EGO, HeEMOEA, PCSAEA, and KRVEA in descending order.",
+      "localizador": "Sec. 4.6.1, Table 5",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum (WRS), α=0.05"
+      ],
+      "convencoes": "Média (desvio-padrão) entre parênteses; melhor resultado marcado por linha; símbolos +/-/≈ relativos ao SA²-MOEA; linha final 'Average rank' (SA²-MOEA=1.89, o melhor) e linha final de contagem -/≈/+; 30 execuções independentes.",
+      "achado": "SA²-MOEA vence em 14/28 configurações e tem o melhor rank médio (1.89); perde tipicamente para ADSAPSO em problemas multimodais difíceis de convergir (DTLZ1, DTLZ3) por causa da redução de dimensionalidade do ADSAPSO; vence com folga em problemas fáceis de convergir e de PF irregular (DTLZ2, DTLZ5, DTLZ7) graças à suavidade do RBFN (evita ótimos locais) e à manutenção de diversidade do otimizador híbrido.",
+      "aplicabilidade": "não reproduzível diretamente - SA²-MOEA e os 6 comparados não pertencem ao roster de 15 algoritmos da dissertação, e o orçamento fixo de 300 FEs (independente de D) difere da convenção 31D-1; o TIPO de análise (matriz de resultados + rank agregado + teste de postos vs. um algoritmo de referência, fichas 1-3) é diretamente reprodutível para os algoritmos do roster nas mesmas famílias de problema (DTLZ/WFG) via camada ①/⑦."
+    },
+    {
+      "fichas": [
+        1,
+        2,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma comparação da análise anterior, agora nos 9 problemas WFG1-WFG9, cada um com 4 combinações (M,D) - 36 configurações no total - mesma convenção (IGD, WRS α=0.05, average rank, contagem -/≈/+, 30 execuções). Acompanhada de discussão por problema relacionando desempenho a PF desconexa (WFG2), muitas funções de transformação (WFG1), problemas enganosos/deceptive e multimodais (WFG5, WFG9), não-separabilidade (WFG6, WFG8, WFG9) e separabilidade+unimodalidade (WFG7).",
+      "literal": "SA2-MOEA shows the best performance in these problems, followed by KTA2, HeEMOEA, ADSAPSO, KRVEA, and MOEA/D-EGO respectively.",
+      "localizador": "Sec. 4.6.2, Table 6",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum (WRS), α=0.05"
+      ],
+      "convencoes": "Idênticas à Tabela 5 (média±dp, marcação do melhor, símbolos, average rank SA²-MOEA=1.83 o melhor, contagem -/≈/+, 30 execuções).",
+      "achado": "SA²-MOEA tem o melhor rank médio (1.83) mas perde para KTA2/ADSAPSO/HeEMOEA em WFG2 (PF desconexa: 'SA2-MOEA is still deficient in tacking the problems with disconnected PF') e para KTA2/HeEMOEA em WFG8, onde o próprio artigo admite explicitamente que 'the ensemble model of SA2-MOEA has excessive approximation errors on this problem'; em WFG7 (separável+unimodal, alta demanda de diversidade) a amostragem baseada em incerteza é explicitamente apontada como 'inefficient to the maintenance of diversity' - um resultado NEGATIVO nomeado para o próprio mecanismo de incerteza do artigo.",
+      "aplicabilidade": "mesma observação da análise anterior (Tabela 5) - não reproduzível diretamente (SA²-MOEA e comparados fora do roster; orçamento e convenção de D distintos), mas o tipo de análise (fichas 1-3) é reprodutível para o roster via camada ①/⑦ na família WFG."
+    },
+    {
+      "fichas": [
+        46,
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Análise TEÓRICA (não medida empiricamente) de complexidade de tempo e de espaço, decomposta em três fases (construção do modelo, busca assistida por surrogate, amostragem de preenchimento), para KTA2 (baseado em Kriging), ADSAPSO (baseado em RBFN) e SA²-MOEA (ensemble de RBFN), em notação Big-O parametrizada por M (objetivos), Ns (tamanho do treino), N (população), Nn (não-dominados), Smax (capacidade do pool) e D (variáveis de decisão).",
+      "literal": "Finally, it can be concluded that KTA2 has the highest time complexity, followed by SA2-MOEA and ADSAPSO, respectively.",
+      "localizador": "Sec. 4.7, Table 7",
+      "metricas": [
+        "complexidade de tempo (notação Big-O)",
+        "complexidade de espaço (notação Big-O)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Fórmulas assintóticas de Big-O por componente/fase (não tempos medidos em segundos, não há hardware declarado nem execuções cronometradas); tabela única (Tabela 7) com 3 colunas de fase x 2 blocos (tempo, espaço) x 3 algoritmos.",
+      "achado": "KTA2 tem a maior complexidade de tempo e espaço, dominada pelo termo cúbico O(M·Ns³) da matriz de correlação do Kriging na construção do modelo - a 'parede' do GP/Kriging explicitamente contrastada com o custo quadrático O(M·Ns²) do RBFN (ADSAPSO e SA²-MOEA); SA²-MOEA fica entre KTA2 e ADSAPSO, com custo extra O(Nn³) na amostragem de preenchimento vindo do cálculo do indicador PD sobre os não-dominados, ausente em ADSAPSO.",
+      "aplicabilidade": "não reproduzível via camadas empíricas da dissertação (④ mede tempo de parede REAL por geração, não complexidade assintótica); é uma dedução teórica a partir do pseudocódigo dos algoritmos. O padrão qualitativo (parede O(n³) do GP/Kriging vs. alternativas mais baratas como RBFN, ficha 46) é exatamente o que a camada ④ testaria empiricamente para os algoritmos do roster baseados em GP/Kriging."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Complexidade assintótica de tempo e espaço (notação Big-O), decomposta em 3 fases (construção do modelo / busca assistida por surrogate / amostragem de preenchimento), para KTA2, ADSAPSO e SA²-MOEA (Tabela 7, Sec. 4.7). NÃO há medição de tempo de parede real (segundos), nem hardware declarado, nem decomposição fit/busca/sonda/avaliação medida empiricamente, nem custo cruzado com qualidade (sem plano custo x IGD).",
+    "literal": "Finally, it can be concluded that KTA2 has the highest time complexity, followed by SA2-MOEA and ADSAPSO, respectively.",
+    "localizador": "Sec. 4.7, Table 7"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "O artigo atribui explicitamente a derrota do SA²-MOEA para KTA2/HeEMOEA no WFG8 ao excesso de erro de aproximação do próprio modelo ensemble RBFN.",
+      "literal": "the ensemble model of SA2-MOEA has excessive approximation errors on this problem, which impacts the performance of the algorithm.",
+      "localizador": "Sec. 4.6.2 (discussão do WFG8)"
+    },
+    {
+      "descricao": "A amostragem baseada em incerteza (o mecanismo central do artigo) é explicitamente apontada como ineficiente para manter diversidade no WFG7 (problema separável e unimodal, que exige alta manutenção de diversidade).",
+      "literal": "SA2-MOEA adopts the uncertainty-based sampling strategy, which is inefficient to the maintenance of diversity.",
+      "localizador": "Sec. 4.6.2 (discussão do WFG7)"
+    },
+    {
+      "descricao": "SA²-MOEA perde para KTA2/ADSAPSO/HeEMOEA no WFG2, com os autores admitindo que o método ainda é deficiente em problemas de fronteira de Pareto desconexa.",
+      "literal": "SA2-MOEA is still deficient in tacking the problems with disconnected PF.",
+      "localizador": "Sec. 4.6.2 (discussão do WFG2/WFG3)"
+    },
+    {
+      "descricao": "Nos problemas enganosos (deceptive, ex. WFG5), a má aproximação do ensemble faz com que TODAS as variantes de otimizador (Fig. 3) e de amostragem (Tabela 4) tenham desempenho parecido entre si - o mecanismo de incerteza deixa de discriminar entre estratégias quando o modelo é ruim.",
+      "literal": "the ensemble models are poorly approximated for this problem [38].",
+      "localizador": "Sec. 4.4 (discussão da Fig. 3(d), WFG5)"
+    },
+    {
+      "descricao": "Os próprios autores reconhecem, na conclusão, que o ensemble baseado somente em RBFN é insuficiente em problemas com múltiplas características complexas simultâneas.",
+      "literal": "In some problems with multiple complex characteristics, the approximation ability of ensemble model containing only RBFN is insufficient.",
+      "localizador": "Sec. 5 (Conclusion)"
+    },
+    {
+      "descricao": "O controle de probabilidade da amostragem adaptativa depende de resultados de amostragens anteriores, o que o torna inadequado logo no início da otimização - um problema de 'cold start' reconhecido pelos autores.",
+      "literal": "there might be parts of function evaluations that cannot be appropriately applied at the start of the optimization.",
+      "localizador": "Sec. 5 (Conclusion)"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "A semelhança de desempenho entre o método de incerteza proposto (rank-change) e o baseado em distância (SA²-MOEA-D) em DTLZ1 e WFG5 é atribuída explicitamente à baixa qualidade de aproximação do surrogate nesses dois problemas, não à equivalência real dos critérios de quantificação de incerteza - o modelo, não o critério, seria o limitante.",
+      "literal": "it is possible that the poor approximation of the surrogate models on them caused the performance of uncertainty quantification to suffer.",
+      "localizador": "Sec. 4.3 (discussão da Table 2)"
+    },
+    {
+      "descricao": "As três variantes do otimizador híbrido (SA²-MOEA, -IBEA, -NSGA-II) convergem para desempenho parecido em WFG5; a semelhança é atribuída à má aproximação do ensemble nesse problema, não à irrelevância da escolha do otimizador.",
+      "literal": "the performance of SA2-MOEA, SA2-MOEA-IBEA, and SA2-MOEA-NSGA-II is relatively similar on WFG5... the ensemble models are poorly approximated for this problem",
+      "localizador": "Sec. 4.4 (discussão da Fig. 3(d))"
+    },
+    {
+      "descricao": "As quatro variantes da amostragem de preenchimento adaptativa (ES/LS/PC/completo) também convergem para desempenho parecido em WFG5, de novo atribuído à aproximação ineficaz do ensemble, não à indiferença do mecanismo de amostragem escolhido.",
+      "literal": "the similarity of all variants may be caused by the ineffective approximation of the ensemble models to the test problem",
+      "localizador": "Sec. 4.5 (discussão da Table 4)"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "multimodalidade / difícil de convergir (DTLZ1, DTLZ3)",
+      "afirmacao": "ADSAPSO vence graças à redução de dimensionalidade que reduz o espaço de busca; entre os demais SA-MOEAs sem redução de dimensão, SA²-MOEA fica em primeiro graças à suavidade inerente do surrogate RBFN, que evita ficar preso em ótimos locais.",
+      "literal": "SA2-MOEA ranks first, which benefits from the inherent smoothing of the surrogate model RBFN [26], which effectively prevents SA2-MOEA from falling into the local optima.",
+      "localizador": "Sec. 4.6.1 (discussão do DTLZ1/DTLZ3)"
+    },
+    {
+      "caracteristica": "unimodal / fácil de convergir (DTLZ2)",
+      "afirmacao": "Para problemas fáceis de convergir, manter diversidade populacional é crítico para bom desempenho; o otimizador híbrido do SA²-MOEA é melhor nisso do que os demais comparados.",
+      "literal": "it is critical to maintain the diversity of the population for excellent performance. The hybrid optimizer in SA2-MOEA is better at maintaining the diversity of the population.",
+      "localizador": "Sec. 4.6.1 (discussão do DTLZ2)"
+    },
+    {
+      "caracteristica": "região preferida no espaço de objetivos (DTLZ4)",
+      "afirmacao": "O traço de região preferida torna o desempenho muito sensível aos dados iniciais, exigindo boa manutenção de diversidade para aumentar a chance de encontrar a região preferida.",
+      "literal": "The preferred trait of the problem makes the performance of the algorithm very sensitive to the initial data.",
+      "localizador": "Sec. 4.6.1 (discussão do DTLZ4)"
+    },
+    {
+      "caracteristica": "PF irregular / degenerada / descontínua (DTLZ5, DTLZ6, DTLZ7)",
+      "afirmacao": "PFs irregulares tornam desafiador manter a diversidade da busca; SA²-MOEA supera todos os comparados em DTLZ5 e DTLZ7 apesar disso.",
+      "literal": "The irregular PFs make it challenging to maintain diversity in solving this type of optimization problems.",
+      "localizador": "Sec. 4.6.1 (discussão do DTLZ5/6/7)"
+    },
+    {
+      "caracteristica": "não-separabilidade (DTLZ6)",
+      "afirmacao": "A não-separabilidade de DTLZ6, somada à PF degenerada, impõe maior desafio ao modelo ensemble do SA²-MOEA; MOEA/D-EGO (múltiplos modelos locais) se sai relativamente melhor nesse problema específico.",
+      "literal": "The complex characteristic may pose a greater challenge to the ensemble model of SA2-MOEA.",
+      "localizador": "Sec. 4.6.1 (discussão do DTLZ6)"
+    },
+    {
+      "caracteristica": "muitas funções de transformação, alta demanda de diversidade (WFG1)",
+      "afirmacao": "A complexidade do WFG1 (mais funções de transformação da série WFG) afeta fortemente a capacidade de aproximação do ensemble, deixando SA²-MOEA atrás do KTA2 nesse problema especificamente.",
+      "literal": "The complexity of the problem causes the approximation ability of the ensemble model in SA2-MOEA to be drastically affected.",
+      "localizador": "Sec. 4.6.2 (discussão do WFG1)"
+    },
+    {
+      "caracteristica": "fronteira de Pareto desconexa (WFG2)",
+      "afirmacao": "A PF desconexa, somada à não-separabilidade, afeta tanto o otimizador quanto a amostragem de preenchimento adaptativa, deixando SA²-MOEA atrás de KTA2/ADSAPSO/HeEMOEA especificamente nesse problema.",
+      "literal": "possibly because the disconnected PF and non-separable reductions properties of the problem affect the ability of the optimizer and stage-adaptive infill sampling.",
+      "localizador": "Sec. 4.6.2 (discussão do WFG2)"
+    },
+    {
+      "caracteristica": "muitos ótimos locais / difícil de convergir (WFG4)",
+      "afirmacao": "A suavidade do RBFN ajuda a evitar ficar preso em ótimos locais nesse problema com muitos ótimos locais, beneficiando SA²-MOEA, ADSAPSO e HeEMOEA (todos com RBFN no ensemble) em relação aos demais.",
+      "literal": "RBFN has certain smoothing characteristic that can avoid the algorithm from falling into the local optimum to some extent.",
+      "localizador": "Sec. 4.6.2 (discussão do WFG4)"
+    },
+    {
+      "caracteristica": "problema enganoso / deceptive (WFG5, WFG9)",
+      "afirmacao": "Em problemas enganosos, a amostragem baseada em incerteza ajuda a escapar de ótimos locais enganosos - mas o próprio ensemble tende a se aproximar mal do problema, limitando o ganho (ver também equivalencia_criterios e resultados_negativos para WFG5).",
+      "literal": "the uncertainty-based sampling strategy has advantages in handling the deceptive problems",
+      "localizador": "Sec. 4.6.2 (discussão do WFG5)"
+    },
+    {
+      "caracteristica": "não-separabilidade difícil, alta exigência de aproximação (WFG8)",
+      "afirmacao": "WFG8 impõe grande exigência de aproximação ao surrogate; o modelo pontual-insensível (point-insensitive) do KTA2 se aproxima melhor do objetivo do que o ensemble RBFN do SA²-MOEA nesse caso específico.",
+      "literal": "This is mainly because the point-insensitive models of KTA2 better approximate the objective function of WFG8.",
+      "localizador": "Sec. 4.6.2 (discussão do WFG8)"
+    },
+    {
+      "caracteristica": "separável e unimodal, alta demanda de diversidade (WFG7)",
+      "afirmacao": "Esse tipo de problema exige foco em manutenção de diversidade; a amostragem por incerteza do SA²-MOEA é explicitamente apontada como ineficiente para isso, igualando seu desempenho ao do HeEMOEA nesse problema.",
+      "literal": "SA2-MOEA adopts the uncertainty-based sampling strategy, which is inefficient to the maintenance of diversity.",
+      "localizador": "Sec. 4.6.2 (discussão do WFG7)"
+    },
+    {
+      "caracteristica": "alta dimensão de decisão (D crescente: 31→51 com M=2; 30→50 com M=3)",
+      "afirmacao": "O aumento do número de variáveis de decisão degrada a maioria dos algoritmos comparados no DTLZ2, tornando-os incapazes de identificar corretamente a demanda do estágio de otimização atual - um efeito atribuído aos comparados, não ao SA²-MOEA, cujo RBFN é descrito na introdução como insensível ao crescimento de D.",
+      "literal": "the increasing number of decision variables causes it be unable to accurately determine the current optimization demand.",
+      "localizador": "Sec. 4.6.1 (discussão do DTLZ2)"
+    },
+    {
+      "caracteristica": "ruído injetado, sem surrogate (motivação, σ=0/0.2/1)",
+      "afirmacao": "IBEA (seleção por indicador) tolera melhor o ruído e converge melhor sob ruído não-nulo; NSGA-II (dominância+crowding) mantém melhor diversidade em todos os níveis de ruído testados - motivando a hibridização dos dois mecanismos no SA²-MOEA.",
+      "literal": "IBEA has better convergence and noise tolerance compared to NSGA-II.",
+      "localizador": "Sec. 2.2.2"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Leitura completa confirmada: arquivo lido inteiro (3436 linhas) em 4 blocos via Read com offset/limit, cobrindo (1) a seção estruturada pymupdf4llm (linhas 1-890: corpo do artigo Sec. 1-5 + CRediT + referências [1]-[69]); (2) o ANEXO 'Camada de texto completa do PDF' (linhas 892-3328: reprodução página a página via get_text) - conferido que é DUPLICATA textual do mesmo conteúdo já lido na seção estruturada (mesmas 15 páginas, mesmas Tabelas 1-7, mesma Sec. 1-5, mesmas referências), sem nenhum Appendix/Supplementary Material (busca por 'Appendix'/'Supplementary' no arquivo inteiro não retornou nenhuma ocorrência); (3) o ANEXO de 'Conteúdo textual das imagens (OCR)' (linhas 3329-3436: rótulos de eixo e legendas internas das Fig. 1 (diagrama do framework), Fig. 2 (perfis de sensibilidade) e Fig. 3 (curvas de convergência), sem nenhum número novo além do já capturado nas tabelas). Não há material suplementar mencionado em lugar nenhum do artigo, portanto nenhum item foi marcado 'só mencionada'. O artigo NÃO testa nenhum problema real nomeado (apesar de a introdução citar antenna design, manufacturing, structural e mechanical engineering como motivação) - toda a bateria experimental (Sec. 4.2-4.7) usa exclusivamente DTLZ1-7 e WFG1-9 sintéticos. Não há regime offline, não há problemas MMF/IGDX, não há visualização de fronteira/attainment surfaces, não há lote (q>1) - é sequencial (q=1) online puro, consistente com regime=online da classificação fornecida. Alinhamento com a classificação da taxonomia fornecida no pedido: (a) medição=DISC-ENS encaixa muito bem - a incerteza é literalmente a discordância de RANK entre o melhor ensemble (EMbest, combinação do modelo mais recente + até Smax modelos históricos) e o modelo mais recente isolado (LM), Eq. (8): U_j^i = |rank(F_j'^i) - rank(F_j^i) - sign(...)|; é uma medida de discordância ENTRE modelos (ensemble vs. membro), não uma posterior de GP fechada nem dropout; (b) função da incerteza=O3 (aprendizado ativo/reparo) encaixa bem - a 'uncertainty-based sampling strategy' seleciona para avaliação real exatamente os candidatos de maior discordância de rank, um uso de aprendizado ativo clássico (evitar que o modelo erre muito onde mais importa) e não um gate de reparo/correção pós-hoc; (c) motor=EA-Dominância é a classificação primária razoável mas MERECE NUANCE: o otimizador de fato ALTERNA, por paridade de geração, entre seleção ambiental de NSGA-II (dominância de Pareto + crowding distance) E de IBEA (indicador binário Iε+) - metade das gerações usa efetivamente um motor baseado em INDICADOR, não em dominância pura; (d) surrogate=RG (regressor clássico não-GP) é exato - RBFN (radial basis function network) é o único tipo de submodelo usado, tanto no modelo mais recente quanto em todos os modelos históricos do ensemble. Nenhuma calibração/cobertura do σ (ou da medida de incerteza por rank-change) é avaliada contra erro real em lugar nenhum do artigo - mede=false em calibracao_do_sigma; a única justificativa dada é uma AFIRMAÇÃO não testada dentro deste artigo ('the key to the applicability of the method is that rank change is positively correlated with model uncertainty', Sec. 4.3), apoiada em citação a trabalho anterior dos mesmos autores ([38,43]), não em medição própria (não há sonda, não há pontos de teste fixos, não há coverage/correlação com erro reportados). Padrão recorrente notável, presente de forma independente em TRÊS tabelas de ablação diferentes (Table 2 - método de incerteza; Fig. 3/Table 3 - otimizador híbrido; Table 4 - amostragem por estágio): no problema WFG5 (deceptive), as variantes de cada ablação convergem para desempenho parecido, e em TODOS os três casos os autores atribuem isso à má aproximação do ensemble nesse problema específico, não à irrelevância do componente ablado - uma instância recorrente e auto-consistente do padrão 'quando o modelo é ruim, o teto vem do surrogate, não do critério' (espírito das fichas 39/52), embora sem medição direta de RMSE/qualidade do surrogate que a confirme quantitativamente (é sempre uma explicação qualitativa post-hoc dos autores, nunca uma correlação numérica mostrada). O artigo compara variantes do próprio método em TRÊS ablações independentes (Table 2: método de UQ; Table 3+Fig.3: otimizador híbrido; Table 4: amostragem por estágio) - todas ablações naturais no sentido de CARTAO, mas nenhuma delas remove a amostragem baseada em incerteza por completo (ela está presente em toda variante testada em Table 3 e Table 4; só em Table 2 ela é substituída por proxies alternativos, nunca removida). O experimento motivador da Sec. 2.2 (Table 1, IBEA vs NSGA-II sob ruído gaussiano sintético) é metodologicamente distinto do resto do artigo: não usa surrogate, usa orçamento de 50.000 avaliações (vs. 300 no resto), e serve só para justificar o desenho do otimizador híbrido - incluído por completude/exaustividade conforme a regra 2 do CARTÃO, mas sinalizado como fora da bateria SA-MOEA propriamente dita em todas as suas fichas/aplicabilidade. Todas as figuras de perfil (Fig. 2, Fig. 3) usam valores MÉDIOS ao longo de avaliações/valores de parâmetro, nunca mediana+IQR nem 'execução mediana' - convenção de apresentação diferente da praticada na dissertação. Métrica única (IGD) em toda a bateria principal (Sec. 4.1-4.7); PD (pure diversity) só aparece no experimento motivador da Sec. 2.2; HV/hipervolume NUNCA é usado como métrica própria do artigo (aparece só em duas referências bibliográficas de trabalhos de terceiros, [30] e [35], confirmado por busca no arquivo inteiro)."
+}

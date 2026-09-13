@@ -1,0 +1,106 @@
+{
+ "config": "c141 (MMRAEA · Shen et al. 2025 · C&IS 11:147) · rodada FINAL sobre o corpus CONGELADO: 840 células = 750 sintéticas (herdadas do F30 por identidade byte-inerte) + 90 REAIS novas (RE21/DDMOP7/ESTOQUE40 × 30 sementes). Elo D80: os 5 arquivos do caminho do c141 (src/c141_instrument.m, src/c141_sonda.m, algorithms/c141_MMRAEA, src/FEBudget.m, src/SondaState.m) têm `git diff` VAZIO entre 63db46b1 (F30) → 3240f4b2 (campanha 15/08) → 7be66e65 (campanha 18/08): o binário das 90 novas É o binário que T11/F30 validaram. algo_version c141-MMRAEA-porte4.15; MATLAB R2025a U1; hosts vm1 (RE21+EST40) e vm5 (DDMOP7). Artefatos desta auditoria (read-only; nenhuma invocação de experiments.*; MATLAB não tocado): /private/tmp/claude-501/-Users-gmello/16c0ba84-843b-49d1-9ce6-6cecc418b734/scratchpad/c141/{scan_novas.py, deep_joia_novas.py} → {novas_universal.csv, novas_ciclos_agg.json, novas_joia.csv}. Interpretador: /Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao/bin/python.",
+ "celulas_final": "CENSO (censo_final.csv, alg=c141): 840/840 células · 28 problemas × 30 sementes {0-28,42} · status=ok em 840/840, motivo vazio, 0 ⚪ teto_wall, 0 fail. RODAPÉ (autoridade O-21): 90/90 novas lidas diretamente = status:ok · termino:normal · fe_final==maxfe==31D−1 · cp_init:true · n_retries=0 em 90/90 (RE21 D=4/123 FE · DDMOP7 D=17/526 · EST40 D=40/1239); 750 sintéticas herdam o F30 (749/749 rodapé ok; a 750ª, ZDT4/9, tem rodapé ok só no espelho vm5). Nenhum conflito manifesto×rodapé em toda a config. ⑥ íntegra: header=1∧footer=1, 0 linhas malformadas em 90/90 novas (~18k eventos c141_gen + 8,3k sonda); ① com fe_index 0..fe_final−1 único e |init|==11D−1 em 90/90; ④ com |timing|==|c141_gen|==|fit_series| e 0 violações de tempo_fit+tempo_busca≤tempo_geracao em 90/90; ledger FE (11D−1+Σlote−cache_hits+lote_final==fe_final) fecha em 90/90 com a identidade hard_stop==0 ⇔ lote_final==1 em 90/90. Única célula com camada inválida no acervo: ZDT4/9 (⑥ canônica truncada — ver celulas_invalidas).",
+ "novas_desde_f30": "+90 células (3 problemas reais × 30 sementes), mtimes 2026-08-15 (RE21 17:00, EST40 19:32-20:30, DDMOP7/0 15:14) e 2026-08-18 21:06-22:59 (DDMOP7 sementes 1-28+42, campanha 7be66e65522c — re-despacho com binário idêntico, diff vazio). SINTÉTICAS INALTERADAS: mtime máximo 2026-08-14T15:23 (BBOB_F22/17, que o F30 já viu); spot-check de 8 células (ZDT1/5, DTLZ2/17, WFG4/23, BBOB_F1/4, MMF1/18, ZDT6/11, DTLZ7/0, BBOB_F55/42) reproduz a assinatura F30 — rodapés ok 8/8, σ_0≡U_pool_max 8/8, guard sde_eps presente em MMF1/18, err de kernel contínuo em cond(Φ) (ZDT6/11 com rcond 6,2e-19 = o regime do pior caso F30). Sintéticas HERDAM o veredito F30. Órfão ZDT4/9 RE-MEDIDO hoje: segue 368 bytes / 1 linha (header) / mtime 08-08 / link-count 1 — NÃO reparado; a ⑥ íntegra continua no espelho ~/mestrado_coleta_m8/matlab-vm5 (91 linhas, rodapé ok/309/58/normal).",
+ "mecanismo_nos_novos": "Query-joia reconstruída DO ZERO em 90 pontos-teste = 30 células (10/problema) × gerações {1ª, mediana, última}, cobrindo AS 30 SEMENTES e os 3 problemas. (i) INTERPOLAÇÃO SEM REGULARIZAÇÃO: μ−f EXATAMENTE 0,0 em **1.793/1.793 pares (100%)** (RE21 212/212, EST40 1.581/1.581; DDMOP7 sem hits pool∩treino — D=17 contínuo, esperado). (ii) KERNEL MQ c=1 poly=0 sem scaling: erro relativo mediano da reconstrução (np.linalg.solve/LU) = RE21 9,1e-05 · DDMOP7 4,8e-04 · EST40 1,0e-03 (p95 global ≤1,7e-02); contra 5 variantes estruturais (MQ c=2, gaussiana, cúbica, linear, MQ scaled) o oficial vence **individualmente 420/450 (93,3%)** e **as 5 simultaneamente em 66/90** — DDMOP7 30/30, RE21 25/30, EST40 11/30 (resíduo onde rcond cai a 3,8e-14). (iii) NÍVEL 1 com arquivo VERDADEIRO: n_front1 bate em **68/90 = 75,6%** e o resíduo é 22/22 na direção n1_rec>n1_log — exatamente os empates que o float32 do export CRIA (regra 11 do CONTRATO §10). (iv) Fit1 SDE Eq.7 min-max: rel<1e-5 em **68/68 = 100% condicionado ao nível 1 fechar** (mediana 2,6e-07). (v) σ_0≡U_pool_max: **90/90 células** (identidade GLOBAL, todas as gerações, não amostra); σ_0 inteiro e PAR em 100% das linhas online; U par em 17.997/17.997 ciclos; teto 2(2N−1) nunca excedido, atingido em 87/90 (folga sempre 2 nas 3 restantes). Invariantes de cascata nos 17.997 ciclos: 0 saídas nível 1; 157 saídas nível 2 TODAS com n_front2==1; lote≥1 em 100%, lote>5 em 459 (2,6%, máx 11 — u=5 segue revogado); fit1 nunca negativo; n_pool==2N e modelo_hp={MQ,c=1,poly=0} em 17.997/17.997. Cadência da sonda RESOLVIDA CAUSALMENTE: 60/60 células conformes sob a regra medida — com hard_stop (36/36) a última sonda cai na geração CORTADA (n_geracoes); sem hard_stop (24/24) na última completada — o que explica os 49,5% de finalProbe do F30. DoE bit-exato (max|ΔX|=0,0) vs data/doe em 6/6 amostradas; join posicional da sonda vs gabarito com max|ΔX|=0,0 em 8/8 blocos; doe_hash distinto em 90/90.",
+ "reais": "**DDMOP7** (D=17, caixa-preta .p, vm5): checa_regua com a régua ERRATA-2 (ideal=[0;0], nadir=[1;468/690]) = **0 furos em 30/30 células (15.780 pontos)**; quantização f1=k/17 (máx desvio 4,8e-07 em k) e f2=n/690 (2,0e-05 em n) confirmada; sem sonda (D102.10) respeitado em 30/30 (0 eventos, status sem_sonda_por_problema). CAMPEÃO CONFIRMADO em 30 sementes: melhor f2 = mín **84/690** · mediana **97/690** · máx 108/690 (moda 97 em 12/30); rank-sum (o teste do próprio protocolo, α=0,05) contra os 4 pisos: **4/4 vitórias significativas** (nsga2 p=5,7e-04 · nsga3 p=2,2e-02 · smsemoa p=1,1e-03 · moead p=1,4e-08), todas com estatística no lado do c141. NUANCE OBRIGATÓRIA para a escrita: a mediana EMPATA com a do melhor piso (97 vs 97) e o pareado vs melhor-dos-4 dá 12V/8E/10D — o c141 domina a CAUDA BOA (mín 84 vs 85-92 dos pisos) e o rank médio, não a mediana; o \"90/690 batendo os pisos\" do smoke é um quantil da distribuição, não o típico. |ND| sob §T15.13: bruto==x_proposto-distintos em 30/30; dedup por x_efetivo colapsa mediana 13,8% e máximo **77,7%** (s20: 157→35); F-distintos no front: mediana 3 (1-8) — resolução baixa é do problema. **RE21** (D=4, vm1): 30/30 limpas; 43 micro-furos de régua TOLERADOS pelo guard (pior 1,4e-07 do range = ruído float32 de persistência, em avisos_regua). **ESTOQUE40** (D=40, M=3, vm1): 30/30 limpas, checa_regua 0 furos (régua de cantos D102.20 respeitada); é a célula-teste mais dura do mecanismo já auditada (treino até 1.276 pontos, quantização categórica) e a cascata reconstrói igual; cache_hits explodem para 496-979/célula (mediana 716 — duplicação da codificação categórica) e o ledger FE fecha em 30/30 mesmo assim; sigma_2 (slot M=3) é 100% NaN por desenho (D45 declara só σ_0/σ_1).",
+ "aspectos_mudados": [
+  {
+   "id": "A1",
+   "o_que": "corpus e cobertura",
+   "antes": "750 células · 25 problemas sintéticos (F30, 100% varrido)",
+   "agora": "840 células · 28 problemas; as 90 novas varridas a 100% nas camadas ⑤⑥①④ + joia em 90 pontos-teste; sintéticas herdadas por mtime-inércia + spot-check 8 células"
+  },
+  {
+   "id": "A2",
+   "o_que": "proveniência (D80)",
+   "antes": "repo_hash único 63db46b1 em 749/749",
+   "agora": "3 hashes (63db46b1/3240f4b2/7be66e65) com diff VAZIO nos 5 arquivos do c141 entre os três — mesmo binário validado; campanhas 3240f4b26fae_2026-08-15 (61 células) e 7be66e65522c_2026-08-18 (29 DDMOP7)"
+  },
+  {
+   "id": "A3",
+   "o_que": "U7/C3-C · fe_treino_max",
+   "antes": "monotônico em 747/749; 2 quedas de −1 (BBOB_F1 s4/s6), inexplicado 🎯",
+   "agora": "nas novas: RE21/DDMOP7 0 quedas; ESTOQUE40 **30/30 células com quedas** — 811 transições, magnitude 1-4 — com `arquivo` e `modelo_hp.n` MONOTÔNICOS em 30/30: o padrão é sistemático no problema de máxima duplicação, o que fortalece a leitura 'errata da regra 9' (dsmerge funde o ponto de maior índice)"
+  },
+  {
+   "id": "A4",
+   "o_que": "cadência/finalProbe da sonda",
+   "antes": "'cadência+finalProbe respeitada em 749/749; finalProbe em 49,5%' — sem causa para o quando",
+   "agora": "regra CAUSAL medida 60/60: hard_stop ⇔ sonda na geração cortada (36/36); sem hard_stop ⇔ última completada (24/24)"
+  },
+  {
+   "id": "A5",
+   "o_que": "regime de sonda",
+   "antes": "sonda obrigatória em 25/25 problemas",
+   "agora": "DDMOP7 sem_sonda_por_problema (D102.10) em 30/30 — 1º problema do config com o estado sancionado; RE21 12 blocos/célula, EST40 até 236"
+  },
+  {
+   "id": "A6",
+   "o_que": "lei c0=1 do cache",
+   "antes": "exatamente 1 cache-hit no init em 749/749 (máx 28/célula)",
+   "agora": "mantida em RE21/DDMOP7 (1-2/célula); EST40 rompe a ESCALA (mediana 716, máx 979) sem romper a LEI — ledger fecha 90/90; é a quantização categórica, não defeito"
+  },
+  {
+   "id": "A7",
+   "o_que": "campeão DDMOP7",
+   "antes": "smoke s42: f2=90/690 batendo os pisos (95-102)",
+   "agora": "30 sementes: mín 84 · mediana 97 · 4/4 rank-sum significativo, mas mediana empata com pisos e pareado 12V/8E/10D — vitória distribucional de cauda, não de mediana"
+  },
+  {
+   "id": "A8",
+   "o_que": "guard DEF-L4 (sde_eps)",
+   "antes": "4 disparos, todos MMF1",
+   "agora": "0 disparos nas 90 novas — segue exclusivo do colapso de front do MMF1; guards nas novas: só cache_hit (90) e hard_stop (59)"
+  }
+ ],
+ "celulas_invalidas": [
+  {
+   "celula": "main/c141/ZDT4/9 (camada ⑥ apenas)",
+   "motivo": "⑥ canônica é órfã truncada de 2026-08-08 (368 bytes, 1 linha = só header, link-count 1) enquanto ⑤+4 parquets são da rodada válida de 2026-08-14 (vm5, campanha M8); RE-MEDIDA HOJE: inalterada desde o F30 — a decisão nº 1 do F30 não foi executada. ①②③④⑤ íntegros; a célula VALE para métricas e só é inválida para leituras que dependam da ⑥",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C3-A",
+   "descricao": "HERDADO F30, re-medido: ⑥ canônica de ZDT4/9 segue o órfão de 368 bytes; a íntegra (91 linhas, rodapé ok/fe 309/58 gerações/termino normal, coerente com o ⑤) permanece só no espelho ~/mestrado_coleta_m8/matlab-vm5/experiments/main/c141/exp_main_c141_ZDT4_9.jsonl. Única das 840 sem rodapé canônico.",
+   "gravidade": "média-baixa — não toca o algoritmo; quebra a autoridade O-21 do rodapé nesta célula e a exclui de análises da ⑥",
+   "acao": "ESCALO (D81): copiar do espelho antes do R4 — recuperável sem re-run; pendente desde o F30",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/c141/ZDT4/9/exp_main_c141_ZDT4_9.jsonl"
+  },
+  {
+   "id": "C3-B",
+   "descricao": "HERDADO F30 (deriva cross-shape vm5 pós-14/08), com contexto NOVO: as 30 células DDMOP7 do c141 rodaram TODAS em vm5 pós-cerca (15/08 e 18/08) — internamente homogêneas (mesma máquina, mesma época), logo as comparações POR SEMENTE dentro do DDMOP7 do c141 são limpas; o risco é assimetria de host contra os DDMOP7 dos outros configs. Sem duplicatas nas novas para medir a deriva diretamente (fidelidade estatística da frota heterogênea se aplica).",
+   "gravidade": "transversal ao harness; nula para a fidelidade do mecanismo (a joia reconstrói igual em vm5 pós-cerca: DDMOP7 é o problema MAIS limpo dos 3 na reconstrução)",
+   "acao": "ESCALO: manter a decisão pendente do F30 (piso O-18, destino das 41 células) e verificar simetria de hosts dos DDMOP7 entre configs antes do R4",
+   "arquivo_linha": "novas_universal.csv (colunas host/created)"
+  },
+  {
+   "id": "C3-C",
+   "descricao": "HERDADO F30, AMPLIADO: fe_treino_max da ③ recua em TODAS as 30 células do ESTOQUE40 — 811 quedas de magnitude 1-4 — enquanto `arquivo` e `modelo_hp.n` do ⑥ são monotônicos em 30/30 e os fe_treino_max dos eventos de sonda (gerações pares) têm 0 quedas em 6.874 transições. A regra 9 do CONTRATO §10 (DI-13.15) segue declarando não-monotonia SÓ em b1/b4/c217. O padrão concentra-se exatamente no problema de máxima duplicação de pontos (cache mediano 716), o que dá base empírica à leitura (a) do F30: o campo recua quando o dedup/dsmerge funde o ponto de maior índice — em qualquer config.",
+   "gravidade": "baixa — instrumentação; o mecanismo (A ← A ∪ Pnew) está provado intacto por duas vias em 30/30",
+   "acao": "ESCALO (D81): errata da regra 9 (recomendada, agora com 811 casos) ou inspeção de c141_instrument.m; não bloqueante",
+   "arquivo_linha": "resultados_experimentos/c141/ESTOQUE40/*/exp_main_c141_ESTOQUE40_*__surrogate.parquet (coluna fe_treino_max por geração)"
+  },
+  {
+   "id": "C3-D",
+   "descricao": "NOVO, TRANSVERSAL: `params.zona_morta` NÃO EXISTE em nenhum ⑤ de DDMOP7 — nem do c141 nem de nenhum outro config verificado (nsga2, b3, c217, c262, e74, smsemoa) — enquanto o CONTRATO §T15.13 afirma que 'o τ está em params.zona_morta do ⑤'. O τ=0,5 hoje só vive em src/ddmop7_bridge.py (TAU_ZONA_MORTA) — a regra de leitura do x_efetivo continua executável, mas o ⑤ não é autossuficiente como o contrato promete.",
+   "gravidade": "baixa-média — não afeta número nenhum hoje; afeta a auditabilidade futura do acervo (quem ler o ⑤ sem o repo não recupera τ)",
+   "acao": "ESCALO (D81): errata do §T15.13 (apontar para o bridge pinado) ou backfill do campo nos ~629 manifestos DDMOP7; decisão do autor",
+   "arquivo_linha": "CONTRATO_DE_DADOS.md:494 (§T15.13) vs resultados_experimentos/*/DDMOP7/*/​*.manifest.json"
+  }
+ ],
+ "score_final": 9.3,
+ "trajetoria_scores": "F5 9,5 (s42, 25 células: cascata reconstruída pela 1ª vez, zero bug de algoritmo; teto C5 declarado) → T11 9,5 (pós-refinamento: DoE bit-idêntico cross-máquina, finalProbe exercitado, gate comportamental; s42 ainda era 1 semente) → F30 9,3 (a escala de 750 células SUBIU a fidelidade do mecanismo e ao mesmo tempo REVELOU o que 1 semente escondia: ⑥ truncada de ZDT4/9, fe_treino_max recuando 2/749, deriva cross-shape quantificada em 41 pares — o desconto de 0,2 é visibilidade, não regressão) → FINAL 9,3 (MANTÉM): os +90 reais são a extensão mais dura já aplicada ao mecanismo (D=40 categórico-quantizado com treino de 1.276 pontos; caixa-preta D=17 com zona morta; D=4 mal condicionado) e a identidade estrutural NÃO se move — interpolação 1.793/1.793, kernel vence 30/30 no DDMOP7, ledger e cascata 17.997/17.997, checa_regua 0 furos, campeão confirmado 4/4; o que impede subir é que os dois classe-3 herdados seguem ABERTOS (ZDT4/9 não foi reparada; a decisão da deriva não foi tomada) e a rodada adiciona dois novos transversais/instrumentais (C3-C ampliado para 811 casos; C3-D params.zona_morta ausente do ⑤). Botões, como no F30: 9,5 se C3-B/C3-C/C3-D contam ao harness; 9,0 se contam integralmente ao config.",
+ "veredito": "ACEITAR — recomendação, não sentença (D97). O mecanismo do c141 é FIEL e a fidelidade agora está provada em TRÊS regimes que o artigo nunca viu: problema real de engenharia (RE21), caixa-preta com codificação de zona morta (DDMOP7) e problema quantizado-categórico D=40 (ESTOQUE40) — a query-joia (MQ c=1/poly=0/sem scaling → interpolação exata → cascata 3 níveis com arquivo verdadeiro → SDE Eq.7 → σ_0=U de ranks) reconstrói do zero nas 30 sementes dos 3 problemas com os mesmos números-assinatura das 4 auditorias anteriores, e o binário é byte-idêntico ao validado (3 diffs vazios). As 90 células novas fecham TODAS as invariantes universais em 90/90 ou 17.997/17.997; estados O-21: 840 ok, 0 ⚪, 0 fail, 0 conflito manifesto×rodapé. O campeão do smoke confirma distribucionalmente (4/4 rank-sum) com a nuance de mediana obrigatória na escrita. Nada nesta rodada é bloqueante para aceitar o config; seguem bloqueantes PARA O R4: restaurar a ⑥ de ZDT4/9 (pendente desde o F30), rodar a fase 2 pooled da régua DDMOP7 (todo HV de DDMOP7 é PROVISÓRIO por selo até lá) e decidir as erratas C3-C/C3-D.",
+ "decisoes_ao_autor": [
+  "(1) ZDT4/9 — a decisão nº 1 do F30 NÃO foi executada: re-medi hoje e a ⑥ canônica segue o órfão de 368 bytes/1 linha/mtime 08-08. Copiar do espelho vm5 (91 linhas, rodapé ok coerente com o ⑤) antes do R4; recuperável sem re-run.",
+  "(2) Fase 2 POOLED da régua DDMOP7 (D102.3) — agora computável (629 células no censo). Enquanto não rodar, qualquer HV de DDMOP7 publicado é PROVISÓRIO por selo (REGUAS_PROVISORIAS não-vazio). Medido a favor: checa_regua com a régua ERRATA-2 (ideal=[0;0]) dá 0 furos em 90/90 células do c141 — o ínfimo teórico aguentou 30 sementes.",
+  "(3) Errata da regra 9 do CONTRATO §10 — o ESTOQUE40 prova em escala o que BBOB_F1 s4/s6 insinuou no F30: fe_treino_max recua (811 quedas, mag 1-4, 30/30 células) em config SEM subamostragem, com o mecanismo intacto (arquivo e hp.n monotônicos 30/30). Recomendo a leitura (a): o campo pode recuar em QUALQUER config quando o dedup/dsmerge funde o ponto de maior índice.",
+  "(4) CONTRATO §T15.13 vs acervo — params.zona_morta não existe em NENHUM ⑤ de DDMOP7 (verifiquei 7 configs). Errata do texto (apontar τ=0,5 para src/ddmop7_bridge.py pinado) ou backfill dos ~629 manifestos. Sem isso o ⑤ não é autossuficiente para a regra do x_efetivo.",
+  "(5) A frase do campeão na dissertação: em 30 sementes o c141 vence os 4 pisos no melhor-f2 do DDMOP7 por rank-sum (p entre 1,4e-08 e 2,2e-02), alcança o melhor ponto do corpus (84/690) — mas a MEDIANA empata com o melhor piso (97/690 vs 97/690) e o pareado vs melhor-dos-4 é 12V/8E/10D. Recomendo redigir como vitória distribucional/de cauda, nunca 'bate os pisos' seco. E todo |ND| de DDMOP7 publicado DEVE ser por x_efetivo (colapso mediano 13,8%, máx 77,7%; F-distintos no front: mediana 3).",
+  "(6) Simetria de hosts no DDMOP7 — as 30 células do c141 são TODAS vm5 pós-cerca de 14/08 (homogêneas entre si). Antes de comparações pareadas por semente entre configs no DDMOP7, verificar se os demais configs também rodaram em vm5 pós-cerca (eco da decisão nº 3 do F30, barato via created_at/host dos manifestos).",
+  "(7) Registro menor: sigma_2 do ESTOQUE40 (slot M=3 do schema) é 100% NaN por desenho — D45 declara só σ_0/σ_1; e a lei c0=1 do cache vale nas novas com a ressalva de ESCALA do EST40 (mediana 716 cache-hits/célula, ledger fechando em 30/30) — é assinatura da codificação categórica, vale nota na escrita do problema."
+ ]
+}

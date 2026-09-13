@@ -1,0 +1,310 @@
+{
+  "id": "e74",
+  "sigla": "CLMEA",
+  "titulo": "Rank-Based Learning and Local Model Based Evolutionary Algorithm for High-Dimensional Expensive Multi-Objective Problems",
+  "ano": 2023,
+  "roster": true,
+  "setup": {
+    "benchmarks": "Duas suítes sintéticas de baixo custo computacional usadas como proxy de problema caro: sete DTLZ (DTLZ1-7) e cinco ZDT (ZDT1-4, ZDT6 — sem ZDT5). M (nº objetivos) ∈ {2, 3} para DTLZ (bi-objetivo E 3-objetivo testados separadamente, Tables III e V); ZDT é sempre bi-objetivo (M=2, Table IV). D (dimensão de decisão) ∈ {30, 50, 100, 200} para AMBAS as suítes — o eixo central do artigo é escalabilidade em D, não em M. Características por Table S-I (separabilidade, modalidade, viés, geometria): DTLZ1=linear; DTLZ2/3/5/6=côncava (DTLZ3/6 também não-separável); DTLZ4=côncava+many-to-one; DTLZ7=não-separável+multimodal+DESCONTÍNUA; ZDT1=convexa; ZDT2=côncava; ZDT3=convexa+DESCONTÍNUA+multimodal; ZDT4=convexa+multimodal; ZDT6=convexa+multimodal+viesada+many-to-one. Mais um problema REAL: extração de calor de um sistema geotérmico aprimorado (EGS) fraturado — 160 variáveis de decisão (3 poços de injeção + 5 poços de produção × 20 passos de tempo de 300 dias, projeto de 6000 dias — a aritmética 8×20=160 bate com o D declarado, embora o artigo não explicite essa decomposição), 2 objetivos (VPL de ciclo de vida de longo e curto prazo, eq. 14-16). NENHUM problema da bateria da dissertação (WFG, MMF, BBOB, RE21, ESTOQUE40, DDMOP7) aparece neste artigo; o problema real geotérmico é inteiramente diferente dos três reais da dissertação.",
+    "orcamento": "maxFEs=300 para TODOS os benchmarks sintéticos, fixo e INDEPENDENTE de D (diferente da convenção 31D−1 da dissertação, que escala com D) — na prática a fase de busca fica proporcionalmente muito mais apertada em D alto. Amostragem inicial (DoE, LHS): N=100 quando D<100, N=200 quando D≥100 ('the initial number of samples is set to 100 when the dimension is less than 100, and to 200 when the dimension is greater than or equal to 100') — logo em D=200 restam só ~100 FEs de busca real (33 iterações do laço externo, que consome 3 FEs reais por iteração: 1 por cada uma das 3 subestratégias), contra ~200 FEs de busca em D=30 (66 iterações). Para o caso real geotérmico o texto só diz '300 simulation evaluations' no total, sem reafirmar explicitamente o N usado (presumivelmente N=200, já que D=160≥100, mas não reafirmado).",
+    "execucoes": "20 execuções independentes por algoritmo × problema nos benchmarks sintéticos ('All the results of benchmark functions are replicated 20 independent runs for statistical analysis'). Para o caso real geotérmico o número de execuções NÃO é declarado explicitamente — Fig. 14 mostra um único conjunto de soluções não-dominadas por algoritmo, sugerindo possivelmente execução única (compatível com o custo do EGS: 'the real-world simulation time is hours even days').",
+    "baselines": "Cinco algoritmos externos do estado da arte, todos assistidos por surrogate — NENHUM piso evolutivo sem surrogate em lugar nenhum do artigo: CPS-MOEA (KNN, uso 'Cluster', prevê dominância de Pareto), K-RVEA (Kriging, aproximação de funções objetivo, RVEA como motor), CSEA (FNN classificador, prevê dominância de Pareto), EDN-ARMOEA (rede neural com dropout, aproximação — É O PRÓPRIO 'e7' do roster da dissertação, aqui usado como baseline externo sob o protocolo de CLMEA), e MCEA/D (SVM classificador por sub-problema, decomposição/scalarization). Mais três variantes internas de ablação: CLMEA-s1 (só classifier-assisted rank-based learning pre-screening), CLMEA-s2 (só HV-based non-dominated search), CLMEA-s3 (só local search in the sparse objective space).",
+    "metricas_principais": [
+      "IGD (média simples sobre 20 execuções, SEM desvio-padrão reportado nas tabelas; NÃO é IGD+) — usada em todos os benchmarks sintéticos",
+      "HV — usada apenas no caso real geotérmico, já que a frente de Pareto verdadeira é desconhecida"
+    ],
+    "testes": [
+      "Wilcoxon signed-rank test (assim nomeado no texto — não 'rank-sum'), símbolos +/−/≈ (melhor/pior/comparável), sempre com CLMEA como coluna de referência fixa (inclusive nas tabelas de ablação, onde a referência também é CLMEA, o método completo). O valor de α ('significance probability') NÃO aparece no texto extraído — a frase é 'a significance probability [α ausente] to compare the algorithms', com o número aparentemente perdido na conversão do PDF (grep confirmou zero ocorrências de '0.05' associadas a α em todo o corpus, só '0.05s' de tempo de execução)."
+    ],
+    "apresentacao": "Só o valor MÉDIO do IGD por célula, sem desvio-padrão nem qualquer medida de dispersão em nenhuma das 6 tabelas de resultado (II, III, IV, V, S-II, S-III) — diferente da maioria dos artigos do roster que reportam mean(std) ou mediana(IQR). Melhor valor por linha em negrito ('with the best results highlighted'). Símbolo de teste (+/−/≈) por célula relativo a CLMEA; linha final de cada tabela com contagem agregada +/−/≈ por algoritmo comparado. Nas curvas de convergência (Figs. 6, 9, 10, S-1 a S-9), áreas coloridas preenchidas indicam a variância entre execuções ('The filled color areas indicate the variance of the algorithm') — mas não fica claro se a linha central é média ou mediana.",
+    "codigo_plataforma": "MATLAB R2021a, sobre a plataforma PlatEMO (Tian et al., ref. [60]); código-fonte publicamente disponível em https://github.com/JellyChen7/CLMEA."
+  },
+  "analises": [
+    {
+      "fichas": [
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "CLMEA é comparado com três variantes que usam, cada uma, SOMENTE uma das três subestratégias de infill que compõem o algoritmo completo: CLMEA-s1 (só classifier-assisted rank-based learning pre-screening — guiada por distância euclidiana/'incerteza' no espaço de decisão), CLMEA-s2 (só HV-based non-dominated search — guiada por melhoria de HV predita, SEM uso de distância/incerteza), e CLMEA-s3 (só local search in the sparse objective space — guiada por 'incerteza' no espaço de objetivos). IGD média de 20 execuções, DTLZ bi-objetivo (Table II, e uma segunda versão em Table S-II com números distintos para as mesmas 28 células — ver observações) e ZDT bi-objetivo (Table S-III), com teste Wilcoxon signed-rank (+/−/≈) contra CLMEA como referência.",
+      "literal": "CLMEA outperforms CLMEA-s1 and CLMEA-s3 on all benchmark functions, while worse than CLMEA-s2 on 7 out of 28 benchmark problems.",
+      "localizador": "Sec. IV-C, Table II (DTLZ bi-obj); Table S-II (DTLZ bi-obj, versão com números distintos — Supplementary); Table S-III (ZDT bi-obj — Supplementary)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon signed-rank, símbolos +/−/≈ contra CLMEA (α não localizado no texto extraído)"
+      ],
+      "convencoes": "Média (sem desvio-padrão); melhor valor em negrito; símbolo de teste por variante vs. CLMEA; linha final com contagem agregada +/−/≈ (Table II: 0/28/0 para s1, 7/21/0 para s2, 0/28/0 para s3; Table S-III/ZDT: 0/20/0, 3/16/1, 0/20/0); 20 execuções; D∈{30,50,100,200}.",
+      "achado": "Nenhuma subestratégia isolada supera o CLMEA completo de forma consistente: CLMEA-s1 (só distância no espaço de decisão) e CLMEA-s3 (só 'incerteza' no espaço de objetivos) NUNCA vencem o CLMEA completo (0 vitórias em 28 e em 20 problemas); mas CLMEA-s2 (só HV, SEM qualquer componente de distância/incerteza) vence em 7/28 problemas DTLZ e empata em mais 1/20 ZDT — a subestratégia puramente exploitativa sozinha chega perto ou supera a combinação completa numa fração não trivial dos problemas. O texto explica o mecanismo: 'HV-based non-dominated search shows promising convergence speed in the early optimization period. However, it is prone to trap into local optima, resulting in unstable optimization performance' — enquanto s1/s3 sozinhas 'cannot achieve promising results' apesar de contribuírem diversidade/exploração; é a COMBINAÇÃO das três que produz o melhor resultado agregado.",
+      "aplicabilidade": "É a ablação mais direta do mecanismo de uso da 'incerteza' (geométrica, GEO-DIST) do próprio CLMEA — mas NÃO é reproduzível com as 7 camadas de uma única execução real do roster: exige rodar 3 variantes do algoritmo (cada uma usando só uma das 3 subestratégias) que não fazem parte da execução do CLMEA completo no roster da dissertação. Se fossem rodadas, o resultado seria diretamente comparável via camada ① (endpoint IGD por problema). É também evidência externa (de terceiros, não da dissertação) relevante para informar o contrafactual 'σ=0 online' que a dissertação nunca executa (ficha 15) — CLMEA-s2 (sem nenhum componente de distância/incerteza) É, em espírito, esse contrafactual, já executado pelos próprios autores."
+    },
+    {
+      "fichas": [
+        1,
+        7
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "CLMEA é comparado com 5 algoritmos SOTA assistidos por surrogate (CPS-MOEA, K-RVEA, CSEA, EDN-ARMOEA, MCEA/D) em 7 problemas DTLZ bi-objetivo, D∈{30,50,100,200} (28 células), IGD média de 20 execuções, teste de Wilcoxon signed-rank (+/−/≈) contra CLMEA.",
+      "literal": "CLMEA achieves best optimization result on 25 out of 28 DTLZ problems except for 30-100D DTLZ7 problems (slightly worse than K-RVEA). ... When dealing with 200D DTLZ7 problem, the performance of CLMEA becomes better than K-RVEA.",
+      "localizador": "Sec. IV-D, Table III; Fig. 6 (curvas 100D); Fig. 7(a) (violin plot); Fig. 8 (frentes DTLZ2/DTLZ5)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon signed-rank, símbolos +/−/≈ contra CLMEA"
+      ],
+      "convencoes": "Média (sem dp); melhor em negrito; linha final +/−/≈ por baseline: CPS-MOEA 0/28/0, K-RVEA 3/25/0, CSEA 0/28/0, EDN-ARMOEA 0/28/0, MCEA/D 0/28/0 — CLMEA nunca perde NEM empata com 4 dos 5 baselines em nenhuma das 28 células; só K-RVEA o vence, e só em 3 células (DTLZ7 baixa-D).",
+      "achado": "CLMEA vence 25/28; a única exceção sistemática é DTLZ7 (frente descontínua) em D=30/50/100, onde K-RVEA vence — mas em D=200 CLMEA já supera K-RVEA até no próprio DTLZ7, sugerindo que a vantagem do mecanismo de CLMEA cresce com D o suficiente para reverter essa exceção geométrica. Achado de dimensão-dependência explícito: 'As the dimension increases, the non-dominated front becomes farther away from PF' (Fig. 8) — degradação geral com D, mas CLMEA a experimenta menos que os concorrentes (ficha 7).",
+      "aplicabilidade": "① endpoint (IGD sobre o ND acumulado das avaliações reais) por algoritmo × problema × D — reproduzível pela camada ① SE a bateria da dissertação incluir DTLZ1-7 bi-objetivo nas mesmas dimensões (30/50/100/200); a diferença de orçamento (300 fixo vs. 31D−1 escalado) e de métrica (IGD simples vs. IGD+) exige recomputação sob o protocolo da dissertação, não comparação direta dos números aqui reportados."
+    },
+    {
+      "fichas": [
+        1,
+        7
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma estrutura da análise anterior, em 5 problemas ZDT bi-objetivo (ZDT1-4, ZDT6), D∈{30,50,100,200} (20 células).",
+      "literal": "CLMEA performs better than other algorithms on most benchmark functions except ZDT3, since ZDT3 is a multimodal problem and the PF is discrete.",
+      "localizador": "Sec. IV-E, Table IV; Fig. 9 (curvas 100D); Fig. 7(b) (violin plot); Fig. 8 (frente ZDT2 30-200D)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon signed-rank, símbolos +/−/≈ contra CLMEA"
+      ],
+      "convencoes": "Mesmo formato das demais tabelas; linha final +/−/≈: CPS-MOEA 0/20/0, K-RVEA 5/15/0, CSEA 1/19/0, EDN-ARMOEA 0/20/0, MCEA/D 2/18/0; 20 execuções; D∈{30,50,100,200}.",
+      "achado": "CLMEA vence a maioria das células, mas com mais concorrência que em DTLZ: K-RVEA vence 5/20 (concentradas em ZDT1/ZDT2 de baixa D — 'K-RVEA also shows promising performance on ZDT problems', apesar de 'poor performance on ZDT4'), MCEA/D vence 2/20, CSEA 1/20. CLMEA perde consistentemente em ZDT3 por causa da multimodalidade + PF descontínuo/discreto — 'CPS-MOEA and MCEA/D obtain worse performance than the other algorithms on ZDT problems' generaliza o oposto para os dois piores.",
+      "aplicabilidade": "① endpoint por algoritmo × problema × D — mesma ressalva de protocolo (orçamento/métrica) da análise anterior."
+    },
+    {
+      "fichas": [
+        1,
+        7
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma estrutura das duas análises anteriores, agora em 7 problemas DTLZ 3-objetivo, D∈{30,50,100,200} (28 células).",
+      "literal": "CLMEA achieves the best average IGD value on 23 out of 28 problems in comparison with other 5 algorithms.",
+      "localizador": "Sec. IV-F, Table V; Fig. 10 (curvas 50D); Fig. 7(c) (violin plot); Fig. 11 (frentes 3-obj)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon signed-rank, símbolos +/−/≈ contra CLMEA"
+      ],
+      "convencoes": "Linha final +/−/≈: CPS-MOEA 0/28/0, K-RVEA 3/25/0, CSEA 0/27/1, EDN-ARMOEA 0/28/0, MCEA/D 1/26/1 — as únicas duas células em que CLMEA é apenas EMPATADO (não vencido) em todo o artigo aparecem aqui (CSEA e MCEA/D, 1 cada).",
+      "achado": "CLMEA vence 23/28 (menos dominante que em bi-objetivo DTLZ, 25/28); K-RVEA continua vencendo em DTLZ7 baixa-D pelo mesmo motivo geométrico. Achado qualitativo do painel Fig. 7(c): 'K-RVEA and EDN-ARMOEA present worst algorithm rankings, while CLMEA and MCEAD show promising search abilities' — MCEA/D (decomposição, SVM classificador) desponta como o segundo melhor de forma mais nítida em 3-objetivo do que em bi-objetivo.",
+      "aplicabilidade": "① endpoint por algoritmo × problema × D — mesma ressalva de protocolo das duas análises anteriores; aqui M=3, relevante para eventual leitura cruzada com a dimensão 'muitos objetivos' da dissertação (embora M=3 não seja 'muitos objetivos' no sentido usual de MaOP)."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de IGD médio (com banda de variância entre execuções) ao longo do orçamento de FEs (do fim do DoE até 300), para os 6 algoritmos comparados. Corpo principal: DTLZ bi-obj 100D (Fig. 6), ZDT bi-obj 100D (Fig. 9), DTLZ 3-obj 50D (Fig. 10); material suplementar: DTLZ bi-obj 30D/50D/200D (Figs. S-1 a S-3), ZDT bi-obj 30D/50D/200D (Figs. S-4 a S-6), DTLZ 3-obj 30D/100D/200D (Figs. S-7 a S-9) — 10 figuras cobrindo as 4 dimensões × 2 suítes × (2 ou 3 objetivos).",
+      "literal": "The filled color areas indicate the variance of the algorithm",
+      "localizador": "Fig. 6, Fig. 9, Fig. 10 (corpo principal); Figs. S-1–S-9 (Supplementary material)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Banda de variância entre as 20 execuções em torno da curva central (não fica claro se a linha central é média ou mediana); eixo x = número de avaliações reais (FEs), tipicamente mostrando só a janela final do orçamento (ex.: 100-300 na Fig. 10) e não o início desde o DoE; 4 painéis por figura (um por problema representativo dentro da suíte/dimensão), não os 7 (DTLZ) ou 5 (ZDT) integrais em cada figura.",
+      "achado": "Não há frase-síntese isolada sobre as curvas em si — o texto usa as curvas para ilustrar visualmente os achados já quantificados nas Tables III-V, remetendo às tabelas para os números.",
+      "aplicabilidade": "① trajetória de IGD acumulado por checkpoint de FE — diretamente reproduzível pela camada ① da dissertação, mas as figuras do artigo só mostram uma amostra de 4 problemas por painel (regra editorial implícita, não declarada) e, nos painéis do corpo principal, só a janela final do orçamento."
+    },
+    {
+      "fichas": [
+        2
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Gráficos de violino (distribuição, não só a média) do ranking do algoritmo em cada problema, agregados por suíte/dimensionalidade de objetivos: DTLZ bi-objetivo (Fig. 7a), ZDT bi-objetivo (Fig. 7b), DTLZ 3-objetivo (Fig. 7c) — cada painel com os 6 algoritmos (CLMEA + 5 baselines), rank de 1 a 6.",
+      "literal": "It can be observed that K-RVEA and EDN-ARMOEA present worst algorithm rankings, while CLMEA and MCEAD show promising search abilities.",
+      "localizador": "Fig. 7 (a, b, c)",
+      "metricas": [
+        "ranking (posição ordinal por IGD, 1-6)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Violino por algoritmo (distribuição do rank através dos problemas/dimensões da suíte), não um único número agregado como rank médio tabular; 3 painéis (um por bloco de problemas: DTLZ-2obj, ZDT-2obj, DTLZ-3obj).",
+      "achado": "No painel 3-objetivo (Fig. 7c) especificamente, K-RVEA e EDN-ARMOEA (ambos GP/DNN-aproximação, sem componente de classificação/rank) têm os piores rankings, enquanto CLMEA e MCEA/D (ambos com componente de classificação) são os mais promissores — um padrão que associa desempenho a classe de surrogate/mecanismo, não discutido explicitamente pelos autores em termos de classe, mas visível no agrupamento dos resultados.",
+      "aplicabilidade": "① endpoint agregado como rank por problema, visualizado como distribuição — reproduzível pela camada ① agregando ranks entre problemas; equivalente à ficha 2 mas com leitura DISTRIBUCIONAL (violino) em vez de só o rank médio pontual."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Visualização qualitativa do conjunto não-dominado final obtido por cada um dos 6 algoritmos contra a frente de Pareto verdadeira, em problemas bi-objetivo (DTLZ2, DTLZ5, também ZDT2 — Fig. 8, cobrindo D=30 a 200) e 3-objetivo (DTLZ, painéis 3D — Fig. 11).",
+      "literal": "Note that CLMEA captures the whole PF of 30D DTLZ2 and DTLZ5 problems. As the dimension increases, the non-dominated front becomes farther away from PF.",
+      "localizador": "Fig. 8 (bi-objetivo DTLZ2/DTLZ5, também ZDT2); Fig. 11 (3-objetivo DTLZ)",
+      "metricas": [
+        "nenhuma métrica numérica — inspeção visual do conjunto ND"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Não fica explícito se a execução mostrada é a mediana, a melhor, ou uma execução arbitrária entre as 20 — diferente da convenção de 'execução mediana' que a dissertação declara usar para suas próprias figuras.",
+      "achado": "Padrão consistente de degradação com D: CLMEA cobre toda a PF verdadeira em D=30 (DTLZ2, DTLZ5, ZDT2), mas as soluções ficam progressivamente mais esparsas (D=50/100) e depois afastadas da PF verdadeira (D=200) — mesmo sendo o algoritmo que, pelas tabelas quantitativas, mais se aproxima da PF em todas as dimensões testadas. Em 3-objetivo: 'For problems from 30 to 50D, CLMEA provides non-dominated solutions close to PF with great diversity. When the dimension increases to 100 and 200D, the non-dominated solutions become relatively sparse and far to PF' — mesmo padrão, com o umbral de degradação visual por volta de D=100.",
+      "aplicabilidade": "① o ND final (conjunto de avaliações reais não-dominadas) plotado contra a frente verdadeira — reproduzível pela camada ①, mas sem clareza se deve usar a execução mediana (convenção da dissertação) já que o artigo não declara qual execução usa nas figuras."
+    },
+    {
+      "fichas": [
+        46,
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Análise teórica da complexidade computacional de treino/predição do RBF e PNN contra a complexidade O(n³) do Kriging (símbolos exatos das fórmulas não capturáveis na extração); comparação empírica do tempo total de execução (treino do surrogate + seleção de infill + FEs reais) dos 6 algoritmos em UM único problema (DTLZ1 bi-objetivo, D=200, 300 FEs), Fig. 12.",
+      "literal": "The computational times for CPS-MOEA and MCEA/D are negligible, which are 0.05s and 6.48s, respectively. CLMEA takes slightly less time to run than CSEA. K-RVEA and END-ARMOEA consume the most runtime due to the costly training of the Kriging and dropout neural network.",
+      "localizador": "Sec. IV-G; Fig. 12 (bi-objetivo 200D DTLZ1)",
+      "metricas": [
+        "tempo de execução total (s)",
+        "complexidade computacional teórica O(·) de treino e predição"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tempo TOTAL por execução (não decomposto empiricamente entre treino/busca/avaliação, embora a complexidade teórica SEJA discriminada entre 'training the surrogate, selecting the infill candidates, and conducting real FEs' em prosa); só 2 dos 6 valores numéricos aparecem no texto (CPS-MOEA=0,05s; MCEA/D=6,48s) — os demais (CLMEA, CSEA, K-RVEA, EDN-ARMOEA) só na Fig. 12 (barra, sem número extraível do texto/OCR); um único problema (D=200 bi-objetivo DTLZ1) representa toda a bateria, sem sweep de D no runtime.",
+      "achado": "K-RVEA (Kriging) e EDN-ARMOEA (dropout NN) são os mais caros; CPS-MOEA (KNN) e MCEA/D (SVM) são ordens de magnitude mais baratos que CLMEA. Recomendação prática dos autores CONTRA o próprio método proposto em certo regime: 'Since the real-world simulation time is hours even days, the computational time for training surrogates and selecting infill samples can be negligible. When each FE is not that expensive, MCEA/D is a good choice due to the promising optimization ability and low computational complexity' — os autores recomendam um CONCORRENTE (MCEA/D) em vez do CLMEA quando o custo por FE é baixo.",
+      "aplicabilidade": "④ tempos por geração (mas o artigo só decompõe teoricamente, não empiricamente) — parcialmente reproduzível pela camada ④; a comparação entre CLMEA e EDN-ARMOEA (= 'e7' do roster) é diretamente relevante já que ambos são algoritmos do próprio roster da dissertação, aqui comparados sob o protocolo de CLMEA (não o da dissertação)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Estudo de caso real — extração de calor geotérmico (EGS fraturado)",
+      "grupo_sugerido": "J",
+      "descricao": "Validação de CLMEA num problema real de engenharia (otimização de extração de calor de um sistema geotérmico aprimorado/EGS fraturado, 160 variáveis de decisão, 2 objetivos de VPL de longo/curto prazo), comparado com os mesmos 5 algoritmos SOTA, métrica HV (PF verdadeira desconhecida), 300 avaliações de simulação.",
+      "literal": "CLMEA achieves best non-dominated solutions and holds best HV value after 300 simulation evaluations. K-RVEA also shows promising HV value. Nevertheless, the diversity of K-RVEA is low, with only one final non-dominated solution. For MCEA/D, since the ideal point for real-world case is unknown, it is hard to distribute the weighted vector, resulting in poor performance on this case.",
+      "localizador": "Sec. IV-H; Fig. 13 (rede de fraturas e poços); Fig. 14 (soluções ND e valores de HV)",
+      "metricas": [
+        "HV"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Nenhum valor numérico de HV é dado no texto extraído (só na Fig. 14, não OCR'd com números) — a comparação é inteiramente qualitativa no texto disponível; número de execuções não declarado (possivelmente 1, dado o custo da simulação).",
+      "achado": "CLMEA vence tanto em qualidade (HV) quanto em diversidade; K-RVEA (Kriging) tem HV competitivo mas colapsa para 1 única solução não-dominada (falha de diversidade); MCEA/D (decomposição/SVM) falha especificamente porque sua maquinaria de vetores de peso exige um ponto ideal conhecido, indisponível em problemas reais — falha de mecanismo diretamente ligada a uma característica do problema real (ponto ideal desconhecido), não à dimensão ou ao ruído.",
+      "aplicabilidade": "não reproduzível com as 7 camadas da dissertação — é um problema real PRÓPRIO do artigo (extração de calor geotérmico), inteiramente diferente dos três problemas reais da bateria da dissertação (RE21, ESTOQUE40, DDMOP7); exigiria implementar e rodar o próprio simulador de EGS fraturado, fora do escopo da instrumentação existente.",
+      "observacoes": "Estudo de caso completo (não só mencionado) — texto, Fig. 13 e Fig. 14 descritos no corpo principal (Sec. IV-H), mas sem números tabulados de HV disponíveis na camada de texto extraída."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "CLMEA não usa nenhuma estimativa PROBABILÍSTICA de incerteza (sem GP, sem ensemble, sem dropout) — as duas 'incertezas' do algoritmo são medidas GEOMÉTRICAS determinísticas: (i) no espaço de decisão, a distância euclidiana mínima ao ponto avaliado mais próximo (eq. 7), usada na pré-seleção de descendentes de primeiro nível; (ii) no espaço de objetivos, uma medida análoga de distância/dispersão entre soluções candidatas (eq. 10) para a busca local. Por serem heurísticas de distância (não uma distribuição com magnitude calibrável), o artigo não realiza — nem poderia realizar no sentido usual — nenhum estudo de cobertura (fração dentro de μ±2σ), correlação σ×erro, ou acurácia de classificador (a PNN classifica NÍVEL DE RANK, não probabilidade de erro do modelo) que constituísse uma calibração da 'incerteza' no sentido da ficha correspondente.",
+    "literal": "the uncertainty of each offspring candidate is calculated based on the Euclidean distance to the nearest evaluated sample points",
+    "localizador": "Sec. III-B (eq. 7-8); Sec. III-D (eq. 10-11)"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Complexidade computacional teórica de treino/predição do RBF+PNN vs. Kriging (O(n³), citado como custoso e sensível ao número de pontos de treino); tempo de execução TOTAL empírico (treino+seleção+avaliação, não decomposto empiricamente) dos 6 algoritmos, medido em UM único problema (bi-objetivo 200D DTLZ1, 300 FEs, Fig. 12) — só 2 dos 6 valores numéricos (CPS-MOEA=0,05s; MCEA/D=6,48s) são dados como texto, os demais só graficamente.",
+    "literal": "For training Kriging model, the computational complexity is ... [30], which is time consuming and sensitive to the number of training sample points.",
+    "localizador": "Sec. IV-G; Fig. 12"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "CLMEA perde de K-RVEA em DTLZ7 (frente descontínua) nas dimensões 30-100 (bi-objetivo e 3-objetivo), atribuído explicitamente à dificuldade de manter diversidade em frentes desconexas.",
+      "literal": "CLMEA achieves best optimization result on 25 out of 28 DTLZ problems except for 30-100D DTLZ7 problems (slightly worse than K-RVEA). The PF of DTLZ7 is discontinuous, and it is hard to maintain the diversity of non-dominated solutions.",
+      "localizador": "Sec. IV-D"
+    },
+    {
+      "descricao": "CLMEA perde/empata em ZDT3 (a única exceção citada na comparação ZDT), atribuído à multimodalidade combinada com PF discreto/descontínuo.",
+      "literal": "CLMEA performs better than other algorithms on most benchmark functions except ZDT3, since ZDT3 is a multimodal problem and the PF is discrete.",
+      "localizador": "Sec. IV-E"
+    },
+    {
+      "descricao": "Na ablação própria, a subestratégia SEM nenhum componente de distância/incerteza (CLMEA-s2, só HV) vence o CLMEA completo em 7 de 28 problemas DTLZ e empata em 1 de 20 ZDT — ou seja, adicionar os dois componentes de 'incerteza' geométrica nem sempre melhora sobre a exploração puramente indicador-based.",
+      "literal": "CLMEA outperforms CLMEA-s1 and CLMEA-s3 on all benchmark functions, while worse than CLMEA-s2 on 7 out of 28 benchmark problems.",
+      "localizador": "Sec. IV-C, Table II"
+    },
+    {
+      "descricao": "A subestratégia puramente exploitativa (HV, sem incerteza), embora converja rápido no início, é descrita pelos próprios autores como propensa a ótimos locais e instável — um caveat direto sobre os riscos de abandonar o componente de incerteza/diversidade.",
+      "literal": "HV-based non-dominated search shows promising convergence speed in the early optimization period. However, it is prone to trap into local optima, resulting in unstable optimization performance.",
+      "localizador": "Sec. IV-C"
+    },
+    {
+      "descricao": "Autocrítica indireta na análise de custo: os próprios autores recomendam um algoritmo CONCORRENTE (MCEA/D) em vez do CLMEA proposto, no regime em que cada avaliação real é barata — reconhecendo que a vantagem de qualidade do CLMEA não compensa sempre seu custo computacional mais alto.",
+      "literal": "When each FE is not that expensive, MCEA/D is a good choice due to the promising optimization ability and low computational complexity.",
+      "localizador": "Sec. IV-G"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Na ablação (Table II, 28 problemas DTLZ bi-objetivo), a subestratégia puramente exploitativa (CLMEA-s2, HV-based, sem incerteza) e o CLMEA completo (que combina HV + duas subestratégias de incerteza geométrica) produzem resultado estatisticamente comparável ou favorável a s2 em 7/28 problemas — indicando que, num subconjunto não trivial de problemas, o critério de seleção baseado em incerteza/distância não agrega vantagem mensurável sobre a maquinaria de HV sozinha.",
+      "literal": "worse than CLMEA-s2 on 7 out of 28 benchmark problems",
+      "localizador": "Sec. IV-C, Table II"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "frente descontínua/desconexa (DTLZ7)",
+      "afirmacao": "CLMEA perde para K-RVEA (Kriging) em D baixa-média (30-100) em DTLZ7 por dificuldade de manter diversidade numa frente desconexa; a desvantagem se reverte em D=200, sugerindo que a vantagem geral de CLMEA em alta dimensão supera até essa fraqueza geométrica específica.",
+      "literal": "The PF of DTLZ7 is discontinuous, and it is hard to maintain the diversity of non-dominated solutions. When dealing with 200D DTLZ7 problem, the performance of CLMEA becomes better than K-RVEA.",
+      "localizador": "Sec. IV-D"
+    },
+    {
+      "caracteristica": "multimodalidade + PF discreto/descontínuo (ZDT3)",
+      "afirmacao": "É a única exceção citada na comparação ZDT em que CLMEA não é o melhor, atribuída explicitamente à combinação de multimodalidade com frente discreta.",
+      "literal": "CLMEA performs better than other algorithms on most benchmark functions except ZDT3, since ZDT3 is a multimodal problem and the PF is discrete.",
+      "localizador": "Sec. IV-E"
+    },
+    {
+      "caracteristica": "viés + mapeamento many-to-one (ZDT6)",
+      "afirmacao": "Ao contrário de DTLZ7/ZDT3, essa combinação de dificuldades NÃO prejudica CLMEA — pela Table IV, CLMEA vence ZDT6 em todas as 4 dimensões testadas (30-200), sugerindo que o mecanismo de busca local + incerteza no espaço de objetivos lida bem com viés e redundância de mapeamento, ao contrário de desconexão/multimodalidade discreta.",
+      "literal": "The performance of CLMEA on high-dimensional ZDT1 and ZDT4 is better, in comparison with other algorithms.",
+      "localizador": "Sec. IV-E, Table IV"
+    },
+    {
+      "caracteristica": "alta dimensão de decisão (D até 200), geral",
+      "afirmacao": "Em todas as suítes, o conjunto não-dominado final se afasta progressivamente da PF verdadeira conforme D cresce — um padrão universal entre algoritmos, mas que CLMEA experimenta de forma menos acentuada que os 5 concorrentes, sustentando a alegação central do artigo de melhor escalabilidade em D.",
+      "literal": "As the dimension increases, the non-dominated front becomes farther away from PF.",
+      "localizador": "Sec. IV-D; Fig. 8, Fig. 11"
+    },
+    {
+      "caracteristica": "problema real sem ponto ideal conhecido (geotérmico EGS)",
+      "afirmacao": "MCEA/D (decomposição por sub-problemas com vetores de peso) falha especificamente em problemas reais porque sua maquinaria depende de um ponto ideal conhecido para distribuir os vetores de peso — informação indisponível quando a PF verdadeira é desconhecida.",
+      "literal": "For MCEA/D, since the ideal point for real-world case is unknown, it is hard to distribute the weighted vector, resulting in poor performance on this case.",
+      "localizador": "Sec. IV-H"
+    },
+    {
+      "caracteristica": "problema real de alta dimensão (D=160, geotérmico EGS)",
+      "afirmacao": "K-RVEA (Kriging) mantém HV competitivo mas colapsa em diversidade (uma única solução não-dominada final) no problema real de 160D — uma falha de diversidade específica de alta dimensão real, distinta da falha de convergência de MCEA/D no mesmo problema.",
+      "literal": "Nevertheless, the diversity of K-RVEA is low, with only one final non-dominated solution.",
+      "localizador": "Sec. IV-H"
+    }
+  ],
+  "roster_bloco": {
+    "mecanismo_proprio": [
+      {
+        "descricao": "Ablação das três subestratégias de infill que compõem o mecanismo próprio de CLMEA: CLMEA-s1 (só distância no espaço de decisão), CLMEA-s2 (só HV, sem incerteza), CLMEA-s3 (só 'incerteza' no espaço de objetivos), contra CLMEA completo (as três combinadas) — a única ablação de componente que o artigo realiza.",
+        "literal": "CLMEA outperforms CLMEA-s1 and CLMEA-s3 on all benchmark functions, while worse than CLMEA-s2 on 7 out of 28 benchmark problems.",
+        "localizador": "Sec. IV-C, Table II, Table S-II, Table S-III"
+      }
+    ],
+    "reprodutivel_com_camadas": "O item único (ablação s1/s2/s3) NÃO é reproduzível a partir da execução real de CLMEA completo no roster da dissertação — exige rodar 3 variantes do algoritmo (cada uma restrita a uma das 3 subestratégias) que não fazem parte do desenho de execução única por algoritmo do roster. SE essas variantes fossem rodadas, o resultado seria diretamente comparável via camada ① (endpoint IGD por problema, célula a célula). Não há, neste artigo, nenhum mecanismo de GATE ou de branching condicional entre subestratégias para contar via camada ⑥ (filme): a Algorithm 1 executa as 3 subestratégias INCONDICIONALMENTE em toda iteração do laço externo (3 FEs reais garantidos por iteração, um por subestratégia) — logo a ficha 45 (contagem de acionamentos) não tem correlato neste algoritmo, já que não há decisão/ramo a contar. A qualidade das duas medidas de 'incerteza' geométrica (eq. 7 e eq. 10) em si — não seu efeito no IGD final — poderia em princípio ser inspecionada via camada ③ (sonda), mas o artigo não realiza esse tipo de estudo (ver calibracao_do_sigma).",
+    "parametros_do_uso_da_incerteza": [
+      "Limiar de proporção de primeiro nível = 0,9 (Algorithm 2, passo 5: 'While sum(l_i=1)/NP < 0.9') — controla quantos descendentes de elite (nível 1) devem ser gerados pelo operador de rank-based learning ANTES que a seleção por 'incerteza' (distância euclidiana, eq. 7-8) seja aplicada entre eles; não testado quanto à sensibilidade neste artigo.",
+      "n (número de soluções de infill por subestratégia) = 1, fixo em todos os experimentos — determina quantos pontos 'mais incertos' são selecionados por subestratégia a cada iteração; o texto observa que 'the infill number can be larger if the decision maker wishes to make use of parallel computing power', mas nenhum experimento com n>1 (lote) é reportado.",
+      "max_gen1 (gerações da HV-based non-dominated search) = 50 — número de gerações evoluídas no surrogate RBF antes de calcular a melhoria de HV (eq. 9) que seleciona o candidato para FE real; não testado quanto à sensibilidade.",
+      "max_gen2 (gerações da local search in the sparse objective space) = 10 — número de gerações evoluídas no RBF local antes de calcular a 'incerteza' no espaço de objetivos (eq. 10) que seleciona o candidato; não testado quanto à sensibilidade.",
+      "Número de pontos para construir o surrogate local = 100 (D<100) ou 200 (D≥100) — determina a vizinhança usada para treinar o RBF local em torno do ponto esparso escolhido por distância de aglomeração (crowding distance); afeta indiretamente a qualidade da medida de 'incerteza' objetivo-espaço; não testado quanto à sensibilidade."
+    ]
+  },
+  "observacoes": "(1) TAXONOMIA CONSISTENTE com o texto lido: motor=EA-Dominância (a atualização da população em Algorithm 2, passos 1-2, usa non-dominated sorting + crowding distance clássicos, à NSGA-II; a subestratégia 'HV-based non-dominated search' usa HV só como critério LOCAL de seleção do infill dentro do seu próprio sub-loop, não como motor da população principal); função da incerteza=O3·Aprendizado ativo/reparo (as duas medidas de 'incerteza', eq. 7-8 e eq. 10-11, selecionam ativamente QUAIS pontos recebem avaliação real, o padrão clássico de aquisição exploratória/active learning); surrogate=RG—Regressor Clássico não-GP (RBF é o surrogate de regressão usado nas duas subestratégias de busca — HV-based e local search — e é o único componente citado no próprio Table I do artigo sob 'Approx.'; PNN é um componente SECUNDÁRIO de classificação, usado só na primeira subestratégia para ranquear descendentes em níveis, não para aproximar valores de objetivo); medição=GEO-DIST (geometria/distância aos dados) (confirmado de forma limpa: nenhuma das duas 'incertezas' do algoritmo é probabilística — são, literalmente, distância euclidiana a pontos já avaliados, eq. 7, e uma medida análoga no espaço de objetivos, eq. 10; não há GP, ensemble ou dropout em lugar nenhum do algoritmo); regime=online (o laço externo da Algorithm 1 intercala 3 avaliações reais por iteração, continuamente, até maxFEs — infill sequencial clássico). As 5 classificações são consistentes com o texto lido.\n\n(2) ANOMALIA DE ROTULAGEM NAS TABELAS DE ABLAÇÃO: a coluna 'CLMEA' (referência) da Table II (título impresso 'AVERAGE IGD VALUES OF CLMEA AND ITS VARIANTS ON BI-OBJECTIVE DTLZ PROBLEMS') é numericamente IDÊNTICA, célula a célula, à coluna CLMEA da Table V (3-objective DTLZ, comparação com os 5 SOTA) — não à coluna CLMEA da Table III (bi-objective DTLZ, que seria a comparável). Simetricamente, a coluna CLMEA da Table S-II (Supplementary; MESMO título impresso 'BI-OBJECTIVE DTLZ PROBLEMS' que a Table II) é idêntica à coluna CLMEA da Table III (bi-objective), não à da Table V. Além disso, a prosa do corpo principal diz 'The results on bi-objective ZDT and 3-objective DTLZ problems are listed in Table S-II and S-III respectively' (Sec. IV-C) — mas os títulos IMPRESSOS de S-II e S-III são 'BI-OBJECTIVE DTLZ PROBLEMS' e 'BI-OBJECTIVE ZDT PROBLEMS' respectivamente, não 'ZDT' e '3-objective DTLZ' como a prosa promete. Ou seja: (a) a coluna de referência CLMEA parece trocada entre os pares de tabelas bi-objetivo/3-objetivo nas duas versões da ablação DTLZ; (b) a ablação em 3-objective DTLZ prometida pela prosa está AUSENTE do corpus (nem Table S-II nem S-III a contêm; ambas as tabelas presentes são bi-objetivo, uma DTLZ duplicada com números de s1/s2/s3 diferentes da Table II, outra ZDT). Os valores de CLMEA-s1/s2/s3 (não a coluna de referência) SÃO diferentes entre Table II e Table S-II, então não é uma simples duplicata de tabela — parece um erro de cópia/rotulagem specificamente na coluna de referência e na correspondência texto↔tabela do artigo original, mantido como lido, sem correção pela mineração.\n\n(3) α do teste Wilcoxon NÃO LOCALIZADO: o texto diz apenas 'Wilcoxon signed-rank test is used with a significance probability [valor ausente] to compare the algorithms' (Sec. IV-A, idêntico na camada estruturada e na camada de texto bruta) — o número foi aparentemente perdido na conversão do PDF (provável símbolo/fórmula matemática rasterizada ou em fonte especial). Confirmado por busca no corpus inteiro: nenhuma ocorrência de '0.05' associada a α (só '0.05s', um tempo de execução no Fig. 12).\n\n(4) CRUZAMENTO COM O ROSTER: EDN-ARMOEA, um dos 5 baselines externos usados em TODAS as comparações (Tables III/IV/V, Figs. 6/7/8/9/10/11/12), É o próprio 'e7' do roster da dissertação (mesmo algoritmo, mesma referência [25]/[20]) — aqui rodado sob o protocolo de CLMEA (DTLZ/ZDT com D até 200, orçamento fixo 300, IGD simples), não sob o protocolo da dissertação. Isso oferece uma visão de terceiros sobre o desempenho relativo de EDN-ARMOEA, mas os números não são diretamente comparáveis aos do roster (orçamento/métrica diferentes). Resultado agregado: EDN-ARMOEA nunca vence CLMEA em nenhuma das 76 células comparáveis (28+20+28) e é descrito como tendo 'worst algorithm rankings' no painel 3-objetivo (Fig. 7c) — uma leitura externa desfavorável a e7 que pode servir de contraponto ao que a própria mineração do artigo e7 registrou sobre si mesmo.\n\n(5) MÉTRICA/CONVENÇÃO diverge da dissertação em vários pontos simultâneos: usa IGD simples (nunca IGD+); reporta só a MÉDIA por célula, SEM desvio-padrão nem qualquer medida de dispersão (nem mesmo entre parênteses) em nenhuma das 6 tabelas — a convenção mais pobre em termos de dispersão relatada entre os artigos do roster já minerados; usa 20 execuções (não 30); orçamento fixo em 300 FEs INDEPENDENTE de D (em vez de escalar como 11D ou 31D−1), o que torna a fase de busca proporcionalmente muito mais apertada em D alto (só ~100 FEs de busca real em D=200, contra ~200 em D=30).\n\n(6) COMPLETUDE DA LEITURA: o artigo (19 páginas segundo o cabeçalho de extração) foi lido INTEGRALMENTE — a seção estruturada inicial (Abstract às Referências, incluindo Algoritmos 1-4, Equações 1-16, Tabelas I-V, Figs. 1-14), o material suplementar estruturado (Tables S-I a S-III, Figs. S-1 a S-9 — PRESENTE neste corpus, ao contrário do artigo e7 cujo suplemento estava ausente), a camada de texto bruta duplicada (ANEXO — get_text, todas as 19 páginas, conferida trecho a trecho e confirmada 100% redundante com a seção estruturada, sem números ou tabelas adicionais) e o ANEXO final de OCR de figuras (rótulos de eixo/legenda truncados por página — DTLZ*/ZDT* D=valor, nomes de algoritmos, e a fórmula de HV em texto solto na p.9 — sem nenhum valor numérico novo além do que já consta nas Tables II-V/S-II/S-III). NENHUMA seção do corpo do artigo ou do suplemento foi pulada.\n\n(7) A tabela de levantamento bibliográfico (Table I, Sec. I) resume 18 métodos da literatura (modelo de ML, uso, propósito, D/M/FEsmax/suíte de teste) incluindo a autodescrição de CLMEA ('RBF, PNN | Approx., Class. | Objective functions, [Scalarization function?] | 30,50,100,160,200 | 2,3 | 300 | DTLZ, ZDT, Geothermal optimization') — não foi tratada como 'análise' (é revisão de literatura, não resultado experimental do próprio artigo), mas seu conteúdo confirma D=160 (caso geotérmico) e alimentou a descrição de setup.baselines; a célula de 'Purpose' para CLMEA saiu corrompida na extração da tabela (fragmentos como 'Slii fi'/'caarzaton uncton' em vez de 'Scalarization function' — provável mistura com o texto de PNN classificar por NÍVEL DE RANK/dominância de Pareto, não por função de escalarização propriamente dita como MCEA/D faz; citação evitada como 'literal' por estar corrompida).\n\n(8) A ficha 45 (contagem de acionamentos do mecanismo de incerteza) NÃO tem correlato neste artigo — ver roster_bloco.reprodutivel_com_camadas: as 3 subestratégias rodam incondicionalmente a cada iteração, sem gate/branching a contar."
+}

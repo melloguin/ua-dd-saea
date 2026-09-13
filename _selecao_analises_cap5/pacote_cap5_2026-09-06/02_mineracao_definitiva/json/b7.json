@@ -1,0 +1,324 @@
+{
+  "id": "b7",
+  "sigla": "DR",
+  "titulo": "Uncertainty-Aware Dual-Ranking Strategy for Offline Data-Driven Multi-Objective Optimization",
+  "ano": 2026,
+  "roster": false,
+  "setup": {
+    "benchmarks": "11 problemas sintéticos: DTLZ1-DTLZ7 (2 objetivos, 10 variáveis de decisão, não-restringidos) e Omnitest (2 objetivos, 2 variáveis, não-restringido) - 8 problemas 'unconstrained' no total; mais BNH, Truss2D e Welded Beam (restringidos). A comparação com baselines (Seção 4.4, Tabelas 2-3, 9-10) usa só os 8 não-restringidos, 'as most baseline methods cannot handle constraints'; o estudo de ablação/sensibilidade (Seção 4.3, Tabelas 1, 4, 7) usa os 11. Nenhum problema real, MMF ou BBOB.",
+    "orcamento": "Regime 100% offline: nenhuma avaliação real adicional durante a busca (diferente da dissertação, que injeta 31D-1 avaliações reais totais com DoE inicial compartilhado). Dataset inicial gerado por Latin Hypercube Sampling, seed fixa=42. Dois tamanhos testados: 'limited' = 11D-1 amostras (D = nº de variáveis de decisão; convenção de Liu et al. 2022, distinta do 31D-1 da dissertação) no corpo principal, e 'large' = 1.000 amostras (mesma seed=42) no Material Suplementar. Sobre o surrogate fixo treinado nesse dataset, roda-se NSGA-II via pymoo, população=100, 100 gerações = 10.000 avaliações do SURROGATE (não reais). A única avaliação na função verdadeira ocorre na criação do LHS inicial e na reavaliação final das soluções obtidas (para IGD+/HV/MSE 'reais') - equivalente conceitual à camada 7 (regime offline) da dissertação.",
+    "execucoes": "30 execuções independentes por configuração (algoritmo x problema x tamanho de dataset), 'with fixed random seeds ranging from 1 to 30 unless otherwise specified'.",
+    "baselines": "Prob-RVEA, Prob-MOEA/D (Mazumdar et al., 2022), IBEA-MS (Liu et al., 2022), TGPR-MO (Mazumdar et al., 2023), DDMOEA/GAN (Zhang et al., 2024a) - todos métodos offline data-driven publicados, hiperparâmetros default/recomendados do código aberto. NENHUM piso evolutivo sem surrogate é incluído (impossível no regime 100% offline, sem função real disponível durante a busca).",
+    "metricas_principais": [
+      "MSE",
+      "IGD+",
+      "HV",
+      "CICP"
+    ],
+    "testes": [
+      "nenhum teste de hipótese formal (sem Wilcoxon/Friedman/Nemenyi em nenhuma parte do artigo); comparação por contagem +/=/- por indicador (Tabelas 1, 4, 6, 7); ranking agregado por média +/- desvio-padrão calculado sobre os ranks por indicador x problema (Tabelas 3, 4, 8, 10)"
+    ],
+    "apresentacao": "Um valor por célula algoritmo x problema nas tabelas de resultado bruto (Tabelas 2, 5, 7, 9) - não fica explícito no texto se é média ou mediana sobre as 30 execuções (só se afirma '30 independent runs'); negrito indica melhora sobre o baseline sem DR (Tabelas 4, 5, 7) ou o melhor resultado (Tabelas 2, 3, 4); sublinhado indica empate/segundo melhor conforme a tabela; símbolo '-' indica combinação não realizável; contagens +/=/- resumem, por indicador, em quantos dos 11 (ou 8) problemas DR melhora/empata/piora frente à referência; ranking (1=melhor) computado por indicador x problema e depois agregado em média +/- desvio-padrão.",
+    "codigo_plataforma": "pymoo (Blank & Deb, 2020) para NSGA-II, SBX (prob.=1.0, eta=20) e mutação polinomial (prob.=1/D, mesmo eta). GPR com kernel Gaussiano/RBF (Seeger, 2004) e ARD Matérn 5/2 (Snoek et al., 2012), variância de ruído às vezes fixada em 1e-6 para evitar predições constantes. QR via AutoGluon-Tabular (quantile levels 0.5 e 0.9, seed=42). BNN via Pyro com AutoDiagonalNormal (inferência variacional; dimensão oculta=16; taxa de aprendizado inicial 1e-3; Adam; nº de épocas ajustado por early stopping por problema). Código em repositório anônimo (double-blind): https://anonymous.4open.science/r/dual-ranking-1D78/."
+  },
+  "analises": [
+    {
+      "fichas": [
+        11,
+        45
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Estudo de ablação e sensibilidade no dataset limitado (11D-1 amostras): para cada um dos 4 surrogates (GPR-RBF, GPR-Matérn, Autogluon-QR, BNN), compara o método base (só f_sur) contra sua variante +DR em 3 níveis do hiperparâmetro que controla a penalização por incerteza (tau = 0.80, 0.90, 0.95 - cobertura-alvo para GPR, nível de quantil para QR/BNN), nos 11 benchmarks, reportando contagens +/=/- de MSE, IGD+ e HV frente ao baseline sem DR.",
+      "literal": "For the sensitivity analysis, the target coverage rate is set to τ = 0.80, 0.90, 0.95 for GPR-based models, while the quantile level is set to τ = 0.80, 0.90, 0.95 for AutoGluon-QR and BNN models.",
+      "localizador": "Sec. 4.3 (Ablation Study and Sensitivity Analysis), Table 1; Material Suplementar Sec. 1.3, Table 4",
+      "metricas": [
+        "MSE",
+        "IGD+",
+        "HV"
+      ],
+      "testes": [
+        "nenhum teste de hipótese formal; contagem +/=/- de quantos dos 11 problemas cada indicador melhora/empata/piora com DR, para cada combinação surrogate x tau"
+      ],
+      "convencoes": "Contagem +/=/- por indicador (GPR-RBF+DR(tau=0.90): MSE 9+/0=/2-; IGD+ 5+/0=/6-; HV 4+/4=/3-); negrito em Table 4 (Suplemento) indica melhora sobre o baseline sem DR, sublinhado indica empate.",
+      "achado": "DR melhora ou preserva MSE/IGD+/HV na maioria dos 11 problemas para os 4 surrogates, com maior consistência para GPR-Matérn (estável em MSE/IGD+/HV independente de tau) e ganhos mais fortes nos 3 problemas restringidos; o efeito é ROBUSTO à escolha de tau dentro de 0.80-0.95 - tau afeta o desempenho de otimização mas 'não altera a confiabilidade das avaliações do surrogate'; tau=0.90 é adotado como padrão default para o restante do artigo.",
+      "aplicabilidade": "não reproduzível diretamente - exigiria rodar uma variante liga/desliga do dual-ranking (com/sem f_UA-sor concatenado) e varrer tau, o que não corresponde a nenhum algoritmo do roster experimental da dissertação; conceitualmente seria camada 3 (predições do surrogate) + camada 7 (reavaliação offline) se algum algoritmo do roster tivesse essa chave."
+    },
+    {
+      "fichas": [
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "A mesma ablação DR-vs-baseline da análise anterior, repetida sobre os surrogates treinados com o dataset maior (1.000 amostras, mesma seed=42), com tau fixo em 0.90 (sem varredura de sensibilidade nesta condição), nos 11 benchmarks, reportando os valores brutos de MSE/IGD+/HV por problema (Table 7 do Suplemento).",
+      "literal": "As shown in Table 7, the proposed dual-ranking strategy provides consistent benefits for different methods across most problems.",
+      "localizador": "Material Suplementar, Sec. 1.3 ('Optimization Results with 1000 Training data'), Table 7",
+      "metricas": [
+        "MSE",
+        "IGD+",
+        "HV"
+      ],
+      "testes": [
+        "nenhum teste de hipótese formal; comparação direta célula a célula, com negrito indicando melhora sobre o baseline sem DR"
+      ],
+      "convencoes": "Valor único por célula algoritmo x problema; negrito indica melhora de +DR sobre o baseline sem DR; tau fixo=0.90.",
+      "achado": "Todos os métodos se beneficiam de DR, sobretudo em MSE; para GPR(RBF) e BNN a melhora em IGD+ é relativamente equilibrada, mas para GPR(Matérn) e Autogluon-QR o IGD+ PIORA na maioria dos problemas com DR - um resultado NEGATIVO explícito, atribuído pelos autores a limitações na qualidade da estimativa de incerteza nesses dois surrogates com dataset maior; há degradação pontual em DTLZ7 e Welded Beam para GPR(RBF)+DR.",
+      "aplicabilidade": "não reproduzível - mesma razão da análise anterior; adicionalmente, o eixo variado (tamanho do dataset inicial: 11D-1 vs. 1000 amostras) não corresponde a um parâmetro varrido no desenho da dissertação, que usa DoE fixo por semente (embora o conceito seja análogo à ficha 63, pequena/média/grande do offline do roster)."
+    },
+    {
+      "fichas": [
+        63
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Síntese transversal (Seções 4.2, 4.4 e Suplemento 1.2) de como o TAMANHO do dataset offline inicial (11D-1 'limited' vs. 1.000 amostras) afeta tanto a qualidade do surrogate (MSE, CICP) quanto o desempenho de otimização e o ranking agregado dos métodos +DR frente aos baselines, comparando as duas condições diretamente.",
+      "literal": "all surrogate models benefit from the larger dataset compared to the limited data setting, with substantially reduced MSE and improved CICP values across almost all benchmark problems",
+      "localizador": "Material Suplementar, Sec. 1.2 (Prediction Results with 1000 Training data); Sec. 4.4 (comparação Table 3 vs. Table 4)",
+      "metricas": [
+        "MSE",
+        "CICP",
+        "IGD+",
+        "HV"
+      ],
+      "testes": [
+        "nenhum teste de hipótese formal; comparação direta de tendências agregadas entre as duas condições de tamanho do dataset"
+      ],
+      "convencoes": "Comparação narrativa entre os pares de tabelas (Table 2 supl. vs. Table 3 supl. para predição; Table 3 principal vs. Table 4 principal para ranking); sem execuções/dispersão adicionais além das já usadas em cada condição.",
+      "achado": "Mais dados melhora acurácia (MSE menor) e calibração (CICP maior) de todos os surrogates, mantendo as MESMAS tendências relativas entre eles (GPR-Matérn geralmente com menor MSE, Autogluon-QR com CICP mais alto e estável); GPR(Matérn)+DR mantém o melhor rank médio nas duas condições (3.25+/-1.51 com dado limitado; 2.42+/-1.84 com 1000 amostras), e métodos +DR em geral melhoram seus ranks médios com mais dados, ultrapassando baselines (ex.: IBEA-MS, competitivo com dado limitado) que não acompanham o ganho.",
+      "aplicabilidade": "comparável em espírito à ficha 63 (varredura de volume do dataset offline), mas aqui com apenas 2 níveis (11D-1 vs. 1000), não 3 (small/medium/big), e usando algoritmos fora do roster; não reproduzível diretamente com os dados já coletados na dissertação - exigiria nova coleta com datasets de tamanhos variados para os offline do roster, já contemplada em espírito pela ficha 63."
+    },
+    {
+      "fichas": [
+        1,
+        13,
+        42
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela final de comparação com os 5 baselines nos 8 problemas não-restringidos, dataset limitado (11D-1): MSE, IGD+ e HV por algoritmo x problema, onde IGD+/HV são calculados reavaliando as soluções obtidas na função verdadeira (já que a busca inteira ocorreu apenas sobre o surrogate, regime offline) e o MSE mede a discrepância entre a predição do surrogate e essa reavaliação real nas soluções finais.",
+      "literal": "Both IGD+ and HV indicators are employed to evaluate the optimization results of real evaluations, since the surrogate-based evaluations may introduce errors.",
+      "localizador": "Sec. 4.4 (Comparison Experiments with Baseline Methods), Table 2; Sec. 4.1 (Performance Indicators)",
+      "metricas": [
+        "MSE",
+        "IGD+",
+        "HV"
+      ],
+      "testes": [
+        "nenhum teste de hipótese formal; valores brutos por célula, sem símbolo de significância"
+      ],
+      "convencoes": "Um valor por célula algoritmo x problema (não fica claro se média ou mediana sobre as 30 execuções); '-' para IBEA-MS em Omnitest (não realizável); sem desvio-padrão nesta tabela.",
+      "achado": "Nenhum método vence em todos os problemas/indicadores; GPR(Matérn)+DR obtém IGD+=4.21E-03 em DTLZ7 (HV=1.11), melhor que o especializado TGPR-MO (IGD+=2.55E-02) no mesmo problema; DDMOEA/GAN vence em MSE/IGD+ para DTLZ1/DTLZ3 mas falha bastante em DTLZ5 (HV=0.09) e Omnitest (HV=0.20/1.08 conforme tabela) - desempenho muito inconsistente entre problemas.",
+      "aplicabilidade": "reproduzível em espírito via camada 7 (ND final reavaliado na função verdadeira) para os offline do roster - a lógica de 'reavaliar o que o surrogate acreditava' é a mesma; o componente MSE (predição x reavaliação real) é análogo, mas não idêntico, à fração de retenção do ND acreditado da ficha 42 (aqui é MSE pontual, não |ND acreditado| vs |ND real|). Não reproduzível literalmente para os métodos específicos deste artigo (DR, IBEA-MS, TGPR-MO, DDMOEA/GAN), fora do roster."
+    },
+    {
+      "fichas": [
+        1,
+        13,
+        42
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "A mesma tabela final de comparação com baselines (MSE, IGD+, HV por algoritmo x problema, 8 problemas não-restringidos), repetida com os surrogates treinados no dataset de 1.000 amostras, tau=0.90 fixo para as variantes +DR (Table 9 do Suplemento).",
+      "literal": "Table 9 reports experimental comparison results with baseline offline data-driven multi-objective optimization methods on eight unconstrained benchmark problems, where the surrogate models are trained on a dataset with 1,000 samples.",
+      "localizador": "Material Suplementar, Sec. 1.4 (Comparative Analysis against Baselines), Table 9",
+      "metricas": [
+        "MSE",
+        "IGD+",
+        "HV"
+      ],
+      "testes": [
+        "nenhum teste de hipótese formal"
+      ],
+      "convencoes": "Mesma convenção da Table 2 (valor único por célula); tau=0.90 fixo para as 4 variantes +DR.",
+      "achado": "GPR(RBF)+DR(tau=0.90) alcança MSE=1.81E-08 e IGD+=2.58E-03 em DTLZ2, muito à frente do baseline TGPR-MO (MSE=4.02E-04, IGD+=2.06E-02) no mesmo problema com o dataset maior; de modo geral os métodos +DR dominam a maioria das células nesta condição de dado abundante, mais do que faziam com dado limitado.",
+      "aplicabilidade": "mesma lógica da análise anterior (camada 7 em espírito, ficha 42 parcial); não reproduzível literalmente - métodos fora do roster."
+    },
+    {
+      "fichas": [
+        2
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ranking agregado dos 9 métodos (5 baselines + 4 variantes +DR) sobre os 8 problemas não-restringidos, dataset limitado: rank (1=melhor) calculado por indicador (MSE, IGD+, HV) x problema (Table 8, 24 ranks por método), depois resumido em média +/- desvio-padrão por método (Table 3).",
+      "literal": "The ranks are computed for each performance indicator on each benchmark problem. The mean and standard deviation of the overall ranks are then calculated based on these detailed ranks.",
+      "localizador": "Sec. 4.4, Table 3; Material Suplementar Sec. 1.4, Table 8",
+      "metricas": [
+        "MSE",
+        "IGD+",
+        "HV"
+      ],
+      "testes": [
+        "nenhum teste de hipótese formal; agregação por rank médio +/- desvio-padrão (não Friedman/Nemenyi)"
+      ],
+      "convencoes": "Rank 1 = melhor por célula indicador x problema; negrito = melhor rank médio geral, sublinhado = segundo melhor; '-' exclui IBEA-MS em Omnitest do cômputo.",
+      "achado": "GPR(Matérn)+DR tem o melhor rank médio (3.25+/-1.51), seguido por IBEA-MS (3.38+/-2.66) e TGPR-MO (3.50+/-1.78); o desvio-padrão de GPR(Matérn)+DR e das demais variantes +DR é consistentemente MENOR que o de IBEA-MS/DDMOEA-GAN, indicando maior robustez entre problemas (não necessariamente o melhor em cada um, mas o mais consistente).",
+      "aplicabilidade": "reproduzível como METODOLOGIA (rank médio +/- dp por indicador x problema) usando os endpoints de camada 1/7 dos algoritmos do roster; não depende de nenhuma camada exclusiva deste artigo."
+    },
+    {
+      "fichas": [
+        2
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O mesmo ranking agregado (rank médio +/- desvio-padrão sobre MSE/IGD+/HV x 8 problemas) recomputado para a condição de dataset com 1.000 amostras (Table 4 principal = Table 10 do Suplemento para os ranks detalhados).",
+      "literal": "GPR(Mat´ern)+DR achieves the best overall performance in both settings, demonstrating the robustness of the proposed strategy across different dataset sizes.",
+      "localizador": "Sec. 4.4, Table 4; Material Suplementar Sec. 1.4, Table 10",
+      "metricas": [
+        "MSE",
+        "IGD+",
+        "HV"
+      ],
+      "testes": [
+        "nenhum teste de hipótese formal"
+      ],
+      "convencoes": "Mesma convenção da Table 3 (rank médio +/- dp, negrito/sublinhado para 1º/2º lugar).",
+      "achado": "GPR(Matérn)+DR mantém o melhor rank médio (2.42+/-1.84), agora com GPR(RBF)+DR muito próximo em 2º (2.50+/-1.72); Prob-RVEA e Prob-MOEA/D pioram bastante (7.71+/-1.27 e 7.21+/-1.22, os piores) - IBEA-MS, competitivo com dado limitado, é ultrapassado pelas variantes +DR quando o dataset cresce.",
+      "aplicabilidade": "mesma metodologia da análise anterior, reproduzível em espírito com os endpoints do roster; não usa camada exclusiva do artigo."
+    },
+    {
+      "fichas": [
+        11,
+        52
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ablação isolando o componente 'dual' do dual-ranking: compara, para cada um dos 4 surrogates, a variante DR completa (não-dominância no espaço 2M concatenando f_sur e f_UA-sor) contra o uso do f_UA-sor SOZINHO como fitness (não-dominância padrão no espaço M, já penalizado pela incerteza), nos 11 benchmarks, com contagens +/=/- de MSE/IGD+/HV (Tables 5-6 do Suplemento). Mesma maquinaria (surrogate, NSGA-II) e mesma estimativa bruta de incerteza (mu, sigma); muda apenas COMO ela entra na seleção.",
+      "literal": "We find that the dual-ranking strategy achieves more improvements (or ties) in IGD+ and HV than in MSE.",
+      "localizador": "Sec. 4.3 (fim); Material Suplementar, 'Ablation Study Between Dual-Ranking and the Uncertainty-Aware Function', Tables 5-6",
+      "metricas": [
+        "MSE",
+        "IGD+",
+        "HV"
+      ],
+      "testes": [
+        "nenhum teste de hipótese formal; contagem +/=/- de DR sobre f_UA-sor sozinho, por indicador"
+      ],
+      "convencoes": "Contagem +/=/- (ex.: GPR(RBF)+DR vs. f_UA-sor: MSE 3+/0=/8-; IGD+ 6+/0=/5-; HV 5+/4=/2-); negrito na Table 5 indica melhor performance de DR sobre f_UA-sor, sublinhado indica empate.",
+      "achado": "DR (manter f_sur separado, não só a versão penalizada) supera f_UA-sor sozinho em MAIS casos de IGD+/HV do que em MSE, para os 4 surrogates; os autores explicam que 'the dual-ranking strategy may retain solutions that are promising under real evaluations but lie in regions with higher surrogate prediction errors, resulting in larger MSE values while still improving IGD+ and HV' - concatenar as duas funções (em vez de só penalizar) ajuda o resultado REAL mesmo quando aumenta o erro predito nas soluções escolhidas.",
+      "aplicabilidade": "não reproduzível - exigiria implementar a variante 'só f_UA-sor' do dual-ranking, que não existe no roster; conceitualmente é o par 'quase-gêmeo' da ficha 52 (mesma maquinaria e mesma incerteza bruta, forma de uso distinta), mas nenhum par assim foi executado na dissertação para este método."
+    },
+    {
+      "fichas": [
+        31,
+        33,
+        36
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparação da qualidade preditiva bruta dos 4 surrogates (GPR-RBF, GPR-Matérn, Autogluon-QR, BNN) nos 11 problemas, medida por MSE (acurácia da predição central) e CICP - Confidence Interval Coverage Probability (fração dos valores reais que caem dentro do intervalo de confiança predito, comparada à cobertura-alvo) - nos dois tamanhos de dataset (limited e 1000 amostras), evidenciando um trade-off entre acurácia e calibração conforme o TIPO de surrogate/medição.",
+      "literal": "Autogluon-QR consistently delivers high CICP values across nearly all cases, demonstrating robust uncertainty estimates despite relatively larger MSE.",
+      "localizador": "Sec. 4.2 (Surrogate Prediction Performance Results); Material Suplementar Sec. 1.2, Tables 2-3",
+      "metricas": [
+        "MSE",
+        "CICP"
+      ],
+      "testes": [
+        "nenhum teste de hipótese formal; comparação direta de MSE (%) e CICP (%) por surrogate x problema"
+      ],
+      "convencoes": "MSE e CICP (%) lado a lado por surrogate x problema (Tables 2-3 do Suplemento); não fica claro se os números vêm de um único conjunto de validação/teste ou são agregados sobre as 30 sementes (não explicitado).",
+      "achado": "GPR(Matérn) geralmente tem MSE mais baixo que GPR(RBF), mas CICP às vezes menor; Autogluon-QR entrega CICP alto e estável (ex.: 94.00% em DTLZ6 com dado limitado) apesar de MSE maior; BNN tem a maior variabilidade em ambos - ex.: CICP em DTLZ3 é 66.50% com dado limitado e CAI para 64.00% com 1000 amostras (não melhora, ao contrário da tendência geral dos outros surrogates) - evidenciando calibração pouco confiável, o que motiva o algoritmo auto-alfa para alinhar a penalização entre os diferentes tipos de surrogate/medição.",
+      "aplicabilidade": "parcialmente reproduzível via camada 3 (sonda) para os offline do roster que reportam mu/sigma (dimensão 1=acurácia da média, dimensão 3=calibração por cobertura), mas SEM a dimensão temporal - o artigo mede um único snapshot final por tamanho de dataset, não 'ao longo do orçamento' como a sonda da dissertação. A quebra por classe de medição (ficha 36) é diretamente análoga, cruzando os offline do roster por classe de medição (GP fechado vs. quantil vs. variacional)."
+    },
+    {
+      "fichas": [
+        57,
+        58
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Cobertura da bateria de comparação com baselines: os 3 problemas restringidos (BNH, Truss2D, Welded Beam) são excluídos INTEIRAMENTE da comparação com os 5 baselines porque a maioria deles não suporta restrições, restando 8 problemas; adicionalmente, dentro desses 8, IBEA-MS não conseguiu ser executado em Omnitest (marcado '-' em todas as tabelas), sendo excluído do cômputo do seu próprio rank médio nesse problema.",
+      "literal": "The symbol \"-\" indicates that the experiment cannot be conducted under this setting.",
+      "localizador": "Table 2 (legenda); Sec. 4.4 ('as most baseline methods cannot handle constraints')",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Exclusão de problema inteiro (3 restringidos) do desenho experimental da Seção 4.4, em vez de reportar células vazias linha a linha; símbolo '-' pontual para a falha de IBEA-MS em Omnitest.",
+      "achado": "A incapacidade de lidar com restrições é do BASELINE (a maioria dos 5 métodos publicados, não do framework proposto DR, que roda nos 11 problemas via pymoo); a falha de IBEA-MS em Omnitest é um caso isolado e específico desse método/problema, não explicado em detalhe no texto.",
+      "aplicabilidade": "reproduzível como metodologia - é exatamente o que a camada 1/manifesto (camada 5) da dissertação já registra (n efetivo por configuração x problema, causa da falha); aqui a 'incapacidade' é do código de IBEA-MS e da maioria dos baselines publicados, documentada pelo próprio artigo, não pela infraestrutura da dissertação."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "O artigo mede calibração via CICP (Confidence Interval Coverage Probability, Sluijterman et al. 2024) - a fração dos valores reais que caem dentro do intervalo de confiança predito - reportada por surrogate x problema, para os dois tamanhos de dataset (Tables 2-3 do Suplemento). Complementarmente, o método propõe e usa um algoritmo de calibração (Algorithm 1, 'Auto-alfa Selection') que ajusta o hiperparâmetro alfa do termo estilo GP-UCB (mu + alfa*sigma) num conjunto de validação até que a cobertura empírica C(alfa) atinja a cobertura-alvo tau, com prova de monotonicidade e existência de solução (Proposition 1) - isto é, a calibração não é só medida post-hoc, mas ativamente usada para CALIBRAR o grau de penalização da incerteza antes da otimização.",
+    "literal": "CICP evaluates uncertainty estimates by computing the fraction of function values that fall inside the corresponding confidence intervals.",
+    "localizador": "Sec. 4.1 (Performance Indicators); Sec. 3.2 (Auto-alfa Selection Algorithm, Algorithm 1, Proposition 1)"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Apenas complexidade de tempo assintótica (Big-O) teórica: O(MN^2) para a não-dominância padrão do NSGA-II, O(MN) para a concatenação de f_sur e f_UA-sor, e O(2MN^2) para a não-dominância no espaço 2M-dimensional do dual-ranking - total aproximadamente O(MN^2), a mesma ordem do baseline. NÃO há nenhuma medição empírica de tempo de parede, tempo de ajuste do modelo, nem decomposição fit/busca/avaliação/instrumentação.",
+    "literal": "Therefore, total time complexity is O(MN) + O(2MN 2) ≈ O(MN 2).",
+    "localizador": "Sec. 3.3, subseção 'Time Complexity'"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Motivação central do artigo: a incerteza epistêmica do surrogate (mesmo sem ruído aleatório no dataset) pode degradar seriamente o desempenho da otimização ao enganar a busca, levando a soluções sub-ótimas - é o problema que o dual-ranking tenta resolver.",
+      "literal": "This approximation uncertainty can severely degrade optimization performance [Wang et al., 2018] by misleading the search, resulting in suboptimal solutions [Smith and Winkler, 2006].",
+      "localizador": "Sec. 1 (Introduction)"
+    },
+    {
+      "descricao": "Mecanismo explícito do erro: quando o otimizador explora regiões de baixa densidade de dados, o surrogate pode prever valores irrealisticamente bons com alta incerteza, e essas soluções são falsamente preferidas por parecerem não-dominadas - a causa-raiz do julgamento de dominância enganoso ilustrado na Figura 1.",
+      "literal": "the predicted objective values may be unrealistically small with high uncertainty. Such solutions will be falsely preferred by the algorithm as they are regarded as non-dominated solutions",
+      "localizador": "Sec. 3.1 (Motivation)"
+    },
+    {
+      "descricao": "Trade-off explícito do próprio método: o dual-ranking às vezes PIORA o MSE (mantém soluções com erro de predição maior) mesmo quando melhora IGD+/HV - o ganho em desempenho real não é 'de graça' em termos de acurácia do surrogate nas soluções escolhidas.",
+      "literal": "The dual-ranking strategy may retain solutions that are promising under real evaluations but lie in regions with higher surrogate prediction errors, resulting in larger MSE values while still improving IGD+ and HV.",
+      "localizador": "Material Suplementar, discussão após Table 4"
+    },
+    {
+      "descricao": "Com o dataset maior (1000 amostras), o dual-ranking não garante convergência melhor de forma consistente para GPR(Matérn) e Autogluon-QR (IGD+ piora na maioria dos problemas) - resultado negativo atribuído pelos próprios autores a limitações na qualidade da estimativa de incerteza desses surrogates.",
+      "literal": "the dual-ranking strategy does not consistently guarantee improved convergence.",
+      "localizador": "Material Suplementar, Sec. 1.3 (Optimization Results with 1000 Training data)"
+    },
+    {
+      "descricao": "Degradação pontual documentada: GPR(RBF)+DR piora em DTLZ7 e Welded Beam quando treinado com 1000 amostras, apesar da melhora geral de MSE em 7 de 11 problemas.",
+      "literal": "The performance degradation on a few problems such as DTLZ7 and Welded Beam.",
+      "localizador": "Material Suplementar, Sec. 1.3 (Optimization Results with 1000 Training data)"
+    },
+    {
+      "descricao": "Caveat de calibração: o surrogate BNN exibe grande variabilidade tanto na acurácia da predição quanto nas estimativas de incerteza entre problemas - a fonte de incerteza menos confiável entre as 4 testadas.",
+      "literal": "The BNN model shows larger variability in both prediction accuracy and uncertainty estimates.",
+      "localizador": "Sec. 4.2 (Surrogate Prediction Performance Results)"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Ao explicar por que o dual-ranking não garante melhora consistente de IGD+ com o dataset de 1000 amostras (para GPR-Matérn e Autogluon-QR), os autores atribuem a causa à qualidade da ESTIMATIVA de incerteza (o modelo), não ao desenho do critério dual-ranking em si - ou seja, o modelo (não o critério de seleção) é apontado como o fator limitante.",
+      "literal": "This may also be attributed to limitations in uncertainty estimation quality, which can reduce the effectiveness of dual-ranking in some cases.",
+      "localizador": "Material Suplementar, Sec. 1.3 (Optimization Results with 1000 Training data)"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "restrição (constrained vs. unconstrained)",
+      "afirmacao": "Dentre os 11 problemas da ablação, os 3 restringidos (BNH, Truss2D, Welded Beam) são os que mais se beneficiam do dual-ranking - MSE e IGD+ consistentemente reduzidos e HV melhorado, mais do que a média dos problemas não-restringidos.",
+      "literal": "In particular, constrained benchmarks benefit the most from the dual-ranking strategy, where MSE and IGD+ are consistently reduced while HV is improved.",
+      "localizador": "Material Suplementar, Sec. 1.3 (Ablation Study and Sensitivity Analysis with Limited Training Data)"
+    },
+    {
+      "caracteristica": "volume do dataset offline (tamanho da amostra inicial)",
+      "afirmacao": "Todos os surrogates (e, por extensão, o dual-ranking sobre eles) se beneficiam de um dataset inicial maior (1000 vs. 11D-1 amostras), com MSE substancialmente reduzido e CICP melhorado em quase todos os problemas, mantendo as mesmas tendências relativas entre os tipos de surrogate.",
+      "literal": "all surrogate models benefit from the larger dataset compared to the limited data setting, with substantially reduced MSE and improved CICP values across almost all benchmark problems",
+      "localizador": "Material Suplementar, Sec. 1.2 (Prediction Results with 1000 Training data)"
+    },
+    {
+      "caracteristica": "problema específico (Omnitest, 2 objetivos/2 variáveis)",
+      "afirmacao": "IBEA-MS (baseline) não consegue ser executado em Omnitest, mesmo sendo um problema não-restringido - uma incapacidade pontual do código/desenho do método, não da infraestrutura experimental.",
+      "literal": "The symbol \"-\" indicates that the experiment cannot be conducted under this setting.",
+      "localizador": "Table 2 (legenda)"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Nota de título: o cabeçalho do PDF diz apenas 'Uncertainty-Aware Offline Data-Driven Multi-Objective Optimization' (sem a expressão 'Dual-Ranking Strategy'); usei o título completo fornecido nos metadados do pedido. Duas Proposições teóricas (Prop. 1: monotonicidade/existência de alfa no Algorithm 1; Prop. 2: correção formal do julgamento de dominância no espaço híbrido 2M) são provas formais, não análises experimentais - não contam como análise, mas fundamentam teoricamente o desenho do método; não há contagem empírica de quantas vezes a correção da Prop. 2 de fato ocorre nas execuções (o que seria análogo à ficha 45, mas o artigo não faz essa contagem). Figura 1 é um exemplo ilustrativo/conceitual de apenas 2 pontos (A, B) num toy problem 2D, não um resultado experimental de 30 execuções - por isso NÃO foi mapeada às fichas de fronteiras (54/55). Não há teste estatístico formal (Wilcoxon/Friedman/Nemenyi/diagrama de diferença crítica) em nenhuma parte do artigo, principal ou suplementar - todas as comparações são por contagem +/=/- célula a célula ou por rank médio+dp agregado; por isso a ficha 4 (Friedman+Nemenyi+CD) e a ficha 3 (teste pareado vs. melhor) não se aplicam a nenhuma análise. Não fica explícito nas tabelas de resultado bruto se os valores de MSE/IGD+/HV por célula são médias ou medianas sobre as 30 execuções - o texto só confirma '30 independent runs', sem especificar a estatística de agregação por célula (diferente de boa parte do corpus que declara 'mean(std)' ou 'median'). 'Other settings are reported in the Supplementary Material' (para configurações do BNN, Sec. 4.1) é uma promessa não cumprida no material suplementar efetivamente disponibilizado neste documento (não há seção dedicada a mais detalhes de BNN além do já citado no corpo principal) - tratada como 'só mencionada'. O artigo compara variantes do próprio framework em três níveis distintos - (a) com/sem DR (ablação principal), (b) DR vs. f_UA-sor sozinho (Tables 5-6), e (c) 4 tipos de surrogate (GPR-RBF/Matérn, QR, BNN) - exemplificando bem a nota do cartão sobre 'ablação natural'. Nenhum piso evolutivo sem surrogate é comparado - impossível dado o regime 100% offline (sem função real disponível durante a busca); os 5 baselines e as 4 variantes +DR são todos surrogate-assisted/offline data-driven. Prob-RVEA e Prob-MOEA/D (usados aqui como baselines externos, não como contribuição do artigo) têm nomes idênticos aos citados na ficha 11 da tipologia - possível sobreposição de algoritmos com o roster da dissertação, mas isso não foi verificado e é irrelevante aqui, pois roster_bloco=null por instrução explícita do pedido (b7 não é o artigo do roster para esses métodos). Código-fonte em link anônimo de double-blind review (https://anonymous.4open.science/r/dual-ranking-1D78/); a camada de texto bruta (anexo 'get_text', 15 páginas) traz uma nota de rodapé 'arXiv:2511.06459v2 [cs.NE] 29 Apr 2026' não visível na seção estruturada, indicando uma versão de preprint atualizada nessa data. O arquivo foi lido por completo (estrutura + anexo de texto bruto completo do PDF, página por página, + anexo de OCR de imagens no final) - os dois anexos são fiéis duplicatas do conteúdo já capturado na seção estruturada (Introdução a Conclusão, Referências, Material Suplementar completo com Tabelas 1-10), sem achados adicionais além do que já está mapeado acima; o anexo de OCR final contém apenas rótulos de eixos/legendas da Figura 1, do workflow da Figura 2 e de cabeçalhos de tabela já capturados textualmente. Nenhum problema de leitura foi encontrado."
+}

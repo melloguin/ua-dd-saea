@@ -1,0 +1,129 @@
+{
+  "id": "c214",
+  "sigla": "PFES",
+  "titulo": "Multi-objective Bayesian Optimization using Pareto-frontier Entropy",
+  "ano": 2020,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Sec. 6.1 (regime acoplado): 4 problemas sintéticos contínuos — Ackley/Sphere (combinação ad hoc de duas funções mono-objetivo, L=2, d=2), ZDT4 (L=2, d=4), DTLZ3 (L=4, d=6), DTLZ4 (L=4, d=6); nenhum é WFG/BBOB, e ZDT4/DTLZ3/DTLZ4 pertencem a suítes também usadas na dissertação, embora possivelmente com instância/D diferentes. Sec. 6.2 (regime desacoplado): 2 datasets REAIS de ciência de materiais em domínio discreto/pooled — Bi2O3 (|X|=335 candidatos, d=3, composição química) e LLTO (|X|=1119 candidatos, vetor de características de d=2185, posições atômicas), ambos com L=2 objetivos (condutividade iônica f1, estabilidade f2 = negativo da energia). Nenhum dos dois datasets reais coincide com os 3 problemas reais da dissertação (RE21, ESTOQUE40, DDMOP7).",
+    "orcamento": "Sec. 6.1: 100 iterações de BO padrão (1 avaliação real por iteração), a partir de 5 pontos iniciais escolhidos aleatoriamente por execução — não há DoE tipo LHS explícito nem menção a orçamento em função de D (nada análogo a 31D-1). Sec. 6.2 (desacoplado): orçamento medido em CUSTO CUMULATIVO (não em nº de avaliações), com eixo indo até 600 ou 1000 em Bi2O3 e até 1200 ou 2000 em LLTO, conforme a razão de custo (λ1,λ2)=(5,1) ou (10,1); também 5 pontos iniciais aleatórios por execução.",
+    "execucoes": "10 execuções independentes por configuração/algoritmo/problema, cada uma com um conjunto diferente de 5 observações iniciais escolhidas aleatoriamente — tanto na Sec. 6.1 (sintéticos) quanto na Sec. 6.2 (materiais reais). Curvas reportadas como média ± erro padrão sobre as 10 execuções.",
+    "baselines": "ParEGO (scalarização + EI), EHI (expected hyper-volume improvement), SMSego (UCB/S-metric selection) e MESMO (max-value entropy search para MOO) — todos assistidos por GP. NÃO há piso evolutivo sem surrogate na comparação: NSGA-II aparece só como sub-rotina interna (para amostrar a Pareto-frontier a partir do modelo RFM em PFES/MESMO, e para estimar o hyper-volume ótimo de referência via a função verdadeira), nunca como algoritmo concorrente. PESMO e SUR são citados como métodos-alvo de comparação mas explicitamente NÃO executados ('the author implementation was not compatible with our environment').",
+    "metricas_principais": [
+      "RHV — Relative Hyper-volume (hyper-volume das observações já feitas, normalizado pelo hyper-volume ótimo estimado aplicando NSGA-II à função verdadeira)"
+    ],
+    "testes": [
+      "nenhum teste de hipótese formal em lugar nenhum do artigo; apenas média ± erro padrão de 10 execuções nas curvas (Fig. 4, 5, 6) e médias simples de 10 execuções na Tabela 1, sem teste de significância"
+    ],
+    "apresentacao": "Curvas de RHV × iteração (regime acoplado, Fig. 4) ou RHV × custo cumulativo (regime desacoplado, Fig. 5 e 6), sempre média ± erro padrão de 10 execuções, sem símbolos +/=/-, sem tabela numérica de endpoint, sem negrito. Tabela 1 com tempos médios (10 execuções) em segundos e nº médio de células, sem dispersão reportada.",
+    "codigo_plataforma": "NÃO LOCALIZADO — o artigo não menciona explicitamente a plataforma/framework de implementação (não cita PlatEMO, BoTorch, MATLAB, GPy/GPflow, etc.) nas 10 páginas do corpo principal. Pode estar no Apêndice F ('the other experimental settings are shown in Appendix F'), que não está presente neste arquivo convertido."
+  },
+  "analises": [
+    {
+      "fichas": [26],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparação central de desempenho: PFES (em três variantes, |PF|=10, 30 e 50 amostras de Pareto-frontier) contra os quatro métodos existentes (ParEGO, SMSego, EHI, MESMO) em quatro problemas sintéticos (Ackley/Sphere, ZDT4, DTLZ3, DTLZ4), medindo o hyper-volume relativo (RHV) das observações acumuladas ao longo de 100 iterações de BO padrão. Cada configuração roda 10 vezes com 5 pontos iniciais aleatórios distintos; a figura mostra média ± erro padrão por iteração.",
+      "literal": "We see that PFES (any of 10, 30 or 50) achieved the fastest convergence for Ackley/Sphere, DTLZ3, and DTLZ4, and for DTLZ3, PFES was roughly the second best among the compared methods.",
+      "localizador": "Sec. 6.1, Fig. 4",
+      "metricas": ["RHV (Relative Hyper-volume)"],
+      "testes": ["nenhum — apenas média e erro padrão de 10 execuções"],
+      "convencoes": "Média ± erro padrão de 10 execuções; eixo x = iteração (0–100); eixo y = RHV; 5 pontos iniciais aleatórios por execução; 3 curvas de PFES (|PF|=10,30,50) mais 4 baselines por subfigura (a)-(d), uma por problema.",
+      "achado": "PFES (nas 3 variantes de |PF|) obtém a convergência mais rápida em Ackley/Sphere, DTLZ3 e DTLZ4, ficando aproximadamente em 2º lugar apenas em DTLZ3; MESMO converge mais rápido que PFES somente em ZDT4 (a única frente convexa dentre as três funções MOO padrão), mas é relativamente lento nas duas frentes côncavas (DTLZ3, DTLZ4), onde o trade-off entre objetivos é mais forte — atribuído a MESMO ignorar o trade-off por usar só a entropia dos max-values por eixo.",
+      "aplicabilidade": "① avaliações reais por checkpoint (equivalente ao endpoint acumulado) — reprodutível na dissertação plotando IGD+/HV pela camada ① ao longo do orçamento (mesma lógica da ficha 26); diferenças: aqui o eixo é iteração padrão de BO (1 avaliação/iteração, não FE em 31D−1), a métrica é RHV (HV relativo ao ótimo estimado) e não há piso evolutivo comparado nem DoE inicial compartilhado explícito entre execuções."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade de PFES ao nº de amostras MC da Pareto-frontier (|PF|)",
+      "grupo_sugerido": "E",
+      "descricao": "Dentro do mesmo experimento da Fig. 4, o artigo varia o número de amostras Monte Carlo da Pareto-frontier usadas para estimar o termo de entropia/ganho de informação de PFES (|PF| = 10, 30, 50) e reporta que as três curvas resultantes têm comportamento visualmente semelhante nos quatro problemas — um teste de robustez do método a um hiperparâmetro computacional interno (não um gate de decisão nem um peso de exploração/explotação), anunciado antes mesmo dos experimentos ('In the later experiments, we evaluate sensitivity of performance to this setting').",
+      "literal": "The three settings of |PF| showed similar behaviors, suggesting that the performance dependence of PFES on |PF| is small.",
+      "localizador": "Sec. 6.1, Fig. 4 (texto); anunciado em Sec. 3.2.1",
+      "metricas": ["RHV (Relative Hyper-volume)"],
+      "testes": ["nenhum — comparação visual das 3 curvas de PFES entre si"],
+      "convencoes": "Mesma figura/convenção da análise anterior (Fig. 4); leitura qualitativa da proximidade entre as 3 curvas de PFES (|PF|=10, 30, 50), sem métrica numérica de dispersão entre variantes.",
+      "achado": "A dependência do desempenho de PFES ao número de amostras de Pareto-frontier |PF| é pequena — 10, 30 ou 50 amostras produzem curvas de convergência semelhantes nos quatro problemas, sugerindo que o método é robusto a esse hiperparâmetro computacional (achado de robustez, não um resultado negativo).",
+      "aplicabilidade": "não reproduzível com as 7 camadas da dissertação — |PF| é um hiperparâmetro do cálculo Monte Carlo do termo de entropia/ganho de informação de PFES (e, por analogia, de MESMO/PESMO), específico da família de aquisições entrópicas; nenhuma camada da instrumentação (①–⑦) registra ou varia esse parâmetro para os algoritmos do roster."
+    },
+    {
+      "fichas": [47, 48],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo mede o tempo de parede (segundos) para avaliar a função de aquisição em 100 pontos candidatos no problema DTLZ4 (L=4, a maior dimensão de saída testada), comparando os cinco métodos (Tabela 1a), e decompõe o tempo do próprio PFES em quatro sub-etapas — amostragem via random feature map (RFM), otimização NSGA-II para gerar a Pareto-frontier amostrada, particionamento QHV em células, e cálculo da entropia — além do nº médio de células geradas (Tabela 1b). Média de 10 execuções, sem desvio-padrão reportado; apresentado como tabela, não como um gráfico conjunto custo×qualidade.",
+      "literal": "We see that the most of time was spent by NSGA-II in this case. The amount of QHV and the entropy calculation is quite small",
+      "localizador": "Sec. 6.1, Table 1, p. 8",
+      "metricas": ["tempo de avaliação da função de aquisição (segundos)", "número de células (#cells)"],
+      "testes": ["nenhum — apenas médias de 10 execuções, sem dispersão"],
+      "convencoes": "Tabela com médias de 10 execuções, sem desvio-padrão; tempos em segundos; #cells é uma média fracionária (647.86) — abaixo de 1000 mesmo em L=4 ('many-objective').",
+      "achado": "ParEGO (0.53s) e SMSego (6.32s) são muito mais rápidos por terem funções de aquisição simples; EHI é o mais lento (317.55s) por usar particionamento de células ingênuo (Shah & Ghahramani, 2016); MESMO (59.90s) e PFES (62.36s) têm custo semelhante porque ambos usam NSGA-II para amostragem — de fato, quase todo o tempo do PFES (59.85s de 62.36s totais) é gasto no NSGA-II da amostragem da Pareto-frontier, não no cálculo da entropia em si (QHV 1.28s + Entropy 1.13s + RFM 0.11s).",
+      "aplicabilidade": "④ tempos por geração — parcialmente reprodutível: a camada ④ discrimina tempo de ajuste do modelo, busca e sonda por geração; a decomposição do artigo (RFM, NSGA-II de amostragem, QHV, entropia) é uma subdivisão mais fina da etapa de 'busca' (otimização da aquisição) do que a camada ④ distingue internamente, e mede especificamente o custo da função de aquisição, não o ajuste do GP nem a avaliação verdadeira."
+    },
+    {
+      "fichas": [26],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Em um dataset real de ciência de materiais (Bi2O3, 335 candidatos discretos, 3 dimensões de entrada, objetivos de condutividade iônica e estabilidade), o artigo avalia o cenário 'desacoplado' (cada objetivo pode ser consultado separadamente, com custos diferentes λ1 e λ2, λ1 mais caro), comparando PFES acoplado, PFES desacoplado e os quatro baselines, sob duas razões de custo (λ1,λ2)=(5,1) e (10,1). A métrica é RHV em função do custo cumulativo de observação, não do número de iterações; 10 execuções, 5 pontos iniciais aleatórios.",
+      "literal": "In Bi2O3, SMSego, EHI, PFES, and PFES (decoupled) showed relatively rapid convergence",
+      "localizador": "Sec. 6.2, Fig. 5",
+      "metricas": ["RHV (Relative Hyper-volume)", "custo cumulativo de observação (unidades de λ1/λ2)"],
+      "testes": ["nenhum — apenas média e erro padrão de 10 execuções"],
+      "convencoes": "Média ± erro padrão de 10 execuções; eixo x = custo cumulativo (não iteração); duas subfiguras, uma por razão de custo (λ1,λ2)=(5,1) e (10,1); 5 pontos iniciais aleatórios por execução.",
+      "achado": "Em Bi2O3, SMSego, EHI, PFES (acoplado) e PFES (desacoplado) convergem de forma relativamente rápida entre os métodos comparados; o aumento de PFES (desacoplado) é mais lento no início (explora primeiro o objetivo mais barato, já que no começo a informação dos dois objetivos não difere muito) e acelera na metade das iterações, quando passa a consultar o objetivo mais caro.",
+      "aplicabilidade": "não reproduzível — exige um dataset real de ciência de materiais (Bi2O3) fora do conjunto de 28 problemas da dissertação, e o regime 'desacoplado' de consulta por objetivo com custo diferenciado, que nenhum algoritmo do roster implementa (a camada ① assume avaliação conjunta dos L objetivos por candidato)."
+    },
+    {
+      "fichas": [26],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesmo desenho experimental da análise anterior (regime desacoplado, RHV × custo cumulativo, duas razões de custo λ1/λ2, 10 execuções, 5 pontos iniciais aleatórios), aplicado ao dataset real LLTO (1119 candidatos discretos, vetor de características de 2185 dimensões, mesmos dois objetivos de condutividade iônica e estabilidade). O artigo destaca explicitamente que aqui, ao contrário de Bi2O3, é a variante PFES (desacoplado) que se distingue mais claramente dos demais.",
+      "literal": "in LLTO, PFES (decoupled) reached the maximum first. Interestingly, for the both datasets, the increase of PFES (decoupled) was moderate compared with the other methods in the beginning",
+      "localizador": "Sec. 6.2, Fig. 6",
+      "metricas": ["RHV (Relative Hyper-volume)", "custo cumulativo de observação (unidades de λ1/λ2)"],
+      "testes": ["nenhum — apenas média e erro padrão de 10 execuções"],
+      "convencoes": "Mesmas convenções da Fig. 5 (média ± erro padrão de 10 execuções, eixo x = custo cumulativo, duas subfiguras por razão de custo).",
+      "achado": "Em LLTO, PFES (desacoplado) é o método que atinge o RHV máximo primeiro, superando inclusive a versão acoplada de PFES — evidência mais forte do benefício da estratégia desacoplada com custo assimétrico entre objetivos do que em Bi2O3, atribuída pelos autores ao mesmo padrão de 'explorar barato primeiro, caro depois'.",
+      "aplicabilidade": "não reproduzível — mesma limitação da análise anterior (dataset real de ciência de materiais fora dos 28 problemas da dissertação; regime desacoplado sem análogo no roster), agora para o dataset LLTO."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo não avalia empiricamente a calibração, cobertura ou RMSE do μ/σ do GP; σ é usado apenas analiticamente dentro da fórmula fechada da entropia da Pareto-frontier (Teorema 3.1/4.1) e na amostragem de Pareto-frontiers via random feature map — não há verificação de quão bem esse σ reflete o erro real do modelo em nenhum dos dois experimentos numéricos.",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo de parede (segundos) para avaliar a função de aquisição em 100 pontos candidatos no problema DTLZ4 (L=4), comparando 5 métodos (Tabela 1a); decomposição do tempo do PFES em 4 sub-etapas — RFM, NSGA-II, QHV, cálculo de entropia — mais o nº médio de células geradas (Tabela 1b), média de 10 execuções. Não reporta tempo de ajuste do GP (fit) separadamente nem tempo de avaliação da função verdadeira — mede especificamente o custo da função de aquisição em si; o artigo remete a 'outras configurações' de custo ao Apêndice E, ausente deste arquivo.",
+    "literal": "Table 1: Computational time for acquisition function evaluation for 100 points on DTLZ4.",
+    "localizador": "Sec. 6.1, Table 1, p. 8"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "MESMO — outro método baseado em entropia, mas que usa apenas a entropia dos valores máximos por eixo em vez da entropia de toda a Pareto-frontier — converge visivelmente mais devagar que PFES e os demais baselines nos dois problemas de frente côncava (DTLZ3, DTLZ4), porque sua simplificação da entropia ignora a relação de trade-off entre objetivos; um caso em que uma forma mais pobre de medir 'ganho de informação' claramente prejudica o desempenho.",
+      "literal": "The stronger trade-off relation exists in the concave case, for which MESMO failed to improve RHV rapidly.",
+      "localizador": "Sec. 6.1, p. 8 (texto), Fig. 4"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "frente de Pareto côncava / trade-off forte entre objetivos (DTLZ3, DTLZ4) vs. convexa (ZDT4)",
+      "afirmacao": "PFES, que considera a entropia de toda a Pareto-frontier (capturando o trade-off entre objetivos), converge mais rápido que os baselines nos dois problemas de frente côncava (DTLZ3, DTLZ4); MESMO, que usa só a entropia dos valores máximos por eixo (ignorando o trade-off), converge mais devagar nesses dois problemas côncavos, embora seja o mais rápido no único problema de frente convexa (ZDT4) dentre os padrão de MOO.",
+      "literal": "Among the three MOO benchmark functions, only ZDT4 has the “convex” dominated region F, while DTLZ3 and DTLZ4 have the “concave” F",
+      "localizador": "Sec. 6.1, texto após Fig. 4"
+    },
+    {
+      "caracteristica": "alta dimensão de entrada (d=2185, dataset LLTO)",
+      "afirmacao": "Apesar da altíssima dimensão de entrada do LLTO, a BO permanece viável porque X é um conjunto discreto pré-definido (pooled setting) de candidatos, não um domínio contínuo de alta dimensão a ser otimizado diretamente — a alta dimensão deixa de ser um obstáculo por causa da natureza combinatória/discreta do problema, não por alguma propriedade do GP ou da aquisição.",
+      "literal": "Note that although this dataset has the high dimensional input space, BO is feasible because X is the pre-defined discrete set.",
+      "localizador": "Sec. 6.2"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Artigo original do PFES (ICML 2020), o método citado na taxonomia da dissertação como motor=BO-Especiais / função da incerteza=O2 (Ganho de informação) / surrogate=GP / medição=VAR-GP / regime=online. O arquivo convertido contém apenas as 10 páginas do corpo principal (Abstract–Referências, confirmado pelo cabeçalho 'Páginas: 10' e pelo fato de as Referências terminarem exatamente na página 10); os Apêndices A–F citados repetidamente no texto (prova do Teorema 3.1 em Apêndice A, prova do Teorema 4.1 em Apêndice B, extensão para objetivos correlacionados em Apêndice C, 'other settings' do Table 1 em Apêndice E, demais configurações experimentais em Apêndice F) NÃO estão presentes neste arquivo — não foi possível extrair análises adicionais deles, e é provável que a versão completa (com apêndices) contenha mais figuras/tabelas de robustez. Li o artigo INTEIRO conforme disponível (1740 linhas: conversão estruturada + camada de texto bruta completa do ANEXO, que é redundante em conteúdo mas confirma cada citação usada aqui; mais o ANEXO final de OCR de imagens, que só trouxe ruído ilegível de rótulos de eixo, sem conteúdo substantivo novo). O desenho experimental difere estruturalmente do protocolo da dissertação: não há piso evolutivo sem surrogate na comparação (todos os 4 baselines usam GP), não há DoE inicial compartilhado explícito entre execuções (cada execução sorteia 5 pontos iniciais independentemente, não hipercubo latino), o orçamento é medido em iterações de BO padrão (Sec. 6.1) ou em custo cumulativo assimétrico por objetivo no regime 'desacoplado' (Sec. 6.2), nunca em avaliações reais sob DoE 31D−1. Dos 4 problemas sintéticos, ZDT4/DTLZ3/DTLZ4 pertencem a suítes também usadas na dissertação (ainda que possivelmente com D/instância diferentes), mas 'Ackley/Sphere' (combinação ad hoc de duas funções mono-objetivo, sem ligação com nenhuma suíte MOO padrão) e os dois datasets reais de ciência de materiais (Bi2O3, LLTO) não fazem parte do conjunto de 28 problemas da dissertação. A Seç. 5 ('Relation with Other Information-theoretic Approaches') discute extensamente e de forma teórica (sem dado empírico próprio) a relação do PFES com PESMO e MESMO — os outros dois métodos de entropia para MOO citados na literatura — útil como contexto para a classe O2 da taxonomia, mas não gerou 'análise' própria por não ter componente experimental. Nenhuma ablação isolando o termo de incerteza/entropia (equivalente a σ=0) é executada dentro do próprio PFES: a comparação é sempre entre métodos completos e distintos (ParEGO, EHI, SMSego, MESMO, PFES), nunca entre uma variante de PFES com e sem o termo de entropia — a ficha 11/15 (ablação exata do σ) não se aplica a este artigo. roster_bloco = null por instrução do pedido (artigo fora do roster experimental)."
+}

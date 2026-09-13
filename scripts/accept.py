@@ -2621,11 +2621,12 @@ def check_f0_04():
     tbl_ok = (n_probs == 28
               and set(metrics.F_MIN_MAX) == set(experiment.ALL_PROBLEMS)
               and n_seladas == 0
-              and len(getattr(metrics, "REGUAS_PROVISORIAS", {})) == 1
-              and "DDMOP7" in getattr(metrics, "REGUAS_PROVISORIAS", {})
+              # [REAL-2.15 RATIFICADA 22/08] selo vazio: fase 2 do DDMOP7
+              # computada e régua ratificada — nenhuma régua provisória resta.
+              and len(getattr(metrics, "REGUAS_PROVISORIAS", {})) == 0
               and np.allclose(nadir, front_nadir, rtol=1e-3))
     results.append((
-        "normalização D69 = tabela S.5 (28 réguas; 1 provisória selada; F1 nadir = front vivo)",
+        "normalização D69 = tabela S.5 (28 réguas definitivas; 0 seladas; F1 nadir = front vivo)",
         (tbl_ok, f"|F_MIN_MAX|={n_probs}, F1 nadir S.5={nadir.tolist()} "
                  f"~ front {front_nadir.round(3).tolist()}")))
 

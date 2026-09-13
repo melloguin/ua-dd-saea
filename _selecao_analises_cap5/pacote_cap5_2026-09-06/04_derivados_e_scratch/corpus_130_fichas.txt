@@ -1,0 +1,1169 @@
+### b1 · ParEGO (2006) · BO-Decomposição · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel seminal · tier A++ · cit 1277 · impl CANÔNICA · S_surv 9.5 · S_exp 8.45
+título: ParEGO: A Hybrid Algorithm With On-Line Landscape Approximation for Expensive Multiobjective Optimization Problems
+n_obj: 2 e 3 (genérico p/ k) | data_volume: small — 100 e 250/260 FEs reais
+motor: BO sequencial: Tchebycheff aumentada + EI maximizado por GA interno
+surrogate: GP/Kriging (modelo DACE; MLE Nelder-Mead, 20 restarts)
+incerteza: σ do GP entra no EI, equilibra exploração (σ alto)/exploitation (μ baixo) p/ escolher próximo ponto real. | comportamento: aceita-explora | quantif: σ analítico do DACE/GP (forma fechada)
+infill: EI sobre escalarização Tchebycheff (escalarização ParEGO/EI)
+rigor s5: 8 | maturidade e4: 8 | ressalva: 
+
+### b2 · MOEA/D-EGO (2010) · BO-Decomposição · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel seminal · tier A++ · cit 690 · impl OFICIAL · S_surv 8.6 · S_exp 8.45
+título: Expensive Multiobjective Optimization by MOEA/D With Gaussian Process Model
+n_obj: 2 e 3 (m=2 maioria; m=3 DTLZ2; generalizável m>3, recomendado ≤3) | data_volume: small
+motor: MOEA/D-DE maximizando Expected Improvement de N subproblemas escalarizados
+surrogate: GP/Kriging (DACE), um por objetivo f_i; acelerado por FuzzyCM
+incerteza: ver 4.1 — σ do GP é o termo de exploração do EI maximizado por subproblema; decide quais pontos reais avaliar | comportamento: aceita-explora | quantif: σ/variância preditiva do GP (MSE do BLUP Kriging), propagada p/ weighted-sum e Tchebycheff
+infill: Expected Improvement por subproblema escalarizado (weighted-sum + Tchebycheff), batch
+rigor s5: 8 | maturidade e4: 9 | ressalva: 
+
+### b3 · K-RVEA (2018) · EA-Decomposição · O3 · Aprendizado ativo / reparo · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel seminal · tier A++ · cit 530 · impl OFICIAL · S_surv 9 · S_exp 9.45
+título: A Surrogate-assisted Reference Vector Guided Evolutionary Algorithm for Computationally Expensive Many-objective Optimization
+n_obj: 3,4,6,8,10 (foco >3) | data_volume: small
+motor: RVEA (APD + vetores de referência adaptativos)
+surrogate: Kriging/GP (um por objetivo)
+incerteza: Ver seção 4.1 | comportamento: aceita-explora | quantif: σ do Kriging (média dos σ dos k modelos)
+infill: Custom/híbrido baseado em seleção (máx-σ vs mín-APD comutados); não é EI/EHVI
+rigor s5: 8 | maturidade e4: 10 | ressalva: 
+
+### b4 · CSEA (2019) · EA-Dominância · A3 · Gestão de confiança · CL - Relação/Classificação · ERR-EMP (erro empírico vs. verdade) · online · papel seminal · tier A++ · cit 295 · impl OFICIAL · S_surv 8.8 · S_exp 8.8
+título: A Classification Based Surrogate-Assisted Evolutionary Algorithm for Expensive Many-Objective Optimization
+n_obj: 3,4,6,8,10 (many-obj); também bi-obj ZDT1 | data_volume: small
+motor: EA + seleção por divisão de espaço radial (RSEA); SBX+mut.polinomial; 2 loops
+surrogate: FNN 3 camadas, classificador binário
+incerteza: reliability config via erros de validação p1/p2 (ver 4.1) | comportamento: rejeita-gerencia | quantif: MAE por classe (p1=cat.I, p2=cat.II) via validação cruzada (25%)
+infill: 
+rigor s5: 8.5 | maturidade e4: 9 | ressalva: 
+
+### b5 · Prob-RVEA / Prob-MOEA/D (+ Hyb-RVEA / Hyb-MOEA/D) (2022) · EA-Decomposição · A2 · Dominância probabilística · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · offline · papel estado-da-arte · tier offline · cit 16 · impl OFICIAL · S_surv 8.3 · S_exp 7
+título: Probabilistic Selection Approaches in Decomposition-Based Evolutionary Algorithms for Offline Data-Driven Multiobjective Optimization
+n_obj: 2 a 10 | data_volume: small
+motor: MOEA de decomposição: RVEA (APD) e MOEA/D (PBI)
+surrogate: Kriging/GP (um por objetivo), kernel gaussiano, scikit-learn, MLE/BFGS; posterior gaussiana (média+σ)
+incerteza: σ do Kriging entra na SELEÇÃO via ranking por Pwrong (prob. de seleção errada), estimado por Monte-Carlo (S=1000)+KDE sobre APD/PBI | comportamento: rejeita-gerencia | quantif: σ posterior do Kriging; propagado por MC+KDE até a PDF do critério; Pwrong (integral dupla ~ CDF empírica)
+infill: 
+rigor s5: 9 | maturidade e4: 7 | ressalva: 
+
+### b7 · DR (Dual-Ranking) (2026) · EA-Dominância · A1 · Penalização avessa a risco · GP — Processo Gaussiano/Kriging · Resíduo · offline · papel outro · tier offline · cit - · impl NÃO · S_surv 6.7 · S_exp 2
+título: Uncertainty-Aware Dual-Ranking Strategy for Offline Data-Driven Multi-Objective Optimization
+n_obj: 2 | data_volume: small
+motor: NSGA-II (pymoo) com survival modificado pela Dual-Ranking; SBX+mutação polinomial; crowding distance padrão.
+surrogate: Multi-surrogate agnóstico: Kriging(GP), Quantile Regression, MC-Dropout, BNN. Qualquer modelo com (μ,σ)/quantis.
+incerteza: Incerteza entra no survival como 2º eixo de dominância: f_adj=μ+zσ penaliza variância (QR usa q^upper); 2 sortings (μ e f_adj) → 2 ranks → média r_avg → frente híbrida. Rebaixa soluções incertas, retém confiáveis; z=Φ⁻¹(τ), z≈1,28 p/τ=0,9. | comportamento: rejeita-gerencia | quantif: σ preditivo (Kriging GP / variância MCD / posterior BNN) e quantil superior (QR); penalidade via z=Φ⁻¹(τ).
+infill: 
+rigor s5: 7 | maturidade e4: 2 | ressalva: Entra por lacuna/exemplar (offline-robustez + incerteza não-Kriging), não por impacto (<1 ano, 0 cit.).
+
+### b8 · KTA2 (2021) · EA-Indicador · O3 · Aprendizado ativo / reparo · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A++ · cit 216 · impl OFICIAL · S_surv 8 · S_exp 8.45
+título: A Kriging-Assisted Two-Archive Evolutionary Algorithm for Expensive Many-Objective Optimization
+n_obj: 3,4,6,8,10 | data_volume: small (300 FEs reais; inicial=100 LHS)
+motor: Two_Arch2 (CA por I_eps+; DA por Lp-norm)
+surrogate: Kriging/GP composto (modelo insensível a pontos influentes: 3 Krigings/objetivo)
+incerteza: Ver 4.1 — max-STD do GP dirige o estado 'incerteza-demanda' do infill adaptativo; atrai reavaliação p/ soluções incertas e sana acurácia global | comportamento: aceita-explora | quantif: STD (σ) da predição Kriging, média sobre m objetivos
+infill: Infill adaptativo tri-estado (I_eps+/Lp-norm/max-STD); geométrico/custom
+rigor s5: 9 | maturidade e4: 9 | ressalva: 
+
+### b9 · USeMO (2020) · BO-Especiais · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A · cit 115 · impl OFICIAL · S_surv 8.5 · S_exp 8.45
+título: Uncertainty-Aware Search Framework for Multi-Objective Bayesian Optimization
+n_obj: 2 a 6 (k=2,3,4,6 nos experimentos) | data_volume: small
+motor: BO sequencial 2 etapas; sub-problema MO de AFs resolvido por NSGA-II; seleção por incerteza
+surrogate: GP independente por objetivo, kernel SE
+incerteza: Ver 4.1 — desempate da próxima avaliação: dentre Pareto-ótimos de AF, escolhe o de máx. incerteza (volume hiper-retângulo LCB/UCB) | comportamento: aceita-explora | quantif: σ do GP/objetivo agregado como volume do hiper-retângulo [LCB,UCB]
+infill: 2 etapas: AF single-obj plugável (EI/TS/LCB/UCB) + seleção geométrica por incerteza
+rigor s5: 8 | maturidade e4: 8 | ressalva: 
+
+### b13 · AdaMoR-DDMOEA (2025) · EA-Decomposição · A3 · Gestão de confiança · NN — Rede Neural · ERR-EMP (erro empírico vs. verdade) · offline · papel outro · tier offline · cit 4 · impl NÃO · S_surv 4.5 · S_exp 2
+título: AdaMoR-DDMOEA: Adaptive Model Selection with a Reliable Individual-Based Model Management Framework for Offline Data-Driven Multi-Objective Optimization
+n_obj: 2 e 3 | data_volume: small (11D = 110 pontos, D=10)
+motor: RVEA (seleção por vetores de referência + APD) com SBX + mutação polinomial
+surrogate: DNN multi-output (Keras, 6 camadas, ReLU, perda MAE, Adam) e XGBoost multi-output; seleção adaptativa entre os dois
+incerteza: MAE de validação k-fold (média±dp) = erro de generalização do surrogate; entra na etapa de model management (antes do loop), compara DNN vs XGBoost por Wilcoxon e seleciona o de MENOR erro. Não penaliza objetivo nem dirige amostragem (offline). Produz o surrogate que guia toda a busca. (Eq.17 'reliability' NÃO é incerteza: é distância à solução preferida.) | comportamento: rejeita-gerencia | quantif: MAE de validação k-fold (Wilcoxon rank-sum)
+infill: 
+rigor s5: 6 | maturidade e4: 1 | ressalva: Menção menor possível como contraste na família offline-confiabilidade; não citação central.
+
+### b14 · SA²-MOEA (2024) · EA-Dominância · O3 · Aprendizado ativo / reparo · RG — Regressor Clássico (não-GP) · DISC-ENS (discordância entre predições) · online · papel estado-da-arte · tier A · cit 3 · impl OFICIAL · S_surv 7.7 · S_exp 7.25
+título: Formulating approximation error as noise in surrogate-assisted multi-objective evolutionary algorithm
+n_obj: 2 e 3 | data_volume: small (300 FEs reais; medium-scale 20-50 vars)
+motor: EA híbrido: alterna env. selection NSGA-II/IBEA por iteração
+surrogate: Ensemble homogêneo de RBFN (latest + históricos), 1 por objetivo
+incerteza: ver 4.1 | comportamento: aceita-explora | quantif: rank-change EM_best vs LM; mediana |F-F̂| como σ do ruído
+infill: infill multi-estratégia adaptativo (custom, não-EI)
+rigor s5: 8 | maturidade e4: 8 | ressalva: 
+
+### b15 · U-RankMOEA (2026) · BO-Especiais · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier Preprint-Forte · cit - · impl NÃO · S_surv 5.5 · S_exp 1.5
+título: U-RankMOEA: A Unified Rank-Based and Uncertainty-Aware Framework for High-Dimensional Expensive Multi-Objective Optimization
+n_obj: 2,3 (principais); 5 (Ap.L). D∈{30..200}, até 500. | data_volume: small
+motor: BO híbrido em batch com triagem por classificador (auto-descrito não-EA)
+surrogate: Híbrido: classificador BNN MC-Dropout (ranks); Deep GP esparso/variacional por objetivo (média+var epistêmica+aleatória); rede de aquisição MLP online.
+incerteza: Multi-fonte load-bearing: (a) info-gain epistêmico do classificador guia geração rank-condicionada e exploração na seleção; (b) var epistêmica+aleatória do Deep GP viram features da aquisição (decisão risk-aware); (c) triagem rebaixa candidatos de alta var epistêmica (penalidade pré-avaliação). Misto: explora (classificador) + gerencia/penaliza (triagem GP); pressão de exploração equilibrada e calibrada. | comportamento: aceita-explora | quantif: Info-gain MC-Dropout (BALD) no classificador; var epistêmica+aleatória heteroscedástica do Deep GP; ECE/MCE/ACE+temperature scaling.
+infill: Aquisição aprendida/amortizada (HV+diversidade) + escore composto custom; baselines EHVI/EI.
+rigor s5: 3 | maturidade e4: 2 | ressalva: Mencionável só como exemplo contemporâneo de SA-MOEA multi-componente uncertainty-aware, COM caveat de resultados não verificados/inconsistências; não como método validado.
+
+### c1 · BS-MOBO (2018) · BO-Hipervolume · O1 · Aquisição exploratória · NN — Rede Neural · DISC-ENS (discordância entre predições) · online · papel outro · tier Preprint-Forte · cit - · impl NÃO · S_surv 6.9 · S_exp 2
+título: A Batched Scalable Multi-Objective Bayesian Optimization Algorithm
+n_obj: 2 e 3 (ZDT/UF1-7/F=2; DTLZ1-2/UF8-10=3; Rosetta=2) | data_volume: small-e-big (160 FEs/8-D; 1000 FEs/50-D)
+motor: MOBO (loop BO em lote); aquisição B-HUCB; solver interno MOEA/D-Tchebycheff + seleção gulosa por hipervolume
+surrogate: BNN com MC dropout; 1/objetivo; 2×256 ReLU, dropout 0.05, S=20; treino Sobolev opcional p/ gradiente
+incerteza: σ(MC dropout) como bônus otimista: LCB G(x)=μ−σ define MOP-surrogate (MOEA/D) e alimenta HV na B-HUCB → trade-off exploração-explotação no lote | comportamento: aceita-explora | quantif: σ̂ MC dropout (variância empírica de S=20 passagens); epistêmica, por objetivo
+infill: Hipervolume-UCB em lote (B-HUCB, novel) sobre LCB; 2 estágios (decomposição + seleção gulosa de subconjunto por HV)
+rigor s5: 8 | maturidade e4: 1 | ressalva: Zona 6,0–6,9: true por razão forte (exemplar distinto de família sub-representada: BNN-MCdropout escalável + gradiente + lote). Ressalvas: preprint não-publicado; uso de incerteza UCB/LCB convencional
+
+### c10 · SP-RV-MOEANet (2021) · EA-Decomposição · O3 · Aprendizado ativo / reparo · RG — Regressor Clássico (não-GP) · DISC-ENS (discordância entre predições) · online · papel outro · tier A++ · cit 51 · impl NÃO · S_surv 6.7 · S_exp 1.5
+título: A Computationally Efficient Evolutionary Algorithm for Multiobjective Network Robustness Optimization
+n_obj: 2 | data_volume: big
+motor: RVEA (ref-vector-guided EA) p/ redes + avaliação paralela (latência não-uniforme R vs Rl)
+surrogate: Ensemble não-GP RBF+IDW+LS sobre embeddings SDNE 2D + extrações (PCA, centros K-means, top-k hubs)
+incerteza: Discordância do ensemble na MUTAÇÃO, 2 papéis opostos: σ ALTO atrai exploração (Numoth=2 reps por incerteza+distância → candidatas a não-dominadas); σ BAIXO habilita rewiring guiado pela robustez estimada (confia no surrogate só onde confiável). Modula quem sofre qual operador; não penaliza fitness | comportamento: aceita-explora | quantif: Discordância empírica entre membros do ensemble (não-GP)
+infill: Active-learning por comitê (incerteza+clustering+distância); sem aquisição BO
+rigor s5: 7 | maturidade e4: 1 | ressalva: Uso da incerteza secundário (não é a contribuição-título) + problema combinatório/discreto (fora do núcleo contínuo); entra como contraste/fronteira
+
+### c24 · DTK-MODE (2015) · EA-Dominância · O3 · Aprendizado ativo / reparo · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · offline · papel outro · tier offline · cit 13 · impl NÃO · S_surv 4.3 · S_exp 2
+título: A Numerically Efficient Multi-Objective Optimization Algorithm: Combination of Dynamic Taylor Kriging and Differential Evolution
+n_obj: 2 (bi-objetivo; só TEAM22). Faixa não declarada. | data_volume: small
+motor: MODE (DE multiobjetivo, multi-guiders + ranking não-dominado)
+surrogate: Dynamic Taylor Kriging (DTK) — Kriging com bases de Taylor selecionadas por B-PSO
+incerteza: Incerteza (σ²_p Kriging → banda d(x)) NÃO entra na busca MODE; entra na CONSTRUÇÃO do surrogate: (1) seleção de bases via B-PSO minimizando média de d(x); (2) amostragem adaptativa/active learning inserindo pontos com d(x)>ε p/ FEA real até max{d(x)}≤ε. | comportamento: aceita-explora | quantif: σ²_p(x) Kriging (Eq.8) → d(x)=2·Z_{1-α/2}·σ²_p (largura do intervalo de predição)
+infill: Infill de redução de incerteza / variance-based active learning (custom); NÃO é acquisition de otimização (sem EI/EHVI/PI; mira erro do modelo).
+rigor s5: 4 | maturidade e4: 1 | ressalva: Possível citação periférica como contraste (incerteza p/ construção/amostragem do surrogate, não na seleção MO; SA-MODE precoce em EM).
+
+### c29 · MO P-algorithm (2014) · BO-Melhoria-de-Pareto · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel classico · tier A- · cit 32 · impl NÃO · S_surv 6.8 · S_exp 2
+título: A statistical model-based algorithm for 'black-box' multi-objective optimisation
+n_obj: 2 | data_volume: small
+motor: MOBO sequencial: maximiza probabilidade de melhoria (PoI) sobre A via multistart + descida local
+surrogate: Campo gaussiano vetorial = m GPs/Kriging independentes (1/objetivo)
+incerteza: σ condicional s_i(X|·) do GP entra na CDF G(y^on_i,m_i,s_i)=P{ξ_i≤y^on_i|dados}; produto sobre objetivos = prob. de melhoria, maximizada p/ escolher ponto real. σ controla massa abaixo do limiar → atrai busca p/ regiões incertas (exploração). | comportamento: aceita-explora | quantif: Desvio-padrão condicional (Kriging/GP) s_i(X|·); paramétrico gaussiano
+infill: PoI multiobjetivo — produto de prob. de melhoria por objetivo vs. vetor-limiar Y^on (geométrica/threshold-based)
+rigor s5: 4 | maturidade e4: 2 | ressalva: N/A (G5=true). Nota: validação experimental fraca (só vs. Monte Carlo) — não barra inclusão conceitual.
+
+### c45 · GP-DGS (2024) · BO-Especiais · A2 · Dominância probabilística · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · offline · papel outro · tier offline · cit 4 · impl NÃO · S_surv 4.6 · S_exp 2
+título: An Efficient Surrogate-based Multi-objective Optimisation Framework with Novel Sampling Strategy for Sustainable Island Groundwater Management
+n_obj: 2 | data_volume: small
+motor: MOOA não especificado sobre surrogate fixo; front caracterizado por MC
+surrogate: GP/Kriging (kernel exp. quadrático), 1 GP por objetivo/restrição (scikit-learn)
+incerteza: σ-GP via MC(100)→PPO de cada solução; PPO caracteriza/rankeia confiabilidade (top-30 na validação NRMSE) e compara estratégias de treino. Termo dc=proxy de incerteza dirige amostragem de treino. | comportamento: misto (predomina rejeita-gerencia na seleção; aceita-explora na amostragem) | quantif: σ/variância preditiva GP via MC→PPO; NRMSE de validação
+infill: geométrica/custom: F=0,5·R(dc)+0,5·R(∇G) (active learning offline) — não-BO
+rigor s5: 3 | maturidade e4: 1 | ressalva: Mencionável como exemplo aplicado (offline-confiabilidade via probabilidade de Pareto-otimalidade), não por mérito.
+
+### c48 · IBE-CSEA (2021) · EA-Dominância · A3 · Gestão de confiança · CL - Relação/Classificação · ERR-EMP (erro empírico vs. verdade) · online · papel outro · tier B+ · cit 19 · impl NÃO · S_surv 5.2 · S_exp 2
+título: An improved bagging ensemble surrogate-assisted evolutionary algorithm for expensive many-objective optimization
+n_obj: 3,4,6,8,10 (DTLZ/MaF); 9 (crashworthiness) | data_volume: small
+motor: MOEA populacional + one-by-one selection (framework CSEA); SBX+mut.polinomial; seleção ambiental P∪Q
+surrogate: Ensemble bagging podado de classificadores RBF (dominância A/B)
+incerteza: Erro de classificação por grupo no test set (m1,m2 via MAE) é mapeado em R1/R2/R3 (Fig.2): R1→prole do grupo A; R2→nenhuma; R3→grupo B. A confiabilidade decide de qual grupo confiar p/ gerar/reavaliar — gestão de confiança/model management. Medida agregada por grupo, não per-ponto. | comportamento: rejeita-gerencia | quantif: MAE de classificação no test set por grupo (m1,m2); RMSE p/ poda
+infill: custom — seleção por classificação + região de confiabilidade (não-BO)
+rigor s5: 7 | maturidade e4: 1 | ressalva: Citação secundária possível como variante-ensemble de CSEA; eixo de incerteza redundante com CSEA
+
+### c49 · Interactive Offline DD-MOEA Framework (sigla não-oficial, proposta por mim) (2020) · EA-Decomposição · Resíduo · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · offline · papel outro · tier offline · cit 7 · impl NÃO · S_surv 6.3 · S_exp 2
+título: An Interactive Framework for Offline Data-Driven Multiobjective Optimization
+n_obj: Geral K≥2 (escalável); demonstrado 10 (GAA), 11 c/ restrição como objetivo | data_volume: small (borderline) — 1000 amostras LHS fixas / 27 dims (esparso)
+motor: RVEA (decomposition, APD) sobre predições + camada interativa (adapt. ref. vectors, arquivo, pré-filtragem 2 fases, corte de tolerância)
+surrogate: Kriging / GP (kernel RBF), um por objetivo
+incerteza: σ Kriging usada na 2ª pré-filtragem (sorting c/ σ como obj. extra), no corte g_k=1.96σ_k−τ_k·f̂_k/100≤0 dirigido por preferência do DM, e na viz. NÃO toca a seleção do MOEA — vive na camada de decisão. | comportamento: rejeita-gerencia | quantif: σ preditivo do Kriging (variância posterior gaussiana); 1.96σ = IC95% no corte
+infill: 
+rigor s5: 4.5 | maturidade e4: 1 | ressalva: Incerteza na camada de decisão (não na busca; RVEA off-the-shelf); impacto/rigor modestos. Entra pelo valor de contraste.
+
+### c50 · PD-MOEA (2018) · EA-Dominância · A2 · Dominância probabilística · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · offline · papel outro · tier offline · cit 68 · impl NÃO · S_surv 7.7 · S_exp 2
+título: Data-Driven Multi-Objective Optimisation of Coal-Fired Boiler Combustion Systems
+n_obj: 2 | data_volume: small
+motor: MOEA elitista com arquivo elite irrestrito + PQRS + crossover/mutação + retenção por α-dominância (dominância probabilística)
+surrogate: Dois GPs univariados independentes (GUBC, GNOx); kernel MLP+ARD (CV 10-fold); θ por verossimilhança marginal (BFGS); ruído em K
+incerteza: ver seção 4 — σ do GP propagada em dominância probabilística que governa retenção e seleção | comportamento: rejeita-gerencia | quantif: σ²(x) posterior do GP (eq.3), combinada via CDF gaussiana da diferença (eqs.8-9)
+infill: N/A (sem acquisition; infill evolutivo; incerteza na retenção por α-dominância)
+rigor s5: 6 | maturidade e4: 1 | ressalva: 
+
+### c59 · UA-DBO (2026) · EA-Dominância · A1 · Penalização avessa a risco · NN — Rede Neural · DISC-ENS (discordância entre predições) · offline · papel outro · tier offline · cit - · impl OFICIAL · S_surv 7.1 · S_exp 2
+título: Uncertainty-Aware Data-Based Method for Fast and Reliable Shape Optimization
+n_obj: 1 (drag divergence) e 2 (buffet onset, Ap. C) | data_volume: big (17.386 amostras CFD; 1.420 perfis)
+motor: Evolução diferencial multiobjetivo (MODE), AeroOPT
+surrogate: GS-ED (Gaussian Stochastic Encoder-Decoder) — NN probabilística variacional
+incerteza: Penaliza σ epistêmico do surrogate no objetivo (min μ+wσ) p/ evitar ótimos falsos em DBO offline. | comportamento: rejeita-gerencia | quantif: σ por MC do latente variacional; calibrada (ECE); comparada a discordância de deep ensemble
+infill: N/A (offline; μ+wσ é objetivo robusto, não infill)
+rigor s5: 7.5 | maturidade e4: 7 | ressalva: Aplicação aeroespacial; caso principal single-obj (MO no Ap. C). Entra pelo mecanismo (exemplar de robustez offline + fronteira de escopo surrogate-vs-entrada).
+
+### c65 · SABBa (2022) · Resíduo · A2 · Dominância probabilística · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 17 · impl NÃO · S_surv 6.5 · S_exp 1.5
+título: Surrogate-Assisted Bounding-Box Approach Applied to Constrained Multi-Objective Optimisation Under Uncertainty
+n_obj: 1–3 (framework ≤3 obj) | data_volume: small
+motor: Otimizador genérico derivative-free (aqui NOMAD/MADS)
+surrogate: GP/Kriging (GPy); RBF/ARD; GP heteroscedástico no SA model
+incerteza: Ver §4.1 | comportamento: rejeita-gerencia | quantif: σ GP; ε=3σ (±3σ); ruído σ²=(ε/3)²; erros propagados (Eq.6)
+infill: custom — POPmin (projeto) + MMSPE/prob.-extremo ×φ (ξ)
+rigor s5: 6.5 | maturidade e4: 2 | ressalva: Identidade primária = OUU/robusto-à-ENTRADA (RO/RBDO); entra como CONTRASTE/vizinhança, não SA-MOEA-core.
+
+### c66 · PAL-SAPSO (2019) · EA-Dominância · A2 · Dominância probabilística · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel classico · tier A+ · cit 140 · impl NÃO · S_surv 7.3 · S_exp 2
+título: Surrogate-Assisted Particle Swarm Optimization Algorithm With Pareto Active Learning for Expensive Multi-Objective Optimization
+n_obj: 2 (só m=2 testado; formulado p/ m) | data_volume: small
+motor: MOPSO c/ arquivo; PSO como otimizador (real) e amostrador (virtual, evolução simulada)
+surrogate: GP/Kriging (1 por objetivo), kernel exp. quadrático (RBF)
+incerteza: σ do GP forma regiões de incerteza no ε-PAL: classifica ε-Pareto/ε-dominado 'com alta prob.' e seleciona ativamente pontos incertos p/ avaliação real. Ver §4.1 | comportamento: aceita-explora | quantif: Variância/σ posterior do GP (Kriging), eq. (6)
+infill: Infill por aprendizado ativo / classificação Pareto (ε-PAL); não EI/EHVI/entropia
+rigor s5: 5 | maturidade e4: 1 | ressalva: 
+
+### c71 · SAEA/ME (2020) · BO-Especiais · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier B+ · cit - · impl NÃO · S_surv 7 · S_exp 2
+título: Surrogate Assisted Evolutionary Algorithm for Medium Scale Expensive Multi-Objective Optimisation Problems
+n_obj: 2(ZDT) e 3(DTLZ); genérico m; transformação→2m objetivos | data_volume: small (expensive); 300/400/800 FEs p/ n=10/20/50
+motor: NSGA-II como otimizador da aquisição transformada (loop externo EGO/BO)
+surrogate: GP/Kriging (1 por objetivo), kernel RBF, máx. log-verossimilhança
+incerteza: σ² do GP em 2 papéis: (1) objetivo de exploração na aquisição h_2i=g_i−V[g_i] (LCB) otimizada por NSGA-II; (2) subset selection batch via LCB(g−2V) + contribuição de HV em S^o e S^l, interseção = batch promissor sob média E limite otimista | comportamento: aceita-explora | quantif: Variância preditiva posterior GP/Kriging V[g(z*)] (eq.2); usada como V e 2V(IC95%)
+infill: LCB reformulado como problema 2m-objetivo (média+LCB) + infill batch por Hypervolume-subset
+rigor s5: 6.5 | maturidade e4: 2 | ressalva: N/A (incerteza central; score puxado só por impacto baixo)
+
+### c75 · MO-EI/PI (Keane) (2006) · BO-Melhoria-de-Pareto · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel seminal · tier A- · cit 325 · impl NÃO · S_surv 8.5 · S_exp 2
+título: Statistical Improvement Criteria for Use in Multiobjective Design Optimization
+n_obj: 2 (demonstrado); M>2 em forma fechada (declarado) | data_volume: small
+motor: MOBO sequencial/batch; P[I]/E[I] maximizado no espaço por GA(K-means/niching)+DHC
+surrogate: Kriging/GP (1 por objetivo)
+incerteza: s(x) do krig=largura da PDF; P[I] integra PDF conjunta na melhoria; E[I]=P[I]×braço euclidiano | comportamento: aceita-explora | quantif: MSE do krig s²(x) (Eq.9)→erro padrão; variância GP analítica; não-correlacionados
+infill: PI/EI extensão euclidiana MO (aug/dom/avg)
+rigor s5: 7 | maturidade e4: 3 | ressalva: 
+
+### c81 · UA-MORL-Diff (2025) · Resíduo · A1 · Penalização avessa a risco · NN — Rede Neural · NAT-nonGP (distribuição nativa não-GP) · offline · papel estado-da-arte · tier offline · cit - · impl OFICIAL · S_surv 7.6 · S_exp 2
+título: Uncertainty-Aware Multi-Objective Reinforcement Learning-Guided Diffusion Models for 3D De Novo Molecular Design
+n_obj: 3 (QED, SAS, affinity); genérico p/ k | data_volume: big
+motor: RL (PPO clipado) fine-tuna difusão EDM; MOO por produto de probabilidades
+surrogate: D-MPNN Chemprop, evidential/NIG; 9 modelos; ensemble=1
+incerteza: ver §4.1 | comportamento: rejeita-gerencia | quantif: σ²_total (aleat.+epist.) via evidential/NIG do D-MPNN
+infill: N/A (reward=P(prop>limiar); sabor prob-of-feasibility)
+rigor s5: 8.5 | maturidade e4: 8 | ressalva: Contraste/paradigma distinto (MOO uncertainty-aware generativo+RL), não SA-MOEA clássico
+
+### c82 · TC-SAEA (2022) · EA-Decomposição · A3 · Gestão de confiança · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A+ · cit 23 · impl OFICIAL · S_surv 6.84 · S_exp 2
+título: Transfer Learning Based Co-surrogate Assisted Evolutionary Bi-objective Optimization for Objectives with Non-uniform Evaluation Times
+n_obj: 2 | data_volume: small
+motor: RVEA (APD) sobre surrogates + SOEA (GA) p/ objetivo rápido
+surrogate: GP/Kriging (GPs, GPf, co-surrogate GPc)
+incerteza: Dois usos load-bearing: (1) AF LCB no model management (σ atrai exploração); (2) σ do GPs → CI=Ys±σs como filtro de confiabilidade que aceita/rejeita valores sintéticos antes de aumentar GPs (gate anti-transferência-negativa). | comportamento: rejeita-gerencia | quantif: σ̂ posterior GP/Kriging (Eq.8), analítico
+infill: Optimistic / LCB adaptativo + APD
+rigor s5: 8 | maturidade e4: 8 | ressalva: Nicho estreito (bi-objetivo, latências não-uniformes); incerteza load-bearing mas mecanismo CI simples; parte do uso (AF) herdada.
+
+### c91 · EHVIMOPSO (2019) · EA-Dominância · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 32 · impl NÃO · S_surv 5.2 · S_exp 2
+título: Effective optimization on Bump inlet using meta-model multi-objective particle swarm assisted by expected hyper-volume improvement
+n_obj: 2 | data_volume: small
+motor: MOPSO-CD (PSO multiobjetivo com crowding distance)
+surrogate: Kriging (GP) self-adaptive; 1 modelo por objetivo e por restrição
+incerteza: ver prosa §Incerteza | comportamento: aceita-explora | quantif: σ/σ² do Kriging (densidade gaussiana por objetivo); MSE nas restrições
+infill: EHVI (baseada em hipervolume); variante dynamic-EHVI p/ eficiência
+rigor s5: 4.5 | maturidade e4: 2 | ressalva: Citável só como exemplo secundário/contextual (EHVI-infill+motor PSO; aplicação eng.; dynamic-EHVI).
+
+### c97 · EnGP-MRO (2011) · EA-Dominância · Resíduo · RG — Regressor Clássico (não-GP) · DISC-ENS (discordância entre predições) · offline · papel seminal · tier offline · cit 135 · impl NÃO · S_surv 7.4 · S_exp 1.5
+título: Coupled simulation-optimization model for coastal aquifer management using genetic programming-based ensemble surrogate models and multiple-realization optimization
+n_obj: 2 | data_volume: small
+motor: NSGA-II
+surrogate: Ensemble (~30/local) de regressão simbólica por Programação Genética (GP), via bootstrap
+incerteza: ver prosa | comportamento: rejeita-gerencia | quantif: CDF empírica de resíduos (surrogate−numérico) + N realizações bootstrap-GP + CV dos RMSEs
+infill: 
+rigor s5: 7 | maturidade e4: 1 | ressalva: Algoritmo borderline (NSGA-II padrão; multiple-realization/chance-constrained emprestados); contribuição = framework de incerteza; domínio-específico, sem suítes-padrão.
+
+### c100 · qEHVI (2020) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A+ · cit - · impl OFICIAL · S_surv 8.7 · S_exp 9
+título: Differentiable Expected Hypervolume Improvement for Parallel Multi-Objective Bayesian Optimization
+n_obj: M geral; exp. M=2 (Branin-Currin, C2-DTLZ2, ABR) e M=3 (Vehicle Safety); prática ≤4-5 | data_volume: small (100 FEs + design inicial Sobol)
+motor: Maximização de aquisição (BO) por gradiente exato; sem população
+surrogate: Gaussian Process (GP) probabilístico (indep. por objetivo ou multi-saída)
+incerteza: Posterior do GP na AQUISIÇÃO: qEHVI=E[HVI] integra o ganho de HV sobre a posterior; gera os próximos q candidatos | comportamento: aceita-explora | quantif: posterior gaussiana GP (μ,Σ); amostras quasi-MC; prob. viabilidade (restrições)
+infill: Hipervolume-based (EHVI/qEHVI), paralela+restrita; gradientes exatos
+rigor s5: 9 | maturidade e4: 10 | ressalva: 
+
+### c105 · SMS-EGO (2008) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel seminal · tier B+ · cit 299 · impl CANÔNICA · S_surv 8 · S_exp 7.7
+título: Multiobjective Optimization on a Limited Budget of Evaluations Using Model-Assisted S-Metric Selection
+n_obj: 2, 3 e 5 (testado); escala em m por construção | data_volume: small
+motor: Loop EGO sequencial: maximização do critério de infill (contribuição de S-metric/HV do LCB) via CMA-ES
+surrogate: DACE/Kriging (GP), um modelo por objetivo
+incerteza: σ do Kriging entra no LCB ŷ_pot=ŷ−ασ (por objetivo), formando vetor otimista usado p/ contribuição de S-metric; injeta exploração; α=Φ⁻¹(0.5+1/2^m) calibra peso por nº de objetivos. | comportamento: aceita-explora | quantif: Desvio-padrão ŝ da predição Kriging/DACE (variância GP)
+infill: Baseada em hipervolume (contribuição de S-metric do LCB + ε-dominância) — híbrido LCB/HV
+rigor s5: 6 | maturidade e4: 6 | ressalva: 
+
+### c106 · EMMI (EMmI) (2016) · BO-Melhoria-de-Pareto · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel seminal · tier A- · cit - · impl NÃO · S_surv 8.6 · S_exp 1.8
+título: Multiobjective Optimization of Expensive Black-Box Functions via Expected Maximin Improvement
+n_obj: m>=2; m=2 (MOP2, fórmula fechada), m=4 (DTLZ2, Monte Carlo). Escalável. | data_volume: small (expensive; ~20-40 FEs reais totais nos exemplos)
+motor: BO sequencial; argmax EIM via MADS (NOMADm); sem população evolutiva persistente.
+surrogate: GP/Kriging interpolador. Variantes: GPs independentes por objetivo; GP multivariado não-separável com dependência entre saídas (A=raiz de Sigma0 por autovalores).
+incerteza: Ver seção 4.1. | comportamento: aceita-explora | quantif: Variância preditiva do GP (MSPE s^2(x); matriz S(x) com rho(x) entre objetivos)
+infill: Expected Maximin Improvement (= Expected additive Binary-eps Improvement); melhoria por indicador de dominância. Fechada p/ m=2, SAA p/ m>=3.
+rigor s5: 6 | maturidade e4: 2 | ressalva: 
+
+### c107 · MS-VHGP-EIHV (2017) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A+ · cit 26 · impl NÃO · S_surv 6.8 · S_exp 2
+título: Multiobjective Optimization Based on Expensive Robotic Experiments under Heteroscedastic Noise
+n_obj: 2 (bi-objetivo; método p/ m pequeno, >2 não demonstrado) | data_volume: small
+motor: BO/RSM sequencial: argmax EIHV (grade densa + gradiente)
+surrogate: GP duplo: GP homoscedástico (kernel SE) + VHGP heteroscedástico, seleção por LOO
+incerteza: Variância preditiva GP/VHGP dirige EIHV (explore×exploit); ruído heteroscedástico compõe a variância; resíduo LOO calibra a seleção do surrogate | comportamento: aceita-explora | quantif: σ² preditivo GP (Eq.5) e VHGP (Eq.11); variância de log-ruído g(x); resíduo padronizado LOO
+infill: EIHV (hipervolume) + aprox. gaussiana da preditiva não-gaussiana do VHGP
+rigor s5: 6.5 | maturidade e4: 2 | ressalva: Exemplar do ângulo raro 'incerteza ciente de ruído heteroscedástico' + robô real; lineage de robótica, fora do cânone EC; entra como contraste.
+
+### c117 · AdaE-SAEA (2026) · Resíduo · O1 · Aquisição exploratória · NN — Rede Neural · DISC-ENS (discordância entre predições) · online · papel outro · tier Preprint-Forte · cit - · impl NÃO · S_surv 6 · S_exp 2
+título: Meta-Black-Box Optimization with Ensemble Surrogate Modeling for Robustness–Accuracy Trade-off within SAEA
+n_obj: 2 e 3 (ZDT m=2; DTLZ m=3; RE m=2-3) | data_volume: small
+motor: MetaBBO bi-nível: DQN controla (surrogate×infill); low-level SAEA híbrido NSGA-III+CDM-PSL+qNEHVI
+surrogate: Ensemble de TabPFN (bagging e boosting); base TabPFN
+incerteza: Ver corpo (EPDI uncertainty-aware + MAPE como feature meta + σ_ens) | comportamento: aceita-explora | quantif: σ TabPFN (bins); σ_ens (lei var. total + cov. amostrada); MAPE validação (s14/s15)
+infill: Híbrido 5 critérios: ND-A, ND-ΔPBI×2, EPDI×2 (só EPDI usa σ)
+rigor s5: 6 | maturidade e4: 1 | ressalva: Incerteza periférica (G5=6); entra como exemplar de maquinaria MetaBBO+ensemble TabPFN, não como caso central de uso de incerteza.
+
+### c118 · DB-SAEA (2026) · Resíduo · Resíduo · NN — Rede Neural · NAT-nonGP (distribuição nativa não-GP) · online · papel estado-da-arte · tier A · cit - · impl NÃO · S_surv 6.8 · S_exp 2
+título: Meta-Black-Box Optimization with Bi-Space Landscape Analysis and Dual-Control Mechanism for SAEA
+n_obj: 2 e 3 (ZDT bi-obj; DTLZ tri-obj); escalável em m | data_volume: small
+motor: MetaBBO-RL (Dueling DQN) sobre SAEA: geração híbrida NSGA-III/CDM-PSL/qNEHVI + seleção de infill
+surrogate: TabPFN (um por objetivo)
+incerteza: ver §4 | comportamento: rejeita-gerencia | quantif: std da distribuição preditiva categórica do TabPFN (Eq.4)
+infill: portfólio meta-selecionado (ND-A, ND-ΔPBI conv/div, EPDI expl/expl); qNEHVI=gerador
+rigor s5: 6.5 | maturidade e4: 1.5 | ressalva: Uso da incerteza indireto (feature de estado p/ política RL); entra como contraste de fronteira MetaBBO/controle-aprendido.
+
+### c122 · θ-DEA-DP (2022) · EA-Decomposição · A2 · Dominância probabilística · CL - Relação/Classificação · NAT-nonGP (distribuição nativa não-GP) · online · papel estado-da-arte · tier A++ · cit 61 · impl OFICIAL · S_surv 8.1 · S_exp 8.35
+título: Expensive Multi-Objective Evolutionary Optimization Assisted by Dominance Prediction
+n_obj: 2, 3, 5, 8 (multi e many-objetivo; m≥2) | data_volume: small (≤400 FEs reais: 250 m=2,3; 300 m=5; 400 m=8)
+motor: θ-DEA (decomposição + θ-dominância + Pareto-dominância) com preseleção em duas etapas
+surrogate: Dois FNN profundos classificadores (Pareto-Net e θ-Net), 3 classes cada (PyTorch)
+incerteza: Confiança/probabilidade de classe (max-softmax) das redes. 3 usos: (1) desempate de predições inconsistentes [u,v]≠[v,u] pela direção de maior confiança (Eq.4); (2) filtrar Qmax candidatos via psum; (3) EDN (Eq.6-7) conta dominados PONDERADO pela confiança. Função: ponderar/gerir a confiabilidade das predições do surrogate (não explorar incerteza). | comportamento: rejeita-gerencia | quantif: probabilidade/margem de classe (max-softmax)
+infill: Custom — preseleção 2 etapas (dominância prevista + EDN ponderado por confiança); não maximiza aquisição sobre o espaço
+rigor s5: 9 | maturidade e4: 8 | ressalva: 
+
+### c123 · EPBII / EIPBII (2017) · BO-Decomposição · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A++ · cit 76 · impl OFICIAL · S_surv 8.2 · S_exp 8.2
+título: Expected Improvement of Penalty-Based Boundary Intersection for Expensive Multiobjective Optimization
+n_obj: 2, 3, 4 (declarado e testado) | data_volume: small (orçamento total 200 FEs p/ 2-obj, 300 p/ 3-4 obj; LHS inicial 11m-1)
+motor: EGO/EI com infill por decomposição PBI/IPBI; NSGA-II como otimizador da aquisição
+surrogate: Ordinary Kriging (um por objetivo), correlação gaussiana anisotrópica
+incerteza: s²(x) do Kriging define N(f̂_i,s²_i)/obj, integrada (MC 500) p/ o VALOR ESPERADO da melhoria de PBI/IPBI (EPBII/EIPBII): é o que faz o expected improvement; alta s² > EPBII alto > atrai amostragem real. Sem incerteza degenera em EST (predição pontual). | comportamento: aceita-explora | quantif: σ/variância de predição do Kriging (Eq.4) — erro epistêmico do GP
+infill: Expected Improvement por decomposição/escalarização (PBI e IPBI)
+rigor s5: 9 | maturidade e4: 8 | ressalva: 
+
+### c125 · DDMOEA/GAN (2022) · EA-Dominância · A1 · Penalização avessa a risco · RG — Regressor Clássico (não-GP) · Resíduo · offline · papel outro · tier offline · cit 11 · impl NÃO · S_surv 7.15 · S_exp 1.8
+título: Offline Data-Driven Multi-objective Optimization Evolutionary Algorithm based on Generative Adversarial Network
+n_obj: 2 e 3 (F: M=2; DTLZ1-7/WFG1-9: M=3; NdFeB: M=2) | data_volume: small — 10×D amostras LHS (60-300); NdFeB 84 amostras
+motor: NSGA-II (non-dominated sorting + crowding) sobre critical fitness
+surrogate: Ensemble (pool) de RBFN kernel Gaussiano, bagging, predição=média
+incerteza: ver 4.1 — critical score do discriminador GAN desconta multiplicativamente a predição do RBFN penalizando soluções fora-de-distribuição (pouco confiáveis) | comportamento: rejeita-gerencia | quantif: critical score C_score do discriminador WGAN-GP (∈[0,1]), divergência da distribuição de treino
+infill: 
+rigor s5: 7 | maturidade e4: 1 | ressalva: N/A — mérito pleno
+
+### c131 · MORBO (2022) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A · cit - · impl OFICIAL · S_surv 8.1 · S_exp 7.6
+título: Multi-Objective Bayesian Optimization over High-Dimensional Search Spaces
+n_obj: M≥2; experimentos 2/3/4 | data_volume: big
+motor: BO multi-trust-region local + HVI via Thompson sampling
+surrogate: GP local (Matérn-5/2+ARD), múltiplos
+incerteza: Ver §4.1 | comportamento: aceita-explora | quantif: posterior GP via Thompson sampling; γT na teoria
+infill: hipervolume (EHVI) via TS (1-amostra de EHVI); HV-scalarization na reinicialização
+rigor s5: 9.5 | maturidade e4: 9 | ressalva: N/A — incerteza é o padrão de BO (TS/EHVI), in-scope e load-bearing
+
+### c138 · PPESMOC (2021) · BO-Especiais · O2 · Ganho de informação · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A- · cit - · impl OFICIAL · S_surv 8.5 · S_exp 2
+título: Parallel Predictive Entropy Search for Multi-objective Bayesian Optimization with Constraints
+n_obj: 2 nos experimentos (K obj + C restr na formulação geral) | data_volume: small
+motor: BO batch info-based; aquisição PES maximizada sobre espaço B×D via L-BFGS + gradientes exatos (Autograd)
+surrogate: GPs independentes (um por objetivo/restrição); kernel Matérn; slice sampling (10 amostras)
+incerteza: A incerteza É a aquisição: escolhe o lote que maximiza a redução esperada da entropia sobre o Pareto set factível X*. Termo1=H[p(Y|D,X)] (entropia da preditiva GP, log-det covariâncias, analítico); termo2=entropia condicional esperada dado X* amostrado (EP). Diferença = ganho de informação. Load-bearing máximo | comportamento: aceita-explora | quantif: Entropia diferencial Gaussiana via log-det das covariâncias preditivas GP (Eq.5,11); variância Kriging/epistêmica
+infill: Information-theoretic/entropia (PES) batch+multiobj+restrições; MC (random features) + EP; L-BFGS+Autograd
+rigor s5: 8 | maturidade e4: 6 | ressalva: 
+
+### c141 · MMRAEA (2025) · EA-Dominância · O1 · Aquisição exploratória · RG — Regressor Clássico (não-GP) · DISC-ENS (discordância entre predições) · online · papel estado-da-arte · tier A- · cit 10 · impl OFICIAL · S_surv 6.7 · S_exp 7.65
+título: Optimization of high-dimensional expensive multi-objective problems using multi-mode radial basis functions
+n_obj: 2 e 3 (ZDT=2, DTLZ/WFG=3, BWBUG=2). Limitado a 2-3 (seleção Pareto; inadequado p/ many-obj, declarado) | data_volume: small (FEmax=11d+119; d=100→1219 FEs reais; expensive apertado)
+motor: Bi-população paralela: P1 por CSO, P2 por GA(SBX+PM); seleção ambiental NSGA-II sobre objetivos previstos pelos ARBFs
+surrogate: Ensemble multi-modo de RBF multiquádrica: ARBFs (1/objetivo, valores f_i), FitRBF (fitness SDE escalar), FNRBF (front number contínuo). Retreinados a cada iteração
+incerteza: U_j=Σ|R_i,j−R_k,j| (discrepância de ranks entre os 3 modos RBF). Entra na AMOSTRAGEM (nível 3): non-dominated sorting de (Q,U) pega bons+confiáveis E força reavaliação do ponto de MÁXIMA incerteza p/ explorar/corrigir o modelo em alta dimensão. Uso bivalente: baixa U no sorting (confiabilidade) + máx U forçado (exploração, dominante) | comportamento: aceita-explora | quantif: Discordância de ensemble (discrepância de ranks entre 3 modos RBF; não-paramétrica)
+infill: Geométrico/custom multi-critério (sorting Q-vs-U + pick máx incerteza); não EI/EHVI/UCB
+rigor s5: 8 | maturidade e4: 8 | ressalva: Melhor exemplar de família sub-representada (HD-EMO + incerteza por ensemble RBF não-GP); uso de incerteza central porém mecanicamente simples
+
+### c149 · LBN-MOBO (2023) · BO-Especiais · O1 · Aquisição exploratória · NN — Rede Neural · DISC-ENS (discordância entre predições) · online · papel outro · tier Preprint-Forte · cit - · impl OFICIAL · S_surv 7.5 · S_exp 5.9
+título: Large-Batch, Iteration-Efficient Neural Bayesian Design Optimization
+n_obj: 2–3 (geral M; M=2 ZDT/airfoil/gamut, M=3 DTLZ; custo do 2MD cresce com M) | data_volume: big (iteration-efficiency: batch 1000 sintético, 15k–20k real × ~10 iter ≈ 1e4–2e5 FEs reais; >> ~300)
+motor: loop de BO; aquisição 2MD via ordenação não-dominada do NSGA-II sobre o surrogate; large-batch, multi-seed paralelo, gradient-free
+surrogate: BNN — Deep Ensembles (K=10, ativações diversas) primário; MC-Dropout equivalente; pipeline agnóstico (HMC/SGHMC/DKL/IBNN)
+incerteza: incerteza epistêmica do ensemble vira M objetivos extras na frente de Pareto 2MD, maximizados junto ao desempenho p/ explorar e refinar o surrogate (ver §4.1) | comportamento: aceita-explora | quantif: variância de discordância entre membros do ensemble (Eq. 2b); MC-Dropout (Eq. 13)
+infill: geométrica/custom — frente de Pareto 2M-dim de (predição ⊕ incerteza); não-EHVI/EI/UCB/entropia/Thompson
+rigor s5: 8 | maturidade e4: 5.5 | ressalva: 
+
+### c154 · JES (2022) · BO-Especiais · O2 · Ganho de informação · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A+ · cit - · impl OFICIAL · S_surv 9.3 · S_exp 8.25
+título: Joint Entropy Search for Multi-Objective Bayesian Optimization
+n_obj: 2 a 4 (M=2 ZDT2/SnAr, M=3 Penicillin, M=4 Marine); formalismo geral M | data_volume: small
+motor: Loop MOBO sequencial/batch via max da aquisição JES sobre o espaço
+surrogate: GP independente por objetivo, Matérn 5/2 ARD, ruído gaussiano; BoTorch/GPyTorch
+incerteza: A entropia/variância posterior do GP É o funcional otimizado: aquisição = ganho de MI sobre (X*,Y*). Entra na etapa de aquisição/infill, dirige amostragem para pontos que mais reduzem a incerteza sobre o ótimo | comportamento: aceita-explora | quantif: Entropia diferencial / variância posterior GP (σ²), via MI conjunta; MC de paths + box decomposition
+infill: Information-theoretic / entropia (Joint Entropy Search; subtipos JES-0/LB/LB2/MC)
+rigor s5: 10 | maturidade e4: 10 | ressalva: 
+
+### c164 · FoMEMO (2026) · BO-Decomposição · O1 · Aquisição exploratória · NN — Rede Neural · NAT-nonGP (distribuição nativa não-GP) · online · papel estado-da-arte · tier Preprint-Forte · cit - · impl NÃO · S_surv 7.6 · S_exp 2
+título: FoMEMO: Towards Foundation Models for Expensive Multi-objective Optimization
+n_obj: 1 a 6 (treino m=1..6; experimentos m=2,3,4,6; many-objective coberto) | data_volume: small
+motor: Loop BO in-context sem GP-refit; acquisition maximizada sobre o espaço (L-BFGS-B multi-start)
+surrogate: Foundation model PFN (Transformer encoder) pré-treinado; substitui o GP, inferência in-context
+incerteza: σ do posterior agregado predito entra na UCB (μ+βσ, exploração) e, via UCB, nas preference-free UHVI/UR2I (substitui predição pontual por upper bound otimista); EI usa o posterior pela esperança. | comportamento: aceita-explora | quantif: σ do posterior agregado (distribuição Riemann/piecewise-constant do PFN); incerteza bayesiana amortizada/calibrada
+infill: EI, UCB (preference-based); UHVI (hypervolume scalarization) e UR2I (R2) preference-free; base Tchebycheff
+rigor s5: 7 | maturidade e4: 2 | ressalva: 
+
+### c167 · HDGP-BO (2026) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 0 · impl NÃO · S_surv 5.6 · S_exp 2
+título: Deep Gaussian process-based cost-aware batch Bayesian optimization for complex materials design campaigns
+n_obj: 2 a 5 (sintéticos O=2/3; RHEA 5 obj + 2 auxiliares) | data_volume: small
+motor: MOBO — maximização de aquisição (UCB+qEHVI) via simulated annealing; batch q=5
+surrogate: DGP multi-output 2 camadas; baselines cGP (Matérn-5/2) e MTGP (ICM)
+incerteza: σ posterior GP/DGP alimenta UCB (μ+βσ) e qEHVI (sobre N(μ,Σ)); equilibra exploração de regiões sub-caracterizadas vs exploitação high-mean/low-variance; DGP propaga incerteza entre camadas | comportamento: aceita-explora | quantif: σ posterior GP/DGP (forma fechada cGP; doubly-stochastic VI no DGP; variantes usam variância GP/MTGP por calibração)
+infill: Híbrido: UCB (cost-aware mono-obj) + qEHVI (hipervolume, multi-obj batch)
+rigor s5: 6 | maturidade e4: 2 | ressalva: Near-miss; citável como vizinhança/contraste (DGP profundo + MOBO cost-aware/multi-fidelity)
+
+### c168 · MO-DGP (2023) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 43 · impl OFICIAL · S_surv 6.3 · S_exp 5.95
+título: Deep Gaussian process for multi-objective Bayesian optimization
+n_obj: 2 (todos experimentos bi-objetivo; formulação geral n_o, EHVI restrito a 2) | data_volume: small
+motor: MOBO sequencial (loop EHVI)
+surrogate: Deep Gaussian Process multi-objetivo (MO-DGP), joint
+incerteza: ver seção 4.1 | comportamento: aceita-explora | quantif: covariância preditiva do DGP (posterior), via Gibbs+MC
+infill: EHVI (hipervolume)
+rigor s5: 7 | maturidade e4: 6 | ressalva: true COM RESSALVA — entra pela distinção do surrogate (DGP joint), NÃO pelo uso de incerteza (EHVI padrão, periférico).
+
+### c176 · DFC-MOEA (2022) · EA-Dominância · O1 · Aquisição exploratória · CL - Relação/Classificação · NAT-nonGP (distribuição nativa não-GP) · online · papel estado-da-arte · tier A++ · cit 18 · impl NÃO · S_surv 7.6 · S_exp 1.8
+título: Dual-Fuzzy-Classifier-Based Evolutionary Algorithm for Expensive Multiobjective Optimization
+n_obj: 2 e 3 (núcleo); 4/6/8/10 na extensão DFC-RSEA | data_volume: small
+motor: MOEA populacional plug-in (NSGA-II/SMS-EMOA/NSGA-III; RSEA em many-obj)
+surrogate: Dois classificadores fuzzy FKNN (K=1, neighbor-weighted)
+incerteza: Grau de pertinência fuzzy m∈[0,1] de cada solução à classe positiva; soma m1+m2 ordena e categoriza (good→FE real; medium→explora s/ FE; bad→descarta) e o gate l1=1&l2=1 pré-seleciona offspring | comportamento: aceita-explora | quantif: grau/margem de classe fuzzy (FKNN)
+infill: N/A (não-BO; análogo = categorização gulosa por m_sum)
+rigor s5: 9 | maturidade e4: 2 | ressalva: Incerteza load-bearing mas via grau fuzzy (não σ probabilístico) e não-central no discurso do paper
+
+### c180 · AMALGAM-CCP (2017) · EA-Dominância · Resíduo · RG — Regressor Clássico (não-GP) · ERR-EMP (erro empírico vs. verdade) · offline · papel outro · tier offline · cit 42 · impl NÃO · S_surv 4 · S_exp 2
+título: Chance-constrained multi-objective optimization of groundwater remediation design at DNAPLs-contaminated sites using a multi-algorithm genetically adaptive method
+n_obj: 2 | data_volume: small
+motor: AMALGAM (NSGA-II+PSO+AMS+DE multi-método adaptativo); NSGA-II como baseline
+surrogate: MGGP (regressão simbólica multi-gene; comparado offline com SVR e Kriging, MGGP escolhido)
+incerteza: Resíduo surrogate-simulador modelado como var. estocástica normal (média 0, σe), inserido via CCP na RESTRIÇÃO de remoção mínima de PCE: Pr[g>=g0]>=alpha -> E[g]-Φ⁻¹(alpha)·σe>=g0. Enrijece a restrição com alpha, deslocando o front custo/tempo. NÃO entra na lógica do otimizador AMALGAM (cego à incerteza); atua na formulação do problema. | comportamento: rejeita-gerencia | quantif: σe = desvio dos resíduos MGGP (validação vs simulador), normal média-zero (Lilliefors+t-test); Φ⁻¹(alpha)
+infill: 
+rigor s5: 4 | maturidade e4: 2 | ressalva: Incerteza periférica (na restrição CCP, não no motor); citável só como contraste.
+
+### c205 · PDBO (2024) · BO-Especiais · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A · cit 16 · impl OFICIAL · S_surv 6.4 · S_exp 7.5
+título: Pareto Front-Diverse Batch Multi-Objective Bayesian Optimization
+n_obj: 2 a 6 (ZDT K=2; DTLZ-5 K=6); projetado p/ qualquer K≥2 | data_volume: small
+motor: BO em lote: portfólio EI/UCB/TS/ID como MOO barata (NSGA-II) + lote por DPP + AF por MAB (Hedge)
+surrogate: K GPs independentes (um por objetivo)
+incerteza: σ do GP nas acquisitions EI/UCB(LCB)/TS que geram candidatos; MAB escolhe adaptativamente explorar (EI/UCB/TS) vs explotar (ID) | comportamento: aceita-explora | quantif: σ posterior do GP (variância gaussiana/Kriging); posterior p/ TS
+infill: Portfólio adaptativo (EI, UCB/LCB, Thompson, Identity) por-objetivo como MOO barata + DPP p/ lote
+rigor s5: 8 | maturidade e4: 7.5 | ressalva: Uso de incerteza é padrão BO (σ em EI/UCB/TS); distinção real em seleção de AF (MAB) e diversidade de front (DPP), tangenciais ao foco do survey. Entra como exemplar contrastivo da família MOBO portfó
+
+### c213 · UCB-MOPPO (2025) · Resíduo · O1 · Aquisição exploratória · RG — Regressor Clássico (não-GP) · DISC-ENS (discordância entre predições) · online · papel outro · tier A- · cit - · impl OFICIAL · S_surv 6.2 · S_exp 1.5
+título: UCB-driven Utility Function Search for Multi-objective Reinforcement Learning
+n_obj: 2 e 3 (cinco tarefas Mujoco 2-obj + Hopper-V3 com 3-obj) | data_volume: small (surrogate linear de bagging treinado em dataset incremental pequeno de tuplas (w, ΔV); contexto RL: orçamento dominante = 2×10^6 iterações PPO)
+motor: MORL/D: PPO (Actor-Critic condicionado em w) + meta-busca UCB sobre vetores de escalarização
+surrogate: Bagging (ensemble) de B modelos lineares com regularização elastic net
+incerteza: ver §4.1 | comportamento: aceita-explora | quantif: discordância de ensemble (variância dos modelos de bagging) → desvio-padrão σ
+infill: UCB (otimista, μ+βσ) aplicada sobre o ganho de hipervolume da CCS (híbrido UCB + hipervolume)
+rigor s5: 6.5 | maturidade e4: 7 | ressalva: Vizinho cross-paradigma (MORL/RL): entra só como contraste numa seção de paradigmas relacionados, não como família-núcleo de SA-MOEA. Surrogate vive no espaço de pesos (não nas variáveis de decisão); 
+
+### c214 · PFES (2020) · BO-Especiais · O2 · Ganho de informação · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A+ · cit - · impl NÃO · S_surv 9.1 · S_exp 2
+título: Multi-objective Bayesian Optimization using Pareto-frontier Entropy
+n_obj: L>=2; experimentos L=2 (Ackley/Sphere, ZDT4, Bi2O3, LLTO) e L=4 (DTLZ3/4) | data_volume: small
+motor: MOBO sequencial: maximiza aquisição PFES (DIRECT/argmax); NSGA-II como subrotina p/ amostrar frontiers do posterior (RFM); QHV particiona células
+surrogate: GPR/Kriging — L GPs independentes (1/objetivo), kernel RBF, ruído gaussiano; probabilístico (média+variância)
+incerteza: Incerteza = variância/entropia preditiva do GP, usada como ganho de informação sobre a Pareto-frontier. a(x)=H[p(fx|D)]-E_F*[H[p(fx|D,fx<=F*)]]: 1o termo premia incerteza alta, 2o desconta incerteza residual dado truncagem pela frontier; diferença atrai busca p/ pontos incertos E relevantes ao front. Decoupled: a(x,l)/lambda_l escolhe entrada+objetivo | comportamento: aceita-explora | quantif: Variância gaussiana sigma_l^2(x) do GP -> entropia (gaussiana L-dim + normal truncada PFTN via células/Phi/phi, Teo 3.1); MI por Monte Carlo sobre ~10 frontiers amostradas do posterior
+infill: Information-theoretic / Pareto-frontier entropy (output-space MI) — família PESMO/MESMO/PFES; variante decoupled cost-sensitive
+rigor s5: 8 | maturidade e4: 5 | ressalva: 
+
+### c217 · PC-SAEA (2023) · EA-Dominância · A3 · Gestão de confiança · CL - Relação/Classificação · ERR-EMP (erro empírico vs. verdade) · online · papel estado-da-arte · tier A · cit 71 · impl OFICIAL · S_surv 7.9 · S_exp 8.5
+título: A pairwise comparison based surrogate-assisted evolutionary algorithm for expensive multi-objective optimization
+n_obj: 2 e 3 (benchmarks); 11/12/13 (reais GAA/WRM/CSI) | data_volume: big (moderado): FEmax=2000, pop=50, init=11d−1; limiar small≤300
+motor: EA SPEA2-like (SDE) + SBX/PM + pré-seleção filtrada por surrogate (detalhe §3.3)
+surrogate: PNN de comparação par-a-par
+incerteza: confiabilidade (acc validação) → gestão use/invert/ignore + margem por-predição (gating 0,95); detalhe §4.1 | comportamento: rejeita-gerencia | quantif: acc validação (p+/p−) + margem PNN (score=out⟨x,y⟩−out⟨y,x⟩)
+infill: Não-BO; pré-seleção filtrada (limiar 0,95) sob confiabilidade
+rigor s5: 9 | maturidade e4: 9 | ressalva: 
+
+### c222 · MESMO (2019) · BO-Especiais · O2 · Ganho de informação · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel seminal · tier A+ · cit - · impl OFICIAL · S_surv 8.3 · S_exp 8.1
+título: Max-value Entropy Search for Multi-Objective Bayesian Optimization
+n_obj: K≥2 (geral); testado 2,4,6 | data_volume: small
+motor: BO sequencial; argmax aquisição output-space-entropy sobre X; NSGA-II+RFF interno p/ amostras do front
+surrogate: K GPs independentes (kernel SE)
+incerteza: σ do GP é a aquisição: entropia diferencial (σ direto) + γ=(y*-μ)/σ; α=ganho de info y(x)↔Y*; escolhe ponto que mais reduz incerteza do front | comportamento: aceita-explora | quantif: σ preditivo do GP → entropia diferencial + entropia gaussiana truncada; MC sobre S amostras do front
+infill: info-theoretic / entropia output-space (max-value)
+rigor s5: 8.5 | maturidade e4: 7 | ressalva: 
+
+### c223 · GCS-MOE (2019) · BO-Decomposição · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A+ · cit 83 · impl NÃO · S_surv 7.3 · S_exp 2
+título: Evolutionary Optimization of Expensive Multi-objective Problems with Co-sub-Pareto Front Gaussian Process Surrogates
+n_obj: 2 e 3 (2-obj: ZDT1-4,6, UF1-7, WBP, TSDP; 3-obj: UF8-10). Many-obj = futuro. | data_volume: small (200 FEs reais; LHS 11d-1; treino do GP <=80 pts por custo cubico)
+motor: MOEA decomposicional Tchebycheff (estilo MOEA/D-EGO); utilidade otimizada por GA real-coded interno sobre o surrogate
+surrogate: Multi-task Gaussian Process (MTGP) co-subPF, modelo de Bonilla et al. [36]
+incerteza: V do MTGP no infill, utilidade de duplo regime vs incumbente f_min: media>=f_min -> EI (recompensa sigma, explora); media<f_min -> criterio novo F=-(media+gamma*sqrt(V)), gamma>0, penaliza sigma (melhoria confiante). Mesma sigma em sentidos opostos conforme o regime. | comportamento: aceita-explora (misto: rejeita/gerencia no sub-regime media<incumbente) | quantif: sigma/variancia gaussiana (posterior do MTGP, Eq.4); sqrt(V) entra em EI e no criterio proposto
+infill: Tchebycheff (ParEGO/MOEA/D-EGO) + EI + criterio custom condicional (LCB-like; sigma penalizado/recompensado conforme o incumbente)
+rigor s5: 7.5 | maturidade e4: 2 | ressalva: 
+
+### c226 · VFMOEGO (critérios VFEIMh / VFEMHVI) (2021) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 27 · impl NÃO · S_surv 5.6 · S_exp 2
+título: Variable-fidelity hypervolume-based expected improvement criteria for multi-objective efficient global optimization of expensive functions
+n_obj: 2 (geral p/ M; experimentos M=2) | data_volume: small
+motor: MOEGO/MOBO sequencial (loop EGO); 1 infill/iter; aquisição maximizada por GA; seleção adaptativa de fidelidade LF/HF
+surrogate: Hierarchical Kriging (HK) sobre Kriging/GP (fidelidade variável)
+incerteza: Variância posterior do Kriging/HK (MSE) é o motor do critério: entra no termo de exploração s·φ(z) de cada elemento de EI, equilibrando média e σ no nível da frente; é dependente de fidelidade (LF β²_lf·s²_lf; HF s² do HK) e, maximizada sobre (x,l), decide ONDE e EM QUAL fidelidade gastar a próxima avaliação real p/ mais melhorar o PF de HF. | comportamento: aceita-explora | quantif: MSE/desvio do Kriging-HK (variância posterior GP); LF s²(x,1)=β²_lf·s²_lf, HF s²(x,2)=s² do HK
+infill: EI por hipervolume (EHVI) em forma VF: VFEIMh (matriz de EI + HV simplificado) e VFEMHVI (HV modificado via LUBs, analítico)
+rigor s5: 6.5 | maturidade e4: 2 | ressalva: Citável só como vizinho/contraste em subseção de fidelidade-variável; incerteza = EI canônico, já melhor coberto por ParEGO/EHVI/SMS-EGO.
+
+### c235 · Multi-EGO (2005) · EA-Dominância · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel classico · tier B+ · cit 115 · impl NÃO · S_surv 7 · S_exp 1.5
+título: Efficient Global Optimization (EGO) for Multi-Objective Problem and Data Mining
+n_obj: 2 (bi-obj; framework generaliza p/ M) | data_volume: small (89 FEs reais: 26 LHS + ~63 infill)
+motor: MOGA maximizando vetor de EIs (EI-front); pop 512, 100 ger.; EI = fitness
+surrogate: Kriging (GP), 1 por objetivo
+incerteza: Variância Kriging (MSE,Eq.7) via EI (Eq.8); EI = fitness MOGA. σ alto infla EI -> incerto vira atrativo. Dirige amostragem (active learning). Ver §4.1. | comportamento: aceita-explora | quantif: s(x)=sqrt(MSE Kriging) (Eq.7), via EI (Eq.8); analítica/posterior GP
+infill: EI por-objetivo (EI-front MO) + infill heurístico (extremos+médio); não-escalarizado, não-hipervolume
+rigor s5: 5 | maturidade e4: 1 | ressalva: 
+
+### c238 · EIM (2017) · BO-Melhoria-de-Pareto · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel classico · tier A++ · cit 180 · impl OFICIAL · S_surv 8.5 · S_exp 8.1
+título: Expected Improvement Matrix-based Infill Criteria for Expensive Multiobjective Optimization
+n_obj: 2, 3, 4, 6 (experimentos); teórico qualquer m>=2 (m=1 reduz ao EI escalar) | data_volume: small
+motor: EGO multiobjetivo Bayesiano sequencial; EIM maximizado por Evolução Diferencial (DE)
+surrogate: Kriging/GP — 1 modelo independente por objetivo (DACE); +1 por restrição
+incerteza: sigma preditivo do Kriging no infill, em EI_i^j=(f_i^j-yhat_i)*Phi(.)+s_i*phi(.): s_i*phi(.)=exploração (premia incerto), Termo 1=explotação. Matriz -> agregação (distância/hipervolume) -> EIM escalar maximizada -> próximo ponto real. N2 provada (s sobe => EIM sobe); s=0 nos amostrados. Mecanismo = explotação-exploração via sigma no EI, por objetivo x ponto da frente. [detalhe completo no full] | comportamento: aceita-explora | quantif: s (desvio-padrão) do Kriging = raiz do MSE preditivo do GP (eq.4), analítico
+infill: Expected Improvement (EI) — agregações Euclidiana/maximin/hipervolume modificado; +PoF (CEIM)
+rigor s5: 8 | maturidade e4: 9 | ressalva: 
+
+### c241 · EMMOEA (2023) · EA-Decomposição · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A++ · cit 43 · impl CANÔNICA · S_surv 7.8 · S_exp 7.9
+título: A Performance Indicator-Based Infill Criterion for Expensive Multi-/Many-Objective Optimization
+n_obj: 3,5,10 (DTLZ/WFG/MaF); 9 e 10 (aplicações reais) | data_volume: small (300 FEs reais; TS₀=100 via LHS)
+motor: MOEA decomposição/vetores-de-referência (ângulo + menor distância ao ideal); SBX + mut. polinomial
+surrogate: GP/Kriging — m (1/objetivo) + 1 (indicador IP) = m+1 GPs
+incerteza: σ posterior do GP do indicador usada no EI do infill (exploração-explotação) — ver corpo | comportamento: aceita-explora | quantif: σ posterior preditivo (sp) do GP do indicador, no EI
+infill: EI sobre indicador escalar custom (convergência−diversidade)
+rigor s5: 9 | maturidade e4: 7.5 | ressalva: 
+
+### c250 · K-MOGA (2008) · EA-Dominância · A3 · Gestão de confiança · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel seminal · tier A- · cit - · impl NÃO · S_surv 8 · S_exp 2
+título: A Kriging Metamodel Assisted Multi-Objective Genetic Algorithm for Design Optimization
+n_obj: 2 (7 exemplos bi-objetivo) | data_volume: small (expensive; ~148-901 FEs reais/exec, pop 20-50)
+motor: MOGA (NSGA+elitismo); non-dom sorting; cross 0.95/mut 0.05
+surrogate: Ordinary Kriging/GP; 1 modelo por objetivo e por restrição
+incerteza: RMSE/sigma do Kriging vs MMD (folga de dominação no espaço objetivo): s_m<=MMDf_m -> predição não muda status -> aceita sem simular; senão simula+re-treina. Gating/model-management por limiar relacional endógeno. | comportamento: rejeita-gerencia | quantif: RMSE/sigma do Kriging (raiz do MSE Eq.8, analítico do GP)
+infill: Threshold-based custom (sem EI/EHVI): s>MMD ou inviável -> avaliação real
+rigor s5: 6 | maturidade e4: 1 | ressalva: 
+
+### c261 · DirHV-EGO (2024) · BO-Decomposição · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A++ · cit 29 · impl OFICIAL · S_surv 7.8 · S_exp 8.83
+título: Hypervolume-Guided Decomposition for Parallel Expensive Multiobjective Optimization
+n_obj: 2 e 3 (principal); 4 e 6 (suplementar). Faixa 2-6 | data_volume: small (Ctotal=200 p/ m=2, 300 p/ m=3; C0=11d-1)
+motor: BO de decomposição (MOEA/D-GR maximiza a aquisição)
+surrogate: GP/Kriging, um por objetivo (DACE; regpoly0+corrgauss)
+incerteza: sigma posterior do GP no núcleo da aquisição EID=prod sigma_i[tau.Phi+phi], tau=(xi-mu)/sigma; escala o ganho e equilibra exploração-explotação; Prop 6: a média igual, favorece o mais incerto | comportamento: aceita-explora | quantif: desvio/variância posterior gaussiana do Kriging, por objetivo
+infill: EI baseada em hipervolume (DirHV-EI) via decomposição/Tchebycheff modificada
+rigor s5: 9 | maturidade e4: 9 | ressalva: 
+
+### c262 · qNEHVI (NEHVI sequencial; qNEHVI-1 = aprox. sample-path RFF) (2021) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A+ · cit - · impl OFICIAL · S_surv 8.9 · S_exp 9.1
+título: Parallel Bayesian Optimization of Multiple Noisy Objectives with Expected Hypervolume Improvement
+n_obj: 2–4 (qNEHVI; HV super-polinomial em M); até 5 (qNEHVI-1) | data_volume: small (online expensive; ~200–224 FEs; init 2(d+1) Sobol)
+motor: Loop BO; maximização gradiente da aquisição (L-BFGS-B + SAA/CBD); batch sequential greedy
+surrogate: GP independente por objetivo, Matérn 5/2 ARD, MAP; GP multitarefa opcional
+incerteza: Incerteza da posterior do GP entra (i) na EHVI=E[HVI(f(x)|P)] no candidato (σ alto→explora) e (ii) na inovação NEHVI: integra sobre p(f(Xn)|Dn), marginalizando a incerteza da fronteira nos pontos observados para robustez a ruído (evita clumping). Produz fronteira robusta e bem distribuída | comportamento: aceita-explora | quantif: variância/covariância da posterior do GP, MC via reparam trick (N=128 QMC)
+infill: Expected Hypervolume Improvement ruidosa (NEHVI/qNEHVI) — hipervolume-based
+rigor s5: 9 | maturidade e4: 10 | ressalva: 
+
+### c267 · SAMOEA-TL2M (2025) · EA-Dominância · O3 · Aprendizado ativo / reparo · RG — Regressor Clássico (não-GP) · GEO-DIST (geometria/distância aos dados) · online · papel outro · tier A · cit 4 · impl NÃO · S_surv 6.4 · S_exp 2
+título: A Two-Level Model Management-Based Surrogate-Assisted Evolutionary Algorithm for Medium-Scale Expensive Multiobjective Optimization
+n_obj: 2 e 3 (tri-obj DTLZ/WFG/MaF; TREE1-5=2, TREE6=3) | data_volume: small
+motor: NSGA-II + SDE (SBX+mut. polinomial), G=20 sobre o surrogate
+surrogate: RBF (cubic kernel), um por objetivo
+incerteza: IDW entra no infill nível2: quando ARI<α, Nu=floor(λ·(1-ARI)) soluções de maior IDW são avaliadas p/ refinar o RBF. A incerteza ATRAI amostragem p/ regiões mal-modeladas; ativação state-adaptive via ARI (incerteza só quando atrapalha a melhoria) | comportamento: aceita-explora | quantif: IDW: variância ponderada por distância entre objetivos de amostras vizinhas e interpolação IDW; geométrica, separada do RBF
+infill: Custom/geométrico (sem BO): nível1 não-dominância+SDE; nível2 Nc não-dominância + Nu maior IDW. Sem EI/EHVI/LCB.
+rigor s5: 8.5 | maturidade e4: 2 | ressalva: Uso de incerteza state-adaptive/parcimonioso, secundário ao balance conv-div; entra como exemplar não-GP (RBF+IDW) medium-scale
+
+### c276 · ε-PAL (2016) · BO-Especiais · O3 · Aprendizado ativo / reparo · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel seminal · tier A++ · cit - · impl OFICIAL · S_surv 9 · S_exp 2
+título: ε-PAL: An Active Learning Approach to the Multi-Objective Optimization Problem
+n_obj: 2 (m=2 protótipo/experimentos; teoria geral para m) | data_volume: small
+motor: Active learning / classificação Pareto por confidence-bounds; sampling de máxima incerteza
+surrogate: GP (Kriging), um por objetivo; kernel SE-ARD; GPML toolbox
+incerteza: σ do GP é o algoritmo: (I) banda μ±β^{1/2}σ sustenta decisões PROVÁVEIS de ε-dominância (descartar/promover a Pareto) com garantia 1-δ; (II) dirige sampling — avalia o ponto de MAIOR incerteza w_t entre úteis; (III) critério de parada w_t≤ε com garantia. Explora e gere a incerteza simultaneamente. | comportamento: aceita-explora | quantif: σ posterior do GP por objetivo; escalado por β_t^{1/2}; diâmetro w_t do hiper-retângulo
+infill: Máxima-incerteza / confidence-bound (GP-UCB/Straddle MO), sobre pool finito; NÃO EI/EHVI/escalar
+rigor s5: 8 | maturidade e4: 8 | ressalva: 
+
+### c311 · TGPR-MO (2023) · EA-Decomposição · O3 · Aprendizado ativo / reparo · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · offline · papel estado-da-arte · tier offline · cit None · impl OFICIAL · S_surv 6.5 · S_exp 2
+título: Treed Gaussian Process Regression for Solving Offline Data-Driven Continuous Multiobjective Optimization Problems
+n_obj: K≥2; testado K∈{3,5,7}; ilustrado bi-objetivo | data_volume: big (N∈{2000,10000,50000}; até 50.000)
+motor: RVEA (vetores de referência; APD; adaptação)
+surrogate: Híbrido: árvore CART/MSE por objetivo + GPR/Kriging local (Matérn 5/2+ARD) só em folhas do trade-off
+incerteza: MSE da folha da ÁRVORE (erro de aproximação) → gestão de modelo (onde colocar GPR no trade-off). Variância do GPR disponível mas NÃO usada (média na otimização; exploração = futuro) | comportamento: gerencia/remedia (atípico) | quantif: MSE intra-folha da árvore [usado]; variância GPR [disponível, não usado]; RMSE só indicador
+infill: N/A (offline; colocação de GPR = refino de surrogate, não infill)
+rigor s5: 8 | maturidade e4: 8 | ressalva: Incerteza na CONSTRUÇÃO do surrogate (MSE da árvore), não na seleção (médias); σ do GPR não explorado. Entra como MAQUINARIA, não como exemplar de exploração de incerteza. Estrito (G5=false): teto 6,5
+
+### e1 · EMO (2014) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel seminal · tier A- · cit 0 · impl OFICIAL · S_surv 8.7 · S_exp 7.55
+título: Fast calculation of multiobjective probability of improvement and expected improvement criteria for Pareto optimization
+n_obj: 2-8 (testado 3,4,6) | data_volume: small
+motor: MOBO sequencial single-point: maximiza aquisição (PoI/EHVI/HVPoI/EI-euclid) via MC+fmincon
+surrogate: Kriging/GP (1 por objetivo)
+incerteza: s²(x) do Kriging constitutiva da PoI/EI/EHVI: entra nas gaussianas de predição integradas sobre região não-dominada; balanceia expl×expl na seleção do ponto. | comportamento: aceita-explora | quantif: σ²/σ gaussiana de predição do Kriging (Eq.4)
+infill: hipervolume (EHVI,HVPoI)+PoI+EI-distância-euclidiana
+rigor s5: 6 | maturidade e4: 6 | ressalva: 
+
+### e3 · HeE-MOEA (2019) · EA-Dominância · O1 · Aquisição exploratória · RG — Regressor Clássico (não-GP) · DISC-ENS (discordância entre predições) · online · papel estado-da-arte · tier A++ · cit 206 · impl OFICIAL · S_surv 9.2 · S_exp 7.8
+título: Heterogeneous Ensemble-Based Infill Criterion for Evolutionary Multiobjective Optimization of Expensive Problems
+n_obj: 3 (fixo nos experimentos; framework genérico M>=2, só M=3 testado) | data_volume: small (~120-359 FEs reais; 11N-1 LHS iniciais; limiar <=~360 => small)
+motor: MOEA plugável (NSGA-II/MOEA/D) sobre predições do ensemble; infill LCB/ExI + k-means p/ km=5 pontos reais
+surrogate: Ensemble heterogêneo 9 membros = 3 modelos (LSSVM, RBFN-LS, RBFN-BP) x 3 feature-sets (originais, PSO-selecionadas, PCA)
+incerteza: (ver §4.1) discordância entre 9 membros (variância amostral, Eq.24) => LCB/ExI => atrai/seleciona pontos incertos p/ reavaliar e retreinar | comportamento: aceita-explora | quantif: variância amostral entre os 9 outputs do ensemble (s_H), Eq.24
+infill: LCB + ExI (confidence-bound + expected improvement)
+rigor s5: 8 | maturidade e4: 7 | ressalva: 
+
+### e4 · TSEMO (2018) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A- · cit 247 · impl OFICIAL · S_surv 8.8 · S_exp 8.8
+título: Efficient multiobjective optimization employing Gaussian processes, spectral sampling and a genetic algorithm
+n_obj: 2-3 (exper.); geral m (HV exata até 3, MC acima) | data_volume: small
+motor: BO sequencial; TS + NSGA-II interno otimiza amostras; seleção por ΔHV
+surrogate: GPs independentes (Kriging) por objetivo; kernel Matérn; MAP; spectral sampling
+incerteza: Variância posterior do GP é o motor da exploração: spectral sampling gera funções que divergem do mean onde a variância é alta; otimizá-las (TS) amostra regiões incertas (reduz incerteza) ou explora o conhecido (variância baixa). Entra na geração de candidatos; ΔHV decide entre eles. Tipo: exploração via amostragem estocástica do posterior. | comportamento: aceita-explora | quantif: Variância/covariância posterior gaussiana (Kriging), embutida nas amostras espectrais (θ~N(m,V)); σ_n modela ruído
+infill: Thompson sampling (Pareto-TS) + seleção por melhoria de hipervolume (ΔHV)
+rigor s5: 8 | maturidade e4: 9 | ressalva: 
+
+### e6 · BMOO (2017) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A- · cit 160 · impl NÃO · S_surv 7.7 · S_exp 2
+título: A Bayesian approach to constrained single- and multi-objective optimization
+n_obj: p+q geral; experimentos p=1,2,5; q=1..38 | data_volume: small
+motor: BO one-step look-ahead; aquisição EHVI estendida computada e maximizada por SMC (subset simulation)
+surrogate: GP/Kriging independentes (Matérn 5/2, média const., MAP por iteração, nugget leve); via STK
+incerteza: σ²ₙ(x) do kriging é load-bearing: EI fechado γ(z,σ²) (bônus explor.), Pₙ(ξ◁y)=ΠΦ((y−μ)/σ), prob. factib. ΠΦ(−μc/σc), densidade-alvo de prob. de melhoria na maximização, e domínio Bo/Bc via μ±λσ. Integra sobre o erro do GP p/ pontuar ganho esperado de hipervolume; equilibra exploração×explotação. | comportamento: aceita-explora | quantif: variância de kriging σ²ₙ(x) (forma fechada GP); via Φ e γ(z,s)
+infill: Hypervolume-based (EHVI estendida a restrições); recupera EI de Schonlau e EHVI clássico; SMC
+rigor s5: 8 | maturidade e4: 3 | ressalva: N/A (true pleno); uso da incerteza é EI/EHVI canônico — originalidade está em restrições+SMC
+
+### e7 · EDN-ARMOEA (2022) · EA-Indicador · O3 · Aprendizado ativo / reparo · NN — Rede Neural · DISC-ENS (discordância entre predições) · online · papel estado-da-arte · tier A · cit 146 · impl OFICIAL · S_surv 8.6 · S_exp 8.4
+título: Evolutionary Optimization of High-Dimensional Multi- and Many-Objective Expensive Problems Assisted by a Dropout Neural Network
+n_obj: 2-20 (m=3,5,10,20; d até 100) | data_volume: small
+motor: AR-MOEA (indicator-based IGD-NS + adaptação de pontos de referência)
+surrogate: EDN: NN feedforward 2 ocultas (ReLU+Tanh), dropout em treino E teste, multi-output; MC-dropout probabilístico
+incerteza: ŝ (desvio MC-dropout) é o sinal de exploração: sob queda de diversidade (Δ|Wv|/|W|>delta), reavalia-se de verdade a solução de maior incerteza por cluster, injetando dados onde o surrogate é frágil; senão ŝ é ignorada e seleciona-se por convergência. | comportamento: aceita-explora | quantif: Desvio-padrão de 100 passagens estocásticas do dropout em teste (MC-dropout)
+infill: Geométrico/custom condicional (min dist origem | max ŝ/cluster via k-means); não EI/EHVI/UCB
+rigor s5: 8 | maturidade e4: 8 | ressalva: 
+
+### e8 · NN-EGO (2020) · BO-Melhoria-de-Pareto · O1 · Aquisição exploratória · NN — Rede Neural · GEO-DIST (geometria/distância aos dados) · online · papel outro · tier A · cit 141 · impl NÃO · S_surv 8.1 · S_exp 2
+título: Accurate Multiobjective Design in a Space of Millions of Transition Metal Complexes with Neural-Network-Driven Efficient Global Optimization
+n_obj: 2 | data_volume: small
+motor: EGO/BO multiobjetivo: E[I] exaustivo sobre espaço discreto enumerado + seleção de lote por k-medoids
+surrogate: ANN multitarefa + modelo de erro distância-latente (UQ)
+incerteza: σ por candidato alimenta o E[I] multiobjetivo (explore/exploit no infill): regiões com σ alto ganham E[I] e atraem amostragem DFT; σ vem de distância latente calibrada. Auxiliar: descarte de previsões duvidosas. | comportamento: aceita-explora | quantif: σ via distância latente (10-NN no espaço latente do ANN) mapeada por erro heterocedástico calibrado ε(d)~N(0,σ1²+dσ2²), reajustado/geração no teste 10%
+infill: Expected Improvement multiobjetivo (melhoria de Pareto, Keane 2006); P[I] como diagnóstico
+rigor s5: 8.5 | maturidade e4: 4 | ressalva: Cross-domain (química/RFB); motor enumera espaço discreto, não otimiza contínuo. Entra como exemplar de EGO multiobjetivo com surrogate não-GP e UQ por distância.
+
+### e9 · SUR (2015) · BO-Especiais · O2 · Ganho de informação · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel classico · tier A- · cit 135 · impl OFICIAL · S_surv 8.2 · S_exp 6.8
+título: Multiobjective optimization using Gaussian process emulators via stepwise uncertainty reduction
+n_obj: 2 (teoria q≥2; fórmulas fechadas e experimentos em 2 obj; viável até ~3 por custo (m+1)^q) | data_volume: small
+motor: BO sequencial model-based com infill SUR; sem população
+surrogate: GP/Kriging universal, um por objetivo (independentes)
+incerteza: ver corpo | comportamento: aceita-explora | quantif: variância preditiva de Kriging s_n^2(x) via Φ / Φ bivariada
+infill: information-theoretic / SUR (redução esperada do volume de excursão atrás do front)
+rigor s5: 6 | maturidade e4: 8 | ressalva: 
+
+### e10 · TEMO-MPS (2019) · BO-Decomposição · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel seminal · tier A++ · cit 132 · impl NÃO · S_surv 7.7 · S_exp 2
+título: Multi-Problem Surrogates: Transfer Evolutionary Multiobjective Optimization of Computationally Expensive Problems
+n_obj: 2 e 3 (framework geral p/ m) | data_volume: small
+motor: EGO/ParEGO: Tchebycheff + EI maximizado por EA interno
+surrogate: GP/Kriging (ARD-SE); MPS = transfer stacking (combinação linear de GPs fonte+alvo)
+incerteza:  | comportamento: aceita-explora | quantif: σ GP (variância posterior propagada, Eq.17) + erro generalização LOO (Cqq) p/ pesos transfer
+infill: EI sobre subproblema Tchebycheff (ParEGO-style)
+rigor s5: 7.5 | maturidade e4: 1 | ressalva: Uso de incerteza = EI padrão do ParEGO; novidade no eixo transfer/MPS, não na incerteza
+
+### e12 · PESMOC (2019) · BO-Especiais · O2 · Ganho de informação · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A- · cit 117 · impl OFICIAL · S_surv 8.9 · S_exp 6.75
+título: Predictive Entropy Search for Multi-objective Bayesian Optimization with Constraints
+n_obj: K obj + C restr; prático 2-3 obj (declarado); exp. K=2,C=2,d=3 (journal d=4/6). | data_volume: small
+motor: BO sequencial; aquisição PES (redução de entropia do Pareto set factível) via MI-swap+EP+MC; maximizada sobre o espaço.
+surrogate: GP/Kriging independente por objetivo e restrição; Matérn; hiperparâm. por slice sampling (10).
+incerteza: Incerteza preditiva do GP é o objeto inteiro da otimização: aquisição = redução esperada da entropia do Pareto set factível (information gain). | comportamento: aceita-explora | quantif: Variância preditiva GP (obj+restr) e entropia diferencial; redução condicionada ao Pareto set via EP.
+infill: information-theoretic/entropia (PES, input-space)
+rigor s5: 6 | maturidade e4: 6 | ressalva: 
+
+### e13 · EBBC-MOBO (2023) · BO-Hipervolume · Resíduo · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A · cit 103 · impl NÃO · S_surv 7.05 · S_exp 2
+título: Bayesian optimization with active learning of design constraints using an entropy-based approach
+n_obj: 3 | data_volume: small
+motor: MOBO sequencial/batch, aquisição EHVI sobre candidatos factíveis
+surrogate: GP/Kriging duplo: GPR (objetivos) + GPC (restrições); + fusão multi-fonte (reification)
+incerteza: Dois papéis, ambos exploratórios. (A) CENTRAL/NOVO: σ das probabilidades de classe do GPC → entropia de Shannon (Eq.5, H=-Σσ_j logσ_j) = utilidade do aprendizado ativo; escolhe restrição+candidato de máxima redução de entropia, mapeando a fronteira factível em ~420 queries; parada quando redução<3%. Melhoria sobre ref.21: entropia na incerteza da probabilidade (não na distância à fronteira). (B) CONVENCIONAL: σ² do GPR no EHVI e na fusão multi-fonte (Eqs.6-7, pesos pela precisão). Incerteza atrai amostragem em ambos. | comportamento: aceita-explora | quantif: σ das prob. de classe do GPC → entropia; σ² gaussiana do GPR no EHVI; variância propagada na fusão
+infill: EHVI (hipervolume) p/ objetivos + redução de entropia (information-theoretic) p/ restrições
+rigor s5: 7 | maturidade e4: 1 | ressalva: Incerteza brilha mais no aprendizado de restrições que na otimização dos objetivos; venue/aplicação fora do núcleo EC.
+
+### e16 · EGBO (2024) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A · cit 54 · impl OFICIAL · S_surv 6.2 · S_exp 6.1
+título: Evolution-guided Bayesian optimization for constrained multi-objective optimization in self-driving labs
+n_obj: 2 e 3 (AgNP=3; MW7/ZDT=2–3) | data_volume: small (~72 FEs reais/otimizador no AgNP; regime expensive)
+motor: MOBO híbrido: qNEHVI (optimize_acqf) ∥ U-NSGA-III (pymoo); pool re-selecionado por qNEHVI
+surrogate: GP (SingleTaskGP/ModelListGP), 1 por obj+restrição; Matérn 5/2; BoTorch
+incerteza: ver corpo | comportamento: aceita-explora | quantif: posterior GP (σ/variância) via MC (128 amostras), Noisy-EHVI
+infill: hypervolume — qNEHVI (vs qNParEGO)
+rigor s5: 7.5 | maturidade e4: 8 | ressalva: Borderline (6,2). Incerteza = qNEHVI padrão/herdado, não é a contribuição. Citável como exemplo contrastivo de MOBO+EA híbrido / restrições.
+
+### e17 · MOBO (2021) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A- · cit 46 · impl OFICIAL · S_surv 8 · S_exp 8
+título: Multi-Objective Bayesian Optimization for Online Accelerator Tuning
+n_obj: 2 (didáticos) a 7 (AWA real); range | data_volume: small (~20 LHC iniciais + 500 FEs reais sequenciais; expensive serializado)
+motor: Loop BO sequencial: maximiza aquisição (EHVI/UCB-HVI) sobre o espaço via PSO (PyGMO)
+surrogate: Gaussian Process (Kriging) — 1 GP/objetivo, kernel RBF/ARD, treino por verossimilhança marginal (Adam)
+incerteza: σ do GP é central na aquisição: EHVI integra sobre gaussiana predita (μ,σ) p/ ganho esperado de HV; UCB-HVI usa μ−√β·σ (otimista). σ controla exploração/exploitação e localiza extremos da aquisição entre obs. | comportamento: aceita-explora | quantif: σ (desvio padrão) analítico do GP/Kriging — variância posterior gaussiana (Eq. A3)
+infill: Hipervolume-based — EHVI, UCB-HVI; variantes truncadas (preferências) e proximal (custo de movimento)
+rigor s5: 8 | maturidade e4: 9 | ressalva: 
+
+### e19 · MOBO-CD (2020) · BO-Melhoria-de-Pareto · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 39 · impl NÃO · S_surv 5.6 · S_exp 2
+título: A New Multi-Objective Bayesian Optimization Formulation With the Acquisition Function for Convergence and Diversity
+n_obj: 2 | data_volume: small
+motor: BO sequencial 1-ponto (infill por maximização de aquisição custom)
+surrogate: Kriging/GP (simple Kriging, correlação gaussiana, MLE; DACE; 1 por objetivo)
+incerteza: σ Kriging via LCB/objetivo (f̂−k·s, k=1); vetor LCB substitui a média no teste de Ω e no cálculo de IMHD/IMOS; −1σ torna regiões incertas otimisticamente melhores → atraídas (exploração). | comportamento: aceita-explora | quantif: σ analítico GP/Kriging (raiz do MSE, Eq.5)
+infill: Custom/geométrica: max(IMHD,IMOS) conv.+div.; LCB fornece objetivos; fallback dist. euclidiana fora de Ω
+rigor s5: 5 | maturidade e4: 2 | ressalva: Citação opcional/limítrofe: bom exemplo de MOBO-LCB com aquisição geométrica conv.+div., mas incerteza é LCB padrão.
+
+### e20 · MVMOO (2021) · BO-Melhoria-de-Pareto · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier B+ · cit 35 · impl OFICIAL · S_surv 4.6 · S_exp 4.7
+título: MVMOO: Mixed variable multi-objective optimisation
+n_obj: 2 a 4 (2/2/4); EIM genérico em m | data_volume: small (40/125/100 FEs reais)
+motor: BO: maximiza aquisição EIM (Halton + SLSQP)
+surrogate: GP/Kriging, 1 por objetivo, Matérn 5/2 com distância de Gower; GPflow; ML marginal (Adam)
+incerteza: σ do GP entra no EI (eq.7): termo s·φ recompensa incerteza alta, equilibra exploração/explotação, escolhe próximo ponto a avaliar | comportamento: aceita-explora | quantif: σ posterior do GP (variância Kriging), analítico
+infill: EIM (Expected Improvement Matrix, transf. euclidiana); improvement-based/EI
+rigor s5: 5 | maturidade e4: 6 | ressalva: Citável como vizinho/contraste (MOBO variável mista, química), não como exemplar do tema-incerteza
+
+### e21 · PIO (2025) · EA-Dominância · A1 · Penalização avessa a risco · NN — Rede Neural · NAT-nonGP (distribuição nativa não-GP) · offline · papel outro · tier offline · cit 38 · impl OFICIAL · S_surv 7.5 · S_exp 2
+título: Uncertainty quantification with graph neural networks for efficient molecular design
+n_obj: 1 (single) e 2-3 (multi) | data_volume: big
+motor: GA Janus sobre SELFIES; fitness = aquisição UQ-aware
+surrogate: D-MPNN (GNN, Chemprop) + UQ (ensemble+MVE | evidential)
+incerteza: sigma do surrogate vira P(cruzar limiar) (PIO) = fitness do GA; enviesa seleção p/ candidatos confiáveis acima do limiar, freia over-extrapolação; multi: produto das P força equilíbrio. | comportamento: rejeita-gerencia | quantif: sigma2_total=epist+aleat (ensemble/evidential + MVE/evidential)
+infill: PI (PIO) / EI; aquisição-como-fitness (não infill real)
+rigor s5: 8 | maturidade e4: 7 | ressalva: MOO escalarizada (não-Pareto) + domínio molecular discreto; entra como contraste de surrogate-DL + incerteza-como-aquisição offline.
+
+### e23 · FanG-HPO (2024) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A- · cit 30 · impl OFICIAL · S_surv 6.6 · S_exp 5.1
+título: Fair and green hyperparameter optimization via multi-objective and multiple information source Bayesian optimization
+n_obj: 2 | data_volume: small
+motor: MOBO sequencial; EHVI maximizada sobre o espaço (WFG) + seleção de fonte custo×discrepância
+surrogate: GP/Kriging por (fonte×objetivo), fundidos em AGP por objetivo
+incerteza: σ do GP/AGP em 2 pontos load-bearing: (a) EHVI usa σ p/ exploração na escolha de x'; (b) gate de confiabilidade do AGP (Eq.8) usa α·σ_ground-truth como tolerância p/ fundir observações de fontes baratas. | comportamento: aceita-explora | quantif: σ posterior do GP/AGP (variância gaussiana, Eq.14)
+infill: Hipervolume — EHVI (cálculo rápido WFG)
+rigor s5: 7 | maturidade e4: 6 | ressalva: Foco do paper é fairness+green, não incerteza; entra como exemplar MOBO multi-information-source / AGP.
+
+### e25 · FDD-EA-DH (2024) · EA-Decomposição · O1 · Aquisição exploratória · RG — Regressor Clássico (não-GP) · DISC-ENS (discordância entre predições) · online · papel estado-da-arte · tier A- · cit - · impl NÃO · S_surv 6.2 · S_exp 2
+título: A Secure Federated Data-Driven Evolutionary Multi-objective Optimization Algorithm
+n_obj: 3, 5, 10 | data_volume: small
+motor: RVEA maximizando a aquisição FLCB
+surrogate: Ensemble de RBFNs (K locais via FedAvg + 1 global)
+incerteza: σ=discordância do comitê de RBFNs no termo de exploração do FLCB=ŷ_norm − t·σ_norm (LCB federado) | comportamento: aceita-explora | quantif: desvio-padrão entre predições das K RBFNs locais e da global (Eq.1); normalizado min-max
+infill: LCB (FLCB)
+rigor s5: 7 | maturidade e4: 3 | ressalva: Mecanismo de incerteza herdado do FDD-EA; novidade primária é segurança. Citar como fronteira federada/segura, não como contribuidor de mecanismo de incerteza.
+
+### e28 · MESMOC+ (2023) · BO-Especiais · O2 · Ganho de informação · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A- · cit 20 · impl OFICIAL · S_surv 7.4 · S_exp 5.7
+título: Improved max-value entropy search for multi-objective bayesian optimization with constraints
+n_obj: 2 e 4 testados; geral K obj + C restr, prático p/ poucos objetivos | data_volume: small
+motor: Loop BO; aquisição information-theoretic (max-value/output-space entropy) maximizada por L-BFGS
+surrogate: Gaussian Process/Kriging, 1 por black-box, Matérn 5/2 ARD, slice sampling
+incerteza: A variância/entropia preditiva do GP É a aquisição: ganho de informação = redução esperada de variância ao condicionar a Y* (vf−ṽf); escolhe ponto que mais reduz incerteza sobre a solução. Load-bearing. | comportamento: aceita-explora | quantif: σ/variância gaussiana GP (Kriging); variância condicionada via ADF; diferença absoluta de variâncias
+infill: Information-theoretic / output-space (max-value entropy search do Pareto front Y*)
+rigor s5: 9 | maturidade e4: 5.5 | ressalva: 
+
+### e29 · MixMOBO (+ HedgeMO, + SMC) (2022) · BO-Melhoria-de-Pareto · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 20 · impl NÃO · S_surv 6 · S_exp 2
+título: Bayesian Optimization For Multi-Objective Mixed-Variable Problems
+n_obj: K genérico; testado MO só com K=2 (ZDT6 encriptado); aplicação real SO (Pc). Many-obj só em tese (leve mau sinal). | data_volume: small — 250 FEs reais/benchmark (50 iniciais); small-data/expensive declarado
+motor: GA multiobjetivo (NSGA-II-like) maximiza a aquisição sobre o GP; loop BO sequencial + Q-batch
+surrogate: GP único multi-saída, kernel exp-quadrático mixed-variable (Hamming p/ categóricas, Euclidiana p/ contínuas/ordinais); LOOCV; agnóstico ao kernel
+incerteza: ver prosa §4.1 — σ do GP em UCB (μ+κσ) e SMC (μ+U(0,2σ)); atrai exploração; HedgeMO pondera portfólio por μ | comportamento: aceita-explora | quantif: σ(w) preditivo do GP (variância gaussiana analítica)
+infill: portfólio Hedge: EI, PI, UCB, SMC (nova, estocástica σ-escalada); seleção HedgeMO
+rigor s5: 5 | maturidade e4: 2 | ressalva: true c/ ressalva: entra como exemplar de MOBO mixed-variable + Hedge; uso de incerteza é σ-padrão de BO, não inovação.
+
+### e30 · AK-MORO (2022) · EA-Dominância · O3 · Aprendizado ativo / reparo · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 21 · impl NÃO · S_surv 4.9 · S_exp 1.5
+título: Multi-objective robust optimization using adaptive surrogate models for problems with mixed continuous-categorical parameters
+n_obj: 2 (geral m; demonstrado m=2) | data_volume: small (~101 FEs reais Ex1; 271 Ex3; expensive)
+motor: NSGA-II (esquema aninhado 2 níveis + MC p/ quantil + common random numbers)
+surrogate: Kriging/GP (m modelos, 1/objetivo; espaço aumentado W=X×Z; kernel compound-symmetry p/ categóricas)
+incerteza: ver §4.1 | comportamento: aceita-explora | quantif: variância de predição do Kriging σ²Mc(w); CI 'tipo 95%' µ±1,96σ
+infill: infill por max-variância de Kriging (active learning, NÃO-EI)
+rigor s5: 6 | maturidade e4: 2 | ressalva: Citação de CONTRASTE/vizinhança (robusto-à-entrada vs robusto-ao-surrogate; categóricas em SA-MOEA); não entra por mérito no núcleo.
+
+### e34 · Trust-MOMF (e Seq-MOMF como benchmark interno) (2024) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 17 · impl OFICIAL · S_surv 5.9 · S_exp 2
+título: Leveraging trust for joint multi-objective and multi-fidelity optimization
+n_obj: 2 (Branin–Currin, Park) a 3 (PIC); +1 objetivo 'trust' no método joint | data_volume: small/expensive (120 iter test functions; PIC 30 h/run)
+motor: MOBO — maximiza EHVI/custo sobre (x,s); aquisição otimizada por gradiente (BoTorch)
+surrogate: k GPs (Kriging) independentes, 1 por objetivo; fidelity s no kernel; Matérn 5/2
+incerteza: σ posterior do GP entra no EHVI (integral de HVI sobre posterior) -> regiões incertas têm maior aquisição (exploração); MF-MES escolhe fidelity por ganho de informação/custo. 'Trust' θ(s) é confiança a-priori na FONTE de fidelity, NÃO incerteza do surrogate. | comportamento: aceita-explora | quantif: σ/variância gaussiana (GP) no EHVI; entropia da posterior (MES) na fidelity selection
+infill: Hipervolume EHVI/custo [joint]; information-theoretic MF-MES=MES/custo [sequencial]
+rigor s5: 6.5 | maturidade e4: 9 | ressalva: Fronteira (5.9). Não entra por mérito (uso convencional de incerteza; inovação=multi-fidelity, fora do core SF). Altamente citável como contexto/contraste: MOMF BO canônico e ilustração 'confiança na 
+
+### e35 · CHVEI / CHVPOI (2023) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A- · cit 27 · impl NÃO · S_surv 6.5 · S_exp 2
+título: Bi-objective Bayesian Optimization of Engineering Problems with Cheap and Expensive Cost Functions
+n_obj: 2 (bi-objetivo fixo; n>2 = trabalho futuro) | data_volume: small
+motor: Loop BO sequencial; aquisição (CHVEI/CHVPOI) maximizada sobre o espaço via MC+gradiente
+surrogate: GP/Kriging único, Matérn 5/2, média zero, ML via L-BFGS — modela SÓ o objetivo caro f1
+incerteza: σ²₁ do GP de f1 entra na aquisição: em CHVEI pondera o termo de exploração do EI (φ-PDF), balanceando exploração/exploitação só no eixo caro; em CHVPOI entra via CDF Φ₁ (prob. de melhoria). Uso padrão de EI/POI, assimétrico entre objetivos (eixo barato é exato) | comportamento: aceita-explora | quantif: σ² gaussiana/Kriging (variância preditiva analítica do GP, Eq.3)
+infill: Baseada em hipervolume (variantes cheap de EHVI/HVPOI)
+rigor s5: 6 | maturidade e4: 3 | ressalva: Entra pela ideia cheap-expensive e cobertura de lacuna, NÃO pela incerteza (EI/POI padrão)
+
+### e36 · MOBOSL (2024) · BO-Decomposição · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 14 · impl NÃO · S_surv 3.7 · S_exp 2
+título: A Data Driven Sequential Learning Framework to Accelerate and Optimize Multi-Objective Manufacturing Decisions
+n_obj: 2 | data_volume: small
+motor: MOBO: qParEGO (Tchebycheff + EI MC) com maximização de aquisição + NN retrieval em pool finito
+surrogate: Gaussian Process / Kriging (kernel SE/RBF)
+incerteza: σ do GP entra na EI (eq.11): termo σ·φ(z) é o bônus de exploração que premia regiões incertas na escolha do próximo ponto; equilíbrio exploração-explotação na infill. | comportamento: aceita-explora | quantif: σ posterior do GP (variância de Kriging analítica, eq.7)
+infill: EI sobre escalarização Tchebycheff (ParEGO), versão MC paralela (qParEGO)
+rigor s5: 4 | maturidade e4: 3 | ressalva: 
+
+### e40 · SBP-BO (2023) · EA-Decomposição · A1 · Penalização avessa a risco · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A++ · cit - · impl NÃO · S_surv 6.7 · S_exp 2
+título: Alleviating Search Bias in Bayesian Evolutionary Optimization with Many Heterogeneous Objectives
+n_obj: 2, 3, 5, 10 (HE-MOPs/HE-MaOPs) | data_volume: small (FEe_max=300 multi/many; 200 bi-obj)
+motor: RVEA (BEO: EA framework, aquisição = model management)
+surrogate: GP/Kriging (DACE); ensemble de 2 GPs p/ objetivo barato, 1 GP p/ caro
+incerteza: Duplo: (1) Eq.4 pesos do ensemble ∝ 1/σ de cada GP (product-of-experts → confiabilidade); (2) Eq.2 AFA termo σ SOMADO e minimizado → alta variância fica menos atraente, busca exploitativa (cosseno α 0→1). Novidade central SBP NÃO usa σ. | comportamento: rejeita-gerencia | quantif: σ posterior do GP/Kriging (DACE), por solução/objetivo
+infill: LCB-variante adaptativa custom (σ com sinal invertido, cosine schedule) × penalidade de custo SBP; infill por seleção MO do RVEA
+rigor s5: 8.5 | maturidade e4: 1 | ressalva: Entra como exemplar de vizinhança/contraste (nicho custo-heterogêneo). Uso de σ é de apoio/herdado (AFA de [8]); novidade central SBP é σ-independente.
+
+### e42 · hDGP-BO (também iDGP-BO, MTGP-BO; cGP-BO baseline) (2025) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A · cit 15 · impl NÃO · S_surv 7.4 · S_exp 2
+título: Hierarchical Gaussian process-based Bayesian optimization for materials discovery in high entropy alloy spaces
+n_obj: 2 (CTE, BM) + 1 tarefa auxiliar (volume V) | data_volume: small (borderline) — ~500 FEs reais de CTE; 1500 de BM/V no hDGP; limiar ~300
+motor: BO sequencial; maximiza aquisição sobre ~60k composições discretas: EHVI (isotópico) + UCB (heterotópico)
+surrogate: GP probabilístico: cGP (independente, baseline), MTGP (Kronecker K_f⊗K_x), DGP (deep, VI + indutores + ARD)
+incerteza: ver corpo §4 | comportamento: aceita-explora | quantif: σ preditivo GP/MTGP/DGP (variância fechada GP/MTGP; variacional DGP)
+infill: Híbrido: EHVI (hipervolume) + UCB (confidence-bound)
+rigor s5: 7 | maturidade e4: 2 | ressalva: MOBO de domínio (materiais), espaço discreto; exemplar do nicho cost-aware/multi-task & GP-hierárquico.
+
+### e43 · MIS-MOBO (2021) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 11 · impl NÃO · S_surv 6.1 · S_exp 2
+título: Bayesian Optimization of Multiobjective Functions Using Multiple Information Sources
+n_obj: 2 (testado); framework geral p/ m, sem evidência >2 | data_volume: small
+motor: BO sequencial budget-aware; candidatos LHS ranqueados por EHVI; decisão conjunta ponto×fonte
+surrogate: Gaussian Process/Kriging (1 GP por objetivo por fonte) + GP auxiliar de discrepância
+incerteza: ver §4 | comportamento: aceita-explora | quantif: σ²_GP + σ²_fidelidade = σ²_total; var. fundida via reification; CI empírico 95%
+infill: EHVI (hypervolume-based)
+rigor s5: 6 | maturidade e4: 3 | ressalva: Multifidelity/multi-fonte (vizinho ao núcleo single-fidelity); incerteza na aquisição é EHVI padrão. Entra como exemplar/contraste da família de fusão multi-fonte incerteza-ciente.
+
+### e44 · WTB MO-BO (2022) · BO-Decomposição · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier B+ · cit 10 · impl NÃO · S_surv 5.3 · S_exp 2
+título: A Multi-Objective Bayesian Optimization Approach Using the Weighted Tchebycheff Method
+n_obj: 2 (só q=2 testado; q genérico só alegado) | data_volume: small (18–192 FEs reais)
+motor: MOBO escalarização Tchebycheff + EI; aquisição maximizada por enumeração em grid DOE/LHS
+surrogate: GP/Kriging (DACE) p/ objetivos + MLR/BMLR p/ utopia (predição pontual; incerteza não usada)
+incerteza: MSE do GP entra no EI (propagada pela escalarização Tchebycheff, Eq.4); termo σ·φ(Z) premia incerteza → exploração. Ver §4. | comportamento: aceita-explora | quantif: variância preditiva/MSE do GP (σ², Kriging)
+infill: EI sobre escalarização Tchebycheff (scalarization+EI; família ParEGO)
+rigor s5: 5 | maturidade e4: 1 | ressalva: Em escopo (G5=true), mas incerteza é EI padrão; só menção breve na família MOBO-escalarização.
+
+### e46 · ERGO-II (2024) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 11 · impl NÃO · S_surv 6.1 · S_exp ≤2 (HG1 e HG2 reprovados)
+título: ERGO-II: An Improved Bayesian Optimization Technique for Robust Design with Multiple Objectives, Failed Evaluations and Stochastic Parameters
+n_obj: 2 (E e V de robustez) demonstrado; EHVI suporta >2 (não exercitado) | data_volume: small (~200–250 FEs; DoE 11·(d(X)+d(U))−5)
+motor: BO/EGO — infill maximizando SREI (robust EHVI) via GA interno; two-step SREI+SPVP p/ parâmetros
+surrogate: GP/Kriging ordinário (Matérn 5/2, ooDACE) por saída + GP classifier (EP/probit) p/ viabilidade
+incerteza: ver §4.1 | comportamento: aceita-explora (componente defensivo de viabilidade via GPC) | quantif: σ² GP (Kriging) propagada por Taylor 2ª ordem (SOFM/SOSM)→ΣE,ΣV; prob. classe GPC (EP)
+infill: EHVI (robust REI/SREI) + activation + máscara viabilidade; SPVP p/ parâmetros
+rigor s5: 6.5 | maturidade e4: 1 | ressalva: Vizinho/contraste (robusto-à-ENTRADA); uso de incerteza é EHVI padrão; novidade (UP analítica, GPC, parâmetros) fora do foco central
+
+### e47 · SAC-MOBAL (MO-BAL com incerteza experimental) (2025) · BO-Especiais · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A · cit 10 · impl NÃO · S_surv 6 · S_exp 2
+título: Discovering novel lead-free solder alloy by multi-objective Bayesian active learning with experimental uncertainty
+n_obj: 2 | data_volume: small
+motor: Active learning Bayesiano sobre grid enumerado (~9000 alloys) + aquisição EI/POI/UCB por objetivo + filtro de Pareto
+surrogate: 2 GPR/Kriging (UTS, elongação), kernel RBF, com ruído heterogêneo (incerteza exp.) + ruído homogêneo τ na covariância
+incerteza: (1) σ-de-predição do GPR nas aquisições EI/POI/UCB dirige busca/infill (IN-SCOPE, surrogate, load-bearing). (2) Incerteza EXPERIMENTAL (heterogeneous noise das réplicas) embutida na covariância regulariza o GPR e melhora generalização em small data (FORA do escopo estrito; não dirige busca) | comportamento: aceita-explora | quantif: σ/variância gaussiana do GPR (busca); σ de réplicas como ruído heterogêneo (regularização)
+infill: EI(plugin), POI, UCB por objetivo + Pareto
+rigor s5: 6 | maturidade e4: 1 | ressalva: Borderline; σ-de-busca in-scope mas clássica; inovação real (incerteza experimental) é regularização fora do escopo. Citável como aplicação/contraste, não exemplar central.
+
+### e48 · MMGP-MOEI/BiGA (2024) · BO-Especiais · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 9 · impl NÃO · S_surv 5.7 · S_exp 2
+título: Joint multi-objective optimization based on multitask and multi-fidelity Gaussian processes for flapping foil
+n_obj: 2 (C_T thrust, C_L lift; ZDT1 bi-objetivo) | data_volume: small
+motor: Active learning Bayesiano (infill MOEI+multi-AF) + GA sobre surrogate treinado + BiGA p/ configuração
+surrogate: MMGP — Multitask & Multi-fidelity Gaussian Process (GP probabilístico, multi-output)
+incerteza: ver §4.1 | comportamento: aceita-explora | quantif: σ GP (variância posterior) + MAE empírico de validação
+infill: EI → MOEI (explore/exploit como 2 objetivos Pareto) + multi-AF (peso por MAE)
+rigor s5: 5.5 | maturidade e4: 1 | ressalva: Citável só perifericamente: aplicação real de SA-MOEA com incerteza e/ou caso multi-fidelity (contraste). Fora do núcleo.
+
+### e49 · GAMO (infill: GMOEI; citado por terceiros como GAMOEI) (2020) · BO-Melhoria-de-Pareto · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 8 · impl NÃO · S_surv 6.3 · S_exp 2
+título: Development of an Adaptive Infill Criterion for Constrained Multi-Objective Asynchronous Surrogate-Based Optimization
+n_obj: 2 (analítico limitado a 2; extensão a >2 declarada impraticável; testes ZDT e OSY, 2 obj) | data_volume: small (DoE 65 + máx 100 FEs ≈ 165 reais; expensive)
+motor: loop EGO/BO sequencial→batch→assíncrono; lote = argmax GMOEI(g,µ,λ) via multi-start SQP sobre o espaço
+surrogate: Kriging (GP tendência+Z(x)); Matérn ν=3/2; MLE/SQP; ooDACE; um modelo por objetivo/restrição (não-correlacionados)
+incerteza: ver 4.1 — variância Kriging é o motor do EI; entra na prob. de improvement e governa exploração/exploitation via g | comportamento: aceita-explora | quantif: σ/variância gaussiana Kriging s²(x), s(x), analítica da BLUP (eq.2)
+infill: EI geométrico/custom (Euclid-EI de Keane à potência g; constrained via prob. feasibility; batch/async via EI(µ,λ)+MCI)
+rigor s5: 6 | maturidade e4: 2 | ressalva: Uso de incerteza é EI canônico (nada novo no eixo 'função da incerteza'); valor = mecânica assíncrona/batch/constrained + cooling adaptativo. Entrada fronteiriça por lacuna.
+
+### e55 · KAEA-C (2024) · EA-Decomposição · O3 · Aprendizado ativo / reparo · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A- · cit 7 · impl NÃO · S_surv 6.6 · S_exp 2
+título: A surrogate-assisted a priori multiobjective evolutionary algorithm for constrained multiobjective optimization problems
+n_obj: Escalável em k; experimentos com 3 e 7 objetivos (benchmarks); reais com 3-5 (CSI=3, CMD=4, WR=5, MDCBD=5) | data_volume: small (FEmax = |Pr| + 100; orçamento ativo de 100 avaliações caras após P0; testados 100/200/300 — regime canônico de expensive)
+motor: MOEA decomposição (vetores de referência tipo RVEA) com ponto de referência a priori + estratégia de seleção set-based bi-objetivo por subpopulação
+surrogate: Kriging (regressão por processo gaussiano), um modelo por função CARA (objetivo OU restrição); funções baratas ficam sem surrogate (σ=0)
+incerteza: σ do Kriging usado no model management de forma DUAL: (1) Nu/2 soluções de MAIOR σ → avaliação cara p/ melhorar acurácia do modelo (independente de viabilidade); (2) Nu/2 soluções viáveis de menor ASF e MENOR σ → confirmação confiável de soluções preference-following. Eq.(9) normaliza σ entre funções caras | comportamento: misto (aceita-explora no ramo de alto-σ + rejeita-gerencia no ramo de baixo-σ) | quantif: σ (desvio-padrão) do valor predito pelo Kriging, normalizado min-max por modelo e somado entre funções caras (Eq. 9)
+infill: custom (não-Bayesiano): seleção por σ alto/baixo + ASF; explicitamente contrastado com acquisition EHVI+POF
+rigor s5: 7 | maturidade e4: 2 | ressalva: true com ressalva: a incerteza, embora dual e real, atua no model management (ramo de alto-σ é padrão K-RVEA); a novidade principal (selection strategy) NÃO usa incerteza. Entra como exemplar de nicho
+
+### e64 · SA-MOPSO (PPD) (2025) · EA-Dominância · A2 · Dominância probabilística · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 0 · impl OFICIAL · S_surv 7.2 · S_exp 5.55
+título: A Probabilistic Approach to Surrogate-Assisted Multi-Objective Optimization of Complex Groundwater Problems
+n_obj: 2 | data_volume: small
+motor: MOPSO (Siade 2019/PESTPP-MOU) com Probabilistic Pareto Dominance
+surrogate: GPR/Kriging (via laGP, Gramacy 2016)
+incerteza: variância GPR em 3 frentes: dominância probabilística (PPD->Pareto cloud), fitness de repositório, probabilidade de viabilidade; dirige seleção de infills | comportamento: aceita-explora | quantif: variância posterior fechada do GPR/Kriging (Eq 5); pseudo-variância (Eq 15) só na fitness
+infill: custom (ensemble da cloud via fitness probabilística baseada em PD; não-AQF clássica)
+rigor s5: 6 | maturidade e4: 5 | ressalva: N/A (G5=true, mérito pleno)
+
+### e66 · SK-MORS (2025) · Resíduo · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A · cit 5 · impl NÃO · S_surv 6.2 · S_exp 1.5
+título: Bi-objective Ranking and Selection Using Stochastic Kriging
+n_obj: 2 (bi-objetivo); framework p/ m={2,3}, experimentos todos m=2 | data_volume: big (ressalva R&S): b0=5, bmax=100/ponto, |S|=100, 15-30 iter -> milhares de réplicas, mas para reduzir ruído, não FEs de busca
+motor: Heurística sequencial de alocação de réplicas (R&S); não há busca evolutiva nem aquisição sobre o espaço
+surrogate: Stochastic Kriging (Kriging/GP para saídas ruidosas heterocedásticas, Ankenman 2010); 1 SK/objetivo, MLE
+incerteza: ŝ do SK infla a PD (premia pontos incertos -> atrai re-amostragem) e monta bandas de confiança no screening (hedge contra excluir não-dominados); decide ONDE gastar réplicas, não penaliza fitness | comportamento: aceita-explora | quantif: MSE/var. preditiva SK (ŝ², Eq.8) + var. amostral s²; ICs ωs e ωŝ (ω=3, 99%)
+infill: híbrido: EHVD (hipervolume) + PD (geométrico custom inflado por ŝ), maximizados juntos
+rigor s5: 8 | maturidade e4: 1 | ressalva: true COM RESSALVA: é R&S/identificação (conjunto fixo, ruído), não SA-MOEA de busca. Citar como vizinho/contraste, não núcleo.
+
+### e70 · O-NAUTILUS (2022) · Resíduo · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 3 · impl OFICIAL · S_surv 6.6 · S_exp 2
+título: Optimistic NAUTILUS navigator for multiobjective optimization with costly function evaluations
+n_obj: k≥2 (geral; caso: 3; RVEA escala a muitos objetivos) | data_volume: small
+motor: Navegação interativa NAUTILUS (DM) + RVEA (frente otimista) + CMA-ES (eASF)
+surrogate: Kriging (GP) e modelos Lipschitzianos; um por objetivo
+incerteza: σ do surrogate forma a cota inferior μ−ασ; a minimização MOO dessas cotas gera a frente otimista P+, que define os reachable ranges otimistas mostrados ao DM e atrai FEs reais para regiões incertas-porém-promissoras; 2º papel no infill eASF via Monte Carlo da distribuição preditiva. | comportamento: aceita-explora | quantif: σ do Kriging (MSE local) e largura das cotas Lipschitzianas; combinadas como μ−ασ
+infill: Escalarização ASF (Tchebycheff aument.) esperada via Monte Carlo (eASF)
+rigor s5: 4 | maturidade e4: 7 | ressalva: Método interativo (DM no loop), sub-nicho; entra como contraste/exemplar de família.
+
+### e74 · CLMEA (2023) · EA-Dominância · O3 · Aprendizado ativo / reparo · RG — Regressor Clássico (não-GP) · GEO-DIST (geometria/distância aos dados) · online · papel estado-da-arte · tier Preprint-Forte · cit - · impl OFICIAL · S_surv 6.6 · S_exp 6.4
+título: Rank-Based Learning and Local Model Based Evolutionary Algorithm for High-Dimensional Expensive Multi-Objective Problems
+n_obj: 2 e 3 (M={2,3}); explícito | data_volume: small (maxFEs=300; LHS inicial 100-200)
+motor: MOEA populacional (DE+crossover binário+mutação polinomial), NDS+crowding, em PlatEMO; 3 estratégias de infill aninhadas
+surrogate: Híbrido: PNN (classificador de rank) + RBFN gaussiana (aproximação dos objetivos, global e local)
+incerteza: Ver §4 | comportamento: aceita-explora | quantif: Distância euclidiana (eq.7 decisão; eq.10 objetivo) + crowding distance; NÃO usa prob./margem da PNN
+infill: Híbrido custom: máx distância/incerteza + HV improvement; sem aquisição probabilística
+rigor s5: 8.5 | maturidade e4: 6.5 | ressalva: Incerteza é proxy geométrico (distância a dados), não variância paramétrica do surrogate; entra por lacuna+distinção.
+
+### e80 · HVKTS / HVKTS-EA (2024) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A++ · cit 6 · impl OFICIAL · S_surv 6.5 · S_exp 2
+título: Knee Detection in Bayesian Multi-Objective Optimization Using Thompson Sampling
+n_obj: 2 e 3 (bi-objetivo predominante; DEB3DK/DTLZ7 com 3) | data_volume: small (DoE via Eq.6 + 80 iter BO; ZDT3=300; DEB2DK-3k=120 → ≤~130 FEs)
+motor: MOBO; HVKTS-EA embute NSGA-II/SMS-EMOA p/ otimizar o sample da posterior
+surrogate: Gaussian Process (GP/Kriging), um por objetivo
+incerteza: ver seção 4.1 | comportamento: aceita-explora | quantif: σ² posterior do GP (Eq.3); amostragem posterior via Random Fourier Features (TS); EHVI usa μ,σ
+infill: Thompson Sampling + EHVI (hipervolume) custom p/ knee
+rigor s5: 7 | maturidade e4: 6 | ressalva: Foco do paper é knee detection, não o uso da incerteza; incerteza instrumental ao TS. Entra como exemplar de TS-driven MOBO e BO p/ região de interesse.
+
+### e81 · qPOTS (2025) · BO-Especiais · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A- · cit - · impl OFICIAL · S_surv 7.2 · S_exp 8.1
+título: Multiobjective Aerodynamic Design Optimization of the NASA Common Research Model
+n_obj: 2 (todos os experimentos, p/ casar com CRM); estende a K arbitrário (não testado) | data_volume: small (FEs reais: 50–800 sintéticos; CRM 200 seed+200 iters=400)
+motor: MOBO via Thompson sampling: amostra caminhos posteriores + MOO barato (NSGA-II/pymoo) + batch maximin + Nyström
+surrogate: GP (1 por objetivo), Matérn anisotrópico ν=5/2, GPyTorch+BoTorch
+incerteza: Covariância posterior GP gera caminhos amostrados (Σ^{1/2}Z) no TS; é a fonte de estocasticidade que explora regiões incertas e explota alta-média. Sem Σ os caminhos colapsam na média. Entra na aquisição via prob. de ser Pareto-ótimo (Eq.4); não é termo aditivo μ±κσ. | comportamento: aceita-explora | quantif: Variância posterior GP σ²_n(x); covariância Σ via reparam. + Nyström
+infill: Thompson sampling Pareto-ótimo (α≡Y); batch por maximin
+rigor s5: 8 | maturidade e4: 8.5 | ressalva: N/A (G5=true). Uso de incerteza é o mecanismo padrão de TS, central mas não exótico.
+
+### e83 · HET-EMO (HET-NSGA-III) (2026) · EA-Decomposição · O3 · Aprendizado ativo / reparo · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A++ · cit 6 · impl NÃO · S_surv 7.1 · S_exp 2
+título: Handling Objectives With Heterogeneous Evaluation Times in Surrogate-Assisted Evolutionary Multiobjective Optimization
+n_obj: 2, 3, 5, 8 | data_volume: small (Tmax≈300–360 ≈ ~300 SEs reais; NDoE=100–140; expensive)
+motor: NSGA-III (RV-based) rodando tS=30 gerações sobre surrogates
+surrogate: Kriging (GP) independente por objetivo; correlação Gaussiana; 6 regressores (quad/lin/const × ±ARD) escolhidos por MAE em CV 3-fold; via Pysamoo/Pymoo
+incerteza: ver 4.1 — σ Kriging é 1 dos 3 fatores do HFS metric que decide QUAL objetivo de QUAL membro recebe HF-eval | comportamento: aceita-explora | quantif: σ do Kriging (erro modelagem GP), normalizado por |fm|=nadir−ideal; convolução de gaussianas na P(dominância)
+infill: N/A BO clássica — infill por seleção RV-wise via métrica HFS ρ (custom)
+rigor s5: 9 | maturidade e4: 3 | ressalva: Vizinho forte/contraste: σ é load-bearing, mas foco é heterogeneidade/multi-fidelity (eixo adjacente ao núcleo).
+
+### e86 · NSGAIII-EHVI (2023) · EA-Decomposição · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A++ · cit 29 · impl OFICIAL · S_surv 8.1 · S_exp 8.15
+título: An Expensive Many-Objective Optimization Algorithm Based on Efficient Expected Hypervolume Improvement
+n_obj: 3, 5, 8, 10 (comparação); many-objective; suporta M>=2 | data_volume: small
+motor: NSGA-III com sorting assistido por incerteza + infill 1-ponto por EHVI
+surrogate: Kriging/GP, um modelo por objetivo (M modelos)
+incerteza: MSE do Kriging entra (i) como dimensão extra no sorting (+U p/ não-dominados, -U p/ dominados) e (ii) na PDF gaussiana do EHVI. Exploração posição-dependente. | comportamento: aceita-explora | quantif: MSE/variância do Kriging (eq.2); média geométrica entre M objetivos (eq.9)
+infill: EHVI (hypervolume-based), via importance sampling de passada única
+rigor s5: 8 | maturidade e4: 9 | ressalva: 
+
+### e87 · CK-MOGA (2011) · EA-Dominância · A3 · Gestão de confiança · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel classico · tier A- · cit 23 · impl NÃO · S_surv 5.6 · S_exp 2
+título: An Improved Kriging-Assisted Multi-Objective Genetic Algorithm
+n_obj: 2 (todos os exemplos; formulação geral M, não demonstrada além de bi-obj) | data_volume: small (Nsc reais ~120-673/run; limiar ~300)
+motor: MOGA baseado em NSGA + elitismo (nondominated sorting)
+surrogate: Kriging ordinário (GP); 1 modelo/objetivo + 1/restrição
+incerteza: Ver seção 4 | comportamento: rejeita-gerencia | quantif: RMSE/sigma Kriging (raiz do MSE, byproduct GP); UP=2sigma; Ru=||UP||2
+infill: geométrica/custom (comutação Ru vs MD; sem aquisição clássica)
+rigor s5: 6 | maturidade e4: 1 | ressalva: Borderline (~5.6); incremental e subsumido por K-MOGA (2008). Citável como refinamento da família 'sigma-gate de dominância'.
+
+### e88 · C-LCB (2021) · BO-Melhoria-de-Pareto · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 22 · impl NÃO · S_surv 5.3 · S_exp 1.5
+título: Constrained Surrogate-Based Engine Calibration Using Lower Confidence Bound
+n_obj: 2 | data_volume: small
+motor: NSGA-II otimiza a aquisição LCB vetorial + restrição no surrogate; infill por k-means (k=10)
+surrogate: Kriging (universal, tendência polinomial 2ª ordem + correlação gaussiana), DACE; modelos independentes por objetivo e restrição
+incerteza: σ Kriging em 2 pontos: (1) LCB=μ−c·σ (c=2): −c·σ atrai regiões incertas→exploração; (2) restrições: expande viabilidade (μ<0 mas μ+σ≥0; Pc=Π Φ(μ_i/σ_i), limiar (Φ(−1))^n)→explora fronteira viável. Ambos atraem amostragem. | comportamento: aceita-explora | quantif: σ/variância preditiva analítica do Kriging (eq.8); restrição usa Φ(μ/σ)
+infill: LCB (confidence-bound) vetorial + viabilidade probabilística custom; infill k-means
+rigor s5: 6 | maturidade e4: 1 | ressalva: Citável só como contraste pontual (LCB vs EI/EHVI; σ p/ expandir viabilidade); não é exemplar de família.
+
+### e89 · PMEGO (2010) · BO-Melhoria-de-Pareto · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 18 · impl NÃO · S_surv 5.4 · S_exp 2
+título: A Parallel Multiobjective Efficient Global Optimization: The Finite Element Method in Optimal Design and Model Development
+n_obj: 2 (TEAM 22); formulação genérica p/ m objetivos + restrições | data_volume: small
+motor: Loop EGO multiobjetivo, infill em lote por maximização de critério escalar (pseudo-distance) via GA single-objective; paralelizado
+surrogate: Kriging (GP/DACE), um modelo por objetivo e por restrição
+incerteza: ŝ Kriging estrutural no critério de infill, bidirecional: penaliza σ na dominância, premia σ na vizinhança | comportamento: misto (aceita-explora E rejeita-gerencia em termos opostos) | quantif: Erro padrão ŝ=sqrt(MSE) do Kriging (variância de predição gaussiana)
+infill: Geométrica/custom baseada em dominância (pseudo-distance, ponderada por ŝ)
+rigor s5: 3 | maturidade e4: 1 | ressalva: Borderline; σ usado de modo real/interessante, mas aplicação eletromagnética, baixo impacto, sem código, benchmark único fraco. Citável como contraste histórico, não como exemplar.
+
+### e91 · TrSA-DMOEA (2023) · EA-Decomposição · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 23 · impl NÃO · S_surv 5.9 · S_exp 1.5
+título: An adaptive Gaussian process based manifold transfer learning to expensive dynamic multi-objective optimization
+n_obj: 2 e 3 (DF1–9 bi; DF10–14 tri) | data_volume: small (2N=200 FEs reais/instante; 40N=4000 total, 20 mudanças)
+motor: RVEA (APD) sobre GPs + AF adaptativa p/ infill; transfer learning knee-point manifold (GFK) p/ reinicializar pós-mudança
+surrogate: GP/Kriging (um por objetivo; MLE)
+incerteza: σ̄ do GP é termo de exploração na AF de model management: AF=(1−α)·APD+α·σ̄ pontua população otimizada e escolhe l a reavaliar real. Mantém exploração/diversidade de amostragem e acurácia do surrogate; α (cosseno) equilibra exploração↔exploitation. Sem σ, seleção colapsa em exploitation (declarado §3.4.2). | comportamento: aceita-explora | quantif: σ do Kriging (variância Eq.6), média sobre objetivos (Eq.20)
+infill: Custom/geométrica: APD + incerteza média, peso cosseno (não EI/EHVI/entropia)
+rigor s5: 8 | maturidade e4: 1 | ressalva: Fronteiriço (5.9). Só como vizinhança/contraste: extensão da família EA+GP/AF-adaptativa a EDMOP. Uso de incerteza convencional/redundante c/ K-RVEA; fora do alvo estático.
+
+### e92 · srMO-BO-3GP (2022) · BO-Decomposição · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 10 · impl NÃO · S_surv 6.9 · S_exp 2
+título: srMO-BO-3GP: A Sequential Regularized Multi-Objective Bayesian Optimization for Constrained Design Applications Using an Uncertain Pareto Classifier
+n_obj: 2(ZDT), 3(DTLZ), 5(FEM); alega independência do nº de objetivos | data_volume: big (~1500 FEs nos benchmarks; 851 sims no FEM)
+motor: BO sequencial; Tchebycheff aumentado regularizado (pesos aleatórios) + aquisição composta maximizada por CMA-ES
+surrogate: 3× GP/Kriging (objetivo, classificador-Pareto, classificador-restrição)
+incerteza: σ² posterior do GP em 2 pontos da aquisição: GP-objetivo (explore-exploit padrão) e GP-Pareto (σ²_Pareto adiciona EXPLORAÇÃO das regiões de classificação incerta — novidade vs Davins-Valldaura, que só usava a probabilidade=exploitation) | comportamento: aceita-explora | quantif: Variância posterior do GP (σ² Kriging, Eq. 6)
+infill: Escalarização Tchebycheff/ParEGO + aquisição composta multiplicativa (PI/EI/UCB no GP-objetivo e no GP-Pareto)
+rigor s5: 6 | maturidade e4: 2 | ressalva: N/A (G5=true); inclusão por distintividade + lacuna (MOBO classificador-Pareto incerto, agnóstico ao nº de objetivos)
+
+### e95 · ATKIS (2022) · BO-Especiais · A1 · Penalização avessa a risco · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 6 · impl NÃO · S_surv 5.4 · S_exp 2
+título: An Adaptive Two-Stage Kriging-Based Infilling Strategy for Efficient Multi-Objective Global Optimization
+n_obj: 2 (bi-objetivo; declarado; many-objective é futuro) | data_volume: small — ~150 FEs de infill + 120 iniciais; regime expensive
+motor: Filtragem/ordenação de virtual points (não-EA, não-aquisição); exploitation + exploration Voronoi
+surrogate: Kriging/GPR por objetivo; ordem-zero, correlação Gaussiana, MLE; dá ŷ e variância MSE analítica
+incerteza: σ do Kriging cria intervalo f=ŷ+c·s (c=2,95,5%); candidato só é 'promissor' se a caixa pessimista ainda domina o Pareto. Filtra/exclui pontos incertos; exploração fica no Voronoi (desacoplada da incerteza). | comportamento: rejeita-gerencia | quantif: desvio-padrão s = raiz da variância de predição Kriging (Eq.8); c=2
+infill: Custom/geométrica: dominância-confiável + maximin minD + Voronoi (não EI/EHVI)
+rigor s5: 5 | maturidade e4: 1 | ressalva: G5=true mas incerteza é filtro de dominância (não driver sofisticado); impacto baixo; bi-objetivo; sem código.
+
+### e96 · Combined target-vector BO (stacked-GP rank aggregation) (2023) · BO-Melhoria-de-Pareto · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier B+ · cit 5 · impl NÃO · S_surv 6.8 · S_exp 1.5
+título: Solving multi-objective inverse problems of chained manufacturing processes
+n_obj: 2–5 saídas (uc1/uc2: 2; uc3: 5); problema inverso target-vector | data_volume: small
+motor: BO sequencial, aquisição target-vector LCB/EI sobre pool + agregação de ranks Borda
+surrogate: GP padrão + Stacked GP (rede de GPs encadeados, Abdelfatah 2018)
+incerteza: σ epistêmico do (stacked)GP propagado pela cadeia, usado na aquisição; contribuição = gerir sub/sobre-estimação combinando joint(sobre)+cascaded(sub) via rank aggregation | comportamento: aceita-explora | quantif: σ GP (diag covariância); variância stacked propagada (lei var. total); escala γ⁻² do NCχ²
+infill: target-vector LCB/EI via distância Euclidiana quadrática ~ NCχ² + agregação de ranks Borda
+rigor s5: 6 | maturidade e4: 2 | ressalva: Uso de incerteza central (propagação em cadeia + calibração via ranks), mas nicho aplicado manufatura/target-vector fora do core MOEA-Pareto; citar como contraste.
+
+### e99 · SAMURAI (2022) · BO-Melhoria-de-Pareto · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 2 · impl NÃO · S_surv 6 · S_exp 2
+título: SAMURAI: A New Asynchronous Bayesian Optimization Technique for Optimization-under-Uncertainty
+n_obj: 2 | data_volume: small
+motor: MOBO (EGO) assincrona multi-ponto; aquisicao RBREI maximizada por GA
+surrogate: Kriging (GP, Matern nu=5/2), via ooDACE
+incerteza: Dupla: (1) MSPE de Kriging (epistemica do surrogate) propagada analiticamente p/ erros das medidas de robustez/confiab. e usada na aquisicao REI/RBREI -> dirige infill adaptativo (in-scope). (2) Incerteza aleatoria de ENTRADA propagada p/ definir media/variancia (objetivos) e prob. de falha (restricao) -> robustez classica a entrada (vizinho). | comportamento: aceita-explora | quantif: MSPE/variancia preditiva de Kriging s^2(x); erros propagados s^2_E[Y], s^2_V[Y], s_Pf, s_KKT
+infill: EI robusta multi-objetivo (REI, distancia-ao-front) x prob. confiabilidade single-loop; assincrona multi-ponto via MC (Kaiser & Dickman)
+rigor s5: 6 | maturidade e4: 1 | ressalva: Vizinho (robustez-a-ENTRADA/RBRDO): incluir como CONTRASTE/delimitacao de escopo, nao como alvo central. Usa MSPE do surrogate na aquisicao (in-scope), mas proposito = robustez a entrada.
+
+### e102 · MOEA/D-ASS (2021) · BO-Decomposição · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte (a epoca) · tier A+ · cit 54 · impl OFICIAL · S_surv 7.5 · S_exp 7.65
+título: Choose Appropriate Subproblems for Collaborative Modeling in Expensive Multiobjective Optimization
+n_obj: 2 e 3 (ZDT 2-obj; DTLZ 3-obj; WFG 2-obj) | data_volume: small (FEmax=200/500; nI=11d-1)
+motor: MOEA/D decomposicao (Tchebycheff) + infill por otimizacao da aquisicao ALCB (EA interno por subproblema)
+surrogate: CoMOGP (Collaborative Multi-Output Gaussian Process)
+incerteza: ver secao 4.1 | comportamento: aceita-explora | quantif: sigma_i - variancia preditiva posterior do CoMOGP (eq.19)
+infill: LCB-variante (ALCB); familia UCB/LCB
+rigor s5: 8.5 | maturidade e4: 8 | ressalva: 
+
+### e103 · IBEA-MS (2023) · EA-Indicador · A3 · Gestão de confiança · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · offline · papel estado-da-arte · tier offline · cit 42 · impl OFICIAL · S_surv 8 · S_exp 7.1
+título: Performance Indicator-Based Adaptive Model Selection for Offline Data-Driven Multiobjective Evolutionary Optimization
+n_obj: 2,3,5,10 (até 10; inclui MaF many-objective) | data_volume: small
+motor: IBEA+ (indicador ε-aditivo I_ε+)
+surrogate: Híbrido: Kriging (DACE) + RBFN (kernel gaussiano, K-means)
+incerteza: MSE/RMSE do Kriging como gate 3σ de confiabilidade da dominância predita p/ trocar Kriging→RBFN | comportamento: rejeita-gerencia | quantif: MSE/RMSE do Kriging (eq.17); RBFN sem incerteza
+infill: 
+rigor s5: 8.5 | maturidade e4: 7.5 | ressalva: 
+
+### e104 · RVMM (2022) · BO-Especiais · A1 · Penalização avessa a risco · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A · cit 39 · impl NÃO · S_surv 7.2 · S_exp 2
+título: Reference Vector-Assisted Adaptive Model Management for Surrogate-Assisted Many-Objective Optimization
+n_obj: 3, 5, 10 (foco many-objective) | data_volume: small (300 FEs 10-D; 800 FEs 50-D)
+motor: RVEA — duas execuções paralelas com APD
+surrogate: Gaussian Process/Kriging (1 por objetivo); incremental GP p/ 50-D
+incerteza: σ do GP na aquisição AUCB amplificada (σ² se σ>1); convergência penaliza σ alto (filtra incerto), diversidade atrai exploração. Load-bearing (RVMM-mean<RVMM-UCB<RVMM). | comportamento: misto — predomina rejeita/gerencia (convergência), aceita/explora (diversidade) | quantif: σ posterior do GP/Kriging (Eq.3), amplificado max(min(σ,1),σ²)
+infill: UCB-variante (AUCB) + sampling por indicador geométrico
+rigor s5: 8 | maturidade e4: 2 | ressalva: 
+
+### emo1 · MPoI / HypI / DomRank / MSD (4 estratégias de infill) (2017) · BO-Melhoria-de-Pareto · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte (à época) / referência metodológica de infill barato · tier B+ · cit 50 · impl OFICIAL · S_surv 7.2 · S_exp 7.35
+título: Alternative Infill Strategies for Expensive Multi-Objective Optimisation
+n_obj: 2–6 (D=2 WFG; 3 DTLZ1/2; 4 DTLZ7; 6 DTLZ5) | data_volume: small (65 LHS init + 250 FEs reais)
+motor: EGO/BO sequencial; aquisição maximizada sobre o espaço por Bipop-CMA-ES
+surrogate: GP/Kriging Matérn 5/2, L-BFGS×10 (GPy); multi-surrogate (1 GP/obj) p/ MPoI; mono-surrogate (1 GP da escalarização) p/ HypI/DomRank/MSD
+incerteza: σ² do GP central: no MPoI entra na prob. de dominância (eq.12, σ no denom.; N2: cresce com σ); nos mono-surrogate via EI clássico (eq.5, ∝σ). Atrai a busca (explora). | comportamento: aceita-explora | quantif: σ/σ² posterior GP (variância Kriging, eq.4); propagada por erf no MPoI
+infill: PI multiobjetivo set-based (MPoI) + EI sobre escalarizações set-based (HypI hipervolume, DomRank ranking, MSD distância sinalizada)
+rigor s5: 8 | maturidade e4: 7 | ressalva: 
+
+### emo2 · TSEMO (2022) · EA-Dominância · O3 · Aprendizado ativo / reparo · RG — Regressor Clássico (não-GP) · DISC-ENS (discordância entre predições) · online · papel outro · tier B+ · cit 8 · impl NÃO · S_surv 6.4 · S_exp 1.5
+título: A two-stage infill strategy and surrogate-ensemble assisted expensive many-objective optimization
+n_obj: 3,4,6,8,10 (DTLZ); 3,5,10 (MaF); D=10 | data_volume: small (FEmax=300; LHS inicial 11D−1≈109)
+motor: MOEA NSGA-II/SDR (dominância fortalecida) + SBX + mutação polinomial
+surrogate: Ensemble de 2 RBF (kernel cúbico + Gaussiano), 1 ensemble/objetivo; predição = média das duas
+incerteza: Incerteza=discordância de ensemble; sinal EXPLORATÓRIO no infill 2 etapas: etapa 1 escolhe max ε1 em clusters totalmente não-dominados; etapa 2 escolhe os u−K de max ε2 (discordância entre ensemble da 1ª e 2ª etapa). Direciona avaliações reais (active-learning), complementa convergência. | comportamento: aceita-explora | quantif: ε1=(1/M)Σ√((f_cúbico−f_Gauss)²) (discordância atual); ε2=(1/M)Σ√((f¹−f²)²) (discordância histórica). Discordância L1, não variância de GP.
+infill: Infill geométrico/custom 2 etapas (k-means + ED + discordância ensemble); não EI/EHVI/entropia
+rigor s5: 7 | maturidade e4: 1 | ressalva: Inclusão marginal/secundária: entra pela razão nomeada (mecanismo distintivo ε2 = discordância histórica) e contraste da família ensemble.
+
+### f9 · UA-IBEA (sigla não-oficial, proposta por mim; paper não nomeia — "Approach 1/2/3") (2019) · EA-Indicador · A1 · Penalização avessa a risco · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · offline · papel outro · tier offline · cit 17 · impl NÃO · S_surv 7.2 · S_exp 1.5
+título: On Dealing with Uncertainties from Kriging Models in Offline Data-Driven Evolutionary Multiobjective Optimization
+n_obj: 2,3,5 testados; qualquer k≥2 (efetivos: 2k na Abord.1, k+1 na Abord.2) | data_volume: small
+motor: IBEA (indicador I_ε+, κ=0,51/0,87/0,48); pop=100; crossover+mutação; arquivo+non-dom sort; máx 40k FEs surrogate
+surrogate: Kriging/GP — 1 modelo/objetivo; tendência polinomial 1ª ordem; kernel gaussiano; MATLAB
+incerteza: σ do Kriging entra como OBJETIVO(S) a minimizar (Abord.1: k σ→2k obj; Abord.2: σ̄→k+1 obj), front troca qualidade×confiança; Abord.3: EI(μ,σ) maximizado→explora. Offline não refina, então baixo σ dá soluções mais fiéis + anotação filtrável. | comportamento: rejeita-gerencia | quantif: desvio-padrão posterior do Kriging s=√(var Eq.4); EI(μ,s) na Abord.3
+infill: Abord.3: EI (PI/EI) como OBJETIVO, não infill sequencial (offline); Abord.1-2: N/A
+rigor s5: 6.5 | maturidade e4: 1 | ressalva: 
+
+### gec9 · TR-NSGA-II (2019) · EA-Dominância · A3 · Gestão de confiança · GP — Processo Gaussiano/Kriging · ERR-EMP (erro empírico vs. verdade) · online · papel outro · tier B+ · cit 9 · impl NÃO · S_surv 7.25 · S_exp 2
+título: Trust-Region Based Multi-Objective Optimization for Low Budget Scenarios
+n_obj: M genérico (>=2); experimentos quase todos M=2, alguns M=3 (C2DTLZ2, DTLZ) | data_volume: small
+motor: NSGA-II sobre os metamodelos, restrito a trust regions (||q-p||<=delta) no espaço de variáveis
+surrogate: Kriging/GPR (primário; preditor + erro s^2(x)); framework M1-M6 flexível (RBF/NN); GS-ASM = ensemble de frameworks selecionado por SEP
+incerteza: erro a-posteriori do surrogate (r=melhoria_real/prevista via PI_ASF/PI_HV/PI_CV) adapta o raio da trust region; bom->expande, ruim->encolhe e restringe a busca | comportamento: rejeita-gerencia | quantif: razão de trust-region r (PI_ASF/HV/CV); erro empírico a-posteriori; s^2(x) Kriging disponível; SEP (k-fold) no GS-ASM
+infill: N/A (sem aquisição BO; infill = não-dominados da busca NSGA-II no metamodelo, dentro da trust region)
+rigor s5: 6.5 | maturidade e4: 3 | ressalva: N/A (mérito pleno; G5=true)
+
+### jin3 · GS-MOMA / GSM (mono: GS-SOMA) (2010) · EA-Dominância · A3 · Gestão de confiança · RG — Regressor Clássico (não-GP) · ERR-EMP (erro empírico vs. verdade) · online · papel seminal · tier A++ · cit 440 · impl NÃO · S_surv 7.8 · S_exp 2
+título: Generalizing Surrogate-assisted Evolutionary Computation
+n_obj: 1 (GS-SOMA); 2-3 (GS-MOMA: MF1-4/MF6=2, MF5=3); r genérico via escalarização | data_volume: big  (8000 FEs SOO; 8000-30000 MOO; limiar ~300; orçamento folgado)
+motor: Memético GA/NSGA-II + busca local trust-region (SQP) sobre surrogate; Lamarckian
+surrogate: Ensemble M1={GP/Kriging,PR,RBF} ponderado por RMSE + M2=PR suavizador (local, online)
+incerteza: ver §4.1 | comportamento: rejeita-gerencia (+ exploração do benefício da suavização) | quantif: RMSE validação/modelo (Eq.5) + ρ trust-region (Eq.7); sem σ do GP
+infill: N/A (infill = avaliação exata dos ótimos locais trust-region)
+rigor s5: 8 | maturidade e4: 2 | ressalva: 
+
+### jin5 · cK-RVEA (2016) · EA-Decomposição · O3 · Aprendizado ativo / reparo · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier B+ · cit 31 · impl NÃO · S_surv 5.1 · S_exp 2
+título: On Constraint Handling in Surrogate-Assisted Evolutionary Many-Objective Optimization
+n_obj: 3, 6, 8, 10 | data_volume: small
+motor: RVEA + APD, dois loops, vetores fixos+adaptativos
+surrogate: Kriging/GP, 1 por objetivo; restrições NÃO surrogadas
+incerteza: σ Kriging seleciona o ponto de MÁXIMA incerteza para reavaliação real no braço de diversidade da gestão de modelo (vs min-APD no braço de convergência), condicionado a viabilidade. | comportamento: aceita-explora | quantif: Variância preditiva do Kriging/GP
+infill: Model-management custom (max-σ vs min-APD); não é aquisição maximizada
+rigor s5: 6.5 | maturidade e4: 3 | ressalva: Referência secundária p/ subseção de constraint handling em SA-MaOO; exemplar da família é o K-RVEA pai.
+
+### mtm4 · MAES (variante MO: M-NSGA-II) (2006) · EA-Dominância · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel seminal · tier A++ · cit 774 · impl NÃO · S_surv 9.5 · S_exp 2
+título: Single- and Multiobjective Evolutionary Optimization Assisted by Gaussian Random Field Metamodels
+n_obj: nf>=1; MO: 2 (Schaffer gen. 10-D) e 3+6 restrições (RAE 2822) | data_volume: small (1000 FEs reais/run; 2000 no estudo longo)
+motor: (μ+λ)-ES auto-adaptativa + pre-screening; NSGA-II no MO
+surrogate: Kriging/GP local (GRFM), independente por saída, Nr=2d vizinhos
+incerteza: ŝ entra no pre-screening: LB=ŷ−ωŝ, PoI de não-dominância, ExI de hipervolume (proto-EHVI) decidem quem recebe FE real; incerteza atrai amostragem a regiões inexploradas | comportamento: aceita-explora | quantif: ŝ(x) Kriging (eq.20, forma pessimista de Schonlau); vetor por saída
+infill: Screening multi-critério: LCB (LB), PI (PoI por não-dominância), EI por hipervolume (ExI≈proto-EHVI), mean (MI)
+rigor s5: 7 | maturidade e4: 1 | ressalva: 
+
+### mtm5 · SMS-EMOA (variante surrogate: "Metamodel-assisted SMS-EMOA", Alg. 3) (2005) · EA-Indicador · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel seminal · tier B+ · cit 668 · impl CANÔNICA · S_surv 7 · S_exp 2
+título: An EMO Algorithm Using the Hypervolume Measure as Selection Criterion
+n_obj: 2 nos experimentos; formulação geral n; foco declarado em 2 | data_volume: small (1000 FEs reais no airfoil)
+motor: EMOA steady-state (µ+1): non-dominated sorting + descarte do menor contribuidor de HV (∆S); surrogate pré-seleciona 1 de λ mutantes
+surrogate: Kriging/GP local (2d vizinhos mais próximos)
+incerteza: s(x) do Kriging forma lower bound ŷ−ωŝ; LBI=S(P∪{ŷ−ωŝ})−S(P) ranqueia λ candidatos e decide quem recebe a FE real; ω controla exploração | comportamento: aceita-explora | quantif: desvio-padrão preditivo s(x) do Kriging
+infill: HV-based otimista (LBI; alternativa MLI sem σ); pré-seleção sobre λ mutantes, não maximizada sobre o espaço; precursor do EHVI
+rigor s5: 5 | maturidade e4: 2 | ressalva: Marco histórico/precursor (LBI→EHVI); incerteza ocupa só a Seção 5
+
+### mtm6 · EHVI (EI_H) / "EHVI-EGO" (2011) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel seminal · tier B+ · cit 226 · impl CANÔNICA · S_surv 8.4 · S_exp 8.1
+título: Hypervolume-based Expected Improvement: Monotonicity Properties and Exact Computation
+n_obj: teoria m=1-2 (provas só m≤2); computação p/ m genérico; experimento m=2 | data_volume: small
+motor: BGO/EGO multiobjetivo — maximização sequencial da aquisição EHVI
+surrogate: GP/Kriging independente por objetivo, kernel gaussiano
+incerteza: σ preditivo é o peso de integração da aquisição EHVI; N2 prova ↑σ ⇒ ↑EI | comportamento: aceita-explora | quantif: desvio-padrão preditivo (s1..sm) das gaussianas independentes do Kriging
+infill: hipervolume (EHVI exato; Ψ fechada + correção Vol(S-))
+rigor s5: 6 | maturidade e4: 8 | ressalva: 
+
+### mtm7 · EHVIG (MOBGO-EHVIG) (2019) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A · cit 179 · impl NÃO · S_surv 6.7 · S_exp 2
+título: Multi-Objective Bayesian Global Optimization using expected hypervolume improvement gradient
+n_obj: 2 (EHVIG só p/ 2-D; benchmarks todos bi-objetivo) | data_volume: small (30 iniciais; 200 FEs reais)
+motor: MOBO: argmax EHVI; interno: CMA-ES / gradient ascent via EHVIG / CMA-ES com EHVIG como stopping
+surrogate: Ordinary Kriging/GP, um por objetivo, MLE
+incerteza: σ do Kriging valora o infill (EHVI=∫HVI·N(μ,σ)) e é DIFERENCIADO: ∂σ/∂x compõe o EHVIG que guia busca e parada | comportamento: aceita-explora | quantif: σ preditivo do Kriging (Eq.2-9) + ∂σ/∂x (Eq.3-9)
+infill: Hipervolume (EHVI); EHVIG = gradiente do acquisition
+rigor s5: 6 | maturidade e4: 2 | ressalva: Peça de progressão/eficiência da família MOBO-EHVI; função da incerteza herdada do EHVI
+
+### o6 · KEMOCO (2016) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel outro · tier A- · cit 48 · impl NÃO · S_surv 6.5 · S_exp 1.5
+título: Kriging-based infill sampling criterion for constraint handling in multi-objective optimization
+n_obj: 2 (benchmarks bi-objetivo; formulação geral k mas só 2 testado) | data_volume: small
+motor: Loop infill bayesiano sequencial (EGO-style); acquisition maximizada por DIRECT; sem população
+surrogate: Kriging universal (GP)
+incerteza: σ do Kriging em 3 papéis: (1) integrada na preditiva do EHVI (governa improvement esperado); (2) PoF Φ((Tol-μ_ĝ)/σ_ĝ) mantém factibilidade incerta no jogo; (3) C1=Σσ_ĝ·PoF, σ atrator explícito p/ refinar o Kriging de restrição na fronteira. | comportamento: aceita-explora | quantif: σ de Kriging/GP (variância preditiva analítica σ²ŷ, Eq.4; σ_ĝ das restrições)
+infill: EHVI (hypervolume-based) + PoF p/ restrições; C1=σ·PoF p/ factibilidade
+rigor s5: 4.5 | maturidade e4: 1 | ressalva: Borderline (6,5); entra como exemplar/lacuna de MOBO restrito (incerteza dirigindo factibilidade). Uso da incerteza central mas convencional.
+
+### o23 · MOBO-OSD (2025) · BO-Decomposição · Resíduo · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A+ · cit - · impl OFICIAL · S_surv 6.3 · S_exp 7.9
+título: MOBO-OSD: Batch Multi-Objective Bayesian Optimization via Orthogonal Search Directions
+n_obj: 2 a 6 (testado M∈{2,3,4,6}); arbitrário | data_volume: small
+motor: BO geométrico (NBI/CHIM): subproblemas por direção ortogonal + PFE + seleção batch por HVI + Kriging Believer
+surrogate: Conjunto de GPs independentes (1/objetivo), Matérn 5/2+ARD; GPyTorch/BoTorch
+incerteza: σ do GP é a meia-largura da caixa Q(x)=μ±δσ que limita o desvio da média à OSD no subproblema (Eq.2); mais folga onde o modelo é mais incerto | comportamento: aceita-explora | quantif: σ posterior do GP (vetorial), δ=1,96 (IC 95%)
+infill: HV-based (HVI da média posterior); candidatos via subproblemas geométricos OSD + PFE
+rigor s5: 9 | maturidade e4: 8.5 | ressalva: true COM RESSALVA: exemplar de contraste do ramo MOBO geométrico/decomposição; uso da incerteza SECUNDÁRIO (tolerância por região de confiança), não central.
+
+### o56 · ε-PoHVI (2024) · BO-Hipervolume · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A+ · cit - · impl OFICIAL · S_surv 7.7 · S_exp 6.3
+título: Probability Distribution of Hypervolume Improvement in Bi-objective Bayesian Optimization
+n_obj: 2 (bi-objetivo apenas; m≥2 declarado como limitação) | data_volume: small
+motor: BO sequencial single-point; ε-PoHVI maximizada por CMA-ES
+surrogate: GP/Kriging — 2 GPs independentes, kernel Matérn 5/2
+incerteza: Ver §4.1 — σ do GP induz a distribuição de HVI; usa o QUANTIL (P(HVI≥ε)) em vez da média (EHVI) | comportamento: aceita-explora | quantif: σ posterior GP → distribuição EXATA (PDF/CDF) de HVI (gaussianas truncadas, partição em células)
+infill: PoI baseada em hipervolume (quantil): ε-PoHVI = 1 − CDF_HVI(ε)
+rigor s5: 8 | maturidade e4: 6 | ressalva: 
+
+### pp6 · AB-MOEA (2020) · EA-Decomposição · O1 · Aquisição exploratória · GP — Processo Gaussiano/Kriging · VAR-GP (posterior fechada de GP) · online · papel estado-da-arte · tier A- · cit 139 · impl NÃO · S_surv 8.4 · S_exp 2
+título: An Adaptive Bayesian Approach to Surrogate-Assisted Evolutionary Multi-objective Optimization
+n_obj: 2 (UF1-7, airfoil) e 3 (DTLZ1-7, M=3) | data_volume: small
+motor: RVEA sobre o surrogate
+surrogate: Gaussian Process / Kriging (um GP por objetivo, DACE)
+incerteza: σ do GP na AF adaptativa AF=(1-α)(μ/μmax)+α(σ/σmax), α=-0.5cos(FE/FEmax·π)+0.5; α cresce e decresce com o orçamento, agendando convergência→exploração→refino; governa a AF e o chaveamento Angle/APD; decide quais pontos da população RVEA são reavaliados nas funções reais | comportamento: aceita-explora | quantif: σ/variância preditiva GP-Kriging (Eq.10)
+infill: LCB-like com ponderação adaptativa μ/σ; seleção geométrica custom (Angle/APD)
+rigor s5: 8 | maturidade e4: 2 | ressalva: 
+
+### wang4 · SA-NSGA-II (2016) · EA-Dominância · A3 · Gestão de confiança · Resíduo · ERR-EMP (erro empírico vs. verdade) · offline · papel seminal · tier offline · cit 224 · impl NÃO · S_surv 8.4 · S_exp 2
+título: Data-Driven Surrogate-Assisted Multi-Objective Evolutionary Optimization of A Trauma System
+n_obj: 2 | data_volume: big (≈40.000 registros fixos)
+motor: NSGA-II combinatório + VNS (3 vizinhanças)
+surrogate: Estimador multi-fidelidade por redução de dados (NÃO-ML): clustering hierárquico (PCA+localização+triagem), centros ponderados; regressão auxiliar ER=1/(β1+β2K)
+incerteza: MAPE de f1 (clusterizado vs exato) vs erro aceitável ER* (separação entre fronts) decide quando/quanto subir a fidelidade K via regressão invertida — orçamentação de acurácia pela tolerância da seleção | comportamento: rejeita-gerencia | quantif: MAPE de f1; ER*=½·min-gap entre fronts (Eq.10); regressão ER=1/(β1+β2K)
+infill: 
+rigor s5: 6 | maturidade e4: 1 | ressalva: Surrogate não-ML; incerteza = erro agregado por geração — caso-fronteira instrutivo
+
+### wang5 · RF-CMOCO (2018) · EA-Dominância · O1 · Aquisição exploratória · RG — Regressor Clássico (não-GP) · ERR-EMP (erro empírico vs. verdade) · online · papel classico · tier A+ · cit 176 · impl OFICIAL · S_surv 6.7 · S_exp 2
+título: A Random Forest-Assisted Evolutionary Algorithm for Data-Driven Constrained Multi-Objective Combinatorial Optimization of Trauma Systems
+n_obj: 2 e 3 (declarado; MOKP m∈{2,3}; trauma m=2) | data_volume: big (1500-2000 FEs reais: 1000 iniciais + 5/geração; limiar ~300)
+motor: MOEA por dominância (molde NSGA-II) + stochastic ranking de 2 critérios + model management individual-based
+surrogate: Random Forest (100 CARTs) por objetivo/restrição; variantes RF+FS(KRCC) e RBFN; regressão logística auxiliar por restrição
+incerteza: RMSE global por objetivo (E_nd em Pnd) infla previsões no infill; prob. de viabilidade logística (P=0,95) relaxa fronteiras de restrição | comportamento: aceita-explora | quantif: RMSE de validação por objetivo (global) + probabilidade logística de viabilidade
+infill: geométrica/custom — dominância otimista tipo LCB, Ns=5/geração
+rigor s5: 7 | maturidade e4: 7 | ressalva: true por razão forte (lacuna/melhor exemplar combinatório-restrito-RF); uso de incerteza real porém simples

@@ -1,0 +1,13 @@
+{
+ "schema_version": 1,
+ "camada": "final",
+ "decisao": "DI-08",
+ "run_id": "main_b5r_DDMOP7_0",
+ "n_final": 47,
+ "n_nd_pos_real": 2,
+ "origem_camada": "surrogate (③), última geração da busca",
+ "origem_precisao": "float32 (decs lidos da ③ — ver caveat do módulo)",
+ "avaliador": "DDMOP7.p oficial via src/ddmop7_bridge (MATLAB Engine) — ⑦ POS-HOC, D102.9/Processo B",
+ "fora_do_orcamento": true,
+ "convencao": "B7.5 — avaliar TODOS os finais e filtrar a não-dominância PÓS-real (coluna nd_pos_real, computada sobre a vista float32 persistida)"
+}

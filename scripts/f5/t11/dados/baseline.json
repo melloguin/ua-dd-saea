@@ -1,0 +1,197 @@
+{
+ "configs": [
+  {
+   "config": "b1",
+   "score_f53_csv": 9.4,
+   "score_pos_adversarial": 9.4,
+   "estado": "SEM_MUDANCA",
+   "fonte": "sem sentenca",
+   "citacao": "Sem sentenca F5.4 dedicada. Mencionado apenas como celula (main/b1/WFG1, jsonl spliced) em /Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/adversarial/padrao_zdt4.md:26,78 — sem qualquer referencia a score. RELATORIO_FINAL_F5.md D1 mantem 9,4 ACEITAR+CAVEAT."
+  },
+  {
+   "config": "b3",
+   "score_f53_csv": 9.6,
+   "score_pos_adversarial": 9.6,
+   "estado": "SEM_MUDANCA",
+   "fonte": "sem sentenca",
+   "citacao": "Nao ha arquivo b3-*.md em f5/adversarial/. RELATORIO_FINAL_F5.md:129 (D1) mantem 'b3 9,6' na lista ACEITAR limpo."
+  },
+  {
+   "config": "b4",
+   "score_f53_csv": 9,
+   "score_pos_adversarial": 9.5,
+   "estado": "PROPOSTO_NAO_APLICADO",
+   "fonte": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/adversarial/b4-A12.md:48",
+   "citacao": "Consequencia direta no §7: o item 2 (\"o unico item (3)… e o que separa este config de 9,5\") dissolve → recomendo a torre reavaliar **9,0 → 9,5**. [verbo 'recomendo … reavaliar' = nao consumado na propria sentenca; o 9,5 vem da matriz D1 do RELATORIO_FINAL_F5.md:129 'b4 9,0→9,5 (A12 refutado)'. RELATORIO_FINAL_F5.md:516 repete em modo proposta: 'F5.4 recomenda a torre reavaliar o score 9,0 → 9,5']"
+  },
+  {
+   "config": "b5m",
+   "score_f53_csv": 8,
+   "score_pos_adversarial": 8,
+   "estado": "SEM_MUDANCA",
+   "fonte": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/adversarial/b5m-A25.md:53",
+   "citacao": "**Score 8,0 / ACEITAR+CAVEAT**: mantido, mas o item 3 da §7 (\"e o item que segura o score abaixo de 8,5\") deveria ser reponderado — metade do achado tem custo zero comprovado. [A segunda sentenca do b5m, b5m-A8.md, tem ZERO ocorrencias da palavra 'score' (medido por grep -c). D1 tambem mantem 8,0, com nota 'reponderar'.]"
+  },
+  {
+   "config": "b5r",
+   "score_f53_csv": 9,
+   "score_pos_adversarial": 9.5,
+   "estado": "CONDICIONAL_AO_AUTOR",
+   "fonte": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/adversarial/b5r-A30.md:22",
+   "citacao": "pela regua do FRAMEWORK-v2 o score **9,0 sobe para 10** apenas se o autor aceitar que o item vira nota de doc (recomendo 9,5–10 com o caveat cientifico do GP degenerado permanecendo — esse e o que realmente rebaixa). [A sentenca condiciona explicitamente ao autor e devolve uma FAIXA 9,5–10, nao um numero. O 9,5 reportado aqui e o ponto que a matriz D1 (RELATORIO_FINAL_F5.md:129) escolheu: 'b5r 9,0→9,5 (A30 → (2))'.]"
+  },
+  {
+   "config": "c122",
+   "score_f53_csv": 9.5,
+   "score_pos_adversarial": 9.5,
+   "estado": "SEM_MUDANCA",
+   "fonte": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/adversarial/c122-A27.md",
+   "citacao": "A sentenca existe e CONFIRMA o achado (d), mas nao toca no score: a unica ocorrencia da palavra 'score' no arquivo e c122-A27.md:8, dentro de uma citacao da DI-16.2 ('o score subiria SO pela escala, falsificando a curva') — grandeza do algoritmo, nao nota do config. D1 mantem 'c122 9,5 (caveat de instrumentacao, ja decidido em DI-42.4)'."
+  },
+  {
+   "config": "c141",
+   "score_f53_csv": 9.5,
+   "score_pos_adversarial": 9.5,
+   "estado": "SEM_MUDANCA",
+   "fonte": "sem sentenca",
+   "citacao": "Nao ha arquivo c141-*.md em f5/adversarial/. RELATORIO_FINAL_F5.md:129 (D1) mantem 'c141 9,5'."
+  },
+  {
+   "config": "c149",
+   "score_f53_csv": 9,
+   "score_pos_adversarial": 9.5,
+   "estado": "PROPOSTO_NAO_APLICADO",
+   "fonte": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/adversarial/c149-A26.md:68",
+   "citacao": "**O desconto de 1,0 ponto no SCORE do c149 (9,0) merece revisao pelo autor**: o A26 deixa de ser \"classe (3) inexplicado\" e passa a defeito de persistencia **com causa provada, escopo de 1/666 e gemeo integro em disco** — enquanto A22 sobe para 100%. [Formula exata de PROPOSTO: 'merece revisao pelo autor', sem numero novo. O 9,5 vem de D1 (RELATORIO_FINAL_F5.md:129): 'c149 9,0→9,5'.]"
+  },
+  {
+   "config": "c154",
+   "score_f53_csv": 8.5,
+   "score_pos_adversarial": 9,
+   "estado": "APLICADO",
+   "fonte": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/adversarial/c154-J27.md:52",
+   "citacao": "§7: some o item **(i)** dos tres que impediam o 10 → **score 8,5 → 9,0** e **\"ACEITAR + CAVEAT\" → \"ACEITAR\"** (restam D75/1.383 disparos e a assimetria §20, ambos sancionados). Itens a F5.4: **1 → 0**. [Declarado como fato consumado no bloco 'Impacto', sem verbo de recomendacao. Coerente com D1. Ressalva medida: o corpo do RELATORIO_FINAL_F5.md:653 rebaixa a forca para 'a F5.4 propoe 8,5 → 9,0'.]"
+  },
+  {
+   "config": "c217",
+   "score_f53_csv": 9.5,
+   "score_pos_adversarial": 9.5,
+   "estado": "SEM_MUDANCA",
+   "fonte": "sem sentenca",
+   "citacao": "Nao ha arquivo c217-*.md em f5/adversarial/. RELATORIO_FINAL_F5.md:129 (D1) mantem 'c217 9,5'."
+  },
+  {
+   "config": "c238",
+   "score_f53_csv": 9.5,
+   "score_pos_adversarial": 9.5,
+   "estado": "SEM_MUDANCA",
+   "fonte": "sem sentenca",
+   "citacao": "Nao ha arquivo c238-*.md em f5/adversarial/. D1: 'c238 9,5 (2 caveats de leitura)', permanece ACEITAR+CAVEAT."
+  },
+  {
+   "config": "c262",
+   "score_f53_csv": 9.5,
+   "score_pos_adversarial": 9.5,
+   "estado": "SEM_MUDANCA",
+   "fonte": "sem sentenca",
+   "citacao": "Nao ha sentenca propria; o c262 aparece so como CONTROLE POSITIVO da sentenca do c154 (c154-J27.md:35: 'Rodei a bateria identica no c262 … 5.201 iteracoes, 15 celulas'), o que reforca mas nao move a nota. D1: 'c262 9,5'."
+  },
+  {
+   "config": "c311",
+   "score_f53_csv": 9.5,
+   "score_pos_adversarial": 9.5,
+   "estado": "SEM_MUDANCA",
+   "fonte": "sem sentenca",
+   "citacao": "Sem sentenca propria; citado em padrao_zdt4.md:28,30 (celulas smoke swap_small/swap_big com footer faltante, 'APROVADAS cientificamente') e em b5m-A25.md:27 como controle. Nenhuma mencao a score. D1: 'c311 9,5'."
+  },
+  {
+   "config": "e103",
+   "score_f53_csv": 9.3,
+   "score_pos_adversarial": 9.8,
+   "estado": "PROPOSTO_NAO_APLICADO",
+   "fonte": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/adversarial/e103-A25.md:31",
+   "citacao": "Consequencia secundaria: o desconto de ~0,5 ponto no SCORE (9,3) foi aplicado a um defeito que nao e do config nem do endpoint publicado. [A sentenca NAO declara score novo nem usa verbo de recomendacao — apenas invalida o desconto. O 9,8 e aritmetica da matriz D1 (RELATORIO_FINAL_F5.md:129: 'e103 9,3→9,8'), nao da sentenca. ATENCAO: padrao_zdt4.md:81 corrige a mesma questao em sentido oposto ao relatorio de config ('o analista propos reler a fantasia como 0,10 … Esta ERRADO'), confirmando o e103-A25.]"
+  },
+  {
+   "config": "e7",
+   "score_f53_csv": 10,
+   "score_pos_adversarial": 10,
+   "estado": "SEM_MUDANCA",
+   "fonte": "sem sentenca",
+   "citacao": "Nao ha arquivo e7-*.md em f5/adversarial/. RELATORIO_FINAL_F5.md:182 'e7 — NN-ensemble · score 10.0 · aceitar … nada a F5.4'. Teto ja atingido."
+  },
+  {
+   "config": "e74",
+   "score_f53_csv": 9,
+   "score_pos_adversarial": 9,
+   "estado": "SEM_MUDANCA",
+   "fonte": "sem sentenca",
+   "citacao": "Nao ha arquivo e74-*.md em f5/adversarial/. RELATORIO_FINAL_F5.md:568: 'score 9,0/10, ACEITAR COM CAVEAT — … zero classe (3), nada a F5.4'; D1 mantem 'e74 9,0 (eq. 7-8 inerte)'."
+  },
+  {
+   "config": "e81",
+   "score_f53_csv": 9.5,
+   "score_pos_adversarial": 9.5,
+   "estado": "SEM_MUDANCA",
+   "fonte": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/adversarial/e81-B28.md:45",
+   "citacao": "**Score:** o −0,5 do relatorio e defensavel pelo invariante de auditoria, mas **nao pelo argumento de novidade**. Sugiro manter 9,5 e reescrever a justificativa como \"duplicata confirmada de DI-42.7, com causa-raiz refinada e vazamento demonstrado ATIVO\", em vez de \"achado inedito\". [Manutencao explicita; D1 concorda: 'e81 9,5 (justificativa reescrita)'.]"
+  },
+  {
+   "config": "moead",
+   "score_f53_csv": 9,
+   "score_pos_adversarial": 10,
+   "estado": "APLICADO",
+   "fonte": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/adversarial/moead-M16.md:54",
+   "citacao": "(iii) §7 item 3 (o unico fundamento do desconto de nota) cai ⇒ pelo raciocinio do proprio relatorio o **SCORE vai de 9,0 para 10,0 — ACEITAR**. [Declarativo, sem verbo de recomendacao e sem condicional, dentro do bloco 'Impacto' que enumera o que 'muda' no relatorio de config. D1 concorda: 'moead 9,0→10 (M16 refutado)'. Forca ligeiramente menor que c154/moead_media por conta do hedge 'pelo raciocinio do proprio relatorio'.]"
+  },
+  {
+   "config": "moead_media",
+   "score_f53_csv": 9,
+   "score_pos_adversarial": 9.5,
+   "estado": "APLICADO",
+   "fonte": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/adversarial/moead_media-C9b.md:76",
+   "citacao": "**SCORE:** o §7.4 do relatorio diz que este item \"e o que impede 9,5+\". Com C9b em (2), **`moead_media` 9,0 → 9,5**; `scores_f53.csv` a atualizar. [Esta e a unica sentenca das 14 que nomeia o CSV como pendente de atualizacao — e a prova documental de que o CSV nunca foi atualizado. Reforcado em moead_media-C9b.md:86 ('subir moead_media para 9,5', acao 1 da tabela F5.7). RELATORIO_FINAL_F5.md:614 rebaixa para 'a F5.4 recomenda subir a nota de 9,0 para 9,5'.]"
+  },
+  {
+   "config": "nsga2",
+   "score_f53_csv": 10,
+   "score_pos_adversarial": 10,
+   "estado": "SEM_MUDANCA",
+   "fonte": "sem sentenca",
+   "citacao": "Sem sentenca propria. Aparece em moead-M16.md:24 como controle transversal ('nsga2 50/376 = 13,3%' de divergencia de n_front1, mesmo fenomeno float32 refutado no moead) e em padrao_zdt4.md:32 (3 celulas com ts pre-campanha, 'APROVADAS'). Nenhuma mencao a score. Teto ja atingido."
+  },
+  {
+   "config": "nsga3",
+   "score_f53_csv": 10,
+   "score_pos_adversarial": 10,
+   "estado": "SEM_MUDANCA",
+   "fonte": "sem sentenca",
+   "citacao": "Sem sentenca propria. Controle transversal em moead-M16.md:24 ('nsga3 72/413 = 17,4%'), sem efeito de nota. Teto ja atingido."
+  },
+  {
+   "config": "smsemoa",
+   "score_f53_csv": 10,
+   "score_pos_adversarial": 10,
+   "estado": "SEM_MUDANCA",
+   "fonte": "sem sentenca",
+   "citacao": "Sem sentenca propria. Controle transversal em moead-M16.md:24 ('smsemoa 44/376 = 11,7%'), sem efeito de nota. Teto ja atingido."
+  },
+  {
+   "config": "sobol_batch",
+   "score_f53_csv": 9,
+   "score_pos_adversarial": 9,
+   "estado": "SEM_MUDANCA",
+   "fonte": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/adversarial/sobol_batch-S24.md:69",
+   "citacao": "**Score 9,0/10 e recomendacao ACEITAR + CAVEAT: mantidos.** A justificativa do §7 deve trocar \"deixando 92–96 % do wall sem breakdown justo\" por \"deixando sem breakdown a parcela de avaliacao, que vale 1,1 %–57,2 % do wall conforme o problema\". [A segunda sentenca do config, sobol_batch-S23.md, tem ZERO ocorrencias de 'score' (medido por grep -c) apesar de reduzir o achado de 4 campos para 1. D1 concorda: 'sobol_batch 9,0 (S24 confirmado)'.]"
+  },
+  {
+   "config": "treed_media",
+   "score_f53_csv": 9.5,
+   "score_pos_adversarial": 9.5,
+   "estado": "SEM_MUDANCA",
+   "fonte": "sem sentenca",
+   "citacao": "Sem sentenca propria. Aparece como controle NEGATIVO em b5r-A30.md:13 ('treed_media … nao tem o fenomeno') e como subproduto fora de escopo em b5m-A25.md:28 ('treed_media nao tem NENHUM evento por-geracao em 10/10 celulas — item para o relatorio do treed_media'), alem de 7 celulas smoke aprovadas em padrao_zdt4.md:29-30. Nenhuma toca a nota. D1: 'treed_media 9,5'."
+  }
+ ],
+ "nota_metodologica": "A matriz consolidada pos-adversarial EXISTE: /Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/RELATORIO_FINAL_F5.md:129, item D1 da §2.2, cobre os 24 configs e e a fonte dos valores da coluna score_pos_adversarial acima — MAS ela nao e uma nota homologada: e a \"recomendacao da torre\" pela opcao (b) dentro de uma decisao ABERTA de tres opcoes ((a) homologar o CSV como esta / (b) homologar a lista revista / (c) reabrir config a config), listada entre as 16 decisoes do autor que, pelo aviso do proprio relatorio (linha ~69), \"bloqueiam o disparo das 30 sementes\", sob o cabecalho \"a torre ANALISOU e RECOMENDA; o veredito e do autor\"; e a §1 do mesmo relatorio (linha 38 em diante) continua publicando a matriz-mestra com os valores PRE-adversariais do CSV, que eu reli linha a linha e confirmei intocados (c154=8.5, moead=9.0, moead_media=9.0, b4=9.0, b5r=9.0, c149=9.0, e103=9.3) — a propria sentenca moead_media-C9b.md:76 registra \"scores_f53.csv a atualizar\", o que prova que a atualizacao nunca ocorreu. Por isso a base honesta para julgar a T11 e AS DUAS LADO A LADO, e nao uma so: usar so o CSV credita a T11 por 5 achados que a F5.4 ja REFUTOU sem uma linha de codigo (b4-A12, c154-J27, moead-M16, moead_media-C9b, e103-A25 sao ganhos de contraditorio, nao de refinamento) e mediria melhora onde nada mudou no repositorio; usar so a matriz D1 embute como fato 4 movimentos que a evidencia primaria NAO consuma — b4 e c149 sao \"recomendo/merece revisao\" (PROPOSTO), b5r e explicitamente \"sobe para 10 apenas se o autor aceitar\" e devolve faixa 9,5–10 (CONDICIONAL), e e103 sequer enuncia numero novo (o 9,8 e aritmetica da torre sobre \"o desconto de ~0,5\") — e ainda apaga o fato de que 4 sentencas MANTIVERAM a nota de proposito (b5m 8,0, e81 9,5, sobol_batch 9,0, c122 9,5), com b5m-A8, sobol_batch-S23, padrao_zdt4 e b5m-A8 sem qualquer mencao a score (verificado por contagem, nao por inferencia). Operacionalmente: fixe a coluna score_pos_adversarial como a base de comparacao da T11 SOMENTE para os 3 movimentos APLICADOS na propria sentenca (c154 9,0, moead 10,0, moead_media 9,5), mantenha os 4 PROPOSTOS/CONDICIONAL (b4, b5r, c149, e103) exibidos como par \"CSV → pendente-D1\" ate o autor decidir D1, e note que o delta que a T11 pode legitimamente reivindicar e apenas o dos itens (d) sobreviventes que ela conserta de fato — b5m-A25/A8 (instrumentacao p_wrong_stats/adapt), sobol_batch-S24 (cronometro do portao Python), c122-A27 (n_ref do bloco g=1, ja ratificado como .4=(a) do T11), e81-B28 (teste→tempdir) e os 10 itens de padrao_zdt4 — porque nenhum desses moveu nota na F5.4 e portanto qualquer melhora medida neles e ganho novo, nao recontagem. Nao medi nada da campanha T11 em si: este retorno fixa exclusivamente a base."
+}

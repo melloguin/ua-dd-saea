@@ -1,0 +1,107 @@
+{
+ "config": "e74 (CLMEA, Chen et al. 2023 · árvore PlatEMO 4.1 própria D95/N.0-4.1) — RODADA FINAL, corpus CONGELADO: 840 células físicas = 750 sintéticas (25 problemas × 30 sementes, herdadas do F30 com spot-check) + 90 REAIS novas (RE21 D=4/M=2 · DDMOP7 D=17/M=2 · ESTOQUE40 D=40/M=3, sementes {0-28,42} completas). Scripts desta rodada em /private/tmp/claude-501/-Users-gmello/16c0ba84-843b-49d1-9ce6-6cecc418b734/scratchpad/{bat_final_reais,bat_s3_forte,bat_ddmop7}.py (+CSVs).",
+ "celulas_final": "O-21 (rodapé = autoridade, lido em 90/90 reais + 750/750 sintéticas): **839 ok · 1 failed · 0 ⚪ teto_wall · 0 conflito rodapé×manifesto**. Por grupo: sintéticas 749 ok + 1 failed (MMF1/3, fe 37/61, sem ⑤①③④ — idêntica ao F30); reais RE21 30/30 ok · DDMOP7 30/30 ok · ESTOQUE40 30/30 ok, todas termino=normal, cp_init=true, n_retries=0, manifesto ok/schema v2. Censo_final.csv (839 e74) reconciliado exato com o disco. Orçamento: fe_final==maxfe==31D−1 em 839/839 (RE21 123 · DDMOP7 526 · EST40 1239), fe_index denso, FE fecha (11D−1 + boot==M + Σaceitos) em 90/90 reais, doe_hash 90/90 distintos (injetora mantida).",
+ "novas_desde_f30": "+90 células reais (mtime 15/08 15:17 → 18/08 17:09; RE21+EST40 em 15/08 na vm1, DDMOP7 na vm5 — 1 célula 15/08 + 29 em 18/08). Sintéticas INTOCADAS desde o F30: mtime máximo de QUALQUER arquivo sintético = 14/08 10:34 local (ZDT3/26 manifest), 750 células no disco com os MESMOS estados do F30; spot-check de 8 células (ZDT1/5, DTLZ4/17, WFG1/23, BBOB_F5/9, MMF4/28 + as 2ª-campanha ZDT4/12, DTLZ2/27, WFG4/10): A8 joia 814/814, orçamento exato, campanhas conforme N4 do F30 ⇒ **veredito F30 HERDADO integralmente para as sintéticas**. Proveniência nova: os reais vêm de 2 campanhas novas (3240f4b26fae_2026-08-15 = 61 células · 7be66e65522c_2026-08-18 = 29 DDMOP7); diff git entre elas = só src/metrics.py (guard de análise) + scripts/lote3s.sh (despacho) — zero código de algoritmo/harness; lacre content-hash da árvore CLMEA recomputado HOJE = 867ae5f56d8bbeed…742 = repos.lock = o mesmo do F30/T11 ⇒ UMA versão de algoritmo nas 4 campanhas do corpus.",
+ "mecanismo_nos_novos": "Query-joia da família (s2, eq. 9 — argmax do HV-improvement) rodada nas 90 células NOVAS em censo completo (não amostra), cobrindo as 30 sementes: **12.044/12.044 = 100,0000%** (RE21 780 · DDMOP7 3.278 · EST40 7.986), identidade sigma_0 ≡ pred_score − hv_base com erro máx **5,1e−08** (piso float32), nan(sigma_0)==N−n_front; 3 blocos DDMOP7 exigiram match tie-aware (pool 100% colapsado num único X — o argmax está entre as linhas de X idêntico, 3/3 fecham). Reforço: s3 FORTE 1.266/1.275 = 99,29% (100% em 8/9 células; resíduo = teto float32 no regime degenerado) e s1/DI-45 restrito 96,30% com resíduo fechado pelo A12.",
+ "reais": "**DI-45 pós-fix REALIZA nos reais — resposta da rodada: SIM.** Pooled 11.218 infills de s1 (30 sementes × 3 problemas): argmax GLOBAL 85,56% (>85% ✓, = os 85,53% dos sintéticos), argmax RESTRITO a nivel_1 (o critério literal da eq. 8) **96,30%**, escolhido ∈ S 100,00%, ratio dist p50 = 1,0000, rank p50 = 1; resíduo com causa FECHADA: n_desalinhado==0 ⇒ argmax_S = 100,00% em 1.578 blocos (o 2º desalinhamento sancionado A12 explica tudo). Por problema (restrito): DDMOP7 95,96% (pior semente 91,8%) · EST40 96,94% (pior 93,2%) · RE21 90,90% (pior 76,9%, n=26/célula — mesmo padrão baixo-D do MMF1 sintético). **DDMOP7 sob a doutrina T15**: checa_regua (ideal=[0;0]) 30/30 SEM violação; f0·17 e f1·690 inteiros (≤2,1e−05); zona morta APLICADA e provada no dado — 269 grupos de x_efetivo repetido na busca com **0 grupos de f divergente**; |ND| dedupado por x_efetivo (§T15.13): bruto med 63 → efetivo med 26 (colapso 46,8%) → F distintos med 3 (1–6); gate ND-da-busca 30/30; régua forte 29/30 (s11 EMPATA com o DoE, como c122/c149 nos smokes); melhor f2 global = 89/690 = 0,1290 (melhor que o melhor smoke, 90/690); sem sonda/estratificada + ⑤ 'sem_sonda_por_problema' 30/30 (D102.10 ✓); A26 aparece em 16 células (53 eventos Ymin/Ymax escalares) e o guard range0 disparou 560× onde o range é zero DE VERDADE. RE21/EST40: sonda com join exato no gabarito (máx|ΔX| 1,2e−07 e 1,2e−04 ≡ piso float32 com |x|≤3.097), 0 falhas em 870+8.078 blocos; estratificada 810+8.012 blocos, 0 não-ok; checa_regua 30+30/30 ok (RE21 com 13 avisos leves a 1,4e−07 — ruído de persistência sob a folga T15.13b). **Contribuição 1 no real**: o mecanismo (argmax da eq. 7-8) cumpre-se; operacionalmente a s1 segue exploradora pura — share do front final: RE21 s1 10,5% / s2 43,8% / s3 45,1% · EST40 7,6% / 73,9% / 18,5% · DDMOP7 (front EFETIVO) s3 domina (~26 de 27 med) com s2 ≈ 0 — a frase 'infill the non-dominated front' da s1 segue NÃO sustentada, agora também em problema real.",
+ "aspectos_mudados": [
+  {
+   "id": "A8",
+   "o_que": "s2 — joia da família (eq. 9, argmax do HV-improvement)",
+   "antes": "F30: 7.067/7.067 = 100,0000% em 74 células sintéticas/30 sementes, |Δ|ident ≤5,7e−08",
+   "agora": "+12.044/12.044 = 100,0000% nas 90 células REAIS (censo completo), |Δ|ident ≤5,1e−08; 3 blocos DDMOP7 exigem match tie-aware (pool 100% colapsado num único X — degenerescência quantizada, não desvio)"
+  },
+  {
+   "id": "A10",
+   "o_que": "s3 — identidade FORTE (front do NDSort + argmax da incerteza em objetivos)",
+   "antes": "F30: 1.737/1.737 = 100,0000% em 18 células sintéticas",
+   "agora": "1.266/1.275 = 99,29% em 9 células reais; 100,00% em 8/9; os 9 resíduos (DDMOP7/s14) são TODOS do regime front-1 unitário/duplicado — teto float32 da ① (R4 regra 11/T9), não desvio"
+  },
+  {
+   "id": "A11",
+   "o_que": "s1 — eqs. 7-8 (Contribuição 1) com DI-45",
+   "antes": "F30: argmax global 85,53% / restrito 93,86% nos 25 sintéticos; T8 caído só para sintéticos",
+   "agora": "REAIS: global 85,56% / restrito 96,30% / in_S 100% / rank p50=1; resíduo fechado (n_desal==0 ⇒ 100,00% em 1.578 blocos); pior célula RE21/s1 76,9% restrito (baixo-D, n=26) — o DI-45 realiza em problema real"
+  },
+  {
+   "id": "A21",
+   "o_que": "Régua de sonda + bloco estratificado",
+   "antes": "F30: sonda universal, 749/749 células com blocos ok",
+   "agora": "RE21/EST40: join exato (piso float32), 0 falhas, estratificada 0 não-ok; DDMOP7: ZERO sonda/estratificada + ⑤ 'sem_sonda_por_problema' 30/30 — 3ª ausência inconfundível, sancionada D102.10"
+  },
+  {
+   "id": "A24/A25",
+   "o_que": "Lacre da árvore + proveniência de campanhas",
+   "antes": "F30: 2 campanhas (7f4f0e429a46_M8 725 · 63db46b10063 24), repo_hash único, tree lacrada",
+   "agora": "4 campanhas (+3240f4b26fae 61 · +7be66e65522c 29); diff de código entre as novas = só metrics.py/lote3s.sh (análise/despacho); tree_sha256 recomputado hoje == repos.lock == F30 ⇒ mecanismo homogêneo; DDMOP7 todo na vm5, RE21/EST40 na vm1 (sem mistura intra-problema)"
+  },
+  {
+   "id": "A26",
+   "o_que": "Guard hv_range0 × front-1 unitário (③-1 do F30)",
+   "antes": "F30: 215 eventos escalares em 30/750 células sintéticas (ZDT4/DTLZ7)",
+   "agora": "persiste: +53 eventos escalares em 16/30 células DDMOP7 (front unitário é REGRA no problema quantizado); o guard range0 disparou 560× onde o range é zero de verdade (funciona); o furo do escalar segue sem aviso"
+  },
+  {
+   "id": "A29-NOVO",
+   "o_que": "Codificação zona-morta DDMOP7 (D102.17/§T15.13)",
+   "antes": "não existia no corpus do F30 (problema novo)",
+   "agora": "APLICADA e provada no dado (269 grupos x_efetivo colapsados, 0 com f divergente; quantização exata) — mas NÃO DECLARADA: params.zona_morta ausente do ⑤ em 30/30 e zero menções na ⑥, contra a promessa do CONTRATO §T15 ('injeção automática do harness') ⇒ novo classe (3) documental ③-4"
+  },
+  {
+   "id": "A28/③-3",
+   "o_que": "Header ⑥ subdeclara o DI-45",
+   "antes": "F30: 750/750 headers sintéticos omitem o DI-45",
+   "agora": "persiste e cresce: 840/840 (os 90 headers reais têm a MESMA string patches sem DI-45)"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "③-1",
+   "descricao": "HERDADO F30, persiste: guard hv_range0 do D74 não cobre front-1 UNITÁRIO (Ymin/Ymax colapsam a escalar, any(range<=0) não dispara). No corpus real: +53 eventos em 16/30 células DDMOP7 (o front unitário é regra no problema quantizado); range0 legítimo disparou 560×. Identidade A8 intacta (muda a escala do score, não a decisão).",
+   "gravidade": "baixa-média (0,3% dos eventos de s2 no total; nenhuma identidade quebra)",
+   "acao": "segue ESCALADO ao autor (D81, como no F30): decidir se é stock ou D74; conserto é 1 linha (min(...,[],1)) e MUDA número sob freeze — não consertar, declarar.",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/algorithms/e74_CLMEA/CLMEA_Code/Algorithms/Multi-objective optimization/CLMEA/Hv_Select.m:44-48"
+  },
+  {
+   "id": "③-2",
+   "descricao": "HERDADO F30: candidato vazio de s2/s3 sem guarda (pdist2 0×0 vs D colunas ⇒ SizeMismatch) — matou MMF1/3 (única falha do config). Nos 90 reais: ZERO ocorrências (0 falhas; os 343 cand_vazio do DDMOP7 são todos da s1, imune por vazio 0×D). Taxa final do config: 1/840 = 0,12%.",
+   "gravidade": "média (perde célula inteira; risco concentrado em D=2 sintético — nos reais D≥4 não mordeu)",
+   "acao": "manter a declaração do F30: modo de falha conhecido com taxa medida; NAO_rerun ⇒ MMF1 fica 29/30 na análise.",
+   "arquivo_linha": "CLMEA.m:122 e :137 · Local_infill.m:23 e :72 · evidência: resultados_experimentos/e74/MMF1/3/exp_main_e74_MMF1_3.jsonl (rodapé)"
+  },
+  {
+   "id": "③-3",
+   "descricao": "HERDADO F30, agora em 840/840: campo patches do header ⑥ (e o ⑤) não declara o DI-45 — os 90 headers reais repetem a string antiga ('fix opcional re-sim do PNN NAO aplicado', sem DI-45). A prova de que o corpus é PÓS-fix segue sendo o comportamento (argmax 85,56% nos reais).",
+   "gravidade": "média (documental; induz classificação errada do corpus inteiro por quem auditar pelo header)",
+   "acao": "corrigir src/e74_instrument.m (string) + anchors.json (nota n_desalinhado) pós-freeze; registrar errata. Enquanto isso, a prova do DI-45 é esta auditoria + F30.",
+   "arquivo_linha": "src/e74_instrument.m (header.patches) · claude_code_context/artifacts/anchors.json (e74-classifierselect-idx)"
+  },
+  {
+   "id": "③-4 (NOVO)",
+   "descricao": "⑤/⑥ do DDMOP7 não declaram a codificação zona-morta: params.zona_morta AUSENTE do manifesto em 30/30 células e zero menções na ⑥ — o CONTRATO §T15 promete 'params.zona_morta.tau no ⑤ (injeção automática do harness)'. O COMPORTAMENTO está correto e provado no dado (269 grupos de x_efetivo colapsado com 0 f divergente; DoE cru); só a declaração falta. A regra de leitura §T15.13 segue reconstrutível (τ default em src/ddmop7_bridge.py).",
+   "gravidade": "baixa-média (documental; mesma família do ③-3 — 'texto subdeclara o código'; auditoria futura que confie no ⑤ concluiria que o corpus DDMOP7 é sem-codificação)",
+   "acao": "ESCALAR (D81): ou corrigir a injeção no gerador de manifesto MATLAB pós-freeze, ou registrar errata no CONTRATO declarando que nos runs MATLAB online a declaração vive no CONTRATO/decisão (não no ⑤). A prova de aplicação está nesta auditoria (bat_ddmop7.csv).",
+   "arquivo_linha": "exp_main_e74_DDMOP7_*.manifest.json (params.* sem zona_morta, 30/30) · CONTRATO_DE_DADOS.md:§T15/§T15.13 · src/ddmop7_bridge.py:130 (zona_morta)"
+  }
+ ],
+ "celulas_invalidas": [
+  {
+   "celula": "e74/MMF1/semente 3",
+   "motivo": "rodapé status=failed, fe 37/61, erro stats:pdist2:SizeMismatch (③-2: candidato vazio de s3 sem guarda em CLMEA.m:137); sem ⑤ e sem parquets — só ⑥ com 14 eventos. Idêntica ao F30 (nada mudou no disco).",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  }
+ ],
+ "score_final": 9.3,
+ "trajetoria_scores": "F5 9,0 (aceitar+caveat: a eq. 7-8/Contribuição 1 era INERTE — argmax 12,24% pré-DI-45) → T11 9,5 (causa: fix DI-45 aplicado e MEDIDO — argmax 86,89%, A11 migra (2)→(1); restava corpus pós-fix em só 3 problemas) → F30 9,2 (causa: 750 células revelaram 3 bordas classe-3 que 1 semente não via — ③-1 guard×front unitário, ③-2 crash do candidato vazio custou 1 célula real, ③-3 header subdeclara o fix) → **FINAL 9,3** (causa do +0,1: o mecanismo fecha em domínio NOVO sem perder nenhuma célula — joia s2 100,0000% em 12.044 infills reais, s3 forte 99,29% com resíduo-teto, DI-45 realiza no real com resíduo fechado, contrato 90/90 impecável, doutrina DDMOP7 integralmente cumprida com zona morta PROVADA no dado; não sobe mais porque a dívida documental CRESCEU — ③-3 agora em 840/840 e ③-4 novo — e ③-1 segue vivo com +53 eventos; pela régua da casa segue no degrau 9 '(3) menores investigados e provados benignos', com ③-2 ainda custando a única célula do corpus).",
+ "veredito": "**RECOMENDO ACEITAR (D97 — o veredito é do autor): o corpus final do e74 está pronto para a dissertação, com 839 células válidas de 840 e as 4 pendências classe-3 DECLARADAS (nenhuma bloqueia).** A pergunta da rodada tem resposta medida: **o argmax da eq. 7-8 REALIZA-SE nos 3 problemas reais** — global 85,56% (>85%), restrito ao critério literal do artigo 96,30%, resíduo 100% explicado pelo desvio sancionado A12 — e a Contribuição 1 vale MECANICAMENTE em problema real, permanecendo operacionalmente um explorador de decisão (s1 = 7,6–10,5% do front final nos reais; s3/s2 dominam). As três identidades da família são invariantes de semente E de domínio: s2 100,0000% (12.044/12.044 reais + 7.067/7.067 sintéticas F30), s3 99,29% forte com resíduo-teto float32, contrato 90/90 sem uma única violação de orçamento/timing/guard. A doutrina dos reais foi cumprida ponto a ponto: checa_regua 90/90, zona morta aplicada e provada no dado, |ND| do DDMOP7 dedupado por x_efetivo (med 26 efetivos, 3 F distintos — publicar o bruto med 63 seria reportar diversidade inexistente), sem-sonda sancionado 30/30. Sintéticas herdadas do F30 sem tocar (mtime máx 14/08 + 8 spot-checks limpos). Célula a excluir: MMF1/3 (NAO_rerun). Mecanismo homogêneo nas 4 campanhas (lacre 867ae5f5… idêntico; diff entre campanhas = análise/despacho).",
+ "decisoes_ao_autor": [
+  "**③-4 (NOVO, D81)** — o ⑤ do DDMOP7 não carrega params.zona_morta (30/30) e a ⑥ não menciona a codificação, contra a promessa do CONTRATO §T15 ('injeção automática do harness'). O comportamento está CERTO (provado: 269 grupos de x_efetivo colapsado, 0 com f divergente). Decidir: (a) errata no CONTRATO declarando que nos runs MATLAB online a declaração vive na decisão D102.17 (não no ⑤), ou (b) corrigir o gerador de manifesto pós-freeze. Sem isso, auditoria futura que confie no ⑤ classifica o corpus DDMOP7 como sem-codificação.",
+  "**③-3 agora vale para 840/840 células** — os 90 headers reais repetem a string patches sem DI-45. A correção do src/e74_instrument.m + anchors.json ficou pendente desde a T11 e a dívida só cresce; enquanto não corrigir, apontar para esta auditoria como prova do PÓS-fix.",
+  "**Proveniência para a R4**: o corpus e74 tem 4 campanhas (7f4f0e429a46_M8 725 · 63db46b10063 24 · 3240f4b26fae 61 · 7be66e65522c 29). Medido: diff de código entre as 2 novas = só src/metrics.py (guard de análise, commit 89655e4) + scripts/lote3s.sh (despacho); árvore CLMEA content-lacrada idêntica ao repos.lock em TODAS. DDMOP7 inteiro na vm5, RE21/EST40 inteiros na vm1 — não há mistura cross-VM dentro de problema. Declarar, não corrigir.",
+  "**Publicação do DDMOP7**: (i) qualquer |ND| citado deve ser o EFETIVO (§T15.13) — medido: bruto med 63 → efetivo med 26 → F distintos 1–6 (med 3); (ii) checa_regua passa 30/30 com ideal=[0;0], e a fase 2 pooled agora é computável com as 629 células — rodá-la antes de publicar HV (D102.4); (iii) a semente 11 EMPATA com o melhor f2 do DoE (régua forte 29/30, mesmo fenômeno c122/c149 dos smokes) — declarar como resolução do problema, não falha; (iv) melhor f2 do e74 = 89/690 = 0,1290, melhor que o melhor smoke do corpus (c141, 90/690).",
+  "**RE21 em baixo D**: argmax restrito 90,90% com pior semente 76,9% (n=26 infills/célula) — mesmo padrão MMF1/D=2 dos sintéticos; o resíduo é integralmente o 2º desalinhamento sancionado (n_desal==0 ⇒ 100,00%). Se a R4 citar a taxa por problema, citar RESTRITO + a causa fechada, senão o número global (78,3%) parece regressão e não é.",
+  "**Insumo de resultado (não fidelidade)**: share do front final por estratégia nos reais — RE21 s1 10,5/s2 43,8/s3 45,1 · EST40 7,6/73,9/18,5 · DDMOP7 efetivo: s3 domina (~26 de 27 med), s2 ≈ 0, s1 0–10 pts. A frase do artigo sobre a s1 ('infill the ND front') segue não sustentada TAMBÉM em problema real — fecha a narrativa do F30 com dado novo. Curioso p/ o texto: no EST40 (M=3) é a s2 quem domina o front (73,9%), único regime onde isso ocorre.",
+  "**MMF1/3**: manter exclusão (29/30 reportado) e o LAUDO_D0 atualizado com a causa do F30 (③-2) — NAO_rerun por decisão sua; nada mudou no disco desde 02/08.",
+  "**③-1 e ③-2 seguem como o F30 os deixou** (nenhuma correção era esperada sob freeze): ③-1 ganhou +53 eventos em 16 células DDMOP7 (front unitário é regra no quantizado) — a pergunta 'stock ou D74?' continua aberta e é sua; ③-2 não mordeu nos reais (0 falhas, D≥4)."
+ ]
+}

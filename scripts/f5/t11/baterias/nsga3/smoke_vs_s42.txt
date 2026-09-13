@@ -1,0 +1,67 @@
+==============================================================================
+A) INVENTARIO DE REGISTROS DO (6)
+  decomposicao   s42=1     smoke=1     
+  footer         s42=1     smoke=1     
+  guard          s42=25    smoke=25    
+  header         s42=1     smoke=1     
+  nsga3_gen      s42=18    smoke=18    
+  seeding        s42=1     smoke=1     
+
+B) CAMPOS NOVOS/PERDIDOS por tipo de registro
+  decomposicao   (campos identicos)
+  footer         (campos identicos)
+  guard          (campos identicos)
+  header         (campos identicos)
+  nsga3_gen      (campos identicos)
+  seeding        (campos identicos)
+
+C) HEADER — diff campo a campo
+  ts                     s42='2026-07-26T10:39:40Z'
+                         smk='2026-07-30T21:45:22Z'
+  (iguais: ['D', 'M', 'N_nominal', 'N_origem', 'alg', 'algo', 'casamento', 'doe_hash', 'maxfe', 'operadores', 'piso', 'principio', 'problema', 'rec', 'regime', 'seeding', 'semente', 'surrogate'])
+
+D) FOOTER
+  n_footer s42=1 smoke=1
+  N_efetivo              s42=15                             smk=15
+  N_nominal              s42=20                             smk=20
+  cache_hits             s42=24                             smk=24
+  cp_init                s42=True                           smk=True
+  fe_final               s42=371                            smk=371
+  maxfe                  s42=371                            smk=371
+  n_geracoes             s42=18                             smk=18
+  rec                    s42='footer'                       smk='footer'
+  status                 s42='ok'                           smk='ok'
+  termino                s42='normal'                       smk='normal'
+  ts                     s42='2026-07-26T10:39:43Z'         smk='2026-07-30T21:45:23Z'
+
+E) MECANISMO — identidades
+  [s42] maxfe=371 fe_final=371 |1|=371 n_ger=18 |2|=270 |4|=18 |3|=0 cache=24 guards={'cache_hit': 24, 'hard_stop': 1}
+       decomposicao=1 seeding=1 N_lattice=15 W.shape=(15, 3)
+       seeding: {'n_doe': 131, 'n_frentes': 6, 'n_frente1': 40, 'N_nominal': 20, 'frente1_excede_pop': True, 'criterio': 'NDSort + CrowdingDistance (D88) — desempate final por indice'}
+       n_pop unicos=[15]  fe(gen1)=131  fe(ultima)=361
+  [smoke] maxfe=371 fe_final=371 |1|=371 n_ger=18 |2|=270 |4|=18 |3|=0 cache=24 guards={'cache_hit': 24, 'hard_stop': 1}
+       decomposicao=1 seeding=1 N_lattice=15 W.shape=(15, 3)
+       seeding: {'n_doe': 131, 'n_frentes': 6, 'n_frente1': 40, 'N_nominal': 20, 'frente1_excede_pop': True, 'criterio': 'NDSort + CrowdingDistance (D88) — desempate final por indice'}
+       n_pop unicos=[15]  fe(gen1)=131  fe(ultima)=361
+
+F) LATTICE bit-a-bit s42 x smoke
+  shapes (15, 3) (15, 3)   max|dW| = 0.0
+
+G) BUSCA — a (1) e' a mesma?
+  colunas (1) s42=21 smoke=21 ; iguais=True
+  linhas 371 x 371
+  max|dX| = 0.0   max|df| = 0.0
+  bloco init (131 linhas): max|dX| = 0.0
+  doe_hash igual: True
+
+H) MANIFESTO — params diff
+  * geracoes_derivadas
+      s42: '20D ÷ N_efetivo (o DoE 11D-1 e gasto ANTES do Solve)'
+      smk: 'EMERGENTE, nao fechada [I-13/A24 corrigido contra o dado em 2026-07-30]. O laco roda ate o hard-stop (31D-1 FE EXATAS) gerando prole em PARES — 2*floor(N_efetivo/2) por geracao (MatingPool do OperatorGA) — e cada duplicata bit-a-bit (cache-hit D89, 0 FE) ADIA o fim. Melhor aproximacao MEDIDA: floor((20D + n_dup) / (2*floor(N_efetivo/2))), que acerta 103/112 celulas da s42; as 9 restantes erram por 1-2 porque o efeito de um cache-hit depende de QUANDO ele cai, nao so de quantos sao. A string antiga ("20D / N_efetivo") acerta 2/112 e a formula com ceil do plano F5 acerta 0/112. O valor REAL de cada run esta em `n_geracoes`, neste mesmo manifesto — nao derive, LEIA.'
+  chaves s42=12 smoke=12
+  repo_hash s42='' smoke='195f64ed0a69dc3f6c64c66912076e243be90c49'
+  campanha_id s42='<AUSENTE>' smoke='t11-smoke-195f64e'
+  schema_version s42=1 smoke=2
+  sigma_dict smoke={'status': 'nao_se_aplica', 'motivo': 'piso ONLINE = MOEA puro: a ③ existe (contrato de camadas) mas nasce VAZIA — nao ha modelo cujas colunas descrever', 'terceira': '0 linhas por desenho (sem surrogate)'}
+  timing s42={'tempo_total_s': 4.598481, 'tempo_fit_surrogate_s': None, 'tempo_busca_s': None, 'tempo_aval_real_s': 0.112577, 'tempo_pred_sonda_s': None}
+  timing smk={'tempo_total_s': 1.1461170833333334, 'tempo_fit_surrogate_s': None, 'tempo_busca_s': None, 'tempo_aval_real_s': 0.03350195833333332, 'tempo_pred_sonda_s': None}

@@ -1,0 +1,110 @@
+{
+ "MMF11_L": {
+  "n_fe": 61,
+  "n_ciclos": [
+   13,
+   13
+  ],
+  "init_11D_1_identico": true,
+  "n_init": 21,
+  "primeiro_fe_divergente_X": 39,
+  "n_fe_com_X_divergente": 22,
+  "maxdX": 0.7967456877231598,
+  "maxdF": 15.523634552955627,
+  "ciclos": {
+   "RatioOld": {
+    "igual": false,
+    "primeiro_ciclo_divergente": 8
+   },
+   "Ratio": {
+    "igual": false,
+    "primeiro_ciclo_divergente": 7
+   },
+   "ramo": {
+    "igual": false,
+    "primeiro_ciclo_divergente": 7
+   },
+   "f_best": {
+    "igual": false,
+    "primeiro_ciclo_divergente": 7
+   },
+   "ymin": {
+    "igual": false,
+    "primeiro_ciclo_divergente": 8
+   },
+   "n_front1": {
+    "igual": false,
+    "primeiro_ciclo_divergente": 7
+   },
+   "n_treino": {
+    "igual": true,
+    "primeiro_ciclo_divergente": null
+   },
+   "fe_treino_max": {
+    "igual": true,
+    "primeiro_ciclo_divergente": null
+   },
+   "dist_min_arquivo": {
+    "igual": false,
+    "primeiro_ciclo_divergente": 7
+   }
+  },
+  "ts_a": "2026-07-26T12:53:35Z",
+  "ts_b": "2026-07-30T21:45:27Z",
+  "fe_bit_identicos_prefixo": 39
+ },
+ "MMF1": {
+  "n_fe": 61,
+  "n_ciclos": [
+   13,
+   13
+  ],
+  "init_11D_1_identico": true,
+  "n_init": 21,
+  "primeiro_fe_divergente_X": 54,
+  "n_fe_com_X_divergente": 7,
+  "maxdX": 1.483858346939087,
+  "maxdF": 0.732511043548584,
+  "ciclos": {
+   "RatioOld": {
+    "igual": false,
+    "primeiro_ciclo_divergente": 13
+   },
+   "Ratio": {
+    "igual": false,
+    "primeiro_ciclo_divergente": 12
+   },
+   "ramo": {
+    "igual": true,
+    "primeiro_ciclo_divergente": null
+   },
+   "f_best": {
+    "igual": false,
+    "primeiro_ciclo_divergente": 12
+   },
+   "ymin": {
+    "igual": false,
+    "primeiro_ciclo_divergente": 13
+   },
+   "n_front1": {
+    "igual": false,
+    "primeiro_ciclo_divergente": 12
+   },
+   "n_treino": {
+    "igual": true,
+    "primeiro_ciclo_divergente": null
+   },
+   "fe_treino_max": {
+    "igual": true,
+    "primeiro_ciclo_divergente": null
+   },
+   "dist_min_arquivo": {
+    "igual": false,
+    "primeiro_ciclo_divergente": 12
+   }
+  },
+  "ts_a": "2026-07-26T12:51:53Z",
+  "ts_b": "2026-07-30T22:35:08Z",
+  "fe_bit_identicos_prefixo": 54
+ }
+}

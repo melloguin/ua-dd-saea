@@ -1,0 +1,147 @@
+{
+ "config": "c122 (θ-DEA-DP, Yuan & Banzhaf TEVC 26(1):159-173, 2022) · RODADA FINAL sobre corpus CONGELADO · 798 células = 738 sintéticas M8 (repo 63db46b1, inalteradas desde o F30 — mtimes 02–14/08) + 30 RE21 (campanha 3240f4b26fae_2026-08-15, vm1) + 30 DDMOP7 (campanha 7be66e65522c_2026-08-18, vm5, pós-degrau de hardware — frota homogênea DENTRO de cada problema). ⑦ = N/A por desenho (DI-08: camada exclusiva do regime offline; c122 é online). ESTOQUE40: 0 células (c122 não está entre os 15 configs com EST40 no censo; lacuna coberta pelo congelamento declarado do autor).",
+ "celulas_final": "Total 798 = 700 ok · 85 ⚪ teto_wall · 13 fail (rodapé = autoridade, O-21). Por grupo: 25 sintéticos 738 (640 ok · 85 ⚪ · 13 fail — idêntico ao F30, reconciliado no censo_final.csv: teto_wall WFG4 22, WFG9 21, ZDT3 21, WFG2 12, WFG5 6, ZDT1 2, WFG1 1) · RE21 30/30 ok (motivo_parada=orcamento, fe_final=123=31·4−1, 30/30) · DDMOP7 30/30 ok (fe_final=526=31·17−1, 30/30). Spot na ⚪ WFG4/20: rodapé PRESENTE (teto_wall, fe=565), QJ 309/309 — truncamento-com-dado válido, não falha. Spot na fail ZDT1/7: SEM rodapé, 599 decisões órfãs — fail confirmado. As 60 novas: n_retries=0 60/60, cp_init=true 60/60, cache_hits=0 60/60, 2 rodapés/célula 60/60.",
+ "novas_desde_f30": "+60 células (30 RE21 em 15/08, 30 DDMOP7 em 17–18/08), cobrindo as 30 sementes {0–28,42} nos dois problemas; NENHUMA sintética mudou (contagens por problema, os 85 ⚪ e as 13 fail batem 1:1 com o F30; mtime máximo sintético = 14/08). Herança do veredito F30 nas sintéticas confirmada por spot-check de 10 células (DTLZ2/3, BBOB_F55/42, MMF16_20/10, ZDT1/0, DTLZ7/5, WFG1/7, ZDT4/14, WFG4/20⚪, ZDT1/7-fail): QJ 3.090/3.090, A8 100%, e a única quebra de invariância do F30 REPRODUZIDA na leitura (ZDT4/14: fit_inicial.s_net=false, θ-Net nasce em g=138, viva em 63/200 decisões — exatamente o registro do F30). ③ das 60 novas EXISTE local (60/60, apesar de upload_status='uploaded_bucket_only') — nenhum G1 novo. Custo das novas: 113,4 h (RE21 2,5 h · DDMOP7 110,9 h ≈ 3,7 h/célula — o .p domina).",
+ "mecanismo_nos_novos": "Bateria COMPLETA nas 60/60 novas (não amostra), 7 camadas, 0 reprovas. Query-joia (argmax do EDN, Eqs. 6-7): ⑥ `e_z_escolhido == ez_cat_max` em 11.959/11.959 decisões comparáveis (RE21 2.364/2.364 + DDMOP7 9.595/9.595), igualdade EXATA (erro máximo 0); na ③, escolhido == max(pred_score do bloco TOP-100) em 11.959/11.959, erro relativo máximo 7,4e-07 (RE21 6,4e-07 / DDMOP7 7,4e-07 — mesmo teto de arredondamento do F30, 8,8e-07). NULLs de e_z = exatamente os n_cands≤1 (36 RE21 + 605 DDMOP7), 0 exceções. Demais identidades, denominador CHEIO: A6+A8 prioridade/corte 12.600/12.600 · A5 pool n_acordo+n_desacordo=7000 em 7.901/7.901 · A12 gate 25.200/25.200 · A13 E_upd 15.233/15.233 (ordem de operações do código) · A11 rodadas embaralhadas 1.169/1.169 permutações exatas (com 497 guards spin_resample mesclados; 0 spin_cap, logo 0 decisões capeadas) · A23 TOP-100 = min(100,n_cands) em 12.600/12.600 · A20 reconciliação footer.n_spin_total≡Σn_spin≡guards 60/60 · ② |pop(g)|=11 em 12.600/12.600 grupos · ① linhas=fe_final=31D−1 e init=11D−1 em 60/60 · A24 mu_*/sigma_*/pred_classe NULL 100% e pred_tipo='score' 100% (131.313 linhas RE21 + 716.280 DDMOP7... medido: 107.937/cel RE21, 23.876/cel DDMOP7) · conserto N3 VIGENTE nas novas: sonda_estratificada com pred_score preenchido 20.500/20.500 por... (615.000 linhas RE21 no total 30 células) e mu_0 NULL 100%. f_min≡ideal S.5 e f_max≡nadir+10% (DEF-B11.1) em 60/60. Sonda RE21: cadência+finalProbe exata 1.230/1.230 blocos, n_ref REAL g=1→43=11D−1 / g≥2→11=MU 100%, len(ref_ids)==n_ref 100%, 0 ids negativos, hash_check ok 100%. DDMOP7 SEM sonda em 30/30 (D102.10, declarado no ⑤: 'sem_sonda_por_problema').",
+ "reais": "c122 tem 2 dos 3 reais (ESTOQUE40 = 0 células, lacuna aceita). **DDMOP7 (o FOCO): o empate do smoke ERA acidente — em 30 sementes o c122 melhora o DoE em TODAS.** min f2 (erros/690) melhora em 30/30: Δ de 3 a 75 erros (mediana ~22; melhor final 89/690=0,1290; o smoke do T15 era a célula MORTA em checkpoint). min f1 (esparsidade k/17) melhora em 29/30 (chega a k=1=0,0588; único empate: s7). HV melhora em 30/30: ΔHV +0,070 a +0,339, mediana +0,240 (HV DoE mediana 0,620 → final 0,876). **Régua [0;0] (REAL-2.15 ERRATA 2): problema do PBI negativo ZERADO** — checa_regua PASS 30/30, avisos_regua vazio, z_min por célula 0,0588–0,190, **0 pontos com z<0 em 15.780 avaliações**; e o conserto chegou ao RUNTIME: params.f_min=[0;0] e f_max=[1,1; 0,7460869…]=nadir+10% em 30/30 (o F30/T15 mediu 49,2% do PBI negativo com a régua velha). Racionalidade f1=k/17 e f2=n/690 exata em 30/30. **Zona morta τ=0,5 (D102.17)**: ⑤ declara tau=0,5 escopo pós-DoE em 30/30; a ① grava o x_PROPOSTO (135.509 coordenadas de busca com 0<|x|<0,5); dedup por x_efetivo (§T15.13): |ND| bruto 11–138 (mediana 72,5) → 11–96 (mediana 52) — e só 2–6 valores F distintos entre os ND (publicar o bruto seria reportar diversidade inexistente, o caso b3 em dose menor). **Determinismo do .p confirmado onde observável: 832 grupos de x_efetivo repetido, 0 com F divergente (max|ΔF|=0)** — a dúvida 'noisy during training' do artigo não se realiza nos dados. 486 spin_resample (16,2/célula — as 3 categorias vazias são rotina no DDMOP7), 0 caps. **RE21**: mecanismo sem ramo novo (confirma T15 §6.5); QJ exata; HV final 0,806–0,853 (mediana 0,839), ΔHV vs DoE mediana +0,157, melhora 30/30; |ND| 39–57; z_min≥1,12e-4 (0 furos de régua, régua RE21 já bit-verificada vs reproblems). 30/30 com 41 blocos de sonda + 41 estratificada (n_ger=80 par ⇒ 0 finalProbes ⇒ N3b não se manifesta nas novas).",
+ "aspectos_mudados": [
+  {
+   "id": "CENSO",
+   "o_que": "Corpus do config",
+   "antes": "738 células, 25 problemas sintéticos (F30)",
+   "agora": "798 células, 27 problemas: +30 RE21 +30 DDMOP7, ambos 30/30 ok — sintéticas byte-inalteradas (contagens e estados 1:1 com F30)"
+  },
+  {
+   "id": "A9-QJ",
+   "o_que": "Query-joia estendida ao domínio real",
+   "antes": "180.480/180.480 (⑥) e 5.769/5.769 (③) só em sintéticos",
+   "agora": "+11.959/11.959 nas novas, EXATA no ⑥ (erro 0) e 7,4e-07 na ③ — o argmax do EDN é invariante de semente E de tipo de problema (caixa-preta .p inclusive)"
+  },
+  {
+   "id": "A17-REGUA",
+   "o_que": "Régua DDMOP7 em tempo de execução",
+   "antes": "fase-1 estimada [4/17; 202/690] — 49,2% dos pontos do c122 com PBI negativo no smoke (T15)",
+   "agora": "ideal=[0;0] (REAL-2.15 ERRATA 2) NO RUNTIME: f_min=[0;0] em 30/30 manifestos, checa_regua PASS 60/60, 0 pontos z<0, avisos_regua vazio"
+  },
+  {
+   "id": "FOCO-DDMOP7",
+   "o_que": "c122 vs DoE no DDMOP7",
+   "antes": "smoke T15 EMPATOU (célula morta em checkpoint, 1 semente)",
+   "agora": "melhora min f2 em 30/30 (Δ 3–75 erros, mediana ~22), min f1 em 29/30, HV em 30/30 (mediana +0,240) — o empate era artefato de amostra"
+  },
+  {
+   "id": "ZM",
+   "o_que": "Zona morta D102.17 (aspecto NOVO)",
+   "antes": "inexistente no F30; T15 exigia validação",
+   "agora": "⑤ declara τ=0,5 em 30/30; ① grava o proposto (135.509 coords na ZM); 832 colisões de x_efetivo com F bit-idêntico (0 divergentes) = aplicação consistente + oráculo determinístico; |ND| exige dedup (72,5→52 mediana)"
+  },
+  {
+   "id": "D102.10",
+   "o_que": "Sonda no DDMOP7",
+   "antes": "—",
+   "agora": "ausência CONFORME e DECLARADA: 0 recs de sonda em 30/30, ⑤.sonda='sem_sonda_por_problema (D102.10)', ③ só online"
+  },
+  {
+   "id": "N3-CONSERTO",
+   "o_que": "sonda_estratificada (o (3) da T11 consertado no M8)",
+   "antes": "1.574.000/1.574.000 corretas no M8",
+   "agora": "conserto VIGENTE no repo T15: pred_score preenchido e mu_0 NULL em 100% das 615.000 linhas estratificadas das 30 RE21 novas"
+  },
+  {
+   "id": "N2-PIORA",
+   "o_que": "REGRA_DO_ROTULO (evento errado)",
+   "antes": "leitura literal errada em 60,0% de 99.082 blocos do acervo",
+   "agora": "NÃO consertada no repo T15 (string idêntica nos 30 headers novos) e PIOR nos dados novos: 81,7% errada nas RE21 (220/1200 casam com decision(g); 1.200/1.200 com decision(g−1))"
+  },
+  {
+   "id": "N4-PERSISTE",
+   "o_que": "Resíduo declarativo n_ref",
+   "antes": "'referência de tamanho FIXO' em 738/738",
+   "agora": "idem em 30/30 RE21 novas (manifest.sonda.n_ref=11 e sigma_dict 'FIXO' vs rec g=1 com n_ref=43) — 3ª auditoria consecutiva sem o conserto de 6 palavras; CONTRATO_DE_DADOS segue sem a errata de leitura"
+  },
+  {
+   "id": "G1-NOVAS",
+   "o_que": "Disponibilidade da ③",
+   "antes": "220/738 sintéticas sem ③ (403 em vm2/vm4/vm10)",
+   "agora": "as 60 novas TÊM ③ local 60/60 (vm1/vm5) — zero G1 novo; as 220 antigas seguem pendentes do censo do bucket"
+  },
+  {
+   "id": "PROV",
+   "o_que": "Proveniência de código",
+   "antes": "1 repo_hash (63db46b1) nas 738",
+   "agora": "3 repo_hash no corpus do config: 63db46b1 (sintéticas) · 3240f4b2 (RE21) · 7be66e65 (DDMOP7) — declarados por campanha_id; mudança sancionada pela integração T15 (A49/D101/D102), mas o corpus do c122 não é mais mono-versão"
+  },
+  {
+   "id": "CUSTO",
+   "o_que": "Custo",
+   "antes": "2.750,8 h-core (738)",
+   "agora": "+113,4 h (DDMOP7 3,7 h/célula — 97,8% do custo novo é o .p)"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "G1",
+   "descricao": "③ de 220/738 células sintéticas (29,8%, vm2/vm4/vm10, erro 403 storage.objects.delete) inexistente em qualquer caminho local; INALTERADO desde o F30 — as 60 novas não agravam (③ local 60/60). NÃO MEDIDO se o bucket as tem (sem acesso).",
+   "gravidade": "ALTA para disponibilidade da ③ · NULA para mecanismo (⑥①②④ íntegros nas 220)",
+   "acao": "ESCALAR (mantida): censo do bucket gs://mestrado_experiments/.../c122/*__surrogate.parquet antes de o R4 prometer análise de surrogate; se ausentes, declarar análise de ③ sobre 518 sintéticas + 60 reais",
+   "arquivo_linha": "F30 c122.json G1; manifests coluna upload_status"
+  },
+  {
+   "id": "G2",
+   "descricao": "s42 do M8 ≠ s42 auditada por F5/T11 (0/25 IGD idênticos), corpus antigo sobrescrito; INALTERADO. A rodada FINAL acrescenta que o corpus agora tem 3 repo_hash — a rastreabilidade por campanha_id existe, mas números da F5/T11 seguem desancorados do acervo vigente.",
+   "gravidade": "MÉDIA-ALTA para rastreabilidade",
+   "acao": "decisão do autor pendente (F30 G2): declarar o M8+T15 como base numérica única do c122 na dissertação",
+   "arquivo_linha": "F30 c122.json G2"
+  },
+  {
+   "id": "N2",
+   "descricao": "REGRA_DO_ROTULO aponta 'ref_ids do evento de geração' (= decision, PÓS-survival) quando o correto é o do próprio rec sonda (PRÉ-survival). Não consertada no repo T15 (string idêntica nos 30 headers novos) nem como errata no CONTRATO_DE_DADOS (grep: zero menções a ref_ids/rótulo). Medido nas novas: leitura literal errada em 980/1.200 blocos g≥2 das RE21 (81,7%; acervo 60,0%); ==decision(g−1) em 1.200/1.200.",
+   "gravidade": "BAIXA (dado correto adjacente no próprio rec) — mas 3ª auditoria consecutiva com a recomendação ignorada",
+   "acao": "errata de LEITURA no CONTRATO_DE_DADOS antes de o R4 consumir a ③: '…ref_ids DO PRÓPRIO REC sonda/sonda_estratificada, nunca o do rec decision vizinho'",
+   "arquivo_linha": "header.sigma_dict['REGRA_DO_ROTULO'] em 798/798 células"
+  },
+  {
+   "id": "N4",
+   "descricao": "manifest.sonda.n_ref=11 e sigma_dict 'referência de tamanho FIXO' persistem em 30/30 RE21 novas, contra o rec g=1 com n_ref=43 e n_ref_truncada=false no MESMO run. O conserto de 6 palavras recomendado pela T11 e pelo F30 não entrou no repo T15.",
+   "gravidade": "MUITO BAIXA (verdade adjacente por bloco)",
+   "acao": "errata no CONTRATO/MAPA_ARTEFATOS: 'manifest.sonda.n_ref é NOMINAL; o real está por bloco no rec'",
+   "arquivo_linha": "*.manifest.json→sonda.n_ref; sigma_dict['regime=sonda']"
+  },
+  {
+   "id": "N3b",
+   "descricao": "finalProbe sem irmã estratificada: segue no acervo sintético (64/64 células de última geração ímpar); NÃO se manifesta nas 60 novas (n_ger=80/340, pares; 0 finalProbes).",
+   "gravidade": "MUITO BAIXA",
+   "acao": "armadilha formal no CONTRATO (pareamento por geração perde o finalProbe); nada nas novas",
+   "arquivo_linha": "F30 c122.json N3b"
+  }
+ ],
+ "celulas_invalidas": [
+  {
+   "celula": "c122/{DTLZ7,MMF16_20,WFG1,WFG2,WFG4,WFG5,WFG9}/25 · {WFG4,WFG5,WFG9}/18 · WFG4/26 · {ZDT1,ZDT3}/7 — as 13 do F30, nominalmente: DTLZ7/25, MMF16_20/25, WFG1/25, WFG2/25, WFG4/18, WFG4/25, WFG4/26, WFG5/18, WFG5/25, WFG9/18, WFG9/25, ZDT1/7, ZDT3/7",
+   "motivo": "checkpoint_em_andamento SEM NENHUM rodapé (morte durante checkpoint, evento de infraestrutura por lote — F30 N5b); ⑤ amputado; conferido em ZDT1/7: 599 decisões órfãs, 0 footers (QJ 586/586 — mecanismo íntegro até o kill, mas célula incertificável)",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "85 células ⚪ teto_wall (WFG4 22 · WFG9 21 · ZDT3 21 · WFG2 12 · WFG5 6 · ZDT1 2 · WFG1 1)",
+   "motivo": "teto de parede 12 h com rodapé VÁLIDO (motivo_parada='teto_wall'; spot WFG4/20: fe=565, QJ 309/309) — truncamento-com-dado, NÃO falha (O-21/DI-43/44); manifest 'failed' é visão do despachante",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  },
+  {
+   "celula": "camada ③ de 220 células sintéticas (vm2 75 · vm10 75 · vm4 70)",
+   "motivo": "upload 403 + D54 bucket-only: ③ inexistente localmente; célula VÁLIDA nas camadas ⑥①②④ — invalidez restrita à análise de surrogate (G1)",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  }
+ ],
+ "score_final": 9.3,
+ "trajetoria_scores": "F5 9,5 (s42, 25 células: mecanismo fecha 100%, contrato ③ limpo; 1 único (3), o n_ref do bloco-1) → T11 9,5 MANTEVE (+0,3 pelo conserto do n_ref no rec e a REGRA_DO_ROTULO operável; −0,3 pelo N3 novo, estratificada em mu_0) → F30 9,2 (−0,3: N2/N4 recomendados 'antes do disparo' e não aplicados; −0,4: G1 ③ de 220 células + G2 s42 irreproduzível; +0,4: invariância de semente provada em 738 células e deriva cross-máquina 0 ULP) → FINAL 9,3 (+0,1 nomeado: as 60 novas passam a bateria completa com ZERO reprovas em ~78 mil identidades; a query-joia fecha EXATA no domínio real caixa-preta; os DOIS focos da rodada resolvidos a favor — régua [0;0] zerou o z<0 no runtime e o 'empate' com o DoE era artefato de 1 semente morta, 30/30 melhoram; conserto N3 vigente; zona morta consistente com oráculo determinístico medido. O que impede voltar a 9,5: N2/N4 seguem sem o conserto de 6 palavras pela 3ª auditoria consecutiva — N2 agora 81,7% errada nas células novas — e G1/G2 continuam pendentes de decisão, agora permanentes porque o corpus congelou).",
+ "veredito": "RECOMENDO ACEITAR — recomendação; o veredito é do autor (D97). O mecanismo do c122 está provado em três dimensões independentes: invariante de semente (798 células), invariante de máquina (deriva 0 ULP, F30) e agora invariante de DOMÍNIO — no problema real caixa-preta (.p, zona morta, sem sonda, sem front) todas as identidades fecham com o mesmo erro de arredondamento dos sintéticos, sem um único ramo novo. Os dois riscos que esta rodada existia para julgar morreram: (1) a régua [0;0] chegou ao runtime e nenhum dos 15.780+3.690 pontos novos tem z<0 (checa_regua 60/60 PASS, zero avisos); (2) o c122 NÃO empata com o DoE no DDMOP7 — melhora f2 em 30/30 sementes (mediana −22 erros), f1 em 29/30 e HV em 30/30. CONDIÇÕES DE LEITURA que o aceite carrega: (a) toda contagem de |ND|/diversidade no DDMOP7 por x_efetivo (§T15.13) — o bruto superconta ~28% na mediana e o front real tem só 2–6 pontos objetivos distintos; (b) as 85 ⚪ em orçamento de FE comum (O-21); (c) as 13 fail EXCLUÍDAS (autor não re-roda); (d) análise de ③ sintética limitada às 518 células até o censo do bucket (G1); (e) fase 2 pooled da régua DDMOP7 segue OBRIGATÓRIA (selo D102.3) — o aceite é da fidelidade, não da régua fase-1 como número final.",
+ "decisoes_ao_autor": [
+  "G1 (herdada, agora permanente): censo do bucket para as ③ das 220 sintéticas de vm2/vm4/vm10 — sem ele, declarar a análise de surrogate do c122 sobre 518 sintéticas + 60 reais (as novas têm ③ local 60/60).",
+  "G2 (herdada): cravar que a base numérica do c122 na dissertação é o corpus M8+T15 (3 repo_hash, rastreados por campanha_id); números de F5/T11 só como história de auditoria, nunca como dado.",
+  "N2/N4 (3ª reincidência): autorizar a ERRATA DE LEITURA no CONTRATO_DE_DADOS (ref_ids do PRÓPRIO rec de sonda; manifest.sonda.n_ref é NOMINAL) antes de o R4 tocar a ③ — nas células novas a leitura literal da REGRA_DO_ROTULO erra 81,7%.",
+  "DDMOP7 fase 2: a régua pooled (D102.3) está agora COMPUTÁVEL (629 células no acervo); decidir quando rodá-la — o HV das 30 células do c122 muda de valor absoluto (não de ordem) quando ela substituir a fase 1.",
+  "ESTOQUE40: o c122 tem 0 células e não está na lista nominal de lacunas do briefing (que cita b5m/e7/c154) — confirmar que a lacuna c122×EST40 é aceita sob o congelamento e que o texto declarará a evidência real do c122 como RE21+DDMOP7.",
+  "Achado publicável do FOCO: o 'empate com o DoE' do smoke T15 veio de uma célula morta em checkpoint; em 30 sementes completas o c122 melhora o DoE em 100% delas nos dois objetivos práticos (mediana −22 erros de classificação; esparsidade até k=1). Decidir se entra no texto como correção explícita ao laudo T15.",
+  "Determinismo do .p: o teste recomendado pelo T15 (item 11) ficou desnecessário para o c122 — 832 repetições naturais de x_efetivo com F bit-idêntico, 0 divergências. Decidir se isso encerra a pendência para os demais configs ou se o teste dedicado ainda roda."
+ ]
+}

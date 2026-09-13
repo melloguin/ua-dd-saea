@@ -1,0 +1,260 @@
+{
+  "id": "e17",
+  "sigla": "MOBO",
+  "titulo": "Multi-Objective Bayesian Optimization for Online Accelerator Tuning",
+  "ano": 2021,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Nenhuma suite-padrao (ZDT/DTLZ/WFG/BBOB): 2 problemas apenas. (1) Um problema de brinquedo analitico, biobjetivo, 2D (Eq. 5: f1=||x-1||, f2=||x+1||, x em [-2,2]^2), com frente de Pareto analitica conhecida (segmento de reta), usado nas demonstracoes das Sec. III-B/C/D (Figs. 3, 4, 5). (2) Um problema real de fisica de aceleradores: otimizacao do fotoinjetor AWA (Argonne Wakefield Accelerator) — 6 parametros de entrada (K1, K2, phi1, phi2, G1, G2, Tabela I) e 7 objetivos de feixe na saida do linac; a funcao 'verdadeira' avaliada e na realidade um modelo surrogate de rede neural pre-treinado (de Edelen et al. [25]), usado como proxy barato da simulacao PIC 3D OPAL — nao ha medicao fisica real nem simulacao completa neste artigo. Nao ha problemas reais adicionais nem familias de problemas com caracteristicas controladas (multimodalidade, nao-separabilidade etc.).",
+    "orcamento": "Toy problem: 5 pontos iniciais aleatorios + 15 iteracoes (Fig. 3); +50 observacoes (Fig. 4a) e 25 execucoes independentes acompanhando a fracao de restricao satisfeita (Fig. 4b); 5 iniciais + 25 iteracoes (Fig. 5). AWA: DoE inicial Latin-Hypercube de 20 pontos + 500 observacoes sequenciais (Fig. 7); 200-300 observacoes nas Figs. 8-9. Nao ha relacao com D (nada análogo ao 31D-1 da dissertacao); orcamentos fixos ad hoc por demonstracao, escolhidos pelos autores.",
+    "execucoes": "10 execucoes independentes para as comparacoes agregadas no AWA (Fig. 7a: MOBO vs NSGA-II vs I-NN, cada um com 10 runs, DoE combinado entre MOBO e NSGA-II; Fig. 9c: UCB-HVI vs P-UCB-HVI, 10 runs com as MESMAS inicializacoes aleatorias para as duas variantes). 25 execucoes para a curva de fracao de pontos viaveis no toy problem (Fig. 4b). Execucao UNICA (nao repetida, sem banda de variancia) para as demais figuras qualitativas (Figs. 3, 5, 7b, 7c, 8, 9a-b).",
+    "baselines": "NSGA-II (piso evolutivo classico, sem surrogate, avaliado em modo serializado/geracional) e I-NN ('iterated neural network', metodo assistido por surrogate de rede neural de Edelen et al. [25], que usa NSGA-II internamente sobre o surrogate). So ha 1 piso sem surrogate (NSGA-II); nao ha MOEA/D, NSGA-III nem SMS-EMOA. Essa comparacao ocorre so no problema AWA (Fig. 7); as demais analises (Figs. 4, 5, 8, 9) comparam variantes do proprio MOBO entre si (com/sem restricao, com/sem termo de proximidade), sem nenhum baseline externo.",
+    "metricas_principais": [
+      "Hipervolume (H) do Pareto front, exato, em espaco de objetivo normalizado, referenciado ao pior valor possivel de cada objetivo"
+    ],
+    "testes": [
+      "nenhum teste estatistico formal em nenhuma analise do artigo; apenas media +/- 1 sigma (variancia) sobre repeticoes, sem Wilcoxon/Friedman/Holm/etc., sem simbolos +/=/-, sem negrito"
+    ],
+    "apresentacao": "Media +/- 1 sigma (sombreado ou barra de erro) sobre N execucoes nas 3 figuras que agregam multiplas execucoes (Figs. 4b, 7a, 9c); sem mediana/IQR em nenhum lugar. Todas as demais figuras (3, 5, 7b, 7c, 8, 9a-b) mostram uma UNICA execucao (nao ha 'execucao mediana' escolhida por criterio algum). Nenhuma tabela numerica de resultados no artigo inteiro (busca por 'Table' so acha a Tabela I, de parametros de entrada do AWA) — todo resultado quantitativo aparece em figura, nunca em tabela.",
+    "codigo_plataforma": "Python; GPflow [42] sobre TensorFlow [43] para os modelos GP; PyGMO/pagmo [37] (particle swarm, 64 individuos, 10 geracoes) para maximizar a funcao de aquisicao a cada passo; Adam [36] (lr=0.001) para treinar hiperparametros do GP por maxima verossimilhanca marginal (5000 iteracoes no treino inicial; 1000 a cada retreino, a cada 10 observacoes nas corridas do AWA). Codigo aberto em https://github.com/roussel-ryan/Accelerator_MOBO (Apendice B); o surrogate de rede neural do AWA e disponibilizado so sob pedido."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Verificacao visual da acuracia da media do GP num problema de brinquedo 2D",
+      "grupo_sugerido": "E",
+      "descricao": "No problema-teste biobjetivo 2D (Eq. 5), apos 15 observacoes a partir de 5 pontos iniciais aleatorios, o artigo compara visualmente (mapas de calor normalizados 0-1) a verdade de campo de f1 e f2 (paineis a-b da Fig. 3) contra a media predita pelo GP para cada objetivo (paineis c-d), constatando que a predicao se aproxima bem da verdade perto dos pontos observados. E uma checagem qualitativa de acuracia do surrogate numa unica execucao, sem metrica numerica de erro.",
+      "literal": "the GP prediction for each of the objectives (Fig. 3(c),(d)) near the observed points closely resembles the true value of each objective (Fig. 3(a),(b))",
+      "localizador": "Sec. III-B, Fig. 3(a-d)",
+      "metricas": [
+        "acuracia visual da media do GP (sem metrica numerica reportada)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "mapas de calor normalizados 0-1; execucao unica (nao ha repeticao de sementes); pontos coloridos por ordem de observacao (azul a rosa)",
+      "achado": "A media do GP aproxima bem a funcao verdadeira perto dos pontos ja observados apos apenas 15 observacoes, mas o artigo nao quantifica o erro (sem RMSE) nem reporta ou avalia o sigma nesta figura.",
+      "aplicabilidade": "nao reproduzivel diretamente com as 7 camadas — e checagem qualitativa de execucao unica, sem metrica; o analogo mais proximo na dissertacao seria a sonda dimensao 1 (ficha 31), mas essa exige pontos fixos re-preditos a cada retreino e RMSE explicito ao longo do orcamento, o que este artigo nao faz."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "No mesmo problema de brinquedo 2D, o artigo compara o conjunto de pontos observados no espaco de objetivos (Fig. 3f) contra a frente de Pareto analitica conhecida (segmento de reta), e mostra que os extremos da funcao de aquisicao UCB-HVI (Fig. 3e) se concentram perto da regiao otima de Pareto no espaco de entrada, confirmando que a busca converge para a frente verdadeira em poucas iteracoes.",
+      "literal": "After only 15 observations the Pareto front found by the UCB-HVI algorithm closely matches the analytical one seen in Fig. 3(f).",
+      "localizador": "Sec. III-B, Fig. 3(e-f)",
+      "metricas": [
+        "cobertura/proximidade qualitativa do conjunto de pontos obtido vs. frente de Pareto analitica"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "execucao unica, sem repeticao de sementes; frente analitica conhecida (linha verde) como referencia de verdade; pontos coloridos por ordem de observacao",
+      "achado": "A frente obtida por UCB-HVI apos apenas 15 observacoes ja recupera visualmente a frente de Pareto analitica; os extremos da funcao de aquisicao se concentram perto da regiao otima em espaco de entrada, entre pontos ja observados.",
+      "aplicabilidade": "nao diretamente reproduzivel com as 7 camadas — e execucao unica num problema de brinquedo com frente analitica conhecida, fora do conjunto de 28 benchmarks da dissertacao; o mais proximo seria o visual de ND por execucao (ficha 54) em problemas com frente conhecida."
+    },
+    {
+      "fichas": [
+        44
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ainda na Eq. 5 (2D, 2 objetivos), partindo dos mesmos 5 pontos aleatorios, o artigo roda 25 iteracoes com UCB-HVI padrao e depois repete com P-UCB-HVI (termo de proximidade, Sigma=4I), comparando visualmente as trajetorias no espaco de entrada e, nos insets, a distribuicao da distancia percorrida por passo (L). Mostra que UCB-HVI explora quase aleatoriamente enquanto P-UCB-HVI percorre a regiao otima de Pareto de forma disciplinada, com menor distancia media por passo.",
+      "literal": "The modified acquisition function reduces the average distance traveled in input space during each optimization step (L), when compared to UCB-HVI",
+      "localizador": "Sec. III-D, Fig. 5",
+      "metricas": [
+        "distancia percorrida por passo (L) no espaco de entrada entre observacoes consecutivas"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "execucao unica por variante (nao ha multiplas sementes agregadas nesta figura); histograma da distribuicao de L por variante nos insets",
+      "achado": "Adicionar o termo de proximidade (P-UCB-HVI) reduz a distancia media percorrida por passo e disciplina a ordem de exploracao ao longo da frente de Pareto (varre uma ponta, verifica a vizinhanca, inverte direcao), em vez da exploracao quase aleatoria do UCB-HVI padrao.",
+      "aplicabilidade": "a distancia entre infills sucessivos no espaco de decisao e reproduzivel via camada (1) (x e ordem de cada avaliacao real), analogo a ficha 44 — mas exige uma variante 'proximal' do algoritmo que nao existe no roster da dissertacao; comparacao e uma ablacao natural do proprio metodo (nao da incerteza, e sim do termo de distancia)."
+    },
+    {
+      "fichas": [
+        26,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para o problema real do fotoinjetor AWA (7 objetivos, 6 parametros), o artigo compara a evolucao do hipervolume medio (+/- 1 sigma, 10 execucoes) em funcao do numero de observacoes sequenciais para MOBO (UCB-HVI), NSGA-II (piso evolutivo classico, populacao 20, 200 geracoes, crossover 0.8, mutacao 0.05, avaliado em serie) e I-NN (outro metodo assistido, por surrogate de rede neural). As execucoes de NSGA-II usam os mesmos conjuntos de pontos iniciais que as do MOBO.",
+      "literal": "While not shown in Fig. 7(a) it took about 17,500 NSGA-II observations to reach the same hypervolume that MOBO reached after 500 observations, roughly a factor of 35 times slower.",
+      "localizador": "Sec. IV-A, Fig. 7(a)",
+      "metricas": [
+        "hipervolume (H) do Pareto front normalizado"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "media +/- 1 sigma (variancia) sobre 10 execucoes; sem mediana/IQR; sem teste estatistico formal; DoE inicial compartilhado entre MOBO e NSGA-II (mas nao ha diferenca pareada por execucao reportada, so medias agregadas)",
+      "achado": "MOBO converge muito mais rapido que o piso evolutivo NSGA-II e que o metodo assistido por rede neural I-NN; MOBO atinge em 500 observacoes o mesmo hipervolume que o NSGA-II leva ~17.500 observacoes para atingir (~35x mais lento) — o principal resultado quantitativo do artigo a favor do uso do surrogate/incerteza. Nenhum resultado negativo para o assistido aparece nesta comparacao.",
+      "aplicabilidade": "analogo a trajetoria de convergencia (ficha 26) e a comparacao assistido x piso (ficha 9), mas nao reproduzivel tal-e-qual — exigiria rodar um piso evolutivo serializado ate ~17.500 avaliacoes (muito acima do orcamento 31D-1 da dissertacao) e usa so 1 problema real (nao os 28 benchmarks), sem diferenca pareada por semente calculada explicitamente pelos autores."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Comparacao visual do front 2D projetado entre algoritmos, sem frente verdadeira conhecida",
+      "grupo_sugerido": "H",
+      "descricao": "Para o mesmo problema AWA, apos 200 observacoes, o artigo plota a projecao 2D do front (energy spread dE vs. emitancia transversal epsilon_x) obtida por MOBO, NSGA-II e I-NN lado a lado (execucao unica por algoritmo), mostrando que o front do NSGA-II e pobre e esparso, o do I-NN e intermediario, e o do MOBO e maior e com maior resolucao — mas sem uma frente verdadeira/analitica conhecida como referencia (problema real de 7 objetivos, sem front fechado).",
+      "literal": "the Pareto front generated by MOBO is larger and has a higher resolution than the Pareto fronts generated by either NSGA-II or I-NN",
+      "localizador": "Sec. IV-A, Fig. 7(b)",
+      "metricas": [
+        "cobertura/densidade qualitativa do front 2D projetado (corte de 2 dos 7 objetivos)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "corte 2D de um espaco de 7 objetivos; unico checkpoint (200 obs); execucao unica mostrada por algoritmo (nao e mediana de 10)",
+      "achado": "MOBO produz um front 2D projetado maior e de maior resolucao que NSGA-II e I-NN no mesmo orcamento de observacoes, atribuido pelos autores a falta de calculo direto do ganho de hipervolume nos dois baselines.",
+      "aplicabilidade": "parcialmente analogo ao visual de ND por execucao (ficha 54), mas aqui nao ha frente verdadeira conhecida (problema real sem front fechado) nem execucao mediana entre 30 sementes — por isso tratado como analise nova, distinta de uma comparacao contra a frente verdadeira."
+    },
+    {
+      "fichas": [
+        43
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ainda no problema AWA, o artigo mostra a projecao 2D do front (dE vs. epsilon_x) obtida so pelo MOBO em 100, 200 e 500 observacoes (execucao unica), distinguindo narrativamente dois mecanismos de ganho de hipervolume: (i) preencher a frente com pontos intermediarios (ganho de resolucao) e (ii) encontrar pontos que dominam observacoes antigas (ganho por dominancia). Conclui que a maioria dos pontos do front em 200 obs permanece no front em 500 obs.",
+      "literal": "We see that most of the points present in the Pareto front after 200 observations remain on the Pareto front after 500 observations, as the majority of new observations lie in between prior observations in objective space.",
+      "localizador": "Sec. IV-A, Fig. 7(c)",
+      "metricas": [
+        "persistencia qualitativa dos pontos do ND ao longo do orcamento"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "tres cortes de orcamento (100/200/500 obs) sobrepostos por cor numa unica execucao",
+      "achado": "A maior parte do ganho de hipervolume em orcamentos maiores vem de refinar a resolucao da frente (pontos entre observacoes antigas), nao de descobrir regioes inteiramente novas — indicio de que o algoritmo ja localiza corretamente onde fica a frente verdadeira desde cedo, ao contrario dos metodos heuristicos comparados, 'where only a small fraction of the observed points are actually on the true Pareto front'.",
+      "aplicabilidade": "parcialmente reproduzivel — a fracao de novas avaliacoes reais que entram no ND corrente ao longo do orcamento (camada 1 com fe_index) e o que a ficha 43 mede formalmente; aqui e tratado de forma qualitativa/narrativa, execucao unica, sem repeticao de sementes."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Restricao de desigualdade probabilistica (gate via posterior de GP) num problema de brinquedo",
+      "grupo_sugerido": "E",
+      "descricao": "No mesmo problema de brinquedo (Eq. 5), o artigo adiciona uma restricao de desigualdade g(x)=x1<=0.5 modelada por um GP separado, cuja probabilidade de satisfacao (CDF gaussiana univariada da posterior) multiplica a funcao de aquisicao (Eq. 8-9). Mostra o mapa de probabilidade de satisfacao apos 50 observacoes (Fig. 4a, execucao unica) e, agregando 25 execucoes com inicializacoes aleatorias distintas, a fracao media de pontos que satisfazem a restricao ao longo da otimizacao (Fig. 4b, sombra = 1 sigma).",
+      "literal": "Average fraction of points satisfying the constraint over 25 randomly initialized constrained MOBO optimization runs. Shading denotes one sigma spread.",
+      "localizador": "Sec. III-C, Fig. 4",
+      "metricas": [
+        "probabilidade predita de satisfacao da restricao",
+        "fracao media de pontos que satisfazem a restricao ao longo do orcamento (25 execucoes)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "media +/- 1 sigma sobre 25 execucoes no painel (b); mapa de probabilidade de uma execucao unica apos 50 observacoes no painel (a)",
+      "achado": "A restricao probabilistica baseada no GP aprende corretamente a fronteira de viabilidade (mais precisa perto da regiao de interesse, onde ficam os pontos otimos de Pareto), e a fracao de pontos que violam a restricao cai conforme a otimizacao avanca e o modelo de g(x) melhora.",
+      "aplicabilidade": "nao reproduzivel com as 7 camadas da dissertacao — exige uma variante do algoritmo com restricao explicita via GP de g(x) e camada extra de dados (Dg), inexistente em qualquer um dos 15 algoritmos SA-MOO do roster."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Preferencia (subdominio truncado) vs. restricao probabilistica vs. irrestrito no problema real AWA",
+      "grupo_sugerido": "E",
+      "descricao": "No problema AWA, o artigo compara tres tratamentos do objetivo 'energy spread' dE: (a) sem preferencia/restricao; (b) preferencia via subdominio truncado da aquisicao (dE<0.52 MeV, mantendo dE como objetivo a minimizar dentro do subdominio); (c) restricao de desigualdade probabilistica (dE<0.52 MeV, removendo dE do vetor de objetivos). Compara as observacoes projetadas (dE vs. epsilon_x) apos 200-300 iteracoes e os fronts projetados resultantes para um par de objetivos diferente (sigma_x vs. epsilon_x, Fig. 8d).",
+      "literal": "the optimizer allows the energy spread to increase up to the constraint value, instead of attempting to minimize it, in order to better optimize the six remaining objectives",
+      "localizador": "Sec. IV-B, Fig. 8",
+      "metricas": [
+        "cobertura do front projetado (sigma_x vs. epsilon_x)",
+        "fracao/numero de observacoes que violam o limite de dE"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "execucao(oes) unica(s) por tratamento; sem repeticao de sementes reportada nesta figura; linhas pontilhadas marcam o limite de preferencia/restricao",
+      "achado": "Preferencia e restricao produzem comportamentos distintos apesar de ambas limitarem dE<=0.52 MeV: a preferencia deixa poucas violacoes mas ainda minimiza dE dentro do subdominio; a restricao permite dE subir ate o limite, liberando ganhos nos 6 objetivos restantes. O front (sigma_x, epsilon_x) melhora progressivamente de irrestrito->preferencia->restricao, mostrando que a restricao via probabilidade do GP e estritamente mais flexivel que a preferencia por subdominio truncado.",
+      "aplicabilidade": "nao reproduzivel com o roster da dissertacao — exige variantes de preferencia/restricao via GP de uma funcao extra g(x), ausentes dos 15 algoritmos SA-MOO comparados; nenhuma das 7 camadas cobre objetivos com preferencia ou restricao adicional."
+    },
+    {
+      "fichas": [
+        44
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "No problema AWA, o artigo compara a trajetoria do parametro K1 (forca do Solenoide 1) ao longo de 300 observacoes e a distribuicao de delta-K1 por passo, usando UCB-HVI padrao (Fig. 9a) vs. P-UCB-HVI com Sigma=0.25I (Fig. 9b), execucao unica por variante. Reporta que o mesmo comportamento se repete nos outros 5 parametros de entrada (nao mostrado).",
+      "literal": "the frequency and amplitude of large jumps in parameter space are both decreased",
+      "localizador": "Sec. IV-C, Fig. 9(a-b)",
+      "metricas": [
+        "distribuicao de delta-K1 (variacao do parametro por passo) no espaco de entrada"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "execucao unica por variante; histograma da distribuicao de delta-parametro ao lado da trajetoria temporal",
+      "achado": "P-UCB-HVI reduz a frequencia e a amplitude de saltos grandes no espaco de entrada em relacao ao UCB-HVI padrao, replicando no problema real o mesmo comportamento ja visto no problema de brinquedo (Fig. 5); o efeito se repete nos 5 demais parametros de entrada segundo o texto (nao mostrado em figura).",
+      "aplicabilidade": "a distancia entre parametros de avaliacoes reais consecutivas e reproduzivel diretamente da camada (1), analogo a ficha 44 — mas exige a variante 'proximal' do algoritmo, inexistente no roster da dissertacao."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ainda no problema AWA, compara o hipervolume medio (10 execucoes, com as MESMAS inicializacoes aleatorias para as duas variantes) ao longo das observacoes para UCB-HVI padrao vs. P-UCB-HVI, mostrando que a penalizacao por proximidade reduz apenas minimamente a velocidade de convergencia do hipervolume.",
+      "literal": "the use of P-UCB-HVI acquisition function over the generic UCB-HVI function only minimally reduces the overall speed at which the method maximizes the Pareto front hypervolume",
+      "localizador": "Sec. IV-C, Fig. 9(c)",
+      "metricas": [
+        "hipervolume (H) medio +/- 1 sigma sobre 10 execucoes"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "media +/- 1 sigma sobre 10 execucoes; inicializacoes pareadas identicas entre as duas variantes (mesmo DoE por 'semente' de execucao)",
+      "achado": "Restringir a busca a passos pequenos e disciplinados (P-UCB-HVI) custa muito pouco em velocidade de convergencia do hipervolume frente ao UCB-HVI irrestrito — favoravel ao uso pratico em aceleradores (onde mudar parametros tem custo fisico), e indicio de que o termo de proximidade quase nao atrapalha a qualidade da busca.",
+      "aplicabilidade": "analogo a trajetoria de convergencia com desenho pareado por 'semente' (inicializacoes identicas), ficha 26 — mas exige de novo a variante proximal ausente do roster da dissertacao; nao ha teste estatistico sobre a diferenca pareada, so a leitura visual das bandas de variancia."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "So discussao qualitativa de complexidade computacional, sem tabela e sem decomposicao fit/busca/avaliacao/sonda: (a) EHVI ingenuo escala O(N^P) na integracao da Eq. 3; com decomposicao eficiente do espaco de objetivos cai para O(N log N) em 2-3 dimensoes e O(2^(P-1) N^(P/2)) para P>=4; (b) UCB-HVI e descrito como muito mais barato que EHVI, sobretudo com muitos objetivos, por usar algoritmos de hipervolume tipo WFG/aproximados; (c) na Conclusao, uma unica estimativa nao sistematica de tempo extra por passo de otimizacao (<5 s para a maioria dos problemas), sem benchmark de tempo de parede nem separacao entre tempo de ajuste do GP, busca da aquisicao (PSO) e avaliacao.",
+    "literal": "the extra computation time needed (estimated to be < 5 s for most problems) is small relative to the reduction in optimization time associated with faster convergence to the Pareto front",
+    "localizador": "Sec. V (Conclusion); complexidade da aquisicao em Sec. III-B"
+  },
+  "resultados_negativos": [],
+  "equivalencia_criterios": [
+    {
+      "descricao": "O artigo argumenta que UCB-HVI e EHVI atingem desempenho de otimizacao similar, mas UCB-HVI e muito mais barato computacionalmente quando ha muitos objetivos (P>3); por isso os autores optam por usar exclusivamente UCB-HVI no restante do artigo, sem testar EHVI empiricamente em nenhum experimento.",
+      "literal": "The use of these advanced algorithms allows UCB-HVI to be a much faster calculation than EHVI when the number of objectives is large (P > 3), while still achieving similar optimization performance.",
+      "localizador": "Sec. III-B"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "muitos objetivos / alta dimensao do espaco de objetivos (7 objetivos no problema AWA)",
+      "afirmacao": "Com um espaco de objetivos de alta dimensao (7 objetivos), e preciso um grande numero de observacoes (100-200) para o algoritmo construir uma frente de Pareto bem definida antes que ganhos adicionais passem a vir principalmente de refinamento de resolucao.",
+      "literal": "Since the objective space is high dimensional, it takes a large number of observations (100-200) for the algorithm to build up a well-defined Pareto front.",
+      "localizador": "Sec. IV-A"
+    },
+    {
+      "caracteristica": "muitos objetivos (P>3)",
+      "afirmacao": "Quando o numero de objetivos e grande (P>3), o calculo de EHVI fica caro e o UCB-HVI se torna preferivel por ser muito mais rapido, mantendo desempenho de otimizacao similar segundo os autores.",
+      "literal": "The use of these advanced algorithms allows UCB-HVI to be a much faster calculation than EHVI when the number of objectives is large (P > 3), while still achieving similar optimization performance.",
+      "localizador": "Sec. III-B"
+    },
+    {
+      "caracteristica": "custo fisico de mudar parametros de entrada (serializacao/proximidade no regime online)",
+      "afirmacao": "Sem termo de proximidade, o UCB-HVI padrao varia violentamente os parametros de entrada a cada passo (ex.: K1 no AWA); adicionar o termo P-UCB-HVI reduz a frequencia e a amplitude de saltos grandes, a custo minimo de velocidade de convergencia — uma caracteristica especifica do regime online fisico de aceleradores, ausente em benchmarks puramente sinteticos.",
+      "literal": "We observe that during optimization, when the UCB-HVI acquisition function is used, the solenoid strength parameter K1 is wildly varied to increase the hypervolume as much as possible each step.",
+      "localizador": "Sec. IV-C"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Artigo fundamentalmente de METODO/demonstracao (introduz MOBO/UCB-HVI para tuning online de aceleradores), nao um estudo de benchmark amplo: so 2 problemas (1 toy analitico 2D com frente conhecida; 1 problema real do fotoinjetor AWA cuja 'verdade' e na realidade um surrogate de rede neural pre-treinado de outro artigo [25], nao uma medicao fisica nem simulacao completa nesta publicacao). Nao ha suite sintetica (ZDT/DTLZ/WFG/BBOB), nem multiplos problemas reais, nem 30 sementes — no maximo 25 execucoes (Fig. 4b) ou 10 execucoes (Figs. 7a, 9c); a maioria das figuras (3, 5, 7b, 7c, 8, 9a-b) e execucao UNICA sem repeticao. Metrica unica em todo o artigo: Hipervolume (H) — nunca aparecem IGD/IGD+/GD/spacing/epsilon-indicator. Nenhum teste estatistico de hipotese em lugar nenhum. Nao ha medicao de calibracao/cobertura do sigma do GP (nenhuma secao avalia se a incerteza reportada e confiavel; Fig. 3 so compara a MEDIA do GP com a verdade, visualmente, sem tocar em sigma). O artigo fornece 2 comparacoes de variantes do proprio metodo (ablacoes naturais, nao da incerteza): UCB-HVI vs. P-UCB-HVI (termo de proximidade, Figs. 5 e 9) e irrestrito vs. preferencia vs. restricao probabilistica (Fig. 8) — nenhuma delas ablaciona o uso de sigma em si (a restricao probabilistica, alias, usa o sigma da posterior do GP de g(x) como MECANISMO central do gate, mas o artigo nao compara essa variante contra uma versao 'sem incerteza' da mesma restricao). O parametro beta do UCB-HVI e escolhido empiricamente (beta=0.01 nos dois experimentos principais) sem nenhuma curva de sensibilidade mostrada — 'This value of beta is chosen to heavily weight exploitation since our functions are unimodal' (Sec. III-B) e 'empirical testing found that beta = 0.01 gave the fastest convergence' (Sec. IV-A, sem figura/tabela) — por isso NAO foi listado como analise propria (Regra 3: nao inventar analise que o artigo nao fez). O I-NN usado como baseline no AWA e ele mesmo um metodo assistido por surrogate (rede neural + NSGA-II), entao a Fig. 7 mistura 1 piso puro (NSGA-II) com 1 concorrente assistido (I-NN), diferente do desenho da dissertacao (4 pisos evolutivos fixos). Os Apendices A (teoria de regressao GP) e B (disponibilidade de codigo) nao contem resultados experimentais adicionais. Leitura completa: 14 paginas, todas as secoes (I-VI + Apendices A-B + Referencias) cobertas duas vezes (conversao estruturada + camada de texto bruta completa do ANEXO) mais o ANEXO de OCR de imagens (so labels de eixo e ruido de figuras, sem conteudo substantivo novo). roster_bloco = null por instrucao do pedido (artigo fora do roster experimental)."
+}

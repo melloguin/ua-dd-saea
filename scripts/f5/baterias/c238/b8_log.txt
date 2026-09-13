@@ -1,0 +1,59 @@
+OK BBOB_F1: discordantes=0 dup_f32=0 zeros=0 min|f|=7.964e-03
+OK BBOB_F17: discordantes=0 dup_f32=0 zeros=0 min|f|=4.660e+00
+OK BBOB_F22: discordantes=0 dup_f32=0 zeros=0 min|f|=8.598e+01
+OK BBOB_F37: discordantes=0 dup_f32=0 zeros=0 min|f|=9.465e+01
+OK BBOB_F49: discordantes=0 dup_f32=0 zeros=0 min|f|=3.373e+01
+OK BBOB_F5: discordantes=0 dup_f32=0 zeros=0 min|f|=5.617e-05
+OK BBOB_F55: discordantes=0 dup_f32=0 zeros=0 min|f|=1.522e+00
+OK DTLZ1: discordantes=0 dup_f32=0 zeros=0 min|f|=1.539e-15
+OK DTLZ2: discordantes=0 dup_f32=0 zeros=0 min|f|=7.883e-28
+OK DTLZ3: discordantes=0 dup_f32=0 zeros=0 min|f|=2.417e-25
+OK DTLZ4: discordantes=240 dup_f32=0 zeros=228 min|f|=1.401e-45
+OK DTLZ7: discordantes=0 dup_f32=0 zeros=0 min|f|=1.909e-14
+OK MMF1: discordantes=0 dup_f32=0 zeros=0 min|f|=1.621e-03
+OK MMF11_L: discordantes=38 dup_f32=0 zeros=0 min|f|=1.000e-01
+OK MMF16_20: discordantes=0 dup_f32=0 zeros=0 min|f|=1.190e-23
+OK MMF4: discordantes=0 dup_f32=0 zeros=0 min|f|=3.524e-09
+OK WFG1: discordantes=0 dup_f32=0 zeros=0 min|f|=9.699e-01
+OK WFG2: discordantes=0 dup_f32=0 zeros=0 min|f|=2.899e-01
+OK WFG4: discordantes=0 dup_f32=0 zeros=0 min|f|=3.839e-01
+OK WFG5: discordantes=0 dup_f32=51 zeros=0 min|f|=1.289e-01
+OK WFG9: discordantes=0 dup_f32=0 zeros=0 min|f|=2.289e-01
+OK ZDT1: discordantes=0 dup_f32=2 zeros=0 min|f|=9.672e-13
+OK ZDT3: discordantes=0 dup_f32=1 zeros=0 min|f|=2.450e-13
+OK ZDT4: discordantes=0 dup_f32=0 zeros=0 min|f|=8.809e-15
+OK ZDT6: discordantes=185 dup_f32=19 zeros=0 min|f|=7.634e-03
+
+ problema  M  D  n_gens  n_dup_f32  n_f_zero_exato  min_abs_f_naonulo  n_linhas  n_gens_discordantes
+ BBOB_F1  2 10     200          0               0       7.964198e-03       309                    0
+BBOB_F17  2 10     200          0               0       4.660223e+00       309                    0
+BBOB_F22  2 10     200          0               0       8.598350e+01       309                    0
+BBOB_F37  2 10     200          0               0       9.464835e+01       309                    0
+BBOB_F49  2 10     200          0               0       3.372696e+01       309                    0
+ BBOB_F5  2 10     200          0               0       5.617491e-05       309                    0
+BBOB_F55  2 10     200          0               0       1.522390e+00       309                    0
+   DTLZ1  3  7     140          0               0       1.539079e-15       216                    0
+   DTLZ2  3 12     240          0               0       7.883143e-28       371                    0
+   DTLZ3  3 12     240          0               0       2.417041e-25       371                    0
+   DTLZ4  3 12     240          0             228       1.401298e-45       371                  240
+   DTLZ7  3 22     440          0               0       1.908622e-14       681                    0
+    MMF1  2  2      40          0               0       1.620903e-03        61                    0
+ MMF11_L  2  2      40          0               0       1.000000e-01        61                   38
+MMF16_20  3 20     400          0               0       1.190001e-23       619                    0
+    MMF4  2  2      40          0               0       3.523793e-09        61                    0
+    WFG1  2 22     440          0               0       9.698910e-01       681                    0
+    WFG2  2 22     440          0               0       2.898734e-01       681                    0
+    WFG4  2 22     440          0               0       3.839140e-01       681                    0
+    WFG5  2 22     440         51               0       1.288574e-01       681                    0
+    WFG9  2 22     440          0               0       2.289153e-01       681                    0
+    ZDT1  2 30     600          2               0       9.672131e-13       929                    0
+    ZDT3  2 30     600          1               0       2.449919e-13       929                    0
+    ZDT4  2 10     200          0               0       8.808748e-15       309                    0
+    ZDT6  2 10     200         19               0       7.633897e-03       309                  185
+
+=== geracoes discordantes ===
+            n  delta_min  delta_max  delta_med  amb_med  cobre_delta  fecha_weak fecha_podada  rel_weak_med  rel_weak_max  rel_pod_med  rel_pod_max
+problema                                                                                                                                           
+DTLZ4     240        -26        -16      -25.0     16.0           17         240            0  2.597023e-08  8.260876e-08          NaN          NaN
+MMF11_L    38         -1         -1       -1.0      4.0           37          38            0  4.992071e-08  5.057245e-07          NaN          NaN
+ZDT6      185         -4         -1       -3.0     20.0          185          55            0  7.904597e-05  1.845203e-03          NaN          NaN

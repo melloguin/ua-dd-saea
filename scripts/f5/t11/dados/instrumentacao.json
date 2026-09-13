@@ -1,0 +1,117 @@
+{
+ "itens": [
+  {
+   "item": "I-1",
+   "descricao": "Logar a IDENTIDADE da referência do classificador (pmid_ids no c217, ref_ids no c122 e no e74; b4 já fazia). Aplicável só aos 4 configs classificadores; N/A por desenho nos outros 20.",
+   "status": "PARCIAL",
+   "configs_ok": [
+    "b4",
+    "c122"
+   ],
+   "configs_falha": [
+    "c217",
+    "e74"
+   ],
+   "evidencia": "MEDIDO POR MIM nos dois corpora. b4: já estava FECHADO ANTES da T11 — s42 tem ref_ids em 6.268 registros b4_gen de 25 células, 37.608 ids, 0 negativos, listas de tamanho 6 em 6.268/6.268; no T11 (smoke_matlab/MMF1) 270/270 ids resolvem na ① (|①|=61); em s42/ZDT1 3.342/3.342 e s42/DTLZ2 1.620/1.620 resolvem. c122: ref_ids NOVO no T11 (ausente em 25/25 da s42, que só tinha n_ref), 84 registros (sonda + sonda_estratificada + decision), 944 ids, 944/944 resolvem na ①, 0 negativos — CONFIRMA o relatório c122.md. c217: REGRESSÃO CONFIRMADA — pmid_ids existe nas 3 pastas T11 (g6_com, g6_sem, smoke_matlab), 42 registros c217_gen por pasta, 426 elementos por pasta, 426/426 == −1, 0/426 resolvem na ①; os tamanhos de lista variam (n_Pmid ∈ {5,7,11,13}), então a formulação '[-1]*5' do briefing é uma amostra, não a regra: o certo é 'lista de comprimento n_Pmid inteiramente sentinela'. e74: NÃO IMPLEMENTADO — varri as 5 células T11 do e74 (g6_com, g6_sem, smoke_matlab×3) e as chaves 'ref_ids' e 'pmid_ids' NÃO EXISTEM em nenhum registro (e74_gen/e74_boot); confirma e74.md item C7. Causa do c217 (LIDA e reportada em c217.md, não re-executada por mim): c217_instrument.m:201 passa Pmid inteiro (largura D+1) a solutionIdOf, cuja chave é de 8·D bytes — nunca casa. Conseqüência medida: dos 4 classificadores, 2 têm identidade utilizável e 2 não; a análise de qualidade de classificador segue não-mensurável em metade dos configs classificadores."
+  },
+  {
+   "item": "I-2",
+   "descricao": "Declarar no sigma_dict a REGRA DO RÓTULO VERDADEIRO (string com a regra exata + referência do paper) nos 4 classificadores: b4, c217, c122, e74.",
+   "status": "PARCIAL",
+   "configs_ok": [
+    "b4",
+    "c217",
+    "c122"
+   ],
+   "configs_falha": [
+    "e74"
+   ],
+   "evidencia": "MEDIDO POR MIM no ⑤ (manifest.json) das células T11 e da s42. Presença da chave sigma_dict.REGRA_DO_ROTULO: b4 = presente, 714 caracteres (g6_com e g6_sem); c217 = presente, 1.502 caracteres (a mais longa); c122 = presente, 751 caracteres; e74 = AUSENTE em 5/5 células T11 (sigma_dict do e74 tem só ['estrategia','mu_j','pred_classe','pred_score','sigma_0']; e o sigma_dict do header do ⑥ do e74 é uma STRING, não um dict). Na s42 a chave não existe em nenhum dos 4 — portanto é campo genuinamente novo da T11. RESSALVAS QUE NÃO RE-MEDI (leitura dos relatórios irmãos, atribuídas): (a) b4.md §E1 afirma que os TRÊS números de calibração embutidos na string do b4 (prevalência 65,5% / acurácia 0,350 / AUC 0,716) não reproduzem em nenhum corpus — b4.md re-mede 28,43% / 0,5743 / 0,5065 na régua do smoke e 8,32% / 0,9035 / 0,6646 na s42; (b) c122.md classifica a regra como operacional porém apontando o evento errado (8/22 contra 21/22 de casamento); (c) c217.md mostra que a regra do c217, embora correta na prosa, é INAPLICÁVEL porque o passo (3) depende do I-1, que está sentinela — a regra melhor escrita do conjunto é a que menos pode ser executada."
+  },
+  {
+   "item": "I-3",
+   "descricao": "Cronômetro no portão único de avaliação do stack Python (src/budget.py) + permitir NULL no bloco timing (src/export.py), para que 'não medi' deixe de ser indistinguível de 'custou zero'.",
+   "status": "PARCIAL",
+   "configs_ok": [
+    "sobol_batch"
+   ],
+   "configs_falha": [
+    "b5m",
+    "b5r",
+    "c311",
+    "moead_media",
+    "treed_media"
+   ],
+   "evidencia": "MEDIDO POR MIM em 51 manifestos T11 e 906 manifestos da s42. CONFIRMO 'fechado no MATLAB': os 13 configs MATLAB (b1,b3,b4,c141,c217,c238,e7,e74,e103,moead,nsga2,nsga3,smsemoa) já tinham tempo_aval_real_s não-nulo em 100% das células da s42 (faixas de 0,0012 s no e103 a 1,63 s no smsemoa) — o campo não é ganho da T11 neles. METADE FECHADA: o alvo nomeado no laudo (sobol_batch, 5/5 células com 0.0 EXATO na s42) foi corrigido — no T11 grava 0,0037 s (11,97 µs/FE). METADE ABERTA / REGRESSÃO SEMÂNTICA: em 51 manifestos T11 há ZERO NULLs. Nos 5 offline Python o campo era 0.0 exato na s42 (b5m 45/45, b5r 45/45, c311 55/55, moead_media 45/45, treed_media 10/10 = 205 células) e no T11 passou a um POSITIVO que não mede avaliação: b5m 0,0001 · b5r 0,0003 · c311 0,0003 · moead_media 0,0001 · treed_media 0,0572. Assinatura que medi: 0,97–1,64 µs/FE nos 5 offline contra 22,95–49,65 µs/FE nos 5 online Python do MESMO smoke (c122 34,43 · c149 24,59 · c154 26,23/49,65 · c262 22,95 · e81 26,23) — ~21× mais barato porque não há função-objetivo sendo chamada. CAUSA CONFIRMADA POR LEITURA DE CÓDIGO: src/standalone_harness.py:647-653 roteia as n linhas do dataset por bud.evaluate (lambda pass-through), e src/budget.py:191-202 só devolve None quando _n_avals_cronometradas==0 — logo o ramo NULL é inalcançável por construção no offline, contradizendo a própria docstring de budget.py:186-194 e o comentário de export.py:559-565. Efeito colateral: quebra a assinatura 'offline puro' (tempo_aval_real_s==0) que a validação de fidelidade usava."
+  },
+  {
+   "item": "I-4",
+   "descricao": "Lista NO_RETRY de exceções determinísticas consultada ANTES do backoff, com os 3 padrões medidos na rodada-42 (b1/DTLZ4, c154/{ZDT6,BBOB_F55}, c262/WFG1).",
+   "status": "PARCIAL",
+   "configs_ok": [
+    "c154",
+    "c262"
+   ],
+   "configs_falha": [
+    "b1",
+    "b3"
+   ],
+   "evidencia": "MEDIDO/LIDO POR MIM no código. IMPLEMENTADO E COM CONTROLE: experiments.py:84-88 define NO_RETRY_SUBSTRINGS com os 3 padrões; experiments.py:216-224 consulta a lista ANTES do backoff, emite guard 'determinista_nao_retriavel' e faz break; tests/test_despachante.py:107-141 tem controle POSITIVO (os 3 padrões ⇒ 1 tentativa, 0 eventos retry, 1 guard) e NEGATIVO (exceção transitória ⇒ RETRY_ATTEMPTS−1 retries) — não é um teste decorativo. LACUNA QUE MEDI E QUE NENHUM RELATÓRIO QUANTIFICOU ASSIM: o 1º padrão ('least squares problem is underdetermined') é INALCANÇÁVEL. Executei `experiments.KNOWN_ALGORITHMS` e ele contém apenas 11 configs Python ['b5m','b5r','c122','c149','c154','c262','c311','e81','moead_media','sobol_batch','treed_media'] — b1 e b3 NÃO estão lá (experiments.py:490: 'os MATLAB rodam via experiments.m'). E o stack MATLAB não tem retry nenhum: `grep -c 'retry|tentativa' src/experiment.m` = 0, e experiments.m (driver MATLAB) = 0 ocorrências; experiment.m:3073 grava `man.n_retries = 0` como LITERAL, nunca reatribuído. Logo: (a) 2 dos 3 padrões são efetivos (c154 e c262, ambos Python); (b) o caso b1/DTLZ4 nunca foi retentado 3× por despachante algum, o que torna a economia projetada de ~285 h-core do laudo superestimada (número do laudo, não re-derivado por mim); (c) o modo de falha REAL do b3 ('Multiple design sites are not allowed', dacefit.m:93) está fora da lista — apontado por b3.md e moot na prática, já que o MATLAB não retenta."
+  },
+  {
+   "item": "I-5",
+   "descricao": "Logar y_treino_dist — prevalência das classes no conjunto de treino da geração — nos 4 classificadores (b4, c217, c122, e74).",
+   "status": "PARCIAL",
+   "configs_ok": [
+    "b4",
+    "c122"
+   ],
+   "configs_falha": [
+    "c217",
+    "e74"
+   ],
+   "evidencia": "MEDIDO POR MIM. b4: campo NOVO (ausente em 25/25 da s42), presente em 45/45 eventos b4_gen do T11, com conteúdo real e nota semântica — exemplo medido {'n':21,'classe_1':7,'classe_0':14,'prevalencia_classe_1':0.3333,'nota':\"rotulo binario do GetOutput(Arc.objs, Ref.objs); 1='bom' vs as K=6 referencias radiais\"}; MAS é DERIVADO: classe_1 == round(rr·n_treino) em 45/45, e rr e n_treino já existiam na s42 ⇒ informação nova ≈ zero (confirma b4.md C4). c122: presente em 41/41 registros decision como y_treino_dist_p e y_treino_dist_s, com contagens reais — exemplo medido {'n_pares_possiveis':484,'n_pares_computados':462,'classe_0_empate':272,'classe_1_i_domina':95,'classe_2_j_domina':95,'n_arquivo':22}; 41/41 não-vazios. c217: REGRESSÃO CONFIRMADA — presente em 42/42 eventos c217_gen, e 42/42 DEGENERADOS na forma {'n':k,'classe_menos1':0,'classe_zero':0,'classe_mais1':k}: a única classe povoada carrega o total, as outras duas são zero. Não separa 'classificador ruim' de 'problema desbalanceado' — é a informação inversa da pedida. e74: campo INEXISTENTE em todas as 5 células T11 (varredura de chaves)."
+  },
+  {
+   "item": "I-6",
+   "descricao": "Sonda estratificada para classificadores — bloco menor amostrado perto do arquivo corrente, marcado com regime='sonda_estratificada' para nunca ser misturado com a régua Sobol de 2.000 pontos (recomendação (b) do §6 do laudo).",
+   "status": "PARCIAL",
+   "configs_ok": [
+    "b4",
+    "c217",
+    "e74",
+    "c122"
+   ],
+   "configs_falha": [
+    "b4",
+    "c217",
+    "e74",
+    "c122"
+   ],
+   "evidencia": "MEDIDO POR MIM — CONFIRMO a presença nos 3 configs do briefing E ACRESCENTO o c122 (o briefing citava só b4/c217/e74). ⑥: b4 23 blocos × 500 pts, sementes_bloco distintas 23/23; c217 22 × 500, 22/22; e74 17 × 500 (MMF1), 80 × 500 (DTLZ2), 210 × 500 (ZDT1), sementes distintas 100%; c122 21 × 500, 21/21. Zero blocos na s42 nos 4 ⇒ campo genuinamente novo. O QUE FUNCIONA: a segregação existe — na ③ o valor de `regime` é literalmente 'sonda_estratificada', distinto de 'sonda' e 'online', então a regra 12 do CONTRATO é aplicável; e o bloco É mais perto do arquivo — medi a distância euclidiana mediana ao vizinho mais próximo da ①: razão estratificada/régua = 0,573 (b4/MMF1) · 0,647 (c217/MMF1) · 0,164 (e74/ZDT1, mediana 0,2497 contra 1,5179 da régua) · 0,589 (c122/MMF1). O QUE NÃO FUNCIONA (em TODOS os 4): não há verdade no bloco — real_solution_id é 0% não-nulo em b4 (0/11.500), c217 (0/11.000), e74 (0/8.500 em MMF1, 0/105.000 em ZDT1) e c122 (0/10.500), e medi ZERO coincidências exatas com a ① nos 4 ⇒ os pontos nunca foram avaliados; prevalencia_nd_no_bloco é NaN/None em 23/23 (b4), 22/22 (c217) e 100% no e74 — só o c122 a preenche (0/21 NaN). Logo precision/recall/F1, que eram o propósito declarado do item, NÃO ficam destravados por este bloco. Cobertura de colunas heterogênea e fora do contrato: b4 grava pred_classe e pred_confianca 11.500/11.500 e mu/sigma 0; c217 grava pred_score 11.000/11.000 e pred_classe 0; e74 grava mu_0 em 6.000/8.500 e pred_classe em 2.500/8.500; c122 grava mu_0 e sigma_0 10.500/10.500 e pred_score 0/10.500 (colunas de REGRESSOR num classificador). ATENUANTE QUE MEDI: as coordenadas X estão gravadas 100% (x0,x1 não-nulos em 11.500/11.500 etc.) e os problemas são analíticos ⇒ a verdade do bloco é RECUPERÁVEL a posteriori por re-avaliação offline. Este item, ao contrário de I-1/I-5, NÃO é bloqueador de disparo."
+  },
+  {
+   "item": "I-7",
+   "descricao": "tempo_geracao_s no e103 (único config sem ele) e tempo_fit_s no sobol_batch gravado como NULL (e não ausente), como já fazem os pisos.",
+   "status": "PARCIAL",
+   "configs_ok": [
+    "e103"
+   ],
+   "configs_falha": [
+    "sobol_batch"
+   ],
+   "evidencia": "MEDIDO POR MIM. e103 FECHADO: o campo não existe em nenhum registro da célula s42 (varri e103_setup, e103_gen×99, e103_busca), e no T11 aparece no registro `e103_busca` com tempo_geracao_s = 5,033736666666667 s no smoke_matlab e 4,361446416666667 s no g6_com; a identidade fecha EXATA — 0,22511562499999999 (tempo_fit_s) + 4,808621041666667 (tempo_busca_s) = 5,033736666666667. Confirma e103.md C2. sobol_batch NÃO FECHADO: dumpei as chaves do registro `decision` nos dois corpora — s42 ['caminho','f_best','fe','geracao','motivo','q','rec','seed_sobol','ts'] e T11 ['caminho','f_best','fe','geracao','motivo','n_front1','q','rec','seed_sobol','tempo_busca_s','ts']. `tempo_fit_s` continua AUSENTE nos 200/200 eventos do T11, não NULL — que era exatamente a distinção pedida pelo item. O relatório sobol_batch.md §4.1 descreve o helper minimo_comum_di10 sendo chamado com tempo_fit_s=None, mas o helper não emite a chave quando o valor é None; o efeito no dado é ausência, não NULL."
+  },
+  {
+   "item": "I-8",
+   "descricao": "n_front1 / f_best no sobol_batch — fechar o único config sem o mínimo comum DI-10.",
+   "status": "FECHADO",
+   "configs_ok": [
+    "sobol_batch"
+   ],
+   "configs_falha": [],
+   "evidencia": "MEDIDO POR MIM nos dois corpora. s42 (batch/sobol_batch/ZDT4): 200 registros `decision`, f_best presente em 200/200, n_front1 AUSENTE em 200/200. T11 (smoke_python/batch/sobol_batch/ZDT4, q=1): 200 registros `decision`, f_best 200/200 E n_front1 200/200, todos com valor (não-nulo, não-sentinela); valor exemplo n_front1=8 na 1ª decisão. É o único dos 8 itens sem contra-exemplo em nenhum corpus. Ressalva de escopo herdada de sobol_batch.md (não re-medida por mim): o smoke T11 rodou q=1 enquanto o grid da campanha é q=10 em 150/150 linhas — o relatório fechou essa lacuna com um re-run próprio em tempdir (1.000/1.000 n_front1 corretos), que eu não reproduzi."
+  }
+ ],
+ "veredito_geral": "NÃO, a instrumentação ainda não está pronta para o disparo das 30 sementes — mas falta pouco e o que falta é barato. Placar medido: 1 item FECHADO (I-8) e 7 PARCIAIS, com três defeitos de dado que verifiquei eu mesmo e que são pré-disparo, não pós-hoc. (1) A lacuna que o próprio laudo chamou de irrecuperável — a identidade da referência do classificador — foi fechada em apenas 2 dos 4 classificadores: b4 (que já a tinha na s42: 37.608 ids, 0 negativos) e c122 (944 ids, 944/944 resolvem na ①); no c217 o campo foi criado e é 100% sentinela (426/426 = −1 em cada uma das 3 pastas T11) e no e74 sequer existe. Somado ao y_treino_dist do c217 (42/42 degenerado, uma classe carregando o total) e à ausência total de I-1/I-2/I-5 no e74, isso significa que rodar hoje produziria ~10.000 células, em 30 sementes, com qualidade de classificador não-mensurável — metade do prejuízo que o laudo queria evitar, pelas mesmas duas linhas de código. (2) O I-3 corrigiu o alvo nomeado (sobol_batch saiu de 0.0 exato em 5/5 para 0,0037 s) mas introduziu uma regressão semântica nos 5 offline Python: 0 NULLs em 51 manifestos T11, e um positivo que mede ingestão de dataset, não avaliação — 0,97–1,64 µs/FE contra 22,95–49,65 µs/FE nos online do mesmo smoke, com a causa confirmada em código (standalone_harness.py:647-653 roteia as n linhas por bud.evaluate, tornando o ramo None de budget.py:198-202 inalcançável); o efeito prático é que a assinatura 'offline puro' usada pela validação de fidelidade deixou de valer e o campo agora afirma o contrário do que o item queria afirmar. (3) O I-4 está implementado com controle positivo e negativo reais, mas 1 dos 3 padrões é letra morta: b1 não está em KNOWN_ALGORITHMS e o stack MATLAB não tem retry algum (0 ocorrências em src/experiment.m e experiments.m; n_retries é literal em experiment.m:3073), de modo que a economia projetada de ~285 h-core está superestimada. Em contrapartida, o I-6 NÃO é bloqueador: o bloco estratificado existe nos 4 classificadores, está corretamente segregado por regime e é comprovadamente mais perto do arquivo (razão de distância 0,16–0,65), e embora não traga verdade nenhuma (real_solution_id 0% não-nulo e zero coincidências com a ① nos 4), as coordenadas X estão gravadas 100% e os problemas são analíticos — a verdade é recuperável a posteriori. Recomendação: liberar o disparo somente depois de (a) consertar os dois campos do c217, (b) replicar o padrão do b4 no e74 (ref_ids + REGRA_DO_ROTULO + y_treino_dist), (c) zerar o cronômetro ao fim da ingestão offline com um teste de COMPORTAMENTO, e (d) emitir tempo_fit_s=NULL no sobol_batch; os quatro consertos somam poucas linhas e todos exigem um teste que REPROVE a versão de hoje, porque nenhum dos 6 portões atuais reprova o c217 sentinela."
+}

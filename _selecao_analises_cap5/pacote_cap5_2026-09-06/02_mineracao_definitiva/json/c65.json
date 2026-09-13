@@ -1,0 +1,349 @@
+{
+  "id": "c65",
+  "sigla": "SABBa",
+  "titulo": "Surrogate-Assisted Bounding-Box Approach Applied to Constrained Multi-Objective Optimisation Under Uncertainty",
+  "ano": 2022,
+  "roster": false,
+  "setup": {
+    "benchmarks": "2 casos-teste analíticos + 3 aplicações de engenharia, todos próprios do artigo (nenhum é ZDT/DTLZ/WFG/MMF/BBOB nem RE21/ESTOQUE40/DDMOP7 da bateria da dissertação). Analíticos: (1) Taguchi biobjetivo (mean+variance) não-restrito, D=2, 1 parâmetro incerto ξ, frente de Pareto descontínua — testado com surrogate de ALTA qualidade (kernel RBF anisotrópico ARD) e depois com surrogate de BAIXA qualidade (kernel RBF isotrópico, 1 lengthscale só); (2) otimização de desempenho médio sob restrição de quantil 95% (Rosenbrock 4D + Six-Hump-Camel), D=4, 3 parâmetros incertos, mono-objetivo+1 restrição. Engenharia: (a) treliça de 2 barras (RBDO estrutural clássica), D=4, 2 incertos (Gaussianos), MONO-objetivo (volume) + 2 restrições de quantil 0.999; (b) pá de turbina ORC (shape optimisation via SU2 CFD reduzido), D=9 (de 30 pontos de controle B-spline), 3 incertos, BI-objetivo (média e variância de ΔP) + 1 restrição de faixa na vazão mássica; (c) sistema de proteção térmica (TPS) de reentrada atmosférica (modelo PATO), D=2, 12 incertos, MONO-objetivo (densidade média) + 1 restrição de pior-caso (temperatura ≤473.15K).",
+    "orcamento": "Não há orçamento fixo de avaliações reais: o algoritmo roda até que uma sequência PRÉ-DEFINIDA e decrescente de limiares de acurácia normalizados (s̄1, s̄2, em % da faixa observada de cada medida) seja satisfeita — 5 patamares (50%→5%) no caso-teste 1, 10 patamares (50%→0.5%) no caso-teste 2, 4 patamares nas 3 aplicações de engenharia. Parâmetros: Ninit=10 (casos analíticos) ou 5 (engenharia) no DoE inicial; Nfirst=4-5 amostras ξ por novo design; Nnew=1 (refinamento sequencial, um ponto por vez, estratégia 'Kriging Believer' para paralelismo). O custo relatado é sempre o Nº TOTAL de avaliações reais gasto até o último patamar: ~93-200 (caso-teste 1), ~150-200 (caso-teste 2), 42-52 (treliça), ~600 (turbina ORC), 40 (TPS).",
+    "execucoes": "10 execuções independentes por configuração nos 2 casos-teste analíticos (curva média + banda de variabilidade, log-normal assumida; pior das 10 execuções plotada à parte). As 3 aplicações de engenharia são cada uma UMA ÚNICA execução determinística — sem sementes repetidas, sem estatística de dispersão.",
+    "baselines": "Não há piso evolutivo sem surrogate (nem NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) nem comparação com outros algoritmos SA-MOO da literatura. O único comparador é a 'A Priori MetaModel' (APMM): um ÚNICO GP estático construído no espaço acoplado X×Ξ sobre um DoE inicial fixo, usado durante toda a otimização SEM refinamento adaptativo nem gate de acurácia — a própria baseline 'sem uso ativo da incerteza para guiar reamostragem' do artigo. Internamente, 3 variantes do próprio SABBa são comparadas entre si: SA-CS, SA-SS e CS (a 4ª variante, SS pura — sem Surrogate-Assisting e sem espaço acoplado —, foi descartada a priori por ser computacionalmente cara demais e nunca é testada).",
+    "metricas_principais": [
+      "QB — distância de Hausdorff modificada esperada entre o conjunto de designs ótimos aproximado (aleatório, via POP) e a área ótima real (Eq. 10); QB=1 é péssimo, QB=10⁻² é excelente, em espaço normalizado [0,1]",
+      "Nº de avaliações reais (Neval) necessário para convergir a cada patamar de acurácia — proxy central de parcimônia/custo"
+    ],
+    "testes": [
+      "nenhum teste estatístico formal em todo o artigo (sem Wilcoxon, sem Friedman, sem intervalos de confiança formais)"
+    ],
+    "apresentacao": "Curvas de custo QB×Neval com média + banda de variabilidade sobre 10 execuções (log-distância assumida Gaussiana, logo QB log-normal); pior execução das 10 plotada separadamente (greyscale/transparência ∝ POP) para expor confiabilidade; nas aplicações de engenharia, sequência de instantâneos (scatter ou coordenadas paralelas) em patamares crescentes de avaliações, transparência ∝ POP, ótimo/frente conhecida em vermelho. Nenhuma tabela de médias±desvio, nenhum símbolo +/=/−, nenhuma mediana/IQR — convenção própria do artigo, distinta da da dissertação.",
+    "codigo_plataforma": "NOMAD v3.6.2 (otimizador derivative-free MADS) como 'motor' de exploração do espaço de design, acoplado a GPy v1.8.5 (Python) para todos os modelos GP (tanto a superfície bq(x,·) quanto o meta-modelo Surrogate-Assisting heterocedástico, Eq. 9). Aplicações físicas usam ferramentas externas: SU2 (CFD não-ideal 2D) para a turbina ORC; PATO (Porous material Analysis Toolbox, sobre OpenFOAM) para o TPS."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Validação numérica de POPmin (aproximação) contra POPtrue (exato, combinatorial) em exemplos ilustrativos",
+      "grupo_sugerido": "E",
+      "descricao": "O artigo compara sua métrica proposta POPmin (aproximação eficiente de probabilidade de não-dominância boxed) contra POPtrue (a fórmula exata, combinatorial, definida na Eq. 4) em duas configurações ilustrativas de 6 caixas cada (Fig. 2a não-restrita, Fig. 2b restrita), tabulando os 2 valores por caixa (Tabela 1) para verificar se a aproximação barata preserva o ranking/score da fórmula exata. Não envolve rodar o algoritmo SABBa nem comparar contra a função verdadeira f — é uma verificação interna da fórmula de ranking em si, dadas caixas fixas arbitrárias.",
+      "literal": "POPmin and POPtrue metrics are quantitatively compared in Table 1 on the two small examples depicted in Figure 2, and show very similar scoring.",
+      "localizador": "Sec. 3.2, Table 1 (exemplos da Fig. 2a-b)",
+      "metricas": [
+        "POPtrue (probabilidade exata de não-dominância, Eq. 4)",
+        "POPmin (aproximação proposta, Eq. 5)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tabela numérica simples (6 caixas × 2 métricas × 2 exemplos), 3 casas decimais, sem médias/desvios (valores determinísticos dado o conjunto de caixas fixo).",
+      "achado": "POPmin reproduz de perto o ranking/valores de POPtrue nos dois exemplos testados ('very similar scoring'), o que justifica substituir a fórmula exata (computacionalmente proibitiva em geral, por ser combinatorial) pela aproximação barata em todo o resto do artigo.",
+      "aplicabilidade": "não reproduzível — é uma verificação interna da fórmula de ranking (POPmin vs POPtrue) sobre caixas de brinquedo fixas, sem rodar nenhum algoritmo nem usar a função verdadeira; não há camada equivalente nas 7 camadas da dissertação (que registram execuções reais de algoritmos, não validações de fórmulas de dominância)."
+    },
+    {
+      "fichas": [
+        26,
+        8
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para o caso-teste 1 (Taguchi biobjetivo) com surrogate de ALTA qualidade (kernel ARD anisotrópico), o artigo plota curvas de QB (distância de Hausdorff modificada esperada) em função de Neval, comparando a APMM contra as 3 variantes SABBa (SA-CS, SA-SS, CS), sobre 10 execuções independentes — mostrando a curva média e uma banda de variabilidade (log-normal assumida).",
+      "literal": "The mean curves are mostly comparable, with a slight advantage for SA-CS. However, the associated variability is much smaller when using any SABBa variant with respect to the APMM strategy.",
+      "localizador": "Sec. 5.1.1, Fig. 5",
+      "metricas": [
+        "QB (distância de Hausdorff modificada esperada)",
+        "Neval"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curva média + banda de variabilidade translúcida sobre 10 execuções; log-distância assumida Gaussiana (logo QB log-normal); sem mediana/IQR, sem símbolos +/=/−, sem tabela.",
+      "achado": "As médias de QB são comparáveis entre a APMM e as 3 variantes SABBa (leve vantagem para SA-CS), mas a variabilidade entre execuções é muito menor para qualquer variante SABBa do que para a APMM — a cauda pesada da distribuição log-normal torna a APMM pouco confiável apesar do desempenho médio semelhante.",
+      "aplicabilidade": "não reproduzível diretamente — SABBa/NOMAD não está no roster experimental da dissertação (motor='Resíduo', fora dos 4 pisos evolutivos e dos 15 SA-MOO online/offline); em espírito, corresponderia à camada ① (avaliações reais acumuladas → métrica de endpoint) e a dispersão entre as 10 execuções seria análoga à ficha 8 usando os 30 seeds da dissertação."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ainda no caso-teste 1 de alta qualidade, o artigo plota qualitativamente a PIOR das 10 execuções (greyscale ∝ POP) para SABBa SA-CS (93 avaliações, QB=1.29×10⁻²) e para a APMM (100 avaliações, QB=1.91×10⁻¹), no espaço de design, para ilustrar o risco de falha catastrófica da APMM quando o DoE inicial amostra mal a região ótima.",
+      "literal": "the APMM strategy may return very inaccurate results when the DoE that was used for constructing the coupled-space model is not well sampled in the optimal area.",
+      "localizador": "Sec. 5.1.1, Fig. 6",
+      "metricas": [
+        "QB",
+        "Neval",
+        "POP (transparência/greyscale)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Visualização qualitativa da PIOR execução (não a mediana, convenção diferente da ficha 56 da dissertação); designs em greyscale de 0 (branco) a 1 (preto) proporcional ao POP; conjunto ótimo discreto verdadeiro em preto para comparação.",
+      "achado": "No pior caso das 10 execuções, SABBa SA-CS mantém-se próxima do ótimo verdadeiro (QB baixo), enquanto a APMM pode falhar seriamente (QB uma ordem de grandeza pior) quando o DoE inicial estático não cobre bem a área ótima — a adaptatividade do SABBa evita esse modo de falha.",
+      "aplicabilidade": "não reproduzível diretamente — exigiria rodar SABBa; em espírito é análogo a plotar a pior semente (em vez da mediana, ficha 56) usando a camada ① (avaliações reais) e uma noção de confiança tipo-POP que a instrumentação da dissertação não possui (não há caixas/POP nos dados registrados)."
+    },
+    {
+      "fichas": [
+        26,
+        8
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O mesmo caso-teste 1 é resolvido usando um surrogate de BAIXA qualidade (kernel RBF isotrópico, 1 único lengthscale para todas as dimensões, simulando um espaço acoplado difícil de modelar — proxy para alta dimensão). As mesmas curvas QB×Neval (10 execuções, média+banda) são replotadas para APMM, SA-CS, SA-SS e CS nesse cenário mais adverso.",
+      "literal": "The use of the SA strategy has two consequences: (i) non-Surrogate-Assisted approaches (APMM and SABBa CS) show poor performance compared to the other strategies and (ii) the gap between SA-CS and SA-SS is much narrower.",
+      "localizador": "Sec. 5.1.2, Fig. 7",
+      "metricas": [
+        "QB",
+        "Neval"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesma convenção da Fig. 5 (média + banda de variabilidade sobre 10 execuções, log-normal); comparação entre cenário de alta qualidade (Fig. 5) e baixa qualidade (Fig. 7) do surrogate acoplado.",
+      "achado": "Quando o modelo acoplado é de baixa qualidade (difícil de modelar, análogo a alta dimensão), a estratégia Surrogate-Assisting (SA) traz melhora de custo muito significativa; abordagens SEM SA (APMM e CS) desempenham mal, e a diferença entre SA-CS e SA-SS praticamente desaparece, pois ambas passam a depender majoritariamente do modelo SA de baixa dimensão em vez do espaço acoplado.",
+      "aplicabilidade": "não reproduzível diretamente — mesma limitação da Fig. 5; a dimensão 'qualidade do surrogate acoplado' aqui manipulada experimentalmente (kernel isotrópico vs ARD) não tem equivalente direto nas 7 camadas, que registram o comportamento de um único surrogate por algoritmo, não uma comparação controlada de qualidades de kernel."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Pior das 10 execuções no cenário de baixa qualidade (Fig. 7): SABBa SA-CS (196 avaliações, QB=1.23×10⁻²) contra APMM (200 avaliações, QB=7.94×10⁻¹), plotadas no espaço de design em greyscale por POP.",
+      "literal": "SABBa SA-CS, 196 evaluations , QB = 1.23 × 10−2. (b) APMM, 200 evaluations , QB = 7.94 × 10−1.",
+      "localizador": "Sec. 5.1.2, Fig. 8",
+      "metricas": [
+        "QB",
+        "Neval",
+        "POP"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesma convenção qualitativa da Fig. 6 (pior execução, greyscale ∝ POP), agora no cenário de surrogate de baixa qualidade.",
+      "achado": "Mesmo com modelo acoplado pobre, SABBa SA-CS mantém alta consistência e acurácia no pior caso (QB~10⁻²), enquanto a APMM praticamente falha (QB~0.79, quase o pior score possível) — reforçando que a robustez do SABBa vem do refinamento adaptativo guiado por incerteza, não da qualidade do kernel em si.",
+      "aplicabilidade": "não reproduzível diretamente — mesma limitação das demais visualizações de pior-execução deste artigo (sem camada ①/POP equivalente para SABBa no roster da dissertação)."
+    },
+    {
+      "fichas": [
+        26,
+        8
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "No caso-teste 2 (otimização de desempenho médio sob restrição de quantil 95%, D=4, 3 incertos — mais dimensional e com restrição de confiabilidade), o artigo replota as curvas QB×Neval (10 execuções, média+banda) comparando APMM contra SA-CS, SA-SS e CS.",
+      "literal": "The variability of the output is also halved with all SABBa variants, which is critical for real-world applications.",
+      "localizador": "Sec. 5.2, Fig. 9",
+      "metricas": [
+        "QB",
+        "Neval"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesma convenção (média+banda, log-normal, 10 execuções); nota metodológica de que o platô final da curva SA-CS é um artefato de plotagem (QB mantido constante após o ótimo ser atingido, o que achata a média no final).",
+      "achado": "SA-CS mostra leve melhora média sobre a APMM num problema de maior dimensão com restrição de confiabilidade; a variabilidade do resultado também é reduzida à metade com qualquer variante SABBa em relação à APMM — reforçando o achado de robustez já visto no caso-teste 1.",
+      "aplicabilidade": "não reproduzível diretamente — mesma limitação estrutural (SABBa fora do roster); em espírito equivaleria à camada ① convertida em QB, e a redução de variabilidade à ficha 8 sobre 30 seeds."
+    },
+    {
+      "fichas": [
+        54,
+        55
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Pior das 10 execuções do caso-teste 2, visualizada em COORDENADAS PARALELAS (por ser D=4, não plotável em 2D): APMM (150 avaliações, QB=1.0×10⁰ — falha quase total), SABBa SA-CS (161 avaliações, QB=1.12×10⁻¹) e outra pior-execução de APMM (200 avaliações, QB=3.24×10⁻¹); indivíduos eficientes em cinza, ótimo verdadeiro em vermelho, transparência ∝ POPmin.",
+      "literal": "(a) APMM, 150 evaluations, QB = 1.0 × 100. (b) SABBa SA-CS, 161 evaluations, QB = 1.12 × 10−1. (c) APMM, 200 evaluations, QB = 3.24 × 10−1.",
+      "localizador": "Sec. 5.2, Fig. 10",
+      "metricas": [
+        "QB",
+        "Neval",
+        "POPmin"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Coordenadas paralelas (não scatter 2D, por D=4); pior de 10 execuções individuais (não uma superfície de attainment agregando as 10); curva cinza por indivíduo eficiente, ótimo verdadeiro em vermelho, transparência ∝ POPmin.",
+      "achado": "No pior caso, a APMM pode falhar quase completamente (QB≈1.0, o pior score possível) mesmo com 150-200 avaliações, enquanto a SABBa SA-CS atinge QB=1.12×10⁻¹ com apenas 161 — confirmando, num problema de maior dimensão e com restrição, a alta variabilidade/pouca confiabilidade da APMM já vista nos casos-teste anteriores.",
+      "aplicabilidade": "não reproduzível — visualização específica de pior-execução única em coordenadas paralelas com transparência por POPmin; a dissertação usa coordenadas paralelas (ficha 55b) mas como resumo distribucional de várias sementes, não de execuções individuais isoladas, e não possui a noção de POP."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Estudo de caso de engenharia RBDO mono-objetivo com refinamento sequencial de acurácia (treliça de 2 barras)",
+      "grupo_sugerido": "H",
+      "descricao": "SABBa (variante SA-CS) é aplicado ao problema clássico da treliça de 2 barras: MONO-objetivo (minimizar volume V(x)) sob 2 restrições de confiabilidade (quantis 0.999 de tensão, com incerteza Gaussiana em força e módulo elástico). Os limiares s1/s2 são reduzidos sequencialmente em 4 patamares (3%, 1%, 0.3%, 0.1%), e o artigo reporta o Neval necessário para atingir cada patamar, junto com uma visualização do espaço de restrições/objetivo colorida por valor de V e com transparência ∝ POP (Fig. 11-12).",
+      "literal": "the four thresholds are sequentially reached with a total number of 42, 44, 46 and 52 function evaluations, and an optimal objective value of roughly 0.698 is found.",
+      "localizador": "Sec. 6.1, Figs. 11-12",
+      "metricas": [
+        "V(x) — volume (objetivo)",
+        "c1(x), c2(x) — restrições de quantil 0.999",
+        "POP",
+        "Neval"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução única (sem sementes); progressão por patamar de acurácia (não por geração/avaliação contínua); coordenadas paralelas/scatter no espaço objetivo-restrições, transparência ∝ POP, ótimo em vermelho.",
+      "achado": "SABBa resolve esse RBDO estrutural com apenas 40-52 avaliações reais ao todo, atingindo V≈0.698; a segunda restrição fica levemente fora do valor ótimo exato (0) porque o objetivo é quase constante nessa direção, sobrando pouca informação de gradiente para refinar precisamente ali.",
+      "aplicabilidade": "não reproduzível — estudo de caso próprio do artigo (treliça, RBDO mono-objetivo), fora dos 28 problemas e dos 3 reais (RE21/ESTOQUE40/DDMOP7) da bateria da dissertação; exigiria implementar o problema E o próprio SABBa/NOMAD; também é MONO-objetivo, fora do escopo estritamente multiobjetivo da dissertação."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "SABBa SA-CS é aplicado à otimização de forma de uma pá de turbina ORC (BI-objetivo: média e variância do desvio-padrão azimutal de pressão ΔP; 1 restrição de faixa na vazão mássica média), D=9 pontos de controle B-spline, 3 incertos (condições de entrada/saída), avaliado via modelo CFD reduzido (SU2). O artigo compara qualitativamente, em 4 patamares de acurácia (156, 241, 418 e ~598-600 avaliações), a frente robusta obtida (caixas com transparência ∝ POP) contra uma frente de Pareto aproximada 'conhecida' de antemão (em vermelho).",
+      "literal": "SABBa SA-CS is able to get a very good approximation of the robust front at the cost of only 600 function evaluations, although missing the very left part of the front.",
+      "localizador": "Sec. 6.2, Figs. 13-15",
+      "metricas": [
+        "ΔP — média μ1 e variância σ² (biobjetivo)",
+        "vazão mássica média μ2 (restrição de faixa)",
+        "POP",
+        "Neval"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução única; sequência de 4 instantâneos por Neval crescente; caixas com transparência ∝ POP; frente conhecida de referência em vermelho (não é a frente verdadeira analítica, é uma aproximação prévia).",
+      "achado": "SABBa SA-CS aproxima bem a maior parte da frente robusta conhecida da turbina com apenas ~600 avaliações reais (problema de engenharia real via CFD), mas PERDE A EXTREMIDADE ESQUERDA da frente — uma limitação explícita reconhecida pelos autores mesmo no caso de maior sucesso qualitativo do artigo.",
+      "aplicabilidade": "não reproduzível — estudo de caso de engenharia próprio (turbina ORC via SU2), fora da bateria da dissertação; exigiria o solver CFD reduzido específico E o próprio SABBa; em espírito, a comparação caixa-obtida-vs-frente-conhecida equivale à ficha 54 (execução única vs frente verdadeira/referência), mas usando 'caixas com POP' em vez de um ND pontual da camada ①."
+    },
+    {
+      "fichas": [
+        45
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "SABBa SA-CS é aplicado ao projeto de um sistema de proteção térmica (TPS) de reentrada atmosférica (Stardust/TACOT, modelo PATO): MONO-objetivo (minimizar densidade média μ(x)) sob 1 restrição de pior-caso (temperatura máxima M(x)≤473.15K), D=2, 12 parâmetros incertos. O artigo reporta a convergência em 40 avaliações e detalha, via Fig. 18-19, como a Boxed/Constrained Pareto Dominance categoriza TODAS as caixas avaliadas como dominadas (azul), inteiramente na zona de falha (vermelho) ou não-dominadas (verde), e por que 3 designs simultâneos permanecem como 'ótimos' apesar do problema ser mono-objetivo.",
+      "literal": "Among the three optimal designs depicted in Figure 18, only the right one lies entirely in the admissible set, and thus belongs to AB. Contrarily to the two other optimal designs, it can dominate other boxes.",
+      "localizador": "Sec. 6.3, Figs. 16-20",
+      "metricas": [
+        "μ(x) — densidade média (objetivo)",
+        "M(x) — temperatura de pior caso (restrição)",
+        "POP",
+        "Neval"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução única, 12D de incerteza; categorização final do arquivo completo de caixas avaliadas em 3 classes de status de dominância (azul/vermelho/verde), não uma contagem temporal (⑥); POP usado para desempatar entre as 3 caixas não-dominadas (a de maior POP ≈65%).",
+      "achado": "Apesar de mono-objetivo, a imprecisão das caixas produz 3 designs simultaneamente não-dominados; apenas o design cuja caixa está inteiramente no conjunto admissível consegue dominar as demais (as outras duas ficam ambíguas quanto à restrição). Designs nos extremos do espaço de busca recebem caixas de incerteza muito mais largas (menos refinadas) — a precisão ajustável evita gastar orçamento refinando-os. Convergência com apenas 40 avaliações num espaço de incerteza de 12 dimensões.",
+      "aplicabilidade": "não reproduzível — estudo de caso próprio (TPS via PATO), fora da bateria; exigiria o modelo físico específico E o próprio SABBa. O fenômeno de múltiplos designs não-dominados por imprecisão de caixa (em problema mono-objetivo) não tem análogo direto nas 7 camadas, que definem não-dominância via f verdadeiro pontual (camada ①), não via caixas de incerteza; a categorização dominado/falha/não-dominado do arquivo completo é a leitura mais próxima da ficha 45 (mecanismo em ação), mas como retrato estático de fim de execução, não como contagem ao longo do tempo (⑥)."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "Não há medição empírica de calibração/cobertura em nenhum lugar do artigo. O framework assume, como convenção de projeto, que o erro conservador da caixa é ε̄=3σ (3 desvios-padrão preditivos do GP), e os próprios autores reconhecem explicitamente que essa regra NÃO garante que o erro verdadeiro caiba nesse intervalo — apenas que a probabilidade de violação é baixa (justificativa teórica no Apêndice B, sob hipótese gaussiana do GP; não há verificação empírica de cobertura, nem correlação σ×erro contra a função verdadeira, em nenhum teste-caso).",
+    "literal": "Although this does not imply ε(z) ≥|ε(z)|, with ε the true error of the surrogate, the probability of dissatisfying the conservative assumption is very low.",
+    "localizador": "Sec. 4.2 (parágrafo antes de 4.2.1)"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Reporta sistematicamente o Nº de avaliações reais (Neval) necessário para atingir cada patamar de acurácia sequencial, como métrica central de parcimônia em TODOS os experimentos (analíticos e de engenharia) — essa é a principal reivindicação de custo do artigo ('SABBa reveals very parsimonious'). No caso do TPS, também converte isso em tempo real ao citar o custo por avaliação da simulação física (~10 min), justificando o orçamento aceitável de 100-150 avaliações. NÃO decompõe tempo de ajuste do GP, tempo de busca do NOMAD, nem overhead do framework em si; não reporta tempo de parede (wall-clock) do algoritmo; não discute complexidade assintótica O(n³) do GP explicitamente (embora cite, nas conclusões, que o GP 'limita o número de dimensões manejáveis').",
+    "literal": "Each function evaluation requires the 1D simulation of heat transfer and shield ablation. This takes approximately 10 minutes to compute on a 2.90 GHz processor.",
+    "localizador": "Sec. 6.3"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Os próprios autores reconhecem que o limite conservador do erro (ε̄=3σ, derivado da variância preditiva do GP) NÃO garante matematicamente que o erro verdadeiro esteja contido no intervalo — apenas que a probabilidade de violação é baixa; é uma suposição heurística, não uma garantia formal.",
+      "literal": "Although this does not imply ε(z) ≥|ε(z)|, with ε the true error of the surrogate, the probability of dissatisfying the conservative assumption is very low.",
+      "localizador": "Sec. 4.2"
+    },
+    {
+      "descricao": "A fórmula de erro conservador para a medida de VARIÂNCIA (ao contrário da de expectativa) carrega risco maior de superestimação, admitido explicitamente pelos autores.",
+      "literal": "The same can be conducted for the variance measure, with a bit more risks of overestimation:",
+      "localizador": "Sec. 4.2.1 / Appendix B"
+    },
+    {
+      "descricao": "A métrica de dominância probabilística EXATA (POPtrue) tem um efeito colateral contraintuitivo: caixas agrupadas/clusterizadas tendem a se dominar mutuamente e produzem valores de POP baixos mesmo quando próximas da frente de Pareto verdadeira — foi essa falha que motivou a criação da métrica substituta POPmin.",
+      "literal": "Moreover, clustered boxes tend to dominate each other and result in low POP values, even when they are close to the Pareto front, which can be counter-intuitive.",
+      "localizador": "Sec. 3.2"
+    },
+    {
+      "descricao": "O critério de refinamento (infill) usado no framework é explicitamente reconhecido pelos próprios autores como sub-ótimo, apesar de barato computacionalmente.",
+      "literal": "We can note that the chosen criteria are far from being optimal.",
+      "localizador": "Appendix C"
+    },
+    {
+      "descricao": "Na aplicação da turbina ORC — o caso de maior sucesso qualitativo do artigo — a aproximação obtida da frente robusta perde a extremidade esquerda da frente conhecida, mesmo com ~600 avaliações reais.",
+      "literal": "SABBa SA-CS is able to get a very good approximation of the robust front at the cost of only 600 function evaluations, although missing the very left part of the front.",
+      "localizador": "Sec. 6.2"
+    },
+    {
+      "descricao": "No TPS, a acurácia final imposta (1%) pode não ser suficiente para discriminar designs situados exatamente sobre o limite da restrição, onde o objetivo é quase constante — uma limitação prática da precisão ajustável perto de restrições ativas.",
+      "literal": "The final accuracy is imposed at 1%, which may not be enough to discriminate designs on the constraint limit.",
+      "localizador": "Sec. 6.3"
+    },
+    {
+      "descricao": "Limitações auto-declaradas na conclusão: os critérios de refinamento locais usados são mais baratos mas menos eficientes que critérios integrais; o uso de GP como surrogate limita o número de dimensões de entrada manejáveis (dezenas de dimensões exigiriam seleção de features ou adaptação de kernel).",
+      "literal": "We used local refinement criteria, which are cheaper but less efficient than integral criteria. The use of GP surrogate models also limits the number of manageable input dimensions.",
+      "localizador": "Sec. 7 (Conclusions)"
+    },
+    {
+      "descricao": "A variante SS pura (sem Surrogate-Assisting e sem espaço acoplado) foi descartada a priori por ser computacionalmente cara demais para sequer ser estudada empiricamente — evidência indireta (não testada) de que abordagens sem nenhum aproveitamento de correlação entre designs são inviáveis nesse framework.",
+      "literal": "Note that the SS variant is the only one that does not build any surrogate in the design space, making it very computationally expensive. For this reason, it will not be further studied in the following of this paper.",
+      "localizador": "Sec. 4.4"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "As duas formulações da Probabilidade de Otimalidade de Pareto — POPtrue (exata, combinatorial) e POPmin (a aproximação barata proposta) — produzem rankings/scores muito parecidos nos dois exemplos ilustrativos testados, justificando a substituição da fórmula exata (inviável em geral) pela aproximação em todo o resto do artigo.",
+      "literal": "POPmin and POPtrue metrics are quantitatively compared in Table 1 on the two small examples depicted in Figure 2, and show very similar scoring.",
+      "localizador": "Sec. 3.2, Table 1"
+    },
+    {
+      "descricao": "Os autores relacionam explicitamente suas variantes SABBa (formuladas via Bounding-Box/POP) com as formulações 3 e 4 de Eldred et al. [24] — uma equivalência conceitual entre diferentes formulações de otimização sob incerteza assistida por surrogate na literatura.",
+      "literal": "Parallels can be made between these strategies and formulations 3 and 4 from [24].",
+      "localizador": "Sec. 4.4"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "qualidade/dimensionalidade efetiva do surrogate no espaço acoplado (kernel isotrópico simulando espaço difícil de modelar, análogo a alta dimensão)",
+      "afirmacao": "quando o modelo acoplado é de baixa qualidade, a estratégia Surrogate-Assisting (SA) melhora o custo de forma significativa, enquanto abordagens sem SA (APMM, CS) apresentam desempenho pobre; a diferença entre SA-CS e SA-SS também se estreita, pois ambas passam a depender majoritariamente do modelo SA de baixa dimensão.",
+      "literal": "The use of the SA strategy has two consequences: (i) non-Surrogate-Assisted approaches (APMM and SABBa CS) show poor performance compared to the other strategies and (ii) the gap between SA-CS and SA-SS is much narrower.",
+      "localizador": "Sec. 5.1.2, Fig. 7"
+    },
+    {
+      "caracteristica": "densidade/agrupamento (clustering) de designs candidatos no espaço de caixas",
+      "afirmacao": "caixas agrupadas tendem a se dominar mutuamente sob a métrica POP exata (POPtrue), produzindo valores baixos mesmo perto da frente verdadeira — comportamento contraintuitivo que motivou a métrica POPmin.",
+      "literal": "Moreover, clustered boxes tend to dominate each other and result in low POP values, even when they are close to the Pareto front, which can be counter-intuitive.",
+      "localizador": "Sec. 3.2"
+    },
+    {
+      "caracteristica": "objetivo quase constante ao longo de uma direção de restrição ativa (região plana perto do ótimo)",
+      "afirmacao": "quando o objetivo é quase constante em relação a uma restrição, a solução final fica levemente fora do valor ótimo exato nessa coordenada, por haver pouca informação de gradiente para refinar precisamente naquela direção.",
+      "literal": "the second constraint c2 is slightly off its optimal value 0 because the objective value V is nearly constant w.r.t. c2, as can be observed in Figure 11(b).",
+      "localizador": "Sec. 6.1"
+    },
+    {
+      "caracteristica": "extremidade lateral da frente de Pareto (região extrema da frente robusta verdadeira/conhecida)",
+      "afirmacao": "SABBa aproxima bem a maior parte da frente robusta conhecida mas perde a parte mais à esquerda da frente, mesmo com um orçamento comparativamente generoso (~600 avaliações).",
+      "literal": "SABBa SA-CS is able to get a very good approximation of the robust front at the cost of only 600 function evaluations, although missing the very left part of the front.",
+      "localizador": "Sec. 6.2, Fig. 15"
+    },
+    {
+      "caracteristica": "designs extremos/de borda do espaço de busca (problema de 12 dimensões incertas, TPS)",
+      "afirmacao": "designs próximos aos extremos do espaço de busca recebem caixas de incerteza muito mais largas (menos refinadas), explorando a precisão ajustável do framework em vez de gastar orçamento refinando-os.",
+      "literal": "It can be observed in Figure 19 that the Bounding-Box approach permits to exploit the tunable accuracy since extreme boxes (on the very left or very right) are estimated with very wide uncertainty.",
+      "localizador": "Sec. 6.3, Fig. 19"
+    },
+    {
+      "caracteristica": "problema mono-objetivo com restrição quase-ativa perto do ótimo (baixa informação de gradiente / objetivo achatado no limite admissível)",
+      "afirmacao": "mesmo em um problema de objetivo único, a imprecisão das caixas produz 3 designs simultaneamente 'não-dominados'; apenas aquele cuja caixa está inteiramente dentro do conjunto admissível consegue dominar as demais caixas ambíguas.",
+      "literal": "Among the three optimal designs depicted in Figure 18, only the right one lies entirely in the admissible set, and thus belongs to AB.",
+      "localizador": "Sec. 6.3"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Artigo predominantemente METODOLÓGICO (Reliability Engineering-style, 44 páginas incl. referências/appendices): propõe a extensão do framework SABBa (Rivier & Congedo) de problemas SEM restrição [ref. 37, JGO 2019, mesmo 1º autor — precursor direto desta obra; se [37] também estiver no corpus, os dois formam um par metodológico seminal→extensão análogo em espírito à ficha 51, mas fora do roster] para problemas COM restrições (via 'Constrained Boxed Pareto Dominance', Sec. 3.1.2) — e propõe uma nova métrica de ranking, POPmin, mais barata que a POP exata combinatorial de [33]. Não há bateria comparativa contra outros algoritmos SA-MOO nem contra pisos evolutivos: as únicas comparações são internas (3 variantes do próprio SABBa: SA-CS, SA-SS, CS) contra uma baseline única (APMM, um GP estático não-adaptativo) em 2 casos-teste analíticos + demonstrações qualitativas em 3 estudos de caso de engenharia (nenhum compartilhado com a bateria de 28 problemas/3 reais da dissertação). Nenhum teste estatístico formal em todo o artigo. Achado estrutural central para a taxonomia da dissertação: a 'função da incerteza' A2 (dominância probabilística) se manifesta literalmente como o par Boxed/Constrained Pareto Dominance + Pareto Optimal Probability (POP) da Sec. 3 — a incerteza (via a variância preditiva do GP, convertida em meia-largura de caixa por um multiplicador FIXO ±3σ nunca aprendido/ajustado nem empiricamente validado quanto à cobertura) entra DIRETAMENTE na definição de quais designs são considerados dominados/indiferentes/não-dominados — o mecanismo mais 'puro' de dominância probabilística no corpus até aqui, mas sem qualquer verificação de calibração. Essa mesma variância (Eq. 9, GP posterior fechada — 'VAR-GP' da taxonomia) também alimenta o meta-modelo 'Surrogate-Assisting' (um GP heterocedástico de segundo nível que trata as caixas já computadas como observações com ruído heterogêneo σᵢ²=(ε̄ₗ(xᵢ)/3)²) usado para pular refinamentos quando sua própria incerteza (εSA) já está abaixo do limiar s1 — um mecanismo de 'gate de confiança' conceitualmente parecido com o que a tipologia associa à ficha 45, mas aqui controla apenas o CUSTO (pular ou não um refinamento), não a decisão de dominância em si (que é sempre via as caixas Boxed Pareto, com ou sem SA). Duas das três aplicações de engenharia (treliça de 2 barras e TPS) são, na verdade, problemas MONO-objetivo com restrições de confiabilidade (RBDO clássico) — só a turbina ORC é genuinamente biobjetivo — o que é relevante notar dado o escopo estritamente multiobjetivo da dissertação. Um achado conceitual notável para discussão na dissertação: no TPS (mono-objetivo), a imprecisão das caixas por si só gera MÚLTIPLOS designs simultaneamente 'não-dominados' (3 no caso), algo que só ocorre por causa da incerteza na dominância, não por multimodalidade real do objetivo — ilustra concretamente como a incerteza pode criar 'frentes' aparentes mesmo onde matematicamente não deveria haver trade-off. A variante 'SS' pura (sem SA, sem espaço acoplado) foi descartada a priori por custo computacional, sem nunca ser testada empiricamente — apenas 3 das 4 variantes definidas são de fato reportadas. Nenhuma das 3 aplicações de engenharia usa múltiplas sementes/execuções independentes (cada uma é 1 execução determinística única); apenas os 2 casos-teste analíticos usam 10 execuções. Leitura completa confirmada: corpo estruturado (Abstract; Sec. 1 Introduction; Sec. 2 Problem formulation; Sec. 3 Bounding-Boxes incl. 3.1.1-3.1.2 e 3.2; Sec. 4 SABBa framework incl. 4.1-4.4, Algoritmos 1-2; Sec. 5 Analytical comparisons incl. 5.1.1-5.1.2 e 5.2; Sec. 6 Physical applications incl. 6.1-6.3; Sec. 7 Conclusions; Appendix A POP computational details; Appendix B Justification for box sizes; Appendix C Justification for refinement criteria; Bibliography/References [1]-[45]; Highlights; Author statements; Declaration of interest) + ANEXO 'camada de texto completa do PDF' (duplicata integral confirmada idêntica em conteúdo — inclusive confirmou detalhes numéricos como ξ~N([150000;210000]ᵀ, diag(30000²,21000²)) da treliça e c1,c2 como quantis 0.999, que a extração estruturada havia deixado implícitos) + ANEXO de OCR de imagens (rótulos de eixo/legenda das Figs. 5-32k-cells/9/10/12(?)/17/19/20 — confirma leituras como 'POP of non-dominated designs' vs 'True Pareto Optima/Front' nos eixos de legenda, e o detalhe do termopar do TPS em Stardust/TACOT/PATO — sem nenhum número experimental novo além do já presente no corpo do texto). Nada foi pulado. roster_bloco=null por instrução do pedido (artigo fora do roster experimental da dissertação)."
+}

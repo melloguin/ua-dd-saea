@@ -1,0 +1,3896 @@
+{
+"1": {
+"n_analises": 139,
+"n_art": 53,
+"n38": 28,
+"n7": 5,
+"n27": 20,
+"roster": 11,
+"arts": [
+"b1",
+"b13",
+"b14",
+"b15",
+"b2",
+"b3",
+"b4",
+"b5",
+"b7",
+"b8",
+"c1",
+"c10",
+"c100",
+"c105",
+"c106",
+"c122",
+"c123",
+"c141",
+"c217",
+"c238",
+"c24",
+"c241",
+"c250",
+"c261",
+"c267",
+"c29",
+"c48",
+"c59",
+"c66",
+"c71",
+"c75",
+"c81",
+"c82",
+"c91",
+"e1",
+"e102",
+"e103",
+"e104",
+"e16",
+"e21",
+"e3",
+"e4",
+"e40",
+"e64",
+"e7",
+"e74",
+"e86",
+"emo1",
+"f9",
+"jin3",
+"mtm4",
+"pp6",
+"wang4"
+],
+"tests": [
+[
+"nenhum",
+32
+],
+[
+"Wilcoxon rank-sum",
+9
+],
+[
+"Wilcoxon rank-sum, α=0.05, símbolos +/=/",
+7
+],
+[
+"Wilcoxon rank-sum, α=0,05, símbolos +/−/",
+7
+],
+[
+"Wilcoxon rank-sum, α=0.05",
+6
+],
+[
+"Wilcoxon rank-sum, α=0,05, símbolos",
+6
+]
+],
+"mets": [
+[
+"IGD",
+67
+],
+[
+"HV",
+20
+],
+[
+"IGD+",
+12
+],
+[
+"hypervolume",
+6
+],
+[
+"tempo de execução (horas)",
+3
+],
+[
+"IH",
+3
+]
+]
+},
+"2": {
+"n_analises": 13,
+"n_art": 9,
+"n38": 5,
+"n7": 1,
+"n27": 3,
+"roster": 2,
+"arts": [
+"b14",
+"b5",
+"b7",
+"c1",
+"c131",
+"c241",
+"e102",
+"e74",
+"emo1"
+],
+"tests": [
+[
+"Wilcoxon rank-sum",
+2
+],
+[
+"Wilcoxon rank-sum test, α=0.05",
+2
+],
+[
+"Wilcoxon rank-sum pareado, correção de B",
+1
+],
+[
+"nenhum teste de hipótese formal; agregaç",
+1
+],
+[
+"nenhum teste de hipótese formal",
+1
+],
+[
+"nenhum -- apenas rank medio, sem teste d",
+1
+]
+],
+"mets": [
+[
+"HV",
+4
+],
+[
+"IGD",
+2
+],
+[
+"RMSE",
+2
+],
+[
+"MSE",
+2
+],
+[
+"IGD+",
+2
+],
+[
+"IGD (mean, std, rank)",
+2
+]
+]
+},
+"3": {
+"n_analises": 73,
+"n_art": 28,
+"n38": 15,
+"n7": 3,
+"n27": 10,
+"roster": 7,
+"arts": [
+"b1",
+"b13",
+"b14",
+"b3",
+"b4",
+"b8",
+"c1",
+"c10",
+"c105",
+"c122",
+"c141",
+"c217",
+"c241",
+"c261",
+"c267",
+"c48",
+"c71",
+"c82",
+"e102",
+"e103",
+"e104",
+"e3",
+"e40",
+"e86",
+"emo1",
+"jin3",
+"pp6",
+"wang4"
+],
+"tests": [
+[
+"Wilcoxon rank-sum, α=0.05, símbolos +/=/",
+7
+],
+[
+"Wilcoxon rank-sum, α=0,05, símbolos",
+6
+],
+[
+"Wilcoxon rank-sum, α=0.05",
+5
+],
+[
+"Wilcoxon rank-sum",
+5
+],
+[
+"Wilcoxon rank-sum test, α=0,05, símbolos",
+5
+],
+[
+"Mann–Whitney rank-sum test",
+4
+]
+],
+"mets": [
+[
+"IGD",
+41
+],
+[
+"IGD+",
+9
+],
+[
+"HV",
+9
+],
+[
+"S-measure (indicador de hiperv",
+2
+],
+[
+"indicador epsilon binário adit",
+2
+],
+[
+"hypervolume",
+2
+]
+]
+},
+"4": {
+"n_analises": 3,
+"n_art": 2,
+"n38": 2,
+"n7": 0,
+"n27": 0,
+"roster": 2,
+"arts": [
+"b5",
+"e103"
+],
+"tests": [
+[
+"Wilcoxon rank-sum pareado, correção de B",
+1
+],
+[
+"Teste Bayesiano de postos sinalizados",
+1
+],
+[
+"Teste Bayesiano de postos sinalizados, R",
+1
+]
+],
+"mets": [
+[
+"HV",
+1
+],
+[
+"RMSE",
+1
+],
+[
+"IGD (matriz 131×4: problema×D×",
+1
+],
+[
+"HV (mesma matriz 131×4, mesma ",
+1
+]
+]
+},
+"5": {
+"n_analises": 4,
+"n_art": 1,
+"n38": 0,
+"n7": 1,
+"n27": 0,
+"roster": 1,
+"arts": [
+"c238"
+],
+"tests": [
+[
+"paired t-test",
+4
+],
+[
+"Wilcoxon signed-rank test",
+4
+],
+[
+"α=0.05",
+4
+]
+],
+"mets": [
+[
+"hypervolume",
+4
+],
+[
+"IGD",
+4
+]
+]
+},
+"6": {
+"n_analises": 1,
+"n_art": 1,
+"n38": 0,
+"n7": 0,
+"n27": 1,
+"roster": 0,
+"arts": [
+"jin3"
+],
+"tests": [
+[
+"nenhum teste formal citado",
+1
+]
+],
+"mets": [
+[
+"Generational Distance (GD)",
+1
+],
+[
+"Maximum Spread (MS)",
+1
+],
+[
+"Hypervolume Ratio (HR)",
+1
+]
+]
+},
+"7": {
+"n_analises": 16,
+"n_art": 12,
+"n38": 8,
+"n7": 2,
+"n27": 2,
+"roster": 5,
+"arts": [
+"b15",
+"b4",
+"c10",
+"c100",
+"c131",
+"c149",
+"c262",
+"c71",
+"c82",
+"e40",
+"e7",
+"e74"
+],
+"tests": [
+[
+"nenhum",
+3
+],
+[
+"Wilcoxon signed-rank, símbolos +/−/≈ con",
+3
+],
+[
+"Wilcoxon rank-sum, α=0,05, símbolos +/−/",
+2
+],
+[
+"nenhum teste formal de tendencia",
+1
+],
+[
+"Wilcoxon rank-sum, α=0.05",
+1
+],
+[
+"não especificado",
+1
+]
+],
+"mets": [
+[
+"IGD",
+8
+],
+[
+"IGD final x orcamento (escala ",
+1
+],
+[
+"HV",
+1
+],
+[
+"tempo de execução (horas)",
+1
+],
+[
+"não especificado — conteúdo no",
+1
+],
+[
+"Hypervolume (HV)",
+1
+]
+]
+},
+"8": {
+"n_analises": 13,
+"n_art": 8,
+"n38": 4,
+"n7": 0,
+"n27": 4,
+"roster": 0,
+"arts": [
+"c105",
+"c106",
+"c123",
+"c250",
+"c65",
+"c66",
+"e4",
+"mtm4"
+],
+"tests": [
+[
+"nenhum",
+13
+]
+],
+"mets": [
+[
+"IGD",
+3
+],
+[
+"Neval",
+3
+],
+[
+"Indicador aditivo binary-epsil",
+2
+],
+[
+"Indicador de hipervolume (I_H)",
+2
+],
+[
+"IH",
+2
+],
+[
+"QB",
+2
+]
+]
+},
+"9": {
+"n_analises": 36,
+"n_art": 19,
+"n38": 10,
+"n7": 1,
+"n27": 8,
+"roster": 5,
+"arts": [
+"b1",
+"b2",
+"b3",
+"b4",
+"c10",
+"c122",
+"c24",
+"c250",
+"c262",
+"c29",
+"c91",
+"e16",
+"e17",
+"e3",
+"e4",
+"e64",
+"e8",
+"pp6",
+"wang4"
+],
+"tests": [
+[
+"nenhum",
+13
+],
+[
+"Mann–Whitney rank-sum test",
+4
+],
+[
+"Wilcoxon rank-sum test, α=5%, símbolos +",
+3
+],
+[
+"Holm-Bonferroni para múltiplas comparaçõ",
+3
+],
+[
+"Wilcoxon rank-sum test",
+2
+],
+[
+"Wilcoxon rank-sum, α=0,05, símbolos +/=/",
+2
+]
+],
+"mets": [
+[
+"IGD",
+11
+],
+[
+"HV",
+3
+],
+[
+"S-measure (indicador de hiperv",
+2
+],
+[
+"indicador epsilon binário adit",
+2
+],
+[
+"hypervolume",
+2
+],
+[
+"logΔHV",
+2
+]
+]
+},
+"10": {
+"n_analises": 1,
+"n_art": 1,
+"n38": 1,
+"n7": 0,
+"n27": 0,
+"roster": 1,
+"arts": [
+"c262"
+],
+"tests": [
+[
+"nenhum",
+1
+]
+],
+"mets": [
+[
+"log hypervolume difference",
+1
+]
+]
+},
+"11": {
+"n_analises": 35,
+"n_art": 25,
+"n38": 15,
+"n7": 4,
+"n27": 6,
+"roster": 9,
+"arts": [
+"b13",
+"b14",
+"b15",
+"b4",
+"b5",
+"b7",
+"b8",
+"b9",
+"c100",
+"c141",
+"c149",
+"c217",
+"c262",
+"c267",
+"c82",
+"c97",
+"e103",
+"e104",
+"e21",
+"e64",
+"e7",
+"e74",
+"e86",
+"f9",
+"jin3"
+],
+"tests": [
+[
+"nenhum",
+11
+],
+[
+"Wilcoxon rank-sum, α=0,05, símbolos +/−/",
+3
+],
+[
+"Wilcoxon rank-sum, α=0.05",
+2
+],
+[
+"nenhum teste de hipótese formal; contage",
+2
+],
+[
+"Friedman",
+2
+],
+[
+"Wilcoxon rank-sum",
+1
+]
+],
+"mets": [
+[
+"IGD",
+14
+],
+[
+"HV",
+6
+],
+[
+"IGD+",
+4
+],
+[
+"MSE",
+3
+],
+[
+"RMSE",
+2
+],
+[
+"hit rate (top-10/top-50/top-10",
+2
+]
+]
+},
+"12": {
+"n_analises": 0,
+"n_art": 0,
+"n38": 0,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [],
+"tests": [],
+"mets": []
+},
+"13": {
+"n_analises": 6,
+"n_art": 4,
+"n38": 3,
+"n7": 0,
+"n27": 1,
+"roster": 1,
+"arts": [
+"b5",
+"b7",
+"c59",
+"f9"
+],
+"tests": [
+[
+"nenhum teste de hipótese formal; valores",
+1
+],
+[
+"nenhum teste de hipótese formal",
+1
+],
+[
+"nenhum",
+1
+],
+[
+"nenhum — apenas média +/- desvio-padrão,",
+1
+]
+],
+"mets": [
+[
+"HV",
+3
+],
+[
+"RMSE",
+2
+],
+[
+"MSE",
+2
+],
+[
+"IGD+",
+2
+],
+[
+"HV (na função verdadeira/under",
+1
+],
+[
+"redução de C̄_D predita pelo m",
+1
+]
+]
+},
+"14": {
+"n_analises": 5,
+"n_art": 3,
+"n38": 2,
+"n7": 0,
+"n27": 1,
+"roster": 1,
+"arts": [
+"b5",
+"c50",
+"c75"
+],
+"tests": [
+[
+"nenhum",
+3
+]
+],
+"mets": [
+[
+"RMSE",
+2
+],
+[
+"cobertura/distribuição do conj",
+2
+],
+[
+"HV (na função verdadeira/under",
+1
+],
+[
+"HV",
+1
+],
+[
+"probabilidade de dominância p(",
+1
+],
+[
+"distância aos pontos-extremos ",
+1
+]
+]
+},
+"15": {
+"n_analises": 13,
+"n_art": 10,
+"n38": 6,
+"n7": 2,
+"n27": 2,
+"roster": 2,
+"arts": [
+"b14",
+"b15",
+"b8",
+"b9",
+"c141",
+"c149",
+"c81",
+"e104",
+"e86",
+"jin3"
+],
+"tests": [
+[
+"nenhum",
+6
+],
+[
+"Wilcoxon rank-sum",
+1
+],
+[
+"nenhum teste estatistico reportado",
+1
+],
+[
+"nenhum teste estatístico formal - rankin",
+1
+],
+[
+"Wilcoxon rank-sum test, α=0.05, símbolos",
+1
+],
+[
+"Friedman",
+1
+]
+],
+"mets": [
+[
+"IGD",
+5
+],
+[
+"fracao percentual do gap de de",
+1
+],
+[
+"delta de IGD (aumento absoluto",
+1
+],
+[
+"Pareto Hypervolume difference ",
+1
+],
+[
+"dispersão espacial (casco conv",
+1
+],
+[
+"Hypervolume (qualitativo, via ",
+1
+]
+]
+},
+"16": {
+"n_analises": 6,
+"n_art": 6,
+"n38": 1,
+"n7": 1,
+"n27": 4,
+"roster": 1,
+"arts": [
+"c1",
+"c131",
+"c149",
+"e1",
+"e3",
+"jin3"
+],
+"tests": [
+[
+"Wilcoxon rank-sum test, α=0.05, célula Z",
+1
+],
+[
+"nenhum teste formal -- media +/- 1 erro-",
+1
+],
+[
+"nenhum",
+1
+],
+[
+"nenhum teste de significância estatístic",
+1
+],
+[
+"Wilcoxon rank-sum, α=0,05, símbolos +/=/",
+1
+],
+[
+"nenhum teste formal citado",
+1
+]
+],
+"mets": [
+[
+"Hypervolume",
+2
+],
+[
+"IGD (rank) — reaproveitada da ",
+1
+],
+[
+"Hypervolume (HV)",
+1
+],
+[
+"Pareto batch regret",
+1
+],
+[
+"Convergence measure (distância",
+1
+],
+[
+"HV",
+1
+]
+]
+},
+"17": {
+"n_analises": 1,
+"n_art": 1,
+"n38": 1,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [
+"c82"
+],
+"tests": [
+[
+"Wilcoxon rank-sum, α=0,05, símbolos",
+1
+]
+],
+"mets": [
+[
+"IGD",
+1
+]
+]
+},
+"18": {
+"n_analises": 10,
+"n_art": 6,
+"n38": 4,
+"n7": 2,
+"n27": 0,
+"roster": 5,
+"arts": [
+"c122",
+"c141",
+"c154",
+"c262",
+"c82",
+"e103"
+],
+"tests": [
+[
+"Wilcoxon rank-sum test, α=0.05, símbolos",
+4
+],
+[
+"nenhum",
+3
+],
+[
+"Mesmo teste das Tabelas IV/V/VI, apenas ",
+1
+],
+[
+"Wilcoxon rank-sum, α=0,05, símbolos",
+1
+],
+[
+"nenhum teste estatístico formal nesta fi",
+1
+]
+],
+"mets": [
+[
+"IGD",
+6
+],
+[
+"log hypervolume difference",
+2
+],
+[
+"log HV discrepancy",
+1
+],
+[
+"hypervolume",
+1
+],
+[
+"IGD (média ± desvio-padrão sob",
+1
+]
+]
+},
+"19": {
+"n_analises": 0,
+"n_art": 0,
+"n38": 0,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [],
+"tests": [],
+"mets": []
+},
+"20": {
+"n_analises": 0,
+"n_art": 0,
+"n38": 0,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [],
+"tests": [],
+"mets": []
+},
+"21": {
+"n_analises": 0,
+"n_art": 0,
+"n38": 0,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [],
+"tests": [],
+"mets": []
+},
+"22": {
+"n_analises": 0,
+"n_art": 0,
+"n38": 0,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [],
+"tests": [],
+"mets": []
+},
+"23": {
+"n_analises": 24,
+"n_art": 14,
+"n38": 6,
+"n7": 4,
+"n27": 4,
+"roster": 4,
+"arts": [
+"b13",
+"b15",
+"c1",
+"c10",
+"c107",
+"c131",
+"c141",
+"c149",
+"c238",
+"e16",
+"e17",
+"e81",
+"pp6",
+"wang4"
+],
+"tests": [
+[
+"nenhum",
+13
+],
+[
+"nenhum teste formal -- media +/- 1 erro-",
+3
+],
+[
+"Wilcoxon rank-sum, α=0.05",
+1
+],
+[
+"nenhum — visualização qualitativa",
+1
+],
+[
+"nenhum — execução única por otimizador, ",
+1
+],
+[
+"nenhum — apenas médias de 10 execuções, ",
+1
+]
+],
+"mets": [
+[
+"Hypervolume (HV)",
+4
+],
+[
+"Hypervolume",
+4
+],
+[
+"HV",
+3
+],
+[
+"IGD",
+2
+],
+[
+"CL (coeficiente de sustentação",
+1
+],
+[
+"CD (coeficiente de arrasto)",
+1
+]
+]
+},
+"24": {
+"n_analises": 0,
+"n_art": 0,
+"n38": 0,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [],
+"tests": [],
+"mets": []
+},
+"25": {
+"n_analises": 0,
+"n_art": 0,
+"n38": 0,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [],
+"tests": [],
+"mets": []
+},
+"26": {
+"n_analises": 90,
+"n_art": 44,
+"n38": 23,
+"n7": 6,
+"n27": 15,
+"roster": 11,
+"arts": [
+"b13",
+"b14",
+"b15",
+"b2",
+"b5",
+"b9",
+"c1",
+"c10",
+"c100",
+"c107",
+"c122",
+"c123",
+"c131",
+"c141",
+"c149",
+"c154",
+"c214",
+"c217",
+"c222",
+"c241",
+"c261",
+"c262",
+"c276",
+"c48",
+"c50",
+"c59",
+"c65",
+"c66",
+"c75",
+"c81",
+"c82",
+"e102",
+"e103",
+"e16",
+"e17",
+"e3",
+"e40",
+"e7",
+"e74",
+"e8",
+"e81",
+"e9",
+"jin3",
+"mtm4"
+],
+"tests": [
+[
+"nenhum",
+52
+],
+[
+"nenhum — comparação visual de mediana e ",
+6
+],
+[
+"nenhum teste formal -- media +/- 1 erro-",
+3
+],
+[
+"nenhum — apenas média e erro padrão de 1",
+3
+],
+[
+"nenhum mencionado",
+2
+],
+[
+"nenhum — média e 2 erros-padrão sobre 20",
+2
+]
+],
+"mets": [
+[
+"IGD",
+15
+],
+[
+"Hypervolume (HV)",
+8
+],
+[
+"Hypervolume",
+8
+],
+[
+"HV",
+5
+],
+[
+"Hypervolume (HV) — mediana e b",
+5
+],
+[
+"log hypervolume difference",
+4
+]
+]
+},
+"27": {
+"n_analises": 5,
+"n_art": 4,
+"n38": 2,
+"n7": 0,
+"n27": 2,
+"roster": 1,
+"arts": [
+"b1",
+"c66",
+"e1",
+"wang4"
+],
+"tests": [
+[
+"Mann–Whitney rank-sum test",
+2
+],
+[
+"nenhum",
+1
+],
+[
+"não especificado",
+1
+],
+[
+"Wilcoxon signed-rank test [83]",
+1
+]
+],
+"mets": [
+[
+"S-measure (indicador de hiperv",
+1
+],
+[
+"indicador epsilon binário adit",
+1
+],
+[
+"MSE1",
+1
+],
+[
+"MSE2",
+1
+],
+[
+"MSE (MSE1+MSE2)",
+1
+],
+[
+"não especificado — resultado p",
+1
+]
+]
+},
+"28": {
+"n_analises": 1,
+"n_art": 1,
+"n38": 1,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [
+"b2"
+],
+"tests": [
+[
+"nenhum",
+1
+]
+],
+"mets": [
+[
+"IGD (leitura qualitativa da cu",
+1
+]
+]
+},
+"29": {
+"n_analises": 0,
+"n_art": 0,
+"n38": 0,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [],
+"tests": [],
+"mets": []
+},
+"30": {
+"n_analises": 0,
+"n_art": 0,
+"n38": 0,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [],
+"tests": [],
+"mets": []
+},
+"31": {
+"n_analises": 24,
+"n_art": 19,
+"n38": 11,
+"n7": 0,
+"n27": 8,
+"roster": 1,
+"arts": [
+"b15",
+"b2",
+"b7",
+"c24",
+"c45",
+"c50",
+"c59",
+"c66",
+"c81",
+"c82",
+"e1",
+"e21",
+"e3",
+"e64",
+"e7",
+"e8",
+"jin3",
+"mtm4",
+"wang4"
+],
+"tests": [
+[
+"nenhum",
+19
+],
+[
+"nenhum teste de hipótese formal; compara",
+1
+],
+[
+"nenhum — reporta média e variância do MS",
+1
+],
+[
+"nenhum teste estatístico — inspeção visu",
+1
+],
+[
+"nenhum teste estatístico formal reportad",
+1
+],
+[
+"nenhum teste estatístico formal citado —",
+1
+]
+],
+"mets": [
+[
+"RMSE",
+4
+],
+[
+"NLPD (negative log predictive ",
+1
+],
+[
+"incerteza epistemica media",
+1
+],
+[
+"incerteza aleatoria media (ao ",
+1
+],
+[
+"RE — erro relativo da média pr",
+1
+],
+[
+"MSE",
+1
+]
+]
+},
+"32": {
+"n_analises": 10,
+"n_art": 7,
+"n38": 3,
+"n7": 2,
+"n27": 2,
+"roster": 4,
+"arts": [
+"b15",
+"b4",
+"c122",
+"c217",
+"e103",
+"mtm4",
+"wang4"
+],
+"tests": [
+[
+"nenhum teste estatístico — comparação vi",
+2
+],
+[
+"nenhum",
+2
+],
+[
+"nenhum teste formal de significancia da ",
+1
+],
+[
+"Wilcoxon rank-sum test, α=5%, símbolos +",
+1
+],
+[
+"Wilcoxon rank-sum test, α=5%, símbolo '−",
+1
+],
+[
+"nenhum teste estatístico — só médias sob",
+1
+]
+],
+"mets": [
+[
+"taxa prevista de soluções de c",
+2
+],
+[
+"taxa real de soluções de categ",
+2
+],
+[
+"acurácia de classificação de θ",
+2
+],
+[
+"Accuracy",
+2
+],
+[
+"correlacao de Spearman (proxy ",
+1
+],
+[
+"acurácia de classificação de d",
+1
+]
+]
+},
+"33": {
+"n_analises": 18,
+"n_art": 13,
+"n38": 8,
+"n7": 0,
+"n27": 5,
+"roster": 1,
+"arts": [
+"b15",
+"b7",
+"c24",
+"c250",
+"c50",
+"c59",
+"c81",
+"c97",
+"e21",
+"e7",
+"e8",
+"mtm4",
+"wang4"
+],
+"tests": [
+[
+"nenhum",
+13
+],
+[
+"Wilcoxon pareado",
+1
+],
+[
+"nenhum nesta figura especificamente",
+1
+],
+[
+"nenhum teste de hipótese formal; compara",
+1
+],
+[
+"nenhum teste estatístico formal citado —",
+1
+],
+[
+"estimação por máxima verossimilhança",
+1
+]
+],
+"mets": [
+[
+"ECE (expected calibration erro",
+2
+],
+[
+"RMSE",
+2
+],
+[
+"MCE (maximum calibration error",
+1
+],
+[
+"ACE (adaptive calibration erro",
+1
+],
+[
+"ECE (por curva/metodo)",
+1
+],
+[
+"MSE",
+1
+]
+]
+},
+"34": {
+"n_analises": 4,
+"n_art": 3,
+"n38": 1,
+"n7": 0,
+"n27": 2,
+"roster": 0,
+"arts": [
+"c59",
+"e3",
+"e8"
+],
+"tests": [
+[
+"nenhum",
+3
+],
+[
+"nenhum teste estatístico formal reportad",
+1
+]
+],
+"mets": [
+[
+"MAE retido após exclusão dos n",
+2
+],
+[
+"erro do modelo (counts)",
+1
+],
+[
+"largura do IC de 90% predito (",
+1
+],
+[
+"MSE da média predita (f̂)",
+1
+],
+[
+"desvio-padrão da variabilidade",
+1
+]
+]
+},
+"35": {
+"n_analises": 1,
+"n_art": 1,
+"n38": 0,
+"n7": 0,
+"n27": 1,
+"roster": 0,
+"arts": [
+"e8"
+],
+"tests": [
+[
+"nenhum",
+1
+]
+],
+"mets": [
+[
+"MAE",
+1
+],
+[
+"RMSE",
+1
+]
+]
+},
+"36": {
+"n_analises": 10,
+"n_art": 6,
+"n38": 3,
+"n7": 0,
+"n27": 3,
+"roster": 1,
+"arts": [
+"b7",
+"c97",
+"e3",
+"e7",
+"e8",
+"jin3"
+],
+"tests": [
+[
+"nenhum",
+7
+],
+[
+"nenhum teste de hipótese formal; compara",
+1
+],
+[
+"nenhum teste estatístico formal reportad",
+1
+],
+[
+"nenhum teste estatístico formal citado —",
+1
+]
+],
+"mets": [
+[
+"MAE retido após exclusão dos n",
+2
+],
+[
+"MSE",
+1
+],
+[
+"CICP",
+1
+],
+[
+"RMSE (por modelo individual, n",
+1
+],
+[
+"RMSE do ensemble agregado",
+1
+],
+[
+"coeficiente de variação do RMS",
+1
+]
+]
+},
+"37": {
+"n_analises": 2,
+"n_art": 2,
+"n38": 2,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [
+"c45",
+"c81"
+],
+"tests": [
+[
+"nenhum",
+2
+]
+],
+"mets": [
+[
+"NRMSE — εOC",
+1
+],
+[
+"NRMSE — εQP",
+1
+],
+[
+"NRMSE — εΔs1",
+1
+],
+[
+"NRMSE — εΔs2",
+1
+],
+[
+"NRMSE — εΔSM",
+1
+],
+[
+"R² (acurácia da média predita)",
+1
+]
+]
+},
+"38": {
+"n_analises": 5,
+"n_art": 3,
+"n38": 3,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [
+"b15",
+"c107",
+"c82"
+],
+"tests": [
+[
+"nenhum - ilustracao qualitativa de um un",
+1
+],
+[
+"nenhum",
+1
+],
+[
+"nenhum — visualização qualitativa",
+1
+],
+[
+"Teste F de duas amostras",
+1
+],
+[
+"nenhum — reporta média e variância do MS",
+1
+]
+],
+"mets": [
+[
+"variancia epistemica",
+1
+],
+[
+"variancia aleatoria (ambas em ",
+1
+],
+[
+"incerteza epistemica media",
+1
+],
+[
+"incerteza aleatoria media (ao ",
+1
+],
+[
+"frente de Pareto observada (ve",
+1
+],
+[
+"variância preditiva do GP/VHGP",
+1
+]
+]
+},
+"39": {
+"n_analises": 1,
+"n_art": 1,
+"n38": 1,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [
+"c24"
+],
+"tests": [
+[
+"nenhum",
+1
+]
+],
+"mets": [
+[
+"proximidade da solução ao pont",
+1
+],
+[
+"soluções extremas do front (f1",
+1
+],
+[
+"número de avaliações FEA (refe",
+1
+]
+]
+},
+"40": {
+"n_analises": 8,
+"n_art": 6,
+"n38": 1,
+"n7": 0,
+"n27": 5,
+"roster": 0,
+"arts": [
+"c59",
+"e21",
+"e64",
+"e8",
+"f9",
+"mtm4"
+],
+"tests": [
+[
+"nenhum",
+8
+]
+],
+"mets": [
+[
+"RMSE",
+2
+],
+[
+"redução de C̄_D predita pelo m",
+1
+],
+[
+"redução de C̄_D avaliada por C",
+1
+],
+[
+"erro de predição no ótimo (cou",
+1
+],
+[
+"redução real do melhor indivíd",
+1
+],
+[
+"MAE de C_L,buffet (população f",
+1
+]
+]
+},
+"41": {
+"n_analises": 5,
+"n_art": 5,
+"n38": 3,
+"n7": 0,
+"n27": 2,
+"roster": 2,
+"arts": [
+"b5",
+"c250",
+"c262",
+"c59",
+"e64"
+],
+"tests": [
+[
+"nenhum",
+4
+]
+],
+"mets": [
+[
+"HV (surrogate/acreditado)",
+1
+],
+[
+"HV (underlying/verdadeiro)",
+1
+],
+[
+"RMSE",
+1
+],
+[
+"MMD_fm (minimum of minimum dis",
+1
+],
+[
+"log hypervolume difference (va",
+1
+],
+[
+"C̄_D predito pelo modelo (coun",
+1
+]
+]
+},
+"42": {
+"n_analises": 7,
+"n_art": 5,
+"n38": 4,
+"n7": 0,
+"n27": 1,
+"roster": 0,
+"arts": [
+"b7",
+"c45",
+"c59",
+"c97",
+"f9"
+],
+"tests": [
+[
+"nenhum",
+5
+],
+[
+"nenhum teste de hipótese formal; valores",
+1
+],
+[
+"nenhum teste de hipótese formal",
+1
+]
+],
+"mets": [
+[
+"MSE",
+2
+],
+[
+"IGD+",
+2
+],
+[
+"HV",
+2
+],
+[
+"PPO (probabilidade de Pareto-o",
+1
+],
+[
+"incerteza do surrogate (magnit",
+1
+],
+[
+"nenhuma métrica numérica — com",
+1
+]
+]
+},
+"43": {
+"n_analises": 5,
+"n_art": 4,
+"n38": 2,
+"n7": 0,
+"n27": 2,
+"roster": 1,
+"arts": [
+"e17",
+"e21",
+"e64",
+"e7"
+],
+"tests": [
+[
+"nenhum",
+5
+]
+],
+"mets": [
+[
+"número de soluções não-dominad",
+2
+],
+[
+"persistencia qualitativa dos p",
+1
+],
+[
+"distribuição do valor real da ",
+1
+],
+[
+"hit rate implícito (proporção ",
+1
+],
+[
+"número de avaliações do PBM (r",
+1
+],
+[
+"número de chamadas ao GPR",
+1
+]
+]
+},
+"44": {
+"n_analises": 10,
+"n_art": 8,
+"n38": 4,
+"n7": 0,
+"n27": 4,
+"roster": 1,
+"arts": [
+"b1",
+"c105",
+"c106",
+"e17",
+"e4",
+"e8",
+"mtm6",
+"pp6"
+],
+"tests": [
+[
+"nenhum",
+8
+],
+[
+"nenhum — exemplo qualitativo único",
+1
+]
+],
+"mets": [
+[
+"nenhuma métrica quantitativa -",
+1
+],
+[
+"nenhuma metrica numerica -- co",
+1
+],
+[
+"distancia percorrida por passo",
+1
+],
+[
+"distribuicao de delta-K1 (vari",
+1
+],
+[
+"contagem de solicitações",
+1
+],
+[
+"contagem de sucessos",
+1
+]
+]
+},
+"45": {
+"n_analises": 17,
+"n_art": 14,
+"n38": 6,
+"n7": 1,
+"n27": 7,
+"roster": 4,
+"arts": [
+"b13",
+"b3",
+"b7",
+"b8",
+"c217",
+"c250",
+"c267",
+"c65",
+"e103",
+"e64",
+"e7",
+"jin3",
+"mtm4",
+"wang4"
+],
+"tests": [
+[
+"nenhum",
+12
+],
+[
+"nenhum teste formal relatado no texto pr",
+1
+],
+[
+"nenhum teste de hipótese formal; contage",
+1
+],
+[
+"nenhum teste estatístico — curvas de IGD",
+1
+],
+[
+"não especificado no corpo principal",
+1
+],
+[
+"nenhum teste estatístico formal nesta fi",
+1
+]
+],
+"mets": [
+[
+"MAE",
+1
+],
+[
+"número de vetores de referênci",
+1
+],
+[
+"hypervolume",
+1
+],
+[
+"MSE",
+1
+],
+[
+"IGD+",
+1
+],
+[
+"HV",
+1
+]
+]
+},
+"46": {
+"n_analises": 13,
+"n_art": 12,
+"n38": 8,
+"n7": 2,
+"n27": 2,
+"roster": 5,
+"arts": [
+"b14",
+"b15",
+"b2",
+"b3",
+"b4",
+"c1",
+"c131",
+"c141",
+"c50",
+"e3",
+"e7",
+"e74"
+],
+"tests": [
+[
+"nenhum",
+9
+],
+[
+"nenhum — comparação descritiva de curvas",
+1
+],
+[
+"nenhum -- media entre replicacoes, com t",
+1
+]
+],
+"mets": [
+[
+"complexidade de tempo (notação",
+1
+],
+[
+"complexidade de espaço (notaçã",
+1
+],
+[
+"tempo de parede total (s)",
+1
+],
+[
+"tempo por iteracao (s)",
+1
+],
+[
+"percentual de tempo por compon",
+1
+],
+[
+"tempo por iteracao (variacao %",
+1
+]
+]
+},
+"47": {
+"n_analises": 23,
+"n_art": 15,
+"n38": 10,
+"n7": 1,
+"n27": 4,
+"roster": 2,
+"arts": [
+"b15",
+"b2",
+"c100",
+"c107",
+"c149",
+"c214",
+"c24",
+"c241",
+"c262",
+"c59",
+"c75",
+"c91",
+"e104",
+"e64",
+"wang4"
+],
+"tests": [
+[
+"nenhum",
+18
+],
+[
+"nenhum — média e 2 erros-padrão sobre 20",
+1
+],
+[
+"nenhum — apenas médias de 10 execuções, ",
+1
+],
+[
+"nenhum teste formal; apenas media +/- 2 ",
+1
+]
+],
+"mets": [
+[
+"Hypervolume",
+3
+],
+[
+"tempo decorrido",
+2
+],
+[
+"IGD",
+2
+],
+[
+"MS (Maximum Spread)",
+2
+],
+[
+"tempo de parede total (s)",
+1
+],
+[
+"tempo por iteracao (s)",
+1
+]
+]
+},
+"48": {
+"n_analises": 23,
+"n_art": 20,
+"n38": 11,
+"n7": 3,
+"n27": 6,
+"roster": 6,
+"arts": [
+"b14",
+"b15",
+"b9",
+"c100",
+"c131",
+"c149",
+"c154",
+"c214",
+"c222",
+"c238",
+"c262",
+"c59",
+"c81",
+"c91",
+"e3",
+"e64",
+"e7",
+"e74",
+"e8",
+"e86"
+],
+"tests": [
+[
+"nenhum",
+14
+],
+[
+"nenhum -- media",
+2
+],
+[
+"nenhum — média e 2 erros-padrão sobre 20",
+1
+],
+[
+"nenhum — apenas médias de 10 execuções, ",
+1
+],
+[
+"nenhum teste estatístico — comparação di",
+1
+],
+[
+"não especificado no texto principal",
+1
+]
+],
+"mets": [
+[
+"tempo de otimização da função ",
+3
+],
+[
+"complexidade de tempo (notação",
+1
+],
+[
+"complexidade de espaço (notaçã",
+1
+],
+[
+"tempo de parede total (s)",
+1
+],
+[
+"tempo por iteracao (s)",
+1
+],
+[
+"percentual de tempo por compon",
+1
+]
+]
+},
+"49": {
+"n_analises": 2,
+"n_art": 1,
+"n38": 0,
+"n7": 0,
+"n27": 1,
+"roster": 0,
+"arts": [
+"wang4"
+],
+"tests": [
+[
+"nenhum",
+2
+]
+],
+"mets": [
+[
+"IGD (média)",
+1
+],
+[
+"nº de pacientes alocados (cust",
+1
+],
+[
+"purity",
+1
+],
+[
+"tempo computacional",
+1
+]
+]
+},
+"50": {
+"n_analises": 0,
+"n_art": 0,
+"n38": 0,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [],
+"tests": [],
+"mets": []
+},
+"51": {
+"n_analises": 0,
+"n_art": 0,
+"n38": 0,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [],
+"tests": [],
+"mets": []
+},
+"52": {
+"n_analises": 10,
+"n_art": 7,
+"n38": 5,
+"n7": 0,
+"n27": 2,
+"roster": 0,
+"arts": [
+"b14",
+"b7",
+"c1",
+"c59",
+"c81",
+"e21",
+"f9"
+],
+"tests": [
+[
+"nenhum",
+6
+],
+[
+"nenhum teste direto entre BS-MOBO-GP e o",
+2
+],
+[
+"Wilcoxon rank-sum",
+1
+],
+[
+"nenhum teste de hipótese formal; contage",
+1
+]
+],
+"mets": [
+[
+"IGD",
+2
+],
+[
+"IGD (mean, std, rank) — reapro",
+2
+],
+[
+"hit rate (top-10/top-50/top-10",
+2
+],
+[
+"MSE",
+1
+],
+[
+"IGD+",
+1
+],
+[
+"HV",
+1
+]
+]
+},
+"53": {
+"n_analises": 0,
+"n_art": 0,
+"n38": 0,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [],
+"tests": [],
+"mets": []
+},
+"54": {
+"n_analises": 82,
+"n_art": 54,
+"n38": 26,
+"n7": 7,
+"n27": 21,
+"roster": 12,
+"arts": [
+"b1",
+"b13",
+"b15",
+"b2",
+"b3",
+"b4",
+"b5",
+"b8",
+"c1",
+"c10",
+"c105",
+"c106",
+"c122",
+"c123",
+"c131",
+"c141",
+"c149",
+"c217",
+"c238",
+"c24",
+"c241",
+"c250",
+"c261",
+"c262",
+"c267",
+"c276",
+"c29",
+"c45",
+"c48",
+"c50",
+"c59",
+"c65",
+"c66",
+"c71",
+"c75",
+"c82",
+"c91",
+"e1",
+"e102",
+"e104",
+"e16",
+"e17",
+"e3",
+"e4",
+"e40",
+"e64",
+"e74",
+"e81",
+"e9",
+"f9",
+"jin3",
+"mtm6",
+"pp6",
+"wang4"
+],
+"tests": [
+[
+"nenhum",
+54
+],
+[
+"nenhum — comparação visual",
+5
+],
+[
+"nenhum — visualização qualitativa",
+2
+],
+[
+"nenhum -- comparação visual",
+1
+],
+[
+"nenhum -- \"it has no statistical signifi",
+1
+],
+[
+"nenhum -- visualizacao de execucao",
+1
+]
+],
+"mets": [
+[
+"Hypervolume",
+4
+],
+[
+"cobertura/distribuição qualita",
+4
+],
+[
+"Neval",
+4
+],
+[
+"QB",
+3
+],
+[
+"cobertura/distribuição do conj",
+3
+],
+[
+"nenhuma métrica numérica — ins",
+2
+]
+]
+},
+"55": {
+"n_analises": 20,
+"n_art": 16,
+"n38": 7,
+"n7": 1,
+"n27": 8,
+"roster": 4,
+"arts": [
+"b1",
+"b3",
+"c105",
+"c131",
+"c154",
+"c238",
+"c241",
+"c50",
+"c65",
+"c75",
+"e16",
+"e21",
+"e4",
+"e40",
+"jin3",
+"mtm4"
+],
+"tests": [
+[
+"nenhum",
+14
+],
+[
+"nenhum -- comparação visual",
+1
+],
+[
+"nenhum -- \"it has no statistical signifi",
+1
+],
+[
+"nenhum — visualização qualitativa",
+1
+],
+[
+"nenhum teste estatístico — mapa descriti",
+1
+]
+],
+"mets": [
+[
+"superfície de attainment (medi",
+1
+],
+[
+"superfície de attainment (só a",
+1
+],
+[
+"nenhuma métrica agregada — dis",
+1
+],
+[
+"cobertura/distribuicao qualita",
+1
+],
+[
+"log GHV discrepancy (por regiã",
+1
+],
+[
+"log GHV discrepancy (mediana, ",
+1
+]
+]
+},
+"56": {
+"n_analises": 0,
+"n_art": 0,
+"n38": 0,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [],
+"tests": [],
+"mets": []
+},
+"57": {
+"n_analises": 1,
+"n_art": 1,
+"n38": 1,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [
+"b7"
+],
+"tests": [
+[
+"nenhum",
+1
+]
+],
+"mets": []
+},
+"58": {
+"n_analises": 4,
+"n_art": 4,
+"n38": 1,
+"n7": 0,
+"n27": 3,
+"roster": 0,
+"arts": [
+"b7",
+"e21",
+"e8",
+"mtm4"
+],
+"tests": [
+[
+"nenhum",
+4
+]
+],
+"mets": [
+[
+"convergência da função de perd",
+1
+],
+[
+"taxa de sucesso (%) das simula",
+1
+],
+[
+"contagem de falhas por causa (",
+1
+],
+[
+"número/taxa de soluções factív",
+1
+]
+]
+},
+"59": {
+"n_analises": 0,
+"n_art": 0,
+"n38": 0,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [],
+"tests": [],
+"mets": []
+},
+"60": {
+"n_analises": 2,
+"n_art": 2,
+"n38": 2,
+"n7": 0,
+"n27": 0,
+"roster": 1,
+"arts": [
+"c262",
+"c81"
+],
+"tests": [
+[
+"nenhum",
+2
+]
+],
+"mets": [
+[
+"log hypervolume difference (va",
+1
+],
+[
+"Val",
+1
+],
+[
+"Uni",
+1
+],
+[
+"Nov",
+1
+],
+[
+"VUN",
+1
+],
+[
+"ASta",
+1
+]
+]
+},
+"61": {
+"n_analises": 2,
+"n_art": 2,
+"n38": 1,
+"n7": 0,
+"n27": 1,
+"roster": 0,
+"arts": [
+"c105",
+"e21"
+],
+"tests": [
+[
+"nenhum",
+2
+]
+],
+"mets": [
+[
+"hit rate",
+1
+]
+]
+},
+"62": {
+"n_analises": 3,
+"n_art": 3,
+"n38": 1,
+"n7": 0,
+"n27": 2,
+"roster": 1,
+"arts": [
+"b3",
+"c267",
+"e3"
+],
+"tests": [
+[
+"nenhum — discussão metodológica, não um ",
+1
+],
+[
+"nenhum",
+1
+],
+[
+"Wilcoxon rank-sum, α=0,05, símbolos +/=/",
+1
+]
+],
+"mets": [
+[
+"IGD",
+1
+],
+[
+"hypervolume",
+1
+],
+[
+"HV (efeito do ponto de referên",
+1
+],
+[
+"HV",
+1
+]
+]
+},
+"63": {
+"n_analises": 6,
+"n_art": 4,
+"n38": 3,
+"n7": 0,
+"n27": 1,
+"roster": 0,
+"arts": [
+"b13",
+"b7",
+"c45",
+"f9"
+],
+"tests": [
+[
+"nenhum",
+4
+],
+[
+"nenhum teste de hipótese formal; compara",
+1
+],
+[
+"nenhum — apenas média +/- desvio-padrão,",
+1
+]
+],
+"mets": [
+[
+"IGD",
+2
+],
+[
+"PPO (probabilidade de Pareto-o",
+2
+],
+[
+"MAE",
+1
+],
+[
+"MSE",
+1
+],
+[
+"CICP",
+1
+],
+[
+"IGD+",
+1
+]
+]
+},
+"64": {
+"n_analises": 21,
+"n_art": 11,
+"n38": 6,
+"n7": 2,
+"n27": 3,
+"roster": 4,
+"arts": [
+"c1",
+"c100",
+"c123",
+"c149",
+"c154",
+"c261",
+"c262",
+"c82",
+"e104",
+"e4",
+"e81"
+],
+"tests": [
+[
+"nenhum",
+14
+],
+[
+"nenhum — média e 2 erros-padrão sobre 20",
+1
+],
+[
+"não especificado — conteúdo no Apêndice,",
+1
+],
+[
+"Wilcoxon rank-sum, α=0.05, símbolos +/−/",
+1
+],
+[
+"nenhum — média de 10 execuções, sem disp",
+1
+],
+[
+"nenhum -- pontos/curvas sem barra de err",
+1
+]
+],
+"mets": [
+[
+"Hypervolume",
+4
+],
+[
+"log hypervolume difference",
+4
+],
+[
+"IGD+",
+2
+],
+[
+"IGD+ (log)",
+2
+],
+[
+"IGD (mediana)",
+1
+],
+[
+"hypervolume indicator (ou dife",
+1
+]
+]
+},
+"65": {
+"n_analises": 28,
+"n_art": 18,
+"n38": 12,
+"n7": 2,
+"n27": 4,
+"roster": 6,
+"arts": [
+"b14",
+"b15",
+"b3",
+"b4",
+"b8",
+"b9",
+"c122",
+"c123",
+"c217",
+"c241",
+"c48",
+"c97",
+"e102",
+"e103",
+"e104",
+"e3",
+"e7",
+"e86"
+],
+"tests": [
+[
+"nenhum",
+12
+],
+[
+"nenhum teste formal relatado no texto pr",
+2
+],
+[
+"Wilcoxon rank-sum",
+1
+],
+[
+"nenhum teste estatístico — apenas curvas",
+1
+],
+[
+"nenhum teste estatístico declarado",
+1
+],
+[
+"nenhum teste estatístico formal - compar",
+1
+]
+],
+"mets": [
+[
+"IGD",
+13
+],
+[
+"HV mediana",
+2
+],
+[
+"HV final",
+1
+],
+[
+"erro-padrao",
+1
+],
+[
+"ECE do classificador",
+1
+],
+[
+"numero de avaliacoes de re-tun",
+1
+]
+]
+},
+"66": {
+"n_analises": 3,
+"n_art": 3,
+"n38": 2,
+"n7": 0,
+"n27": 1,
+"roster": 1,
+"arts": [
+"b8",
+"e104",
+"e7"
+],
+"tests": [
+[
+"nenhum teste estatístico formal",
+1
+],
+[
+"nenhum",
+1
+]
+],
+"mets": [
+[
+"IGD",
+2
+]
+]
+},
+"67": {
+"n_analises": 21,
+"n_art": 14,
+"n38": 9,
+"n7": 0,
+"n27": 5,
+"roster": 1,
+"arts": [
+"b14",
+"b15",
+"c1",
+"c131",
+"c241",
+"c261",
+"c48",
+"c81",
+"c82",
+"e102",
+"e103",
+"e104",
+"e16",
+"e40"
+],
+"tests": [
+[
+"Wilcoxon rank-sum, α=0.05, símbolos +/−/",
+3
+],
+[
+"Wilcoxon rank-sum, alfa=0.05, Holm-Bonfe",
+3
+],
+[
+"Wilcoxon rank-sum",
+2
+],
+[
+"Wilcoxon rank-sum test com correção de B",
+2
+],
+[
+"nenhum",
+2
+],
+[
+"não especificado no corpo do artigo",
+2
+]
+],
+"mets": [
+[
+"IGD",
+8
+],
+[
+"IGD+",
+6
+],
+[
+"HV",
+2
+],
+[
+"HV final +/- desvio-padrao",
+1
+],
+[
+"ganho relativo percentual",
+1
+],
+[
+"não descritas no corpo do arti",
+1
+]
+]
+},
+"68": {
+"n_analises": 20,
+"n_art": 11,
+"n38": 6,
+"n7": 2,
+"n27": 3,
+"roster": 2,
+"arts": [
+"b13",
+"b15",
+"c1",
+"c106",
+"c149",
+"c217",
+"c50",
+"c82",
+"e102",
+"e3",
+"e8"
+],
+"tests": [
+[
+"nenhum",
+9
+],
+[
+"nenhum teste direto entre BS-MOBO e BS-M",
+2
+],
+[
+"Wilcoxon rank-sum test, α=0.05 — BS-MOBO",
+2
+],
+[
+"nenhum teste estatístico é usado para re",
+1
+],
+[
+"nao mencionado",
+1
+],
+[
+"Wilcoxon rank-sum test, α=0,05, símbolos",
+1
+]
+],
+"mets": [
+[
+"IGD (mean, std, rank) — reapro",
+4
+],
+[
+"Hypervolume",
+3
+],
+[
+"IGD",
+3
+],
+[
+"Indicador aditivo binary-epsil",
+2
+],
+[
+"Indicador de hipervolume (I_H)",
+2
+],
+[
+"coeficiente de correlação line",
+2
+]
+]
+},
+"69": {
+"n_analises": 15,
+"n_art": 13,
+"n38": 6,
+"n7": 1,
+"n27": 6,
+"roster": 3,
+"arts": [
+"b15",
+"c1",
+"c100",
+"c106",
+"c122",
+"c261",
+"c262",
+"c267",
+"c276",
+"e1",
+"e103",
+"emo1",
+"jin3"
+],
+"tests": [
+[
+"nenhum",
+8
+],
+[
+"nenhum — média e 2 erros-padrão sobre 20",
+1
+],
+[
+"não especificado — conteúdo no Apêndice,",
+1
+],
+[
+"Nenhum teste estatístico — apenas três n",
+1
+],
+[
+"nenhum — derivação analítica, não mediçã",
+1
+],
+[
+"nenhum — média de 10 execuções, sem disp",
+1
+]
+],
+"mets": [
+[
+"tempo de computação (segundos)",
+2
+],
+[
+"numero de avaliacoes de re-tun",
+1
+],
+[
+"percentual do orcamento total",
+1
+],
+[
+"IGD (mediana)",
+1
+],
+[
+"tempo cumulativo de otimização",
+1
+],
+[
+"tempo de computação (s) vs. ta",
+1
+]
+]
+},
+"70": {
+"n_analises": 17,
+"n_art": 12,
+"n38": 6,
+"n7": 1,
+"n27": 5,
+"roster": 2,
+"arts": [
+"b15",
+"c100",
+"c107",
+"c131",
+"c154",
+"c214",
+"c222",
+"c276",
+"c65",
+"e1",
+"e81",
+"e86"
+],
+"tests": [
+[
+"nenhum",
+5
+],
+[
+"não especificado — conteúdo no Apêndice,",
+2
+],
+[
+"nenhum teste formal, so correlacao",
+1
+],
+[
+"nenhum - estimacao pontual via quantil/m",
+1
+],
+[
+"nenhum — comparação gráfica de superfíci",
+1
+],
+[
+"nenhum teste formal",
+1
+]
+],
+"mets": [
+[
+"log HV discrepancy",
+2
+],
+[
+"correlacao de Pearson (proxy D",
+1
+],
+[
+"rho (fidelidade da aquisicao)",
+1
+],
+[
+"L_H (constante de Lipschitz de",
+1
+],
+[
+"H_max (perda maxima de HV por ",
+1
+],
+[
+"erro de estimação Monte Carlo ",
+1
+]
+]
+},
+"71": {
+"n_analises": 12,
+"n_art": 10,
+"n38": 6,
+"n7": 1,
+"n27": 3,
+"roster": 2,
+"arts": [
+"c1",
+"c154",
+"c238",
+"c24",
+"c241",
+"c29",
+"e17",
+"e9",
+"emo1",
+"mtm6"
+],
+"tests": [
+[
+"nenhum",
+7
+]
+],
+"mets": [
+[
+"nenhuma métrica numérica — com",
+1
+],
+[
+"EI (valores ilustrativos por o",
+1
+],
+[
+"contagem de pontos não-dominad",
+1
+],
+[
+"estimativas de média (μ) e var",
+1
+],
+[
+"acuracia visual da media do GP",
+1
+],
+[
+"EEV (volume esperado de excurs",
+1
+]
+]
+},
+"72": {
+"n_analises": 3,
+"n_art": 3,
+"n38": 2,
+"n7": 0,
+"n27": 1,
+"roster": 1,
+"arts": [
+"b1",
+"c250",
+"c29"
+],
+"tests": [
+[
+"nenhum",
+2
+],
+[
+"Mann–Whitney rank-sum test",
+1
+]
+],
+"mets": [
+[
+"melhor custo/fitness encontrad",
+1
+],
+[
+"múltiplo de avaliações necessá",
+1
+],
+[
+"numero de chamadas de simulaca",
+1
+],
+[
+"EI",
+1
+],
+[
+"GD",
+1
+],
+[
+"nº de avaliações necessárias p",
+1
+]
+]
+},
+"73": {
+"n_analises": 1,
+"n_art": 1,
+"n38": 1,
+"n7": 0,
+"n27": 0,
+"roster": 1,
+"arts": [
+"c154"
+],
+"tests": [
+[
+"nenhum",
+1
+]
+],
+"mets": [
+[
+"log HV discrepancy (recomendaç",
+1
+]
+]
+},
+"74": {
+"n_analises": 6,
+"n_art": 5,
+"n38": 3,
+"n7": 2,
+"n27": 0,
+"roster": 4,
+"arts": [
+"b14",
+"c149",
+"c154",
+"c262",
+"e81"
+],
+"tests": [
+[
+"nenhum",
+5
+],
+[
+"Wilcoxon rank-sum",
+1
+]
+],
+"mets": [
+[
+"IGD",
+1
+],
+[
+"PD (pure diversity)",
+1
+],
+[
+"fração de amostras na região r",
+1
+],
+[
+"Hypervolume",
+1
+],
+[
+"nº de amostras válidas (fora d",
+1
+],
+[
+"log HV discrepancy",
+1
+]
+]
+},
+"75": {
+"n_analises": 29,
+"n_art": 16,
+"n38": 11,
+"n7": 3,
+"n27": 2,
+"roster": 5,
+"arts": [
+"b3",
+"c10",
+"c141",
+"c49",
+"c50",
+"c59",
+"c65",
+"c66",
+"c81",
+"c91",
+"e17",
+"e64",
+"e7",
+"e74",
+"e81",
+"wang4"
+],
+"tests": [
+[
+"nenhum",
+24
+],
+[
+"não relatado no texto principal",
+1
+]
+],
+"mets": [
+[
+"probabilidade máxima de dominâ",
+2
+],
+[
+"nenhuma métrica numérica — com",
+2
+],
+[
+"QED",
+2
+],
+[
+"SAS",
+2
+],
+[
+"Binding Affinity",
+2
+],
+[
+"Val",
+2
+]
+]
+},
+"76": {
+"n_analises": 3,
+"n_art": 3,
+"n38": 2,
+"n7": 0,
+"n27": 1,
+"roster": 1,
+"arts": [
+"b1",
+"c10",
+"jin3"
+],
+"tests": [
+[
+"nenhum teste formal -- o próprio artigo ",
+1
+],
+[
+"nenhum",
+1
+]
+],
+"mets": [
+[
+"custo/fitness médio e melhor e",
+1
+],
+[
+"número de avaliações exatas at",
+1
+],
+[
+"spread metric [72]",
+1
+]
+]
+},
+"77": {
+"n_analises": 3,
+"n_art": 3,
+"n38": 1,
+"n7": 0,
+"n27": 2,
+"roster": 1,
+"arts": [
+"e103",
+"e3",
+"e8"
+],
+"tests": [
+[
+"não especificado no texto principal",
+1
+],
+[
+"não verificável — resultado apenas menci",
+1
+],
+[
+"nenhum",
+1
+]
+],
+"mets": [
+[
+"não especificado no texto prin",
+1
+],
+[
+"não especificado explicitament",
+1
+],
+[
+"razão de isolamento",
+1
+],
+[
+"coeficiente de silhueta",
+1
+],
+[
+"tamanho do cluster",
+1
+],
+[
+"fração de complexos por metal",
+1
+]
+]
+},
+"78": {
+"n_analises": 1,
+"n_art": 1,
+"n38": 0,
+"n7": 0,
+"n27": 1,
+"roster": 0,
+"arts": [
+"e8"
+],
+"tests": [
+[
+"nenhum",
+1
+]
+],
+"mets": [
+[
+"E[I] (adimensional)",
+1
+],
+[
+"P[I]",
+1
+]
+]
+},
+"79": {
+"n_analises": 4,
+"n_art": 2,
+"n38": 2,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [
+"c49",
+"c97"
+],
+"tests": [
+[
+"nenhum",
+4
+]
+],
+"mets": [
+[
+"nenhuma métrica escalar — comp",
+2
+]
+]
+},
+"80": {
+"n_analises": 1,
+"n_art": 1,
+"n38": 1,
+"n7": 0,
+"n27": 0,
+"roster": 0,
+"arts": [
+"c81"
+],
+"tests": [
+[
+"nenhum",
+1
+]
+],
+"mets": [
+[
+"coeficiente de correlação de P",
+1
+]
+]
+},
+"81": {
+"n_analises": 2,
+"n_art": 2,
+"n38": 1,
+"n7": 0,
+"n27": 1,
+"roster": 0,
+"arts": [
+"c261",
+"e86"
+],
+"tests": [
+[
+"nenhum — leitura visual/qualitativa das ",
+1
+]
+],
+"mets": [
+[
+"IGD+ (log)",
+1
+],
+[
+"HV (mencionado, sem números no",
+1
+]
+]
+}
+}

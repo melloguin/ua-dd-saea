@@ -1,0 +1,462 @@
+[
+ {
+  "k": "U1.len(1)==31D-1",
+  "v": "61 == 61 -> True"
+ },
+ {
+  "k": "U1.fe_index denso 0-based",
+  "v": "True"
+ },
+ {
+  "k": "U1.solution_id unico",
+  "v": "61/61"
+ },
+ {
+  "k": "U1.fase init",
+  "v": "21 == 21"
+ },
+ {
+  "k": "U1.manifest fe_final==maxfe",
+  "v": "61==61"
+ },
+ {
+  "k": "U1.footer termino/cp_init/status",
+  "v": "normal/True/ok"
+ },
+ {
+  "k": "U1.incrementos de fe entre iters",
+  "v": "[0, 1]"
+ },
+ {
+  "k": "U1.n_retries / fallback",
+  "v": "0 / False"
+ },
+ {
+  "k": "U2.max|dX| DoE vs artefato (f32)",
+  "v": "0.000e+00"
+ },
+ {
+  "k": "U2.doe_hash manifesto == sidecar",
+  "v": "b4682dc218d24077 == ?"
+ },
+ {
+  "k": "U2.artefato n_linhas",
+  "v": "21"
+ },
+ {
+  "k": "U3.len(4)==len(fit_series)==n(b1_gen)",
+  "v": "54 / 54 / 54"
+ },
+ {
+  "k": "U3.geracao sequencial 1..G",
+  "v": "True"
+ },
+ {
+  "k": "U3.tempo_fit_s nao-nulo",
+  "v": "54/54"
+ },
+ {
+  "k": "U4.formula {1}u{pares<=G}u{G}",
+  "v": "obs=28 esp=28 iguais=True"
+ },
+ {
+  "k": "U4.eventos sonda no 6 == manifesto",
+  "v": "28 == 28"
+ },
+ {
+  "k": "U4.blocos x 2000 pts",
+  "v": "28 blocos, tamanhos unicos=[2000]"
+ },
+ {
+  "k": "U4.G par? (finalProbe esperado?)",
+  "v": "G=54 par=True"
+ },
+ {
+  "k": "U4.motivos de sonda",
+  "v": "['cadencia']"
+ },
+ {
+  "k": "U4.regimes na 3",
+  "v": "['online', 'sonda']"
+ },
+ {
+  "k": "U5.linhas 1 com/sem",
+  "v": "61 / 61"
+ },
+ {
+  "k": "U5.1 X/f/solution_id BIT-IDENTICOS",
+  "v": "X=True f=True sid=True"
+ },
+ {
+  "k": "U5.sha256(1) com / sem",
+  "v": "3a0fe38a2357a6d6 / 3a0fe38a2357a6d6"
+ },
+ {
+  "k": "U5.2 pop identica",
+  "v": "True"
+ },
+ {
+  "k": "U5.sonda desligada no SEM",
+  "v": "True n_blocos=0"
+ },
+ {
+  "k": "U5.sonda ligada no COM",
+  "v": "False n_blocos=28"
+ },
+ {
+  "k": "U5.3 linhas com/sem (encolhe)",
+  "v": "61076 / 5076"
+ },
+ {
+  "k": "U5.3 regimes SEM",
+  "v": "['online']"
+ },
+ {
+  "k": "U5.n_geracoes/cache com x sem",
+  "v": "55/15 x 55/15"
+ },
+ {
+  "k": "U5.COM == smoke principal (1)",
+  "v": "True"
+ },
+ {
+  "k": "U5.6 best_sid divergentes com x sem",
+  "v": "0 de 54"
+ },
+ {
+  "k": "U5.max|d ei_best| com x sem",
+  "v": "0.000e+00"
+ },
+ {
+  "k": "U7.fit+busca<=geracao (violacoes)",
+  "v": "0/54"
+ },
+ {
+  "k": "U7.viola quando soma sonda",
+  "v": "28 geracoes; subset das de sonda=True"
+ },
+ {
+  "k": "U7.conjunto sonda == conjunto violacao",
+  "v": "True"
+ },
+ {
+  "k": "U7.4 tempo_pred_sonda>0 apenas em sonda",
+  "v": "True"
+ },
+ {
+  "k": "U8.nao-monotonico? quedas",
+  "v": "4 quedas; monot=False"
+ },
+ {
+  "k": "U8.faixa fe_treino_max",
+  "v": "20..58"
+ },
+ {
+  "k": "U9.tipos de guard",
+  "v": "{'?': 21}"
+ },
+ {
+  "k": "U9.cache_hit 6 == manifesto == footer",
+  "v": "0 == 15 == 15"
+ },
+ {
+  "k": "U9.ledger n_iter = n_infills+cache-c0",
+  "v": "54 == 40+15-1 = 54"
+ },
+ {
+  "k": "U9.c0: guards cache com fe==1",
+  "v": "0"
+ },
+ {
+  "k": "U9.dedup_treino eventos",
+  "v": "0"
+ },
+ {
+  "k": "U10.n geracoes na 2",
+  "v": "55 == n_iter+1 = 55"
+ },
+ {
+  "k": "U10.|2_g| == 11D-1+(g-1)",
+  "v": "True"
+ },
+ {
+  "k": "U10.2-ger1 == ids do DoE",
+  "v": "True"
+ },
+ {
+  "k": "U10.dup na ultima 2 == cache-1",
+  "v": "14 == 14"
+ },
+ {
+  "k": "U10.manifest n_geracoes x n_iter",
+  "v": "55 x 54 (off-by-one esperado)"
+ },
+ {
+  "k": "F1.identidade EI (ndtr) rel<1e-6",
+  "v": "54/54  max=2.358e-15 mediana=0.000e+00"
+ },
+ {
+  "k": "F1.identidade EI (erf ingenuo)",
+  "v": "54/54"
+ },
+ {
+  "k": "F1.faixa de z",
+  "v": "-1.269 .. 23.108"
+ },
+ {
+  "k": "F1.ei_best negativo (PlatEMO min -EI)",
+  "v": "54/54"
+ },
+ {
+  "k": "F2.best_sid in 1.solution_id",
+  "v": "54/54"
+ },
+ {
+  "k": "F2.ramo infill novo",
+  "v": "40/40"
+ },
+ {
+  "k": "F2.ramo cache-hit",
+  "v": "0/14"
+ },
+ {
+  "k": "F4.linhas 3-online == ga_pop == n_pool_ga",
+  "v": "True / True"
+ },
+ {
+  "k": "F4.ei_best == min(e0_trace)",
+  "v": "54/54"
+ },
+ {
+  "k": "F4.e0_trace monotonico (nao-cresc)",
+  "v": "9/54"
+ },
+ {
+  "k": "F4.ei_best == ultimo(e0_trace)",
+  "v": "18/54"
+ },
+ {
+  "k": "F4/ERRATA16.e0_trace CONSTANTE",
+  "v": "8/54 = 14.8%"
+ },
+ {
+  "k": "F4/ERRATA16.1a geracao interna venceu",
+  "v": "11/54 = 20.4%"
+ },
+ {
+  "k": "F4/ERRATA16.venceu1 E constante",
+  "v": "8 de 11"
+ },
+ {
+  "k": "F4.len(e0_trace) == ga_iters",
+  "v": "54/54"
+ },
+ {
+  "k": "B1.dim lambda == M",
+  "v": "(54, 2)"
+ },
+ {
+  "k": "B1.soma lambda == 1 (max desvio)",
+  "v": "1.000e-06"
+ },
+ {
+  "k": "B1.lambda*99 inteiro (max desvio)",
+  "v": "9.900e-05"
+ },
+ {
+  "k": "B1.lambda distintos / N_lambda",
+  "v": "49 de 100"
+ },
+ {
+  "k": "B1.max repeticoes (com reposicao?)",
+  "v": "2"
+ },
+ {
+  "k": "B1.N_lambda no header/params",
+  "v": "100 / 100"
+ },
+ {
+  "k": "B3.norm_min/max == min/max arquivo",
+  "v": "54/54; janelas fe-1=54 fe=0"
+ },
+ {
+  "k": "B2.gbest == min PCheby (abs<1e-6)",
+  "v": "54/54  max|d|=2.487e-09"
+ },
+ {
+  "k": "B2.criterio RELATIVO 1e-6 (armadilha)",
+  "v": "53/54"
+ },
+ {
+  "k": "B5.n_treino == n_subset - n_dedup",
+  "v": "54/54"
+ },
+ {
+  "k": "B5.n_subset == min(n_arquivo, cap)",
+  "v": "54/54 (cap=46)"
+ },
+ {
+  "k": "B5.satura no cap (iters)",
+  "v": "29/54"
+ },
+ {
+  "k": "B5.n_dedup total / max",
+  "v": "18 / 5"
+ },
+ {
+  "k": "B5.n_treino min..max",
+  "v": "21..46"
+ },
+ {
+  "k": "B5.n_acumulado(4) == n_treino(6)",
+  "v": "54/54"
+ },
+ {
+  "k": "B6.sigma_0 < 0",
+  "v": "0 de 61076"
+ },
+ {
+  "k": "B6.sigma_0 NaN / mu_0 NaN",
+  "v": "0 / 0"
+ },
+ {
+  "k": "B6.sigma_0 == 0 exato",
+  "v": "0; min=2.345e-05"
+ },
+ {
+  "k": "B6.n_mse_neg/n_ei_nan/nan_guard",
+  "v": "0/0/0"
+ },
+ {
+  "k": "B7.ga_iters == ceil(IFEs/ga_pop)",
+  "v": "54/54"
+ },
+ {
+  "k": "B7.ga_pop - 2*n_arquivo",
+  "v": "[-2, 0]"
+ },
+ {
+  "k": "B7.ga_iters faixa / ga_pop faixa",
+  "v": "68..250 / 40..148"
+ },
+ {
+  "k": "B7.IFEs no header",
+  "v": "10000"
+ },
+ {
+  "k": "B8.componentes de theta",
+  "v": "108"
+ },
+ {
+  "k": "B8.violacoes dos bounds [1e-5,20]",
+  "v": "0"
+ },
+ {
+  "k": "B8.saturados em 20 / em 1e-5",
+  "v": "19 / 0"
+ },
+ {
+  "k": "B8.theta min/mediana/max",
+  "v": "0.03145 / 3.331 / 20"
+ },
+ {
+  "k": "B8.regr/corr unicos",
+  "v": "[('regpoly1', 'corrgauss')]"
+ },
+ {
+  "k": "B8.modelo_hp completo em",
+  "v": "54/54"
+ },
+ {
+  "k": "B11.dist_min==0 <=> cache-hit",
+  "v": "14 zeros; iters cache=14; casam=True"
+ },
+ {
+  "k": "B11.dist_min>0: P5/mediana/P95",
+  "v": "5.834e-02 / 0.121 / 0.334"
+ },
+ {
+  "k": "B11.streak maximo de cache",
+  "v": "5"
+ },
+ {
+  "k": "B12.n_arquivo == 11D-1+(g-1)",
+  "v": "54/54"
+ },
+ {
+  "k": "B13.X duplicados em float32",
+  "v": "0"
+ },
+ {
+  "k": "B4.mu_1 / sigma_1 NULL",
+  "v": "61076/61076 e 61076/61076"
+ },
+ {
+  "k": "B4.literal pred_tipo",
+  "v": "['valor']"
+ },
+ {
+  "k": "B4.literal modelo_flag",
+  "v": "['GP-DACE']"
+ },
+ {
+  "k": "B4.literal espaco_modelo",
+  "v": "['transformado']"
+ },
+ {
+  "k": "B4.literal transf_tipo",
+  "v": "['escalar-tcheby']"
+ },
+ {
+  "k": "B4.pred_classe NULL",
+  "v": "61076/61076"
+ },
+ {
+  "k": "B4.pred_score NULL",
+  "v": "61076/61076"
+ },
+ {
+  "k": "B4.pred_confianca NULL",
+  "v": "61076/61076"
+ },
+ {
+  "k": "B4.sigma_dict presente",
+  "v": "['mu_0', 'sigma_0', 'transf_params']"
+ },
+ {
+  "k": "B4.transf_params exemplo",
+  "v": "{\"lambda\":[0.37373737373737376,0.6262626262626263],\"min\":[0.001620903509469418,0.18268371865167302],\"max\":[0.99167454706113656,7.6119060806074543],\"gbest\":0.06907335449067542}"
+ },
+ {
+  "k": "U11.|erro| mediano / max",
+  "v": "0.1176 / 2.057"
+ },
+ {
+  "k": "U11.fracao otimista",
+  "v": "0.963"
+ },
+ {
+  "k": "U11.dentro de 1.96 sigma (in-sample)",
+  "v": "0.463"
+ },
+ {
+  "k": "U11.infill melhora o incumbente",
+  "v": "5/54 = 0.093"
+ },
+ {
+  "k": "F6.1o fit / mediana",
+  "v": "0.2207 / 0.003662 = 60.25x"
+ },
+ {
+  "k": "F6.fracao do tempo em fit",
+  "v": "0.026"
+ },
+ {
+  "k": "F6.tempo_total(5)",
+  "v": "25.05s; aval_real=0.01977s"
+ },
+ {
+  "k": "F6.I-3 tempo_aval_real_s > 0",
+  "v": "True"
+ }
+]

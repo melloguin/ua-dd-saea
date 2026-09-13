@@ -1,0 +1,376 @@
+{
+ "config": "moead (exp=main) — piso ONLINE MOEA/D, PlatEMO 4.15, type=1 (PBI, θ=5), STOCK (zero patches). 750/750 células ok · 25 problemas × 30 sementes · N_nominal=20 (D65/DI-39, provisório) · N_efetivo=20 em 570 células (M=2) e 15 em 180 (M=3, lattice UniformPoint) · T=ceil(N/10)=2. SEM ARTIGO: não existe arquivo começando por \"moead.\" em _artigos_markdown/ (procurei; os únicos com MOEA/D no nome são b2=MOEA/D-EGO e b13/b15, que são outros configs). Gabarito usado = implementação de referência lida linha a linha (algorithms/_PlatEMO/PlatEMO/Algorithms/Multi-objective optimization/MOEA-D/MOEAD.m: 25-26 UniformPoint+T, 38 NotTerminated, 40 for i=1:N, 45 OperatorGAhalf, 48 Z=min, 75 Population(P(g_old>=g_new))=Offspring) + a pré-registração da SPEC (claude_code_context/10_rodada1_matlab/alg_pisos_online.md §3.2 e §6.3) + as decisões do REGISTRO.",
+ "cobertura": "CENSO COMPLETO, não amostra, onde a camada é barata; amostragem só onde não foi. (a) ⑤+⑥ integrais das 750/750 células (12 KB de ⑥ + 4 KB de ⑤ cada; ~12 MB no total) + metadados de ①②③④ por footer parquet: 750/750. (b) JOIAS ESTRUTURAIS em 750/750 — o recomputo do DoE em float64 (src/problems.py, importado direto; src.experiment NUNCA foi importado e experiments.py/experiment.run/experiments.m NUNCA foram invocados) + NDSort + CrowdingDistance + ordem D88 + vizinhança + ledger custou 7,0 s no total, então rodei tudo em vez de amostrar. (c) ①②③④ lidos INTEIROS nas 750 células para U2/P3/M6/M8/M13/M15 (Σ ① = 325.680 linhas, Σ ② = 262.945, Σ ④ = 14.096, ③ = 0). (d) M15/M16 em 14.096/14.096 gerações. (e) N4: inventário por INODE de ~/mestrado_coleta_m8/matlab-vm{1,2,3,4,5,10}/experiments/main/moead — 1.458 pares de cópias distintas, dos quais 125 são EXECUÇÕES fisicamente distintas (created_at e wall diferentes) em máquinas diferentes, cobrindo 25/25 problemas e 8 sementes; 100 desses têm a ① comparável. (f) N3/P1/P2: IGD+ recomputado por mim (frente de referência oficial de src/problems.py, subamostrada a ≤500 pontos, objetivos normalizados por problema) em 3.000 células dos 4 pisos + 2.185 dos 3 SA casados (b1/b3/c122) = 5.185 células. NÃO é a métrica oficial do f52c — é uma re-medição independente; só uso comparações DENTRO do mesmo problema/semente, onde normalização e amostragem da frente cancelam. Nada foi escrito no repo (np.savez_compressed foi bloqueado por monkeypatch para garantir que nenhum cache de frente fosse regenerado); todo artefato meu está em /private/tmp/claude-501/-Users-gmello/33c29160-6eb6-4277-a041-db4855486063/scratchpad/.",
+ "N1_invariancia": "A query-joia do moead são TRÊS identidades, e rodei as três em 750/750 células (não em amostra), cobrindo os 25 problemas e as 30 sementes. (1) JOIA DA SEMEADURA (M9/D88): a regra literal de src/experiment.m:2455-2460, `NDSort → CrowdingDistance → sortrows([FrontNo, −CrowdDis, (1:n)'], [1 2 3])`, reproduzida em float64 a partir do artefato de DoE + src/problems.py, reproduz ②(geração 1) em CONJUNTO E ORDEM em 750/750 células — inclusive DTLZ4, que na T11 falhava em float32; e `n_frentes`/`n_frente1` do evento `seeding` do ⑥ ≡ meu recomputo f64 em 750/750. FRAÇÃO = 750/750 = 100,00%, erro máximo ZERO. (2) JOIA DO LEDGER DE FE (U7/M11): `n_geracoes = ceil((20D + cache_hits − N_efetivo)/N_efetivo)`, equivalente a `(n_ger−1)·N_ef + k = 20D + clones + 1` com k legal, fecha em 750/750 com resíduo global 0 e k ∈ [2,20] sempre dentro de [1, N_ef]. FRAÇÃO = 750/750, erro máximo 0. (3) JOIA DA CLONAGEM (M6): a TAXA é invariante e reproduz (44.473 clones em 255.073 tentativas = 17,44% global, contra 17,55% medidos pela T11 na s42; mediana por célula 17,14%, p5 4,76%, p95 27,01%), e o colapso é universal — a fração de pares vizinhos idênticos vale EXATAMENTE 0,0000 na geração 1 em 750/750 células e sobe a uma mediana de 0,500 ao longo do run. MAS a FORMA FECHADA `p_g = [f_g + (1−f_g)·2^−D]·(1−1/D)^D` NÃO é invariante no rigor com que a T11 a declarou: a previsão agregada acerta 42.785 contra 44.473 medidos (razão 0,962), porém o IC95 de Wilson da taxa medida contém a previsão em 678/750 = 90,4% das células, não em 100% (a T11 tinha 25/25 na s42). As 72 falhas concentram-se onde o n é grande (o IC estreita e um viés de ~4% do modelo passa a ser detectável) e em D=2, onde o modelo é reconhecidamente grosseiro (16/90 falham). Leitura: o 25/25 da T11 era efeito de amostra pequena; a forma fechada é uma APROXIMAÇÃO boa (erro agregado 3,8%), não uma identidade. Demais invariantes verificadas em 750/750: T=2 (recomputado dos vetores logados) · B(i,1)==i · N_lattice==N_efetivo · Σw=1 a menos de 1e−6 · len(①)=31D−1 · len(②)=n_ger·N_ef · ③=0 linhas · len(④)=n_ger · fe_final=maxfe · termino='normal' · cp_init=true · c0=N_ef+1 guards de arranque com N_ef sids únicos e sid[0]==sid[1] · fe dos guards de arranque = 11D−1 · vocabulário de guard exatamente {cache_hit,hard_stop} · n_pop==N_ef em 14.096/14.096 · max|ΔX| do DoE = 0,0 EXATO · max|ΔF| contra src/problems.py = 0,0 EXATO. NENHUMA semente quebra nenhuma dessas.",
+ "N2_tetos_caidos": "A T11 §9 listou 4 tetos \"o que este corpus NÃO permite verificar\". CAÍRAM DOIS, E MEIO. (1) CAIU — \"o comportamento em escala: 1 semente, 25 células; a variância entre sementes não foi medida\". MEDIDO agora: CV de `n_geracoes` entre as 30 sementes tem mediana 4,19% e máximo 5,60% por problema (é EXATAMENTE 0 nos três problemas D=2 — MMF1/MMF4/MMF11_L têm n_ger=3 em 30/30); CV da taxa de clonagem 18,85%; `cache_hits` varia até 2,7× dentro do mesmo problema (WFG1 67–183, ZDT3 100–248); indivíduos únicos na população final têm dp de 0,45 a 1,61 conforme o problema. A dispersão é pequena e estruturada, não caótica. (2) CAIU — a NÃO-PERTURBAÇÃO e o DETERMINISMO, que a T11 só pôde provar com um smoke pré×pós-T11 de UMA célula (X4). Agora tenho 125 pares de execuções fisicamente distintas do mesmo (problema, semente) em máquinas diferentes: `n_geracoes`, `cache_hits` e `fe_final` idênticos em 125/125, e a ① BYTE-IDÊNTICA (md5) em 100/100 dos pares com o parquet disponível. Além disso a pré-registração do §3.2 ponto 5 cita \"ZDT1 semente 0: 182 cache-hits\" medidos no piloto R1-pisos: a campanha M8 grava **182 cache_hits exatos** em ZDT1/semente 0 — determinismo reproduzido ATRAVÉS DE CAMPANHAS, não só dentro de uma. (3) CAIU PELA METADE — \"a taxa de sucesso\": 750/750 ok, 0 falhas, 0 ⚪, 0 retries, 0 fallback, 0 linha malformada no ⑥, 30/30 sementes em cada um dos 25 problemas (ver N5). (4) SEGUE T — o miolo do laço PBI (M18: o `Z` interno de MOEAD.m:48, `g_old`/`g_new`, θ=5, `randperm(T)`, consumo de RNG, contagem BRUTA de substituições): 30 réplicas não criam rastro onde não há instrumentação; continua rejeitado no DI-10 por patch-mínimo/D30. (5) SEGUE T — a validade de N=20 (DI-39/SUB-varN): não existe config de varredura de N nesta campanha (o censo tem 22 configs, nenhum `varN`); o valor segue PROVISÓRIO. (6) SEGUE T — o elo código↔PlatEMO: o `repo_hash` agora está preenchido e é ÚNICO em 750/750 (`63db46b100635a5cc21e8f5594271f481bc41416`), mas o `content_hash` do PlatEMO (repo aninhado) continua ausente do ⑤; a certificação cobre o repo-mãe, não o vendorizado.",
+ "N4_deriva": "MEDIDA, E É MENOR DO QUE A DOUTRINA SUPÕE — mas existe e eu peguei o ponto exato em que ela morde. Construí o pareamento por INODE (o canônico é hardlink do vencedor do reorg; só conta cópia com inode diferente) e separei cópias de EXECUÇÕES: 1.458 pares de arquivos distintos, dos quais 125 são execuções fisicamente distintas (created_at e/ou wall diferentes) em máquinas diferentes — o wall difere por mediana 23,6% e até 68,1%, prova de que não são cópias. Pares por máquina: vm1↔vm5 (75) e vm1↔vm2 (50); cobrem 25/25 problemas e 8 sementes. RESULTADO: (a) camada ① — BYTE-IDÊNTICA (md5) em 100/100 pares comparáveis; max|ΔX| = max|ΔF| = 0,0 EXATO; solution_id e fase idênticos. (b) ⑥ footer/guards/decomposição/seeding — idênticos em 100/100 (`n_geracoes`, `cache_hits`, `fe_final` idênticos em 125/125). (c) A DERIVA REAL aparece só nas estatísticas FLOAT64 do ⑥ (`ideal`, `f_best`, `nadir_pop`, `nadir_front1`, gravadas em f64 por src/piso_instrument.m:38-50): divergem em 14/100 pares, com deriva RELATIVA máxima de **1,89e−14** e mediana 6,93e−16 (ordem de 1 a 60 ULP de float64). 13 dos 14 pares divergentes envolvem o host `matlab-vm5` — a vm5 DEPOIS de virar e2-standard-32 em 14/08, CPU não fixada pelo GCP. (d) A CONSEQUÊNCIA MECÂNICA, isolada: em **1 de 125** execuções cross-máquina (WFG9, semente 8, vm1 × vm5) a deriva f64 virou uma decisão de substituição PBI diferente (`Population(P(g_old>=g_new)) = Offspring`, MOEAD.m:75) e mudou **7 de 520 linhas da ②** — um único slot (posição 3), da geração 20 à 26, com o sid 537 em uma máquina e 554 na outra. Os dois têm X e F BIT-IDÊNTICOS no export float32 (verifiquei linha a linha), ou seja, o ponto de bifurcação está ABAIXO da resolução do float32; a ① continua byte-idêntica e `n_geracoes`/`cache_hits`/`fe_final` idênticos. (e) PISO DE RUÍDO: a deriva (≤1,9e−14 relativo) é 7 ordens de grandeza menor que a resolução do export float32 (≈1,2e−7 relativo, D53). Portanto NENHUM contraste de métrica calculado sobre a ① pode ser afetado por deriva de máquina neste config. (f) LEITURA CONTRA A DOUTRINA: o RUNBOOK §6.2 (\"floats não são bit-idênticos entre plataformas ⇒ fidelidade estatística, não bit-exata\") é CONSERVADOR para o moead — o que sai no disco É bit-exato cross-máquina em 100/100. A doutrina continua certa como regra geral (a deriva f64 existe, eu a medi), mas para este config o padrão de prova pode ser o forte. (g) A janela de swap da vm5 (após 15:20Z de 14/08) NÃO toca este config: o `created_at` máximo de qualquer célula moead é 2026-08-14T10:59:36Z, e 0/750 caem na janela — o ④ do moead está limpo para a tabela de custo (Σ 1,433 h-core; mediana 5,77 s/célula; mas atenção: a mediana por host varia 2,9× — vm4 4,19 s contra vm5 12,23 s — então o ④ é comparável DENTRO de host, não entre hosts).",
+ "N5_cauda": "NÃO HÁ CAUDA — e isso é o resultado. O censo (f5/f30/censo_completo_22.csv, filtro alg=moead) dá 750 células, TODAS `ok`: 0 ⚪ (teto) e 0 fail. Confirmei pelo rodapé do .jsonl em 750/750 (a autoridade O-21): `status='ok'`, `termino='normal'`, `fe_final == maxfe == 31D−1`, `cp_init=true`, `n_retries=0`, `fallback_ativado=false`, header=1, footer=1, 0 linhas malformadas, e nenhum registro fora do vocabulário {header, decomposicao, seeding, guard, moead_gen, footer}. TAXA DE SUCESSO POR PROBLEMA: 30/30 em cada um dos 25 problemas, sem exceção. Isto é analiticamente carregado: o moead completa 30/30 exatamente nas células onde os SA-MOEA têm incapacidade documentada — DTLZ4 (b1 é 0/30), WFG1 (c262 é 2/30), ZDT6 e BBOB_F5/F22/F49/F55 (c154 esgota, c238 estoura). Medido na comparação de cobertura: existem 49 células em que o b1 não entrega e o moead entrega (30 delas são o DTLZ4 inteiro), 12 do c122 e 4 do b3. A régua existe onde o surrogate não existe — é o argumento mais forte a favor de manter o piso no desenho, e ele só é dizível com 30 sementes. A ÚNICA \"cauda\" do moead é interna e não é falha: 42/750 células (5,6%) terminam sem nenhum guard `hard_stop` porque o orçamento morre exatamente na fronteira de uma geração (ver S2 na classe (3)) — comportamento determinístico, mecanismo provado, zero impacto no resultado numérico.",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "NÃO EXISTE ARTIGO para este config. Procurei em /Users/gmello/Documents/python_repos/mestrado/arquivos/Revisão Bibliográfica/corpus_artigos/_artigos_markdown/ — não há arquivo começando por 'moead.'; os únicos com MOEA/D no título são b2 (MOEA/D-EGO), b13 e b15, que são OUTROS configs. O piso é PlatEMO stock por desenho (params.patches = 'NENHUM — piso e stock do PlatEMO 4.15 por design', idêntico em 750/750). O gabarito, portanto, é (i) a implementação de referência MOEAD.m e (ii) a PRÉ-REGISTRAÇÃO da SPEC §3.2/§6.3, que é o texto que faz as afirmações distribucionais testáveis.",
+   "onde_no_artigo": "N/A — controle sem artigo; §5 da T11 já registrava isto",
+   "testavel_com_30": false,
+   "resultado": "declarado, não medido"
+  },
+  {
+   "afirmacao": "'gerações = 20D ÷ população ⇒ 2 (D=2) a 30 (D=30)'",
+   "onde_no_artigo": "alg_pisos_online.md §3.2 'Protocolo de FE dos pisos' e a linha dos pisos da tabela §6.4",
+   "testavel_com_30": true,
+   "resultado": "FALSIFICADA em 750/750. A fórmula nominal acerta 0/750 (tanto com N_nominal quanto com N_efetivo). O observado é 3 a 42 gerações, não 2 a 30; excesso relativo mediano +30%, máximo +60%. A causa é a D89 (a duplicata bit-exata não gasta FE, gasta o SLOT) e é a mesma que o M11 já nomeava — mas o §3.2 continua com o número velho. A fórmula CERTA, medida, é n_ger = ceil((20D + cache_hits − N_ef)/N_ef), que acerta 750/750."
+  },
+  {
+   "afirmacao": "'rende 2 gerações no pior caso (D=2), 12 no DTLZ2 (D=12) e 30 no ZDT1 (D=30)'",
+   "onde_no_artigo": "§3.2, justificativa do N=20 CRAVADO, ponto 4",
+   "testavel_com_30": true,
+   "resultado": "FALSIFICADA nos três números, sempre para MAIS. D=2: 3 gerações em 30/30 sementes dos três problemas (MMF1, MMF4, MMF11_L), nunca 2. DTLZ2: 17 a 19, mediana 18 (o '12' ignora que M=3 reduz N para 15 e ignora os clones; nem o nominal corrigido, 16, acerta). ZDT1: 35 a 41, mediana 38, nunca 30. A direção do erro é sistemática e a magnitude é seed-dependente."
+  },
+  {
+   "afirmacao": "'a taxa de duplicata bit-exata sobe (medido no R1-pisos, ZDT1 semente 0: 182 cache-hits ≈ 23% dos 780 offspring)'",
+   "onde_no_artigo": "§3.2, ponto 5 do efeito colateral CONHECIDO e ACEITO do N=20",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA, e mais forte do que estava escrito. (a) O número exato reproduz ATRAVÉS DE CAMPANHAS: ZDT1/semente 0 na campanha M8 grava 182 cache_hits — o mesmo valor medido no piloto R1-pisos. (b) A anedota GENERALIZA: nas 30 sementes de ZDT1 a taxa de clonagem (clones/tentativas, descontado o arranque de N+1) tem média 20,04%, mediana 20,32%, dp 3,48%, faixa 12,79%–25,19%; a semente 0 (21,16%) está no percentil 63 — é representativa, não extrema. (c) Global nas 750 células: 17,44%."
+  },
+  {
+   "afirmacao": "'evolução real em todo o grid, SEM COLAPSAR A DIVERSIDADE POPULACIONAL (que N=10 comprometeria, sobretudo nos vetores de referência de NSGA-III/MOEA-D em M=3)'",
+   "onde_no_artigo": "§3.2, justificativa do N=20 CRAVADO, ponto 4 (densidade de gerações)",
+   "testavel_com_30": true,
+   "resultado": "FALSIFICADA, e o medo específico está INVERTIDO. A população final tem mediana de 73,3% de indivíduos únicos (mínimo 50,0%); 476/750 células (63,5%) terminam com menos de 80% de únicos; mediana absoluta 13 de 20 (mínimo 9). E o colapso é PIOR em M=2 (média 70,0% de únicos) do que em M=3 (82,2%) — o oposto do que o parêntese temia, porque a vizinhança-cadeia do simplex 1D é mais recíproca que a do simplex 2D. Isto NÃO é infidelidade: o próprio §3.2 ponto 5 pré-registra o efeito e o ACEITA. É uma inconsistência INTERNA da SPEC — o ponto 4 nega o que o ponto 5 declara. 🟣 errata do texto (D29), fica o código."
+  },
+  {
+   "afirmacao": "'o MOEA/D fica o pior dos 4 pisos (ZDT1, por larga margem). Não é bug — é o algoritmo stock sob a D89'",
+   "onde_no_artigo": "§3.2, ponto 5",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA, e agora quantificada com réplica. Em ZDT1 o moead é o PIOR dos 4 pisos em 30/30 sementes; razão IGD+ mediana 3,40× contra o melhor piso; Wilcoxon pareado (moead pior que o melhor dos outros três) p = 9,3e−10. Generalizando: o moead é o pior piso em 598/750 células (79,7%), é o pior em 30/30 sementes em 11 dos 25 problemas e em ≥15/30 em 21 dos 25; é o melhor em apenas 44/750 (5,9%), concentrados em DTLZ1 (13/30) e DTLZ3 (14/30). Razão moead/melhor-piso mediana global 1,93×, máxima 11,3× (BBOB_F55)."
+  },
+  {
+   "afirmacao": "'o piso responde a pergunta que os SA não respondem sozinhos — o surrogate compra alguma coisa, afinal?' com o casamento por PRINCÍPIO: MOEA/D → decomposição (b3 K-RVEA, c122 θ-DEA-DP, b1 ParEGO)",
+   "onde_no_artigo": "§3.2, propósito e mapa de casamento v2.0",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA em escala, com todos os três casados. c122 bate o moead em 661/738 células comparáveis (89,6%), razão IGD+ mediana 0,400; b3 em 638/746 (85,5%), razão 0,489; b1 em 542/701 (77,3%), razão 0,521. Wilcoxon pareado p = 1,5e−77 (c122), 1,7e−51 (b3), 4,9e−32 (b1). Nenhum dos três PERDE do moead em todas as sementes de nenhum problema. O surrogate de decomposição compra ~2× de IGD+ sobre a sua régua casada, com DoE e orçamento idênticos. (Métrica re-medida por mim; ver §cobertura para o caveat.)"
+  },
+  {
+   "afirmacao": "'[DEF-A13/D25] BO-especiais comparados contra a BANDA min–máx dos 4 pisos, não contra um piso eleito'",
+   "onde_no_artigo": "§3.2, DEF-A13 RESOLVIDA",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA e com o asterisco metrológico reforçado. Nas 750 células o moead define o TETO da banda em 598 (79,7%) e o PISO em 44 (5,9%); a largura mediana da banda é 2,006× COM ele e 1,341× SEM ele. Ou seja: a borda superior da banda é, na prática, uma configuração cuja degradação tem causa mecânica conhecida e pré-registrada (T=2). O caveat da T11 §5(iii) — nunca ler o moead como 'o piso' isolado — sobrevive à réplica e fica mais forte."
+  },
+  {
+   "afirmacao": "'Desempate quando a fronteira-1 do DoE excede a população: crowding distance, DETERMINÍSTICO — dois runs da mesma semente selecionam o mesmo subconjunto' (D88)",
+   "onde_no_artigo": "§3.2, semeadura do DoE compartilhado / D88",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA por duas vias independentes. (a) Reprodução: a regra exata reproduz ②(g=1) em conjunto E ORDEM em 750/750 células (float64). (b) Réplica física: nos 125 pares de execuções distintas em máquinas diferentes o evento `seeding` do ⑥ é idêntico em 100/100 e a ① é byte-idêntica — dois runs da mesma semente selecionam mesmo o mesmo subconjunto, na mesma ordem, em máquinas diferentes."
+  },
+  {
+   "afirmacao": "'20 ≤ 11D−1 para todo D≥2 ⇒ roda nos 25 problemas SEM teto anti-crash'",
+   "onde_no_artigo": "§3.2, justificativa do N=20, ponto 3 (viabilidade em todo o grid)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA em 750/750: status ok, 0 retries, 0 fallback, 0 crash, 30/30 sementes em cada um dos 25 problemas. O piso é o único conjunto do estudo sem nenhuma incapacidade sistemática."
+  },
+  {
+   "afirmacao": "MOEA/D canônico: 'T vizinhos mais próximos por vetor de peso, uma prole por subproblema, substituição dos vizinhos que pioram'",
+   "onde_no_artigo": "implementação de referência MOEAD.m:26 (T=ceil(N/10)), :40 (for i=1:N), :45 (OperatorGAhalf), :75 (Population(P(g_old>=g_new))=Offspring)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA em 750/750. T=2 recomputado dos vetores logados em 750/750 (tanto para N=20 quanto para N=15). Uma prole por subproblema: o ledger de FE fecha 750/750 com denominador N_efetivo; com o denominador de pares 2·⌊N_ef/2⌋ o k fica ILEGAL em 169/750 — o mecanismo de pares é aritmeticamente impossível para este config. Co-substituição do par (consequência direta de T=2 na linha 75): 122.648 substituições líquidas em 13.346 transições (mediana 51,1% dos slots por geração), das quais 70.787 (57,7%) são i e nn(i) virando o MESMO solution_id na mesma geração."
+  }
+ ],
+ "aspectos": [
+  {
+   "id": "U1",
+   "aspecto": "Orçamento 31D−1, término e forma do hard-stop",
+   "classe": "2",
+   "medicao": "maxfe=31D−1 750/750 · len(①)=31D−1 750/750 (Σ 325.680) · fe_index denso · fe_final=maxfe 750/750 · termino='normal' 750/750. MAS o hard-stop cai no MEIO da geração em 708/750 (k ∈ [2,20]) e em 42/750 NÃO HÁ guard hard_stop — o orçamento morre na fronteira de geração (ver S2).",
+   "veredito": "conforme sob D21/D61; a sub-afirmação 'hard-stop no meio em 25/25' da T11 é artefato de 25 células",
+   "muda_vs_s42": true,
+   "arquivo_linha": "MOEAD.m:38 (while Algorithm.NotTerminated)"
+  },
+  {
+   "id": "U2",
+   "aspecto": "DoE 11D−1 injetado do artefato, bit-a-bit",
+   "classe": "2",
+   "medicao": "max|ΔX| artefato(f32) × ① = 0,0 EXATO em 750/750 · n_doe=11D−1 750/750 · doe_hash ⑤≡⑥ 750/750 · cp_init=true 750/750",
+   "veredito": "conforme sob D63/D88",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "U3",
+   "aspecto": "Ausência de surrogate, em 4 camadas",
+   "classe": "1",
+   "medicao": "③ com 0 linhas em 750/750, schema íntegro e DETERMINÍSTICO por problema (21 a 49 colunas, 1 valor único por problema, 750/750) · fit_series=[] 750/750 · tempo_fit_s/tempo_busca_s/tempo_pred_sonda_s/n_acumulado NaN em 14.096/14.096 linhas do ④ e NULL no ⑤ em 750/750",
+   "veredito": "conforme (DI-13.7/DI-13.2)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "U4",
+   "aspecto": "Sonda DECLARADA, não omitida",
+   "classe": "1",
+   "medicao": "sonda.status='nao_se_aplica', n_blocos=0, n_linhas=0 e motivo literal do CONTRATO §3.2 em 750/750 · nenhum evento de sonda no ⑥ em 750/750",
+   "veredito": "conforme; regra 12 do CONTRATO vacuamente satisfeita",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "U5",
+   "aspecto": "Relógio ④ na forma degenerada",
+   "classe": "2",
+   "medicao": "len(④)=n_ger 750/750 (Σ 14.096) · tempo_geracao_s não-nulo em 14.096/14.096 · Σ tempo_total = 5.158,8 s = 1,433 h-core, mediana 5,77 s/célula · nenhuma célula na janela de swap da vm5 (created_at máx 2026-08-14T10:59:36Z)",
+   "veredito": "conforme sob DI-13.10/DI-13.2; ⑤ mediana por host varia 2,9× (vm4 4,19 s × vm5 12,23 s) ⇒ ④ comparável DENTRO de host",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "U6",
+   "aspecto": "Reconciliação de guards e assinatura de arranque c0=N+1",
+   "classe": "2",
+   "medicao": "cache_hit do ⑥ ≡ ⑤ ≡ footer em 750/750 (Σ 59.323) · vocabulário exatamente {cache_hit,hard_stop} em 750/750 · c0 = N_ef+1 em 750/750, com N_ef sids únicos, fe=11D−1 e sid[0]==sid[1] em 750/750",
+   "veredito": "conforme sob D89/D57",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "U7",
+   "aspecto": "Ledger de FE (a identidade estrutural)",
+   "classe": "2",
+   "medicao": "n_ger = ceil((20D + cache_hits − N_ef)/N_ef) fecha 750/750, resíduo 0, k legal 750/750 (k ∈ [2,20]) · Σ tentativas de prole 255.073 = 210.600 novas + 44.473 clones + 708 hard-stops · com o denominador de pares 2·⌊N_ef/2⌋ o k fica ILEGAL em 169/750",
+   "veredito": "conforme sob D89/D57/D61; a arma que fixa o mecanismo de prole",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "P1",
+   "aspecto": "Papel de régua CASADA por princípio (decomposição)",
+   "classe": "1",
+   "medicao": "c122 bate o moead em 661/738 (89,6%, razão IGD+ mediana 0,400) · b3 em 638/746 (85,5%, 0,489) · b1 em 542/701 (77,3%, 0,521) · Wilcoxon p ≤ 4,9e−32 nos três · o moead cobre 49 células que o b1 não entrega (30 = DTLZ4 inteiro), 12 do c122 e 4 do b3",
+   "veredito": "conforme; a régua casada se sustenta em 30 sementes e cobre os buracos dos casados",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "P2",
+   "aspecto": "Banda min–máx dos 4 pisos (DEF-A13/D25)",
+   "classe": "2",
+   "medicao": "moead define o TETO da banda em 598/750 (79,7%) e o PISO em 44/750 (5,9%) · largura mediana 2,006× COM ele, 1,341× SEM ele (T11 s42: 1,823×/1,253×)",
+   "veredito": "conforme sob D25/DEF-A13, com o asterisco metrológico REFORÇADO pela réplica",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "P3",
+   "aspecto": "① ≡ float32(src/problems.py)",
+   "classe": "1",
+   "medicao": "max|ΔF| = 0,0 EXATO nas 11D−1 linhas init de 750/750 células (reavaliação em f64 pelo módulo oficial, recast para f32)",
+   "veredito": "conforme; fecha a cadeia artefato → MATLAB → ponte → ① sem um bit de discrepância",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M1",
+   "aspecto": "N = 20 CRAVADO (provisório por DI-39)",
+   "classe": "2",
+   "medicao": "eco em header.N_nominal/params.N_nominal/N_origem em 750/750 · n_pop == N_efetivo em 14.096/14.096 eventos · len(②)/n_ger == N_ef em 750/750",
+   "veredito": "desvio sancionado (D65/§3.2/DI-39); a varredura SUB-varN segue PENDENTE — não existe config varN no censo",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M2",
+   "aspecto": "N efetivo = 15 em M=3 (lattice)",
+   "classe": "2",
+   "medicao": "N_lattice == N_efetivo em 750/750 · 180 células M=3 com 15 e 570 M=2 com 20 · footer.N_efetivo ≡ params.N_efetivo 750/750",
+   "veredito": "desvio sancionado (§6.3(b)/D20)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M3",
+   "aspecto": "Lattice UniformPoint + type=1 PBI fixado",
+   "classe": "1",
+   "medicao": "n_vetores == N_ef em 750/750 · desvio máximo de Σw−1 ≤ 1e−6 em 750/750 · algo_version='piso-MOEAD-PlatEMO4.15-type1-PBI' e params.parameter idênticos em 750/750 · params.patches='NENHUM' em 750/750",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M5",
+   "aspecto": "T = ceil(N/10) = 2 — a vizinhança mínima",
+   "classe": "2",
+   "medicao": "T recomputado dos vetores logados = 2 em 750/750 (N=20 e N=15) · B(i,1)==i em 750/750 (o próprio subproblema é sempre o primeiro vizinho)",
+   "veredito": "desvio sancionado como consequência de D65 (§3.2 ponto 5); causa-raiz de M6/M8",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M6",
+   "aspecto": "CLONAGEM + colapso de diversidade (joia 1)",
+   "classe": "2",
+   "medicao": "44.473 clones em 255.073 tentativas = 17,44% global (s42: 17,55%); mediana por célula 17,14%, p5 4,76%, p95 27,01% · f_g = 0,0000 na geração 1 em 750/750 e mediana 0,500 ao longo do run · únicos na população final: mediana 13/20 (mín 9), 476/750 células abaixo de 80% de únicos · previsão em forma fechada 42.785 vs 44.473 medidos, razão 0,962 · IC95 de Wilson contém a previsão em 678/750 = 90,4%, NÃO 100%",
+   "veredito": "desvio sancionado (§3.2 ponto 5 + D89) quanto ao FENÔMENO; a FORMA FECHADA é aproximação (erro agregado 3,8%), não identidade — o 25/25 da T11 era amostra pequena",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "M8",
+   "aspecto": "Co-substituição do par (o que o DI-10 rejeitou)",
+   "classe": "1",
+   "medicao": "122.648 substituições líquidas em 13.346 transições (mediana 51,1% dos slots/geração) · 70.787 (57,7% do total; mediana por célula 61,5%) são i e nn(i) virando o MESMO solution_id — a assinatura literal de MOEAD.m:75 sob T=2",
+   "veredito": "conforme; limite inferior explícito (substituições múltiplas do mesmo slot não são separáveis)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M9",
+   "aspecto": "Seeding D88 com a regra EXATA (joia 2)",
+   "classe": "2",
+   "medicao": "sortrows([FrontNo, −CrowdDis, idx]) reproduz ②(g=1) em CONJUNTO E ORDEM em 750/750 (float64), incluindo DTLZ4 · n_frentes/n_frente1 do ⑥ ≡ recomputo f64 em 750/750",
+   "veredito": "desvio sancionado (D88); promovido de 25/25 (T11) para 750/750",
+   "muda_vs_s42": true,
+   "arquivo_linha": "src/experiment.m:2455-2460"
+  },
+  {
+   "id": "M10b",
+   "aspecto": "flag frente1_excede_pop — o classe (3) da T11",
+   "classe": "1",
+   "medicao": "CORRIGIDA no código (BL-14): src/experiment.m:2463 agora compara contra N_lattice. Flag ≡ (|F1| > N_efetivo) em 750/750 · o caso-limite é EXERCITADO em 31/750 células (todas M=3: DTLZ1 12, DTLZ4 13, DTLZ3 5, DTLZ7 1, em 21 sementes diferentes) e a flag acerta nas 31",
+   "veredito": "DEFEITO DA T11 ELIMINADO E VERIFICADO; sai de (3) para (1)",
+   "muda_vs_s42": true,
+   "arquivo_linha": "src/experiment.m:2463"
+  },
+  {
+   "id": "M11",
+   "aspecto": "Gerações EMERGENTES",
+   "classe": "2",
+   "medicao": "a fórmula nominal 20D/N acerta 0/750 (com N_ef e com N_nominal) · a do ledger acerta 750/750 · n_ger observado 3 a 42, contra 2 a 30 do §3.2 · excesso relativo mediano +30%, máximo +60%",
+   "veredito": "desvio sancionado (§3.2 + D89); o TEXTO do §3.2 é que está desatualizado (🟣 errata)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M13",
+   "aspecto": "② = snapshot no INÍCIO da geração",
+   "classe": "2",
+   "medicao": "len(②) = n_ger·N_ef em 750/750 (Σ 262.945) · ②(1) só com solution_id < 11D−1, todos únicos, em 750/750 · fe do 1º evento moead_gen == 11D−1 em 750/750",
+   "veredito": "conforme à convenção de export; a população TERMINAL não está em camada nenhuma — EXCETO nas 42 células de S2, onde ②(último) É a terminal",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "M15",
+   "aspecto": "ideal/nadir_pop/f_best = estatísticas da POP, não o Z do PBI",
+   "classe": "2",
+   "medicao": "ideal ≡ min componentwise de ②(g) em 14.096/14.096 · nadir_pop ≡ max em 14.096/14.096 · f_best ≡ ideal em 14.096/14.096 · 3.845 quebras de monotonia do ideal (tolerância f32) em 746/750 células — o Z do PBI é não-crescente por construção (MOEAD.m:48), logo o campo logado NÃO é o Z",
+   "veredito": "conforme ao CONTRATO/DI-10; armadilha de leitura confirmada em escala",
+   "muda_vs_s42": false,
+   "arquivo_linha": "src/piso_instrument.m:38-50"
+  },
+  {
+   "id": "M16",
+   "aspecto": "n_front1 divergente de ±1 (o f32 lossy)",
+   "classe": "2",
+   "medicao": "exatas 13.225/14.096 = 93,82% (s42: 93,6% — reproduz) · dentro do bracket CORRIGIDO por grupos de linha f32 idêntica: 14.088/14.096 = 99,94% · FORA: 8/14.096 = 0,057%, todas com log = ND_f32 − 2 tendo apenas 1 grupo de empate f32 · distribuição de (log − ND_f32) de −2 a +12, os dois sentidos que a T11 nomeou",
+   "veredito": "desvio sancionado (D53 + R4#11); MAS o bracket da T11 NÃO é exaustivo em escala — o 'ZERO fora' de 469 gerações vira 0,057% fora em 14.096. A ação pendente da F5.4 (ferramenta nd_bracket_f32) agora tem o resíduo medido",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "M17",
+   "aspecto": "Operadores do Balde C (SBX proC=1 ηc=20 + PM proM=1 ηm=20)",
+   "classe": "1",
+   "medicao": "params.operadores byte-idêntico em 750/750 · prova indireta pela forma funcional da clonagem: o fator (1−1/D)^D varia de 0,250 (D=2) a 0,362 (D=30) e a razão previsto/medido fica em 0,962 global atravessando D ∈ {2,7,10,12,20,22,30}",
+   "veredito": "conforme; ηc/ηm continuam sem rastro direto",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M18",
+   "aspecto": "Miolo do laço PBI (Z interno, g_old/g_new, θ=5, randperm, RNG)",
+   "classe": "T",
+   "medicao": "não medido: sem instrumentação; rejeitado no DI-10 por patch-mínimo/D30. 30 sementes não criam rastro onde não há hook",
+   "veredito": "teto de verificabilidade — fora do denominador",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "X1",
+   "aspecto": "Identidade de campanha no ⑤ (schema v2 + repo_hash)",
+   "classe": "2",
+   "medicao": "schema_version=2 em 750/750 · repo_hash não-vazio e ÚNICO em 750/750 (63db46b100635a5cc21e8f5594271f481bc41416) · MATLAB 25.1.0.2973910 (R2025a) Update 1 em 750/750 · doe_hash ⑤≡⑥ em 750/750. O que na T11 só existia num smoke agora está na campanha inteira. MAS o campanha_id NÃO é uniforme (ver S1) e o content_hash do PlatEMO aninhado continua ausente",
+   "veredito": "desvio sancionado (D80/I-09/B-03) e agora VERIFICADO em produção; ressalva em S1",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "X2",
+   "aspecto": "sigma_dict DECLARADO no piso",
+   "classe": "1",
+   "medicao": "sigma_dict.status='nao_se_aplica' + motivo + terceira presentes em 750/750 (na s42 estava ausente em 25/25)",
+   "veredito": "conforme; correção da T11 confirmada na campanha real",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "X3",
+   "aspecto": "string params.geracoes_derivadas — o outro classe (3) da T11",
+   "classe": "1",
+   "medicao": "REESCRITA (BL-13, 2026-08-01) e RAMIFICADA POR OPERADOR: declara 'Este config usa OperatorGAhalf (MOEAD.m:45): 1 prole por subproblema — N_efetivo por geracao', que é o mecanismo VERDADEIRO (o ledger confirma 750/750); a menção falsa a MatingPool/OperatorGA sumiu (0/750). String byte-idêntica em 750/750. A fórmula declarada floor((20D + n_dup)/N_efetivo) acerta 714/750 = 95,2%; a própria string declara que 'as que restam erram por 1' e manda 'não derive, LEIA'. As 36 falhas são exatamente as células em que N_ef divide (20D + cache_hits) — a fronteira de geração",
+   "veredito": "DEFEITO DA T11 ELIMINADO; sai de (3) para (1). Sugestão de custo zero: floor((20D + cache_hits − 1)/N_ef) acerta 750/750",
+   "muda_vs_s42": true,
+   "arquivo_linha": "src/experiment.m:2555-2601"
+  },
+  {
+   "id": "N4-1",
+   "aspecto": "Deriva cross-máquina (o padrão de prova do RUNBOOK §6.2)",
+   "classe": "2",
+   "medicao": "125 pares de execuções fisicamente distintas em máquinas diferentes (25/25 problemas, 8 sementes; wall difere mediana 23,6%) · ① BYTE-IDÊNTICA em 100/100 · n_ger/cache_hits/fe_final idênticos em 125/125 · deriva só nas estatísticas f64 do ⑥, em 14/100 pares, máximo 1,89e−14 RELATIVO, 13/14 envolvendo o host matlab-vm5 (e2-standard-32 pós-14/08) · 1/125 execuções teve a deriva convertida em decisão PBI diferente (WFG9 s8: 7/520 linhas da ②)",
+   "veredito": "conforme, e MELHOR que a doutrina exige — a doutrina 'fidelidade estatística, não bit-exata' é conservadora para este config",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "S1",
+   "aspecto": "campanha_id e env.host NÃO uniformes na frota",
+   "classe": "3",
+   "medicao": "35/750 células (4,67%) trazem campanha_id='63db46b10063_2026-08-14' (o fallback derivado de commit+data) em vez do normativo '7f4f0e429a46_M8', e as MESMAS 35 trazem env.host='matlab-vm1'/'matlab-vm5' em vez de 'vm1'/'vm5'. Todas de 14/08: vm1 (7 células) e vm5 (28). Concentração por semente: 13 (20 células), 26 (7), e 8 avulsas",
+   "veredito": "inexplicado 🎯 — nenhuma decisão sanciona; viola requisito operacional explícito",
+   "muda_vs_s42": true,
+   "arquivo_linha": "src/experiment.m:3259-3268 (campanha_id_corrente) + handoff/M8-BATCHES-OPERADOR.md §campanha"
+  },
+  {
+   "id": "S2",
+   "aspecto": "Geração-FANTASMA: n_geracoes conta uma entrada do laço sem prole",
+   "classe": "3",
+   "medicao": "42/750 células (5,6%) não têm nenhum guard hard_stop, e nelas o campo `fe` do ÚLTIMO evento moead_gen é EXATAMENTE maxfe — a geração foi registrada e o laço saiu sem gerar prole (cruzamento 42×42 perfeito). O total de tentativas nessas células é (n_ger−1)·N_ef exato. Complementarmente, k=N_ef ocorre em 36/750 e nunca k=1 nas 708 com hard_stop. Distribuição: 20 problemas distintos, nenhum concentrado",
+   "veredito": "inexplicado 🎯 mas BENIGNO e com mecanismo PROVADO: MOEAD.m:38 chama NotTerminated, que registra o resultado (disparando o hook ②+⑥) ANTES de testar FE≥maxFE. Consequência: n_geracoes sobreconta 1 nessas 42 e ②(último) é a população TERMINAL (ao contrário das outras 708)",
+   "muda_vs_s42": true,
+   "arquivo_linha": "MOEAD.m:38 + src/piso_instrument.m:27"
+  },
+  {
+   "id": "S3",
+   "aspecto": "Resíduo do bracket f32 de n_front1 em escala",
+   "classe": "3",
+   "medicao": "8/14.096 gerações (0,057%) caem 1 unidade abaixo do limite inferior CORRIGIDO do bracket da T11 (log = ND_f32 − 2 com apenas 1 grupo de empate f32). Sentido uniforme (log < recomputo) = destruição de dominância pelo export f32, nunca o contrário",
+   "veredito": "inexplicado 🎯 no sentido estrito (o bracket declarado não os cobre), porém da MESMA família já diagnosticada (D53 f32 lossy) e sem impacto: o campo é descritivo e a R4#11 já proíbe usá-lo como invariante de gate",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "H1",
+   "aspecto": "Saúde e contrato do corpus",
+   "classe": "1",
+   "medicao": "750/750 status='ok', termino='normal', n_retries=0, fallback=false, header=1, footer=1, 0 linhas malformadas, 0 registros fora do vocabulário · manifesto ≡ rodapé em n_geracoes e cache_hits em 750/750 · nenhum campo sentinela (não há −1, NaN mascarado nem lista vazia fingindo dado): os NULLs são todos DECLARADOS",
+   "veredito": "conforme; o padrão 'campo verde, dado sentinela' da T11 NÃO reaparece neste config",
+   "muda_vs_s42": false
+  }
+ ],
+ "classe3": [
+  {
+   "id": "S1",
+   "descricao": "O carimbo de campanha NÃO é uniforme na frota: 35/750 células (4,67%) gravaram campanha_id='63db46b10063_2026-08-14' — o fallback {commit12}_{data UTC} — em vez do normativo '7f4f0e429a46_M8', e as mesmas 35 gravaram env.host='matlab-vm1'/'matlab-vm5' em vez de 'vm1'/'vm5'. São todas de 14/08 (vm1: 7 células; vm5: 28), i.e. exatamente as duas máquinas que sobraram na frota. O próprio código NOMEIA o risco (src/experiment.m:3263-3264: 'a campanha das 30 sementes leva ~21 dias, e o default derivado da data mudaria de valor no meio (o resume re-rodaria tudo)') e o handoff M8-BATCHES-OPERADOR §campanha manda cravar o mesmo valor na frota inteira. Ou seja: o requisito existia, estava escrito, e não foi cumprido nessas duas máquinas — as VMs foram (re)provisionadas em 14/08 sem os exports em ~/.bashrc / ~/.profile. IMPACTO EM FIDELIDADE DO ALGORITMO: ZERO, e provado — repo_hash idêntico em 750/750, MATLAB idêntico em 750/750, e das 35 células as que têm duplicata em outra máquina reproduzem BYTE-A-BYTE a ①. IMPACTO OPERACIONAL: real — is_run_done não reconhece essas 35 como concluídas na campanha M8, então um resume tentaria re-rodá-las, e a certidão do run (O-21) as vincula a uma campanha que não existe.",
+   "gravidade": "media",
+   "acao": "Duas ações, ambas de custo ~zero e nenhuma delas exigindo re-run: (a) DECIDIR e REGISTRAR — o autor declara se as 35 células valem como M8 (recomendo que sim: a evidência de identidade é bit-exata) e, se sim, ou se aceita a heterogeneidade com nota no REGISTRO, ou se reescreve o campanha_id dessas 35 no ⑤ por um script de metadados auditado (NÃO re-run). (b) ANTES do disparo das 1.890 células do T15: conferir os exports UA_DD_SAEA_CAMPANHA_ID e UA_DD_SAEA_HOST em shell NÃO-interativo nas duas VMs vivas (o comando já está no handoff), senão o mesmo defeito é gravado 1.890 vezes.",
+   "arquivo_linha": "src/experiment.m:3259-3268 · src/manifest.py:97 · handoff/M8-BATCHES-OPERADOR.md §campanha (linhas 240-260)"
+  },
+  {
+   "id": "S2",
+   "descricao": "Geração-FANTASMA: em 42/750 células (5,6%) o campo n_geracoes conta uma entrada do laço que produziu ZERO prole. Mecanismo provado, não inferido: MOEAD.m:38 é `while Algorithm.NotTerminated(Population)`, e o NotTerminated do PlatEMO REGISTRA o resultado (disparando o hook que emite a ② e o evento moead_gen do ⑥) ANTES de testar FE ≥ maxFE; quando o orçamento morre exatamente na fronteira de uma geração, a geração seguinte é logada e o laço sai sem gerar prole nem disparar o guard hard_stop. Evidência direta: o campo `fe` do último evento moead_gen é EXATAMENTE maxfe em 42/42 dessas células, e o cruzamento com n_hard_stop==0 é 42×42 perfeito; nas outras 708 há hard_stop com k ∈ [2,20] e k=1 NUNCA ocorre. Consequências de leitura: (i) n_geracoes sobreconta em 1 essas 42 células — qualquer análise que leia n_geracoes como 'gerações que evoluíram' erra 1 em 5,6% do config; (ii) inverte a armadilha M13/T11 — nessas 42 a ②(último bloco) É a população TERMINAL, ao contrário das outras 708; (iii) a armadilha #5 do relatório T11 ('o hard-stop cai no MEIO da geração em 25/25') é verdadeira só na s42 e falsa em escala. Nenhuma decisão do REGISTRO trata o caso.",
+   "gravidade": "baixa",
+   "acao": "Nenhuma mudança de código antes do disparo (o comportamento é o do PlatEMO stock e mexer nele violaria patch-mínimo/D30). Ação de DOCUMENTAÇÃO: (a) acrescentar ao CONTRATO/armadilhas a nota 'n_geracoes conta entradas do laço, não gerações com prole; quando o guard hard_stop está AUSENTE (5,6% das células do moead) a última geração é fantasma e a ②(último) é a população terminal'; (b) se a análise a jusante usar n_geracoes como denominador de custo por geração, subtrair 1 quando n_hard_stop==0 — o predicado é exato e barato (uma varredura do ⑥).",
+   "arquivo_linha": "algorithms/_PlatEMO/PlatEMO/Algorithms/Multi-objective optimization/MOEA-D/MOEAD.m:38 · src/piso_instrument.m:27"
+  },
+  {
+   "id": "S3",
+   "descricao": "Resíduo do bracket f32 do n_front1: em 8 de 14.096 gerações (0,057%) o valor logado (NDSort em float64 sobre pop.objs, src/piso_instrument.m:43-44) cai 1 unidade ABAIXO do limite inferior corrigido do bracket que a T11 declarou fechado. Em todas as 8 o valor é ND_f32 − 2 com apenas 1 grupo de linhas f32 bit-idênticas — ou seja, a correção 'por grupos de linha f32 idêntica' absorve uma unidade e sobra outra, vinda de um par que NÃO colide exatamente em f32 mas cujo diferencial de dominância se perde no arredondamento. Sentido uniforme (log < recomputo, destruição de dominância pelo export float32/D53); nenhuma no sentido oposto, que é o que indicaria erro de instrumentação. Casos: DTLZ3 s17 g19, DTLZ4 s23 g9, MMF16_20 s6/s14/s18/s22, WFG4 s4 g22 e g23. Isto não é um defeito NOVO — é a mesma família já sancionada (D53 + R4#11) — mas é a demonstração de que o 'ZERO fora do bracket em 469 gerações' da T11 não sobrevive a 14.096.",
+   "gravidade": "baixa",
+   "acao": "Não tocar em nada. Registrar a taxa (0,057%) como o resíduo medido do bracket e usá-la como especificação da ferramenta nd_bracket_f32() que a F5.4 pediu e que segue pendente: o bracket deve ser [ND_f32 − (empates exatos) − (quase-empates a 1 ULP de f32), ND_estrito], e a regra 11 do CONTRATO deve dizer explicitamente que o n_front1 NÃO é invariante de gate nem com bracket.",
+   "arquivo_linha": "src/piso_instrument.m:43-44"
+  }
+ ],
+ "score": 9.3,
+ "score_t11": 9,
+ "veredito_recomendado": "ACEITAR — recomendação, não sentença (D97: a validação de fidelidade é manual e do autor). O config moead entrega o corpus mais limpo que auditei: 750/750 células ok, zero ⚪, zero falha, zero retry, zero linha malformada, e TODAS as identidades estruturais do mecanismo fechando em 750/750 (não em amostra). Os DOIS classe (3) que a T11 apontou foram CORRIGIDOS no código antes desta campanha (BL-14 para a flag frente1_excede_pop, BL-13 para a string geracoes_derivadas) e eu VERIFIQUEI as duas correções em 750/750 — inclusive nas 31 células em que o caso-limite da flag é de fato exercitado. Os três classe (3) que restam são todos da camada de METADADO/PROVENIÊNCIA, todos com mecanismo nomeado em arquivo:linha, todos com impacto quantificado e nenhum toca a busca. MOVIMENTO 9,0 → 9,3, causas nomeadas: (+) os dois (3) da T11 provados eliminados em produção, e não em smoke; (+) as joias promovidas de 25/25 para 750/750, com M9 fechando conjunto E ORDEM em float64 inclusive no DTLZ4, que na s42 quebrava em f32; (+) X1/X2 (repo_hash, campanha schema v2, sigma_dict) agora medidos na campanha real, 750/750; (+) N4 entrega bit-identidade cross-máquina da ① em 100/100, um padrão de prova MAIS FORTE do que o RUNBOOK §6.2 exige; (−) S1, o campanha_id não uniforme em 35/750, que é a primeira classe (3) deste config com consequência OPERACIONAL (o resume) e não apenas de leitura; (−) S2 e S3, ambos benignos e provados, mas ambos são casos que a T11 declarou fechados com 25 células e que 750 reabriram. Não é 10 porque S1 viola um requisito operacional escrito e a heterogeneidade não está sancionada por nenhuma decisão; não é 9,5 porque S2 e S3 mostram que duas afirmações de fechamento da T11 ('hard-stop no meio em 25/25', 'ZERO fora do bracket') eram artefatos de amostra. CAVEAT DE USO que sobrevive e fica mais forte com a réplica: o moead é o PIOR dos 4 pisos em 598/750 células e define o teto da banda em 79,7% — deve ser lido como a régua CASADA de b3/c122/b1 e como UMA das quatro bordas da banda (DEF-A13), NUNCA como 'o piso' isolado.",
+ "decisoes_ao_autor": [
+  "ESCALAÇÃO D81 nº 1 (S1) — 35/750 células do moead carregam campanha_id='63db46b10063_2026-08-14' (fallback por data) em vez do normativo '7f4f0e429a46_M8', e env.host no formato 'matlab-vmX'. São de 14/08, vm1 (7) e vm5 (28). O requisito de cravar a env var idêntica na frota está escrito no handoff M8-BATCHES-OPERADOR §campanha e o risco está NOMEADO no próprio código (src/experiment.m:3263). Não escolho sozinho: o autor decide (a) se as 35 valem como campanha M8 — minha EVIDÊNCIA é que sim, porque a ① delas é byte-idêntica às cópias das outras máquinas e o repo_hash é o mesmo em 750/750 —, e (b) se corrige o metadado por script auditado ou aceita a heterogeneidade com nota no REGISTRO. NÃO recomendo re-run: seria trocar dado provado por dado novo sem ganho. ⚠ Independentemente da decisão, conferir os exports em shell não-interativo nas 2 VMs vivas ANTES do disparo do T15, senão o mesmo carimbo errado vai para 1.890 células.",
+  "ESCALAÇÃO D81 nº 2 (contradição interna da SPEC) — o §3.2 tem duas afirmações que se contradizem e as 30 sementes decidem qual é a verdadeira. O ponto 4 da justificativa do N=20 diz que o valor dá 'evolução real em todo o grid, SEM colapsar a diversidade populacional (que N=10 comprometeria, sobretudo... em M=3)'. O ponto 5 diz que com N=20 a taxa de duplicata bit-exata SOBE e que isso é conhecido e aceito. MEDIDO: a população final tem mediana de 73,3% de únicos, 476/750 células abaixo de 80%, mínimo 50% — a diversidade colapsa mesmo; e o colapso é PIOR em M=2 (70,0%) do que em M=3 (82,2%), invertendo o medo específico do parêntese. O ponto 5 está certo, o ponto 4 está errado. Classifico como 🟣 errata do texto (D29): fica o código, corrige-se a SPEC. Quem escreve a errata é o autor.",
+  "ESCALAÇÃO D81 nº 3 (números velhos no §3.2 que a réplica derruba) — 'gerações = 20D ÷ pop ⇒ 2 (D=2) a 30 (D=30)' acerta 0/750; o observado é 3 a 42. Os três exemplos nomeados no ponto 4 ('2 em D=2, 12 no DTLZ2, 30 no ZDT1') são todos falsos e sempre para menos: medi 3 (30/30 sementes), 17–19 (mediana 18) e 35–41 (mediana 38). Causa: a D89 (o clone gasta slot, não FE) e, no DTLZ2, também o lattice (N_ef=15). A forma correta, medida, é n_ger = ceil((20D + cache_hits − N_ef)/N_ef), exata em 750/750. Decisão do autor: atualizar o texto do §3.2/§6.4 ou registrar a errata.",
+  "DECISÃO PEQUENA E DE CUSTO ZERO (X3) — a string params.geracoes_derivadas já está CERTA no mecanismo (OperatorGAhalf, 1 prole por subproblema) e é honesta ao se declarar aproximada, mas a fórmula que ela publica, floor((20D + n_dup)/N_efetivo), erra +1 em 36/750 = 4,8% das células. Medi o predicado exato das falhas: acontece quando N_efetivo divide (20D + cache_hits), i.e. quando o orçamento morre na fronteira de geração. A forma EXATA é floor((20D + cache_hits − 1)/N_efetivo), que acerta 750/750. É uma edição de 1 token em src/experiment.m:2580-2600. Também vale corrigir a explicação do resíduo: a string diz que erra porque 'o efeito de um cache-hit depende de QUANDO ele cai' — o mecanismo real é a divisibilidade, que é determinística.",
+  "REGISTRO PARA A ANÁLISE (não é decisão de fidelidade) — a forma fechada da clonagem (M6), que a T11 declarou fechada com IC95 contendo a previsão em 25/25 células, contém em 678/750 = 90,4% em escala; o erro agregado é 3,8% (previsto 42.785, medido 44.473). O FENÔMENO é invariante de semente (taxa 17,44% global, f_g=0 na geração 1 em 750/750); o MODELO é aproximação. Se a dissertação for citar a forma fechada, deve citá-la como aproximação com esses números, não como identidade.",
+  "NOTA METROLÓGICA PARA O D97 (N4) — para ESTE config o padrão de prova pode ser mais forte do que a doutrina do RUNBOOK §6.2 permite em geral: a ① é BYTE-IDÊNTICA em 100/100 pares de execuções cross-máquina. A deriva real existe mas mora só nas estatísticas float64 do ⑥ (≤1,89e−14 relativo, 13/14 dos casos envolvendo a vm5 pós-e2-standard-32) e virou resultado diferente em 1 de 125 execuções (WFG9 s8, 7/520 linhas da ②, num par de soluções bit-idênticas em float32). Como a deriva é 7 ordens de grandeza menor que a resolução do export, nenhum contraste de métrica sobre a ① pode ser afetado. Sugiro que o autor decida se estende essa medição aos outros pisos antes de generalizar a doutrina — eu só medi o moead.",
+  "O QUE NÃO CAIU E SEGUE TETO — (a) o miolo do laço PBI (Z interno, g_old/g_new, θ=5, randperm, consumo de RNG, contagem BRUTA de substituições): 30 sementes não criam rastro onde não há hook; segue rejeitado no DI-10/D30. (b) A validade de N=20: PROVISÓRIA por DI-39, e o SUB-varN não existe nesta campanha (conferi os 22 configs do censo). Todo o comportamento M5–M8, que é a assinatura inteira deste config, é função desse valor provisório. (c) O elo com o PlatEMO vendorizado: o repo_hash certifica o repo-mãe (uniforme em 750/750), mas o content_hash do repo aninhado continua fora do ⑤."
+ ]
+}

@@ -1,0 +1,423 @@
+{
+  "id": "c241",
+  "sigla": "EMMOEA",
+  "titulo": "A Performance Indicator-Based Infill Criterion for Expensive Multi-/Many-Objective Optimization",
+  "ano": 2023,
+  "roster": false,
+  "setup": {
+    "benchmarks": "3 suítes de teste sintéticas multi-/muitos-objetivo, todas com D=10 (D=11 apenas para WFG2-3 com m=10): DTLZ1-DTLZ7 (m=3,5,10 cada = 21 instâncias); MaF1-MaF6 + MaF13 (m=3,5,10 cada = 21 instâncias — MaF7 é idêntico ao DTLZ7 e MaF10-MaF12 idênticos a WFG1/WFG2/WFG9, reaproveitados só na contagem agregada da Tabela VII; MaF8/MaF9 excluídos por não serem escaláveis, MaF14/MaF15 excluídos por serem large-scale); WFG1-WFG9 (m=3,5,10 cada = 27 instâncias). Total = 69 combinações M×problema sintéticas. Mais 2 problemas reais de engenharia (diferentes dos 3 da dissertação): car cab design — CCD (11 variáveis, 9 objetivos) e LTLCL switching ripple suppressor — LTLCL-srs (13 variáveis, 10 objetivos).",
+    "orcamento": "DoE inicial (LHS) = 100 amostras fixas, não escala com D nem segue a convenção 11D-1/31D-1 da dissertação. Orçamento TOTAL de avaliações caras (DoE+infill) = 300 para TODOS os algoritmos e problemas — logo 200 avaliações de infill, 1 ponto por iteração (regime online, q=1, sem lote).",
+    "execucoes": "20 execuções independentes por algoritmo × problema/configuração, em todos os estudos do artigo (sensibilidade a gmax, as duas ablações e a comparação com o estado da arte, incluindo os 2 problemas reais).",
+    "baselines": "5 algoritmos surrogate-assisted estado-da-arte, TODOS eles próprios assistidos por surrogate — nenhum piso evolutivo puro sem surrogate (tipo NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) aparece em nenhuma comparação do artigo: CSEA (classificador de dominância via rede neural feedforward), K-RVEA (GP por objetivo + gestão por diversidade/convergência), MOEA/D-EGO (GP + MOEA/D), HSMEA (múltiplos surrogates heterogêneos, escolhe o de menor RMSE), e EIM (Zhan, Cheng & Liu, 2017, ref. [37] — o MESMO artigo já minerado no corpus como c238, roster:true da dissertação: GP por objetivo + matriz de melhoria esperada). Dois variantes de ablação criadas pelos próprios autores para os estudos internos: EMMOEA-IP (otimiza diretamente o EI do indicador de desempenho durante toda a busca, sem separar busca-de-candidatos de gestão-do-surrogate) e EMMOEA-EIM (usa a matriz EIM em vez do indicador de desempenho proposto para a gestão do surrogate, mantendo fixa a etapa de busca de candidatos).",
+    "metricas_principais": [
+      "IGD — inverted generational distance; métrica primária de todo o corpo principal (Tabela I de sensibilidade, e Tabelas IV-VII da comparação com o estado da arte)",
+      "HV — hypervolume; usado nas Tabelas II e III (ablações) e VIII (aplicações reais); NÃO aparece nas Tabelas IV-VII no corpo principal (relegado ao material suplementar)",
+      "IGD+ — citada apenas via referência [62]; usada somente no material suplementar (comparação com SMS-EGO), nunca no corpo principal deste documento"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum test com correção de Bonferroni, α=0.05 — compara cada algoritmo/variante comparado contra o EMMOEA proposto especificamente (não contra 'o melhor de cada problema'); teste NÃO pareado (rank-sum, não signed-rank) — não há evidência de DoE inicial compartilhado entre os 6 algoritmos comparados, ao contrário do desenho pareado por semente da dissertação."
+    ],
+    "apresentacao": "Média ± desvio-padrão (não mediana) por célula em todas as tabelas numéricas; melhor resultado da linha destacado ('highlighted'); símbolos [+ / − / ≈] indicam se o algoritmo/variante comparado é significativamente melhor, pior ou aproximadamente igual ao EMMOEA (Wilcoxon rank-sum + Bonferroni, α=0.05); linha de contagem +/-/≈ ao final de cada tabela comparativa. Para as figuras de fronteira final (2D/3D, Figs. 4-8) e de coordenadas paralelas (m=10, Figs. 10-12), usa-se a execução cujo IGD é o mais próximo do IGD MEDIANO entre as 20 execuções (convenção de 'execução mediana', igual à ficha 54 da dissertação). As curvas de convergência (Fig. 9) são a MÉDIA (não mediana/IQR) sobre as 20 execuções, eixo x em nº absoluto de avaliações (100 a 300), sem qualquer piso sem surrogate na comparação. Percentage improvement (PI) é usado como métrica adicional apenas na Tabela VIII (aplicações reais).",
+    "codigo_plataforma": "PlatEMO (todos os 5 algoritmos-baseline implementados nessa plataforma; ponto de referência do HV fixo em (1.1,1.1,...,1.1), igual ao padrão do PlatEMO). SBX + mutação polinomial (ηc=ηm=20, pc=1, pm=1/D) geram a população offspring na otimização baseada em modelo; seleção ambiental por vetores de referência de Das e Dennis (91/85/65 vetores para m=3/5/10) com a solução mais próxima do ponto ideal por vetor — mecânica de decomposição (compatível com a classificação motor=EA-Decomposição)."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade ao nº de gerações da busca no surrogate (gmax)",
+      "grupo_sugerido": "E",
+      "descricao": "Estudo de sensibilidade do hiperparâmetro gmax (nº máximo de gerações da otimização baseada em modelo, que busca sobre os GPs dos objetivos ANTES da gestão do surrogate) sobre o IGD, testando 7 valores (1, 5, 10, 15, 20, 30, 50) nos problemas MaF (M=3 e M=10, 11 funções cada), com média±dp e rank de 1 a 7 por linha, mais um rank médio agregado ao final de cada coluna.",
+      "literal": "the performance of the proposed algorithm on the MaF test problems using different values of gmax.",
+      "localizador": "Sec. III-B, Table I",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [],
+      "convencoes": "média (dp) por célula; rank de 1 a 7 por linha (posição do MO-gX entre as 7 configurações); rank médio agregado ao pé da tabela; nenhum teste de hipótese formal, apenas ranking descritivo.",
+      "achado": "gmax=30 obtém o melhor rank médio (3.55), mas o desempenho é 'relatively insensitive' entre gmax=10 e gmax=50 (rank médio de 3.55 a 4.00); os autores adotam gmax=10 nos demais experimentos para 'reduce computation time as much as possible', não por ser o melhor rank — uma escolha explícita de custo sobre qualidade marginal.",
+      "aplicabilidade": "não reproduzível diretamente — exige rodar variantes do próprio algoritmo com gmax alternativo, o que não está entre os dados coletados pela instrumentação (que grava a execução com os hiperparâmetros originais fixos); o argumento de custo citado poderia ser parcialmente aproximado via ④ (tempo por geração), mas não o efeito sobre o IGD."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação da separação busca-de-candidatos/gestão-do-surrogate (EMMOEA × EMMOEA-IP)",
+      "grupo_sugerido": "E",
+      "descricao": "Compara o EMMOEA completo (busca de candidatos nos GPs dos objetivos — sem uso de σ — seguida de seleção via EI do indicador de desempenho — com σ) contra a variante EMMOEA-IP, que remove essa separação: otimiza diretamente o EI do próprio indicador de desempenho (usando o GP do indicador, logo σ, ao longo de TODA a busca populacional) para achar a solução a avaliar. Testado em 11 problemas MaF com 10 objetivos, métricas HV e IGD, 20 execuções.",
+      "literal": "the proposed EMMOEA can significantly perform better on eight and six of 11 MaF functions than EMMOEA-IP with regard to HV and IGD results, respectively.",
+      "localizador": "Sec. III-C, Table II",
+      "metricas": [
+        "HV",
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test com correção de Bonferroni, α=0.05 (mesmo teste geral descrito na Sec. III-A)"
+      ],
+      "convencoes": "média (dp); símbolos [+/-/≈] do EMMOEA-IP vs. EMMOEA; linha de contagem ao final (HV: 0/8/3; IGD: 1/6/4 — a única vitória do EMMOEA-IP é MaF4 no IGD, verificada célula a célula e consistente com a linha impressa).",
+      "achado": "Separar a busca de candidatos (médias dos GPs dos objetivos, sem incerteza) da gestão do surrogate (EI sobre o indicador, com incerteza) é melhor do que expor toda a busca populacional ao critério de aquisição EI/incerteza: EMMOEA-IP perde para o EMMOEA em 8/11 (HV) e 6/11 (IGD) funções, com apenas 1 vitória (MaF4, IGD) — um resultado negativo específico para 'mais incerteza na busca, o tempo todo'.",
+      "aplicabilidade": "não reproduzível com as 7 camadas — exige rodar uma variante estrutural do próprio algoritmo (arquitetura de busca alternativa) que não foi instrumentada; não há camada equivalente a 'remover um estágio do pipeline e re-executar'."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação do indicador de desempenho próprio vs. matriz EIM (EMMOEA × EMMOEA-EIM)",
+      "grupo_sugerido": "E",
+      "descricao": "Compara o EMMOEA completo (gestão do surrogate via GP do indicador de desempenho IP + EI escalar) contra a variante EMMOEA-EIM, que substitui essa etapa pela matriz de melhoria esperada (EIM) de Zhan et al. — múltiplos valores de EI por objetivo computados diretamente dos GPs dos objetivos e das soluções não-dominadas do conjunto de treino — mantendo fixa a mesma etapa de busca de candidatos. Testado nos mesmos 11 problemas MaF de 10 objetivos, HV e IGD, 20 execuções.",
+      "literal": "the proposed EMMOEA significantly outperforms its EIM variant on seven and six of 11 functions in terms of HV and IGD, respectively.",
+      "localizador": "Sec. III-D, Table III",
+      "metricas": [
+        "HV",
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test com correção de Bonferroni, α=0.05 (mesmo teste geral descrito na Sec. III-A)"
+      ],
+      "convencoes": "média (dp); símbolos [+/-/≈] do EMMOEA-EIM vs. EMMOEA; linha de contagem ao final.",
+      "achado": "O indicador de desempenho próprio (convergência+diversidade combinadas em um único GP+EI) supera a matriz EIM clássica quando embutida na mesma arquitetura de duas etapas: o texto reporta EMMOEA melhor que EMMOEA-EIM em 7/11 (HV) e 6/11 (IGD) das 11 funções MaF — mas a soma célula-a-célula da coluna HV da Tabela III não bate com essa linha de resumo impressa (ver observações). Como o critério substituído é o EIM do próprio roster c238 (Zhan et al. [37]), o achado é evidência (dentro desta arquitetura específica) de que o indicador escalar do EMMOEA é preferível à matriz EIM — não uma comparação direta com o EIM standalone tal como publicado originalmente.",
+      "aplicabilidade": "não reproduzível com as 7 camadas — exige rodar uma variante estrutural do próprio algoritmo (substituição do módulo de gestão do surrogate) que não foi instrumentada."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo MENCIONA (sem detalhar no corpo principal) uma comparação adicional com o algoritmo SMS-EGO [35] em problemas DTLZ1-7 de 3 objetivos, reportando estatísticas de IGD+, HV e IGD — mas a tabela completa (Tabela I do material suplementar) não está incluída neste corpus.",
+      "literal": "In the Supplementary material, we also make a comparison with SMS-EGO [35] on 3-objective DTLZ1-7 test problems.",
+      "localizador": "Sec. III-D (corpo principal remete a 'Table I of the Supplementary material')",
+      "metricas": [
+        "IGD+",
+        "HV",
+        "IGD"
+      ],
+      "testes": [],
+      "convencoes": "não especificadas no corpo principal — a tabela em si está no material suplementar, indisponível neste corpus.",
+      "achado": "Segundo o texto, 'the proposed method outperforms SMS-EGO' nos problemas DTLZ1-7 de 3 objetivos — mas os números específicos não estão acessíveis nesta versão do artigo, apenas a citação textual do resultado.",
+      "aplicabilidade": "não reproduzível — dados no material suplementar não incluído neste corpus; mesmo se disponíveis, exigiria rodar SMS-EGO, que não é um algoritmo do roster.",
+      "observacoes": "só mencionada — conteúdo integral (Tabela I do material suplementar) não está presente neste corpus (o markdown processado cobre corpo principal + referências + OCR de imagens, sem material suplementar)."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela de IGD (média±dp) do EMMOEA contra 5 algoritmos surrogate-assisted estado-da-arte (CSEA, K-RVEA, HSMEA, MOEA/D-EGO, EIM) em DTLZ1-DTLZ7 com 3, 5 e 10 objetivos (21 instâncias), 20 execuções independentes, com símbolo de Wilcoxon rank-sum (+/-/≈) indicando se cada baseline é significativamente melhor, pior ou equivalente ao EMMOEA.",
+      "literal": "EMMOEA obtains statistically better results than CSEA, K-RVEA, HSMEA, MOEA/D-EGO and EIM, on 18, 17, 15, 19 and 15, respectively, out of 21 instances.",
+      "localizador": "Sec. III-E, Table IV",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test com correção de Bonferroni, α=0.05"
+      ],
+      "convencoes": "média (dp) por célula; melhor resultado destacado ('highlighted'); símbolo [+/-/≈] de cada baseline vs. EMMOEA; linha de contagem +/-/≈ por baseline ao final; HV e IGD+ para estas mesmas 21 instâncias NÃO aparecem no corpo principal (relegados ao material suplementar).",
+      "achado": "EMMOEA vence a maioria das comparações (18, 17, 15, 19, 15 de 21, respectivamente), mas falha em DTLZ6 (m=3,5 — frente degenerada, função g com potência) e DTLZ7 (todos os m — frente desconexa), atribuído pelos autores à inadequação dos vetores de referência uniformes para frentes degeneradas/desconexas.",
+      "aplicabilidade": "reproduzível via ① (todas as avaliações reais) — recomputar o ND acumulado de duas execuções de algoritmos do roster no mesmo problema e aplicar Wilcoxon rank-sum (não pareado); a dissertação usaria IGD+ (não IGD) como métrica primária e poderia explorar o desenho pareado por DoE compartilhado (ficha 5), mais forte que o teste não pareado usado aqui."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma estrutura da análise anterior (IGD média±dp, Wilcoxon vs. EMMOEA, 20 execuções), aplicada a MaF1-MaF6 e MaF13 com 3, 5 e 10 objetivos (21 instâncias; MaF7=DTLZ7 e MaF10-12=WFG1/2/9 são compartilhados com as outras tabelas na contagem agregada; MaF8/9 não-escaláveis e MaF14/15 large-scale foram excluídos).",
+      "literal": "EMMOEA obtains better results on 14, 15, 14, 17 and 13 out of 21 test problems than CSEA, K-RVEA, HSMEA, MOEA/D-EGO, and EIM, respectively.",
+      "localizador": "Sec. III-E, Table V",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test com correção de Bonferroni, α=0.05"
+      ],
+      "convencoes": "idêntica à análise da Tabela IV; MaF7/MaF10-12 reaproveitados de DTLZ7/WFG para as contagens agregadas da Tabela VII, mas a Tabela V lista apenas MaF1-6 e MaF13.",
+      "achado": "EMMOEA vence a maioria (14 de 21 no total), mas fica atrás do próprio EIM em MaF1 (m=10, EIM [+]), MaF2 (m=3,5,10, EIM [+] nos três) e MaF3 (m=5,10, EIM [+]) — os únicos casos em que um mesmo baseline (EIM) supera o EMMOEA de forma significativa em múltiplas instâncias da mesma função.",
+      "aplicabilidade": "mesma da análise da Tabela IV — reproduzível via ① recomputando IGD (ou IGD+) e Wilcoxon (pareado ou não) entre dois algoritmos do roster nos mesmos problemas MaF."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma estrutura das duas análises anteriores (IGD média±dp, Wilcoxon vs. EMMOEA, 20 execuções), aplicada a WFG1-WFG9 com 3, 5 e 10 objetivos (27 instâncias).",
+      "literal": "compared to CSEA, K-RVEA, HSMEA, MOEA/D-EGO and EIM, EMMOEA performs the best on 24, 19, 20, 27 and 18 out of 27 WFG instances.",
+      "localizador": "Sec. III-E, Table VI",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test com correção de Bonferroni, α=0.05"
+      ],
+      "convencoes": "idêntica às Tabelas IV-V.",
+      "achado": "EMMOEA nunca perde para CSEA ou MOEA/D-EGO em nenhuma das 27 instâncias WFG ('performs no worse... on all WFG test problems') e perde apenas 1, 3 e 3 vezes para K-RVEA, HSMEA e EIM, respectivamente — a suíte WFG é onde o EMMOEA tem o domínio mais amplo entre as três suítes sintéticas.",
+      "aplicabilidade": "mesma das análises das Tabelas IV-V."
+    },
+    {
+      "fichas": [
+        2,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela-resumo que agrega as contagens de +/-/≈ (Wilcoxon vs. EMMOEA) das três tabelas de comparação em uma única contagem por baseline, sobre as 69 instâncias combinadas (21 DTLZ + 21 MaF + 27 WFG).",
+      "literal": "EMMOEA performs better than CSEA, K-RVEA, HSMEA, MOEA/D-EGO, and EIM on 56, 51, 49, 63 and 46 out of 69 problems, while it is inferior to them only on 2, 4, 10, 4 and 10 problems, respectively.",
+      "localizador": "Sec. III-E, Table VII",
+      "metricas": [
+        "IGD (herdada das Tabelas IV-VI)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test com correção de Bonferroni, α=0.05 (agregação das mesmas comparações)"
+      ],
+      "convencoes": "contagem de instâncias em que cada baseline é [+], [-] ou [≈] frente ao EMMOEA especificamente (não frente ao melhor de cada linha) — distinto do rank médio (ficha 2) e mais próximo do símbolo por linha (ficha 3), mas sempre vs. um algoritmo de referência fixo escolhido pelos autores, não vs. o vencedor de cada problema; somas conferidas e corretas (2+56+11=69; 4+51+14=69; 10+49+10=69; 4+63+2=69; 10+46+13=69).",
+      "achado": "Em 69 instâncias sintéticas, EMMOEA perde apenas 2/69 para CSEA, 4/69 para K-RVEA, 10/69 para HSMEA, 4/69 para MOEA/D-EGO e 10/69 para EIM — as maiores taxas de derrota (HSMEA e EIM, 10/69 cada) concentram-se nos casos de frente degenerada/desconexa (DTLZ6/7) e nalguns MaF1-3.",
+      "aplicabilidade": "reproduzível via ① agregando os resultados equivalentes às três análises anteriores — mas não é o desenho padrão da dissertação (fichas 2/3 comparam vs. rank médio ou vs. o melhor de cada problema, não vs. um único algoritmo fixo escolhido pelos autores)."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para 5 problemas de 3 objetivos (DTLZ2, DTLZ5, DTLZ7, MaF1, WFG2), plota-se o conjunto não-dominado da execução cujo IGD é o mais próximo da mediana das 20 execuções, para cada um dos 6 algoritmos comparados, contra a frente de Pareto verdadeira — inspeção visual qualitativa de cobertura/distribuição.",
+      "literal": "we plot the non-dominated solutions of one run, whose IGD value is the closest to the median IGD value of 20 independent runs.",
+      "localizador": "Sec. III-E, Figs. 4-8",
+      "metricas": [
+        "IGD (usado apenas para selecionar a execução mediana exibida)"
+      ],
+      "testes": [],
+      "convencoes": "execução mediana por IGD entre 20 execuções (mesma convenção-padrão da dissertação, ficha 54); DTLZ5 e DTLZ7 têm frentes degenerada e desconexa, respectivamente; MaF1 é uma variante do DTLZ1 com frente linear invertida.",
+      "achado": "EMMOEA cobre uma faixa mais ampla da frente verdadeira em DTLZ2, DTLZ5, MaF1 e WFG2 que os demais algoritmos ('more diverse non-dominated solutions'); em DTLZ7 (desconexo) EMMOEA é comparável a K-RVEA e HSMEA, mas claramente melhor que CSEA, MOEA/D-EGO e EIM.",
+      "aplicabilidade": "diretamente reproduzível via ① — a mesma convenção de execução mediana por IGD (ou IGD+) é a convenção-padrão da dissertação para a ficha 54."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de convergência do IGD e do HV em função do número de avaliações caras (de 100, fim do DoE, a 300), para os mesmos 5 problemas de 3 objetivos e 6 algoritmos da análise anterior, com valores médios (não mediana) sobre as 20 execuções independentes.",
+      "literal": "the proposed EMMOEA method converges relatively slowly in the beginning when the number of function evaluations is fewer than 150 and then much faster afterwards.",
+      "localizador": "Sec. III-E, Fig. 9",
+      "metricas": [
+        "IGD",
+        "HV"
+      ],
+      "testes": [],
+      "convencoes": "curva = MÉDIA (não mediana/IQR) sobre as 20 execuções; eixo x = número absoluto de avaliações caras (100-300), não fração normalizada do orçamento; nenhum piso evolutivo sem surrogate está entre os 6 algoritmos plotados (não há 'banda dos pisos' possível, ao contrário da ficha 26 padrão).",
+      "achado": "EMMOEA converge devagar no início (<150 avaliações) e mais rápido depois; supera os demais em 3 dos 5 problemas apenas na faixa final do orçamento (200-300 avaliações) — a vantagem do EMMOEA se concentra no fim da busca, não no início.",
+      "aplicabilidade": "parcialmente reproduzível via ① (ND acumulado a cada checkpoint) — mas a dissertação usa mediana+IQR por checkpoint com banda dos pisos (ficha 26 padrão), enquanto este artigo usa média simples e não inclui nenhum piso sem surrogate na comparação."
+    },
+    {
+      "fichas": [
+        54,
+        55
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para 3 problemas de 10 objetivos (DTLZ3, WFG3, WFG9), plotam-se as coordenadas paralelas do conjunto não-dominado da execução de IGD mais próxima da mediana (mesma convenção da análise das Figs. 4-8), para os 6 algoritmos comparados e o conjunto de Pareto verdadeiro, permitindo inspecionar a distribuição objetivo-a-objetivo em espaços de muitos objetivos onde o scatter 3D não é viável.",
+      "literal": "the parallel coordinates of non-dominated solutions obtained by EMMOEA and other five algorithms on 10-objective DTLZ3.",
+      "localizador": "Sec. III-E, Figs. 10-12",
+      "metricas": [
+        "IGD (usado apenas para selecionar a execução mediana exibida)"
+      ],
+      "testes": [],
+      "convencoes": "execução mediana por IGD (mesma convenção da ficha 54); técnica de visualização = coordenadas paralelas (não scatter 2D/3D), necessária pois M=10>3; sem worst/median/best por attainment (ficha 55a) — apenas a execução mediana única.",
+      "achado": "Em DTLZ3, EMMOEA tem convergência melhor que os comparados e comparável ao CSEA; em WFG3 e WFG9, a distribuição das soluções do EMMOEA é 'much better' objetivo-a-objetivo que a dos comparados, com o CSEA também obtendo desempenho competitivo nesses dois casos.",
+      "aplicabilidade": "reproduzível via ① (mesma convenção de execução mediana), mas exigiria implementar a técnica de coordenadas paralelas (não usada por padrão na dissertação para m>3; o dado bruto x/f de todas as avaliações reais necessário já está em ①)."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela de HV (média±dp) e melhoria percentual (PI) do EMMOEA contra os mesmos 5 baselines em dois problemas reais de engenharia: projeto de cabine de carro (CCD, 11 variáveis, 9 objetivos) e supressor de ondulação de comutação LTLCL (LTLCL-srs, 13 variáveis, 10 objetivos), 20 execuções, Wilcoxon vs. EMMOEA.",
+      "literal": "the minimum percentage improvements of EMMOEA are 6.39% and 4.94% on CCD and LTLCL-srs problems, respectively.",
+      "localizador": "Sec. III-F, Table VIII",
+      "metricas": [
+        "HV",
+        "percentage improvement (PI)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test com correção de Bonferroni, α=0.05"
+      ],
+      "convencoes": "média (dp) de HV; PI = melhoria percentual do HV médio do EMMOEA sobre cada baseline; melhor resultado (maior HV médio) destacado; TODOS os 5 baselines marcados [-] (piores que EMMOEA) em AMBOS os problemas — nenhuma vitória ou empate de nenhum baseline em nenhum dos dois problemas reais.",
+      "achado": "EMMOEA vence todos os 5 baselines em ambos os problemas reais (varredura completa, 0 empates/derrotas) — a maior margem é sobre K-RVEA no CCD (PI=53.02%) e a menor é sobre o próprio EIM em ambos os problemas (PI=6.39% no CCD, 4.94% no LTLCL-srs) — o EIM é consistentemente o baseline mais próximo do EMMOEA nos dois problemas reais.",
+      "aplicabilidade": "não reproduzível com os problemas reais da dissertação (RE21/ESTOQUE40/DDMOP7 são diferentes de CCD/LTLCL-srs) — mas a estrutura da tabela (média±dp, PI%, símbolo de Wilcoxon) é reproduzível via ① para os 3 problemas reais do roster, caso se queira adicionar a métrica de melhoria percentual (PI), que a dissertação não usa por padrão."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Exemplo numérico ilustrativo do conflito entre EI por objetivo (motivação, Fig. 1)",
+      "grupo_sugerido": "E",
+      "descricao": "Exemplo hipotético e ilustrativo (não dados de execução real) com dois pontos unidimensionais x1, x2 de um problema biobjetivo genérico: usando valores fictícios de μ/σ de dois GPs (um por objetivo), mostra-se numericamente que EIf1(x1) < EIf1(x2) enquanto EIf2(x1) > EIf2(x2) — o EI canônico por objetivo não indica qual ponto escolher quando M>1, motivando a necessidade de um critério agregado.",
+      "literal": "it is hard to choose one solution for expensive objective evaluations by using the canonical EI when the number of objectives is larger than one.",
+      "localizador": "Sec. I (Introdução), Fig. 1",
+      "metricas": [
+        "EI (valores ilustrativos por objetivo, não medição real)"
+      ],
+      "testes": [],
+      "convencoes": "valores de μ, σ e EI fabricados para fins didáticos (ex.: f1(x1)=0.6797, s1(x1)=0.0413, EIf1(x1)=2.0652e-12); não deriva de nenhuma execução real de algoritmo.",
+      "achado": "Demonstra numericamente o problema central que motiva o artigo: o EI mono-objetivo aplicado separadamente a cada objetivo pode apontar em direções conflitantes (um ponto tem maior EI no objetivo 1, o outro maior EI no objetivo 2), sem critério natural de desempate — daí a proposta de um indicador escalar único (IP) com seu próprio GP+EI.",
+      "aplicabilidade": "não reproduzível — é um exemplo numérico ilustrativo construído com valores hipotéticos de μ/σ, não dados de execução real de nenhum algoritmo do roster."
+    },
+    {
+      "fichas": [
+        47
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo MENCIONA (sem detalhar no corpo principal) uma análise do tempo computacional exigido pelos 6 algoritmos comparados, remetendo ao material suplementar para os números.",
+      "literal": "An analysis of the computational time required by the algorithms under comparison is given in the Supplementary material.",
+      "localizador": "Sec. IV (Conclusion)",
+      "metricas": [
+        "tempo computacional (mencionado, sem números no corpo principal)"
+      ],
+      "testes": [],
+      "convencoes": "não especificadas no corpo principal.",
+      "achado": "não é possível reportar achados quantitativos de custo — apenas a existência declarada da análise; o corpo principal traz apenas um argumento QUALITATIVO de complexidade (ver campo custo).",
+      "aplicabilidade": "não reproduzível — dados no material suplementar não incluído neste corpus.",
+      "observacoes": "só mencionada — conteúdo integral no material suplementar, não incluído neste corpus."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo não mede calibração/cobertura do σ do GP (não há sonda com f verdadeiro conhecido, nem correlação σ×erro, nem verificação de cobertura μ±kσ). A única menção relacionada é um caveat genérico e não-quantificado sobre a confiabilidade do GP com poucos dados de treino, usado como motivação na Introdução, não como medição empírica.",
+    "literal": "the performance of the GP model for estimating the uncertainty level may become unreliable when the amount of training data is highly limited.",
+    "localizador": "Sec. I (Introduction)"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "(1) Argumento QUALITATIVO de complexidade no corpo principal (Conclusão): EMMOEA precisa treinar m+1 GPs por iteração (um por objetivo + um para o indicador de desempenho), herdando a complexidade cúbica O(n³) do GP, apontada como limitante para problemas de alta dimensão/grande escala. (2) Uma comparação QUANTITATIVA de tempo computacional entre os 6 algoritmos é mencionada como existente ('An analysis of the computational time required by the algorithms under comparison is given in the Supplementary material'), mas nenhuma tabela nem decomposição fit/busca/avaliação aparece no corpo principal — só no material suplementar, não incluído neste corpus.",
+    "literal": "EMMOEA needs to build a large number (m+1 for m-objective problems) of Gaussian process models, making it less suited for solving high-dimensional or large-scale multi-/many-objective optimization problems due to the cubic computational complexity of the Gaussian process models.",
+    "localizador": "Sec. IV (Conclusion)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "EMMOEA-IP (que otimiza diretamente o EI/incerteza do indicador durante TODA a busca populacional, sem separar busca-de-candidatos de gestão-do-surrogate) perde significativamente para o EMMOEA em 8 de 11 funções MaF de 10 objetivos (HV) e 6 de 11 (IGD) — mais incerteza/aquisição embutida na busca, o tempo todo, piora o resultado.",
+      "literal": "the proposed EMMOEA can significantly perform better on eight and six of 11 MaF functions than EMMOEA-IP with regard to HV and IGD results, respectively.",
+      "localizador": "Sec. III-C"
+    },
+    {
+      "descricao": "EMMOEA-EIM (substitui o indicador de desempenho + EI escalar pela matriz EIM clássica na gestão do surrogate) perde significativamente para o EMMOEA em 7 de 11 (HV, segundo o texto) e 6 de 11 (IGD) funções MaF de 10 objetivos.",
+      "literal": "the proposed EMMOEA significantly outperforms its EIM variant on seven and six of 11 functions in terms of HV and IGD, respectively.",
+      "localizador": "Sec. III-D"
+    },
+    {
+      "descricao": "EMMOEA não obtém melhores resultados nos problemas DTLZ6 de 3 e 5 objetivos (frente degenerada, função g com potência) — um dos poucos casos em que a abordagem falha claramente contra os baselines.",
+      "literal": "EMMOEA does not get better results on 3- and 5-objective DTLZ6 problems, which are much difficult to convergence.",
+      "localizador": "Sec. III-E"
+    },
+    {
+      "descricao": "EMMOEA falha em obter melhores resultados no DTLZ7 (frente desconexa) em TODOS os números de objetivos testados (3, 5, 10) — atribuído pelos autores à inadequação dos vetores de referência uniformemente distribuídos para guiar a busca numa frente desconexa.",
+      "literal": "For DTLZ7, our proposed EMMOEA fails to obtain better results, the reason, we analyse, is that the uniformly generated reference vectors are not good for guiding the search for a disconnected Pareto front.",
+      "localizador": "Sec. III-E"
+    },
+    {
+      "descricao": "Entre os 21 problemas DTLZ1-DTLZ5 (3/5/10 obj), a única falha isolada do EMMOEA é o DTLZ5 de 10 objetivos.",
+      "literal": "fails to get better results only on the 10-objective DTLZ5 test problem.",
+      "localizador": "Sec. III-E"
+    },
+    {
+      "descricao": "Caveat geral e não-quantificado dos autores: a estimativa de incerteza do GP pode se tornar pouco confiável quando há poucos dados de treino — motivação da Introdução, sem medição de calibração no artigo.",
+      "literal": "the performance of the GP model for estimating the uncertainty level may become unreliable when the amount of training data is highly limited.",
+      "localizador": "Sec. I"
+    },
+    {
+      "descricao": "Crítica geral (não específica ao EMMOEA) à 2ª categoria de critérios de infill da literatura: erros na estimativa da incerteza E dos valores dos objetivos podem induzir à escolha errada de solução para avaliação cara.",
+      "literal": "errors in estimating the uncertainty information and the objective values may mislead the selection of the right solutions for expensive evaluations.",
+      "localizador": "Sec. I"
+    },
+    {
+      "descricao": "A vantagem do EMMOEA diminui explicitamente em problemas de frente convexa — vence apenas 1 de 3 instâncias do MaF3 e do WFG1.",
+      "literal": "the advantage of the proposed algorithm will become weaker on problems with a convex Pareto front.",
+      "localizador": "Sec. III-E"
+    },
+    {
+      "descricao": "Limitação de escalabilidade declarada pelos próprios autores: EMMOEA precisa de m+1 GPs (complexidade cúbica), tornando-o pouco adequado a problemas de alta dimensão/grande escala; desempenho pode deteriorar com mais variáveis de decisão e mais amostras de treino acumuladas.",
+      "literal": "EMMOEA needs to build a large number (m+1 for m-objective problems) of Gaussian process models, making it less suited for solving high-dimensional or large-scale multi-/many-objective optimization problems.",
+      "localizador": "Sec. IV (Conclusion)"
+    },
+    {
+      "descricao": "Limitação declarada de escopo: o método é desenvolvido apenas para otimização contínua e não pode ser diretamente estendido a problemas discretos.",
+      "literal": "the proposed algorithm is developed for continuous optimization problems and cannot directly be extended to discrete optimization problems.",
+      "localizador": "Sec. IV (Conclusion)"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "O artigo argumenta que, na 1ª categoria de critérios de infill (escalarização mono-objetivo), a estimativa de incerteza do GP já é pouco confiável com poucos dados de treino, e esse problema piora com o crescimento do nº de objetivos porque o erro na incerteza E nos valores dos objetivos pode se ACUMULAR — citado pela dissertação na discussão da 'lei do teto' (§I, acúmulo de erro).",
+      "literal": "This problem may become even worse as the number of objectives increases in many-objective optimization since the error in estimating the uncertainty information and the objective values may accumulate.",
+      "localizador": "Sec. I (Introdução, parágrafo sobre a 1ª categoria de critérios de infill)"
+    },
+    {
+      "descricao": "Para a 2ª categoria de critérios de infill (escolhem entre candidatos já filtrados pelos surrogates dos objetivos), o artigo afirma que erros tanto na incerteza quanto no valor aproximado dos objetivos podem induzir à escolha errada de solução para avaliação cara — o mesmo tema de erro acumulado/propagado, agora do lado da seleção em vez da modelagem.",
+      "literal": "errors in estimating the uncertainty information and the objective values may mislead the selection of the right solutions for expensive evaluations.",
+      "localizador": "Sec. I (Introdução, parágrafo sobre a 2ª categoria de critérios de infill)"
+    },
+    {
+      "descricao": "Como justificativa de projeto, os autores afirmam que separar a busca de candidatos (nos GPs dos objetivos) da gestão do surrogate (GP do indicador + EI) evita que a gestão seja influenciada pela PROPAGAÇÃO de erros na aproximação dos objetivos e na estimativa da incerteza — o EMMOEA se posiciona como resposta arquitetural ao problema de acúmulo de erro descrito acima, o mesmo raciocínio da 'lei do teto': o gargalo é a qualidade/propagação do erro do modelo, não a álgebra do critério.",
+      "literal": "surrogate management can be directly carried out without being influenced by the propagation of the errors in approximating multiple objective functions and in estimating the uncertainty levels of the approximated objective values.",
+      "localizador": "Sec. I (Contribuições, item 1)"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "frente côncava (concave PF): DTLZ2-4, MaF2, WFG4-9 (e 'WFG13' conforme impresso — ver observações)",
+      "afirmacao": "EMMOEA é mais eficiente nesses problemas de frente côncava do que nos demais tipos de frente.",
+      "literal": "the proposed method is more efficient for solving problems with a concave PF, such as DTLZ2-4, MaF2, WFG4-9 and WFG13.",
+      "localizador": "Sec. III-E"
+    },
+    {
+      "caracteristica": "frente convexa (convex PF): MaF3, WFG1",
+      "afirmacao": "a vantagem do EMMOEA diminui em frentes convexas — vence em apenas 1 de 3 instâncias do MaF3 e do WFG1.",
+      "literal": "the advantage of the proposed algorithm will become weaker on problems with a convex Pareto front.",
+      "localizador": "Sec. III-E"
+    },
+    {
+      "caracteristica": "frente degenerada (DTLZ5 em m=10; DTLZ6 em m=3,5)",
+      "afirmacao": "DTLZ6 tem frente degenerada, difícil para vetores de referência uniformemente distribuídos convergirem, agravada pela função de potência em g; EMMOEA não vence em DTLZ6 (m=3,5) nem em DTLZ5 (m=10).",
+      "literal": "DTLZ6 has a degenerated Pareto front, which is difficult for an algorithm using a set of evenly distributed reference vectors to converge to.",
+      "localizador": "Sec. III-E"
+    },
+    {
+      "caracteristica": "frente desconexa (DTLZ7)",
+      "afirmacao": "EMMOEA falha em DTLZ7 em todos os m testados; vetores de referência uniformes não guiam bem a busca numa frente desconexa.",
+      "literal": "the uniformly generated reference vectors are not good for guiding the search for a disconnected Pareto front.",
+      "localizador": "Sec. III-E"
+    },
+    {
+      "caracteristica": "alta dimensão / muitos objetivos (limitação declarada de escalabilidade)",
+      "afirmacao": "EMMOEA precisa de m+1 GPs, tornando-o menos adequado a problemas de alta dimensão/grande escala pela complexidade cúbica do GP; o desempenho pode deteriorar com mais variáveis de decisão e mais amostras de treino acumuladas.",
+      "literal": "EMMOEA needs to build a large number (m+1 for m-objective problems) of Gaussian process models... due to the cubic computational complexity of the Gaussian process models.",
+      "localizador": "Sec. IV (Conclusion)"
+    },
+    {
+      "caracteristica": "problemas reais de engenharia (CCD, LTLCL-srs — diferentes dos 3 reais da dissertação)",
+      "afirmacao": "EMMOEA obtém a melhor média de HV em ambos os problemas reais, com PI mínimo de 6.39% (CCD) e 4.94% (LTLCL-srs), vencendo todos os 5 baselines em ambos sem nenhum empate/derrota.",
+      "literal": "the minimum percentage improvements of EMMOEA are 6.39% and 4.94% on CCD and LTLCL-srs problems, respectively.",
+      "localizador": "Sec. III-F"
+    },
+    {
+      "caracteristica": "otimização discreta (fora do escopo, limitação declarada)",
+      "afirmacao": "o método é desenvolvido apenas para otimização contínua e não pode ser diretamente estendido a problemas discretos.",
+      "literal": "the proposed algorithm is developed for continuous optimization problems and cannot directly be extended to discrete optimization problems.",
+      "localizador": "Sec. IV (Conclusion)"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) NENHUM piso evolutivo sem surrogate (NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) aparece em NENHUMA comparação do artigo — os 5 baselines e as 2 variantes de ablação são todos, eles próprios, surrogate-assisted; logo as fichas do Grupo B ('o surrogate compra?', 9-16), centradas em 'assistido × piso', não têm dados aplicáveis a este artigo (nenhuma análise foi mapeada a elas). (2) A métrica primária da dissertação (IGD+) aparece só via citação da referência [62] e no material suplementar (comparação com SMS-EGO) — NUNCA no corpo principal das Tabelas IV-VII (que usam apenas IGD); HV também está ausente das Tabelas IV-VII no corpo principal, só aparece nas Tabelas II, III e VIII. (3) O teste estatístico usado é sempre Wilcoxon RANK-SUM (não pareado, não signed-rank) com correção de Bonferroni, α=0.05, comparando cada algoritmo/variante especificamente CONTRA o EMMOEA proposto (não contra 'o melhor de cada problema' nem entre todos os pares) — e não há evidência textual de DoE inicial compartilhado entre os 6 algoritmos, ao contrário do desenho pareado por semente da dissertação. (4) A convenção de 'execução mediana' (IGD mais próximo da mediana entre as execuções) é usada tanto nas Figs. 4-8 (scatter 2D/3D, m=3) quanto nas Figs. 10-12 (coordenadas paralelas, m=10) — coincide exatamente com a convenção-padrão da dissertação (ficha 54). (5) O algoritmo 'EIM' usado como baseline em TODAS as comparações deste artigo é a referência [37] (Zhan, Cheng & Liu, 2017) — o MESMO artigo já minerado neste corpus como c238 (roster:true da dissertação). c241 fornece assim dados de desempenho adicionais do EIM sob orçamento/DoE/plataforma diferentes dos da dissertação (100 DoE + 200 infill = 300 total, D=10-11, PlatEMO) — não diretamente comparável aos dados próprios da dissertação, mas relevante como contexto de literatura sobre o EIM (inclusive: EIM é o baseline mais próximo do EMMOEA nos 2 problemas reais, Tabela VIII). (6) INCONSISTÊNCIA ARITMÉTICA encontrada na Tabela III (achado da análise EMMOEA×EMMOEA-EIM): a linha de resumo '+/-/≈' da coluna HV imprime '2/7/2', mas a contagem manual das 11 células individuais (MaF1,2,3,4,5,7,10,11,12,13) resulta em 2 [+] (MaF6, MaF11), 8 [-] (MaF1,2,3,4,5,7,12,13) e apenas 1 [≈] (MaF10) — ou seja, '2/8/1', não '2/7/2'. A mesma inconsistência aparece IDÊNTICA tanto na camada de texto estruturada (pymupdf4llm) quanto no ANEXO de texto bruto (get_text por página) — duas extrações independentes do PDF concordam célula a célula — o que sugere um erro genuíno de soma dos próprios autores do artigo, não um artefato de conversão/OCR. Em contraste, a coluna IGD da mesma Tabela III ('4/6/1') bate EXATAMENTE com a contagem manual das 11 células (4 pluses: MaF2,6,7,11; 6 minus: MaF1,3,4,5,12,13; 1 tie: MaF10). As demais somas de contagem do artigo (Tabela II: 0/8/3 e 1/6/4; Tabela IV: somas =21 por coluna; Tabela V: somas=21; Tabela VI: somas=27; Tabela VII: somas=69) foram conferidas e batem. (7) Mecanismo/motor: a 'otimização baseada em modelo' usa seleção ambiental por vetores de referência (Das e Dennis) com a solução mais próxima do ponto ideal por vetor — mecânica de decomposição (RVEA/NSGA-III-like), consistente com a classificação motor=EA-Decomposição fornecida. Essa MESMA mecânica de vetores de referência uniformes é citada pelos PRÓPRIOS autores como a causa das falhas em DTLZ6 (degenerada) e DTLZ7 (desconexa) — um vínculo mecanismo→resultado explícito no texto, potencialmente útil para a ficha 18 (escadas de dificuldade) da dissertação caso um algoritmo do roster compartilhe esse mesmo motor. (8) gmax (nº de gerações da busca no modelo) e o nº de vetores de referência (91/85/65 para m=3/5/10) são hiperparâmetros do MOTOR/busca, não do USO da incerteza — por isso a sensibilidade a gmax foi marcada como NOVA e não mapeada à ficha 45 (que exige que o parâmetro defina o uso da incerteza). (9) D (dimensão de decisão) é fixo em 10 (ou 11 só para WFG2-3 com m=10) em todos os problemas sintéticos — não há eixo de escalabilidade em D como na dissertação (ficha 7); apenas M (nº de objetivos: 3, 5, 10) varia, então nenhuma análise foi mapeada à ficha 7. (10) Orçamento fixo (100 DoE + 200 infill = 300 total, D constante) não escala com D nem segue a convenção 11D-1/31D-1 da dissertação. (11) As duas ablações internas do artigo (EMMOEA-IP e EMMOEA-EIM) são ablações estruturais de ESTÁGIO da própria arquitetura do método (não ablações de presença/ausência de incerteza no sentido da ficha 11) — um padrão que pode recorrer noutros artigos não-roster; se recorrer, pode valer a pena formalizar como ficha nova única ('ablação estrutural de estágio, independente de presença/ausência de incerteza'). (12) Título conforme impresso no PDF/artigo: 'A Performance Indicator Based Infill Criterion for Expensive Multi-/Many-objective Optimization' (sem hífen após 'Indicator', 'objective' minúsculo) — usado aqui o título conforme fornecido nos metadados do pedido, com hífen e maiúsculas."
+}

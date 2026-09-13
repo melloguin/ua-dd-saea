@@ -1,0 +1,24 @@
+{
+ "linhas_no_grid": 150,
+ "exps": [
+  "batch"
+ ],
+ "q_distintos": [
+  10
+ ],
+ "problemas": [
+  "DTLZ2",
+  "MMF16_20",
+  "WFG9",
+  "ZDT1",
+  "ZDT4"
+ ],
+ "n_sementes": 30,
+ "stacks": [
+  "python"
+ ],
+ "envs": [
+  "env_main"
+ ],
+ "env_declarado_envs_json": "n/d"
+}

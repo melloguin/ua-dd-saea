@@ -1,0 +1,432 @@
+{
+ "config": "b5r (Prob-RVEA, mode 7; exp=off; DESDEO vendorizado, env_b5 py3.7.12/sklearn 0.21.3)",
+ "cobertura": "Existentes: 725 células (25 problemas × 29 sementes; a semente 26 NÃO existe em nenhum problema — censo `f5/f30/censo_completo_22.csv` filtrado alg=b5r: 725 ok, 0 ⚪, 0 fail, camadas ①②③④⑥⑦ em 725/725). AUDITADO: (a) ⑤+⑥ em **725/725 (100%)** — varredura em streaming de 1.039.710 linhas de ⑥, das quais **1.036.810 eventos `decision`**; (b) ④ em **725/725**; (c) ③-sonda (GP) em **725/725** = 1.624 pares (célula,objetivo) × 20.000 pontos = 32.480.000 predições; (d) ⑦ em **725/725** + junção ⑦→③-última-geração para RMSE, e o mesmo para b5m (679) e moead_media (725) = 2.129 células no comparativo; (e) ③-busca INTEIRA (query-jóia, LHS, FE-40k, ⑦≡③, ND) em **120 células distintas (16,6%)**, amostradas por duas regras de rotação independentes sobre a lista de sementes (amostra A: seeds[(3·i+k) mod 29], k=0..2, 75 células; amostra B: seeds[(5·i+7·k) mod 29], k=0..1, 50 células; 5 em comum) — cobrindo **25/25 problemas e 29/29 sementes**, 165.461 transições pai→filho e 2,94 M linhas de ③-busca só na amostra A; (f) 36 pares de duplicatas cross-VM comparados byte-a-byte nas 3 camadas de dado; (g) 25 células da s42 comparadas contra a bateria da T11 (corpus mac). Artefatos em /private/tmp/claude-501/-Users-gmello/33c29160-6eb6-4277-a041-db4855486063/scratchpad/ (b5r_cells6.csv, b5r_30_bateria.csv, b5r_gp_censo.csv, b5r_ablacao7.csv, b5r_n4_dups.csv, b5r_timing.csv, b5r_mecanismo.csv, b5r_j3hv.csv, b5r_n1_pooled.csv). READ-ONLY respeitado: nenhuma célula executada, experiments.py/experiment.run NUNCA invocados, repo apenas lido.",
+ "N1_invariancia": "QUERY-JÓIA (A11 — \"o efeito declarado pelo artigo sobrevive à aproximação média-MC\"): para cada geração g≥2, pais de g−1 partidos em MANTIDOS (X bit-a-bit presente em g) e DESCARTADOS, comparando o σ médio. Medido sobre **120 células distintas (25/25 problemas, 29/29 sementes), 165.461 transições válidas**: σ(descartado) > σ(mantido) em **99.123 = 59,91%** contra 50% sob a hipótese nula de seleção σ-cega — **z = 80,6**. Nível de célula: **92/120 células (76,7%) com fração > 0,5**; razão σ_desc/σ_mant > 1 em **65/75** na amostra A (mediana 1,0154; máx 15,14 em DTLZ4/3; mín 0,9742 em ZDT1/5). A identidade estrutural **VALE em todas as sementes, mas é 3,6 pp mais fraca do que 1 semente sugeria** (T11/s42: 63,56% em 56.081 transições de 45 células). ONDE QUEBRA — e é achado: nas células de GP colapsado ao prior a identidade **desaparece exatamente**, não aproximadamente: BBOB_F17/4, DTLZ3/42 e DTLZ1/22 dão fração 0,000000 / 0,0075 e razão **1,000000 exata** (σ constante ⇒ a seleção vira ruído MC puro). Isso não é ruído amostral: é o mesmo mecanismo do A6, agora medido como causa. Demais identidades estruturais, todas invariantes: LHS-perfeito na geração 1 em **1.053/1.053 dimensões, 75/75 células, 0 pontos fora dos bounds reais** (geração 2 cai para 25/1.053); interseção X(busca)×X(dataset) = **0 em 75/75**; invariante de terminação FE_antes ≤ 40.000 < FE_final em **75/75**; ⑦ ≡ última geração da ③ em **75/75**; ND recomputado ≡ nd_pos_real em **75/75**; `fe` ≡ `maxfe` em **1.036.810/1.036.810** eventos.",
+ "N2_tetos_caidos": "Os 4 itens do balde **T** da T11 — A8 (S=1000/truncnorm), A12 (identidade do argmin da média-MC), A14 (RVs FIXOS) e A19 (índices η do SBX/PM) — **CONTINUAM NO TETO; nenhum caiu com réplicas**, e isso agora é medido, não argumentado: (i) A8 — o keyset do `decision` é fixo em 12 chaves nos 1.036.810 eventos e não ganhou contador de amostras MC; (ii) A12 — a ③ guarda só populações sobreviventes (|pop| ≤ N_RV em 75/75), a prole pré-seleção segue sobrescrita pelo DI-16.16; (iii) **A14 — o `flag_vetores_degenerados`, que a T11 achou morto, HOJE FUNCIONA e mesmo assim não discrimina**: norma_min ∈ [0,9999999999999998; 1,0], norma_max ≡ 1,0, amplitude ≤ 2,22e-16, n_norma_zero = 0 em **1.036.810/1.036.810** eventos — exatamente o que `ReferenceVectors.adapt()` também produziria, porque renormaliza. A previsão da T11 (§9) está CONFIRMADA por dado: só `hash(reference_vectors.values)` por iteração tiraria A14 do teto; (iv) A19 — segue declarativo, com o pareamento fechando indiretamente 75/75. O QUE CAIU (limitações da T11 que não estavam formalmente no balde T mas eram \"não verificável com uma semente\"): **(1) FÓRMULA DE SEMEADURA (A26)** — para uma semente fixa, todos os problemas do mesmo (M,D) partem do MESMO desenho LHS em espaço unitário: (2,10) 7 problemas→1 desenho, (2,22) 5→1, (2,30) 2→1, (3,12) 3→1, verificado em 3 sementes (0, 7, 42) = 12 checagens; e sementes distintas dão desenhos distintos (5/5 hashes distintos em BBOB_F1) ⇒ a semente varia o experimento de verdade, e a armadilha 5 da T11 é geral, não da s42. NOVO: o dataset ① NÃO segue essa regra (doe_hash distinto em 725/725 — a DOE é por problema). **(2) DETERMINISMO CROSS-MÁQUINA (A31)** — a T11 provou 1 célula, 1 máquina; agora são 36 pares vm1×vm5 bit-idênticos (ver N4). **(3) VARIÂNCIA ENTRE EXECUÇÕES E TAXA DE SUCESSO** — item (iv) do §9 da T11, agora medido (ver N3/N5). **(4) OS DOIS (3) DA T11 ESTÃO CORRIGIDOS E A CORREÇÃO FOI MEDIDA EM ESCALA**: A32 `flag_vetores_degenerados` populado em 1.036.810/1.036.810 (era null em 1.144/1.144 no smoke) e A33 `tempo_aval_real_s` = **null em 725/725** manifestos, honrando a docstring do `budget.py:192-202`.",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "\"Overall, the probabilistic approaches outperformed their generic counterparts, TL, and initial sampling in both HV and RMSE.\"",
+   "onde_no_artigo": "§IV (Experimental Results), p.1188, parágrafo final antes da Fig.9; markdown linha 336",
+   "testavel_com_30": true,
+   "resultado": "PARCIAL — divide-se pela métrica. Rodei o PRÓPRIO protocolo do artigo (§IV-A: Wilcoxon pareado por instância, Bonferroni sobre 75 testes, α=0,05, placar +1/0/−1). Ablação de MESMO MOTOR (b5m=Prob-MOEA/D × moead_media=Gen-MOEA/D, 679 células pareadas): RMSE — placar **b5m +21 · moead_media −21**, head-to-head **477–202, p=3,4e−29**; HV — head-to-head 269–274, placar ~empate. b5r × moead_media: RMSE 471–254 (p=2,6e−15); HV 278–296, **p=0,166 (não significativo)**. ⇒ a metade RMSE da afirmação **REPLICA de forma decisiva**; a metade HV **NÃO replica** na nossa suíte. TL e Init estão fora do estudo (não medido)."
+  },
+  {
+   "afirmacao": "\"As we can observe, Hyb-RVEA and Prob-RVEA performed best in terms of HV followed by Prob-MOEA/D.\"",
+   "onde_no_artigo": "§IV, p.1188; markdown linha 334",
+   "testavel_com_30": true,
+   "resultado": "NÃO REPLICA no eixo de contagem, EMPATA no de nível. HV normalizado da ⑦ (régua D69/D92, ref 1,1, espaço real), 679 células pareadas: b5r × b5m = **226–286 a favor de b5m (p=0,028)**; placar do protocolo do artigo: moead_media +2 · b5r 0 · b5m −2. Medianas pareadas: b5r 0,1656 × b5m 0,1571 (b5r maior em mediana, menor em vitórias). Hyb está fora por D56."
+  },
+  {
+   "afirmacao": "\"In terms of RMSE, Prob-MOEA/D performed the best with ProbRVEA coming second.\"",
+   "onde_no_artigo": "§IV, p.1188; markdown linha 334",
+   "testavel_com_30": true,
+   "resultado": "**REPLICA EXATAMENTE, e é o achado mais forte desta auditoria.** RMSE = ‖μ_surrogate − f_real‖ sobre o conjunto final, normalizado pela régua ideal/nadir do problema. Placar do protocolo do artigo: **b5m +21 · b5r 0 · moead_media −21**. Medianas pareadas (679 células): **b5m 0,3032 < b5r 0,4729 < moead_media 0,6865**. A ordem Prob-MOEA/D → Prob-RVEA → genérico é a do artigo, obtida numa suíte de 25 problemas SEM interseção com a do artigo."
+  },
+  {
+   "afirmacao": "\"This is because the probabilistic approaches reject solutions with better objective values if they have high uncertainties.\"",
+   "onde_no_artigo": "§IV, discussão da Fig.10, p.1189; markdown linha 367 (e Fig.6, linha 267)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO, com decomposição nova. Em 165.461 transições (120 células): σ(descartado) > σ(mantido) em **59,91% (z=80,6)**. Decompondo em amostra independente de 50 células / 67.706 transições: P(descartado mais incerto) = 0,56549; P(descartado com μ MELHOR) = 0,52726; P(ambos) = **0,30313** contra 0,29816 = produto das marginais ⇒ o sinal de σ existe e é **estatisticamente independente** do sinal de μ. Ou seja: o mecanismo rejeita por incerteza sem condicionar em ser melhor — o que é a versão média-MC (Jensen) do efeito, não o P_wrong publicado."
+  },
+  {
+   "afirmacao": "\"the surrogate HV for TL improved with function evaluations and the probabilistic approaches it gradually decreased\"",
+   "onde_no_artigo": "§IV, Fig.10, p.1189; markdown linha 367",
+   "testavel_com_30": true,
+   "resultado": "DIRECIONALMENTE CONFIRMADO, magnitude célula-dependente. HV do conjunto ND no espaço SURROGATE (μ normalizado, ref 1,1), 100 gerações amostradas por célula, 50 células: cai na 2ª metade em **26/50**; o **pico do HV-surrogate ocorre em 12,1% do run (mediana)** ⇒ sobe rápido, atinge o máximo cedo e decai — a assinatura do artigo. ⚠ Em 8 células o HV-surrogate é **constante no máximo teórico 1,1³ = 1,331 da 1ª à última geração** (DTLZ1, DTLZ3 com GP colapsado): ali o algoritmo 'enxerga' um front perfeito desde o início. O lado 'HV real sobe' da Fig.10 é **não medido: o M8 não tem re-avaliação real por geração** (só a ⑦) ⇒ permanece T."
+  },
+  {
+   "afirmacao": "\"the solutions, when evaluated with the underlying objectives, produced worse objective values compared to what was observed in the surrogate objective space\"",
+   "onde_no_artigo": "§IV, p.1189; markdown linha 369",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO EM ESCALA. Fração de pontos finais em que o surrogate é OTIMISTA (Σμ_norm < Σf_real_norm): mediana **1,0000** nas 725 células do b5r (371/725 com 100% dos pontos otimistas); por config: b5r 1,000 · moead_media 1,000 · b5m 0,900."
+  },
+  {
+   "afirmacao": "\"Number of Independent Runs for Each Instance: 31.\" (e, por consequência, a estabilidade entre execuções)",
+   "onde_no_artigo": "§IV-A9, p.1188; markdown linha 316",
+   "testavel_com_30": true,
+   "resultado": "TEMOS 29, NÃO 30 NEM 31 (a semente 26 não existe em nenhum problema do b5r — ver classe (3) C2). Estabilidade medida pela primeira vez: **CV(HV) mediano por problema = b5m 0,376 < b5r 0,432 < moead_media 0,646** ⇒ as duas abordagens probabilísticas são **mais estáveis entre execuções** que a genérica, o que sustenta (sem que o artigo afirme explicitamente) a leitura de robustez. CV(RMSE): moead_media 0,353 < b5m 0,416 < b5r 0,476 — a genérica é menos variável em RMSE, mas num patamar muito pior."
+  },
+  {
+   "afirmacao": "\"All the approaches except TL used reference vector adaptation after every 10th generation as in [14] for all test instances.\"",
+   "onde_no_artigo": "§IV-A8, p.1188; markdown linha 314",
+   "testavel_com_30": false,
+   "resultado": "**NÃO TESTÁVEL nem com 30 sementes** — é o item mais caro do teto (A14). O `adapt()` está comentado (ProbRVEA.py:226, v2.2/adapt) e o único eco em dado, a norma dos RVs, é invariante sob adaptação porque `adapt` renormaliza: medido norma ≡ 1,0 e amplitude ≤ 2,22e-16 em 1.036.810/1.036.810 eventos. Continua sendo a divergência declarada mais séria em relação a um parâmetro EXPLÍCITO do setup do artigo."
+  },
+  {
+   "afirmacao": "\"Number of samples for Monte-Carlo sampling S = 1000. For KDE, we used Gaussian kernel with a bandwidth parameter set by Silvermann's rule.\"",
+   "onde_no_artigo": "§IV-A6, p.1188; markdown linha 310",
+   "testavel_com_30": false,
+   "resultado": "NÃO TESTÁVEL (T, A8) — as amostras MC são descartadas por desenho. Além disso o KDE/P_wrong não é o que roda: DI-28.1 ratifica a média-MC do APD, declarada em `sigma_dict.fidelidade_por_modo` em 725/725."
+  },
+  {
+   "afirmacao": "\"Termination (FEmax): 40 000 function evaluations with surrogates.\"",
+   "onde_no_artigo": "§IV-A4, p.1188; markdown linha 306",
+   "testavel_com_30": true,
+   "resultado": "CONFORME. Reconstruído FE = N_RV + Σ_g par(|P_{g−1}|): invariante FE_antes ≤ 40.000 < FE_final fecha em **75/75 células**, FE_antes ∈ [39.925; 40.000], FE_final ∈ [40.001; 40.047], overshoot ∈ [1; 47] (mediana 15) e ≤ |prole| em 75/75. É o ÚNICO eixo numericamente comparável com o artigo."
+  },
+  {
+   "afirmacao": "\"Size of the Initial Data Set (N_D): 109.\" + \"Use the given data as the initial population\" (Alg.1, l.2)",
+   "onde_no_artigo": "§IV-A11 (linha 320) e Algoritmo 1 linha 2 (linha 171)",
+   "testavel_com_30": false,
+   "resultado": "DIVERGÊNCIAS SANCIONADAS, não testáveis: N_D → N = 31D−1 (D90/D67; medido 61..929 e len(①)==maxfe em 75/75) e pop inicial → LHS NOVO (B18.9; medido: interseção X(busca)×X(dataset) = 0 em 75/75, LHS-perfeito 1.053/1.053 dimensões)."
+  },
+  {
+   "afirmacao": "\"Kriging Parameters: Scikit-learn python library for Kriging with Gaussian kernel and BFGS to maximize the marginal likelihood.\" (custo e comportamento do Kriging)",
+   "onde_no_artigo": "§IV-A5, p.1188; markdown linha 308",
+   "testavel_com_30": true,
+   "resultado": "CUSTO O(N³) CONFIRMADO DIRECIONALMENTE: t_fit mediano (M=2) 0,1677 s @N=61 → 2,0873 @309 → 25,73 @681 → 89,11 @929; inclinação log-log **2,237** no intervalo todo e **3,41** no trecho 309→929; M=3: 0,634 @216 → 82,47 @681, inclinação 4,06. ⚠ Confundido por D (o kernel isotrópico faz distâncias O(N²D)) e por frota heterogênea de 6 VMs — não use para tabela de custo absoluto. CONSEQUÊNCIA NÃO PREVISTA PELO ARTIGO, e é o achado científico central: com `normalize_y=False`, α=0 e ConstantKernel ≤ 1e3, a verossimilhança foge para o canto degenerado e o **posterior colapsa no prior** — 174/1.624 pares (célula,objetivo) com σ cravado no teto √1000 em ≥99,9% dos 20.000 pontos, **104/725 células (14,34%)** afetadas."
+  }
+ ],
+ "N4_deriva": "DERIVA CROSS-MÁQUINA MEDIDA = **ZERO, BIT-EXATA, DENTRO DA FROTA LINUX**. Localizei as duplicatas reais do b5r nos espelhos de VM (`~/mestrado_coleta_m8/matlab-vm*/experiments/off/b5r/`): **36 pares (célula, 2 máquinas) = 25 problemas × semente 7 (vm1×vm5) + 11 problemas × semente 10 (vm1×vm5)**. Resultado, comparando SHA-256 dos arquivos: **① idêntica em 36/36 · ③ idêntica em 36/36 · ⑦ idêntica em 36/36**; `n_geracoes` idêntico em 36/36; `doe_hash` e `repo_hash` idênticos em 36/36; e a trajetória `f_best` do ⑥ é **idêntica em 100% das 43.169 gerações comparadas** (máx |Δ| = 0,0 exato, primeira geração divergente = nenhuma). ⚠ Descartei 25 \"cópias\" da pasta matlab-vm4 que NÃO são duplicatas: são tentativas de despacho abortadas (`status=failed`, guard `nao_retriavel`, `FileNotFoundError: interpretador do env 'env_b5' não existe: /Users/gmello/...`) — 850 bytes cada, zero trabalho. LEITURA: para o b5r a doutrina do RUNBOOK §6.2 (\"floats não são bit-idênticos entre plataformas ⇒ fidelidade estatística\") é **conservadora demais dentro da frota**: o corpus inteiro rodou em `Linux/x86_64` com pinning `OMP/OPENBLAS/MKL/NUMEXPR = 1` e o MESMO conjunto de versões (py 3.7.12, numpy 1.21.6, scipy 1.7.3, sklearn 0.21.3, pymoo 0.6.1.2) em **725/725 células**, e onde há réplica ela é bit-exata. Logo o piso de ruído cross-VM é **0,0** e QUALQUER contraste entre células do b5r é seguro. ⚠ NÃO MEDIDO: se vm1 e vm5 eram *shapes* GCP diferentes — o `env` só grava `Linux/x86_64`, não o shape; não consigo excluir que os dois pares de máquinas fossem do mesmo tipo de CPU. ONDE A DERIVA APARECE: no salto **macOS × Linux**. O corpus da s42 auditado por F5/T11 rodou \"todas no `mac`\" (T11 §Corpora) com versões de biblioteca IDÊNTICAS; o M8 re-rodou a mesma semente 42 em vm5. Comparando as 25 células `off` s42 mac (bateria `f5/t11/baterias/b5r/b5r_t11_celulas.csv`) contra as 25 do M8: **n_geracoes idêntico em 20/25 (80%)** e n_final idêntico nas mesmas 20; divergem ZDT4 (3.845 → 2.642, **−31,3%**), DTLZ7 (785 → 758, −3,4%), MMF11_L (848 → 841, −0,8%), ZDT3 (921 → 915, −0,7%), ZDT1 (878 → 873, −0,6%). ⚠ Confound honesto: o código também mudou (s42 = pré-T11, sigma_dict com 18 chaves, sem `params`; M8 = 19 chaves, `repo_hash` 63db46b1) — a T11 provou que a instrumentação é não-perturbativa numa célula no mac, mas não provei isso para o delta A32/A33. Conclusão utilizável: as divergências caem exatamente nos problemas multimodais/deceptivos com colapso de população (ZDT4, DTLZ7), onde uma diferença de 1 ULP se amplifica; a fidelidade **estatística por semente** é a doutrina certa só na fronteira mac↔Linux, e essa fronteira **não é atravessada por nenhuma célula do b5r no M8**.",
+ "N5_cauda": "O b5r NÃO TEM CAUDA OPERACIONAL: **725/725 células `ok`**, `motivo_parada=orcamento` 725/725, 0 ⚪, 0 fail, `n_retries=0`, `fallback_ativado=False`, `cache_hits=0`, **0 eventos `guard`** em 1.039.710 linhas de ⑥, 2 rodapés em 725/725 (a anomalia de 1 rodapé que a T11 viu em `swap_small-mvns_ZDT4` não existe no grid de 30 sementes). A cauda do b5r é CIENTÍFICA, e são três coisas distintas: **(1) COLAPSO DO GP AO PRIOR — 104/725 células (14,34%)**, isto é, ≥1 objetivo com σ cravado no teto exato √1000 = 31,62277603149414 em ≥99,9% dos 20.000 pontos da sonda. Taxa por problema (de 29 sementes): **DTLZ3 28/29 · DTLZ1 27/29 · BBOB_F17 9/29 · BBOB_F37 8/29 · BBOB_F49 8/29 · BBOB_F1 7/29 · BBOB_F55 6/29 · BBOB_F22 5/29 · BBOB_F5 4/29 · ZDT4 2/29 · os outros 15 problemas 0/29**. Isto **refuta a leitura da T11 de que o colapso é problema-determinístico** (ela viu, na semente 42, \"DTLZ3 3/3 objetivos, DTLZ1/f2, DTLZ4/f2\"): na semente 42 **NENHUM BBOB colapsa**, e DTLZ4 nunca colapsa no teto (0/87 pares) — o que a T11 viu ali foi μ constante, outra degenerescência. Custo medido: as 104 células colapsadas têm HV normalizado mediano **0,0000** (HV=0 em 74/104) contra 0,1851 nas 621 sadias (Mann-Whitney p=2,3e−13) e RMSE normalizado mediano **192,74** contra 0,3636 (p=3,0e−36); e a query-jóia morre nelas (fração 0,000, razão 1,000000 exata). **(2) A INCAPACIDADE DETERMINÍSTICA DE ALCANCE — e ela NÃO é do b5r, é do REGIME.** HV normalizado = 0 (nenhum ponto da ⑦ dentro do ref 1,1) em 29/29 sementes para **DTLZ1, DTLZ3, ZDT4 e ZDT6**; e em 25/29 para ZDT3 e DTLZ7, 19/29 para DTLZ4. O controle mostra que é do regime, não do algoritmo: nos mesmos problemas, b5m dá 27/27 zeros e moead_media 29/29 (DTLZ1, DTLZ3, ZDT4) — os três configs offline falham juntos. Isso é um RESULTADO reportável: com N = 31D−1 amostras offline e um Kriging isotrópico, esses 4 problemas são inalcançáveis, em 100% das réplicas. Onde o b5r se separa da genérica: BBOB_F55 (b5r 4/29 zeros × moead_media 27/29), WFG2 (0/29 × 16/29), MMF11_L (0/29 × 3/29). Onde perde: ZDT3 (25/29 × 11/29), DTLZ7 (25/29 × 9/29). **(3) O σ = 0 EXATO** (o outro extremo do A7): 85/1.624 pares com σ=0 em >50% dos pontos, 17 em >90%, máx **0,99975** — concentrado em DTLZ7 (31 pares), ZDT4 (17), ZDT3 (15), ZDT1 (14), MMF11_L (8). Ali a seleção probabilística **degenera na genérica por construção**, e isso também varia por semente (ZDT1: 0,9914 na semente 5 × 0,4141 na semente 6). **(4) A CAUDA DE PROTOCOLO**: a semente 26 não existe em nenhum dos 25 problemas — 29 réplicas, não 30 (o artigo usa 31) — e o mesmo buraco atinge os outros 3 offline (b5m, e103, moead_media) e nenhum dos 17 configs restantes, logo é buraco de despacho por regime, não aleatório.",
+ "aspectos": [
+  {
+   "id": "A1",
+   "aspecto": "offline puro: zero FE real na busca",
+   "classe": "1",
+   "medicao": "`fe` ≡ `maxfe` em 1.036.810/1.036.810 eventos `decision` (725/725 células); 0 eventos `guard` em 1.039.710 linhas de ⑥; ② com 0 linhas em 75/75; `real_solution_id` NULL em 100% das linhas de ③ em 75/75",
+   "veredito": "conforme, agora em censo total e não em amostra",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A2",
+   "aspecto": "orçamento = dataset (N=31D−1); ① = dataset",
+   "classe": "2",
+   "medicao": "len(①)==maxfe==fe_final em 75/75 e fe_final==maxfe em 725/725; `fase='init'` 100% e `fe_index` denso em 75/75; params.n_dataset==maxfe em 725/725; N ∈ {61,216,309,371,619,681,929}",
+   "veredito": "desvio sancionado D90/D67 — e é por isso que nenhum número absoluto compara com o artigo (N_D=109)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "D90/D67"
+  },
+  {
+   "id": "A3",
+   "aspecto": "proveniência ①↔artefato + CP-init",
+   "classe": "1",
+   "medicao": "`doe_hash == cp_init_offline.x_hash` em **725/725**",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A4",
+   "aspecto": "Kriging treinado 1× ⇒ ④ com 1 linha",
+   "classe": "1",
+   "medicao": "④ = 1 linha em 725/725; `n_acumulado == N` em 725/725; `fit_series` com 1 entrada em 725/725",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A5",
+   "aspecto": "GPR C(1,(1e-3,1e3))·RBF(10,(1e-2,1e2)), α=0, 9 restarts, normalize_y=False",
+   "classe": "2",
+   "medicao": "σ máximo GLOBAL sobre 1.624 pares × 20.000 pontos = 32.480.000 predições: **31,62277603149414 = √1e3**, o teto exato do ConstantKernel; declaração literal no `sigma_dict` e no `params` do ⑤ em 725/725",
+   "veredito": "desvio sancionado 🟠 (impl→código) — a digital numérica fecha em escala total",
+   "muda_vs_s42": false,
+   "arquivo_linha": "algorithms/b5_Prob-RVEA/desdeo_problem/surrogatemodels/SurrogateKriging.py:24"
+  },
+  {
+   "id": "A6",
+   "aspecto": "consequência de A5: colapso do posterior ao prior",
+   "classe": "2",
+   "medicao": "174/1.624 pares (10,71%) com σ no teto em ≥99,9% dos pontos; **104/725 células (14,34%)** com ≥1 objetivo colapsado; 126/1.624 pares com μ constante. Por problema: DTLZ3 28/29 · DTLZ1 27/29 · BBOB 4–9/29 · ZDT4 2/29 · outros 15 problemas 0/29",
+   "veredito": "sancionado como consequência de A5, MAS a T11 leu como problema-determinístico e é semente-dependente — caveat científico central para o D97",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A7",
+   "aspecto": "σ exportado = desvio-padrão posterior",
+   "classe": "2",
+   "medicao": "`n_nan = 0` em **1.624/1.624** pares; σ=0 exato em >50% dos pontos em 85 pares, >90% em 17, máx **0,99975**; concentração DTLZ7 31 · ZDT4 17 · ZDT3 15 · ZDT1 14 · MMF11_L 8",
+   "veredito": "extensão nossa 🟢 (D30/DI-16.9) sadia; o limite σ→0 do próprio artigo, agora quantificado por semente",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A8",
+   "aspecto": "MC S=1000, truncnorm(−3,3)",
+   "classe": "T",
+   "medicao": "keyset do `decision` fixo em 12 chaves nos 1.036.810 eventos — nenhum contador de amostras MC",
+   "veredito": "TETO mantido; sairia com um contador por geração no ⑥ (custo zero)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A9",
+   "aspecto": "seleção = média-MC do APD ≠ P_wrong+KDE",
+   "classe": "2",
+   "medicao": "`sigma_dict.fidelidade_por_modo` declarado em 725/725; `params.mode = 7` em 725/725",
+   "veredito": "desvio sancionado DI-28.1, não se re-litiga",
+   "muda_vs_s42": false,
+   "arquivo_linha": "DI-28.1"
+  },
+  {
+   "id": "A10",
+   "aspecto": "atribuição por média de cos θ ≠ votação (Eq.11-12)",
+   "classe": "2",
+   "medicao": "mesmo arquivo ratificado (ProbRVEA_v3), declarado em 725/725",
+   "veredito": "desvio sancionado DI-28.1",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A11",
+   "aspecto": "🎯 o efeito do artigo sobrevive à aproximação (query-jóia)",
+   "classe": "1",
+   "medicao": "**165.461 transições em 120 células (25/25 problemas, 29/29 sementes): σ(desc) > σ(mant) em 99.123 = 59,91%, z = 80,6**; 92/120 células com fração > 0,5; razão > 1 em 65/75 (mediana 1,0154; máx 15,14). Decomposição (67.706 transições): P(σ) 0,5655 · P(μ melhor) 0,5273 · P(ambos) 0,3031 ≈ produto 0,2982",
+   "veredito": "conforme — invariante de semente, mas 3,6 pp mais fraco que na s42 (63,56%) e ZERADO nas células de GP colapsado",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A12",
+   "aspecto": "identidade do argmin da média-MC",
+   "classe": "T",
+   "medicao": "③ guarda só sobreviventes (|pop| ≤ N_RV em 75/75); prole pré-seleção sobrescrita pelo DI-16.16",
+   "veredito": "TETO mantido; sairia com duplo carimbo (str(g) prole + str(g)_sel sobreviventes) — recomendação da F5/T11 ainda não implementada",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A13",
+   "aspecto": "pop inicial = LHS novo ≠ dataset (contraria Alg.1 l.2)",
+   "classe": "2",
+   "medicao": "**1.053/1.053 dimensões LHS-perfeitas na geração 1, 75/75 células**, 0 pontos fora dos bounds reais; geração 2 = 25/1.053; interseção X(busca)×X(dataset) = **0 em 75/75**",
+   "veredito": "desvio sancionado B18.9 + DI-28.3, invariante em 29 sementes",
+   "muda_vs_s42": false,
+   "arquivo_linha": "B18.9 / DI-28.3 (src/b5_prob.py:240-266)"
+  },
+  {
+   "id": "A14",
+   "aspecto": "RVs FIXOS ≠ \"adapted every 10th generation\" (§IV-A8)",
+   "classe": "T",
+   "medicao": "com o campo A32 hoje VIVO: norma_min ∈ [0,9999999999999998; 1,0], norma_max ≡ 1,0, amplitude ≤ 2,22e-16, n_norma_zero = 0 em **1.036.810/1.036.810** eventos — invariante sob adaptação (adapt renormaliza)",
+   "veredito": "TETO mantido e agora MEDIDO: a previsão da T11 §9 está confirmada; só hash(reference_vectors.values) por iteração discriminaria",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A15",
+   "aspecto": "lattice 50 (M=2)/105 (M=3); |pop| ≤ N_RV",
+   "classe": "1",
+   "medicao": "|pop ger.1| == N_RV e max|pop| ≤ N_RV em 75/75; corroborado independentemente pelo `n_vetores` do ⑥ em 725/725 (50 em 551 células, 105 em 174)",
+   "veredito": "conforme, com dupla via de prova (③ e ⑥)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A16",
+   "aspecto": "orçamento interno 40.000 avaliações-surrogate (§IV-A4)",
+   "classe": "1",
+   "medicao": "FE_antes ≤ 40.000 < FE_final em **75/75**; FE_antes ∈ [39.925; 40.000]; FE_final ∈ [40.001; 40.047]",
+   "veredito": "conforme — o único eixo numericamente comparável com o artigo",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A17",
+   "aspecto": "overshoot ≤ 1 geração",
+   "classe": "2",
+   "medicao": "overshoot ∈ [1; 47], mediana 15, ≤ |prole da última geração| em 75/75",
+   "veredito": "desvio sancionado (declarado em sigma_dict.overshoot)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A18",
+   "aspecto": "α=2 + rampa θ por FE/40.000",
+   "classe": "2",
+   "medicao": "`sigma_dict.rampa_theta` presente em 725/725",
+   "veredito": "desvio sancionado declarativo",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A19",
+   "aspecto": "SBX η=30/p=1,0 + PM η=20/p=1/n (§IV-A8)",
+   "classe": "T",
+   "medicao": "estrutura de pareamento prole = par(|pop|) fecha 75/75 via o invariante de 40k; os índices η seguem sem eco em dado",
+   "veredito": "TETO mantido (declarativo)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A20",
+   "aspecto": "② vazia · real_solution_id NULL",
+   "classe": "2",
+   "medicao": "② com 0 linhas em 75/75; `real_solution_id` NaN em 100% (fração 1,0) em 75/75, sobre 2.943.886 linhas de busca amostradas",
+   "veredito": "desvio sancionado DI-16.17",
+   "muda_vs_s42": false,
+   "arquivo_linha": "DI-16.17"
+  },
+  {
+   "id": "A21",
+   "aspecto": "patch DI-16.16 ⇒ ⑦ reconstituível da ③",
+   "classe": "2",
+   "medicao": "X da ⑦ ≡ X da última geração da ③ em **75/75**; ponteiro `origem_geracao`/`origem_linha` posicional válido em 725/725 (usado para a junção do RMSE)",
+   "veredito": "desvio sancionado DI-16.16, invariante em 29 sementes",
+   "muda_vs_s42": false,
+   "arquivo_linha": "DI-16.16"
+  },
+  {
+   "id": "A22",
+   "aspecto": "⑦ = ND pós-real (DI-08)",
+   "classe": "2",
+   "medicao": "ND recomputado na vista float32 ≡ `nd_pos_real` em **75/75**; ⑦ total = 29.421 linhas em 725 células; n_nd mediano 10 de n_final mediano 44",
+   "veredito": "desvio sancionado DI-08 / B7.5",
+   "muda_vs_s42": false,
+   "arquivo_linha": "DI-08"
+  },
+  {
+   "id": "A23",
+   "aspecto": "sonda: 1 bloco de 20.000, geracao NULL, regra 12 N/A",
+   "classe": "2",
+   "medicao": "S=20.000 e n_blocos=1 em **725/725** (⑤); 20.000 linhas regime='sonda' com `geracao` NaN em 100% em 75/75; regimes = {offline, sonda} em 75/75 (não existe `sonda_estratificada`); `sonda_x_hash` **constante por problema em 25/25** ⇒ a régua não depende da semente",
+   "veredito": "desvio sancionado DI-13.5; a invariância da régua entre sementes é prova nova",
+   "muda_vs_s42": true,
+   "arquivo_linha": "DI-13.5"
+  },
+  {
+   "id": "A24",
+   "aspecto": "fe_treino_max ≡ N−1 constante",
+   "classe": "2",
+   "medicao": "1 valor único por célula e == maxfe−1 em **75/75**",
+   "veredito": "desvio sancionado (treino único)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A25",
+   "aspecto": "⑥ DI-10: f_best / n_front1",
+   "classe": "2",
+   "medicao": "`f_best` exato em float32 em **35.538/35.538** gerações (25 células, 1 por problema); `n_front1` exato em **247/250** (98,8%), |Δ| ≤ 3",
+   "veredito": "desvio sancionado; resíduo é a assimetria float64(⑥)×float32(③) — regra 11",
+   "muda_vs_s42": false,
+   "arquivo_linha": "regra 11 do CONTRATO"
+  },
+  {
+   "id": "A26",
+   "aspecto": "semeadura D62/DI-28 + gancho pyDOE",
+   "classe": "2",
+   "medicao": "para semente fixa, TODOS os problemas do mesmo (M,D) partem do mesmo desenho LHS em espaço unitário: (2,10) 7→1 · (2,22) 5→1 · (2,30) 2→1 · (3,12) 3→1, em 3 sementes (0,7,42) = 12 checagens; sementes distintas ⇒ desenhos distintos (5/5 hashes em BBOB_F1). O dataset ① NÃO segue: doe_hash distinto em 725/725",
+   "veredito": "desvio sancionado D62/DI-28.3, agora verificado em réplicas (era 1 semente na T11)",
+   "muda_vs_s42": true,
+   "arquivo_linha": "src/b5_prob.py:412-419"
+  },
+  {
+   "id": "A27",
+   "aspecto": "⑤ com `params` (não-conformidade F5.2b)",
+   "classe": "2",
+   "medicao": "`params` presente com **9 chaves em 725/725**, incl. `patches_vendorizados=[b5-mode72-kde, b5-mode7-archive, b5-pwrong-stats]`. Era 0/45 na s42",
+   "veredito": "CORRIGIDO e confirmado em censo total",
+   "muda_vs_s42": true,
+   "arquivo_linha": "src/b5_prob.py:233-245 (I-07)"
+  },
+  {
+   "id": "A28",
+   "aspecto": "Hyb fora do estudo (D56)",
+   "classe": "2",
+   "medicao": "`params.motor = \"Prob-RVEA (mode 7)\"` e modelo_flag `b5r/ProbRVEA-v3+GPR` em 725/725",
+   "veredito": "desvio sancionado D56",
+   "muda_vs_s42": false,
+   "arquivo_linha": "D56"
+  },
+  {
+   "id": "A29",
+   "aspecto": "baseline de guardas e coerência de tempo (U7)",
+   "classe": "2",
+   "medicao": "0 `guard`, n_retries=0, fallback=False, cache_hits=0 em **725/725**; U7 (t_fit + t_busca ≤ t_geracao) falha em **83/725**, com gap entre **1,53e-05 s e 6,10e-05 s** = 1–2 ULP de float32 sobre t_geracao ~130–300 s (erro relativo ~2e-07)",
+   "veredito": "rebaixado de (1) para (2): a violação é artefato de persistência float32 (regra 11), não de contabilidade — a T11 teve 45/45 por sorte de amostra",
+   "muda_vs_s42": true,
+   "arquivo_linha": "regra 11 do CONTRATO"
+  },
+  {
+   "id": "A30",
+   "aspecto": "granularidade_③ (ger.1 = pop inicial PRÉ-seleção)",
+   "classe": "2",
+   "medicao": "chave presente e `sigma_dict` com 19 chaves em **725/725**; as 3 provas refeitas em escala (|pop ger1|==N_RV 75/75, LHS 1.053/1.053 × 25/1.053 na ger.2, invariante 40k 75/75)",
+   "veredito": "o único (3) da F5 segue FECHADO, agora em censo total",
+   "muda_vs_s42": false,
+   "arquivo_linha": "src/b5_prob.py:270-285 (I-04)"
+  },
+  {
+   "id": "A31",
+   "aspecto": "determinismo / re-run idêntico",
+   "classe": "1",
+   "medicao": "**36 pares cross-máquina vm1×vm5: ①, ③ e ⑦ bit-idênticas (SHA-256) em 36/36**, n_geracoes idêntico 36/36, f_best idêntico em 100% de 43.169 gerações. A T11 tinha 1 célula/1 máquina",
+   "veredito": "conforme, com o padrão de prova elevado de 1 para 36 células e de intra- para cross-máquina",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A32",
+   "aspecto": "flag_vetores_degenerados (era o (3) 🎯 da T11)",
+   "classe": "2",
+   "medicao": "**populado em 1.036.810/1.036.810 eventos, 725/725 células** (n_vetores 50 ou 105; norma_min ≥ 0,9999999999999998; n_norma_zero=0). Era `null` em 1.144/1.144 no smoke T11",
+   "veredito": "CORRIGIDO — o caminho de atributo foi consertado antes do M8; instrumentação 🟢 declarada e viva",
+   "muda_vs_s42": true,
+   "arquivo_linha": "src/b5_prob.py:110-136 (I-05)"
+  },
+  {
+   "id": "A33",
+   "aspecto": "tempo_aval_real_s no offline (era o outro (3) 🎯 da T11)",
+   "classe": "2",
+   "medicao": "`tempo_aval_real_s = null` em **725/725** manifestos — nem 0,0 (s42) nem 3e-4 (smoke T11)",
+   "veredito": "CORRIGIDO — o campo voltou a significar o que a docstring do budget.py promete ('não medi' ≠ 'custou zero')",
+   "muda_vs_s42": true,
+   "arquivo_linha": "src/budget.py:192-202 / :241 (I-02)"
+  },
+  {
+   "id": "A34",
+   "aspecto": "campanha_id + repo_hash (proveniência no ⑤)",
+   "classe": "2",
+   "medicao": "ambos presentes e ÚNICOS em 725/725: `campanha_id=7f4f0e429a46_M8`, `repo_hash=63db46b10063…`; env homogêneo (Linux/x86_64, py 3.7.12, sklearn 0.21.3, numpy 1.21.6) em 725/725",
+   "veredito": "CORRIGIDO e homogêneo — o elo run→árvore de código não depende mais do repos.lock",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A35",
+   "aspecto": "🆕 acoplamento da semente do GPR ENTRE problemas (independência das réplicas)",
+   "classe": "2",
+   "medicao": "`GaussianProcessRegressor(alpha=0, kernel, n_restarts_optimizer=9)` **sem `random_state`** consome o RandomState global, semeado por `iteration_seed(base, alg_id=17, 0, USO_NUMPY)` — função SÓ da semente, não do problema. Efeito medido: as sementes {1,2,4,27} colapsam o GP em **7/7** problemas BBOB; sob independência das taxas por problema o número esperado de sementes com colapso em 7/7 é **8×10⁻⁴**",
+   "veredito": "sancionado por D62/D91 + A5, mas com consequência estatística que precisa de decisão do autor: as 29 réplicas NÃO são independentes entre problemas para o modo de falha do surrogate",
+   "muda_vs_s42": true,
+   "arquivo_linha": "algorithms/b5_Prob-RVEA/desdeo_problem/surrogatemodels/SurrogateKriging.py:24 + src/b5_prob.py:412-419"
+  },
+  {
+   "id": "A36",
+   "aspecto": "🆕 custo medido do colapso sobre o resultado",
+   "classe": "2",
+   "medicao": "104 células colapsadas: HV normalizado mediano **0,0000** (HV=0 em 74/104) × 0,1851 nas 621 sadias (Mann-Whitney **p=2,3e−13**); RMSE normalizado mediano **192,74** × 0,3636 (**p=3,0e−36**); n_nd mediano 4 × 12",
+   "veredito": "consequência sancionada de A5/A6 — mas é o número que a dissertação precisa carregar, não uma linha de bug",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A37",
+   "aspecto": "🆕 ⑤.upload_status com erro em toda a campanha",
+   "classe": "3",
+   "medicao": "`upload_status = {erro: 'upload_failed: AttributeError(\"Request object has no attribute session\")'}` em **725/725** manifestos",
+   "veredito": "inexplicado 🎯 — nenhum efeito sobre o mecanismo (③ local íntegra e bit-idêntica em 36 duplicatas cross-VM), mas o b5r do M8 não tem réplica no bucket",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A38",
+   "aspecto": "🆕 semente 26 ausente em 25/25 problemas",
+   "classe": "3",
+   "medicao": "725 células = 25 × **29** sementes; a semente 26 não existe em nenhum problema do b5r, nem em b5m/e103/moead_media (os 4 offline), e existe nos outros 17 configs",
+   "veredito": "inexplicado 🎯 — buraco de despacho por REGIME, não aleatório; reduz as réplicas de 30 para 29 (artigo: 31)",
+   "muda_vs_s42": true
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C1",
+   "descricao": "⑤.upload_status carrega `upload_failed: AttributeError(\"'Request' object has no attribute 'session'\")` em 725/725 manifestos do b5r — a subida para o bucket falhou em TODA a campanha M8 deste config. O mecanismo não é afetado (a ③ local está íntegra e é bit-idêntica entre vm1 e vm5 em 36 duplicatas), mas a campanha ficou sem réplica remota e o elo de proveniência 'bucket' do ⑤ aponta para objetos que não existem.",
+   "gravidade": "média — zero impacto no algoritmo; impacto real em proveniência/redundância, e potencialmente FATAL para os 5 configs bucket-only da D54 (c154, c122, e81, c149, c262), que NÃO auditei",
+   "acao": "escalar (D81): (a) confirmar se o mesmo erro atinge os configs bucket-only, onde a ③ só existiria no bucket; (b) se atingir, a ③ desses configs pode ter sido perdida e isso muda o teto de várias auditorias; (c) para o b5r basta declarar 'sem réplica de bucket' — não re-rodar nada.",
+   "arquivo_linha": "exp_off_b5r_<prob>_<seed>.manifest.json, chave upload_status (725/725)"
+  },
+  {
+   "id": "C2",
+   "descricao": "A semente 26 não existe em nenhum dos 25 problemas do b5r. O config tem 29 réplicas, não as 30 do protocolo ({0–28, 42}). O buraco é idêntico em b5m, e103 e moead_media — os 4 configs offline — e NÃO ocorre nos outros 17 configs, o que descarta acaso e aponta um lote de despacho do regime `off` que nunca rodou.",
+   "gravidade": "média — não corrompe nenhum dado existente, mas o denominador declarado (30 sementes) está errado para todo o regime offline, e qualquer comparação offline×online tem n desbalanceado (29 × 30)",
+   "acao": "escalar (D81) e DECIDIR: (a) declarar 29 réplicas no texto para o regime offline, ou (b) despachar a semente 26 dos 4 configs offline. Sob `m8-freeze` a opção (a) é a coerente. Eu NÃO disparei nada.",
+   "arquivo_linha": "f5/f30/censo_completo_22.csv (filtro alg∈{b5r,b5m,e103,moead_media}, coluna seed)"
+  }
+ ],
+ "score": 9.2,
+ "score_t11": 9,
+ "veredito_recomendado": "RECOMENDO **ACEITAR + CAVEAT CIENTÍFICO FORTE + 2 ESCALAÇÕES**. O veredito é do autor (D97) — eu produzo evidência e recomendação, não sentença. SCORE 9,2 contra os 9,0 da T11; a causa do movimento, nomeada: (+) os DOIS aspectos classe (3) da T11 estão **corrigidos e a correção foi medida em censo total, não em smoke** — `flag_vetores_degenerados` populado em 1.036.810/1.036.810 eventos e `tempo_aval_real_s` = null em 725/725 —, exatamente o +0,5 que a T11 disse que valeriam; o contrato de dados fechou por completo (`params` 9 chaves, `repo_hash`, `campanha_id`, `granularidade_③` em 725/725); e A31 subiu de 1 célula numa máquina para **36 pares cross-máquina bit-idênticos em ①③⑦**, o padrão de prova mais forte de toda a série. (−) aparecem dois (3) NOVOS, ambos de severidade menor que os da T11 porque **não tocam o algoritmo em nenhum ponto**: a falha de upload em 725/725 (C1) e a semente 26 ausente (C2); A29 perdeu o placar perfeito por 83/725 violações de 1–2 ULP de float32; e a query-jóia enfraqueceu de 63,56% para 59,91%. Não chega a 9,5 por três motivos: C2 é um buraco de protocolo que só o autor pode fechar; C1 deixa a campanha sem réplica remota e levanta uma dúvida séria sobre os configs bucket-only; e o caveat que a T11 já apontava como \"o item mais importante para o D97\" **cresceu e mudou de natureza** — o colapso do GP ao prior não é problema-determinístico, é semente-dependente, atinge 14,34% da campanha, zera o HV nas células atingidas (p=2,3e−13) e é **correlacionado entre problemas por construção da semeadura** (A35). Não desce de 9 porque ZERO aspectos de mecanismo se moveram: as identidades estruturais que a F5/T11 fecharam numa semente valem nas 29, várias delas agora em censo total (1.036.810 eventos, 1.053/1.053 dimensões LHS, 75/75 no invariante de 40k, 75/75 em ⑦≡③ e no ND). Denominador 34 (38 aspectos − 4 no balde T): **(1) 7/34 = 20,6% · (2) 25/34 = 73,5% · (3) 2/34 = 5,9% · T = 4**. E o achado que mais vale para a dissertação não é de fidelidade e sim de resultado: rodando o PRÓPRIO protocolo estatístico do artigo (Wilcoxon pareado por instância + Bonferroni, α=0,05) sobre 25 problemas sem interseção com os do artigo, a ordem de RMSE do artigo — **Prob-MOEA/D > Prob-RVEA > genérico** — replica com placar +21/0/−21 e p até 3,4e−29, enquanto a ordem de HV do artigo **não replica**. O artigo antecipa isso na própria conclusão (\"if more accurate solutions are required, the probabilistic approach should be preferred\"), e agora isso está medido.",
+ "decisoes_ao_autor": [
+  "**D81 — semente 26 ausente no regime offline inteiro (C2).** O b5r tem 29 réplicas, não 30; o mesmo buraco atinge b5m, e103 e moead_media, e nenhum dos 17 configs restantes. Preciso da sua decisão: (a) declarar 'offline = 29 réplicas' no texto e no protocolo, ou (b) despachar a semente 26 dos 4 configs. Sob `m8-freeze` a (a) é a coerente, mas a escolha é sua. NÃO disparei nada.",
+  "**D81 — falha de upload em 725/725 (C1).** Todos os manifestos do b5r do M8 carregam `upload_failed: AttributeError(\"'Request' object has no attribute 'session'\")`. Para o b5r é inócuo (a ③ local está íntegra e bit-idêntica em 36 duplicatas cross-VM), mas a mesma falha nos 5 configs BUCKET-ONLY da D54 (c154, c122, e81, c149, c262) significaria ③ inexistente. Recomendo uma varredura dirigida de `upload_status` nesses 5 configs antes de qualquer análise que dependa da ③ deles.",
+  "**Caveat científico nº 1, para o texto da dissertação — o colapso do GP é semente-dependente e caro.** Em 104/725 células (14,34%) o posterior do Kriging colapsa no prior (σ cravado no teto exato √1000 em ≥99,9% dos 20.000 pontos da sonda). Ali o b5r otimiza uma função constante: HV normalizado mediano 0,0000 contra 0,1851 (p=2,3e−13), RMSE normalizado mediano 192,74 contra 0,3636 (p=3,0e−36), e a própria identidade da query-jóia zera (razão σ_desc/σ_mant = 1,000000 exata). Taxas: DTLZ3 28/29 · DTLZ1 27/29 · BBOB 4–9/29 · ZDT4 2/29 · os outros 15 problemas 0/29. ⚠ A T11, com uma semente, leu isto como propriedade do PROBLEMA — não é: na semente 42 nenhum BBOB colapsa. Isto vai para o texto, não para a lista de bugs.",
+  "**Caveat científico nº 2 — as 29 réplicas não são independentes ENTRE problemas (A35).** O `GaussianProcessRegressor` roda sem `random_state` e consome o RandomState global, que `src/b5_prob.py:419` semeia com `iteration_seed(base, alg_id, 0, USO_NUMPY)` — função só da semente, não do problema. Como o GP é ajustado ANTES de qualquer outro consumo de aleatoriedade, os 9 restarts partem do MESMO ponto em todos os 25 problemas de uma dada semente. Medido: as sementes {1,2,4,27} colapsam nos 7/7 problemas BBOB, contra 8×10⁻⁴ esperados sob independência. Consequência prática: agregações do tipo 'quantas células colapsaram' NÃO são binomiais com ensaios independentes; testes pareados POR problema (que foi o que usei) continuam válidos. Decisão sua: declarar isso como limitação, ou incluir o problema na derivação da semente numa campanha futura.",
+  "**A14 continua sendo a divergência declarada mais séria em relação ao artigo, e agora está provado que nenhuma instrumentação atual a resolve.** O `adapt()` está comentado (RVs FIXOS) contra o §IV-A8 explícito do artigo; com o `flag_vetores_degenerados` hoje VIVO, a norma dos RVs é ≡1,0 em 1.036.810/1.036.810 eventos — invariante sob adaptação, porque `adapt` renormaliza. A previsão da T11 §9 está confirmada por dado: só `hash(reference_vectors.values)` por iteração tiraria A14 do teto. Recomendação: declarar a divergência no texto (é 🔵/🟠 de versão-implementação), não tentar medi-la com o que existe.",
+  "**Sugestão de padrão de prova para as demais torres (não é decisão, é insumo).** Para o b5r a deriva cross-máquina medida é **zero, bit-exata** (36 pares vm1×vm5, ①③⑦ com SHA-256 idêntico, 43.169 gerações de f_best idênticas), e as 725 células rodaram todas em Linux/x86_64 com o mesmo conjunto de versões e pinning de BLAS. A doutrina do RUNBOOK §6.2 ('fidelidade estatística, não bit-exata') é conservadora demais DENTRO da frota; ela só morde na fronteira macOS↔Linux, onde medi 20/25 células com n_geracoes idêntico e desvios de até −31,3% (ZDT4). Vale a pena checar se as outras torres reproduzem a bit-identidade intra-frota antes de relaxar o padrão de prova geral."
+ ]
+}

@@ -1,0 +1,192 @@
+{
+ "regressoes": [
+  {
+   "id": "R01",
+   "config": "c217",
+   "arquivo_linha": "src/c217_instrument.m:201 (chama bud.solutionIdOf(Pmid(i,:)) sem fatiar 1:D); CalFitnessPC.m:67-68,73 (Pmid tem D+1 colunas); FEBudget.m:111,167-173",
+   "tipo": "CAMPO_SENTINELA",
+   "descricao": "pmid_ids foi criado (I-1) para fechar a lacuna 'a identidade do Pmid nao existe'. O vetor tem o comprimento certo (== n_Pmid em 42/42) e valor -1 em 100% das posicoes. O controle interno na MESMA funcao (fe_treino_max, que tambem sai de bud.solutionIdOf, mas COM fatia 1:Problem.D em c217_instrument.m:32) e nao-nulo em 42/42 — A/B controlado dentro do mesmo arquivo. Agravante 1: o comentario que acompanha o campo (c217_instrument.m:193-194) diz que -1 significa 'ponto ainda nao avaliado na funcao real', o que e impossivel (Pmid subset de Population, toda linha ja avaliada) — explicacao falsa e tranquilizadora. Agravante 2: a REGRA_DO_ROTULO (1502 chars, no sigma_dict) manda literalmente 'leia pmid_ids do evento c217_gen da MESMA geracao' — a regra nasce ja inoperante, e por isso as 11.000 linhas de sonda_estratificada do c217 nao tem rotulo recuperavel. Agravante 3: nenhum portao cobre o campo — contrato_61.json exige do c217 so ['n_best','n_worst'], e tests/test_a9_regra_rotulo_c217.py so abre src/experiment.m e a propria string, nunca um dado. ANTES da T11 a lacuna estava honestamente ausente; agora esta camuflada por um campo verde.",
+   "verificado_por_mim": "smoke_matlab/main/c217/MMF1/42: 426 valores de pmid_ids em 42 eventos c217_gen; 426/426 == -1 (100,0%); ids distintos = [-1]; len(pmid_ids)==n_Pmid em 42/42. Controle: fe_treino_max nao-nulo em 42/42. s42 (resultados_experimentos/c217, 25 celulas): campo pmid_ids presente em 0 de 6.762 eventos c217_gen. contrato_61.json: c217 -> di10 = ['n_best','n_worst']."
+  },
+  {
+   "id": "R02",
+   "config": "c217",
+   "arquivo_linha": "src/c217_instrument.m:216-218 (conta y<0/y==0/y>0) contra CalFitnessPC.m:69-71 (Output e {1,2})",
+   "tipo": "DECLARACAO_FALSA",
+   "descricao": "y_treino_dist (I-5) foi criado para 'separar classificador ruim de problema desbalanceado'. Dois defeitos independentes, ambos em 42/42. (i) Codificacao inexistente: a funcao conta y<0, y==0, y>0, mas o Output do c217 e {1,2} (CalFitnessPC.m:69-71 escreve 2 nos ceil(N/4) melhores e 1 no resto) => classe_menos1=0, classe_zero=0, classe_mais1=n SEMPRE. O comentario da propria funcao afirma 'o Output do c217 e ternario: -1/0/+1' — falso, e contradito 106 linhas acima no MESMO arquivo (c217_instrument.m:109-110 usa sum(Output>1)/sum(Output<=1), a codificacao certa). (ii) Conjunto errado: I-5 promete a prevalencia 'no TREINO', mas a funcao recebe Output, que rotula TODO o Input (ceil(|P|/2) linhas), nao o TrainIn. Nao se perdeu informacao — passou a existir informacao ERRADA: quem le o campo conclui '100% classe +1, totalmente desbalanceado', quando a verdade determinista e ~52%/48% e ja esta em n_best/n_worst.",
+   "verificado_por_mim": "smoke c217/MMF1/42: (classe_menos1>0, classe_zero>0, classe_mais1>0) = (False,False,True) em 42/42; n == n_treino em 0/42; n == n_best+n_worst em 0/42. s42: campo presente em 0/6.762 eventos (nao existia antes). Codigo lido: CalFitnessPC.m:69-71 -> Output(1:ceil(N/4))=2; Output(ceil(N/4)+1:end)=1."
+  },
+  {
+   "id": "R03",
+   "config": "c217",
+   "arquivo_linha": "manifest.params.operadores (⑤) contra SurrogateAssistedSelectionPC.m:14,28,46",
+   "tipo": "DECLARACAO_FALSA",
+   "descricao": "O bloco params novo do ⑤ (I-07) declara operadores = 'Balde C: OperatorGA stock (SBX proC=1 dis_c=20; PM proM=1 dis_m=20)'. O codigo roda {1,15,1,5} em TRES chamadas de OperatorGA, e a SPEC §567 escreve com todas as letras 'Balde C NAO se aplica (usa eta proprios)'. E a regressao mais cara em auditabilidade do config: transformou uma divergencia SANCIONADA E EXPLICITA (eta_c=15/eta_m=5, teto T1) numa falsa conformidade com o paper (que prescreve 20). Quem auditar pelo ⑤ conclui que o c217 e fiel ao artigo neste eixo; ele nao e, por decisao registrada.",
+   "verificado_por_mim": "manifest do smoke c217/MMF1/42: params.operadores == 'Balde C: OperatorGA stock (SBX proC=1 dis_c=20; PM proM=1 dis_m=20)'. Codigo (grep proprio em SurrogateAssistedSelectionPC.m): linha 14 OperatorGA(...,{1,15,1,5}); linha 28 idem; linha 46 idem. Tres sitios, zero com 20/20."
+  },
+  {
+   "id": "R04",
+   "config": "b5r + b5m",
+   "arquivo_linha": "src/b5_prob.py:118 (le evolver.population.problem.reference_vectors.values; o objeto correto e evolver.reference_vectors) + except Exception mudo",
+   "tipo": "CAMPO_SENTINELA",
+   "descricao": "flag_vetores_degenerados (I-05) foi declarado como 'a CAUSA a montante do PBI NaN (A8)'. O campo e emitido em 100% dos eventos decision e vale null em 100%. O caminho de atributo esta errado e o except Exception engole o AttributeError. Agravante 1: a ponta do EFEITO da mesma cadeia (p_wrong_stats, n_substituicoes) FUNCIONA no b5m (800/801), o que prova que a instrumentacao I-05 nao esta globalmente quebrada — so a ponta da CAUSA. Agravante 2: a ERRATA 13 (commit 65ace70) acrescentou 'amplitude = norma_max - norma_min' DENTRO do ramo morto, ou seja o proprio conserto tambem nao executa (RAMO_MORTO embutido). Agravante 3: com base na alegacao 'a cadeia A8 ja e observavel nas DUAS pontas' o autor decidiu NAO implementar o wrapper do gatilho do adapt — uma decisao de escopo tomada sobre uma premissa que o dado refuta. null aqui nao significa 'vetores sadios': significa que a sonda nunca roda.",
+   "verificado_por_mim": "smoke_python/off/b5r/BBOB_F22/42: flag_vetores_degenerados presente em 1144/1144 eventos decision, nao-nulo em 0/1144. Controle smoke_python/off/b5m/MMF1/0: flag_vetores_degenerados nao-nulo 0/801, MAS p_wrong_stats nao-nulo 800/801 e n_substituicoes nao-nulo 800/801."
+  },
+  {
+   "id": "R05",
+   "config": "b5r, b5m, c311, moead_media, treed_media (os 5 offline Python)",
+   "arquivo_linha": "src/budget.py:192-202 (docstring que promete None) + src/budget.py:241-251 (cronometro no portao) + src/standalone_harness.py:653 (bud.evaluate(X[i], lambda _x,_f=F[i]: _f) na carga do dataset)",
+   "tipo": "SEMANTICA_TROCADA",
+   "descricao": "O item I-02 pos o cronometro no portao unico de avaliacao e fez o export aceitar NULL, com a justificativa escrita em duas docstrings: 'no offline o orcamento nasce ESGOTADO e nenhuma avaliacao real acontece no run — gravar 0.0 ali afirmaria que avaliar custou zero'. Mas load_offline_budget passa as n linhas do dataset PELO PROPRIO PORTAO, entao _n_avals_cronometradas = n != 0 e a property NUNCA devolve None no offline: ela devolve o wall de ingerir o artefato. O caso que a docstring usa para justificar o None e exatamente o caso em que ela nao devolve None. Custo concreto: a F5 usava 'tempo_aval_real_s == 0,0' como uma das cinco provas de 'offline puro'; essa prova deixou de discriminar, e um auditor que aplique o teste antigo ao dado novo levanta falso-alarme em 100% das celulas offline. Agravante: o portao que deveria pegar isso (tests/test_g7_instrumentacao.py:118-126) e um GREP DE TEXTO-FONTE — so assere que a string 'tempo_aval_real_s=0.0' nao aparece nos 5 runners; nunca abre um manifesto. Passa verde sobre a regressao.",
+   "verificado_por_mim": "s42 (resultados_experimentos): tempo_aval_real_s == 0.0 EXATO em 200/200 manifestos dos 5 offline Python (b5r 45/45, b5m 45/45, c311 55/55, moead_media 45/45, treed_media 10/10). Smoke T11: b5m 0,0001 (maxfe 61) · moead_media 0,0001 (61) · b5r 0,0003 (309) · c311 0,0003 (309) · treed_media 0,0572 (50.000) — proporcional a N, assinatura de ingestao. Contraste na mesma campanha: os online medem 0,0014-0,0037 com maxfe 61-309, ~20-30x mais por FE. Codigo lido em budget.py:192-202/241-251 e standalone_harness.py:653."
+  },
+  {
+   "id": "R06",
+   "config": "moead (principalmente), nsga2, nsga3, smsemoa",
+   "arquivo_linha": "src/experiment.m (bloco params compartilhado do run_piso, ~:2453-2463 / :2516-2527) contra MOEAD.m:40-45 e SMSEMOA.m:27-29",
+   "tipo": "DECLARACAO_FALSA",
+   "descricao": "A string params.geracoes_derivadas foi reescrita (ERRATA 5 / I-13) trocando uma formula errada por uma redacao honesta ('nao derive, LEIA') com um MECANISMO FALSO. Ela declara que a prole nasce 'em PARES — 2*floor(N_efetivo/2) por geracao (MatingPool do OperatorGA)'. Isso e o mecanismo do NSGAII.m:26-27 / NSGAIII.m:28-29. O MOEA/D faz 'for i = 1:Problem.N' + OperatorGAhalf (MOEAD.m:40-45) = 1 prole por subproblema, N por geracao; o SMS-EMOA idem (SMSEMOA.m:27-29). A string e escrita UMA vez, compartilhada pelos 4 pisos, e so e falsificavel onde N_efetivo e IMPAR — as 6 celulas M=3 do moead (N_ef=15). Nas de M=2, 2*floor(20/2)=20=N_ef e ela acerta POR COINCIDENCIA. Alem disso a alegacao numerica embutida ('acerta 103/112 celulas da s42') nao reproduz no corpus oficial, e a meta-alegacao 'n_geracoes e EMERGENTE, nao fechada' e refutada por uma forma fechada que existe.",
+   "verificado_por_mim": "Corpus oficial resultados_experimentos, 100 celulas de piso (25x4), com n_dup = manifest.cache_hits (leitura caridosa): a formula T11 floor((20D+n_dup)/(2*floor(N_ef/2))) acerta 93/100 — moead 19/25, nsga2 24/25, nsga3 25/25, smsemoa 25/25. As 6 falhas do moead sao EXATAMENTE as 6 celulas de N_ef=15 (DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ7, MMF16_20). Trocando so o denominador para N_ef: 93/100 tambem, mas com a distribuicao INVERTIDA — moead 25/25, nsga3 19/25. Cada denominador acerta 100% no piso cujo mecanismo ele descreve, o que fecha a prova de que o denominador E o mecanismo. Nao reproduzi o '103/112' — meu denominador oficial e 100, nao 112; nao re-medido em data/experiments por disciplina de nao tocar aquela arvore. Codigo lido por grep proprio: MOEAD.m:45 OperatorGAhalf, SMSEMOA.m:29 OperatorGAhalf, NSGAII.m:27 e NSGAIII.m:29 OperatorGA(MatingPool)."
+  },
+  {
+   "id": "R07",
+   "config": "c122",
+   "arquivo_linha": "src/standalone_harness.py:950-956 (emit_sonda_estratificada monta mu=/sigma= ignorando pred_tipo) contra a irma emit_sonda_block :846-854 e sua docstring :808-813",
+   "tipo": "SEMANTICA_TROCADA",
+   "descricao": "O bloco de sonda estratificada (I-6) FUNCIONA como instrumento, mas grava na coluna errada da ③: escreve e(z) em mu_0 e deixa pred_score NULL, com pred_tipo='score' na MESMA linha e o sigma_dict do MESMO manifesto declarando que 'mu_*/sigma_* NAO se aplicam ao c122'. A docstring da funcao irma manda explicitamente 'NUNCA para mu_*/sigma_* (que significam outra coisa e envenenariam a leitura da ③ pela R4)'. O c122 e o unico dos quatro classificadores fora do contrato. Em escala de campanha sao ~1,77 M linhas/semente na coluna errada, e qualquer query transversal por mu_0.notna() passa a colher e(z) do c122 como se fosse mu. O guard do writer (export.py) nao pega porque len(mu)=1 < M=2 e o caso curto legitimo do b1 mono-output.",
+   "verificado_por_mim": "smoke_python/main/c122/MMF1/0, ③: regime='sonda_estratificada' = 10.500 linhas -> mu_0 nao-nulo 10.500/10.500, sigma_0 nao-nulo 10.500/10.500, pred_score nao-nulo 0/10.500, pred_classe 0/10.500, pred_confianca 0/10.500, pred_tipo='score' em 10.500/10.500. Regua sonda do MESMO arquivo: 44.000 linhas com mu_0 nao-nulo 0 e pred_score nao-nulo 44.000 (a irma acerta). Controles da mesma campanha: c217 estratificada 11.000 -> pred_score 11.000, mu_0 0; b4 estratificada 11.500 -> pred_classe 11.500, mu_0 0."
+  },
+  {
+   "id": "R08",
+   "config": "c122",
+   "arquivo_linha": "sigma_dict.REGRA_DO_ROTULO ('ref_ids do evento de geracao') contra c122_thetadeadp.py:848 (sonda, PRE-survival) e :1001 (decision, POS-survival)",
+   "tipo": "DECLARACAO_FALSA",
+   "descricao": "A REGRA_DO_ROTULO do c122 e operacional e reconstroi o rotulo, mas manda usar 'ref_ids do evento de geracao'. No c122 o evento de geracao e o decision, que carrega ref_ids POS-survival, enquanto a sonda mediu contra a populacao PRE-survival e ja carrega o SEU PROPRIO ref_ids no mesmo rec. A leitura literal da regra devolve o conjunto errado na maioria dos blocos. A regra foi escrita para o molde do b4 e nao acompanhou o fato de que aqui existe um ref_ids homonimo e diferente no rec vizinho. Severidade baixa (o dado certo esta no proprio rec; conserto = 6 palavras), mas e uma regra publicada que aponta para o lugar errado.",
+   "verificado_por_mim": "smoke c122/MMF1/0: sonda(g).ref_ids == decision(g).ref_ids como LISTA em 6/22 blocos (o pareamento e posicional-ciclico, logo a ordem importa) e como CONJUNTO em 8/22; == decision(g-1).ref_ids em 21/22 nas duas comparacoes. A leitura literal erra 16/22 = 72,7% dos blocos (14/22 = 63,6% se so o conjunto importasse)."
+  },
+  {
+   "id": "R09",
+   "config": "c122",
+   "arquivo_linha": "manifest.sonda.n_ref (c122_thetadeadp.py:1087) e sigma_dict['regime=sonda'] (:741-743)",
+   "tipo": "DECLARACAO_FALSA",
+   "descricao": "O I-01 corrigiu os RECS (que agora trazem n_ref real, n_ref_nominal e n_ref_truncada) mas nao as declaracoes agregadas: no MESMO run o ⑤ diz sonda.n_ref = 11 e o sigma_dict diz 'referencia de tamanho FIXO', enquanto o rec de g=1 diz n_ref=21, n_ref_truncada=false. A regra 3 do CONTRATO manda ler o sigma_dict ANTES de tocar a ③ — o leitor que CUMPRE o contrato le primeiro a afirmacao falsa. E o mesmo defeito da F5 encolhido de 3.537 recs/25 celulas para 2 strings por celula, mas nao fechado.",
+   "verificado_por_mim": "smoke c122/MMF1/0: manifest.sonda = {..., 'n_ref': 11, ...}; sigma_dict['regime=sonda'] contem literalmente '(n_ref=11) — referencia de tamanho FIXO'. Rec sonda de g=1 no MESMO arquivo: {'geracao': 1, 'n_ref': 21, 'n_ref_nominal': 11, 'n_ref_truncada': False}, com len(ref_ids)=21."
+  },
+  {
+   "id": "R10",
+   "config": "b4",
+   "arquivo_linha": "sigma_dict.REGRA_DO_ROTULO (714 chars) do manifesto do smoke — os tres numeros entre parenteses",
+   "tipo": "DECLARACAO_FALSA",
+   "descricao": "A REGRA em si esta CERTA (a prosa 'nao e pior que TODAS as 6 referencias' equivale exatamente a GetOutput.m:16-19, Output = AND_i any(PopObj <= Ref_i)). O que nao reproduz sao os TRES numeros de calibracao que a T11 embutiu na string ('prevalencia real medida 65,5%, acuracia 0,350, AUC 0,716'). Sao numeros publicados no ⑤ que viajam com o dado e vao para as 30 sementes; quem os usar como baseline de 'quao bom e o classificador' calibra errado — no sentido pessimista para acuracia e otimista para AUC.",
+   "verificado_por_mim": "Reimplementei GetOutput.m (Output = AND_i any(f_z <= Ref_i)) sobre os 24 blocos de sonda do smoke_matlab/main/b4/MMF1/42, com o f verdadeiro de data/sonda/sonda_MMF1.parquet[0:2000] e as 6 referencias lidas de ref_ids -> ① : prevalencia media 0,2843, acuracia media 0,5743, AUC media 0,5076. Declarado na string: 0,655 / 0,350 / 0,716. Nenhum dos tres reproduz."
+  },
+  {
+   "id": "R11",
+   "config": "sobol_batch",
+   "arquivo_linha": "src/sobol_batch.py:226-228 (literal, f-string ausente) -> manifest.params.nota_potencia_de_2",
+   "tipo": "DECLARACAO_FALSA",
+   "descricao": "O bloco params novo do ⑤ (ganho real: nao existia na s42) trouxe um campo que nao e derivado do dado: nota_potencia_de_2 e uma literal fixa que afirma 'q=10' independentemente do q do run. No smoke da propria campanha o run tem q=1 e o campo continua dizendo q=10. Benigno no grid oficial (que roda q=10), mas e um campo de params que mente fora do grid — e o sigma_dict do MESMO manifesto acerta ('q=1 pontos Sobol...'), o que prova que a derivacao existe no arquivo ao lado.",
+   "verificado_por_mim": "smoke_python/batch/sobol_batch/ZDT4/42: manifest.q = 1 e params.q = 1, mas params.nota_potencia_de_2 = 'q=10 nao e potencia de 2: usamos `random(q)`, e o scipy avisa que a propriedade de balanceamento do Sobol nao vale para o lote'."
+  },
+  {
+   "id": "R12",
+   "config": "treed_media (e, por construcao, todo runner que use o Checkpointer DI-43)",
+   "arquivo_linha": "src/treed_media.py:444 (t_f0) ... :461 (t_busca_total) — ckpt.talvez_gravar cai dentro; :490 tempo_geracao_s = t_fit + t_busca_total",
+   "tipo": "SEMANTICA_TROCADA",
+   "descricao": "O checkpoint atomico (DI-43) e uma correcao boa, mas o I/O dele foi cronometrado DENTRO de tempo_busca_s e tempo_geracao_s. A DI-13.10 ratificada manda tempo_geracao_s EXCLUIR a instrumentacao deste estudo — e o config honra isso a risca para a sonda, mas nao para o checkpoint. Nenhuma decisao sanciona a contaminacao (a DI-43/44 nao fala de contabilidade de tempo): e omissao. Consequencia pratica: qualquer projecao de custo para 30 sementes lida de tempo_busca_s/tempo_total_s pos-T11 estara ~50% inflada nos pisos offline, e o efeito e proporcionalmente MAIOR nas celulas baratas, o que distorce o ranking de custo entre configs. O instrumento ja mede o proprio custo (tempo_checkpoint_s no ⑥); falta so descontar.",
+   "verificado_por_mim": "Mesma celula (treed_media/ZDT4/42, canto big-mvns), s42 x smoke T11: tempo_busca_s 3,2705 -> 6,9699 (2,13x) e tempo_total_s 5,8615 -> 11,7240 (2,00x), com tempo_fit_surrogate_s praticamente igual (0,6256 -> 0,6206). Somei os 10 recs 'checkpoint' do ⑥ do smoke: sum(tempo_checkpoint_s) = 3,7539 s = 53,86% do tempo_busca_s. 6,9699 - 3,7539 = 3,2160, que reproduz a s42 a -1,7%."
+  },
+  {
+   "id": "R13",
+   "config": "c154",
+   "arquivo_linha": "src/c154_jes.py:799-807 (finalProbe so no ramo BudgetExhausted), :868-869 (comentario 'a ultima e coberta no ramo do hard-stop acima'), :913-926 (break do teto sai sem passar por nenhum dos dois)",
+   "tipo": "DECLARACAO_FALSA",
+   "descricao": "O rito de teto novo (DI-43/44) e o maior ganho material do config (ver G02), mas o ramo de saida por teto_wall nao emite o bloco final de sonda, enquanto o manifesto do MESMO run declara sonda.cadencia = '1a iteracao, a cada k=2, e SEMPRE a ultima'. Sob hard-stop normal a declaracao e verdadeira; sob teto_wall — o ramo que a T11 acabou de criar — ela e falsa. Impacto pequeno (1 bloco por celula truncada; o estado final do surrogate fica sem regua) e zero sobre o mecanismo; mas e exatamente a classe 'a declaracao que o dado nao cumpre', e ela nasceu junto com o ramo novo.",
+   "verificado_por_mim": "evidencia_T11/teto_c154/main/c154/DTLZ2/42: n_geracoes = 151, motivo_parada = teto_wall; a ③ tem 76 blocos de sonda distintos e o ultimo esta na geracao 150. Testei o conjunto observado contra a formula SEM finalProbe {g : g==1 ou g%2==0}: igualdade exata (diferenca simetrica vazia); 151 nos blocos == False. O manifesto do mesmo run declara sonda.cadencia = '1a iteracao, a cada k=2, e SEMPRE a ultima'."
+  },
+  {
+   "id": "R14",
+   "config": "transversal (c217, os 5 offline Python, c122)",
+   "arquivo_linha": "tests/test_g7_instrumentacao.py:118-126; tests/test_a9_regra_rotulo_c217.py:68,79; claude_code_context/artifacts/contrato_61.json",
+   "tipo": "OUTRO",
+   "descricao": "A regressao de segunda ordem, e a que explica por que as demais atravessaram a campanha inteira verdes: os portoes escritos para validar a instrumentacao nova sao GREPS DE TEXTO-FONTE, nao testes de comportamento. test_os_offline_declaram_NULL_em_vez_de_zero so assere que a string 'tempo_aval_real_s=0.0' nao aparece nos 5 runners — nunca abre um manifesto nem chama bud.tempo_aval_real_s, e por isso passa verde sobre R05. test_a9_regra_rotulo_c217 so abre src/experiment.m e confere a aritmetica do indice e a presenca da string — nunca toca um pmid_ids, e por isso passa verde sobre R01. E o contrato_61.json nao lista nenhum dos campos novos do c217. E literalmente o padrao que a §4.2 do proprio handoff T11 declara ter aprendido a evitar ('um gate que nunca reprova e decorativo'). Enquanto isso valer, 'entrou verde' nao e evidencia de nada.",
+   "verificado_por_mim": "Li os dois testes. tests/test_a9_regra_rotulo_c217.py tem 105 linhas e as unicas chamadas open() sao a linha 68 (o proprio arquivo alvo) e a 79 (src/experiment.m) — nenhum parquet, jsonl ou manifest. tests/test_g7_instrumentacao.py:118-126 le src/{c311_tgprmo,b5_prob,piso_offline,treed_media,standalone_harness}.py e faz assertNotIn('tempo_aval_real_s=0.0', src) — so isso. contrato_61.json: c217 -> di10 = ['n_best','n_worst'] (pmid_ids/y_treino_dist ausentes)."
+  }
+ ],
+ "ganhos_reais": [
+  {
+   "id": "G01",
+   "configs": [
+    "e74"
+   ],
+   "descricao": "DI-45: o fix do indice na ClassifierSelect (ClassifierSelect.m:56-58, S(index) em vez de index absoluto). E o unico item da campanha que mudou COMPORTAMENTO de proposito e o maior ganho de fidelidade: a eq. 7-8 do artigo (Contribuicao 1 declarada do paper), que a F5 provou inerte, passou a se realizar. O infill da estrategia s1 deixou de ser um ponto quase-arbitrario e virou o argmax de distancia em decisao ao arquivo. Ressalva honesta que eu mantenho: o corpus pos-fix e de 3 dos 25 problemas (MMF1 D=2, DTLZ2 D=12, ZDT1 D=30), e nenhum dos regimes em que a s1 mais sofria na s42 foi testado pos-fix.",
+   "verificado_por_mim": "Reconstrui a medicao do zero nos dois corpora, casando o X do infill de s1 (① em fe_index = evento.fe - 1) contra as linhas PNN(s1) do bloco da ③ e testando se o escolhido e o argmax de sigma_0 (=dist_dec), excluindo os blocos degenerados (sigma_0 constante, o no-op do dedup). PRE (s42, 25 celulas, 2.094 blocos nao-degenerados): argmax global 256/2.094 = 12,23%; argmax restrito a nivel_1 12,75%; rank mediano do escolhido 43. POS (smoke T11, 3 celulas, 267 blocos nao-degenerados): argmax global 232/267 = 86,89%; argmax restrito a nivel_1 95,88%; rank mediano 1. Corte por frac_nivel1: PRE 22,06% (frac==1) x 9,19% (frac<1); POS 93,22% x 85,10%."
+  },
+  {
+   "id": "G02",
+   "configs": [
+    "c154"
+   ],
+   "descricao": "O rito de teto (DI-43/44): o projetor deixou de ABORTAR e passou a AVISAR, e o run segue ate o relogio truncando COM dado. Na rodada-42 as 12 celulas D>=12 do main/c154 morreram entregando ZERO parquet (categoria B do INVENTARIO). A celula exercitada entrega as 6 camadas coerentes E uma curva de sonda utilizavel — que era a pergunta que importava, nao a mera existencia dos arquivos. E o ganho de maior valor material da campanha em volume de dado recuperado.",
+   "verificado_por_mim": "evidencia_T11/teto_c154/main/c154/DTLZ2/42: status=failed, motivo_parada=teto_wall, fe_final=282 < maxfe=371, n_geracoes=151. Camadas medidas por mim: ① 282x21 com 282/282 linhas finitas e fase init=131 (=11D-1 exato para D=12) / opt=151; ② 31.237; ③ 161.060 (152.000 sonda + 9.060 online); ④ 151; ⑥ 551 linhas jsonl (151 decision + 151 timing + 151 optimize_acqf_warning + 76 sonda + 11 checkpoint + 7 guard + 1 wall_projection_warning + 1 teto_wall_truncamento + header + footer). Curva utilizavel: join posicional contra data/sonda/sonda_DTLZ2.parquet[0:2000] fecha com max|dX| = 2,98e-08; recomputei WAPE e cobertura 95% nos 76 blocos: WAPE do 1o ao ultimo bloco 0,1362->0,0974 (-28,5%), 0,1295->0,0943 (-27,1%), 0,0903->0,0415 (-54,0%); cobertura final 0,9560 / 0,9625 / 0,9840. Controle do 'antes': resultados_experimentos/c154/ tem 11 diretorios de problema, nenhum com D>=12."
+  },
+  {
+   "id": "G03",
+   "configs": [
+    "e103"
+   ],
+   "descricao": "DI-41 (dedup da ⑦ por modelo_flag, scripts/final_eval.py:121-132) executada NO DADO, nao so no codigo: a celula que a F5 acusou com 200 linhas foi regerada. O ganho e comportamental — o que a duplicata 2x destruia era o spacing (ia a 0,0), nao a fantasia (invariante sob duplicacao exata). Residuo honesto e nomeado: o sidecar do espelho ainda declara n_final=200 sobre um parquet de 100 linhas — censo por sidecar mente, censo por parquet acerta.",
+   "verificado_por_mim": "resultados_experimentos/e103: 45 celulas com ⑦; distribuicao de n_linhas = {100: 45} (100% em 45/45). mtime dos parquets: 44 celulas em 2026-07-28 21:xx e exatamente 1 em 2026-07-29 13:29:14 — swap_medium-lhs_ZDT4, a celula acusada. Residuo confirmado: comparando parquet x sidecar, 1 de 45 discorda — swap_medium-lhs_ZDT4 tem 100 linhas e sidecar n_final=200."
+  },
+  {
+   "id": "G04",
+   "configs": [
+    "todos os 24"
+   ],
+   "descricao": "Proveniencia no ⑤ (G3 / I-09 / schema v2): campanha_id, repo_hash real e schema_version=2. E a correcao com maior cobertura da campanha e funciona em 100% do que rodou. Antes o repo_hash era literalmente sentinela (chave presente com valor None/'' em alguns configs, ausente nos outros) — o padrao que a torre mandou cacar existia AQUI e a T11 o preencheu. Consequencia operacional: pela primeira vez da para amarrar um artefato a um commit sem depender de nota de operacao. Ressalva: nada disso existe no corpus s42, entao qualquer portao escrito sobre esses campos REPROVA o corpus oficial inteiro.",
+   "verificado_por_mim": "Varri os manifestos ⑤ dos dois corpora. s42 (resultados_experimentos, excluindo _old e __final): 666 manifestos -> campanha_id presente 0/666, repo_hash nao-vazio 0/666, schema_version==2 0/666, params presente 469/666. Smoke T11 (evidencia_T11/smoke_matlab + smoke_python): 26 manifestos -> campanha_id 26/26, repo_hash 26/26, schema_version==2 26/26, params 26/26."
+  },
+  {
+   "id": "G05",
+   "configs": [
+    "c122",
+    "b4"
+   ],
+   "descricao": "O item I-1 (identidade da referencia) — o MESMO item que produziu o pmid_ids sentinela do c217 — FUNCIONA nestes dois configs, e e o contraste que prova que o defeito do c217 nao e do desenho do item, e sim do transplante do molde: o b4 passa um objeto SOLUTION de largura D, o c122 passa ids ja resolvidos, e o c217 passa uma matriz crua de largura D+1. Aqui a lacuna que a F5 nomeou fechou de verdade: da para reconstruir o rotulo verdadeiro da sonda. No c122 o campo ainda revelou um fato novo e util (o bloco 1 mede contra a populacao NAO truncada, n_ref=21=11D-1, com n_ref_truncada=false explicito).",
+   "verificado_por_mim": "smoke c122/MMF1/0: ref_ids soma 252 ids nos 22 recs de sonda e 451 ids nos 41 recs de decision — 703 ids, ZERO negativos; len(ref_ids)==n_ref em 22/22. smoke b4/MMF1/42: 270 ids em 45 recs b4_gen, ZERO negativos. Contraste direto medido na mesma campanha: c217, 426 ids, 426 negativos (100%)."
+  },
+  {
+   "id": "G06",
+   "configs": [
+    "sobol_batch"
+   ],
+   "descricao": "A outra face de R05: o mesmo item I-02 que quebrou a semantica no offline CONSERTOU um zero literal no online. O sobol_batch era o 1 de 6 runners Python que nao media tempo de avaliacao e gravava 0.0 literal; agora herda a medida do portao unico, sem ninguem ter de lembrar de nada. No mesmo pacote entrou o bloco params, que nao existia neste config. Ou seja: I-02 e uma correcao boa aplicada no ponto certo (o portao) que produziu efeito colateral errado num caminho que tambem passa pelo portao (a ingestao offline) — o conserto e local, nao um recuo do item.",
+   "verificado_por_mim": "s42 resultados_experimentos/sobol_batch: 5 celulas, tempo_aval_real_s == 0.0 EXATO em 5/5 e bloco params AUSENTE em 5/5. Smoke T11 batch/sobol_batch/ZDT4/42: tempo_aval_real_s = 0,0037 (maxfe 309) e params presente com 16 chaves."
+  },
+  {
+   "id": "G07",
+   "configs": [
+    "b1",
+    "b3",
+    "b4",
+    "c141",
+    "c217",
+    "c238",
+    "e7",
+    "e74",
+    "e103"
+   ],
+   "descricao": "Nao-perturbacao da sonda provada por DADO, nao por argumento. O invariante vermelho do CONTRATO §3.1 ('a sonda NAO PODE alterar a busca') era um teto T na F5 — indecidivel com 1 run. Os pares g6_com x g6_sem preservados o convertem em fato medido, e isso e o que sustenta todo o resto: e a garantia de que a instrumentacao nova (inclusive a sonda estratificada e todos os campos novos) e read-only sobre o mecanismo. Sem esse par, cada campo novo seria suspeito de mover a busca. Ressalva: os 9 pares sao MATLAB, D=2, 61 FE; nenhum config Python tem par preservado.",
+   "verificado_por_mim": "Comparei eu mesma as duas arvores evidencia_T11/g6_com x g6_sem, config a config: em 9/9 (b1, b3, b4, c141, c217, c238, e103, e7, e74) a ① tem 61 linhas dos dois lados com as colunas x*/f* bit-a-bit iguais (np.array_equal == True) e a ② e DataFrame-identica (equals == True). 9/9 nas duas camadas."
+  },
+  {
+   "id": "G08",
+   "configs": [
+    "b1"
+   ],
+   "descricao": "G1/B-11: o writer do ⑥ passou a truncar 1x em 'w' e reabrir em 'a' (src/experiment.m:jsonl_open), e o lado Python (src/audit_log.py) usa O_APPEND em toda abertura. O alvo nomeado no proprio commit era a perda de linhas no main/b1/WFG1. O modo de PERDA esta fechado. Ressalva que eu mantenho: o smoke e single-writer, entao o modo de SPLICE (linha rasgada por escrita concorrente sem fflush) fica improvavel mas nao provadamente eliminado — e o corpus s42 ja gravado continua com o dano.",
+   "verificado_por_mim": "Varri os jsonl dos dois corpora contando linhas nao-parseaveis e footers. s42 resultados_experimentos/b1: 24 celulas, 15.101 linhas, 49 MALFORMADAS e 1 celula com footer != 1 — todas em main/b1/WFG1/42 (reproduz exatamente o '49 de 931 spliced, 0 footer' citado no commit). Smoke T11 b1: 1 celula, 105 linhas, 0 malformadas, footer presente. Contexto que medi de quebra: o corpus s42 inteiro tem 119 linhas malformadas em 686.755."
+  }
+ ],
+ "balanco": "Melhor no que DECIDE, pior no que DECLARA — saldo liquido positivo, mas por uma margem menor do que os 24 relatorios sugerem. Do lado do mecanismo a T11 so somou, e eu confirmei os tres carros-chefe por medicao propria: o DI-45 fez a Contribuicao 1 declarada do paper do e74 sair de 12,23% para 86,89% de realizacao (2.094 blocos PRE x 267 POS, recomputados do zero); o rito de teto do c154 converteu 12 celulas de perda total em 6 camadas coerentes com curva de sonda utilizavel (WAPE caindo -28,5%/-27,1%/-54,0%, cobertura final 0,956-0,984); a ⑦ do e103 ficou integra em 45/45. E o que sustenta tudo isso e o G07: os 9 pares g6_com x g6_sem que eu re-medi sao bit-identicos em ① e ②, o que converte 'a instrumentacao e read-only' de alegacao em fato e derruba um teto que era indecidivel. A proveniencia saiu de 0/666 manifestos para 26/26. Do lado da declaracao, porem, a campanha introduziu uma familia inteira de defeitos com a mesma forma: um campo nasce para fechar uma lacuna que a auditoria nomeou, entra verde, e o que ele carrega e sentinela (pmid_ids -1 em 426/426; flag_vetores_degenerados null em 1.144/1.144 e 801/801), semantica trocada (tempo_aval_real_s medindo ingestao nos 5 offline Python que antes gravavam 0,0 honesto em 200/200 celulas; e(z) do c122 na coluna mu_0 em 10.500/10.500; 53,9% do tempo_busca_s do treed_media virando I/O de checkpoint) ou declaracao factualmente falsa (params.operadores do c217 afirmando 20/20 onde o codigo roda 15/5 em tres sitios; a string geracoes_derivadas declarando o mecanismo do NSGA-II para o MOEA/D e errando exatamente nas 6 celulas em que e falsificavel; os tres numeros de calibracao do REGRA_DO_ROTULO do b4, que eu medi em 0,2843/0,5743/0,5076 contra os 0,655/0,350/0,716 publicados). Em varios desses casos o estado pos-T11 e PIOR que a lacuna original, porque a lacuna era honestamente vazia e agora esta preenchida com algo que passa nos portoes: no c217 a ausencia em 6.762/6.762 virou presenca sentinela com um comentario de codigo que da uma explicacao FALSA e tranquilizadora, e por cima uma REGRA_DO_ROTULO de 1.502 caracteres que manda o leitor usar exatamente o campo morto. A causa-raiz comum, e o unico item que eu trataria como bloqueante antes do M8/M9, e a R14: os portoes escritos para validar a instrumentacao nova sao greps de texto-fonte (test_g7 nunca abre um manifesto; test_a9 nunca toca um pmid_ids; contrato_61.json nao lista nenhum campo novo do c217) — exatamente o 'gate decorativo' que o proprio handoff T11 diz ter aprendido a evitar. Enquanto isso valer, 'entrou verde' nao e evidencia de nada, e 30 sementes multiplicam cada declaracao falsa por 30. O alivio real: nenhuma das 14 regressoes toca o laco de decisao — todas vivem em metadado, log ou cronometro; nenhuma exige re-run; sao consertos de 1 a 6 linhas mais um teste de COMPORTAMENTO por campo novo. O veredito honesto: a T11 entregou o que prometeu no codigo e falhou na verificacao do que entregou."
+}

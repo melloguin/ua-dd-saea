@@ -1,0 +1,250 @@
+{
+  "id": "e81",
+  "sigla": "qPOTS",
+  "titulo": "Multiobjective Aerodynamic Design Optimization of the NASA Common Research Model",
+  "ano": 2025,
+  "roster": true,
+  "setup": {
+    "benchmarks": "4 problemas sintéticos: Branin-Currin (d=2, K=2), DTLZ3 (d=10, K=2), DTLZ7 (d=5, K=2), ZDT3 (d=10, K=2, frente de Pareto desconexa) — Table 1. 1 problema real de engenharia: NASA Common Research Model (CRM), otimização aerodinâmica de asa \"clean wing\" (sem nacelles/pylons), d=24 (parametrização FFD com 162 pontos de controle, 24 deformáveis), K=2 (coeficientes de arrasto CD1, CD2 em 2 pontos de cruzeiro: M=0.85/α=2.37 e M=0.7/α=3.87), avaliado via simulação CFD Euler não-viscosa no SU2 (malha de 6,12M elementos, esquema upwind escalar, limitador de Venkatakrishnan, CFL=10).",
+    "orcamento": "Sintéticos: n = 10×d pontos-semente (DoE inicial) por repetição; orçamento total varia por problema conforme Fig. 4/5 (~50 avaliações no Branin-Currin, ~100 no DTLZ7, ~800 no DTLZ3/ZDT3); batch size q ∈ {1, 2, 4}. CRM: 200 pontos-semente + 200 iterações adicionais com q=1 (400 avaliações reais no total); aproximação de Nyström desligada nesse experimento.",
+    "execucoes": "Sintéticos: 10 repetições por problema/política de aquisição, com a MESMA semente fixada entre todas as políticas de aquisição em cada repetição (comparação pareada por desenho, mas nunca explorada estatisticamente no artigo) — Table 1 reporta 'Seed/repetitions' como 20/10, 100/10, 50/10, 100/10. CRM: execução única, não repetida (200/1), por custo computacional da simulação CFD.",
+    "baselines": "TSEMO, PESMO, JESMO, MESMO (entropy-based), qNEHVI, qPAREGO/qNPAREGO (scalarization-based), e Sobol (amostragem quase-aleatória) nos sintéticos. No CRM a comparação é restrita a qNEHVI (rotulado 'EHVI' na Fig. 7/8), qPAREGO (rotulado 'ParEGO') e Sobol — os 'best-performing approaches from synthetic experiments'. NÃO há piso evolutivo populacional (NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) como baseline externo em nenhum experimento — NSGA-II aparece só como otimizador interno do subproblema barato do qPOTS (Eq. 5). Todos os concorrentes externos são, portanto, outros métodos de otimização bayesiana (ou Sobol como piso sem modelo).",
+    "metricas_principais": [
+      "Hypervolume (HV), computado via decomposição em caixas (box decomposition) — única métrica usada em todo o artigo; IGD/IGD+/GD/spacing não aparecem em nenhum lugar."
+    ],
+    "testes": [
+      "nenhum teste de hipótese em nenhuma parte do artigo (sem Wilcoxon, sem Friedman, sem símbolos +/=/−); comparação é sempre visual, via curvas de média ± 1 desvio-padrão ou scatterplots"
+    ],
+    "apresentacao": "Curvas de HV × número de avaliações, com MÉDIA (não mediana) ± 1 desvio-padrão em sombreado, sobre as repetições; sem tabelas numéricas de valores finais; sem negrito de melhor; sem IQR. Scatterplots de pares de objetivos com pontos rotulados 'Non-Optimal' (azul) vs 'Pareto Optimal' (vermelho). Ponto de referência do HV fixado por amostragem densa do domínio (sintéticos) ou por conhecimento de domínio — CD ≥ 0 — no CRM (r = (100,100)).",
+    "codigo_plataforma": "GPyTorch e BoTorch (GPs e infraestrutura de BO), PyMOO/NSGA-II (otimizador interno do subproblema multiobjetivo barato, Eq. 5, população 100×d), MPI4Py (paralelização das repetições), SU2 (CFD para o CRM). Código aberto: https://github.com/csdlpsu/qpots e malha/inputs do SU2 em https://github.com/csdlpsu/su2scrips."
+  },
+  "analises": [
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de hipervolume × número de avaliações para amostragem sequencial (q=1) nos 4 problemas sintéticos (Branin-Currin, DTLZ3, DTLZ7, ZDT3), comparando qPOTS contra qPOTS-Nystrom (só d=10), PESMO, TSEMO, JESMO, qNEHVI, Sobol, qNPAREGO e MESMO. Média e ±1 desvio-padrão sobre 10 repetições por curva.",
+      "literal": "Figure 4 shows the performance comparison (in terms of hypervolume) for sequential sampling (q = 1). Notice that qPOTS (blue) is consistently the best performer, or is amongst the best.",
+      "localizador": "Sec. 4.1, Fig. 4, Table 1",
+      "metricas": [
+        "Hypervolume (HV)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Média ± 1 desvio-padrão sobre 10 repetições (não mediana/IQR); eixo x = número de avaliações reais (não fração do orçamento); sem tabela numérica; sem teste estatístico; sem banda de piso evolutivo (todos os concorrentes plotados são métodos BO, exceto Sobol).",
+      "achado": "qPOTS é o melhor desempenho, ou está entre os melhores, em HV nos 4 problemas sintéticos no regime sequencial (q=1).",
+      "aplicabilidade": "① (avaliações reais, ordem) permitiria reconstruir uma curva de convergência análoga (ficha 26) na bateria da dissertação, trocando a métrica (o artigo só usa HV; a dissertação usa IGD+/HV) e usando mediana+IQR de 30 sementes em vez de média±1dp de 10 repetições. Branin-Currin, DTLZ3 e DTLZ7 NÃO fazem parte da bateria (ZDT/DTLZ/WFG/MMF/BBOB); só ZDT3 é nominalmente comparável, mas em d=10 aqui (a dimensão pode diferir da bateria)."
+    },
+    {
+      "fichas": [
+        26,
+        64
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "As mesmas curvas de HV × avaliações, agora em modo lote (q=2 e q=4), nos mesmos 4 problemas sintéticos, com a mesma lista de concorrentes sufixados '-q2'/'-q4' (e '-Nystrom-Pareto' para d=10). Compara o ganho relativo do qPOTS quando o tamanho do lote aumenta, contra os mesmos competidores em lote.",
+      "literal": "While qPOTS comfortably wins in all experiments, notice that the difference with TSEMO is more pronounced in the batch setting.",
+      "localizador": "Sec. 4.1, Fig. 5",
+      "metricas": [
+        "Hypervolume (HV)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesmo formato de curvas média±1dp da ficha 26, mas com sufixo de tamanho de lote nos nomes dos métodos; qPOTS-Nystrom-Pareto só aparece para os problemas d=10 (DTLZ3, ZDT3).",
+      "achado": "qPOTS vence em todos os experimentos em lote (q=2,4), com a vantagem sobre o concorrente mais próximo (TSEMO) MAIOR no regime em lote do que no sequencial — atribuída à amostragem de Thompson combinada com seleção por distância maximin, sem a otimização estocástica cara de métodos como qNEHVI.",
+      "aplicabilidade": "Não reproduzível diretamente com a bateria online da dissertação, que roda em q=1 (lote não é o desenho padrão da bateria principal). A ficha 64 (sub-estudo de lote, q=10, sobol_batch/qNEHVI/qPOTS) é o análogo planejado na dissertação — aqui o artigo usa q=2,4 em vez de q=10, e nos problemas sintéticos próprios do artigo, não nos 28 problemas da bateria."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação da aproximação de Nyström (exata vs Nystrom-Pareto)",
+      "grupo_sugerido": "E",
+      "descricao": "Dentro dos mesmos experimentos sintéticos d=10 (DTLZ3 e ZDT3), o artigo compara a variante 'qPOTS-Nystrom-Pareto' (que usa a aproximação de Nyström de Sec. 3.3 para amostrar a posterior do GP de forma barata, com Xm = conjunto não-dominado corrente) contra o qPOTS 'exato' (sem aproximação), em HV, tanto no regime sequencial (Fig. 4) quanto em lote (Fig. 5).",
+      "literal": "We show qPOTS-Nystrom-Pareto (that is Xm chosen as the current Pareto set) for the d = 10 experiments which shows no loss of accuracy for the DTLZ3 function and, surprisingly, a slight gain in accuracy for the ZDT3 function.",
+      "localizador": "Sec. 4.1 (parágrafo após Fig. 4), Fig. 4 e Fig. 5",
+      "metricas": [
+        "Hypervolume (HV)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Comparação textual/qualitativa sobreposta nas mesmas Fig. 4/5, sem tabela numérica dedicada; 'no loss of accuracy' e 'slight gain' não são quantificados com números no texto.",
+      "achado": "A aproximação de Nyström não perde acurácia (HV) em DTLZ3 (d=10) e, de forma inesperada, GANHA um pouco de acurácia em ZDT3 (d=10) — resultado positivo/surpreendente para o atalho computacional, não a perda que se esperaria de uma aproximação.",
+      "aplicabilidade": "Não reproduzível com as camadas da dissertação — exigiria rodar duas variantes do próprio qPOTS (com e sem Nyström na amostragem da posterior) e comparar HV/IGD+ resultante; nenhuma camada captura isso post-hoc de uma única execução instrumentada."
+    },
+    {
+      "fichas": [
+        26,
+        23
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "No caso real do CRM (d=24, K=2), curva de HV ao longo das iterações comparando qPOTS contra qNEHVI ('EHVI'), qPAREGO ('ParEGO') e Sobol, numa única execução (200 sementes + 200 iterações, q=1), sem repetição por custo computacional da CFD.",
+      "literal": "The right panel of the figure shows the hypervolume histories of qPOTS alongside competing methods – notably, qPOTS achieves the highest hypervolume and is the fastest to converge.",
+      "localizador": "Sec. 4.2, Fig. 7 (painel direito)",
+      "metricas": [
+        "Hypervolume (HV)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução única (n=1, sem repetição — 'the experiments are not repeated'); HV ao longo de até ~400 avaliações; impossível aplicar teste estatístico com n=1; comparação restrita a 3 concorrentes (os melhores dos sintéticos).",
+      "achado": "No CRM (problema real de CFD), qPOTS atinge a maior hipervolume e converge mais rápido do que qNEHVI, qPAREGO e Sobol, numa única execução não repetida.",
+      "aplicabilidade": "① (avaliações reais, ordem) permitiria reconstruir uma curva de HV/IGD+ acumulada análoga à ficha 26, mas o CRM não é um dos 28 problemas da bateria da dissertação (é um problema de CFD externo, 24D) e a execução não tem repetição (n=1), incompatível com o desenho de 30 sementes — não reproduzível como está; serve só de referência/inspiração para um eventual estudo de caso externo."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Scatterplots dos pares de objetivos (CD1, CD2) do CRM, com pontos Pareto-ótimos destacados, para qPOTS (Fig. 7 esquerda) e para EHVI/qNEHVI, ParEGO/qPAREGO e Sobol (Fig. 8) — comparação qualitativa de quantos pontos e onde cada método encontra soluções não-dominadas.",
+      "literal": "While ParEGO, similar to qPOTS, identifies several Pareto optimal objectives, the Pareto optimal objectives from ParEGO are dominated by those identified by qPOTS.",
+      "localizador": "Sec. 4.2, Fig. 7 (painel esquerdo) e Fig. 8",
+      "metricas": [
+        "objetivos (CD1, CD2) — dominância/não-dominância visual, sem métrica escalar reportada na própria figura"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Pontos coloridos/rotulados 'Non-Optimal' (azul) vs 'Pareto Optimal' (vermelho); leitura puramente visual, sem contagem de |ND| por método no texto principal. Não há 'frente verdadeira' conhecida (problema real de CFD), diferente do uso típico da ficha 54 contra uma frente de referência.",
+      "achado": "EHVI e Sobol encontram só 2 pontos Pareto-ótimos cada; ParEGO encontra vários, mas todos DOMINADOS pelos do qPOTS — isto é, o conjunto não-dominado do qPOTS domina estritamente o de ParEGO.",
+      "aplicabilidade": "① (avaliações reais) mais o ND acumulado ao final do orçamento permitiria gerar um scatter/fronteira análogo (ficha 54), mas exigiria rodar o CRM (ou um problema real equivalente) dentro da própria instrumentação da dissertação — não reproduzível diretamente com os dados já coletados, que não incluem o CRM."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Interpretação aerodinâmica dos designs (coeficiente de pressão)",
+      "grupo_sugerido": "H",
+      "descricao": "Comparação do coeficiente de pressão (Cp) na superfície da asa entre o design baseline (não deformado) e 3 designs Pareto-ótimos do qPOTS (Fig. 9, nível de asa completa) e em cortes transversais a 5/25/50/75/95% da envergadura (Fig. 10), mostrando a relocação e enfraquecimento do choque.",
+      "literal": "A common thread across all three Pareto optimal designs is that the optimized wing, for cruise point 1, has a lower drag by 45 −50 counts.",
+      "localizador": "Sec. 4.2, Fig. 9 e Fig. 10",
+      "metricas": [
+        "coeficiente de pressão (Cp)",
+        "coeficiente de arrasto (CD, em drag counts)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Cp vs posição normalizada de corda (x/c), linha azul = baseline, linha vermelha = otimizado, para cada % de envergadura; arrasto [CD1, CD2] impresso abaixo de cada design na Fig. 9. Interpretação qualitativa/de engenharia, não estatística.",
+      "achado": "O design ótimo reduz o arrasto em 45–50 drag counts no ponto de cruzeiro 1 (arrasto praticamente igual, ou levemente maior, no ponto 2), relocando e enfraquecendo o choque do bordo de fuga para o bordo de ataque — mas o choque NUNCA é totalmente eliminado, evidenciando o trade-off entre os dois pontos de operação.",
+      "aplicabilidade": "não reproduzível — depende de simulação CFD e interpretação aerodinâmica específica de domínio (pressão de superfície, geometria de asa), fora do escopo das 7 camadas de instrumentação algorítmica da dissertação, que registram desempenho (x, f, μ/σ) e não campos de escoamento."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Interpretação aerodinâmica dos designs (geometria do perfil/asa)",
+      "grupo_sugerido": "H",
+      "descricao": "Comparação das formas de seção transversal (perfis/airfoil) do design baseline vs um design Pareto-ótimo do qPOTS, nas mesmas 5 posições de envergadura (5/25/50/75/95%), ligando a mudança geométrica (incluindo torção da asa) à mudança de pressão vista na análise anterior.",
+      "literal": "In the remaining locations, the wing shape changes more noticeably, which includes a change in the overall wing twist.",
+      "localizador": "Sec. 4.2, Fig. 11",
+      "metricas": [
+        "forma geométrica do perfil (seção transversal / airfoil shape)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Comparação visual pura (sobreposição de contornos baseline vs otimizado), sem métrica numérica de forma; mesmas posições de envergadura da Fig. 10.",
+      "achado": "A mudança geométrica do perfil é sutil nas pontas da asa (5% e 95% de envergadura) mas mais pronunciada nas seções intermediárias, incluindo mudança na torção (twist) da asa — uma mudança geométrica pequena produz efeito de pressão desproporcionalmente maior nas pontas.",
+      "aplicabilidade": "não reproduzível — mesma limitação da análise anterior: exige geometria de asa e simulação CFD, fora do escopo das 7 camadas de instrumentação algorítmica da dissertação."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Robustez a ruído de observação injetado (ablação de σ²)",
+      "grupo_sugerido": "C",
+      "descricao": "Experimento de robustez no Branin-Currin: qPOTS rodado com ruído gaussiano aditivo de observação em 4 níveis de variância (σ² = 0, 1e-6, 1e-4, 1e-3), reportando curvas de HV esperado × iteração (média ± desvio-padrão sobre 10 repetições) para cada nível de ruído.",
+      "literal": "We report hypervolume convergence curves (mean ± std over 10 repeats) showing that qPOTS maintains stable convergence relative to baselines up to the tested noise levels.",
+      "localizador": "Apêndice 5.3, Fig. 12",
+      "metricas": [
+        "Hypervolume (HV) esperado"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Média ± desvio-padrão sobre 10 repetições; 1 único problema (Branin-Currin); 4 níveis de σ² injetado nas observações; sem tabela numérica.",
+      "achado": "O texto afirma convergência de HV estável do qPOTS sob ruído injetado (até σ²=1e-3) 'relativa aos baselines', mas a Fig. 12 (título 'qPOTS on Branin–Currin: noise ablation') só plota curvas do próprio qPOTS em diferentes níveis de ruído — nenhum outro método aparece na legenda/figura para sustentar essa comparação com baselines.",
+      "aplicabilidade": "não reproduzível — exige ruído injetado artificialmente nas avaliações reais (variável manipulada σ²), o que não faz parte do desenho padrão (sem ruído controlado) da bateria da dissertação; a camada ③ (sonda) poderia, em tese, comparar σ predito vs erro real sob ruído controlado, mas não é isso que este experimento faz (ele mede HV final, não calibração)."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo não mede calibração, cobertura, correlação σ×erro nem acurácia de classificador em lugar nenhum; usa exclusivamente HV como métrica final de desempenho. A incerteza (σ do GP) é usada apenas implicitamente, via amostragem de trajetórias da posterior (Thompson sampling), nunca reportada/avaliada como quantidade própria.",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Só menção qualitativa (sem números/tabela/segundos): o custo da computação de aquisição do qPOTS é dito 'substancialmente mais rápido' que qNEHVI e qPAREGO no CRM (d=24), o que motivou não ligar a aproximação de Nyström nesse experimento. Também há complexidade teórica derivada (não medida empiricamente) da aproximação de Nyström: O(m³ + Nm²) contra O(N³) do cômputo exato da raiz quadrada da covariância posterior (Sec. 3.3, Eq. 7).",
+    "literal": "This is because the acquisition computations were still substatially faster than qNEHVI and qPAREGO in this high-dimensional case.",
+    "localizador": "Sec. 4.2 (parágrafo de configuração do experimento CRM); complexidade teórica em Sec. 3.3"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Os autores admitem que não há mecanismo automático para lidar com escalonamento em alta dimensão, algo relevante justamente para o domínio de projeto aerodinâmico que o artigo ataca.",
+      "literal": "there is no automatic way to handle high-dimensional scaling which is important for aerodynamic design.",
+      "localizador": "Sec. 5 (Conclusion, Known limitations)"
+    },
+    {
+      "descricao": "Caveat explícito sobre a aproximação de Nyström (o mecanismo que barateia a amostragem da incerteza/posterior em alta dimensão): não existe ainda uma estratégia bem definida para controlar o trade-off custo-acurácia dessa aproximação.",
+      "literal": "however, a well-defined strategy to control the cost-accuracy tradeoff in the algorithm performance doesn’t yet exist.",
+      "localizador": "Sec. 5 (Conclusion, Known limitations)"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "frente de Pareto desconexa (ZDT3)",
+      "afirmacao": "ZDT3 é caracterizada no artigo, já na primeira menção, como tendo frentes de Pareto desconexas; é justamente nesse problema (par com DTLZ3, ambos d=10) que a variante qPOTS-Nystrom-Pareto surpreende com um leve GANHO de acurácia (e não perda) — o único caso de ganho relatado entre os dois problemas testados com Nyström.",
+      "literal": "the ZDT3 function, which has disconnected Pareto frontiers",
+      "localizador": "Sec. 4.1"
+    },
+    {
+      "caracteristica": "objetivos parcialmente conflitantes / região mista de conflito-não-conflito no espaço de projeto (CRM)",
+      "afirmacao": "O espaço de projeto do CRM tem regiões conflitantes e não-conflitantes entre os dois pontos de cruzeiro (Fig. 3, Fig. 7 esquerda); os designs Pareto-ótimos encontrados pelo qPOTS se concentram exatamente na região conflitante, o que os autores usam para justificar a necessidade de otimização multiobjetivo (em vez de multiponto escalarizado).",
+      "literal": "the conflicting part is where the Pareto optimal designs are also found, emphasizing the importance of multiobjective optimization.",
+      "localizador": "Sec. 4.2, Fig. 7 (painel esquerdo)"
+    }
+  ],
+  "roster_bloco": {
+    "mecanismo_proprio": [
+      {
+        "descricao": "Ablação da aproximação de Nyström (Sec. 3.3) usada para amostrar a posterior do GP de forma barata em alta dimensão — o mecanismo computacional que viabiliza a amostragem de Thompson (a incerteza propriamente dita) do qPOTS: comparação de HV da variante 'exata' vs 'qPOTS-Nystrom-Pareto' em DTLZ3 e ZDT3 (d=10), tanto sequencial quanto lote.",
+        "literal": "We show qPOTS-Nystrom-Pareto (that is Xm chosen as the current Pareto set) for the d = 10 experiments which shows no loss of accuracy for the DTLZ3 function and, surprisingly, a slight gain in accuracy for the ZDT3 function.",
+        "localizador": "Sec. 4.1, Fig. 4 e Fig. 5"
+      },
+      {
+        "descricao": "Sensibilidade/robustez do mecanismo de incerteza do qPOTS (amostragem de trajetórias da posterior do GP) a diferentes variâncias de ruído de observação injetado (σ² ∈ {0, 1e-6, 1e-4, 1e-3}) no Branin-Currin.",
+        "literal": "We report hypervolume convergence curves (mean ± std over 10 repeats) showing that qPOTS maintains stable convergence relative to baselines up to the tested noise levels.",
+        "localizador": "Apêndice 5.3, Fig. 12"
+      }
+    ],
+    "reprodutivel_com_camadas": [
+      {
+        "mecanismo": "Ablação da aproximação de Nyström",
+        "camada": "não reproduzível com as camadas — exige rodar duas variantes do algoritmo qPOTS (com e sem Nyström na amostragem da posterior) e comparar o endpoint (via ①) de cada uma; nenhuma camada isolada permite decompor esse efeito a partir de uma única execução já instrumentada."
+      },
+      {
+        "mecanismo": "Ablação de ruído de observação injetado",
+        "camada": "não reproduzível — exige ruído controlado injetado nas avaliações reais como variável manipulada, fora do desenho padrão (sem ruído) da bateria; a camada ③ (sonda, cobertura μ±2σ) poderia em tese informar uma versão análoga de calibração sob ruído, mas não é isso que este experimento do artigo mede (ele mede só HV final por nível de σ², não cobertura/calibração)."
+      }
+    ],
+    "parametros_do_uso_da_incerteza": {
+      "kernel": "Matérn anisotrópico, ν = 5/2 — define a covariância/estrutura de incerteza do GP; usado por padrão em todos os experimentos ('Throughout the manuscript, we default to the anisotropic Matérn class kernel with ν = 5/2', Sec. 4.1)",
+      "q_batch_size": "q ∈ {1, 2, 4} nos sintéticos (Table 1); q = 1 no CRM — número de trajetórias/amostras de Thompson (uma por objetivo) usadas para gerar o lote de candidatos a cada iteração",
+      "tau2_ruido_observacional": "τ² = 1e-3 adicionado às observações nos experimentos sintéticos, para condicionamento da matriz de covariância do GP ('We add Gaussian noise with variance τ2 = 10−3 to all our observations to assist with the conditioning of the GP covariance matrix', Sec. 4.1); no estudo de robustez do Apêndice 5.3, σ² ∈ {0, 1e-6, 1e-4, 1e-3}",
+      "m_nystrom": "tamanho do subconjunto Xm da aproximação de Nyström (Sec. 3.3): NÃO é um valor numérico fixo — escolhido dinamicamente como o subconjunto de pontos não-dominados em {Xn, yn} ('we choose them to be the subset of nondominated points in {Xn, yn}'); desligado (não usado) no experimento do CRM",
+      "populacao_nsga2_interno": "100 × d indivíduos — população do NSGA-II que resolve o subproblema multiobjetivo barato (Eq. 5) sobre as trajetórias amostradas da posterior, em todos os problemas",
+      "n_seed_doe": "n = 10 × d pontos-semente (DoE inicial) nos sintéticos; 200 pontos-semente no CRM"
+    }
+  },
+  "observacoes": "(1) qPOTS é citado NOMINALMENTE na ficha 10 da tipologia como um dos três 'BO-especiais' sem motor evolutivo casável (junto com JES e LBN-MOBO) — mas este próprio artigo nunca compara qPOTS a um piso evolutivo (NSGA-II/MOEA-D/NSGA-III/SMS-EMOA); todos os baselines aqui são outros métodos BO (TSEMO, PESMO, JESMO, MESMO, qNEHVI, qPAREGO) mais Sobol como único 'piso sem modelo'. A comparação ficha 10 (assistido vs melhor dos 4 pisos) precisará vir do re-run da dissertação, não deste artigo-fonte. (2) Única métrica usada no artigo inteiro: Hypervolume; IGD/IGD+/GD/spacing nunca aparecem — diferença metodológica relevante frente à métrica primária IGD+ da dissertação. (3) Nenhum teste de hipótese estatístico aparece em lugar nenhum do artigo (nem Wilcoxon, nem Friedman); toda comparação é visual (curvas média±1dp, scatterplots). (4) Duas passagens do texto parecem comentários de revisão/edição não plenamente integrados à prosa final — possivelmente resíduos de resposta a revisores deixados na versão do arXiv (2507.10488v2, 1 dez 2025): (a) ao final da Sec. 3.4, antes de '4. Experiments': 'The advantages of treating multipoint design as a multi-objective problem should be more explicitly articulated: ... - Provide a stronger aerodynamic interpretation of the Pareto front in the CRM case...'; (b) abertura do Apêndice 5.3: 'We added a short robustness experiment in Section 5.3: for one synthetic test (Branin-Currin) we ran qPOTS...' (metacomentário sobre a própria revisão do artigo). Isso não invalida os achados, mas é um sinal de que partes do artigo (a robustez a ruído, e a falta de discussão aerodinâmica mais profunda) foram adições tardias/pouco polidas. (5) O CRM não é um dos 28 problemas da bateria da dissertação; é um problema real de CFD específico deste artigo (24D, arrasto em 2 pontos de cruzeiro), com 1 execução não repetida — citado aqui só como o 'caso real' que este artigo-fonte usa para demonstrar qPOTS, não como algo diretamente reprodutível na bateria. (6) Apêndices 5.1 (extensão do qPOTS a problemas com restrições, via indicadoras de factibilidade sobre GPs de restrição) e 5.2 (prova de que o ótimo multiponto/escalarizado é sempre Pareto-ótimo, e que a recíproca exige convexidade do conjunto objetivo atingível) são puramente teóricos/derivações matemáticas, SEM dados experimentais — não contam como análises no sentido do cartão, mas são conteúdo notável do artigo (justificam teoricamente a motivação central de usar MOO em vez de multiponto escalarizado, citada já na Introdução). (7) Figuras 2 e 3 (Introdução) são ilustrações motivacionais (ZDT3 didático; dispersão de arrasto do CRM em designs amostrados) e não resultados de execuções do qPOTS — excluídas de `analises`. (8) 'qNEHVI' e 'qPAREGO' no texto aparecem como 'EHVI' e 'ParEGO' nas legendas das Fig. 7/8 — inconsistência de nomenclatura entre texto e figura, preservada aqui como está no artigo. (9) O artigo é a versão estendida (arXiv, com CRM real + apêndices) do artigo de conferência seminal do qPOTS: Renganathan & Carlson, AISTATS 2025 (referência [48] do próprio artigo)."
+}

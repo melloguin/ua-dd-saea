@@ -1,0 +1,183 @@
+{
+ "det": {
+  "BBOB_F1": {
+   "fora3": 0,
+   "n3": 1254000,
+   "maxrel": 0.0,
+   "no_limite": 788,
+   "fora1": 0
+  },
+  "BBOB_F17": {
+   "fora3": 0,
+   "n3": 1254000,
+   "maxrel": 0.0,
+   "no_limite": 7214,
+   "fora1": 0
+  },
+  "BBOB_F22": {
+   "fora3": 0,
+   "n3": 1254000,
+   "maxrel": 0.0,
+   "no_limite": 5583,
+   "fora1": 0
+  },
+  "BBOB_F37": {
+   "fora3": 0,
+   "n3": 1254000,
+   "maxrel": 0.0,
+   "no_limite": 1458,
+   "fora1": 0
+  },
+  "BBOB_F49": {
+   "fora3": 0,
+   "n3": 1254000,
+   "maxrel": 0.0,
+   "no_limite": 2887,
+   "fora1": 0
+  },
+  "BBOB_F5": {
+   "fora3": 0,
+   "n3": 1254000,
+   "maxrel": 0.0,
+   "no_limite": 1111,
+   "fora1": 0
+  },
+  "BBOB_F55": {
+   "fora3": 0,
+   "n3": 1254000,
+   "maxrel": 0.0,
+   "no_limite": 1980,
+   "fora1": 0
+  },
+  "DTLZ1": {
+   "fora3": 0,
+   "n3": 611800,
+   "maxrel": 0.0,
+   "no_limite": 9790,
+   "fora1": 0
+  },
+  "DTLZ2": {
+   "fora3": 0,
+   "n3": 1824000,
+   "maxrel": 0.0,
+   "no_limite": 14136,
+   "fora1": 0
+  },
+  "DTLZ3": {
+   "fora3": 0,
+   "n3": 1824000,
+   "maxrel": 0.0,
+   "no_limite": 26248,
+   "fora1": 0
+  },
+  "DTLZ4": {
+   "fora3": 0,
+   "n3": 1824000,
+   "maxrel": 0.0,
+   "no_limite": 12015,
+   "fora1": 0
+  },
+  "DTLZ7": {
+   "fora3": 0,
+   "n3": 6102800,
+   "maxrel": 0.0,
+   "no_limite": 132441,
+   "fora1": 0
+  },
+  "MMF1": {
+   "fora3": 0,
+   "n3": 49400,
+   "maxrel": 0.0,
+   "no_limite": 36,
+   "fora1": 0
+  },
+  "MMF11_L": {
+   "fora3": 0,
+   "n3": 49400,
+   "maxrel": 2.3841857821338408e-08,
+   "no_limite": 0,
+   "fora1": 0
+  },
+  "MMF16_20": {
+   "fora3": 0,
+   "n3": 5054000,
+   "maxrel": 0.0,
+   "no_limite": 72896,
+   "fora1": 0
+  },
+  "MMF4": {
+   "fora3": 0,
+   "n3": 49400,
+   "maxrel": 0.0,
+   "no_limite": 805,
+   "fora1": 0
+  },
+  "WFG1": {
+   "fora3": 0,
+   "n3": 6102800,
+   "maxrel": 0.0,
+   "no_limite": 81943,
+   "fora1": 0
+  },
+  "WFG2": {
+   "fora3": 0,
+   "n3": 6102800,
+   "maxrel": 0.0,
+   "no_limite": 51910,
+   "fora1": 0
+  },
+  "WFG4": {
+   "fora3": 0,
+   "n3": 6102800,
+   "maxrel": 0.0,
+   "no_limite": 43492,
+   "fora1": 0
+  },
+  "WFG5": {
+   "fora3": 0,
+   "n3": 6102800,
+   "maxrel": 0.0,
+   "no_limite": 119019,
+   "fora1": 0
+  },
+  "WFG9": {
+   "fora3": 0,
+   "n3": 6102800,
+   "maxrel": 0.0,
+   "no_limite": 56355,
+   "fora1": 0
+  },
+  "ZDT1": {
+   "fora3": 0,
+   "n3": 11400000,
+   "maxrel": 0.0,
+   "no_limite": 221396,
+   "fora1": 0
+  },
+  "ZDT3": {
+   "fora3": 0,
+   "n3": 11400000,
+   "maxrel": 0.0,
+   "no_limite": 202812,
+   "fora1": 0
+  },
+  "ZDT4": {
+   "fora3": 0,
+   "n3": 1254000,
+   "maxrel": 0.0,
+   "no_limite": 5357,
+   "fora1": 0
+  },
+  "ZDT6": {
+   "fora3": 0,
+   "n3": 1254000,
+   "maxrel": 0.0,
+   "no_limite": 28370,
+   "fora1": 0
+  }
+ },
+ "fora": 0,
+ "n": 81988800,
+ "no_limite": 1100042,
+ "pior_rel": 2.3841857821338408e-08
+}

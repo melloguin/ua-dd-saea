@@ -1,0 +1,114 @@
+{
+ "config": "nsga2 (exp=main) — piso NSGA-II stock PlatEMO 4.15, RODADA FINAL: corpus congelado de 835 células = 750 sintéticas (M8, herdadas da F30 com prova de congelamento) + 85 reais novas (RE21 28 · DDMOP7 30 · ESTOQUE40 27)",
+ "celulas_final": "835/835 'ok' sob O-21, 0 ⚪ teto, 0 fail, 0 inválidas. Por grupo: SINTÉTICAS 750/750 ok (25 problemas × 30 sementes; rodapé==manifesto confirmado pela F30 e re-confirmado no spot-check 8/8; freeze provado: mtime máximo em disco 2026-08-14T11:00:29Z, ZERO arquivos tocados depois — idêntico ao created_at máximo que a F30 registrou). REAIS 85/85 ok com rodapé lido integralmente por mim: RE21 28/28 (faltam s12/s18 — lacuna ACEITA, células nunca rodadas, não inválidas), DDMOP7 30/30, ESTOQUE40 27/27 (faltam s10/s13/s28 — idem). Nos 85 novos: footer status='ok', termino='normal', fe_final==maxfe==31D−1 em 85/85 (RE21 123, DDMOP7 526, EST40 1.239); manifesto e rodapé concordam em 85/85 — o nsga2 segue o único regime onde a O-21 não arbitra nada. hard_stop presente ⟺ resto>0 em 85/85 (80 com, 5 sem). Integridade de cópia: sha256 das 5 camadas não-manifesto do canônico == espelho (~/mestrado_coleta_reais/) em 85/85 células, 0 mismatches.",
+ "novas_desde_f30": "+85 células (mtimes 2026-08-15T15:38Z a 2026-08-19T06:54Z), todas dos 3 problemas reais; ZERO sintéticas novas e ZERO modificadas (censo final × censo_completo_22 da F30: 750 both / 85 left_only / 0 right_only; freeze bit-nível provado por mtime em disco). Herança da F30 justificada por: (i) congelamento; (ii) spot-check de 8 células sintéticas (ZDT1/23, WFG9/19, DTLZ7/17 = as D+2 da F30 reproduzidas exatas; MMF4/22 = célula C1 com o mesmo campanha_id default e host 'matlab-vm5' que a F30 catalogou; DTLZ2/42, BBOB_F1/0, ZDT6/26, WFG5/13) — query-joia D88, DoE dX=0,0, ledger, bloco de seeding 21=N+1, ③ vazia, monotonia e O-21: 8/8 verdes, valores idênticos aos publicados pela F30.",
+ "mecanismo_nos_novos": "QUERY-JOIA D88 rodada nas 85/85 células novas (não amostra): recomputo independente de NDSort + CrowdingDistance (normalizada por fronteira, extremos ±inf, semântica PlatEMO conferida na fonte) + lexsort(front↑, cd↓, índice↑) sobre o bloco init da ① reproduz o conjunto de 20 eleitos da ②(g=1) com coincidência EXATA em 85/85 e diferença simétrica 0 em todas — e fecha DIRETO na ① float32 (nenhum artefato classe-DTLZ4 nos 3 problemas reais). O rec:seeding (n_doe, n_frentes, n_frente1, frente1_excede_pop) recomputado fecha 85/85. Erro: 0. Reforços de mecanismo: elitismo ②(g+1)⊆②(g)∪janela com 0 violações; ideal monotônico e f_best≡ideal 85/85; ledger D89 por rounds Σ(Δfe+dups)=20 em 85/85; n_ger = D+1+floor(dups_completos/20) em 85/85 — a forma exata da F30 estende aos D novos {4, 17, 40} (D+2 em 2 DDMOP7 e 13 EST40); taxa de clone bit-exato vs predição analítica do OperatorGA (p_colisão=0,06662×(1−1/D)^D): D=4 2,50% vs 2,11%±0,59 · D=17 2,57% vs 2,38%±0,30 · D=40 2,41% vs 2,42%±0,20 — TODAS dentro do IC95, a assinatura P9 é invariante aos problemas novos. DoE 11D−1 injetado com max|dX|=0,0 EXATO 85/85 e cadeia doe_hash ⑤==header==sidecar 85/85. Determinismo: 1 par de EXECUÇÕES independentes existe nos reais (DDMOP7/0: vm1 15/08 repo 3240f4b2 × vm5 18/08 repo 7be66e65, pós-degrau de hardware) — ① e ② TABELA-IDÊNTICAS (dX=df=0,0; parquets equals), n_ger/cache/fe iguais: a bit-estabilidade do EA puro estende aos reais E ao oráculo .p do DDMOP7, atravessando as duas versões de código da rodada.",
+ "reais": "RE21 (D=4, M=2): formulação re-verificada por reimplementação minha em float64 contra a ① das 28 células × 123 pontos — erro relativo máximo 3,0e-07 (= float32, bate com o 3,3e-07 do T15). checa_regua PASSA 28/28. HV mediano 0,780 (0,724–0,805, 0 zeros), IGD+ mediano 0,0535 com CV entre sementes 21,8% (mesmo regime de ruído dos sintéticos). n_ger=5 (D+1) em 28/28. DDMOP7 (D=17, M=2): checa_regua (ideal=[0;0], REAL-2.15 ERRATA 2) RODADO e PASSA 30/30, avisos_regua VAZIO — zero furos, nem tolerados; f1=k/17 com |k−round(k)|=0,0 exato e f2=n/690 dentro do float32 (2e-05) em 15.780 pontos. HERANÇA DE ZEROS confirmada nas 30: DoE cru com 100% das linhas contendo zero exato (~50% das coordenadas); nas propostas da busca, 99,0% em média carregam zeros herdados (mín 89,4% na pior célula) e f1<1 em 98,7% (mín 94,7%); x_efetivo (zona morta τ=0,5) com 93,9% das coordenadas em zero (mediana; ≥91% em 29/30, s5=88,8%). A ZONA MORTA FOI APLICADA — provado no dado: 473 grupos de propostas distintas que colapsam no mesmo x_efetivo têm spread de f = 0,0 EXATO em 30/30 células (se o oráculo visse o x cru, divergiriam). |ND| dedupado por x_efetivo (CONTRATO §T15.13) = 23–116 contra 192–302 do x_proposto — inflação de 114–258 pontos em 30/30: a regra de leitura é OBRIGATÓRIA e muda o número em toda célula. A busca do GA VENCE o DoE: 100% do ND final (dedupado) vem da fase opt em 30/30, ganho de HV sobre DoE-só +0,252 mediano (0,110–0,333) — a zona morta resgatou o benchmark para o piso GA (no smoke pré-T15 eram 14/15 pontos; agora 30/30 a 100%). HV (régua PROVISÓRIA fase-1, selo D102.3) mediano 0,8726 com CV 0,44% — quase não discrimina entre sementes; fase 2 pooled segue obrigatória e agora computável. Custo: 3.295,9 s/célula (3.294,0–3.296,9 — 99,8% é o .p a ~6,27 s/aval × 526) = 27,46 h-core nas 30; o wall é estável ATRAVÉS do degrau vm1/vm5. ESTOQUE40 (D=40, M=3): checa_regua (D69 estendida pelos cantos, D102.20) PASSA 27/27; f1 sempre ≤ −7.007 (receita negada, sem degenerado), f3 ≥ 0,0107; HV mediano 0,965 (máx 0,9996 — os cantos da D102.20 evitaram HV>1 por margem mínima, exatamente o cenário que a decisão previu), IGD+ mediano 0,0588 CV 16,3%. n_ger 41 (14 cel) / 42 (13 cel) — metade das células cruza o degrau de 20 duplicatas, como a fórmula prevê para 800 slots a ~2,4%.",
+ "aspectos_mudados": [
+  {
+   "id": "A1",
+   "o_que": "Escopo e censo do config",
+   "antes": "F30: 750 células sintéticas, 100% varridas",
+   "agora": "835 células: as 750 congeladas (0 arquivos tocados pós-14/08, herança F30 com spot 8/8) + 85 reais varridas a 100% pela bateria de contrato (26 checagens × 85, todas 85/85)"
+  },
+  {
+   "id": "A2",
+   "o_que": "Query-joia D88",
+   "antes": "750/750, mas 30 células (DTLZ4) exigiam restauro float64 do export",
+   "agora": "85/85 DIRETO na ① float32 — RE21/DDMOP7/EST40 não têm a patologia de export; nos objetivos quantizados do DDMOP7 (k/17, n/690) a joia fecha apesar dos empates maciços"
+  },
+  {
+   "id": "A3",
+   "o_que": "Lei de n_geracoes",
+   "antes": "n_ger = D+1+floor(dups/20), 750/750 nos D {2..30}",
+   "agora": "estende EXATA aos D novos {4,17,40}: 85/85, com D+2 em 2/30 DDMOP7 e 13/27 EST40 (EST40 cruza o degrau em metade das células — 800 slots × ~2,4%)"
+  },
+  {
+   "id": "A4",
+   "o_que": "Assinatura P9 do OperatorGA (clone bit-exato)",
+   "antes": "predição analítica batia nos D sintéticos {7..30}, falhava só em D=2",
+   "agora": "bate dentro do IC95 nos 3 D novos: 2,50/2,57/2,41% medidos vs 2,11/2,38/2,42% preditos (D=4/17/40) — mecanismo invariante a problema real"
+  },
+  {
+   "id": "A5",
+   "o_que": "Proveniência (C1 da F30)",
+   "antes": "30/750 (4%) com campanha_id DEFAULT por data e host 'matlab-vmX'",
+   "agora": "100% das 85 novas: 3 campanha_id default ('3240f4b26fae_2026-08-15' 56 cel vm1 · '7be66e65522c_2026-08-18' 3 · '_2026-08-19' 26, vm5) e DOIS repo_hash na mesma rodada lógica — nenhum nome de campanha T15/FINAL foi carimbado; diff entre os 2 commits toca SÓ docs/metrics/tests (zero código de execução) e o par DDMOP7/0 prova não-perturbação no dado"
+  },
+  {
+   "id": "A6",
+   "o_que": "Determinismo cross-máquina",
+   "antes": "101 pares sintéticos idênticos; deriva 5,7e-15 só no float64 do ⑥",
+   "agora": "+1 par REAL (DDMOP7/0, vm1×vm5, 3 dias de intervalo, repos diferentes, vm5 pós-degrau): ①/② bit-idênticas — inclui o oráculo .p, que se prova bit-determinístico cross-máquina"
+  },
+  {
+   "id": "A7",
+   "o_que": "Zona morta D102.17",
+   "antes": "não existia no corpus F30; T15 validou em smokes",
+   "agora": "em produção nas 30 DDMOP7: aplicação PROVADA pelo dado (473 grupos x_efetivo multi-membro com spread f=0,0), regra §T15.13 reconstrói perfeitamente; MAS params.zona_morta AUSENTE do ⑤ na rota MATLAB (classe 3 nova, C4)"
+  },
+  {
+   "id": "A8",
+   "o_que": "Régua executável",
+   "antes": "piso O-18 morto; checa_regua recém-criado (commit 89655e4), nunca rodado em campanha",
+   "agora": "RODADO nas 85: PASSA 85/85, avisos_regua vazio — nenhum furo nem tolerado nos 3 reais do nsga2; a errata ideal=[0;0] do DDMOP7 e os cantos D102.20 do EST40 seguram o dado real inteiro"
+  },
+  {
+   "id": "A9",
+   "o_que": "Custo ('o piso é grátis')",
+   "antes": "F30: 1,36 h-core nas 750, mediana 5,48 s/célula",
+   "agora": "vale para RE21 (5,5 s) e EST40 (6,8 s); NÃO vale para DDMOP7: 3.296 s/célula (99,8% = .p), 27,46 h-core nas 30 — custo do ORÁCULO, não do algoritmo"
+  },
+  {
+   "id": "A10",
+   "o_que": "Casamento ④↔⑥ de timing",
+   "antes": "|Δ tempo_geracao_s| < 1e-6 s (célula sintética, walls curtos)",
+   "agora": "máx 3,8e-06 s nos reais — o ④ grava float32 e o ⑥ float64; a tolerância de leitura correta é RELATIVA (~1e-7) ou 1e-5 abs; o critério absoluto 1e-6 da F30 reprovaria células DDMOP7 falsamente"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C1-FINAL",
+   "descricao": "PROVENIÊNCIA DEFAULT EM 100% DAS CÉLULAS NOVAS (evolução do C1 da F30, que era 4% do M8). As 85 células reais carregam campanha_id DEFAULT baseado em data — TRÊS valores para uma rodada lógica ('3240f4b26fae_2026-08-15' ×56, '7be66e65522c_2026-08-18' ×3, '7be66e65522c_2026-08-19' ×26) — e DOIS repo_hash (3240f4b2 = T15.12, vm1; 7be66e65 = A53, vm5), com host na convenção longa 'matlab-vm1'/'matlab-vm5' (a mesma que era anomalia na F30). Nenhuma env UA_DD_SAEA_CAMPANHA_ID foi setada na fase final. BENIGNO PARA O MECANISMO, provado por dois caminhos: git diff 3240f4b..7be66e6 toca só CONTRATO/REGISTRO/handoff/scripts/metrics/tests (zero linha de execução) e o par DDMOP7/0 vm1×vm5 é bit-idêntico ①② atravessando os dois hashes. Consequência real: group-by por campanha_id parte a rodada final em 3; por env.host, a frota em 4 rótulos p/ 2 máquinas; nada identifica 'T15/FINAL' no ⑤.",
+   "gravidade": "media",
+   "acao": "ESCALAR (D81), mesma mesa do C1 da F30: (a) re-carimbo de metadados (script, sem re-run) com um campanha_id nomeado único p/ as 85 + normalização de host, ou (b) declaração da exceção em registro. Recuperável SEM re-run.",
+   "arquivo_linha": "resultados_experimentos/nsga2/{RE21,DDMOP7,ESTOQUE40}/*/*.manifest.json (campos campanha_id, repo_hash, env.host)"
+  },
+  {
+   "id": "C2-FINAL",
+   "descricao": "A string params.geracoes_derivadas com a acurácia irreproduzível ('27/28... 110/112') que a F30 reprovou (C2) foi gravada VERBATIM nas 85 células novas — a correção recomendada não chegou antes da fase final e o corpus está congelado com ela. O VALOR real de n_geracoes segue certo em 85/85 e a forma exata da F30 fecha 85/85 nos D novos; o defeito é só do texto publicado no ⑤.",
+   "gravidade": "baixa",
+   "acao": "Sem ação no dado (congelado). Manter a errata da F30, agora com alcance 835/835: quem ler a string deve ignorar as acurácias e seguir o conselho final ('leia n_geracoes').",
+   "arquivo_linha": "src/experiment.m (bloco params.geracoes_derivadas) — espelhada em todos os ⑤ do config"
+  },
+  {
+   "id": "C3-FINAL",
+   "descricao": "Header do ⑥ sem run_id/ambiente/params/sigma_dict (CONTRATO §6 l.296) persiste em 85/85 células novas — mesmo conjunto único de 19 chaves da campanha M8; agora são 835/835 no config. Sem decisão que sancione.",
+   "gravidade": "baixa",
+   "acao": "ESCALAR (D81), herdado da F30/T11: ou o CONTRATO declara os 4 campos opcionais p/ a família MATLAB, ou o writer os emite em campanhas futuras. Sem efeito no dado (o ⑤ vizinho tem tudo).",
+   "arquivo_linha": "CONTRATO_DE_DADOS.md §6 l.296 vs resultados_experimentos/nsga2/*/*/*.jsonl (rec='header')"
+  },
+  {
+   "id": "C4-NOVO",
+   "descricao": "params.zona_morta AUSENTE DO ⑤ EM 30/30 CÉLULAS DDMOP7 — o CONTRATO §T15.12 (l.478: 'transformação determinística + params.zona_morta.tau no ⑤ — injeção automática do harness') e §T15.13 (l.498-9: 'cujo τ está em params.zona_morta do ⑤') prometem o campo; a rota MATLAB não o grava (a injeção automática só existe na rota Python: c122/e81 têm o bloco completo {tau:0.5, escopo, decisao}; nsga2 e c217 têm None). A TRANSFORMAÇÃO EM SI ESTÁ CERTA — provei: τ=0,5 hardcoded em ddmop7_value_local.m:120-125 (par bit-a-bit do python, testado), e no dado os 473 grupos de propostas distintas com mesmo x_efetivo têm spread de f = 0,0 exato em 30/30 células. Mas o auditor que seguir a receita do próprio contrato encontra o campo vazio.",
+   "gravidade": "media-baixa",
+   "acao": "ESCALAR (D81): ou re-carimbo de metadados (adicionar o bloco zona_morta aos ⑤ MATLAB×DDMOP7 — edição de manifesto, sem re-run), ou emenda ao §T15.13 declarando que na família MATLAB o τ canônico vem de ddmop7_bridge.TAU_ZONA_MORTA/ddmop7_value_local.m:120. Recuperável SEM re-run: a transformação é determinística e o τ é único e testado.",
+   "arquivo_linha": "CONTRATO_DE_DADOS.md §T15.12 l.474-481 e §T15.13 l.494-499 vs resultados_experimentos/nsga2/DDMOP7/*/*.manifest.json (params sem chave zona_morta); src/ddmop7_value_local.m:113-125"
+  }
+ ],
+ "celulas_invalidas": [],
+ "score_final": 9,
+ "trajetoria_scores": "F5: 10 (s42, 25 células — zero classe (3) em 25 aspectos, mecanismo stock provado) → T11: 10 (MANTEVE — smoke ≡ s42 bit-a-bit, correções da T11 só de instrumentação do ⑤, nenhum defeito de mecanismo a validar) → F30: 9 (AMPLIAÇÃO DE ESCOPO, não regressão — 30 réplicas expuseram 3 classe-(3) de instrumentação/proveniência: C1 campanha_id/host partidos em 30 células, C2 fórmula publicada no ⑤ errada por +1 e acurácia irreproduzível, C3 header do ⑥ sem 4 campos do CONTRATO; todos provados benignos) → FINAL: 9 (MANTEVE, com o mecanismo no ponto mais provado da série: joia D88 85/85 direto, ledger 85/85, clone-rate fecha nos 3 D novos, par real bit-idêntico cross-máquina/cross-repo/cross-degrau incluindo o oráculo .p, checa_regua 85/85 sem um aviso. O que impede o retorno a 10 é a dívida de proveniência que PERSISTE e CRESCEU: C1 passou de 4% do M8 para 100% das células novas com 3 campanha_id e 2 repo_hash sem nome de campanha, C2/C3 gravados verbatim nas novas, e C4 é novo — o contrato §T15.12/13 promete params.zona_morta no ⑤ e a rota MATLAB não o gravou em 30/30. Pela régua da casa — classe (3) menores, todos investigados e provados benignos — é 9.)",
+ "veredito": "RECOMENDO ACEITAR as 835 células, sem exclusões (o veredito é do autor — D97). O mecanismo do piso é o mais auditado do estudo e saiu da rodada final MAIS forte: 4 exames sem um único bug de algoritmo; a joia D88 fecha nas 30 sementes × 28 problemas; a semeadura, o ledger D89, o orçamento 31D−1, o elitismo e a monotonia fecham 85/85 nas células novas SEM restauro float64; a assinatura estatística do OperatorGA se confirma nos três D inéditos; e o único par de re-execução real (DDMOP7/0, vm1×vm5, 3 dias, dois commits, degrau de hardware no meio) é bit-idêntico — o que estende a bit-estabilidade do EA puro ao oráculo .p. Nos reais, as três doutrinas do T15 SEGURAM em produção: a régua nova do DDMOP7 não é furada por nenhum dos 15.780 pontos (checa_regua rodado, zero avisos), a zona morta foi aplicada (provado pelo colapso f-exato de 473 grupos) e resgatou o benchmark para o GA (100% do ND final vem da busca em 30/30, +0,25 de HV sobre o DoE), e a regra §T15.13 do x_efetivo é indispensável (|ND| bruto inflado em 114–258 pontos por célula). As 4 pendências classe-(3) são TODAS de metadado/proveniência, todas provadas benignas, todas recuperáveis sem re-run — e nenhuma toca um número que vá para a dissertação. Com o re-carimbo de proveniência (C1-FINAL/C4) executado e sancionado, não vejo obstáculo a promover o config a 10 na errata.",
+ "decisoes_ao_autor": [
+  "C1-FINAL (média): decidir o re-carimbo de proveniência das 85 células reais — hoje NENHUMA se identifica com uma campanha nomeada (3 campanha_id default por data, 2 repo_hash, hosts 'matlab-vm1/5'); mesmo item da mesa da F30, agora com 100% de incidência nas novas. Script de metadados resolve, sem re-run.",
+  "C4-NOVO (média-baixa): o CONTRATO §T15.12/§T15.13 promete params.zona_morta.tau no ⑤ e a rota MATLAB (nsga2, e observei o mesmo no c217) não o grava — 30/30 DDMOP7 sem o campo. Decidir: re-carimbo do bloco zona_morta nos ⑤ MATLAB×DDMOP7 OU emenda ao contrato apontando ddmop7_bridge.TAU_ZONA_MORTA como fonte canônica na família MATLAB. A transformação em si está provada certa no dado.",
+  "REGRA DE LEITURA para o CADERNO (obrigatória em qualquer contagem publicada do DDMOP7): |ND| dedupado por x_efetivo = 23–116 contra 192–302 do x_proposto — publicar o bruto reporta diversidade que não existe (inflação de 114–258 pontos em TODAS as 30 células). HV/IGD não mudam (o f da ① já é do ponto efetivo).",
+  "FASE 2 DA RÉGUA DDMOP7 (D102.3): o HV que reporto (mediana 0,8726, CV 0,44%) usa a régua fase-1 PROVISÓRIA (selo REGUAS_PROVISORIAS) — a fase 2 pooled é obrigatória antes de publicar e agora é computável (629 células DDMOP7 no corpus). Nota de leitura: o CV de 0,44% indica que o HV do DDMOP7 discrimina pouco entre sementes para o piso — a separação esperada é entre CLASSES de operador (B-16c), confirmando a expectativa estrutural.",
+  "LACUNAS DE SEMENTE nos reais do nsga2 (aceitas, corpus congelado): RE21 sem s12/s18, EST40 sem s10/s13/s28. Qualquer contraste pareado config×config nesses 2 problemas deve usar a INTERSEÇÃO de sementes, não as 30 — senão o denominador desbalanceia.",
+  "NOTA DE CUSTO para a tabela: o 'piso grátis' vale nos sintéticos e em RE21/EST40 (5,5/6,8 s por célula), NÃO no DDMOP7 — 3.296 s/célula (99,8% é o .p a ~6,27 s/aval), 27,46 h-core nas 30. O wall do .p é estável através do degrau vm1/vm5 (range total de 3 s entre 3.294 e 3.297) — a tabela de custo pode misturar as duas VMs sem correção.",
+  "ARMADILHA de auditoria futura: o ④ grava tempo_geracao_s em FLOAT32 — o casamento ④↔⑥ nos reais dá |Δ| até 3,8e-06 s; o critério absoluto <1e-6 s citado pela F30 reprovaria células DDMOP7 falsamente. Usar tolerância relativa (~1e-7) ou 1e-5 absoluta.",
+  "CONFIRMAÇÃO POSITIVA para o texto da dissertação: a decisão zona-morta (D102.17) cumpriu o objetivo declarado — nas 30 células o front final do GA vem 100% da busca (não do DoE), com ganho de HV de +0,11 a +0,33 sobre o DoE-só; e a esparsidade herdada é medida: 99,0% das propostas carregam zeros herdados do DoE, x_efetivo com 93,9% das coordenadas em zero (≥91% em 29/30; s5 = 88,8% — citar como 'mediana 94%', não '91%+ em todas').",
+  "NÃO MEDIDO, declaro: (a) IGD+ do DDMOP7 não existe por desenho (sem front D72 — D102.4), reportei só HV; (b) determinismo cross-máquina nos reais tem n=1 par (DDMOP7/0) — RE21/EST40 não têm segunda execução em máquina distinta (cada célula rodou uma vez, vm1); a doutrina 'EA puro é bit-estável' cobre por extrapolação medida no M8 (101 pares); (c) disC=20/disM=20/proC=1 seguem em T (mesmo teto da F30 — sem assinatura recuperável); (d) não re-testei cobertura de gates da torre (fora do meu escopo)."
+ ]
+}

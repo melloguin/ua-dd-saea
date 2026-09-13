@@ -1,0 +1,13 @@
+{
+ "L3_transf_vs_arquivo_reconstruido_do_PROPRIO_L3": {
+  "max": 3.7283593599113374e-06,
+  "mediana": 1.5537896871364865e-06,
+  "gens_lt_5e-6": 200
+ },
+ "L3_transf_vs_arquivo_da_camada1": {
+  "max": 7.7728168414338725,
+  "mediana": 5.239279324615396,
+  "gens_lt_5e-6": 0
+ },
+ "n_geracoes": 200
+}

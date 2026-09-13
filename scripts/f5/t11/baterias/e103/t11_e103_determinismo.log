@@ -1,0 +1,15 @@
+ZDT1       camadas byte-idênticas: 4/5 ['__surrogate.parquet', '__real.parquet', '__pop.parquet', '__final.parquet']
+           run_id  off_e103_ZDT1_42                   × sweep-small-lhs_e103_ZDT1_42
+           created 2026-07-26T23:39:56Z × 2026-07-26T10:49:05Z  wall 698.915s × 450.395s
+ZDT4       camadas byte-idênticas: 4/5 ['__surrogate.parquet', '__real.parquet', '__pop.parquet', '__final.parquet']
+           run_id  off_e103_ZDT4_42                   × sweep-small-lhs_e103_ZDT4_42
+           created 2026-07-26T23:29:43Z × 2026-07-26T10:42:04Z  wall 61.760s × 27.903s
+DTLZ2      camadas byte-idênticas: 4/5 ['__surrogate.parquet', '__real.parquet', '__pop.parquet', '__final.parquet']
+           run_id  off_e103_DTLZ2_42                  × sweep-small-lhs_e103_DTLZ2_42
+           created 2026-07-26T23:22:29Z × 2026-07-26T10:42:00Z  wall 75.189s × 37.855s
+WFG9       camadas byte-idênticas: 4/5 ['__surrogate.parquet', '__real.parquet', '__pop.parquet', '__final.parquet']
+           run_id  off_e103_WFG9_42                   × sweep-small-lhs_e103_WFG9_42
+           created 2026-07-26T23:32:27Z × 2026-07-26T10:44:08Z  wall 284.762s × 160.043s
+MMF16_20   camadas byte-idênticas: 4/5 ['__surrogate.parquet', '__real.parquet', '__pop.parquet', '__final.parquet']
+           run_id  off_e103_MMF16_20_42               × sweep-small-lhs_e103_MMF16_20_42
+           created 2026-07-26T23:27:58Z × 2026-07-26T10:44:32Z  wall 304.763s × 184.478s

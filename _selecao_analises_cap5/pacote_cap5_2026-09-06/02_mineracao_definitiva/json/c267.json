@@ -1,0 +1,333 @@
+{
+  "id": "c267",
+  "sigla": "SAMOEA-TL2M",
+  "titulo": "A Two-Level Model Management-Based Surrogate-Assisted Evolutionary Algorithm for Medium-Scale Expensive Multiobjective Optimization",
+  "ano": 2025,
+  "roster": false,
+  "setup": {
+    "benchmarks": "3 suítes sintéticas padrão, todas na versão tri-objetivo (m=3): DTLZ1–DTLZ7 (7 problemas, suíte de Deb et al. [60]), WFG1–WFG9 (9 problemas, suíte de Huband et al. [61]) e MaF1–MaF7 (7 problemas, suíte de Cheng et al. [62]) — 23 problemas no total, cada um testado em 4 dimensões D=30, 50, 70, 100 (92 combinações problema×D). Extensão de generalização: LSMOP1–LSMOP9 (9 problemas, suíte de large-scale de Cheng et al. [64]), só em D=100, comparado apenas contra os dois baselines que batem o SAMOEA-TL2M em alguns problemas DTLZ (SPGP-SAEA e TP-SAEA), não contra os 5 baselines completos. Aplicação real: 6 problemas TREE (time-varying ratio error estimation de transformadores de tensão em sistemas de potência [33],[65]), D=120 fixo, TREE1–TREE5 biobjetivo e TREE6 tri-objetivo, com PF verdadeira desconhecida. DTLZ e WFG são famílias também usadas no conjunto de 28 problemas da dissertação (embora possivelmente com D/instância diferentes); MaF, LSMOP e TREE NÃO fazem parte desse conjunto.",
+    "orcamento": "Amostras iniciais N_I = 11×D − 1 por Latin Hypercube Sampling (LHS) — convenção diferente da dissertação (31D−1). MaxFEs (critério de parada, inclui N_I) = 11×D + 120, igual para todos os métodos comparados em cada problema. Para D=30/50/70/100: N_I=329/549/769/1099 e MaxFEs=450/670/890/1220. Para LSMOP (D=100 fixo) e TREE (D=120 fixo) os mesmos cálculos se aplicam (N_I=1099/MaxFEs=1220 para LSMOP; N_I=1319/MaxFEs=1440 para TREE), por remissão explícita à Seção IV-B.",
+    "execucoes": "31 execuções independentes de cada método em cada problema (Seção IV-B, item 3), aplicado também às comparações LSMOP e TREE por remissão explícita a essa seção; mesmo número de execuções usado nas tabelas de ablação (Tabelas V e VI, Seção IV-D), embora restritas a D=100 e à suíte MaF.",
+    "baselines": "5 SAEAs do estado da arte, TODOS assistidos por surrogate (NÃO há piso evolutivo sem surrogate tipo NSGA-II/MOEA-D/NSGA-III/SMS-EMOA em nenhuma comparação do artigo): SPGP-SAEA [3] (GP esparso), EDN-ARMOEA [37] (rede neural com dropout), IR-SAEA [39] (o próprio IDW+RBF do mesmo grupo de autores, com limite de confiança inferior modificado), MO-L2SMEA [44] (subespaço linear), TP-SAEA [30] (reformulação + decomposição). Só SPGP-SAEA e TP-SAEA são usados na extensão LSMOP (Tabela IV). Além disso, 3 variantes internas do próprio SAMOEA-TL2M servem de 'baseline' nos estudos de comportamento (Seção IV-D): SAMOEA-TL2M-v1 (só nível 1), SAMOEA-TL2M-v2 (só nível 2) e SAMOEA-TL2M-R (nível escolhido aleatoriamente, sem ARI).",
+    "metricas_principais": [
+      "IGD (inverted generational distance, Eq. 13) — DTLZ, WFG, MaF, LSMOP e as duas tabelas de ablação",
+      "HV (hypervolume) — só nos problemas TREE, porque a PF verdadeira é desconhecida nesses problemas reais"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum test, nível de significância de 5% (α=0.05), símbolos +/=/− SEMPRE relativos ao SAMOEA-TL2M (o método proposto), não ao melhor algoritmo de cada problema/coluna — '+' significa que o OUTRO método é significativamente melhor, '−' que é significativamente pior, '=' que não há diferença estatística, todos lidos a partir da perspectiva do SAMOEA-TL2M"
+    ],
+    "apresentacao": "Tabelas: célula = média (desvio-padrão) da métrica sobre as 31 execuções, com sufixo +/=/− do teste de Wilcoxon; linha-resumo ao final de cada tabela com a contagem de vitórias/empates/derrotas (w/t/l) de cada baseline contra o SAMOEA-TL2M, somada sobre os problemas e D da tabela; notação científica (ex.: 1.7903e+0). Execução com IGD mediano usada para as figuras qualitativas de fronteira não-dominada (Figs. 2–4, um problema por figura, um painel (a)-(f) por algoritmo, só D=100). As tabelas numéricas (I–VII) NÃO foram recuperadas pela camada de texto estruturada do PDF-para-Markdown (só os cabeçalhos/títulos das tabelas sobreviveram; os corpos vieram como imagem) — os valores completos de célula só aparecem no anexo de OCR de imagens do arquivo-fonte, com ruído de reconhecimento visível (ex.: '€' no lugar de 'e' em notação científica, '•' no lugar de '-'/'='/'+', dígitos trocados) — por isso os números citados nos achados abaixo vêm das frases em prosa do corpo do artigo (contagens 'X de Y problemas', valores isolados citados no texto), não de transcrição das células OCR.",
+    "codigo_plataforma": "MATLAB R2021a; hardware Intel Core i9-12900H, 2.50 GHz. A plataforma de implementação (ex.: PlatEMO) NÃO é declarada explicitamente no corpo do artigo — PlatEMO ([66], Tian et al.) é citado apenas como referência para a prática de amostragem dos pontos de referência do HV nos problemas TREE, não como a plataforma de fato usada para rodar os experimentos."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela final de desempenho (Tabela I) com o IGD médio(desvio-padrão) obtido pelos 5 baselines e pelo SAMOEA-TL2M nos 7 problemas tri-objetivo DTLZ1–DTLZ7, cada um em D=30, 50, 70, 100 (28 células), sobre 31 execuções independentes, com símbolo de Wilcoxon (+/=/−) relativo ao SAMOEA-TL2M em cada célula de baseline e uma linha-resumo de vitórias/empates/derrotas ao final.",
+      "literal": "SAMOEA-TL2M can obtain the best IGD values on 15 out of 28 DTLZ test problems.",
+      "localizador": "Sec. IV-C, Table I",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05, símbolos +/=/− relativos ao SAMOEA-TL2M"
+      ],
+      "convencoes": "Média (desvio-padrão) por célula; notação científica; 31 execuções; linha-resumo w/t/l por baseline ao final da tabela; corpo numérico da tabela não recuperado na camada de texto (só título), disponível apenas via OCR de imagem com ruído.",
+      "achado": "SAMOEA-TL2M obtém o melhor IGD em 15 dos 28 problemas DTLZ (7 problemas × 4 D). SPGP-SAEA e TP-SAEA têm bom desempenho em DTLZ1, DTLZ3 e DTLZ6 (paisagens contínuas e suaves, onde SPGP-SAEA usa GP esparso e TP-SAEA reformula em subproblemas de baixa dimensão); MO-L2SMEA tem bom desempenho geral em DTLZ6; EDN-ARMOEA e IR-SAEA não conseguem desempenho geral competitivo na suíte DTLZ inteira.",
+      "aplicabilidade": "① endpoint — diretamente análogo à ficha 1/3 da dissertação (matriz de mediana/Wilcoxon algoritmo×problema); DTLZ é uma das famílias do conjunto de 28 problemas da dissertação, então o TIPO de análise é reprodutível para os algoritmos do roster, mas os NÚMEROS do SAMOEA-TL2M em si não (algoritmo fora do roster) — exigiria implementar e rodar o SAMOEA-TL2M."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesmo desenho da Tabela I, aplicado aos 9 problemas tri-objetivo WFG1–WFG9 em D=30, 50, 70, 100 (36 células): IGD médio(desvio-padrão), símbolo de Wilcoxon relativo ao SAMOEA-TL2M por célula, linha-resumo w/t/l.",
+      "literal": "the proposed SAMOEA-TL2M achieves the best IGD values on 22 out of 36 WFG test problems",
+      "localizador": "Sec. IV-C, Table II",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05, símbolos +/=/− relativos ao SAMOEA-TL2M"
+      ],
+      "convencoes": "Mesma convenção da Tabela I (média(dp), notação científica, 31 execuções, linha w/t/l); corpo numérico só recuperável via OCR de imagem.",
+      "achado": "SAMOEA-TL2M obtém o melhor IGD em 22 dos 36 problemas WFG, desempenho geral significativamente melhor que os demais SAEAs na maioria dos problemas WFG — o artigo atribui isso, em parte, ao uso do SDE, que lida melhor com objetivos em escalas diferentes (característica típica do WFG).",
+      "aplicabilidade": "① endpoint — WFG também está no conjunto de 28 problemas da dissertação; mesma ressalva da entrada anterior quanto a reproduzir os números específicos do SAMOEA-TL2M (fora do roster)."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesmo desenho das Tabelas I–II, aplicado aos 7 problemas tri-objetivo MaF1–MaF7 em D=30, 50, 70, 100 (28 células). Diferente das duas tabelas anteriores, o texto também dá a contagem de vitórias de CADA baseline individualmente sobre o SAMOEA-TL2M nesta suíte, além do total de vitórias do proposto.",
+      "literal": "SPGP-SAEA, EDN-ARMOEA, IR-SAEA, MO-L2SMEA, and TP-SAEA perform better than SAMOEA-TL2M on 9, 1, 1, 3, and 11 out of 28 problems, respectively.",
+      "localizador": "Sec. IV-C, Table III",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05, símbolos +/=/− relativos ao SAMOEA-TL2M"
+      ],
+      "convencoes": "Mesma convenção das Tabelas I-II; aqui o texto acrescenta a contagem individual de vitórias de cada baseline (não só o total do proposto); corpo numérico só recuperável via OCR de imagem.",
+      "achado": "SAMOEA-TL2M tem o melhor desempenho geral em 16 dos 28 problemas MaF; SPGP-SAEA, EDN-ARMOEA, IR-SAEA, MO-L2SMEA e TP-SAEA batem o SAMOEA-TL2M em 9, 1, 1, 3 e 11 dos 28 problemas, respectivamente — TP-SAEA (decomposição/reformulação) e SPGP-SAEA (GP esparso) são os concorrentes mais fortes nesta suíte, replicando o padrão já visto no DTLZ.",
+      "aplicabilidade": "① endpoint — o TIPO de análise (matriz de mediana/Wilcoxon) é idêntico ao das fichas 1/3, mas o MaF em si não está entre os 28 problemas da dissertação, então mesmo com o algoritmo no roster os problemas específicos precisariam ser adicionados à bateria para reproduzir esta tabela."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Extensão de generalização: para verificar se a vantagem do SAMOEA-TL2M sobre os dois concorrentes mais fortes (SPGP-SAEA e TP-SAEA, os que mais vencem nos problemas DTLZ/MaF contínuos) se sustenta numa QUARTA suíte, o artigo compara os três algoritmos nos 9 problemas LSMOP1–LSMOP9, só em D=100 (sem variar D), com IGD médio(desvio-padrão) e símbolos de Wilcoxon.",
+      "literal": "SAMOEA-TL2M performs better than SPGP-SAEA and TP-SAEA on 7 and 8 out of 9 problems, respectively.",
+      "localizador": "Sec. IV-C, Table IV",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05, símbolos +/=/− relativos ao SAMOEA-TL2M"
+      ],
+      "convencoes": "Mesma convenção das tabelas anteriores, mas só D=100 (não as 4 dimensões) e só 2 dos 5 baselines (SPGP-SAEA, TP-SAEA); corpo numérico só recuperável via OCR de imagem.",
+      "achado": "SPGP-SAEA e TP-SAEA só batem o SAMOEA-TL2M no LSMOP3 (dentre os 9 problemas); SAMOEA-TL2M supera SPGP-SAEA e TP-SAEA em 7 e 8 dos 9 problemas LSMOP, respectivamente — o artigo lê isso como confirmação de que a vantagem observada em DTLZ/WFG/MaF generaliza a uma suíte adicional não usada no desenho original do método.",
+      "aplicabilidade": "① endpoint — LSMOP não está entre os 28 problemas da dissertação; o TIPO de análise (placar restrito aos concorrentes mais fortes, como checagem de generalização) não tem ficha própria além de 1/3, mas exigiria adicionar a suíte LSMOP à bateria e rodar SAMOEA-TL2M/SPGP-SAEA/TP-SAEA, nenhum dos quais está no roster."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Visualização qualitativa do conjunto não-dominado obtido pelos 6 métodos (5 baselines + SAMOEA-TL2M) na execução associada à mediana do IGD, em três problemas tri-objetivo com D=100 — DTLZ2 (Fig. 2), WFG2 (Fig. 3) e MaF1 (Fig. 4) — um problema por figura, um painel (a)-(f) por algoritmo.",
+      "literal": "SAMOEA-TL2M demonstrates better convergence compared to the other SAEAs on DTLZ2.",
+      "localizador": "Sec. IV-C, Figs. 2–4",
+      "metricas": [
+        "IGD (usado só para selecionar a execução mediana); avaliação qualitativa/visual da cobertura e distribuição do conjunto não-dominado"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução de IGD mediano (uma por algoritmo/problema), não agregação sobre as 31 execuções; só D=100; painéis (a)-(f) por algoritmo; o texto não confirma explicitamente se há sobreposição da frente verdadeira nos painéis (imagens omitidas na conversão, só as legendas sobreviveram).",
+      "achado": "Em DTLZ2, SAMOEA-TL2M converge melhor que os demais SAEAs. Em WFG2, todos os métodos encontram conjuntos bem convergidos e diversificados — 'each method is capable of finding a well-converged and well-diversified set of non-dominated solutions on WFG2' — o que contrasta com a limitação de diversidade em WFG2 admitida depois na Conclusão (ver caracteristica_x_desempenho). Em MaF1, SPGP-SAEA e EDN-ARMOEA têm dificuldade para convergir à PF verdadeira; IR-SAEA, MO-L2SMEA e TP-SAEA convergem bem mas com diversidade inferior à do SAMOEA-TL2M.",
+      "aplicabilidade": "① endpoint (avaliações reais da execução de IGD mediano) — diretamente reproduzível na lógica da ficha 54 para DTLZ2 e WFG2 (ambos no conjunto de 28 problemas do roster), desde que o SAMOEA-TL2M fosse implementado; MaF1 fica fora do conjunto de problemas da dissertação."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ablação da estratégia de dois níveis (Tabela V): SAMOEA-TL2M-v1 (só o primeiro nível — convergência/diversidade via SDE, SEM gestão de incerteza/IDW) e SAMOEA-TL2M-v2 (só o segundo nível — sempre considera incerteza via IDW, SEM o critério de convergência/diversidade do primeiro nível) são comparados contra o SAMOEA-TL2M completo em 7 problemas MaF, D=100 fixo, com IGD médio(desvio-padrão) e símbolos de Wilcoxon. Isola o efeito de CADA nível da estratégia proposta.",
+      "literal": "SAMOEA-TL2M-v1 exhibits superiority in one instance, inferiority in three instances, and similarity in three instances compared to SAMOEA-TL2M.",
+      "localizador": "Sec. IV-D-1, Table V",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05, símbolos +/=/− relativos ao SAMOEA-TL2M completo"
+      ],
+      "convencoes": "Mesma convenção das tabelas de placar (média(dp), símbolo de Wilcoxon), mas restrita a D=100 e à suíte MaF (7 problemas, não 28); ablação natural do próprio método (duas variantes desenhadas pelos autores, algoritmos completos em Algoritmos S1/S2 do material suplementar).",
+      "achado": "v1 (sem gestão de incerteza) é pior que o SAMOEA-TL2M completo em 3 dos 7 problemas MaF, melhor em 1, empata em 3 — evidência de que remover a incerteza (nível 2) piora o desempenho geral. v2 (só incerteza, sem balancear convergência/diversidade) perde para o método completo em 4 dos 7 problemas. Os autores concluem que os dois níveis contribuem para o desempenho do SAMOEA-TL2M.",
+      "aplicabilidade": "não reproduzível com os dados já gravados da bateria — exigiria implementar e rodar as variantes v1/v2 do próprio SAMOEA-TL2M (fora do roster de 15 algoritmos da dissertação); é uma ablação exata do papel da incerteza no sentido da ficha 11 (v1 = maquinaria completa sem o componente de incerteza), mas sobre o próprio SAMOEA-TL2M, não sobre um algoritmo do roster."
+    },
+    {
+      "fichas": [
+        45
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "SÓ MENCIONADA (Regra 3 do cartão): dentro da mesma subseção da Tabela V, o artigo menciona um estudo — sem reproduzir números ou a tabela/figura no corpo principal — sobre que fração dos infills selecionados a cada iteração vem do nível 1 (convergência/diversidade) vs. do nível 2 (incerteza), nos 7 problemas MaF a D=100.",
+      "literal": "the proportion of infill solutions selected by each level on 100D MaF problems is investigated in Section V of the supplementary materials",
+      "localizador": "Sec. IV-D-1 (texto); Supplementary Sec. V (não incluído neste corpus)",
+      "metricas": [
+        "proporção de infills por nível (contagem/fração, não detalhada no corpo principal)"
+      ],
+      "testes": [
+        "nenhum (descritivo)"
+      ],
+      "convencoes": "SÓ MENCIONADA — nenhuma tabela ou figura reproduzida no corpo principal; o conteúdo completo está na Seção V do material suplementar, ausente deste corpus (arquivo-fonte tem só as 15 páginas do artigo principal).",
+      "achado": "Não determinável em números a partir do corpo principal; o artigo só resume qualitativamente que 'both levels can contribute to the effectiveness of SAMOEA-TL2M' — consistente com o achado da Tabela V (nenhum dos dois níveis isolados supera o método completo).",
+      "aplicabilidade": "conceitualmente análogo à ficha 45 (⑥ filme — contar o que o mecanismo interno faz, aqui a fração de acionamentos de cada nível), mas não reproduzível: exigiria rodar o SAMOEA-TL2M (fora do roster) com instrumentação equivalente à camada ⑥ registrando, por iteração, qual nível foi acionado."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ablação do indicador ARI (Tabela VI): SAMOEA-TL2M-R substitui o gatilho informado (ARI ≥ α decide entre nível 1 e nível 2) por uma escolha ALEATÓRIA do nível a cada iteração — ARI é removido por completo, não só o seu valor. Comparado contra o SAMOEA-TL2M completo nos mesmos 7 problemas MaF, D=100, IGD médio(desvio-padrão) e símbolos de Wilcoxon. Isola a contribuição do CRITÉRIO de quando acionar a incerteza, não da incerteza em si (que continua disponível para a variante R quando o nível 2 é sorteado).",
+      "literal": "the overall performance of SAMOEA-TL2M is better than that of SAMOEA-TL2M-R on four out of seven test problems",
+      "localizador": "Sec. IV-D-2, Table VI",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05, símbolos +/=/− relativos ao SAMOEA-TL2M completo"
+      ],
+      "convencoes": "Mesma convenção da Tabela V (média(dp), Wilcoxon, D=100, só suíte MaF); ablação natural do próprio método (SAMOEA-TL2M-R descrito no Algoritmo S3 do material suplementar).",
+      "achado": "SAMOEA-TL2M-R só supera o método completo no MaF2; no geral, o SAMOEA-TL2M é melhor que a variante aleatória em 4 dos 7 problemas MaF — o artigo atribui isso à falta de orientação do ARI para escolher consistentemente o nível de gestão mais promissor a cada iteração, concluindo que o ARI contribui positivamente para o desempenho geral.",
+      "aplicabilidade": "não reproduzível com os dados já gravados — exigiria implementar e rodar a variante SAMOEA-TL2M-R (fora do roster); não é exatamente a ablação do σ da ficha 11 (a incerteza continua em uso quando o nível 2 é sorteado), mas sim do CRITÉRIO/gatilho que decide QUANDO usá-la — mais próxima, em espírito, do papel que o parâmetro δ do gate de confiança tem nos algoritmos O3 do roster."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Aplicação a um caso real (Tabela VII): os mesmos 5 baselines e o SAMOEA-TL2M são comparados em 6 problemas TREE (estimação de erro de razão em transformadores de tensão, sistemas de potência), D=120 fixo (TREE1–5 biobjetivo, TREE6 tri-objetivo), com HV médio(desvio-padrão) — não IGD, porque a PF verdadeira é desconhecida nesses problemas — e símbolos de Wilcoxon relativos ao SAMOEA-TL2M.",
+      "literal": "SAMOEA-TL2M significantly outperforms SPGP-SAEA, EDN-ARMOEA, MO-L2SMEA, and TP-SAEA on each TREE problem.",
+      "localizador": "Sec. IV-E, Table VII",
+      "metricas": [
+        "HV"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05, símbolos +/=/− relativos ao SAMOEA-TL2M"
+      ],
+      "convencoes": "Média(dp) de HV por célula, símbolo de Wilcoxon; 6 problemas × D=120 fixo × 6 algoritmos; pontos de referência fixos por problema (não adaptativos) para o cálculo do HV, definidos a priori (ver entrada seguinte); corpo numérico só recuperável via OCR de imagem.",
+      "achado": "SAMOEA-TL2M supera significativamente SPGP-SAEA, EDN-ARMOEA, MO-L2SMEA e TP-SAEA em TODOS os 6 problemas TREE. IR-SAEA (que usa a mesma base IDW+RBF, com critério de seleção diferente) perde para o SAMOEA-TL2M em 3 dos 6 problemas TREE e empata estatisticamente nos demais — o concorrente mais próximo metodologicamente é também o mais competitivo nesta aplicação.",
+      "aplicabilidade": "não reproduzível — os problemas TREE (estimação de erro de razão em transformadores de tensão) não fazem parte dos 28 problemas da dissertação, e exigiria rodar o SAMOEA-TL2M e os 5 baselines, nenhum dos quais está no roster; o TIPO de análise (placar HV com Wilcoxon num caso real de alta dimensão) é análogo em espírito às fichas 1/3 aplicadas aos 3 problemas reais da dissertação (RE21, ESTOQUE40, DDMOP7), mas sobre um problema real diferente."
+    },
+    {
+      "fichas": [
+        62
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Nota de esclarecimento (Remark 2) sobre por que algumas células da Tabela VII mostram HV=0: o conjunto não-dominado do algoritmo, naquele problema TREE, não domina o ponto de referência FIXO usado no cálculo do HV (falha de convergência), não um erro de cômputo. O artigo lista os 6 pontos de referência usados, um por problema TREE, definidos a priori seguindo a prática recomendada em [66] (PlatEMO).",
+      "literal": "Some algorithms achieve an HV value of zero on certain TREE problems due to poor convergence.",
+      "localizador": "Sec. IV-E, Remark 2",
+      "metricas": [
+        "HV (efeito do ponto de referência/normalização)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Nota textual (não uma tabela ou figura própria); pontos de referência fixos por problema, um vetor por TREE1–TREE5 (2 objetivos) e um vetor triobjetivo para TREE6, dados explicitamente no texto.",
+      "achado": "Os pontos de referência usados no cálculo do HV são: (4.5758, 0.0380) para TREE1, (10.4752, 0.2340) para TREE2, (2.7394, 0.0348) para TREE3, (2.4933, 0.0114) para TREE4, (3.9698, 0.0311) para TREE5, e (1.3697, 0.0358, 1.7012) para TREE6. Quando o conjunto não-dominado de um algoritmo não consegue dominar esse ponto fixo, o HV reportado é exatamente 0.0000e+0 — um artefato de normalização/medição, não necessariamente uma falha total do algoritmo naquele problema.",
+      "aplicabilidade": "① endpoint + o ponto de referência usado no cálculo do HV — o TIPO de checagem (ficha 62: avisos de régua/clip) é diretamente aplicável a qualquer célula do roster da dissertação em que o HV apareça artificialmente zerado por escolha do ponto de referência; não depende do SAMOEA-TL2M especificamente."
+    },
+    {
+      "fichas": [
+        45
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "SÓ MENCIONADA (Regra 3 do cartão): o artigo aponta que o limiar α (que decide se o primeiro ou o segundo nível é acionado a cada iteração — ARI ≥ α aciona o nível 1; ARI < α aciona o nível 2) foi escolhido por uma análise de sensibilidade, cujo conteúdo completo está na Seção III do material suplementar, não incluído neste corpus. O corpo principal só informa o valor final adotado.",
+      "literal": "According to the sensitivity analysis in Section III of the supplementary materials, the threshold for the accuracy rate is α = 0.4.",
+      "localizador": "Sec. IV-B (menção); Supplementary Sec. III (não incluído neste corpus)",
+      "metricas": [
+        "não especificado no corpo principal (provavelmente IGD, mas não confirmado — ver material suplementar)"
+      ],
+      "testes": [
+        "não especificado no corpo principal"
+      ],
+      "convencoes": "SÓ MENCIONADA — nenhum gráfico de sensibilidade (α × desempenho) nem tabela é reproduzido no corpo principal; só o valor final (α=0.4) e o apontamento de onde a análise completa vive.",
+      "achado": "α=0.4 foi o valor adotado a partir da análise de sensibilidade não incluída neste corpus; α é exatamente o parâmetro que define QUANDO o mecanismo de incerteza (nível 2, via IDW) é acionado, então esta é uma sensibilidade ao parâmetro do gate de confiança no sentido do exemplo do próprio cartão de extração.",
+      "aplicabilidade": "não reproduzível a partir deste artigo — mesmo se o material suplementar estivesse disponível, exigiria rodar variantes do próprio SAMOEA-TL2M com α variado, algoritmo fora do roster da dissertação."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Complexidade computacional teórica (Big-O) do SAMOEA-TL2M",
+      "grupo_sugerido": "F",
+      "descricao": "SÓ MENCIONADA (Regra 3 do cartão): o artigo aponta a existência de uma análise da complexidade computacional (provavelmente notação Big-O) do SAMOEA-TL2M, cujo conteúdo integral está na Seção IV do material suplementar, não incluído neste corpus. O corpo principal não dá nenhum número, fórmula ou tempo medido — só o hardware (Intel Core i9-12900H, 2.50 GHz) e a plataforma (MATLAB R2021a) usados nos experimentos.",
+      "literal": "the computational complexity of SAMOEA-TL2M are given in Sections III and IV of the supplementary materials, respectively, due to the page limit",
+      "localizador": "Sec. IV (parágrafo de abertura da Seção IV, antes de IV-A); Supplementary Sec. IV (não incluído neste corpus)",
+      "metricas": [
+        "complexidade computacional (provavelmente Big-O; não detalhada no corpo principal)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "SÓ MENCIONADA — sem tabela, fórmula ou gráfico no corpo principal.",
+      "achado": "Não determinável a partir do corpo principal — só a existência da análise e sua localização no material suplementar são confirmadas pelo texto.",
+      "aplicabilidade": "não reproduzível — é (presumivelmente) uma análise teórica de complexidade assintótica do próprio algoritmo, não uma medição de tempo de parede; a camada ④ da dissertação mede tempo medido por geração, não complexidade Big-O declarada, e o SAMOEA-TL2M está fora do roster."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo NÃO avalia empiricamente a calibração, cobertura ou correlação erro×incerteza do IDW — o IDW é usado apenas como CRITÉRIO DE RANKING para selecionar, dentre as soluções não pertencentes à frente estimada, as Nu com maior valor de IDW (Eq. 5-9) como infills do segundo nível; não há verificação de quão bem esse valor reflete o erro real do modelo RBF em nenhum dos experimentos. O ARI (Algoritmo 4, Eqs. 10-12) também não é uma medida de calibração do σ: é definido via taxa de preservação (rp) e taxa de não-dominância (rn) dos infills já selecionados na população seguinte — um proxy indireto de 'o surrogate está ajudando a achar bons pontos', não uma checagem direta de que o IDW ordena/cobre o erro real (o que corresponderia às fichas 33/34 da dissertação).",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Não há tempos de execução medidos, nem decomposição de tempo (ajuste do modelo vs. busca vs. avaliação) no corpo principal — só o hardware (Intel Core i9-12900H, 2.50 GHz) e a plataforma (MATLAB R2021a) usados para rodar os experimentos são informados. O artigo afirma que HÁ uma análise da complexidade computacional do SAMOEA-TL2M, mas o conteúdo integral está na Seção IV do material suplementar, não incluído neste corpus.",
+    "literal": "Each method is implemented on an Intel Core i9-12900H with a 2.50-GHz CPU and runs on MATLAB R2021a.",
+    "localizador": "Sec. IV (parágrafo final antes de IV-A, hardware/plataforma); Supplementary Sec. IV (complexidade computacional, não incluído)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "O artigo cita conformal prediction (junto com GPs plenos) como abordagem estabelecida para quantificar incerteza, mas a REJEITA explicitamente para este trabalho, alegando alto custo computacional e pressupostos que não se sustentam em problemas de alta dimensão — escolhendo o IDW como alternativa computacionalmente mais barata e integrada ao RBF. É a passagem que justifica a citação deste artigo pela dissertação como exemplo de rejeição de conformal prediction como alternativa.",
+      "literal": "While conformal prediction and GPs are well-established, they often involve a high computational overhead or assumptions that cannot be easily satisfied in high-dimensional problems",
+      "localizador": "Sec. III-C (Two-Level Model Management Strategy), parágrafo final sobre o IDW"
+    },
+    {
+      "descricao": "Caveat conceitual, repetido três vezes ao longo do artigo (Introdução, Motivação, Discussão) e atribuído a Li et al. [45]: a incerteza do surrogate NÃO deveria ser tratada o tempo todo — só quando ela efetivamente atrapalha a melhoria de desempenho do algoritmo. É a justificativa central para o gatilho condicional (ARI) do SAMOEA-TL2M em vez de considerar convergência+diversidade+incerteza simultaneamente em toda iteração (a abordagem que o artigo diz ser comum na literatura e problemática em escala média).",
+      "literal": "uncertainty in surrogate models should be addressed only when it hinders the overall performance improvement of the algorithms",
+      "localizador": "Sec. I (Introduction) e Sec. II-D (Motivation), citando [45]"
+    },
+    {
+      "descricao": "Na ablação da Tabela V, a variante que seleciona infills SOMENTE por incerteza alta (SAMOEA-TL2M-v2, sem o critério de convergência/diversidade do nível 1) perde para o método completo em 4 dos 7 problemas MaF — evidência direta de que priorizar a incerteza sem balancear convergência e diversidade piora o desempenho, e não apenas deixa de melhorá-lo.",
+      "literal": "This is because SAMOEA-TL2M-v1 has difficulty managing uncertainty, while SAMOEA-TL2M-v2 ignores the balance between convergence and diversity.",
+      "localizador": "Sec. IV-D-1, Table V"
+    },
+    {
+      "descricao": "Na ablação da Tabela VI, remover o indicador ARI (que decide QUANDO acionar a incerteza) e escolher o nível de gestão aleatoriamente a cada iteração (SAMOEA-TL2M-R) piora o desempenho em 4 dos 7 problemas MaF — mostrando que acionar a incerteza sem um critério informado sobre o estado da otimização prejudica o resultado, mesmo que a incerteza em si (IDW) permaneça disponível quando o nível 2 é sorteado.",
+      "literal": "SAMOEA-TL2M-R struggles to consistently select the most promising model management level due to the lack of ARI guidance.",
+      "localizador": "Sec. IV-D-2, Table VI"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "multimodalidade / múltiplas frentes de Pareto locais no espaço de decisão (DTLZ1, DTLZ3)",
+      "afirmacao": "Os próprios autores admitem, na Conclusão, que o desempenho do SAMOEA-TL2M é limitado em problemas com múltiplas PFs locais, apontando DTLZ1 e DTLZ3 como exemplos, e propõem 'mecanismos de escape de PFs locais' como direção futura.",
+      "literal": "the performance of SAMOEA-TL2M on problems with multiple local PFs is limited, such as DTLZ1 and DTLZ3",
+      "localizador": "Sec. V (Conclusion)"
+    },
+    {
+      "caracteristica": "frentes/paisagens irregulares (WFG2, cuja frente de Pareto é descontínua)",
+      "afirmacao": "Os autores admitem que a diversidade do SAMOEA-TL2M em problemas irregulares como o WFG2 precisa melhorar, propondo 'estratégias adaptativas de ajuste de distribuição' como trabalho futuro — nuance que qualifica o achado mais otimista relatado antes, na Seção IV-C, sobre WFG2 (Fig. 3).",
+      "literal": "the diversity of SAMOEA-TL2M on some irregular problems needs to be improved, such as WFG2",
+      "localizador": "Sec. V (Conclusion)"
+    },
+    {
+      "caracteristica": "paisagens contínuas e suaves (DTLZ1, DTLZ3, DTLZ6)",
+      "afirmacao": "Nessas paisagens específicas, SPGP-SAEA (GP esparso, modelagem global de alta acurácia) e TP-SAEA (reformulação em subproblemas de baixa dimensão) mantêm vantagem sobre o SAMOEA-TL2M — os únicos casos em que o proposto não vence esses dois concorrentes —, enquanto o SAMOEA-TL2M (RBF+SDE+IDW) mantém desempenho superior nas suítes WFG, MaF e LSMOP, mais complexas.",
+      "literal": "SPGP-SAEA employs a sparse GP (SPGP), which can maintain relatively high prediction accuracy in continuous and smooth landscapes, such as DTLZ1, DTLZ3, and DTLZ6",
+      "localizador": "Sec. IV-C"
+    },
+    {
+      "caracteristica": "problema real de alta dimensão com PF verdadeira desconhecida (TREE, transformadores de tensão, D=120)",
+      "afirmacao": "Nessa aplicação real, o SAMOEA-TL2M supera com folga 4 dos 5 baselines em todos os 6 problemas, e é competitivo com o baseline metodologicamente mais próximo (IR-SAEA, também IDW+RBF) — evidência de que a vantagem observada nos sintéticos se sustenta num cenário aplicado, de alta dimensão fixa (D=120) e sem PF de referência conhecida.",
+      "literal": "SAMOEA-TL2M can be considered as a competitive method for solving TREE problems compared to SPGP-SAEA, EDN-ARMOEA, IR-SAEA, MO-L2SMEA, and TP-SAEA",
+      "localizador": "Sec. IV-E"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "roster_bloco = null por instrução do pedido (artigo fora do roster experimental). Leitura completa: 15 páginas do artigo principal (Abstract-Referências + biografias dos autores), confirmadas pelo cabeçalho 'Páginas: 15'; lido em 3 camadas redundantes do arquivo-fonte (conversão estruturada pymupdf4llm, camada de texto bruta completa 'ANEXO — Camada de texto completa do PDF', e OCR de imagens 'ANEXO — Conteúdo textual das imagens'), sem apêndices formais próprios do artigo (as referências a 'supplementary materials', Seções I-VI + Algoritmos S1-S3, apontam para um documento separado, NÃO incluído neste arquivo/corpus). Conformal prediction (Lei da atenção do pedido): mencionada uma única vez no artigo (Sec. III-C), citada junto com GPs plenos como abordagem estabelecida porém REJEITADA para este trabalho por custo computacional alto e pressupostos pouco realistas em alta dimensão — registrada em resultados_negativos (primeira entrada), com a citação exata. Estrutura de leitura: a extração estruturada apresenta a Seção II fora de ordem (II-B 'Radial Basis Function' e II-C 'Shift-Based Density Estimation' aparecem ANTES de II-A 'Medium-Scale Expensive EMOPs' e II-D 'Motivation') — artefato da extração pymupdf4llm (provavelmente ordem de colunas/blocos do PDF original), não uma reordenação do próprio artigo; a camada de texto bruta (ANEXO) preserva a ordem lógica correta (II-A, II-B, II-C, II-D) e foi usada para conferir a leitura. Tabelas numéricas (I-VII): os CORPOS de todas as 7 tabelas de resultados vieram como imagem na conversão para Markdown (só os títulos/cabeçalhos sobreviveram na camada estruturada e na camada de texto bruta); os valores de célula só aparecem no anexo final de OCR (Apple Vision), com ruído de reconhecimento visível (dígitos e símbolos +/=/- trocados, 'e' de notação científica virando '€', etc.) — por isso os números usados nos campos 'achado' vêm exclusivamente das frases em prosa do corpo do artigo (contagens 'X de Y problemas', valores isolados citados no texto, os 6 pontos de referência do HV do Remark 2), nunca de transcrição direta das células OCR, para não arriscar propagar erro de reconhecimento. Sem piso evolutivo sem surrogate: todos os 5 baselines comparados (SPGP-SAEA, EDN-ARMOEA, IR-SAEA, MO-L2SMEA, TP-SAEA) são eles próprios SAEAs — não há NSGA-II, MOEA/D, NSGA-III ou SMS-EMOA 'puro' em nenhuma comparação; a ficha 6 (piso por família de problema) e a ficha 9/10 (assistido×piso casado) não têm com o que casar neste artigo. Ablação natural: o artigo compara variantes do próprio método em DUAS tabelas independentes — Tabela V (remoção do nível 1 ou do nível 2 da estratégia) e Tabela VI (remoção do indicador ARI, substituído por escolha aleatória) — ambas restritas a D=100 e à suíte MaF (não às 4 dimensões nem às 3 suítes completas). Hiperparâmetros do próprio SAMOEA-TL2M (não fazem parte do protocolo experimental genérico e por isso não entraram em 'setup'): tamanho de população N=100; número de infills por iteração λ=5; gerações de busca evolutiva sobre o surrogate G=20 (recomendados a partir de [19],[29],[45]); limiar de acionamento do segundo nível α=0.4 (escolhido por análise de sensibilidade só no material suplementar). Sem Friedman/Nemenyi/diagrama de diferença crítica em nenhum lugar do artigo, e sem curvas de convergência IGD×orçamento (as 7 tabelas de resultado são todas de endpoint; as únicas figuras de trajetória são as qualitativas de fronteira não-dominada de uma única execução, Figs. 2-4). Classificação da taxonomia (confirmada por leitura própria, coerente com meta.json): motor=EA-Dominância (NSGA-II+SDE como otimizador evolutivo sobre o surrogate); função da incerteza=O3 Aprendizado ativo/reparo (o segundo nível seleciona os Nu pontos de MAIOR incerteza, via IDW, para refinar o surrogate quando o ARI sinaliza que ele precisa de reforço — um gatilho de aprendizado ativo condicional, não uma aquisição exploratória contínua nem uma gestão de confiança que filtra predições); surrogate=RG Regressor Clássico não-GP (RBF de núcleo cúbico); medição=GEO-DIST (o IDW, Eq. 5-9, é literalmente uma variância ponderada por distância geométrica euclidiana aos pontos de treino já avaliados, não uma posterior de GP, nem dispersão de ensemble/dropout, nem score de classificador); regime=online (infill iteração a iteração, avaliação real imediata, sem fase de treino offline separada)."
+}

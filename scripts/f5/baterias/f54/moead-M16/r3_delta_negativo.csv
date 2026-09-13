@@ -1,0 +1,10 @@
+alg,problema,ger,log,lo,n_colisoes_linha_inteira,excesso_nd
+moead,DTLZ3,18,9,10,1,2
+moead,DTLZ7,30,12,13,1,2
+moead,MMF11_L,3,7,8,1,1
+moead,ZDT1,34,7,8,1,2
+moead,ZDT3,34,10,11,1,2
+nsga2,MMF4,2,15,16,1,1
+nsga3,MMF16_20,2,14,15,1,1
+nsga3,MMF4,2,15,16,1,1
+smsemoa,MMF11_L,3,18,19,1,1

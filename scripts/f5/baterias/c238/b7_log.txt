@@ -1,0 +1,94 @@
+OK BBOB_F1 {'problema': 'BBOB_F1', 'n_gens': 200, 'ledger_ok': 199, 'ledger_n': 199, 'infill_entra_frente': 11, 'frac_entra': 0.055, 'nf_muda': 10, 'eim_zero': 189, 'eim_lt1e12': 189, 'subidas': 5}
+OK BBOB_F17 {'problema': 'BBOB_F17', 'n_gens': 200, 'ledger_ok': 199, 'ledger_n': 199, 'infill_entra_frente': 23, 'frac_entra': 0.115, 'nf_muda': 20, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 97}
+OK BBOB_F22 {'problema': 'BBOB_F22', 'n_gens': 200, 'ledger_ok': 199, 'ledger_n': 199, 'infill_entra_frente': 18, 'frac_entra': 0.09, 'nf_muda': 15, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 91}
+OK BBOB_F37 {'problema': 'BBOB_F37', 'n_gens': 200, 'ledger_ok': 199, 'ledger_n': 199, 'infill_entra_frente': 16, 'frac_entra': 0.08, 'nf_muda': 9, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 98}
+OK BBOB_F49 {'problema': 'BBOB_F49', 'n_gens': 200, 'ledger_ok': 199, 'ledger_n': 199, 'infill_entra_frente': 17, 'frac_entra': 0.085, 'nf_muda': 13, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 99}
+OK BBOB_F5 {'problema': 'BBOB_F5', 'n_gens': 200, 'ledger_ok': 199, 'ledger_n': 199, 'infill_entra_frente': 84, 'frac_entra': 0.42, 'nf_muda': 66, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 92}
+OK BBOB_F55 {'problema': 'BBOB_F55', 'n_gens': 200, 'ledger_ok': 199, 'ledger_n': 199, 'infill_entra_frente': 62, 'frac_entra': 0.31, 'nf_muda': 45, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 101}
+OK DTLZ1 {'problema': 'DTLZ1', 'n_gens': 140, 'ledger_ok': 139, 'ledger_n': 139, 'infill_entra_frente': 45, 'frac_entra': 0.32142857142857145, 'nf_muda': 39, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 67}
+OK DTLZ2 {'problema': 'DTLZ2', 'n_gens': 240, 'ledger_ok': 239, 'ledger_n': 239, 'infill_entra_frente': 102, 'frac_entra': 0.425, 'nf_muda': 81, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 115}
+OK DTLZ3 {'problema': 'DTLZ3', 'n_gens': 240, 'ledger_ok': 239, 'ledger_n': 239, 'infill_entra_frente': 54, 'frac_entra': 0.225, 'nf_muda': 47, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 128}
+OK DTLZ4 {'problema': 'DTLZ4', 'n_gens': 240, 'ledger_ok': 239, 'ledger_n': 239, 'infill_entra_frente': 18, 'frac_entra': 0.075, 'nf_muda': 24, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 120}
+OK DTLZ7 {'problema': 'DTLZ7', 'n_gens': 440, 'ledger_ok': 439, 'ledger_n': 439, 'infill_entra_frente': 105, 'frac_entra': 0.23863636363636365, 'nf_muda': 83, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 203}
+OK MMF1 {'problema': 'MMF1', 'n_gens': 40, 'ledger_ok': 39, 'ledger_n': 39, 'infill_entra_frente': 10, 'frac_entra': 0.25, 'nf_muda': 8, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 14}
+OK MMF11_L {'problema': 'MMF11_L', 'n_gens': 40, 'ledger_ok': 39, 'ledger_n': 39, 'infill_entra_frente': 22, 'frac_entra': 0.55, 'nf_muda': 19, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 20}
+OK MMF16_20 {'problema': 'MMF16_20', 'n_gens': 400, 'ledger_ok': 399, 'ledger_n': 399, 'infill_entra_frente': 214, 'frac_entra': 0.535, 'nf_muda': 191, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 197}
+OK MMF4 {'problema': 'MMF4', 'n_gens': 40, 'ledger_ok': 39, 'ledger_n': 39, 'infill_entra_frente': 13, 'frac_entra': 0.325, 'nf_muda': 8, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 14}
+OK WFG1 {'problema': 'WFG1', 'n_gens': 440, 'ledger_ok': 439, 'ledger_n': 439, 'infill_entra_frente': 143, 'frac_entra': 0.325, 'nf_muda': 114, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 217}
+OK WFG2 {'problema': 'WFG2', 'n_gens': 440, 'ledger_ok': 439, 'ledger_n': 439, 'infill_entra_frente': 40, 'frac_entra': 0.09090909090909091, 'nf_muda': 27, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 224}
+OK WFG4 {'problema': 'WFG4', 'n_gens': 440, 'ledger_ok': 439, 'ledger_n': 439, 'infill_entra_frente': 48, 'frac_entra': 0.10909090909090909, 'nf_muda': 37, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 205}
+OK WFG5 {'problema': 'WFG5', 'n_gens': 440, 'ledger_ok': 439, 'ledger_n': 439, 'infill_entra_frente': 142, 'frac_entra': 0.32272727272727275, 'nf_muda': 126, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 215}
+OK WFG9 {'problema': 'WFG9', 'n_gens': 440, 'ledger_ok': 439, 'ledger_n': 439, 'infill_entra_frente': 23, 'frac_entra': 0.05227272727272727, 'nf_muda': 16, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 222}
+OK ZDT1 {'problema': 'ZDT1', 'n_gens': 600, 'ledger_ok': 599, 'ledger_n': 599, 'infill_entra_frente': 39, 'frac_entra': 0.065, 'nf_muda': 31, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 283}
+OK ZDT3 {'problema': 'ZDT3', 'n_gens': 600, 'ledger_ok': 599, 'ledger_n': 599, 'infill_entra_frente': 23, 'frac_entra': 0.03833333333333333, 'nf_muda': 20, 'eim_zero': 0, 'eim_lt1e12': 4, 'subidas': 286}
+OK ZDT4 {'problema': 'ZDT4', 'n_gens': 200, 'ledger_ok': 199, 'ledger_n': 199, 'infill_entra_frente': 31, 'frac_entra': 0.155, 'nf_muda': 25, 'eim_zero': 0, 'eim_lt1e12': 0, 'subidas': 92}
+OK ZDT6 {'problema': 'ZDT6', 'n_gens': 200, 'ledger_ok': 199, 'ledger_n': 199, 'infill_entra_frente': 20, 'frac_entra': 0.1, 'nf_muda': 21, 'eim_zero': 0, 'eim_lt1e12': 10, 'subidas': 87}
+problema  n_gens  ledger_ok  ledger_n  infill_entra_frente  frac_entra  nf_muda  eim_zero  eim_lt1e12  subidas
+ BBOB_F1     200        199       199                   11    0.055000       10       189         189        5
+BBOB_F17     200        199       199                   23    0.115000       20         0           0       97
+BBOB_F22     200        199       199                   18    0.090000       15         0           0       91
+BBOB_F37     200        199       199                   16    0.080000        9         0           0       98
+BBOB_F49     200        199       199                   17    0.085000       13         0           0       99
+ BBOB_F5     200        199       199                   84    0.420000       66         0           0       92
+BBOB_F55     200        199       199                   62    0.310000       45         0           0      101
+   DTLZ1     140        139       139                   45    0.321429       39         0           0       67
+   DTLZ2     240        239       239                  102    0.425000       81         0           0      115
+   DTLZ3     240        239       239                   54    0.225000       47         0           0      128
+   DTLZ4     240        239       239                   18    0.075000       24         0           0      120
+   DTLZ7     440        439       439                  105    0.238636       83         0           0      203
+    MMF1      40         39        39                   10    0.250000        8         0           0       14
+ MMF11_L      40         39        39                   22    0.550000       19         0           0       20
+MMF16_20     400        399       399                  214    0.535000      191         0           0      197
+    MMF4      40         39        39                   13    0.325000        8         0           0       14
+    WFG1     440        439       439                  143    0.325000      114         0           0      217
+    WFG2     440        439       439                   40    0.090909       27         0           0      224
+    WFG4     440        439       439                   48    0.109091       37         0           0      205
+    WFG5     440        439       439                  142    0.322727      126         0           0      215
+    WFG9     440        439       439                   23    0.052273       16         0           0      222
+    ZDT1     600        599       599                   39    0.065000       31         0           0      283
+    ZDT3     600        599       599                   23    0.038333       20         0           4      286
+    ZDT4     200        199       199                   31    0.155000       25         0           0       92
+    ZDT6     200        199       199                   20    0.100000       21         0          10       87
+
+ledger n_front1(g)==n_front(g+1): 6995 / 6995
+infill ENTRA na frente: 1323 / 7020 (18.8%)
+gens com eim_best == 0 exato: 189 | < 1e-12: 203
+
+ problema  M  n_gens  err_med   err_p90    err_max  cob_frac  otim_frac
+ BBOB_F1  2     200 0.000059  0.000171   0.009412  0.982500   0.557500
+BBOB_F17  2     200 0.012554  0.071432   0.276106  0.885000   0.750000
+BBOB_F22  2     200 0.015398  0.050562   0.222668  0.867500   0.777500
+BBOB_F37  2     200 0.025815  0.088847   0.259227  0.935000   0.722500
+BBOB_F49  2     200 0.051341  0.111633   0.569904  0.920000   0.910000
+ BBOB_F5  2     200 0.000118  0.044683   0.177343  0.850000   0.662500
+BBOB_F55  2     200 0.122613  0.521154   1.461818  0.532500   0.745000
+   DTLZ1  3     140 0.066567  0.427195   1.146455  0.800000   0.733333
+   DTLZ2  3     240 0.052550  0.183411   0.988393  0.776389   0.695833
+   DTLZ3  3     240 0.059246  0.243111   1.088493  0.870833   0.616667
+   DTLZ4  3     240 0.057281  0.465175   2.030795  0.723611   0.580556
+   DTLZ7  3     440 0.000225  0.002836   0.056298  0.954545   0.704545
+    MMF1  2      40 0.281859 14.081126 160.606444  0.675000   0.712500
+ MMF11_L  2      40 0.000315  0.452536   4.833513  0.750000   0.725000
+MMF16_20  3     400 0.020240  0.270528   0.768083  0.767500   0.708333
+    MMF4  2      40 0.410039 12.028344  37.830729  0.600000   0.675000
+    WFG1  2     440 0.246301  0.488621   2.539662  0.438636   0.837500
+    WFG2  2     440 0.071115  0.169485   0.732241  0.465909   0.890909
+    WFG4  2     440 0.134937  0.252072   0.457598  0.419318   0.951136
+    WFG5  2     440 0.029782  0.099123   0.362552  0.882955   0.802273
+    WFG9  2     440 0.237486  0.581661   0.864130  0.600000   0.692045
+    ZDT1  2     600 0.001407  0.029424   0.628970  0.798333   0.736667
+    ZDT3  2     600 0.000101  0.001278   0.098184  0.960833   0.664167
+    ZDT4  2     200 0.001232  0.387745   0.739769  0.727500   0.802500
+    ZDT6  2     200 0.005871  0.080923   3.440981  0.895000   0.695000
+erro de fantasia (espaco do modelo) mediano global: 0.0298 | cobertura 1,96s mediana: 0.798 | otimista mediano: 0.723
+
+ZDT1 top-8 saltos de eim_best:
+  g      eim  nfront     rmin     rmax       salto
+101 0.295297       8 0.999478 8.034371 2270.665375
+ 63 0.102722       6 0.999478 7.652856  912.164762
+584 0.408599      22 1.000000 8.330452  844.509892
+278 0.063497      11 1.000000 8.034371  668.423356
+ 94 0.080069       7 0.999478 7.652856  642.783606
+516 0.290654      20 1.000000 8.330452  612.568213
+499 0.133745      18 1.000000 8.330452  574.084768
+ 10 0.102950       5 0.999478 5.868530  493.585726

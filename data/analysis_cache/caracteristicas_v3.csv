@@ -1,0 +1,107 @@
+problema,suite,M,D,orcamento,grupo,grupo_nome,trilha,degrau,degrau_rotulo,fonte,detalhe
+MMF1,MMF,2,2,61,1,multimodalidade,A — conjuntos de Pareto múltiplos no espaço de decisão,1,A1 (sanidade),●,"2 PSs globais simétricos, frente convexa, D=2 visualizável — teste mais simples do niching"
+MMF4,MMF,2,2,61,1,multimodalidade,A — conjuntos de Pareto múltiplos no espaço de decisão,2,A2,●,4 PSs globais (senos/cossenos) para uma única frente côncava — espelho da PoC
+MMF11_L,MMF,2,2,61,1,multimodalidade,A — conjuntos de Pareto múltiplos no espaço de decisão,3,A3,●,dezenas de PSs locais e globais; local com fitness próximo do global
+MMF16_20,MMF,3,20,619,1,multimodalidade,A — conjuntos de Pareto múltiplos no espaço de decisão,9,A chefe,●,"3 objetivos, 2 PSs globais + 2 locais, D=20 com 17 variáveis inertes"
+ZDT4,ZDT,2,10,309,1,multimodalidade,B — muitos ótimos locais na paisagem,1,B1,●,21^9 frentes locais em grade regular e separável — paralisação por conservadorismo
+DTLZ1,DTLZ,3,7,216,1,multimodalidade,B — muitos ótimos locais na paisagem,2,B2,●,paisagem hiper-ondulada com milhares de falsas frentes; frente plana 3D
+DTLZ3,DTLZ,3,12,371,1,multimodalidade,B — muitos ótimos locais na paisagem,3,B3,●,esfera côncava + ótimos locais massivos — um dos testes mais difíceis
+WFG4,WFG,2,22,681,1,multimodalidade,B — muitos ótimos locais na paisagem,9,B chefe,●,colinas grandes e absorventes — laboratório superior ao ZDT4
+F17,BBOB,2,10,309,1,multimodalidade,C — multimodalidade irregular (BBOB),1,C1,○,2.º objetivo (Schaffer F7) altamente multimodal e assimétrico (COCO)
+F37,BBOB,2,10,309,1,multimodalidade,C — multimodalidade irregular (BBOB),2,C2,○,Rastrigin com ~10^n ótimos locais (COCO)
+F49,BBOB,2,10,309,1,multimodalidade,C — multimodalidade irregular (BBOB),3,C3,○,Rastrigin × Gallagher: 101 picos com posição e altura aleatórias (COCO)
+F55,BBOB,2,10,309,1,multimodalidade,C — multimodalidade irregular (BBOB),9,C chefe,○,Gallagher × Gallagher — nenhuma estrutura global (COCO)
+F5,BBOB,2,10,309,2,não separabilidade,única,1,1 (parcial),○,só o 2.º objetivo (crista aguda) é não separável (COCO)
+F17,BBOB,2,10,309,2,não separabilidade,única,1,1 (parcial),○,só o 2.º objetivo (Schaffer F7) é não separável (COCO)
+F22,BBOB,2,10,309,2,não separabilidade,única,2,2,○,"os dois objetivos não separáveis, ambos unimodais (COCO)"
+WFG2,WFG,2,22,681,2,não separabilidade,única,3,3,●,variáveis dependentes por construção (redução não separável) + frente desconexa
+F37,BBOB,2,10,309,2,não separabilidade,única,3,3,○,os dois objetivos não separáveis; 2.º multimodal (COCO)
+F49,BBOB,2,10,309,2,não separabilidade,única,3,3,○,os dois objetivos não separáveis e multimodais (COCO)
+F55,BBOB,2,10,309,2,não separabilidade,única,3,3,○,os dois objetivos não separáveis e multimodais (COCO)
+WFG9,WFG,2,22,681,2,não separabilidade,única,9,chefe,●,não separabilidade total + viés dependente de parâmetro + enganosidade
+WFG5,WFG,2,22,681,3,enganosidade / falsos ótimos,enganosidade — o gradiente ensina o caminho errado,1,E1,●,"enganosidade pura: bacia do falso ótimo gigantesca, global num alfinete; separável"
+WFG9,WFG,2,22,681,3,enganosidade / falsos ótimos,enganosidade — o gradiente ensina o caminho errado,9,E chefe,●,enganosidade + não separabilidade total + viés
+MMF11_L,MMF,2,2,61,3,enganosidade / falsos ótimos,falso ótimo — um ótimo local atraente,1,F1,●,PS local com fitness muito próximo do global — descartar o local
+F49,BBOB,2,10,309,3,enganosidade / falsos ótimos,falso ótimo — um ótimo local atraente,2,F2,○,101 picos por objetivo com alturas aleatórias — nada indica qual é o global (COCO)
+F55,BBOB,2,10,309,3,enganosidade / falsos ótimos,falso ótimo — um ótimo local atraente,2,F2,○,2 × 101 picos aleatórios (COCO)
+MMF16_20,MMF,3,20,619,3,enganosidade / falsos ótimos,falso ótimo — um ótimo local atraente,3,F3,●,"2 PSs locais + 2 globais em 3 objetivos, D=20"
+WFG1,WFG,2,22,681,4,regiões planas,única,1,1,●,regiões planas massivas + viés polinomial — falsa certeza do modelo
+DDMOP7,reais,2,17,526,4,regiões planas,única,9,chefe,A,objetivos quantizados (18 valores) + zona morta: platôs onde x muda e F não muda (só HV; asterisco C14)
+ZDT6,ZDT,2,10,309,5,heterocedasticidade / densidade irregular,única,1,1,●,densidade cai perto da frente — small data onde precisa de precisão
+DTLZ4,DTLZ,3,12,371,5,heterocedasticidade / densidade irregular,única,2,2,●,evolução do ZDT6 para 3D: viés paramétrico fortíssimo
+F22,BBOB,2,10,309,5,heterocedasticidade / densidade irregular,única,3,3,○,setor atrativo: só um hipercone de volume ~(1/2)^n tem valores baixos (COCO/cap. 4)
+MMF1,MMF,2,2,61,6,"geometria do front (côncavo, desconexo)",convexa — sanidade,0,S (sanidade),●,frente convexa amigável; D=2
+RE21,reais,2,4,123,6,"geometria do front (côncavo, desconexo)",convexa — sanidade,0,S (sanidade),○,cap. 4: frente convexa; problema real simples; D=4
+F1,BBOB,2,10,309,6,"geometria do front (côncavo, desconexo)",convexa — sanidade,0,S (sanidade),○,"COCO: frente convexa, PS em reta — o problema biobjetivo mais simples; D=10"
+ZDT1,ZDT,2,30,929,6,"geometria do front (côncavo, desconexo)",convexa — sanidade,0,S (sanidade),●,"convexa, contínua, separável, sem ótimos locais; D=30"
+MMF4,MMF,2,2,61,6,"geometria do front (côncavo, desconexo)",côncava,1,C1,●,frente côncava — atrai para as pontas
+DTLZ2,DTLZ,3,12,371,6,"geometria do front (côncavo, desconexo)",côncava,2,C2,●,esfera côncava 3D sem ótimos locais — controle volumétrico
+ZDT6,ZDT,2,10,309,6,"geometria do front (côncavo, desconexo)",côncava,3,C3,●,côncava + densidade irregular (2 objetivos)
+DTLZ4,DTLZ,3,12,371,6,"geometria do front (côncavo, desconexo)",côncava,3,C3b,○,a mesma esfera côncava do DTLZ2 + densidade irregular (3 objetivos) — par do ZDT6
+DTLZ3,DTLZ,3,12,371,6,"geometria do front (côncavo, desconexo)",côncava,4,C4,●,côncava + ótimos locais
+ZDT3,ZDT,2,30,929,6,"geometria do front (côncavo, desconexo)",desconexa,1,D1,●,5 segmentos; separável; unimodal no espaço de decisão — alucinação de pontes
+DTLZ7,DTLZ,3,22,681,6,"geometria do front (côncavo, desconexo)",desconexa,2,D2,●,4 ilhas em 3 objetivos — arquipélago 3D
+WFG2,WFG,2,22,681,6,"geometria do front (côncavo, desconexo)",desconexa,3,D3,●,ilhas + variáveis dependentes
+F1,BBOB,2,10,309,7,BBOB,única,0,1 (sanidade),●,esfera/esfera — separável–separável; controle convexo
+F5,BBOB,2,10,309,7,BBOB,única,2,2,●,esfera/crista aguda — separável–mal condicionado; não diferenciabilidade
+F17,BBOB,2,10,309,7,BBOB,única,3,3,●,elipsoide cond. 10^6/Schaffer F7 — separável–multimodal; antagonismo
+F22,BBOB,2,10,309,7,BBOB,única,3,3,●,setor atrativo/crista aguda — moderado–mal condicionado; agregação assimétrica
+F37,BBOB,2,10,309,7,BBOB,única,4,4,●,crista aguda/Rastrigin — mal condicionado–multimodal
+F49,BBOB,2,10,309,7,BBOB,única,5,5,●,Rastrigin/Gallagher 101 — multimodal–fracamente estruturado
+F55,BBOB,2,10,309,7,BBOB,única,9,chefe,●,Gallagher/Gallagher — fracamente–fracamente estruturado; sem estrutura global
+ZDT1,ZDT,2,30,929,X,avaliação cross (nº de grupos acumulados),única,1,1,calc,grupos: 6
+ZDT1,ZDT,2,30,929,D,maldição da dimensionalidade,única,30,D=30,cap. 4,orçamento 31D-1
+ZDT3,ZDT,2,30,929,X,avaliação cross (nº de grupos acumulados),única,1,1,calc,grupos: 6
+ZDT3,ZDT,2,30,929,D,maldição da dimensionalidade,única,30,D=30,cap. 4,orçamento 31D-1
+ZDT4,ZDT,2,10,309,X,avaliação cross (nº de grupos acumulados),única,1,1,calc,grupos: 1
+ZDT4,ZDT,2,10,309,D,maldição da dimensionalidade,única,10,D=10,cap. 4,orçamento 31D-1
+ZDT6,ZDT,2,10,309,X,avaliação cross (nº de grupos acumulados),única,2,2,calc,"grupos: 5,6"
+ZDT6,ZDT,2,10,309,D,maldição da dimensionalidade,única,10,D=10,cap. 4,orçamento 31D-1
+DTLZ1,DTLZ,3,7,216,X,avaliação cross (nº de grupos acumulados),única,1,1,calc,grupos: 1
+DTLZ1,DTLZ,3,7,216,D,maldição da dimensionalidade,única,7,D=7,cap. 4,orçamento 31D-1
+DTLZ2,DTLZ,3,12,371,X,avaliação cross (nº de grupos acumulados),única,1,1,calc,grupos: 6
+DTLZ2,DTLZ,3,12,371,D,maldição da dimensionalidade,única,12,D=12,cap. 4,orçamento 31D-1
+DTLZ3,DTLZ,3,12,371,X,avaliação cross (nº de grupos acumulados),única,2,2,calc,"grupos: 1,6"
+DTLZ3,DTLZ,3,12,371,D,maldição da dimensionalidade,única,12,D=12,cap. 4,orçamento 31D-1
+DTLZ4,DTLZ,3,12,371,X,avaliação cross (nº de grupos acumulados),única,2,2,calc,"grupos: 5,6"
+DTLZ4,DTLZ,3,12,371,D,maldição da dimensionalidade,única,12,D=12,cap. 4,orçamento 31D-1
+DTLZ7,DTLZ,3,22,681,X,avaliação cross (nº de grupos acumulados),única,1,1,calc,grupos: 6
+DTLZ7,DTLZ,3,22,681,D,maldição da dimensionalidade,única,22,D=22,cap. 4,orçamento 31D-1
+WFG1,WFG,2,22,681,X,avaliação cross (nº de grupos acumulados),única,1,1,calc,grupos: 4
+WFG1,WFG,2,22,681,D,maldição da dimensionalidade,única,22,D=22,cap. 4,orçamento 31D-1
+WFG2,WFG,2,22,681,X,avaliação cross (nº de grupos acumulados),única,2,2,calc,"grupos: 2,6"
+WFG2,WFG,2,22,681,D,maldição da dimensionalidade,única,22,D=22,cap. 4,orçamento 31D-1
+WFG4,WFG,2,22,681,X,avaliação cross (nº de grupos acumulados),única,1,1,calc,grupos: 1
+WFG4,WFG,2,22,681,D,maldição da dimensionalidade,única,22,D=22,cap. 4,orçamento 31D-1
+WFG5,WFG,2,22,681,X,avaliação cross (nº de grupos acumulados),única,1,1,calc,grupos: 3
+WFG5,WFG,2,22,681,D,maldição da dimensionalidade,única,22,D=22,cap. 4,orçamento 31D-1
+WFG9,WFG,2,22,681,X,avaliação cross (nº de grupos acumulados),única,2,2,calc,"grupos: 2,3"
+WFG9,WFG,2,22,681,D,maldição da dimensionalidade,única,22,D=22,cap. 4,orçamento 31D-1
+MMF1,MMF,2,2,61,X,avaliação cross (nº de grupos acumulados),única,2,2,calc,"grupos: 1,6"
+MMF1,MMF,2,2,61,D,maldição da dimensionalidade,única,2,D=2,cap. 4,orçamento 31D-1
+MMF4,MMF,2,2,61,X,avaliação cross (nº de grupos acumulados),única,2,2,calc,"grupos: 1,6"
+MMF4,MMF,2,2,61,D,maldição da dimensionalidade,única,2,D=2,cap. 4,orçamento 31D-1
+MMF11_L,MMF,2,2,61,X,avaliação cross (nº de grupos acumulados),única,2,2,calc,"grupos: 1,3"
+MMF11_L,MMF,2,2,61,D,maldição da dimensionalidade,única,2,D=2,cap. 4,orçamento 31D-1
+MMF16_20,MMF,3,20,619,X,avaliação cross (nº de grupos acumulados),única,2,2,calc,"grupos: 1,3"
+MMF16_20,MMF,3,20,619,D,maldição da dimensionalidade,única,20,D=20,cap. 4,orçamento 31D-1
+F1,BBOB,2,10,309,X,avaliação cross (nº de grupos acumulados),única,2,2,calc,"grupos: 6,7"
+F1,BBOB,2,10,309,D,maldição da dimensionalidade,única,10,D=10,cap. 4,orçamento 31D-1
+F5,BBOB,2,10,309,X,avaliação cross (nº de grupos acumulados),única,2,2,calc,"grupos: 2,7"
+F5,BBOB,2,10,309,D,maldição da dimensionalidade,única,10,D=10,cap. 4,orçamento 31D-1
+F17,BBOB,2,10,309,X,avaliação cross (nº de grupos acumulados),única,3,3,calc,"grupos: 1,2,7"
+F17,BBOB,2,10,309,D,maldição da dimensionalidade,única,10,D=10,cap. 4,orçamento 31D-1
+F22,BBOB,2,10,309,X,avaliação cross (nº de grupos acumulados),única,3,3,calc,"grupos: 2,5,7"
+F22,BBOB,2,10,309,D,maldição da dimensionalidade,única,10,D=10,cap. 4,orçamento 31D-1
+F37,BBOB,2,10,309,X,avaliação cross (nº de grupos acumulados),única,3,3,calc,"grupos: 1,2,7"
+F37,BBOB,2,10,309,D,maldição da dimensionalidade,única,10,D=10,cap. 4,orçamento 31D-1
+F49,BBOB,2,10,309,X,avaliação cross (nº de grupos acumulados),única,4,4,calc,"grupos: 1,2,3,7"
+F49,BBOB,2,10,309,D,maldição da dimensionalidade,única,10,D=10,cap. 4,orçamento 31D-1
+F55,BBOB,2,10,309,X,avaliação cross (nº de grupos acumulados),única,4,4,calc,"grupos: 1,2,3,7"
+F55,BBOB,2,10,309,D,maldição da dimensionalidade,única,10,D=10,cap. 4,orçamento 31D-1
+RE21,reais,2,4,123,X,avaliação cross (nº de grupos acumulados),única,1,1,calc,grupos: 6
+RE21,reais,2,4,123,D,maldição da dimensionalidade,única,4,D=4,cap. 4,orçamento 31D-1
+DDMOP7,reais,2,17,526,X,avaliação cross (nº de grupos acumulados),única,1,1,calc,grupos: 4
+DDMOP7,reais,2,17,526,D,maldição da dimensionalidade,única,17,D=17,cap. 4,orçamento 31D-1
+ESTOQUE40,reais,3,40,1239,X,avaliação cross (nº de grupos acumulados),única,0,0,calc,grupos: 
+ESTOQUE40,reais,3,40,1239,D,maldição da dimensionalidade,única,40,D=40,cap. 4,orçamento 31D-1

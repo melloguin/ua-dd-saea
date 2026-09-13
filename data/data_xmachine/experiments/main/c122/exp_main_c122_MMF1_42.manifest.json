@@ -1,0 +1,337 @@
+{
+  "schema_version": 1,
+  "run_id": "main_c122_MMF1_42",
+  "exp": "main",
+  "alg": "c122",
+  "problema": "MMF1",
+  "semente": 42,
+  "regime": "online",
+  "q": 1,
+  "tier": null,
+  "dist": null,
+  "status": "ok",
+  "n_retries": 0,
+  "stack_trace": null,
+  "maxfe": 61,
+  "fe_final": 61,
+  "n_geracoes": 42,
+  "doe_hash": "b4682dc218d24077819efadd43764db3ed8403bb3e48c5c8cf66329cc191fcc7",
+  "repo_hash": null,
+  "algo_version": "c122-thetadeadp-1.0",
+  "env": {
+    "python": "3.11.9",
+    "executable": "/Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao/bin/python",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "pymoo": "0.6.2",
+    "sklearn": "1.9.0",
+    "torch": "2.11.0",
+    "gpytorch": "1.15.2",
+    "pandas": "2.3.3",
+    "pyarrow": "25.0.0",
+    "pinning": {
+      "OMP_NUM_THREADS": "2",
+      "OPENBLAS_NUM_THREADS": "2",
+      "MKL_NUM_THREADS": "2",
+      "NUMEXPR_NUM_THREADS": "2",
+      "torch": "2.11.0",
+      "torch_num_threads": 1,
+      "default_dtype": "torch.float64",
+      "device": "cpu"
+    }
+  },
+  "timing": {
+    "tempo_total_s": 58.5984,
+    "tempo_fit_surrogate_s": 21.1339,
+    "tempo_busca_s": 27.0479,
+    "tempo_aval_real_s": 0.0021,
+    "tempo_pred_sonda_s": 5.4063,
+    "tempo_total_despachante_s": 59.5098
+  },
+  "fit_series": [
+    {
+      "iter": 1,
+      "n_acumulado": 22,
+      "tempo_fit_s": 0.16332411766052246
+    },
+    {
+      "iter": 2,
+      "n_acumulado": 23,
+      "tempo_fit_s": 0.2515859603881836
+    },
+    {
+      "iter": 3,
+      "n_acumulado": 24,
+      "tempo_fit_s": 0.2910118103027344
+    },
+    {
+      "iter": 4,
+      "n_acumulado": 25,
+      "tempo_fit_s": 0.16253900527954102
+    },
+    {
+      "iter": 5,
+      "n_acumulado": 26,
+      "tempo_fit_s": 0.28777408599853516
+    },
+    {
+      "iter": 6,
+      "n_acumulado": 27,
+      "tempo_fit_s": 0.31641340255737305
+    },
+    {
+      "iter": 7,
+      "n_acumulado": 28,
+      "tempo_fit_s": 0.2871358394622803
+    },
+    {
+      "iter": 8,
+      "n_acumulado": 29,
+      "tempo_fit_s": 0.32198405265808105
+    },
+    {
+      "iter": 9,
+      "n_acumulado": 30,
+      "tempo_fit_s": 0.5371348857879639
+    },
+    {
+      "iter": 10,
+      "n_acumulado": 31,
+      "tempo_fit_s": 0.2000291347503662
+    },
+    {
+      "iter": 11,
+      "n_acumulado": 31,
+      "tempo_fit_s": 0.21681475639343262
+    },
+    {
+      "iter": 12,
+      "n_acumulado": 31,
+      "tempo_fit_s": 0.2854290008544922
+    },
+    {
+      "iter": 13,
+      "n_acumulado": 32,
+      "tempo_fit_s": 0.23925089836120605
+    },
+    {
+      "iter": 14,
+      "n_acumulado": 33,
+      "tempo_fit_s": 0.5242753028869629
+    },
+    {
+      "iter": 15,
+      "n_acumulado": 34,
+      "tempo_fit_s": 0.3061039447784424
+    },
+    {
+      "iter": 16,
+      "n_acumulado": 35,
+      "tempo_fit_s": 0.49793410301208496
+    },
+    {
+      "iter": 17,
+      "n_acumulado": 36,
+      "tempo_fit_s": 0.3707098960876465
+    },
+    {
+      "iter": 18,
+      "n_acumulado": 37,
+      "tempo_fit_s": 0.7794268131256104
+    },
+    {
+      "iter": 19,
+      "n_acumulado": 38,
+      "tempo_fit_s": 0.5216920375823975
+    },
+    {
+      "iter": 20,
+      "n_acumulado": 39,
+      "tempo_fit_s": 0.5409889221191406
+    },
+    {
+      "iter": 21,
+      "n_acumulado": 40,
+      "tempo_fit_s": 0.28499722480773926
+    },
+    {
+      "iter": 22,
+      "n_acumulado": 41,
+      "tempo_fit_s": 0.8184242248535156
+    },
+    {
+      "iter": 23,
+      "n_acumulado": 42,
+      "tempo_fit_s": 0.6440701484680176
+    },
+    {
+      "iter": 24,
+      "n_acumulado": 43,
+      "tempo_fit_s": 0.32509589195251465
+    },
+    {
+      "iter": 25,
+      "n_acumulado": 44,
+      "tempo_fit_s": 0.8345038890838623
+    },
+    {
+      "iter": 26,
+      "n_acumulado": 45,
+      "tempo_fit_s": 0.5617389678955078
+    },
+    {
+      "iter": 27,
+      "n_acumulado": 46,
+      "tempo_fit_s": 0.4719371795654297
+    },
+    {
+      "iter": 28,
+      "n_acumulado": 47,
+      "tempo_fit_s": 0.04268026351928711
+    },
+    {
+      "iter": 29,
+      "n_acumulado": 48,
+      "tempo_fit_s": 0.5094752311706543
+    },
+    {
+      "iter": 30,
+      "n_acumulado": 49,
+      "tempo_fit_s": 0.43141889572143555
+    },
+    {
+      "iter": 31,
+      "n_acumulado": 50,
+      "tempo_fit_s": 0.3963479995727539
+    },
+    {
+      "iter": 32,
+      "n_acumulado": 51,
+      "tempo_fit_s": 0.5581939220428467
+    },
+    {
+      "iter": 33,
+      "n_acumulado": 52,
+      "tempo_fit_s": 1.088836908340454
+    },
+    {
+      "iter": 34,
+      "n_acumulado": 53,
+      "tempo_fit_s": 1.0053291320800781
+    },
+    {
+      "iter": 35,
+      "n_acumulado": 54,
+      "tempo_fit_s": 0.5515861511230469
+    },
+    {
+      "iter": 36,
+      "n_acumulado": 55,
+      "tempo_fit_s": 0.6543850898742676
+    },
+    {
+      "iter": 37,
+      "n_acumulado": 56,
+      "tempo_fit_s": 0.5766680240631104
+    },
+    {
+      "iter": 38,
+      "n_acumulado": 57,
+      "tempo_fit_s": 0.9319970607757568
+    },
+    {
+      "iter": 39,
+      "n_acumulado": 58,
+      "tempo_fit_s": 0.24409031867980957
+    },
+    {
+      "iter": 40,
+      "n_acumulado": 59,
+      "tempo_fit_s": 0.9712471961975098
+    },
+    {
+      "iter": 41,
+      "n_acumulado": 60,
+      "tempo_fit_s": 0.5878000259399414
+    },
+    {
+      "iter": 42,
+      "n_acumulado": 61,
+      "tempo_fit_s": 1.2978181838989258
+    }
+  ],
+  "fallback_ativado": false,
+  "paths": {
+    "local": {
+      "real": "data_xmachine/experiments/main/c122/exp_main_c122_MMF1_42__real.parquet",
+      "pop": "data_xmachine/experiments/main/c122/exp_main_c122_MMF1_42__pop.parquet",
+      "surrogate": "data_xmachine/experiments/main/c122/exp_main_c122_MMF1_42__surrogate.parquet",
+      "timing": "data_xmachine/experiments/main/c122/exp_main_c122_MMF1_42__timing.parquet",
+      "jsonl": "data_xmachine/experiments/main/c122/exp_main_c122_MMF1_42.jsonl",
+      "manifest": "data_xmachine/experiments/main/c122/exp_main_c122_MMF1_42.manifest.json"
+    },
+    "bucket": null
+  },
+  "upload_status": null,
+  "created_at": "2026-07-26T02:28:25+00:00",
+  "updated_at": "2026-07-26T02:28:25+00:00",
+  "cache_hits": 2,
+  "sigma_dict": {
+    "modelo": "2 FNNs 2x200 ReLU par-a-par (Pareto-Net + theta-Net), softmax-3 SO na inferencia",
+    "pred_tipo": "score (par-a-par) — mu_*/sigma_* NAO se aplicam ao c122",
+    "pred_score": "e(z) = SOMA_j I(z domina j)·p_hat(z,j), somado sobre as 2 redes (fork fiel de select_best, selection.py:158-166)",
+    "pred_confianca": "max-softmax sobre os pares da linha (diagonal EXCLUIDA — conf[i,i]=1 e lixo, prediction.py:11-12)",
+    "regime=online": "[P3/DI-16.3 opcao A+] TOP-100 por e(z) entre os candidatos da CATEGORIA vencedora (<=Q_max=300) — e(z) NAO existe p/ o pool de 7000 (e intra-conjunto). Agregados do pool inteiro no jsonl.",
+    "regime=sonda": "[P2/DI-16.2] e(z) vs a POPULACAO SELECIONADA corrente (n_ref=11) — referencia de tamanho FIXO. E um INSTRUMENTO de medida, nao o score interno da busca.",
+    "real_solution_id": "preenchido SO na linha do escolhido (unico que vira FE); os outros nunca foram avaliados (NULL)",
+    "fe_treino_max": "|archive|−1 no momento do fit — MONOTONICO no c122 (a janela T_max move o INICIO, nao o fim)"
+  },
+  "motivo_parada": "orcamento",
+  "params": {
+    "N_MU": 11,
+    "lambda_pool": 7000,
+    "infill_por_iter": 1,
+    "sbx": {
+      "proC": 1.0,
+      "disC": 30.0
+    },
+    "pm": {
+      "proM": 1.0,
+      "indpb": 0.5,
+      "disM": 20.0
+    },
+    "fnn": "2x200 ReLU, logits-3",
+    "adam": {
+      "lr": 0.001,
+      "batch": 32,
+      "weight_decay": 1e-05
+    },
+    "E_init": 20,
+    "T_max": 46,
+    "gamma_acc_thr": 0.9,
+    "Q_max": 300,
+    "theta_PBI": 5,
+    "x_norm": "[-1,1]",
+    "f_limits_fonte": "S.5 (fronts VERDADEIROS) + margem 10% — DEF-B11.1, vantagem informacional DECLARADA (D73b)",
+    "f_min": [
+      0.0005,
+      0.0
+    ],
+    "f_max": [
+      1.09995,
+      1.07536
+    ],
+    "spin_cap": 10,
+    "torch_default_dtype": "float32 (FORCADO pelo codigo — prediction.py:24 faz .float(); float64 levanta RuntimeError)",
+    "visualization": false
+  },
+  "sonda": {
+    "S": 2000,
+    "cadencia": "online: k=2 (g=1,2,4,6,…) + 1a e ultima",
+    "n_blocos": 22,
+    "n_ref": 11,
+    "referencia": "populacao selecionada [P2/DI-16.2]",
+    "x_hash": "186b726e7d62abaa46a814ce785a97727367ec1c10f936570b6a49ad20e9f59f",
+    "f_hash": "0d6547d63f920a20740de1282b89f9f9738b5714d1a719dae43f49f3670f5497"
+  }
+}

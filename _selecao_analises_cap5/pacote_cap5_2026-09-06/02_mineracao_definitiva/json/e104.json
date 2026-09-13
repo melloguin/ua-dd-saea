@@ -1,0 +1,329 @@
+{
+  "id": "e104",
+  "sigla": "RVMM",
+  "titulo": "Reference Vector-Assisted Adaptive Model Management for Surrogate-Assisted Many-Objective Optimization",
+  "ano": 2022,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Sintéticos: suítes DTLZ, WFG, DPF (Degenerate Pareto Fronts) e MaF, com M ∈ {3,5,10} objetivos e D ∈ {10,50} variáveis de decisão. Em D=10: 39 instâncias com PF regular (Tabela I: DTLZ1-4, WFG4-8, MaF10=WFG1, MaF12=WFG9) e 48 instâncias com PF irregular (Tabela II: entre outros, DPF1-6, DTLZ5-7, IDTLZ1-2, MaF1,3,4,5,6,7,10,11,12 — lista completa não recuperável do corpus, apenas os problemas citados nominalmente no corpo do texto). Em D=50: 87 instâncias (39+48, mesma composição), Tabelas SI-SII no material suplementar, não incluído no corpus. Reais: 6 problemas de otimização multiobjetivo orientada a dados da competição CEC 2019 (repositório He et al. [52]) — DDMOP1 (projeto de cabine de carro, 9 objetivos), DDMOP2 (crashworthiness estrutural da frente do veículo, nº de objetivos não citado no corpo), DDMOP3 (supressor de ripple de comutação LTLCL, 2 ramos ressonantes, nº de objetivos não citado), DDMOP4 (mesmo supressor LTLCL, porém 9 ramos ressonantes, 10 objetivos), DDMOP5 (otimização de potência reativa, 3 objetivos), DDMOP6 (otimização de portfólio, 2 objetivos). D de cada DDMOP não é dado no corpo do texto visível (só em Table III, cujo conteúdo numérico completo não é recuperável do corpus).",
+    "orcamento": "Sintéticos D=10: FEmax=300. Sintéticos D=50: FEmax=800 (RVMM usa GP incremental em vez do GP completo para conter o custo de treino). DoE inicial NI = 11·D−1 (Latin Hypercube Sampling). Reais (DDMOP1-6): FEmax = 500, 300, 600, 800, 500 e 400, respectivamente. Tamanho de população: 105/126/230 para M=3/5/10 nos sintéticos; 210/105/105/230/105/100 para DDMOP1-6, respectivamente.",
+    "execucoes": "20 execuções independentes por célula (algoritmo × problema), conforme as legendas das Figs. 5-6 ('the set with the median IGD+ value out of 20 independent runs is plotted'); não reafirmado explicitamente para as Tabelas I-III, mas presumivelmente o mesmo protocolo. Difere das 30 sementes da bateria da dissertação.",
+    "baselines": "Sete SAEAs do estado da arte, usados na comparação principal (Tabelas I-III): K-RVEA, KTA2, AB-MOEA (grafado também 'ABMOEA' no corpo), MOEA/D-EGO, CSEA, HSMEA e EIM-EGO ('EIMEGO'). Na comparação de escalabilidade em 50-D (Sec. IV-D) o conjunto de comparados muda para: EDN-ARMOEA, K-RVEA, CSEA, MOEA/D-EGO e KTA2 (sem AB-MOEA/HSMEA/EIM-EGO). NÃO há nenhum piso evolutivo sem surrogate (NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) em nenhuma comparação do artigo — todos os métodos comparados usam surrogate (GP na maioria; EDN-ARMOEA usa rede neural com dropout; CSEA usa classificador de dominância).",
+    "metricas_principais": [
+      "IGD+ (Inverted Generational Distance plus)"
+    ],
+    "testes": [
+      "Friedman (implementado no software KEEL [49]) — usado APENAS nas duas ablações de variantes do próprio RVMM (Sec. IV-E, Fig. 7; Sec. IV-F, Fig. 8), produzindo um 'average performance score' (rank) por variante.",
+      "Símbolos +/−/∼ nas Tabelas I, II e III, comparando cada um dos sete algoritmos especificamente contra RVMM (não contra 'o melhor de cada problema') — o teste estatístico por trás desses símbolos NÃO é nomeado em nenhuma passagem visível do artigo (nem no corpo, nem na legenda das tabelas capturada por OCR); confirma-se apenas a existência dos símbolos e de uma contagem agregada de vitórias/empates/derrotas por algoritmo ao final de cada tabela (Tabelas I e II; para a Tabela III o corpus captura por OCR apenas um fragmento com os mesmos símbolos, sem a linha de contagem final)."
+    ],
+    "apresentacao": "Tabelas I-III: valores em notação científica, formato 'média (desvio-padrão)' sobre as execuções independentes (NÃO mediana); melhor valor por linha destacado em cinza ('the best results are highlighted in gray', destaque em si não reproduzido no texto/OCR); símbolo +/−/∼ ao lado de cada célula comparada indicando significância estatística vs. RVMM; linha de contagem agregada ao final das Tabelas I e II (via OCR: Tabela I = sete trios vitórias/empates/derrotas-vs-RVMM iguais a 0/32/7, 2/28/9, 0/26/13, 3/29/7, 3/28/8, 3/35/1, 1/31/7; Tabela II = 6/35/7, 8/27/13, 6/35/7, 14/27/7, 5/39/4, 1/43/4, 5/40/3 — a ordem de coluna que liga cada trio a um algoritmo específico não é reconstruível com segurança a partir do OCR, pois a ordem dos sete comparados na legenda das tabelas difere da ordem da lista numerada da Sec. IV-B). Figs. 5-6: fronteira não-dominada da execução com valor MEDIANO de IGD+ (dentre 20), plotada contra a PF verdadeira — mesma convenção de 'execução mediana' usada na dissertação. Figs. 7-8: 'average performance score' (rank de Friedman) em gráfico de barras, por variante — rótulos numéricos exatos por barra não são atribuíveis com confiança a partir do OCR das figuras (números fragmentados/ambíguos na Página 11), por isso não citados como achado quantitativo neste JSON.",
+    "codigo_plataforma": "PlatEMO [42] (MATLAB) para todos os experimentos; teste de Friedman via KEEL [49]; GP incremental [48] usado como substituto do GP completo apenas nos experimentos de 50-D (Sec. IV-D)."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela com os valores de IGD+ (média ± desvio-padrão sobre as execuções independentes) obtidos por RVMM e sete algoritmos comparados (K-RVEA, KTA2, AB-MOEA, MOEA/D-EGO, CSEA, HSMEA, EIM-EGO) em 39 instâncias de problemas com PF regular (DTLZ1-4, WFG4-8, MaF10, MaF12), D=10, M∈{3,5,10}, FEmax=300. O melhor resultado por instância é destacado em cinza; símbolos +/−/∼ indicam se cada algoritmo comparado é estatisticamente significantemente melhor/pior/equivalente a RVMM (não ao melhor de cada problema), com uma linha de contagem agregada de vitórias/empates/derrotas por algoritmo ao final da tabela.",
+      "literal": "Tables I and II present the IGD+ values achieved by RVMM and the seven compared algorithms on solving problems with regular and irregular PFs, respectively. The best results are highlighted in gray",
+      "localizador": "Sec. IV-C, Table I",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "símbolos +/−/∼ vs. RVMM (teste estatístico não nomeado no texto nem na legenda capturada)"
+      ],
+      "convencoes": "média ± desvio-padrão (não mediana); melhor destacado em cinza; símbolos +/=/− por célula vs. RVMM; linha de contagem agregada por algoritmo ao final (via OCR: sete trios 0/32/7, 2/28/9, 0/26/13, 3/29/7, 3/28/8, 3/35/1, 1/31/7 — atribuição trio→algoritmo não confirmável com segurança).",
+      "achado": "RVMM obteve o melhor resultado em 24 de 39 instâncias com PF regular. Em problemas multimodais (DTLZ1, DTLZ3, DTLZ4) o IGD+ médio de RVMM foi significativamente melhor que os sete comparados — inclusive superando CSEA, que converge rápido em multimodais segundo [10] e [24], mas obtém IGD+ muito mais alto que RVMM em DTLZ1/DTLZ3. RVMM também é competitivo nos WFG complexos (WFG4-8, MaF10, MaF12) apesar da não separabilidade/deceptividade/multimodalidade dessa suíte.",
+      "aplicabilidade": "não reproduzível — RVMM não está no roster experimental da dissertação (roster=false); os números vêm exclusivamente do artigo-fonte (parcialmente via OCR), sem dados brutos (camadas ①-⑦) disponíveis para recomputo."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela com os valores de IGD+ (média ± desvio-padrão) obtidos por RVMM e os mesmos sete comparados em 48 instâncias de problemas com PF irregular (degenerados: DPF1, DPF3, DPF5, MaF6, DTLZ5, DTLZ6, DPF2; invertidos: IDTLZ1, IDTLZ2, MaF1, MaF4; descontínuos: MaF7, MaF11 — lista não exaustiva, apenas os problemas citados nominalmente no corpo do artigo), D=10, M∈{3,5,10}, FEmax=300. Mesmo esquema de destaque/símbolos/contagem da Tabela I.",
+      "literal": "RVMM has achieved the best performance on 20 out of 48 test instances on problems with irregular PF.",
+      "localizador": "Sec. IV-C, Table II",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "símbolos +/−/∼ vs. RVMM (teste estatístico não nomeado no texto nem na legenda capturada)"
+      ],
+      "convencoes": "média ± desvio-padrão; melhor destacado em cinza; símbolos +/=/− vs. RVMM; contagem agregada por algoritmo ao final (via OCR: sete trios 6/35/7, 8/27/13, 6/35/7, 14/27/7, 5/39/4, 1/43/4, 5/40/3 — atribuição trio→algoritmo não confirmável).",
+      "achado": "RVMM venceu em 20 de 48 instâncias irregulares. Significativamente melhor em DPF1, DPF3, DPF5 e MaF6 (degenerados) e em MaF1/MaF4 (invertidos) e MaF7/MaF11 (descontínuos). HSMEA foi competitivo em DPF2, DTLZ5 e DTLZ6 (degenerados) via busca local sobre soluções selecionadas por dois conjuntos de vetores de referência, mas essa busca local usa apenas o valor médio predito, sem considerar a incerteza — o que os autores apontam como a razão de HSMEA ser menos competitivo que RVMM nos problemas regulares (Tabela I).",
+      "aplicabilidade": "não reproduzível — mesma limitação da análise anterior (RVMM fora do roster; números apenas do artigo-fonte)."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Gráficos de dispersão do conjunto não-dominado obtido por RVMM, K-RVEA, KTA2 e EIMEGO em DTLZ1 (linear) e DTLZ2 (côncavo), 3 objetivos, D=10, FEmax=300, sobrepostos à PF verdadeira; para cada algoritmo, plota-se a execução com o valor MEDIANO de IGD+ dentre 20 execuções independentes.",
+      "literal": "The set with the median IGD+ value out of 20 independent runs is plotted.",
+      "localizador": "Fig. 5, Sec. IV-C",
+      "metricas": [
+        "IGD+ (usada apenas para selecionar a execução mediana a plotar)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "execução mediana (dentre 20 execuções) por algoritmo/problema; 4 painéis por figura (um por algoritmo); comparação visual apenas (sem indicador escalar impresso na figura).",
+      "achado": "Em DTLZ1 (multimodal, linear) o conjunto de RVMM é visivelmente mais convergido que os dos três comparados; em DTLZ2 (fácil de convergir) RVMM produz soluções bem diversificadas — evidenciando que RVMM concilia convergência em problemas difíceis e diversidade em problemas fáceis.",
+      "aplicabilidade": "não reproduzível — exigiria rodar RVMM e os comparados (fora do roster); na dissertação, o equivalente seria camada ① (ND acumulado ao fim do orçamento) mais a convenção de execução mediana, já usada para a ficha 54."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesmo esquema da Fig. 5, agora para MaF1 (invertido) e MaF7 (descontínuo), 3 objetivos, D=10, FEmax=300, execução mediana dentre 20.",
+      "literal": "the solution set obtained by RVMM is not only well converged but also evenly spread.",
+      "localizador": "Fig. 6, Sec. IV-C",
+      "metricas": [
+        "IGD+ (usada apenas para selecionar a execução mediana a plotar)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "execução mediana (dentre 20); 4 painéis por figura (RVMM, K-RVEA, KTA2, EIMEGO); comparação visual apenas.",
+      "achado": "Em MaF1 (invertido) e MaF7 (descontínuo), RVMM produz frentes bem convergidas E bem espalhadas, enquanto K-RVEA, KTA2 e EIMEGO — que já incorporam convergência e diversidade no desenho da própria função de aquisição — falham em espalhar bem as soluções; os autores interpretam isso como evidência de que o balanceamento exploração/explotação NO PROCESSO de busca (não só o desenho do critério de aquisição) é vital.",
+      "aplicabilidade": "não reproduzível — mesma limitação da Fig. 5 (RVMM fora do roster)."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparação de escalabilidade: RVMM (usando GP incremental em vez do GP completo, por custo) contra EDN-ARMOEA, K-RVEA, CSEA, MOEA/D-EGO e KTA2 em 87 instâncias de 50 variáveis de decisão (3/5/10 objetivos, regulares e irregulares combinados), FEmax=800. As tabelas completas (SI regular, SII irregular) estão apenas no material suplementar (não incluído no corpus); o corpo do texto resume o resultado em contagens de vitórias.",
+      "literal": "Overall, RVMM has achieved the best results on 69, 54, 53, 57, and 47 out of 87 test instances, by comparing with the K-RVEA, KTA2, CSEA, EDN-ARMOEA, and MOEA/D-EGO, respectively",
+      "localizador": "Sec. IV-D; Tables SI-SII (material suplementar, não visível no corpus)",
+      "metricas": [
+        "IGD+ (métrica presumida — mesma do restante do artigo; não reafirmada explicitamente nesta subseção)"
+      ],
+      "testes": [
+        "não especificado nesta passagem (apenas contagem de instâncias vencidas)"
+      ],
+      "convencoes": "contagem de instâncias vencidas (X de 87) por comparação par-a-par RVMM-vs-cada-baseline; sem médias/medianas citadas diretamente no corpo do texto para esta comparação.",
+      "achado": "RVMM venceu a maioria das comparações par-a-par mesmo em D=50: 69/87 vs K-RVEA, 54/87 vs KTA2, 53/87 vs CSEA, 57/87 vs EDN-ARMOEA (especializada em alta dimensão/muitos objetivos, via rede neural com dropout), 47/87 vs MOEA/D-EGO — indicando escalabilidade promissora, embora exija GP incremental (não o GP completo) para conter o custo de treino.",
+      "aplicabilidade": "não reproduzível — tabelas completas (SI-SII) ausentes do corpus; RVMM fora do roster."
+    },
+    {
+      "fichas": [
+        11,
+        15
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "ABLAÇÃO EXATA DA INCERTEZA: RVMM (usa a AUCB, Eq. 6, que amplifica σ elevando-o ao quadrado quando σ>1) é comparado com duas variantes que alteram só a função de aquisição, mantendo os dois processos de otimização e o critério de seleção intactos: RVMM-UCB (usa a UCB canônica, μ+k·σ, sem amplificação) e RVMM-mean (usa apenas o valor médio predito μ, sem nenhum termo de incerteza — o contrafactual σ=0). As três variantes são ranqueadas pelo teste de Friedman (software KEEL) em termos de IGD+ sobre todas as instâncias de 10-D (as 39+48=87 instâncias das Tabelas I-II), resultado em 'average performance score' (rank médio) plotado na Fig. 7.",
+      "literal": "Friedman's test implemented in the software tool KEEL [49] is used to rank RVMM and two of its variants by solving all 10-dimensional (10-D) test instances.",
+      "localizador": "Sec. IV-E, Fig. 7",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "Friedman (KEEL)"
+      ],
+      "convencoes": "average performance score (rank médio de Friedman) por variante, agregado sobre todas as instâncias 10-D; gráfico de barras (Fig. 7) — rótulos numéricos exatos por barra não atribuíveis com confiança via OCR (números fragmentados/ambíguos na Página 11), por isso não citados aqui como achado quantitativo.",
+      "achado": "RVMM (AUCB) obteve o melhor rank médio, seguido por RVMM-UCB e depois RVMM-mean (pior) — ablação monotônica e exata do papel da incerteza: nenhuma incerteza (mean) < incerteza padrão (UCB) < incerteza amplificada (AUCB). Isso confirma que amplificar o termo de incerteza na aquisição (em vez de usá-la crua, ou ignorá-la) melhora o IGD+ nesta bateria — um resultado POSITIVO e gradual para o uso (e o peso) da incerteza.",
+      "aplicabilidade": "não reproduzível pelas 7 camadas — exige rodar as variantes RVMM-UCB e RVMM-mean (ausentes do roster/execuções da dissertação); é, em espírito, o contrafactual σ=0 (RVMM-mean) e σ-padrão (RVMM-UCB) que a ficha 15 da dissertação define como 'nunca executado' internamente — aqui os próprios autores já o executaram, preenchendo esse vazio como evidência de literatura relacionada."
+    },
+    {
+      "fichas": [
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ablação fatorial 2×2 que cruza o tipo de conjunto de vetores de referência (adaptativo, usado no processo de convergência, vs. fixo/predefinido, usado no processo de diversidade) com o tipo de valor de aquisição (AUCB vs. UCB padrão), gerando 4 variantes: RVMM-adaptive-AUCB, RVMM-adaptive-UCB, RVMM-fixed-AUCB e RVMM-fixed-UCB. Rankeadas por Friedman (KEEL) separadamente em GD (convergência) e spread (diversidade) sobre todas as instâncias 10-D, FEmax=300 (Fig. 8).",
+      "literal": "Friedman's test implemented in the software tool KEEL [49] is used to rank four variants of RVMM.",
+      "localizador": "Sec. IV-F, Fig. 8",
+      "metricas": [
+        "GD (generational distance)",
+        "spread"
+      ],
+      "testes": [
+        "Friedman (KEEL)"
+      ],
+      "convencoes": "average performance score (rank de Friedman), separado por métrica (GD e spread), por variante, sobre as instâncias 10-D; gráfico de barras — valores exatos por barra não atribuíveis com confiança via OCR.",
+      "achado": "RVMM-adaptive-AUCB obteve o melhor GD (convergência) entre as 4 variantes, confirmando que o conjunto ADAPTATIVO de vetores acelera a convergência; RVMM-fixed-AUCB obteve o melhor spread (diversidade), confirmando que o conjunto FIXO promove diversidade — os dois mecanismos têm papéis complementares. As duas variantes vencedoras (adaptive-AUCB no GD; fixed-AUCB no spread) usam AUCB, não UCB padrão, sugerindo que a amplificação da incerteza ajuda em ambos os quesitos dentro de cada tipo de conjunto de vetores.",
+      "aplicabilidade": "não reproduzível pelas 7 camadas — o eixo 'conjunto de vetores adaptativo × fixo' é estrutural do próprio RVMM (não uma variável presente na instrumentação da dissertação) e exigiria rodar as 4 variantes, ausentes do roster; o eixo AUCB×UCB é análogo, em espírito, à ficha 11, mas teria de ser recomputado do zero."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação da amostragem por indicador de desempenho vs. amostragem aleatória (RVMM-RI)",
+      "grupo_sugerido": "E",
+      "descricao": "Ablação do critério de seleção do Algoritmo 2 (que decide, de forma determinística via distância euclidiana/IGD/ângulo, se o candidato de maior contribuição à convergência ou o de maior contribuição à diversidade é avaliado na função real): RVMM-RI substitui essa decisão por sorteio com 50% de chance para cada tipo de candidato. Comparado, via 'average performance score' de IGD+, com RVMM, RVMM-fixed-AUCB e RVMM-adaptive-AUCB (as duas últimas usando cada uma só um dos dois processos de otimização isoladamente) sobre as instâncias 10-D regulares e irregulares (Tabelas SIV-SV, material suplementar).",
+      "literal": "The average performance score obtained by RVMM, RVMM-RI, RVMM-fixed-AUCB, and RVMM-adaptive-AUCB in terms of IGD+ values is 2.0805, 2.4598, 3.1264, and 2.3333, respectively.",
+      "localizador": "Sec. IV-G; Tables SIV-SV (material suplementar, não visível no corpus)",
+      "metricas": [
+        "IGD+ (average performance score)"
+      ],
+      "testes": [
+        "não especificado (apenas o valor do score é reportado, sem teste de significância nomeado)"
+      ],
+      "convencoes": "average performance score por variante (não fica claro no texto se é rank médio de Friedman ou média direta do indicador); quanto menor, melhor, por analogia às demais seções (RVMM tem o menor score, 2.0805).",
+      "achado": "RVMM (indicador determinístico, score 2.0805) supera RVMM-RI (amostragem aleatória, 2.4598), RVMM-fixed-AUCB (um único processo, fixo, 3.1264) e RVMM-adaptive-AUCB (um único processo, adaptativo, 2.3333) — a amostragem baseada em indicador de desempenho é melhor que a aleatória, e usar os DOIS processos de otimização (adaptativo+fixo) juntos supera usar apenas um dos dois isoladamente. RVMM-fixed-AUCB (pior dos quatro) confirma que o processo adaptativo sozinho contribui mais que o fixo sozinho para o IGD+ agregado.",
+      "aplicabilidade": "não reproduzível — exige rodar a variante RVMM-RI (amostragem aleatória) e as variantes de processo único, nenhuma presente no roster da dissertação; a lógica de seleção ablacionada aqui (indicador vs. aleatório) não corresponde a nenhuma ficha existente da tipologia (não é uma troca de classe de incerteza/medição, é uma troca da regra de decisão de infill)."
+    },
+    {
+      "fichas": [
+        64
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara a estratégia de infill de UMA solução por rodada de atualização do surrogate (RVMM) com uma variante que consulta um LOTE de u=5 soluções por rodada (RVMM-BI, as top-5 por contribuição de convergência/diversidade, usando o mesmo critério de decisão do Algoritmo 2). Primeiro compara RVMM contra RVMM-BI diretamente (contagem de vitórias/empates em 87 instâncias, via Tabelas SIV-SV); depois compara RVMM-BI contra os sete algoritmos de referência (Tabelas SVI-SVII) — ambos os pares de tabelas apenas no material suplementar.",
+      "literal": "we designed a new variant of RVMM, termed RVMM-BI, that queries the top u (u is set to 5) solutions that either contribute most to the convergence or diversity",
+      "localizador": "Sec. IV-H; Tables SIV-SV e SVI-SVII (material suplementar, não visível no corpus)",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "contagem de vitórias/empates (sem teste de significância nomeado nesta passagem)"
+      ],
+      "convencoes": "contagem de instâncias em que RVMM vence/empata com RVMM-BI, de um total de 87 (10-D regular+irregular); RVMM-BI depois comparado aos sete algoritmos de referência na mesma convenção mean±dp das Tabelas I-II.",
+      "achado": "Infilling um a um (RVMM) vence RVMM-BI (lote de 5) em 40 de 87 instâncias e empata em outras 42 (ou seja, perde em apenas 5) — RVMM é ligeiramente melhor que sua própria variante em lote, confirmando que infilling um a um aproveita melhor as soluções já avaliadas para manter diversidade e acelerar convergência. Mesmo assim, RVMM-BI permanece competitivo contra os sete algoritmos de referência (Tabelas SVI-SVII) tanto em problemas regulares quanto irregulares — ou seja, a estratégia em lote degrada um pouco o desempenho de RVMM mas não o inviabiliza como método.",
+      "aplicabilidade": "não reproduzível — exige rodar a variante em lote (q=5) do algoritmo, ausente da base de dados online padrão (que assume q=1, avaliação uma a uma); é o análogo, para RVMM e q=5, do sub-estudo de lote da ficha 64 (lá formulado para qNEHVI/qPOTS com q=10)."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela IGD+ (média±dp, mesmo esquema de símbolos +/−/∼ vs. RVMM das Tabelas I-II, confirmado por fragmento via OCR) para RVMM e os sete comparados em seis problemas reais de otimização multiobjetivo orientada a dados da competição CEC 2019 (DDMOP1-6: projeto de cabine de carro, crashworthiness estrutural, dois supressores de ripple LTLCL, otimização de potência reativa, otimização de portfólio), com FEmax=500/300/600/800/500/400 e populações 210/105/105/230/105/100, respectivamente.",
+      "literal": "As shown in Table III, RVMM, K-RVEA, and AB-MOEA have achieved the best performance, followed by EIM-EGO and KTA2, outperforming HSMEA, CSEA, and MOEA/D-EGO.",
+      "localizador": "Sec. IV-I, Table III",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "símbolos +/−/∼ vs. RVMM (não nomeados no texto; confirmados via OCR de um fragmento da tabela nas linhas de DDMOP5/DDMOP6 — a linha de contagem agregada, se existir, não foi capturada pois o corpus termina no meio da tabela)"
+      ],
+      "convencoes": "média±dp; mesmos símbolos de significância das Tabelas I-II, sem linha de contagem agregada recuperável do corpus.",
+      "achado": "Em problemas reais estruturados (DDMOP1-6), RVMM, K-RVEA e AB-MOEA lideram o desempenho; HSMEA — vencedor da competição CEC 2019 original de onde os problemas vêm — fica atrás de RVMM, CSEA e MOEA/D-EGO neste protocolo controlado (mesmo orçamento/execuções para todos os oito métodos).",
+      "aplicabilidade": "não reproduzível — os problemas DDMOP1-6 deste artigo são diferentes do DDMOP7 usado como um dos três casos reais da dissertação (mesmo repositório de origem, He et al. [52], mas instância numerada distinta); RVMM fora do roster."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade aos hiperparâmetros k (peso da incerteza na AUCB), Nv (nº de vetores de referência adaptativos) e ωmax (gerações por rodada de Kriging)",
+      "grupo_sugerido": "E",
+      "descricao": "O artigo menciona que resultados de sensibilidade aos parâmetros k (peso da incerteza na função de aquisição AUCB, Eq. 6), Nv (número de vetores de referência ativos agrupados no processo de convergência) e ωmax (número máximo de gerações usando o modelo Kriging por rodada de atualização do surrogate) estão no material suplementar, mas não os mostra nem os descreve no corpo do artigo.",
+      "literal": "The results of sensitivity analyses of k, Nv and ωmax are shown in Figs. S1–S3 of the Supplementary material.",
+      "localizador": "Sec. IV-A (menção); Figs. S1-S3 (material suplementar, não anexado ao corpus)",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "",
+      "achado": "não determinável — conteúdo não presente no corpus (apenas mencionado, sem valores testados nem resultado).",
+      "aplicabilidade": "não reproduzível — material suplementar não disponível no corpus; k é o parâmetro que pondera diretamente o termo de incerteza na AUCB (Eq. 6), portanto é 'o parâmetro que define o uso da incerteza' no sentido do cartão de extração, mas seu estudo de sensibilidade não está acessível para confirmar se afeta o USO (liga/desliga) ou só a INTENSIDADE da incerteza."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Comparação de tempo de execução (runtime) entre os oito algoritmos",
+      "grupo_sugerido": "F",
+      "descricao": "O artigo menciona que uma comparação do tempo de execução (runtime) de RVMM e dos sete comparados foi realizada, mas os resultados estão inteiramente no material suplementar, sem nenhum número, tabela ou gráfico reproduzido no corpo do artigo.",
+      "literal": "we add a comparison of the runtime of each algorithm, and the results are included in Section III of the Supplementary material.",
+      "localizador": "Sec. IV-C (menção); Seção III do material suplementar (não anexado ao corpus)",
+      "metricas": [
+        "tempo de execução (runtime)"
+      ],
+      "testes": [],
+      "convencoes": "",
+      "achado": "não determinável — conteúdo não presente no corpus (apenas mencionado).",
+      "aplicabilidade": "não reproduzível — material suplementar não disponível; mesmo que estivesse disponível, RVMM está fora do roster experimental da dissertação."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Menção qualitativa ao custo de treino do GP como motivação para usar GP incremental (em vez do GP completo) nos experimentos de 50-D, e menção a uma comparação de runtime entre os oito algoritmos cujos resultados estão inteiramente no material suplementar (não incluído no corpus). Não há decomposição de tempo por fase (ajuste do modelo / busca da aquisição / avaliação real) nem análise de complexidade assintótica (ex. O(n³) do GP) em nenhuma passagem visível do artigo.",
+    "literal": "Since the training of GP models is very time-consuming when the number of training data is large, to save the computational cost of RVMM on solving medium-dimensional problems, we use the incremental GP",
+    "localizador": "Sec. IV-D (economia de custo via GP incremental); Sec. IV-C menciona a comparação de runtime em si, cujos resultados estão na Seção III do material suplementar"
+  },
+  "resultados_negativos": [],
+  "equivalencia_criterios": [
+    {
+      "descricao": "O artigo observa que K-RVEA e KTA2 já incorporam convergência e diversidade no desenho da própria função de aquisição, mas ainda assim produzem frentes mal espalhadas em MaF1 (invertido) e MaF7 (descontínuo); os autores concluem que o desenho do CRITÉRIO de aquisição não é suficiente por si só — o balanceamento de exploração/explotação NO PROCESSO de busca (como RVMM faz via dois conjuntos de vetores de referência otimizados em paralelo) é igualmente vital para se obter diversidade.",
+      "literal": "the balance of exploration and exploitation of multiobjectives of the search process is also vital in order to achieve a set of well-converged and well-diversified solutions.",
+      "localizador": "Sec. IV-C (discussão da Fig. 6)"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "multimodalidade",
+      "afirmacao": "Em problemas multimodais (DTLZ1, DTLZ3, DTLZ4), o IGD+ médio de RVMM é significativamente melhor que os sete comparados, incluindo o CSEA (conhecido na literatura por convergir rápido em multimodais).",
+      "literal": "on multimodal problems, such as DTLZ1, DTLZ3, and DTLZ4, the mean IGD+ achieved by RVMM is significantly better than the seven compared algorithms.",
+      "localizador": "Sec. IV-C (Table I)"
+    },
+    {
+      "caracteristica": "não separabilidade",
+      "afirmacao": "RVMM alcança resultados competitivos nos problemas WFG complexos (WFG4-8, MaF10=WFG1, MaF12=WFG9), apesar de essa suíte ter propriedades difíceis — não separável, enganosa (deceptive) e multimodal.",
+      "literal": "RVMM can also achieve competitive results on handling complex WFG test problems [WFG4-8, MaF10 (same as WFG1), and MaF12 (same as WFG9)]",
+      "localizador": "Sec. IV-C (Table I)"
+    },
+    {
+      "caracteristica": "frente côncava/degenerada",
+      "afirmacao": "Em problemas degenerados (DPF1, DPF3, DPF5, MaF6), o IGD+ de RVMM é significativamente melhor que os sete comparados.",
+      "literal": "on degenerate DPF1, DPF3, DPF5, and MaF6, the IGD+ achieved by RVMM is significantly better than the seven compared algorithms.",
+      "localizador": "Sec. IV-C (Table II)"
+    },
+    {
+      "caracteristica": "frente côncava/degenerada",
+      "afirmacao": "HSMEA é competitivo em outros problemas degenerados (DPF2, DTLZ5, DTLZ6) porque faz busca local sobre soluções pré-selecionadas por dois conjuntos de vetores de referência, mas essa busca local usa só a média predita — sem considerar a incerteza — o que o torna menos competitivo que RVMM nos problemas regulares.",
+      "literal": "the local search in HSMEA is merely based on the predicted mean value without considering the uncertainty.",
+      "localizador": "Sec. IV-C (discussão da Table II)"
+    },
+    {
+      "caracteristica": "frente invertida",
+      "afirmacao": "Em problemas com PF invertida (IDTLZ1, IDTLZ2, MaF1, MaF4), o IGD+ médio de RVMM é significativamente melhor que os sete comparados.",
+      "literal": "on inverted problems, such as MaF1 and MaF4, and discontinuous problems, such as MaF7 and MaF11, the mean IGD+ of the solution set achieved by RVMM is significantly better than the seven compared algorithms.",
+      "localizador": "Sec. IV-C (Table II)"
+    },
+    {
+      "caracteristica": "frente desconexa",
+      "afirmacao": "Em problemas com PF descontínua (MaF7, MaF11), o IGD+ médio de RVMM é significativamente melhor que os sete comparados, e a Fig. 6 mostra que RVMM é o único, entre os quatro algoritmos plotados, a produzir uma frente bem espalhada nesses casos.",
+      "literal": "on inverted problems, such as MaF1 and MaF4, and discontinuous problems, such as MaF7 and MaF11, the mean IGD+ of the solution set achieved by RVMM is significantly better than the seven compared algorithms.",
+      "localizador": "Sec. IV-C (Table II e Fig. 6)"
+    },
+    {
+      "caracteristica": "alta dimensão",
+      "afirmacao": "Em D=50 (usando GP incremental por custo), RVMM continua vencendo a maioria das comparações par-a-par contra os cinco algoritmos testados nesse regime, indicando escalabilidade promissora.",
+      "literal": "Overall, RVMM has achieved the best results on 69, 54, 53, 57, and 47 out of 87 test instances, by comparing with the K-RVEA, KTA2, CSEA, EDN-ARMOEA, and MOEA/D-EGO, respectively",
+      "localizador": "Sec. IV-D"
+    },
+    {
+      "caracteristica": "problema real estruturado",
+      "afirmacao": "Nos seis problemas reais (DDMOP1-6, competição CEC 2019 de otimização orientada a dados), RVMM lidera junto com K-RVEA e AB-MOEA; notavelmente, HSMEA — vencedor da competição CEC 2019 original — fica atrás de RVMM, CSEA e MOEA/D-EGO neste protocolo controlado (mesmo orçamento/execuções para todos).",
+      "literal": "Among the compared algorithms, HSMEA is the winner in the CEC 2019 competition.",
+      "localizador": "Sec. IV-I (Table III)"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) RVMM não está no roster experimental da dissertação (roster=false); é fonte secundária/relacionada, minerada por seus próprios achados e ablações, sem dados brutos (camadas ①-⑦) disponíveis. (2) O artigo NÃO compara com nenhum piso evolutivo sem surrogate (não há NSGA-II/MOEA/D/NSGA-III/SMS-EMOA puro na bateria) — compara apenas SAEAs entre si (K-RVEA, KTA2, AB-MOEA, MOEA/D-EGO, CSEA, HSMEA, EIM-EGO; mais EDN-ARMOEA só no teste de 50-D). Por isso nenhuma ficha do Grupo B ('O surrogate compra?', fichas 9-16, ancoradas em comparação assistido×piso) se aplica a este artigo. (3) O artigo é uma bateria de ablação NATURAL rica sobre o próprio RVMM, com QUATRO estudos de ablação distintos: (E) AUCB vs. UCB vs. média pura — a ablação explicitamente sinalizada no pedido de mineração (RVMM-mean × RVMM-UCB × RVMM), mapeada às fichas 11 e 15; (F) vetores de referência adaptativos×fixos cruzado com AUCB×UCB (fatorial 2×2, 4 variantes); (G) amostragem por indicador de desempenho vs. aleatória (RVMM-RI); (H) infill de uma solução por rodada vs. lote de 5 (RVMM-BI, mapeada à ficha 64). Das quatro, apenas (E) e (F) usam o teste de Friedman (nomeado explicitamente, via KEEL); (G) e (H) reportam apenas 'average performance score' ou contagens de vitórias, sem teste de significância nomeado. (4) Nas Tabelas I-III (a comparação principal RVMM vs. sete SAEAs), os símbolos +/−/∼ comparam cada algoritmo especificamente CONTRA RVMM (o método proposto), não contra 'o melhor de cada problema' como na ficha 3 da dissertação — e o teste estatístico por trás desses símbolos não é nomeado em nenhum trecho visível do artigo (nem no corpo, nem na legenda das tabelas recuperada por OCR); mapeei ainda assim a [1,3] seguindo o exemplo do próprio cartão de extração ('tabela IGD média±dp com teste de postos e símbolos +/=/-' -> [1,3]), mas o teste em si fica registrado como 'não nomeado' em cada análise. (5) O artigo não mede a calibração/qualidade do σ do GP (sem RMSE, cobertura, correlação σ×erro, etc.) — usa σ apenas operacionalmente dentro da AUCB, nunca valida sua acurácia como quantidade própria. (6) Tabelas I, II e III são imagens no PDF; os valores numéricos usados neste JSON (contagens agregadas de vitórias/empates/derrotas ao final das Tabelas I-II) vêm da camada de OCR (Apple Vision) anexada ao markdown, que contém ruído de reconhecimento (dígitos trocados, símbolos +/−/∼ por vezes ambíguos, e a ordem de coluna que ligaria cada trio a um algoritmo específico não é reconstruível com segurança) — por isso os trios são citados como conjunto, sem atribuição individual a um algoritmo nomeado. Pela mesma razão, os rótulos numéricos nas Figs. 7-8 (average performance score por variante) não foram usados como achado quantitativo: o OCR dessas duas figuras (Página 11) devolve números fragmentados e sem rótulo de algoritmo/variante associável com confiança. (7) 20 execuções independentes (não 30, como a bateria da dissertação); DoE inicial NI=11D-1 via LHS (diferente do orçamento de 31D-1 mencionado no contexto da dissertação). (8) Os seis problemas reais (DDMOP1-6, competição CEC 2019 de otimização orientada a dados) são diferentes do DDMOP7 usado como um dos três casos reais da dissertação — mesmo repositório de origem (He et al. [52]), mas instância numerada distinta; não há sobreposição de problema entre este artigo e o caso real DDMOP7 da dissertação. (9) O documento consiste na seção estruturada (conversão pymupdf4llm, tabelas/figuras omitidas como imagens), seguida do ANEXO com a camada de texto bruta completa (conteúdo idêntico, apenas repagina) e, por fim, um ANEXO de OCR das figuras/tabelas (Páginas 4-12), que recupera os valores numéricos das Tabelas I-III (parcialmente) e fragmentos de rótulo das Figs. 5-8 — usado com a devida cautela e sinalizado onde a atribuição não é segura. Não há apêndice numerado (Appendix A, B...) neste artigo. Nota de diagramação: 'I. Real-World Applications' (localizador usado aqui como 'Sec. IV-I') é a NONA subseção de IV. EXPERIMENTAL RESULTS (após A-H), não um novo Section I do artigo — mas por causa da diagramação em duas colunas do PDF, o texto de 'V. CONCLUSION' é extraído, na ordem linear do arquivo, ANTES do texto da subseção IV-I (que fica na coluna seguinte da mesma página); confirmado tanto na conversão estruturada quanto na camada de texto bruta, portanto é uma peculiaridade do PDF original, não um erro desta extração. (10) roster_bloco = null por instrução do pedido (artigo fora do roster experimental da dissertação)."
+}

@@ -1,0 +1,40 @@
+# =====================================================================
+# env_main  —  Python 3.11.9 (pyenv)
+# Venv (Mac): /Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao
+# Interpretador: <venv>/bin/python   (usar SEMPRE por caminho completo)
+# Algoritmos: c262, c154, c122, c149  (+ sobol_batch, harness/despachante/export/métrica)
+# Estado: NÚCLEO provisionado e verificado no Mac em 2026-07-15.
+#         Foto exata em <venv>/requirements.lock (fonte de reprodutibilidade).
+# =====================================================================
+
+# --- núcleo do harness (INSTALADO) ---
+numpy==2.4.6          # [BL-08/T13] PIN EXATO — o OUTRO lado do par. A
+                      # bit-identidade do scramble de Owen do sobol_batch está
+                      # provada cross-OS/cross-arquitetura SÓ sob numpy 2.4.6
+                      # **E** scipy 1.17.1 nos dois lados; pinar um só protege
+                      # metade. Com a campanha em 9 máquinas são 8 resoluções
+                      # NOVAS de pip — e a diferença de versão é sistemática
+                      # por grupo de máquinas, então a alocação por semente
+                      # NÃO a dilui (ela dilui ruído aleatório, não offset).
+pandas>=2,<3           # 2.3.3  (fixado <3 de propósito — pandas 3.0 evitado p/ reprodutibilidade)
+pyarrow               # 25.0.0 (parquet; brotli/zstd)
+pymoo==0.6.2          # fonte única dos 25 problemas (src/problems.py)
+scipy==1.17.1         # [BL-08/T12] PIN EXATO (autorizado na fila D10). O
+                      # scramble de Owen do sobol_batch sai do `scipy.stats.qmc`
+                      # (src/sobol_batch.py:72-73): a bit-identidade dele está
+                      # provada cross-OS/cross-arquitetura, mas SÓ sob numpy
+                      # 2.4.6 + scipy 1.17.1 nos dois lados — a estabilidade
+                      # cross-VERSÃO segue no teto T. Mesma lição do torch
+                      # (DI-34/Q4): intenção solta = o pip da VM resolve outra.
+joblib
+tqdm
+scikit-learn          # 1.9.0 — uso do HARNESS; NÃO é o sklearn dos algoritmos b5/c311
+
+# --- stack de R2/BoTorch (adicionar NO MESMO venv antes do M4; ainda NÃO instalado) ---
+botorch==0.18.1       # c262 (qNEHVI), c154 (JES)
+gpytorch              # compatível com botorch 0.18.1
+torch==2.11.0         # [DI-34/Q4] RE-PIN do autor (DI-22) AGORA na intenção — a
+                      # intenção solta deixou o pip da VM resolver 2.13.0 (D80 #1
+                      # do F1); o lock sempre teve 2.11.0. Mesmo torch do env_e81.
+deap                  # driver próprio do c122 (θ-DEA-DP)
+google-cloud-storage  # dual-write GCS — necessário SÓ na VM (o Mac grava local)

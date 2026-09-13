@@ -1,0 +1,233 @@
+{
+  "id": "pp6",
+  "sigla": "AB-MOEA",
+  "titulo": "An Adaptive Bayesian Approach to Surrogate-Assisted Evolutionary Multi-objective Optimization",
+  "ano": 2020,
+  "roster": false,
+  "setup": {
+    "benchmarks": "9 problemas de 3 objetivos da família DTLZ — DTLZ1 a DTLZ7, mais dois 'contrapartes modificadas' DTLZ1a e DTLZ3a (a função g de ruggedness usa 2π em vez de 20π no termo cosseno, para reduzir a rugosidade da paisagem) — com n = M+K−1 variáveis de decisão (M=3; K=5 p/ DTLZ1/DTLZ1a; K=10 p/ DTLZ2–DTLZ6 e DTLZ3a; K=20 p/ DTLZ7, logo n=7, n=12 ou n=22 conforme o problema); mais 7 problemas de 2 objetivos da suíte UF (UF1–UF7, CEC2009 MOEA competition), dimensão de decisão não especificada explicitamente no texto. 16 problemas sintéticos ao todo — nenhum WFG, MMF ou BBOB, nenhum caso many-objective (M>3); DTLZ1–7 pertence à mesma família usada na dissertação (possivelmente com D/instância diferentes), UF não pertence às suítes da dissertação (ZDT, DTLZ, WFG, MMF, BBOB). Mais 1 problema real de engenharia (Seç. 5): projeto de aerofólio transônico RAE2822 (caso GARTEUR AG52), 2 objetivos via simulação CFD — minimizar o coeficiente de arrasto Cd e maximizar o coeficiente de sustentação Cl —, 14 pontos de controle de uma B-spline não racional (NURBS) como variáveis de decisão; não coincide com nenhum dos 3 problemas reais da dissertação (RE21, ESTOQUE40, DDMOP7).",
+    "orcamento": "FEmax = 300 avaliações reais, FIXO para todos os problemas (não escalado por D, ao contrário do 31D−1 da dissertação — mesmo DTLZ7 com n=22 usa o mesmo teto de 300 que DTLZ1 com n=7). DoE inicial Ntrain = 11n−1 pontos via Latin Hypercube Sampling (mesma fórmula clássica de Jones/EGO citada na dissertação, mas aqui só o DoE inicial escala com n — o orçamento TOTAL não). wmax = 20 gerações de RVEA operando só sobre o surrogate (sem avaliação real) entre cada retreino/reamostragem. u = número de pontos reavaliados por ciclo de retreino: não é listado como parâmetro geral fixo na Seç. 4.3, mas o exemplo da Fig. 3 diz explicitamente 'sample five new data points' — sugerindo u=5 por ciclo, i.e., um regime de lote (batch) a cada retreino, não q=1 estrito. Não há menção de DoE compartilhado entre os algoritmos comparados (cada execução parece sortear seu próprio LHS).",
+    "execucoes": "20 execuções independentes por algoritmo/problema nos 16 benchmarks sintéticos (DTLZ e UF); 10 execuções independentes no estudo de caso do aerofólio (Seç. 5).",
+    "baselines": "Estudo piloto (Seç. 4.4.1, Tabelas 1–2): SM-MOEA (LCB de peso κ fixo + critério de amostragem adaptativo proposto), AS-MOEA (função de aquisição [AF] adaptativa proposta + critério de amostragem sempre-APD do RVEA original), AB-MOEA (ambos os componentes propostos) — todos comparados contra RVEA original executado sem NENHUMA assistência de surrogate/AF (todas as 300 avaliações reais). RVEA aqui funciona como um piso análogo ao 'piso da própria classe de motor' da ficha 9 da dissertação, mas NÃO é um dos 4 pisos canônicos (NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) e a comparação usa teste de postos NÃO pareado (não Δ por semente). Comparação principal (Seç. 4.4.2, Tabelas 3–6): AB-MOEA vs. K-RVEA, MOEA/D-EGO e SMS-EGO — três SAEAs bayesianas do estado da arte, TODAS também baseadas em GP; nenhum piso sem surrogate nesta comparação. Estudo de caso do aerofólio (Seç. 5): AB-MOEA vs. K-RVEA vs. BO (Bayesian optimization genérica de objetivo único / referência [37]).",
+    "metricas_principais": [
+      "IGD",
+      "HV"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum test, α=0,05, símbolos '(+)' (algoritmo de referência supera significativamente o comparado), '(–)' (comparado supera a referência), '(≈)' (sem diferença significativa) — teste NÃO pareado (compara as 20 médias de cada grupo como amostras independentes, não Δ por semente/DoE compartilhado). Na Seç. 4.4.1 a referência é RVEA; na Seç. 4.4.2 a referência é AB-MOEA. Nenhum teste é aplicado no estudo de caso do aerofólio (Seç. 5, Tabela 7)."
+    ],
+    "apresentacao": "Tabelas com min/mean/max sobre as execuções independentes (NÃO mediana/IQR); melhor valor de cada linha destacado em negrito; símbolo de significância junto à média, indicando o resultado do teste de CADA algoritmo vs. uma referência FIXA (RVEA no piloto; AB-MOEA na comparação principal) — não 'vs. o melhor da linha' como na ficha 3 da dissertação. Nenhuma execução mediana é declarada para as tabelas numéricas; as visualizações de fronteira em DTLZ2/DTLZ7 (Figs. 4–5) usam explicitamente 'a execução que atingiu o desempenho mediano dentre as 20'; a visualização do aerofólio (Fig. 6) não declara se é execução mediana, melhor ou outra. Sem escala logarítmica declarada nos eixos das tabelas.",
+    "codigo_plataforma": "AB-MOEA e suas duas variantes (SM-MOEA, AS-MOEA) implementados em MATLAB R2009a (Intel Core i7, 2,21 GHz); os algoritmos comparados (RVEA, K-RVEA, MOEA/D-EGO, SMS-EGO) são implementados na toolbox PlatEMO; em todos os SAEAs bayesianos (incluindo o proposto), o modelo GP é construído com a toolbox DACE; as métricas de desempenho (IGD/HV/GD/spread) são calculadas via PlatEMO."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        3,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Estudo piloto que compara as três configurações do próprio método (SM-MOEA = LCB fixa + amostragem adaptativa; AS-MOEA = AF adaptativa + amostragem sempre-APD; AB-MOEA = ambos) contra o RVEA original sem nenhuma assistência de surrogate, nos 9 problemas DTLZ de 3 objetivos, com IGD (Tabela 1) e HV (Tabela 2), 20 execuções, min/mean/max e teste de Wilcoxon rank-sum de cada variante vs. RVEA. Funciona simultaneamente como ablação dos dois componentes propostos (nenhuma variante zera σ — todas usam incerteza de alguma forma; só RVEA não usa surrogate algum) e como comparação assistido-vs-piso.",
+      "literal": "pilot studies are performed on the above test instances for 20 runs independently, and the mean of the results achieved by the original RVEA is adopted for comparison using the Wilcoxon rank sum test",
+      "localizador": "Sec. 4.4.1, Table 1, Table 2",
+      "metricas": [
+        "IGD",
+        "HV"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos (+)/(≈)/(–) vs. RVEA (não pareado)"
+      ],
+      "convencoes": "min/mean/max sobre 20 execuções (não mediana/IQR); melhor em negrito; símbolo de significância junto à média de cada uma das 3 variantes vs. RVEA (coluna de referência, sem símbolo); 9 problemas DTLZ (3 objetivos).",
+      "achado": "AB-MOEA (ambos componentes) supera RVEA significativamente em TODOS os 9 problemas em IGD e na maioria em HV; SM-MOEA (só amostragem adaptativa) melhora RVEA em 5/9 problemas em IGD (DTLZ1a, DTLZ2, DTLZ3a, DTLZ6, DTLZ7) e é indiferente nos outros 4; AS-MOEA (só AF adaptativa) melhora RVEA na maioria mas empata em DTLZ4/DTLZ5 (IGD); a combinação dos dois componentes (AB-MOEA) é estritamente melhor que cada um isolado — evidência de que os dois mecanismos propostos contribuem de forma complementar. Exemplo numérico: IGD médio em DTLZ1a cai de 23,79 (RVEA) para 5,36 (SM-MOEA) e 1,47 (AB-MOEA).",
+      "aplicabilidade": "① endpoint (ND acumulado de todas as avaliações reais da execução) — a estrutura é reprodutível como matriz de mediana IGD+/HV por algoritmo×problema (ficha 1) com teste de postos (ficha 3); o eixo 'assistido vs. piso' (RVEA) é análogo à lógica da ficha 9 mas não idêntico: aqui não há DoE compartilhado entre RVEA e as variantes assistidas, o teste é rank-sum NÃO pareado (não Δ por semente), a estatística é média (não mediana), e RVEA não é um dos 4 pisos canônicos da dissertação. Note-se que NENHUMA das 3 variantes zera σ com a mesma maquinaria (LCB e a AF adaptativa sempre usam μ e σ, só mudam o peso relativo) — por isso esta análise não é mapeada às fichas 11/15 (ablação exata do σ), que exigem uma variante 'seleciona só pela média' com maquinaria idêntica, ausente aqui."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparação principal do artigo: AB-MOEA contra três SAEAs bayesianas do estado da arte (K-RVEA, MOEA/D-EGO, SMS-EGO), todas baseadas em GP, nos 16 problemas sintéticos (9 DTLZ de 3 objetivos + 7 UF de 2 objetivos), com IGD (Tabela 3) e HV (Tabela 4), 20 execuções, min/mean/max e teste de Wilcoxon rank-sum de cada algoritmo comparado vs. AB-MOEA (que funciona como a referência/melhor da maioria das linhas).",
+      "literal": "AB-MOEA has achieved the best approximate PF on all test problems except for DTLZ3 (SMS-EGO obtained the best IGD values) and DTLZ6 (MOEA/D-EGO obtained the best IDG values)",
+      "localizador": "Sec. 4.4.2, Table 3, Table 4",
+      "metricas": [
+        "IGD",
+        "HV"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos (+)/(≈)/(–) vs. AB-MOEA (não pareado)"
+      ],
+      "convencoes": "min/mean/max sobre 20 execuções; melhor em negrito; símbolo junto à média de K-RVEA/MOEA-D-EGO/SMS-EGO indicando o resultado do teste vs. AB-MOEA; 16 problemas (9 DTLZ + 7 UF); mesmas 20 execuções de AB-MOEA reaproveitadas da Tabela 1 (valores min/mean/max de AB-MOEA idênticos entre Tabelas 1 e 3, e entre 2 e 4).",
+      "achado": "AB-MOEA vence em IGD em quase todos os problemas exceto DTLZ3 (SMS-EGO vence — landscape multimodal) e DTLZ6 (MOEA/D-EGO vence — PF desconexo); em HV, AB-MOEA é melhor em quase tudo exceto DTLZ1a e DTLZ3 (SMS-EGO) e UF4 (K-RVEA/MOEA-D-EGO/SMS-EGO todos empatam ou vencem); o próprio artigo nota que SMS-EGO, apesar de vencer em alguns problemas, 'is very time-consuming' (citando [29], não uma medição própria deste artigo).",
+      "aplicabilidade": "① endpoint — reprodutível como matriz de mediana + teste de postos (fichas 1, 3), trocando 'vs. AB-MOEA' por 'vs. o melhor do problema' (definição exata da ficha 3) ou mantendo uma leitura ad hoc 'vs. o método proposto'; não há piso sem surrogate nesta comparação (K-RVEA/MOEA-D-EGO/SMS-EGO usam GP), logo sem análogo à ficha 9 aqui."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Decomposição da comparação principal em convergência (GD) e diversidade (spread/Δ) separadamente, para um SUBCONJUNTO de 8 problemas (DTLZ1a, DTLZ2, DTLZ3a, DTLZ7, UF2, UF4, UF6, UF7) escolhido porque vários algoritmos não convergiram à PF nos demais problemas dentro do orçamento; mesmos 4 algoritmos (K-RVEA, MOEA/D-EGO, SMS-EGO, AB-MOEA), 20 execuções, min/mean/max, Wilcoxon rank-sum vs. AB-MOEA (Tabelas 5 e 6).",
+      "literal": "To further verify the performance of AB-MOEA, two performance indicators, GD and spread metrics are adopted to investigate the convergence and diversity of the four algorithms",
+      "localizador": "Sec. 4.4.2, Table 5, Table 6",
+      "metricas": [
+        "GD (generational distance)",
+        "spread (Δ)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos (+)/(≈)/(–) vs. AB-MOEA (não pareado)"
+      ],
+      "convencoes": "min/mean/max sobre 20 execuções; melhor em negrito; subconjunto de 8 dos 16 problemas (não todos, por não-convergência de alguns algoritmos no orçamento de 300 FEs nos demais).",
+      "achado": "AB-MOEA obtém o melhor GD (convergência) na maioria dos 8 problemas, confirmando os resultados de IGD/HV; em spread (diversidade), AB-MOEA mostra vantagem sobre MOEA/D-EGO e K-RVEA, mas SMS-EGO tem diversidade competitiva apesar de ser significativamente pior em convergência — evidência de que os algoritmos podem trocar convergência por diversidade de formas diferentes, e que IGD/HV sozinhos escondem essa decomposição.",
+      "aplicabilidade": "① endpoint, decompondo convergência (GD) e diversidade (spread) — não há ficha específica na tipologia da dissertação para essa decomposição por indicador (a dissertação usa IGD+ e HV como métricas primárias, sem GD/spread declarados); reprodutível calculando GD/spread a partir da mesma camada ① se esses indicadores fossem adicionados ao pipeline."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Visualização qualitativa do conjunto não-dominado obtido por cada um dos 4 algoritmos comparados (K-RVEA, MOEA/D-EGO, SMS-EGO, AB-MOEA), na execução que atingiu o desempenho mediano dentre as 20, para dois problemas de geometria distinta: DTLZ2 (Fig. 4, PF esférica convexa) e DTLZ7 (Fig. 5, PF desconexa em múltiplas regiões).",
+      "literal": "the non-dominated solution set obtained by each of the four compared algorithms (in the run that achieved the medium performance out of 20 independent runs) on DTLZ2 and DTLZ7 are visualized in Figs. 4-5",
+      "localizador": "Sec. 4.4.2, Fig. 4, Fig. 5",
+      "metricas": [],
+      "testes": [
+        "nenhum — comparação visual"
+      ],
+      "convencoes": "execução de desempenho mediano dentre as 20 (métrica de seleção não especificada explicitamente — provavelmente IGD e/ou HV); subfiguras (a)-(d) por algoritmo em cada figura.",
+      "achado": "As soluções não-dominadas de AB-MOEA cobrem a PF de forma visivelmente mais próxima e completa que as dos 3 comparados em ambos os problemas, confirmando qualitativamente a vantagem numérica das Tabelas 3-4; em DTLZ7 (PF desconexa) a diferença de cobertura entre AB-MOEA e os demais é mais marcante.",
+      "aplicabilidade": "① avaliações reais da execução de desempenho mediano — diretamente reprodutível pela ficha 54 tal como definida na dissertação (mesma lógica de seleção da execução mediana, mesma ideia de cobertura vs. frente verdadeira)."
+    },
+    {
+      "fichas": [
+        44
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Exemplo ilustrativo (não sistemático — 1 problema, 1 modelo GP, 2 instantes) mostrando os 5 novos pontos escolhidos pela AF proposta versus os 5 escolhidos por uma variante da AF (que não minimiza a incerteza perto do fim da busca), sobre o MESMO modelo GP treinado, em FE=195 e FE=200 no problema DTLZ2 — avaliando visualmente a proximidade de cada conjunto de pontos à PF verdadeira.",
+      "literal": "the proposed AF and its variant sample five new data points for twice (when FE = 195 and FE = 200) on DTLZ2 based on the same GP model",
+      "localizador": "Sec. 3.2, Fig. 3",
+      "metricas": [
+        "nenhuma métrica quantitativa — comparação visual da proximidade dos pontos amostrados à PF verdadeira, para duas variantes da AF sobre o mesmo modelo GP"
+      ],
+      "testes": [
+        "nenhum — exemplo qualitativo único (n=1 problema, n=1 modelo)"
+      ],
+      "convencoes": "mesmo modelo GP para as duas variantes (comparação controlada, mas sem réplicas/estatística); 5 pontos novos por variante, em 2 instantes de FE.",
+      "achado": "Os pontos escolhidos pela AF proposta (que minimiza a incerteza perto do fim da busca) ficam muito mais próximos da PF verdadeira do que os da variante (que não minimiza a incerteza), sustentando a escolha de projeto de reduzir a exploração via σ ao final do orçamento para intensificar a busca local na vizinhança dos dados já observados.",
+      "aplicabilidade": "③ predições do surrogate (μ, σ) no momento da escolha dos infills, + ① avaliações reais — não reproduzível literalmente com as 7 camadas da dissertação: exigiria rodar a variante 'sem minimizar σ no fim' do próprio AB-MOEA (que não está no roster) sobre o mesmo modelo/checkpoint; a lógica geral (geometria de onde caem os infills, explotação vs. exploração) é a da ficha 44, mas aqui aplicada a comparar 2 variantes de UM algoritmo, não a caracterizar o comportamento de um algoritmo do roster ao longo do orçamento."
+    },
+    {
+      "fichas": [
+        1,
+        23
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Estudo de caso em um problema real de engenharia (projeto de aerofólio RAE2822 via simulação CFD, 2 objetivos: arrasto e sustentação, orçamento de 300 avaliações reais como nos sintéticos): AB-MOEA vs. K-RVEA vs. BO (Bayesian optimization genérica), 10 execuções cada, médias de HV e IGD (Tabela 7) — sem min/max, sem teste de significância.",
+      "literal": "Each algorithm is run for ten times on the airfoil design problem and the mean values of HV and IGD are presented in Table 7",
+      "localizador": "Sec. 5, Table 7",
+      "metricas": [
+        "HV",
+        "IGD"
+      ],
+      "testes": [
+        "nenhum — apenas médias de 10 execuções, sem teste de significância"
+      ],
+      "convencoes": "apenas valores médios (sem min/max, sem desvio-padrão); melhor em negrito; N=10 execuções (não 20 como nos sintéticos); o conjunto de referência do IGD é o ND de TODAS as soluções obtidas pelos 3 algoritmos combinados (não a PF analítica verdadeira, desconhecida no problema real) — convenção fundamentalmente diferente das tabelas em problemas sintéticos.",
+      "achado": "AB-MOEA obtém o melhor HV (0,0423) e o melhor IGD (0,0328) entre os três, contra HV=0,0407/IGD=0,0389 do BO genérico e HV=0,0348/IGD=0,0402 do K-RVEA — o método proposto também vence no único problema real testado, embora sem verificação estatística de significância (apenas 10 execuções, sem teste).",
+      "aplicabilidade": "não reproduzível com as 7 camadas da dissertação — exige o problema real do aerofólio (RAE2822/CFD), fora dos 3 problemas reais da dissertação (RE21, ESTOQUE40, DDMOP7), e um baseline 'BO' genérico ausente do roster; a lógica (① endpoint por algoritmo, tabela de médias, ficha 1/23) é a mesma, mas sem os dados deste problema específico não há como recriar a célula na dissertação."
+    },
+    {
+      "fichas": [
+        23,
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Visualização do conjunto não-dominado obtido por cada um dos 3 algoritmos (AB-MOEA, BO, K-RVEA) no problema real do aerofólio, no espaço de objetivos (f1 = arrasto, f2 = sustentação) — complementa a Tabela 7 mostrando a forma e cobertura de cada fronteira obtida.",
+      "literal": "The non-dominated solution set obtained by each algorithm is also visualized in Fig. 6",
+      "localizador": "Sec. 5, Fig. 6",
+      "metricas": [],
+      "testes": [
+        "nenhum — comparação visual"
+      ],
+      "convencoes": "não especifica se é execução mediana, melhor ou outra (ao contrário das Figs. 4-5, que declaram explicitamente 'execução de desempenho mediano'); eixos f1×f2, uma subfigura por algoritmo.",
+      "achado": "A fronteira de AB-MOEA aparenta cobertura mais ampla e próxima do que se pode inferir como a região ótima, consistente com seus valores superiores de HV/IGD na Tabela 7 — mas sem frente verdadeira conhecida para comparação direta (problema real), a leitura é necessariamente relativa entre os três algoritmos, não contra uma referência absoluta.",
+      "aplicabilidade": "não reproduzível — mesma limitação da análise anterior (problema real específico fora do conjunto de 28 problemas da dissertação); a lógica de visualização (① avaliações reais, ND final, fichas 23/54) é a mesma."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo não mede empiricamente a calibração, cobertura ou RMSE do μ/σ do GP em nenhum momento; σ é usado apenas dentro da LCB (SM-MOEA) e da função de aquisição adaptativa proposta (AS-MOEA/AB-MOEA) como insumo para SELECIONAR pontos, nunca é validado contra o erro real do modelo. O Apêndice/Seção de background (2.1) descreve a formulação teórica do GP (μ, σ, matriz de correlação, verossimilhança) sem qualquer verificação empírica de qualidade da incerteza nos experimentos das Seções 4-5.",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": false,
+    "o_que": "O artigo NÃO mede tempo de parede/CPU empiricamente em nenhum experimento (nenhum valor em segundos é reportado em nenhuma tabela). Há apenas um argumento QUALITATIVO, citando outros trabalhos ([40, 41]), de que o treino do GP tem complexidade O(n³) e que uma avaliação real (ex.: simulação CFD 3D) é ordens de magnitude mais cara que treinar o surrogate — usado para justificar por que o artigo usa o nº de avaliações reais (FE), não tempo de parede, como base de comparação entre os SAEAs. Há também uma única menção de custo de TERCEIROS, não medição própria: SMS-EGO é citado como 'very time-consuming', referenciando outro artigo [29], ao discutir por que SMS-EGO vence em HV em alguns problemas mas ainda assim é considerado inferior no cômputo geral.",
+    "literal": "it is worthy of noting that the major computational costs of these algorithms are mainly spent on training the GPs, which depends on the number of training data",
+    "localizador": "Sec. 4.3 (parágrafo final, antes de 4.4)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Os próprios autores admitem, na Conclusão, que AB-MOEA converge lentamente em 3 dos 16 problemas sintéticos (DTLZ1, DTLZ3, UF6), atribuindo isso à qualidade ruim da predição do GP em paisagens muito rugosas — um caveat explícito de que o gargalo é o MODELO, não o mecanismo de aquisição/seleção proposto.",
+      "literal": "we find that the proposed algorithm suffers from slow convergence when solving DTLZ1, DTLZ3 and UF6. This might be attributed to the poor prediction quality of GP models due to the strong ruggedness of the fitness landscape",
+      "localizador": "Sec. 6 (Conclusion)"
+    },
+    {
+      "descricao": "TODOS os algoritmos testados (incluindo AB-MOEA) falharam em convergir à PF verdadeira em DTLZ3 e DTLZ6 dentro do orçamento de 300 avaliações — uma limitação compartilhada por orçamento apertado frente à dificuldade desses dois problemas (multimodalidade em DTLZ3; PF desconexa em DTLZ6), não uma falha específica de qualquer método.",
+      "literal": "in our experiments, all algorithms failed to converge to the PF on DTLZ3 and DTLZ6 due to the limited budget of function evaluations",
+      "localizador": "Sec. 4.4.2"
+    },
+    {
+      "descricao": "Em IGD, AB-MOEA é superado pelos comparados apenas em UF4 entre os 7 problemas UF — a única exceção declarada, sem explicação textual do motivo.",
+      "literal": "the IGD results obtained by AB-MOEA are much better than the compared algorithms on all UF test problems except on UF4",
+      "localizador": "Sec. 4.4.2"
+    },
+    {
+      "descricao": "Em HV, SMS-EGO supera AB-MOEA em 3 problemas (DTLZ1a, DTLZ3, UF4) — o único dos 3 baselines SOTA a vencer AB-MOEA em mais de um problema em qualquer métrica; o artigo neutraliza a leitura citando que SMS-EGO é 'muito custoso em tempo' (citação a outro artigo, não medição própria).",
+      "literal": "SMS-EGO outperforms AB-MOEA on DTLZ1a, DTLZ3 and UF4 in terms of the HV metric. Note, however, that SMS-EGO is very time-consuming [29]",
+      "localizador": "Sec. 4.4.2"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "multimodalidade / paisagem rugosa (DTLZ1, DTLZ3, UF6)",
+      "afirmacao": "AB-MOEA converge lentamente nesses 3 problemas de paisagem rugosa; os autores atribuem isso à baixa qualidade da predição do GP nessas condições — não a uma falha do mecanismo de aquisição/seleção em si.",
+      "literal": "This might be attributed to the poor prediction quality of GP models due to the strong ruggedness of the fitness landscape",
+      "localizador": "Sec. 6 (Conclusion)"
+    },
+    {
+      "caracteristica": "multimodalidade da função g (DTLZ3)",
+      "afirmacao": "SMS-EGO (não AB-MOEA) obtém o melhor IGD em DTLZ3 entre os 4 algoritmos principais; o artigo atribui o desempenho ruim geral nesse problema à paisagem de fitness multimodal de DTLZ3.",
+      "literal": "The reason behind this may be that DTLZ3 has a multimodal fitness landscape",
+      "localizador": "Sec. 4.4.2"
+    },
+    {
+      "caracteristica": "frente de Pareto desconexa (DTLZ6)",
+      "afirmacao": "MOEA/D-EGO (não AB-MOEA) obtém o melhor IGD em DTLZ6; o artigo atribui a dificuldade geral nesse problema às múltiplas regiões Pareto-ótimas desconexas no espaço de decisão.",
+      "literal": "DTLZ6 has a plenty of disconnected Pareto optimal regions in the decision space",
+      "localizador": "Sec. 4.4.2"
+    },
+    {
+      "caracteristica": "densidade enviesada / dificuldade de manter distribuição uniforme (DTLZ4)",
+      "afirmacao": "DTLZ4 é descrito como um problema em que manter uma boa distribuição de soluções é especialmente difícil; nele, AS-MOEA (só a AF adaptativa, sem o critério de amostragem adaptativo) apenas empata com RVEA, não o supera — o único problema, junto com DTLZ5, em que a AF adaptativa isolada não basta para vencer o piso claramente em IGD.",
+      "literal": "Since the maintenance of a good distribution of solutions is highly desirable on DTLZ4, the approximate PF obtained by AS-MOEA is no worse than that obtained by RVEA with the limited function evaluations",
+      "localizador": "Sec. 4.4.1"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Artigo lido INTEIRO: corpo principal (Abstract–Referências, Seç. 1-6) nas linhas 1-777 da conversão estruturada, seguido de Conflicts of Interest Statement e Credit Author Statement (linhas 779-816); a partir da linha 818 até o fim do arquivo (3149 linhas) há um ANEXO com a camada de texto bruta completa do PDF, redundante em conteúdo (confirmado por amostragem e por buscas direcionadas em todo o arquivo). NÃO há apêndices, material suplementar ou seções além das listadas — nenhuma ocorrência de 'Appendix'/'Supplementary' no arquivo inteiro; nenhuma Tabela além da 7 nem Figura além da 6. As Figuras 1 (esquema 1D de GP) e 2 (fluxograma do algoritmo) são puramente conceituais/ilustrativas, sem dado experimental — não geraram análise. Não há estudo de sensibilidade a hiperparâmetros nem estudo de escalabilidade/dimensão declarado (nenhuma ocorrência de 'sensitivity'/'ablation'/'robustness' no texto) além do estudo piloto (que compara variantes do próprio método = ablação natural, mas NÃO isola σ=0 com maquinaria idêntica — todas as 3 variantes assistidas usam μ e σ, apenas com pesos/critérios diferentes; só RVEA, o piso, não usa surrogate algum). Não há teste de Friedman/Nemenyi nem diagrama de diferença crítica (só Wilcoxon rank-sum par a par, sempre contra uma referência fixa). Nenhum problema many-objective (M>3) é testado (DTLZ e UF aqui usados são M=3 e M=2, respectivamente). O artigo é classificado na taxonomia da dissertação como motor=EA-Decomposição (o motor interno é o RVEA, guiado por vetores de referência, executando gerações só-surrogate entre retreinos) / função da incerteza=O1 · Aquisição exploratória (a AF adaptativa combina μ e σ normalizados com peso α agendado por cosseno de FE/FEmax) / surrogate=GP (via DACE toolbox) / medição=VAR-GP (posterior fechada do GP) / regime=online. Um detalhe operacional notável: o exemplo da Fig. 3 sugere que o algoritmo reavalia u=5 pontos por ciclo de retreino (não u=1), o que sugere um regime de lote/batch a cada retreino — não confirmado como parâmetro geral fixo em lugar nenhum do texto, mas potencialmente em tensão com a classificação 'regime=online' dada, se online pressupuser q=1; não alterei a classificação dada pelo pedido, apenas registro a observação aqui. Nenhum DoE compartilhado entre os algoritmos comparados é mencionado em nenhum dos 3 estudos (piloto, principal, aerofólio) — cada execução parece sortear seu próprio LHS independentemente, diferente do protocolo da dissertação. As 20 execuções de AB-MOEA são claramente REAPROVEITADAS entre o estudo piloto (Tabelas 1-2) e a comparação principal (Tabelas 3-4) — os valores min/mean/max de AB-MOEA são idênticos entre as tabelas correspondentes, confirmando que não houve nova rodada para cada comparação."
+}

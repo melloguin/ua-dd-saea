@@ -1,0 +1,349 @@
+{
+ "config": "b5m (Prob-MOEA/D, mode 72, exp=off) — campanha de 30 sementes / m8-freeze, campanha_id 7f4f0e429a46_M8, repo_hash 63db46b100635a5cc21e8f5594271f481bc41416",
+ "cobertura": "Existem 686 celulas de b5m no disco canonico (679 ok + 7 fail); o protocolo previa 25x30=750. **Auditei 686/686 (100%) nas camadas ⑤ e ⑥** por varredura streaming completa (475.839 eventos `decision`, 686 headers, 679 manifestos, 679 __final.manifest). **63/679 celulas (9,3%) receberam a bateria estrutural das 7 camadas** (①②③④⑦ + lattice/vizinhanca reconstruidos fora do repo + artefatos data/datasets e data/sonda): amostra estratificada cobrindo **os 25 problemas e as 28 sementes existentes** — 2 celulas por problema por passo coprimo (3i, 3i+13) sobre a lista de sementes, + 1 celula para cobrir a semente 25, + 14 alvos dirigidos (as 6 DTLZ3 congeladas, DTLZ1/ZDT4/ZDT6 degeneradas, BBOB_F17 moeda, MMF16_20/MMF11_L/WFG9/ZDT1 sadias). Volume da bateria: 2.522.295 linhas de ③ de busca com bounds testados, 591.724 grupos de substituicao reconstruidos, 4.195 linhas de ⑦ recomputadas, 42.483 eventos de f_best re-derivados, 63x20.000 pontos de sonda re-casados. **A ablacao D77 e o RMSE do artigo rodaram em 679/679 celulas x 3 configs** (b5m, moead_media, b5r = 2.037 celulas lidas). Historograma de excecoes A10 em 10 celulas dirigidas (76.409 grupos). Teste de semeadura em 212 pares de problemas de mesmo D e 120 pares de sementes. NADA foi executado, editado ou apagado; todo trabalho em tempdir. Interpretador: mestrado_experimentos_dissertacao/bin/python.",
+ "N1_invariancia": "**A query-joia do b5m (A10: toda substituicao cabe numa UNICA vizinhanca de 20) sobrevive as 30 sementes, mas nao com 100% bruto — e o residuo tem causa provada.** Medido em 63 celulas x 25 problemas x 28 sementes: **589.527 de 591.724 grupos contidos = 99,6287%** (F5/s42: 99,847% em 356.137; T11: 99,990% em 6 celulas). **28/63 celulas fecham 100,0000%**, entre elas ZDT1/s0 (7.137/7.137), WFG9/s4 (7.172/7.172), BBOB_F1/s0 (11.128/11.128). As 2.197 excecoes NAO se distribuem por semente: elas se concentram nas celulas com surrogate degenerado — DTLZ4/s2 (89,57%), BBOB_F17/s3 e s16 (~96,7%), ZDT4/s13, DTLZ7/s5. Prova de que sao aliasing fp32 (D53 / regra 11 do §10) e nao violacao do mecanismo: (i) **2.070 das 2.197 excecoes (94,2%) sao cobertas pela uniao de exatamente 2 vizinhancas**; (ii) no histograma dirigido, **333 de 1.288 excecoes (25,9%) tem |grupo| > 20**, tamanho estruturalmente impossivel para um unico offspring inserido numa vizinhanca de 20 — logo sao >=2 offspring distintos fundidos pela chave float32. Contencao por regime: celulas normais 99,546%, regime-moeda 99,769%, congeladas 0 grupos (nao ha substituicao). **Nenhuma semente quebra a identidade; o que a quebra e o PROBLEMA (degeneracao do GP), e de forma reprodutivel em todas as sementes daquele problema.** Alem dela, 12 identidades estruturais fecham **63/63 celulas cada** (A1 ①=dataset/fase=init/fe denso; A2 N=31D-1; A3 binding por 3 hashes; A4 ④=1 linha e fe_treino_max unico=N-1; A5 zero NaN de sigma; A6 sonda 1x20.000 com ger NULL; A9 pop constante = lattice; A17 LHS D/D + intersecao 0 + ② vazia; A18 zero violacao de bounds em 2.522.295 linhas; A19 n_ger=⌊40000/pop⌋+1; A21 ⑦=pop, ND≡nd_pos_real e link posicional bit-a-bit Δ=0,0; A22 fit+busca==tempo_geracao) e 5 identidades de ⑥ fecham **679/679 celulas** (Σn_chamadas = pop x (n_ger-1); gerações densas 1..n; n_nan=0 em 475.160 geracoes; header com o mesmo conjunto de 22 chaves; sigma_dict com as mesmas 19 chaves). **Erro maximo: 0,0 (bit-a-bit) em todas as comparacoes de binding/link/sonda quando comparadas no MESMO dtype.** ⚠ Armadilha nova que quase virou falso-positivo meu: ① e ③ sao float32 (D53) e os artefatos data/* sao float64; comparar sem converter da 1,907e-06 (= ULP fp32) e parece desvio — no dtype correto e 0,0 em 63/63.",
+ "N2_tetos_caidos": "**Caiu o teto que a T11 declarou intransponivel — a ponta A MONTANTE da cadeia A8.** A T11 registrou `flag_vetores_degenerados` como codigo morto (None em 801/801) e escreveu que, mesmo consertado, o campo seria constante por run e nao dataria o onset. **As DUAS recomendacoes da T11 (o 1 token de `src/b5_prob.py:118` e as +3 linhas do acumulador modulo-nivel) foram aplicadas e funcionam:** o campo esta presente e nao-nulo em **679/679 celulas x todas as 475.839 geracoes**, e e uma SERIE por geracao (2 a 12 valores distintos por celula). Consequencias medidas: (1) **A16 migrou de INDIRETA para DIRETA e EXATA** — as 28.567 transicoes do flag em 679 celulas caem **28.567/28.567 = 100,0000% em geracoes ≡ 2 (mod 10)**, prova direta da adaptacao de vetores a cada 10 geracoes (§IV-A8), sem precisar do proxy de turnover; (2) **a cadeia A8 esta fechada elo a elo em DADO DE PRODUCAO, nao em bancada**: 15/679 celulas (2,21%) atingem colapso TOTAL dos vetores (n_norma_zero == n_vetores: 105/105 em 10 celulas, 50/50 em 5), somando **6.380 geracoes**, e nessas 6.380 geracoes vale a identidade tripla **n_norma_zero==n_vetores ⟺ P_wrong.max == 0,0 exato ⟺ n_substituicoes == 0, em 6.380/6.380 (100%)** — o numero bate ao evento com a contagem independente de \"geracoes com pmax==0,0\" (6.380). O onset e sempre uma geracao ≡2 (mod 10) e o colapso **nunca reverte** (15/15 vao do onset ate a ultima geracao). Isto responde exatamente ao que a T11 disse que o corpus nao permitia: \"a instrumentacao da A8 nunca foi testada contra o caso que ela existe para observar\". Foi, 15 vezes. (3) **A T11 dizia que a assinatura a jusante nao distingue \"vetores colapsados\" de \"offspring genuinamente pior\". Agora distingue**: das 8.760 geracoes com n_sub==0, 6.380 tem pmax==0,0 (cadeia A8) e **2.380 tem pmax>0 (rejeicao legitima)** — separacao limpa. (4) **A22 (o (3) do cronometro I-02) esta RESOLVIDO**: `timing.tempo_aval_real_s` e **null em 679/679 manifestos**, exatamente como a docstring de `budget.py` prometia e ao contrario do 0,0001 do smoke T11; o teste de A1 volta a ser `fase='init'` 100% + `fe_final==maxfe==N` + zero guards, que fecham. (5) **A12 encolheu de novo**: a implicacao falsificavel que a T11 nao pode testar (`p_max <= 0,5 ⇒ n_sub == 0`) agora tem **8.760 casos e 0 violacoes**; `n_nan` = 0 em 475.160 geracoes; dominio observado [0,0 ; 1,0]. Segue T so a identidade do estimador (Σ1[a>b]/S² ≡ ∫pdf_A·CDF_B) e S=1000/truncnorm. (6) **A19 ficou mais forte e corrigiu a T11**: Σn_chamadas = pop x (n_ger-1) em **679/679**, o que da 40.000 para pop=50 (517 celulas) mas **39.900 para pop=105 (162 celulas)** — o \"Σ = 40.000 exato\" da T11 vale so para M=2; a forma invariante e pop x ⌊40000/pop⌋, com FE interno 40.050 (M=2) / 40.005 (M=3). (7) **A semeadura (T na F5/T11) virou mensuravel** — ver classe (3) A28. (8) **A24 saiu parcialmente do teto**: `params` presente em **679/679** ⑤ (a F5 media 0/45), campanha_id/repo_hash/schema_version=2 em 679/679, env identico em 679/679 (python 3.7.12, sklearn 0.21.3, numpy 1.21.6, scipy 1.7.3, pymoo 0.6.1.2, pyarrow 12.0.1, OMP/OPENBLAS/MKL/NUMEXPR=1); segue T so o config-echo do kernel. **NAO caiu**: os indices SBX 30 / PM 20 (A18) e a identidade numerica do estimador MC — ambos exigem re-run instrumentado.",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "\"...the probabilistic approaches REJECT solutions with better objective values if they have HIGH UNCERTAINTIES\" — a tese central do artigo, e a explicacao que ele da para a Fig. 10.",
+   "onde_no_artigo": "§IV (discussao da Fig. 10, l. 367 do .md); reforcada em §III-C (\"tends to select individuals with better objective values and lower uncertainties\")",
+   "testavel_com_30": true,
+   "resultado": "**CONFIRMADA, e com poder que 1 semente nao dava.** Regua independente de config (sigma do bloco de sonda do b5m em 20.000 pontos fixos, 1-NN sobre a ⑦), ablacao exata D77 contra moead_media (= Gen-MOEA/D do proprio artigo, mesmo GP, mesmo lattice, mesma rampa θ, mesmos operadores, mesmo dataset): **sigma(⑦) do b5m MENOR que o do piso em 534/637 celulas sem empate = 83,8%** (679 pares, 42 empates exatos), **Wilcoxon p = 2,03e-59**, binomial p = 4,76e-71, razao mediana **0,7196**. A T11 media 32/45 com p=0,0012 e razao 0,7239 — o TAMANHO DE EFEITO e o mesmo (0,72), o que muda e a certeza (57 ordens de grandeza). Vale em 20 dos 25 problemas (maioria das sementes). Medianas: b5m 0,5301 · b5r 0,5886 · moead_media 0,9419."
+  },
+  {
+   "afirmacao": "\"In terms of RMSE, Prob-MOEA/D performed the best with Prob-RVEA coming second.\" — a metrica-titulo do artigo (acuracia), e a base da conclusao \"if more accurate solutions are required, the probabilistic approach should be preferred\".",
+   "onde_no_artigo": "§IV-Resultados (paragrafo do Fig. 8 / Tabela I); Conclusao §V",
+   "testavel_com_30": true,
+   "resultado": "**CONFIRMADA — e este e o maior valor desta auditoria: a F5 e a T11 NUNCA calcularam RMSE.** O RMSE do artigo e computavel no nosso dado sem nenhuma reimplementacao de metrica: mu(⑦) vem da ultima geracao da ③ (link posicional provado bit-a-bit) e f(⑦) e a avaliacao real. RMSE normalizado pela amplitude de f do dataset (para agregar entre problemas). **b5m < moead_media (Gen-MOEA/D) em 482/679 = 71,0%, Wilcoxon p = 5,23e-42, razao mediana 0,6166** (medianas 0,1586 vs 0,3457); no RMSE bruto, 478/679, p = 5,96e-12. E a hierarquia interna do artigo tambem reproduz: **b5m < b5r (Prob-RVEA) em 435/679 = 64,1%, p = 1,39e-15** (medianas 0,1586 vs 0,2352) — exatamente \"Prob-MOEA/D melhor, Prob-RVEA segundo\". Ressalva honesta: nao e universal — o piso ganha a maioria das sementes em 7 dos 25 problemas (BBOB_F5 5/27, BBOB_F22 11/27, BBOB_F37 9/27, DTLZ3 9/27, DTLZ7 9/27, WFG1 12/27, BBOB_F17 15/28)."
+  },
+  {
+   "afirmacao": "\"...the generic approach, without incorporating any uncertainty, produces solutions with BETTER HV.\" — o trade-off que o artigo assume ao propor o hibrido.",
+   "onde_no_artigo": "§III-C (justificativa do Hyb)",
+   "testavel_com_30": true,
+   "resultado": "**CONFIRMADA EM SENTIDO, com proxy declarado.** Nao uso HV: a F5/T11 provaram (D69) que IGD+/HV/|ND| oficiais EMPATAM exatamente entre os 5 offline em 100% das celulas (a metrica le a ①), e reimplementar HV e vetado pela casa. Usei um proxy livre de referencia: juntar ⑦(b5m) e ⑦(moead_media) na verdade e medir a fracao do proprio conjunto que sobrevive na fronteira nao-dominada do pool (os dois conjuntos tem o MESMO tamanho — 50/105 pelo lattice D65 —, logo o proxy nao e enviesado por cardinalidade). **moead_media 0,20 vs b5m 0,14 de fracao ND propria; o piso vence em 348 celulas contra 311 do b5m (empate em 20), Wilcoxon p = 3,79e-04.** Ou seja: o generico entrega frente melhor, o probabilistico entrega acuracia melhor — **o trade-off exato que o artigo enuncia, reproduzido nas 679 celulas.**"
+  },
+  {
+   "afirmacao": "\"For certain test instances, the generic approaches and TL produced worse solutions (both in HV and RMSE) compared to the initial sampling [Init].\" — a ancora J3.",
+   "onde_no_artigo": "§IV-Resultados (paragrafo do Fig. 8)",
+   "testavel_com_30": false,
+   "resultado": "**NAO CONCLUSIVO — declaro nao medido de forma limpa.** O proxy de dominancia agrupada e sensivel ao tamanho quando os conjuntos diferem (|⑦| = 50/105 contra |Init| = 61 a 929, ate 18x) e as duas normalizacoes se contradizem: por contagem bruta o Init vence o piso em 349 celulas contra 325; por fracao do proprio conjunto o piso vence em 459/679 (p=3,8e-57). Como as metricas oficiais empatam por desenho (D69), nao ha regua limpa aqui. O unico veredito robusto e o par b5m-vs-piso acima, em que os dois conjuntos tem o mesmo tamanho. Fica para o D97 como item de metodo, nao como resultado."
+  },
+  {
+   "afirmacao": "\"P_wrong between an APD distribution with itself is always 0.5\" — a identidade que o artigo usa para economizar computacao.",
+   "onde_no_artigo": "§III-A (proposta de calculo eficiente de P_wrong)",
+   "testavel_com_30": true,
+   "resultado": "**CONFIRMADA NUMERICAMENTE — e ela e o MODO DE FALHA que o artigo nao analisa.** Achado novo desta auditoria: **88 de 679 celulas (13,0%) rodam >90% das geracoes com P_wrong mediano em [0,45; 0,55]** — mediana 0,4994 na geracao 2 e 0,4992 na ultima. Quando o GP satura (sigma no teto e mu quase constante) as distribuicoes de PBI de offspring e vizinho ficam indistinguiveis: e literalmente o caso \"distribuicao contra ela mesma\" do artigo, e P_wrong vai a 0,5. **Nesse ponto a regra `>0,5` deixa de ser \"rejeitar incerteza\" e vira CARA-OU-COROA: a taxa de aceitacao medida nessas 88 celulas e 0,4642 de mediana, contra 0,0260 nas 582 celulas normais (17,8x).** E onde o algoritmo mais erra: nRMSE mediano 0,407 (vs 0,138 no normal), sigma(⑦) 17,64 (vs 0,44), |ND| 9,5 (vs 18). Distribuicao: DTLZ3 18/27, DTLZ1 17/27, DTLZ2 10/27, ZDT4 9/27, ZDT6 7/27, DTLZ4 6/27, BBOB_F37 5/28. **O artigo nao preve nem discute esse regime; ele so o menciona como identidade de eficiencia.**"
+  },
+  {
+   "afirmacao": "\"θ in PBI varied from 0 to 500 with function evaluations\" — a rampa, cuja assinatura observavel e a queda de P_wrong com a geracao.",
+   "onde_no_artigo": "§IV-A8",
+   "testavel_com_30": true,
+   "resultado": "**CONFIRMADA, mas NAO universal — e a excecao e do problema, nao da semente.** Nas 582 celulas nao-degeneradas: Spearman(P_wrong mediano, geracao) **negativo em 550/582 = 94,5%**, mediana **-0,7668**, P_wrong mediano caindo de 0,497 (ger. 2) para 0,0020 (ultima) = 250x. As **32 excecoes sao 28 de BBOB_F17 (28/28 das suas sementes — inversao total e reprodutivel), 1 DTLZ1, 1 DTLZ7, 2 ZDT4**. Excluindo BBOB_F17: **550/554 = 99,3%**. BBOB_F17 tem f na casa de 1e7 com sigma ~11,6 (6 ordens abaixo), e nele o P_wrong mediano SOBE com a geracao. Leitura: a assinatura da rampa e invariante a semente e determinada pela escala do problema. (T11, 1 semente/1 celula: Spearman -0,8688.)"
+  },
+  {
+   "afirmacao": "\"Number of Independent Runs for Each Instance: 31\" + Tabela I reporta \"the standard deviations in different runs\" — o artigo trata a variancia entre execucoes como quantidade de interesse.",
+   "onde_no_artigo": "§IV-A9 e §IV (Tabela I)",
+   "testavel_com_30": true,
+   "resultado": "**MEDIDA PELA PRIMEIRA VEZ, e o resultado e um alerta para toda leitura de 1 semente.** Coeficiente de variacao entre sementes, por problema: **nRMSE — CV mediano 0,5875** (min DTLZ3 0,127; max DTLZ7 6,28; MMF11_L 3,79; DTLZ4 1,40); **sigma(⑦) — CV mediano 0,9513** (min WFG5 0,125; max MMF11_L 14,1; ZDT6 7,91; DTLZ7 5,12). Ou seja: na metrica-titulo do artigo, o desvio-padrao entre execucoes e da ordem de 60% da mediana, e chega a 6x. **Qualquer conclusao por problema tirada de 1 semente (inclusive as tabelas por-problema da F5/T11) e estatisticamente fragil**; as conclusoes AGREGADAS (ablacao D77, RMSE) sao as que sobrevivem, e sobrevivem com folga. Nota de protocolo: rodamos 28 replicas, nao 31 (e o protocolo previa 30) — ver classe (3) A29."
+  },
+  {
+   "afirmacao": "\"no new data are available during the optimization process\" — offline puro.",
+   "onde_no_artigo": "Abstract; §II",
+   "testavel_com_30": true,
+   "resultado": "**CONFIRMADA em 679/679.** `motivo_parada='orcamento'` 679/679; `fe_final == maxfe == n_dataset` 679/679; ① 100% `fase='init'` com fe_index denso 63/63; zero eventos `guard` em 686 arquivos; `timing.tempo_aval_real_s` **null** 679/679 (o portao unico nunca cronometrou avaliacao real dentro do run). O orcamento se esgota na carga do dataset e o laco de 40k so toca o surrogate."
+  },
+  {
+   "afirmacao": "\"Use the given data as the initial population\" (Alg. 1, L2) e \"Size of the Initial Data Set (N_D): 109\".",
+   "onde_no_artigo": "§III (Algoritmo 1) e §IV-A11",
+   "testavel_com_30": true,
+   "resultado": "**DIVERGENTE, sancionado, e agora com uma consequencia nova medida.** B18.9: populacao inicial = LHS NOVO (63/63 com estratificacao perfeita D/D e intersecao 0 com o dataset; ② com 0 linhas e real_solution_id null em 679/679). D90: N = 31D-1 em vez de 109 (63/63 exatos; N in {61,216,309,371,619,681,929}). **Novo:** o LHS da busca e funcao de (semente, D) e NAO do problema — 140/212 pares de problemas de mesmo D e mesma semente tem populacao inicial IDENTICA bit-a-bit, e os demais diferem so pelo ULP fp32 do reescalonamento afim (<=9,5e-08). Ver classe (3) A28."
+  },
+  {
+   "afirmacao": "\"the number of reference vectors was varied with the number of objectives\" (simplex-lattice) + \"the neighborhood size was 20\" + \"the comparison of PDFs of PBI is one to many\".",
+   "onde_no_artigo": "§IV-A8 e §III-B (Fig. 5b)",
+   "testavel_com_30": true,
+   "resultado": "**CONFIRMADAS.** Lattice Das-Dennis reconstruido fora do repo: 50 vetores (M=2, H=49) e 105 (M=3, H=13); pop constante e igual ao lattice em 63/63 celulas. Vizinhanca de 20: ver N1 (99,6287%, 100% nas celulas sadias). Um-para-muitos: **36,0% dos 591.724 grupos escrevem mais de um slot**, com tamanho maximo exatamente 20 (= n_neighbors, o teto teorico) em 42/63 celulas; os >20 sao aliasing fp32."
+  }
+ ],
+ "N4_deriva": "**NAO MEDIDO — nao existe duplicata utilizavel para b5m. Este e um resultado negativo verificado, nao uma omissao.** Varri os 6 espelhos de VM (~/mestrado_coleta_m8/matlab-vm{1,2,3,4,5,10}/experiments/off/b5m): 714 arquivos .jsonl para 686 basenames distintos, ou seja **25 celulas duplicadas (22 em 2 copias, 3 em 3 copias) e 31 pares**. **Todas as 25 sao da semente 10**, e em 31/31 pares a segunda copia e um TOCO: vm4 tem 2 arquivos (jsonl + manifesto) com **3 linhas de jsonl** e vm1 tem 1 arquivo com **2 linhas**, ambos sem NENHUM parquet — sao arranques abortados logo apos a emissao da sonda; a copia completa (8 arquivos, 385 ou 805 linhas) e sempre a da vm5. **Zero pares de execucoes completas independentes ⇒ a deriva numerica cross-maquina do b5m nao pode ser quantificada com este corpus.** O `_FONTES.csv` confirma que o canonico escolheu corretamente a copia completa (vm5) em todos os casos que conferi. O UNICO efeito de maquina que consegui medir e o de TEMPO, e ele e grande: as 679 celulas rodaram em 6 hosts (vm1 200 · vm3 154 · vm5 150 · vm2 75 · vm10 75 · vm4 25) com wall mediano de **6.648 s (vm1) a 10.084 s (vm5) — espalhamento de 1,52x**, maximo 11.564 s (3,2 h, folga de 3,7x contra o teto de 12 h); total 1.595,8 h-core. Isso confirma a ressalva de proveniencia 2 (nao usar ④ para tabela de custo sem checar a maquina) mas **nao diz nada sobre o resultado numerico**. RECOMENDACAO AO AUTOR: se a deriva cross-maquina importar para a leitura dos contrastes do b5m, ela precisa de um par G-6 dedicado (1 celula pequena, ex. off/b5m/MMF1/s0, em 2 VMs de shapes diferentes) — custo ~2 h de wall, e hoje **nao existe evidencia nenhuma nesse eixo para este config**.",
+ "N5_cauda": "**Nao ha celula ⚪ no b5m (0 de 686). Ha 7 `fail` e — mais grave — 64 celulas que nunca existiram.** (a) **As 7 fail** sao todas da semente 25 (BBOB_F49, BBOB_F5, BBOB_F55, DTLZ1, DTLZ2, DTLZ3, DTLZ4). Cada uma tem exatamente **2 registros no .jsonl (header + sonda) e NENHUM rodape, nenhum manifesto, nenhum parquet** — pela regra O-21 isso NAO e ⚪ (⚪ exige rodape ok): sao abortos com zero ciencia, mortos entre a emissao da sonda e o 1o checkpoint de geracao, entre 21:26 e 21:56 UTC de 13/08. A sonda dessas 7 saiu integra (`hash_check` ok, 20.000 pontos), logo o GP treinou; morreu o laco. (b) **A lacuna censitaria e maior que os abortos:** o protocolo prevê 25x30=750 celulas; existem 686. **As sementes 18 e 26 estao INTEIRAMENTE ausentes do b5m (50 celulas) e a semente 25 esta truncada apos DTLZ4 (mais 14)** — e as sementes 18 e 26 EXISTEM na campanha para b5r e para 19 outros configs (b5r tem 25 celulas nessas sementes). Entrega efetiva: **679/750 = 90,5%**. Isso e coerente com o custo: o b5m e o config Python mais caro (2,5 h por celula de mediana). (c) **A cauda cientifica — as incapacidades reproduzidas — e o resultado que o artigo nao preve.** Classifiquei as 679 por regime medido no ⑥: **582 normais (85,7%) · 88 em regime-moeda P≈0,5 (13,0%) · 15 com colapso TOTAL e PERMANENTE dos vetores (2,21%, sobrepondo parcialmente as 88)**; alem disso **73 celulas (10,75%) tem pelo menos um vetor de referencia com norma zero em alguma geracao** (colapso PARCIAL: 38 celulas com 1 vetor morto = 1 objetivo degenerado, 19 com 14 = 2 objetivos degenerados em M=3, 1 com 9 por underflow) — nessas, os subproblemas correspondentes ficam permanentemente mortos enquanto o resto da busca continua, mecanismo que nem a F5 nem a T11 nomearam. Taxa de celulas degeneradas por problema (de 27-28): **DTLZ3 24 · DTLZ1 20 · DTLZ2 10 · ZDT4 9 · ZDT6 7 · DTLZ4 6 · BBOB_F37 5 · MMF16_20 4 · DTLZ7 4 · BBOB_F49 3 · BBOB_F55 2 · ZDT3/BBOB_F1/BBOB_F5 1 · os outros 12 problemas ZERO** (MMF1, MMF4, MMF11_L, WFG1/2/4/5/9, ZDT1, BBOB_F17, BBOB_F22 — todos 0/27-28). Celulas cientificamente uteis: **582/679 = 85,7%**. Leitura para o D97: **DTLZ3 (3/27 uteis) e DTLZ1 (7/27) sao praticamente vazios em 30 sementes, exatamente como eram na s42 — a degeneracao NAO e sensibilidade de semente naqueles dois problemas, e determinismo do problema.** Achado de infraestrutura, sem perda analitica: `upload_status.erro = \"upload_failed: AttributeError('Request' object has no attribute 'session')\"` em **654/679 celulas** — nao existe replica em bucket do b5m; o espelho local e a unica copia.",
+ "aspectos": [
+  {
+   "id": "A1",
+   "aspecto": "Zero FE real na busca (offline puro)",
+   "classe": "1",
+   "medicao": "motivo_parada='orcamento' 679/679; fe_final==maxfe==n_dataset 679/679; ① 100% fase='init' com fe_index denso 63/63; zero eventos guard em 686 arquivos; timing.tempo_aval_real_s NULL 679/679",
+   "veredito": "conforme; o teste da F5 (tempo_aval_real_s==0) foi substituido pelo correto (null) e o corpus fecha",
+   "muda_vs_s42": true,
+   "arquivo_linha": "standalone_harness.py:648-653 (load_offline_budget); budget.py:192-200"
+  },
+  {
+   "id": "A2",
+   "aspecto": "Orcamento = o dataset (31D-1), nao os 109 do paper",
+   "classe": "2",
+   "medicao": "N == 31D-1 em 63/63; N ∈ {61,216,309,371,619,681,929}; tier e dist NULL em 679/679 (campanha de 30 sementes e so 'off', sem sweep)",
+   "veredito": "desvio sancionado D90/D51/D67",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A3",
+   "aspecto": "Binding do dataset por hash + determinismo",
+   "classe": "1",
+   "medicao": "doe_hash==x_hash, f_hash, dataset_hash do artefato batem 63/63; Δ|X| e Δ|F| de ① contra data/datasets = 0,0 bit-a-bit 63/63 (no MESMO dtype fp32)",
+   "veredito": "conforme; determinismo cross-maquina segue T (sem duplicata completa — ver N4)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A4",
+   "aspecto": "Kriging 1/objetivo, treino UNICO",
+   "classe": "1",
+   "medicao": "④ com 1 linha 63/63; n_acumulado==N 63/63; fe_treino_max com nunique()==1 e == N-1 em 63/63 (2,5M+ linhas de ③); params.treino='UNICO no dataset' 679/679",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A5",
+   "aspecto": "sigma = desvio-padrao a posteriori, sempre definido",
+   "classe": "1",
+   "medicao": "0 NaN e 0 negativos de sigma_* em 63/63 celulas (todas as linhas de busca+sonda); contraste medido: moead_media tem sigma NaN em 60.050/60.050",
+   "veredito": "conforme; a armadilha de cobertura95 inflada por NaN nao se aplica",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A6",
+   "aspecto": "Sonda: 1 bloco x 20.000, geracao NULL, join posicional",
+   "classe": "2",
+   "medicao": "n_sonda==1 e n_pontos==20000 e hash_check ok em 686/686; sonda.n_blocos=1 no ⑤ 679/679; geracao NULL em 100% das linhas de sonda 63/63; join posicional contra data/sonda/*.parquet com max|ΔX| = 0,0 em 63/63; transf_tipo NULL 63/63",
+   "veredito": "instrumentacao nossa, regra citada (DI-13.5 / §17.2.2)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A7",
+   "aspecto": "O GP DEGENERA (DI-30) — agora com prevalencia em 30 sementes",
+   "classe": "2",
+   "medicao": "21 de 145 pares celula×objetivo degenerados (WAPE==1,000000 exato ou corr NaN) nas 63 celulas; sigma no teto sqrt(1000)=31,622776 em 9/63; em escala: 97/679 celulas (14,3%) em regime degenerado; WAPE mediano fora dos degenerados 0,15384 e corr mediana 0,86472",
+   "veredito": "causa-raiz sancionada em DI-30; a prevalencia por problema e determinista (DTLZ3 24/27, DTLZ1 20/27) e nao sensibilidade de semente",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A8",
+   "aspecto": "CONGELAMENTO da busca (adapt→norma 0→PBI NaN→P_wrong=0)",
+   "classe": "2",
+   "medicao": "15/679 celulas (2,21%) com colapso TOTAL (n_norma_zero==n_vetores: 105/105 em 10, 50/50 em 5), somando 6.380 geracoes; identidade n_norma_zero==n_vetores ⟺ pmax==0,0 ⟺ n_sub==0 em 6.380/6.380 (100%); onset sempre ≡2 (mod 10); permanente em 15/15; separacao limpa das 2.380 geracoes de rejeicao legitima (n_sub==0 com pmax>0); + 58 celulas com colapso PARCIAL (1, 9 ou 14 vetores mortos)",
+   "veredito": "desvio sancionado (causa DI-30 + adapt e codigo oficial Cheng 2016); a cadeia inferida na F5 e provada em bancada na T11 esta agora PROVADA EM DADO DE PRODUCAO, nas duas pontas",
+   "muda_vs_s42": true,
+   "arquivo_linha": "src/b5_prob.py:114-136 (_vetores_degenerados); ProbMOEAD_select.py:pbi"
+  },
+  {
+   "id": "A9",
+   "aspecto": "Populacao = lattice Das-Dennis (50 / 105)",
+   "classe": "1",
+   "medicao": "pop.nunique()==1 em 63/63; pop == len(lattice reconstruido fora do repo) em 63/63 (50 em 44 celulas M=2, 105 em 19 celulas M=3)",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A10",
+   "aspecto": "QUERY-JOIA: substituicao restrita a UMA vizinhanca de 20",
+   "classe": "1",
+   "medicao": "589.527/591.724 = 99,6287% em 63 celulas (25 problemas x 28 sementes); 28/63 celulas em 100,0000%; 2.070/2.197 excecoes (94,2%) cobertas por exatamente 2 vizinhancas; 333/1.288 excecoes do histograma dirigido com |grupo|>20 (impossivel sem aliasing)",
+   "veredito": "conforme; o residuo e aliasing fp32 (D53 / regra 11 do §10) concentrado nas celulas degeneradas, nao violacao do mecanismo",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A11",
+   "aspecto": "Substituicao um-para-muitos (Fig. 5b)",
+   "classe": "1",
+   "medicao": "213.023/591.724 = 36,00% dos grupos escrevem >1 slot; tamanho maximo == 20 == n_neighbors em 42/63 celulas (teto teorico); os >20 sao as celulas com aliasing",
+   "veredito": "conforme",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A12",
+   "aspecto": "P_wrong via MC pareado (S=1000, truncnorm) — o estimador",
+   "classe": "T",
+   "medicao": "dominio observado [0,0 ; 1,0]; n_nan = 0 em 475.160 geracoes de 679 celulas; implicacao falsificavel p_max<=0,5 ⇒ n_sub==0 testada em 8.760 casos com 0 violacoes (a T11 nao pode testar: nenhuma geracao do smoke tinha p_max<=0,5); n_sub==0 ⇒ pmax==0,0 em 6.380 e pmax∈(0;0,5] em 2.380",
+   "veredito": "teto REDUZIDO: a regra de decisao `selection = where(prob>0.5)` esta provada por dado nas duas direcoes; segue T so a identidade Σ1[a>b]/S² ≡ ∫pdf_A·CDF_B e S=1000/truncnorm (amostras descartadas por desenho)",
+   "muda_vs_s42": true,
+   "arquivo_linha": "ProbMOEAD_select.py:31-43 (acumulador), :131 (n_substituicoes); ancora b5-pwrong-stats"
+  },
+  {
+   "id": "A14",
+   "aspecto": "Sentido 'rejeita sigma alto' — ablacao exata D77 contra moead_media",
+   "classe": "1",
+   "medicao": "sigma(⑦) menor que o piso em 534/637 sem empate = 83,8% (679 pares), Wilcoxon p = 2,03e-59, binomial p = 4,76e-71, razao mediana 0,7196; vale na maioria das sementes em 20/25 problemas; medianas b5m 0,5301 · b5r 0,5886 · moead_media 0,9419",
+   "veredito": "conforme; a tese central do artigo confirmada com 57 ordens de grandeza a mais de significancia que a T11, com o MESMO tamanho de efeito",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A15",
+   "aspecto": "Rampa θ 0→500·(FE/40.000) por offspring",
+   "classe": "1",
+   "medicao": "Spearman(P_wrong mediano, geracao) negativo em 550/582 celulas nao-degeneradas (94,5%); excluindo BBOB_F17, 550/554 = 99,3%; mediana -0,7668; P_wrong mediano 0,4970 (ger.2) → 0,0020 (ultima)",
+   "veredito": "conforme; as 32 excecoes sao 28/28 sementes de BBOB_F17 (f~1e7 contra sigma~11,6) + 4 celulas degeneradas — inversao determinada pelo PROBLEMA, nao pela semente",
+   "muda_vs_s42": true,
+   "arquivo_linha": "B18.8 (theta = 500*FE/40000, total_function_evaluations=40000 obrigatorio)"
+  },
+  {
+   "id": "A16",
+   "aspecto": "Adaptacao dos vetores de referencia a cada 10 geracoes",
+   "classe": "1",
+   "medicao": "28.567 transicoes do flag_vetores_degenerados em 679 celulas, 28.567/28.567 = 100,0000% em geracoes ≡ 2 (mod 10); 679/679 celulas com 100% das suas transicoes na fronteira do iterate",
+   "veredito": "conforme — migrou de INDIRETA (turnover, 41/44 na F5) para DIRETA E EXATA",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A17",
+   "aspecto": "Pop. inicial = LHS NOVO ⇒ ② vazia, real_solution_id NULL",
+   "classe": "2",
+   "medicao": "estratificacao LHS perfeita em D/D dimensoes em 63/63 celulas (D=2 a 30); intersecao com o dataset = 0 pontos em 63/63; ② com 0 linhas em 63/63; real_solution_id nao-nulo = 0 em 63/63; origem_solution_id nao-nulo = 0 em 63/63",
+   "veredito": "desvio sancionado B18.9 / DI-16.17; G-1 e n/a por desenho",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A18",
+   "aspecto": "SBX 30/1,0 + PM 20/1/n + repair nos bounds",
+   "classe": "T",
+   "medicao": "0 violacoes de [xl,xu] em 2.522.295 linhas de busca (63 celulas), bounds lidos dos manifestos dos datasets",
+   "veredito": "indices nao observaveis; a unica consequencia mensuravel fecha 63/63",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A19",
+   "aspecto": "40.000 avaliacoes-surrogate + overshoot <=1 geracao",
+   "classe": "2",
+   "medicao": "n_ger == ⌊40000/pop⌋+1 em 679/679; geracoes densas 1..n em 679/679; Σ n_chamadas == pop x (n_ger-1) em 679/679 — o que da 40.000 para pop=50 (517 celulas) e 39.900 para pop=105 (162); FE interno pop x n_ger = 40.050 (M=2) / 40.005 (M=3)",
+   "veredito": "desvio sancionado (overshoot declarado no sigma_dict). ERRATA CONTRA A T11: 'Σ n_chamadas = 40.000 exato' vale so para M=2; a forma invariante e pop x ⌊40000/pop⌋",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A21",
+   "aspecto": "⑦ = pop final avaliada na verdade, ND filtrado POS-real, reconstituivel",
+   "classe": "2",
+   "medicao": "|⑦| == pop 63/63; ND recomputado sobre a vista fp32 ≡ nd_pos_real em 4.195/4.195 linhas (63/63 celulas); link posicional (origem_geracao, origem_linha) → ③ com max|ΔX| = 0,0 em 63/63; origem_geracao == ultima geracao 63/63; razao de fantasia nd_pos_real/|⑦| mediana 0,3000 nas 679",
+   "veredito": "desvio sancionado DI-08/DI-13.9/DI-16.16",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A22",
+   "aspecto": "④ de 1 linha, os tres cronometros e a semantica de tempo_aval_real_s",
+   "classe": "1",
+   "medicao": "④ 1 linha 63/63; |tempo_fit_s + tempo_busca_s - tempo_geracao_s| < 1e-2 em 63/63; tempo_geracao_s < fit+busca+sonda (sonda fora) em 63/63; **timing.tempo_aval_real_s = null em 679/679 manifestos**",
+   "veredito": "O (3) da T11 esta RESOLVIDO: o campo voltou a significar 'nenhuma avaliacao real passou pelo portao', como a docstring afirma",
+   "muda_vs_s42": true,
+   "arquivo_linha": "budget.py:192-200 e :241-251; b5_prob.py:571-575"
+  },
+  {
+   "id": "A23",
+   "aspecto": "⑥ DI-10: minimo comum + o especifico do b5 (p_wrong_stats, n_substituicoes)",
+   "classe": "2",
+   "medicao": "p_wrong_stats presente em n_ger-1 eventos em 679/679 celulas (475.160 registros; ausente so na geracao 1 = pop LHS, correto); n_substituicoes idem 679/679; f_best fecha 42.483/42.483 eventos sob tolerancia mista abs/rel 1e-6 (63 celulas); n_front1 fecha 38.861/42.483 = 91,47%, 100% em 31/63 celulas; taxa de aceitacao global 51.813.589 / 542.876.000 = 9,544% (mediana 2,601% nas celulas nao-degeneradas)",
+   "veredito": "conforme ao contrato executavel; ARMADILHA NOVA: em 6/63 celulas o f_best do ⑥ e um subnormal fp64 (ate 6,4e-297) que o export fp32 da ③ zera — erro relativo 1,0 que NAO e defeito (o ⑥ e a autoridade e esta em fp64, como o D53 manda)",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A24",
+   "aspecto": "Ambiente, pins, patches e proveniencia",
+   "classe": "T",
+   "medicao": "679/679 com python 3.7.12, numpy 1.21.6, scipy 1.7.3, sklearn 0.21.3, pymoo 0.6.1.2, pyarrow 12.0.1, pandas 1.3.5, executavel env_b5, pinning OMP/OPENBLAS/MKL/NUMEXPR=1; campanha_id '7f4f0e429a46_M8', repo_hash '63db46b1...', schema_version=2, params presente (9 chaves, mode=72) — todos 679/679; sigma_dict com 19 chaves identicas 686/686",
+   "veredito": "config-echo segue T (anchors.json + repos.lock); a camada de PROVENIENCIA saiu do teto e fecha 679/679 — o achado de contrato da F5 ('⑤ faltam params' 45/45) esta definitivamente encerrado",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A25",
+   "aspecto": "flag_vetores_degenerados — o campo que a F5 pediu e a T11 entregou morto",
+   "classe": "1",
+   "medicao": "presente e nao-nulo em 679/679 celulas e em 475.839/475.839 eventos; e SERIE por geracao (2 a 12 assinaturas distintas por celula), muda so nas fronteiras de iterate, e data o onset do colapso com exatidao",
+   "veredito": "O (3) mais grave da T11 esta RESOLVIDO, e alem do minimo: as duas correcoes recomendadas (1 token + 3 linhas) foram aplicadas e verificadas em dado",
+   "muda_vs_s42": true,
+   "arquivo_linha": "src/b5_prob.py:114-136"
+  },
+  {
+   "id": "A26",
+   "aspecto": "PESOS de decomposicao no HEADER do ⑥ (CONTRATO_DE_DADOS §6.1, linha b5)",
+   "classe": "3",
+   "medicao": "header do ⑥ com o MESMO conjunto de 22 chaves em 686/686 celulas — nenhuma delas e pesos/vetores de decomposicao; identico ao medido na s42 (45/45) e no smoke T11",
+   "veredito": "requisito escrito NAO cumprido pela terceira auditoria consecutiva, e ausente do contrato executavel (contrato_61.json) sem errata — o gate G-7 da verde porque consulta o executavel",
+   "muda_vs_s42": false,
+   "arquivo_linha": "CONTRATO_DE_DADOS.md:332; claude_code_context/artifacts/contrato_61.json"
+  },
+  {
+   "id": "A27",
+   "aspecto": "Hyb-MOEA/D fora do escopo",
+   "classe": "2",
+   "medicao": "nenhuma celula Hyb no grid; nenhuma referencia nos 679 manifestos (params.motor = 'Prob-MOEA/D (mode 72)' 679/679)",
+   "veredito": "escopo declarado D56; a ancora J4 do Anexo J segue nao-testavel",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A28",
+   "aspecto": "O LHS inicial da busca e funcao de (semente, D) e NAO do problema",
+   "classe": "3",
+   "medicao": "212 pares de problemas de mesmo D e mesma semente com populacao inicial comparavel: **140 sao IDENTICOS bit-a-bit** (dmax = 0,0) e os 72 restantes diferem so pelo ULP fp32 do reescalonamento afim x = xl + u*(xu-xl) (dmax <= 9,54e-08, mediana 5,96e-08) — ou seja, o u no hipercubo unitario e o MESMO. Controle negativo: 120 pares de sementes diferentes no mesmo problema, 0 identicos, dmax minimo 0,9164",
+   "veredito": "consequencia NAO DECLARADA de B18.9: dentro de uma semente, os 25 problemas de mesma dimensao partem da MESMA condicao inicial ⇒ as replicas nao sao independentes entre problemas. Nao invalida nenhuma celula nem contradiz decisao citada, mas muda o modelo estatistico de qualquer analise problema×semente",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A29",
+   "aspecto": "Lacuna censitaria do config na campanha de 30 sementes",
+   "classe": "3",
+   "medicao": "686 celulas de 750 previstas (25x30); sementes 18 e 26 INTEIRAMENTE ausentes (50 celulas) e semente 25 truncada apos DTLZ4 (14 celulas) = 64 nunca rodadas; + 7 abortos (semente 25) com 2 linhas de jsonl, sem rodape e sem manifesto. Entrega util 679/750 = 90,5%. As sementes 18 e 26 EXISTEM na campanha para b5r (25 celulas) e para 19 outros configs",
+   "veredito": "inexplicado do ponto de vista do dado; nao e falha do algoritmo (os 7 abortos morreram apos a sonda, com o GP ja treinado). Escalo (D81) em vez de decidir: o autor precisa dizer se o b5m roda com 28 sementes ou se as 71 faltantes entram na fila",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A30",
+   "aspecto": "Upload ao bucket falhou em toda a campanha do config",
+   "classe": "3",
+   "medicao": "upload_status.erro = \"upload_failed: AttributeError('Request' object has no attribute 'session')\" em 654/679 manifestos (96,3%)",
+   "veredito": "sem perda analitica (b5m nao e bucket-only: ①②③④⑦ estao no disco local em 679/679), mas nao existe replica em bucket — o espelho local e copia unica. Gravidade baixa, item de infraestrutura/arquivamento",
+   "muda_vs_s42": true
+  }
+ ],
+ "classe3": [
+  {
+   "id": "A26",
+   "descricao": "Os PESOS de decomposicao do b5m no HEADER do ⑥ continuam ausentes — 686/686 headers com o mesmo conjunto de 22 chaves, nenhuma delas os vetores/pesos. O CONTRATO_DE_DADOS.md:332 (linha b5, coluna '+ DI-10 (novo)') e vinculante e exige o campo; o artefato executavel contrato_61.json nao o pede, e por isso o gate G-7 da verde. Terceira auditoria consecutiva com o mesmo achado (F5, T11, esta) e nenhuma errata cobre a retirada.",
+   "gravidade": "baixa (impacto analitico nulo — reconstrui os 50/105 vetores independentemente em A9/A10), ALTA em governanca: e o modo de falha 'gate que nunca reprova' que a propria T11 nomeou",
+   "acao": "decidir e registrar: ou implementar (1 linha em log.header) ou registrar a retirada como decisao explicita no §6.1. Hoje o contrato escrito e o executavel discordam.",
+   "arquivo_linha": "CONTRATO_DE_DADOS.md:332 · claude_code_context/artifacts/contrato_61.json (configs.b5m)"
+  },
+  {
+   "id": "A28",
+   "descricao": "A populacao inicial LHS da busca depende apenas de (semente, D) e nao do problema: 140 de 212 pares de problemas de mesma dimensao e mesma semente tem geracao 1 IDENTICA bit-a-bit, e os outros 72 diferem so pelo ULP fp32 do reescalonamento aos bounds (<=9,54e-08). Controle negativo limpo: 120 pares de sementes diferentes, 0 identicos, dmax minimo 0,9164. Consequencia: dentro de uma semente, os 25 problemas nao sao replicas independentes na condicao inicial — MMF1/MMF4/MMF11_L (D=2) partem do mesmo ponto, e o mesmo vale para cada grupo de dimensao.",
+   "gravidade": "media — nao invalida celula nenhuma e nao contradiz decisao citada (B18.9 sanciona o LHS novo; DI-28 so exige independencia entre CONFIGS), mas muda o modelo estatistico: qualquer teste que trate (problema, semente) como 679 observacoes independentes esta superestimando o n efetivo no eixo dos problemas",
+   "acao": "escalar ao autor (D81). Duas saidas possiveis: (i) declarar a propriedade no sigma_dict e nas analises, pareando sempre por semente (que e o que fiz na ablacao D77 — pareamento por celula, imune a isto); ou (ii) se a independencia entre problemas for necessaria, semear o stream com (semente, problema_id) como ja se faz nos datasets (seed_formula SeedSequence((semente, problema_id, tier_id, dist_id))). NAO decidi sozinho.",
+   "arquivo_linha": "B18.9 / create_new_individuals(design='LHSDesign') + _patch_lhs_seeding (RandomState global semeado so pela semente)"
+  },
+  {
+   "id": "A29",
+   "descricao": "64 das 750 celulas previstas nunca foram executadas para o b5m: as sementes 18 e 26 estao inteiramente ausentes (50 celulas) e a semente 25 foi truncada apos DTLZ4 (14 celulas). Alem disso, 7 celulas da semente 25 abortaram com apenas header+sonda no .jsonl, sem rodape e sem manifesto (nao sao ⚪ pela regra O-21). As sementes 18 e 26 EXISTEM na campanha para b5r e para 19 outros configs, logo nao e uma decisao de protocolo global.",
+   "gravidade": "media — reduz a entrega de 750 para 679 (90,5%) e quebra a simetria do painel offline (moead_media tem 29 sementes, b5r tem 30 candidatas); os 7 abortos morreram DEPOIS do treino do GP e da sonda, ou seja no laco, e nao ha rodape para julgar a causa",
+   "acao": "escalar (D81): o autor precisa declarar se o b5m roda oficialmente com 28 sementes (e as tabelas passam a dizer n=27..28 por problema) ou se as 71 celulas faltantes voltam a fila. Se voltarem, sao ~180 h-core (2,5 h/celula mediana).",
+   "arquivo_linha": "censo_completo_22.csv (alg=b5m) · resultados_experimentos/b5m/*/25/"
+  },
+  {
+   "id": "A30",
+   "descricao": "O upload ao bucket falhou em 654/679 celulas com sempre o mesmo erro: upload_failed: AttributeError(\"'Request' object has no attribute 'session'\") — bug de biblioteca no cliente de upload, nao do algoritmo.",
+   "gravidade": "baixa — zero perda analitica (b5m nao esta na lista D54 de bucket-only; ①②③④⑥⑦ estao completos no disco local em 679/679 e o censo confirma), mas significa que nao ha replica remota deste config",
+   "acao": "registrar como item de arquivamento/infraestrutura; se a politica exigir copia em bucket, re-uploadar a partir do espelho local (nao exige re-rodar nada).",
+   "arquivo_linha": "manifesto ⑤, chave upload_status.erro"
+  }
+ ],
+ "score": 9,
+ "score_t11": 8.5,
+ "veredito_recomendado": "RECOMENDACAO AO AUTOR (D97 — o veredito e seu): **ACEITAR o config b5m como fiel, com 2 caveats cientificos e 3 pendencias de governanca.** Score 9,0/10 contra os 8,5 da T11. **A causa do movimento, nomeada:** (+) os TRES aspectos classe (3) da T11 foram atacados e DOIS foram fechados e verificados em dado de producao, nao em smoke — o `flag_vetores_degenerados` esta vivo em 679/679 celulas E como serie por geracao (as duas correcoes que a T11 pediu, o 1 token e as 3 linhas, foram aplicadas), e `tempo_aval_real_s` voltou a ser null em 679/679; (+) com isso a cadeia A8, que a F5 inferiu e a T11 provou em bancada isolada, esta agora PROVADA NO CORPUS REAL nas duas pontas, com a identidade exata `n_norma_zero==n_vetores ⟺ P_wrong.max==0,0 ⟺ n_substituicoes==0` fechando 6.380/6.380 geracoes em 15 celulas — e a T11 registrava explicitamente que \"a instrumentacao da A8 nunca foi testada contra o caso que ela existe para observar\"; (+) o teto de verificabilidade caiu de novo: A16 virou DIRETA e exata (28.567/28.567 transicoes em ger ≡2 mod 10), a implicacao falsificavel de A12 passou de nao-testavel a 8.760 casos com 0 violacoes, e a formula de semeadura virou mensuravel; (+) as afirmacoes distribucionais do artigo foram testadas pela primeira vez com replicas e o artigo SOBREVIVE: sigma(⑦) menor que o Gen-MOEA/D em 83,8% com p=2,0e-59, RMSE (a metrica-titulo, que nem a F5 nem a T11 calcularam) melhor em 71,0% com p=5,2e-42, hierarquia Prob-MOEA/D > Prob-RVEA em RMSE confirmada (p=1,4e-15), e o trade-off do §III-C (probabilistico ganha acuracia, generico ganha frente) reproduzido nas 679 celulas; (0) o MECANISMO nao mudou — 12 identidades estruturais fecham 63/63 cada e 5 fecham 679/679; (-) o que segura em 9,0 e nao 9,5: o requisito dos PESOS no header segue nao cumprido pela terceira auditoria e sem errata; e apareceram dois classe (3) novos que a semente 42 nao podia revelar — o acoplamento do LHS entre problemas de mesma dimensao (A28), que muda o modelo estatistico das analises problema×semente, e a lacuna de 64 celulas nunca rodadas + 7 abortos (A29), que reduz a entrega a 90,5%. **Caveats cientificos obrigatorios para a leitura das tabelas:** (1) **DTLZ3 (3/27 celulas uteis) e DTLZ1 (7/27) sao praticamente vazios**, e agora sabemos que isso e determinismo do problema e nao sensibilidade de semente — a ⑦ dessas celulas e a amostra LHS inicial; (2) **existe um regime de falha que o artigo nao preve e que a auditoria de 1 semente nao podia nomear: o regime-moeda.** Em 88/679 celulas (13,0%) o P_wrong fica cravado em 0,4994 e a regra `>0,5` vira cara-ou-coroa (taxa de aceitacao 0,4642 contra 0,0260 no normal) — e literalmente a identidade \"P_wrong de uma distribuicao contra ela mesma = 0,5\" que o proprio §III-A enuncia como truque de eficiencia, operando como modo de falha. **Nao medido, e preciso dizer:** a deriva cross-maquina (N4) — nao existe uma unica duplicata completa do b5m (as 25 \"duplicatas\" sao tocos abortados de 2-3 linhas), logo o eixo de proveniencia 3 esta VAZIO para este config; se ele importar para a leitura dos contrastes, precisa de um par G-6 dedicado. **Nunca \"artigo melhor\"** (Botao 4): a intersecao de problemas com o paper e vazia (DBMOPP P1/P2, n=10, K=2..10, N_D=109); tudo acima compara SENTIDO por ablacao interna, jamais valor.",
+ "decisoes_ao_autor": [
+  "**A28 — ESCALADO (D81), nao decidi.** O LHS inicial da busca e identico entre problemas de mesma dimensao dentro de uma semente (140/212 pares bit-a-bit; os outros 72 diferem so por ULP fp32 do reescalonamento). Isso e consequencia de B18.9 + `np.random.seed(semente)` global, nao contradiz nenhuma decisao citada, mas quebra a independencia das replicas no eixo dos PROBLEMAS. Pergunta: declarar a propriedade (e exigir pareamento por celula em toda analise, como fiz na D77) ou semear o stream com (semente, problema_id) como ja se faz nos datasets? NAO escolhi.",
+  "**A29 — ESCALADO (D81).** O b5m entregou 679 de 750 celulas: sementes 18 e 26 inteiramente ausentes, semente 25 truncada apos DTLZ4, 7 abortos sem rodape. As sementes 18 e 26 existem para b5r e mais 19 configs, entao nao e decisao global. Pergunta: o b5m roda oficialmente com 28 sementes (e as tabelas dizem n=27..28) ou as 71 celulas voltam a fila (~180 h-core)? Isso tambem afeta a simetria da ablacao D77 (moead_media tem 29 sementes).",
+  "**A26 — pendencia herdada, terceira auditoria.** Os pesos de decomposicao no HEADER: implementar (1 linha) ou registrar a retirada no §6.1. Hoje o contrato escrito exige e o contrato executavel (contrato_61.json) nao pede, e o gate G-7 da verde por consultar o executavel. Ja foi pedido pela F5 e pela T11.",
+  "**ERRATA CONTRA A T11, para o registro.** A T11 afirma 'Σ n_chamadas = 40.000 exato' (item A19 e tabela §4). Medido em 679 celulas: a identidade invariante e Σ n_chamadas = pop x ⌊40000/pop⌋, que da 40.000 para pop=50 (517 celulas) mas **39.900 para pop=105 (162 celulas)**. O numero da T11 vale so para M=2, porque o unico smoke preservado era MMF1 (pop=50).",
+  "**ERRATA CONTRA A T11, item A25.** A T11 previu que, mesmo com o conserto de 1 token, o campo `flag_vetores_degenerados` seria constante nas 801 geracoes (por ser coletado no replay pos-busca) e nao dataria o onset. Medido: ele e uma SERIE (2 a 12 valores distintos por celula), muda exatamente nas fronteiras de iterate e data o onset com precisao — a recomendacao 2 da T11 tambem foi implementada. Vale registrar que a acao recomendada foi cumprida por inteiro.",
+  "**INCONSISTENCIA INTERNA DO RELATORIO T11 (menor).** Na tabela §2.1 o A26 e 'Hyb fora do escopo' e o A27 e 'pesos no header'; nos blocos narrativos §2.2 e no §8 a numeracao esta trocada (A26 = pesos, A27 = Hyb). Mantive A26 = pesos e A27 = Hyb, que e a numeracao do §8 (evidencia completa). Se a torre consolidar por id, precisa reconciliar.",
+  "**ARMADILHA NOVA que quase virou falso-positivo desta auditoria — registrar.** ① e ③ sao float32 (D53) e os artefatos data/datasets e data/sonda sao float64. Comparar sem converter da 1,907e-06 de desvio (= ULP fp32) e parece quebra de binding; no dtype correto e 0,0 bit-a-bit em 63/63. A T11 reportou 0,0 porque converteu; quem repetir precisa saber.",
+  "**ARMADILHA NOVA nº 2 — o piso do float32 no f_best.** Em 6 de 63 celulas o f_best do ⑥ e um subnormal fp64 (ate 6,4e-297, DTLZ1 e ZDT6, reversao do GP ao prior com normalize_y=False) que o export fp32 da ③ zera. Recomputar o f_best da ③ com tolerancia SO relativa da erro 1,0 e parece defeito; com tolerancia mista abs/rel fecha 42.483/42.483. O ⑥ e a autoridade e esta em fp64, como o D53 manda. A s42 nunca chegou nessas magnitudes.",
+  "**NAO MEDIDO, com motivo: deriva cross-maquina (N4).** Nao existe duplicata completa do b5m em duas VMs — as 25 duplicatas sao todas da semente 10 e a segunda copia e sempre um toco abortado de 2-3 linhas sem parquets. Se o autor quiser o numero, e preciso um par G-6 dedicado (1 celula pequena em 2 shapes diferentes, ~2 h). Hoje a doutrina 'fidelidade estatistica, nao bit-exata' fica sem evidencia propria neste config.",
+  "**NAO MEDIDO, com motivo: a ancora J3 do artigo** ('o generico pode ser pior que nao fazer nada / Init'). As metricas oficiais empatam por desenho entre os 5 offline (D69) e o proxy de dominancia agrupada e enviesado quando |⑦| (50/105) e |Init| (61 a 929) diferem em ate 18x — as duas normalizacoes se contradizem. So o par b5m-vs-piso, de tamanhos iguais, e conclusivo. Se J3 importar, precisa de uma regua desenhada para conjuntos de tamanhos diferentes, definida pelo autor.",
+  "**Custo medido para planejamento M8/M9:** 1.595,8 h-core nas 679 celulas do b5m; wall mediano 9.127 s (2,54 h) e maximo 11.564 s (3,21 h), folga de 3,7x contra o teto de 12 h. O espalhamento entre hosts e de 1,52x (vm1 6.648 s mediano, vm5 10.084 s) — nao usar ④ do b5m para tabela de custo sem estratificar por maquina."
+ ]
+}

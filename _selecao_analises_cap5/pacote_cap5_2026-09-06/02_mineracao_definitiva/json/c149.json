@@ -1,0 +1,461 @@
+{
+  "id": "c149",
+  "sigla": "LBN-MOBO",
+  "titulo": "Large-Batch, Iteration-Efficient Neural Bayesian Design Optimization",
+  "ano": 2023,
+  "roster": true,
+  "setup": {
+    "benchmarks": "Sintéticos, 2 objetivos: ZDT1, ZDT2, ZDT3 (30D; ZDT3 também testado em 6D, disjuntas/convexa/não-convexa). Sintéticos, 3 objetivos: DTLZ1 e DTLZ4 (6D entrada); DTLZ5 (20D entrada, frente curva). Reais: aerofólio (forma via GAN com espaço latente de 5D, avaliado por CFD OpenFOAM; objetivos Cl e Cl/Cd) e gamut de cores de impressora 3D (44 tintas = espaço de design 44D, e uma variante reduzida de 8 tintas; espaço de desempenho CIE a*b*, 2D).",
+    "orcamento": "Tamanho de lote (batch size) S é a variável central do artigo, não um orçamento total fixo em avaliações: nos benchmarks de escalabilidade (Fig. 1, Fig. 3, Fig. 13) S varia de ~10 a 1000–3000+; nas comparações diretas com concorrentes (USeMO/DGEMO/TSEMO/NSGA-II) S é limitado a 1000 (DTLZ4 também testa S=4000) para viabilizar os rivais, por Q=10 iterações (menos se algum método fica intratável). Nos problemas reais próprios do artigo: aerofólio com S=15.000/iteração; gamut de 44 tintas com 10.000 amostras iniciais e S=20.000/iteração; DoE inicial = 1 lote aleatório US(X).",
+    "execucoes": "Não relatado explicitamente. Todas as figuras mostram curvas de execução única por configuração/algoritmo — não há menção a sementes múltiplas, réplicas independentes, barras de erro, IQR ou convenção de 'execução mediana'. A frase 'different NSGA-II seeds' (Sec. 4.2) refere-se apenas à paralelização INTERNA da busca da aquisição em subpopulações, não a repetições do experimento inteiro.",
+    "baselines": "USeMO, DGEMO e TSEMO (assistidos por surrogate/GP) e NSGA-II como piso evolutivo sem surrogate, comparados em quase todos os benchmarks sintéticos e reais. Adicionalmente, só no benchmark de escalabilidade de acquisition (Sec. 3, Fig. 1) e na escolha de surrogate (Sec. 5.1, Fig. 3): qEHVI/qNEHVI/qParEGO combinados com surrogates DKL, HMC, IBNN, SGHMC e Deep Ensembles, e a própria aquisição 2MD combinada com SGHMC, HMC, Deep Ensembles, DKL, IBNN e MC Dropout.",
+    "metricas_principais": [
+      "Hypervolume (HV) — única métrica de qualidade de fronteira usada em todo o artigo (nunca IGD/IGD+)",
+      "Pareto batch regret — métrica de convergência própria do artigo (Sec. B.1), regret médio do lote de candidatos ao Pareto ótimo/melhor-descoberto, acumulado por iteração"
+    ],
+    "testes": [
+      "nenhum — não há teste estatístico de significância em nenhuma comparação do artigo"
+    ],
+    "apresentacao": "Resultados quase exclusivamente gráficos: curvas de HV e de regret × nº de iterações ou × tamanho de lote; scatter/linha da fronteira ou do gamut final por algoritmo; sem tabelas numéricas de resultados, sem média±dp, sem negrito, sem convenção de execução mediana (aparenta ser execução única). Alguns números pontuais são citados apenas em prosa (ex.: segundos de treino vs. busca, contagem de amostras válidas, % de amostras em região ruidosa).",
+    "codigo_plataforma": "BoTorch para qEHVI/qNEHVI/qParEGO; pymoo (Blank e Deb, 2020) e código-fonte do DGEMO para os baselines; Deep Ensembles e MC Dropout implementados pelos próprios autores (arquitetura descrita, biblioteca não nomeada); aproximação de hipervolume via amostragem aleatória (Simone, 2023, MATLAB File Exchange); cluster com GPUs NVIDIA Tesla A100/A40/A16 (até 64GB) e CPUs AMD EPYC 7702 64-core; teto de 44h de GPU por processo de otimização por tamanho de lote."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Curva de escalabilidade por tamanho de lote (batch size): HV e tempo em função de S",
+      "grupo_sugerido": "F",
+      "descricao": "No ZDT3 6D, otimiza-se via qEHVI (com surrogates DKL, HMC, IBNN, SGHMC, Deep Ensembles) e via qNEHVI/qParEGO (com DKL, IBNN), por 10 iterações, variando o tamanho do lote; reporta-se o HV do melhor Pareto front alcançado e o tempo de computação para cada tamanho de lote testado.",
+      "literal": "expanding to a batch size of 20 results in memory overflows independent of the surrogate",
+      "localizador": "Sec. 3, Fig. 1",
+      "metricas": [
+        "Hypervolume",
+        "tempo de execução (compute time)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "curvas por tamanho de lote (10¹ a ~10³); execução única por configuração; teto de 44h de GPU por tamanho de lote testado",
+      "achado": "qEHVI estagna e sofre overflow de memória a partir de lote 20 (independente do surrogate); qNEHVI/qParEGO escalam mais, mas o custo computacional explode acima de lote ~200, tornando os métodos padrão impraticáveis para lotes acima de ~500-1000.",
+      "aplicabilidade": "não reproduzível — motivo: exige rodar variantes de aquisição/surrogate (qEHVI, qNEHVI, qParEGO, DKL, HMC, IBNN, SGHMC) que não fazem parte do roster da dissertação; a camada ④ (tempos por geração) seria a análoga para o eixo de custo, se essas variantes existissem nos dados."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Curva de escalabilidade por tamanho de lote (batch size): HV e tempo em função de S",
+      "grupo_sugerido": "F",
+      "descricao": "Com a aquisição 2MD proposta (em vez das aquisições padrão), compara sete surrogates (SGHMC, HMC, Deep Ensembles, DKL, IBNN, MC Dropout) no ZDT3, medindo HV final e tempo de ajuste por tamanho de lote até ~1000-3000, para decidir qual surrogate acompanhará LBN-MOBO.",
+      "literal": "all methods, with the exception of IBNN, have successfully completed the optimization for batch sizes up to 1000",
+      "localizador": "Sec. 5.1, Fig. 3",
+      "metricas": [
+        "Hypervolume",
+        "tempo de ajuste (fitting time)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "curvas por tamanho de lote; execução única por configuração; 10 iterações",
+      "achado": "Com a aquisição 2MD o gargalo da aquisição desaparece para quase todos os surrogates; Deep Ensembles e MC Dropout são os mais eficientes em tempo e escalam até lote 1000 com a melhor fronteira; IBNN não completa a otimização.",
+      "aplicabilidade": "não reproduzível — motivo: exige rodar variantes de surrogate (SGHMC, HMC, DKL, IBNN, MC Dropout) fora do roster da dissertação; a camada ④ seria a análoga para o eixo de custo."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Curva de escalabilidade por tamanho de lote (batch size): HV e tempo em função de S",
+      "grupo_sugerido": "F",
+      "descricao": "Repete a comparação de surrogates da Fig. 3 (SGHMC, HMC, Deep Ensembles, DKL, IBNN, MC Dropout) sob a aquisição 2MD, agora no DTLZ5 com 20 parâmetros de entrada e 3 objetivos, por tamanho de lote.",
+      "literal": "dropout and Deep Ensembles particularly distinguish themselves with their notably higher scalability",
+      "localizador": "Sec. C.3, Fig. 13",
+      "metricas": [
+        "Hypervolume",
+        "tempo de ajuste"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "mesma configuração da Sec. 5.1; curvas por tamanho de lote",
+      "achado": "Padrão idêntico ao ZDT3: Deep Ensembles e MC Dropout seguem mais escaláveis mesmo com 20D de entrada e 3 objetivos, apesar do desafio adicional de dimensão.",
+      "aplicabilidade": "não reproduzível — mesma razão dos dois itens anteriores."
+    },
+    {
+      "fichas": [
+        26,
+        54,
+        47,
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara LBN-MOBO com USeMO, DGEMO, TSEMO e NSGA-II (piso evolutivo sem surrogate) no ZDT3 em 6D e 30D, lote fixo em 1000, por até 10 iterações: (a) fronteira de Pareto final vs. frente verdadeira (GT); (b) evolução do HV por iteração; (c) tempo decorrido por iteração no caso 6D.",
+      "literal": "the total computational time for NSGA2 was less than 14 seconds. The last and longest iteration of LBN-MOBO was 167s for training the ensemble models and 13.5s for acquisition.",
+      "localizador": "Sec. C.1.4 (Apêndice), Figs. 9, 10",
+      "metricas": [
+        "Hypervolume",
+        "tempo decorrido (elapsed time)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "lote fixo em 1000 para todos os métodos (mesmo LBN-MOBO suportando lotes maiores); execução única por configuração; frente verdadeira (GT) plotada como referência; alguns métodos não completam as 10 iterações em 30D por custo computacional",
+      "achado": "LBN-MOBO encontra a frente em 1 iteração (6D) e em 2 iterações (30D), mantendo domínio até DGEMO alcançá-lo na 6ª iteração; NSGA-II é ordens de magnitude mais rápido que os concorrentes BO; o treino do ensemble (167s) domina o tempo de LBN-MOBO frente à busca da aquisição (13.5s).",
+      "aplicabilidade": "não reproduzível — motivo: exige rodar USeMO, DGEMO, TSEMO e as variantes de LBN-MOBO, nenhum dos quais está no roster da dissertação além do próprio LBN-MOBO; a decomposição fit vs. busca é análoga ao que a camada ④ registraria."
+    },
+    {
+      "fichas": [
+        26,
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma comparação (LBN-MOBO, USeMO, DGEMO, TSEMO, NSGA-II) repetida em ZDT1 (frente convexa) e ZDT2 (frente não-convexa), 30D, reportando evolução do HV; nota quantas iterações cada concorrente completou antes de ficar intratável.",
+      "literal": "LBN-MOBO demonstrates its superiority in both the ZDT1 and ZDT2 problems",
+      "localizador": "Sec. C.1.5, Fig. 12",
+      "metricas": [
+        "Hypervolume"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "10 iterações nominal; no ZDT2, USeMO e DGEMO completam só 7 e TSEMO 8, por intratabilidade computacional",
+      "achado": "LBN-MOBO converge com poucas iterações em ambas as frentes (convexa e não-convexa), enquanto os concorrentes ficam intratáveis antes de completar as 10 iterações no ZDT2.",
+      "aplicabilidade": "não reproduzível — mesma razão do item anterior."
+    },
+    {
+      "fichas": [
+        26,
+        54,
+        47
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara LBN-MOBO (testado com lotes de 1000 e 4000 amostras) contra DGEMO, TSEMO, USeMO e NSGA-II no DTLZ4 (6D entrada, 3 objetivos): fronteira de Pareto final, tempo de execução e evolução do HV.",
+      "literal": "even by increasing the batch size to 4000 samples, which resulted in even better Pareto front, the computation time is still insignificant compared to the rival methods",
+      "localizador": "Sec. C.4, Figs. 14, 15",
+      "metricas": [
+        "Hypervolume",
+        "tempo decorrido"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "execução única por configuração; dois orçamentos de lote testados para LBN-MOBO (1000 e 4000)",
+      "achado": "LBN-MOBO obtém a melhor frente de Pareto e é o método mais escalável em tempo; aumentar o lote de 1000 para 4000 melhora ainda mais a frente com custo adicional insignificante frente aos concorrentes.",
+      "aplicabilidade": "não reproduzível — mesma razão dos itens anteriores; o estudo com dois orçamentos de lote (1000 vs. 4000) não tem análogo nas 7 camadas, que não tratam o tamanho do lote como eixo experimental."
+    },
+    {
+      "fichas": [
+        26,
+        54,
+        47
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma comparação (LBN-MOBO, DGEMO, TSEMO, USeMO, NSGA-II) no DTLZ1 (6D entrada, 3 objetivos): fronteira final, tempo decorrido e evolução do HV (em escala log).",
+      "literal": "the achieved Pareto front is orders of magnitude better than the counterpart methods",
+      "localizador": "Sec. C.4, Fig. 16",
+      "metricas": [
+        "Hypervolume",
+        "tempo decorrido"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "HV em escala logarítmica; execução única",
+      "achado": "No DTLZ1 a vantagem de LBN-MOBO é ordens de magnitude maior que nos demais problemas, tanto em HV quanto em tempo de execução.",
+      "aplicabilidade": "não reproduzível — mesma razão dos itens anteriores."
+    },
+    {
+      "fichas": [
+        26,
+        23
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Aplica LBN-MOBO com dois surrogates (Deep Ensembles vs. MC Dropout) a dois problemas reais próprios do artigo: aerofólio (Cl, Cl/Cd, via GAN 5D + CFD OpenFOAM, lote 15.000) e gamut de cores de impressora 3D de 44 tintas (espaço a*b* CIE, lote inicial 10.000 + 20.000/iteração); reporta evolução do HV e a fronteira/gamut final de cada variante.",
+      "literal": "We can observe the superior performance of LBN-MOBO utilizing DE due to its higher-quality epistemic uncertainty",
+      "localizador": "Sec. 5.3, Fig. 4",
+      "metricas": [
+        "Hypervolume"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "execução única por variante; 10 iterações",
+      "achado": "Ambas as variantes lidam bem com lotes extremos (15.000/20.000) e melhoram iteração a iteração; Deep Ensembles supera MC Dropout, atribuído à maior qualidade da incerteza epistêmica.",
+      "aplicabilidade": "não reproduzível diretamente com as 7 camadas — usa problemas reais próprios do artigo (aerofólio via CFD, gamut de impressora), fora dos 28 problemas e dos 3 reais da dissertação; a comparação DE×Dropout como medição de incerteza é, em espírito, uma questão de mecanismo próprio (ver roster_bloco)."
+    },
+    {
+      "fichas": [
+        26,
+        23
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara LBN-MOBO com NSGA-II (piso evolutivo, lote 20.000) e DGEMO (lote limitado a 1.000, 5 iterações) no gamut de 44 tintas: evolução do HV e gamut final (a*b*) em relação a uma linha de base aleatória (Random).",
+      "literal": "showing a significanlty larger estimated gamut by LBN-MOBO",
+      "localizador": "Sec. C.6.1, Fig. 17",
+      "metricas": [
+        "Hypervolume"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "NSGA-II e LBN-MOBO com 10 iterações; DGEMO com 5, por custo computacional; inclui baseline Random",
+      "achado": "LBN-MOBO produz um gamut de cores substancialmente maior (maior HV) do que NSGA-II e DGEMO no problema de 44 dimensões de design.",
+      "aplicabilidade": "não reproduzível diretamente — usa o problema real próprio do artigo (impressora de 44 tintas), fora dos 3 reais da dissertação."
+    },
+    {
+      "fichas": [
+        26,
+        23,
+        16
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara LBN-MOBO com NSGA-II e DGEMO no problema real de aerofólio (GAN 5D + CFD OpenFOAM, lote 15.000): evolução do HV, fronteira final e regret cumulativo; explica por que DGEMO piora com a complexidade do NFP e por que NSGA-II, com lote grande em espaço de baixa dimensão, consegue chegar perto.",
+      "literal": "DGEMO's performance significantly deteriorates. This likely stems from its reliance on the precise estimation of the gradient and Hessian of the NFP through the surrogate model.",
+      "localizador": "Sec. C.6.2, Fig. 18",
+      "metricas": [
+        "Hypervolume",
+        "Pareto batch regret"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "melhor frente descoberta assumida como ótima de Pareto para o cálculo do regret, na ausência de solução ótima conhecida; execução única",
+      "achado": "LBN-MOBO domina em poucas iterações; NSGA-II chega perto por usar lote grande em espaço de 5D; DGEMO piora por depender de estimativas de gradiente/Hessiana do NFP via surrogate, que degradam com a complexidade do problema.",
+      "aplicabilidade": "não reproduzível diretamente — problema real próprio, fora do roster; a explicação mecânica de falha de um método por dependência de gradiente/Hessiana não tem equivalente direto nas 7 camadas (não há gradiente registrado)."
+    },
+    {
+      "fichas": [
+        7,
+        26,
+        23
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Repete a comparação (LBN-MOBO, NSGA-II, DGEMO, Random) no gamut de 8 tintas (espaço de design menor que o de 44 tintas), evolução do HV e gamut final; nota que os concorrentes chegam mais perto de LBN-MOBO neste caso de menor dimensão.",
+      "literal": "both NSGA-II and DGEMO exhibit results that are closer to LBN-MOBO, which could be attributed to the lower dimensionality of the problem",
+      "localizador": "Sec. C.7, Fig. 19",
+      "metricas": [
+        "Hypervolume"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "mesmo desenho do caso de 44 tintas, porém com 8 dimensões de design",
+      "achado": "Com menor dimensionalidade, a vantagem de LBN-MOBO sobre NSGA-II e DGEMO diminui — evidência de que a vantagem do surrogate cresce com D, em sentido oposto ao do 'resultado negativo' descrito na ficha 7.",
+      "aplicabilidade": "não reproduzível diretamente — problema real próprio; serve de evidência externa qualitativa para uma tendência com D (ficha 7), sem usar os problemas/camadas da dissertação."
+    },
+    {
+      "fichas": [
+        11,
+        15
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Repete os experimentos de aerofólio e gamut de cores excluindo o termo de incerteza epistêmica da aquisição 2MD (usando só os M objetivos de desempenho), comparando a distribuição espacial (casco convexo) dos candidatos das iterações 4-8 com e sem incerteza.",
+      "literal": "in the absence of uncertainty, the candidates have a tendency to cluster within particular areas. This clustering leads to diminished diversity",
+      "localizador": "Sec. 5.4, Fig. 5",
+      "metricas": [
+        "dispersão espacial (casco convexo) dos candidatos",
+        "Hypervolume (qualitativo, via cobertura da fronteira)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "candidatos das iterações 4 a 8 desenhados como casco convexo; comparação visual, sem tabela numérica",
+      "achado": "Sem incerteza, os candidatos se aglomeram e reduzem a diversidade/exploração; com incerteza, a frente é mais ampla — mas o artigo reconhece que, localmente (quadrante inferior-esquerdo da Fig. 5b), a ausência de incerteza pode gerar um pequeno ganho pontual.",
+      "aplicabilidade": "① endpoint e ⑥ filme (se o roster registrar o motivo de seleção de cada candidato — desempenho vs. incerteza) reproduziriam esta ablação para o LBN-MOBO do roster; requer rodar a variante sem o termo de incerteza, que não está gravada por padrão."
+    },
+    {
+      "fichas": [
+        45
+      ],
+      "nova": true,
+      "nome_sugerido": "Robustez a ruído irredutível via peso (α, β) do termo aleatório na aquisição",
+      "grupo_sugerido": "E",
+      "descricao": "Em um problema-brinquedo 1D com dois máximos locais iguais (um contaminado por ruído gaussiano), varia os pesos α=β em {0, 7} do termo de incerteza aleatória subtraído dos objetivos na aquisição 2MD, medindo a fração de amostras escolhidas na região ruidosa numa única iteração.",
+      "literal": "Running one iteration of LBN-MOBO on this problems with batch size 1000 leads to over 93% of acquisition samples being chosen from the noisy region",
+      "localizador": "Sec. 5.5, Fig. 6",
+      "metricas": [
+        "fração de amostras na região ruidosa"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "1 iteração sob 3 configurações de (α,β); lote 1000",
+      "achado": "Sem peso aleatório (α=β=0), 93% das amostras vão para o máximo ruidoso; com α=β=7, 100% das amostras vão para o máximo correto — a incerteza aleatória, quando ponderada, evita completamente a região de ruído irredutível.",
+      "aplicabilidade": "não reproduzível diretamente com as 7 camadas — exige um problema sintético próprio com ruído gaussiano local injetado e reexecução com pesos diferentes; a camada ⑥ (filme) registraria a fração de FEs em região ruidosa se o problema/variante existisse no roster."
+    },
+    {
+      "fichas": [
+        45
+      ],
+      "nova": true,
+      "nome_sugerido": "Robustez a ruído irredutível via peso (α, β) do termo aleatório na aquisição",
+      "grupo_sugerido": "E",
+      "descricao": "No gamut de impressora simplificado (6 de 8 canais fixados), injeta ruído gaussiano N(0, 0,02) no canal 4 (Light Cyan) abaixo de 20% de intensidade e varia α=β em {0, 1, 10}, contando quantas amostras válidas (fora da região ruidosa) surgem e em quantas iterações a fronteira de Pareto é recuperada.",
+      "literal": "resulting in only 46 samples from noise-free regions after 8 iterations. Consequently, as indicated by the hypervolumes, it fails to compute a reasonable Pareto front",
+      "localizador": "Sec. 5.5, Fig. 7",
+      "metricas": [
+        "Hypervolume",
+        "nº de amostras válidas (fora da região ruidosa)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "8 iterações, lote 1000; 3 configurações de (α,β): (0,0), (1,1), (10,10)",
+      "achado": "α=β=0: só 46 amostras válidas em 8 iterações e falha em computar a frente; α=β=1: 1168 amostras válidas, frente em 4 iterações; α=β=10: 4982 amostras válidas, frente já na 2ª iteração — o peso correto do termo aleatório é decisivo.",
+      "aplicabilidade": "não reproduzível diretamente — problema real próprio com ruído injetado artificialmente, fora dos 3 reais/28 sintéticos da dissertação."
+    },
+    {
+      "fichas": [
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Repete os experimentos das Seções C.1.4/C.1.5 (ZDT1-30D, ZDT2-30D, ZDT3-6D) usando o Deep Ensembles original (com incerteza aleatória + epistêmica) em vez da variante só-epistêmica usada no resto do artigo, comparando a evolução do HV das duas variantes.",
+      "literal": "incorporating aleatoric uncertainty does not affect the exploration process in a beneficial manner, as showcased by the ZDT1 results, and may even delay the convergence, as observed in the ZDT2 and ZDT3 experiments",
+      "localizador": "Sec. E.1, Fig. 20",
+      "metricas": [
+        "Hypervolume"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "lote fixo em 1000; repete exatamente os experimentos de C.1.4/C.1.5 trocando o tipo de incerteza usada",
+      "achado": "RESULTADO NEGATIVO: incluir incerteza aleatória, quando o ruído do problema é desprezível, não ajuda e pode atrasar a convergência em ZDT2/ZDT3 — a incerteza aleatória só compensa quando há ruído real a evitar (cf. itens de sensibilidade a α/β).",
+      "aplicabilidade": "① e ② reproduziriam o HV por geração para o LBN-MOBO do roster; a variante 'epistêmico+aleatório' exigiria rodar o algoritmo com essa configuração alternativa, não incluída por padrão."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": true,
+      "nome_sugerido": "Regret de Pareto cumulativo em lote (batch) × iteração — métrica alternativa à trajetória de IGD+/HV",
+      "grupo_sugerido": "D",
+      "descricao": "O artigo formaliza uma métrica própria de regret de Pareto para otimização em lote multiobjetivo (distância média de cada ponto da fronteira do lote corrente ao Pareto front ótimo/melhor-descoberto, acumulada por iteração) e a aplica em 4 comparações (ZDT3 6D/30D, DTLZ4, DTLZ1, aerofólio), sempre mostrando LBN-MOBO com o menor regret cumulativo.",
+      "literal": "we propose a novel framework for regret analysis in large batch, multiobjective Bayesian optimization",
+      "localizador": "Sec. B.1.3 (método); Figs. 11, 15(c), 16(c), 18(c) (aplicações)",
+      "metricas": [
+        "Pareto batch regret (cumulativo)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "regret normalizado pelo nº de soluções na fronteira do lote corrente; no problema real (aerofólio), o ótimo de Pareto é desconhecido e a melhor frente descoberta é usada como substituta",
+      "achado": "Nos 4 benchmarks em que é aplicado, o regret cumulativo de LBN-MOBO cresce mais devagar que o dos concorrentes, reforçando a conclusão de convergência superior já obtida via HV.",
+      "aplicabilidade": "não reproduzível com as 7 camadas — a métrica de regret exige conhecer/aproximar o Pareto ótimo global e não corresponde a nenhuma das 7 camadas nem à métrica primária (IGD+) da dissertação; seria uma métrica NOVA a computar sobre a camada ① se fosse adotada."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo não mede calibração/cobertura do σ epistêmico nem correlação σ×erro real; usa σ apenas operacionalmente, como um objetivo a maximizar na aquisição 2MD, e para comparar HV/tempo entre surrogates — nunca contra o erro real do modelo (não há sonda com f verdadeiro conhecido).",
+    "literal": "NÃO LOCALIZADO",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo decorrido (wall-clock) por iteração e por tamanho de lote, para todos os métodos comparados (Figs. 1, 3, 10, 13, 15a, 16a, 18a); uma decomposição pontual entre tempo de treino do ensemble (fit) e tempo de busca da aquisição (167s vs. 13.5s, Sec. C.1.4); teto de 44h de GPU por processo de otimização por tamanho de lote (Sec. 3).",
+    "literal": "each algorithm's GPU run-time was restricted to 44 hours for every batch size optimization process",
+    "localizador": "Sec. 3"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "A incerteza aleatória prevista pelo Deep Ensembles é pouco confiável em problemas complexos de alta dimensão, podendo prever ruído inexistente ou não captar o ruído real — o que pode desestabilizar LBN-MOBO se usada sem cuidado.",
+      "literal": "it often predicts high aleatoric uncertainty where it is non-exist or fails to capture the existing ones. This is a fundamental limitation of Bayesian neural networks",
+      "localizador": "Sec. 4.1"
+    },
+    {
+      "descricao": "Incluir incerteza aleatória quando o ruído do problema é desprezível não ajuda e pode atrasar a convergência (ZDT1/ZDT2/ZDT3) — resultado negativo direto do próprio mecanismo do artigo.",
+      "literal": "incorporating aleatoric uncertainty does not affect the exploration process in a beneficial manner, as showcased by the ZDT1 results, and may even delay the convergence, as observed in the ZDT2 and ZDT3 experiments",
+      "localizador": "Sec. E.1, Fig. 20"
+    },
+    {
+      "descricao": "Sem o termo de incerteza epistêmica na aquisição, o artigo reconhece que pode haver um pequeno ganho LOCAL de otimização em uma região específica — um contra-exemplo pontual à vantagem geral de usar incerteza.",
+      "literal": "when uncertainty is excluded from the process, the budget for surrogate Pareto front optimization is concentrated solely on performance dimensions. This concentration may occasionally lead to a slight local enhancement in optimization",
+      "localizador": "Sec. 5.4"
+    },
+    {
+      "descricao": "IBNN não consegue completar a otimização mesmo com a aquisição 2MD proposta, que elimina o gargalo da aquisição para os demais surrogates — falha de escalabilidade do surrogate, não do critério de aquisição.",
+      "literal": "all methods, with the exception of IBNN, have successfully completed the optimization for batch sizes up to 1000",
+      "localizador": "Sec. 5.1, Fig. 3"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "dimensão do espaço de design (44 vs. 8 tintas)",
+      "afirmacao": "A vantagem de LBN-MOBO sobre NSGA-II/DGEMO diminui quando a dimensionalidade cai de 44 para 8 tintas — os concorrentes 'chegam mais perto' do resultado de LBN-MOBO.",
+      "literal": "both NSGA-II and DGEMO exhibit results that are closer to LBN-MOBO, which could be attributed to the lower dimensionality of the problem",
+      "localizador": "Sec. C.7"
+    },
+    {
+      "caracteristica": "complexidade/não-linearidade do NFP (aerofólio via GAN+CFD)",
+      "afirmacao": "DGEMO piora significativamente porque depende de estimar gradiente e Hessiana do NFP via surrogate, tarefa que fica mais difícil quanto mais complexo o NFP.",
+      "literal": "DGEMO's performance significantly deteriorates. This likely stems from its reliance on the precise estimation of the gradient and Hessian of the NFP through the surrogate model",
+      "localizador": "Sec. C.6.2"
+    },
+    {
+      "caracteristica": "baixa dimensionalidade do espaço latente (5D, aerofólio)",
+      "afirmacao": "NSGA-II (piso sem surrogate) consegue chegar a uma frente aceitável no aerofólio, atribuído ao uso de lote grande em um espaço de design comparativamente pequeno (5D).",
+      "literal": "this is most likely due to the use of a large batch size for each iteration in a comparatively smaller design space (five dimensions)",
+      "localizador": "Sec. C.6.2"
+    },
+    {
+      "caracteristica": "frente de Pareto curva / dimensionalidade efetiva reduzida (DTLZ5)",
+      "afirmacao": "DTLZ5 desafia os métodos por reduzir a dimensionalidade efetiva do espaço de busca via funções trigonométricas, alinhando as soluções ao longo de uma curva no espaço de objetivos.",
+      "literal": "DTLZ5's primary challenge lies in its reduced dimensionality of the search space due to the use of trigonometric functions, which tend to align the solutions along a curve in the objective space",
+      "localizador": "Sec. C.2.3"
+    }
+  ],
+  "roster_bloco": {
+    "mecanismo_proprio": [
+      {
+        "descricao": "Ablação exata: aquisição 2MD com e sem o termo de incerteza epistêmica (só os M objetivos de desempenho) em dois problemas reais (aerofólio e gamut de impressora), comparando a dispersão espacial dos candidatos.",
+        "literal": "in the absence of uncertainty, the candidates have a tendency to cluster within particular areas. This clustering leads to diminished diversity",
+        "localizador": "Sec. 5.4, Fig. 5"
+      },
+      {
+        "descricao": "Sensibilidade dos pesos α, β do termo de incerteza aleatória na aquisição, em problema-brinquedo 1D com um máximo local contaminado por ruído gaussiano.",
+        "literal": "Running one iteration of LBN-MOBO on this problems with batch size 1000 leads to over 93% of acquisition samples being chosen from the noisy region",
+        "localizador": "Sec. 5.5, Fig. 6"
+      },
+      {
+        "descricao": "Mesma sensibilidade de α, β no gamut de impressora simplificado com ruído injetado em um canal, contando amostras válidas por configuração de peso.",
+        "literal": "resulting in only 46 samples from noise-free regions after 8 iterations",
+        "localizador": "Sec. 5.5, Fig. 7"
+      },
+      {
+        "descricao": "Ablação epistêmico-só × epistêmico+aleatório (Deep Ensembles completo) em ZDT1/ZDT2/ZDT3 — resultado negativo do termo aleatório quando o ruído do problema é desprezível.",
+        "literal": "incorporating aleatoric uncertainty does not affect the exploration process in a beneficial manner, as showcased by the ZDT1 results, and may even delay the convergence, as observed in the ZDT2 and ZDT3 experiments",
+        "localizador": "Sec. E.1, Fig. 20"
+      },
+      {
+        "descricao": "Escolha da forma de medição da incerteza (o surrogate): comparação de Deep Ensembles, MC Dropout, SGHMC, HMC, DKL e IBNN sob a mesma aquisição 2MD, decidindo por Deep Ensembles/Dropout como mais escaláveis e informativos.",
+        "literal": "DE and MC dropout prove to be the most time-efficient models, adeptly conducting optimizations for batch sizes up to 1000",
+        "localizador": "Sec. 5.1, Fig. 3"
+      }
+    ],
+    "reprodutivel_com_camadas": "Ablação com/sem incerteza epistêmica (Fig. 5): reproduzível de forma adaptada via ① (endpoint) e ⑥ (filme, SE o roster registrar o motivo de seleção de cada candidato — Pareto por desempenho vs. Pareto por incerteza) para o LBN-MOBO do roster, mas exige rodar a variante sem o termo de incerteza (σ=0 na aquisição), que corresponde exatamente ao contrafactual da ficha 15 ('cravado, nunca executado' na dissertação) — este artigo é evidência externa de que esse contrafactual É executável e do sentido esperado do efeito (mais aglomeração/menos diversidade sem σ). Sensibilidade a α/β (Figs. 6, 7): NÃO reproduzível só com as 7 camadas — exige reexecuções com pesos diferentes do termo de incerteza aleatória sobre um problema com ruído local injetado; a camada ⑤ (manifesto) registraria os valores de α/β usados SE essas variantes fossem de fato rodadas, e a camada ⑥ (filme) poderia contar a fração de FEs caindo em região ruidosa. Ablação epistêmico × epistêmico+aleatório (Fig. 20): reproduzível via ① + ② (HV por geração) para cada variante, se ambas estiverem gravadas como configurações distintas do mesmo algoritmo no roster. Escolha do surrogate/medição (Fig. 3): a forma correta de comparar VA/DE/Dropout no desenho da dissertação seria via ③ (sonda, RMSE e calibração por classe de medição — ficha 36), em vez do HV final de tarefa usado pelo artigo.",
+    "parametros_do_uso_da_incerteza": [
+      "K (nº de sub-redes no ensemble Deep Ensembles) = 10 — define diretamente o cálculo de σ_epistêmico (Eq. 2b: variância das médias entre os K membros).",
+      "Diversidade de funções de ativação entre os K membros do ensemble (Tanh×2, ReLU×2, CELU×2, LeakyReLU×2, ELU×1, Hardswish×1) — citada como decisiva para 'higher quality uncertainty'.",
+      "α, β — pesos do termo de incerteza aleatória F_σA subtraído dos objetivos e das incertezas na aquisição (Eq. 4); testados em (0,0), (1,1) e (7,7)/(10,10) conforme o experimento.",
+      "T (nº de passagens estocásticas do MC Dropout na inferência) = 100 — define σ quando o surrogate é MC Dropout em vez de Deep Ensembles.",
+      "Taxa de dropout = 0,05, usada em todas as camadas de dropout do surrogate MC Dropout."
+    ]
+  },
+  "observacoes": "(1) O artigo não relata sementes/réplicas independentes em nenhuma comparação — todas as curvas parecem execução única por configuração, sem barra de erro/IQR nem convenção de execução mediana; isso difere do protocolo de 30 sementes da dissertação e limita a robustez estatística de qualquer 'vitória' relatada. (2) Não há nenhum teste estatístico de significância (Wilcoxon, Friedman etc.) em todo o artigo. (3) A métrica primária e quase exclusiva é HV; IGD/IGD+ nunca é usada. (4) Não há tabelas numéricas de resultados — tudo é reportado via figura, com poucos números citados em prosa (os que aparecem foram registrados literalmente nos achados/literais acima). (5) O 'motor' de LBN-MOBO é a ordenação não-dominada do NSGA-II aplicada DENTRO da aquisição, sobre um espaço 2M-dimensional (M objetivos de desempenho + M incertezas epistêmicas preditas pelo surrogate) — não é um laço evolutivo sobre avaliações verdadeiras, coerente com motor=BO-Especiais e função da incerteza=O1 (aquisição exploratória: a incerteza é maximizada como objetivo, não usada para filtrar/gatear). (6) σ_epistêmico é calculado como a dispersão (variância) das predições entre os K membros do ensemble (Eq. 2b) — corresponde exatamente a medição=DISC-ENS (discordância entre predições), não a uma posterior fechada (VA) nem a uma saída nativa de incerteza (VN). (7) Cada iteração consulta de fato o NFP verdadeiro (Y ← Φ(X)) e retreina o surrogate no conjunto acumulado, confirmando regime=online. (8) O tamanho do lote (S), variando de ~10 a 20.000, é o eixo experimental central do artigo mas não corresponde a nenhum eixo das 7 camadas da dissertação (que não varia S como variável independente) — gerou 3 candidatas a ficha nova sobre escalabilidade por batch size. (9) A ablação σ=0 (Fig. 5, Sec. 5.4) é uma instância real do contrafactual descrito na ficha 15 como 'nunca executado' na dissertação — aqui ele É executado pelos próprios autores de um algoritmo do roster, e serve de evidência externa direta do sentido esperado do efeito."
+}

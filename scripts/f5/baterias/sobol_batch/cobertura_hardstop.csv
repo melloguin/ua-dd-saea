@@ -1,0 +1,6 @@
+problema,D,n_init,maxfe,orcamento_infill,divide_por_q,lotes_inteiros,hard_stop_no_meio_do_lote_possivel
+DTLZ2,12,131,2131,2000,True,200,False
+MMF16_20,20,219,2219,2000,True,200,False
+WFG9,22,241,2241,2000,True,200,False
+ZDT1,30,329,2329,2000,True,200,False
+ZDT4,10,109,2109,2000,True,200,False

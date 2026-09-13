@@ -1,0 +1,306 @@
+{
+  "id": "c10",
+  "sigla": "SP-RV-MOEANet",
+  "titulo": "A Computationally Efficient Evolutionary Algorithm for Multiobjective Network Robustness Optimization",
+  "ano": 2021,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Domínio totalmente distinto da bateria sintética da dissertação: não há ZDT/DTLZ/WFG/MMF/BBOB. As variáveis de decisão são a própria TOPOLOGIA de uma rede complexa (conexões discretas), não vetores numéricos contínuos. M=2 objetivos sempre: R (robustez a ataques baseados em nó, Eq. 1) e Rl (robustez a ataques baseados em link, Eq. 2) — ambos definidos via fração da maior componente conectada após remoção maliciosa de nós/links. Problemas testados: (a) 3 famílias de redes SINTÉTICAS com N=300 nós e grau médio k=4 — scale-free (SF, modelo BA [5]), small-world (SW [41]) e Erdős–Rényi (ER [42]) — usadas em Table I / Figs. 2-4; (b) escalabilidade: SF com N=500 e N=1000, k=4 (Table II); (c) 2 redes REAIS — USA airline network (UAN, 332 nós, 2126 links) e India power grid (IPG, 572 nós, 871 links) (Table III, Fig. 5). D (dimensionalidade efetiva) é determinada por N (após embedding SDNE, cada rede vira um vetor de dimensão 2N — ex.: uma rede de 500 nós gera 500² dados brutos, reduzidos para 500×2 pelo SDNE); não é um parâmetro numérico livre como nos benchmarks contínuos da dissertação.",
+    "orcamento": "Não segue o formato '31D−1 com DoE inicial compartilhado' da dissertação. Parâmetros fixos usados em TODOS os experimentos: Initsize=20 (população inicial), Extrasize=15 (filhos por geração), MaxGen=200 (gerações), LocNum=5, MaxLocalSea=50, pc=0.6, pm=0.5, pl=0.7, ps=0.8, psu=0.7 (probabilidade de atualizar o surrogate com soluções de EP); Numclu=3, Numoth=2 (Sec. IV — mutação), MaxSea=50. Na análise específica da Fig. 4 define-se um orçamento explícito de avaliações REAIS: budget máximo de 10000, com custo relativo R:Rl = 1:5 (ou seja, Rl custa 5x mais que R) — o único ponto do artigo em que o orçamento é medido em avaliações reais ponderadas por custo, e não em gerações.",
+    "execucoes": "10 execuções independentes para as 3 redes sintéticas N=300 (Table I) e para as 2 redes reais UAN/IPG (Table III); 5 realizações para SF-500 e 3 realizações para SF-1000 (Table II, número de realizações decrescente com o tamanho da rede, presumivelmente por custo). Não há menção a sementes/DoE compartilhado entre algoritmos — apenas 'averaged over N independent runs/realizations'.",
+    "baselines": "MOEA-RSFMMA [15] — estado da arte EXTERNO citado ao longo do artigo como referência a ser batida; é ele mesmo um MOEA de duas fases SEM surrogate (Related Work não menciona surrogate em [15]), logo funciona como mais um piso não-assistido, além de ser o alvo comparativo principal. MOEA0 — variante DEGENERADA do próprio algoritmo proposto, sem surrogate, sem estratégia paralela, sem vetores de referência e sem a inicialização dedicada — o piso mais 'nu' da bateria. P-MOEANet — MOEA0 + inicialização por r + avaliação paralela (ainda sem surrogate nem vetores de referência). P-RV-MOEANet — P-MOEANet + seleção por vetores de referência (ainda sem surrogate) — o piso mais próximo, na mesma 'classe de motor', do SP-RV-MOEANet final. P0-MOEANet — usado só na Fig. 4, reproduz a estratégia paralela ingênua de outro artigo [21] (busca guiada diretamente por R, não pelo parâmetro barato r). Portanto HÁ múltiplos pisos sem surrogate (MOEA-RSFMMA, MOEA0, P-MOEANet, P-RV-MOEANet), formando uma escada de ablação incremental dos componentes do próprio método (ver 'observações').",
+    "metricas_principais": [
+      "HV (hypervolume) do conjunto não-dominado final — ÚNICA métrica quantitativa de desempenho usada em todo o artigo; não há IGD/IGD+/GD porque não existe frente de Pareto verdadeira conhecida para problemas de robustez de rede (combinatórios, sem solução analítica)."
+    ],
+    "testes": [
+      "Wilcoxon rank-sum test, α=0.05, comparando cada algoritmo contra SP-RV-MOEANet, com símbolos '-'/'+' (inferior/superior a SP-RV-MOEANet) — aplicado em Table I, Table II ('The results of statistical tests are also given') e Table III (símbolos presentes nas células, embora a legenda de Table III não repita explicitamente a menção ao teste)."
+    ],
+    "apresentacao": "Média ± desvio-padrão (nunca mediana/IQR); símbolos +/- ao lado do HV indicando o resultado do teste de Wilcoxon vs. SP-RV-MOEANet; tempo de execução em HORAS reportado na mesma tabela, ao lado da qualidade; nenhuma menção a 'execução mediana' para as figuras de fronteira (Fig. 2, Fig. 5); nenhuma escala logarítmica mencionada. Duas células de Table III (UAN, MOEA-RSFMMA e P-MOEANet) aparecem com parênteses vazios '()' em vez de um símbolo -/+ — provável perda de caractere (possivelmente '≈' ou '=') na conversão do documento original (ver observações).",
+    "codigo_plataforma": "Não informado no texto (nenhuma menção a PlatEMO, BoTorch, MATLAB ou plataforma própria)."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela com a média ± desvio-padrão do HV do conjunto não-dominado final para 5 algoritmos (MOEA-RSFMMA, MOEA0, P-MOEANet, P-RV-MOEANet, SP-RV-MOEANet) em 3 tipos de rede sintética (SF, ER, SW; N=300, grau médio k=4), com teste de Wilcoxon rank-sum (α=0,05) comparando cada algoritmo contra SP-RV-MOEANet e símbolos +/- indicando inferioridade/superioridade; tempo de execução (horas) reportado ao lado, na mesma tabela.",
+      "literal": "The Wilcoxon rank sum tests with a significance level of p = 0.05 are adopted to analyze the difference of these results compared with SP-RV-MOEANet. “-” means the algorithm is inferior to SP-RV-MOEANet, and “+” means the algorithm outperforms SP-RV-MEOANet.",
+      "localizador": "Table I; Sec. Experiments on synthetic networks",
+      "metricas": [
+        "HV",
+        "tempo de execução (horas)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05"
+      ],
+      "convencoes": "Média ± desvio-padrão (não mediana); símbolos +/- relativos a SP-RV-MOEANet como referência (não necessariamente o 'melhor' matemático, mas aqui coincide, pois SP-RV-MOEANet vence em toda linha da tabela); 10 execuções independentes; tempo de parede em horas na mesma tabela que a qualidade. Nota: o texto da legenda da Tabela I no documento fonte tem uma construção gramaticalmente estranha ('the results are averaged over 10 independent runs are given together the standard deviations are provided') — citado literalmente como está; a palavra 'SP-RV-MEOANet' (troca de letras) também é um erro tipográfico do próprio artigo, preservado na citação.",
+      "achado": "SP-RV-MOEANet obtém o maior HV médio nas 3 redes (SF: 0,0836±0,0020; ER: 0,0903±0,0019; SW: 0,1083±0,0043), estatisticamente superior a todos os concorrentes (todos marcados '-'), com tempo de execução bem menor que MOEA-RSFMMA (ex. SF: 69,2h vs. 121,1h) e MOEA0, ainda que maior que P-MOEANet/P-RV-MOEANet devido ao custo de treinar/atualizar o surrogate.",
+      "aplicabilidade": "① endpoint (HV do ND final por execução) + teste de postos pareado por algoritmo vs. referência — análogo às fichas 1/3, mas a métrica disponível é HV, não IGD+ (não há frente verdadeira conhecida em otimização de robustez de rede)."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Visualização qualitativa dos conjuntos não-dominados obtidos pelos 5 algoritmos (MOEA-RSFMMA, MOEA0, P-MOEANet, P-RV-MOEANet, SP-RV-MOEANet) no espaço de objetivos (R, Rl), para os 3 tipos de rede sintética (SF, ER, SW), N=300.",
+      "literal": "The obtained non-dominated solutions of these methods on three kinds of synthetic networks with N = 300 and averaged degree k = 4 are shown in Fig. 2.",
+      "localizador": "Fig. 2",
+      "metricas": [
+        "R",
+        "Rl"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Sobreposição gráfica das frentes não-dominadas por algoritmo; o texto não deixa claro se é uma execução representativa ou uma agregação das 10 execuções.",
+      "achado": "MOEA0 produz resultados visivelmente insatisfatórios; os demais algoritmos mostram desempenho visivelmente distinto entre si ('the performance of the algorithms varies a lot').",
+      "aplicabilidade": "não reproduzível tal como está com as 7 camadas — exigiria rodar variantes ablativas do próprio algoritmo (MOEA0/P/P-RV) inexistentes nas 15+4 configurações da bateria; além disso não há 'frente verdadeira' conhecida em otimização de robustez de redes para comparar, diferente do pressuposto usual da ficha 54 (frente obtida vs. frente verdadeira)."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curva da evolução do HV ao longo das GERAÇÕES (não da fração do orçamento de avaliações reais) para os 5 algoritmos comparados, evidenciando comportamento distinto entre os que usam vetores de referência e os que não usam.",
+      "literal": "Changes of the HV values over the generations of five compared algorithms are given in Fig. 3.",
+      "localizador": "Fig. 3",
+      "metricas": [
+        "HV"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "HV × número de geração (não × fração do orçamento de avaliações reais); não menciona banda de variação (IQR/desvio) entre execuções — aparentemente uma única curva (média, ou execução única) por algoritmo; rede/problema específico não identificado explicitamente no parágrafo de discussão.",
+      "achado": "MOEA0 quase não melhora o HV ao longo das gerações e parte de um HV inicial bem menor; SP-RV-MOEANet e P-RV-MOEANet (os dois com vetores de referência) têm desempenho comparável aos demais (exceto MOEA0) no início da busca, mas superam os demais à medida que a busca avança — atribuído à ênfase em convergência no início e diversidade depois, própria da seleção por vetores de referência; o perfil de HV de MOEA-RSFMMA é descrito como parecido com o de P-MOEANet.",
+      "aplicabilidade": "① endpoint acumulado por checkpoint, mas indexado por geração em vez de por FE/fração do orçamento — análogo à ficha 26 com eixo x diferente do padrão 31D−1 da dissertação.",
+      "observacoes": "Há uma aparente inconsistência textual no artigo: um parágrafo anterior (fim da Sec. Experiments on synthetic networks, discussão de Table I) diz 'Fig. 3 plots the non-dominated solutions obtained by the algorithms under comparison', enquanto o parágrafo dedicado (mais detalhado, citado em 'literal' acima) diz que Fig. 3 mostra 'changes of the HV values over the generations'. Tratamos o conteúdo de Fig. 3 como curva de convergência de HV×geração, seguindo a descrição mais detalhada e consistente com o restante do parágrafo; a primeira menção parece um resíduo/erro de edição do texto original (ou artefato da conversão docx→md)."
+    },
+    {
+      "fichas": [
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo compara, nas mesmas condições (redes SF/ER/SW, N=300), quatro variantes degeneradas do próprio algoritmo — MOEA0 (motor básico, sem surrogate/paralelismo/vetores de referência/inicialização dedicada), P-MOEANet (+ inicialização por r + avaliação paralela), P-RV-MOEANet (+ seleção por vetores de referência) e SP-RV-MOEANet (+ surrogate ensemble) — mais o estado da arte externo MOEA-RSFMMA, isolando via Table I/Fig. 2/Fig. 3 a contribuição incremental de cada componente ao HV e ao tempo de execução.",
+      "literal": "the basic variant without using the surrogate, parallel strategy, reference vectors, and population initialization strategy is denoted as MOEA0",
+      "localizador": "Sec. Experiments on synthetic networks (texto); Table I; Fig. 2; Fig. 3",
+      "metricas": [
+        "HV",
+        "tempo de execução"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05 (herdado da Tabela I)"
+      ],
+      "convencoes": "Escada de variantes ANINHADAS (cada uma soma um componente à anterior), não um desenho fatorial completo; herda média±dp e símbolos da Tabela I.",
+      "achado": "Cada componente contribui de forma distinta: inicialização+paralelismo (MOEA0→P-MOEANet) reduz drasticamente o tempo sem prejudicar o HV; vetores de referência (P-MOEANet→P-RV-MOEANet) melhora a diversidade da frente; o surrogate (P-RV-MOEANet→SP-RV-MOEANet) dá o maior HV mas aumenta o tempo de execução frente a P-RV-MOEANet. O artigo nota ainda que 'the state-of-the-art algorithm MOEA-RSFMMA performs similarly to P-MOEANet, which indicates that the parallel evaluation strategy might not contribute substantially to the search capability' — o ganho do paralelismo é majoritariamente em custo computacional, não em qualidade (ver equivalencia_criterios).",
+      "aplicabilidade": "não reproduzível com as 7 camadas tal como está — exigiria rodar variantes ablativas do próprio algoritmo (MOEA0, P-MOEANet, P-RV-MOEANet) inexistentes na bateria de 15+4 configurações. O degrau surrogate on/off (SP-RV-MOEANet vs. P-RV-MOEANet) é conceitualmente o mais próximo da ficha 9 (assistido × piso da própria classe de motor), mas remover o surrogate aqui remove SIMULTANEAMENTE a estimativa por média E a informação de incerteza (não é uma ablação exata do σ isoladamente, mantendo a mesma maquinaria de seleção pela média, como a ficha 11 pressupõe)."
+    },
+    {
+      "fichas": [
+        1,
+        7
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela comparando MOEA-RSFMMA e SP-RV-MOEANet em HV médio e tempo de execução para redes SF de 500 nós (médias sobre 5 realizações) e 1000 nós (médias sobre 3 realizações), com teste de Wilcoxon (a legenda confirma 'the results of statistical tests are also given'), avaliando se a vantagem do algoritmo proposto se mantém, cresce ou diminui conforme o tamanho — logo a dimensionalidade efetiva — da rede aumenta.",
+      "literal": "Even months of running time is necessary to optimize networks with 1000 nodes mainly due to the frequent invoking of high-cost robustness measures.",
+      "localizador": "Table II; Sec. Experiments on synthetic networks",
+      "metricas": [
+        "HV",
+        "tempo de execução (horas)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05 (mesma convenção da Tabela I, símbolo '-' presente nas células de MOEA-RSFMMA)"
+      ],
+      "convencoes": "Média ± desvio-padrão; nº de realizações decrescente com o tamanho da rede (10 em Table I → 5 em SF-500 → 3 em SF-1000), presumivelmente por custo computacional crescente.",
+      "achado": "A redução percentual do tempo de execução de SP-RV-MOEANet frente a MOEA-RSFMMA permanece estável (não piora) conforme N cresce: ~43% em N=300 (69,2h vs. 121,1h), ~48% em N=500 (95,2h vs. 182,8h) e ~47% em N=1000 (552,1h vs. 1047,5h) — este último caso levando MOEA-RSFMMA a mais de 43 dias de execução. Em HV a vantagem também persiste (N=500: 0,0781 vs. 0,0747; N=1000: 0,0689 vs. 0,0638).",
+      "aplicabilidade": "não reproduzível com as 7 camadas tal como está — aqui D é determinado pelo tamanho da rede N (variável entre estudos, não um parâmetro livre da bateria da dissertação, que já varia D DENTRO dos problemas de benchmark mantendo a mesma suíte); o padrão de pergunta (tendência da vantagem assistido×piso vs. D) é análogo ao da ficha 7."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curva de HV em função do orçamento REAL de avaliações (custo relativo R:Rl=1:5, orçamento máximo de 10000) para quatro algoritmos — P0-MOEANet (estratégia paralela original de [21], guiada diretamente por R), P-MOEANet, P-RV-MOEANet e SP-RV-MOEANet —, em um exemplo de rede SF, isolando o efeito da estratégia paralela guiada pelo parâmetro barato r (proposta) contra a estratégia ingênua guiada diretamente pela medida cara R (de [21]).",
+      "literal": "P0-MOEANet is inferior to P-MOEANet, which demonstrates the efficacy of the designed parallel strategy in Algorithm 2.",
+      "localizador": "Fig. 4",
+      "metricas": [
+        "HV"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Eixo x é orçamento real ponderado pelo custo relativo de R e Rl (1:5), não geração; um único exemplo de rede SF ilustrado (não as 3 famílias).",
+      "achado": "A estratégia de busca guiada pelo parâmetro estrutural barato r supera a estratégia ingênua de [21], que usa R diretamente como guia durante a avaliação de Rl: como R ainda é caro, a estratégia antiga só completa poucas buscas no mesmo tempo, enquanto r permite buscas mais completas; SP-RV-MOEANet e P-RV-MOEANet utilizam o orçamento computacional de forma mais eficiente que os demais algoritmos.",
+      "aplicabilidade": "não reproduzível com as 7 camadas — é uma ablação da estratégia de paralelização/busca (r vs. R como guia), não do surrogate ou da incerteza; exigiria implementar a variante P0 (estratégia de [21]), inexistente na bateria."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        23
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela e figura com o desempenho (HV médio ± dp, teste de Wilcoxon vs. SP-RV-MOEANet, e tempo de execução) dos 5 algoritmos em duas redes reais — a rede aérea dos EUA (UAN, 332 nós/2126 links) e a rede elétrica da Índia (IPG, 572 nós/871 links) —, cada uma tratada com uma narrativa própria (densidade de links, custo de avaliar Rl, comportamento diferenciado dos algoritmos).",
+      "literal": "Experimental results on two real-world networks. The results are averaged over 10 independent realizations.",
+      "localizador": "Table III; Fig. 5; Sec. Experiments on real-world networks",
+      "metricas": [
+        "HV",
+        "tempo de execução (horas)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0.05 (mesma convenção da Tabela I; símbolos presentes nas células)"
+      ],
+      "convencoes": "Média ± dp; 10 realizações independentes; em UAN, duas células (MOEA-RSFMMA e P-MOEANet) mostram parênteses vazios '()' em vez de um símbolo -/+ — ver observações sobre possível artefato de extração.",
+      "achado": "Em UAN (rede densa em links), SP-RV-MOEANet (0,0794) supera por margem pequena MOEA-RSFMMA (0,0790) e P-MOEANet (0,0791) — estes dois com símbolo de teste ilegível na extração — e vence com folga apenas o MOEA0 (0,0567), com vantagem clara de custo (178,4h vs. 290,5h de MOEA-RSFMMA); em IPG (rede esparsa em links), SP-RV-MOEANet (0,05199) supera com folga todos os concorrentes (MOEA-RSFMMA 0,04636; P-RV-MOEANet 0,05018; P-MOEANet 0,04690; MOEA0 0,03700), também a um custo bem menor (103,1h vs. 196,1h de MOEA-RSFMMA).",
+      "aplicabilidade": "① endpoint em problemas reais, análogo às fichas 1/3/23, mas com apenas 2 estudos de caso reais (não 3 como na dissertação) e sem frente verdadeira conhecida (só HV, não IGD+)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Custo estrutural de edição (distância média entre nós) para seleção de solução final na frente",
+      "grupo_sugerido": "H",
+      "descricao": "O artigo define uma métrica adicional D (Eq. 5 — distância média do caminho mais curto entre todos os pares de nós) para quantificar o 'custo estrutural' de transformar a rede original G0 em cada solução não-dominada obtida; usa a variação de D (rede otimizada vs. rede original) para identificar, dentro da frente de Pareto (Fig. 5), as soluções de menor custo estrutural, marcando-as como candidatas preferenciais para o tomador de decisão.",
+      "literal": "Solutions that require the minimum cost may be more valuable for decision makers, and the corresponding solutions are marked in Fig. 5.",
+      "localizador": "Eqn. (5); Fig. 5; Fig. S4 (Supplementary Materials, só mencionada); Sec. Experiments on real-world networks",
+      "metricas": [
+        "D (distância média do caminho mais curto entre pares de nós)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "D calculado para a rede-base G0 e para cada solução otimizada; soluções de custo mínimo marcadas visualmente na frente de Pareto (Fig. 5); há uma análise qualitativa complementar mencionada em Fig. S4 (Supplementary Materials), não detalhada no corpo principal.",
+      "achado": "Soluções localizadas no meio da frente de Pareto (bom equilíbrio entre R e Rl) tendem a ser as de menor custo estrutural, e por isso mais prováveis de serem escolhidas como saída final da otimização.",
+      "aplicabilidade": "não reproduzível com as 7 camadas da dissertação — é uma métrica pós-hoc específica do domínio de redes (custo de reconfiguração estrutural da solução em relação à rede original), sem análogo entre as camadas ①-⑦, que registram avaliação/predição/tempo do PROCESSO de busca, não uma métrica de 'distância de edição' da solução final."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Comparação conceitual do framework MOEA-RSFMMA vs. SP-RV-MOEANet (material suplementar)",
+      "grupo_sugerido": "G",
+      "descricao": "O artigo menciona, mas não detalha no corpo principal, uma comparação entre o método estado-da-arte MOEA-RSFMMA e o SP-RV-MOEANet proposto.",
+      "literal": "A comparison between the current state-of-the-art method MOEA-RSFMMA [15] and SP-RV-MOEANet can be found in Supplementary Materials I.",
+      "localizador": "Sec. SP-RV-MOEANet / The Framework; Supplementary Materials I",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "",
+      "achado": "não determinável — conteúdo do material suplementar não está disponível neste documento (só mencionada).",
+      "aplicabilidade": "não reproduzível — só mencionada; conteúdo de Supplementary Materials I ausente deste arquivo."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade ao tipo de remoção nos ataques nodais (aleatória vs. betweenness) (material suplementar)",
+      "grupo_sugerido": "C",
+      "descricao": "O artigo menciona análises adicionais sobre ataques nodais baseados em remoção aleatória e por betweenness, sem detalhar os resultados no corpo principal.",
+      "literal": "A few additional analyses on the random removal betweenness-based nodal attacks are described in Supplementary Materials II.",
+      "localizador": "Sec. Experiments on synthetic networks (após a discussão de Fig. 3); Supplementary Materials II",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "",
+      "achado": "não determinável — conteúdo do material suplementar não está disponível neste documento (só mencionada).",
+      "aplicabilidade": "não reproduzível — só mencionada; conteúdo de Supplementary Materials II ausente deste arquivo."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Análise de desempenho de soluções representativas em redes sintéticas (material suplementar)",
+      "grupo_sugerido": "H",
+      "descricao": "O artigo menciona uma análise de desempenho de soluções representativas (no contexto da discussão sobre redes SF/ER/SW) sem detalhar no corpo principal.",
+      "literal": "The performance analysis of representative solutions can be found in Supplementary Materials III.",
+      "localizador": "Sec. Experiments on synthetic networks (fim do parágrafo sobre redes SF); Supplementary Materials III",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "",
+      "achado": "não determinável — conteúdo do material suplementar não está disponível neste documento (só mencionada).",
+      "aplicabilidade": "não reproduzível — só mencionada; conteúdo de Supplementary Materials III (parte 1) ausente deste arquivo."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Análises intuitivas da estrutura das redes reais otimizadas (material suplementar)",
+      "grupo_sugerido": "H",
+      "descricao": "O artigo menciona análises qualitativas/intuitivas sobre a estrutura das redes reais (UAN, IPG) após a otimização, sem detalhar no corpo principal.",
+      "literal": "Some intuitive analyses on the structure of optimized networks are presented in Supplementary Materials III.",
+      "localizador": "Sec. Experiments on real-world networks (após Table III/Fig. 5); Supplementary Materials III",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "",
+      "achado": "não determinável — conteúdo do material suplementar não está disponível neste documento (só mencionada).",
+      "aplicabilidade": "não reproduzível — só mencionada; conteúdo de Supplementary Materials III (parte 2) ausente deste arquivo."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo de execução total (wall-clock) por execução, em HORAS, reportado ao lado do HV nas Tabelas I (N=300), II (escalabilidade N=500/1000) e III (redes reais), para cada algoritmo × rede. Não há decomposição explícita em tempo de ajuste do surrogate vs. busca vs. avaliação verdadeira (diferente da camada ④ da dissertação); o texto apenas explica qualitativamente que o tempo extra de SP-RV-MOEANet sobre P-RV-MOEANet vem 'primarily because of the construction of the surrogate model' (ver resultados_negativos). A manchete de custo do artigo (Abstract/Introdução) é uma redução de até 50% no tempo de execução frente ao estado da arte.",
+    "literal": "Empirical results on several synthetic and realistic networks demonstrate that proposed algorithm can outperform the state-of-the-art method reported in [15], and in addition, reach a dramatic decrease (up to 50%) in runtime.",
+    "localizador": "Introduction (parágrafo final); Table I; Table II; Table III"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "O artigo reconhece que adicionar o surrogate tem um custo: SP-RV-MOEANet gasta mais tempo de execução do que P-RV-MOEANet (sua contraparte sem surrogate), atribuído à construção/atualização do modelo ensemble — o ganho de qualidade do surrogate não é gratuito em tempo, ainda que o artigo argumente que compensa ('the cost of training surrogates is worthy for solving the problem').",
+      "literal": "Compared with P-RV-MOEANet, SP-RV-MOEANet requires a larger runtime, primarily because of the construction of the surrogate model.",
+      "localizador": "Sec. Experiments on synthetic networks (discussão após Table I)"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "O desempenho (HV) de MOEA-RSFMMA (estado da arte, sem surrogate) é muito próximo ao de P-MOEANet (variante própria com paralelismo e inicialização, mas sem vetores de referência nem surrogate), sugerindo que a estratégia de avaliação paralela por si só contribui muito mais para reduzir o CUSTO computacional do que para melhorar a QUALIDADE da busca — o mecanismo (paralelo vs. sequencial), não a qualidade, é o que muda.",
+      "literal": "the state-of-the-art algorithm MOEA-RSFMMA performs similarly to P-MOEANet, which indicates that the parallel evaluation strategy might not contribute substantially to the search capability.",
+      "localizador": "Sec. Experiments on synthetic networks (discussão de Table I / Fig. 2)"
+    },
+    {
+      "descricao": "Na rede real UAN (alta densidade de links), quase todos os algoritmos testados — exceto MOEA0 — alcançam HV satisfatório e próximo entre si; a vantagem de SP-RV-MOEANet ali vem principalmente da redução de custo computacional, não de uma diferença marcante de qualidade (ao contrário do que ocorre em IPG, de menor densidade).",
+      "literal": "All the tested algorithms achieve satisfactory results on UAN, except for MOEA0 which does not maintain the initial operation. Nevertheless, SP-RV-MOEANet slightly outperforms other algorithms at a reduced computation, including the state-of-the-art method reported in [15].",
+      "localizador": "Sec. Experiments on real-world networks (discussão de Table III / Fig. 5)"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "topologia livre de escala / power-law com poucos hubs (redes SF)",
+      "afirmacao": "SP-RV-MOEANet obtém a melhoria mais notável entre os três tipos de rede sintética justamente nas redes SF, atribuída à capacidade de mitigar via reconexão (rewiring) a fragilidade característica dessas redes a ataques maliciosos — a natureza 'robusta porém frágil' das redes livres de escala.",
+      "literal": "This unique structure makes SF networks “robust yet fragile” [43]; that is to say, SF networks tend to have a good tolerance against random attacks but can be extremely vulnerable to malicious attacks.",
+      "localizador": "Sec. Experiments on synthetic networks"
+    },
+    {
+      "caracteristica": "alta densidade de links (rede real UAN)",
+      "afirmacao": "Torna a avaliação de Rl extremamente custosa (processo de otimização caro), mas a abundância de links também favorece o operador de inicialização, que consegue gerar muitos candidatos; quase todos os algoritmos (exceto MOEA0, sem inicialização dedicada) alcançam resultados satisfatórios nessa rede.",
+      "literal": "The UAN network has a large link density compared with that of other tested networks; therefore, the evaluation of its robustness Rl is extremely time-consuming, leading to a costly optimization processes.",
+      "localizador": "Sec. Experiments on real-world networks"
+    },
+    {
+      "caracteristica": "baixa densidade de links (rede real IPG)",
+      "afirmacao": "SP-RV-MOEANet supera com folga os demais algoritmos tanto em diversidade quanto em convergência nessa rede, com vantagem bem mais marcada do que na rede de alta densidade (UAN).",
+      "literal": "The IPG network has a relatively smaller link density, and SP-RV-MOEANet remarkably outperforms other algorithms.",
+      "localizador": "Sec. Experiments on real-world networks"
+    },
+    {
+      "caracteristica": "tamanho/dimensionalidade da rede (N=300→500→1000, proxy de D)",
+      "afirmacao": "A vantagem de SP-RV-MOEANet sobre o estado da arte MOEA-RSFMMA em tempo de execução e HV se mantém conforme a rede cresce; o método estado-da-arte torna-se proibitivo (da ordem de mais de 40 dias) em redes de 1000 nós, enquanto o proposto permanece prático.",
+      "literal": "SP-RV-MOEANet remains effective on large-scale networks and achieves considerably better results in a given period of time.",
+      "localizador": "Table II; Sec. Experiments on synthetic networks"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) Classificação recebida no pedido e como se manifesta no artigo: motor=EA-Decomposição → a seleção ambiental usa vetores de referência unitários e a distância angular-penalizada (APD, Eq. 4, herdada de RVEA [22]/[31]), um esquema de decomposição do espaço de objetivos por região/ângulo, consistente com a classificação. função da incerteza=O3·Aprendizado ativo/reparo → manifesta-se no ESTÁGIO 2 do operador de mutação (Algoritmo 4): 'other representatives' (Numoth indivíduos) são selecionados com base na informação de incerteza do ensemble MAIS a distância aos centros já escolhidos — um heurística clássica de aprendizado ativo ('indivíduos com maior incerteza podem se tornar soluções não-dominadas'); não há um gate binário explícito de 'reparo'. surrogate=RG — Regressor Clássico (não-GP) → confirmado explicitamente: o ensemble é composto por RBF [35] + IDW [36] + LS [37], todos regressores determinísticos clássicos, contrastados no texto com GPs/Kriging ('Kriging will become computationally intensive when the number of training sample increases'). medição=DISC-ENS (discordância entre predições) → plausível dado que a 'uncertainty information' é dita 'provided by the surrogate ensemble' (RBF+IDW+LS), mas o artigo NUNCA escreve a fórmula exata de como a incerteza é calculada a partir dos 3 aprendizes-base (não há equação explícita de variância/discordância do ensemble no texto disponível) — a classificação é a mais plausível dada a arquitetura, mas não está 100% literal no artigo. regime=online → confirmado: R e Rl são avaliados na medida verdadeira ao longo de toda a busca (Parallel-Eva/Parallel-Sea&Eva), sem dataset pré-coletado fixo, ao contrário de artigos offline como wang4/e103. (2) O artigo compara variantes do próprio método de forma incremental (MOEA0 → P-MOEANet → P-RV-MOEANet → SP-RV-MOEANet), constituindo uma ablação NATURAL dos componentes (inicialização+paralelismo, vetores de referência, surrogate) — ver análise da 'escada de ablação' (ficha 9). Nenhuma ablação isola SOMENTE a incerteza (σ) mantendo a mesma maquinaria de seleção pela média, diferente da ablação exata da ficha 11 (Prob-MOEA/D × MOEA/D-média): aqui, remover o surrogate remove simultaneamente a média estimada E a incerteza. (3) Grupo E da tipologia (o modelo por dentro: sonda/fantasia/infill/mecanismo, fichas 31-46) NÃO tem nenhum análogo neste artigo — não há sonda de pontos fixos re-preditos a cada retreino, nenhuma curva de RMSE do surrogate ao longo do orçamento (ficha 31), nenhuma checagem de preservação de ordem (ficha 32), nenhuma medição de calibração/cobertura do σ (fichas 33-34), nenhuma heterocedasticidade (ficha 38) e nenhuma contagem de acionamentos do mecanismo de incerteza (ficha 45). A 'informação de incerteza' do ensemble é usada operacionalmente (Estágio 2 do operador de mutação, Algoritmo 4) mas NUNCA validada contra o valor real de robustez (nenhum RMSE, nenhuma cobertura, nenhuma correlação predito×real é reportada) — daí calibracao_do_sigma.mede=false. (4) O uso de vetores de referência (P-RV-MOEANet, SP-RV-MOEANet) é descrito como produzindo HV inicial relativamente pior nas primeiras gerações ('may result in a relatively inferior initial HV performance', Sec. Experiments on synthetic networks, discussão de Fig. 3) — um efeito colateral do esquema de seleção por vetores de referência (prioriza convergência antes de diversidade), não do surrogate/incerteza; por isso não foi incluído em 'resultados_negativos' (campo reservado a achados negativos sobre incerteza/surrogate), mas é registrado aqui por completude. (5) O Abstract afirma que 'compared with other single-objective optimization methods, the proposed algorithm demonstrates a considerable exploitation ability' — mas nenhuma tabela/figura do corpo principal isola uma comparação explícita contra um baseline de otimização MONO-objetivo (a ideia aparece apenas como motivação geral na Introdução, citando trabalho de terceiros); não localizamos essa comparação no texto disponível, possivelmente relegada a material suplementar não incluído neste arquivo. (6) Não há reporte do ponto de referência (ideal/nadir) usado no cálculo do HV, nem análise de sensibilidade a hiperparâmetros do próprio algoritmo (pc, pm, pl, ps, psu, Numclu, Numoth, MaxSearch, MaxLocalSea) — só os valores finais usados são informados (primeiro parágrafo da Sec. Experimental Results). (7) Figuras/blocos EXCLUÍDOS de 'analises' por serem método/framework, não resultado experimental (Regra 3 do cartão): Fig. 1 (diagrama do surrogate ensemble, Sec. III); Algoritmos 1-5 (pseudocódigo de Parallel-Sea&Eva, Topological Rewiring, SP-RV-MOEANet, Mutação, Busca local); Eqs. 1-4 (definições de R, Rl, r, APD). (8) Quatro referências a material suplementar (Supplementary Materials I, II, III×2) e uma a uma figura suplementar (Fig. S4) aparecem no corpo do artigo sem conteúdo detalhado disponível neste documento — listadas como análises 'só mencionadas', conforme Regra 3 do cartão. (9) Domínio do artigo é fundamentalmente diferente do restante do corpus: otimização de robustez de redes complexas (variáveis de decisão = topologia discreta/combinatória via graph embedding SDNE), não problemas numéricos contínuos tipo ZDT/DTLZ/WFG. A métrica primária da dissertação (IGD+) não se aplica — não há frente de Pareto verdadeira conhecida; o artigo usa apenas HV. MOEA-RSFMMA [15], o 'estado da arte' usado como baseline externo, é ele mesmo um MOEA sem surrogate, funcionando como mais um piso de comparação (além de MOEA0 e P-RV-MOEANet)."
+}

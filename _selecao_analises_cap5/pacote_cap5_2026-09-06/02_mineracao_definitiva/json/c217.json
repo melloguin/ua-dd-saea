@@ -1,0 +1,424 @@
+{
+  "id": "c217",
+  "sigla": "PC-SAEA",
+  "titulo": "A pairwise comparison based surrogate-assisted evolutionary algorithm for expensive multi-objective optimization",
+  "ano": 2023,
+  "roster": true,
+  "setup": {
+    "benchmarks": "3 suítes sintéticas (todas com m=2 e m=3 objetivos): DTLZ1–DTLZ7 (d=15), WFG1–WFG9 (d=21 para m=2, d=20 para m=3), MaF1–MaF5 (d=15) — 14+18+10 = 42 instâncias sintéticas ao todo. Mais 3 problemas reais de engenharia: CSI (car side impact, m=13, d=7), WRM (water resource management, m=12, d=3) e GAA (general aviation aircraft design, m=11, d=27, cada restrição tratada como objetivo extra). Nenhum problema MMF/BBOB da bateria da dissertação. NOTA DE LEITURA: a coluna 'm/d' das Tabelas 1–3 aparece, na conversão markdown, deslocada para a linha do MEIO de cada bloco de problemas (DTLZ4 em vez de DTLZ1; WFG5 em vez de WFG1; MaF3 em vez de MaF1) — artefato de célula mesclada verticalmente centralizada no PDF original, não erro de conteúdo; os valores de d usados neste JSON (15/21/20/15) foram confirmados pela prosa da Seç. 4.2, não pela posição da célula na tabela.",
+    "orcamento": "DoE inicial = 11d−1 soluções via Latin hypercube sampling (Algoritmo 1, linha 1) — mesma fórmula usada na dissertação, mas aqui com d variando de 3 (WRM) a 27 (GAA). Orçamento TOTAL fixo e independente de d: 'Each algorithm runs for 2000 function evaluations with a population size of 50 on each test instance' (Sec. 4.1) — ou seja, ao contrário da convenção 31D−1 da dissertação, aqui o orçamento não escala com d; para GAA (d=27, DoE=11×27−1=296) restam ~1700 avaliações de busca, enquanto para WRM (d=3, DoE=32) restam ~1968 — regimes de busca proporcionalmente muito diferentes entre os problemas, não discutido explicitamente pelo artigo. Dentro de cada geração, até Gmax=3000 predições do surrogate (buscas virtuais) são feitas antes de selecionar no máximo seis soluções para avaliação real (Algoritmo 5).",
+    "execucoes": "30 execuções independentes por algoritmo × problema; MÉDIA (não mediana) e desvio-padrão das 30 métricas são reportados em todas as tabelas ('the mean value and standard deviation of the 30 metric values are recorded', Sec. 4.2) — diferente da convenção de mediana da dissertação. Já as FIGURAS de fronteira (Fig. 6, Fig. 7) usam a execução de IGD mediano ('the populations with the median IGD values are plotted'), enquanto as curvas de IGD nas mesmas figuras são médias sobre todas as execuções — convenção mista tabela=média / figura=execução mediana, não declarada explicitamente para as Figs. 8 e 9 (presume-se a mesma convenção de 30 execuções do resto do artigo, mas não reafirmado perto delas).",
+    "baselines": "7 algoritmos comparados, TODOS assistidos por surrogate — NENHUM piso evolutivo sem surrogate (nem canônico da dissertação como NSGA-II/MOEA-D/NSGA-III/SMS-EMOA, nem substituto qualquer) está presente em nenhuma comparação deste artigo: CPS-MOEA (classificação kNN), K-RVEA (regressão Kriging), SOCEMO (regressão RBF), HeE-MOEA (regressão SVM, ensemble), CSEA (classificação FNN — este é o algoritmo 'b4' já minerado separadamente no roster da dissertação), EDN-ARMOEA (regressão, rede neural com dropout), e REMO (comparação par-a-par via classificador de 3 classes — o concorrente mecanicamente mais próximo de PC-SAEA, citado no texto como o único a bater PC-SAEA com alguma frequência).",
+    "metricas_principais": [
+      "IGD (inverted generational distance) — métrica primária para os 42 problemas sintéticos, com ~10000 pontos de referência amostrados na frente de Pareto verdadeira; IGD+ NUNCA é usada",
+      "HV (hypervolume) — métrica primária para os 3 problemas reais (frente verdadeira desconhecida), ponto de referência = nadir das soluções não-dominadas obtidas",
+      "Recall, Precision, Accuracy, F1 — métricas de desempenho de CLASSIFICAÇÃO do surrogate em si (não do algoritmo), usadas nas Tabelas 5, 7 (linha de resumo) e Fig. 9",
+      "tempo de execução (runtime, segundos) — Tabela 6, última linha"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum test, α=0,05, símbolos +/−/≈ — IMPORTANTE: a comparação é sempre contra PC-SAEA especificamente (o método proposto, coluna de referência fixa em toda tabela), não contra 'o melhor de cada linha' — PC-SAEA costuma ser o melhor mas nem sempre é (ex.: SOCEMO vence DTLZ2 2-obj; REMO vence GAA), então o símbolo por linha não coincide sempre com o destaque em negrito da própria linha"
+    ],
+    "apresentacao": "Média(desvio-padrão) por célula; melhor resultado da linha em negrito; símbolos +/−/≈ contra PC-SAEA; linha de resumo de vitórias/derrotas/empates (+/−/≈) no rodapé de cada tabela de comparação (Tabelas 1–3, 6, 7, 8); execução de IGD mediano usada só nas figuras de fronteira (Figs. 6, 7), com curva de IGD média sobreposta no mesmo painel.",
+    "codigo_plataforma": "Todos os experimentos conduzidos na plataforma PlatEMO ('All the experiments are conducted on PlatEMO [40, 46]', Sec. 4)."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade dos parâmetros próprios dos algoritmos BASELINE (não de PC-SAEA)",
+      "grupo_sugerido": "J",
+      "descricao": "Antes da comparação principal, o artigo varre os parâmetros críticos de CADA UM dos 7 algoritmos concorrentes (k de CPS-MOEA; taxa de mudança de penalidade e wmax de K-RVEA; α e w de HeE-MOEA; k e gmax de CSEA; limiar de diversidade e iter de EDN-ARMOEA; k de REMO) em 4 problemas representativos (DTLZ2, DTLZ4, WFG3, MaF1), medindo IGD, para justificar os valores fixados na comparação principal. NÃO inclui δ de PC-SAEA (esse é o Fig. 8, mapeado à ficha 45).",
+      "literal": "The sensitivity analysis of the crucial parameters in the compared algorithms on four representative benchmark problems is presented in Fig. 5.",
+      "localizador": "Sec. 4.1, Fig. 5",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum teste estatístico — curvas de IGD por valor de parâmetro, sem declarar se é média ou execução única"
+      ],
+      "convencoes": "Uma curva por problema (4 problemas), um painel por parâmetro (9 painéis, um por baseline exceto SOCEMO — que não tem parâmetro sensível declarado); eixo Y = IGD, eixo X = valor do parâmetro.",
+      "achado": "Não é uma análise sobre PC-SAEA ou sobre o mecanismo de incerteza — é a calibração de parâmetros dos 7 CONCORRENTES para garantir comparação justa; o texto não relata explicitamente quais valores foram escolhidos a partir dessa figura (os valores finais aparecem soltos no parágrafo seguinte, Sec. 4.1).",
+      "aplicabilidade": "não reproduzível e não relevante às 7 camadas — trata de hiperparâmetros de algoritmos que não são PC-SAEA; útil apenas como nota de contexto sobre como os baselines foram calibrados (CSEA, um dos baselines aqui, corresponde ao próprio 'b4' do roster da dissertação, já minerado separadamente).",
+      "observacoes": "registrado por exaustividade (Regra 2 do CARTÃO); não diagnostica o mecanismo de incerteza de PC-SAEA."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela final de IGD média±dp para PC-SAEA e os 7 baselines em DTLZ1–DTLZ7 (m=2,3; 14 instâncias), com teste de Wilcoxon rank-sum (α=0,05) e símbolos +/−/≈ contra PC-SAEA, mais uma linha de resumo de vitórias/derrotas/empates por baseline.",
+      "literal": "Table 1 lists the experimental results obtained by the eight compared MOEAs on DTLZ1–DTLZ7, which are mainly characterized by multimodal landscapes and biased decision spaces.",
+      "localizador": "Sec. 4.3, Table 1",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=0,05, símbolos +/−/≈ contra PC-SAEA"
+      ],
+      "convencoes": "Média(desvio-padrão) por célula; melhor da linha em negrito; linha de resumo +/−/≈ no rodapé por baseline; 30 execuções independentes.",
+      "achado": "PC-SAEA obtém o melhor IGD em 7 das 14 linhas (SOCEMO 4, REMO 2, K-RVEA 1); PC-SAEA supera significativamente CPS-MOEA, K-RVEA, SOCEMO, HeE-MOEA, CSEA, EDN-ARMOEA e REMO em 10, 11, 10, 14, 10, 14 e 10 das 14 instâncias, respectivamente. Nota: 'It is worth noting that REMO obtains the most results that are significantly better than PC-SAEA, where REMO also uses a pairwise comparison based model' — o concorrente que mais vence PC-SAEA é justamente o outro método baseado em comparação par-a-par.",
+      "aplicabilidade": "① endpoint: reproduzível recalculando IGD+ (métrica primária da dissertação, distinta do IGD simples usado aqui) sobre o ND acumulado das avaliações reais, com teste de postos (ficha 3). Como nenhum piso sem surrogate está presente, a ficha 9 (assistido×piso) não é aplicável a partir dos dados deste artigo — teria que ser construída do zero pela dissertação com PC-SAEA rodando contra seu próprio piso (motor EA-Dominância)."
+    },
+    {
+      "fichas": [
+        54,
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Figura dupla para 2-objective DTLZ3 (frente altamente multimodal): (a) as populações finais (espaço de objetivos) dos 8 algoritmos na execução de IGD mediano; (b) curvas de IGD médio × fração de avaliações, sobre todas as execuções.",
+      "literal": "Fig. 6 plots the populations and IGD variations obtained by the compared MOEAs on 2-objective DTLZ3, where the populations with the median IGD values are plotted and the IGD variations are averaged over all runs.",
+      "localizador": "Sec. 4.3, Fig. 6",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum — comparação visual"
+      ],
+      "convencoes": "Execução de IGD mediano para o painel de população; curva de IGD MÉDIA (não mediana) sobre as 30 execuções para o painel de convergência; eixo X do painel de convergência = 'Ratio of function evaluations'.",
+      "achado": "DTLZ3 tem paisagem altamente multimodal, 'almost impossible to approximate accurately, posing stiff challenges to surrogate models'; PC-SAEA obtém soluções com melhor convergência que os demais e converge significativamente mais rápido (curva de IGD cai antes).",
+      "aplicabilidade": "① (avaliações reais) + seleção da execução de IGD mediano → ficha 54 diretamente reproduzível; ① com checkpoints ao longo do orçamento → ficha 26 (trajetória de convergência) diretamente reproduzível, recalculando IGD+ em vez de IGD."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela final de IGD média±dp para PC-SAEA e os 7 baselines em WFG1–WFG9 (m=2,3; 18 instâncias), mesmo protocolo de Wilcoxon e símbolos da Tabela 1.",
+      "literal": "Table 2 presents the experimental results obtained by the eight compared MOEAs on WFG1–WFG9, which are mainly characterized by complex variable linkages.",
+      "localizador": "Sec. 4.3, Table 2",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=0,05, símbolos +/−/≈ contra PC-SAEA"
+      ],
+      "convencoes": "Idêntica à Tabela 1 (média(dp), negrito, +/−/≈, resumo no rodapé, 30 execuções).",
+      "achado": "PC-SAEA é significativamente melhor que CPS-MOEA, K-RVEA, SOCEMO, HeE-MOEA, CSEA, EDN-ARMOEA e REMO em 16, 11, 13, 18, 9, 18 e 12 das 18 instâncias, respectivamente (varredura completa 18/18 contra HeE-MOEA e EDN-ARMOEA). 'The landscapes of WFG problems are in fact much simpler than DTLZ problems, which means that PC-SAEA is effective for both challenging and simple MOPs.'",
+      "aplicabilidade": "① endpoint — mesma lógica da entrada de Table 1; sem piso sem surrogate presente no artigo (ficha 9 não aplicável a partir destes dados)."
+    },
+    {
+      "fichas": [
+        54,
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma figura dupla (população na execução de IGD mediano + curva de IGD médio × fração de avaliações) para 3-objective WFG2, problema com frente de Pareto descontínua.",
+      "literal": "Fig. 7 depicts the populations and IGD variations obtained by the compared MOEAs on 3-objective WFG2, which introduces a discontinuous Pareto front.",
+      "localizador": "Sec. 4.3, Fig. 7",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum — comparação visual"
+      ],
+      "convencoes": "Idêntica à Fig. 6 (execução de IGD mediano para população; curva média para IGD × 'Number of function evaluations').",
+      "achado": "'the proposed PC-SAEA gains more non-dominated solutions and converges faster than the other MOEAs' em WFG2 (frente descontínua) — confirma a superioridade também neste tipo de geometria difícil.",
+      "aplicabilidade": "① + execução de IGD mediano → ficha 54; ① com checkpoints → ficha 26 (recalculando IGD+)."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela final de IGD média±dp para PC-SAEA e os 7 baselines em MaF1–MaF5 (m=2,3; 10 instâncias), mesmo protocolo de Wilcoxon e símbolos das Tabelas 1 e 2.",
+      "literal": "Table 3 presents the experimental results obtained by the eight compared MOEAs on MaF1–MaF5, whose landscapes are similar to DTLZ problems but Pareto fronts are more irregular.",
+      "localizador": "Sec. 4.3, Table 3",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=0,05, símbolos +/−/≈ contra PC-SAEA"
+      ],
+      "convencoes": "Idêntica às Tabelas 1 e 2.",
+      "achado": "PC-SAEA obtém o melhor IGD em 6 das 10 linhas, seguido por K-RVEA (3) e SOCEMO (1). 'Since MOEAs cannot converge to the Pareto fronts of most MOPs by using a limited number of function evaluations, the difficulties of expensive MOPs are mainly determined by their landscapes.'",
+      "aplicabilidade": "① endpoint — mesma lógica das entradas de Table 1/2; sem piso sem surrogate presente."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela final de HV média±dp (não IGD, pois a frente verdadeira é desconhecida) para PC-SAEA e os 7 baselines nos 3 problemas reais CSI (m=13,d=7), WRM (m=12,d=3) e GAA (m=11,d=27), mesmo protocolo de Wilcoxon.",
+      "literal": "Table 4 shows the experimental results obtained by the eight compared MOEAs on the three real-world MOPs, which contain many objectives with variable linkages.",
+      "localizador": "Sec. 4.3, Table 4",
+      "metricas": [
+        "HV"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=0,05, símbolos +/−/≈ contra PC-SAEA"
+      ],
+      "convencoes": "Ponto de referência do HV = nadir das soluções não-dominadas obtidas (não um nadir/ideal fixo por problema); demais convenções idênticas às Tabelas 1–3.",
+      "achado": "PC-SAEA obtém o melhor HV em 2 dos 3 problemas (CSI, WRM); REMO vence no terceiro (GAA — o problema real de maior dimensão de decisão, d=27, e maior nº de objetivos, m=11 — REMO obtém 1.5202e-1 contra 7.9853e-2 de PC-SAEA, marcado '+'), sem que o artigo atribua essa exceção à dimensão. 'PC-SAEA obtains two best HV values and REMO obtains one best result, both of which are based on pairwise comparison based surrogate models.'",
+      "aplicabilidade": "① endpoint com HV — reproduzível se a dissertação incluir problemas reais análogos (RE21/ESTOQUE40/DDMOP7 não coincidem com CSI/WRM/GAA); sem piso sem surrogate presente."
+    },
+    {
+      "fichas": [
+        32
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparação direta da acurácia de classificação dos 6 surrogates comparáveis (CPS-MOEA, K-RVEA, CSEA, EDN-ARMOEA, REMO, PC-SAEA — SOCEMO e HeE-MOEA excluídos por não reterem amostra de teste) em 4 problemas (DTLZ2, DTLZ3, WFG7, MaF4), usando os MESMOS conjuntos de treino/teste para todos os modelos (uma população durante a busca é sorteada para treino; a prole gerada a partir dela é o teste comum), com saídas convertidas em rótulos positivo/negativo e medidas por Recall, Precision, Accuracy e F1.",
+      "literal": "Table 5 lists the performance of the surrogate models used in the six compared MOEAs on DTLZ2, DTLZ3, WFG7, and MaF4, where the indicator values of Recall, Precision, Accuracy, and F1 averaged over 30 runs are reported.",
+      "localizador": "Sec. 4.4, Table 5",
+      "metricas": [
+        "Recall",
+        "Precision",
+        "Accuracy",
+        "F1"
+      ],
+      "testes": [
+        "nenhum teste estatístico — só médias sobre 30 execuções, melhor valor por linha em negrito"
+      ],
+      "convencoes": "4 problemas × 4 indicadores = 16 linhas; regra de conversão específica por tipo de surrogate (K-RVEA/EDN-ARMOEA: positivo se selecionado pela seleção ambiental; CPS-MOEA: positivo se não-dominado; CSEA: já é classificador binário nativo; REMO/PC-SAEA: positivo se melhor que a solução mediana da população); EDN-ARMOEA e PC-SAEA têm os 4 indicadores numericamente idênticos em cada problema por terem nº igual de amostras positivas/negativas no teste.",
+      "achado": "O modelo par-a-par de PC-SAEA obtém o melhor desempenho em 12 dos 16 indicadores; REMO (também par-a-par) é o melhor em 3; CPS-MOEA é o melhor no indicador restante (Recall em DTLZ2, 6.2963e-1 contra 6.1704e-1 de PC-SAEA) — a única exceção à dominância de PC-SAEA/REMO. 'pairwise comparison based models are verified to be more accurate for expensive multi-objective optimization, and the proposed surrogate model is more effective than existing ones.'",
+      "aplicabilidade": "reproduzível em espírito via camada ③ (predições/score do surrogate) cruzada com camada ① (rótulo verdadeiro derivado do f real) para PC-SAEA sozinho, ao longo do próprio orçamento — mas a comparação JUSTA e simultânea entre os 6 modelos (mesmo split de treino/teste compartilhado) NÃO é reproduzível a partir das camadas da dissertação, pois cada algoritmo do roster roda de forma independente, com suas próprias gerações/sorteios — só a acurácia PRÓPRIA de cada algoritmo, isoladamente, seria recuperável."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação do tipo de surrogate dentro do mesmo framework (regressão × classificação × comparação par-a-par)",
+      "grupo_sugerido": "B",
+      "descricao": "Substitui o surrogate par-a-par de PC-SAEA por um modelo de regressão (RBF, prediz diretamente o valor de fitness) ou por um modelo de classificação (PNN, prediz se a solução é parecida com as melhores ou piores), mantendo o resto do algoritmo (função de fitness, estratégia geral) o mais próximo possível, e compara IGD em WFG1–WFG9; a última linha da mesma tabela reporta o tempo de execução médio de cada variante.",
+      "literal": "Table 6 presents the IGD values of PC-SAEA with different surrogate models on WFG1–WFG9, where the original PC-SAEA based on a pairwise comparison based model considerably outperforms those based on a regression model or a classification model.",
+      "localizador": "Sec. 4.4, Table 6",
+      "metricas": [
+        "IGD",
+        "tempo de execução (runtime, segundos, média por problema)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=0,05, símbolos +/−/≈ contra PC-SAEA (pairwise)"
+      ],
+      "convencoes": "18 linhas (WFG1-9 × m=2,3); PC-SAEA' (regressão) e PC-SAEA'' (classificação) vs PC-SAEA (par-a-par, original); resumo +/−/≈ = 0/18/0 (regressão) e 0/12/6 (classificação) — a variante par-a-par nunca perde significativamente para nenhuma das duas.",
+      "achado": "PC-SAEA (par-a-par) supera claramente as variantes de regressão (0/18/0) e classificação (0/12/6); tempo médio de execução: regressão 1627s, classificação 245s (mais rápida, pois recebe um vetor e devolve um binário), par-a-par 1118s (intermediário); 'the training of surrogate models consumes less than 10% runtime of the whole algorithm'.",
+      "aplicabilidade": "não reproduzível com as 7 camadas — exige rodar variantes de PC-SAEA com outro tipo de surrogate (regressão RBF; classificação PNN), configurações não executadas nem registradas pela instrumentação da dissertação (que registra só a execução real, par-a-par).",
+      "observacoes": "conceitualmente adjacente à ficha 20 (desempenho agregado por classe de surrogate), mas aqui é uma ablação CONTROLADA dentro do mesmo algoritmo/artigo, não uma agregação cross-roster — por isso mapeada como nova, não como ficha 20."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade à fração de pareamento treino best/worst (N/4 × N/3 × N/2)",
+      "grupo_sugerido": "E",
+      "descricao": "PC-SAEA pareia só os N/4 melhores com os N/4 piores da população como amostras de treino (para criar uma fronteira de classificação nítida); o artigo compara essa escolha com pareamento N/3 e N/2 (mais amostras de treino, fronteira mais ambígua) em IGD sobre WFG1–WFG9, mais uma linha de acurácia média de teste por variante.",
+      "literal": "the original PC-SAEA outperforms the two variants with more training samples. Besides, the last row of Table 7 presents the test accuracies of the three MOEAs averaged over all the problems, where pairing the N/4 best solutions with the N/4 worst solutions leads to the highest test accuracy.",
+      "localizador": "Sec. 4.5, Table 7",
+      "metricas": [
+        "IGD",
+        "Accuracy (média por variante, linha de resumo)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=0,05, símbolos +/−/≈ contra PC-SAEA (N/4)"
+      ],
+      "convencoes": "18 linhas; resumo +/−/≈ = 0/14/4 (N/2) e 1/11/6 (N/3); acurácia média: N/2=5,7079e-1, N/3=5,8478e-1, N/4=6,0417e-1 (a mais alta).",
+      "achado": "N/4 vence no agregado e tem a maior acurácia média (0,60417 contra 0,58478 do N/3 e 0,57079 do N/2), confirmando a escolha do artigo. EXCEÇÃO pontual: em WFG3 (2-obj), a variante N/3 é SIGNIFICATIVAMENTE MELHOR que o próprio N/4 default (1,6265e-1 marcado '+' contra 1,9268e-1 de N/4) — o único caso, entre as 18 instâncias, em que mais amostras de treino supera a fração escolhida como padrão.",
+      "aplicabilidade": "não reproduzível com as 7 camadas — a fração de pareamento (N/4) determina QUAIS pares entram no treino/validação a cada geração, exigindo reexecução com cada fração registrada na camada ⑤ (manifesto) como estudo dedicado.",
+      "observacoes": "adjacente à ficha 32 (acurácia do classificador) pela linha de resumo de Accuracy, mas classificada como nova por ser primariamente uma sensibilidade de design de amostragem, não uma medição direta de acurácia ao longo do orçamento."
+    },
+    {
+      "fichas": [
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "A ablação central do mecanismo de confiança de PC-SAEA: compara a estratégia de gestão dinâmica (state 1/2/3 — usar diretamente, usar invertido, ou ignorar, conforme p+/p− vs δ) com duas variantes fixas — 'directly used' (sempre usa a predição como está, ignorando a validação) e 'reversely used' (sempre inverte a predição) — em IGD sobre WFG1–WFG9. É o experimento mais próximo, na bateria completa da dissertação, de um contrafactual explícito 'gestão de confiança ligada vs desligada' (o que a ficha 15 da tipologia descreve como nunca executado pela própria dissertação).",
+      "literal": "the original PC-SAEA outperforms the two variants, hence the effectiveness of the proposed reliability based model management strategy can be evidenced.",
+      "localizador": "Sec. 4.5, Table 8",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=0,05, símbolos +/−/≈ contra PC-SAEA (dinâmico)"
+      ],
+      "convencoes": "18 linhas; resumo +/−/≈ = 0/14/4 ('directly used') e 0/12/6 ('reversely used') — nenhuma das duas variantes fixas vence significativamente em NENHUMA linha (0 '+' em ambas).",
+      "achado": "A gestão dinâmica de confiança (dependente de δ=0,8) nunca perde significativamente para nenhuma das duas variantes fixas, confirmando a eficácia do mecanismo A3. NUANCE: em WFG6 (3-obj, m=3,d=20), tanto 'directly used' (3,7725e-1) quanto 'reversely used' (3,7962e-1) obtêm IGD numericamente MELHOR que a própria variante dinâmica (3,9189e-1) — ambos marcados '≈' (não significativo) — o único caso, entre 18 linhas, em que as duas variantes fixas batem simultaneamente o default dinâmico em valor bruto.",
+      "aplicabilidade": "as variantes 'directly used' e 'reversely used' NÃO são reproduzíveis com as 7 camadas — exigem reexecução com a gestão de confiança desligada/invertida, fora do desenho registrado. A variante 'dynamically used', porém, É a execução real de PC-SAEA — a camada ⑥ (filme) permitiria, para essa execução real, CONTAR quantas vezes state=1/2/3 ocorreu em cada geração (o que o próprio artigo não relata numericamente — ver ficha 45 nesta mesma extração)."
+    },
+    {
+      "fichas": [
+        45
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Sensibilidade de PC-SAEA ao parâmetro δ (limiar de confiabilidade que decide entre usar diretamente, usar invertido, ou ignorar o surrogate), varrido em {0,65; 0,70; 0,75; 0,80; 0,85; 0,90; 0,95}, medindo IGD final em 4 problemas (3-obj DTLZ2, 3-obj DTLZ3, 2-obj WFG7, 2-obj MaF4). É o parâmetro que define diretamente o USO da incerteza/confiança em PC-SAEA.",
+      "literal": "It is obvious that PC-SAEA obtains the best overall performance when δ = 0.8, which strikes a good balance between the use of promising surrogate models and the elimination of unpromising surrogate models.",
+      "localizador": "Sec. 4.5, Fig. 8",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum teste estatístico — curvas de IGD por valor de δ, presumivelmente médias sobre as 30 execuções (convenção do resto do artigo, não reafirmada explicitamente para esta figura)"
+      ],
+      "convencoes": "4 painéis (um por problema), eixo X = δ ∈ {0,65,...,0,95} em passos de 0,05, eixo Y = IGD; δ=0,8 é o valor usado em todas as outras tabelas/figuras do artigo.",
+      "achado": "δ=0,8 dá o melhor desempenho global entre os 7 valores testados nos 4 problemas, equilibrando uso e descarte do modelo; o artigo não tabula os valores de IGD por δ (só a figura), nem relata explicitamente o que ocorre nos extremos (δ→0,5 usaria o modelo quase sempre mesmo com baixa confiabilidade; δ→1 quase nunca o usaria).",
+      "aplicabilidade": "não reproduzível com as 7 camadas — δ é um hiperparâmetro que muda QUAL solução é escolhida a cada geração (afeta toda a trajetória de ①), exigindo reexecução com cada valor registrado na camada ⑤ (manifesto); a dissertação registra só δ=0,8 (o de fato executado). IMPORTANTE: esta figura mede o EFEITO DO VALOR de δ no desempenho final — não é uma CONTAGEM de quantas vezes o gate abriu (state=1) vs fechou (state=2/3) durante a execução real com δ=0,8; essa contagem explícita (o sentido literal da ficha 45 — 'quantas vezes o gate abriu') NÃO é relatada em nenhum lugar do artigo e teria que ser reconstruída do zero pela dissertação via camada ⑥ (filme) sobre a execução real de PC-SAEA."
+    },
+    {
+      "fichas": [
+        32
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Acurácia de classificação do surrogate de PC-SAEA (medida pelo mesmo método da Seç. 4.4/Tabela 5) ao longo da fração do orçamento consumida, em DTLZ2 3-objetivo, repetida para 5 tamanhos de população (N=10, 30, 50, 70, 100) — combina uma leitura longitudinal (a acurácia melhora, piora ou fica estável com o avanço da busca?) com uma varredura de N.",
+      "literal": "the surrogate models hold stable learning performance during the evolutionary process, where the accuracies are not increased since a new model is trained at each generation. Moreover, a larger population size corresponds to higher accuracies, since more solutions are available as training samples.",
+      "localizador": "Sec. 4.5, Fig. 9",
+      "metricas": [
+        "Accuracy"
+      ],
+      "testes": [
+        "nenhum teste estatístico — curvas de acurácia por N, presumivelmente médias sobre execuções (nº não declarado explicitamente para esta figura)"
+      ],
+      "convencoes": "5 curvas (uma por N ∈ {10,30,50,70,100}), eixo X = 'Ratio of function evaluations', eixo Y = Accuracy, único problema (3-obj DTLZ2); N=50 é o valor usado no resto do artigo.",
+      "achado": "A curva de acurácia é ESTÁVEL/PLANA ao longo do orçamento (tipo 'plana' na tipologia da ficha 35), não crescente — porque um modelo NOVO é treinado do zero a cada geração a partir de amostras da população CORRENTE, não de um arquivo cumulativo, então não há razão estrutural para a acurácia subir com mais avaliações reais acumuladas; N maior (mais soluções disponíveis por geração) dá acurácia mais alta.",
+      "aplicabilidade": "① + ③ (predições/rótulo do surrogate cruzado com o rótulo verdadeiro derivado de ①) reproduziriam a curva de acurácia ao longo do orçamento PARA O N de fato executado (ficha 32); a dimensão de varredura de N (10 a 100) NÃO é reproduzível — a dissertação roda PC-SAEA com um único N fixo, não um estudo de sensibilidade a N dedicado.",
+      "observacoes": "achado estrutural relevante para a dissertação: como o treino de PC-SAEA NÃO é cumulativo (reamostra a população corrente a cada geração, não o arquivo inteiro), uma curva 'plana' na sonda desta dissertação para PC-SAEA não deve ser lida automaticamente como sinal de degeneração (ficha 35) — pode ser uma propriedade esperada do desenho do algoritmo, não um sintoma de falha."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "PC-SAEA não tem um σ contínuo (não é um GP); sua 'incerteza' é operacionalizada como acurácia de classificação empírica em um conjunto de VALIDAÇÃO com rótulo verdadeiro conhecido (p+ = fração corretamente classificada, p− = fração classificada de forma invertida, Algoritmo 4), recalculada A CADA GERAÇÃO e usada diretamente como o sinal de confiança que decide o estado (usar/inverter/ignorar) — ou seja, a própria 'medição' operacional da incerteza JÁ É uma checagem de acurácia contra a verdade (medição classe ERR-EMP). Adicionalmente, o artigo faz uma verificação EXPERIMENTAL explícita e independente dessa acurácia: a Tabela 5 (Sec. 4.4) compara Recall/Precision/Accuracy/F1 do classificador de PC-SAEA contra os surrogates de 5 outros algoritmos em 4 problemas fixos (mesmo split treino/teste), e a Fig. 9 (Sec. 4.5) estende essa acurácia ao longo do orçamento e por tamanho de população, em DTLZ2.",
+    "literal": "For this aim, the classification accuracy on validation set is calculated as the degree of reliability.",
+    "localizador": "Sec. 3.3; Sec. 4.4, Table 5; Sec. 4.5, Fig. 9"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo de execução TOTAL médio (wall-clock, segundos, sobre todos os problemas de WFG1-9) de 3 variantes de PC-SAEA (regressão, classificação, par-a-par) — não decomposto em ajuste do modelo / busca no modelo / avaliação real / instrumentação, e sem complexidade assintótica explícita — mais uma afirmação qualitativa geral sobre a fração do tempo total gasta no treino do surrogate.",
+    "o_que_extra": "'the training of surrogate models consumes less than 10% runtime of the whole algorithm' — única quantificação (aproximada, sem número exato) da fração do tempo dedicada ao treino do modelo em si.",
+    "literal": "the classification model consumes the least runtime since it receives one decision vector and outputs a binary number, while the regression model consumes the most runtime since it needs to predict all the objective functions.",
+    "localizador": "Sec. 4.4, Table 6 (última linha) e parágrafo seguinte"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "O concorrente que mais vezes bate PC-SAEA de forma estatisticamente significativa, entre os 7 baselines, é justamente REMO — o único outro método também baseado em comparação par-a-par — sugerindo que a vantagem de PC-SAEA sobre o paradigma par-a-par em si (e não apenas sobre regressão/classificação) é mais estreita do que sobre os demais paradigmas.",
+      "literal": "It is worth noting that REMO obtains the most results that are significantly better than PC-SAEA, where REMO also uses a pairwise comparison based model.",
+      "localizador": "Sec. 4.3"
+    },
+    {
+      "descricao": "Trabalho anterior (REMO) já havia tentado comparação par-a-par sem gestão de confiabilidade, e não conseguiu superar de forma significativa modelos de regressão/classificação — motivação direta, citada pelos próprios autores, para o mecanismo de confiabilidade (A3) de PC-SAEA: comparação par-a-par SOZINHA (sem gate de confiança) não basta.",
+      "literal": "these models do not consider the reliability of models, and are unable to achieve significantly better performance than regression and classification models as presented in the experiments [15].",
+      "localizador": "Sec. 2.2"
+    },
+    {
+      "descricao": "No problema real GAA (m=11, d=27 — o de maior dimensão de decisão entre todos os testados no artigo), PC-SAEA perde significativamente para REMO em HV — a única linha, nas 3+42 comparações principais de HV/IGD (Tabelas 1-4), em que outro método vence PC-SAEA num problema REAL.",
+      "literal": "GAA 11 27 ... 1.5202e-1 (3.02e-2)+ 7.9853e-2 (7.75e-3) [Table 4, coluna REMO marcada '+' vs PC-SAEA]",
+      "localizador": "Sec. 4.3, Table 4"
+    },
+    {
+      "descricao": "Na ablação da fração de pareamento (Tabela 7), a variante com MAIS amostras de treino (N/3) supera significativamente a fração default N/4 em WFG3 (2-obj) — a única exceção, entre 18 linhas, à conclusão geral de que N/4 (menos amostras, fronteira mais nítida) é sempre preferível.",
+      "literal": "WFG3 2.2991e-1 (4.55e-2)− 1.6265e-1 (2.06e-2)+ 1.9268e-1 (3.37e-2) [Table 7, N/3 marcado '+' vs N/4]",
+      "localizador": "Sec. 4.5, Table 7"
+    },
+    {
+      "descricao": "Na ablação da estratégia de gestão do modelo (Tabela 8), em WFG6 (3-obj) as DUAS variantes fixas ('directly used' e 'reversely used') obtêm IGD numericamente melhor que a própria estratégia dinâmica default de PC-SAEA — embora nenhuma diferença seja estatisticamente significativa ('≈'), é o único caso entre 18 linhas em que ambas as variantes fixas empatam ou superam a gestão de confiança dinâmica em valor bruto.",
+      "literal": "WFG6 3.7725e-1 (3.39e-2)≈ 3.7962e-1 (3.39e-2)≈ 3.9189e-1 (4.91e-2) [Table 8]",
+      "localizador": "Sec. 4.5, Table 8"
+    },
+    {
+      "descricao": "Os próprios autores reconhecem, na conclusão, que o modelo substituto usado (PNN) é simples e que modelos de aprendizado de máquina mais sofisticados poderiam ser adotados — uma limitação auto-declarada do surrogate escolhido.",
+      "literal": "the surrogate model used in this work is a simple probabilistic neural network, and more delicate machine learning models such as RankNet [2] and those used in existing algorithms [42] can be adopted.",
+      "localizador": "Sec. 5, Conclusions"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "multimodalidade e espaço de decisão enviesado (DTLZ1-DTLZ7)",
+      "afirmacao": "PC-SAEA obtém o melhor IGD em 7 das 14 linhas, superando os 7 baselines significativamente entre 10 e 14 vezes cada — mas é aqui que REMO (par-a-par) mais se aproxima, com 2 vitórias.",
+      "literal": "Table 1 lists the experimental results obtained by the eight compared MOEAs on DTLZ1–DTLZ7, which are mainly characterized by multimodal landscapes and biased decision spaces.",
+      "localizador": "Sec. 4.3"
+    },
+    {
+      "caracteristica": "ligações complexas entre variáveis, mas paisagem mais simples que DTLZ (WFG1-WFG9)",
+      "afirmacao": "A superioridade de PC-SAEA é ainda mais ampla que em DTLZ (varredura completa 18/18 contra 2 dos 7 baselines), evidenciando que o método funciona tanto em problemas difíceis quanto simples.",
+      "literal": "The landscapes of WFG problems are in fact much simpler than DTLZ problems, which means that PC-SAEA is effective for both challenging and simple MOPs.",
+      "localizador": "Sec. 4.3"
+    },
+    {
+      "caracteristica": "multimodalidade extrema, quase impossível de aproximar (DTLZ3 especificamente)",
+      "afirmacao": "PC-SAEA converge visivelmente mais rápido e para soluções melhor convergidas que os 7 baselines mesmo neste caso extremo de dificuldade para o surrogate.",
+      "literal": "DTLZ3 has a highly multimodal landscape that is almost impossible to approximate accurately, posing stiff challenges to surrogate models.",
+      "localizador": "Sec. 4.3"
+    },
+    {
+      "caracteristica": "frente de Pareto descontínua (WFG2)",
+      "afirmacao": "PC-SAEA obtém mais soluções não-dominadas e converge mais rápido que os demais também nesta geometria difícil.",
+      "literal": "the proposed PC-SAEA gains more non-dominated solutions and converges faster than the other MOEAs [on 3-objective WFG2, which introduces a discontinuous Pareto front]",
+      "localizador": "Sec. 4.3"
+    },
+    {
+      "caracteristica": "frentes de Pareto irregulares (MaF1-MaF5, paisagem similar a DTLZ mas com fronteira mais irregular)",
+      "afirmacao": "PC-SAEA mantém a superioridade (6 de 10 melhores resultados), atribuída pelo artigo à dificuldade geral da paisagem (não a um mecanismo específico de irregularidade).",
+      "literal": "Table 3 presents the experimental results obtained by the eight compared MOEAs on MaF1–MaF5, whose landscapes are similar to DTLZ problems but Pareto fronts are more irregular.",
+      "localizador": "Sec. 4.3"
+    },
+    {
+      "caracteristica": "muitos objetivos com ligações entre variáveis, em problemas reais (CSI m=13,d=7; WRM m=12,d=3; GAA m=11,d=27)",
+      "afirmacao": "PC-SAEA vence em 2 dos 3 problemas reais (CSI, WRM); REMO vence no terceiro (GAA, o de maior dimensão de decisão, d=27) — o artigo não atribui essa exceção à dimensão ou ao nº de objetivos, apenas relata o resultado agregado.",
+      "literal": "PC-SAEA obtains two best HV values and REMO obtains one best result, both of which are based on pairwise comparison based surrogate models.",
+      "localizador": "Sec. 4.3"
+    }
+  ],
+  "roster_bloco": {
+    "mecanismo_proprio": [
+      {
+        "descricao": "Comparação direta de acurácia de classificação (Recall/Precision/Accuracy/F1) do surrogate par-a-par de PC-SAEA contra 5 outros tipos de surrogate (kNN, Kriging, FNN-classificador, rede com dropout, par-a-par concorrente), com o MESMO split treino/teste compartilhado entre todos, em 4 problemas fixos.",
+        "literal": "Table 5 lists the performance of the surrogate models used in the six compared MOEAs on DTLZ2, DTLZ3, WFG7, and MaF4, where the indicator values of Recall, Precision, Accuracy, and F1 averaged over 30 runs are reported.",
+        "localizador": "Sec. 4.4, Table 5"
+      },
+      {
+        "descricao": "Ablação do TIPO de surrogate (regressão RBF × classificação PNN × comparação par-a-par PNN) dentro do mesmo framework algorítmico de PC-SAEA, em IGD e tempo de execução, sobre WFG1-9.",
+        "literal": "Table 6 presents the IGD values of PC-SAEA with different surrogate models on WFG1–WFG9, where the original PC-SAEA based on a pairwise comparison based model considerably outperforms those based on a regression model or a classification model.",
+        "localizador": "Sec. 4.4, Table 6"
+      },
+      {
+        "descricao": "Ablação da fração de pareamento treino best/worst (N/4 × N/3 × N/2), que determina que amostras alimentam o treino do surrogate a cada geração — parâmetro de construção dos dados de treino, não do gate em si, mas que molda diretamente a qualidade do sinal de confiança calculado.",
+        "literal": "the original PC-SAEA outperforms the two variants with more training samples. Besides, the last row of Table 7 presents the test accuracies of the three MOEAs averaged over all the problems, where pairing the N/4 best solutions with the N/4 worst solutions leads to the highest test accuracy.",
+        "localizador": "Sec. 4.5, Table 7"
+      },
+      {
+        "descricao": "A ablação MAIS DIRETA do mecanismo A3 (gestão de confiança): compara a estratégia dinâmica (usar/inverter/ignorar conforme p+/p− vs δ) contra sempre-usar-diretamente e contra sempre-usar-invertido, isolando o efeito líquido de GERIR a confiabilidade em vez de confiar cegamente (ou desconfiar cegamente) do surrogate.",
+        "literal": "the original PC-SAEA outperforms the two variants, hence the effectiveness of the proposed reliability based model management strategy can be evidenced.",
+        "localizador": "Sec. 4.5, Table 8"
+      },
+      {
+        "descricao": "Sensibilidade ao parâmetro δ (limiar de confiabilidade que define diretamente o uso da confiança/incerteza) em 4 problemas, identificando δ=0,8 como o melhor valor entre os 7 testados.",
+        "literal": "It is obvious that PC-SAEA obtains the best overall performance when δ = 0.8, which strikes a good balance between the use of promising surrogate models and the elimination of unpromising surrogate models.",
+        "localizador": "Sec. 4.5, Fig. 8"
+      },
+      {
+        "descricao": "Estabilidade da acurácia do classificador ao longo do orçamento (não sobe, pois o treino não é cumulativo — reamostra a população corrente a cada geração) e sensibilidade dessa acurácia ao tamanho da população N, em DTLZ2.",
+        "literal": "the surrogate models hold stable learning performance during the evolutionary process, where the accuracies are not increased since a new model is trained at each generation.",
+        "localizador": "Sec. 4.5, Fig. 9"
+      }
+    ],
+    "reprodutivel_com_camadas": "Item 1 (Tabela 5, acurácia comparada entre 6 surrogates): a acurácia PRÓPRIA de PC-SAEA (predição × verdade) é reproduzível via camada ③ cruzada com ①, mas a comparação SIMULTÂNEA e justa entre os 6 modelos com split de treino/teste compartilhado NÃO é reproduzível — exigiria uma harmonização entre execuções independentes de algoritmos distintos do roster, fora do desenho da instrumentação. Item 2 (Tabela 6, ablação do tipo de surrogate) e Item 3 (Tabela 7, ablação da fração de pareamento): NÃO reproduzíveis — ambos exigem reexecutar PC-SAEA com uma configuração diferente da de fato executada (outro tipo de modelo; outra fração de pareamento), o que a camada ⑤ (manifesto) só registraria se essas variantes tivessem sido de fato rodadas, o que não é o caso do desenho padrão da dissertação (1 configuração por algoritmo). Item 4 (Tabela 8, gestão de confiança dinâmica × fixa): as variantes fixas ('directly'/'reversely used') NÃO são reproduzíveis pela mesma razão; mas a variante 'dynamically used' É a execução real registrada — a camada ⑥ (filme) permitiria, SÓ para essa execução real, contar quantas vezes cada estado (1=usar direto, 2=usar invertido, 3=ignorar) ocorreu por geração — uma contagem que o PRÓPRIO ARTIGO nunca relata numericamente em lugar nenhum (nem na Tabela 8, nem na Fig. 8, nem em qualquer outro ponto), apesar de a tipologia citar 'c217' precisamente como exemplo de 'quantas vezes o gate abriu' (ficha 45) — essa contagem teria que ser inteiramente reconstruída do zero pela dissertação a partir da execução real de PC-SAEA, sem nenhum número de referência do próprio artigo para comparar. Item 5 (Fig. 8, sensibilidade a δ): não reproduzível — exige reexecução com cada valor de δ, registrado na camada ⑤ só para o δ=0,8 de fato usado. Item 6 (Fig. 9, acurácia × orçamento × N): a curva de acurácia ao longo do orçamento, PARA O N=50 de fato executado, é reproduzível via ③×①; a varredura de N (10 a 100) não é.",
+    "parametros_do_uso_da_incerteza": [
+      "δ (threshold of reliability measurement) = 0,8 — o parâmetro central: limiar sobre p+ (fração de amostras de validação corretamente classificadas) e p− (fração invertidamente classificada) que decide entre state=1 (usar diretamente, se p+>δ), state=2 (usar invertido, se p−>δ), ou state=3 (ignorar o surrogate, caso contrário); sensibilidade testada em {0,65; 0,70; 0,75; 0,80; 0,85; 0,90; 0,95} (Fig. 8).",
+      "p+ e p− (Algoritmo 4) — a MEDIÇÃO operacional da confiança em si: acurácia empírica (fração corretamente/invertidamente classificada) sobre um conjunto de validação com rótulo verdadeiro conhecido, recalculada do zero a cada geração; é literalmente o número que δ filtra.",
+      "score > 0,95 (state=1) / score < −0,95 (state=2) — limiares adicionais, internos ao loop de geração de prole (Algoritmo 5), sobre a saída contínua do PNN (score = output(⟨x,y⟩) − output(⟨y,x⟩)) para filtrar quais dos candidatos gerados virtualmente são 'confiantes o bastante' para receber avaliação real — uma segunda camada de uso da confiança, além do δ no nível do modelo.",
+      "no máximo seis soluções por geração — cap no nº de candidatos com maior |score| selecionados de AllQ para avaliação real, por geração (Algoritmo 5, linhas 10 e 18).",
+      "Gmax (número máximo de predições/gerações virtuais do surrogate antes de parar de buscar e avaliar de fato) = 3000 — governa POR QUANTO TEMPO o surrogate (já validado/gated) é explorado antes de gastar avaliações reais; não é o limiar de confiança em si, mas a duração da busca que o confia.",
+      "N/4 (fração da população pareada como melhor/pior para treino do surrogate) — molda os DADOS de onde p+/p− são calculados; sensibilidade testada contra N/3 e N/2 (Tabela 7); incluído por completude/proximidade conceitual, não é o gate em si.",
+      "N (tamanho da população) = 50 — afeta a acurácia do classificador (Fig. 9: N maior → acurácia maior) mas não é, ele próprio, um parâmetro de uso da incerteza; incluído por completude."
+    ]
+  },
+  "observacoes": "(1) TAXONOMIA CONSISTENTE com o texto: motor=EA-Dominância (seleção ambiental via SPEA2 — força de dominância + densidade kNN, Algoritmo 1 linha 13); função da incerteza=A3·Gestão de confiança (state 1/2/3 dependente de δ, Algoritmo 4 — usar/inverter/ignorar conforme a confiabilidade validada, não um simples gate binário nem um termo de exploração tipo UCB); surrogate=CL-Relação/Classificação (a PNN prediz um RÓTULO relacional entre DOIS vetores de decisão, não um valor contínuo de fitness); medição=ERR-EMP (p+/p− são literalmente acurácia empírica contra rótulo verdadeiro em conjunto de validação, Algoritmo 4 — não variância de um modelo probabilístico fechado); regime=online (avalia a função real a cada geração, Linha 11 do Algoritmo 1). Todas as 4 classificações fornecidas no pedido são consistentes com o texto lido. (2) NENHUM PISO SEM SURROGATE em nenhuma comparação do artigo — os 7 baselines são todos assistidos por surrogate (kNN, Kriging, RBF, SVM, FNN-classificador, dropout-NN, par-a-par); portanto a ficha 9 (assistido×piso) e a ficha 16 (piso vence o assistido) NÃO têm nenhum dado correspondente extraível deste artigo — teriam que ser construídas do zero pela dissertação, rodando PC-SAEA contra seu próprio piso EA-Dominância. (3) CSEA (um dos 7 baselines aqui) é o próprio 'b4' já minerado separadamente no roster da dissertação — útil como referência cruzada (CSEA usa classificação com regiões de confiabilidade R1/R2/R3 e inversão em R3, mecanicamente próximo em espírito ao state 1/2/3 de PC-SAEA, embora um seja classificação pura e o outro comparação par-a-par — candidato natural a 'par quase-gêmeo' cross-artigo para a ficha 52 da dissertação, mas isso exigiria confirmar se CSEA/b4 e PC-SAEA/c217 estão entre os três pares pré-definidos do roster; não assumido aqui). (4) A ficha 45 da tipologia cita EXPLICITAMENTE 'c217' como exemplo de 'quantas vezes o gate abriu' — mapeada neste JSON à sensibilidade de δ (Fig. 8, Sec. 4.5), que é o experimento mais próximo que o artigo de fato realiza sobre esse parâmetro; mas nenhuma contagem literal de aberturas do gate (state=1 vs 2 vs 3) durante uma execução real é relatada em lugar nenhum do artigo — só o EFEITO do valor de δ no IGD final. Essa contagem teria que ser reconstruída do zero pela dissertação via camada ⑥. (5) A Tabela 8 (gestão dinâmica × sempre-direto × sempre-invertido) é, na prática, o contrafactual mais próximo que EXISTE na literatura para o que a ficha 15 da dissertação ('contrafactual σ=0 online') descreve como 'nunca executado' pela própria dissertação — vale citar esta evidência externa (c217) como resposta parcial, por proxy, à pergunta da ficha 15, mesmo que a dissertação em si nunca rode esse contrafactual sobre PC-SAEA. (6) Métrica usada em TODO o corpo do artigo é IGD simples (não IGD+) para os 42 problemas sintéticos, e HV (nadir das soluções obtidas, não um nadir/ideal fixo) para os 3 reais — nenhuma das duas é IGD+. (7) Tabelas apresentam MÉDIA±DP (não mediana) sobre 30 execuções; já as duas figuras de fronteira (Fig. 6, 7) usam a execução de IGD MEDIANO para o painel de população, mas a MÉDIA para a curva de convergência no mesmo painel — convenção mista. (8) Pequenos artefatos de extração/OCR identificados e não afetando as conclusões: (a) em Tabelas 1-3, a célula mesclada 'm/d' aparece deslocada para a linha do meio de cada bloco de problemas (DTLZ4, WFG5, MaF3) em vez da primeira linha — os valores de d usados neste JSON vêm da prosa da Seç. 4.2, não da posição da célula; (b) duas células numéricas com notação científica corrompida ('1.4985+00' faltando o 'e' antes do expoente, WFG1/EDN-ARMOEA, Table 2; '508478e-1' faltando um ponto decimal, WFG7/K-RVEA, Table 2, 3-obj) — os símbolos de significância (+/−/≈) ao lado permanecem legíveis e não foram afetados, então nenhuma conclusão depende dessas duas células específicas. (9) Nenhuma seção, apêndice, tabela ou figura foi pulada — este é um artigo de 14 páginas SEM apêndices e SEM menção a material suplementar (diferente de b4/CSEA, que remete resultados extras a um suplemento externo); a estrutura foi lida integralmente do início (título/abstract) ao fim (referências), incluindo a camada de texto bruta duplicada (ANEXO, get_text) — verificada linha a linha em amostras espalhadas por todo o documento e confirmada redundante com a camada estruturada, sem tabelas ou números adicionais — e o ANEXO de OCR de figuras ao final, que contém só rótulos ruidosos de eixo/legenda sem conteúdo numérico novo."
+}

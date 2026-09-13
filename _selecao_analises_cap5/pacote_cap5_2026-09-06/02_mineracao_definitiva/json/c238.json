@@ -1,0 +1,309 @@
+{
+  "id": "c238",
+  "sigla": "EIM",
+  "titulo": "Expected Improvement Matrix-based Infill Criteria for Expensive Multiobjective Optimization",
+  "ano": 2017,
+  "roster": true,
+  "setup": {
+    "benchmarks": "12 problemas de teste sintéticos, n=6 variáveis de decisão fixo em todos: ZDT1, ZDT2, ZDT3 (m=2, suíte ZDT) e DTLZ2, DTLZ5, DTLZ7 (m∈{3,4,6} cada, suíte DTLZ) = 3 + 3×3 = 12 instâncias. Selecionados deliberadamente para cobrir 4 geometrias de frente: convexa (ZDT1), côncava (ZDT2, DTLZ2), desconexa/discreta (ZDT3, DTLZ7) e em curva/degenerada (DTLZ5) — 'The selected test problems contain various types of Pareto fronts: convex fronts (ZDT1), concave fronts (ZDT2 and DTLZ2), disconnected fronts (ZDT3 and DTLZ7) and curve-shape fronts (DTLZ5)' (Sec. V-A). Mais 1 problema real de engenharia restrito na Seção VIII: o feixe de Nowacki (Nowacki beam, variante), m=2 (área de seção A, tensão de flexão σB), 2 variáveis de projeto (h, b), 5 restrições (classificadas NRSK). Nenhum problema WFG, MMF, BBOB ou dos 3 problemas reais da dissertação (RE21/ESTOQUE40/DDMOP7) aparece.",
+    "orcamento": "Nos 12 problemas sintéticos: DoE inicial = 11n−1 = 65 pontos (n=6); orçamento TOTAL de avaliações (DoE+infill) = 100 para m=2 (35 avaliações de infill) e 200 para m∈{3,4,6} (135 avaliações de infill) — não escala com n (fixo) nem segue a convenção 31D−1 da dissertação. No problema Nowacki (Seção VIII): DoE inicial = 21 pontos, +29 avaliações de infill = 50 avaliações totais.",
+    "execucoes": "10 execuções independentes por critério × problema nos 12 problemas sintéticos (6 critérios × 12 problemas × 10 execuções = 720 execuções no total dessa parte). 21 execuções independentes, cada uma com um DoE inicial diferente, no problema Nowacki (3 critérios CEIM × 21 execuções = 63 execuções).",
+    "baselines": "Comparação estritamente par a par entre um critério EI multiobjetivo estado-da-arte e o critério EIM correspondente que o artigo propõe a partir dele, dentro do MESMO framework EGO-Kriging (mesmo modelo GP/DACE, mesmo otimizador DE, mesmo DoE por execução): (EIe × EIMe) baseado em distância Euclidiana; (EIm × EIMm) baseado em distância maximin; (EIh × EIMh) baseado em melhoria de hipervolume. NÃO há piso evolutivo sem surrogate (tipo NSGA-II/MOEA-D) em nenhuma comparação — todos os 6 critérios comparados usam o mesmo Kriging; a pergunta do artigo é 'a aproximação fechada barata (EIM) perde desempenho frente à integral exata e cara (EI)?', não 'o surrogate compra?'.",
+    "metricas_principais": [
+      "hypervolume (HV)",
+      "IGD (inverted generational distance, não IGD+)"
+    ],
+    "testes": [
+      "paired t-test (p1)",
+      "Wilcoxon signed-rank test (p2)",
+      "α = 0.05 — comparação pareada apenas entre um critério EI e seu EIM correspondente (mesmo DoE por execução), nunca entre todas as combinações nem contra 'o melhor da linha'"
+    ],
+    "apresentacao": "Mediana, média e desvio-padrão (s.t.d.) sobre as execuções independentes (10, ou 21 no Nowacki); valor significativamente melhor (maior HV ou menor IGD) em negrito quando p1 e/ou p2 < 0.05. Para as figuras de fronteira final (Figs. 9-14), usa-se a execução com o MENOR hypervolume entre as 10 — ou seja, a PIOR execução, não a execução mediana ('the lowest hypervolume value in the 10 runs'). No problema Nowacki, usam-se superfícies de attainment melhor/mediana/pior sobre as 21 aproximações (não há tabela numérica agregada para esse problema). Ponto de referência do HV listado por problema na Tabela I (espaço bruto); para os critérios baseados em hipervolume (EIh/EIMh/CEIMh) usa-se ri=1.1 após normalizar os objetivos para [0,1] — dois pontos de referência distintos, para fins diferentes (avaliação vs. aquisição).",
+    "codigo_plataforma": "MATLAB. Kriging via DACE toolbox (regpoly0, corrgauss, θ inicial=1, região [1e-3,1e3]). Otimizador do critério de infill: Evolução Diferencial (DE/rand/1/bin, população=50, 50 gerações, F=0.8, CR=0.8, repetida 4 vezes, melhor solução mantida). Código dos critérios EI estado-da-arte exatos gentilmente cedido pelos autores originais: Couckuyt et al. (Euclidiano e hipervolume, toolbox SUMO) e Hupkens et al. (hipervolume, 2D/3D). Testes de tempo computacional (Seção VII) rodados em CPU Intel i7-6700 3.4GHz, 32GB RAM, Windows 10 64-bit, MATLAB R2012b, com μ e σ do Kriging fixados sinteticamente (não de uma otimização real)."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        5
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela com mediana, média e desvio-padrão do hypervolume e do IGD, sobre 10 execuções independentes, para os 6 critérios (EIe, EIMe, EIm, EIMm, EIh, EIMh) nos três problemas ZDT (2 objetivos, n=6, orçamento 100 avaliações). Teste t pareado (p1) e teste de postos sinalizados de Wilcoxon (p2) comparam cada critério EIM ao seu par EI de origem (mesma maquinaria e mesmo DoE por execução — desenho pareado que remove a variância do sorteio inicial, análogo à ficha 5 mas comparando 'nova formulação × formulação de origem' em vez de 'cada um × o melhor da linha').",
+      "literal": "It is evident that the EIe criterion is significantly worse than the other five criteria on all three ZDT test problems with respect to both the hypervolume and IGD indicators.",
+      "localizador": "Sec. VI-A, Table II, Figs. 9-11",
+      "metricas": [
+        "hypervolume",
+        "IGD"
+      ],
+      "testes": [
+        "paired t-test (p1)",
+        "Wilcoxon signed-rank test (p2)",
+        "α=0.05"
+      ],
+      "convencoes": "mediana, média, desvio-padrão sobre 10 execuções; valor significativamente melhor em negrito; comparação pareada apenas entre o critério EI e seu EIM correspondente (não todas as combinações, não vs. o melhor da linha).",
+      "achado": "EIe (critério euclidiano exato) é significativamente pior que os outros cinco em todos os 3 problemas ZDT (p1=0.0020 em todas as comparações de HV e IGD), atribuído pelos autores à falta da propriedade de monotonicidade em relação a σ. Não há diferença significativa entre EIm×EIMm nem entre EIh×EIMh na maioria dos casos (ex.: HV do ZDT1, EIm×EIMm: p1=0.1055, p2=0.1958), indicando que a aproximação barata (EIM) não perde desempenho perceptível frente à formulação exata e cara (EI) nesses dois casos.",
+      "aplicabilidade": "não reproduzível diretamente com as 7 camadas — exige rodar o próprio framework EGO-Kriging com os 6 critérios sobre DoEs pareados; não há camada equivalente na instrumentação da dissertação para comparar duas formulações de aquisição sobre o mesmo surrogate no mesmo momento de decisão (seria necessário reimplementar e recomputar ambos os critérios sobre os mesmos μ/σ registrados em ③)."
+    },
+    {
+      "fichas": [
+        1,
+        5
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma estrutura da A1 (mediana/média/s.t.d. de HV e IGD sobre 10 execuções, teste t pareado + Wilcoxon pareado, α=0.05), aplicada ao DTLZ2 com m∈{3,4,6} objetivos (n=6, orçamento 200), testando a capacidade de escalar para muitos objetivos com frente côncava conhecida.",
+      "literal": "The EIh criterion finds many points on the edges but few in the inner portion of the Pareto front.",
+      "localizador": "Sec. VI-B, Table III, Fig. 12",
+      "metricas": [
+        "hypervolume",
+        "IGD"
+      ],
+      "testes": [
+        "paired t-test (p1)",
+        "Wilcoxon signed-rank test (p2)",
+        "α=0.05"
+      ],
+      "convencoes": "idêntica à A1; três blocos de linhas por indicador, um por m∈{3,4,6}.",
+      "achado": "Os critérios EIM produzem hypervolume significativamente maior (e IGD menor) que os EI correspondentes em quase todos os casos (exceto EIm×EIMm, tipicamente não significativo, ex. m=4 HV: p1=0.8457, p2=0.4069), e a vantagem se mantém ao crescer m de 3 para 6. Numericamente (m=3): HV médio de EIm=15.024, EIe=14.645, EIh=14.961 — 'the average hypervolume value of the EIm criterion is 15.024 and are 14.645 and 14.961 for the EIe and EIh respectively'. EIh tende a concentrar pontos nas bordas da frente, deixando a porção interna pouco coberta, apesar de o hypervolume agregado ainda ser competitivo.",
+      "aplicabilidade": "mesma limitação da A1 — não reproduzível com as camadas da dissertação sem reimplementar e recomputar os 6 critérios sobre os mesmos μ/σ."
+    },
+    {
+      "fichas": [
+        1,
+        5
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma estrutura da A1/A2 (mediana/média/s.t.d. de HV e IGD sobre 10 execuções, teste t pareado + Wilcoxon pareado, α=0.05), aplicada ao DTLZ5 com m∈{3,4,6} objetivos (n=6, orçamento 200) — problema com frente em curva (degenerada), testando a capacidade de convergir a uma variedade de dimensão intrínseca menor que m-1 conforme m cresce.",
+      "literal": "The ability of the EIM criteria to find the curve-shape Pareto front also scales up with the number of objectives on the DTLZ5 problems.",
+      "localizador": "Sec. VI-C, Table IV, Fig. 13",
+      "metricas": [
+        "hypervolume",
+        "IGD"
+      ],
+      "testes": [
+        "paired t-test (p1)",
+        "Wilcoxon signed-rank test (p2)",
+        "α=0.05"
+      ],
+      "convencoes": "idêntica à A1; três blocos de linhas por indicador, um por m∈{3,4,6}; DTLZ5 tem frente em curva 1-dimensional (degenerada) mesmo com m objetivos.",
+      "achado": "Os três critérios EIM convergem bem à curva da frente verdadeira do DTLZ5 em todos os m testados; EIMe supera EIe significativamente (p1=0.0020 em todos os m); EIMh encontra mais pontos ao longo da curva que EIh (ex. m=6 IGD: EIMh mediana=0.0108 vs EIh mediana=0.0073 — aqui EIh é MELHOR, mostrando que a vantagem da EIM não é universal); EIMm tem eficiência estatisticamente similar a EIm na maioria dos casos (p1=0.1055-0.9219 conforme m).",
+      "aplicabilidade": "mesma limitação da A1 — não reproduzível com as camadas da dissertação sem reimplementar e recomputar os 6 critérios sobre os mesmos μ/σ."
+    },
+    {
+      "fichas": [
+        1,
+        5
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma estrutura da A1-A3 aplicada ao DTLZ7 com m∈{3,4,6} objetivos (n=6, orçamento 200) — problema com frente desconexa em múltiplas peças (2^(m-1) regiões), testando a capacidade de manter subpopulações em regiões distantes da frente simultaneamente.",
+      "literal": "This indicates that the hypervolume improvement is less efficient than the Euclidean distance improvement and the maximin distance improvement in identifying multiple discrete Pareto fronts, which is also found on the ZDT3 test function.",
+      "localizador": "Sec. VI-D, Table V, Fig. 14",
+      "metricas": [
+        "hypervolume",
+        "IGD"
+      ],
+      "testes": [
+        "paired t-test (p1)",
+        "Wilcoxon signed-rank test (p2)",
+        "α=0.05"
+      ],
+      "convencoes": "idêntica à A1; três blocos de linhas por indicador, um por m∈{3,4,6}.",
+      "achado": "EIMe e EIMm obtêm boas aproximações discretas e continuam eficientes conforme m cresce (autores recomendam EIMe/EIMm para problemas com frentes potencialmente desconexas). Tanto EIh quanto EIMh têm dificuldade em manter todas as peças discretas da frente (poucos pontos na última peça); a comparação EIh×EIMh é a única em que a direção do ganho se INVERTE conforme m: significativamente melhor para EIMh em m=3 e m=4 mas favorecendo EIh em m=6 (IGD mediana: EIh=0.6351 vs EIMh=0.8635, p1=0.0020).",
+      "aplicabilidade": "mesma limitação da A1 — não reproduzível com as camadas da dissertação sem reimplementar e recomputar os 6 critérios sobre os mesmos μ/σ."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para cada um dos 12 problemas sintéticos, plota-se a aproximação final da frente de Pareto obtida por cada um dos 6 critérios, usando a execução com o MENOR valor de hypervolume entre as 10 (a pior execução, não a mediana), contra a frente verdadeira, permitindo inspeção visual da forma/cobertura obtida por cada critério em cada geometria de frente (convexa, côncava, desconexa, curva).",
+      "literal": "Plots of the final Pareto front approximation obtained by each algorithm with the lowest hypervolume value in the 10 runs on ZDT1 problem.",
+      "localizador": "Figs. 9-14 (legendas), Sec. VI-A a VI-D (discussão)",
+      "metricas": [
+        "hypervolume (usado apenas para selecionar qual das 10 execuções é exibida)"
+      ],
+      "testes": [],
+      "convencoes": "execução de MENOR hypervolume (pior caso) entre as 10, não a execução mediana — convenção diferente da usada na dissertação (ficha 54, execução mediana); 6 subpainéis por figura, um por critério.",
+      "achado": "Confirma visualmente os achados numéricos: a frente final de EIe fica longe da frente verdadeira no DTLZ2; EIh concentra pontos nas bordas da frente com poucos no interior; todos os critérios perdem a última peça discreta da frente do ZDT3, e EIMh perde as duas últimas ('All the algorithms miss the last discrete Pareto front of the ZDT3 problem, and the EIMh criterion misses the last two discrete Pareto fronts').",
+      "aplicabilidade": "não reproduzível sem ajuste — a dissertação usa execução mediana como convenção-padrão, não a de pior HV entre as sementes; seria necessário mudar a convenção de seleção da execução exibida para replicar exatamente."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Contornos da função de aquisição no espaço de projeto (EI exato × EIM fechado)",
+      "grupo_sugerido": "E",
+      "descricao": "Para o problema ZDT1 (2 objetivos), com 10 pontos amostrados fixos, os autores calculam e plotam os contornos dos 6 critérios (EIe, EIm, EIh, EIMe, EIMm, EIMh) sobre uma grade do espaço de projeto bidimensional, comparando visualmente a semelhança das paisagens/superfícies de aquisição entre a formulação exata (EI, integral multivariada) e a formulação matricial fechada (EIM) proposta, antes de qualquer resultado numérico de otimização.",
+      "literal": "It is interesting to find that although the proposed EIM criteria are developed in a very different way as the traditional multiobjective EI criteria, the contours of the EIM criteria have very similar trends to their corresponding EI criteria.",
+      "localizador": "Sec. IV-E, Fig. 8",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "grade fixa no espaço de projeto 2D (embora n=6 no restante do artigo, aqui aparenta ser um corte ilustrativo); mesmos 10 pontos amostrados para os 6 painéis; cor indica valor do critério (mais escuro = maior).",
+      "achado": "As paisagens de aquisição EIM se assemelham qualitativamente às EI correspondentes; a EIM maximin é 'almost the same' que a EI maximin; as EIM euclidiana e hipervolume diferem visualmente da EI original mas sugerem aproximadamente o mesmo candidato de avaliação (mesmo máximo aproximado) — evidência ilustrativa pré-numérica de que a aproximação barata preserva o comportamento de busca do critério original.",
+      "aplicabilidade": "não reproduzível diretamente — exige recomputar a superfície do critério de aquisição em uma grade do espaço de projeto para pontos hipotéticos, o que não está entre as 7 camadas (que registram decisões efetivamente tomadas, não a superfície completa do critério a cada geração); poderia ser aproximado via ③ (μ/σ armazenados) se o critério fosse reimplementado, mas a sonda é fixa e não cobre densamente o espaço de projeto como uma grade dedicada."
+    },
+    {
+      "fichas": [
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mede o tempo médio (1000 repetições) para AVALIAR (não para otimizar) cada um dos 6 critérios de aquisição isoladamente, com μ e σ do Kriging fixados sinteticamente (μᵢ=10, σᵢ=2.5 para todo i) — não a partir de uma otimização real — variando o número de objetivos m∈{2,...,6} e o número de pontos não-dominados k∈{10,...,1000} (frentes convexas sintéticas geradas pelo método de [53]); compara o crescimento do tempo entre a formulação EI exata (algoritmos de Couckuyt et al. e Hupkens et al.) e a EIM fechada proposta — isola o componente 'busca no modelo/avaliação da aquisição' sem envolver ajuste de Kriging nem avaliação real.",
+      "literal": "The current fastest available algorithms need more than 10 seconds to calculate the EI criteria for the instance with 6 objectives and 1000 non-dominated front points, whereas the proposed EIM criteria need no more than 3×10−4 seconds.",
+      "localizador": "Sec. VII, Figs. 15-17",
+      "metricas": [
+        "tempo computacional (s), média de 1000 repetições"
+      ],
+      "testes": [],
+      "convencoes": "eixos log-log (tempo × nº de pontos não-dominados k), uma curva por m; μ/σ sintéticos fixos, não de uma otimização real; hardware e MATLAB fixos (Sec. VII).",
+      "achado": "O tempo de avaliação dos critérios EI estado-da-arte cresce rapidamente com m e com k, refletindo a maldição da dimensionalidade da integração multivariada por partes — ex.: o EI euclidiano de 6 objetivos cresce de 8.8×10−4 s a 1.5×10^1 s quando k vai de 10 a 1000, enquanto o EIM euclidiano correspondente cresce apenas de 2.0×10−5 s a 2.6×10−4 s no mesmo intervalo. Isso ocorre porque os critérios EI usam (k+1)^m integrações m-dimensionais por partes, enquanto os EIM usam k×m integrações unidimensionais fechadas — 'the multiobjective EI criteria are calculated using (k+1)^m ... m-dimensional piecewise integrations and the multiobjective EIM criteria are calculated using k × m one-dimensional integrations'.",
+      "aplicabilidade": "parcialmente reprodutível via ④ (tempos por geração) SE o algoritmo do roster registrar separadamente o tempo de AVALIAÇÃO do critério de aquisição (não apenas o tempo total de busca); a variação sintética de m e k com μ/σ fixados artificialmente não é replicável com os dados reais da dissertação (m e orçamento são fixos por problema; μ/σ vêm do GP real, não de valores impostos), mas o crescimento do tempo de busca com o tamanho do arquivo não-dominado ao longo do orçamento poderia ser inspecionado via ④."
+    },
+    {
+      "fichas": [
+        55,
+        23
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Estende os três critérios EIM multiplicando-os pela probabilidade de factibilidade (PoF) de cada restrição (uma Kriging por restrição), formando os critérios restritos CEIMe, CEIMm, CEIMh (Eqs. 32-34); valida no problema de engenharia restrito do feixe de Nowacki (variante com 2 objetivos, 2 variáveis de projeto h,b, 5 restrições classificadas NRSK), com 21 execuções independentes (21 DoEs iniciais distintos de 21 pontos + 29 avaliações de infill = 50 avaliações totais por execução), reportando as superfícies de attainment melhor/mediana/pior das 21 aproximações de Pareto obtidas por cada critério restrito, contra a frente de Pareto verdadeira do problema.",
+      "literal": "The figures show that the proposed constrained EIM criteria can find well-distributed feasible solutions of the Nowacki beam optimization problem using only 50 evaluations.",
+      "localizador": "Sec. VIII, Figs. 18-20, Appendix B",
+      "metricas": [
+        "superfície de attainment (melhor/mediana/pior)"
+      ],
+      "testes": [],
+      "convencoes": "21 execuções (não 10); superfícies de attainment worst/median/best em vez de estatística numérica agregada (sem tabela de HV/IGD para este problema); nenhuma comparação estatística formal entre CEIMe/CEIMm/CEIMh nem contra um critério não restrito.",
+      "achado": "Os três critérios CEIM encontram soluções factíveis bem distribuídas ao longo da frente de Pareto do problema restrito com apenas 50 avaliações totais. Nenhuma comparação quantitativa formal entre CEIMe/CEIMm/CEIMh é feita neste estudo — é uma demonstração de viabilidade (proof of concept) da combinação PoF×EIM, não um benchmark comparativo; os autores explicitamente adiam problemas restritos 'more complex and higher-objective' para trabalho futuro.",
+      "aplicabilidade": "não reproduzível com as 7 camadas da dissertação tal como descritas — exige um problema restrito com múltiplas restrições tratadas via PoF (Kriging por restrição), o que não é o desenho documentado para os 28 problemas da bateria da dissertação (seria aplicável apenas se algum dos 3 problemas reais tratar restrições dessa forma)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Prova/ilustração das propriedades de monotonicidade da aquisição em relação a μ e σ (N1, N2)",
+      "grupo_sugerido": "E",
+      "descricao": "Define formalmente duas propriedades de monotonicidade desejáveis para um critério multiobjetivo (N1: decrescente na média predita ŷ mantendo σ fixo; N2: crescente na incerteza σ mantendo ŷ fixo) e demonstra analiticamente que os três critérios EIM propostos as satisfazem (Sec. IV-C), enquanto o critério EI euclidiano estado-da-arte NÃO satisfaz N1/N2 (Sec. III-C, citando [22]); usa um exemplo numérico ilustrativo com 3 pontos hipotéticos (ponto 1, A, B — Figs. 6-7) para mostrar como a versão EI (baseada na distância absoluta, sem sinal) pode preferir um ponto DOMINADO (B) sobre um que o domina (A), enquanto a versão EIM (baseada no valor esperado, que já é direcional por construção) corrige essa inversão.",
+      "literal": "the Euclidean distance-based EI criterion is not compliant with these two monotonicity properties [22], which is thought to be the main disadvantage of this criterion.",
+      "localizador": "Sec. III-C, Sec. IV-C, Figs. 6-7",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "prova analítica (não estatística) + exemplo numérico ilustrativo com pontos hipotéticos, não um experimento com dados de execução real.",
+      "achado": "O critério EI euclidiano estado-da-arte pode preferir candidatos dominados por não considerar o SINAL da melhoria por objetivo (usa distância absoluta em vez de melhoria direcionada); a formulação EIM corrige esse defeito estrutural, o que os autores apontam como explicação mecanística para o desempenho muito pior do EIe observado empiricamente em todos os resultados (A1-A4) — um raro caso em que a dissertação poderia rastrear uma causa MECÂNICA (violação de monotonicidade em σ) para um resultado de placar.",
+      "aplicabilidade": "não reproduzível empiricamente com as camadas da dissertação tal como registradas — é uma propriedade estrutural da fórmula do critério, não uma medição de dados de execução; poderia ser verificada indiretamente recomputando o critério do algoritmo do roster em pares de pontos hipotéticos com μ/σ controlados a partir de ③, fora do fluxo normal de instrumentação."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo não mede calibração/cobertura do σ do Kriging (não há sonda com f verdadeiro conhecido, nem correlação σ×erro, nem cobertura μ±2σ) e também não valida a EIM como aproximação numérica fiel da EI original ponto a ponto (não compara EIM(x) contra EI(x) em valor absoluto para os mesmos x). A única validação, indireta e qualitativa, é a semelhança visual dos CONTORNOS de aquisição (A6, Fig. 8) e a equivalência estatística de DESEMPENHO final (A1-A4, Tabelas II-V) — nunca uma checagem direta da fidelidade numérica da aproximação em si.",
+    "literal": "the contours of the EIM criteria have very similar trends to their corresponding EI criteria",
+    "localizador": "Sec. IV-E, Fig. 8"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "(1) Motivação na Introdução: cálculo hipotético de que 2.000.000 avaliações do critério EI de 6 objetivos (100×100×200, população×gerações×iterações do GA usado para maximizar a aquisição), a 1s cada, levariam ≈23 dias — não é uma medição real, é uma estimativa ilustrativa. (2) Seção VII: medição real isolada do tempo de AVALIAÇÃO de cada critério (não do tempo total de uma execução, nem do tempo de ajuste do Kriging separadamente), média de 1000 repetições, com μ/σ sintéticos fixos, variando m e o número de pontos não-dominados k. Não há decomposição fit/busca/sonda/avaliação de uma execução REAL completa — é um microbenchmark isolado da fórmula do critério.",
+    "literal": "The computational time of the three EIM criteria is significantly smaller than their corresponding EI criteria for all the test instances.",
+    "localizador": "Sec. I (motivação, Eq. 19); Sec. VII, Figs. 15-17"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "O critério EI euclidiano estado-da-arte (EIe) apresenta desempenho significativamente pior que todos os outros 5 critérios em todos os 12 problemas testados, atribuído explicitamente à falta das propriedades de monotonicidade em relação à incerteza — o uso ingênuo de distância absoluta (sem considerar a direção/sinal da melhoria) prejudica sistematicamente a busca.",
+      "literal": "Since the EIe criterion does not have the monotonicity properties, it is not able to improve the current Pareto front approximation constantly during the iterations, thus derives poor results.",
+      "localizador": "Sec. VI-A"
+    },
+    {
+      "descricao": "O critério de hipervolume MODIFICADO proposto (EIMh) tem dificuldade em manter múltiplas frentes de Pareto discretas/desconexas no DTLZ7, concentrando pontos na primeira peça da frente e encontrando poucos na última — pior que EIMe/EIMm nesse aspecto, e pior que EIh em m=6.",
+      "literal": "The EIMh criterion finds a large amount of points on the first piece of the Pareto front but only few points on the last piece of the discrete Pareto front. This may indicate that the modified hypervolume improvement is good at finding continuous Pareto front but bad at maintaining multiple discrete Pareto fronts.",
+      "localizador": "Sec. VI-D"
+    },
+    {
+      "descricao": "Mesmo o critério de hipervolume estado-da-arte EXATO (EIh, não apenas a versão EIM aproximada) tem dificuldade em manter múltiplas frentes discretas — a fraqueza não é exclusiva da aproximação proposta, é do uso de hipervolume como função de melhoria em frentes desconexas em geral.",
+      "literal": "The EIh criterion also has trouble to maintain multiple discrete Pareto fronts of the DTLZ7 problem. The points on the last piece of the discrete Pareto front found by the EIh are significantly fewer than the EIMe, EIMm and EIm criteria.",
+      "localizador": "Sec. VI-D"
+    },
+    {
+      "descricao": "Todos os 6 critérios (EI e EIM) perdem a última peça discreta da frente de Pareto do ZDT3; o EIMh perde as duas últimas.",
+      "literal": "All the algorithms miss the last discrete Pareto front of the ZDT3 problem, and the EIMh criterion misses the last two discrete Pareto fronts.",
+      "localizador": "Sec. VI-A"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Não há diferença estatisticamente significativa entre o critério maximin exato (EIm) e sua versão EIM (EIMm), nem entre o hipervolume exato (EIh) e sua versão EIM (EIMh), nos três problemas ZDT — a formulação fechada e barata (EIM) entrega desempenho estatisticamente equivalente à formulação exata e cara (EI) nesses dois casos, apesar de ser ordens de grandeza mais rápida de calcular.",
+      "literal": "No significant difference is detected between the EIm criterion and the EIMm criterion, and between the EIh criterion and the EIMh criterion at the significant level of α = 0.05.",
+      "localizador": "Sec. VI-A"
+    },
+    {
+      "descricao": "No problema DTLZ5 (3 objetivos), a eficiência do EIMm é descrita como similar à do EIm exato.",
+      "literal": "The efficiency of the EIMm criterion is similar to the EIm criterion on the 3-objective DTLZ5 test problem.",
+      "localizador": "Sec. VI-C"
+    },
+    {
+      "descricao": "Resumo geral da suíte ZDT: as versões EIM de 2 objetivos têm desempenho competitivo com as versões EI de 2 objetivos — a barateza computacional da EIM (A7) não custa desempenho perceptível na maioria dos casos (exceção: EIe, que já era estruturalmente falho por N1/N2, ver resultados_negativos).",
+      "literal": "Overall, the 2-objective EIM criteria have competitive performances compared with the 2-objective EI criteria on the three ZDT test problems.",
+      "localizador": "Sec. VI-A"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "frente desconexa/discreta (múltiplas peças, ZDT3 e DTLZ7)",
+      "afirmacao": "Critérios baseados em distância (Euclidiana, maximin) — exatos ou EIM — encontram frentes discretas com mais facilidade que os baseados em hipervolume (exato ou modificado/EIM), que tendem a negligenciar peças distantes/menos volumosas da frente.",
+      "literal": "It seems that the Euclidean distance and maximin distance improvement functions have more advantages than the hypervolume improvement function in terms of finding discrete Pareto fronts.",
+      "localizador": "Sec. VI-A"
+    },
+    {
+      "caracteristica": "frente em curva/degenerada (DTLZ5, dimensão intrínseca menor que m-1)",
+      "afirmacao": "A capacidade dos três critérios EIM de convergir à frente-curva do DTLZ5 se mantém ao escalar o número de objetivos de 3 para 6.",
+      "literal": "The ability of the EIM criteria to find the curve-shape Pareto front also scales up with the number of objectives on the DTLZ5 problems.",
+      "localizador": "Sec. VI-C"
+    },
+    {
+      "caracteristica": "muitos objetivos (m até 6, DTLZ2/5/7)",
+      "afirmacao": "O desempenho relativo dos critérios EIM (frente aos EI originais) se mantém competitivo ou melhora conforme m cresce de 3 para 6, tanto em qualidade (Tabelas III-V, com exceções pontuais como EIh no DTLZ7 m=6) quanto sobretudo em custo computacional (Seção VII/A7), onde a vantagem relativa da EIM mais se acentua com m.",
+      "literal": "When the number of objectives becomes high, the performance of the three EIM criteria are still competitive and even better compared against the state-of-the-art EI criteria. This indicates that the proposed EIM criteria are able to deal with problems with large number of objectives.",
+      "localizador": "Sec. VI-B"
+    },
+    {
+      "caracteristica": "frente convexa/côncava simples, sem desconexão (ZDT1, ZDT2)",
+      "afirmacao": "Tanto os critérios EI quanto EIM obtêm aproximações de boa qualidade nos problemas convexo (ZDT1) e côncavo (ZDT2), mas pioram no desconexo (ZDT3) — a dificuldade principal vem da desconexão, não da convexidade/concavidade em si.",
+      "literal": "It can be seen that both the multiobjective EI and EIM criteria obtain very good Pareto front approximations on ZDT1 and ZDT2 problems, but relatively worse Pareto front approximations on ZDT3 problem.",
+      "localizador": "Sec. VI-A"
+    }
+  ],
+  "roster_bloco": {
+    "mecanismo_proprio": [
+      {
+        "descricao": "Prova formal (Sec. IV-C) de que os três critérios EIM propostos satisfazem as propriedades de monotonicidade N1 (decrescente na média predita ŷ) e N2 (crescente na incerteza σ), decorrentes diretamente da monotonicidade do EI de base — ao contrário do critério EI euclidiano estado-da-arte concorrente, que falha nessas propriedades (Sec. III-C); ilustrado com um exemplo numérico (pontos 1, A, B, Figs. 6-7) mostrando como a EIM corrige uma inversão de preferência causada pelo uso de distância absoluta (sem sinal) na versão EI.",
+        "literal": "The monotonicity properties can be easily proven for the three proposed multiobjective EIM criteria.",
+        "localizador": "Sec. IV-C, Figs. 6-7"
+      },
+      {
+        "descricao": "Demonstração (Sec. IV-D) de que, para função sem ruído, a EIM nunca é zero em pontos ainda não amostrados (pois σ>0 implica EI>0 em cada elemento da matriz, logo EIM>0), garantindo que o próximo ponto escolhido nunca coincide com um ponto já avaliado — o que sustenta a densidade da amostragem e a garantia de convergência (citando a teoria de [45]); a propriedade deixa de valer sob ruído, pois então σ é sempre positivo mesmo em pontos já amostrados.",
+        "literal": "This means that the next point selected by the EIM criteria to evaluate would be anywhere but the sampled points. As a consequence, the iterative sampling based on the EIM criteria is dense and the convergence of the EIM approach can be guaranteed according to the theory of [45].",
+        "localizador": "Sec. IV-D"
+      },
+      {
+        "descricao": "Regra prática de salvaguarda (item 5c dos ajustes experimentais): se o ponto de atualização proposto está a menos de 10^-8 (distância Euclidiana) de um ponto já avaliado, ele é substituído por um ponto que MAXIMIZA a incerteza do Kriging, para evitar mau-condicionamento numérico ao reajustar o modelo — um uso explícito e direto de σ como critério de exploração pura em modo de salvaguarda (fallback), distinto do uso normal via EI/EIM.",
+        "literal": "If the updating point is too close to an existing point (Euclidean distance is small than 10−8), it is replaced by maximizing the uncertainty of the Kriging model to avoid ill conditioning when building the Kriging model.",
+        "localizador": "Sec. V-B, item (5)(c)"
+      }
+    ],
+    "reprodutivel_com_camadas": "Item 1 (monotonicidade N1/N2, Figs. 6-7): NÃO reproduzível como medição de dados — é uma propriedade estrutural da fórmula, provada analiticamente, não uma medição de execução. Poderia ser verificada empiricamente de forma indireta recomputando a fórmula do critério do roster sobre pares de μ/σ registrados em ③ (a sonda), mas isso exige reimplementar o critério fora do fluxo normal de instrumentação — não é uma leitura direta do que já é registrado. Item 2 (densidade de amostragem / nunca reamostrar pontos já avaliados): reproduzível via ① (todas as avaliações reais, x, ordem) — permite checar diretamente, para a execução real do algoritmo do roster, se algum x_novo coincide (ou quase coincide, dentro de um limiar) com um x já avaliado anteriormente na mesma execução; é a camada mais diretamente aplicável dos três itens. Item 3 (fallback de maximizar a incerteza quando o ponto colide com um já avaliado): reproduzível SOMENTE se o algoritmo do roster implementar um fallback análogo E registrá-lo como evento em ⑥ (o filme das decisões internas) — nesse caso ⑥ contaria quantas vezes foi acionado; se o fallback existir mas não for registrado como evento distinto, teria de ser inferido indiretamente cruzando ① (o ponto de fato avaliado) com o ponto que a busca realmente propôs internamente (não registrado se descartado antes de ①).",
+    "parametros_do_uso_da_incerteza": [
+      "O critério EI/EIM não tem peso explícito de exploração-explotação ajustável pelo usuário (tipo β do UCB, ou δ de um gate) — o balanceamento é 'automático', embutido na integral fechada da EI de base; não há hiperparâmetro de uso da incerteza no sentido usual dos algoritmos com gate/threshold do roster.",
+      "Ponto de referência r do critério baseado em hipervolume (EIh/EIMh/CEIMh): fixado em ri=1.1 para todo i no espaço de objetivos normalizado [0,1] (Sec. V-B, item 5a) — molda diretamente como os elementos EI^j_i(x) da matriz são combinados nesse critério específico.",
+      "Limiar de distância 10^-8 (Euclidiana) que aciona a substituição do ponto proposto por um ponto que MAXIMIZA σ, como salvaguarda numérica (Sec. V-B, item 5c) — o único gatilho explícito e discreto ligado ao uso de σ no artigo.",
+      "θ_i (hiperparâmetros de correlação do Kriging, i=1..n): valor inicial 1, região de busca [10^-3, 10^3] (Sec. V-B, item 2) — determina a forma de σ(x) mas não é, em si, um parâmetro do USO da incerteza pela aquisição; incluído por completude."
+    ]
+  },
+  "observacoes": "Artigo é um paper de MÉTODO (não uma bateria comparativa ampla): propõe 3 novos critérios de infill multiobjetivo fechados (EIMe, EIMm, EIMh) construídos a partir de uma 'matriz de melhoria esperada' (EIM), e os compara par a par contra os 3 critérios EI multiobjetivo estado-da-arte de que derivam (euclidiano, maximin, hipervolume), sempre dentro do MESMO framework EGO-Kriging (mesmo modelo GP, mesmo otimizador DE, mesmo DoE pareado por execução) — não há piso evolutivo sem surrogate (tipo NSGA-II) em nenhuma comparação; portanto as fichas do bloco B da tipologia ('o surrogate compra?'), centradas em 'assistido × piso', não se aplicam a este artigo (nenhuma análise foi mapeada a elas). Não há curvas de convergência (IGD/HV × avaliações) em nenhum lugar do artigo — apenas resultados no orçamento final —, então as fichas do bloco D (trajetórias, 26-30) também não se aplicam. Não há medição de calibração/qualidade do σ do Kriging (calibracao_do_sigma.mede=false). A dimensão de decisão n é fixa em 6 em todos os experimentos sintéticos; apenas o número de OBJETIVOS m (2, 3, 4, 6) varia — diferente do eixo D (dimensão de decisão) que a ficha 7 da tipologia assume; por isso A2-A4 não foram mapeadas à ficha 7, apesar de também descreverem uma tendência de desempenho conforme um parâmetro de tamanho cresce. As Tabelas II-V da camada Markdown estruturada do PDF têm artefatos de OCR nos números (ex.: '120_._35' para '120.35', '(_p_1_, p_2_)' para '(p1, p2)') — todos os números citados neste JSON foram conferidos contra o ANEXO de texto bruto (pymupdf4llm get_text por página), que renderiza os mesmos valores sem esses artefatos. O ANEXO de OCR de imagens (Apple Vision, final do arquivo) não contém texto novo aproveitável — é ruído de eixos/legendas de gráficos malextraídos (ex.: listas de valores '5.63 X 106' já presentes na Tabela V, ou lixo tipo 'BOODOCCO D DID DO A DE I IN I NE DO SEE A SADDLE'). A sigla do roster é apenas 'EIM' (genérica), mas o artigo propõe três variantes (Euclidiana, maximin, hipervolume) e nunca elege uma única 'oficial' de forma geral — a Seção VI-D recomenda EIMe/EIMm especificamente para problemas com frentes desconexas, e a Seção VIII usa as três variantes com PoF para restrições sem eleger uma delas; a equipe da dissertação precisa registrar qual variante EIM foi de fato implementada no roster (suspeita mais provável, dada a popularidade subsequente do hipervolume na literatura SA-MOO, é EIMh, mas isso não pode ser confirmado só pelo texto deste artigo). O problema restrito do feixe de Nowacki (Seção VIII, Apêndice B) é um problema real de engenharia diferente dos 3 problemas reais da dissertação (RE21, ESTOQUE40, DDMOP7) — não faz parte da bateria de 28 problemas, mas é citado aqui como demonstração de viabilidade das variantes CEIM (EIM × probabilidade de factibilidade), sem comparação numérica formal entre elas. Nenhuma célula/execução relatada como falha ou excluída (sem material de ficha 57/58/59/60/61 aplicável)."
+}

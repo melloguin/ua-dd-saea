@@ -1,0 +1,178 @@
+{
+ "config": "b3 (K-RVEA, PlatEMO 4.15) · exp=main · RODADA FINAL sobre corpus CONGELADO: 746 sintéticas (herdadas do F30, 0 mtime alterado) + 58 células reais novas (28 RE21 + 30 DDMOP7; ESTOQUE40 = 0). Dados em resultados_experimentos/b3/; bateria desta rodada em /private/tmp/claude-501/-Users-gmello/16c0ba84-843b-49d1-9ce6-6cecc418b734/scratchpad/b3final/ (READ-ONLY nos dados; experiments.py jamais invocado; nenhum MATLAB Engine)",
+ "celulas_final": "CENSO 804 ok (100% rodapé status=ok/termino=normal, 0 conflito manifesto×rodapé, 0 ⚪ teto_wall, 0 falhas): sintéticos 746 ✅ (23 problemas ×30 + ZDT1 28 + ZDT3 28) + RE21 28 ✅ (faltam sementes 19/25) + DDMOP7 30 ✅ + ESTOQUE40 0 (30 planejadas no grid T15, nenhuma executada). Fora do censo: 1 ⚪ ZDT1/13 em voo (⑥ órfão de 115 ciclos, fe 901/929, sem rodapé — O-21: sem veredito), inalterada desde 14/08. Nas 58 novas: orçamento 31D−1 exato 58/58 (RE21 123, DDMOP7 526), fe_index denso, DoE 11D−1 sem duplicatas, hard_stop ⟺ resto>0 em 58/58 (42 com/16 sem), c0=1 58/58, cache_hits ⑥≡⑤≡rodapé 58/58, ⑥ 0 linhas malformadas, ④ = n_ciclos 58/58, sonda RE21 cadência exata 28/28 (574.000 linhas, 0 NaN, 0 σ<0) e DDMOP7 0 blocos (D102.10 declarado no ⑤ 30/30). ⑦ N/A (b3 é online — DI-08). Repro: 6 espelhos M8 + coleta_reais vm1/vm5 conferidos para as ausências.",
+ "novas_desde_f30": "58 células (mtime 15/08 12:18 → 18/08 16:11, todas pós-F30): RE21 sementes {0-18,20-24,26-28,42} = 28, todas vm1, repo 3240f4b26fae (T15.12), campanha 3240f4b26fae_2026-08-15; DDMOP7 30/30 em DUAS ondas — semente 0 vm1/repo 3240f4b26fae (15/08) e 29 células vm5/repo 7be66e65522c (18/08, pós-troca-de-shape da vm5). Diff entre os 2 repos MEDIDO por git: 6 arquivos (docs/registro/handoff, lote3s.sh, metrics.py pós-hoc, tests) — NENHUM na rota de execução do b3 (KRVEA/b3_instrument/ddmop7_value_local/ddmop7_bridge intocados) → ondas comportamentalmente idênticas para o b3. Zero células sintéticas modificadas desde o F30 → veredito F30 herdado com spot-check de 10 células (10/10: invariantes + joia 3.430/3.430 a ≤5,86e-08; BBOB_F17/2 reproduz os 3 NaN e MMF1/15 o 1 NaN do C3-1, bit-estável).",
+ "mecanismo_nos_novos": "Query-joia F1 da família (index → última sub-população da ③ → σ do selecionado) rodada em TODAS as 58 células novas (varredura total, não amostra; 30/30 sementes, 2.539 ciclos): 12.695/12.695 seleções (100,00%), erro relativo máximo 5,950e-08 = ULP do float32 da ③ (D53) — o mesmo dígito do F30 (5,93e-08) e da T11 (5,92e-08). F2 (critério = média das VARIÂNCIAS sem raiz, KrigingSelect.m:56): 12.695/12.695 a 4,34e-16 (identidade aritmética). Recomputo cross-camada (critério a partir do σ da ③): 12.695/12.695 a 2,09e-07. Invariantes estruturais 2.539/2.539 em todos: pop_por_w=20, u=5, n_vetores_vazios=0, nzero_updata=0, n_treino=arquivo=11D−1, Flag≡NumV2−NumV1, ramo≡(Flag≤δ), fe_treino_max≡fe_ant−1 (monotonia ESTRITA 58/58 — 0 ciclos delta_fe=0, diferente das sintéticas 741/746), adapt_delta_V com 9 valores, fit+busca≤geração. Acumulado do config: 227.695 seleções verificadas, 1 quebra=0.",
+ "reais": "RE21 (28 células): formulação fechada RE-VERIFICADA contra reimplementação independente minha — 6.888/6.888 valores de f a erro rel. máx 2,40e-07 (float32); \"violações\" de bounds são ≤2,42e-8 só em x1/x2 = float32 de √2 (não-achado). Comportamento: 100% APD em 28/28 (0/481 ciclos em incerteza — regime puro, como as MMF); NumV1(k)=NumV2(k−1) coincide em 44,4% (saturação tipo BBOB_F17). Régua Sobol (T do F30, CAI para o RE21 — gabarito sonda_RE21.parquet existe): WAPE mediano 1,39%→1,49% do 1º ao último bloco (+21,1% rel., piora em 17/28 — a \"sonda chata\" da T11 reproduz com |A1| fixo), cobertura 95% final mediana 0,908 (min 0,721; 17/28 ≥0,90). DDMOP7 (30 células): checa_regua 30/30 OK e 0 avisos (ideal=[0;0] jamais furado; f0·17 inteiro a 4,8e-7 e f1·690 a 2,1e-5 — quantização exata k/17 e n/690); zona morta APLICADA na rota R1 (ddmop7_value_local.m:120-127, τ=0,5 pós-DoE) e comportamentalmente coerente: 229/229 grupos de x_efetivo duplicado com f IDÊNTICO (oráculo .p determinístico sob x_efetivo); |ND| dedupado por x_efetivo (§T15.13): colapso mediano 10,8% (bruto mediano 151,5→129,5; pior: semente 10, 218→126), e o ND tem só 2-4 valores DISTINTOS de f por célula — publicar |ND| bruto superestima diversidade, como o contrato avisa. DESEMPENHO: melhor-f2 por semente = mediana EXATA 97/690 (min 95, max 150) — o número do smoke CONFIRMA como valor típico em 30 sementes; o POSTO \"2º melhor\" NÃO confirma: no ranking por mediana do melhor-f2 (21 configs, indicativo — sem equalização de orçamento p/ c154/b4 truncados; offlines não-comparáveis neste marginal) e7=94 e c122=96 lideram e NOVE configs empatam em 97 com o b3 — o posto do smoke era artefato de 1 semente (mesma lição do M3/F30). Incerteza: 4,7% dos ciclos (97/2.058), ciclo 1 nunca em incerteza (0/58 nos dois problemas). Deriva nos reais MEDIDA: par duplicado DDMOP7/0 vm1×vm5 — DoE + f do .p BIT-IDÊNTICOS entre máquinas (oráculo estável), trajetória diverge já no ciclo 1 (index e pop_por_w — o fit DACE divergiu) = cross-shape 100%, como a doutrina prevê; canônico=vm1 ok. ESTOQUE40: b3 NÃO TEM nenhuma célula (0 de 30 planejadas no grid T15) — a análise EST40 exclui o b3.",
+ "aspectos_mudados": [
+  {
+   "id": "M6/cobertura",
+   "o_que": "censo e camadas",
+   "antes": "747/750 sintéticas (746 ok + ZDT1/13 em voo + 3 ausentes)",
+   "agora": "804 ok = 746 sintéticas + 28 RE21 + 30 DDMOP7; EST40 0/30; RE21/19 e /25 ausentes também nos espelhos reais vm1/vm5; ZDT1/13 inalterada"
+  },
+  {
+   "id": "F1",
+   "o_que": "query-joia",
+   "antes": "25.195/25.195 em amostra de 88 células, máx 5,93e-08",
+   "agora": "+12.695/12.695 em varredura TOTAL das 58 novas a 5,95e-08 + spot 3.430/3.430 em 10 sintéticas"
+  },
+  {
+   "id": "F2",
+   "o_que": "critério média das variâncias",
+   "antes": "215.000/215.000 a 4,96e-16",
+   "agora": "+12.695/12.695 a 4,34e-16; cross-camada +12.695/12.695 a 2,09e-07"
+  },
+  {
+   "id": "B6",
+   "o_que": "1º ciclo em incerteza",
+   "antes": "158/746 células sintéticas (21,2%)",
+   "agora": "0/58 nos reais — RE21 e DDMOP7 sempre iniciam em APD"
+  },
+  {
+   "id": "M3",
+   "o_que": "regime do switch",
+   "antes": "24,72% incerteza agregado; 6/25 problemas com regime puro",
+   "agora": "RE21 é o 7º problema de regime puro (0,0% em 28/28); DDMOP7 misto raso (4,7%)"
+  },
+  {
+   "id": "U8",
+   "o_que": "monotonia estrita de fe_treino_max",
+   "antes": "741/746 (6 ciclos delta_fe=0)",
+   "agora": "58/58 estrita nos reais (0 delta_fe=0)"
+  },
+  {
+   "id": "M1/C3-1",
+   "o_que": "apd_sel=NaN",
+   "antes": "25/215.000 em 10 células sintéticas",
+   "agora": "26/227.695 (+1 em DDMOP7/22 ciclo 4): causa (b) PROVADA por recomputo — indivíduo argmin nos DOIS objetivos → linha nula pós-translação → APD NaN → 1º índice do cluster (index[3]=1); faixa dos objetivos 1,33 exclui a causa (a)"
+  },
+  {
+   "id": "M2/C3-2",
+   "o_que": "semântica do campanha_id",
+   "antes": "prefixo≠repo_hash em 735/746 (M8), inexplicado",
+   "agora": "58/58 novas com prefixo==repo_hash (2 ondas) — evidência de que o prefixo É o hash do repo do run e o rótulo '7f4f0e429a46_M8' é o desviante; segue escalado"
+  },
+  {
+   "id": "U6",
+   "o_que": "régua Sobol (WAPE/cobertura)",
+   "antes": "T (gabarito só da s42)",
+   "agora": "MEDIDA para o RE21 em 30 sementes: WAPE 1,39%→1,49%, cobertura final 0,908; DDMOP7 permanece sem sonda POR DECISÃO (D102.10) — não é T, é sancionado"
+  },
+  {
+   "id": "N4/M5",
+   "o_que": "deriva cross-máquina",
+   "antes": "24 pares M8 bit-exatos + 4 pares pós-shape divergentes (sintéticos)",
+   "agora": "+1 par REAL (DDMOP7/0 vm1×vm5): DoE e f do .p bit-idênticos, trajetória diverge no ciclo 1 via fit DACE — oráculo estável, surrogate não"
+  },
+  {
+   "id": "NOVO-ondas",
+   "o_que": "heterogeneidade de repo dentro do grupo DDMOP7",
+   "antes": "N/A",
+   "agora": "1 célula 3240f4b26fae + 29 células 7be66e65522c; diff git = 6 arquivos fora da rota de execução do b3 → não-material, com prova"
+  },
+  {
+   "id": "NOVO-regua",
+   "o_que": "guard executável da régua DDMOP7",
+   "antes": "N/A",
+   "agora": "checa_regua (src/metrics.py:376) rodado: 30/30 OK, 0 furos, 0 avisos; quantização k/17 e n/690 exata em float32"
+  },
+  {
+   "id": "NOVO-ND",
+   "o_que": "regra de leitura §T15.13",
+   "antes": "N/A",
+   "agora": "|ND| por x_efetivo: colapso mediano 10,8%; oráculo consistente 229/229 grupos duplicados; ND com 2-4 f distintos"
+  },
+  {
+   "id": "NOVO-RE21f",
+   "o_que": "fidelidade da formulação RE21",
+   "antes": "bit-verificada no T15 (smoke)",
+   "agora": "re-verificada nas 28 células × 123 FE: 6.888/6.888 a 2,4e-07"
+  }
+ ],
+ "celulas_invalidas": [
+  {
+   "celula": "b3/ZDT1/13",
+   "motivo": "EM VOO desde 14/08: ⑥ órfão com 115 ciclos (fe 901/929 = 97,0%), SEM rodapé e sem ①②③④⑤ — sob O-21 não há veredito do algoritmo; já excluída do censo_final",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "b3/ZDT1/26",
+   "motivo": "ausente no canônico e nos 6 espelhos M8 (lacuna de entrega, não de algoritmo)",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "b3/ZDT3/13",
+   "motivo": "ausente no canônico e nos 6 espelhos M8",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "b3/ZDT3/26",
+   "motivo": "ausente no canônico e nos 6 espelhos M8",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "b3/RE21/19",
+   "motivo": "ausente no canônico E nos espelhos coleta_reais vm1/vm5 — nunca entregue; RE21 fica com n=28",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "b3/RE21/25",
+   "motivo": "ausente no canônico e nos espelhos reais — nunca entregue",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "b3/ESTOQUE40/* (30 células)",
+   "motivo": "grupo inteiro jamais executado (grid T15 planejava 21 configs × 3 reais × 30; EST40 só existe para 15 configs no censo); coberto apenas pela declaração genérica de congelamento — nenhuma decisão NOMEIA a lacuna b3×EST40",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "(nenhuma das 804 do censo)",
+   "motivo": "804/804 com rodapé ok/termino=normal, invariantes fechando, 0 teto_wall — não há célula presente inválida",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C3-1",
+   "descricao": "apd_sel=NaN em 26/227.695 seleções (0,0114%) — 25 sintéticas (9×BBOB_F17 + MMF1/15, F30) + 1 NOVA em problema REAL (DDMOP7/22 ciclo 4): recomputo da ③ prova a causa (b) — indivíduo 0 é argmin dos DOIS objetivos preditos, linha nula pós-translação, pdist2 cosine indefinido, APD=NaN, seleção pelo 1º índice do cluster (index[3]=1); causa (a) excluída (razão de faixas 1,33). Código stock vendorizado, nenhuma decisão o cita",
+   "gravidade": "baixa (0,0114%; nenhum invariante quebra; nenhum NaN vaza a outra camada)",
+   "acao": "classificar na bússola D29 (laranja impl→código ou roxo errata: o Alg. 3 pressupõe γ>0 e população transladada não-nula); caveat na dissertação para BBOB_F17 e agora nota para DDMOP7",
+   "arquivo_linha": "KrigingSelect.m:28,31,32,41"
+  },
+  {
+   "id": "C3-2",
+   "descricao": "campanha_id da onda M8: prefixo 7f4f0e429a46 ≠ repo_hash 63db46b10063 em 735/746 sintéticas. EVIDÊNCIA NOVA desta rodada: as 3 ondas T15 (3240f4b26fae_2026-08-15, 7be66e65522c_2026-08-18) trazem prefixo==repo_hash em 58/58 — o desviante é o rótulo M8",
+   "gravidade": "baixa (rastreabilidade; repo_hash em si é único e correto em todas)",
+   "acao": "manter escalado (D81); com a evidência nova, a leitura 'prefixo=hash do repo do run' passa a ser a consistente e as 735 M8 carregam rótulo de despacho, não de run",
+   "arquivo_linha": "manifest.campanha_id × manifest.repo_hash"
+  },
+  {
+   "id": "C3-3",
+   "descricao": "lacunas de entrega AMPLIADAS: além das 4 do F30 (ZDT1/13 em voo + ZDT1/26, ZDT3/13, ZDT3/26), RE21 sem sementes 19/25 (n=28) e ESTOQUE40 inteiro ausente para o b3 (0/30). Corpus congelado pelo autor ⇒ exclusão, não re-run",
+   "gravidade": "média (n=28 em 3 dos 27 problemas do b3; b3 fora de 1 dos 3 problemas reais — assimetria de cobertura na narrativa dos reais)",
+   "acao": "declarar n por problema na análise (ZDT1/ZDT3/RE21 n=28) e NOMEAR a lacuna b3×ESTOQUE40 na dissertação — hoje ela só está coberta pela declaração genérica de congelamento",
+   "arquivo_linha": "resultados_experimentos/b3/ + censo_final.csv"
+  },
+  {
+   "id": "C3-4",
+   "descricao": "NOVA: params.zona_morta (τ) AUSENTE do ⑤ em 30/30 células DDMOP7 do b3 — e em TODA a pilha matlab-platemo (c141, c217, nsga2, e74, moead conferidos), enquanto os runners Python (c149, b5r, c122) trazem {tau:0.5, escopo, decisao}. Contraria a letra do CONTRATO (emenda T15.12/D102.17: 'injeção automática do harness') e o item 3 do plano do laudo T15 ('registrar tau_zona_morta no sigma_dict do ⑤ e no params'), implementado só na rota Python. A transformação FOI aplicada (ddmop7_value_local.m:120-127, τ=0,5 hard-coded, paridade testada em tests/test_t15_zona_morta.py; comportamento confirmado: 229/229 grupos de x_efetivo com f consistente)",
+   "gravidade": "baixa (metadado, não dado; τ recuperável da decisão D102.17 e do código; zero efeito no que foi executado)",
+   "acao": "decidir: errata de ⑤ pós-hoc (D29 roxo) ou regra de leitura declarada ('para pilha MATLAB, τ vem de D102.17/ddmop7_value_local.m:120'); vale para todos os configs MATLAB do DDMOP7, não só b3",
+   "arquivo_linha": "manifest.params (MATLAB) × ddmop7_value_local.m:120"
+  }
+ ],
+ "score_final": 9.3,
+ "trajetoria_scores": "F5 9,6 → T11 9,8 → F30 9,4 → FINAL 9,3. F5→T11 (+0,2): dois T fechados com dado (U5 par sonda bit-idêntico; VD-b3 discriminado por reconstrução forense) sobre o MESMO corpus s42. T11→F30 (−0,4): mecanismo intacto em 30 sementes (zero quebras em 215.000 seleções), mas 3 classes-3 de ACERVO nasceram (apd_sel=NaN não sancionado; campanha_id ambíguo; 4 células não entregues) + 52 células fora da linha de base bit-exata M8. F30→FINAL (−0,1): o mecanismo NÃO se moveu — estendeu-se a 2 problemas reais com 100% em toda identidade mensurável (12.695/12.695 joia; RE21 re-verificado a 2,4e-7; checa_regua 30/30; oráculo consistente sob x_efetivo) e três aberturas fecharam (régua Sobol medida no RE21; ondas de repo provadas inócuas por diff; semântica do campanha_id ganhou evidência) — mas o ACERVO cedeu mais que isso: b3 ficou fora do ESTOQUE40 inteiro (0/30, lacuna não nomeada por decisão), RE21 entregou n=28, o ⑤ do DDMOP7 não registra a zona morta (C3-4, classe 3 nova de toda a pilha MATLAB) e o C3-1 recorreu num problema real. Causa nomeada do −0,1: perda de cobertura + metadado de contrato, com zero desconto de mecanismo.",
+ "veredito": "ACEITAR — recomendação, não sentença (D97: a validação de fidelidade é manual e do autor). O b3 chega à rodada final com o mecanismo mais bem-provado do acervo: 227.695 seleções verificadas acumuladas sem UMA quebra de identidade (joia a ULP de float32 em 3 exames independentes + varredura total das 58 novas), formulação RE21 bit-verificada contra reimplementação independente, régua do DDMOP7 (ideal=[0;0], nadir=[1;468/690]) jamais furada sob guard executável, zona morta aplicada e comportamentalmente coerente, e deriva cross-máquina explicada até o nível do fit DACE (oráculo .p bit-estável; surrogate não — como a doutrina prevê). Aceitar com 5 declarações anexas: (1) lacuna b3×ESTOQUE40 nomeada (a análise EST40 exclui o b3); (2) n=28 em ZDT1/ZDT3/RE21; (3) C3-4 (⑤ sem τ da zona morta — regra de leitura ou errata, pilha MATLAB toda); (4) C3-1 com o caso real novo, pendente de classificação D29 desde o F30; (5) o posto 'DDMOP7 2º melhor' do smoke NÃO deve ir à dissertação — nas 30 sementes b3 empata no pelotão de mediana 97/690 (9 configs) atrás de e7/c122, e o número publicável deve sair da fase 2 pooled (HV, D102.4), não do marginal min-f2.",
+ "decisoes_ao_autor": [
+  "NOMEAR a lacuna b3×ESTOQUE40 (30 células planejadas no grid T15, 0 executadas; EST40 só existe para 15 dos 24 configs) — hoje ela está coberta apenas pela declaração genérica 'o que não executou, não vou executar mais'; a análise do EST40 exclui o b3 e a dissertação deve dizê-lo explicitamente",
+  "DECLARAR n=28 para RE21 (sementes 19 e 25 ausentes no canônico E nos espelhos coleta_reais vm1/vm5), somando-se ao n=28 já conhecido de ZDT1/ZDT3",
+  "CLASSIFICAR C3-4 (novo): params.zona_morta/tau ausente do ⑤ em toda a pilha matlab-platemo do DDMOP7 (b3 30/30; c141/c217/nsga2/e74/moead idem; runners Python têm) — o item 3 do plano do laudo T15 só foi implementado na rota Python. Recuperável sem re-run: τ=0,5 está em D102.17 e hard-coded em ddmop7_value_local.m:120 (paridade testada). Decidir: errata de ⑤ pós-hoc (roxo) ou regra de leitura declarada",
+  "CLASSIFICAR C3-1 na bússola D29 (pendente desde o F30) — agora com um caso em problema REAL: DDMOP7/22 ciclo 4, causa (b) provada por recomputo (argmin duplo → linha nula → APD NaN → 1º índice); recomendo laranja impl→código + caveat para BBOB_F17 e nota para DDMOP7",
+  "FECHAR C3-2 (campanha_id) com a evidência nova: as ondas T15 usam prefixo==repo_hash em 58/58 (3240f4b26fae_2026-08-15, 7be66e65522c_2026-08-18) — a leitura consistente é 'prefixo = hash do repo do run' e o rótulo '7f4f0e429a46_M8' das 735 células M8 é rótulo de despacho; falta só a decisão formal",
+  "DECLARAR como não-material a heterogeneidade de repo dentro do b3×DDMOP7 (1 célula 3240f4b26fae/vm1 + 29 células 7be66e65522c/vm5): diff git medido = 6 arquivos, nenhum na rota de execução do b3 (só docs, lote3s.sh, metrics.py pós-hoc e tests) — anexar o diff como evidência",
+  "NÃO publicar o posto do smoke ('b3 2º melhor no DDMOP7'): nas 30 sementes o melhor-f2 mediano do b3 é exatamente 97/690 (o valor do smoke confirma), mas NOVE configs empatam em 97 e e7 (94) e c122 (96) ficam à frente — o posto era artefato de 1 semente (mesma lição do M3/F30); o contraste publicável é a fase 2 pooled (HV), agora computável com as 629 células DDMOP7",
+  "HERDADAS do F30, seguem abertas: substring DEF-A8 fora do NO_RETRY (não mordeu: n_retries=0 em 804/804) e a lacuna do adapt_delta_V (9 de 10 eventos; quem usar o campo subestima o movimento inter-ciclo)"
+ ]
+}

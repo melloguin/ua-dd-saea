@@ -1,0 +1,469 @@
+{
+  "id": "c81",
+  "sigla": "UA-MORL-Diff",
+  "titulo": "Uncertainty-Aware Multi-Objective Reinforcement Learning-Guided Diffusion Models for 3D De Novo Molecular Design",
+  "ano": 2025,
+  "roster": false,
+  "setup": {
+    "benchmarks": "3 datasets moleculares (não são problemas MOO sintéticos nem os 3 reais da bateria da dissertação — RE21/ESTOQUE40/DDMOP7): QM9 (Quantum Chemistry Dataset, 132.251 moléculas orgânicas pequenas, máx. 9 átomos pesados, tipos C/N/O/F); ZINC15 (Molecular Library, 198.626 moléculas 3D lead-like, máx. 26 átomos pesados, tipos C/N/O/F/P/S/Cl/Br/I, natureza drug-like); PubChem (Compound Database, 444.287 moléculas, máx. 50 átomos pesados, mesmos tipos de átomo que ZINC15, estruturalmente mais complexo/diverso). Split 80%/10%/10% treino/validação/teste — scaffold-based (Bemis–Murcko) para os modelos surrogate, species-based (por conjunto de tipos atômicos) para os modelos de difusão. 3 propriedades/objetivos por dataset, computadas sobre as próprias moléculas geradas (não são funções de teste MOO): QED (drug-likeness via RDKit, maximizar), SAS (Synthetic Accessibility Score via RDKit, minimizar) e afinidade de ligação ao EGFR (receptor mutante, PDB 6VHN) via docking com AutoDock Vina (minimizar, mais negativo=melhor). D é a dimensionalidade do espaço 3D atômico (M átomos × 3 coordenadas + features), não um D de decisão fixo como nos problemas sintéticos da dissertação — M varia por molécula.",
+    "orcamento": "Não há orçamento de avaliações reais no sentido da dissertação (nenhuma otimização iterativa contra uma função cara por chamada, custeada por um número fixo de avaliações). O surrogate (Chemprop D-MPNN) é treinado OFFLINE, uma única vez por propriedade×dataset (9 modelos), sobre o split de treino inteiro — nunca é retreinado com moléculas geradas durante a otimização por RL. O 'orçamento' análogo é o nº de EPISÓDIOS de treinamento por RL (Fig. 2: ~65 QM9, ~180 ZINC15, ~50 PubChem), cada episódio amostrando n_samples moléculas (grid search em {32,64,128,256}; valores finais: 128 QM9, 128 ZINC15, 64 PubChem, Tabela B.7) via trajetórias completas de difusão (T passos de denoising cada). Avaliação final: 2.000 moléculas geradas por execução.",
+    "execucoes": "3 execuções/trials independentes por configuração para toda avaliação final (Tabelas 1, 2, C.2, C.3, C.4, C.6; Fig. 3), resultados reportados como média ± intervalo de confiança de 95% — não mediana, não desvio-padrão puro, não IQR. As curvas de treinamento por episódio (Fig. 2) não deixam claro se são de uma única execução representativa ou agregadas sobre as 3 execuções (nenhuma banda de dispersão é mostrada). Os 9 modelos surrogate são treinados uma única vez cada (ensemble size=1 na configuração final escolhida, Tabela B.5, embora o grid de busca permitisse até 30); a avaliação de calibração/acurácia do surrogate (R², AUCE, Apêndice C.2) é feita uma vez sobre o split de teste, sem repetição.",
+    "baselines": "Não há piso evolutivo sem surrogate (nem NSGA-II/MOEA-D/NSGA-III/SMS-EMOA — o problema não é sequer formulado como busca populacional evolutiva) nem qualquer um dos 15 algoritmos SA-MOO da bateria da dissertação. O piso mais próximo é 'W/O RL': o modelo de difusão condicional pré-treinado, usado para gerar moléculas SEM nenhum ajuste por RL (mesmo backbone gerativo, sem otimização de propriedades). Além disso: (1) 4 baselines de RL-guided diffusion adaptados de geração de imagens para o domínio molecular (SFT-PG, DDPO-SF, DDPO-IS, DPOK), reformulados com recompensa BINÁRIA (1 se todas as propriedades excedem cutoffs do top-10%, senão 0) — nenhum usa incerteza preditiva; (2) na ablação (Tabela 2, só QM9), 16 métodos substituindo o módulo de agregação multiobjetivo: 4 scalarization-based (WS, POO, MMM, LSDW), 4 constraint-based (NMD, NMD-WS, CP, PFM), 4 gradient-based (SVD, PCGrad, CAGrad, GradVac), 4 uncertainty-based (UCB, EI, MVC, BORE); (3) nos apêndices, mais 5 baselines de guidance de modelos de difusão/amostragem (TFG, Best-of-N, SMC, PILOT, DiffSMol, Tabela C.3, só QM9); (4) 2 outras arquiteturas de difusão (GeoLDM, GFMDiff) testadas como backbones alternativos ao EDM (Tabela C.6, só QM9).",
+    "metricas_principais": [
+      "Validity (%) — fração de moléculas geradas quimicamente válidas (reconstrutíveis via RDKit)",
+      "Uniqueness (%) — fração das válidas que são distintas entre si (SMILES canônico)",
+      "Novelty (%) — fração das únicas ausentes do conjunto de treino",
+      "VUN (%) = Val × Uni × Nov — métrica conjunta",
+      "Atom Stability (%) e Molecule Stability (%) — aderência a regras de valência",
+      "Top (%) — fração que satisfaz simultaneamente QED>0.4, SAS<8, afinidade<-4.5 kcal/mol",
+      "R² — acurácia da média predita pelo surrogate",
+      "AUCE (Area Under the Calibration Error curve) — calibração da incerteza do surrogate",
+      "RMSD (nm) — estabilidade estrutural via simulação de MD",
+      "métricas ADMET (14 propriedades farmacocinéticas/toxicológicas via ADMET-AI)",
+      "ΔG_bind (kcal/mol) e Kd predito — afinidade de ligação via Free Energy Perturbation (FEP)"
+    ],
+    "testes": [
+      "nenhum teste estatístico formal em todo o artigo (sem Wilcoxon, sem Friedman, sem Holm, sem Nemenyi); dispersão reportada como intervalo de confiança de 95% sobre 3 execuções independentes"
+    ],
+    "apresentacao": "Tabelas com média ± IC95% sobre 3 execuções (2.000 moléculas cada), melhor valor por coluna em negrito (sem símbolos +/=/−, sem ranking agregado). Curvas de treinamento por episódio (Fig. 2), aparentemente sem banda de dispersão. Distribuições de valores de propriedade via box/violin plots por trial, com vs. sem RL (Fig. 3). Visualizações qualitativas: poses de docking, radares ADMET (14 eixos) e curvas de RMSD ao longo da simulação de MD (Fig. 4); galeria dos 8 melhores candidatos por dataset (Fig. C.3). Parity plots (coloridos por σ²_total) e curvas de calibração (confiança nominal vs. cobertura empírica) por propriedade×dataset (Fig. C.1–C.2), com R²/AUCE anotados em cada painel.",
+    "codigo_plataforma": "Framework próprio de RL-guided diffusion (PPO-style, código em https://github.com/Kyle4490/RL-Diffusion) sobre EDM (Equivariant Diffusion Model, EGNN) como backbone principal; GeoLDM e GFMDiff testados como backbones alternativos. Chemprop (D-MPNN com aprendizado evidencial — parâmetros Normal-Inverse-Gamma β,α,ν) para os 9 surrogates. RDKit para QED/SAS; AutoDock Vina para docking/afinidade. AmberTools + OpenMM para MD (ff14SB, GAFF, TIP3P, NPT 300K/1bar, 4.000 ps/1.000.000 passos); ADMET-AI para as 14 propriedades ADMET; FEP via equação de Zwanzig, simulações em OpenMM. GPUs NVIDIA A100 80GB."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela 1 compara o método proposto ('Ours') contra o modelo de difusão vanilla sem RL ('W/O RL', o piso) e 4 baselines de RL-guided diffusion adaptados de geração de imagens (SFT-PG, DDPO-SF, DDPO-IS, DPOK), nos 3 datasets (QM9, ZINC15, PubChem), em 7 métricas de qualidade/propriedade (Val, Uni, Nov, VUN, ASta, MSta, Top), média ± IC95% sobre 3 execuções de 2.000 moléculas cada. É a tabela de desempenho final central do artigo — o 'placar' configuração × dataset, mas em métricas de qualidade geracional e satisfação de propriedades, não IGD+/HV/dominância.",
+      "literal": "On QM9, our method achieves the best overall performance, with the highest validity (98.17%), VUN score (88.90%), and top molecule percentage (28.33%).",
+      "localizador": "Sec. 4.2.2, Table 1",
+      "metricas": [
+        "Validity",
+        "Uniqueness",
+        "Novelty",
+        "VUN",
+        "Atom Stability",
+        "Molecule Stability",
+        "Top"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Média ± intervalo de confiança de 95% sobre 3 execuções independentes (não mediana, não desvio-padrão); melhor valor por coluna em negrito; sem símbolos +/=/−, sem ranking agregado, sem teste de postos.",
+      "achado": "'Ours' vence em quase todas as métricas nos 3 datasets (validade +9% sobre os baselines RL em QM9; 33,40% de 'Top' em ZINC15; mantém 100% de unicidade/novidade em PubChem), mas a validade absoluta em PubChem permanece baixa (16,23%) e a Uniqueness de 'Ours' fica sistematicamente ABAIXO do piso W/O RL e de alguns baselines nos 3 datasets — um trade-off explícito, não um domínio estrito em todas as colunas.",
+      "aplicabilidade": "não reproduzível — exige treinar o framework de RL+difusão molecular específico deste domínio (moléculas 3D, EDM/EGNN, Chemprop), fora do escopo dos 28 problemas sintéticos/3 reais e dos 19 algoritmos (15 SA-MOO + 4 pisos) da bateria da dissertação; em espírito, é o análogo de uma matriz de endpoint configuração×problema (camada ①), mas com métricas de qualidade geracional em vez de IGD+/HV."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Fig. 2 mostra, para cada um dos 3 datasets, a evolução de 5 métricas de qualidade (validade, unicidade, novidade, estabilidade atômica, estabilidade molecular) e da recompensa total ao longo dos EPISÓDIOS de treinamento por RL (0–65 QM9, 0–180 ZINC15, 0–50 PubChem) — a curva de convergência do processo de otimização, análoga em espírito a uma trajetória de convergência por orçamento, mas com 'orçamento' = episódios de RL, não avaliações reais de uma função cara.",
+      "literal": "the quality metrics, especially validity and molecular stability, are gradually improved over the course of training. The reward curves (Fig. 2d–f) grow steadily and eventually stabilize, indicating convergence.",
+      "localizador": "Sec. 4.2.2, Fig. 2",
+      "metricas": [
+        "Validity",
+        "Uniqueness",
+        "Novelty",
+        "Atom Stability",
+        "Molecule Stability",
+        "Total Reward"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curvas por episódio de treino (não por avaliação real); não fica explícito no texto ou na figura se é uma única execução ou agregada sobre as 3 execuções — nenhuma banda de dispersão/IQR é mostrada; eixo y em % (métricas de qualidade) ou valor absoluto (recompensa total).",
+      "achado": "As métricas de qualidade melhoram gradualmente e a recompensa cresce de forma estável até estabilizar, confirmando convergência — mas o artigo nota explicitamente que a curva de treino de PubChem (Fig. 2c, avaliada com 128 moléculas) diverge da Tabela 1 (avaliada com 2.000 moléculas), atribuindo a discrepância ao tamanho da amostra de avaliação.",
+      "aplicabilidade": "não reproduzível diretamente — não há 'geração' evolutiva nem avaliações reais custeadas por orçamento neste framework; em espírito, corresponderia a uma versão da camada ① (métrica acumulada vs. orçamento consumido) se 'episódio de RL' fosse tratado como unidade de orçamento, mas sem seeds/IQR não seria equivalente à ficha 26 completa."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Distribuições marginais dos objetivos (QED/SAS/afinidade) das moléculas geradas, com vs. sem RL",
+      "grupo_sugerido": "B",
+      "descricao": "Fig. 3 compara, para os 3 datasets e 3 trials independentes, as distribuições de QED, SAS e afinidade de ligação das 2.000 moléculas válidas geradas pelo modelo de difusão vanilla (sem RL) contra o modelo guiado por RL com incerteza ('Ours') — 9 painéis (3 propriedades × 3 datasets), cada um com box/violin plots comparando as duas condições. Diferente de qualquer ficha da tipologia: não é uma métrica de qualidade de busca (IGD+/HV/dominância), é a distribuição bruta dos valores de objetivo alcançados.",
+      "literal": "RL-guided models consistently improved QED and reduced SAS and binding affinity, indicating better drug-likeness, synthetic accessibility, and binding potential.",
+      "localizador": "Sec. 4.2.2, Fig. 3",
+      "metricas": [
+        "QED",
+        "SAS",
+        "Binding Affinity"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Box/violin plots por trial (3 trials, sem agregação entre eles no mesmo painel); comparação categórica 'Without RL' vs 'With RL', não uma curva contínua nem uma fronteira de Pareto.",
+      "achado": "RL com recompensa baseada em incerteza desloca consistentemente as 3 distribuições de propriedade na direção desejada (QED para cima; SAS e afinidade para baixo) nos 3 datasets, mas 'a extensão da melhoria variou entre datasets devido a diferenças intrínsecas de propriedade e estrutura' — não quantificado estatisticamente (sem teste de diferença de distribuições).",
+      "aplicabilidade": "não reproduzível — não há noção de 'distribuição marginal de um objetivo sobre moléculas geradas' nas 7 camadas da dissertação (que registram avaliações de x∈R^D sobre funções de teste, não amostras de um gerador estocástico); em espírito mais próximo seria comparar a distribuição de f por objetivo entre DoE inicial e o ND final (ficha 14), mas aqui não há DoE nem ND, apenas duas populações de amostras i.i.d. geradas."
+    },
+    {
+      "fichas": [
+        52
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Dentro da Tabela 2 (ablação, só QM9), o subgrupo 'uncertainty-based' compara 'Ours' contra 4 formulações alternativas de uso da incerteza para guiar a mesma maquinaria (backbone de difusão + treino por RL/PPO): UCB, EI, MVC e BORE substituem a probabilidade conjunta de sucesso (produto de probabilidades de exceder o limiar) por outras formas clássicas de explorar a incerteza preditiva.",
+      "literal": "We also compare to other uncertainty-based methods to demonstrate that our formulation has more actionable signals than generic uncertainty sampling or exploration strategies.",
+      "localizador": "Appendix B.6; Table 2 (linhas UCB/EI/MVC/BORE)",
+      "metricas": [
+        "Val",
+        "Uni",
+        "Nov",
+        "VUN",
+        "ASta",
+        "MSta",
+        "Top"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesma tabela/convenção da Tabela 2 (média±IC95%, negrito=melhor); todas as 4 alternativas + 'Ours' compartilham o mesmo backbone (EDM) e loop de treino RL, variando apenas a função que consome a incerteza do surrogate — a maquinaria controlada, só a função da incerteza muda.",
+      "achado": "UCB obtém a maior Novelty (99,98%) e MVC a maior Uniqueness (97,23%) entre os métodos baseados em incerteza — ambos superando 'Ours' nessas colunas específicas — mas 'Ours' vence com folga em Val (98,17 vs. 85,68–89,33), VUN, ASta, MSta e é competitivo em Top (28,33 vs. 13,40–26,97, sendo UCB notavelmente pior em Top apesar de excelente Novelty).",
+      "aplicabilidade": "não reproduzível — exige a mesma maquinaria de RL+difusão; em espírito é o análogo mais próximo da 'lupa da incerteza' da ficha 52 (mesmo motor, função da incerteza distinta), mas fora do roster e sem pareamento por semente/problema como na dissertação — aqui é 1 dataset (QM9), 3 execuções, sem teste pareado."
+    },
+    {
+      "fichas": [
+        15
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O restante da Tabela 2 (12 métodos: 4 scalarization-based — WS/POO/MMM/LSDW; 4 constraint-based — NMD/NMD-WS/CP/PFM; 4 gradient-based — SVD/PCGrad/CAGrad/GradVac) substitui inteiramente a agregação por incerteza por métodos que usam APENAS estimativas pontuais ou gradientes (nenhum usa a variância/incerteza preditiva do surrogate) — mantendo o mesmo backbone e loop de RL. É, na prática, um contrafactual 'incerteza totalmente ausente' (σ nunca consultado) contra a mesma maquinaria.",
+      "literal": "We compare our method against three classes of widely used multi-objective optimization paradigms (scalarization-based, constraint-based, and gradient-based) to validate that the performance gains of our uncertainty-aware reward are not simply due to reformulating the objectives.",
+      "localizador": "Appendix B.6; Table 2 (linhas scalarization/constraint/gradient-based)",
+      "metricas": [
+        "Val",
+        "Uni",
+        "Nov",
+        "VUN",
+        "ASta",
+        "MSta",
+        "Top"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesma tabela/convenção da Tabela 2; os 12 métodos usam apenas médias preditas (μ) ou gradientes das perdas por propriedade, nunca σ — o contraste mais próximo, nesta bateria, do contrafactual 'σ=0' que a ficha 15 descreve como nunca executado na dissertação.",
+      "achado": "Os 12 métodos sem incerteza alcançam desempenho no mesmo patamar geral dos baselines RL (VUN 65,77–88,75), com PFM chegando a VUN=88,75±0,78 — quase empatado com 'Ours' (88,90±0,68) — mas nenhum supera 'Ours' em Val/ASta/MSta/Top de forma consistente; LSDW, NMD-WS e MMM ficam notavelmente piores em Uniqueness/VUN (69,95–77,88), mostrando que a ausência de incerteza não é uniformemente prejudicial, mas também não é uniformemente equivalente.",
+      "aplicabilidade": "não reproduzível — mesma limitação estrutural do item anterior; é o contrafactual 'σ=0 online' (ficha 15) de fato executado neste artigo (algo que a dissertação classifica como nunca executado na sua própria bateria) — relevante como precedente/contraponto para a discussão da ficha 15 na dissertação, embora fora do roster e sem pareamento por semente."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação dos componentes auxiliares da recompensa (reward boost, penalidade de diversidade, corte dinâmico)",
+      "grupo_sugerido": "B",
+      "descricao": "Ainda na Tabela 2 (QM9), 3 variantes de 'Ours' removem individualmente um componente AUXILIAR da recompensa (mantendo a probabilidade de incerteza U_multi intacta): sem o bônus de validade/unicidade/novidade (Reward Boost), sem a penalidade de diversidade de Tanimoto (Diversity Penalty), ou com o limiar δ FIXO em vez de adaptado por média móvel (Static Cutoff) — isolando a contribuição de cada mecanismo de engenharia de recompensa que não é a própria incerteza.",
+      "literal": "Lastly, we ablate key components in our reward module such as reward boosting, diversity penalty, and dynamic cutoff adjustment, which helps to understand their individual contributions",
+      "localizador": "Appendix B.6; Table 2 (linhas 'Ours W/O')",
+      "metricas": [
+        "Val",
+        "Uni",
+        "Nov",
+        "VUN",
+        "ASta",
+        "MSta",
+        "Top"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesma tabela/convenção da Tabela 2; único componente removido por vez, comparado contra 'Ours' completo (linha final, repetida da Tabela 1).",
+      "achado": "Remover a penalidade de diversidade é o pior colapso (VUN cai de 88,90 para 65,77; MSta de 99,17 para 80,42; Uniqueness de 90,90 para 79,37) — evidência de mode collapse sem ela. Remover o corte dinâmico (cutoff estático) na verdade AUMENTA Val/ASta/MSta/VUN levemente sobre 'Ours' completo, mas reduz Top (24,88 vs. 28,33) — o único componente cuja remoção não piora tudo.",
+      "aplicabilidade": "não reproduzível — os 3 componentes (bônus categórico, penalidade de Tanimoto, limiar adaptativo por média móvel) não têm análogo nas 7 camadas da dissertação, que não modelam recompensa de RL; nenhuma ablação é do termo de incerteza U_multi em si (esse fica sempre presente aqui, ao contrário do item anterior)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Validação real de candidatos via docking + MD + perfil ADMET contra inibidor conhecido de EGFR",
+      "grupo_sugerido": "C",
+      "descricao": "Os 3 melhores candidatos gerados (um por dataset) são comparados a um inibidor conhecido de EGFR mutante (PDB 6VHN) via pose de docking, simulação de MD (4.000 ps, RMSD proteína-ligante) e perfil ADMET (14 propriedades farmacocinéticas/toxicológicas via ADMET-AI, radar chart). É um estudo de caso de validação físico-química/farmacológica end-to-end dos candidatos moleculares — nada equivalente existe na tipologia da dissertação (que versa sobre qualidade de busca MOO, não sobre validação biológica de um output final).",
+      "literal": "Overall, the generated compounds matched or outperformed the reference inhibitors, demonstrating the practical utility of our framework in identifying structurally stable, pharmacologically promising molecules for early-stage drug discovery.",
+      "localizador": "Sec. 4.2.4, Fig. 4; Appendix C.6",
+      "metricas": [
+        "RMSD (nm)",
+        "QED",
+        "SAS",
+        "Binding Affinity",
+        "14 propriedades ADMET (absorção, distribuição, metabolismo CYP450, excreção, toxicidade hERG/Ames/hepatotoxicidade/LD50)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Estudo de caso qualitativo com N=3 candidatos + 1 referência (sem repetição/seeds); RMSD estabilizado em 0,20–0,30 nm considerado critério de equilíbrio da simulação; radar chart de 14 eixos por composto.",
+      "achado": "Todos os 3 candidatos mantiveram complexos proteína-ligante estáveis (RMSD dentro ou abaixo da faixa de referência) e perfis ADMET favoráveis (boa absorção, baixa inibição de CYP, toxicidade mínima), igualando ou superando o inibidor de referência conhecido — validação além das métricas de propriedade usadas para treinar/otimizar o modelo.",
+      "aplicabilidade": "não reproduzível — exige pipeline de docking (AutoDock Vina), MD (AmberTools/OpenMM) e ADMET-AI específico do domínio farmacêutico, sem qualquer camada equivalente nas 7 da dissertação (que não envolvem simulação físico-química de candidatos gerados)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Validação da afinidade de ligação via Free Energy Perturbation (FEP) para os 3 candidatos selecionados",
+      "grupo_sugerido": "C",
+      "descricao": "Para complementar (e checar a robustez de) a afinidade estimada por docking (AutoDock Vina, usada como um dos 3 objetivos), o artigo recalcula a energia livre de ligação (ΔG_bind) dos mesmos 3 candidatos + o inibidor conhecido via perturbação de energia livre (equação de Zwanzig, simulações em OpenMM) — um método mais caro e considerado mais rigoroso que o docking usado durante a otimização.",
+      "literal": "the three designed compounds exhibited binding affinities that are comparable to or modestly better than the known EGFR inhibitor.",
+      "localizador": "Appendix C.5, Table C.5",
+      "metricas": [
+        "ΔG_complex (kcal/mol)",
+        "ΔG_ligand (kcal/mol)",
+        "ΔG_bind (kcal/mol)",
+        "Kd predito (µM)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tabela numérica direta com 4 linhas (3 moléculas + inibidor conhecido), sem repetição/incerteza reportada nos próprios valores de FEP.",
+      "achado": "Os ΔG_bind variam de -4.14 (inibidor conhecido) a -4.29 kcal/mol (Molécula I), com os 3 candidatos gerados exibindo afinidade comparável ou modestamente melhor que o inibidor de referência — reforço independente (método mais caro) de que a métrica de afinidade usada como objetivo/recompensa durante o treino (docking) não estava enganando o otimizador.",
+      "aplicabilidade": "não reproduzível — exige simulação de FEP (OpenMM), fora de qualquer camada da dissertação; conceitualmente é uma checagem de que um proxy barato usado na otimização (docking) concorda com um proxy mais caro (FEP) para os vencedores finais — não há uma ficha para 'validar o próprio objetivo com um oráculo mais caro' na tipologia."
+    },
+    {
+      "fichas": [
+        60
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Reexecuta a comparação da Tabela 1 (4 baselines RL vs. 'Ours', QM9) trocando a formulação de recompensa binária original dos baselines por uma soma ponderada (weighted-sum) dos valores de objetivo — um protocolo alternativo, mais favorável aos baselines em tese — para checar se o veredito da Tabela 1 é artefato da escolha de recompensa binária.",
+      "literal": "Table C.2 presents results obtained using a weighted sum of objective values for the baselines, rather than binary indicators, to enable more comprehensive comparisons.",
+      "localizador": "Appendix C.3, Table C.2",
+      "metricas": [
+        "Val",
+        "Uni",
+        "Nov",
+        "VUN",
+        "ASta",
+        "MSta",
+        "Top"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesma convenção da Tabela 1 (média±IC95%, negrito=melhor), só QM9; reformulação afeta apenas os 4 baselines RL, não 'Ours'.",
+      "achado": "Sob a formulação alternativa (weighted-sum), os 4 baselines melhoram ligeiramente em relação à Tabela 1 original (ex.: SFT-PG VUN sobe de 85,57 para 86,73), mas 'Ours' continua vencendo em Val/VUN/ASta/MSta/Top — o veredito da Tabela 1 é robusto à escolha de formulação de recompensa dos baselines.",
+      "aplicabilidade": "não reproduzível diretamente, mas o PADRÃO (checar se o veredito muda sob uma política/protocolo alternativo) é o mesmo da ficha 60 (sensibilidade do veredito às políticas de cobertura) — aqui a 'política' variada é a formulação de recompensa do concorrente, não a política de cobertura de células."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Estende a comparação de desempenho (mesmas 7 métricas, só QM9) a 5 métodos adicionais da literatura de guidance/amostragem para modelos de difusão, não cobertos pelos 4 baselines RL originais: Training-Free Guidance (TFG), Best-of-N, Sequential Monte Carlo (SMC), PILOT e DiffSMol.",
+      "literal": "Table C.3 summarizes results from various optimization methods on the QM9 dataset, including Training-Free Guidance (TFG) [65], Best-of-N [66], Sequential Monte Carlo (SMC) [67], PILOT [68], and DiffSMol [69].",
+      "localizador": "Appendix C.3, Table C.3",
+      "metricas": [
+        "Val",
+        "Uni",
+        "Nov",
+        "VUN",
+        "ASta",
+        "MSta",
+        "Top"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesma convenção da Tabela 1, só QM9; amplia o conjunto de comparadores além dos 4 baselines RL originais.",
+      "achado": "'Ours' mantém a melhor Val (98,17), VUN (88,90), ASta (99,87), MSta (99,17) e Top (28,33) mesmo contra esse conjunto mais amplo de métodos de guidance (que incluem abordagens sem treino, Monte Carlo sequencial e guidance com importance sampling), embora TFG tenha Uniqueness/Novelty ligeiramente melhores.",
+      "aplicabilidade": "não reproduzível — mesma limitação estrutural da Tabela 1 (item 1 desta lista); é o mesmo padrão de placar configuração×dataset, apenas com mais linhas."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Generalização a dois novos grupos de propriedades quânticas reais no QM9 (HOMO-LUMO / dipolo-Cv-polarizabilidade)",
+      "grupo_sugerido": "B",
+      "descricao": "Testa se o framework generaliza para conjuntos de objetivos INTEIRAMENTE DIFERENTES dos 3 originais (QED/SAS/afinidade): Grupo 1 = gap HOMO-LUMO, energia HOMO, energia LUMO; Grupo 2 = momento dipolar (µ), capacidade calorífica (Cv), polarizabilidade isotrópica (α) — todas propriedades quânticas nativas do QM9, comparando W/O RL vs. 'Ours' nas 7 métricas de qualidade.",
+      "literal": "Table C.4 reports experiments on two groups of real-valued properties on the QM9 dataset, further validating the proposed method.",
+      "localizador": "Appendix C.3, Table C.4",
+      "metricas": [
+        "Val",
+        "Uni",
+        "Nov",
+        "VUN",
+        "ASta",
+        "MSta",
+        "Top"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesma convenção (média±IC95%, negrito=melhor); só QM9; 'Top' aqui necessariamente usa cutoffs diferentes (não QED/SAS/afinidade) para os 2 novos grupos de propriedades, não detalhados explicitamente no texto.",
+      "achado": "'Ours' melhora Val, VUN, MSta e Top substancialmente sobre W/O RL em AMBOS os grupos de propriedades (ex.: Top sobe de 32,07 para 39,84 no Grupo 1; de 29,41 para 36,74 no Grupo 2) — evidência de que o ganho do framework não é específico às 3 propriedades farmacológicas originais, generalizando a propriedades físico-químicas quânticas quaisquer.",
+      "aplicabilidade": "não reproduzível — testar 'generalização a outro conjunto de objetivos sobre o mesmo problema' não tem análogo nas 7 camadas da dissertação, que fixam os objetivos por definição do problema de teste (não são intercambiáveis dentro do mesmo problema)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Generalização do framework a outras arquiteturas de difusão (GeoLDM, GFMDiff)",
+      "grupo_sugerido": "B",
+      "descricao": "Testa se o ganho de otimização por RL+incerteza se mantém ao trocar o backbone gerativo de EDM para GeoLDM (difusão em espaço latente) e GFMDiff (com restrições físicas), no QM9, comparando W/O RL vs. 'Ours' para cada arquitetura separadamente.",
+      "literal": "Our method consistently improves the key evaluation metrics over the non-RL baselines, including validity, novelty and top molecules. This demonstrate that our method generalizes well across different diffusion models.",
+      "localizador": "Appendix C.8, Table C.6",
+      "metricas": [
+        "Val",
+        "Uni",
+        "Nov",
+        "VUN",
+        "ASta",
+        "MSta",
+        "Top"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesma convenção (média±IC95%); 2 arquiteturas × (W/O RL, Ours), só QM9; note que o 'Top' basal do GeoLDM/GFMDiff sem RL já é muito mais alto (85,40% e 74,50%) que o do EDM (25,17%), indicando que a escolha de backbone por si só já afeta fortemente a taxa de sucesso antes mesmo do RL.",
+      "achado": "O framework de RL melhora Val/VUN/Top em ambas as arquiteturas alternativas (ex.: Top de 85,40 para 87,08 no GeoLDM; de 74,50 para 75,01 no GFMDiff) — ganhos proporcionalmente MENORES que os observados no EDM, sugerindo que backbones com maior qualidade basal (sem RL) têm menos margem de melhoria disponível para a otimização guiada por incerteza explorar.",
+      "aplicabilidade": "não reproduzível — testar a mesma técnica de uso da incerteza sobre múltiplos 'motores' geradores diferentes não corresponde a nenhuma camada da dissertação (que fixa 1 motor por algoritmo do roster, não permutando motor×método de incerteza livremente)."
+    },
+    {
+      "fichas": [
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Reporta, em prosa (não em tabela), o tempo de parede decomposto por fase — pré-treino do modelo de difusão (por iteração), otimização por RL (por passo, incluindo geração+avaliação de propriedade+reuso de amostra) e geração de uma única molécula — para cada uma das 3 arquiteturas de difusão testadas (EDM, GeoLDM, GFMDiff) e para os 3 datasets, todos em GPUs NVIDIA A100 80GB.",
+      "literal": "During RL-based EDM optimization, which includes molecule generation, property evaluation, and sample reuse, each optimization step takes about 2 minutes.",
+      "localizador": "Sec. 4.1 (Device); Appendix B.9",
+      "metricas": [
+        "tempo por iteração de pré-treino (s/min)",
+        "tempo por passo de otimização RL (min)",
+        "tempo por molécula gerada (s)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Números pontuais em prosa (não tabela, não figura); sem repetição/variância reportada; sem custo total agregado por execução completa; sem decomposição fit/busca/sonda/avaliação em uma única tabela (os números aparecem espalhados no texto).",
+      "achado": "O custo cresce com o tamanho/complexidade do dataset (não com uma dimensão de decisão D fixa): pré-treino EDM/GeoLDM ~90s/iter em QM9 vs. ~7min em ZINC15 vs. ~10min em PubChem; GFMDiff é ~3x mais caro que EDM/GeoLDM por iteração (5min) devido a módulos/mecanismos de guidance adicionais; cada passo de otimização RL (geração+avaliação+reuso) leva de 2min (QM9) a 5min (PubChem).",
+      "aplicabilidade": "não reproduzível diretamente — não há 'parede do retreino' O(n³) de GP aqui (o surrogate é uma rede neural treinada uma única vez, offline, nunca retreinada durante a busca); em espírito, o mais próximo da ficha 48 é a decomposição pré-treino (~'fit' inicial) vs. otimização RL (~'busca') vs. geração (~'avaliação'), mas sem a camada de sonda equivalente e sem crescer com D como nos problemas sintéticos."
+    },
+    {
+      "fichas": [
+        31,
+        33,
+        37
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Avalia a acurácia (R², via parity plots, Fig. C.1) e a calibração da incerteza (AUCE, via curvas de calibração/diagramas de confiabilidade, Fig. C.2) dos 9 surrogates (3 propriedades × 3 datasets), reportadas SEPARADAMENTE por propriedade e dataset (não agregadas num único número) — a única avaliação de qualidade do modelo preditivo no artigo, feita uma vez sobre o split de teste held-out (scaffold-based), sem retreinar durante a busca.",
+      "literal": "The AUCE remains low across datasets and properties (0.02–0.10), indicating well-calibrated uncertainty estimates.",
+      "localizador": "Sec. 4.2.1; definição em Appendix B.8.1; painéis em Appendix C.2, Fig. C.1–C.2",
+      "metricas": [
+        "R² (acurácia da média predita)",
+        "AUCE (calibração da incerteza)",
+        "resíduos"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Parity plots coloridos por σ²_total, com histogramas e gráfico de resíduos abaixo; curvas de calibração (cobertura empírica P̂(c) vs. nível de confiança nominal c) com área sombreada = desvio do ideal; R² e AUCE anotados em cada um dos 9 painéis (leitura por OCR da Fig. C.1 confirma valores individuais 0.99/0.99/0.95/0.98/1.00/0.99/0.86/0.88; da Fig. C.2, AUCE individuais 0.04/0.10/0.07/0.07).",
+      "achado": "R² consistentemente alto para QED/SAS (0.95–0.99) mas mais baixo para afinidade de ligação (0.86–0.88, prevista via docking, uma propriedade mais ruidosa); AUCE baixo (0.02–0.10) em todos os casos, indicando incerteza bem calibrada o suficiente para servir de sinal de guiamento confiável — nenhuma propriedade ou dataset mostra descalibração grave.",
+      "aplicabilidade": "não reproduzível diretamente com a sonda (③) da dissertação — aqui não há retreino iterativo durante a busca, logo não há 'ao longo do orçamento'; é uma avaliação ONE-SHOT sobre um held-out fixo, mais próxima de uma ficha 33/37 estática (uma única medição de calibração por objetivo, não uma trajetória); a camada ③ da dissertação poderia gerar o equivalente a este parity/calibration plot para os algoritmos VA/DE/VN do roster se agregada ao final da busca em vez de a cada retreino."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Análise de correlação entre os 3 objetivos para justificar a independência assumida na agregação multiplicativa da recompensa",
+      "grupo_sugerido": "E",
+      "descricao": "Calcula a matriz de correlação de Pearson entre QED, SAS e afinidade de ligação, para cada um dos 3 datasets (Tabela C.1), para checar se a suposição de independência condicional usada para agregar as k probabilidades de incerteza por propriedade num único produto escalar (Eq. 3, U_multi) é razoável — uma checagem da PREMISSA matemática da agregação, não da qualidade do surrogate em si.",
+      "literal": "all pairwise Pearson correlation coefficients between the properties are less than 0.3 in magnitude, indicating low correlation and supporting the independence assumption in this context.",
+      "localizador": "Appendix C.1, Table C.1",
+      "metricas": [
+        "coeficiente de correlação de Pearson (QED×SAS, QED×afinidade, SAS×afinidade)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "3 matrizes de correlação 3×3 (uma por dataset), valores absolutos entre 0,01 e 0,22 nos 3 datasets — nenhuma tabela de significância estatística associada.",
+      "achado": "Todas as correlações par a par ficam abaixo de 0,3 em módulo nos 3 datasets, sustentando a suposição de independência condicional usada na agregação multiplicativa — mas os próprios autores alertam que essa premissa provavelmente quebra com mais de ~5 propriedades (ver resultados_negativos).",
+      "aplicabilidade": "não reproduzível — é uma checagem específica da regra de agregação multiplicativa deste artigo; conceitualmente aproxima-se da 'agregação silenciosa de m sigmas' da ficha 37, mas versa sobre correlação ENTRE OBJETIVOS (não sobre calibração do σ por objetivo, já coberta na análise anterior)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Galeria dos 8 melhores candidatos moleculares gerados por dataset, selecionados por score composto de incerteza",
+      "grupo_sugerido": "H",
+      "descricao": "Fig. C.3 exibe os 8 candidatos com maior score de incerteza multiobjetivo (U_multi) dentre as 2.000 moléculas geradas por dataset (QM9, ZINC15, PubChem) — uma visualização qualitativa/ilustrativa das estruturas moleculares 2D/3D resultantes, sem novas métricas quantitativas além das já reportadas na Tabela 1.",
+      "literal": "The top eight molecules with the highest scores from each model are shown. This selection strategy ensures that the displayed candidates are not only high-quality in terms of predicted properties, but also robust with respect to the model’s uncertainty.",
+      "localizador": "Appendix C.7, Fig. C.3",
+      "metricas": [
+        "score de incerteza multiobjetivo U_multi (critério de seleção, não métrica reportada por molécula)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Galeria de estruturas moleculares (3 linhas × 8 colunas), sem valores numéricos anotados por molécula nesta figura específica — mais próxima de uma convenção editorial de exibição do que de uma análise quantitativa.",
+      "achado": "Não há achado quantitativo novo — é majoritariamente ilustrativa, confirmando visualmente a diversidade estrutural dos candidatos de alto score selecionados pelo próprio critério de incerteza do método.",
+      "aplicabilidade": "não reproduzível e de baixo valor analítico — análoga em espírito à ficha 56 (regra editorial de exibição de figuras) mais do que a uma análise de fato; sem camada equivalente nas 7 da dissertação (não há 'estrutura molecular' nos problemas de teste sintéticos/reais)."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "Sim — avaliação explícita e central no artigo. Usa duas métricas sobre os 9 surrogates (3 propriedades × 3 datasets), calculadas uma única vez sobre o split de teste held-out (scaffold-based), sem qualquer retreino durante a busca (regime offline): (1) R² — acurácia da média predita μ(m) contra o valor real; (2) AUCE (Area Under the Calibration Error curve) — calculada a partir de diagramas de confiabilidade/curvas de calibração: para cada nível de confiança nominal c∈[0,1], compara-se com a proporção empírica P̂(c) de moléculas cujo valor real cai dentro do intervalo de confiança predito de nível c (construído a partir de μ e σ_total, que combina variância aleatória σ_a² e epistêmica σ_e² via os parâmetros evidenciais Normal-Inverse-Gamma β,α,ν do Chemprop). Valores baixos de AUCE = boa calibração. O texto também menciona análise de resíduos e que 'model uncertainty correlates with prediction errors', mas sem reportar um ρ(σ,|erro|) numérico explícito — a correlação σ×erro é qualitativa/visual (cor do ponto no parity plot), não quantificada.",
+    "literal": "The AUCE remains low across datasets and properties (0.02–0.10), indicating well-calibrated uncertainty estimates.",
+    "localizador": "Sec. 4.2.1 (resultado agregado); Appendix B.8.1 (definição formal de R² e AUCE); Appendix C.2, Fig. C.1–C.2 (números por propriedade×dataset)"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Reporta tempo de parede em prosa (não em tabela dedicada), decomposto por fase — pré-treino do modelo de difusão (por iteração), otimização por RL (por passo de política, incluindo geração+avaliação de propriedade+reuso de amostra) e geração de uma molécula isolada — para as 3 arquiteturas de difusão (EDM, GeoLDM, GFMDiff) e os 3 datasets (QM9/ZINC15/PubChem), todos em GPU NVIDIA A100 80GB. NÃO reporta: tempo total por execução completa; custo do treino do surrogate (Chemprop) em si; comparação em um plano custo×qualidade; complexidade assintótica (não há GP, então não se discute O(n³)); variância/repetição do tempo medido.",
+    "literal": "During RL-based EDM optimization, which includes molecule generation, property evaluation, and sample reuse, each optimization step takes about 2 minutes.",
+    "localizador": "Sec. 4.1 (Device); Appendix B.9 (Devices and Computational Setup)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Os próprios autores reconhecem explicitamente que 'Ours' perde em Uniqueness (e ocasionalmente Novelty) frente ao piso W/O RL e a alguns baselines, apesar de ganhos substanciais em outras métricas — um trade-off multiobjetivo admitido, não um domínio estrito.",
+      "literal": "While uniqueness slightly decreases, the trade-off is acceptable given the substantial gains in other objectives.",
+      "localizador": "Sec. 4.2.3"
+    },
+    {
+      "descricao": "Limitação auto-declarada: o backbone de difusão (EDM) tem dificuldade com moléculas grandes/complexas (PubChem, até 50 átomos pesados) — validade absoluta final de apenas 16,23%, mesmo após otimização por RL — atribuída à escalabilidade do backbone gerativo, não ao framework de RL/incerteza em si.",
+      "literal": "results on PubChem suggest that existing diffusion architectures may struggle with large, complex molecules containing many heavy atoms. This limitation stems from backbone scalability rather than the RL framework itself.",
+      "localizador": "Sec. 5 (Limitations)"
+    },
+    {
+      "descricao": "Os autores alertam que a suposição de independência condicional entre propriedades — usada para justificar a agregação multiplicativa (produto) das k probabilidades de incerteza numa única recompensa escalar — provavelmente deixa de ser razoável quando há mais de ~5 propriedades/objetivos, exigindo modelagem mais avançada de interação entre objetivos.",
+      "literal": "as the number of properties increases (e.g., more than 5), the assumption of independence may become less reasonable due to the potential rise in inter-property correlations.",
+      "localizador": "Appendix C.1"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Dentro da ablação (Tabela 2, QM9), o método PFM (Penalty Function Method, constraint-based, SEM uso de incerteza preditiva) atinge um VUN praticamente empatado com 'Ours' (incerteza-consciente) — 88,75±0,78 vs. 88,90±0,68 — embora 'Ours' ainda vença com folga em Val/ASta/MSta/Top; um caso concreto de duas formulações de agregação multiobjetivo muito diferentes (uma via penalidade determinística, outra via probabilidade de incerteza) rendendo desempenho quase idêntico numa métrica composta específica.",
+      "literal": "PFM: VUN 88.75 ± 0.78; Ours: VUN 88.90 ± 0.68 (Table 2).",
+      "localizador": "Table 2"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "tamanho/complexidade molecular (número de átomos pesados; PubChem chega a >40 átomos, vs. QM9 ≤9)",
+      "afirmacao": "o backbone de difusão (EDM) tem dificuldade crescente com moléculas grandes e complexas — a validade final em PubChem permanece baixa (16,23%) mesmo após otimização por RL, uma limitação de escalabilidade do backbone gerativo, não do mecanismo de incerteza/RL.",
+      "literal": "results on PubChem suggest that existing diffusion architectures may struggle with large, complex molecules containing many heavy atoms.",
+      "localizador": "Sec. 5 (Limitations)"
+    },
+    {
+      "caracteristica": "alinhamento entre a distribuição base do dataset de pré-treino e os objetivos de propriedade otimizados (ZINC15 é nativamente drug-like; QM9 é composto por moléculas orgânicas pequenas genéricas)",
+      "afirmacao": "quando a distribuição base do gerador já é afim aos objetivos (ZINC15), o ganho da otimização por RL é maior e mais fácil de obter (validade quase perfeita, 99,02%; 33,40% de moléculas 'Top') do que quando há um descompasso maior entre a distribuição base e os objetivos (QM9, PubChem).",
+      "literal": "This aligns with the drug-like nature of ZINC15, which matches our property objectives better than the small organic compounds in QM9.",
+      "localizador": "Sec. 4.2.2"
+    },
+    {
+      "caracteristica": "tipo/ruído do processo gerador do objetivo (afinidade de ligação, predita via docking físico simulado, vs. QED/SAS, computadas por fórmula fechada determinística no RDKit)",
+      "afirmacao": "o surrogate é sistematicamente menos acurado para o objetivo mais ruidoso/caro (afinidade via docking, R²=0,86–0,88) do que para os objetivos de fórmula fechada (QED/SAS, R²=0,95–0,99) — a incerteza epistêmica reportada tende a refletir essa diferença de dificuldade de predição por tipo de objetivo.",
+      "literal": "R² values of 0.95–0.99 for QED and SAS, and 0.86–0.88 for binding affinity.",
+      "localizador": "Sec. 4.2.1"
+    },
+    {
+      "caracteristica": "número de propriedades/objetivos agregados na recompensa multiplicativa (k; testado com k=3, mas discutido para k>5)",
+      "afirmacao": "à medida que o número de objetivos cresce além de ~5, a suposição de independência condicional entre eles (base da agregação por produto de probabilidades) fica menos sustentável, exigindo modelagem explícita de correlação entre objetivos.",
+      "literal": "as the number of properties increases (e.g., more than 5), the assumption of independence may become less reasonable due to the potential rise in inter-property correlations.",
+      "localizador": "Appendix C.1"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Domínio inteiramente ortogonal à bateria SA-MOO da dissertação: design molecular generativo (difusão 3D condicional, EDM/EGNN, fine-tuned por RL PPO-style) guiado por um surrogate (Chemprop D-MPNN evidencial) que estima a probabilidade de cada propriedade exceder um limiar — não há ZDT/DTLZ/WFG/MMF/BBOB nem RE21/ESTOQUE40/DDMOP7, não há NSGA-II/MOEA-D/NSGA-III/SMS-EMOA, não há IGD+/HV/dominância de Pareto/ND em NENHUM ponto do artigo. 'Multiobjetivo' aqui significa uma probabilidade CONJUNTA (produto, sob suposição de independência condicional) de que TODAS as k propriedades excedam seus limiares — um único número escalar por molécula, otimizado por PPO como se fosse single-objective; não há fronteira de Pareto, não há conjunto não-dominado, não há trade-off explícito entre soluções (apenas entre MÉTRICAS de avaliação, ex. Uniqueness vs. Validity). Encaixe na taxonomia da dissertação, conferido pela leitura: motor=Resíduo (RL PPO ajustando um modelo de difusão, sem nenhuma maquinaria evolutiva populacional) — confirmado; surrogate=NN (Chemprop D-MPNN) — confirmado; medição=NAT-nonGP (a rede produz parâmetros evidenciais Normal-Inverse-Gamma β,α,ν nativamente, sem posterior de GP nem dispersão de ensemble/dropout) — confirmado; função da incerteza=A1 Penalização avessa a risco (U_single integra a cauda gaussiana além do limiar δ; para μ próximo de δ, um σ maior REDUZ a probabilidade/recompensa — o oposto de um bônus exploratório tipo UCB) — confirmado; regime=offline (os 9 surrogates são treinados uma única vez, antes da otimização por RL, e NUNCA retreinados com moléculas geradas durante a busca) — confirmado, e por isso não existe aqui nenhum equivalente à 'sonda' (camada ③, 2.000 pontos fixos re-preditos a cada retreino): a avaliação de calibração é ONE-SHOT sobre um held-out fixo, não uma trajetória ao longo do orçamento. Não há sementes no sentido da dissertação (30 seeds); usa 3 execuções independentes, média±IC95% (não mediana±IQR), sem nenhum teste estatístico formal (nenhum Wilcoxon/Friedman/Holm/Nemenyi em todo o artigo). O artigo tem uma riqueza incomum de comparações-robustez (Tabelas C.2, C.3, C.4, C.6) que generalizam o resultado principal (Tabela 1) a: reformulação de recompensa dos baselines, mais 5 baselines de guidance, 2 novos grupos de propriedades reais, e 2 backbones de difusão alternativos — todas essas variações CONFIRMAM a vantagem de 'Ours', nenhuma a reverte. Vale destacar para a discussão da ficha 15 da dissertação (contrafactual σ=0 online, 'nunca executado' na própria bateria): este artigo de fato executa uma versão desse contrafactual — 12 das 16 linhas da Tabela 2 (scalarization/constraint/gradient-based) usam apenas médias/gradientes, nunca a variância preditiva, com a mesma maquinaria de resto — um precedente real de bateria com esse contrafactual, embora fora do roster e sem pareamento por semente. Leitura completa confirmada: corpo estruturado (Abstract; Sec. 1 Introduction; Sec. 2 Related Works; Sec. 3 Methodology 3.1-3.3; Sec. 4 Experiments 4.1-4.2 incl. 4.2.1-4.2.4; Sec. 5 Conclusion, Limitations, Broader Impact; Acknowledgments; References [1]-[69]; NeurIPS Paper Checklist, 16 itens — todos justificativas/boilerplate, sem conteúdo experimental novo; Appendix A Methodology A.1-A.3 + Algorithm A.1; Appendix B Experimental Settings B.1-B.9; Appendix C Results and Discussion C.1-C.8) + ANEXO 'camada de texto completa do PDF' (duplicata íntegra confirmada idêntica ao corpo estruturado, conferida por amostragem ao longo de todo o documento, incl. Apêndices A e C) + ANEXO de OCR de imagens (rótulos de eixo/legenda das páginas 3, 7, 8, 9, 27, 29, 37, 38 — confirma os 14 rótulos de propriedades ADMET do radar da Fig. 4 [CYP1A2/2C9/2C19/2D6/3A4 inibidor/substrato, Carcinogenicidade, Mutagenicidade de Ames, Permeabilidade Caco-2, Absorção intestinal humana, inibidor de hERG, inibidor de P-gp] e os valores individuais de R² por painel da Fig. C.1 [0.99, 0.99, 0.95, 0.98, 1.00, 0.99, 0.86, 0.88] e de AUCE por painel da Fig. C.2 [0.04, 0.10, 0.07, 0.07] — usados para refinar o achado da análise de calibração acima; sem nenhum número experimental adicional além do já presente no corpo/apêndice). Nada foi pulado. roster_bloco=null por instrução do pedido (artigo fora do roster experimental da dissertação)."
+}

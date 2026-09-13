@@ -1,0 +1,29 @@
+{"ts":"2026-07-26T02:25:22Z","rec":"header","alg":"nsga2","problema":"MMF1","semente":42,"D":2,"M":2,"regime":"online","maxfe":61,"doe_hash":"b4682dc218d24077819efadd43764db3ed8403bb3e48c5c8cf66329cc191fcc7","algo":"piso-NSGAII-PlatEMO4.15","piso":true,"surrogate":false,"principio":"dominancia/Pareto","casamento":"EA-Dominancia (b4, c217, c141, e74) + BO-Melhoria-de-Pareto (c238) — §3.2","N_nominal":20,"N_origem":"20 CRAVADO 2026-07-18 (Knowles/ParEGO; ponto comum entre ~20-25 do §3.2 e {10,20,30,50} da D65; varredura SUB-varN reconfirma)","seeding":"melhores N das 11D-1 do DoE por NDSort + CrowdingDistance (§3.2/D88, deterministico)","operadores":"Balde C: SBX proC=1 dis_c=20 + PM proM=1 dis_m=20 (defaults OperatorGA do PlatEMO)"}
+{"ts":"2026-07-26T02:25:22Z","rec":"seeding","n_doe":21,"n_frentes":6,"n_frente1":7,"N_nominal":20,"frente1_excede_pop":false,"criterio":"NDSort + CrowdingDistance (D88) — desempate final por indice"}
+{"ts":"2026-07-26T02:25:22Z","rec":"guard","name":"cache_hit","solution_id":17,"x_key":"5181FCD151030040","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":17,"x_key":"5181FCD151030040","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":19,"x_key":"22737D756A820540","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":15,"x_key":"44A28933F1920240","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":12,"x_key":"FA0A87D717970340","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":10,"x_key":"B645B5FD10090140","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":2,"x_key":"3EB74081EB360140","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":6,"x_key":"7E9EFA0FBFD8F73F","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":3,"x_key":"3D7EEA1C6E270740","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":16,"x_key":"1A45934AB94AFE3F","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":14,"x_key":"0B884D286BB0F53F","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":9,"x_key":"7260473C96D10240","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":18,"x_key":"344709191A52FD3F","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":5,"x_key":"9C4A6341F0B4FB3F","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":7,"x_key":"AEA406524983F43F","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":13,"x_key":"98732C3C658C0440","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":0,"x_key":"039843BD82EFF93F","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":11,"x_key":"BE399F10F3EE0740","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":20,"x_key":"F47AAB3586B7F23F","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":1,"x_key":"89CBE95686B7F63F","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":4,"x_key":"1FAB4B27179AF03F","fe":21}
+{"ts":"2026-07-26T02:25:23Z","rec":"nsga2_gen","geracao":1,"fe":21,"n_pop":20,"n_front1":7,"f_best":[0.001620903509469418,0.18268371865167302],"ideal":[0.001620903509469418,0.18268371865167302],"nadir_pop":[0.99167454706113656,6.1774285535663696],"nadir_front1":[0.68867961682407586,1.5648774810241017],"tempo_geracao_s":0.14527241666666665}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"cache_hit","solution_id":2,"x_key":"3EB74081EB360140","fe":30}
+{"ts":"2026-07-26T02:25:23Z","rec":"nsga2_gen","geracao":2,"fe":40,"n_pop":20,"n_front1":12,"f_best":[0.001620903509469418,0.02645581328159774],"ideal":[0.001620903509469418,0.02645581328159774],"nadir_pop":[0.96206080893142154,1.5648774810241017],"nadir_front1":[0.96206080893142154,1.5648774810241017],"tempo_geracao_s":0.038947041666666668}
+{"ts":"2026-07-26T02:25:23Z","rec":"nsga2_gen","geracao":3,"fe":60,"n_pop":20,"n_front1":14,"f_best":[0.001620903509469418,0.02645581328159774],"ideal":[0.001620903509469418,0.02645581328159774],"nadir_pop":[0.96206080893142154,2.2174913136704926],"nadir_front1":[0.96206080893142154,1.5648774810241017],"tempo_geracao_s":0.023265916666666667}
+{"ts":"2026-07-26T02:25:23Z","rec":"guard","name":"hard_stop","fe":61,"maxfe":61,"x_key":"676A697BC30B0140"}
+{"ts":"2026-07-26T02:25:24Z","rec":"footer","status":"ok","fe_final":61,"maxfe":61,"n_geracoes":3,"cache_hits":22,"cp_init":true,"termino":"normal","N_nominal":20,"N_efetivo":20}

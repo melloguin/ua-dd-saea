@@ -1,0 +1,378 @@
+{
+  "id": "b3",
+  "sigla": "K-RVEA",
+  "titulo": "A Surrogate-assisted Reference Vector Guided Evolutionary Algorithm for Computationally Expensive Many-objective Optimization",
+  "ano": 2018,
+  "roster": true,
+  "setup": {
+    "benchmarks": "Estudo principal: suíte DTLZ (Deb, Thiele, Laumanns, Zitzler) — DTLZ1 a DTLZ7, com k ∈ {3, 4, 6, 8, 10} objetivos e n = 10 variáveis de decisão FIXO para todos os k (não escala com k). DTLZ1/DTLZ3 têm múltiplos ótimos locais de Pareto; DTLZ5 tem frente-curva que cobre um subespaço pequeno do espaço de objetivos (degenerada); DTLZ7 tem frente desconexa em 4 regiões; objetivos do WFG (Huband et al.) têm escalas diferentes entre si (motivação para vetores de referência adaptativos). Suíte WFG (Huband et al.) também testada, mas resultados (IGD e HV) estão só no material suplementar, não incluído neste texto convertido. Um problema real de 3 objetivos (polimerização de acetato de vinila em bulk, Mogilicharla et al. 2014) também testado, com detalhes/resultados só no material suplementar.",
+    "orcamento": "FEmax = 300 avaliações reais (Tabelas I e III). DoE inicial via Latin hypercube sampling, tamanho NI = 11n − 1 = 109 (para n = 10), que é também o tamanho MÁXIMO do arquivo de treino A1 (mantido fixo por design). Tabela II usa um orçamento MENOR e distinto (não é um corte/prefixo dos mesmos dados de FEmax=300): 120 avaliações para 3 objetivos e 115 para 4 objetivos — esse número foi determinado pelo tempo de parede do SMS-EGO (permitido rodar por 24h com 10 execuções paralelas; o nº de avaliações atingido nesse tempo virou o critério de parada comum para TODOS os algoritmos da Tabela II). Note-se que 120/115 mal excede NI=109, restando apenas ~1-2 rodadas de atualização do Kriging (u=5 por rodada) nesse orçamento reduzido — bem menos iterações adaptativas que na Tabela I/III.",
+    "execucoes": "CONTRADIÇÃO NO PRÓPRIO ARTIGO: a lista de parâmetros (Sec. IV-A, item 2) diz \"Number of independent runs = 10\", mas o texto que introduz a Tabela I (Sec. IV-B) diz \"The results obtained with the four compared algorithms over 25 independent runs are collected in Table I\". Não é possível determinar com certeza qual valor (10 ou 25) foi de fato usado nas Tabelas I/II/III; nenhuma reconciliação é oferecida no texto. Registrado como problema de leitura em 'observacoes'.",
+    "baselines": "RVEA (piso SEM surrogate — o mesmo motor evolutivo de vetores de referência de K-RVEA, incluído explicitamente pelos autores 'to give the reader a sense of how differently an algorithm with and without surrogates performs on computationally expensive problems'; população reduzida para 50 para permitir mais gerações dentro do orçamento). ParEGO (Knowles 2006, motor BO-Decomposição/Tchebycheff+EI, limitado pela implementação dos autores a ≤ 4 objetivos). SMS-EGO (Ponweiser et al. 2008, motor BO-Hipervolume; custo computacional proibitivo — ~7h por execução em i5/4GB RAM — testado só até 4 objetivos, com orçamento reduzido). MOEA/D-EGO (Zhang et al. 2010, motor BO-Decomposição+GP; implementação dos autores disponível só para 2-3 objetivos). SIM, há piso sem surrogate (RVEA) comparado diretamente.",
+    "metricas_principais": [
+      "IGD (inverted generational distance) — métrica única usada em TODAS as tabelas mostradas no texto principal (Tabelas I, II, III); NÃO é IGD+ (a métrica primária da dissertação)",
+      "hypervolume (HV) — mencionado como métrica secundária, mas os valores numéricos para DTLZ e para WFG estão só no material suplementar, não presentes neste texto"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum test, nível de significância α = 0,05, aplicado par a par entre K-RVEA e cada algoritmo comparado (não é um teste global tipo Friedman); símbolos ↑ (K-RVEA significativamente melhor), ↓ (o outro algoritmo significativamente melhor), ≈ (sem diferença significativa)"
+    ],
+    "apresentacao": "Tabelas I/II/III: min, média e máximo de IGD por problema × k, sobre as execuções independentes; melhor valor (menor) destacado em negrito por coluna; símbolo do teste de Wilcoxon anexado entre os blocos de cada algoritmo comparado e K-RVEA; 'NA' quando a implementação do algoritmo comparado não suporta aquele número de objetivos. Não é mediana (diverge da convenção-padrão da dissertação, ficha 1). Figuras 6 e 7 (conjuntos não-dominados) usam a EXECUÇÃO COM MELHOR IGD (não a execução mediana, ao contrário da convenção da dissertação) para cada algoritmo. Não há ranking agregado nem diagrama de diferença crítica (só 2-5 configurações comparadas por tabela, sempre par a par contra K-RVEA).",
+    "codigo_plataforma": "K-RVEA e SMS-EGO implementados em MATLAB; ParEGO em C; MOEA/D-EGO em Java — o próprio artigo adverte que por isso os TEMPOS ABSOLUTOS de treino (Fig. 9) não são diretamente comparáveis entre algoritmos, só o comportamento/tendência da curva. Kriging via DACE toolbox (Lophaven et al. 2002), hiperparâmetros otimizados por uma modificação do algoritmo de Hooke e Jeeves (busca direta), em vez de Nelder-Mead (ParEGO), CMA-ES (SMS-EGO) ou DE (MOEA/D-EGO) — escolhido por ser mais barato que métodos populacionais para retreinos frequentes."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        3,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela algoritmo × problema (DTLZ1-DTLZ7) × k (3,4,6,8,10 objetivos, n=10 fixo) do IGD (min/média/máximo) de K-RVEA contra RVEA (piso sem surrogate, mesmo motor) e ParEGO (outro assistido, limitado a ≤4 objetivos), após FEmax=300, com teste de Wilcoxon rank-sum (α=0,05) e símbolos ↑/↓/≈ para cada par K-RVEA-vs-comparador.",
+      "literal": "Statistical results for IGD values obtained by K-RVEA, RVEA and ParEGO. The best results are highlighted",
+      "localizador": "Sec. IV-A; Sec. IV-B; Table I",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test (α = 0,05)"
+      ],
+      "convencoes": "min, média, máximo (NÃO mediana) sobre as execuções; melhor valor por coluna em negrito (pode não coincidir com o algoritmo do lado 'vencedor' do símbolo, que compara as distribuições completas, não só um valor pontual); duas colunas de símbolo (K-RVEA vs RVEA; K-RVEA vs ParEGO); 'NA' para ParEGO acima de 4 objetivos.",
+      "achado": "K-RVEA venceu (↑) ou empatou (≈) com RVEA em TODOS os 35 pares problema×k — nunca perdeu (↓) para o próprio piso sem surrogate; venceu claramente em DTLZ2/5/6/7 mas empatou (≈, sem vantagem detectável) em TODO o DTLZ1 e TODO o DTLZ3, atribuído pelos autores à multiplicidade de ótimos locais de Pareto desses dois problemas. Contra ParEGO, K-RVEA perdeu (↓) em DTLZ1 e DTLZ3 (k=3,4) mas venceu nos demais problemas onde ParEGO tinha implementação (≤4 obj). 'As can be seen in Table I, overall, K-RVEA performed the best among all algorithms compared in this study, except on DTLZ1 and DTLZ3.'",
+      "aplicabilidade": "① endpoint: recomputar IGD (não IGD+) usando o ND acumulado das avaliações reais até FEmax; a dissertação usaria mediana (não min/mean/max) e o desenho pareado por semente/DoE (ficha 5) não se aplica aqui pois o artigo não compartilha sementes entre K-RVEA/RVEA/ParEGO (implementações de autores/linguagens distintas)."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma estrutura de tabela (IGD min/média/máximo, Wilcoxon), agora só para k=3 e k=4, num orçamento MENOR e determinado externamente (120 e 115 avaliações reais, respectivamente) — escolhido porque SMS-EGO é computacionalmente proibitivo (rodado por 24h com 10 execuções paralelas; o nº de avaliações atingido virou o teto comum). Inclui também MOEA/D-EGO.",
+      "literal": "Statistical results for IGD values obtained by K-RVEA, RVEA, ParEGO, SMS-EGO and MOEA/D-EGO for three and four objectives with 120 and 115 function evaluations, respectively.",
+      "localizador": "Sec. IV-B; Table II",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test (α = 0,05)"
+      ],
+      "convencoes": "Mesma convenção da Tabela I (min/média/máximo, negrito, símbolo), agora com 4 colunas de símbolo (vs RVEA, ParEGO, SMS-EGO, MOEA/D-EGO); orçamento de 120/115 avaliações é bem próximo do tamanho do DoE inicial (NI=109), restando poucas rodadas de atualização do Kriging.",
+      "achado": "'These results obtained with a small number of function evaluations show that K-RVEA performed better than the compared algorithms.' Mesmo padrão da Tabela I para RVEA (nunca ↓, só ↑ ou ≈). Exceção notável não discutida em prosa pelos autores: em DTLZ4 (k=3) a tabela mostra símbolo ↓ contra MOEA/D-EGO, com MOEA/D-EGO em negrito (0.393/0.434/0.479) claramente melhor que K-RVEA (0.452/0.711/0.979) — um caso de outro assistido batendo K-RVEA sem explicação textual dada.",
+      "aplicabilidade": "① endpoint no checkpoint de 120/115 avaliações; NÃO é uma leitura de prefixo da mesma trajetória da Tabela I (ficha 27 não se aplica) — é um conjunto de execuções INDEPENDENTE, com orçamento distinto imposto pelo custo de parede de um dos baselines, não uma re-computação nos mesmos dados em cortes de orçamento."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela IGD (min/média/máximo) de K-RVEA contra MOEA/D-EGO apenas, para k=3 (única contagem de objetivos em que a implementação de MOEA/D-EGO dos autores estava disponível), após o orçamento completo (FEmax=300), com Wilcoxon rank-sum.",
+      "literal": "Statistical results for IGD values obtained by K-RVEA and MOEA/D-EGO for three objectives after 300 function evaluations. The best results are highlighted",
+      "localizador": "Sec. IV-B; Table III",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test (α = 0,05)"
+      ],
+      "convencoes": "min/média/máximo, negrito, símbolo único (K-RVEA vs MOEA/D-EGO); sem RVEA nesta tabela (não há leitura de piso aqui).",
+      "achado": "'K-RVEA performed either better or comparably to MOEA/D-EGO for all problems except on DTLZ5.' Em DTLZ5, K-RVEA perde (↓) porque a frente de DTLZ5 é uma curva que ocupa um subespaço pequeno do espaço de objetivos, deixando ~70% dos vetores de referência (de K-RVEA E de RVEA) vazios/inativos, o que trava a convergência do mecanismo baseado em vetores de referência independentemente do surrogate.",
+      "aplicabilidade": "① endpoint a FEmax=300; sem comparação com o piso RVEA nesta tabela específica, então não mapeia limpo à ficha 9 (só placar geral, fichas 1/3)."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo também computa hypervolume (métrica secundária) para a MESMA matriz algoritmo×problema×k da Tabela I (DTLZ, K-RVEA/RVEA/ParEGO), usando como ponto de referência o pior valor objetivo entre TODOS os algoritmos comparados mais uma pequena margem — mas os números/tabela não estão neste texto, só remetidos ao material suplementar.",
+      "literal": "The detailed comparative results in terms of hypervolume are provided in the Supplementary material due to the page limit.",
+      "localizador": "Sec. IV-B, parágrafo antes da Tabela I",
+      "metricas": [
+        "hypervolume"
+      ],
+      "testes": [
+        "presumivelmente o mesmo Wilcoxon rank-sum do resto do artigo, não reafirmado explicitamente para este resultado"
+      ],
+      "convencoes": "não detalhado no texto principal — só a definição do ponto de referência do HV ('worst objective function values of the non-dominated solutions found by all compared algorithms plus a small threshold').",
+      "achado": "Não relatado quantitativamente neste texto; a única pista é a definição do ponto de referência do HV, citada no bloco de fichas 62.",
+      "aplicabilidade": "não reprodutível a partir deste texto — números apenas no material suplementar (não incluído nesta conversão); conceitualmente seria ① endpoint com HV em vez de IGD, mesmo ponto de referência.",
+      "observacoes": "só mencionada — resultado numérico/tabela não está no texto principal nem no material anexado a esta conversão"
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo repete o mesmo desenho experimental da Tabela I (K-RVEA vs RVEA vs ParEGO/MOEA-D-EGO/SMS-EGO conforme aplicável) na suíte WFG (objetivos com escalas diferentes entre si), reportando tanto IGD quanto hypervolume — mas nem a tabela nem os números aparecem no texto principal, só uma frase remetendo ao material suplementar.",
+      "literal": "Results in terms of both IGD and hypervolume are provided in the Supplementary material, which show that K-RVEA was able to perform better than the compared algorithms.",
+      "localizador": "Sec. IV-B, último parágrafo antes da discussão de custo (p. 10)",
+      "metricas": [
+        "IGD",
+        "hypervolume"
+      ],
+      "testes": [
+        "presumivelmente Wilcoxon rank-sum, não reafirmado para este resultado especificamente"
+      ],
+      "convencoes": "não detalhado no texto principal.",
+      "achado": "Só a conclusão direcional é dada no texto principal: K-RVEA teria superado os algoritmos comparados também no WFG; nenhum número, nenhuma tabela.",
+      "aplicabilidade": "não reprodutível a partir deste texto — dados apenas no material suplementar; conceitualmente seria ① endpoint nos problemas WFG da bateria da dissertação (WFG está entre as suítes da bateria).",
+      "observacoes": "só mencionada — resultado numérico/tabela não está no texto principal nem no material anexado a esta conversão"
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para DTLZ1 (3 objetivos), plota-se o conjunto não-dominado obtido pela EXECUÇÃO COM MELHOR IGD (não a mediana) de K-RVEA, RVEA e ParEGO, um painel por algoritmo, para ilustrar qualitativamente a distribuição das soluções.",
+      "literal": "Nondominated solutions obtained with K-RVEA, RVEA and ParEGO of the run with the best IGD value for three-objective DTLZ1, which are all very far away from the true Pareto front.",
+      "localizador": "Sec. IV-B; Fig. 6",
+      "metricas": [
+        "IGD (usado só para escolher qual execução plotar, não plotado)"
+      ],
+      "testes": [
+        "nenhum — visualização qualitativa"
+      ],
+      "convencoes": "execução com MELHOR IGD (não execução mediana, diverge da convenção da dissertação); um painel por algoritmo, mesmos eixos; DTLZ1 tem frente simples (hiperplano linear), não é um caso de 'geometria difícil'.",
+      "achado": "Nos três algoritmos, as soluções ficam longe da frente verdadeira (IGD alto para os três em DTLZ1), mas K-RVEA e RVEA mostram distribuição mais uniforme que ParEGO — consistente com a leitura de que o problema (muitos ótimos locais) é difícil para os três, mais que uma falha específica do surrogate.",
+      "aplicabilidade": "① posições x/f de uma única execução (a de melhor IGD, não a mediana) permitiria reconstruir o gráfico; divergência de convenção (melhor vs mediana) deve ser registrada se comparado à prática da dissertação."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para DTLZ7 (3 objetivos, frente desconexa em 4 regiões), plota-se o conjunto não-dominado da execução com melhor IGD de K-RVEA, RVEA, ParEGO e MOEA/D-EGO contra os pontos da frente verdadeira, em painéis separados.",
+      "literal": "Nondominated solutions obtained by K-RVEA, RVEA, ParEGO and MOEA/D-EGO, denoted by circles, in the run with the best IGD value for three-objective DTLZ7, where the dots represent the Pareto front.",
+      "localizador": "Sec. IV-B; Fig. 7",
+      "metricas": [
+        "IGD (usado só para escolher qual execução plotar, não plotado)"
+      ],
+      "testes": [
+        "nenhum — visualização qualitativa"
+      ],
+      "convencoes": "execução com melhor IGD (não mediana); frente verdadeira sobreposta como pontos; DTLZ7 tem frente genuinamente desconexa (4 regiões) — caso de 'geometria difícil' de fato.",
+      "achado": "'Nondominated solutions obtained of K-RVEA and RVEA are much closer to the Pareto front than those of ParEGO and MOEA/D-EGO' — atribuído à adaptação dos vetores de referência, que lida bem com frentes desconexas: 'RVEA and K-RVEA have a good potential to get solutions close to the Pareto front because of the adaptation in the reference vectors.'",
+      "aplicabilidade": "① posições x/f da execução de melhor IGD; mesma ressalva de convenção (melhor vs mediana) das demais figuras."
+    },
+    {
+      "fichas": [
+        55
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para DTLZ2 com 10 objetivos, plota-se um gráfico de coordenadas paralelas do conjunto não-dominado da execução com melhor IGD de K-RVEA e de RVEA, eixo x = número do objetivo (1-10), eixo y = valor do objetivo.",
+      "literal": "Parallel coordinate plot of the nondominated solutions obtained by K-RVEA and RVEA in the run with the best IGD value on the 10-objective DTLZ2.",
+      "localizador": "Sec. IV-B; Fig. 8",
+      "metricas": [
+        "nenhuma métrica agregada — distribuição por objetivo"
+      ],
+      "testes": [
+        "nenhum — visualização qualitativa"
+      ],
+      "convencoes": "execução com melhor IGD (não mediana); um painel por algoritmo, mesmos eixos (0 a 1, 10 objetivos).",
+      "achado": "'the ranges of solutions obtained by K-RVEA are bigger than those obtained by RVEA. In other words, the solutions obtained by K-RVEA have a better distribution.' Atribuído a RVEA usar população menor (50) para caber mais gerações no orçamento reduzido, o que reduz a densidade de soluções — não é uma vantagem do surrogate em si, é um efeito colateral do desenho experimental.",
+      "aplicabilidade": "① f de todos os indivíduos da população final (ou da execução de melhor IGD) permitiria reconstruir; reprodutível em espírito, mas a dissertação não usa coordenadas paralelas como visualização padrão fora da ficha 55."
+    },
+    {
+      "fichas": [
+        46
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara o tempo de treinamento do Kriging/surrogate (segundos) em função do número de avaliações/amostras de treino acumuladas, para K-RVEA, ParEGO, SMS-EGO e MOEA/D-EGO, no problema DTLZ2 de 3 objetivos — evidenciando o efeito da estratégia de arquivo de tamanho fixo (NI) de K-RVEA.",
+      "literal": "the training time of K-RVEA remains constant, as the maximum number of training samples is kept constant, the training time for ParEGO increases slightly.",
+      "localizador": "Sec. II-B (motivação teórica, O(n³)); Sec. IV-B; Fig. 9",
+      "metricas": [
+        "tempo de treinamento do Kriging (segundos) por número de avaliações/amostras de treino"
+      ],
+      "testes": [
+        "nenhum — comparação descritiva de curvas de tempo"
+      ],
+      "convencoes": "uma curva por algoritmo, mesmo problema (DTLZ2, 3-obj); nota explícita do artigo que K-RVEA/SMS-EGO estão em MATLAB, ParEGO em C, MOEA/D-EGO em Java, então magnitudes absolutas não são diretamente comparáveis entre si — só a FORMA/tendência da curva é comparável.",
+      "achado": "K-RVEA mantém tempo de treino CONSTANTE (por manter o arquivo de treino em tamanho fixo NI, uma das duas contribuições centrais do artigo); ParEGO cresce levemente; MOEA/D-EGO cresce rápido ('as a piecewise continues function'); SMS-EGO cresce dramaticamente — sendo o motivo declarado de SMS-EGO precisar de ~7h por execução e não ser testado acima de 4 objetivos. Achado também reflete indiretamente a escolha de otimizador de hiperparâmetros de cada método (Hooke-Jeeves/K-RVEA vs Nelder-Mead/ParEGO vs CMA-ES/SMS-EGO vs DE/MOEA-D-EGO), mas isso é confundido com a linguagem de implementação.",
+      "aplicabilidade": "④ tempos por geração: reconstruir uma curva de tempo de ajuste do modelo por FE consumido a partir da própria plataforma da dissertação; a comparação cross-linguagem do artigo (MATLAB/C/Java) não é replicável tal qual — a dissertação mediria só o próprio tempo de fit, sem esse confound de implementação."
+    },
+    {
+      "fichas": [
+        45
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Análise de sensibilidade do parâmetro δ (Algoritmo 3), que é o GATE que decide se os indivíduos para reavaliação/retreino são escolhidos pela incerteza média do Kriging (quando a queda de diversidade excede δ) ou pela distância penalizada por ângulo/APD de convergência (caso contrário) — medindo o efeito sobre a diversidade (nº de vetores de referência vazios) e o hypervolume.",
+      "literal": "As expected, increase in the value of δ deteriorates the diversity and thus the hypervolume.",
+      "localizador": "Sec. III-C.1 (definição do mecanismo, Algorithm 3); Sec. IV-B, penúltimo parágrafo (sensibilidade, números no material suplementar)",
+      "metricas": [
+        "número de vetores de referência fixos inativos (proxy de diversidade)",
+        "hypervolume"
+      ],
+      "testes": [
+        "nenhum teste formal relatado no texto principal — só a curva/números no material suplementar"
+      ],
+      "convencoes": "δ = 0,05 × N fixado no restante do artigo; a sensibilidade varia δ e mede diversidade/HV; direção do efeito relatada em prosa, sem tabela/figura reproduzida neste texto.",
+      "achado": "Aumentar δ reduz a FREQUÊNCIA com que a seleção baseada em incerteza é acionada ('the frequency of using uncertainty information from Kriging models decreases with the increase in value of δ'), o que piora a diversidade e, por consequência, o hypervolume — ou seja, o artigo relata que USAR MENOS a incerteza (δ maior) PIORA o desempenho, uma evidência indireta (não uma ablação limpa σ=0) de que a incerteza ajuda. Os autores fixam δ=0,05N e deixam adaptação de δ como trabalho futuro, reconhecendo que 'the value of the parameter is problem-specific'.",
+      "aplicabilidade": "⑥ filme: reproduzir registrando, a cada retreino, se ΔVf ≤ δ (branch=convergência/APD) ou ΔVf > δ (branch=incerteza), variando δ e contando as ocorrências de cada branch e o HV resultante — o artigo não fornece essas contagens, só a direção qualitativa do efeito."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade ao tamanho do lote de reavaliação (u) no K-RVEA",
+      "grupo_sugerido": "E",
+      "descricao": "Estudo do efeito do parâmetro u (número de indivíduos reavaliados/usados para atualizar o Kriging a cada rodada, fixado em 5 no resto do artigo) sobre o desempenho — mencionado como dependente das características do problema (multimodalidade) e do algoritmo evolutivo usado, mas sem números no texto principal.",
+      "literal": "Our results show that the value of the parameter is problem-specific and an adaptive way of using the parameter is needed.",
+      "localizador": "Sec. IV-B, parágrafo sobre parâmetros adicionais (u e wmax), números no material suplementar",
+      "metricas": [],
+      "testes": [
+        "nenhum teste formal relatado no texto principal"
+      ],
+      "convencoes": "qualitativo — sem tabela/figura no texto principal; a curva/números estão só no material suplementar.",
+      "achado": "Desempenho ótimo de u varia por problema; nenhuma recomendação numérica fixa é dada além do valor usado no resto do artigo (u=5); os autores pedem uma versão adaptativa como trabalho futuro.",
+      "aplicabilidade": "não reprodutível a partir deste texto — números no material suplementar; u não é, em si, um parâmetro que define o USO da incerteza (só quantos pontos usam o critério vigente, seja ele incerteza ou APD), por isso não mapeado à ficha 45.",
+      "observacoes": "achado qualitativo presente no texto principal (não é 'só mencionada' pura), mas sem números/curva — esses estão apenas no material suplementar, não incluído nesta conversão"
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade à frequência de retreino do Kriging (wmax)",
+      "grupo_sugerido": "E",
+      "descricao": "Estudo do efeito de wmax (número de gerações em que o modelo Kriging é usado sem retreino, fixado em 20 no resto do artigo) sobre o desempenho de K-RVEA — mencionado como analisado, com resultado qualitativo dado só na Conclusão (não na própria Sec. IV-B), números no material suplementar.",
+      "literal": "our empirical results indicate that the performance of K-RVEA is relatively insensitive to the frequency of updating the surrogates for the benchmark problems studied in this work",
+      "localizador": "Sec. IV-B (menção ao estudo); Sec. V Conclusions (achado qualitativo)",
+      "metricas": [],
+      "testes": [
+        "nenhum teste formal relatado no texto principal"
+      ],
+      "convencoes": "qualitativo — sem tabela/figura no texto principal.",
+      "achado": "K-RVEA é relativamente INSENSÍVEL à frequência de retreino (wmax) nos problemas de benchmark testados — um resultado tranquilizador de robustez do model management, mas os autores citam trabalho anterior próprio ([26], Jin/Olhofer/Sendhoff 2002) sugerindo que tornar essa frequência ADAPTATIVA poderia melhorar ainda mais o desempenho, deixado como trabalho futuro.",
+      "aplicabilidade": "não reprodutível a partir deste texto — números no material suplementar; wmax não define o uso da incerteza (é frequência de model management geral), por isso fichas=[] em vez de 45."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Estudo de caso real (polimerização de acetato de vinila, 3 obj.)",
+      "grupo_sugerido": "C",
+      "descricao": "K-RVEA, RVEA, ParEGO e MOEA/D-EGO testados num problema real de engenharia química de 3 objetivos (polimerização em bulk de acetato de vinila com ramificação, de Mogilicharla et al. 2014) — qualidade da solução e tempo computacional comparados, mas dados/figuras só no material suplementar.",
+      "literal": "Even though K-RVEA and RVEA have been proposed for more than three objectives, they still performed better in solution quality and computation time than the compared algorithms.",
+      "localizador": "Sec. IV-B, último parágrafo antes de Sec. V",
+      "metricas": [
+        "não especificado no texto principal (apenas 'solution quality' e 'computation time', qualitativo)"
+      ],
+      "testes": [
+        "não relatado no texto principal"
+      ],
+      "convencoes": "qualitativo — sem tabela/figura no texto principal.",
+      "achado": "K-RVEA e RVEA (o motor de vetores de referência, com ou sem surrogate) superaram ParEGO e MOEA/D-EGO em qualidade E em tempo computacional neste problema real, mesmo tendo sido desenhados para >3 objetivos — sugerindo boa generalização do motor para poucos objetivos também, mas sem números para verificar.",
+      "aplicabilidade": "não reprodutível — o problema real (polimerização de acetato de vinila) não faz parte da bateria de 28 problemas da dissertação; dados/figuras apenas no material suplementar, não incluído nesta conversão.",
+      "observacoes": "só mencionada — nenhum número, tabela ou figura no texto principal, apenas a conclusão textual"
+    },
+    {
+      "fichas": [
+        62
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Discussão metodológica, antes da Tabela I, sobre como a escolha do tamanho do conjunto de referência do IGD e do ponto de referência do hypervolume afeta fortemente os valores medidos em otimização muitos-objetivo, citando divergências entre outros trabalhos (500 a 100.000 pontos de referência) e justificando a escolha própria dos autores (tamanho do conjunto variável por nº de objetivos, detalhado no suplementar; ponto de referência do HV = pior valor objetivo entre TODOS os algoritmos comparados + pequena margem).",
+      "literal": "the IGD value is very sensitive to the size of the reference set, which has not been explicitly discussed",
+      "localizador": "Sec. IV-B, antes da Table I (p. 8-9)",
+      "metricas": [
+        "IGD",
+        "hypervolume"
+      ],
+      "testes": [
+        "nenhum — discussão metodológica, não um teste estatístico"
+      ],
+      "convencoes": "cita tamanhos de conjunto de referência usados por outros trabalhos citados ([4],[48]: 100000 pontos; [52]: 500 pontos; [5]: tamanhos variados) para contextualizar a própria escolha (variável por nº de objetivos, listada no suplementar); ponto de referência do HV = pior valor objetivo dos ND de TODOS os algoritmos comparados, mais um pequeno limiar, seguindo recomendação de [49] de que um ponto 'ligeiramente melhor que o nadir' equilibra convergência e diversidade.",
+      "achado": "O artigo reconhece explicitamente que a comparação entre estudos de otimização muitos-objetivo é sensível a escolhas de normalização/referência raramente discutidas na literatura — um alerta de régua que se aplica à própria leitura dos resultados do artigo: 'we must emphasize that how to fairly compare the performance of EAs for many-objective optimization has received little attention in the literature and deserves more research.'",
+      "aplicabilidade": "não é uma análise reproduzível per se — é um aviso metodológico sobre como interpretar IGD/HV com nº de objetivos crescente; relevante para a camada ① (cálculo de IGD+/HV da dissertação já usa convenção própria e fixa, mitigando esse problema)."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "Não mede. O artigo usa a variância/desvio-padrão do Kriging (σ, Eq. 15, forma fechada da posterior GP) apenas como INSUMO operacional do mecanismo de seleção (Algoritmo 3: usar σ médio para escolher indivíduos quando diversidade insuficiente) — não há sonda, não há gráfico de σ ao longo do orçamento, não há cobertura de intervalo, RMSE ou correlação σ-erro reportados em lugar nenhum do texto.",
+    "literal": "we use uncertainty information from Kriging models to update the surrogates",
+    "localizador": "Sec. II-B"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "(a) Complexidade teórica O(n³) do treino do Kriging, n=nº de amostras de treino (Sec. II-B), motivando a estratégia de arquivo de tamanho fixo NI — uma das duas contribuições centrais do artigo. (b) Tempo de treino medido empiricamente (Fig. 9, segundos) em função do nº de avaliações/amostras acumuladas, para os 4 algoritmos, no DTLZ2 3-obj: K-RVEA constante (arquivo fixo), ParEGO cresce devagar, MOEA/D-EGO cresce rápido, SMS-EGO cresce dramaticamente — com ressalva explícita de que as linguagens de implementação diferem (MATLAB/C/Java) e por isso magnitudes absolutas não são diretamente comparáveis, só a tendência. (c) Custo de parede REAL do SMS-EGO citado textualmente: ~7h por execução (i5, 4GB RAM); rodado por 24h com 10 execuções paralelas para gerar o orçamento da Tabela II. Não há decomposição fit/busca-no-modelo/avaliação/instrumentação (só 'tempo de treino', não as demais fases).",
+    "literal": "it took about seven hours to complete one run on a computer with the i5 processor and 4GB RAM",
+    "localizador": "Sec. II-B; Sec. IV-B; Fig. 9"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Em DTLZ1 e DTLZ3, para TODOS os k testados (3,4,6,8,10), K-RVEA empata estatisticamente (≈) com RVEA — o piso sem surrogate — no teste de Wilcoxon rank-sum: usar o Kriging não produz nenhuma vantagem detectável nesses dois problemas multimodais, atribuído pelos autores à multiplicidade de ótimos locais de Pareto que torna a convergência lenta para ambas as variantes (com e sem surrogate).",
+      "literal": "We surmise that DTLZ1 and DTLZ3 have many local Pareto optimal solutions.",
+      "localizador": "Sec. IV-B, p. 9 (Table I, discussão)"
+    },
+    {
+      "descricao": "Em DTLZ5 (Tabela III), K-RVEA perde significativamente para MOEA/D-EGO porque a frente de Pareto de DTLZ5 é uma curva estreita, deixando ~70% dos vetores de referência (tanto de K-RVEA quanto de RVEA) vazios/inativos — um problema estrutural do mecanismo de vetores de referência que independe da qualidade do surrogate.",
+      "literal": "We observed that for both K-RVEA and RVEA, almost 70% of the reference vectors are empty, which makes the solution process to converge slowly to the Pareto front.",
+      "localizador": "Sec. IV-B, p. 9 (Table III, discussão)"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "multimodalidade / múltiplos ótimos locais de Pareto (DTLZ1, DTLZ3)",
+      "afirmacao": "K-RVEA e RVEA convergem lentamente em DTLZ1/DTLZ3 por tentarem manter um conjunto bem distribuído via vetores de referência, o que compete com a pressão de convergência quando há muitos ótimos locais — resultado igual com e sem surrogate (o surrogate não piora nem melhora nesse cenário específico).",
+      "literal": "Both RVEA and K-RVEA try to keep a well-distributed set of solutions because of the distribution in the reference vectors and, therefore, the convergence rate is relatively slow on these problems.",
+      "localizador": "Sec. IV-B, p. 9"
+    },
+    {
+      "caracteristica": "frente degenerada / curva de baixa dimensão num subespaço pequeno (DTLZ5)",
+      "afirmacao": "A frente de DTLZ5 sendo uma curva que ocupa um subespaço pequeno do espaço de objetivos deixa a maioria dos vetores de referência vazios, travando a convergência do mecanismo baseado em vetores de referência (K-RVEA e RVEA); o artigo sugere um nº maior de vetores de referência como paliativo não testado.",
+      "literal": "As the Pareto front of DTLZ5 is a curve that covers a small subspace in the objective space, most of the reference vectors in K-RVEA and RVEA are empty, i.e., no solutions are assigned to them.",
+      "localizador": "Sec. IV-B, p. 9"
+    },
+    {
+      "caracteristica": "frente desconexa em múltiplas regiões (DTLZ7, 4 regiões)",
+      "afirmacao": "Ao contrário do padrão em problemas degenerados/multimodais, aqui a característica FAVORECE o mecanismo de K-RVEA/RVEA: a ADAPTAÇÃO dos vetores de referência (Eq. 6) permite que ambos alcancem soluções mais próximas da frente verdadeira que ParEGO e MOEA/D-EGO nesse cenário.",
+      "literal": "RVEA and K-RVEA have a good potential to get solutions close to the Pareto front because of the adaptation in the reference vectors.",
+      "localizador": "Sec. IV-B, p. 9 (Fig. 7, discussão)"
+    },
+    {
+      "caracteristica": "número crescente de objetivos (k) com nº de variáveis de decisão FIXO (n=10)",
+      "afirmacao": "Para um n fixo, aumentar k torna o problema mais FÁCIL (não mais difícil), porque menos variáveis de decisão restam para 'dirigir' a convergência à medida que mais objetivos particionam o mesmo espaço de busca — um efeito estrutural do desenho DTLZ com n fixo, não um efeito do surrogate, citado para motivar a inclusão do WFG (onde essa relação não se sustenta da mesma forma).",
+      "literal": "the landscape of the problems is getting easier as the number of objectives increases. This is due to the fact that the number of decision variables for driving convergence decreases with the increase in the number of objectives",
+      "localizador": "Sec. IV-A, final"
+    }
+  ],
+  "roster_bloco": {
+    "mecanismo_proprio": [
+      {
+        "descricao": "Análise de sensibilidade do parâmetro δ — o limiar (0,05×N) sobre a variação do nº de vetores de referência fixos inativos entre dois retreinos que decide se a reavaliação/retreino usa seleção por INCERTEZA (σ médio do Kriging) ou por APD/convergência. É o único parâmetro do artigo que literalmente liga/desliga o uso da incerteza no mecanismo de model management.",
+        "literal": "As expected, increase in the value of δ deteriorates the diversity and thus the hypervolume. This is due to fact that frequency of using uncertainty information from Kriging models decreases with the increase in value of δ.",
+        "localizador": "Sec. III-C.1 (Algorithm 3); Sec. IV-B (sensibilidade, números no suplementar)"
+      }
+    ],
+    "reprodutivel_com_camadas": "A sensibilidade de δ poderia ser reproduzida com a camada ⑥ (filme), registrando a cada retreino se ΔVf ≤ δ (branch = convergência/APD, sem uso de incerteza) ou ΔVf > δ (branch = incerteza), variando δ e contando quantas vezes cada branch é escolhido ao longo do orçamento — o artigo original NÃO fornece essas contagens brutas, só a direção qualitativa do efeito sobre diversidade/HV (números ficaram no material suplementar, ausente desta conversão). A camada ③ (sonda) complementaria avaliando se, nos retreinos em que o branch 'incerteza' foi escolhido, o σ médio de fato discrimina pontos de maior erro real (ficha 34) — não testado no artigo. Não há, neste artigo, nenhuma ablação limpa do tipo 'K-RVEA com σ sempre ignorado' (contrafactual σ=0, ficha 15) nem contagem explícita de acionamentos (ficha 45 propriamente dita) — só a evidência indireta da sensibilidade de δ.",
+    "parametros_do_uso_da_incerteza": [
+      "δ = 0,05 × N (N = número de vetores de referência): limiar sobre ΔVf (variação do nº de vetores de referência FIXOS inativos entre dois retreinos consecutivos). Se ΔVf > δ, os u indivíduos para reavaliação são escolhidos pela MÁXIMA incerteza média do Kriging (σ médio dos k objetivos); caso contrário (ΔVf ≤ δ), são escolhidos pela MÍNIMA APD (convergência) — a incerteza só é 'ligada' quando δ é excedido. No primeiro retreino, APD é sempre usado (incerteza nunca aciona na primeira atualização).",
+      "u = 5: número de indivíduos reavaliados/adicionados ao arquivo a cada rodada de atualização — não define SE a incerteza é usada, só QUANTOS pontos usam o critério (incerteza ou APD) vigente naquela rodada.",
+      "wmax = 20: número de gerações em que o Kriging é usado sem retreino entre atualizações — parâmetro de frequência de model management geral, não define o uso da incerteza.",
+      "NI = 11n − 1 (=109 para n=10): tamanho do DoE inicial e tamanho MÁXIMO do arquivo de treino A1 (mantido fixo para limitar o custo O(n³) do Kriging) — não é parâmetro de incerteza, listado para registro."
+    ]
+  },
+  "observacoes": "(1) CONTRADIÇÃO no nº de execuções: parâmetros (Sec. IV-A) dizem 10 execuções independentes, mas o texto da Sec. IV-B (introduzindo a Tabela I) diz 25 execuções independentes — não reconciliado no artigo, registrado em setup.execucoes. (2) Este PDF/conversão contém SÓ o texto principal (14 páginas + referências + biografias dos autores) — o artigo remete repetidamente ('Supplementary material') números e tabelas que NÃO estão neste texto: resultados de hypervolume para DTLZ, resultados de IGD+HV para o WFG, a lista de nº de vetores de referência (N) por nº de objetivos, as curvas numéricas de sensibilidade de δ/u/wmax, e os detalhes/resultados do problema real de polimerização — todos tratados aqui como 'só mencionados', com o achado qualitativo (quando existe no texto principal) registrado mas sem números. (3) RVEA funciona, na prática, como o PISO da própria classe de motor de K-RVEA (mesmo mecanismo de vetores de referência, sem Kriging) — os próprios autores o incluem exatamente com esse propósito declarado ('to give the reader a sense of how differently an algorithm with and without surrogates performs'), o que torna as Tabelas I e II diretamente relevantes à ficha 9 apesar de não usarem desenho pareado por semente/DoE (ficha 5 não se aplica — não há evidência de sementes/DoE compartilhados entre K-RVEA, RVEA, ParEGO, SMS-EGO e MOEA/D-EGO, implementados por autores/linguagens distintas: MATLAB, C, Java). (4) Nenhuma ablação limpa do tipo 'K-RVEA sem uso de incerteza' (contrafactual σ=0, fichas 11/15) é executada neste artigo — toda evidência de que a incerteza ajuda é INDIRETA, via a sensibilidade de δ (aumentar δ reduz o uso de incerteza e piora HV) e via a comparação K-RVEA-vs-RVEA (que mistura MUITAS diferenças de mecanismo além do σ: arquivo de treino gerenciado, vetores fixos+adaptativos, etc. — não isola o efeito do σ per se). (5) Métrica usada em TODAS as tabelas do texto principal é IGD (não IGD+, a métrica primária da dissertação); hypervolume é citado mas nunca mostrado neste texto. (6) Tabelas I/II/III foram lidas de uma extração de tabela em markdown (pipe-tables) que mescla células de forma não totalmente trivial (colunas de símbolo de Wilcoxon intercaladas com blocos min/mean/max) — a leitura célula-a-célula foi cross-verificada contra a camada de texto bruto (ANEXO) do mesmo arquivo, que reproduz os mesmos valores linha a linha, dando razoável confiança nos números citados em 'achado', mas uma conferência contra o PDF original é recomendável antes de uso quantitativo fino. (7) O artigo compara variantes de forma implícita (K-RVEA vs RVEA = com/sem surrogate do mesmo motor), o que é uma ablação natural mesmo sem ser rotulada como tal pelos autores."
+}

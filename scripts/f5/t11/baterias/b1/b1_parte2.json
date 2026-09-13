@@ -1,0 +1,210 @@
+[
+ {
+  "k": "U9.tipos de guard",
+  "v": "{'cache_hit': 15, 'dedup_treino': 6}"
+ },
+ {
+  "k": "U9.cache_hit 6 == manifesto == footer",
+  "v": "15 == 15 == 15"
+ },
+ {
+  "k": "N1.c0 = guards cache com fe==1",
+  "v": "1 (sid=[0])"
+ },
+ {
+  "k": "U9.dedup_treino eventos / remocoes",
+  "v": "6 / 18"
+ },
+ {
+  "k": "U9.dedup por geracao",
+  "v": "{31: 1, 35: 3, 37: 4, 39: 4, 40: 1, 47: 5}"
+ },
+ {
+  "k": "U9.cache_hit por fe",
+  "v": "{1: 1, 50: 1, 51: 1, 52: 1, 53: 1, 58: 5, 60: 5}"
+ },
+ {
+  "k": "F2.ramo infill novo",
+  "v": "40/40"
+ },
+ {
+  "k": "F2.ramo cache-hit",
+  "v": "14/14"
+ },
+ {
+  "k": "F2.falhas",
+  "v": "[]"
+ },
+ {
+  "k": "F3.argmax-EI do pool reproduz (mu,sigma)",
+  "v": "18/54 = 0.333"
+ },
+ {
+  "k": "F3.nao-greedy / pool-consistentes",
+  "v": "2/18 = 0.111"
+ },
+ {
+  "k": "F3.sigma_sel > sigma_greedy em",
+  "v": "2/2"
+ },
+ {
+  "k": "F3.razao sigma_sel/sigma_greedy med/max",
+  "v": "1.051 / 1.094"
+ },
+ {
+  "k": "F3.percentil-sigma escolhido x guloso",
+  "v": "0.616 x 0.468"
+ },
+ {
+  "k": "F3/F4.crosstab (last_eq, match)",
+  "v": "{(False, np.False_): 36, (True, np.True_): 18}"
+ },
+ {
+  "k": "U5.join posicional max|dX| (todos blocos)",
+  "v": "0.000e+00"
+ },
+ {
+  "k": "U6.WAPE 1o -> ultimo bloco",
+  "v": "0.3695 -> 0.3737 (+1.1%)"
+ },
+ {
+  "k": "U6.WAPE min/mediana/max",
+  "v": "0.0669 / 0.3621 / 0.6804"
+ },
+ {
+  "k": "F5.cobertura 2sigma 1o -> ultimo",
+  "v": "0.5835 -> 0.9340"
+ },
+ {
+  "k": "F5.cobertura min por bloco",
+  "v": "0.4690 (g=48)"
+ },
+ {
+  "k": "F5.blocos com cobertura < 0.95",
+  "v": "28/28"
+ },
+ {
+  "k": "F5.sigma mediano 1o -> ultimo",
+  "v": "0.04036 -> 0.2869"
+ },
+ {
+  "k": "SONDA.corr 1o -> ultimo",
+  "v": "0.4173 -> 0.4684"
+ },
+ {
+  "k": "SONDA.blocos / pontos",
+  "v": "28 / 56000"
+ },
+ {
+  "k": "SONDA.x_hash manifesto == artefato",
+  "v": "186b726e7d62abaa == (evento) 186b726e7d62abaa"
+ },
+ {
+  "k": "SONDA.sonda_estratificada presente?",
+  "v": "False"
+ },
+ {
+  "k": "CMP.doe_hash T11 == R42",
+  "v": "True"
+ },
+ {
+  "k": "CMP.repo_hash T11 / R42",
+  "v": "195f64ed0a69 / "
+ },
+ {
+  "k": "CMP.matlab T11 / R42",
+  "v": "25.1.0.2973910 (R2025a) Update 1 / 25.1.0.2973910 (R2025a) Update 1"
+ },
+ {
+  "k": "CMP.n_iter T11 / R42",
+  "v": "54 / 48"
+ },
+ {
+  "k": "CMP.cache_hits T11 / R42",
+  "v": "15 / 9"
+ },
+ {
+  "k": "CMP.1 DoE (21 linhas) identico",
+  "v": "True"
+ },
+ {
+  "k": "CMP.1a linha da 1 que difere (fe_index)",
+  "v": "58 de 61"
+ },
+ {
+  "k": "CMP.linhas da 1 identicas",
+  "v": "58/61"
+ },
+ {
+  "k": "CMP.lambda g1 T11 / R42",
+  "v": "[0.37373737373737376, 0.6262626262626263] / [0.37373737373737376, 0.6262626262626263]"
+ },
+ {
+  "k": "CMP.1a geracao com lambda diferente",
+  "v": "nenhuma"
+ },
+ {
+  "k": "CMP.1a geracao com gbest diferente",
+  "v": "4  (max|d| ate la = 0.000e+00)"
+ },
+ {
+  "k": "CMP.1a geracao com mu_best diferente",
+  "v": "1  (max|d| ate la = 0.000e+00)"
+ },
+ {
+  "k": "CMP.1a geracao com sigma_best diferente",
+  "v": "1  (max|d| ate la = 0.000e+00)"
+ },
+ {
+  "k": "CMP.1a geracao com ei_best diferente",
+  "v": "1  (max|d| ate la = 0.000e+00)"
+ },
+ {
+  "k": "CMP.theta g1 T11 / R42",
+  "v": "[2.10224104 0.68156733] / [2.10224104 0.68156733]  |d|=0.000e+00"
+ },
+ {
+  "k": "CMP.gbest g1 T11 / R42",
+  "v": "0.06907335449067542 / 0.06907335449067542"
+ },
+ {
+  "k": "CMP.mu_best g1",
+  "v": "0.079314769806367869 / 0.079314769806367758"
+ },
+ {
+  "k": "CMP.e0_trace[0] g1",
+  "v": "-0.021560882747577712 / -0.021560882747577712"
+ },
+ {
+  "k": "CMP.best_sid g1",
+  "v": "21 / 21"
+ },
+ {
+  "k": "CMP.tempo_total T11 / R42",
+  "v": "25.05s / 51.51s"
+ },
+ {
+  "k": "CMP.tempo_aval_real T11 / R42",
+  "v": "0.019769000000000005 / 0.032261000000000005"
+ },
+ {
+  "k": "CMP.campanha_id T11 / R42",
+  "v": "t11-smoke-195f64e / AUSENTE"
+ },
+ {
+  "k": "CMP.schema_version T11 / R42",
+  "v": "2 / 1"
+ },
+ {
+  "k": "CMP.chaves novas no manifesto T11",
+  "v": "['campanha_id']"
+ },
+ {
+  "k": "CMP.chaves perdidas",
+  "v": "[]"
+ },
+ {
+  "k": "CMP.chaves novas em timing(5)",
+  "v": "[]"
+ }
+]

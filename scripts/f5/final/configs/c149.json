@@ -1,0 +1,121 @@
+{
+ "config": "c149 — LBN-MOBO (Ansari et al. 2023, arXiv:2306.01095; Python torch+pymoo, deep ensemble K=10, aquisição 2MD, sub-seleção q=1 HVI-greedy D96) · RODADA FINAL sobre o corpus CONGELADO · foco: +30 RE21 +30 DDMOP7 +30 ESTOQUE40",
+ "celulas_final": "812 células do c149 no censo_final (807 main + 5 batch s42). Por estado O-21 (rodapé = autoridade): 740 ok [688 sintéticas (herança F30) + 5 batch s42 (herança T11, schema 1) + 30 RE21 + 17 DDMOP7 — destas, 2 (DDMOP7/19,20) com ⑥ amputada no canônico, ver classe 3] · 51 ⚪ teto_wall com rodapé/motivo de teto [26 sint ZDT1(12)/ZDT3(14) 12h + 1 DDMOP7/0 (célula do SMOKE T15, teto 2h, fe 339/526) + 24 EST40 12h (fe 947–1008/1239)] · 21 sem-rodapé no piso do checkpoint DI-43 [3 sint morte-de-máquina (DTLZ3/18, ZDT1/7, ZDT3/7) + 12 DDMOP7 (s7–18, fe 207–507) + 6 EST40 (s24–28,42, fe 639–689)]. Coerência de piso verificada 18/18 nas reais: ①②③④⑤ ≡ piso ao dígito, ⑥ append-only 1–21 gerações à frente (comportamento declarado DI-43). ESTOQUE40 é 100% censurado (0/30 completas — FE comum 947 c/ rodapé, 639 incl. pisos). ZERO células a excluir (nenhum NAO_rerun).",
+ "novas_desde_f30": "+95 células vs o corpus F30 (717→812): 90 REAIS novas (30 RE21, campanha 3240f4b26fae_2026-08-15 vm1 · 30 DDMOP7, 29 em 7be66e65522c_2026-08-17 vm5 + a célula-smoke s0 de 15/08 vm1 · 30 EST40, 3240f4b26fae_2026-08-19/20 vm1) + 5 batch s42 que o censo agora conta (mtime 26/07, pré-M8 — o corpus do 424/424 da T11, fora do escopo F30). Sintéticas main: IDÊNTICAS — 0 arquivos com mtime posterior ao snapshot F30 (14/08 21:30), verificado por find nos 25 diretórios; herdam o veredito F30 com spot-check limpo (10 células, estados ok/⚪/piso: identidades 0 violações, query-joia 384/384 gerações amostradas, pior erro 5,8e-7).",
+ "mecanismo_nos_novos": "Query-joia D96 (recomputo do hvi_escolhido a partir de ①+⑥, regra fechada D41/D96: normalização pelo arquivo observado, ref=1,1, HVI=HV(ND∪{c})−HV(ND)) rodada em TODAS as gerações ≤ piso das 88 células novas com ⑥ — não amostra: **24.731/24.731 = 100%** (RE21 2.400 + DDMOP7 7.919 + EST40 14.412), pior erro 2,27e-6, todo excedente do quantum fechado por análise de cantos ±5e-7 do round-6 do log (0 sobras). ARGMAX sobre o front completo da ③ (disponível em disco em 90/90 — inédito vs main bucket-only): 646/646 em amostra estratificada (60 RE21 + 212 DDMOP7 + 374 EST40). Refutador hipótese-B (ref=1,1×nadir, espaço nativo): fecha só 2/1.225 — a identidade é causal. Sete identidades internas da ⑥ (solution_id=fe−1, seed_nsga2 ≡ SeedSequence((1000s,12,g,1))&0xFFFFFFFF bit-a-bit, σ²_agg, μ∈range, σ²≤máx, empates, f_best monótono, split 90/10, épocas=60, K=10, U7, U10-②, gate_3x1 ③×①×⑥, transf_params③≡z⑥): **0 violações em 24.942 decisões / 90 células**. Nas 2 células sem ⑥ (DDMOP7/19,20): prova por ③+① — 340/340 gerações cada (escolhido único, sid=n_init+g−1, X bit-a-bit ≤5e-6, argmax/desempate-σ em amostra 35+35, 0 falhas).",
+ "reais": "RE21 (D=4): 30/30 ok a 123 FE; caminho hvi 93,2%/desempate 6,7%/fallback 4; peculiaridade de regime: a busca NSGA-II custa 53,1% do wall > fit 45,4% (D pequeno); checa_regua (régua D69 medida do front D72): 0 furos em 3.690 pontos. DDMOP7 (D=17, caixa-preta .p): o resultado-headline QUANTIFICADO — ND da busca (dedup por x_efetivo, CONTRATO §T15.13) = **0 em 23/30 sementes; 9 pontos ND em 8.599 propostas (0,10%)**; nas 7 sementes com ND>0 (s3,6,10,12,19,20,23, 1–2 pontos cada), TODAS melhoram o melhor f2 do DoE (melhor da busca: 119/690, s19; melhor global do config: 97/690, do DoE, s11). Mecanismo medido: 98,3% das decisões por desempate_sigma (HVI colapsado — o modo (I) da F5 transplantado ao problema real; hvi governa só 1,6%), propostas na borda: 86,1% das coordenadas |x|>0,9, nnz médio 16,58/17, só 2,47% das coordenadas na zona morta — reproduz o smoke (90,3%/16,8) em 30 sementes. Zona morta D102.17 VERIFICADA NO ORÁCULO sem MATLAB: cota nunca-poda k≥nnz(input) fecha 14.179/14.179 pontos (8.599 busca + 5.580 DoE cru) e **271 linhas da busca têm k<17 — impossível sob x cru** (nnz(cru)=17 sempre); Δ=k−nnz_ef=+1/+2 em 94,7% das 2.540 linhas com zona ativa (bate o documentado no bridge). Integralidade f1·17/f2·690: 0 violações; f<ideal=[0;0]: 0 furos (checa_regua rodado, 0 avisos); mesmo x_efetivo ⇒ mesmo f: 0 inconsistências. Oráculo NÃO-gratuito pela 1ª vez: tempo_aval_real = 20,5% do wall (6,28 s/FE) — e ainda assim fit+busca custam 78,7%, 3,8× a avaliação. EST40 (D=40, M=3): 100% censurado por parede (24 ⚪ a 12h com 76–81% do orçamento + 6 pisos); qj 14.412/14.412; hvi governa 97,8% (o HVI discrimina — oposto do DDMOP7); régua de cantos D102.20: 0 furos em 27.582 pontos; 310,9 h-core (o mais caro da onda). Custo total da onda real: 431,6 h-core / 45.451 FE.",
+ "aspectos_mudados": [
+  {
+   "id": "A20",
+   "o_que": "Query-joia D96 — invariância da regra de seleção",
+   "antes": "4.318/4.318 em amostra de 75 células, 25 problemas SINTÉTICOS (F30)",
+   "agora": "+24.731/24.731 em TODAS as gerações das 88 células reais com ⑥ + argmax 646/646 do front completo da ③ + prova ③-only nas 2 células sem ⑥ (340/340×2) — a regra fecha em problema real, caixa-preta e M=3"
+  },
+  {
+   "id": "A32",
+   "o_que": "Oráculo gratuito (premissa do artigo: 'sole limiting factor')",
+   "antes": "0,001242% do wall (717 células sintéticas)",
+   "agora": "QUEBRA no DDMOP7: 20,5% do wall é avaliação real (6,28 s/FE via MATLAB .p) — primeira instância material da premissa do artigo no nosso banco; e mesmo aí o surrogate custa 3,8× o oráculo. RE21/EST40 seguem ~0,0006%"
+  },
+  {
+   "id": "A34",
+   "o_que": "C3-1/upload_status e cegueira do gate_3x1",
+   "antes": "210/717 células com upload_status destruído por 403; ③ bucket-only; gate_3x1 coberto em 2,2%",
+   "agora": "na onda real o defeito NÃO se repete: upload_status por-artefato preservado em 72/72 manifestos finais, ③ EM DISCO em 90/90 → gate_3x1 coberto em 100% das novas (0 quimeras). Main inalterada — C3-1 segue pendente"
+  },
+  {
+   "id": "A30",
+   "o_que": "Campanha única / HEAD único",
+   "antes": "717/717 em campanha única 7f4f0e429a46_M8, repo 63db46b1",
+   "agora": "onda real em 2 HEADs (3240f4b2: RE21+EST40+DDMOP7/0 · 7be66e65: DDMOP7 s1-42) e 4 campanha_ids; git diff entre os HEADs toca só metrics.py (régua de ANÁLISE), lote3s.sh e docs — zero toque em c149_lbnmobo/harness/bridge ⇒ benigno, D29 não dispara"
+  },
+  {
+   "id": "A04/A29",
+   "o_que": "Sonda",
+   "antes": "sonda ligada em 717/717, cadência k=2",
+   "agora": "DDMOP7: ZERO blocos em 30/30 (D102.10 cumprida à risca); RE21/EST40: k=2 + finalProbe §3.1 na última geração ímpar (16 células EST40, motivo declarado no próprio bloco); hash único por célula 60/60"
+  },
+  {
+   "id": "A28",
+   "o_que": "Checkpoint DI-43 na onda real",
+   "antes": "0,6176% do wall; salvou 3 células",
+   "agora": "0,19%/0,25%/0,90% do wall (RE21/DDMOP7/EST40); salvou 18 células (12 DDMOP7 + 6 EST40) com piso ①②③④⑤ coerente 18/18 e U7 intacto (0 violações em 24.942)"
+  },
+  {
+   "id": "A36-NOVO",
+   "o_que": "Zona morta D102.17 no oráculo (T15.13)",
+   "antes": "inexistente no F30; smoke com 1 semente",
+   "agora": "verificada nos dados de 30 sementes: nunca-poda 14.179/14.179, 271 provas positivas (k<17 exige zeros no input), Δ=+1/+2 em 94,7%, DoE comprovadamente CRU (esparso por construção, k≥nnz(cru) 5.580/5.580)"
+  },
+  {
+   "id": "A37-NOVO",
+   "o_que": "Guard executável checa_regua (T15.13b, commit 89655e4)",
+   "antes": "selo declarativo (provou-se furável no laudo de 15/08)",
+   "agora": "rodado nesta auditoria em 90/90 células / 45.451 pontos da ①: 0 reprovações e 0 avisos leves nas 3 réguas (RE21 D69-medida, DDMOP7 ínfimo [0;0] ERRATA 2, EST40 cantos D102.20)"
+  },
+  {
+   "id": "N5",
+   "o_que": "Cauda/censura",
+   "antes": "26 ⚪ (ZDT1/ZDT3 12h) + 3 mortes; 'o truncamento morde onde importa'",
+   "agora": "o padrão amplia-se: EST40 100% censurado (0/30 completas, FE comum 947/1239) e DDMOP7 com 12 pisos + a célula-smoke s0 a 339 FE — o custo (2.334 h-core main + 431,6 reais) segue sendo a incapacidade dominante do config, não o mecanismo"
+  }
+ ],
+ "celulas_invalidas": [
+  {
+   "celula": "DDMOP7/7-18 (12 células: fe 506,507,507,481,455,432,407,381,381,327,307,207 de 526)",
+   "motivo": "interrupção de máquina/frota com manifesto parcial de checkpoint (motivo=checkpoint_em_andamento, SEM rodapé) — vm5, 17/08",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  },
+  {
+   "celula": "ESTOQUE40/24-28,42 (6 células: fe 689,639,639,639,639,639 de 1239)",
+   "motivo": "interrupção de máquina/frota com manifesto parcial de checkpoint (SEM rodapé) — vm1, 19-20/08",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  },
+  {
+   "celula": "DDMOP7/19 e DDMOP7/20",
+   "motivo": "⑥ AMPUTADA no canônico: jsonl = 1 linha (só header, mtime 4,5h antes do fim do run) com ①②③④⑤ completos e manifesto final ok (526/526); upload_status.jsonl='uploaded' ⇒ a ⑥ completa está no bucket. Mecânica JÁ provada por ③+① (340/340 ger. cada). Células VÁLIDAS com pendência de recuperação",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "DTLZ3/18, ZDT1/7, ZDT3/7 (herdadas F30)",
+   "motivo": "morte de máquina M8 (vm4/vm1), piso G=100/325/275, ⑥ à frente 15/11/22 ger.",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C3-F1",
+   "descricao": "NOVO — DDMOP7/19 e /20: a ⑥ do canônico é só o header (1 linha, 4.359 bytes, mtime 09:06 local vs 13:38 das demais camadas), enquanto ①②③④⑤ estão completas e o manifesto final diz ok/526/526 com upload_status.jsonl='uploaded'. Mesma família do C3-2 do F30 (consolidação por camada pegou cópia obsoleta, sem flag). Fidelidade PROVADA pelas outras camadas: escolhido único por geração, solution_id, X bit-a-bit e argmax/desempate-σ fecham 340/340 em ambas via ③+①.",
+   "gravidade": "média para o CONTRATO (2 células com camada de evidência primária ausente no canônico, silencioso); NULA para a FIDELIDADE (provada por ③+①)",
+   "acao": "puxar do bucket os 2 jsonl (upload_status confirma que existem) e substituir no canônico; até lá, regra de leitura: a ⑥ dessas 2 células é o objeto do bucket, não o local. Instalar no consolidador o invariante barato: n_linhas(⑥) compatível com n_geracoes(⑤) — teria pego este caso e o C3-2",
+   "arquivo_linha": "resultados_experimentos/c149/DDMOP7/{19,20}/*.jsonl · ~/mestrado_coleta_m8/reorg.py (consolidação por camada)"
+  },
+  {
+   "id": "C3-1",
+   "descricao": "HERDADO F30, INALTERADO (sintéticas intocadas desde o snapshot): 210/717 células main com upload_status={'erro': 403 storage.objects.delete} e ③ bucket-only em estado não-verificável; gate_3x1 cego em 97,8% da main. Escalação (listar o bucket) segue pendente do autor. Nota nova desta rodada: nas 90 células reais o defeito NÃO se repetiu (upload_status por-artefato íntegro; ③ em disco 90/90).",
+   "gravidade": "alta para o contrato da MAIN (inalterada); nula para fidelidade",
+   "acao": "a mesma do F30: gsutil ls do bucket × lista das 210 células (decide entre classe 2 e perda de 29,3% da ③)",
+   "arquivo_linha": "src/standalone_harness.py:1446"
+  },
+  {
+   "id": "C3-2",
+   "descricao": "HERDADO F30, INALTERADO: 9 células canônicas da semente 7 com ③ truncada de uma 2ª execução (37,5–50% do run) sem flag; benigno provado (gate_3x1 e A33 bit-idêntico).",
+   "gravidade": "média para o contrato; nula para fidelidade",
+   "acao": "a do F30: registrar caveat + invariante geracao.max(③)==n_geracoes(⑤) + reparo via bucket",
+   "arquivo_linha": "resultados_experimentos/_FONTES.csv"
+  }
+ ],
+ "score_final": 9.3,
+ "trajetoria_scores": "F5 9,0 → T11 9,5 → F30 9,2 → FINAL 9,3. Causas nomeadas: F5→T11 +0,5 = refinamento fechou os refutadores (argmax q=10 424/424, quimera A26 com causa-raiz provada e movida para fora do denominador, schema v2 no HEAD). T11→F30 −0,3 = o mecanismo SUBIU (24× evidência, deriva cross-máquina 0-bit) mas o CONTRATO caiu por infraestrutura: C3-1 (403 destrói upload_status, ③ de 29,3% da main não-verificável, gate anti-quimera cego) −0,4 e C3-2 (9 células ③ truncada silenciosa) −0,1. F30→FINAL +0,1 = o mecanismo estendeu-se aos 3 problemas REAIS com prova PLENA (24.731/24.731 query-joia em todas as gerações, 646/646 argmax, 0 violações de identidade em 24.942 decisões, zona morta verificada no oráculo com 271 provas positivas, checa_regua 0 furos em 45.451 pontos) e o C3-1 foi mitigado prospectivamente (③ em disco e upload_status íntegro em 90/90 novas → gate_3x1 100% nas novas); desconto novo −0,1 pelo C3-F1 (⑥ amputada em 2 células, recuperável do bucket, benigno provado); os descontos herdados C3-1/C3-2 permanecem até o autor listar o bucket (se C3-1 resolver como classe 2, esta recomendação sobe a ~9,6, como o F30 já publicou).",
+ "veredito": "ACEITAR + CAVEAT (recomendação D97 — a sentença é do autor). O MECANISMO do c149 está agora provado em 28 problemas, incluindo os 3 reais: toda identidade re-testável fechou 100% nas 90 células novas, a regra D96 é invariante a semente E a problema (sintético, caixa-preta MATLAB, M=3), e a zona morta D102.17 tem verificação executável no dado (não só declarativa). Zero células a excluir da análise: as 51 ⚪ comparam-se em FE comum (DI-43/44) e os 21 pisos entram truncados no piso. O resultado científico novo do config: no DDMOP7, a busca surrogate contribui 0 pontos ND (dedup x_efetivo) em 23/30 sementes — 9 pontos em 8.599 propostas — com mecanismo medido (HVI colapsado ⇒ 98,3% desempate-σ ⇒ 86,1% das coordenadas na borda |x|>0,9, nnz 16,58/17): é o modo (I) da F5 reproduzido num problema real, e nas 7 sementes em que a busca produz ND ela SEMPRE melhora o melhor f2 do DoE — resultado para a dissertação, não defeito. CAVEATS de uso: (i) EST40 é um método 100% censurado (FE comum 947/1239; incl. pisos 639) — mesma leitura do ZDT1/ZDT3 do F30; (ii) DDMOP7/0 é a célula do smoke T15 (teto 2h, 339 FE) consolidada como semente 0 — declarar; (iii) a ⑥ de DDMOP7/19-20 lê-se do bucket até o reparo; (iv) |ND| do DDMOP7 publica-se SEMPRE dedupado por x_efetivo (T15.13); (v) C3-1/C3-2 da main seguem abertos e herdam os caveats do F30.",
+ "decisoes_ao_autor": [
+  "C3-F1 (novo, barato): puxar do bucket os jsonl completos de c149/DDMOP7/19 e /20 (upload_status.jsonl='uploaded' nos dois manifestos) e substituir os headers-órfãos do canônico — 1 comando read-only no bucket; até lá a ⑥ dessas 2 células é o objeto do bucket. Recomendo estender ao consolidador o invariante n_linhas(⑥)~n_geracoes(⑤), que pega este caso e o C3-2.",
+  "DECISÃO DE ANÁLISE — orçamento de FE comum do DDMOP7: incluir a célula-smoke s0 (⚪ teto 2h, 339 FE) derruba o FE comum de 526→339 para as 18 células com rodapé; alternativa: agregar as 17 completas a 526 e reportar s0 separadamente como ⚪. Idem EST40: 947 (24 c/ rodapé) vs 639 (30 c/ pisos). A escolha muda o denominador de qualquer contraste — é sua (D97).",
+  "DDMOP7/0 = a célula do smoke T15 de 15/08 consolidada como semente 0 (mesma execução: 153 decisões, nnz 16,8, borda 90,3% — bate o T15-PARECER §1). Sugiro declarar isso no texto da dissertação onde a régua de 30 sementes for citada.",
+  "HEAD duplo na onda real (3240f4b2 vs 7be66e65): o diff não toca c149/harness/bridge (só metrics.py-análise e docs) — registro como benigno declarado; se quiser HEAD único no texto, o carimbo correto é 'família 3240f4b2+7be66e65, algo_version c149-lbnmobo-1.0 idêntica'.",
+  "HERDADAS E AINDA ABERTAS (F30): a listagem do bucket para C3-1 (210 células, decide 9,2→9,6 desta recomendação também) e o caveat C3-2 (9 células ③ truncada da semente 7). Nada nesta rodada as altera — as sintéticas estão byte-estáveis desde 14/08.",
+  "FASE 2 POOLED do DDMOP7 (D102.3): agora computável (as 30 células do c149 entram no pool de ~629); a ⑦/__final segue ausente por desenho (D102.9, pós-hoc via final_eval) — falta rodá-la antes da §12. O checa_regua desta rodada garante que a fase-1 [0;0] não foi furada (0 avisos em 45.451 pontos).",
+  "O RESULTADO DDMOP7 para a dissertação, com os números desta rodada: 23/30 sementes com 0 ND da busca (9/8.599 propostas), mecanismo 98,3% desempate-σ/borda 86,1%, e a contrapartida positiva — nas 7 sementes com ND>0 a busca sempre melhora o melhor f2 do DoE (até 119/690). Publicar |ND| dedupado por x_efetivo (T15.13) e citar o oráculo a 20,5% do wall como o primeiro teste material da premissa 'sole limiting factor' do artigo.",
+  "As 5 células batch s42 (26/07, schema 1, pré-A30) agora aparecem no censo: são o corpus do A22/D42 da T11 (424/424) — sugiro rotulá-las no censo como herança T11 para nenhuma torre re-auditá-las como novas."
+ ]
+}

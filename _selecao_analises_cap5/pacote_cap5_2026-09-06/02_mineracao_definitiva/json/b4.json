@@ -1,0 +1,338 @@
+{
+  "id": "b4",
+  "sigla": "CSEA",
+  "titulo": "A Classification Based Surrogate-Assisted Evolutionary Algorithm for Expensive Many-Objective Optimization",
+  "ano": 2019,
+  "roster": true,
+  "setup": {
+    "benchmarks": "DTLZ1-DTLZ7 (M∈{3,4,6,8,10} objetivos, d=10 variáveis de decisão) — 35 instâncias para a Tabela III (comparação principal); DTLZ1 também usado para os estudos de sensibilidade de K (Fig. 5, M=3,4,6,8,10) e de H (Tabela IV, M=3,5,10) e para a análise de acurácia do classificador (Fig. 7, M=3,5,10); DTLZ1/DTLZ3/DTLZ5 (M=3,6,10) para a ablação CSEA×CSEA− (Tabela I); DTLZ2 (M=3) para o tempo de execução (Fig. 11); ZDT1 (bi-objetivo) com d=10,20,30 variáveis de decisão para o estudo de escalabilidade em D (Fig. 10). WFG, MaF e um problema real de projeto de cabine de carro são MENCIONADOS mas os resultados ficam só no material suplementar (não incluído neste texto).",
+    "orcamento": "tmax=300 avaliações reais para as 35 instâncias DTLZ (Tabela III), para a ablação (Tabela I) e para os estudos de K/H; DoE inicial via Latin Hypercube Sampling com 11d−1 soluções (d = nº de variáveis de decisão); para ZDT1, tmax = 300, 600, 900 para d=10, 20, 30 respectivamente.",
+    "execucoes": "CONTRADIÇÃO NO PRÓPRIO ARTIGO: a introdução da Seção IV diz Wilcoxon rank-sum 'over 30 independent runs', mas o texto que apresenta a Tabela III (Seção IV-C) diz 'over 20 independent runs' — não reconciliado no texto. Não fica claro qual valor vale para a Tabela I (ablação, Seção III-E, antes dessa declaração) nem para os estudos de sensibilidade (Fig. 5, Tabela IV) — nº de execuções não declarado explicitamente perto deles.",
+    "baselines": "5 algoritmos comparados a CSEA na Tabela III: NSGA-III (único piso SEM surrogate), ParEGO, CPS-MOEA (também baseado em classificação, kNN), K-RVEA, MOEA/D-EGO (estes três últimos e ParEGO baseados em Kriging). CSEA é o método proposto (6ª coluna). SIM, há piso sem surrogate (NSGA-III), incluído em todas as comparações principais e nunca vence CSEA (placar agregado 0/35/0).",
+    "metricas_principais": [
+      "IGD (não IGD+ — métrica única usada em todo o corpo do artigo)"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum test, α=0,05, símbolos +/−/≈ contra CSEA (declarado como 'over 30 independent runs' na introdução da Seção IV, mas 'over 20 independent runs' junto à Tabela III — inconsistência do próprio artigo)"
+    ],
+    "apresentacao": "Média(desvio-padrão) por célula; melhor valor da linha em negrito; símbolos +/−/≈ (Tabela III) ou só '−' (Tabela I, ablação) contra CSEA; linha de resumo de vitórias/derrotas/empates no rodapé da Tabela III; execução de IGD mediano usada para as figuras de fronteira (Fig. 8, 9, 10).",
+    "codigo_plataforma": "Todos os algoritmos comparados implementados em PlatEMO (plataforma MATLAB); a implementação de MOEA/D-EGO foi adaptada do código dos autores originais, substituindo o operador DE por um método de otimização de hiperparâmetros da toolbox de Kriging DACE (mais barato para retreinos frequentes)."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade ao nº de soluções de referência K (fronteira de classificação)",
+      "grupo_sugerido": "J",
+      "descricao": "Estudo de sensibilidade do parâmetro K (número de soluções de referência que formam a fronteira de classificação, Algoritmo 1) sobre o desempenho de CSEA. K ∈ {2,4,6,8,10,12,14} é testado em DTLZ1, DTLZ2, DTLZ5 e DTLZ7 com M ∈ {3,4,6,8,10} objetivos, medindo o IGD final. O objetivo é encontrar um K que equilibre convergência (K pequeno) e diversidade (K grande) das soluções de categoria II selecionadas.",
+      "literal": "CSEA with different settings of parameter K is tested on DTLZ1, DTLZ2, DTLZ5, DTLZ7 with different objectives.",
+      "localizador": "Sec. III-B, Fig. 5",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum teste estatístico — apenas curvas de IGD por K (não fica claro se é média ou valor único sobre execuções)"
+      ],
+      "convencoes": "Curvas de IGD por K ∈ {2,4,6,8,10,12,14}, uma linha por M (número de objetivos), 4 painéis (um por problema: DTLZ1, DTLZ2, DTLZ5, DTLZ7); escala log no eixo Y para os painéis de DTLZ1 e DTLZ5.",
+      "achado": "CSEA atinge desempenho estável (bom equilíbrio convergência-diversidade) em torno de K=6: ótimos específicos por problema variam levemente (K≈6 em DTLZ1/DTLZ2, K≈4 em DTLZ5, K≈8 em DTLZ7); por isso K=6 foi fixado como ajuste geral para todas as instâncias de teste do artigo.",
+      "aplicabilidade": "não reproduzível diretamente com as 7 camadas — exigiria rodar variantes do próprio CSEA com valores diferentes de K; a dissertação registra (camada ⑤ manifesto) apenas o K de fato executado (K=6, valor fixado pelo próprio artigo para todas as instâncias)."
+    },
+    {
+      "fichas": [
+        32
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara, ao longo da busca em DTLZ1 3-objetivos, a taxa PREVISTA de soluções de categoria II (rp, saída do classificador FNN) com a taxa REAL (rr, calculada a partir da função objetivo verdadeira) para os mesmos candidatos, com e sem o procedimento de particionamento balanceado (75/25, preservando a proporção de categorias) dos dados de treino/teste do classificador (Algoritmo 5). É a verificação empírica de que a acurácia do classificador de CSEA depende desse balanceamento.",
+      "literal": "the CSEA without data partition has failed to predict the categories of the most candidate solutions as the rate of category II solutions obtained by FNN is quite different from the real rate.",
+      "localizador": "Sec. III-D, Fig. 7(a)-(b)",
+      "metricas": [
+        "taxa prevista de soluções de categoria II (rp)",
+        "taxa real de soluções de categoria II (rr)"
+      ],
+      "testes": [
+        "nenhum teste estatístico — comparação visual de curvas rp × rr"
+      ],
+      "convencoes": "Duas curvas (rp e rr) plotadas contra o 'Internal Evaluation No.' (contador interno de avaliações preditas pelo FNN, distinto do orçamento real de FEs); painel (a) sem particionamento, painel (b) com particionamento, ambos em DTLZ1 3-objetivos.",
+      "achado": "Sem o particionamento balanceado, o FNN falha em prever a categoria da maioria das soluções candidatas (rp muito distante de rr); com o particionamento, rp acompanha rr de perto — o balanceamento de classes é necessário para uma classificação confiável em DTLZ1 3-objetivos (resultado que expõe uma fragilidade do classificador sem essa salvaguarda).",
+      "aplicabilidade": "a comparação predição×verdade é parcialmente reproduzível via camada ③ (predições de classe do surrogate) cruzada com camada ① (avaliações reais, para obter a categoria verdadeira), mas a variante 'sem particionamento balanceado' não é reproduzível — exigiria rodar uma variante do algoritmo sem o balanceamento do Algoritmo 5, não registrada nas camadas coletadas."
+    },
+    {
+      "fichas": [
+        32
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara rp × rr (mesma medição da análise anterior, sempre COM o particionamento balanceado) em DTLZ1 com M=3, 5 e 10 objetivos, para investigar como o desbalanceamento de categorias (fração de soluções de categoria II, que cresce com M pela proliferação de soluções não-dominadas em muitos objetivos) afeta a acurácia da predição do classificador FNN.",
+      "literal": "the tendency of the variation of rp matches the variation of rr well, and the difference between them becomes smaller and smaller as the number of objectives increases",
+      "localizador": "Sec. III-D, Fig. 7(b)-(c)-(d)",
+      "metricas": [
+        "taxa prevista de soluções de categoria II (rp)",
+        "taxa real de soluções de categoria II (rr)"
+      ],
+      "testes": [
+        "nenhum teste estatístico — comparação visual de curvas rp × rr por M"
+      ],
+      "convencoes": "Mesma convenção de eixos da análise anterior (rp e rr × Internal Evaluation No.), um painel por M (3, 5, 10), DTLZ1, com particionamento balanceado ativo em todos os painéis.",
+      "achado": "A diferença entre rp e rr DIMINUI à medida que o número de objetivos aumenta (M=3→5→10) — contraintuitivamente, apesar do desbalanceamento de classes piorar com mais objetivos (rr sobe), a acurácia de predição do classificador na verdade MELHORA.",
+      "aplicabilidade": "reproduzível de forma análoga via camada ③ (predições) × camada ① (verdade), recalculando taxa prevista vs. real de 'categoria II' (equivalente a não-dominância local frente às referências) a cada ponto de retreino do surrogate, para os problemas/M da bateria da dissertação."
+    },
+    {
+      "fichas": [
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara CSEA com uma variante própria, CSEA−, em que o segundo loop (Fig. 2) — toda a seleção assistida por surrogate (classificação + configuração de confiabilidade) — é removido; as demais etapas (inicialização, seleção ambiental via Algoritmo 1) permanecem idênticas. Testado em DTLZ1, DTLZ3, DTLZ5 com M=3, 6, 10 objetivos (9 instâncias), métrica IGD. É a única ablação de componente relatada no corpo do artigo, mas ablação CONJUNTA (classificação + confiabilidade juntas) — não isola σ/incerteza isoladamente da classificação.",
+      "literal": "we compare the CSEA with its variant without using the surrogate, denoted by CSEA−, on DTLZ1, DTLZ3, DTLZ5 with 3, 6, and 10 objectives, respectively.",
+      "localizador": "Sec. III-E, Table I",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "símbolo '−' presente nas 9 linhas (diferença estatisticamente significativa a favor de CSEA), mas o parágrafo que nomeia formalmente o teste e α (Wilcoxon rank-sum, α=0,05, Seção IV) aparece DEPOIS da Tabela I (Seção III-E) — não há declaração do teste nem do nº de execuções imediatamente junto à Tabela I."
+      ],
+      "convencoes": "Média(desvio-padrão) por célula; símbolo '−' quando CSEA− é significativamente pior que CSEA; melhor resultado da linha em negrito (sempre CSEA, nas 9 linhas).",
+      "achado": "CSEA supera significativamente CSEA− em todas as 9 instâncias testadas (DTLZ1/3/5, M=3,6,10), confirmando que o mecanismo de classificação+confiabilidade contribui de forma mensurável para o desempenho.",
+      "aplicabilidade": "não reproduzível com as 7 camadas — exige rodar uma variante do algoritmo (CSEA sem o segundo loop/surrogate), que não é a configuração de fato executada e registrada pela instrumentação da dissertação."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela final de comparação entre CSEA e cinco algoritmos (NSGA-III — único piso sem surrogate — ParEGO, CPS-MOEA, K-RVEA, MOEA/D-EGO) em 35 instâncias da suíte DTLZ (DTLZ1-DTLZ7 × M=3,4,6,8,10 objetivos, d=10 variáveis), métrica IGD, com teste de Wilcoxon rank-sum (α=0,05) e símbolos +/−/≈ contra CSEA, mais uma linha de placar agregado (vitórias/derrotas/empates) por algoritmo comparado.",
+      "literal": "The statistical results of the IGD values achieved by the six algorithms under comparison over 20 independent runs on DTLZ1 to DTLZ7 are summarized in Table III, where the best results are highlighted.",
+      "localizador": "Sec. IV-C, Table III",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=0,05, símbolos +/−/≈ contra CSEA"
+      ],
+      "convencoes": "Média(desvio-padrão) por célula; melhor resultado da linha em negrito; linha de resumo +/−/≈ (contagem de vitórias/derrotas/empates) no rodapé da tabela, por algoritmo comparado.",
+      "achado": "CSEA obtém o melhor IGD (destacado em negrito) na grande maioria das 35 linhas; o placar agregado ao pé da tabela é NSGA-III 0/35/0, ParEGO 3/31/1, CPS-MOEA 3/31/1, K-RVEA 3/32/0, MOEA/D-EGO 11/24/0 (vitórias/derrotas/empates contra CSEA) — MOEA/D-EGO é o concorrente mais forte, vencendo sobretudo em DTLZ6/DTLZ7; NSGA-III (o único piso sem surrogate) nunca vence CSEA em nenhuma das 35 linhas.",
+      "aplicabilidade": "① endpoint: reproduzível recalculando IGD+ (a métrica primária da dissertação, distinta do IGD simples usado aqui) sobre o ND acumulado das avaliações reais de cada execução, algoritmo × problema, com teste de postos (ficha 3) e comparação contra o piso NSGA-III (ficha 9, já presente nesta própria tabela).",
+      "observacoes": "contagem de execuções DIVERGE dentro do próprio artigo: a introdução da Seção IV diz 'over 30 independent runs' (parágrafo do teste de Wilcoxon), mas o texto que apresenta esta Tabela III (Seção IV-C) diz 'over 20 independent runs' — não reconciliado no texto; não é possível determinar com certeza qual valor foi de fato usado."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Visualização 3D do conjunto não-dominado final obtido por cada um dos 6 algoritmos (CSEA, MOEA/D-EGO, NSGA-III, CPS-MOEA, ParEGO, K-RVEA) em DTLZ1 com 3 objetivos, na execução associada à mediana do IGD entre as execuções independentes.",
+      "literal": "The final non-dominated solutions achieved by the compared algorithms on 3-objective DTLZ1 in the run associated with the median IGD values are plotted in Fig. 8.",
+      "localizador": "Sec. IV-C, Fig. 8",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "Execução com IGD mediano escolhida para representar cada algoritmo; sem tabela numérica associada, só a figura.",
+      "achado": "A fronteira mediana de CSEA em 3-objetivo DTLZ1 é visivelmente mais bem convergida/distribuída que a dos concorrentes, consistente com o texto: 'the proposed CSEA is effective in accelerating convergence on expensive many-objective optimization.'",
+      "aplicabilidade": "① (avaliações reais) + seleção da execução de IGD mediano — reproduzível diretamente (ficha 54 da dissertação)."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Visualização (gráfico de valor por dimensão, já que M=10 impede uma vista 3D direta) do conjunto não-dominado final de cada um dos 6 algoritmos em DTLZ5 com 10 objetivos (frente de Pareto degenerada), na execução de IGD mediano.",
+      "literal": "The final non-dominated solutions achieved by the compared algorithms on 10-objective DTLZ5 in the run associated with the median IGD values are presented in Fig. 9.",
+      "localizador": "Sec. IV-C, Fig. 9",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "Execução com IGD mediano escolhida para representar cada algoritmo; um painel por algoritmo, eixo X = índice da dimensão (1-10), eixo Y = valor do objetivo.",
+      "achado": "CSEA obtém fronteira bem convergida E bem distribuída; MOEA/D-EGO é bem distribuída mas menos convergida; K-RVEA é bem distribuída mas não bem convergida; NSGA-III, ParEGO e CPS-MOEA falham em convergir.",
+      "aplicabilidade": "① (avaliações reais) + seleção da execução de IGD mediano — reproduzível diretamente (ficha 54 da dissertação)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade ao nº de neurônios ocultos H do FNN",
+      "grupo_sugerido": "J",
+      "descricao": "Estudo de sensibilidade ao número de neurônios ocultos H do FNN substituto: H ∈ {0,5d, d, 1,5d, 2d} (d = nº de variáveis de decisão) testado em DTLZ1 com M=3, 5 e 10 objetivos, métrica IGD. Investiga o compromisso entre capacidade de aproximação (mais neurônios) e risco de sobreajuste, dado que o conjunto de treino é limitado a 11d−1 pontos.",
+      "literal": "0.5d, d, 1.5d and 2d hidden neurons are tested on DTLZ1 with 3, 5 and 10 objectives, respectively",
+      "localizador": "Sec. IV-D, Table IV",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum teste estatístico declarado (apenas média(desvio-padrão) por célula, melhor em negrito)"
+      ],
+      "convencoes": "Média(desvio-padrão) por célula; melhor resultado da linha em negrito; H ∈ {0,5d, d, 1,5d, 2d}, 3 colunas (M=3,5,10).",
+      "achado": "H=2d dá o melhor resultado em DTLZ1 M=3 e M=5 (maior capacidade de aproximação), mas H=0,5d vence em M=10 e fica em 2º nos outros dois — os autores fixam H=0,5d como ajuste geral, priorizando o risco de overfitting sobre a capacidade bruta, dado o tamanho limitado do conjunto de treino (11d−1).",
+      "aplicabilidade": "não reproduzível — exigiria rodar variantes do CSEA com diferentes H (nº de neurônios ocultos do FNN); a dissertação registra (camada ⑤ manifesto) apenas o H de fato executado (H=0,5d, fixado pelo artigo)."
+    },
+    {
+      "fichas": [
+        7,
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Examina o desempenho de CSEA e outros cinco algoritmos (NSGA-III, CPS-MOEA, ParEGO, MOEA/D-EGO, K-RVEA) em ZDT1 (bi-objetivo) com d=10, 20 e 30 variáveis de decisão (orçamentos de 300, 600 e 900 FEs, respectivamente), para investigar a escalabilidade de CSEA além das ≤10 variáveis tipicamente testadas em SAEAs baseados em Kriging. Reporta apenas fronteiras da execução de IGD mediano (Fig. 10), sem tabela numérica.",
+      "literal": "the performance of CSEA and other four algorithms, namely NSGA-III, CPS-MOEA, ParEGO, MOEA/D-EGO, and K-RVEA, is examined on ZDT1 with 10, 20, and 30 decision variables.",
+      "localizador": "Sec. IV-E, Fig. 10",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "Execução de IGD mediano por algoritmo e por d; MOEA/D-EGO excluído dos painéis d=20 e d=30 por produzir soluções 'far from the Pareto optimal front'.",
+      "achado": "CSEA mantém a melhor fronteira nos três níveis de D testados (10, 20, 30); MOEA/D-EGO, que vence em D=10, degrada abruptamente (fronteiras longe do PF) em D=20 e D=30 e é excluído dessas comparações.",
+      "aplicabilidade": "① endpoint recomputado por família de problema em diferentes D — reproduzível diretamente com a bateria da dissertação (ficha 7), desde que ela inclua a mesma família de problema variando D nas mesmas condições de orçamento (aqui o orçamento também escala com D: 300/600/900 FEs, não fixo)."
+    },
+    {
+      "fichas": [
+        46
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara o tempo de execução (wall-clock, segundos) acumulado versus o número de avaliações, para CSEA, CPS-MOEA, ParEGO, MOEA/D-EGO e K-RVEA (NSGA-III excluído por não usar surrogate), em DTLZ2 3-objetivos. Argumenta que o treino do FNN de CSEA escala melhor com o tamanho do arquivo de treino do que os modelos de Kriging usados por ParEGO/MOEA-D-EGO/K-RVEA.",
+      "literal": "the runtime of CSEA, ParEGO, K-RVEA, and MOEA/D-EGO increases linearly with the number of evaluations, where the runtime of ParEGO and MOEA/D-EGO increases most rapidly. By contrast, the computation time of CSEA increases most slowly.",
+      "localizador": "Sec. IV-F, Fig. 11",
+      "metricas": [
+        "tempo de execução (runtime, segundos)"
+      ],
+      "testes": [],
+      "convencoes": "Curva de tempo acumulado (segundos) vs. nº de avaliações reais; painel de zoom (inset) para as primeiras avaliações; não fica claro se é uma única execução ou média sobre execuções (não declarado).",
+      "achado": "O tempo de execução de CSEA cresce mais lentamente com o nº de avaliações do que ParEGO, K-RVEA e MOEA/D-EGO (todos baseados em Kriging); CPS-MOEA (kNN) é o mais rápido de todos; a escalabilidade de CSEA é atribuída ao treino do FNN escalar melhor que o do Kriging com o tamanho do arquivo.",
+      "aplicabilidade": "camada ④ (tempos por geração) permitiria reconstituir o tempo acumulado vs. avaliações de forma direta; a decomposição fit/busca/avaliação da dissertação (ficha 48) é mais detalhada que o tempo total bruto reportado aqui."
+    },
+    {
+      "fichas": [],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo MENCIONA, mas não mostra neste texto, comparações adicionais na suíte WFG, na suíte MaF, e num problema real de projeto de cabine de carro (car cab design), remetendo os resultados ao material suplementar; também menciona 'more results' (ablação CSEA×CSEA− estendida) no material suplementar logo após a Tabela I, e o uso do HV como métrica adicional no material suplementar quando os resultados estão bem convergidos.",
+      "literal": "We also compared the algorithms on the WFG test suite, MaF test suite, and a car cab design problem. The comparative results are presented in the Supplementary materials.",
+      "localizador": "Sec. IV (introdução); Sec. III-E (após a Tabela I); Sec. IV-A (HV)",
+      "metricas": [
+        "IGD (mencionado)",
+        "HV (mencionado, não mostrado)"
+      ],
+      "testes": [],
+      "convencoes": "",
+      "achado": "não reportado neste artigo — apenas mencionado; números e tabelas estariam no material suplementar (não disponível para esta extração).",
+      "aplicabilidade": "não reproduzível — o artigo não fornece números; material suplementar ausente do corpus.",
+      "observacoes": "só mencionada — sem números/figuras no corpo principal do artigo."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "A cada retreino do FNN, o artigo calcula por validação cruzada (split 75/25 estratificado por categoria, Algoritmo 5) o erro empírico (MAE, Eq. 4) das predições separadamente para categoria I (p1) e categoria II (p2) — usados como medida de confiabilidade/incerteza do classificador (não é σ contínuo tipo GP, é taxa de erro de classificação). Complementarmente, a Seção III-D compara a taxa PREVISTA de soluções de categoria II (rp) com a taxa REAL (rr) ao longo da busca (Fig. 7), com e sem o particionamento balanceado, e para M=3,5,10 objetivos em DTLZ1 — uma checagem empírica direta de acurácia do classificador (mais próxima da 'sonda' da dissertação, ficha 32, do que de calibração de σ contínuo tipo cobertura, fichas 33-34).",
+    "literal": "Cross validation is performed for calculating the error on the test data as a measure for estimating the prediction uncertainty of the FNN.",
+    "localizador": "Sec. III-C.3; Sec. III-D, Fig. 7"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo de execução total (wall-clock, segundos) acumulado versus número de avaliações reais, comparando CSEA, CPS-MOEA, ParEGO, MOEA/D-EGO e K-RVEA em DTLZ2 3-objetivos (Fig. 11) — sem decompor em ajuste do modelo / busca no modelo / avaliação / instrumentação, e sem complexidade assintótica explícita (só o argumento qualitativo de que o FNN escala melhor que o Kriging com o tamanho do arquivo de treino).",
+    "literal": "For the proposed CSEA, an FNN is adopted as the surrogate, whose training time is much more scalable to the number of training data in contrast to the Kriging models.",
+    "localizador": "Sec. IV-F, Fig. 11"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Quando os erros de teste de ambas as categorias (p1 e p2) caem na região R2 da configuração de confiabilidade, o classificador é considerado não confiável para nenhuma categoria e NENHUMA solução é selecionada via surrogate naquele ciclo (Q=∅) — o FNN simplesmente não contribui evidências úteis naquela rodada.",
+      "literal": "Region R2 represents the region in which the FNN can correctly predict neither category I solutions nor category II solution.",
+      "localizador": "Sec. III-C.4"
+    },
+    {
+      "descricao": "Na região R3, o classificador está sistematicamente enganado: soluções que ele prevê como categoria I são, na prática, muito provavelmente categoria II (o inverso do esperado). O algoritmo lida com essa miscalibração invertendo deliberadamente a decisão — escolhe para avaliação real exatamente as soluções PREVISTAS como categoria I, ao invés de descartá-las.",
+      "literal": "Region R3 represents the region in which category I solutions will be very likely to be predicted as category II solutions.",
+      "localizador": "Sec. III-C.4"
+    },
+    {
+      "descricao": "Os autores reconhecem que, mesmo dentro da região considerada mais confiável (R1, parte 'p1<tr AND p2<1−tr'), um classificador degenerado que sempre prevê 'categoria II' poderia levar à seleção indevida de soluções de categoria I; mitigam isso com um limiar adicional mais rígido (L>0,9) na seleção final das soluções previstas (Algoritmo 6, linha 11).",
+      "literal": "if a poor classifier that always predicts solutions to belong to category II, some category I solutions may be selected.",
+      "localizador": "Sec. III-C.4"
+    },
+    {
+      "descricao": "Mais neurônios ocultos (maior capacidade do FNN) nem sempre melhora o desempenho: apesar de H=2d vencer em 2 dos 3 casos de DTLZ1 testados (M=3,5), os autores optam por H=0,5d como padrão geral, citando o risco de sobreajuste dado o conjunto de treino pequeno (11d−1 pontos) — H=0,5d de fato vence em M=10.",
+      "literal": "the complexity of the surrogate and its approximation ability increase as the number of hidden neurons of the FNN increases. So is the risk of overfitting.",
+      "localizador": "Sec. IV-D"
+    },
+    {
+      "descricao": "Sem o particionamento balanceado (75/25, preservando a proporção de categorias) dos dados de treino/teste do FNN, o classificador falha em prever corretamente a categoria da maioria das soluções candidatas em DTLZ1 3-objetivos — a taxa prevista (rp) diverge muito da taxa real (rr) ao longo da busca.",
+      "literal": "the CSEA without data partition has failed to predict the categories of the most candidate solutions as the rate of category II solutions obtained by FNN is quite different from the real rate.",
+      "localizador": "Sec. III-D, Fig. 7(a)"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Em DTLZ2/DTLZ4 (convergência fácil, diversidade difícil), quatro dos seis métodos comparados (NSGA-III, ParEGO, CPS-MOEA, K-RVEA — com desenhos de surrogate/aquisição bem distintos entre si) atingem desempenho parecido entre si, sugerindo que, nesses problemas específicos, a dificuldade compartilhada (manter diversidade) pesa mais do que as diferenças de critério/arquitetura de cada surrogate — só CSEA (classificação+radial) e MOEA/D-EGO (decomposição+cluster) se destacam.",
+      "literal": "CSEA and MOEA/D-EGO have achieved the best results, and the other four compared algorithms exhibit similar performance.",
+      "localizador": "Sec. IV-C"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "multimodalidade (múltiplos ótimos locais de Pareto — DTLZ1, DTLZ3)",
+      "afirmacao": "CSEA obtém as soluções mais bem convergidas entre os 6 algoritmos comparados nesses dois problemas difíceis, seguido por MOEA/D-EGO, K-RVEA, ParEGO, CPS-MOEA e NSGA-III, nessa ordem.",
+      "literal": "DTLZ1 and DTLZ3 are difficult due to their multimodal landscapes, which means that it is difficult to obtain a set of well converged solutions using a small number of FEs.",
+      "localizador": "Sec. IV-C"
+    },
+    {
+      "caracteristica": "manutenção de diversidade em frente regular côncava/simples (boa convergência, diversidade difícil — DTLZ2, DTLZ4)",
+      "afirmacao": "CSEA e MOEA/D-EGO obtêm os melhores resultados; os outros quatro algoritmos comparados (NSGA-III, ParEGO, CPS-MOEA, K-RVEA) têm desempenho parecido entre si; atribuído pelos autores à estratégia de divisão do espaço radial de CSEA e à seleção baseada em cluster de MOEA/D-EGO.",
+      "literal": "The results on DTLZ2 and DTLZ4 show good convergence but poor diversity.",
+      "localizador": "Sec. IV-C"
+    },
+    {
+      "caracteristica": "frente de Pareto degenerada (curva, não hipersuperfície — DTLZ5, DTLZ6)",
+      "afirmacao": "CSEA e MOEA/D-EGO obtêm todos os melhores resultados; na visualização (10-obj DTLZ5), CSEA é bem convergido E bem distribuído, MOEA/D-EGO é bem distribuído mas menos convergido, K-RVEA é bem distribuído mas não bem convergido, e NSGA-III/ParEGO/CPS-MOEA falham em convergir.",
+      "literal": "The PF of DTLZ5 and DTLZ6 are degenerated curves, therefore, it is difficult to achieve a set of diverse and well converged solutions.",
+      "localizador": "Sec. IV-C"
+    },
+    {
+      "caracteristica": "frente de Pareto descontínua/desconexa (DTLZ7)",
+      "afirmacao": "MOEA/D-EGO tem o melhor desempenho nas 5 instâncias, seguido por K-RVEA, CPS-MOEA, CSEA, NSGA-III e ParEGO — o único problema da suíte principal em que CSEA não é o melhor ou o segundo melhor método.",
+      "literal": "The PF of DTLZ7 is discontinuous, and therefore diversity maintenance is challenging.",
+      "localizador": "Sec. IV-C"
+    },
+    {
+      "caracteristica": "alta dimensão do espaço de decisão (d=10, 20, 30 em ZDT1)",
+      "afirmacao": "CSEA mantém desempenho competitivo/melhor nos três níveis de d; MOEA/D-EGO (baseado em Kriging), que vence em d=10, produz soluções longe da frente de Pareto em d=20 e d=30 e é excluído dessas comparações — atribuído à escalabilidade limitada do treino do Kriging frente ao FNN de CSEA.",
+      "literal": "the non-dominated solutions achieved by MOEA/D-EGO on ZDT1 with 20 and 30 decision variables are far from the Pareto optimal front",
+      "localizador": "Sec. IV-E"
+    },
+    {
+      "caracteristica": "muitos objetivos → desbalanceamento de classes na classificação (fração de soluções não-dominadas cresce com M)",
+      "afirmacao": "A fração real de soluções de categoria II (rr) cresce com o número de objetivos (mais desbalanceamento), mas, contraintuitivamente, a acurácia de predição do classificador FNN (proximidade entre rp e rr) na verdade MELHORA à medida que M aumenta.",
+      "literal": "the class imbalance in data becomes worse as the number of objectives increases (rr increases), and the FNN with data partition can achieve a satisfactory prediction accuracy also on MaOPs",
+      "localizador": "Sec. III-D"
+    }
+  ],
+  "roster_bloco": {
+    "mecanismo_proprio": [
+      {
+        "descricao": "Ablação do componente central de CSEA: remove-se inteiramente o segundo loop (classificação + configuração de confiabilidade + seleção assistida) do Algoritmo 3, mantendo o resto do algoritmo idêntico. Testado em 9 instâncias (DTLZ1/3/5 × M=3,6,10), métrica IGD. É a única ablação de componente do próprio mecanismo relatada no corpo do artigo — mas ablação CONJUNTA (classificação + confiabilidade/incerteza juntas), não isola σ/incerteza isoladamente da classificação em si.",
+        "literal": "we compare the CSEA with its variant without using the surrogate, denoted by CSEA−, on DTLZ1, DTLZ3, DTLZ5 with 3, 6, and 10 objectives, respectively.",
+        "localizador": "Sec. III-E, Table I"
+      },
+      {
+        "descricao": "Diagnóstico direto da acurácia do classificador FNN ao longo da busca: compara a taxa prevista de soluções de categoria II (rp) com a taxa real (rr, calculada a partir da função verdadeira) para os mesmos candidatos, em função do 'Internal Evaluation No.'. Testado (a) com e sem o particionamento balanceado dos dados de treino/teste (ablação de uma técnica de balanceamento, não do mecanismo de incerteza em si) e (b) para M=3, 5, 10 objetivos (sensibilidade ao desbalanceamento de classes).",
+        "literal": "The rp obtained by CSEA with data partition is compared with the corresponding rr on DTLZ1 with 5 and 10 objectives, respectively, which aims to investigate the influence of class imbalance",
+        "localizador": "Sec. III-D, Fig. 7"
+      }
+    ],
+    "reprodutivel_com_camadas": "Item 1 (CSEA×CSEA−) NÃO é reproduzível com as 7 camadas — exige rodar uma VARIANTE do algoritmo (sem o segundo loop/surrogate), configuração que não é a de fato executada e registrada pela instrumentação da dissertação (as camadas registram só a execução real de CSEA, com surrogate ativo). Item 2 (Fig. 7, rp×rr) é PARCIALMENTE reproduzível: a camada ③ (predições de classe do surrogate) cruzada com a camada ① (avaliações reais, para obter a categoria verdadeira a cada ponto) permitiria recalcular uma taxa prevista vs. real de categoria II análoga — embora o eixo original do artigo seja o contador interno de avaliações do FNN ('Internal Evaluation No.'), não diretamente a fração do orçamento real ①, então a curva não seria idêntica, só comparável em espírito. A vertente 'sem particionamento balanceado' do Item 2 não é reproduzível pelo mesmo motivo do Item 1 (exige variante do algoritmo). Nenhum dos dois itens fornece, no corpo do artigo, uma contagem explícita de quantas vezes cada região de confiabilidade (R1/R2/R3) foi de fato visitada durante as execuções reais — essa contagem (ficha 45, que cita 'b4' como exemplo de 'fração de FEs em que o surrogate foi usado') teria de ser reconstruída do zero pela dissertação usando a camada ⑥ (filme); não está no artigo.",
+    "parametros_do_uso_da_incerteza": [
+      "tr (limiar de confiabilidade) = 0,5 × min{rr, 1−rr}, recalculado a cada geração a partir de rr (taxa real corrente de soluções de categoria II no arquivo) — método de 'rescaling' para reduzir a influência do desbalanceamento de classes; é o parâmetro central que define os limites das regiões R1/R2/R3.",
+      "Fronteiras da configuração de confiabilidade (Fig. 6): R1 = {p2<tr} ∪ {p1<tr AND p2<(1−tr)} (predições confiáveis, usa-se a predição como está); R3 = {p1>1−tr AND p2>tr} (predições sistematicamente invertidas, usa-se a predição INVERTIDA); caso contrário, R2 (nenhuma solução selecionada, Q=∅).",
+      "Limiares rígidos embutidos na seleção final (Algoritmo 6): L>0,9 para aceitar como categoria II em R1 (linha 11); L<0,1 para aceitar como categoria I/flip em R3 (linha 19) — L é a saída (score) do FNN para cada candidato.",
+      "gmax (nº máximo de predições do surrogate antes de retreinar) = igual ao usado em K-RVEA e MOEA/D-EGO nas mesmas condições — governa a FREQUÊNCIA com que o classificador (e, portanto, a configuração de confiabilidade) é atualizado, não o limiar de confiança em si.",
+      "|treino|:|teste| = 3:1 (75%/25%), estratificado para preservar a proporção de categoria I/II em ambos os conjuntos (Algoritmo 5, DataPartition) — a base empírica de onde p1 e p2 (e, portanto, tr) são calculados a cada retreino.",
+      "H (nº de neurônios ocultos do FNN) = 0,5d, escolhido por sensibilidade (Tabela IV) — não é um parâmetro de USO da incerteza propriamente dito (não define limiares/regiões), mas afeta a capacidade/qualidade do classificador cujos erros alimentam tr; incluído aqui por completude.",
+      "K (nº de soluções de referência da fronteira de classificação) = 6, escolhido por sensibilidade (Fig. 5) — define QUAIS soluções contam como categoria I/II (a fronteira em si), não o limiar de confiança sobre essa classificação; incluído por completude/proximidade conceitual."
+    ]
+  },
+  "observacoes": "(1) CONTRADIÇÃO no nº de execuções: Seção IV (introdução) diz Wilcoxon 'over 30 independent runs', mas a Seção IV-C (Tabela III) diz 'over 20 independent runs' — não reconciliado no texto (ver setup.execucoes). (2) O ANEXO (camada de texto bruta do PDF, get_text) reproduz o mesmo conteúdo do corpo estruturado, sem seções/apêndices adicionais — não há material suplementar embutido neste arquivo; o artigo remete repetidamente a um 'Supplementary materials' externo (resultados em WFG, MaF, problema real de cabine de carro, ablação CSEA×CSEA− estendida, HV) que NÃO está neste corpus — tudo tratado como 'só mencionado' (ver análise-stub e setup.benchmarks). (3) A métrica usada em TODO o corpo do artigo é IGD simples (Eq. 7), NÃO IGD+ (a métrica primária da dissertação) — toda 'aplicabilidade' que menciona recomputar IGD+ pressupõe reprocessar os dados brutos (camada ①), não comparar números diretamente. (4) NSGA-III é o único piso SEM surrogate incluído nas comparações e NUNCA vence CSEA (placar agregado 0/35/0 na Tabela III) — não há, portanto, nenhum caso de 'o piso vence o assistido' (ficha 16) neste artigo. (5) A ficha 45 da tipologia cita EXPLICITAMENTE 'b4' (este artigo) como exemplo de algoritmo para o qual se computaria 'a fração de FEs em que o surrogate foi usado' — o artigo NÃO relata essa fração/contagem em lugar nenhum (descreve o mecanismo das regiões R1/R2/R3 qualitativamente, Sec. III-C.4, mas não dá números de quantas vezes cada região foi visitada durante as execuções reais); fica registrado aqui como um alvo claro para a dissertação usando a camada ⑥ (filme), não como uma análise que o próprio artigo realiza. (6) A ablação CSEA×CSEA− (Tabela I) remove classificação E confiabilidade/incerteza JUNTAS (todo o 'segundo loop') — não há, no corpo do artigo, uma ablação que isole SÓ a incerteza (σ/p1,p2) mantendo a classificação ativa (o que corresponderia ao 'contrafactual σ=0 online' da ficha 15); toda evidência de que a CONFIABILIDADE especificamente ajuda é indireta (design das regiões R1/R2/R3 e o cuidado com classificadores degenerados, Sec. III-C.4). (7) K (nº de soluções de referência, Fig. 5) e H (nº de neurônios ocultos, Tabela IV) são hiperparâmetros de DESIGN do classificador/fronteira, não do 'uso da incerteza' propriamente dito (que é tr/R1/R2/R3) — mapeados como NOVOS (grupo J) nas fichas, mas listados também em roster_bloco.parametros_do_uso_da_incerteza por completude/proximidade conceitual, com a ressalva explícita ali. (8) Nenhuma seção do artigo ou do ANEXO foi pulada — o texto foi lido integralmente do início (título/abstract) ao fim (biografias dos autores, linha 3682), incluindo as duas camadas redundantes (estruturada + get_text bruto) e o OCR residual de figuras ao final, que não trouxe conteúdo numérico novo além do já capturado nas tabelas."
+}

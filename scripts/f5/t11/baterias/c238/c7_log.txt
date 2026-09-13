@@ -1,0 +1,38 @@
+problema  D  n_real  esperado  u1  n_init  init_esperado  dX_f32  doe_hash_ok  n_gens  n_blocos  cad_ok  final_ok  viol_tempo  cache_hits  g2  g2_esperado  tam2_ok  dup_ult  c0 termino
+ BBOB_F1 10     309       309   1     109            109     0.0         True     200       101       1         1           0           1 201          201        1        0   1  normal
+BBOB_F17 10     309       309   1     109            109     0.0         True     200       101       1         1           0           1 201          201        1        0   1  normal
+BBOB_F22 10     309       309   1     109            109     0.0         True     200       101       1         1           0           1 201          201        1        0   1  normal
+BBOB_F37 10     309       309   1     109            109     0.0         True     200       101       1         1           0           1 201          201        1        0   1  normal
+BBOB_F49 10     309       309   1     109            109     0.0         True     200       101       1         1           0           1 201          201        1        0   1  normal
+ BBOB_F5 10     309       309   1     109            109     0.0         True     200       101       1         1           0           1 201          201        1        0   1  normal
+BBOB_F55 10     309       309   1     109            109     0.0         True     200       101       1         1           0           1 201          201        1        0   1  normal
+   DTLZ1  7     216       216   1      76             76     0.0         True     140        71       1         1           0           1 141          141        1        0   1  normal
+   DTLZ2 12     371       371   1     131            131     0.0         True     240       121       1         1           0           1 241          241        1        0   1  normal
+   DTLZ3 12     371       371   1     131            131     0.0         True     240       121       1         1           0           1 241          241        1        0   1  normal
+   DTLZ4 12     371       371   1     131            131     0.0         True     240       121       1         1           0           1 241          241        1        0   1  normal
+   DTLZ7 22     681       681   1     241            241     0.0         True     440       221       1         1           0           1 441          441        1        0   1  normal
+    MMF1  2      61        61   1      21             21     0.0         True      40        21       1         1           0           1  41           41        1        0   1  normal
+ MMF11_L  2      61        61   1      21             21     0.0         True      40        21       1         1           0           1  41           41        1        0   1  normal
+MMF16_20 20     619       619   1     219            219     0.0         True     400       201       1         1           0           1 401          401        1        0   1  normal
+    MMF4  2      61        61   1      21             21     0.0         True      40        21       1         1           0           1  41           41        1        0   1  normal
+    WFG1 22     681       681   1     241            241     0.0         True     440       221       1         1           0           1 441          441        1        0   1  normal
+    WFG2 22     681       681   1     241            241     0.0         True     440       221       1         1           0           1 441          441        1        0   1  normal
+    WFG4 22     681       681   1     241            241     0.0         True     440       221       1         1           0           1 441          441        1        0   1  normal
+    WFG5 22     681       681   1     241            241     0.0         True     440       221       1         1           0           1 441          441        1        0   1  normal
+    WFG9 22     681       681   1     241            241     0.0         True     440       221       1         1           0           1 441          441        1        0   1  normal
+    ZDT1 30     929       929   1     329            329     0.0         True     600       301       1         1           0           1 601          601        1        0   1  normal
+    ZDT3 30     929       929   1     329            329     0.0         True     600       301       1         1           0           1 601          601        1        0   1  normal
+    ZDT4 10     309       309   1     109            109     0.0         True     200       101       1         1           0           1 201          201        1        0   1  normal
+    ZDT6 10     309       309   1     109            109     0.0         True     200       101       1         1           0           1 201          201        1        0   1  normal
+
+U1  FE == 31D-1 e fe_final==maxfe : 25/25 ; fe_index denso: 25/25 ; solution_id unico: 25/25 ; SOMA FE = 10856
+U2  init == 11D-1 : 25/25 ; max|dX| vs artefato ARREDONDADO p/ float32 = 0 (EXATO em 25/25)
+    max|dX| contra o float64 CRU = 1.91e-06 (meio-ULP float32) ; doe_hash confere em 25/25
+U4  cadencia g==1 v g%2==0 : 25/25 ; finalProbe (ultima geracao coberta): 25/25 ; blocos ⑤≡⑥: 25/25
+    total de blocos = 3535 ; linhas de sonda = 7070000 ; n_falhas = 0
+U7  violacoes de fit+busca<=tempo_geracao : 0 em 7020 geracoes
+U9  censo de guards do ⑥ : {'{"guard": 1}': 25} ; cache_hits do ⑤ = [1]
+U10 ② tem n_gens+1 geracoes : 25/25 ; tamanho (init-1)+g : 25/25 ; duplicatas na ultima ②: 0
+    ledger n_gens = n_opt + cache_hits - c0  ->  c0 unico = [1]
+E10 avaliacoes da aquisicao (10D x 200 x n_gens) = 259880000
+    termino: {'normal': 25} | status: {'ok': 25} | cp_init: {True: 25}

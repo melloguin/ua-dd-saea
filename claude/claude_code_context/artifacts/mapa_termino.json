@@ -1,0 +1,46 @@
+{
+  "_meta": {
+    "artefato": "mapa_termino.json",
+    "decisao": "I-08 (PLANO_RODADA_PERFEITA §2) — gate G-2",
+    "data": "2026-07-29",
+    "cartao": "T11-G6",
+    "o_que_e": "Por config: qual é o EVENTO DE GERAÇÃO no ⑥, em que CAMPO o término é certificado, e quantos `footer` são esperados. É o artefato que o gate G-2 (unicidade/integridade do ⑥) lê em vez de hard-codar 'MATLAB=1 / Python=2'.",
+    "por_que": "O CONTRATO §6 promete `<alg>_gen` e um mapa único de término, e o dado diz outra coisa: o stack Python grava `rec='decision'` com `caminho='<alg>_gen:...'`, e o campo de término se divide em 4 famílias (`termino` nos 13 MATLAB · `motivo_parada` em c122/c149/e81/sobol_batch · `motivo` em c311/moead_media/treed_media · `hard_stopped` em c154/c262). Qualquer consumidor que assuma UM mapa erra em ~1/3 do grid.",
+    "medicao": "TODAS as contagens abaixo foram medidas nos ⑥ locais da rodada-42 (2026-07-29): a coluna `n_footers_observado` traz a distribuição real por config. Onde há 2 valores, 2 = run despachado (footer do runner + footer do despachante) e 1 = run direto/smoke (só o do runner).",
+    "consumidores": ["scripts/gates_proveniencia.py (G-2)", "scripts/portao.py", "scripts/censo42.py"],
+    "achado_novo": "`treed_media` NÃO grava evento de geração nenhum (nem `<alg>_gen`, nem `decision`): a ③ dele vem do hook do `_next_gen`. É a única exceção do grid — declarada aqui em vez de virar um falso-vermelho no G-2."
+  },
+  "familias_de_rito": {
+    "matlab": "1 header + 1 footer; término em `footer.termino`; evento `<alg>_gen`",
+    "standalone": "1 header + 1 footer do runner (+1 do despachante); término em `footer.motivo_parada`/`footer.motivo`; evento `decision` com `caminho='<alg>_gen:…'`",
+    "botorch": "1 header + 1 footer do runner (+1 do despachante); término em `footer.hard_stopped`; evento `decision` com `caminho='infill'`"
+  },
+  "configs": {
+    "b1":          {"familia": "matlab", "evento_geracao": {"rec": "b1_gen"},  "campo_termino": "termino", "n_footers_esperado": [1], "n_footers_observado": {"1": 27, "0": 1}, "nota": "a de 0 footers é main/b1/WFG1 — 49 de 931 linhas spliced (B-11)"},
+    "b3":          {"familia": "matlab", "evento_geracao": {"rec": "b3_gen"},  "campo_termino": "termino", "n_footers_esperado": [1], "n_footers_observado": {"1": 28}},
+    "b4":          {"familia": "matlab", "evento_geracao": {"rec": "b4_gen"},  "campo_termino": "termino", "n_footers_esperado": [1], "n_footers_observado": {"1": 28}},
+    "c141":        {"familia": "matlab", "evento_geracao": {"rec": "c141_gen"},"campo_termino": "termino", "n_footers_esperado": [1], "n_footers_observado": {"1": 28}},
+    "c217":        {"familia": "matlab", "evento_geracao": {"rec": "c217_gen"},"campo_termino": "termino", "n_footers_esperado": [1], "n_footers_observado": {"1": 29}},
+    "c238":        {"familia": "matlab", "evento_geracao": {"rec": "c238_gen"},"campo_termino": "termino", "n_footers_esperado": [1], "n_footers_observado": {"1": 28}},
+    "e7":          {"familia": "matlab", "evento_geracao": {"rec": "e7_gen"},  "campo_termino": "termino", "n_footers_esperado": [1], "n_footers_observado": {"1": 28}},
+    "e74":         {"familia": "matlab", "evento_geracao": {"rec": "e74_gen"}, "campo_termino": "termino", "n_footers_esperado": [1], "n_footers_observado": {"1": 28}},
+    "e103":        {"familia": "matlab", "evento_geracao": {"rec": "e103_gen"},"campo_termino": "termino", "n_footers_esperado": [1], "n_footers_observado": {"1": 49}},
+    "nsga2":       {"familia": "matlab", "evento_geracao": {"rec": "nsga2_gen"},"campo_termino": "termino","n_footers_esperado": [1], "n_footers_observado": {"1": 28}},
+    "nsga3":       {"familia": "matlab", "evento_geracao": {"rec": "nsga3_gen"},"campo_termino": "termino","n_footers_esperado": [1], "n_footers_observado": {"1": 28}},
+    "moead":       {"familia": "matlab", "evento_geracao": {"rec": "moead_gen"},"campo_termino": "termino","n_footers_esperado": [1], "n_footers_observado": {"1": 28}},
+    "smsemoa":     {"familia": "matlab", "evento_geracao": {"rec": "smsemoa_gen"},"campo_termino": "termino","n_footers_esperado": [1],"n_footers_observado": {"1": 28}},
+
+    "c122":        {"familia": "standalone", "evento_geracao": {"rec": "decision", "caminho_prefixo": "c122_gen"}, "campo_termino": "motivo_parada", "n_footers_esperado": [1, 2], "n_footers_observado": {"2": 25, "1": 3}},
+    "c149":        {"familia": "standalone", "evento_geracao": {"rec": "decision", "caminho_prefixo": "c149_gen"}, "campo_termino": "motivo_parada", "n_footers_esperado": [1, 2], "n_footers_observado": {"2": 29, "1": 4}},
+    "e81":         {"familia": "standalone", "evento_geracao": {"rec": "decision", "caminho_prefixo": "e81_gen"},  "campo_termino": "motivo_parada", "n_footers_esperado": [1, 2], "n_footers_observado": {"2": 29, "1": 3, "95": 1}, "nota": "os 95 são batch/e81/q10_ZDT4 — 94 pares espúrios do append cego (B-01/B-13), congelado 444"},
+    "sobol_batch": {"familia": "standalone", "evento_geracao": {"rec": "decision", "caminho_prefixo": "sobol_batch_gen"}, "campo_termino": "motivo_parada", "n_footers_esperado": [1, 2], "n_footers_observado": {"2": 5}},
+    "b5r":         {"familia": "standalone", "evento_geracao": {"rec": "decision", "caminho_prefixo": "b5_gen"}, "campo_termino": null, "n_footers_esperado": [1, 2], "n_footers_observado": {"2": 44, "1": 5}, "nota": "footer SEM campo de término (só `status`) — a heterogeneidade que o I-08 documenta"},
+    "b5m":         {"familia": "standalone", "evento_geracao": {"rec": "decision", "caminho_prefixo": "b5_gen"}, "campo_termino": null, "n_footers_esperado": [1, 2], "n_footers_observado": {"2": 42, "1": 6}},
+    "moead_media": {"familia": "standalone", "evento_geracao": {"rec": "decision", "caminho_prefixo": "moead_media_gen"}, "campo_termino": "motivo", "n_footers_esperado": [1, 2], "n_footers_observado": {"2": 44, "1": 3, "3": 1}, "nota": "o de 3 footers é swap_small-lhs/ZDT1 — 2 escritores concorrentes (B-11), com retrocesso de 134,3 s"},
+    "c311":        {"familia": "standalone", "evento_geracao": {"rec": "decision", "caminho_prefixo": "c311_build"}, "campo_termino": "motivo", "n_footers_esperado": [1, 2], "n_footers_observado": {"2": 46, "1": 5, "0": 7}, "nota": "os 7 sem footer morreram no dual_write (gcs ausente no env_c311) DEPOIS do manifesto ok — DI-42.3"},
+    "treed_media": {"familia": "standalone", "evento_geracao": null, "campo_termino": "motivo", "n_footers_esperado": [1, 2], "n_footers_observado": {"1": 6, "2": 3, "0": 1}, "nota": "ÚNICO config sem evento de geração no ⑥ — a ③ vem do hook do `_next_gen` (src/treed_media.py:174-183)"},
+
+    "c154":        {"familia": "botorch", "evento_geracao": {"rec": "decision", "caminho_prefixo": "infill"}, "campo_termino": "hard_stopped", "n_footers_esperado": [1, 2], "n_footers_observado": {"2": 11, "1": 3}},
+    "c262":        {"familia": "botorch", "evento_geracao": {"rec": "decision", "caminho_prefixo": "infill"}, "campo_termino": "hard_stopped", "n_footers_esperado": [1, 2], "n_footers_observado": {"2": 21, "1": 3}}
+  }
+}

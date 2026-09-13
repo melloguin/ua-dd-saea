@@ -1,0 +1,364 @@
+{
+  "id": "e8",
+  "sigla": "NN-EGO",
+  "titulo": "Accurate Multiobjective Design in a Space of Millions of Transition Metal Complexes with Neural-Network-Driven Efficient Global Optimization",
+  "ano": 2020,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Não há suítes sintéticas (ZDT/DTLZ/WFG/...); o \"problema\" é um único espaço de desenho REAL e combinatório: 2.795.052 complexos de metal de transição (Cr/Mn/Fe/Co, fração 0.25/0.25/0.25/0.25) construídos hierarquicamente a partir de 741 ligantes bidentados + 38 monodentados (de 8 heterociclos core A-H com 5 modificações a-e) combinados com 897 grupos funcionais únicos, representados por features RAC-155 (a rede usa 153 nós de entrada). M=2 objetivos: ΔG_ox(sol) (potencial redox em eV, a maximizar) e logP (a minimizar/mais negativo). D é categórico/combinatório (identidade de metal + ligante + funcionalização), não um vetor real de dimensão fixa como nos problemas de teste da dissertação.",
+    "orcamento": "Hot start (dado pré-existente de estudos anteriores): 235 complexos. Amostra inicial diversificada por k-medoids/CLARA (RAC-155): 300 medoides simulados = \"geração 1\" (107 convergidos; rodada por ~3 semanas e interrompida com 93% das simulações tentadas). 4 gerações subsequentes guiadas por E[I]: 100 líderes por geração (ranqueados por E[I], top 10k, depois k-medoids ponderado por E[I] → 100), com sucesso decrescente: geração 2 = 34/100, geração 3 = 24/100, geração 4 = 15/100, geração 5 = 14/100 convergidos. Lote de comparação de amostragem aleatória/clustering: 300 solicitados, 122 convergidos. Total: 1000 solicitações de DFT combinando geração 1 + aleatório + gerações 2-5 (316 sucessos). Sem orçamento fixo do tipo 31D-1 da dissertação — o processo para após 5 gerações por decisão dos autores, não por um teto de avaliações pré-definido.",
+    "execucoes": "Uma ÚNICA trajetória sequencial de active learning (5 gerações, sem sementes/repetições independentes) — muito diferente do desenho de 30 sementes da dissertação. O lote de amostragem aleatória/diversidade (usado como comparação) também é uma única extração, não pareada por semente com a trajetória de E[I].",
+    "baselines": "Sem piso evolutivo populacional (NSGA-II/MOEA/D/NSGA-III/SMS-EMOA); o \"piso\" é amostragem aleatória e por clustering de diversidade (k-medoids/CLARA), comparado de forma DISTRIBUCIONAL (percentis de uma amostra grande) contra o conjunto final do processo E[I], não pareado por semente/DoE compartilhado como a ficha 9 da tipologia pressupõe. Também compara, para a escolha do surrogate em si (não do algoritmo de busca), três arquiteturas de modelo candidatas: ANN multitarefa, ANNs de tarefa única e um GP de kernel gaussiano.",
+    "metricas_principais": [
+      "MAE e RMSE das predições do surrogate (ΔG_ox(sol) em eV; logP)",
+      "coeficiente de correlação linear entre erros absolutos de diferentes arquiteturas de modelo",
+      "MAE retido após exclusão dos pontos mais incertos (discriminação do σ)",
+      "σ1, σ2 do modelo de erro por distância latente (calibração MLE)",
+      "taxa de sucesso/falha da simulação DFT (avaliação real) por geração e causa",
+      "percentil da distribuição aleatória atingido pelo conjunto final (estimativa de aceleração ×)",
+      "médias de ΔG_ox(sol) e logP do front de Pareto real por geração"
+    ],
+    "testes": [
+      "Shapiro-Wilk (normalidade da distribuição aleatória; p=0.02 para ΔGox(sol), p=2×10⁻⁶ para logP)",
+      "Pearson r (independência entre os dois objetivos na amostra aleatória; r=-0.22)",
+      "nenhum teste de hipótese comparando múltiplos algoritmos/sementes (não há Wilcoxon/Friedman/Nemenyi — não é um estudo comparativo multi-algoritmo)"
+    ],
+    "apresentacao": "Valores pontuais de uma única trajetória (sem média±dp entre sementes); menor erro por partição em negrito na Tabela S3; linha \"mean\" resume o front de Pareto ao final de cada geração (Tabela S6); percentual de sucesso entre parênteses na Tabela S7; escala log nas superfícies de erro de CV do GP (Fig. S23) e nos eixos de tamanho/dissimilaridade de cluster (Fig. S24).",
+    "codigo_plataforma": "ANN customizado em TensorFlow 1.14 (arquiteturas multitarefa e de tarefa única, Fig. S22/Table S18, hiperparâmetros por busca própria); GP de kernel gaussiano customizado com hiperparâmetros γ/λ otimizados por grid search 2500 pontos + CV 10-fold (Table S19, Fig. S23); clustering k-medoids via algoritmo CLARA do pacote R \"cluster\" (RAC-155 como espaço de features/dissimilaridade euclidiana); DFT em GPU (código de estrutura eletrônica não nomeado explicitamente nesta SI)."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Comparação de arquiteturas de surrogate por acurácia (μ)",
+      "grupo_sugerido": "E",
+      "descricao": "Compara três arquiteturas candidatas de modelo substituto — ANN multitarefa, ANNs de tarefa única (uma para cada propriedade) e um GP de kernel gaussiano — quanto ao MAE e RMSE de predição de ΔG_ox(sol) (eV) e logP, medidos em dados de treino, em 10% de teste retido, e num conjunto extrapolativo fora de distribuição (107 complexos da geração 1). O objetivo é escolher qual arquitetura usar como surrogate do processo de active learning.",
+      "literal": "The mean absolute error (MAE) and root-mean-square error (RMSE) are reported for different machine learning (ML) models that predict redox potential (in eV) and logP: single-task ANNs, multitask ANN, and a Gaussian-kernel gaussian process, or GP, model.",
+      "localizador": "Table S3 (S12); Figure S6 (S13)",
+      "metricas": [
+        "MAE",
+        "RMSE"
+      ],
+      "testes": [
+        "nenhum teste de hipótese formal — comparação direta de médias de erro"
+      ],
+      "convencoes": "Menor erro por partição em negrito na tabela; barras agrupadas por modelo (multitask=verde, single task=azul, GP=cinza) na Figura S6, separadas por partição (train/test/generation 1).",
+      "achado": "O ranking de qual arquitetura erra menos muda por partição e por propriedade: para ΔGox(sol), o single-task ANN vence em treino (MAE 0.11 eV) mas o multitask ANN vence em teste (MAE 0.32 eV) E na extrapolação para a geração 1 (MAE 0.71 eV vs 0.80 do single-task e 1.47 do GP); para logP, o GP vence em treino (MAE 1.05E-04) mas o single-task vence em teste (MAE 1.49E-04) e o multitask vence na geração 1 (MAE 3.04E-03 vs 5.92E-03 do single-task e 1.31E-02, o pior, do GP). Em ambas as propriedades o GP nunca vence a extrapolação, apesar de ser competitivo ou o melhor em treino.",
+      "aplicabilidade": "Reproduzível em espírito com a camada ③ (predições do surrogate): bastaria treinar surrogates alternativos (ex. GP) sobre os mesmos dados de uma execução e comparar MAE/RMSE — mas a dissertação usa só o surrogate nativo de cada algoritmo do roster, não múltiplas arquiteturas concorrentes para o mesmo algoritmo; não reproduzível diretamente sem treinar variantes de modelo à parte."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Correlação de erro entre arquiteturas de modelo (teste)",
+      "grupo_sugerido": "E",
+      "descricao": "Mede a correlação linear entre os erros absolutos de predição de cada par de arquitetura (GP, ANN multitarefa, ANN de tarefa única), tanto DENTRO de cada propriedade (mesma propriedade, modelos diferentes) quanto ENTRE propriedades (redox × logP, inclusive do mesmo modelo), sobre a partição de teste (10% uniforme) — uma matriz de correlação 6×6 (GP/multitask/single-task × redox/logP).",
+      "literal": "Relationship (i.e., linear correlation coefficient) between absolute test errors evaluated on 10% uniformly-selected test data partition across several ML models for both redox and logP.",
+      "localizador": "Table S4 (S13)",
+      "metricas": [
+        "coeficiente de correlação linear entre erros absolutos"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Matriz de correlação triangular superior (diagonal=1.00 por definição), com seis blocos (GP/multitask/single-task, cruzados entre redox e logP).",
+      "achado": "Para erros de redox, as três arquiteturas concordam razoavelmente sobre quais pontos são difíceis (correlações entre 0.79 e 0.95). Para logP a concordância é bem mais fraca: GP×multitask=-0.08 (praticamente nula), GP×single-task=0.28, multitask×single-task=0.34 — o GP discorda quase totalmente das ANNs sobre quais complexos têm erro alto de logP. Correlações CRUZADAS entre propriedades também aparecem (ex.: erro de redox do GP × erro de logP do GP = 0.64; erro de redox do multitask × erro de logP do GP = 0.71), sugerindo que a \"dificuldade\" de um ponto às vezes se propaga mais entre propriedades dentro do mesmo modelo do que entre modelos na mesma propriedade.",
+      "aplicabilidade": "Não reproduzível diretamente — exige treinar múltiplos surrogates alternativos (não apenas o nativo) sobre o mesmo conjunto de teste; a camada ③ daria as predições de UM surrogate por algoritmo do roster, não de arquiteturas concorrentes para comparação de correlação de erro."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Correlação de erro entre arquiteturas de modelo (extrapolação)",
+      "grupo_sugerido": "E",
+      "descricao": "A mesma matriz de correlação de erro entre arquiteturas (redox×logP, GP×multitask×single-task) da Tabela S4, agora aplicada ao conjunto extrapolativo fora de distribuição (107 complexos da geração 1, obtidos por clustering diversidade-orientado do espaço de 2,8 milhões), permitindo comparar se a concordância entre modelos se mantém sob deslocamento de distribuição.",
+      "literal": "In comparison to the test set errors, we observe similar (for redox) and stronger (for logP) correlation between errors of different models.",
+      "localizador": "Table S5 (S15)",
+      "metricas": [
+        "coeficiente de correlação linear entre erros absolutos"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesmo formato de matriz triangular 6×6 da Tabela S4.",
+      "achado": "Sob extrapolação, as correlações CRUZADAS entre erro de redox e erro de logP (moderadas em teste, 0.14 a 0.71) colapsam para perto de zero (-0.14 a 0.02) — a dificuldade de um ponto deixa de se propagar entre propriedades. Já as correlações DENTRO de cada propriedade se comportam de modo oposto por propriedade: para redox ficam parecidas (0.60-0.83 vs 0.79-0.95 em teste); para logP TODAS aumentam substancialmente (GP×multitask: -0.08→0.41; GP×single-task: 0.28→0.52; multitask×single-task: 0.34→0.57) — confirmando textualmente a nota da legenda de que a correlação é \"mais forte\" para logP sob extrapolação.",
+      "aplicabilidade": "Não reproduzível diretamente — mesma limitação da análise anterior (Table S4): exige treinar arquiteturas concorrentes e comparar correlação de erro sob deslocamento de distribuição, algo que as camadas da dissertação não capturam para um único surrogate nativo por algoritmo."
+    },
+    {
+      "fichas": [
+        34,
+        36
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Testa se o proxy de incerteza de cada modelo (desvio-padrão posterior do GP; distância média aos 10 vizinhos de treino mais próximos no espaço latente final, para as ANNs) discrimina pontos de erro alto: ordena os pontos de teste pela incerteza reportada e mede o MAE retido ao excluir progressivamente os n mais incertos (n=0,5,10,20 de 24), para ΔGox(sol) e logP, comparando GP × ANN multitarefa × ANN de tarefa única.",
+      "literal": "The GPs use their posterior standard deviations as uncertainty metrics while the ANNs use the average distance to the ten nearest training points in their final latent spaces as in Ref.4.",
+      "localizador": "Figure S7 (S14)",
+      "metricas": [
+        "MAE retido após exclusão dos n pontos mais incertos"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Linhas horizontais mostram o MAE de referência sem exclusão (0 excluídos); curvas por modelo (GP, multitask, single task); eixo x = número de complexos descartados (de 24, na partição de teste).",
+      "achado": "Excluir os pontos mais incertos reduz o MAE retido para os três modelos, indicando que todas as três medidas de incerteza (GEO-DIST — distância latente — para as ANNs; desvio-padrão posterior para o GP) têm algum poder de discriminação de erro em dados interpolativos (teste).",
+      "aplicabilidade": "Reproduzível com a camada ③ (sonda): ordenar os pontos fixos da sonda pelo σ predito e medir o MAE/RMSE retido ao excluir os mais incertos testa diretamente a discriminação do σ (ficha 34), comparável entre as classes de medição GEO-DIST/VA/DE/VN do roster (ficha 36)."
+    },
+    {
+      "fichas": [
+        34,
+        36
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Repete a análise de discriminação por exclusão de pontos incertos da Figura S7, agora no conjunto extrapolativo fora de distribuição (107 complexos da geração 1, de até 60 excluídos), testando se o σ continua a discriminar erro quando os candidatos estão mais distantes dos dados de treino.",
+      "literal": "Results are shown for extrapolation to generation 1 data for ∆Gox(sol) (eV, left) and logP (right).",
+      "localizador": "Figure S9 (S15)",
+      "metricas": [
+        "MAE retido após exclusão dos n pontos mais incertos"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesmo formato da Figura S7, mas com até 107 pontos e cortes em 0, 10, 20, 40, 60 excluídos.",
+      "achado": "A discriminação por exclusão de incerteza também reduz o MAE no regime extrapolativo, sustentando o uso da métrica de incerteza baseada em distância latente (calibrada por MLE) mesmo fora da distribuição de treino — a validação empírica que embasa o uso do σ(d) ao longo de todo o processo de active learning.",
+      "aplicabilidade": "Reproduzível com a camada ③ (sonda): repetir a discriminação de erro por exclusão de incerteza usando pontos da sonda mais distantes do arquivo de treino corrente aproxima o regime extrapolativo aqui testado (fichas 34, 36)."
+    },
+    {
+      "fichas": [
+        33
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Descreve e ilustra a calibração paramétrica do modelo de incerteza da ANN: a cada geração, um modelo de erro heterocedástico ε(d) ~ N(0, σ1² + d·σ2²), função da distância latente d(x) aos dados de treino, é ajustado por máxima verossimilhança (MLE) sobre 10% dos dados de teste retidos (recalibração explícita no passo 13 do Algoritmo S1); a Figura S4 mostra a evolução de σ1 e σ2 ao longo de 5 gerações, separadamente para ΔGox(sol) e logP.",
+      "literal": "The parameters are fit to dimensionless errors with the model ε(d) ∼ N(0, σ1² + dσ2²).",
+      "localizador": "Algorithm S1 (S9), passos 4 e 13; Figure S4 (S10)",
+      "metricas": [
+        "σ1, σ2 (parâmetros do modelo de erro por MLE)"
+      ],
+      "testes": [
+        "estimação por máxima verossimilhança (MLE) — não é um teste de hipótese"
+      ],
+      "convencoes": "Curvas de σ1 (linha sólida) e σ2 (linha tracejada) por geração (0 a 4), separadas por propriedade (logP em azul, redox em vermelho).",
+      "achado": "O procedimento de calibração é executado a cada geração (recalibração explícita no laço do Algoritmo S1: \"Recalibrate the error model using test data\"), mas a SI não reporta uma métrica de qualidade de calibração como cobertura (%) do intervalo μ±2σ nem correlação ρ(σ,|erro|) — a validação indireta da utilidade de σ vem das Figuras S7/S9 (exclusão de pontos incertos reduz o erro retido).",
+      "aplicabilidade": "Reproduzível com a camada ③ (sonda): a cobertura (fração dentro de μ±2σ) e a correlação ρ(σ,|erro|) ao longo do orçamento são o análogo direto da ficha 33 na dissertação; aqui, em vez de cobertura, o artigo ajusta σ1/σ2 por MLE sobre 10% dos dados de teste a cada geração — um procedimento de calibração explícito, mas sem reportar cobertura numérica."
+    },
+    {
+      "fichas": [
+        31,
+        35,
+        40
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Acompanha a acurácia (MAE, RMSE) do ANN multitarefa ao longo das 5 gerações de active learning por dois ângulos complementares: (a) erro \"lookahead\" — o μ de um modelo da geração i avaliado nos complexos que o próprio algoritmo escolheu e que só tiveram f verdadeiro revelado em gerações POSTERIORES j>i, isto é, o erro do valor que motivou escolhas futuras; e (b) erro num conjunto de teste aleatório FIXO (122 complexos, não escolhidos pelo algoritmo), re-avaliado por cada geração do modelo — o equivalente mais próximo de uma sonda fixa neste artigo.",
+      "literal": "As an extrapolative test, generation 0 model predicts high errors on the generation 5 data set (1.64 eV MAE), which is dramatically reduced by the generation 1 model (0.67 eV).",
+      "localizador": "Table S9 (S20), Table S10 (S21), Figure S12 (S22)",
+      "metricas": [
+        "MAE",
+        "RMSE"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tabela organizada por partição (train/held out/lookahead por geração-alvo/random test) × geração do modelo (0-5); Figura S12 mostra barras por geração e conjunto.",
+      "achado": "O erro no conjunto de teste aleatório fixo cai de forma monotônica e depois satura ao longo das gerações (ΔGox(sol) MAE: 0.70→0.41→0.41→0.40→0.39→0.38 eV do modelo geração 0 a 5) — um padrão do tipo \"aprende, depois platô\". O erro lookahead mostra o mesmo padrão de forma mais acentuada: a geração 5 vista pelo modelo 0 tem MAE 1.64 eV; pelo modelo 1, 0.67 eV; convergindo a ~0.41-0.42 eV a partir do modelo 2. Para logP, incorporar dados da geração 1 reduz o MAE lookahead da geração 5 de 5.98E-03 para 2.36E-03.",
+      "aplicabilidade": "A parte (b) — conjunto de teste aleatório fixo, re-predito a cada geração — é diretamente reproduzível com a camada ③ (sonda), que registra μ/σ de pontos fixos com f verdadeiro conhecido a cada retreino (ficha 31, tipologia da curva na ficha 35). A parte (a) — erro lookahead nos pontos que o próprio algoritmo escolheu, revelado só em gerações futuras — é reproduzível cruzando a camada ① (avaliações reais: x, f, ordem) com as predições ③ arquivadas de gerações anteriores para esses mesmos x (ficha 40)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Evolução das médias do front de Pareto real por geração",
+      "grupo_sugerido": "D",
+      "descricao": "Lista, para cada geração (1 a 5), os complexos que compõem o front não-dominado real (ND) acumulado até aquele ponto — metal, ligante, ΔGox(sol), logP, spin-splitting, tamanho — junto com a MÉDIA de ΔGox(sol) e logP do front em cada geração, mostrando a evolução bruta dos objetivos (sem métrica de distância a uma frente verdadeira, que é desconhecida neste domínio real).",
+      "literal": "The mean of the properties of the Pareto front after each generation are also indicated.",
+      "localizador": "Table S6 (S17)",
+      "metricas": [
+        "ΔGox(sol) médio do ND",
+        "logP médio do ND"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Uma linha \"mean\" encerra cada bloco de geração; a composição do front (quais complexos permanecem não-dominados) é atualizada cumulativamente a cada geração.",
+      "achado": "A média de ΔGox(sol) do front sobe de 6.82 eV (geração 1) para 8.27 eV (geração 4) antes de recuar para 7.95 eV na geração 5 (quando um novo complexo de Fe com ΔGox(sol)=5.70 eV mas logP mínimo entra no front); a média de logP oscila entre -4.87E-02 e -5.01E-02 ao longo das gerações, sem tendência monotônica clara — evidenciando o trade-off multiobjetivo entre as duas propriedades.",
+      "aplicabilidade": "Parcialmente reproduzível com a camada ① (avaliações reais, ND acumulado por checkpoint) e ② (população por geração) — mas sem métrica de referência (IGD+/HV exigem frente verdadeira conhecida, inexistente aqui); nos problemas sintéticos da dissertação a frente verdadeira é conhecida, permitindo IGD+ em vez de apenas médias brutas dos objetivos."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Taxa de sucesso/falha da avaliação real (DFT) por geração e causa",
+      "grupo_sugerido": "I",
+      "descricao": "Reporta, por geração (1-5) e para o lote aleatório de comparação, o número de simulações DFT solicitadas, quantas falharam (por violação de geometria \"geo\", não-convergência de SCF, ou timeout de resubmissão) e quantas tiveram sucesso, incluindo a fração de pares de spin M(II) casados e de pares ΔGox(sol) completos.",
+      "literal": "Possible outcomes for each calculation are unsuccessful and successful, with unsuccessful runs being classified by different failure modes: geo, SCF, or timeout.",
+      "localizador": "Table S7 (S18)",
+      "metricas": [
+        "taxa de sucesso (%) das simulações DFT",
+        "contagem de falhas por causa (geo, SCF, spin, timeout)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Percentual de sucesso entre parênteses ao lado da contagem total bem-sucedida; geração 1 rodou por ~3 semanas com apenas 93% das simulações tentadas antes de ser interrompida (as demais gerações completaram 100% das tentativas, até 5 resubmissões por job).",
+      "achado": "A taxa de sucesso cai de 64% na geração 1 (709/1116) para 61% (242/400, gen. 2), 55% (218/400, gen. 3), 50% (199/400, gen. 4) e 49% (197/400, gen. 5); a causa dominante de falha muda ao longo das gerações — \"geo\" (violação de geometria) já é a maior causa isolada nas gerações 3-5 (142, 170, 155 falhas, de ~400 tentativas cada), superando SCF e spin. O artigo não atribui explicitamente essa tendência declinante ao critério E[I] em texto na própria Tabela S7; a inferência de que o E[I] mira candidatos progressivamente mais difíceis de convergir é consistente com o achado independente de sobre-amostragem de regiões de baixa conversão (Text S3, ver análise correspondente), mas não é uma afirmação textual direta ligada a esta tabela.",
+      "aplicabilidade": "Não reproduzível — a bateria da dissertação assume que toda avaliação real solicitada é bem-sucedida (funções de teste determinísticas, sem falha de convergência do oráculo); não há camada dedicada a \"falha da avaliação real em si\" (as camadas ⑤/⑥ registram status do algoritmo, não falha da função objetivo)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Distribuição do critério de aquisição (E[I]/P[I]) por geração",
+      "grupo_sugerido": "E",
+      "descricao": "Estima por KDE a distribuição dos valores de E[I] (melhoria esperada) e P[I] (probabilidade de melhoria) entre os 100 medoides selecionados em cada uma das 4 gerações de active learning guiado por E[I], mostrando como o valor do critério de aquisição nos pontos escolhidos evolui geração a geração.",
+      "literal": "Evolution of E[I] and P[I] distributions over different generations of active learning, colored as indicated in inset legend by the generation used to train the model.",
+      "localizador": "Figure S11 (S18)",
+      "metricas": [
+        "E[I] (adimensional)",
+        "P[I]"
+      ],
+      "testes": [
+        "nenhum (estimativa de densidade por kernel)"
+      ],
+      "convencoes": "Densidades KDE sobrepostas, uma cor por geração usada para treinar o modelo (1-4).",
+      "achado": "O artigo não inclui, no texto da SI, uma frase interpretativa explícita sobre a direção da mudança nas distribuições de E[I]/P[I] entre gerações — a Figura S11 e sua legenda documentam a evolução (distribuições estimadas por KDE para os 100 medoides selecionados a cada geração), mas a leitura quantitativa (se o critério cai ao longo das gerações, indicando convergência da busca) não é afirmada textualmente em nenhum outro trecho da SI.",
+      "aplicabilidade": "Reproduzível com a camada ⑥ (filme) e a camada ③ (predições do surrogate, incluindo o valor do critério de aquisição): registrar o valor do critério nos pontos efetivamente escolhidos, geração a geração, é análogo ao que o filme (⑥) permite reconstruir para os algoritmos do roster que usam um critério de aquisição explícito tipo E[I]/EHVI/UCB."
+    },
+    {
+      "fichas": [
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Reporta o custo computacional de duas etapas do fluxo: (a) avaliação (inferência) do ANN sobre o espaço de desenho inteiro, processado em 140 lotes de 20 mil candidatos, incluindo o tempo de cálculo da distância latente e de I/O; e (b) o custo da avaliação real via DFT por complexo e por geração de 100 complexos, incluindo uma extrapolação do custo de avaliar TODO o espaço de ~3 milhões de candidatos com DFT. A Figura S3 complementa com o walltime médio das sub-etapas do DFT (otimização de geometria, correção termodinâmica, correção de solvente).",
+      "literal": "DFT evaluation takes 21 hours of compute time on average per geometry optimization and solvent single points per complex on 1 GPU on our local HPC resources.",
+      "localizador": "Text S2 (S10); Figure S3 (S8) para a decomposição do tempo de correção de solvente/termodinâmica",
+      "metricas": [
+        "tempo (s) por lote de inferência do ANN",
+        "tempo (h) de DFT por complexo",
+        "tempo (dias) por geração",
+        "GPU-anos para o espaço completo"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tempos médios reportados diretamente em segundos/horas/dias, sem dispersão (medição sobre 140 lotes para o ANN; média sobre as simulações para o DFT).",
+      "achado": "A avaliação do ANN sobre TODO o espaço de 2,8 milhões de candidatos leva ~9 minutos em série (ou ~3,4 min com 8 processos paralelos: 1.6s de chamada do ANN + 0.8s de distância latente + 1.3s de I/O por lote de 20k), enquanto avaliar um único ponto com DFT leva 63 horas — tornando a varredura completa do espaço por DFT proibitiva (20 mil GPU-anos) e justificando o uso do surrogate; uma geração de 100 complexos por DFT leva de 7 a 10 dias de parede com até 64 GPUs em paralelo. A Figura S3 detalha os componentes do custo de DFT: ~14h para otimização de geometria, ~16h para correção termodinâmica, 46min para correção de solvente (sistema médio de 38 átomos).",
+      "aplicabilidade": "Reproduzível com a camada ④ (tempos por geração) — mas a dissertação separa fit/busca/sonda/avaliação (ficha 48), enquanto este artigo só reporta tempo de INFERÊNCIA do ANN e tempo de DFT, sem isolar tempo de treino/ajuste do modelo em si."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sobre-amostragem pelo E[I] de regiões estruturais de baixa taxa de conversão",
+      "grupo_sugerido": "C",
+      "descricao": "Compara, por heterociclo core (Tabela S13, Figuras S20-S21) e por grupo funcional (Tabela S14), a frequência com que o E[I] solicita cada região estrutural do espaço combinatório contra a frequência de sucesso da simulação DFT correspondente, mostrando que o critério guiado por incerteza/melhoria esperada concentra pedidos em regiões com baixa taxa de conversão, à custa de diversidade estrutural.",
+      "literal": "In general, the E[I] algorithm substantially oversamples five-member O-connecting heterocycles He (1,3-oxathiole) and Hd (2,3-dihydro-1,3-oxazole) relative to random sampling, and this region appears to have generally low rates of conversion to successful calculations",
+      "localizador": "Text S3 (S35); Tables S13-S14 (S33); Figures S20-S21 (S31-S32)",
+      "metricas": [
+        "contagem de solicitações",
+        "contagem de sucessos",
+        "taxa de conversão (sucesso/solicitação)",
+        "nº de funcionalizações únicas requisitadas"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tabelas ordenadas por frequência de solicitação (coluna \"request\") e por frequência de sucesso (coluna \"success\"), com a diferença (Δ) e a taxa explicitadas lado a lado.",
+      "achado": "O ligante mais requisitado (HeHe, 36 pedidos) produziu apenas 1 sucesso (taxa 0.03); a diversidade de funcionalizações únicas caiu de 450 (de 600 pedidos aleatórios) para 203 (de 400 pedidos por E[I]) — o E[I] reduz a diversidade estrutural explorada e persiste em regiões de baixa conversão, mesmo com sinal reiterado de falha ao longo das gerações.",
+      "aplicabilidade": "Não diretamente reproduzível — exige um espaço de decisão categórico/combinatório com uma noção de \"sucesso/falha estrutural por região\" (heterociclo), ausente nos problemas contínuos da bateria; o análogo mais próximo seria cruzar a camada ⑥ (filme) com a característica do problema (ficha 44, exploração×explotação), mas sem o conceito de \"falha do oráculo por região\" que este artigo captura."
+    },
+    {
+      "fichas": [
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara a distribuição de ΔGox(sol) e logP dos complexos selecionados pelo processo guiado por E[I] (front final de 8 complexos, mais os complexos de alta pontuação ao longo das gerações) contra uma amostra aleatória grande de complexos DFT-convergidos, usando histogramas, gráficos Q-Q contra a normal, teste de Shapiro-Wilk de normalidade da amostra aleatória, e uma estimativa de quantas vezes mais rápido o E[I] encontra complexos extremos comparado à amostragem aleatória pura (\"aceleração\").",
+      "literal": "This suggests that estimation of a 500-fold acceleration over random search is conservative. We arrive at the 500-fold acceleration by noting that 27 of 84 (16 of 84) complexes from the EI set lie above the 99th (99.5th) percentile",
+      "localizador": "Figure S18 (S29); Figure S19 (S30)",
+      "metricas": [
+        "percentil da distribuição aleatória atingido pelos complexos do conjunto E[I]",
+        "p-valor Shapiro-Wilk",
+        "coeficiente de correlação de Pearson (independência dos objetivos)"
+      ],
+      "testes": [
+        "Shapiro-Wilk (normalidade); nenhum teste pareado formal comparando E[I] × aleatório"
+      ],
+      "convencoes": "Histogramas sobrepostos (Pareto em uma cor, aleatório em outra); linhas verticais/horizontais marcam os valores do front final sobre a distribuição aleatória; região sombreada = 95% de confiança no Q-Q plot; sem pareamento por semente/DoE compartilhado.",
+      "achado": "27 de 84 (16 de 84) complexos do conjunto E[I] excedem o percentil 99 (99,5) da distribuição normal ajustada à amostra aleatória para ΔGox(sol), e uma minoria (13, depois menos) fica abaixo do percentil 1 (0,5) para logP; três complexos do conjunto E[I] caem simultaneamente no percentil extremo de AMBAS as propriedades — usado para estimar uma aceleração de 500× sobre busca aleatória, estimativa que os próprios autores classificam como conservadora (as caudas empíricas são mais leves que a normal ajustada, Shapiro-Wilk p=0.02/2×10⁻⁶ rejeita normalidade). A correlação entre os dois objetivos na amostra aleatória é fraca (Pearson r=-0.22), sustentando a suposição de independência usada na estimativa de aceleração.",
+      "aplicabilidade": "Parcialmente reproduzível com a camada ① (avaliações reais): dado o conjunto de avaliações do algoritmo e de uma amostra aleatória de mesmo orçamento, o cálculo de percentis e o teste de Shapiro-Wilk são replicáveis; mas exige um \"piso\" de amostragem aleatória pura (não um piso evolutivo) e não é pareado por semente como a ficha 9 pede na dissertação — reprodução só parcial, com adaptação do desenho experimental."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Qualidade da amostra inicial por clustering diversidade-orientado",
+      "grupo_sugerido": "J",
+      "descricao": "Avalia a qualidade dos 300 clusters (k-medoids/CLARA no espaço de features RAC-155) usados para selecionar a amostra inicial diversificada dentro do espaço de 2.795.052 complexos, através da razão de isolamento (dissimilaridade intra-cluster máxima / distância média entre centróides) e da análise de silhueta, e compara estatísticas do subconjunto de 300 medoides às do espaço de desenho completo (nº de átomos, fração por metal).",
+      "literal": "Most clusters (i.e., 285 of 300) have good characteristics, with isolation ratios below 2.5, whereas a minority (15 of 300) exhibit large intra-cluster dissimilarity.",
+      "localizador": "Text S4 (S40); Figure S24 (S41); Figure S25 (S41); Table S20 (S42)",
+      "metricas": [
+        "razão de isolamento",
+        "coeficiente de silhueta",
+        "tamanho do cluster",
+        "fração de complexos por metal"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Silhueta reportada como frequência cumulativa de dados por escore; tamanho de cluster e razão de isolamento em eixo log; comparação lado a lado do espaço completo vs. subconjunto amostrado na Tabela S20.",
+      "achado": "285 dos 300 clusters têm razão de isolamento < 2,5 (boa separação); a maioria dos dados do espaço de desenho cai em clusters com silhueta ≥ 0,25; o subconjunto de 300 medoides preserva a distribuição de tamanho (média 142,4 vs 141,0 átomos; desvio-padrão 27,50 vs 23,54) e aproxima, sem replicar exatamente, a fração por metal do espaço completo (0,25/0,25/0,25/0,25 no total vs 0,27/0,26/0,21/0,25 no subconjunto).",
+      "aplicabilidade": "Não reproduzível — é uma análise da qualidade da AMOSTRA INICIAL (DoE) por clustering num espaço de desenho combinatório de milhões de candidatos; a dissertação usa DoE compartilhado por LHS/Sobol de dimensão real fixa D, sem clustering diversidade-orientado nem esse tipo de diagnóstico (isolamento/silhueta)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Distribuição de metais entre candidatos tentados e convergidos por geração",
+      "grupo_sugerido": "C",
+      "descricao": "Mostra, para cada metal (Cr, Mn, Fe, Co) e cada geração (1-5), a contagem de complexos selecionados para simulação (tentados) versus os que resultaram em cálculo de potencial redox bem-sucedido, permitindo inspecionar se a taxa de convergência do oráculo real varia por identidade do metal ao longo da busca.",
+      "literal": "Distribution of metals in the medoids selected for simulation (light) and those result in successful redox potential calculations (solid) across generations of the optimization procedure.",
+      "localizador": "Figure S13 (S23)",
+      "metricas": [
+        "contagem de complexos tentados por metal/geração",
+        "contagem de complexos convergidos por metal/geração"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Barras agrupadas por metal, tentados em tom claro e convergidos em tom sólido, cores distintas por geração (1-5).",
+      "achado": "O artigo apenas exibe as contagens (tentados vs. bem-sucedidos) por metal e geração na figura, sem uma afirmação textual comparativa explícita no corpo da SI sobre qual metal converge melhor ou pior — a leitura quantitativa fina depende da própria figura, não reproduzida numericamente em texto.",
+      "aplicabilidade": "Não reproduzível — é uma característica de domínio específica da química (identidade do metal do complexo), sem análogo direto na bateria da dissertação; em espírito se aproximaria da ficha 17 (rank por característica do problema) se \"metal\" fosse tratado como uma característica estressada, mas o artigo não faz essa análise comparativa explicitamente em texto."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "A cada geração, um modelo paramétrico de erro heterocedástico ε(d) ~ N(0, σ1² + d·σ2²) é ajustado por máxima verossimilhança (MLE) sobre 10% dos dados de teste retidos do ANN multitarefa, onde d(x) é a distância latente média aos 10 vizinhos de treino mais próximos na representação final da rede (a mesma distância que serve de proxy de incerteza — daí a classe de medição GEO-DIST). O procedimento roda no laço principal do algoritmo (Algorithm S1, passo 13: \"Recalibrate the error model using Xi test\") a cada retreino, e σ1/σ2 resultantes são reportados por geração na Figura S4, separadamente para ΔGox(sol) e logP. Como validação indireta da UTILIDADE do σ resultante (não da sua calibração em % de cobertura), as Figuras S7 e S9 mostram que excluir os pontos de maior σ reduz o MAE retido tanto em dados de teste interpolativos quanto num conjunto extrapolativo fora de distribuição (geração 1), comparando esse σ baseado em distância (para as ANNs) com o desvio-padrão posterior nativo do GP. O artigo NÃO reporta uma fração de cobertura explícita (ex.: % de pontos dentro de μ±2σ) nem um ρ(σ,|erro|) numérico — a calibração é validada apenas pela redução de erro ao excluir os mais incertos (discriminação), não por um número de cobertura direto.",
+    "literal": "The parameters are fit to dimensionless errors with the model ε(d) ∼ N(0, σ1² + dσ2²).",
+    "localizador": "Figure S4 (S10); Algorithm S1 (S9), passo 13"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo de avaliação (inferência) do ANN sobre todo o espaço de desenho (140 lotes de 20k candidatos: ~1.6s de chamada do modelo + 0.8s de distância latente + 1.3s de I/O por lote, ~9min seriais ou ~3.4min com 8 processos paralelos); tempo de DFT por complexo (63h = 21h de otimização de geometria+solvente ×3 estados, aproximadamente) e por geração de 100 complexos (7-10 dias de parede com até 64 GPUs); extrapolação do custo de avaliar o espaço inteiro (~2,8 milhões de candidatos) com DFT: 20 mil GPU-anos, classificado como intratável. A Figura S3 decompõe o walltime do DFT em otimização de geometria (~14h), correção termodinâmica (~16h) e correção de solvente (46min). NÃO separa explicitamente tempo de TREINO/ajuste do ANN nem tempo de busca da aquisição (E[I] sobre o espaço) do tempo de inferência/avaliação — apenas tempo de INFERÊNCIA é reportado com granularidade.",
+    "literal": "DFT evaluation takes 21 hours of compute time on average per geometry optimization and solvent single points per complex on 1 GPU on our local HPC resources.",
+    "localizador": "Text S2 (S10); Figure S3 (S8)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "A busca guiada por E[I] concentra-se desproporcionalmente em heterociclos five-membered O-conectores (He, Hd) com baixíssima taxa de conversão para cálculos DFT bem-sucedidos, reduzindo a diversidade de funcionalizações exploradas em relação à amostragem aleatória — o critério de aquisição persiste numa região estrutural que falha repetidamente na avaliação real.",
+      "literal": "In general, the E[I] algorithm substantially oversamples five-member O-connecting heterocycles He (1,3-oxathiole) and Hd (2,3-dihydro-1,3-oxazole) relative to random sampling, and this region appears to have generally low rates of conversion to successful calculations",
+      "localizador": "Text S3 (S35)"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "região estrutural do espaço combinatório com baixa taxa de convergência do oráculo real (heterociclos five-membered O-conectores He/Hd)",
+      "afirmacao": "O critério de aquisição guiado por incerteza/melhoria esperada (E[I]) sobre-amostra sistematicamente essa região mesmo com baixa taxa de sucesso de DFT, mostrando que o critério pode ser atraído para regiões que o modelo julga promissoras (pela predição μ e/ou pela incerteza σ) mas que falham desproporcionalmente na avaliação real — a diversidade de funcionalizações requisitadas cai de 450 (aleatório) para 203 únicas (E[I]).",
+      "literal": "In general, the E[I] algorithm substantially oversamples five-member O-connecting heterocycles He (1,3-oxathiole) and Hd (2,3-dihydro-1,3-oxazole) relative to random sampling",
+      "localizador": "Text S3 (S35); Figure S21 (S32)"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) O arquivo corpus_md/e8.md corresponde INTEIRAMENTE à Supporting Information (SI) do artigo (43 páginas, S1-S43) — não há corpo principal (Introdução/Resultados/Discussão) presente nesta fonte. Isso foi confirmado por checagem cruzada: a passada estruturada (linhas 1-899) e a camada de texto bruto \"ANEXO\" (get_text, linhas 901-4429, marcadores \"página 1\" a \"página 43\") reproduzem o MESMO conteúdo de 43 páginas, e o anexo final de OCR de figuras (linhas 4434+) só recupera fragmentos de rótulos de eixo mal-lidos, sem achados novos. Toda a extração acima baseia-se, portanto, em Algorithm S1, Texts S0-S4, e Tables/Figures S1-S25 da SI. (2) O artigo é uma aplicação REAL de descoberta química (não um paper de benchmark MOO sintético): uma única trajetória sequencial de active learning (5 gerações), sem sementes/repetições independentes e sem piso evolutivo populacional — por isso a maioria das fichas de \"placar\" (1-8, que pressupõem múltiplos algoritmos × múltiplos problemas × 30 sementes com teste estatístico) não se aplica; a pergunta \"o surrogate compra?\" é respondida de forma distinta, via comparação distribucional/percentil contra amostragem aleatória (mapeada à ficha 9 com ressalvas, ver análise correspondente). (3) O GP aparece SOMENTE como candidato de comparação para a ESCOLHA da arquitetura de surrogate (Tables S3-S5, Figs. S6-S9), nunca como o modelo efetivamente implantado no Algorithm S1; o surrogate implantado é a ANN multitarefa com um modelo de erro por distância latente calibrado por MLE — exatamente a classe de medição GEO-DIST da taxonomia. (4) Não há, nesta SI, uma ablação explícita do termo de incerteza em si (E[I] com σ vs. seleção gulosa só por μ, isto é, um σ=0 controlado) — as únicas comparações são ENTRE arquiteturas de modelo candidatas (μ e discriminação de σ), não uma ablação do uso da incerteza dentro do MESMO algoritmo/modelo. (5) Tabelas/figuras de conteúdo puramente químico-descritivo (distribuição de propriedades por heterociclo Fig. S17; estruturas de ligantes Figs. S1, S2, S14-S16; correção de solvente Table S16; tolerâncias de geometria Table S17; hiperparâmetros de CV do GP/ANN Tables S18-S19 e Fig. S23; fontes do \"hot start\" Table S2; espectro de spin Table S1) foram conscientemente EXCLUÍDAS de `analises` por não responderem a uma pergunta sobre o comportamento do surrogate/incerteza/busca no sentido do catálogo de 64 fichas — mas ficam registradas aqui para constar que foram lidas e consideradas. (6) roster_bloco deixado null conforme instrução do pedido (artigo fora do roster experimental da dissertação)."
+}

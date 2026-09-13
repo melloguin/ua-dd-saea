@@ -1,0 +1,26 @@
+prob,M,Nef,n_doe_log,n_doe_calc,n_frentes_log,n_frentes_calc,n_frente1_log,n_frente1_calc,excede_log,excede_calc,rank_max_sel,frentes_cheias,frentes_cheias_todas_dentro,n_borda,pop1_ids_no_doe,n_pop1,n_pop1_dist
+BBOB_F1,2,20,109,109,17,17,7,7,False,False,4,"[1, 2, 3]",True,2,True,20,20
+BBOB_F17,2,20,109,109,14,14,6,6,False,False,3,"[1, 2]",True,3,True,20,20
+BBOB_F22,2,20,109,109,20,20,5,5,False,False,3,"[1, 2, 3]",True,0,True,20,20
+BBOB_F37,2,20,109,109,17,17,5,5,False,False,4,"[1, 2, 3]",True,1,True,20,20
+BBOB_F49,2,20,109,109,20,20,5,5,False,False,3,"[1, 2, 3]",True,0,True,20,20
+BBOB_F5,2,20,109,109,22,22,7,7,False,False,5,"[1, 2, 3, 4]",True,2,True,20,20
+BBOB_F55,2,20,109,109,17,17,4,4,False,False,4,"[1, 2, 3]",True,2,True,20,20
+DTLZ1,3,15,76,76,6,6,17,17,False,False,1,[],True,15,True,15,15
+DTLZ2,3,15,131,131,6,6,40,40,True,True,1,[],True,15,True,15,15
+DTLZ3,3,15,131,131,7,7,19,19,False,False,1,[],True,15,True,15,15
+DTLZ4,3,15,131,131,7,23,23,7,True,False,16,"[1, 2]",False,0,True,15,15
+DTLZ7,3,15,241,241,10,10,21,21,True,True,1,[],True,15,True,15,15
+MMF1,2,20,21,21,6,6,7,7,False,False,5,"[1, 2, 3, 4, 5]",True,0,True,20,20
+MMF11_L,2,20,21,21,3,3,9,9,False,False,3,"[1, 2]",True,3,True,20,20
+MMF16_20,3,15,219,219,7,7,50,50,True,True,1,[],True,15,True,15,15
+MMF4,2,20,21,21,4,4,9,9,False,False,4,"[1, 2, 3]",True,2,True,20,20
+WFG1,2,20,241,241,22,22,18,18,False,False,2,[1],True,2,True,20,20
+WFG2,2,20,241,241,26,26,8,8,False,False,2,"[1, 2]",True,0,True,20,20
+WFG4,2,20,241,241,10,10,30,30,True,True,1,[],True,20,True,20,20
+WFG5,2,20,241,241,10,10,36,36,True,True,1,[],True,20,True,20,20
+WFG9,2,20,241,241,11,11,15,15,False,False,2,[1],True,5,True,20,20
+ZDT1,2,20,329,329,19,19,14,14,False,False,2,[1],True,6,True,20,20
+ZDT3,2,20,329,329,21,21,12,12,False,False,2,[1],True,8,True,20,20
+ZDT4,2,20,109,109,17,17,8,8,False,False,3,"[1, 2]",True,3,True,20,20
+ZDT6,2,20,109,109,20,20,7,7,False,False,3,"[1, 2]",True,6,True,20,20

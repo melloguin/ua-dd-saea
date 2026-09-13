@@ -1,0 +1,121 @@
+{
+ "problema": "ESTOQUE40",
+ "celulas": "442 diretórios em resultados_experimentos (15 configs × sementes {0-28,42}; sem semente inválida) · 437 no censo = 325 válidas plenas (rodapé ok, 1239 FE) + 90 ⚪ teto_wall com rodapé ok (c149 24 · c154 30 · c262 22 · e81 14) + 22 sem rodapé/checkpoint (c149 6 · c262 8 · e81 8) · +5 embrionárias e81 s22-26 FORA do censo (só ⑥, sem ⑤/parquets). Verificadas em streaming: 488.646 avaliações ① (437 células) + 60 arquivos ⑦ (b5r 30, moead_media 30). Offline presentes: b5r, moead_media, e103 (b5m inexistente = lacuna aceita).",
+ "bateria": [
+  {
+   "checagem": "(1) Query-joia em escala: f reimplementada independente do .npz congelado (sha 660b5896 conferido em 2 cópias) vs F gravado nas 437 ① em streaming",
+   "resultado": "488.646 pontos: erro máx/range = 5,8e-08 (f1) · 4,9e-08 (f2) · 2,9e-07 (f3); o 'max_rel 4,6e-06' aparente é inflação de denominador em f3≈0. 100% dentro do ruído float32 (D53, tolerância ~1e-6). Reconcilia com T15 (1e-15 offline / f32-exato) em escala",
+   "veredito": "CONFIRMA — zero divergência real em 437/437 células"
+  },
+  {
+   "checagem": "(1b) Query-joia na ⑦ (ND final avaliado na f real)",
+   "resultado": "60 arquivos (b5r 30 + moead_media 30): erro rel máx 2,0e-07; 0 violações de régua",
+   "veredito": "CONFIRMA"
+  },
+  {
+   "checagem": "(2a) D102.19 disparou? (sigma_dict.espaco_entrada_gp)",
+   "resultado": "60/60 células b5r+moead_media declaram modo=minmax_caixa com d_tipica 2.308-2.397 >> teto ls=100, e a ⑥ tem a decision 'b5_espaco_entrada_gp' na geração 0; e103 não declara (N/A: Kriging DACE tem normalização própria, não é o SurrogateKriging DESDEO da DI-28)",
+   "veredito": "CONFIRMA — disparo em 100% das células aplicáveis"
+  },
+  {
+   "checagem": "(2b) Transições-com-mudança por célula (③, X por geração, hash de conjunto): moead_media × 30 sementes",
+   "resultado": "380/380 (100%) em 30/30 sementes (381 gerações, pop 105) — o piso congelado do T15 (0/380) está CURADO em toda a campanha",
+   "veredito": "CONFIRMA — piso offline VIVO"
+  },
+  {
+   "checagem": "(2c) Transições e103 × 29 sementes",
+   "resultado": "98/98 (100%) em 29/29 (99 gerações IBEA, 200 linhas/ger)",
+   "veredito": "CONFIRMA"
+  },
+  {
+   "checagem": "(2d) Transições b5r × 30 sementes + explicação da bimodalidade",
+   "resultado": "BIMODAL: 26 sementes em 46-57% (n_ger 2.850-2.861) vs 4 sementes ~100% (s1 2.914 · s2 3.102 · s27 4.291 · s16 4.856). MECANISMO MEDIDO: o critério de parada é o MESMO (orçamento interno de 40.000 predições no surrogate; motivo_parada='orcamento' 30/30; sigma_dict.rampa_theta/overshoot) — o que difere é o CONSUMO por geração = pop selecionada: campo n_front1 do evento b5_gen (⑥) med 14 (sadias) vs 3-5 (doentes) = linhas/geração da ③ 14 vs 8-13; menos predições/ger ⇒ mais gerações até 40.000. n_geracoes (⑤) é consequência, não critério. As 4 sementes ~100% são COLAPSO de pop com crença fantasiosa do GP (f_best da ⑥: f2≈2e-13 com f1=-15.118, comprovadamente irreal) e dão ⑦ catastrófica: HV 0,048/0,209/0,329/0,333 vs 0,76-0,87 nas 26 sadias. A dica 'critério de parada diferente' fica REFUTADA pelo dado; a leitura T15 de '~100%=saudável' INVERTE na campanha: 100% + poucas linhas/ger = doente",
+   "veredito": "EXPLICADA COM DADO — mesma regra de parada; campo explicativo = ⑥ b5_gen.n_front1 (e linhas/ger da ③)"
+  },
+  {
+   "checagem": "(3) Régua D102.20 (cantos): checa_regua (constantes T15.13b: folga=max(1e-6·max(1,|ideal|), 1e-3·range)) em todas as ① e ⑦",
+   "resultado": "0 violações do guard E 0 furos leves (nenhum ponto < ideal em nenhum objetivo) em 488.646 + ⑦. Lado nadir (informativo, não guardado): 26.660 pontos (5,5%) excedem o nadir SÓ em f3 (pior 19,37 ≈ 4,6× o nadir 4,256) — esperado: nadir de canto não majoriza a variância no interior da caixa; no HV, f3 normalizado >1,1 é clipado pelo ref",
+   "veredito": "CONFIRMA — régua não furada em nenhum ponto"
+  },
+  {
+   "checagem": "(4a) Orçamento 1239=31·40−1 e contrato",
+   "resultado": "maxfe=1239 em 437/437 (⑤ e header ⑥); fe_index 0..n−1 contíguo, 0 duplicatas; X 100% dentro de [0, xu(q95)]; fase init|opt nos main, init puro nos 89 offline (① = dataset, D90); doe_hash idêntico entre os 12 main por semente (12/12) e dataset offline byte-idêntico por semente (① e103 ≡ ① b5r em 29/29; b5r/moead_media pareados por doe_hash 30/30); sondas offline 20.000 linhas com x_hash comum",
+   "veredito": "CONFIRMA"
+  },
+  {
+   "checagem": "(4b) ⑦ nos offline (DI-08)",
+   "resultado": "b5r 30/30 (med 14 linhas) · moead_media 30/30 (105 linhas) · e103 0/29 — o ⑤ do e103 declara 'avaliado 1x FORA' (trilho pós-hoc scripts/final_eval.py); pelo contrato, ⑦ ausente SEGUE VERMELHA até o final_eval rodar",
+   "veredito": "PENDÊNCIA — e103 não-aferível na comparação offline até rodar final_eval"
+  },
+  {
+   "checagem": "(4c) Estados O-21 (rodapé = autoridade; e81 e c154 separados)",
+   "resultado": "e81: 14 ⚪ teto (s0-13, rodapé ok ~43,3ks=12h wall, med 955-963 FE) + 8 sem rodapé (s14-21, último rec sonda/fit) + 5 embrionárias fora do censo (s22-26, só ⑥) — e as 13 últimas têm appends de HOJE 21/08 17:58 (matlab-vm1): e81×EST40 ESTÁ VIVO. c154: 30/30 manifest failed/teto_wall MAS rodapé ok 30/30 ⇒ 30 ⚪ teto (não falha), 447-448 FE (36% do orçamento). c149: 24 ⚪ teto (rodapé ok) + 6 sem rodapé (kill simultâneo 20/08 00:17). c262: 22 ⚪ teto + 8 sem rodapé",
+   "veredito": "CONFIRMA a contabilidade ⚪ (90 teto com dado válido); 22 sem rodapé; e81 em curso"
+  },
+  {
+   "checagem": "(4d) Anomalia c238 (achado novo)",
+   "resultado": "14/29 células com ⑤ ok + ① completa (1239) + fe_final=1239 mas ⑥ SEM rodapé em lugar nenhum do arquivo, TODAS cortadas no mesmo instante (17/08 12:20-12:22Z) com ⑤ atualizado 18:54Z — assinatura de cópia/sync que amputou a cauda da ⑥, não de morte do run; dado métrico intacto, camada de fidelidade D97 truncada (~ger 672/801); manifest sem paths de bucket",
+   "veredito": "ACHADO — ⑥ truncada na cópia local em 14 células"
+  },
+  {
+   "checagem": "(5) O EST40 discrimina? |ND| e HV por config (D69, ref 1,1; ND da ① nos main; ⑦ nos offline)",
+   "resultado": "SIM, forte: HV mediano full — e74 1,139 · c238 1,117 · c141 1,086 · c262 1,075(⚪885) · e81 1,012(⚪957) · c149 0,985(⚪986) · c217 0,965 · nsga2 0,964 · nsga3 0,941 · smsemoa 0,900 · c154 0,888(⚪447) · moead 0,868; dataset offline 0,871. Amplitude 0,27 do HV normalizado >> ruído empírico (p95 célula 10,6%, contraste 1,2%). Surrogates > EAs puros em D=40, coerente. FE comum 447: c238 1,051 dispara na frente; EAs ~0,838. ⑦ offline: moead_media 0,964 > b5r 0,824 — o piso-média BATE o b5r, e b5r ⑦ < HV do próprio dataset em 28/30 sementes. |ND|: dataset 52/1239 (4,2%); c141 359; EAs 133-157; espalhamento esperado de M=3/D=40",
+   "veredito": "CONFIRMA discriminação; ranking offline pende do ⑦ do e103"
+  }
+ ],
+ "achados": [
+  {
+   "id": "EST40-A1",
+   "descricao": "e103 sem ⑦ em 29/29 células: o ⑤ declara o trilho pós-hoc ('avaliado 1x FORA', scripts/final_eval.py) mas o final_eval nunca rodou — pelo contrato a célula segue VERMELHA e o e103 fica fora de qualquer comparação de desempenho offline (HV da ① dele = HV do dataset)",
+   "classe": "(2) desvio sancionado no desenho (emenda §7 do CONTRATO) porém pendência executória aberta",
+   "gravidade": "ALTA",
+   "acao": "Rodar scripts/final_eval.py para e103×ESTOQUE40 (29 células; ESTOQUE40 é Python puro — sem Engine, sem risco Mac)"
+  },
+  {
+   "id": "EST40-A2",
+   "descricao": "e81×ESTOQUE40 VIVO após o congelamento declarado do corpus: appends na ⑥ até 21/08 17:58 local (matlab-vm1); 8 células censadas como 'checkpoint_em_andamento' estão em execução e 5 sementes (22-26) nem entraram no censo (só ⑥, sem ⑤/parquets). O censo de 437 é retrato móvel",
+   "classe": "(3) inexplicado 🎯 — conflita com 'o que não executou, não vou executar mais'",
+   "gravidade": "ALTA",
+   "acao": "D81: escalar — ou esperar e81 terminar e re-censar (corpus vira ~447+), ou cravar o corte nas 22 células censadas e quarentenar o resto"
+  },
+  {
+   "id": "EST40-A3",
+   "descricao": "c238: 14/29 células com ⑥ amputada (sem rodapé em todo o arquivo), todas cortadas no mesmo minuto (17/08 12:20-12:22Z) com ⑤ ok atualizado 6h depois e ① completa — assinatura de snapshot/sync que perdeu a cauda da ⑥; camada de fidelidade D97 truncada ~ger 672/801, dado métrico intacto",
+   "classe": "(3) inexplicado 🎯 — provável defeito de cópia, não do run",
+   "gravidade": "MEDIA",
+   "acao": "Re-puxar as ⑥ dessas 14 células do bucket/VM de origem; se a cópia local for a única, declarar T (teto de verificabilidade da ⑥ além da ger ~672)"
+  },
+  {
+   "id": "EST40-A4",
+   "descricao": "b5r: colapso de população em 4/30 sementes (1, 2, 16, 27) — n_front1 cai a 3-5 (vs 14), GP com crença comprovadamente irreal (f_best f2≈2e-13), busca estica a 2.914-4.856 gerações e a ⑦ sai catastrófica (HV 0,048-0,333 vs 0,76-0,87). Mecanismo prob-APD declarado operando como especificado sobre um surrogate ruim — não é bug de implementação nem de dado",
+   "classe": "(1) conforme (comportamento do mecanismo declarado)",
+   "gravidade": "MEDIA (para a análise §12, não para a integridade)",
+   "acao": "Flag na §12: reportar as 4 sementes; a mediana já é robusta a elas"
+  },
+  {
+   "id": "EST40-A5",
+   "descricao": "Nadir f3 da régua D102.20 (4,256) não majoriza o interior da caixa: 26.660 pontos (5,5% de tudo que foi avaliado, presentes em 437/437 células) excedem-no só em f3, até 19,37 — normalizado >1 sempre, >1,1 clipado do HV. Lado ideal intacto (0 furos)",
+   "classe": "(2) sancionado — o nadir D102.20 veio dos cantos por decisão; o guard protege só o ideal, por desenho",
+   "gravidade": "BAIXA",
+   "acao": "Registrar na R4 que f3 normalizado >1 ocorre em todas as células (transparência do clip)"
+  },
+  {
+   "id": "EST40-A6",
+   "descricao": "b5r ⑦ (mediana 0,824) fica ABAIXO do HV do próprio dataset offline (0,871) em 28/30 sementes, enquanto moead_media ⑦ dá 0,964: no EST40 o piso-média vence o b5r com σ — decisão-relevante para a tese sobre o valor do σ no regime offline",
+   "classe": "(1) conforme — resultado, não defeito",
+   "gravidade": "BAIXA (informativo, alto valor p/ escrita)",
+   "acao": "Levar para a §12/discussão; conferir simetria quando o ⑦ do e103 existir"
+  }
+ ],
+ "fase2_regua": "Régua vigente (D102.20, definitiva) COERENTE no lado guardado: ideal=[-17909,135; 0; 0] não é furado por NENHUM dos 488.646 pontos ① nem pelos ⑦ (0 violações do guard, 0 furos leves na folga T15.13b) — o canto x=0 e o canto x=xu seguram os extremos como desenhado. Ressalva documentada: o nadir de f3 (4,2561) é canto-derivado e não majoriza a variância no interior da caixa (5,5% dos pontos além, até 4,6× o nadir) — sem consequência para guard nem para HV (ref 1,1 clipa), mas a R4 deve declarar o clip. Não há fase 2 pooled a computar aqui (obrigação é só do DDMOP7); a régua do EST40 permanece válida como está.",
+ "score": 8.5,
+ "veredito": "APROVADO COM PENDÊNCIAS OPERACIONAIS. A integridade do dado é exemplar: query-joia 100% em 488.646 avaliações (erro ≤ 2,9e-07 do range, reconciliando o T15 em escala), régua D102.20 sem um único furo, orçamento 1239=31·40−1 exato e contíguo em 437/437, DoE pareado entre configs por semente, D102.19 disparado em 60/60 células aplicáveis e o piso offline — morto no smoke T15 — VIVO em 30/30 sementes (380/380 transições). A bimodalidade do b5r está explicada com dado (mesmo critério de parada; pop colapsada em 4 sementes, campo n_front1 da ⑥) e o EST40 discrimina fortemente (amplitude 0,27 de HV >> ruído). O que impede nota maior não é fidelidade, é operação: a ⑦ do e103 nunca nasceu (29 células vermelhas pelo próprio contrato), o e81 ainda estava executando HOJE contra o congelamento declarado (13 células em movimento, 5 fora do censo), e 14 ⑥ do c238 estão amputadas na cópia local. Nenhum achado toca algoritmo ou métrica publicável das células fechadas.",
+ "decisoes_ao_autor": [
+  "D1 (ALTA): autorizar a execução de scripts/final_eval.py para e103×ESTOQUE40 — 29 células offline sem ⑦ são gate vermelho do contrato e deixam o e103 fora do ranking offline; é Python puro (sem MATLAB Engine, sem risco no Mac).",
+  "D2 (ALTA, D81): e81×ESTOQUE40 está VIVO (appends 21/08 17:58, matlab-vm1; s14-21 'checkpoint' em execução e s22-26 embrionárias fora do censo) — conflita com 'não vou executar mais'. Decidir: (a) esperar terminar e re-censar o corpus (vira ~447+ células), ou (b) cravar o corte nas 22 censadas e quarentenar s22-26.",
+  "D3 (MEDIA): c238 — re-sincronizar as ⑥ das 14 células amputadas (corte simultâneo 17/08 12:20-12:22Z; ⑤ ok e ① completa) a partir do bucket/VM de origem; se não existir cópia íntegra, declarar T de verificabilidade da camada ⑥ dessas células além da geração ~672.",
+  "D4 (MEDIA): decidir a apresentação das 4 sementes doentes do b5r (1, 2, 16, 27 — colapso de pop, ⑦ HV 0,048-0,333): reportar com flag na §12 (recomendado; a mediana já é robusta) ou discutir como caso do mecanismo prob-APD sob surrogate ruim. Registro correlato: a leitura '100% de transições = saudável' do T15 inverte na campanha.",
+  "D5 (BAIXA): R4 deve declarar que f3 normalizado >1 ocorre em todas as células do EST40 (nadir D102.20 é canto-derivado e não majoriza a variância; 5,5% dos pontos, clip no ref 1,1) — nenhuma correção de régua necessária.",
+  "D6 (BAIXA): na comparação offline, o HV da ① dos 3 offline é o HV do DATASET (0,871) e não desempenho; o oficial é a ⑦ — onde moead_media (0,964) vence b5r (0,824), e b5r fica abaixo do próprio dataset em 28/30 sementes. Decidir como isso entra na discussão do valor do σ."
+ ]
+}

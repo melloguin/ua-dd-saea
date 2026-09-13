@@ -1,0 +1,667 @@
+exp,alg,problema,exit,detalhe
+batch,c149,DTLZ2,0,✅ batch/c149/DTLZ2/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+batch,c149,MMF16_20,0,✅ batch/c149/MMF16_20/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+batch,c149,WFG9,0,✅ batch/c149/WFG9/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+batch,c149,ZDT1,0,✅ batch/c149/ZDT1/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+batch,c149,ZDT4,0,✅ batch/c149/ZDT4/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+batch,e81,DTLZ2,0,✅ batch/e81/DTLZ2/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+batch,e81,MMF16_20,0,✅ batch/e81/MMF16_20/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+batch,e81,WFG9,0,✅ batch/e81/WFG9/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+batch,e81,ZDT1,0,✅ batch/e81/ZDT1/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+batch,e81,ZDT4,0,✅ batch/e81/ZDT4/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+batch,sobol_batch,DTLZ2,0,✅ batch/sobol_batch/DTLZ2/s42: accept[T6-sobol_batch]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+batch,sobol_batch,MMF16_20,0,✅ batch/sobol_batch/MMF16_20/s42: accept[T6-sobol_batch]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+batch,sobol_batch,WFG9,0,✅ batch/sobol_batch/WFG9/s42: accept[T6-sobol_batch]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+batch,sobol_batch,ZDT1,0,✅ batch/sobol_batch/ZDT1/s42: accept[T6-sobol_batch]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+batch,sobol_batch,ZDT4,0,✅ batch/sobol_batch/ZDT4/s42: accept[T6-sobol_batch]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,BBOB_F1,0,✅ main/b1/BBOB_F1/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,BBOB_F17,0,✅ main/b1/BBOB_F17/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,BBOB_F22,0,✅ main/b1/BBOB_F22/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,BBOB_F37,0,✅ main/b1/BBOB_F37/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,BBOB_F49,0,✅ main/b1/BBOB_F49/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,BBOB_F5,0,✅ main/b1/BBOB_F5/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,BBOB_F55,0,✅ main/b1/BBOB_F55/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,DTLZ1,0,✅ main/b1/DTLZ1/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,DTLZ2,0,✅ main/b1/DTLZ2/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,DTLZ3,0,✅ main/b1/DTLZ3/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,DTLZ7,0,✅ main/b1/DTLZ7/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,MMF1,0,✅ main/b1/MMF1/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,MMF11_L,0,✅ main/b1/MMF11_L/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,MMF16_20,0,✅ main/b1/MMF16_20/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,MMF4,0,✅ main/b1/MMF4/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,WFG1,0,✅ main/b1/WFG1/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,WFG2,0,✅ main/b1/WFG2/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,WFG4,0,✅ main/b1/WFG4/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,WFG5,0,✅ main/b1/WFG5/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,WFG9,0,✅ main/b1/WFG9/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,ZDT1,0,✅ main/b1/ZDT1/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,ZDT3,0,✅ main/b1/ZDT3/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,ZDT4,0,✅ main/b1/ZDT4/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b1,ZDT6,0,✅ main/b1/ZDT6/s42: accept[R1-b1]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,BBOB_F1,0,✅ main/b3/BBOB_F1/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,BBOB_F17,0,✅ main/b3/BBOB_F17/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,BBOB_F22,0,✅ main/b3/BBOB_F22/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,BBOB_F37,0,✅ main/b3/BBOB_F37/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,BBOB_F49,0,✅ main/b3/BBOB_F49/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,BBOB_F5,0,✅ main/b3/BBOB_F5/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,BBOB_F55,0,✅ main/b3/BBOB_F55/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,DTLZ1,0,✅ main/b3/DTLZ1/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,DTLZ2,0,✅ main/b3/DTLZ2/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,DTLZ3,0,✅ main/b3/DTLZ3/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,DTLZ4,0,✅ main/b3/DTLZ4/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,DTLZ7,0,✅ main/b3/DTLZ7/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,MMF1,0,✅ main/b3/MMF1/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,MMF11_L,0,✅ main/b3/MMF11_L/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,MMF16_20,0,✅ main/b3/MMF16_20/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,MMF4,0,✅ main/b3/MMF4/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,WFG1,0,✅ main/b3/WFG1/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,WFG2,0,✅ main/b3/WFG2/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,WFG4,0,✅ main/b3/WFG4/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,WFG5,0,✅ main/b3/WFG5/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,WFG9,0,✅ main/b3/WFG9/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,ZDT1,0,✅ main/b3/ZDT1/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,ZDT3,0,✅ main/b3/ZDT3/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,ZDT4,0,✅ main/b3/ZDT4/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b3,ZDT6,0,✅ main/b3/ZDT6/s42: accept[R1-b3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,BBOB_F1,0,✅ main/b4/BBOB_F1/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,BBOB_F17,0,✅ main/b4/BBOB_F17/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,BBOB_F22,0,✅ main/b4/BBOB_F22/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,BBOB_F37,0,✅ main/b4/BBOB_F37/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,BBOB_F49,0,✅ main/b4/BBOB_F49/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,BBOB_F5,0,✅ main/b4/BBOB_F5/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,BBOB_F55,0,✅ main/b4/BBOB_F55/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,DTLZ1,0,✅ main/b4/DTLZ1/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,DTLZ2,0,✅ main/b4/DTLZ2/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,DTLZ3,0,✅ main/b4/DTLZ3/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,DTLZ4,0,✅ main/b4/DTLZ4/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,DTLZ7,0,✅ main/b4/DTLZ7/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,MMF1,0,✅ main/b4/MMF1/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,MMF11_L,0,✅ main/b4/MMF11_L/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,MMF16_20,0,✅ main/b4/MMF16_20/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,MMF4,0,✅ main/b4/MMF4/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,WFG1,0,✅ main/b4/WFG1/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,WFG2,0,✅ main/b4/WFG2/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,WFG4,0,✅ main/b4/WFG4/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,WFG5,0,✅ main/b4/WFG5/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,WFG9,0,✅ main/b4/WFG9/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,ZDT1,0,✅ main/b4/ZDT1/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,ZDT3,0,✅ main/b4/ZDT3/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,ZDT4,0,✅ main/b4/ZDT4/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,b4,ZDT6,0,✅ main/b4/ZDT6/s42: accept[R1-b4]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,BBOB_F1,0,✅ main/c122/BBOB_F1/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,BBOB_F17,0,✅ main/c122/BBOB_F17/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,BBOB_F22,0,✅ main/c122/BBOB_F22/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,BBOB_F37,0,✅ main/c122/BBOB_F37/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,BBOB_F49,0,✅ main/c122/BBOB_F49/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,BBOB_F5,0,✅ main/c122/BBOB_F5/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,BBOB_F55,0,✅ main/c122/BBOB_F55/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,DTLZ1,0,✅ main/c122/DTLZ1/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,DTLZ2,0,✅ main/c122/DTLZ2/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,DTLZ3,0,✅ main/c122/DTLZ3/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,DTLZ4,0,✅ main/c122/DTLZ4/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,DTLZ7,0,✅ main/c122/DTLZ7/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,MMF1,0,✅ main/c122/MMF1/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,MMF11_L,0,✅ main/c122/MMF11_L/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,MMF16_20,0,✅ main/c122/MMF16_20/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,MMF4,0,✅ main/c122/MMF4/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,WFG1,0,✅ main/c122/WFG1/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,WFG2,0,✅ main/c122/WFG2/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,WFG4,0,✅ main/c122/WFG4/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,WFG5,0,✅ main/c122/WFG5/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,WFG9,0,✅ main/c122/WFG9/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,ZDT1,0,✅ main/c122/ZDT1/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,ZDT3,0,✅ main/c122/ZDT3/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,ZDT4,0,✅ main/c122/ZDT4/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c122,ZDT6,0,✅ main/c122/ZDT6/s42: accept[R3-c122]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,BBOB_F1,0,✅ main/c141/BBOB_F1/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,BBOB_F17,0,✅ main/c141/BBOB_F17/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,BBOB_F22,0,✅ main/c141/BBOB_F22/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,BBOB_F37,0,✅ main/c141/BBOB_F37/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,BBOB_F49,0,✅ main/c141/BBOB_F49/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,BBOB_F5,0,✅ main/c141/BBOB_F5/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,BBOB_F55,0,✅ main/c141/BBOB_F55/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,DTLZ1,0,✅ main/c141/DTLZ1/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,DTLZ2,0,✅ main/c141/DTLZ2/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,DTLZ3,0,✅ main/c141/DTLZ3/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,DTLZ4,0,✅ main/c141/DTLZ4/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,DTLZ7,0,✅ main/c141/DTLZ7/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,MMF1,0,✅ main/c141/MMF1/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,MMF11_L,0,✅ main/c141/MMF11_L/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,MMF16_20,0,✅ main/c141/MMF16_20/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,MMF4,0,✅ main/c141/MMF4/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,WFG1,0,✅ main/c141/WFG1/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,WFG2,0,✅ main/c141/WFG2/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,WFG4,0,✅ main/c141/WFG4/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,WFG5,0,✅ main/c141/WFG5/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,WFG9,0,✅ main/c141/WFG9/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,ZDT1,0,✅ main/c141/ZDT1/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,ZDT3,0,✅ main/c141/ZDT3/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,ZDT4,0,✅ main/c141/ZDT4/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c141,ZDT6,0,✅ main/c141/ZDT6/s42: accept[R1-c141]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,BBOB_F1,0,✅ main/c149/BBOB_F1/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,BBOB_F17,0,✅ main/c149/BBOB_F17/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,BBOB_F22,0,✅ main/c149/BBOB_F22/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,BBOB_F37,0,✅ main/c149/BBOB_F37/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,BBOB_F49,0,✅ main/c149/BBOB_F49/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,BBOB_F5,0,✅ main/c149/BBOB_F5/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,BBOB_F55,0,✅ main/c149/BBOB_F55/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,DTLZ1,0,✅ main/c149/DTLZ1/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,DTLZ2,0,✅ main/c149/DTLZ2/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,DTLZ3,0,✅ main/c149/DTLZ3/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,DTLZ4,0,✅ main/c149/DTLZ4/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,DTLZ7,0,✅ main/c149/DTLZ7/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,MMF1,0,✅ main/c149/MMF1/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,MMF11_L,0,✅ main/c149/MMF11_L/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,MMF16_20,0,✅ main/c149/MMF16_20/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,MMF4,0,✅ main/c149/MMF4/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,WFG1,0,✅ main/c149/WFG1/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,WFG2,0,✅ main/c149/WFG2/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,WFG4,0,✅ main/c149/WFG4/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,WFG5,0,✅ main/c149/WFG5/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,WFG9,0,✅ main/c149/WFG9/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,ZDT1,0,✅ main/c149/ZDT1/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,ZDT3,0,✅ main/c149/ZDT3/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,ZDT4,0,✅ main/c149/ZDT4/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c149,ZDT6,0,✅ main/c149/ZDT6/s42: accept[R3-c149]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c154,BBOB_F1,0,✅ main/c154/BBOB_F1/s42: accept[R2-c154]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c154,BBOB_F17,0,✅ main/c154/BBOB_F17/s42: accept[R2-c154]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c154,BBOB_F22,0,✅ main/c154/BBOB_F22/s42: accept[R2-c154]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c154,BBOB_F37,0,✅ main/c154/BBOB_F37/s42: accept[R2-c154]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c154,BBOB_F49,0,✅ main/c154/BBOB_F49/s42: accept[R2-c154]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c154,BBOB_F5,0,✅ main/c154/BBOB_F5/s42: accept[R2-c154]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c154,DTLZ1,0,✅ main/c154/DTLZ1/s42: accept[R2-c154]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c154,MMF1,0,✅ main/c154/MMF1/s42: accept[R2-c154]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c154,MMF11_L,0,✅ main/c154/MMF11_L/s42: accept[R2-c154]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c154,MMF4,0,✅ main/c154/MMF4/s42: accept[R2-c154]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c154,ZDT4,0,✅ main/c154/ZDT4/s42: accept[R2-c154]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,BBOB_F1,0,✅ main/c217/BBOB_F1/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,BBOB_F17,0,✅ main/c217/BBOB_F17/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,BBOB_F22,0,✅ main/c217/BBOB_F22/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,BBOB_F37,0,✅ main/c217/BBOB_F37/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,BBOB_F49,0,✅ main/c217/BBOB_F49/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,BBOB_F5,0,✅ main/c217/BBOB_F5/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,BBOB_F55,0,✅ main/c217/BBOB_F55/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,DTLZ1,0,✅ main/c217/DTLZ1/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,DTLZ2,0,✅ main/c217/DTLZ2/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,DTLZ3,0,✅ main/c217/DTLZ3/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,DTLZ4,0,✅ main/c217/DTLZ4/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,DTLZ7,0,✅ main/c217/DTLZ7/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,MMF1,0,✅ main/c217/MMF1/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,MMF11_L,0,✅ main/c217/MMF11_L/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,MMF16_20,0,✅ main/c217/MMF16_20/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,MMF4,0,✅ main/c217/MMF4/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,WFG1,0,✅ main/c217/WFG1/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,WFG2,0,✅ main/c217/WFG2/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,WFG4,0,✅ main/c217/WFG4/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,WFG5,0,✅ main/c217/WFG5/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,WFG9,0,✅ main/c217/WFG9/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,ZDT1,0,✅ main/c217/ZDT1/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,ZDT3,0,✅ main/c217/ZDT3/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,ZDT4,0,✅ main/c217/ZDT4/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c217,ZDT6,0,✅ main/c217/ZDT6/s42: accept[R1-c217]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,BBOB_F1,0,✅ main/c238/BBOB_F1/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,BBOB_F17,0,✅ main/c238/BBOB_F17/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,BBOB_F22,0,✅ main/c238/BBOB_F22/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,BBOB_F37,0,✅ main/c238/BBOB_F37/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,BBOB_F49,0,✅ main/c238/BBOB_F49/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,BBOB_F5,0,✅ main/c238/BBOB_F5/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,BBOB_F55,0,✅ main/c238/BBOB_F55/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,DTLZ1,0,✅ main/c238/DTLZ1/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,DTLZ2,0,✅ main/c238/DTLZ2/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,DTLZ3,0,✅ main/c238/DTLZ3/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,DTLZ4,0,✅ main/c238/DTLZ4/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,DTLZ7,0,✅ main/c238/DTLZ7/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,MMF1,0,✅ main/c238/MMF1/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,MMF11_L,0,✅ main/c238/MMF11_L/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,MMF16_20,0,✅ main/c238/MMF16_20/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,MMF4,0,✅ main/c238/MMF4/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,WFG1,0,✅ main/c238/WFG1/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,WFG2,0,✅ main/c238/WFG2/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,WFG4,0,✅ main/c238/WFG4/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,WFG5,0,✅ main/c238/WFG5/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,WFG9,0,✅ main/c238/WFG9/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,ZDT1,0,✅ main/c238/ZDT1/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,ZDT3,0,✅ main/c238/ZDT3/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,ZDT4,0,✅ main/c238/ZDT4/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c238,ZDT6,0,✅ main/c238/ZDT6/s42: accept[R1-c238]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,BBOB_F1,0,✅ main/c262/BBOB_F1/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,BBOB_F17,0,✅ main/c262/BBOB_F17/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,BBOB_F22,0,✅ main/c262/BBOB_F22/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,BBOB_F37,0,✅ main/c262/BBOB_F37/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,BBOB_F49,0,✅ main/c262/BBOB_F49/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,BBOB_F5,0,✅ main/c262/BBOB_F5/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,BBOB_F55,0,✅ main/c262/BBOB_F55/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,DTLZ1,0,✅ main/c262/DTLZ1/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,DTLZ2,0,✅ main/c262/DTLZ2/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,DTLZ3,0,✅ main/c262/DTLZ3/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,DTLZ4,0,✅ main/c262/DTLZ4/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,MMF1,0,✅ main/c262/MMF1/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,MMF11_L,0,✅ main/c262/MMF11_L/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,MMF4,0,✅ main/c262/MMF4/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,WFG2,0,✅ main/c262/WFG2/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,WFG4,0,✅ main/c262/WFG4/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,WFG5,0,✅ main/c262/WFG5/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,WFG9,0,✅ main/c262/WFG9/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,ZDT1,0,✅ main/c262/ZDT1/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,ZDT4,0,✅ main/c262/ZDT4/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,c262,ZDT6,0,✅ main/c262/ZDT6/s42: accept[R2-c262]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,BBOB_F1,0,✅ main/e7/BBOB_F1/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,BBOB_F17,0,✅ main/e7/BBOB_F17/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,BBOB_F22,0,✅ main/e7/BBOB_F22/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,BBOB_F37,0,✅ main/e7/BBOB_F37/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,BBOB_F49,0,✅ main/e7/BBOB_F49/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,BBOB_F5,0,✅ main/e7/BBOB_F5/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,BBOB_F55,0,✅ main/e7/BBOB_F55/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,DTLZ1,0,✅ main/e7/DTLZ1/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,DTLZ2,0,✅ main/e7/DTLZ2/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,DTLZ3,0,✅ main/e7/DTLZ3/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,DTLZ4,0,✅ main/e7/DTLZ4/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,DTLZ7,0,✅ main/e7/DTLZ7/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,MMF1,0,✅ main/e7/MMF1/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,MMF11_L,0,✅ main/e7/MMF11_L/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,MMF16_20,0,✅ main/e7/MMF16_20/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,MMF4,0,✅ main/e7/MMF4/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,WFG1,0,✅ main/e7/WFG1/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,WFG2,0,✅ main/e7/WFG2/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,WFG4,0,✅ main/e7/WFG4/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,WFG5,0,✅ main/e7/WFG5/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,WFG9,0,✅ main/e7/WFG9/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,ZDT1,0,✅ main/e7/ZDT1/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,ZDT3,0,✅ main/e7/ZDT3/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,ZDT4,0,✅ main/e7/ZDT4/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e7,ZDT6,0,✅ main/e7/ZDT6/s42: accept[R1-e7]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,BBOB_F1,0,✅ main/e74/BBOB_F1/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,BBOB_F17,0,✅ main/e74/BBOB_F17/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,BBOB_F22,0,✅ main/e74/BBOB_F22/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,BBOB_F37,0,✅ main/e74/BBOB_F37/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,BBOB_F49,0,✅ main/e74/BBOB_F49/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,BBOB_F5,0,✅ main/e74/BBOB_F5/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,BBOB_F55,0,✅ main/e74/BBOB_F55/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,DTLZ1,0,✅ main/e74/DTLZ1/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,DTLZ2,0,✅ main/e74/DTLZ2/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,DTLZ3,0,✅ main/e74/DTLZ3/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,DTLZ4,0,✅ main/e74/DTLZ4/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,DTLZ7,0,✅ main/e74/DTLZ7/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,MMF1,0,✅ main/e74/MMF1/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,MMF11_L,0,✅ main/e74/MMF11_L/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,MMF16_20,0,✅ main/e74/MMF16_20/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,MMF4,0,✅ main/e74/MMF4/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,WFG1,0,✅ main/e74/WFG1/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,WFG2,0,✅ main/e74/WFG2/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,WFG4,0,✅ main/e74/WFG4/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,WFG5,0,✅ main/e74/WFG5/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,WFG9,0,✅ main/e74/WFG9/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,ZDT1,0,✅ main/e74/ZDT1/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,ZDT3,0,✅ main/e74/ZDT3/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,ZDT4,0,✅ main/e74/ZDT4/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e74,ZDT6,0,✅ main/e74/ZDT6/s42: accept[R1-e74]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,BBOB_F1,0,✅ main/e81/BBOB_F1/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,BBOB_F17,0,✅ main/e81/BBOB_F17/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,BBOB_F22,0,✅ main/e81/BBOB_F22/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,BBOB_F37,0,✅ main/e81/BBOB_F37/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,BBOB_F49,0,✅ main/e81/BBOB_F49/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,BBOB_F5,0,✅ main/e81/BBOB_F5/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,BBOB_F55,0,✅ main/e81/BBOB_F55/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,DTLZ1,0,✅ main/e81/DTLZ1/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,DTLZ2,0,✅ main/e81/DTLZ2/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,DTLZ3,0,✅ main/e81/DTLZ3/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,DTLZ4,0,✅ main/e81/DTLZ4/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,DTLZ7,0,✅ main/e81/DTLZ7/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,MMF1,0,✅ main/e81/MMF1/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,MMF11_L,0,✅ main/e81/MMF11_L/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,MMF16_20,0,✅ main/e81/MMF16_20/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,MMF4,0,✅ main/e81/MMF4/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,WFG1,0,✅ main/e81/WFG1/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,WFG2,0,✅ main/e81/WFG2/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,WFG4,0,✅ main/e81/WFG4/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,WFG5,0,✅ main/e81/WFG5/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,WFG9,0,✅ main/e81/WFG9/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,ZDT1,0,✅ main/e81/ZDT1/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,ZDT3,0,✅ main/e81/ZDT3/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,ZDT4,0,✅ main/e81/ZDT4/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,e81,ZDT6,0,✅ main/e81/ZDT6/s42: accept[R3-e81]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,BBOB_F1,0,✅ main/moead/BBOB_F1/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,BBOB_F17,0,✅ main/moead/BBOB_F17/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,BBOB_F22,0,✅ main/moead/BBOB_F22/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,BBOB_F37,0,✅ main/moead/BBOB_F37/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,BBOB_F49,0,✅ main/moead/BBOB_F49/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,BBOB_F5,0,✅ main/moead/BBOB_F5/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,BBOB_F55,0,✅ main/moead/BBOB_F55/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,DTLZ1,0,✅ main/moead/DTLZ1/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,DTLZ2,0,✅ main/moead/DTLZ2/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,DTLZ3,0,✅ main/moead/DTLZ3/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,DTLZ4,0,✅ main/moead/DTLZ4/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,DTLZ7,0,✅ main/moead/DTLZ7/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,MMF1,0,✅ main/moead/MMF1/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,MMF11_L,0,✅ main/moead/MMF11_L/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,MMF16_20,0,✅ main/moead/MMF16_20/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,MMF4,0,✅ main/moead/MMF4/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,WFG1,0,✅ main/moead/WFG1/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,WFG2,0,✅ main/moead/WFG2/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,WFG4,0,✅ main/moead/WFG4/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,WFG5,0,✅ main/moead/WFG5/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,WFG9,0,✅ main/moead/WFG9/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,ZDT1,0,✅ main/moead/ZDT1/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,ZDT3,0,✅ main/moead/ZDT3/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,ZDT4,0,✅ main/moead/ZDT4/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,moead,ZDT6,0,✅ main/moead/ZDT6/s42: accept[R1-moead]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,BBOB_F1,0,✅ main/nsga2/BBOB_F1/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,BBOB_F17,0,✅ main/nsga2/BBOB_F17/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,BBOB_F22,0,✅ main/nsga2/BBOB_F22/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,BBOB_F37,0,✅ main/nsga2/BBOB_F37/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,BBOB_F49,0,✅ main/nsga2/BBOB_F49/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,BBOB_F5,0,✅ main/nsga2/BBOB_F5/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,BBOB_F55,0,✅ main/nsga2/BBOB_F55/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,DTLZ1,0,✅ main/nsga2/DTLZ1/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,DTLZ2,0,✅ main/nsga2/DTLZ2/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,DTLZ3,0,✅ main/nsga2/DTLZ3/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,DTLZ4,0,✅ main/nsga2/DTLZ4/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,DTLZ7,0,✅ main/nsga2/DTLZ7/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,MMF1,0,✅ main/nsga2/MMF1/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,MMF11_L,0,✅ main/nsga2/MMF11_L/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,MMF16_20,0,✅ main/nsga2/MMF16_20/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,MMF4,0,✅ main/nsga2/MMF4/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,WFG1,0,✅ main/nsga2/WFG1/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,WFG2,0,✅ main/nsga2/WFG2/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,WFG4,0,✅ main/nsga2/WFG4/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,WFG5,0,✅ main/nsga2/WFG5/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,WFG9,0,✅ main/nsga2/WFG9/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,ZDT1,0,✅ main/nsga2/ZDT1/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,ZDT3,0,✅ main/nsga2/ZDT3/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,ZDT4,0,✅ main/nsga2/ZDT4/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga2,ZDT6,0,✅ main/nsga2/ZDT6/s42: accept[R1-nsga2]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,BBOB_F1,0,✅ main/nsga3/BBOB_F1/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,BBOB_F17,0,✅ main/nsga3/BBOB_F17/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,BBOB_F22,0,✅ main/nsga3/BBOB_F22/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,BBOB_F37,0,✅ main/nsga3/BBOB_F37/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,BBOB_F49,0,✅ main/nsga3/BBOB_F49/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,BBOB_F5,0,✅ main/nsga3/BBOB_F5/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,BBOB_F55,0,✅ main/nsga3/BBOB_F55/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,DTLZ1,0,✅ main/nsga3/DTLZ1/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,DTLZ2,0,✅ main/nsga3/DTLZ2/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,DTLZ3,0,✅ main/nsga3/DTLZ3/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,DTLZ4,0,✅ main/nsga3/DTLZ4/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,DTLZ7,0,✅ main/nsga3/DTLZ7/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,MMF1,0,✅ main/nsga3/MMF1/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,MMF11_L,0,✅ main/nsga3/MMF11_L/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,MMF16_20,0,✅ main/nsga3/MMF16_20/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,MMF4,0,✅ main/nsga3/MMF4/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,WFG1,0,✅ main/nsga3/WFG1/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,WFG2,0,✅ main/nsga3/WFG2/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,WFG4,0,✅ main/nsga3/WFG4/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,WFG5,0,✅ main/nsga3/WFG5/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,WFG9,0,✅ main/nsga3/WFG9/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,ZDT1,0,✅ main/nsga3/ZDT1/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,ZDT3,0,✅ main/nsga3/ZDT3/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,ZDT4,0,✅ main/nsga3/ZDT4/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,nsga3,ZDT6,0,✅ main/nsga3/ZDT6/s42: accept[R1-nsga3]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,BBOB_F1,0,✅ main/smsemoa/BBOB_F1/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,BBOB_F17,0,✅ main/smsemoa/BBOB_F17/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,BBOB_F22,0,✅ main/smsemoa/BBOB_F22/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,BBOB_F37,0,✅ main/smsemoa/BBOB_F37/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,BBOB_F49,0,✅ main/smsemoa/BBOB_F49/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,BBOB_F5,0,✅ main/smsemoa/BBOB_F5/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,BBOB_F55,0,✅ main/smsemoa/BBOB_F55/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,DTLZ1,0,✅ main/smsemoa/DTLZ1/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,DTLZ2,0,✅ main/smsemoa/DTLZ2/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,DTLZ3,0,✅ main/smsemoa/DTLZ3/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,DTLZ4,0,✅ main/smsemoa/DTLZ4/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,DTLZ7,0,✅ main/smsemoa/DTLZ7/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,MMF1,0,✅ main/smsemoa/MMF1/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,MMF11_L,0,✅ main/smsemoa/MMF11_L/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,MMF16_20,0,✅ main/smsemoa/MMF16_20/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,MMF4,0,✅ main/smsemoa/MMF4/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,WFG1,0,✅ main/smsemoa/WFG1/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,WFG2,0,✅ main/smsemoa/WFG2/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,WFG4,0,✅ main/smsemoa/WFG4/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,WFG5,0,✅ main/smsemoa/WFG5/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,WFG9,0,✅ main/smsemoa/WFG9/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,ZDT1,0,✅ main/smsemoa/ZDT1/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,ZDT3,0,✅ main/smsemoa/ZDT3/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,ZDT4,0,✅ main/smsemoa/ZDT4/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+main,smsemoa,ZDT6,0,✅ main/smsemoa/ZDT6/s42: accept[R1-smsemoa]=VERDE · auditar=VERDE |  | PORTÃO: 1 runs · 2 gates · 0 vermelho(s) → VERDE
+off,b5m,BBOB_F1,0,✅ off/b5m/BBOB_F1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,BBOB_F17,0,✅ off/b5m/BBOB_F17/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,BBOB_F22,0,✅ off/b5m/BBOB_F22/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,BBOB_F37,0,✅ off/b5m/BBOB_F37/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,BBOB_F49,0,✅ off/b5m/BBOB_F49/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,BBOB_F5,0,✅ off/b5m/BBOB_F5/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,BBOB_F55,0,✅ off/b5m/BBOB_F55/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,DTLZ1,0,✅ off/b5m/DTLZ1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,DTLZ2,0,✅ off/b5m/DTLZ2/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,DTLZ3,0,✅ off/b5m/DTLZ3/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,DTLZ4,0,✅ off/b5m/DTLZ4/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,DTLZ7,0,✅ off/b5m/DTLZ7/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,MMF1,0,✅ off/b5m/MMF1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,MMF11_L,0,✅ off/b5m/MMF11_L/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,MMF16_20,0,✅ off/b5m/MMF16_20/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,MMF4,0,✅ off/b5m/MMF4/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,WFG1,0,✅ off/b5m/WFG1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,WFG2,0,✅ off/b5m/WFG2/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,WFG4,0,✅ off/b5m/WFG4/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,WFG5,0,✅ off/b5m/WFG5/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,WFG9,0,✅ off/b5m/WFG9/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,ZDT1,0,✅ off/b5m/ZDT1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,ZDT3,0,✅ off/b5m/ZDT3/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,ZDT4,0,✅ off/b5m/ZDT4/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5m,ZDT6,0,✅ off/b5m/ZDT6/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,BBOB_F1,0,✅ off/b5r/BBOB_F1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,BBOB_F17,0,✅ off/b5r/BBOB_F17/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,BBOB_F22,0,✅ off/b5r/BBOB_F22/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,BBOB_F37,0,✅ off/b5r/BBOB_F37/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,BBOB_F49,0,✅ off/b5r/BBOB_F49/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,BBOB_F5,0,✅ off/b5r/BBOB_F5/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,BBOB_F55,0,✅ off/b5r/BBOB_F55/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,DTLZ1,0,✅ off/b5r/DTLZ1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,DTLZ2,0,✅ off/b5r/DTLZ2/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,DTLZ3,0,✅ off/b5r/DTLZ3/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,DTLZ4,0,✅ off/b5r/DTLZ4/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,DTLZ7,0,✅ off/b5r/DTLZ7/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,MMF1,0,✅ off/b5r/MMF1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,MMF11_L,0,✅ off/b5r/MMF11_L/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,MMF16_20,0,✅ off/b5r/MMF16_20/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,MMF4,0,✅ off/b5r/MMF4/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,WFG1,0,✅ off/b5r/WFG1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,WFG2,0,✅ off/b5r/WFG2/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,WFG4,0,✅ off/b5r/WFG4/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,WFG5,0,✅ off/b5r/WFG5/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,WFG9,0,✅ off/b5r/WFG9/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,ZDT1,0,✅ off/b5r/ZDT1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,ZDT3,0,✅ off/b5r/ZDT3/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,ZDT4,0,✅ off/b5r/ZDT4/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,b5r,ZDT6,0,✅ off/b5r/ZDT6/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,BBOB_F1,0,✅ off/c311/BBOB_F1/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,BBOB_F17,0,✅ off/c311/BBOB_F17/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,BBOB_F22,0,✅ off/c311/BBOB_F22/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,BBOB_F37,0,✅ off/c311/BBOB_F37/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,BBOB_F49,0,✅ off/c311/BBOB_F49/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,BBOB_F5,0,✅ off/c311/BBOB_F5/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,BBOB_F55,0,✅ off/c311/BBOB_F55/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,DTLZ1,0,✅ off/c311/DTLZ1/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,DTLZ2,0,✅ off/c311/DTLZ2/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,DTLZ3,1,"🔴 off/c311/DTLZ3/s42: accept[R3-c311]=FALHOU · auditar=VERDE · final_eval --check=FALHOU |  | PORTÃO: 1 runs · 3 gates · 2 vermelho(s) → REPROVADO |   🔴 off/c311/DTLZ3/s42 [accept[R3-c311]]:   Lembrete (D97): a fidelidade é validação MANUAL do autor, a posteriori — não entra aqui. |   🔴 off/c311/DTLZ3/s42 [final_eval --check]:   >>> VERMELHO — pára-e-loga (D81)"
+off,c311,DTLZ4,1,"🔴 off/c311/DTLZ4/s42: accept[R3-c311]=FALHOU · auditar=VERDE · final_eval --check=FALHOU |  | PORTÃO: 1 runs · 3 gates · 2 vermelho(s) → REPROVADO |   🔴 off/c311/DTLZ4/s42 [accept[R3-c311]]:   Lembrete (D97): a fidelidade é validação MANUAL do autor, a posteriori — não entra aqui. |   🔴 off/c311/DTLZ4/s42 [final_eval --check]:   >>> VERMELHO — pára-e-loga (D81)"
+off,c311,DTLZ7,0,✅ off/c311/DTLZ7/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,MMF1,0,✅ off/c311/MMF1/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,MMF11_L,0,✅ off/c311/MMF11_L/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,MMF16_20,0,✅ off/c311/MMF16_20/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,MMF4,0,✅ off/c311/MMF4/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,WFG1,0,✅ off/c311/WFG1/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,WFG2,0,✅ off/c311/WFG2/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,WFG4,0,✅ off/c311/WFG4/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,WFG5,0,✅ off/c311/WFG5/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,WFG9,0,✅ off/c311/WFG9/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,ZDT1,0,✅ off/c311/ZDT1/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,ZDT3,0,✅ off/c311/ZDT3/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,ZDT4,0,✅ off/c311/ZDT4/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,c311,ZDT6,0,✅ off/c311/ZDT6/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,BBOB_F1,0,✅ off/e103/BBOB_F1/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,BBOB_F17,0,✅ off/e103/BBOB_F17/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,BBOB_F22,0,✅ off/e103/BBOB_F22/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,BBOB_F37,0,✅ off/e103/BBOB_F37/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,BBOB_F49,0,✅ off/e103/BBOB_F49/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,BBOB_F5,0,✅ off/e103/BBOB_F5/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,BBOB_F55,0,✅ off/e103/BBOB_F55/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,DTLZ1,0,✅ off/e103/DTLZ1/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,DTLZ2,0,✅ off/e103/DTLZ2/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,DTLZ3,0,✅ off/e103/DTLZ3/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,DTLZ4,0,✅ off/e103/DTLZ4/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,DTLZ7,0,✅ off/e103/DTLZ7/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,MMF1,0,✅ off/e103/MMF1/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,MMF11_L,0,✅ off/e103/MMF11_L/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,MMF16_20,0,✅ off/e103/MMF16_20/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,MMF4,0,✅ off/e103/MMF4/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,WFG1,0,✅ off/e103/WFG1/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,WFG2,0,✅ off/e103/WFG2/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,WFG4,0,✅ off/e103/WFG4/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,WFG5,0,✅ off/e103/WFG5/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,WFG9,0,✅ off/e103/WFG9/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,ZDT1,0,✅ off/e103/ZDT1/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,ZDT3,0,✅ off/e103/ZDT3/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,ZDT4,0,✅ off/e103/ZDT4/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,e103,ZDT6,0,✅ off/e103/ZDT6/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,BBOB_F1,0,✅ off/moead_media/BBOB_F1/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,BBOB_F17,0,✅ off/moead_media/BBOB_F17/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,BBOB_F22,0,✅ off/moead_media/BBOB_F22/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,BBOB_F37,0,✅ off/moead_media/BBOB_F37/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,BBOB_F49,0,✅ off/moead_media/BBOB_F49/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,BBOB_F5,0,✅ off/moead_media/BBOB_F5/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,BBOB_F55,0,✅ off/moead_media/BBOB_F55/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,DTLZ1,0,✅ off/moead_media/DTLZ1/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,DTLZ2,0,✅ off/moead_media/DTLZ2/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,DTLZ3,0,✅ off/moead_media/DTLZ3/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,DTLZ4,0,✅ off/moead_media/DTLZ4/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,DTLZ7,0,✅ off/moead_media/DTLZ7/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,MMF1,0,✅ off/moead_media/MMF1/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,MMF11_L,0,✅ off/moead_media/MMF11_L/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,MMF16_20,0,✅ off/moead_media/MMF16_20/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,MMF4,0,✅ off/moead_media/MMF4/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,WFG1,0,✅ off/moead_media/WFG1/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,WFG2,0,✅ off/moead_media/WFG2/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,WFG4,0,✅ off/moead_media/WFG4/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,WFG5,0,✅ off/moead_media/WFG5/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,WFG9,0,✅ off/moead_media/WFG9/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,ZDT1,0,✅ off/moead_media/ZDT1/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,ZDT3,0,✅ off/moead_media/ZDT3/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,ZDT4,0,✅ off/moead_media/ZDT4/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+off,moead_media,ZDT6,0,✅ off/moead_media/ZDT6/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-lhs,c311,DTLZ2,0,✅ sweep-big-lhs/c311/DTLZ2/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-lhs,c311,MMF16_20,0,✅ sweep-big-lhs/c311/MMF16_20/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-lhs,c311,WFG9,0,✅ sweep-big-lhs/c311/WFG9/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-lhs,c311,ZDT1,0,✅ sweep-big-lhs/c311/ZDT1/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-lhs,c311,ZDT4,0,✅ sweep-big-lhs/c311/ZDT4/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-lhs,treed_media,DTLZ2,0,✅ sweep-big-lhs/treed_media/DTLZ2/s42: accept[T8-piso-big]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-lhs,treed_media,MMF16_20,0,✅ sweep-big-lhs/treed_media/MMF16_20/s42: accept[T8-piso-big]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-lhs,treed_media,WFG9,0,✅ sweep-big-lhs/treed_media/WFG9/s42: accept[T8-piso-big]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-lhs,treed_media,ZDT1,0,✅ sweep-big-lhs/treed_media/ZDT1/s42: accept[T8-piso-big]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-lhs,treed_media,ZDT4,0,✅ sweep-big-lhs/treed_media/ZDT4/s42: accept[T8-piso-big]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-mvns,c311,DTLZ2,0,✅ sweep-big-mvns/c311/DTLZ2/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-mvns,c311,MMF16_20,1,"🔴 sweep-big-mvns/c311/MMF16_20/s42: accept[R3-c311]=FALHOU · auditar=FALHOU · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 2 vermelho(s) → REPROVADO |   🔴 sweep-big-mvns/c311/MMF16_20/s42 [accept[R3-c311]]:   Lembrete (D97): a fidelidade é validação MANUAL do autor, a posteriori — não entra aqui. |   🔴 sweep-big-mvns/c311/MMF16_20/s42 [auditar]: AUDITORIA c311/MMF16_20/42: 1 achado(s)"
+sweep-big-mvns,c311,WFG9,1,"🔴 sweep-big-mvns/c311/WFG9/s42: accept[R3-c311]=FALHOU · auditar=VERDE · final_eval --check=FALHOU |  | PORTÃO: 1 runs · 3 gates · 2 vermelho(s) → REPROVADO |   🔴 sweep-big-mvns/c311/WFG9/s42 [accept[R3-c311]]:   Lembrete (D97): a fidelidade é validação MANUAL do autor, a posteriori — não entra aqui. |   🔴 sweep-big-mvns/c311/WFG9/s42 [final_eval --check]:   >>> VERMELHO — pára-e-loga (D81)"
+sweep-big-mvns,c311,ZDT1,0,✅ sweep-big-mvns/c311/ZDT1/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-mvns,c311,ZDT4,0,✅ sweep-big-mvns/c311/ZDT4/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-mvns,treed_media,DTLZ2,0,✅ sweep-big-mvns/treed_media/DTLZ2/s42: accept[T8-piso-big]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-mvns,treed_media,MMF16_20,0,✅ sweep-big-mvns/treed_media/MMF16_20/s42: accept[T8-piso-big]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-mvns,treed_media,WFG9,0,✅ sweep-big-mvns/treed_media/WFG9/s42: accept[T8-piso-big]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-mvns,treed_media,ZDT1,0,✅ sweep-big-mvns/treed_media/ZDT1/s42: accept[T8-piso-big]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-big-mvns,treed_media,ZDT4,0,✅ sweep-big-mvns/treed_media/ZDT4/s42: accept[T8-piso-big]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,b5m,DTLZ2,0,✅ sweep-medium-lhs/b5m/DTLZ2/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,b5m,MMF16_20,0,✅ sweep-medium-lhs/b5m/MMF16_20/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,b5m,WFG9,0,✅ sweep-medium-lhs/b5m/WFG9/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,b5m,ZDT1,0,✅ sweep-medium-lhs/b5m/ZDT1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,b5m,ZDT4,0,✅ sweep-medium-lhs/b5m/ZDT4/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,b5r,DTLZ2,0,✅ sweep-medium-lhs/b5r/DTLZ2/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,b5r,MMF16_20,0,✅ sweep-medium-lhs/b5r/MMF16_20/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,b5r,WFG9,0,✅ sweep-medium-lhs/b5r/WFG9/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,b5r,ZDT1,0,✅ sweep-medium-lhs/b5r/ZDT1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,b5r,ZDT4,0,✅ sweep-medium-lhs/b5r/ZDT4/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,c311,DTLZ2,0,✅ sweep-medium-lhs/c311/DTLZ2/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,c311,MMF16_20,0,✅ sweep-medium-lhs/c311/MMF16_20/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,c311,WFG9,0,✅ sweep-medium-lhs/c311/WFG9/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,c311,ZDT1,0,✅ sweep-medium-lhs/c311/ZDT1/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,c311,ZDT4,0,✅ sweep-medium-lhs/c311/ZDT4/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,e103,DTLZ2,0,✅ sweep-medium-lhs/e103/DTLZ2/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,e103,MMF16_20,0,✅ sweep-medium-lhs/e103/MMF16_20/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,e103,WFG9,0,✅ sweep-medium-lhs/e103/WFG9/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,e103,ZDT1,0,✅ sweep-medium-lhs/e103/ZDT1/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,e103,ZDT4,0,✅ sweep-medium-lhs/e103/ZDT4/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,moead_media,DTLZ2,0,✅ sweep-medium-lhs/moead_media/DTLZ2/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,moead_media,MMF16_20,0,✅ sweep-medium-lhs/moead_media/MMF16_20/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,moead_media,WFG9,0,✅ sweep-medium-lhs/moead_media/WFG9/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,moead_media,ZDT1,0,✅ sweep-medium-lhs/moead_media/ZDT1/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-lhs,moead_media,ZDT4,0,✅ sweep-medium-lhs/moead_media/ZDT4/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,b5m,DTLZ2,0,✅ sweep-medium-mvns/b5m/DTLZ2/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,b5m,MMF16_20,0,✅ sweep-medium-mvns/b5m/MMF16_20/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,b5m,WFG9,1,"🔴 sweep-medium-mvns/b5m/WFG9/s42: accept[R3-b5]=FALHOU · auditar=VERDE · final_eval --check=FALHOU |  | PORTÃO: 1 runs · 3 gates · 2 vermelho(s) → REPROVADO |   🔴 sweep-medium-mvns/b5m/WFG9/s42 [accept[R3-b5]]:   Lembrete (D97): a fidelidade é validação MANUAL do autor, a posteriori — não entra aqui. |   🔴 sweep-medium-mvns/b5m/WFG9/s42 [final_eval --check]:   >>> VERMELHO — pára-e-loga (D81)"
+sweep-medium-mvns,b5m,ZDT1,0,✅ sweep-medium-mvns/b5m/ZDT1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,b5m,ZDT4,0,✅ sweep-medium-mvns/b5m/ZDT4/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,b5r,DTLZ2,0,✅ sweep-medium-mvns/b5r/DTLZ2/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,b5r,MMF16_20,0,✅ sweep-medium-mvns/b5r/MMF16_20/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,b5r,WFG9,0,✅ sweep-medium-mvns/b5r/WFG9/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,b5r,ZDT1,0,✅ sweep-medium-mvns/b5r/ZDT1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,b5r,ZDT4,0,✅ sweep-medium-mvns/b5r/ZDT4/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,c311,DTLZ2,0,✅ sweep-medium-mvns/c311/DTLZ2/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,c311,MMF16_20,0,✅ sweep-medium-mvns/c311/MMF16_20/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,c311,WFG9,0,✅ sweep-medium-mvns/c311/WFG9/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,c311,ZDT1,0,✅ sweep-medium-mvns/c311/ZDT1/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,c311,ZDT4,0,✅ sweep-medium-mvns/c311/ZDT4/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,e103,DTLZ2,0,✅ sweep-medium-mvns/e103/DTLZ2/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,e103,MMF16_20,0,✅ sweep-medium-mvns/e103/MMF16_20/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,e103,WFG9,0,✅ sweep-medium-mvns/e103/WFG9/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,e103,ZDT1,0,✅ sweep-medium-mvns/e103/ZDT1/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,e103,ZDT4,0,✅ sweep-medium-mvns/e103/ZDT4/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,moead_media,DTLZ2,0,✅ sweep-medium-mvns/moead_media/DTLZ2/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,moead_media,MMF16_20,0,✅ sweep-medium-mvns/moead_media/MMF16_20/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,moead_media,WFG9,0,✅ sweep-medium-mvns/moead_media/WFG9/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,moead_media,ZDT1,0,✅ sweep-medium-mvns/moead_media/ZDT1/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-medium-mvns,moead_media,ZDT4,0,✅ sweep-medium-mvns/moead_media/ZDT4/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,b5m,DTLZ2,0,✅ sweep-small-lhs/b5m/DTLZ2/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,b5m,MMF16_20,0,✅ sweep-small-lhs/b5m/MMF16_20/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,b5m,WFG9,0,✅ sweep-small-lhs/b5m/WFG9/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,b5m,ZDT1,0,✅ sweep-small-lhs/b5m/ZDT1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,b5m,ZDT4,0,✅ sweep-small-lhs/b5m/ZDT4/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,b5r,DTLZ2,0,✅ sweep-small-lhs/b5r/DTLZ2/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,b5r,MMF16_20,0,✅ sweep-small-lhs/b5r/MMF16_20/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,b5r,WFG9,0,✅ sweep-small-lhs/b5r/WFG9/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,b5r,ZDT1,0,✅ sweep-small-lhs/b5r/ZDT1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,b5r,ZDT4,0,✅ sweep-small-lhs/b5r/ZDT4/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,c311,DTLZ2,0,✅ sweep-small-lhs/c311/DTLZ2/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,c311,MMF16_20,0,✅ sweep-small-lhs/c311/MMF16_20/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,c311,WFG9,0,✅ sweep-small-lhs/c311/WFG9/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,c311,ZDT1,0,✅ sweep-small-lhs/c311/ZDT1/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,c311,ZDT4,0,✅ sweep-small-lhs/c311/ZDT4/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,e103,DTLZ2,0,✅ sweep-small-lhs/e103/DTLZ2/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,e103,MMF16_20,0,✅ sweep-small-lhs/e103/MMF16_20/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,e103,WFG9,0,✅ sweep-small-lhs/e103/WFG9/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,e103,ZDT1,0,✅ sweep-small-lhs/e103/ZDT1/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,e103,ZDT4,0,✅ sweep-small-lhs/e103/ZDT4/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,moead_media,DTLZ2,0,✅ sweep-small-lhs/moead_media/DTLZ2/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,moead_media,MMF16_20,0,✅ sweep-small-lhs/moead_media/MMF16_20/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,moead_media,WFG9,0,✅ sweep-small-lhs/moead_media/WFG9/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,moead_media,ZDT1,0,✅ sweep-small-lhs/moead_media/ZDT1/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-lhs,moead_media,ZDT4,0,✅ sweep-small-lhs/moead_media/ZDT4/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,b5m,DTLZ2,0,✅ sweep-small-mvns/b5m/DTLZ2/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,b5m,MMF16_20,0,✅ sweep-small-mvns/b5m/MMF16_20/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,b5m,WFG9,0,✅ sweep-small-mvns/b5m/WFG9/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,b5m,ZDT1,0,✅ sweep-small-mvns/b5m/ZDT1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,b5m,ZDT4,0,✅ sweep-small-mvns/b5m/ZDT4/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,b5r,DTLZ2,0,✅ sweep-small-mvns/b5r/DTLZ2/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,b5r,MMF16_20,0,✅ sweep-small-mvns/b5r/MMF16_20/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,b5r,WFG9,0,✅ sweep-small-mvns/b5r/WFG9/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,b5r,ZDT1,0,✅ sweep-small-mvns/b5r/ZDT1/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,b5r,ZDT4,0,✅ sweep-small-mvns/b5r/ZDT4/s42: accept[R3-b5]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,c311,DTLZ2,0,✅ sweep-small-mvns/c311/DTLZ2/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,c311,MMF16_20,0,✅ sweep-small-mvns/c311/MMF16_20/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,c311,WFG9,0,✅ sweep-small-mvns/c311/WFG9/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,c311,ZDT1,0,✅ sweep-small-mvns/c311/ZDT1/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,c311,ZDT4,0,✅ sweep-small-mvns/c311/ZDT4/s42: accept[R3-c311]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,e103,DTLZ2,0,✅ sweep-small-mvns/e103/DTLZ2/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,e103,MMF16_20,0,✅ sweep-small-mvns/e103/MMF16_20/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,e103,WFG9,0,✅ sweep-small-mvns/e103/WFG9/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,e103,ZDT1,0,✅ sweep-small-mvns/e103/ZDT1/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,e103,ZDT4,0,✅ sweep-small-mvns/e103/ZDT4/s42: accept[R1-e103]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,moead_media,DTLZ2,0,✅ sweep-small-mvns/moead_media/DTLZ2/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,moead_media,MMF16_20,0,✅ sweep-small-mvns/moead_media/MMF16_20/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,moead_media,WFG9,0,✅ sweep-small-mvns/moead_media/WFG9/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,moead_media,ZDT1,0,✅ sweep-small-mvns/moead_media/ZDT1/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE
+sweep-small-mvns,moead_media,ZDT4,0,✅ sweep-small-mvns/moead_media/ZDT4/s42: accept[R3-piso-off]=VERDE · auditar=VERDE · final_eval --check=VERDE |  | PORTÃO: 1 runs · 3 gates · 0 vermelho(s) → VERDE

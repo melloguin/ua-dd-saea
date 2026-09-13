@@ -1,0 +1,295 @@
+{
+  "id": "e40",
+  "sigla": "SBP-BO",
+  "titulo": "Alleviating Search Bias in Bayesian Evolutionary Optimization with Many Heterogeneous Objectives",
+  "ano": 2023,
+  "roster": false,
+  "setup": {
+    "benchmarks": "16 problemas sintéticos multi-/muitos-objetivo (DTLZ1-7 e WFG1-9), d=10 variáveis de decisão, testados com m=3, 5 e 10 objetivos, sob r=(rc,...,rc,1) — apenas 1 objetivo 'caro' e os m-1 restantes igualmente 'baratos' (Sec. IV-B-1); mais variações do vetor de razão r e do limiar rthres em problemas de m=3 e m=10 (Sec. IV-B-2); mais 16 problemas bi-objetivo (DTLZ1-7, DTLZ1a, DTLZ3a, UF1-7) na comparação com métodos de transfer learning (Sec. IV-B-3), seguindo o protocolo de [17]. Não há suíte MMF, BBOB nem problema real do mundo.",
+    "orcamento": "FEmax_e (avaliações reais do objetivo mais lento/caro) = 300 para os problemas multi-/muitos-objetivo (com um teste extra a FEmax_e=1000 em DTLZ5, Figs. 4-5), e 200 para os problemas bi-objetivo (Table V); população inicial via LHS de tamanho 11d-1; a cada iteração de BO, u=3 novas soluções avaliadas em todos os objetivos, mais u*rj-u soluções adicionais avaliadas só no objetivo barato j; wmax=20 gerações de RVEA por iteração de BO.",
+    "execucoes": "20 execuções independentes por algoritmo x problema (não 30 como no desenho da dissertação); Wilcoxon rank-sum + Holm-Bonferroni, alfa=0.05, sobre essas 20 execuções.",
+    "baselines": "K-RVEA (GP-RVEA padrão, método 'Waiting', um único GP por objetivo) e HK-RVEA (estado da arte em heterogeneidade de custo) como concorrentes externos principais; no cenário bi-objetivo, T-SAEA, Tr-SAEA e TC-SAEA (métodos de transfer learning restritos a 2 objetivos, protocolo de [17]); variantes de ablação do próprio SBP-BO (SBP-BO-C, SBP-BO-R, BO-NoGPc/SBP-NoGPc, BO-AAF). NÃO há piso evolutivo sem surrogate: os autores excluem explicitamente métodos não-assistidos por surrogate ('we did not include non-surrogate assisted algorithms').",
+    "metricas_principais": [
+      "IGD+ (experimentos multi-/muitos-objetivo)",
+      "IGD, não IGD+ (comparação bi-objetivo com métodos de transfer learning, Table V)"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum, alfa=0.05, com correção de Holm-Bonferroni; símbolos (+)/(-)/(aprox) indicando se o algoritmo comparado é significativamente melhor/pior/equivalente ao SBP-BO (não ao melhor da linha)"
+    ],
+    "apresentacao": "Média (desvio-padrão) da métrica sobre as 20 execuções — não mediana/IQR; símbolos +/-/aprox relativos ao SBP-BO (o próprio método proposto, usado como referência de comparação em vez do melhor de cada linha); linha-resumo '+/-/aprox' ao final de cada tabela; figuras de fronteira (Figs. 3, 4, 5, S1-S2) usam a execução com o valor MEDIANO de IGD+ entre as 20 execuções ('the non-dominated solution set with the median IGD+ value').",
+    "codigo_plataforma": "MATLAB R2019a, Intel Core i7-8750H @ 2.21GHz; RVEA como MOEA base para a busca assistida por surrogate; GA real-codificado (SBX + mutação polinomial) como otimizador de objetivo único (SOEA) para explorar cada objetivo barato durante a inicialização; toolbox DACE para ajustar os modelos GP."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela comparativa do IGD+ final (media(desvio-padrao) sobre 20 execucoes) de K-RVEA, HK-RVEA e SBP-BO em DTLZ1-7 e WFG1-9, com m=3,5,10 objetivos, sob duas razoes de custo rc=5 (Table I) e rc=10 (Table II), com r=(rc,...,rc,1). Teste de Wilcoxon rank-sum com Holm-Bonferroni marca cada baseline como (+)/(-)/(aprox) em relacao ao SBP-BO, com linha-resumo de contagem por tabela.",
+      "literal": "the proposed SBP-BO significantly outperforms K-RVEA and HK-RVEA on 27 and 29 out of 48 test instances, respectively, indicating the effectiveness of the proposed strategies for handling HE-MOPs/HE-MaOPs.",
+      "localizador": "Sec. IV-B-1 (Comparison with state-of-the-art methods), Tables I-II, p.8-11",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, alfa=0.05, Holm-Bonferroni; simbolos +/-/aprox vs. SBP-BO"
+      ],
+      "convencoes": "Media(desvio-padrao); 20 execucoes; simbolos (+)/(-)/(aprox) relativos ao SBP-BO (nao ao melhor da linha); linha-resumo '+/-/aprox' por tabela (Table I: 5/27/16 para K-RVEA e 3/29/16 para HK-RVEA; Table II: 3/23/22 e 3/25/20).",
+      "achado": "SBP-BO vence K-RVEA e HK-RVEA na maioria das 48 celulas em ambos rc, mas perde de forma significativa em DTLZ7 (frente desconexa) e, pontualmente, em WFG1 (m=3) e WFG9 (m=10); a vantagem se mantem ao subir rc de 5 para 10 ('with rc increasing from 5 to 10, the proposed algorithm maintains its advantage').",
+      "aplicabilidade": "(1) endpoint (ND das avaliacoes reais por semente) - e o mesmo tipo de analise que a dissertacao ja calcula para o proprio roster (fichas 1/3); o tratamento especifico de e40 (heterogeneidade de custo por objetivo, razao rc) nao existe no desenho sincrono da dissertacao e os numeros nao sao reproduziveis, so o formato da analise."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas/tabelas do IGD+ obtido por cada algoritmo em funcao do numero de avaliacoes reais (FEs), com significancia estatistica marcada em cortes de FE (FEe=150, 200); complementadas por boxplots do IGD+ em varios FEs (Figs. S3-S4) e por curvas com barras de erro = variancia do IGD+ sobre 20 execucoes (Figs. S5-S6). Tabelas-fonte (SI-SII) e figuras estao no material suplementar, nao incluido no PDF extraido; os achados sao descritos em prosa no corpo do artigo.",
+      "literal": "the proposed SBP-BO shows significantly better performance than K-RVEA on DTLZ2, WFG3, WFG5 and WFG6 with FEe = 150, indicating the fast convergence of SBP-BO.",
+      "localizador": "Sec. IV-B-1, Tables SI-SII e Figs. S3-S6 (Supplementary material, nao incluido no PDF extraido); prosa descritiva na p.9-10 do texto principal",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum (mesma convencao +/-/aprox das Tables I-II, presumivelmente tambem aqui)"
+      ],
+      "convencoes": "IGD+ x numero de avaliacoes reais (FEs); boxplots com 20 execucoes; barras de erro = variancia do IGD+ sobre 20 execucoes; dados numericos nao disponiveis (so descricao textual).",
+      "achado": "SBP-BO converge mais rapido que K-RVEA (DTLZ2, WFG3, WFG5, WFG6 a FEe=150) e supera HK-RVEA (DTLZ2, WFG4, WFG6, WFG7 a FEe=200); os boxplots e curvas com barra de erro 'confirming the fast convergence achieved by SBO-BO' [sic].",
+      "aplicabilidade": "(1) endpoint acumulado por checkpoint de orcamento - reproduzivel genericamente para o roster da dissertacao (ficha 26); os dados numericos especificos de e40 nao estao disponiveis (material suplementar ausente do PDF-fonte)."
+    },
+    {
+      "fichas": [
+        54,
+        55
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Visualizacao qualitativa do conjunto nao-dominado da execucao com IGD+ mediano (entre 20 execucoes) obtido por K-RVEA, HK-RVEA e SBP-BO em DTLZ2, DTLZ4, WFG2 e WFG6, contra a frente verdadeira, para m=3 no corpo do texto (Fig. 3) e m=5,10 via coordenadas paralelas no suplemento (Figs. S1-S2, so mencionadas).",
+      "literal": "SBP-BO finds a better approximation of the true Pareto front on DTLZ2 when compared with the other algorithms, indicating its good balance between diversity and convergence.",
+      "localizador": "Sec. IV-B-1, Fig. 3 (p.9-10); Figs. S1-S2 (Supplementary material, coordenadas paralelas para m=5,10, so mencionadas)",
+      "metricas": [
+        "IGD+ (usado so para escolher a execucao mediana)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execucao com valor mediano de IGD+ entre as 20 execucoes; coordenadas paralelas para m=5,10 (frente nao pode ser plotada em 2D/3D).",
+      "achado": "SBP-BO cobre a frente verdadeira de forma mais completa e distribuida que HK-RVEA (que 'covers a small part of the true Pareto front') e K-RVEA, ilustrando o efeito pratico do ensemble e da penalizacao de vies de busca.",
+      "aplicabilidade": "(1) endpoint da execucao mediana - reproduzivel para o roster da dissertacao (fichas 54/55); as figuras S1-S2 especificas de e40 nao estao no PDF extraido (so mencionadas)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade ao vetor de razao de custo r e ao limiar rthres",
+      "grupo_sugerido": "C",
+      "descricao": "Estudo de sensibilidade do HK-RVEA e do SBP-BO a: (a) diferentes perfis do vetor de razao de tempo de avaliacao r entre objetivos em problemas de m=3 (seis perfis, de r=(5,5,1) a r=(19,1,1), Tables SIII-SIV no suplemento) e m=10 (r1/r2/r3 com desbalanceamento crescente, Table IV); e (b) ao limiar rthres (1, 3, 5) que separa objetivos 'baratos' de 'caros' em problemas de 10 objetivos (Table III). Mede IGD+ com Wilcoxon+Holm.",
+      "literal": "regarding the ten-objective test instances, a larger rthres will result in a stronger search bias towards the cheap objectives. Consequently, problems with rthres = 5 become more challenging to solve than those with rthres = 1.",
+      "localizador": "Sec. IV-B-2 (Influence of different r and rthres on the optimization performance), Tables III-IV, p.10-11; mencao a Tables SIII-SIV (Supplementary material) para m=3",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, alfa=0.05, Holm-Bonferroni; simbolos +/-/aprox vs. SBP-BO (Table III: 0/5/7 para HK-RVEA; Table IV: 1/4/7)"
+      ],
+      "convencoes": "Media(desvio-padrao) sobre 20 execucoes; simbolos (+)/(-)/(aprox) vs. SBP-BO; linha-resumo por tabela; so 2 algoritmos comparados (HK-RVEA, SBP-BO), sem K-RVEA.",
+      "achado": "Quanto mais assimetrico r (poucos objetivos muito mais baratos que os demais, ex. r=(19,1,1)) ou maior rthres (mais objetivos tratados como 'baratos'), mais forte o vies de busca e mais dificil o problema para os dois algoritmos - um 'degrau de dificuldade' construido sobre um parametro do PROBLEMA (heterogeneidade de custo), nao sobre um parametro de uso da incerteza do algoritmo.",
+      "aplicabilidade": "nao reproduzivel - exige problemas com custo de avaliacao heterogeneo por objetivo (dataset extra de avaliacoes so nos objetivos baratos via SOEA, e um limiar rthres definindo a particao barato/caro), mecanismo que nao existe no desenho sincrono e de custo uniforme da dissertacao."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Visualizacao da frente aproximada (execucao com IGD+ mediano) obtida por HK-RVEA e SBP-BO em DTLZ5 (frente-curva de baixa dimensao, degenerada), comparando r=(5,5,1) contra r=(9,1,1), em dois orcamentos (FEmax_e=300 na Fig.4 e 1000 na Fig.5), para ilustrar concretamente o efeito do vies de busca.",
+      "literal": "SBP-BO can achieve better diversity on DTLZ5 with r = (5, 5, 1) compared with that on DTLZ5 with r = (9, 1, 1).",
+      "localizador": "Sec. IV-B-2, Figs. 4-5, p.11-12",
+      "metricas": [
+        "IGD+ (usado so para escolher a execucao mediana)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execucao com IGD+ mediano; dois niveis de orcamento (FEmax_e=300 e 1000 avaliacoes do objetivo lento).",
+      "achado": "Sob r mais desbalanceado (9,1,1), a diversidade da frente encontrada piora para os dois algoritmos, mas SBP-BO ainda cobre melhor os extremos/pontas da frente-curva de DTLZ5 do que HK-RVEA, que fica concentrado em subregioes proximas dos dois pontos finais da frente verdadeira.",
+      "aplicabilidade": "nao reproduzivel - mesmo motivo da analise anterior (mecanismo de heterogeneidade de custo entre objetivos inexistente no desenho da dissertacao); genericamente, corresponderia a (1) endpoint da execucao mediana."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparacao do SBP-BO com tres metodos de transfer learning especificos para heterogeneidade bi-objetivo (T-SAEA, Tr-SAEA, TC-SAEA) em 16 problemas bi-objetivo (DTLZ1-7, DTLZ1a, DTLZ3a, UF1-7), usando IGD (nao IGD+) e o mesmo protocolo/parametrizacao de [17], para rc=5 (Table V, corpo do texto) e rc=10 (Table SV, so mencionada no suplemento).",
+      "literal": "at least one of the TL-based methods significantly outperforms SBP-BO on 10 out of 16 problems for rc = 5, while SBP-BO is only significantly better than all TL approaches on two problems.",
+      "localizador": "Sec. IV-B-3 (Results on bi-objective heterogeneous problems), Table V, p.11-12; mencao a Table SV (Supplementary material) para rc=10",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, alfa=0.05, Holm-Bonferroni; simbolos +/-/aprox vs. SBP-BO (linha-resumo: T-SAEA 9/4/3, Tr-SAEA 9/5/2, TC-SAEA 9/4/3, na ordem +/aprox/-)"
+      ],
+      "convencoes": "Media(desvio-padrao) sobre 20 execucoes; IGD (nao IGD+), seguindo o protocolo de [17]; simbolos vs. SBP-BO.",
+      "achado": "Resultado majoritariamente NEGATIVO para o SBP-BO: nos problemas bi-objetivo, onde os metodos TL podem explorar a correlacao entre fc e fe, o SBP-BO perde para pelo menos um metodo TL em 10 de 16 problemas e so vence claramente em 2 - porque o SBP-BO nao modela a relacao/correlacao entre os dois objetivos, ao contrario dos metodos TL.",
+      "aplicabilidade": "(1) endpoint - mesmo tipo de tabela que a dissertacao ja calcula (fichas 1/3) para o proprio roster; os metodos TL e a heterogeneidade de custo de e40 nao fazem parte do desenho da dissertacao, entao os numeros nao sao reproduziveis, so o formato da analise."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablacao da estrategia de selecao de dados extras do ensemble (completo vs. clustering vs. amostra aleatoria)",
+      "grupo_sugerido": "B",
+      "descricao": "Dentro do estudo de ablacao (Table VI, em que o SBP-BO completo vence as 4 variantes em 22 e 14 de 48 celulas para rc=5 e rc=10), compara especificamente SBP-BO (usa TODOS os dados extra dos objetivos baratos via o ensemble de 2 GPs, Eq. 4) contra SBP-BO-C (seleciona um subconjunto por clustering no espaco de decisao) e SBP-BO-R (seleciona um subconjunto aleatorio), isolando o valor de usar todos os dados extra em vez de um subconjunto reduzido, em IGD+ com Wilcoxon+Holm.",
+      "literal": "SBP-BO significantly outperforms SBP-BO-C and SBP-BO-R on 23 and 21 test problems, respectively.",
+      "localizador": "Sec. IV-B-4 (Ablation studies), Table VI, p.12-13; mencao a Table SVI (Supplementary material) para rc=10",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, alfa=0.05, Holm-Bonferroni; simbolos +/-/aprox vs. SBP-BO"
+      ],
+      "convencoes": "Media(desvio-padrao) sobre 20 execucoes; rc=5 na Table VI (corpo), rc=10 na Table SVI (suplemento, so mencionada).",
+      "achado": "Usar todos os dados extra dos objetivos baratos (em vez de um subconjunto por clustering ou aleatorio) melhora significativamente o desempenho em quase metade das 48 celulas (23 e 21 vitorias, respectivamente) - confirma que a estrategia de selecao/uso de dados de treino e o principal motor de ganho do ensemble.",
+      "aplicabilidade": "nao reproduzivel - exigiria rodar as variantes SBP-BO-C e SBP-BO-R do proprio algoritmo de e40, que nao fazem parte do roster da dissertacao."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablacao do surrogate nos objetivos baratos (modelo vs. avaliacao instantanea/ilimitada)",
+      "grupo_sugerido": "B",
+      "descricao": "Compara SBP-BO (usa GP surrogate nos objetivos baratos) contra a variante SBP-NoGPc/BO-NoGPc (nomenclatura inconsistente entre prosa e cabecalho da Table VI), que assume que os objetivos baratos podem ser avaliados instantaneamente e sem limite de FEs (sem surrogate algum), isolando se o uso de um modelo surrogate nos objetivos baratos ajuda ou atrapalha a busca.",
+      "literal": "SBP-BO is able to significantly outperform SBP-NoGPc on 14 and 17 out of 48 test instances for rc = 5 and rc = 10, respectively.",
+      "localizador": "Sec. IV-B-4, Table VI (coluna 'BO-NoGP_c'), p.12-13; mencao a Table SVI (Supplementary material)",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, alfa=0.05, Holm-Bonferroni; simbolos +/-/aprox vs. SBP-BO"
+      ],
+      "convencoes": "Media(desvio-padrao) sobre 20 execucoes; variante chamada 'SBP-NoGPc' no texto corrido e 'BO-NoGP_c' no cabecalho da Table VI.",
+      "achado": "Mesmo com avaliacao instantanea e ilimitada dos objetivos baratos (sem qualquer aproximacao), a variante sem surrogate perde para SBP-BO em 14-17 de 48 instancias - evidencia de que suavizar os objetivos baratos com um surrogate ajuda a busca; hipotese dos autores: o surrogate 'may smooth out some local optima and thus accelerate the search'.",
+      "aplicabilidade": "nao reproduzivel - exigiria rodar a variante SBP-NoGPc do proprio algoritmo de e40, que nao faz parte do roster da dissertacao."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablacao do termo de penalizacao de vies de busca (SBP)",
+      "grupo_sugerido": "B",
+      "descricao": "Compara SBP-BO (funcao de aquisicao adaptativa AFA multiplicada pelo termo de penalizacao SBP, Eq. 5) contra BO-AAF, que remove o termo SBP e usa so a AFA (que ja usa media e sigma do GP, Eq. 2), isolando o efeito especifico do termo de penalizacao proposto - NAO da incerteza em si, ja presente identicamente em ambas as variantes comparadas.",
+      "literal": "Compared with BO-AAF, the proposed algorithm shows significantly better performance on 9 out of 48 test instances, and similar performance on the remaining test problems.",
+      "localizador": "Sec. IV-B-4, Table VI (coluna 'BO-AAF'), p.12-13; mencao a Table SVI (Supplementary material)",
+      "metricas": [
+        "IGD+"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, alfa=0.05, Holm-Bonferroni; simbolos +/-/aprox vs. SBP-BO"
+      ],
+      "convencoes": "Media(desvio-padrao) sobre 20 execucoes; nenhuma das duas variantes remove sigma do GP - a AFA de base ja usa media e sigma (Eq. 2); o que e removido e so o termo multiplicativo SBP (Eqs. 5-10), que depende de media normalizada e da razao r, nao de sigma.",
+      "achado": "RESULTADO FRACO/NEGATIVO para a contribuicao central do artigo: o termo SBP so melhora significativamente 9 de 48 celulas (rc=5) e a vantagem quase desaparece em rc=10 (SBP-BO perde em 1 e vence so 7 de 48 vs. BO-AAF) - os proprios autores admitem que 'it is highly tricky to measure the search bias, it is challenging to apply an appropriate degree of penalty'.",
+      "aplicabilidade": "nao reproduzivel - exigiria rodar a variante BO-AAF do proprio algoritmo de e40, que nao faz parte do roster da dissertacao; note-se que esta ablacao NAO isola sigma (ficha 11/15), pois a AFA de base ja usa sigma do GP identicamente em ambas as variantes comparadas."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": false,
+    "o_que": "Nenhum tempo de execucao, decomposicao por fase (ajuste do modelo/busca/avaliacao) ou complexidade e reportado para os algoritmos comparados; o artigo apenas descreve a plataforma de hardware/software usada nos experimentos.",
+    "literal": "All experiments are performed in MATLAB R2019a on an Intel Core i7-8750H with 2.21 GHz CPU.",
+    "localizador": "Sec. IV-A-4 (Parameter settings), p.7-8"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "K-RVEA e HK-RVEA batem o SBP-BO de forma significativa em DTLZ7 (frente desconexa), atribuido pelos autores ao uso de um conjunto de referencia fixo nesses dois baselines, que garante exploracao mesmo com uma frente desconexa.",
+      "literal": "both K-RVEA and HK-RVEA show significantly better performance than SBP-BO on DTLZ7.",
+      "localizador": "Sec. IV-B-1, Table I, p.8-9"
+    },
+    {
+      "descricao": "K-RVEA bate o SBP-BO de forma significativa em WFG1 (m=3, transformacao mais complexa que dificulta a convergencia) e WFG9 (m=10, multimodal e nao-separavel).",
+      "literal": "K-RVEA significantly outperforms the proposed algorithm on WFG1 with m = 3 and WFG9 with m = 10.",
+      "localizador": "Sec. IV-B-1, Table I, p.9"
+    },
+    {
+      "descricao": "Os proprios autores admitem que o SBP-BO pode falhar em manter boa diversidade em alguns problemas (DTLZ7, WFG9), efeito colateral de priorizar a exploracao do objetivo caro em detrimento da cobertura geral da frente.",
+      "literal": "the proposed algorithm may fail to maintain a good diversity of the obtained solutions on some test problems, such as DTLZ7 and WFG9.",
+      "localizador": "Sec. IV-B-1, p.10 (comentario sobre a Table II)"
+    },
+    {
+      "descricao": "Nos 16 problemas bi-objetivo, pelo menos um metodo de transfer learning bate o SBP-BO de forma significativa em 10 de 16, e o SBP-BO so vence claramente em 2 - o principal resultado negativo quantitativo do artigo.",
+      "literal": "at least one of the TL-based methods significantly outperforms SBP-BO on 10 out of 16 problems for rc = 5, while SBP-BO is only significantly better than all TL approaches on two problems.",
+      "localizador": "Sec. IV-B-3, Table V, p.12"
+    },
+    {
+      "descricao": "A ablacao do termo SBP (variante BO-AAF) mostra que sua contribuicao e pequena e piora com rc=10: SBP-BO perde em 1 e so vence 7 de 48 celulas; os autores atribuem isso a dificuldade intrinseca de medir e calibrar o grau apropriado de penalizacao de vies.",
+      "literal": "SBP-BO is worse than BO-AFF on one test instance, but it only outperforms BO-AFF on 7 out of 48 instances.",
+      "localizador": "Sec. IV-B-4, comentario sobre a Table SVI (Supplementary material), p.13"
+    },
+    {
+      "descricao": "Na conclusao, os autores reconhecem que o metodo e menos eficaz em problemas nao-separaveis, multimodais e de frente desconexa, implicando que operadores de busca mais poderosos seriam necessarios.",
+      "literal": "the experimental results of the current work suggest that the proposed algorithm is less effective on nonseparable, multi-modal and disconnected problems, implying that more powerful search operators are required.",
+      "localizador": "Sec. V (Conclusion), p.13"
+    },
+    {
+      "descricao": "Os autores reconhecem explicitamente que a forma de medir/penalizar o vies de busca proposta neste artigo e uma simplificacao, com bastante espaco para melhoria futura.",
+      "literal": "this work adopts a simplified way to measure the search bias resulting from heterogeneous objectives, which leaves much room for further improvement in alleviating the search bias.",
+      "localizador": "Sec. V (Conclusion), p.13"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "A remocao do termo de penalizacao SBP (variante BO-AAF, que mantem a funcao de aquisicao adaptativa AFA baseada em media e sigma do GP) produz desempenho estatisticamente equivalente ao SBP-BO completo na maioria das 48 celulas testadas - o ganho do componente novo do artigo (o proprio criterio/penalizacao) e concentrado em poucos casos, nao generalizado.",
+      "literal": "since it is highly tricky to measure the search bias, it is challenging to apply an appropriate degree of penalty. This is might be the reason why SBP-BO and BO-AAF show similar performance on most test problems.",
+      "localizador": "Sec. IV-B-4, comentario sobre Table VI/SVI, p.13"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "frente de Pareto desconexa (DTLZ7)",
+      "afirmacao": "SBP-BO perde para K-RVEA e HK-RVEA em DTLZ7; a explicacao dos autores e que o conjunto de referencia FIXO usado por K-RVEA/HK-RVEA garante exploracao mesmo quando a frente e desconexa, algo que o mecanismo do SBP-BO nao replica tao bem.",
+      "literal": "In this way, the exploration can be guaranteed, so that K-RVEA and HK-RVEA are able to account for the disconnected Pareto front of DTLZ7.",
+      "localizador": "Sec. IV-B-1, p.8-9"
+    },
+    {
+      "caracteristica": "transformacao enganosa / multimodalidade e nao-separabilidade (WFG1, WFG9)",
+      "afirmacao": "SBP-BO perde para K-RVEA em WFG1 (m=3) e WFG9 (m=10); os autores atribuem a dificuldade a transformacao mais complexa de WFG1 (dificulta convergencia) e ao carater multimodal/nao-separavel de WFG9.",
+      "literal": "WFG9 features a troublesome transformation function and is also a multimodel and nonseparable problem.",
+      "localizador": "Sec. IV-B-1, p.9"
+    },
+    {
+      "caracteristica": "frente degenerada / curva de baixa dimensao no espaco de objetivos (DTLZ5)",
+      "afirmacao": "SBP-BO cobre melhor as pontas/extremos da frente-curva de DTLZ5 do que HK-RVEA, que fica concentrado so em subregioes proximas dos dois pontos finais da frente verdadeira.",
+      "literal": "the solution set obtained by HK-RVEA only covers some subregions, especially those around the two end points of the true Pareto front of DTLZ5, which is a curve for that problem.",
+      "localizador": "Sec. IV-B-2, p.11 (comentario sobre Figs. 4-5)"
+    },
+    {
+      "caracteristica": "correlacao/relacao funcional entre o objetivo barato e o objetivo caro (problemas bi-objetivo)",
+      "afirmacao": "Metodos de transfer learning exploram a correlacao entre fc e fe para estimar o objetivo caro a partir da busca no barato, o que os faz superar o SBP-BO na maioria dos problemas bi-objetivo; o SBP-BO nao usa essa informacao de correlacao.",
+      "literal": "information on the correlation of the two objectives is acquired, which allows for an estimation of the expensive objective from the search experience on the cheap objective.",
+      "localizador": "Sec. IV-B-3, p.12"
+    },
+    {
+      "caracteristica": "heterogeneidade extrema de custo entre objetivos (vetor r muito assimetrico, ou rthres alto)",
+      "afirmacao": "O desempenho de HK-RVEA e SBP-BO degrada a medida que a razao de custo entre objetivos fica mais assimetrica (ex. r=(19,1,1) vs r=(5,5,1)) ou o limiar rthres cresce (mais objetivos viram 'baratos'), tornando os problemas sistematicamente mais dificeis para ambos.",
+      "literal": "regarding the ten-objective test instances, a larger rthres will result in a stronger search bias towards the cheap objectives. Consequently, problems with rthres = 5 become more challenging to solve than those with rthres = 1.",
+      "localizador": "Sec. IV-B-2, p.10-11"
+    },
+    {
+      "caracteristica": "nao-separabilidade, multimodalidade e frente desconexa (avaliacao geral, conclusao)",
+      "afirmacao": "Na conclusao, os autores resumem que o SBP-BO e sistematicamente menos eficaz nessas tres classes de problema, e que operadores de busca mais poderosos seriam necessarios para supera-las.",
+      "literal": "the experimental results of the current work suggest that the proposed algorithm is less effective on nonseparable, multi-modal and disconnected problems, implying that more powerful search operators are required.",
+      "localizador": "Sec. V (Conclusion), p.13"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) Nenhum piso evolutivo sem surrogate e comparado neste artigo; os autores excluem explicitamente metodos nao-assistidos ('we did not include non-surrogate assisted algorithms'). (2) 20 execucoes independentes (nao 30 como no desenho da dissertacao). (3) O mecanismo central do artigo - heterogeneidade de CUSTO de avaliacao entre objetivos, com um dataset extra Dc' de avaliacoes so nos objetivos baratos (via SOEA na inicializacao) e o parametro rthres que particiona objetivos em 'baratos'/'caros' - nao tem equivalente no desenho da dissertacao, que assume avaliacao sincrona e de mesmo custo para todos os objetivos; por isso quase todas as analises quantitativas especificas de e40 nao sao reproduziveis pelas 7 camadas, mesmo quando o TIPO de analise (tabela final, ablacao, trajetoria, fronteira) e analogo ao que a dissertacao ja faz para o proprio roster. (4) Material suplementar (Sec. I com introducao a GPs; Tables SI-SVI; Figs. S1-S6) e referenciado extensivamente ao longo do artigo mas NAO esta incluido neste PDF/markdown extraido - os achados citados a partir dele vem da prosa do texto principal (que descreve resultados numericos especificos), nao de tabelas/figuras vistas diretamente; marcado 'so mencionada'/'nao incluido no PDF extraido' nos localizadores relevantes. (5) A Fig. 2 (contour plots de h1=SBPc/SBPe e h2=SBPc+SBPe variando Niter=1,10,100, sobre um exemplo sintetico com r=(5,1)) e uma ilustracao didatica/matematica do comportamento da formula de penalizacao SBP, nao um resultado empirico sobre um problema de benchmark - por isso nao foi listada em 'analises'. (6) Pequena inconsistencia de nomenclatura na propria fonte (confirmada tanto na secao estruturada quanto na camada de texto bruto do ANEXO): a variante de ablacao e chamada 'SBP-NoGPc' no texto corrido mas 'BO-NoGPc' no cabecalho da Table VI; e o acronimo 'BO-AAF' aparece grafado 'BO-AFF' duas vezes no paragrafo final da Sec. IV-B-4 (preservado literalmente nas citacoes desta extracao). (7) O cabecalho do artigo traz 'Manuscript received December 6, 2018; revised xx, 2019', que parece residuo de template de outra submissao/veiculo, e o rodape da p.1 identifica o preprint como arXiv:2208.12217v1 [cs.NE], 25 Aug 2022; o ano=2023 informado no pedido foi mantido conforme instrucao (provavelmente a data de publicacao final no periodico). (8) A incerteza (sigma do GP) aparece em DOIS lugares distintos do metodo: (a) na funcao de aquisicao adaptativa AFA (Eq. 2), classificada pela taxonomia como A1/penalizacao avessa a risco (o peso da variancia cresce com Niter, tornando regioes de alta variancia menos atrativas no fim da busca); (b) na ponderacao do ensemble de 2 GPs por objetivo barato (Eq. 4: alfa_j e beta_j calculados a partir de sigma_GPc e sigma_GPc', ao estilo product-of-experts) - um uso secundario de incerteza (para COMBINAR duas predicoes, nao para penalizar exploracao) que nao e coberto por nenhuma ficha do catalogo nem testado isoladamente (as 3 ablacoes de Table VI testam a ESTRATEGIA DE DADOS/presenca do surrogate e o termo SBP, nunca o esquema de ponderacao por sigma do ensemble em si). (9) Leitura completa: 15 paginas, todas as secoes (Introducao a Conclusao + Agradecimentos + Referencias) cobertas duas vezes (conversao estruturada com tabelas/formulas + camada de texto bruta completa do ANEXO 'get_text', pagina a pagina) mais um ANEXO final de OCR de figuras (paginas 5, 7, 9-14) que so repete valores numericos de tabelas ja capturados na secao estruturada, sem conteudo substantivo novo. As duas versoes (estruturada e bruta) tem conteudo identico nas formulas conferidas (Eqs. 2-10) e no texto corrido; nenhum problema de leitura ou lacuna de pagina foi encontrado. roster_bloco = null por instrucao do pedido (artigo fora do roster experimental)."
+}

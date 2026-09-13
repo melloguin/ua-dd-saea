@@ -1,0 +1,437 @@
+{
+  "id": "c1",
+  "sigla": "BS-MOBO",
+  "titulo": "A Batched Scalable Multi-Objective Bayesian Optimization Algorithm",
+  "ano": 2018,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Pequena escala (Sec. IV-A, D=8): 27 problemas de 4 suítes — ZDT{1,2,3,4,6} (5), DTLZ{1,2} (2), F1-F10 (suíte F do artigo RM-MEDA [45]) (10), UF1-UF10 (suíte CEC'09 [44]) (10). Grande escala (Sec. IV-B, D=50): as MESMAS 4 suítes/27 problemas, agora com D=50. Nenhuma das suítes é WFG, MMF ou BBOB (não sobrepõe integralmente a bateria da dissertação; ZDT e DTLZ sobrepõem nominalmente, mas em dimensões D=8/D=50 que não coincidem necessariamente com as dimensões usadas na bateria da dissertação). Aplicação real (Sec. IV-D): problema de trajetória espacial Rosetta (missão ESA ao cometa 67P/Churyumov-Gerasimenko), biobjetivo (ΔV total; tempo de viagem ao quadrado), D=22, com gradiente disponível — não é nenhum dos 3 problemas reais da dissertação (RE21/ESTOQUE40/DDMOP7).",
+    "orcamento": "Pequena escala: NFE=20·n=160 avaliações reais totais; NI (DoE inicial, Latin hypercube)=60 (37.5% do orçamento total já consumido no DoE); lote k=5 para os métodos em lote (20 iterações de lote: (160-60)/5=20). Grande escala: NFE=20·n=1000; NI=500 (50% do orçamento em DoE); lote k=25 (20 iterações: (1000-500)/25=20); NGP=300 (subamostra de pontos usada para treinar o GP a cada iteração, pois treinar com todos os pontos é proibitivo). Rosetta: orçamento não explicitado em número exato de NI/NFE no texto; o eixo de Fig. 7 vai de 500 a 1000 avaliações (mesma ordem de grandeza da configuração de 50D). Em nenhum caso o orçamento segue a convenção 31D-1 da dissertação, nem há DoE compartilhado entre 'famílias' de algoritmos análogo ao protocolo da dissertação.",
+    "execucoes": "25 execuções independentes para os bancos de pequena e de grande escala (Tabelas I e II). 10 execuções independentes para o problema real Rosetta (Sec. IV-D). Não há 30 sementes compartilhadas entre configurações como na dissertação; nada é dito sobre um DoE comum entre algoritmos por 'execução' (cada execução parece gerar seu próprio LHS).",
+    "baselines": "Pequena escala: ParEGO, HypI, SMS-EGO (sequenciais, Kriging/GP, q=1) e K-RVEA, MOEA/D-EGO (em lote, Kriging/GP, q=5) — todos assistidos por surrogate; NÃO há piso evolutivo sem surrogate na comparação de pequena escala. Grande escala: K-RVEA, MOEA/D-EGO (em lote, GP) mais dois pisos SEM surrogate — MOEA/D (EA clássico) e HIGA-MO (gradiente do indicador de hipervolume, sem modelo substituto, só biobjetivo). O próprio BS-MOBO é testado em 3 variantes próprias: BS-MOBO (BNN MC-dropout, sem gradiente), BS-MOBO_g (BNN + Sobolev/gradiente), BS-MOBO-GP (GP no lugar da BNN, ablação do tipo de modelo). Rosetta: mesmos 7 algoritmos da comparação de 50D (MOEA/D, HIGA-MO, K-RVEA, MOEA/D-EGO, BS-MOBO-GP, BS-MOBO, BS-MOBO_g).",
+    "metricas_principais": [
+      "IGD (inverted generational distance) — média, desvio-padrão e rank, métrica principal reportada no corpo do artigo",
+      "Hypervolume difference (I-_H) — mencionada como calculada, mas os resultados numéricos ficam só no material suplementar (não mostrados no artigo)",
+      "Hypervolume (bruto, não diferença) — usado só no caso real Rosetta, com ponto de referência [500, 8], por não haver frente verdadeira conhecida"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum test, α=0.05, símbolos +/=/- — mas comparando cada algoritmo contra BS-MOBO_g (o método proposto completo) como referência fixa, e não contra 'o melhor de cada problema' como na ficha 3 da dissertação (embora BS-MOBO_g costume ser o melhor ou próximo do melhor)."
+    ],
+    "apresentacao": "Tabelas: média[desvio-padrão](rank) por célula algoritmo×problema; melhor resultado em negrito; linha final de contagem +/=/- e linha de rank médio por algoritmo. Figuras de convergência (Figs. 5 e 7): execução mediana, eixo Y em escala logarítmica (Log IGD), poucas instâncias 'selecionadas' (não todos os 27 problemas). Números não são arredondados no texto/tabelas.",
+    "codigo_plataforma": "K-RVEA: implementação oficial via PlatEMO (MATLAB) [46]. ParEGO/HypI/SMS-EGO: código Python de Rahat et al. (bitbucket.org/arahat/gecco-2017) [42]. MOEA/D-EGO e o próprio BS-MOBO (e variantes): implementados pelos autores em Python, redes neurais construídas com PyTorch [47]. O código do BS-MOBO não estava público no momento da publicação ('Will be open source once this paper is published')."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ilustração 1D do ganho de acurácia do modelo com gradiente (poucos dados)",
+      "grupo_sugerido": "E",
+      "descricao": "Antes da seção experimental, o artigo ilustra qualitativamente o efeito do treinamento Sobolev (com gradiente) sobre a acurácia do surrogate: ajusta dois modelos (BNN com e sem gradiente) a apenas 4 pontos avaliados de uma função de brinquedo 1D, sin(x), e plota a média predita ± dois desvios-padrão contra a função verdadeira (Fig. 2). O objetivo é mostrar que, com pouquíssimos dados, o modelo com gradiente aproxima a função bem melhor, inclusive localizando melhor os pontos de máximo/mínimo.",
+      "literal": "with only four evaluated solutions, the surrogate model with gradient can approximate the sin(x) function very well.",
+      "localizador": "Sec. III-A-2, Fig. 2",
+      "metricas": [
+        "nenhuma métrica numérica — comparação visual da média predita ± 2 desvios-padrão contra a função verdadeira"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Ilustração única (não repetida, sem sementes/execuções), função de brinquedo (não faz parte de nenhuma das 4 suítes de bancada usadas depois); linha sólida = média prevista; área sombreada = ±2 desvios-padrão; comparação lado a lado com/sem gradiente.",
+      "achado": "Com apenas 4 pontos avaliados, o modelo com gradiente (Sobolev training) aproxima sin(x) visivelmente melhor que o modelo sem gradiente, e localiza melhor a solução ótima (máximo/mínimo) — evidência qualitativa e preliminar (não sistemática) de que a informação de gradiente reduz a necessidade de dados para um bom ajuste do surrogate.",
+      "aplicabilidade": "não reproduzível com as 7 camadas — é uma demonstração pontual em função de brinquedo 1D monobjetivo, fora do protocolo de bancada (nenhum dos 28 problemas da dissertação), sem sementes múltiplas nem métrica quantitativa; não corresponde a nenhuma das fases de ① a ⑦."
+    },
+    {
+      "fichas": [
+        46
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo compara o tempo de treinamento (fit) do Gaussian Process e da rede neural bayesiana (BNN, com MC dropout), com e sem incorporação de gradiente via Sobolev training, em função do número de amostras de treinamento, para uma função de 30 variáveis de decisão (Fig. 3). O objetivo é demonstrar empiricamente a escalabilidade alegada do surrogate proposto frente ao GP.",
+      "literal": "the training time for building a Bayesian neural network with MC dropout increases very slowly when the number of training samples becomes larger.",
+      "localizador": "Sec. III-A-1, Fig. 3",
+      "metricas": [
+        "tempo de treinamento do modelo (fit time), em função do número de amostras de treinamento"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curvas de tempo de treinamento vs. número de amostras, execução única (não é claro se há repetição/média); 4 curvas: GP sem gradiente, GP com gradiente, BNN sem gradiente, BNN com gradiente; função de 30 variáveis de decisão, fora das 4 suítes de bancada.",
+      "achado": "O tempo de treinamento do GP cresce rapidamente com o número de amostras (custo O(N^3), citado textualmente na Sec. II-C), enquanto o da BNN com MC dropout cresce muito lentamente; o custo extra de incorporar gradiente via Sobolev training é descrito como desprezível, já que a curva com gradiente praticamente coincide com a sem gradiente para a BNN.",
+      "aplicabilidade": "④ tempos por geração (ajuste do modelo) — diretamente comparável entre algoritmos que gravam o tempo de fit separadamente; aqui a comparação é feita numa função de 30D fora da bateria, então só o PADRÃO qualitativo (BNN escala melhor que GP com N) seria replicável com a camada ④ da dissertação, não os números específicos desta figura."
+    },
+    {
+      "fichas": [
+        1,
+        2,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela I: matriz média[desvio-padrão](rank) do IGD para os 27 problemas de 8 dimensões, obtida por 8 configurações (ParEGO, HypI, SMS-EGO sequenciais; K-RVEA, MOEA/D-EGO em lote; BS-MOBO-GP, BS-MOBO, BS-MOBO_g em lote), sobre 25 execuções independentes, com teste de Wilcoxon rank-sum (α=0.05, símbolos +/=/-) de cada algoritmo contra BS-MOBO_g, e rank médio de IGD por algoritmo ao final.",
+      "literal": "Table I shows the mean IGD values, the standard deviations and the ranks of IGD means for all 27 problems obtained by different algorithms.",
+      "localizador": "Sec. IV-A, Table I",
+      "metricas": [
+        "IGD (mean, std, rank)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=0.05 (cada algoritmo vs. BS-MOBO_g como referência)"
+      ],
+      "convencoes": "mean[std](rank) por célula; melhor resultado da linha em negrito; símbolos +/=/- indicando se BS-MOBO_g é significativamente melhor/empatado/pior que a coluna; linha final +/=/- (contagem de vitórias/empates/derrotas de BS-MOBO_g contra cada coluna) e linha de rank médio; 25 execuções; métrica IGD (não IGD+); nenhuma execução mediana aqui (é tabela, não curva).",
+      "achado": "BS-MOBO-GP obtém o melhor rank médio (2.222), à frente de BS-MOBO_g (2.815) e de BS-MOBO puro (4.555); os métodos Kriging sequenciais/em lote existentes ficam bem piores (SMS-EGO 3.889 é o melhor deles, seguido de MOEA/D-EGO 5.296, ParEGO 5.370, K-RVEA 5.593, HypI 6.259). Ou seja, em orçamento pequeno (D=8), a variante com GP do próprio método supera a variante com rede neural, mesmo com gradiente.",
+      "aplicabilidade": "① endpoint — mediana/média do IGD+ (ou IGD) sobre o ND acumulado das avaliações reais ao fim do orçamento, por algoritmo × problema; a dissertação usaria mediana (não média) e IGD+ (não IGD), e nenhum destes 8 algoritmos está no roster experimental, então os números em si não são diretamente comparáveis — só o TIPO de análise (ficha 1/2/3) é reprodutível com a instrumentação."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Efeito isolado do framework de aquisição em lote, controlando o modelo (GP), pequena escala",
+      "grupo_sugerido": "G",
+      "descricao": "Leitura específica da Tabela I: como BS-MOBO-GP usa o MESMO modelo substituto (Gaussian Process) que ParEGO, HypI, SMS-EGO, K-RVEA e MOEA/D-EGO, o artigo argumenta que a superioridade de BS-MOBO-GP sobre esses 5 concorrentes isola e confirma o mérito do novo framework de aquisição/seleção em lote (B-HUCB + seleção gulosa em duas etapas), e não do modelo em si — com uma exceção nomeada (UF5/UF6, frente desconectada).",
+      "literal": "Since BS-MOBO-GP uses the same Gaussian process surrogate model with other Kriging-based algorithms, this result confirms the advantage of our newly proposed batch optimization framework.",
+      "localizador": "Sec. IV-A-1",
+      "metricas": [
+        "IGD (mean, std, rank) — reaproveitada da Tabela I"
+      ],
+      "testes": [
+        "nenhum teste direto entre BS-MOBO-GP e os 5 concorrentes (leitura descritiva de rank médio); o único teste de Wilcoxon da Tabela I usa BS-MOBO_g, não BS-MOBO-GP, como referência"
+      ],
+      "convencoes": "Mesma tabela/convenções da entrada anterior (Tabela I); argumento construído sobre o rank médio.",
+      "achado": "BS-MOBO-GP (rank médio 2.222) supera todos os 5 concorrentes baseados em GP com outras heurísticas de seleção; ressalva negativa nomeada: 'BS-MOBO-GP is outperformed by other Kriging-based algorithms on the UF5 and UF6 test instances which both have disconnected Pareto set and many local Pareto optimal points' — o método de seleção em lote proposto fica preso em ótimos locais nesses dois problemas com frente desconectada.",
+      "aplicabilidade": "não reproduzível diretamente — exigiria rodar as implementações de ParEGO/HypI/SMS-EGO/K-RVEA/MOEA/D-EGO (nenhuma no roster) sob o mesmo protocolo, controlando explicitamente o tipo de modelo; combinável em princípio com ① (endpoint) se esses algoritmos entrassem na bateria."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação do tipo de surrogate (BNN vs GP) sob poucos dados/baixa dimensão",
+      "grupo_sugerido": "E",
+      "descricao": "Comparação interna entre as duas variantes de BS-MOBO que diferem SOMENTE no tipo de modelo substituto — BS-MOBO (rede neural bayesiana com MC dropout) contra BS-MOBO-GP (Gaussian Process) — usando os dados da Tabela I (8D, orçamento pequeno), para isolar o efeito da escolha do modelo quando há poucos dados de treino disponíveis.",
+      "literal": "The performances of BS-MOBO are worse than those of BS-MOBO-GP for most test instances.",
+      "localizador": "Sec. IV-A-2",
+      "metricas": [
+        "IGD (mean, std, rank) — reaproveitada da Tabela I"
+      ],
+      "testes": [
+        "nenhum teste direto entre BS-MOBO e BS-MOBO-GP (leitura descritiva de médias/ranks); ambos são colunas comparadas contra o mesmo referencial BS-MOBO_g na Tabela I, não uma contra a outra"
+      ],
+      "convencoes": "Mesma tabela/convenções da Tabela I; comparação de apenas duas colunas entre si.",
+      "achado": "Em orçamento pequeno e baixa dimensão (D=8), BS-MOBO (BNN, rank médio 4.555) é pior que BS-MOBO-GP (GP, rank médio 2.222) na maioria dos problemas — resultado NEGATIVO para a escolha do modelo proposto (BNN) neste regime. Explicação dada pelos autores: 'Gaussian process modeling has excellent fitting performances for small datasets in low dimensional space... neural networks usually need more training examples to achieve good fitting performance.'",
+      "aplicabilidade": "exige rodar variante do próprio algoritmo com GP no lugar da BNN (não é uma troca de configuração testável só por pós-processamento dos dados existentes) — usar ① (endpoint) e, se disponível, ④ (tempo de ajuste) para comparar as duas variantes sob o mesmo protocolo/sementes."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação da informação de gradiente (Sobolev training) sobre o surrogate, pequena escala",
+      "grupo_sugerido": "E",
+      "descricao": "Comparação interna entre BS-MOBO (BNN sem gradiente) e BS-MOBO_g (BNN + Sobolev training, usando gradiente) na Tabela I (8D), para isolar o efeito de incorporar informação de gradiente no treinamento do surrogate quando o orçamento e a dimensão são pequenos.",
+      "literal": "With available gradient information, BS-MOBO g significantly outperforms BS-MOBO on most test instances.",
+      "localizador": "Sec. IV-A-3",
+      "metricas": [
+        "IGD (mean, std, rank) — reaproveitada da Tabela I"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=0.05 — BS-MOBO_g (referência) vs. BS-MOBO, reportado na própria Tabela I (22/4/1 vitórias/empates/derrotas para BS-MOBO_g)"
+      ],
+      "convencoes": "Mesma tabela/convenções da Tabela I; símbolos +/=/- da coluna BS-MOBO lidos como o efeito do gradiente.",
+      "achado": "BS-MOBO_g (rank médio 2.815) supera significativamente BS-MOBO (rank médio 4.555) na maioria dos problemas (22 vitórias, 4 empates, 1 derrota, conforme a linha +/=/- da Tabela I), e chega a igualar ou superar BS-MOBO-GP em vários problemas mesmo em pequena escala. Ressalva NEGATIVA nomeada: 'BS-MOBO g performs slightly worse than BS-MOBO on F4 and F8 test instances which both have three complicated periodic objective functions with nonlinear variable linkage' — o Sobolev training tenta casar muitas direções locais de gradiente com poucos pontos e falha nesses casos.",
+      "aplicabilidade": "exige rodar variante do algoritmo com/sem gradiente (não reproduzível por pós-processamento) — usar ① para o placar comparativo e, se registrado, ④ para o custo extra do treinamento Sobolev; exige também que o problema disponibilize gradiente analítico, o que a bateria da dissertação não assume em geral."
+    },
+    {
+      "fichas": [
+        1,
+        2,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela II: mesma estrutura da Tabela I, agora para os 27 problemas em D=50, orçamento NFE=1000, com 7 configurações (2 pisos sem surrogate: MOEA/D, HIGA-MO; 2 em lote com GP: K-RVEA, MOEA/D-EGO; 3 variantes próprias: BS-MOBO-GP, BS-MOBO, BS-MOBO_g), 25 execuções, Wilcoxon rank-sum (α=0.05) de cada algoritmo contra BS-MOBO_g, rank médio final. Os métodos sequenciais Kriging (ParEGO/HypI/SMS-EGO) são excluídos por inviabilidade de tempo de execução.",
+      "literal": "we use the same benchmark problem suits (namely, ZDT, DTLZ, F and UF) as in the previous subsection but now with 50-dimensional decision space and a larger budget of 1000 evaluations",
+      "localizador": "Sec. IV-B, Table II",
+      "metricas": [
+        "IGD (mean, std, rank)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=0.05 (cada algoritmo vs. BS-MOBO_g como referência)"
+      ],
+      "convencoes": "mean[std](rank) por célula; melhor em negrito; células 'NA' para HIGA-MO nos 7 problemas de 3 objetivos (DTLZ1, DTLZ2, F4, F8, UF8, UF9, UF10), já que HIGA-MO só resolve problemas biobjetivo; linha +/=/- e rank médio final; 25 execuções; IGD (não IGD+).",
+      "achado": "BS-MOBO_g obtém o melhor rank médio (1.370), seguido de BS-MOBO (2.259); a ordem se INVERTE em relação à Tabela I: agora BS-MOBO-GP (3.778) fica atrás de ambas as variantes com BNN. Os métodos existentes ficam bem piores (HIGA-MO 4.650, K-RVEA 4.963, MOEA/D 5.111, MOEA/D-EGO 5.148). Em alta dimensão/muitos dados, a rede neural bayesiana passa a superar o Gaussian Process, o oposto do observado em baixa dimensão/poucos dados (Tabela I).",
+      "aplicabilidade": "① endpoint (mediana/IGD+ na convenção da dissertação, aqui média/IGD) por algoritmo × problema; nenhum destes 7 algoritmos está no roster, então só o TIPO de análise (fichas 1/2/3) é reprodutível, não os números."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Efeito isolado do framework de aquisição em lote, controlando o modelo (GP), alta dimensão",
+      "grupo_sugerido": "G",
+      "descricao": "Réplica em 50D do argumento de controle por modelo: como BS-MOBO-GP, K-RVEA e MOEA/D-EGO usam todos GP, a comparação entre eles isola o efeito do framework de aquisição/seleção em lote também em alta dimensão, agora também contra os 2 pisos sem surrogate (MOEA/D, HIGA-MO).",
+      "literal": "BS-MOBO-GP has a better overall performance compared with K-RVEA, MOEA/D-EGO and those two model-free methods, which confirms the efficiency of our proposed batch optimization algorithm framework for solving large scale problems.",
+      "localizador": "Sec. IV-B-1",
+      "metricas": [
+        "IGD (mean, std, rank) — reaproveitada da Tabela II"
+      ],
+      "testes": [
+        "nenhum teste direto entre BS-MOBO-GP e os demais (leitura descritiva de rank médio)"
+      ],
+      "convencoes": "Mesma tabela/convenções da Tabela II.",
+      "achado": "BS-MOBO-GP (rank médio 3.778) tem desempenho geral melhor que K-RVEA (4.963), MOEA/D-EGO (5.148), MOEA/D (5.111) e HIGA-MO (4.650), confirmando (segundo os autores) a eficiência do framework de lote também em alta dimensão, mesmo mantendo o modelo GP fixo.",
+      "aplicabilidade": "não reproduzível diretamente — exigiria rodar K-RVEA/MOEA/D-EGO/MOEA/D/HIGA-MO sob o mesmo protocolo de 50D; nenhum está no roster da dissertação."
+    },
+    {
+      "fichas": [
+        16
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Dentro da mesma discussão da Tabela II, o artigo identifica nomeadamente os casos em que os métodos baseados em GP (BS-MOBO-GP, K-RVEA, MOEA/D-EGO) perdem para os dois pisos sem surrogate (MOEA/D, HIGA-MO): ZDT4 e UF1, com explicação mecânica — o GP com poucos dados de treino (subamostrados a NGP=300) não aproxima bem a função complicada em alta dimensão, e o orçamento é gasto explorando o espaço de decisão em vez de convergir.",
+      "literal": "the model-based methods with the Gaussian process model (BS-MOBO-GP, K-RVEA and MOEA/D-EGO) are outperformed by those two model-free methods on some test instances such as ZDT4 and UF1.",
+      "localizador": "Sec. IV-B-1",
+      "metricas": [
+        "IGD (rank) — reaproveitada da Tabela II"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=0.05, célula ZDT4 (BS-MOBO_g vs. MOEA/D e HIGA-MO, ambos '-') dentro da Tabela II"
+      ],
+      "convencoes": "Mesma tabela/convenções da Tabela II; leitura por linha (problema) específica.",
+      "achado": "Em ZDT4, os 2 pisos sem surrogate (HIGA-MO rank 1, MOEA/D rank 2) batem TODOS os métodos baseados em modelo, inclusive a melhor variante do próprio BS-MOBO (BS-MOBO_g, rank 4, marcado '-' contra MOEA/D e HIGA-MO — ou seja, BS-MOBO_g é estatisticamente PIOR que os pisos ali). Em UF1 o padrão é mais restrito aos GP-based: BS-MOBO-GP (rank 7, pior de todos) e K-RVEA (rank 6) perdem para MOEA/D (rank 4) e HIGA-MO (rank 5), mas BS-MOBO_g (rank 1) e BS-MOBO (rank 2) continuam à frente dos pisos nesse problema — a derrota do surrogate em UF1 é específica aos métodos com GP, não à classe assistida como um todo.",
+      "aplicabilidade": "① endpoint comparado ao piso (aqui, MOEA/D) da mesma forma que a ficha 9 faria; mecanismo explicado via ③ (qualidade do modelo com poucos dados/NGP subamostrado) — confirmar exigiria ⑥ (filme) para checar se o orçamento foi de fato gasto em exploração e não em convergência, informação que o artigo não grava explicitamente (é inferência dos autores, não medição direta)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação do tipo de surrogate (BNN vs GP) sob muitos dados/alta dimensão — escalabilidade",
+      "grupo_sugerido": "E",
+      "descricao": "Réplica em 50D da ablação NN-vs-GP: BS-MOBO (BNN) contra BS-MOBO-GP (GP subamostrado a NGP=300 pontos), agora com muitos dados disponíveis (até 1000 avaliações). É o resultado central de escalabilidade do artigo: a mesma comparação que favorecia o GP em baixa dimensão (entrada A2) se inverte aqui.",
+      "literal": "BS-MOBO (with average rank 2.259) outperforms BS-MOBO-GP (with average rank 3.778) and other algorithms on most test instances.",
+      "localizador": "Sec. IV-B-2",
+      "metricas": [
+        "IGD (mean, std, rank) — reaproveitada da Tabela II"
+      ],
+      "testes": [
+        "nenhum teste direto entre BS-MOBO e BS-MOBO-GP (leitura descritiva de rank médio, ambos comparados a BS-MOBO_g na Tabela II, não entre si)"
+      ],
+      "convencoes": "Mesma tabela/convenções da Tabela II.",
+      "achado": "Em alta dimensão/muitos dados (D=50, até 1000 avaliações), BS-MOBO (BNN, rank médio 2.259) supera BS-MOBO-GP (GP, rank médio 3.778) na maioria dos problemas — o INVERSO do observado em pequena escala (entrada A2). Explicação dos autores: a BNN pode usar TODOS os pontos avaliados para treinar, enquanto o GP tem custo cúbico e precisa se limitar a uma subamostra (NGP=300 de até 1000 pontos).",
+      "aplicabilidade": "exige rodar variante do próprio algoritmo com GP no lugar da BNN sob o mesmo protocolo de alta dimensão — usar ① (endpoint) e ④ (tempo de ajuste, para confirmar o custo cúbico do GP forçando a subamostragem) para reproduzir o padrão, caso o algoritmo entrasse no roster."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação da informação de gradiente (Sobolev training) sobre o surrogate, alta dimensão",
+      "grupo_sugerido": "E",
+      "descricao": "Réplica em 50D da ablação do uso de gradiente: BS-MOBO_g (com gradiente) contra BS-MOBO (sem gradiente), agora em alta dimensão — sem as exceções negativas (F4/F8) observadas em pequena escala.",
+      "literal": "BS-MOBO g performs significantly better than BS-MOBO and has the best overall performance with average rank 1.370.",
+      "localizador": "Sec. IV-B-3",
+      "metricas": [
+        "IGD (mean, std, rank) — reaproveitada da Tabela II"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=0.05 — BS-MOBO_g (referência) vs. BS-MOBO, reportado na própria Tabela II (18/8/1 vitórias/empates/derrotas para BS-MOBO_g)"
+      ],
+      "convencoes": "Mesma tabela/convenções da Tabela II.",
+      "achado": "BS-MOBO_g tem o melhor rank médio de toda a Tabela II (1.370), superando BS-MOBO (2.259) — 18 vitórias, 8 empates, 1 derrota (linha +/=/- da Tabela II) — sem as exceções negativas de F4/F8 observadas na Tabela I; o ganho de incorporar gradiente é ainda mais consistente em alta dimensão.",
+      "aplicabilidade": "exige rodar variante do algoritmo com/sem gradiente sob o mesmo protocolo de alta dimensão; usar ① para o placar; exige gradiente analítico disponível para o problema, o que a maioria dos 28 problemas da dissertação não oferece nativamente."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de convergência (execução mediana do IGD, escala logarítmica) versus número de avaliações reais, para 4 instâncias selecionadas (ZDT1, F2, UF3, UF8) de 50 dimensões, comparando os 7 algoritmos da Tabela II ao longo do intervalo de 500 a 1000 avaliações.",
+      "literal": "Fig. 5 presents the evolutions of the median IGD values obtained by different algorithms on selected test instances.",
+      "localizador": "Sec. IV-B-3, Fig. 5",
+      "metricas": [
+        "IGD (mediana, ao longo das avaliações)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução mediana (não média) por algoritmo; eixo Y em log (Log IGD); eixo X de 500 a 1000 avaliações (não cobre o início do orçamento, só a fase pós-DoE de 500-1000); apenas 4 das 27 instâncias mostradas ('selected test instances'), critério de seleção não explicitado.",
+      "achado": "BS-MOBO e BS-MOBO_g convergem mais rápido que os demais algoritmos nas 4 instâncias mostradas; BS-MOBO_g é consistentemente o mais rápido. HIGA-MO (sem modelo, mas baseado em gradiente) supera os métodos Kriging-based em algumas instâncias, mas é amplamente superado por BS-MOBO_g.",
+      "aplicabilidade": "① avaliações reais acumuladas → ND corrente → métrica (IGD+/HV) por checkpoint, execução mediana — diretamente análogo à ficha 26, mas aqui restrito a 4 de 27 problemas e ao trecho final do orçamento (500-1000, não do início)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade ao tamanho do lote (parâmetro de paralelismo k) sobre a frequência de retreino",
+      "grupo_sugerido": "E",
+      "descricao": "Estudo de sensibilidade ao tamanho do lote k (número de soluções avaliadas em paralelo por iteração) para BS-MOBO e suas variantes, em 4 instâncias de 8 dimensões selecionadas, com o orçamento total fixo (a variação de k muda o número de iterações/retreinos do modelo, não o total de avaliações).",
+      "literal": "Fig. 6 shows a sensitivity analysis of the batch size for BS-MOBO and its variants on four selected 8-dimensional test instances. There is no single best choice of batch size for different algorithms on different problems.",
+      "localizador": "Sec. IV-C, Fig. 6",
+      "metricas": [
+        "IGD (mediana)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução mediana; 4 instâncias de 8D selecionadas (não especificadas quais no texto lido); vários valores de k testados (parâmetro de paralelismo do lote), sem indicação de quantas execuções por valor de k.",
+      "achado": "Não há um tamanho de lote universalmente melhor entre algoritmos/problemas. Batch muito pequeno (ex. k=2) não explora suficientemente a frente de Pareto estimada pelo surrogate; batch muito grande (ex. k=20) com orçamento total pequeno e fixo (ex. 100) resulta em poucas iterações (100/20=5), logo poucas atualizações do modelo substituto, prejudicando a aproximação. O artigo também nota, citando outro trabalho, que em otimização bayesiana MONO-objetivo lotes maiores tendem a piorar o desempenho — mas isso 'is not the case for model-based multi-objective optimization algorithms', já que aqui o objetivo é cobrir um CONJUNTO de soluções, não achar um único ótimo.",
+      "aplicabilidade": "exige rodar variante do algoritmo com outros valores de k — não reproduzível só com pós-processamento dos dados de uma única execução; exige desenho experimental com lote q>1 explícito, análogo (em espírito) à ficha 64 da dissertação, mas aqui variando k dentro do PRÓPRIO algoritmo em vez de comparar contra q=1."
+    },
+    {
+      "fichas": [
+        23,
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Estudo de caso do problema real Rosetta (trajetória espacial, biobjetivo, D=22, gradiente disponível): evolução do hipervolume mediano (10 execuções independentes) versus número de avaliações reais, para os mesmos 7 algoritmos da comparação de 50D, usando ponto de referência fixo [500, 8] (pois a frente de Pareto verdadeira do problema real é desconhecida).",
+      "literal": "Since we do not know the ground truth Pareto front of this problem, we report the hypervolume with reference point [500, 8] as the performance metric.",
+      "localizador": "Sec. IV-D, Fig. 7",
+      "metricas": [
+        "Hypervolume (mediana, ponto de referência [500, 8])"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução mediana (10 execuções); eixo Y = hipervolume (maior é melhor, ao contrário do IGD); eixo X de 500 a 1000 avaliações; métrica trocada de IGD para hipervolume justamente por não haver frente verdadeira conhecida no problema real.",
+      "achado": "BS-MOBO e BS-MOBO_g têm desempenho significativamente melhor que os demais algoritmos no problema real Rosetta; BS-MOBO_g deve ser a escolha preferida quando gradiente está disponível, confirmando em um caso real o padrão observado nos benchmarks sintéticos de alta dimensão.",
+      "aplicabilidade": "① avaliações reais acumuladas → HV do ND corrente por checkpoint, execução mediana — análogo à ficha 26, mas usando HV em vez de IGD+ por falta de frente verdadeira, e num problema real fora dos 3 problemas reais da dissertação (RE21/ESTOQUE40/DDMOP7); ficha 23 se aplica no sentido de 'problema real como caso nomeado com sua própria história' (aqui, disponibilidade de gradiente é a característica central do caso)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Fronteira aproximada entre algoritmos sem frente verdadeira conhecida (caso real)",
+      "grupo_sugerido": "H",
+      "descricao": "Visualização qualitativa da fronteira de Pareto aproximada (melhor execução, presumivelmente) obtida por cada um dos 7 algoritmos no problema real Rosetta, no espaço de objetivos (ΔV total vs. tempo de viagem ao quadrado) — sem frente verdadeira conhecida para comparação, apenas algoritmo contra algoritmo, verificando dominância mútua visualmente.",
+      "literal": "Fig. 8 presents the best approximated Pareto front obtained by different algorithms on the Rosetta problem.",
+      "localizador": "Sec. IV-D, Fig. 8",
+      "metricas": [
+        "nenhuma métrica numérica — comparação visual de dominância no espaço de objetivos"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Uma frente por algoritmo (a 'melhor' obtida, critério de seleção entre as 10 execuções não detalhado), plotada no espaço de objetivos bidimensional; sem frente verdadeira de referência.",
+      "achado": "As soluções obtidas por BS-MOBO e BS-MOBO_g dominam a maior parte das soluções obtidas pelos outros algoritmos no espaço de objetivos, confirmando visualmente a superioridade já indicada pela curva de hipervolume (Fig. 7).",
+      "aplicabilidade": "não reproduzível sem frente verdadeira — usar ① (ND final, execução escolhida) plotado no espaço de objetivos seria o análogo mais próximo, mas a ficha 54 da dissertação pressupõe comparação CONTRA a frente verdadeira, que aqui não existe; portanto tratado como tipo novo, irmão da ficha 54 mas sem verdade de referência."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo declara ter calculado também a métrica de diferença de hipervolume (I-_H) para todas as comparações de pequena e grande escala (o mesmo desenho da Tabela I/II, mas com outra métrica), porém os números não são mostrados no corpo do artigo — apenas remetidos ao material suplementar, que não está disponível/anexado para leitura nesta extração.",
+      "literal": "Due to the page limit, the experimental results of hypervolume difference are reported in the supplementary material.",
+      "localizador": "Sec. IV-A (texto corrido, antes da Table I); repetido em Sec. IV-B para a Table II",
+      "metricas": [
+        "Hypervolume difference (I- _H)"
+      ],
+      "testes": [
+        "não descrito (presumivelmente o mesmo desenho de Wilcoxon rank-sum da tabela de IGD, mas não confirmável sem o material suplementar)"
+      ],
+      "convencoes": "Não descritas — só mencionada, resultados não mostrados no corpo do artigo.",
+      "achado": "Não determinável a partir do artigo — os valores de hipervolume-diferença não aparecem no texto principal, só a promessa de que existem no material suplementar.",
+      "aplicabilidade": "① endpoint com métrica HV em vez de IGD — reproduzível em princípio (mesma estrutura da ficha 1), mas o artigo não mostra os números; observação: 'só mencionada' — material suplementar não lido/não disponível nesta extração."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Algoritmo híbrido por ensemble simples (GP+BNN) para pequena e grande escala",
+      "grupo_sugerido": "E",
+      "descricao": "O artigo menciona, de passagem, ter proposto um algoritmo híbrido que combina (por um método de ensemble simples, não detalhado) o Gaussian Process e a rede neural bayesiana, alegando bom desempenho tanto em pequena quanto em grande escala — mas remete todos os detalhes e resultados ao material suplementar, sem descrever o mecanismo nem mostrar números no corpo do artigo.",
+      "literal": "with a simple ensemble method, we can propose a hybrid algorithm which achieves good performance for both small and large scale problems.",
+      "localizador": "Sec. IV-A-2 (texto corrido, após a discussão da Table I)",
+      "metricas": [
+        "não descritas no corpo do artigo"
+      ],
+      "testes": [
+        "não descritos no corpo do artigo"
+      ],
+      "convencoes": "Não descritas — só mencionada.",
+      "achado": "Não determinável a partir do artigo — a alegação de bom desempenho em ambas as escalas não vem acompanhada de nenhum número, tabela ou figura no corpo do texto.",
+      "aplicabilidade": "exige implementar e rodar o algoritmo híbrido descrito apenas nominalmente (ensemble GP+BNN) — não reproduzível a partir dos dados existentes; método não detalhado no corpo do artigo. Observação: 'só mencionada' — material suplementar não lido/não disponível nesta extração."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "Não sistematicamente. O artigo oferece apenas uma ilustração QUALITATIVA e pontual (Fig. 2): a média predita ± 2 desvios-padrão do surrogate (com e sem gradiente) contra a função verdadeira sin(x), com só 4 pontos avaliados — sem quantificar cobertura (fração de pontos dentro de μ±2σ vs. o nominal esperado), sem correlação σ-erro, e sem qualquer medição em nenhum dos benchmarks reais de bancada (ZDT/DTLZ/F/UF) nem no caso real Rosetta. A rede bayesiana MC dropout também não é avaliada quanto à acurácia de classificação (não é um classificador) nem quanto à correlação de postos entre μ predito e f verdadeiro.",
+    "literal": "The predictive mean (solid line) ± two standard deviations (shade area) obtained by surrogate models with and without gradient information for sin(x).",
+    "localizador": "Fig. 2 (legenda), Sec. III-A-2"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "(1) Tempo de treinamento (fit) do surrogate — GP vs. BNN MC-dropout, com/sem gradiente — em função do número de amostras de treinamento, para uma função de 30 variáveis (Fig. 3, Sec. III-A-1): mostra que o custo do GP cresce rapidamente (O(N^3), citado textualmente) enquanto o da BNN cresce muito devagar, e que o custo extra do treinamento Sobolev (para incorporar gradiente) é descrito como desprezível. (2) Menção textual (não medida numericamente) de que os 3 métodos Kriging sequenciais (ParEGO, HypI, SMS-EGO) foram excluídos da comparação de 50D 'mainly due to the extremely long running time'. (3) Complexidade teórica citada: GP = O(N^3); GP com gradiente completo = O(K^3 N^3) para K variáveis de decisão — usada para justificar por que gradiente NÃO é incorporado ao GP nos experimentos (só à BNN, via Sobolev, que não muda a complexidade). Não há tempo de parede (wall-clock) total por execução, nem decomposição fit/busca/avaliação para os experimentos de bancada (Tabelas I/II) — só o argumento de escalabilidade teórica do fit, confirmado empiricamente na Fig. 3.",
+    "literal": "The Kriging-based surrogate-assisted algorithms with sequential evaluations (ParEGO, HypI and SMS-EGO) are not suitable for this setting mainly due to the extremely long running time.",
+    "localizador": "Sec. III-A-1 (Fig. 3); Sec. IV-B (texto antes da Table II)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "O framework de seleção em lote proposto (B-HUCB + seleção gulosa) fica preso em ótimos de Pareto locais em problemas com frente/conjunto de Pareto desconectado, resultando em convergência pobre mesmo com o mesmo modelo GP que outros métodos usam com sucesso.",
+      "literal": "BS-MOBO-GP is outperformed by other Kriging-based algorithms on the UF5 and UF6 test instances which both have disconnected Pareto set and many local Pareto optimal points.",
+      "localizador": "Sec. IV-A-1"
+    },
+    {
+      "descricao": "Em orçamento pequeno e baixa dimensão, a escolha de modelo do próprio método proposto (BNN com MC dropout) é PIOR que a alternativa mais simples (Gaussian Process) — resultado negativo específico para o regime de poucos dados, atribuído à necessidade de mais exemplos de treino para redes neurais.",
+      "literal": "The performances of BS-MOBO are worse than those of BS-MOBO-GP for most test instances.",
+      "localizador": "Sec. IV-A-2"
+    },
+    {
+      "descricao": "Incorporar informação de gradiente (via Sobolev training) PIORA o desempenho em dois problemas com funções periódicas complicadas e ligação de variável não-linear, porque o treinamento tenta casar muitas direções locais de gradiente com poucos pontos de dado.",
+      "literal": "BS-MOBO g performs slightly worse than BS-MOBO on F4 and F8 test instances which both have three complicated periodic objective functions with nonlinear variable linkage.",
+      "localizador": "Sec. IV-A-3"
+    },
+    {
+      "descricao": "Em alta dimensão, os métodos baseados em modelo Gaussian Process (incluindo variantes do próprio método) perdem para pisos SEM surrogate em problemas específicos, porque o modelo com poucos dados de treino não aproxima bem a função e o orçamento é gasto explorando o espaço de decisão em vez de convergir.",
+      "literal": "The Gaussian process model with limited training examples cannot approximate the large scale complicated objective functions well. The model-based methods spend all evaluation budget on exploring the decision space for these problems and therefore have poor convergence performances.",
+      "localizador": "Sec. IV-B-1"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "frente/conjunto de Pareto desconectado com múltiplos ótimos locais (UF5, UF6)",
+      "afirmacao": "O framework de seleção em lote do BS-MOBO-GP fica preso em ótimos de Pareto locais e converge mal nesses problemas, apesar de vencer na maioria dos outros.",
+      "literal": "BS-MOBO-GP is outperformed by other Kriging-based algorithms on the UF5 and UF6 test instances which both have disconnected Pareto set and many local Pareto optimal points.",
+      "localizador": "Sec. IV-A-1"
+    },
+    {
+      "caracteristica": "funções periódicas complexas com ligação de variável não-linear (F4, F8)",
+      "afirmacao": "BS-MOBO_g (com gradiente) performa pior que BS-MOBO (sem gradiente) nesses problemas, pois o treinamento Sobolev tenta casar muitas direções locais de gradiente com poucos pontos de dado.",
+      "literal": "For these problems, the Sobolev training method tries to match many local gradient directions with very few data points, and hence performs poorly to approximate the whole complicated function.",
+      "localizador": "Sec. IV-A-3"
+    },
+    {
+      "caracteristica": "alta dimensão (50D) com funções complicadas (ZDT4, UF1)",
+      "afirmacao": "O Gaussian Process com poucos dados de treino (subamostrados) não consegue aproximar bem a função; métodos baseados nesse modelo perdem para pisos sem surrogate nesses problemas específicos.",
+      "literal": "the model-based methods with the Gaussian process model (BS-MOBO-GP, K-RVEA and MOEA/D-EGO) are outperformed by those two model-free methods on some test instances such as ZDT4 and UF1.",
+      "localizador": "Sec. IV-B-1"
+    },
+    {
+      "caracteristica": "muitos objetivos / m=3 (escopo do baseline HIGA-MO)",
+      "afirmacao": "HIGA-MO (piso sem surrogate baseado em gradiente do indicador de hipervolume) só resolve problemas biobjetivo; fica indisponível ('NA') nos 7 problemas de 3 objetivos da bateria de 50D (DTLZ1, DTLZ2, F4, F8, UF8, UF9, UF10).",
+      "literal": "The gradient-based HIGA-MO method is now only suitable for solving bi-objective problems, so its results on three objective problems are unavailable.",
+      "localizador": "Sec. IV-B (texto antes da Table II)"
+    },
+    {
+      "caracteristica": "problema real com gradiente disponível, biobjetivo, 22 variáveis (Rosetta)",
+      "afirmacao": "BS-MOBO e BS-MOBO_g dominam a maior parte das soluções obtidas pelos outros algoritmos; BS-MOBO_g é a melhor escolha quando o gradiente está disponível, mesmo num problema real fora das suítes sintéticas.",
+      "literal": "The solutions obtained by BS-MOBO and BS-MOBO g dominate most solutions obtained by other algorithms, which again confirm their superior performances.",
+      "localizador": "Sec. IV-D"
+    },
+    {
+      "caracteristica": "baixa dimensão / poucos dados de treino (D=8, orçamento pequeno)",
+      "afirmacao": "O Gaussian Process (BS-MOBO-GP) supera a rede neural bayesiana (BS-MOBO) neste regime, pois GPs têm excelente ajuste com poucos dados em baixa dimensão, enquanto redes neurais normalmente precisam de mais exemplos de treino.",
+      "literal": "It is well known that Gaussian process modeling has excellent fitting performances for small datasets in low dimensional space [20]. On the contrary, neural networks usually need more training examples to achieve good fitting performance [50], [51].",
+      "localizador": "Sec. IV-A-2"
+    },
+    {
+      "caracteristica": "alta dimensão / muitos dados de treino disponíveis (D=50, orçamento grande)",
+      "afirmacao": "A rede neural bayesiana (BS-MOBO) supera o Gaussian Process (BS-MOBO-GP) neste regime, pois pode usar TODOS os pontos avaliados no treino, enquanto o GP (custo cúbico) precisa se limitar a uma subamostra de NGP=300 pontos.",
+      "literal": "We can easily use all evaluated solutions to train the Bayesian neural network and obtain good predictions for the objective values and uncertainties, which leads to a much better optimization performance.",
+      "localizador": "Sec. IV-B-2"
+    },
+    {
+      "caracteristica": "alta dimensão / orçamento grande (viabilidade computacional dos baselines)",
+      "afirmacao": "Os métodos Kriging sequenciais (ParEGO, HypI, SMS-EGO), comparados na bateria de 8D, tornam-se inviáveis e são excluídos da bateria de 50D por tempo de execução extremamente longo.",
+      "literal": "The Kriging-based surrogate-assisted algorithms with sequential evaluations (ParEGO, HypI and SMS-EGO) are not suitable for this setting mainly due to the extremely long running time.",
+      "localizador": "Sec. IV-B (texto antes da Table II)"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Leitura completa e integral do artigo (12 páginas), incluindo o ANEXO com a camada de texto bruta completa do PDF (que confirma/reproduz o mesmo conteúdo da conversão estruturada, sem seções adicionais) e o ANEXO de OCR das imagens (só rótulos de eixo/legenda fragmentados das Figs. 3, 5-8, sem conteúdo substantivo novo). Não há Apêndice formal no artigo; há duas remissões explícitas a 'supplementary material' (métrica de hipervolume-diferença completa; algoritmo híbrido GP+BNN por ensemble), ambas listadas acima como análises 'só mencionadas', sem material suplementar anexado para leitura nesta extração. O artigo compara 3 variantes do próprio método (BS-MOBO, BS-MOBO_g, BS-MOBO-GP) — uma ablação natural, nos termos do CARTAO — mas as DUAS dimensões variadas são o TIPO de modelo (BNN vs GP) e a presença de GRADIENTE, nunca o uso da incerteza (σ) em si: a acquisição B-HUCB usa μ-σ (LCB) em TODAS as variantes e em todos os concorrentes comparados, então não há, neste artigo, nenhum contrafactual 'σ=0' (mean-only) análogo à ficha 11/15 da dissertação — a incerteza está sempre 'ligada' aqui, só o modelo que a produz muda. Consistência com as classes da taxonomia atribuídas ao artigo: motor=BO-Hipervolume (a aquisição B-HUCB e a seleção gulosa maximizam contribuição de hipervolume sobre a LCB); função da incerteza=O1 Aquisição exploratória (σ subtraído de μ empurra a busca para regiões incertas, otimismo clássico de LCB/UCB); surrogate=NN-BNN MC-dropout (Sec. III-A, dropout rate 0.05, 2 camadas ocultas de 256 nós, S=20 passagens de dropout); medição=DISC-ENS, discordância entre predições (a variância empírica entre as S=20 saídas estocásticas do MC dropout, Eq. 5, é literalmente um desvio entre 'previsões' de um pseudo-ensemble); regime=online (o dataset Dt cresce a cada iteração com avaliações reais em lote, sem fase offline separada). Todas as 5 classes atribuídas se confirmam diretamente no texto do artigo. Diferenças metodológicas notáveis frente ao protocolo da dissertação: (a) métrica primária é IGD (média/desvio-padrão), não IGD+ (mediana); (b) o DoE inicial consome uma fração muito maior do orçamento total que a convenção 31D-1 da dissertação (37.5% em D=8: NI=60/NFE=160; 50% em D=50: NI=500/NFE=1000); (c) todas as comparações usam lote (q=5 ou q=25) para os métodos 'em lote', não q=1 puro, exceto os 3 baselines sequenciais Kriging da Tabela I; (d) as suítes UF (CEC'09) e F (RM-MEDA) não fazem parte da bateria de 28 problemas da dissertação (só ZDT/DTLZ se sobrepõem nominalmente, em dimensões D=8/D=50 que não necessariamente coincidem com as usadas na dissertação); (e) nenhum dos 3 problemas reais da dissertação (RE21/ESTOQUE40/DDMOP7) é usado — o caso real aqui é a trajetória espacial Rosetta (ESA), biobjetivo, D=22, com gradiente disponível; (f) o próprio BS-MOBO não está no roster experimental (roster=false), então nenhuma das análises acima é diretamente reprodutível pelas 7 camadas da dissertação sem rodar o algoritmo do zero — a utilidade deste artigo para a dissertação é sobretudo de fundamentação da classe taxonômica NN-BNN-MC-dropout / DISC-ENS / O1 e de catálogo de tipos de análise (vários marcados 'nova' acima, sobretudo o padrão de ablação NN-vs-GP cruzado com regime de dados pequeno/grande, e o padrão de controle-por-modelo-fixo para isolar o framework de aquisição). roster_bloco = null por instrução do pedido (artigo fora do roster experimental)."
+}

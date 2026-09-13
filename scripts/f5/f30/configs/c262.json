@@ -1,0 +1,478 @@
+{
+ "config": "c262 — qNEHVI (Daulton, Balandat & Bakshy, \"Parallel Bayesian Optimization of Multiple Noisy Objectives with Expected Hypervolume Improvement\"), Python/BoTorch 0.18.1, exp=main, campanha 30 sementes",
+ "cobertura": "CENSO COMPLETO, nao amostra: 687/687 celulas existentes auditadas (100%) para as camadas ⑥①②④⑤. Grade nominal 25x30=750; existem 687 — faltam 63 (sementes 18, 25 e 26 em 21 dos 25 problemas; DTLZ1/MMF1/MMF11_L/MMF4 tem as 30). Bate com o censo da torre (c262: ok 564, teto 90, fail 33). Volume varrido: 179.996 decisoes, 277.377 FE reais, 405.245 objetivo-iteracoes de modelo_hp, 90.978 blocos de sonda, 174.030 decisoes nas 654 celulas com fecho, 1.814 h-core. Metodo: parse streaming linha-a-linha dos 290 MB de .jsonl + leitura integral dos 26 MB de ①, em 6 processos (3,6 s + 8,7 s). RESSALVA DE COBERTURA: a ③ e bucket-only (D54) — existe localmente em apenas 40/687 celulas, e 24 dessas 40 sao falhas de WFG1, ou seja a amostra de ③ e ENVIESADA PARA A PATOLOGIA. Tudo que depende de ③ (U5, U6, U11, F2, F3) foi medido nessas 40 celulas (6.396 blocos online, 6.466.000 linhas de sonda) e esta declarado como tal. Duplicatas cross-VM do c262: apenas 7 pares (vm1xvm5 4, vm1xvm2 1, vm1xvm4 1, vm10xvm5 1) — todas comparadas. Nada foi executado: nenhuma invocacao de experiments.py / experiment.run / experiments.m; escrita apenas no scratchpad.",
+ "N1_invariancia": "AS IDENTIDADES ESTRUTURAIS SOBREVIVEM AS 30 SEMENTES — e a fracao e essencialmente 1,0000.\n\nQuery-joia 1 (F1, argmax da aquisicao) — o escolhido E o max dos 10 restarts, BIT-A-BIT (|Δ|=0,0 em float64): 179.996/179.996 decisoes = 100,0000%, em 687/687 celulas, 25/25 problemas, 30/30 sementes, incluidos os 564 hard-stops e as 33 celulas que morreram. ZERO excecoes. n_restarts==len(acqf_todos_restarts)==10 em 179.996/179.996. alpha nao-finito em 0/179.996 (o qualificador isfinite da regra I-12 e INERTE tambem em escala).\n\nQuery-joia 2 (F2, elo ⑥→③→①) — medida nas 40 celulas com ③ local: 6.396/6.396 blocos online com exatamente 10 linhas; marcacao correta (1 linha marcada nos infills, 0 no hard-stop) em 6.396/6.396; a marcada e a ULTIMA das 10 em 6.390/6.390 infills; max|Δx| ③x① = 0,0 (bit-a-bit) em 6.390/6.390; real_solution_id NULL em 100% das 6.466.000 linhas de sonda. Fracao 1,0000 — mas sobre corpus enviesado (24/40 sao WFG1).\n\nQuery-joia 3 (F3, ordem I-12 da ③): 17.561 pares de x-duplicatas nas 40 celulas. Violacoes sob a regra declarada: 10 (0,06%); sob leitura ingenua (identidade): 7.074 (40,28%); sob permutacao aleatoria: 9.979 (56,82%). A regra domina por TRES ordens de grandeza. Os 3,90% que a T11 mediu na s42 eram colapso float32 especifico do ZDT1 (D53), nao residuo da regra.\n\nQuery-joia 4 (F4, identidade fechada do ruido sob Standardize): noise_j == max(1e-6, 1e-6/Var_ddof1((-f_j)[:n_train])) fecha em 403.162/403.162 objetivo-iteracoes = 100,0000%, erro relativo maximo GLOBAL 3,839e-7 (T11 na s42: 1,429e-7). Piso 1e-6 do gpytorch ativo em 181.126/403.162 (44,9%).\n\nComplementares em censo total: ARD vivo (lengthscale_max>lengthscale_min) 405.245/405.245; h1!=h2 179.996/179.996 e 539.988/539.988 sementes (torch_seed,h1,h2) distintas; S6 algebra do ref = nadir+0,1(nadir-ideal) com Δ=0,0 em 687/687; U2 DoE bit-a-bit contra o artefato POR SEMENTE (data/doe/{prob}/doe_{prob}_{seed}.parquet) max|ΔX|=0,0 sob cast float32 em 686/686 (1,907e-6 em float64 puro = quantizacao, mesma armadilha da T11); invariantes de timing inv-1 179.555/179.555 e inv-2 90.756/90.756 com 0 falso-positivo; ② blocos==ng+1 em 654/654 celulas com fecho; fe==n_train(+1) 179.432/179.432.\n\nA UNICA IDENTIDADE QUE QUEBROU — e ela quebrou UMA VEZ: F5 (determinismo do refit). A lei da T11 (\"dataset congelado por cache-hit ⟺ hiperparametros bit-identicos\") fecha em 5.354/5.355 pares. A excecao e ZDT6 semente 5, par it 85→86: cache-hit na it 85, n_train 193→193 (dataset congelado), e mesmo assim mll_final 1,1852818553162412 → 1,18528184447316 e o lengthscale/outputscale do obj1 mudam na 7a casa. CAUSA MEDIDA: a it 85 teve fit_retries=2 e a it 86 teve fit_retries=1 — o retry do fit_gpytorch_mll desloca o otimizador e o MAP cai em ponto ligeiramente diferente. A lei correta, refinada por 30 sementes, e \"cache-hit E fit_retries==0 ⟺ HP bit-identicos\". Nao e defeito: e a versao exata da lei, invisivel na s42 porque la fit_retries era 0 em 5.201/5.201.",
+ "N2_tetos_caidos": "A T11 marcou 2 aspectos T (T1 hp internos da acqf — que ela mesma levantou; T2 batch q>1) e listou 6 tetos no §9. Balanco medido:\n\nCAIU 1 — O MAIOR TETO DE DADO DO CONFIG: \"as ⚪ abortam SEM UM PARQUET\". Na s42 as 8 ⚪ abortaram pelo criterio de PROJECAO e a T11 mediu \"0 parquets\" em todas as 9 celulas fora da analise; ela PREVIU que sob DI-43/44 elas passariam a fechar com curva parcial. MEDIDO AGORA: as 90 ⚪ tem ①②④⑤⑥ COMPLETOS em 90/90 (conferido arquivo a arquivo, como a torre exigiu); motivo_parada='teto_wall' em 90/90; footer do runner status='ok' em 90/90 (a regra O-21 em estado puro: manifest failed + rodape ok = ⚪, nao falha); e Σtempo_geracao_s cai em [11,866 h; 12,104 h] em 90/90 — ou seja o RELOGIO DE 12 h da DI-44 e o unico criterio que disparou, em todas as 6 VMs. O criterio de projecao nao abortou nenhuma. A previsao da T11 esta confirmada por dado. Progresso salvo: DTLZ7 73,6-89,9% do orcamento, MMF16_20 81,6-98,9%, ZDT1 93,2-100%, ZDT3 84,7-97,3%.\n\nCAIU 2 — O GUARD DE fit_retries, QUE A T11 NAO CONSEGUIU EXERCITAR. Na T11: \"implementado, NAO exercitado — 0 disparos em 5.201+41 iteracoes; o poder discriminante segue sendo inferencia de codigo, nao observacao\". MEDIDO: 647 retries em 37 celulas (WFG1 21, ZDT6 14, WFG9 2), guard emitido e reconciliado com as decisoes em 687/687 uma vez conhecidas as DUAS excecoes estruturais (a iteracao de crash, cuja decisao nunca foi escrita — WFG1/1 it 237; e a iteracao de hard-stop, cujo registro de decisao NAO carrega a chave fit_retries — ZDT6/8 it 201). E O PODER DISCRIMINANTE, QUE A F5/T11 SO PODIAM INFERIR, AGORA E MEDIDO — E E MUITO MENOR DO QUE SE INFERIU: das 25 mortes de WFG1, 21 tiveram >=1 retry antes (sensibilidade 84%, 4 falsos-negativos: sementes 0, 10, 15, 42), com antecedencia mediana de 21 iteracoes (min 0, max 245); mas das 37 celulas com retry, 16 TERMINARAM BEM (13 ZDT6 com ate 61 retries, 2 WFG9, 1 WFG1) ⇒ VALOR PREDITIVO POSITIVO = 21/37 = 57%. A frase da F5 §9(h) (\"preditor de falha com 1 falso-negativo em 5.241 iteracoes\") nao sobrevive as 30 sementes: o guard e um alerta amarelo util, nao um preditor.\n\nCAIU 3 — AS TRES CORRECOES DA T11 SAIRAM DO SMOKE DE 1 CELULA E VIRARAM PRODUCAO. A T11 so pode prova-las num smoke MMF1/s0 de 61 FE. Agora: acqf_hp com os mesmos 10 campos, dict identico, em 687/687; params no ⑤ com header==manifest byte a byte em 654/654 celulas que passaram pelo write_run_outputs; ordem_terceira_online presente em 687/687 (sigma_dict com hash unico b93beb6d775f nas 687); campanha_id 7f4f0e429a46_M8, repo_hash 63db46b1006... real e schema_version=2 em 687/687 (o sentinela repo_hash=None da s42 morreu).\n\nCAIU 4 — O TETO nº 6 (resolucao float32) VIROU NUMERO POR SEMENTE: U2 max|ΔX|=0,0 sob cast float32 em 686/686 e 1,907e-6 em float64; U5 (join sonda x gabarito) 1,907e-6 em float64 e 0,0 sob cast em 40/40.\n\nNAO CAIU — T2, o batch q>1: q==1 em 687/687 celulas, lote_solution_ids de tamanho 1 em 179.432/179.432 infills, e a campanha das 30 sementes NAO TEM regime batch (exp=main em 687/687). A contribuicao-titulo do artigo (Eq. 6, §6.1, Apendice F, Figs. 4/6) segue 100% nao exercitada. Este teto nao apenas nao caiu: a nova campanha nem sequer abriu a porta que a DI-43/44 tinha destrancado.\n\nNAO CAIU — os tetos 2 (matematica interna da CBD), 3 (contagem efetiva das NumericalWarning, suprimidas pelo warning_filter declarado em 687/687) e 4 (nao-perturbacao da sonda como artefato).\n\nTETO NOVO, CRIADO POR ESTA CAMPANHA: a ③ e bucket-only (D54). Na T11 a ③ estava completa nas 21 celulas s42 (5,3 M linhas). Agora existe localmente em 40/687 celulas, enviesadas para falha. U6 (o surrogate aprende?), U11 (erro de fantasia) e F3 (I-12) sofreram REGRESSAO de verificabilidade em relacao a T11.",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "SAA com base samples fixos torna a aquisicao DETERMINISTICA, permitindo metodos de ordem superior e garantias de convergencia (Teorema 1: alpha_N(x*_N) -> alpha(x*) q.c.). Consequencia testavel: dado o dataset, a decisao e reprodutivel.",
+   "onde_no_artigo": "§7 'SAA Convergence Results' + Teorema 1 (linhas 162-166); prova no Apendice E (linha 475)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO, TRIPLAMENTE. (i) escolhido == argmax bit-a-bit em 179.996/179.996 decisoes, 30 sementes, 25 problemas, |Δ|=0,0; (ii) determinismo do refit sob dataset congelado: 5.354/5.355 pares HP bit-identicos exatamente nos cache-hits, a unica excecao explicada por fit_retries>0; (iii) reproducao CROSS-MAQUINA: 7/7 duplicatas com ① bit-identica e acqf_escolhido identico em todas as decisoes do prefixo comum. O determinismo prometido pelo Teorema 1 se sustenta em 4 pares de VMs distintas."
+  },
+  {
+   "afirmacao": "'For greater efficiency, we may also prune Xn to remove points that are dominated with high probability, WHICH WE ESTIMATE VIA MC' — o prune e PROBABILISTICO, nao geometrico.",
+   "onde_no_artigo": "Nota de rodape 4 (§5/§6, CBD)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO E AGORA COM 17 TESTEMUNHAS (a T11 tinha 1). Identidade 'n_baseline>0 <=> existe ponto do treino ESTRITAMENTE dentro da caixa do ref' fecha 179.008/179.025 = 99,991%. Os 17 mismatches sao TODOS do mesmo tipo (n_baseline>0 com 0 pontos dentro) e TODOS por tangencia: a margem relativa do melhor ponto varia de 9,05e-4 a 3,35e-3, isto e, o ponto esta 0,09%-0,33% FORA da caixa e parte das 128 amostras MC o coloca dentro. Prune desligado daria n_baseline==n_train sempre; prune geometrico daria 179.025/179.025. A assinatura da rodape 4 e a unica leitura compativel."
+  },
+  {
+   "afirmacao": "'We model each outcome with an independent GP with a Matern 5/2 ARD kernel and infer the GP hyperparameters via MAP estimation. For all problems, we assume that the noise variances are OBSERVED.'",
+   "onde_no_artigo": "§9 (linha 180)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO. Ruido observado e fixo: identidade fechada noise_j = max(1e-6, 1e-6/Var(Y)) em 403.162/403.162 objetivo-iteracoes, err rel max 3,84e-7 — prova simultaneamente train_Yvar=1e-6 na escala ORIGINAL, Standardize ativo (divide por std^2), e treino = exatamente as primeiras n_train linhas em ordem de fe_index (sem subamostragem). ARD vivo em 405.245/405.245. 1 fit por iteracao, do zero: ④==⑥==timing==⑤.n_geracoes em 654/654 celulas com fecho. kernel declarado 'Matern-5/2-ARD gamma-prior (D30)' em 687/687."
+  },
+  {
+   "afirmacao": "O GP e 'a flexible, non-parametric model known for its WELL-CALIBRATED PREDICTIVE UNCERTAINTY' — a calibracao e a premissa da EHVI.",
+   "onde_no_artigo": "§2 (motivacao da EHVI)",
+   "testavel_com_30": false,
+   "resultado": "PARCIAL / TETO — a ③ e bucket-only. Medido apenas nas 40 celulas com ③ local (24 delas falhas de WFG1). Excluindo WFG1 (16 celulas, 35 celula-objetivo): ΔWAPE 1o->ultimo bloco mediana -43,4%, 34/35 MELHORAM, cobertura final mediana 0,9915, >=0,90 em 30/35, 0 sigma-NaN em 2000 pts/bloco. Direcao coerente com a T11 (-8,58%, 40/46). No WFG1 (48 celula-objetivo): ΔWAPE +714,6%, 0/48 melhoram, cobertura 1,0000 (posterior largo demais) — a assinatura do GP que vai morrer. NAO MEDIDO em escala: o corpus local nao permite testar a calibracao nas 647 celulas saudaveis."
+  },
+  {
+   "afirmacao": "Abstract: 'competitive wall-times'; §H.1: 'we observed TRACTABLE WALL TIMES, even when generating q=32 candidates'; Fig.2: CBD leva a complexidade de exponencial para POLINOMIAL em q. Tabelas 3/4 reportam 0,58 s a 546,8 s por batch.",
+   "onde_no_artigo": "Abstract (linha 16), §H.1 (linha 730), Figs. 2 e 6, Tabs. 3/4",
+   "testavel_com_30": true,
+   "resultado": "REFUTADO FORA DO ENVELOPE DO ARTIGO — e este e o achado distribucional mais consequente. O artigo mede em GPU V100 com d<=8 e ~200-224 FE; nunca encontra a parede. Nos, em CPU pinada a 1 thread, com D ate 30 e ate 929 FE: 90/687 celulas (13,1%) BATERAM O TETO DE 12 h com q=1, e 4 problemas inteiros ficaram trucados (DTLZ7 26/27, ZDT3 25/27, MMF16_20 25/27, ZDT1 14/27). Custo total 1.814 h-core. E o termo que explode NAO e o Cholesky: a BUSCA (aquisicao) consome mediana 90,0% de (fit+busca) (p10 82,0%, p90 98,6%, min 64,2%) em 687 celulas — a T11 mediu 90,6% em 21. Expoente empirico t_busca ~ n^k: mediana 2,00, p90 3,89, max 10,85; t_fit: mediana 1,52. Confirma em escala a correcao que a T11 fez ao INVENTARIO (que atribuia a parede ao refit n^3)."
+  },
+  {
+   "afirmacao": "Figs. 3/4 e H: toda a evidencia empirica e reportada como media +/- 2 SEM sobre 100 REPLICAS; o metodo e apresentado como 'consistently performs best' e de desempenho 'state-of-the-art'. Isto pressupoe (a) que as replicas COMPLETAM e (b) que a variancia entre replicas e pequena o bastante para a banda ter sentido.",
+   "onde_no_artigo": "Fig. 3 legenda (linha 195), §9.1 (linha ~205), Figs. 4/9/11",
+   "testavel_com_30": true,
+   "resultado": "PRESSUPOSTO (a) REFUTADO, PRESSUPOSTO (b) SO PARCIALMENTE VALIDO. (a) Taxa de conclusao: 26/687 celulas (3,8%) morrem por falha do PROPRIO algoritmo (ModelFittingError), e em WFG1 isso e 25/27 = 92,6% das replicas. O artigo reporta crashes de RIVAIS (DGEMO 'consistently crashed in the graph cutting algorithm', §H.1/Tab.3) mas nunca do qNEHVI; nos medimos um problema em que o qNEHVI so completa 2 de 27 replicas. (b) Variancia entre sementes (proxy meu: HV Monte Carlo 20k pts no espaco normalizado por ideal/nadir S.5, ref 1,1 — NAO e a metrica oficial D69): CV de 0,0% (BBOB_F1, ZDT1) a 50,3% (DTLZ4), 32,0% (BBOB_F55), 18,2% (BBOB_F49), 15,0% (WFG9), 12,7% (ZDT6). A estabilidade nao e uniforme: em 1/3 dos problemas a dispersao entre replicas e da ordem da diferenca entre metodos."
+  },
+  {
+   "afirmacao": "§G.4: o ref-point sai do nadir NOISELESS componente a componente pela heuristica r = f_nadir - beta*(f_ideal - f_nadir), beta=0,1 (Tab. 2 fixa um ref por problema).",
+   "onde_no_artigo": "§G.4 + Tabela 2",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO na algebra e MEDIDA A CONSEQUENCIA OPERACIONAL, que o artigo nao antecipa. acqf_ref_f == nadir_s5 + 0,1*(nadir_s5 - ideal_s5) com Δ=0,0 em 687/687. Mas: em DTLZ1 (30/30 sementes), DTLZ3 (27/27) e ZDT4 (27/27) — 84 celulas, 100% das sementes de cada um — NENHUM FE real cai dentro da caixa do ref e n_baseline=0 em TODAS as iteracoes; a aquisicao opera sem baseline o run inteiro. O proxy de HV dessas 84 celulas e EXATAMENTE 0,0000 (desvio-padrao 0,0000), medida independente que fecha com o n_baseline. Na s42 a T11 viu isto em 3 celulas; agora esta provado invariante a semente em 84/84. Vantagem informacional de oraculo (D73) que vira desvantagem operacional em problema mal-escalado."
+  },
+  {
+   "afirmacao": "§5.1/H.7: a NEHVI se REDUZ a EHVI no caso sem ruido; H.7 mede explicitamente o regime noiseless e ali a qNEHVI 'performs competitively with qEHVI(-PM-CBD)'.",
+   "onde_no_artigo": "§5.1; Apendice H.7 (linha 947)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO como REGIME (a maquinaria noisy fica dormente, D40/B8.6a): train_Yvar=1e-6 em 687/687 + identidade F4 em 403.162/403.162. O artigo ampara o regime (H.7), portanto e desvio SANCIONADO, nao infidelidade. NAO TESTAVEL a comparacao com qEHVI: nao ha braco qEHVI nesta campanha."
+  },
+  {
+   "afirmacao": "Abstract/§9.1: 'substantially MORE ROBUST TO OBSERVATION NOISE than existing MOBO approaches'; H.6 varre ruido de 1% a 30% da faixa.",
+   "onde_no_artigo": "Abstract (linha 16), §9.1, Apendice H.6",
+   "testavel_com_30": false,
+   "resultado": "NAO TESTAVEL: os 25 problemas do protocolo sao DETERMINISTICOS e a D40 rota (a) fixou train_Yvar=1e-6 (ruido verdadeiro = 0). A contribuicao central do artigo — robustez a ruido — nao tem como ser exercitada por esta campanha, com 30 sementes ou com 3.000. Fica declarado, nao medido."
+  },
+  {
+   "afirmacao": "Eq. (6) + §6.1 + Apendice F: selecao greedy sequencial do lote com garantia submodular (>= (1-1/e) do otimo); Figs. 4/6 e o TITULO do artigo ('Parallel...') sao sobre q>1.",
+   "onde_no_artigo": "Eq. 6, §6.1, Apendice F, Figs. 4 e 6, titulo",
+   "testavel_com_30": false,
+   "resultado": "NAO EXERCITADO — T inalterado e AGRAVADO. q==1 em 687/687 celulas e lote de tamanho 1 em 179.432/179.432 infills. A campanha das 30 sementes e exclusivamente exp=main; nao ha celula batch. A T11 registrou que a DI-43/44 abrira o caminho para fechar este teto; ele nao foi tomado. Metade do mecanismo publicado segue sem prova por dado nosso."
+  },
+  {
+   "afirmacao": "§G.2: 'All MC acquisition functions use N = 128 quasi-MC samples'; inicializacao com 2(d+1) pontos de uma sequencia Sobol scrambled.",
+   "onde_no_artigo": "§G.2",
+   "testavel_com_30": true,
+   "resultado": "MC=128 confirmado declarativamente em 687/687 (mais sampler semeado por h1, h1!=h2 em 179.996/179.996). O DoE DIVERGE por decisao citada: 11D-1 pontos LHS carregados do artefato por semente (D63/Anexo J), nunca regenerados — medido n_init==11D-1 em 686/686 e max|ΔX| contra data/doe/{prob}/doe_{prob}_{seed}.parquet = 0,0 sob cast float32 em 686/686. E desvio (2) sancionado, o que torna a comparacao transversal justa entre os 16 algoritmos."
+  },
+  {
+   "afirmacao": "A aquisicao usa o operador [.]+ HARD (Eq. 1/3), logo alpha >= 0 por construcao.",
+   "onde_no_artigo": "Eqs. 1 e 3",
+   "testavel_com_30": true,
+   "resultado": "DIVERGENCIA DE VERSAO CONFIRMADA POR ASSINATURA NUMERICA (E.2, qNEHVI -> qLogNEHVI): alpha < 0 em 136.418/179.996 decisoes (75,8%; a T11 mediu 68,7% na s42), faixa global [-53,630; +23,450]. 337/687 celulas com 100% de alpha negativo (problemas normalizados) e 128/687 com 0% (BBOB de escala grande). Impossivel no qNEHVI cru — o sinal do alpha e teste de identidade da variante que nao depende de declaracao."
+  }
+ ],
+ "N4_deriva": "DERIVA CROSS-MAQUINA MEDIDA = ZERO. Nao \"pequena\": zero, no limite da resolucao dos artefatos.\n\nAmostra: o c262 tem apenas 7 celulas duplicadas entre VMs (nao ~2,6 mil — esse numero e da campanha inteira). Os 7 pares cobrem 4 combinacoes de maquina: vm1xvm5 (4: DTLZ1/7, MMF1/7, MMF11_L/7, MMF4/7), vm5xvm10 (1: MMF1/42), vm1xvm2 (1: ZDT1/11), vm1xvm4 (1: ZDT3/10).\n\nMedida 1 — camada ① (X e F, todas as linhas do prefixo comum): max|ΔX| = 0,0 e max|ΔF| = 0,0 em 7/7 pares. BIT-IDENTICAS.\nMedida 2 — camada ⑥ (acqf_escolhido, iteracao a iteracao, float64 do JSON): identico em TODAS as decisoes do prefixo comum em 7/7 pares. Primeiro indice de divergencia: nenhum.\nMedida 3 — dois dos pares sao um run TRUNCADO contra o run completo (ZDT1/11: 245 vs 675 decisoes; ZDT3/10: 303 vs 563). O prefixo de 245 e de 303 decisoes reproduz o run completo bit-a-bit — ou seja, uma execucao reiniciada em outra maquina refaz a trajetoria anterior exatamente.\n\nPiso de ruido: nao ha piso a estabelecer, porque nao ha ruido. A deriva medida (0) esta ABAIXO de qualquer piso concebivel, inclusive do eps-float32 (1,19e-7) que domina os artefatos.\n\nPor que zero, e o que isso significa para a doutrina: as 6 VMs sao TODAS Linux/x86_64 (medido: plataforma 'Linux/x86_64' em 687/687), com ambiente identico em 687/687 (botorch 0.18.1, torch 2.11.0+cu130, gpytorch 1.15.2, python 3.11.9, numpy 2.4.6) e botorch_record_sha256 = e08d996fce78... IDENTICO nas 687; pinning identico em 687/687 (torch_num_threads=1, float64, device cpu, OMP/OPENBLAS/MKL/NUMEXPR = 1); fused_kernel = 'OFF-explicito (python puro; DEF-L2/S.3#9)' em 687/687. Distribuicao real de hosts: vm1 202, vm3 154, vm5 127, vm2 75, vm10 75, vm4 54.\n\nLEITURA PARA A FIDELIDADE (e uma recomendacao, nao uma sentenca): a doutrina do RUNBOOK §6.2 (\"floats nao sao bit-identicos entre plataformas ⇒ fidelidade estatistica, nao bit-exata\") e uma regra CONSERVADORA que, para o c262, nao precisa ser invocada. Dentro da frota Linux/x86_64 com o pin de 1 thread e o kernel fusionado desligado, a reproducao E bit-exata — 7/7. O padrao de prova da auditoria da semente 42 (bit-identidade) continua VALIDO para este config. Isso importa porque significa que qualquer contraste c262 x outro algoritmo nao carrega ruido de maquina: o que se medir e sinal.\n\nRessalva honesta 1: n=7 e pequeno; nao mede a diferenca de SHAPE entre N2/Intel (nao sei quais das 7 celulas rodaram em shapes distintos — o header so registra o host logico, nao o modelo de CPU).\nRessalva 2: a janela de swap da vm5 pos-15:20 UTC de 14/08 NAO afeta este corpus — os timestamps do c262 vao de 2026-08-01 a 2026-08-14 com apenas 4 celulas em 14/08, e o resultado numerico nao depende de timing de qualquer forma. Nao medido: se alguma dessas 4 caiu na janela.\nRessalva 3: nenhum par cruza Mac x Linux; o risco que a DEF-L2 antecipa (fallback silencioso do kernel fusionado no arm64, reproduzido pela T11) permanece fora desta medida.",
+ "N5_cauda": "A CAUDA DO c262 SAO TRES POPULACOES DIFERENTES, E O CENSO AS MISTURA. Separando-as:\n\n(A) 90 ⚪ teto_wall — NAO SAO FALHA, SAO ORCAMENTO DE PAREDE. manifest failed + rodape do runner ok (O-21 em estado puro). Sigma tempo_geracao em [11,87 h; 12,10 h] em 90/90 ⇒ relogio de 12 h da DI-44, criterio unico. Camadas ①②④⑤⑥ completas em 90/90 (conferido). Distribuicao: DTLZ7 26/27, ZDT3 25/27, MMF16_20 25/27, ZDT1 14/27. Progresso salvo: DTLZ7 73,6-89,9% do orcamento, MMF16_20 81,6-98,9%, ZDT3 84,7-97,3%, ZDT1 93,2-100,0%. ORCAMENTO DE FE COMUM para a analise: DTLZ7 <=501 FE (de 681), MMF16_20 <=505 (de 619), ZDT3 <=787 (de 929), ZDT1 <=866 (de 929). O que a cauda diz do ALGORITMO: o qNEHVI nao e caro por causa do GP — a busca da aquisicao e 90,0% do custo (mediana em 687 celulas) com expoente empirico ate 10,85 em n. Sao os 4 problemas de maior (D x orcamento) que estouram. Isto contradiz o \"competitive wall-times\" do artigo fora do envelope dele (GPU, d<=8, 224 FE).\n\n(B) 26 FALHAS DO ALGORITMO — ModelFittingError, a incapacidade real.\n  WFG1: 2/27 ok (sementes 7 e 12), 25/27 falham. Stack identico: src/c262_qnehvi.py:251 _fit_models -> fit_gpytorch_mll -> _fit_fallback -> ModelFittingError(\"All attempts to fit the model have failed\"), capturado pelo guard 'determinista_nao_retriavel' (23 celulas) ou por 'hard_error' com n_retries=2 (2 celulas: sementes 1 e 19). TAXA DE SUCESSO REPORTAVEL: 7,4% (2/27). ISTO E UM RESULTADO, NAO UMA FALHA DE EXECUCAO — e reproduzido em 25 sementes independentes. Mas atencao a uma correcao importante contra a leitura da s42: a morte NAO e deterministica no INSTANTE. As iteracoes de morte vao de 24 a 290 (fe de 266 a 516, 39%-76% do orcamento), sem concentracao. O que e invariante a semente e a OCORRENCIA (25/25 das que nao sobreviveram), nao o ponto. O discriminante que a F5 isolou (D=22 + n~281 + nugget no piso) e uma condicao de regiao, nao um gatilho exato.\n  ZDT6: 1/27 falha (semente 17), mesma assinatura.\n  O ARTIGO NAO PREVE NADA DISSO. Ele reporta crash de RIVAL (DGEMO, 'consistently crashed in the graph cutting algorithm', Tab. 3/§H.1) e nunca do proprio metodo. Uma incapacidade de 92,6% num problema e um achado do nosso envelope (D ate 30, noiseless, 31D-1 FE) que o artigo nao poderia ter visto com d<=8 e 224 FE.\n\n(C) 7 KILLS DE INFRAESTRUTURA — NAO SAO DO ALGORITMO E NAO DEVEM ENTRAR NA TAXA DE SUCESSO. Sao as unicas 7 celulas sem NENHUM rodape (as demais 680 tem rodape DUPLO runner+despachante), com motivo_parada='checkpoint_em_andamento' (o sentinela ambiguo do O-21), stack_trace vazio, e ①②④ parados no ultimo checkpoint enquanto o ⑥ seguiu adiante. Concentracao que denuncia a origem: hosts vm1 (5) e vm10 (2), sementes 7 (5 celulas) e 17 (2), TODAS em 2026-08-13. Sao DTLZ7/7, MMF16_20/7, WFG5/7, ZDT1/7, ZDT1/17, ZDT3/7, ZDT3/17. Recomendo trata-las como celula perdida, nao como falha do c262.\n\nTAXA DE SUCESSO POR PROBLEMA (celulas com fecho = ok+⚪, sobre as existentes):\nBBOB_F1/F5/F17/F22/F37/F49/F55 27/27 100% · DTLZ1 30/30 100% · DTLZ2 27/27 100% · DTLZ3 27/27 100% · DTLZ4 27/27 100% · MMF1 30/30 100% · MMF11_L 30/30 100% · MMF4 30/30 100% · WFG2 27/27 100% · WFG4 27/27 100% · WFG9 27/27 100% · ZDT4 27/27 100% · DTLZ7 26/27 96,3% (26 ⚪) · MMF16_20 26/27 96,3% (25 ⚪) · WFG5 26/27 96,3% · ZDT6 26/27 96,3% · ZDT1 25/27 92,6% (14 ⚪) · ZDT3 25/27 92,6% (25 ⚪) · **WFG1 2/27 = 7,4%**. TOTAL 654/687 = 95,2%.\n\nFRAGILIDADE NUMERICA INVISIVEL NA SEMENTE 42 — o achado que so 30 replicas dao: na s42 o ZDT6 tinha fit_retries = 0 e passava por celula saudavel. Em 30 sementes, 14/27 celulas de ZDT6 tem retries (sementes 5, 7, 8, 10 e 17 com 39 a 61 retries) e uma morre. Isto e, a semente 42 e NAO-REPRESENTATIVA para o condicionamento do GP neste problema, e a F5/T11 nao tinham como saber. Idem WFG9 (2 celulas com retry, 0 na s42).\n\nE TRES PROBLEMAS SAO INCAPACIDADE SILENCIOSA, PIOR QUE FALHA: DTLZ1 (30/30), DTLZ3 (27/27) e ZDT4 (27/27) terminam status=ok com 100% de sucesso aparente, mas n_baseline=0 em TODAS as iteracoes de TODAS as sementes e o proxy de hipervolume normalizado e exatamente 0,0000 com desvio-padrao 0,0000. Sao 84 celulas em que a aquisicao rodou o run inteiro sem um unico ponto dentro da caixa do ref oraculo S.5. A T11 viu isso em 3 celulas da s42; agora esta provado invariante a semente em 84/84. Para o veredito do autor: estas 84 celulas nao sao evidencia de desempenho, sao evidencia de que o ref de oraculo (D73) fica fora do alcance do metodo nesses problemas.",
+ "aspectos": [
+  {
+   "id": "U1",
+   "aspecto": "Orcamento de FE = 31D-1 com hard-stop exato",
+   "classe": "2",
+   "medicao": "maxfe == 31D-1 em 687/687 (D em {2,7,10,12,20,22,30}, maxfe 61..929); nas 564 celulas ok, len(①)==maxfe==⑤.fe_final==rodape_runner.fe_final em 564/564; fe_index denso E ordenado 0-based em 687/687; solution_id denso em 687/687; 564 hard-stops com motivo 'infill inedito com saldo zerado (D21/D61)'",
+   "veredito": "conforme — D21/D61 citada; verificabilidade direta",
+   "muda_vs_s42": false,
+   "arquivo_linha": "resultados_experimentos/c262/*/*/exp_main_c262_*.jsonl (header.maxfe, footer[0].fe_final) + __real.parquet"
+  },
+  {
+   "id": "U2",
+   "aspecto": "DoE inicial 11D-1 LHS carregado do artefato, por semente",
+   "classe": "2",
+   "medicao": "n_init == 11D-1 em 686/686 (WFG1/42 morreu antes do 1o checkpoint e nao tem ①); diff contra data/doe/{prob}/doe_{prob}_{SEMENTE}.parquet: max|ΔX| = 0,0 sob cast float32 em 686/686 e 1,907e-6 (mediana 2,347e-7) em float64 puro = quantizacao float32 (D53), reproduzindo exatamente a errata da T11 agora em 30 sementes",
+   "veredito": "conforme — D63/Anexo J; a T11 verificou 21 celulas de 1 semente, aqui 686 de 30",
+   "muda_vs_s42": false,
+   "arquivo_linha": "data/doe/{problema}/doe_{problema}_{semente}.parquet"
+  },
+  {
+   "id": "U3",
+   "aspecto": "Um fit por iteracao, do zero (refit from scratch, D44)",
+   "classe": "1",
+   "medicao": "④(linhas) == ⑥(#rec timing) == ⑥(#decisao) == ⑤.n_geracoes em 654/654 celulas com fecho (Sigma 174.030). Nas 33 falhas o ④ para no ultimo checkpoint (sempre multiplo de 25 = k_iter) e o ⑥ segue — comportamento previsto por G5/DI-43 (fe_final do ⑤ e PISO; o .jsonl e a autoridade, O-21). 8 celulas tem 1 registro 'timing' orfao a mais que decisoes: sao 6 dos 7 kills de infra + WFG1/1 e WFG1/19 (hard_error) — o timing e emitido ANTES da decisao, entao morrer entre fit e decisao deixa o orfao. Explica 8/8",
+   "veredito": "conforme ao artigo (§9, MAP por iteracao) — direta",
+   "muda_vs_s42": false,
+   "arquivo_linha": "__timing.parquet + jsonl rec='timing'/'decision'"
+  },
+  {
+   "id": "U4",
+   "aspecto": "Cadencia da sonda (g==1 ou g%2==0, e SEMPRE a ultima geracao)",
+   "classe": "2",
+   "medicao": "formula exata em 654/654 celulas com fecho (Sigma 90.978 blocos, 181.956.000 predicoes). As 14 celulas que 'falham' a formula sao exatamente as que foram MORTAS: em 14/14 a regra fecha ate a ultima sonda emitida e o unico item ausente e o finalProbe da geracao terminal, que so existe em fecho normal. n_pontos==2000 em 90.978/90.978; hash_check comeca com 'ok' em 90.978/90.978",
+   "veredito": "conforme — DI-12.5; direta",
+   "muda_vs_s42": false,
+   "arquivo_linha": "jsonl rec='sonda'"
+  },
+  {
+   "id": "U5",
+   "aspecto": "Join posicional sonda x gabarito (ordem do artefato)",
+   "classe": "2",
+   "medicao": "max|Δx| = 0,0 sob cast float32 em 40/40 celulas com ③; 1,907e-6 em float64 (mesma quantizacao da U2). Ordem preservada, sem sort intermediario",
+   "veredito": "conforme — §17.2.2/DI-09; direta, mas SO 40/687 celulas (③ bucket-only)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "__surrogate.parquet regime='sonda' x data/sonda/sonda_{prob}.parquet"
+  },
+  {
+   "id": "U6",
+   "aspecto": "WAPE + cobertura da sonda (o surrogate aprende? — premissa da EHVI)",
+   "classe": "1",
+   "medicao": "So mensuravel em 40/687 celulas. Excluindo WFG1 (16 celulas, 35 celula-objetivo): ΔWAPE mediano -43,4%, 34/35 melhoram, cobertura final mediana 0,9915, >=0,90 em 30/35, 0 sigma-NaN em 2000 pts/bloco. So WFG1 (48 celula-objetivo): ΔWAPE +714,6%, 0/48 melhoram, cobertura 1,0000",
+   "veredito": "conforme ao artigo na direcao — MAS T PARCIAL: a ③ e bucket-only e o corpus local esta enviesado para falha (24/40 sao WFG1). REGRESSAO de verificabilidade vs T11",
+   "muda_vs_s42": true,
+   "arquivo_linha": "__surrogate.parquet (regime='sonda')"
+  },
+  {
+   "id": "U7",
+   "aspecto": "Invariante de timing (tempo_geracao_s EXCLUI a sonda)",
+   "classe": "2",
+   "medicao": "inv-1 (fit+busca <= tempo_geracao_s): 179.555/179.555 geracoes. inv-2 (fit+busca+sonda > tempo_geracao_s exatamente onde ha sonda): 90.756/90.756, com 0 falso-positivo nas 88.799 geracoes sem sonda",
+   "veredito": "conforme — §17.6/DI-13.10; direta",
+   "muda_vs_s42": false,
+   "arquivo_linha": "__timing.parquet"
+  },
+  {
+   "id": "U8",
+   "aspecto": "fe_treino_max monotonico (treino = dataset inteiro, sem janela)",
+   "classe": "1",
+   "medicao": "serie nao-decrescente em 687/687 celulas (medida nos carimbos dos blocos de sonda do ⑥, disponiveis mesmo sem ③)",
+   "veredito": "conforme — direta; contraste com a familia NN-ensemble",
+   "muda_vs_s42": false,
+   "arquivo_linha": "jsonl rec='sonda'.fe_treino_max"
+  },
+  {
+   "id": "U9",
+   "aspecto": "Guards ≡ agregados, integridade e rodape duplo",
+   "classe": "2",
+   "medicao": "0 linhas jsonl nao-parseaveis em 687/687 (Sigma ~2,5 M linhas); rodape DUPLO (runner+despachante) em 680/687 — as 7 sem rodape sao os kills de infra; fallback_ativado=False em 687/687; n_retries!=0 em apenas 2 celulas (WFG1/1 e WFG1/19, ambas com guard 'hard_error'); cp_init=True em 654/654 com fecho; hard_stopped=True em 564/564 ok. Guards observados: hard_stop 564, cache_hit 60 celulas/5.379 eventos, fit_retries 37 celulas, determinista_nao_retriavel 24, hard_error 2",
+   "veredito": "conforme — DI-13; direta. ATENCAO: os guards 'determinista_nao_retriavel' e 'hard_error' NAO aparecem no relatorio T11 (nunca foram exercitados na s42)",
+   "muda_vs_s42": true,
+   "arquivo_linha": "jsonl rec='guard'/'footer'"
+  },
+  {
+   "id": "U10",
+   "aspecto": "Aritmetica entre camadas (o off-by-one do config)",
+   "classe": "2",
+   "medicao": "n_geracoes == (fe_final - n_init) + cache_hits + hard_stop em 686/686 quando se usa o ⑥ como autoridade (O-21). Usando o ⑤ como fonte, 2 celulas 'falham' (DTLZ7/7 e ZDT1/17) — sao kills cujo ⑤ e um snapshot de checkpoint defasado, exatamente o que a doutrina do PISO preve. ② com ng+1 blocos em 654/654; ②(0)≡②(1)=n_init; fe==n_train+1 nos infills e fe==n_train nos 5.379 cache-hits: 179.432/179.432",
+   "veredito": "conforme — direta; a regra O-21 (rodape/jsonl como autoridade) e o que faz fechar",
+   "muda_vs_s42": false,
+   "arquivo_linha": "__pop.parquet + jsonl decision"
+  },
+  {
+   "id": "U11",
+   "aspecto": "Erro de fantasia nos infills (mu x f real)",
+   "classe": "1",
+   "medicao": "NAO MEDIDO EM ESCALA: exige mu/sigma dos candidatos, que vivem na ③ (bucket-only). Disponivel em 40/687 celulas, enviesadas para falha. Nao reproduzi a medida da T11 (cobertura mediana 0,9227 em 5.180 infills)",
+   "veredito": "T — teto novo criado por esta campanha; a T11 tinha a ③ completa das 21 celulas s42",
+   "muda_vs_s42": true,
+   "arquivo_linha": "__surrogate.parquet (ausente em 647/687)"
+  },
+  {
+   "id": "F1",
+   "aspecto": "QUERY-JOIA 1 — o escolhido E o argmax da aquisicao",
+   "classe": "1",
+   "medicao": "acqf_escolhido == max(acqf_todos_restarts) BIT-A-BIT (|Δ|=0,0) em 179.996/179.996 decisoes, 687/687 celulas, 25/25 problemas, 30/30 sementes, incluidos os 564 hard-stops e as 33 celulas mortas. n_restarts==len(paisagem)==10 em 179.996/179.996. alpha nao-finito em 0/179.996",
+   "veredito": "conforme ao artigo (§2, x* = argmax alpha) — direta, e agora com 34,6x mais decisoes que a T11 sem UMA excecao",
+   "muda_vs_s42": false,
+   "arquivo_linha": "jsonl rec='decision'.acqf_escolhido / .acqf_todos_restarts"
+  },
+  {
+   "id": "F2",
+   "aspecto": "QUERY-JOIA 2 — elo ⑥ -> ③ -> ①",
+   "classe": "2",
+   "medicao": "Nas 40 celulas com ③: 6.396/6.396 blocos online com 10 linhas; marcacao correta (1 marcado no infill, 0 no hard-stop) em 6.396/6.396; a marcada e a ULTIMA das 10 em 6.390/6.390; max|Δx| ③x① = 0,0 em 6.390/6.390; real_solution_id NULL em 100% das 6.466.000 linhas de sonda",
+   "veredito": "conforme — DI-10; direta, mas sobre 40/687 celulas (③ bucket-only) e amostra enviesada",
+   "muda_vs_s42": false,
+   "arquivo_linha": "__surrogate.parquet.real_solution_id x __real.parquet.solution_id"
+  },
+  {
+   "id": "F3",
+   "aspecto": "QUERY-JOIA 3 — ordem I-12 da ③ (a armadilha nº1 do config)",
+   "classe": "2",
+   "medicao": "17.561 pares de x-duplicatas. Violacoes: regra I-12 declarada 10 (0,06%) x identidade 7.074 (40,28%) x aleatoria 9.979 (56,82%). A regra domina por 3 ordens de grandeza. sigma_dict com a chave ordem_terceira_online presente e IDENTICA (hash unico) em 687/687. ERRATA MEDIDA CONTRA O TEXTO DA REGRA: ela afirma '89% de falso-mismatch'; medido em censo total (179.996 decisoes) o argmax coincide com o ULTIMO restart em 25.448 = 14,14% ⇒ falso-mismatch = 85,86% (a T11 mediu 83,2% na s42). Direcao certa, numero ainda errado; 85,86% e o valor correto deste config",
+   "veredito": "conforme — DI-10/I-12; direta e declarada. O residuo de 3,90% da T11 era colapso float32 do ZDT1, nao da regra",
+   "muda_vs_s42": true,
+   "arquivo_linha": "jsonl header.sigma_dict.ordem_terceira_online + __surrogate.parquet"
+  },
+  {
+   "id": "F4",
+   "aspecto": "QUERY-JOIA 4 — identidade fechada do ruido sob Standardize",
+   "classe": "2",
+   "medicao": "noise_j == max(1e-6, 1e-6/Var_ddof1((-f_j)[:n_train])) em 403.162/403.162 objetivo-iteracoes = 100,0000%, erro relativo maximo global 3,839e-7. Piso 1e-6 do gpytorch ativo em 181.126/403.162 (44,9%). Prova simultanea de: train_Yvar=1e-6 na escala ORIGINAL, Standardize ativo, treino = primeiras n_train linhas em ordem de fe_index, e piso do gpytorch mordendo",
+   "veredito": "conforme — D40/B8.6a + E.2; identidade fechada, o grau mais forte de evidencia. 35,9x o volume da T11, mesma conclusao",
+   "muda_vs_s42": false,
+   "arquivo_linha": "jsonl decision.modelo_hp.por_objetivo[].noise x __real.parquet"
+  },
+  {
+   "id": "F5",
+   "aspecto": "Determinismo do refit (dataset congelado => HP bit-identicos)",
+   "classe": "2",
+   "medicao": "5.354/5.355 pares consecutivos fecham a identidade (identicos SEM cache-hit anterior: 0 — nenhum falso-positivo). A UNICA excecao e ZDT6/5 it 85->86: cache-hit, n_train 193->193, mas fit_retries=2 na it 85 e =1 na it 86 ⇒ o retry do fit_gpytorch_mll desloca o MAP (mll 1,1852818553162412 -> 1,18528184447316). Lei refinada: cache-hit E fit_retries==0 <=> HP bit-identicos",
+   "veredito": "conforme — D44; direta. A T11 fechou 40/40 na s42 apenas porque la fit_retries era 0 em 5.201/5.201; 30 sementes revelaram a clausula que faltava",
+   "muda_vs_s42": true,
+   "arquivo_linha": "jsonl decision.modelo_hp + .cache_hit + .fit_retries"
+  },
+  {
+   "id": "F6",
+   "aspecto": "ARD vivo (um lengthscale por dimensao)",
+   "classe": "1",
+   "medicao": "lengthscale_max > lengthscale_min em 405.245/405.245 objetivo-iteracoes, de D=2 a D=30, em 687/687 celulas",
+   "veredito": "conforme ao artigo (§9, Matern 5/2 ARD) — direta",
+   "muda_vs_s42": false,
+   "arquivo_linha": "jsonl decision.modelo_hp.por_objetivo[]"
+  },
+  {
+   "id": "S1",
+   "aspecto": "Kernel Matern 5/2 ARD FORCADO (restaura o paper contra o default RBF)",
+   "classe": "2",
+   "medicao": "params.kernel == 'Matern-5/2-ARD gamma-prior (D30)' em 687/687, corroborado por ARD vivo 405.245/405.245. NAO re-instrumentei o objeto BoTorch nesta rodada (a T11 fez: MaternKernel nu=2.5, ard_num_dims=D, GammaPrior(3,6)/(2,0.15))",
+   "veredito": "conforme — 🔵 D30 (versao->artigo, toca o surrogate); direta-declarativa nesta rodada, direta na T11",
+   "muda_vs_s42": false,
+   "arquivo_linha": "jsonl header.params.kernel"
+  },
+  {
+   "id": "S2",
+   "aspecto": "train_Yvar=1e-6 fixo => NEHVI colapsa em EHVI (maquinaria noisy dormente)",
+   "classe": "2",
+   "medicao": "1e-06 em 687/687 e identidade F4 confirma o valor na escala original em 403.162/403.162; warning_filter declarado no header em 687/687",
+   "veredito": "conforme — D40/B8.6a, rota (b) rejeitada; o §H.7 do proprio artigo ampara o regime noiseless. Direta",
+   "muda_vs_s42": false,
+   "arquivo_linha": "jsonl header.params.train_Yvar"
+  },
+  {
+   "id": "S3",
+   "aspecto": "qLogNEHVI (variante em escala log) no lugar do qNEHVI cru",
+   "classe": "2",
+   "medicao": "params.acqf == 'qLogNEHVI L.10' em 687/687 E a assinatura numerica confirma sem depender da declaracao: alpha < 0 em 136.418/179.996 (75,8%), faixa [-53,630; +23,450]; 337/687 celulas com 100% negativo, 128/687 com 0%. Impossivel no qNEHVI cru (Eq. 1/3 usa []+ hard, alpha>=0)",
+   "veredito": "conforme — E.2 (divergencia de versao declarada, fidelidade de mecanismo); direta",
+   "muda_vs_s42": false,
+   "arquivo_linha": "jsonl decision.acqf_escolhido"
+  },
+  {
+   "id": "S4",
+   "aspecto": "MC = 128 amostras quasi-MC com sampler semeado",
+   "classe": "1",
+   "medicao": "params.mc_samples == 128 em 687/687; h1 (sampler) != h2 (optimize_acqf) em 179.996/179.996; 539.988/539.988 sementes (torch_seed,h1,h2) distintas",
+   "veredito": "conforme ao artigo (§G.2 verbatim, N=128 qMC) — direta-declarativa + corroborada pelo RNG",
+   "muda_vs_s42": false,
+   "arquivo_linha": "jsonl header.params.mc_samples + decision.h1/h2"
+  },
+  {
+   "id": "S5",
+   "aspecto": "prune_baseline=True — o prune PROBABILISTICO da nota de rodape 4",
+   "classe": "1",
+   "medicao": "n_baseline <= n_train em 179.432/179.432. Identidade 'n_baseline>0 <=> existe ponto do treino ESTRITAMENTE dentro da caixa do ref': 179.008/179.025 = 99,991%. Os 17 mismatches sao TODOS n_baseline>0 com 0 pontos dentro, e TODOS por tangencia (melhor ponto 0,09%-0,33% fora da caixa) — exatamente a assinatura do prune por MC. Prune desligado daria n_baseline==n_train; prune geometrico daria 179.025/179.025",
+   "veredito": "conforme ao artigo (fn. 4) — indireta FORTE; a T11 tinha 1 testemunha, agora sao 17 independentes em 5 problemas",
+   "muda_vs_s42": false,
+   "arquivo_linha": "jsonl decision.n_baseline x __real.parquet"
+  },
+  {
+   "id": "S6",
+   "aspecto": "Ref-point da aquisicao = tabela S.5 CONGELADA (oraculo)",
+   "classe": "2",
+   "medicao": "acqf_ref_f == nadir_s5 + 0,1*(nadir_s5 - ideal_s5) com Δ maximo = 0,0 em 687/687; ref_fonte declarado literalmente em 687/687. CONSEQUENCIA OPERACIONAL medida: em DTLZ1 (30/30 sementes), DTLZ3 (27/27) e ZDT4 (27/27) — 84 celulas — n_baseline=0 em 100% das iteracoes e o proxy de HV normalizado e 0,0000 com dp 0,0000",
+   "veredito": "conforme — D73 (vantagem informacional DECLARADA, em contraste com D96 do c149); direta. A T11 viu a consequencia em 3 celulas; agora e invariante a semente em 84/84",
+   "muda_vs_s42": false,
+   "arquivo_linha": "jsonl header.acqf_ref_f / ideal_s5 / nadir_s5"
+  },
+  {
+   "id": "S7",
+   "aspecto": "10 restarts / 512 raw / maxiter 2000 (o paper nao reporta)",
+   "classe": "2",
+   "medicao": "params 10/512/2000/32 em 687/687 e corroborado por comportamento: len(acqf_todos_restarts)==10 em 179.996/179.996 e a ③ tem exatamente 10 linhas por geracao em 6.396/6.396 blocos das 40 celulas com ③",
+   "veredito": "conforme — E.2 (fonte = tutorial, declarada); direta-declarativa + corroborada",
+   "muda_vs_s42": false,
+   "arquivo_linha": "jsonl header.params.num_restarts"
+  },
+  {
+   "id": "S8",
+   "aspecto": "Standardize(Y) + cache_root=None (que RESOLVE para True)",
+   "classe": "2",
+   "medicao": "params.cache_root = null em 687/687 (e dentro de acqf_hp). Standardize provado de forma fechada pela identidade F4 (403.162/403.162). NAO re-instrumentei o objeto: a resolucao None->_cache_root=True e evidencia da T11, nao minha",
+   "veredito": "conforme — L.10; direta quanto ao Standardize, herdada quanto ao cache_root. A recomendacao da T11 (logar o valor EFETIVO ao lado do passado) NAO foi implementada — o log continua gravando so o null",
+   "muda_vs_s42": false,
+   "arquivo_linha": "jsonl header.params.acqf_hp.cache_root"
+  },
+  {
+   "id": "S9",
+   "aspecto": "Backend BoTorch oficial + kernel fusionado OFF + pin de ambiente",
+   "classe": "2",
+   "medicao": "botorch 0.18.1 / torch 2.11.0+cu130 / gpytorch 1.15.2 / python 3.11.9 / numpy 2.4.6 IDENTICOS em 687/687; botorch_record_sha256 = e08d996fce78... identico nas 687; fused_kernel = 'OFF-explicito (python puro; DEF-L2/S.3#9)' em 687/687; pinning (1 thread, float64, cpu, OMP/OPENBLAS/MKL/NUMEXPR=1) com uma unica assinatura em 687/687; plataforma Linux/x86_64 em 687/687 sobre 6 hosts",
+   "veredito": "conforme — N.2/DEF-L2/DI-05/D79; direta-declarativa com sha. E a explicacao medida da deriva ZERO do N4",
+   "muda_vs_s42": false,
+   "arquivo_linha": "jsonl header.env + header.pinning + header.fused_kernel"
+  },
+  {
+   "id": "S10",
+   "aspecto": "Sinal/dominio + RNG + reconciliacao dos warnings do optimize_acqf",
+   "classe": "2",
+   "medicao": "sementes distintas por iteracao 539.988/539.988. RECONCILIACAO DOS WARNINGS, que a T11 tinha fechado em 21/21 e que a leitura ingenua faria falhar: rec='optimize_acqf_warning' tem 13.352 linhas contra 19.886 somados nas decisoes — MAS o rec e emitido UMA VEZ POR ITERACAO com um campo n = contagem. Sigma rec.n = 19.981 = 19.886 + 95, e as 55 iteracoes que aparecem no rec sem contrapartida na decisao sao TODAS de hard-stop (0 excecoes) — cujo registro de decisao nao carrega a chave. Fecha 687/687 sob a semantica correta",
+   "veredito": "conforme — §5.5/D62/L.10; direta. A armadilha da T11 (a decisao de hard-stop nao carrega a chave) reaparece em 55 celulas em vez de 1",
+   "muda_vs_s42": true,
+   "arquivo_linha": "jsonl rec='optimize_acqf_warning'.n x decision.acqf_warnings"
+  },
+  {
+   "id": "S11",
+   "aspecto": "Hard-stop D61 + cache-hits D89",
+   "classe": "2",
+   "medicao": "564 hard-stops (1 por celula ok) com fe==maxfe; 5.379 cache-hits em 60 celulas, todos com fe==n_train (sem +q) em 179.432/179.432; a triplice guard ≡ decisao ≡ manifesto fecha",
+   "veredito": "conforme — D61/D57/D89; direta",
+   "muda_vs_s42": false,
+   "arquivo_linha": "jsonl rec='guard' name='hard_stop'/'cache_hit'"
+  },
+  {
+   "id": "S12",
+   "aspecto": "params obrigatorio no ⑤ (CONTRATO §5) — a nao-conformidade que a T11 declarou FECHADA",
+   "classe": "3",
+   "medicao": "params PRESENTE no ⑤ em 654/687 e header.params == manifest.params BYTE A BYTE em 654/654. AUSENTE em 33/687 — e os 33 sao EXATAMENTE as celulas cujo manifesto foi escrito pelo caminho de excecao do DESPACHANTE (stack_trace comeca em experiments.py:185 _run_one), nao pelo write_run_outputs do runner. A T11 §2.29 afirmou que a fonte unica _params_efetivos 'elimina a classe inteira do defeito — nao so a instancia'; medido, ela unificou os DOIS writers do runner mas o writer do despachante continua emitindo manifesto sem params",
+   "veredito": "NAO-CONFORMIDADE DE CONTRATO REMANESCENTE, sem decisao que a sancione. Gravidade baixa (o ⑥ carrega params em 687/687 ⇒ fallback celula a celula existe). E a materializacao exata do residuo que a propria T11 §4.2 previu ('se for exercitada o defeito volta')",
+   "muda_vs_s42": true,
+   "arquivo_linha": "src/c262_qnehvi.py:412 _manifesto_failed_teto / experiments.py:185 _run_one; 33 manifestos em resultados_experimentos/c262/{WFG1(25),ZDT1(2),ZDT3(2),DTLZ7,MMF16_20,WFG5,ZDT6}"
+  },
+  {
+   "id": "S13",
+   "aspecto": "Teto de wall-clock — DI-43/44: truncamento-com-dado, relogio unico, 12 h",
+   "classe": "2",
+   "medicao": "90 ⚪ com motivo_parada='teto_wall' e rodape do runner status='ok'; camadas ①②④⑤⑥ COMPLETAS em 90/90; Sigma tempo_geracao_s em [11,866 h; 12,104 h] em 90/90 (relogio, nao projecao); 0 abortos por projecao. Distribuidas nas 6 VMs",
+   "veredito": "conforme — DI-43/DI-44 (revoga DI-38a); direta. A PREVISAO DA T11 ('de 5/5 sem nada para 5/5 com curva parcial') ESTA CONFIRMADA POR DADO: na s42 as 8 ⚪ nao tinham UM parquet; aqui as 90 tem todas as camadas",
+   "muda_vs_s42": true,
+   "arquivo_linha": "src/c262_qnehvi.py:~433 _WallClockProjector + manifest.motivo_parada"
+  },
+  {
+   "id": "N1t",
+   "aspecto": "Guard de fit_retries (T11-A4) — implementado na T11, NAO exercitado",
+   "classe": "2",
+   "medicao": "AGORA EXERCITADO: 647 retries em 37 celulas (WFG1 21, ZDT6 14, WFG9 2); guard emitido e reconciliado em 687/687 sob as duas excecoes estruturais (iteracao de crash sem decisao escrita; iteracao de hard-stop cuja decisao nao carrega a chave). PODER DISCRIMINANTE MEDIDO PELA PRIMEIRA VEZ: sensibilidade 21/25 = 84% (4 mortes de WFG1 sem retry previo: sementes 0, 10, 15, 42); VALOR PREDITIVO POSITIVO 21/37 = 57% (16 celulas com retry TERMINARAM BEM, incluindo ZDT6 com ate 61 retries); antecedencia mediana 21 iteracoes (min 0, max 245)",
+   "veredito": "conforme — T11-A4; direta e AGORA COM EFEITO OBSERVADO. Mas a inferencia da F5 §9(h) ('preditor de falha com 1 falso-negativo em 5.241 iteracoes') NAO sobrevive: e alerta amarelo, nao preditor",
+   "muda_vs_s42": true,
+   "arquivo_linha": "src/c262_qnehvi.py:641-655; jsonl rec='guard' name='fit_retries'"
+  },
+  {
+   "id": "N2t",
+   "aspecto": "Checkpoint atomico + fe_final do ⑤ como PISO",
+   "classe": "2",
+   "medicao": "checkpoint presente no ⑤ em 687/687 (k_iter=25, intervalo_s=1800) e rec='checkpoint' no ⑥; n_checkpoints de 0 a 33. VALIDACAO DA SEMANTICA DE PISO: nas 33 celulas mortas o ④/①/② param sempre em multiplo de 25 (ultimo checkpoint) enquanto o ⑥ segue adiante — 33/33. E a prova de que 'curva parcial e o dado' funciona e de por que o rodape do .jsonl e a autoridade (O-21)",
+   "veredito": "conforme — DI-43/G5; direta. A T11 so pode ver isto num smoke de 1 checkpoint",
+   "muda_vs_s42": true,
+   "arquivo_linha": "⑤.checkpoint + jsonl rec='checkpoint'"
+  },
+  {
+   "id": "N3t",
+   "aspecto": "Proveniencia: campanha_id, repo_hash, schema_version",
+   "classe": "2",
+   "medicao": "campanha_id='7f4f0e429a46_M8' em 687/687; repo_hash='63db46b100635a5cc21e8f5594271f481bc41416' (sha real, NAO o sentinela None da s42) em 687/687; schema_version=2 em 687/687",
+   "veredito": "conforme — G3/I-09; direta. O padrao 'campo verde, dado sentinela' que a torre mandou cacar esta FECHADO neste config e agora em producao, nao so no smoke",
+   "muda_vs_s42": true,
+   "arquivo_linha": "⑤.campanha_id / .repo_hash / .schema_version"
+  },
+  {
+   "id": "T1t",
+   "aspecto": "acqf_hp no params (10 campos, fonte unica ACQF_HP)",
+   "classe": "2",
+   "medicao": "acqf_hp presente e com valor IDENTICO (dict a dict) em 687/687: prune_baseline=True, alpha=0.0, cache_pending=True, max_iep=0, incremental_nehvi=True, cache_root=None, tau_relu=1e-6, tau_max=1e-3, fat=True, eta=1e-3. NAO refiz o controle contra o objeto BoTorch (a T11 confirmou 7/10 + controle negativo)",
+   "veredito": "conforme — T11-A4/E.2; o teto T da F5 segue LEVANTADO e agora em 687 celulas de producao",
+   "muda_vs_s42": true,
+   "arquivo_linha": "jsonl header.params.acqf_hp + ⑤.params.acqf_hp"
+  },
+  {
+   "id": "T2t",
+   "aspecto": "Sequential greedy q>1 (Eq. 6, §6.1, Apendice F, Figs. 4/6) — a contribuicao-TITULO",
+   "classe": "T",
+   "medicao": "q == 1 em 687/687 celulas; lote_solution_ids de tamanho 1 em 179.432/179.432 infills; a campanha de 30 sementes e integralmente exp=main — nao existe celula batch para o c262",
+   "veredito": "T INALTERADO E AGRAVADO. A T11 registrou que a DI-43/44 abrira o caminho (as 5 batch da s42 morreram por projecao, criterio hoje revogado); a campanha nova nao usou a porta. Metade do mecanismo publicado segue sem prova por dado nosso. E o unico bloqueio real ao 10",
+   "muda_vs_s42": false,
+   "arquivo_linha": "jsonl header.params.q + decision.lote_solution_ids"
+  },
+  {
+   "id": "N6",
+   "aspecto": "Distribuicao da posicao do argmax entre os 10 restarts",
+   "classe": "1",
+   "medicao": "NAO e uniforme: posicao 0 = 12,05%, posicoes 1-8 ~9,1% cada, posicao 9 (ultima) = 14,14%; qui-quadrado 4.789,8 contra 16,9 (critico 5%, 9 gl). Varia muito por problema: MMF11_L 60,8% na posicao 9, MMF4 57,0%, MMF1 57,3%, DTLZ4 30,4%; DTLZ7 34,7% na posicao 0, WFG1 23,3%. MECANISMO NOMEADO NA FONTE DA LIB: botorch/optim/initializers.py:1024-1026, initialize_q_batch faz 'if max_idx not in idcs: idcs[-1] = max_idx' — o melhor raw sample e FORCADO no ULTIMO slot das condicoes iniciais, logo o restart 9 e privilegiado por construcao. O excesso na posicao 0 do DTLZ7 e explicado por EMPATE bit-a-bit no argmax (34,4% das decisoes de DTLZ7 tem empate, 82,2% deles no indice 0; np.argmax devolve o primeiro)",
+   "veredito": "conforme — 🟠 detalhe de implementacao da lib, nao toca nenhuma identidade (o escolhido segue sendo o argmax em 179.996/179.996). ERRATA CONTRA A T11: ela escreveu 'o histograma da posicao do argmax e uniforme... nenhum restart e privilegiado, como esperado de starts qMC independentes' a partir de UMA celula (BBOB_F1, que de fato e uniforme: 9,6/9,8/10,1). A afirmacao nao generaliza",
+   "muda_vs_s42": true,
+   "arquivo_linha": "botorch/optim/initializers.py:1017-1026 (venv mestrado_experimentos_dissertacao)"
+  },
+  {
+   "id": "N7",
+   "aspecto": "Completude da grade 25 x 30",
+   "classe": "3",
+   "medicao": "687/750 celulas existem. Faltam 63: as sementes 18, 25 e 26 em 21 dos 25 problemas (DTLZ1, MMF1, MMF11_L e MMF4 tem as 30). O padrao e sistematico (as MESMAS 3 sementes, nos MESMOS 21 problemas), o que aponta para o despachante e nao para o algoritmo — mas nao ha registro no ⑤/⑥ que explique, porque as celulas simplesmente nao existem",
+   "veredito": "LACUNA INEXPLICADA no denominador. Nao e infidelidade do c262; e um buraco de campanha que altera TODA taxa reportada (7,4% de WFG1 e 2/27, nao 2/30). D81: ESCALO ao autor em vez de escolher uma leitura",
+   "muda_vs_s42": true,
+   "arquivo_linha": "resultados_experimentos/c262/{21 problemas}/ — ausencia de 18/, 25/, 26/"
+  },
+  {
+   "id": "N8",
+   "aspecto": "Guards 'determinista_nao_retriavel' e 'hard_error' — instrumentacao nao documentada na T11",
+   "classe": "2",
+   "medicao": "determinista_nao_retriavel em 24 celulas (23 WFG1 + ZDT6/17), com campo 'padrao'='ModelFittingError: All attempts to fit' e 'err' com a mensagem completa; hard_error em 2 celulas (WFG1/1 e WFG1/19), ambas com ⑤.n_retries=2. Casam 1-para-1 com as 26 falhas de algoritmo",
+   "veredito": "conforme — o ramo nao-retriavel POR NOME sobreviveu a DI-43/44 exatamente como o docstring de src/c262_qnehvi.py:405-408 declara. Nao aparece na T11 porque na s42 nenhuma celula ok o exercitou",
+   "muda_vs_s42": true,
+   "arquivo_linha": "src/c262_qnehvi.py:405-408; jsonl rec='guard'"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C3-1",
+   "descricao": "params AUSENTE no ⑤ em 33/687 celulas (100% das falhas), violando o CONTRATO §5 que o torna obrigatorio. A T11 §2.29/§4.2 declarou esta nao-conformidade FECHADA pela fonte unica _params_efetivos(q), afirmando que a correcao 'elimina a classe inteira do defeito — nao so a instancia'. Medido: a unificacao cobriu os DOIS pontos de escrita do RUNNER (header do ⑥ e ⑤ via write_run_outputs) e de fato fecha 654/654 celulas que passam por ali, com header.params == manifest.params byte a byte. Mas o manifesto das celulas que morrem e escrito pelo caminho de excecao do DESPACHANTE (stack_trace comeca em experiments.py:185 _run_one), que chama new_manifest sem params. E exatamente o residuo que a propria T11 §4.2 antecipou ('a rota _manifesto_failed_teto ... se for exercitada o defeito volta') — e ela FOI exercitada, 33 vezes.",
+   "gravidade": "baixa",
+   "acao": "Registrar como nao-conformidade de contrato REMANESCENTE (nao fechada) e corrigir a afirmacao de fechamento da T11. Mitigacao ja existente e verificada: o header do ⑥ carrega params em 687/687, entao ha fallback celula a celula. Recomendacao ao autor: propagar _params_efetivos para o writer de excecao do despachante, ou declarar por decisao que manifestos de falha sao isentos do §5.",
+   "arquivo_linha": "src/c262_qnehvi.py:412 _manifesto_failed_teto (chama new_manifest sem params) + experiments.py:185 _run_one; 33 manifestos: WFG1 sementes {0,1,2,3,4,5,6,8,9,10,11,13,14,15,16,17,19,20,21,22,23,24,27,28,42}, ZDT1 {7,17}, ZDT3 {7,17}, DTLZ7 {7}, MMF16_20 {7}, WFG5 {7}, ZDT6 {17}"
+  },
+  {
+   "id": "C3-2",
+   "descricao": "LACUNA DE 63 CELULAS NA GRADE. A grade nominal e 25 problemas x 30 sementes = 750; existem 687. As ausentes sao as sementes 18, 25 e 26, nos MESMOS 21 problemas (todos menos DTLZ1, MMF1, MMF11_L e MMF4, que tem as 30). O padrao e regular demais para ser perda aleatoria e nao ha nenhum artefato — nem manifesto, nem jsonl, nem diretorio — que registre a ausencia. Consequencia direta: toda taxa deste relatorio tem denominador 27 (nao 30) em 21 problemas, e a 'incapacidade 2/30' do WFG1 anunciada no briefing e na verdade 2/27 = 7,4%.",
+   "gravidade": "media",
+   "acao": "ESCALAR ao autor (D81) — nao escolho a leitura. Duas hipoteses que os dados nao separam: (a) as sementes 18/25/26 nunca foram despachadas para estes 21 problemas; (b) foram despachadas e a coleta as perdeu. A distincao muda se o denominador correto e 27 ou 30. Verificar contra artifacts/grid ou runs_matrix, que estao fora do meu escopo de leitura.",
+   "arquivo_linha": "resultados_experimentos/c262/{21 problemas}/ — diretorios 18/, 25/ e 26/ inexistentes"
+  },
+  {
+   "id": "C3-3",
+   "descricao": "O CORPUS DA SEMENTE 42 QUE A T11 AUDITOU NAO EXISTE MAIS NO CAMINHO CANONICO. A T11 leu 21 celulas ok em resultados_experimentos/c262/{problema}/42/ com schema_version=1, repo_hash=None e sem params no ⑤. Hoje esse mesmo caminho tem 25 celulas com campanha_id=7f4f0e429a46_M8, repo_hash=63db46b1..., schema_version=2 e params no ⑤ — sao runs NOVOS que substituiram os antigos. E o estado mudou: ZDT1/42, que a T11 analisou como celula ok de 929 FE e 8,86 h-core, hoje e ⚪ teto_wall com fe_final=881/929; a s42 agora tem 20 ok + 4 ⚪ + 1 fail, e 6.290 decisoes contra as 5.201 que a T11 mediu. Consequencia: nenhum numero do relatorio T11 pode ser re-derivado no caminho canonico, e a comparacao T11 x esta rodada nao e sobre o mesmo dado.",
+   "gravidade": "media",
+   "acao": "ESCALAR ao autor (D81) como item de proveniencia. Nao e defeito de algoritmo — as identidades fecham nos dois corpora. Mas invalida a premissa de reprodutibilidade dos relatorios anteriores. Recomendo decidir se o corpus T11 deve ser preservado em algum lugar (ou se a T11 deve ser lida como historica) antes de qualquer citacao dos numeros dela na dissertacao.",
+   "arquivo_linha": "resultados_experimentos/c262/*/42/ (25 celulas, schema v2) vs ua-dd-saea/f5/t11/relatorios_config/c262.md §Rodape (21 celulas, schema v1)"
+  },
+  {
+   "id": "C3-4",
+   "descricao": "EXCESSO NAO EXPLICADO DE argmax NA POSICAO 0 DO WFG1 (23,3% contra ~9,1% esperado, 3.827 decisoes). O excesso na posicao 9 tem mecanismo exato e verificado na fonte da lib (initialize_q_batch forca o melhor raw sample no ultimo slot), e o excesso na posicao 0 do DTLZ7 e explicado por empate bit-a-bit (34,4% de empates, 82,2% no indice 0, np.argmax devolve o primeiro). Mas o WFG1 tem 0,0% de empates e ainda assim 23,3% na posicao 0. Nao encontrei o mecanismo.",
+   "gravidade": "baixa",
+   "acao": "Registrar como residuo benigno e NAO promover a adversarial: (i) nao toca nenhuma identidade — o escolhido continua sendo o argmax bit-a-bit em 179.996/179.996, WFG1 incluso; (ii) esta confinado ao unico problema em que o ajuste do GP esta colapsando (25/27 celulas morrem com ModelFittingError), onde a paisagem da aquisicao e degenerada por construcao; (iii) e propriedade da ordenacao interna do BoTorch (🟠 detalhe de implementacao), nao do runner. Se o autor quiser fechar: instrumentar gen_batch_initial_conditions num WFG1 sintetico.",
+   "arquivo_linha": "resultados_experimentos/c262/WFG1/*/exp_main_c262_WFG1_*.jsonl (decision.acqf_todos_restarts)"
+  },
+  {
+   "id": "C3-5",
+   "descricao": "OS DOIS ACHADOS QUE A T11 LEVANTOU CONTRA SI MESMA CONTINUAM ABERTOS NO CODIGO. (a) A assercao decorativa segue viva: tests/test_c262.py:124-125 mantem 'self.assertTrue(acqf.prune_baseline if hasattr(acqf, \"prune_baseline\") else True)', e a T11 mediu que hasattr(acqf,'prune_baseline') e False, logo a assercao e assertTrue(True) — passa para qualquer valor. E o anti-padrao que a propria T11 elegeu licao nº 1 ('um gate que nunca reprova e decorativo'), dentro do arquivo de teste do config. (b) Continua sem NENHUM gate para os campos novos: grep -rn 'acqf_hp|fit_retries' tests/ = vazio, apesar de acqf_hp estar agora em 687/687 celulas e de fit_retries ter disparado 647 vezes.",
+   "gravidade": "baixa",
+   "acao": "Nao afeta a fidelidade do dado ja produzido (os 10 hp foram confirmados contra o objeto pela T11, com controle negativo). Recomendacao ao autor: trocar a assercao por uma que leia acqf._prune_baseline ou o ACQF_HB de fonte unica, e adicionar um teste que force fit_retries>0 e verifique o guard no ⑥ — hoje o poder do guard e conhecido por observacao de campo (PPV 57%) e nao por teste.",
+   "arquivo_linha": "tests/test_c262.py:124-125; tests/ (sem ocorrencia de acqf_hp nem fit_retries)"
+  }
+ ],
+ "score": 9.6,
+ "score_t11": 9.7,
+ "veredito_recomendado": "ACEITAR — recomendacao ao autor, nao sentenca (D97). O mecanismo do c262 esta provado com uma solidez que a T11 nao podia alcancar: 179.996 decisoes em 30 sementes e 25 problemas, e as quatro identidades fechadas do config valem em 100,0000%, 100%, 100% e 5.354/5.355 (a unica excecao explicada e transformada em lei refinada). Nenhum aspecto do MECANISMO caiu na classe (3). Os cinco itens (3) que listo sao de CONTRATO, CAMPANHA e PROVENIENCIA — dois deles exigem decisao do autor (D81) e nao posso resolver sozinho: a lacuna das sementes 18/25/26 e a substituicao in loco do corpus s42 que a T11 auditou.",
+ "decisoes_ao_autor": [
+  "D81 — LACUNA DAS 63 CELULAS: faltam as sementes 18, 25 e 26 nos MESMOS 21 dos 25 problemas (DTLZ1/MMF1/MMF11_L/MMF4 tem as 30). O padrao e sistematico e nao ha artefato que o registre. Preciso saber se o denominador correto e 27 ou 30 antes que qualquer taxa deste relatorio va para a dissertacao — a incapacidade do WFG1, por exemplo, e 2/27 (7,4%) no dado, nao 2/30 como diz o briefing. Verificavel em artifacts/grid ou runs_matrix, fora do meu escopo.",
+  "D81 — O CORPUS s42 DA T11 FOI SUBSTITUIDO NO LUGAR: resultados_experimentos/c262/*/42/ hoje contem runs da campanha 7f4f0e429a46_M8 (schema v2, repo_hash real), nao os 21 runs schema v1 que a T11 auditou. ZDT1/42 mudou de ok (929 FE) para ⚪ teto_wall (881/929). Nenhum numero da T11 e re-derivavel no caminho canonico. Decidir se a T11 vira documento historico ou se o corpus dela precisa ser recuperado antes de ser citado.",
+  "CONTRATO §5 — decidir entre corrigir ou isentar: manifestos escritos pelo caminho de excecao do despachante (33/687 celulas, todas falhas) nao tem a chave params. A T11 declarou esta nao-conformidade fechada; ela nao esta. Ou se propaga _params_efetivos para esse writer, ou se declara por decisao que manifesto de falha e isento — hoje e nao-conformidade sem ancora.",
+  "REVISAO DE UMA INFERENCIA DA F5/T11 QUE ENTROU EM RECOMENDACAO: a F5 §9(h) afirmou que fit_retries e 'um preditor de falha com 1 falso-negativo em 5.241 iteracoes'. Medido em 30 sementes: sensibilidade 84% (4 mortes de WFG1 sem retry previo) e valor preditivo positivo 57% (16 das 37 celulas com retry terminaram bem, incluindo ZDT6 com ate 61 retries). O guard e util como alerta amarelo, nao como preditor. Sugiro corrigir o texto antes que vire criterio operacional.",
+  "ERRATA NO TEXTO DA REGRA I-12 (que viaja com o dado, em 687/687 sigma_dict): ela afirma '89% de falso-mismatch'. Medido em censo total: 85,86% (o argmax coincide com o ultimo restart em 25.448/179.996 = 14,14%). A T11 ja tinha apontado a errata medindo 83,2% na s42; 85,86% e o valor do config sobre a campanha inteira.",
+  "ERRATA CONTRA A T11 §2.12: 'o histograma da posicao do argmax e uniforme — nenhum restart e privilegiado, como esperado de starts qMC independentes'. Foi medido em uma celula (BBOB_F1, que de fato e uniforme). Em censo total o restart 9 E privilegiado POR CONSTRUCAO: botorch/optim/initializers.py:1024-1026 forca o melhor raw sample no ultimo slot (14,14% global, ate 60,8% no MMF11_L). Benigno — nao toca nenhuma identidade — mas a afirmacao precisa sair do relatorio.",
+  "T2 CONTINUA ABERTO E A PORTA ESTAVA DESTRANCADA: a T11 registrou que a DI-43/44 abriria o caminho para fechar o teto do batch q>1 (as 5 celulas batch da s42 morreram pelo criterio de projecao, hoje revogado). A campanha das 30 sementes e integralmente exp=main — q=1 em 687/687. A contribuicao-titulo do artigo (Eq. 6, §6.1, Apendice F, Figs. 4/6) segue 100% sem prova por dado nosso, e e o unico bloqueio real ao 10.",
+  "REGRESSAO DE VERIFICABILIDADE POR CAUSA DO BUCKET: a ③ existe localmente em 40/687 celulas, e 24 dessas 40 sao falhas de WFG1 — amostra enviesada para a patologia. Isso rebaixa U6 (calibracao do surrogate), U11 (erro de fantasia) e F3 (ordem I-12) de 'corpus completo' na T11 para 'amostra parcial e enviesada' aqui. Se a validacao de U6/U11 em escala importa para a tese, e preciso baixar a ③ do bucket para uma amostra estratificada de celulas SAUDAVEIS.",
+  "ACHADO PARA O CAPITULO DE RESULTADOS (nao e defeito): 84 celulas — DTLZ1 30/30, DTLZ3 27/27, ZDT4 27/27 — terminam status=ok com 100% de sucesso aparente mas n_baseline=0 em TODAS as iteracoes de TODAS as sementes, e o proxy de hipervolume normalizado e exatamente 0,0000 (dp 0,0000). O ref de oraculo S.5 (D73) fica fora do alcance do metodo nesses tres problemas, de forma invariante a semente. Sao celulas que nao devem ser lidas como evidencia de desempenho.",
+  "OBSERVACAO DE PROVENIENCIA FAVORAVEL: a doutrina do RUNBOOK §6.2 ('fidelidade estatistica, nao bit-exata') e conservadora demais para este config. As 7 duplicatas cross-VM do c262 (4 pares de maquinas) dao ① bit-identica e acqf_escolhido identico em 7/7 — deriva medida ZERO, abaixo do eps-float32. Dentro da frota Linux/x86_64 com o pin de 1 thread e o kernel fusionado OFF, o padrao de prova bit-exato da auditoria da s42 continua valido para o c262. Recomendo registrar isso: significa que contrastes c262 x outros algoritmos nao carregam ruido de maquina."
+ ]
+}

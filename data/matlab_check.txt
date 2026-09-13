@@ -1,0 +1,10 @@
+MATLAB: 25.1.0.2973910 (R2025a) Update 1
+Deep Learning Toolbox                         : true
+Statistics and Machine Learning Toolbox       : true
+Optimization Toolbox                          : true
+Parallel Computing Toolbox                    : true
+parquetwrite com zstd                         : FALSE  (Expected VariableCompression to match one of these values:
+
+'snappy', 'gzip', 'brotli', 'uncompressed'
+
+The input, 'zstd', did not match any of the valid values.)

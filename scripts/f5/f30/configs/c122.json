@@ -1,0 +1,451 @@
+{
+ "config": "c122 (θ-DEA-DP, Yuan & Banzhaf TEVC 26(1):159-173, 2022) · exp=main · campanha M8 (campanha_id=7f4f0e429a46_M8, repo_hash=63db46b100635a5cc21e8f5594271f481bc41416, algo_version=c122-thetadeadp-1.0, schema_version=2) · 738 células · 25 problemas × 30 sementes {0–28,42} (12 células inexistentes: DTLZ3×1, DTLZ7×1, WFG1/2/5/9×1 cada, ZDT1×3, ZDT3×3)",
+ "cobertura": "VARREDURA TOTAL, não amostra, nas camadas baratas. ⑥ (jsonl): 738/738 células (100%) lidas em streaming (386 MB, 8 workers) → 196.628 decisões, 99.086 blocos de sonda, 99.022 blocos estratificados, 20.782 guards. ⑤ (manifest): 738/738. ① (__real.parquet): 738/738 (métricas finais + orçamento de FE comum + trajetória). ③ (surrogate): 31/738 células existem localmente (4,2%) — a semente 7 COMPLETA (25/25 problemas, porque o upload dela falhou/foi retido) + 6 células fail → 8.205.188 linhas de ③ cobrindo TODOS os 25 problemas. ④ (timing): via manifest.timing em 725/738. Duplicatas cross-máquina: 25/25 pares (100% das que existem). Sub-amostras aleatórias (seed fixa) de 50–60 células para checagens caras (igualdade EXATA do argmax, |②(g)|=N, ref_ids negativos). Artefato DoE: 738/738 sidecars conferidos. NÃO li: as ③ das 707 células restantes (não existem localmente — D54 bucket-only), o bucket (sem acesso).",
+ "N1_invariancia": "A query-joia do c122 é o **Estágio-2 do EDN (Eqs. 6-7): o escolhido é o argmax de e(z) no seu conjunto**. Ela é verificável em DUAS alturas e as duas fecham em TODAS as sementes: (a) no ⑥, `e_z_escolhido == ez_cat_max` em **180.480/180.480 = 1,0000** decisões comparáveis (738/738 células a 100%); numa sub-amostra aleatória de 60 células a igualdade é **EXATA (bit)**: 13.759/13.759, erro máximo 0. (b) na ③, o escolhido é o máximo do bloco TOP-100 gravado em **5.769/5.769 = 1,0000** blocos das 31 células com ③ (25/25 problemas), **erro relativo máximo 8,79e-07** (arredondamento do log a 6 casas). NENHUMA semente quebra. As demais identidades estruturais também são invariantes de semente, medidas no denominador CHEIO das 738 células: A6 prioridade Q1≻Q2≻Q3/Q5 **139.725/139.725**; A8 corte Q_max `n_cands=min(|cat|,300)` **196.628/196.628**; A5 pool `n_acordo+n_desacordo=7000` **139.187/139.187**; A12 gate `acc_min>=γ ⇔ skip` **387.280/387.280**; A13 `E_upd=ceil(20·(0,9−acc)/0,9)` **240.512/240.512**; A23 TOP-100 na ③ **6.243/6.243**; A4 q=1 **738/738** células (e `real_solution_id` não-nulo em exatamente 6.243/333.188 linhas online = 1 por geração); N1 `n_ref` REAL (g=1→11D−1, g≥2→MU) **99.086/99.086** com `len(ref_ids)==n_ref` **99.086/99.086** e **0 ids negativos em 354.042 ids** de 28.484 recs amostrados. A11 (rodadas embaralhadas) é a ÚNICA que exige tratamento: com a regra ingênua dá 705/738 células; as 33 que falham são EXATAMENTE as que têm `spin_cap` (WFG1×28, DTLZ7×5), onde a armadilha nº 8 da T11 se realiza — a decisão capeada REPETE o `cid` do 10º spin. Aplicando a regra da T11, essas 33 dão **2.699/2.699** e as outras 705 dão **15.464/15.464** ⇒ **18.163/18.163 rodadas são permutações exatas**; 1ª rodada em ordem natural **738/738**. **Fração global da query-joia: 1,000 · erro máximo 8,79e-07.**",
+ "N2_tetos_caidos": "A T11 deixou 3 tetos declarados (T1 perda CE ponderada+Kaiming+sem dropout, T2 `random.sample` do front excedente, T3 desempate do Pareto-rep) — **os três CONTINUAM T**: nada de novo é exportado (só `weight_decay=1e-5`), e nem os representantes nem quem sobrevive ao sample saem. **O que CAIU não estava na lista T formal, mas era \"não verificável com 1 semente\":** (i) **Fórmula de semeadura** — `SeedSequence((semente, problema_id))` (D87/D88): 738/738 células com `doe_hash ≡ sidecar do artefato congelado`, `seed_tuple==(semente,problema_id)` 738/738, `problema_id` único por problema, e **738 doe_hash DISTINTOS para 738 pares (problema,semente)** — a fórmula produz um DoE por célula e nenhum colide. Com 1 semente isto era indistinguível de um DoE fixo. (ii) **Determinismo / reprodutibilidade** — 25 duplicatas cross-máquina, 3.671 decisões, **0 divergentes** (ver N4). (iii) **Variância entre execuções** — IQR/mediana do IGD+ em orçamento de FE comum: mediana 0,322 entre os 25 problemas, de 0,017 (WFG1) a 1,017 (BBOB_F55). (iv) **Taxa de sucesso por problema** — medida (ver N5). (v) **A15/ZDT4** era \"1 célula\": agora `fit_inicial.s_net=false` em **30/30** sementes e a θ-Net NUNCA existe em nenhuma decisão em **29/30** — a semente **14** é a exceção (a θ-Net nasce em g=138 com `accs_s=[1,0;0,0;0,0]` e vive contígua até g=200). (vi) **A21 (Step 14 ausente)** saiu de 22/25 células para **29/31** com ③ (>2N no bloco-1; as 2 exceções são MMF11_L e MMF4, D=2, onde 11D−1=21 < 2N=22), com ≤2(11D−1) em **31/31** e ≤2N para g≥2 em **31/31**. (vii) **O (3) MAIOR da T11 (N3: `sonda_estratificada` gravando e(z) em `mu_0`) FOI CONSERTADO antes do disparo** — medido nas 31 células com ③: `pred_score` preenchido em **1.574.000/1.574.000** linhas `regime='sonda_estratificada'` e `mu_0` NULL em **1.574.000/1.574.000**. O contrato §3 voltou a fechar 100%.",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "\"all the algorithms usually obtain lower accuracy on θ-dominance prediction than on Pareto dominance prediction, indicating that θ-dominance relations may be much harder to learn\" (Tab. VIII: θ-Net < Pareto-Net em 9/9 problemas)",
+   "onde_no_artigo": "§IV-D, parágrafo após a Tabela VIII",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA, e mais forte que no artigo. Mediana de min(accs) por problema: Pareto-Net > θ-Net em 25/25 problemas (ex.: WFG9 0,750 vs 0,304; DTLZ4 0,824 vs 0,321; ZDT1 0,966 vs 0,867). Pareado decisão-a-decisão sobre 190.589 decisões com as duas redes vivas: acc_P > acc_θ em 126.791 (66,5%), acc_θ > acc_P em 60.971 (32,0%), empate 2.827 (1,5%). Caveat declarado: a nossa acc é a `acc_for_class` da JANELA DE ATUALIZAÇÃO do código, não o test-set de 3.000 exemplos do artigo — é um proxy, não a mesma quantidade."
+  },
+  {
+   "afirmacao": "\"if all solutions are uniformly distributed in N clusters ... the ratio between class 3 and class 1 (or class 2) is larger than 2(N−1):1 ... the class distribution will be highly imbalanced\"",
+   "onde_no_artigo": "§III-E, 3º parágrafo (dedução analítica do desbalanceamento da θ-dominância)",
+   "testavel_com_30": true,
+   "resultado": "REFUTADA no nosso setup — e a causa é a premissa, não o código. Medido em `y_treino_dist_s` de 190.652 decisões: a razão classe3/classe1 (=`classe_0_empate`/`classe_1_i_domina`) tem mediana por célula > 2(N−1) em apenas 9/738 células (1,2%). Medianas por problema vão de 0,00 (ZDT4) e 1,28 (DTLZ4) / 1,34 (WFG1) até 25,43 (MMF16_20), contra os limites 20 (N=11) e 28 (N=15). O DESBALANCEAMENTO existe e é grande (classe 0 é 47%–93% dos pares), mas o LIMITE 2(N−1) NÃO vale porque o arquivo do c122 nunca é uniforme sobre os N clusters — a busca concentra. Este é um resultado que o artigo não previu."
+  },
+  {
+   "afirmacao": "\"it is well known that the overwhelming majority of solutions will become non-dominated to each other as the number of objectives increases\" (justificativa do desbalanceamento da Pareto-dominância)",
+   "onde_no_artigo": "§III-E, 3º parágrafo",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA na direção, com os 2 níveis de M que temos. Fração mediana de pares classe-0 (incomparáveis) no treino da Pareto-Net: M=2 → 0,554 ; M=3 → 0,841. Por problema, os 6 de M=3 ficam entre 0,765 (DTLZ7) e 0,928 (MMF16_20); os de M=2 vão de 0,301 (BBOB_F22) a 0,922 (WFG4). Não há M≥5 no nosso grid ⇒ a monotonicidade é testada em 2 pontos só."
+  },
+  {
+   "afirmacao": "\"an extreme case is that all solutions involved in the training set are in the same cluster. In this case, there will be no training example belonging to class 3\"",
+   "onde_no_artigo": "§III-E, 3º parágrafo (profecia sobre o caso degenerado)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA e REPRODUZIDA EM 30/30 SEMENTES no ZDT4. Medido: fração mediana de classe-0 em `y_treino_dist_s` = 0,0000 no ZDT4 (contra 0,40–0,93 em todos os outros 24 problemas); `fit_inicial.s_net=false` em 30/30 sementes; a θ-Net não existe em NENHUMA decisão em 29/30 (5.976/6.039 decisões com `accs_s=null`). A profecia do §III-E é um comportamento DETERMINÍSTICO do algoritmo neste problema, não um acidente de semente. Exceção medida: semente 14, onde a θ-Net nasce em g=138 (63/200 decisões) — a única quebra de invariância de semente que encontrei em toda a auditoria."
+  },
+  {
+   "afirmacao": "\"Another potential benefit of using both Pareto-Net and θ-Net is that the optimization process may still be guided well even if one of the two surrogates performs poorly, leading to better robustness of optimization\"",
+   "onde_no_artigo": "§III-E, 1º parágrafo (final)",
+   "testavel_com_30": true,
+   "resultado": "CONTRARIADA no caso extremo, em 30/30 sementes. Quando a θ-Net não existe (ZDT4), a Pareto-Net sozinha NÃO sustenta a preseleção: 90,10% das decisões (5.441/6.039) caem no ramo `distinct` com `n_cands==1` — um único candidato, ou seja, escolha DEGENERADA sem contraste. A distribuição de categorias do ZDT4 é Q1 0,08% · Q2 0,03% · Q3 8,98% · Q5/distinct 90,91%, contra Q1 48,4% no agregado dos 25 problemas. O resultado é IGD mediano 19,51 com HV=0 em 30/30. A redundância entre as duas redes protege contra uma rede RUIM, mas não contra uma rede INEXISTENTE."
+  },
+  {
+   "afirmacao": "\"θ-DEA-DP also achieves very competitive performance at any time during the optimization process ... can be successfully applied to many different optimization scenarios where the allowed number of function evaluations varies\" (comportamento anytime, Fig. 5)",
+   "onde_no_artigo": "§IV-B, parágrafo sobre as trajetórias da Fig. 5",
+   "testavel_com_30": true,
+   "resultado": "COMPATÍVEL na parte que podemos testar (monotonicidade da própria curva; não podemos testar 'competitivo' sem os concorrentes na mesma execução). Trajetória de IGD+ em 20 cortes de FE, 5 sementes × 25 problemas = 125 células: 2.375 pontos, **0 violações** de não-crescimento. Ganho ponta-a-ponta mediano 6,75× (mínimo 1,08×). Nenhuma célula estagna nem regride."
+  },
+  {
+   "afirmacao": "Tabela IV, ZDT4 (m=2, n=10, 250 FE, 21 execuções): melhor 1,05E+01 · mediana 2,80E+01 · pior 3,68E+01",
+   "onde_no_artigo": "§IV-B, Tabela IV, linha ZDT4",
+   "testavel_com_30": true,
+   "resultado": "AGORA COMPARÁVEL COMO DISTRIBUIÇÃO (a T11 só tinha n=1). Nosso ZDT4 (m=2, n=10, 309 FE = 1,24× o orçamento deles, 30 execuções, IGD normalizado por (ideal,nadir) do front verdadeiro): **melhor 10,67 · mediana 19,51 · pior 41,03**. Razões: melhor 1,016× · mediana 0,697× · pior 1,115×. 29/30 das nossas execuções caem dentro do intervalo [10,5 ; 36,8] do artigo; 1 execução (41,03) fica ACIMA do pior deles. Leitura honesta: a distribuição é compatível e centrada mais baixo, mas com CAUDA DIREITA MAIS PESADA — a T11 não podia ver isso com 1 semente. ZDT4 continua sendo a ÚNICA célula estritamente comparável (mesmo m, mesmo n)."
+  },
+  {
+   "afirmacao": "\"on ZDT4 ... it indeed fails to approach the PF as indicated by the large IGD values\"",
+   "onde_no_artigo": "§IV-B, observação 3 sobre a Fig. 4",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA em 30/30. HV=0 em 30/30 células de ZDT4 (o conjunto final nunca entra no cubo de referência), IGD entre 10,67 e 41,03. E o nosso corpus explica o MECANISMO que o artigo não explica: normalização com f_max=[1,1;1,1] (DEF-B11.1) sobre um f₂ real de ordem 10²  ⇒ todos os pontos num cluster ⇒ classe 3 vazia ⇒ θ-Net natimorta ⇒ 90% de infill degenerado."
+  },
+  {
+   "afirmacao": "\"we find some interesting correlations [between surrogate accuracy and SAEA performance]. For example, Pareto-Net and θ-Net have very high accuracy on ZDT2, which can partly explain why θ-DEA-DP achieves a very small IGD value on this problem\"",
+   "onde_no_artigo": "§IV-D, parágrafo após a Tabela VIII",
+   "testavel_com_30": true,
+   "resultado": "SOBREVIVE COMO TENDÊNCIA FRACA, não como regra. ENTRE problemas (n=25, medianas): Spearman(acc_Pareto, IGD+) = −0,287 (p=0,164) e Spearman(acc_θ, IGD+) = −0,363 (p=0,074) — sinal certo, nenhum significativo a 5%. DENTRO de cada problema (entre as 30 sementes): ρ(acc_Pareto, IGD+) é negativo em 17/25 problemas e significativo (p<0,05) em apenas 8/25 (mais forte: WFG5 −0,691, WFG9 −0,688, DTLZ2 −0,715); é POSITIVO e significativo em 1/25 (ZDT6 +0,379). Conclusão medida: acurácia alta ajuda, mas não é preditor confiável do desempenho — exatamente a ressalva que o próprio artigo faz (\"not the only factor\")."
+  },
+  {
+   "afirmacao": "\"θ-DEA-DP has a great advantage in addressing multi-modal multi-objective problems (e.g., DTLZ1)\" — mediana IGD 5,38E-02, uma ordem de grandeza abaixo do 2º melhor",
+   "onde_no_artigo": "§V (Conclusão) e §IV-B, observação 3",
+   "testavel_com_30": false,
+   "resultado": "NÃO TESTÁVEL com o nosso grid — e o motivo importa. O DTLZ1 do artigo é a variante MODIFICADA (2π no cosseno, m=2, n=6, seguindo [8]); o nosso é a canônica (20π, M=3, D=7). São problemas diferentes. Nosso resultado (mediana IGD 47,99, HV=0 em 30/30, IQR/mediana 0,508) diz que na variante RUGOSA a vantagem não aparece — o que é consistente com o próprio artigo, que trocou 20π por 2π justamente \"to reduce the ruggedness\". Registro como incomensurável, não como refutação."
+  },
+  {
+   "afirmacao": "\"We run each algorithm 21 times independently\" — a base estatística de todas as tabelas",
+   "onde_no_artigo": "§IV-A-3, último parágrafo",
+   "testavel_com_30": true,
+   "resultado": "SUPERADO: 30 execuções independentes por célula, com semeadura auditável (SeedSequence((semente, problema_id)), 738 DoE distintos). A variabilidade que 21 execuções cobrem está medida: IQR/mediana do IGD+ mediano 0,322, com 5 problemas acima de 0,5 (BBOB_F55 1,017; BBOB_F49 0,805; DTLZ7 0,573; ZDT3 0,556; DTLZ1 0,508). Em BBOB_F55 o pior é 6,7× o melhor — qualquer afirmação de 1 semente neste problema é ruído."
+  }
+ ],
+ "N4_deriva": "**A deriva cross-máquina do c122 é EXATAMENTE ZERO — a doutrina do RUNBOOK §6.2 é conservadora demais para este config.** Existem **25 células duplicadas** entre máquinas (identificadas varrendo os 6 espelhos `~/mestrado_coleta_m8/matlab-vm{1,2,3,4,5,10}/experiments/main/c122/`, não pelo `reorg_conflitos.log`, que confunde conflito intra-VM com inter-VM): 20 pares vm1×vm5, 3 vm1×vm3, 2 vm1×vm4. As duas cópias de cada par são execuções GENUINAMENTE independentes: `ambiente.host` diferente (vm1 vs vm5/vm3/vm4), `ts` do header diferente, sha256 do .jsonl diferente. Medições: (a) **camada ① bit-idêntica em 23/23 pares** com `__real.parquet` dos dois lados — `max|ΔX| = 0,0` e `max|ΔF| = 0,0` sobre TODAS as linhas do prefixo comum (0 linhas diferentes de 8.055 comparadas); (b) **3.671 decisões comparadas campo a campo (`cid`, `caminho`, `n_cands`, `n_q1/2/3`, `n_acordo`, `e_z_escolhido`) → 0 divergentes**; (c) `e_z_escolhido` bit-idêntico em **3.043/3.043** pares com valor nos dois lados (erro relativo máximo 0,0); (d) nos 12 pares em que os DOIS lados chegaram ao fim do orçamento, `fe_final`, `n_geracoes`, `n_front1` e o **IGD final coincidem até o último dígito** (d_igd_rel = 0,000000). As diferenças de IGD que aparecem em 6 pares (0,022× a 10,7×) são de TRUNCAMENTO — um lado parou antes (re-run abortado), não de deriva. **Piso de ruído cross-máquina medido: 0 ULP.** Consequência para a leitura: qualquer contraste no c122 pode ser feito em base bit-exata; a heterogeneidade da frota (N2/Intel de 3 shapes) NÃO confunde nada neste config. RESSALVAS DECLARADAS: (1) todos os 25 pares têm a vm1 de um dos lados — não há par vm2×vm10 nem vm3×vm5; (2) 24 dos 25 pares são de sementes 7/18/25, com carimbos de 07–13/08 — **nenhum par cai na janela de swap da vm5 pós-15:20 UTC de 14/08**, logo essa janela NÃO foi testada por este método (não medido: motivo — sem duplicata na janela).",
+ "N5_cauda": "**A cauda do c122 não tem NENHUMA falha de algoritmo — mas tem uma incapacidade comportamental que o artigo previu e não quantificou.** Censo pelo RODAPÉ (regra O-21): 640 `ok` · 85 `teto_wall` (⚪) · 13 SEM RODAPÉ (fail). `n_retries=0` em 725/725 células com rodapé; nenhum dos 3 padrões `NO_RETRY` (kriging subdeterminado, random_search 3 tentativas, ModelFittingError) é modo de falha do c122 — o LAUDO_D0 não lista o c122, e os dados confirmam. (a) **As 85 ⚪ são 100% relógio de parede**: `motivo_parada='teto_wall'` em 85/85, `tempo_total` entre **12,001 h e 12,165 h** (teto 43.200 s), `fe_final/maxfe` de 0,789 a 1,000 (mediana 0,914). Concentram-se nos 7 problemas mais caros: WFG4 22, WFG9 21, ZDT3 21, WFG2 12, WFG5 6, ZDT1 2, WFG1 1. Espalhadas por todas as 6 VMs (vm5 26, vm3 23, vm10 13, vm2 10, vm1 10, vm4 3) ⇒ é custo do problema, não máquina. (b) **As 13 fail são `checkpoint_em_andamento` sem NENHUM rodapé** (nem runner nem despachante) — morte durante checkpoint. 11 das 13 estão nas sementes 25 (9 células) e 18 (3 células), em vm3 (7), vm4 (3) e vm1 (3): assinatura de evento de infraestrutura por lote, não de algoritmo. Elas são as únicas que RETIVERAM a ③ local. (c) **Taxas de sucesso completo por problema** (fe_final==maxfe): 30/30 em 17 problemas; ZDT1 24/30, WFG5 21/30, WFG2 16/30, WFG9 6/30, ZDT3 5/30, WFG4 5/30. Reanalisado em **ORÇAMENTO DE FE COMUM** (O-21) — que é a leitura correta — TODAS as 25 famílias voltam a ter 29–30 sementes comparáveis: WFG1 fe=385 (corte 43,4%), WFG9 347 (49,0%), WFG4 352 (48,2%), WFG5 364 (46,5%), WFG2 411 (39,6%), ZDT3 770 (17,0%), DTLZ7 532 (21,8%), MMF16_20 563 (8,9%), ZDT1 893 (3,8%); nos outros 16 o corte é 0%. (d) **A incapacidade REAL do c122 não está nas ⚪/fail — está no ZDT4**, onde o algoritmo termina 30/30 execuções sem falhar e com HV=0: a θ-Net é natimorta em 30/30 (`fit_inicial.s_net=false`) e nunca renasce em 29/30, e 90,10% das decisões escolhem entre UM candidato. É uma incapacidade determinística de 30/30 que o artigo prevê qualitativamente (§III-E, \"no training example belonging to class 3\") e nega quantitativamente (§III-E, \"still be guided well even if one of the two surrogates performs poorly\"). (e) HV=0 em 30/30 também em DTLZ1, 29/29 em DTLZ3, 29/29 em WFG1, e 3/30 em ZDT6 — são fracassos de convergência, não de execução.",
+ "aspectos": [
+  {
+   "id": "A1",
+   "aspecto": "Orçamento 31D−1 com hard-stop (substitui MaxEval=250 do §IV-A-4)",
+   "classe": "2",
+   "medicao": "maxfe==31D−1 em 738/738 · n_init==11D−1 em 738/738 · fe_final==maxfe em 640/640 células ok · n_ger == fe_final−n_init+cache_hits em 725/725 · n_retries=0 em 725/725",
+   "veredito": "conforme, ancorado em D21/D61",
+   "arquivo_linha": "evid: c122_torre/c122_sweep6.csv (A1_*)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A2",
+   "aspecto": "DoE 11D−1 por LHS do artefato congelado (D63/D88)",
+   "classe": "2",
+   "medicao": "doe_hash ≡ sidecar do artefato em 738/738 · 738 doe_hash DISTINTOS para 738 pares (problema,semente) · seed_tuple==(semente,problema_id) 738/738 · problema_id único por problema 25/25 · sampler lhs-maximin, bitgen PCG64, spec 5.2 em 810/810 sidecars do acervo",
+   "veredito": "conforme, ancorado em D63/D88 — e a FÓRMULA DE SEMEADURA, invisível com 1 semente, fica provada",
+   "arquivo_linha": "data/doe/<prob>/doe_<prob>_<seed>.manifest.json",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A3",
+   "aspecto": "Os 12 hiperparâmetros da Tab. III + Tab. II (N*=7000, Q_max=300, U=200, D=3, λ=1e-5, E_init=20, B=32, lr=1e-3, γ=0,9, T_max=11n+24, η_c=30, η_m=20, p_c=1, p_m=1/n, N=11/15, θ=5)",
+   "classe": "1",
+   "medicao": "21 variantes de `params` nas 738 células — uma por grupo de problema, diferindo APENAS em f_min/f_max, T_max e indpb=1/D. Todos os 12 hiperparâmetros idênticos em 738/738. N*=7000 confirmado OPERACIONALMENTE por A5; Q_max=300 por A8; spin_cap=10 por A20",
+   "veredito": "conforme ao artigo",
+   "arquivo_linha": "evid: c122_torre/c122_sweep6.csv (hp_json)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A4",
+   "aspecto": "q=1 estrito (Alg. 1 passos 18-21; §III-E \"only a single offspring solution is picked out\")",
+   "classe": "1",
+   "medicao": "1 decisão por geração em 738/738 células (196.628 decisões, 196.628 gerações distintas) · `real_solution_id` não-nulo em exatamente 6.243/333.188 linhas de ③-online = 1 por geração, e NULL em 100% das 7.872.000 linhas de sonda/estratificada",
+   "veredito": "conforme ao artigo",
+   "arquivo_linha": "evid: c122_torre/c122_terceira.csv",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A5",
+   "aspecto": "Pool de N*=7000 ofertas e acordo das 2 redes",
+   "classe": "1",
+   "medicao": "n_acordo+n_desacordo==7000 em 139.187/139.187 decisões com agregados não-nulos (738/738 células a 100%). Os NULL são exatamente o ramo `distinct` (56.903) mais o ZDT4 sem θ-Net",
+   "veredito": "conforme ao artigo",
+   "arquivo_linha": "evid: c122_torre/c122_sweep6.csv (A5_pool)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A6",
+   "aspecto": "Estágio 1: prioridade Q1≻Q2≻Q3, com ramo Q5/distinct por p_sum (§III-D-1)",
+   "classe": "1",
+   "medicao": "139.725/139.725 (100%) no ramo `categorias`, condicionando em `caminho` (armadilha nº 6 da T11: `n_q1` NÃO é NULL no ramo distinct). Distribuição sobre 196.628 decisões: Q1 95.231 (48,4%) · Q2 36.239 (18,4%) · Q3 8.255 (4,2%) · Q5/distinct 56.903 (28,9%). Extremos: ZDT4 90,9% Q5 · DTLZ2 0,08% Q5",
+   "veredito": "conforme ao artigo",
+   "arquivo_linha": "evid: c122_torre/c122_sweep6.csv (A6_prio, cat_counts)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A8",
+   "aspecto": "Corte Q_max=300 por p_sum(z)",
+   "classe": "1",
+   "medicao": "n_cands == min(tamanho da categoria vencedora, 300) em 196.628/196.628 (100%), incluindo o ramo distinct; 738/738 células a 100%",
+   "veredito": "conforme ao artigo",
+   "arquivo_linha": "evid: c122_torre/c122_sweep6.csv (A8_qmax)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A9",
+   "aspecto": "QUERY-JOIA — Estágio 2: e_sum(z)=e(z)+e_θ(z) e argmax (Eqs. 6-7)",
+   "classe": "1",
+   "medicao": "⑥: e_z_escolhido == ez_cat_max em 180.480/180.480 (igualdade EXATA em 13.759/13.759 numa sub-amostra de 60 células). ③: escolhido == max do bloco TOP-100 em 5.769/5.769 blocos, erro relativo máximo 8,79e-07. TOP-100 ordenado decrescente por e(z) em 5.769/5.769 (fato NOVO). e_z_escolhido NULL = 15.995 com n_cands==1 + 153 com n_cands==0 (= os 153 spin_cap)",
+   "veredito": "conforme ao artigo — o uso da incerteza está PROVADO em todas as 30 sementes",
+   "arquivo_linha": "evid: c122_torre/c122_terceira.csv (A9_terceira)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A10",
+   "aspecto": "Simetrização da Eq. 4: p̂(u,v)=max{p(u,v),p(v,u)}",
+   "classe": "1",
+   "medicao": "Continua sem verificação direta (as duas probabilidades direcionais não saem). Evidência indireta re-medida: `pred_confianca` da busca tem piso ≫1/3 e satura em 1,0 em 49,7% das 333.188 linhas online",
+   "veredito": "conforme por evidência declarativa+indireta — inalterado vs T11",
+   "arquivo_linha": "evid: c122_torre/c122_terceira.csv (online_conf_sat1)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A11",
+   "aspecto": "Clusters em rodadas de ordem embaralhada (PerCounter, §III-A)",
+   "classe": "1",
+   "medicao": "18.163/18.163 rodadas são permutações exatas de {0..N−1}: 15.464/15.464 nas 705 células sem spin_cap + 2.699/2.699 nas 33 com spin_cap depois de descontar o cid DUPLICADO da decisão capeada (armadilha nº 8 da T11, agora quantificada: 153 caps em WFG1 e DTLZ7). 1ª rodada em ordem natural em 738/738",
+   "veredito": "conforme ao artigo — a 'quebra' em 33 células é artefato de contagem, provado",
+   "arquivo_linha": "evid: c122_torre/c122_sweep6.csv (A11_*)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A12",
+   "aspecto": "Gate de retreino `acc_min >= γ` (código) × `>` (§III-C-2 do artigo)",
+   "classe": "2",
+   "medicao": "(min(accs)>=0,9) ≡ skip_treino em 387.280/387.280 avaliações de gate (P+S) — 100%, 738/738 células",
+   "veredito": "desvio sancionado ⟦v2.2⟧ / D29 🟠 (borda impl→código)",
+   "arquivo_linha": "evid: c122_torre/c122_sweep6.csv (A12_gate)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A13",
+   "aspecto": "E_upd = ceil((1−acc/γ)·E_init) (Eq. 5, inteirização não especificada no artigo)",
+   "classe": "2",
+   "medicao": "240.512/240.512 (100%) reproduzindo a ORDEM DAS OPERAÇÕES do código, em 738/738 células. Evidência forte de fork bit-fiel",
+   "veredito": "desvio sancionado (o artigo não especifica a inteirização)",
+   "arquivo_linha": "evid: c122_torre/c122_sweep6.csv (A13_eupd)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A14",
+   "aspecto": "Janela T_max=11n+24 + erratum T′=min (o artigo imprime max) + monotonicidade de fe_treino_max",
+   "classe": "2",
+   "medicao": "T_max==11D+24 em 738/738 (46/101/134/156/244/266/354 conforme D) · **0 quedas** de fe_treino_max em 196.628 transições, 738/738 células",
+   "veredito": "desvio sancionado ⟦v2.2⟧ / D29 🟣 (errata do artigo)",
+   "arquivo_linha": "evid: c122_torre/c122_sweep6.csv (A14_drops)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A15",
+   "aspecto": "Classe ausente ⇒ sentinela acc=1 ⇒ infla o skip; compute_class_weight=None ⇒ modelo None ⇒ seleção aleatória (§III-E)",
+   "classe": "2",
+   "medicao": "acc==1,0 exato: Pareto classe0 7,26% · classes1/2 26,68% (de 196.628); θ classe0 32,60% · classes1/2 13,97% (de 190.652). ZDT4: s_net=false em 30/30 sementes, θ-Net inexistente em TODAS as decisões em 29/30 (5.976/6.039), reinit_s=true em 100% dessas. **Exceção: semente 14** — θ-Net nasce em g=138 e vive contígua até g=200 (63/200 decisões)",
+   "veredito": "desvio sancionado (design do código oficial, D29 🟠) — MAS a invariância de semente QUEBRA em 1/30 no ZDT4",
+   "arquivo_linha": "evid: c122_torre/c122_sweep6.csv (fit0_s, s_net_ausente)",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A17",
+   "aspecto": "Normalização com f_min/f_max FIXOS do front verdadeiro +10% (DEF-B11.1 + D73b)",
+   "classe": "2",
+   "medicao": "f_min/f_max constantes por problema em 738/738 (n_fmin_distintos=1 em cada célula) e idênticos ao `params` do manifesto. Causa provada do colapso do ZDT4: f_max=[1,1;1,1] contra f₂ real de ordem 10²",
+   "veredito": "desvio sancionado, vantagem informacional DECLARADA (D73b)",
+   "arquivo_linha": "evid: c122_torre/c122_sweep6.csv (f_min/f_max)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A18",
+   "aspecto": "x∈[−1,1], float32 FORÇADO pelo forward, visualization=False",
+   "classe": "2",
+   "medicao": "`torch_default_dtype=\"float32 (FORCADO...)\"` em 738/738 `params`; `pinning.default_dtype='torch.float64'` em 738/738 headers — a armadilha declarativa da T11 PERSISTE em 738/738",
+   "veredito": "desvio sancionado N.1.1/E.7; a coexistência das duas declarações é armadilha documentada",
+   "arquivo_linha": "evid: c122_torre/c122_sweep6.csv (default_dtype)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A20",
+   "aspecto": "Anti-spin com cap 10 (E.7) × fn. 6 do artigo, que não capeia",
+   "classe": "2",
+   "medicao": "20.782 guards `spin_resample` · **153 disparos de spin_cap**, todos com tentativa==10, concentrados em WFG1 (142) e DTLZ7 (11) · reconciliação footer.n_spin_total ≡ Σ n_spin ≡ nº de guards em 725/725 células com rodapé · n_cands==0 em exatamente 153 decisões = os 153 caps (0,078% dos 196.628 FE)",
+   "veredito": "desvio sancionado E.7, DECLARADO no próprio guard",
+   "arquivo_linha": "evid: c122_torre/c122_sweep6.csv (A20_reconc)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A21",
+   "aspecto": "Step 14 do Alg. 1 não existe no código oficial (elites só são truncados ao FIM da 1ª iteração)",
+   "classe": "2",
+   "medicao": "max e(z) do bloco-1 da sonda > 2N em **29/31** células com ③ (as 2 exceções são MMF11_L 18,4 e MMF4 15,8, D=2, onde 11D−1=21 < 2N=22) · ≤ 2(11D−1) em **31/31** · para g≥2, ≤2N em **31/31** (máximos de 4,80 a 25,91). Valores do bloco-1 até 359,5 (ZDT1) e 355,9 (WFG1)",
+   "veredito": "desvio sancionado D29 🟠 (impl→código) — melhora vs T11 (era 22/25)",
+   "arquivo_linha": "evid: c122_torre/c122_terceira.csv",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A22",
+   "aspecto": "Survival θ-não-dominada truncando a N (Step 26; o surrogate é preseleção pura)",
+   "classe": "2",
+   "medicao": "|②(g)| == N em 14.180/14.180 grupos numa amostra aleatória de 50 células. A REGRA de desempate (`random.sample`) continua inobservável = T2",
+   "veredito": "desvio sancionado D30 / SPEC §434 🟠",
+   "arquivo_linha": "evid: __pop.parquet (amostra 50 células)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A23",
+   "aspecto": "③-busca = TOP-100 por e(z) sobre a categoria vencedora (DI-16.3 opção A+)",
+   "classe": "2",
+   "medicao": "linhas③-online(g) == min(100, n_cands) em **6.243/6.243** gerações das 31 células com ③ (25/25 problemas), 333.188 linhas",
+   "veredito": "desvio sancionado DI-16.3 A+",
+   "arquivo_linha": "evid: c122_torre/c122_terceira.csv (A23_top100)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A24",
+   "aspecto": "pred_score/pred_confianca com 2 semânticas; μ/σ NÃO se aplicam ao c122",
+   "classe": "2",
+   "medicao": "Nas 8.205.188 linhas de ③ das 31 células: `mu_0`, `mu_1`, `sigma_0`, `sigma_1`, `pred_classe`, `espaco_modelo`, `transf_tipo`, `transf_params` NULL em **100,0000%**; `pred_tipo='score'` em 100%; `pred_score` e `pred_confianca` preenchidos em 99,86% (online — os NULL são os 153 caps) e 100% (sonda e estratificada). `pred_confianca` satura em 1,0 em 93,95% da sonda e 49,7% da busca",
+   "veredito": "desvio sancionado (sigma_dict) — contrato agora 100% conforme",
+   "arquivo_linha": "evid: c122_torre/c122_terceira.csv",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A26",
+   "aspecto": "Sonda: cadência k=2 + finalProbe, S=2000, hash conferido no arranque, join posicional",
+   "classe": "2",
+   "medicao": "Cadência (g==1 ∨ g%2==0) em 99.022/99.086 blocos; os 64 restantes são exatamente os 64 finalProbes (`motivo='ultima geracao (§3.1...)'`) ⇒ **99.086/99.086** com a regra completa · n_pontos==2000 em 7.627/7.627 (amostra 60 células) · `hash_check='ok'` em 7.627/7.627 · `sonda_x_hash` ÚNICO por problema nas 30 sementes (25/25 problemas) · sonda_S=2000 em 738/738",
+   "veredito": "desvio sancionado DI-09/DI-12.5",
+   "arquivo_linha": "evid: c122_torre/c122_sweep6.csv (sonda_cad)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A28",
+   "aspecto": "Cache-hit sem crescer o arquivo + timing + reconciliação (D57/D89/DI-21.1)",
+   "classe": "2",
+   "medicao": "68 cache-hits em 39/738 células (ZDT4 concentra 39 hits em 16 células, até 7 numa só; MMF4/MMF11_L/MMF1/BBOB_F1 o resto). Em todas, n_ger == fe_final−n_init+cache_hits fecha. `tempo_aval_real_s` > 0 em 725/725 células com timing, somando 0,00108% do tempo total; t_fit = 91,82%, t_sonda = 2,72%. Custo total do config: **2.750,8 h-core**",
+   "veredito": "desvio sancionado D57/D89",
+   "arquivo_linha": "evid: c122_torre/c122_manifests.csv",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "N1",
+   "aspecto": "[I-01 + I-1] n_ref REAL por bloco + ref_ids com identidade real",
+   "classe": "2",
+   "medicao": "`n_ref` == 11D−1 em g=1 e == MU em g≥2 em **99.086/99.086** blocos de sonda (738/738 células) · `len(ref_ids)==n_ref` em **99.086/99.086** · `n_ref_truncada` coerente em 100% · **0 ids negativos em 354.042 ids** de 28.484 recs (contraste com pmid_ids=−1 do c217) · `ref_ids` é MULTISET em 233 blocos de 23 células (armadilha nº 2 da T11 confirmada em escala)",
+   "veredito": "desvio sancionado I-01/I-1 — o (3) principal da F5 continua fechado, agora em 30 sementes",
+   "arquivo_linha": "evid: c122_torre/c122_sweep6.csv (N1_*)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "N3",
+   "aspecto": "[I-6] sonda_estratificada — a coluna de gravação (o (3) MÉDIO da T11)",
+   "classe": "2",
+   "medicao": "**CONSERTADO ANTES DO DISPARO.** Nas 31 células com ③: `pred_score` preenchido em **1.574.000/1.574.000** linhas `regime='sonda_estratificada'` e `mu_0`/`sigma_0` NULL em **1.574.000/1.574.000**. A T11 media exatamente o inverso no smoke (mu_0 10.500/10.500). 3.148 blocos, todos com 500 linhas exatas; prevalência ND por bloco 3,4%–12,8%",
+   "veredito": "desvio sancionado I-6 — conforme ao CONTRATO §3 e ao sigma_dict do próprio run",
+   "arquivo_linha": "evid: c122_torre/c122_terceira.csv (sonda_estratificada_*)",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "N5",
+   "aspecto": "[I-3/I-4/G3] encanamento global: tempo_aval_real_s, NO_RETRY, proveniência",
+   "classe": "2",
+   "medicao": "`campanha_id=7f4f0e429a46_M8`, `repo_hash=63db46b1...`, `schema_version=2`, `algo_version=c122-thetadeadp-1.0` em **738/738** (na s42 da F5/T11 estavam ausentes em 25/25) · `tempo_aval_real_s` não-nulo em 725/725 · NO_RETRY inerte e corretamente inerte (n_retries=0 em 725/725, nenhum dos 3 padrões é do c122)",
+   "veredito": "desvio sancionado I-3/I-4/G3 — a proveniência agora existe no acervo inteiro",
+   "arquivo_linha": "evid: c122_torre/c122_manifests.csv",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "F1",
+   "aspecto": "Fórmula de semeadura das 30 réplicas — SeedSequence((semente, problema_id)), sementes {0–28,42}",
+   "classe": "2",
+   "medicao": "738/738 células com seed_tuple==(semente,problema_id) e doe_hash ≡ artefato; **738 doe_hash distintos para 738 pares** (nenhuma colisão); 30 sementes exatamente {0..28, 42}; nenhuma semente 30 (fantasma de _quarentena) presente",
+   "veredito": "extensão nossa DECLARADA (D87/D88) — ERA teto com 1 semente, agora MEDIDA",
+   "arquivo_linha": "data/doe/<prob>/doe_<prob>_<seed>.manifest.json",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "D1",
+   "aspecto": "Determinismo / reprodutibilidade cross-máquina do fork Python",
+   "classe": "2",
+   "medicao": "25 duplicatas genuínas (hosts e ts distintos): ① bit-idêntica em 23/23 pares (max|ΔX|=max|ΔF|=0,0), 3.671 decisões sem 1 campo divergente, e_z_escolhido bit-idêntico em 3.043/3.043, IGD final idêntico em 12/12 pares completos. **Deriva = 0 ULP**",
+   "veredito": "protocolo nosso — ERA teto com 1 semente/1 máquina, agora MEDIDA; supera o padrão de prova exigido pelo RUNBOOK §6.2",
+   "arquivo_linha": "evid: c122_torre/c122_deriva.csv",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "N2",
+   "aspecto": "[I-2] REGRA_DO_ROTULO aponta o ref_ids do evento ERRADO",
+   "classe": "3",
+   "medicao": "`sonda(g).ref_ids == decision(g).ref_ids` em **39.596/99.082 (40,0%)**; `== decision(g−1).ref_ids` em **98.307/99.082 (99,2%)**. Ou seja, a leitura LITERAL da regra devolve o conjunto errado em **59.486/99.082 = 60,0%** dos blocos do acervo inteiro (a T11 mediu 63,6% em 22 blocos de 1 smoke)",
+   "veredito": "inexplicado 🎯 — nenhuma DI autoriza a ambiguidade; NÃO foi consertado apesar da recomendação explícita da T11 ('conserto: 6 palavras')",
+   "arquivo_linha": "sigma_dict.REGRA_DO_ROTULO (citado da T11: c122_thetadeadp.py:751-763, :848, :956, :1001 — não re-lido nesta rodada)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "N4",
+   "aspecto": "Resíduo declarativo do I-01: manifest.sonda.n_ref e sigma_dict dizem 'referência de tamanho FIXO'",
+   "classe": "3",
+   "medicao": "`manifest.sonda.n_ref` == MU (11 em 549 células, 15 em 176) em **725/725** manifestos com o bloco, e `sigma_dict['regime=sonda']` diz '(n_ref=11|15) — referencia de tamanho FIXO' em 738/738 headers — no MESMO run cujo rec de g=1 declara n_ref=11D−1 (até 329) com n_ref_truncada=false",
+   "veredito": "inexplicado 🎯 — 2 strings por célula, com a verdade adjacente em cada bloco; NÃO consertado apesar da recomendação da T11",
+   "arquivo_linha": "*.manifest.json → sonda.n_ref ; header.sigma_dict['regime=sonda']",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "N3b",
+   "aspecto": "sonda_estratificada não acompanha o finalProbe",
+   "classe": "3",
+   "medicao": "64 células têm última geração ÍMPAR e portanto um bloco `sonda` de finalProbe; em **64/64** delas NÃO existe o bloco `sonda_estratificada` irmão (99.086 sonda vs 99.022 estratificada; `estrat_igual_sonda` em 674/738). Toda análise pareada régua×estratificada perde a última geração dessas 64 células",
+   "veredito": "inexplicado 🎯 (severidade MUITO BAIXA) — a T11 registrou como armadilha nº 5 no smoke; aqui é medido em escala e continua sem decisão que o sancione",
+   "arquivo_linha": "evid: c122_torre/c122_sweep6.csv (estrat_falta, sonda_finalprobe)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "G1",
+   "aspecto": "Upload da célula falhou em 220/738 — a ③ dessas células não está em lugar nenhum que eu alcance",
+   "classe": "3",
+   "medicao": "`manifest.upload_status = {erro: 'upload_failed: Forbidden 403 ... does not have storage.objects.delete access'}` em **220/738 células (29,8%)**, distribuídas EXATAMENTE por 3 VMs: vm10 (75/75), vm2 (75/75), vm4 (70/73). Nessas 220 o manifesto NÃO tem os status por camada (o bloco inteiro falhou). Cruzando: **0/220** têm `__surrogate.parquet` no acervo canônico, e os espelhos `~/mestrado_coleta_m8/matlab-vm{2,10}` têm **0 surrogates** de c122 (vm4 tem 3, e são de células de outras VMs). As 505 células com upload OK trazem `surrogate: 'uploaded_bucket_only'`",
+   "veredito": "inexplicado 🎯 (severidade ALTA para a DISPONIBILIDADE do dado, NULA para o mecanismo) — se o bucket não tiver essas ③, 29,8% da camada ③ do c122 está perdida. NÃO MEDIDO se o bucket as tem: motivo — sem acesso ao bucket desta máquina",
+   "arquivo_linha": "evid: c122_torre/c122_manifests.csv (coluna upload)",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "G2",
+   "aspecto": "A semente 42 da campanha M8 NÃO é a semente 42 que a F5 e a T11 auditaram",
+   "classe": "3",
+   "medicao": "Comparando `f5/metricas_finais_f52c.csv` (s42 pré-T11, 25 células, sem campanha_id) com a s42 do M8: **0/25 IGD idênticos**, razões de 0,569× (BBOB_F5) a 1,752× (BBOB_F1), mediana 1,063×; n_nd muda em 24/25. Padrão de cache-hit muda (T11: 1 hit em MMF11_L e ZDT4 → M8: 1 hit em MMF1, 0 nos outros); ZDT4 tinha 201 iterações, agora 200; 6 das 25 células da s42 do M8 batem no teto de 12 h (a s42 antiga fechou 25/25). Como a deriva cross-máquina foi medida em ZERO (D1), a causa NÃO é a máquina: é diferença de VERSÃO DE CÓDIGO entre o corpus de 02/08 e o repo_hash 63db46b1 do M8. O corpus antigo foi SOBRESCRITO em `resultados_experimentos/` e não existe mais nesta máquina",
+   "veredito": "inexplicado 🎯 (severidade MÉDIA-ALTA para a RASTREABILIDADE) — as conclusões numéricas da F5 e da T11 estão ancoradas num corpus que não é reproduzível pelo acervo atual. NÃO MEDIDO qual mudança causou a divergência: motivo — corpus antigo ausente e código não re-lido nesta rodada",
+   "arquivo_linha": "evid: c122_torre/c122_metricas30.csv × f5/metricas_finais_f52c.csv",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "T1",
+   "aspecto": "Perda CE ponderada por frequência inversa (Eq. 3) + inicialização Kaiming + ausência de dropout",
+   "classe": "T",
+   "medicao": "nada exportado além de `weight_decay=1e-5` em 738/738 — 30 sementes não mudam isto",
+   "veredito": "teto de verificabilidade, inalterado",
+   "arquivo_linha": "",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "T2",
+   "aspecto": "random.sample que trunca o front θ-não-dominado excedente (D30 / SPEC §434)",
+   "classe": "T",
+   "medicao": "só |②(g)|=N é observável (14.180/14.180 na amostra); QUEM sobrevive não sai",
+   "veredito": "teto de verificabilidade, inalterado",
+   "arquivo_linha": "",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "T3",
+   "aspecto": "Desempate do Pareto-representante por ‖w_i−w_j‖ (§III-B)",
+   "classe": "T",
+   "medicao": "representantes não exportados em nenhuma camada",
+   "veredito": "teto de verificabilidade, inalterado",
+   "arquivo_linha": "",
+   "muda_vs_s42": false
+  }
+ ],
+ "classe3": [
+  {
+   "id": "G1",
+   "descricao": "220/738 células (29,8%) do c122 têm `upload_status = {erro: upload_failed 403 — a service account não tem storage.objects.delete}`, todas de vm2 (75), vm4 (70) e vm10 (75). Sob D54 (③ bucket-only), o `__surrogate.parquet` dessas células foi apagado localmente; medido: 0/220 existem no acervo canônico e os espelhos de vm2 e vm10 não têm NENHUM surrogate de c122. Se o bucket não as tiver, a camada ③ de 29,8% do config está perdida — e com ela toda a análise R4 de surrogate (régua, bloco estratificado, TOP-100) nessas células.",
+   "gravidade": "ALTA para disponibilidade de dado · NULA para o mecanismo (⑥/①/②/④ estão íntegros nessas 220)",
+   "acao": "ESCALAR (D81): rodar um censo do bucket `gs://mestrado_experiments/experiments/main/c122/*__surrogate.parquet` e confrontar com a lista das 220. Se ausentes, decidir entre (a) declarar a análise de ③ do c122 sobre as 518 células restantes, ou (b) re-executar. Corrigir o IAM das 3 service accounts ANTES de qualquer disparo futuro — o mesmo erro atinge todos os configs rodados nessas VMs.",
+   "arquivo_linha": "evid: /private/tmp/claude-501/-Users-gmello/33c29160-6eb6-4277-a041-db4855486063/scratchpad/c122_torre/c122_manifests.csv"
+  },
+  {
+   "id": "G2",
+   "descricao": "A semente 42 da campanha M8 diverge integralmente da semente 42 que a F5 e a T11 auditaram: 0/25 células com IGD idêntico (razões 0,57×–1,75×), padrão de cache-hit diferente, contagem de iterações diferente (ZDT4 201→200). Como a deriva cross-máquina foi medida em EXATAMENTE zero, a causa não é hardware — é mudança de versão entre o corpus de 02/08 (sem campanha_id) e o repo_hash 63db46b1 do M8. O corpus antigo foi sobrescrito em `resultados_experimentos/c122/*/42/` e não sobrevive em nenhum espelho desta máquina.",
+   "gravidade": "MÉDIA-ALTA para rastreabilidade — todo número numérico da F5 e da T11 sobre o c122 é sobre um corpus que o acervo atual não reproduz",
+   "acao": "ESCALAR (D81). O autor precisa decidir: (a) qual corpus é canônico para a dissertação; (b) se as afirmações numéricas da F5/T11 são re-emitidas sobre o M8 (esta auditoria já as re-mediu em 30 sementes); (c) se a divergência era ESPERADA (mudança sancionada de código entre 02/08 e o m8-freeze) ou se indica que a instrumentação da T11 perturbou o fluxo de RNG apesar do `preserve_all_rng` — o que a §3.1 não pôde medir para o c122 por ser Python.",
+   "arquivo_linha": "evid: c122_torre/c122_metricas30.csv × ua-dd-saea/f5/metricas_finais_f52c.csv"
+  },
+  {
+   "id": "N2",
+   "descricao": "A `REGRA_DO_ROTULO` do sigma_dict manda usar '`ref_ids` do evento de geração'; no c122 o evento de geração é o `decision`, cujo `ref_ids` é PÓS-survival, enquanto o bloco de sonda mediu contra a população PRÉ-survival. Medido no acervo inteiro: sonda(g).ref_ids == decision(g).ref_ids em 39.596/99.082 (40,0%) e == decision(g−1).ref_ids em 98.307/99.082 (99,2%). A leitura literal entrega o conjunto errado em 60,0% dos 99.082 blocos. O dado CORRETO está no próprio rec `sonda`.",
+   "gravidade": "BAIXA — o dado correto é adjacente e o impacto numérico medido pela T11 na s42 era ρ 0,0589 (correto) vs 0,0575 (literal)",
+   "acao": "Sob `m8-freeze` o código não se toca (🟠 fica o código). Corrigir a REGRA DE LEITURA no CONTRATO_DE_DADOS: '…`ref_ids` DO PRÓPRIO REC `sonda`/`sonda_estratificada`, nunca o do rec `decision` vizinho'. Recomendado ANTES de o R4 consumir a ③.",
+   "arquivo_linha": "header.sigma_dict['REGRA_DO_ROTULO'] em 738/738 células"
+  },
+  {
+   "id": "N4",
+   "descricao": "Resíduo declarativo do I-01: `manifest.sonda.n_ref` = MU (11 ou 15) em 725/725 manifestos e `sigma_dict['regime=sonda']` diz 'referencia de tamanho FIXO' em 738/738 headers, enquanto o rec de g=1 do MESMO run declara n_ref=11D−1 (até 329) com `n_ref_truncada=false`. A regra 3 do CONTRATO (DEF-C4) manda ler o sigma_dict ANTES da ③ — quem cumpre o contrato lê primeiro a afirmação falsa.",
+   "gravidade": "MUITO BAIXA — 2 strings por célula, com a verdade adjacente em cada bloco",
+   "acao": "Sob `m8-freeze`, anotar a errata no CONTRATO_DE_DADOS e no MAPA_ARTEFATOS: 'manifest.sonda.n_ref é NOMINAL; o n_ref REAL está por bloco no rec'. Se houver rodada futura, aplicar o conserto que a T11 já especificou.",
+   "arquivo_linha": "*.manifest.json → sonda.n_ref ; header.sigma_dict['regime=sonda']"
+  },
+  {
+   "id": "N3b",
+   "descricao": "Nas 64 células cuja última geração é ímpar, o bloco `sonda` de finalProbe existe mas o irmão `sonda_estratificada` NÃO — 64/64. Total: 99.086 blocos de sonda contra 99.022 estratificados. Nenhuma DI sanciona a assimetria; a T11 já a tinha visto no smoke (22 vs 21) e a registrou apenas como armadilha.",
+   "gravidade": "MUITO BAIXA — perde-se a última geração em toda análise pareada régua×estratificada dessas 64 células",
+   "acao": "Registrar como armadilha FORMAL no CONTRATO (regra 12 já proíbe misturar os dois regimes; acrescentar que o pareamento por geração perde o finalProbe). Nenhuma ação de código sob m8-freeze.",
+   "arquivo_linha": "evid: c122_torre/c122_sweep6.csv (colunas estrat_falta, sonda_finalprobe)"
+  }
+ ],
+ "score": 9.2,
+ "score_t11": 9.5,
+ "veredito_recomendado": "ACEITAR + CAVEAT OPERACIONAL (recomendação; o veredito é do autor — D97). **O MECANISMO está mais provado do que estava: nada nele se move com a semente.** Todas as identidades estruturais que a F5 e a T11 fecharam em 1 semente fecham em 738/738 células, 30/30 sementes, 25/25 problemas, sem uma única exceção — a query-joia (argmax do EDN) em 180.480/180.480 no ⑥ e 5.769/5.769 na ③, o gate em 387.280/387.280, o E_upd em 240.512/240.512, o corte Q_max em 196.628/196.628, a prioridade em 139.725/139.725, as rodadas embaralhadas em 18.163/18.163, zero quedas de fe_treino_max em 196.628 transições. A deriva cross-máquina, que a doutrina mandava assumir não-nula, é **exatamente zero** em 23/23 pares de duplicatas. E o (3) de severidade MÉDIA que a T11 condicionou ao disparo (o bloco estratificado gravando e(z) em `mu_0`) **foi consertado**: 1.574.000/1.574.000 linhas no lugar certo.\\n\\n**O movimento −0,3 vs a T11 não vem do algoritmo — vem do ACERVO.** Decomposição nomeada: **+0,4** pela invariância de semente provada em escala de campanha, pela deriva zero, pela queda dos tetos de semeadura/determinismo/variância e pelo conserto do N3; **−0,3** porque as outras duas recomendações da T11 (N2, a regra do rótulo apontando o evento errado — agora medida em 60,0% de 99.082 blocos; e N4, o resíduo declarativo do n_ref) foram explicitamente feitas 'antes do disparo do M8' e **não foram aplicadas**; **−0,4** pelos dois (3) NOVOS de nível de acervo: a ③ de **220 células (29,8%)** com falha dura de upload 403 e sem cópia local em lugar algum alcançável (G1), e o fato de que a **semente 42 da campanha não é a semente 42 que a F5 e a T11 julgaram** (G2, 0/25 IGD idênticos), o que desancora as duas auditorias anteriores do acervo vigente.\\n\\nNenhum desses dois novos (3) toca o laço de busca: as camadas ⑥/①/②/④ das 220 células estão íntegras e todas as identidades passam nelas. Por isso a recomendação é ACEITAR — mas com a condição de que G1 seja resolvido (censo do bucket) antes de o R4 prometer qualquer análise de surrogate para o c122, e de que G2 seja decidido antes de qualquer texto citar números da F5/T11 sobre este config.",
+ "decisoes_ao_autor": [
+  "**G1 — a ③ de 220 células.** Rodar um censo de `gs://mestrado_experiments/experiments/main/c122/*__surrogate.parquet` e confrontar com a lista das 220 células de vm2/vm4/vm10 (está em c122_manifests.csv, coluna upload). Eu NÃO consegui medir isto: sem acesso ao bucket. Se estiverem ausentes, decidir entre declarar a análise de ③ do c122 sobre as 518 células restantes ou re-executar. Independente do resultado: corrigir o IAM das 3 service accounts (falta `storage.objects.delete`) — o erro é por VM, logo atinge TODOS os configs rodados em vm2/vm4/vm10, não só o c122.",
+  "**G2 — qual s42 é canônica.** A s42 do M8 diverge integralmente da s42 que a F5/T11 auditaram (0/25 IGD idênticos, razões 0,57×–1,75×) e o corpus antigo foi sobrescrito. Como medi deriva cross-máquina ZERO, a causa é versão de código, não hardware. Decidir: (a) o M8 substitui a F5/T11 como base numérica do c122 (esta auditoria já re-mediu tudo em 30 sementes); (b) a divergência era esperada sob o m8-freeze, ou indica que a instrumentação da T11 perturbou o RNG apesar do `preserve_all_rng` — a §3.1 da T11 registrou não-perturbação sem poder medi-la para o c122 (par Python não preservado). Isto é conflito entre fontes ⇒ D81, não escolho.",
+  "**N2/N4 — regra de leitura, não código.** Sob m8-freeze o código não se toca, mas as duas declarações erradas continuam no acervo inteiro: a REGRA_DO_ROTULO (60,0% de 99.082 blocos entregam o conjunto errado na leitura literal) e o `manifest.sonda.n_ref`/`sigma_dict` dizendo 'referência de tamanho FIXO' em 725–738/738. Decidir se o conserto entra como ERRATA no CONTRATO_DE_DADOS antes do R4 consumir a ③.",
+  "**A afirmação do artigo que NÃO se sustenta no nosso setup.** O §III-E deduz que a razão classe3:classe1 da θ-dominância é > 2(N−1):1; medido, isso vale em 9/738 células (medianas por problema de 0,00 a 25,43 contra limites 20 e 28). A premissa da dedução (solucões uniformemente distribuídas nos N clusters) simplesmente não se realiza. Decidir como reportar: é um resultado empírico contra uma dedução do artigo, não um bug nosso — mas precisa da sua chancela antes de virar frase de dissertação.",
+  "**A refutação da robustez (§III-E).** O artigo afirma que o processo 'ainda é bem guiado se um dos dois surrogates vai mal'. Medido no ZDT4, 30/30 sementes: com a θ-Net inexistente, 90,10% das decisões escolhem entre UM candidato e o HV final é 0 em 30/30. Isto é um achado forte e publicável — mas ele depende da nossa normalização DEF-B11.1 (f_max=[1,1;1,1] contra f₂ real de ordem 10²), que é vantagem informacional DECLARADA (D73b). Decidir se o achado é reportado como propriedade do algoritmo ou como interação algoritmo×nossa normalização. Eu não escolho.",
+  "**Como tratar as 85 ⚪ na análise.** Elas são 100% `teto_wall` (12,00–12,17 h), não falhas. Já computei a leitura correta em ORÇAMENTO DE FE COMUM por problema (c122_orc_comum.csv): com ela, todas as 25 famílias voltam a ter 29–30 sementes comparáveis, ao custo de truncar 43–49% do orçamento em WFG1/4/5/9 e 39,6% em WFG2. Decidir se a tabela final do R4 usa o orçamento comum (recomendo) ou só as células completas (que reduziriam WFG4 a 5 sementes e ZDT3 a 5).",
+  "**A quebra de invariância que encontrei (1 em 738).** ZDT4 semente 14: a θ-Net, natimorta em 29/30 sementes, NASCE em g=138 e vive até o fim (63/200 decisões, com accs_s=[1,0;0,0;0,0]). Não é defeito — é o mecanismo de re-init do código oficial funcionando uma vez em trinta. Decidir se entra no texto como evidência de que a 'profecia do §III-E' é quase-determinística mas não absoluta."
+ ]
+}

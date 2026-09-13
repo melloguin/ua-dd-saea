@@ -1,0 +1,296 @@
+{
+  "id": "e21",
+  "sigla": "PIO",
+  "titulo": "Uncertainty quantification with graph neural networks for efficient molecular design",
+  "ano": 2025,
+  "roster": false,
+  "setup": {
+    "benchmarks": "19 datasets/objetivos de propriedade molecular (Tabela 1), organizados em 10 tarefas single-objective + 6 tarefas multi-objective (16 combinações tarefa×objetivo agregado no total), de duas plataformas. Tartarus (3 categorias, 7 tarefas single-obj + 2 multi-obj, com simulação física estocástica): organic emitters — singlet-triplet gap (↓), oscillator strength (↑), e a combinação dos dois + diferença absoluta de VEE (↓) (n_ref=403.947, via conformer sampling GFN2-xTB/iMTD-GC + TD-DFT); protein ligands — escores 1SYH/6Y2F/4LDE (↓) (n_ref=152.296, via docking Smina); reaction substrates — activation energy (↓), reaction energy (↓), e a combinação activation energy (↑) + reaction energy (↓) (n_ref=60.828, via campos de força + SEAM). GuacaMol (determinístico via RDKit, sem ruído de simulação): 3 tarefas single-obj de similaridade (aripiprazole, albuterol, mestranol) + 4 multi-obj (median molecules 1: tadalafil+sildenafil; median molecules 2: camphor+menthol; fexofenadine MPO: similaridade+TPSA+logP; ranolazine MPO: similaridade+TPSA+logP), n_ref=22.000 downsampled de 1,2 milhão de entradas GuacaMol.",
+    "orcamento": "Regime offline sem laço online de retreino: o surrogate D-MPNN é treinado UMA ÚNICA VEZ por dataset (split 8:1:1 para Tartarus; 10.000/2.000/10.000 treino/validação/teste, fixos e sub-amostrados, para GuacaMol) e depois usado como modelo ESTÁTICO durante toda a otimização. Não há avaliação real intermediária nem retreino durante a busca — a avaliação real (oráculo Tartarus/GuacaMol) só ocorre ao final, sobre os candidatos top-N selecionados, para medir o hit rate. A busca em si: pool inicial = top-10.000 moléculas do dataset de referência (rankeadas por DOM ou por WS, conforme a tarefa seja single- ou multi-objective); 15 corridas independentes de GA por combinação tarefa×função de fitness; cada corrida evolui por 10 iterações, introduzindo 500 moléculas novas por iteração via mutação/crossover (Janus/SELFIES) — até 5.000 candidatos novos propostos por corrida, avaliados apenas pelo surrogate. Ao final, as listas das 15 corridas são amalgamadas antes do ranking/hit-rate.",
+    "execucoes": "15 corridas independentes do GA por combinação tarefa×função de fitness, mas os resultados são amalgamados (pool consolidado) ANTES do cálculo do hit rate — não há relato de média±dp, IQR ou qualquer dispersão entre as 15 corridas em nenhuma tabela ou figura. Para o UQ por deep ensemble, 10 modelos D-MPNN com sementes de inicialização distintas compõem o ensemble.",
+    "baselines": "Não há piso evolutivo sem surrogate (não há NSGA-II/MOEA/D/etc. rodando sem o D-MPNN) nem outro motor evolutivo — a ÚNICA variável controlada entre os métodos comparados é a função de fitness/uso da incerteza, mantendo fixos o GA (Janus), o surrogate (D-MPNN/Chemprop) e o protocolo. Tarefas single-objective: DOM (greedy, sem incerteza) vs. EI (expected improvement, com incerteza exploratória) vs. PIO (probability of improvement, com incerteza avessa a risco — proposto pelos autores). Tarefas multi-objective: WS (soma ponderada, sem incerteza) vs. NMD (distância de Manhattan normalizada aos limiares, sem incerteza) vs. NMD-WS (híbrida, sem incerteza) vs. PIO (produto de probabilidades por objetivo, com incerteza).",
+    "metricas_principais": [
+      "hit rate top-10/top-50/top-100 (fração de candidatos que excedem/atendem o(s) limiar(es) δ)",
+      "R² (acurácia da média do surrogate, parity plots)",
+      "AUCE / miscalibration area (calibração do σ)"
+    ],
+    "testes": [
+      "nenhum teste estatístico em nenhuma parte do artigo (sem Wilcoxon, sem Friedman, sem intervalo de confiança sobre o hit rate; número único por célula, pool de 15 corridas amalgamado)"
+    ],
+    "apresentacao": "Tabelas 2 e 3: hit rate top-10/50/100 por método e tarefa, melhor valor destacado em negrito por linha; nenhuma dispersão reportada. Fig. 2: gráficos de paridade (referência × predição) coloridos pela incerteza total, com R² por painel/tarefa. Fig. 3: curvas de calibração baseadas em confiança (laranja) vs. diagonal ideal, com área de miscalibração (AUCE) sombreada, por painel/tarefa. Fig. 4: distribuições/histogramas dos valores reais (oráculo) dos top-100 candidatos por método (DOM marrom, EI roxo, PIO verde), com linha de corte tracejada e seta de direção desejada. Fig. 5: gráficos de paridade com barras de erro = σ total, para os top-50 candidatos selecionados por método. Fig. 6: coordenadas paralelas para os top-50 candidatos em cada tarefa multiobjetivo, linhas laranjas = atingiu todos os cortes, azuis = falhou em algum.",
+    "codigo_plataforma": "Chemprop (D-MPNN, com UQ por deep ensemble+MVE ou aprendizado evidencial); GA Janus (manipula representações SELFIES) para a otimização molecular; RDKit para geração/avaliação de moléculas GuacaMol; Tartarus (Open Babel, GFN2-xTB/iMTD-GC, TD-DFT, Smina, SEAM) para as simulações físicas; código publicado no Zenodo (10.5281/zenodo.14729022); dados no Zenodo (10.5281/zenodo.8072249) e Figshare (10.6084/m9.figshare.7322252.v2)."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Falhas de convergência do treino do UQ por dataset",
+      "grupo_sugerido": "E",
+      "descricao": "Relata, em texto (sem tabela/figura dedicada no corpo principal), falhas de convergência do TREINAMENTO do surrogate específicas por método de UQ e por dataset: a função de perda MVE (usada no deep ensemble) tende a divergir ao treinar no dataset de reatividade, às vezes terminando o treino prematuramente; já a perda evidencial tem problemas de convergência ao treinar no dataset de emissores orgânicos, reduzindo a acurácia. Essas observações motivaram a escolha ad hoc de qual método de UQ usar em cada dataset no restante do estudo (deep ensemble+MVE para emissores orgânicos; evidencial para os demais).",
+      "literal": "the MVE loss function exhibited a tendency to diverge when training models on the reactivity dataset, which occasionally led to the premature termination of training sessions.",
+      "localizador": "Results, 'Surrogate model and UQ performance' (texto principal); Supplementary Figs. S1, S2, S3 (só mencionadas)",
+      "metricas": [
+        "convergência da função de perda (NLL/MVE; loss evidencial NIG)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Relato textual qualitativo, sem tabela/figura própria no corpo principal; referência cruzada às Supplementary Figs. S1-S3, que ilustrariam o ruído nos dados de origem (procedimentos computacionais não-determinísticos: conformer search, docking, otimização de geometria).",
+      "achado": "Nenhum dos dois métodos de UQ testados é uniformemente estável: cada um falha de forma diferente em um dataset diferente (MVE diverge na reatividade; evidencial não converge bem nos emissores orgânicos) — um resultado NEGATIVO explícito sobre a robustez dos métodos de UQ correntes em Chemprop, atribuído em parte ao ruído inerente aos dados (simulações estocásticas).",
+      "aplicabilidade": "não reproduzível pelas camadas da dissertação — é um diagnóstico de estabilidade do OTIMIZADOR DE TREINO do surrogate (a perda diverge/não converge), não do comportamento do surrogate durante a busca evolutiva; mais próximo, em espírito, do ⑤ manifesto (status/params) se a dissertação registrasse falhas de treino do próprio modelo."
+    },
+    {
+      "fichas": [
+        31
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Avalia a acurácia da MÉDIA predita (μ) pelo D-MPNN em um conjunto de teste held-out (10% do split Tartarus, ou os 10.000 pontos de teste do GuacaMol), via gráficos de paridade (valor de referência × valor predito, colorido pela incerteza total σ²_total) e R² por objetivo/tarefa, cobrindo os 19 objetivos das Tabelas 1-3, usando deep ensemble+MVE (emissores orgânicos) ou aprendizado evidencial (demais tarefas). É uma checagem ESTÁTICA pré-otimização (modelo treinado uma vez), não uma curva ao longo de um orçamento de busca.",
+      "literal": "These figures show that the D-MPNN effectively captures the trends in property values, with the estimated uncertainties generally well-calibrated against the test set.",
+      "localizador": "Fig. 2; Results, 'Surrogate model and UQ performance'",
+      "metricas": [
+        "R² (coeficiente de determinação)",
+        "erro entre valor predito e de referência (parity plot)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Um painel por objetivo/tarefa (a–s, 19 painéis); pontos coloridos por incerteza total (σ²_total); R² anotado por painel; sem agregação/execução única (é o próprio conjunto de teste, não corridas do GA).",
+      "achado": "O D-MPNN captura bem as tendências das propriedades nos conjuntos de teste, com R² geralmente alto por tarefa (a legenda/OCR das figuras mostra valores individuais como R²≈0,914, 0,791, 0,908, 0,952, 0,945, 0,960-1,000 em diferentes painéis, sem um R² agregado único citado no texto principal).",
+      "aplicabilidade": "não reproduzível como está — é uma avaliação de acurácia do surrogate em conjunto de teste held-out ANTES da otimização, não ao longo do orçamento; análogo estático (um único ponto, não uma curva) da dimensão 1 da ③ sonda da dissertação (ficha 31), pois aqui não há retreino do modelo durante a busca (regime offline sem laço)."
+    },
+    {
+      "fichas": [
+        33
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Avalia a calibração do σ (incerteza total) do D-MPNN via curvas de calibração baseadas em confiança — a fração dos dados de teste cujo valor real cai dentro do intervalo de confiança predito, comparada ao nível de confiança nominal — e resume o desvio da calibração ideal (diagonal) pela métrica escalar AUCE (area under the calibration error curve / miscalibration area), por objetivo/tarefa, para os mesmos 19 objetivos e as duas famílias de UQ. O texto também valida textualmente a suposição de resíduos gaussianos, comparando a distribuição real dos resíduos à esperada sob essa suposição.",
+      "literal": "the calibration curves closely follow the diagonal line across all test sets, with AUCE values remaining below 0.1, suggesting that the residual distribution for the test data does not significantly deviate from Gaussian assumptions",
+      "localizador": "Fig. 3; Results, 'Surrogate model and UQ performance'",
+      "metricas": [
+        "cobertura do intervalo de confiança (fração de dados dentro do IC predito vs. nível nominal)",
+        "AUCE (area under the calibration error curve / miscalibration area)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Um painel por objetivo/tarefa (19 painéis); curva de calibração em laranja vs. diagonal ideal; área de miscalibração sombreada em cinza; AUCE anotado por painel (valores individuais no OCR: ex. 0,031; 0,0711; 0,0306; 0,0438; 0,0331; 0,0142; 0,0292; 0,0556; 0,0735; 0,0271; 0,0258; 0,0942; 0,0685; 0,0761; 0,0609; 0,0877; 0,0282; 0,0134 — todos <0,1); conjunto de teste held-out, execução única (não são 30 sementes).",
+      "achado": "As curvas de calibração seguem de perto a diagonal ideal em todos os conjuntos de teste, com AUCE < 0,1 em todos os casos — os autores concluem que a suposição gaussiana não é significativamente violada e que a variância estimada está bem calibrada NO CONJUNTO DE TESTE (regime não-extrapolado); a Discussão liga essa qualidade de calibração ao ganho de desempenho da PIO (ver calibracao_do_sigma e resultados_negativos).",
+      "aplicabilidade": "não reproduzível diretamente — é um análogo estático (checagem única pré-busca, não 'ao longo do orçamento') da dimensão 3 da ③ sonda da dissertação (ficha 33: cobertura μ±2σ vs. nominal); reproduzível na dissertação só como um snapshot único de calibração por modelo, não como curva, pois não há retreino do surrogate durante a busca neste artigo (regime offline)."
+    },
+    {
+      "fichas": [
+        1,
+        11,
+        52
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara três funções de fitness — DOM (maximização direta da média, sem incerteza), EI (expected improvement, incerteza usada de forma exploratória) e PIO (probability of improvement, incerteza usada de forma avessa a risco) — na MESMA maquinaria (GA Janus + surrogate D-MPNN, mesmos hiperparâmetros, mesmo pool inicial), medindo o hit rate dos top-10/50/100 candidatos gerados, para as 10 tarefas single-objective da Tartarus e GuacaMol. É o placar final da bateria single-objective do artigo.",
+      "literal": "As shown in Table 2, the PIO method consistently achieved the highest hit rates for most tasks.",
+      "localizador": "Table 2; Results, 'Optimization results of single-objective task'",
+      "metricas": [
+        "hit rate (top-10/top-50/top-100)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Melhor hit rate por linha-tarefa destacado em negrito; número único por célula (sem média±dp — pool de 15 corridas do GA amalgamado antes do cálculo do hit rate); sem intervalo de incerteza; sem teste estatístico.",
+      "achado": "PIO obtém o maior hit rate na maioria das 10 tarefas (ex.: 4LDE score top-10: DOM 0,40 / EI 0 / PIO 0,90; Albuterol top-10: DOM 0 / EI 0 / PIO 1,00); EI, mesmo usando incerteza, NÃO supera DOM de forma consistente (ex.: Aripiprazole top-10: DOM 0,50 vs. EI 0; Albuterol: EI 0 em todos os top-k) — resultado NEGATIVO para o uso exploratório da incerteza (EI) e POSITIVO para o uso avesso a risco (PIO), com o surrogate e o GA mantidos fixos entre as três condições.",
+      "aplicabilidade": "não reproduzível diretamente — exige rodar o pipeline do artigo (GA Janus + D-MPNN + oráculo Tartarus/GuacaMol); não há camada análoga a ① avaliações reais por FE, pois aqui as avaliações reais (oráculo) só ocorrem no final, sobre os top-N já selecionados pelo surrogate — mais próximo em espírito da ⑦ (ND final reavaliado na função verdadeira) do regime offline, mas sem construção de fronteira não-dominada explícita (é otimização single-objective por corte de limiar)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Distribuição do valor real dos top-K por método vs. corte",
+      "grupo_sugerido": "H",
+      "descricao": "Para as 10 tarefas single-objective, mostra a distribuição completa (histograma/densidade, não só o número agregado de hit rate) dos valores reais (avaliados pelo oráculo Tartarus/GuacaMol) dos top-100 candidatos gerados por cada método (DOM, EI, PIO), com a linha do corte δ marcada e a direção de otimização desejada indicada. Complementa a Tabela 2 mostrando o quão perto/longe cada método fica do limiar, não só se o cruzou.",
+      "literal": "Fig. 4 illustrates that, under the PIO approach, the top-100 molecules for these tasks exhibit a greater proportion of candidates meeting or exceeding the threshold",
+      "localizador": "Fig. 4; Results, 'Optimization results of single-objective task'",
+      "metricas": [
+        "distribuição do valor real da propriedade (oráculo) dos top-100 candidatos",
+        "hit rate implícito (proporção acima/abaixo do corte)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Sobreposição de histogramas/densidades por método (DOM marrom, EI roxo, PIO verde) com linha tracejada preta marcando o corte e seta laranja indicando a direção desejada de otimização; um painel por tarefa single-objective (a-j).",
+      "achado": "Visualmente, sob PIO uma proporção maior dos top-100 candidatos fica no lado desejado do corte do que sob DOM ou EI — reforça, numa granularidade distribucional, o achado agregado da Tabela 2.",
+      "aplicabilidade": "não reproduzível — mesma limitação da análise da Tabela 2 (exige rodar o pipeline completo do artigo); poderia inspirar, na dissertação, uma leitura por distribuição completa (não só mediana) do endpoint por célula, em vez de apenas o resumo pontual de IGD+/HV."
+    },
+    {
+      "fichas": [
+        33,
+        40
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mostra, para os top-50 candidatos SELECIONADOS por cada método (DOM/EI/PIO) em cada tarefa single-objective, o valor médio predito (μ) com barra de erro = incerteza total (σ, aleatória+epistêmica) do D-MPNN, contra o valor real obtido pela validação no oráculo. É a análise mecanística que explica por que só a PIO (e não a EI) se beneficia de incorporar incerteza.",
+      "literal": "These plots show that the leading molecules selected by EI tend to exhibit the highest uncertainties in the surrogate model compared to those identified by DOM and PIO.",
+      "localizador": "Fig. 5; Results, 'Optimization results of single-objective task'",
+      "metricas": [
+        "μ predito (média)",
+        "σ (desvio-padrão total, aleatório+epistêmico)",
+        "valor real da propriedade (oráculo)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Gráfico de paridade (valor de referência × valor predito) com barras de erro = σ total; candidatos codificados por método (DOM marrom, EI roxo, PIO verde); linha tracejada preta = corte; seta laranja = direção desejada; um painel por tarefa (a-j).",
+      "achado": "Os candidatos líderes selecionados por EI exibem consistentemente as MAIORES incertezas do surrogate; DOM tende a extremos da média predita (sem considerar σ, empurrando para regiões extrapolativas); PIO evita ambos os extremos, produzindo candidatos com maior probabilidade de cruzar o corte E menor incerteza — a explicação mecânica de por que EI favorece candidatos de alta variância (inflando o valor esperado de melhoria) enquanto PIO não.",
+      "aplicabilidade": "parcialmente inspirador para a dissertação (③/④) — mostra μ±σ preditos vs. valor real nos pontos ESCOLHIDOS pelo algoritmo (não num probe fixo), análogo à ideia da ficha 40 ('fantasia' sobre os pontos escolhidos) e à magnitude do σ da ficha 33; não reproduzível tal como está pois exige rodar variantes de função de aquisição (DOM/EI/PIO) sobre o mesmo GA/surrogate."
+    },
+    {
+      "fichas": [
+        61
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Discute, com base nos resultados da Tabela 2, por que DOM, EI e PIO falham simultaneamente em três tarefas (singlet-triplet gap, escore 1SYH, similaridade à mestranol): (a) limiares definidos próximos ao desempenho das melhores moléculas do dataset original tornam a busca muito difícil quando a diversidade estrutural do dataset é baixa, zerando a função de fitness independentemente da direção de otimização; (b) a acurácia do modelo (média E variância) degrada em regiões extrapoladas — no caso da mestranol, estruturas com anéis fundidos complexos ausentes/raras no espaço de treino.",
+      "literal": "When thresholds are set too stringently, far beyond the performance range of the current population, the fitness score remains zero regardless of optimization direction, which can impede the search",
+      "localizador": "Results, 'Optimization results of single-objective task' (parágrafo final, após a Tabela 2); Supplementary Table S5 (limiares por tarefa, só mencionada)",
+      "metricas": [
+        "hit rate"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Discussão textual referenciando a Tabela 2 e a Supplementary Table S5 (limiares δ por tarefa, não reproduzida no texto lido).",
+      "achado": "Mesmo com incerteza (PIO, EI), tarefas com limiares muito estritos relativos à distribuição populacional (singlet-triplet gap, 1SYH) ou com extrapolação estrutural severa (mestranol) permanecem com hit rate zero ou próximo de zero para TODOS os métodos — um limite declarado da abordagem, não resolvido pela incerteza.",
+      "aplicabilidade": "não reproduzível diretamente — é uma discussão qualitativa sobre limiares mal calibrados frente à distribuição da população/dataset; ecoa a ficha 61 ('o que a bateria não responde') e, em espírito, a ficha 58 (incapacidade documentada) se a dissertação relacionasse vereditos de incapacidade a limiares/regiões mal cobertas pelo DoE inicial."
+    },
+    {
+      "fichas": [
+        1,
+        11,
+        52
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Estende a comparação de placar para as 6 tarefas multi-objective, contrastando três funções agnósticas à incerteza — WS (soma ponderada pelo inverso do desvio-padrão do dataset), NMD (distância de Manhattan normalizada aos limiares) e NMD-WS (híbrida, transita de NMD para WS quando todos os limiares são atingidos) — contra a PIO (produto das probabilidades de melhoria por objetivo), na mesma maquinaria GA+D-MPNN. Um candidato só conta como 'hit' se atender a TODOS os limiares simultaneamente.",
+      "literal": "As detailed in Table 3, the PIO approach emerged as the most effective in identifying molecules that satisfied criteria for multi-objective criteria, achieving the highest hit rates for most tasks.",
+      "localizador": "Table 3; Results, 'Optimization results of multi-objective tasks'",
+      "metricas": [
+        "hit rate (top-10/top-50/top-100), exigindo todos os objetivos acima do corte"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Melhor hit rate por linha-tarefa em negrito; número único por célula (pool de 15 corridas amalgamado); sem dispersão; sem teste estatístico.",
+      "achado": "PIO vence a maioria das 6 tarefas multiobjetivo; entre os métodos agnósticos, nenhum é consistentemente melhor (NMD vence em emissores orgânicos e fexofenadina MPO; NMD-WS vence nas demais); o WS puro FALHA em TODAS as tarefas (hit rate 0 em todos os top-k, em todas as 6 tarefas) — a vantagem da PIO vem de tratar cada objetivo probabilisticamente e multiplicar as probabilidades, penalizando fortemente qualquer objetivo muito abaixo do corte, em vez de deixar objetivos de escala maior dominarem a soma.",
+      "aplicabilidade": "não reproduzível diretamente — mesma limitação da Tabela 2 (exige rodar o pipeline completo do artigo); não há construção de fronteira não-dominada nem métrica IGD+/HV — é otimização multiobjetivo por corte de limiares combinados, sem noção explícita de dominância de Pareto."
+    },
+    {
+      "fichas": [
+        55
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para as 6 tarefas multi-objective, visualiza em coordenadas paralelas os valores reais dos top-50 candidatos de cada método (WS, NMD, NMD-WS, PIO), colorindo em laranja os que atingiram todos os cortes e em azul os que falharam em pelo menos um objetivo, com linhas tracejadas pretas marcando os cortes por eixo/objetivo.",
+      "literal": "Parallel coordinate plots illustrating the true property values for the top-50 molecules derived from various optimization methods in multiobjective design tasks.",
+      "localizador": "Fig. 6; Results, 'Optimization results of multi-objective tasks'",
+      "metricas": [
+        "valores reais das propriedades por objetivo (multiobjetivo)",
+        "hit/no-hit vs. corte combinado"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Coordenadas paralelas por seção de tarefa (6 tarefas), uma subfigura por método (a=WS, b=NMD, c=NMD-WS, d=PIO); linhas azuis = não atingiu todos os cortes, linhas laranjas = atingiu todos; linhas tracejadas pretas = cortes; setas laranjas = direção desejada.",
+      "achado": "O WS, por não usar limiares, deixa que o objetivo de maior escala/variação (ex.: força do oscilador, sem teto superior; logP/TPSA nas tarefas MPO) domine o score composto, sacrificando os demais objetivos (ex.: similaridade ao alvo) — visível como predomínio de linhas azuis (não-hit) nas colunas dominadas pelo WS, contra mais linhas laranjas sob PIO.",
+      "aplicabilidade": "não reproduzível — exige um problema multiobjetivo com cortes de sucesso por propriedade, estrutura ausente nos 28 problemas contínuos (ZDT/DTLZ/WFG/MMF/BBOB/reais) da dissertação; a ideia de coordenadas paralelas coloridas por sucesso/fracasso é reaproveitável no componente (b) da ficha 55."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "O artigo compara DOIS métodos de UQ do D-MPNN/Chemprop — deep ensemble+MVE (incerteza aleatória via neurônio de variância com softplus; epistêmica via variância entre 10 modelos) e aprendizado evidencial (via distribuição Normal-Inversa-Gama, 4 saídas por neurônio) — quanto à qualidade da incerteza TOTAL (σ²_aleatória+σ²_epistêmica) que produzem, em conjunto de teste held-out, usando duas leituras complementares: (1) Fig. 2 — parity plots coloridos pela incerteza total, com R² por objetivo/tarefa, avaliando a acurácia da MÉDIA; (2) Fig. 3 — curvas de calibração baseadas em confiança (fração dos dados de teste dentro do intervalo de confiança predito vs. nível de confiança nominal) e a métrica escalar AUCE (miscalibration area) por objetivo/tarefa, avaliando se a MAGNITUDE do σ é confiável, além de validar textualmente a suposição de resíduos gaussianos. A escolha de qual método usar por dataset foi decidida empiricamente (ensemble+MVE para emissores orgânicos; evidencial para os demais) após observar falhas de convergência do outro método nesses datasets (ver a análise nova sobre falhas de treino, e 'resultados_negativos'). Além disso, a Discussão liga qualitativamente a qualidade dessa calibração ao GANHO DE DESEMPENHO da PIO: quando a calibração é pobre, a vantagem da PIO diminui — um elo explícito entre qualidade do σ e utilidade prática de usá-lo.",
+    "literal": "the calibration curves closely follow the diagonal line across all test sets, with AUCE values remaining below 0.1, suggesting that the residual distribution for the test data does not significantly deviate from Gaussian assumptions and aligns well with estimated variance",
+    "localizador": "Fig. 2 e Fig. 3; Results, 'Surrogate model and UQ performance'; elo qualitativo com desempenho em Discussion (parágrafo final: 'When UQ calibration is poor, PIO's advantages are reduced')"
+  },
+  "custo": {
+    "reporta": false,
+    "o_que": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Apesar de incorporar incerteza, o método EI não supera de forma consistente o DOM (agnóstico à incerteza) nas tarefas single-objective — um resultado negativo específico para o uso EXPLORATÓRIO (não avesso a risco) da incerteza, já que EI tende a favorecer candidatos de alta variância.",
+      "literal": "despite integrating uncertainty, the EI method does not consistently outperform the uncertainty-agnostic DOM method.",
+      "localizador": "Results, 'Optimization results of single-objective task' (logo após a Table 2)"
+    },
+    {
+      "descricao": "Os dois métodos de UQ usados (deep ensemble+MVE; aprendizado evidencial) têm falhas de treinamento específicas por dataset — MVE diverge no dataset de reatividade (parada prematura do treino); o evidencial não converge bem no dataset de emissores orgânicos (acurácia reduzida) — atribuídas em parte ao ruído inerente aos dados de simulação estocástica.",
+      "literal": "the MVE loss function exhibited a tendency to diverge when training models on the reactivity dataset, which occasionally led to the premature termination of training sessions.",
+      "localizador": "Results, 'Surrogate model and UQ performance'"
+    },
+    {
+      "descricao": "Na tarefa de similaridade à mestranol, o D-MPNN generaliza mal para a região estrutural do alvo (extrapolação para anéis fundidos complexos) e as previsões erradas frequentemente vêm acompanhadas de incerteza PEQUENA — ou seja, o modelo está mal calibrado exatamente na região extrapolada onde a UQ mais importaria, apesar de bem calibrado no conjunto de teste (Fig. 3).",
+      "literal": "these predictions frequently showed small uncertainty estimates, suggesting that D-MPNN may have inaccurately assessed uncertainty in these cases.",
+      "localizador": "Results, 'Optimization results of single-objective task'"
+    },
+    {
+      "descricao": "Os próprios autores reconhecem que o desempenho da PIO pode diminuir quando as propriedades exigidas diferem muito dos dados de treino disponíveis — um limite explícito do método proposto pelos autores, não apenas dos concorrentes.",
+      "literal": "PIO's performance may diminish in tasks where the required properties differ significantly from those represented in the available data.",
+      "localizador": "Discussion (penúltimo parágrafo)"
+    },
+    {
+      "descricao": "Mesmo a PIO (incerteza avessa a risco) falha totalmente na tarefa median molecules 2 — nenhum método, incluindo os que usam incerteza, consegue gerar candidatos acima do corte de similaridade, porque o dataset de referência tem pouquíssimas moléculas próximas ao alvo (a incerteza não compensa a ausência de sinal no dataset).",
+      "literal": "none of the optimization methods succeeded in identifying molecules with similarity scores exceeding the cutoff of 0.2",
+      "localizador": "Results, 'Optimization results of multi-objective tasks'"
+    },
+    {
+      "descricao": "Os autores relatam explicitamente que a vantagem da PIO depende da qualidade da calibração da incerteza: quando essa calibração é pobre, a vantagem de usar incerteza (PIO) diminui — uma qualificação/defesa do papel do σ, não uma garantia incondicional de que incorporar incerteza ajude.",
+      "literal": "When UQ calibration is poor, PIO's advantages are reduced, underscoring the need for more accurate and robust UQ techniques in molecular optimization.",
+      "localizador": "Discussion (parágrafo final)"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "O artigo cita trabalho anterior (Fromer/Graff/Coley; Graff et al.) segundo o qual, em cenários de virtual screening sobre bibliotecas bem definidas, funções de aquisição AGNÓSTICAS à incerteza podem igualar ou até superar abordagens de active learning que usam incerteza — contrastando explicitamente com o próprio achado do artigo (espaço químico aberto/contínuo), onde a PIO (com incerteza) supera os métodos agnósticos na maioria dos casos.",
+      "literal": "Previous research has indicated that in virtual screening settings, uncertainty-agnostic acquisition functions can exhibit surprisingly equivalent or even superior performance compared to uncertainty-aware active learning approaches",
+      "localizador": "Discussion (primeiro parágrafo)"
+    },
+    {
+      "descricao": "Ao discutir a falha na tarefa de mestranol, o artigo atribui a limitação ao MODELO (não ao critério de aquisição/seleção): mesmo um modelo bem calibrado no conjunto de teste pode falhar em generalizar durante a otimização sobre um espaço químico extenso, produzindo previsões pouco confiáveis tanto de média quanto de variância — o gargalo é a qualidade do surrogate sob extrapolação, não a fórmula da função de fitness.",
+      "literal": "even well-calibrated models may struggle to generalize accurately during molecular optimization over an extensive chemical space, leading to unreliable predictions not only for mean values but also for variance estimates with current UQ methods",
+      "localizador": "Results, 'Optimization results of single-objective task'"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "correlação/conflito entre objetivos (não-separabilidade): gap singleto-tripleto × força do oscilador",
+      "afirmacao": "Há correlação positiva moderada entre os dois objetivos do problema de emissores orgânicos multiobjetivo, o que dificulta a otimização por criar direções conflitantes (minimizar o gap enquanto maximiza a força do oscilador); essa assimetria (força do oscilador sem teto superior) levava o WS a priorizar excessivamente esse objetivo, sacrificando os demais — problema mitigado pela PIO e por NMD/NMD-WS, que usam limiares.",
+      "literal": "there is a moderate positive correlation between the singlet-triplet gap and oscillator strength (Supplementary Fig. S24), complicating the task, which demands minimizing the singlet-triplet gap while maximizing oscillator strength",
+      "localizador": "Results, 'Optimization results of multi-objective tasks'; Supplementary Fig. S24 (só mencionada)"
+    },
+    {
+      "caracteristica": "densidade enviesada — baixa densidade de candidatos próximos ao alvo no dataset de referência",
+      "afirmacao": "A tarefa median molecules 2 (camphor+menthol) falha universalmente (hit rate 0 para todos os métodos, inclusive PIO) porque a maioria das moléculas do dataset original tem similaridade abaixo de 0,1 ao alvo, bem abaixo do corte de 0,2; já a median molecules 1 (tadalafil+sildenafil), com similaridades originais concentradas entre 0,1-0,2 (mais perto do corte), é tratável por vários métodos.",
+      "literal": "This difficulty is likely due to the low similarity scores in the original dataset, where the majority of scores fall below 0.1 for these target molecules",
+      "localizador": "Results, 'Optimization results of multi-objective tasks'; Supplementary Figs. S15-S18 (só mencionadas)"
+    },
+    {
+      "caracteristica": "extrapolação estrutural / estrutura fora da distribuição de treino (anéis fundidos complexos)",
+      "afirmacao": "Embora o D-MPNN tenha desempenho razoável no conjunto de teste (in-distribution) para a propriedade de similaridade à mestranol, ele falha ao extrapolar para a região estrutural do alvo (mestranol tem 4 anéis fundidos) e frequentemente subestima a própria incerteza nessa região, revelando um limite da UQ especificamente sob extrapolação estrutural severa.",
+      "literal": "Accurately capturing these complex ring structures remains challenging for D-MPNN, which would benefit from additional structural features—such as ring size indicators—to improve prediction accuracy for complex species in highly extrapolated regions",
+      "localizador": "Results, 'Optimization results of single-objective task'"
+    },
+    {
+      "caracteristica": "ruído nos dados/rótulos (elementos estocásticos das simulações físicas: busca de confôrmeros, docking, otimização de geometria)",
+      "afirmacao": "A natureza não-determinística dos procedimentos computacionais usados para gerar os dados do Tartarus (amostragem de confôrmeros, sítios de docking, otimização de geometria) introduz ruído nos valores de propriedade, apontado como possível causa parcial da divergência do MVE (reatividade) e da não-convergência do evidencial (emissores orgânicos) no treino do surrogate.",
+      "literal": "These challenges in model training may be partly attributed to data noise inherent in the property values, a consequence of the non-deterministic computational procedures used to generate these data",
+      "localizador": "Results, 'Surrogate model and UQ performance'"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Classes da taxonomia fornecidas para esta extração (para rastreabilidade, não são campos do esqueleto do CARTÃO): motor=EA-Dominância; função da incerteza=A1 · Penalização avessa a risco; surrogate=NN — Rede Neural; medição=NAT-nonGP; regime=offline. A classe A1 casa bem com a PIO (probabilidade de exceder um limiar penaliza candidatos incertos fora do alcance confiável do modelo — avessão a risco); a EI, por contraste, é mais exploratória (recompensa alta variância) e é justamente a que menos se sai bem no artigo, reforçando por contraste a leitura de que o critério A1 (a própria contribuição do artigo, sigla PIO) é o que empiricamente funciona aqui. O GA (Janus/SELFIES) NÃO usa dominância de Pareto explícita para multiobjetivo — trata multiobjetivo via fitness escalarizado com limiares (soma ponderada, distância de Manhattan normalizada, produto de probabilidades); 'EA-Dominância' é a classe atribuída pela taxonomia da dissertação a este motor, não uma autodescrição do artigo. Regime offline: o D-MPNN é treinado UMA VEZ (split fixo) e usado como surrogate estático ao longo de toda a busca evolutiva (15 corridas × 10 iterações × 500 moléculas/iteração); não há retreino nem avaliação real intermediária — só ao final, sobre os candidatos top-N, para calcular o hit rate; não há, portanto, um 'ND final' explícito nem construção de fronteira de Pareto — o equivalente mais próximo é o hit rate dos candidatos finais reavaliados no oráculo. Nenhum teste estatístico (Wilcoxon/Friedman/etc.) aparece em nenhuma parte do artigo; hit rate é número único por célula, sobre pool amalgamado de 15 corridas — sem dispersão entre corridas reportada. Nenhum relato de custo computacional/tempo de execução foi encontrado em nenhuma parte do texto (corpo estruturado, camada de texto bruta duplicada no ANEXO, ou OCR das figuras) — a única menção a 'computational costs' é genérica, sobre métodos bayesianos/GP na Introdução, como MOTIVAÇÃO para não usá-los (não é medição do próprio pipeline D-MPNN+GA). Materiais só mencionados, não reproduzidos no texto lido: Supplementary Tables S1-S6 (termos de penalidade P(m) por tarefa; limiares δ por tarefa, Table S5; hiperparâmetros do GA, Table S6) e Supplementary Figs. S1-S24 (ruído nos dados de treino S1-S3; distribuições de propriedades por dataset S4-S22; distribuições de similaridade original para median molecules 1/2, S15-S18; correlação gap×força do oscilador, S24). Equações (1)-(12), que definem DOM/PIO/EI/WS/NMD/NMD-WS e as duas famílias de UQ (ensemble+MVE; evidencial/NIG), aparecem completas apenas no ANEXO (camada de texto bruta), pois a extração estruturada via pymupdf4llm as omitiu (só os parágrafos ao redor sobreviveram na versão estruturada). Fig. 1 é um diagrama esquemático do fluxo de trabalho (workflow) e não gerou entrada própria em 'analises'. Arquivo lido integralmente, 3321 linhas: corpo estruturado (linhas 1-812: abstract, introdução, resultados, discussão, métodos, referências, agradecimentos, licença), ANEXO 1 = camada de texto bruta completa duplicada do PDF (linhas 819-3030, útil para recuperar as equações e conferir as Tabelas 1-3 sem quebras de célula), ANEXO 2 = OCR das figuras (linhas 3033-3321, majoritariamente rótulos de eixo e valores individuais de R²/AUCE por painel — ruidoso mas consistente com o texto principal, usado para enriquecer as 'convenções' das Figs. 2 e 3). Nenhuma seção, apêndice ou anexo foi pulado."
+}

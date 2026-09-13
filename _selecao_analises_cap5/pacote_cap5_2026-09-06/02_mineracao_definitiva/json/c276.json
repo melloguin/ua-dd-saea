@@ -1,0 +1,155 @@
+{
+  "id": "c276",
+  "sigla": "ε-PAL",
+  "titulo": "ε-PAL: An Active Learning Approach to the Multi-Objective Optimization Problem",
+  "ano": 2016,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Nenhuma suíte-padrão (ZDT/DTLZ/WFG/MMF/BBOB) e nenhum dos 3 problemas reais da dissertação (RE21/ESTOQUE40/DDMOP7): três data sets reais e PRÓPRIOS do artigo, todos espaços de projeto FINITOS e enumeráveis com m=2 objetivos e front verdadeiro obtido por avaliação EXAUSTIVA de todo E (Table 1, Sec. 7.1). (1) SNW (Zuluaga et al., 2012b): 206 implementações de hardware de uma rede de ordenação para 256 entradas, d=3 parâmetros, objetivos = área e vazão (síntese FPGA). (2) NoC (Almer et al., 2011): 259 implementações de um network-on-chip em árvore, d=4 parâmetros, objetivos = energia e tempo de execução no benchmark Coremark (avaliar todo o espaço levou 20 dias). (3) SW-LLVM (Siegmund et al., 2012): 1023 configurações de compilação do LLVM, d=11 flags binárias, objetivos = desempenho e footprint de memória; o Pareto-front verdadeiro deste último tem só 1 ponto.",
+    "orcamento": "Sem orçamento fixo por execução (não há análogo ao 31D−1 da dissertação): ε-PAL e PAL param adaptativamente quando o critério de parada (dependente de ε e δ) é satisfeito, variando o nº de avaliações reais por configuração de ε; ParEGO usa heurística própria (dos autores) para o tamanho da população inicial. DoE inicial (para treinar o GP e otimizar hiperparâmetros do kernel antes de iniciar o algoritmo): 15 pontos aleatórios para SNW e NoC; 30 pontos para SW-LLVM (por ter dimensão maior, d=11).",
+    "execucoes": "200 repetições por configuração; mediana dos resultados é o que aparece nos gráficos (Sec. 7.2: 'All of the experiments were repeated 200 times and the median of the outcomes is shown in the plots.'); nenhuma banda de dispersão (IQR/desvio) é mostrada nas figuras.",
+    "baselines": "Dois concorrentes, ambos também baseados em GP: PAL (Zuluaga et al., 2013 — antecessor direto do próprio grupo de autores; classifica pontos como Pareto-ótimo/não-ótimo em vez de gerar um conjunto ε-acurado) e ParEGO (Knowles, 2006 — scalarização aleatória + algoritmo evolutivo + GP/expected improvement; 'implementation provided by the authors and adapted to run with our data sets'). NÃO há piso evolutivo puro sem surrogate (NSGA-II, MOEA/D etc.) nestes experimentos — os três métodos comparados usam modelo GP.",
+    "metricas_principais": [
+      "e(P,P̂) — erro percentual de predição baseado em ε-dominância: distância máxima média entre cada ponto do front verdadeiro P e o ponto mais próximo do front predito P̂, expressa como % do range r_i de cada objetivo (Sec. 7.3, Eq. não numerada)",
+      "número de avaliações reais (custo de amostragem)",
+      "tempo de execução / speedup de runtime"
+    ],
+    "testes": [
+      "nenhum teste estatístico de hipótese (Wilcoxon, Friedman etc.) em lugar nenhum do artigo; todas as comparações usam a mediana de 200 repetições, sem teste de significância"
+    ],
+    "apresentacao": "Tudo em figuras (não há tabela de resultados numéricos além da Table 1 de características dos data sets); curvas de mediana (200 repetições); para ε-PAL e PAL, pontos consecutivos por valor de ε∈{30%,20%,16%,12%,8%,4%,2%,1%} conectados em linha; para ParEGO, linha contínua de erro por iteração real amostrada; eixos de objetivo em escala log; sem símbolos +/=/-, sem negrito, sem banda de erro/IQR.",
+    "codigo_plataforma": "Gaussian Process Regression and Classification Toolbox for Matlab (Rasmussen and Nickisch, 2013); kernel squared exponential com ARD (automatic relevance determination); ruído do GP fixado em σ=0.1; implementação própria em MATLAB restrita a m=2 objetivos ('we implemented a prototype that is restricted to m = 2 objectives', Sec. 5.6); código disponibilizado em Zuluaga et al. (2015). Experimentos rodados numa máquina com dois Intel Xeon X5680 6-core (3.06GHz) e 144GB RAM."
+  },
+  "analises": [
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para o data set SNW, o artigo plota qualitativamente o front ε-acurado Z(P̂) obtido por ε-PAL (linha preta) contra o front verdadeiro Z(P) (linha vermelha sombreada) para três configurações de ε (1%, 12%, 30%); a segunda linha do mesmo painel (Fig. 5) repete a comparação para o algoritmo PAL, nas mesmas três configurações. Pontos cinza marcam os pontos amostrados durante a execução ou selecionados para compor o front predito.",
+      "literal": "The first row of Fig. 5 shows the ϵ-accurate Pareto front Z( ˆP) obtained with ϵ-PAL for three different configurations of ϵ, using the first data set.",
+      "localizador": "Sec. 7.4, Fig. 5",
+      "metricas": [
+        "cobertura/distribuição qualitativa do front predito Z(P̂) vs. front verdadeiro Z(P)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Painel 2×3 (linhas = ε-PAL / PAL; colunas = ε∈{1%,12%,30%}); front verdadeiro em linha vermelha sombreada; front predito em linha preta; pontos amostrados/selecionados em cinza; eixos log(f1)/log(f2); só o data set SNW é mostrado desta forma (não NoC nem SW-LLVM); execução única exibida por painel (não fica claro se é a execução mediana das 200 repetições ou uma execução representativa).",
+      "achado": "Com ε maior, ε-PAL retorna um front menos denso mas ainda bem distribuído (menos pontos avaliados, discarding mais agressivo). Já o PAL, ao aumentar ε, classifica MAIS pontos como Pareto-ótimos (não menos) — inclusive pontos distantes do front verdadeiro — confirmando visualmente que PAL não gera de fato um conjunto ε-acurado, só usa ε como critério de parada em estágios diferentes de treino.",
+      "aplicabilidade": "não reproduzível — ε-PAL e PAL não estão no roster executado da dissertação; exigiria rodar ambos nos data sets próprios do artigo (SNW/NoC/SW-LLVM), fora do protocolo dos 28 benchmarks e fora das 7 camadas de instrumentação. Uma visualização análoga na dissertação usaria a camada ① (avaliações reais) mais o ND final."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para os três data sets (SNW, NoC, SW-LLVM), o artigo plota o erro percentual de predição e(P,P̂) (mediana de 200 repetições) em função do número de avaliações reais, comparando ε-PAL, PAL e ParEGO. Para ε-PAL e PAL, cada ponto da curva é uma configuração diferente de ε∈{30%,20%,16%,12%,8%,4%,2%,1%}, conectados em linha; para ParEGO, a curva é a trajetória real do erro por iteração amostrada. É a comparação empírica central do artigo.",
+      "literal": "Fig. 6 shows a set of experiments in which we do both, exploring the effect of choosing ϵ and comparing against PAL and ParEGO (Knowles, 2006).",
+      "localizador": "Sec. 7.4, Fig. 6",
+      "metricas": [
+        "e(P,P̂) — erro percentual de predição baseado em ε-dominância",
+        "número de avaliações (custo de amostragem)"
+      ],
+      "testes": [
+        "nenhum teste estatístico; comparação via mediana de 200 repetições"
+      ],
+      "convencoes": "mediana de 200 repetições; pontos consecutivos por valor de ε conectados em linha (ε-PAL e PAL); linha contínua para ParEGO (erro a cada iteração real); 3 subgráficos, um por data set; sem banda de dispersão (IQR/desvio).",
+      "achado": "ε-PAL e PAL superam significativamente o ParEGO em todos os casos, reduzindo o nº de avaliações em 1/3 a 2/3 (30% a 70%, conforme o resumo do artigo). ε-PAL compara favoravelmente a PAL na maioria dos casos — reduzindo o nº de amostras necessárias em até 2,9× para a mesma acurácia — exceto em SW-LLVM, onde PAL vence numa faixa pequena do espaço erro/custo. Com ε=30%, erro <7% com <30 avaliações em todos os casos; com ε=1%, erro <0,7% com <50 avaliações em todos os casos.",
+      "aplicabilidade": "não reproduzível — ε-PAL, PAL e ParEGO não estão no roster executado; corresponderia à camada ① (avaliações reais, ordem) se ε-PAL fosse rodado no protocolo da dissertação, gerando uma curva erro×avaliações análoga à ficha 26, mas sobre data sets e métrica de erro próprios do artigo (não IGD+/HV)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Validação empírica da garantia teórica de corretude (β_t exato do Teorema 1, ε=0)",
+      "grupo_sugerido": "E",
+      "descricao": "Usando o valor EXATO de β_t sugerido pelo Teorema 1 (não o fator empírico 1/3 usado no resto dos experimentos), com ε=0 e δ=0,05, o artigo reporta que ε-PAL atinge erro de predição zero (recuperação exata do Pareto front verdadeiro) nos três data sets — checagem empírica pontual de que a garantia teórica de corretude com probabilidade 1−δ (Teorema 1) realmente se sustenta na prática, e com um número finito e pequeno de avaliações.",
+      "literal": "This is obtained with ϵ = 0, δ = 0.05 and βt having the exact value suggested by Theorem 1. Under these configurations, ϵ-PAL yields a perfect prediction with less than 115 evaluations in all cases.",
+      "localizador": "Sec. 7.4, Fig. 6",
+      "metricas": [
+        "e(P,P̂) = 0 (predição perfeita/recuperação exata)",
+        "número de avaliações até terminação exata"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "ponto único destacado nas mesmas curvas da Fig. 6, usando a parametrização teoricamente exata de β_t (não a escala empírica 1/3× usada no restante dos experimentos de Sec. 7.4-7.5).",
+      "achado": "A garantia teórica do Teorema 1 (recuperação de um front ε=0-acurado com alta probabilidade) se confirma empiricamente nos 3 data sets, com menos de 115 avaliações em todos os casos — evidência indireta de que as regiões de incerteza β_t^{1/2}σ realmente contêm f com a cobertura prometida, embora não seja uma medição direta de calibração/cobertura ponto-a-ponto (não há sonda de pontos fixos nem curva de cobertura reportada).",
+      "aplicabilidade": "não reproduzível — exige rodar a variante teoricamente exata de β_t (não a escala empírica 1/3×) sobre os data sets próprios do artigo; fora do roster e das 7 camadas da dissertação. Uma checagem análoga na dissertação seria a camada ③ (sonda) medindo cobertura de μ±2σ, mas aqui a verificação é indireta, via corretude fim-a-fim do algoritmo, não via sonda de pontos fixos re-preditos."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Speedup de runtime ε-PAL vs PAL por ε e por |E|, sob custo de avaliação assumido (0 min / 30 min)",
+      "grupo_sugerido": "F",
+      "descricao": "Para os três data sets e os oito valores de ε usados nos experimentos de acurácia, o artigo mede o speedup do tempo de execução de ε-PAL sobre PAL (razão dos runtimes medidos), sob duas premissas de custo de avaliação real: (a) avaliação de f custando 0 minutos (isola o overhead computacional puro do algoritmo) e (b) avaliação de f custando 30 minutos (amortiza o overhead pelo custo de uma síntese real).",
+      "literal": "The first plot in Fig. 7 shows runtime speedups, obtained with the three data sets and all the values of ϵ considered before.",
+      "localizador": "Sec. 7.5, Fig. 7",
+      "metricas": [
+        "speedup (razão de tempo de execução PAL/ε-PAL)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "pontos de speedup por valor de ε (1% a 30%) e por data set (SNW, NoC, SW-LLVM); dois painéis lado a lado (custo de avaliação assumido = 0 min vs 30 min); o custo de avaliar f é explicitamente hipotético/assumido nesta figura, não medido dos runs reais de síntese.",
+      "achado": "Com avaliação gratuita (0 min), o speedup cresce com |E| e com ε: chega a 420× em SW-LLVM (ε=30%, o maior espaço, |E|=1023) e a 45× no mesmo data set com ε=1%; a ordem dos speedups (SW-LLVM > NoC > SNW) segue o tamanho dos espaços. Assumindo 30 min por avaliação real, os speedups caem para no máximo ≈3× (ε=30%), pois o custo da avaliação real passa a dominar o overhead computacional do algoritmo — a vantagem computacional de ε-PAL sobre PAL só importa de fato quando a avaliação real é barata/rápida (o texto conclui que os ganhos de tempo aqui são, na prática, ganhos em número de avaliações, ligados diretamente à Fig. 6).",
+      "aplicabilidade": "não reproduzível — ε-PAL e PAL não estão no roster; um estudo de custo análogo na dissertação usaria a camada ④ (tempos por geração: ajuste do modelo, busca, sonda) para decompor o tempo por estágio, algo que este artigo não faz (mede runtime total e o speedup relativo a PAL, não decomposto por fase)."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Complexidade assintótica TEÓRICA por estágio de cada iteração (Sec. 3.7): modelagem GP O(s³+ns²) (s = nº de pontos amostrados, n=|E|); descarte via Pareto pessimista O(n log n) para m=2,3 e O(n(log n)^{m−2}) para m>3 (adaptação do algoritmo de Kung et al., 1975, Alg. 2); cobertura ε-Pareto O(n) por checagem. Complexidade total por iteração: O(ns²+s³+n log n) para m=2,3; O(n(log n)^{m−2})+O(ns²+s³+n log n) para m>3 — contra O(n²·(...)) de PAL (melhoria assintótica de um fator n no termo de descarte). Empiricamente (Sec. 7.5, Fig. 7): speedup de runtime medido de ε-PAL sobre PAL, sob custo de avaliação assumido de 0 min (overhead puro) e 30 min (amortizado); não há decomposição do tempo por fase (fit/busca/avaliação) nem tempo por iteração isolado — só o total e o speedup relativo a PAL, por valor de ε e por data set.",
+    "literal": "The computational complexity of an iteration is therefore dependent on m and s.",
+    "localizador": "Sec. 3.7 (Analysis of Execution Time); Sec. 6.5; Sec. 7.5, Fig. 7"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Para o data set SW-LLVM, cujo Pareto front verdadeiro tem apenas 1 ponto, o descarte agressivo de ε-PAL (guiado pelas regiões de incerteza R_t(x) e pela tolerância ε) pode eliminar o único ponto Pareto-ótimo ao longo da execução, fazendo o erro de predição disparar — um efeito colateral negativo do mecanismo de descarte baseado em incerteza quando o front verdadeiro é degenerado/esparso.",
+      "literal": "This is because ϵ-PAL eliminates solutions along its execution and as the corresponding design space has only one Pareto point, when this is removed, the error obtained increases considerably.",
+      "localizador": "Sec. 7.4"
+    },
+    {
+      "descricao": "Apesar de ε-PAL superar PAL na maioria dos casos, para o data set SW-LLVM o PAL vence numa pequena faixa do espaço de troca erro/custo — a única exceção declarada ao padrão geral de vantagem de ε-PAL sobre seu antecessor.",
+      "literal": "ϵ-PAL overall compares favorably to PAL except for SW-LLVM, where PAL wins for a small range in the error/performance tradeoff space.",
+      "localizador": "Sec. 7.4"
+    },
+    {
+      "descricao": "Quando o design space não é grande demais, os autores recomendam um remendo pós-hoc: repredizer com o modelo os pontos descartados ao final da execução, para recuperar um front mais denso — uma admissão implícita de que o conjunto ε-acurado retornado por padrão pode ser denso demais pouco (grosseiro) para certos usos, exigindo um passo extra fora do algoritmo garantido.",
+      "literal": "if the design space is not too large, after the termination of the algorithm, all points that were discarded can be again predicted by the model to find a more accurate Pareto set similar to what PAL returns.",
+      "localizador": "Sec. 7.4"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "densidade/esparsidade do Pareto front verdadeiro (tamanho de |Π(f(E))|)",
+      "afirmacao": "Quanto mais denso o front verdadeiro do espaço de projeto, maiores os ganhos de avaliações/velocidade obtidos por ε-PAL; para SW-LLVM, cujo front verdadeiro tem só 1 ponto, tanto os ganhos de avaliações (Fig. 6) quanto os speedups de runtime (Fig. 7) praticamente desaparecem ou se invertem.",
+      "literal": "the denser the true Pareto front of the design space, the better the speedups obtained by using ϵ-PAL.",
+      "localizador": "Sec. 7.5"
+    },
+    {
+      "caracteristica": "tamanho do espaço de projeto |E| (proxy de escala do problema)",
+      "afirmacao": "O speedup computacional de ε-PAL sobre PAL cresce com |E|: o maior espaço (SW-LLVM, |E|=1023) obtém os maiores speedups (45× a 420× conforme ε), seguido por NoC (|E|=259) e depois SNW (|E|=206) — a mesma ordem do tamanho dos espaços de projeto.",
+      "literal": "the speedups improve as n increases. Therefore, LLVM-SW, which has the largest design space of all data sets, obtains the largest speedups, from 45× with ϵ = 1% up to 420× with ϵ = 30%.",
+      "localizador": "Sec. 7.5, Fig. 7"
+    },
+    {
+      "caracteristica": "dimensão do espaço de decisão d (3, 4 ou 11 parâmetros)",
+      "afirmacao": "Não há um estudo dedicado de escalabilidade em d dentro do artigo, mas a escolha do DoE inicial já reconhece a dificuldade crescente com d: 15 pontos para SNW (d=3) e NoC (d=4), e 30 pontos para SW-LLVM, justamente por ter dimensão bem maior (d=11) — mais evidência de configuração do que de resultado medido.",
+      "literal": "For LLVM-SW, as the dimensionality of the design space is much larger, 30 points were taken.",
+      "localizador": "Sec. 7.2"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Artigo fundamentalmente TEÓRICO/METODOLÓGICO (JMLR, 32 páginas): Secs. 1-6 (introdução, definições formais de Pareto/ε-Pareto-otimalidade, o algoritmo ε-PAL em si — modelagem/descarte/cobertura/amostragem —, análise de complexidade Sec. 3.7, o Teorema 1 de sample complexity com prova completa no Apêndice A via Lemmas 1-8, discussão de implementação Sec. 5, e revisão de trabalhos relacionados Sec. 6) não contêm nenhuma análise experimental — são definição, algoritmo, teoria e prova. TODA a parte empírica está na Sec. 7 (Experiments), com apenas 3 figuras de resultado (Figs. 5, 6, 7) mapeadas aqui em 4 análises (a Fig. 6 rendeu duas análises distintas: a curva principal de troca erro×avaliações, e o ponto especial de validação da garantia teórica exata). A Fig. 4 e a Table 1 são só caracterização/visualização dos 3 data sets (não uma análise de algoritmo) e por isso não viraram item de `analises`, ficando em `setup.benchmarks`. Os três data sets (SNW, NoC, SW-LLVM) são espaços de projeto FINITOS e ENUMERÁVEIS próprios do artigo, com front verdadeiro obtido por avaliação EXAUSTIVA — não são nenhum dos benchmarks sintéticos (ZDT/DTLZ/WFG/MMF/BBOB) nem os 3 problemas reais (RE21/ESTOQUE40/DDMOP7) da dissertação. Os três métodos comparados (ε-PAL, PAL, ParEGO) usam GP — não há piso evolutivo sem surrogate testado neste artigo, o que impede qualquer mapeamento às fichas 'assistido × piso' (9, 10, 16). Não há ablação interna de ε-PAL (nenhuma variante 'sem σ' ou 'com critério alternativo' é de fato executada); Sec. 5.1 apenas MENCIONA, como trabalho futuro/alternativa de design não testada, escolher o ponto que maximiza o ganho esperado de hipervolume em vez do ponto mais incerto — não virou análise por não ser experimento. Não há medição direta de calibração/cobertura do σ (nenhuma curva de cobertura vs. nominal, nenhum RMSE, nenhuma correlação σ×erro); a evidência mais próxima é indireta — o ponto de erro-zero com β_t teoricamente exato (análise 3 acima). Relevância para a taxonomia da dissertação: classificação motor=BO-Especiais bate com o desenho do artigo (sem população evolutiva; laço iterativo de ajuste-de-GP + descarte + cobertura + amostragem sobre um espaço FINITO); função da incerteza=O3 (aprendizado ativo/reparo) bate com o mecanismo central — σ (via a região de incerteza R_t(x) = ∩ hyper-retângulos μ_t±β_t^{1/2}σ_t) decide diretamente descarte/promoção-a-P̂/próxima amostra a cada iteração, e as regiões são 'reparadas' (encolhidas por interseção monotônica) a cada novo dado; medição=VAR-GP bate com a posterior fechada do GP (Eqs. 2-4, μ_T,i/σ²_T,i por regressão GP padrão); regime=online bate com a amostragem sequencial, uma avaliação real por iteração (m=2 apenas, restrição explícita da implementação, Sec. 5.6). Leitura completa: o arquivo (32 páginas) foi lido em 3 blocos — a conversão estruturada (Secs. 1-8 + Apêndice A + Referências), a camada de texto bruta completa do ANEXO (duplicata linha-a-linha do mesmo conteúdo, sem nada novo) e o ANEXO de OCR de imagens (só fragmentos de rótulos de eixo/legenda de Figs. 2/3/5/7, sem conteúdo substantivo novo além do já capturado na camada estruturada). Não há tabela numérica de resultados em lugar nenhum além da Table 1 (características dos 3 data sets) — tudo em Figs. 4-7. roster_bloco = null por instrução do pedido (artigo fora do roster experimental executado pela dissertação)."
+}

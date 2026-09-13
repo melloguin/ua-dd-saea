@@ -1,0 +1,394 @@
+ts,rec,name,solution_id,x_key,fe,geracao,estrategia,n,motivo,problema
+2026-07-26T12:22:37Z,guard,cache_hit,0.0,80F7BC7AF40BE4BF,1.0,,,,,BBOB_F1
+2026-07-26T12:22:40Z,guard,dedup_slot_perdido,,,,2.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F1
+2026-07-26T12:22:43Z,guard,dedup_slot_perdido,,,,6.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F1
+2026-07-26T12:22:45Z,guard,dedup_slot_perdido,,,,10.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F1
+2026-07-26T12:22:47Z,guard,dedup_slot_perdido,,,,14.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F1
+2026-07-26T12:22:49Z,guard,dedup_slot_perdido,,,,18.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F1
+2026-07-26T12:22:51Z,guard,dedup_slot_perdido,,,,22.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F1
+2026-07-26T12:22:53Z,guard,dedup_slot_perdido,,,,26.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F1
+2026-07-26T12:22:55Z,guard,dedup_slot_perdido,,,,30.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F1
+2026-07-26T12:22:57Z,guard,dedup_slot_perdido,,,,34.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F1
+2026-07-26T12:22:58Z,guard,dedup_slot_perdido,,,,38.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F1
+2026-07-26T12:23:01Z,guard,dedup_slot_perdido,,,,42.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F1
+2026-07-26T12:23:58Z,guard,cand_vazio,,,,138.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),BBOB_F1
+2026-07-26T12:24:01Z,guard,cand_vazio,,,,142.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),BBOB_F1
+2026-07-26T12:24:04Z,guard,cand_vazio,,,,146.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),BBOB_F1
+2026-07-26T12:24:07Z,guard,cand_vazio,,,,150.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),BBOB_F1
+2026-07-26T12:24:10Z,guard,cand_vazio,,,,154.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),BBOB_F1
+2026-07-26T12:24:13Z,guard,cand_vazio,,,,158.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),BBOB_F1
+2026-07-26T12:24:16Z,guard,cand_vazio,,,,162.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),BBOB_F1
+2026-07-26T12:24:19Z,guard,cand_vazio,,,,166.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),BBOB_F1
+2026-07-26T12:23:51Z,guard,cache_hit,0.0,D8183742992E0E40,1.0,,,,,BBOB_F17
+2026-07-26T12:23:54Z,guard,dedup_slot_perdido,,,,2.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F17
+2026-07-26T12:23:56Z,guard,dedup_slot_perdido,,,,6.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F17
+2026-07-26T12:23:58Z,guard,dedup_slot_perdido,,,,10.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F17
+2026-07-26T12:24:00Z,guard,dedup_slot_perdido,,,,14.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F17
+2026-07-26T12:24:03Z,guard,dedup_slot_perdido,,,,18.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F17
+2026-07-26T12:24:05Z,guard,dedup_slot_perdido,,,,22.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F17
+2026-07-26T12:24:06Z,guard,dedup_slot_perdido,,,,26.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F17
+2026-07-26T12:24:27Z,guard,dedup_slot_perdido,,,,66.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F17
+2026-07-26T12:24:42Z,guard,dedup_slot_perdido,,,,94.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F17
+2026-07-26T12:26:02Z,guard,cache_hit,0.0,880900E8A90EFBBF,1.0,,,,,BBOB_F22
+2026-07-26T12:26:05Z,guard,dedup_slot_perdido,,,,2.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F22
+2026-07-26T12:26:07Z,guard,dedup_slot_perdido,,,,6.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F22
+2026-07-26T12:26:09Z,guard,dedup_slot_perdido,,,,10.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F22
+2026-07-26T12:26:11Z,guard,dedup_slot_perdido,,,,14.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F22
+2026-07-26T12:26:13Z,guard,dedup_slot_perdido,,,,18.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F22
+2026-07-26T12:26:15Z,guard,dedup_slot_perdido,,,,22.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F22
+2026-07-26T12:26:17Z,guard,dedup_slot_perdido,,,,26.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F22
+2026-07-26T12:26:19Z,guard,dedup_slot_perdido,,,,30.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F22
+2026-07-26T12:26:21Z,guard,dedup_slot_perdido,,,,34.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F22
+2026-07-26T12:26:22Z,guard,dedup_slot_perdido,,,,38.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F22
+2026-07-26T12:26:24Z,guard,dedup_slot_perdido,,,,42.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F22
+2026-07-26T12:26:26Z,guard,dedup_slot_perdido,,,,46.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F22
+2026-07-26T12:26:28Z,guard,dedup_slot_perdido,,,,50.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F22
+2026-07-26T12:26:30Z,guard,dedup_slot_perdido,,,,54.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F22
+2026-07-26T12:26:34Z,guard,cache_hit,0.0,0B7A540FDEFE02C0,1.0,,,,,BBOB_F37
+2026-07-26T12:26:38Z,guard,dedup_slot_perdido,,,,2.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:26:41Z,guard,dedup_slot_perdido,,,,6.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:26:43Z,guard,dedup_slot_perdido,,,,10.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:26:45Z,guard,dedup_slot_perdido,,,,14.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:26:47Z,guard,dedup_slot_perdido,,,,18.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:26:50Z,guard,dedup_slot_perdido,,,,22.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:26:52Z,guard,dedup_slot_perdido,,,,26.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:26:54Z,guard,dedup_slot_perdido,,,,30.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:26:56Z,guard,dedup_slot_perdido,,,,34.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:26:58Z,guard,dedup_slot_perdido,,,,38.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:27:00Z,guard,dedup_slot_perdido,,,,42.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:27:02Z,guard,dedup_slot_perdido,,,,46.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:27:04Z,guard,dedup_slot_perdido,,,,50.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:27:06Z,guard,dedup_slot_perdido,,,,54.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:27:07Z,guard,dedup_slot_perdido,,,,58.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:27:09Z,guard,dedup_slot_perdido,,,,62.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:27:11Z,guard,dedup_slot_perdido,,,,66.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:27:13Z,guard,dedup_slot_perdido,,,,70.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:27:15Z,guard,dedup_slot_perdido,,,,74.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:27:17Z,guard,dedup_slot_perdido,,,,78.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:27:25Z,guard,dedup_slot_perdido,,,,94.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:27:31Z,guard,dedup_slot_perdido,,,,106.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F37
+2026-07-26T12:26:45Z,guard,cache_hit,0.0,C05469D6B137D7BF,1.0,,,,,BBOB_F49
+2026-07-26T12:26:49Z,guard,dedup_slot_perdido,,,,2.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F49
+2026-07-26T12:26:52Z,guard,dedup_slot_perdido,,,,6.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F49
+2026-07-26T12:26:54Z,guard,dedup_slot_perdido,,,,10.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F49
+2026-07-26T12:26:56Z,guard,dedup_slot_perdido,,,,14.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F49
+2026-07-26T12:26:58Z,guard,dedup_slot_perdido,,,,18.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F49
+2026-07-26T12:27:00Z,guard,dedup_slot_perdido,,,,22.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F49
+2026-07-26T12:27:02Z,guard,dedup_slot_perdido,,,,26.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F49
+2026-07-26T12:27:04Z,guard,dedup_slot_perdido,,,,30.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F49
+2026-07-26T12:27:06Z,guard,dedup_slot_perdido,,,,34.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F49
+2026-07-26T12:27:39Z,guard,dedup_slot_perdido,,,,102.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F49
+2026-07-26T12:27:51Z,guard,dedup_slot_perdido,,,,126.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F49
+2026-07-26T12:28:06Z,guard,dedup_slot_perdido,,,,154.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F49
+2026-07-26T12:28:21Z,guard,dedup_slot_perdido,,,,182.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F49
+2026-07-26T12:28:25Z,guard,dedup_slot_perdido,,,,190.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F49
+2026-07-26T12:28:33Z,guard,dedup_slot_perdido,,,,206.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F49
+2026-07-26T12:28:55Z,guard,cache_hit,0.0,B429B9AA44FDFDBF,1.0,,,,,BBOB_F5
+2026-07-26T12:28:59Z,guard,dedup_slot_perdido,,,,2.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F5
+2026-07-26T12:29:02Z,guard,dedup_slot_perdido,,,,6.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F5
+2026-07-26T12:29:03Z,guard,dedup_slot_perdido,,,,10.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F5
+2026-07-26T12:29:05Z,guard,dedup_slot_perdido,,,,14.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F5
+2026-07-26T12:29:07Z,guard,dedup_slot_perdido,,,,18.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F5
+2026-07-26T12:29:09Z,guard,dedup_slot_perdido,,,,22.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F5
+2026-07-26T12:29:11Z,guard,dedup_slot_perdido,,,,26.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F5
+2026-07-26T12:29:13Z,guard,dedup_slot_perdido,,,,30.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F5
+2026-07-26T12:29:15Z,guard,dedup_slot_perdido,,,,34.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F5
+2026-07-26T12:29:17Z,guard,dedup_slot_perdido,,,,38.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F5
+2026-07-26T12:29:18Z,guard,dedup_slot_perdido,,,,42.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F5
+2026-07-26T12:29:35Z,guard,cache_hit,0.0,6E118206BBC202C0,1.0,,,,,BBOB_F55
+2026-07-26T12:29:38Z,guard,dedup_slot_perdido,,,,2.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F55
+2026-07-26T12:29:40Z,guard,dedup_slot_perdido,,,,6.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F55
+2026-07-26T12:29:42Z,guard,dedup_slot_perdido,,,,10.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F55
+2026-07-26T12:29:44Z,guard,dedup_slot_perdido,,,,14.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F55
+2026-07-26T12:29:47Z,guard,dedup_slot_perdido,,,,18.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F55
+2026-07-26T12:29:50Z,guard,dedup_slot_perdido,,,,22.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F55
+2026-07-26T12:29:53Z,guard,dedup_slot_perdido,,,,26.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F55
+2026-07-26T12:29:57Z,guard,dedup_slot_perdido,,,,34.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F55
+2026-07-26T12:29:59Z,guard,dedup_slot_perdido,,,,38.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F55
+2026-07-26T12:30:05Z,guard,dedup_slot_perdido,,,,50.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F55
+2026-07-26T12:30:19Z,guard,dedup_slot_perdido,,,,78.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F55
+2026-07-26T12:30:22Z,guard,dedup_slot_perdido,,,,82.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F55
+2026-07-26T12:30:23Z,guard,dedup_slot_perdido,,,,86.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F55
+2026-07-26T12:30:26Z,guard,dedup_slot_perdido,,,,90.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F55
+2026-07-26T12:30:29Z,guard,dedup_slot_perdido,,,,98.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F55
+2026-07-26T12:30:33Z,guard,dedup_slot_perdido,,,,106.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F55
+2026-07-26T12:30:35Z,guard,dedup_slot_perdido,,,,110.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",BBOB_F55
+2026-07-26T11:47:19Z,guard,cache_hit,0.0,58F449FFA8A8B83F,1.0,,,,,DTLZ1
+2026-07-26T12:47:26Z,guard,cache_hit,0.0,7974D59EAF27C73F,1.0,,,,,DTLZ2
+2026-07-26T12:50:19Z,guard,cache_hit,0.0,B2D49C1479FAD83F,1.0,,,,,DTLZ3
+2026-07-26T12:50:33Z,guard,dedup_slot_perdido,,,,18.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ3
+2026-07-26T12:50:37Z,guard,dedup_slot_perdido,,,,26.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ3
+2026-07-26T12:50:41Z,guard,dedup_slot_perdido,,,,34.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ3
+2026-07-26T12:51:37Z,guard,cache_hit,0.0,D45222DD2AE4DA3F,1.0,,,,,DTLZ4
+2026-07-26T13:05:05Z,guard,cache_hit,0.0,C5F67D7004849A3F,1.0,,,,,DTLZ7
+2026-07-26T13:05:13Z,guard,dedup_slot_perdido,,,,6.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:15Z,guard,dedup_slot_perdido,,,,10.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:17Z,guard,dedup_slot_perdido,,,,14.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:20Z,guard,dedup_slot_perdido,,,,18.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:21Z,guard,hv_range0,,,,19.0,,,"front-1 do arquivo degenerado em >=1 coordenada (Ymax-Ymin<=0) — norm D74 vira NaN; edge fora do paper, NAO consertado (so logado)",DTLZ7
+2026-07-26T13:05:22Z,guard,dedup_slot_perdido,,,,22.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:23Z,guard,hv_range0,,,,23.0,,,"front-1 do arquivo degenerado em >=1 coordenada (Ymax-Ymin<=0) — norm D74 vira NaN; edge fora do paper, NAO consertado (so logado)",DTLZ7
+2026-07-26T13:05:24Z,guard,dedup_slot_perdido,,,,26.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:26Z,guard,dedup_slot_perdido,,,,30.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:28Z,guard,dedup_slot_perdido,,,,34.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:30Z,guard,dedup_slot_perdido,,,,38.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:31Z,guard,hv_range0,,,,39.0,,,"front-1 do arquivo degenerado em >=1 coordenada (Ymax-Ymin<=0) — norm D74 vira NaN; edge fora do paper, NAO consertado (so logado)",DTLZ7
+2026-07-26T13:05:32Z,guard,dedup_slot_perdido,,,,42.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:34Z,guard,hv_range0,,,,43.0,,,"front-1 do arquivo degenerado em >=1 coordenada (Ymax-Ymin<=0) — norm D74 vira NaN; edge fora do paper, NAO consertado (so logado)",DTLZ7
+2026-07-26T13:05:34Z,guard,dedup_slot_perdido,,,,46.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:35Z,guard,hv_range0,,,,47.0,,,"front-1 do arquivo degenerado em >=1 coordenada (Ymax-Ymin<=0) — norm D74 vira NaN; edge fora do paper, NAO consertado (so logado)",DTLZ7
+2026-07-26T13:05:36Z,guard,dedup_slot_perdido,,,,50.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:38Z,guard,hv_range0,,,,51.0,,,"front-1 do arquivo degenerado em >=1 coordenada (Ymax-Ymin<=0) — norm D74 vira NaN; edge fora do paper, NAO consertado (so logado)",DTLZ7
+2026-07-26T13:05:38Z,guard,dedup_slot_perdido,,,,54.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:40Z,guard,hv_range0,,,,55.0,,,"front-1 do arquivo degenerado em >=1 coordenada (Ymax-Ymin<=0) — norm D74 vira NaN; edge fora do paper, NAO consertado (so logado)",DTLZ7
+2026-07-26T13:05:40Z,guard,dedup_slot_perdido,,,,58.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:42Z,guard,dedup_slot_perdido,,,,62.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:44Z,guard,dedup_slot_perdido,,,,66.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:46Z,guard,dedup_slot_perdido,,,,70.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:48Z,guard,hv_range0,,,,71.0,,,"front-1 do arquivo degenerado em >=1 coordenada (Ymax-Ymin<=0) — norm D74 vira NaN; edge fora do paper, NAO consertado (so logado)",DTLZ7
+2026-07-26T13:05:48Z,guard,dedup_slot_perdido,,,,74.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:50Z,guard,hv_range0,,,,75.0,,,"front-1 do arquivo degenerado em >=1 coordenada (Ymax-Ymin<=0) — norm D74 vira NaN; edge fora do paper, NAO consertado (so logado)",DTLZ7
+2026-07-26T13:05:51Z,guard,dedup_slot_perdido,,,,78.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:53Z,guard,dedup_slot_perdido,,,,82.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:55Z,guard,dedup_slot_perdido,,,,86.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:57Z,guard,dedup_slot_perdido,,,,90.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:05:59Z,guard,dedup_slot_perdido,,,,94.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:01Z,guard,dedup_slot_perdido,,,,98.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:03Z,guard,dedup_slot_perdido,,,,102.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:05Z,guard,dedup_slot_perdido,,,,106.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:07Z,guard,hv_range0,,,,107.0,,,"front-1 do arquivo degenerado em >=1 coordenada (Ymax-Ymin<=0) — norm D74 vira NaN; edge fora do paper, NAO consertado (so logado)",DTLZ7
+2026-07-26T13:06:08Z,guard,dedup_slot_perdido,,,,110.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:10Z,guard,dedup_slot_perdido,,,,114.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:12Z,guard,dedup_slot_perdido,,,,118.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:14Z,guard,dedup_slot_perdido,,,,122.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:17Z,guard,dedup_slot_perdido,,,,126.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:19Z,guard,dedup_slot_perdido,,,,130.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:21Z,guard,dedup_slot_perdido,,,,134.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:24Z,guard,dedup_slot_perdido,,,,138.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:26Z,guard,dedup_slot_perdido,,,,142.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:28Z,guard,dedup_slot_perdido,,,,146.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:31Z,guard,dedup_slot_perdido,,,,150.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:33Z,guard,dedup_slot_perdido,,,,154.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:36Z,guard,dedup_slot_perdido,,,,158.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:38Z,guard,dedup_slot_perdido,,,,162.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:41Z,guard,dedup_slot_perdido,,,,166.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:43Z,guard,dedup_slot_perdido,,,,170.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:48Z,guard,dedup_slot_perdido,,,,178.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:06:50Z,guard,dedup_slot_perdido,,,,182.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",DTLZ7
+2026-07-26T13:07:09Z,guard,cand_vazio,,,,210.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),DTLZ7
+2026-07-26T13:07:12Z,guard,cand_vazio,,,,214.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),DTLZ7
+2026-07-26T13:07:14Z,guard,cand_vazio,,,,218.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),DTLZ7
+2026-07-26T13:07:18Z,guard,cand_vazio,,,,222.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),DTLZ7
+2026-07-26T13:07:20Z,guard,cand_vazio,,,,226.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),DTLZ7
+2026-07-26T13:07:23Z,guard,cand_vazio,,,,230.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),DTLZ7
+2026-07-26T11:30:19Z,guard,cache_hit,0.0,039843BD82EFF93F,1.0,,,,,MMF1
+2026-07-26T11:30:27Z,guard,cand_vazio,,,,14.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),MMF1
+2026-07-26T11:30:30Z,guard,cand_vazio,,,,18.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),MMF1
+2026-07-26T11:30:36Z,guard,cand_vazio,,,,34.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),MMF1
+2026-07-26T11:30:38Z,guard,cand_vazio,,,,38.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),MMF1
+2026-07-26T11:30:40Z,guard,cand_vazio,,,,42.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),MMF1
+2026-07-26T11:30:47Z,guard,cand_vazio,,,,58.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),MMF1
+2026-07-26T11:30:36Z,guard,cache_hit,0.0,807068779A18D03F,1.0,,,,,MMF11_L
+2026-07-26T11:30:44Z,guard,cand_vazio,,,,14.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),MMF11_L
+2026-07-26T11:30:49Z,guard,cand_vazio,,,,26.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),MMF11_L
+2026-07-26T11:30:51Z,guard,cand_vazio,,,,30.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),MMF11_L
+2026-07-26T11:30:53Z,guard,cand_vazio,,,,34.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),MMF11_L
+2026-07-26T11:30:58Z,guard,cand_vazio,,,,46.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),MMF11_L
+2026-07-26T11:31:00Z,guard,cand_vazio,,,,50.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),MMF11_L
+2026-07-26T11:31:02Z,guard,cand_vazio,,,,54.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),MMF11_L
+2026-07-26T11:31:03Z,guard,cand_vazio,,,,58.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),MMF11_L
+2026-07-26T11:31:05Z,guard,cand_vazio,,,,62.0,s1,,estrategia nao produziu candidato (edge stock — ex.: rank-learning sem nivel-1),MMF11_L
+2026-07-26T12:55:00Z,guard,cache_hit,0.0,ABBFCEB476A0E03F,1.0,,,,,MMF16_20
+2026-07-26T11:30:52Z,guard,cache_hit,0.0,40D2C1152D6CD7BF,1.0,,,,,MMF4
+2026-07-26T13:06:27Z,guard,cache_hit,0.0,212CA208E291EB3F,1.0,,,,,WFG1
+2026-07-26T13:06:54Z,guard,dedup_slot_perdido,,,,42.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG1
+2026-07-26T13:07:50Z,guard,cache_hit,0.0,8B4869ACD540FD3F,1.0,,,,,WFG2
+2026-07-26T13:07:54Z,guard,dedup_slot_perdido,,,,2.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:07:56Z,guard,dedup_slot_perdido,,,,6.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:07:59Z,guard,dedup_slot_perdido,,,,10.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:01Z,guard,dedup_slot_perdido,,,,14.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:04Z,guard,dedup_slot_perdido,,,,18.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:06Z,guard,dedup_slot_perdido,,,,22.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:08Z,guard,dedup_slot_perdido,,,,26.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:10Z,guard,dedup_slot_perdido,,,,30.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:12Z,guard,dedup_slot_perdido,,,,34.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:14Z,guard,dedup_slot_perdido,,,,38.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:17Z,guard,dedup_slot_perdido,,,,42.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:19Z,guard,dedup_slot_perdido,,,,46.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:21Z,guard,dedup_slot_perdido,,,,50.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:23Z,guard,dedup_slot_perdido,,,,54.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:30Z,guard,dedup_slot_perdido,,,,66.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:34Z,guard,dedup_slot_perdido,,,,74.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:36Z,guard,dedup_slot_perdido,,,,78.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:38Z,guard,dedup_slot_perdido,,,,82.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:42Z,guard,dedup_slot_perdido,,,,90.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:45Z,guard,dedup_slot_perdido,,,,94.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:47Z,guard,dedup_slot_perdido,,,,98.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:10:32Z,guard,dedup_slot_perdido,,,,278.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG2
+2026-07-26T13:08:09Z,guard,cache_hit,0.0,6D62D085E1C2E83F,1.0,,,,,WFG4
+2026-07-26T13:14:33Z,guard,dedup_slot_perdido,,,,578.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG4
+2026-07-26T13:10:22Z,guard,cache_hit,0.0,5CA938D04C43F83F,1.0,,,,,WFG5
+2026-07-26T13:14:26Z,guard,cache_hit,0.0,8687CDA5EF4BF83F,1.0,,,,,WFG9
+2026-07-26T13:14:37Z,guard,dedup_slot_perdido,,,,14.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG9
+2026-07-26T13:14:40Z,guard,dedup_slot_perdido,,,,18.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG9
+2026-07-26T13:14:42Z,guard,dedup_slot_perdido,,,,22.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",WFG9
+2026-07-26T13:14:53Z,guard,cache_hit,0.0,CA0BDCDE5F23E23F,1.0,,,,,ZDT1
+2026-07-26T13:15:02Z,guard,dedup_slot_perdido,,,,6.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:04Z,guard,dedup_slot_perdido,,,,10.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:07Z,guard,dedup_slot_perdido,,,,14.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:10Z,guard,dedup_slot_perdido,,,,18.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:12Z,guard,dedup_slot_perdido,,,,22.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:14Z,guard,dedup_slot_perdido,,,,26.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:17Z,guard,dedup_slot_perdido,,,,30.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:19Z,guard,dedup_slot_perdido,,,,34.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:22Z,guard,dedup_slot_perdido,,,,38.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:24Z,guard,dedup_slot_perdido,,,,42.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:27Z,guard,dedup_slot_perdido,,,,46.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:29Z,guard,dedup_slot_perdido,,,,50.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:32Z,guard,dedup_slot_perdido,,,,54.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:34Z,guard,dedup_slot_perdido,,,,58.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:36Z,guard,dedup_slot_perdido,,,,62.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:39Z,guard,dedup_slot_perdido,,,,66.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:41Z,guard,dedup_slot_perdido,,,,70.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:47Z,guard,dedup_slot_perdido,,,,78.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:49Z,guard,dedup_slot_perdido,,,,82.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:51Z,guard,dedup_slot_perdido,,,,86.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:54Z,guard,dedup_slot_perdido,,,,90.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:56Z,guard,dedup_slot_perdido,,,,94.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:59Z,guard,dedup_slot_perdido,,,,98.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:16:01Z,guard,dedup_slot_perdido,,,,102.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:16:04Z,guard,dedup_slot_perdido,,,,106.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:16:12Z,guard,dedup_slot_perdido,,,,118.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:16:23Z,guard,dedup_slot_perdido,,,,134.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:16:25Z,guard,dedup_slot_perdido,,,,138.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT1
+2026-07-26T13:15:01Z,guard,cache_hit,0.0,A2F9333A60CED83F,1.0,,,,,ZDT3
+2026-07-26T13:15:09Z,guard,dedup_slot_perdido,,,,6.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:11Z,guard,dedup_slot_perdido,,,,10.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:14Z,guard,dedup_slot_perdido,,,,14.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:16Z,guard,dedup_slot_perdido,,,,18.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:19Z,guard,dedup_slot_perdido,,,,22.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:22Z,guard,dedup_slot_perdido,,,,26.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:24Z,guard,dedup_slot_perdido,,,,30.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:27Z,guard,dedup_slot_perdido,,,,34.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:29Z,guard,dedup_slot_perdido,,,,38.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:32Z,guard,dedup_slot_perdido,,,,42.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:34Z,guard,dedup_slot_perdido,,,,46.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:36Z,guard,dedup_slot_perdido,,,,50.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:39Z,guard,dedup_slot_perdido,,,,54.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:41Z,guard,dedup_slot_perdido,,,,58.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:43Z,guard,dedup_slot_perdido,,,,62.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:46Z,guard,dedup_slot_perdido,,,,66.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:48Z,guard,dedup_slot_perdido,,,,70.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:51Z,guard,dedup_slot_perdido,,,,74.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:53Z,guard,dedup_slot_perdido,,,,78.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:15:56Z,guard,dedup_slot_perdido,,,,82.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:08Z,guard,dedup_slot_perdido,,,,102.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:11Z,guard,dedup_slot_perdido,,,,106.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:13Z,guard,dedup_slot_perdido,,,,110.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:16Z,guard,dedup_slot_perdido,,,,114.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:18Z,guard,dedup_slot_perdido,,,,118.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:21Z,guard,dedup_slot_perdido,,,,122.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:24Z,guard,dedup_slot_perdido,,,,126.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:26Z,guard,dedup_slot_perdido,,,,130.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:28Z,guard,dedup_slot_perdido,,,,134.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:31Z,guard,dedup_slot_perdido,,,,138.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:33Z,guard,dedup_slot_perdido,,,,142.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:36Z,guard,dedup_slot_perdido,,,,146.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:39Z,guard,dedup_slot_perdido,,,,150.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:41Z,guard,dedup_slot_perdido,,,,154.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:44Z,guard,dedup_slot_perdido,,,,158.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:46Z,guard,dedup_slot_perdido,,,,162.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:49Z,guard,dedup_slot_perdido,,,,166.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:51Z,guard,dedup_slot_perdido,,,,170.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:54Z,guard,dedup_slot_perdido,,,,174.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:56Z,guard,dedup_slot_perdido,,,,178.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:16:59Z,guard,dedup_slot_perdido,,,,182.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:17:02Z,guard,dedup_slot_perdido,,,,186.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:17:04Z,guard,dedup_slot_perdido,,,,190.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:17:07Z,guard,dedup_slot_perdido,,,,194.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:17:10Z,guard,dedup_slot_perdido,,,,198.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:17:13Z,guard,dedup_slot_perdido,,,,202.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:17:15Z,guard,dedup_slot_perdido,,,,206.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:17:18Z,guard,dedup_slot_perdido,,,,210.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:17:21Z,guard,dedup_slot_perdido,,,,214.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:17:26Z,guard,dedup_slot_perdido,,,,222.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:17:29Z,guard,dedup_slot_perdido,,,,226.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:17:32Z,guard,dedup_slot_perdido,,,,230.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:17:35Z,guard,dedup_slot_perdido,,,,234.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:17:37Z,guard,dedup_slot_perdido,,,,238.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T13:17:40Z,guard,dedup_slot_perdido,,,,242.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT3
+2026-07-26T12:29:35Z,guard,cache_hit,0.0,A817B324FB5FED3F,1.0,,,,,ZDT4
+2026-07-26T12:29:39Z,guard,dedup_slot_perdido,,,,2.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:29:41Z,guard,dedup_slot_perdido,,,,6.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:29:43Z,guard,dedup_slot_perdido,,,,10.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:29:48Z,guard,dedup_slot_perdido,,,,18.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:29:50Z,guard,dedup_slot_perdido,,,,22.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:29:52Z,guard,dedup_slot_perdido,,,,26.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:29:56Z,guard,dedup_slot_perdido,,,,34.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:29:58Z,guard,dedup_slot_perdido,,,,38.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:29:59Z,guard,dedup_slot_perdido,,,,42.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:01Z,guard,dedup_slot_perdido,,,,46.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:03Z,guard,dedup_slot_perdido,,,,50.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:05Z,guard,dedup_slot_perdido,,,,54.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:07Z,guard,dedup_slot_perdido,,,,58.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:09Z,guard,dedup_slot_perdido,,,,62.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:11Z,guard,dedup_slot_perdido,,,,66.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:13Z,guard,dedup_slot_perdido,,,,70.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:15Z,guard,dedup_slot_perdido,,,,74.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:17Z,guard,dedup_slot_perdido,,,,78.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:19Z,guard,dedup_slot_perdido,,,,82.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:20Z,guard,dedup_slot_perdido,,,,86.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:22Z,guard,dedup_slot_perdido,,,,90.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:24Z,guard,dedup_slot_perdido,,,,94.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:26Z,guard,dedup_slot_perdido,,,,98.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:28Z,guard,dedup_slot_perdido,,,,102.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:30Z,guard,dedup_slot_perdido,,,,106.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:32Z,guard,dedup_slot_perdido,,,,110.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:34Z,guard,dedup_slot_perdido,,,,114.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:36Z,guard,dedup_slot_perdido,,,,118.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:37Z,guard,dedup_slot_perdido,,,,122.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:39Z,guard,dedup_slot_perdido,,,,126.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:47Z,guard,dedup_slot_perdido,,,,142.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:04Z,guard,dedup_slot_perdido,,,,174.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:06Z,guard,dedup_slot_perdido,,,,178.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:08Z,guard,dedup_slot_perdido,,,,182.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:10Z,guard,dedup_slot_perdido,,,,186.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:12Z,guard,dedup_slot_perdido,,,,190.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:14Z,guard,dedup_slot_perdido,,,,194.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:16Z,guard,dedup_slot_perdido,,,,198.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:18Z,guard,dedup_slot_perdido,,,,202.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:20Z,guard,dedup_slot_perdido,,,,206.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:22Z,guard,dedup_slot_perdido,,,,210.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:24Z,guard,dedup_slot_perdido,,,,214.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:26Z,guard,dedup_slot_perdido,,,,218.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:28Z,guard,dedup_slot_perdido,,,,222.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:30Z,guard,dedup_slot_perdido,,,,226.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:32Z,guard,dedup_slot_perdido,,,,230.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:34Z,guard,dedup_slot_perdido,,,,234.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:36Z,guard,dedup_slot_perdido,,,,238.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:38Z,guard,dedup_slot_perdido,,,,242.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:40Z,guard,dedup_slot_perdido,,,,246.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:42Z,guard,dedup_slot_perdido,,,,250.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:44Z,guard,dedup_slot_perdido,,,,254.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:46Z,guard,dedup_slot_perdido,,,,258.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:48Z,guard,dedup_slot_perdido,,,,262.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:50Z,guard,dedup_slot_perdido,,,,266.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:52Z,guard,dedup_slot_perdido,,,,270.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:54Z,guard,dedup_slot_perdido,,,,274.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:56Z,guard,dedup_slot_perdido,,,,278.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:31:59Z,guard,dedup_slot_perdido,,,,282.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT4
+2026-07-26T12:30:11Z,guard,cache_hit,0.0,419513C098FECA3F,1.0,,,,,ZDT6
+2026-07-26T12:30:15Z,guard,dedup_slot_perdido,,,,2.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT6
+2026-07-26T12:30:17Z,guard,dedup_slot_perdido,,,,6.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT6
+2026-07-26T12:30:19Z,guard,dedup_slot_perdido,,,,10.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT6
+2026-07-26T12:30:21Z,guard,dedup_slot_perdido,,,,14.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT6
+2026-07-26T12:30:23Z,guard,dedup_slot_perdido,,,,18.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT6
+2026-07-26T12:30:25Z,guard,dedup_slot_perdido,,,,22.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT6
+2026-07-26T12:30:27Z,guard,dedup_slot_perdido,,,,26.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT6
+2026-07-26T12:30:28Z,guard,dedup_slot_perdido,,,,30.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT6
+2026-07-26T12:30:30Z,guard,dedup_slot_perdido,,,,34.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT6
+2026-07-26T12:30:32Z,guard,dedup_slot_perdido,,,,38.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT6
+2026-07-26T12:30:34Z,guard,dedup_slot_perdido,,,,42.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT6
+2026-07-26T12:30:35Z,guard,dedup_slot_perdido,,,,46.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT6
+2026-07-26T12:30:37Z,guard,dedup_slot_perdido,,,,50.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT6
+2026-07-26T12:30:43Z,guard,dedup_slot_perdido,,,,62.0,s1,1.0,"dedup eps=1e-5 STOCK rejeitou o candidato SEM gastar FE (slot perdido, nao o orcamento)",ZDT6

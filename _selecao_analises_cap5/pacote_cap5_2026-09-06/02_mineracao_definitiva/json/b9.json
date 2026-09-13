@@ -1,0 +1,212 @@
+{
+  "id": "b9",
+  "sigla": "USeMO",
+  "titulo": "Uncertainty-Aware Search Framework for Multi-Objective Bayesian Optimization",
+  "ano": 2020,
+  "roster": false,
+  "setup": {
+    "benchmarks": "8 sintéticos próprios do artigo (Tabela 1), combinando funções clássicas de otimização mono-objetivo com 2 benchmarks MO conhecidos: BC-2,2 (Branin-Currin, k=2,d=2); ZDT1 (Zitzler-Deb-Thiele, k=2,d=4); AS-2,5 (Ackley-Sphere, k=2,d=5); AR-2,5 (Ackley-Rosenbrock, k=2,d=5); RS-2,5 (Rosenbrock-Sphere, k=2,d=5); ARS-3,5 (Ackley-Rosenbrock-Sphere, k=3,d=5); DTLZ1 (k=4,d=3); PRDZPS-6,6 (Powell-Rastrigin-Dixon-Zakharov-Perm-SumSquares, k=6,d=6). Mais 6 benchmarks reais: (1) ajuste de hiperparâmetros de rede neural densa no MNIST (acurácia × tempo de predição; hiperparâmetros = nº de camadas ocultas, nº de neurônios/camada, prob. de dropout, taxa de aprendizado, penalidades l1/l2 — d não declarado explicitamente, diferente dos demais); (2) SW-LLVM, d=10 binário, 1024 configurações de compilador (footprint de memória × desempenho); (3) SNW sorting network, d=4, 206 implementações de hardware FPGA (área × throughput); (4) NOC network-on-chip, d=4 (width, complexity, FIFO, multiplier), 259 implementações (energia × runtime, ASIC/Coremark); (5) SMA (ligas de memória de forma), d=6, 77 configurações (histerese térmica × temperatura de transição); (6) PEM (materiais piezoelétricos), d=7, 704 configurações (módulo piezoelétrico × bandgap). Não há problemas das suítes ZDT/DTLZ/WFG/BBOB da dissertação além do ZDT1 e de um DTLZ1 próprios (reconstruídos ad-hoc pelo artigo, não necessariamente nas mesmas variantes/parametrizações da bateria).",
+    "orcamento": "Não há um orçamento total fixo declarado no texto disponível (nada análogo ao 31D-1 da dissertação): o Algoritmo 1 usa um T_max genérico; o eixo x das Figuras 2-4 é apenas 'iterations (t)' / 'number of function evaluations', sem valor numérico do total indicado no texto extraído (só visível na imagem original, não capturado pela conversão). Inicialização: pontos amostrados aleatoriamente de uma grade de Sobol via procedimento embutido da biblioteca Spearmint, sem número de pontos iniciais declarado. Hiperparâmetros do GP são reestimados a cada 10 avaliações reais.",
+    "execucoes": "10 execuções independentes por configuração/benchmark ('the mean and variance of 10 different runs are plotted', repetido nas legendas das Figuras 2, 3 e 4).",
+    "baselines": "ParEGO, PESMO, SMSego, EHI e SUR são citados em Sec. 5.1 como métodos de comparação (código da biblioteca Spearmint), mas apenas ParEGO, PESMO, SMSego, USeMO-EI e USeMO-TS aparecem confirmadamente nas legendas das Figuras 2-4 (via OCR); EHI e SUR não foram identificados nas legendas capturadas — pode ser omissão real das figuras finais ou limitação do OCR/legenda não capturada. Todos os concorrentes são eles próprios métodos de BO com surrogate (GP) — NÃO há piso evolutivo sem surrogate (tipo NSGA-II) rodado como baseline neste artigo; NSGA-II aparece só como o 'cheap MO solver' interno da própria USeMO (resolve o subproblema barato sobre as funções de aquisição), não como concorrente. PAL foi explicitamente excluído por só funcionar em espaço de entrada discreto finito e ter desempenho reportado como similar ao SMSego.",
+    "metricas_principais": [
+      "Pareto Hypervolume difference (PHV), log",
+      "R2 Indicator, log"
+    ],
+    "testes": [
+      "nenhum teste estatístico de significância é mencionado em qualquer parte do artigo"
+    ],
+    "apresentacao": "Curvas de média ± variância sobre 10 execuções independentes, em escala log, um painel por benchmark (título = nome do benchmark da Tabela 1 para sintéticos, ou nome do domínio para os reais); tabela de tempo (Tabela 2) com célula = média ± desvio-padrão, sem negrito, sem símbolos +/=/-, sem teste de hipótese em lugar nenhum.",
+    "codigo_plataforma": "Biblioteca Spearmint (fork 'PESM', https://github.com/HIPS/Spearmint/tree/PESM) fornece o código dos métodos de comparação (ParEGO, PESMO, SMSego, EHI, SUR); GP com kernel exponencial-quadrado (SE), hiperparâmetros reestimados a cada 10 avaliações reais, GPs ajustados sobre valores de objetivo normalizados; NSGA-II (Deb et al. 2002) como 'cheap MO solver' interno da própria USeMO, fixado em 1.500 chamadas de função após teste de 1.000-20.000; hardware: Intel i7-7700K @4.20GHz, 8 núcleos, 32GB RAM."
+  },
+  "analises": [
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para os 8 benchmarks sintéticos (Tabela 1), o artigo plota a evolução do log da diferença de hipervolume (PHV) e do log do indicador R2 em função do número de avaliações/iterações, comparando USeMO-EI e USeMO-TS contra ParEGO, PESMO e SMSego (Figura 2). Média e variância são calculadas sobre 10 execuções independentes por configuração.",
+      "literal": "Results of different multi-objective BO algorithms including USeMO on synthetic benchmarks.",
+      "localizador": "Sec. 5.2 (\"USeMO vs. State-of-the-art\"); Fig. 2; Table 1 (definição dos benchmarks)",
+      "metricas": [
+        "Pareto Hypervolume difference (PHV), log",
+        "R2 Indicator, log"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curvas de média ± variância sobre 10 execuções independentes; escala log no eixo y; eixo x = número de avaliações/iterações; um painel por benchmark, título = nome do benchmark da Tabela 1; sem mediana/IQR, sem banda de piso evolutivo (não há piso sem surrogate no desenho do artigo).",
+      "achado": "USeMO (com EI e com TS) converge consistentemente mais rápido e para valores melhores de HV-diff/R2 do que ParEGO, PESMO e SMSego nos 8 benchmarks sintéticos; USeMO mantém comportamento de convergência estável mesmo quando a dimensão de entrada cresce, ao contrário de PESMO, que desacelera.",
+      "aplicabilidade": "① (todas as avaliações reais: x, f, ordem) — análogo à ficha 26: calcular o ND acumulado das avaliações reais até cada checkpoint e derivar HV/IGD+ por fração do orçamento; aqui a estatística é média±variância sobre 10 execuções (não mediana+IQR sobre 30 sementes) e não há banda de piso, pois nenhum baseline do artigo é um algoritmo evolutivo sem surrogate."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesmo tipo de comparação da Figura 2, mas nos 6 benchmarks reais (rede neural/MNIST, SW-LLVM, SNW, NOC, SMA, PEM): curvas de log da diferença de hipervolume e log do R2 por iteração, USeMO-EI/USeMO-TS contra ParEGO, PESMO, SMSego, com média e variância sobre 10 execuções (Figura 3).",
+      "literal": "Results of different multi-objective BO algorithms including USeMO on real-world benchmarks.",
+      "localizador": "Sec. 5.2 (\"USeMO vs. State-of-the-art\"); Fig. 3; Sec. 5.1 (descrição dos 6 benchmarks reais)",
+      "metricas": [
+        "Pareto Hypervolume difference (PHV), log",
+        "R2 Indicator, log"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Idêntica à Figura 2 (média±variância sobre 10 execuções, escala log, um painel por domínio), mas 5 dos 6 domínios reais são espaços de decisão finitos/pré-enumerados (datasets de configurações fixas: 1024, 206, 259, 77 e 704 pontos respectivamente), não domínios contínuos.",
+      "achado": "Mesmo padrão de superioridade e convergência mais rápida de USeMO é observado nos 6 benchmarks reais; o artigo não nomeia nenhuma exceção em que USeMO perca de um baseline nesses 6 problemas específicos.",
+      "aplicabilidade": "① — mesma lógica de reprodução da análise anterior (ND acumulado por checkpoint); não aplicável aos 28 problemas/6 benchmarks reais da própria dissertação (RE21, ESTOQUE40, DDMOP7 são problemas diferentes destes 6), mas o padrão metodológico (curva de convergência por domínio real) é equivalente à ficha 26."
+    },
+    {
+      "fichas": [
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo mede o tempo médio (segundos, média±desvio-padrão) de otimização da função de aquisição por iteração — excluindo deliberadamente o tempo de ajuste do GP por ser 'the same for all the algorithms' — comparando USeMO, PESMO, ParEGO e SMSego nos 6 benchmarks sintéticos (Tabela 2), em hardware fixo (Intel i7-7700K, 8 núcleos, 32GB).",
+      "literal": "We do not account for the time to fit GP models since it is same for all the algorithms.",
+      "localizador": "Sec. 5.2 (\"Comparison of acquisition function optimization time\"); Table 2",
+      "metricas": [
+        "tempo de otimização da função de aquisição (segundos)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tabela única; célula = média ± desvio-padrão; sem destaque em negrito para o melhor; tempo em segundos; só a componente de 'busca' (otimização da aquisição via NSGA-II) é isolada — não há decomposição fit/sonda/avaliação completa como na ficha 48 original da dissertação.",
+      "achado": "USeMO tem tempo de otimização da aquisição ordens de grandeza menor que PESMO em todos os 6 benchmarks (ex.: PRDZPS-6,6: USeMO 13.9±1.1s vs. PESMO 110.4±17.8s vs. SMSego 300.43±35.7s vs. ParEGO 12.3±2.3s) e comparável a ParEGO; o custo de PESMO e SMSego cresce fortemente conforme o número de objetivos k aumenta além de 2.",
+      "aplicabilidade": "④ (tempos por geração: ajuste do modelo, busca, sonda) — a componente 'busca' de ④ corresponde ao que este artigo mede (tempo de otimização da aquisição, excluindo ajuste do GP); reproduzível parcialmente para os algoritmos do roster que já isolam esse tempo, mas não para USeMO/PESMO/ParEGO/SMSego em si, que estão fora do roster."
+    },
+    {
+      "fichas": [
+        11,
+        15
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ablação da segunda etapa de USeMO (seleção do candidato final dentre o conjunto de Pareto barato obtido no primeiro estágio): substitui-se a maximização de incerteza (volume do hiper-retângulo definido por LCB/UCB do GP) por uma política de seleção ALEATÓRIA entre os mesmos candidatos, gerando USeMO-EI-RAND e USeMO-TS-RAND; compara-se via log da diferença de hipervolume ao longo das iterações em vários benchmarks sintéticos (Figura 4).",
+      "literal": "We observe that uncertainty maximization performs better than random policy.",
+      "localizador": "Sec. 5.2 (\"Uncertainty maximization vs. random selection\"); Fig. 4",
+      "metricas": [
+        "Pareto Hypervolume difference (PHV), log"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesmo esquema de curvas de média±variância sobre 10 execuções em escala log; compara apenas as variantes de USeMO com e sem o passo de maximização de incerteza (sufixo -RAND para seleção aleatória), mantendo fixo o primeiro estágio (o conjunto de candidatos do Pareto barato via NSGA-II sobre as funções de aquisição).",
+      "achado": "Maximizar incerteza (volume do hiper-retângulo LCB/UCB) para escolher o candidato final supera a seleção aleatória entre os candidatos do Pareto barato — mas o artigo relata explicitamente que, em alguns casos, a política aleatória é competitiva, sugerindo que parte do ganho de USeMO vem de o primeiro estágio (o conjunto de candidatos do Pareto barato) já ser bom, não exclusivamente do uso da incerteza na seleção final. É a ablação exata do componente de incerteza da própria USeMO (mantém tudo fixo, troca só a regra de seleção final por algo que não usa σ), mas o contrafactual usado é SELEÇÃO ALEATÓRIA, não 'seleção pela média apenas' como no par canônico Prob-MOEA/D × MOEA/D-média da ficha 11.",
+      "aplicabilidade": "Não reproduzível com as 7 camadas tal como gravadas: exigiria RODAR uma variante do próprio algoritmo com a regra de seleção final trocada por sorteio aleatório entre os candidatos do Pareto barato — não é uma leitura pós-hoc dos dados já registrados, é o mesmo caso da ficha 15 ('nunca executado' para os algoritmos online do roster): precedente de que esse tipo de ablação σ-vs-sem-σ já foi executado, com sucesso parcial, em pelo menos um framework de BO online exploratório da literatura."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade ao orçamento do MO barato interno (nº de avaliações do NSGA-II)",
+      "grupo_sugerido": "E",
+      "descricao": "Sensibilidade do desempenho de USeMO ao orçamento (número de avaliações de função) do solver NSGA-II usado para resolver o subproblema MO barato definido sobre as funções de aquisição (primeiro estágio de USeMO): testados valores de 1.000 a 20.000 chamadas; sem ganho de desempenho observado acima de certo ponto, o valor foi fixado em 1.500 para todos os experimentos do artigo.",
+      "literal": "We experimented with values varying from 1,000 to 20,000. We noticed that increasing this number does not result in any performance improvement for USeMO.",
+      "localizador": "Sec. 5.1 (\"Cheap MO solver\")",
+      "metricas": [
+        "não nomeada explicitamente no texto ('performance'); presumivelmente HV-diff/R2, as mesmas métricas do restante do artigo"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Relato textual apenas — nenhuma tabela ou figura visível no texto extraído para esta sensibilidade específica; menciona só a faixa testada (1.000-20.000) e o valor final adotado (1.500), sem curva de sensibilidade nem valores intermediários.",
+      "achado": "Resultado de saturação para um hiperparâmetro que NÃO é da incerteza (é do solver interno que resolve o problema MO barato sobre as funções de aquisição, não do mecanismo de seleção por σ): aumentar o orçamento do NSGA-II interno de 1.000 para até 20.000 avaliações não melhora o desempenho de USeMO; o valor foi fixado em 1.500 puramente por essa constatação, sem custo/tempo reportado nesse trecho especificamente (o custo do NSGA-II interno é o que a Tabela 2 mede, mas não é cruzado com este teste de sensibilidade no texto).",
+      "aplicabilidade": "Não reproduzível — é um hiperparâmetro do solver interno (NSGA-II) usado apenas para resolver o subproblema barato de otimização da função de aquisição da própria USeMO; não corresponde a nenhuma das 7 camadas de instrumentação da dissertação, que registram o comportamento do algoritmo host nos problemas reais, não o ajuste fino do solver de aquisição interno de um método de terceiros."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo menciona fornecer resultados adicionais de USeMO com a função de aquisição LCB no Apêndice (complementando EI e TS, mostrados nas Figuras 2-3 do corpo principal), mas esse conteúdo não está presente no texto convertido disponível (nem na seção estruturada nem no ANEXO de texto bruto/OCR) — não é possível verificar números, curvas ou conclusões específicas para USeMO-LCB.",
+      "literal": "We also provide more results with LCB acquisition function in Appendix.",
+      "localizador": "Sec. 5.2 (\"USeMO vs. State-of-the-art\") — menção; conteúdo do Apêndice ausente do texto extraído",
+      "metricas": [
+        "presumivelmente Pareto Hypervolume difference (PHV), log e/ou R2 Indicator, log — iguais às Figuras 2-3, não confirmado"
+      ],
+      "testes": [
+        "nenhum mencionado"
+      ],
+      "convencoes": "Não aplicável — conteúdo não presente no texto disponível; só menção textual.",
+      "achado": "Não verificável a partir do texto disponível — apenas a menção textual confirma a existência do experimento com USeMO-LCB no Apêndice; observações: 'só mencionada'.",
+      "aplicabilidade": "Não verificável — conteúdo do Apêndice ausente do texto convertido; não reproduzível por falta de dados."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ao descrever os 8 benchmarks sintéticos e antes de passar aos benchmarks reais, o texto indica que, por restrição de espaço, parte dos resultados sintéticos é apresentada no Apêndice (possivelmente curvas adicionais dos mesmos 8 problemas, ou de problemas extras não listados na Tabela 1); esse conteúdo não está presente no texto convertido disponível.",
+      "literal": "Due to space constraints we present some of the results in the appendix",
+      "localizador": "Sec. 5.1 (logo após a Tabela 1, antes de \"Real-world benchmarks\") — menção; conteúdo do Apêndice ausente do texto extraído",
+      "metricas": [
+        "não especificada (conteúdo não visível no texto extraído)"
+      ],
+      "testes": [
+        "nenhum mencionado"
+      ],
+      "convencoes": "Não aplicável — conteúdo não presente no texto disponível; só menção textual.",
+      "achado": "Não verificável a partir do texto disponível — apenas a menção textual confirma que parte dos resultados (provavelmente sintéticos) está no Apêndice; observações: 'só mencionada'. Pode se sobrepor total ou parcialmente ao item anterior (resultados de LCB), já que ambos descrevem conteúdo de Apêndice não capturado na conversão.",
+      "aplicabilidade": "Não verificável — conteúdo do Apêndice ausente do texto convertido; não reproduzível por falta de dados."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo médio (segundos, média±desvio-padrão) de otimização da função de aquisição por iteração, comparando USeMO, PESMO, ParEGO e SMSego nos 6 benchmarks sintéticos (Tabela 2); tempo de ajuste do GP explicitamente excluído da medição por ser 'the same for all the algorithms'; hardware declarado (Intel i7-7700K @4.20GHz, 8 núcleos, 32GB RAM). Não há decomposição fit/busca/sonda/avaliação completa (só a componente de busca/otimização da aquisição é isolada e reportada), nem custo total de execução por corrida, nem complexidade assintótica declarada, nem custo medido para os benchmarks reais (Tabela 2 cobre só os sintéticos).",
+    "literal": "We do not account for the time to fit GP models since it is same for all the algorithms. We measure the average acquisition function optimization time across all iterations.",
+    "localizador": "Sec. 5.2 (\"Comparison of acquisition function optimization time\"); Table 2"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "O artigo relata explicitamente que, embora a maximização de incerteza (volume do hiper-retângulo LCB/UCB) supere a seleção aleatória na escolha do candidato final, em ALGUNS casos a política aleatória é competitiva — evidência de que o ganho atribuível ao uso da incerteza nessa etapa nem sempre é grande, e que parte do mérito vem apenas da qualidade do conjunto de candidatos do Pareto barato (primeiro estágio), não exclusivamente da regra de seleção baseada em σ (segundo estágio).",
+      "literal": "However, in some cases, random policy is competitive, which shows that all candidates from the solution of cheap MO problem are promising and improve the efficiency.",
+      "localizador": "Sec. 5.2 (\"Uncertainty maximization vs. random selection\"); Fig. 4"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "O artigo relata que os resultados de USeMO seguem a mesma tendência qualitativa independentemente da função de aquisição de base plugada no arcabouço (EI, TS, e implicitamente outras, com LCB detalhado à parte no Apêndice) — o desempenho vem do arcabouço de duas etapas (Pareto barato + maximização de incerteza), não da escolha específica da função de aquisição.",
+      "literal": "noting that results show similar trend with other acquisition functions",
+      "localizador": "Sec. 5.1 (\"Multi-objective BO algorithms\")"
+    },
+    {
+      "descricao": "Reforçando o ponto anterior com dados de fato mostrados (Figs. 2-3): a taxa de convergência de USeMO varia entre TS e EI, mas AMBAS as variantes superam consistentemente os métodos baseline — outra formulação da mesma equivalência funcional entre funções de aquisição dentro do arcabouço USeMO.",
+      "literal": "Rate of convergence of USeMO varies with different acquisition functions (i.e., TS and EI), but both cases perform better than baseline methods.",
+      "localizador": "Sec. 5.2 (\"USeMO vs. State-of-the-art\", observação 2)"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "alta dimensão do espaço de entrada (d)",
+      "afirmacao": "USeMO mantém um comportamento de convergência consistente conforme a dimensão do espaço de entrada cresce (para um número fixo de objetivos), enquanto o concorrente PESMO fica progressivamente mais lento para convergir — atribuído ao custo de otimizar a aquisição information-theoretic de PESMO crescer mal com d.",
+      "literal": "The convergence rate of PESMO becomes slower as the dimensionality of input space grows for a fixed number of objectives, whereas USeMO maintains a consistent convergence behavior.",
+      "localizador": "Sec. 5.2 (\"USeMO vs. State-of-the-art\", observação 3)"
+    },
+    {
+      "caracteristica": "muitos objetivos (k > 2)",
+      "afirmacao": "O tempo de otimização da função de aquisição de PESMO e de SMSego cresce significativamente conforme o número de objetivos k passa de 2, enquanto USeMO e ParEGO escalam bem (Tabela 2) — uma caracterização de custo computacional em função do número de objetivos, não de qualidade de solução.",
+      "literal": "The time for PESMO and SMSego increases significantly as the number of objectives grow beyond two.",
+      "localizador": "Sec. 5.2 (\"Comparison of acquisition function optimization time\"); Table 2"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Leitura completa confirmada: as duas partes do arquivo foram lidas por inteiro (seção estruturada, linhas 1-405, texto+tabelas+figuras via pymupdf4llm; ANEXO de texto bruto página a página, linhas 407-1301, camada get_text completa; ANEXO de OCR de imagens, linhas 1302-1546, legendas/eixos das Figuras 1-4). O conteúdo é idêntico entre a seção estruturada e o ANEXO bruto (o bruto preserva ligaduras tipográficas como 'ﬂexibility'/'efﬁcient' que a seção estruturada já normaliza — por isso os literais aqui foram extraídos preferencialmente da seção estruturada, mais limpa). O OCR de imagens confirma os nomes de algoritmos nas legendas das Figuras 2-4 (ParEGO, PESMO, SMSego, USeMO-EI, USeMO-TS; e USeMO-EI-RAND/USeMO-TS-RAND na Fig. 4) e os rótulos de eixo ('Iterations (t)'), mas não acrescenta números novos além dos já capturados na Tabela 2. Não há Apêndice (conteúdo textual) presente no arquivo convertido — só menções a ele no corpo (resultados com LCB; 'some of the results' dos sintéticos; e 'Appendix 1' com a prova do Teorema 1/Lema 1, este último de natureza teórica, não experimental, por isso não virou item de 'analises'). Classificação/enquadramento na taxonomia (conforme fornecido no pedido): motor=BO-Especiais; função da incerteza=O1 (aquisição exploratória); surrogate=GP; medição=VAR-GP; regime=online. Isso casa bem com o mecanismo do artigo: USeMO já usa μ/σ implicitamente no primeiro estágio (via qualquer AF plugável — EI, TS, UCB, LCB — cada uma com sua própria relação exploração/explotação), mas o componente de incerteza que dá nome ao método é o SEGUNDO estágio, explícito e isolável: escolher, dentre os candidatos do Pareto barato (já filtrados por AF), aquele que maximiza o volume do hiper-retângulo de confiança (LCB,UCB) de todos os k modelos — uma regra de seleção puramente exploratória (O1), consistente com a classe atribuída. USeMO é citado como baseline em outros artigos já minerados desta bateria (ex.: c149, ao lado de DGEMO/TSEMO, como método assistido por GP sem piso evolutivo casável) — confirma que USeMO integra o panorama de métodos 'BO-Especiais' da literatura, mas NÃO foi reexecutado pela própria dissertação nos 28 problemas/30 sementes; por isso roster_bloco=null, conforme instrução do pedido (artigo fora do roster experimental). A ablação da Figura 4 (uncertainty maximization vs. random selection) é o achado mais transferível deste artigo para a narrativa da dissertação sobre o contrafactual σ=0 em algoritmos online (ficha 15, 'nunca executado' no roster): é um precedente publicado de exatamente esse tipo de ablação (mantém o resto do algoritmo fixo, troca só a regra de seleção final que usa σ por algo que não usa), com resultado qualificado (a incerteza ajuda, mas nem sempre por muita margem, e às vezes o sorteio aleatório é competitivo) — indicando que a ablação σ-vs-sem-σ pode legitimamente produzir resultado 'fraco/negativo' mesmo num método cujo nome é centrado em incerteza. Nota: o contrafactual do artigo é 'seleção aleatória', não 'seleção pela média apenas' (que seria o par mais direto com a ficha 11 canônica Prob-MOEA/D×MOEA/D-média); por isso o mapeamento usa as duas fichas (11 pela natureza de ablação exata do σ; 15 pelo regime online e pelo caráter de contrafactual/precedente). Nenhuma calibração/cobertura de σ é avaliada em lugar nenhum do artigo (σ é usado só operacionalmente, para ranquear/selecionar, nunca validado contra erro real) — mede=false. Nenhum teste estatístico de significância aparece em nenhuma tabela/figura. Cinco dos seis benchmarks reais (SW-LLVM, SNW, NOC, SMA, PEM) são espaços de decisão FINITOS/pré-enumerados (datasets fixos de 1024/206/259/77/704 configurações, respectivamente) — um sabor de 'BO sobre tabela de consulta' distinto do domínio contínuo típico da bateria da dissertação; só o benchmark de rede neural (MNIST) parece ter espaço de hiperparâmetros não pré-enumerado, mas o artigo também não declara explicitamente sua dimensão d, ao contrário dos outros cinco. Não há ruído injetado, não há lote (q>1) — é BO sequencial (q=1) puro. Não há regime offline. O artigo tem uma contribuição teórica separada (Lema 1, Teorema 1: cota de arrependimento sub-linear para a variante GP-LCB de USeMO, prova em 'Appendix 1' não presente no texto) — mencionada aqui por completude, mas deliberadamente excluída de 'analises' por não ser um estudo empírico."
+}

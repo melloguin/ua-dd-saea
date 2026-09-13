@@ -1,0 +1,35 @@
+
+--- ① real ---  s42=(50000, 18)  smoke=(50000, 18)  colunas_iguais=True
+   BIT-IDENTICO
+
+--- ③ surrogate ---  s42=(57281, 29)  smoke=(57281, 29)  colunas_iguais=True
+   DIVERGE: geracao(ndif=0,maxabs=0)
+
+--- ④ timing ---  s42=(1, 7)  smoke=(1, 7)  colunas_iguais=True
+   DIVERGE: tempo_fit_s(ndif=1,maxabs=0.00495) tempo_busca_s(ndif=1,maxabs=3.7) tempo_pred_sonda_s(ndif=1,maxabs=0.00295) tempo_geracao_s(ndif=1,maxabs=3.69)
+
+--- ⑦ final ---  s42=(37, 19)  smoke=(37, 19)  colunas_iguais=True
+   BIT-IDENTICO
+
+--- ② pop ---  s42=(0, 5)  smoke=(0, 5)  colunas_iguais=True
+   BIT-IDENTICO
+
+--- ⑤ manifesto: chaves com VALOR diferente ---
+   campanha_id        s42="<AUSENTE>"
+                      smk="9ad0138aa9a4_2026-07-31"
+   repo_hash          s42=null
+                      smk="9ad0138aa9a464a7d9f89d247f81092f8c4ef26f"
+   schema_version     s42=1
+                      smk=2
+   timing s42 = {'tempo_total_s': 5.8615, 'tempo_fit_surrogate_s': 0.6256, 'tempo_busca_s': 3.2705, 'tempo_aval_real_s': 0.0, 'tempo_pred_sonda_s': 0.092}
+   timing smk = {'tempo_total_s': 11.724, 'tempo_fit_surrogate_s': 0.6206, 'tempo_busca_s': 6.9699, 'tempo_aval_real_s': 0.0572, 'tempo_pred_sonda_s': 0.0891}
+   ⑦manif s42: n_final=37 n_nd=8 | smk: n_final=37 n_nd=8
+
+--- ⑥ eventos --- s42: 3 ['header', 'sonda', 'footer'] | smoke: 13 ['header', 'sonda', 'checkpoint', 'checkpoint', 'checkpoint', 'checkpoint', 'checkpoint', 'checkpoint', 'checkpoint', 'checkpoint', 'checkpoint', 'checkpoint', 'footer']
+   checkpoints: n=10  iteracoes=[100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+   custo checkpoint: soma=3.7539 s  (por ckpt 0.3066–0.4502)  = 32.0% do wall(11.724 s)
+   n_linhas_terceira por ckpt = [24566, 28238, 31838, 35510, 39109, 42709, 46407, 49982, 53582, 57281]
+   ③ cumulativo(busca) em g=100,200,...,1000 (+20000 sonda) = [24566, 28238, 31838, 35510, 39109, 42709, 46407, 49982, 53582, 57281]
+   CASA com n_linhas_terceira? True
+   footer s42: {"rec": "footer", "status": "ok", "motivo": "orcamento", "fe_final": 50000, "cp_init": true, "cache_hits": 0, "n_geracoes": 1000, "n_final": 37, "n_nd_pos_real": 8}
+   footer smk: {"rec": "footer", "status": "ok", "motivo": "orcamento", "fe_final": 50000, "cp_init": true, "cache_hits": 0, "n_geracoes": 1000, "n_final": 37, "n_nd_pos_real": 8}

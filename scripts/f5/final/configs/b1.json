@@ -1,0 +1,141 @@
+{
+ "config": "b1 (ParEGO, Knowles TEVC 10(1):50-66) · algo_version=b1-ParEGO-PlatEMO4.15 · RODADA FINAL sobre corpus CONGELADO. Sintéticos herdados do F30 (0 mudanças por mtime); células NOVAS (T15): RE21 30 + DDMOP7 30, lote campanha_id='3240f4b26fae_2026-08-15', repo_hash=3240f4b26fae1f566e032da9b59ddf2fbeeddbbd (= commit \"T15.12: D102.17-20 executados\", 15/08 10:00 -0300 — a zona morta ESTÁ no código executado; verificado por git, 3240f4b é ancestral do 7be66e6/A53), MATLAB R2025a U1, RE21 em matlab-vm1, DDMOP7 quase todo em matlab-vm5 (pós-14/08, e2-standard-32). ESTOQUE40: b1 = 0 células, nunca produzida. Scripts desta rodada em /private/tmp/claude-501/-Users-gmello/16c0ba84-843b-49d1-9ce6-6cecc418b734/scratchpad/ (b1_final_censo.py, b1_bateria_novas.py, b1_ddmop7.py, b1_oraculos_e_quimera.py).",
+ "celulas_final": "SINTÉTICOS (25 problemas): 733 existentes = 700 ok · 31 failed (DTLZ4 30/30 + DTLZ1/17, todos 'least squares problem is underdetermined') · 2 ⚪ SEM RODAPÉ (BBOB_F17/8 quimera; BBOB_F37/15 teto-de-parede com 302/309 FE) · 17 nunca produzidas — IDÊNTICO ao F30 (mtime: ZERO células sintéticas pós-15/08 00:28; spot-check 10 células × 10 sementes: joia fecha, ledger fecha, mtime≡censo 10/10). RE21: 30/30 ok, fe=123/123 nas 30. DDMOP7: 1 ok (s1, fe=526/526, 342 ger.) · 29 failed (mesmo erro do dacefit, fe_stop 186–429). ESTOQUE40: 0 (nunca produzida; grid T15 previa 30). TOTAL b1 existente: 793 células · O-21: 731 ok / 60 failed / 2 ⚪. DIVERGÊNCIA censo×O-21: censo_final.csv lista 732 ok — inclui BBOB_F17/8 via manifesto forasteiro; por O-21 (rodapé = autoridade) ela é ⚪. A correção de censo recomendada no F30 NÃO foi aplicada.",
+ "celulas_invalidas": [
+  {
+   "celula": "b1/BBOB_F17/8",
+   "motivo": "QUIMERA NÃO REPARADA (re-medida hoje): ⑥①②③④ da execução de 09/08 (202 b1_gen, 3 cache-hits, fe 309/309, SEM rodapé, joia 202/202 máx 2,2e-15, ④ com 202 linhas ≡ ⑥) + ⑤ da execução de 14/08 (status ok, n_geracoes=201, cache_hits=1, fit_series=200 — incompatível). censo_final classifica 'ok' lendo o ⑤. Espelho ~/mestrado_coleta_m8/matlab-vm5/experiments/main/b1/ ainda guarda as 6 camadas coerentes de 14/08 (⑥ com rodapé ok, 200 gens) — conferido hoje.",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "b1/BBOB_F37/15",
+   "motivo": "⚪ teto: truncada sem rodapé (última rec=guard), fe 302/309 (97,7%), sem ⑤ e sem parquets; ledger fecha a exatamente 1 iteração (prova F30). DI-43/44: truncamento-com-dado válido, comparar em orçamento de FE comum.",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  },
+  {
+   "celula": "b1/DDMOP7/{0,2-28,42} (29 células)",
+   "motivo": "failed com rodapé: 'least squares problem is underdetermined' (dacefit) nas 29; fe_stop 186–429 de 526 (35,4%–81,6%, mediana 47,0%); s14 morre no 1º fit (fe=186, 0 b1_gen); 0 parquets ⇒ nada analisável. NÃO é falha de instrumento: joia fecha 2.599/2.599 até o crash; é incapacidade PARCIAL do ParEGO ante objetivos quantizados (A53), taxa medida 1/30.",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "b1/DTLZ4/{30 sementes} + b1/DTLZ1/17 (31 células, herdadas)",
+   "motivo": "failed sintéticas do F30, inalteradas (mtime): mesmo erro do dacefit, incapacidade com probabilidade 1 (DTLZ4) e 1/30 (DTLZ1). Sem parquets.",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  }
+ ],
+ "novas_desde_f30": "60 células novas (0 sintéticas mudaram — verificado por mtime nas 733): RE21 30 (15/08 ~14:32–15:00 local, matlab-vm1) e DDMOP7 30 (s0 vm1 15/08 14:19Z; s1–s3 = o probe A53 na vm5 15/08 18:00Z, adotado no corpus — o s1 canônico terminou 1 min antes do commit A53; s4–s42 despachadas 18/08 10:51–12:10Z na vm5). Destas, 31 entraram ok no censo (30 RE21 + DDMOP7/s1); 29 failed ficam fora do censo. b1×ESTOQUE40 nunca foi produzida (0 rastros em canônico, censo e 4 diretórios de coleta). _FONTES.csv das novas: 215 linhas, 214 conferem em tamanho (213 são hardlinks literais, mesmo inode), 1 divergente (DDMOP7/2 — ver classe 3).",
+ "mecanismo_nos_novos": "CENSO COMPLETO, não amostra: query-joia (identidade fechada do EI de Jones, (gbest−μ)·Φ(z)+σ·φ(z) ≡ −ei_best, Φ por erfc) rodada em TODOS os eventos b1_gen das 60 células novas: **5.413/5.413 @rel<1e-6 — RE21 2.473/2.473 (máx 2,093e-14, RE21/22 g49) · DDMOP7 ok 341/341 (máx 7,5e-16) · DDMOP7 failed 2.599/2.599 até o crash (máx 1,4e-15)**. Bateria de contrato completa nas 31 ok (⑥ 0 malformadas; U1 orçamento 31D−1 e término normal; U2 doe_hash≡artefato 60/60 e max|ΔX|=0,0 EXATO float32; B2 PCheby máx 4,2e-8; B3 rel máx 4,6e-8; B12/B5/B7/B6/B8/F4/N1c/U9-ledger/U10-② [n_iter+1 snapshots, |②_g|≡11D−1+(g−1)]/U3-④/U7-timing/B4-mono-output/F2/⑤ schema-v2 com 11 params): **ZERO falhas de check em 31/31**. EXTRA: oráculo RE21 re-verificado por reimplementação independente minha sobre a campanha inteira — 3.690 avaliações, erro rel máx 3,262e-07 = piso float32 (T15 mediu 3,3e-07). U4 refinado: cadência = {1}∪pares; finalProbe (motivo='final') só quando G ímpar — 30/30 RE21; DDMOP7 sem sonda (D102.10): 0 eventos em 30/30.",
+ "reais": "**RE21 (D=4, 123 FE): 30/30 ok — o bloco mais limpo do b1 em todo o corpus.** Tudo fecha (ver mecanismo); mono-host vm1; cache-hits 1–9 por célula; formulação four-bar truss bit-verificada NA CAMPANHA (3,3e-07 float32). **DDMOP7 (D=17, 526 FE): 1/30 ok.** Diagnóstico A53 CONFIRMADO no mecanismo e REFINADO nos números: (i) mesmo erro do dacefit nas 29, fe_stop variável 186–429 (mediana 47% do orçamento) — não é crash em FE fixa; (ii) s1 completa 526/526 ⇒ não-determinístico ENTRE sementes; (iii) NOVO: DENTRO da semente é determinístico — b1/DDMOP7/2 tem duas execuções (15/08 canônica e 18/08 no espelho vm5), bit-idênticas em 459 campos comparados de 51 gerações, ambas mortas em fe=237; (iv) a PROJEÇÃO A53 de ~7–10/30 REFUTADA: taxa real 1/30=3,3% (dentro do IC 95% Clopper-Pearson do probe n=4 [0,6%–80,6%] — o probe não sustentava projeção). checa_regua RODADO na ① de s1: PASSA nas 526 avaliações (ideal=[0;0] intacto, melhor f=[4/17; 126/690]; f2 máx 0,774 excede o nadir 468/690 só em pontos dominados — sem efeito no HV do ND). Quantização confirmada: f1·17 e f2·690 inteiros a menos de float32. |ND| pela regra §T15.13: **bruto 5 → dedup por x_efetivo 4** (4 valores-objetivo distintos; 3 dos 5 vêm da busca). Zona morta ATIVA in-run por evidência distribucional: 99/340 propostas da busca SEM nenhum zero exato proposto têm f1<1,0 (k até 4) vs baseline pré-codificação 0/340 (laudo c149/D102.17); verificação bit-a-bit é T — medido que o mapa x→pesos do .p NÃO é identidade (186/186 linhas do DoE com f1·17 > nnz(x)) e nenhum τ global explica os dados ⇒ f1 não é reconstrutível de x (caixa-preta D88.5). Fase 2 pooled: b1 contribui só 1 célula. ESTOQUE40: 0/30 nunca produzida — não é falha, é lacuna de cobertura não declarada individualmente.",
+ "aspectos_mudados": [
+  {
+   "id": "S1-cauda",
+   "o_que": "Censo e taxas de sucesso",
+   "antes": "F30: 733 células, 25 problemas; DTLZ4 0/30, DTLZ1 29/30, 2 ⚪, 17 nunca produzidas",
+   "agora": "793 células, 27 problemas: +RE21 30/30 ok · +DDMOP7 1/30 ok + 29 failed (nova incapacidade parcial, taxa 29/30) · ESTOQUE40 0/30 nunca produzida; sintéticos INALTERADOS (0 mtimes pós-F30)"
+  },
+  {
+   "id": "F1-joia",
+   "o_que": "Query-joia (identidade do EI)",
+   "antes": "218.168/218.168, máx 2,568e-13 (sintéticos)",
+   "agora": "+5.413/5.413 nas novas (223.581 total, ZERO quebras na história do config), máx nos novos 2,093e-14 — fecha inclusive nas 29 failed até o crash"
+  },
+  {
+   "id": "U2-doe",
+   "o_que": "Cadeia do DoE",
+   "antes": "733/733 sintéticos (LHS SeedSequence)",
+   "agora": "+60/60 reais: doe_hash≡artefato, ΔX=0,0 float32; DDMOP7 usa DoE congelado DDMOP7('init') não-LHS (emenda D63) — hash confere nas 30 incl. failed"
+  },
+  {
+   "id": "U4-sonda",
+   "o_que": "Assinatura da cadência da sonda",
+   "antes": "'{1}∪pares∪{G} + finalProbe' (F30)",
+   "agora": "REFINADA: cadência = {1}∪pares; sonda 'final' em G só quando G é ÍMPAR (G par já coberto) — 30/30 RE21; DDMOP7 0 sondas (D102.10) 30/30"
+  },
+  {
+   "id": "N2c-campanha",
+   "o_que": "Identidade de campanha",
+   "antes": "2 campanha_id (678 + 22 células)",
+   "agora": "3 campanha_id: novo lote '3240f4b26fae_2026-08-15' (31 células ok, formato fallback de novo) + rótulos matlab-vm1/matlab-vm5 (vs vm1/vm5 da main)"
+  },
+  {
+   "id": "N4-plataforma",
+   "o_que": "Deriva e determinismo",
+   "antes": "34 pares bit-idênticos pré-14/08; vm5-pós diverge; 21 células sintéticas na plataforma nova",
+   "agora": "TODO o dado DDMOP7 do b1 (s1 ok) é vm5-pós; NOVO: determinismo INTRA-plataforma provado também na vm5-pós (par DDMOP7/2 15/08×18/08 bit-idêntico, 459 campos, mesmo fe_stop=237); RE21 é mono-vm1 (estável)"
+  },
+  {
+   "id": "T15-zona-morta",
+   "o_que": "Codificação D102.17 (aspecto NOVO)",
+   "antes": "—",
+   "agora": "ativa in-run (99/340 propostas densas com f1<1,0 vs 0/340 pré-codificação); ① grava x PROPOSTO (156 linhas com coords na zona morta) ✓; MAS ⑤ da rota R1 sem params.zona_morta (ver classe 3) e verificação bit-a-bit da codificação = T (mapa x→pesos do .p não-identidade, 186/186)"
+  },
+  {
+   "id": "T15-regua",
+   "o_que": "Régua/checa_regua do DDMOP7 (aspecto NOVO)",
+   "antes": "—",
+   "agora": "reference_bounds=[0,0]/[1, 468/690] confirmada; checa_regua PASSA na única ① (526 aval., 0 furos de ideal); f2 de dominados excede o nadir (máx 0,774) — sem efeito no HV, relevante só p/ fase 2 pooled"
+  },
+  {
+   "id": "S3-fontes",
+   "o_que": "Índice de proveniência",
+   "antes": "8/4.238 arquivos não descritos (F30)",
+   "agora": "novas células: 214/215 conferem (213 hardlinks, mesmo inode); +1 divergência NOVA: DDMOP7/2 (espelho sobrescrito por re-run de 18/08, numericamente bit-idêntico, só ts difere)"
+  },
+  {
+   "id": "C3-01-quimera",
+   "o_que": "BBOB_F17/8",
+   "antes": "quimera detectada no F30, escalada, decisão pendente",
+   "agora": "re-medida: INALTERADA (⑥ de 09/08 sem rodapé + ⑤ de 14/08), e o censo_final DESTA rodada ainda a conta 'ok' — a correção recomendada não foi aplicada; espelho com a versão coerente segue disponível"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "B1-FIN-C3-01",
+   "descricao": "QUIMERA BBOB_F17/8 PERSISTE NO CENSO FINAL. Herdada do F30 (lá C3-01, escalada) e re-medida hoje: ⑥①②③④ da execução de 09/08 (202 gens, sem rodapé) + ⑤ da execução de 14/08 (200 gens, status ok). O censo_final.csv — o censo que vai para a dissertação — ainda a classifica 'ok' (b1=732 ok); por O-21 é ⚪. As identidades todas fecham no dado de 09/08 (joia 202/202 máx 2,2e-15; ④≡⑥) — dano de PROVENIÊNCIA/CENSO, não de mecanismo. O espelho matlab-vm5 (coleta_m8) guarda a execução de 14/08 completa e coerente (rodapé ok) — conferido hoje.",
+   "gravidade": "alta",
+   "acao": "ESCALAR (2ª vez): decidir entre repor do espelho (SIM_poshoc) ou reclassificar ⚪ e remover o ⑤ forasteiro; em qualquer caso corrigir censo_final: b1 = 731 ok / 60 failed / 2 ⚪. NÃO toquei em nada.",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/b1/BBOB_F17/8/ × ~/mestrado_coleta_m8/matlab-vm5/experiments/main/b1/exp_main_b1_BBOB_F17_8.*"
+  },
+  {
+   "id": "B1-FIN-C3-02",
+   "descricao": "params.zona_morta AUSENTE do ⑤ em TODA a rota R1/MATLAB. D102.17 (REGISTRO A52/T15.12) declara 'τ declarado em params.zona_morta, injeção automática no ⑤ via write_run_outputs'. Medido: b1/DDMOP7/1 tem os MESMOS 11 params dos sintéticos, sem zona_morta — idem moead, smsemoa, nsga2, b3, b4, c141, c217, c238, e7, e74, e103, nsga3 (todos stack matlab-platemo); a rota Python TEM (c122, c149, e81, b5r, b5m, moead_media — tau=0.5 + decisão; c262 e c154 Python também sem, fora do meu escopo, registro). O COMPORTAMENTO está certo (codificação ativa in-run, par bit-a-bit em ddmop7_value_local.m:120-125, τ=0,5), mas a DECLARAÇÃO prometida pela decisão não existe no ⑤ da R1 — quem reconstruir x_efetivo só pelo ⑤ não acha o τ.",
+   "gravidade": "media",
+   "acao": "ESCALAR (D81): ou errata 🟣 no contrato/decisão (declarar que a injeção cobre só o writer Python; a R1 declara o τ no código canônico), ou regra de leitura explícita no CONTRATO §T15.13. Sem re-run: τ é recuperável de ddmop7_value_local.m + ddmop7_bridge.TAU_ZONA_MORTA.",
+   "arquivo_linha": "src/ddmop7_value_local.m:120 · REGISTRO_DECISOES_IMPLEMENTACAO.md:3247 · CONTRATO_DE_DADOS.md:474-481"
+  },
+  {
+   "id": "B1-FIN-C3-03",
+   "descricao": "O REGISTRO A53 PRECISA DE EMENDA: projeção e vocabulário. (a) A53 projeta '~7 a 10 das 30 células devem produzir dado'; medido: 1/30 (3,3%). O probe n=4 (1 ok) tinha IC 95% [0,6%; 80,6%] — não sustentava projeção numérica. (b) 'NÃO determinístico' vale ENTRE sementes; DENTRO da semente a falha é determinística: b1/DDMOP7/2 executada 2× (15/08 vm5 e 18/08 vm5), bit-idêntica em 459 campos de 51 gerações, mesmo fe_stop=237 e mesmo erro. (c) O ponto de parada é variável por semente (186–429; s14 morre no PRIMEIRO fit, fe=186) — a mesma anatomia do DEC-6 ampliado no F30. Consequência para o texto: b1×DDMOP7 fica com n=1 — nenhuma estatística por problema é possível, e a fase 2 pooled recebe 1 célula do b1.",
+   "gravidade": "media",
+   "acao": "ESCALAR: emendar A53 (taxa 1/30; determinístico por semente, estocástico entre sementes) — material do capítulo 5, mesma família do DEC-6/F30. Não persegui a causa (freeze).",
+   "arquivo_linha": "REGISTRO_DECISOES_IMPLEMENTACAO.md:3459-3470 · resultados_experimentos/b1/DDMOP7/*/exp_main_b1_DDMOP7_*.jsonl (rodapés)"
+  },
+  {
+   "id": "B1-FIN-C3-04",
+   "descricao": "_FONTES.csv NÃO DESCREVE MAIS o canônico de b1/DDMOP7/2: aponta matlab-vm5, mas o arquivo lá foi SOBRESCRITO por uma re-execução de 18/08 (canônico: header 15/08T18:00:38Z, 98.522 bytes; espelho: 18/08T10:25:20Z, 98.524 bytes). Conteúdo numericamente bit-idêntico (459 campos, 0 diferenças) — dano só de índice, mesma família do C3-04 do F30 ('re-gerar por hash'). As outras 214 linhas novas conferem (213 hardlinks).",
+   "gravidade": "baixa",
+   "acao": "registrar; não bloqueia análise. Reforça a recomendação F30 de re-gerar _FONTES por hash.",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/_FONTES.csv × ~/mestrado_coleta_reais/matlab-vm5/experiments/main/b1/exp_main_b1_DDMOP7_2.jsonl"
+  },
+  {
+   "id": "B1-FIN-C3-05",
+   "descricao": "COBERTURA NÃO DECLARADA: (a) b1×ESTOQUE40 = 0/30, nunca produzida — b1 não está na lista nominal de lacunas aceitas (b5m/e7/c154), embora o congelamento a cubra de fato (b3, b4, c122 idem); (b) TERCEIRO campanha_id no corpus b1 ('3240f4b26fae_2026-08-15', de novo o formato fallback {commit12}_{data} ⇒ env UA_DD_SAEA_CAMPANHA_ID não setada também no T15) e rótulos de host 'matlab-vm1'/'matlab-vm5' vs 'vm1'/'vm5' da main — o C3-03 do F30 se agravou; (c) o único dado DDMOP7 do b1 (s1) nasce na vm5 pós-14/08 (plataforma numericamente divergente do resto da frota; para n=1 não há estatística a enviesar, mas a marca de proveniência deve acompanhar a célula).",
+   "gravidade": "media",
+   "acao": "ESCALAR: declarar na R4 o n por problema do b1 (RE21=30, DDMOP7=1, EST40=0, sintéticos 27–30, DTLZ4=0) e normalizar campanha_id/host na análise (matlab-vmX→vmX; 3 ids = 1 campanha).",
+   "arquivo_linha": "manifestos das 31 células novas · f5/final/censo_final.csv"
+  }
+ ],
+ "score_final": 9.3,
+ "trajetoria_scores": "F5 9,4 → T11 9,6 (caíram tetos da s42: writer, λ, torneio quantificado) → F30 9,2 (quimera BBOB_F17/8 −0,25 · escopo DEC-6 estreito −0,15 · U5 de volta ao teto −0,10 · campanha dupla/_FONTES/17 células −0,10; mecanismo permaneceu imaculado a 29×) → FINAL 9,3. CAUSA DA SUBIDA (+0,1): o mecanismo estendeu-se aos problemas REAIS sem uma única quebra — query-joia agora 223.581/223.581 eventos na história do config (5.413 novos, máx 2,1e-14), bateria 7-camadas 31/31 novas sem falha de check, e DUAS provas novas de alto valor: o oráculo RE21 re-verificado independentemente na campanha inteira (3,3e-07 = float32) e o determinismo por semente provado TAMBÉM na vm5-pós (par DDMOP7/2 bit-idêntico). O RE21 é o bloco mais limpo que o b1 já produziu. CAUSA DE NÃO SUBIR MAIS: a quimera segue NO CENSO FINAL como 'ok' (2ª escalada), a incapacidade DDMOP7 deixa n=1 (resultado legítimo, mas com registro A53 a emendar), o ⑤ da rota R1 não cumpre a letra da D102.17 (zona_morta ausente), 3º campanha_id fallback, b1×EST40 ausente sem declaração nominal, e os tetos B9/B10b/U5 permanecem, somando-se o novo teto da caixa-preta (mapa x→pesos do .p não-identidade ⇒ codificação não verificável bit-a-bit).",
+ "veredito": "RECOMENDO ACEITAR o config b1 no corpus final — o veredito é do autor (D97) — com 1 ressalva bloqueante-de-censo e 4 informativas. O MECANISMO está limpo pela quarta auditoria consecutiva: zero defeitos de algoritmo em 223.581 eventos (sintéticos + reais), identidades fechando com margem de 7+ ordens sobre a tolerância, inclusive nas 29 células que falharam (a joia fecha até a última geração antes do crash). Os problemas REAIS entram assim: RE21 ACEITAR SEM RESSALVA (30/30, bateria integral limpa, oráculo bit-verificado in-campaign); DDMOP7 ACEITAR COMO INCAPACIDADE PARCIAL DOCUMENTADA com n=1 (taxa 1/30, determinística por semente — emenda ao A53; checa_regua passa; |ND| publicável só via dedup por x_efetivo: 4, não 5); ESTOQUE40 inexistente (declarar n=0). BLOQUEANTE: corrigir o censo_final (BBOB_F17/8 ⚪, não ok — decisão da quimera pendente desde o F30) antes de qualquer contagem publicada. As lacunas são todas de CORPUS/DECLARAÇÃO, não de código; nada aqui exige re-run, e o autor declarou que não haverá re-run.",
+ "decisoes_ao_autor": [
+  "QUIMERA BBOB_F17/8 (2ª escalada, decisão F30 ainda pendente): o censo_final desta rodada ainda a conta 'ok'. Escolher: (a) repor as 6 camadas do espelho matlab-vm5 (14/08, coerentes, rodapé ok — conferi hoje que seguem lá) ou (b) manter o dado de 09/08, remover o ⑤ forasteiro e reclassificar ⚪. Em ambos, censo b1 = 731 ok / 60 failed / 2 ⚪ (não 732 ok). Não toquei em nada.",
+  "A53 — emendar o registro: taxa real 1/30 (não ~7-10/30; o probe n=4 não sustentava projeção), falha determinística POR SEMENTE (par DDMOP7/2 bit-idêntico em 2 execuções, mesmo fe=237) e estocástica ENTRE sementes; fe_stop 186-429 com s14 morrendo no 1º fit. É a mesma doença do DEC-6 (dedup subdetermina o kriging), agora disparada por objetivos quantizados — material do cap. 5.",
+  "params.zona_morta ausente no ⑤ de TODA a rota R1/MATLAB (b1 incluso), contra a letra da D102.17 ('injeção automática no ⑤'). O comportamento está certo (codificação ativa in-run: 99/340 propostas densas com f1<1,0 vs 0/340 pré-codificação; par τ=0,5 em ddmop7_value_local.m:120). Decidir: errata 🟣 (declarar injeção só-Python) ou regra de leitura no CONTRATO. Registro também que c262 e c154 (rota Python) tampouco têm — fora do meu escopo.",
+  "DDMOP7 do b1 fica com n=1 (s1, vm5 pós-14/08): nenhuma estatística por problema; a fase 2 pooled recebe 1 célula do b1; marcar a proveniência de plataforma da célula. Qualquer |ND|/diversidade publicado DEVE usar x_efetivo (medido: ND 5 bruto → 4 efetivo).",
+  "COBERTURA a declarar na R4: b1 sem ESTOQUE40 (0/30, fora da lista nominal de lacunas aceitas), 17 sintéticas nunca produzidas (herdado F30), DTLZ4 0/30, DDMOP7 1/30 — n desigual por problema E por config.",
+  "IDENTIDADE DE CAMPANHA: agora TRÊS campanha_id no b1 (7f4f0e429a46_M8 · 63db46b10063_2026-08-14 · 3240f4b26fae_2026-08-15) e rótulos duplos de host; a env UA_DD_SAEA_CAMPANHA_ID não foi setada também no T15. Normalizar na análise (matlab-vmX→vmX, 3 ids = 1 campanha) — decisão sua.",
+  "_FONTES.csv: re-gerar por hash (recomendação F30 reforçada) — nova divergência em DDMOP7/2 (espelho sobrescrito por re-run 18/08 bit-idêntico). Curiosidade útil: 213/215 arquivos novos do b1 são hardlinks canônico↔coleta_reais — cópia física única.",
+  "NÃO MEDIDOS nesta rodada, e digo: U6/U11/F4-fundo/F5-calibração (ficam com a T11); N3-artigo não re-rodado (os reais não mudam as 10 checagens; RE21 b1×nsga2 daria teste extra na R4 se quiser); U5 segue teto (nenhum gêmeo sonda-off); deriva cross-máquina das células NOVAS não-medível (zero duplicatas T15 entre máquinas — só o par intra-vm5 do s2); verificação bit-a-bit da codificação zona-morta = teto novo (mapa x→pesos do .p não-identidade, 186/186 no DoE — caixa-preta D88.5)."
+ ]
+}

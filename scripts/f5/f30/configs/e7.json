@@ -1,0 +1,378 @@
+{
+ "config": "e7 · EDN-ARMOEA (Guo, Wang, Gao, Jin, Ding, Chai — IEEE TSMC:Systems 52(4):2084-2097, 2022 · DOI 10.1109/TSMC.2020.3044418 · PlatEMO 4.15 built-in, MATLAB R2025a) · exp=main · corpus de 30 sementes: 664 células (25 problemas × até 30 sementes; 86 ausentes) · 59.079 ciclos e7_gen · 30.679 blocos de sonda · repo_hash 63db46b100635a5c em 664/664 · campanha_id 7f4f0e429a46_M8 (661) + 63db46b10063_2026-08-14 (3: MMF1/MMF11_L/MMF4 semente 12) · schema_version 2 em 664/664. ARTIGO ENCONTRADO: \"e7. Evolutionary Optimization of High-Dimensional Multiobjective and Many-Objective Expensive Problems Assisted by a Dropout Neural Network.md\". Censo: 664 ok · 0 ⚪ · 0 fail (bate com censo_completo_22.csv e recenso_main_O21.csv, fe==mx em 664/664, 0 sem_manifest, nada em _quarentena). Interpretador: /Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao/bin/python. NENHUMA célula foi executada, experiments.py/experiments.m NÃO foram invocados, nada foi escrito no repo (só em scratchpad).",
+ "cobertura": "TRÊS ANÉIS, todos declarados. (a) ANEL TOTAL — 664/664 células (100%): varri o ⑥ .jsonl inteiro (75 MB, 59.079 eventos e7_gen + 30.679 sonda + 670 guard + 664 header/footer) e o ⑤ manifest de todas; conferi contagem de linhas de ①②③④ pelo metadata do parquet (sem ler dados) em 664/664; e comparei o DoE bit-a-bit (① fase=init × data/doe/{p}/doe_{p}_{seed}.parquet) em 664/664. Isso cobre A01-A08, A13-A18, A20, A22, T6. (b) ANEL PROFUNDO ③ — 85 células por amostragem sistemática: rotação determinística de 3 sementes por problema, com índice deslizante s=SE[(3i+k) mod 30], garantindo os 25 problemas E as 30 sementes {0..28,42} (30/30 sementes presentes), + 11 células forçadas (as 6 com dup_infill, MMF1/24 do std_neg, MMF11_L/{12,21,28} degeneradas, WFG2/9). Total lido: 14.407.700 linhas online da ③, 266.520.600 coordenadas de X contra o box nativo, 7.583 blocos de 1.900. Cobre A19 (query-joia), A07, A11, A25, A26(parcial), A28. (c) ANEL 50 células (2 por problema, 26 sementes distintas) para A21 (sem warm-start), A26 (recomputação de dominância) e a régua-sonda contra o gabarito Sobol. (d) N4: 18/18 pares duplicados cross-VM, TODAS as camadas, hash + delta numérico. Total de bytes de parquet lidos ≈ 1,1 GB de 7,0 GB — o resto NÃO foi lido, por desenho.",
+ "N1_invariancia": "A IDENTIDADE ESTRUTURAL SOBREVIVE ÀS 30 SEMENTES, EM DUAS FORMAS, AMBAS EM 100,00%. (1) QUERY-JOIA DECLARADA (estado ⇔ desigualdade), medida no CENSO TOTAL, não em amostra: reconstruí ((RatioOld−Ratio) < delta) dos campos brutos e testei contra o campo `ramo` e contra o campo `flag` em TODOS os 59.079 ciclos das 664 células — **59.079/59.079 (100,00%) para ramo⇔desigualdade e 59.079/59.079 para flag⇔desigualdade**; o `motivo` (que traz a desigualdade por extenso, com \">= delta\" no ramo de incerteza e \"< delta\" no de convergência) é coerente em **59.079/59.079**. O teste é severo: **1.608 ciclos caem a menos de 1e-9 do limiar** e a margem mínima global é **0,0 (empate exato em IEEE-754)** — e a reconstrução em Python acerta o ramo do MATLAB em todos. Erro máximo: ZERO. (2) QUERY-JOIA COMPORTAMENTAL (A19 da T11: o infill escolhido É o extremo global da janela de 100), medida em 85 células cobrindo 25/25 problemas e 30/30 sementes: **ramo convergência argmin ‖μ‖ = 5.470/5.470 (100,00%)** e **ramo incerteza argmax σ̄ = 2.113/2.113 (100,00%)** — ZERO falhas em 7.583 ciclos. Os dois refutadores continuam derrubados e agora com números de 30 sementes: \"translação pelo mínimo da POP final\" fecha só **2.166/5.470 (39,6%)**; \"espaço cru (μ+ymin)\" fecha só **3.603/5.470 (65,9%)**. Corolários no mesmo anel: blocos de exatamente 1.900 linhas em **7.583/7.583**; conjunto de `real_solution_id` por ciclo exato em **7.583/7.583**; σ estritamente positivo, não-nulo e não-NaN em **14.407.700/14.407.700** linhas (σ mín global 1,0609e-5, em MMF1/24); zero μ NaN. FRAÇÃO GLOBAL: 1/1 das identidades testadas sobrevive; **erro máximo medido = 0,0 em toda semente e todo problema**. Nenhuma semente quebra nenhuma identidade.",
+ "N2_tetos_caidos": "CAÍRAM 3 TETOS, 1 CAIU PELA METADE, 3 CONTINUAM DE PÉ E **1 QUE A T11 TINHA FECHADO SE REABRIU**. ▸CAI — \"Multi-semente\" (T11 §9: \"Tudo aqui é semente 42, 1 run por célula; nenhuma afirmação de desempenho é estatística\"): agora há 664 réplicas e todo o corpo desta auditoria (N1, N3, N5) é estatístico. ▸CAI — FÓRMULA DE SEMEADURA (era só declarativa em ⑤.params): os 664 manifestos de DoE declaram `seed_formula = \"SeedSequence((semente, problema_id))\"` com `seed_tuple == [semente, problema_id]` em **664/664**, `problema_id` único por problema em 25/25, e **664 doe_hash DISTINTOS** (um por célula) — o par (semente, problema) governa o DoE de forma bijetiva e determinística. Além disso o `doe_hash` do header ⑥ ≡ o do artefato em **664/664**, e a comparação bit-a-bit ①init × artefato dá **max|ΔX| = 2,98e-8** (boxes unitários) a **1,907e-6** (WFG, box [0,2i]) — o ULP-float32 relativo à amplitude do box, em 664/664. A T11 media isso em 25 células; agora são 664, com 664 DoE diferentes. ▸CAI — A02/A17 EM TODA SEMENTE: o `x_hash` da sonda ≡ `x_hash_online` do manifesto do gabarito em **664/664**; cadência prevista {1}∪{pares≤Gstart}∪{Gstart} ≡ observada ≡ ⑤.sonda.geracoes em **664/664**, com 30.679 blocos, 420 finalProbe, `n_pontos==2000` e `ok==true` em 664/664. ▸CAI PELA METADE — **T2 (nº REAL de passos SGD)**: a razão `tempo_fit_inicial_s/tempo_fit_s` do ciclo 1 (esperada 10,0 por 80.000/8.000) dá **mediana 10,199, faixa 7,32–12,97, p1–p99 8,57–11,42, com apenas 3/664 fora de [8,13]** — n=664 contra n=25 da T11; e a bit-identidade de 16 pares cross-VM (N4) prova que a SEQUÊNCIA de máscaras MC-dropout é reprodutível. Os VALORES das máscaras continuam T. ▸CONTINUAM T — T3 (init de pesos N(0,1/fan_in): o estado inicial não sobrevive ao run, e como o DoE muda com a semente o efeito não é separável), T4 (labels do k-means não gravados), T5 (operadores SBX/PM e IGD-NS das 19 gerações), T6 (`loss_treino = \"INACESSIVEL (DI-12.1)\"` constante em **59.079/59.079** — sentinela sancionada, gate G-7 verde sobre ela). ▸**REABRE — T1/A29 (não-perturbação do RNG pela sonda, invariante 🔴 do CONTRATO §3.1)**: a T11 fechou esse teto com o par g6_com×g6_sem, medido em **1 célula (MMF1, D=2) no repo 195f64ed0a69dc3f**. Este corpus de 30 sementes rodou no repo **63db46b100635a5c** e **não contém nenhum par COM/SEM** (664/664 com `sonda.desligada` ausente/false, n_blocos>0). Para o e7 — onde σ é estocástico e cada `Estimate` consome 2×T=200 máscaras Bernoulli — este é o invariante mais load-bearing do config, e ele NÃO tem prova no commit que gerou o dado que a dissertação vai usar. Não medido: se o desarme da sonda ainda é neutro em 63db46b1.",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "§IV-F (abertura): 'The influence of the number of the initial samples has been discussed in [31],[51] and the results demonstrate that the differences between the performances of different initial samples are small, so the sensitivity to the initial samples is NOT included here.' — o artigo DISPENSA o teste, por asserção.",
+   "onde_no_artigo": "§IV-F Parameter Sensitivity Analysis, 1o parágrafo (linha 422 do .md)",
+   "testavel_com_30": true,
+   "resultado": "CONTRADITA NO REGIME DE BAIXA DIMENSÃO E MULTIMODAL; SUSTENTADA EM PARTE DO RESTO. Esta é a única afirmação do artigo que 30 DoE diferentes testam de frente, e é o maior valor da auditoria. Endpoint auto-contido (não depende de front de referência): ganho do mecanismo sobre o próprio DoE no ponto ideal por objetivo, normalizado pela amplitude do DoE, por célula; dispersão ENTRE SEMENTES por problema. Medido em 664/664 células. O CV entre sementes vai de 0,119 (ZDT1) e 0,159 (WFG1) e 0,174 (ZDT6) e 0,188 (DTLZ7) — aí a afirmação do artigo SE SUSTENTA — a 0,704 (BBOB_F49), 0,818 (MMF11_L), 1,004 (WFG2), 1,126 (MMF1) e 1,168 (MMF4) — aí ela é FALSA. Razão max/min entre sementes: 1,58× (ZDT1) até 50,2× (BBOB_F49) e 40,3× (ZDT4); em MMF1, MMF4, MMF11_L e WFG2 a razão é INFINITA porque existem sementes com ganho EXATAMENTE ZERO. 19/664 células (2,9%) terminam com ganho nulo no ponto ideal: MMF1 (9 sementes), MMF4 (7), MMF11_L (2), WFG2 (1). Ressalva honesta: nessas 19 o |ND| ainda cresce em 18 (ex. MMF4/42: 9→25), só WFG2/9 é plana de verdade (14→13); o endpoint 'ponto ideal' satura em D=2 porque o DoE de 21 pontos já toca o ideal por objetivo. Leitura: a robustez à amostra inicial que o artigo assume vale no regime-alvo dele (alta dimensão, front bem-comportado) e NÃO vale no regime que o nosso protocolo acrescentou (D=2 multimodal, BBOB de escala extrema)."
+  },
+  {
+   "afirmacao": "§IV-F-5 (delta): 'The frequency [of enhancing diversity] decreases quickly as delta increases, and the effect of delta on the frequency is different for different problems.' (Fig. S7)",
+   "onde_no_artigo": "§IV-F-5 Sensitivity to the Parameter delta (linha ~440 do .md)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA, COM NÚMERO, NAS DUAS METADES. Varri delta ∈ {0; 0,01; 0,02; 0,03; 0,04; 0,05; 0,06; 0,08; 0,10; 0,15; 0,20; 0,30; 0,50} sobre os (RatioOld−Ratio) BRUTOS dos 59.079 ciclos (contrafactual exato, sem re-rodar nada). Frequência global do ramo de diversidade: 51,89% (δ=0) → 27,96% (δ=0,05, o do CÓDIGO) → 18,17% (δ=0,08, o do PAPER) → 12,99% (0,10) → 5,82% (0,15) → 2,23% (0,20) → 0,32% (0,30) → 0,010% (0,50). Queda MONOTÔNICA global e monotônica em **25/25 problemas** — 'decreases quickly' confirmado. 'Different for different problems' confirmado com magnitude: em δ=0,08 a frequência vai de **7,81% (DTLZ2) a 30,00% (MMF1)**, um espalhamento de 3,8×; em δ=0,05, de 19,78% (DTLZ2) a 35,13% (MMF1). Consequência sancionada (DEF-B6.6): o δ=0,05 do código gasta **10,7% de orçamento a mais em exploração** que o δ=0,08 do artigo (27,96% vs 18,17% dos 59.079 ciclos — 16.516 ciclos observados contra 10.715 no contrafactual do paper). A T11 mediu 27,7%→18,7% em 2.328 ciclos de 1 semente; em 59.079 ciclos de 30 sementes dá 27,96%→18,17%: a estimativa de 1 semente estava certa dentro de 0,5 p.p."
+  },
+  {
+   "afirmacao": "§IV-D / Tab. SVII: 'the mean STD of ŝ obtained by GP is the smallest ... indicating that GP fails to properly predict the uncertainty for high-dimensional problems when the number of training data is small. By the contrast, the proposed EDN is still able to provide the uncertainty information for high-dimensional problems.'",
+   "onde_no_artigo": "§IV-D Comparison of the Model Accuracy (linha 408 do .md)",
+   "testavel_com_30": true,
+   "resultado": "A METADE 'NÃO COLAPSA' É CONFIRMADA; A METADE IMPLÍCITA 'É INFORMAÇÃO ÚTIL' É DESMENTIDA COMO CALIBRAÇÃO. Não colapso: σ > 0, não-NaN e não-nulo em **14.407.700/14.407.700** linhas online (85 células, 30 sementes), σ mínimo global 1,0609e-5, e o guard `sqrt(max(var,0))` só teve de agir 2 vezes em ~118 milhões de entradas de variância. Discriminação (a métrica que o paper de fato usa, mean STD): o CV de σ̄ DENTRO da população final tem mediana **0,338** e faixa **0,114–1,113** em 50/50 células — a incerteza discrimina em toda semente e todo D (de D=2 a D=30). Calibração (o paper NÃO afirma, mas o leitor infere): cobertura empírica do intervalo 1,96σ contra o gabarito Sobol de 2.000 pontos, no último bloco de sonda, mediana **0,633** contra 0,95 nominal, com faixa **0,001 (WFG1) a 0,959 (ZDT1)** — três ordens de grandeza de variação de qualidade entre problemas. Veredito: 'ainda fornece informação de incerteza' = SIM (nunca degenera); 'informação bem calibrada' = NÃO, e é fortemente regime-dependente. Isto separa fidelidade do mecanismo (perfeita) de qualidade do surrogate (regime-dependente), e agora com 30 réplicas mostra que a má calibração NÃO é acidente de semente: WFG1 dá 0,001 e 0,008 em duas sementes independentes; ZDT1 dá 0,959 e 0,950."
+  },
+  {
+   "afirmacao": "§III-C: 'the computational complexity for constructing the EDN is O(itertrain · batchsize · J · K)' — sem parede N³, e a vantagem cresce com d e m (repetido na Conclusão: 'computationally much more efficient ... more significant as the number of decision variables and the number of objective increase').",
+   "onde_no_artigo": "§III-C + Conclusão (linhas 400, 442-444 do .md)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA EM 664/664 CÉLULAS, E A RÉPLICA ACRESCENTA A BARRA DE ERRO QUE A T11 NÃO TINHA. Tempo mediano por ciclo, por problema, em D = 2, 7, 10, 12, 20, 22, 30: **21,25 s a 26,18 s (mediana global 21,92 s)** — uma faixa de 1,23× num intervalo de 15× em D. Desvio-padrão do tempo/ciclo ENTRE SEMENTES do mesmo problema: 3,4 s a 7,2 s, ou seja, a variação entre máquinas (ver N4) é MAIOR que a variação com D. Perfil: **91,59% busca · 4,68% fit** (medianas globais); a fração de fit cresce monotonicamente com D (3,94% em D=2 → 4,5% em D=10 → 6,7% em D=22 → 8,25% em D=30) mas nunca domina — nenhuma parede n³ em lugar nenhum, exatamente como §III-C promete. Custo total da campanha do config: **356,35 h-core** e **531.064.000 passos de SGD**. Contraponto medido: **RSS máximo 6.073 MB** (ZDT3, D=30), com escada limpa por D (1.567 MB em D=2 → 2.854 em D=10 → 3.185 em D=12 → 4.750 em D=22 → 6.073 em D=30) — a memória é o recurso que escala, não o tempo."
+  },
+  {
+   "afirmacao": "§IV-F-4 (k): 'The best IGD values are achieved on WFG1 and WFG2 when k is set to 3, while the best IGD values are achieved on WFG3 and WFG4 when k equals to 5 ... In this work, we set k to 5 as a compromise.' (Fig. S6)",
+   "onde_no_artigo": "§IV-F-4 (linha ~438 do .md)",
+   "testavel_com_30": false,
+   "resultado": "NÃO TESTÁVEL: rodamos só Ke=3 (DEF-B6.6, m8-freeze) — sem braço k=5 não há contrafactual. Registro que a própria análise de sensibilidade do artigo ENDOSSA k=3 em WFG1 e WFG2, dois dos cinco WFG do nosso protocolo: a divergência sancionada código×paper cai, aqui, do lado que o próprio autor do artigo mediu como melhor. Anotação para a §5 canônica, não para a fidelidade."
+  },
+  {
+   "afirmacao": "§IV-F-3 (dropout): 'a dropout probability between 0.1 and 0.2 for both input and hidden layers should work well for most problems. We set both dropout probabilities to 0.1 in this work.' (Fig. S5)",
+   "onde_no_artigo": "§IV-F-3 (linha ~436 do .md)",
+   "testavel_com_30": false,
+   "resultado": "NÃO TESTÁVEL: um único ponto do grid (0,1/0,1) foi executado, por D30. O que 30 sementes acrescentam é a confirmação de que o patch D30 pegou em TODA a campanha: `modelo_hp.dropP == [0.1,0.1]` em **59.079/59.079 ciclos** — um único valor distinto em 664 células, 6 VMs e 13 dias de execução — e `header.dropP == '[0.1,0.1] (D30 ARTIGO)'` em 664/664. Se o patch tivesse escorregado em qualquer VM, o echo mostraria [0.2,0.5]."
+  },
+  {
+   "afirmacao": "§IV-A-1: 'The number of independent runs is 20' + Wilcoxon rank sum a 5%.",
+   "onde_no_artigo": "§IV-A Experimental Settings, item 1 (linha 287 do .md)",
+   "testavel_com_30": true,
+   "resultado": "SUPERADA PELO PROTOCOLO, MAS COM UM CONFUNDIMENTO QUE PRECISA IR NA TESE: temos até 30 réplicas (664 células; 30 sementes completas em MMF1, MMF11_L e MMF4; 23-28 nos demais). Porém — medido em N4 — **a semente é a unidade de sharding da frota**: 26 das 30 sementes rodaram INTEIRAS numa única VM (semente 0-7 vm1, 8-9 vm5, 10/14 vm4, 11 vm2, 15-16 vm10, 19-25 vm3, 27-28-42 vm5). VM está perfeitamente confundida com semente. Quantifiquei o risco: a VM explica **R²=0,0032** da variância entre sementes na frequência de ramo e **R²=0,0019** no ganho sobre o DoE — desprezível — mas **R²=0,8868** no tempo de ciclo. Conclusão operacional: teste estatístico de DESEMPENHO entre sementes é seguro; qualquer tabela de CUSTO por semente é inválida sem controlar a VM."
+  },
+  {
+   "afirmacao": "§III-B-2 + §III-A + Alg. 2 L4: o treino usa Y transladado pelo mínimo E (X,Y) escalados em [−1,1] — as duas operações, não uma ou outra. (A T11 provou que a 'divergência' declarada na SPEC §1784/§1878 é falsa.)",
+   "onde_no_artigo": "§III-A (linha 150), §III-B-2 (linha 200), §III-C (justificativa do tanh)",
+   "testavel_com_30": true,
+   "resultado": "RE-CONFIRMADA EM 30 SEMENTES, com as duas assinaturas independentes da T11 reproduzidas: (α) invariância de escala — a magnitude dos objetivos varia **3,458e7×** entre as 85 células (2,126 a 7,352e7) e a correlação de Spearman entre log10(escala) e o WAPE de fantasia é **−0,0832 (p = 0,449, não significativa)**, Pearson +0,094; (β) assinatura do `mapminmax('reverse')` — `μ_max/amplitude` tem **mediana 0,978, faixa 0,258–1,966** ao longo de 7 ordens de grandeza de escala (T11 na s42: mediana 1,034, faixa 0,833–1,820). A11 permanece **classe (1)** e a escalação documental da T11 (corrigir SPEC §1784/§1878 e o bundle I.4) segue de pé e agora com 85 células de suporte em vez de 25."
+  },
+  {
+   "afirmacao": "§III-B-1: o ramo de incerteza existe para evitar que o método degenere numa busca puramente de convergência ('the diversity of the population should be enhanced').",
+   "onde_no_artigo": "§III-B-1 Model Management Strategy",
+   "testavel_com_30": true,
+   "resultado": "PARCIALMENTE DESMENTIDA A NÍVEL DE CÉLULA — E ISTO É ACHADO NOVO CONTRA A T11. A T11 escreveu, com 1 semente: 'a distribuição é não-degenerada em 25/25 células ⇒ o método NÃO degenera em GPC-ARMOEA em NENHUMA célula'. Com 664 células: **3 células têm frequência do ramo de incerteza EXATAMENTE ZERO — MMF11_L sementes 12, 21 e 28 (13/13 ciclos em convergência)**. Nelas o e7 roda o run inteiro como um AR-MOEA assistido por μ puro, sem usar σ para nada — exatamente o contrafactual 'GPC-ARMOEA' do agente-4, realizado espontaneamente pela semente. É 0,45% das células e é sempre D=2 (o desvio-padrão da frequência entre sementes em MMF11_L é 0,122, o maior do config, contra 0,022 em ZDT3). NÃO é infidelidade: o gatilho foi calculado e comparado corretamente nos 39 ciclos (query-joia 39/39). É um RESULTADO sobre o algoritmo que 1 semente escondeu."
+  }
+ ],
+ "N4_deriva": "A DERIVA É **BIMODAL**, NÃO GRADUAL — E A DOUTRINA 'ESTATÍSTICA, NÃO BIT-EXATA' PRECISA DE UMA RESSALVA. Achei **18 células e7 genuinamente duplicadas** (jsonl presente em 2 stagings de VM distintos; as ~630 'duplicatas' do reorg_conflitos.log são quase todas SÓ manifesto espelhado — vm1 tem 660 manifestos para 229 células completas, vm5 tem 636 para 147). Os 18 pares são vm1 × vm5, todos com `doe_hash` idêntico e `header` idêntico módulo `ts`. MODO A — DERIVA ZERO, 16/18 pares (semente 7: BBOB_F1/F5/F17/F22/F37/F49/F55, DTLZ1/2/3/4, MMF1, MMF11_L, MMF4, ZDT4, ZDT6; execuções separadas por ~18 h em 13/08, ④ com sha diferente logo NÃO são cópia): **sha256 IDÊNTICO em ① (__real), ② (__pop) E ③ (__surrogate)**; `max|Δ|` = **0,0** em todas as colunas numéricas de ①, incluindo até 371 FE; `Ratio`, `RatioOld`, `f_best`, `ymin`, `n_front1` idênticos elemento a elemento em 66/66, 80/80, 46/46 e 13/13 ciclos; sequência de ramos idêntica em 100% dos ciclos. Para um config com MC-dropout, ③ bit-idêntica significa que as 100 máscaras Bernoulli de cada uma das ~150 mil linhas foram bit-idênticas nas duas máquinas. **Deriva medida: EXATAMENTE 0,0.** MODO B — DERIVA TOTAL, 2/18 pares (MMF11_L/12 e MMF4/12, ambos executados em **14/08**, isto é, DEPOIS da troca de shape da vm5 para e2-standard-32): `max|Δf|` na ① = **8,691 (MMF11_L)** e **1,610 (MMF4)**; `max|Δ(μ,σ)|` na ③ (40.700 linhas cada) = **14,656** e **1,216**; primeira linha divergente da ① no **FE 24** e no **FE 27** — ou seja, a divergência começa no 1º/2º ciclo, logo após os 21 FE do DoE (que batem bit-a-bit nos dois lados). Não é ULP: é trajetória diferente. Ainda assim MMF11_L mantém a sequência de ramos idêntica em 13/13 e MMF4 em 11/13. QUANTIFICAÇÃO AGREGADA (a resposta ao 'quanto'): z-score dentro do problema, agrupado por VM de origem (664 células, 6 VMs) — a VM explica **R² = 0,0032** da variância entre sementes na frequência do ramo de incerteza e **R² = 0,0019** no ganho sobre o DoE (médias por VM entre −0,065 e +0,088 desvios-padrão: ruído), mas **R² = 0,8868** no tempo mediano por ciclo (médias por VM de −1,21 σ na vm4 a +1,18 σ na vm5) e 0,15–0,74 σ no RSS. LEITURA PARA A ANÁLISE: (i) o piso de ruído cross-máquina nos RESULTADOS do e7 é indistinguível de zero dentro de um mesmo shape — 16 pares com Δ=0 exato em três camadas; (ii) quando o shape muda, a deriva não é pequena, é a trajetória inteira, e nenhum contraste numérico célula-a-célula sobrevive; (iii) o ④ é inutilizável para comparação entre sementes sem controlar a VM. Verificação adicional: as **14 células do e7 iniciadas depois de 14/08 15:20Z** (janela de swap da vm5) têm tempo/ciclo com z entre **+0,15 e +0,37** contra a distribuição do mesmo problema — **nenhuma distorção material de relógio medida** para este config. Não medido: o shape efetivo de cada VM (não há telemetria de CPU no corpus); a inferência 'mesmo shape ⇒ Δ=0' é do padrão temporal (13/08 idêntico, 14/08 divergente), não de leitura direta do hardware.",
+ "N5_cauda": "O e7 NÃO TEM CAUDA ⚪ NEM fail: **664 ok · 0 ⚪ · 0 fail**, confirmado em três fontes independentes (censo_completo_22.csv, recenso_main_O21.csv com fe==mx e mot vazio em 664/664, e gates_f30.csv com st=ok e camp/repo/par/sig=True em 664/664). Nenhum arquivo do e7 em _quarentena. A cauda do e7 é de OUTRO tipo: **86 células AUSENTES (11,5% de 750)**, e a assinatura delas é de TRUNCAMENTO DE CAMPANHA, não de incapacidade do algoritmo. Prova: as ausências concentram-se em 8 sementes (26→18 ausentes, 12→17, 13→16, 17→15, 18→9, 25→9, 4→1, 23→1) e, dentro de cada semente truncada, faltam SEMPRE os mesmos 9 problemas mais caros — DTLZ7, MMF16_20, WFG1/2/4/5/9, ZDT1, ZDT3 (D=20/22/30) — enquanto os baratos (D=2/7/10/12) estão completos; e as sementes 12, 13, 17 e 26 têm o último header em **2026-08-14T16:07Z**, o corte da coleta. Não é seletividade por problema: é a ordem de despacho batendo no relógio. Duas ausências avulsas restam: **WFG2/4 e WFG4/23** — sementes que rodaram inteiras (24 e 25 outras células cada) e perderam exatamente uma célula; **não medido: a causa dessas duas** (não há manifesto, jsonl nem entrada de censo — não há o que ler). O QUE A CAUDA REAL DIZ SOBRE O ALGORITMO — três incapacidades/degenerescências reproduzidas em réplica, todas NOVAS em relação à s42: (1) **DTLZ4 · 0/160 ciclos** na recomputação de dominância (`n_front1` ≡ |ND| pós-infills fecha 4.496/4.656 no total, e as 160 falhas são TODAS de DTLZ4, com 24 dos 25 problemas em 100%): é o underflow float32 do export (D53) sobre objetivos de 1e-220…1e-265 gerados por α=100 — 960 zeros exatos em f nas células amostradas. Determinístico, 2/2 sementes testadas, mesma causa que a T11 nomeou na s42. **Taxa: 100% de reprodução.** (2) **MMF11_L · 3/30 sementes (10%) com o ramo de incerteza NUNCA acionado** (sementes 12, 21, 28): o método roda os 13 ciclos inteiros como AR-MOEA assistido por μ, sem consultar σ. Determinístico por semente, e o desvio-padrão da frequência de ramo em MMF11_L (0,122) é 5,5× o de ZDT3 (0,022). (3) **19/664 células (2,9%) sem ganho no ponto ideal** — MMF1 9/30, MMF4 7/30, MMF11_L 2/30, WFG2 1/23 — todas D=2 exceto WFG2/9; em 18 delas o |ND| ainda cresce, então é saturação do endpoint, não do algoritmo; **só WFG2/9 é plana de verdade (|ND| 14→13)**. TAXA DE SUCESSO POR PROBLEMA para o boletim: 25/25 problemas com 100% de células ok; o que varia é o N disponível (23 a 30) e as três degenerescências acima. Nenhuma das incapacidades documentadas no laudo D0 (b1×DTLZ4, c262×WFG1, c154, c238) toca o e7.",
+ "aspectos": [
+  {
+   "id": "A01",
+   "aspecto": "Orçamento 31D−1 com hard-stop exato (paper: FEmax = 11d+119)",
+   "classe": "2",
+   "medicao": "len(①) == 31D−1 em 664/664 (61 · 216 · 309 · 371 · 619 · 681 · 929); footer.fe_final == footer.maxfe == 31D−1 em 664/664; ⑤.maxfe == fe_final em 664/664; termino='normal' e status='ok' em 664/664. Zero overshoot em 664 células.",
+   "veredito": "conforme ao desvio sancionado; invariante a semente",
+   "muda_vs_s42": false,
+   "arquivo_linha": "D21/D61 (transversal); EDNARMOEA.m hard-stop via MException('PlatEMO:Termination')"
+  },
+  {
+   "id": "A02",
+   "aspecto": "DoE 11D−1 do artefato, bit-a-bit, + fórmula de semeadura SeedSequence((semente, problema_id))",
+   "classe": "2",
+   "medicao": "doe_hash do header ⑥ ≡ doe_hash do artefato em 664/664; 664 doe_hash DISTINTOS (bijeção célula↔DoE); seed_tuple == [semente, problema_id] e seed_formula == 'SeedSequence((semente, problema_id))' em 664/664; problema_id único por problema em 25/25; ①(fase=init) × artefato: max|ΔX| = 2,9800e-8 (boxes [0,1]) a 1,9072e-6 (WFG, box [0,2i]) — ULP-float32 relativo à amplitude, em 664/664; n_init == 11D−1 em 664/664.",
+   "veredito": "conforme ao desvio sancionado; a fórmula de semeadura sai do teto declarativo",
+   "muda_vs_s42": true,
+   "arquivo_linha": "D63/D88/D94; EDNARMOEA.m:36 (A = Problem.Evaluation(Problem.data.X0)); data/doe/{p}/doe_{p}_{seed}.manifest.json"
+  },
+  {
+   "id": "A03",
+   "aspecto": "Ke=3 infills por ciclo (paper: k=5)",
+   "classe": "2",
+   "medicao": "lote==3 em 59.079/59.079 ciclos; fe_ciclo==3 em 59.073/59.079 — as 6 exceções são exatamente os 6 ciclos com infill duplicado (fe_ciclo=2, slot perdido, 0 FE gastos), semântica D89; ⑤.params.Ke==3 e header.Ke==3 em 664/664.",
+   "veredito": "conforme ao desvio sancionado; as 6 exceções são a guarda D89 funcionando, não desvio",
+   "muda_vs_s42": true,
+   "arquivo_linha": "EDNARMOEA.m:28 — [delta,wmax,Ke] = Algorithm.ParameterSet(0.05,20,3); DEF-B6.6"
+  },
+  {
+   "id": "A04",
+   "aspecto": "QUERY-JOIA — gatilho dual δ=0,05 com '<' ESTRITO (paper: 0,08 com '>'): estado ⇔ desigualdade",
+   "classe": "2",
+   "medicao": "((RatioOld−Ratio) < delta) == (ramo=='convergencia') em 59.079/59.079 (100,00%); == campo flag em 59.079/59.079; motivo por extenso coerente em 59.079/59.079. 1.608 ciclos a menos de 1e-9 do limiar; margem mínima global = 0,0 (empate exato) e a reconstrução IEEE-754 acerta o ramo do MATLAB em TODOS. Distribuição: 42.563 convergência / 16.516 incerteza. Contrafactual com o '>' 0,08 do paper: 16.516 → 10.715 (−35,1%).",
+   "veredito": "conforme ao desvio sancionado; identidade decisória invariante a semente em 100,00%",
+   "muda_vs_s42": false,
+   "arquivo_linha": "EDNARMOEA.m:112 (flag = RatioOld-Ratio < delta); IndividualSelect.m:22; DEF-B6.6"
+  },
+  {
+   "id": "A05",
+   "aspecto": "Ratio = |Wv|/NW com Problem.N=100 ⇒ NW=91 em M=3 (paper: P=50)",
+   "classe": "2",
+   "medicao": "Ratio·NW é INTEIRO com erro máximo 7,1054e-15 em 59.079/59.079 ciclos; NW == 91 (M=3) / 100 (M=2) e ≡ ⑤.params.NW em 664/664.",
+   "veredito": "conforme ao desvio sancionado; a quantização prova nos dados que Ratio é contagem sobre NW",
+   "muda_vs_s42": false,
+   "arquivo_linha": "EDNARMOEA.m:29 (W = UniformPoint(Problem.N,Problem.M)); D20"
+  },
+  {
+   "id": "A06",
+   "aspecto": "wmax=20 ⇒ 19 gerações internas × N=100 (off-by-one do 'while w<wmax')",
+   "classe": "2",
+   "medicao": "pop_por_w = lista de 19 valores 100 em 59.079/59.079 ciclos; ③(regime=online) == 1.900·C em 664/664 (verificado pelo metadata do parquet, junto com sonda: n3 == 1900·C + 2000·n_blocos em 664/664).",
+   "veredito": "conforme ao desvio sancionado",
+   "muda_vs_s42": false,
+   "arquivo_linha": "EDNARMOEA.m:93 (while w < wmax)"
+  },
+  {
+   "id": "A07",
+   "aspecto": "T=100 passagens MC-dropout; σ POPULACIONAL (divisão por T, não T−1)",
+   "classe": "1",
+   "medicao": "modelo_hp.T == 100 em 59.079/59.079; header.T == 100 em 664/664; sigma_dict com UM único texto distinto nas 664 células. Comportamental: σ > 0, não-NaN e não-zero em 14.407.700/14.407.700 linhas online (85 células, 30 sementes), σ mínimo global 1,0609e-5 (MMF1/24). CV de σ̄ na população final: mediana 0,338, faixa 0,114–1,113 em 50/50 células.",
+   "veredito": "conforme ao artigo; dropout ativo na inferência confirmado em toda semente",
+   "muda_vs_s42": false,
+   "arquivo_linha": "Estimate.m:15-21, :27-29"
+  },
+  {
+   "id": "A08",
+   "aspecto": "Dropout 0,1/0,1 (patch D30: código shipped usa [0.2,0.5])",
+   "classe": "2",
+   "medicao": "modelo_hp.dropP == [0.1,0.1] em 59.079/59.079 ciclos — UM único valor distinto em 664 células, 6 VMs e 13 dias; header.dropP == '[0.1,0.1] (D30 ARTIGO)' em 664/664.",
+   "veredito": "conforme ao desvio sancionado a favor do ARTIGO; o patch pegou em toda a frota",
+   "muda_vs_s42": false,
+   "arquivo_linha": "trainmodel.m:9 — Params.dropP=[0.1,0.1] // [R1-e7] dropout 0.1 do PAPER (fidelidade D30 - ARTIGO)"
+  },
+  {
+   "id": "A09",
+   "aspecto": "Rede única 40/40 (ReLU+tanh), SGD puro 8e4/8e3, lr=0,01, wd=1e−5 só em W, batch=D",
+   "classe": "1",
+   "medicao": "echo idêntico em 59.079/59.079 (neuronN=40, passos_init=80000, passos_update=8000, learnR=0,01, decay_efetivo=1e-05); batchsize == D em 59.079/59.079 (2,7,10,12,20,22,30 — varia com o problema, logo não é constante do harness). Indireta forte, agora com n=664 em vez de n=25: razão tempo_fit_inicial_s/tempo_fit_s do ciclo 1 = mediana 10,199, faixa 7,32–12,97, p1–p99 8,57–11,42, só 3/664 fora de [8,13] contra o esperado 10,0. Custo aritmético total: 531.064.000 passos de SGD.",
+   "veredito": "conforme ao artigo; nº REAL de passos continua em T2, mas com 26× mais evidência indireta",
+   "muda_vs_s42": true,
+   "arquivo_linha": "testNet.m:9,12,13; trainNet.m:39; updatemodel.m:3-4"
+  },
+  {
+   "id": "A11",
+   "aspecto": "Normalização mapminmax [−1,1] em X e Y + translação pelo ideal (a 'divergência' da SPEC §1784/§1878 é FALSA)",
+   "classe": "1",
+   "medicao": "Re-confirmada em 85 células / 30 sementes: escala dos objetivos varia 3,458e7× (2,126 a 7,352e7) e Spearman(log10 escala, WAPE) = −0,0832 com p = 0,449 (Pearson +0,094) — correlação estatisticamente nula; assinatura do reverse: μ_max/amplitude com mediana 0,978 e faixa 0,258–1,966 (T11 na s42: 1,034 e 0,833–1,820).",
+   "veredito": "conforme ao artigo; a escalação documental da T11 (corrigir SPEC §1784/§1878 e bundle I.4) segue de pé com 85 células de suporte",
+   "muda_vs_s42": false,
+   "arquivo_linha": "EDNARMOEA.m:38-39 e :121-123 (mapminmax em X e Y); Estimate.m:13 (apply) e :18 (reverse); SelectTrainData.m:18 (translação)"
+  },
+  {
+   "id": "A13",
+   "aspecto": "Ciclo 1 treina cru; cadeia ymin[c+1] == f_best[c] defasada de um ciclo",
+   "classe": "1",
+   "medicao": "max|ymin[c+1] − f_best[c]| = 0,0 — igualdade exata em ponto flutuante — em 58.415/58.415 transições das 664 células; ymin do ciclo 1 == [0,…] em 664/664; espaco_modelo == 'cru' na geração 1 e 'transformado' em toda geração ≥2 em 59.079/59.079.",
+   "veredito": "conforme ao artigo; erro máximo ZERO em toda semente",
+   "muda_vs_s42": false,
+   "arquivo_linha": "EDNARMOEA.m:37; SelectTrainData.m:18; C3"
+  },
+  {
+   "id": "A14",
+   "aspecto": "Cap de treino 11D−1 com prioridade aos recém-avaliados (esquecimento por desenho)",
+   "classe": "1",
+   "medicao": "n_treino == 11D−1 em 59.079/59.079; fe_treino_max == 11D−1+3(c−1)−1 em 58.935/59.079 (as 144 exceções são consequência aritmética exata das 6 duplicatas: 150 ciclos deslocados menos os 6 próprios ciclos da duplicata); fe_treino_max monotônico não-decrescente em 664/664. Consequência prevista, medida na régua-sonda de 50 células: ΔWAPE do 1º ao último bloco = +29,9% mediana, só 8/50 melhoram — o modelo NÃO aprende globalmente, exatamente como o cap prevê.",
+   "veredito": "conforme ao artigo; a assinatura do esquecimento (n_treino constante + fe_treino_max monotônico) fecha em 664/664",
+   "muda_vs_s42": true,
+   "arquivo_linha": "SelectTrainData.m:21-26"
+  },
+  {
+   "id": "A15",
+   "aspecto": "Sem dedup de infill; duplicata = cache-hit 0 FE, slot perdido (D89) + guarda (c) do D60 (stall_ciclos)",
+   "classe": "2",
+   "medicao": "**A GUARDA DISPAROU PELA PRIMEIRA VEZ**: Σ n_dup_infill = 6 em 59.079 ciclos (DTLZ3/s8 c14, MMF1/s26 c12, MMF4/s23 c4, WFG1/s27 c107, WFG2/s22 c144, WFG2/s42 c122), sempre n=1, sempre com fe_ciclo=2 e lote=3, e sempre acompanhada de um SEGUNDO evento guard 'cache_hit' apontando para o solution_id pré-existente (ex. MMF1/26: solution_id 54, fe 55). Σ stall_ciclos = 0 (nenhum ciclo com 0 FE). guard 'cache_hit' total = 670 = 664 (do init, solution_id=0, fe=1) + 6 (das duplicatas). ① continua com 31D−1 linhas nas 6 células: o slot foi perdido, o ORÇAMENTO não.",
+   "veredito": "conforme ao desvio sancionado; a semântica D89 e a guarda D60(c) foram exercidas e se comportaram exatamente como especificado",
+   "muda_vs_s42": true,
+   "arquivo_linha": "EDNARMOEA.m:129-136 (sync D89 + stall_ciclos); e7_instrument.m:80-81"
+  },
+  {
+   "id": "A16",
+   "aspecto": "Hard-stop, overshoot e ciclo abortado (C == ⌊20D/3⌋; guard presente sse 20D mod 3 ≠ 0)",
+   "classe": "2",
+   "medicao": "C == ⌊20D/3⌋ em 661/664; guard hard_stop presente sse 20D mod 3 ≠ 0 em 660/664. As exceções fecham na unidade pelas duplicatas: WFG1/27, WFG2/22 e WFG2/42 (D=22, 20D=440, 440 mod 3 = 2) perderam 1 slot ⇒ 146 ciclos dão 437 FE, sobram 3 ⇒ o ciclo 147 fecha COMPLETO e o hard_stop desaparece (C=147, hard_stop=0); DTLZ3/8 (D=12, 240 mod 3 = 0, normalmente exato) perdeu 1 slot ⇒ sobra 1 FE ⇒ o ciclo 81 aborta e o hard_stop APARECE. Total de guards hard_stop: 531. ① == 31D−1 em 664/664 nos quatro casos.",
+   "veredito": "conforme ao desvio sancionado; as 4 exceções são consequência aritmética exata de A15, verificada célula a célula",
+   "muda_vs_s42": true,
+   "arquivo_linha": "D21/D61"
+  },
+  {
+   "id": "A17",
+   "aspecto": "Cadência da sonda (online k=2) + finalProbe; gabarito Sobol de 2.000 pontos",
+   "classe": "2",
+   "medicao": "{1} ∪ {pares ≤ Gstart} ∪ {Gstart}, com Gstart = C + [hard_stop], ≡ conjunto observado ≡ ⑤.sonda.geracoes em 664/664; 30.679 blocos, todos com n_pontos==2000 e ok==true; x_hash do ⑥ ≡ x_hash_online do manifesto do gabarito em 664/664 (664 células × 25 gabaritos); finalProbe (motivo='final') exercido em 420 blocos/células; x_hash único dentro de cada célula em 664/664.",
+   "veredito": "conforme ao desvio sancionado (instrumentação nossa); a identidade do gabarito passa a ser verificada por hash em toda semente",
+   "muda_vs_s42": true,
+   "arquivo_linha": "DI-12.5/DI-21; data/sonda/sonda_{p}.manifest.json"
+  },
+  {
+   "id": "A18",
+   "aspecto": "k-means k=3, 1 infill por cluster não-vazio",
+   "classe": "2",
+   "medicao": "n_clusters_efetivo == 3 em 59.079/59.079 ciclos — nunca degenerou a menos de 3 grupos, nem nas 90 células D=2.",
+   "veredito": "conforme ao desvio sancionado; a atribuição exata infill↔cluster continua em T4, coberta pela versão invariante à partição (A19)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "IndividualSelect.m:14"
+  },
+  {
+   "id": "A19",
+   "aspecto": "QUERY-JOIA COMPORTAMENTAL — o infill escolhido É o extremo global da população final, nos DOIS ramos",
+   "classe": "1",
+   "medicao": "85 células, 25/25 problemas, 30/30 sementes, 7.583 ciclos: ramo convergência argmin ‖μ‖ (sem re-translação) entre os escolhidos em **5.470/5.470 (100,00%)**; ramo incerteza argmax σ̄ em **2.113/2.113 (100,00%)**; ZERO falhas. Blocos de exatamente 1.900 linhas em 7.583/7.583. Refutadores derrubados de novo: 'translação pelo mínimo da POP final' fecha 2.166/5.470 (39,6%); 'espaço cru (μ+ymin)' fecha 3.603/5.470 (65,9%).",
+   "veredito": "conforme ao artigo; a identidade decisória é invariante a semente e a problema, com erro ZERO",
+   "muda_vs_s42": false,
+   "arquivo_linha": "IndividualSelect.m:19,21,26,29"
+  },
+  {
+   "id": "A20",
+   "aspecto": "Guard PopStd = sqrt(max(s²−μ², 0)) contra sqrt complexo silencioso (hazard N.3)",
+   "classe": "2",
+   "medicao": "**A GUARDA DISPAROU PELA PRIMEIRA VEZ**: Σ n_std_neg = 2, num único ciclo em 59.079 (MMF1 semente 24, ciclo 7, ramo convergência, n_treino=21) — evento guard 'std_neg' com n=2. Corolário medido: σ == 0 em **0** linhas da ③ dessa célula (40.700 linhas) e em 0 das 14.407.700 do anel profundo; σ mínimo dessa célula = 1,0609e-5. Causa lida no fonte: n_std_neg acumula os `nneg` de EDNARMOEA.m:85 (população inicial aleatória do ciclo) e :98 (offspring de cada uma das 19 gerações) — ~2.000 pontos/ciclo — enquanto a ③ grava apenas os snapshots pós-EnvironmentalSelection (1.900 linhas); os 2 pontos clampados não sobreviveram à seleção e por isso são invisíveis em qualquer camada.",
+   "veredito": "conforme ao desvio sancionado; o guard existe, agiu, e agiu certo — mas a T11 derivou dele um corolário FALSO (ver classe 3 E7-3-01)",
+   "muda_vs_s42": true,
+   "arquivo_linha": "Estimate.m:29 (nneg=sum(var_pop(:)<0); std=sqrt(max(var_pop,0))); EDNARMOEA.m:84-85, 97-98"
+  },
+  {
+   "id": "A21",
+   "aspecto": "Sem warm-start de população entre ciclos (população nova e aleatória no box nativo por ciclo)",
+   "classe": "1",
+   "medicao": "Interseção de X (float32, bit-a-bit) entre as PRIMEIRAS 100 linhas do bloco do ciclo c+1 e o BLOCO INTEIRO de 1.900 linhas do ciclo c = **0 em 4.606/4.606 fronteiras** (50 células, 25 problemas, 26 sementes). Nenhum indivíduo de nenhuma das 19 gerações internas sobrevive ao ciclo seguinte, em nenhuma semente.",
+   "veredito": "conforme ao artigo (e refuta de novo a leitura do agente-4 de que haveria população persistente)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "EDNARMOEA.m:82-84"
+  },
+  {
+   "id": "A22",
+   "aspecto": "Aritmética entre as 4 camadas + relógios (U7/U8/U10)",
+   "classe": "1",
+   "medicao": "Quatro identidades fechadas em **664/664** cada, via metadata do parquet: ① == 31D−1; ② == Σ_{g=1..C+1}(11D−1+3(g−1)); ③ == 1.900·C + 2.000·n_blocos_sonda; ④ == C+1 linhas (com a geração 1 duplicada). ⑤.n_geracoes == C+1 em 664/664; ⑤.sonda.geracoes ≡ observado em 664/664. U7 (fit+busca ≤ tempo_geracao): **0 violações em 59.079 linhas**. fe == 11D−1+3c em 58.929/59.079 (as 150 exceções = deslocamento exato pelas 6 duplicatas: 67+2+10+41+4+26 = 150, fecha na unidade).",
+   "veredito": "conforme ao artigo/contrato; a aritmética fecha sem resíduo em toda a campanha",
+   "muda_vs_s42": false,
+   "arquivo_linha": "CONTRATO §17; DI-13.10"
+  },
+  {
+   "id": "A25",
+   "aspecto": "Erro de fantasia dos infills (U11): |μ+ymin − f| sobre |f|",
+   "classe": "1",
+   "medicao": "WAPE por célula em 85 células: mediana 0,2084; extremos 0,0514 (DTLZ7/s3) e 0,7631 (MMF1/s26). Reproduz a ordem da s42 (T11: global 0,2300; DTLZ7 0,0456, MMF1 0,6598). A des-translação obrigatória (μ+ymin) foi aplicada; sem ela o teste não fecha.",
+   "veredito": "conforme; o modelo que ESCOLHE é o mesmo que erra na régua — fidelidade do mecanismo ≠ qualidade do surrogate",
+   "muda_vs_s42": false,
+   "arquivo_linha": "DI-10 (real_solution_id)"
+  },
+  {
+   "id": "A26",
+   "aspecto": "n_front1 ≡ |ND| do arquivo PÓS-infills; real_solution_id",
+   "classe": "1",
+   "medicao": "Recomputação de dominância ciclo a ciclo em 50 células: **4.496/4.656**. A decomposição é o achado e reproduz a s42 exatamente: **DTLZ4 fecha 0/160** e os outros **24 problemas fecham 100%** (BBOB×7 132/132 cada, ZDT1/ZDT3 400/400, WFG×5 292/292, DTLZ2/DTLZ3 160/160, MMF 26/26 e 266/266). Causa: objetivos de 1e-220…1e-265 (α=100) fazem underflow para 0 exato no export float32 — 960 zeros em f nas células amostradas — regra 11 do §10. real_solution_id: conjunto por ciclo exatamente {11D−1+3(c−1), +1, +2} em 7.583/7.583.",
+   "veredito": "conforme; a discordância é artefato metrológico do export sancionado (D53), determinística e restrita a DTLZ4, agora confirmada em réplica",
+   "muda_vs_s42": false,
+   "arquivo_linha": "DI-19.2 / DI-10; D53"
+  },
+  {
+   "id": "A28",
+   "aspecto": "Perfil de custo (§III-C), RAM (D86) e bounds contra o box nativo",
+   "classe": "1",
+   "medicao": "Custo (664 células): busca 91,59% · fit 4,68% (medianas); tempo/ciclo mediano por problema 21,25 s (ZDT4, D=10) a 26,18 s (MMF16_20, D=20), mediana global 21,92 s em D=2…30 — faixa de 1,23× num intervalo de 15× em D, sem parede n³. Total 356,35 h-core e 531.064.000 passos de SGD. Bounds (85 células): **143 coordenadas 'fora' em 266.520.600** na ③ online, TODAS com excesso relativo ≤ 2,3842e-8 (ULP-float32); **0 fora em 653.298** coordenadas da ①; 1,343% exatamente sobre um bound (assinatura de clamp de SBX/PM; T11 na s42: 1,342%). RAM: RSS máximo **6.073 MB** (ZDT3, D=30), escada limpa por D (1.567 → 2.854 → 3.185 → 4.750 → 6.073 MB).",
+   "veredito": "conforme ao artigo no custo e nos bounds; a RAM é o achado novo — ver classe 3 E7-3-03",
+   "muda_vs_s42": true,
+   "arquivo_linha": "D43/B6.4; D86/§22.5.7"
+  },
+  {
+   "id": "A29",
+   "aspecto": "Não-perturbação do RNG pela sonda (invariante 🔴 do CONTRATO §3.1) — o T1 que a T11 fechou",
+   "classe": "T",
+   "medicao": "**NÃO MEDIDO NESTE CORPUS: não existe par COM/SEM sonda em nenhuma das 664 células** (nenhuma tem ⑤.sonda.desligada=true; n_blocos > 0 em 664/664). A prova da T11 foi feita em 1 célula (MMF1, D=2) no repo 195f64ed0a69dc3f; esta campanha rodou no repo 63db46b100635a5c. Único elemento indireto novo: o par cross-VM de semente 7 dá ③ bit-idêntica INCLUINDO mu_*/sigma_* em 16 células — o que prova reprodutibilidade da sequência de máscaras, não neutralidade da sonda (a sonda estava LIGADA nos dois lados).",
+   "veredito": "teto REABERTO para este corpus/commit; escalado ao autor",
+   "muda_vs_s42": true,
+   "arquivo_linha": "CONTRATO §3.1; DI-12.5"
+  },
+  {
+   "id": "A31",
+   "aspecto": "Reprodutibilidade e deriva cross-máquina",
+   "classe": "2",
+   "medicao": "18 pares duplicados vm1×vm5. **16/18 com sha256 IDÊNTICO em ①, ② e ③ e max|Δ| = 0,0 em todas as colunas numéricas** (semente 7, execuções separadas por ~18 h em 13/08; ④ difere, logo não são cópia); ramos idênticos em 100% dos ciclos. **2/18 divergentes** (MMF11_L/12 e MMF4/12, 14/08, pós-troca de shape da vm5): primeira divergência na ① no FE 24 e FE 27, max|Δf| = 8,691 e 1,610, max|Δ(μ,σ)| = 14,656 e 1,216 em 40.700 linhas. Decomposição de variância (664 células, 6 VMs, z dentro do problema): VM explica R²=0,0032 da frequência de ramo, R²=0,0019 do ganho e **R²=0,8868 do tempo de ciclo**. 14 células na janela de swap da vm5 (>14/08 15:20Z): z do tempo de ciclo entre +0,15 e +0,37 — sem distorção material.",
+   "veredito": "conforme ao desvio sancionado, com a ressalva de que a deriva é BIMODAL (0 exato dentro de shape; trajetória inteira quando o shape muda), não gradual",
+   "muda_vs_s42": true,
+   "arquivo_linha": "O-18/D53; RUNBOOK §6.2"
+  },
+  {
+   "id": "A32",
+   "aspecto": "NOVO — proveniência do corpus de 30 sementes e sua relação com o corpus auditado pela F5/T11",
+   "classe": "3",
+   "medicao": "repo_hash = 63db46b100635a5c em 664/664 (a T11 auditou 195f64ed0a69dc3f); campanha_id = 7f4f0e429a46_M8 em 661 e 63db46b10063_2026-08-14 em 3 (MMF1, MMF11_L e MMF4 da semente 12); schema_version = 2 em 664/664 (a T11 mediu 1 na s42). A s42 canônica de HOJE foi executada em 2026-08-07 (a T11 citou timestamps de 2026-07-26 e a janela vm3; hoje a s42 veio da vm5) e **não é a mesma execução**: Σ C(s42) = 2.329 contra os 2.328 da T11, e guard hard_stop em 19 das 25 células contra as 20 da T11 — a diferença de 1 é exatamente a duplicata de infill em WFG2/42, que não existia no corpus da T11. O artefato de DoE NÃO mudou (doe_hash de MMF11_L/42 = bc5b5476bae0…, o mesmo que a T11 citou).",
+   "veredito": "classe (3) de proveniência: os números da F5/T11 não reproduzem no corpus canônico atual, e nada no corpus declara isso",
+   "muda_vs_s42": true,
+   "arquivo_linha": "⑤.manifest.json (repo_hash, campanha_id, schema_version)"
+  },
+  {
+   "id": "T2",
+   "aspecto": "Máscaras de dropout e nº REAL de passos SGD",
+   "classe": "T",
+   "medicao": "Cai PELA METADE: razão fit_inicial/fit_update = 10,199 mediana em 664/664 células (p1–p99 8,57–11,42); e a bit-identidade de ③ em 16 pares cross-VM prova que a sequência de máscaras é reprodutível. Os VALORES das máscaras e a ordem exata de consumo do RNG continuam sem rastro em parquet.",
+   "veredito": "teto parcialmente rebaixado",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "T3",
+   "aspecto": "Init de pesos N(0,1/fan_in) Marsaglia (divergência código×paper mantida)",
+   "classe": "T",
+   "medicao": "Só declarativo em ⑤.params.init_pesos (664/664). Com 30 sementes o efeito não fica separável: o DoE também muda com a semente, então o estado inicial da rede não é isolável.",
+   "veredito": "teto mantido",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "T4",
+   "aspecto": "Atribuição exata infill↔cluster do k-means",
+   "classe": "T",
+   "medicao": "Labels não gravados; cluster_por_infill declara mapeamento posicional em 59.079/59.079. Coberto pela versão invariante à partição (A19, 100,00%).",
+   "veredito": "teto mantido, inofensivo",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "T5",
+   "aspecto": "Operadores SBX 1/20 + PM 1/D/20, IGD-NS e adaptação de R nas 19 gerações internas",
+   "classe": "T",
+   "medicao": "Observáveis apenas: 1.900 = 19×100 em 7.583/7.583 blocos e pop_por_w em 59.079/59.079. Os operadores em si, não.",
+   "veredito": "teto mantido",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "T6",
+   "aspecto": "loss_treino (DI-12.1b) — sentinela declarada",
+   "classe": "T",
+   "medicao": "modelo_hp.loss_treino == 'INACESSIVEL (DI-12.1)' em 59.079/59.079 ciclos das 664 células. Sentinela em TEXTO legível, justificada com arquivo:linha; o gate G-7 fica verde sobre ela.",
+   "veredito": "teto mantido; sentinela sancionada, não vira (3)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "e7_instrument.m:197-200; trainNet.m:17 (loss comentada); dropout.m:4 (proxy consome RNG)"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "E7-3-01",
+   "descricao": "CONTADOR VERDE, EVENTO INOBSERVÁVEL — o guard `n_std_neg` reporta ocorrências que NENHUMA camada consegue corroborar, e a T11 derivou disso um corolário falso. Medido: o guard disparou 1 vez em 59.079 ciclos (MMF1 semente 24, ciclo 7, n=2), e a ③ dessa célula tem ZERO linhas com σ==0 nas 40.700. A causa está no fonte: `n_std_neg` acumula os `nneg` de EDNARMOEA.m:85 (a população inicial aleatória de 100 pontos do ciclo) e :98 (os offspring das 19 gerações) — ~2.000 pontos por ciclo — enquanto a ③ só grava `snaps{w}`, os sobreviventes PÓS-EnvironmentalSelection (1.900 linhas). Um ponto cujo σ foi clampado a 0 e que foi descartado pela seleção some sem deixar rastro. Consequência documental: a armadilha 10 da T11 ('σ = 0 ou NULL neste config seria BUG; 0 σ nulo em 6,84 M linhas prova que o guard nunca agiu') é um NON SEQUITUR — ausência de σ=0 na ③ não é evidência de que o guard não agiu, e a T11 usou exatamente essa inferência para escrever 'guarda instalada, nunca disparou'. Um gate futuro que reprovar σ==0 na ③ reprovaria um run FIEL cujo guard tenha agido sobre um sobrevivente.",
+   "gravidade": "baixa",
+   "acao": "(a) corrigir a armadilha 10 do relatório T11 e o parágrafo (c) do aspecto A20: o guard agiu 1×/59.079 e a ③ NÃO é capaz de observá-lo; (b) se a R4 quiser observabilidade, o caminho barato é somar `n_std_neg` por ORIGEM (pop inicial × offspring) no ⑥, sem tocar em cálculo — mas isso é instrumentação nova, e sob m8-freeze fica como registro; (c) NÃO escrever gate que exija σ>0 na ③ como prova de que o guard não agiu.",
+   "arquivo_linha": "Estimate.m:29; EDNARMOEA.m:84-85 e :97-98; e7_instrument.m:72-73; T11 §9 armadilha 10"
+  },
+  {
+   "id": "E7-3-02",
+   "descricao": "O CORPUS CANÔNICO s42 FOI RE-EXECUTADO E OS NÚMEROS DA F5/T11 NÃO REPRODUZEM NELE — e nada no corpus avisa. Medido: `repo_hash` = 63db46b100635a5c em 664/664 células, enquanto a T11 auditou 195f64ed0a69dc3f; `schema_version` = 2 em 664/664, enquanto a T11 mediu 1 na s42; o header das 25 células s42 tem ts de 2026-08-07 e o _FONTES.csv aponta vm5, enquanto a T11 citou 2026-07-26 e a janela vm3. A prova aritmética de que é OUTRA execução: Σ C sobre as 25 células s42 dá **2.329**, não os **2.328** que a T11 re-mediu três vezes, e o guard hard_stop aparece em **19** células s42, não em **20** — a diferença é WFG2/42, que nesta execução teve um infill duplicado no ciclo 122 (perdeu 1 slot ⇒ 147 ciclos e nenhum aborto) e na execução da T11 não teve. O artefato de DoE NÃO mudou (doe_hash de MMF11_L/42 = bc5b5476bae0…, idêntico ao citado pela T11), então a divergência é de execução, não de insumo. Isso significa: (i) toda evidência da F5 e da T11 sobre a s42 descreve artefatos que não estão mais em disco; (ii) 'a rodada-42 é a mesma busca que o código de hoje faria' — a premissa que a T11 chamou de A31 — é FALSA no sentido literal para este config; (iii) a prova §3.1 (par g6_com×g6_sem) que rendeu à T11 o fechamento do T1 foi feita noutro commit e não cobre este corpus.",
+   "gravidade": "média",
+   "acao": "ESCALAR (D81). Decisões que só o autor pode tomar: (1) declarar explicitamente na SPEC/handoff que a campanha M8 de 30 sementes SUBSTITUIU a s42 auditada pela F5/T11, com os dois repo_hash nomeados; (2) decidir se a validação de fidelidade da F5/T11 se transfere ao commit 63db46b1 por herança (o mecanismo re-mediu 100% aqui) ou se exige re-emissão; (3) decidir se é preciso um par COM/SEM sonda no commit 63db46b1 para re-fechar o invariante 🔴 do §3.1 (ver E7-3-04 abaixo, que registro como teto e não como (3) por não haver evidência de violação). Não medido: se os artefatos de julho da s42 sobrevivem em algum lugar (não estão em resultados_experimentos/ nem nos 6 stagings de VM).",
+   "arquivo_linha": "resultados_experimentos/e7/*/42/*.manifest.json (repo_hash, schema_version); ua-dd-saea/f5/t11/relatorios_config/e7.md §2.1 A16 e §7"
+  },
+  {
+   "id": "E7-3-03",
+   "descricao": "SALTO DE RAM DE 2,3–2,9× ENTRE A EXECUÇÃO DE JULHO E A DE AGOSTO, NA MESMA CÉLULA E NO MESMO CONFIG, SEM CAUSA MEDIDA. A T11 reportou `rss_mb` máximo de **2.098 MB, na WFG2**; nesta campanha a WFG2 dá **4.748 MB** (2,26×) e o máximo global do config é **6.073 MB** (ZDT3, D=30), 2,90× o teto da T11. A escada por D é limpa e faz sentido (1.567 MB em D=2 → 2.854 em D=10 → 3.185 em D=12 → 4.470/4.750 em D=20/22 → 6.073 em D=30), então o salto NÃO é explicado por D: é o mesmo problema, o mesmo D, o mesmo algoritmo, mais que o dobro de RSS. Como D86/§22.5.7 instituiu o monitoramento de RAM justamente para isso, e como a frota tem shapes heterogêneos com a vm5 trocada em 14/08, o número precisa de dono. Sem hipótese testável no corpus: o ⑥ registra `rss_mb` como pico observável do processo, não a decomposição.",
+   "gravidade": "baixa",
+   "acao": "Registrar no boletim de saúde e ESCALAR para quem tocou a frota: verificar se a mudança é de shape de VM, de versão de MATLAB/BLAS, de nº de workers concorrentes por VM, ou de política de garbage collection. Nenhuma consequência para a fidelidade do mecanismo — as 664 células têm status ok, termino normal e 0 fallback/retries — mas invalida qualquer tabela de RAM que cite os 2.098 MB da T11 como teto do config.",
+   "arquivo_linha": "⑥ e7_gen.rss_mb; D86/§22.5.7; T11 §2.2 A28"
+  }
+ ],
+ "score": 9,
+ "score_t11": 10,
+ "veredito_recomendado": "RECOMENDO **ACEITAR** — o veredito é do autor (D97). Score recomendado **9/10** (T11: 10/10). CAUSA NOMEADA DO MOVIMENTO 10→9: **não é o algoritmo — é o corpus e a metrologia.** O mecanismo do e7 saiu desta auditoria mais forte, não mais fraco: a query-joia declarada (estado ⇔ desigualdade) fecha **59.079/59.079 = 100,00%** no CENSO TOTAL das 664 células (25× o volume da T11), com 1.608 ciclos a menos de 1e-9 do limiar e margem mínima 0,0; a query-joia comportamental fecha **5.470/5.470 + 2.113/2.113 = 100,00%** em 85 células cobrindo os 25 problemas e as 30 sementes; a aritmética das 4 camadas fecha **664/664** em cada uma; a cadeia ymin↔f_best dá erro **0,0** em 58.415 transições; A21 dá interseção **0 em 4.606/4.606**; A02 e a fórmula de semeadura fecham **664/664** com 664 DoE distintos; U7 tem **0 violações em 59.079**. Nenhuma semente quebra nenhuma identidade — a resposta a N1 é limpa. E as duas guardas que a T11 descreveu como 'instaladas, corretas, e que nunca precisaram disparar' (D89/D60(c) e Estimate.m:29) **dispararam pela primeira vez** — 6 duplicatas de infill e 1 evento std_neg — e **se comportaram exatamente como a decisão especifica**, com a aritmética do orçamento fechando na unidade em cada um dos 6 casos (150 ciclos deslocados, 4 hard-stops trocados, ① ainda com 31D−1 em 664/664). Isso é o oposto de um defeito: é a especificação sendo exercida. O 10 cai por três coisas, todas fora do algoritmo: (1) **classe (3) E7-3-02, gravidade média** — a s42 canônica de hoje é OUTRA execução, noutro commit (63db46b1 vs 195f64ed), e os números da F5/T11 (2.328 ciclos, 20 hard-stops) não reproduzem nela; a régua da casa exige contrato perfeito e saúde limpa, e um corpus cuja proveniência contradiz silenciosamente os dois relatórios anteriores não é contrato perfeito; (2) **classe (3) E7-3-01, gravidade baixa** — o contador `n_std_neg` é estruturalmente inobservável em qualquer camada (a ③ grava só os sobreviventes da seleção), e a T11 tirou dele um corolário falso que hoje é armadilha ativa no protocolo; (3) **classe (3) E7-3-03, gravidade baixa** — RSS 2,3–2,9× o teto da T11 na mesma célula, sem causa medida. Não desce abaixo de 9 porque nenhum dos três toca a fidelidade do mecanismo, todos foram investigados até a causa (dois deles com arquivo:linha) e todos são benignos para o que a dissertação vai afirmar. Registro à parte, e é o ponto que peço ao autor decidir antes de fechar: **o teto T1/§3.1 (não-perturbação do RNG pela sonda) está REABERTO neste corpus** — não há par COM/SEM em nenhuma das 664 células, e para um config cujo σ é estocástico e cujo `Estimate` consome 200 máscaras Bernoulli por chamada, esse é o invariante 🔴 mais load-bearing do e7. Não é (3) (não há evidência de violação; é ausência de prova), mas foi exatamente o fechamento dele que a T11 celebrou como o ganho material da volta anterior, e ele não vale para o commit que gerou o dado da tese.",
+ "decisoes_ao_autor": [
+  "ESCALAÇÃO 1 (D81, a mais importante) — A s42 canônica NÃO é a que a F5/T11 auditaram. Medido: repo_hash 63db46b100635a5c em 664/664 contra o 195f64ed0a69dc3f da T11; schema_version 2 em 664/664 contra o 1 medido pela T11 na s42; header ts de 2026-08-07 e origem vm5 contra os 2026-07-26/vm3 citados pela T11. Prova aritmética: Σ C sobre as 25 células s42 = 2.329 (T11: 2.328) e hard_stop em 19 células (T11: 20) — a diferença é uma duplicata de infill em WFG2/42 que não existia antes. O artefato de DoE é o MESMO (doe_hash MMF11_L/42 = bc5b5476bae0…), logo é divergência de EXECUÇÃO. DECISÃO SUA: (a) declarar na SPEC/handoff que a campanha M8 substituiu a s42 certificada, nomeando os dois commits; (b) dizer se a certificação F5/T11 se transfere por herança (re-medi o mecanismo inteiro aqui e ele fecha 100%) ou exige re-emissão; (c) decidir se algum relatório anterior precisa de errata de números.",
+  "ESCALAÇÃO 2 — O invariante 🔴 do CONTRATO §3.1 (a sonda não toca o RNG) NÃO tem prova neste corpus nem neste commit. Nenhuma das 664 células tem sonda desligada; a prova da T11 é de 1 célula (MMF1, D=2) no commit 195f64ed. Para o e7 — único config da bateria em que σ é estocástico e a predição da sonda consome 2×T=200 máscaras Bernoulli por chamada — isto é o teto mais caro que existe. DECISÃO SUA: aceitar por herança do commit anterior, ou exigir um par COM/SEM em 63db46b1 antes de fechar (o que exigiria rodar célula, e eu não rodei nada).",
+  "ESCALAÇÃO 3 — A T11 escreveu, com 1 semente, que 'o método NÃO degenera em GPC-ARMOEA em NENHUMA célula'. Com 664 células isso é FALSO em 3: MMF11_L sementes 12, 21 e 28 rodam os 13 ciclos INTEIROS no ramo de convergência, frequência de incerteza exatamente 0,000. Não é infidelidade (a query-joia fecha 39/39 nesses ciclos), é um resultado sobre o algoritmo que a semente única escondeu. Precisa de errata no T11 §2.2 A04(d) e §5 (linha 'Ablação do gatilho'), e merece uma linha no capítulo: a fração de exploração do e7 é uma variável aleatória com desvio-padrão entre sementes de 0,022 (ZDT3) a 0,122 (MMF11_L), não uma constante do problema.",
+  "ESCALAÇÃO 4 — A armadilha 10 do protocolo T11 ('σ = 0 ou NULL neste config seria BUG'; '0 σ nulo em 6,84 M linhas prova que o guard nunca agiu') é um non sequitur e hoje é armadilha ATIVA. A ③ grava só os sobreviventes de EnvironmentalSelection (1.900 de ~2.000 pontos estimados por ciclo); o guard de Estimate.m:29 age sobre a população inicial e sobre os offspring, que a ③ não vê. Ele disparou (MMF1/24, ciclo 7, n=2) com ZERO σ nulo na ③. Corrigir o texto antes que alguém escreva um gate que reprove um run fiel.",
+  "ESCALAÇÃO 5 (metodológica, para quem for fazer a estatística) — A SEMENTE É A UNIDADE DE SHARDING DA FROTA: 26 das 30 sementes do e7 rodaram INTEIRAS numa única VM (0-7 vm1 · 8-9 vm5 · 10,14 vm4 · 11 vm2 · 15-16 vm10 · 19-25 vm3 · 27,28,42 vm5). VM está perfeitamente confundida com semente. Quantifiquei: a VM explica R²=0,0032 da variância entre sementes na frequência de ramo e R²=0,0019 no ganho sobre o DoE (seguro), mas R²=0,8868 no tempo de ciclo (proibido). Qualquer tabela de CUSTO por semente é inválida sem controlar a VM; tabelas de DESEMPENHO estão seguras. Recomendo escrever isso no caveat do capítulo de metodologia.",
+  "ESCALAÇÃO 6 (valor científico, N3) — O artigo DISPENSA testar a sensibilidade à amostra inicial ('the differences between the performances of different initial samples are small, so the sensitivity to the initial samples is not included here', §IV-F). Nós temos 664 DoE distintos e podemos testar. Resultado: a asserção se sustenta no regime-alvo do paper (CV entre sementes de 0,119 em ZDT1, 0,159 em WFG1, 0,174 em ZDT6, 0,188 em DTLZ7) e é FALSA no regime que o nosso protocolo acrescentou (CV 0,704 em BBOB_F49, 0,818 em MMF11_L, 1,004 em WFG2, 1,126 em MMF1, 1,168 em MMF4; razão max/min de até 50,2× e 19 células com ganho zero no ponto ideal). Este é, na minha leitura, o achado da auditoria que mais rende no capítulo: é um contraexemplo MEDIDO a uma premissa que o artigo assumiu sem medir. Sugiro que a análise formalize com o endpoint oficial (IGD+/HV) em vez do meu proxy de ponto ideal.",
+  "ESCALAÇÃO 7 — Continua de pé a escalação documental da T11: SPEC §1784 e §1878 e o bundle alg_e7_ednarmoea.md I.4 afirmam uma divergência código×paper ('treino transladado × [−1,1] do paper') que NÃO EXISTE. Re-confirmei em 85 células e 30 sementes: escala dos objetivos varia 3,458e7× e Spearman(log10 escala, WAPE) = −0,0832 com p=0,449; μ_max/amplitude com mediana 0,978. Corrigir baixa a contagem de divergências do e7 de 6 para 5 e AUMENTA a fidelidade declarada. DEF-B6.6 não é afetada.",
+  "ESCALAÇÃO 8 (operacional, sem urgência) — 86 células ausentes (11,5%). O padrão é truncamento de campanha, não falha: 8 sementes incompletas, sempre perdendo os mesmos 9 problemas caros (D=20/22/30), e as sementes 12/13/17/26 param em 2026-08-14T16:07Z, o corte da coleta. DUAS ausências NÃO se explicam por isso e eu não consegui medir a causa: WFG2/semente 4 e WFG4/semente 23 — sementes que rodaram completas nas outras 24-25 células e perderam exatamente uma. Não há manifesto, jsonl nem linha de censo para elas: não há o que ler. Se importar para o N por problema, é preciso olhar o log do despachante, que eu não toquei.",
+  "ESCALAÇÃO 9 (saúde) — RSS máximo do config subiu para 6.073 MB (ZDT3, D=30) e, na MESMA célula WFG2, de 2.098 MB (T11) para 4.748 MB — 2,26× sem mudança de D nem de algoritmo. D86/§22.5.7 pediu o monitoramento; o número existe e agora precisa de dono (shape de VM? workers concorrentes? versão de BLAS?). Não afeta fidelidade — 664/664 ok, termino normal, 0 retries, 0 fallback — mas invalida os 2.098 MB da T11 como teto de RAM do config."
+ ]
+}

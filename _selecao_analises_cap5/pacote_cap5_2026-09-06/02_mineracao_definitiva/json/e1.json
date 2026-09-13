@@ -1,0 +1,204 @@
+{
+  "id": "e1",
+  "sigla": "EMO",
+  "titulo": "Fast calculation of multiobjective probability of improvement and expected improvement criteria for Pareto optimization",
+  "ano": 2014,
+  "roster": false,
+  "setup": {
+    "benchmarks": "4 das 7 funções DTLZ [Deb et al. 2001], todas configuradas com d=6 variáveis de entrada: DTLZ1 (m=3 objetivos, frente no plano y1+y2+y3=1, ponto de referência r=(400,400,400)); DTLZ2 (m=3, frente = 1º quadrante de esfera unitária, r=(2.5,2.5,2.5)); DTLZ7 (m=4, 2^(m-1)=2^(4-1)=8 regiões de Pareto-ótimas DESCONEXAS, r=(1,1,1,50)); DTLZ5 (m=6, frente = curva densa em espaço de 6 objetivos, similar a DTLZ2 mas 1 fatia da hiperesfera, r=(2.5,...,2.5) com 6 componentes). Não há problemas ZDT, WFG, MMF, BBOB nem casos reais — só DTLZ, todos sintéticos. D (dimensão de decisão) é FIXO em 6 para todos os 4 problemas, não é variado.",
+    "orcamento": "DoE inicial = 65 amostras via Latin Hypercube Design maximin quase-ótimo. Orçamento total de amostras para TODAS as 14 configurações do EMO = 250 (fixo; o EMO nunca aparece na configuração de 2500). Os pisos evolutivos (NSGA-II, SPEA2, SMS-EMOA) são rodados em DUAS configurações de orçamento por problema: (a) população=25, 10 gerações → orçamento total 250 (igual ao EMO, comparação pareada por orçamento); (b) população=50, 50 gerações → orçamento total 2500 (10× o orçamento do EMO, comparação deliberadamente desigual, generosa aos pisos). O critério estatístico do EMO é otimizado a cada iteração via 20×n candidatos Monte Carlo refinados pelo otimizador local fmincon do MATLAB.",
+    "execucoes": "10 execuções independentes por configuração (não 30 sementes como na convenção da dissertação) — 'repeated 10 times for statistical robustness', tanto para as 14 configurações do EMO quanto para os 3 pisos evolutivos em cada um dos 2 orçamentos.",
+    "baselines": "NSGA-II, SPEA2 e SMS-EMOA — os três SÃO pisos evolutivos sem surrogate (avaliação direta da função, population-based); SMS-EMOA é citado no próprio artigo como o piso mais caro computacionalmente por depender do hipervolume, custo comparável ao do próprio EMO. O motor do EMO NÃO é evolutivo: é amostragem sequencial (infill) via Kriging + otimização de um critério estatístico fechado (PoI/EI/hipervolume-improvement multiobjetivo) por Monte Carlo + busca local — não há, portanto, piso 'da mesma classe de motor' pareável ao EMO como no desenho da dissertação (fichas 9-10); tampouco há evidência de DoE inicial COMPARTILHADO entre as configurações EMO e os pisos (cada bloco de 10 execuções é descrito separadamente, sem menção a sementes/DoE pareados entre configurações).",
+    "metricas_principais": [
+      "Convergence measure — distância média de cada ponto do conjunto de Pareto obtido ao ponto mais próximo da frente de Pareto verdadeira (aproximada por 100.000 pontos Monte Carlo) — equivalente conceitualmente a GD (generational distance), não IGD/IGD+",
+      "Hypervolume (HV)"
+    ],
+    "testes": [
+      "nenhum teste de significância estatística (nem Wilcoxon, nem Friedman) — só média ± desvio-padrão sobre 10 execuções, com convenção de negrito/itálico para marcar o melhor resultado"
+    ],
+    "apresentacao": "Table 2: matriz problema × orçamento (|X|=250 e 2500) × algoritmo, célula = média(desvio-padrão) sobre 10 execuções, para as 2 métricas (convergence measure e HV). Negrito = melhor resultado por métrica DENTRO do mesmo orçamento; itálico = melhor entre as configurações do EMO; negrito+itálico = configuração do EMO que também é a melhor geral daquele orçamento. Não há menção a 'execução mediana' nem a IQR/mediana em nenhum lugar do artigo — tudo é média±desvio-padrão. Fig. 7 mostra conjuntos de Pareto de execuções específicas (não fica claro no texto se são execuções medianas ou representativas escolhidas de outra forma).",
+    "codigo_plataforma": "MATLAB; hiperparâmetros do Kriging (correlação Matérn ν=3/2, e alternativamente Gaussiana) otimizados via SQPLab, com informação de derivada da verossimilhança; otimização do critério estatístico via 20×n candidatos Monte Carlo refinados pelo otimizador fmincon do MATLAB; implementação de NSGA-II/SPEA2/SMS-EMOA não nomeada explicitamente no texto (parâmetros default exceto tamanho de população/gerações)."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        16
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela principal (Table 2): comparação problema × orçamento × algoritmo entre as 14 configurações do EMO (EIeuclid, EIeuclid^gauss, EIhv [só em DTLZ1/DTLZ2], Phv), sempre a |X|=250, contra NSGA-II/SPEA2/SMS-EMOA rodados tanto a |X|=250 (orçamento igual) quanto a |X|=2500 (10× mais), nos 4 problemas DTLZ testados, com 2 métricas (convergence measure e hipervolume), média±desvio-padrão sobre 10 execuções.",
+      "literal": "In general, it is seen that the EMO runs have better performance than the MOEAs in terms of hypervolume score for most functions except for DTLZ1.",
+      "localizador": "Sec. 4.3, Table 2",
+      "metricas": [
+        "Convergence measure (distância média do conjunto obtido à frente de Pareto verdadeira, ~100.000 pontos Monte Carlo; tipo GD)",
+        "Hypervolume"
+      ],
+      "testes": [
+        "nenhum teste de significância estatística — apenas média ± desvio-padrão sobre 10 execuções"
+      ],
+      "convencoes": "Negrito = melhor por métrica DENTRO do mesmo orçamento; itálico = melhor entre as 4 configurações do EMO; negrito+itálico = configuração do EMO que também é a melhor geral daquele orçamento (conforme legenda da Table 2). As 14 configurações do EMO usam SEMPRE |X|=250 (nunca aparecem na linha 2500); os pisos evolutivos aparecem em AMBOS os orçamentos. Nota: a extração desta conversão marca 'Phv' com itálico também na coluna 'Convergence measure' de DTLZ1@250 mesmo tendo valor pior (66.9199) que o de 'EIhv' (37.6112, marcado negrito+itálico) — possível artefato da conversão PDF→markdown (detecção de negrito/itálico por fonte), não necessariamente parte da convenção original do artigo; por isso o `achado` abaixo cita os NÚMEROS diretamente em vez de depender só da marcação negrito/itálico célula a célula.",
+      "achado": "Padrão por problema (comparando os valores da Table 2 diretamente, dentro do orçamento 250 salvo indicação contrária): em DTLZ2, Phv vence em ambas as métricas (CM=0.0106, HV=15.0326, marcado negrito+itálico — superando inclusive SMS-EMOA mesmo com |X|=2500: HV=15.0280); em DTLZ7, Phv também vence em ambas (CM=0.0280, HV=43.5404, negrito+itálico); em DTLZ5, Phv vence em HV (198.6425, negrito+itálico, acima até do SMS-EMOA com |X|=2500: 198.5351) mas PERDE em convergence measure para o SMS-EMOA mesmo a |X|=250 (SMS-EMOA CM=0.0467 vs. Phv CM=0.0835) — a única inversão de métrica do conjunto; em DTLZ1, o melhor EMO (aqui EIhv, não Phv) perde para o SMS-EMOA nas duas métricas mesmo a |X|=250 (HV: 6.3940e7 vs. 6.3976e7) e a diferença cresce a |X|=2500 (SMS-EMOA chega a 6.4000e7) — o único problema em que o piso vence com folga clara em ambas as métricas, atribuído pelo artigo à imprecisão do Kriging (ver Fig. 6).",
+      "aplicabilidade": "Não diretamente reprodutível com o roster padrão: o motor do EMO (Monte Carlo + busca local otimizando PoI/EI/hipervolume-improvement multiobjetivo fechados) não corresponde a nenhum dos 15 algoritmos do roster nem aos 4 pisos evolutivos da dissertação, e os problemas usados (4 das 7 DTLZ, D=6 fixo) não fazem parte da bateria de 28 problemas. Conceitualmente, a comparação 'orçamento pequeno do assistido vs. orçamento 10× maior do piso' poderia inspirar uma leitura via camada ① (endpoint do ND acumulado) recortada em duas frações de orçamento bem diferentes para os mesmos algoritmos — mas exigiria rodar os pisos por 10× o orçamento padrão da dissertação, fora do desenho atual (orçamento fixo 31D−1 para todos)."
+    },
+    {
+      "fichas": [
+        31
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Validação cruzada 20-fold da acurácia da MÉDIA do Kriging (não da variância) sobre os 250 pontos amostrados, para o primeiro objetivo de DTLZ1 (ajuste ruim, painel a) e de DTLZ5 (ajuste bom, painel b) — um instantâneo do modelo final usado para explicar por que o EMO falha especificamente em DTLZ1.",
+      "literal": "It is seen that Kriging has problems approximating the larger values of the objective function.",
+      "localizador": "Sec. 4.3, Fig. 6",
+      "metricas": [
+        "acurácia da média do Kriging via validação cruzada 20-fold (dispersão predito × real; sem métrica numérica agregada como RMSE reportada no texto)"
+      ],
+      "testes": [
+        "nenhum teste estatístico — inspeção visual do gráfico de dispersão predito × real"
+      ],
+      "convencoes": "Validação cruzada 20-fold sobre os 250 pontos amostrados de uma única execução final; gráfico de dispersão (predicted y × real y) para o 1º objetivo de DTLZ1 (painel a) e de DTLZ5 (painel b); é um instantâneo do modelo FINAL (após as 250 amostras), não uma curva ao longo do orçamento como a sonda da dissertação.",
+      "achado": "O Kriging tem dificuldade para aproximar o primeiro objetivo de DTLZ1 (especialmente valores grandes), o que o artigo aponta como a causa direta do único caso em que o EMO não supera claramente os MOEAs (Table 2, análise anterior); em contraste, o Kriging aproxima bem o primeiro objetivo de DTLZ5 (painel b) — DTLZ5 é justamente o problema em que Phv teve o melhor HV entre todos os testados (198.6425).",
+      "aplicabilidade": "Camada ③ (predições do surrogate) cruzada com ① (avaliação real) permitiria uma validação cruzada análoga (predito × real) para qualquer algoritmo GP do roster no ponto final do orçamento; mais fielmente, a camada ③ ao longo de TODO o orçamento (não só o ponto final) e a ficha 31 (sonda, dimensão 1) já cobrem uma versão mais rica e contínua desta checagem — aqui é uma validação cruzada 20-fold pontual (só o modelo final), não uma sonda fixa reavaliada a cada retreino."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Visualização qualitativa dos conjuntos de Pareto finais gerados em DTLZ2 (9 painéis a-i), comparando a cobertura/distribuição do critério baseado em hipervolume (EIhv/Phv) contra o critério baseado em distância Euclidiana (EIeuclid) em relação à geometria conhecida da frente (1º quadrante de esfera unitária).",
+      "literal": "the edge (extrema) of the Pareto front, while the Euclidean distance-based criterion performs a seemingly more uniform search over the Pareto front",
+      "localizador": "Sec. 4.3, Fig. 7",
+      "metricas": [
+        "cobertura/distribuição qualitativa do conjunto de Pareto obtido (visual)",
+        "HV (mencionado como a métrica em que o critério de hipervolume tem vantagem)"
+      ],
+      "testes": [
+        "nenhum — comparação visual qualitativa"
+      ],
+      "convencoes": "9 painéis (a–i) dos conjuntos de Pareto finais gerados para DTLZ2; a legenda recuperada por OCR sugere ao menos 3 dos painéis rotulados por critério (EIeuclid, Phv, EIhv, todos com |X|=250) — a estrutura exata dos 9 painéis (o que distingue os possíveis 3 grupos de 3) não é totalmente recuperável desta conversão (eixos/rótulos internos das figuras perdidos).",
+      "achado": "O critério baseado em hipervolume enfatiza mais as bordas (extremos) da frente de Pareto, deixando uma pequena lacuna entre a borda e a porção interna da frente; o critério baseado em distância Euclidiana faz uma busca aparentemente mais uniforme sobre a frente, embora tenha desempenho ligeiramente pior na métrica de hipervolume — um trade-off explícito entre cobertura uniforme e otimização direta do indicador que a busca usa. O artigo nota ainda que esse efeito de ênfase nas bordas tende a crescer quanto mais distante o ponto de referência r é escolhido, e que mais pesquisa é necessária sobre a influência dessa escolha nos critérios estatísticos.",
+      "aplicabilidade": "Camada ① (avaliações reais, x/f) do ND final de uma execução (idealmente a execução mediana, seguindo a convenção da dissertação) permitiria visualização análoga para qualquer par de algoritmos do roster com motores de aquisição distintos (ex.: um baseado em HV vs. um baseado em distância/EI puro) no mesmo problema biobjetivo ou triobjetivo."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Escalabilidade sintética do custo de decomposição em células (tempo, nº de células) vs. nº de objetivos e tamanho do conjunto de Pareto, com baseline concorrente",
+      "grupo_sugerido": "F",
+      "descricao": "Microbenchmark isolado (não usa execuções reais dos problemas DTLZ) do tempo de computação e do número de células geradas pela decomposição do espaço de objetivos (algoritmo WFG adaptado), em função do número de pontos de Pareto (0-100, conjuntos sintéticos sorteados do 1º quadrante de uma esfera unitária) e do número de objetivos (2 a 8), com média de 1.000 repetições; inclui, só para o caso 2D, uma comparação de tempo/nº de células contra o algoritmo concorrente exi2D de Emmerich et al.",
+      "literal": "The computation time of the cells poses no problem for the evaluation of the criteria (well within the seconds range).",
+      "localizador": "Sec. 3.4, Fig. 5",
+      "metricas": [
+        "tempo de computação (segundos) da decomposição em células",
+        "número de células geradas"
+      ],
+      "testes": [
+        "nenhum teste estatístico — média de 1.000 repetições, sem dispersão reportada"
+      ],
+      "convencoes": "Conjuntos de pontos de Pareto SINTÉTICOS, sorteados aleatoriamente do primeiro quadrante de uma esfera unitária (não de execuções reais do EMO nos problemas DTLZ), variando de 0 a 100 pontos de Pareto, para 2 a 8 objetivos; média de 1.000 repetições; painel (a) tempo, painel (b) nº de células; inclui, só para o caso 2D, o tempo/nº de células de uma chamada do algoritmo concorrente exi2D, com a ressalva de que o exi2D precisaria ser chamado múltiplas vezes durante a otimização (o método do artigo reaproveita a mesma decomposição).",
+      "achado": "O tempo de decomposição em células fica bem dentro da faixa de segundos e não é o fator limitante; o fator limitante é o NÚMERO DE CÉLULAS gerado, que cresce rapidamente com o número de objetivos e de pontos de Pareto — o que torna a avaliação de PoI/EI (uma equação por célula) proibitivamente cara quando muitas células são necessárias. Ao contrário do exi2D (que precisaria ser recalculado a cada avaliação do critério durante a otimização), o método proposto identifica as células uma vez por iteração de amostragem e reutiliza o mesmo conjunto para múltiplas avaliações do critério.",
+      "aplicabilidade": "Não reprodutível pelas 7 camadas da dissertação: é um microbenchmark sintético do subcomponente de decomposição de células, sem ligação a nenhuma execução real do EMO nem dos problemas DTLZ, medindo escalabilidade com o NÚMERO DE OBJETIVOS e o TAMANHO do conjunto de Pareto — eixos que a instrumentação da dissertação não varia isoladamente (a camada ④ mede tempo por geração em função de D e do tamanho do arquivo de treino, não do número de objetivos m nem do tamanho do ND isoladamente em um teste controlado)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Verificação de corretude da fórmula fechada da EI/PoI multiobjetivo contra implementação de referência e Monte Carlo",
+      "grupo_sugerido": "E",
+      "descricao": "Checagem de corretude (não de desempenho) da nova expressão fechada proposta para a EI baseada em hipervolume: comparação numérica extensa contra o código público de Emmerich et al. para o caso de 2 objetivos, e verificação adicional por métodos de Monte Carlo para os casos de 2 e 3 objetivos.",
+      "literal": "The correctness of this algorithm has been verified by an extensive numerical comparison against the publicly available code of Emmerich et al.",
+      "localizador": "Sec. 3.3.1",
+      "metricas": [
+        "nenhuma métrica de desempenho — comparação de corretude numérica da fórmula fechada contra código de referência e contra estimativa por Monte Carlo"
+      ],
+      "testes": [
+        "nenhum teste estatístico formal — comparação numérica direta (não quantificada com números no texto) e verificação por Monte Carlo para os casos de 2 e 3 objetivos"
+      ],
+      "convencoes": "Não há tabela/figura mostrando os resultados desta verificação — apenas a afirmação textual de que a correspondência foi checada.",
+      "achado": "Os autores afirmam ter verificado que a nova expressão fechada da EI baseada em hipervolume produz os mesmos resultados que o código público de Emmerich et al. [16] (caso de 2 objetivos) e que os casos de 2 e 3 objetivos foram adicionalmente checados por métodos de Monte Carlo — mas nenhum número, erro ou tabela de discrepância é mostrado no artigo.",
+      "aplicabilidade": "Não reprodutível — não é uma análise de desempenho experimental, mas uma checagem de corretude matemática/implementação de uma fórmula fechada de terceiros, sem dados quantitativos publicados; não corresponde a nenhuma camada da dissertação (que registra desempenho de algoritmos, não corretude de fórmulas fechadas).",
+      "observacoes": "Resultado relatado apenas em prosa (sem números, tabela ou figura) — não é material suplementar oculto, é todo o conteúdo que o artigo mostra para esta verificação."
+    },
+    {
+      "fichas": [
+        27
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Menção, como resultado preliminar de trabalho futuro (sem tabela, figura ou números), de que a vantagem do EMO sobre alternativas seria maior quanto menor o orçamento de avaliações (<100).",
+      "literal": "Preliminary results show that the benefits of the EMO algorithm are more pronounced when limited to a very low number of function evaluations",
+      "localizador": "Sec. 5 (Conclusion)",
+      "metricas": [
+        "não especificado — resultado preliminar mencionado sem números"
+      ],
+      "testes": [
+        "não especificado"
+      ],
+      "convencoes": "",
+      "achado": "Os autores afirmam, sem mostrar dados, que a vantagem do EMO sobre alternativas é maior quanto menor o orçamento de avaliações (<100), sugerindo que o benefício do surrogate seria mais evidente em regimes extremamente escassos — consistente com o padrão geral de otimização assistida por surrogate, mas aqui apresentado como resultado preliminar não documentado neste artigo.",
+      "aplicabilidade": "Não reprodutível a partir deste documento — não há problema, algoritmo específico, nem números associados a esta afirmação; seria, na dissertação, uma leitura de prefixo de orçamento (ficha 27) SE o EMO estivesse no roster, o que não é o caso.",
+      "observacoes": "só mencionada"
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo NÃO mede calibração/cobertura do σ do Kriging (não há checagem da fração de pontos dentro de μ±kσ contra um nominal, nem correlação σ×erro, nem RMSE do próprio σ). A única checagem relacionada à qualidade do modelo é a validação cruzada 20-fold da MÉDIA (Fig. 6, mapeada à ficha 31), que não envolve a variância prevista. O uso da variância na EI/PoI é inteiramente ANALÍTICO (integração fechada assumindo a variância do Kriging como corretamente especificada), sem qualquer checagem empírica de que essa variância é confiável ou bem calibrada.",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Dois tipos de custo relatados, nenhum como tempo de parede total por execução completa nos problemas DTLZ: (1) um microbenchmark isolado (Fig. 5) do tempo (segundos) e do número de células da decomposição do espaço de objetivos, sintético (não ligado às execuções reais), variando com o número de objetivos (2-8) e o tamanho do conjunto de Pareto, comparado ao método concorrente exi2D só para o caso 2D; (2) caveats qualitativos sem números: a construção dos modelos de Kriging + avaliação dos critérios estatísticos tem custo computacional dito 'similar ao custo computacional de MOEAs que dependem do hipervolume (i.e., SMS-EMOA)', o que 'pode limitar o uso prático do algoritmo EMO para alguns problemas de otimização (menos caros)'; e o armazenamento dos limites dos intervalos (integral bounds) em memória é dito 'proibitivamente caro para um número maior de objetivos'.",
+    "literal": "the construction of the Kriging models and the evaluation of the statistical criteria comes at a computational cost, similar to the computational cost of MOEAs that rely on the hypervolume",
+    "localizador": "Sec. 4.3 (parágrafo de limitações); Sec. 3.4, Fig. 5"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "No único problema (DTLZ1) em que o EMO não supera claramente os MOEAs em hipervolume, a causa apontada pelos autores é diretamente a imprecisão do Kriging (não o critério de aquisição): o primeiro objetivo de DTLZ1 é mal aproximado, especialmente para valores grandes.",
+      "literal": "After a closer examination it is observed that the accuracy of the Kriging models of DTLZ1 for most statistical criteria is sub-optimal.",
+      "localizador": "Sec. 4.3"
+    },
+    {
+      "descricao": "Os autores generalizam o caso DTLZ1 num caveat explícito: o EMO depende de o Kriging capturar bem o comportamento das funções objetivo à medida que mais amostras chegam, o que reconhecem que 'pode nem sempre ser o caso' — a garantia prática do método depende de uma premissa nem sempre satisfeita.",
+      "literal": "they should be able to capture the behavior of the objective functions sufficiently well when enough samples become available, which might not always be the case",
+      "localizador": "Sec. 4.3"
+    },
+    {
+      "descricao": "Os autores admitem que o custo computacional do EMO (ajuste do Kriging + otimização dos critérios estatísticos) é comparável ao do MOEA mais caro testado (SMS-EMOA, que depende do hipervolume), o que pode limitar o uso prático do EMO em problemas menos caros de se avaliar — um caveat direto sobre quando vale a pena usar o surrogate.",
+      "literal": "which might limit the practical usage of the EMO algorithm for some (less expensive) optimization problems",
+      "localizador": "Sec. 4.3"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "O critério Phv — mais barato porque move a variância prevista para FORA da função de melhoria (mantendo-a só na parte de probabilidade P[I]) — iguala ou supera o critério EIhv — mais caro, que integra a variância DENTRO da melhoria de hipervolume — em 3 dos 4 problemas testados (DTLZ2, DTLZ5, DTLZ7; nos dois últimos o EIhv nem chegou a ser testado, por custo). Evidência de que a simplificação não custa desempenho, um padrão de 'critério mais barato ≈ ou melhor que critério caro' próximo ao que a dissertação também investiga.",
+      "literal": "a new statistical criterion is proposed, based on the hypervolume-based EI, which is significantly cheaper to compute while still delivering promising results",
+      "localizador": "Abstract; Sec. 4.3, Table 2"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "geometria/escala do objetivo (DTLZ1 — valores grandes, plano y1+y2+y3=1, referência r=(400,400,400))",
+      "afirmacao": "O Kriging tem dificuldade específica em aproximar valores GRANDES do primeiro objetivo de DTLZ1 (Fig. 6a) — o único problema, entre os 4 testados, em que o EMO não supera claramente os MOEAs em hipervolume nem em convergence measure.",
+      "literal": "Kriging has problems approximating the larger values of the objective function",
+      "localizador": "Sec. 4.3, Fig. 6"
+    },
+    {
+      "caracteristica": "frente desconexa (DTLZ7, 2^(m−1)=8 regiões de Pareto-ótimas desconexas no espaço de objetivos, m=4)",
+      "afirmacao": "Apesar da desconexão da frente, o critério Phv obtém o melhor resultado marcado no artigo (negrito+itálico) tanto em convergence measure (0.0280) quanto em hipervolume (43.5404) entre as configurações testadas em DTLZ7 no orçamento 250 — o EIhv nem foi testado neste problema, por ser considerado caro demais para aplicar a todos os casos.",
+      "literal": "the DTLZ7 function with four objective functions which has 2m−1 = 24−1 = 8 disconnected Pareto-optimal regions in the objective space",
+      "localizador": "Sec. 4.1"
+    },
+    {
+      "caracteristica": "muitos objetivos (m crescente, até 8; DTLZ5 com m=6)",
+      "afirmacao": "O artigo reconhece que o EMO 'não escapa da maldição da dimensionalidade' em relação ao número de objetivos e de pontos de Pareto, mesmo com a decomposição eficiente em células — mas afirma que o método é aplicável até 8 objetivos na prática, com a ressalva de que problemas reais tendem a agregar objetivos para ≤4 por interpretabilidade para o projetista.",
+      "literal": "the EMO algorithm also does not escape the curse of dimensionality (no-free-lunch theorem) with respect to the number of objective functions and number of Pareto points",
+      "localizador": "Sec. 5 (Conclusion)"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) Não há material suplementar — o artigo é autocontido em 20 páginas (abstract + 5 seções + referências); a camada de texto bruto (ANEXO get_text) e a de OCR de imagens (ANEXO) foram ambas lidas por inteiro e não trazem nenhum conteúdo substantivo ausente da camada estruturada (a OCR só recupera rótulos internos de figuras/flowchart, sem números novos). (2) Nenhum teste de significância estatística é aplicado em lugar nenhum do artigo — só média±desvio-padrão sobre 10 execuções (não 30 sementes), com convenção de negrito/itálico. (3) D (dimensão de decisão) é FIXO em 6 para os 4 problemas testados — não há estudo de escalabilidade com D, ao contrário do desenho da dissertação (orçamento 31D−1). (4) O EIhv (critério mais caro, que integra a variância dentro da melhoria de hipervolume) só foi testado em DTLZ1 e DTLZ2 — 'the EIhv criterion is not applied to the DTLZ5 and DTLZ7 problems' — presumivelmente por custo computacional em problemas de mais objetivos. (5) O motor do EMO não é evolutivo (Monte Carlo + busca local sobre um critério fechado), o que o deixa fora do encaixe direto nas fichas do Grupo B (9-16), pensadas para comparações assistido×piso com motor evolutivo casável e DoE pareado por semente — mesmo assim, ficha 1 (placar) e ficha 16 (onde/por que o piso vence) se aplicam de forma direta à Table 2. (6) Seleção/atualização em LOTE (q>1 pontos por iteração) é mencionada só como trabalho FUTURO ('Indirectly, a speedup can also be achieved by selecting multiple update points at a time') — não é implementada nem testada neste artigo; a ficha 64 (sub-estudo de lote) não se aplica. (7) A Fig. 5 (microbenchmark de custo da decomposição em células) e a checagem de corretude da Sec. 3.3.1 são o núcleo da contribuição computacional do artigo (título: 'Fast calculation...') mas não se encaixam bem em nenhuma das 64 fichas — ambas mapeadas como NOVAS (grupos F e E respectivamente) por serem estudos sobre o CRITÉRIO/fórmula em si (corretude, escalabilidade com nº de objetivos e tamanho do conjunto de Pareto), não sobre desempenho do algoritmo de otimização nos problemas de referência. (8) Note-se um padrão numérico observado por mim ao ler a Table 2 (não afirmado explicitamente pelo artigo): em DTLZ1, as 4 configurações do EMO têm convergence measure bem distintas entre si (EIhv=37.61 vs. EIeuclid=93.28) apesar de todas usarem o MESMO Kriging (com o mesmo ajuste ruim) — ou seja, um modelo ruim não nivela o desempenho de todos os critérios por igual; a escolha do critério ainda importa mesmo sob um surrogate impreciso. Reporto isso com cautela como leitura própria dos números, não como afirmação do artigo."
+}

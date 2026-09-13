@@ -1,0 +1,300 @@
+{
+  "schema_version": 1,
+  "run_id": "main_c217_MMF1_42",
+  "exp": "main",
+  "alg": "c217",
+  "problema": "MMF1",
+  "semente": 42,
+  "regime": "online",
+  "q": 1,
+  "tier": "",
+  "dist": "",
+  "status": "ok",
+  "n_retries": 0,
+  "stack_trace": "",
+  "maxfe": 61,
+  "fe_final": 61,
+  "n_geracoes": 43,
+  "doe_hash": "b4682dc218d24077819efadd43764db3ed8403bb3e48c5c8cf66329cc191fcc7",
+  "repo_hash": "",
+  "algo_version": "c217-PCSAEA-PlatEMO4.15",
+  "env": {
+    "matlab": "25.1.0.2973910 (R2025a) Update 1",
+    "stack": "matlab-platemo",
+    "pymoo": "0.6.2"
+  },
+  "timing": {
+    "tempo_total_s": 7.0369044166666663,
+    "tempo_fit_surrogate_s": 3.5701683610677719,
+    "tempo_busca_s": 0.5062553733587265,
+    "tempo_aval_real_s": 0.016286500000000002,
+    "tempo_pred_sonda_s": 0.83165108333333326
+  },
+  "fit_series": [
+    {
+      "geracao": 1,
+      "n_acumulado": 9,
+      "tempo_fit_s": 0.35428887605667114
+    },
+    {
+      "geracao": 2,
+      "n_acumulado": 9,
+      "tempo_fit_s": 0.099680162966251373
+    },
+    {
+      "geracao": 3,
+      "n_acumulado": 10,
+      "tempo_fit_s": 0.099021211266517639
+    },
+    {
+      "geracao": 4,
+      "n_acumulado": 10,
+      "tempo_fit_s": 0.0980617105960846
+    },
+    {
+      "geracao": 5,
+      "n_acumulado": 11,
+      "tempo_fit_s": 0.0918264165520668
+    },
+    {
+      "geracao": 6,
+      "n_acumulado": 11,
+      "tempo_fit_s": 0.08543366938829422
+    },
+    {
+      "geracao": 7,
+      "n_acumulado": 12,
+      "tempo_fit_s": 0.083411000669002533
+    },
+    {
+      "geracao": 8,
+      "n_acumulado": 12,
+      "tempo_fit_s": 0.087977834045887
+    },
+    {
+      "geracao": 9,
+      "n_acumulado": 12,
+      "tempo_fit_s": 0.079140834510326385
+    },
+    {
+      "geracao": 10,
+      "n_acumulado": 12,
+      "tempo_fit_s": 0.086788170039653778
+    },
+    {
+      "geracao": 11,
+      "n_acumulado": 12,
+      "tempo_fit_s": 0.089785836637020111
+    },
+    {
+      "geracao": 12,
+      "n_acumulado": 12,
+      "tempo_fit_s": 0.078495211899280548
+    },
+    {
+      "geracao": 13,
+      "n_acumulado": 13,
+      "tempo_fit_s": 0.25668126344680786
+    },
+    {
+      "geracao": 14,
+      "n_acumulado": 13,
+      "tempo_fit_s": 0.084881871938705444
+    },
+    {
+      "geracao": 15,
+      "n_acumulado": 14,
+      "tempo_fit_s": 0.085269458591938019
+    },
+    {
+      "geracao": 16,
+      "n_acumulado": 14,
+      "tempo_fit_s": 0.074231043457984924
+    },
+    {
+      "geracao": 17,
+      "n_acumulado": 15,
+      "tempo_fit_s": 0.079738497734069824
+    },
+    {
+      "geracao": 18,
+      "n_acumulado": 15,
+      "tempo_fit_s": 0.07402375340461731
+    },
+    {
+      "geracao": 19,
+      "n_acumulado": 16,
+      "tempo_fit_s": 0.067539170384407043
+    },
+    {
+      "geracao": 20,
+      "n_acumulado": 16,
+      "tempo_fit_s": 0.0674976259469986
+    },
+    {
+      "geracao": 21,
+      "n_acumulado": 17,
+      "tempo_fit_s": 0.067623205482959747
+    },
+    {
+      "geracao": 22,
+      "n_acumulado": 17,
+      "tempo_fit_s": 0.065400585532188416
+    },
+    {
+      "geracao": 23,
+      "n_acumulado": 18,
+      "tempo_fit_s": 0.071414455771446228
+    },
+    {
+      "geracao": 24,
+      "n_acumulado": 18,
+      "tempo_fit_s": 0.06472354382276535
+    },
+    {
+      "geracao": 25,
+      "n_acumulado": 18,
+      "tempo_fit_s": 0.0884474590420723
+    },
+    {
+      "geracao": 26,
+      "n_acumulado": 18,
+      "tempo_fit_s": 0.080977663397789
+    },
+    {
+      "geracao": 27,
+      "n_acumulado": 18,
+      "tempo_fit_s": 0.077080085873603821
+    },
+    {
+      "geracao": 28,
+      "n_acumulado": 18,
+      "tempo_fit_s": 0.0674000009894371
+    },
+    {
+      "geracao": 29,
+      "n_acumulado": 19,
+      "tempo_fit_s": 0.067845329642295837
+    },
+    {
+      "geracao": 30,
+      "n_acumulado": 19,
+      "tempo_fit_s": 0.067580416798591614
+    },
+    {
+      "geracao": 31,
+      "n_acumulado": 19,
+      "tempo_fit_s": 0.059871707111597061
+    },
+    {
+      "geracao": 32,
+      "n_acumulado": 19,
+      "tempo_fit_s": 0.063941001892089844
+    },
+    {
+      "geracao": 33,
+      "n_acumulado": 19,
+      "tempo_fit_s": 0.065174579620361328
+    },
+    {
+      "geracao": 34,
+      "n_acumulado": 19,
+      "tempo_fit_s": 0.063284873962402344
+    },
+    {
+      "geracao": 35,
+      "n_acumulado": 19,
+      "tempo_fit_s": 0.060030665248632431
+    },
+    {
+      "geracao": 36,
+      "n_acumulado": 19,
+      "tempo_fit_s": 0.058662790805101395
+    },
+    {
+      "geracao": 37,
+      "n_acumulado": 19,
+      "tempo_fit_s": 0.06160866841673851
+    },
+    {
+      "geracao": 38,
+      "n_acumulado": 19,
+      "tempo_fit_s": 0.0582055002450943
+    },
+    {
+      "geracao": 39,
+      "n_acumulado": 19,
+      "tempo_fit_s": 0.058522123843431473
+    },
+    {
+      "geracao": 40,
+      "n_acumulado": 19,
+      "tempo_fit_s": 0.058285582810640335
+    },
+    {
+      "geracao": 41,
+      "n_acumulado": 19,
+      "tempo_fit_s": 0.060998167842626572
+    },
+    {
+      "geracao": 42,
+      "n_acumulado": 19,
+      "tempo_fit_s": 0.059316333383321762
+    }
+  ],
+  "cache_hits": 3,
+  "fallback_ativado": false,
+  "paths": {
+    "local": {
+      "real": "data_xmachine/experiments/main/c217/exp_main_c217_MMF1_42__real.parquet",
+      "pop": "data_xmachine/experiments/main/c217/exp_main_c217_MMF1_42__pop.parquet",
+      "surrogate": "data_xmachine/experiments/main/c217/exp_main_c217_MMF1_42__surrogate.parquet",
+      "timing": "data_xmachine/experiments/main/c217/exp_main_c217_MMF1_42__timing.parquet",
+      "jsonl": "data_xmachine/experiments/main/c217/exp_main_c217_MMF1_42.jsonl",
+      "manifest": "data_xmachine/experiments/main/c217/exp_main_c217_MMF1_42.manifest.json"
+    }
+  },
+  "created_at": "2026-07-26T02:25:31Z",
+  "updated_at": "2026-07-26T02:25:31Z",
+  "sonda": {
+    "artefato": "data_xmachine/sonda/sonda_MMF1.parquet",
+    "x_hash": "186b726e7d62abaa46a814ce785a97727367ec1c10f936570b6a49ad20e9f59f",
+    "f_hash": "0d6547d63f920a20740de1282b89f9f9738b5714d1a719dae43f49f3670f5497",
+    "regime": "online",
+    "S": 2000,
+    "k": 2,
+    "n_blocos": 22,
+    "n_linhas": 44000,
+    "n_falhas": 0,
+    "tempo_total_s": 0.83165108333333326,
+    "geracoes": [
+      1,
+      2,
+      4,
+      6,
+      8,
+      10,
+      12,
+      14,
+      16,
+      18,
+      20,
+      22,
+      24,
+      26,
+      28,
+      30,
+      32,
+      34,
+      36,
+      38,
+      40,
+      42
+    ]
+  },
+  "sigma_dict": {
+    "pred_score": "score ternario {-1,0,+1} AGREGADO do PNN par-a-par vs a referencia corrente Pmid (nao ha comparacao O(n^2) gravada — DEF-C2)",
+    "pred_confianca": "Error1 do ciclo (confiabilidade estimada do classificador; CONSTANTE por bloco/geracao — e um atributo do MODELO, nao do ponto)",
+    "mu_sigma": "NULL SEMPRE (classificador par-a-par puro — nao ha cabeca de valor nem incerteza)"
+  }
+}

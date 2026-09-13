@@ -1,0 +1,49 @@
+gabarito da sonda: /Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/sonda/sonda_MMF1.parquet (20000, 5) ['sonda_id', 'x0', 'x1', 'f0', 'f1']
+  sha256(X)=186b726e7d62abaa46a814ce785a97727367ec1c10f936570b6a49ad20e9f59f
+  sha256(F)=0d6547d63f920a20740de1282b89f9f9738b5714d1a719dae43f49f3670f5497
+
+========================================================================================
+### T11_smoke
+  manifest.sonda.x_hash == sha256(X do gabarito)? True  f_hash? True
+  regimes: {'sonda': 42000, 'online': 800}  sonda_estratificada presente? False
+  U5 join posicional: max|dX| sonda x gabarito em 21 blocos = 1.192e-07
+  espaco_modelo: sonda=['cru']  online=['transformado']
+  transf_tipo  : sonda=[None]  online=['minmax']
+  transf_params NULL na sonda? True
+  U6 obj0: WAPE 0.4697 -> 0.1352  | cob 1.000 -> 0.514 | corr 0.338 -> 0.925 | |mu|max=15.8 | sigma-NaN=0
+  U6 obj1: WAPE 0.7222 -> 5.5984  | cob 0.940 -> 0.476 | corr 0.211 -> 0.029 | |mu|max=581.4 | sigma-NaN=0
+  n_validas por bloco: [np.int64(2000)] (esperado 2000)
+  E8 modelo_flag: ['OK-Forrester'] (n=42800, 100%? True)
+     pred_tipo=['valor'] pred_classe NULL=True pred_score NULL=True pred_confianca NULL=True ; sigma nulos=0
+  E10 ga_pop=[20] ga_gens=[200] -> aval/iter=4000 ; total=160000
+  E11 linhas de pool por geracao: [np.int64(20)] (esperado 10D=20) ; total=800
+  E12 criterion no evento: ['Euclidean'] (40/40)
+     header.criterion='Euclidean (EIMe — default do driver; paper nao elege)' ; params.criterion='Euclidean (EIMe)'
+  E14 guards: n_eim_nan=0 n_range0=0 n_dedup=0 ; n_front min=6 (n_front==1 em 0 gens)
+     range efetivo min=0.9901 (eps=2.22e-16)
+  A2 real_solution_id no pool: 626 de 800 linhas ; apontando p/ ponto ANTIGO: 0
+     X bit-identico ao vencedor: 768 de 800 (96.0%) -> colapso do GA interno em D=2
+  metrics disponivel: ['HV_REF_COORD', 'HV_SANITY_BBOB_F1', 'HV_SMOKE_BBOB_F1', 'hv', 'hv_front_sanity_bbob_f1', 'hv_smoke_bbob_f1', 'igd', 'igd_plus']
+
+========================================================================================
+### R42
+  manifest.sonda.x_hash == sha256(X do gabarito)? True  f_hash? True
+  regimes: {'sonda': 42000, 'online': 800}  sonda_estratificada presente? False
+  U5 join posicional: max|dX| sonda x gabarito em 21 blocos = 1.192e-07
+  espaco_modelo: sonda=['cru']  online=['transformado']
+  transf_tipo  : sonda=[None]  online=['minmax']
+  transf_params NULL na sonda? True
+  U6 obj0: WAPE 0.4585 -> 0.1092  | cob 1.000 -> 0.537 | corr 0.393 -> 0.962 | |mu|max=10.19 | sigma-NaN=0
+  U6 obj1: WAPE 0.7222 -> 1.7177  | cob 0.940 -> 0.594 | corr 0.211 -> 0.155 | |mu|max=1882 | sigma-NaN=0
+  n_validas por bloco: [np.int64(2000)] (esperado 2000)
+  E8 modelo_flag: ['OK-Forrester'] (n=42800, 100%? True)
+     pred_tipo=['valor'] pred_classe NULL=True pred_score NULL=True pred_confianca NULL=True ; sigma nulos=0
+  E10 ga_pop=[20] ga_gens=[200] -> aval/iter=4000 ; total=160000
+  E11 linhas de pool por geracao: [np.int64(20)] (esperado 10D=20) ; total=800
+  E12 criterion no evento: ['Euclidean'] (40/40)
+     header.criterion='Euclidean (EIMe — default do driver; paper nao elege)' ; params.criterion='Euclidean (EIMe)'
+  E14 guards: n_eim_nan=0 n_range0=0 n_dedup=0 ; n_front min=6 (n_front==1 em 0 gens)
+     range efetivo min=0.9901 (eps=2.22e-16)
+  A2 real_solution_id no pool: 561 de 800 linhas ; apontando p/ ponto ANTIGO: 0
+     X bit-identico ao vencedor: 741 de 800 (92.6%) -> colapso do GA interno em D=2
+  metrics disponivel: ['HV_REF_COORD', 'HV_SANITY_BBOB_F1', 'HV_SMOKE_BBOB_F1', 'hv', 'hv_front_sanity_bbob_f1', 'hv_smoke_bbob_f1', 'igd', 'igd_plus']

@@ -1,0 +1,63 @@
+{
+  "_meta": {
+    "artefato": "motivos_parada.json",
+    "decisao": "B-06 (PLANO_RODADA_PERFEITA §1) + DI-41.2 + DI-38a",
+    "data": "2026-07-29",
+    "cartao": "T11-G6",
+    "o_que_e": "A FONTE ÚNICA da classificação de `motivo_parada`: para cada motivo, se a parada é SANCIONADA (estado esperado da célula, não falha do pipeline) ou FALHA (a célula precisa de triagem/re-run).",
+    "por_que": "O carve-out ⚪ vivia como 3 literais em 3 arquivos (`scripts/portao.py`, `scripts/accept.py`, `scripts/censo42.py`). Em 2026-07-25 o literal foi cravado ERRADO ('cache_cap' em vez de 'cache_hit_travado', DI-41.2): os runners emitem `cache_hit_travado` (c122:815, c149:848, e81:1063) e `cache_cap` só existe como NOME DE PARÂMETRO no header. Com 3 cópias, a próxima divergência é questão de tempo — e ela pinta de 🔴 todo aborto sancionado (falso alarme em escala) ou passa um aborto REAL como ⚪.",
+    "consumidores": ["scripts/portao.py", "scripts/accept.py", "scripts/censo42.py"],
+    "teste_de_aceitacao": "tests/test_gates_g6.py::TestMotivosParada — grep dos literais `motivo_parada` em src/*.py × este artefato ⇒ conjunto de NÃO-CLASSIFICADOS vazio.",
+    "medido_na_rodada_42": "251 células com motivo_parada='orcamento' + 1 com 'gpy_bfgs_linalg' (o LinAlgError mascarado do c311/sweep-big-mvns/MMF16_20 — a prova empírica do B-05/DI-42.1)."
+  },
+  "classes": {
+    "sancionado": "Parada PREVISTA e aceita pelo desenho do estudo. Não é falha do pipeline; a célula entra na análise com o que produziu (curva parcial é dado — DI-37.1/DI-43).",
+    "falha": "Parada anômala. A célula exige triagem (e possivelmente re-run); nunca entra como resultado silencioso.",
+    "normal": "Fim NATURAL do run (orçamento esgotado no hard-stop exato — D21/D61)."
+  },
+  "motivos": {
+    "orcamento": {
+      "classe": "normal",
+      "onde": "runners standalone (fim natural: bud.fe == maxfe)",
+      "nota": "O fim esperado de 251/666 células da s42. `status` = ok."
+    },
+    "teto_wall": {
+      "classe": "sancionado",
+      "onde": "todos os runners Python (teto `--teto-s`, DI-44 = 12 h)",
+      "nota": "⟦DI-43/44⟧ Desde o T11-G5 o teto TRUNCA COM DADO: fecha `failed`/`teto_wall` GRAVANDO as camadas parciais. Antes (DI-38a) abortava sem camada nenhuma, e o portão precisava de um carve-out sem gates; agora a célula TEM dado e pode ser gateada normalmente."
+    },
+    "cache_hit_travado": {
+      "classe": "sancionado",
+      "onde": "c122:815, c149:848, e81:1063",
+      "nota": "O algoritmo passou a propor apenas X já avaliados (cache-hit D89 = 0 FE): sem X inédito o orçamento nunca fecha. Parar é o comportamento correto. ⚠ NÃO é 'cache_cap' (esse é o nome do PARÂMETRO no header) — a divergência custou a DI-41.2."
+    },
+    "checkpoint_em_andamento": {
+      "classe": "falha",
+      "onde": "src/checkpoint.py (⑤ do checkpoint periódico, DI-43)",
+      "nota": "Só existe em disco enquanto o run VIVE ou depois de uma morte matada (SIGKILL/OOM/spot). Se aparece no censo, a célula morreu no meio: `fe_final` é PISO das camadas e a célula tem de re-rodar."
+    },
+    "gpy_bfgs_linalg": {
+      "classe": "falha",
+      "onde": "c311 (addGPs → LinAlgError do GPy; o stock não tem try)",
+      "nota": "1 célula na s42 (`sweep-big-mvns/c311/MMF16_20`) — e ela estava carimbada `status=ok` (o bug B-05/DI-42.1). É determinística na semente 42."
+    },
+    "fit_falhou": {
+      "classe": "falha",
+      "onde": "runner standalone (fit do surrogate esgotou as tentativas)",
+      "nota": "Falha de condicionamento/numérica do modelo."
+    },
+    "violacao_regime_offline": {
+      "classe": "falha",
+      "onde": "src/standalone_harness.py:679",
+      "nota": "Guarda de contrato: um run offline avaliou FE fora do dataset."
+    },
+    "erro_<Excecao>": {
+      "classe": "falha",
+      "onde": "b5_prob, piso_offline, sobol_batch, treed_media (`motivo=f\"erro_{type(exc).__name__}\"`)",
+      "nota": "PADRÃO PREFIXADO, não literal: qualquer motivo que comece por `erro_` é FALHA. O consumidor tem de tratar o prefixo (é o que `classifica()` faz)."
+    }
+  },
+  "prefixos_de_falha": ["erro_"],
+  "sancionados": ["teto_wall", "cache_hit_travado"],
+  "normais": ["orcamento"]
+}

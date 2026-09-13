@@ -1,0 +1,377 @@
+{
+  "id": "c141",
+  "sigla": "MMRAEA",
+  "titulo": "Optimization of high-dimensional expensive multi-objective problems using multi-mode radial basis functions",
+  "ano": 2025,
+  "roster": true,
+  "setup": {
+    "benchmarks": "Bateria sintética: 3-objective DTLZ1-7, 2-objective ZDT1-4,6, e 3-objective WFG1-9, cada um com d=20, 40, 60 e 100 variáveis de decisão (84 instâncias no total). Caso real: projeto do quadro (frame) de um planador submarino asa-mesclada (BWBUG — blended-wing-body underwater glider), 2 objetivos (peso W; tensão equivalente máxima σmax via FEA), 43 variáveis de decisão (9 variáveis de plano + 4 de espessura de viga + 30 de forma de seção via método CST).",
+    "orcamento": "Bateria sintética: FEmax = 11d + 119 (igual ao usado no EDN-ARMOEA), com DoE inicial de 11d−1 pontos via Latin Hypercube Sampling (LHS). Caso BWBUG: 472 (=11×43−1) pontos LHS iniciais + 200 avaliações extras = FEmax = 672.",
+    "execucoes": "20 execuções independentes por instância na bateria sintética (não 30 sementes como na dissertação). Para o caso BWBUG, o texto diz apenas que 'other settings are the same as that in Sect. Experimental studies on benchmark problems', mas a Tabela 8 mostra um único valor de IGD/HV por algoritmo (sem desvio-padrão) e as Figs. 12/13 não indicam agregação — ambíguo se as 20 execuções também se aplicam ao caso real (plausível que seja execução única, dado o alto custo de FEA).",
+    "baselines": "CPS-MOEA, MOEA/D-RBF, EDN-ARMOEA e MCEA/D — todos SAEAs (surrogate-assisted), nenhum piso evolutivo sem surrogate (NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) é testado em nenhuma análise do artigo. Não há, portanto, nenhuma célula comparável à ficha 9 (assistido × piso casado) neste artigo.",
+    "metricas_principais": [
+      "IGD"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum test, α=0.05, símbolos +/−/≈ (convenção DIRETA: '+' = algoritmo comparado significativamente MELHOR que o algoritmo de referência da coluna à direita — MMRAEA nas Tabelas 2-5, ou o próprio MMRAEA completo nas Tabelas 2/3 —, '−' = significativamente PIOR, '=' /'≈' = comparável)",
+      "Friedman test, α=0.05, mesma convenção de símbolos +/−/≈, aplicado por instância individual (uso não padrão do teste — tipicamente multi-comparação agregada sobre vários problemas de uma vez, não pareado por instância isolada) — Tabela 6"
+    ],
+    "apresentacao": "mean(std) por célula sobre as execuções independentes; melhor (menor) valor de cada linha em negrito; símbolos +/−/≈ relativos ao algoritmo de referência da coluna final; linha de placar agregado +/−/≈ no rodapé de cada tabela de comparação. No caso BWBUG (Tabela 8), IGD e HV aparecem como valor único por algoritmo, sem desvio-padrão.",
+    "codigo_plataforma": "PlatEMO (MATLAB) para toda a Sec. 'Experimental studies on benchmark problems' ('All experiments of the present section are implemented on the PlatEMO'). Código-fonte do MMRAEA disponível publicamente em https://github.com/JiangtaoShen/MMRAEA. Não fica claro se o caso BWBUG (que envolve modelagem 3D + malha + FEA) também roda integrado ao PlatEMO ou via ferramenta de FEA externa."
+  },
+  "analises": [
+    {
+      "fichas": [
+        11,
+        15,
+        18
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ablação do mecanismo tri-modo de RBFs: MMRAEA completo (seleciona por nondominated sorting de Q=soma dos 3 ranks de qualidade, mais U=soma das discrepâncias |Ri−Rk| entre os 3 ranks como incerteza, mais 1 indivíduo extra de U máximo para exploração) é comparado a três variantes que usam APENAS um dos três modos RBF isoladamente para escolher os u melhores candidatos (sem ensemble, sem termo de incerteza, sem pick de exploração): MMRAEA-V1 (só valores aproximados de ARBFs), MMRAEA-V2 (só o modelo preditor de fitness FitRBF) e MMRAEA-V3 (só o modelo preditor de número de fronteira FNRBF). IGD, Wilcoxon rank-sum, 48 instâncias (DTLZ1-7 3-obj + ZDT1-4,6 2-obj) × d=20,40,60,100.",
+      "literal": "although its three variants achieve the best performance on some instances, MMRAEA outperforms them under overall consideration and shows the best performance on most of the instances.",
+      "localizador": "Sec. Effectiveness of multi-mode RBFs, Table 2",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=0.05, símbolos +/−/≈ de cada variante contra MMRAEA completo"
+      ],
+      "convencoes": "mean(std) sobre 20 execuções; melhor valor da linha em negrito; linha de placar agregado +/−/≈ no rodapé (V1: 0/26/22; V2: 2/35/11; V3: 3/15/30 — leitura: nº de instâncias em que a variante é significativamente melhor / pior / comparável ao MMRAEA completo, de 48 no total).",
+      "achado": "MMRAEA completo vence a maioria das 48 instâncias contra as três variantes de modo único (26/48 vs V1, 35/48 vs V2, mas só 15/48 vs V3), confirmando que combinar os três modos com o termo de incerteza (Q,U) ajuda no agregado. Mas o ganho é MUITO desigual entre variantes: contra V3 (só o modo de número de fronteira, sem ensemble nem incerteza), MMRAEA empata em 30/48 e até PERDE em 3/48 — o modo isolado de ranking por fronteira já captura a maior parte do valor sozinho, e o acréscimo do ensemble tri-modo + exploração por incerteza máxima rende pouco sobre essa variante específica.",
+      "aplicabilidade": "① (avaliações reais) → endpoint IGD+ por config, SE a dissertação registrar as 3 variantes extras (V1/V2/V3) como configs adicionais no manifesto (camada ⑤), fora do desenho padrão de 1 config por algoritmo. ③ (sonda) permitiria adicionalmente checar se U (discrepância de ranks entre os 3 modos) de fato correlaciona com o erro real nos pontos-sonda — verificação que o próprio artigo nunca faz (ver calibracao_do_sigma)."
+    },
+    {
+      "fichas": [
+        18
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ablação do motor de busca bi-populacional: MMRAEA completo (população final Ptot = P1∪P2, buscada em paralelo por CSO e por GA) é comparado a MMRAEA-CSO (usa só P1, buscada por CSO) e MMRAEA-GA (usa só P2, buscada por GA/SBX+PM), mantendo o MESMO esquema de amostragem por qualidade+incerteza (Q,U) para as três variantes — o que muda é só QUAL sub-população alimenta o amostrador. IGD, Wilcoxon rank-sum, 48 instâncias (DTLZ1-7 + ZDT1-4,6) × d=20,40,60,100.",
+      "literal": "MMRAEA significantly outperforms MMRAEA-GA and MMRAEA-CSO on 38 and 17 out of 48 instances, respectively.",
+      "localizador": "Sec. Effectiveness of bi-population based on CSO and GA, Table 3",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=0.05, símbolos +/−/≈ de cada variante contra MMRAEA completo"
+      ],
+      "convencoes": "mean(std) sobre 20 execuções; melhor valor da linha em negrito; linha de placar agregado (MMRAEA-GA: 2/38/8; MMRAEA-CSO: 7/17/24, de 48).",
+      "achado": "MMRAEA (bi-população) vence MMRAEA-GA em 38/48 e MMRAEA-CSO em 17/48 — o componente CSO sozinho é bem mais competitivo que o GA sozinho em alta dimensão. Achado negativo específico: em DTLZ1 (multimodal, todas as 4 dimensões) e DTLZ3 (multimodal, d=20 e 40), MMRAEA-CSO bate SIGNIFICATIVAMENTE o MMRAEA completo — juntar GA à população piora o resultado nesses problemas especificamente multimodais, atribuído pelos autores à boa capacidade de exploração do operador CSO isoladamente.",
+      "aplicabilidade": "① endpoint por config (MMRAEA-GA, MMRAEA-CSO, MMRAEA completo), exigiria rodar as 2 variantes extras como configs adicionais registradas na camada ⑤, fora do desenho padrão.",
+      "observacoes": "O eixo central desta análise — qual sub-população/operador evolutivo (CSO vs GA vs ambos) alimenta o amostrador — não corresponde ao conteúdo de nenhuma ficha do catálogo atual (as 64 fichas cobrem sobretudo o eixo surrogate/incerteza, não o motor evolutivo em si, que aqui é ortogonal ao mecanismo de incerteza Q,U — as três variantes usam o MESMO Q,U). A ficha 18 aqui cobre só o eixo secundário (escala de d), comum a todas as tabelas do artigo. Candidato a ficha nova: 'Ablação do motor de busca interno (população única vs bi-população; operador A vs B)', grupo E."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de IGD ao longo das avaliações reais para as três variantes da ablação bi-populacional (MMRAEA-GA, MMRAEA-CSO, MMRAEA), em DTLZ2 (Fig. 5) e DTLZ7 (Fig. 6), cada uma nas 4 dimensões (20,40,60,100) — complemento visual/trajetorial da Tabela 3.",
+      "literal": "MMRAEA-GA performs well on DTLZ2 with 20 decision variables and shows the worst performance on problems with 40 and 60 decision variables due to lacking exploration in high-dimensional space, MMRAEA-CSO convergence rapidly only at the preliminary stage",
+      "localizador": "Sec. Effectiveness of bi-population based on CSO and GA, Fig. 5 e Fig. 6",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [],
+      "convencoes": "uma curva por variante, um painel por dimensão d; não fica explícito se a curva é a mediana ou a média sobre as 20 execuções ('iterative IGD values').",
+      "achado": "Em DTLZ2, MMRAEA-GA converge bem só em d=20 e piora muito em d=40/60 por falta de exploração; MMRAEA-CSO converge rápido só no início (excesso de exploração, pouca explotação); MMRAEA (bi-população) combina as duas forças e converge melhor ao longo de toda a trajetória. Em DTLZ7 (frente desconexa), MMRAEA-CSO supera MMRAEA-GA à medida que d cresce (40,60,100), mas o MMRAEA completo ainda bate os dois por capturar candidatos de ambas as sub-populações.",
+      "aplicabilidade": "① avaliações reais em ordem → ND acumulado por checkpoint → curva IGD+ (mediana ou média) × avaliações (ficha 26), direto da camada ①, para as configs extras da ablação bi-populacional (mesma ressalva de reprodutibilidade do item anterior — configs fora do desenho padrão)."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        18
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela de comparação final entre MMRAEA e quatro SAEAs do estado da arte (CPS-MOEA, MOEA/D-RBF, EDN-ARMOEA, MCEA/D) em 48 instâncias (DTLZ1-7 3-obj + ZDT1-4,6 2-obj) × d=20,40,60,100, métrica IGD (mean±std sobre 20 execuções), Wilcoxon rank-sum (5%) com símbolos +/−/≈, mais discussão característica-a-característica (multimodalidade, PF degenerada/desconexa, distribuição enviesada).",
+      "literal": "MMRAEA achieves the best performance on 31 instances in terms of IGD values, while CPS-MOEA, MOEA/D-RBF, EDN-ARMOEA, and MCEA/D win on 0, 4, 2, and 11 instances, respectively.",
+      "localizador": "Sec. Main comparison, Table 4",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=0.05, símbolos +/−/≈ contra MMRAEA"
+      ],
+      "convencoes": "mean(std) por célula sobre 20 execuções; melhor (menor) valor da linha em negrito; símbolos +/−/≈ por algoritmo; 48 instâncias.",
+      "achado": "MMRAEA vence em 31/48 instâncias no IGD, à frente de MCEA/D (11), EDN-ARMOEA (2), MOEA/D-RBF (4) e CPS-MOEA (0). Por característica: em DTLZ1/DTLZ3 (muitos ótimos locais) MCEA/D é o melhor e MMRAEA fica em 2º, com todos os algoritmos com desempenho ruim; em DTLZ2 (PF regular) e DTLZ5/DTLZ6 (PF degenerada) e DTLZ7 (PF desconexa) MMRAEA vence com folga em todas as instâncias; em DTLZ4 (difícil de obter distribuição bem espalhada) MOEA/D-RBF e MCEA/D ficam no top-2, MMRAEA não; no ZDT, MMRAEA vence quase tudo exceto ZDT3 (d=20, desconexo) e a família ZDT4 (multimodal extremo).",
+      "aplicabilidade": "① endpoint (ND de todas as avaliações reais da célula) → mediana de IGD+/HV por algoritmo×problema (ficha 1); teste de postos vs melhor (ficha 3) recomputável com as 30 sementes da dissertação — mas o artigo usa Wilcoxon rank-sum NÃO PAREADO com 20 execuções (não 30) e sem confirmar DoE compartilhado entre os 5 algoritmos, diferente do desenho pareado-por-semente da dissertação (ficha 5). Nenhum dos 5 algoritmos comparados é um dos 4 pisos canônicos da dissertação — não há piso sem surrogate em nenhuma célula deste artigo."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Visualização do conjunto não-dominado final de cada um dos 5 algoritmos comparados no espaço de objetivos, contra a frente de Pareto verdadeira, para DTLZ2 (d=40, 60; Fig. 7) e ZDT1 (d=40, 60; Fig. 8).",
+      "literal": "except MMRAEA, all the compared algorithms fail to converge to the true PFs of the two cases, and the solution sets of MMRAEA show fine convergence and diversity.",
+      "localizador": "Sec. Main comparison, Fig. 7 e Fig. 8",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "um painel por algoritmo×dimensão; frente verdadeira sobreposta; critério de seleção da execução mostrada (única? mediana?) não é explicitado no texto — diferente de outros artigos do roster que declaram 'execução de IGD mediano'.",
+      "achado": "Em DTLZ2, CPS-MOEA/MOEA/D-RBF/EDN-ARMOEA mostram convergência ruim, MCEA/D mostra diversidade ruim, e só MMRAEA tem convergência e diversidade boas simultaneamente. Em ZDT1 (d=40,60), todos os quatro concorrentes falham em convergir à PF verdadeira — só MMRAEA converge bem.",
+      "aplicabilidade": "① (avaliações reais) — reproduzível diretamente (ficha 54), mas com a ressalva de que o artigo não identifica o critério de seleção da execução mostrada (mediana, melhor, ou arbitrária)."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        18
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma estrutura da Table 4, agora nos 36 instâncias do WFG1-9 (3-obj) × d=20,40,60,100 — segunda suíte da comparação principal.",
+      "literal": "MCEA/D achieves the best overall performance on the WFG test suite, MMRAEA ranks second and outperforms CPS-MOEA, MOEA/D-RBF, and EDN-ARMOEA on most of the instances.",
+      "localizador": "Sec. Main comparison, Table 5",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum test, α=0.05, símbolos +/−/≈ contra MMRAEA"
+      ],
+      "convencoes": "Idêntica à Table 4; 36 instâncias (WFG1-9 × 4 dimensões).",
+      "achado": "Ao contrário da bateria DTLZ+ZDT, no WFG quem vence no agregado é MCEA/D (baseado em classificadores SVM), com MMRAEA em 2º lugar — mas ainda à frente de CPS-MOEA, MOEA/D-RBF e EDN-ARMOEA na maioria das instâncias. Os autores concluem que RBFs (a base do MMRAEA) não são adequadas para aproximar as funções objetivo do WFG.",
+      "aplicabilidade": "Mesma aplicabilidade da Table 4 (① endpoint → fichas 1/3), agora para a família WFG; reprodução exigiria que a bateria da dissertação inclua WFG1-9 nas dimensões 20/40/60/100."
+    },
+    {
+      "fichas": [
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Sumário do teste de Friedman (+/−/≈, α=0.05) correspondendo às Tabelas 4 e 5, agregado por bloco de problemas (DTLZ1-7+ZDT1-4,6; WFG1-9) e total, para os quatro algoritmos comparados contra MMRAEA — segunda leitura estatística (Friedman em vez de Wilcoxon) das mesmas 84 instâncias.",
+      "literal": "In total, out of 84 instances, MMRAEA significantly outperforms or performs similarly with CPS-MOEA, MOEA/D-RBF, EDN-ARMOEA, and MCEA/D on 82, 82, 84, and 71 instances.",
+      "localizador": "Sec. Main comparison, Table 6",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Friedman test, α=0.05, símbolos +/−/≈ contra MMRAEA, aplicado por instância individual"
+      ],
+      "convencoes": "contagens agregadas +/−/≈ por bloco (DTLZ+ZDT: CPS-MOEA 1/37/10, MOEA/D-RBF 2/23/23, EDN-ARMOEA 0/40/8, MCEA/D 3/22/23; WFG: CPS-MOEA 1/23/12, MOEA/D-RBF 0/26/10, EDN-ARMOEA 0/22/14, MCEA/D 10/3/23; total: CPS-MOEA 2/60/22, MOEA/D-RBF 2/49/33, EDN-ARMOEA 0/62/22, MCEA/D 13/25/46).",
+      "achado": "Pelo teste de Friedman, MMRAEA nunca perde para EDN-ARMOEA (0/62/22) e raramente perde para CPS-MOEA (2/84) ou MOEA/D-RBF (2/84); contra MCEA/D o placar é mais parelho (13 perdas para MMRAEA de 84). No WFG especificamente, MMRAEA e MCEA/D são estatisticamente equivalentes (≈) em 23 das 36 instâncias — maioria dos casos indistinguível apesar de mecanismos de surrogate distintos (RBF tri-modo+incerteza vs. classificador SVM).",
+      "aplicabilidade": "Mesma base de dados de Table 4/5 (① endpoint), agora com Friedman aplicado por instância (uso não padrão do teste — tipicamente uma comparação multi-algoritmo agregada sobre N problemas de uma vez, não pareada por instância isolada). A dissertação usaria Friedman+Nemenyi+diagrama de diferença crítica (ficha 4) de forma mais convencional, agregando sobre os problemas de uma vez em vez de por instância d-específica; este artigo não produz ranking nem diagrama CD, só a contagem +/−/≈, por isso não mapeado à ficha 4."
+    },
+    {
+      "fichas": [
+        46
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tempo médio de execução (runtime) de CPS-MOEA, MOEA/D-RBF, EDN-ARMOEA, MCEA/D e MMRAEA em DTLZ2 (3-obj), nas 4 dimensões (20,40,60,100), com discussão textual do porquê de cada diferença (complexidade do modelo surrogate de cada algoritmo).",
+      "literal": "the computational time of MMRAEA is negligible when time-consuming simulations are involved.",
+      "localizador": "Sec. Runtime comparison, Fig. 9",
+      "metricas": [
+        "tempo de execução (runtime)"
+      ],
+      "testes": [],
+      "convencoes": "runtime médio (agregação sobre as execuções não explicitada) por algoritmo, eixo x = d; problema único (DTLZ2); sem decomposição de fases (fit/busca/avaliação); unidade de tempo não explicitada no texto.",
+      "achado": "CPS-MOEA é o mais rápido (KNN barato, avalia mais indivíduos por iteração); MOEA/D-RBF e MCEA/D são mais rápidos que MMRAEA (usam só 1 modelo RBF ou SVM por subproblema, respectivamente, com custo menos dependente de d no caso do SVM); EDN-ARMOEA (rede neural com dropout) é o mais lento de todos; MMRAEA fica na mesma ordem de grandeza de MOEA/D-RBF e MCEA/D. Conclusão dos autores: o custo extra do tri-modo RBF é aceitável e desprezível frente a simulações reais caras.",
+      "aplicabilidade": "④ tempos por geração (ajuste do modelo, busca, sonda) permitiria decompor o que aqui é só tempo total por execução — a dissertação pode ir além do artigo, separando fit/busca/avaliação, decomposição que este artigo não faz."
+    },
+    {
+      "fichas": [
+        1,
+        23
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela final de IGD e HV para os 5 algoritmos no caso real BWBUG (43D, 2 objetivos: peso W e tensão equivalente máxima σmax), com referência de IGD = ND do conjunto combinado Stot e referência de HV = ponto nadir de Stot.",
+      "literal": "MMRAEA and EDN-ARMOEA achieve the top two performance, and the other three algorithms fail to approximate the PF of the practical problem.",
+      "localizador": "Sec. Results and discussions (BWBUG), Table 8",
+      "metricas": [
+        "IGD",
+        "HV"
+      ],
+      "testes": [],
+      "convencoes": "valor único de IGD e HV por algoritmo (sem desvio-padrão nem nº de execuções explicitado); melhor valor de cada linha em negrito.",
+      "achado": "MMRAEA (IGD 1.0997, HV 0.7260) e EDN-ARMOEA (IGD 1.6282, HV 0.7271) dominam claramente; CPS-MOEA, MOEA/D-RBF e MCEA/D falham em aproximar a frente do problema prático (IGD 6.68-6.77, HV ~0.67). MMRAEA tem melhor IGD mas EDN-ARMOEA tem HV levemente maior — indicando convergência boa mas talvez menor cobertura/diversidade do MMRAEA neste caso específico (texto confirma: solução de EDN-ARMOEA 'show good convergence but worse diversity').",
+      "aplicabilidade": "① endpoint em um problema real de engenharia (análogo à ficha 1, mas para 1 problema só) e ficha 23 como 'caso nomeado' — embora BWBUG NÃO seja um dos 3 problemas reais da própria dissertação (RE21/ESTOQUE40/DDMOP7). Referência de IGD/HV usa o ND combinado dos 5 algoritmos (Stot), não uma frente verdadeira conhecida nem um dataset compartilhado — desenho de referência diferente do usado pela dissertação.",
+      "observacoes": "Não fica claro se as 20 execuções independentes da bateria sintética também se aplicam ao caso BWBUG — a Tabela 8 mostra valor único sem desvio-padrão, e a legenda da Fig. 13 ('Iterative IGD values and HV values of MOEA/D-RBF, HeE-MOEA, and MMRAEA') cita só 3 nomes de algoritmo, um dos quais ('HeE-MOEA') nem aparece como coluna na Tabela 8 (que lista CPS-MOEA, MOEA/D-RBF, EDN-ARMOEA, MCEA/D, MMRAEA) — aparente resíduo/erro editorial do artigo (provável rótulo herdado de versão anterior do manuscrito), não corrigido pelos autores; mantido aqui como citado, sem tentar reconciliar."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Visualização do conjunto não-dominado final dos 5 algoritmos no espaço de objetivos (peso × tensão) para o caso BWBUG.",
+      "literal": "Fig. 12 Nondominated solutions obtained by the five compared algorithms on the BWBUG frame design problem",
+      "localizador": "Sec. Results and discussions (BWBUG), Fig. 12",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "um painel (ou sobreposição) com as soluções não-dominadas de cada um dos 5 algoritmos; não há frente verdadeira conhecida (problema real) — usa-se Stot como referência visual implícita.",
+      "achado": "Consistente com a Tabela 8: MMRAEA e EDN-ARMOEA produzem conjuntos próximos da fronteira combinada, os outros três ficam visualmente distantes/dominados.",
+      "aplicabilidade": "① — mesma lógica das Figs. 7/8 (ficha 54), aplicada ao caso real BWBUG; sem frente verdadeira, a referência visual seria o ND acumulado de todas as configs/sementes disponíveis para o problema, análogo ao Stot do artigo."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de IGD e HV ao longo das avaliações reais para os 5 algoritmos no caso BWBUG.",
+      "literal": "MMRAEA exhibits promising convergence speed on this high-dimensional engineering design MOP and shows strong competitiveness when compared with state-of-the-art peer competitors.",
+      "localizador": "Sec. Results and discussions (BWBUG), Fig. 13",
+      "metricas": [
+        "IGD",
+        "HV"
+      ],
+      "testes": [],
+      "convencoes": "uma curva por algoritmo; não fica claro se é execução única ou agregação sobre múltiplas execuções (ver observação no item da Table 8 sobre a legenda citar só 3 algoritmos).",
+      "achado": "MMRAEA converge rápido e de forma competitiva no problema real de 43D, reforçando a leitura da Tabela 8.",
+      "aplicabilidade": "① → curva IGD+/HV × orçamento (ficha 26), aplicada ao caso real; nota: a referência de HV usa o nadir de Stot (específico deste artigo), não a convenção da dissertação."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Interpretação de engenharia das soluções ND vs. solução-base (diagramas de tensão equivalente)",
+      "grupo_sugerido": "H",
+      "descricao": "Três soluções representativas (A, B, C) do conjunto não-dominado do MMRAEA no caso BWBUG são comparadas a uma solução-base (do centro do espaço de decisão) via diagramas de tensão equivalente (FEA): mostra que quase todas as soluções do MMRAEA dominam a base, e que partes críticas do quadro (perto da tensão máxima) são reforçadas enquanto partes desnecessárias são aliviadas, conforme o peso aumenta de A a C.",
+      "literal": "nearly all the nondominated solutions obtained by MMRAEA dominate the Baseline solution, and the solution set shows good convergence and diversity.",
+      "localizador": "Sec. Results and discussions (BWBUG), Fig. 14",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "3 soluções nomeadas (A, B, C) escolhidas em posições diferentes da frente, comparadas a uma 'Baseline' arbitrária (centro do espaço de decisão); leitura via diagrama de tensão equivalente (mapa de cores sobre a geometria), não uma métrica agregada.",
+      "achado": "Validação qualitativa de que o trade-off peso×robustez encontrado pelo MMRAEA é fisicamente interpretável e consistente com o esperado (mais peso → mais robustez, com material realocado das áreas de baixa tensão para as de tensão máxima) — não é uma comparação entre algoritmos, é uma validação de plausibilidade física do resultado do próprio MMRAEA.",
+      "aplicabilidade": "Não reproduzível — depende de interpretação de engenharia específica do domínio BWBUG (geometria 3D, malha FEA, diagramas de tensão), sem correspondência nas 7 camadas da dissertação, que são agnósticas ao domínio físico do problema real.",
+      "observacoes": "Não é propriamente uma análise algorítmica comparativa (não responde 'qual método é melhor'), mas uma validação de plausibilidade de engenharia do resultado do MMRAEA; incluída por completude/exaustividade (regra 2 do CARTÃO)."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo médio de execução (runtime total, não decomposto em fit/busca/avaliação) por algoritmo, em função da dimensão d (20,40,60,100), para um único problema (DTLZ2, 3 objetivos) — ver Fig. 9. Discussão textual qualitativa do porquê de cada diferença (complexidade do modelo surrogate de cada método: KNN do CPS-MOEA é barato; RBF único do MOEA/D-RBF e SVM do MCEA/D escalam melhor que o tri-modo RBF do MMRAEA; dropout NN do EDN-ARMOEA é o mais caro). Nenhuma decomposição por fase, nenhum cruzamento formal custo×qualidade (sem quadrantes nem fronteira custo-qualidade).",
+    "literal": "the computational time of MMRAEA is negligible when time-consuming simulations are involved.",
+    "localizador": "Sec. Runtime comparison, Fig. 9"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Contra a variante MMRAEA-V3 (seleção só pelo modo de número de fronteira, sem ensemble tri-modo nem termo de incerteza), o MMRAEA completo (com Q,U e exploração por incerteza máxima) empata estatisticamente em 30 das 48 instâncias e PERDE em 3 — o menor placar entre as três ablações da Tabela 2, mostrando que o valor agregado do ensemble+incerteza é bem mais fraco quando o modo de comparação é o ranking por fronteira isolado.",
+      "literal": "MMRAEA-V3 ... +/−/≈ 3/15/30",
+      "localizador": "Table 2, linha de placar agregado (coluna MMRAEA-V3)"
+    },
+    {
+      "descricao": "Em problemas fortemente multimodais (DTLZ1 nas 4 dimensões; DTLZ3 em d=20,40), a variante MMRAEA-CSO (busca só pelo operador CSO, sem GA) bate SIGNIFICATIVAMENTE o MMRAEA completo (bi-população) — juntar a sub-população GA piora o resultado nesses casos específicos, ao contrário do padrão geral em que a bi-população ajuda.",
+      "literal": "Since the evolutionary operator based on CSO shows good ability on exploration, MMRAEA-CSO outperforms MMRAEA on DTLZ1 and DTLZ3 which have multimodal landscapes.",
+      "localizador": "Sec. Effectiveness of bi-population based on CSO and GA (texto após Fig. 6)"
+    },
+    {
+      "descricao": "Em DTLZ1 e DTLZ3 (muitos ótimos locais), a precisão de predição dos modelos surrogate se deteriora e TODOS os algoritmos comparados (incluindo o próprio MMRAEA) têm desempenho ruim; MMRAEA fica em 2º lugar, atrás de MCEA/D (que usa classificador SVM, não regressão RBF).",
+      "literal": "DTLZ1 and DTLZ3 are two problems with a large number of local optima, which deteriorates the prediction accuracy of surrogate models and causes difficulties in the convergence. All the algorithms show poor performance on the two problems.",
+      "localizador": "Sec. Main comparison (texto sobre Table 4)"
+    },
+    {
+      "descricao": "No conjunto WFG1-9 (36 instâncias), o MMRAEA (baseado em RBF) fica atrás de MCEA/D (baseado em classificador SVM) no desempenho agregado — os autores atribuem isso a uma limitação do MODELO surrogate (RBF), não ao critério de amostragem por qualidade+incerteza.",
+      "literal": "It can be concluded that RBFs are not suitable for approximating the objective functions of the WFG problems, and the SVM classifiers perform well on them.",
+      "localizador": "Sec. Main comparison (texto sobre Table 5)"
+    },
+    {
+      "descricao": "Os próprios autores, na conclusão, admitem três fraquezas do método: (1) depender só de RBFs pode ser um dilema quando a acurácia do RBF é baixa; (2) o método não é adequado para problemas muitos-objetivos, pois a seleção se baseia em dominância de Pareto; (3) assume-se que avaliar cada objetivo consome o mesmo tempo, o que pode limitar a aplicabilidade prática.",
+      "literal": "MMRAEA only uses RBFs as surrogate models, which may be caught in a dilemma when the RBF models show low accuracy. Secondly, MMRAEA is not suitable for handling many-objective problems since it uses selection strategies based on the Pareto dominance relation.",
+      "localizador": "Sec. Conclusion"
+    },
+    {
+      "descricao": "No caso real BWBUG (43D), 3 dos 5 algoritmos comparados (CPS-MOEA, MOEA/D-RBF, MCEA/D) falham completamente em se aproximar da frente de Pareto do problema prático — só MMRAEA e EDN-ARMOEA produzem resultado utilizável.",
+      "literal": "the other three algorithms fail to approximate the PF of the practical problem.",
+      "localizador": "Sec. Results and discussions (BWBUG), Table 8"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "O artigo atribui o desempenho inferior no WFG à escolha do MODELO surrogate (regressão RBF) sendo inadequado para aquela geometria de problema, não ao critério de seleção (Q,U) em si — implicitamente sugerindo que um critério de seleção equivalente aplicado sobre um surrogate melhor (SVM classificador, como no MCEA/D) teria desempenho melhor no WFG.",
+      "literal": "It can be concluded that RBFs are not suitable for approximating the objective functions of the WFG problems, and the SVM classifiers perform well on them.",
+      "localizador": "Sec. Main comparison (texto sobre Table 5)"
+    },
+    {
+      "descricao": "No WFG (36 instâncias), apesar de motores/surrogates distintos (RBF tri-modo+incerteza do MMRAEA vs. classificador SVM do MCEA/D), o teste de Friedman marca empate estatístico ('≈') em 23/36 instâncias — maioria dos casos é indistinguível apesar dos mecanismos de incerteza/surrogate diferentes.",
+      "literal": "achieves similar performance when compared with the recently proposed MCEA/D on most of the WFG problems, i.e, 23 instances out of 36.",
+      "localizador": "Sec. Main comparison (texto após Table 6)"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "multimodalidade (muitos ótimos locais)",
+      "afirmacao": "DTLZ1 e DTLZ3 deterioram a acurácia de predição dos surrogates e causam dificuldade de convergência para TODOS os algoritmos; MCEA/D (SVM) é o melhor, MMRAEA 2º. Na ablação bi-populacional, a sub-população CSO isolada (mais exploratória) bate o MMRAEA completo especificamente nesses dois problemas.",
+      "literal": "DTLZ1 and DTLZ3 are two problems with a large number of local optima, which deteriorates the prediction accuracy of surrogate models and causes difficulties in the convergence.",
+      "localizador": "Sec. Main comparison; Sec. Effectiveness of bi-population based on CSO and GA"
+    },
+    {
+      "caracteristica": "frente desconexa",
+      "afirmacao": "DTLZ7 (PF desconexa): MMRAEA vence com folga em todas as instâncias. ZDT3 (5 partes desconexas): MMRAEA vence exceto em d=20, onde não é o melhor.",
+      "literal": "MMRAEA shows the best performance on nearly all the instances of the ZDT test suite, except for ZDT3 with 20 decision variables and ZDT4 problems.",
+      "localizador": "Sec. Main comparison"
+    },
+    {
+      "caracteristica": "frente degenerada",
+      "afirmacao": "DTLZ5 e DTLZ6 (PFs degeneradas): MMRAEA supera significativamente todos os concorrentes em todas as instâncias.",
+      "literal": "For DTLZ5 and DTLZ6 with degenerated PFs, and DTLZ7 which has a disconnected PF, MMRAEA significantly outperforms the compared algorithms on all the test instances.",
+      "localizador": "Sec. Main comparison"
+    },
+    {
+      "caracteristica": "distribuição/densidade enviesada (biased, difícil de espalhar soluções)",
+      "afirmacao": "DTLZ4 (variante de DTLZ2, difícil de obter distribuição bem espalhada): MOEA/D-RBF e MCEA/D ficam no top-2 na maioria das dimensões, EDN-ARMOEA vence em d=20 — MMRAEA não fica entre os dois melhores neste problema específico.",
+      "literal": "DTLZ4 is a variant of DTLZ2 which is hard to achieve a well-distributed set of solutions. MOEA/D-RBF and MCEA/D achieve the top two performance on this problem with 40, 60, and 100 decision variables.",
+      "localizador": "Sec. Main comparison"
+    },
+    {
+      "caracteristica": "não-separabilidade/geometria mista (suíte WFG)",
+      "afirmacao": "No WFG como um todo, MCEA/D (classificador SVM) supera todos, com MMRAEA em 2º — atribuído à inadequação do modelo RBF (não do critério de seleção) para aproximar as funções objetivo dessa suíte.",
+      "literal": "MCEA/D achieves the best overall performance on the WFG test suite, MMRAEA ranks second and outperforms CPS-MOEA, MOEA/D-RBF, and EDN-ARMOEA on most of the instances.",
+      "localizador": "Sec. Main comparison"
+    },
+    {
+      "caracteristica": "alta dimensão (d=20→100)",
+      "afirmacao": "Eixo central do artigo inteiro: IGD de todos os algoritmos piora sistematicamente conforme d cresce de 20 para 100 em praticamente todas as 84+48 instâncias das Tabelas 2-5; atribuído (Introdução) à queda de acurácia dos surrogates com poucos pontos de treino relativos a d, e à maldição da dimensionalidade na busca.",
+      "literal": "with the increasing of decision variables, the approximation or prediction accuracy of the surrogate model based on a limited number of training samples is dropped dramatically.",
+      "localizador": "Sec. Introduction"
+    },
+    {
+      "caracteristica": "muitos objetivos (many-objective, não testado, só declarado)",
+      "afirmacao": "O próprio artigo afirma (não testa empiricamente) que MMRAEA não é adequado para problemas muitos-objetivos, pois sua seleção usa relação de dominância de Pareto (que degrada com M alto); nenhuma instância do artigo passa de M=3.",
+      "literal": "MMRAEA is not suitable for handling many-objective problems since it uses selection strategies based on the Pareto dominance relation.",
+      "localizador": "Sec. Conclusion"
+    }
+  ],
+  "roster_bloco": {
+    "mecanismo_proprio": [
+      {
+        "descricao": "Ablação do mecanismo de qualidade+incerteza (Q,U) do MMRAEA: comparação contra três variantes de modo único (V1=só ARBFs, V2=só FitRBF, V3=só FNRBF), cada uma sem ensemble e sem termo de incerteza/exploração — a análise mais próxima de uma 'ablação exata' da bateria do roster para este algoritmo, embora confunda simultaneamente a remoção do ensemble de qualidade (3 ranks somados) e a remoção do termo de incerteza (discrepância entre ranks + pick de incerteza máxima), não isolando os dois efeitos separadamente.",
+        "literal": "although its three variants achieve the best performance on some instances, MMRAEA outperforms them under overall consideration and shows the best performance on most of the instances.",
+        "localizador": "Sec. Effectiveness of multi-mode RBFs, Table 2"
+      },
+      {
+        "descricao": "Sub-achado da mesma tabela: contra MMRAEA-V3 especificamente (só o modo de ranking por número de fronteira), o ganho do mecanismo completo de incerteza é fraco (empate em 30/48, derrota em 3/48) — diagnóstico direto de que a 'incerteza' (U, discrepância entre ranks) agrega pouco valor quando comparada a um único modo de ranking já robusto.",
+        "literal": "MMRAEA-V3 ... +/−/≈ 3/15/30",
+        "localizador": "Table 2, linha de placar agregado (coluna MMRAEA-V3)"
+      }
+    ],
+    "reprodutivel_com_camadas": "O item 1 (Table 2, ablação tri-modo) é reproduzível via camada ① (endpoint IGD+ por config) SE a dissertação registrar as 3 variantes extras (V1/V2/V3) como configs adicionais no manifesto (camada ⑤) — fora do desenho padrão de 1 config por algoritmo × 28 problemas × 30 sementes. A camada ③ (sonda) permitiria IR ALÉM do artigo: verificar diretamente se U (a soma das discrepâncias |Ri−Rk| entre os 3 ranks nos pontos-sonda de f verdadeiro conhecido) de fato se correlaciona com o erro real |μ−f| — checagem de calibração/discriminação (fichas 33/34) que o próprio artigo NUNCA faz (ver calibracao_do_sigma.mede=false). O item 2 (sub-achado V3) usa a mesma base de dados do item 1, mesma aplicabilidade. Nenhum dos dois itens fornece uma contagem de quantas vezes, durante as execuções reais, o indivíduo de incerteza máxima (Pb, Algorithm 3 linha 15) foi de fato distinto dos indivíduos já selecionados por qualidade (Pa) — essa contagem (ficha 45) teria que ser reconstruída do zero via camada ⑥ (filme), caso a dissertação rode o MMRAEA como parte de sua própria bateria.",
+    "parametros_do_uso_da_incerteza": [
+      "U_j = Σ_{i,k∈{1,2,3}, k≠i} |R_{i,j} − R_{k,j}| (Eq. 8) — a incerteza de cada candidato é a soma das discrepâncias absolutas entre os ranks dados pelos 3 modos de RBF (ARBFs/ARBF-quality, FitRBF, FNRBF); é a operacionalização exata de DISC-ENS (discordância entre predições) da taxonomia. Não tem hiperparâmetro livre — é uma fórmula fixa.",
+      "Passo de seleção por incerteza máxima (Algorithm 3, linha 15: 'Pb ← Maximum uncertainty of P') — INCONDICIONAL: a cada geração, exatamente 1 indivíduo de U máximo é sempre adicionado às novas amostras (Ps = Pa ∪ Pb), sem gate/limiar de confiança que decida SE usar a incerteza — diferente de mecanismos com gate condicional (ex.: δ do EDN-ARMOEA, citado no próprio artigo como comparação).",
+      "u = número máximo de novas amostras por geração; usado como teto para decidir se entra a etapa de ranking Q/U (Algorithm 3: 'if |P|>u then ...'); valor usado para MMRAEA: 5 (Sec. Parameter settings, item 5). Não é um parâmetro do TERMO de incerteza em si, mas governa quando o mecanismo de qualidade+incerteza é sequer acionado (se |P|≤u, todo P vira Ps diretamente, sem calcular Q/U).",
+      "N = tamanho de população (50) e wmax = nº de gerações de otimização evolutiva interna (20) — parâmetros gerais do motor de busca, não específicos da incerteza, mas que definem |Ptot| e portanto o tamanho do conjunto sobre o qual Q/U são calculados a cada retreino.",
+      "σ (parâmetro da função de base multiquádrica RBF, fixado em 1 por padrão) — hiperparâmetro do PRÓPRIO regressor RBF (kernel width), não do mecanismo de uso da incerteza; mencionado aqui só para não confundir com o 'σ' de incerteza da notação da dissertação — são conceitos homônimos e não relacionados neste artigo."
+    ]
+  },
+  "observacoes": "(1) O artigo NUNCA compara com um piso evolutivo sem surrogate (NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) em nenhuma análise — todos os 4 baselines (CPS-MOEA, MOEA/D-RBF, EDN-ARMOEA, MCEA/D) são SAEAs; ficha 9 (assistido × piso casado) não tem nenhuma célula aplicável neste artigo. (2) 20 execuções independentes (não 30 sementes) na bateria sintética; para o caso real BWBUG, não fica claro se as 20 execuções também se aplicam (Tabela 8 mostra valor único sem desvio-padrão). (3) Métrica principal é só IGD em toda a bateria sintética (84 instâncias); HV só aparece no caso real BWBUG, junto com IGD, ambos referenciados ao ND combinado Stot (não a uma frente verdadeira nem a um dataset compartilhado). (4) A legenda da Fig. 13 cita 'MOEA/D-RBF, HeE-MOEA, and MMRAEA' (3 nomes, um dos quais — HeE-MOEA — não é nenhuma das 5 colunas da Tabela 8) — aparente resíduo/erro editorial do artigo publicado, provavelmente herdado de uma versão anterior do manuscrito com um conjunto diferente de baselines; mantido tal como está no texto, sem tentar reconciliar ou corrigir. (5) Nenhuma calibração/discriminação do termo de incerteza U é verificada pelos autores (não há checagem de coerência entre U e o erro real, nem nos pontos de treino nem numa sonda dedicada) — ver calibracao_do_sigma. (6) A 'incerteza' deste artigo (U, Eq. 8) é por construção uma medição DISC-ENS (discordância de ranks entre 3 modelos RBF/regressores clássicos), consistente com a classificação da taxonomia (surrogate=RG, medição=DISC-ENS, função=O1·Aquisição exploratória — o pick incondicional do indivíduo de U máximo A CADA geração é exploração pura, sem gate de confiança). (7) O artigo tem uma estrutura de ablação DUPLA e limpa: Table 2 (ablação do mecanismo tri-modo/incerteza, mapeada ao roster_bloco) e Table 3 (ablação do motor de busca bi-populacional, sem relação com incerteza, mapeada só via ficha 18/dimensão) — as duas NÃO devem ser confundidas: usam bases diferentes (V1/V2/V3 mudam o QUE é predito e como Q/U são formados; GA/CSO mudam QUEM entra no pool antes da mesma etapa Q/U). (8) Nenhuma seção, apêndice, tabela ou figura foi pulada: o corpo estruturado (linhas 1-919 do .md, do título/abstract às referências), o ANEXO de camada de texto bruta do PDF (get_text, linhas 922-3829, conteúdo redundante com o corpo estruturado — confirmado via checagem cruzada das Eqs. 7 e 8, que na versão estruturada apareciam com espaço em branco e na versão bruta com a fórmula completa) e o ANEXO de OCR de figuras (linhas 3831-3983, rótulos de eixo/blocos de diagrama de fluxo das Figs. 1-3, 5-6, 11, 13, sem números novos além dos já capturados nas Tabelas 2-8) foram todos lidos integralmente."
+}

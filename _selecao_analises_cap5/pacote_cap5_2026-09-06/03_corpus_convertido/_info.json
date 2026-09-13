@@ -1,0 +1,434 @@
+{
+ "b1": {
+  "file": "b1. ParEGO - A Hybrid Algorithm with On-line Control of Model Uncertainty for Efficient Multi-objective Optimization.md",
+  "chars": 170067,
+  "chars_limpo": 170067,
+  "palavras": 27019
+ },
+ "b13": {
+  "file": "b13. AdaMoR-DDMOEA - Adaptive Model Selection with a Reliable Individual-Based Model Management Framework for Offline Data-Driven Multi-Objective Optimization.md",
+  "chars": 153829,
+  "chars_limpo": 153829,
+  "palavras": 22442
+ },
+ "b14": {
+  "file": "b14. Formulating approximation error as noise.md",
+  "chars": 205977,
+  "chars_limpo": 205977,
+  "palavras": 29845
+ },
+ "b15": {
+  "file": "b15. U-RANKMOEA- A UNIFIED RANK-BASED AND UNCERTAINTY-AWARE FRAMEWORK FOR HIGHDIMENSIONAL EXPENSIVE MULTI-OBJECTIVE OPTIMIZATION.md",
+  "chars": 298554,
+  "chars_limpo": 298554,
+  "palavras": 42255
+ },
+ "b2": {
+  "file": "b2. Expensive Multiobjective Optimization by MOEA:D with Gaussian Process Model.md",
+  "chars": 142671,
+  "chars_limpo": 142671,
+  "palavras": 23480
+ },
+ "b3": {
+  "file": "b3. A Surrogate-assisted Reference Vector Guided Evolutionary Algorithm for Computationally Expensive Many-objective Optimization.md",
+  "chars": 175971,
+  "chars_limpo": 175971,
+  "palavras": 26215
+ },
+ "b4": {
+  "file": "b4. A Classification Based Surrogate-Assisted Evolutionary Algorithm for Expensive Multi-objective Optimization.md",
+  "chars": 209987,
+  "chars_limpo": 209987,
+  "palavras": 30877
+ },
+ "b5": {
+  "file": "b5. Probabilistic Selection Approaches in Decomposition-Based Evolutionary Algorithms for Offline Data-Driven Multiobjective Optimization.md",
+  "chars": 113333,
+  "chars_limpo": 113333,
+  "palavras": 17370
+ },
+ "b7": {
+  "file": "b7. Uncertainty-Aware Offline Data-Driven Multi-Objective Optimization.md",
+  "chars": 155914,
+  "chars_limpo": 155914,
+  "palavras": 20253
+ },
+ "b8": {
+  "file": "b8. A Kriging-Assisted Two-Archive Evolutionary Algorithm for Expensive Many-Objective Optimization.md",
+  "chars": 205389,
+  "chars_limpo": 205389,
+  "palavras": 27727
+ },
+ "b9": {
+  "file": "b9. Uncertainty-aware search framework for multi-objective Bayesian optimization.md",
+  "chars": 83524,
+  "chars_limpo": 83524,
+  "palavras": 12950
+ },
+ "c1": {
+  "file": "c1. A Batched Scalable Multi-Objective Bayesian Optimization Algorithm.md",
+  "chars": 139296,
+  "chars_limpo": 139296,
+  "palavras": 19491
+ },
+ "c10": {
+  "file": "c10. A Computationally Efficient Evolutionary Algorithm for Multiobjective Network Robustness Optimization.md",
+  "chars": 81704,
+  "chars_limpo": 81704,
+  "palavras": 12233
+ },
+ "c100": {
+  "file": "c100. Differentiable Expected Hypervolume Improvement for Parallel Multi-Objective Bayesian Optimization.md",
+  "chars": 109618,
+  "chars_limpo": 109618,
+  "palavras": 15802
+ },
+ "c105": {
+  "file": "c105. Multiobjective optimization on a limited budget of evaluations using model-assisted S-metric selection.md",
+  "chars": 68384,
+  "chars_limpo": 68384,
+  "palavras": 10049
+ },
+ "c106": {
+  "file": "c106. Multiobjective Optimization of Expensive Black-Box Functions via Expected Maximin Improvement.md",
+  "chars": 95060,
+  "chars_limpo": 95060,
+  "palavras": 15332
+ },
+ "c107": {
+  "file": "c107. Multiobjective Optimization Based on Expensive Robotic Experiments under Heteroscedastic Noise.md",
+  "chars": 164327,
+  "chars_limpo": 164327,
+  "palavras": 26734
+ },
+ "c122": {
+  "file": "c122. Expensive Multiobjective Evolutionary Optimization Assisted by Dominance Prediction.md",
+  "chars": 199934,
+  "chars_limpo": 199934,
+  "palavras": 29326
+ },
+ "c123": {
+  "file": "c123. Expected Improvement of Penalty-Based Boundary Intersection for Expensive Multiobjective Optimization.md",
+  "chars": 198072,
+  "chars_limpo": 198072,
+  "palavras": 29312
+ },
+ "c131": {
+  "file": "c131. Multi-Objective Bayesian Optimization over High-Dimensional Search Spaces.md",
+  "chars": 189066,
+  "chars_limpo": 189066,
+  "palavras": 29184
+ },
+ "c141": {
+  "file": "c141. Optimization of High-Dimensional Expensive Multi-Objective Problems Using Multi-Mode Radial Basis Functions.md",
+  "chars": 172308,
+  "chars_limpo": 172308,
+  "palavras": 23979
+ },
+ "c149": {
+  "file": "c149. Large-Batch, Iteration-Efficient Neural Bayesian Design Optimization.md",
+  "chars": 211133,
+  "chars_limpo": 211133,
+  "palavras": 32889
+ },
+ "c154": {
+  "file": "c154. Joint Entropy Search for Multi-Objective Bayesian Optimization.md",
+  "chars": 310293,
+  "chars_limpo": 310293,
+  "palavras": 48597
+ },
+ "c214": {
+  "file": "c214. Multi-objective Bayesian Optimization using Pareto-frontier Entropy.md",
+  "chars": 99719,
+  "chars_limpo": 99719,
+  "palavras": 15342
+ },
+ "c217": {
+  "file": "c217. A pairwise comparison based surrogate-assisted evolutionary algorithm for expensive multi-objective optimization.md",
+  "chars": 170625,
+  "chars_limpo": 170625,
+  "palavras": 23622
+ },
+ "c222": {
+  "file": "c222. Max-value Entropy Search for Multi-Objective Bayesian Optimization.md",
+  "chars": 79899,
+  "chars_limpo": 79899,
+  "palavras": 12189
+ },
+ "c238": {
+  "file": "c238. Expected Improvement Matrix-based Infill Criteria for Expensive Multiobjective Optimization.md",
+  "chars": 198224,
+  "chars_limpo": 198224,
+  "palavras": 29904
+ },
+ "c24": {
+  "file": "c24. A Numerically Efficient Multi-Objective Optimization Algorithm- Combination of Dynamic Taylor Kriging and Differential Evolution.md",
+  "chars": 39844,
+  "chars_limpo": 39844,
+  "palavras": 6326
+ },
+ "c241": {
+  "file": "c241. A Performance Indicator Based Infill Criterion for Expensive Multi-:Many-objective Optimization.md",
+  "chars": 183965,
+  "chars_limpo": 183965,
+  "palavras": 25743
+ },
+ "c250": {
+  "file": "c250. A Kriging Metamodel Assisted Multi-Objective Genetic Algorithm for Design Optimization.md",
+  "chars": 106308,
+  "chars_limpo": 106308,
+  "palavras": 16781
+ },
+ "c261": {
+  "file": "c261. Hypervolume-Guided Decomposition for Parallel Expensive Multiobjective Optimization.md",
+  "chars": 338613,
+  "chars_limpo": 338613,
+  "palavras": 54788
+ },
+ "c262": {
+  "file": "c262. Parallel Bayesian Optimization of Multiple Noisy Objectives with Expected Hypervolume Improvement.md",
+  "chars": 262255,
+  "chars_limpo": 262255,
+  "palavras": 38398
+ },
+ "c267": {
+  "file": "c267. A Two-Level Model Management-Based Surrogate-Assisted Evolutionary Algorithm for Medium-Scale Expensive Multiobjective Optimization.md",
+  "chars": 175441,
+  "chars_limpo": 175441,
+  "palavras": 26343
+ },
+ "c276": {
+  "file": "c276. e-PAL- An Active Learning Approach to the Multi-Objective Optimization Problem.md",
+  "chars": 170448,
+  "chars_limpo": 170448,
+  "palavras": 28362
+ },
+ "c29": {
+  "file": "c29. A statistical model-based algorithm for ‘black-box’ multi-objective optimisation.md",
+  "chars": 98031,
+  "chars_limpo": 98031,
+  "palavras": 14898
+ },
+ "c45": {
+  "file": "c45. An Efficient Surrogate-based Multi-objective Optimisation Framework with Novel Sampling Strategy for Sustainable Island Groundwater Management.md",
+  "chars": 34385,
+  "chars_limpo": 34385,
+  "palavras": 5090
+ },
+ "c48": {
+  "file": "c48. An improved bagging ensemble surrogate-assisted evolutionary algorithm for expensive many-objective optimization.md",
+  "chars": 126648,
+  "chars_limpo": 126648,
+  "palavras": 16886
+ },
+ "c49": {
+  "file": "c49. An Interactive Framework for Offline Data-Driven Multiobjective Optimization.md",
+  "chars": 71726,
+  "chars_limpo": 71726,
+  "palavras": 10744
+ },
+ "c50": {
+  "file": "c50. Data-Driven Multi-Objective Optimisation of Coal-Fired Boiler Combustion Systems.md",
+  "chars": 145100,
+  "chars_limpo": 145100,
+  "palavras": 22674
+ },
+ "c59": {
+  "file": "c59. Uncertainty-Aware Data-Based Method for Fast and Reliable Shape Optimization.md",
+  "chars": 166598,
+  "chars_limpo": 166598,
+  "palavras": 24354
+ },
+ "c65": {
+  "file": "c65. Surrogate-Assisted Bounding-Box Approach Applied to Constrained Multi-Objective Optimization Under Uncertainty.md",
+  "chars": 178021,
+  "chars_limpo": 178021,
+  "palavras": 27851
+ },
+ "c66": {
+  "file": "c66. Surrogate_Assisted_Particle_Swarm_Optimi.md",
+  "chars": 131968,
+  "chars_limpo": 131968,
+  "palavras": 20072
+ },
+ "c71": {
+  "file": "c71. Surrogate Assisted Evolutionary Algorithm for Medium Scale Expensive Multi-Objective Optimization Problems.md",
+  "chars": 110073,
+  "chars_limpo": 110073,
+  "palavras": 16575
+ },
+ "c75": {
+  "file": "c75. Statistical Improvement Criteria for Use in Multiobjective Design Optimization.md",
+  "chars": 144460,
+  "chars_limpo": 144460,
+  "palavras": 23630
+ },
+ "c81": {
+  "file": "c81. Uncertainty-Aware Multi-Objective Reinforcement Learning-Guided Diffusion Models for 3D De Novo Molecular Design.md",
+  "chars": 280813,
+  "chars_limpo": 280813,
+  "palavras": 40379
+ },
+ "c82": {
+  "file": "c82. Transfer Learning Based Co-Surrogate Assisted Evolutionary Bi-Objective Optimization for Objectives with Non-Uniform Evaluation Times.md",
+  "chars": 188058,
+  "chars_limpo": 188058,
+  "palavras": 28735
+ },
+ "c91": {
+  "file": "c91. Effective optimization on Bump inlet using meta-model multi-objective particle swarm assisted by expected hyper-volume improvement.md",
+  "chars": 131521,
+  "chars_limpo": 131521,
+  "palavras": 19896
+ },
+ "c97": {
+  "file": "c97. Coupled simulation‐optimization model for coastal aquifer management using genetic programming‐based ensemble surrogate models and multiple‐realization optimization.md",
+  "chars": 151758,
+  "chars_limpo": 151758,
+  "palavras": 22068
+ },
+ "e1": {
+  "file": "e1. Fast calculation of multiobjective probability of improvement and expected improvement criteria for Pareto optimization.md",
+  "chars": 112660,
+  "chars_limpo": 112660,
+  "palavras": 17606
+ },
+ "e102": {
+  "file": "e102. Choose Appropriate Subproblems for Collaborative Modeling in Expensive Multiobjective Optimization.md",
+  "chars": 144343,
+  "chars_limpo": 144343,
+  "palavras": 22822
+ },
+ "e103": {
+  "file": "e103. Performance Indicator-Based Adaptive Model Selection for Offline Data-Driven Multiobjective Evolutionary Optimization.md",
+  "chars": 169994,
+  "chars_limpo": 169994,
+  "palavras": 26890
+ },
+ "e104": {
+  "file": "e104. Reference Vector-Assisted Adaptive Model Management for Surrogate-Assisted Many-Objective Optimization.md",
+  "chars": 174032,
+  "chars_limpo": 174032,
+  "palavras": 26559
+ },
+ "e16": {
+  "file": "e16. Evolution-guided Bayesian optimization for constrained multi-objective optimization in self-driving labs.md",
+  "chars": 133512,
+  "chars_limpo": 133512,
+  "palavras": 18891
+ },
+ "e17": {
+  "file": "e17. Multiobjective Bayesian optimization for online accelerator tuning.md",
+  "chars": 129427,
+  "chars_limpo": 129427,
+  "palavras": 19883
+ },
+ "e21": {
+  "file": "e21. Uncertainty quantification with graph neural networks for efficient molecular design.md",
+  "chars": 175573,
+  "chars_limpo": 175573,
+  "palavras": 24851
+ },
+ "e3": {
+  "file": "e3. Heterogeneous Ensemble-Based Infill Criterion for Evolutionary Multiobjective Optimization of Expensive Problems.md",
+  "chars": 153763,
+  "chars_limpo": 153763,
+  "palavras": 23319
+ },
+ "e4": {
+  "file": "e4. Efficient multiobjective optimization employing Gaussian processes, spectral sampling and a genetic algorithm.md",
+  "chars": 167524,
+  "chars_limpo": 167524,
+  "palavras": 24900
+ },
+ "e40": {
+  "file": "e40. Alleviating Search Bias in Bayesian Evolutionary Optimization With Many Heterogeneous Objectives.md",
+  "chars": 189110,
+  "chars_limpo": 189110,
+  "palavras": 28260
+ },
+ "e64": {
+  "file": "e64. A Probabilistic Approach to Surrogate‐Assisted Multi‐Objective Optimization of Complex Groundwater Problems.md",
+  "chars": 255015,
+  "chars_limpo": 255015,
+  "palavras": 38348
+ },
+ "e7": {
+  "file": "e7. Evolutionary Optimization of High-Dimensional Multiobjective and Many-Objective Expensive Problems Assisted by a Dropout Neural Network.md",
+  "chars": 178341,
+  "chars_limpo": 178341,
+  "palavras": 27677
+ },
+ "e74": {
+  "file": "e74. Rank-Based Learning and Local Model-Based Evolutionary Algorithm for High-Dimensional Expensive Multiobjective Problems.md",
+  "chars": 170187,
+  "chars_limpo": 170187,
+  "palavras": 23008
+ },
+ "e8": {
+  "file": "e8. Accurate Multiobjective Design in a Space of Millions of Transition Metal Complexes with Neural-Network-Driven Efficient Global Optimization.md",
+  "chars": 132354,
+  "chars_limpo": 132354,
+  "palavras": 20285
+ },
+ "e81": {
+  "file": "e81. Multiobjective aerodynamic design optimization of the NASA common research model.md",
+  "chars": 148485,
+  "chars_limpo": 148485,
+  "palavras": 21818
+ },
+ "e86": {
+  "file": "e86. An Expensive Many-Objective Optimization Algorithm Based on Efficient Expected Hypervolume Improvement.md",
+  "chars": 198570,
+  "chars_limpo": 198570,
+  "palavras": 28251
+ },
+ "e9": {
+  "file": "e9. Multiobjective optimization using Gaussian process emulators via stepwise uncertainty reduction.md",
+  "chars": 86983,
+  "chars_limpo": 86983,
+  "palavras": 14776
+ },
+ "emo1": {
+  "file": "emo1. Alternative infill strategies for expensive multi-objective optimisation.md",
+  "chars": 102520,
+  "chars_limpo": 102520,
+  "palavras": 15638
+ },
+ "f9": {
+  "file": "f9. On Dealing with Uncertainties in Offline Data-Driven EMO.md",
+  "chars": 63692,
+  "chars_limpo": 63692,
+  "palavras": 9128
+ },
+ "jin3": {
+  "file": "jin3. Generalizing Surrogate-assisted evolutionary computation.md",
+  "chars": 215323,
+  "chars_limpo": 215323,
+  "palavras": 32116
+ },
+ "mtm4": {
+  "file": "mtm4. Single- and Multi-objective Evolutionary Optimization Assisted by Gaussian Random Field Metamodels.md",
+  "chars": 171482,
+  "chars_limpo": 171482,
+  "palavras": 27684
+ },
+ "mtm6": {
+  "file": "mtm6. Hypervolume-based Expected Improvement- Monotonicity Properties and Exact Computation.md",
+  "chars": 79905,
+  "chars_limpo": 79905,
+  "palavras": 13299
+ },
+ "pp6": {
+  "file": "pp6. An adaptive Bayesian approach to surrogate-assisted evolutionary multi-objective optimization.md",
+  "chars": 147352,
+  "chars_limpo": 147352,
+  "palavras": 21985
+ },
+ "wang4": {
+  "file": "wang4. Data-driven surrogate-assisted multiobjective evolutionary optimization of a trauma system.md",
+  "chars": 166390,
+  "chars_limpo": 166390,
+  "palavras": 25807
+ }
+}

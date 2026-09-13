@@ -1,0 +1,430 @@
+{
+ "config": "c154 (JES · Joint Entropy Search · Python/BoTorch 0.18.1) · exp=main · campanha M8 completa (`campanha_id=7f4f0e429a46_M8`, `repo_hash=63db46b10063…`, idênticos em 638/638 manifestos)",
+ "cobertura": "639/639 células EXISTENTES auditadas (100%) — não amostrei, varri tudo em streaming (0,393 GB de ⑥). O grid nominal é 25×30=750; 111 pares (problema,semente) NUNCA rodaram ⇒ cobertura de grade 639/750 = 85,2%, com 24 sementes completas (25 células) e 6 PARCIAIS (s7=7, s13=15, s17=8, s18=3, s25=3, s26=3 células). Por camada: ⑥ 639/639 · ⑤ 638/638 (só DTLZ4/7 não tem) · ① 624/624 (+ confronto elemento-a-elemento com o artefato de DoE das 25×30) · ② 200/624 (amostra aleatória seed=7, mais 120 com seed=1) · ③ 70/70 das que EXISTEM em disco (19 problemas, 26 sementes; as outras 569 são bucket-only D54 ou perdidas — ver classe-3 C3) · ④ 150/624 parquet + 639/639 via registros `timing` do ⑥ · duplicatas cross-VM 4/4. Volumes medidos: 66.590 decisões · 150.740 iterações-objetivo de `modelo_hp` · 34.110 blocos de sonda · 665.900 seeds de Matheron · 48.257 disparos de escada · 5.139,1 h-core. Artefatos em /private/tmp/claude-501/-Users-gmello/33c29160-6eb6-4277-a041-db4855486063/scratchpad/c154_*.csv (celulas_30s, master, manifests, cauda, escada, doe, sonda30, primeira, custo, guards, n1_identidades, n1_pares). READ-ONLY: nenhuma célula rodada, experiments.py NUNCA invocado, nada escrito no repo.",
+ "N1_invariancia": "A query-joia do c154 — `acqf_escolhido == max(finitos de acqf_todos_restarts)` — foi rodada sobre a CAMPANHA INTEIRA, não sobre amostra: **66.590/66.590 decisões (100,0%), em 639/639 células, 25 problemas, 30 sementes, igualdade BIT-A-BIT (max|Δ| = 0,0 exato)**. Erro máximo: ZERO. Nenhuma semente quebra a identidade. A segunda metade da joia — a regra `restart_de_linha` (I-12) — foi testada nas 70 células com ③ em disco (19 problemas, 26 sementes) pelo discriminador de pares X-empatados: 361 pares discriminantes; sob a regra declarada |Δα|/α tem mediana 0,000e+00, p95 3,83e-13 e **máximo 4,21e-11, com 0/361 acima de 1e-6**; sob o índice ingênuo, mediana 1,03e-01, máximo 8,07e-01, **317/361 acima de 1e-6**. Nove ordens de grandeza de separação — a regra I-12 da T11, provada em 1 semente, VALE em 26. Identidades correlatas, todas 100%: linha marcada == última do bloco 3.846/3.846; X bit-idêntico ③↔① 3.846/3.846 (ΔX = 0,0); `pf_shape=(10,10,M)`/`ps_shape=(10,10,D)` 66.590/66.590; `num_restarts=5D` e `raw_samples=1000D` 66.590/66.590; `rota='a'` 66.590/66.590; `acqf_escolhido > 0` 66.590/66.590; ARD vivo 150.740/150.740; `fe_treino_max == n_train−1` 3.851/3.851; σ>0 em 8.911.010/8.911.010 linhas de ③ com 0 NaN; DoE = 11D−1 em 624/624 com |ΔX| ≤ ULP-float32 elemento a elemento (rel. máx 5,91e-08). ⚠ ERRATA à minha T11: o limiar ABSOLUTO \"2,384e-07\" era artefato de D≤10 em domínio ~[0,1]; em WFG (bounds até 43,99) o resíduo legítimo chega a 1,907e-06 — o invariante correto é RELATIVO (≤2^-24), e ele fecha em 624/624.",
+ "N2_tetos_caidos": "CAÍRAM 5 tetos da T11. (T-a) **Fórmula de semeadura** (T11 §9, \"exige código ou re-run\"): MEDIDO — `torch_seed` e a tupla dos 10 `hs_paths` são FUNÇÃO EXATA de (semente, iteração), com **0 violações em 66.590 observações célula-iteração** cobrindo 5.401 pares (semente,it) e até 25 problemas por par; 5.401/5.401 torch_seed distintos e 54.010/54.010 seeds de Matheron distintos, 0 colisão entre as 30 sementes. Consequência derivada: os 41.311 `optimize_acqf_warning` (retries que \"deslocam o RNG\", DI-10) **NÃO contaminam a iteração seguinte** — o re-seed por iteração fecha o vazamento. (T-b) **Determinismo/reprodutibilidade**: medido nas 4 duplicatas, bit-exato (ver N4). (T-c) **Taxa de sucesso**: agora mensurável e medida por problema (ver N5). (T-d) **Variância entre sementes**: medida — CV de |ND| final 0,10–0,42; CV da acqf mediana 0,023–0,455; CV do wall 0,057–0,31; e o resultado forte: a fração de iterações com o ruído inferido no piso 1e-4 tem desvio-padrão entre sementes ≤0,043 em 24 dos 25 problemas (máx 0,088 no DTLZ7) ⇒ o \"achado-de-ouro\" J4 é propriedade do PROBLEMA, não sorteio de semente. (T-e) **J32 (o único classe-3 da T11)**: **FECHADO POR DADO** — nas 300 células ⚪ a última geração É probada em 300/300, e nas 148 com n_geracoes ÍMPAR o bloco final traz `motivo=\"ultima iteracao (teto_wall DI-43/44)\"` em 148/148. O bug que eu registrei no smoke da T11 não existe no código da campanha. CONTINUAM T: (i) internos do LB (RFF 1024×L=500, jitter 1e-6, ref −1e10, X* não gravados) — J13; (ii) **resume a partir de checkpoint**: 8.997 checkpoints GRAVADOS, `n_retries=0` em 638/638, zero registros de retomada ⇒ o caminho de leitura segue não exercitado; (iii) endpoint out-of-sample do paper (μ-NSGA-II) — não temos; (iv) fidelidade de VALOR (nenhum gate compara valor); (v) a regra I-12 sob q>1 (batch fora do roster, DI-40); (vi) presença da ③ no bucket para as 149 células com `upload_failed` — não tenho acesso ao bucket.",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "\"All experiments are repeated using 100 different initial seeds\" + métrica \"mean log HV discrepancy with two standard errors over one hundred runs\" (§5, Fig.5 e todas as ablações L.3–L.8) — o padrão de evidência do paper é replicado, com barra de erro.",
+   "onde_no_artigo": "§5 (linha 235 do .md) e Fig. 5 (linha 252); NeurIPS checklist \"Did you report error bars ... w.r.t. the random seed?\" [Yes] (linha 527)",
+   "testavel_com_30": true,
+   "resultado": "PARCIALMENTE ATENDIDO E MEDIDO. Temos 30 sementes nominais, mas: 24 completas + 6 parciais; 639/750 células (85,2%); e por problema o n efetivo de réplicas FECHADAS varia de 0 (12 problemas) a 30 (MMF1/MMF11_L/MMF4). Mediana de células ok por semente = 10,5 (min 3, max 12). Para 12 dos 25 problemas o n de réplicas com orçamento fechado é ZERO ⇒ a barra de erro do paper não é reproduzível ali sob o nosso envelope; só sob orçamento de FE COMUM (O-21), e aí a comparação herda o viés de máquina do N4/C1."
+  },
+  {
+   "afirmacao": "\"the entropy based approaches had a tendency to pick points that are more informative for the posterior over the optimal points as opposed to directly selecting a point that is known to perform well\" (a predição do paper sobre o PRÓPRIO comportamento).",
+   "onde_no_artigo": "§5.2 \"Querying high performing points\" (linha ~271) e Apêndice L.5",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO EM 30 SEMENTES, com variância pequena. `dist_min_arquivo` do ponto escolhido NUNCA colapsa: mediana por célula de 0,078 (MMF1, D=2) a 1,261 (ZDT1, D=30); CV entre sementes dentro do problema 0,007–0,456 (mediana ~0,08). Zeros exatos em 66.590 decisões: apenas 43 — e os 43 são exatamente os `cache_hit` D57. É a evidência positiva mais forte de fidelidade COMPORTAMENTAL do config, e agora ela é distribucional, não anedótica."
+  },
+  {
+   "afirmacao": "\"The main limitation of the JES acquisition function is that it relies on routines such as box decompositions and multi-objective optimization of function samples, which can be expensive to execute for very large problems.\"",
+   "onde_no_artigo": "§6 Conclusão (linha ~283); reforçado em §5.2 \"Acquisition wall times\" e Apêndice L.9/H",
+   "testavel_com_30": true,
+   "resultado": "MEDIDO E QUALIFICADO. Sobre 5.139,1 h-core: a otimização multiobjetivo das amostras (linha 4 do Alg. 1) custa 50,4 h = 0,98% do tempo de busca; o fit custa 67,5 h; ~99% está na `optimize_acqf`. A fração dos caminhos DECAI monotonicamente com D: 27,7% (D=2) → 3,1% (D=7) → 2,1% (D=10) → 0,70% (D=12) → 0,29% (D=20) → 0,26% (D=22) → 0,11% (D=30) — ou seja, no nosso envelope o gargalo NÃO é a rotina que o paper aponta, é a avaliação da aquisição. ⚠ Ressalva obrigatória: nós substituímos essa rotina (D75, rota (a) `random_search_optimizer`), e o piloto mediu ×17,7 contra a rota (b) NSGA-II do paper — logo a afirmação é sobre a rota do paper e o teto de comparabilidade permanece."
+  },
+  {
+   "afirmacao": "O JES não prevê degradação graciosa na amostragem de (X*,Y*) — o paper prescreve fallback SÓ onde a sub-rotina pode falhar (PES: \"If the expectation propagation failed to converge, we outputted a random vector from the already sampled Pareto sets\"); com NSGA2+truncagem HV o passo do JES não pode falhar.",
+   "onde_no_artigo": "Apêndice L.1, bloco PES (linha 1089) e bloco do solver NSGA2 (Npop=100, Ngen=500, truncagem HV)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO E QUANTIFICADO EM ESCALA. A substituição D75 converteu o passo infalível em falha dura: 48.257 disparos de escada (degrau 0: 46.379 · degrau 1: 1.831 · degrau 2: 47) e o degrau 2 falhando 47 vezes = exatamente as 47 células mortas por `rs_fallback_esgotado` (reconciliação exata). A amostra s que falha é UNIFORME sobre 1..10 (4.741–4.957 disparos cada) — Bernoulli por amostra, não viés de índice, agora sobre 48 mil eventos e não 1.383. Na s42 a T11 viu 0 disparos no degrau 2; com 30 sementes o degrau 2 aparece 47 vezes."
+  },
+  {
+   "afirmacao": "\"we assume a zero-mean Gaussian observation noise with a homogeneous variance ... we update the point estimates for the model hyperparameters and observation variance by maximizing the exact marginal log-likelihood\" — e os 4 problemas do paper são todos RUIDOSOS (0,5%–10%).",
+   "onde_no_artigo": "Apêndice L.1 \"Gaussian process model\" (linha 1065); níveis de ruído em §5.1 (linhas 239–247); ablação de ruído nas Figs. 17/18",
+   "testavel_com_30": true,
+   "resultado": "A PATOLOGIA J4 É REPRODUTÍVEL E É DO PROBLEMA, NÃO DA SEMENTE. Piso 1e-4 vinculante em 20.171/150.740 iterações-objetivo (13,4%). Por problema, a FRAÇÃO no piso é quase invariante entre sementes: BBOB_F1 0,598 (std 0,043) · ZDT4 0,480 (std 0,0024) · MMF11_L 0,441 (std 0,0055) · BBOB_F17 0,384 (std 0,0096) · DTLZ7 0,333 (std 0,088) · BBOB_F5 0,321 (std 0,0080); e EXATAMENTE 0,000 (std 0) em BBOB_F37/F49/F55, DTLZ1, MMF1, MMF16_20, WFG1/2/4/5/9. A amplitude do ruído inferido (máx/mín por célula) tem mediana ×2.216 no MMF1 e ×2.089 no ZDT4, com máximo ×5.035. Conclusão testável só com réplicas: o modo bimodal interpolante/suavizante da MLL é acionado pela GEOMETRIA do problema, não por sorte da inicialização — o que promove o achado da F5/T11 de anedota de 1 semente a resultado sistemático. Como os 25 problemas nossos são DETERMINÍSTICOS e os 4 do paper são ruidosos, isto é um regime que o paper não observou."
+  },
+  {
+   "afirmacao": "\"The JES approach is consistently one of the stronger performing algorithms for these set of experiments\" (§5.2) e o ranking-âncora JES-LB < MES-LB < TSEMO < NEHVI < Sobol.",
+   "onde_no_artigo": "§5.2 \"Results and discussion\" (linha ~267) e Fig. 5",
+   "testavel_com_30": false,
+   "resultado": "NÃO MEDIDO: as métricas IGD+/HV das 30 sementes NÃO EXISTEM no acervo (f5/f30/ contém censo, recenso O-21 e gates — nenhum arquivo de métricas), e computá-las exigiria fronts de referência D72 + decisão sobre orçamento de FE comum para as 300 ⚪ (que é justamente a decisão escalada em C1). Além disso o único rival do quinteto presente no set é o c262 (NEHVI); MES/PES/TSEMO/Sobol-online não estão no roster. Fica registrado como pendência da análise, não como teto de fidelidade."
+  },
+  {
+   "afirmacao": "α^JES = I(y;(X*,Y*)) é informação mútua ⇒ não-negativa, e o estimador LB é um LIMITE INFERIOR (Prop. 2, moment-matching).",
+   "onde_no_artigo": "eq. 3/13 e §5.2/L.6 (\"we recommend using the cheapest approximation, which is usually the lower bound estimates\")",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO: `acqf_escolhido > 0` em 66.590/66.590 decisões. O estimador lower-bound NUNCA devolveu MI negativa em nenhuma das 30 sementes. Complemento (achado emergente J28, não do paper): o máximo da α é PLATÔ — 19.913/66.590 iterações (29,9%) têm ≥2 dos 5D restarts a menos de 1e-9 relativo do máximo, contra 30,1% que a T11 mediu na s42: reproduz a menos de 0,2 p.p."
+  },
+  {
+   "afirmacao": "\"we optimize the acquisition function using multi-start L-BFGS-B ... 1000D random points ... 5D starting points for the MES and JES\" — parâmetros mantidos idênticos ao paper.",
+   "onde_no_artigo": "Apêndice L.1 (bloco de otimização da aquisição)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO em 66.590/66.590 decisões e em 639/639 headers; o knob per-D reduzido (1D/50D, DI-37.3) NUNCA vazou para o main. Corroborado pela ③: exatamente 5D linhas de regime `online` por geração em 3.851/3.851 gerações das 70 células com ③."
+  }
+ ],
+ "N4_deriva": "**DERIVA CROSS-MÁQUINA MEDIDA = ZERO, BIT-EXATA.** O c154 só tem 4 duplicatas (as células D=2 baratas): MMF11_L/7 (vm1×vm5), MMF1/7 (vm1×vm5), MMF4/7 (vm1×vm5) e MMF1/42 (vm5×vm10). Nos 4 pares, TODAS as grandezas coincidem bit-a-bit: `torch_seed` 47/47+41/41+41/41+41/41; tuplas de `hs_paths` idem; `acqf_escolhido` bit-idêntico em 170/170 decisões somadas, |Δα|/α mediana=p95=máx = 0,000e+00; `noise`/`outputscale`/`lengthscale_min` bit-idênticos em 340/340 iterações-objetivo; e o ① com **max|ΔX| = 0,0 e max|ΔF| = 0,0 em 244/244 linhas**, incluindo o bloco de init. Até `rs_fallbacks_total` e `cache_hits` batem. **Isto CONTRADIZ a doutrina vigente do RUNBOOK §6.2** (\"floats não são bit-idênticos entre plataformas ⇒ fidelidade estatística, não bit-exata\") para este config: com float64 + `torch_num_threads=1` + 4 env-vars em \"1\" + `fused_kernel=OFF` + re-seed por iteração, a reprodutibilidade do c154 é BIT-EXATA entre vm1, vm5 e vm10 (Linux/x86_64, torch 2.11.0+cu130, botorch 0.18.1). O par MMF1/42 é ainda mais forte: é CROSS-CAMPANHA — vm10 rodou em 30/07 (código pré-T11, sem `ordem_terceira_online`, sem `campanha_id`) e vm5 em 07/08 (M8) — e o resultado é bit-idêntico ⇒ **o retrofit da T11 é comprovadamente NÃO-PERTURBATIVO sobre o mecanismo**, o que fecha por dado o item que a T11 deixou como \"hash registrado, artefato não preservado\". RESSALVAS DECLARADAS: (a) as 4 duplicatas são todas D=2, runs de 41–47 iterações; não há duplicata em D≥7 nem par envolvendo vm2/vm3/vm4 — a bit-identidade NÃO foi medida ali; (b) o piso de ruído medido é 0,0, logo qualquer contraste numérico entre configs no c154 não precisa de margem de máquina para as células `ok`; (c) **mas a máquina AFETA violentamente as células ⚪** — não o valor, e sim ONDE o run é cortado: ver classe-3 C1 (spread de até 22,6% no FE de truncamento dentro do mesmo problema, e taxa de fechamento de orçamento de 34,3% na vm5 contra 93,9–100% em vm1/vm4/vm10/vm2 nos 7 problemas D=10).",
+ "N5_cauda": "CENSO CORRIGIDO PELA AUTORIDADE DO RODAPÉ (O-21), sobre as 639 células: **259 ok · 300 ⚪ teto_wall · 15 ⚪ kill-sem-rodapé · 65 fail por exceção determinística**. O censo da torre chama de `fail` 80 células; 15 delas NÃO são falha: têm `motivo_parada=\"checkpoint_em_andamento\"` no ⑤ e NENHUM rodapé no ⑥ — foram mortas pelo kill de campanha de 13/08 entre 22:51 e 23:05 UTC, e 14 das 15 têm ①②③④⑤ COMPLETOS gravados pelo checkpoint atômico (só DTLZ4/7 ficou só com ⑥). E o sentinela ambíguo confirma a regra O-21: das 65 células com `motivo_parada=\"checkpoint_em_andamento\"` no manifesto, **51 têm rodapé de exceção real** (o rótulo é falso) e 14 são kills verdadeiros. **⚪ CONFERIDAS (a pendência explícita do briefing): os parquets das 300 ⚪ ESTÃO LÁ** — ① 300/300, ② 300/300, ④ 300/300, ⑤ 300/300, ③ 0/300 (bucket-only D54, esperado); `len(①) == fe_final` em 559/559 (259 ok + 300 ⚪); `fe_index` e `solution_id` densos 0-based em 624/624; init = 11D−1 em 624/624. As 300 ⚪ pararam entre 12,00 h e 12,49 h (`max_wall_s=43.200` em 300/300), com 1 `wall_projection_warning` + 1 `teto_wall_truncamento` por célula. TAXA DE SUCESSO POR PROBLEMA (ok/total): DTLZ1 27/27, MMF1 30/30, MMF11_L 30/30, MMF4 30/30 = 100% · BBOB_F49 23/24 e ZDT4 23/24 = 95,8% · BBOB_F17 87,5% · BBOB_F37 83,3% · BBOB_F22 75,0% · BBOB_F5 58,3% · BBOB_F1 54,2% · BBOB_F55 33,3% · ZDT6 8,3% · WFG1 0% · e 0% em DTLZ2/3/4/7, MMF16_20, WFG2/4/5/9, ZDT1/ZDT3 (todas ⚪, 100% com dado utilizável). DOIS MODOS DE MORTE, ambos `determinista_nao_retriavel`: **rs_escada_esgotada 47** (`RuntimeError: random_search_optimizer falhou nas 3 tentativas da escada` — ZDT6 21, BBOB_F55 15, BBOB_F5 6, WFG9 2, BBOB_F22 1, BBOB_F49 1, WFG1 1) e **ModelFittingError 18** (`All attempts to fit the model have failed`, TODAS em WFG1). O QUE ISTO DIZ SOBRE O ALGORITMO, e é o resultado novo: **a incapacidade NÃO é do par (algoritmo, problema) — é ESTOCÁSTICA NA SEMENTE.** ZDT6 morre em 21/24 mas FECHA em 2 e trunca em 1; BBOB_F5 morre em 6/24 e fecha em 14; WFG1 morre em 19/25 e trunca em 6. O laudo D0 (\"determinístico por semente\") está certo — as duplicatas provam determinismo bit-exato — mas o enunciado correto é uma TAXA, não um 0/30. E não há limiar de n: o K encontrado pelo `random_search_optimizer` é 4–9 (mediana 8) e a iteração da morte varia de 1 a 154 (ZDT6) e 1 a 143 (BBOB_F55) — é um hazard de Bernoulli por iteração, não uma parede. Achado mecanístico adicional na cauda: nas 38 célula-objetivo de WFG1 com ③, o WAPE da sonda **CRESCE +352% (mediana) até a morte** e a cobertura ±1,96σ vai a 1,000 — o GP degenera de forma MEDÍVEL antes do `ModelFittingError`; a falha é precedida de sinal, não súbita. Por fim, `cache_hit` (D57): 43 disparos em toda a campanha, **TODOS em MMF11_L** (16 das 30 sementes) — assinatura estrutural exclusiva daquele problema, reproduzida em escala.",
+ "aspectos": [
+  {
+   "id": "J1",
+   "aspecto": "Orçamento 31D−1 com hard-stop exato",
+   "classe": "2",
+   "medicao": "ok: fe_final==maxfe==31D−1 em 259/259; n_geracoes==n_infill+1 e exatamente 1 guard `hard_stop` em 259/259; n_infill == fe_final−(11D−1)+cache_hits em 259/259. ⚪: n_geracoes==n_infill e 0 hard_stop em 300/300. len(①)==fe_final em 559/559",
+   "veredito": "conforme, ancorado em D21/D61",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/c154_master.csv"
+  },
+  {
+   "id": "J2",
+   "aspecto": "DoE de init = 11D−1 LHS carregado do artefato",
+   "classe": "2",
+   "medicao": "624/624 células (25 problemas × 30 sementes) com n_init == 11D−1 e |ΔX| ≤ ULP-float32 do artefato ELEMENTO A ELEMENTO; erro relativo máximo 5,91e-08 (< 2^-24 = 5,96e-08); |ΔX| absoluto máximo 1,907e-06 (WFG, bounds até 43,99)",
+   "veredito": "conforme, ancorado em D63/Anexo J; ERRATA ao limiar absoluto da T11 (o invariante é relativo)",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/c154_doe.csv"
+  },
+  {
+   "id": "J3",
+   "aspecto": "Kernel Matérn 5/2 ARD (Gamma-legado D30)",
+   "classe": "1",
+   "medicao": "declarativo idêntico em 639/639 headers; corroborado por dado: lengthscale_min ≠ lengthscale_max em 150.740/150.740 iterações-objetivo",
+   "veredito": "conforme ao artigo (L.1)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "J4",
+   "aspecto": "Ruído INFERIDO + likelihood LogNormal piso 1e-4",
+   "classe": "2",
+   "medicao": "piso vinculante em 20.171/150.740 (13,4%); fração no piso por problema com std entre sementes ≤0,043 em 24/25 problemas (DTLZ7 0,088); razão máx/mín do ruído por célula: mediana ×2.216 (MMF1) e ×2.089 (ZDT4), máximo ×5.035",
+   "veredito": "conforme, ancorado em E.1/⟦v5.2.1⟧; a patologia é do MÉTODO na interseção JES+ruído-inferido+dado-determinístico, e agora é sistemática (do problema), não de semente",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/c154_master.csv"
+  },
+  {
+   "id": "J5",
+   "aspecto": "Refit from-scratch por iteração (MLL exata)",
+   "classe": "1",
+   "medicao": "nº de eventos `timing` == n_geracoes == nº de decisões em 559/559 células fechadas; n_train monotônico em 639/639",
+   "veredito": "conforme ao artigo (L.1)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "J6",
+   "aspecto": "Treino = arquivo inteiro (sem poda)",
+   "classe": "1",
+   "medicao": "n_train monotônico 639/639; `fe_treino_max == n_train − 1` em 3.851/3.851 gerações das 70 células com ③",
+   "veredito": "conforme (Alg. 2)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "J7",
+   "aspecto": "estimation_type = \"LB\"",
+   "classe": "1",
+   "medicao": "\"LB\" e algo_version `c154-JES/qLBMOJES-LB-botorch-0.18.1` em 639/639 headers e 559/559 manifestos fechados",
+   "veredito": "conforme (§5.2/L.6) — direta-declarativa",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "J8",
+   "aspecto": "S=10 caminhos / p=10 pontos ótimos",
+   "classe": "1",
+   "medicao": "pf_shape=(10,10,M) e ps_shape=(10,10,D) em 66.590/66.590 decisões; 0 evento de shape≠P",
+   "veredito": "conforme (L.1/L.3)",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "J9",
+   "aspecto": "Otimizador dos CAMINHOS = random_search_optimizer (paper: NSGA-II + truncagem HV)",
+   "classe": "2",
+   "medicao": "rota='a' em 66.590/66.590; custo direto: 47 células mortas por escada esgotada",
+   "veredito": "desvio sancionado D75; o preço subiu de 2 células (s42) para 47 em 30 sementes",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "J10",
+   "aspecto": "Escada determinística (1024,10)→(2048,20)→(4096,40) sem re-seed",
+   "classe": "2",
+   "medicao": "48.257 disparos: degrau 0 = 46.379 · degrau 1 = 1.831 · degrau 2 = 47; os 47 do degrau 2 == as 47 mortes por `rs_fallback_esgotado` (reconciliação exata); amostra s uniforme sobre 1..10 (4.741–4.957); footer.rs_fallbacks_total == contagem em 559/559",
+   "veredito": "conforme, ancorado em DI-11 §3; o bundle previa 0 disparos",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/c154_escada.csv"
+  },
+  {
+   "id": "J11",
+   "aspecto": "Aquisição L-BFGS-B multi-start, 5D restarts / 1000D pool",
+   "classe": "1",
+   "medicao": "num_restarts==5D e raw_samples==1000D em 66.590/66.590; ③-online com exatamente 5D linhas/geração em 3.851/3.851",
+   "veredito": "conforme ao artigo (L.1) — parâmetro idêntico ao paper",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "J12",
+   "aspecto": "NaN-guard só na SELEÇÃO; acqf crua intocada no export",
+   "classe": "2",
+   "medicao": "1.527 eventos `nan_guard_ics` (Σn_nonfinite 4.661) e 2.441 eventos `nan_guard_argmax` (Σn_nonfinite 4.892); Σ n_nonfinite(argmax) == nº de valores não-finitos em `acqf_todos_restarts` = 4.892 em **639/639 células**, e o CONJUNTO de iterações afetadas coincide em 639/639",
+   "veredito": "conforme, ancorado em DI-11.1; reconciliação exata em escala",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/c154_guards.csv"
+  },
+  {
+   "id": "J13",
+   "aspecto": "Internos do estimador LB (RFF 1024×L=500, jitter 1e-6, ref −1e10, X* amostrados)",
+   "classe": "T",
+   "medicao": "não exportados em nenhuma das 639 células",
+   "veredito": "teto de verificabilidade — mitigado por anchors.json + repos.lock",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "J14",
+   "aspecto": "Sinal/domínio/des-transformação",
+   "classe": "1",
+   "medicao": "transf_tipo/transf_params/espaco_modelo NULL em 100% das 8,9 M linhas de ③ lidas; bounds nativos respeitados",
+   "veredito": "conforme (§5.5/E.1)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "J15",
+   "aspecto": "σ exportada = VAR-GP (sem termo de ruído)",
+   "classe": "1",
+   "medicao": "σ > 0 em 8.911.010/8.911.010 valores de sigma_* das 70 células com ③; 0 NaN",
+   "veredito": "conforme (eq. 4)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "J16",
+   "aspecto": "Semeadura: MatheronPathModel(seed=hs) + torch_seed por iteração",
+   "classe": "2",
+   "medicao": "665.900 seeds de Matheron, todos distintos dentro de cada célula; torch_seed distinto em 639/639 células. NOVO: (torch_seed, hs_paths) é FUNÇÃO EXATA de (semente, iteração) — 0 violações em 66.590 observações, 5.401/5.401 torch_seed distintos, 54.010/54.010 hs distintos, 0 colisão entre as 30 sementes",
+   "veredito": "conforme, ancorado em DI-10; a fórmula de semeadura era T na F5/T11 e CAIU",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "J17",
+   "aspecto": "Logar os S fronts amostrados (pf_amostrados_f)",
+   "classe": "2",
+   "medicao": "presentes em 66.590/66.590 decisões, com shape (10,10,M) verificado em 66.590/66.590",
+   "veredito": "adição sancionada I.11",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "J18",
+   "aspecto": "Dedup por X / cache_hit",
+   "classe": "2",
+   "medicao": "43 disparos em 66.590 decisões, TODOS em MMF11_L (16 das 30 sementes); footer.cache_hits == contagem em 559/559",
+   "veredito": "conforme, ancorado em D57; fenômeno exclusivo do MMF11_L confirmado em escala",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "J19",
+   "aspecto": "Sonda: cadência DI-12.5 + join posicional + hash",
+   "classe": "2",
+   "medicao": "34.110 blocos; a fórmula g==1 ∨ g%2==0 ∨ g==última fecha SEM FALTA em 639/639 células (0 gerações faltando); footer.n_blocos_sonda == contagem em 559/559; join posicional com o gabarito[0:2000] com |ΔX| ≤ ULP-float32 (máx 1,907e-06 em WFG)",
+   "veredito": "conforme, ancorado em DI-12.5",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "J20",
+   "aspecto": "Invariante de timing DI-13.10 (fit + busca ≤ tempo_geracao)",
+   "classe": "2",
+   "medicao": "15.574/15.574 gerações em amostra aleatória de 150 células; 0 violações",
+   "veredito": "conforme, ancorado em DI-13.10",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "J21",
+   "aspecto": "n_train em vez de n_baseline",
+   "classe": "2",
+   "medicao": "n_train presente em 66.590/66.590 decisões; n_baseline ausente em 639/639",
+   "veredito": "conforme, ancorado em DI-11 §2",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "J22",
+   "aspecto": "Knob per-D reduzido é BATCH-only (main intocado)",
+   "classe": "2",
+   "medicao": "5D/1000D em 66.590/66.590; NUNCA 1D/50D em nenhuma das 639 células",
+   "veredito": "conforme, ancorado em DI-37.3/T9",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "J23",
+   "aspecto": "② = dataset acumulado (sem população persistente)",
+   "classe": "1",
+   "medicao": "|②(g)| = init + g − 1 em 184/184 células amostradas com rodapé; crescimento monotônico em 320/320 amostradas; g0 == 11D−1 em 320/320. ⚠ |②| final == fe_final SÓ nas ok (82/82); nas ⚪ é fe_final − 1 (102/102), porque a geração extra do hard_stop não existe ali",
+   "veredito": "conforme ao artigo (§3.7c); ERRATA/armadilha nova: quem testar |②|==fe_final reprova 300 ⚪ indevidamente",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "J24",
+   "aspecto": "Recomendação in-sample × out-of-sample (assimetria §20)",
+   "classe": "2",
+   "medicao": "dist_min_arquivo nunca colapsa: mediana por célula 0,078–1,261, CV entre sementes 0,007–0,456; só 43 zeros em 66.590 decisões, todos == cache_hit",
+   "veredito": "conforme, ancorado em §20/L.5; a predição do paper sobre si mesmo se confirma em 30 sementes",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "J25",
+   "aspecto": "Ambiente, pins e knobs declarativos",
+   "classe": "2",
+   "medicao": "botorch 0.18.1 / torch 2.11.0+cu130 / gpytorch 1.15.2 / python 3.11.9 / Linux-x86_64 / float64 / 1 thread / fused_kernel OFF / init_batch_limit 256 — IDÊNTICOS em 639/639 headers; kernel, S, P, q, estimation_type e rs_ladder idênticos em 639/639",
+   "veredito": "conforme, ancorado em D79/D80/DEF-L2",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "J26",
+   "aspecto": "optimize_acqf_warning (retry do BoTorch desloca o RNG)",
+   "classe": "2",
+   "medicao": "41.311 registros; distribuição bimodal por problema (100% das iterações em BBOB_F1/F5/DTLZ2/DTLZ7/ZDT1, 0% em WFG9, 1,9% em DTLZ1). NOVO: apesar dos 41.311 retries, torch_seed e hs_paths continuam funções exatas de (semente,it) ⇒ o deslocamento NÃO propaga para a iteração seguinte",
+   "veredito": "conforme, ancorado em DI-10; a causa exata do warning permanece T",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "J27",
+   "aspecto": "Ordem da ③-online ↔ restarts (regra I-12 restart_de_linha)",
+   "classe": "2",
+   "medicao": "361 pares X-empatados discriminantes em 19 problemas e 26 sementes: regra declarada |Δα|/α mediana 0,0, p95 3,83e-13, máx 4,21e-11, 0/361 > 1e-6; índice ingênuo mediana 1,03e-01, máx 8,07e-01, 317/361 > 1e-6. Linha marcada == última do bloco 3.846/3.846; X bit-idêntico ③↔① 3.846/3.846 (ΔX = 0,0)",
+   "veredito": "conforme, ancorado em I-12; a regra que a T11 provou em 1 semente VALE em 26",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/c154_n1_pares.csv"
+  },
+  {
+   "id": "J28",
+   "aspecto": "Não-unicidade do argmax (platô da αJES-LB) e MI ≥ 0",
+   "classe": "1",
+   "medicao": "19.913/66.590 iterações (29,9%) com ≥2 restarts a 1e-9 relativo do máximo (s42/T11: 30,1% — reproduz a 0,2 p.p.); acqf_escolhido > 0 em 66.590/66.590",
+   "veredito": "comportamento fiel do funcional; achado emergente quantificado em escala",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "J29",
+   "aspecto": "Rito de teto DI-43/44 (truncamento-com-dado, projetor que avisa)",
+   "classe": "2",
+   "medicao": "300 células ⚪: 1 `wall_projection_warning` e 1 `teto_wall_truncamento` por célula (300/300), max_wall_s=43.200 em 300/300, elapsed 12,00–12,49 h; camadas ①②④⑤ 300/300 e len(①)==fe_final 300/300; ③ ausente por D54 (bucket-only)",
+   "veredito": "extensão nossa sancionada 🟢 DI-43/44 — validada em 300 células e 19 problemas, não mais em 1 smoke",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "J30",
+   "aspecto": "Checkpoint atômico periódico",
+   "classe": "2",
+   "medicao": "8.997 checkpoints gravados; converteu em dado utilizável 14 células mortas por kill de campanha (①②③④⑤ completos, 0 rodapé) e 51 células mortas por exceção que mesmo assim têm ①. Resume NUNCA exercitado: n_retries=0 em 638/638, 0 registro de retomada",
+   "veredito": "extensão nossa sancionada 🟢 DI-43; o caminho de LEITURA do checkpoint continua T",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "J31",
+   "aspecto": "⑤ completo (params + motivo_parada + campanha_id/repo_hash)",
+   "classe": "2",
+   "medicao": "campanha_id `7f4f0e429a46_M8` e repo_hash `63db46b10063…` em 638/638; schema_version=2 em 638/638; `params`+bloco `jes` em 559/559 células com fecho; ausentes nas 79 sem fecho (esqueleto de checkpoint) — comportamento coerente, não sentinela",
+   "veredito": "conforme; a não-conformidade `contrato_f52b` da F5 permanece fechada",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "J32",
+   "aspecto": "finalProbe da sonda sob motivo_parada=teto_wall",
+   "classe": "1",
+   "medicao": "última geração probada em 300/300 células ⚪; nas 148 com n_geracoes ÍMPAR o bloco final traz `motivo=\"ultima iteracao (teto_wall DI-43/44)\"` em 148/148; nas 152 com n_geracoes par a cadência k=2 já cobre. Nas ok: 259/259",
+   "veredito": "FECHADO — o único classe-3 da T11 não se reproduz no código da campanha",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "J33",
+   "aspecto": "Números aleatórios COMUNS entre problemas dentro de uma semente",
+   "classe": "3",
+   "medicao": "para uma dada semente, o torch_seed e os 10 hs_paths da iteração k são IDÊNTICOS nos 25 problemas — 0 violações em 66.590 observações. Não localizei declaração desta convenção no header, no sigma_dict nem nos relatórios F5/T11",
+   "veredito": "classe (3) MENOR — provado benigno para a fidelidade (o acoplamento é fraco: os caminhos dependem dos hiperparâmetros do GP, que são específicos do problema), mas induz correlação entre problemas dentro de uma semente e precisa ser DECLARADO antes de qualquer agregação 25×30. Se a SPEC já declara, reclassificar para (2)",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "J34",
+   "aspecto": "Máquina confundida com semente e truncamento das ⚪ dependente da máquina",
+   "classe": "3",
+   "medicao": "29 das 30 sementes rodaram inteiras num ÚNICO host (só s26, com 3 células, é dividida). Nos 7 problemas D=10 que cabem no relógio, a taxa de fechamento do orçamento é 100% (vm4), 93,9% (vm1), 92,9% (vm10/vm2), 81,0% (vm3) e **34,3% (vm5)**. Dentro do mesmo problema, o FE mediano atingido no teto difere entre hosts em até 22,6% (DTLZ2: vm5 237 × vm4 290,5); wall da mesma célula difere ×1,35–2,00",
+   "veredito": "classe (3) GRAVE — não é infidelidade do algoritmo (o valor é bit-exato, N4), mas contamina toda leitura de variância por semente nas 300 ⚪ e explica por que a fatia s42 (100% vm5) é a pior da campanha. ESCALADO",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/c154_master.csv"
+  },
+  {
+   "id": "J35",
+   "aspecto": "③ ausente do disco em 149 células cujo ⑤ registra upload_failed",
+   "classe": "3",
+   "medicao": "149 células (78 ok + 71 ⚪) têm `upload_status = {'erro': 'upload_failed: Forbidden(... does not have storage.objects.delete access ...)'}` e ZERO surrogate.parquet local; nos espelhos das 6 VMs existem só 70 surrogates no total (= os 70 canônicos, hardlinks) ⇒ a ③ dessas 149 não está em nenhum disco que eu possa ler. Hosts afetados: vm2 53, vm4 48, vm10 48",
+   "veredito": "classe (3) GRAVE + T — a ③ pode estar no bucket (o 403 é de `objects.delete`, sugerindo objeto pré-existente), mas NÃO TENHO ACESSO AO BUCKET para conferir. O apagamento local da ③ não está condicionado ao sucesso do upload. ESCALADO",
+   "muda_vs_s42": true,
+   "arquivo_linha": "scratchpad/c154_manifests.csv"
+  },
+  {
+   "id": "J36",
+   "aspecto": "③ órfã de outra campanha dentro do diretório canônico",
+   "classe": "3",
+   "medicao": "c154/MMF1/42/…__surrogate.parquet é de 30/07/2026 (campanha PRÉ-M8, cópia da vm10, campanha_id ausente) enquanto ⑥⑤①②④ do mesmo diretório são de 06-07/08 (M8, vm5). Provei que é benigna: a ③ tem 44.410 linhas = 22×2.000 (sonda) + 41×10 (online), aritmética exata contra o rodapé M8, e o par vm5×vm10 é bit-idêntico em 41/41 decisões e 61/61 linhas do ①",
+   "veredito": "classe (3) MENOR, investigado e PROVADO BENIGNO; ainda assim é higiene de acervo e deve ser declarado ou removido",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "T-resume",
+   "aspecto": "Retomada a partir de checkpoint",
+   "classe": "T",
+   "medicao": "8.997 gravações, 0 leituras; n_retries=0 em 638/638; nenhum registro de resume nas 639 células",
+   "veredito": "teto — o caminho de leitura nunca foi exercitado, nem pelas 15 células mortas por kill",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "T-endpoint",
+   "aspecto": "Endpoint out-of-sample do paper (μ-NSGA-II 500/500, p=50, truncagem HV)",
+   "classe": "T",
+   "medicao": "não existe no acervo; nosso IGD+/HV lê o f da ①, isto é, in-sample",
+   "veredito": "teto — única forma de comparar com a literatura JES; exige re-run",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "T-valores",
+   "aspecto": "Fidelidade dos VALORES da α^JES-LB",
+   "classe": "T",
+   "medicao": "nenhum gate compara valor; só a regra de decisão (argmax) e a identidade do ponto são verificáveis",
+   "veredito": "teto declarado desde a T11 §15.1",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "T-q10",
+   "aspecto": "Regra I-12 sob q>1",
+   "classe": "T",
+   "medicao": "batch/c154 fora do roster (DI-40); q=1 em 639/639 headers",
+   "veredito": "teto — a própria regra declara `NAO vale para q>1`",
+   "muda_vs_s42": false
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C1",
+   "descricao": "MÁQUINA CONFUNDIDA COM SEMENTE, e o ponto de corte das 300 ⚪ é decidido pela máquina. 29 das 30 sementes rodaram inteiras num único host. Nos 7 problemas D=10 que cabem nas 12 h, a taxa de fechamento do orçamento vai de 100% (vm4) e 93,9% (vm1) a 34,3% (vm5). Dentro do mesmo problema, o FE mediano do truncamento difere até 22,6% entre hosts (DTLZ2: vm5 237 × vm4 290,5; DTLZ3 20,3%; WFG9 13,0%; WFG2 12,0%). O wall da MESMA célula ok difere ×1,35–2,00 entre hosts. Como as 25 células da semente 42 rodaram todas na vm5 (a mais lenta), 5 das 11 células que a F5/T11 auditou como `ok` (BBOB_F1, F5, F17, F22, F37) hoje são ⚪.",
+   "gravidade": "alta",
+   "acao": "ESCALAR ao autor (D81). Nenhuma variância por semente medida sobre células ⚪ é interpretável sem antes fixar um ORÇAMENTO DE FE COMUM por problema (regra O-21), e mesmo assim o efeito de máquina não é separável do efeito de semente porque o desenho não cruzou host × semente. Recomendo: (a) declarar o confundimento na dissertação; (b) analisar as ⚪ só no orçamento comum = mínimo de fe_final por problema; (c) NÃO usar a fatia s42 como representativa da campanha.",
+   "arquivo_linha": "medido em /private/tmp/claude-501/-Users-gmello/33c29160-6eb6-4277-a041-db4855486063/scratchpad/c154_master.csv (colunas host, classe, fe_final, tempo_total_s)"
+  },
+  {
+   "id": "C2",
+   "descricao": "A ③ de 149 células (78 ok + 71 ⚪, 23,3% do config) não está no disco local NEM nos espelhos das 6 VMs, e o ⑤ dessas células registra `upload_status = {'erro': 'upload_failed: Forbidden(... 894264959151-compute@developer.gserviceaccount.com does not have storage.objects.delete access ...)'}`. Ou seja: a camada foi apagada localmente (política bucket-only D54) sem que o upload tenha confirmado sucesso. Hosts afetados: vm2 (53), vm4 (48), vm10 (48). Total de surrogates existentes em toda a frota: 70 — exatamente os 70 hardlinkados no canônico.",
+   "gravidade": "alta",
+   "acao": "ESCALAR. Conferir no bucket gs://mestrado_experiments se os objetos existem (o 403 é de `objects.delete`, o que SUGERE objeto pré-existente — mas eu não tenho acesso ao bucket e NÃO POSSO afirmar). Se não existirem, a ③ dessas 149 células está perdida e toda análise de sonda/calibração do c154 fica limitada às 70 células restantes, que são uma amostra ENVIESADA (dominada por células fail/kill).",
+   "arquivo_linha": "scratchpad/c154_manifests.csv (coluna upload)"
+  },
+  {
+   "id": "C3",
+   "descricao": "Semeadura com números aleatórios COMUNS entre problemas: para uma semente fixa, o `torch_seed` e a tupla dos 10 `hs_paths` da iteração k são idênticos nos 25 problemas (0 violações em 66.590 observações, 5.401 pares (semente,it)). Não localizei essa convenção declarada em nenhum artefato que li (header, sigma_dict, relatórios F5/T11).",
+   "gravidade": "baixa",
+   "acao": "Confirmar contra a SPEC/DI de semeadura. Se estiver declarada, reclassificar para (2). Se não, declarar: as 25 células de uma mesma semente NÃO são realizações independentes do RNG. O acoplamento é fraco (os caminhos de Matheron dependem dos hiperparâmetros do GP, que são específicos do problema), mas precisa constar antes de qualquer agregação sobre problemas.",
+   "arquivo_linha": "verificado em todas as 639 células por varredura das decisões do ⑥"
+  },
+  {
+   "id": "C4",
+   "descricao": "③ órfã cross-campanha no diretório canônico: `c154/MMF1/42/exp_main_c154_MMF1_42__surrogate.parquet` é de 30/07/2026 (campanha PRÉ-M8, cópia da vm10, manifesto sem campanha_id), enquanto o ⑥, o ⑤ e os demais parquets do MESMO diretório são de 06-07/08 (campanha M8, vm5).",
+   "gravidade": "baixa",
+   "acao": "Benigno, PROVADO: a ③ órfã tem 44.410 linhas = 22 blocos × 2.000 + 41 gerações × 10, aritmética exata contra o rodapé M8; e o par vm5(M8) × vm10(pré-M8) é bit-idêntico em 41/41 decisões, 82/82 hiperparâmetros e 61/61 linhas do ① (ΔX = ΔF = 0,0). Ainda assim: declarar ou remover, porque um leitor futuro não tem como saber que o arquivo é de outra campanha.",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/c154/MMF1/42/"
+  }
+ ],
+ "score": 9.2,
+ "score_t11": 9,
+ "veredito_recomendado": "ACEITAR + CAVEAT (recomendação; o veredito é do autor — D97). O MECANISMO do c154 está provado em escala de campanha, não de amostra: a query-joia fecha em 66.590/66.590 decisões com igualdade bit-a-bit e erro máximo 0,0, e as onze identidades estruturais (shapes S=10/p=10, 5D/1000D, rota 'a', ARD vivo, treino sobre o arquivo inteiro, DoE 11D−1 no ULP, σ=VAR-GP não-nula, n_train monotônico, guardas reconciliadas 4.892=4.892, MI≥0, dedup) fecham todas em 100% do denominador. O único classe-3 da T11 (J32, finalProbe sob teto_wall) está FECHADO por dado, e a regra I-12 sobreviveu a 26 sementes com 9 ordens de grandeza de margem. Os CAVEATS são três, todos medidos e nenhum deles do algoritmo: (i) o confundimento máquina×semente que decide quais células fecham o orçamento (C1); (ii) a ③ de 149 células fora de alcance (C2); (iii) a divergência sancionada D75, que na s42 custava 2 células e em 30 sementes custa 47 — com taxa de morte por problema de 87,5% (ZDT6) a 4,2% (BBOB_F49). O movimento +0,2 vs. T11 tem CAUSA NOMEADA e dupla, e as duas se compensam parcialmente: PARA CIMA — (a) o classe-3 J32 caiu por medição em 300/300 células, (b) cinco tetos T da T11 viraram número (fórmula de semeadura como função exata de (semente,it) com 0 violações em 66.590; determinismo bit-exato cross-máquina E cross-campanha nas 4 duplicatas; taxa de sucesso por problema; variância entre sementes; não-perturbação do retrofit T11), (c) a evidência do mecanismo multiplicou por 36 (1.824 → 66.590 decisões) sem uma única quebra; PARA BAIXO — nasceram dois classe-3 GRAVES que uma auditoria de 1 semente é estruturalmente incapaz de ver (C1 e C2), e o custo da D75 saiu de 2 para 47 células. Se C1 e C2 fossem sanados ou declarados, o config estaria em 9,6.",
+ "decisoes_ao_autor": [
+  "D81 — CONFLITO DE CENSO, o mais material: o corpus da semente 42 que a F5 e a T11 auditaram FOI SUBSTITUÍDO no caminho canônico pela campanha M8. Das 11 células que a F5/T11 leram como `ok` com 309/216/61 FE, hoje 5 (BBOB_F1, F5, F17, F22, F37) são ⚪ `teto_wall` (BBOB_F1 parou em 265/309 após 12,08 h na vm5). Os números daqueles dois relatórios NÃO são mais recomputáveis em resultados_experimentos/. Uma cópia pré-M8 sobrevive em ~/mestrado_coleta_m8/matlab-vm10/ apenas para MMF1/42. Decisão pedida: como citar F5/T11 na dissertação, já que a base deles não existe mais no canônico?",
+  "D81 — RECLASSIFICAÇÃO DE 15 CÉLULAS PELA REGRA O-21: o censo (censo_completo_22.csv) marca 80 células do c154 como `fail`, mas 15 delas não têm rodapé nenhum no ⑥ e trazem `motivo_parada=\"checkpoint_em_andamento\"` no ⑤ — são interrupções do kill de campanha de 13/08 (22:51–23:05 UTC), não falhas de algoritmo, e 14 das 15 têm ①②③④⑤ COMPLETOS gravados pelo checkpoint atômico. Proponho o censo corrigido do c154: 259 ok · 300 ⚪ teto_wall · 15 ⚪ kill-com-dado · 65 fail determinístico. Célula sem camada nenhuma além do ⑥: apenas DTLZ4/7.",
+  "O sentinela `checkpoint_em_andamento` é FALSO RÓTULO em 51 de 65 células que o carregam — essas 51 têm rodapé de exceção determinística real. A regra O-21 (\"o rodapé é a autoridade\") está confirmada empiricamente no c154 e deve ser aplicada sem exceção.",
+  "COBERTURA REAL DA CAMPANHA: 639 de 750 células (85,2%). Seis sementes estão INCOMPLETAS — s7 (7/25), s13 (15/25), s17 (8/25), s18 (3/25), s25 (3/25), s26 (3/25) — e as 39 células que sobraram nelas são só os problemas baratos (MMF1/MMF11_L/MMF4/DTLZ*). Escrever \"30 sementes\" sem qualificar é impreciso: são 24 sementes completas + 6 truncadas pelo fim da campanha.",
+  "A DOUTRINA DE FIDELIDADE ESTATÍSTICA (RUNBOOK §6.2) é conservadora demais para o c154: medi deriva ZERO, bit-exata, em 4/4 duplicatas cross-máquina (vm1×vm5, vm5×vm10), incluindo um par cross-campanha. Para as células `ok` deste config o piso de ruído entre máquinas é 0,0 — qualquer contraste numérico pode ser lido sem margem de máquina. Isso NÃO vale para as ⚪, onde a máquina decide o ponto de corte (C1). Decisão pedida: registrar a exceção medida ou manter a doutrina uniforme?",
+  "A INCAPACIDADE do c154 não é 0/30 — é uma TAXA. ZDT6 87,5% de morte (mas 2 células fecham), WFG1 76% (18 por ModelFittingError, 1 pela escada), BBOB_F55 62,5%, BBOB_F5 25%, WFG9 8%, BBOB_F22 e F49 4,2%. O laudo D0 diz \"determinístico\"; o determinismo está provado (duplicatas bit-exatas), mas o enunciado no artigo/dissertação deve ser a taxa de sucesso por problema, não um 0/30 categórico. E o WFG1 tem causa DIFERENTE das outras (falha de ajuste do GP, não a escada D75).",
+  "SOB O m8-freeze (fixes vetados) não peço correção de código; registro para a lista pós-freeze: (a) o apagamento local da ③ deveria ser condicionado ao sucesso do upload (C2); (b) o `motivo_parada` do ⑤ deveria distinguir kill de exceção; (c) confirmar/declarar a convenção de números aleatórios comuns entre problemas (C3)."
+ ]
+}

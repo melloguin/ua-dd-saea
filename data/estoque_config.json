@@ -1,0 +1,19 @@
+{
+  "top_k": 40,
+  "n_categories": 8,
+  "holding_fraction": 0.2,
+  "demand_quantile_ub": 0.95,
+  "current_stock_weeks": 2.0,
+  "min_ub": 1.0,
+  "week_freq": "W",
+  "drop_cancellations": true,
+  "schema_version": "estoque-v1",
+  "P": 40,
+  "W": 106,
+  "raw_sha256": "bcbe73b35f5b7babf197fb0cb983a11f5d9ff929078d4aa53d171b1f2df2e980",
+  "npz_sha256": "660b589611c2512ee1e02978dd4edd0f42f5db1cd0f0ba01a2ade67844e9ccc0",
+  "week_range": [
+    "2009-11-30/2009-12-06",
+    "2011-12-05/2011-12-11"
+  ]
+}

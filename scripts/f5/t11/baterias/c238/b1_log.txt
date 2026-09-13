@@ -1,0 +1,97 @@
+==========================================================================================
+B1.0 — SCHEMAS DAS CAMADAS (smoke)
+  real  shape=(61, 10)
+        cols: ['algoritmo', 'problema', 'semente', 'solution_id', 'x0', 'x1', 'f0', 'f1', 'fe_index', 'fase']
+        dtypes: {'algoritmo': 'object', 'problema': 'object', 'semente': 'int32', 'solution_id': 'int32', 'x0': 'float32', 'x1': 'float32', 'f0': 'float32', 'f1': 'float32', 'fe_index': 'int32', 'fase': 'object'}
+  pop   shape=(1681, 5)
+        cols: ['algoritmo', 'problema', 'semente', 'geracao', 'solution_id']
+        dtypes: {'algoritmo': 'object', 'problema': 'object', 'semente': 'int32', 'geracao': 'int32', 'solution_id': 'int32'}
+  sur   shape=(42800, 21)
+        cols: ['algoritmo', 'problema', 'semente', 'regime', 'geracao', 'x0', 'x1', 'real_solution_id', 'mu_0', 'mu_1', 'sigma_0', 'sigma_1', 'pred_tipo', 'pred_classe', 'pred_score', 'pred_confianca', 'modelo_flag', 'espaco_modelo', 'transf_tipo', 'transf_params', 'fe_treino_max']
+        dtypes: {'algoritmo': 'object', 'problema': 'object', 'semente': 'int32', 'regime': 'object', 'geracao': 'int32', 'x0': 'float32', 'x1': 'float32', 'real_solution_id': 'float64', 'mu_0': 'float32', 'mu_1': 'float32', 'sigma_0': 'float32', 'sigma_1': 'float32', 'pred_tipo': 'object', 'pred_classe': 'object', 'pred_score': 'float32', 'pred_confianca': 'float32', 'modelo_flag': 'object', 'espaco_modelo': 'object', 'transf_tipo': 'object', 'transf_params': 'object', 'fe_treino_max': 'int32'}
+  tim   shape=(40, 7)
+        cols: ['run_id', 'geracao', 'n_acumulado', 'tempo_fit_s', 'tempo_busca_s', 'tempo_pred_sonda_s', 'tempo_geracao_s']
+        dtypes: {'run_id': 'object', 'geracao': 'int32', 'n_acumulado': 'int32', 'tempo_fit_s': 'float32', 'tempo_busca_s': 'float32', 'tempo_pred_sonda_s': 'float32', 'tempo_geracao_s': 'float32'}
+==========================================================================================
+B1.1 — U1 orcamento FE
+  D=2 M=2  maxfe_manifesto=61  31D-1=61  len(1)=61
+  fe_final=61 termino=normal status=ok
+  fe_index denso 0-based: True  sid unico: True
+  fases: {'opt': 40, 'init': 21}  init esperado 11D-1= 21
+==========================================================================================
+B1.2 — U2 DoE bit-a-bit contra o artefato
+  artefatos DoE encontrados: ['/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/doe/MMF1/doe_MMF1_42.manifest.json', '/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/doe/MMF1/doe_MMF1_42.parquet']
+    doe_MMF1_42.parquet shape (21, 2)
+    max|dX| vs float64 : 1.1457521598146059e-07
+    max|dX| vs float32 : 0.0
+    sha256(f64 raw)    : b4682dc218d24077819efadd43764db3ed8403bb3e48c5c8cf66329cc191fcc7  == manifesto? True
+==========================================================================================
+B1.3 — censo do jsonl + U9 guards + U10 ledger
+  censo: {'header': 1, 'guard': 1, 'sonda': 21, 'c238_gen': 40, 'footer': 1}
+  n_gens(6)=40  n_infills(1 fase=online)=40  n_fit_series(5)=40  len(4 timing)=40
+  guard events: [{'ts': '2026-07-30T21:46:30Z', 'rec': 'guard', 'name': 'cache_hit', 'solution_id': 0, 'x_key': '039843BD82EFF93F', 'fe': 1}]
+  manifest.cache_hits = 1
+  ledger: n_gens=40  n_opt=40  cache_hits=1  =>  c0 = n_opt + ch - n_gens = 1
+  footer.n_geracoes=41  (vs 40 eventos c238_gen)
+  sum(fe_iter)=40  lote unico?{1}
+==========================================================================================
+B1.4 — camada 2 (pop) e off-by-one
+  gens na 2: [np.int32(1), np.int32(2), np.int32(3), np.int32(4), np.int32(5)] ... [np.int32(39), np.int32(40), np.int32(41)]
+  n_gens(2)=41 (esperado n_gens+1=41)
+  |2(g)| == (init-1)+g em todas? True  primeiros: {1: 21, 2: 22, 3: 23}  ultimo: {41: 61}
+  duplicatas de solution_id na ultima 2: 0
+==========================================================================================
+B1.5 — U4 cadencia da sonda
+  n_blocos(6)=21  manifest.sonda.n_blocos=21  geracoes=[1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
+  esperado (g==1 ou g%%2==0 + finalProbe) = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
+  cadencia OK? True
+  regimes na 3: {'sonda': 42000, 'online': 800}
+  linhas por bloco de sonda: [2000]  n_falhas= 0
+==========================================================================================
+B1.6 — U3/U7/U8
+  timing cols: ['run_id', 'geracao', 'n_acumulado', 'tempo_fit_s', 'tempo_busca_s', 'tempo_pred_sonda_s', 'tempo_geracao_s']
+  U7 violacoes fit+busca>geracao: 0 de 40
+  U8 fe_treino_max monotonico? True  == n_amostra-1? True
+  n_treino == n_amostra - n_dedup em todas? True
+==========================================================================================
+B1.7 — DIFF SMOKE x RODADA-42 (mesma celula, mesma semente)
+  real  shape (61, 10) vs (61, 10)  iguais=True  max|delta| numerico = 6.134448051452637
+  pop   shape (1681, 5) vs (1681, 5)  iguais=True  max|delta| numerico = 0.0
+  sur   shape (42800, 21) vs (42800, 21)  iguais=True  max|delta| numerico = 1855.4911708831787
+  tim   shape (40, 7) vs (40, 7)  iguais=True  max|delta| numerico = 1.926632285118103
+  n_gens smoke=40  r42=40
+    eim_best             max|delta| = 155.93527241026172
+    eim_mediana_pool     max|delta| = 155.93525703571478
+    y_best               max|delta| = 155.93527241026172
+    n_front              max|delta| = 2.0
+    n_front1             max|delta| = 2.0
+    min_dist_infill      max|delta| = 0.2884745363564459
+    n_amostra            max|delta| = 0.0
+    n_treino             max|delta| = 0.0
+    n_dedup              max|delta| = 0.0
+    infill_sid           max|delta| = 0.0
+    fe                   max|delta| = 0.0
+    ga_pop               max|delta| = 0.0
+    ga_gens              max|delta| = 0.0
+    n_eim_nan            max|delta| = 0.0
+    n_range0             max|delta| = 0.0
+    stall_iters          max|delta| = 0.0
+    fe_treino_max        max|delta| = 0.0
+    norm_min             max|delta| = 0.11357976220045353
+    norm_max             max|delta| = 0.7001925004200142
+    norm_range_efetivo   max|delta| = 0.661237246145518
+    theta_min            max|delta| = 364.4898219931956
+    theta_max            max|delta| = 999.9989997820015
+    theta_media          max|delta| = 541.8530196196389
+    lnL                  max|delta| = 379.50776278075045
+    u_best               max|delta| = 161.4828306597891
+    s_best               max|delta| = 57.804893534656806
+    f_best               max|delta| = 0.11357976220045353
+==========================================================================================
+B1.8 — manifesto: diff de chaves smoke x r42
+  so no smoke: {'campanha_id'}
+  so no r42  : set()
+  params: chaves so smoke=set()  so r42=set()
+  sigma_dict: chaves so smoke=set()  so r42=set()
+  timing smoke: {'tempo_total_s': 7.261968291666666, 'tempo_fit_surrogate_s': 2.4422025149688125, 'tempo_busca_s': 1.9190010651946068, 'tempo_aval_real_s': 0.022262250000000004, 'tempo_pred_sonda_s': 1.3081575416666666}
+  timing r42  : {'tempo_total_s': 15.440227, 'tempo_fit_surrogate_s': 2.9578190008178353, 'tempo_busca_s': 4.552216991782188, 'tempo_aval_real_s': 0.03353199999999999, 'tempo_pred_sonda_s': 1.944285}

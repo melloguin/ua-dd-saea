@@ -1,0 +1,66 @@
+{
+ "config": "sobol_batch",
+ "celulas_final": "8 células · 5 problemas · 4 sementes — DTLZ2/42 ✅ · WFG9/42 ✅ · ZDT1/42 ✅ · ZDT4/42 ✅ · MMF16_20/{0 ✅, 2 ✅, 42 ✅, 1 ⛔failed/erro_Forbidden}. Sob O-21: 7 válidas (rodapé ok/orcamento, footer duplo 2/2, cache_hits=0, fe_final=maxfe exato 11D−1+2000); 1 com rodapé E manifesto failed mas busca completa (fe_final=2219=maxfe) — falha de UPLOAD, não de busca. 0 ⚪ teto_wall. 0 células reais (D102.16). Confere com censo_final.csv (8 linhas, 7 ok + 1 failed) e com a lacuna aceita das ondas antigas (8 células).",
+ "novas_desde_f30": "F30 NÃO auditou sobol_batch (sem f30/configs/sobol_batch.json; 0 menções no RELATORIO_FINAL_F30 — config das ondas antigas, fora do grid de 30 sementes). Desde T11 (que cobriu só a s42): (i) +3 células MMF16_20 s{0,1,2} de 2026-07-29 (pré-HEAD-T11 9ad0138 de 07-31: schema_version=1, SEM n_front1/params/checkpoints/tempo_aval_real_s), rodadas em /home/gmello/venvs/env_main (NÃO-forasteiras, ao contrário das s42 em /home/jupyter); (ii) layout reorganizado sobol_batch/q10_<p>/42 → sobol_batch/<p>/<semente>; (iii) 4 parquets s42 com mtime 2026-08-01 (DTLZ2/42__real; WFG9/42 __pop/__surrogate/__timing) — conteúdo verificado IDÊNTICO às âncoras T11 b1_celulas.csv dígito a dígito (oráculo mediana/máx, contagens ②③④): efeito da reorganização/cópias, não edição.",
+ "mecanismo_nos_novos": "Query-joia nas 3 células NOVAS (100% delas — não amostra — cobrindo as 3 sementes novas; o config não tem 30 sementes): reconstrução total dos lotes via iteration_seed(base=semente,22,g,0,bits32)→qmc.Sobol(d=20,scramble=True,seed).random(10)→projeção: 600/600 lotes = 6.000/6.000 pontos bit-idênticos em float32, Δf64 máx 2,98e-8; seeds do ⑥ = fórmula D62/D91 em 600/600; fe=219+10g em 600/600; 0 violações de bound, 0 X duplicados, 2.000/2.000 pontos opt distintos por célula (scrambling vivo). Oráculo recomputado nas 3×2.219 linhas: rel mediana ≤3,8e-8; as 2-4 entradas/célula com rel>1e-4 (máx 1,24e-3) têm erro ABSOLUTO ≤7,8e-8 sobre |F|≤7,3e-4 — float32/D53 sobre objetivo quase-zero do MMF16_20, benigno (a tolerância justa é relativa ~1e-6 onde |F|=O(1), absoluta ~1e-7 onde |F|→0). Bônus: nas 8 células (s42 incluída) a joia fecha 1.600/1.600 lotes = 16.000/16.000 pontos. seed_g1 distinto por semente (42→933708677 · 0→1170002066 · 1→2117303991 · 2→4252504227): primeira evidência multi-semente de que \"cada semente dá sequência diferente\" (letra da D37) vale ENTRE sementes; o desvio DI-33 é só o re-scramble por iteração DENTRO da semente. DoE pareado D88: doe_hash do header == artefato data/doe == grupo online majoritário (17-18 configs) nas 3 sementes.",
+ "reais": "ZERO células reais: RE21 0 · DDMOP7 0 · ESTOQUE40 0. SANCIONADO — o grid T15 é 21 configs × 30 sementes SEM o sub-estudo q10/sweep/c311 (D102.16); sobol_batch é exp=batch/q10. checa_regua, §T15.13 (dedup por x_efetivo) e Fase 2 pooled: N/A para este config. O piso do sub-estudo batch existe só nos 5 sintéticos.",
+ "aspectos_mudados": [
+  {
+   "id": "A1",
+   "o_que": "Layout do dado no disco",
+   "antes": "resultados_experimentos/sobol_batch/q10_<problema>/42 (T11)",
+   "agora": "sobol_batch/<problema>/<semente>; dirs com ctime 2026-08-19 e 4 parquets s42 com mtime 2026-08-01 — conteúdo idêntico às âncoras T11 (reorganização/cópia, não edição)"
+  },
+  {
+   "id": "A2",
+   "o_que": "Amostra do config",
+   "antes": "5 células, 1 semente (s42) — zero evidência multi-semente",
+   "agora": "8 células, 4 sementes em MMF16_20 (0,1,2,42): joia 100% nas 4, seed_g1 distinto por semente — mecanismo invariante de semente PROVADO no config"
+  },
+  {
+   "id": "A3",
+   "o_que": "Instrumentação T11 no corpus",
+   "antes": "expectativa T11: correções (n_front1, params, tempo_aval_real_s, checkpoint DI-43) verificadas no smoke/re-run",
+   "agora": "o corpus FINAL congelado não contém NENHUMA célula com as correções (as 3 novas são de 07-29, pré-HEAD-T11; schema 1 como a s42) — as armadilhas T11 §9(d)/(e) valem para TODO o corpus do config: n_front1 recompute da ①; tempo_aval_real_s=0,0 = não-medido"
+  },
+  {
+   "id": "A4",
+   "o_que": "upload_status (padrão S19 de ausência declarada)",
+   "antes": "s42 e MMF16_20/0: 6 uploads + __final marcado absent 2/2",
+   "agora": "MMF16_20/2 (célula ok) e /1 (failed): upload_status VAZIO — ausência da ⑦ não-declarada; metadado puro, dado intacto"
+  }
+ ],
+ "celulas_invalidas": [
+  {
+   "celula": "sobol_batch/MMF16_20/1",
+   "motivo": "manifest E rodapé runner: failed/erro_Forbidden — GCS 403 no upload multipart (service account sem storage.objects.delete = overwrite de objeto pré-existente no bucket), 2 retries do despachante, tempo_total 22,17s. A BUSCA COMPLETOU: fe_final=2219=maxfe, 200 decisions com 200 seeds corretos, guard erro_inesperado só APÓS o último decision. As 4 camadas locais estão completas e íntegras: joia 200/200 lotes bit-iguais, oráculo limpo, DoE bit-a-bit e pareado (header hash == artefato == grupo online de 17 configs; manifesto failed é mínimo, sem doe_hash/n_geracoes)",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C3-1",
+   "descricao": "T31 herdado da T11: params.nota_potencia_de_2 é literal fixa ('q=10...') não derivada de q — agora MOOT no corpus final: NENHUMA das 8 células tem params (todas schema 1, pré-T11); o achado só vive no código/smoke",
+   "gravidade": "nula no corpus; higiene de código",
+   "acao": "f-string de 1 linha antes de qualquer re-uso do runner; nenhum efeito na análise",
+   "arquivo_linha": "src/sobol_batch.py:226-228"
+  },
+  {
+   "id": "C3-2",
+   "descricao": "NOVO (menor): upload_status vazio ({}) na célula OK MMF16_20/2 — quebra o padrão S19 de ausência-declarada da ⑦ (s42 e s0 marcam __final=absent; s2 não declara nada). Provável enable_bucket desligado após o 403 da s1 (sequência 13:57 s0-upload-ok → 14:08 s1-403 → 14:11 s2-sem-upload)",
+   "gravidade": "mínima — metadado de bookkeeping; zero efeito em dado ou mecanismo",
+   "acao": "nota de leitura no contrato do config; nada a corrigir no dado",
+   "arquivo_linha": "resultados_experimentos/sobol_batch/MMF16_20/2/exp_batch_sobol_batch_MMF16_20_2.manifest.json"
+  }
+ ],
+ "score_final": 9.5,
+ "trajetoria_scores": "F5 9,0 → T11 9,5 → F30 N/A → FINAL 9,5. F5→T11 (+0,5): os 3 achados classe-(3) da F5 (n_front1, tempo_aval_real_s, params) corrigidos e verificados em COMPORTAMENTO + bit-identidade ①②④ pré×pós-T11 cross-máquina. T11→F30 (sem movimento): config fora do grid de 30 sementes — F30 não o auditou; corpus ficou congelado nas ondas antigas. F30→FINAL (mantém 9,5): a bateria completa nas 8 células fecha 1.600/1.600 lotes da joia e todo o contrato; as 3 células novas dão a 1ª evidência multi-semente (joia 100% nas 4 sementes, pairing D88 confirmado) — mas não sobe a 10 porque: (i) 1 célula com status failed de infra pendente de decisão do autor; (ii) o corpus final não contém nenhuma célula com a instrumentação T11 (regra de leitura obrigatória para n_front1/tempo_aval_real_s); (iii) S5 (scrambling por-semente × por-iteração, DI-33) segue como item nº 1 de ratificação do D97; (iv) upload_status inconsistente (C3-2) e teto T de exceções intacto.",
+ "veredito": "RECOMENDO ACEITAR o corpus final do sobol_batch: 7 células válidas + MMF16_20/1 recuperável por regra de leitura (falha exclusivamente de upload GCS pós-busca; busca completa, joia 200/200, oráculo limpo). Mecanismo: fiel em 4 exames consecutivos, agora com invariância de semente medida no próprio config (não só herdada do censo transversal). Escopo a declarar na dissertação: o piso absoluto do sub-estudo batch existe na s42 (5 problemas, pareado com e81/c149) + réplica pareada em MMF16_20 s{0,1,2} (e81 tem 30 sementes ali, c149 27 — o contraste multi-semente piso×SA só é possível em MMF16_20, com 3-4 sementes); sem 30 sementes nos demais problemas e sem problemas reais (D102.16) — lacunas aceitas pelo congelamento. Nenhum bug de algoritmo; zero desvios de mecanismo inexplicados; os 2 classe-(3) remanescentes são metadado (um moot no corpus, um de bookkeeping).",
+ "decisoes_ao_autor": [
+  "MMF16_20/1 (failed/erro_Forbidden): ACEITAR como válida-com-nota (recomendado — busca completa e verificada; falha só no upload GCS; sob a letra estrita do O-21 o rodapé diz failed, então o override é decisão sua, D81) ou EXCLUIR (perda mínima: MMF16_20 mantém s{0,2,42}).",
+  "S5 / item nº 1 do D97 (herdado de T11, ainda aberto): ratificar o scrambling POR ITERAÇÃO (implementado, sigma_dict/DI-33) contra a letra 'por semente' da D37 — efeito medido: CD 1,19-6,43× pior, ΔIGD+ mediano +8,2% (sob o piso de ruído); nota nova desta rodada: entre sementes a letra da D37 é satisfeita (4 sequências distintas medidas).",
+  "Declarar o escopo do piso no texto: s42 nos 5 sintéticos + 4 sementes só em MMF16_20; sem problemas reais (sancionado D102.16); sem 30 sementes (corpus congelado) — o contraste estatístico piso×SA multi-semente limita-se a MMF16_20.",
+  "Regra de leitura obrigatória (armadilhas T11 §9 d/e valem para TODO o corpus final deste config): n_front1 não existe em nenhuma célula (recomputar da ①); tempo_aval_real_s=0,0 = não-medido (proxy: Σ(tempo_geracao−tempo_busca) da ④, que exclui o DoE); ② tem 201 gerações (0..200) contra 200 de e81/c149.",
+  "Higiene opcional pré-M8 (código, não corpus): T31 f-string em src/sobol_batch.py:226-228; upload_status vazio em s1/s2; doc-syncs T11 pendentes (CONTRATO §6.1:335 × contrato_61.json; semântica da ② no sigma_dict)."
+ ]
+}

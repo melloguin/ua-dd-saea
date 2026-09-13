@@ -1,0 +1,89 @@
+{
+ "problema": "DTLZ1",
+ "adapt": [
+  {
+   "gen_arquivada": 1,
+   "amp": [
+    6.666348526940763e-76,
+    5.790803089262658e-75,
+    3.396499276927716e-74
+   ],
+   "amp_min": 6.666348526940763e-76,
+   "amp_exato_zero": false,
+   "n_amp_zero": 0,
+   "linhas_norma0": 0,
+   "n_linhas": 105,
+   "norma_min": 0.9999999999999998,
+   "norma_max": 1.0,
+   "nan_values": 0
+  },
+  {
+   "gen_arquivada": 12,
+   "amp": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "amp_min": 0.0,
+   "amp_exato_zero": true,
+   "n_amp_zero": 3,
+   "linhas_norma0": 105,
+   "n_linhas": 105,
+   "norma_min": 0.0,
+   "norma_max": 0.0,
+   "nan_values": 0
+  },
+  {
+   "gen_arquivada": 22,
+   "amp": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "amp_min": 0.0,
+   "amp_exato_zero": true,
+   "n_amp_zero": 3,
+   "linhas_norma0": 105,
+   "n_linhas": 105,
+   "norma_min": 0.0,
+   "norma_max": 0.0,
+   "nan_values": 0
+  }
+ ],
+ "iterates": [
+  {
+   "iterate": 1,
+   "chamadas_do": 1050,
+   "subst": 10479,
+   "p_nan": 0,
+   "p_zero": 0,
+   "p_maior05": 10479,
+   "p_n": 21000,
+   "p_med": 0.499977
+  },
+  {
+   "iterate": 2,
+   "chamadas_do": 1050,
+   "subst": 0,
+   "p_nan": 0,
+   "p_zero": 21000,
+   "p_maior05": 0,
+   "p_n": 21000,
+   "p_med": 0.0
+  },
+  {
+   "iterate": 3,
+   "chamadas_do": 1050,
+   "subst": 0,
+   "p_nan": 0,
+   "p_zero": 21000,
+   "p_maior05": 0,
+   "p_n": 21000,
+   "p_med": 0.0
+  }
+ ],
+ "pbi_nan": 84000,
+ "pbi_tot": 126000,
+ "gens_iguais": 31,
+ "n_gens_conferidas": 31
+}

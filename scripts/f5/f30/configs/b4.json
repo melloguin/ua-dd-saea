@@ -1,0 +1,356 @@
+{
+ "config": "b4 · CSEA (Pan/He/Tian/Wang/Zhang/Jin, IEEE TEVC 23(1):74-88, 2019) · exp=main · campanha completa de 30 sementes",
+ "cobertura": "745 de 750 celulas nominais EXISTEM no acervo (faltam ZDT1 s13/s26, ZDT3 s13/s26, ZDT4 s13 — ausencia COMPARTILHADA com c238/e103/e7/sobol_batch etc. no censo_completo_22, portanto da campanha, nao do b4). Auditei 745/745 celulas existentes: camada 6 lida INTEGRALMENTE (745 arquivos, 246.757 eventos b4_gen, 79.998 guards, 124.329 blocos de sonda, 124.021 blocos estratificados) e camadas 1+2+4+5 lidas INTEGRALMENTE nas 738 ok (234.335 geracoes com a query-joia recomputada, 206.187 infills com verdade recomputada, 738 DoE conferidos contra o artefato). Camada 3 (7,3 GB): amostragem POR METODO — (a) 24 blocos de regua uniformemente espacados por celula em TODAS as 738 celulas = 17.454 blocos x 2.000 = 34,9 M predicoes; (b) TODOS os 3.162 blocos das 25 celulas da semente 42 (controle contra a T11); (c) varredura de coluna completa em 50 celulas (2 por problema, sementes sorteadas com seed=7) = 21.560.040 linhas para o contrato de campos; (d) todos os 206.187 infills (regime='online') das 738 celulas. Nenhuma celula rodada, nenhum experiments.py/experiment.run invocado, escrita apenas em /private/tmp/claude-501/-Users-gmello/33c29160-6eb6-4277-a041-db4855486063/scratchpad (scripts s1_jsonl.py, s2_joia.py, s3_infills.py, s4_regua.py, s5_cel.py, s6_dup.py, s7_s42.py, s8_hv.py). CONTROLE DE METODO: na semente 42 meu pipeline reproduz SETE numeros da T11 exatamente — 6.268 geracoes, ramo1=1.053, ramo4=5.215, 7.026 infills, 1.811 infills de ramo 1, verdade 0,8410/0,4723, 3.589 geracoes decididas, 577 stalls.",
+ "N1_invariancia": "A query-joia do b4 (regra do rotulo do GetOutput: AND sobre as 6 refs, OR sobre os objetivos, com sanduiche float32) foi recomputada do zero a partir da (1) real + (2) pop + ref_ids da (6) em TODAS as 738 celulas ok — nao numa amostra: 234.335 geracoes, 25 problemas, 30 sementes. RESULTADO: n1_lo <= n1_log <= n1_hi em 234.335/234.335 = 100,000%, ZERO quebras, erro maximo 0 (nenhuma geracao com id fora da (1) ou NaN). Nas 120.781 geracoes DECIDIDAS (51,54%; o sanduiche fecha, isto e n1_lo==n1_hi) a igualdade e EXATA em 120.781/120.781 = 100,000%. Ha >=1 geracao decidida em 709/738 celulas; as 29 celulas sem nenhuma decidida sao 29 das 30 celulas de DTLZ4 (underflow de x^100 gera empates em massa — armadilha 8 da T11 confirmada em escala). As identidades irmas tambem fecham 234.335/234.335 cada uma: tr == 0,5*min(rr,1-rr); rr == classe_1/n_treino (|d| = 0,0 exato); n_acumulado == ceil(3/4|D0|)+ceil(3/4|D1|) (a leitura floor do pseudo-codigo acerta so 13.551); n_acumulado == modelo_hp.n_treino_fit; n_acumulado < n_treino; |(2)(g)| == n_treino; gate p0<0,4 OU (p1<tr E p0<1-tr) separando ramo 1 de ramo 4; lote==1 em 150.542/150.542 do ramo 4; L>0,9 em 17.158/17.158 geracoes ferteis de ramo 1 (minimo 0,900002301); p0=NaN <=> floor(|D1|/4)==0. NENHUMA semente quebra NENHUMA identidade. Por semente a fracao decidida varia de 0,141 (s23, dominada por DTLZ7) a 0,759 (s26) — variacao de composicao, nao de regra.",
+ "N2_tetos_caidos": "CAIRAM 2 dos 3 tetos T e mais 1 do bloco T-9 da T11. (i) T-A12 'ramos 2/3: 0/6.268 disparos; R3 mecanicamente inalcancavel' — REFUTADO: com 30 sementes o ramo 3 dispara 3 vezes (MMF11_L s18 g43 com p1=0,808>1-tr=0,789; MMF11_L s28 g1 com p1=0,893>0,881; MMF4 s19 g5 com p1=0,762>0,750) e o ramo 2 dispara 1 vez (MMF1 s16 g15, p0=0,929>b=0,806 E p1=0,170<a=0,194). Medida nova: os 3 disparos de R3 sao ESTEREIS (lote=0, nenhum candidato com L<0,1) e o unico disparo de R2 gastou 1 FE aleatorio cujo rotulo verdadeiro era 0. Ou seja: R3 existe, e alcancavel so em D=2/M=2, e nunca produziu FE. O guard stall_0fe passa a ter payload ramo:3 (3 ocorrencias) alem de ramo:1 (78.737) — a T11 media 577/577 so ramo 1. (ii) T-9 'nada da instrumentacao T11 existe na s42' — CAIU: campanha_id e repo_hash preenchidos em 738/738 manifestos (repo_hash unico 63db46b100635a5cc21e8f5594271f481bc41416), y_treino_dist em 234.335/234.335 geracoes, bloco sonda_estratificada em 117.804 blocos de 738/738 celulas, sigma_dict com 4 chaves (pred_confianca, p0_p1, REGRA_DO_ROTULO, cobertura_3) e hash de texto UNICO nas 738 celulas. (iii) A ERRATA E1 da T11 (numeros de calibragem do REGRA_DO_ROTULO que nao reproduziam) foi CORRIGIDA antes do disparo e eu VERIFIQUEI: o texto agora traz 8,32%/0,9035/0,6646 para a regua da s42 inteira, e minha recomputacao independente dos 3.162 blocos da s42 da 8,33%/0,9046/0,680 — reproduz. (iv) FORMULA DE SEMEADURA (era teto de 1 semente): doe_hash do header == doe_hash do artefato em 738/738; seed_tuple == [semente, problema_id] em 738/738; formula unica declarada 'SeedSequence((semente, problema_id))', sampler lhs-maximin; n_init == 11D-1 == n_init do artefato em 738/738; max|dX| cru 1,907e-6 e 0,0 sob cast float32 em 738/738; doe_hash distinto para as 30 sementes de cada problema. (v) TAXA DE SUCESSO e VARIANCIA (tetos por definicao): agora medidos, ver N5 e N3. PERMANECEM T: criterio Con/Crowd do RadialSelection (P nunca exportada), projecao radial degenerada em M=2 (Y/G nao exportados), guard_randperm (0 disparos em 234.335 geracoes — latente com 37x mais evidencia), e um teto NOVO que so a escala revela (precisao de exportacao da (1), ver A30).",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "Regiao R1 da reliability configuration: 'the region in which all category II solutions are reliably predicted and therefore the FNN is able to select the right category II solutions to be evaluated'",
+   "onde_no_artigo": "SIII-C-4, Fig. 6 e Alg. 6 L4-11",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA e quantificada com IC entre sementes. Dos 206.187 infills com rotulo verdadeiro recomputado contra as refs da propria geracao: ramo 1 (gate) 85,01% de categoria II verdadeira contra 46,64% do ramo aleatorio = +38,4 pontos (leitura <= em float32); sob a leitura estrita 70,06% x 41,39% = +28,7 pontos; sem DTLZ4 84,35% x 45,11%. Por semente: ramo1 [0,8273; 0,8764] x ramo4 [0,4333; 0,4892] — SEM SOBREPOSICAO nas 30 sementes; Wilcoxon pareado 30 sementes estatistica 0,0 p=1,86e-9. Ressalva medida: em 4 problemas (DTLZ2, WFG1, WFG4, MMF16_20) a precisao do ramo 1 NAO supera a do ramo 4 (base rate ja alta), e em 9/25 problemas (7 BBOB, ZDT4, ZDT6) o gate NUNCA entregou 1 FE em 30 sementes."
+  },
+  {
+   "afirmacao": "Regiao R2: 'the region in which the FNN can correctly predict neither category I solutions nor category II solutions. Hence, none of these predicted solutions will be evaluated ... the FNN fails to provide useful information'",
+   "onde_no_artigo": "SIII-C-4 (paragrafo R2) e Alg. 6 L20-21 (Q <- vazio)",
+   "testavel_com_30": true,
+   "resultado": "REFUTADA quantitativamente. O ramo 'else' (que na nossa execucao sorteia 1 candidato, D deviation sancionada L.3) fornece uma AMOSTRA ALEATORIA de Q, logo um estimador nao-enviesado do poder discriminante do modelo ali: AUC de L contra a verdade = 0,7951 em 150.542 infills; rho de Spearman(L, verdade graduada 0..6) = 0,5493; por semente AUC [0,7618; 0,8124], desvio 0,011. Curva de calibracao monotona em 6 faixas: L em (0;0,1] -> 15,25% de categoria II verdadeira; (0,1;0,25] 25,54%; (0,25;0,5] 52,94%; (0,5;0,75] 74,61%; (0,75;0,9] 84,16%; >0,9 88,16%. Ou seja: na regiao que o artigo declara sem informacao, o L do classificador separa 15% de 88% de forma estavel nas 30 sementes. Custo de oportunidade: 73,0% de TODOS os FEs (150.542/206.187) foram gastos ignorando esse sinal."
+  },
+  {
+   "afirmacao": "'These two values (p1,p2) indicate the reliability of the surrogate classifier' — os MAE por classe estimam a incerteza do FNN",
+   "onde_no_artigo": "SIII-C-3, Eq. (4), fim do paragrafo",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA, e e a primeira vez que da para medir: em 16.371 blocos de regua (32,7 M predicoes) com (p0,p1) da mesma geracao, rho(p1, taxa de erro nas categoria I reais) = +0,838; rho(p0, taxa de erro nas categoria II reais) = +0,634; rho(p1, acuracia do bloco) = -0,859. RESSALVA MEDIDA (Simpson): rho(p0, AUC) e +0,222 no agregado mas NEGATIVO dentro de 20 dos 25 problemas — p0 e um bom preditor do erro na propria classe, e um mau proxy do poder de ordenacao quando se cruzam problemas."
+  },
+  {
+   "afirmacao": "'The reliability configuration is formed using a threshold far from 0.5' — o limiar tr=0,5*min(rr,1-rr) e adaptativo a classe",
+   "onde_no_artigo": "SIII-C-4 e Alg. 6 L4/L12",
+   "testavel_com_30": true,
+   "resultado": "O CODIGO OFICIAL SUBSTITUI o limiar adaptativo por 0,4 ABSOLUTO em SurrogateAssistedSelection.m:27 (desvio (2) ja sancionado). Consequencia agora quantificada em 234.335 geracoes: a forma pura do artigo (p0<tr) so separa 188.190/234.335 = 80,31% (a T11 media 87,33% em 1 semente); ela fecharia o ramo confiavel em 46.145 geracoes que abriram. E o gate implementado e, na pratica, um DETECTOR DE PREVALENCIA e nao de confiabilidade: rr mediano 0,3297 no ramo 1 contra 0,1087 no ramo 4, AUC de rr para prever ramo==1 = 0,793, rho(rr,p0) = -0,70; e a AUC real do modelo na regua mal muda entre os ramos (0,683 x 0,665)."
+  },
+  {
+   "afirmacao": "'the tendency of the variation of rp matches the variation of rr well ... the FNN with data partition can achieve a satisfactory prediction accuracy'",
+   "onde_no_artigo": "SIII-D, Fig. 7(b)(c)(d)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA em 24/25 problemas, com UMA excecao brutal. Na regua Sobol (17.454 blocos, 30 sementes) a taxa PREDITA rp = 0,1148 contra a taxa REAL 0,1452 (|rp-rr| = 0,030 no agregado); por problema |rp-rr| <= 0,02 em 17/25 e <= 0,07 em 24/25. A excecao e DTLZ4: rp = 0,108 contra prevalencia 0,590 (|d| = 0,482) e acuracia 0,506, ABAIXO da linha de base da classe majoritaria — mas veja A30: essa prevalencia de 0,590 e artefato do cast float32 da (1); em float64 DTLZ4 cai para 0,0245 de prevalencia e 0,944 de acuracia, e a afirmacao do artigo passa a valer em 25/25."
+  },
+  {
+   "afirmacao": "Alg. 6 L11: 'Q <- Select solutions from Q with L > 0.9' — pressupoe que o gate devolve um lote nao vazio e que o laco externo termina",
+   "onde_no_artigo": "Alg. 6 L5-11 combinado com o laco 'while t <= t_max' da Alg. 3",
+   "testavel_com_30": true,
+   "resultado": "REFUTADA na pratica — e este e o achado que so 30 sementes revelam. Em 79,5% das geracoes de ramo 1 (66.631 de 83.789) o gate L>0,9 devolve VAZIO e a geracao gasta 0 FE. Como a populacao, o arquivo e as refs nao mudam numa geracao sem FE, o estado pode ficar estacionario: 2 celulas canonicas (WFG1 s25 e s26) NUNCA terminaram — 5.582 e 6.727 geracoes, fe congelado em 464 e 541, sem rodape, mortas pelo watchdog; mais 3 copias de staging na mesma condicao (WFG1 s10 em vm5 com 2.303 geracoes e 93,3% de esterilidade, WFG1 s25 em vm1 e vm5). DTLZ7 s23 escapou por pouco: 19.395 geracoes com uma corrida de 9.422 geracoes CONSECUTIVAS sem 1 FE, 49,4 h-core numa unica celula. No agregado, 41,6% de todo o tempo de CPU do config (126,6 de 304,5 h-core) foi gasto em geracoes que nao avaliaram nada. O algoritmo do ARTIGO tem o mesmo buraco (nem R1 nem R2 garantem progresso e t nao avanca) — a implementacao e fiel; o artigo e que nao previu."
+  },
+  {
+   "afirmacao": "'CSEA with K = 6 can achieve stable performance in terms of both convergence enhancement and diversity maintenance'",
+   "onde_no_artigo": "SIV-B-2 e Fig. 5",
+   "testavel_com_30": true,
+   "resultado": "NAO TESTAVEL com este acervo: exige varredura de K (2..14), e a campanha fixa K=6 em 745/745 celulas. Fica registrado como afirmacao nao verificavel sem re-run (nao medido: exige experimento de ablacao)."
+  },
+  {
+   "afirmacao": "'The Wilcoxon rank sum test is adopted ... over 30 independent runs' / resultados estatisticos sobre 20 execucoes (Tab. III) — o metodo e comparado sob replicas",
+   "onde_no_artigo": "SIV-B (30 runs) e SIV-C, Tab. III (20 runs) — o artigo e internamente inconsistente",
+   "testavel_com_30": true,
+   "resultado": "O PROTOCOLO agora casa (30 replicas), o VALOR continua incomensuravel (T11 secao 5: d, orcamento e metrica diferem). O que da para medir e a DISPERSAO ENTRE EXECUCOES dentro do config: HV do front final normalizado por problema pela uniao das 30 sementes (medida INTERNA, nao comparavel ao artigo) tem CV mediano 3,85% entre os 25 problemas; estavel em 15/25 (CV<5%: DTLZ1 0,35%, WFG1 0,68%, DTLZ3 0,64%) e INSTAVEL na cauda: BBOB_F55 CV 28,2% (melhor/pior = 2,89x), ZDT4 16,0% (2,26x), BBOB_F49 14,2%, DTLZ7 14,2%, DTLZ4 12,5%, ZDT6 12,4%. A leitura 'o metodo e estavel' vale por problema, nao globalmente."
+  },
+  {
+   "afirmacao": "'an archive is used to store all solutions evaluated using the expensive fitness function' (treino no arquivo inteiro)",
+   "onde_no_artigo": "SIII-C-2",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADA em escala: |(2)(g)| == n_treino(g) em 234.335/234.335 e n_treino cresce de 11D-1 ate maxfe-1 em 738/738 celulas (ZDT1: 329 -> 928 = 18,6x o cap nativo Problem.N=50). E a restauracao do ARTIGO contra o codigo (D30/B4.6)."
+  }
+ ],
+ "N4_deriva": "MEDIDA nas 40 celulas b4 que existem em 2+ VMs (42 pares vm1/vm3/vm5, lidas do espelho de staging). O resultado e BINARIO, nao continuo, e tem tres regimes com datas. (a) 16 pares da semente 7 (vm1 13/08 00:30 x vm5 13/08 18:51, mesma campanha): BIT-IDENTICOS — sha256 de (X,f) da (1) igual, d_rr = d_p0 = d_p1 = d_tr = d_lote = d_ramo = d_n_treino = d_fe = 0,0 EXATO, ref_ids iguais em 100% das geracoes. Deriva cross-maquina = ZERO nesse regime. (b) 13 pares da semente 12 (vm1 re-disparo de 14/08 ~02:00 x vm5 14/08 ~11:45): trajetoria BIT-IDENTICA (sha de (X,f) igual, rr/tr/ramo/lote/n_treino/fe/ref_ids identicos em 100%), com deriva APENAS nos MAE reportados — |dp0| > 0 em 27%-37% das geracoes, magnitude tipica 1,2e-7 (1 ulp de float32) e MAXIMA 4,41e-4 (WFG2 s12); ZERO decisoes de ramo invertidas. (c) 3 pares em que uma copia e da vm5 escrita em 14/08 a partir das 15:38 UTC — exatamente a janela documentada (shape e2-standard-32 + swap): BIFURCACAO DURA. DTLZ7 s12 e identico ate a geracao 167 / solution_id 575 e bifurca na geracao 168; WFG1 s10 bifurca na geracao 20; WFG1 s25 bifurca na geracao 22 (e as copias vm1 e vm3 desse mesmo caso sao identicas entre si por 4.931 geracoes — a divergente e sempre a vm5). MECANISMO DA BIFURCACAO, medido linha a linha: na geracao 168 de DTLZ7 s12 as duas copias tem as MESMAS refs, o MESMO arquivo e fe=576; a copia A nao acha nenhum candidato acima do gate (lote=0) e a copia B acha um com L_sel = 0,90049082, isto e, 4,9e-4 ACIMA do limiar 0,9 — nas 167 geracoes anteriores o |dp0| ja era !=0 em 68 delas com mediana 5,9e-8 e maximo 8,5e-4. CONCLUSAO QUANTIFICADA: a deriva de ponto flutuante entre maquinas fica entre 1e-7 e ~9e-4 nas saidas da rede; ela so vira divergencia de trajetoria quando um candidato cai DENTRO dessa faixa do limiar duro L>0,9 — 3 bifurcacoes em 42 pares (7,1%), todas na vm5 pos-15:20 de 14/08. CONSEQUENCIA QUALITATIVA MEDIDA: WFG1 s10 TERMINOU normalmente na vm1 (542 geracoes, 681 FEs) e LIVELOCKOU na vm5 (2.303 geracoes, fe travado em 528, sem rodape) — a mesma celula, a mesma semente, 1e-4 de diferenca decide entre terminar e nao terminar. A doutrina do RUNBOOK 6.2 ('fidelidade estatistica, nao bit-exata') e portanto NECESSARIA e suficiente aqui, mas o piso de ruido nao e desprezivel: em contrastes que dependam de WFG1/DTLZ7 a deriva cross-maquina pode mudar a celula inteira, nao apenas o ultimo digito.",
+ "N5_cauda": "Nao ha celulas 'branca' (teto) no b4: o censo da 738 ok + 7 fail, e o rodape confirma (738 status=ok com termino=normal, 5 status=failed, 2 SEM RODAPE). A cauda tem DUAS familias, ambas com significado algoritmico. FAMILIA 1 — CRASH DETERMINISTICO POR SEMENTE (5 celulas): BBOB_F5 s12, BBOB_F55 s9/s26/s27, ZDT6 s28, todas com erro 'MATLAB:badsubscript / Array indices must be positive integers or logical values' e fe_final 109 (=11D-1, logo IMEDIATAMENTE apos o DoE) em 3 delas, 111 em 1 e 221 em 1. Taxas por problema: BBOB_F55 3/30 = 10,0% de falha, BBOB_F5 1/30, ZDT6 1/30, os outros 21 problemas 0/30. Duas dessas celulas (BBOB_F55 s27 e ZDT6 s28) existem em DUAS VMs e FALHARAM NAS DUAS, no mesmo fe (109/109), em datas diferentes (12/08 e 14/08; 11/08 e 14/08) — logo e DETERMINISTICO POR SEMENTE e reproduzivel cross-maquina. E exatamente a assinatura e o conjunto de problemas (BBOB_F1/F5/F22/F55 + ZDT6, fe~110) que o laudo LAUDO_D0_falhas_sistematicas.md atribui ao c238; o laudo NAO cobre o b4. Como me foi vedado mexer no c238, registro e ESCALO (D81): o modo de falha nao e do CSEA, e de infraestrutura compartilhada, e ja atinge >=2 configs. FAMILIA 2 — NAO-TERMINACAO (2 celulas canonicas + 3 copias de staging): WFG1 s25 e s26 nao tem rodape, com 5.582 e 6.727 geracoes e fe congelado em 464 e 541 (de 681); 5.491 e 6.617 dos eventos sao guard stall_0fe. A causa e mecanica e esta medida: ramo 1 abre (p0<0,4), gera 12 candidatos, nenhum passa de L>0,9, lote=0, nada muda no estado -> repete. Taxa de esterilidade do ramo 1: 79,5% global (66.631/83.789), 41,9% em WFG1, 69,8% em DTLZ7. WFG1 e o problema-limite: 88,0% das geracoes em ramo 1, 2/28 celulas ok perdidas por livelock, e uma terceira (s10) que livelockou numa VM e terminou na outra. DTLZ7 s23 tem a maior corrida esteril do config: 9.422 geracoes CONSECUTIVAS com 0 FE (19.395 geracoes no total, 49,4 h-core). Custo agregado: 126,6 de 304,5 h-core (41,6%) queimados em geracoes que nao avaliaram nada, com fit da rede consumindo 92,5% do relogio mediano. LEITURA PARA O ARTIGO: a incapacidade nao e do nosso codigo — a Alg. 6 do artigo tem o mesmo buraco (L11 pode devolver vazio e t nao avanca). Ela e um RESULTADO: 'o CSEA sob orcamento 31D-1 nao tem garantia de progresso e, em WFG1, 7,1% das execucoes (2/28) nao terminam'. As taxas de sucesso a reportar sao: 738/745 celulas concluidas (99,1%), por problema 30/30 em 21 problemas, 29/30 em BBOB_F5/ZDT4/ZDT6, 28/30 em WFG1/ZDT1/ZDT3 (estas duas ultimas por celulas inexistentes na campanha, nao por falha), 27/30 em BBOB_F55.",
+ "aspectos": [
+  {
+   "id": "A1",
+   "aspecto": "Orcamento FE = 31D-1 com hard-stop exato",
+   "classe": "2",
+   "medicao": "|(1)| == maxfe em 738/738 e fe_final(rodape) == maxfe em 738/738; guard hard_stop em 105 celulas (T11: 4/25); residuo maxfe-(init+sum lote) > 0 SO nas de hard_stop (90/105, ate +8 FEs da geracao fantasma); arquivo_final == |(1)| + cache_hits - 1 em 633/633 celulas sem hard_stop (as 105 excecoes sao exatamente as de hard_stop)",
+   "veredito": "conforme a D21/D61 em escala; a aritmetica da T11 fecha 738/738",
+   "arquivo_linha": "SPEC D21/D61",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A2",
+   "aspecto": "DoE inicial 11D-1 do artefato (patch que remove o cap 109) e formula de semeadura",
+   "classe": "2",
+   "medicao": "doe_hash do header == doe_hash do artefato 738/738; n_init(1) == n_init(artefato) == 11D-1 em 738/738; max|dX| cru 1,907e-6 e 0,0 sob float32 em 738/738; seed_tuple == [semente, problema_id] em 738/738; formula unica 'SeedSequence((semente, problema_id))', sampler lhs-maximin, bitgen PCG64; 30 doe_hash distintos por problema",
+   "veredito": "TETO CAIU: a semeadura por semente agora esta verificada em 738 celulas, nao em 1",
+   "arquivo_linha": "CSEA.m:29-31 (patch) + data/doe/<prob>/doe_<prob>_<seed>.manifest.json",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A3",
+   "aspecto": "N=50 e K=6 (os dois parametros do paper)",
+   "classe": "1",
+   "medicao": "header N=50 e K_refs=6 em 745/745; n_refs==6 E len(ref_ids)==6 em 234.335/234.335; todo ref_id < |arquivo| da geracao em 234.335/234.335",
+   "veredito": "conforme SIV-B-2 e Fig. 5",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A4",
+   "aspecto": "Criterio da selecao radial (Con/Crowd, Alg. 1/2)",
+   "classe": "T",
+   "medicao": "P (|P|=50) nunca e exportada; verificavel so |PR|=6 e refs contidas no arquivo (234.335/234.335). NOVO em escala: em 868 geracoes de 52 celulas os 6 ref_ids nao sao distintos (867 com 5 distintos, 1 com 4) — e clone real na populacao, nao sentinela: entre elas 527 sao geracoes decididas e a joia fecha EXATA em 527/527, o que prova que os ids logados sao as refs verdadeiras",
+   "veredito": "teto mantido; o achado novo das refs repetidas fica explicado e fechado por dado",
+   "arquivo_linha": "RefSelect.m:30-60",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A5",
+   "aspecto": "Regra do rotulo (GetOutput: AND sobre refs, OR sobre objetivos) — a QUERY-JOIA",
+   "classe": "2",
+   "medicao": "sanduiche float32 n1_lo <= n1_log <= n1_hi em 234.335/234.335 = 100,000%; decididas 120.781 (51,54%), EXATAS 120.781/120.781; 709/738 celulas com >=1 decidida; as 29 sem sao 29/30 celulas de DTLZ4",
+   "veredito": "DI-18 invariante em 30 sementes e 25 problemas — nenhuma quebra",
+   "arquivo_linha": "GetOutput.m:16-19",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A6",
+   "aspecto": "rr, tr e y_treino_dist",
+   "classe": "1",
+   "medicao": "tr == 0,5*min(rr,1-rr) em 234.335/234.335; rr == classe_1/n_treino com |d| = 0,0 exato em 234.335/234.335; y_treino_dist.n == n_treino e classe_1+classe_0 == n em 234.335/234.335",
+   "veredito": "conforme Eq.(6)/SIII-C-4; y_treino_dist continua DERIVADO (round(rr*n_treino)), corroboracao circular — armadilha 14 da T11 confirmada",
+   "arquivo_linha": "CSEA.m:67-68 / b4_instrument.m:204",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A7",
+   "aspecto": "DataPartition 75/25 estratificada com ceil",
+   "classe": "2",
+   "medicao": "ceil(3/4|D0|)+ceil(3/4|D1|) == n_acumulado em 234.335/234.335; floor do pseudo-codigo so 13.551/234.335; n_acumulado == modelo_hp.n_treino_fit e n_acumulado < n_treino em 234.335/234.335",
+   "veredito": "desvio do pseudo-codigo (Alg. 5) sancionado pelo codigo oficial, invariante em escala",
+   "arquivo_linha": "DataProcess.m:19-20",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A8",
+   "aspecto": "Treino no ARQUIVO INTEIRO (restaura o artigo contra o cap nativo)",
+   "classe": "1",
+   "medicao": "|(2)(g)| == n_treino(g) em 234.335/234.335; n_treino cresce de 11D-1 a maxfe-1 em 738/738; nenhuma geracao com n_treino <= 50 fora de D=2",
+   "veredito": "conforme SIII-C-2 via D30/B4.6",
+   "arquivo_linha": "CSEA.m:65",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A9",
+   "aspecto": "p0/p1 = MAE por classe e sua semantica (o (3) que a F5 abriu e a F5.4/T11 fecharam)",
+   "classe": "1",
+   "medicao": "p0 = NaN <=> floor(|D1|/4) == 0 em 234.335/234.335 (3.241 NaN, TODAS em ramo 4); p1 nunca NaN; glosa p0_p1 presente com hash de texto unico nos 738 manifestos",
+   "veredito": "refutacao da F5.4 reconfirmada em 37x a escala",
+   "arquivo_linha": "CSEA.m:77-79",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A10",
+   "aspecto": "Gate de 4 ramos com 0.4 HARDCODED (substitui o limiar adaptativo do artigo)",
+   "classe": "2",
+   "medicao": "p0<0,4 OU (p1<tr E p0<1-tr) separa ramo 1 de ramo 4 em 234.335/234.335 = 100,000%; a forma pura do artigo (p0<tr) acerta 188.190/234.335 = 80,31% e falharia em 46.145 geracoes; efeito medido: o gate e detector de PREVALENCIA (rr mediano 0,3297 no ramo 1 x 0,1087 no ramo 4; AUC de rr para prever ramo 1 = 0,793) e nao de discriminacao (AUC real na regua 0,683 x 0,665)",
+   "veredito": "desvio de codigo sancionado; a escala mostra que o 0,4 abre o ramo em funcao do desbalanceamento, nao da qualidade do modelo",
+   "arquivo_linha": "SurrogateAssistedSelection.m:27",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A11",
+   "aspecto": "Ramo 1: maximiza L, gate L>0,9, lote <= 12",
+   "classe": "1",
+   "medicao": "L_min > 0,9 em 17.158/17.158 geracoes ferteis de ramo 1 (minimo global 0,900002301); lote <= 12 em 83.789/83.789; len(L_sel) == lote em 234.335/234.335; header gmax=3000 em 745/745",
+   "veredito": "conforme Alg. 6 L5-11",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A12a",
+   "aspecto": "Ramo 3 (invertido: minimiza L, gate L<0,1) — era TETO",
+   "classe": "1",
+   "medicao": "3 disparos em 234.335 geracoes (MMF11_L s18 g43, MMF11_L s28 g1, MMF4 s19 g5), todos com p1 > 1-tr por margem fina (0,808>0,789; 0,893>0,881; 0,762>0,750) e TODOS estereis (lote=0, 3/3)",
+   "veredito": "TETO CAIU: R3 e alcancavel (so em D=2/M=2) e implementa o artigo; nunca produziu FE",
+   "arquivo_linha": "SAS.m:38-56",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A12b",
+   "aspecto": "Ramo 2 (anti-loop: 1 aleatorio; o artigo manda Q <- vazio) — era TETO",
+   "classe": "2",
+   "medicao": "1 disparo em 234.335 geracoes (MMF1 s16 g15: p0=0,929>b=0,806 E p1=0,170<a=0,194), lote=1, L=0,5225, rotulo verdadeiro 0",
+   "veredito": "TETO CAIU e o desvio (1 aleatorio x Q vazio) foi finalmente EXERCITADO",
+   "arquivo_linha": "SAS.m:38-49",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A13",
+   "aspecto": "Ramo 4 (else) gasta 1 FE aleatorio",
+   "classe": "2",
+   "medicao": "150.542/234.335 geracoes (64,2%) e lote==1 em 150.542/150.542; 150.542 de 206.187 FEs = 73,0% do orcamento total; 338/738 celulas (45,8%) nunca gatearam 1 FE; 9/25 problemas com 0 FEs gateados em 30 sementes",
+   "veredito": "desvio L.3 sancionado; a leitura 'o b4 usou o surrogate' vale 27,0% e nao 100%",
+   "arquivo_linha": "SAS.m:57-61",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A14",
+   "aspecto": "Stalls de 0 FE (ramo 1 esteril) e o guard D60-c",
+   "classe": "2",
+   "medicao": "66.631 geracoes estereis nas celulas ok = 79,5% das geracoes de ramo 1 (T11 media 54,8% em 1 semente); guard stall_0fe 78.740 no total, com payload ramo:1 em 78.737 e ramo:3 em 3 (valor de payload NOVO); maior corrida consecutiva 9.422 (DTLZ7 s23); 41,6% do h-core do config",
+   "veredito": "monitorado como manda a D60-c, mas a escala mostra que o guard nao e raro — e o regime dominante em WFG1/DTLZ7",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A15",
+   "aspecto": "Rede H=2D + adam/100 epocas/rede nova por geracao",
+   "classe": "2",
+   "medicao": "string de arquitetura e de normalizacao IDENTICAS em 234.335/234.335 modelo_hp e em 745/745 params do manifesto; tempo_fit = 92,53% do relogio mediano da geracao (T11: 90,96%)",
+   "veredito": "divergencia em bloco vs LM/T=500 do artigo, sancionada pelo codigo",
+   "arquivo_linha": "CSEA.m:38-55",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A16",
+   "aspecto": "Operadores Balde C {1,20,1,20} (realinha ao artigo: eta_c=eta_m=20)",
+   "classe": "1",
+   "medicao": "string de operadores identica em 745/745 headers (verificacao DECLARATIVA; os eta por geracao continuam nao exportados)",
+   "veredito": "conforme SIV-B-1 via Balde C",
+   "arquivo_linha": "SAS.m:22/31/50",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A17",
+   "aspecto": "Sem cabeca de valor (mu/sigma/pred_score nulos; classe <=> L>=0,5)",
+   "classe": "2",
+   "medicao": "mu_0/sigma_0/pred_score NULL em 21.560.040/21.560.040 linhas da (3) amostradas em 50 celulas; pred_classe=='bom' <=> pred_confianca>=0,5 em 21.560.040/21.560.040, mais 206.187/206.187 infills e 17.454/17.454 blocos de regua; pred_tipo='classe', modelo_flag='FNN', espaco_modelo='cru', transf_tipo NULL",
+   "veredito": "conforme o desenho declarado no sigma_dict; U6/U11 continuam N/A por desenho",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A18",
+   "aspecto": "Sonda Sobol: k=2, blocos de 2.000, join posicional, finalProbe",
+   "classe": "2",
+   "medicao": "118.112 blocos, TODOS com n=2000 e ok=true; cadencia pura (g==1 ou par) em 117.804 e 308 blocos extras com motivo='final' em 308 celulas; x_hash unico por problema em 25/25; join posicional re-verificado com as colunas x: max|dX| sob float32 = 0,0 em 3.162/3.162 blocos da s42; 58 celulas tem 1 bloco a mais que os eventos b4_gen (o bloco da geracao FANTASMA)",
+   "veredito": "conforme DI-09/DI-12.5 em escala",
+   "arquivo_linha": "b4_sonda.m + SondaState.m",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A19",
+   "aspecto": "Bloco sonda_estratificada (instrumentacao nossa, T11/A11)",
+   "classe": "2",
+   "medicao": "117.804 blocos, TODOS n=500, ok=true, sigma_rel=0,05; exatamente 1 por bloco de cadencia da regua em 738/738 celulas; prevalencia_nd_no_bloco NULL em 117.804/117.804 (NaN por desenho, recomponivel); n_arquivo - n_treino em {0,-1,...,-6} (0 em 83,5%) — nunca +1, ao contrario do que a T11 mediu no smoke (armadilha 11 precisa de correcao de sinal)",
+   "veredito": "extensao declarada, mecanicamente sa; a relacao n_arquivo x n_treino da T11 nao generaliza",
+   "arquivo_linha": "SondaState.m:226-330 / b4_sonda.m:94-97",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A20",
+   "aspecto": "fe_treino_max NAO-monotonico (DI-13.15)",
+   "classe": "2",
+   "medicao": "quedas em 733/738 celulas (5 celulas sem queda), soma total 20.469 quedas, maximo 3.740 numa celula (DTLZ7 s23)",
+   "veredito": "previsto pela DI-13.15; escala confirma",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A21",
+   "aspecto": "(2) e o ARQUIVO, geracao fantasma, cache-hit de arranque",
+   "classe": "2",
+   "medicao": "n_geracoes(rodape) == n_gen_events + 1 em 738/738 (fantasma universal); n_timing == n_gen_events em 738/738; 1.153 guards cache_hit dos quais 745 sao o arranque fe=1/solution_id=0 (1 por celula, 745/745) — so 408 sao genuinos",
+   "veredito": "conforme D57/D61/D89; testar |(2)|==N==50 reprovaria 738/738 falsamente",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A22",
+   "aspecto": "Invariantes de tempo (4) e ExecutionEnvironment='cpu'",
+   "classe": "2",
+   "medicao": "tempo_fit + tempo_busca <= tempo_geracao em 234.335/234.335; tempo_fit > 0 em 234.335/234.335; exec_env='cpu' em 745/745 headers e em 738/738 params; perfil mediano fit 92,53% / busca 1,59% / sonda 0,62%",
+   "veredito": "conforme DI-13.10 e N.2.4",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A23",
+   "aspecto": "Proveniencia: campanha_id + repo_hash + params + sigma_dict no manifesto",
+   "classe": "2",
+   "medicao": "738/738 com campanha_id, repo_hash, params e sigma_dict preenchidos (gates_f30 concorda: camp/repo/par/sig True em 738/738); repo_hash UNICO (63db46b100635a5cc21e8f5594271f481bc41416); campanha_id com 2 valores: 714 '7f4f0e429a46_M8' e 24 '63db46b10063_2026-08-14' (23 celulas da semente 12 + WFG1 s10 re-disparadas, mesmo repo_hash, host gravado como 'matlab-vm1' em vez de 'vm1'); status=ok, n_retries=0 e fallback_ativado=False em 738/738; sigma_dict com hash de texto UNICO nas 738 celulas",
+   "veredito": "TETO T-9 CAIU: a instrumentacao T11 chegou a 100% do corpus; a heterogeneidade de campanha_id e declarada e rastreavel",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A24",
+   "aspecto": "Nao-perturbacao da sonda sobre a busca",
+   "classe": "1",
+   "medicao": "NAO RE-MEDIDO nesta campanha: exige um par com/sem sonda, que a campanha de 30 sementes nao produz. Herdado da T11 (3 pares independentes, (1) bit-identica, dp0=0,0). Evidencia indireta nova: as 16 duplicatas bit-identicas cross-VM da semente 7 sao consistentes com a sonda nao mover o RNG",
+   "veredito": "mantido (1) por heranca, com a limitacao declarada",
+   "arquivo_linha": "b4_sonda.m:25-39",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A25",
+   "aspecto": "Projecao radial degenerada em M=2 e guard_randperm latente",
+   "classe": "T",
+   "medicao": "guard_randperm == False em 234.335/234.335 geracoes (0 disparos em 37x a escala da T11) — coerente com D<=30 < |Pop|+6=56; Y/G da Alg. 2 continuam nao exportados; 19/25 problemas sao M=2 (7 BBOB, MMF1/MMF4/MMF11_L, 5 WFG, 4 ZDT)",
+   "veredito": "teto mantido; o bug latente segue latente com muito mais evidencia",
+   "arquivo_linha": "SAS.m:41-42",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "A26",
+   "aspecto": "TERMINACAO / garantia de progresso do laco externo (NOVO)",
+   "classe": "1",
+   "medicao": "2 celulas canonicas sem rodape (WFG1 s25: 5.582 geracoes, fe travado em 464; WFG1 s26: 6.727 geracoes, fe travado em 541) + 3 copias de staging na mesma condicao; maior corrida esteril consecutiva 9.422 geracoes (DTLZ7 s23, celula que terminou); 41,6% do h-core (126,6 de 304,5) em geracoes com 0 FE",
+   "veredito": "conforme o ARTIGO (Alg. 6 L11 pode devolver vazio e t nao avanca) — logo NAO e desvio de fidelidade; e uma consequencia do artigo que so replicas expuseram, e precisa ser DECLARADA na escrita (bussola: errata do artigo, fica o codigo)",
+   "arquivo_linha": "SAS.m:28-37 (gate L>0.9) + Alg. 6 L5-11 do artigo",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A27",
+   "aspecto": "Deriva cross-maquina (proveniencia)",
+   "classe": "2",
+   "medicao": "42 pares duplicados: 16 BIT-IDENTICOS (dp0=0,0 exato), 13 com trajetoria bit-identica e |dp0| <= 4,41e-4 sem inverter nenhuma decisao, 3 com bifurcacao dura (geracoes 20, 22 e 168), todas em copias da vm5 escritas em 14/08 a partir de 15:38 UTC",
+   "veredito": "compativel com a doutrina RUNBOOK 6.2 (fidelidade estatistica); o piso de ruido esta quantificado e NAO e desprezivel perto do limiar duro L>0,9",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A28",
+   "aspecto": "Falhas MATLAB:badsubscript (NOVO)",
+   "classe": "3",
+   "medicao": "5 celulas: BBOB_F5 s12 (fe 111), BBOB_F55 s9 (fe 221), s26 (fe 111), s27 (fe 109), ZDT6 s28 (fe 109); 2 delas reproduzidas em 2 VMs distintas, no MESMO fe, em datas distintas; taxa por problema BBOB_F55 3/30, BBOB_F5 1/30, ZDT6 1/30, demais 0/30",
+   "veredito": "INEXPLICADO para o b4 — mesma assinatura e mesmo conjunto de problemas do laudo do c238, que nao cobre este config; escalar (D81), nao investigar (veto sobre o c238)",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A29",
+   "aspecto": "semente_bloco do bloco estratificado e funcao de (alg, geracao) — nao da semente do run (NOVO)",
+   "classe": "2",
+   "medicao": "as sementes de bloco sao DISTINTAS dentro de cada celula (738/738) mas IDENTICAS entre celulas: em 9.698/9.698 indices de geracao ha exatamente 1 valor compartilhado pelas 738 celulas (ex.: g=1 -> 1.782.604.276 em todas; g=2 -> 2.065.079.525 em todas)",
+   "veredito": "sancionado e documentado no fonte ('mesma (alg,g) => mesma semente', FNV-1a sobre (alg,geracao,uso=91)); mas a leitura 'semente propria por bloco' da T11 vale DENTRO da celula e NAO entre celulas — blocos do mesmo indice de geracao tem ruido correlacionado em toda a campanha",
+   "arquivo_linha": "SondaState.m:463-475",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "A30",
+   "aspecto": "Precisao de exportacao da (1) limita o recomputo do rotulo (NOVO)",
+   "classe": "T",
+   "medicao": "a (1) grava f em float32; no DTLZ4 (x^100 underflowa) isso cria empates em massa: a prevalencia da regua na s42 sai 58,59% sob float32 com '<=' e 2,45% sob float64 (24x), a acuracia 0,4744 x 0,9441 e a AUC mediana 0,7529 x 0,4848. Efeito no agregado da s42: 11,35%/0,8793 sob float32 e 8,33%/0,9046 com DTLZ4 em float64 — este ULTIMO reproduz o numero declarado no sigma_dict (8,32%/0,9035), confirmando que a T11 usou float64 e que a calibragem corrigida da errata E1 esta CERTA",
+   "veredito": "teto de verificabilidade novo: para o rotulo da REGUA a convencao correta e float64; o sanduiche float32 pertence ao recomputo do lado do ARQUIVO (onde a (1) e float32 e nao ha escolha). Nos meus numeros de 30 sementes a correcao vale: prevalencia 14,52% -> 12,21%, acuracia 0,8411 -> 0,8590, AUC media 0,6679 -> 0,6562",
+   "muda_vs_s42": true
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C3-1",
+   "descricao": "Cinco celulas do b4 abortam com 'MATLAB:badsubscript / Array indices must be positive integers or logical values' (BBOB_F5 s12 fe=111; BBOB_F55 s9 fe=221, s26 fe=111, s27 fe=109; ZDT6 s28 fe=109). Em 3 delas o fe_final e 109 = 11D-1, isto e, o crash ocorre na transicao DoE -> primeira geracao. BBOB_F55 s27 e ZDT6 s28 existem em duas VMs e falharam nas DUAS, no mesmo fe, em datas diferentes (12/08 x 14/08 e 11/08 x 14/08): a falha e DETERMINISTICA POR SEMENTE e reproduzivel cross-maquina. O conjunto de problemas atingidos (BBOB_F5/F55 + ZDT6) e a assinatura sao os mesmos que o LAUDO_D0_falhas_sistematicas.md atribui ao c238, cujo laudo NAO cobre o b4 — logo o modo de falha e provavelmente de infraestrutura compartilhada (ponte/cache/dedup), nao do CSEA. Nao investiguei: ha veto explicito sobre o c238.",
+   "gravidade": "media",
+   "acao": "ESCALAR (D81): apensar o b4 a investigacao pendente da torre sobre o c238 badsubscript, com estes 5 casos e a prova de determinismo cross-maquina; ate la, reportar como taxa de sucesso por problema (BBOB_F55 27/30, BBOB_F5 29/30, ZDT6 29/30) e NAO como incapacidade do algoritmo.",
+   "arquivo_linha": "resultados_experimentos/b4/{BBOB_F5/12,BBOB_F55/{9,26,27},ZDT6/28}/*.jsonl (rodape) + ~/mestrado_coleta_m8/_analise/LAUDO_D0_falhas_sistematicas.md"
+  }
+ ],
+ "score": 9,
+ "score_t11": 9.5,
+ "veredito_recomendado": "ACEITAR (recomendacao; o veredito e do autor — D97). MECANISMO: intacto e agora provado em 37x a escala — 12 identidades estruturais fecham 234.335/234.335 (100,000%) em 738 celulas, 25 problemas e 30 sementes, sem uma unica quebra, e o meu pipeline reproduz SETE numeros da T11 na semente 42 exatamente. SCORE 9,0, ou seja -0,5 vs a T11, e a causa NAO e o mecanismo: (a) apareceu 1 classe (3) que a semente 42 nao podia mostrar — 5 crashes badsubscript deterministicos por semente, da mesma familia do c238, sem laudo que cubra o b4; (b) 30 sementes expuseram que o algoritmo NAO TEM GARANTIA DE PROGRESSO: 2 celulas canonicas nunca terminaram, 41,6% do h-core foi queimado em geracoes sem nenhum FE e uma celula fez 9.422 geracoes consecutivas estereis — e fiel ao artigo (a Alg. 6 tem o mesmo buraco), logo nao e desvio de fidelidade, mas e um risco operacional e uma afirmacao que a escrita tem de declarar; (c) surgiu um teto novo de verificabilidade (A30: a (1) e exportada em float32 e isso inverte a leitura do DTLZ4 por 24x). Do lado positivo, tres coisas subiram: a errata E1 da T11 foi corrigida ANTES do disparo e eu confirmei que os numeros declarados reproduzem (8,33%/0,9046 x 8,32%/0,9035 declarados); dois tetos T cairam com medicao (ramos 2/3 exercitados; instrumentacao T11 em 100% do corpus); e a afirmacao central do artigo sobre a regiao R1 passou a ter prova com replicas (Wilcoxon pareado nas 30 sementes, p=1,9e-9, sem sobreposicao entre ramos em nenhuma semente).",
+ "decisoes_ao_autor": [
+  "ESCALADO (D81) — os 5 crashes MATLAB:badsubscript do b4 (BBOB_F5 s12, BBOB_F55 s9/s26/s27, ZDT6 s28) tem a assinatura e o conjunto de problemas do laudo do c238, que nao cobre o b4. Ha veto explicito sobre o c238, entao NAO investiguei. Decisao do autor: apensar o b4 aquela investigacao ou abrir laudo proprio. Enquanto isso a taxa de sucesso por problema (BBOB_F55 27/30) entra na analise como resultado.",
+  "ESCALADO — as 2 celulas WFG1 (s25, s26) que nunca terminaram nao tem rodape nem manifesto e o censo as marca 'fail'. Pela regra O-21 o rodape e a autoridade, e aqui nao ha rodape: elas nao sao ok nem branca, sao ABORTADAS POR NAO-TERMINACAO. Decisao do autor: (i) qual estado elas recebem no censo, e (ii) se WFG1 entra na analise com n=28 ou se as 2 contam como falha do metodo (eu recomendo a segunda leitura, porque a nao-terminacao E um resultado do CSEA sob 31D-1, nao um acidente de infra).",
+  "ESCALADO — CONFLITO DE CONVENCAO na regua: o sigma_dict manda 'aplique a leitura da DI-18 ao f verdadeiro do artefato', e a armadilha 8 da T11 manda usar o sanduiche float32; as duas juntas dao respostas 24x diferentes no DTLZ4 (prevalencia 58,6% x 2,45%). A T11 usou float64 na regua (eu reproduzi o numero declarado so assim). Decisao do autor: fixar por escrito que o rotulo da REGUA se calcula em float64 (f do artefato) e que o sanduiche float32 vale so para o recomputo do lado do ARQUIVO (onde a (1) e float32 por exportacao). Sem isso a analise das 30 sementes vai publicar DTLZ4 errado.",
+  "DECLARAR na escrita (bussola D29: errata do artigo, fica o codigo) — a Alg. 6 do CSEA nao garante progresso: o gate L>0,9 devolve vazio em 79,5% das geracoes de ramo 1 e o contador de FE nao avanca. Medido: 2/28 celulas de WFG1 nao terminam, 41,6% do CPU do config nao produz avaliacao. Isto e uma contribuicao nossa ao entendimento do metodo, nao um defeito da implementacao.",
+  "REGISTRAR como armadilha nova de leitura — semente_bloco do bloco estratificado e funcao de (alg, geracao) e NAO da semente do run: os 738 blocos de um mesmo indice de geracao compartilham a semente em toda a campanha (documentado em SondaState.m:463-475). Quem agregar blocos estratificados entre celulas esta somando ruido correlacionado.",
+  "CORRIGIR a armadilha 11 da T11 — 'n_arquivo do evento estratificado = n_treino + 1' nao generaliza: em 117.804 blocos a diferenca esta em {0,-1,...,-6} e NUNCA e +1 (n_arquivo e o arquivo DEDUPLICADO por X, logo <= n_treino).",
+  "NOTA de proveniencia — 24 celulas (23 da semente 12 + WFG1 s10) carregam campanha_id '63db46b10063_2026-08-14' em vez de '7f4f0e429a46_M8' e gravam host 'matlab-vm1' em vez de 'vm1'. Mesmo repo_hash, mesmo MATLAB, mesmos params: e um re-disparo declarado, nao contaminacao. Vale citar na secao de proveniencia.",
+  "NAO MEDIDO, com motivo — (i) nao-perturbacao da sonda (A24): exige par com/sem sonda, que esta campanha nao produz; herdado da T11. (ii) Criterio Con/Crowd da selecao radial: P nunca e exportada. (iii) Estabilidade em K (Fig. 5 do artigo): exige ablacao em K. (iv) Comparacao canonica com a Tab. III do artigo: continua incomensuravel (d, orcamento e metrica diferentes) — usei HV normalizado INTERNO so para medir dispersao entre sementes, e ele nao e comparavel ao artigo."
+ ]
+}

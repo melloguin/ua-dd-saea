@@ -1,0 +1,284 @@
+{
+ "achados": [
+  {
+   "id": "TR-03",
+   "arquivo_linha": "nao e defeito de codigo — evidencia: /Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/t11/baterias/c141/t12_piso_maquina.csv (15 pares vm3 x86-64 x Mac arm64)",
+   "configs_afetados": [
+    "c141",
+    "c238",
+    "e74",
+    "b1",
+    "b3",
+    "e7"
+   ],
+   "descricao": "A mesma celula/semente diverge entre vm3 (x86-64/Linux) e Mac (M1/arm64) acima do piso O-18 declarado (HV <= 1,55%). RE-MEDIDO POR MIM no CSV da bateria: dos 15 pares, 6 excedem o piso em dHV — e74/DTLZ2 10,155% · c238/MMF1 9,687% · e74/ZDT1 3,535% · e74/MMF1 2,926% · c141/MMF1 2,313% · b1/MMF1 2,098%; dIGD+ maximo 80,028% (c238/MMF1). Os configs que decidem por CLASSE (b4, c217), os 4 pisos e o e103 dao 0,00% exato em ambos. DoE bit-identico e codigo identico nos dois lados (git) — a origem e ULP de BLAS no primeiro fit do kriging, amplificada por surrogates mal-condicionados (ver LO-13: as celulas D=2 do c238 tem cond(R)~1e15). DEDUP: relatado como local por c141 (T2) e c238 (E-2); os relatorios de b1 (§8 item 2), b3, e74 e e7 encontraram o mesmo fenomeno e o DESCARTARAM como nao-classe-3. E UM SO defeito, e e o unico que ameaca a comparabilidade da campanha M8/M9 em 3 maquinas.",
+   "transversal": true,
+   "gravidade": "ALTA",
+   "acao": "ANTES do disparo das 695 celulas: (a) re-medir/re-declarar o piso O-18 com estes 15 pares, OU (b) pinar arquitetura por config no despacho (todas as celulas de um config na mesma familia de CPU). Opcional para fechar a causa: par de re-runs instrumentados da mesma celula nas duas maquinas com dump em double de theta, Phi, w e dos mu do primeiro ciclo.",
+   "custo": "Decisao do autor + reescalonamento do despacho. Se for pinagem: custo de agendamento, 0 CPU extra. Se for re-medicao do piso: ~1 h de analise sobre o CSV que ja existe. Re-runs instrumentados (opcional): ~2 celulas."
+  },
+  {
+   "id": "LO-01",
+   "arquivo_linha": "src/standalone_harness.py:950-956 (emit_sonda_estratificada, def em :924) — VERIFIQUEI. Contraste: src/standalone_harness.py:847-856 (emit_sonda_block ramifica por pred_tipo) e a docstring :796-798.",
+   "configs_afetados": [
+    "c122"
+   ],
+   "descricao": "As linhas regime='sonda_estratificada' gravam e(z) em mu_0 e max-softmax em sigma_0, com pred_score NULL e pred_tipo='score' na MESMA linha. CONFIRMEI NO FONTE: emit_sonda_estratificada chama _export.surrogate_row(..., mu=mu[i], sigma=sigma[i], pred_tipo=pred_tipo, ...) SEM ramificar por pred_tipo, enquanto a funcao irma emit_sonda_block ramifica em classe/score/valor (:847-856) e a docstring dela diz literalmente que o valor escalar vai para pred_classe/pred_score 'NUNCA para mu_*/sigma_* (que significam outra coisa e envenenariam a leitura da ③ pela R4)'. O c122 e o unico Python entre os 4 classificadores (b4/c217/e74 sao MATLAB e delegam a linha ao predict_fn do config), por isso e o unico atingido. Numeros do relatorio (nao re-medi): 10.500/10.500 linhas do smoke com mu_0 preenchido e pred_score NULL; ~1,77 M linhas/semente ≈ 53 M em 30 sementes. E o padrao 'campo verde com dado sentinela' na sua forma mais cara.",
+   "transversal": false,
+   "gravidade": "ALTA",
+   "acao": "Ramificar por pred_tipo em standalone_harness.py:950-956, copiando o bloco de :847-856. E trocar os 5 testes de tests/test_a2_c122.py:220-260 (inspect.getsource + assertIn — aferem o TEXTO da funcao) por asserção sobre a LINHA emitida. Enquanto nao corrigido, regra de leitura obrigatoria: descartar mu_*/sigma_* quando regime=='sonda_estratificada' e pred_tipo=='score'.",
+   "custo": "~4 linhas de codigo + 1 teste comportamental. Sem re-run. ANTES do disparo — senao sao ~53 M linhas envenenadas em 30 sementes."
+  },
+  {
+   "id": "LO-02",
+   "arquivo_linha": "src/c217_instrument.m:201 (bud.solutionIdOf(Pmid(i, :)) sem fatia) — VERIFIQUEI. Cadeia: CalFitnessPC.m:67-68 e :73 (Pmid tem D+1 colunas) -> src/FEBudget.m:171 (chave de 2*8*D hex) -> src/FEBudget.m:112 (devolve -1). CORRECAO: o relatorio cita FEBudget.m:111 para o -1; a linha real e 112.",
+   "configs_afetados": [
+    "c217"
+   ],
+   "descricao": "pmid_ids e -1 deterministico em 100% dos valores. CONFIRMEI TODA A CADEIA NO FONTE: CalFitnessPC.m:67-68 anexa a coluna Fitness a Input; :73 faz Pmid = Input(...,:) => Pmid tem D+1 colunas; c217_instrument.m:201 chama bud.solutionIdOf(Pmid(i, :)) SEM a fatia 1:Problem.D; FEBudget.keyOf (:171) monta chave de 2*8*(D+1) chars hex e o keymap so tem chaves de 2*8*D, entao FEBudget.m:112 cai no ramo else e devolve -1. Controle interno no MESMO arquivo: c217_instrument.m:32 faz a chamada COM a fatia (TrainIn(i, 1:Problem.D)) e produz fe_treino_max nao-nulo. O comentario c217_instrument.m:193-194 ('-1 = ponto que ainda nao foi avaliado') e falsificado por construcao: Pmid ⊂ Input ⊂ PopDec = Population.decs e Population = EnvironmentalSelection(Arc,...) (PCSAEA.m:72), logo toda linha de Pmid ja foi avaliada. Irrecuperavel a posteriori (reconstruir P exigiria EnvironmentalSelection sobre a ① float32 contra uma decisao em float64 — regra 11 do CONTRATO §10). Impacto relatado (nao re-medi): trocando o conjunto de referencia por proxy, o acordo pred_score x rotulo varia 0,148 (mediana) a 0,4445 (max).",
+   "transversal": false,
+   "gravidade": "ALTA",
+   "acao": "Trocar c217_instrument.m:201 por bud.solutionIdOf(Pmid(i, 1:Problem.D)) — a mesma fatia que o proprio arquivo ja usa em :32. Remover/corrigir o comentario :193-194. Acrescentar ao contrato_61.json do c217 um gate que reprove se pmid_ids tiver todos os valores iguais (controle negativo).",
+   "custo": "1 fatia (1 linha) + 1 comentario. Sem re-run. ANTES do disparo — o dado e irrecuperavel depois."
+  },
+  {
+   "id": "LO-06",
+   "arquivo_linha": "src/treed_media.py:444 (t_f0 = time.time()) ... :459-460 (ckpt.talvez_gravar DENTRO do while) ... :461 (t_busca_total) ... :490 (tempo_geracao_s=t_fit + t_busca_total) — VERIFIQUEI. src/checkpoint.py:122 ja acumula self.tempo_total_s, publicado em :158.",
+   "configs_afetados": [
+    "treed_media"
+   ],
+   "descricao": "O custo de I/O do checkpoint atomico (DI-43) esta DENTRO da janela cronometrada de tempo_busca_s e, por consequencia, de tempo_geracao_s. CONFIRMEI NO FONTE que ckpt.talvez_gravar(:459-460) roda entre t_f0(:444) e t_busca_total(:461), e que tempo_geracao_s = t_fit + t_busca_total (:490). VERIFIQUEI TAMBEM A ASSIMETRIA (o relatorio nao fez isso): dos 8 outros configs que chamam talvez_gravar, c122 (:985) e c311 (:648) chamam DEPOIS de add_timing/update_timing, e c154 (:898) depois do iteration_cleanup — o treed_media e o UNICO com o checkpoint dentro da janela. Isso reforca que e defeito, nao convencao. Numeros do relatorio (nao re-medi): 53,9% do tempo_busca_s e 49,5% do tempo_geracao_s sao I/O; wall 2,00x; inflacao projetada 30,1%-64,0% (mediana 48,5%), proporcionalmente MAIOR nas celulas baratas — o que distorce o ranking de custo entre configs no tempo_heatmap/M8. A DI-13.10 (ratificada) manda excluir a instrumentacao deste estudo de tempo_geracao_s; a DI-43/44 e silenciosa sobre a contabilidade do tempo, logo nenhuma decisao sanciona a contaminacao.",
+   "transversal": false,
+   "gravidade": "ALTA",
+   "acao": "Descontar ckpt.tempo_total_s (checkpoint.py:122) de t_busca_total em treed_media.py:461, OU publica-lo no bloco timing do ⑤ para a R4 subtrair. A segunda opcao nao muda numero nenhum ja gravado e e a mais segura pre-disparo.",
+   "custo": "1-2 linhas. Sem re-run. ANTES do M8 — e la que o numero e publicado."
+  },
+  {
+   "id": "LO-05",
+   "arquivo_linha": "src/c154_jes.py:799-812 (finalProbe SO no ramo BudgetExhausted), :867-869 (comentario da cadencia normal), :926 (break do teto) — VERIFIQUEI. IDEM src/c262_qnehvi.py:757 e :793 (BudgetExhausted), :829 (cadencia), :887 (break do teto). CORRECAO: o relatorio cita :868-869; o comentario comeca em :867.",
+   "configs_afetados": [
+    "c154",
+    "c262"
+   ],
+   "descricao": "Sob motivo_parada=teto_wall a sonda nao cobre a ultima geracao, contra a declaracao do proprio manifesto (manifest.sonda.cadencia = '1a iteracao, a cada k=2, e SEMPRE a ultima', DI-12.5 §17.2.2). CONFIRMEI NO FONTE do c154: o bloco final obrigatorio existe SO dentro do except BudgetExhausted (:799-812, com o comentario '§17.2.2: esta E a ultima iteracao — a sonda e OBRIGATORIA nela'); o ponto de emissao da cadencia normal (:867-869) diz 'a ultima e coberta no ramo do hard-stop acima'; e o break do teto (:926) sai do laco sem passar por nenhum dos dois — e nao ha emissao pos-laco (conferi :930-950). CORRECAO DE ESCOPO (nenhum relatorio fez isso): o c262 tem a estrutura IDENTICA — sonda so em :757/:793 (BudgetExhausted) e :829 (cadencia), break do teto em :887, sem emissao pos-laco. O relatorio do c262 declarou 'classe (3): NENHUM'. Como a T11 transforma as celulas D>=12 de AMBOS em celulas truncadas (expectativa ~6-7 celulas por semente), o estado final do surrogate de toda celula truncada fica sem regua.",
+   "transversal": true,
+   "gravidade": "MEDIA",
+   "acao": "Escolher: (a) emitir o bloco de sonda no ramo do teto, simetrico ao hard-stop (custo medido ~0,08 s), nos DOIS arquivos; ou (b) tornar manifest.sonda.cadencia condicional ao motivo_parada, para o manifesto parar de afirmar o que nao fez. A opcao (a) preserva a regua; a (b) so torna a lacuna honesta.",
+   "custo": "~1-2 linhas por arquivo (2 arquivos) + leitura. Sem re-run. ANTES do disparo."
+  },
+  {
+   "id": "TR-01",
+   "arquivo_linha": "src/standalone_harness.py:653 (bud.evaluate(X[i], lambda _x,_f=F[i]: _f) dentro de load_offline_budget, def em :617) -> src/budget.py:249-252 (cronometro + _n_avals_cronometradas += 1) -> src/budget.py:192-202 (a property so devolve None se _n_avals_cronometradas == 0) — VERIFIQUEI OS TRES SITIOS. CORRECAO: os relatorios citam :648-653 / :655-657 / :647-653 e budget.py:241 / :249-251; a chamada real e :653 e o cronometro :249-252.",
+   "configs_afetados": [
+    "b5m",
+    "b5r",
+    "c311",
+    "moead_media",
+    "treed_media"
+   ],
+   "descricao": "O cronometro do portao unico (item I-02, commit 83dbdac) mede a INGESTAO do dataset offline, nao avaliacao real — e por isso a property tempo_aval_real_s NUNCA devolve None no offline, contradizendo a propria docstring que a justifica. CONFIRMEI A CADEIA COMPLETA NO FONTE: load_offline_budget empurra as n linhas do dataset pelo portao (bud.evaluate com uma lambda que so devolve F[i]); budget.py:249-252 cronometra exatamente esse retorno de lambda e incrementa _n_avals_cronometradas; budget.py:200 (`if not self._n_avals_cronometradas: return None`) portanto nunca dispara. A docstring em budget.py:192-202 diz textualmente que no offline 'o orcamento nasce ESGOTADO (a ① e o dataset, D90) e nenhuma avaliacao real acontece no run — gravar 0.0 ali afirmaria que avaliar custou zero'. DEDUP: e UM defeito do harness compartilhado, relatado com 5 nomes diferentes (b5m A22, b5r A33, c311 A25, moead_media A25, treed_media N3). Numeros dos relatorios (nao re-medi): s42 pre-T11 = 0,0 exato em 200/200 celulas offline Python; smoke T11 = 0,0001 (N=61) / 0,0003 (N=309) / 0,0572 (N=50.000), proporcional a N; 0,97-1,64 us/FE nos offline contra 22,95-34,43 us/FE nos online do mesmo smoke (~21-22x). Impacto no mecanismo: ZERO (③ bit-identica a da s42). Impacto na leitura: destroi a assinatura que a F5 usava para provar 'offline puro' (tempo_aval_real_s == 0) e substitui um zero inofensivo por uma medida que ESCALA COM N, dando aparencia de trabalho de avaliacao proporcional ao dataset; ~1.600 celulas em 30 sementes.",
+   "transversal": true,
+   "gravidade": "MEDIA",
+   "acao": "(a) Nao cronometrar o caminho de ingestao: zerar _tempo_aval_real_s e _n_avals_cronometradas ao fim de load_offline_budget (standalone_harness.py, apos :653), ou dar a bud.evaluate um parametro cronometrar=False usado so ali. (b) Trocar tests/test_g7_instrumentacao.py:118-127 (test_os_offline_declaram_NULL_em_vez_de_zero — faz assertNotIn sobre o TEXTO de 5 arquivos, nunca roda um offline) por um teste COMPORTAMENTAL que rode um offline e afirme `is None`. (c) Enquanto nao corrigido: nenhuma analise de tempo pode usar tempo_aval_real_s dos 5 configs offline — nem custo, nem o heatmap F5.2d.",
+   "custo": "1-2 linhas + 1 teste. Sem re-run. Antes do disparo (o campo e gravado em ~1.600 celulas)."
+  },
+  {
+   "id": "TR-05",
+   "arquivo_linha": "claude_code_context/artifacts/contrato_61.json — VERIFIQUEI o conteudo: configs.nsga2/nsga3/moead/smsemoa.di10 = ['f_best','n_front1']; configs.b5m.di10 = ['p_wrong_stats']; configs.c217.di10 = ['n_best','n_worst']. Contra CONTRATO_DE_DADOS.md §6.1 l.335 e §332.",
+   "configs_afetados": [
+    "nsga2",
+    "nsga3",
+    "moead",
+    "smsemoa",
+    "b5m",
+    "c217"
+   ],
+   "descricao": "O contrato EXECUTAVEL que o gate G-7 consulta e sistematicamente mais fraco que o CONTRATO escrito, entao o G-7 da verde sobre um subconjunto. CONFIRMEI LENDO O JSON: (i) os 4 pisos declaram di10 = ['f_best','n_front1'], enquanto o CONTRATO §6.1 l.335 exige tambem ideal/nadir da populacao por geracao; (ii) b5m declara di10 = ['p_wrong_stats'], enquanto o CONTRATO §332 (linha b5, coluna '+ DI-10 (novo)') exige os pesos de decomposicao no header do ⑥; (iii) c217 declara di10 = ['n_best','n_worst'], sem cobertura para pmid_ids nem y_treino_dist (ver LO-02/LO-03). Causa raiz declarada no proprio _meta do artefato: construcao por 'extracao automatica dos identificadores em crase da tabela §6.1' — e na l.335 so n_front1 e f_best[] estao em crase. DEDUP: relatado por b5m (A26) e por nsga2 (escalacao de instrumentacao, sem marcador), e implicito na secao 'cobertura de gate: nenhuma' do c217. Prova por mutante do nsga2 (relatada, nao re-executei): removendo ideal/nadir_pop/nadir_front1 de 13/13 eventos do smoke, os 6 gates seguem verdes com o G-7 relatando '⑥ 3/3 campos'. Impacto: nulo na s42 e no smoke (os campos estao la); em 30 sementes, a perda silenciosa apagaria as bases de §P5 (787 medicoes) e §P6 (376) sem acender gate.",
+   "transversal": true,
+   "gravidade": "MEDIA",
+   "acao": "Sincronizar contrato_61.json com o CONTRATO §6.1/§332 a mao (a extracao por crase perde os identificadores sem crase) e re-rodar o G-7. Corrigir o gerador do artefato para nao depender de formatacao markdown. Regra geral: todo campo novo entra com um CONTROLE NEGATIVO que prove que o gate discrimina.",
+   "custo": "1 linha por config no artefato (6 configs) + re-execucao do G-7 (segundos)."
+  },
+  {
+   "id": "TR-02",
+   "arquivo_linha": "src/b5_prob.py:118 (V = evolver.population.problem.reference_vectors.values) — VERIFIQUEI. except Exception: return None em :135-136; chamada em :536. O atributo vive em algorithms/b5_Prob-RVEA/desdeo_emo/EAs/BaseEA.py:182 (self.reference_vectors = ReferenceVectors(...)); grep em desdeo_problem/ retorna 0 ocorrencias — CONTEI, e zero.",
+   "configs_afetados": [
+    "b5m",
+    "b5r"
+   ],
+   "descricao": "flag_vetores_degenerados e um ramo morto: le o atributo no objeto errado e o resultado e null em 100% dos eventos decision. CONFIRMEI NO FONTE: b5_prob.py:118 acessa evolver.population.problem.reference_vectors, mas reference_vectors e atributo do EVOLVER (BaseEA.py:182), e desdeo_problem/ tem ZERO ocorrencias do nome (verifiquei com grep -c). O AttributeError e engolido pelo except Exception: return None em :135-136. Numeros dos relatorios (nao re-medi): null em 1.144/1.144 eventos do smoke b5r e em 801/801 do b5m, enquanto os outros dois campos do mesmo item I-05 (p_wrong_stats, n_substituicoes) estao preenchidos em 800/801 no b5m — ou seja, a instrumentacao I-05 funciona, so este ramo esta morto. Tres consequencias: (i) a ponta CAUSA da cadeia A8 (colapso dos vetores -> PBI NaN) nao existe em dado nenhum, e a justificativa do autor para NAO implementar o wrapper do adapt (~90 min) apoia-se num campo que nunca produziu dado; (ii) a ERRATA 13 (commit 65ace70) acrescentou o campo 'amplitude' DENTRO do ramo morto — o conserto nao conserta nada; (iii) DEFEITO SECUNDARIO, mesmo apos o conserto: a chamada esta no replay POS-busca (:536), sobre o estado final dos vetores, entao o valor seria constante em todas as geracoes — o comentario do codigo promete o oposto ('mostra os vetores encolhendo ANTES de zerar'). Zero efeito sobre a busca (③ bit-identica a s42).",
+   "transversal": true,
+   "gravidade": "MEDIA",
+   "acao": "(a) 1 token: evolver.population.problem.reference_vectors -> evolver.reference_vectors. (b) Trocar `except Exception: return None` por `except Exception as e: return {'erro': repr(e)}` — um gate que nunca reprova e decorativo (licao §4.2.1 da propria T11). (c) Para o defeito secundario, decisao do autor: mover a coleta para dentro do laco de iteracao, ou aceitar o valor constante e declara-lo no sigma_dict. NOTA DE ESCOPO: mesmo corrigido, isto NAO tira A14 (RVs fixos) do teto do b5r — ReferenceVectors.adapt renormaliza, entao as normas voltam a 1,0 adaptando ou nao; so um hash(reference_vectors.values) por iteracao discriminaria fixo x adaptado.",
+   "custo": "2 linhas para o ramo morto + o `except` que loga. A coleta por-geracao e decisao do autor (~30-90 min)."
+  },
+  {
+   "id": "LO-03",
+   "arquivo_linha": "src/c217_instrument.m:216-218 (conta y<0 / y==0 / y>0) contra CalFitnessPC.m:69-71 (Output = zeros; Output(1:ceil(N/4))=2; Output(ceil(N/4)+1:end)=1) — VERIFIQUEI OS DOIS. Codificacao certa no MESMO arquivo: c217_instrument.m:109-110.",
+   "configs_afetados": [
+    "c217"
+   ],
+   "descricao": "y_treino_dist conta um alvo ternario {-1,0,+1} sobre um vetor que so contem {1,2}, e sobre o conjunto errado. CONFIRMEI NO FONTE: y_treino_dist_c217 (c217_instrument.m:208-218) faz sum(y<0)/sum(y==0)/sum(y>0), mas CalFitnessPC.m:69-71 escreve Output = zeros(ceil(N/2),1) seguido de Output(1:ceil(N/4))=2 e Output(ceil(N/4)+1:end)=1 — so os valores 1 e 2. Logo a tripla e sempre (0, 0, n). O comentario em c217_instrument.m:209-210 afirma o ternario; e o MESMO arquivo usa a codificacao correta (>1 / <=1) em :109-110. Conjunto errado tambem: recebe Output (rotulo de todo o Input), nao TrainOut — que e descartado em PCSAEA.m:41. Numeros do relatorio (nao re-medi): (classe_menos1>0, classe_zero>0, classe_mais1>0) = (False,False,True) em 42/42; n == n_treino em 0/42; n == ceil(|P|/2) em 42/42. E informacao FALSA, nao ausente; a prevalencia verdadeira e deterministica (13/12 no steady) e ja esta em n_best/n_worst.",
+   "transversal": false,
+   "gravidade": "MEDIA",
+   "acao": "Trocar os tres limiares de c217_instrument.m:216-218 para a codificacao real (>1 / <=1, como em :109-110), ou remover o campo — ele nao acrescenta nada a n_best/n_worst. Corrigir o comentario :209-210.",
+   "custo": "3 linhas + 1 comentario. Sem re-run."
+  },
+  {
+   "id": "LO-04",
+   "arquivo_linha": "src/experiment.m:541 (bloco c217) — VERIFIQUEI, string byte-identica a src/experiment.m:2527 (bloco dos PISOS). Contra algorithms/_PlatEMO/.../PC-SAEA/SurrogateAssistedSelectionPC.m:14, :28, :46 — VERIFIQUEI as tres.",
+   "configs_afetados": [
+    "c217"
+   ],
+   "descricao": "params.operadores do ⑤ declara o oposto do que o codigo roda e do que a SPEC decidiu. CONFIRMEI NO FONTE: experiment.m:541 grava 'Balde C: OperatorGA stock (SBX proC=1 dis_c=20; PM proM=1 dis_m=20)', string identica a do bloco dos pisos em :2527 (copiada de la — o bloco dos pisos e o que tem surrogate='NENHUM (piso = MOEA puro)'). As TRES chamadas de variacao reais, em SurrogateAssistedSelectionPC.m:14, :28 e :46, usam OperatorGA(Problem, ..., {1,15,1,5}) — eta_c=15, eta_m=5. Contradiz tambem a SPEC (SPEC_experimentos_v5.2.md:567: 'eta_c=15 / eta_m=5 · CODIGO documentado (K.3; != Balde C 20/20)', com a nota 'Balde C nao se aplica (usa eta proprios)') e o bundle alg_c217_pcsaea.md:21,23. O b4, onde o Balde C DE FATO se aplica, tem a linha correta em experiment.m:1164. Agravante: seguir o checklist de auditoria ('os hiperparametros do params do ⑤ batem com a Tabela do paper?') devolve um SIM FALSO, porque o 20 declarado coincide com o distribution index = 20 do §4.1 do artigo.",
+   "transversal": false,
+   "gravidade": "MEDIA",
+   "acao": "Reescrever a string de experiment.m:541 com os valores reais: 'OperatorGA(Problem, ..., {1,15,1,5}) — SBX proC=1 eta_c=15; PM proM=1 eta_m=5 (K.3; Balde C NAO se aplica)'. Verificar se o mesmo copy-paste do bloco de pisos contaminou outros configs MATLAB.",
+   "custo": "1 linha. Sem re-run. Antes do disparo (o ⑤ e gravado em toda celula)."
+  },
+  {
+   "id": "LO-13",
+   "arquivo_linha": "algorithms/c238_EIM/.../MultiObjective_EIM.m:31,57 (Y em [0,1] por construcao) + GP_Train.m:24 (lnL) + GP_Train.m:18 (R = R0 + I*(10+n)*eps) — nao re-verifiquei o fonte MATLAB deste config.",
+   "configs_afetados": [
+    "c238"
+   ],
+   "descricao": "Kriging numericamente degenerado nas 3 celulas D=2 (MMF1, MMF4, MMF11_L). Relatado como ESCALACAO ao autor, marcado com o alvo, mas o proprio relatorio classifica como 'fora do eixo de fidelidade'. Argumento algebrico do relatorio (NAO re-verifiquei): com Y em [0,1] por construcao e lnL = -0,5n*log(sigma_chapeu^2) - Sum(log|diag L|) sobre R = R0 + I*(10+n)*eps, tem-se sigma_chapeu^2 >= exp(-2*lnL/n), logo lnL <= 0 implica sigma_chapeu^2 >= 1. Medido pelo relatorio em 15.740 componentes-geracao: 118 (0,75%) com lnL <= 0, todos em MMF1 (48/80, a partir da geracao 6/40, cota >= 9,0e4), MMF4 (47/80, geracao 10/40, >= 2,8e4) e MMF11_L (23/80, geracao 15/40, >= 21,7); as outras 22 celulas ficam com cota <= 0,078. Corroboracao: cond(R) 2,7e15 / 2,6e15 / 9,1e15 nessas tres contra ~1e2 nas saudaveis. Co-causa: fmincon devolve theta identico a theta_0 = 1 EXATO em 63/15.740 componentes (60% em MMF4 obj0), com MaxFunEvals = 20D = 40 avaliacoes para D=2. LIGACAO QUE OS RELATORIOS NAO FIZERAM: c238/MMF1 e exatamente a celula com o maior dIGD+ do TR-03 (80,03%) — o mal-condicionamento e o amplificador plausivel da divergencia entre maquinas, o que torna os dois achados uma so historia numerica.",
+   "transversal": false,
+   "gravidade": "MEDIA",
+   "acao": "Nao e re-run. (a) Caveat declarado na leitura do D97 para MMF1/MMF4/MMF11_L: 'o surrogate perde validade numerica na segunda metade do orcamento'. (b) Item para o PLANO_RODADA_PERFEITA: nugget adaptativo ou MaxFunEvals com piso — ambos sao divergencia NOVA do codigo oficial, logo decisao de fidelidade do autor (D81). (c) Testar se corrigir o condicionamento reduz o dHV do TR-03 na mesma celula.",
+   "custo": "Caveat: 1 paragrafo. Mudanca de codigo: decisao do autor + re-run das 3 celulas D=2 se aceita."
+  },
+  {
+   "id": "LO-11",
+   "arquivo_linha": "src/experiment.m:2419 ('frente1_excede_pop', sum(FrontNo == 1) > N_nominal) — VERIFIQUEI. N_efetivo so e atribuido em src/experiment.m:2459, DEPOIS do bloco de seeding.",
+   "configs_afetados": [
+    "moead",
+    "nsga3"
+   ],
+   "descricao": "frente1_excede_pop compara |F1| com N_nominal em vez de N_efetivo. CONFIRMEI NO FONTE: experiment.m:2419 grava 'frente1_excede_pop', sum(FrontNo == 1) > N_nominal, dentro do rec seeding; e N_efetivo = Problem.N so e atribuido em :2459, ou seja DEPOIS. Para M=2 os dois coincidem (20); para M=3 o lattice do UniformPoint reajusta para 15, entao a flag erra. Numeros do relatorio (nao re-medi): flag true em 6/25, verdade contra N_ef em 8/25, erra em 2/25 (DTLZ1 |F1|=17>15 e DTLZ3 |F1|=19>15); rodado nos 4 pisos, nsga3 erra nas MESMAS 2 celulas e nsga2/smsemoa erram 0/25 => 4/100 celulas de piso, exclusivamente nos dois configs com lattice. Impacto provado benigno: o campo e descritivo (nenhum passo do MOEA/D o le) e a selecao real esta correta (②(g=1) reproduz em conjunto E ordem, 25/25 em float64). CORRECAO AO RELATORIO: o moead diz que o conserto e '1 token, 0 CPU'; como N_efetivo so existe a partir de :2459, o conserto exige mover ou duplicar a atribuicao — sao 2 edicoes, nao 1 token.",
+   "transversal": true,
+   "gravidade": "BAIXA",
+   "acao": "Mover a atribuicao N_efetivo = Problem.N para antes do bloco de seeding e trocar N_nominal por N_efetivo em :2419 (vale para moead e nsga3 no mesmo movimento). Se o autor preferir nao tocar codigo pre-disparo, basta a nota de leitura: 'frente1_excede_pop do ⑥ e contra N_nominal; para os pisos com lattice compare n_frente1 > params.N_efetivo'.",
+   "custo": "2 edicoes, 0 CPU — OU 1 nota de leitura, 0 edicoes."
+  },
+  {
+   "id": "TR-04",
+   "arquivo_linha": "src/experiment.m:2516-2527 (params.geracoes_derivadas, commit 40df11a [T11-A6]) — VERIFIQUEI. CORRECAO IMPORTANTE: o relatorio do moead cita src/experiment.m:2453-2463, que e o bloco catch/footer — ERRADO. O sitio real e :2516-2527, que e o que o relatorio do smsemoa cita corretamente.",
+   "configs_afetados": [
+    "moead",
+    "smsemoa",
+    "nsga2",
+    "nsga3"
+   ],
+   "descricao": "A string params.geracoes_derivadas, compartilhada pelos 4 pisos, descreve o mecanismo de prole do NSGA-II para todos e a formula erra por +1. CONFIRMEI NO FONTE: experiment.m:2516-2527 afirma 'gerando prole em PARES — 2*floor(N_efetivo/2) por geracao (MatingPool do OperatorGA)'. Verifiquei os quatro motores: MOEAD.m:40 faz `for i = 1 : Problem.N` e :45 chama OperatorGAhalf(Problem, Population(P(1:2))) => 1 prole por subproblema, N_ef por geracao; SMSEMOA.m:27-29 idem (OperatorGAhalf num laco de Problem.N); so NSGAII.m:26-27 usa TournamentSelection -> MatingPool -> OperatorGA. Logo a descricao vale para nsga2/nsga3 e e FALSA para moead/smsemoa. DEDUP: relatado como dois achados (moead X3 = mecanismo errado; smsemoa T-1 = formula erra +1 deterministico), mas e UMA string e UM conserto — a formula proposta pelo moead, floor((20D + n_dup)/proles_por_geracao) + 1, ja embute o +1 que o smsemoa pede. Numeros dos relatorios (nao re-medi): a formula da string acerta 1/25 no moead sob leitura literal e 19/25 sob leitura caridosa (as 6 falhas sao exatamente as celulas M=3, N_ef=15 impar); no smsemoa acerta 0/28 contra n_geracoes e 28/28 contra n_geracoes-1; o erro e +1 em 117 de 124 celulas de piso. Impacto: metadado textual do ⑤, nenhuma analise deriva n_geracoes (a propria string manda 'nao derive, LEIA').",
+   "transversal": true,
+   "gravidade": "BAIXA",
+   "acao": "Ramificar a string por familia de operador no run_piso: 'nsga2/nsga3: OperatorGA sobre MatingPool de N => 2*floor(N_ef/2) proles/geracao · moead/smsemoa: OperatorGAhalf, 1 prole por subproblema => N_ef proles/geracao; floor((20D + n_dup)/proles_por_geracao) + 1'.",
+   "custo": "1 edicao, 0 CPU. ANTES do disparo — senao o metadado errado e gravado 695 x 30 vezes."
+  },
+  {
+   "id": "TR-06",
+   "arquivo_linha": "src/e103_instrument.m — ZERO ocorrencias de espaco_modelo (contei); src/e103_sonda.m:114 e :138 gravam 'espaco_modelo', \"cru\". Mesma assimetria: src/c217_sonda.m:79 grava, src/c217_instrument.m nao; src/c262_qnehvi.py:177 grava so num caminho. VERIFIQUEI.",
+   "configs_afetados": [
+    "e103",
+    "c217",
+    "c262"
+   ],
+   "descricao": "espaco_modelo e NULL nas linhas de BUSCA da ③ e 'cru' nas linhas de SONDA da MESMA ③, no MESMO run. CONFIRMEI NO FONTE do e103: e103_instrument.m (que emite as linhas de busca) nao contem a palavra espaco_modelo em lugar nenhum, enquanto e103_sonda.m a grava como 'cru' em :114 e :138. A mesma assimetria existe no c217 (c217_sonda.m:79 grava, c217_instrument.m nao) e no c262. Numeros do relatorio (nao re-medi): NULL em 19.800/19.800 linhas de busca e 'cru' em 40.000/40.000 de sonda, em 45/45 celulas do e103, inalterado no smoke T11; os outros offline (c311, b5r, b5m, moead_media, b4) preenchem 'cru' nas linhas de busca. E por isso que e (3) e nao (2): nenhuma decisao D/DI autoriza a assimetria, e o contrato_f52b.csv nao a flagra (o gate nao cobre esta coluna), logo tampouco ha sancao implicita. DEF-C3 do CONTRATO §3 manda declarar o espaco em que o modelo opera. Impacto cosmetico: a semantica e inequivoca pelo sigma_dict e pelas linhas de sonda do mesmo run.",
+   "transversal": true,
+   "gravidade": "BAIXA",
+   "acao": "1 literal no emissor das linhas de busca de cada config: e103_instrument.m, c217_instrument.m e o caminho de busca do c262_qnehvi.py. Acrescentar espaco_modelo a cobertura do gate de colunas da ③.",
+   "custo": "1 linha por config (3 configs) + 1 regra no gate."
+  },
+  {
+   "id": "LO-09",
+   "arquivo_linha": "src/c122_thetadeadp.py:852-853 (emissao da sonda, PRE-survival) x :956 (sel_scalar_dea) x :1001 (ref_ids da decision, POS-survival) — VERIFIQUEI. CORRECAO: o relatorio cita :848 para a sonda; :848 e estado_sonda.update(...), a emissao e :852-853.",
+   "configs_afetados": [
+    "c122"
+   ],
+   "descricao": "A REGRA_DO_ROTULO manda usar o ref_ids do 'evento de geracao', mas no c122 esse evento e o decision, cujo ref_ids e POS-survival, enquanto o bloco de sonda mediu contra a populacao PRE-survival. CONFIRMEI A ORDEM NO FONTE: a sonda e emitida em :852-853 no topo do laco, com pop antes de sel_scalar_dea; o survival ocorre em :956; e o ref_ids da decision e montado em :1001 com a pop ja selecionada. Numeros do relatorio (nao re-medi): sonda(g).ref_ids == decision(g).ref_ids em 8/22 blocos, == decision(g-1).ref_ids em 21/22; 14/22 blocos (63,6%) receberiam outro conjunto pela leitura literal — em g=1 trocam 12 dos 21 membros, nos demais 1-2 dos 11. Impacto numerico pequeno: rho muda de 0,0589 (correto) para 0,0575 (literal) sobre 3.512 blocos.",
+   "transversal": false,
+   "gravidade": "BAIXA",
+   "acao": "Apontar a regra para o ref_ids do PROPRIO rec sonda/sonda_estratificada, nao o do evento de geracao (6 palavras). Alternativa mais robusta: emitir ref_ids dentro do rec de sonda, ja que ele conhece a pop que mediu.",
+   "custo": "1 edicao de texto na REGRA_DO_ROTULO (ou ~2 linhas se preferir emitir o campo)."
+  },
+  {
+   "id": "LO-10",
+   "arquivo_linha": "src/c122_thetadeadp.py:741-743 (sigma_dict com n_ref={MU}) e :1087 (sonda_info['n_ref'] = MU) — VERIFIQUEI OS DOIS. Tambem :800 (n_ref=MU no header). O valor REAL e emitido em :998 (n_ref=len(pop)).",
+   "configs_afetados": [
+    "c122"
+   ],
+   "descricao": "Residuo declarativo do item I-01: o n_ref NOMINAL (MU) sobrevive em 2-3 sitios de metadado no MESMO run cujo rec de g=1 declara o real. CONFIRMEI NO FONTE: :741-743 grava no sigma_dict a f-string '[P2/DI-16.2] e(z) vs a POPULACAO SELECIONADA corrente (n_ref={MU}) — referencia de tamanho FIXO'; :1087 grava sonda_info['n_ref'] = MU no manifesto; :800 grava n_ref=MU no header; e :998 emite o real, n_ref=len(pop) com n_ref_nominal=MU ao lado. Numeros do relatorio (nao re-medi): manifest.sonda.n_ref = 11 no run cujo rec de g=1 declara n_ref=21, n_ref_truncada=false; 2 strings por celula, contra as 3.537 recs falsas da F5 (reducao ~1.769x). Por que ainda importa: a regra 3 do CONTRATO (DEF-C4) manda ler o sigma_dict ANTES da ③, entao quem cumpre o contrato le primeiro a afirmacao falsa.",
+   "transversal": false,
+   "gravidade": "BAIXA",
+   "acao": "Derivar do real nos 3 sitios (usar len(pop) da geracao 1, ou marcar explicitamente 'nominal' e acrescentar o real ao lado, como :998 ja faz).",
+   "custo": "2-3 linhas."
+  },
+  {
+   "id": "LO-07",
+   "arquivo_linha": "Espelho: /Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/e103/swap_medium-lhs_ZDT4/42/exp_sweep-medium-lhs_e103_ZDT4_42__final.manifest.json. Canonico: /Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/sweep-medium-lhs/e103/exp_sweep-medium-lhs_e103_ZDT4_42__final.manifest.json. CORRECAO: o relatorio da o caminho canonico com subniveis ZDT4/42 que NAO existem, e a raiz do espelho e irma de ua-dd-saea, nao interna a ela.",
+   "configs_afetados": [
+    "e103"
+   ],
+   "descricao": "Sidecar da ⑦ dessincronizado no espelho — 1 de 360 arquivos do e103. RE-MEDI EU MESMO: o sidecar do espelho diz n_final=200 e n_nd_pos_real=10; o parquet ao lado tem 100 linhas (li com pyarrow); o sidecar canonico diz 100 e 5. mtimes confirmam a cronologia: sidecar do espelho 28/07 21:42 (pre-fix), parquet do espelho 29/07 13:29 (pos-fix) — o parquet foi ressincronizado e o sidecar nao. Causa: a acao no 1 do dossie f5/adversarial/e103-A25.md mandava ressincronizar 2 arquivos (parquet + sidecar) e 1 dos 2 foi feito. Enquadramento (d): defeito de instrumentacao/distribuicao, nao de fidelidade nem celula corrompida. Impacto nulo sobre numeros publicados (todos vem do parquet); o risco e para quem ler o sidecar do espelho como censo — uma varredura de n_final acusaria 1 celula com 200.",
+   "transversal": false,
+   "gravidade": "BAIXA",
+   "acao": "1 cp do sidecar canonico sobre o do espelho. Para a rodada perfeita: propagar por content-hash do PAR (parquet, sidecar), nunca por 'arquivos novos' — o modo de falha e exatamente propagar metade de um par atomico.",
+   "custo": "1 comando. A mudanca de politica de propagacao: ~30 min de script."
+  },
+  {
+   "id": "LO-08",
+   "arquivo_linha": "scripts/progress.py:95 (foot = next((r for r in reversed(tail) if r.get('rec') == 'footer'), None)) — VERIFIQUEI. O leitor correto e footer_fechado, definido em src/audit_log.py:67 e usado SO em src/manifest.py:305. Segundo sitio: scripts/accept.py:794.",
+   "configs_afetados": [
+    "e81"
+   ],
+   "descricao": "Residuo do fix de contaminacao do ⑥: a correcao existe mas os leitores nao migraram. CONFIRMEI NO FONTE: scripts/progress.py:95 pega o ULTIMO footer do arquivo (reversed + primeiro match), e nao o footer FECHADO; footer_fechado (audit_log.py:67) so e chamado por manifest.py:305. A celula batch/q10_ZDT4 do e81 tem 95 pares header/footer (relatado; nao re-contei), dos quais exatamente 1 — o do runner — tem fe_final. Logo progress.py continua enganado nessa celula. A causa original foi confirmada e corrigida no codigo (experiments.py:116-124 documenta o mecanismo e move o is_run_done para antes do logger; audit_log.py:57-59 cita a celula pelo nome), e o dano ao dado e NULO (as 7 camadas fecham: ①=2.109, ②=222.800, ③=277.043, ④=200). O que sobrou e leitura enganada. accept.py:794 tem exposicao pratica nula (cria a propria celula).",
+   "transversal": false,
+   "gravidade": "BAIXA",
+   "acao": "Migrar scripts/progress.py:95 para footer_fechado (1 linha). Corrigir o numero '747->767' do docstring para 559->747. Verificar o mesmo padrao nos outros configs bucket-only (c154, c122, c149, c262) — se existir, vira achado transversal.",
+   "custo": "1 linha + 1 docstring + ~15 min de varredura nos 4 bucket-only."
+  },
+  {
+   "id": "LO-12",
+   "arquivo_linha": "src/sobol_batch.py:226-228 (nota_potencia_de_2 literal) contra :211 ('q': int(q), derivado) e o racional em :212-214 — VERIFIQUEI.",
+   "configs_afetados": [
+    "sobol_batch"
+   ],
+   "descricao": "params.nota_potencia_de_2 e literal fixa, nao derivada de q. CONFIRMEI NO FONTE: sobol_batch.py:226-228 grava a string fixa 'q=10 nao e potencia de 2: usamos random(q)...' logo abaixo de 'q': int(q) (:211), e o comentario :212-214 diz textualmente 'Os valores NAO sao literais soltos: saem das MESMAS fontes que a busca usou'. Falta a f-string. Numeros do relatorio (nao re-medi): no smoke pos-T11 preservado, params.q = 1 e manifest.q = 1 mas a nota afirma q=10; o sigma_dict do mesmo manifesto ACERTA ('lote: q=1 pontos Sobol SCRAMBLED/Owen por iteracao'), o que prova que a derivacao existe no arquivo ao lado e a omissao e local. Impacto nulo no grid: runs_matrix.csv tem q=10 em 150/150 linhas, logo em toda celula da campanha a string e verdadeira por acidente. O dano e hipotetico (um --q diferente num diagnostico) e de metadado.",
+   "transversal": false,
+   "gravidade": "BAIXA",
+   "acao": "f\"q={q} nao e potencia de 2...\" ou condicionar a nota ao valor de q (emiti-la so quando q nao for potencia de 2).",
+   "custo": "1 linha. Item de higiene antes do M8; nao abre trabalho de verificacao adversarial."
+  },
+  {
+   "id": "TR-07",
+   "arquivo_linha": "Header do ⑥ dos 4 pisos e do c217 — medido pelos relatorios (19 chaves no smsemoa s42 e smoke, diff = vazio; [False x 4] no c217). Contra CONTRATO_DE_DADOS.md §6. Nao re-verifiquei.",
+   "configs_afetados": [
+    "smsemoa",
+    "nsga2",
+    "nsga3",
+    "moead",
+    "c217"
+   ],
+   "descricao": "O CONTRATO §6 promete run_id/ambiente/params/sigma_dict no header do ⑥ e esses configs nao os tem — e nada mudou na T11. Relatado por smsemoa (T-2) e c217 (item de doc-sync 2), ambos explicitamente classificados pelos autores como NAO classe (3), mas listados sob a secao do alvo. DEDUP: e o mesmo defeito nos dois. O gate G-7 confere o evento de geracao e o ⑤, nunca o header, entao a divergencia e estruturalmente invisivel ao portao — outra instancia do padrao TR-05. Perda de informacao: nenhuma, tudo esta no ⑤. Incluido aqui por completude do inventario, com a gravidade que os proprios relatorios lhe deram.",
+   "transversal": true,
+   "gravidade": "BAIXA",
+   "acao": "Decidir entre as duas saidas honestas: ou o writer emite as 4 chaves no header do ⑥, ou o CONTRATO §6 passa a descrever o que existe. Nao deixar a promessa sem produtor.",
+   "custo": "1 edicao de doc (opcao B) ou ~4 linhas no writer x 5 configs (opcao A)."
+  },
+  {
+   "id": "LO-14",
+   "arquivo_linha": "SPEC_experimentos_v5.2.md §1784 e §1878, propagado no bundle alg_e7_ednarmoea.md I.4. Refutacao em SelectTrainData.m:18, EDNARMOEA.m:38-39 e :121-123, Estimate.m:13 e :18, testNet.m:12 — nao re-verifiquei o fonte MATLAB.",
+   "configs_afetados": [
+    "e7"
+   ],
+   "descricao": "A SPEC afirma uma divergencia que NAO existe. Marcado com o alvo pelo relatorio do e7, que ao mesmo tempo declara 'classe (3): NENHUM' — e um item documental, e a correcao AUMENTA a fidelidade declarada do config. A SPEC §1784 e §1878 registram 'treino em [-1,1] (paper) x transladado-pelo-ideal (codigo)' como divergencia; o relatorio a refuta mostrando que o codigo faz AS DUAS COISAS: SelectTrainData.m:18 faz a translacao (§III-B-2 do paper) e EDNARMOEA.m:38-39/:121-123 fazem mapminmax em X e Y para [-1,1] (Alg. 2 L4), com Estimate.m:13 aplicando ao candidato e :18 revertendo a predicao. Assinaturas nos dados (relatadas, nao re-medi): Spearman(log10 escala, WAPE) = -0,053 com a escala variando 3,62e7x; mu_max/amplitude mediana 1,0345 (faixa 0,833-1,820) em 25/25 celulas. DEF-B6.6 nao e afetada (nunca listou este item).",
+   "transversal": false,
+   "gravidade": "BAIXA",
+   "acao": "Corrigir SPEC_experimentos_v5.2.md §1784 e §1878 e regenerar o bundle alg_e7_ednarmoea.md. Antes de aceitar, re-verificar as 5 citacoes de arquivo:linha no fonte MATLAB do e7 — eu nao as confirmei.",
+   "custo": "2 paragrafos de SPEC + 1 regeneracao de bundle. ~30 min."
+  }
+ ],
+ "total_por_config": "CONTAGEM BRUTA (o que cada relatorio marcou com o alvo na sua §8), 24 relatorios: b1 0 · b3 0 · b4 0 · b5m 3 (A25, A26, A22) · b5r 2 (A32, A33) · c122 3 (N3, N2, N4) · c141 1 (T2) · c149 0 · c154 1 (J32) · c217 3 ((3)-1, (3)-2, (3)-3) · c238 0 de fidelidade + 2 escalacoes marcadas com alvo (E-1, E-2) · c262 0 · c311 1 (A25) · e103 2 (A30, A31) · e7 0 de fidelidade + 1 item marcado com alvo (SPEC) · e74 0 · e81 1 (A24) · moead 2 (M10b, X3) · moead_media 1 (A25) · nsga2 0 marcados + 1 escalacao de instrumentacao sem alvo · nsga3 0 · smsemoa 0 de classe 3 + 1 item marcado com alvo (T-1) + 2 sem alvo (T-2, T-3) · sobol_batch 1 (T31) · treed_media 2 (N3, N4). TOTAL BRUTO = 27 marcados + 1 escalacao sem marcador = 28 candidatos. || APOS DEDUPLICACAO = 21 defeitos distintos. Colapsaram: tempo_aval_real_s 5 -> 1 (b5m A22 + b5r A33 + c311 A25 + moead_media A25 + treed_media N3 sao um so defeito de standalone_harness.py:653 + budget.py:249-252); flag_vetores_degenerados 2 -> 1 (b5m A25 + b5r A32, mesmo b5_prob.py:118); divergencia entre maquinas 2 -> 1 (c141 T2 + c238 E-2, mesmo fenomeno de BLAS, e o CSV da bateria mostra que b1/b3/e7/e74 tambem o exibem embora seus relatorios o tenham descartado); geracoes_derivadas 2 -> 1 (moead X3 + smsemoa T-1, mesma string de experiment.m:2516-2527 e mesmo conserto); contrato_61.json fraco 2 -> 1 (b5m A26 + escalacao do nsga2, mesma causa raiz de extracao por crase). || CONTAGEM APOS DEDUP E ATRIBUICAO POR CONFIG AFETADO (um defeito transversal conta em cada config que atinge): c217 4 · c122 4 · b5m 3 · b5r 2 · e103 3 · moead 4 · nsga2 3 · nsga3 4 · smsemoa 3 · c154 2 · c262 3 · treed_media 2 · c311 1 · moead_media 1 · c238 2 · c141 1 · e103 3 · e81 1 · e7 2 · b1 1 · b3 1 · e74 1 · sobol_batch 1 · b4 0 · c149 0. || DISTRIBUICAO POR GRAVIDADE: ALTA 4 (TR-03, LO-01, LO-02, LO-06) · MEDIA 7 (LO-05, TR-01, TR-05, TR-02, LO-03, LO-04, LO-13) · BAIXA 10. TRANSVERSAIS 8 de 21; LOCAIS 13 de 21.",
+ "padroes": "MODOS DE FALHA RECORRENTES QUE A T11 INTRODUZIU OU NAO FECHOU (nove, ordenados por quantos achados explicam).\n\n(1) GATE DECORATIVO — teste de TEXTO no lugar de COMPORTAMENTO. E o modo dominante e explica sozinho por que quase todos estes defeitos sobreviveram a uma rodada inteira de instrumentacao com 6 gates verdes. Sitios verificados ou citados: tests/test_g7_instrumentacao.py:118-127 faz assertNotIn(\"tempo_aval_real_s=0.0\", src) sobre o FONTE de 5 arquivos e nunca roda um offline (TR-01); tests/test_a2_c122.py:220-260 usa inspect.getsource + assertIn e afere o texto da funcao, nunca a linha emitida (LO-01); tests/test_a9_regra_rotulo_c217.py testa a aritmetica do indice e a presenca da string, nunca o valor (LO-02). Ironia estrutural: a propria T11 diagnosticou isto no §4.2.1 do handoff (\"um gate que nunca reprova e decorativo\") e depois validou as proprias correcoes com gates do mesmo tipo. REGRA QUE FECHARIA: todo item de instrumentacao entra com um CONTROLE NEGATIVO executavel — um mutante que quebre o campo e faca o gate ficar vermelho. Sem isso, \"6/6 gates verdes\" nao e evidencia.\n\n(2) CAMPO VERDE COM DADO SENTINELA. O campo EXISTE (e o gate so confere presenca), mas o valor e constante, invalido ou de outra grandeza. Instancias: pmid_ids identico a -1 em 100% (c217, LO-02); flag_vetores_degenerados identico a null em 100% nos dois configs b5 (TR-02); y_treino_dist identico a (0,0,n) porque conta um ternario sobre {1,2} (c217, LO-03); espaco_modelo NULL nas linhas de busca e 'cru' nas de sonda da MESMA ③ (e103/c217/c262, TR-06); mu_0 carregando e(z) com pred_score NULL ao lado (c122, LO-01); repo_hash identico a null em 45/45 na s42 (fechado pela T11, o unico do grupo). Nota metodologica: a T11 tem ERRATAS proprias (6 e 13) causadas por PROCURAR O NOME do campo em vez de CONFERIR O DADO — a mesma falha de metodo que produziu os defeitos produziu os relatorios que os declararam fechados.\n\n(3) \"except Exception: return None\" NA INSTRUMENTACAO. A doutrina legitima \"instrumentacao nunca derruba o run\" (D97) degenerou em \"instrumentacao nunca reporta que falhou\". Verificados: src/b5_prob.py:135-136 engole um AttributeError e devolve None ha toda a T11 (TR-02); src/c217_instrument.m:202-203 faz `catch; ids = []`. Conserto generico barato: trocar por `except Exception as e: return {\"erro\": repr(e)}` — o campo continua sem derrubar o run, mas passa a dizer que morreu.\n\n(4) CONTRATO ESCRITO != CONTRATO EXECUTAVEL. claude_code_context/artifacts/contrato_61.json foi gerado por \"extracao automatica dos identificadores em crase da tabela §6.1\" e por isso e sistematicamente MAIS FRACO que o CONTRATO_DE_DADOS.md: perde ideal/nadir nos 4 pisos (so n_front1 e f_best[] estao em crase na l.335), perde os pesos de decomposicao do b5m (§332), e nao cobre pmid_ids nem y_treino_dist do c217. O G-7 da verde sobre o subconjunto e relata \"⑥ N/N campos OK\". Um formato de documentacao (crase markdown) virou, sem que ninguem decidisse, o predicado de aceitacao da campanha.\n\n(5) CENTRALIZAR A MEDIDA SEM CENTRALIZAR O PREDICADO QUE A QUALIFICA. O item I-02 fez a coisa certa — pos o cronometro no portao unico por onde toda avaliacao real passa, para que um runner novo herdasse a medida sem lembrar de nada. Mas a INGESTAO do dataset offline tambem passa por esse portao (standalone_harness.py:653), entao o cronometro passou a medir carga de arquivo e a property tempo_aval_real_s nunca mais devolveu None no offline — exatamente o caso que a docstring dela usa para se justificar. Licao generalizavel: ao centralizar uma medida, centralizar tambem a FASE (init/opt/ingestao) que a torna interpretavel.\n\n(6) STRING DECLARATIVA COPIADA ENTRE CONFIGS DE MECANISMO DIFERENTE. O ⑤ afirma o mecanismo do vizinho. Verificados: params.operadores do c217 (experiment.m:541) e byte-identico ao do bloco dos PISOS (:2527) e declara Balde C 20/20 enquanto SurrogateAssistedSelectionPC.m:14,28,46 roda {1,15,1,5} (LO-04); params.geracoes_derivadas (:2516-2527) e uma string unica para os 4 pisos e descreve MatingPool+OperatorGA do NSGA-II, enquanto MOEAD.m:45 e SMSEMOA.m:29 usam OperatorGAhalf (TR-04). Nenhum gate compara params contra o codigo que rodou — e o checklist de auditoria da T11 (\"os hiperparametros do params batem com a Tabela do paper?\") devolve SIM FALSO justamente onde a coincidencia numerica e enganosa (o 20 do Balde C coincide com o distribution index = 20 do artigo do c217).\n\n(7) INSTRUMENTACAO NOVA GRAVADA NO INSTANTE ERRADO DO LACO. O campo existe e ate funciona, mas mede o momento que nao interessa. flag_vetores_degenerados e coletado no replay POS-busca (b5_prob.py:536), sobre o estado final, logo seria constante em todas as geracoes mesmo depois de consertado o caminho de atributo — e o comentario do codigo promete o oposto (\"mostra os vetores encolhendo ANTES de zerar\"). ckpt.talvez_gravar cai DENTRO da janela cronometrada do treed_media (:459-460, entre :444 e :461), contaminando tempo_busca_s com ~54% de I/O — e VERIFIQUEI que e o unico dos 9 configs com checkpoint a fazer isso (c122:985, c311:648 e c154:898 chamam depois do timing). A sonda final so existe no ramo BudgetExhausted e nao no ramo teto_wall (c154:926 e c262:887), justo quando a T11 passou a truncar celulas por teto.\n\n(8) O QUE A T11 NAO FECHOU E NEM PODIA: A DIVERGENCIA ENTRE MAQUINAS. Nenhum item da T11 enderecou o unico achado ALTA que ameaca a campanha. Nao e codigo nem instrumentacao: e aritmetica de BLAS entre x86-64 e arm64, e ela e AMPLIFICADA por surrogates mal-condicionados — a celula com maior dIGD+ (c238/MMF1, 80,03%) e exatamente uma das tres celulas D=2 com cond(R) na casa de 1e15. Os relatorios individuais fragmentaram o achado: c141 e c238 o reivindicaram como local, e b1, b3, e74 e e7 o encontraram e o DESCARTARAM como nao-classe-3, apesar de aparecerem no mesmo CSV de 15 pares. E o caso de escola de um defeito que so e visivel na consolidacao.\n\n(9) CORRECAO PARCIAL DEIXANDO RESIDUO — o \"fix\" que fecha a causa e esquece a jusante. O fix da contaminacao do ⑥ do e81 corrigiu o produtor (experiments.py:116-124) e criou o leitor certo (audit_log.py:67, footer_fechado) mas nao migrou scripts/progress.py:95, que segue lendo o ultimo footer. A ressincronizacao do e103 fez 1 dos 2 arquivos de um par atomico (parquet sim, sidecar nao) — 1 divergencia em 360 arquivos, e e essa. A ERRATA 13 acrescentou o campo amplitude DENTRO de um ramo morto, entao o \"conserto\" nao conserta nada. REGRA: propagar e verificar por par/conjunto (content-hash do par parquet+sidecar; grep dos CONSUMIDORES apos mudar um produtor), nunca por arquivo isolado.\n\nNOTA DE METODO SOBRE OS PROPRIOS RELATORIOS. Corrigi 7 citacoes de arquivo:linha erradas ao verificar: moead X3 cita experiment.m:2453-2463 (bloco catch/footer) quando o sitio real e :2516-2527; c217 cita FEBudget.m:111 para o retorno -1 quando e :112; c122 N2 cita :848 (estado_sonda.update) quando a emissao da sonda e :852-853; c154 J32 cita :868-869 quando o comentario comeca em :867; os cinco relatorios do tempo_aval_real_s citam quatro linhas diferentes para a mesma chamada (a real e standalone_harness.py:653, cronometro em budget.py:249-252); e103 A30 da um caminho canonico com subniveis ZDT4/42 que nao existem e uma raiz de espelho interna a ua-dd-saea quando ela e irma; moead M10b diz \"1 token\" quando N_efetivo so e atribuido em :2459, depois do sitio em :2419, exigindo 2 edicoes. Nenhuma dessas correcoes muda um veredito, mas todas mudam o custo de executar a acao — e tres relatorios (c262, e74, b1) declararam \"classe (3): NENHUM\" para defeitos que eu confirmei existirem nos seus configs por transversalidade (c262 herda LO-05 do c154 por estrutura identica de codigo; e74 e b1 aparecem no CSV do TR-03 acima do piso)."
+}

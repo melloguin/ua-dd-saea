@@ -1,0 +1,70 @@
+--- T11_smoke ---
+  gens=40  front_exato=40  front_bracket=40
+  IDENTIDADE EIM: |D|<1e-5 em 40/40 (med=2.87e-08 p99=1.09e-06 max=1.11e-06)
+  IDENTIDADE rel<1e-5 em 40/40 (med=1.83e-08)
+  mediana do pool: rel<1e-5 em 40/40
+  argmax==infill: 39/40  gap<1e-6 em 40/40 (max=6.91e-09)
+  pool achatado: mediana/max med=1.000000  min/max med=1.000000
+  CONTRAFACTUAL sigma->0 muda argmax em 0/40 (0.0%)
+  N2 (sigma*1.01 nunca diminui EIM) vale em 40/40
+  fracao de exploracao no escolhido: mediana=0.0714  min=0.0000  max=1.3294
+  E5 densa: min_dist_infill min=0.04275  gens<1e-8: 0  pool coincidindo c/ ponto ANTIGO: 0 de 800 linhas
+     min_dist logado == recomputado? max|D|=1.61e-07
+  E6 saturacao eim_best==0: 0 gens;  |lambda|max mediana=7.823
+  E7 rescaling: max desvio rel de norm_min=3.78e-08 norm_max=2.38e-08 ; range guard max|D|=0
+  U11: erro cru mediano=8.189 ; otimista 50/80 ; cobertura2s 33/80
+     erro no espaco do MODELO mediano=1.559
+  A1 ledger pos-infill: f_best(g)==norm_min(g+1) em 39/39 ; n_front1(g)==n_front(g+1) em 39/39
+--- R42 ---
+  gens=40  front_exato=40  front_bracket=40
+  IDENTIDADE EIM: |D|<1e-5 em 40/40 (med=7.86e-09 p99=4.42e-06 max=5.81e-06)
+  IDENTIDADE rel<1e-5 em 40/40 (med=1.67e-08)
+  mediana do pool: rel<1e-5 em 40/40
+  argmax==infill: 39/40  gap<1e-6 em 40/40 (max=7.9e-08)
+  pool achatado: mediana/max med=1.000000  min/max med=1.000000
+  CONTRAFACTUAL sigma->0 muda argmax em 2/40 (5.0%)
+  N2 (sigma*1.01 nunca diminui EIM) vale em 40/40
+  fracao de exploracao no escolhido: mediana=0.3615  min=0.0000  max=1.4889
+  E5 densa: min_dist_infill min=0.03788  gens<1e-8: 0  pool coincidindo c/ ponto ANTIGO: 0 de 800 linhas
+     min_dist logado == recomputado? max|D|=1.37e-07
+  E6 saturacao eim_best==0: 0 gens;  |lambda|max mediana=6.603
+  E7 rescaling: max desvio rel de norm_min=1.39e-08 norm_max=1.66e-08 ; range guard max|D|=0
+  U11: erro cru mediano=5.048 ; otimista 57/80 ; cobertura2s 54/80
+     erro no espaco do MODELO mediano=0.6794
+  A1 ledger pos-infill: f_best(g)==norm_min(g+1) em 39/39 ; n_front1(g)==n_front(g+1) em 39/39
+--- g6_com ---
+  gens=40  front_exato=40  front_bracket=40
+  IDENTIDADE EIM: |D|<1e-5 em 40/40 (med=2.87e-08 p99=1.09e-06 max=1.11e-06)
+  IDENTIDADE rel<1e-5 em 40/40 (med=1.83e-08)
+  mediana do pool: rel<1e-5 em 40/40
+  argmax==infill: 39/40  gap<1e-6 em 40/40 (max=6.91e-09)
+  pool achatado: mediana/max med=1.000000  min/max med=1.000000
+  CONTRAFACTUAL sigma->0 muda argmax em 0/40 (0.0%)
+  N2 (sigma*1.01 nunca diminui EIM) vale em 40/40
+  fracao de exploracao no escolhido: mediana=0.0714  min=0.0000  max=1.3294
+  E5 densa: min_dist_infill min=0.04275  gens<1e-8: 0  pool coincidindo c/ ponto ANTIGO: 0 de 800 linhas
+     min_dist logado == recomputado? max|D|=1.61e-07
+  E6 saturacao eim_best==0: 0 gens;  |lambda|max mediana=7.823
+  E7 rescaling: max desvio rel de norm_min=3.78e-08 norm_max=2.38e-08 ; range guard max|D|=0
+  U11: erro cru mediano=8.189 ; otimista 50/80 ; cobertura2s 33/80
+     erro no espaco do MODELO mediano=1.559
+  A1 ledger pos-infill: f_best(g)==norm_min(g+1) em 39/39 ; n_front1(g)==n_front(g+1) em 39/39
+--- g6_sem ---
+  gens=40  front_exato=40  front_bracket=40
+  IDENTIDADE EIM: |D|<1e-5 em 40/40 (med=2.87e-08 p99=1.09e-06 max=1.11e-06)
+  IDENTIDADE rel<1e-5 em 40/40 (med=1.83e-08)
+  mediana do pool: rel<1e-5 em 40/40
+  argmax==infill: 39/40  gap<1e-6 em 40/40 (max=6.91e-09)
+  pool achatado: mediana/max med=1.000000  min/max med=1.000000
+  CONTRAFACTUAL sigma->0 muda argmax em 0/40 (0.0%)
+  N2 (sigma*1.01 nunca diminui EIM) vale em 40/40
+  fracao de exploracao no escolhido: mediana=0.0714  min=0.0000  max=1.3294
+  E5 densa: min_dist_infill min=0.04275  gens<1e-8: 0  pool coincidindo c/ ponto ANTIGO: 0 de 800 linhas
+     min_dist logado == recomputado? max|D|=1.61e-07
+  E6 saturacao eim_best==0: 0 gens;  |lambda|max mediana=7.823
+  E7 rescaling: max desvio rel de norm_min=3.78e-08 norm_max=2.38e-08 ; range guard max|D|=0
+  U11: erro cru mediano=8.189 ; otimista 50/80 ; cobertura2s 33/80
+     erro no espaco do MODELO mediano=1.559
+  A1 ledger pos-infill: f_best(g)==norm_min(g+1) em 39/39 ; n_front1(g)==n_front(g+1) em 39/39
+
+salvo eim_gens_t11.csv (160, 41)

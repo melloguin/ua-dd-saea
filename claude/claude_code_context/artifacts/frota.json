@@ -1,0 +1,42 @@
+{
+ "_decisao": "Frota do disparo T15 (1.890 células dos 3 problemas reais) + fechamento da main: SOMENTE vm1 e vm5 — decisão do autor em 2026-08-14 ('só vou trabalhar com a vm1 e vm5 a partir de agora'). vm2/vm3/vm10/vm4 aposentadas da execução (dados coletados; máquinas parQUEADAS). Substitui a frota de 4 de 2026-08-01.",
+ "_nomenclatura": "⚠ ATENÇÃO AO LER DOCUMENTOS ANTERIORES A 2026-08-01: a máquina que eles chamam de `vm1` (12 vCPU / 35 GB / disco pd-standard, projeto core-cascade-341902) foi RENOMEADA para `vm2`. A `vm1` DESTE artefato é uma máquina NOVA (n2-highmem-32, projeto skilled-text-480300-d9). Ver handoff/PROVISIONAMENTO-M8-FROTA.md §0.2.",
+ "_ordem_importa": "A ordem fatia as sementes em blocos CONTÍGUOS de [0..28,42] (mapa_sementes.py). vm1 primeiro: tem objects.delete (projeto dono do bucket) e recebe as sementes baixas — s0/s1 têm resíduo no bucket.",
+ "_historico_frotas": {
+  "2026-08-01": [
+   "vm1",
+   "vm2",
+   "vm10",
+   "vm3"
+  ],
+  "nota": "specs da frota de 4 preservadas no git (versão anterior deste arquivo)."
+ },
+ "maquinas": [
+  {
+   "nome": "vm1",
+   "jobs": 16,
+   "matlab": true,
+   "envs": [
+    "env_main",
+    "env_b5",
+    "env_c311",
+    "env_e81_qpots",
+    "env_matlab"
+   ],
+   "fonte": "n2-highmem-32 (16 físicos/251GB/492GB pd-balanced), projeto skilled-text-480300-d9 (dono do bucket ⇒ objects.delete). jobs=16 = medido na 1ª onda M8 (REGISTRO A47)."
+  },
+  {
+   "nome": "vm5",
+   "jobs": 16,
+   "matlab": true,
+   "envs": [
+    "env_main",
+    "env_b5",
+    "env_c311",
+    "env_e81_qpots",
+    "env_matlab"
+   ],
+   "fonte": "⚠ MEDIDO 2026-08-14 23:00 UTC: nproc=32 (16 físicos) — DIVERGE da anotação anterior 'n2-highmem-48 (24 físicos)'. Hipótese: redimensionada; CONFIRMAR com o autor se volta a 48 para o T15. jobs=16 PROVISÓRIO (paridade com vm1, 1 job/físico) — a calibrar no 1º lote; com 48 vCPU voltaria a 24. Projeto skilled-text-480300-d9, us-east4-a. Provisionamento T15 EXECUTADO 14/08: clone 0f45d2c + engine env_main (workaround raiz-fake) + âncora bit-idêntica + artefatos 841/4/60; falta engine env_e81_qpots + pull (bloqueados pelo lote em voo)."
+  }
+ ]
+}

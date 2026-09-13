@@ -1,0 +1,13 @@
+== 1. o que a funcao do runner devolve HOJE ==
+   _vetores_degenerados(evolver) = None
+== 2. a excecao que o `except Exception` engole ==
+   AttributeError: 'DataProblem' object has no attribute 'reference_vectors'
+== 3. o caminho CORRETO (o evolver) ==
+   n_vetores=50  norma_min=1.000000000000  norma_max=1.000000000000  amplitude=1.110e-16  n_norma_zero=0
+   hasattr(problem,'reference_vectors') = False
+   hasattr(evolver ,'reference_vectors') = True
+== 4. p_wrong_stats / n_substituicoes no mode 7 ==
+   _pw_stats_da_geracao(1) = None
+   _n_subs_da_geracao(1)   = None
+== 5. |pop| inicial == N_RV (o A30/granularidade_③) ==
+   N_RV=50  |pop_inicial|=50  chaves do archive=['1']

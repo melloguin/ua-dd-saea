@@ -1,0 +1,38 @@
+{
+ "veredito": "MANTEVE 10/10 (teto) \u2014 melhora material em verificabilidade (T1 fechado) e em fidelidade (A11 (2)->(1))",
+ "celulas_s42": 25,
+ "ciclos": 2328,
+ "joia": {
+  "conv": "1684/1684",
+  "inc": "644/644",
+  "refut_popmin": "695/1684",
+  "refut_cru": "1215/1684",
+  "infills": "6984/6984"
+ },
+ "gatilho": "2328/2328",
+ "contrafactual_delta008_estrito": 436,
+ "u11_wape": 0.23004881420435072,
+ "sigma_min": 0.0015735032502561808,
+ "bounds_fora": 0,
+ "bounds_n": 81988800,
+ "no_limite_pct": 1.342,
+ "T1_g6": {
+  "real_sha256_igual": true,
+  "sur_online_bit_identico": true,
+  "pop_bit_identico": true,
+  "inclui_mu_sigma": true,
+  "sonda_desligada_no_sem": true,
+  "sur_shrink": "40700->24700 (=16000 sonda)"
+ },
+ "reprod_s42_x_T11": {
+  "MMF11_L": "bit-identico ate FE 38 (ciclo 6); diverge no FE 39/ciclo 7",
+  "MMF1": "bit-identico ate FE 53 (ciclo 11); diverge no FE 54/ciclo 12",
+  "causa": "maquina (vm3 x86 x Mac arm64) \u2014 init 21 FE bit-identico, doe_hash igual"
+ },
+ "A11_correcao": "mapminmax [-1,1] EXISTE (EDNARMOEA.m:38-39,121-123 + Estimate.m:13,18); paper OK codigo OK; SPEC I.4/\u00a71784/\u00a71878 esta ERRADA",
+ "escala_invariancia": {
+  "spearman_log10escala_x_wape": -0.0531,
+  "escala_varia": "3,62e7x",
+  "mu_max_sobre_amplitude_mediana": 1.0345
+ }
+}

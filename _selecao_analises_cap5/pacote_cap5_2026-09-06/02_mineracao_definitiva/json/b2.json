@@ -1,0 +1,231 @@
+{
+  "id": "b2",
+  "sigla": "MOEA/D-EGO",
+  "titulo": "Expensive Multiobjective Optimization by MOEA/D With Gaussian Process Model",
+  "ano": 2010,
+  "roster": false,
+  "setup": {
+    "benchmarks": "12 instâncias de teste multiobjetivo contínuas, todas de minimização: ZDT1, ZDT2, ZDT3, ZDT4, ZDT6 (biobjetivo, n=8, exceto onde indicado; PFs convexo/não-convexo/desconexo/multimodal/não-uniforme respectivamente), LZ08-F1 a LZ08-F4 (biobjetivo, n=8, conjunto de Pareto em curva não-linear, de Li & Zhang [33]), DTLZ2 (triobjetivo, n=6, PF não-convexo), KNO1 (biobjetivo, n=2, 15 frentes localmente ótimas) e VLMOP2 (biobjetivo, n=2, PF côncavo). m=2 para 10 das 12 instâncias; m=3 apenas para DTLZ2.",
+    "orcamento": "KI = 11n − 1 pontos iniciais via Latin Hypercube Sampling (mesma convenção '11D−1' citada na ficha 14 da tipologia). Orçamento total de avaliações reais (incluindo o DoE inicial): 200 para as 11 instâncias biobjetivo e 300 para DTLZ2 (triobjetivo). No MOEA/D-EGO, KE = 5 avaliações reais por geração (seleção em lote/batch, q=5); ParEGO e SMS-EGO avaliam 1 ponto por iteração.",
+    "execucoes": "10 execuções independentes por algoritmo por instância (não fica explícito se DoE/semente é compartilhado entre algoritmos).",
+    "baselines": "ParEGO (Knowles [25], testado nas 12 instâncias) e SMS-EGO (Ponweiser et al. [26], testado apenas em KNO1 e VLMOP2 por custo computacional — implementado em MATLAB, ~3h por execução com 200 avaliações mesmo em problemas de 2 variáveis). Há também um piso SEM surrogate: a versão original do MOEA/D (Zhang & Li [28], sem modelo, pop=20, vizinhança=5), usada apenas na Seção VII-E-1 (ablação do efeito do modelo Gaussiano), em ZDT1 e ZDT2, sob o mesmo orçamento de 200 avaliações.",
+    "metricas_principais": [
+      "IGD (inverted generational distance) — 500 pontos de referência para instâncias biobjetivo, 990 para triobjetivo",
+      "I−H (diferença de hipervolume entre o hipervolume do PF de referência e o hipervolume do conjunto obtido, contra um ponto de referência fixo por instância)"
+    ],
+    "testes": [
+      "nenhum — apenas estatísticas descritivas (menor valor/lowest, média, desvio-padrão de 10 execuções) e comparação visual/qualitativa das aproximações finais e das curvas de convergência"
+    ],
+    "apresentacao": "Tabelas I e II: menor valor, média e desvio-padrão de IGD e de I−H sobre 10 execuções, algoritmo × instância; sem mediana, sem símbolos +/=/−, sem negrito indicado, sem teste de significância. Figuras 2–6: dispersão no espaço de objetivos da aproximação final da EXECUÇÃO DE MENOR IGD entre as 10 (não a execução mediana — convenção oposta à da dissertação). Figura 7: curva da MÉDIA (não mediana+IQR) do IGD das soluções não-dominadas acumuladas × número de avaliações de função. Desenho não explicitamente pareado por semente/DoE entre os diferentes algoritmos comparados.",
+    "codigo_plataforma": "Não explicitamente declarada para o MOEA/D-EGO; código-fonte disponibilizado pelos autores em http://dces.essex.ac.uk/staff/qzhang/. SMS-EGO era implementado em MATLAB pelos autores originais; código de ParEGO e de SMS-EGO obtido diretamente dos respectivos autores. Hiperparâmetros do processo Gaussiano estimados por Differential Evolution (rand/1/bin: população=20, gerações=50, taxa de cruzamento=0.1, F=0.5). FuzzyCM (clusterização fuzzy C-means) com L1=80 (tamanho máximo de um modelo local) e L2=20 (passo para acrescentar novo cluster)."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabelas I e II comparam MOEA/D-EGO com ParEGO (10 instâncias) e com SMS-EGO (KNO1, VLMOP2) sob o mesmo número de avaliações reais (200 ou 300), reportando o menor valor, a média e o desvio-padrão de IGD e de I−H sobre 10 execuções independentes por célula. A discussão em prosa classifica cada instância como vitória do MOEA/D-EGO, empate, ou vitória do concorrente — é a matriz de desempenho final algoritmo×problema do artigo, sem mediana e sem teste estatístico formal.",
+      "literal": "It is evident from Tables I and II that MOEA/D-EGO significantly outperforms ParEGO in terms of both the IGD and I−H metrics on ZDT1, ZDT2, ZDT3, ZDT6, and LZ08-F1.",
+      "localizador": "Sec. VII-D-1 (Comparison); Table I; Table II",
+      "metricas": [
+        "IGD",
+        "I−H (diferença de hipervolume)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Menor valor (lowest/best), média e desvio-padrão sobre 10 execuções; sem mediana, sem símbolos +/=/−, sem negrito, sem teste de significância — apenas leitura textual dos números.",
+      "achado": "MOEA/D-EGO supera significativamente o ParEGO em IGD e I−H em ZDT1, ZDT2, ZDT3, ZDT6 e LZ08-F1; não há diferença clara em LZ08-F2/F3/F4 e DTLZ2; ParEGO vence claramente em ZDT4 (a única instância em que o concorrente é melhor); e MOEA/D-EGO empata com o SMS-EGO em KNO1 e VLMOP2. Conclusão dos autores: a avaliações de função iguais, MOEA/D-EGO não é pior que ParEGO/SMS-EGO, mas avalia 5 pontos por geração (batch) contra 1 dos concorrentes, o que o torna mais adequado a ambientes paralelos.",
+      "aplicabilidade": "① endpoint: IGD+/HV mediana por algoritmo×problema a partir das avaliações reais acumuladas (ficha 1); ressalva de convenção — o artigo usa IGD bruto (não IGD+) e diferença de hipervolume I−H (não HV bruto), reporta média/desvio-padrão de 10 execuções (não mediana de 30 sementes), e não há evidência de DoE compartilhado entre algoritmos como no desenho pareado da dissertação."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "A Fig. 7 traça, para cada uma das 12 instâncias, a evolução da média do IGD das soluções não-dominadas encontradas até então em função do número de avaliações de função — uma curva por algoritmo (MOEA/D-EGO vs. ParEGO em 10 painéis; MOEA/D-EGO vs. SMS-EGO em 2 painéis, marcados 'o' e '+'). É a curva de convergência do artigo, usada tanto para ilustrar a superioridade geral do MOEA/D-EGO quanto, no caso de ZDT6, para embasar a constatação de estagnação (ver análise G abaixo).",
+      "literal": "Fig. 7 shows the evolution of the average IGD value of the nondominated solutions found so far with the number of function evaluations in each algorithm for each test instance.",
+      "localizador": "Sec. VII-D-1 (Comparison); Fig. 7(a)–(l)",
+      "metricas": [
+        "IGD (média sobre 10 execuções)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Uma curva por algoritmo por instância; eixo x em nº de avaliações de função (não fração normalizada do orçamento); IGD médio (não mediana+IQR); marcador 'o' para MOEA/D-EGO, '+' para ParEGO (painéis a–j) ou SMS-EGO (painéis k–l).",
+      "achado": "As curvas confirmam visualmente o padrão das Tabelas I/II (convergência mais rápida do MOEA/D-EGO na maioria das instâncias) e, especificamente em ZDT6 (painel e), revelam um platô nas avaliações finais que motiva a análise G.",
+      "aplicabilidade": "① avaliações reais em ordem → IGD (ou IGD+) acumulado por checkpoint de avaliação (ficha 26); diferença de convenção: o artigo plota a MÉDIA das 10 execuções, não mediana+IQR, e usa nº de avaliações em vez de fração do orçamento."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "As Figs. 2–6 mostram, no espaço de objetivos, a aproximação final — da execução de menor IGD entre as 10 — de cada algoritmo em cada uma das 12 instâncias, permitindo inspeção visual da cobertura e forma da frente obtida. A comparação visual é usada para corroborar as diferenças numéricas das Tabelas I/II e, em LZ08-F2/F3/F4 e DTLZ2, para admitir explicitamente a dificuldade de julgar qual algoritmo é melhor a partir dos gráficos.",
+      "literal": "The plots of the final solutions in the objective space in the figures in this section also clearly show that the approximations generated by MOEA/D-EGO are better than those by ParEGO on these five instances.",
+      "localizador": "Sec. VII-D-1 (Comparison); Figs. 2, 3, 4, 5, 6",
+      "metricas": [
+        "nenhuma métrica numérica — inspeção visual do conjunto não-dominado no espaço de objetivos"
+      ],
+      "testes": [
+        "nenhum — comparação visual"
+      ],
+      "convencoes": "Plot da execução de MENOR IGD entre as 10 (não a execução mediana, convenção oposta à da dissertação); um painel por algoritmo/instância; sem sobreposição explícita de superfícies de attainment ou de múltiplas execuções.",
+      "achado": "Em ZDT4, o próprio artigo admite pelos gráficos que 'nenhum dos dois algoritmos aproxima a PF satisfatoriamente', apesar da vantagem numérica do ParEGO nas tabelas — um caso em que a leitura visual matiza a leitura puramente numérica.",
+      "aplicabilidade": "① ND acumulado da execução de MENOR IGD (não da execução mediana) plotado no espaço de objetivos (ficha 54) — troca de convenção 'mediana' → 'melhor run' em relação à dissertação."
+    },
+    {
+      "fichas": [
+        9,
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para isolar o efeito do modelo Gaussiano, os autores rodam a versão original do MOEA/D (Zhang & Li [28]), sem qualquer surrogate, com população 20 e vizinhança 5, sob o mesmo orçamento de 200 avaliações reais usado pelo MOEA/D-EGO em ZDT1 e ZDT2 — mesmo motor evolutivo (MOEA/D), com e sem o processo Gaussiano. É a comparação assistido×piso mais direta do artigo, mas relatada apenas pela Fig. 8 e por uma frase textual, sem tabela numérica de IGD para a versão sem surrogate.",
+      "literal": "It is evident that MOEA/D-EGO significantly outperforms MOEA/D on these two test instances.",
+      "localizador": "Sec. VII-E-1 (The Effect of the Gaussian Model); Fig. 8(a)–(b)",
+      "metricas": [
+        "IGD (qualitativo — sem tabela numérica, apenas Fig. 8 e afirmação textual)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Plot da execução de menor IGD entre 10, no mesmo estilo das Figs. 2–6, sem números de IGD publicados para o piso MOEA/D.",
+      "achado": "O modelo Gaussiano confere vantagem clara sobre o MOEA/D puro (piso, mesmo motor, mesmo orçamento de 200 avaliações) em ZDT1 e ZDT2 — o resultado mais básico de 'o surrogate compra' do artigo, mas sustentado apenas qualitativamente, sem números.",
+      "aplicabilidade": "① comparação direta MOEA/D-EGO × MOEA/D (piso já presente entre os 4 pisos da dissertação) sob o mesmo orçamento (ficha 9); reprodutível em espírito, mas o artigo original não fornece números de IGD para a versão sem surrogate, só a Fig. 8 e a frase."
+    },
+    {
+      "fichas": [
+        46,
+        47
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para medir o custo-benefício da FuzzyCM (a técnica de clusterização fuzzy usada pelo MOEA/D-EGO para conter o custo do GP), os autores treinam também um único modelo Gaussiano global com todos os pontos disponíveis (sem clusterização) e comparam, em ZDT1 e ZDT2: (a) a qualidade da solução final (IGD médio) e (b) o tempo médio de CPU de 10 execuções (Tabela III), além de plots finais (Fig. 9). O modelo único é mais preciso mas ordens de grandeza mais lento, evidenciando o crescimento cúbico do custo de ajuste do GP com o número de pontos de treino.",
+      "literal": "We can conclude that MOEA/D-EGO with single model does performance better in terms of solution quality.",
+      "localizador": "Sec. VII-E-2 (FuzzyCM Versus One Single Model); Table III; Fig. 9(a)–(d)",
+      "metricas": [
+        "IGD (média sobre 10 execuções)",
+        "tempo de CPU (segundos, média sobre 10 execuções)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "IGD médio citado em prosa (4 casas decimais); tempo de CPU em segundos na Tabela III; comparação de apenas 2 variantes (FuzzyCM vs. modelo único) em apenas 2 instâncias (ZDT1, ZDT2).",
+      "achado": "FuzzyCM (a versão realmente usada no MOEA/D-EGO) tem qualidade PIOR — IGD médio 0,0148 (ZDT1) e 0,0156 (ZDT2), conforme Tabela I — do que um único modelo GP global — IGD médio 0,0048 e 0,0058 — mas o modelo único é bem mais lento: 4248 s e 4428 s de CPU contra 936 s e 1260 s da FuzzyCM (Tabela III), uma diferença que cresce cubicamente com o número de pontos de treino, tornando o modelo único impraticável em orçamentos maiores. É um resultado NEGATIVO explícito sobre a simplificação de modelagem usada pelo próprio algoritmo proposto: o atalho que o torna viável custa qualidade.",
+      "aplicabilidade": "não reproduzível com as 7 camadas tal como estão — exige rodar uma variante do próprio MOEA/D-EGO com um único modelo GP global (sem FuzzyCM), variante que não faz parte da instrumentação/roster; a camada ④ (tempos por geração) serviria para a comparação de custo caso essa variante fosse executada."
+    },
+    {
+      "fichas": [
+        31
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para investigar por que algumas instâncias são mais difíceis, os autores constroem um modelo Gaussiano preditivo para o objetivo f2 em cada uma das 12 instâncias (11n−1 pontos via método do Quadrado Latino) e calculam o erro relativo (RE) da média predita contra 5.000 pontos de teste aleatórios reamostrados por instância (Tabela IV). Instâncias com RE alto tendem a ser mais difíceis para ambos os algoritmos, mas o próprio artigo nota que essa relação não é perfeita.",
+      "literal": "It is evident that an MOP with a high-RE value tends to be hard for the algorithms.",
+      "localizador": "Sec. VII-E-3 (Why Some Instances Are Harder Than Others); Table IV",
+      "metricas": [
+        "RE — erro relativo da média predita do GP (análogo a um RMSE normalizado, fora do orçamento de busca)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Um único valor de RE por instância (Tabela IV), calculado sobre uma reamostragem de 5.000 pontos aleatórios da instância inteira, ANTES/fora da busca real — não é uma sonda re-predita ao longo do orçamento.",
+      "achado": "RE=0,00304 em ZDT4 (a instância mais difícil, onde o GP falha) contra RE=0,0000786 em ZDT2 (fácil); os autores concluem que a modelagem Gaussiana é inadequada para ZDT4. Mas eles próprios ressalvam que a qualidade do modelo não é o único fator: RE=0,0000687 em ZDT6 (muito baixo, bom ajuste) coexiste com IGD relativamente alto nos dois algoritmos — contradizendo a hipótese de que a acurácia da média por si só determina o desempenho final (ver também resultados_negativos).",
+      "aplicabilidade": "parcialmente via ③ sonda: seria preciso computar o erro relativo/RMSE da média do GP nos pontos da sonda, agregado por PROBLEMA (não por fração de orçamento), e correlacionar com o IGD+ final; diferença de desenho — o artigo usa 5.000 pontos aleatórios reamostrados por instância antes da busca, não a sonda fixa de 2.000 pontos re-predita a cada retreino da dissertação."
+    },
+    {
+      "fichas": [
+        26,
+        28
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Cruzando a Fig. 3(d) — que mostra que o MOEA/D-EGO já encontrou boas soluções em ZDT6 — com a Fig. 7(e) — que mostra que o IGD médio para de cair nas avaliações finais —, os autores concluem que os últimos 60 pontos (de um orçamento total de 200) avaliados em ZDT6 servem majoritariamente para exploração e não melhoram o IGD. É o resultado NEGATIVO mais citado do artigo: uma falha explícita do critério de aquisição (expected improvement) em equilibrar exploração e explotação, com desperdício mensurável de orçamento.",
+      "literal": "the IGD value has not effectively reduced during the last 60 function evaluations. It suggests that the last 60 test points are mainly for exploration, which wastes the computational resource in this instance.",
+      "localizador": "Sec. VII-E-3 (Why Some Instances Are Harder Than Others); Fig. 7(e); Fig. 3(d)",
+      "metricas": [
+        "IGD (leitura qualitativa da curva de convergência, sem número de 'desperdício' calculado)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Leitura cruzada qualitativa de duas figuras (curva de convergência de Fig. 7(e) + scatter final de Fig. 3(d)); nenhum número é atribuído ao 'desperdício' em si — é uma inferência sobre o trecho final da curva (últimos 60 de 200 = últimos 30% do orçamento).",
+      "achado": "Resultado NEGATIVO explícito citado na dissertação (§VII-E-3): em ZDT6, embora o MOEA/D-EGO já tenha encontrado soluções próximas do ótimo, o IGD não melhora nas últimas 60 avaliações — os autores concluem que o expected improvement 'does not always work properly for balancing exploitation and exploration', reiterado na Conclusão (Sec. VIII) como uma limitação em aberto do critério de aquisição, não do modelo GP em si.",
+      "aplicabilidade": "① trajetória de IGD+ acumulado (ficha 26) cruzada com o ND já encontrado (ideia próxima da ficha 28, 'melhora na segunda metade', aqui aplicada a um único algoritmo/instância); não reproduzível quanto ao MECANISMO em si — o artigo não tem camada ⑥ (filme) nem sonda que permitam contar diretamente decisões de exploração vs. explotação; a leitura de 'desperdício exploratório' é inferência qualitativa entre duas figuras, não contagem instrumentada."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo médio de CPU (10 execuções) comparando duas arquiteturas de modelagem GP (FuzzyCM local vs. modelo único global) em ZDT1/ZDT2 — 936 s e 1260 s (FuzzyCM) contra 4248 s e 4428 s (modelo único) — citado como evidência do crescimento cúbico do custo de ajuste do GP com o número de pontos de treino (Tabela III, Sec. VII-E-2). Também menciona, como justificativa metodológica para restringir o escopo dos testes (não como resultado central), que o SMS-EGO levou cerca de 3h por execução em MATLAB com 200 avaliações mesmo em problemas de 2 variáveis, o que limitou os testes do SMS-EGO a apenas 2 das 12 instâncias (Sec. VII-D). Não há decomposição fit/busca/avaliação por geração, nem relação explícita entre custo e a dimensão n do problema.",
+    "literal": "Since the computational complexity of model building increases cubically with the number of training points [24], MOEA/D-EGO with single model could soon become impractical as the number of function evaluations increases.",
+    "localizador": "Sec. VII-E-2 (FuzzyCM Versus One Single Model), Table III; Sec. VII-D (aside sobre custo do SMS-EGO em MATLAB)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "A qualidade de predição do processo Gaussiano é ruim em ZDT4 (instância multimodal, 'many local PFs'), levando os dois algoritmos (ParEGO e MOEA/D-EGO) a falhar em aproximar a PF satisfatoriamente — a única instância, entre as 12 testadas, em que o concorrente ParEGO vence claramente o MOEA/D-EGO nas Tabelas I/II.",
+      "literal": "We also found that the prediction quality of Gaussian stochastic process modeling is poor in ZDT4 and it makes the algorithms fail in approximating the PF",
+      "localizador": "Sec. VIII (Conclusion); ver também Sec. VII-D-1 e Sec. VII-E-3"
+    },
+    {
+      "descricao": "Em ZDT6, o IGD do MOEA/D-EGO deixa de melhorar nas últimas 60 (de 200) avaliações reais — os autores atribuem isso a uma falha do próprio critério de aquisição (expected improvement) em equilibrar exploração e explotação, desperdiçando orçamento computacional nessa instância. É a passagem citada na dissertação como '60 pontos de orçamento desperdiçados'.",
+      "literal": "the IGD value has not effectively reduced during the last 60 function evaluations. It suggests that the last 60 test points are mainly for exploration, which wastes the computational resource in this instance.",
+      "localizador": "Sec. VII-E-3 (Why Some Instances Are Harder Than Others)"
+    },
+    {
+      "descricao": "A simplificação de modelagem que o próprio MOEA/D-EGO usa em produção (FuzzyCM, clusterização fuzzy para conter o custo do GP) produz qualidade de solução mensuravelmente PIOR do que um único modelo GP global treinado com todos os pontos — o atalho que torna o algoritmo viável computacionalmente custa qualidade de solução.",
+      "literal": "We can conclude that MOEA/D-EGO with single model does performance better in terms of solution quality.",
+      "localizador": "Sec. VII-E-2 (FuzzyCM Versus One Single Model)"
+    },
+    {
+      "descricao": "Os próprios autores advertem que a acurácia do modelo (medida por RE, Tabela IV) NÃO é o único fator que determina o desempenho do algoritmo: ZDT6 tem RE muito baixo (bom ajuste do modelo) mas IGD relativamente alto nos dois algoritmos, contradizendo a hipótese de que melhor modelo implica melhor resultado.",
+      "literal": "Tables II–IV also imply that the prediction quality of the model is not an only factor determining the algorithm performances.",
+      "localizador": "Sec. VII-E-3 (Why Some Instances Are Harder Than Others)"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Em 4 das 12 instâncias (LZ08-F2, LZ08-F3, LZ08-F4 e DTLZ2), MOEA/D-EGO e ParEGO — algoritmos com estratégias de seleção/decomposição bem diferentes, mas ambos baseados em GP + expected improvement — obtêm desempenho estatisticamente indistinguível (a olho, sem teste formal) tanto em IGD quanto em I−H, sugerindo que a maquinaria de modelagem (GP+EI), não a estratégia de seleção de pontos, é o fator limitante nessas instâncias.",
+      "literal": "On LZ08-F2 LZ08-F3, LZ08-F4, and DTLZ2, there is no much difference between ParEGO and MOEA/D-EGO in terms of both metrics.",
+      "localizador": "Sec. VII-D-1 (Comparison)"
+    },
+    {
+      "descricao": "Em KNO1 e VLMOP2, MOEA/D-EGO (seleção em lote via MOEA/D sobre EI decomposto) e SMS-EGO (seleção de 1 ponto via hipervolume/S-metric otimizado por CMA-ES) — critérios de infill conceitualmente distintos (EI decomposto vs. contribuição de hipervolume) — rendem desempenho muito semelhante, confirmado tanto pelas métricas quanto pelos gráficos.",
+      "literal": "On KNO1 and VLMOP2, Both the IGD and I−H metrics indicate that MOEA/D-EGO performs very similarly to SMS-EGO",
+      "localizador": "Sec. VII-D-1 (Comparison)"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "multimodalidade / muitos ótimos locais na frente de Pareto (ZDT4)",
+      "afirmacao": "ZDT4 é descrita como tendo 'many local PFs' (muitas frentes de Pareto localmente ótimas); nessa instância a modelagem por processo Gaussiano tem erro relativo (RE) alto (0,00304, o 2º maior da Tabela IV) e nenhum dos dois algoritmos comparados (ParEGO, MOEA/D-EGO) consegue aproximar a PF verdadeira satisfatoriamente, apesar de ParEGO vencer numericamente o MOEA/D-EGO nessa instância.",
+      "literal": "neither of these two algorithms can approximate the PF satisfactorily",
+      "localizador": "Sec. VII-A-4 (definição de ZDT4: 'It has many local PFs'); Sec. VII-D-1; Sec. VII-E-3"
+    },
+    {
+      "caracteristica": "densidade não uniforme da distribuição de soluções na frente de Pareto (ZDT6)",
+      "afirmacao": "ZDT6 tem distribuição de soluções de Pareto marcadamente não uniforme no espaço de objetivos (pontos uniformes no espaço de decisão mapeiam para uma imagem não uniforme na PF). Apesar disso, o modelo Gaussiano se ajusta bem a essa instância (RE=0,0000687, o menor de todos); ainda assim, o IGD permanece relativamente alto nos dois algoritmos, e o MOEA/D-EGO desperdiça as últimas 60 avaliações em exploração sem ganho de IGD — a dificuldade aqui vem do critério de aquisição (EI), não da qualidade do modelo.",
+      "literal": "The distribution of the Pareto solutions very nonuniform, i.e., for a set of uniformly distributed points in the Pareto set in the decision space, their images is not uniformly distributed in the PF in the objective space.",
+      "localizador": "Sec. VII-A-5 (definição de ZDT6); Sec. VII-E-3"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Artigo seminal do MOEA/D-EGO (Zhang, Liu, Tsang & Virginas, 2010, IEEE TEC), anterior à instrumentação em 7 camadas da dissertação; todas as constatações sobre mecanismo (desperdício de orçamento em ZDT6, ligação RE×dificuldade) são inferências qualitativas cruzando tabelas/figuras agregadas, não instrumentação direta — não há 'filme' de decisões (camada ⑥) nem sonda fixa de 2.000 pontos (camada ③); o RE da Sec. VII-E-3 usa 5.000 pontos aleatórios reamostrados POR INSTÂNCIA antes da busca, medindo acurácia da média entre problemas, não ao longo do orçamento dentro de um problema. A convenção de DoE inicial do artigo (KI=11n−1 via LHS) é estruturalmente a mesma citada na ficha 14 da tipologia ('11D−1'), reforçando a linhagem EGO→ParEGO→MOEA/D-EGO→dissertação. Nenhum teste estatístico de significância é usado em nenhuma análise do artigo inteiro (típico de 2010; contraste forte com o rigor Wilcoxon/Friedman/Holm da dissertação). As figuras de aproximação final (Figs. 2-6, 8, 9) usam a execução de MENOR IGD entre as 10, não a execução mediana; as curvas de convergência (Fig. 7) usam a MÉDIA, não mediana+IQR — duas diferenças de convenção relevantes para qualquer comparação cruzada com a dissertação. MOEA/D-EGO é nativamente batch (KE=5 pontos por geração), então qualquer tentativa de reproduzir suas análises 'geração a geração' no espírito das fichas 41/44/45 exigiria uma variante q>1, fora da instrumentação online padrão (1 avaliação por vez) da dissertação — mais próxima do sub-estudo de lote da ficha 64. Não há nenhuma medição de calibração/cobertura de σ em nenhum ponto do artigo — apenas a acurácia da MÉDIA (RE, análogo a um RMSE normalizado) é avaliada, nunca o σ em si; por isso calibracao_do_sigma.mede=false. O artigo compara variantes do próprio MOEA/D-EGO em dois pontos (FuzzyCM vs. modelo único em Sec. VII-E-2; com vs. sem modelo Gaussiano em Sec. VII-E-1) — ablações naturais, mas nenhuma delas isola especificamente o TERMO DE INCERTEZA (σ) da aquisição EI; ambas comparam arquiteturas/presença de modelo, não 'usar σ' vs. 'usar só a média' dentro do MESMO modelo — por isso não mapeei para a ficha 11 (ablação exata do σ), que exigiria uma variante EI-vs-média-apenas mantendo o mesmo modelo GP. roster_bloco deixado null conforme instrução do pedido (ARTIGO DO ROSTER EXPERIMENTAL: NÃO)."
+}

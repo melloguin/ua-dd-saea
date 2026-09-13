@@ -1,0 +1,42 @@
+metrica,valor,denominador,fonte
+celulas analisadas,45,45,b5m_estrutura.csv
+n_ger == floor(40000/pop)+1,45,45,b5m_mecanismo
+overshoot FE interno (M=2 / M=3),50 / 5,40000,b5m_mecanismo
+LHS: dimensoes perfeitamente estratificadas,45,45,b5m_mecanismo
+intersecao pop-inicial x dataset,0,ger.1 de 45 celulas,b5m_mecanismo
+grupos de substituicao,356137,,b5m_vizinhanca
+grupos dentro de UMA vizinhanca de 20,355592,356137,b5m_vizinhanca
+grupos multi-slot (>1),111277,356137,b5m_vizinhanca
+decisoes ⑥,30165,,b5m_universais
+f_best identidade (rtol 1e-6),30165,30165,b5m_universais (recheck)
+n_front1 identidade,29310,30165,b5m_universais (recheck)
+⑦ ND recomputado == nd_pos_real,45,45,b5m_universais
+⑦ link posicional bit-a-bit,45,45,b5m_universais
+sonda join posicional max|dX|,0.0,45,b5m_universais
+turnover 1a transicao (mediana),1.0,45,b5m_mecanismo
+turnover medio por celula (mediana),0.2311,45,b5m_congelamento
+turnover medio piso moead_media (mediana),0.209,45,b5m_congelamento
+"spearman(turnover, geracao) mediana",-0.581,45,b5m_mecanismo
+sigma_pop final/inicial (mediana),0.353,45,b5m_mecanismo
+celulas com sigma_pop decrescente,40,45,b5m_mecanismo
+ABLACAO D77 sigma(⑦) b5m < piso,32,45,b5m_endpoint7
+ABLACAO D77 sigma Wilcoxon p,0.0012,45,b5m_endpoint7
+ABLACAO D77 sigma razao mediana b5m/piso,0.724,45,b5m_endpoint7
+ABLACAO D77 IGD+(⑦) b5m < piso,27,45,b5m_endpoint7
+ABLACAO D77 IGD+ Wilcoxon p,0.281,45,b5m_endpoint7
+IGD+(⑦) mediana b5m / piso,0.3596 / 0.5603,45,b5m_endpoint7
+fantasia nd_pos_real/n_final (mediana),0.38,45,b5m_mecanismo
+HV-surrogate termina abaixo do pico,28,45,b5m_mecanismo (Fig.10a)
+IGD+ real melhora inicio->fim,32,45,b5m_mecanismo (Fig.10b)
+sonda pares celula x objetivo,104,,sonda_f52e
+sonda WAPE mediana,0.1268,104,sonda_f52e
+sonda corr mediana,0.9465,104,sonda_f52e
+sonda cobertura95 mediana,0.8954,104,sonda_f52e
+sonda sigma-NaN,0,104,sonda_f52e
+pares com GP DEGENERADO (WAPE=1 ou corr NaN),9,104,sonda_f52e
+geracoes CONGELADAS (0 substituicoes),1543,30165,b5m_congelamento
+wall mediano b5m / b5r / piso (s),2982 / 211 / 67,45,tempo_f52d
+h-core b5m 45 celulas (1 semente),37.4,45,tempo_f52d
+projecao 30 sementes (h-core),1123,45,tempo_f52d
+p_wrong_stats no ⑥,0,30165,b5m_estrutura (DI-10 CONTRATO §6.1)
+pesos de decomposicao no HEADER,0,45,b5m_estrutura (DI-10 CONTRATO §6.1)

@@ -1,0 +1,161 @@
+{
+  "spec_version": "5.2",
+  "decision": "D91 (torna D62 executável) + D22 (offset das sementes hard-coded)",
+  "sementes_externas": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    42
+  ],
+  "materializacao": "int(np.random.SeedSequence((base, alg_id, iteracao, uso_id)).generate_state(1, dtype=np.uint64)[0]) — truncar p/ 32 bits onde a API exigir (torch.manual_seed, pymoo seed)",
+  "base": "base = semente_externa (a mesma dos 30 valores); NÃO embute alg_id (o alg_id é a 2ª coordenada da tupla)",
+  "shared_init_artifacts": {
+    "_decisao": "D87/D88/D90 — DoE online e dataset offline sao artefatos UNICOS por (problema, semente[, tier, dist]), SEM alg_id; os 21 configs CARREGAM (nunca regeneram). Gerados por src/doe.py (escritor unico pyarrow). Canonicos por construcao — nao ha 2a implementacao que re-derive; publicados aqui para auditoria/veto do autor.",
+    "doe_online": {
+      "n_init": "11D-1",
+      "sampler": "lhs-maximin",
+      "K": 100,
+      "seed_formula": "np.random.Generator(PCG64(SeedSequence((semente, problema_id))))",
+      "selecao_maximin": "argmax da menor distancia euclidiana QUADRADA em [0,1]^D; empate->menor indice",
+      "hash": "SHA256(np.ascontiguousarray(X,'<f8').tobytes()) — array DECODIFICADO, row-major (D87)",
+      "path": "data/doe/{problema}/doe_{problema}_{semente}.parquet (colunas x0..x{D-1}, float64)"
+    },
+    "dataset_offline": {
+      "n_por_tier": {
+        "small": "31D-1",
+        "medium": 2000,
+        "big": 50000
+      },
+      "sampler": "lhs-maximin (small,medium/lhs); lhs-simples (big/lhs — maximin inviavel, D87/D90); mvns N(0.3,0.1*I) clip[0,1] (D67)",
+      "seed_formula": "SeedSequence((semente, problema_id, tier_id, dist_id))  [verbatim D90]",
+      "hash": "SHA256 do array [X|F] decodificado (dataset_hash); + x_hash, f_hash (D90)",
+      "principal_offline": "tier=small, dist=lhs -> nome SEM sufixo: ds_{problema}_{semente}.parquet",
+      "path": "data/datasets/{problema}/ds_{problema}_{semente}[_{tier}_{dist}].parquet (x0..x{D-1},f0..f{M-1})"
+    },
+    "problema_id": {
+      "MMF1": 0,
+      "MMF4": 1,
+      "MMF11_L": 2,
+      "MMF16_20": 3,
+      "ZDT1": 4,
+      "ZDT3": 5,
+      "ZDT4": 6,
+      "ZDT6": 7,
+      "DTLZ1": 8,
+      "DTLZ2": 9,
+      "DTLZ3": 10,
+      "DTLZ4": 11,
+      "DTLZ7": 12,
+      "WFG1": 13,
+      "WFG2": 14,
+      "WFG4": 15,
+      "WFG5": 16,
+      "WFG9": 17,
+      "BBOB_F1": 18,
+      "BBOB_F5": 19,
+      "BBOB_F17": 20,
+      "BBOB_F22": 21,
+      "BBOB_F37": 22,
+      "BBOB_F49": 23,
+      "BBOB_F55": 24,
+      "RE21": 25,
+      "DDMOP7": 26,
+      "ESTOQUE40": 27
+    },
+    "tier_id": {
+      "small": 0,
+      "medium": 1,
+      "big": 2
+    },
+    "dist_id": {
+      "lhs": 0,
+      "mvns": 1
+    },
+    "_nota_problema_id": "indice 0-based na lista canonica experiment.ALL_PROBLEMS (= ordem do §4). Tokens BBOB reconciliados p/ BBOB_F1/F5/F17/F22/F37/F49/F55 em 2026-07-15 — canonicos da SPEC §4 / characteristics.csv / runs_matrix.csv; o token curto BBOBn foi eliminado do codigo/DoE; valores do DoE INALTERADOS (o seed usa o problema_id/indice, nao a string)."
+  },
+  "alg_id": {
+    "b1": 0,
+    "b3": 1,
+    "b4": 2,
+    "e7": 3,
+    "c217": 4,
+    "c122": 5,
+    "c141": 6,
+    "e74": 7,
+    "c238": 8,
+    "c262": 9,
+    "c154": 10,
+    "e81": 11,
+    "c149": 12,
+    "nsga2": 13,
+    "nsga3": 14,
+    "moead": 15,
+    "smsemoa": 16,
+    "b5r": 17,
+    "b5m": 18,
+    "c311": 19,
+    "e103": 20,
+    "moead_media": 21,
+    "sobol_batch": 22,
+    "treed_media": 23
+  },
+  "uso_id_catalogo": {
+    "_regra": "uso_id distingue usos CONCORRENTES do RNG do harness dentro de uma iteração; enumerado das receitas do Anexo L",
+    "c262": {
+      "0": "torch.manual_seed da iteração (modelo+acqf)",
+      "1": "SobolQMCNormalSampler",
+      "2": "seed do optimize_acqf"
+    },
+    "c154": {
+      "0": "torch.manual_seed da iteração",
+      "1..S": "hs por amostra do MatheronPathModel",
+      "S+1..2S": "hs' do NSGA-II (rota b)"
+    },
+    "c149": {
+      "0": "torch.manual_seed por rede net_n (0..9) — na pratica INERTE (cada rede re-semeia com base+net_n+1 antes de consumir RNG; ver c149_lbnmobo.py)",
+      "1": "seed do NSGA-II da aquisicao — POR-ITERACAO via iteration_seed (SPEC 22.4-3.4; DI-23: o seed CONSTANTE do stock (indice de run, ==0 em q=1) entra em LIVELOCK no cache-hit D89 — provado na sessao R3-c149)",
+      "2": "fallback aleatorio-do-front do HVI-greedy (D96) — rotulo antigo 'Generator(PCG64) do DoE' era STALE: o DoE nao se gera desde D87 (carrega-se do artefato)"
+    },
+    "e81": {
+      "_nota": "e81 usa offset ARITMÉTICO D22, não SeedSequence (ver abaixo)"
+    },
+    "_default": "algoritmos sem RNG concorrente do harness: uso_id=0"
+  },
+  "offset_D22_hardcoded": {
+    "_regra": "sementes hard-coded DENTRO do código oficial recebem +1000·semente_externa (D22); NÃO passam por SeedSequence",
+    "e81": [
+      "acquisition.py:219 (1024+iteration) → +1000·s",
+      "acquisition.py:366 (seed=2430) → +1000·s"
+    ],
+    "c149": [
+      "net_n+1 → +1000·s (offset A6). ⟦DI-23 — corrigido⟧ o seed do NSGA-II NAO e hardcode do stock a offsetar: e POR-ITERACAO via iteration_seed (uso 1 acima; o 'indice de run' do stock e constante e trava em livelock no cache-hit D89)"
+    ]
+  },
+  "log": "os valores efetivamente materializados são gravados no .jsonl de cada run para auditoria | 2026-07-23 [DI-33/torre]: +sobol_batch=22 (piso do sub-estudo batch q=10; uso_id=_default/0 — Sobol scrambled/Owen semeado por iteration_seed(base,22,iter,0); antecipado do M10 p/ a rodada-42 por decisao do autor) | 2026-07-24 [DI-35/torre]: +treed_media=23 (piso-big do sweep, B15.4/DI-35.2 — treed-GP-média via build_surrogates, env_c311, a ablação do c311 no tier big; cartão T8; uso_id=_default/0)"
+}

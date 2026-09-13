@@ -1,0 +1,546 @@
+{
+  "schema_version": 2,
+  "campanha_id": "207692f61836_2026-08-14",
+  "run_id": "main_c154_RE21_0",
+  "exp": "main",
+  "alg": "c154",
+  "problema": "RE21",
+  "semente": 0,
+  "regime": "online",
+  "q": 1,
+  "tier": null,
+  "dist": null,
+  "status": "ok",
+  "n_retries": 0,
+  "stack_trace": null,
+  "maxfe": 123,
+  "fe_final": 123,
+  "n_geracoes": 81,
+  "doe_hash": "8ea1fc7d5259997da266954b90e5e1648b823c49aa63e55970c14e4816f3be74",
+  "repo_hash": "207692f618365fd53b58b35c83f51cba9485aeff",
+  "algo_version": "c154-JES/qLBMOJES-LB-botorch-0.18.1",
+  "env": {
+    "python": "3.11.9",
+    "executable": "/Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao/bin/python",
+    "host": "Guilhermes-MacBook-Pro",
+    "plataforma": "Darwin/arm64",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "pymoo": "0.6.2",
+    "torch": "2.11.0",
+    "gpytorch": "1.15.2",
+    "botorch": "0.18.1",
+    "botorch_record_sha256": "e08d996fce789cfc20e460657d7f1d6652b2722c012114f5b220fcd6756f4b60",
+    "pinning": {
+      "torch_num_threads": 1,
+      "default_dtype": "torch.float64",
+      "device": "cpu",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1"
+    }
+  },
+  "timing": {
+    "tempo_total_s": 546.853,
+    "tempo_fit_surrogate_s": 42.1957,
+    "tempo_busca_s": 496.4442,
+    "tempo_aval_real_s": 0.0029,
+    "tempo_pred_sonda_s": 2.9392,
+    "tempo_checkpoint_s": 0.4738,
+    "tempo_paths_s": 44.1439,
+    "tempo_total_despachante_s": 548.036
+  },
+  "fit_series": [
+    {
+      "iter": 1,
+      "n_acumulado": 43,
+      "tempo_fit_s": 0.6117990016937256
+    },
+    {
+      "iter": 2,
+      "n_acumulado": 44,
+      "tempo_fit_s": 0.26746106147766113
+    },
+    {
+      "iter": 3,
+      "n_acumulado": 45,
+      "tempo_fit_s": 0.2410719394683838
+    },
+    {
+      "iter": 4,
+      "n_acumulado": 46,
+      "tempo_fit_s": 0.26357102394104004
+    },
+    {
+      "iter": 5,
+      "n_acumulado": 47,
+      "tempo_fit_s": 0.35001087188720703
+    },
+    {
+      "iter": 6,
+      "n_acumulado": 48,
+      "tempo_fit_s": 0.24985313415527344
+    },
+    {
+      "iter": 7,
+      "n_acumulado": 49,
+      "tempo_fit_s": 0.40515589714050293
+    },
+    {
+      "iter": 8,
+      "n_acumulado": 50,
+      "tempo_fit_s": 0.3140830993652344
+    },
+    {
+      "iter": 9,
+      "n_acumulado": 51,
+      "tempo_fit_s": 0.2846388816833496
+    },
+    {
+      "iter": 10,
+      "n_acumulado": 52,
+      "tempo_fit_s": 0.28241896629333496
+    },
+    {
+      "iter": 11,
+      "n_acumulado": 53,
+      "tempo_fit_s": 0.32586002349853516
+    },
+    {
+      "iter": 12,
+      "n_acumulado": 54,
+      "tempo_fit_s": 0.32625508308410645
+    },
+    {
+      "iter": 13,
+      "n_acumulado": 55,
+      "tempo_fit_s": 0.32707810401916504
+    },
+    {
+      "iter": 14,
+      "n_acumulado": 56,
+      "tempo_fit_s": 0.26172399520874023
+    },
+    {
+      "iter": 15,
+      "n_acumulado": 57,
+      "tempo_fit_s": 0.347991943359375
+    },
+    {
+      "iter": 16,
+      "n_acumulado": 58,
+      "tempo_fit_s": 0.32483506202697754
+    },
+    {
+      "iter": 17,
+      "n_acumulado": 59,
+      "tempo_fit_s": 0.3780848979949951
+    },
+    {
+      "iter": 18,
+      "n_acumulado": 60,
+      "tempo_fit_s": 0.36181211471557617
+    },
+    {
+      "iter": 19,
+      "n_acumulado": 61,
+      "tempo_fit_s": 0.34138965606689453
+    },
+    {
+      "iter": 20,
+      "n_acumulado": 62,
+      "tempo_fit_s": 0.28192734718322754
+    },
+    {
+      "iter": 21,
+      "n_acumulado": 63,
+      "tempo_fit_s": 0.36745119094848633
+    },
+    {
+      "iter": 22,
+      "n_acumulado": 64,
+      "tempo_fit_s": 0.26741886138916016
+    },
+    {
+      "iter": 23,
+      "n_acumulado": 65,
+      "tempo_fit_s": 0.6668012142181396
+    },
+    {
+      "iter": 24,
+      "n_acumulado": 66,
+      "tempo_fit_s": 0.6601042747497559
+    },
+    {
+      "iter": 25,
+      "n_acumulado": 67,
+      "tempo_fit_s": 0.4950730800628662
+    },
+    {
+      "iter": 26,
+      "n_acumulado": 68,
+      "tempo_fit_s": 0.760645866394043
+    },
+    {
+      "iter": 27,
+      "n_acumulado": 69,
+      "tempo_fit_s": 0.4051246643066406
+    },
+    {
+      "iter": 28,
+      "n_acumulado": 70,
+      "tempo_fit_s": 0.34063100814819336
+    },
+    {
+      "iter": 29,
+      "n_acumulado": 71,
+      "tempo_fit_s": 0.37821388244628906
+    },
+    {
+      "iter": 30,
+      "n_acumulado": 72,
+      "tempo_fit_s": 0.39826393127441406
+    },
+    {
+      "iter": 31,
+      "n_acumulado": 73,
+      "tempo_fit_s": 0.4710509777069092
+    },
+    {
+      "iter": 32,
+      "n_acumulado": 74,
+      "tempo_fit_s": 0.40246009826660156
+    },
+    {
+      "iter": 33,
+      "n_acumulado": 75,
+      "tempo_fit_s": 0.399334192276001
+    },
+    {
+      "iter": 34,
+      "n_acumulado": 76,
+      "tempo_fit_s": 0.6864392757415771
+    },
+    {
+      "iter": 35,
+      "n_acumulado": 77,
+      "tempo_fit_s": 0.5209550857543945
+    },
+    {
+      "iter": 36,
+      "n_acumulado": 78,
+      "tempo_fit_s": 0.3134887218475342
+    },
+    {
+      "iter": 37,
+      "n_acumulado": 79,
+      "tempo_fit_s": 0.5330259799957275
+    },
+    {
+      "iter": 38,
+      "n_acumulado": 80,
+      "tempo_fit_s": 0.4588799476623535
+    },
+    {
+      "iter": 39,
+      "n_acumulado": 81,
+      "tempo_fit_s": 0.4191019535064697
+    },
+    {
+      "iter": 40,
+      "n_acumulado": 82,
+      "tempo_fit_s": 0.4875068664550781
+    },
+    {
+      "iter": 41,
+      "n_acumulado": 83,
+      "tempo_fit_s": 0.657263994216919
+    },
+    {
+      "iter": 42,
+      "n_acumulado": 84,
+      "tempo_fit_s": 0.21717286109924316
+    },
+    {
+      "iter": 43,
+      "n_acumulado": 85,
+      "tempo_fit_s": 0.6717219352722168
+    },
+    {
+      "iter": 44,
+      "n_acumulado": 86,
+      "tempo_fit_s": 0.6755509376525879
+    },
+    {
+      "iter": 45,
+      "n_acumulado": 87,
+      "tempo_fit_s": 0.7322280406951904
+    },
+    {
+      "iter": 46,
+      "n_acumulado": 88,
+      "tempo_fit_s": 0.519984245300293
+    },
+    {
+      "iter": 47,
+      "n_acumulado": 89,
+      "tempo_fit_s": 0.8319029808044434
+    },
+    {
+      "iter": 48,
+      "n_acumulado": 90,
+      "tempo_fit_s": 0.5169267654418945
+    },
+    {
+      "iter": 49,
+      "n_acumulado": 91,
+      "tempo_fit_s": 0.9165492057800293
+    },
+    {
+      "iter": 50,
+      "n_acumulado": 92,
+      "tempo_fit_s": 0.7577390670776367
+    },
+    {
+      "iter": 51,
+      "n_acumulado": 93,
+      "tempo_fit_s": 0.694575309753418
+    },
+    {
+      "iter": 52,
+      "n_acumulado": 94,
+      "tempo_fit_s": 0.45021796226501465
+    },
+    {
+      "iter": 53,
+      "n_acumulado": 95,
+      "tempo_fit_s": 0.9176859855651855
+    },
+    {
+      "iter": 54,
+      "n_acumulado": 96,
+      "tempo_fit_s": 1.327258825302124
+    },
+    {
+      "iter": 55,
+      "n_acumulado": 97,
+      "tempo_fit_s": 0.6253480911254883
+    },
+    {
+      "iter": 56,
+      "n_acumulado": 98,
+      "tempo_fit_s": 0.8265080451965332
+    },
+    {
+      "iter": 57,
+      "n_acumulado": 99,
+      "tempo_fit_s": 0.9564208984375
+    },
+    {
+      "iter": 58,
+      "n_acumulado": 100,
+      "tempo_fit_s": 0.9599440097808838
+    },
+    {
+      "iter": 59,
+      "n_acumulado": 101,
+      "tempo_fit_s": 0.6950409412384033
+    },
+    {
+      "iter": 60,
+      "n_acumulado": 102,
+      "tempo_fit_s": 0.6131329536437988
+    },
+    {
+      "iter": 61,
+      "n_acumulado": 103,
+      "tempo_fit_s": 0.6943111419677734
+    },
+    {
+      "iter": 62,
+      "n_acumulado": 104,
+      "tempo_fit_s": 0.6959660053253174
+    },
+    {
+      "iter": 63,
+      "n_acumulado": 105,
+      "tempo_fit_s": 0.6734199523925781
+    },
+    {
+      "iter": 64,
+      "n_acumulado": 106,
+      "tempo_fit_s": 0.5238640308380127
+    },
+    {
+      "iter": 65,
+      "n_acumulado": 107,
+      "tempo_fit_s": 0.6270589828491211
+    },
+    {
+      "iter": 66,
+      "n_acumulado": 108,
+      "tempo_fit_s": 0.4768519401550293
+    },
+    {
+      "iter": 67,
+      "n_acumulado": 109,
+      "tempo_fit_s": 0.4954349994659424
+    },
+    {
+      "iter": 68,
+      "n_acumulado": 110,
+      "tempo_fit_s": 0.4846529960632324
+    },
+    {
+      "iter": 69,
+      "n_acumulado": 111,
+      "tempo_fit_s": 0.5289058685302734
+    },
+    {
+      "iter": 70,
+      "n_acumulado": 112,
+      "tempo_fit_s": 0.3912010192871094
+    },
+    {
+      "iter": 71,
+      "n_acumulado": 113,
+      "tempo_fit_s": 0.4503018856048584
+    },
+    {
+      "iter": 72,
+      "n_acumulado": 114,
+      "tempo_fit_s": 0.5030999183654785
+    },
+    {
+      "iter": 73,
+      "n_acumulado": 115,
+      "tempo_fit_s": 0.9083771705627441
+    },
+    {
+      "iter": 74,
+      "n_acumulado": 116,
+      "tempo_fit_s": 0.7807369232177734
+    },
+    {
+      "iter": 75,
+      "n_acumulado": 117,
+      "tempo_fit_s": 0.5791940689086914
+    },
+    {
+      "iter": 76,
+      "n_acumulado": 118,
+      "tempo_fit_s": 0.6156418323516846
+    },
+    {
+      "iter": 77,
+      "n_acumulado": 119,
+      "tempo_fit_s": 0.4411940574645996
+    },
+    {
+      "iter": 78,
+      "n_acumulado": 120,
+      "tempo_fit_s": 0.43487000465393066
+    },
+    {
+      "iter": 79,
+      "n_acumulado": 121,
+      "tempo_fit_s": 0.3642239570617676
+    },
+    {
+      "iter": 80,
+      "n_acumulado": 122,
+      "tempo_fit_s": 0.46903514862060547
+    },
+    {
+      "iter": 81,
+      "n_acumulado": 123,
+      "tempo_fit_s": 0.5151939392089844
+    }
+  ],
+  "fallback_ativado": false,
+  "paths": {
+    "local": {
+      "real": "data/experiments/main/c154/exp_main_c154_RE21_0__real.parquet",
+      "pop": "data/experiments/main/c154/exp_main_c154_RE21_0__pop.parquet",
+      "surrogate": "data/experiments/main/c154/exp_main_c154_RE21_0__surrogate.parquet",
+      "timing": "data/experiments/main/c154/exp_main_c154_RE21_0__timing.parquet",
+      "jsonl": "data/experiments/main/c154/exp_main_c154_RE21_0.jsonl",
+      "manifest": "data/experiments/main/c154/exp_main_c154_RE21_0.manifest.json"
+    },
+    "bucket": null
+  },
+  "upload_status": null,
+  "created_at": "2026-08-14T00:36:50+00:00",
+  "updated_at": "2026-08-14T00:36:50+00:00",
+  "cache_hits": 0,
+  "params": {
+    "S": 10,
+    "P": 10,
+    "estimation_type": "LB",
+    "rs_ladder": [
+      [
+        1024,
+        10
+      ],
+      [
+        2048,
+        20
+      ],
+      [
+        4096,
+        40
+      ]
+    ],
+    "nsgaii_pop": 100,
+    "nsgaii_gen": 500,
+    "num_restarts": 20,
+    "raw_samples": 4000,
+    "q": 1,
+    "refit": "from-scratch/iter (D44)",
+    "kernel": "Matern-5/2-ARD gamma-prior (D30)",
+    "acqf": "qLBMOJES-LB L.11",
+    "init_batch_limit": 256
+  },
+  "checkpoint": {
+    "n_checkpoints": 3,
+    "tempo_total_s": 0.4738,
+    "k_iter": 25,
+    "intervalo_s": 1800.0
+  },
+  "fused_kernel": "OFF-explicito (python puro; DEF-L2/S.3#9)",
+  "sigma_dict": {
+    "ordem_terceira_online": "[I-12] as R linhas de uma iteracao vem na ordem dos restarts com o VENCEDOR removido e re-anexado NO FIM: linha j -> restart j (j<best) | j+1 (j>=best); linha R-1 -> best, com best=argmax isfinite(acqf_todos_restarts). Casar por indice ingenuo da 89% de falso-mismatch (J27 REFUTADO). Utilitario: botorch_harness.restart_de_linha(R, best). NAO vale para q>1",
+    "pred_tipo": "valor (regressor probabilístico)",
+    "modelo_flag": "GP = SingleTaskGP por objetivo (ModelListGP), o modelo PRINCIPAL — não os caminhos de Matheron do JES",
+    "mu_j": "média do posterior do GP do objetivo j, em f de MINIMIZAÇÃO (o motor opera em −f; o export inverte — §5.5)",
+    "sigma_j": "desvio-padrão do posterior (VAR-GP). ⚠ Difere do c262: o ruído aqui é INFERIDO (B9.x — likelihood default do 0.18.1, prior LogNormal, piso 1e-4), não fixado em 1e-6",
+    "espaco_modelo": "cru (o GP treina em [0,1]^D; a ③ grava x NATIVO)",
+    "regime": "'sonda' = os 2000 pontos fixos do artefato §17.2.2, na ORDEM do artefato (join com o gabarito POR POSIÇÃO); 'online' = os 5D candidatos dos restarts do optimize_acqf",
+    "fe_treino_max": "maior fe_index no treino do GP no fit desta predição (DI-09/A1 — filtro in-sample × out-of-sample)",
+    "real_solution_id": "preenchido só na linha do candidato ESCOLHIDO que de fato consumiu FE; NULL nos demais restarts e em toda a sonda",
+    "jsonl_n_baseline": "AUSENTE POR DESENHO no c154. `n_baseline` é conceito do qNEHVI (o X_baseline podado do prune_baseline); o JES não tem X_baseline. Por decisão da torre (DI-11), o c154 loga `n_train` — o tamanho do conjunto de treino do GP na iteração — e é ESSE o campo a usar na comparação com o c262. NÃO são a mesma grandeza: n_train é o arquivo inteiro, n_baseline é o subconjunto podado",
+    "jsonl_acqf_todos_restarts": "os 5·D valores da acqf, um por restart (a paisagem da aquisição — DI-10). ⚠ Runs PRÉ-retrofit gravaram a mesma grandeza sob o nome `acqf_restarts`. Valores não-finitos são possíveis (NaN-guard do estimador LB) e ficam COMO ESTÃO aqui — a guarda age só na seleção"
+  },
+  "sonda": {
+    "S": 2000,
+    "k": 2,
+    "cadencia": "1ª iteração, a cada k=2, e SEMPRE a última",
+    "x_hash": "f46989d80d771a7bf161e6500d3a69527c2bffcd9d95d4171e5a212be2215c26",
+    "f_hash": "e793cfd91166bc5842f79c8d15b1c951cef57ca38b03685fd594bffabeb12f04",
+    "path": "data/sonda/sonda_RE21.parquet",
+    "custo_fe": 0,
+    "n_blocos": 42,
+    "n_linhas": 84000
+  },
+  "jes": {
+    "rota_b95": "a",
+    "S": 10,
+    "P": 10,
+    "estimation_type": "LB",
+    "num_restarts": 20,
+    "raw_samples": 4000,
+    "rs_fallbacks_total": 0,
+    "tempo_paths_s": 44.1439
+  }
+}

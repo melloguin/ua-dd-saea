@@ -1,0 +1,128 @@
+{
+ "aspectos_mudados": [
+  {
+   "id": "A28→FINAL",
+   "o_que": "cobertura de sementes",
+   "antes": "F30: semente 26 NÃO existe (725/750, sistemática no braço offline+batch, classe (3) C-1)",
+   "agora": "As 90 células REAIS têm as 30 sementes COMPLETAS (0-28+42, incluindo a 26); as 725 sintéticas seguem com 29. O n do config é HETEROGÊNEO por problema (29 sintéticas × 30 reais) — toda tabela deve declarar."
+  },
+  {
+   "id": "A20→FINAL",
+   "o_que": "dinâmica do congelamento (adapt→norma 0→PBI NaN)",
+   "antes": "F30: 82/725 (11,3%) mortas nas sintéticas; pior problema DTLZ1 65,5%; especificidade 100% p/ vetores nulos; EST40 0/380 no smoke (bloqueador 3)",
+   "agora": "🔴 RE21: 28/30 células (93,3%) com busca terminalmente morta desde g=10-42 — a PIOR taxa já medida em qualquer problema do config; 28/28 congeladas têm vetores de norma 0 (especificidade 100% mantida), 13 com TODOS nulos; ⑦ com 1-2 X distintos em 29/30 e nd_pos_real=50/50 (cópias não se dominam — armadilha 22 nas reais). EST40 pós-D102.19: 0/30 mortas (30×380/380 vivas). DDMOP7: 1/30 (s2) morta por COLAPSO-DE-PONTO (população converge a 1 X, μ ptp→0 em g≈57) SEM nenhum vetor nulo — variante nova, é o 'ponto fixo do PBI' da F5 existindo de fato; 29/30 vivas (mediana 97,7% de transições)."
+  },
+  {
+   "id": "A21→FINAL",
+   "o_que": "colapso do GPR (critério congelado da T11 na sonda)",
+   "antes": "F30: piso 13,67% dos pares célula×objetivo, concentrado em DTLZ1/DTLZ3; refutada a assimetria 3,1× da F5",
+   "agora": "RE21: 14/60 pares colapsados (23,3%), SEMPRE o f0 (escala ~2.470 sob normalize_y=False — a mesma família causal de A21, agora pela escala do ALVO, não da caixa); pares sadios WAPE 0,0029/corr 0,9999. EST40: 4/90 (4,4%), sempre f2 — exatamente a 'limitação registrada' da D102.19 (fit do f2 instável sob alpha=0); sadios WAPE 0,017/corr 0,974. O conserto D102.19 tratou a ENTRADA (caixa) e funcionou; a escala da SAÍDA (RE21 f0) não tem conserto sem re-run."
+  },
+  {
+   "id": "A26→FINAL",
+   "o_que": "instrumentação flag_vetores_degenerados",
+   "antes": "F30: presente e não-nula em 507.645/507.645 eventos das sintéticas",
+   "agora": "Funciona nas 90 reais: 59.490/59.490 decisões com o dict em float64; capturou o congelamento do RE21 (21.850 gerações com norma 0; 10.000 all-zero) E a degeneração PARCIAL fina do EST40 (3 células — s7/s8/s13 — com exatamente 1 vetor nulo de 105 em 380/380 gerações, busca viva mesmo assim; são 3 das 4 células com f2 colapsado)."
+  },
+  {
+   "id": "A23→FINAL",
+   "o_que": "⑤.params e sigma_dict",
+   "antes": "F30: params com 9 chaves e sigma_dict com 21 chaves em 725/725",
+   "agora": "90/90 com sigma_dict de 22 chaves (nova: espaco_entrada_gp, declarada TAMBÉM p/ RE21/DDMOP7 como modo 'cru' com d_típica e critério). DDMOP7 com params de 11 chaves: +zona_morta (tau=0,5, escopo 'propostas da busca; DoE cru', decisão D102.17) e +nd_final (declara a ⑦ pós-hoc D102.9). Ambas SANCIONADAS — foi a única 'falha' formal da bateria de 90 células (30×, todas esta)."
+  },
+  {
+   "id": "A4→FINAL",
+   "o_que": "sonda",
+   "antes": "F30: 1 bloco de 20.000 Sobol em 725/725, binding ΔX=0",
+   "agora": "RE21/EST40: idem — ⑤.sonda x_hash/f_hash ≡ manifesto do gabarito 60/60 e ΔX=0,0 exato em 1.200.000 pontos. DDMOP7: SEM sonda com declaração explícita no ⑤ ('sem_sonda_por_problema, D102.10') e 0 linhas sonda na ③ — conforme; ressalva textual: o sigma_dict.sonda_offline mantém o texto genérico do bloco de 20.000 (o ⑤.sonda prevalece)."
+  },
+  {
+   "id": "A5/A16→FINAL",
+   "o_que": "espaço do GP",
+   "antes": "F30: espaco_modelo='cru' em 100% das 43,5M linhas (universal)",
+   "agora": "Deixa de ser universal: EST40 com espaco_modelo='transformado'+transf_tipo='minmax_caixa' em 100% das linhas (D102.19, declarado no ⑤+⑥+③ conforme CONTRATO T15.12); RE21/DDMOP7 'cru'. Camadas ①③⑦ seguem em DECs nativos (conferido: binding e link posicional ΔX=0)."
+  },
+  {
+   "id": "A10→FINAL",
+   "o_que": "⑦ endpoint",
+   "antes": "F30: ⑦ presente, recomputável, link ΔX=0 em 725/725",
+   "agora": "RE21/EST40: idem (60/60: n⑦=N, ND recomputada ≡ nd_pos_real, link ΔX=0, rodapé ≡). DDMOP7: ⑦ AUSENTE em 30/30 por desenho (D102.9/D102.18, pós-hoc via final_eval em máquina com MATLAB) — o passo NUNCA rodou para o corpus; candidatos medidos por mim (ND da última geração pela predição, contrato D102.18): 1-40 distintos por x_efetivo, mediana 24, todos sob o teto 600 do .p — COMPUTÁVEL."
+  },
+  {
+   "id": "A27→FINAL",
+   "o_que": "proveniência",
+   "antes": "F30: campanha única 7f4f0e429a46_M8, 6 VMs, 0 células mistas",
+   "agora": "Reais em 2 VMs da frota atual: RE21+EST40 100% vm1, DDMOP7 100% vm5 (pós-degrau de 14/08T10:26Z — TODA a leitura DDMOP7 vive no hardware novo, sem duplicata cross-máquina: deriva não medida = teto novo). DDMOP7 com 2 campanhas/repo_hash (s0: 3240f4b2 18:01 UTC, 1 rodapé, upload_status vazio; s1-28+42: 7be66e65 19:17-19:20) — ver classe3 C-3."
+  },
+  {
+   "id": "A25→FINAL",
+   "o_que": "tempo_aval_real_s (o (3) da T11)",
+   "antes": "F30: null em 725/725 — resolvido",
+   "agora": "Segue resolvido nas 90 novas: null em 90/90."
+  },
+  {
+   "id": "A15→FINAL",
+   "o_que": "orçamento e granularidade",
+   "antes": "F30: 31D-1 e 40.000/39.900 exatos em 725/725; LHS ger-1 escore 1,0",
+   "agora": "90/90: maxfe=fe_final=n_dataset=31D-1 exato (123/526/1239); (n_ger-1)×N = 40.000 (M=2, n_ger=801) / 39.900 (M=3, n_ger=381) exatos; LHS ger-1 escore mínimo 1,0000 e 0 pontos fora dos bounds em 90/90."
+  }
+ ],
+ "celulas_final": "835 células no censo final (alg=moead_media), TODAS ok|orcamento sob O-21 (rodapé = autoridade): (a) 725 sintéticas M8 exp=off (25 problemas × 29 sementes {0-25,27,28,42}) — 0 ⚪, 0 failed, herdam o F30; (b) 20 sweep s42 (5 problemas × 4 labels, schema 1, mtime 26/07) — corpus T11 preservado sob o layout novo (a nota do F30 'não existe mais neste layout' referia-se aos labels swap_*; as células existem como exp_sweep-*), 20/20 rodapé final ok, com a mácula histórica conhecida da sweep-small-lhs_ZDT1 (3 rodapés ok|failed|ok + 1 linha malformada — dano zero provado na T11); (c) 90 reais exp=off (RE21/DDMOP7/ESTOQUE40 × 30 sementes COM a 26): 90/90 manifesto ok + rodapé ok, motivo_parada='orcamento' 90/90, 0 linhas malformadas, 0 guard/retry/fallback/cache, 0 ⚪ teto_wall. Nenhuma célula em estado de falha; nenhuma exclusão necessária.",
+ "celulas_invalidas": [
+  {
+   "celula": "DDMOP7/{0-28,42} — as 30 células",
+   "motivo": "NÃO são inválidas sob O-21 (rodapé ok, ①③④⑤⑥ íntegras e conformes) — mas o ENDPOINT ⑦ não está materializado: a avaliação real do ND final é PÓS-HOC por desenho (D102.9/D102.18, declarado em params.nd_final) e o scripts/final_eval.py nunca rodou para o corpus de 30 sementes. Sem a ⑦, não existe HV do endpoint do piso no DDMOP7 (D102.4: só HV) e a fase 2 pooled não recebe os f reais dos finais deste config.",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "DDMOP7/0",
+   "motivo": "Válida (rodapé do runner ok), mas com proveniência atípica: única célula da campanha 3240f4b26fae (18:01 UTC, 1h16 antes das demais), 1 rodapé só (sem o do despachante) e upload_status sem registro — assinatura de disparo manual. Nenhuma camada diverge estruturalmente das 29 irmãs (bateria completa passa).",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  },
+  {
+   "celula": "sweep-small-lhs/ZDT1/42",
+   "motivo": "Herança T11: 1 linha malformada + rodapé failed intermediário de escritor concorrente morto; dano zero provado (①③⑦ bit-idênticas ao off/ZDT1 da época) e causa fechada em código (O_TRUNC). Registro para completude — não excluir.",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C-1 (herdado do F30, atualizado)",
+   "descricao": "Semente 26 ausente nas 725 sintéticas (29 sementes) — mas PRESENTE nas 90 reais (30 sementes). A lacuna sistemática do braço offline+batch persiste sem decisão citada, e agora o config tem n heterogêneo por problema (29×30).",
+   "gravidade": "media",
+   "acao": "ESCALAR (D81): declarar n=29 (sintéticas) e n=30 (reais) em toda tabela; ou aceitar formalmente a lacuna com decisão registrada. Impacto no mecanismo: zero.",
+   "arquivo_linha": "f5/final/censo_final.csv (filtro alg=moead_media)"
+  },
+  {
+   "id": "C-2 (herdado do F30, persiste na campanha NOVA)",
+   "descricao": "upload_status.erro = \"upload_failed: AttributeError('Request' object has no attribute 'session')\" em 89/90 manifestos das células reais (campanhas de 15/08, repo 3240f4b2/7be66e65 — o defeito sobreviveu aos pushes do T15) + 725/725 das sintéticas; nenhum gate reage. A 90ª (DDMOP7/0) não tem registro algum de upload.",
+   "gravidade": "baixa",
+   "acao": "Dano zero neste config (8 camadas em disco, lidas por mim). Manter a recomendação F30: verificar upload_status nos configs bucket-only antes de concluir qualquer coisa sobre ③ ausente.",
+   "arquivo_linha": "qualquer manifesto real, chave upload_status.erro"
+  },
+  {
+   "id": "C-3 🆕",
+   "descricao": "Proveniência mista DENTRO do DDMOP7: s0 na campanha 3240f4b26fae_2026-08-15 (18:01:58Z, 1 rodapé, sem despachante, sem upload_status) e s1-28+42 na 7be66e65522c_2026-08-15 (19:17-19:20Z) — dois repo_hash distintos no mesmo problema×config, sem decisão citada em nenhum manifesto. Dano MEDIDO: zero — a bateria completa (orçamento, ⑥, ③, binding, zona morta, grade f1/f2) fecha idêntica nos dois lados; mas 'mesmo repo_hash' deixa de valer como invariante do grupo.",
+   "gravidade": "baixa",
+   "acao": "ESCALAR (D81): ou declarar no texto que o DDMOP7 mistura dois estados de repo do MESMO dia (diff behavioral não observável nas camadas), ou promover a s0 a nota de rodapé. NÃO diagnostiquei o diff dos commits (fora do dado).",
+   "arquivo_linha": "resultados_experimentos/moead_media/DDMOP7/0/exp_off_moead_media_DDMOP7_0.manifest.json (campanha_id/repo_hash)"
+  }
+ ],
+ "config": "moead_media (exp=off · MOEA/D-média mode 12 Gen-MOEA/D+PBI · piso offline D77/DEF-E3, a ablação exata do b5m) — RODADA FINAL, corpus CONGELADO: 835 células no censo (725 sintéticas M8 herdam F30 · 20 sweep s42 herdam T11 · 90 REAIS NOVAS = RE21/DDMOP7/ESTOQUE40 × 30 sementes, campanhas 3240f4b26fae/7be66e65522c de 2026-08-15, vm1+vm5)",
+ "decisoes_ao_autor": [
+  "🔴 D81/D29 · O ACHADO DA RODADA — o piso offline está MORTO no RE21 em 28/30 sementes (93,3%): congela terminalmente entre g=10 e g=42 de 801, com a assinatura A20 completa e agora EXATA em float64 (vetor de norma 0 em 28/28 congeladas — especificidade 100%; 13 células com o lattice inteiro nulo; ⑦ = 1-2 X distintos em 29/30, nd_pos_real=50/50 por cópias). Causa a montante: colapso do GPR pela ESCALA DO ALVO (f0≈1.240-2.890 sob normalize_y=False; sonda f0 colapsada em 14/30 com WAPE=1,000) — a mesma família da A21/DI-30, que a D102.19 NÃO cobre (ela trata a caixa de ENTRADA; aqui a entrada é [1,3]^4, d_típica 0,3, modo 'cru' correto pelo critério). Um conserto exigiria re-run (vetado). DECIDA a regra de leitura: (a) contraste offline no RE21 reportado só nas 2/30 células vivas (s4, s27) = sem potência; (b) declarar o piso NÃO-INFORMATIVO como régua no RE21 e ler b5r/e103 contra o Init; ou (c) reportar com o caveat duro 'busca morta' célula a célula. Sob o gabarito b5 o mecanismo é (1)/(2) sancionado — o problema é de LEITURA, não de fidelidade.",
+  "🔴 DDMOP7 · a ⑦ pós-hoc NUNCA rodou para o corpus (30/30 células sem __final.parquet). O desenho é sancionado (D102.9/D102.18, declarado em params.nd_final) e o insumo está pronto: candidatos = ND da última geração pela predição, medidos por mim em 1-40 pontos distintos por x_efetivo (mediana 24), TODOS sob o teto 600 do .p. Sem isso não há HV de endpoint do piso no DDMOP7 (D102.4) nem contribuição dele à fase 2 pooled. Rodar scripts/final_eval.py numa VM com MATLAB NÃO é re-run do experimento — decisão sua se roda e quando.",
+  "🎯 C-3 · proveniência mista no DDMOP7 (s0 = campanha 3240f4b2, 1 rodapé, sem despachante; s1-28+42 = 7be66e65): dano medido zero, mas sem decisão citada. Declarar ou aceitar.",
+  "C-1 atualizado · o config agora tem n HETEROGÊNEO: 29 sementes nas sintéticas × 30 nas reais (a 26 existe só nas reais). Toda tabela agregada deve declarar os dois n.",
+  "C-2 persiste NA CAMPANHA NOVA · upload_failed (mesmo AttributeError) em 89/90 reais + 725/725 sintéticas, sem gate. Reafirmo a recomendação F30 sobre os configs bucket-only.",
+  "DERIVA · as 30 células DDMOP7 são TODAS vm5 pós-degrau (>14/08T10:26Z) e não existe NENHUMA duplicata cross-máquina das reais ⇒ o teorema de deriva-zero do F30 (36/37 bit-idênticos) NÃO cobre as células novas — teto declarado. Se quiser fechá-lo, 1 duplicata de 1 célula DDMOP7 na vm1 bastaria (decisão sua; nada disparei).",
+  "T8 mantém · segue sem artefato de métrica oficial HV/IGD+ da casa para este config; os números de comportamento desta rodada (transições, ND, WAPE) são meus e estão declarados.",
+  "REGISTRO POSITIVO para o texto: (i) a D102.19 FUNCIONOU — 30/30 EST40 com minmax disparado, declarado (⑤+⑥+③) e busca viva 380/380 em todas; fantasia WAPE-final mediana 0,074 (vs 1,000 no RE21 morto); (ii) o checa_regua (T15.13) passou em 150 testes reais (0 furos; RE21 com 1.199 pontos de furo LEVE a 1,4e-07 do range = ruído float32, corretamente tolerado e auditável em avisos_regua); (iii) a regra T15.13 do x_efetivo importa pouco NO PISO: ND por x_proposto ≡ ND por x_efetivo em 30/30 (o colapso de 60-70% é dos operadores online, não do MOEA/D)."
+ ],
+ "mecanismo_nos_novos": "Query-joia da família rodada nas 90/90 células novas (CENSO, não amostra — cobre as 30 sementes): as 35 identidades estruturais do F30 valem em 90/90 com as 3 adaptações SANCIONADAS (DDMOP7 sem sonda D102.10 · ⑦ pós-hoc D102.18 · EST40 espaço-GP transformado D102.19). Números: ①≡artefato ds bit-a-bit ΔX=Δf=0,0 em 61/61 células com artefato local (RE21 30 + EST40 30 + DDMOP7 s0; demais 29 DDMOP7 = teto local, ds nas VMs, doe_hash≡header≡⑤ conferido 90/90); sonda≡gabarito Sobol ΔX=0,0 exato em 1.200.000 pontos (60/60) + x/f_hash ≡ manifesto; recomputo INDEPENDENTE do RE21 (reimplementação minha da formulação fechada): erro relativo máx 3,8e-07 (float32) em 5.190 pontos (①+⑦ × 30 sementes); DDMOP7: f1·17 e f2·690 inteiros com desvio máx 4,8e-07/2,1e-05 em 15.780 pontos e checa_regua (ideal=[0;0]) PASSA 30/30; orçamento 31D-1 exato (123/526/1239) e 40.000/39.900 avaliações-surrogate exatos em 90/90; σ NaN 100% das 4.815.750 linhas novas de ③ (μ NaN 0); ② vazia 90/90 (0 linhas __pop); LHS ger-1 escore mínimo 1,0000 e 0 fora dos bounds 90/90; invariante ④ |t_fit+t_busca−t_ger| ≤ 2,3e-05 s; ⑥ com 0 malformadas, flag_vetores_degenerados não-nula em 59.490/59.490 decisões; ⑦ (onde existe): ND recomputada ≡ nd_pos_real e link posicional ΔX=0,0 em 60/60. Única não-conformidade formal: params do DDMOP7 com 11 chaves (9+zona_morta+nd_final) — injeção sancionada D102.17/D102.18.",
+ "novas_desde_f30": "90 células novas (100% reais): RE21 30 (vm1, 17:42-17:55Z de 15/08) · ESTOQUE40 30 (vm1, 17:46-17:59Z) · DDMOP7 30 (vm5, 18:01-19:20Z, 2 campanhas). ZERO sintéticas novas ou alteradas: as 725 off têm os mesmos mtimes/campanha do F30 (as 25 células de semente 25 com mtime 13/08 10:14-10:35 são CÓPIA em lote alfabético, não execução — o F30, fechado 15/08 00:28, já as lia; spot-check 10 células: campanha M8, repo 63db46b1, bateria idêntica ⇒ HERDAM o veredito F30 9,5). As 20 sweep s42 reaparecem no censo final (o F30 censeava só exp=off): são o corpus T11 de 26/07 renomeado swap_*→sweep-*, intocado ⇒ herdam a T11.",
+ "reais": "RE21 (D=4, M=2, N=50, n_ger=801): contrato impecável E busca morta — 28/30 células congeladas terminalmente desde g=10-42 (transições-com-mudança mediana 1,4%), TODAS com vetores de referência de norma 0 (13 com lattice inteiro nulo; 21.850 gerações com norma 0 medidas pela instrumentação A26 em float64); sonda f0 colapsada em 14/30 (escala do alvo ~2.470 sob normalize_y=False), pares sadios WAPE 0,0029/corr 0,9999; ⑦ = 1-2 X distintos em 29/30 com nd_pos_real 50/50 (cópias); fantasia WAPE 1,000 nas colapsadas; só s4 e s27 vivas. Recomputo independente da formulação: erro rel ≤3,8e-07 em 30/30. ESTOQUE40 (D=40, M=3, N=105, n_ger=381): D102.19 VERDE — minmax_caixa disparou e está declarado (⑤ sigma_dict + evento ⑥ + ③ 'transformado') em 30/30 (d_típica 2.308-2.373 > teto 100) e a busca está VIVA em 380/380 transições nas 30/30 sementes (contra 0/380 do smoke pré-conserto); GP informativo (WAPE sonda 0,017/corr 0,974; colapso só no f2 em 4/90 pares — a limitação REGISTRADA da decisão); degeneração parcial fina em 3 células (1 vetor nulo de 105, busca viva); ⑦ saudável (77-85 X distintos, ND 33-77); fantasia mediana 0,074. DDMOP7 (D=17, M=2, N=50, n_ger=801, vm5): SEM sonda (D102.10 declarado no ⑤), zona morta declarada (tau=0,5, escopo busca, DoE cru); f1=k/17 e f2=n/690 exatos na grade em 15.780 pontos; checa_regua ideal=[0;0] PASSA 30/30 (0 furos); busca viva em 29/30 (mediana 97,7% de transições; s2 morre em g≈57 por colapso-de-ponto SEM vetor nulo — população vira 50 cópias de 1 X de rede cheia, nnz=17, perfil c149); candidatos da ⑦ (ND da última geração pela predição, D102.18) = 1-40 distintos por x_efetivo (mediana 24, dedup T15.13 aplicado — colapso proposto→efetivo 0% no piso), todos sob o teto 600; MAS a ⑦ pós-hoc NUNCA foi materializada (30/30 sem __final.parquet).",
+ "score_final": 9.3,
+ "trajetoria_scores": "F5 9,0 impresso / 9,5 pós-adversarial (o C9b derrubou o único (3) da F5) → T11 9,3 (−0,2: nasceu o (3) A25 do tempo_aval_real_s e a instrumentação do adapt pedida pela F5.4 não foi entregue) → F30 9,5 (+0,2: A25 resolvido em 725/725, A26 entregue e funcionando, contrato 35/35 identidades em censo de 725, determinismo cross-máquina 36/37 bit-exato; −: dois (3) periféricos novos C-1/C-2) → FINAL 9,3 (−0,2, causas nomeadas: (i) a ⑦ do DDMOP7 não materializada em 30/30 — desenho sancionado, execução pendente, o endpoint do piso no problema-vitrine da vaga B não existe ainda; (ii) terceiro (3) periférico novo C-3 (proveniência mista DDMOP7) somado aos C-1/C-2 que PERSISTEM na campanha nova (upload_failed sobreviveu a dois pushes); (iii) teto novo de deriva: todo o DDMOP7 é vm5 pós-degrau sem nenhuma duplicata cross-máquina. O que SEGUROU em 9,3 e não abaixo: a bateria de contrato fecha 90/90 sem UMA falha não-sancionada, a bandeira amarela D102.19 fechou VERDE em 30/30, o checa_regua passou em 150 testes, e o achado RE21 é mecanismo SANCIONADO (A20/A21, gabarito b5) com dano de LEITURA, não de fidelidade — o mesmo enquadramento que o F30 deu ao DTLZ1 a 65,5%.)",
+ "veredito": "RECOMENDO ACEITAR AS 90 CÉLULAS NOVAS NO CORPUS FINAL (o veredito é do autor — D97), com TRÊS condições de leitura antes de qualquer tabela: (1) RE21: o contraste de ablação offline NÃO mede σ em 28/30 sementes — mede busca morta × busca viva; reportar só nas células vivas ou declarar o piso não-informativo como régua nesse problema (decisão pendente do autor); (2) DDMOP7: nenhum número de endpoint do piso existe até o final_eval pós-hoc rodar (recuperável SEM re-run; insumo conferido e sob o teto 600); toda contagem de |ND| já deve usar x_efetivo (medido: no piso a distinção é vazia — 0% de colapso); (3) declarar n heterogêneo (29 sintéticas × 30 reais). A fidelidade mecânica das 90 células é EXCELENTE — 0 falhas não-sancionadas na bateria integral, query-joia da família fechando em censo, D102.19 validado em 30/30, checa_regua 0 furos — e o corpus sintético + sweep herda F30/T11 sem uma célula alterada. Estado O-21 final: 835/835 ok, 0 ⚪, 0 excluir."
+}

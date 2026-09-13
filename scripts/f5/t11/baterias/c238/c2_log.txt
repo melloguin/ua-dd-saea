@@ -1,0 +1,39 @@
+===============================================================================================
+PARTE 1 — o motor de MLE, TODAS as 25 celulas (56 pares celula-objetivo, 15740 componentes-geracao)
+  theta ≡ theta0=1 EXATO (fmincon NAO ANDOU): 63 de 15740 componentes-geracao (0.4%)
+  celulas-objetivo com >=1 fit parado : 6/56 ; com >50% parados: 1
+  top-10 por fracao de fits parados  :
+problema  D  obj  n_gens  parado  frac_parado    lnL_ini     lnL_fim
+    MMF4  2    0      40      24        0.600  24.627215 -178.544976
+    MMF1  2    0      40      10        0.250  25.672515 -165.046527
+ MMF11_L  2    0      40      10        0.250 210.252496  782.934804
+ MMF11_L  2    1      40      10        0.250  26.977882  -20.587590
+    MMF1  2    1      40       7        0.175  27.836271 -300.887120
+    MMF4  2    1      40       2        0.050  32.137312 -302.209210
+ BBOB_F1 10    1     200       0        0.000 399.902417 2117.477843
+MMF16_20 20    0     400       0        0.000 586.875733 2313.180629
+MMF16_20 20    1     400       0        0.000 605.910604 1605.070726
+MMF16_20 20    2     400       0        0.000 975.701547 3519.724876
+  saturacoes: piso 1e-3 = 6256 ; teto 1e3 = 1124 ; VIOLACOES de bound = 0/0
+  lnL SOBE do 1o ao ultimo fit: 51 de 56 pares celula-objetivo (91.1%)
+  lnL final NEGATIVA em 5 pares ; gens com lnL<0 = 118 de 15740 (0.7%)
+  lnL final < lnL MAXIMO da trajetoria em 31/56 pares (single-start cai em otimos locais distintos)
+  celulas com lnL final negativa:
+problema  D  obj   lnL_ini     lnL_fim     lnL_min  frac_lnL_neg  frac_parado
+    MMF1  2    0 25.672515 -165.046527 -174.272251         0.600        0.250
+    MMF1  2    1 27.836271 -300.887120 -301.544473         0.600        0.175
+ MMF11_L  2    1 26.977882  -20.587590  -68.968166         0.575        0.250
+    MMF4  2    0 24.627215 -178.544976 -180.398467         0.675        0.600
+    MMF4  2    1 32.137312 -302.209210 -302.209210         0.500        0.050
+
+Traceback (most recent call last):
+  File "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/t11/baterias/c238/c2_mle_condicionamento.py", line 152, in <module>
+    d2 = parte2()
+         ^^^^^^^^
+  File "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/t11/baterias/c238/c2_mle_condicionamento.py", line 129, in parte2
+    lnl, s2, c, ok = lnL_of(Xn, F[:npre, j], th)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/t11/baterias/c238/c2_mle_condicionamento.py", line 39, in lnL_of
+    mu = float((one.T @ Ri_Y) / (one.T @ Ri_1))
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: only 0-dimensional arrays can be converted to Python scalars

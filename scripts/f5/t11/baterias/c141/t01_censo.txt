@@ -1,0 +1,35 @@
+== T11 ==
+ schema_version 2 campanha_id t11-smoke-195f64e repo_hash 195f64ed0a69 algo_version c141-MMRAEA-porte4.15
+ status ok maxfe 61 fe_final 61 n_ger 11 cache_hits 1 doe_hash b4682dc218d24077
+ env {'matlab': '25.1.0.2973910 (R2025a) Update 1', 'stack': 'matlab-platemo', 'pymoo': '0.6.2'}
+ timing {'tempo_total_s': 2.26308025, 'tempo_fit_surrogate_s': 0.10120837483555079, 'tempo_busca_s': 0.566917659714818, 'tempo_aval_real_s': 0.01727529166666667, 'tempo_pred_sonda_s': 0.25002420833333333}
+ params {'N_subpop': 21, 'wmax': 20, 'kernel': 'MQ c=1 poly=0 x3', 'ds_dsmerge': 1e-14}
+ sigma_dict keys ['sigma_0', 'sigma_1']
+ sonda {'artefato': '/tmp/smoke_matlab/sonda/sonda_MMF1.parquet', 'x_hash': '186b726e7d62abaa46a814ce785a97727367ec1c10f936570b6a49ad20e9f59f', 'f_hash': '0d6547d63f920a20740de1282b89f9f9738b5714d1a719dae43f49f3670f5497', 'regime': 'online', 'S': 2000, 'k': 2, 'n_blocos': 7, 'n_linhas': 14000, 'n_falhas': 0, 'tempo_total_s': 0.25002420833333333, 'desligada': False}
+ sonda.geracoes [1, 2, 4, 6, 8, 10, 11]
+ fit_series n= 10 n_acum [21, 25, 26, 29, 36, 41, 43, 49, 51, 54]
+ camadas: real (61, 10) pop (128, 5) sur (14420, 21) tim (10, 7)
+ ev recs Counter({'c141_gen': 10, 'sonda': 7, 'guard': 2, 'header': 1, 'footer': 1})
+ real cols ['algoritmo', 'problema', 'semente', 'solution_id', 'x0', 'x1', 'f0', 'f1', 'fe_index', 'fase']
+ sur cols ['algoritmo', 'problema', 'semente', 'regime', 'geracao', 'x0', 'x1', 'real_solution_id', 'mu_0', 'mu_1', 'sigma_0', 'sigma_1', 'pred_tipo', 'pred_classe', 'pred_score', 'pred_confianca', 'modelo_flag', 'espaco_modelo', 'transf_tipo', 'transf_params', 'fe_treino_max']
+ tim cols ['run_id', 'geracao', 'n_acumulado', 'tempo_fit_s', 'tempo_busca_s', 'tempo_pred_sonda_s', 'tempo_geracao_s']
+ pop cols ['algoritmo', 'problema', 'semente', 'geracao', 'solution_id']
+ sur regimes {'sonda': 14000, 'online': 420}
+
+== R42 ==
+ schema_version 1 campanha_id None repo_hash  algo_version c141-MMRAEA-porte4.15
+ status ok maxfe 61 fe_final 61 n_ger 13 cache_hits 1 doe_hash b4682dc218d24077
+ env {'matlab': '25.1.0.2973910 (R2025a) Update 1', 'stack': 'matlab-platemo', 'pymoo': '0.6.2'}
+ timing {'tempo_total_s': 6.969535, 'tempo_fit_surrogate_s': 0.8695200062356889, 'tempo_busca_s': 0.7444950081408024, 'tempo_aval_real_s': 0.022504000000000003, 'tempo_pred_sonda_s': 0.5334340000000001}
+ params {'N_subpop': 21, 'wmax': 20, 'kernel': 'MQ c=1 poly=0 x3', 'ds_dsmerge': 1e-14}
+ sigma_dict keys ['sigma_0', 'sigma_1']
+ sonda {'artefato': 'data/sonda/sonda_MMF1.parquet', 'x_hash': '186b726e7d62abaa46a814ce785a97727367ec1c10f936570b6a49ad20e9f59f', 'f_hash': '0d6547d63f920a20740de1282b89f9f9738b5714d1a719dae43f49f3670f5497', 'regime': 'online', 'S': 2000, 'k': 2, 'n_blocos': 8, 'n_linhas': 16000, 'n_falhas': 0, 'tempo_total_s': 0.5334340000000001}
+ sonda.geracoes [1, 2, 4, 6, 8, 10, 12, 13]
+ fit_series n= 12 n_acum [21, 24, 27, 29, 32, 36, 39, 44, 46, 50, 52, 56]
+ camadas: real (61, 10) pop (149, 5) sur (16504, 21) tim (12, 7)
+ ev recs Counter({'c141_gen': 12, 'sonda': 8, 'guard': 2, 'header': 1, 'footer': 1})
+ real cols ['algoritmo', 'problema', 'semente', 'solution_id', 'x0', 'x1', 'f0', 'f1', 'fe_index', 'fase']
+ sur cols ['algoritmo', 'problema', 'semente', 'regime', 'geracao', 'x0', 'x1', 'real_solution_id', 'mu_0', 'mu_1', 'sigma_0', 'sigma_1', 'pred_tipo', 'pred_classe', 'pred_score', 'pred_confianca', 'modelo_flag', 'espaco_modelo', 'transf_tipo', 'transf_params', 'fe_treino_max']
+ tim cols ['run_id', 'geracao', 'n_acumulado', 'tempo_fit_s', 'tempo_busca_s', 'tempo_pred_sonda_s', 'tempo_geracao_s']
+ pop cols ['algoritmo', 'problema', 'semente', 'geracao', 'solution_id']
+ sur regimes {'sonda': 16000, 'online': 504}

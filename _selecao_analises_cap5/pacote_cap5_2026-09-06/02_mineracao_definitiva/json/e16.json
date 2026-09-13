@@ -1,0 +1,343 @@
+{
+  "id": "e16",
+  "sigla": "EGBO",
+  "titulo": "Evolution-guided Bayesian optimization for constrained multi-objective optimization in self-driving labs",
+  "ano": 2024,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Problema real: AgNP synthesis cMOOP (síntese de nanopartículas de prata seed-mediated numa plataforma microfluídica hiperespectral própria; 5D de decisão — vazões de 5 reagentes; 3 objetivos: y1 similaridade espectral, y2 taxa de reação, y3 minimizar uso de sementes de Ag — mas y3 é tratado via restrição/normalização, o artigo otimiza e reporta sobretudo y1×y2; 2 restrições não-lineares c1,c2 que modelam nucleação secundária). Sintético: MW7 do MW test suite (Ma & Wang 2019), 2 objetivos, testado em n=2 e n=8 variáveis de decisão, com 2 restrições (c1 distante da PF, c2 que intersecta a PF; POS/PF desconexos — 2 ilhas ligadas por ponte estreita). Problemas adicionais do MW test suite e do ZDT test suite (2 e 3 objetivos) — só mencionados, resultados no Supplementary Discussion subsection 2.2 (documento não presente em /home/claude/corpus_md/e16.md).",
+    "orcamento": "AgNP: inicialização Sobol compartilhada 2*(5+1)=12 candidatos + 15 iterações × lote q=4 → 72 amostras por otimizador, 132 amostras no total da campanha (12 compartilhados + 60 de cada otimizador). MW7 n=2: init Sobol 2*(n+1)=6, 30 iterações, lote q=4. MW7 n=8: init Sobol 2*(n+1)=18, 48 iterações, lote q=4. Estudo pré/pós-reparo (AgNP simulado): 30 iterações, lote q=4, mesma inicialização Sobol 2*(n+1).",
+    "execucoes": "AgNP campanha real: 1 execução por otimizador (qNEHVI-BO, EGBO) — execução ÚNICA, sem repetição (limitação reconhecida pelos próprios autores). MW7 n=2: 3 execuções (EGBO apenas, ilustrativo). MW7 n=8: 10 execuções por algoritmo, para 4 algoritmos (qNEHVI-BO, EGBO, qNParEGO, U-NSGA-III puro). Estudo pré/pós-reparo (AgNP simulado com GP pseudo-verdade treinado sobre todos os dados reais da campanha): 10 execuções × 30 iterações para cada uma das 4 combinações (qNEHVI-BO/EGBO × pré/pós-reparo) + baseline Sobol puro.",
+    "baselines": "qNParEGO (BoTorch, aquisição por escalarização/ParEGO adaptando expected improvement single-objective); U-NSGA-III puro (piso evolutivo SEM surrogate — e, notavelmente, o MESMO componente evolutivo que fica embutido dentro do EGBO, aqui rodado isoladamente); Sobol/amostragem aleatória pura (baseline adicional no estudo de reparo, não é um otimizador). Há, portanto, piso sem surrogate (U-NSGA-III) e uma baseline aleatória (Sobol) na bateria de MW7 n=8 e no estudo de reparo, respectivamente.",
+    "metricas_principais": [
+      "Hypervolume (HV); para os sintéticos, logΔHV = log10(HVtrue − HVcurrent)",
+      "Non-uniformity (NU) = σ(d)/μ(d) da distância ao vizinho mais próximo entre pontos não-dominados",
+      "Infeasibility % (%infeas) — fração cumulativa de soluções infactíveis sugeridas desde a inicialização",
+      "Constraint violation (CV) por iteração = soma sobre o lote de max(0, ci(xj))"
+    ],
+    "testes": [
+      "Nenhum teste de hipótese formal em nenhuma análise do artigo (sem Wilcoxon, Friedman, sinal, Bayesiano, etc.).",
+      "Média ± intervalo de confiança de 95% (sombreado) sobre 10 execuções independentes — única convenção explícita de incerteza estatística, usada na Fig. 4c (MW7 n=8).",
+      "Percentuais de diferença narrados no texto corrido (ex.: 'HV de roughly 14%', '28% lower logΔHV', '44% higher NU', 'NU of 24%') sem teste de significância associado — parecem lidos no checkpoint final das curvas."
+    ],
+    "apresentacao": "Execução ÚNICA (não mediana, não média sobre sementes) para a campanha AgNP real (Fig. 3) e para as ilustrações qualitativas MW7 n=2 (Fig. 4a, 3 execuções sobrepostas) e amostra pré-reparo (Fig. 5b); curvas de média (sólida) + sombreado de IC95% sobre 10 execuções para MW7 n=8 (Fig. 4c); curvas de média sobre 10 execuções SEM IC explícito, distinguidas por estilo de linha sólida/tracejada, no estudo de reparo (Fig. 5c); mapas de densidade de probabilidade agregando execuções (Fig. 4b). Nenhuma tabela numérica com média±dp ou negrito para o melhor; achados relatados como percentuais de diferença no texto corrido, não em tabela.",
+    "codigo_plataforma": "BoTorch 0.8.5 + GPyTorch 1.10 (lista de SingleTaskGP via ModelListGP para objetivos e restrições, média constante, kernel Matérn ν=2.5; qNEHVI e qNParEGO; optimize_acqf com num_samples=128 para aproximação MC e raw_samples=256); pymoo 0.6.0 (U-NSGA-III como componente EA do EGBO, TournamentSelection com vetores de referência via s-energy, SimulatedBinaryCrossover eta=30 prob=1.0, PolynomialMutation eta=20, pop_size=256); MOEA/D-IEpsilon mencionado só na ablação do Supplementary. Plataforma SDL própria: LabVIEW (controle de bombas de seringa e imageamento hiperespectral) + Jupyter notebook Python (loop fechado, otimização)."
+  },
+  "analises": [
+    {
+      "fichas": [
+        23,
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "No único run de cada otimizador na plataforma SDL real de síntese de AgNP (5D de decisão, 3 objetivos, 2 restrições, 15 iterações, lote q=4), o artigo plota a trajetória de amostragem no espaço de objetivos (y1 vs y2), colorida por iteração, destacando os pontos não-dominados (quadrados) e o HV final; complementa com os espectros de absorbância finais e a evolução temporal da taxa de reação para 3 pontos ND escolhidos manualmente, comparando qualitativamente qNEHVI-BO e EGBO.",
+      "literal": "Figure 3a, b (top) illustrate the optimization trajectories of qNEHVI-BO and EGBO in the objective space. We observe a clear trade-off between y1 and y2 as seen by the concave shape of the PF.",
+      "localizador": "Sec. Self-driving lab for AgNP experimental campaign, Fig. 3a,b",
+      "metricas": [
+        "HV (destacado visualmente)",
+        "y1 (similaridade espectral, escala log)",
+        "y2 (taxa de reação)",
+        "cobertura/distribuição do conjunto não-dominado (qualitativo)"
+      ],
+      "testes": [
+        "nenhum — execução única por otimizador, leitura qualitativa"
+      ],
+      "convencoes": "Execução única (n=1) por otimizador, sem repetição; pontos coloridos por número da iteração (azul=inicialização → roxo=iteração 15); pontos não-dominados marcados como quadrados; HV final destacado em ciano; 3 pontos ND escolhidos manualmente (setas roxa/rosa) para ilustrar espectros e curvas de RR.",
+      "achado": "EGBO manteve HV superior ao longo de toda a campanha e amostrou o maior valor de y1 já na 1ª iteração (o melhor y1 de qNEHVI-BO só surgiu na 7ª iteração, com desvio de comprimento de onda). EGBO também mostrou menos soluções com y1=0, indicando melhor manejo da função de gating δ. Os candidatos de maior y2 mostraram espectros de absorbância muito espalhados (sugerindo aglomeração de AgNPs), enquanto os de maior y1 tiveram evolução de RR em forma de sino.",
+      "aplicabilidade": "Não reprodutível diretamente — a dissertação não inclui o problema real AgNP nem qNEHVI-BO/EGBO na bateria padrão; conceitualmente análogo à camada ① (avaliações reais x,f,ordem) para reconstruir a trajetória de amostragem no espaço de objetivos de uma execução única e distinguir ND/dominado a cada iteração."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para a mesma campanha AgNP (execução única por otimizador), o artigo plota a evolução de HV, NU (não-uniformidade) e da fração infactível cumulativa ao longo das 15 iterações, comparando qNEHVI-BO e EGBO, com a fração de pontos infactíveis no espaço de decisão total como referência (linha tracejada cinza).",
+      "literal": "This is supported by Fig. 3c (middle), where EGBO gets a higher HV of roughly 14% compared to qNEHVI-BO and qNEHVI-BO a lower NU of 24% compared to EGBO.",
+      "localizador": "Sec. Self-driving lab for AgNP experimental campaign, Fig. 3c",
+      "metricas": [
+        "HV",
+        "NU (não-uniformidade)",
+        "% infeasible (fração cumulativa de soluções infactíveis antes do reparo)"
+      ],
+      "testes": [
+        "nenhum teste estatístico — execução única por otimizador"
+      ],
+      "convencoes": "Execução única por otimizador (não mediana±IQR sobre sementes); painéis empilhados ao longo das iterações (HV no topo; comparação HV/NU relatada no painel 'middle'; infactibilidade no painel de baixo); linha tracejada cinza = % de pontos infactíveis no espaço de decisão total, como referência de base.",
+      "achado": "EGBO obtém HV cerca de 14% maior que qNEHVI-BO; qNEHVI-BO obtém NU cerca de 24% menor (mais uniforme) que EGBO. Apesar do HV melhor, EGBO propôs MAIS soluções infactíveis que qNEHVI-BO (ambos acima da % de infactibilidade de base do espaço de decisão), concentrando amostragem na região de alto y2 — os autores atribuem isso ao pós-reparo interagindo com uma fronteira de restrição que intersecta a PF.",
+      "aplicabilidade": "Camada ① (avaliações reais) permitiria reconstruir HV/IGD+ por checkpoint de uma execução única; %infeasible/CV exigiriam registrar viabilidade de cada candidato ANTES do reparo, o que não está entre os dados padrão das 7 camadas para os problemas sem restrições explícitas da bateria — não reprodutível sem um problema com restrições e operador de reparo na bateria."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para o caso simples de MW7 com apenas n=2 variáveis (EGBO, 3 execuções de 30 iterações), o artigo plota a trajetória de amostragem nos espaços de decisão e de objetivos, sobre as regiões factível (cinza) e infactível (vermelho), com o POS/PF verdadeiros (irrestrito em azul tracejado, restrito em vermelho sólido) — ilustrando um POS/PF desconexo, formado por duas ilhas ligadas por uma ponte estreita.",
+      "literal": "We see in Fig. 4a that EGBO seems to properly explore the whole constrained POS and PF, despite a few infeasible samples.",
+      "localizador": "Sec. Synthetic studies, Fig. 4a",
+      "metricas": [
+        "cobertura qualitativa do POS/PF verdadeiros (restrito e irrestrito)"
+      ],
+      "testes": [
+        "nenhum — 3 execuções, leitura qualitativa"
+      ],
+      "convencoes": "3 execuções (EGBO apenas) sobrepostas no mesmo gráfico; espaço de decisão (esquerda) e de objetivos (direita) lado a lado; região factível em cinza cobrindo duas ilhas ligadas por uma ponte estreita, região infactível em vermelho; PF/POS verdadeiros como linhas de referência.",
+      "achado": "EGBO explora adequadamente todo o POS e a PF restritos, mesmo com uma restrição adicional (c2) que corta a PF; poucas amostras infactíveis aparecem apesar disso.",
+      "aplicabilidade": "Camada ① (avaliações reais x,f) plotada no espaço de decisão/objetivo contra a frente verdadeira — reprodutível conceitualmente em qualquer problema com PF conhecida da bateria (ZDT/DTLZ/WFG/MMF), mas a componente de região factível/infactível/POS desconexo exigiria um problema com restrições explícitas, que os problemas sintéticos padrão da dissertação não têm."
+    },
+    {
+      "fichas": [
+        54,
+        55
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Em MW7 com n=8 variáveis (10 execuções, 48 iterações), o artigo plota mapas de densidade de probabilidade de amostragem no espaço de objetivos para qNEHVI-BO e EGBO, sobrepostos à região factível/infactível e à PF verdadeira (restrita e irrestrita), agregando a distribuição de amostragem das 10 execuções por algoritmo.",
+      "literal": "Figure 4b shows the probability maps obtained for qNEHVI-BO and EGBO after 10 runs.",
+      "localizador": "Sec. Synthetic studies, Fig. 4b",
+      "metricas": [
+        "densidade de amostragem no espaço de objetivos (mapa, agregando 10 execuções)",
+        "logΔHV (citado a partir da Fig. 4c: 28% menor para EGBO)",
+        "NU (citado a partir da Fig. 4c: 44% maior para EGBO)"
+      ],
+      "testes": [
+        "nenhum teste estatístico — mapa descritivo agregando 10 execuções"
+      ],
+      "convencoes": "Heatmap de densidade (azul=baixa, amarelo=alta) agregando as 10 execuções por algoritmo; região factível/infactível sombreada; PF verdadeira irrestrita (azul) e restrita (vermelha) sobrepostas; ponto de referência do HV marcado com estrela laranja.",
+      "achado": "EGBO tem densidade mais alta perto da PF restrita e logΔHV 28% menor que qNEHVI-BO (mais perto da PF verdadeira), à custa de NU 44% maior (amostragem menos uniforme, concentrada na parte central da PF); qNEHVI-BO propôs muitas amostras infactíveis longe da PF (canto superior direito do mapa), enquanto EGBO evitou desperdiçar amostras além do ponto de referência do HV onde a melhoria de HV é nula.",
+      "aplicabilidade": "Camada ① agregada sobre execuções (múltiplas sementes) em mapa de densidade no espaço de objetivos é reprodutível para qualquer célula algoritmo×problema da bateria; a componente de região factível/infactível não se aplica aos problemas sintéticos padrão (sem restrições) da dissertação."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas de logΔHV, NU e violação de restrição (CV, separada para c1 e c2) ao longo de 48 iterações, média ± IC95% sobre 10 execuções, comparando qNEHVI-BO e EGBO em MW7 (n=8); o artigo decompõe a violação de restrição de EGBO por restrição individual (c1, distante da PF; c2, que intersecta a PF) para explicar o mecanismo por trás do trade-off HV×NU.",
+      "literal": "However, this was done to the detriment of the sampling uniformity on the PF, with a 44% higher NU metric compared to qNEHVI-BO.",
+      "localizador": "Sec. Synthetic studies, Fig. 4c",
+      "metricas": [
+        "logΔHV",
+        "NU (não-uniformidade)",
+        "violação de restrição c1 (CV)",
+        "violação de restrição c2 (CV)"
+      ],
+      "testes": [
+        "nenhum teste de hipótese formal — média ± intervalo de confiança de 95% sobre 10 execuções (sombreado)"
+      ],
+      "convencoes": "Linha de média sólida + sombreado de IC95% sobre 10 execuções, por iteração (até 48); painéis separados para logΔHV, NU, e violação de c1/c2; percentuais de diferença (28%, 44%) citados no texto, aparentemente lidos no checkpoint final, sem teste de significância formal associado.",
+      "achado": "EGBO chega 28% mais perto da PF verdadeira (logΔHV menor) mas com NU 44% maior (menos uniforme) que qNEHVI-BO. A violação de c1 (restrição distante da PF) de EGBO converge a zero rapidamente, pois a pressão de seleção transfere viabilidade dos pais para os filhos via crossover; já a violação de c2 (restrição que intersecta a PF) permanece persistentemente acima de zero, porque a mutação perturba pais já próximos da PF através dessa fronteira — o mesmo padrão de 'EGBO mais infactível apesar de melhor HV' (Simpson) já visto na campanha AgNP.",
+      "aplicabilidade": "Camada ① endpoint por checkpoint (fração do orçamento) reproduziria logΔHV/IGD+ ao longo da busca (ficha 26 padrão); violação de restrição (CV) por c1/c2 exigiria instrumentar viabilidade por avaliação, fora das 7 camadas padrão para problemas sem restrições explícitas da bateria sintética."
+    },
+    {
+      "fichas": [
+        9,
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O mesmo experimento (MW7, n=8, 10 execuções, 48 iterações) inclui também qNParEGO (aquisição por escalarização) e U-NSGA-III puro (piso evolutivo SEM surrogate — coincidentemente o próprio componente evolutivo embutido no EGBO, rodado isoladamente) nas curvas de logΔHV/NU/CV, comparando os 4 algoritmos em HV, uniformidade e desperdício de amostragem.",
+      "literal": "We see that both qNEHVI-BO and EGBO clearly outperform qNParEGO and U-NSGA-III in terms of HV improvement and sampling wastage.",
+      "localizador": "Sec. Synthetic studies, Fig. 4c",
+      "metricas": [
+        "logΔHV",
+        "NU (não-uniformidade)",
+        "% infeasible / sampling wastage"
+      ],
+      "testes": [
+        "nenhum teste de hipótese formal — média ± IC95% sobre 10 execuções"
+      ],
+      "convencoes": "4 curvas de média±IC95% (qNEHVI-BO, EGBO, qNParEGO, U-NSGA-III) sobrepostas nos mesmos painéis de logΔHV/NU/CV.",
+      "achado": "qNEHVI-BO e EGBO (ambos assistidos por GP) superam claramente qNParEGO e o piso U-NSGA-III puro em melhoria de HV e em desperdício de amostragem. Em uniformidade (NU), a ordem é: qNParEGO (mais uniforme) próximo de qNEHVI-BO < EGBO < U-NSGA-III (menos uniforme, pois prioriza diversidade dos pais antes da não-dominância).",
+      "aplicabilidade": "Análogo direto à comparação assistido×piso da dissertação (ficha 9): aqui o 'piso' testado (U-NSGA-III puro) é literalmente o mesmo componente evolutivo embutido dentro do EGBO, rodado sozinho — um caso raro em que o piso é comprovadamente da MESMA classe de motor do assistido. Reprodutível em espírito via camada ① endpoint por checkpoint comparando um algoritmo assistido a seu piso evolutivo pareado da bateria (NSGA-II/MOEA-D/NSGA-III/SMS-EMOA), embora aqui a comparação seja por média±IC95% sobre execuções, não pareada por semente."
+    },
+    {
+      "fichas": [
+        1,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo menciona ter testado EGBO e qNEHVI-BO em problemas adicionais do MW test suite e do ZDT test suite (2 e 3 objetivos), afirmando que EGBO supera qNEHVI-BO em HV em todos eles — mas não mostra a figura/tabela nem os números no corpo principal deste documento.",
+      "literal": "we demonstrate that EGBO outperforms qNEHVI-BO in terms of HV across all the selected problems.",
+      "localizador": "Sec. Synthetic studies (parágrafo final); Supplementary Discussion subsection 2.2 (não presente neste documento)",
+      "metricas": [
+        "HV (presumido, não detalhado no corpo principal)"
+      ],
+      "testes": [
+        "não especificado no texto principal"
+      ],
+      "convencoes": "",
+      "achado": "EGBO supera qNEHVI-BO em HV em todos os problemas adicionais selecionados do MW e ZDT — afirmação geral, sem números, curvas ou tabela visíveis nesta extração.",
+      "aplicabilidade": "Não reprodutível a partir deste documento — depende do Supplementary Discussion 2.2, não presente na extração; nem os problemas específicos do MW/ZDT testados são nomeados no corpo principal.",
+      "observacoes": "só mencionada"
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação do componente evolutivo interno do híbrido assistido (troca de EA e do otimizador de aquisição)",
+      "grupo_sugerido": "G",
+      "descricao": "O artigo menciona ter repetido seus experimentos sintéticos substituindo o componente evolutivo do EGBO (U-NSGA-III → MOEA/D-IEpsilon) e o otimizador da aquisição do lado BO (optimize_acqf/gradiente → amostragem discreta de Sobol), relatando desempenho comparável entre as variantes — uma checagem de robustez da arquitetura híbrida a escolhas de implementação, mas sem números, figura ou tabela mostrados no corpo principal.",
+      "literal": "we performed ablation studies where the EA sampling in EGBO is replaced with Multi-Objective Evolutionary Algorithm based on Decomposition with Improved Epsilon (MOEA/D-IEpsilon), and the BoTorch optimization method optimize_acqf with a discrete Sobol sampling.",
+      "localizador": "Sec. Further discussion; Supplementary Discussion subsection 2.2 (não presente neste documento)",
+      "metricas": [
+        "desempenho geral (HV presumido; não detalhado no corpo principal)"
+      ],
+      "testes": [
+        "não especificado no texto principal"
+      ],
+      "convencoes": "",
+      "achado": "Desempenho comparável usando U-NSGA-III ou MOEA/D-IEpsilon como componente evolutivo dentro do framework EGBO, em múltiplos problemas sintéticos — sugerindo que o ganho do EGBO vem do balanço exploração(BO)/explotação(EA) em si, não da escolha específica do algoritmo evolutivo usado.",
+      "aplicabilidade": "Não reprodutível a partir deste documento (Supplementary Discussion 2.2 ausente); mesmo que estivesse presente, exigiria rodar variantes do próprio EGBO (troca de EA interno), fora do escopo de re-análise pós-hoc da dissertação, que não re-executa algoritmos.",
+      "observacoes": "só mencionada"
+    },
+    {
+      "fichas": [
+        9,
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "No problema AgNP (usando um GP treinado sobre TODOS os dados reais da campanha como pseudo-verdade de referência para HV), o artigo compara pré-reparo × pós-reparo de restrições para qNEHVI-BO e EGBO (10 execuções, 30 iterações, lote q=4), com amostragem Sobol pura como baseline adicional, em curvas de logΔHV, NU e % infactível.",
+      "literal": "We see a decrease of logΔHV with the pre-repair process for both qNEHVI-BO and EGBO, meaning that the algorithms get closer to the true PF.",
+      "localizador": "Sec. Handling input and output constraints, Fig. 5c",
+      "metricas": [
+        "logΔHV",
+        "NU (não-uniformidade)",
+        "% infeasible"
+      ],
+      "testes": [
+        "nenhum teste de hipótese formal — curvas de média sobre 10 execuções"
+      ],
+      "convencoes": "Linha de média sobre 10 execuções × 30 iterações; estilo de linha distingue pré-reparo (sólida) de pós-reparo (tracejada); cor distingue qNEHVI-BO (azul) de EGBO (laranja); Sobol como linha cinza de referência/baseline; sem sombreado de IC explícito mencionado para esta figura (diferente da Fig. 4c).",
+      "achado": "O pré-reparo reduz logΔHV (mais perto da PF verdadeira) para ambos os algoritmos, e sua NU permanece tão baixa quanto a do Sobol puro (amostragem uniforme); o pós-reparo, em contraste, sugeriu MAIS pontos infactíveis que a própria amostragem Sobol aleatória pura — um resultado negativo direto para a abordagem pós-reparo, cuja qualidade depende muito da escolha (arbitrária) do operador de reparo, sobretudo quando ele projeta múltiplos pontos infactíveis no mesmo lugar da fronteira de restrição.",
+      "aplicabilidade": "Exigiria rodar variantes do algoritmo com mecanismos de reparo pré/pós distintos sobre um problema com restrições reparáveis — não reprodutível pós-hoc com as 7 camadas da dissertação (nenhum problema padrão tem operador de reparo definido); a técnica de treinar um GP sobre todos os dados reais como pseudo-verdade para HV é uma nota metodológica que poderia inspirar abordagem análoga nos 3 problemas reais da dissertação (RE21/ESTOQUE40/DDMOP7) caso não haja PF verdadeira conhecida, mas não é algo que a dissertação já faça."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para uma única execução de EGBO com pré-reparo no problema AgNP, o artigo plota a posição das amostras dominadas (discos cinza) e não-dominadas (quadrados pretos) nos espaços de decisão (3 das 5 vazões: QAgNO3, Qseed, QAA — as afetadas pelo operador de reparo) e de objetivos.",
+      "literal": "The sampling distribution of the non-dominated points (black square) in the objective space indicates that EGBO with pre-repair achieves a good coverage of the PF, without any oversampling at high y2.",
+      "localizador": "Sec. Handling input and output constraints, Fig. 5b",
+      "metricas": [
+        "ND vs dominado (qualitativo)",
+        "posição no espaço de decisão (QAgNO3, Qseed, QAA)"
+      ],
+      "testes": [
+        "nenhum — execução única, leitura qualitativa"
+      ],
+      "convencoes": "Execução única (EGBO, pré-reparo); pontos dominados = discos cinza, não-dominados = quadrados pretos; plotado em 3 das 5 dimensões de decisão mais o espaço de objetivos.",
+      "achado": "O pré-reparo dá boa cobertura da PF sem a superamostragem em alto y2 vista com pós-reparo; parte dos pontos ND se projeta numa linha correspondente à fronteira de restrição c2, mas outros pontos ND seguem espalhados dentro do espaço factível. A maioria dos pontos ND está sobre as restrições de caixa (box constraints), sugerindo que aumentar os limites máximos de vazão poderia ter melhorado ainda mais o resultado.",
+      "aplicabilidade": "Camada ① (avaliações reais) + distinção ND/dominado — reprodutível para qualquer execução única via camada ①; específico à restrição de caixa/c2 do problema AgNP, sem equivalente nos problemas padrão da bateria."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo NÃO mede a calibração/qualidade da incerteza (σ) do seu próprio GP surrogate — não há RMSE de μ, não há checagem de cobertura de intervalo (fração de pontos cujo f cai dentro de μ±k·σ), não há correlação entre σ e o erro real. A menção à calibração aparece SÓ como motivação de literatura, citando Rasmussen et al. (ref. 36): a ideia de que, se a estratégia de busca já impulsiona a otimização (aqui, a pressão de seleção evolutiva do componente EA), um surrogate mal calibrado pode ser inconsequente — o que motiva a própria arquitetura híbrida do EGBO (GP+BO em paralelo com um EA que NÃO depende de σ) em vez de depender só do GP. É precisamente a frase pela qual este artigo é citado na dissertação.",
+    "literal": "Work by Rasmussen et al. also highlighted a key point in understanding BO performance: a poorly calibrated surrogate model may be inconsequential as optimization is driven by the search strategy or with enough random sampling.",
+    "localizador": "Sec. Evolution-guided Bayesian optimization (parágrafo final, imediatamente antes de introduzir o EGBO), citando Rasmussen et al. [ref. 36]"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Não reporta custo COMPUTACIONAL do otimizador (sem tempo de ajuste do GP, sem tempo de otimização da aquisição/optimize_acqf, sem complexidade O(n³) discutida). Reporta apenas custo/tempo EXPERIMENTAL (wet-lab) da plataforma SDL: tempo por condição amostrada (10min30s) e o número de iterações/amostras antes de a campanha ser interrompida por razões de tempo e recursos; também discute (sem testar empiricamente) o trade-off de tamanho de lote × tempo de execução do experimento (desperdício de água, necessidade de reabastecer seringas).",
+    "literal": "Each sampled condition takes 10min30s to go through the whole experimental workflow (Fig. 2d).",
+    "localizador": "Methods, Sec. Experimental platform"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Citação central pela qual este artigo é referenciado na dissertação: os autores invocam Rasmussen et al. para justificar que um surrogate mal calibrado pode não comprometer a otimização se a estratégia de busca (aqui, a pressão de seleção evolutiva) já fizer o trabalho — motivando por que o EGBO combina BO com um EA que não depende de σ, em vez de confiar só no GP.",
+      "literal": "a poorly calibrated surrogate model may be inconsequential as optimization is driven by the search strategy or with enough random sampling.",
+      "localizador": "Sec. Evolution-guided Bayesian optimization (parágrafo final, antes de introduzir o EGBO)"
+    },
+    {
+      "descricao": "Na campanha real AgNP, o próprio EGBO (o método proposto pelo artigo) propôs MAIS soluções infactíveis que o qNEHVI-BO baseline, apesar de ter HV melhor — um resultado contraintuitivo (Simpson) sobre o método do próprio artigo, não só sobre o baseline.",
+      "literal": "Most notably, EGBO proposed more infeasible solutions compared to qNEHVI-BO despite a better HV metric and leads to concentrated sampling in the high y2 region.",
+      "localizador": "Sec. Self-driving lab for AgNP experimental campaign"
+    },
+    {
+      "descricao": "Em MW7 (n=8), os mapas de densidade de amostragem indicam que o qNEHVI-BO puro (dependente só da predição de restrição do GP) NÃO controla bem a infactibilidade, desperdiçando amostras longe da região factível — e é exatamente a pressão de seleção do EA (que não usa σ) que corrige isso no EGBO.",
+      "literal": "The probability maps suggest that qNEHVI-BO did not handle constraints well, whereas EGBO managed to minimize sampling far from the feasible space.",
+      "localizador": "Sec. Synthetic studies (discussão da Fig. 4b)"
+    },
+    {
+      "descricao": "O mesmo fenômeno contraintuitivo da campanha AgNP reaparece em MW7: EGBO tem fração de soluções infactíveis pior que qNEHVI-BO apesar de HV melhor — batizado explicitamente pelos autores de Paradoxo de Simpson, um viés de amostragem que complica a leitura ingênua de 'melhor HV = melhor manejo de restrições'.",
+      "literal": "it was noted that EGBO had a worse fraction of infeasible solutions despite a better HV metric, since qNEHVI-BO did not evaluate as many solutions near the POS. This phenomenon of sampling bias is also known as Simpson's Paradox.",
+      "localizador": "Sec. Synthetic studies (discussão da Fig. 4c)"
+    },
+    {
+      "descricao": "O ganho de HV do EGBO sobre qNEHVI-BO em MW7 (n=8) vem acompanhado de uma piora substancial na uniformidade da amostragem sobre a PF (NU 44% maior) — um trade-off negativo explícito do próprio método proposto, não apenas uma vantagem unilateral.",
+      "literal": "However, this was done to the detriment of the sampling uniformity on the PF, with a 44% higher NU metric compared to qNEHVI-BO.",
+      "localizador": "Sec. Synthetic studies (discussão da Fig. 4b/4c)"
+    },
+    {
+      "descricao": "No estudo de reparo de restrições (AgNP), a abordagem PÓS-reparo (que usa o GP/EGBO para escolher candidatos e só depois reparar os infactíveis) chegou a sugerir MAIS pontos infactíveis do que a amostragem puramente aleatória (Sobol) — ou seja, o otimizador assistido, mal configurado quanto ao momento do reparo, pode ficar pior que não otimizar nada.",
+      "literal": "Finally, Fig. 5c (bottom) shows that optimization with post-repair suggested more infeasible points than Sobol sampling.",
+      "localizador": "Sec. Handling input and output constraints (discussão da Fig. 5c)"
+    },
+    {
+      "descricao": "Os autores alertam que o viés introduzido por um operador de reparo pós-hoc mal escolhido pode ter efeito dramático quando a fronteira ótima (POS) coincide com a própria fronteira de restrição — a maior parte da amostragem fica presa explorando só uma região estreita da PF verdadeira, mesmo com um método assistido de boa qualidade.",
+      "literal": "This bias can have dramatic effect if the POS is located at the constraint boundary, since most of the samples will be used to only explore a narrow region of the PF.",
+      "localizador": "Sec. Handling input and output constraints"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Em MW7 (n=8), qNEHVI-BO (aquisição de hipervolume) e qNParEGO (aquisição por escalarização/ParEGO) atingem valores de não-uniformidade (NU) próximos entre si, apesar de mecanismos de aquisição teoricamente distintos (hipervolume vs. escalarização de Chebyshev).",
+      "literal": "qNEHVI-BO has a NU metric close to qNParEGO and EGBO lies between qNEHVI-BO and U-NSGA-III.",
+      "localizador": "Sec. Synthetic studies (discussão da Fig. 4c)"
+    },
+    {
+      "descricao": "Substituir o componente evolutivo U-NSGA-III por MOEA/D-IEpsilon dentro do framework EGBO produz desempenho comparável em múltiplos problemas sintéticos — sugerindo que o mecanismo específico do EA importa menos que o princípio de combinar pressão de seleção com a aquisição de BO (resultado só mencionado, detalhado no Supplementary Discussion 2.2, não presente neste documento).",
+      "literal": "we observed comparable performance using either U-NSGA-III or MOEA/D-IEpsilon in EGBO framework across multiple synthetic problems.",
+      "localizador": "Sec. Further discussion; detalhes em Supplementary Discussion subsection 2.2 (não incluído neste .md)"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "restrição que intersecta a fronteira de Pareto (constraint boundary crossing the PF/POS), vs. restrição distante da PF",
+      "afirmacao": "A pressão de seleção evolutiva preserva e transfere a viabilidade dos pais para os filhos via crossover, fazendo a violação da restrição distante da PF (c1) convergir rapidamente a zero; já a restrição que intersecta a PF (c2) mantém violação persistentemente acima de zero, pois a mutação perturba pais próximos à PF através dessa fronteira, ainda que em magnitude bem menor que a de c1.",
+      "literal": "as selection pressure preserves and transfers parent feasibility to the children via crossover, EGBO candidates are more likely to evolve within the feasible region towards the PF.",
+      "localizador": "Sec. Synthetic studies (discussão da Fig. 4c)"
+    },
+    {
+      "caracteristica": "frente de Pareto desconexa/descontínua (disjointed POS/PF, MW7 n=2 e n=8)",
+      "afirmacao": "EGBO atinge sua maior densidade de probabilidade de amostragem perto da região onde a PF é descontínua, pois muitos pontos são necessários para aprender um POS desconexo (duas ilhas ligadas por uma ponte estreita).",
+      "literal": "EGBO reaches its highest probability density near the region where the PF is discontinuous, since many data points are required to learn a disjointed POS.",
+      "localizador": "Sec. Synthetic studies (discussão da Fig. 4b)"
+    },
+    {
+      "caracteristica": "alta dimensão do espaço de decisão com espaço factível muito limitado",
+      "afirmacao": "A pressão de seleção ajuda o EGBO a contornar regiões infactíveis próximas da PF mesmo em espaços de decisão de alta dimensão com espaço factível muito restrito (evidenciado ao subir de n=2 para n=8 em MW7, e no espaço de decisão 5D do AgNP).",
+      "literal": "selection pressure helps EGBO to bypass infeasible regions located near the PF, even in high dimensional decision spaces with very limited feasible space.",
+      "localizador": "Sec. Evolution-guided Bayesian optimization (parágrafo final, antes de Results)"
+    },
+    {
+      "caracteristica": "forma côncava da fronteira de Pareto / trade-off entre objetivos (AgNP, y1 vs y2)",
+      "afirmacao": "O trade-off entre y1 (similaridade espectral) e y2 (taxa de reação) produz uma PF côncava, claramente observável na campanha real AgNP para ambos os otimizadores.",
+      "literal": "We observe a clear trade-off between y1 and y2 as seen by the concave shape of the PF.",
+      "localizador": "Sec. Self-driving lab for AgNP experimental campaign"
+    },
+    {
+      "caracteristica": "extremos da fronteira de Pareto sob aquisição baseada em hipervolume (viés do ponto de referência)",
+      "afirmacao": "A região central da PF é mais amostrada que as bordas em MW7 (n=8), o que se explica pelo viés introduzido pelo ponto de referência do HV: os extremos da PF estão associados a menor melhoria de hipervolume, logo são menos atrativos para uma aquisição baseada em HV.",
+      "literal": "the central part of the PF is more sampled than the sides which can be explained by the bias introduced by the HV reference point, as the PF extrema are associated with lower HV improvement.",
+      "localizador": "Sec. Synthetic studies (discussão da Fig. 4b)"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) O arquivo /home/claude/corpus_md/e16.md contém o conteúdo do artigo DUPLICADO (extração estruturada pymupdf4llm + camada de texto bruta ANEXO get_text, ambas cobrindo o mesmo corpo do artigo) mais um terceiro anexo de OCR das figuras (Apple Vision) que traz apenas rótulos de eixo/legenda (vários ilegíveis/invertidos pelo OCR, ex. 'suo!eje}l'~'Iterations', 'uO!}ejo!A'~'Violation') — nenhuma tabela numérica nova além do que já está no texto corrido das duas primeiras camadas. (2) O artigo cita repetidamente um 'Supplementary Discussion' com pelo menos as subseções 2.1 e 2.2 (Supplementary Fig. 1.1, 1.3, 1.4, 2.1 etc.) que NÃO está presente em corpus_md/e16.md — afeta diretamente duas análises listadas ('só mencionada'): a bateria adicional MW+ZDT (Sec. Synthetic studies, final) e a ablação do componente evolutivo/otimizador de aquisição (Sec. Further discussion). (3) Não há NENHUM teste de hipótese estatística formal no artigo inteiro (sem Wilcoxon, Friedman, sinal, Bayesiano) — a única noção de incerteza estatística explícita é média±IC95% sobre 10 execuções, usada só na Fig. 4c (MW7 n=8); Fig. 3c (AgNP) é execução única (n=1); Fig. 4a (MW7 n=2, 3 execuções) e Fig. 5b (AgNP, 1 execução) são qualitativas; Fig. 5c (estudo de reparo, 10 execuções) mostra só curvas de média, sem sombreado de IC mencionado. (4) A campanha real AgNP é execução ÚNICA por otimizador — os próprios autores reconhecem isso como limitação: 'a single run can be sensitive to the choice of initial candidates and random noise... statistical analysis on multiple runs is required across problems of various complexities' (Sec. Self-driving lab for AgNP experimental campaign) — por isso os estudos sintéticos (MW7) e o estudo de reparo (repetições de 10 execuções) foram propostos como complemento mais rigoroso. (5) Para calcular logΔHV no problema real AgNP (sem PF verdadeira conhecida a priori) no estudo de reparo (Fig. 5), os autores treinaram um GP sobre TODOS os dados reais da campanha experimental para servir de pseudo-verdade de referência (Supplementary Fig. 1.4, mencionada mas não presente) — nota metodológica relevante para qualquer análise tipo 'sonda' em problemas reais da dissertação (RE21/ESTOQUE40/DDMOP7) que não tenham PF verdadeira conhecida. (6) O artigo compara variantes do próprio método = ablações naturais: EGBO com U-NSGA-III vs. MOEA/D-IEpsilon como EA interno (só mencionada); optimize_acqf vs. Sobol discreto como otimizador da aquisição (só mencionada); pre-repair vs. post-repair como estratégia de tratamento de restrições de entrada (Fig. 5c, com dados no corpo principal) — esta última é a ablação mais bem documentada do artigo, mas não corresponde exatamente a nenhuma ficha da tipologia (mapeada por analogia de FORMA às fichas 26/9); pode ser um candidato a nova ficha ('sensibilidade ao operador/momento de reparo de restrições de entrada') para refinamento futuro do catálogo. (7) Discussão sobre lote (batch): a plataforma é 'technically q=1' mas os autores avaliam 8 amostras (4 de cada otimizador) sequencialmente como lote por praticidade operacional (janela de tempo do experimento); batching assíncrono é apontado como trabalho futuro, NÃO testado empiricamente — não há, portanto, um verdadeiro sub-estudo de lote q>1 vs q=1 (ficha 64 não se aplica). (8) A comparação com o método de reparo de Hickman et al. (busca binária após cruzamento) na seção 'Further discussion' é puramente CONCEITUAL/de literatura (sem dados/figura próprios deste artigo) — não foi listada como análise. (9) Consistente com a classificação dada no pedido (motor=BO-Hipervolume; função da incerteza=O1 · Aquisição exploratória; surrogate=GP; medição=VAR-GP; regime=online): o artigo usa GP (SingleTaskGP/ModelListGP, Matérn 5/2) com amostragem da posterior para a aquisição qNEHVI (Monte Carlo, num_samples=128) em loop 100% online (toda avaliação é real, sem regime offline); a incerteza (σ/amostras da posterior) entra SÓ no lado BO da arquitetura — o componente EA (U-NSGA-III) que dá nome ao EGBO NÃO usa σ em nenhum momento, opera só sobre não-dominância das avaliações reais já observadas, o que é precisamente o ponto que motiva a citação de Rasmussen et al. sobre calibração (ver campo calibracao_do_sigma)."
+}

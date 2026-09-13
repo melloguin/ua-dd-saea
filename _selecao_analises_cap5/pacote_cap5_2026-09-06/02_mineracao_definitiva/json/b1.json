@@ -1,0 +1,301 @@
+{
+  "id": "b1",
+  "sigla": "ParEGO",
+  "titulo": "ParEGO: A Hybrid Algorithm With On-Line Landscape Approximation for Expensive Multiobjective Optimization Problems",
+  "ano": 2006,
+  "roster": true,
+  "setup": {
+    "benchmarks": "Estudo principal (MOO, ParEGO x NSGA-II): 9 funções de teste, 2 ou 3 objetivos, 2 a 8 variáveis de decisão: KNO1 (2 obj, 2 var, própria do artigo, 15 frentes localmente ótimas), OKA1 (2 obj, 2 var, Okabe et al., densidade cai perto da frente), OKA2 (2 obj, 3 var, ótimos numa curva espiral, densidade cai fortemente perto da frente), VLMOP2 (2 obj, 2 var, frente côncava), VLMOP3 (3 obj, 2 var, conjunto de Pareto desconexo, frente \"convoluted\"), DTLZ1a (2 obj, 6 var, versão alterada de DTLZ1 com termo de rugosidade reduzido), DTLZ2a e DTLZ4a (3 obj, 8 var cada; DTLZ4a com expoente que enviesa fortemente a densidade, valor ~100 conforme OCR da equação), DTLZ7a (3 obj, 8 var, 4 regiões desconexas na frente). Estudo auxiliar de validação do EGO (single-objective, Sec. III-B): 13 funções multimodais/epistáticas de Liang et al. [41], dimensão até 10 (Tabelas I-III); não faz parte do escopo MOO do roster.",
+    "orcamento": "MOO: 100 avaliações e 250 avaliações (ParEGO) / 260 avaliações (NSGA-II, pop=20 x 13 gerações) -- orçamentos tratados como \"comparáveis\", não idênticos. DoE inicial de ParEGO = hipercubo latino de 11d-1 pontos (confirmado no pseudocódigo do Algoritmo 1: \"for each i in 1 to 11d - 1\"); após isso, 1 avaliação real por iteração (regime online, modelo reajustado a cada avaliação). Random search: 21 execuções, até 10000 avaliações (resultados não publicados). Estudo EGO (single-objective): 20d avaliações por execução; DoE inicial \"set to [número de pontos], onde d é a dimensão\" -- fórmula exata perdida na conversão (equação/imagem omitida).",
+    "execucoes": "Estudo principal: 21 execuções independentes por algoritmo/função (ParEGO, NSGA-II e random search). Estudo EGO: 51 execuções de EGO e 51 de random search por função (Tabelas I-II); comparação externa com EANA usa 50 execuções publicadas por Liang et al. (Tabela III).",
+    "baselines": "NSGA-II (piso evolutivo único do estudo principal; implementação da página KANGAL de Deb, population size reduzido de default para 20 após testes informais com tamanhos de 10 a 50, não publicados) e busca aleatória (piso mais trivial, 21 execuções até 10000 avaliações, mas resultados numéricos NÃO publicados no artigo -- apenas afirmação textual). Sim, há piso sem surrogate (NSGA-II é o piso principal do estudo).",
+    "metricas_principais": [
+      "S-measure (indicador de hipervolume de Zitzler, com ponto de ancoragem = anti-ideal deslocado 1% do range)",
+      "indicador epsilon binário aditivo (I_epsilon+, ambas as direções)"
+    ],
+    "testes": [
+      "Mann–Whitney rank-sum test (todas as comparações; sem correção para múltiplas comparações mencionada)"
+    ],
+    "apresentacao": "Tabelas VI/VII (S-measure): média (desvio-padrão) por função para ParEGO e NSGA-II, com z do teste e legenda textual do vencedor (ex.: \"ParEGO IS SIGNIFICANTLY BETTER THAN NSGA-II UNLESS STATED\", \"ParEGO IS BETTER IN ALL CASES\", ou anotações pontuais como \"- no winner\" / \"> 99% NSGA-II wins\"). Tabelas VIII/IX (epsilon): mediana (intervalo interquartil) nas duas direções do indicador, com z do teste. Superfícies de attainment: mediana+pior (problemas biobjetivo, ParEGO sólido / NSGA-II tracejado, sobre as 21 execuções) ou só a pior (problemas com 3 objetivos, painéis separados, mesmos eixos). Não há execução mediana isolada nem agregação por família de problema; não há tabela de rank agregado (só 2 configurações comparadas).",
+    "codigo_plataforma": "Implementação própria em C: EGO usa a biblioteca matpack para operações matriciais; verossimilhança do DACE maximizada por Nelder-Mead (20 reinícios); a melhoria esperada é maximizada por um AG interno embutido (steady-state, pop=20, seleção por torneio binário, SBX prob=0.2, mutação, 10 000 avaliações internas segundo o texto -- a Tabela V, via OCR, sugere um número diferente e provavelmente incorreto por erro de leitura da imagem, ver observações). NSGA-II: implementação de terceiros (página KANGAL de Deb), não própria."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "EGO x busca aleatória -- múltiplo de avaliações para vitória/empate (single-objective)",
+      "grupo_sugerido": "B",
+      "descricao": "Antes de propor ParEGO, o artigo valida sua própria implementação de EGO (single-objective) em 13 funções multimodais/epistáticas de Liang et al., até dimensão 10. Compara a mediana do melhor custo encontrado por EGO (51 execuções, 20d avaliações) contra a mediana de busca aleatória nos mesmos 20d avaliações e em orçamentos maiores (100d, 1000d, 5000d), usando Mann–Whitney rank-sum para determinar, por função, quantas vezes mais avaliações (2x, 5x, 50x, 100x, 250x) a busca aleatória precisaria para igualar ou vencer EGO estatisticamente.",
+      "literal": "EGO is up to 250 times faster than random search (on four of the functions), more than 50 times faster on a further four, and, at worst, about the same as random search on one highly multimodal function.",
+      "localizador": "Sec. III-B; Table I; Table II",
+      "metricas": [
+        "melhor custo/fitness encontrado (mediana de 51 execuções)",
+        "múltiplo de avaliações necessário (razão de orçamento) para RS igualar/vencer EGO"
+      ],
+      "testes": [
+        "Mann–Whitney rank-sum test"
+      ],
+      "convencoes": "Mediana de 51 execuções de EGO e de RS; valor mais próximo de EGO em negrito; colunas \"EGO wins\" (múltiplo X e nível de confiança em que RS ainda perde de EGO) e \"No diff\" (múltiplo X e menor nível de confiança em que a diferença teria sido detectada, se existisse).",
+      "achado": "EGO é até 250x mais rápido que busca aleatória em 5 das 13 funções, entre 50x-250x em mais 4, e aproximadamente empatado com busca aleatória apenas na função mais multimodal testada -- validando a implementação de EGO/DACE antes de estendê-la para ParEGO.",
+      "aplicabilidade": "não reprodutível com as camadas da dissertação -- é um estudo de validação em regime single-objective (13 funções clássicas, não MOO), fora do escopo dos 28 problemas/7 camadas do roster; nenhuma das funções testadas aqui pertence ao conjunto de benchmarks MOO da dissertação."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Comparação heterogênea com resultado publicado de outro algoritmo (orçamento não pareado)",
+      "grupo_sugerido": "G",
+      "descricao": "Compara o custo médio e o melhor custo encontrado por EGO (51 execuções, 20d avaliações) com os valores publicados por Liang et al. para o algoritmo EANA (evolution strategy com aproximação de paisagem) nas mesmas 11 funções de dimensão mais baixa, mas SEM orçamento pareado -- EANA roda até achar o ótimo ou um limite de avaliações não especificado, tipicamente 1 a 3 ordens de grandeza maior que o de EGO.",
+      "literal": "Comparison is difficult but on some functions, EGO occasionally reaches comparable fitness levels one or two orders of magnitude faster than the mean number of function evaluations quoted for EANA.",
+      "localizador": "Sec. III-B; Table III",
+      "metricas": [
+        "custo/fitness médio e melhor encontrado"
+      ],
+      "testes": [
+        "nenhum teste formal -- o próprio artigo qualifica a comparação como difícil de interpretar"
+      ],
+      "convencoes": "Média e melhor de 51 execuções (EGO) reportados lado a lado com a média publicada de 50 execuções (EANA) e o número médio de avaliações que EANA consumiu.",
+      "achado": "Em algumas funções EGO atinge níveis de aptidão comparáveis aos publicados para EANA usando de 1 a 2 ordens de grandeza menos avaliações, mas o próprio artigo adverte que a comparação é difícil dado o desenho não pareado.",
+      "aplicabilidade": "não reprodutível -- comparação com resultados publicados de terceiros (EANA), sem controle de orçamento comum nem dados brutos; fora do escopo da bateria da dissertação."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        9,
+        27
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela algoritmo x problema do S-measure (indicador de hipervolume) após 100 avaliações de ParEGO e 100 de NSGA-II, nas 9 funções MOO, com média e desvio-padrão sobre 21 execuções e teste de Mann–Whitney por função indicando se a diferença é significativa.",
+      "literal": "THE DISTRIBUTIONS OF THE S VALUES ARE TESTED USING THE MANN–WHITNEY RANK SUM TEST. THE z VALUES AND SIGNIFICANCE LEVEL ARE INDICATED. ParEGO IS SIGNIFICANTLY BETTER THAN NSGA-II UNLESS STATED",
+      "localizador": "Sec. VIII, Table VI",
+      "metricas": [
+        "S-measure (indicador de hipervolume)"
+      ],
+      "testes": [
+        "Mann–Whitney rank-sum test"
+      ],
+      "convencoes": "Média (desvio-padrão) sobre 21 execuções, por função, para as duas configurações; z do teste e anotação textual do vencedor (\"no winner\" quando não significativo). Não é mediana (diverge da convenção-padrão da ficha 1); é S-measure/hipervolume, não IGD+.",
+      "achado": "Aos 100 avaliações, ParEGO supera NSGA-II na maioria das 9 funções, exceto DTLZ4a (NSGA-II com média maior, mas sem diferença significativa) e DTLZ7a (NSGA-II significativamente melhor, >99%). Segundo a Tabela VI (valores reconstruídos via OCR da imagem, não garantidos): DTLZ7a ParEGO 12.9895 (DP 0.655795) vs NSGA-II 16.8967 (DP 1.00974), z=-5.546841.",
+      "aplicabilidade": "① endpoint: recomputar o S-measure (hipervolume) a partir das avaliações reais acumuladas até o checkpoint de 100 avaliações, com o mesmo tipo de ponto de ancoragem (anti-ideal deslocado); o teste teria de ser recomputado como rank-sum não pareado (o desenho do artigo não compartilha DoE/semente entre ParEGO e NSGA-II, ao contrário do desenho pareado da dissertação)."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma tabela algoritmo x problema do S-measure, agora após o orçamento total (250 avaliações ParEGO / 260 NSGA-II), com média, desvio-padrão e teste de Mann–Whitney por função.",
+      "literal": "THE DISTRIBUTIONS OF THE S VALUES ARE TESTED USING THE MANN–WHITNEY RANK SUM TEST. THE z VALUES AND SIGNIFICANCE LEVEL ARE INDICATED. ParEGO IS BETTER IN ALL CASES",
+      "localizador": "Sec. VIII, Table VII",
+      "metricas": [
+        "S-measure (indicador de hipervolume)"
+      ],
+      "testes": [
+        "Mann–Whitney rank-sum test"
+      ],
+      "convencoes": "Média (desvio-padrão) sobre 21 execuções; mesma estrutura da Tabela VI, mas no orçamento total.",
+      "achado": "No orçamento total, ParEGO domina consistentemente uma região maior do espaço de objetivos que NSGA-II nas 9 funções; além da média mais alta, o desvio-padrão é consistentemente menor (por vezes ordens de grandeza), sugerindo desempenho de pior-caso mais confiável; diferença significativa a 99% em todas as funções.",
+      "aplicabilidade": "① endpoint no checkpoint final do orçamento (250/260 avaliações); mesma ressalva sobre desenho não pareado da entrada anterior."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        9,
+        27
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela algoritmo x problema do indicador epsilon binário aditivo (ambas as direções, I_ParEGO,NSGA-II e I_NSGA-II,ParEGO) após 100 avaliações de cada algoritmo, com mediana e intervalo interquartil sobre 21 execuções e Mann–Whitney por função.",
+      "literal": "THE DISTRIBUTIONS OF THE I VALUES ARE TESTED USING THE MANN–WHITNEY RANK SUM TEST. THE z VALUES AND SIGNIFICANCE LEVEL ARE INDICATED. ParEGO IS SIGNIFICANTLY BETTER THAN NSGA-II UNLESS STATED",
+      "localizador": "Sec. VIII, Table VIII",
+      "metricas": [
+        "indicador epsilon binário aditivo (I_epsilon+, ambas as direções)"
+      ],
+      "testes": [
+        "Mann–Whitney rank-sum test"
+      ],
+      "convencoes": "Mediana (IQR) das duas direções do indicador epsilon, por função; menor é melhor; z do teste e anotação textual do vencedor por função.",
+      "achado": "Resultados amplamente concordantes com os do S-measure no mesmo orçamento (100 avaliações): ParEGO favorecido na maioria das funções, com exceção notável em DTLZ4a, onde a anotação da tabela indica vantagem de NSGA-II segundo o OCR da imagem (\"> 99% NSGA-II wins\").",
+      "aplicabilidade": "① endpoint: o indicador epsilon aditivo não é uma das métricas primárias da dissertação (IGD+/HV) e não tem camada dedicada -- precisaria de código próprio de indicador epsilon aplicado aos conjuntos não-dominados reconstruídos da camada ① no checkpoint de 100 avaliações."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma tabela do indicador epsilon binário aditivo, agora no orçamento total (250/260 avaliações), mediana (IQR) e Mann–Whitney por função.",
+      "literal": "Once again, it is evident that ParEGO has less variation, and that after 250 (260 for NSGA-II) evaluations it is not significantly behind on any problem.",
+      "localizador": "Sec. VIII, Table IX; p. 62–63",
+      "metricas": [
+        "indicador epsilon binário aditivo (I_epsilon+, ambas as direções)"
+      ],
+      "testes": [
+        "Mann–Whitney rank-sum test"
+      ],
+      "convencoes": "Mediana (IQR) das duas direções do indicador, por função, no orçamento total.",
+      "achado": "Após o orçamento total, ParEGO tem menos variação e não fica significativamente atrás em nenhum problema; em OKA2 sua mediana do indicador é negativa, ou seja, seus conjuntos não-dominados são estritamente melhores que os de NSGA-II em mais de 50% das execuções; em duas ou três outras funções a mediana também fica muito perto de zero, com ParEGO estritamente melhor em várias execuções.",
+      "aplicabilidade": "① endpoint no checkpoint final do orçamento; mesma ressalva de implementação do indicador epsilon da entrada anterior."
+    },
+    {
+      "fichas": [
+        54,
+        55
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para os 4 problemas biobjetivo (KNO1, OKA1, OKA2, VLMOP2), plota-se no mesmo gráfico a superfície de attainment mediana e a pior (método formal de Fonseca & Fleming sobre as 21 execuções) de ParEGO (linha sólida) e de NSGA-II (linha tracejada), com 1000 pontos de busca aleatória também mostrados como referência visual, nos dois orçamentos (100 e 250/260 avaliações).",
+      "literal": "For the two-objective problems in this paper, we give the median and worst attainment surface of ParEGO and of NSGA-II on the same plot, with ParEGO’s surfaces shown in solid and NSGA-II surfaces shown in dashed lines.",
+      "localizador": "Sec. VI-C; Figs. 4, 5",
+      "metricas": [
+        "superfície de attainment (mediana e pior, sobre 21 execuções)"
+      ],
+      "testes": [
+        "nenhum -- comparação visual"
+      ],
+      "convencoes": "ParEGO em linha sólida, NSGA-II em linha tracejada; mediana + pior no mesmo gráfico; 1000 pontos de random search sobrepostos como referência.",
+      "achado": "As superfícies de pior caso de NSGA-II são visivelmente piores que as de ParEGO em vários dos problemas, confirmando visualmente o resultado dos indicadores numéricos (S-measure e epsilon).",
+      "aplicabilidade": "① endpoint, com o algoritmo de superfícies de attainment de Fonseca & Fleming aplicado sobre os conjuntos não-dominados finais das 21 execuções; reprodutível em espírito, mas a dissertação usa a execução mediana única (ficha 54) e não a metodologia formal de superfície mediana+pior sobre todas as sementes (ficha 55) -- seria uma extensão do que já está planejado."
+    },
+    {
+      "fichas": [
+        54,
+        55
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para os 4 problemas com 3 objetivos (DTLZ2a, DTLZ4a, DTLZ7a, VLMOP3), plota-se apenas a superfície de attainment do pior caso (sobre as 21 execuções) de ParEGO e de NSGA-II, em painéis separados com os mesmos eixos, após 250/260 avaliações.",
+      "literal": "For the three-objective problems, we show just the worst attainment surface of the two algorithms, each on separate plots but with the same axes.",
+      "localizador": "Sec. VI-C; Figs. 6, 7, 8, 9",
+      "metricas": [
+        "superfície de attainment (só a pior, sobre 21 execuções)"
+      ],
+      "testes": [
+        "nenhum -- \"it has no statistical significance\", diz o próprio artigo sobre a superfície do pior caso"
+      ],
+      "convencoes": "Só a pior superfície (sem mediana, por dificuldade de visualização em 3D); painéis separados por algoritmo, mesmos eixos.",
+      "achado": "Mesma leitura geral das figuras biobjetivo: a superfície de pior caso de NSGA-II é pior que a de ParEGO em vários problemas; o artigo alerta explicitamente que essa superfície não tem significância estatística, sendo apenas indicativa.",
+      "aplicabilidade": "① endpoint; mesma ressalva de metodologia da entrada anterior (attainment formal vs. execução mediana única da dissertação)."
+    },
+    {
+      "fichas": [
+        44
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para uma única execução de cada algoritmo na função OKA1 (após 250/260 avaliações), plota-se lado a lado os pontos visitados no espaço de decisão (com o conjunto de Pareto verdadeiro marcado) e os pontos correspondentes no espaço de objetivos, ilustrando qualitativamente como ParEGO explora o espaço de decisão de forma mais uniforme que NSGA-II.",
+      "literal": "Notice how ParEGO explores the parameter space much more evenly and yet still finds more good points.",
+      "localizador": "Sec. VIII, p. 63–64; Fig. 10",
+      "metricas": [
+        "nenhuma métrica quantitativa -- visualização qualitativa dos pontos amostrados"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução única (\"the first run\"), sem agregação sobre sementes; dois painéis lado a lado (espaço de decisão e espaço de objetivos), mesma execução em ambos.",
+      "achado": "NSGA-II é muito mais agressivo na explotação repetida de pontos já bons, sem mecanismo de parada além de sua política de nicho; ParEGO não revisita pontos com pouca expectativa de melhoria segundo seu modelo de paisagem, por isso explora o espaço de parâmetros de forma mais uniforme e mesmo assim encontra mais pontos bons.",
+      "aplicabilidade": "① (posições x e valores f de uma única execução) permite reconstruir o gráfico; é qualitativo, sem a métrica de distância explotação/exploração que a ficha 44 pede -- para a versão quantitativa seria preciso calcular a distância de cada infill ao ponto já avaliado mais próximo, a partir da mesma camada ①."
+    },
+    {
+      "fichas": [
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo também roda busca aleatória (21 execuções, até 10000 avaliações) em todos os problemas para servir de piso trivial adicional, mas os resultados numéricos/gráficos dessa comparação NÃO são publicados -- apenas uma frase afirmando que NSGA-II supera a busca aleatória.",
+      "literal": "Plots of the attainment surfaces for the random search algorithm, not shown here, suggest that NSGA-II is better than random search over 260 function evaluations on all the test problems.",
+      "localizador": "Sec. VII; Sec. VIII, p. 61",
+      "metricas": [
+        "superfícies de attainment (não publicadas)"
+      ],
+      "testes": [
+        "nenhum reportado"
+      ],
+      "convencoes": "21 execuções, orçamento até 10000 avaliações (muito além do usado para ParEGO/NSGA-II); resultado apenas textual, sem tabela ou figura.",
+      "achado": "NSGA-II é melhor que busca aleatória em todos os problemas de teste a 260 avaliações -- afirmação textual, sem dado publicado para verificação.",
+      "aplicabilidade": "não reprodutível a partir do artigo -- os dados da comparação com busca aleatória nunca foram publicados (\"not shown here\"); a dissertação não inclui busca aleatória pura no seu conjunto de pisos.",
+      "observacoes": "só mencionada -- dados/gráficos não publicados no artigo, apenas a conclusão textual"
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "Não mede. O artigo apenas descreve, como propriedade do modelo DACE herdado de EGO/Jones et al., que o erro de predição tem forma fechada e por isso \"o modelo estima sua própria incerteza\" -- é uma descrição do mecanismo (a base para o Expected Improvement), não uma avaliação empírica de calibração, cobertura ou correlação sigma-erro. Não há sonda, não há gráfico de sigma ao longo do orçamento, não há cobertura de intervalo reportada.",
+    "literal": "The error in the expected cost of a solution also has a simple, closed form expression. Thus, the model estimates its own uncertainty.",
+    "localizador": "Sec. III"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Descrição qualitativa/narrativa, sem tabela nem gráfico de tempo medido: o custo de reajustar o modelo DACE cresce com o número de pontos acumulados (\"several hundred or thousand matrix inversions\" por reinício de Nelder-Mead), tornando-se proibitivo (\"several minutes per evaluation\") acima de ~80-100 pontos no arquivo de treino. Isso motiva o teto no tamanho do modelo: EGO usa um teto fixo de 80 pontos (seleção aleatória sem reposição além disso); ParEGO usa uma heurística diferente (iteração < 25: usa todos os pontos; senão, metade os melhores sob o vetor de escalarização vigente + metade aleatórios, até um teto não especificado numericamente no texto limpo). Não há tempo de parede medido, nem decomposição fit/busca/avaliação, nem relação explícita com D.",
+    "literal": "beyond matrix sizes of about 80–100, EGO was taking several minutes",
+    "localizador": "Sec. III-A"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "A 100 avaliações (orçamento mais apertado), NSGA-II (piso sem surrogate) supera ParEGO no S-measure em DTLZ4a (sem significância) e vence significativamente em DTLZ7a -- o único caso, entre as 4 tabelas de resultado, em que o piso evolutivo puro bate a maquinaria GP+EI com significância estatística.",
+      "literal": "At 100 function evaluations, the outcome is much the same, except for the functions DTLZ4a and DTLZ7a, where NSGA-II obtains a higher mean value (and is significantly better on DTLZ7a).",
+      "localizador": "Sec. VIII, p. 62"
+    },
+    {
+      "descricao": "Os próprios autores atribuem o desempenho fraco de ParEGO em 100 avaliações nas funções de 8 variáveis ao fato de o DoE inicial (hipercubo latino de 11d-1=87 pontos) já consumir quase todo o orçamento, restando só 13 iterações guiadas pelo modelo -- um efeito estrutural do próprio algoritmo, não do domínio do problema.",
+      "literal": "A possible explanation for the relatively poorer performance of ParEGO on these two functions is that it has actually only “chosen” 13 of the solutions evaluated—the first 87 solutions being the latin hypercube—since these functions both have 8 decision variables.",
+      "localizador": "Sec. VIII, p. 62"
+    },
+    {
+      "descricao": "O próprio artigo nomeia uma fraqueza de projeto (não um resultado empírico, mas uma limitação reconhecida): a escolha de vetores de escalarização uniformemente aleatórios não garante a melhor distribuição dos pontos não-dominados, podendo produzir uma aproximação pobre em partes do front mais difíceis de achar.",
+      "literal": "The use of uniformly random scalarizing vectors does not necessarily result in the best distribution of nondominated points.",
+      "localizador": "Sec. IX"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "alta dimensão (8 variáveis de decisão) sob orçamento curto",
+      "afirmacao": "Com DoE inicial de 11d-1 (=87 para d=8) e orçamento de 100 avaliações, ParEGO só executa 13 iterações guiadas pelo modelo em DTLZ2a/4a/7a; o artigo aponta isso como a causa provável do desempenho inferior a NSGA-II em DTLZ4a/7a nesse orçamento, e sugere um hipercubo latino mais esparso como possível remédio (não testado).",
+      "literal": "If one were interested in a strong performance after 100 evaluations on these functions, a sparser latin hypercube may be worth considering.",
+      "localizador": "Sec. VIII, p. 62"
+    },
+    {
+      "caracteristica": "frente desconexa em múltiplas regiões (DTLZ7a: 4 regiões desconexas no espaço de objetivos)",
+      "afirmacao": "DTLZ7a é o problema em que NSGA-II mais claramente supera ParEGO, tanto no S-measure (100 avaliações, >99% de significância) quanto, segundo a tabela do indicador epsilon a 100 avaliações (via OCR), sugerindo dificuldade da escalarização de Tchebycheff aumentada + EI em frentes desconexas sob orçamento curto e alta dimensão (8 variáveis).",
+      "literal": "This problem has four disconnected regions in the Pareto front (in objective space)",
+      "localizador": "Sec. V-A (DTLZ7a)"
+    },
+    {
+      "caracteristica": "frente côncava / regiões não-convexas (VLMOP2 e motivação geral da escalarização)",
+      "afirmacao": "A função de Tchebycheff aumentada foi escolhida deliberadamente porque sua parte não-linear permite que pontos em regiões não-convexas do front sejam minimizadores, viabilizando encontrar soluções não-suportadas -- uma escolha de projeto pensada para lidar com VLMOP2 (frente côncava) e problemas semelhantes.",
+      "literal": "the augmented Tchebycheff function has been chosen here because the nonlinear part of the function means that points on nonconvex regions of the Pareto front can be minimizers of this function",
+      "localizador": "Sec. IV"
+    },
+    {
+      "caracteristica": "densidade de soluções não uniforme perto da frente (OKA1, OKA2, DTLZ4a)",
+      "afirmacao": "Funções escolhidas deliberadamente por terem baixa densidade de soluções perto da frente de Pareto (OKA1, OKA2) ou viés severo de densidade induzido por um expoente alto (DTLZ4a, ~100 segundo OCR da equação); o artigo não isola o efeito dessa característica sobre o desempenho além das tabelas gerais (Tabelas VI-IX).",
+      "literal": "In addition, the density of solutions falls away steeply near to the Pareto front.",
+      "localizador": "Sec. V-A (OKA2)"
+    }
+  ],
+  "roster_bloco": {
+    "mecanismo_proprio": [],
+    "reprodutivel_com_camadas": "Vazio -- não há, no artigo, nenhuma análise que isole o mecanismo de incerteza do próprio ParEGO (sem ablação EI-vs-média-apenas, sem gráfico de sigma ao longo do orçamento, sem contagem de acionamentos). Se a dissertação quiser diagnosticar o mecanismo a partir de uma execução própria de ParEGO no roster, a camada ③ (sonda) seria a única aplicável para calibração/discriminação do sigma; a camada ⑥ (filme) não tem evento para contar porque o EI é a ÚNICA regra de seleção em ParEGO -- não há ramo condicional \"usa incerteza / não usa incerteza\" para contar acionamentos (ao contrário do que a ficha 45 pressupõe). O contrafactual necessário seria a ablação sigma=0 (fichas 11/15: EI completo vs. seleção pela média predita apenas), que este artigo não executa. IMPORTANTE para a sonda: ParEGO reajusta um modelo DACE/GP DIFERENTE a cada iteração, sobre um alvo escalarizado por um vetor lambda sorteado de novo a cada iteração (Eq. 2) -- não um único GP persistente sobre um objetivo fixo. Isso significa que mu/sigma de iterações diferentes se referem a superfícies escalarizadas distintas; reproduzir a sonda (camada ③) para ParEGO exigiria reescalarizar os 2000 pontos fixos sob o lambda vigente em cada retreino antes de comparar contra o f verdadeiro escalarizado, não apenas contra f original.",
+    "parametros_do_uso_da_incerteza": [
+      "Não há hiperparâmetro explícito de peso da incerteza: o sigma do DACE/GP entra apenas via a fórmula fechada do Expected Improvement (EI), sem termo de balanceamento ajustável (ao contrário de, por exemplo, um beta de UCB).",
+      "epsilon = 0.05 -- constante aditiva da função de Tchebycheff aumentada (Eq. 2); não é parâmetro da incerteza, é da escalarização, citado aqui para registro.",
+      "Tamanho do subconjunto de treino do DACE/GP a cada retreino (afeta indiretamente a qualidade do sigma): se iteração < 25, usa todos os pontos avaliados; senão, metade os melhores sob o vetor de escalarização vigente + metade aleatórios sem reposição, respeitando um teto de tamanho do modelo (EGO: teto fixo de 80; ParEGO: \"seleção um pouco mais avançada\", teto numérico não especificado no texto limpo).",
+      "s (número de vetores de escalarização no simplex, Eq. 1) e k (número de objetivos: 2 ou 3): o texto descreve o critério de escolha de s (\"permitir várias passagens por vetor\") mas não dá o valor numérico usado."
+    ]
+  },
+  "observacoes": "Artigo seminal/canônico do ParEGO (Knowles, 2006, IEEE TEC), anterior e estruturalmente distinto do protocolo da dissertação: orçamentos pequenos e assimétricos (100; 250 ParEGO / 260 NSGA-II, não 31D-1), 21 execuções não pareadas por semente/DoE (teste rank-sum não pareado, não há desenho pareado como na ficha 5), métricas S-measure (hipervolume com bounding point próprio) e indicador epsilon aditivo em vez de IGD+/HV com a convenção da dissertação, e apenas 2 configurações comparadas (nunca um roster de vários algoritmos) -- por isso não há ranking agregado (ficha 2) nem blocos por família de problema (ficha 6). Duas fontes de dados coexistem no arquivo fonte: a camada de texto estruturada/limpa (usada para todas as citações \"literal\" deste JSON) e uma camada de OCR (Apple Vision) das figuras/tabelas rasterizadas, que reconstrói valores numéricos das Tabelas I-III e VI-IX mas SEM garantia sólida de alinhamento linha-a-linha entre rótulo de função e número (por isso os poucos números citados em \"achado\" vindos do OCR estão marcados como tal e não foram usados como \"literal\"). A Tabela V (parâmetros de ParEGO), via OCR, sugere \"Internal GA evals: 200 000\", o que contradiz a frase limpa e duplicada (texto estruturado e camada bruta do PDF) \"Generations/evaluations: 10 000 evaluations\" para o AG interno -- tratado aqui como provável erro de OCR (leitura de dígitos), e o valor limpo (10 000) foi o usado no setup. O artigo menciona duas rodadas de ajuste de parâmetro NÃO reportadas com dados (tamanho de população do NSGA-II testado entre 10 e 50; \"preliminary experiments\" para os parâmetros do AG interno de ParEGO) -- afirmações sem tabela/gráfico, por isso não viraram análises formais, apenas este registro. Nenhuma ablação do próprio mecanismo de incerteza (EI) é feita neste artigo -- toda evidência de que \"a incerteza ajuda\" vem, indiretamente, da comparação ParEGO(GP+EI) vs. NSGA-II(sem modelo algum), confundindo a contribuição do surrogate/EI com a diferença inteira entre paradigmas BO vs. EA puro; isso é relevante para o bloco roster (mecanismo_proprio vazio). O esqueleto do CARTAO.md repete a chave \"roster\" duas vezes (uma como booleano perto de id/sigla, outra como o bloco detalhado no fim) -- o que colidiria em JSON; segui meta.json (que usa \"roster\" como booleano) para o campo \"roster\" no topo e usei a chave adicional \"roster_bloco\" para o objeto detalhado pedido pelas regras, preservando as duas informações sem chave duplicada."
+}

@@ -1,0 +1,123 @@
+{
+  "schema_version": 2,
+  "campanha_id": "8463e55b10a6_2026-08-14",
+  "run_id": "off_moead_media_ESTOQUE40_0",
+  "exp": "off",
+  "alg": "moead_media",
+  "problema": "ESTOQUE40",
+  "semente": 0,
+  "regime": "offline",
+  "q": 1,
+  "tier": null,
+  "dist": null,
+  "status": "ok",
+  "n_retries": 0,
+  "stack_trace": null,
+  "maxfe": 1239,
+  "fe_final": 1239,
+  "n_geracoes": 381,
+  "doe_hash": "7bea4224a27b8ec3da1030476fa5dad3960d8954edd3603a88556196bd4ffd3a",
+  "repo_hash": "8463e55b10a6435c79fddfca7f1ed367c272b162",
+  "algo_version": "piso-off-moead_media-1.0",
+  "env": {
+    "python": "3.7.12",
+    "executable": "/Users/gmello/Documents/python_venvs/env_b5/bin/python",
+    "host": "Guilhermes-MacBook-Pro",
+    "plataforma": "Darwin/x86_64",
+    "numpy": "1.21.6",
+    "scipy": "1.7.3",
+    "pymoo": "0.6.1.2",
+    "sklearn": "0.21.3",
+    "torch": null,
+    "gpytorch": null,
+    "pandas": "1.3.5",
+    "pyarrow": "12.0.1",
+    "pinning": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "torch": null,
+      "torch_num_threads": null,
+      "default_dtype": null,
+      "device": null
+    }
+  },
+  "timing": {
+    "tempo_total_s": 187.02,
+    "tempo_fit_surrogate_s": 42.0019,
+    "tempo_busca_s": 127.6066,
+    "tempo_aval_real_s": null,
+    "tempo_pred_sonda_s": 11.9111,
+    "tempo_total_despachante_s": 188.4074
+  },
+  "fit_series": [
+    {
+      "iter": 1,
+      "n_acumulado": 1239,
+      "tempo_fit_s": 42.00192713737488
+    }
+  ],
+  "fallback_ativado": false,
+  "paths": {
+    "local": {
+      "real": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/moead_media/exp_off_moead_media_ESTOQUE40_0__real.parquet",
+      "pop": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/moead_media/exp_off_moead_media_ESTOQUE40_0__pop.parquet",
+      "surrogate": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/moead_media/exp_off_moead_media_ESTOQUE40_0__surrogate.parquet",
+      "timing": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/moead_media/exp_off_moead_media_ESTOQUE40_0__timing.parquet",
+      "jsonl": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/moead_media/exp_off_moead_media_ESTOQUE40_0.jsonl",
+      "manifest": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/moead_media/exp_off_moead_media_ESTOQUE40_0.manifest.json"
+    },
+    "bucket": null
+  },
+  "upload_status": null,
+  "created_at": "2026-08-14T15:08:42+00:00",
+  "updated_at": "2026-08-14T15:08:42+00:00",
+  "cache_hits": 0,
+  "sigma_dict": {
+    "modelo": "SurrogateKriging (DESDEO vendorizado): MESMA ESPECIFICACAO do b5 — 1 GaussianProcess por objetivo; kernel C(1,(1e-3,1e3))*RBF(10,(1e-2,1e2)), alpha=0, n_restarts_optimizer=9, normalize_y=False (hard-coded na SurrogateKriging.fit); treino UNICO no dataset, INDEPENDENTE por config (offline nao retreina). [DI-28: 'mesma ESPECIFICACAO, treino INDEPENDENTE' — nunca 'identico'].",
+    "motor": "MOEA/D mode 12 (Gen-MOEA/D, PBI) do DESDEO vendorizado: classe MOEA_D (desdeo_emo.EAs.ProbMOEAD), selecao MOEAD_select (decomposicao PBI), SEM maquinaria probabilistica — a ABLACAO EXATA do b5m (mode 72, que usa ProbMOEAD_select). D77/DEF-E3.",
+    "granularidade_③": "ger 1 = pop INICIAL (LHS, PRÉ-seleção); 2..n = PÓS-seleção; passos de seleção = n_geracoes−1; FE conta init+pop (bundle v2.2)",
+    "mu_*": "media a posteriori do GPR, em f de MINIMIZACAO (sem flip de sinal)",
+    "sigma_*": "NULL POR CONSTRUCAO (DI-16.1): o piso e 'o b5 sem σ' — o motor seleciona SO pela media; a incerteza do GPR NAO e reportada (nem na busca nem na sonda). O contraste da sonda piso x b5r/b5m isola o VALOR de σ: MESMA ESPECIFICACAO de GP e os MESMOS 20.000 pontos, diferindo SO em σ entrar (b5) ou nao (piso) na selecao. ⚠ NAO e 'o mesmo GP byte-a-byte': o treino e INDEPENDENTE por config (DI-28 — alg_id 21 vs 18 semeia RNGs distintos; os 9 restarts do GPR podem convergir a μ nao identico), entao a leitura R4 compara μ da MESMA especificacao, nao μ presumido-igual. Excluir σ AQUI e o que torna o contraste atribuivel so a σ.",
+    "regime": "offline = candidatos da busca no surrogate · sonda = regua fixa (§17.2.2)",
+    "espaco_modelo": "cru — o GP prediz em f nativa (o piso NAO transforma); transf_tipo/params NULL",
+    "fe_treino_max": "constante 1238 (=n_dataset-1) em TODA linha (busca+sonda) — o modelo ve o dataset inteiro 1×.",
+    "N_lattice": "N = o LATTICE do b5m (Das-Dennis default do BaseDecompositionEA: 50 vetores em M=2 / 105 em M=3) — HERDADO sem override (lattice_resolution=None), IDENTICO ao b5m. DI-16.4: N=100 seria residuo dos pisos ONLINE e mediria DUAS variaveis (uso de σ E estrutura da busca).",
+    "pop_inicial_②": "VAZIA POR CONSTRUCAO (DI-16.17): a pop inicial do motor e LHS NOVO (create_new_individuals/LHSDesign) + SBX/PM continuos => nenhum individuo coincide com o dataset; real_solution_id=NULL em TODA linha de busca; n_ds_membros=0 (no jsonl). O gate NAO exige ② nao-vazia.",
+    "sonda_offline": "1 bloco de 20.000 (§17.2.2), geracao=NULL (DI-13.5 — carimbada pos-hoc no buffer, pois emit_sonda_block faz int(geracao); precedente c149/b5._null_sonda). μ preenchido, σ NULL. Custo FE=ZERO; RNG salvo/restaurado (nao-perturbacao §3.1).",
+    "dist_min_arquivo": "NULL no offline — nao ha arquivo crescente/infill real [D-08]",
+    "modelo_hp": "NULL no offline — HP fixos, treino unico [D-08], idem b5. RATIFICADO pelo autor (DI-30.B2, 2026-07-23): gravar HP no piso e nao no b5m criaria assimetria espuria na ablacao.",
+    "rampa_theta": "a decomposicao PBI usa rampa θ funcao de fe/total_function_evaluations (=40000, SEMPRE); por isso 40000 e obrigatorio mesmo com FE real=0.",
+    "overshoot": "terminacao por FE (>=40000): a ultima geracao que cruza o teto completa o laco interno de N vetores => overshoot <= 1 geracao, esperado e documentado.",
+    "④_1_linha": "④ = 1 LINHA (treino unico; molde b5): n_acumulado=n_dataset, tempo_fit_s=wall do train, tempo_busca_s=wall do laco, tempo_geracao_s EXCLUI a sonda (o motor e caixa-preta: iterate() roda 10 geracoes sem gancho por geracao).",
+    "desdeo_emo_pin": "VENDORED root-first, SEM pacote pip (gate R3.2; content-hash b5_desdeo no repos.lock).",
+    "patches_vendorizados": "b5-mode72-kde (ProbMOEAD_select.py) e b5-mode7-archive (BaseEA._next_gen) — INERTES para o mode 12: usa MOEAD_select (arquivo distinto) e MOEA_D._next_gen sobrescreve BaseDecompositionEA._next_gen sem super(). A ⑦ nasce reconstituivel da ③ NATIVAMENTE (MOEA_D arquiva ind/obj/unc pos-replace por geracao).",
+    "pyarrow": "doe.py JA e pyarrow-12-safe (DI-26: combine_chunks().to_numpy) => o shim local do b5 NAO e usado aqui (validado no Fase 0).",
+    "pymoo": "0.6.1.2 em env_b5 (finais ⑦ + filtro ND via src/problems.py; shim py3.7 typing.Literal; puro-python sem Cython = so velocidade, finais pequenos).",
+    "LHS_determinismo": "o pyDOE 0.9.1 mudou a API: lhs(n,samples) SEM semente usa np.random.default_rng() FRESCO (ignora np.random.seed), tornando a pop inicial NAO-reprodutivel. O runner injeta o RandomState GLOBAL semeado no lhs do create_new_individuals (replica o pyDOE classico) — LHS deterministico E fiel. RATIFICADO DI-28.3."
+  },
+  "motivo_parada": "orcamento",
+  "params": {
+    "alg": "moead_media",
+    "mode": 12,
+    "motor": "MOEA/D mode 12 (Gen-MOEA/D, PBI) — a ABLACAO EXATA do b5m: MOEAD_select em vez de ProbMOEAD_select, sem maquinaria probabilistica (D77/DEF-E3)",
+    "surrogate": "SurrogateKriging DESDEO — MESMA ESPECIFICACAO do b5, treino INDEPENDENTE (DI-28)",
+    "sigma": "NULL por construcao (DI-16.1: 'o b5 sem σ')",
+    "treino": "UNICO no dataset",
+    "n_dataset": 1239,
+    "regime": "offline",
+    "q": 1
+  },
+  "cp_init_offline": {
+    "x_hash": "7bea4224a27b8ec3da1030476fa5dad3960d8954edd3603a88556196bd4ffd3a",
+    "f_hash": "847fef07870314971b83fbc728e1257a3fa01084142dcfb4733ef251b88022a6"
+  },
+  "sonda": {
+    "S": 20000,
+    "cadencia": "offline: 1x por modelo",
+    "n_blocos": 1,
+    "x_hash": "e29da4240ebfe7ef43057847203f625087f219bd5bc95ddd7b0c0c3a8caa413e",
+    "f_hash": "705cc6c0bed4712cec312e2f01fa218392ba25dc2f9ac77e3c4db65503cde0c0"
+  }
+}

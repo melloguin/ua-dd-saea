@@ -1,0 +1,166 @@
+{
+  "id": "c66",
+  "sigla": "PAL-SAPSO",
+  "titulo": "Surrogate-Assisted Particle Swarm Optimization Algorithm With Pareto Active Learning for Expensive Multi-Objective Optimization",
+  "ano": 2019,
+  "roster": false,
+  "setup": {
+    "benchmarks": "8 problemas bi-objetivo sintéticos padrão: ZDT1, ZDT2, ZDT3, ZDT6 (D=6, 6, 6 e 10, respectivamente) e UF1, UF2, UF4, UF7 (CEC-2009, D=6 cada) — 'A total of 8 test problems with two objectives are used ... where ZDT1, ZDT2, ZDT3, UF1, UF2, UF4 and UF7 have 6 decision variables and ZDT6 is 10' (Sec. IV-A). Além disso, 2 estudos de aplicação com um modelo MLSSVM (multi-output least-squares SVM) de M=2 objetivos/saídas e D=3 hiperparâmetros (λ, γ, δ): (a) dataset padrão 'energy efficiency' da UCI (500 pontos de treino, 200 de teste); (b) dados industriais reais de um sistema de gás de alto-forno (blast furnace gas, BFG) para previsão do nível de dois gasômetros, com reotimização periódica a cada 12h. Nenhum desses problemas pertence ao corpus da dissertação (não há ZDT/DTLZ/WFG/MMF/BBOB/RE21/ESTOQUE40/DDMOP7 em comum além dos nomes genéricos ZDT/UF, que não são os mesmos usados na bateria da dissertação).",
+    "orcamento": "Benchmarks (Sec. IV-A): NP=30 partículas iniciais via Latin Hypercube Sampling, avaliadas na função real (Algoritmo 2, linha 1 — não há DoE explicitamente 'compartilhado' entre os 4 algoritmos: os 3 baselines usam 'the recommended values in the original papers', sem garantia de mesmo NP/mesma inicialização). Orçamento máximo (Nmax) testado em 4 níveis: 500, 1000, 1500 e 2000 avaliações reais; Tabela I reporta apenas o corte de 500; Fig. 2 varre os 4 valores. MLSSVM/dado padrão (Sec. IV-B-1): Nmax = 300 e 500, 3 parâmetros de decisão (λ,γ,δ), ranges λ∈[2−15,28], γ∈[2−10,24], δ∈[2−15,23]. MLSSVM/dado industrial (Sec. IV-B-2): Nmax = 300, dimensionado a partir do custo real de avaliação ('It takes about 127.50 s to carry out an exact fitness function evaluation (10-fold cross-validation)') para caber em uma janela de reotimização de 12h; o modelo dinâmico (DMLSSVM) é reotimizado a cada 12h com dados de treinamento atualizados.",
+    "execucoes": "20 execuções independentes nos 8 problemas de benchmark (Sec. IV-A); 10 execuções independentes no estudo MLSSVM com dado padrão (Sec. IV-B-1); número de execuções NÃO informado explicitamente para o caso industrial dinâmico (Sec. IV-B-2) — pela redação, aparenta ser uma única simulação/execução por condição operacional, não uma média sobre múltiplas repetições.",
+    "baselines": "MOPSO padrão (baseado em ordenação de Pareto) [27], dMOPSO (baseado em decomposição) [29] e SMPSO (speed-constrained) [30] — os três são MOPSOs SEM qualquer surrogate, com código-fonte do PlatEMO e 'parâmetros recomendados nos artigos originais'. Portanto HÁ piso sem surrogate nas 3 comparações (o próprio contraste central do artigo é 'assistido por GP+εPAL' vs. 'PSO multiobjetivo puro'), mas nenhum dos três é um dos 4 pisos do roster da dissertação (NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) nem estão emparelhados por 'mesma classe de motor' no sentido estrito da ficha 9 (não há Δ pareado por semente, apenas média/dp agregados sobre as execuções).",
+    "metricas_principais": [
+      "IGD — única métrica de qualidade multiobjetivo usada nos 8 problemas de benchmark; sem HV, sem IGD+, sem GD.",
+      "MSE1, MSE2 e MSE=MSE1+MSE2 — os próprios objetivos otimizados nos 2 estudos de aplicação MLSSVM (erro quadrático médio de cada saída do modelo tunado)."
+    ],
+    "testes": [
+      "nenhum teste estatístico de significância em todo o artigo (sem Wilcoxon, sem Friedman); comparações feitas por inspeção textual de média/desvio-padrão"
+    ],
+    "apresentacao": "Média (desvio-padrão) entre parênteses nas Tabelas I e II; sem símbolos +/=/−, sem indicação de negrito para o melhor valor; comparação por frase textual (ex.: 'the mean of IGD from PAL-SAPSO is smaller than the other algorithms'). Figuras de fronteira de Pareto (Fig. 1) e de predição downstream (Fig. 3) usam a execução de MENOR valor de IGD/MSE entre as execuções independentes — NÃO a execução mediana, convenção diferente da dissertação. Curvas de convergência (Fig. 2) em escala log no eixo y ('IGD values (log)'), sem banda de dispersão (IQR) — apenas a média.",
+    "codigo_plataforma": "MOPSO, dMOPSO e SMPSO: código-fonte do PlatEMO [31] (MATLAB). Experimentos executados 'on a PC (with an Intel Core i5 6200U CPU) and MATLAB 2017a' (Sec. IV-A) — plataforma própria do PAL-SAPSO não nomeada além de MATLAB."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        8
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela final com a média (desvio-padrão) do IGD sobre 20 execuções independentes, para PAL-SAPSO e os 3 MOPSOs sem surrogate (MOPSO, dMOPSO, SMPSO), nos 8 problemas de benchmark, com orçamento fixo de 500 avaliações reais. O texto também compara explicitamente a dispersão (desvio-padrão) entre os algoritmos, não só a média, concluindo que PAL-SAPSO é o mais estável.",
+      "literal": "The comparative results from 4 algorithms (MOPSO, dMOPSO, SMPSO, and PAL-SAPSO) with 500 function evaluation on ZDT and UF test problems are showed in Table I.",
+      "localizador": "Sec. IV-A, Table I",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Média (desvio-padrão) entre parênteses; 8 problemas × 4 algoritmos; 20 execuções independentes; IGD calculado com 'almost 1000 points uniformly sampled on the Pareto front'; sem teste estatístico; sem símbolos +/=/−; sem negrito indicado; orçamento fixo em 500 avaliações apenas nesta tabela (outros orçamentos só aparecem na Fig. 2, sem tabela própria).",
+      "achado": "PAL-SAPSO obtém a menor média de IGD nos 8 problemas — ex.: ZDT1: 1.21×10−2(3.38×10−3) vs. 3.39×10−1(2.18×10−1) do melhor piso (dMOPSO); ZDT6: 4.80×10−2(3.12×10−2) vs. 5.04×10−1(1.37×10−1) (dMOPSO); UF4: 6.69×10−2(7.93×10−3) vs. 1.74×10−1(6.58×10−3) (SMPSO) — superando os 3 pisos sem surrogate em TODOS os 8 problemas. Adicionalmente, 'the standard deviation of the means from PAL-SAPSO are the smallest', ou seja, além de melhor, o assistido é também o mais estável entre execuções (ficha 8) — nenhum caso de aumento de variância associado ao surrogate é relatado.",
+      "aplicabilidade": "① endpoint: ND final das avaliações reais de cada execução, métrica sobre esse conjunto (trocando IGD por IGD+/HV) — equivalente à ficha 1 usando os dados já coletados da dissertação; a dispersão (desvio-padrão) entre sementes (ficha 8) é lida do mesmo endpoint ①, sem necessidade de camada adicional."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparação visual, um painel por problema (os mesmos 8 problemas da Tabela I), das fronteiras não-dominadas obtidas pelos 4 algoritmos contra a frente de Pareto verdadeira de referência, a 500 avaliações reais.",
+      "literal": "The results in Fig.1 correspond to the smallest values of IGD in the 20 independent experiments.",
+      "localizador": "Sec. IV-A, Fig. 1",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "A execução plotada por algoritmo/problema é a de MENOR IGD entre as 20 execuções independentes — não a execução mediana usada por convenção na dissertação (ficha 54); 1 painel por problema, curvas sobrepostas das 4 configurações mais a frente verdadeira.",
+      "achado": "Qualitativamente, 'PAL-SAPSO effectively converges to the true front and find the more diverse solutions compared to MOPSO, dMOPSO and SMPSO' — cobertura e distribuição visualmente melhores nos 8 problemas, inclusive em ZDT3 (frente descontínua) e ZDT6 (densidade não uniforme), sem que o artigo discuta explicitamente o mecanismo por trás dessas duas características.",
+      "aplicabilidade": "① avaliações reais (x, f) da execução escolhida — reproduzível trocando o critério de seleção da execução (mediana em vez de menor IGD, conforme convenção da dissertação)."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas da média do IGD (escala log) em função do número de avaliações reais consumidas (500, 1000, 1500 e 2000), uma por problema, comparando a velocidade de convergência dos 4 algoritmos ao longo do orçamento crescente.",
+      "literal": "the mean of IGD from MOPSO, dMOPSO, SMPSO, and PALSAPSO on ZDT and UF test problems with the 500, 1000, 1500, and 2000 fitness evaluations are shown in Fig. 2.",
+      "localizador": "Sec. IV-A, Fig. 2",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Eixo y em escala log ('IGD values (log)'); eixo x = número de avaliações; o texto cita explicitamente 4 checkpoints (500/1000/1500/2000), embora as marcações do eixo na figura cheguem a 2500 (aparenta ser apenas margem visual do gráfico, não um 5º checkpoint medido); médias (não medianas) sobre as 20 execuções; sem banda de IQR; 1 painel por problema (8 problemas).",
+      "achado": "'the convergence of PAL-SAPSO is better than MOPSO, dMOPSO and SMPSO' em todos os checkpoints de orçamento testados — a vantagem já aparece em 500 FEs e se mantém (sem reversão/cruzamento relatado) até 2000 FEs nos 8 problemas.",
+      "aplicabilidade": "① avaliações reais, recalculando o ND acumulado e a métrica a cada checkpoint de orçamento — equivalente à ficha 26 usando apenas a camada ①, sem necessidade de ②–⑦ (não há banda de IQR nem execução mediana aqui, ao contrário da ficha 26 completa da dissertação)."
+    },
+    {
+      "fichas": [
+        1,
+        27
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela com MSE1, MSE2 (erro quadrático médio de cada uma das 2 saídas) e MSE total (soma), média (desvio-padrão) sobre 10 execuções independentes, para o problema de determinação dos 3 hiperparâmetros (λ, γ, δ) de um modelo MLSSVM ajustado ao dataset de eficiência energética da UCI — recomputada em dois cortes de orçamento (300 e 500 avaliações reais), lado a lado na mesma tabela.",
+      "literal": "The statistical results of the experiment are shown in Table II, where MSE1, MSE2 and MSE represent the mean (the corresponding standard deviation)",
+      "localizador": "Sec. IV-B-1), Table II",
+      "metricas": [
+        "MSE1",
+        "MSE2",
+        "MSE (MSE1+MSE2)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Média (desvio-padrão) entre parênteses; tabela dividida em 2 blocos lado a lado, um por orçamento (300 FEs e 500 FEs); 4 algoritmos × 3 métricas × 2 orçamentos; 10 execuções independentes; sem teste estatístico; comparação por inspeção textual ('it can be clearly seen that the values of MSE1 ... are the smallest'). Na linha do próprio PAL-SAPSO, a Tabela II usa o rótulo 'ALMOPSO' (não 'PAL-SAPSO') — inconsistência de nomenclatura presente no próprio artigo (ver observações).",
+      "achado": "A 300 FEs, PAL-SAPSO ('ALMOPSO') obtém o menor MSE1 (6.77×10−1, dp 5.98×10−2) e o menor MSE total (1.37×10−1, dp 6.93×10−2), mas seu MSE2 (6.92×10−1, dp 4.53×10−2) é numericamente IDÊNTICO ao de SMPSO (também 6.92×10−1, dp 4.53×10−2) — não há vantagem clara nessa métrica específica (ver resultados_negativos). A 500 FEs todos os métodos melhoram e PAL-SAPSO permanece com o menor MSE total (1.34×10−1); 'A similar parameter configuration scheme is obtained by PAL-SAPSO with the 300 and 500 fitness evaluations', sugerindo que o assistido converge cedo e não precisa do orçamento extra tanto quanto os pisos.",
+      "aplicabilidade": "① endpoint recomputado em dois cortes de orçamento (300, 500) — equivalente às fichas 1/27 via camada ①; porém os 'problemas' (hiperparâmetros de um MLSSVM sobre dado UCI) não existem no corpus da dissertação, então não é literalmente reproduzível sem substituir por um problema do roster."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Validação visual do modelo-alvo tunado (predito × real, downstream)",
+      "grupo_sugerido": "J",
+      "descricao": "Curvas de valores reais × preditos sobre os 200 pontos de teste, uma por saída (f1, f2), para o modelo MLSSVM configurado com o melhor esquema de hiperparâmetros encontrado por PAL-SAPSO no estudo com dado padrão (UCI). Não é uma validação do surrogate GP interno usado pelo algoritmo de busca — é uma checagem qualitativa da acurácia do modelo-ALVO (downstream) cujos hiperparâmetros foram otimizados.",
+      "literal": "the predicted results with the best parameter configuration scheme are shown in Fig. 3.",
+      "localizador": "Sec. IV-B-1), Fig. 3",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curvas real × predito sobre ~200 pontos de teste, uma por saída (f1, f2); resultado do MELHOR esquema de configuração de parâmetros encontrado (não média/mediana das 10 execuções); nenhuma métrica de erro é reexibida na própria figura (o MSE já está na Tabela II).",
+      "achado": "O modelo MLSSVM tunado por PAL-SAPSO acompanha visualmente bem os valores reais nas duas saídas ao longo dos 200 pontos de teste — validação qualitativa, sem número novo além do já reportado na Tabela II.",
+      "aplicabilidade": "não reproduzível com as 7 camadas da dissertação — exige um modelo-alvo downstream (MLSSVM) e um conjunto de teste externo de 200 pontos, fora do escopo de avaliação (x, f) do algoritmo de otimização em si."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Caso real dinâmico: reotimização periódica vs. modelo estático (deriva do processo)",
+      "grupo_sugerido": "J",
+      "descricao": "Estudo de caso industrial: um modelo MLSSVM reotimizado a cada 12h (DMLSSVM, retreinado/reotimizado via PAL-SAPSO com dados atualizados) é comparado com um modelo estático treinado uma única vez sobre as 2 primeiras semanas (SMLSSVM), ambos prevendo o nível real de dois gasômetros de um sistema de gás de alto-forno (BFG) 30 minutos à frente, em duas condições operacionais reais — incluindo uma transição de um gasômetro de offline para online.",
+      "literal": "As shown in Fig. 4, DMLSSVM can effectively predict the change trend of 1# gas holder level and 2# gas holder level for two types of working conditions.",
+      "localizador": "Sec. IV-B-2), Fig. 4",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Séries temporais real × predito (SMLSSVM e DMLSSVM) ao longo de 30 minutos de previsão, para 2 condições operacionais; sem replicação estatística aparente (execução única por condição, número de repetições não informado); comparação puramente qualitativa/visual, sem métrica de erro numérica reportada na própria figura.",
+      "achado": "O modelo dinâmico (DMLSSVM) acompanha bem a tendência real nas duas condições, enquanto o modelo estático (SMLSSVM) falha especificamente na condição com mudança de regime: 'SMLSSVM fails to estimate the tendency of 2# gas holder level and the 1# and 2# gas holder level in the last type of working condition' — ou seja, um modelo/hiperparâmetros otimizados uma única vez degrada sob deriva real do processo; a reotimização periódica recupera a acurácia. É uma evidência indireta do valor prático de reotimizar com PAL-SAPSO, não uma medição da qualidade do surrogate GP interno.",
+      "aplicabilidade": "não reproduzível com as 7 camadas da dissertação — exige um processo real dinâmico (nível de gasômetro) com reotimização periódica a cada 12h e dados de série temporal industrial, fora do escopo estático de 30 sementes/DoE compartilhado por problema."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "(a) Complexidade computacional TEÓRICA (Big-O) de uma geração do algoritmo, derivada analiticamente na Seção III-E (não é medição empírica de tempo de parede, não há decomposição fit/busca/avaliação/instrumentação como na camada ④ da dissertação). (b) Separadamente, no caso industrial (Sec. IV-B-2), o tempo de UMA avaliação real da função de aptidão (validação cruzada 10-fold) é usado para dimensionar o orçamento (300 FEs para caber em um ciclo de reotimização de 12h) — um dado de custo do PROBLEMA, não do algoritmo. Não há, em nenhum lugar do artigo, comparação de tempo de execução (wall-clock) entre MOPSO/dMOPSO/SMPSO/PAL-SAPSO.",
+    "literal": "the overall worst-case complexity of generation of the proposed algorithm is O(m × (Nt + T − 1)^3 + (Nt + T − 1)^2). | It takes about 127.50 s to carry out an exact fitness function evaluation (10-fold cross-validation).",
+    "localizador": "Sec. III-E; Sec. IV-B-2)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Na tabela de determinação de parâmetros do MLSSVM (dado padrão), a vantagem de PAL-SAPSO não se sustenta para a métrica MSE2 especificamente a 300 avaliações: seu valor é idêntico ao de SMPSO (mesma média e mesmo desvio-padrão), isto é, o assistido não supera o piso nessa métrica pontual, mesmo vencendo em MSE1 e no MSE total.",
+      "literal": "the values of MSE2 obtained by PAL-SAPSO are similar to the ones obtained by MOPSO and SMPSO for objective 2",
+      "localizador": "Sec. IV-B-1), discussão da Table II"
+    },
+    {
+      "descricao": "Os próprios autores, na Conclusão, admitem que um hiperparâmetro do mecanismo de classificação por incerteza (T, o 'classification cost' que controla o número de amostragens ativas do ε-PAL) precisa ser definido manualmente pelo usuário e afeta o desempenho — sem que o artigo tenha feito qualquer estudo de sensibilidade empírico para justificar o valor escolhido (T=5).",
+      "literal": "A few parameters (e.g., the value of the classification cost T ) in the proposed algorithm must be predefined by the user, which do affect the performance of algorithms",
+      "localizador": "Sec. V (Conclusion)"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [],
+  "roster_bloco": null,
+  "observacoes": "(1) Classificação recebida no pedido e como se manifesta no artigo: motor=EA-Dominância → a seleção de personal/global best e a manutenção do arquivo externo (Algoritmo 5) usam dominância de Pareto + distância de aglomeração ('based on both Pareto dominance and crowding distance'), mecanismo clássico de EMOA baseado em dominância, ainda que o operador de busca em si seja PSO (velocidade/posição), não recombinação genética. função da incerteza=A2·Dominância probabilística → confirmado de forma literal e direta: o ε-PAL constrói uma 'uncertainty region Ri(x)' a partir de μ±σ do GP e descarta pontos que são 'ε-dominated by another point with high probability' (Algoritmo 1, linha 5; Algoritmo 4, linha 4) — é exatamente dominância probabilística sobre a região de incerteza, não um score aditivo tipo UCB/EI. surrogate=GP → confirmado (Sec. II-B, Eqs. 5-6, um GP por objetivo). medição=VAR-GP → confirmado: μ_j(x*) e σ²_j(x*) vêm diretamente da posterior fechada do GP (Eqs. 5-6), sem ensemble/dropout. regime=online → confirmado: o loop principal (Algoritmo 2) intercala construção do surrogate, amostragem de candidatos e avaliação real a cada geração até Nmax, sem dataset pré-coletado fixo. (2) Grupo E da tipologia (o modelo por dentro: sonda/fantasia/infill/mecanismo, fichas 31-46) NÃO tem nenhum análogo neste artigo: não há sonda de pontos fixos re-preditos a cada retreino, nenhuma curva de RMSE/acurácia do GP ao longo do orçamento (ficha 31), nenhuma checagem de preservação de ordem (ficha 32), nenhuma medição de calibração/cobertura do σ (fichas 33-34), nenhuma heterocedasticidade (ficha 38) e nenhuma contagem de acionamentos do mecanismo de incerteza (ficha 45) — daí calibracao_do_sigma.mede=false. A incerteza (σ do GP) é usada APENAS operacionalmente, para definir a região de incerteza que alimenta a classificação ε-PAL, nunca validada contra o erro real. (3) Nenhuma ablação isola o efeito do σ mantendo a mesma maquinaria de seleção pela média (diferente da ablação exata da ficha 11): remover a incerteza aqui exigiria desligar o próprio ε-PAL, o que mudaria simultaneamente vários componentes do método (não há esse experimento no artigo). Também não há qualquer análise de sensibilidade empírica a hiperparâmetros do próprio método (η, τ, T, ε, NGS, ω, c1, c2, Nrep) — todos fixados em valores únicos ('the population size is set to NP = 30; ... τ = 0.02 ...') sem variação comparativa. (4) Não há menção a material suplementar em nenhum ponto do texto disponível (nem 'supplementary material' nem apêndice numerado); o documento fonte não tem seção de apêndice — a única seção adicional é o ANEXO gerado pela conversão do PDF (camada de texto bruta + OCR de imagens), que foi conferida integralmente e não contém nenhum dado numérico ou análise ausente da parte estruturada (Tabelas I e II conferem exatamente; os OCRs de imagem trazem apenas rótulos de eixo/legenda já capturados no texto principal). (5) Trechos excluídos de 'analises' por serem método/framework teórico, não resultado experimental (Regra 3 do cartão): Algoritmos 1-5 (pseudocódigo de ε-PAL, PAL-SAPSO, amostragem híbrida, ε-PAL melhorado, atualização do arquivo); Seção III-E (derivação da complexidade Big-O, tratada apenas em 'custo', não como análise experimental); Eqs. 1-26 (definições matemáticas de PSO, GP, ε-PAL, MLSSVM). (6) Curiosidade de nomenclatura do PRÓPRIO artigo (não erro de conversão): na Tabela II, a linha correspondente ao método proposto é rotulada 'ALMOPSO' em vez de 'PAL-SAPSO' — confirmado idêntico tanto na camada estruturada quanto na camada de texto bruta (ANEXO) do PDF, ou seja, é assim que está impresso no artigo original (possível resquício de um nome de trabalho anterior, 'Active-Learning MOPSO'), preservado aqui como está. (7) Não há métrica HV em nenhum experimento (apenas IGD nos benchmarks; MSE nos 2 estudos MLSSVM) — diferente da dupla IGD+/HV da dissertação. Os 2 estudos de aplicação (MLSSVM/UCI e MLSSVM/BFG industrial) são o único elemento 'do mundo real' do artigo, mas não guardam nenhuma relação com os 3 problemas reais do roster da dissertação (RE21, ESTOQUE40, DDMOP7); por isso não foram mapeados à ficha 23 (que é especificamente sobre esses três)."
+}

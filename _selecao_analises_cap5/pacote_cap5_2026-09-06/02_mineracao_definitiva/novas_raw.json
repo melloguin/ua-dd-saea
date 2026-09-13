@@ -1,0 +1,1381 @@
+[
+[
+"b1",
+"EGO x busca aleatória -- múltiplo de avaliações para vitória/empate (single-objective)",
+"B",
+"Antes de propor ParEGO, o artigo valida sua própria implementação de EGO (single-objective) em 13 funções multimodais/epistáticas de Liang et al., até dimensão ",
+"Sec. III-B; Table I; Table II"
+],
+[
+"b1",
+"Comparação heterogênea com resultado publicado de outro algoritmo (orçamento não pareado)",
+"G",
+"Compara o custo médio e o melhor custo encontrado por EGO (51 execuções, 20d avaliações) com os valores publicados por Liang et al. para o algoritmo EANA (evolu",
+"Sec. III-B; Table III"
+],
+[
+"b13",
+"Comparação treino × validação (k-fold CV) entre dois candidatos a surrogate (diagnóstico de overfitting)",
+"E",
+"O artigo compara DNN e XGBoost como candidatos a surrogate multi-saída, reportando média(dp) do MAE de treino e do MAE de validação cruzada (10-fold) para cada ",
+"Sec. 5.1, Tables 2 e 3"
+],
+[
+"b14",
+"Robustez de mecanismos de seleção ambiental (dominância+crowding vs. indicador Iε+) a ruído gaussiano injetado - motivação, sem surrogate",
+"C",
+"Experimento preliminar/motivador (fora da bateria SA-MOEA principal): compara IBEA (seleção por indicador binário aditivo Iε+) e NSGA-II (dominância de Pareto +",
+"Sec. 2.2.2, Table 1"
+],
+[
+"b14",
+"Sensibilidade a hiperparâmetros próprios do algoritmo (capacidade do pool de modelos Smax; período de controle de probabilidade T)",
+"E",
+"Estudo de sensibilidade de dois hiperparâmetros próprios do SA²-MOEA, não relacionados a um 'gate' de uso da incerteza: a capacidade máxima do pool de modelos h",
+"Sec. 4.2, Fig. 2"
+],
+[
+"b14",
+"Ablação do otimizador híbrido (alternância de seleção ambiental IBEA/NSGA-II por paridade de geração)",
+"B",
+"Ablação do otimizador híbrido do SA²-MOEA (endpoint): compara SA²-MOEA (alterna seleção ambiental de IBEA e NSGA-II a cada geração, ímpar/par) contra SA²-MOEA-I",
+"Sec. 4.4, Table 3"
+],
+[
+"b14",
+"Ablação da amostragem de preenchimento adaptativa por estágio (early-only / late-only / sem controle de probabilidade)",
+"E",
+"Ablação da amostragem de preenchimento adaptativa por estágio: SA²-MOEA-ES (usa só a lógica de estágio inicial - alternância convergência/incerteza - durante to",
+"Sec. 4.5, Table 4"
+],
+[
+"b15",
+"Sensibilidade da HV final ao numero de pontos indutores (M_ind) do Deep GP esparso",
+"E",
+"Estudo de sensibilidade de hiperparametro: HV final em DTLZ2-100D variando o numero de pontos indutores M_ind em {100, 200, 400, 800} do Deep GP esparso variaci",
+"Apendice B.2, Fig. 2"
+],
+[
+"b15",
+"Sensibilidade da HV mediana ao tamanho do pool de candidatos na triagem em dois estagios",
+"E",
+"Mediana de HV apos 300 avaliacoes em DTLZ2-100D variando o tamanho do pool de candidatos gerado antes da triagem (200, 500, 1.000, 2.000), mantendo fixo o numer",
+"Apendice E, Table 6"
+],
+[
+"b15",
+"Ablacao da estrutura do surrogate: Deep GP heterocedastico x GP esparso homocedastico x GP raso RBF",
+"E",
+"Mediana de HV apos 300 avaliacoes em DTLZ2-100D comparando tres variantes estruturais de surrogate: o Deep GP heterocedastico proposto, um GP esparso homocedast",
+"Apendice E.1, Table 7"
+],
+[
+"b15",
+"Sensibilidade da HV e da calibracao (ECE) ao numero de categorias de rank K do classificador",
+"E",
+"HV mediana em DTLZ2-100D (300 avaliacoes, 20 execucoes) variando o numero de categorias de nao-dominancia K do classificador bayesiano em {3,4,5,6,7}, junto com",
+"Apendice F, Fig. 6"
+],
+[
+"b15",
+"GP independente por objetivo x GP com correlacao entre objetivos (coregionalizacao linear)",
+"E",
+"Compara o Deep GP padrao do artigo (um GP independente por objetivo) contra uma variante multi-saida com modelo linear de coregionalizacao (LMC, R=M latentes co",
+"Apendice G, Table 8 e Fig. 7"
+],
+[
+"b15",
+"Custo de re-tuning de hiperparametros ao transferir para uma nova tarefa (protocolo de 2 estagios)",
+"F",
+"Estimativa do overhead, em numero de avaliacoes reais, de um protocolo de 2 estagios (transferencia de um conjunto reduzido de configuracoes + refinamento local",
+"Apendice G.1, Table 9"
+],
+[
+"b15",
+"Fidelidade do proxy de ganho de informacao (MC-Dropout) contra uma referencia gold-standard num problema de brinquedo",
+"E",
+"Verifica se o proxy de incerteza epistemica do classificador (ganho de informacao sob o posterior variacional de Dropout, Eq. 7/33) rastreia bem uma medida de i",
+"Apendice H, Fig. 8"
+],
+[
+"b15",
+"Estimacao empirica do fator de fidelidade da aquisicao (rho) e das constantes do limite teorico de HV",
+"E",
+"Protocolos e valores exemplo para estimar empiricamente as constantes do limite teorico de regret de HV (Proposicao 2, Apendice J): a constante de Lipschitz L_H",
+"Apendice J.7, Table 10"
+],
+[
+"b15",
+"Aquisicao aprendida on-line x combinacao linear fixa (Static-EHVI) sobre as mesmas features",
+"E",
+"Ablacao controlada do mecanismo de aprendizado da rede de aquisicao: constroi um comparador 'Static-EHVI' que usa exatamente as mesmas features (medias preditas",
+"Apendice L.6, Table 12 e Fig. 9"
+],
+[
+"b3",
+"Sensibilidade ao tamanho do lote de reavaliação (u) no K-RVEA",
+"E",
+"Estudo do efeito do parâmetro u (número de indivíduos reavaliados/usados para atualizar o Kriging a cada rodada, fixado em 5 no resto do artigo) sobre o desempe",
+"Sec. IV-B, parágrafo sobre parâmetros adicionais (u e wmax), números no material suplementar"
+],
+[
+"b3",
+"Sensibilidade à frequência de retreino do Kriging (wmax)",
+"E",
+"Estudo do efeito de wmax (número de gerações em que o modelo Kriging é usado sem retreino, fixado em 20 no resto do artigo) sobre o desempenho de K-RVEA — menci",
+"Sec. IV-B (menção ao estudo); Sec. V Conclusions (achado qualitativo)"
+],
+[
+"b3",
+"Estudo de caso real (polimerização de acetato de vinila, 3 obj.)",
+"C",
+"K-RVEA, RVEA, ParEGO e MOEA/D-EGO testados num problema real de engenharia química de 3 objetivos (polimerização em bulk de acetato de vinila com ramificação, d",
+"Sec. IV-B, último parágrafo antes de Sec. V"
+],
+[
+"b4",
+"Sensibilidade ao nº de soluções de referência K (fronteira de classificação)",
+"J",
+"Estudo de sensibilidade do parâmetro K (número de soluções de referência que formam a fronteira de classificação, Algoritmo 1) sobre o desempenho de CSEA. K ∈ {",
+"Sec. III-B, Fig. 5"
+],
+[
+"b4",
+"Sensibilidade ao nº de neurônios ocultos H do FNN",
+"J",
+"Estudo de sensibilidade ao número de neurônios ocultos H do FNN substituto: H ∈ {0,5d, d, 1,5d, 2d} (d = nº de variáveis de decisão) testado em DTLZ1 com M=3, 5",
+"Sec. IV-D, Table IV"
+],
+[
+"b8",
+"Sensibilidade ao parâmetro de amostragem aleatória da estratégia de incerteza (phi)",
+"E",
+"O artigo varia o parâmetro phi (número de indivíduos sorteados aleatoriamente de CDA antes de escolher, entre eles, o de maior incerteza, na Estratégia de Amost",
+"Sec. IV-B, Fig. 8(a)"
+],
+[
+"b8",
+"Sensibilidade ao limiar de pontos influentes do modelo substituto (tau)",
+"E",
+"Com phi fixado em 0.1N (valor escolhido no estudo anterior), o artigo varia tau em {0.70,0.75,0.80,0.85,0.90,0.95} - o limiar que define a fração de dados 'não ",
+"Sec. IV-B, Fig. 8(b)"
+],
+[
+"b9",
+"Sensibilidade ao orçamento do MO barato interno (nº de avaliações do NSGA-II)",
+"E",
+"Sensibilidade do desempenho de USeMO ao orçamento (número de avaliações de função) do solver NSGA-II usado para resolver o subproblema MO barato definido sobre ",
+"Sec. 5.1 (\"Cheap MO solver\")"
+],
+[
+"c1",
+"Ilustração 1D do ganho de acurácia do modelo com gradiente (poucos dados)",
+"E",
+"Antes da seção experimental, o artigo ilustra qualitativamente o efeito do treinamento Sobolev (com gradiente) sobre a acurácia do surrogate: ajusta dois modelo",
+"Sec. III-A-2, Fig. 2"
+],
+[
+"c1",
+"Efeito isolado do framework de aquisição em lote, controlando o modelo (GP), pequena escala",
+"G",
+"Leitura específica da Tabela I: como BS-MOBO-GP usa o MESMO modelo substituto (Gaussian Process) que ParEGO, HypI, SMS-EGO, K-RVEA e MOEA/D-EGO, o artigo argume",
+"Sec. IV-A-1"
+],
+[
+"c1",
+"Ablação do tipo de surrogate (BNN vs GP) sob poucos dados/baixa dimensão",
+"E",
+"Comparação interna entre as duas variantes de BS-MOBO que diferem SOMENTE no tipo de modelo substituto — BS-MOBO (rede neural bayesiana com MC dropout) contra B",
+"Sec. IV-A-2"
+],
+[
+"c1",
+"Ablação da informação de gradiente (Sobolev training) sobre o surrogate, pequena escala",
+"E",
+"Comparação interna entre BS-MOBO (BNN sem gradiente) e BS-MOBO_g (BNN + Sobolev training, usando gradiente) na Tabela I (8D), para isolar o efeito de incorporar",
+"Sec. IV-A-3"
+],
+[
+"c1",
+"Efeito isolado do framework de aquisição em lote, controlando o modelo (GP), alta dimensão",
+"G",
+"Réplica em 50D do argumento de controle por modelo: como BS-MOBO-GP, K-RVEA e MOEA/D-EGO usam todos GP, a comparação entre eles isola o efeito do framework de a",
+"Sec. IV-B-1"
+],
+[
+"c1",
+"Ablação do tipo de surrogate (BNN vs GP) sob muitos dados/alta dimensão — escalabilidade",
+"E",
+"Réplica em 50D da ablação NN-vs-GP: BS-MOBO (BNN) contra BS-MOBO-GP (GP subamostrado a NGP=300 pontos), agora com muitos dados disponíveis (até 1000 avaliações)",
+"Sec. IV-B-2"
+],
+[
+"c1",
+"Ablação da informação de gradiente (Sobolev training) sobre o surrogate, alta dimensão",
+"E",
+"Réplica em 50D da ablação do uso de gradiente: BS-MOBO_g (com gradiente) contra BS-MOBO (sem gradiente), agora em alta dimensão — sem as exceções negativas (F4/",
+"Sec. IV-B-3"
+],
+[
+"c1",
+"Sensibilidade ao tamanho do lote (parâmetro de paralelismo k) sobre a frequência de retreino",
+"E",
+"Estudo de sensibilidade ao tamanho do lote k (número de soluções avaliadas em paralelo por iteração) para BS-MOBO e suas variantes, em 4 instâncias de 8 dimensõ",
+"Sec. IV-C, Fig. 6"
+],
+[
+"c1",
+"Fronteira aproximada entre algoritmos sem frente verdadeira conhecida (caso real)",
+"H",
+"Visualização qualitativa da fronteira de Pareto aproximada (melhor execução, presumivelmente) obtida por cada um dos 7 algoritmos no problema real Rosetta, no e",
+"Sec. IV-D, Fig. 8"
+],
+[
+"c1",
+"Algoritmo híbrido por ensemble simples (GP+BNN) para pequena e grande escala",
+"E",
+"O artigo menciona, de passagem, ter proposto um algoritmo híbrido que combina (por um método de ensemble simples, não detalhado) o Gaussian Process e a rede neu",
+"Sec. IV-A-2 (texto corrido, após a discussão da Table I)"
+],
+[
+"c10",
+"Custo estrutural de edição (distância média entre nós) para seleção de solução final na frente",
+"H",
+"O artigo define uma métrica adicional D (Eq. 5 — distância média do caminho mais curto entre todos os pares de nós) para quantificar o 'custo estrutural' de tra",
+"Eqn. (5); Fig. 5; Fig. S4 (Supplementary Materials, só mencionada); Sec. Experiments on real-world networks"
+],
+[
+"c10",
+"Comparação conceitual do framework MOEA-RSFMMA vs. SP-RV-MOEANet (material suplementar)",
+"G",
+"O artigo menciona, mas não detalha no corpo principal, uma comparação entre o método estado-da-arte MOEA-RSFMMA e o SP-RV-MOEANet proposto.",
+"Sec. SP-RV-MOEANet / The Framework; Supplementary Materials I"
+],
+[
+"c10",
+"Sensibilidade ao tipo de remoção nos ataques nodais (aleatória vs. betweenness) (material suplementar)",
+"C",
+"O artigo menciona análises adicionais sobre ataques nodais baseados em remoção aleatória e por betweenness, sem detalhar os resultados no corpo principal.",
+"Sec. Experiments on synthetic networks (após a discussão de Fig. 3); Supplementary Materials II"
+],
+[
+"c10",
+"Análise de desempenho de soluções representativas em redes sintéticas (material suplementar)",
+"H",
+"O artigo menciona uma análise de desempenho de soluções representativas (no contexto da discussão sobre redes SF/ER/SW) sem detalhar no corpo principal.",
+"Sec. Experiments on synthetic networks (fim do parágrafo sobre redes SF); Supplementary Materials III"
+],
+[
+"c10",
+"Análises intuitivas da estrutura das redes reais otimizadas (material suplementar)",
+"H",
+"O artigo menciona análises qualitativas/intuitivas sobre a estrutura das redes reais (UAN, IPG) após a otimização, sem detalhar no corpo principal.",
+"Sec. Experiments on real-world networks (após Table III/Fig. 5); Supplementary Materials III"
+],
+[
+"c100",
+"Custo do método de otimização da aquisição (gradiente exato vs. aproximado vs. livre)",
+"F",
+"Compara três métodos de otimização numérica da própria função de aquisição — L-BFGS-B com gradientes exatos (via autodiferenciação), L-BFGS-B com gradientes apr",
+"Sec. 4.2, Fig. 2a"
+],
+[
+"c100",
+"Acurácia da estimativa Monte Carlo do qEHVI vs. EHVI analítico",
+"E",
+"Menção a uma comparação entre o valor do EHVI analítico exato (forma fechada, M=2) e o valor estimado por integração (quasi-)Monte-Carlo do qEHVI, para avaliar ",
+"Fig. 5a (Apêndice — ausente deste corpus); citado na Sec. 3.3"
+],
+[
+"c100",
+"Acurácia do gradiente amostral do qEHVI vs. gradiente exato do EHVI (M=3)",
+"E",
+"Menção a uma comparação entre o gradiente exato (analítico, via autodiferenciação) do EHVI e o gradiente da média amostral ('sample average') do estimador MC do",
+"Fig. 5b (Apêndice — ausente deste corpus); citado na Sec. 4.1"
+],
+[
+"c100",
+"Escalabilidade do tempo de computação do qEHVI com o tamanho do lote q (saturação de hardware)",
+"F",
+"Menção a um gráfico, em GPU, do tempo de computação do qEHVI conforme q aumenta, mostrando que o tempo é quase constante até um ponto de inflexão em que a carga",
+"Fig. 11 (Apêndice — ausente deste corpus); citado na Sec. 3.3"
+],
+[
+"c100",
+"Benchmarks sintéticos adicionais (conteúdo não descrito)",
+"D",
+"Menção à existência de benchmarks sintéticos adicionais além de Branin-Currin e C2-DTLZ2, remetidos ao Apêndice F.1; o corpo principal não diz quantos problemas",
+"Apêndice F.1 (ausente deste corpus); citado na Sec. 5"
+],
+[
+"c100",
+"qEHVI em espaços de objetivos de alta dimensão via decomposição aproximada",
+"C",
+"Menção a uma demonstração do uso do qEHVI em espaços de objetivos de maior dimensão (many-objective) substituindo a decomposição exata em caixas por um algoritm",
+"Apêndice F.4 (ausente deste corpus); citado nas Sec. 3.3 e 6"
+],
+[
+"c106",
+"Ablacao da estrutura de covariancia do GP multiobjetivo (independente x dependencia nao-separavel)",
+"E",
+"Comparando as colunas '-Ind' e '-Dep' das Tabelas 1 e 2 para os mesmos tres criterios de melhoria (EMMI, CWPI, PI), o artigo avalia se modelar a dependencia ent",
+"Sec. 6.1, p. 17; Sec. 6.2, p. 18-19; Sec. 7 (Conclusions and Discussion), p. 19-20"
+],
+[
+"c106",
+"Custo de estimacao via REML por numero de parametros de covariancia (independente x dependente)",
+"F",
+"Quantifica, para os dois exemplos, quantos parametros de covariancia cada estrutura de GP exige estimar por maxima verossimilhanca restrita (REML): 7 parametros",
+"Sec. 6.1, p. 17 (7 parametros); Sec. 6.2, p. 18-19 (26 parametros)"
+],
+[
+"c106",
+"Ablacao da estrutura de covariancia do GP multiobjetivo (independente x dependencia nao-separavel)",
+"E",
+"Ao final da Secao 6.1, o artigo menciona -- sem tabela nem numeros -- que, em exemplos construidos deliberadamente para satisfazer a forma EXATA do modelo de de",
+"Sec. 6.1, p. 17"
+],
+[
+"c107",
+"Fidelidade numérica da aproximação do critério de aquisição (EIHV exato x aproximado)",
+"E",
+"Compara, em cortes axiais da superfície de -log(EIHV) após 40 avaliações (função MAT, VHGP sozinho, Ni=15, ruído homocedástico σ̄n=0.15 e ruído senoidal σn=0.2)",
+"Sec. III-E2, Figs. 10-11"
+],
+[
+"c107",
+"Comparação informal LOO x log-pseudo-verossimilhança como critério de seleção de modelo",
+"E",
+"Menção breve, sem tabela/figura de suporte, de que a métrica alternativa de log pseudo-verossimilhança (L_LOO, eq. 20) para seleção de modelo teria desempenho e",
+"Sec. II-C"
+],
+[
+"c107",
+"MCMC x Monte Carlo ingênuo para a verossimilhança marginal (aparte do Apêndice)",
+"E",
+"No Apêndice (detalhamento do cálculo de MC da verossimilhança marginal usado como alternativa ao LOO), menciona — sem tabela/figura de suporte — que métodos MCM",
+"Appendix"
+],
+[
+"c122",
+"Custo agregado (CPU) de gerenciar os surrogates, comparado entre subconjunto de algoritmos",
+"F",
+"Tempo médio de CPU (minutos), agregado sobre todas as execuções, gasto em 'gerenciar os surrogates' (ajuste do modelo + predição, não decomposto), comparando θ-",
+"Sec. IV-C, Table VII"
+],
+[
+"c122",
+"Sensibilidade multiparâmetro do surrogate/evolução (U, D, N*, Qmax, Tmax, γ) medida no IGD final",
+"E",
+"Estudo de sensibilidade de 6 hiperparâmetros de θ-DEA-DP (nº de neurônios ocultos U; profundidade da rede D; nº de descendentes amostrados N*; tamanho máximo de",
+"Sec. IV-D, Fig. 7"
+],
+[
+"c123",
+"Discussão qualitativa de sensibilidade a θ_PBI e H (não tabulada)",
+"E",
+"O artigo discute qualitativamente (sem nenhuma tabela/figura) o efeito do parâmetro de penalidade da PBI/IPBI (que define o ângulo/raio da região de referência ",
+"Sec. III-B-6 (Discussion on the arbitrariness of the parameters)"
+],
+[
+"c131",
+"Ablacao dos componentes de busca do proprio algoritmo (n. de regioes de confianca, tolerancia a falha, compartilhamento de dados entre regioes, modelo local x global, aquisicao HVI x escalarizacao, estrategia de reinicializacao)",
+"B",
+"Estudo de sensibilidade/ablacao do MORBO a seis escolhas de projeto do proprio algoritmo -- numero de trust regions (1, 5[padrao], 10), tolerancia a falhas tau_",
+"Sec. 5.2 ('Ablation study'), Fig. 4"
+],
+[
+"c131",
+"Fidelidade da amostragem posterior aproximada (RFF) vs. exata para Thompson Sampling, por dimensao",
+"E",
+"Compara cinco esquemas de amostragem da posterior do GP usados no Thompson Sampling para selecionar candidatos -- amostragem exata sobre um conjunto discreto de",
+"Apendice A.1 ('RFFs for fast posterior sampling'), Fig. 6"
+],
+[
+"c141",
+"Interpretação de engenharia das soluções ND vs. solução-base (diagramas de tensão equivalente)",
+"H",
+"Três soluções representativas (A, B, C) do conjunto não-dominado do MMRAEA no caso BWBUG são comparadas a uma solução-base (do centro do espaço de decisão) via ",
+"Sec. Results and discussions (BWBUG), Fig. 14"
+],
+[
+"c149",
+"Curva de escalabilidade por tamanho de lote (batch size): HV e tempo em função de S",
+"F",
+"No ZDT3 6D, otimiza-se via qEHVI (com surrogates DKL, HMC, IBNN, SGHMC, Deep Ensembles) e via qNEHVI/qParEGO (com DKL, IBNN), por 10 iterações, variando o taman",
+"Sec. 3, Fig. 1"
+],
+[
+"c149",
+"Curva de escalabilidade por tamanho de lote (batch size): HV e tempo em função de S",
+"F",
+"Com a aquisição 2MD proposta (em vez das aquisições padrão), compara sete surrogates (SGHMC, HMC, Deep Ensembles, DKL, IBNN, MC Dropout) no ZDT3, medindo HV fin",
+"Sec. 5.1, Fig. 3"
+],
+[
+"c149",
+"Curva de escalabilidade por tamanho de lote (batch size): HV e tempo em função de S",
+"F",
+"Repete a comparação de surrogates da Fig. 3 (SGHMC, HMC, Deep Ensembles, DKL, IBNN, MC Dropout) sob a aquisição 2MD, agora no DTLZ5 com 20 parâmetros de entrada",
+"Sec. C.3, Fig. 13"
+],
+[
+"c149",
+"Robustez a ruído irredutível via peso (α, β) do termo aleatório na aquisição",
+"E",
+"Em um problema-brinquedo 1D com dois máximos locais iguais (um contaminado por ruído gaussiano), varia os pesos α=β em {0, 7} do termo de incerteza aleatória su",
+"Sec. 5.5, Fig. 6"
+],
+[
+"c149",
+"Robustez a ruído irredutível via peso (α, β) do termo aleatório na aquisição",
+"E",
+"No gamut de impressora simplificado (6 de 8 canais fixados), injeta ruído gaussiano N(0, 0,02) no canal 4 (Light Cyan) abaixo de 20% de intensidade e varia α=β ",
+"Sec. 5.5, Fig. 7"
+],
+[
+"c149",
+"Regret de Pareto cumulativo em lote (batch) × iteração — métrica alternativa à trajetória de IGD+/HV",
+"D",
+"O artigo formaliza uma métrica própria de regret de Pareto para otimização em lote multiobjetivo (distância média de cada ponto da fronteira do lote corrente ao",
+"Sec. B.1.3 (método); Figs. 11, 15(c), 16(c), 18(c) (aplicações)"
+],
+[
+"c154",
+"Sensibilidade da aquisição aos hiperparâmetros de estimação (nº de amostras MC S; nº de pontos ótimos p)",
+"E",
+"Varia isoladamente o nº de amostras de Monte Carlo do conjunto/frente de Pareto (S em {1,5,10,25,50}, com p=10 fixo) e o nº de pontos de Pareto retidos por amos",
+"Apêndice L.3, Figs. 14, 15, 16"
+],
+[
+"c154",
+"Comparação das estratégias de aproximação numérica da entropia condicional (JES-0/LB/LB2/MC; MES-0/LB/LB2/MC)",
+"E",
+"Nos 4 problemas de benchmark principais (sequencial q=1 e lote q=2,4,8), compara as 4 formas de estimar a entropia condicional usada na aquisição — JES-0 (assum",
+"Apêndice L.6, Figs. 20, 21"
+],
+[
+"c154",
+"Comparação entre variantes gulosas e cientes de ruído dos métodos por melhoria (ParEGO x NParEGO; EHVI x NEHVI)",
+"G",
+"Compara os 4 algoritmos de melhoria/escalarização usados como baseline (ParEGO, NParEGO — versão ciente de ruído — EHVI, NEHVI — versão ciente de ruído) nos 4 p",
+"Apêndice L.7, Fig. 22"
+],
+[
+"c154",
+"Recomendação restrita às amostras visitadas (X_N) vs. otimizada sobre todo X — custo da avaliação 'in-sample' para métodos informacionais",
+"B",
+"Repete a comparação da Fig. 5 (mesmos algoritmos, 4 problemas, sequencial e lote) trocando a definição da recomendação X̂*: em vez de otimizar a média posterior",
+"Sec. 5.2 (discussão) e Apêndice L.5, Fig. 19"
+],
+[
+"c154",
+"Hipervolume generalizado (GHV) por região do espaço de objetivos — desempenho local em vez de global",
+"A",
+"No problema ZDT2 biobjetivo, particiona o espaço de objetivos em 3 regiões (via distribuições Beta diferentes sobre o peso da parametrização polar do HV, Apêndi",
+"Sec. 5.2, Fig. 6"
+],
+[
+"c154",
+"Robustez do ranking sob reparametrização do espaço de objetivos — hipervolume generalizado em muitas parametrizações",
+"A",
+"Para os 4 problemas de benchmark, gera de 20 a 125 'parametrizações' distintas do espaço de objetivos (famílias de distribuições Beta usadas para ponderar a int",
+"Sec. 4 (texto) e Apêndice L.8, Figs. 26-29"
+],
+[
+"c154",
+"Curvas de nível da aquisição em problema de brinquedo single-objective — comparação visual PES x MES x JES x EI x PoI x UCB x KG",
+"H",
+"Em um problema single-objective de brinquedo (Rastrigin normalizado, D=2, M=1, após 8 observações ruidosas), plota lado a lado os contornos 2D da aquisição PES,",
+"Apêndice J, Figs. 7-11"
+],
+[
+"c214",
+"Sensibilidade de PFES ao nº de amostras MC da Pareto-frontier (|PF|)",
+"E",
+"Dentro do mesmo experimento da Fig. 4, o artigo varia o número de amostras Monte Carlo da Pareto-frontier usadas para estimar o termo de entropia/ganho de infor",
+"Sec. 6.1, Fig. 4 (texto); anunciado em Sec. 3.2.1"
+],
+[
+"c217",
+"Sensibilidade dos parâmetros próprios dos algoritmos BASELINE (não de PC-SAEA)",
+"J",
+"Antes da comparação principal, o artigo varre os parâmetros críticos de CADA UM dos 7 algoritmos concorrentes (k de CPS-MOEA; taxa de mudança de penalidade e wm",
+"Sec. 4.1, Fig. 5"
+],
+[
+"c217",
+"Ablação do tipo de surrogate dentro do mesmo framework (regressão × classificação × comparação par-a-par)",
+"B",
+"Substitui o surrogate par-a-par de PC-SAEA por um modelo de regressão (RBF, prediz diretamente o valor de fitness) ou por um modelo de classificação (PNN, predi",
+"Sec. 4.4, Table 6"
+],
+[
+"c217",
+"Sensibilidade à fração de pareamento treino best/worst (N/4 × N/3 × N/2)",
+"E",
+"PC-SAEA pareia só os N/4 melhores com os N/4 piores da população como amostras de treino (para criar uma fronteira de classificação nítida); o artigo compara es",
+"Sec. 4.5, Table 7"
+],
+[
+"c222",
+"Robustez da qualidade e do custo ao número de amostras Monte-Carlo (S) do termo de entropia",
+"E",
+"Leitura cruzada das Figs. 1-2 e da Table 1 focada especificamente no efeito do número de amostras Monte-Carlo S (usado para aproximar o termo de expectativa sob",
+"Sec. 5.2 (parágrafo 'MESMO vs. State-of-the-art', entre a Fig. 2 e a Table 1)"
+],
+[
+"c238",
+"Contornos da função de aquisição no espaço de projeto (EI exato × EIM fechado)",
+"E",
+"Para o problema ZDT1 (2 objetivos), com 10 pontos amostrados fixos, os autores calculam e plotam os contornos dos 6 critérios (EIe, EIm, EIh, EIMe, EIMm, EIMh) ",
+"Sec. IV-E, Fig. 8"
+],
+[
+"c238",
+"Prova/ilustração das propriedades de monotonicidade da aquisição em relação a μ e σ (N1, N2)",
+"E",
+"Define formalmente duas propriedades de monotonicidade desejáveis para um critério multiobjetivo (N1: decrescente na média predita ŷ mantendo σ fixo; N2: cresce",
+"Sec. III-C, Sec. IV-C, Figs. 6-7"
+],
+[
+"c24",
+"Superfície do surrogate vs função verdadeira (inspeção visual pontual)",
+"E",
+"A Fig. 2 mostra lado a lado a superfície predita pelo DTK (construído com 83 pontos de amostragem) e a superfície verdadeira da função analítica (Eq. 11), para ",
+"Sec. IV-A, Fig. 2"
+],
+[
+"c241",
+"Sensibilidade ao nº de gerações da busca no surrogate (gmax)",
+"E",
+"Estudo de sensibilidade do hiperparâmetro gmax (nº máximo de gerações da otimização baseada em modelo, que busca sobre os GPs dos objetivos ANTES da gestão do s",
+"Sec. III-B, Table I"
+],
+[
+"c241",
+"Ablação da separação busca-de-candidatos/gestão-do-surrogate (EMMOEA × EMMOEA-IP)",
+"E",
+"Compara o EMMOEA completo (busca de candidatos nos GPs dos objetivos — sem uso de σ — seguida de seleção via EI do indicador de desempenho — com σ) contra a var",
+"Sec. III-C, Table II"
+],
+[
+"c241",
+"Ablação do indicador de desempenho próprio vs. matriz EIM (EMMOEA × EMMOEA-EIM)",
+"E",
+"Compara o EMMOEA completo (gestão do surrogate via GP do indicador de desempenho IP + EI escalar) contra a variante EMMOEA-EIM, que substitui essa etapa pela ma",
+"Sec. III-D, Table III"
+],
+[
+"c241",
+"Exemplo numérico ilustrativo do conflito entre EI por objetivo (motivação, Fig. 1)",
+"E",
+"Exemplo hipotético e ilustrativo (não dados de execução real) com dois pontos unidimensionais x1, x2 de um problema biobjetivo genérico: usando valores fictício",
+"Sec. I (Introdução), Fig. 1"
+],
+[
+"c250",
+"Economia de avaliacoes reais ate convergencia sob parada adaptativa (custo em chamadas de simulacao, sem orcamento fixo)",
+"F",
+"Para os 7 exemplos (ZDT1, ZDT2, ZDT3, TEST4, OSY, Gear train, Cabinet), o artigo compara o numero de chamadas de simulacao (avaliacoes reais de objetivo/restric",
+"Sec. 4.1 (Fig. 4) e Sec. 4.3, Table 3 (p. 031401-5 a 031401-9)"
+],
+[
+"c261",
+"Decomposição analítica (não-empírica) do custo computacional por fase (ajuste do GP, maximização da EI, seleção de lote)",
+"F",
+"Derivação teórica (Big-O) do custo por iteração de DirHV-EGO, decomposto em três fases — treino dos modelos GP O(mn³), maximização do DirHV-EI via MOEA/D O((mn²",
+"Sec. V-D.1, p.10-11 (texto principal); Supplementary Sec. III-D.2"
+],
+[
+"c261",
+"Escalabilidade do tempo de CPU com o tamanho do lote (batch size q)",
+"F",
+"Mede empiricamente o tempo de CPU (parede) de DirHV-EGO, MOEA/D-EGO, KB&EHVI-EGO e PEIM-EGO em função do batch size q (1 a 15), em DTLZ2 (m=3,d=6), 50 iterações",
+"Sec. V-D.2, p.11, Fig. 6"
+],
+[
+"c261",
+"Sensibilidade ao ponto de referência z* (Utopian point) da decomposição/Tchebycheff",
+"B",
+"Varia o ponto utópico z*_i (idêntico em todos os m objetivos: −1, −0.1, −0.01, −0.0001, −0.000001, 0) — a referência que ancora os vetores de direção da decompo",
+"Supplementary Sec. III-A.1, p.5-6, Fig. 5 (Supplementary)"
+],
+[
+"c261",
+"Ablação da estratégia de seleção de lote (submodular-greedy × aleatória × k-means)",
+"B",
+"Isola o componente 'seleção de q pontos a partir do conjunto candidato Q' de DirHV-EGO, comparando três variantes que diferem SÓ nessa etapa: DirHV-EGO-R (seleç",
+"Supplementary Sec. III-B.1, p.6-7, Table I (Supplementary)"
+],
+[
+"c261",
+"Ablação do otimizador interno usado para maximizar a EI (MOEA/D-GR × MOEA/D-DE)",
+"B",
+"Isola o componente 'otimizador interno que maximiza DirHV-EI sobre os N subproblemas', comparando MOEA/D-GR (proposto, com esquema de global replacement) contra",
+"Supplementary Sec. III-B.2, p.7, Table II (Supplementary)"
+],
+[
+"c261",
+"Ablação da estratégia adaptativa do ponto de referência z* + comparação pareada sob seleção k-means comum",
+"B",
+"Duas comparações controladas simultâneas: (a) Variant-Z (z*_i=−0.01 fixo) vs. a implementação de MOEA/D-EGO do artigo (z* ajustado adaptativamente ao mínimo das",
+"Supplementary Sec. IV-A/IV-B, p.9-10, Table IV (Supplementary) + Fig. 8 (Supplementary)"
+],
+[
+"c262",
+"CBD x IEP -- escalabilidade do custo de otimizacao da aquisicao com o lote q",
+"F",
+"Comparacao de engenharia entre duas formulacoes matematicamente equivalentes do mesmo calculo de EHVI/NEHVI conjunta -- CBD (cached box decompositions, proposta",
+"Fig. 2 (Sec. 6); Fig. 6 (Apendice H.2); derivacao teorica no Apendice D"
+],
+[
+"c262",
+"Controle sem ruido -- placar sob sigma=0",
+"A",
+"Repeticao do desempenho sequencial e em lote (mesmos 8 problemas e metodos das analises anteriores) em versoes SEM ruido injetado dos benchmarks, como condicao ",
+"Apendice H.7, Fig. 15"
+],
+[
+"c262",
+"Escalabilidade em numero de objetivos (M=5)",
+"C",
+"Demonstracao de viabilidade em M=5 objetivos (DTLZ2, d=6, sigma=5%), comparando qNEHVI-1 (unica variante testada nesse M, por custo) contra qNParEGO e busca Sob",
+"Apendice H.8, Fig. 16"
+],
+[
+"c267",
+"Complexidade computacional teórica (Big-O) do SAMOEA-TL2M",
+"F",
+"SÓ MENCIONADA (Regra 3 do cartão): o artigo aponta a existência de uma análise da complexidade computacional (provavelmente notação Big-O) do SAMOEA-TL2M, cujo ",
+"Sec. IV (parágrafo de abertura da Seção IV, antes de IV-A); Supplementary Sec. IV (não incluído neste corpus)"
+],
+[
+"c276",
+"Validação empírica da garantia teórica de corretude (β_t exato do Teorema 1, ε=0)",
+"E",
+"Usando o valor EXATO de β_t sugerido pelo Teorema 1 (não o fator empírico 1/3 usado no resto dos experimentos), com ε=0 e δ=0,05, o artigo reporta que ε-PAL ati",
+"Sec. 7.4, Fig. 6"
+],
+[
+"c276",
+"Speedup de runtime ε-PAL vs PAL por ε e por |E|, sob custo de avaliação assumido (0 min / 30 min)",
+"F",
+"Para os três data sets e os oito valores de ε usados nos experimentos de acurácia, o artigo mede o speedup do tempo de execução de ε-PAL sobre PAL (razão dos ru",
+"Sec. 7.5, Fig. 7"
+],
+[
+"c29",
+"Sensibilidade ao vetor-limiar de aspiração (exploração uniforme vs. localização)",
+"E",
+"O artigo varia o vetor-limiar y^on (o alvo de aspiração que define 'melhoria' na probabilidade de melhoria, Eq. 5-8 — o único parâmetro que governa como a incer",
+"Sec. 7, ¶3-4 (problem 10, Fig. 3) e ¶ sobre Fig. 6 (problem 12), p. 87-90"
+],
+[
+"c29",
+"Viés do modelo estatístico por paisagem quase-plana com picos (localização do limiar na direção errada)",
+"E",
+"No problema (13) (Fonseca-Fleming, resposta quase constante com picos agudos desconhecidos), o limiar (0.6,0.6)^T (mais próximo do Pareto set) NÃO produz o aume",
+"Sec. 7, ¶ sobre Fig. 8 / problem (13), p. 91-92"
+],
+[
+"c29",
+"Equivalência de avaliações — quantas avaliações o piso precisa para igualar a qualidade do assistido",
+"B",
+"Para quantificar a vantagem do P-algorithm em termos de amostras (não apenas de métrica), o artigo testa o Monte Carlo com diferentes números máximos de avaliaç",
+"Sec. 7, último parágrafo, p. 92"
+],
+[
+"c48",
+"Ablação da arquitetura do classificador substituto (modelo único × ensemble completo × ensemble podado)",
+"B",
+"O artigo compara três variantes do próprio framework classificatório: BE-CSEA− (um único modelo RBF como surrogate), BE-CSEA (ensemble bagging completo, sem pod",
+"Sec. 4.2, Table 1"
+],
+[
+"c48",
+"Sensibilidade do hiperparâmetro de poda do ensemble (Q) medida na acurácia/erro do classificador",
+"E",
+"Antes dos experimentos principais, o artigo varia o número de modelos base selecionados após a poda (Q, como % do pool T=200: 10/20/30/50/70%, i.e. Q=20,40,60,1",
+"Sec. 4.4.2, Fig. 4"
+],
+[
+"c49",
+"Ilustração da 1ª etapa de pré-filtragem por hipercone (preferência de objetivo)",
+"H",
+"O artigo ilustra, com um problema-teste biobjetivo de minimização não identificado, como a primeira etapa de pré-filtragem do framework (o 'hipercone' definido ",
+"Sec. 3.1, Fig. 2 e Fig. 3(a)-(b)"
+],
+[
+"c49",
+"Ilustração da 2ª etapa de pré-filtragem por ordenação não-dominada com incerteza",
+"H",
+"Sobre o mesmo problema-teste biobjetivo, o artigo mostra o efeito da segunda etapa de pré-filtragem: ordenação não-dominada que inclui a incerteza como componen",
+"Sec. 3.1, Fig. 3(b)-(c)"
+],
+[
+"c49",
+"Efeito da preferência de objetivo (ponto de referência) entre iterações — estudo de caso GAA",
+"H",
+"No estudo de caso do problema real GAA (offline, 27 variáveis, 10 objetivos + 1 restrição-como-objetivo, Kriging+RVEA), o artigo mostra como o arquivo de soluçõ",
+"Sec. 4, Fig. 5(a)-(c)"
+],
+[
+"c49",
+"Efeito da tolerância de incerteza do DM sobre o conjunto mostrado — estudo de caso GAA",
+"H",
+"Ainda no estudo de caso GAA, o artigo demonstra a Etapa 4 do framework: a partir do conjunto pré-filtrado da 2ª iteração, aplicam-se funções de corte de tolerân",
+"Sec. 4, Fig. 5(d)"
+],
+[
+"c50",
+"Seleção de kernel do GP por validação cruzada",
+"E",
+"Antes de treinar os modelos finais, o artigo compara três funções de covariância candidatas para o GP (exponencial-quadrática, Matern52 e perceptron multicamada",
+"Sec. 3, p.8 (antes da Eq. 4)"
+],
+[
+"c50",
+"Probabilidade de dominância no espaço de objetivos — mapa (dim. 1)",
+"H",
+"Usando as distribuições preditivas do GP, o artigo define ρ(z) = probabilidade máxima de que algum membro do arquivo A domine um ponto arbitrário z do espaço de",
+"Sec. 5.1, Fig. 4a, p.16"
+],
+[
+"c50",
+"Probabilidade de dominância no espaço de objetivos — seleção de operating point (dim. 2)",
+"H",
+"Dado um ponto de desempenho desejado z*, o artigo seleciona o ponto de operação x*=argmax_{x∈A} p(x≺z*) (Eq. 17, Figura 5a); estende a demonstração para dez alv",
+"Sec. 5.1, Fig. 5a-b, Eq. 17, p.17-18"
+],
+[
+"c50",
+"Probabilidade de dominância no espaço de objetivos — extensão 3D/carga (dim. 3)",
+"H",
+"Usando o arquivo tridimensional (UBC, NOx, Load) da Seção 6, o artigo constrói isossuperfícies de ρ(z) em 3D e três fatias 2D complementares — carga fixa em L=3",
+"Sec. 6, Fig. 8, p.22-23"
+],
+[
+"c59",
+"Acurácia da média: modelo determinístico vs. modelo com UQ, em treino/teste (pré-treino)",
+"E",
+"Tabela única (Tabela 1) comparando o MAE de predição do coeficiente de arrasto entre o modelo determinístico (ED) e o proposto GS-ED (probabilístico), separadam",
+"Sec. 4.1.1, Table 1, p. 13–14"
+],
+[
+"c59",
+"Comparação qualitativa da geometria/aerodinâmica da solução otimizada",
+"H",
+"Comparação visual (Figs. 10–11) entre o melhor aerofólio obtido por CFD-based e por UA-DBO no caso A3 (RAE2822): geometrias, distribuições de Cp de cruzeiro, cu",
+"Sec. 4.2, Figs. 10-11, p. 18–20"
+],
+[
+"c59",
+"Sensibilidade da calibração do σ aos hiperparâmetros de treino do modelo probabilístico (peso KL β, nº de amostras Nl)",
+"E",
+"Estudo de sensibilidade cruzada (Apêndice B) do peso do termo extra de regularização KL na perda do GS-ED (β=0, 10⁻⁶, 10⁻⁵, 10⁻⁴) e do número de amostras latent",
+"Appendix B, p. 26–27"
+],
+[
+"c59",
+"Comparação qualitativa da geometria/aerodinâmica da solução otimizada",
+"H",
+"Comparação visual (Fig. 5, Apêndice C) das geometrias e distribuições de Cp de cruzeiro das 'amostras típicas' selecionadas na Tabela 6 (DBO × UA-DBO), para os ",
+"Appendix C.4.2, Fig. 5, p. 32"
+],
+[
+"c65",
+"Validação numérica de POPmin (aproximação) contra POPtrue (exato, combinatorial) em exemplos ilustrativos",
+"E",
+"O artigo compara sua métrica proposta POPmin (aproximação eficiente de probabilidade de não-dominância boxed) contra POPtrue (a fórmula exata, combinatorial, de",
+"Sec. 3.2, Table 1 (exemplos da Fig. 2a-b)"
+],
+[
+"c65",
+"Estudo de caso de engenharia RBDO mono-objetivo com refinamento sequencial de acurácia (treliça de 2 barras)",
+"H",
+"SABBa (variante SA-CS) é aplicado ao problema clássico da treliça de 2 barras: MONO-objetivo (minimizar volume V(x)) sob 2 restrições de confiabilidade (quantis",
+"Sec. 6.1, Figs. 11-12"
+],
+[
+"c66",
+"Validação visual do modelo-alvo tunado (predito × real, downstream)",
+"J",
+"Curvas de valores reais × preditos sobre os 200 pontos de teste, uma por saída (f1, f2), para o modelo MLSSVM configurado com o melhor esquema de hiperparâmetro",
+"Sec. IV-B-1), Fig. 3"
+],
+[
+"c66",
+"Caso real dinâmico: reotimização periódica vs. modelo estático (deriva do processo)",
+"J",
+"Estudo de caso industrial: um modelo MLSSVM reotimizado a cada 12h (DMLSSVM, retreinado/reotimizado via PAL-SAPSO com dados atualizados) é comparado com um mode",
+"Sec. IV-B-2), Fig. 4"
+],
+[
+"c75",
+"Convergência SO ilustrativa (pré-MOO): krig+E[I] sequencial vs GA direto",
+"D",
+"No 'First Example' (single-objective, precursor às análises multiobjetivo), o artigo compara a busca sequencial DOE (75 pontos L_Pτ) + krig + atualização por E[",
+"First Example and Some Basic Searches, Fig. 6 (p. 883-884)"
+],
+[
+"c81",
+"Distribuições marginais dos objetivos (QED/SAS/afinidade) das moléculas geradas, com vs. sem RL",
+"B",
+"Fig. 3 compara, para os 3 datasets e 3 trials independentes, as distribuições de QED, SAS e afinidade de ligação das 2.000 moléculas válidas geradas pelo modelo",
+"Sec. 4.2.2, Fig. 3"
+],
+[
+"c81",
+"Ablação dos componentes auxiliares da recompensa (reward boost, penalidade de diversidade, corte dinâmico)",
+"B",
+"Ainda na Tabela 2 (QM9), 3 variantes de 'Ours' removem individualmente um componente AUXILIAR da recompensa (mantendo a probabilidade de incerteza U_multi intac",
+"Appendix B.6; Table 2 (linhas 'Ours W/O')"
+],
+[
+"c81",
+"Validação real de candidatos via docking + MD + perfil ADMET contra inibidor conhecido de EGFR",
+"C",
+"Os 3 melhores candidatos gerados (um por dataset) são comparados a um inibidor conhecido de EGFR mutante (PDB 6VHN) via pose de docking, simulação de MD (4.000 ",
+"Sec. 4.2.4, Fig. 4; Appendix C.6"
+],
+[
+"c81",
+"Validação da afinidade de ligação via Free Energy Perturbation (FEP) para os 3 candidatos selecionados",
+"C",
+"Para complementar (e checar a robustez de) a afinidade estimada por docking (AutoDock Vina, usada como um dos 3 objetivos), o artigo recalcula a energia livre d",
+"Appendix C.5, Table C.5"
+],
+[
+"c81",
+"Generalização a dois novos grupos de propriedades quânticas reais no QM9 (HOMO-LUMO / dipolo-Cv-polarizabilidade)",
+"B",
+"Testa se o framework generaliza para conjuntos de objetivos INTEIRAMENTE DIFERENTES dos 3 originais (QED/SAS/afinidade): Grupo 1 = gap HOMO-LUMO, energia HOMO, ",
+"Appendix C.3, Table C.4"
+],
+[
+"c81",
+"Generalização do framework a outras arquiteturas de difusão (GeoLDM, GFMDiff)",
+"B",
+"Testa se o ganho de otimização por RL+incerteza se mantém ao trocar o backbone gerativo de EDM para GeoLDM (difusão em espaço latente) e GFMDiff (com restrições",
+"Appendix C.8, Table C.6"
+],
+[
+"c81",
+"Análise de correlação entre os 3 objetivos para justificar a independência assumida na agregação multiplicativa da recompensa",
+"E",
+"Calcula a matriz de correlação de Pearson entre QED, SAS e afinidade de ligação, para cada um dos 3 datasets (Tabela C.1), para checar se a suposição de indepen",
+"Appendix C.1, Table C.1"
+],
+[
+"c81",
+"Galeria dos 8 melhores candidatos moleculares gerados por dataset, selecionados por score composto de incerteza",
+"H",
+"Fig. C.3 exibe os 8 candidatos com maior score de incerteza multiobjetivo (U_multi) dentre as 2.000 moléculas geradas por dataset (QM9, ZINC15, PubChem) — uma v",
+"Appendix C.7, Fig. C.3"
+],
+[
+"c82",
+"Sensibilidade à razão de tempos de avaliação τ entre objetivo lento e rápido",
+"C",
+"Comparando explicitamente as Tabelas 1 (τ=5) e 2 (τ=10), o texto examina se o viés introduzido pela exploração desproporcional do objetivo rápido se agrava quan",
+"Sec. 4.4 (parágrafo de transição entre Table 1 e Table 2)"
+],
+[
+"c82",
+"Ablação do esquema de transferência como um todo (dois GPs independentes, sem co-surrogate nem seleção)",
+"B",
+"Compara TC-SAEA com NT-SAEA, uma variante que constrói GPs separados para fs e ff sem qualquer mecanismo de transferência (nem co-surrogate, nem dado sintético,",
+"Sec. 4.5 (Ablation Studies), Tables 4 e 5"
+],
+[
+"c82",
+"Ablação do tipo de modelo do co-surrogate (GP vs. regressão polinomial)",
+"E",
+"Compara TC-SAEA com TC-SAEAp, idêntico em tudo (incluindo a seleção por intervalo de confiança) exceto que o co-surrogate GPc é substituído por uma regressão po",
+"Sec. 4.5, Tables 4 e 5"
+],
+[
+"c91",
+"Caso real de engenharia com aplicação única do método (sem baseline algorítmico nem frente verdadeira conhecida)",
+"C",
+"Aplica o EHVIMOPSO a um problema real de engenharia aeroespacial: otimização biobjetivo da geometria do bump de um inlet supersônico sem separador (DSI), minimi",
+"Sec. 4.4, Fig. 17, Table 6"
+],
+[
+"c91",
+"Validacao fisica qualitativa do design via campo de escoamento (ondas de choque, contornos de pressao)",
+"H",
+"Valida fisicamente a solução ótima selecionada ('Pareto A') contra o design inicial através de visualizações qualitativas do campo de escoamento: a configuração",
+"Sec. 4.4, Figs. 18-21"
+],
+[
+"c91",
+"Curvas de desempenho ao longo de uma faixa continua de condicao operacional (envelope operacional)",
+"H",
+"Compara curvas características ('cane curves') de distorção de pressão total e recuperação de pressão total em função da razão de vazão (phi) — uma varredura da",
+"Sec. 4.4, Figs. 22-23"
+],
+[
+"c97",
+"RMSE individual dos membros do ensemble por saída (variabilidade entre bootstraps)",
+"E",
+"Para cada uma das três saídas de salinidade (C1, C2, C3), o artigo calcula o RMSE de teste de CADA um dos até 30 modelos substitutos individuais do ensemble — c",
+"Sec. 6.1 [38], Figs. 4, 5, 6"
+],
+[
+"c97",
+"RMSE do ensemble agregado em função do número de membros (C1)",
+"E",
+"O artigo plota o RMSE da predição agregada do ensemble (apenas para a salinidade C1) em função do número de modelos substitutos incluídos, partindo de um ensemb",
+"Sec. 6.1 [38]-[39], Fig. 7"
+],
+[
+"c97",
+"Convergência da incerteza (CV do RMSE) com o tamanho do ensemble — escolha de N=30",
+"E",
+"Para cada uma das três saídas (C1, C2, C3), o coeficiente de variação (CV) dos RMSEs dos modelos do ensemble é plotado contra o número de modelos incluídos (Fig",
+"Sec. 6.1 [39], Figs. 8, 9, 10"
+],
+[
+"c97",
+"Sensibilidade do NSGA-II a tamanho de população e número de gerações",
+"J",
+"O artigo relata, apenas em texto (sem figura/tabela), experimentos numéricos variando o tamanho de população e o número de gerações do NSGA-II (mantendo os dema",
+"Sec. 6.2 [40]"
+],
+[
+"c97",
+"Fronteiras de Pareto por nível de confiabilidade (múltiplas realizações × chance-constrained)",
+"H",
+"Para quatro níveis de confiabilidade impostos à restrição de salinidade máxima (0,99; 0,8; 0,66; 0,5), o artigo plota e compara visualmente, no espaço de objeti",
+"Sec. 6.3 [42]-[44], Figs. 11, 12, 13, 14; equivalência MRO≈CC em Sec. 6.4 [47]"
+],
+[
+"c97",
+"Sensibilidade da fronteira de Pareto ao número de membros do ensemble (5/10/15/30)",
+"E",
+"Mantendo a confiabilidade em 0,99, o artigo recomputa a fronteira de Pareto pela abordagem de múltiplas realizações usando ensembles de 5, 10, 15 e 30 modelos s",
+"Sec. 6.4 [48], Fig. 18"
+],
+[
+"e1",
+"Escalabilidade sintética do custo de decomposição em células (tempo, nº de células) vs. nº de objetivos e tamanho do conjunto de Pareto, com baseline concorrente",
+"F",
+"Microbenchmark isolado (não usa execuções reais dos problemas DTLZ) do tempo de computação e do número de células geradas pela decomposição do espaço de objetiv",
+"Sec. 3.4, Fig. 5"
+],
+[
+"e1",
+"Verificação de corretude da fórmula fechada da EI/PoI multiobjetivo contra implementação de referência e Monte Carlo",
+"E",
+"Checagem de corretude (não de desempenho) da nova expressão fechada proposta para a EI baseada em hipervolume: comparação numérica extensa contra o código públi",
+"Sec. 3.3.1"
+],
+[
+"e102",
+"Ablação da estratégia de seleção de subproblemas (ASS vs. seleção aleatória)",
+"E",
+"Ablação da estratégia de seleção de subproblemas do MOEA/D-ASS: Variant-RSS é idêntico ao MOEA/D-ASS exceto que seleciona subproblemas ALEATORIAMENTE a cada ite",
+"Sec. VI-A, Table IX e Table X (Supplemental File — não incluídas neste corpus)"
+],
+[
+"e102",
+"Ablação do modelo colaborativo (CoMOGP) vs. GPs independentes por subproblema",
+"E",
+"Ablação do modelo surrogate do MOEA/D-ASS: Variant-InGP é idêntico ao MOEA/D-ASS exceto que modela cada subproblema selecionado com um GP INDEPENDENTE (sem info",
+"Sec. VI-B, Table IX (Supplemental File — não incluída neste corpus)"
+],
+[
+"e102",
+"Ablação da função de aquisição (ALCB de γ adaptativo vs. LCB de γ fixo)",
+"E",
+"Ablação da função de aquisição do MOEA/D-ASS: Variant-LCB é idêntico ao MOEA/D-ASS exceto que usa a LCB clássica com γ FIXO=2 (valor sugerido por Emmerich et al",
+"Sec. VI-C, Table IX (Supplemental File — não incluída neste corpus)"
+],
+[
+"e102",
+"Sensibilidade ao parâmetro η do grau de resolução (solving degree) na seleção de subproblemas",
+"E",
+"Estudo de sensibilidade ao parâmetro de controle η da fórmula do grau de resolução (Solving Degree, eq. 21) — que define o quão facilmente um subproblema é cons",
+"Sec. VI-D, Fig. 9"
+],
+[
+"e103",
+"Análise de complexidade computacional assintótica (Big-O) por fase, entre 7 algoritmos",
+"F",
+"Decomposição analítica (não empírica) da complexidade computacional de 7 algoritmos — IBEA-MS; os offline AK-IBEA e NSGA-II-GP; os online Par-EGO, MOEA/D-EGO, K",
+"Sec. III-B; Table S.I (material suplementar)"
+],
+[
+"e103",
+"Escolha do motor evolutivo de base para o framework offline (piloto)",
+"B",
+"O artigo MENCIONA um estudo piloto testando o efeito da escolha do algoritmo evolutivo de base (MOEA) sobre o desempenho do framework proposto, concluindo a fav",
+"Sec. IV (abertura); Table S.II (material suplementar)"
+],
+[
+"e103",
+"Robustez a hiperparâmetros do surrogate e ao dataset offline inicial",
+"J",
+"O artigo MENCIONA dois estudos de robustez/sensibilidade — aos parâmetros dos modelos surrogate (presumivelmente o intervalo de θ do Kriging e/ou o espalhamento",
+"Sec. IV (abertura); Tables S.III e S.IV (material suplementar)"
+],
+[
+"e103",
+"Robustez ao método de amostragem do dataset offline (LHS × aleatória)",
+"J",
+"O artigo MENCIONA um teste comparando duas formas de gerar o dataset offline inicial (11D−1 pontos) — Latin Hypercube Sampling (a convenção padrão usada em todo",
+"Sec. IV-B (parágrafo sobre aplicação a problemas reais); Table S.VIII (material suplementar)"
+],
+[
+"e104",
+"Ablação da amostragem por indicador de desempenho vs. amostragem aleatória (RVMM-RI)",
+"E",
+"Ablação do critério de seleção do Algoritmo 2 (que decide, de forma determinística via distância euclidiana/IGD/ângulo, se o candidato de maior contribuição à c",
+"Sec. IV-G; Tables SIV-SV (material suplementar, não visível no corpus)"
+],
+[
+"e104",
+"Sensibilidade aos hiperparâmetros k (peso da incerteza na AUCB), Nv (nº de vetores de referência adaptativos) e ωmax (gerações por rodada de Kriging)",
+"E",
+"O artigo menciona que resultados de sensibilidade aos parâmetros k (peso da incerteza na função de aquisição AUCB, Eq. 6), Nv (número de vetores de referência a",
+"Sec. IV-A (menção); Figs. S1-S3 (material suplementar, não anexado ao corpus)"
+],
+[
+"e104",
+"Comparação de tempo de execução (runtime) entre os oito algoritmos",
+"F",
+"O artigo menciona que uma comparação do tempo de execução (runtime) de RVMM e dos sete comparados foi realizada, mas os resultados estão inteiramente no materia",
+"Sec. IV-C (menção); Seção III do material suplementar (não anexado ao corpus)"
+],
+[
+"e16",
+"Ablação do componente evolutivo interno do híbrido assistido (troca de EA e do otimizador de aquisição)",
+"G",
+"O artigo menciona ter repetido seus experimentos sintéticos substituindo o componente evolutivo do EGBO (U-NSGA-III → MOEA/D-IEpsilon) e o otimizador da aquisiç",
+"Sec. Further discussion; Supplementary Discussion subsection 2.2 (não presente neste documento)"
+],
+[
+"e17",
+"Verificacao visual da acuracia da media do GP num problema de brinquedo 2D",
+"E",
+"No problema-teste biobjetivo 2D (Eq. 5), apos 15 observacoes a partir de 5 pontos iniciais aleatorios, o artigo compara visualmente (mapas de calor normalizados",
+"Sec. III-B, Fig. 3(a-d)"
+],
+[
+"e17",
+"Comparacao visual do front 2D projetado entre algoritmos, sem frente verdadeira conhecida",
+"H",
+"Para o mesmo problema AWA, apos 200 observacoes, o artigo plota a projecao 2D do front (energy spread dE vs. emitancia transversal epsilon_x) obtida por MOBO, N",
+"Sec. IV-A, Fig. 7(b)"
+],
+[
+"e17",
+"Restricao de desigualdade probabilistica (gate via posterior de GP) num problema de brinquedo",
+"E",
+"No mesmo problema de brinquedo (Eq. 5), o artigo adiciona uma restricao de desigualdade g(x)=x1<=0.5 modelada por um GP separado, cuja probabilidade de satisfac",
+"Sec. III-C, Fig. 4"
+],
+[
+"e17",
+"Preferencia (subdominio truncado) vs. restricao probabilistica vs. irrestrito no problema real AWA",
+"E",
+"No problema AWA, o artigo compara tres tratamentos do objetivo 'energy spread' dE: (a) sem preferencia/restricao; (b) preferencia via subdominio truncado da aqu",
+"Sec. IV-B, Fig. 8"
+],
+[
+"e21",
+"Falhas de convergência do treino do UQ por dataset",
+"E",
+"Relata, em texto (sem tabela/figura dedicada no corpo principal), falhas de convergência do TREINAMENTO do surrogate específicas por método de UQ e por dataset:",
+"Results, 'Surrogate model and UQ performance' (texto principal); Supplementary Figs. S1, S2, S3 (só mencionadas)"
+],
+[
+"e21",
+"Distribuição do valor real dos top-K por método vs. corte",
+"H",
+"Para as 10 tarefas single-objective, mostra a distribuição completa (histograma/densidade, não só o número agregado de hit rate) dos valores reais (avaliados pe",
+"Fig. 4; Results, 'Optimization results of single-objective task'"
+],
+[
+"e3",
+"Heterogêneo × homogêneo — ablação do mecanismo de diversidade do ensemble",
+"B",
+"Na mesma Table III, a linha que compara HeE-MOEA (ensemble heterogêneo: LSSVM+2 RBFNs, 3 conjuntos de features) contra HoE-MOEA (ensemble HOMOGêNEO: 9 RBFNs via",
+"Sec. V-F, Table III (linha HoE-MOEA)"
+],
+[
+"e3",
+"Sensibilidade ao método de agregação das saídas do ensemble",
+"E",
+"Estudo de sensibilidade (mencionado no texto principal, tabela completa no material suplementar) comparando três métodos de agregação das saídas dos 9 membros d",
+"Sec. V-E.1; Table I do material suplementar (mencionada, não incluída neste corpus)"
+],
+[
+"e3",
+"Sensibilidade ao tamanho do DoE inicial (orçamento offline × online)",
+"D",
+"Estudo de sensibilidade (mencionado no texto principal, tabela completa no material suplementar) sobre o número de amostras iniciais do DoE (offline) usadas par",
+"Sec. V-E.2; Table II do material suplementar (mencionada, não incluída neste corpus)"
+],
+[
+"e40",
+"Sensibilidade ao vetor de razao de custo r e ao limiar rthres",
+"C",
+"Estudo de sensibilidade do HK-RVEA e do SBP-BO a: (a) diferentes perfis do vetor de razao de tempo de avaliacao r entre objetivos em problemas de m=3 (seis perf",
+"Sec. IV-B-2 (Influence of different r and rthres on the optimization performance), Tables III-IV, p.10-11; mencao a Tables SIII-SIV (Supplementary material) para m=3"
+],
+[
+"e40",
+"Ablacao da estrategia de selecao de dados extras do ensemble (completo vs. clustering vs. amostra aleatoria)",
+"B",
+"Dentro do estudo de ablacao (Table VI, em que o SBP-BO completo vence as 4 variantes em 22 e 14 de 48 celulas para rc=5 e rc=10), compara especificamente SBP-BO",
+"Sec. IV-B-4 (Ablation studies), Table VI, p.12-13; mencao a Table SVI (Supplementary material) para rc=10"
+],
+[
+"e40",
+"Ablacao do surrogate nos objetivos baratos (modelo vs. avaliacao instantanea/ilimitada)",
+"B",
+"Compara SBP-BO (usa GP surrogate nos objetivos baratos) contra a variante SBP-NoGPc/BO-NoGPc (nomenclatura inconsistente entre prosa e cabecalho da Table VI), q",
+"Sec. IV-B-4, Table VI (coluna 'BO-NoGP_c'), p.12-13; mencao a Table SVI (Supplementary material)"
+],
+[
+"e40",
+"Ablacao do termo de penalizacao de vies de busca (SBP)",
+"B",
+"Compara SBP-BO (funcao de aquisicao adaptativa AFA multiplicada pelo termo de penalizacao SBP, Eq. 5) contra BO-AAF, que remove o termo SBP e usa so a AFA (que ",
+"Sec. IV-B-4, Table VI (coluna 'BO-AAF'), p.12-13; mencao a Table SVI (Supplementary material)"
+],
+[
+"e64",
+"Interpretação físico-decisória dos projetos ótimos do caso real (segmentos x variáveis de decisão x física do domínio)",
+"H",
+"Examina qualitativamente a frente de Pareto final do caso do aquífero costeiro, identificando 3 segmentos (S1-S3) delimitados por 2 pontos de inflexão, e relaci",
+"Sec. 5.2.3, Figs. 14-15"
+],
+[
+"e7",
+"Sensibilidade às iterações de treino do surrogate (itertrain, iterr)",
+"E",
+"Sensibilidade do IGD final de EDN-ARMOEA ao número de passagens forward-backward usadas para construir a EDN pela primeira vez (itertrain) e para atualizá-la a ",
+"Sec. IV-F.1; Figs. S2-S3 (Supplementary material, ausentes deste corpus — achado descrito em prosa no texto principal)"
+],
+[
+"e7",
+"Sensibilidade ao tamanho da rede (neurônios ocultos J=K)",
+"E",
+"Sensibilidade do IGD final de EDN-ARMOEA ao número de neurônios nas duas camadas ocultas da EDN (J=K, assumidos iguais por simplicidade), em 4 problemas WFG (WF",
+"Sec. IV-F.2; Fig. S4 (Supplementary material, ausente deste corpus — achado descrito em prosa no texto principal)"
+],
+[
+"e7",
+"Sensibilidade à taxa de dropout — parâmetro central do próprio mecanismo de incerteza",
+"E",
+"Sensibilidade do IGD médio de EDN-ARMOEA à taxa de dropout (1−pI para a camada de entrada, 1−pR para a camada oculta) — o hiperparâmetro que LITERALMENTE define",
+"Sec. IV-F.3; Fig. S5 (Supplementary material, ausente deste corpus — achado descrito em prosa no texto principal)"
+],
+[
+"e7",
+"Sensibilidade ao tamanho do lote k de avaliações reais por geração",
+"E",
+"Sensibilidade do IGD médio de EDN-ARMOEA a k (número de soluções avaliadas pela função real a cada geração / ciclo de retreino, também o número de clusters do k",
+"Sec. IV-F.4; Fig. S6 (Supplementary material, ausente deste corpus — achado descrito em prosa no texto principal)"
+],
+[
+"e7",
+"Estudo piloto de tamanho de população e nº de gerações (P, iter) da AR-MOEA interna",
+"E",
+"Menção a um estudo piloto (não detalhado no texto principal disponível) usado para fixar o tamanho de população P=50 e o número máximo de gerações iter=20 da AR",
+"Sec. IV-F (abertura); ver também Sec. IV-A item 2) ('based on our pilot study given in the Supplementary material')"
+],
+[
+"e7",
+"Estudo de caso real — unidades de destilação de petróleo bruto",
+"J",
+"Validação de EDN-ARMOEA em um problema real de otimização operacional (unidades de destilação de petróleo bruto), comparado com AEMOEA (acrônimo nunca definido ",
+"Sec. V (Conclusão); estudo completo no Sec. VII do Supplementary material (ausente deste corpus)"
+],
+[
+"e74",
+"Estudo de caso real — extração de calor geotérmico (EGS fraturado)",
+"J",
+"Validação de CLMEA num problema real de engenharia (otimização de extração de calor de um sistema geotérmico aprimorado/EGS fraturado, 160 variáveis de decisão,",
+"Sec. IV-H; Fig. 13 (rede de fraturas e poços); Fig. 14 (soluções ND e valores de HV)"
+],
+[
+"e8",
+"Comparação de arquiteturas de surrogate por acurácia (μ)",
+"E",
+"Compara três arquiteturas candidatas de modelo substituto — ANN multitarefa, ANNs de tarefa única (uma para cada propriedade) e um GP de kernel gaussiano — quan",
+"Table S3 (S12); Figure S6 (S13)"
+],
+[
+"e8",
+"Correlação de erro entre arquiteturas de modelo (teste)",
+"E",
+"Mede a correlação linear entre os erros absolutos de predição de cada par de arquitetura (GP, ANN multitarefa, ANN de tarefa única), tanto DENTRO de cada propri",
+"Table S4 (S13)"
+],
+[
+"e8",
+"Correlação de erro entre arquiteturas de modelo (extrapolação)",
+"E",
+"A mesma matriz de correlação de erro entre arquiteturas (redox×logP, GP×multitask×single-task) da Tabela S4, agora aplicada ao conjunto extrapolativo fora de di",
+"Table S5 (S15)"
+],
+[
+"e8",
+"Evolução das médias do front de Pareto real por geração",
+"D",
+"Lista, para cada geração (1 a 5), os complexos que compõem o front não-dominado real (ND) acumulado até aquele ponto — metal, ligante, ΔGox(sol), logP, spin-spl",
+"Table S6 (S17)"
+],
+[
+"e8",
+"Taxa de sucesso/falha da avaliação real (DFT) por geração e causa",
+"I",
+"Reporta, por geração (1-5) e para o lote aleatório de comparação, o número de simulações DFT solicitadas, quantas falharam (por violação de geometria \"geo\", não",
+"Table S7 (S18)"
+],
+[
+"e8",
+"Distribuição do critério de aquisição (E[I]/P[I]) por geração",
+"E",
+"Estima por KDE a distribuição dos valores de E[I] (melhoria esperada) e P[I] (probabilidade de melhoria) entre os 100 medoides selecionados em cada uma das 4 ge",
+"Figure S11 (S18)"
+],
+[
+"e8",
+"Sobre-amostragem pelo E[I] de regiões estruturais de baixa taxa de conversão",
+"C",
+"Compara, por heterociclo core (Tabela S13, Figuras S20-S21) e por grupo funcional (Tabela S14), a frequência com que o E[I] solicita cada região estrutural do e",
+"Text S3 (S35); Tables S13-S14 (S33); Figures S20-S21 (S31-S32)"
+],
+[
+"e8",
+"Qualidade da amostra inicial por clustering diversidade-orientado",
+"J",
+"Avalia a qualidade dos 300 clusters (k-medoids/CLARA no espaço de features RAC-155) usados para selecionar a amostra inicial diversificada dentro do espaço de 2",
+"Text S4 (S40); Figure S24 (S41); Figure S25 (S41); Table S20 (S42)"
+],
+[
+"e8",
+"Distribuição de metais entre candidatos tentados e convergidos por geração",
+"C",
+"Mostra, para cada metal (Cr, Mn, Fe, Co) e cada geração (1-5), a contagem de complexos selecionados para simulação (tentados) versus os que resultaram em cálcul",
+"Figure S13 (S23)"
+],
+[
+"e81",
+"Ablação da aproximação de Nyström (exata vs Nystrom-Pareto)",
+"E",
+"Dentro dos mesmos experimentos sintéticos d=10 (DTLZ3 e ZDT3), o artigo compara a variante 'qPOTS-Nystrom-Pareto' (que usa a aproximação de Nyström de Sec. 3.3 ",
+"Sec. 4.1 (parágrafo após Fig. 4), Fig. 4 e Fig. 5"
+],
+[
+"e81",
+"Interpretação aerodinâmica dos designs (coeficiente de pressão)",
+"H",
+"Comparação do coeficiente de pressão (Cp) na superfície da asa entre o design baseline (não deformado) e 3 designs Pareto-ótimos do qPOTS (Fig. 9, nível de asa ",
+"Sec. 4.2, Fig. 9 e Fig. 10"
+],
+[
+"e81",
+"Interpretação aerodinâmica dos designs (geometria do perfil/asa)",
+"H",
+"Comparação das formas de seção transversal (perfis/airfoil) do design baseline vs um design Pareto-ótimo do qPOTS, nas mesmas 5 posições de envergadura (5/25/50",
+"Sec. 4.2, Fig. 11"
+],
+[
+"e81",
+"Robustez a ruído de observação injetado (ablação de σ²)",
+"C",
+"Experimento de robustez no Branin-Currin: qPOTS rodado com ruído gaussiano aditivo de observação em 4 níveis de variância (σ² = 0, 1e-6, 1e-4, 1e-3), reportando",
+"Apêndice 5.3, Fig. 12"
+],
+[
+"e86",
+"Fidelidade do critério de aquisição aproximado (IS/MCS) em relação ao cálculo exato, por nº de objetivos",
+"E",
+"Os valores brutos de EHVI calculados por IS, por MCS e pelo método EXATO (via BoTorch) para os mesmos indivíduos na primeira iteração são comparados par a par (",
+"Sec. IV-C, Fig. 3"
+],
+[
+"e86",
+"Sensibilidade aos hiperparâmetros internos de busca e diversidade (t_max, β)",
+"E",
+"O artigo declara os valores recomendados de t_max (nº de gerações do NSGA-III entre infills) = 15 e β (parâmetro que sorteia a proporção de candidatos usada na ",
+"Sec. IV-A, p. 8"
+],
+[
+"e86",
+"Efeito do método de especificação do ponto de referência do HV",
+"I",
+"O artigo usa um ponto de referência fixo (1,2 em cada dimensão normalizada) para o cálculo do HV e menciona ter testado o método de Ishibuchi et al. [22] (que e",
+"Sec. IV-A, p. 8"
+],
+[
+"e9",
+"Demonstração didática do critério (caso single-objective)",
+"E",
+"Antes da extensão multiobjetivo, o artigo ilustra o critério EEV (volume esperado de excursão) no caso monobjetivo: um GP é ajustado a 6 observações num problem",
+"Sec. 3.4, Fig. 1"
+],
+[
+"emo1",
+"Paisagem de aptidão do critério de infill (ilustração sintética em grade fixa)",
+"E",
+"O artigo visualiza a 'paisagem de aptidão' de cada critério de infill — MPoI (Fig. 1), HypI/DomRank/MSD (Fig. 2, três painéis) e o S-metric do SMS-EGO (Fig. 4) ",
+"Sec. 3.2 (Fig. 1, p. 876); Sec. 4.4 (Fig. 2, p. 877); Sec. 5 (Fig. 4, p. 879)"
+],
+[
+"emo1",
+"Custo isolado da avaliação do critério de infill × nº de objetivos e |P*|",
+"F",
+"O artigo mede o tempo médio de computação de UMA avaliação de cada critério de infill (não o tempo total de uma execução completa, nem o tempo de ajuste do GP),",
+"Sec. 5, Fig. 5, p. 879"
+],
+[
+"jin3",
+"Validação cruzada com resultado publicado na literatura",
+"G",
+"O artigo compara diretamente seu resultado em MF6 (ZDT4) com os números publicados por Deb & Nain [28] para o mesmo problema — número de avaliações exatas neces",
+"Sec. IV-C-1"
+],
+[
+"jin3",
+"Decomposição analítica (não-empírica) do custo computacional",
+"F",
+"Formaliza o custo computacional total (Tcomp) do GS-SOMA/MOMA e dos SS-SOMA/MOMA como fórmulas fechadas (Eq. 24-25), decompostas em geração do banco de dados in",
+"Sec. IV-D, Eq. (24)-(25)"
+],
+[
+"mtm4",
+"Taxa de soluções factíveis por execução (eficiência de tratamento de restrições)",
+"A",
+"Para o caso RAE 2822 (5 execuções, até 1000 avaliações cada), o artigo conta e compara em gráfico de barras o número de soluções factíveis (que satisfazem as re",
+"Sec. VI, Fig. 32 (p.15)"
+],
+[
+"mtm6",
+"Mapa visual do surrogate (μ/σ) e da paisagem do critério de aquisição",
+"E",
+"A Fig. 6 também exibe, para a mesma execução, as superfícies de média e de variância do modelo de campo aleatório gaussiano (GRF/Kriging) ajustado separadamente",
+"Sec. V-A (Numerical Experiment), parágrafo 'Result' (item c), Fig. 6 (painéis do topo, do meio, e inferior-direito)"
+],
+[
+"wang4",
+"Convergência dos parâmetros do modelo de regressão que estima o erro do surrogate (β1, β2)",
+"E",
+"Registra, ao longo da adaptação de K durante a busca (Kmax=1000, médias sobre 20 execuções), a evolução dos dois parâmetros β1 e β2 do modelo de regressão ER=1/",
+"Sec. V-C2, Fig. 15"
+],
+[
+"wang4",
+"Confronto do ND obtido com a configuração real vigente do sistema (status quo), sob restrições relaxadas",
+"H",
+"Relaxa as restrições do problema até que a configuração REALMENTE implantada na Escócia (4 MTCs) se torne factível (ela viola a restrição de volume de casos por",
+"Sec. V-D (final), Fig. 19"
+]
+]

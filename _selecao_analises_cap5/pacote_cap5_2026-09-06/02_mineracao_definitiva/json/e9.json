@@ -1,0 +1,158 @@
+{
+  "id": "e9",
+  "sigla": "SUR",
+  "titulo": "Multiobjective optimization using Gaussian process emulators via stepwise uncertainty reduction",
+  "ano": 2015,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Nenhuma suíte-padrão (ZDT/DTLZ/WFG/BBOB) e nenhum problema real: dois problemas de brinquedo, sintéticos e específicos do próprio artigo, gerados como realizações de processos gaussianos (não funções analíticas fixas). (1) Sec. 5.1, 1D/biobjetivo: F(1) e F(2) são realizações independentes de GPs 1D, indexadas por uma grade regular de 300 pontos em [0,1], com covariância Matérn estacionária (ν=3/2, variância 1, alcance 1/5). (2) Sec. 5.2, 6D/biobjetivo: F(1) e F(2) são realizações de GPs 6D, indexadas por uma sequência de Sobol de 2000 pontos em [0,1]^6, com covariância Matérn estacionária (ν=5/2, variância 1, alcance √6/6).",
+    "orcamento": "(1) 1D: 4 observações iniciais escolhidas aleatoriamente + 10 iterações do critério SUR/SMS-EGO (14 avaliações reais no total). (2) 6D: 10 observações iniciais aleatórias + 40 iterações adicionadas por cada estratégia (50 avaliações reais no total). Não há relação declarada entre o orçamento e D (nada análogo ao 31D-1 da dissertação), nem DoE do tipo LHS — apenas 'randomly chosen observations'.",
+    "execucoes": "Não relatado explicitamente. Não há menção a sementes múltiplas, repetições, número de execuções independentes, médias ou dispersão entre execuções em nenhum dos dois experimentos; tudo indica UMA única corrida por problema/estratégia (as curvas das Figs. 7 e 8 não têm sombreado de erro nem qualquer indicação de agregação).",
+    "baselines": "Um único concorrente externo, SMS-EGO (Ponweiser et al., 2008) — ele próprio um método assistido por GP (infill baseado em S-metric selection), não um piso evolutivo sem surrogate. NSGA-II é citado apenas de passagem, como pano de fundo motivacional ('SMS-EGO... has been shown to outperform significantly non-GP based methods (such as NSGA-II)'), mas NUNCA é executado nos experimentos deste artigo. Portanto, NÃO há piso sem surrogate testado empiricamente aqui.",
+    "metricas_principais": [
+      "hypervolume indicator",
+      "epsilon indicator",
+      "R2 indicator"
+    ],
+    "testes": [
+      "nenhum teste estatístico em lugar nenhum do artigo (execução única por problema, sem repetição que permita teste de significância)"
+    ],
+    "apresentacao": "Curvas de cada indicador por iteração (linha cheia = SUR, linha pontilhada = SMS-EGO), execução única, sem média/mediana, sem IQR/desvio-padrão, sem tabela numérica de valores finais, sem símbolos +/=/-, sem negrito. Pareto-front plotado com os pontos ótimos verdadeiros em cruzes/pontos vermelhos e a frente atual/obtida em azul (ou preto); painéis do modelo GP mostram a média em linha preta e o intervalo de confiança de 95% em área cinza. Indicadores calculados com o pacote R EMOA (Zitzler et al., 2003; Hansen e Jaszkiewicz, 1998).",
+    "codigo_plataforma": "R: pacote pbivnorm (Kenkel, 2012) para a CDF normal bivariada usada no critério fechado; pacote EMOA (Mersmann, 2012) para os três indicadores de desempenho. DiceKriging/DiceOptim (Roustant et al., 2012) é citado apenas como referência geral para ajuste de GP (cálculos/implementação), sem confirmação de que foi de fato usado para ajustar os modelos dos dois experimentos numéricos."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Demonstração didática do critério (caso single-objective)",
+      "grupo_sugerido": "E",
+      "descricao": "Antes da extensão multiobjetivo, o artigo ilustra o critério EEV (volume esperado de excursão) no caso monobjetivo: um GP é ajustado a 6 observações num problema de brinquedo 1D; a probabilidade de melhoria corrente é calculada em toda a grade, e o critério (redução esperada de volume) é calculado para dois pontos candidatos específicos (x+=0.2 e x+=0.5), mostrando numericamente qual deles o critério prefere e por quê.",
+      "literal": "In terms of volume of excursion set, we have EEV (0.2) ~ ev6 (no reduction), while EEV (0.5) ~ ev6/3 (large reduction): the EEV criterion clearly indicates x+ = 0.5 as a better sampling location.",
+      "localizador": "Sec. 3.4, Fig. 1",
+      "metricas": [
+        "EEV (volume esperado de excursão, expected volume of excursion set)",
+        "probabilidade de melhoria (probability of improvement) p_n(x, y_n^min)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Valor do critério reportado como fração aproximada do volume inicial ev6 (~ev6 para nenhuma redução; ~ev6/3 para redução grande); exemplo único, sem repetição nem dispersão; ilustração puramente didática do mecanismo antes de qualquer experimento numérico propriamente dito.",
+      "achado": "O critério EEV atribui corretamente uma redução de incerteza quase nula ao candidato x+=0.2 (região já bem explorada, de valor alto) e uma redução grande (~2/3 do volume) ao candidato x+=0.5 (região de valor baixo e incerteza alta) — validação de sanidade do comportamento do critério antes de aplicá-lo ao caso multiobjetivo.",
+      "aplicabilidade": "não reproduzível — demonstração pontual/didática num exemplo de brinquedo unidimensional e monobjetivo (nem sequer a versão multiobjetivo do método), fora do escopo dos 28 problemas, dos 15+4 algoritmos e do protocolo de 30 sementes da dissertação; serve só de evidência conceitual de que o critério funciona como pretendido."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "No problema de brinquedo 1D/biobjetivo (Sec. 5.1), dois modelos GP são ajustados a 4 observações iniciais; a tesselação do espaço de objetivos e o valor do critério SUR são calculados e visualizados em toda a grade (Fig. 5), e a frente de Pareto obtida pelo próprio SUR após 10 iterações é comparada qualitativamente à frente real (Fig. 6), junto com o comportamento da variância de predição do modelo.",
+      "literal": "After 10 iterations (Figure 6), the Pareto front is well-approximated. The models are accurate in the optimal regions and have high prediction variances in the other regions.",
+      "localizador": "Sec. 5.1, Figs. 5-6",
+      "metricas": [
+        "cobertura/distribuição qualitativa do conjunto não-dominado obtido vs. frente real",
+        "variância de predição do GP (s^2)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução única (sem sementes múltiplas); frente atual em azul vs. frente real em vermelho no espaço de objetivos; painéis do GP com média (linha preta) e IC 95% (área cinza); sem métrica numérica de cobertura reportada nesta figura (leitura visual).",
+      "achado": "Após 10 iterações, o SUR aproxima bem a frente de Pareto verdadeira no problema de brinquedo 1D/biobjetivo; os modelos ficam acurados nas regiões ótimas e mantêm variância de predição alta nas demais regiões — indício qualitativo de alocação eficiente do orçamento de avaliações entre exploração e intensificação.",
+      "aplicabilidade": "não reproduzível — usa uma função de teste sintética própria do artigo (realização de GP, não um dos 28 problemas da bateria), o algoritmo SUR não está no roster da dissertação, e a execução é única (sem 30 sementes); nenhuma das 7 camadas cobre este algoritmo/problema."
+    },
+    {
+      "fichas": [
+        26,
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparação de desempenho entre o SUR proposto e o SMS-EGO (Ponweiser et al., 2008) no mesmo problema de brinquedo 1D/biobjetivo, usando três indicadores (hipervolume, epsilon, R2) calculados a cada iteração ao longo de 10 iterações (Fig. 7, painéis direitos). O artigo também compara qualitativamente a frente de Pareto obtida pelo SMS-EGO (Fig. 7, painel esquerdo) com a do SUR (Fig. 6), notando que o SMS-EGO só descobre uma das duas regiões ótimas do problema.",
+      "literal": "As a consequence, the Pareto front is locally more accurate than the one obtained with the SUR strategy, but the indicators are much poorer.",
+      "localizador": "Sec. 5.1, Fig. 7",
+      "metricas": [
+        "hypervolume indicator",
+        "epsilon indicator",
+        "R2 indicator"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curvas por iteração (2 a 10), linha cheia = SUR, linha pontilhada = SMS-EGO; execução única, sem média/IQR sobre repetições; hipervolume: maior é melhor; epsilon e R2: devem tender a zero.",
+      "achado": "Nos três indicadores, o SUR supera o SMS-EGO ao longo das 10 iterações; notavelmente, o SMS-EGO só explora uma das duas regiões ótimas do problema (multimodalidade no espaço de objetivos), o que o torna localmente mais preciso onde de fato atua, mas consideravelmente pior nos indicadores agregados de cobertura — um caso em que a acurácia local visual engana sobre a qualidade global.",
+      "aplicabilidade": "não reproduzível — exigiria implementar e rodar SUR e SMS-EGO (nenhum dos dois está no roster da dissertação) na função de teste sintética específica do artigo, com execução única (sem 30 sementes) e sem os 28 problemas-padrão da bateria; não há dado equivalente nas 7 camadas."
+    },
+    {
+      "fichas": [
+        26,
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Repetição do mesmo protocolo de comparação SUR vs. SMS-EGO (três indicadores: hipervolume, epsilon, R2) num problema de brinquedo 6D/biobjetivo (Sec. 5.2), com 10 observações iniciais aleatórias e 40 iterações adicionadas por cada estratégia; inclui também os painéis de frente de Pareto (SUR, SMS-EGO e a frente real) após as 40 iterações (Fig. 8, topo).",
+      "literal": "Again, the SUR strategy shows better performances compared to SMS-EGO.",
+      "localizador": "Sec. 5.2, Fig. 8",
+      "metricas": [
+        "hypervolume indicator",
+        "epsilon indicator",
+        "R2 indicator"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curvas por iteração (0 a 40), linha cheia = SUR, linha pontilhada = SMS-EGO; execução única, sem repetição; mesmas convenções de indicadores da Fig. 7 (Sec. 5.1); painel superior esquerdo mostra os 2000 pontos do espaço de objetivos com os pontos Pareto-ótimos verdadeiros em vermelho.",
+      "achado": "No problema 6D/biobjetivo, com orçamento maior (10+40 avaliações) e dimensão mais alta que o caso 1D, o SUR volta a superar o SMS-EGO nos três indicadores (hipervolume, epsilon, R2) ao longo das iterações — o mesmo padrão qualitativo do experimento 1D se mantém ao escalar a dimensão de 1 para 6.",
+      "aplicabilidade": "não reproduzível — mesma limitação da análise anterior: função de teste sintética própria do artigo (realização de GP 6D via sequência de Sobol), algoritmos fora do roster, execução única sem 30 sementes; nenhuma das 7 camadas cobre este par algoritmo/problema."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": false,
+    "o_que": "Apenas discussão qualitativa da carga computacional, sem nenhuma medição empírica de tempo (segundos/minutos), sem decomposição fit/busca/avaliação e sem tabela de custo. Na Sec. 4.3 ('Computation'), o artigo nota que o cálculo do critério é não-trivial (integração de Monte Carlo sobre o domínio X, CDF bivariada via pacote pbivnorm — 'relatively inexpensive' — e redução do número de células da tesselação para problemas biobjetivo, Sec. 4.4) por ser 'embedded in an optimization loop'. Na Discussão (Sec. 6), reconhece custo computacional 'não-negligenciável' e que o método só se justifica quando o tempo de avaliação do simulador é muito maior que o tempo de escolher o próximo ponto.",
+    "literal": "the proposed method has a non-negligible computational cost, as (a) the criterion is evaluated by numerical integration and (b) it is embedded in an optimization loop.",
+    "localizador": "Sec. 4.3 (Computation); Sec. 6 (Discussion)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Caveat explícito dos autores sobre o descasamento entre a hipótese do modelo GP (tipicamente estacionariedade) e a função real: quando essa hipótese não se sustenta, a eficiência da própria estratégia de amostragem (que depende do σ do GP) é penalizada — uma limitação geral do uso de incerteza derivada de um modelo mal especificado.",
+      "literal": "Most models also have restrictive conditions on the approximated function (typically, stationarity), and the strategy efficiency may be greatly penalized by important inadequations between the model hypothesis and the actual function characteristics.",
+      "localizador": "Sec. 6 (Discussion)"
+    },
+    {
+      "descricao": "O artigo endossa explicitamente um resultado da literatura (Jones, 2001) segundo o qual usar a incerteza de forma ingênua — maximizando apenas a probabilidade de melhoria p_n(x, y_n^min), que já embute σ — é ineficiente, porque ignora a amplitude do ganho potencial; essa é justamente a motivação para o critério EEV proposto, que combina incerteza local E potencial de ganho.",
+      "literal": "Simply choosing points that maximize pn(x, ynmin) is known to be inefficient (Jones, 2001), as it does not consider the amplitude of the gain in the objective function.",
+      "localizador": "Sec. 3.3 (Remark)"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "frente de Pareto desconexa / multimodalidade no espaço de objetivos (duas regiões ótimas, problema 1D biobjetivo)",
+      "afirmacao": "No problema de brinquedo 1D com duas regiões Pareto-ótimas separadas, o SMS-EGO só descobre uma delas, enquanto o SUR (que reduz a incerteza sobre a identificação de toda a frente, não apenas maximiza ganho hipervolumétrico local) cobre melhor as duas regiões, resultando em indicadores agregados muito superiores apesar de o SMS-EGO parecer localmente mais preciso onde atua.",
+      "literal": "The Pareto front obtained with SMS-EGO shows that the algorithm only detected one of the two Pareto optimal regions.",
+      "localizador": "Sec. 5.1, Fig. 7"
+    },
+    {
+      "caracteristica": "alta dimensão do espaço de decisão / datasets grandes",
+      "afirmacao": "O artigo reconhece, como limitação geral herdada do modelo GP clássico (não testada além de D=6 nos próprios experimentos), que a estratégia proposta compartilha a incapacidade dos GPs clássicos de lidar bem com datasets grandes (>1000 pontos) ou espaços de alta dimensão (>100).",
+      "literal": "it is well-known that classical GP models cannot cope with large datasets (> 1000) or high-dimensional spaces (> 100).",
+      "localizador": "Sec. 6 (Discussion)"
+    },
+    {
+      "caracteristica": "não-estacionariedade / descasamento entre a hipótese do modelo e a função real",
+      "afirmacao": "Quando a função-alvo viola as condições restritivas do modelo GP (tipicamente a estacionariedade), a eficiência da estratégia de amostragem baseada em σ pode ser fortemente penalizada — um limite reconhecido de quão bem o critério baseado em incerteza funciona fora das condições ideais do modelo.",
+      "literal": "the strategy efficiency may be greatly penalized by important inadequations between the model hypothesis and the actual function characteristics.",
+      "localizador": "Sec. 6 (Discussion)"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Este artigo é fundamentalmente uma contribuição TEÓRICA/METODOLÓGICA (derivação em forma fechada do critério SUR/EEV para MOO, Secs. 2-4, incluindo provas nos Apêndices A-B), não um estudo experimental de benchmark: a Sec. 5 traz apenas DOIS exemplos numéricos de brinquedo (1D e 6D, biobjetivo), ambos usando funções de teste sintéticas próprias do artigo (realizações de GP, não ZDT/DTLZ/WFG/BBOB nem problema real), cada um aparentemente uma ÚNICA execução (nenhuma menção a sementes, repetições, médias ou dispersão em lugar nenhum da Sec. 5). O único concorrente testado é o SMS-EGO, ele próprio um método assistido por GP — não há piso evolutivo sem surrogate rodado neste artigo (NSGA-II é só citado en passant como motivação da força do SMS-EGO). Só 3 métricas aparecem (hypervolume, epsilon, R2 indicators, via pacote R EMOA); não há IGD/IGD+/GD/spacing, nem qualquer teste de hipótese. Não há medição de calibração/cobertura do σ, nem custo computacional quantificado (só discussão qualitativa). Não há ablação do σ dentro deste artigo (a Sec. 3.3 apenas cita, de outro autor, que usar só a probabilidade de melhoria é ineficiente — logado em resultados_negativos). Relevância para a taxonomia da dissertação: este é essencialmente um artigo-origem do estilo de função de incerteza O2 (ganho de informação) — o critério EEV é explicitamente apresentado como alternativa ao paradigma de melhoria esperada (EI/EGO), medindo a REDUÇÃO DA INCERTEZA sobre a identificação da frente de Pareto (volume de excursão abaixo do mínimo/frente corrente), com filiação direta ao IAGO de Villemonteix et al. (2009) (entropia de Shannon do minimizador) citado como precursor mono-objetivo; a medição é sempre via posterior fechada do GP (média/variância, CDF bivariada), compatível com a classe VAR-GP. O artigo também argumenta (Sec. 6, não testado empiricamente) que o método é escala-invariante e dispensa ranking/peso artificial entre objetivos, ao contrário de abordagens tipo ParEGO (Knowles, 2006) que agregam objetivos com pesos aleatórios — um argumento de design, não um achado experimental, por isso não virou análise. Leitura completa: 13 páginas, todas as seções (1-6 + Apêndices A-B + Referências) cobertas duas vezes (conversão estruturada + camada de texto bruta completa do ANEXO), com conteúdo idêntico entre as duas versões (a versão bruta corrige hifenizações como 'wellapproximated'->'well-approximated' e 'sixdimensional'->'six-dimensional', usadas nos literais aqui). O ANEXO final de OCR de imagens não acrescentou conteúdo substantivo (só duas linhas de ruído ilegível, 'CHO Or' e 'O000', de figuras). Não há Tabelas numeradas no artigo inteiro (busca por 'Table' não encontra nenhuma) — todos os resultados são apresentados em figuras. roster_bloco = null por instrução do pedido (artigo fora do roster experimental)."
+}

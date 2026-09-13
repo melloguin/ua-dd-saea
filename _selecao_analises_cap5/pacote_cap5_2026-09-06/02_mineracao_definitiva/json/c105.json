@@ -1,0 +1,213 @@
+{
+  "id": "c105",
+  "sigla": "SMS-EGO",
+  "titulo": "Multiobjective Optimization on a Limited Budget of Evaluations Using Model-Assisted S-Metric Selection",
+  "ano": 2008,
+  "roster": false,
+  "setup": {
+    "benchmarks": "5 funcoes de teste sinteticas, biobjetivo a 5-objetivo: OKA2 (m=2, d=3 - conjunto de Pareto com forma/distribuicao desafiadora, cristas ingremes); R-ZDT1 (m=2, d=6, biobjetivo unimodal); R-ZDT4relax (m=2, d=3, biobjetivo multimodal, dominio de x2,x3 reduzido a [-1,1] para ~20 otimos locais 'gerenciaveis'); R-DTLZ2 com 3 objetivos (m=3, d=6); R-DTLZ2 com 5 objetivos (m=5, d=6) - as duas variantes de DTLZ2 testam escalabilidade em numero de objetivos. A dimensao de decisao d e reduzida (para 3 ou 6) para viabilizar a modelagem via DACE/GP e refletir o numero tipico de parametros de processos reais. Nao ha problemas reais no benchmark comparativo (so sinteticos); mencoes a 'real-world problems' no artigo sao apenas motivacionais.",
+    "orcamento": "Orcamento FIXO de 130 avaliacoes reais por execucao, igual para as 5 funcoes de teste (independente de d). DoE inicial: ninit = 11d - 1 pontos via Latin Hypercube Design (LHD), seguindo a convencao de Knowles/ParEGO - logo ninit varia de 32 (d=3) a 65 (d=6), restando entre ~65 e ~98 avaliacoes de infill.",
+    "execucoes": "5 execucoes independentes por algoritmo x funcao de teste (bem menor que as 30 sementes da dissertacao).",
+    "baselines": "3 algoritmos comparados entre si, TODOS assistidos por modelo DACE/GP com criterio de infill do tipo EGO - NAO ha piso evolutivo sem surrogate no benchmark comparativo: (1) Jeong & Obayashi - EI multiobjetivo (vetor de EI por objetivo) otimizado por um NSGA-II interno (pop=512, 100 geracoes), com selecao das m solucoes de maior EI + a solucao mais central da populacao; (2) ParEGO (Knowles) - agregacao de Tchebycheff aumentada com pesos aleatorios por iteracao (rho=0.05, objetivos normalizados) + EGO classico (EI), infill otimizado via CMA-ES; (3) SMS-EGO (proposto neste artigo) - contribuicao de S-metric/hipervolume da 'lower confidence bound' (LCB = y_hat - alpha*s_hat) com epsilon-dominancia aditiva adaptativa, infill otimizado via CMA-ES. O metodo de Keane (EI multiobjetivo via probabilidade de dominancia) e revisado na Sec. 3.1 mas EXCLUIDO do benchmark por falta de implementacao livre para m>2.",
+    "metricas_principais": [
+      "hypervolume indicator (S-metric)",
+      "R2 indicator (Hansen & Jaszkiewicz)",
+      "unary epsilon (eps) indicator",
+      "distancia media analitica ao Pareto front verdadeiro (so R-DTLZ2, calculada em forma fechada)"
+    ],
+    "testes": [
+      "Kruskal-Wallis unilateral (one-sided), pareado entre os 3 algoritmos por celula, p<0.01"
+    ],
+    "apresentacao": "Tabela unica (Tabela 1) com mediana E valor maximo (pior caso) de cada indicador, por funcao-teste x algoritmo, sobre 5 execucoes; menor valor do grupo em negrito (melhor), maior valor em italico (pior); letras (J,P,S) entre parenteses indicam contra qual(is) dos outros 2 algoritmos a diferenca de mediana e estatisticamente significativa. Figuras: superficies de attainment medianas (ZDT1, biobjetivo); dispersao de solucoes da execucao de HV mediano (DTLZ2 m=3, convencao de 'execucao mediana'); boxplots (quartis+whiskers+entalhes/notches) da distancia media a frente verdadeira sobre as 5 execucoes (DTLZ2 m=3 e m=5).",
+    "codigo_plataforma": "MATLAB (todos os algoritmos); CMA-ES de Hansen (MLE dos hiperparametros do DACE/GP e otimizacao dos criterios de infill de ParEGO e SMS-EGO); NSGA-II de terceiros (otimizacao interna multiobjetivo do EI de Jeong); C externo de Yi Cao (calculo do Pareto front); C de Fonseca et al. (calculo do S-metric/hipervolume); PISA test environment (calculo dos indicadores de desempenho)."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela unica (Tabela 1) reportando, para cada uma das 5 funcoes de teste (OKA2, R-ZDT1, R-ZDT4relax, R-DTLZ2 m=3, R-DTLZ2 m=5) e cada um dos 3 algoritmos (Jeong, ParEGO, SMS-EGO), a mediana e o valor maximo (pior caso) de 3 indicadores de qualidade (hipervolume/S-metric, R2, epsilon unario) sobre 5 execucoes independentes. Para cada celula, um teste de Kruskal-Wallis unilateral (p<0.01) determina, par a par, contra quais dos outros 2 algoritmos a diferenca de mediana e estatisticamente significativa, indicado por letras (J/P/S) entre parenteses. O menor valor de cada grupo (melhor) e destacado em negrito e o maior (pior) em italico.",
+      "literal": "The table shows the median and worst-case results of the hypervolume, R 2, and epsilon-indicator on OKA2, R ZDT1, R ZDT4relax and R DTLZ2 (with three and five objectives).",
+      "localizador": "Sec. 4 (Experiments), Table 1, p. 790",
+      "metricas": [
+        "hypervolume (S-metric)",
+        "R2 indicator",
+        "unary epsilon indicator"
+      ],
+      "testes": [
+        "Kruskal-Wallis one-sided pairwise, p<0.01"
+      ],
+      "convencoes": "Mediana e maximo (pior caso) sobre 5 execucoes; menor valor do grupo em negrito (melhor), maior valor em italico (pior); letras J/P/S entre parenteses indicam contra qual(is) dos outros dois algoritmos a diferenca de mediana e estatisticamente significativa (Kruskal-Wallis unilateral, p<0.01).",
+      "achado": "SMS-EGO tem mediana significativamente melhor (menor) que os outros dois em hipervolume e epsilon em R-ZDT1, R-ZDT4relax e R-DTLZ2 (m=3 e m=5), e nas 3 metricas para R-DTLZ2 m=3; mas e explicitamente PIOR que ParEGO e Jeong em R2 e epsilon no problema OKA2 - o unico caso em que o metodo baseado em incerteza/hipervolume perde.",
+      "aplicabilidade": "nao reproduzivel diretamente - o artigo compara 3 algoritmos GP-EGO diferentes entre si (nenhum e piso nao-assistido); analogo na dissertacao usaria a camada (1) (endpoint IGD+/HV por algoritmo x problema, ficha 1) e a ficha 3 (teste de postos pareado), mas sem os mesmos 3 algoritmos nem a mesma bateria de problemas."
+    },
+    {
+      "fichas": [
+        55
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Figura 2(a) mostra a superficie de attainment mediana (sobre as 5 execucoes) de cada um dos 3 algoritmos no problema biobjetivo R-ZDT1, sobreposta a frente de Pareto verdadeira, permitindo comparar visualmente a cobertura/distribuicao relativa das 3 abordagens.",
+      "literal": "The median attainment surfaces of all algorithms on ZDT1.",
+      "localizador": "Fig. 2(a), p. 790",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Superficie de attainment mediana (50%) sobre 5 execucoes; sobreposta a frente de Pareto analitica verdadeira; restrita a problema biobjetivo (necessario para visualizacao 2D de superficies de attainment).",
+      "achado": "Visualmente, SMS-EGO cobre a frente de Pareto de R-ZDT1 de forma mais completa e proxima da frente verdadeira que ParEGO e Jeong, consistente com sua vantagem estatistica na Tabela 1 para esse problema.",
+      "aplicabilidade": "camada (1) (avaliacoes reais) + reconstrucao de superficie de attainment mediana por algoritmo x problema, restrito a problemas biobjetivo."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Figura 2(b) mostra a distribuicao das solucoes no espaco de objetivos para DTLZ2 com 3 objetivos, plotando - para cada algoritmo - a execucao que obteve o resultado mediano em hipervolume ('execucao mediana'), contra a frente de Pareto verdadeira.",
+      "literal": "the distribution of solutions in the objective space of DTLZ2 with three objectives. Exemplarily, the runs are chosen which achieved the median result with respect to hypervolume indicator.",
+      "localizador": "Fig. 2(b), p. 790",
+      "metricas": [
+        "hipervolume (usado apenas para selecionar a execucao mediana a plotar)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Convencao de 'execucao mediana' (a execucao, dentre as 5, com hipervolume mediano) escolhida para representar visualmente cada algoritmo; grafico de dispersao 3D contra a frente de Pareto analitica verdadeira.",
+      "achado": "SMS-EGO aproxima mais completamente a frente de Pareto 3-objetivo de DTLZ2 do que ParEGO e Jeong, cuja cobertura aparece mais parcial/concentrada nas bordas.",
+      "aplicabilidade": "camada (1) (avaliacoes reais) - selecao da execucao de HV mediano e plotagem do conjunto nao-dominado obtido contra a frente verdadeira; direto de reproduzir com os dados da dissertacao em problemas com m=3."
+    },
+    {
+      "fichas": [
+        1,
+        8
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Figura 3 apresenta boxplots (quartis, mediana, whiskers, entalhes/notches) da distancia media (calculada analiticamente) entre a frente de Pareto aproximada e a frente verdadeira, sobre as 5 execucoes, para cada um dos 3 algoritmos, nas variantes de DTLZ2 com 3 e com 5 objetivos - uma metrica adicional (tipo GD) usada especificamente para isolar a convergencia da distribuicao.",
+      "literal": "Box plots of the mean distance to the Pareto front over five runs on DTLZ2 with three (a) and five objectives (b).",
+      "localizador": "Fig. 3, p. 791",
+      "metricas": [
+        "distancia media analitica ao Pareto front verdadeiro (metrica tipo GD, especifica de DTLZ2)"
+      ],
+      "testes": [
+        "nenhum (comparacao visual via quartis e entalhes/notches)"
+      ],
+      "convencoes": "Boxplot padrao (quartis, mediana, whiskers) com entalhes (notches) para estimativa robusta da incerteza da mediana, permitindo comparacao caixa-a-caixa; metrica calculada analiticamente (nao e um dos 3 indicadores PISA da Tabela 1) e so disponivel para DTLZ2, cuja frente verdadeira tem forma fechada conhecida.",
+      "achado": "SMS-EGO tem mediana de distancia menor (melhor convergencia) e, no caso de 5 objetivos, dispersao aparentemente menor que Jeong/ParEGO - reforcando visualmente a conclusao de que SMS-EGO escala melhor com o numero de objetivos.",
+      "aplicabilidade": "parcialmente reproduzivel - exige uma frente de Pareto verdadeira em forma fechada (disponivel para os DTLZ2/ZDT sinteticos da dissertacao) para calcular uma metrica tipo GD por execucao via camada (1); nao ha piso nao-assistido nesta analise para comparar dispersao assistido-vs-piso como na ficha 8 original (aqui compara-se dispersao entre 3 metodos assistidos)."
+    },
+    {
+      "fichas": [
+        61
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo revisa o metodo de Keane (EI multiobjetivo via probabilidade de dominancia do conjunto de Pareto) mas declara explicitamente que ele nao pode ser incluido no benchmark comparativo da Secao 4, porque para mais de 2 objetivos o calculo exige uma particao numericamente custosa do espaco de objetivos para a qual nao ha implementacao livre disponivel - limitando o benchmark a apenas 2 rivais (Jeong, ParEGO) alem do SMS-EGO proposto.",
+      "literal": "For m > 2, both tasks incorporate a numerically demanding partitioning of the objective space, for which no free implementations are available. Thus, this approach could not be benchmarked within our study.",
+      "localizador": "Sec. 3.1, p. 786",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "",
+      "achado": "O metodo de Keane fica de fora do benchmark comparativo por uma limitacao pratica de implementacao (nao teorica) - reduzindo os rivais efetivamente testados contra SMS-EGO a apenas 2 (Jeong, ParEGO).",
+      "aplicabilidade": "nao reproduzivel - e uma limitacao de disponibilidade de codigo de terceiros do artigo original (2008), nao um resultado extraivel dos dados da dissertacao."
+    },
+    {
+      "fichas": [
+        44
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Figura 1 ilustra esquematicamente os 3 casos do criterio de fitness interno do SMS-EGO (solucao nao-epsilon-dominada, epsilon-dominada, e dominada) em um exemplo com m=2 (painel a), e mostra um unico exemplo (nao sistematico) da sequencia de avaliacoes do CMA-ES durante a otimizacao interna do criterio de infill em ZDT1, evidenciando uma solucao potencial que preenche uma lacuna na frente de Pareto perto de (0.8, 0.2) (painel b).",
+      "literal": "Consequently, a potential solution filling the gap in the Pareto front around (0.8, 0.2)T has been found.",
+      "localizador": "Fig. 1, p. 788",
+      "metricas": [],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Exemplo unico (nao estatistico), m=2; a escala de cinza codifica a ordem sequencial das avaliacoes do CMA-ES na sub-otimizacao do criterio de infill.",
+      "achado": "Demonstra qualitativamente que a busca interna do CMA-ES sobre o criterio de S-metric/LCB e capaz de localizar uma solucao potencial que preenche uma lacuna especifica da frente de Pareto aproximada.",
+      "aplicabilidade": "nao reproduzivel com as 7 camadas da dissertacao - exigiria registrar os passos internos do otimizador da funcao de aquisicao (CMA-ES), que nao e uma das camadas gravadas (essas cobrem avaliacoes reais e geracoes da MOEA externa, nao a sub-otimizacao interna do criterio de infill)."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo usa sigma (desvio-padrao do GP/DACE) apenas operacionalmente, dentro da LCB (y_hat - alpha*s_hat) do SMS-EGO e da formula de EI de Jeong/ParEGO; nao ha nenhuma avaliacao da acuracia/calibracao desse sigma (sem cobertura, sem correlacao sigma x erro, sem RMSE do modelo).",
+    "literal": "NAO LOCALIZADO",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": false,
+    "o_que": "O artigo declara explicitamente que o tempo de execucao do algoritmo NAO e uma questao critica (pois o custo dominante sao as avaliacoes reais/caras) e nao reporta nenhuma medicao de tempo de parede, nem decomposicao fit/busca/avaliacao. A unica mencao quantitativa relacionada a custo computacional e o teto de 4000d avaliacoes como criterio de parada do CMA-ES interno (nao e medicao de tempo real), e a observacao de que a complexidade do calculo do S-metric 'pode ser desconsiderada' para a classe de problemas focada ('the problem of its computational complexity can be disregarded for the class of problems focused on', Sec. 3.1, p. 787).",
+    "literal": "Since the actual objective evaluations are expensive, only a few iterations of the MOOA can be performed. Thus, the runtime of the optimization approach itself is not a critical issue.",
+    "localizador": "Sec. 1 (Introduction), p. 785"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "O uso da LCB (que incorpora a incerteza/sigma do GP) para prever solucoes potenciais pode gerar previsoes ligeiramente alem do espaco objetivo real, o que motiva a necessidade de introduzir epsilon-dominancia aditiva adaptativa para lidar com o problema.",
+      "literal": "Due to the use of the LCB, potential solutions can be predicted slightly beyond the real objective space.",
+      "localizador": "Sec. 3.1 (SMS-EGO), p. 787"
+    },
+    {
+      "descricao": "Nas conclusoes, os autores reconhecem explicitamente que o uso da lower confidence bound (mecanismo que embute a incerteza do GP) para calcular a contribuicao de hipervolume gera efeitos colaterais indesejados, incluindo a ocorrencia de solucoes dominadas entre as selecionadas - um resultado negativo direto do uso da incerteza no criterio de infill do proprio metodo proposto.",
+      "literal": "Since the use of the lower confidence bound for computing the hypervolume contribution in SMS-EGO also leads to some undesired side effects, such as the occurrence of dominated solutions",
+      "localizador": "Sec. 5 (Conclusions), p. 792"
+    },
+    {
+      "descricao": "Apesar de SMS-EGO (o metodo baseado em incerteza/LCB) vencer com significancia estatistica na maioria dos problemas, ele e explicitamente PIOR que ParEGO e Jeong nos indicadores R2 e epsilon no problema OKA2 - um caso documentado em que o criterio orientado por incerteza/hipervolume nao e vantajoso.",
+      "literal": "SMS-EGO performs significantly better than ParEGO and Jeong with respect to the epsilon- and hypervolume indicator on R ZDT1, R ZDT4relax, and R DTLZ2 with five objectives while being worse on OKA2 for the R 2 and epsilon measure.",
+      "localizador": "Sec. 4 (Observations), p. 790-791"
+    },
+    {
+      "descricao": "No problema OKA2 (cristas ingremes), nenhum dos tres metodos baseados em modelo consegue solucoes proximas do otimo dentro do orcamento reduzido de 130 avaliacoes - uma limitacao geral da classe de abordagens (incluindo a baseada em incerteza) diante dessa caracteristica de geometria dificil.",
+      "literal": "OKA2-like problems with steep ridges cannot be solved within a reduced budget of just 130 evaluations using the proposed model-based approaches.",
+      "localizador": "Sec. 4 (Discussion), p. 791"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "O artigo nota que SMS-EGO (baseado em hipervolume/epsilon-indicator) e ParEGO (baseado em agregacao de Tchebycheff, da mesma familia matematica do indicador R2) deveriam, por parentesco de formulacao, exibir desempenho mais parecido no indicador R2 - mas SMS-EGO supera ParEGO com significancia estatistica mesmo nessa metrica 'de casa' do ParEGO (DTLZ2, 3 objetivos), resultado que os proprios autores descrevem como surpreendente. E uma NAO-equivalencia inesperada (nao uma confirmacao de equivalencia), mas documenta exatamente o tipo de parentesco entre criterios que a dissertacao rastreia.",
+      "literal": "Thus, it is particularly surprising that SMS-EGO significantly outperforms ParEGO with respect to this metric",
+      "localizador": "Sec. 4 (Discussion), p. 791"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "geometria/forma do conjunto de Pareto desafiadora - cristas ingremes (steep ridges), problema OKA2",
+      "afirmacao": "SMS-EGO obtem uma solucao extremal com alta precisao (aprox. 1e-9) mas negligencia as demais, pois cristas ingremes exigem precisao comparavel para produzir outros pontos nao-dominados; Jeong e ParEGO, forcados para outras solucoes por seus principios de selecao, produzem melhor distribuicao mas falham em fornecer solucoes proximas do otimo; nenhum dos 3 metodos baseados em modelo resolve OKA2 dentro do orcamento de 130 avaliacoes.",
+      "literal": "OKA2-like problems with steep ridges cannot be solved within a reduced budget of just 130 evaluations using the proposed model-based approaches.",
+      "localizador": "Sec. 4 (Discussion), p. 791"
+    },
+    {
+      "caracteristica": "multimodalidade (multiplos otimos locais) - R-ZDT4relax, ~20 otimos locais",
+      "afirmacao": "O desempenho superior do SMS-EGO em R-ZDT4relax indica que o uso da LCB (media - alpha*desvio-padrao) nao prejudica a exploracao global, em comparacao com o EI usado por ParEGO e Jeong.",
+      "literal": "The superior results of SMS-EGO on R ZDT4relax indicate that the use of the LCB solution does not disregard global exploration compared to the EI used in ParEGO and Jeong.",
+      "localizador": "Sec. 4 (Discussion), p. 791"
+    },
+    {
+      "caracteristica": "numero de objetivos / escalabilidade (many-objective) - DTLZ2 com m=3 vs. m=5",
+      "afirmacao": "Nos problemas com mais de dois objetivos, SMS-EGO lida melhor com o aumento da dimensao do espaco de objetivos que ParEGO e Jeong, evidenciado nos boxplots de distancia media a frente de Pareto para DTLZ2 com 5 objetivos.",
+      "literal": "the results on the test functions, which feature more than two objectives, show that SMS-EGO copes best to increasing objective dimensions.",
+      "localizador": "Sec. 4 (Discussion), p. 791"
+    },
+    {
+      "caracteristica": "cobertura/distribuicao da frente (vies para os extremos/bordas em detrimento do centro)",
+      "afirmacao": "A abordagem de Jeong e Obayashi cobre apenas as bordas da frente de Pareto com precisao competitiva, o que leva aos piores valores de distancia entre todos os algoritmos, possivelmente por causa dos valores de referencia baseados na dimensao usados no calculo do EI; ParEGO tem desempenho um pouco melhor mas tambem explora as bordas da frente em extensao menor que o desejavel - um problema ja observado por Wagner et al. em abordagens baseadas em agregacao com conjuntos de vetores de peso.",
+      "literal": "Jeong and Obayashi's approach covers only the boundaries of the Pareto front with a competitive accuracy, which leads to the worst distance values of all algorithms.",
+      "localizador": "Sec. 4 (Discussion), p. 791-792"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Este e o artigo seminal que introduz o SMS-EGO (2008, PPSN X), simultaneamente uma revisao de 2 abordagens rivais (Jeong & Obayashi; ParEGO) e o benchmark de lancamento do metodo proposto. A classificacao da dissertacao (motor=BO-Hipervolume; funcao da incerteza=O1 aquisicao exploratoria; surrogate=GP; medicao=VAR-GP; regime=online) e inteiramente consistente com o mecanismo descrito no artigo: LCB = y_hat - alpha*s_hat, com alpha = Phi^-1(0.5 + 1/2^m), alimenta a contribuicao de S-metric/hipervolume como criterio de infill, com epsilon-dominancia aditiva adaptativa e retreino do GP a cada avaliacao real (sequencial/online). Nenhum dos 3 algoritmos comparados e um piso nao-assistido nem uma variante 'sigma=0': todos os tres (Jeong, ParEGO, SMS-EGO) usam a incerteza do GP em algum grau na formacao do criterio de infill (EI ou LCB) - logo a ablacao exata do sigma (fichas 11/15) NAO e extraivel dos dados deste artigo. Nao ha sonda, filme, nem qualquer instrumentacao de diagnostico interno do modelo (o grupo E da tipologia, sondas/fantasia/mecanismo, e inteiramente inaplicavel a este artigo); nao ha estudo de custo/tempo, nem de calibracao do sigma, nem sensibilidade de hiperparametros do mecanismo de incerteza (alpha e fixado por formula em funcao de m, nunca variado experimentalmente). Amostra pequena (5 execucoes, vs. 30 sementes na dissertacao) - nota de leitura, nao afirmada pelo artigo: na linha 'OKA2 S-metric' da Tabela 1, as medianas de Jeong/ParEGO/SMS-EGO (3.41e-1 / 2.47e-1 / 1.40e-1) parecem bem distintas mas nenhum par atinge significancia estatistica (todas '-,-'), plausivelmente por baixo poder estatistico com n=5; o artigo nao comenta essa possivel causa. Fig. 1 (p.788) e um esquema ilustrativo do proprio criterio de selecao (3 casos de dominancia) e de um unico exemplo (nao sistematico) do processo de busca interna do CMA-ES preenchendo uma lacuna na frente de Pareto em ZDT1 - foi listada (ficha 44) por ilustrar visualmente o comportamento exploratorio do infill, mas nao e uma analise experimental sistematica e nao e reproduzivel com as 7 camadas da dissertacao (exigiria registrar os passos internos do otimizador de aquisicao/CMA-ES, o que nao e uma das camadas gravadas)."
+}

@@ -1,0 +1,330 @@
+{
+  "id": "c82",
+  "sigla": "TC-SAEA",
+  "titulo": "Transfer Learning Based Co-surrogate Assisted Evolutionary Bi-objective Optimization for Objectives with Non-uniform Evaluation Times",
+  "ano": 2022,
+  "roster": false,
+  "setup": {
+    "benchmarks": "16 problemas biobjetivo (M=2): DTLZ1-DTLZ7 mais dois modificados DTLZ1a e DTLZ3a (função g simplificada, com 2π em vez de 20π) da suíte DTLZ (Deb et al. 2002), com n=M+K−1 (K=5 p/ DTLZ1/1a, K=10 p/ DTLZ2-6 e DTLZ3a, K=20 p/ DTLZ7); e UF1-UF7 (n=30) da suíte UF (Zhang et al. 2008). Adicionalmente, o problema sintético cm-OneMax (n=10, mapeamento binário aleatório) com correlação controlável entre objetivos via o parâmetro corr ∈ {−1,−0,75,−0,5,−0,25,0,0,25,0,5,0,75,1} (Sec. 4.6, Table 6). Todos os problemas são sintéticos; não há nenhum caso de engenharia real.",
+    "orcamento": "FEs_max_s = 200 avaliações reais do objetivo LENTO fs (orçamento principal de todas as Tabelas 1-3 e 6); FEs_max_f = FEs_max_s × τ para o objetivo RÁPIDO ff, com τ ∈ {5, 10} testado como fator experimental. Ntrain = 100 pontos iniciais via Latin Hypercube Sampling. wmax = 20 gerações de busca no surrogate entre retreinos. O parâmetro u (número de novas amostras por iteração a avaliar com fs e ff) tem seu valor padrão OMITIDO no texto (ver observações) — a Sec. 4.8 conclui que u=3 é apropriado. Nmax (tamanho máximo do conjunto de treino, truncado à moda ParEGO) também não recebe valor numérico explícito. A Fig. 8 usa um orçamento ESTENDIDO (FEs_max_s=1000) apenas para DTLZ1a, fora do padrão das demais tabelas.",
+    "execucoes": "20 execuções independentes por configuração para as Tabelas 1, 2, 3, 4, 5 e 6 (IGD média ± desvio-padrão). A análise do co-surrogate (Sec. 4.7, Figs. S1-S2 no material suplementar) usa apenas 10 execuções independentes.",
+    "baselines": "8 configurações nas Tabelas 1-2: (a) 4 esquemas SEM surrogate de Allmendinger et al. (2015) — Waiting, Fast-first, Brood interleaving (BI) e Speculative interleaving (SI), todos usando RVEA como MOEA e um GA padrão como SOEA (há, portanto, piso evolutivo sem surrogate no benchmark); (b) K-RVEA (Chugh et al. 2018a) — SAEA baseado em GP mas desenhado para ambiente NÃO-atrasado (funciona como um 'Waiting' assistido); (c) HK-RVEA (Chugh et al. 2018a/2018b) e T-SAEA (Wang et al. 2020b) — SAEAs estado da arte específicos para objetivos com tempos heterogêneos; (d) o próprio TC-SAEA. Em tabela separada (Table 3), TC-SAEA é comparado com Tr-SAEA (Wang et al. 2021, antecessor direto dos mesmos autores) e com uma referência 'Undelayed' (K-RVEA rodando sem a restrição de tempos heterogêneos, um teto de desempenho). Na ablação (Sec. 4.5, Tables 4-5), TC-SAEA é comparado a 3 variantes próprias: NT-SAEA (sem esquema de TL), TC-SAEAp (co-surrogate polinomial em vez de GP) e NS-SAEA (sem seleção por confiança/σ).",
+    "metricas_principais": [
+      "IGD (inverted generational distance, Bosman & Thierens 2003, calculada via PlatEMO)"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum test, α=0,05, símbolos (+)/(–)/(≈) indicando se o algoritmo comparado é significativamente melhor/pior/equivalente ao algoritmo de referência de cada tabela (em geral TC-SAEA); nas Tabelas 4-5 (ablação) nenhum símbolo de significância é mencionado explicitamente."
+    ],
+    "apresentacao": "Média ± desvio-padrão sobre as execuções independentes (20, ou 10 na análise do co-surrogate); melhor resultado de cada problema destacado em negrito; símbolos de significância (+)/(–)/(≈) do teste de Wilcoxon relativos ao método de referência de cada tabela; execução com IGD mediano (dentre as independentes) usada para as figuras de fronteira final (Figs. 5-7) e citada também para a Fig. S2 suplementar.",
+    "codigo_plataforma": "MATLAB R2019a, Intel Core i7 @ 2.21 GHz; modelo GP construído com o toolbox DACE (Lophaven et al. 2002); IGD calculado com o toolbox PlatEMO (Tian et al. 2017); RVEA (Cheng et al. 2016) como MOEA base assistido pelos surrogates, GA padrão como SOEA para explorar ff; código de TC-SAEA público em https://github.com/xw00616/TC-SAEA.git; código dos algoritmos comparados fornecido pelos próprios autores originais."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela única (Table 1) reportando, para os 16 problemas biobjetivo (DTLZ1-7, DTLZ1a, DTLZ3a, UF1-7), a média e o desvio-padrão do IGD sobre 20 execuções independentes, para 8 configurações: os 4 esquemas sem surrogate de Allmendinger et al. (Waiting, Fast-first, BI, SI), K-RVEA, HK-RVEA, T-SAEA e o próprio TC-SAEA, com FEs_max_s=200 e τ=5. Para cada célula, um teste de Wilcoxon rank-sum (α=0,05) marca se o algoritmo comparado difere significativamente de TC-SAEA, com símbolos (+)/(–)/(≈); o melhor resultado de cada problema é destacado em negrito.",
+      "literal": "the mean values and the standard deviations of IGD over 20 times are collected and presented in Tables 1 and 2, where the best result of each benchmark function is highlighted.",
+      "localizador": "Sec. 4.4 (Comparison with Some State-of-the-art algorithms), Table 1",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos (+)/(–)/(≈) de TC-SAEA vs. cada algoritmo comparado"
+      ],
+      "convencoes": "Média ± desvio-padrão sobre 20 execuções independentes; melhor resultado por problema em negrito; símbolo de significância junto ao desvio-padrão de cada célula, sempre relativo a TC-SAEA (referência da tabela).",
+      "achado": "TC-SAEA vence ou empata em 13 dos 16 problemas, perdendo apenas para HK-RVEA em DTLZ4, para T-SAEA em UF3 e para HK-RVEA em UF7 (\"TC-SAEA outperforms the compared algorithms on all test instances except on DTLZ4, UF3 and UF7\"); os 4 métodos com surrogate superam consistentemente os 4 esquemas sem surrogate, e dentre estes, os esquemas de interleaving (BI, SI) batem Waiting e Fast-first, confirmando Allmendinger et al. (2015).",
+      "aplicabilidade": "reproduzível em espírito com a camada ① da dissertação (avaliações reais → IGD+/HV do ND final por célula + teste de postos, fichas 1 e 3 já fazem isso); não reproduzível literalmente com os dados da dissertação porque nenhum dos 15 algoritmos do roster nem dos 4 pisos evolutivos tem a distinção fs/ff com tempos de avaliação não-uniformes exigida por este desenho."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Repete exatamente o desenho da Table 1 (mesmos 16 problemas, 8 algoritmos, IGD média±dp sobre 20 execuções, Wilcoxon rank-sum vs. TC-SAEA), mas com τ=10 em vez de τ=5 — ou seja, o objetivo rápido recebe o dobro de avaliações adicionais por iteração em relação ao lento. A tabela funciona simultaneamente como novo placar e como o veículo empírico da análise de sensibilidade ao comprimento do atraso (τ) discutida no texto que a acompanha ('To assess the impact of the delay length on the performance, Table 2 presents the results...').",
+      "literal": "To assess the impact of the delay length on the performance, Table 2 presents the results obtained by each algorithm when τ = 10.",
+      "localizador": "Sec. 4.4, Table 2",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos (+)/(–)/(≈) de TC-SAEA vs. cada algoritmo comparado"
+      ],
+      "convencoes": "Idêntica à Table 1 (média±dp sobre 20 execuções, negrito no melhor, símbolos de significância vs. TC-SAEA), variando apenas τ.",
+      "achado": "TC-SAEA permanece o método mais promissor mesmo com τ=10, mas vários métodos degradam com o atraso maior — em especial HK-RVEA piora em DTLZ1, DTLZ1a, DTLZ2, DTLZ3a e DTLZ6 — porque o viés de busca introduzido pela exploração mais intensiva do objetivo rápido aumenta com τ, mesmo havendo mais avaliações totais disponíveis para o objetivo rápido.",
+      "aplicabilidade": "mesma observação da Table 1 (camada ①, fichas 1/3); a dimensão 'sensibilidade a τ' em si não tem equivalente na bateria da dissertação, que não varia razões de tempo de avaliação entre objetivos de um mesmo problema."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade à razão de tempos de avaliação τ entre objetivo lento e rápido",
+      "grupo_sugerido": "C",
+      "descricao": "Comparando explicitamente as Tabelas 1 (τ=5) e 2 (τ=10), o texto examina se o viés introduzido pela exploração desproporcional do objetivo rápido se agrava quando a razão de tempos τ aumenta, mesmo com mais avaliações totais do objetivo rápido disponíveis. Não é uma tabela/figura nova, mas uma leitura comparativa dedicada, com conclusão qualitativa própria sobre a direção do efeito (não apenas mais uma linha de placar).",
+      "literal": "the performance on some test problems is degraded due to the increasing search bias resulting from the much more intensive search on the fast objective, even though the evaluation budget for the non-delayed objective is increased.",
+      "localizador": "Sec. 4.4 (parágrafo de transição entre Table 1 e Table 2)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum teste formal dedicado — leitura qualitativa cruzando os resultados já testados (Wilcoxon) das Tabelas 1 e 2"
+      ],
+      "convencoes": "comparação qualitativa entre duas tabelas já convencionadas (média±dp, 20 execuções, símbolos de significância vs. TC-SAEA).",
+      "achado": "Aumentar τ de 5 para 10 tende a piorar o desempenho relativo de vários métodos baseados em surrogate (não só o TC-SAEA, também HK-RVEA), pois a razão de tempos maior intensifica o viés de busca a favor do objetivo rápido; ainda assim TC-SAEA continua sendo, dos métodos comparados, o mais robusto a essa mudança.",
+      "aplicabilidade": "não reproduzível — a bateria da dissertação não inclui problemas com tempos de avaliação heterogêneos por objetivo (τ), logo não há eixo equivalente instrumentado em nenhuma das 7 camadas; o padrão da pergunta (a vantagem cresce/decresce com um parâmetro ambiental) é estruturalmente análogo ao da ficha 7 (tendência com a dimensão D), só que aplicado a τ em vez de D."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela adicional (Table 3) comparando TC-SAEA com Tr-SAEA (Wang et al. 2021 — antecessor direto dos mesmos autores, baseado em adaptação de domínio + co-training, sem gate de confiança explícito) e com uma referência 'Undelayed' (K-RVEA rodando nos mesmos problemas mas sem a restrição de tempos heterogêneos — um teto/oráculo do melhor desempenho atingível). Reporta IGD média±dp sobre 20 execuções para τ=5 e τ=10, com o mesmo esquema de negrito e símbolos de significância das Tabelas 1-2.",
+      "literal": "The results in terms of IGD values on test instance with τ = 5 and τ = 10 are presented in Table 3.",
+      "localizador": "Sec. 4.4, Table 3",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos (+)/(–)/(≈)"
+      ],
+      "convencoes": "Média±dp sobre 20 execuções; melhor valor em negrito; inclui uma coluna de referência 'Undelayed' sem a restrição de tempos heterogêneos (não é um piso evolutivo — é um teto de desempenho do mesmo K-RVEA no ambiente sem atraso).",
+      "achado": "TC-SAEA e Tr-SAEA têm desempenho predominantemente equivalente ('show similar performance on most test instances'), mas TC-SAEA vence com folga em DTLZ1 e DTLZ3 — os dois problemas que Deb et al. (2002) recomendam especificamente para testar capacidade de convergência — interpretado pelos autores como evidência de convergência mais forte via transferência direta de conhecimento (o co-surrogate) frente à adaptação de domínio de Tr-SAEA.",
+      "aplicabilidade": "mesma observação das Tabelas 1-2 quanto à camada ① para a estrutura de placar+teste; a coluna 'Undelayed' (teto de desempenho sem a restrição do problema) não tem equivalente direto entre as 7 camadas da dissertação, que não define um problema-irmão 'sem heterogeneidade de tempo' para cada problema do banco."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para DTLZ2, DTLZ7 e UF3, plota o conjunto não-dominado final obtido por cada um dos 8 algoritmos (Waiting, Fast-first, BI, SI, K-RVEA, HK-RVEA, T-SAEA, TC-SAEA) na execução que atingiu o IGD mediano dentre as 20 independentes (Figs. 5, 6 e 7, um painel por algoritmo).",
+      "literal": "the non-dominated solution set obtained by each algorithm (in the run that achieved the medium performance out of 20 independent runs) on DTLZ2, DTLZ7 and UF3 are visualized in Figs. 5-7.",
+      "localizador": "Sec. 4.4, Figs. 5, 6 e 7",
+      "metricas": [
+        "IGD (usado apenas como critério para selecionar a execução mediana exibida)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução mediana (por IGD, dentre 20) escolhida para plotagem — mesma convenção de 'execução mediana' usada na dissertação; um painel por algoritmo, eixos f1 × f2. As imagens dos painéis foram omitidas na conversão para Markdown (só eixos/legendas textuais foram recuperados via OCR), portanto não é possível confirmar neste texto se a frente verdadeira é desenhada explicitamente em cada painel.",
+      "achado": "As fronteiras de TC-SAEA são descritas como visualmente melhor convergidas e mais bem distribuídas que as dos demais métodos em DTLZ2, DTLZ7 e UF3 ('confirming the effectiveness of the proposed instance transfer together with the co-surrogate'), corroborando qualitativamente a vantagem numérica em IGD das Tabelas 1-2.",
+      "aplicabilidade": "camada ① avaliações reais — identificar a execução mediana pela métrica de endpoint e plotar seu ND final contra a frente verdadeira; a ficha 54 da dissertação já cobre exatamente este tipo de figura para os problemas do roster."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Estende o orçamento para FEs_max_s=1000 (5× o padrão do artigo) apenas em DTLZ1a, e plota a evolução do IGD ao longo das gerações para cada um dos 8 algoritmos (Fig. 8), para ilustrar a velocidade de convergência de TC-SAEA além do horizonte padrão de 200 avaliações usado nas demais tabelas.",
+      "literal": "we run each algorithm on DTLZ1a with FEs max = 1000, and the IGD values of the solution set over the generations obtained by each algorithm is plotted in Fig. 8, indicating the fast convergence of TC-SAEA.",
+      "localizador": "Sec. 4.4, Fig. 8",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "O texto não especifica se a curva plotada é de uma única execução, média ou mediana das 20 execuções, nem se há banda de dispersão (IQR/desvio-padrão) — diz apenas 'the IGD values... obtained by each algorithm is plotted'; problema e orçamento (DTLZ1a, FEs_max=1000) são exclusivos desta figura, não usados em nenhuma outra tabela do artigo.",
+      "achado": "TC-SAEA converge visivelmente mais rápido que os 7 métodos comparados ao longo das gerações em DTLZ1a sob orçamento estendido, reforçando a conclusão da Table 1 (DTLZ1a é um dos problemas com maior ganho relativo do TC-SAEA sobre os demais).",
+      "aplicabilidade": "camada ① avaliações reais acumuladas por checkpoint/geração — a ficha 26 da dissertação cobre este tipo de trajetória; a diferença é que aqui o orçamento (1000) e o problema (DTLZ1a apenas) são um protocolo à parte, fora do desenho principal de 200 avaliações usado nas Tabelas 1-6."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação do esquema de transferência como um todo (dois GPs independentes, sem co-surrogate nem seleção)",
+      "grupo_sugerido": "B",
+      "descricao": "Compara TC-SAEA com NT-SAEA, uma variante que constrói GPs separados para fs e ff sem qualquer mecanismo de transferência (nem co-surrogate, nem dado sintético, nem seleção por confiança) — o número de novas amostras para atualizar cada surrogate simplesmente difere conforme os tempos de avaliação. É o teste de necessidade do esquema de TL como um todo, reportado nas Tables 4 (τ=5) e 5 (τ=10) junto com as outras duas variantes de ablação.",
+      "literal": "In order to demonstrate the effectiveness of the transfer learning scheme, an SAEA without the TL scheme is introduced.",
+      "localizador": "Sec. 4.5 (Ablation Studies), Tables 4 e 5",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum símbolo de significância estatística reportado nestas duas tabelas — apenas média±dp sobre 20 execuções e negrito no melhor, ao contrário das Tabelas 1-3 e 6"
+      ],
+      "convencoes": "Média±dp sobre 20 execuções, melhor em negrito; mesmas 16 funções-teste; τ=5 (Table 4) e τ=10 (Table 5); sem símbolos +/–/≈.",
+      "achado": "TC-SAEA supera NT-SAEA na maioria dos problemas, exceto DTLZ4 (τ=5) e UF4 (τ=10) — confirmando que aprender com o conjunto auxiliar de dados sintéticos ajuda quando os dados observados de fs são insuficientes, mas a vantagem não é universal.",
+      "aplicabilidade": "não reproduzível — exigiria rodar uma variante hipotética do próprio TC-SAEA (sem qualquer transferência) sobre os problemas deste artigo; a dissertação só faz análises pós-hoc sobre os 15 algoritmos e 4 pisos já executados, sem variantes ad hoc de algoritmos externos ao roster."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablação do tipo de modelo do co-surrogate (GP vs. regressão polinomial)",
+      "grupo_sugerido": "E",
+      "descricao": "Compara TC-SAEA com TC-SAEAp, idêntico em tudo (incluindo a seleção por intervalo de confiança) exceto que o co-surrogate GPc é substituído por uma regressão polinomial para modelar a diferença entre fs e ff. Isola o efeito da escolha do TIPO de modelo usado como co-surrogate, mantendo fixo o resto do esquema de transferência, nas mesmas Tables 4 e 5.",
+      "literal": "Instead of the GP, a polynomial regression is used as the co-surrogate to model the correlation between the objectives.",
+      "localizador": "Sec. 4.5, Tables 4 e 5",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum símbolo de significância estatística reportado especificamente para esta comparação"
+      ],
+      "convencoes": "mesma convenção das Tables 4-5 (média±dp, 20 execuções, melhor em negrito).",
+      "achado": "TC-SAEA (co-surrogate GP) supera TC-SAEAp (co-surrogate polinomial) em convergência e diversidade tanto em τ=5 quanto em τ=10, confirmando que o GP captura a correlação oculta entre fs e ff de forma mais precisa e eficaz do que a regressão polinomial nesse papel específico.",
+      "aplicabilidade": "não reproduzível — exigiria rodar uma variante do próprio TC-SAEA com um co-surrogate polinomial; nenhum dos 15 algoritmos do roster tem um componente de co-surrogate cujo tipo de modelo pudesse ser trocado post-hoc a partir dos dados já gravados."
+    },
+    {
+      "fichas": [
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara TC-SAEA com NS-SAEA, idêntico em tudo (incluindo o co-surrogate GP) exceto que a etapa de seleção por intervalo de confiança (CI = Y_s^a ± σ_s^a) é removida: TODOS os dados sintéticos do conjunto auxiliar Da são usados para treinar GPs, sem qualquer filtragem. É a ablação exata do mecanismo de gestão de confiança (classificado como A3 na taxonomia da dissertação) deste artigo: mesma maquinaria de transferência, com e sem o gate baseado em σ, nas mesmas Tables 4 e 5.",
+      "literal": "Due to the lack of selection, all the auxiliary data Da = (Xa, Y′as) will be added to the training data set of the slow objective.",
+      "localizador": "Sec. 4.5, Tables 4 e 5",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum símbolo de significância estatística reportado especificamente para esta comparação"
+      ],
+      "convencoes": "mesma convenção das Tables 4-5 (média±dp, 20 execuções, melhor em negrito).",
+      "achado": "Sem o gate de confiança, NS-SAEA 'fails to converge towards a set of acceptable solutions' na maioria dos problemas — só tem bom desempenho em DTLZ1a e DTLZ6, e apenas quando τ=10 — demonstrando que a seleção por σ é indispensável na maior parte dos casos para evitar transferência negativa a partir de dados sintéticos não confiáveis; é o resultado central de defesa do uso do σ no artigo (ver resultados_negativos).",
+      "aplicabilidade": "não reproduzível diretamente — exigiria rodar uma variante do próprio TC-SAEA sem o gate de confiança; é conceitualmente o mesmo tipo de ablação que a ficha 11 descreve para Prob-MOEA/D × MOEA/D-média (usar σ vs. não usar σ na mesma maquinaria de seleção), só que aqui a alternativa sem σ é 'aceitar tudo sem filtrar' em vez de 'selecionar pela média'."
+    },
+    {
+      "fichas": [
+        17,
+        18
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Usa o problema sintético cm-OneMax, cuja correlação entre objetivos é controlável por um parâmetro corr ∈ {−1, −0,75, −0,5, −0,25, 0, 0,25, 0,5, 0,75, 1}, para testar a sensibilidade de TC-SAEA (e dos 7 métodos comparados) a essa característica, com FEs_max_s=200 e τ ∈ {5,10}. É uma escada de 9 degraus de intensidade/sinal de uma única característica do problema (correlação entre objetivos), com IGD média±dp sobre 20 execuções em cada degrau (Table 6).",
+      "literal": "The IGD values of the obtained solutions by each algorithm under comparison on the cm-OneMax problem with corr = −1,−0.75,−0.5,−0.25,0,0.25,0.5,0.75,1 are presented in Table 6.",
+      "localizador": "Sec. 4.6 (Impact of the Correlation between Objectives), Table 6",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos (+)/(–)/(≈) vs. TC-SAEA, mesma convenção das Tabelas 1-2"
+      ],
+      "convencoes": "Média±dp sobre 20 execuções por combinação (corr, τ); melhor em negrito; 9 níveis de corr × 2 níveis de τ = 18 linhas de resultado.",
+      "achado": "TC-SAEA tem o melhor desempenho quando há correlação positiva OU negativa (não nula) entre os objetivos, com HK-RVEA em segundo lugar; com corr=1 (correlação perfeita) todos os métodos com surrogate atingem IGD≈0,00 (o problema se torna trivial); Waiting é surpreendentemente competitivo e estável entre os métodos sem surrogate, sobretudo com correlação negativa.",
+      "aplicabilidade": "não reproduzível diretamente — exige o problema cm-OneMax com correlação ajustável, ausente do banco de problemas da dissertação; o PADRÃO da análise (desempenho ao longo de uma escada de intensidade de uma característica) é o mesmo da ficha 18, aqui aplicado a uma característica (correlação entre objetivos) fora da lista de exemplos da tipologia."
+    },
+    {
+      "fichas": [
+        31,
+        38
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Roda TC-SAEA em cada instância biobjetivo DTLZ (10 execuções independentes, FEs_max_s=200) e calcula, a cada geração, o erro quadrático médio (MSE) entre a diferença Y_c predita pelo co-surrogate GPc e a diferença real (fs−ff) nas soluções adicionais X^a; média e variância do MSE ao longo das gerações são reportadas na Fig. S1 (material suplementar), com as fronteiras da execução de IGD mediano em cada instância na Fig. S2 (também suplementar).",
+      "literal": "the approximation error of the co-surrogate converges over the generations if the obtained non-dominated solutions are close to the Pareto front",
+      "localizador": "Sec. 4.7 (Effects of the Co-surrogate); Figs. S1 e S2 (material suplementar, não incluído neste PDF)",
+      "metricas": [
+        "MSE da diferença Y_c predita pelo co-surrogate GPc, sobre as soluções adicionais X^a"
+      ],
+      "testes": [
+        "nenhum — reporta média e variância do MSE ao longo das gerações, sem teste de hipótese"
+      ],
+      "convencoes": "10 execuções independentes (não 20, como no restante do artigo); FEs_max_s=200; agregação por média+variância do MSE por geração; figuras remetidas ao material suplementar, não incluídas neste PDF — só a descrição textual está disponível.",
+      "achado": "O erro do co-surrogate converge ao longo das gerações quando o ND obtido se aproxima da PF verdadeira (DTLZ2, DTLZ3a, DTLZ4, DTLZ5, DTLZ7), mas oscila fortemente quando o ND permanece longe da PF, citado como 'DTLZ1, DTLZ2, and DTLZ6' (possível erro tipográfico do artigo — ver observações), confirmando a hipótese de que a relação funcional entre fs e ff só é forte perto da fronteira.",
+      "aplicabilidade": "não reproduzível — exige acesso às predições internas de um co-surrogate que modela a diferença entre dois objetivos com tempos de avaliação distintos, mecanismo inexistente nos 15 algoritmos do roster da dissertação; a camada ③ (predições do surrogate principal) não cobre um co-surrogate de diferença entre objetivos, e a figura-fonte (Fig. S1/S2) está no material suplementar, não reproduzido neste PDF."
+    },
+    {
+      "fichas": [
+        64
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Investiga, via boxplots de IGD na suíte DTLZ (Fig. S3, material suplementar), a sensibilidade de TC-SAEA ao parâmetro u — o número de novas soluções escolhidas por iteração para avaliação com fs e ff (o tamanho do lote de infill), testado nos valores u ∈ {1,3,5,10} — mantendo FEs_max_s=200 fixo, de modo que um u maior implica menos iterações/retreinos de GP para o mesmo orçamento total.",
+      "literal": "TC-SAEA with different u exhibits distinct performance on each test instance, indicating that the best setting of u may be problem-dependent.",
+      "localizador": "Sec. 4.8 (Parameter Sensitivity Analysis); Fig. S3 (material suplementar, não incluído neste PDF)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "nenhum — boxplots (quartis) de IGD por valor de u, sem teste de hipótese"
+      ],
+      "convencoes": "Boxplots de IGD por valor de u ∈ {1,3,5,10}, por problema da suíte DTLZ; figura no material suplementar, não incluída neste PDF, só descrita textualmente.",
+      "achado": "Valores extremos de u (u=1 ou u=10) prejudicam o desempenho na maioria das instâncias; u=3 e u=5 são competitivos entre si; os autores adotam u=3 como valor final ('u = 3 is considered to be appropriate for our algorithm'); a melhor configuração depende do problema (DTLZ2 e DTLZ3a pouco sensíveis a u; DTLZ3 e DTLZ4 bem mais sensíveis).",
+      "aplicabilidade": "não reproduzível diretamente com dados já coletados — exigiria rodar TC-SAEA (ou um algoritmo do roster) variando o tamanho do lote de infill por iteração, o que a bateria da dissertação não fez para nenhum algoritmo; conceitualmente é uma versão mais granular (varredura contínua) do que a ficha 64 testa como dois pontos discretos (q=1 vs. q=10) para algoritmos específicos do roster."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": false,
+    "o_que": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Os próprios autores reconhecem, já na formulação do método, que os valores sintéticos gerados pelo co-surrogate podem ser prejudiciais se as predições forem muito imprecisas — motivo pelo qual introduzem o filtro por intervalo de confiança (σ de GPs) ANTES de aceitar qualquer dado sintético. É uma 'defesa' preemptiva contra confiar cegamente em dados imputados via incerteza não verificada.",
+      "literal": "some synthetic values may be detrimental if the predicted values are extremely inaccurate.",
+      "localizador": "Sec. 3 (Proposed Algorithm), parágrafo final antes da Sec. 3.1"
+    },
+    {
+      "descricao": "Caveat explícito sobre o risco de transferência negativa: se as instâncias do conjunto auxiliar forem preditas incorretamente, os valores sintéticos conflitam com os valores/rótulos reais e enganam o treinamento do modelo, prejudicando seu desempenho — justificativa central para a etapa de seleção por confiança.",
+      "literal": "if the instances are incorrectly predicted, the corresponding synthetic values or pseudo labels are likely to conflict with the real values/labels, thereby misleading the training of the model and undermining the model's performance.",
+      "localizador": "Sec. 3.3 (Transferable Instance Selection)"
+    },
+    {
+      "descricao": "Resultado negativo empírico central (ablação NS-SAEA, ver análise ficha 11): removendo o gate de confiança baseado em σ e aceitando TODOS os dados sintéticos sem filtro, o algoritmo deixa de convergir para soluções aceitáveis na maioria dos problemas — só funciona bem em DTLZ1a e DTLZ6, e apenas quando τ=10 — demonstrando que a gestão de confiança via σ não é opcional, e sim indispensável na maior parte dos casos.",
+      "literal": "Despite the use of transfer learning in NS-SAEA, it fails to converge towards a set of acceptable solutions. This observation clearly indicates the benefit of the proposed transferable instance selection.",
+      "localizador": "Sec. 4.5 (Ablation Studies)"
+    },
+    {
+      "descricao": "Caso documentado em que o próprio TC-SAEA perde para um concorrente (HK-RVEA) em DTLZ4: a densidade fortemente enviesada dos pontos na PF verdadeira faz os valores sintéticos do co-surrogate ficarem longe demais dos valores reais de fs, aumentando o risco de a otimização ser enganada pelo conhecimento transferido.",
+      "literal": "the density of the points on the true PF of DTLZ4 is strongly biased, and as a result, the synthetic values Y′sa in TC-SAEA are too far away from the true objective values of fs.",
+      "localizador": "Sec. 4.4 (discussão da Table 1)"
+    },
+    {
+      "descricao": "Com τ maior (10 em vez de 5), vários métodos baseados em surrogate — não só o TC-SAEA — degradam devido ao viés de busca introduzido pelo maior número de avaliações do objetivo rápido; o exemplo citado nominalmente é o concorrente HK-RVEA, também baseado em GP.",
+      "literal": "the performance of HK-RVEA on DTLZ1, DTLZ1a, DTLZ2, DTLZ3a and DTLZ6 is impacted negatively by a larger τ.",
+      "localizador": "Sec. 4.4 (discussão da Table 2)"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Comparando dois mecanismos distintos de transferência de conhecimento entre o objetivo rápido e o lento — o co-surrogate GP + seleção por intervalo de confiança (TC-SAEA) contra a adaptação de domínio + co-training (Tr-SAEA, antecessor dos mesmos autores) — o desempenho é predominantemente equivalente na maioria dos problemas, com a vantagem clara do TC-SAEA restrita a DTLZ1 e DTLZ3 (os dois problemas usados para testar especificamente capacidade de convergência).",
+      "literal": "Although TC-SAEA and Tr-SAEA show similar performance on most test instances, it should be noted that TC-SAEA outperforms Tr-SAEA on DTLZ1 and DTLZ3.",
+      "localizador": "Sec. 4.4 (discussão da Table 3)"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "densidade enviesada da frente de Pareto verdadeira (DTLZ4)",
+      "afirmacao": "TC-SAEA perde para HK-RVEA em DTLZ4 porque a densidade dos pontos na PF verdadeira é fortemente enviesada, fazendo os valores sintéticos do co-surrogate ficarem longe demais dos valores reais de fs, o que aumenta o risco de enganar a otimização.",
+      "literal": "the density of the points on the true PF of DTLZ4 is strongly biased, and as a result, the synthetic values Y′sa in TC-SAEA are too far away from the true objective values of fs... the risk of misleading the optimization process will be increased.",
+      "localizador": "Sec. 4.4"
+    },
+    {
+      "caracteristica": "correlação (positiva/negativa/nula) entre objetivos, controlada via cm-OneMax",
+      "afirmacao": "TC-SAEA tem o melhor desempenho quando há correlação positiva OU negativa entre os objetivos (não nula); com corr=1 (correlação perfeita) todos os métodos com surrogate atingem IGD≈0,00 (problema trivial); Waiting (sem surrogate) é competitivo e estável sobretudo com correlação negativa.",
+      "literal": "TC-SAEA exhibits the best performance on the cm-OneMax problem when there is a positive or negative correlation between the objectives, and HK-RVEA is the second best.",
+      "localizador": "Sec. 4.6, Table 6"
+    },
+    {
+      "caracteristica": "proximidade da frente de Pareto verdadeira (grau de convergência já alcançado)",
+      "afirmacao": "O erro do co-surrogate (MSE de Y_c) converge ao longo das gerações quando o ND obtido se aproxima da PF verdadeira (DTLZ2,3a,4,5,7), mas oscila fortemente quando o ND permanece longe da PF, pois a relação funcional entre fs e ff só vale perto da fronteira.",
+      "literal": "the approximation error of the co-surrogate strongly oscillates on DTLZ1, DTLZ2, and DTLZ6 because the obtained non-dominated solutions are still far away from the true Pareto front, where no clear relationship between fs and ff exists.",
+      "localizador": "Sec. 4.7"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) Classificação de contexto (fornecida no pedido, não recalculada aqui): motor=EA-Decomposição (RVEA como MOEA base), função da incerteza=A3 · Gestão de confiança (σ de GPs usado como gate/filtro do dado sintético transferido, não como termo de exploração da busca principal), surrogate=GP — Processo Gaussiano/Kriging, medição=VAR-GP (posterior fechada do GP), regime=online; artigo fora do roster experimental da dissertação (roster_bloco=null, conforme instrução do pedido). (2) Discrepância métrica: a abertura da Sec. 4 anuncia IGD E hypervolume como medidas de desempenho ('the inverted generational distance... and hypervolume... are used as the performance measures'), mas a Sec. 4.2 (Performance Metrics) só define IGD, e NENHUMA das Tabelas 1-6 nem nenhuma figura reporta valores de HV em lugar algum do artigo — aparente inconsistência entre a metodologia anunciada e os resultados de fato mostrados (conferido nas duas camadas de extração disponíveis: conversão estruturada e ANEXO com texto bruto via get_text). (3) Duas lacunas numéricas no próprio PDF original (presentes identicamente nas duas camadas de extração): a frase 'The number of new samples for updating GPs .' (Sec. 4.3, Experimental Settings) termina sem informar o valor padrão de u usado nas Tabelas 1-3 e 6; e Nmax (tamanho máximo do conjunto de treino, mencionado simbolicamente no Algoritmo 1 e no texto sobre a estratégia de truncamento estilo ParEGO) também nunca recebe um valor numérico explícito. A Sec. 4.8 conclui que 'u = 3 is considered to be appropriate', o que sugere (mas não confirma explicitamente) que esse tenha sido o valor padrão adotado nas demais tabelas. (4) Figuras remetidas ao material suplementar (Figs. S1, S2 — Sec. 4.7; Fig. S3 — Sec. 4.8) NÃO estão incluídas neste PDF de 27 páginas; a análise das fichas 31/38 (co-surrogate) e 64 (sensibilidade a u) foi reconstituída apenas a partir da descrição textual que as acompanha — os gráficos e números exatos não puderam ser conferidos diretamente. (5) Figuras 2 e 3 (diagramas do framework/algoritmo, com texto renderizado em fonte não-latina/corrompida na extração de imagem) e Figura 4 (exemplo ilustrativo 1D de seleção de instância transferível, com 3 pontos de treino FICTÍCIOS) são puramente didáticas — não reportam dados de uma comparação empírica sobre os benchmarks reais — por isso foram excluídas de `analises`, embora o texto que acompanha a Fig. 4 (Sec. 3.3) tenha originado citações usadas em resultados_negativos. (6) O gate de confiança do artigo não tem um hiperparâmetro de tolerância ajustável: a CI é sempre Y_s^a ± 1σ_s^a (largura fixa em 1 desvio-padrão), sem uma variante 'k·σ' testada por sensibilidade — a única variação estudada é liga/desliga o filtro inteiro (TC-SAEA vs. NS-SAEA, ficha 11), não 'quão permissivo' é o filtro. (7) A escolha de qual dos dois objetivos é o lento é fixa e arbitrária por convenção do artigo, não um fator experimental: 'we assume f2 (objective 2) in the benchmark problems is the slow objective fs' (abertura da Sec. 4) — não há estudo de sensibilidade trocando qual objetivo é o lento. (8) O aparente erro tipográfico 'DTLZ1, DTLZ2, and DTLZ6' (Sec. 4.7, ao listar os problemas em que o co-surrogate NÃO converge) foi conferido nas duas camadas de extração e aparece idêntico nas duas — portanto não é artefato da extração, e sim (provavelmente) um erro do próprio artigo publicado, já que ao longo do artigo os problemas mais difíceis de convergir são consistentemente DTLZ1, DTLZ3 e DTLZ6 (Tabelas 1-2), não DTLZ1, DTLZ2 e DTLZ6 (DTLZ2 é um dos problemas mais fáceis, com IGD ~0,02-0,03 em quase todas as configurações). Transcrito literalmente como no artigo, com esta ressalva. (9) Não há nenhum caso real (problema de engenharia) no artigo — todos os 17 problemas (16 + cm-OneMax) são sintéticos; todos são biobjetivo (M=2 fixo, nunca testado com mais objetivos); a maior dimensão de decisão testada é D=30 (suíte UF). Custo computacional: só o hardware/plataforma é mencionado (MATLAB R2019a, Intel Core i7 @2.21GHz, toolbox DACE) — não há nenhuma tabela ou número de tempo de execução, por iteração ou total, em lugar nenhum do artigo (custo.reporta=false). Calibração do σ: apesar de o σ de GPs ser central ao mecanismo (usado operacionalmente como largura do intervalo de confiança do gate), o artigo NUNCA mede a qualidade/calibração desse σ em si (não há cobertura, não há correlação σ-vs-erro, não há sonda com f verdadeiro conhecido) — o σ é apenas consumido, nunca validado (calibracao_do_sigma.mede=false). (10) O código-fonte de TC-SAEA está disponível publicamente (https://github.com/xw00616/TC-SAEA.git), o que permitiria re-executar os experimentos originais fora da dissertação, mas isso estaria fora do escopo de 'só análises pós-hoc sobre dados já gravados' definido no cartão de extração — por isso todas as 12 análises deste artigo foram marcadas como não-reproduzíveis (ou parcialmente reproduzíveis só quanto ao PADRÃO/tipo de análise, não ao mecanismo específico) com os dados/algoritmos já existentes na dissertação."
+}

@@ -1,0 +1,10 @@
+# =====================================================================
+# env_c149_fallback  —  Python 3.10  (CONDICIONAL)
+# Venv: /Users/gmello/Documents/python_venvs/env_c149_fallback
+# Criar SÓ SE o piloto do c149 divergir do env_main (S.6). Por padrão, c149 roda no env_main.
+# Algoritmo: c149 (LBN-MOBO) — fallback.
+# =====================================================================
+pymoo==0.6.0.1
+numpy==1.22.4
+torch                 # CPU
+pyarrow

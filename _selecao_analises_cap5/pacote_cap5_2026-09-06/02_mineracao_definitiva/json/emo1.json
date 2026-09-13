@@ -1,0 +1,149 @@
+{
+  "id": "emo1",
+  "sigla": "MPoI / HypI / DomRank / MSD (4 estratégias de infill)",
+  "titulo": "Alternative Infill Strategies for Expensive Multi-Objective Optimisation",
+  "ano": 2017,
+  "roster": false,
+  "setup": {
+    "benchmarks": "6 problemas sintéticos das suítes DTLZ (Deb et al. 2005) e WFG (Huband et al. 2006), todos com n=6 variáveis de decisão (WFG configurado com 2 parâmetros de posição + 4 de distância): DTLZ1 (D=3 objetivos, frente = simplex com vértices em 0.5, muitas frentes locais), DTLZ2 (D=3, frente = esfera unitária no octante positivo), DTLZ5 (D=6, forma da frente incerta/não-clara para 4+ objetivos), DTLZ7 (D=4, frente com 2^(4-1)=8 regiões desconexas), WFG1 (D=2, frente com regiões planas, fortemente enviesada para valores pequenos das variáveis de decisão), WFG2 (D=2, frente com regiões desconexas). Vetores de referência do hipervolume: DTLZ1=(400,400,400); DTLZ2=(2.5,...,2.5); DTLZ5=(2.5×6); DTLZ7=(1,1,1,50); WFG1=WFG2=(10,10). Hipervolume ótimo calculado exatamente (geometria) para DTLZ1/DTLZ2, e aproximado por 10^4/10^5/10^6 membros aleatórios da frente de Pareto para os problemas de 2/4/6 objetivos respectivamente. Nenhum problema real-world.",
+    "orcamento": "250 avaliações reais da função verdadeira por execução, incluindo um DoE inicial de 11n−1 = 65 amostras maximin LHS (n=6); portanto ~185 avaliações adaptativas (infill) por execução. A otimização do próprio critério de infill (busca no surrogate) usa Bipop-CMA-ES com até 20000n = 120000 avaliações do critério por passo de infill (valor calibrado por um experimento piloto não detalhado no texto).",
+    "execucoes": "11 execuções (runs) independentes por método por problema. Runs pareados: os métodos bayesianos (SMS-EGO, ParEGO, MPoI, HypI, DomRank, MSD) usam o mesmo desenho inicial (DoE) para um dado run/problema; a comparação com LHS usa desenhos LHS de 250 amostras gerados independentemente (não pareados).",
+    "baselines": "SMS-EGO (multi-surrogate, 'known for performance') e ParEGO (mono-surrogate, 'known for speed') como concorrentes bayesianos estabelecidos, mais maximin Latin Hypercube Sampling (LHS) com o mesmo orçamento como piso. O piso LHS NÃO é um piso evolutivo do tipo NSGA-II/MOEA-D/NSGA-III/SMS-EMOA (nenhum algoritmo evolutivo populacional sem surrogate é testado); é amostragem espacial fixa/não-adaptativa. As 4 estratégias propostas (MPoI multi-surrogate; HypI, DomRank, MSD mono-surrogate) são comparadas contra esses 3 baselines.",
+    "metricas_principais": [
+      "Hypervolume (HV)"
+    ],
+    "testes": [
+      "Friedman (teste global por problema, entre os 6 métodos bayesianos, usando os 11 runs pareados como blocos)",
+      "Wilcoxon Signed Rank + correção de Bonferroni (comparação múltipla pareada por problema, para achar o(s) vencedor(es), runs pareados pelo mesmo DoE)",
+      "Mann-Whitney-U (LHS vs. cada método bayesiano, amostras independentes/não pareadas)"
+    ],
+    "apresentacao": "Resultados apresentados só em figuras (não há tabela numérica de HV por método/problema no texto). Fig. 3: eixo de HV por problema (6 subpainéis), cada método rotulado como 'Nome(n)', onde n = número de métodos concorrentes que testaram estatisticamente melhor que ele entre parênteses (0 = estatisticamente entre os melhores); método(s) com melhor desempenho destacado em negrito; linha tracejada azul = hipervolume ótimo/referência; nível de significância ρ=0.05 em todos os casos. Fig. 5: tempo médio de avaliação do critério de infill (escala log) por nº de objetivos, em 3 painéis para |P*|=10/50/100, média sobre 1000 repetições.",
+    "codigo_plataforma": "GPy (framework de GP em Python) para os modelos de processo gaussiano; kernel Matérn 5/2; hiperparâmetros otimizados via L-BFGS com 10 reinícios; comparação de dominância do SMS-EGO implementada em C; Bipop-CMA-ES para otimizar o critério de infill; hardware Intel i7-2.6GHz. Código Python de todas as estratégias e figuras suplementares disponibilizados em http://bitbucket.org/arahat/gecco-2017 (nota de rodapé 3, conteúdo não descrito no corpo do artigo)."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        2,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo compara o hipervolume (HV) final, após 250 avaliações reais (65 de DoE inicial + 185 de busca adaptativa), das quatro estratégias propostas (MPoI, HypI, DomRank, MSD) contra SMS-EGO, ParEGO e um piso LHS não-adaptativo, em 6 problemas sintéticos (DTLZ1, DTLZ2, DTLZ5, DTLZ7, WFG1, WFG2), com 11 execuções pareadas por problema (Fig. 3). Usa Friedman + Wilcoxon Signed Rank/Bonferroni entre os métodos bayesianos e Mann-Whitney-U contra o LHS, reportando por problema quantos métodos concorrentes venceram estatisticamente cada estratégia (destacando em negrito os estatisticamente melhores). A partir desses resultados por problema, o artigo também enuncia uma ordenação agregada global das 7 estratégias ao longo de todos os problemas testados.",
+      "literal": "the strategies considered here may be ranked in the following order: SMS-EGO, hypervolume improvement (HypI), dominance ranking (DomRank), minimum probability of improvement (MPoI), minimum signed distance (MSD), ParEGO, and Latin hypercube sampling (LHS).",
+      "localizador": "Sec. 5 Illustration, Fig. 3, p. 878-879",
+      "metricas": [
+        "Hypervolume (HV)"
+      ],
+      "testes": [
+        "Friedman (global, por problema)",
+        "Wilcoxon Signed Rank + Bonferroni (pareado, por problema, entre os 6 métodos bayesianos)",
+        "Mann-Whitney-U (LHS vs. demais, não pareado)"
+      ],
+      "convencoes": "Cada método rotulado no eixo com o nº de métodos concorrentes que testaram significativamente melhor (entre parênteses); contagem 0 = estatisticamente entre os melhores, destacado em negrito; linha tracejada azul = hipervolume ótimo/referência; 11 execuções pareadas pelo mesmo DoE entre métodos bayesianos, desenhos LHS independentes; ρ=0.05. Sem tabela numérica de médias/medianas/desvios no texto — apenas a codificação figura+contagem.",
+      "achado": "SMS-EGO nunca é significativamente pior que nenhum concorrente, vencendo isoladamente em DTLZ2, DTLZ5 e DTLZ7; nos problemas mais difíceis de modelar com GP e kernel estacionário (DTLZ1, WFG1, WFG2) pelo menos duas das novas estratégias propostas empatam com ele (ex.: MPoI, SMS-EGO e MSD empatam em DTLZ1 com contagem 0; em WFG2, SMS-EGO, ParEGO, MPoI e DomRank empatam com contagem 0). ParEGO é significativamente pior que ao menos uma das propostas em quase todos os problemas, exceto WFG2. Todos os métodos bayesianos batem o piso LHS em todos os problemas ('all Bayesian methods are significantly better than naive LHS designs'). Achado de fechamento (Conclusões): as novas estratégias mais baratas igualam o SMS-EGO em metade dos problemas testados e superam o ParEGO.",
+      "aplicabilidade": "① endpoint: HV (e, na dissertação, também IGD+) do ND acumulado de todas as avaliações reais ao fim do orçamento, por execução/semente, célula algoritmo×problema — reproduz a lógica da ficha 1 usando só a camada ①. A comparação estatística por problema (aqui Wilcoxon pareado, já que os runs partilham o mesmo DoE) reproduz a lógica da ficha 3/5 (desenho pareado por semente); a ordenação agregada ao final é qualitativa/narrativa, não um rank médio formal calculado (ficha 2 aproximada, não exata)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Paisagem de aptidão do critério de infill (ilustração sintética em grade fixa)",
+      "grupo_sugerido": "E",
+      "descricao": "O artigo visualiza a 'paisagem de aptidão' de cada critério de infill — MPoI (Fig. 1), HypI/DomRank/MSD (Fig. 2, três painéis) e o S-metric do SMS-EGO (Fig. 4) — sobre uma grade sintética uniforme de pontos no espaço de objetivos bidimensional, tratando cada ponto como a média prevista de um GP multivariado com incerteza fixa e hipotética (σ=0.1), dado um conjunto de dados fixo (quadrados vermelhos = não-dominados; pretos = dominados). Não usa nenhum dado de execução real; é uma ilustração conceitual/analítica, depois usada no texto para explicar por que cada critério tende a se sair melhor ou pior em certos problemas (viés de exploração de borda vs. viés para o vetor ideal).",
+      "literal": "MPoI (Figure 1) and DomRank (Figure 2: _middle_ ) infill fitness contours closely follow the atainment surface. Consequently, these promote exploration of solutions at the edges due to the favourable mean predictions",
+      "localizador": "Sec. 3.2 (Fig. 1, p. 876); Sec. 4.4 (Fig. 2, p. 877); Sec. 5 (Fig. 4, p. 879)",
+      "metricas": [
+        "valor do critério de infill em mapa de cor (sem métrica de desempenho de busca associada — não é um indicador de qualidade da frente)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Grade uniforme de pontos no espaço de objetivos hipotético 2D; cada ponto tratado como predição média de um GP multivariado com incerteza fixa σ=0.1; mapa de cor (áreas mais claras = maior valor do critério, mais preferíveis); quadrados vermelhos = frente de Pareto estimada atual F*, quadrados pretos = soluções dominadas; execução única/ilustrativa, sem repetição.",
+      "achado": "MPoI e DomRank seguem de perto a superfície de atingimento e favorecem a exploração nas bordas (grande incerteza longe das soluções observadas combinada com predições médias favoráveis); HypI e MSD preferem a solução mais próxima do vetor ideal (sem viés de borda), podendo enviesar/desviar a busca; o S-metric do SMS-EGO (predições médias 'otimistas', reduzidas pela incerteza escalada) estende a superfície de atingimento em direção ao vetor ideal, funcionando bem ao focar a busca perto da frente atual e nas regiões não-dominadas. O artigo atribui as diferenças de desempenho em problemas mais simples a essas paisagens características.",
+      "aplicabilidade": "não reproduzível diretamente — é uma ilustração analítica do critério de infill sobre uma grade fixa no espaço de objetivos com incerteza hipotética constante (σ=0.1), não dados de execução real, e não usa nenhuma das 7 camadas da instrumentação. Tematicamente próxima da ficha 44 (exploração × explotação — onde os infills caem), mas sem dados empíricos de busca real (③ predições do surrogate + ⑥ filme das escolhas de infill dariam a contraparte empírica, o que seria uma análise NOVA e diferente desta)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Custo isolado da avaliação do critério de infill × nº de objetivos e |P*|",
+      "grupo_sugerido": "F",
+      "descricao": "O artigo mede o tempo médio de computação de UMA avaliação de cada critério de infill (não o tempo total de uma execução completa, nem o tempo de ajuste do GP), isoladamente, variando sinteticamente o número de objetivos (2 a 6) e o tamanho do conjunto de Pareto estimado |P*| (10, 50, 100), sobre 1000 repetições em uma máquina Intel i7-2.6GHz (Fig. 5). Compara SMS-EGO, MPoI (multi-surrogate) e as abordagens mono-surrogate (incluindo ParEGO) agrupadas numa única curva 'Mono-Surrogate'.",
+      "literal": "It is clear from Figure 5 that SMSEGO can be computationally expensive. Te high computation cost in evaluating infill criterion is primarily due to hypervolume calculation, and consequently scales poorly with the number of objectives",
+      "localizador": "Sec. 5, Fig. 5, p. 879",
+      "metricas": [
+        "tempo de computação (segundos) por avaliação do critério de infill"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Escala log no eixo do tempo; eixo x = nº de objetivos (2 a 6); três painéis para |P*| = 10, 50, 100; média sobre 1000 execuções/repetições; três curvas (Mono-Surrogate agregado, MPoI, SMS-EGO), sem dispersão/IC reportado.",
+      "achado": "SMS-EGO é o mais caro e escala mal com o nº de objetivos e com |P*| (custo dominado pelo cálculo de hipervolume, complexidade conjecturada O(|P*|^D)); MPoI (multi-surrogate) é mais caro que as abordagens mono-surrogate, mas tanto MPoI quanto as mono-surrogate são relativamente insensíveis ao aumento do nº de objetivos ou de |P*|, permanecendo ordens de magnitude mais rápidos que SMS-EGO — a justificativa de custo-benefício central da proposta do artigo.",
+      "aplicabilidade": "parcialmente relacionável à camada ④ (tempos por geração: busca), mas a dissertação mede tempo agregado de busca por geração/execução real ao longo do orçamento, não o tempo de UMA avaliação do critério de infill isolada fora do laço principal, variando sinteticamente o nº de objetivos e |P*| como este artigo faz; não é diretamente reproduzível sem um microbenchmark à parte, fora do pipeline principal de instrumentação."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo médio de computação POR avaliação do critério de infill (não o tempo total de uma execução completa nem o tempo de ajuste/retreino do GP), sobre 1000 repetições, variando sinteticamente o nº de objetivos (2 a 6) e o tamanho do conjunto de Pareto estimado |P*| (10, 50, 100); compara SMS-EGO, MPoI (multi-surrogate) e as abordagens mono-surrogate (incluindo ParEGO) agrupadas. Hardware: Intel i7-2.6GHz.",
+    "literal": "It is clear from Figure 5 that SMSEGO can be computationally expensive. Te high computation cost in evaluating infill criterion is primarily due to hypervolume calculation, and consequently scales poorly with the number of objectives",
+    "localizador": "Sec. 5, Fig. 5, p. 879"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Na Fig. 3, a própria estratégia multi-surrogate proposta pelos autores (MPoI) é a pior do problema WFG1 (frente com regiões planas, enviesada para valores pequenos das variáveis de decisão): quatro dos seis métodos bayesianos comparados testaram estatisticamente melhor que ela nesse problema — um resultado desfavorável para o próprio método novo dos autores, não só para os baselines.",
+      "literal": "MPoI(4)",
+      "localizador": "Fig. 3, painel WFG1, p. 879 (rótulo do eixo)"
+    },
+    {
+      "descricao": "Caveat dos autores: nos problemas mais difíceis (DTLZ1, WFG1, WFG2 — difíceis de modelar com GP e kernel estacionário), as diferenças refinadas entre as paisagens de aptidão dos diferentes critérios de infill deixam de importar porque o modelo surrogate é imperfeito — a limitação é atribuída ao modelo, não ao critério de aquisição escolhido, esvaziando parcialmente o valor prático de desenhar critérios mais sofisticados nesses casos.",
+      "literal": "For harder problems, the subtle differences in infill fitness landscape have litle impact because of an imperfect model.",
+      "localizador": "Sec. 5, p. 879 (parágrafo antes da análise de tempo computacional)"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Passagem central de equivalência (motivo do apontamento especial para este artigo): em problemas mais difíceis de modelar com GP e kernel estacionário (DTLZ1, WFG1, WFG2), as diferenças sutis entre as paisagens de aptidão dos vários critérios de infill (MPoI, HypI, DomRank, MSD, SMS-EGO, ParEGO) têm pouco impacto no desempenho porque o modelo subjacente é imperfeito — os métodos tornam-se, na prática, quase equivalentes. O artigo atribui explicitamente essa equivalência à qualidade do modelo, não ao critério em si.",
+      "literal": "For harder problems, the subtle differences in infill fitness landscape have litle impact because of an imperfect model. As such, the methods presented here are mostly equivalent.",
+      "localizador": "Sec. 5, p. 879 (parágrafo final antes de 'We also investigated the computation time...')"
+    },
+    {
+      "descricao": "Achado de fechamento (Conclusões): em metade dos problemas de teste, as quatro estratégias de infill propostas (mais baratas) têm desempenho tão bom quanto o SMS-EGO (mais caro), apesar de usarem a incerteza do GP de formas algebricamente muito diferentes (probabilidade mínima de melhoria multivariada; melhoria de hipervolume; ranking de dominância; distância mínima assinada) — reforçando que a escolha específica do critério pesa menos do que se poderia esperar.",
+      "literal": "Te proposed fast infill strategies perform as well as SMSEGO in half of the test problems presented here, while outperforming ParEGO.",
+      "localizador": "Sec. 6 Conclusions, p. 880"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "multimodalidade / muitas frentes locais e dificuldade de modelagem por GP com kernel estacionário (DTLZ1, WFG1, WFG2)",
+      "afirmacao": "Em problemas difíceis de modelar com GP e kernel estacionário, o SMS-EGO deixa de vencer isoladamente e pelo menos duas das estratégias propostas tornam-se competitivas com ele; nesses três problemas o modelo imperfeito reduz a importância de qual critério de infill é usado.",
+      "literal": "in comparatively more difficult problems: DTLZ1, WFG1 and WFG2, which are difficult to model with a GP and a stationary kernel function, at least two of our proposed methods are competitive.",
+      "localizador": "Sec. 5, p. 878-879"
+    },
+    {
+      "caracteristica": "região plana e viés da frente para valores pequenos das variáveis de decisão (WFG1)",
+      "afirmacao": "WFG1 tem regiões planas na frente de Pareto e é fortemente enviesado para valores pequenos das variáveis de decisão; nesse problema o método multi-surrogate proposto (MPoI) é o pior do estudo (4 de 6 métodos testam melhor), enquanto HypI, DomRank e SMS-EGO empatam como melhores.",
+      "literal": "WFG1 has flat regions in the Pareto front and is strongly biased towards smaller values of the decision variables.",
+      "localizador": "Sec. 5, p. 878 (descrição dos problemas) + Fig. 3, painel WFG1, p. 879"
+    },
+    {
+      "caracteristica": "frente desconexa (DTLZ7 — 8 regiões desconexas em espaço de objetivos 4D; WFG2 — regiões desconexas)",
+      "afirmacao": "A desconexão da frente não penaliza uniformemente os métodos mais baratos: em DTLZ7 o SMS-EGO vence isoladamente (contagem 0) e os demais ficam entre 1-3 métodos melhores; já em WFG2 quatro métodos (SMS-EGO, ParEGO, MPoI, DomRank) empatam como melhores (contagem 0), incluindo o mono-surrogate ParEGO, que na maioria dos outros problemas perde de pelo menos uma proposta.",
+      "literal": "In four dimensional objective space, DTLZ7 has a Pareto set that produces 24−1 = 8 disconnected Pareto-optimal regions.",
+      "localizador": "Sec. 5, p. 878; Fig. 3, painéis DTLZ7 e WFG2, p. 879"
+    },
+    {
+      "caracteristica": "muitos objetivos (D=6 em DTLZ5, D=4 em DTLZ7 — além do que SMS-EGO/ParEGO haviam sido testados antes)",
+      "afirmacao": "Nota metodológica explícita dos autores: SMS-EGO e ParEGO nunca haviam sido testados com mais de três objetivos antes deste artigo; mesmo assim, em DTLZ5 (D=6) o SMS-EGO vence isoladamente (contagem 0) e o MPoI multi-surrogate proposto é a pior das novas estratégias nesse problema (3 métodos melhores).",
+      "literal": "It should be noted that SMS-EGO and ParEGO have not been tested in more than three objectives before in the literature.",
+      "localizador": "Sec. 5, p. 878; Fig. 3, painel DTLZ5, p. 879"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Artigo curto (8 páginas, GECCO'17), majoritariamente de contribuição METODOLÓGICA: propõe 1 critério multi-surrogate novo (MPoI, prova formal das propriedades de monotonicidade N1/N2 na Sec. 3.1 — prova matemática, não análise empírica, por isso não virou item de `analises`) e 3 funções de escalarização mono-surrogate novas (HypI, DomRank, MSD, cada uma com prova de que preserva a relação de dominância), todas usadas dentro do laço EGO clássico (Algoritmo 1) com EI fechada em forma padrão. A validação empírica (Sec. 5) é enxuta: só 6 problemas sintéticos (DTLZ/WFG), nenhum problema real, 11 execuções (não 30 sementes), e SOMENTE hipervolume como métrica (nunca IGD/IGD+/GD/spacing) — sem nenhuma tabela numérica de resultados no texto, tudo codificado em figuras (posição + contagem de derrotas estatísticas). Não há curvas de convergência ao longo do orçamento (só o endpoint aos 250 FEs é mostrado); não há medição de calibração/cobertura de σ, nem RMSE do modelo, nem 'sonda'/'filme' no sentido da dissertação. Nenhuma das 4 estratégias novas tem uma ablação 'mesma maquinaria sem incerteza' testada dentro deste artigo — a incerteza entra estruturalmente em todas (via fórmula fechada de EI, eq. 5, ou via a probabilidade multivariada de dominância do MPoI, eq. 10-14), sem uma variante 'apenas média' usada como contraste (não é uma ablação exata como a ficha 11 exigiria). O artigo menciona material suplementar (figuras extras e código Python das estratégias) em repositório externo (bitbucket.org/arahat/gecco-2017, nota de rodapé 3, p. 879), mas não descreve seu conteúdo no texto — não dá para extrair uma análise específica dele além do que já está no corpo do artigo. Também menciona, sem detalhar, um experimento piloto para calibrar o orçamento do otimizador interno do critério de infill (Bipop-CMA-ES, 20000n avaliações): 'based on the results from a short experiment in optimising any infill criteria' (Sec. 5, p. 878) — mencionado, sem dados/figura. O piso comparativo (LHS) não é um piso evolutivo (tipo NSGA-II) como no roster da dissertação; é amostragem espacial fixa sem adaptação, então a leitura 'assistido bate piso' aqui tem escopo mais restrito que nas fichas do bloco B da tipologia. Nota sobre o arquivo-fonte: a conversão OCR/pymupdf4llm de /home/claude/corpus_md/emo1.md tem um artefato sistemático que remove o 'h' de 'The/This/These/Therefore' no início de frases (renderizando 'Te/Tis/Tese/Terefore') e ocasionalmente perde letras duplicadas (ex.: 'beter'='better', 'litle'='little', 'atainment'='attainment', 'seting'='setting'); como aparecem no arquivo, conforme a Lei 1 (citação exata); por isso mesmo, duas citações preservam 'SMSEGO' (sem hífen, artefato de desenrolamento de linha da conversão) em vez de 'SMS-EGO', e uma citação preserva a marcação markdown de itálico '_middle_' (usada pelo pymupdf4llm para indicar a palavra 'middle' em itálico no PDF original) — todas verificadas byte-a-byte contra /home/claude/corpus_md/emo1.md. O artigo é redundantemente reproduzido três vezes no arquivo-fonte (conversão estruturada linhas 1-500; camada de texto bruta do PDF/ANEXO linhas 508-1696; OCR das imagens/figuras linhas 1698-1755) — as três versões são consistentes em conteúdo; o ANEXO de OCR de imagens (última seção) não acrescenta nenhum dado numérico novo além do que já está nas duas primeiras camadas (só fragmentos ilegíveis de rótulos de figura). Leitura completa e integral confirmada: 1756 linhas lidas do início ao fim, nenhuma seção ou apêndice pulado. roster_bloco = null por instrução do pedido (artigo fora do roster experimental)."
+}

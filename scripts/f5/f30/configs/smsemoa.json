@@ -1,0 +1,349 @@
+{
+ "config": "smsemoa · exp=main · SMS-EMOA PURO (Emmerich/Beume/Naujoks 2005), piso ONLINE sem surrogate, built-in PlatEMO 4.15 stock, zero patches. 750 celulas = 25 problemas x 30 sementes {0-28,42}. Arvore de referencia lida READ-ONLY em /Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/algorithms/_PlatEMO/PlatEMO/Algorithms/Multi-objective optimization/SMS-EMOA/{SMSEMOA,Reduce,CalHV,UpdateFront}.m — git HEAD b686ca20cd896db001b66eceec7d3f3bbf184b18, `git status --porcelain` = 12 arquivos modificados e ZERO em SMS-EMOA/. Nenhuma celula rodada; experiments.py / experiment.run / experiments.m NAO invocados; nada editado.",
+ "cobertura": "750/750 celulas (100%) — ZERO amostragem. O config inteiro ocupa 55 MB, entao a instrucao de amostrar 40-100 celulas foi DISPENSADA por medicao: varri as 750 celulas em streaming nas 5 camadas em disco (① real, ② pop, ③ surrogate, ④ timing, ⑥ jsonl) + os 750 manifestos ⑤. Totais processados: 11.280 eventos de geracao, 10.530 transicoes populacao->populacao, 16.148 guards, 225.600 linhas de ②, ① com 309-929 linhas/celula. ⑦ nao existe (correto: piso ONLINE). ③ existe VAZIA em 750/750 (o smsemoa nao esta nas 5 configs D54/bucket-only). Corpus adicional de proveniencia: 83 pares duplicados vm1 x vm5 nos espelhos ~/mestrado_coleta_m8/matlab-vm{1,5}/experiments/main/smsemoa/ (todos os 25 problemas representados). Evidencia (scratchpad, descartavel): /private/tmp/claude-501/-Users-gmello/33c29160-6eb6-4277-a041-db4855486063/scratchpad/{sweep6.py,sweep6b.py,sweepP.py,hv_seed.py,n4_deriva.py,n4_piso.py,n4_zoom.py,final_checks.py,final2.py} + {sweep6_cells,sweep6b,sweepP,hv_seed,n4_deriva,n4_piso}.csv.",
+ "N1_invariancia": "A query-joia do config (ramo interno do `Reduce.m`: em M=2 o deltaS e EXATO e os DOIS extremos lexicograficos da pior frente ficam com deltaS=inf, logo intocaveis => o vetor `ideal` da populacao NUNCA pode piorar; em M>=3 cai em `CalHV(...,1,10000)` Monte-Carlo com referencia MOVEL 1,1*max, que da valor finito a todos => nenhum extremo protegido) foi rodada sobre a CAMPANHA INTEIRA.\n\nFRACAO E ERRO MAXIMO — **M=2: 0 pioras do `ideal` em 7.980 transicoes / 570 celulas / 19 problemas / 30 sementes. Fracao = 0/7980 = 0,000%. Erro maximo = 0,0 EXATO (nem uma piora de 1 ULP).** M=3: **288/2.550 = 11,29%** com corte de ruido (piora relativa > 1e-9, denominador max(|a|,|b|)); 334/2.550 = 13,10% em comparacao estrita. A T11 mediu 0/266 x 10/85 = 11,76% numa unica semente; a 30 sementes o numero cai em 2.550 transicoes e converge para 11,29%.\n\n**NENHUMA semente quebra a identidade.** Por problema M=3 (transicoes com piora/total): MMF16_20 127/600 · DTLZ2 94/360 · DTLZ3 24/360 · DTLZ7 20/660 · DTLZ4 13/360 · DTLZ1 10/210. Todas as 30 sementes tem M=2 = 0.\n\nSEGUNDA PERNA (monotonicidade de HV populacional, HV EXATO — formula 2D em M=2, fatiamento exato em M=3, ref FIXO por problema = max da uniao das 30 ① + 1%): 63 quedas em 10.530 transicoes = **0,598%** (T11: 3/351 = 0,85%). ZERO quedas > 1%; pior queda **-0,335%**; 719/750 celulas (95,9%) com ZERO quedas. Tambem se estratifica no mesmo ponto: **M=2 = 1 queda em 7.980 (0,013%, pior -9,1e-06, WFG1/semente 12) x M=3 = 62 em 2.550 (2,43%)** — razao 190x, exatamente onde Reduce.m:21 troca de ramo.\n\nCONTROLE INDEPENDENTE: repeti a query-joia nas 83 copias vm5 (execucoes independentes, outra maquina, outro shape): **M=2 0/874 · M=3 32/289 = 11,07%**. A assinatura e invariante a semente E a maquina, com o mesmo valor a 0,2 pp.\n\nVEREDITO N1: a identidade estrutural que a F5/T11 fecharam em 1 semente vale em TODAS as 30, e o contraste M=2 x M=3 subiu de 0/266 vs 10/85 para 0/7.980 vs 288/2.550.",
+ "N2_tetos_caidos": "A T11 listou 3 itens no balde **T** (§9) e 5 em \"o que este corpus NAO permite verificar\". Medi todos.\n\n**CAEM (agora mensuraveis):**\n1. **\"estabilidade em multiplas sementes\"** => MEDIDO. CV do HV final entre as 30 sementes, por problema: min 0,095% (DTLZ1), mediana **2,75%**, max 39,46% (BBOB_F55), segundo pior BBOB_F49 19,64%. Ganho de HV inicio->fim **positivo em 750/750** (mediana +29,65%; min BBOB_F17 +0,22%; max WFG1 +394%). Nenhuma execucao piora o que a semeadura entregou.\n2. **\"os 3 problemas D=2 sao quase cegos como regua\"** => QUANTIFICADO. Ganho mediano de HV: MMF1 **+1,40%**, MMF4 **+2,90%**, MMF11_L **+5,25%** (vs +29,65% global). CV do HV final: 1,20% / 1,80% / 1,95%.\n3. **\"comportamento em regime de campanha\"** => MEDIDO em 750: status ok 750/750, n_retries=0 750/750, fallback=false 750/750, termino='normal' 750/750, 1 footer 750/750, rodape ≡ manifesto 750/750 (O-21, zero divergencia). 6 VMs, 12 dias (02/08–14/08). Custo **5.230,18 s = 1,4528 h-core** (T11 projetava 1,12; +30%, explicado pela heterogeneidade medida em N4).\n4. **\"a instrumentacao NOVA da T11 em escala\"** (era 1 celula) => MEDIDO em 750: schema_version=2 750/750; `repo_hash` preenchido e IDENTICO 750/750 (na s42 era vazio 25/25); `sigma_dict.status='nao_se_aplica'` 750/750; `sonda.status='nao_se_aplica'` 750/750; campanha_id presente 750/750 — **mas com DOIS valores e so 41 derivando do repo_hash: e o classe (3) C3-1.**\n5. **T11 §8 T-1 / C9 (`params.geracoes_derivadas` erra +1)** => o teto cai e o achado da T11 **NAO SOBREVIVE**. Texto reescrito (BL-13, 2026-08-01); formula vigente `floor((20D+n_dup)/N_efetivo)`. Testei as 3 leituras de `n_dup` nas 750: so-evolucao => 0/750 contra n_geracoes e 750/750 contra n_geracoes-1 (reproduz a T11); **`n_dup` = `manifest.cache_hits` (o unico campo n_dup-like que EXISTE no ⑤, e que inclui os N+1=21 do arranque) => 750/750 EXATO contra n_geracoes.** A afirmacao \"acerta 28/28\" e VERDADEIRA sob a leitura natural. Ressalva: reduz a D + floor(cache_hits/20), robusto enquanto 20<=cache_hits<40; medido [21,27] em 750/750, margem 13.\n6. **Formula de semeadura D88 (determinismo)** => recomputei NDSort + CrowdingDistance (inf nos extremos, desempate por indice) nas 750: conjunto identico em **720/750 (96,0%)**; n_frente1 720/750; n_frentes 714/750. **As 30 discordancias sao TODAS DTLZ4 — 30/30 sementes** (underflow de x^100 no cast float32/D53). A T11 via 1/25; a 30 sementes prova-se **deterministico por PROBLEMA, nao por semente**.\n7. **Teto float32 (D53) / regra 11** => n_front1 recomputado bate em **9.788/11.280 = 86,77%** (T11: 88,3%). Por problema: **100% em 10 dos 25**; DTLZ4 **0,51%** (2/390, 30/30 sementes); DTLZ7 60,6%; ZDT1 62,5%; ZDT3 65,9%. Propriedade do problema, nao da semente.\n\n**NAO CAEM (continuam T — 30 sementes nao ajudam):**\n· **#26 da T11 — `FrontNo` incremental do `UpdateFront`**: Reduce.m:14,32 mantem a estrutura incrementalmente e e ela que define `LastFront`; o ⑥ grava um NDSort FRESCO (piso_instrument.m:43). Uma deriva seria invisivel nas 5 camadas em 750/750 tanto quanto em 25/25.\n· **`deltaS` por individuo e n° efetivo de amostras do `CalHV`** — nao exportados. O teto ESTREITA (a consequencia do ramo MC agora tem 2.550 transicoes de barra de erro em vez de 85) mas o valor por individuo continua inacessivel.\n· **ordem interna dos N passos steady-state** — ② e ⑥ so expoem o estado no fim do laco externo.",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "NAO EXISTE ARTIGO PARA ESTE CONFIG. Varri /Users/gmello/Documents/python_repos/mestrado/arquivos/Revisao Bibliografica/corpus_artigos/_artigos_markdown/ : nenhum arquivo comeca com 'smsemoa.' e nenhum tem 'SMS-EMOA' no nome (o mais proximo, c105, e SMS-EGO/Ponweiser — outro metodo). Confirma Entrega 2 = N/A da F5 e da T11. Substitui por DUAS fontes normativas: (a) a IMPLEMENTACAO DE REFERENCIA lacrada (PlatEMO 4.15, HEAD b686ca20cd89, 0 modificacoes em SMS-EMOA/) e (b) a SPEC_experimentos_v5.2 §3.2 / D25 / §6.3, onde as afirmacoes distribucionais deste config de fato vivem.",
+   "onde_no_artigo": "N/A — corpus_artigos sem entrada smsemoa",
+   "testavel_com_30": false,
+   "resultado": "declarado: config sem artigo; gabarito = codigo lacrado + SPEC v5.2"
+  },
+  {
+   "afirmacao": "'geracoes = 20D / pop (o DoE 11D-1 ja foi gasto) => 2 (D=2) a 30 (D=30) geracoes'",
+   "onde_no_artigo": "SPEC_experimentos_v5.2.md:787 e :476",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO 750/750. n_geracoes = D+1 em 750/750 (a geracao 1 e o snapshot da populacao semeada, fe=11D-1, ZERO FE de evolucao). Extremos exatos: MMF1/MMF4/MMF11_L (D=2) n_ger=3 = 1+2; ZDT1/ZDT3 (D=30) n_ger=31 = 1+30. A faixa '2 a 30' bate a unidade nos dois extremos, em todas as 30 sementes."
+  },
+  {
+   "afirmacao": "'NSGA-II e SMS-EMOA nao usam vetores de referencia e mantem 20' (N_efetivo = N_nominal mesmo em M=3, enquanto NSGA-III/MOEA-D caem a 15)",
+   "onde_no_artigo": "SPEC v5.2:479, :476 (D20/D65/§6.3)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO. n_pop==20 em 11.280/11.280 eventos; N_nominal=N_efetivo=20 no ⑤/header/footer de 750/750, INCLUSIVE nas 180 celulas M=3; ② com exatamente 20 linhas/geracao em 750/750."
+  },
+  {
+   "afirmacao": "'o SMS-EMOA seleciona por contribuicao de hipervolume (S-metric) — espelho mecanico exato do princípio de aquisicao do c262 qNEHVI'",
+   "onde_no_artigo": "SPEC v5.2:196, :789, D25/DEF-A13(b), :2594",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO NO DADO com 30x mais evidencia. HV populacional nao-decrescente em 10.467/10.530 transicoes = 99,40% (T11: 99,15% em 351). Zero quedas > 1%; pior -0,335%; 719/750 celulas com zero quedas. Ganho de HV inicio->fim > 0 em 750/750."
+  },
+  {
+   "afirmacao": "'M<=3 aqui, entao o CUSTO EXATO DO HV e irrelevante' — a frase pressupoe que a contribuicao de HV e calculada EXATAMENTE porque M e pequeno",
+   "onde_no_artigo": "SPEC_experimentos_v5.2.md:196 (D25/v3.0.8)",
+   "testavel_com_30": true,
+   "resultado": "REFUTADO PELO CODIGO E QUANTIFICADO NO DADO (classe 3, C3-3). Reduce.m:20-25 so calcula deltaS exato quando M==2; em M>=3 chama CalHV(PopObj, max(PopObj,[],1)*1.1, 1, 10000) — Monte-Carlo de 10.000 amostras com referencia MOVEL. Metade do grid (6 problemas M=3, 180 celulas, 24% das transicoes) roda o piso-HV sobre HV ESTIMADO. Consequencia medida: pioras do ideal 288/2.550 (11,29%) x 0/7.980 (0,00%); quedas de HV 62/2.550 (2,43%) x 1/7.980 (0,013%). Magnitude maxima -0,335% (resolucao do estimador, nao mudanca de principio). NAO e defeito do codigo (stock por design, D30/patch-minimo) — e ERRATA DA SPEC. ESCALO (D81)."
+  },
+  {
+   "afirmacao": "'nao treina GP (compute trivial); integracao custo-zero'",
+   "onde_no_artigo": "SPEC v5.2:196, :789",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO. ③ com 0 linhas 750/750; fit_series=[] 750/750; timing.tempo_fit_surrogate_s e tempo_busca_s = NULL 750/750; ④ com tempo_fit_s/tempo_busca_s/tempo_pred_sonda_s 100% NaN 750/750; params.patches='NENHUM…' 750/750; surrogate=false 750/750. Custo total 5.230,18 s = 1,4528 h-core (mediana 5,24 s/celula, max 17,0 s)."
+  },
+  {
+   "afirmacao": "'como orcamento = pop x geracoes e fixo, reduzir a pop da ao baseline sua MELHOR CHANCE' (protocolo Knowles/ParEGO)",
+   "onde_no_artigo": "SPEC v5.2:787",
+   "testavel_com_30": true,
+   "resultado": "PARCIALMENTE SUSTENTADO, com limite quantificado. O piso melhora o DoE em 750/750 (ganho mediano de HV +29,65%). MAS nos 3 problemas D=2 o ganho mediano e +1,40% (MMF1), +2,90% (MMF4), +5,25% (MMF11_L): com 20D=40 FE de infill sobre N=20 sobram 2 geracoes e a 'melhor chance' e essencialmente o DoE. Sao 90/750 celulas (12%) com poder discriminativo quase nulo como regua."
+  },
+  {
+   "afirmacao": "SMSEMOA.m:29: 'OperatorGAhalf(Problem, Population(randperm(end,2)))' — 1 filho/passo, 2 pais uniformes sem torneio, laco de N passos por geracao",
+   "onde_no_artigo": "SMSEMOA.m:26-31 (arvore lacrada)",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO indiretamente em 750/750. Delta-fe == 20 em 10.377/10.530 transicoes (98,55%); as 153 excecoes explicadas A UNIDADE pelos 153 cache-hits de evolucao. Fechamento 20*(n_ger-1) = Sigma Delta-fe + cache-hits de evolucao intra: residuo ZERO em 750/750 (atribuicao por ORDEM no fluxo do ⑥). O log de pais continua exclusao SANCIONADA (CONTRATO §6.1, 'Rejeitados no DI-10')."
+  },
+  {
+   "afirmacao": "Reduce.m:13-33: 'funde N+1, identifica a PIOR frente, remove o de menor deltaS' => elitismo (mu+1)",
+   "onde_no_artigo": "Reduce.m:13-33 + SMSEMOA.m:30",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO. Testei pop(g+1) contido em pop(g) uniao {solution_id em [fe(g),fe(g+1))} nas 10.530 transicoes das 750 celulas: 0 violacoes. Entrantes: media 8,98/geracao (44,9% de N), maximo 17, NUNCA > N em 750/750."
+  },
+  {
+   "afirmacao": "D89 (nossa, sancionada): 'a duplicata bit-exata nao gasta FE, gasta o SLOT do infill'",
+   "onde_no_artigo": "REGISTRO D57/D89",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO E VISIVEL NA ② PELA 1a VEZ. 153 cache-hits de evolucao em 89 celulas. Em 41 celulas (5,5%) a ② contem o MESMO solution_id em dois slots da mesma geracao — 69 slots. Verifiquei os 69: 69/69 tem guard cache_hit com aquele solution_id, 0 nao explicados. E o 'gasta o slot' materializado. A T11 media 'zero duplicatas intra-geracao em 25/25' e concluia corretamente para a s42."
+  },
+  {
+   "afirmacao": "D21/D61 (nossa): hard-stop EXATO em maxFE = 31D-1, com o laco interno de N passos podendo ser cortado no meio",
+   "onde_no_artigo": "REGISTRO D21/D61",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO 750/750 em 5 testes: len(①)==31D-1==maxfe · fe_final==maxfe · fe_index e solution_id densos ≡ arange · fase init==11D-1 e opt==20D exatos. Guard hard_stop em 89/750 (11,87%), sempre exatamente 1 (a T11 via 3/25 = 12,0% — taxa reproduzida). footer.termino='normal' inclusive nessas 89: o hard-stop D21 E o termino previsto."
+  }
+ ],
+ "N4_deriva": "Corpus: **83 celulas duplicadas vm1 x vm5** (todos os 25 problemas; sementes 1,3,7,8,13,17,26). Nenhum outro par de VMs duplica smsemoa. `doe_hash` identico nos 83 pares e `repo_hash` identico nos 83 => o unico eixo que varia e a MAQUINA.\n\n**PISO DE RUIDO (deriva pura, sem amplificacao).** A geracao 1 do ⑥ e o snapshot da populacao SEMEADA — zero FE de evolucao, zero decisao estocastica. A entrada e identica: as 11D-1 linhas `fase=='init'` da ① sao **bit-identicas em X e em f nos 83/83 pares (max|Δ| = 0,0 EXATO em float32)**. Sobre essa entrada identica, o `ideal`/`nadir` logados em float64 divergem em **9 dos 83** (74/83 sao bit-iguais tambem em float64). Magnitude: **deriva relativa MAXIMA = 2,890e-15** (BBOB_F17/17), mediana dos nao-zero **9,570e-16** (~4 ULP de float64), maxima no nadir 2,708e-15.\n\n**NUMERO A CITAR: a deriva cross-maquina do smsemoa e <= 2,9e-15 relativo em float64 e EXATAMENTE 0,0 na camada ① exportada (float32/D53).** A exportacao float32 absorve integralmente a deriva de plataforma nas avaliacoes.\n\n**AMPLIFICACAO.** Comparei a ① INTEIRA (309–929 linhas) dos 83 pares: **81/83 (97,6%) sao BIT-IDENTICAS** (`DataFrame.equals` True, inclusive `x_key` dos guards e a ② geracao a geracao). Isto e MAIS FORTE do que a doutrina do RUNBOOK §6.2 exige.\n\n**AS 2 EXCECOES — e o mecanismo.** `BBOB_F49/13` e `ZDT6/13` bifurcam. Localizei o ponto: BBOB_F49/13 tem as linhas 0–276 identicas e diverge em **fe=277 de 309 (89,6% do orcamento)**; ZDT6/13 em **fe=258 de 309 (83,5%)**. Nos dois o `ideal` em float64 do ⑥ ja diferia desde a geracao 1 por ~2,8e-15 — invisivel na ① float32. Mecanismo: em M=2 o `Reduce` decide por `[~,worst]=min(deltaS)`, um argmin DISCRETO; quando dois deltaS distam menos que a deriva de plataforma, o argmin troca de individuo e as trajetorias divergem caoticamente. As duas sao M=2 — **nao e o ramo Monte-Carlo, e o ramo EXATO com empate quase-exato.**\n\n**IMPACTO NA LEITURA DO CONTRASTE.** HV final das duas copias com referencia comum: BBOB_F49/13 difere **0,162%** (dispersao entre as 30 sementes: 19,64%); ZDT6/13 difere **7,05%** (dispersao entre sementes: 8,15%). **Nos dois casos a deriva cross-maquina fica ABAIXO do desvio-padrao que o proprio desenho de 30 sementes ja media** => NAO muda a leitura de nenhum contraste agregado. Mas nao e nula: a afirmacao \"as duplicatas sao bit-identicas\" seria FALSA em 2/83.\n\n**JANELA DE SWAP DA VM5 (§Proveniencia 2): NAO SE APLICA — medido.** O `created_at` mais tardio de qualquer celula smsemoa em vm5/matlab-vm5 e **2026-08-14T11:02:58Z** e a janela comeca ~15:20Z de 14/08 => **0 de 750 celulas** na janela. O ④ esta limpo desse defeito.\n\n**MAS o ④ NAO serve para tabela de custo sem normalizar por maquina.** Mediana de `timing.tempo_total_s` por host: vm4 4,16 s · matlab-vm5 4,62 s · matlab-vm1 4,69 s · vm1 4,82 s · vm2 5,94 s · vm10 5,94 s · vm3 8,69 s · **vm5 12,22 s**. Espalhamento de **2,94x** na MESMA carga. A serie do ④ e bit-identica a do ⑥ em 750/750 e Σ④ <= ⑤ em 750/750 — a instrumentacao esta certa; o que varia e a maquina.",
+ "N5_cauda": "**NAO HA CAUDA. O smsemoa e 750/750 `ok`.** Censo (`censo_completo_22.csv`, alg=smsemoa) e minha re-medicao independente concordam a ZERO celulas: **750 celulas · 25 problemas · 30 sementes · ok=750 · ⚪=0 · fail=0 · sem_manifesto=0 · camadas ①②③④⑥ em 750/750**. Confirmei pelo RODAPE (autoridade O-21): footer.status='ok' 750/750, footer.termino='normal' 750/750, fe_final==maxfe 750/750, n_retries=0 750/750, fallback_ativado=false 750/750, e ZERO divergencia rodape x manifesto. `motivo_parada` nao existe no ⑤ deste config (750/750) — o campo e `footer.termino`, normativo em `mapa_termino.json`.\n\n**O QUE ISSO DIZ SOBRE O ALGORITMO.** Taxa de sucesso por problema = **30/30 nos 25 problemas**, incluindo os 5 que derrubam configs com surrogate: DTLZ4 (b1 = 0/30, kriging subdeterminado), WFG1 (c262 = 2/30, crash de fit do GP em regiao flat), ZDT6 e BBOB_F5/F22/F49/F55 (c154, escada RS/ModelFittingError), BBOB_F1/F5/F22/F55 + ZDT6 (c238, MATLAB:badsubscript). **O piso sem modelo nao tem o que falhar** — nao ha fit, nao ha inversao de matriz de correlacao, nao ha regiao flat que degenere um GP. Isto nao e detalhe operacional: e a **prova negativa que da o denominador limpo das incapacidades documentadas**. Toda falha do LAUDO_D0 e atribuivel ao SURROGATE, porque o mesmo DoE, os mesmos operadores, o mesmo N e os mesmos 25 problemas, sem surrogate, completam 750/750. E um resultado que o desenho previa mas que so a campanha de 30 sementes prova.\n\n**A \"cauda\" do smsemoa e de outra natureza — 3 estratos, todos benignos e todos medidos:**\n1. **Hard-stop D21 no meio de geracao: 89/750 celulas (11,87%)**, sempre exatamente 1 guard. Distribuicao: MMF11_L 24/30 · MMF1 21/30 · MMF4 21/30 (os 3 D=2, alta taxa de duplicata) · BBOB_F49 5 · BBOB_F55 4 · BBOB_F22 3 · DTLZ1 3 · BBOB_F37 2 · ZDT4 2 · BBOB_F17/DTLZ3/DTLZ4/ZDT6 1. Em 7 celulas ha cache-hit POSTERIOR ao ultimo evento de geracao (linhas fantasma na ① sem geracao associada em nenhuma camada) — comportamento correto D21xD89; `n_geracoes` conta so as COMPLETAS e concorda entre ⑤/⑥/②/④ em 750/750.\n2. **Cegueira de regua nos 3 problemas D=2: 90/750 celulas (12%)**, ganho mediano de HV 1,40%–5,25%. Nao sao falhas; sao celulas sem poder discriminativo, e devem ir para a analise com essa ressalva.\n3. **Cegueira de RECOMPUTO em DTLZ4: 30/30 sementes.** Frente-1 recomputada da ① bate em 2/390 geracoes (0,51%) e a semeadura D88 nao fecha em 30/30. Causa provada (T11): underflow de x^100 no cast float32 (D53). E teto de VERIFICACAO, nao de algoritmo — o log e a fonte e e coerente. Mas **DTLZ4 nao pode ser auditado pela ①** em nenhuma das 30 sementes.",
+ "aspectos": [
+  {
+   "id": "A01",
+   "aspecto": "Orcamento maxFE=31D-1 com hard-stop exato; ① densa; fase init=11D-1 / opt=20D",
+   "classe": "2",
+   "medicao": "750/750 em cada um dos 5 testes: len(①)==maxfe · fe_final==maxfe · fe_index identico a arange · solution_id identico a arange · init==11D-1 e opt==20D exatos. Guard hard_stop em 89/750 celulas, sempre exatamente 1.",
+   "veredito": "conforme — desvio sancionado D21/D61",
+   "muda_vs_s42": false,
+   "arquivo_linha": "SMSEMOA.m:26 (NotTerminated entre geracoes) + wrapper D21"
+  },
+  {
+   "id": "A02",
+   "aspecto": "DoE 11D-1 do artefato LHS compartilhado; doe_hash ⑤ identico ao ⑥",
+   "classe": "2",
+   "medicao": "doe_hash do manifesto identico ao do header do ⑥ em 750/750; 750 hashes DISTINTOS (1 por problema x semente) — nenhuma colisao, nenhum reuso de DoE entre sementes.",
+   "veredito": "conforme — D63/D88",
+   "muda_vs_s42": false,
+   "arquivo_linha": "experiment.m piso_init:2599"
+  },
+  {
+   "id": "A03",
+   "aspecto": "N=20 cravado; N_efetivo identico a N_nominal mesmo em M=3",
+   "classe": "2",
+   "medicao": "n_pop==20 em 11.280/11.280 eventos; N_nominal=N_efetivo=20 no ⑤/header/footer de 750/750, inclusive nas 180 celulas M=3; ② com exatamente 20 linhas/geracao em 750/750.",
+   "veredito": "conforme — §3.2/D65/D20/§6.3",
+   "muda_vs_s42": false,
+   "arquivo_linha": "SPEC v5.2:476,479,787"
+  },
+  {
+   "id": "A04",
+   "aspecto": "Semeadura D88 (NDSort + CrowdingDistance + indice) reprodutivel",
+   "classe": "2",
+   "medicao": "conjunto recomputado identico em 720/750 (96,0%); n_frente1 720/750; n_frentes 714/750. As 30 falhas sao TODAS DTLZ4, 30/30 sementes (teto float32, ver A13). As 6 divergencias de n_frentes em ZDT6 tem conjunto CORRETO.",
+   "veredito": "conforme — D88; excecao DTLZ4 e teto D53, nao infidelidade",
+   "muda_vs_s42": true,
+   "arquivo_linha": "experiment.m:2409-2420"
+  },
+  {
+   "id": "A05",
+   "aspecto": "Laco (mu+1): N passos por geracao, 1 filho por passo; n_ger = D+1",
+   "classe": "1",
+   "medicao": "n_geracoes == D+1 em 750/750. Delta-fe == 20 em 10.377/10.530 transicoes (98,55%); as 153 excecoes explicadas A UNIDADE pelos 153 cache-hits de evolucao. Fechamento 20*(n_ger-1) = Sigma Delta-fe + cache-hits de evolucao intra: residuo ZERO em 750/750 com atribuicao por ORDEM no fluxo do ⑥ (pela fronteira de fe quebra em 8/750 — armadilha 5 da F5 confirmada em escala).",
+   "veredito": "conforme ao metodo canonico",
+   "muda_vs_s42": false,
+   "arquivo_linha": "SMSEMOA.m:26-31"
+  },
+  {
+   "id": "A06",
+   "aspecto": "QUERY-JOIA · ramo interno do Reduce (M=2 exato + extremos protegidos x M>=3 Monte-Carlo) — assinatura do ideal",
+   "classe": "1",
+   "medicao": "M=2: 0 pioras do ideal em 7.980 transicoes / 570 celulas (0,000%, erro maximo 0,0 EXATO). M=3: 288/2.550 = 11,29% (334 estrito = 13,10%). Replica independente nas copias vm5: M=2 0/874 · M=3 32/289 = 11,07%. T11 media 0/266 x 10/85.",
+   "veredito": "conforme — assinatura 30x mais forte que na s42",
+   "muda_vs_s42": false,
+   "arquivo_linha": "Reduce.m:20-28 (arvore lacrada)"
+  },
+  {
+   "id": "A07",
+   "aspecto": "Selecao por contribuicao de HV (S-metric): monotonicidade do HV populacional",
+   "classe": "1",
+   "medicao": "HV EXATO (2D fechado; fatiamento exato em M=3), ref FIXO por problema = max da uniao das 30 ① + 1%. 63 quedas em 10.530 transicoes = 0,598% (T11: 0,85%). ZERO quedas > 1%; pior -0,335%; 719/750 celulas com zero quedas. Estratificado: M=2 1/7.980 (0,013%) x M=3 62/2.550 (2,43%) — razao 190x, exatamente onde Reduce.m:21 troca de ramo.",
+   "veredito": "conforme — principio de selecao PROVADO pelo dado",
+   "muda_vs_s42": false,
+   "arquivo_linha": "Reduce.m:13-33"
+  },
+  {
+   "id": "A08",
+   "aspecto": "Elitismo (mu+1): nada entra que nao seja da pop anterior ou filho recem-avaliado",
+   "classe": "1",
+   "medicao": "0 violacoes em 10.530 transicoes / 750 celulas. Entrantes: media 8,98/geracao (44,9% de N), maximo 17, NUNCA > N em 750/750.",
+   "veredito": "conforme",
+   "muda_vs_s42": false,
+   "arquivo_linha": "Reduce.m:32-33"
+  },
+  {
+   "id": "A09",
+   "aspecto": "Pais por randperm(end,2) — sorteio uniforme sem torneio; log de pais ausente",
+   "classe": "1",
+   "medicao": "lido em SMSEMOA.m:29 na arvore lacrada (HEAD b686ca20cd89; git status: 12 arquivos modificados, ZERO em SMS-EMOA/; sha256 de SMSEMOA.m=45e68c67…, Reduce.m=5b62f0ab…, CalHV.m=349fa80d…, UpdateFront.m=e3aec8a1…). Corroboracao: 153 cache-hits de evolucao em 750 celulas, concentrados em D=2. Log de pais = EXCLUSAO SANCIONADA (CONTRATO §6.1).",
+   "veredito": "conforme — verificavel na fonte lacrada",
+   "muda_vs_s42": false,
+   "arquivo_linha": "SMSEMOA.m:29"
+  },
+  {
+   "id": "A10",
+   "aspecto": "② = snapshot da populacao no fim do laco externo, sem off-by-one",
+   "classe": "2",
+   "medicao": "len(②)==20*n_geracoes e todos os grupos com exatamente 20 em 750/750. Decisivo: ideal e nadir_pop do ⑥(g) reproduzidos da ②(g)x① em 11.280/11.280 (A11) — houvesse deslocamento casariam com g-1.",
+   "veredito": "conforme — instrumentacao §17",
+   "muda_vs_s42": false,
+   "arquivo_linha": "piso_instrument.m:3"
+  },
+  {
+   "id": "A11",
+   "aspecto": "Recomputo de ideal / nadir_pop da ②x① com tolerancia de float32",
+   "classe": "1",
+   "medicao": "ideal: 11.280/11.280 geracoes, desvio relativo MAXIMO 5,881e-08. nadir_pop: 11.280/11.280, maximo 5,925e-08. Ambos ~1 ULP de float32 = igualdade exata no espaco em que o dado vive. f_best identico a ideal em 11.280/11.280.",
+   "veredito": "conforme",
+   "muda_vs_s42": false,
+   "arquivo_linha": "piso_instrument.m:38,57-58"
+  },
+  {
+   "id": "A12",
+   "aspecto": "③ vazia por desenho + sonda nao_se_aplica + sigma_dict explicito",
+   "classe": "2",
+   "medicao": "0 linhas em 750/750; schema dimensionalmente correto — 7 larguras conforme (D,M): 21(D=2) · 28(D=7,M=3) · 29(D=10) · 33(D=12,M=3) · 41(D=20,M=3 e D=22,M=2) · 43(D=22,M=3) · 49(D=30). sonda.status='nao_se_aplica' 750/750; sigma_dict.status='nao_se_aplica' 750/750 (na s42 a chave era AUSENTE em 25/25 — correcao C3 da T11 confirmada em escala); fit_series=[] 750/750.",
+   "veredito": "conforme — §3.2/DI-13.7; correcao T11 landed em 750/750",
+   "muda_vs_s42": true,
+   "arquivo_linha": "CONTRATO §3.2 / DI-13.7"
+  },
+  {
+   "id": "A13",
+   "aspecto": "Teto de precisao float32 (D53) / regra 11 do CONTRATO — frente-1 recomputada da ①",
+   "classe": "2",
+   "medicao": "n_front1 recomputado == log em 9.788/11.280 geracoes = 86,77% (T11: 88,3%). Por problema: 100% em 10 dos 25 (MMF16_20, WFG1/2/4/5/9, BBOB_F22/F37, DTLZ2); DTLZ4 0,51% (2/390, 30/30 sementes); DTLZ7 60,6%; ZDT1 62,5%; ZDT3 65,9%. Prova a 30 sementes que o efeito e propriedade do PROBLEMA, nao da semente.",
+   "veredito": "conforme — teto declarado (CONTRATO §10 regra 11 / T11-A37.2); decisao de NAO mexer no D53 registrada (PLANO:88)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "CONTRATO_DE_DADOS.md §10.11"
+  },
+  {
+   "id": "A14",
+   "aspecto": "PlatEMO STOCK lacrado: zero patches em SMS-EMOA/",
+   "classe": "1",
+   "medicao": "git HEAD b686ca20cd896db001b66eceec7d3f3bbf184b18; git status --porcelain = 12 arquivos modificados (CSEA, EDN-ARMOEA, K-RVEA, PC-SAEA, ParEGO) e ZERO em SMS-EMOA/. No dado: params.patches='NENHUM — piso e stock do PlatEMO 4.15 por design' em 750/750, parameter='nenhum', surrogate=false 750/750.",
+   "veredito": "conforme — verificavel na fonte lacrada",
+   "muda_vs_s42": false,
+   "arquivo_linha": "algorithms/_PlatEMO/PlatEMO/Algorithms/Multi-objective optimization/SMS-EMOA/"
+  },
+  {
+   "id": "A15",
+   "aspecto": "Dedup D57/D89 — a duplicata nao gasta FE, gasta o SLOT (visivel na ② pela 1a vez)",
+   "classe": "2",
+   "medicao": "153 cache-hits de evolucao em 89/750 celulas. 69 slots duplicados na ② em 41 celulas (5,5%); 69/69 tem guard cache_hit com aquele solution_id — ZERO nao explicados. Concentracao: MMF1 16 celulas, MMF11_L 8, MMF4 6, BBOB_F49 3, BBOB_F22/F55/ZDT4 2, BBOB_F17/F37 1. A T11 media 'zero duplicatas intra-geracao em 25/25'.",
+   "veredito": "conforme — D57/D89 materializada; NAO e anomalia",
+   "muda_vs_s42": true,
+   "arquivo_linha": "REGISTRO D57/D89"
+  },
+  {
+   "id": "A16",
+   "aspecto": "Cache-hit de arranque N+1 = 21, sempre a posicao 0 de ②(1)",
+   "classe": "2",
+   "medicao": "21 guards cache_hit antes do 1o evento de geracao em 750/750, com exatamente 20 solution_id DISTINTOS e exatamente 1 repetido em 750/750; o repetido == posicao 0 de ②(g=1) em 750/750. footer.cache_hits reconcilia com a contagem total de guards em 750/750. ALERTA: pela fronteira de fe a contagem da 22 em MMF1/semente 11 (um cache-hit de EVOLUCAO cai com fe==11D-1 porque a duplicata nao incrementa FE) — so a atribuicao por ORDEM fecha.",
+   "veredito": "conforme — causa provada (experiment.m:2424-2426 + piso_init:2599)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "experiment.m:2424-2426"
+  },
+  {
+   "id": "A17",
+   "aspecto": "Termino: 1 footer, campo `termino`, `motivo_parada` ausente",
+   "classe": "2",
+   "medicao": "1 unico footer em 750/750; footer.termino='normal' 750/750 (inclusive nas 89 com hard_stop); motivo_parada AUSENTE do ⑤ em 750/750; footer com 11 chaves fixas e header com 19 chaves fixas em 750/750; evento smsemoa_gen com 11 chaves em 11.280/11.280. Bate com mapa_termino.json (I-08).",
+   "veredito": "conforme — doc-sync CORRIGIDO na T11, confirmado em escala",
+   "muda_vs_s42": false,
+   "arquivo_linha": "artifacts/mapa_termino.json"
+  },
+  {
+   "id": "A18",
+   "aspecto": "④ timing degenerado por desenho + reconciliacao + custo",
+   "classe": "2",
+   "medicao": "④ com n_geracoes linhas em 750/750; tempo_fit_s/tempo_busca_s/tempo_pred_sonda_s 100% NaN em 750/750; serie do ④ identica a do ⑥ (allclose rtol 1e-5) em 750/750; Sigma④ <= ⑤ em 750/750; tempo_aval_real_s nao-nulo em 750/750. Custo total 5.230,18 s = 1,4528 h-core (T11 projetava 1,12 h-core; +30%).",
+   "veredito": "conforme — DI-13.10/§17.6 + contrato_61 nao_se_aplica",
+   "muda_vs_s42": false,
+   "arquivo_linha": "piso_instrument.m:20-24"
+  },
+  {
+   "id": "A19",
+   "aspecto": "O-21: rodape do ⑥ identico ao status do ⑤; nenhuma ⚪, nenhuma fail",
+   "classe": "1",
+   "medicao": "750/750 com footer.status='ok', manifest.status='ok', footer.fe_final==manifest.fe_final. 0 celulas ⚪, 0 fail, 0 sem_manifesto, 0 retries, 0 fallback. Recenso independente concorda com censo_completo_22.csv a ZERO celulas. Taxa de sucesso 30/30 nos 25 problemas.",
+   "veredito": "conforme — unico estrato do estudo sem incapacidade documentada",
+   "muda_vs_s42": true,
+   "arquivo_linha": "ua-dd-saea/f5/f30/censo_completo_22.csv"
+  },
+  {
+   "id": "A20",
+   "aspecto": "CONTRATO §6: header do ⑥ sem run_id / ambiente / params / sigma_dict",
+   "classe": "2",
+   "medicao": "header com 19 chaves em 750/750, sem run_id, ambiente, params nem sigma_dict. Diff de chaves s42 x campanha de 30 sementes = vazio. O gate G-7 (contrato_61.json) confere o EVENTO DE GERACAO e o ⑤, nunca o header => a lacuna e estruturalmente invisivel ao portao. Item T-2 da T11: NAO corrigido, agora medido em 750/750.",
+   "veredito": "desvio de doc-sync sistemico NAO corrigido — item para a torre",
+   "muda_vs_s42": false,
+   "arquivo_linha": "CONTRATO_DE_DADOS.md §6"
+  },
+  {
+   "id": "A21",
+   "aspecto": "⑤ quinto_obrigatorio (I-09/B-03): repo_hash, campanha_id, sigma_dict, schema_version 2",
+   "classe": "3",
+   "medicao": "schema_version=2 em 750/750; repo_hash='63db46b100635a5cc21e8f5594271f481bc41416' presente e IDENTICO em 750/750 (na s42 era vazio em 25/25 — correcoes C1/C2 landed); sigma_dict 750/750. MAS campanha_id tem DOIS valores: '7f4f0e429a46_M8' em 709/750 e '63db46b10063_2026-08-14' em 41/750. O invariante que a T11 verificou no smoke ('o campanha_id DERIVA do repo_hash') vale em 41/750 e FALHA em 709/750 — o prefixo 7f4f0e429a46 nao e prefixo do repo_hash gravado no mesmo manifesto.",
+   "veredito": "INEXPLICADO — ver classe3 C3-1",
+   "muda_vs_s42": true,
+   "arquivo_linha": "manifest.campanha_id x manifest.repo_hash (750 arquivos em resultados_experimentos/smsemoa/*/*/*.manifest.json)"
+  },
+  {
+   "id": "A22",
+   "aspecto": "Deriva cross-maquina (83 duplicatas vm1 x vm5)",
+   "classe": "2",
+   "medicao": "init da ① bit-identico em X e f em 83/83 (max|Delta| = 0,0 float32). Deriva pura em float64 no ideal da geracao 1: <= 2,890e-15 relativo, mediana dos nao-zero 9,570e-16, ZERO em 74/83. ① inteira bit-identica em 81/83 (97,6%). 2/83 bifurcam (BBOB_F49/13 a partir de fe 277/309; ZDT6/13 a partir de fe 258/309), impacto no HV final 0,162% e 7,05% contra dispersao entre sementes de 19,64% e 8,15%.",
+   "veredito": "conforme a doutrina RUNBOOK §6.2 (fidelidade ESTATISTICA); melhor do que a doutrina exige — mas NAO universal",
+   "muda_vs_s42": true,
+   "arquivo_linha": "~/mestrado_coleta_m8/reorg_conflitos.log + espelhos matlab-vm1/matlab-vm5"
+  },
+  {
+   "id": "A23",
+   "aspecto": "env.host: duas convencoes de nomenclatura no mesmo campo",
+   "classe": "3",
+   "medicao": "709/750 usam 'vm1'..'vm10'; 41/750 usam 'matlab-vm1'/'matlab-vm5'. A particao coincide EXATAMENTE com a do campanha_id (A21). Qualquer agregacao por maquina com groupby(env.host) conta vm5 e matlab-vm5 como duas maquinas (medianas 12,22 s x 4,62 s para a MESMA maquina fisica).",
+   "veredito": "INEXPLICADO — ver classe3 C3-2",
+   "muda_vs_s42": true,
+   "arquivo_linha": "manifest.env.host"
+  },
+  {
+   "id": "A24",
+   "aspecto": "SPEC §3.2/D25 afirma 'custo EXATO do HV' em M<=3; o stock usa Monte-Carlo em M=3",
+   "classe": "3",
+   "medicao": "Reduce.m:26 chama CalHV(PopObj, max(PopObj,[],1)*1.1, 1, 10000) — estimativa MC de 10.000 amostras com referencia MOVEL — para TODAS as 180 celulas M=3 (24% das transicoes). Consequencia medida: ideal piora 288/2.550 (11,29%) x 0/7.980 em M=2; HV cai 62/2.550 (2,43%) x 1/7.980 (0,013%); magnitude maxima -0,335%.",
+   "veredito": "INEXPLICADO (errata da SPEC, nao do codigo) — ver classe3 C3-3",
+   "muda_vs_s42": false,
+   "arquivo_linha": "SPEC_experimentos_v5.2.md:196 x Reduce.m:26 / CalHV.m"
+  },
+  {
+   "id": "A25",
+   "aspecto": "params.geracoes_derivadas — RETESTE do unico item 3 da T11",
+   "classe": "2",
+   "medicao": "texto UNICO em 750/750 (1 md5). Formula vigente floor((20D+n_dup)/N_efetivo): com n_dup = manifest.cache_hits => 750/750 EXATO contra n_geracoes; com n_dup = so cache-hits de evolucao => 0/750 e 750/750 contra n_geracoes-1 (o que a T11 mediu). O achado T-1/C9 da T11 NAO sobrevive sob a leitura natural de n_dup. Robustez: reduz a D + floor(cache_hits/20); vale enquanto 20<=cache_hits<40; medido [21,27] em 750/750, margem 13.",
+   "veredito": "conforme — com AMBIGUIDADE de definicao de n_dup a escalar (D81)",
+   "muda_vs_s42": true,
+   "arquivo_linha": "src/experiment.m params.geracoes_derivadas (BL-13, 2026-08-01)"
+  },
+  {
+   "id": "A26",
+   "aspecto": "[T] FrontNo incremental do UpdateFront + deltaS por individuo + ordem dos N passos",
+   "classe": "T",
+   "medicao": "NAO MEDIDO: exige patch invasivo em hot-loop (barrado por DI-12.1/D30) ou re-run com dump. Reduce.m:14,32 mantem FrontNo incrementalmente via UpdateFront (2 ramos) e e ele que define LastFront — quem e candidato ao descarte; o ⑥ grava um NDSort FRESCO (piso_instrument.m:43). Uma deriva entre os dois seria invisivel nas 5 camadas em 750/750 exatamente como em 25/25. As 30 sementes NAO derrubam este teto.",
+   "veredito": "teto de verificabilidade — fora do denominador",
+   "muda_vs_s42": false,
+   "arquivo_linha": "Reduce.m:14,32 / UpdateFront.m"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C3-1",
+   "descricao": "`campanha_id` nao deriva do `repo_hash` em 709/750 celulas. O ⑤ traz repo_hash='63db46b100635a5cc21e8f5594271f481bc41416' identico em 750/750, mas o campanha_id assume dois valores: '7f4f0e429a46_M8' (709 celulas; hosts vm1/vm2/vm3/vm4/vm5/vm10; created_at de 2026-08-02T12:41Z a 2026-08-14T11:02Z) e '63db46b10063_2026-08-14' (41 celulas; hosts matlab-vm1/matlab-vm5; created_at 14/08 00:07-00:24Z e 10:32-10:47Z). SO O SEGUNDO deriva do repo_hash. A correcao C2 da T11 afirmou explicitamente o invariante 'o campanha_id deriva do repo_hash' com base em 1 celula de smoke — ele nao sobreviveu a campanha. Consequencia: quem usar campanha_id como chave de rastreabilidade codigo->run vera DUAS campanhas onde ha UMA arvore de codigo, e o prefixo 7f4f0e429a46 nao resolve para nada verificavel no manifesto. Mitigante MEDIDO: a cadeia D80 fecha de qualquer modo pelo repo_hash (unico e presente em 750/750) e o doe_hash ⑤ identico ao ⑥ fecha 750/750 — nenhuma analise fica sem elo run<->codigo.",
+   "gravidade": "media",
+   "acao": "ESCALAR ao autor (D81): decidir se (a) '7f4f0e429a46' e o hash de OUTRO repo/arvore e o campo esta correto sob outra convencao, ou (b) e um rotulo de campanha M8 sem derivacao e o texto da correcao C2 da T11 precisa de errata. Nenhuma hipotese exige re-run. Conferir antes se a mesma bifurcacao existe nos outros 21 configs — se existir, e item de campanha, nao deste config.",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/smsemoa/*/*/exp_main_smsemoa_*.manifest.json — campos campanha_id e repo_hash"
+  },
+  {
+   "id": "C3-2",
+   "descricao": "`env.host` grava duas convencoes no mesmo campo: 'vm1'..'vm10' em 709/750 e 'matlab-vm1'/'matlab-vm5' em 41/750. A particao coincide EXATAMENTE com a de C3-1 (as mesmas 41 celulas), o que indica um segundo caminho de escrita do manifesto. Consequencia medida: um groupby(env.host) sobre o smsemoa devolve 8 maquinas onde existem 6, e as medianas de tempo se separam artificialmente (vm5 12,22 s x matlab-vm5 4,62 s — a MESMA maquina fisica em janelas diferentes). Contamina qualquer tabela de custo por maquina e qualquer gate de proveniencia que case host contra o roster.",
+   "gravidade": "baixa",
+   "acao": "ESCALAR + normalizar NA ANALISE (nao no dado): remover o prefixo '^matlab-' antes de agregar por host. Recomendo que a torre verifique se os outros 21 configs tem a mesma bifurcacao.",
+   "arquivo_linha": "manifest.env.host (mesmos 750 arquivos)"
+  },
+  {
+   "id": "C3-3",
+   "descricao": "A SPEC v5.2:196 (D25/DEF-A13b) justifica o SMS-EMOA como 4o piso dizendo 'M<=3 aqui, entao o custo EXATO do HV e irrelevante'. A implementacao de referencia LACRADA nao calcula HV exato em M=3: Reduce.m:26 chama CalHV(PopObj, max(PopObj,[],1)*1.1, 1, 10000), estimativa Monte-Carlo de 10.000 amostras com referencia MOVEL local ao ultimo front. Vale para os 6 problemas M=3 (DTLZ1/2/3/4/7, MMF16_20) = 180 das 750 celulas e 2.550 das 10.530 transicoes (24%). A consequencia NAO e teorica, esta medida: nesse ramo o ideal piora em 288/2.550 (11,29%) contra 0/7.980 em M=2, e o HV populacional cai em 62/2.550 (2,43%) contra 1/7.980 (0,013%). Ou seja: o par casado D25 (SMS-EMOA x c262 qNEHVI, 'espelho mecanico exato, mesma selecao por HV') e exato-x-GP na metade M=2 do grid e ESTIMADO-x-GP na metade M=3.",
+   "gravidade": "media",
+   "acao": "NAO e bug e NAO se corrige no codigo (m8-freeze + D30/patch-minimo + piso e stock por design; bussola D29 = errata do texto, fica o codigo). ACAO = errata da SPEC §3.2/D25 + declarar na dissertacao que a leitura do contraste D25 deve ser ESTRATIFICADA POR M, com a magnitude medida (subotimalidade do descarte <= 0,335% de HV, logo nao inverte contraste, mas explica integralmente a assinatura de M=3). ESCALO ao autor (D97/D81).",
+   "arquivo_linha": "SPEC_experimentos_v5.2.md:196 x algorithms/_PlatEMO/.../SMS-EMOA/Reduce.m:26 e CalHV.m"
+  }
+ ],
+ "score": 9,
+ "score_t11": 10,
+ "veredito_recomendado": "RECOMENDO ACEITAR o corpus de 750 celulas do `smsemoa` para fidelidade de MECANISMO, sem caveat de mecanismo, com 3 itens classe (3) roteados a torre (nenhum toca o algoritmo) e 4 caveats de LEITURA declarados. O veredito e do autor (D97) — eu produzo evidencia e recomendacao, nao sentenca.\n\nSCORE 9/10 (T11 deu 10). **CAUSA NOMEADA DO MOVIMENTO: nao e o mecanismo — o mecanismo GANHOU evidencia e nao mudou de comportamento.** Todas as identidades estruturais que a T11 fechou em 25 celulas fecham em 750: laco (mu+1) 750/750, elitismo 0 violacoes em 10.530 transicoes, recomputo de ideal/nadir 11.280/11.280 a 1 ULP de float32, orcamento e fases 750/750, cache-hit de arranque N+1 750/750 sempre na posicao 0 de ②(1), fechamento aritmetico com residuo zero 750/750, ③ vazia 750/750, ④ degenerado 750/750, PlatEMO lacrado com 0 patches em SMS-EMOA/. E a query-joia saiu de 0/266 x 10/85 para **0/7.980 x 288/2.550**, replicada de forma independente em outra maquina (0/874 x 32/289). Por mecanismo isto e 10.\n\nO -1 vem inteiramente de tres coisas que **uma unica semente numa unica VM (a T11 rodou 25/25 em vm3) era estruturalmente incapaz de ver**:\n(a) **C3-1** — o `campanha_id` deixa de derivar do `repo_hash` em 709/750, quebrando exatamente o invariante que a correcao C2 da T11 declarou verificado. E o mesmo genero de defeito que a T11 nomeou como achado transversal da campanha (\"campo verde, dado que nao sustenta a afirmacao\"), so que aqui o campo esta preenchido e coerente — o que nao se sustenta e a DERIVACAO declarada.\n(b) **C3-2** — duas convencoes de `env.host` no mesmo campo, correlacionadas com (a), que quebram agregacao por maquina.\n(c) **C3-3** — a SPEC promete HV exato em M<=3 e o stock usa Monte-Carlo de 10k amostras em todo M=3; a consequencia esta medida e e a propria assinatura de N1.\nOs tres sao benignos para o algoritmo e nenhum exige re-run. Se o autor julgar, como a T11 julgou, que a regua pune **desvio de mecanismo** e nao doc-sync/proveniencia, o score volta a **10** — e registro que essa e uma decisao dele, nao minha. Minha leitura e que \"contrato perfeito\" (requisito do 10 na regua da casa) nao se sustenta com um invariante de rastreabilidade declarado-e-quebrado em 709/750 celulas.\n\nCONTRAPESO EXPLICITO A FAVOR DO CONFIG: o unico item 3 que a T11 escalou (T-1/C9, `params.geracoes_derivadas` errando +1 deterministico) **foi REFUTADO** nesta rodada — sob a leitura natural de `n_dup` (= `manifest.cache_hits`, o unico campo com esse papel no manifesto) a formula acerta **750/750 exato** contra `n_geracoes`. A T11 leu `n_dup` como so-evolucao. Registro como retificacao a favor da campanha.\n\nCAVEATS DE LEITURA (nao de fidelidade), a carregar para a analise: (1) as 90 celulas D=2 (MMF1/MMF4/MMF11_L) tem ganho mediano de HV de 1,4%-5,3% e poder discriminativo quase nulo como regua; (2) DTLZ4 nao e auditavel pela ① em nenhuma das 30 sementes (frente-1 recomputada bate em 0,51%; teto float32/D53 — o LOG e a fonte); (3) o ④ nao serve para tabela de custo sem normalizar por maquina (espalhamento medido de 2,94x entre VMs); (4) a bit-identidade cross-maquina e 81/83, nao 83/83 — duas celulas bifurcam por troca de argmin no `min(deltaS)` do ramo EXATO de M=2, com impacto abaixo da dispersao entre sementes.",
+ "decisoes_ao_autor": [
+  "D81 · C3-1: decidir a natureza do `campanha_id`. Em 709/750 celulas ele e '7f4f0e429a46_M8' e NAO deriva do `repo_hash` gravado no mesmo manifesto ('63db46b10063...'); em 41/750 e '63db46b10063_2026-08-14' e deriva. A correcao C2 da T11 afirmou o invariante 'campanha_id deriva do repo_hash' com base em 1 celula de smoke. Duas hipoteses, nao escolho: (a) 7f4f0e429a46 e o hash de OUTRO repo/arvore (adaptador? PlatEMO?) e a convencao esta certa sob outra leitura; (b) e rotulo de campanha sem derivacao e o texto da C2 precisa de errata. Nenhuma exige re-run. CONFERIR SE VALE PARA OS OUTROS 21 CONFIGS antes de tratar como item do smsemoa.",
+  "D81 · C3-2: `env.host` tem duas convencoes ('vm5' em 709, 'matlab-vm5' em 41), coincidentes com a particao do campanha_id. Decidir se a normalizacao entra (i) num artefato normativo de proveniencia, (ii) so na camada de analise, ou (iii) se e sintoma de um segundo caminho de escrita do manifesto que a torre queira investigar. NAO normalizei nada — o dado esta READ-ONLY como estava.",
+  "Bussola D29 (errata do texto, fica o codigo) · C3-3: errata da SPEC §3.2/D25. O texto 'M<=3 aqui, entao o custo exato do HV e irrelevante' pressupoe HV exato; Reduce.m:26 usa CalHV Monte-Carlo (10.000 amostras, referencia movel) em TODO M>=3. Decisao do autor: (a) corrigir a frase da SPEC, e (b) declarar na dissertacao que a leitura do par casado D25 (SMS-EMOA x c262) deve ser ESTRATIFICADA POR M — em M=2 e HV-exato x GP, em M=3 e HV-estimado-10k x GP. Tenho a magnitude para a declaracao: subotimalidade do descarte <= 0,335% de HV; pioras do ideal 11,29% x 0,00%.",
+  "T11/T-1 REFUTADO — decidir se retifica o relatorio T11 do smsemoa. `params.geracoes_derivadas` com n_dup = `manifest.cache_hits` acerta 750/750 contra `n_geracoes`. O item T-1/C9 (e o rotulo 'analogo local do padrao do c217') deve ser marcado NAO-CONFIRMADO. Residuo real e menor: o texto nao DEFINE `n_dup` e as duas leituras plausiveis dao respostas diferentes — sugiro (nao decido) acrescentar 'n_dup = `cache_hits` deste manifesto' a string. Ressalva de robustez: a formula reduz a D + floor(cache_hits/20) e so vale enquanto 20<=cache_hits<40 (medido [21,27], margem 13).",
+  "T-2 da T11 CONTINUA ABERTO em escala: o header do ⑥ tem 19 chaves em 750/750 e o CONTRATO §6 promete run_id/ambiente/params/sigma_dict. O gate G-7 nunca confere o header => a divergencia e invisivel ao portao. Decidir: o writer emite, ou o §6 descreve o que existe. Sem impacto analitico (run_id e env vivem no ⑤, completo em 750/750).",
+  "ARMADILHA NOVA para o indice, medida em 750: a ② PODE conter o mesmo `solution_id` em dois slots da mesma geracao — 69 slots em 41 celulas, 69/69 explicados por guard cache_hit (D89 'gasta o slot'). Qualquer teste que assuma 20 solution_id DISTINTOS por geracao reprova 41 celulas falsamente. A T11 registrou 'zero duplicatas intra-geracao' com base nas 25 celulas da s42.",
+  "ARMADILHA NOVA (2): a atribuicao de guards por FRONTEIRA DE `fe` quebra em 8/750 celulas — 7 com cache-hit posterior ao ultimo evento de geracao e 1 (MMF1/semente 11) com cache-hit de EVOLUCAO em fe==11D-1, que aparenta 22 cache-hits de arranque. SO a atribuicao por ORDEM no fluxo do ⑥ fecha 750/750. A armadilha 5 da F5 esta confirmada em escala e o exemplo MMF1/11 e mais duro que o MMF4/42 que a F5 citou.",
+  "PROVENIENCIA: a janela de swap da vm5 (§Proveniencia 2) NAO afeta este config — medido: a celula smsemoa mais tardia em vm5 e de 2026-08-14T11:02:58Z e a janela comeca ~15:20Z. 0/750. O ④ do smsemoa esta limpo desse defeito especifico (mas ver o espalhamento de 2,94x entre maquinas, que e outro problema).",
+  "N4: 2 das 83 duplicatas cross-VM (BBOB_F49/semente 13 e ZDT6/semente 13) NAO sao bit-identicas — bifurcam por troca de argmin no min(deltaS) do ramo EXATO de M=2, com deriva de origem <= 2,9e-15 em float64 (0,0 em float32). O canonico escolhido pelo reorg foi a copia vm1 nos dois casos, consistente com os outros 81. Se o autor quiser uma politica DECLARADA de desempate de duplicatas, este e o momento — eu NAO alterei nada."
+ ]
+}

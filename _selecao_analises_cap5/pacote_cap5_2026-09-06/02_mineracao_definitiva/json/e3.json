@@ -1,0 +1,375 @@
+{
+  "id": "e3",
+  "sigla": "HeE-MOEA",
+  "titulo": "Heterogeneous Ensemble-Based Infill Criterion for Evolutionary Multiobjective Optimization of Expensive Problems",
+  "ano": 2019,
+  "roster": false,
+  "setup": {
+    "benchmarks": "DTLZ1–DTLZ7 e WFG1–WFG9 (3 objetivos fixos, M=3), com N ∈ {10, 20, 40, 80} variáveis de decisão testadas para cada problema (16 problemas × 4 dimensões = 64 combinações problema×dimensão, embora nem todas as 64 apareçam em toda tabela). DTLZ1/DTLZ3 têm muitos PFs locais (multimodais); DTLZ4 tem mapeamento enviesado (dificulta distribuição uniforme); DTLZ5/DTLZ6 têm PF degenerada; DTLZ7 tem regiões de Pareto desconexas; WFG combina formas variadas (linear/convexa/desconexa/mista) e viés/engano/multimodalidade/não-separabilidade no espaço de decisão, com domínio [0,2n] por variável (não [0,1] como DTLZ). Nenhum problema MMF, BBOB ou real da bateria da dissertação é usado.",
+    "orcamento": "DoE inicial: 11N−1 pontos via Latin Hypercube Sampling (LHS), gerado por execução e COMPARTILHADO entre todos os algoritmos comparados dentro dessa execução ('the initial training data are newly generated, and they are the same for all compared algorithms'). Base NSGA-II: iterações iter1=24 × km=5 novas avaliações reais cada = 120 avaliações reais adicionais → orçamento total 11N−1+120 (piso NSGA-II sem surrogate usa 11N+120, com população ajustada 46/34/40/40 para N=10/20/40/80 para consumir o mesmo total de FEs). Base MOEA/D (só N=20): população 45 (H=8,T=5), 55 gerações, orçamento total 359 avaliações reais para as versões com surrogate, 360 para o piso MOEA/D sem surrogate. Limite superior de dados de treino retidos: l = 11N−1+25 (acima disso, metade por non-dominated sorting + crowding distance, metade por amostragem aleatória sem reposição).",
+    "execucoes": "20 execuções independentes por problema×algoritmo para N=10, 20, 40; 10 execuções para N=80 (o próprio artigo atribui o enfraquecimento da vantagem de HeE-MOEA em N=80 a esse menor número de execuções).",
+    "baselines": "GP-MOEA (mesmo MOEA base e mesmo critério de infill que HeE-MOEA, mas surrogate = processo Gaussiano construído via DACE toolbox, hiperparâmetros por Hooke-Jeeves); HoE-MOEA (ensemble HOMOGÊNEO de 9 RBFNs via bagging, mesmo infill/MOEA que HeE-MOEA — ablação natural da heterogeneidade do ensemble); e SEM surrogate: NSGA-II puro (Table III) e MOEA/D puro (Table IV) — ambos usados como 'piso' (floor) evolutivo. Há, portanto, piso sem surrogate na comparação.",
+    "metricas_principais": [
+      "HV (hypervolume)",
+      "IGD (inverted generational distance)"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum, α=0,05 (5%), símbolos +/=/− (relativos ao HeE-MOEA); contagem win/lose/tie agregada ao final de cada bloco de comparação de cada tabela"
+    ],
+    "apresentacao": "Média (mean) e desvio-padrão (std), ora em duas linhas por célula (Table I), ora inline 'mean (std)' (Tables II, III, IV); melhor resultado por célula em negrito; símbolo +/=/− do teste de Wilcoxon anexado à célula do concorrente; contagem win/lose/tie ao final de cada bloco; figuras de convergência (Fig. 3) usam a IGD MÉDIA (não mediana) sobre as execuções, sem banda de dispersão; custos (Figs. 4–6) em boxplot ou linha de média, não em média±dp tabulada.",
+    "codigo_plataforma": "MATLAB R2014a, Intel Core i7 3,4GHz, Windows 7 Enterprise SP1 64-bit; toolbox PlatEMO para cálculo de HV/IGD; LIBSVM para a LSSVM; função `newrb` do MATLAB para a RBFN2 (backpropagation); DACE toolbox (Hooke-Jeeves) para o GP concorrente."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        3,
+        62
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela com a média (linha 1) e desvio-padrão (linha 2) de HV para HeE-MOEA e GP-MOEA, em 16 problemas de teste (DTLZ1-7, WFG1-9) com N=40 variáveis de decisão, usando dois critérios de infill lado a lado (ExI e LCB), base NSGA-II. Cada célula do concorrente (GP-MOEA) recebe um símbolo +/=/− do teste de Wilcoxon rank-sum (α=5%) relativo ao HeE-MOEA, com contagem win/lose/tie ao final de cada bloco de critério.",
+      "literal": "Table I presents the statistical results of HV obtained by HeE-MOEA and GP-MOEA on 40-dimensional test problems using two infill sampling criteria, ExI and LCB",
+      "localizador": "Sec. V-D, Table I",
+      "metricas": [
+        "HV"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos +/=/−"
+      ],
+      "convencoes": "Média na 1ª linha da célula, desvio-padrão na 2ª; melhor resultado em negrito; símbolo +/=/− junto à célula de GP-MOEA; win/lose/tie = 7/4/5 (ExI) e 13/2/1 (LCB); N=40 fixo; 20 execuções independentes.",
+      "achado": "HeE-MOEA supera GP-MOEA significativamente em DTLZ2, DTLZ5, WFG1, WFG2, WFG3 e WFG9, mas perde em DTLZ7 e WFG5; empatam em DTLZ1 e DTLZ6 (HeE melhor só em DTLZ3-ExI). Achado metodológico relevante: os resultados de HV com ExI e com LCB são CONFLITANTES entre si em WFG4/WFG6/WFG8 (um critério diz que HeE vence, o outro que perde), o que os autores atribuem a um possível erro na definição do ponto de referência do HV — um caveat sobre a própria medição, não sobre a incerteza.",
+      "aplicabilidade": "① endpoint: HV sobre o ND de todas as avaliações reais da execução — diretamente reprodutível, mas a dissertação usa MEDIANA (não média) e testa contra 'o melhor de cada problema' (ficha 3) em vez de contra um único concorrente fixo; aqui HeE-MOEA e GP-MOEA são dois surrogates online CONCORRENTES (não um par assistido×piso), logo não mapeia à ficha 9."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela com a média (desvio-padrão) de IGD para HeE-MOEA e GP-MOEA usando apenas o critério LCB, nos mesmos 16 problemas mas cobrindo as quatro dimensões testadas (N=10, 20, 40, 80), base NSGA-II. Mesmo esquema de símbolos +/=/− e uma única contagem win/lose/tie agregada sobre TODA a tabela (todas as dimensões e problemas juntos).",
+      "literal": "Table II summarizes the statistical results in terms of IGD values obtained by the two algorithms using LCB",
+      "localizador": "Sec. V-D, Table II",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos +/=/−"
+      ],
+      "convencoes": "Média (desvio-padrão) inline; melhor em negrito; símbolo +/=/−; win/lose/tie agregado = 26/12/26 (sobre as 4 dimensões × 16 problemas); 20 execuções para N=10/20/40, 10 execuções para N=80.",
+      "achado": "Confirma o padrão de HV: a vantagem do HeE-MOEA sobre GP-MOEA fica mais clara à medida que N cresce de 10 para 40, mas quase desaparece em N=80 — o próprio artigo atribui isso ao menor número de execuções (10 em vez de 20) nessa dimensão, não a uma perda real de vantagem.",
+      "aplicabilidade": "① endpoint (IGD) por algoritmo×problema×N — diretamente reprodutível (troca média por mediana); equivale à ficha 1/3 cruzada com dimensão, mas o comparador é outro surrogate (GP-MOEA), não um piso sem surrogate — por isso NÃO mapeada à ficha 7 (que é especificamente sobre 'vantagem do assistido sobre o piso' vs. D)."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas da IGD MÉDIA (não mediana) em função do número de avaliações de função (FEs), para N=20, comparando HeE-MOEA-ExI (linha vermelha com 'o') e GP-MOEA-ExI (linha azul com '+'), em 10 dos 16 problemas de teste (DTLZ2-6, WFG1,3,5,7,9).",
+      "literal": "Fig. 3 shows the change of the mean IGD of HeE-MOEA-ExI and GP-MOEA-ExI over the number of FEs for N = 20",
+      "localizador": "Sec. V-D, Fig. 3",
+      "metricas": [
+        "IGD (média sobre execuções, ao longo do orçamento)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curvas de IGD média (não mediana, sem IQR/banda de dispersão) vs. número de avaliações; N=20 fixo; apenas critério ExI; 10 de 16 problemas amostrados (regra editorial implícita, não declarada).",
+      "achado": "A IGD média do HeE-MOEA-ExI melhora mais rápido que a do GP-MOEA-ExI ao longo do orçamento em quase todos os problemas plotados, exceto DTLZ6, WFG5 e WFG7 (onde GP-MOEA converge igual ou mais rápido).",
+      "aplicabilidade": "① avaliações reais ordenadas por índice de FE, recalculando IGD do ND acumulado a cada checkpoint — diretamente reprodutível (ficha 26); a dissertação usaria execução MEDIANA + banda IQR em vez de média sem banda; 'a banda dos pisos' não se aplica aqui pois o comparador é outro surrogate, não um piso."
+    },
+    {
+      "fichas": [
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Boxplots do tempo de TREINO (ajuste) do surrogate por problema (numerados 1–16 = DTLZ1-7, WFG1-9), um painel separado para HeE-MOEA e para GP-MOEA em cada uma das quatro dimensões (N=10,20,40,80; 8 subfiguras no total), usando apenas o critério LCB.",
+      "literal": "The boxplot of training time of the surrogates in HeE-MOEA and GP-MOEA using LCB infill criterion",
+      "localizador": "Sec. V-D, Fig. 4",
+      "metricas": [
+        "tempo de treino do surrogate por iteração (s)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Boxplot (não média±dp) por problema (eixo x = 1–16); um painel por (algoritmo, N); só critério LCB.",
+      "achado": "O tempo de treino de GP-MOEA cresce muito mais rápido que o de HeE-MOEA à medida que N aumenta (comparação visual entre painéis); dentro de cada N, o tempo de treino é relativamente estável entre os 16 problemas.",
+      "aplicabilidade": "④ tempos por geração (ajuste do modelo) — a camada ④ da dissertação tem exatamente essa granularidade; diretamente reprodutível, plotando como boxplot por problema×algoritmo em vez de mediana+IQR."
+    },
+    {
+      "fichas": [
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Boxplots do tempo TOTAL de uma execução completa (não apenas o ajuste do modelo) por problema, mesmo esquema de 8 painéis (HeE-MOEA vs. GP-MOEA × N=10,20,40,80), só critério LCB — complementa a Fig. 4 mostrando o custo fim-a-fim, não só o ajuste.",
+      "literal": "The boxplot of the total time for a run in HeE-MOEA and GP-MOEA using LCB infill criterion",
+      "localizador": "Sec. V-D, Fig. 5",
+      "metricas": [
+        "tempo total de execução (s)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Boxplot por problema (eixo x = 1–16); um painel por (algoritmo, N); só critério LCB; mesma estrutura da Fig. 4 mas para tempo total, não só treino.",
+      "achado": "O tempo TOTAL de execução de GP-MOEA também cresce muito mais rápido que o de HeE-MOEA conforme N aumenta, na mesma direção do achado sobre tempo de treino (Fig. 4) — confirma que a diferença de custo não é só do ajuste isolado, mas se propaga ao tempo fim-a-fim.",
+      "aplicabilidade": "④ tempos por geração somados por execução — reprodutível diretamente (soma de todas as componentes de ④ por execução), desde que a instrumentação registre também tempo de busca/avaliação verdadeira, não só o ajuste."
+    },
+    {
+      "fichas": [
+        46
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curvas do tempo MÉDIO de treino do surrogate versus o número de variáveis de decisão, para quatro problemas de exemplo (DTLZ2, DTLZ3, WFG2, WFG3), comparando HeE-MOEA-LCB (linha vermelha sólida) e GP-MOEA-LCB (linha azul tracejada) — evidência direta da escalabilidade computacional alegada na Introdução (complexidade O(N³) do GP).",
+      "literal": "Mean of training time of the surrogates in HeE-MOEA-LCB (the red solid lines with “o”) and GP-MOEA-LCB (the blue dashed lines with “+”) versus the number of decision variables on DTLZ2, DTLZ3, WFG2 and WFG3",
+      "localizador": "Sec. V-D, Fig. 6",
+      "metricas": [
+        "tempo médio de treino do surrogate (s) vs. N"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Linha de média (não boxplot) por N; eixo x rotulado '10, 20, 30, 40' no texto extraído do PDF (diverge do grid N∈{10,20,40,80} usado no resto do artigo — ver observações gerais); só 4 dos 16 problemas, só critério LCB.",
+      "achado": "O tempo de treino do GP cresce muito mais rapidamente que o do ensemble heterogêneo à medida que a dimensão de decisão aumenta, nos 4 problemas de exemplo — confirmação empírica direta de que heterogeneous ensembles são computacionalmente mais escaláveis que GPs (conclusão central do artigo).",
+      "aplicabilidade": "④ tempos por geração agregados por problema e cruzados com D — diretamente reprodutível como 'a parede do retreino' (ficha 46); a dissertação cobre D via os 28 problemas com D variável entre suítes, não via um único problema em múltiplos D como aqui."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        9,
+        16
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Dentro da Table III (HV, média±dp, critério ExI, DTLZ1-7, N=10/20/40/80), a linha que compara HeE-MOEA contra o piso NSGA-II SEM surrogate — o único par 'assistido×piso' com o MESMO motor evolutivo (NSGA-II) explicitamente testado no artigo. Símbolos +/=/− e win/lose/tie ao final.",
+      "literal": "This observation agrees with the results found in [15] showing that a surrogate-assisted MOEA performs worse than the MOEA itself on DTLZ1 and DTLZ3",
+      "localizador": "Sec. V-F, Table III (linha NSGA-II)",
+      "metricas": [
+        "HV"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos +/=/−"
+      ],
+      "convencoes": "Média (desvio-padrão) inline; melhor em negrito; símbolo +/=/− relativo a HeE-MOEA; win/lose/tie = 15/5/8; N=10/20/40/80; 20 execuções (10 para N=80); critério ExI apenas.",
+      "achado": "HeE-MOEA vence o piso NSGA-II em DTLZ2, DTLZ6, DTLZ7 e é signif. melhor em DTLZ5 (não pior em DTLZ4); mas PERDE para o piso em DTLZ1 e DTLZ3 (ambos multimodais, muitos PFs locais) — resultado NEGATIVO explicado pelos autores: dificuldade do surrogate em aproximar paisagens de fitness multimodais faz o assistido perder para o MOEA puro nesses dois problemas.",
+      "aplicabilidade": "① endpoint pareado por execução (DoE inicial compartilhado dentro de cada execução) contra o piso do mesmo motor evolutivo — reprodutível quase diretamente (ficha 9), trocando média por mediana; ficha 16 aplica-se ao subconjunto DTLZ1/DTLZ3 onde o piso vence, já com explicação mecânica dada pelo próprio artigo."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Heterogêneo × homogêneo — ablação do mecanismo de diversidade do ensemble",
+      "grupo_sugerido": "B",
+      "descricao": "Na mesma Table III, a linha que compara HeE-MOEA (ensemble heterogêneo: LSSVM+2 RBFNs, 3 conjuntos de features) contra HoE-MOEA (ensemble HOMOGêNEO: 9 RBFNs via bagging), mantendo fixos o MOEA base (NSGA-II) e o critério de infill (ExI) — isola o efeito da HETEROGENEIDADE do ensemble (não de 'usar incerteza ou não', já que ambos usam a dispersão entre membros como σ) sobre a qualidade da otimização. É, na prática, a ablação central da contribuição do artigo.",
+      "literal": "HoE-MOEA is significantly outperformed by HeE-MOEA on DTLZ1 and DTLZ3, while the performances of the two algorithms on DTLZ4 and DTLZ5 are similar",
+      "localizador": "Sec. V-F, Table III (linha HoE-MOEA)",
+      "metricas": [
+        "HV"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos +/=/−"
+      ],
+      "convencoes": "Média (desvio-padrão) inline; símbolo +/=/− relativo a HeE-MOEA; win/lose/tie = 19/0/9 (HoE-MOEA NUNCA vence HeE-MOEA nesta tabela); N=10/20/40/80; critério ExI apenas.",
+      "achado": "A heterogeneidade (tipos de modelo + conjuntos de features distintos) supera claramente o ensemble homogêneo (bagging de RBFNs idênticas) em DTLZ1/DTLZ3, com empates no restante — HoE-MOEA jamais vence HeE-MOEA estatisticamente em nenhuma das 28 células (7 problemas × 4 dimensões). É a evidência mais direta de que a diversidade estrutural do ensemble (não só ter uma medida de dispersão qualquer) importa para a qualidade da busca.",
+      "aplicabilidade": "não reprodutível com as 7 camadas tal como definidas — exigiria rodar uma variante 'ensemble homogêneo' do próprio algoritmo assistido (alteração de ALGORITMO, não análise pós-hoc); não mapeada à ficha 11 porque não isola 'usar σ vs. não usar' — ambas as variantes usam a dispersão entre membros do ensemble como incerteza, o que muda é a origem estrutural dessa dispersão.",
+      "observacoes": "Ablação natural do próprio método (heterogêneo vs. homogêneo), citada como exemplo de 'ablação natural' pela regra do CARTÃO."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Referência textual (não reproduzida na tabela) a uma figura do material suplementar mostrando as soluções não-dominadas obtidas por HeE-MOEA e HoE-MOEA nos mesmos problemas DTLZ, usada para argumentar qualitativamente que a distribuição da frente do HeE-MOEA é melhor que a do HoE-MOEA.",
+      "literal": "the non-dominated solutions obtained by HeE-MOEA show a better distribution than those obtained by HoE-MOEA",
+      "localizador": "Sec. V-F; Fig. 2 do material suplementar (mencionada, não incluída neste corpus)",
+      "metricas": [
+        "distribuição do conjunto não-dominado (qualitativo)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Qualitativo — só descrito em prosa no texto principal; a figura em si não está disponível neste corpus.",
+      "achado": "Distribuição das soluções não-dominadas do HeE-MOEA é relatada como melhor (mais uniforme) que a do HoE-MOEA — reforça o achado quantitativo da mesma seção (heterogeneidade ajuda), agora pela ótica da distribuição/diversidade da frente, não só da convergência.",
+      "aplicabilidade": "① avaliações reais do ND final de cada execução permitiria replotar a distribuição do ND (ficha 54), mas o artigo não fornece a figura para conferência (só mencionada).",
+      "observacoes": "só mencionada — figura completa está no material suplementar, não incluído neste corpus; achado qualitativo relatado em prosa no texto principal."
+    },
+    {
+      "fichas": [
+        1,
+        3,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Table IV: média (desvio-padrão) de IGD para HeE-MOEA (base MOEA/D) contra o piso MOEA/D SEM surrogate, nos 9 problemas WFG com N=20, critério ExI apenas — replica a lógica assistido×piso da Table III mas para o motor de decomposição (MOEA/D) em vez de dominância (NSGA-II).",
+      "literal": "Table IV presents the statistical results in terms of IGD obtained by MOEA/D and HeE-MOEA (which uses MOEA/D as the base MOEA) on the 20-dimensional WFG test problems",
+      "localizador": "Sec. V-F, Table IV",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos +/=/−"
+      ],
+      "convencoes": "Média (desvio-padrão) inline; melhor em negrito; símbolo +/=/−; win/lose/tie = 8/0/1; N=20 fixo; critério ExI apenas; 20 execuções.",
+      "achado": "HeE-MOEA (base MOEA/D) supera o piso MOEA/D sem surrogate em 8 dos 9 problemas WFG, empatando só em WFG9 — nenhuma perda (0 losses); vantagem do assistido sobre o piso ainda mais consistente aqui do que no par NSGA-II (Table III), onde havia 5 perdas.",
+      "aplicabilidade": "① endpoint pareado por execução contra o piso do mesmo motor — mesma lógica de reprodução da análise sobre a Table III (ficha 9), agora com motor MOEA/D em vez de NSGA-II."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade ao método de agregação das saídas do ensemble",
+      "grupo_sugerido": "E",
+      "descricao": "Estudo de sensibilidade (mencionado no texto principal, tabela completa no material suplementar) comparando três métodos de agregação das saídas dos 9 membros do ensemble em um único f̂ e ŝ² — média simples, WTA1 (ponderação pelo RMSE de cada membro) e PLSR (regressão por mínimos quadrados parciais, via componentes latentes) — em termos de IGD, usado para justificar a escolha de média simples no restante dos experimentos.",
+      "literal": "The comparative results in terms of IGD are provided in Table I in Supplementary materials, which show that there is hardly any difference in the performances for the three aggregation methods",
+      "localizador": "Sec. V-E.1; Table I do material suplementar (mencionada, não incluída neste corpus)",
+      "metricas": [
+        "IGD"
+      ],
+      "testes": [
+        "não verificável — resultado apenas mencionado; tabela no material suplementar"
+      ],
+      "convencoes": "Não visível neste corpus — só a conclusão qualitativa ('hardly any difference') está no texto principal.",
+      "achado": "Não há diferença relevante de desempenho entre os três métodos de agregação do ensemble testados — resultado de ROBUSTEZ (não negativo): a forma de combinar os membros do ensemble em f̂/ŝ importa pouco, desde que a diversidade estrutural (heterogeneidade, ver análise anterior) esteja presente.",
+      "aplicabilidade": "não reprodutível com as camadas atuais — exigiria reimplementar o próprio surrogate com esquemas de agregação alternativos (WTA1, PLSR) e re-otimizar, fora do escopo pós-hoc da dissertação; a tabela completa também não está disponível neste corpus (só mencionada).",
+      "observacoes": "só mencionada — tabela completa está no material suplementar, não incluído neste corpus; achado qualitativo relatado em prosa no texto principal."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade ao tamanho do DoE inicial (orçamento offline × online)",
+      "grupo_sugerido": "D",
+      "descricao": "Estudo de sensibilidade (mencionado no texto principal, tabela completa no material suplementar) sobre o número de amostras iniciais do DoE (offline) usadas para treinar o surrogate antes do início da busca, comparando o desempenho do HeE-MOEA sob diferentes tamanhos de amostra inicial — motivado pela divergência na literatura entre recomendações de 3N (Shi et al.) e 32N (Heiningen et al.) amostras offline.",
+      "literal": "Here we conduct some comparative experiments on the performance of HeE-MOEA using different initial samples to investigate the influence of the number of the initial samples",
+      "localizador": "Sec. V-E.2; Table II do material suplementar (mencionada, não incluída neste corpus)",
+      "metricas": [
+        "não especificado explicitamente no texto principal (resultados no material suplementar)"
+      ],
+      "testes": [
+        "não verificável — resultado apenas mencionado; tabela no material suplementar"
+      ],
+      "convencoes": "Não visível neste corpus — só a conclusão qualitativa ('no significant differences') está no texto principal.",
+      "achado": "Não há diferenças significativas de desempenho do HeE-MOEA para os diferentes tamanhos de amostra inicial testados — por isso o artigo adota 11N−1 (convenção de outros trabalhos de referência) no restante dos experimentos, sem aprofundar a questão de alocação offline×online do orçamento.",
+      "aplicabilidade": "não reprodutível — exigiria variar o tamanho do DoE inicial por execução (mudança de protocolo experimental), enquanto a dissertação fixa o DoE em 31D−1 para todas as configurações; tabela completa também não disponível (só mencionada).",
+      "observacoes": "só mencionada — tabela completa está no material suplementar, não incluído neste corpus; achado qualitativo relatado em prosa no texto principal."
+    },
+    {
+      "fichas": [
+        31,
+        34,
+        36
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Experimento adicional (Discussions, V-E.3) em que HeE e GP são treinados nos MESMOS 11N−1 dados para 4 problemas DTLZ, e então usados para prever f̂ e ŝ² em 500 pontos ALEATÓRIOS (não os pontos reais de busca, e não reavaliados a cada retreino — um único snapshot pós-treino final). O MSE de f̂ (acurácia) e o desvio-padrão de ŝ (variabilidade/informatividade da incerteza) são comparados entre os dois modelos para explicar POR QUE o desempenho de HeE e GP diverge por problema.",
+      "literal": "the estimated function values fˆ and variances sˆ2 of 500 randomly generated points are used to compute the mean square error (MSE) and the standard deviation of ˆs",
+      "localizador": "Sec. V-E.3 (Discussions); Fig. 1 do material suplementar (mencionada, não incluída neste corpus)",
+      "metricas": [
+        "MSE da média predita (f̂)",
+        "desvio-padrão da variabilidade predita (ŝ)"
+      ],
+      "testes": [
+        "nenhum teste estatístico formal reportado — comparação descritiva de MSE e desvio-padrão entre os dois modelos"
+      ],
+      "convencoes": "MSE e desvio-padrão de ŝ reportados apenas em figura (Fig. 1) no material suplementar; texto principal resume qualitativamente para DTLZ1, DTLZ3, DTLZ5, DTLZ7; mesmos dados de treino (11N−1) para os dois modelos, 500 pontos de teste aleatórios (não fixos entre execuções, ao que tudo indica).",
+      "achado": "RESULTADO NEGATIVO/surpreendente sobre a incerteza: o desvio-padrão de ŝ do GP é MENOR que o do HeE nos 4 problemas — as variâncias estimadas pelo GP variam pouco entre pontos, sugerindo estimativa de incerteza pouco informativa/discriminativa; os autores atribuem a isso o fraco desempenho do GP-MOEA em DTLZ5. Por outro lado, o MSE do HeE é MAIOR que o do GP em geral — em DTLZ7 o GP tem MSE quase zero (alta acurácia) apesar de σ quase constante, o que explicaria a VITÓRIA do GP-MOEA ali apesar da fraca discriminação de incerteza: a acurácia do modelo pode dominar sobre a qualidade da incerteza quando aquela já é muito alta.",
+      "aplicabilidade": "③ sonda seria o análogo mais próximo, mas aqui são 500 pontos ALEATÓRIOS avaliados uma única vez após o treino final (não 2.000 pontos FIXOS reavaliados a cada retreino) — para aproximar na dissertação, usar as predições da sonda só no ÚLTIMO retreino de cada execução e comparar RMSE/dispersão de σ entre medições (fichas 31, 34, 36), perdendo a dimensão 'ao longo do orçamento' que a sonda real oferece.",
+      "observacoes": "resultados qualitativos descritos em prosa no texto principal; a figura (Fig. 1) está apenas no material suplementar, não incluída neste corpus. Não é calibração por cobertura nem correlação σ×erro — é uma medida mais crua de magnitude/variabilidade do σ, usada aqui como proxy de discriminação (ficha 34) e para comparar classes de medição GP (VA, posterior fechada) × ensemble (DE, dispersão entre membros) (ficha 36)."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "Comparação pontual da qualidade da estimativa de incerteza entre HeE e GP: ambos treinados nos mesmos 11N−1 dados (4 problemas DTLZ), usados para prever f̂ e ŝ² em 500 pontos aleatórios; reporta-se o MSE de f̂ (acurácia da média) e o desvio-padrão de ŝ (variabilidade da incerteza estimada) — NÃO há cálculo de cobertura (%) nem correlação σ×erro explícitos; é uma medida única, pós-treino final, não uma curva ao longo do orçamento.",
+    "literal": "the estimated function values fˆ and variances sˆ2 of 500 randomly generated points are used to compute the mean square error (MSE) and the standard deviation of ˆs, respectively",
+    "localizador": "Sec. V-E.3 (Discussions); Fig. 1 do material suplementar (mencionada, não incluída)"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo de treino (ajuste) do surrogate por iteração/geração (Fig. 4, boxplot por problema × N); tempo TOTAL de uma execução (Fig. 5, boxplot por problema × N); tempo médio de treino versus número de variáveis de decisão N para 4 problemas de exemplo (Fig. 6, evidenciando escalabilidade); e a complexidade teórica O(N³) do GP mencionada na Introdução e na Seção III-C. Não há decomposição explícita em busca-no-modelo vs. avaliação-verdadeira separadamente do ajuste (só 'treino' vs. 'total'). Conclusão admite que a seleção de features via PSO 'can become computationally intensive' — caveat de custo não quantificado.",
+    "literal": "the computational cost of constructing the GP is O(N 3), where N is the number of training data",
+    "localizador": "Sec. I; Sec. III-C; Sec. V-D, Figs. 4–6; Sec. VI (Conclusão, caveat sobre PSO)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "GP-MOEA tem desempenho fraco em DTLZ5, atribuído pelos autores à baixa variabilidade/informatividade das variâncias estimadas pelo GP entre diferentes pontos de amostra (as variâncias do GP quase não mudam de ponto para ponto, ao contrário das do HeE).",
+      "literal": "the ineffective uncertainty estimation of GP leads to the poor performance of GP-MOEA on some MOPs, such as DTLZ5",
+      "localizador": "Sec. V-E.3 (Discussions)"
+    },
+    {
+      "descricao": "Os resultados de HV usando ExI e usando LCB são CONFLITANTES entre si em vários problemas WFG de 40D (um critério aponta vantagem do HeE-MOEA, o outro do GP-MOEA) — os autores suspeitam que o ponto de referência do HV pode não ter sido definido corretamente, um caveat sobre a própria medição de desempenho.",
+      "literal": "the statistical results of HV in terms of ExI and LCB on some 40-dimensional test problems are conflicting with each other, e.g., WFG4, WFG6 and WFG8",
+      "localizador": "Sec. V-D"
+    },
+    {
+      "descricao": "Tanto o ensemble heterogêneo (HeE) quanto o homogêneo (HoE) — ambos assistidos por surrogate — perdem para o piso NSGA-II sem surrogate em DTLZ1 e DTLZ3, problemas multimodais, porque os surrogates têm dificuldade em aproximar paisagens de fitness multimodais; um caso claro de surrogate atrapalhando em vez de ajudar.",
+      "literal": "a surrogate-assisted MOEA performs worse than the MOEA itself on DTLZ1 and DTLZ3 probably because of the difficulties in approximating the fitness landscapes for multi-modal problems",
+      "localizador": "Sec. V-F"
+    },
+    {
+      "descricao": "Em DTLZ7, o GP tem MSE quase zero (alta acurácia) mesmo com desvio-padrão de σ quase zero (baixa informatividade/discriminação da incerteza) — e ainda assim vence o HeE-MOEA, sugerindo que a acurácia do modelo pode compensar/dominar sobre a qualidade da incerteza quando a primeira já é muito alta.",
+      "literal": "although the standard deviation of ˆs obtained by GP on DTLZ7 is almost zero, its MSE also approaches to zero. This may explains why HeE-MOEA is outperformed by GP-MOEA on DTLZ7",
+      "localizador": "Sec. V-E.3 (Discussions)"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "O artigo atribui a divergência de desempenho entre HeE-MOEA e GP-MOEA à qualidade do MODELO (acurácia da média e informatividade da variância) mais do que ao critério de infill em si (ExI/LCB são usados igualmente por ambos) — se os dois modelos estimassem f e σ igualmente bem, o desempenho final deveria ser semelhante.",
+      "literal": "Theoretically, if the heterogeneous ensemble (HeE) can estimate the fitness and uncertainty information exactly as the GP, the final optimization results should be very similar",
+      "localizador": "Sec. V-E.3 (Discussions)"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "multimodalidade (muitos ótimos/PFs locais) — DTLZ1, DTLZ3",
+      "afirmacao": "DTLZ1 e DTLZ3 têm muitos PFs locais, causando dificuldade de convergência; é justamente nesses dois problemas que tanto HeE-MOEA quanto HoE-MOEA perdem para o piso NSGA-II sem surrogate (Table III), e onde HeE-MOEA e GP-MOEA apresentam desempenho semelhante entre si (Table I/II) em vez de HeE-MOEA vencer claramente.",
+      "literal": "DTLZ1 and DTLZ3 have many local PFs, causing difficulties for MOEAs to converge to the global PF",
+      "localizador": "Sec. V-B; Sec. V-D; Sec. V-F"
+    },
+    {
+      "caracteristica": "multimodalidade — custo de treino do surrogate",
+      "afirmacao": "O tempo de treino do ensemble heterogêneo é ligeiramente maior em DTLZ1 e DTLZ3 do que nos demais problemas, atribuído pelos autores a dificuldades de convergência dos pesos da RBFN2 (treinada por backpropagation) nesses problemas multimodais — a característica do problema afeta não só a qualidade, mas o CUSTO do ajuste do modelo.",
+      "literal": "many local PFs may bring difficulties in the convergence of weights in RBFN2",
+      "localizador": "Sec. V-D"
+    },
+    {
+      "caracteristica": "frente/PF degenerada — DTLZ5, DTLZ6",
+      "afirmacao": "DTLZ5 e DTLZ6 têm PF degenerada; HeE-MOEA vence GP-MOEA claramente em DTLZ5 mas apenas empata em DTLZ6 — a mesma característica estrutural (degeneração) não produz o mesmo padrão de vantagem nos dois problemas.",
+      "literal": "The PFs of DTLZ5 and DTLZ6 are degenerate",
+      "localizador": "Sec. V-B"
+    },
+    {
+      "caracteristica": "frente desconexa — DTLZ7",
+      "afirmacao": "DTLZ7 tem regiões de Pareto desconexas; é um dos dois únicos problemas (com WFG5) em que HeE-MOEA perde de forma consistente para GP-MOEA, tanto em HV/ExI e HV/LCB (Table I) quanto em IGD/LCB (Table II) — explicado na Seção V-E.3 pela alta acurácia do GP nesse problema específico.",
+      "literal": "DTLZ7 has disconnected Pareto optimal regions",
+      "localizador": "Sec. V-B"
+    },
+    {
+      "caracteristica": "mapeamento enviesado / distribuição não uniforme no espaço de objetivos — DTLZ4",
+      "afirmacao": "Em DTLZ4, o mapeamento do conjunto de Pareto para a frente é enviesado (α=100), dificultando soluções uniformemente distribuídas; consistente com isso, os resultados de HeE-MOEA vs. GP-MOEA nesse problema variam muito entre métricas/critérios, dificultando concluir qual surrogate é melhor ali.",
+      "literal": "the mapping from the Pareto set to the PF is biased, as a result, it is much challenging to achieve evenly distributed solutions in the objective space",
+      "localizador": "Sec. V-B; Sec. V-D"
+    },
+    {
+      "caracteristica": "alta dimensão de decisão (N crescente até 80)",
+      "afirmacao": "A vantagem de HeE-MOEA sobre GP-MOEA em qualidade (HV/IGD) fica mais clara conforme N aumenta de 10 para 40, mas quase desaparece em N=80 (atribuído ao menor número de execuções, 10 em vez de 20); em CUSTO computacional, por outro lado, a vantagem de escalabilidade do ensemble heterogêneo sobre o GP fica cada vez mais clara conforme N aumenta (Figs. 4–6), sem sinal de reversão em N=80.",
+      "literal": "the advantage of HeE-MOEA becomes clear as the search dimension increases, although HeE-MOEA has almost equal performance with the compared algorithm on 80-dimensional instances",
+      "localizador": "Sec. V-D"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) O artigo usa duas variantes de MOEA base (NSGA-II e MOEA/D) e dois critérios de infill (ExI, LCB), mas nem toda combinação é testada em toda tabela: Table I usa ambos infill (só N=40); Table II usa só LCB (todas as N); Table III usa só ExI com NSGA-II (todas as N); Table IV usa só ExI com MOEA/D (só N=20). (2) O desenho compartilha o DoE inicial entre todos os algoritmos comparados dentro de cada execução/semente ('the initial training data are newly generated, and they are the same for all compared algorithms', Sec. V-C item 1) — análogo ao desenho pareado por semente da dissertação — mas o teste estatístico usado (Wilcoxon rank-sum) é típicamente NÃO-pareado, não explorando esse pareamento explicitamente no texto; não há correção de Holm nem região de equivalência (ficha 5 não se aplica). (3) Duas análises de sensibilidade (Sec. V-E.1: método de agregação do ensemble; Sec. V-E.2: número de amostras iniciais) e uma análise de acurácia/incerteza (Sec. V-E.3, Fig. 1) são MENCIONADAS no texto principal, mas suas tabelas/figuras completas estão em 'Supplementary materials', não incluído neste PDF/markdown — os achados qualitativos relatados em prosa foram extraídos mesmo assim (marcados 'nova' quando não há ficha equivalente, com observação 'só mencionada'). (4) A Fig. 6 rotula o eixo de 'número de variáveis de decisão' como 10, 20, 30, 40 no texto extraído do PDF — divergindo do grid N ∈ {10,20,40,80} usado em todo o resto do artigo; não foi possível confirmar se é uma quarta condição experimental adicional (N=30) não documentada em texto ou um artefato de extração/OCR do PDF (o valor '30' não aparece em nenhuma outra tabela ou seção do artigo). Citado literalmente como lido, não corrigido. (5) A comparação HeE-MOEA × HoE-MOEA (Table III) é, na prática, a ablação central da contribuição do artigo (heterogeneidade do ensemble), mas não isola 'usar incerteza' vs. 'não usar' — isola 'que TIPO de ensemble produz a incerteza' — por isso não foi mapeada à ficha 11 (que é sobre σ ligado/desligado), e sim marcada como nova (grupo B). (6) Não há 'filme' de decisões internas, contagem de acionaéntos de mecanismo, gate de confiança paramétrico, nem sonda fixa reavaliada a cada retreino no artigo — a única checagem de qualidade do modelo é o experimento pontual da Seção V-E.3 (500 pontos aleatórios, treino único, 4 problemas). (7) Li o artigo INTEIRO conforme disponível (3185 linhas: conversão estruturada com tabelas em Sec. V + camada de texto bruta completa do ANEXO, redundante em conteúdo mas usada para confirmar/precisar cada citação e os números exatos das Tables I–IV; mais o ANEXO final de OCR de imagens, que só trouxe ruído ilegível de eixos/legendas de figuras já cobertas pelas Figs. 3–6 estruturadas, sem conteúdo substantivo novo). Não há apêndices formais além das Referências e do material suplementar (mencionado mas não incluído). (8) roster_bloco = null por instrução do pedido (artigo fora do roster experimental)."
+}

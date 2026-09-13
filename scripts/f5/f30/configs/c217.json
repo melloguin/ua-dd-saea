@@ -1,0 +1,360 @@
+{
+ "config": "c217 · PC-SAEA (Tian, Hu, He, Ma, Zhang, Zhang — Swarm and Evolutionary Computation 80:101323, 2023) · exp=main · 25 problemas x 30 sementes = 750 celulas. Censo: 750 ok, 0 branca, 0 fail. Artigo encontrado em /Users/gmello/Documents/python_repos/mestrado/arquivos/Revisão Bibliográfica/corpus_artigos/_artigos_markdown/c217. A pairwise comparison based surrogate-assisted evolutionary algorithm for expensive multi-objective optimization.md (nao e piso; validado contra o artigo E contra o vendorizado PlatEMO 4.15). Scripts desta rodada em /private/tmp/claude-501/-Users-gmello/33c29160-6eb6-4277-a041-db4855486063/scratchpad/ (scan30.py, metricas30.py, rotulo.py, controle_regra.py, deriva.py, manif.py, camadas.py, pareado.py) — nada escrito no repo.",
+ "cobertura": "MECANISMO: 750/750 celulas, 100% (nao amostra). Varredura completa em streaming da camada ⑥ (255 MB de .jsonl) = 202.016 eventos c217_gen, 101.936 blocos de regua, 101.638 blocos estratificados, 1.349 guards. Todas as identidades estruturais e o contrafactual D17 medidos em 202.016/202.016. MANIFESTOS ⑤: 750/750 lidos. CAMADA ①: 750/750 (|①|, init, solution_id, fe_index, infills x lote). CAMADA ③ (5,3 GB): amostra estratificada de 100 celulas = 4 sementes {0,9,18,42} x 25 problemas (mu/sigma/pred_classe, dominio do score, diagonal estado x pred_score, join posicional do bloco Sobol, constancia do pred_confianca) + amostra de 125 celulas = 5 sementes {0,7,13,21,42} x 25 problemas para a recuperacao de rotulo (741 blocos, 1.482.000 pares rotulados). CAMADA ②: amostra de 50 celulas (13.453 geracoes). METRICAS: IGD+/HV calculados por mim nas 750 celulas com o modulo da casa (src/metrics.py), com controle — reproduzem f5/metricas_finais_f52c.csv na s42 com max|diff| = 8,3e-17 em 25/25. DERIVA: 29/29 duplicatas vm1 x vm5 existentes (espelhos ~/mestrado_coleta_m8), 100% delas. Amostragem sempre por semente espalhada e cobrindo os 25 problemas; nenhuma celula re-rodada, nenhum experimento invocado.",
+ "N1_invariancia": "TODAS as identidades estruturais que a F5/T11 fecharam em 1 semente valem em TODAS as 30 — e a cobertura foi total, nao amostra. Nove identidades medidas em 202.016/202.016 geracoes (750/750 celulas, 25 problemas, 30 sementes), FRACAO = 1,000000, ERRO MAXIMO = 0 geracoes: (i) n_best == ceil(3/4*ceil(|P|/4)); (ii) n_worst == ceil(3/4*(ceil(|P|/2)-ceil(|P|/4))); (iii) n_treino == n_best+n_worst; (iv) n_pares == n_tr(n_tr-1) (todos x todos, K.3); (v) n_Pmid == 2*floor(|P|/8)+1; (vi) tricotomia da Validation p+*|Dv| + p-*|Dv| + n_contradicoes == |Dv| (Alg. 4); (vii) p+*|Dv| inteiro; (viii) recomputo da regra tripla do paper a partir de (p+,p-,delta=0,8) == estado gravado (fiacao D17); (ix) lote == floor(ceil(|P|/4)/2) nos estados 1/2 e == 1 no estado 3. Zero quebras em qualquer semente. Constantes idem: delta=0,8 em 202.016/202.016, spread da PNN=0,1925 em 202.016/202.016, N=50 e gmax=3000 em 750/750 headers. CORRECAO DE MODELO QUE A ESCALA REVELOU (nao e defeito do algoritmo, e leitura do auditor): |P| na geracao 1 e o DoE CRU 11D-1, NAO min(N,|Arc|) — porque EnvironmentalSelection roda no FIM do corpo do laco (PCSAEA.m:72). Com o modelo errado as cinco identidades falhavam em exatamente 660 geracoes (as 660 geracoes 1 dos 22 problemas com D>=5, 30 sementes cada); com o modelo certo, 202.016/202.016. Isto so aparece em 30 sementes porque o padrao 30x e que denuncia a estrutura. O contrafactual as-shipped tambem e invariante: a fiacao original do PlatEMO divergiria em 177.724/202.016 = 87,975% das geracoes (T11 mediu 87,7% na s42).",
+ "N2_tetos_caidos": "CAIU (o maior): TETO ⑪ da T11 — \"a acuracia da SONDA, bloqueada por pmid_ids=-1\". Os pmid_ids foram CORRIGIDOS antes do disparo: 2.635.790 ids gravados, ZERO negativos, todos em [0, fe-1] e len==n_Pmid em 202.016/202.016. Apliquei a REGRA_DO_ROTULO do ⑤ (pareamento posicional-ciclico com deslocamento de um) em 741 blocos de 125 celulas = 1.482.000 pares: acuracia = 0,7560 sobre 169.208 pares comparaveis (rotulo != 0 e predicao != 0); acordo ternario global 0,4760; 62,17% dos pares sao incomparaveis por dominancia e 65,38% das saidas do modelo sao empate. CONTROLE que prova que o rotulo e real e que a REGRA esta certa: offset correto (j+1) mod n = 0,7906 > offset errado (j) mod n = 0,7212 (Wilcoxon p=6,4e-22, vence em 171/226 blocos) > conjunto-proxy aleatorio = 0,6168 (p=2,4e-37, vence em 217/226). A amplitude do proxy que a T11 mediu (0,148 a 0,4445 de indeterminacao) reproduz aqui (mediana 0,2437, max 0,9264) — a diferenca e que agora o numero e DETERMINADO, nao indeterminado. CAIU: a formula de semeadura / DoE — 750 doe_hash DISTINTOS, zero colisao entre problemas ou entre sementes, e identidade com o artefato compartilhado confirmada cruzando configs (c217 x nsga2 750/750, c217 x c141 750/750, c217 x moead 750/750, c217 x b4 738/738). CAIU: o determinismo cross-maquina (ver N4). CAIU: a aritmetica do limiar (M6) — com |Dv|=6 (98,561% das geracoes) e delta=0,8 o estado 1 exige k>=5 em 6; frequencia empirica de k>=5 = 0,00678 e taxa de estado 1 observada = 0,00678 (identicas a 5 casas); k'>=5 = 0,00212 e estado 2 = 0,00212. A T11 so conseguiu 0,57% vs 0,56%. CAIU PARCIALMENTE: T1 (eta SBX/PM 15/5) — a grandeza continua nao exportada, mas a DECLARACAO agora e verdadeira em 750/750 (ver N3'/classe 2). CONTINUAM NO TETO: T2 regime-NaN (DEF-L6) — 0 disparos em 202.016 geracoes, o dominio de `motivo` tem exatamente 3 ramos (estado 3 aleatorio 200.197, estado 1 maximiza 1.363, estado 2 inverte 456), zero mencao a NaN; o ramo continua latente, so que agora com denominador 202.016 em vez de 6.804. T3 fitness da Eq. 4 / SDE / D≡0,5 / composicao de P (nada exportado). T4 nao-perturbacao da sonda nos ESTADOS 1/2 — a T11 derrubou o teto ⑧ so para o estado 3 com o par G-6; esta campanha tem sonda.desligada=False em 750/750, logo nao ha par novo e o ramo wmax segue sem prova. T5 conteudo do pool interno de wmax. T6 correcao numerica de VALOR.",
+ "N4_deriva": "DERIVA MEDIDA = EXATAMENTE ZERO. O c217 tem 29 celulas em duplicata, todas do par vm1 x vm5 (o par critico: a vm5 e e2-standard-32 desde 14/08, CPU nao fixada pelo GCP). Comparei as 29 integralmente: 8.056 geracoes com as tuplas de decisao completas (arc_size, p_mais, p_menos, n_contradicoes, estado, lote, score, n_best, n_worst, n_treino, n_pares, n_Pmid, pmid_ids, fe, n_front1, fe_treino_max) — 0 geracoes com qualquer diferenca; sha256 IDENTICO das camadas ① 29/29, ② 29/29 e ③ 29/29; max|dX| = 0 e max|dF| = 0 sobre todas as celulas; 13.022/13.022 linhas de ① bit-identicas; doe_hash identico 29/29. Ou seja: para o c217 o PISO DE RUIDO CROSS-MAQUINA E 0,0 — qualquer contraste medido neste config esta livre de contaminacao de maquina, e nenhum delta precisa ser descontado. RESSALVA HONESTA, que impede generalizar: (a) as 29 duplicatas cobrem UM par de VMs (vm1 x vm5) e 15 problemas com sementes 7 e 12 — nao ha duplicata envolvendo vm2/vm3/vm4/vm10; (b) todas as 750 celulas rodaram no MESMO MATLAB (25.1.0.2973910 R2025a Update 1) e na MESMA plataforma declarada (Linux/x86_64), logo isto mede deriva entre SHAPES de VM, nao entre arquiteturas; (c) ZERO celulas do c217 caem na janela de swap da vm5 (a mais recente e 2026-08-14T11:37:48Z, contra o inicio da janela ~15:20Z) — o caveat de timing de parede NAO se aplica a este config. Isto NAO refuta a doutrina do RUNBOOK §6.2 (que fala da frota inteira); refuta a sua aplicacao ao c217: aqui a fidelidade cross-maquina e bit-exata, medida, e o padrao estatistico mais fraco nao precisa ser invocado.",
+ "N5_cauda": "NAO HA CAUDA DE FALHA: 750/750 ok, 0 celulas brancas, 0 fail, 0 retries, 0 fallback, n_falhas de sonda = 0, fe_final == maxfe em 750/750, |①| == 31D-1 em 750/750, init == 11D-1 em 750/750. O c217 nao aparece em nenhuma incapacidade documentada. MAS A CAUDA VERDADEIRA DESTE CONFIG E ALGORITMICA, NAO OPERACIONAL, e e um resultado que o artigo nao preve: em 6 problemas o mecanismo de gestao de modelo NUNCA dispara em 30/30 sementes — WFG1, WFG2, WFG4, WFG5, WFG9 e MMF16_20 tem 100,000% de estado 3 (ignorar o modelo) em todas as celulas. Ao todo 354/750 celulas (47,2%) terminam sem um unico disparo. Na sonda isso se ve pelo outro lado: nos 5 WFG o modelo emite pred_score = 0 (empate) em 100,00% dos pontos de todos os 150 blocos rotulados — nao ha sinal nenhum a extrair. A causa e medida e aritmetica: a taxa de contradicao total (p+ = p- = 0) e 87,97% em WFG e 77,54% em MMF, contra 1,48% em ZDT e 7,36% em BBOB; com |Dv|=6 e delta=0,8 nenhum ciclo consegue k>=5. CONSEQUENCIA PARA A DISSERTACAO: sob 31D-1, em 180 das 750 celulas o PC-SAEA NAO e um algoritmo assistido por surrogate — e um amostrador aleatorio do arquivo com selecao ambiental SPEA2, e isso e deterministico em 30/30 sementes. Taxas de disparo por problema (fracao de geracoes em estado 1/2): ZDT6 12,84% · ZDT4 3,91% · BBOB_F22 3,28% · BBOB_F5 3,34% · BBOB_F37 2,54% · BBOB_F1 2,18% · ... · DTLZ2 0,14% · WFG1/2/4/5/9 e MMF16_20 0,00%. Celulas com >=1 disparo: 396/750, distribuidas em 19 problemas. UMA UNICA CELULA TEM DEFEITO DE MONTAGEM (nao de execucao): c217/WFG4/12 — ver classe (3) C1.",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "Acuracia media de teste do modelo par-a-par (pareamento N/4) = 6.0417e-1, media sobre WFG1-WFG9 (m=2 e m=3) em 30 execucoes",
+   "onde_no_artigo": "§4.5, ultima linha da Tabela 7 ('Average Accuracy')",
+   "testavel_com_30": true,
+   "resultado": "NAO REPRODUZ na mesma familia. Nossa acuracia por amostra homologa (p+ + 0,5*contrad/|Dv|) sobre as 5 celulas WFG x 30 sementes = 150 celulas: 0,50479 ± 0,00594 — razao 0,836 do publicado, e essencialmente o acaso. Acima de 0,5 em 119/150 celulas. Global (25 problemas, 202.016 geracoes): 0,5470 (a T11 mediu 0,5485 na s42 — reproduz). Ressalva: nosso orcamento e 2,9x menor e a dimensao e 22 vs 21."
+  },
+  {
+   "afirmacao": "E facil quantificar quao acurado e um classificador binario verificando se a acuracia e significativamente maior que 0,5; modelos com acuracia nao superior a 0,5 serao ignorados",
+   "onde_no_artigo": "§2.3 (linha 104) — o criterio epistemico do proprio artigo",
+   "testavel_com_30": true,
+   "resultado": "TESTADO com as 30 replicas por problema (Wilcoxon de uma amostra, alfa=0,05): acuracia significativamente > 0,5 em 24/25 problemas; a unica excecao e WFG4 (media 0,50073, p=0,103). PORTANTO O ARTIGO SE CONTRADIZ OPERACIONALMENTE: pelo criterio agregado do §2.3 o modelo e 'utilizavel' em 24/25 problemas, mas pelo portao operacional do proprio artigo (delta=0,8 por geracao, sobre |Dv|=6) ele e declarado inutilizavel em 99,10% das 202.016 geracoes. Os dois criterios do mesmo artigo discordam por duas ordens de grandeza. Efeitos: WFG1 0,50288 · WFG5 0,50233 · WFG9 0,50669 · WFG2 0,51134 · MMF16_20 0,50024 — significativos mas operacionalmente nulos."
+  },
+  {
+   "afirmacao": "Os modelos surrogate mantem desempenho de aprendizado ESTAVEL durante a evolucao, e as acuracias NAO aumentam, pois um novo modelo e treinado a cada geracao",
+   "onde_no_artigo": "§4.5, ultimo paragrafo (discussao da Fig. 9)",
+   "testavel_com_30": true,
+   "resultado": "NAO REPRODUZ — a acuracia SOBE. Regressao da acuracia contra a geracao normalizada, por celula: nas 637 celulas com |P| CONSTANTE = 50 (D>=5, ger>=2 — o teste limpo, sem confundir tamanho de populacao) o slope mediano e +0,00645, positivo em 65,1% das celulas, Wilcoxon p=1,9e-29. Excluindo os 6 problemas de modelo degenerado (WFG e MMF16_20): slope mediano +0,01275, positivo em 72,1% de 480 celulas, p=1,1e-31. Com |P| fixo o unico insumo que cresce e o arquivo, logo o ganho vem de melhores amostras, nao de mais amostras."
+  },
+  {
+   "afirmacao": "Uma populacao maior corresponde a acuracias mais altas, pois ha mais solucoes disponiveis como amostras de treino",
+   "onde_no_artigo": "§4.5, ultimo paragrafo (Fig. 9, N em {10,30,50,70,100} em DTLZ2)",
+   "testavel_com_30": true,
+   "resultado": "NAO REPRODUZ; o sinal medido e o oposto, ainda que minusculo. Experimento natural das 660 celulas com D>=5: na geracao 1 a populacao e o DoE cru (|P| mediano 131, n_treino mediano 50), nas geracoes seguintes |P|=50 e n_treino=19 — 2,6x mais populacao e 2,6x mais amostras de treino. Acuracia: 0,5457 (g=1) contra 0,5477 (g>=2), delta -0,0019, g1 maior em apenas 262/660 celulas, Wilcoxon p=0,018 na direcao CONTRARIA a afirmacao. Spearman |P|(g1) x acuracia(g1) = +0,079 (p=0,042), desprezivel. RESSALVA que registro: o experimento confunde tamanho com TIPO de populacao (LHS espaco-preenchedora na g=1 vs populacao evoluida depois); e o unico teste que o corpus admite e nao autoriza refutar a Fig. 9, so registrar que o ganho prometido nao aparece."
+  },
+  {
+   "afirmacao": "Se o grau de confiabilidade for muito alto o modelo e usado DIRETAMENTE para selecionar candidatos — o nucleo da estrategia de gestao de modelo por confiabilidade",
+   "onde_no_artigo": "§1 (contribuicoes, linha 52) e Alg. 4 L10-15; ablacao na Tabela 8",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO, e agora com poder estatistico. Teste pareado (infill 'gated' x vizinhanca contemporanea de ±25 geracoes em estado 3, da MESMA celula; metrica = fracao do arquivo corrente que o infill domina): estado 1, n=1363 eventos (a T11 tinha 228), gated 0,5906 x vizinhanca 0,5124 = razao 1,153x, gated melhor em 1045/1363 (76,7%), Wilcoxon p=7,9e-109. A razao e > 1,0 em 18/18 problemas onde o ramo dispara. O ramo 'usar direto' entrega."
+  },
+  {
+   "afirmacao": "Se o grau de confiabilidade for muito baixo o modelo e usado REVERSAMENTE (invertendo o rotulo predito) para selecionar candidatos — apresentado como o elemento mais original frente a modelos de regressao",
+   "onde_no_artigo": "§1 (linha 52), §2.3 (linha 104), Alg. 4 L12-13; ablacao na Tabela 8",
+   "testavel_com_30": true,
+   "resultado": "REFUTADO NOS NOSSOS RUNS — e este e o achado que so 30 replicas permitiram. Mesmo teste pareado, estado 2: n=456 eventos (a T11 tinha 17 e nao pode concluir), gated 0,3867 x vizinhanca 0,4190 = razao 0,923x, gated melhor em apenas 158/456 (34,6%), Wilcoxon p=1,6e-13. O uso INVERTIDO e significativamente PIOR que um sorteio contemporaneo no mesmo arquivo. Interpretacao: a anticorrelacao detectada em |Dv|=6 amostras de validacao nao generaliza para fora do conjunto de validacao, e inverter transforma ruido em vies. RESSALVAS: (a) as geracoes gated sao selecionadas (sao aquelas em que o classificador foi consistente), embora o controle seja contemporaneo e intra-celula; (b) o contraste do artigo na Tabela 8 e outro (variantes sempre-direto/sempre-inverso contra a dinamica), nao este; (c) orcamento 31D-1 contra 2.000 FEs. Nao e refutacao da Tabela 8; e um resultado medido de que, no nosso regime, o ramo inverso custa desempenho."
+  },
+  {
+   "afirmacao": "Todos os MOEAs sao executados em cada MOP por 30 execucoes independentes, e a media e o desvio-padrao dos 30 valores da metrica sao registrados",
+   "onde_no_artigo": "§4.1 (linha 343)",
+   "testavel_com_30": true,
+   "resultado": "REPRODUZIDO NA FORMA — pela primeira vez a campanha tem exatamente o desenho amostral do artigo. IGD+ (metrica primaria D70, normalizada) por problema, media ± dp de 30: WFG1 0,51389±0,00557 · WFG2 0,16032±0,01303 · WFG4 0,07160±0,00437 · WFG5 0,12604±0,00782 · WFG9 0,11077±0,02013 · DTLZ2 0,24915±0,03136 · DTLZ4 0,36464±0,09864 · DTLZ7 1,12038±0,14151 · DTLZ1 78,429±22,359 · DTLZ3 299,399±74,023. ORDENAMENTO CANONICO agora sobre medias de 30 (a T11 usou 1 semente): DTLZ Spearman rho=1,000, 5/5 posicoes identicas; WFG rho=0,900, 3/5 — os MESMOS valores que a T11 obteve com a semente 42, logo a assinatura direcional NAO era artefato de semente."
+  },
+  {
+   "afirmacao": "O modelo par-a-par equilibra melhor amostras positivas e negativas, o que leva a desempenho ROBUSTO em MOPs complexos",
+   "onde_no_artigo": "§1 (linha 44 / linha 904) — a justificativa central do modelo",
+   "testavel_com_30": true,
+   "resultado": "PARCIALMENTE CONFIRMADO, com um numero que o artigo nao da. ROBUSTEZ A SEMENTE (dispersao do IGD+ entre as 30 replicas, CV): mediana 0,1818 nos 25 problemas; nos 10 problemas com contraparte publicada nosso CV e MENOR em 3/5 DTLZ e em 4/5 WFG (CV mediano WFG: nosso 0,0620 x artigo 0,1474; DTLZ: nosso 0,2472 x artigo 0,2602). Ou seja, sob 2,9-9,3x menos orcamento a variancia entre execucoes nao e maior que a publicada. BALANCEAMENTO: os estratos de SOLUCOES nunca sao iguais — n_best == n_worst em 0/198.846 geracoes com |P|=50, prevalencia exatamente 0,526316 (10/19) em 198.846/198.846; globalmente n_best==n_worst em apenas 1.984/202.016 (0,98%), prevalencia entre 0,5000 e 0,5556. Os PARES ordenados continuam balanceados por construcao (todos x todos e simetrico), que e o sentido em que a nota da Tab. 5 do artigo ('mesmo numero de amostras positivas e negativas') e verdadeira; ao nivel de estrato ela nao e, nem com o N=50 do proprio artigo (ceil(50/4)=13 contra 12)."
+  },
+  {
+   "afirmacao": "Acuracia do modelo do PC-SAEA por problema: DTLZ2(3) = 6.1704e-1 e DTLZ3(3) = 5.6296e-1, medias de 30 execucoes",
+   "onde_no_artigo": "§4.4, Tabela 5 (linha 'Accuracy')",
+   "testavel_com_30": true,
+   "resultado": "DTLZ3 REPRODUZ, DTLZ2 NAO. Nosso (30 replicas, D=12, M=3, 371 FEs): DTLZ3 0,55821±0,02293 contra 0,56296 publicado = razao 0,992 (praticamente identico); DTLZ2 0,51114±0,01724 contra 0,61704 = razao 0,828. A T11 media 0,5445/0,5260 na semente 42; com 30 replicas o DTLZ3 fica ainda mais proximo do publicado e o DTLZ2 permanece ~0,10 abaixo. Botao 4: metrica homologa, nao identica (a nossa e por amostra sobre Dvalid; a do artigo e sobre offspring rotulados pela mediana da populacao)."
+  },
+  {
+   "afirmacao": "delta = 0,8 e o melhor valor, equilibrando o uso de modelos promissores e a eliminacao dos nao-promissores",
+   "onde_no_artigo": "§4.5, terceiro paragrafo (Fig. 8)",
+   "testavel_com_30": false,
+   "resultado": "NAO TESTAVEL — exigiria variar delta, e a campanha roda delta=0,8 fixo em 750/750 celulas (confirmado no header do ⑥, no params do ⑤ e em 202.016/202.016 eventos). Fica no teto. O que MEDI e a consequencia aritmetica de delta=0,8 no nosso regime: com |Dv|=6 (98,561% das geracoes) o gate exige 5 acertos em 6, e o modelo entrega isso em 0,678% das geracoes — delta=0,8 sob orcamento 31D-1 e efetivamente um interruptor desligado."
+  },
+  {
+   "afirmacao": "O treinamento dos modelos surrogate consome menos de 10% do tempo de execucao do algoritmo inteiro",
+   "onde_no_artigo": "§4.4, ultimo paragrafo (apos a Tabela 6)",
+   "testavel_com_30": true,
+   "resultado": "NAO REPRODUZ no nosso regime — o fit DOMINA. Somando os 750 manifestos: tempo_fit_surrogate / tempo_total tem mediana muito acima de 10% porque o modelo e refeito do zero a cada geracao sobre orcamento curto; o tempo total da campanha e 22,4495 h-core (mediana 89,6 s/celula, maximo 409,3 s em ZDT3/28). O contraste de tempo de BUSCA continua invariante e e a assinatura mais limpa do laco interno: tempo_busca mediano 3,2565 s nos estados 1/2 contra 0,0163 s no estado 3 = razao 200,0x (a T11 mediu 179,9x na s42), com razao > 10x em 396/396 celulas que disparam, enquanto o tempo de FIT e indiferente ao estado (1,04x). Ressalva: nosso tempo de avaliacao real e de benchmark analitico (mediana 0,2846 s/celula), nao de simulacao cara — a fracao do artigo pressupoe avaliacao cara e por isso a comparacao e direcional, nao numerica."
+  }
+ ],
+ "aspectos": [
+  {
+   "id": "M1",
+   "aspecto": "Orcamento 31D-1 com hard-stop exato, geracao fantasma e cache-hit de arranque",
+   "classe": "2",
+   "medicao": "maxfe == 31D-1 em 750/750; fe_final == maxfe em 750/750 (⑤) e 749/749 (rodape); n_geracoes == eventos+1 em 749/749 com rodape (a 750a confirmada 441=440+1 pelo ⑤ e pelo gemeo vm5); guards: 1.349 cache_hit (>=1 em 750/750 = o arranque fe=1/solution_id=0) + 58 hard_stop em 58 celulas distintas (BBOB_F37 8, ZDT4 14, BBOB_F17 6, BBOB_F22 6, ...)",
+   "veredito": "conforme, ancorado em D21/D61/D57; a T11 viu 1 hard_stop em 25 celulas, agora 58 em 750 — mesma taxa",
+   "arquivo_linha": "PCSAEA.m; FEBudget.m",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M2",
+   "aspecto": "DoE inicial 11D-1 do artefato compartilhado (desfaz o max(11D-1,N) do stock) e formula de semeadura",
+   "classe": "2",
+   "medicao": "fase=='init' == 11D-1 em 750/750; |①| == 31D-1 em 750/750; solution_id == 0..n-1 em 750/750; fe_index == 0..n-1 em 750/750; 750 doe_hash DISTINTOS, 0 colisoes entre problemas e 0 entre sementes; doe_hash identico ao de outros configs por (prob,semente): nsga2 750/750, c141 750/750, moead 750/750, b4 738/738",
+   "veredito": "conforme, ancorado em D63/D88 — e o teto da formula de semeadura CAI: o DoE e funcao injetiva de (problema,semente) e vem do mesmo artefato para toda a frota",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "M3",
+   "aspecto": "N=50 e identidade fechada do split assimetrico (Alg. 2 + Alg. 3), best=ceil(N/4) / worst=ceil(N/2)-ceil(N/4)",
+   "classe": "2",
+   "medicao": "n_best, n_worst e n_treino == formula em 202.016/202.016 geracoes (750/750 celulas). Requer |P|(g=1) = 11D-1 (DoE cru) — com min(N,|Arc|) falha em exatamente 660 geracoes",
+   "veredito": "conforme K.3; divergencia declarada vs best x worst do Alg. 3",
+   "arquivo_linha": "CalFitnessPC.m:67-68",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M4",
+   "aspecto": "Pareamento todos x todos (diverge do Alg. 3 do paper)",
+   "classe": "2",
+   "medicao": "n_pares_treino == n_treino*(n_treino-1) em 202.016/202.016",
+   "veredito": "desvio sancionado K.3/DEF-B5.6, invariante em 30 sementes",
+   "arquivo_linha": "RBFNNPC.m:31-46",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M5",
+   "aspecto": "Tricotomia da Validation (Alg. 4): p+, p- e contradicoes particionam Dvalid",
+   "classe": "1",
+   "medicao": "p+*|Dv| + p-*|Dv| + n_contradicoes == |Dv| em 202.016/202.016; p+*|Dv| inteiro em 202.016/202.016",
+   "veredito": "conforme o artigo, invariante em todas as 30 sementes e nos 25 problemas",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M6",
+   "aspecto": "|Dvalid| = vb+vw, granularidade 1/6 e a aritmetica que explica a dominancia do estado 3",
+   "classe": "2",
+   "medicao": "|Dv|=6 em 199.109/202.016 (98,561%); com |Dv|=6, frequencia empirica de k>=5 = 0,00678 e taxa de estado 1 observada = 0,00678; k'>=5 = 0,00212 e estado 2 = 0,00212 — coincidencia EXATA a 5 casas",
+   "veredito": "conforme ao bundle; a T11 so alcancou 0,57% vs 0,56% — a escala fecha a identidade",
+   "arquivo_linha": "DataProcess.m:23-24",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "M7",
+   "aspecto": "delta = 0,8",
+   "classe": "1",
+   "medicao": "delta == 0,8 em 202.016/202.016 eventos, em 750/750 headers do ⑥ e em 750/750 params do ⑤",
+   "veredito": "conforme o §4.5 do artigo",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M8",
+   "aspecto": "Regra tripla (usar/inverter/ignorar) com a fiacao condicao-acao corrigida ao paper por 2 guardas, e o contrafactual as-shipped",
+   "classe": "1",
+   "medicao": "recomputo de estado a partir de (p+,p-,0,8) == estado gravado em 202.016/202.016; distribuicao: estado 3 = 200.197 (99,100%), estado 1 = 1.363 (0,675%), estado 2 = 456 (0,226%); contrafactual as-shipped divergiria em 177.724/202.016 = 87,975%",
+   "veredito": "conforme o artigo via D17 — o coracao do config reproduz em 100% das geracoes de 30 sementes",
+   "arquivo_linha": "SurrogateAssistedSelectionPC.m:21 e :39",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M9",
+   "aspecto": "Tamanho do lote: floor(ceil(|P|/4)/2) nos estados 1/2 e 1 no estado 3",
+   "classe": "1",
+   "medicao": "202.016/202.016 (1.819 disparos e 200.197 geracoes de estado 3)",
+   "veredito": "conforme Alg. 5 ('at most six' = 6 para N=50)",
+   "arquivo_linha": "SurrogateAssistedSelectionPC.m:16, :34, :52",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M10",
+   "aspecto": "Gate +-0,95 sobre a margem acumulada",
+   "classe": "1",
+   "medicao": "tabulacao estado x pred_score nas linhas online, amostra de 100 celulas: estado 1 -> +1 em 1.050/1.050, estado 2 -> -1 em 393/393, estado 3 -> 0 em 26.686/26.686; zero fora da diagonal; 0 lotes parciais",
+   "veredito": "conforme (necessario, nao suficiente — o score exportado e ternario)",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M11",
+   "aspecto": "Score ternario agregado, sentinela do estado 3 e pred_confianca == Error1 constante por bloco",
+   "classe": "2",
+   "medicao": "dominio de pred_score = {-1,0,+1} exato; pred_confianca constante dentro do bloco em 13.584/13.584 blocos de sonda da amostra",
+   "veredito": "desvio sancionado DEF-C1/C2/C4",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M12",
+   "aspecto": "Spread da PNN = 0,1925 (o paper especifica 0,2)",
+   "classe": "2",
+   "medicao": "modelo_hp.spread == 0,1925 em 202.016/202.016, valor unico",
+   "veredito": "desvio sancionado K.3, declarado",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M13",
+   "aspecto": "Retreino do zero por geracao e laco interno Gmax=3000 (wmax = floor(3000/lnum)) so nos ramos confiaveis",
+   "classe": "1",
+   "medicao": "gmax == 3000 em 750/750; tempo_busca mediano 3,2565 s (estados 1/2) contra 0,0163 s (estado 3) = 200,0x, com razao > 10x em 396/396 celulas que disparam; tempo_fit indiferente ao estado (1,04x)",
+   "veredito": "conforme; a T11 mediu 179,9x em 13 celulas, a assinatura e invariante em escala",
+   "arquivo_linha": "SurrogateAssistedSelectionPC.m:18",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M14",
+   "aspecto": "n_Pmid = 2*floor(|P|/8)+1 (janela impar centrada na fronteira do corte)",
+   "classe": "2",
+   "medicao": "202.016/202.016",
+   "veredito": "conforme ao codigo; o Pmid nao existe no artigo (e do stock)",
+   "arquivo_linha": "CalFitnessPC.m:73",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M15",
+   "aspecto": "Fix min(Problem.N, |Arc|) e a camada ② como Arc append-only com off-by-one",
+   "classe": "1",
+   "medicao": "arc_size - lote == |②(g)| em 13.453/13.453 geracoes de 50 celulas amostradas (50/50 celulas a 100%)",
+   "veredito": "conforme Alg. 1 L13, restaurado pelo fix",
+   "arquivo_linha": "PCSAEA.m:72",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "M16",
+   "aspecto": "Export sem cabeca de valor (mu/sigma/pred_classe NULL), join posicional bit-a-bit da regua Sobol e fe_treino_max nao-monotonico",
+   "classe": "2",
+   "medicao": "mu_0/mu_1/sigma_0/sigma_1 e pred_classe: 0 valores nao-nulos em 100 celulas; join posicional contra o artefato sob float32 com max|dX| = 0,0 em 2.947/2.947 blocos; real_solution_id NaN em 0 linhas online; fe_treino_max com >=1 queda em 750/750 celulas, soma 32.750 quedas (mediana 32/celula)",
+   "veredito": "desvio sancionado sigma_dict/DI-09/DI-13; U6/U11 continuam N/A por desenho",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "N1'",
+   "aspecto": "pmid_ids — a identidade da referencia (item I-1; era o classe (3) CENTRAL da T11, 426/426 = -1)",
+   "classe": "2",
+   "medicao": "CORRIGIDO E CONFIRMADO EM ESCALA: 2.635.790 ids gravados; ZERO negativos; todos em [0, fe-1] em 202.016/202.016; len(pmid_ids) == n_Pmid em 202.016/202.016. Sub-achado explicado: 3.892/202.016 geracoes (1,93%, 211 celulas) tem id REPETIDO dentro do Pmid — condicao necessaria fecha perfeitamente (0 celulas com id repetido sem cache_hit extra; 211/211 com; Spearman 0,728, p=1,4e-124), logo e reflexo fiel de solucao duplicada no Arc por ausencia de dedup interno de infill (K.3), nao defeito de instrumento",
+   "veredito": "o defeito nomeado pela T11 foi corrigido antes do disparo e funciona nas 750 celulas; a fatia 1:D entrou. Extensao nossa declarada (A9/I-1)",
+   "arquivo_linha": "src/c217_instrument.m:201 (fatia); CalFitnessPC.m:67-68,73",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "N2'",
+   "aspecto": "y_treino_dist — prevalencia do treino (item I-5; era classe (3) da T11, degenerado (0,0,n) em 42/42 e sobre o conjunto errado)",
+   "classe": "2",
+   "medicao": "CORRIGIDO E CONFIRMADO: codificacao binaria real {classe_melhor, classe_pior}; classe_melhor == n_best e classe_pior == n_worst em 202.016/202.016; soma == n em 202.016/202.016; n == n_treino em 202.016/202.016 (era 0/42); n_input == ceil(|P|/2) em 202.016/202.016; confere_com_TrainIn == true em 202.016/202.016; ZERO geracoes degeneradas em 202.016",
+   "veredito": "corrigido, com um campo de auto-verificacao novo (confere_com_TrainIn) e nota que declara honestamente a codificacao {1,2}",
+   "arquivo_linha": "src/c217_instrument.m:216-218",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "N3'",
+   "aspecto": "params.operadores no ⑤ (era classe (3) da T11: declarava Balde C 20/20, falso nas duas direcoes)",
+   "classe": "2",
+   "medicao": "CORRIGIDO: string UNICA em 750/750 manifestos = 'OperatorGA com {proC=1, dis_c=15, proM=1, dis_m=5} nas 3 chamadas (SurrogateAssistedSelectionPC.m:14/28/46) — Balde C NAO se aplica (SPEC §567; divergencia K.3 declarada vs. o indice 20 do paper)'. Confere com o codigo e com a SPEC",
+   "veredito": "a unica regressao de auditabilidade da T11 foi revertida; a divergencia voltou a ser sancionada e citavel. Derruba PARCIALMENTE o teto T1 (a declaracao e verdadeira; a grandeza segue nao exportada)",
+   "arquivo_linha": "src/experiment.m:541",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "N4'",
+   "aspecto": "REGRA_DO_ROTULO no ⑤ (item I-2): pareamento posicional-ciclico com deslocamento de um",
+   "classe": "2",
+   "medicao": "presente em 750/750, texto unico. E AGORA APLICAVEL: aplicada em 741 blocos / 1.482.000 pares. PROVADA POR DESFECHO, nao so por leitura de codigo: acuracia com o offset da regra (j+1 mod n) = 0,7906 > offset errado (j mod n) = 0,7212 (Wilcoxon p=6,4e-22, vence em 171/226 blocos) > conjunto-proxy aleatorio = 0,6168 (p=2,4e-37, vence em 217/226)",
+   "veredito": "extensao nossa declarada, agora verificada contra o codigo E contra o resultado",
+   "arquivo_linha": "RBFNNPC.m:59-62",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "N5'",
+   "aspecto": "params no ⑤ (item I-07) — o defeito de contrato que a F5 chamou de 'o unico item que impede a nota 10'",
+   "classe": "2",
+   "medicao": "params presente em 750/750 (na s42 faltava em 25/25); 10 chaves; delta=0,8, gmax=3000, N=50, maxfe == header do ⑥",
+   "veredito": "defeito de contrato da F5 fechado para a campanha inteira",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "N6'",
+   "aspecto": "Bloco sonda_estratificada (item I-6, A11/D11)",
+   "classe": "2",
+   "medicao": "500 linhas por bloco em 100/100 celulas amostradas; 101.638 blocos ao todo; prevalencia_nd_no_bloco null por desenho; n_falhas = 0 em 750/750. RESSALVA NOVA que virou classe (3) C2: deficit de exatamente 1 bloco em 298/750 celulas",
+   "veredito": "extensao nossa sancionada A11/D11; a parte de qualidade absoluta continua no teto (os X nunca sao avaliados de verdade)",
+   "arquivo_linha": "src/c217_sonda.m:50-53",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "N7'",
+   "aspecto": "tempo_aval_real_s no ⑤ (item I-3)",
+   "classe": "2",
+   "medicao": "nao-nulo em 750/750 (mediana 0,284594 s); tempo_pred_sonda nao-nulo em 750/750",
+   "veredito": "conforme §17.6",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "N8'",
+   "aspecto": "Nao-perturbacao da sonda sobre o RNG (par G-6 da T11)",
+   "classe": "1",
+   "medicao": "herdado da T11 (① e ② com sha256 identico, 42/42 tuplas de decisao identicas) — cobre APENAS o estado 3. Nesta campanha sonda.desligada == False em 750/750, logo nao ha par novo; os estados 1/2 (1.819 geracoes) seguem sem prova pareada",
+   "veredito": "classe (1) para o regime dominante (99,100% das geracoes); os 0,900% restantes ficam no teto T4",
+   "muda_vs_s42": false
+  },
+  {
+   "id": "N9'",
+   "aspecto": "Proveniencia: campanha_id, repo_hash, schema_version=2, sonda.desligada",
+   "classe": "2",
+   "medicao": "repo_hash UNICO em 750/750 (63db46b100635a5cc21e8f5594271f481bc41416); schema_version=2 em 750/750; sigma_dict em 750/750; sonda.desligada=False em 750/750; MATLAB unico em 750/750 (25.1.0.2973910 R2025a Update 1); plataforma unica (Linux/x86_64). RESSALVA que virou classe (3) C3: campanha_id tem 2 valores e host tem 7 grafias para 6 maquinas",
+   "veredito": "conforme G3, com a inconsistencia de rotulo isolada em C3",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "S1",
+   "aspecto": "INVARIANCIA DE SEMENTE do mecanismo (a pergunta N1)",
+   "classe": "1",
+   "medicao": "9 identidades estruturais x 202.016 geracoes x 750 celulas x 30 sementes x 25 problemas = fracao 1,000000, erro maximo 0. Nenhuma semente quebra nenhuma identidade",
+   "veredito": "o mecanismo do c217 e invariante em semente; as conclusoes da F5/T11 sobre a s42 valem para a campanha inteira",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "S2",
+   "aspecto": "DETERMINISMO cross-maquina (a pergunta N4)",
+   "classe": "1",
+   "medicao": "29/29 duplicatas vm1 x vm5: 8.056 geracoes, 0 diferencas em qualquer campo de decisao; ①/②/③ sha256 identicos 29/29; max|dX| = max|dF| = 0; 13.022/13.022 linhas de ① bit-identicas; doe_hash 29/29",
+   "veredito": "o piso de ruido cross-maquina do c217 e 0,0 — a fidelidade aqui e bit-exata, nao apenas estatistica",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "S3",
+   "aspecto": "ACURACIA DA SONDA — o teto ⑪ da T11, agora mensuravel (a pergunta N2)",
+   "classe": "2",
+   "medicao": "741 blocos, 125 celulas, 1.482.000 pares rotulados pela REGRA_DO_ROTULO: acuracia 0,7560 em 169.208 pares comparaveis; acordo ternario global 0,4760; 62,17% incomparaveis por dominancia; 65,38% de empate do modelo. Por problema, de 0,5452 (ZDT4) a 0,9108 (MMF11_L); indefinida nos 5 WFG porque o modelo empata em 100,00% dos pontos",
+   "veredito": "teto derrubado por dado. Ressalva registrada: o alvo de treino e o fitness escalar da Eq. 4, nao dominancia — o rotulo por dominancia e um proxy, e a incomensurabilidade com a Tab. 5 do artigo (que rotula pela mediana da populacao) e integral",
+   "muda_vs_s42": true
+  },
+  {
+   "id": "S4",
+   "aspecto": "TAXA DE DISPARO do mecanismo de gestao de modelo por problema (a pergunta N5)",
+   "classe": "1",
+   "medicao": "354/750 celulas (47,2%) terminam com 100,000% de estado 3; 6 problemas tem 30/30 celulas assim: WFG1, WFG2, WFG4, WFG5, WFG9 e MMF16_20. Contradicao total (p+=p-=0): 87,97% em WFG, 77,54% em MMF, 7,36% em BBOB, 9,50% em DTLZ, 1,48% em ZDT",
+   "veredito": "e o comportamento PRESCRITO pelo artigo ('the model is not used since it currently makes predictions at random'), logo classe (1) — mas e um resultado que o artigo nao preve: em 180 celulas o PC-SAEA nao e assistido por surrogate, e isso e deterministico em 30/30 sementes",
+   "muda_vs_s42": true
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C1",
+   "descricao": "A celula canonica c217/WFG4/12 e a UNICA das 750 montada com camadas de duas VMs: o ⑥ (.jsonl), ①, ②, ③ e o timing vieram da vm1 e o ⑤ (manifesto) veio da vm5. A copia da vm1 esta TRUNCADA — nao tem a linha de rodape (884 linhas contra 885 na vm5). Pela regra de contabilidade O-21 ('o rodape do .jsonl e a AUTORIDADE sobre o que o algoritmo fez'), esta celula nao tem autoridade na arvore canonica: o unico julgamento disponivel e o do despachante. NENHUM instrumento existente ve o defeito — censo_completo_22.csv, recenso_main_O21.csv e gates_f30.csv marcam todos 'ok' porque leem o manifesto (que veio da copia boa da vm5), nao o rodape.",
+   "gravidade": "baixa para o RESULTADO, media para a AUDITORIA. Provei que os dados sao integros: comparei as duas copias e as 440 geracoes tem todos os campos de decisao identicos, f_best com max|diff| = 0,0, doe_hash igual, e o rodape da vm5 diz status=ok / fe_final=681 = maxfe / n_geracoes=441 = 440+1. Nao ha perda de informacao, ha perda de VERIFICABILIDADE por um caminho que a propria campanha declarou canonico.",
+   "acao": "ESCALO AO AUTOR (D81): a correcao natural e re-montar a celula tomando o ⑥ da vm5 (~/mestrado_coleta_m8/matlab-vm5/experiments/main/c217/exp_main_c217_WFG4_12.jsonl), mas isto e alteracao do acervo canonico e nao me cabe. Alternativa sem tocar no acervo: registrar a excecao no censo. Recomendo tambem um gate que exija rodape no .jsonl de toda celula 'ok' — hoje nenhum exige, e o mesmo defeito passaria em qualquer config.",
+   "arquivo_linha": "/Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/c217/WFG4/12/exp_main_c217_WFG4_12.jsonl (sem rodape) x ~/mestrado_coleta_m8/matlab-vm5/experiments/main/c217/exp_main_c217_WFG4_12.jsonl (com rodape); origem em _FONTES.csv"
+  },
+  {
+   "id": "C2",
+   "descricao": "Deficit sistematico e NAO DECLARADO de um bloco de sonda_estratificada por celula, em 298/750 celulas (39,7%). O bloco estratificado dispara so quando a regua acabou de disparar (c217_sonda.m:50-53, condicao snd.due(g)), mas o ULTIMO bloco da regua escapa dessa condicao em dois casos: (a) 270 celulas em que ele e o finalProbe (motivo='final', ultima geracao impar); (b) 28 celulas em que ele e um bloco de cadencia disparado na GERACAO FANTASMA (a geracao que comeca e morre no hard-stop, sem evento c217_gen). Total: 101.936 blocos de regua contra 101.638 estratificados = 298 blocos de deficit (0,29%). Nada declara isso: o ⑤ tem sonda.n_blocos (que conta so a regua, e confere 750/750) e NAO tem contador para o bloco estratificado, logo nenhuma leitura do manifesto revela a assimetria. A T11 nao podia ver: a celula do smoke terminou em geracao PAR e por isso nao teve finalProbe.",
+   "gravidade": "baixa. E instrumentacao pos-decisao (D97), nao toca a busca, e o bloco perdido e 1 de ~90 a 220 por celula. Mas e exatamente o bloco do modelo FINAL — o mais treinado do run, e o unico ponto em que a pergunta do bloco estratificado ('ele acerta ONDE a decisao acontece?') e mais interessante. E reincidencia atenuada do padrao que a propria T11 nomeou: serie verde, ponta faltando, sem nada que denuncie.",
+   "acao": "REGISTRO e recomendo ao autor: (i) declarar no ⑤ um n_blocos_estrat ao lado de n_blocos, para que a assimetria seja visivel; (ii) se houver rodada futura, alinhar o disparo do bloco estratificado ao finalProbe. NAO ha acao sobre o acervo — o dado existente esta correto, so e um bloco mais curto do que se leria pelo manifesto.",
+   "arquivo_linha": "src/c217_sonda.m:50-53 (condicao snd.due(g)); manifesto: chave sonda.n_blocos sem contraparte estratificada"
+  },
+  {
+   "id": "C3",
+   "descricao": "Rotulos de proveniencia inconsistentes em 10 das 750 celulas — todas de semente 12, criadas entre 2026-08-14T00:27Z e 01:15Z (DTLZ2, DTLZ3, DTLZ4, DTLZ7, MMF16_20, WFG1, WFG2, WFG5, ZDT1, ZDT3). Nelas env.host = 'matlab-vm1' (contra 'vm1' nas outras 235) e campanha_id = '63db46b10063_2026-08-14' (prefixo do repo_hash + data) contra '7f4f0e429a46_M8' nas outras 740. Sao 7 grafias de host para 6 maquinas e 2 identificadores para 1 campanha. O gate de proveniencia nao pega: gates_f30.csv marca camp=True em 750/750 porque testa PRESENCA da chave, nao consistencia do valor — o mesmo padrao 'gate que testa texto, nao comportamento' que a T11 diagnosticou como causa-raiz transversal.",
+   "gravidade": "baixa. Nao ha suspeita de contaminacao: repo_hash e schema_version sao unicos em 750/750, o MATLAB e a plataforma sao unicos, e para 4 destas 10 celulas (DTLZ2_12, DTLZ3_12, DTLZ4_12, WFG5_12) existe gemeo na vm5 que provei bit-identico em todas as camadas. Sao 10 celulas legitimas lancadas por um caminho que nao exportou a variavel de campanha.",
+   "acao": "REGISTRO. Recomendo normalizar env.host e exigir que campanha_id case com um valor esperado (nao apenas exista) — hoje qualquer string passa. Sem impacto nos resultados; a decisao de re-etiquetar o acervo e do autor (D81).",
+   "arquivo_linha": "10 manifestos em /Users/gmello/Documents/python_repos/mestrado/resultados_experimentos/c217/*/12/*.manifest.json"
+  }
+ ],
+ "N2_tetos_caidos_dummy_ignore": "n/a",
+ "N4_deriva_dummy_ignore": "n/a",
+ "score": 9.5,
+ "score_t11": 9,
+ "veredito_recomendado": "RECOMENDO ACEITAR as 750 celulas do c217 como corpus de mecanismo e de resultado, com 3 registros de classe (3) operacionais e nenhuma acao sobre o algoritmo. O veredito e do autor (D97) — eu produzo evidencia e recomendacao, nao sentenca.\n\nMOVIMENTO DE SCORE: 9,0 (T11) -> 9,5. Volta ao nivel da F5, e a CAUSA E NOMEAVEL E DIRETA: os TRES classe-(3) que fizeram a T11 baixar a nota eram defeitos de instrumentacao declarativa introduzidos pela propria T11, e os tres foram CORRIGIDOS antes do disparo das 30 sementes. Confirmei os tres em escala, nao em amostra: (1) pmid_ids saiu de 426/426 = -1 para 2.635.790 ids validos, zero negativos, todos em [0,fe-1] em 202.016/202.016 geracoes; (2) y_treino_dist saiu de degenerado (0,0,n) em 42/42 para correto em 202.016/202.016, com n == n_treino (era 0/42) e um campo novo de auto-verificacao confere_com_TrainIn == true em 202.016/202.016; (3) params.operadores saiu de 'Balde C 20/20' (falso) para a string correta {1,15,1,5} + 'Balde C NAO se aplica (SPEC §567)', unica em 750/750. A lacuna que a F5 abriu e a T11 nao conseguiu fechar esta FECHADA: a acuracia do classificador fora do suporte, que era o teto ⑪, agora e um numero — 0,7560 sobre 169.208 pares comparaveis — e o proprio pareamento da REGRA_DO_ROTULO ficou provado por desfecho (offset da regra 0,7906 > offset errado 0,7212, p=6,4e-22 > proxy aleatorio 0,6168, p=2,4e-37), o que antes era indeterminado a ±0,148-0,4445.\n\nPOR QUE 9,5 E NAO 10: sobram 3 classe (3), todos fora do laco de decisao e todos com causa nomeada e impacto medido — o ⑥ sem rodape de WFG4/12 (1 celula, dados provados identicos ao gemeo da vm5, mas viola a regra O-21 da propria casa e nenhum gate ve), o deficit sistematico e nao declarado de 1 bloco estratificado em 298/750 celulas (0,29% dos blocos, sempre o do modelo final), e a inconsistencia de campanha_id/host em 10 celulas. Sao benignos para a busca E para as conclusoes, e cada um esta investigado e provado benigno — que e a definicao de 9 na regua; o meio ponto a mais vem de o mecanismo fechar 202.016/202.016 em nove identidades sobre 30 sementes, do piso de ruido cross-maquina ser exatamente 0 (29/29 duplicatas bit-identicas em todas as camadas) e de um teto ter caido com dado proprio.\n\nPOR QUE NAO MAIS ALTO NEM MAIS BAIXO: nenhum classe (3) de MECANISMO existe — zero, em 750 celulas. Mas a campanha nao permite fechar T2 (regime-NaN, 0 disparos em 202.016 geracoes: latente, nao provado), T3 (fitness da Eq. 4 / SDE / D≡0,5 / composicao de P: nada exportado), T4 (nao-perturbacao da sonda nos estados 1/2: sonda.desligada=False em 750/750, nao ha par novo) nem T6 (correcao numerica de VALOR).\n\nO QUE O AUTOR PRECISA DECIDIR, E QUE NAO E MEU (D81): (a) o achado que mais afeta a leitura da dissertacao NAO e de fidelidade, e de comportamento — o ramo de USO INVERTIDO, que o artigo apresenta como seu elemento mais original, e significativamente PIOR que um sorteio contemporaneo nos nossos runs (n=456, razao 0,923x, p=1,6e-13), enquanto o ramo de uso direto entrega (n=1363, razao 1,153x, p=7,9e-109); (b) em 180 das 750 celulas (5 WFG + MMF16_20, 30/30 sementes cada) o mecanismo nunca dispara e o modelo empata em 100,00% dos pontos de sonda — sob 31D-1 o PC-SAEA ali nao e um algoritmo assistido por surrogate, e isso precisa aparecer em qualquer tabela comparativa como condicao, nao como desempenho; (c) tres afirmacoes distribucionais do artigo nao reproduzem no nosso regime (acuracia media WFG 0,505 contra 0,604 publicado; 'as acuracias nao aumentam' — sobem, p=1,1e-31 com |P| fixo; 'populacao maior, acuracia maior' — sinal oposto e desprezivel, p=0,018), todas com Botao 4 aplicado por causa da diferenca de orcamento, dimensao e metrica.",
+ "decisoes_ao_autor": [
+  "ESCALO (D81) — c217/WFG4/12: unica celula das 750 montada com camadas de duas VMs, e o ⑥ escolhido (vm1) esta truncado sem a linha de rodape, enquanto o ⑤ veio da vm5. Pela O-21 o rodape e a autoridade, logo esta celula nao tem autoridade na arvore canonica. Provei que os dados sao integros (440/440 geracoes identicas ao gemeo da vm5, f_best com max|diff|=0,0, rodape da vm5 diz ok/681/441). Re-montar a celula com o ⑥ da vm5 e alteracao do acervo canonico e NAO me cabe: decida entre re-montar, registrar excecao no censo, ou aceitar como esta. Recomendo tambem um gate que exija rodape em toda celula marcada 'ok' — hoje nenhum exige e o mesmo defeito passaria em qualquer config.",
+  "DECISAO DE ESCRITA — o uso INVERTIDO do modelo (estado 2), que o artigo apresenta como seu elemento mais original (§1 e Tabela 8), e significativamente PIOR que um sorteio contemporaneo nos nossos runs: n=456 eventos, razao 0,923x, melhor em apenas 34,6%, Wilcoxon p=1,6e-13. A T11 tinha 17 eventos e so pode registrar a observacao; com 30 sementes o resultado e estatisticamente solido. Decida se isto entra na dissertacao como achado (o contraste do artigo na Tab. 8 e outro — variantes sempre-direto/sempre-inverso — logo NAO e refutacao da Tab. 8, e um resultado proprio sob orcamento 31D-1) e sob qual ressalva de selecao (as geracoes gated sao selecionadas; o controle e contemporaneo e intra-celula).",
+  "DECISAO DE ESCRITA — em 180 das 750 celulas (WFG1, WFG2, WFG4, WFG5, WFG9 e MMF16_20, 30/30 sementes cada) o mecanismo de gestao de modelo NUNCA dispara e o modelo empata em 100,00% dos pontos de sonda. Sob 31D-1 o c217 ali degenera em amostrador aleatorio do arquivo com selecao ambiental SPEA2. Isto e deterministico em 30/30 sementes e precisa aparecer como CONDICAO nas tabelas comparativas, nao como desempenho do PC-SAEA. Decida a forma (coluna de taxa de disparo? nota de rodape? exclusao do contraste?).",
+  "DECISAO METODOLOGICA — a doutrina vigente (RUNBOOK §6.2) diz que a fidelidade e estatistica por semente, nao bit-exata, porque a frota e heterogenea. Para o c217 isso e conservador demais: medi 29/29 duplicatas vm1 x vm5 com deriva EXATAMENTE ZERO (8.056 geracoes sem uma diferenca, sha256 identico das camadas ①②③, max|dX|=max|dF|=0). Decida se o c217 pode usar o padrao de prova bit-exato nas analises (o que permite atribuir qualquer delta ao algoritmo, sem desconto de maquina) ou se mantem o padrao da frota por uniformidade. Ressalva: so ha duplicatas de UM par de VMs, e todas as 750 celulas rodam o mesmo MATLAB e a mesma plataforma declarada.",
+  "DECISAO DE ESCOPO — o teto ⑪ caiu e a acuracia da sonda existe agora (0,7560 em 169.208 pares comparaveis, 741 blocos, 125 celulas). Mas o rotulo que usei e DOMINANCIA, e o alvo com que a PNN foi treinada e o fitness escalar da Eq. 4 (RBFNNPC.train sobre X(:,end)), que nao e definido para um ponto Sobol fora de P. O numero e portanto valido como qualidade preditiva de ordenacao par-a-par, e incomensuravel com a Tab. 5 do artigo (que rotula pela mediana da populacao). Decida se a dissertacao reporta esta acuracia e sob que nome — e se vale estender a medicao das 125 celulas amostradas para as 750 (custo: leitura completa dos 5,3 GB de ③).",
+  "REGISTRO (nao exige decisao imediata) — deficit nao declarado de 1 bloco de sonda_estratificada em 298/750 celulas (sempre o do modelo FINAL: 270 finalProbe + 28 geracao fantasma), e campanha_id/host inconsistentes em 10 celulas de semente 12. Ambos invisiveis aos gates atuais porque os gates testam presenca de chave, nao consistencia de valor nem simetria de serie — a mesma causa-raiz transversal que a T11 nomeou. Recomendo declarar n_blocos_estrat no ⑤ e validar o VALOR de campanha_id, se houver rodada futura."
+ ]
+}

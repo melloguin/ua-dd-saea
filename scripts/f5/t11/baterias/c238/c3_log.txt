@@ -1,0 +1,88 @@
+====================================================================================================
+C3.1 — O QUINTO (⑤) NAS 25 CELULAS DA s42 (PRE-T11) x SMOKE (POS-T11)
+====================================================================================================
+problema  schema campanha_id repo_hash  params  sigma_dict  timing  doe_hash   t_aval   t_sonda status    motivo  fe  maxfe  jsonl_ok  jsonl_mal snd_desligada  snd_blocos
+ BBOB_F1       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.145215  9.747947     ok <AUSENTE> 309    309       304          0     <AUSENTE>         101
+BBOB_F17       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.213814 11.779140     ok <AUSENTE> 309    309       304          0     <AUSENTE>         101
+BBOB_F22       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.184911 11.277382     ok <AUSENTE> 309    309       304          0     <AUSENTE>         101
+BBOB_F37       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.199596 11.466844     ok <AUSENTE> 309    309       304          0     <AUSENTE>         101
+BBOB_F49       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.650426 13.532490     ok <AUSENTE> 309    309       304          0     <AUSENTE>         101
+ BBOB_F5       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.154629 10.539682     ok <AUSENTE> 309    309       304          0     <AUSENTE>         101
+BBOB_F55       1   <AUSENTE>   <VAZIO>      13           3       5      True 1.107000 12.027070     ok <AUSENTE> 309    309       304          0     <AUSENTE>         101
+   DTLZ1       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.104414 11.368123     ok <AUSENTE> 216    216       214          0     <AUSENTE>          71
+   DTLZ2       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.173919 19.377687     ok <AUSENTE> 371    371       364          0     <AUSENTE>         121
+   DTLZ3       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.179727 19.904363     ok <AUSENTE> 371    371       364          0     <AUSENTE>         121
+   DTLZ4       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.190586 42.346376     ok <AUSENTE> 371    371       364          0     <AUSENTE>         121
+   DTLZ7       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.152527 44.660871     ok <AUSENTE> 681    681       664          0     <AUSENTE>         221
+    MMF1       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.033532  1.944285     ok <AUSENTE>  61     61        64          0     <AUSENTE>          21
+ MMF11_L       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.035325  1.776302     ok <AUSENTE>  61     61        64          0     <AUSENTE>          21
+MMF16_20       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.134876 36.306205     ok <AUSENTE> 619    619       604          0     <AUSENTE>         201
+    MMF4       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.034628  1.772816     ok <AUSENTE>  61     61        64          0     <AUSENTE>          21
+    WFG1       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.192310 31.343179     ok <AUSENTE> 681    681       664          0     <AUSENTE>         221
+    WFG2       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.250131 32.416479     ok <AUSENTE> 681    681       664          0     <AUSENTE>         221
+    WFG4       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.190809 33.282268     ok <AUSENTE> 681    681       664          0     <AUSENTE>         221
+    WFG5       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.207062 33.998989     ok <AUSENTE> 681    681       664          0     <AUSENTE>         221
+    WFG9       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.752462 33.864814     ok <AUSENTE> 681    681       664          0     <AUSENTE>         221
+    ZDT1       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.408343 78.461825     ok <AUSENTE> 929    929       904          0     <AUSENTE>         301
+    ZDT3       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.396997 79.722992     ok <AUSENTE> 929    929       904          0     <AUSENTE>         301
+    ZDT4       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.145157 12.635401     ok <AUSENTE> 309    309       304          0     <AUSENTE>         101
+    ZDT6       1   <AUSENTE>   <VAZIO>      13           3       5      True 0.157349 15.963084     ok <AUSENTE> 309    309       304          0     <AUSENTE>         101
+
+  schema_version unico       : [1]
+  campanha_id                : 0/25 presentes
+  repo_hash preenchido       : 0/25
+  params (13 chaves)         : 25/25 com 13
+  sigma_dict presente        : 25/25
+  timing.tempo_aval_real_s   : nao-nulo em 25/25 (min=0.03353 max=1.107)
+  ⑥ linhas MALFORMADAS       : 0 no total (B-11/G1) ; ⑥ linhas ok=10630
+  sonda.desligada no ⑤       : ['<AUSENTE>']  <- campo do G6b (novo)
+  fe_final==maxfe            : 25/25 ; status ok: 25/25
+
+====================================================================================================
+C3.2 — O QUINTO DO SMOKE T11 e do PAR G-6
+====================================================================================================
+  smoke   schema=2 campanha_id=t11-smoke-195f64e            repo_hash=195f64ed0a69 params=13 sigma=3 timing=5 doe=True t_aval=0.022262 malformadas=0 sonda{desligada=False,n_blocos=21}
+  g6_com  schema=2 campanha_id=195f64ed0a69_2026-07-30      repo_hash=195f64ed0a69 params=13 sigma=3 timing=5 doe=True t_aval=0.021426 malformadas=0 sonda{desligada=False,n_blocos=21}
+  g6_sem  schema=2 campanha_id=195f64ed0a69_2026-07-30      repo_hash=195f64ed0a69 params=13 sigma=3 timing=5 doe=True t_aval=0.01909 malformadas=0 sonda{desligada=True,n_blocos=0}
+
+====================================================================================================
+C3.3 — PAR G-6: os TRES SINAIS + identidade do MECANISMO (nao so do hash)
+====================================================================================================
+  __real       sha256 IDENTICO  COM=     61 SEM=     61 linhas  | 43f533269741c82f
+  __pop        sha256 IDENTICO  COM=   1681 SEM=   1681 linhas  | b93cc44bc117dca6
+  __surrogate  sha256 DIFERE    COM=  42800 SEM=    800 linhas  | 94490dffe7b2ef28
+  __timing     sha256 DIFERE    COM=     40 SEM=     40 linhas  | 43edd7cd89d8b98d
+  (handoff T11 §5 declara para c238 o hash `43f533269741c82f` — confere com o sha256 da ① acima)
+  ⑥ eventos de geracao: COM=40 SEM=40
+  campos do ⑥ BIT-IDENTICOS COM x SEM: 27/27 (todos os 40 valores por campo)
+/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/f5/t11/baterias/c238/c3_correcoes_t11.py:127: RuntimeWarning: All-NaN slice encountered
+  dmax = max(float(np.nanmax(np.abs(oc[c].values.astype(float) - os_[c].values.astype(float)))) for c in num)
+  ③ regime=online: COM 800 linhas x SEM 800 linhas ; max|D| em 12 colunas numericas = 0
+  ③ regime=sonda : COM 42000 x SEM 0  (o encolhimento e o 2o sinal)
+
+====================================================================================================
+C3.4 — CAMPOS DA T11 QUE NAO SE APLICAM AO c238 (procurados no dado, nao supostos)
+====================================================================================================
+  regimes na ③ do smoke      : {'sonda': 42000, 'online': 800}
+  sonda_estratificada        : AUSENTE (c238 nao e classificador)
+  REGRA_DO_ROTULO        ⑥=nao  ⑤=nao
+  y_treino_dist          ⑥=nao  ⑤=nao
+  pmid_ids               ⑥=nao  ⑤=nao
+  ref_ids                ⑥=nao  ⑤=nao
+  n_ref                  ⑥=nao  ⑤=nao
+  p_wrong_stats          ⑥=nao  ⑤=nao
+  margem_3sigma_stats    ⑥=nao  ⑤=nao
+  e0_trace               ⑥=nao  ⑤=nao
+  adapt_delta_V          ⑥=nao  ⑤=nao
+  n_baseline             ⑥=nao  ⑤=nao
+
+  CONTRATO §6.1 (contrato_61.json) para c238: di10=["eim_mediana_pool"], nao_se_aplica={}
+  minimo comum DI-10 = fe, f_best, n_front1, tempo_fit_s, tempo_busca_s (+modelo_hp, dist_min_arquivo)
+    fe                   presente em 40/40 eventos
+    f_best               presente em 40/40 eventos
+    n_front1             presente em 40/40 eventos
+    tempo_fit_s          presente em 40/40 eventos
+    tempo_busca_s        presente em 40/40 eventos
+    modelo_hp            presente em 40/40 eventos
+    dist_min_arquivo     presente em 40/40 eventos
+    eim_mediana_pool     presente em 40/40 eventos

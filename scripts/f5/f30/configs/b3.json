@@ -1,0 +1,391 @@
+{
+ "config": "b3 (K-RVEA, PlatEMO 4.15) · exp=main · campanha completa de 30 sementes",
+ "cobertura": "CENSO b3: 747 celulas existem de 750 (25 problemas x 30 sementes). 746 ok + 1 EM VOO (ZDT1/13) + 3 AUSENTES em qualquer espelho (ZDT1/26, ZDT3/13, ZDT3/26). AUDITADO: (6) jsonl 747/747 celulas = 100% (43.000 ciclos ok + 115 da celula em voo; 75.981 linhas; 215.000 selecoes). (5) manifesto 746/746 = 100%. (1) real 746/746 = 100% (321.964 linhas). (4) timing via os campos tempo_* do (6): 43.000/43.000 ciclos. (3) surrogate: AMOSTRA de 88/746 celulas (11,8%) para a query-joia + 75/746 para o recomputo de adapt_delta_V/NumV2/saude — ~11,4 M de linhas lidas das 112.390.110 existentes. COMO AMOSTREI a (3): rotacao deterministica de 3 sementes por problema sobre a lista {0..28,42} (indice 3i, 3i+1, 3i+2 mod 30), o que cobre 25/25 problemas e 30/30 sementes com cada semente sorteada 2-3x; MAIS as 10 celulas com anomalia detectada na varredura total do (6) (9x BBOB_F17 + MMF1/15) e as 5 com quebra de monotonia (WFG2 s5/s12/s21/s27, ZDT4 s6). CROSS-MAQUINA: os 28 pares duplicados vm1 x vm5 (56 celulas, todas as camadas) dos espelhos ~/mestrado_coleta_m8/matlab-vm{1,5}/experiments/main/b3/. NAO auditado: regua Sobol (WAPE/cobertura) e erro de fantasia dos infills — motivo declarado nos aspectos. Nenhuma celula executada, experiments.py nunca invocado, escrita so em /private/tmp/.../scratchpad.",
+ "N1_invariancia": "A query-joia do b3 (o CRITERIO DE SELECAO) e' duas identidades. Ambas invariantes de semente.\n(A) F1 — index -> ultima sub-populacao da (3) -> sigma do selecionado: **25.195/25.195 selecoes (100,00%)**, em 88 celulas cobrindo **25/25 problemas e 30/30 sementes**, com **erro relativo maximo 5,9285e-08** — exatamente o ULP do float32 em que a (3) e' gravada (D53). A T11 mediu 5,916e-08 em 7.215 selecoes de 1 semente; o numero nao se moveu ao 3o digito com 3,5x mais selecoes e 30x mais sementes. ZERO sementes em que a identidade quebre.\n(B) F2 — criterio = media das VARIANCIAS (sem raiz, KrigingSelect.m:56): varredura **TOTAL**, nao amostra — **215.000/215.000 selecoes das 746 celulas**, erro relativo maximo **4,957e-16** (identidade aritmetica). Cross-camada (recomputo do criterio a partir do sigma da (3), nao do proprio (6)): **25.195/25.195** a 1,169e-07.\nReforco novo que a T11 nao pode fazer: **NumV2 recomputado INDEPENDENTEMENTE da (3)** — NoActive(PopObj da 20a geracao interna, V0=UniformPoint(N,M) NBI) — bate o valor logado em **4.359/4.359 ciclos (100%), diferenca maxima 0**, em 75 celulas / 25 problemas / 30 sementes. Isso prova POR DADO o operando do switch que a T11 so tinha por leitura de codigo (B5).\nDemais identidades estruturais, sobre a varredura TOTAL de 43.000 ciclos: len(pop_por_w)=20 43.000/43.000; u_alvo=u_efetivo=5 43.000/43.000; n_vetores_vazios=0 43.000/43.000; nzero_updata=0 43.000/43.000; n_treino=arquivo=11D-1 43.000/43.000; Flag=NumV2-NumV1 43.000/43.000; ramo=(Flag<=delta) 43.000/43.000; fe_treino_max=fe_anterior-1 43.000/43.000; index 1-based e <= |ultima sub-pop| 43.000/43.000; tempo_fit+tempo_busca <= tempo_geracao 43.000/43.000 (0 violacoes).\nUNICA identidade que NAO generaliza: a monotonia ESTRITA de fe_treino_max (T11: 25/25) cai para **741/746**; ver aspecto U8 — e' consequencia de 6 ciclos com delta_fe=0 (os 5 infills todos cache-hit), fe nunca decresce (0/43.000), logo a monotonia FRACA fecha 746/746.",
+ "N2_tetos_caidos": "A T11 fechou 2 T (U5 e B12/B13) e deixou 2 T declarados (F6, B14) mais 4 limitacoes na §9. Com 30 sementes:\nCAIRAM (agora mensuraveis, e MEDIDOS):\n1. T11 §9(ii) \"nzero e n_vetores_vazios continuam sentinelas dormentes, valiosos justamente para o M8\" -> MEDIDO: **nzero_updata = 0 em 43.000/43.000 ciclos** e **n_vetores_vazios = 0 em 43.000/43.000**. As duas sentinelas permanecem dormentes em 30 sementes; o guard do crash latente (UpdataArchive.m:66-70) nunca precisou clampar e a clausula min{u,|Va^a|} do Alg. 3 do artigo NUNCA ligou.\n2. T11 §9(iii) \"o ramo incerteza em D=2 nas celulas MMF nunca e' exercitado\" -> MEDIDO e agora e' FATO, nao limitacao: MMF1, MMF4 e MMF11_L rodam **100% APD em 30/30 sementes cada (0 de 720 ciclos em incerteza)**. O cruzamento \"bug do arquivo (ramo (a)) x ramo de incerteza\" continua nao exercitado — por propriedade do problema, nao por falta de replicas.\n3. F4 (separacao estatistica ramo <-> sigma/APD) era conclusao de 7 celulas mistas -> agora **305 celulas mistas**, 203 com >=3 ciclos em cada ramo: apd_sel mediano MAIOR sob incerteza em **203/203 (100%)**, razao 1,713x; criterio_meanMSE mediano MAIOR sob incerteza em **200/203 (98,5%)**, razao 2,261x. O ramo troca mesmo o criterio, em 14 problemas.\n4. N2/adapt_delta_V: a T11 verificou o campo em 8 ciclos de um smoke -> agora **39.231 eventos recomputados da (3)** (formula do stock KRVEA.m:92 via norma de Frobenius de V0.*delta_faixa): batem em 39.231/39.231 com tolerancia relativa 1e-3 e 38.976 (99,35%) a 1e-4, com o residuo explicado (erro ABSOLUTO mediano 6,9e-7 sobre magnitudes medianas 2,6e-3 — cancelamento na subtracao de faixas gravadas em float32). Os **5.750 zeros da amostra sao TODOS legitimos** (faixa exatamente identica entre adaptacoes consecutivas): o campo nao e' sentinela em nenhuma semente. E a LACUNA que a T11 nomeou (loga 9 de 10 eventos, omite o inter-ciclo) esta quantificada em escala: o evento omitido tem mediana **7,95** contra **1,42** do primeiro valor logado — **5,6x maior**, em 4.284 ciclos.\n5. F6 (theta nunca logado) CONTINUA T — confirmado: **0 ciclos com theta em 43.000**. Mas o proxy indireto do warm-theta ganhou distribuicao: custo do 1o fit / mediana do run = **2,19x** (mediana de 747 celulas), >1x em 741/747; e a estrutura e' fortemente dependente de D — 30-39x nas MMF (D=2), 2,2-3,8x no miolo, e apenas **1,14x em ZDT1/ZDT3 (D=30)**, onde o warm-theta praticamente nao paga.\nNAO CAIRAM: B14 (miolo do RVEA: operadores, k-means++, randi, ordem lex do unique) — sem rastro, T permanece. T11 §9(i) (composicao de A1 em ciclos >=2) — permanece T; nao estendi a reconstrucao forense do ramo (a) do UpdataArchive as 30 sementes (nao medido: exigiria reconstruir V=V0*faixa e NoActive por ciclo em 90+ celulas D=2 — factivel, mas fora do orcamento desta rodada).\nVIRARAM T NESTA RODADA (por escopo, nao por regressao do corpus): U5 (nao-perturbacao da sonda) — nao re-medivel a 30 sementes porque `sonda.desligada=false` em 746/746 manifestos, isto e', a campanha nao tem lado \"SEM sonda\"; U6/F5 (WAPE/cobertura da regua Sobol) — nao medido: exigiria o gabarito Sobol avaliado, que so existe para a s42 (sonda_f52e.csv); U10 (erro de fantasia dos infills) — nao medido nesta rodada.",
+ "N4_deriva": "MEDIDA, e o resultado e' mais forte que a doutrina supoe.\nHa 28 celulas de b3 com copia em duas maquinas (reorg_conflitos.log; as demais ~635 \"duplicatas\" sao mesma-VM, staging x experiments, e nao servem). Duas populacoes:\n(A) **24 pares vm1 x vm5 da onda M8 (semente 7, 24 dos 25 problemas)**: os parquets sao **byte-a-byte IDENTICOS** — md5 igual em __real.parquet 24/24, __surrogate.parquet 24/24 e __pop.parquet 24/24. Sao execucoes genuinamente independentes: hosts diferentes (vm1 x vm5), criadas com ~18 h de diferenca (12-13/08 x 13/08), com wall diferente (vm5 e' **2,04x mais lenta**, mediana 2,24x, faixa 1,39-2,48x) — o md5 do .jsonl difere so por timestamps/tempos. No (6): todos os campos de decisao identicos em **1.353/1.353 ciclos**, e **erro relativo maximo 0,0 EXATO** em apd_sel, criterio_meanMSE, adapt_delta_V e dist_min_arquivo (6.055 selecoes). Na (3): ate 245.141 linhas por celula com Delta=0 em mu e sigma.\n=> **Deriva cross-maquina do b3 dentro da frota M8 = ZERO, bit-exata.** Para o b3 a fidelidade pode ser exigida BIT-A-BIT, nao apenas estatistica; a ressalva geral do RUNBOOK §6.2 nao morde aqui.\n(B) **4 pares em que um lado NAO e' da onda M8 (semente 12: DTLZ7, MMF16_20, WFG2, WFG4)**: divergencia TOTAL de trajetoria. Mesmo repo_hash (63db46b10063), mesma semente, **mesmo doe_hash**, e mesmo assim: WFG2/12 diverge no ciclo 5, MMF16_20/12 no ciclo 8, DTLZ7/12 e WFG4/12 no ciclo 2. O gatilho esta MEDIDO em WFG4/12: no ciclo 1 a (3) e' bit-identica (1.379 linhas, X/mu/sigma com 0 diferencas) e pop_por_w e' identico nas 20 geracoes internas, mas `apd_sel` difere na 10a casa (2,2676749585 x 2,2676749581, **1,8e-10 relativo**) e isso flipa UM `min()` do Alg. 3: index = [56,8,43,**25**,72] x [56,8,43,**29**,72]. Em DTLZ7/12 o piso de ruido do ciclo 1 esta em **~2,2e-16 absoluto em mu e ~6e-17 em sigma** (valores da ordem de 1e-16/1e-17; a \"diferenca relativa de 2,0\" e' artefato de dividir por zero numerico).\nATRIBUICAO (medida, nao suposta): o lado divergente e' a vm5 **depois da troca de shape**. O tempo de parede normalizado da vm5 cai de **1,52-1,93** (07 a 13/08) para **0,74** (14/08) — 2,1-2,6x mais rapida — exatamente a janela em que o brief diz que a vm5 virou e2-standard-32 com CPU nao fixada. Os 24 pares bit-exatos sao todos anteriores a essa troca.\nCONSEQUENCIA PARA O ACERVO: **41 celulas canonicas de b3 vieram da vm5 em 14/08 (pos-troca)** e **11 vieram do host \"matlab-vm1\" (campanha_id 63db46b10063_2026-08-14, 9 delas semente 12)** — juntas, **52/746 (7,0%)** do corpus canonico nao tem referencia bit-a-bit contra a linha de base M8, e as unicas 4 comparacoes que existem mostram trajetoria diferente. Nenhuma delas e' invalida (todos os invariantes fecham nas 746), mas contrastes que dependam de identidade bit-a-bit precisam declarar isso.",
+ "N5_cauda": "O b3 nao tem cauda de falha: **0 celulas brancas, 0 falhas do algoritmo, 0 retries, 0 fallback** (n_retries=0 e fallback_ativado=false em 746/746 manifestos; status=ok e motivo_parada=NULL em 746/746; termino='normal' em 746/746). O b3 nao aparece no LAUDO_D0. A cauda e' de ENTREGA, e e' pequena:\n- **ZDT1/13 — EM VOO, nao falha.** O (6) tem 115 ciclos, fe=901 de 929 (**97,0% do orcamento**), ultimo evento 2026-08-14T23:20:16Z, sem rodape e sem manifesto (a unica celula do b3 sem as 5 camadas). Aplicando O-21 (o rodape e' a autoridade): sem rodape nao ha veredito do algoritmo — mas os 115 ciclos fecham TODOS os invariantes (pop_por_w=20 115/115; n_treino=arquivo=NI 115/115; u=5, nvv=0, nzero=0 115/115; Flag e ramo 115/115; adapt_delta_V com 9 valores 115/115; F2 575/575 a 2,2e-16). Diagnostico: coleta cortou a execucao, nao houve erro.\n- **ZDT1/26, ZDT3/13, ZDT3/26 — AUSENTES** em resultados_experimentos E em todos os espelhos (~/mestrado_coleta_m8/matlab-vm{1,2,3,4,5,10}). Outras 10+ configs tem essas mesmas celulas ok, entao nao e' propriedade do problema. Efeito: ZDT1 e ZDT3 ficam com **28 replicas**, os outros 23 problemas com 30.\n- Taxa de sucesso por problema: 30/30 em 23 problemas; **ZDT1 28/30 + 1 em voo**; **ZDT3 28/30**. Global **746/750 completas = 99,47%**.\nO QUE A CAUDA DIZ SOBRE O ALGORITMO — a incapacidade real do b3 nao aparece como falha, aparece como NAO-CONVERGENCIA reproduzida em 30/30:\n- **DTLZ1**: o front verdadeiro esta em soma(f)=0,5; o gap analitico |2*soma(f)-1| do melhor ponto do arquivo tem mediana **97,55** e **minimo 49,95 em 30/30 sementes** — nenhuma replica chega perto do front.\n- **DTLZ3** (front em ||f||=1): gap mediano **324,86**, minimo **194,95**, em 30/30.\n- Contraste: **DTLZ2** gap mediano **0,0805** e **DTLZ4** 0,2152. Tres ordens de grandeza de separacao.\nIsto e' um RESULTADO, nao uma falha, e e' exatamente o que o proprio artigo antecipa (§IV-B: DTLZ1/DTLZ3 tem muitos otimos locais, \"the IGD values of all three algorithms are high ... far from the true Pareto front\"). Com 30 replicas a afirmacao vira determinismo observado, nao anedota de uma corrida.\nSegunda cauda, esta NOVA e so visivel com replicas: **25 selecoes de 215.000 (0,0116%) tem apd_sel = NaN**, em 10 de 746 celulas (9 de BBOB_F17, 1 de MMF1/15). Nessas 25 o infill nao foi escolhido por minimo-APD e sim pelo primeiro indice do cluster (semantica do `min` do MATLAB quando todos sao NaN). Causa provada — ver classe (3) C3-1.",
+ "N3_afirmacoes_artigo": [
+  {
+   "afirmacao": "\"Number of independent runs = 10\" (§IV-A.2) contra \"results ... over 25 independent runs\" (§IV-B) — o artigo se contradiz sobre o numero de replicas",
+   "onde_no_artigo": "§IV-A.2 (item 2 dos parameter settings) e §IV-B, 1o paragrafo",
+   "testavel_com_30": true,
+   "resultado": "Nossa campanha usa 30 replicas por celula (28 em ZDT1/ZDT3 por celulas nao entregues), acima dos DOIS numeros do artigo. A inconsistencia do paper ja estava registrada na ancora J da F5; com 30 sementes a comparacao nao herda a ambiguidade."
+  },
+  {
+   "afirmacao": "\"overall, K-RVEA performed the best among all algorithms compared in this study, except on DTLZ1 and DTLZ3\"",
+   "onde_no_artigo": "§IV-B, discussao da Tabela I",
+   "testavel_com_30": false,
+   "resultado": "PARCIALMENTE testavel: o head-to-head exige IGD dos pisos nas 30 sementes, e esse arquivo NAO existe no acervo (metricas_finais_f52c.csv e' so s42; nao ha metricas de 30 sementes em f5/f30/). NAO MEDIDO o contraste com pisos. Testei o recorte DTLZ1/DTLZ3 por proxy analitico livre de referencia — ver a afirmacao seguinte."
+  },
+  {
+   "afirmacao": "Em DTLZ1 (e DTLZ3) a convergencia e' lenta e \"the IGD values of all three algorithms are high ... solutions obtained by these algorithms are all far from the true Pareto front\"",
+   "onde_no_artigo": "§IV-B, paragrafo da Figura 6",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO em 30/30 sementes, com front analitico (DTLZ1: soma(f)=0,5; DTLZ2/3/4: ||f||=1). Gap do melhor ponto do arquivo — DTLZ1 mediana 97,55 (min 49,95, max 140,34); DTLZ3 mediana 324,86 (min 194,95); contra DTLZ2 mediana 0,0805 e DTLZ4 mediana 0,2152. Separacao de ~3 ordens de grandeza, sem uma unica replica dissidente."
+  },
+  {
+   "afirmacao": "\"the training time of K-RVEA remains constant, as the maximum number of training samples is kept constant\" (Fig. 9)",
+   "onde_no_artigo": "§IV-C, texto da Figura 9",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO no sentido forte (nao cresce) e REFUTADO no sentido literal (nao e' constante). Inclinacao relativa do tempo_fit_s ao longo do run (slope*n/mediana), 747 celulas: mediana -29,4%, NEGATIVA em 637/747 (85,3%). Mas ZDT1 e' POSITIVA em 30/30 (mediana +31,7%) e ZDT3 em 28/28 (+26,3%); DTLZ7 +5,6%. Ou seja: com |A1| fixo o custo nunca explode como O(n^3), mas em D=30 o fit encarece ~30% ao longo do run — efeito da MLE, nao do tamanho do treino. Uma semente so nao distingue os dois regimes (a T11 viu 'negativo em 21/25')."
+  },
+  {
+   "afirmacao": "\"In the first update of the Kriging models, APD is always used for selecting individuals for re-evaluation\"",
+   "onde_no_artigo": "§III-C, fim do paragrafo da Figura 4",
+   "testavel_com_30": true,
+   "resultado": "REFUTADO na implementacao oficial, e agora com magnitude: 158 de 746 celulas (21,2%) iniciam o ciclo 1 no ramo 'incerteza', espalhadas por 11 dos 25 problemas — MMF16_20 30/30, DTLZ3 29/30, DTLZ1 25/30, DTLZ2 21/30, WFG9 16/30, WFG5 12/30, BBOB_F49 10/30, ZDT1 10/28, DTLZ7 3/30, ZDT3 1/28, WFG4 1/30. A T11 (s42) via 5/25. O desvio e' sancionado (D29 laranja impl->codigo: KrigingSelect.m nao tem teste de 1o ciclo), mas a fracao real so aparece com replicas."
+  },
+  {
+   "afirmacao": "\"if the number of active adaptive reference vectors is smaller than u ... we group them into |Va^a| clusters\" (clausula de degeneracao do Alg. 3)",
+   "onde_no_artigo": "§III-C / Algoritmo 3, passo 1",
+   "testavel_com_30": true,
+   "resultado": "A clausula NUNCA ligou: u_alvo = u_efetivo = 5 e n_vetores_vazios = 0 em 43.000/43.000 ciclos das 746 celulas. Em 30 sementes e 25 problemas o caso patologico do artigo nao ocorre no nosso grid."
+  },
+  {
+   "afirmacao": "\"almost 70% of the reference vectors are empty\" em DTLZ5/DTLZ6, o que faz K-RVEA convergir devagar",
+   "onde_no_artigo": "§IV-D, comparacao com MOEA/D-EGO (Tabela III)",
+   "testavel_com_30": false,
+   "resultado": "NAO TESTAVEL: DTLZ5 e DTLZ6 nao estao no grid de 25 problemas. O que da' para dizer e' o complemento: nos 25 problemas que rodamos, 0 vetores vazios em 43.000/43.000 ciclos."
+  },
+  {
+   "afirmacao": "\"the maximum size of the training data ... is set to NI\" — o tamanho do treino e' FIXO (2a contribuicao do artigo)",
+   "onde_no_artigo": "§III (contribuicoes) e Algoritmo 4",
+   "testavel_com_30": true,
+   "resultado": "CONFIRMADO em varredura total: n_treino = arquivo = 11D-1 em 43.000/43.000 ciclos e 746/746 celulas; e modelo_hp.n = 11D-1 em 43.000/43.000."
+  },
+  {
+   "afirmacao": "A frequencia de uso da informacao de incerteza e' governada por delta e pela geometria do problema (analise de sensibilidade de delta)",
+   "onde_no_artigo": "§IV-E, paragrafo sobre delta = 0,05N",
+   "testavel_com_30": true,
+   "resultado": "MEDIDO e com uma ressalva forte: no agregado 10.630/43.000 ciclos (24,72%) usam o ramo incerteza (T11 s42: 23,8% — invariante no agregado). MAS a fracao NAO e' propriedade so' do problema: dentro do mesmo problema ela varia com a SEMENTE em ate 85 pontos percentuais (BBOB_F49 de 0% a 85%), 81 pp (WFG5 8,5%-89,8%), 64 pp (DTLZ1 35,7%-100%), 56 pp (WFG4), 43 pp (DTLZ4 0%-42,9%). So 6 dos 25 problemas tem as 30 sementes no mesmo regime puro. A leitura da T11 de que 'o switch trava por par (geometria, N)' e' artefato de 1 semente."
+  },
+  {
+   "afirmacao": "\"uncertainty is calculated using the average of the standard deviations obtained from Kriging models\"",
+   "onde_no_artigo": "§III-C, paragrafo da Figura 4",
+   "testavel_com_30": true,
+   "resultado": "REFUTADO pelo codigo oficial e agora por varredura TOTAL do dado: o criterio e' a media das VARIANCIAS (KrigingSelect.m:56, Uncertainty = mean(MSE,2)). Identidade criterio_meanMSE == media_j(sqrtmse_j^2) em 215.000/215.000 selecoes, erro relativo maximo 4,957e-16. Desvio ja sancionado (D29 laranja impl->codigo, SPEC v5.2.1 + DI-18)."
+  },
+  {
+   "afirmacao": "\"our empirical results indicate that the performance of K-RVEA is relatively insensitive to the frequency of updating the surrogates\" (wmax)",
+   "onde_no_artigo": "§V (Conclusoes) e §III-D (\"for simplicity we adopt a prefixed frequency\")",
+   "testavel_com_30": false,
+   "resultado": "NAO TESTAVEL neste acervo: wmax = 20 em 746/746 celulas (header e manifest.params), sem nenhuma ablacao de wmax na campanha. Fica T."
+  },
+  {
+   "afirmacao": "Estabilidade implicita: a Tabela I reporta min/mean/max de IGD sobre 25 corridas, tratando o metodo como estavel entre replicas",
+   "onde_no_artigo": "§IV-B, Tabela I (\"The presented results include the minimum, mean and maximum values of IGD\")",
+   "testavel_com_30": true,
+   "resultado": "MEDIDO, e a estabilidade nao e' uniforme. Nos 4 problemas com front analitico, o coeficiente de variacao do gap de convergencia entre 30 replicas e' DTLZ3 0,179 / DTLZ1 0,255 / DTLZ4 0,366 / DTLZ2 0,593, e a razao pior/melhor replica e' DTLZ2 16,2x, DTLZ4 3,79x, DTLZ1 2,81x, DTLZ3 2,19x. Em DTLZ2 — justamente o problema onde o b3 converge — uma unica corrida pode estar 16x pior que outra. Medida complementar livre de referencia (IGD+ de cada semente contra o front conjunto das 30 replicas do proprio b3): CV entre 0,083 (MMF16_20, muito estavel) e 3,32 (WFG9) / 1,94 (BBOB_F17, IGD+ de 0 a 2,0e6). Conclusao: reportar min/mean/max e' o minimo; com 10 replicas (o numero do §IV-A.2) o intervalo em DTLZ2 nem estaria coberto."
+  }
+ ],
+ "aspectos": [
+  {
+   "id": "U1/B11",
+   "aspecto": "Orcamento, termino, overshoot <= +4, hard-stop exato",
+   "classe": "2",
+   "medicao": "maxfe = 31D-1 em 746/746; fe_final = maxfe em 746/746; len((1)) = 31D-1 em 746/746; fe_index denso e solution_id unicos em 746/746; resto = maxfe - fe(ultimo ciclo) in [0,4] em 746/746 (0:324, 1:169, 2:122, 3:70, 4:61); guard hard_stop presente SE E SOMENTE SE resto>0 em 746/746 (422 com, 324 sem); termino='normal' em 746/746",
+   "veredito": "conforme, invariante de semente; sancionado por D21/D61 + DEF-A2",
+   "muda_vs_s42": false,
+   "arquivo_linha": "KRVEA.m:104 (Problem.Evaluation) / footer do (6)"
+  },
+  {
+   "id": "U2",
+   "aspecto": "DoE 11D-1 do artefato, livre de duplicatas (DEF-A8)",
+   "classe": "1",
+   "medicao": "(fase=='init').count == 11D-1 em 746/746; 0 duplicatas de X no DoE em 746/746; doe_hash do (5) == doe_hash do (6) em 746/746; 0 NaN em X e f nas 321.964 linhas da (1)",
+   "veredito": "conforme ao artigo (NI=11n-1, LHS); divergencia so de PROVENIENCIA (D63/D88)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "KRVEA.m:33-36 (patch D94)"
+  },
+  {
+   "id": "U3/B2",
+   "aspecto": "1 retreino por ciclo, wmax=20 geracoes internas",
+   "classe": "1",
+   "medicao": "len(pop_por_w) = 20 em 43.000/43.000 ciclos; geracao sequencial 1..n em 746/746; wmax=20 no header e em manifest.params em 746/746",
+   "veredito": "conforme",
+   "muda_vs_s42": false,
+   "arquivo_linha": "KRVEA.m:72-95"
+  },
+  {
+   "id": "U4/U7",
+   "aspecto": "Cadencia da sonda ({1} U {pares<=G} U {G}) e invariante de timing",
+   "classe": "2",
+   "medicao": "formula fechada da cadencia fecha EXATA em 746/746; 22.625 blocos de sonda, todos com n_pontos=2000 e ok=true; tempo_fit_s + tempo_busca_s <= tempo_geracao_s em 43.000/43.000, ZERO violacoes; manifest.sonda.n_blocos == blocos do (6) em 746/746",
+   "veredito": "extensao nossa declarada (DI-12.5 / DI-13.10), invariante",
+   "muda_vs_s42": false,
+   "arquivo_linha": "KRVEA.m:67 (b3_sonda) / b3_instrument.m:75"
+  },
+  {
+   "id": "U5",
+   "aspecto": "Nao-perturbacao da sonda (par COM x SEM)",
+   "classe": "T",
+   "medicao": "NAO MEDIDO a 30 sementes: manifest.sonda.desligada = false em 746/746, isto e', a campanha M8 nao contem nenhum lado 'SEM sonda'. O que a T11 provou no par g6 (s42, MMF1: (1)(2)(3)-online bit-identicas, max|delta apd_sel| = 0) continua valendo como evidencia, mas nao foi replicado.",
+   "veredito": "teto de verificabilidade neste corpus (fora do denominador)",
+   "muda_vs_s42": true,
+   "arquivo_linha": "manifest.sonda.desligada"
+  },
+  {
+   "id": "U6/F5",
+   "aspecto": "Regua Sobol: WAPE, cobertura e calibracao de sigma",
+   "classe": "T",
+   "medicao": "NAO MEDIDO a 30 sementes: exige o gabarito Sobol AVALIADO (f verdadeiro nos 2.000 pontos), que so existe em f5/sonda_f52e.csv para a s42; a (3) guarda mu/sigma da sonda mas nao o f verdadeiro. Medi apenas a SAUDE dos blocos de sonda na amostra de 75 celulas: 4.584.000 linhas x M, 0 NaN em mu, 0 NaN em sigma, 0 sigma<0, 2.292 blocos.",
+   "veredito": "teto de verificabilidade nesta rodada (fora do denominador)",
+   "muda_vs_s42": true,
+   "arquivo_linha": "(3) regime='sonda'"
+  },
+  {
+   "id": "U8",
+   "aspecto": "fe_treino_max = fe do ciclo anterior - 1, e sua monotonia",
+   "classe": "2",
+   "medicao": "identidade fe_treino_max == fe_anterior - 1 em 43.000/43.000 ciclos. Monotonia ESTRITA cai de 25/25 (T11, s42) para 741/746: 6 ciclos em 5 celulas tem delta_fe = 0 (WFG2 s5 c27, s12 c10, s21 c14 e c17, s27 c11; ZDT4 s6 c11) porque os 5 infills daquele ciclo foram TODOS cache-hit. fe nunca DECRESCE (0 de 43.000), logo monotonia FRACA = 746/746. Distribuicao global de delta_fe: 5 em 36.448, 4 em 4.834, 3 em 817, 2 em 215, 1 em 48, 0 em 6.",
+   "veredito": "assimetria do Alg. 4 confirmada; a nao-monotonia estrita e' consequencia direta do dedup D57/D89 (cache-hit nao consome FE) — mesma familia que a regra 9 do CONTRATO admite em b1/b4/c217, mas NAO citada para o b3",
+   "muda_vs_s42": true,
+   "arquivo_linha": "UpdataArchive.m:70 / b3_instrument.m (ftm)"
+  },
+  {
+   "id": "U9/N1",
+   "aspecto": "Reconciliacao (5)x(6), ledger de cache-hits, c0=1",
+   "classe": "2",
+   "medicao": "cache_hit do (6) == manifest.cache_hits em 746/746 E == rodape.cache_hits em 746/746; EXATAMENTE um cache_hit com fe=1 (o c0) em 746/746; 0 linhas malformadas em 75.981 linhas de (6); header+footer em 746/746; manifest.n_geracoes == n_ciclos+1 em 746/746 (conta o ciclo G=n+1 abortado)",
+   "veredito": "conforme D89/D57/DEF-C2, invariante",
+   "muda_vs_s42": false,
+   "arquivo_linha": "KRVEA.m:112 (sync D89)"
+  },
+  {
+   "id": "U10",
+   "aspecto": "Erro de fantasia dos infills (mu predito x f real)",
+   "classe": "T",
+   "medicao": "NAO MEDIDO nesta rodada (orcamento): exigiria casar mu do selecionado na (3) com o f realizado na (1) por FE. O pre-requisito esta medido (F3: 25.195/25.195 X localizados).",
+   "veredito": "teto por escopo desta rodada (fora do denominador)",
+   "muda_vs_s42": true,
+   "arquivo_linha": "(3) mu_* x (1) f_*"
+  },
+  {
+   "id": "F1",
+   "aspecto": "QUERY-JOIA: index -> ultima sub-populacao da (3) -> sigma do selecionado",
+   "classe": "1",
+   "medicao": "25.195/25.195 selecoes (100,00%) em 88 celulas cobrindo 25/25 problemas e 30/30 sementes; ERRO RELATIVO MAXIMO 5,9285e-08 (ULP do float32 da (3), D53). T11 na s42: 7.215/7.215 a 5,916e-08. Nenhuma semente quebra.",
+   "veredito": "conforme ao artigo (Alg. 3 passo 8); o uso da incerteza esta PROVADO pelos dados em 30 sementes",
+   "muda_vs_s42": false,
+   "arquivo_linha": "KrigingSelect.m:66-69"
+  },
+  {
+   "id": "F2",
+   "aspecto": "O criterio e' a media das VARIANCIAS, sem raiz",
+   "classe": "2",
+   "medicao": "VARREDURA TOTAL: criterio_meanMSE[i] == media_j(sqrtmse[i][j]^2) em 215.000/215.000 selecoes das 746 celulas, erro relativo maximo 4,957e-16. Cross-camada (recomputo a partir do sigma da (3)): 25.195/25.195 a 1,169e-07. Na celula em voo ZDT1/13: 575/575 a 2,21e-16.",
+   "veredito": "desvio MATERIAL do texto do artigo, comportamento exato do codigo oficial; sancionado D29 laranja impl->codigo + SPEC v5.2.1 + DI-18",
+   "muda_vs_s42": false,
+   "arquivo_linha": "KrigingSelect.m:56 (Uncertainty = mean(MSE(current,:),2))"
+  },
+  {
+   "id": "F3",
+   "aspecto": "Cadeia selecao -> avaliacao real (dedup D57 + cache D89)",
+   "classe": "2",
+   "medicao": "25.195/25.195 X selecionados localizados na (1) — ZERO misses; 1.071 (4,25%) caem em linha PRE-EXISTENTE (o RVEA re-propoe ponto do arquivo). T11 s42: 211/7.215 = 2,9%.",
+   "veredito": "conforme Alg. 2 passo 8 sob D57/D89",
+   "muda_vs_s42": false,
+   "arquivo_linha": "KRVEA.m:104"
+  },
+  {
+   "id": "F4",
+   "aspecto": "O ramo realmente troca o criterio (separacao estatistica)",
+   "classe": "1",
+   "medicao": "305 celulas mistas de 746 (T11: 7 de 25). Nas 203 com >=3 ciclos em cada ramo: apd_sel mediano MAIOR sob 'incerteza' em 203/203 (100,0%), razao mediana 1,713x; criterio_meanMSE mediano MAIOR sob 'incerteza' em 200/203 (98,5%), razao mediana 2,261x. Vale em 14 problemas distintos.",
+   "veredito": "conforme Alg. 3 passos 5-8 (ramos mutuamente exclusivos), agora com poder estatistico 29x maior",
+   "muda_vs_s42": false,
+   "arquivo_linha": "KrigingSelect.m:57-69"
+  },
+  {
+   "id": "F6",
+   "aspecto": "Curva de theta / trajetoria da MLE",
+   "classe": "T",
+   "medicao": "theta NUNCA logado: 0 de 43.000 ciclos tem qualquer campo theta em modelo_hp (so regr, corr, theta_bounds, n, tempo_fit_s). Proxy indireto do warm-theta, agora com distribuicao sobre 747 celulas: custo do 1o fit / mediana do run = 2,188 (mediana), q1 1,847, q3 2,822, >1x em 741/747, >1,5x em 680/747; estrutura por D — MMF (D=2) 30,5-39,1x; DTLZ/BBOB/WFG 1,6-3,8x; ZDT1/ZDT3 (D=30) apenas 1,15/1,14x.",
+   "veredito": "teto de verificabilidade (fora do denominador); 30 sementes deram distribuicao ao proxy, nao ao theta",
+   "muda_vs_s42": false,
+   "arquivo_linha": "b3_instrument.m:190-192 (hp_gp_b3) / KRVEA.m:54,56"
+  },
+  {
+   "id": "B1/B10",
+   "aspecto": "N vetores, DACE declarativo, saude do sigma de export",
+   "classe": "2",
+   "medicao": "N=100 (M=2) / 91 (M=3) em 746/746 e delta = 0,05N em 746/746; regpoly1+corrgauss+bounds [1e-5,100] em 43.000/43.000 ciclos; manifest.params com as mesmas 9 chaves (N_vetores, alpha, dace, delta, mu, theta0, theta_bounds, warm_theta, wmax) em 746/746; saude na amostra de 75 celulas: 11.376.149 linhas x M com 0 NaN em mu, 0 NaN em sigma, 0 sigma<0 (3.374 sigma==0 exatos, todos em interpolacao quase-exata)",
+   "veredito": "sancionado D20 (N) + D30 (dace/warm-theta) + B3.2 (sigma de export); saude limpa",
+   "muda_vs_s42": false,
+   "arquivo_linha": "KRVEA.m:30,38,54"
+  },
+  {
+   "id": "B3",
+   "aspecto": "u=5 com a clausula min{u,|Va^a|}",
+   "classe": "1",
+   "medicao": "u_alvo = u_efetivo = 5 e n_vetores_vazios = 0 em 43.000/43.000 ciclos, 746/746 celulas, 30/30 sementes. A clausula de degeneracao do Alg. 3 NUNCA ligou em nenhuma replica.",
+   "veredito": "conforme; sentinela dormente confirmada em 30 sementes (T da T11 §9(ii) fechado)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "KrigingSelect.m:24-25"
+  },
+  {
+   "id": "B4",
+   "aspecto": "delta = 0,05N e a regra do switch (Flag <= delta -> APD)",
+   "classe": "1",
+   "medicao": "delta = 0,05N em 746/746; Flag == NumV2 - NumV1 (com sinal) em 43.000/43.000; ramo == (Flag <= delta ? APD : incerteza) em 43.000/43.000, 100% sem excecao; campo 'motivo' reproduz a aritmetica em todas. NOVO: NumV2 RECOMPUTADO independentemente da (3) — NoActive(PopObj da 20a geracao interna, V0=UniformPoint(N,M) NBI) — bate em 4.359/4.359 ciclos, diferenca maxima 0.",
+   "veredito": "conforme ao artigo, e agora com o operando provado por DADO e nao so por leitura de codigo",
+   "muda_vs_s42": false,
+   "arquivo_linha": "KrigingSelect.m:22,49 / NoActive.m"
+  },
+  {
+   "id": "B5",
+   "aspecto": "OPERANDO do switch: arquivo real x populacao predita, ambos contra V0",
+   "classe": "2",
+   "medicao": "NumV1(k) == NumV2(k-1) em apenas 2.328 de 42.254 transicoes (5,51%); T11 na s42: 84/1.418 = 5,9%. Concentracao confirmada: BBOB_F17 89,2% (os dois contadores saturam), DTLZ7 17,4%, ZDT4 14,7%, todos os demais <=8,1%.",
+   "veredito": "desvio do Alg. 3 do artigo (que compara a atualizacao atual com a ANTERIOR); sancionado D29 laranja impl->codigo; invariante de semente",
+   "muda_vs_s42": false,
+   "arquivo_linha": "KRVEA.m:98 + KrigingSelect.m:22"
+  },
+  {
+   "id": "B6",
+   "aspecto": "Ausencia do \"1o update sempre APD\"",
+   "classe": "2",
+   "medicao": "158 de 746 celulas (21,2%) iniciam o ciclo 1 no ramo 'incerteza', em 11 dos 25 problemas: MMF16_20 30/30, DTLZ3 29/30, DTLZ1 25/30, DTLZ2 21/30, WFG9 16/30, WFG5 12/30, BBOB_F49 10/30, ZDT1 10/28, DTLZ7 3/30, ZDT3 1/28, WFG4 1/30. T11 na s42: 5/25.",
+   "veredito": "desvio paper x implementacao de maior consequencia comportamental; sancionado D29 laranja; a MAGNITUDE (21,2%) so aparece com replicas",
+   "muda_vs_s42": true,
+   "arquivo_linha": "KrigingSelect.m (sem teste de 1o ciclo)"
+  },
+  {
+   "id": "B7",
+   "aspecto": "|A1| = NI fixo (a 2a contribuicao do artigo, Fig. 9)",
+   "classe": "1",
+   "medicao": "n_treino == arquivo == 11D-1 em 43.000/43.000 ciclos e 746/746 celulas; modelo_hp.n == 11D-1 em 43.000/43.000. Ancora empirica da Fig. 9: inclinacao relativa do tempo de fit mediana -29,4%, negativa em 637/747 celulas (85,3%) — o fit fica mais barato, nunca cresce como O(n^3).",
+   "veredito": "conforme; ver N3 para a ressalva de ZDT1/ZDT3",
+   "muda_vs_s42": false,
+   "arquivo_linha": "UpdataArchive.m / KRVEA.m:32"
+  },
+  {
+   "id": "B8/B9",
+   "aspecto": "Poda do A1 (proxy dist_min_arquivo) e reinicio da populacao do arquivo",
+   "classe": "2",
+   "medicao": "dist_min_arquivo >= distancia minima ao arquivo real ja avaliado: 21.795/21.795 (100,00%) com tolerancia relativa 1e-4; igualdade EXATA em 14.870 (68,2%); violacao relativa residual maxima 0 a 1e-4 (o residuo e' o float32 do X na (3) contra a regua float64 nativa — T11 mediu <=1,18e-5). real_solution_id nao-nulo cai de 0,550 na 1a sub-populacao para 0,059 na 20a (medianas de 88 celulas; T11: 0,556 -> 0,063).",
+   "veredito": "extensao nossa (DI-10) declarada; a poda nao e' degenerada; invariante de semente",
+   "muda_vs_s42": false,
+   "arquivo_linha": "b3_instrument.m:201-211 / KRVEA.m:69"
+  },
+  {
+   "id": "B12/B13",
+   "aspecto": "Guard nzero e ramo (a) do UpdataArchive (VD-b3)",
+   "classe": "2",
+   "medicao": "nzero_updata = 0 em 43.000/43.000 ciclos e 746/746 celulas (a sentinela segue dormente em 30 sementes — T11 §9(ii) fechado). A DISCRIMINACAO do ramo (a) por reconstrucao (V=V0*faixa, UniformPoint+NoActive) NAO foi estendida as 30 sementes: NAO MEDIDO. Permanece valido o argumento estrutural da T11 (ramo (a) impossivel quando NI-mu >= N, o que elimina 21 dos 25 problemas por construcao) e a discriminacao do ciclo 1 na s42 (roda em MMF1/MMF4/MMF11_L, nao roda em DTLZ1).",
+   "veredito": "sancionado (bundle B3.5 + D29 laranja + D-D da T11); parte do T caiu (nzero), parte permanece",
+   "muda_vs_s42": false,
+   "arquivo_linha": "UpdataArchive.m:19,41-51,66-70"
+  },
+  {
+   "id": "B14",
+   "aspecto": "Miolo do RVEA interno (SBX/PM, k-means++, randi, ordem lex do unique)",
+   "classe": "T",
+   "medicao": "sem rastro recuperavel. Unico ganho com 30 sementes: as ~860.000 populacoes intermediarias existem na (3) (112.390.110 linhas), mas os operadores que as geraram nao sao logados. O determinismo do PIPELINE (mesmo DoE + mesma semente -> mesma trajetoria) esta provado bit-a-bit em 24 pares cross-maquina (ver N4), o que e' a evidencia mais forte possivel sem instrumentar os operadores.",
+   "veredito": "teto de verificabilidade (fora do denominador)",
+   "muda_vs_s42": false,
+   "arquivo_linha": "KRVEA.m:74,84 / KrigingSelect.m:26 / UpdataArchive.m:42,46,55,59"
+  },
+  {
+   "id": "N2",
+   "aspecto": "adapt_delta_V (a instrumentacao nova da T11) em escala",
+   "classe": "2",
+   "medicao": "presente com EXATAMENTE 9 valores em 43.000/43.000 ciclos (nunca 8, nunca 10); 387.000 valores, 0 NaN, faixa 0 a 3,54e8. RECOMPUTO INDEPENDENTE da (3) (norma de Frobenius de V0.*delta_faixa, V0 = UniformPoint NBI): 39.231/39.231 eventos com tolerancia relativa 1e-3; 38.976 (99,35%) a 1e-4, e as 255 excecoes tem erro ABSOLUTO mediano 6,9e-7 sobre magnitudes medianas 2,6e-3 (cancelamento na subtracao de faixas gravadas em float32). Os 5.750 zeros da amostra sao TODOS legitimos (delta_faixa exatamente nula) — o campo nao e' sentinela em nenhuma semente. LACUNA da T11 confirmada e quantificada: o evento inter-ciclo omitido tem mediana 7,95 contra 1,42 do 1o logado — 5,6x maior (n=4.284 ciclos).",
+   "veredito": "extensao nossa (DI-10/A3-I-05.4) declarada, verificada por recomputo em 30 sementes; a lacuna de cobertura (9 de 10 eventos) permanece e deve ser declarada a quem usar o campo",
+   "muda_vs_s42": false,
+   "arquivo_linha": "b3_instrument.m:101,126-161 / KRVEA.m:31,91-93"
+  },
+  {
+   "id": "M1",
+   "aspecto": "apd_sel = NaN em selecoes do ramo APD",
+   "classe": "3",
+   "medicao": "25 de 215.000 selecoes (0,0116%) em 10 de 746 celulas: BBOB_F17 sementes 2,4,8,9,10,13,18,23,26 (24 casos) e MMF1/15 (1 caso). Causa PROVADA por recomputo: (a) em BBOB_F17 a razao entre as faixas dos dois objetivos chega a 1,8e6-2,4e6, os vetores adaptativos V=V0.*faixa colapsam sobre uma direcao e gamma(i)=min(acos(cos(Va_i,Va_j))) SUBBORDA A 0 EXATO em 12 a 17 dos ~66-73 vetores ativos, de modo que Angle/gamma = 0/0 = NaN; (b) em MMF1/15 ciclo 5 o individuo que e' minimo em TODOS os objetivos vira linha NULA apos a translacao e pdist2(...,'cosine') fica indefinido -> Angle=NaN. Efeito: nesses 25 infills a escolha dentro do cluster nao e' o minimo-APD e sim o primeiro indice (semantica do min do MATLAB com todos-NaN).",
+   "veredito": "DESVIO INEXPLICADO (nenhuma decisao o cita). Codigo STOCK vendorizado, nao patchado por nos. Benigno em escala (0,0116%) e nao derruba nenhum run, mas nao esta sancionado.",
+   "muda_vs_s42": true,
+   "arquivo_linha": "KrigingSelect.m:28-45 (linhas 31 gamma, 32 Angle, 41 APD)"
+  },
+  {
+   "id": "M2",
+   "aspecto": "Contrato do (5): campanha_id, repo_hash, schema",
+   "classe": "3",
+   "medicao": "campanha_id agora PRESENTE em 746/746 (a lacuna que a T11 registrou na s42 esta fechada), schema_version=2 em 746/746, algo_version='b3-KRVEA-PlatEMO4.15' em 746/746, repo_hash IDENTICO (63db46b10063) em 746/746. MAS o campanha_id vem em duas ondas e o prefixo de uma NAO bate o repo_hash: '7f4f0e429a46_M8' em 735 celulas (prefixo 7f4f0e429a46 != repo_hash 63db46b10063) e '63db46b10063_2026-08-14' em 11 celulas (host 'matlab-vm1', 9 delas semente 12).",
+   "veredito": "inexplicado no dado que tenho: nao sei se o prefixo do campanha_id deve ou nao coincidir com repo_hash. ESCALADO (D81). O repo_hash, que e' o que responde 'qual codigo rodou', e' unico em 746/746.",
+   "muda_vs_s42": true,
+   "arquivo_linha": "manifest.campanha_id x manifest.repo_hash"
+  },
+  {
+   "id": "M3",
+   "aspecto": "Invariancia de SEMENTE do regime do switch (a leitura comportamental da T11)",
+   "classe": "2",
+   "medicao": "Agregado 10.630/43.000 ciclos = 24,72% no ramo incerteza (T11 s42: 23,8% — invariante no agregado). MAS: so 6 dos 25 problemas tem as 30 sementes no mesmo regime puro (BBOB_F17, BBOB_F5, BBOB_F55, MMF1, MMF11_L, MMF4, todos 100% APD); 402/746 celulas sao 100% APD, 40/746 sao 100% incerteza e 304/746 alternam. A fracao de ciclos em incerteza varia com a SEMENTE dentro do mesmo problema em ate 85 pp (BBOB_F49 0%-85%), 81 pp (WFG5 8,5%-89,8%), 64 pp (DTLZ1 35,7%-100%), 56 pp (WFG4 12,1%-67,8%), 51 pp (WFG9), 43 pp (DTLZ4 0%-42,9%); amplitude mediana 7,7 pp.",
+   "veredito": "o MECANISMO e' invariante (a identidade ramo=(Flag<=delta) fecha 43.000/43.000); a CONCLUSAO comportamental de 1 semente ('o switch trava por par geometria/N', 16/25 celulas 100% APD) NAO generaliza. Achado positivo desta rodada.",
+   "muda_vs_s42": true,
+   "arquivo_linha": "KrigingSelect.m:57"
+  },
+  {
+   "id": "M4",
+   "aspecto": "Navalha do dedup float64 x export float32 (a colisao que a T11 nomeou na s42)",
+   "classe": "2",
+   "medicao": "2 colisoes de X em 321.964 linhas da (1) das 746 celulas = taxa 6,2e-6: ZDT4/7 (linhas 162 e 166) e ZDT4/22 (linhas 110 e 120) — mesmo X em float32 e mesmo f, ambas na fase 'opt'. O dedup D57 opera bit-a-bit em float64 e julgou os pontos distintos; o export float32 (D53) os funde. 0 duplicatas no DoE em 746/746.",
+   "veredito": "caveat de reproducao bit-a-bit ja nomeado pela T11 (§N3), agora com taxa medida; nao altera nenhuma conclusao de fidelidade",
+   "muda_vs_s42": false,
+   "arquivo_linha": "politica D53 (float32 sem arredondamento) x D57"
+  },
+  {
+   "id": "M5",
+   "aspecto": "Reprodutibilidade cross-maquina (o N3 da T11, no atacado)",
+   "classe": "2",
+   "medicao": "24 pares vm1 x vm5 da onda M8 (semente 7, 24 problemas): parquets __real, __surrogate e __pop BYTE-A-BYTE identicos em 24/24; (6) com todos os campos de decisao identicos em 1.353/1.353 ciclos e erro relativo 0,0 EXATO em apd_sel, criterio_meanMSE, adapt_delta_V e dist_min_arquivo (6.055 selecoes). Execucoes independentes (hosts distintos, ~18 h de intervalo, vm5 2,04x mais lenta). 4 pares em que um lado e' pos-troca-de-shape da vm5: divergencia total de trajetoria a partir dos ciclos 2, 2, 5 e 8. Ver N4.",
+   "veredito": "resultado MELHOR que a doutrina do RUNBOOK §6.2: dentro da frota M8 a fidelidade do b3 e' bit-exata, nao apenas estatistica. A ressalva vale so para as 52 celulas fora dessa linha de base.",
+   "muda_vs_s42": false,
+   "arquivo_linha": "espelhos matlab-vm1 / matlab-vm5"
+  },
+  {
+   "id": "M6",
+   "aspecto": "Integridade do acervo (censo, camadas, saude do despachante)",
+   "classe": "3",
+   "medicao": "747 de 750 celulas existem; 746 com as 6 camadas completas (jsonl, manifest, real, pop, surrogate, timing); ZDT1/13 EM VOO (so (6), 115 ciclos, fe 901/929 = 97,0%, sem rodape, ultimo evento 14/08 23:20Z, TODOS os invariantes fechando nos 115 ciclos); ZDT1/26, ZDT3/13 e ZDT3/26 AUSENTES em resultados_experimentos e em TODOS os 6 espelhos. n_retries=0 e fallback_ativado=false em 746/746; 0 guards alem de cache_hit e hard_stop; 0 celulas em contrato/integridade. Nenhuma celula do b3 caiu na janela de swap da vm5 (>=14/08 15:20Z): o ultimo created_at de vm5 e' 14/08 12:33Z. Custo total 78,53 h-core em 6 VMs.",
+   "veredito": "3 celulas nao entregues + 1 truncada = 4/750 (0,53%). Nao e' desvio de algoritmo, mas e' lacuna de acervo nao explicada por nenhuma decisao. ESCALADO.",
+   "muda_vs_s42": true,
+   "arquivo_linha": "censo_completo_22.csv / resultados_experimentos/b3/"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C3-1",
+   "descricao": "apd_sel = NaN em 25 de 215.000 selecoes (0,0116%), em 10 de 746 celulas (9x BBOB_F17, 1x MMF1/15). Causa provada por recomputo independente: (a) em BBOB_F17 as faixas dos dois objetivos diferem por 1,8e6-2,4e6, os vetores adaptativos V = V0.*faixa colapsam sobre uma direcao e gamma(i) subborda a ZERO EXATO em 12-17 dos ~66-73 vetores ativos, tornando Angle(i)/gamma(i) = 0/0 = NaN; (b) em MMF1/15 ciclo 5 o individuo que e' minimo em TODOS os objetivos vira linha nula apos PopObj = PopObj - min(PopObj) e pdist2(...,'cosine') fica indefinido. Consequencia: nesses 25 infills a escolha dentro do cluster nao foi o minimo-APD e sim o primeiro indice (semantica do min do MATLAB quando todo o grupo e' NaN). Codigo STOCK vendorizado (nao ha patch nosso nessas linhas). Nenhuma decisao do acervo cita este modo.",
+   "gravidade": "baixa (0,0116% das selecoes; nao derruba run, nao altera nenhum invariante, nao produz NaN em nenhuma outra camada — 0 NaN em mu/sigma/f_best/dist_min_arquivo em 11,4 M de linhas auditadas)",
+   "acao": "1) Classificar na bussola D29 — provavelmente laranja (detalhe de implementacao do stock, fica o codigo) ou roxo (errata do artigo: o Alg. 3 pressupoe gamma>0). 2) Declarar caveat na dissertacao para BBOB_F17: em objetivos com faixas separadas por ~6 ordens de grandeza a penalidade angular do APD degenera. 3) Se o autor quiser fechar por completo, sao 2 linhas read-only: logar min(gamma) e sum(isnan(APD_S)) em KrigingSelect.m:41.",
+   "arquivo_linha": "KrigingSelect.m:28 (translacao), :31 (gamma), :32 (Angle), :41 (APD)"
+  },
+  {
+   "id": "C3-2",
+   "descricao": "Contrato do (5): o prefixo de campanha_id ('7f4f0e429a46') nao coincide com o repo_hash gravado pelo proprio run ('63db46b10063') em 735 de 746 celulas; nas outras 11 (host 'matlab-vm1', onda de 14/08, 9 delas semente 12) o campanha_id e' '63db46b10063_2026-08-14' e AI o prefixo coincide. Nao encontrei decisao que defina a semantica do prefixo. O repo_hash — o campo que responde 'qual codigo rodou' — e' unico em 746/746, entao o risco material e' nulo, mas o campo esta ambiguo como rastro de proveniencia.",
+   "gravidade": "baixa (rastreabilidade, nao fidelidade)",
+   "acao": "ESCALAR (D81): definir se o prefixo do campanha_id deve ser o repo_hash do despacho ou o do run. Se for do despacho, e' apenas uma nota; se for do run, 735 celulas carregam rotulo incorreto.",
+   "arquivo_linha": "manifest.campanha_id x manifest.repo_hash"
+  },
+  {
+   "id": "C3-3",
+   "descricao": "4 celulas de 750 nao entregues: ZDT1/26, ZDT3/13 e ZDT3/26 nao existem em resultados_experimentos nem em nenhum dos 6 espelhos (outras 10+ configs tem essas mesmas celulas ok, entao nao e' propriedade do problema); ZDT1/13 esta EM VOO (115 ciclos, fe 901/929 = 97,0%, sem rodape e sem manifesto, ultimo evento 2026-08-14T23:20:16Z). Nao e' desvio de algoritmo — os 115 ciclos da celula em voo fecham TODOS os invariantes — mas deixa ZDT1 e ZDT3 com 28 replicas contra 30 dos demais 23 problemas.",
+   "gravidade": "media (afeta o n das analises estatisticas em 2 dos 25 problemas)",
+   "acao": "Decidir: (a) completar as 3 ausentes + a truncada, ou (b) declarar n=28 para ZDT1 e ZDT3 em toda a analise. Se completar, notar que a maquina que rodar precisa ser da linha de base M8 (ver N4) para preservar a reprodutibilidade bit-a-bit.",
+   "arquivo_linha": "resultados_experimentos/b3/ZDT1/{13,26}, /ZDT3/{13,26}"
+  }
+ ],
+ "N4_deriva_dummy": "ver N4_deriva",
+ "score": 9.4,
+ "score_t11": 9.8,
+ "veredito_recomendado": "ACEITAR — recomendacao, nao sentenca (D97: a validacao de fidelidade e' manual e do autor). O mecanismo do b3 sobreviveu a 30 sementes sem uma unica quebra de identidade estrutural: a query-joia fecha 25.195/25.195 a 5,93e-08, o criterio (media das variancias) fecha 215.000/215.000 a 4,96e-16 em varredura TOTAL, e o operando do switch (NumV2) foi provado por RECOMPUTO INDEPENDENTE da (3) em 4.359/4.359 ciclos — algo que a auditoria de 1 semente so tinha por leitura de codigo. Recomendo aceitar com 4 declaracoes anexas: (1) a classe (3) C3-1 (apd_sel=NaN, 0,0116%, causa provada, codigo stock); (2) as 52 celulas de 746 (7,0%) fora da linha de base bit-exata M8 — 41 de vm5 pos-troca-de-shape e 11 do host 'matlab-vm1'; (3) o n=28 de ZDT1 e ZDT3; (4) as duas conclusoes COMPORTAMENTAIS da T11 que 30 sementes derrubam — a monotonia estrita de fe_treino_max (741/746) e o 'travamento' do switch (so 6/25 problemas tem regime puro em todas as sementes; variacao de ate 85 pontos percentuais entre sementes do mesmo problema).",
+ "decisoes_ao_autor": [
+  "ESCALADO (D81) — semantica do campanha_id: 735 celulas trazem '7f4f0e429a46_M8', cujo prefixo NAO e' o repo_hash gravado pelo run ('63db46b10063'), e 11 trazem '63db46b10063_2026-08-14', cujo prefixo E'. Nao ha decisao no acervo que defina se o prefixo e' o hash do despacho ou o do run. Nao escolhi. O repo_hash e' identico em 746/746, entao a pergunta 'qual codigo rodou' esta respondida; o que esta ambiguo e' o rotulo de campanha.",
+  "ESCALADO (D81) — as 4 celulas duplicadas de semente 12 (DTLZ7, MMF16_20, WFG2, WFG4) tem DUAS execucoes validas e divergentes: o canonico ficou com o lado 'matlab-vm1' (14/08 02:xx) e o log de conflitos descartou o lado vm5 (14/08 12:xx). A evidencia que levantei (tempo de parede normalizado da vm5 cai de 1,52-1,93 para 0,74 em 14/08, isto e', 2,1-2,6x mais rapida) aponta que o lado vm5 e' o pos-troca-de-shape e portanto o outlier — mas nao ha terceira copia para arbitrar. NAO ESCOLHI qual e' o canonico correto.",
+  "DECISAO NECESSARIA — as 41 celulas canonicas produzidas pela vm5 em 14/08 (pos-troca de shape) e as 11 do host 'matlab-vm1' somam 52/746 (7,0%) sem referencia bit-a-bit contra a linha de base M8, e as unicas 4 comparacoes disponiveis mostram trajetoria diferente. Decidir se isso vira caveat de metodo, se essas celulas sao re-rodadas na linha de base, ou se nada muda (todos os invariantes fecham nelas).",
+  "DECISAO NECESSARIA — ZDT1/26, ZDT3/13 e ZDT3/26 nao existem em lugar nenhum e ZDT1/13 esta truncada em 97,0% do orcamento. Completar as 4 ou declarar n=28 para ZDT1 e ZDT3? Se completar, a maquina precisa ser da linha de base M8 para preservar a reprodutibilidade bit-exata medida nos 24 pares.",
+  "DECISAO NECESSARIA — classificar a classe (3) C3-1 (apd_sel=NaN por gamma->0 em objetivos mal-escalados / linha nula apos translacao) na bussola D29: laranja (detalhe de implementacao do stock, fica o codigo) ou roxo (errata do artigo, cujo Alg. 3 pressupoe gamma>0). Recomendo tambem um caveat na dissertacao para BBOB_F17.",
+  "PENDENCIA HERDADA DA T11, ainda aberta: a substring 'Multiple design sites are not allowed' (dacefit.m:93, DEF-A8) continua fora do NO_RETRY. Nao mordeu nesta campanha (n_retries=0 e fallback=false em 746/746, 0 duplicatas no DoE em 746/746), mas o modo de falha real do b3 segue nao coberto.",
+  "PENDENCIA HERDADA DA T11, ainda aberta: adapt_delta_V loga 9 dos 10 eventos de adaptacao por ciclo e omite o inter-ciclo. Agora quantificado em 4.284 ciclos: o evento omitido tem mediana 7,95 contra 1,42 do 1o logado (5,6x maior). Quem usar o campo como 'quanto os vetores se moveram no ciclo' subestima sistematicamente. Correcao: mover a inicializacao de faixa_ant para fora do laco de ciclos, ou logar a faixa do w=20 do ciclo anterior.",
+  "SUGESTAO (nao pedi, nao fiz) — a discriminacao forense do ramo (a) do UpdataArchive (VD-b3) que a T11 fez para o ciclo 1 da s42 e' extensivel as 90 celulas D=2 x 30 sementes com o mesmo maquinario que usei aqui (UniformPoint NBI + NoActive, ja validado contra NumV2 em 4.359/4.359 ciclos). Fica como proxima verificacao dirigida se o autor quiser o numero em todas as replicas."
+ ]
+}

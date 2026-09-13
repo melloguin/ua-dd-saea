@@ -1,0 +1,53 @@
+{
+ "config": "treed_media (alg_id 23) — ablação cirúrgica do c311/TGPR-MO no tier big (B15.4/DI-16.5[P5]/DI-35.2): treeGP pura sem GPs locais, sonda 1×20.000, RVEA final 10×100=1.000 ger sobre surrogate congelado, σ NULL (DI-16.1). Piso de controle sem artigo — gabarito = bundle alg_c311_tgprmo.md + cartão T8 + REGISTRO. Sweep-only: 10 células, todas tier=big (N=50.000), todas s42, todas mac.",
+ "celulas_final": "10/10 ✅ válidas sob O-21 (rodapé autoridade): sweep-big-lhs × {ZDT4, DTLZ2, MMF16_20, WFG9, ZDT1} = 5 ✅ · sweep-big-mvns × idem = 5 ✅. Todas footer/⑤ status=ok · motivo=orcamento · fe_final==maxfe==50.000. Rodapé ⑥ presente e reconciliado em 9/10 (o discriminador B-01 — primeiro footer com fe_final não-nulo — resolve corretamente as 3 células com 2 footers); 1/10 (sweep-big-mvns/MMF16_20/42) sem rodapé, válida pela triagem estrutural pré-registrada (ver celulas_invalidas). Zero ⚪ teto_wall, zero ❌, zero eventos guard. Reais: 0 células (lacuna sancionada D102.16).",
+ "novas_desde_f30": "ZERO novas e ZERO modificadas. F30 NÃO cobriu o config (0 linhas em censo_30sementes.csv e censo_completo_22.csv — exclusão D102.16: sweep/q10/c311 fora da bateria 30 sementes); a última auditoria que tocou o dado é a T11. Censo FINAL = 10 células = exatamente o universo F5/T11. Mtimes em disco (2026-07-24 19:32–22:04 e 2026-07-26 08:08–08:23 local, os dois lotes originais) idênticos ao censo_final.csv ao segundo, 8 arquivos/célula íntegros e legíveis. O corpus deste config é 100% pré-T11: schema_version=1, repo_hash=None, campanha_id ausente, 0 eventos checkpoint, tempo_aval_real_s=0.0 — medido em 10/10.",
+ "mecanismo_nos_novos": "Não há células novas; a query-joia da família rodou como spot-check de cobertura INTEGRAL nas 10 células existentes. (i) CONGELAMENTO (A9/F1): agrupei a ③-busca por X bit-a-bit (bytes f32) e contei μ distintos — 9.443 X reavaliados em gerações distintas, 675.616/675.616 linhas cobertas SEM divergência de μ (0 divergências em 10/10; erro 0) — reproduz dígito a dígito o número T11/F5. (ii) Assinatura da ablação (A15): nº de μ distintos na sonda ≤ ⌊N/(10D)⌋ em 10/10 (máx 124–393 vs tetos 166–500) — zero GP no modelo. (iii) Bateria de contrato 7 camadas: ① 50.000/fase=init/fe_index denso 10/10 · ② vazia 10/10 · ③ = 876.627 linhas, σ NaN 876.627/876.627, geracao densa {1..1000} 10/10, sonda 20.000 com geracao NULL 10/10 · ④ 1 linha com identidade fit+busca=tempo_geracao_s a ≤1e-7 rel · ⑤ completo 10/10 · ⑥ íntegro 9/10+1 caveat · ⑦ nd_pos_real recomputado EXATO 10/10 (678 pts, 309 ND), origem_geracao≡1000, reconciliação footer↔camadas 9/9. Orçamento: regime offline D90 (maxfe=n_dataset=50.000, não 31D-1) — fe_final==maxfe 10/10. Cobertura de sementes: o config só existe em s42 (sweep nunca rodou outras sementes; lacuna aceita) — as 30 sementes não se aplicam.",
+ "reais": "0 células nos 3 problemas reais: RE21 0 · DDMOP7 0 · ESTOQUE40 0. Lacuna SANCIONADA (D102.16 excluiu q10/sweep/c311 da onda T15; o autor declarou o corpus congelado). Não medido: nada a medir — checa_regua, dedup por x_efetivo (§T15.13) e Fase 2 pooled são N/A para este config. O contraste do tier big na dissertação é sintético-only por desenho.",
+ "aspectos_mudados": [
+  {
+   "id": "N3+N4 (os 2 classe-3 da T11)",
+   "o_que": "Re-escopo dos dois desvios inexplicados de instrumentação (tempo_aval_real_s no offline; custo do checkpoint dentro de tempo_busca_s) frente ao corpus CONGELADO",
+   "antes": "T11: classe (3) 🎯 com risco para qualquer dado produzido pelo código pós-T11 (smoke media 0,0572 s de ingestão como 'avaliação'; 53,9% do tempo_busca_s era I/O de checkpoint)",
+   "agora": "MEDIDO na rodada final: as 10 células do corpus são 100% pré-T11 (schema v1, 0 eventos checkpoint, tempo_aval_real_s=0.0 em 10/10) e nunca haverá célula pós-T11 deste config (corpus congelado) => nenhum dado da dissertação carrega os dois defeitos; eles ficam confinados ao CÓDIGO, como registro"
+  },
+  {
+   "id": "cobertura F30",
+   "o_que": "Posição do config na trajetória de auditorias",
+   "antes": "Briefing sugeria herdar veredito F30",
+   "agora": "F30 comprovadamente não cobriu treed_media (0 linhas nos 2 censos F30; D102.16) — o veredito herdado e agora re-confirmado por spot-check integral é o da T11 (9,5)"
+  }
+ ],
+ "celulas_invalidas": [
+  {
+   "celula": "treed_media/sweep-big-mvns/MMF16_20/42",
+   "motivo": "NÃO é invalidez — caveat pré-registrado (F5.1 §2): rodapé ⑥ ausente e upload_status=pending (perda do caminho de escrita gcs no env_c311/Mac, lote 2026-07-26). O run científico está provadamente completo: ⑤ ok/orcamento/fe_final=50000/n_geracoes=1000, ③ com 1.000 gerações densas + sonda 20.000 hash ok, ⑦ 102 linhas/69 ND recomputado exato, query-joia 0 divergências — todas as checagens da bateria passam",
+   "recuperavel_sem_rerun": "SIM_regra_de_leitura"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "N3 (T11)",
+   "descricao": "tempo_aval_real_s no offline: código promete NULL (I-02) mas o portão FEBudget cronometra a ingestão do dataset — dado pós-T11 gravaria ~0,06 s como 'custo de avaliação' num run que não avalia nada. Transversal aos 5 offline Python",
+   "gravidade": "NULA para o corpus congelado (s42 grava 0.0 e não há nem haverá célula pós-T11 deste config); relevante só como registro de código",
+   "acao": "Nenhuma para a dissertação. Se algum dia houver novo disparo: conserto de 1 linha (zerar cronômetro pós-ingestão) + teste de COMPORTAMENTO (não grep). Já escalado como item transversal na T11",
+   "arquivo_linha": "src/standalone_harness.py:647-653 · src/budget.py:198-202,249-252"
+  },
+  {
+   "id": "N4 (T11)",
+   "descricao": "Custo do checkpoint (DI-43) dentro de tempo_busca_s/tempo_geracao_s, violando o espírito da DI-13.10 (que o config honra à risca para a sonda) — no smoke, 53,9% do tempo_busca_s era I/O de checkpoint",
+   "gravidade": "NULA para o corpus congelado (0 eventos checkpoint nas 10 células; timing s42 limpo, identidade fit+busca=geracao a ≤1e-7). Risco residual: leituras de custo em dados PÓS-T11 de outros configs offline",
+   "acao": "Nenhuma para os dados deste config. Manter a regra transversal: qualquer leitura de tempo pós-T11 dos pisos offline desconta Σ tempo_checkpoint_s do ⑥",
+   "arquivo_linha": "src/treed_media.py:444-461,490 · src/checkpoint.py:122"
+  }
+ ],
+ "score_final": 9.5,
+ "trajetoria_scores": "F5 9,5 → T11 9,5 → F30 (sem cobertura — D102.16; veredito T11 carregado) → FINAL 9,5. Causas: F5→T11 MANTEVE porque o mecanismo foi provado bit-idêntico pré/pós-T11 (①③⑦② da célula mvns/ZDT4 com hashes iguais, 107.318 linhas) e A18 (10×100) subiu de prova estatística para determinística, mas nasceram 2 classe-3 no código da T11 (N3/N4). T11→FINAL MANTÉM porque: (i) zero células novas/modificadas — mtimes idênticos ao censo, dado intocado desde 2026-07-26; (ii) a bateria integral re-passa 10/10 e a query-joia reproduz 675.616/675.616 sem divergência; (iii) os 2 classe-3 ficam comprovadamente FORA do corpus congelado (100% pré-T11, medido), o que remove a única mancha que a T11 condicionava a conserto pré-disparo — disparo que nunca ocorreu e não ocorrerá. Não sobe a 10: 1/10 célula sem rodapé (caveat de ambiente), ⑥ com só 32 eventos, 3 itens no teto T (agregador da folha, vendor/env, semeadura D62 — exigem código/re-run), e cobertura de 1 semente.",
+ "veredito": "RECOMENDO ACEITAR as 10/10 células como VÁLIDAS para a dissertação (decisão final é do autor, D97). O config chega à rodada final exatamente como a T11 o deixou: mecanismo conforme (ablação limpa — árvore ≡ c311 em 99,995% dos pontos sem GP; congelamento provado em 675.616 reavaliações sem 1 divergência; zero GP detectado pelo contador de folhas em 10/10), contabilidade O-21 limpa (10 ok/orcamento, zero teto, zero falha), corpus intocado e livre dos 2 defeitos de instrumentação da T11 por ser integralmente pré-T11. Ressalva estrutural que a análise deve honrar: por D69 as métricas oficiais da ① EMPATAM com o c311 por desenho — o papel de régua do piso vive exclusivamente na ⑦ (IGD+⑦/fantasia).",
+ "decisoes_ao_autor": [
+  "Ratificar a regra de leitura da célula sweep-big-mvns/MMF16_20/42 (sem rodapé ⑥, upload pending): triagem estrutural da Etapa 1.2 (n_geracoes+③+sonda) no lugar do footer — recomendo VÁLIDA; registrar o caveat no texto da dissertação.",
+  "Confirmar o fechamento dos itens N3/N4 como 'confinados ao código' para este config (corpus 100% pré-T11, medido) — sem correção necessária; manter apenas a regra transversal de descontar tempo_checkpoint_s em leituras de timing pós-T11 de OUTROS configs offline.",
+  "Garantir que o contraste do tier big (c311 × treed_media) na análise final use SOMENTE a camada ⑦ (IGD+⑦, fantasia nd_pos_real/n_final) — as métricas da ① empatam dígito a dígito por desenho (D69) e qualquer ranking sobre elas é vazio.",
+  "Registrar explicitamente as lacunas aceitas do config: só s42 (10 células, sem estatística entre sementes — contrastes LHS×MVNS são descritivos de 1 semente) e zero células nos 3 problemas reais (D102.16)."
+ ]
+}

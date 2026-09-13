@@ -1,0 +1,65 @@
+{
+  "artifact": "doe",
+  "spec_version": "5.2",
+  "decision": "D87/D88",
+  "generator_version": 1,
+  "problema": "ZDT6",
+  "problema_id": 7,
+  "semente": 13,
+  "D": 10,
+  "n_init": 109,
+  "maxfe": 309,
+  "bounds": {
+    "xl": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "xu": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "sampler": "lhs-maximin",
+  "K": 100,
+  "seed_formula": "SeedSequence((semente, problema_id))",
+  "seed_tuple": [
+    13,
+    7
+  ],
+  "columns": [
+    "x0",
+    "x1",
+    "x2",
+    "x3",
+    "x4",
+    "x5",
+    "x6",
+    "x7",
+    "x8",
+    "x9"
+  ],
+  "dtype": "float64",
+  "row_major": true,
+  "numpy_version": "2.4.6",
+  "bitgen": "PCG64",
+  "doe_hash": "0db9751744129a13ecbd0a74e36331bc203497b4e60a6b374806eae9be63035d",
+  "n_rows": 109,
+  "n_cols": 10,
+  "created_at": "2026-07-16T02:23:26+00:00"
+}

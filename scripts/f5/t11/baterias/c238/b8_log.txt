@@ -1,0 +1,22 @@
+reproducao da lnL (erro do meu recomputo vs o log): max=0.728 mediana=0.039
+
+### T11_smoke
+  obj0: gap(grade-log) mediana=256.708  min=2.117  max=406.792  ; gap>1 nat em 40/40 ; gap>10 nats em 36/40
+        theta logado: saturado no TETO 1e3 em 0/40 ; no PISO 1e-3 em 5/40 ; theta_media final=1
+        argmax da GRADE (log10 theta) mediana = (2.25, -1.50)
+        lnL logada: 25.672 -> -165.502 (max da trajetoria 79.461)
+  obj1: gap(grade-log) mediana=227.613  min=-0.037  max=372.115  ; gap>1 nat em 35/40 ; gap>10 nats em 28/40
+        theta logado: saturado no TETO 1e3 em 6/40 ; no PISO 1e-3 em 3/40 ; theta_media final=14.82
+        argmax da GRADE (log10 theta) mediana = (2.75, 0.75)
+        lnL logada: 27.836 -> -188.240 (max da trajetoria 81.026)
+
+### R42
+  obj0: gap(grade-log) mediana=223.608  min=-0.910  max=511.396  ; gap>1 nat em 37/40 ; gap>10 nats em 36/40
+        theta logado: saturado no TETO 1e3 em 0/40 ; no PISO 1e-3 em 10/40 ; theta_media final=1
+        argmax da GRADE (log10 theta) mediana = (2.25, -2.88)
+        lnL logada: 25.673 -> -165.047 (max da trajetoria 144.895)
+  obj1: gap(grade-log) mediana=101.263  min=-0.123  max=419.775  ; gap>1 nat em 33/40 ; gap>10 nats em 24/40
+        theta logado: saturado no TETO 1e3 em 7/40 ; no PISO 1e-3 em 3/40 ; theta_media final=1
+        argmax da GRADE (log10 theta) mediana = (3.00, 0.50)
+        lnL logada: 27.836 -> -300.887 (max da trajetoria 62.781)
+

@@ -1,0 +1,349 @@
+{
+ "config": "c238 (EIM · Zhan/Cheng/Liu, IEEE TEVC 21(6):956-975, 2017 · EIMe euclidiano) · exp=main · RODADA FINAL sobre corpus CONGELADO: 25 sinteticos herdados do F30 + 3 problemas reais novos (RE21/DDMOP7/ESTOQUE40)",
+ "celulas_final": "DISCO: 765 celulas (676 sinteticas + 89 reais). Por estado O-21 (rodape = autoridade): [SINTETICOS, identicos ao F30 — mtime max 2026-08-14T14:02, zero alteracao] 645 OK com rodape status:ok (BBOB_F1 24 · F17 30 · F22 19 · F37 29 · F49 30 · F5 17 · F55 24 · DTLZ1 30 · DTLZ2/3/4 28 cada · DTLZ7 24 · MMF1 30 · MMF11_L 30 · MMF16_20 24 · MMF4 30 · WFG1/2/5 24 cada · WFG4/9 23 cada · ZDT1/3 23 cada · ZDT4 29 · ZDT6 27) · 29 FAILED com rodape MATLAB:badsubscript (so D=10; 29/258 = 11,2% — incapacidade final reportada, m8-freeze, sem fix) · 2 INDEFINIDAS sem rodape e sem manifesto (ZDT1/7, ZDT3/7 — interrupcao de coleta em voo 13/08, laudo D0) · 74 nunca produzidas (lacuna ACEITA pela declaracao do autor). [REAIS, novos] RE21 30/30 OK · DDMOP7 30/30 OK · ESTOQUE40 29/29 OK — TODAS com rodape status:ok, orcamento fe_final==maxfe==31D-1 (123/526/1.239) exato, termino normal, cp_init true; POREM 14 das 29 EST40 (sementes 14,16-28) tem o (6) TRUNCADO NA COPIA DO REPO (para em ~652-672 de 800 gens, sem rodape) — o rodape ok existe na copia INTEGRA de ~/mestrado_coleta_reais/matlab-vm1 e o repo e prefixo-byte-exato dela em 14/14; (1)-(5) completos no repo. EST40 semente 15 nunca produzida (lacuna aceita). ⚪ teto_wall: 0 no config inteiro. O censo_final.csv (734 ok p/ c238) BATE com o disco: 645+89, excluindo as 29+2 invalidas.",
+ "novas_desde_f30": "89 celulas novas, todas reais, mtimes 2026-08-15T15:41 a 2026-08-18T18:45: +30 RE21 (vm1, 15/08, repo_hash 3240f4b26fae, campanha 3240f4b26fae_2026-08-15) · +30 DDMOP7 (semente 0 na vm1 15/08 com 3240f4b26fae; sementes 1-28+42 na vm5 17-18/08 com 7be66e65522c) · +29 EST40 (vm1, 16-18/08, 3240f4b26fae). ZERO sintetica mudou (mtime maximo 14/08 14:02 = o corpus que o F30 varreu; 676 celulas identicas em contagem e estados). git diff 3240f4b..7be66e6: NENHUM delta em algorithms//experiment.* (so metrics.py, docs, lote3s.sh) — os 2 repo_hash dos reais sao execucao-equivalentes; o fix do front singleton (commit 746408b, T15.9/DEC-8) e ancestral de AMBOS. Herdei o veredito F30 dos sinteticos com spot-check: 7 celulas (BBOB_F17/28, MMF4/42, ZDT6/3, DTLZ2/5, WFG5/10, ZDT4/0, BBOB_F49/26), 1.520 geracoes de query-joia re-fechadas (max 9,3e-08), bateria toda verde; unica nota: no ZDT6 o n_front logado excede o front reconstruivel de float32 em 1-5 (116/200 gens) — o teto float64 da regra 11 do CONTRATO, ja declarado na F30/T11, nao e novo.",
+ "mecanismo_nos_novos": "QUERY-JOIA (identidade EIMe do Apendice A, reconstruindo a frente ND da (1) geracao a geracao contra u_best/s_best/norm_* do (6)): 35.800/35.800 geracoes FECHAM (100,000%) — RE21 2.400/2.400 (mediana 7,6e-09, max 8,6e-08), DDMOP7 10.200/10.200 (mediana 2,5e-09, max 2,4e-08), EST40 23.200/23.200 (mediana 3,5e-11, max 7,0e-08) — |Δ| mediano global 1,05e-10, p99 3,19e-08, maximo 8,63e-08 = piso float32; cobre TODAS as 30/30/29 sementes (nas 14 EST40 truncadas usei a copia integra da coleta). Nem a excecao do F30 se repete: zero geracoes acima de 1e-5 (o F30 tinha 27). PELO POOL (amostra 15 celulas, 6.100 geracoes, 1.905.000 pontos da (3) em espaco transformado): max|max_pool - eim_best| = 8,98e-08 (E11/E2 fecham 6.100/6.100); contrafactual sigma->0 muda o argmax em 62,1% (a incerteza e load-bearing nos reais); propriedade N2 do artigo (monotonia na incerteza, sigma*1,01): 0 violacoes em 1.905.000 pontos. Bateria de contrato 19/19 checks em 89/89 celulas: orcamento 31D-1 exato, fe contiguo, DoE == artefato (doe_hash sha256 645-conv. e (1)init bit-exato float32 89/89), camadas (1)-(6) com aritmetica exata (pop=Σ(init+g), timing=n_gens, surrogate=pool+sonda), 0 linhas malformadas, 0 dedup/eim_nan/range0, 0 violacoes de timing, 0 violacoes de bounds de theta, cache_hits=1 (lei c0=1), sonda: cadencia+finalProbe 59/59 em RE21/EST40 e ZERO blocos no DDMOP7 (D102.10 declarado no (5)) 30/30. MLE: 0/94.800 componentes com lnL<=0 — a degeneracao N1 dos sinteticos NAO aparece nos reais; eim_best==0: 0 geracoes (sem saturacao tipo BBOB_F1). min_dist_infill global 0,0162 (4+ ordens acima do gatilho 1e-8 do artigo).",
+ "reais": "RE21 (D=4): HV mediano 0,8795 com CV 0,07% e IGD+ 0,00454 (CV 6,6%) — resolucao quase-deterministica entre sementes; formulacao re-verificada por recomputo fechado independente sobre TODAS as 3.690 avaliacoes: erro relativo maximo 3,81e-07 (= float32; T15 media 3,3e-07), bounds respeitados; regua: 66 micro-furos tolerados (max 1,4e-07 do range — ruido de persistencia, exatamente o calibre T15.13b). DDMOP7 (D=17): HV mediano 0,8708 (min 0,6107, CV 8,7%) sob a regua PROVISORIA fase-1 (ideal=[0;0] ERRATA 2, nadir=[1;468/690]); checa_regua PASSA 30/30 (0 furos — o infimo teorico segura); f1=k/17 e f2=n/690 exatos (lattice) em 15.780/15.780 linhas; ZONA MORTA (D102.17) FUNCIONA em escala: 100% das 10.200 propostas da busca carregam coordenadas em (0;0,5) na (1) (prova de que a (1) grava o x PROPOSTO), f1<1 em 94,6% das propostas (mediana; contra 0/340 no c149 pre-fix do T15), e o ND final recebe pontos da BUSCA em 30/30 celulas (mediana 100% do ND vem da busca). |ND| DEDUPADO POR x_EFETIVO (CONTRATO §T15.13): mediana 61 linhas ND -> 25 x_efetivo unicos -> 3 valores de f distintos (min 2, max 7) — publicar o bruto seria reportar diversidade 20x inexistente. FRONT SINGLETON: n_front==1 ocorre em 399/10.200 geracoes, em 12/30 celulas, e NENHUMA morre — o fix ,[],1 do T15.9/DEC-8 esta no codigo (Infill_EIM.m:33/35/38, verificado) e esta EXERCITADO E EFICAZ no dado; o gatilho que matou 29 celulas sinteticas D=10 dispara centenas de vezes no DDMOP7 sem efeito. Duplicata cross-VM (s0 vm1 15/08 x vm5 17/08 pos-swap): DoE bit-igual, diverge da geracao 1, 0/340 geracoes bit-iguais, ΔHV 1,73% — consistente com N3/F30 (vm5 pos-14/08 nao e bit-estavel). EST40 (D=40): HV mediano 1,1174 (CV 0,6%), IGD+ 0,01313 (CV 10,5%); f1 = receita NEGADA em 35.931/35.931 (0 positivos); 0 pontos ND acima do nadir D102.20 (1.028 pontos DOMINADOS excedem o nadir de f3 — benigno, a regua limita o front, nao a trajetoria); celula mais cara do config inteiro: wall 641h nas 29 celulas (fit do kriging D=40 domina, 490h). Custo total dos reais: 685h wall vs 499h de TODA a campanha sintetica; no DDMOP7 o oraculo .p e 63% do wall (27,4h de aval_real em 43,6h).",
+ "aspectos_mudados": [
+  {
+   "id": "E14-badsubscript",
+   "o_que": "Crash stock Infill_EIM (MATLAB:badsubscript) — causa e fix",
+   "antes": "F30: exercitado em 29/258 celulas D=10 (11,2%), causa nao investigada (🔴), e hipotese n_front==1 da T11 declarada REFUTADA",
+   "agora": "Causa FECHADA pelo laudo D0 (14/08): gatilho e n_front1==1 (front POS-infill singleton); re-medi no dado final: 25/29 celulas falhadas tem n_front1==1 no ultimo gen logado + 4 morrem na geracao 1 (DoE ja singleton) — separacao perfeita vs 0/645 ok. A 'refutacao' do F30 media o campo errado (n_front pre-infill). Fix ,[],1 (T15.9/DEC-8, commit 746408b) aplicado POS-freeze so para os reais: presente no codigo e EXERCITADO 399x em 12/30 celulas DDMOP7 sem nenhuma morte. Taxa final sintetica permanece 11,2% D=10 = incapacidade documentada (corpus congelado)"
+  },
+  {
+   "id": "P4/C3-3",
+   "o_que": "74 celulas sinteticas ausentes",
+   "antes": "classe (3) inexplicado, escalado",
+   "agora": "SANCIONADO: o autor declarou 'o que nao executou, nao vou executar mais' — lacuna aceita do corpus congelado (idem EST40 semente 15). Sai do denominador de fidelidade"
+  },
+  {
+   "id": "C3-5",
+   "o_que": "ZDT1/7 e ZDT3/7 sem rodape",
+   "antes": "estado indefinido pelo O-21, escalado",
+   "agora": "EXPLICADO pelo laudo D0: runs em voo na hora da coleta de 13/08 (fe~870), NAO e o bug; interrupcao de infraestrutura. Continuam invalidas => excluir (NAO_rerun)"
+  },
+  {
+   "id": "N3-deriva",
+   "o_que": "Deriva cross-maquina",
+   "antes": "F30: 0 bit-exata na frota Linux ate 13/08; grande macOS<->Linux e vm5 pos-14/08 (ΔHV ate 11,2%)",
+   "agora": "Estendida aos reais: par DDMOP7 s0 vm1x vm5-pos-swap diverge da geracao 1 com ΔHV 1,73%; 29/30 DDMOP7 canonicas rodaram na vm5 pos-swap — comparabilidade nos reais e ESTATISTICA, nunca bit-exata (doutrina confirmada)"
+  },
+  {
+   "id": "U4-sonda",
+   "o_que": "Sonda nos reais",
+   "antes": "F30: cadencia ok nos 25 sinteticos",
+   "agora": "RE21/EST40: cadencia (g==1 v g%2==0)+finalProbe 59/59, blocos de 2.000, 0 falhas; DDMOP7: ZERO blocos e S=0 com motivo D102.10 declarado no (5) em 30/30 — desligamento sancionado e conforme"
+  },
+  {
+   "id": "N2-proveniencia",
+   "o_que": "Proveniencia de campanha",
+   "antes": "F30: repo_hash unico 63db46b1, 2 campanha_id",
+   "agora": "Reais somam 2 repo_hash (3240f4b26f / 7be66e6552) e 5 campanha_id novos; git diff entre os dois: ZERO delta de algoritmo (so metrics.py/docs/dispatch) — heterogeneidade documental, sem risco de codigo (herda o padrao C3-6)"
+  },
+  {
+   "id": "A1-ledger",
+   "o_que": "Identidade n_front1(g) ≡ n_front(g+1)",
+   "antes": "F30: 172.795/172.795 transicoes exatas nos sinteticos",
+   "agora": "QUEBRA em 7.136/10.170 transicoes do DDMOP7 (25/30 celulas, delta ate 169) — causa PROVADA em 40/40 casos testados: n_front1 conta linhas ND COM duplicatas exatas de f, n_front conta ND DISTINTOS (dedup); o lattice k/17,n/690 expoe a divergencia de semantica que os sinteticos nunca exercitaram. Benigno (joia fecha 10.200/10.200; nenhuma decisao usa n_front1) — vira regra de leitura"
+  },
+  {
+   "id": "T15.13-zona-morta",
+   "o_que": "Declaracao do tau no (5)",
+   "antes": "CONTRATO §T15.13: 'o tau esta em params.zona_morta do (5)'",
+   "agora": "FALSO para o c238: 0/30 manifestos DDMOP7 tem params.zona_morta — o escritor MATLAB (src/experiment.m) nunca injeta (so o standalone_harness.py:1395 injeta, rota python). tau=0,5 recuperavel de src/ddmop7_value_local.m:121 + D102.17. Classe (3) documental"
+  },
+  {
+   "id": "P1-integridade",
+   "o_que": "Integridade do (6) em escala",
+   "antes": "F30: 0 malformadas em 264.545 linhas; 645/645 com header+footer",
+   "agora": "Reais: 0 malformadas; 75/89 com header+footer no repo; 14 EST40 com (6) truncado NO REPO (sync com conflitos_pulados) mas integro na coleta_reais/vm1 (prefixo-byte 14/14, rodape ok) — falha de SINCRONIA, nao de execucao"
+  },
+  {
+   "id": "E9/N1-MLE",
+   "o_que": "Degeneracao numerica do kriging",
+   "antes": "F30: lnL<=0 em 3.710/391.400 componentes (MMF1/MMF4/MMF11_L 30/30 sementes + ZDT6 7/30)",
+   "agora": "Nos reais: 0/94.800 — a degeneracao e propriedade dos sinteticos D=2/ZDT6, nao do mecanismo; theta preso em theta0=1 em apenas 32/94.800 componentes"
+  },
+  {
+   "id": "E6-saturacao",
+   "o_que": "Saturacao EIM==0",
+   "antes": "F30: lei do config em BBOB_F1 (92,1% do orcamento, 24/24 sementes)",
+   "agora": "Nos reais: 0 geracoes com eim_best==0 — sem saturacao; o criterio decide em 100% dos infills dos 3 problemas"
+  },
+  {
+   "id": "E5-densidade",
+   "o_que": "Amostragem densa §IV-D",
+   "antes": "F30: min_dist global 8,6e-05 em 173.440 gens",
+   "agora": "Reais: min_dist global 0,0162 (sobre x proposto), 0 coincidencias com ponto anterior, n_dedup=0 em 89/89 — hazard anti-clustering nao-materializado tambem nos reais"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C3-F1",
+   "descricao": "14 CELULAS EST40 COM (6) TRUNCADO NA COPIA CANONICA DO REPO (sementes 14,16-28): o .jsonl para em 652-672 de 800 geracoes, sem rodape, enquanto manifesto e (1)-(4) estao completos e o censo as conta 'ok'. A copia de ~/mestrado_coleta_reais/matlab-vm1 esta INTEGRA (rodape status:ok, fe_final=1239) e o arquivo do repo e prefixo-byte-exato dela em 14/14 — mesma run, sync truncado (a distribuicao do pipeline_reais pula arquivos existentes: 'conflitos_pulados=11'; um espelho parcial anterior deixou os jsonl em voo). Pelo O-21 o rodape EXISTE (na coleta): as celulas sao VALIDAS.",
+   "gravidade": "menor — nenhuma informacao perdida (prefixo + copia integra), mas o repo viola a autoridade O-21 se lido sozinho",
+   "acao": "re-copiar os 14 .jsonl da coleta_reais/matlab-vm1 para o repo (recuperavel sem re-run; NAO fiz — read-only). Ate la, regra de leitura: o (6) canonico dessas 14 esta na coleta.",
+   "arquivo_linha": "~/mestrado_coleta_reais/matlab-vm1/experiments/main/c238/exp_main_c238_ESTOQUE40_{14,16..28}.jsonl"
+  },
+  {
+   "id": "C3-F2",
+   "descricao": "params.zona_morta AUSENTE DO (5) NAS 30 CELULAS c238xDDMOP7. O CONTRATO §T15.13 afirma que o tau da codificacao 'esta em params.zona_morta do (5)' com 'injecao automatica — nenhum runner precisa saber'; a injecao existe SO no standalone_harness.py:1391-1398 (rota python). O escritor de manifesto da rota MATLAB (src/experiment.m) nao a tem — 0/30 manifestos contem 'zona', 'tau' ou 'codifica'. A transformacao em si ESTA aplicada e correta (src/ddmop7_value_local.m:113-127, par bit-a-bit do bridge, DoE cru + propostas zeradas — confirmado no dado: 10.200/10.200 propostas com coords em (0;0,5) na (1) e f1<1 em 94,6%).",
+   "gravidade": "menor/documental — o tau e recuperavel do codigo pinado (repo_hash no (5)) e da D102.17; mas o (5) nao e auto-contido como o CONTRATO promete",
+   "acao": "decisao do autor (D81): errata no CONTRATO §T15.13 (declarar que na rota MATLAB o tau vive no codigo pinado) OU patch pos-hoc dos 30 manifestos. Sem re-run.",
+   "arquivo_linha": "src/experiment.m (escritor sem injecao) vs src/standalone_harness.py:1395"
+  },
+  {
+   "id": "C3-F3",
+   "descricao": "DIVERGENCIA DE SEMANTICA n_front1 x n_front SOB EMPATE EXATO DE f. A identidade A1 do ledger (n_front1(g) ≡ n_front(g+1)) quebra em 7.136/10.170 transicoes do DDMOP7 (25/30 celulas; delta 1 a 169), sempre com n_front1 > n_front(g+1). Causa PROVADA (40/40 casos recomputados da (1)): n_front1 conta as LINHAS nao-dominadas incluindo duplicatas exatas de f (o lattice k/17,n/690 gera centenas), n_front conta os pontos ND DISTINTOS (dedup). Nos sinteticos empate exato quase nao existe e as duas contagens coincidem (F30: 172.795/172.795). Benigno: a query-joia fecha 10.200/10.200 sob qualquer das duas semanticas (duplicata nao altera o min do EIM) e nenhuma decisao do algoritmo consome n_front1.",
+   "gravidade": "menor — instrumentacao; mas quem cruzar n_front1 com |ND| sem a regra de leitura reportara numeros ate 20x inflados",
+   "acao": "nota de excecao na lei A1 do CONTRATO + reiterar §T15.13: TODA contagem de |ND| no DDMOP7 deduplica (por x_efetivo no espaco de decisao; por f distinto no de objetivos).",
+   "arquivo_linha": "scratchpad c238final/bateria_cells.csv (coluna ledger_ok) + verificacao 40/40 no transcript"
+  },
+  {
+   "id": "C3-H1",
+   "descricao": "HERDADOS DO F30, sem mudanca de estado: C3-1 (inconsistencia eim_best x u_best em 6 celulas MMF1/MMF4/MMF11_L sementes 17/26 da vm5 de 14/08 — caveat de leitura permanece), C3-2 (s_best=0 exato a distancia 0,066 — errata de leitura do §IV-D), C3-6 (heterogeneidade de campanha_id — agora 7 IDs no config somando os reais, todos com algoritmo identico provado por git diff).",
+   "gravidade": "menor (as tres) — ja investigadas e provadas benignas no F30",
+   "acao": "manter os caveats de leitura do F30; nenhuma acao nova."
+  }
+ ],
+ "celulas_invalidas": [
+  {
+   "celula": "c238/BBOB_F1/5",
+   "motivo": "rodape failed MATLAB:badsubscript (front pos-infill singleton, bug upstream nao corrigido no freeze)",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F1/12",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F1/23",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F5/2",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F5/8",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F5/11",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F5/14",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F5/15",
+   "motivo": "badsubscript na geracao 1 (DoE ja com front singleton)",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F5/18",
+   "motivo": "badsubscript na geracao 1 (DoE ja com front singleton)",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F5/21",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F5/23",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F5/24",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F5/27",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F22/0",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F22/5",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F22/11",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F22/15",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F22/19",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F22/21",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F22/24",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F22/27",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F37/8",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F55/0",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F55/5",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/BBOB_F55/27",
+   "motivo": "badsubscript na geracao 1 (DoE ja com front singleton)",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/ZDT4/9",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/ZDT6/20",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/ZDT6/27",
+   "motivo": "idem badsubscript",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/ZDT6/28",
+   "motivo": "badsubscript na geracao 1 (DoE ja com front singleton)",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "c238/ZDT1/7",
+   "motivo": "(6) sem rodape, sem manifesto, truncada em 547/600 gens — interrupcao de coleta em voo 13/08 (laudo D0), nao e o bug; nao existe copia integra em nenhuma coleta",
+   "recuperavel_sem_rerun": "NAO_excluir"
+  },
+  {
+   "celula": "c238/ZDT3/7",
+   "motivo": "(6) sem rodape, sem manifesto, truncada em 527/600 gens — idem interrupcao de coleta; sem copia integra",
+   "recuperavel_sem_rerun": "NAO_excluir"
+  },
+  {
+   "celula": "c238/ESTOQUE40/14",
+   "motivo": "(6) do REPO truncado (672/800 gens, sem rodape) por sync; copia INTEGRA com rodape ok na coleta_reais/vm1, repo = prefixo-byte 100%; (1)-(5) completos — celula VALIDA, artefato do repo defeituoso",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "c238/ESTOQUE40/16",
+   "motivo": "idem truncamento de sync; copia integra verificada",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "c238/ESTOQUE40/17",
+   "motivo": "idem",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "c238/ESTOQUE40/18",
+   "motivo": "idem",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "c238/ESTOQUE40/19",
+   "motivo": "idem",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "c238/ESTOQUE40/20",
+   "motivo": "idem",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "c238/ESTOQUE40/21",
+   "motivo": "idem",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "c238/ESTOQUE40/22",
+   "motivo": "idem",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "c238/ESTOQUE40/23",
+   "motivo": "idem",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "c238/ESTOQUE40/24",
+   "motivo": "idem",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "c238/ESTOQUE40/25",
+   "motivo": "idem",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "c238/ESTOQUE40/26",
+   "motivo": "idem",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "c238/ESTOQUE40/27",
+   "motivo": "idem",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  },
+  {
+   "celula": "c238/ESTOQUE40/28",
+   "motivo": "idem",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  }
+ ],
+ "score_final": 9,
+ "trajetoria_scores": "F5 9,5 (1 semente, mecanismo fechado, 0 classe-3) -> T11 9,5 (re-validacao, correcoes de leitura, 0 classe-3 de fidelidade) -> F30 9,0 (CAUSA: passagem de 0 para 6 aspectos classe-3, nenhum de algoritmo — 2 de instrumentacao em regime degenerado, 3 de corpus, 1 de laudo; mecanismo SUBIU de nivel de prova) -> FINAL 9,0 (CAUSA: saldo neutro de classe-3 com mecanismo ainda mais provado — 3 itens do F30 RESOLVIDOS [C3-3 sancionado pela declaracao de congelamento; C3-4 fechado pelo laudo D0 com o gatilho n_front1==1 confirmado por mim; C3-5 explicado como interrupcao de coleta] contra 3 NOVOS [C3-F1 truncamento de sync em 14 (6) do EST40; C3-F2 params.zona_morta ausente do (5); C3-F3 semantica n_front1/n_front sob empate], todos menores, todos investigados ate a causa e provados benignos/recuperaveis sem re-run; a query-joia fecha 35.800/35.800 nos novos — 100,000%, sem sequer as 27 excecoes do F30 — e o fix DEC-8 esta provado eficaz em 399 exercicios reais. Pela regua da casa '9 = com (3) menores investigados e provados benignos' a nota e 9,0; se o autor tirar do denominador os itens de corpus/infra (F1, F2, C3-6), sobe a 9,3 — mesma opcao que o F30 ofereceu.)",
+ "veredito": "RECOMENDO ACEITAR o c238 na rodada final (recomendacao, nao sentenca — o veredito de fidelidade e do autor, D97). O mecanismo esta no nivel de prova mais alto das 4 auditorias: identidade EIMe fechada em 35.800/35.800 geracoes novas (100,000%, piso float32) + 173.413/173.440 herdadas do F30; monotonia N2 do artigo 0 violacoes em 1,9M pontos de pool dos reais; incerteza load-bearing (sigma->0 muda 62,1% dos argmax); contrato 19/19 em 89/89 celulas; DoE bit-exato ao artefato 89/89; guard de regua 89/89. O fix do front singleton (T15.9/DEC-8) esta no codigo, so nos reais, e EXERCITADO 399 vezes em 12/30 celulas DDMOP7 sem nenhuma morte — enquanto a incapacidade sintetica D=10 (29/258 = 11,2%, badsubscript, m8-freeze) permanece e deve ser publicada como RESULTADO com o caveat de vies de censura do laudo D0 (o crash mata exatamente os runs cujo infill dominou cedo). CAVEATS DE LEITURA (somam-se aos 4 do F30): (a) 14 (6) do EST40 sao lidos na coleta_reais ate a re-copia; (b) HV do DDMOP7 e PROVISORIO ate a fase 2 pooled (D102.3) — agora computavel; (c) toda contagem de |ND| do DDMOP7 deduplica por x_efetivo (61 linhas -> 25 x -> 3 f, mediana) e n_front1 nao e comparavel a n_front sob empate exato; (d) comparacoes envolvendo a vm5 pos-14/08 (29/30 DDMOP7) sao estatisticas, nunca bit-exatas (ΔHV 1,73% medido na duplicata s0).",
+ "decisoes_ao_autor": [
+  "DECISAO 1 — RE-COPIA DOS 14 (6) DO EST40 (C3-F1): recomendo aceitar a copia coleta_reais/matlab-vm1 como canonica (prefixo-byte verificado 14/14, rodape ok, fe_final=1239) e re-copiar para resultados_experimentos/. Sem re-run, sem perda. Nao toquei no repo (read-only). O censo esta CERTO em conta-las ok — mas so por causa da copia; o repo sozinho viola o O-21.",
+  "DECISAO 2 — FASE 2 POOLED DO DDMOP7 (D102.3): obrigatoria antes de publicar HV; as 629 celulas existem e ela e computavel agora. Meus HV (mediana 0,8708) usam a regua provisoria fase-1 declarada (ideal [0;0] ERRATA 2 — que segurou: 0 furos em 15.780 pontos do c238).",
+  "DECISAO 3 — DUAS ERRATAS DE CONTRATO: (a) §T15.13: a rota MATLAB NAO grava params.zona_morta no (5) (so a python grava) — declarar que o tau vive no codigo pinado (ddmop7_value_local.m:121, TAU_ZONA_MORTA=0.5) ou patchear os 30 manifestos pos-hoc; (b) lei A1: excecao sob empate exato de f — n_front1 conta linhas ND com duplicatas, n_front conta ND distintos (provado 40/40; quebra 7.136 transicoes no DDMOP7 e nenhuma nos sinteticos).",
+  "DECISAO 4 — CORRECAO AO F30 (meu proprio relatorio anterior): a frase 'hipotese n_front==1 refutada' esta ERRADA — media o campo pre-infill; o laudo D0 esta correto e eu confirmei no dado final: gatilho n_front1==1 em 25/29 + 4 mortes na geracao 1 com DoE singleton, contra 0/645 ok. Registrar a correcao onde o F30 for citado.",
+  "DECISAO 5 — O QUE OS REAIS AUTORIZAM ESCREVER: (i) RE21 e o caso de estabilidade extrema do config (CV do HV 0,07% em 30 sementes) com formulacao re-verificada por recomputo independente em 3.690 avaliacoes (3,8e-07); (ii) no DDMOP7 a zona morta D102.17 cumpre o objetivo: o ND recebe pontos da busca em 30/30 celulas e f1<1 em 94,6% das propostas (o c149 pre-fix tinha 0%) — mas o front efetivo tem 2-7 valores de f distintos: reportar |ND| dedupado SEMPRE; (iii) EST40 e o teto de custo do corpus (641h wall / 29 celulas, fit do kriging D=40 = 76%) — 1,4x a campanha sintetica inteira do config; (iv) a degeneracao N1 do kriging e a saturacao EIM==0 NAO aparecem nos reais (0/94.800 lnL<=0; 0 gens eim_best==0) — sao propriedades dos sinteticos degenerados, nao do mecanismo.",
+  "DECISAO 6 — DUPLICATA DDMOP7 s0: existe uma segunda run completa na vm5 (17/08, coleta_reais) alem da canonica vm1 (15/08). Manter fora do censo (como esta) e usa-la como par de controle de deriva dos reais (ΔHV 1,73%, diverge da geracao 1) — e o unico par cross-VM dos reais do c238.",
+  "NOTA DE ESCOPO (teto de verificabilidade, sem mudanca): T2 (operadores internos do GA — agora +2,1 bilhoes de avaliacoes de aquisicao irrecuperaveis dos reais), miolo do fmincon sqp, e o k interno do DDMOP7.p (caixa-preta D102.5 — verifiquei o lattice k/17 e n/690 em 15.780/15.780 e o zero exato via zona morta, mas a SEMANTICA de k e do .p e nao e reconstrutivel de x: T por construcao, coberto pela paridade bit-a-bit das 3 rotas do T15)."
+ ]
+}

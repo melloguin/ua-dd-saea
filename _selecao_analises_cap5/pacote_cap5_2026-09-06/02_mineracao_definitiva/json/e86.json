@@ -1,0 +1,246 @@
+{
+  "id": "e86",
+  "sigla": "NSGAIII-EHVI",
+  "titulo": "An Expensive Many-Objective Optimization Algorithm Based on Efficient Expected Hypervolume Improvement",
+  "ano": 2023,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Suítes DTLZ [11] (DTLZ1-7) e WFG [19] (WFG1-9), acrescidas de seis problemas com PF invertida: IDTLZ1, IDTLZ2 e IDTLZ3 (=MaF4 em [5]) [24], e IWFG4-6 (=WFG4^-1 a WFG7^-1 em [23]) — 22 problemas ao todo. D (variáveis de decisão) = 10 para todos, exceto WFG2 e WFG3 (D=11). M (nº de objetivos) varia por experimento: M=10 fixo na ablação da ordenação (Table IV, os 22 problemas); M=5 e 10 na ablação IS×MCS (Table V, só DTLZ1-7, 14 células); M∈{3,5,8,10} na comparação final com o estado da arte (Table VI: DTLZ1-7+IDTLZ1-3 = 10 problemas × 4 M = 40 células; Table VII: WFG1-9+IWFG4-6 = 12 problemas × 4 M = 48 células). IGD usa 10.000 pontos de referência uniformes na PF verdadeira (método de [9],[44]); o ponto de referência do HV é declarado como (1,1,…,1) na introdução da Seção IV, mas a Seção IV-A diz que o ponto de referência do HV (u_R na Table III) é fixado em 1,2 em cada dimensão (\"slightly worse than the nadir point\") — as duas afirmações não foram reconciliadas pela mineração (ver observações).",
+    "orcamento": "DoE inicial por LHS = N_P = 20 avaliações reais (que é também o tamanho da população); máximo de avaliações caras PE_max = 100 — logo 80 avaliações de infill, uma de cada vez (q=1, nenhuma variante em lote); t_max = 15 gerações internas do NSGA-III entre cada infill; N_E = 10.000 amostras uniformes para a estimativa do EHVI, no domínio [l_R,u_R] = [-0,5; 1,2] em cada dimensão normalizada.",
+    "execucoes": "30 execuções independentes por função de teste (\"the experiments are conducted thirty times independently\").",
+    "baselines": "Duas classes de comparação (Sec. IV-D), TODAS assistidas por surrogate — não há nenhum piso evolutivo sem surrogate no artigo: (1) MOEAs com estratégia EGO — ParEGO, SMS-EGO, EIM-EGO; (2) MaOEAs estado-da-arte — CSEA, KTA2, K-RVEA, HSMEA. Ablações internas do próprio método: NSGAIII-EHVI2 (Sec. IV-B: mesma estrutura, mas com a ordenação não-dominada clássica do NSGA-III, sem a dimensão de incerteza) e NSGAIII-EHVI3 (Sec. IV-C: mesma estrutura, EHVI estimado por MCS convencional em vez de IS).",
+    "metricas_principais": [
+      "IGD",
+      "HV"
+    ],
+    "testes": [
+      "Wilcoxon rank-sum, α=0,05, símbolos +/−/≈ (superior/inferior/sem diferença significativa em relação ao NSGAIII-EHVI, usado como referência fixa em todas as tabelas)"
+    ],
+    "apresentacao": "Média (desvio-padrão) por célula; melhor valor em negrito por linha; símbolo de teste (+/−/≈) por célula; linha \"+/−/=\" com contagem agregada por coluna; linha \"Best\" com a contagem de vitórias (menor valor da linha) por algoritmo.",
+    "codigo_plataforma": "MATLAB, plataforma PlatEMO [44] (todos os algoritmos comparados, exceto HSMEA); o método de EHVI exato usado como referência na Fig. 3 foi implementado em Python com a biblioteca BoTorch [3]; código-fonte do NSGAIII-EHVI em https://github.com/PangYong/NSGAIII-EHVI ou via PlatEMO."
+  },
+  "analises": [
+    {
+      "fichas": [
+        11,
+        15
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo compara o NSGAIII-EHVI completo (que usa a MSE do kriging como dimensão extra na ordenação não-dominada, Algorithm 2) com o NSGAIII-EHVI2, uma variante idêntica em tudo exceto que a sobrevivência é decidida pela ordenação clássica do NSGA-III (sem a dimensão de incerteza) — a ablação exata do mecanismo de incerteza do próprio algoritmo. Testada nos 22 problemas (DTLZ1-7, IDTLZ1-3, WFG1-9, IWFG4-6) com M=10, métricas IGD e HV, teste de Wilcoxon rank-sum.",
+      "literal": "the IGD results obtained by the proposed uncertainty-assisted nondominated sorting method are better than those obtained by the traditional sorting method in 16 out of 22 problems",
+      "localizador": "Sec. IV-B, Table IV",
+      "metricas": [
+        "IGD",
+        "HV"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos +/−/= vs. NSGAIII-EHVI2"
+      ],
+      "convencoes": "Média (desvio-padrão); melhor em negrito por linha; contagem final \"+/−/=\": 0/5/17 (IGD) e 0/0/22 (HV), sempre relativa ao NSGAIII-EHVI2; linha \"Best\": 6 (EHVI2) vs. 16 (EHVI) em IGD, 7 (EHVI2) vs. 14 (EHVI) em HV.",
+      "achado": "Ao contrário de outras ablações de σ do corpus, aqui o resultado é inteiramente a favor de usar a incerteza: em IGD, a versão com incerteza NUNCA piora (0 derrotas) e melhora significativamente em 5/22 problemas; em HV vence 14/22 sem nenhuma derrota significativa. É a ablação de σ mais unilateralmente positiva encontrada até aqui neste corpus.",
+      "aplicabilidade": "Ablação exata do uso de σ na ordenação de sobrevivência do próprio algoritmo — do mesmo tipo das fichas 11/15, mas o NSGAIII-EHVI não está no roster experimental da dissertação, então não há dado ① nem ⑥ para reproduzir estes números; em princípio corresponderia à camada ① (endpoint IGD/HV por problema) comparando duas variantes do mesmo algoritmo."
+    },
+    {
+      "fichas": [
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo compara o NSGAIII-EHVI (EHVI estimado por amostragem por importância, IS) com o NSGAIII-EHVI3, uma variante idêntica que estima o EHVI pela amostragem Monte Carlo (MCS) convencional sugerida em [12] — isolando o efeito do método de amostragem em si (a incerteza está presente em ambas as variantes). Testado em DTLZ1-7 com M=5 e M=10 (14 células), métricas IGD, HV e tempo de execução (running time), com teste de Wilcoxon.",
+      "literal": "In each problem, NSGAIII-EHVI takes less than two minutes to finish the optimization, but NSGAIII-EHVI3 takes approximately one hour.",
+      "localizador": "Sec. IV-C, Table V",
+      "metricas": [
+        "IGD",
+        "HV",
+        "tempo de execução (running time)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos +/−/= vs. NSGAIII-EHVI3"
+      ],
+      "convencoes": "Média (desvio-padrão) sobre 30 execuções; melhor em negrito; contagem final \"+/−/=\" (MCS vs. IS): IGD 2/5/7, HV 5/3/6, tempo 0/14/0; linha \"Best\": IGD 6 (MCS) vs. 8 (IS); HV 8 (MCS) vs. 3 (IS); tempo 0 (MCS) vs. 14 (IS).",
+      "achado": "A amostragem por MCS (mais cara) é melhor que o IS proposto em HV (5 vitórias significativas vs. 3, \"on the whole\") e vence pontualmente em IGD (2 vitórias, concentradas em DTLZ5/DTLZ6), mas na maioria dos problemas de IGD o IS não fica atrás (\"Best\": IS vence 8/14, MCS 6/14). Em compensação, o custo do IS é ordens de magnitude menor (minutos vs. ~1 hora) e praticamente insensível ao nº de objetivos, enquanto o custo do MCS cresce com M (~2,4e3 s em M=5 para ~3,5e3 s em M=10).",
+      "aplicabilidade": "Corresponderia à camada ④ (tempos por geração/por fase) se o algoritmo estivesse no roster — mas o NSGAIII-EHVI não está; a comparação de custo entre dois métodos de amostragem do MESMO critério de aquisição não tem análogo direto na instrumentação da dissertação, que não separa \"tempo de amostragem do critério\" como componente próprio de ④."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Fidelidade do critério de aquisição aproximado (IS/MCS) em relação ao cálculo exato, por nº de objetivos",
+      "grupo_sugerido": "E",
+      "descricao": "Os valores brutos de EHVI calculados por IS, por MCS e pelo método EXATO (via BoTorch) para os mesmos indivíduos na primeira iteração são comparados par a par (gráficos de dispersão com ajuste linear e R²), em DTLZ1 e DTLZ3 com M=4, 5 e 6 objetivos (o método exato é intratável acima de M=6); histogramas do tempo de execução de cada método acompanham os gráficos.",
+      "literal": "the points present apparent linear relationships between the results by the IS and the exact method",
+      "localizador": "Sec. IV-C, Fig. 3",
+      "metricas": [
+        "EHVI (valor bruto, IS vs. MCS vs. exato)",
+        "R² do ajuste linear entre pares de métodos",
+        "tempo de execução (s)"
+      ],
+      "testes": [
+        "nenhum teste formal; concordância medida por R² do ajuste linear"
+      ],
+      "convencoes": "Um indivíduo por ponto do gráfico de dispersão (primeira iteração do algoritmo); eixo comum = EHVI por IS; dois eixos de comparação (MCS à esquerda, exato à direita); histogramas de tempo com quebras de escala (breakpoints) para acomodar a diferença de ordem de grandeza.",
+      "achado": "Para M baixo a concordância entre os métodos aproximados e o cálculo exato é forte (R² > 0,8; valores individuais entre ~0,75 e ~0,99 lidos nos rótulos da Fig. 3); a concordância piora sistematicamente conforme M cresce, porque fica mais difícil para um número fixo de amostras preencher uniformemente um espaço de objetivos de dimensão maior — um limite compartilhado por IS E por MCS, não uma fraqueza exclusiva do método proposto. Os autores argumentam que isso é mitigado porque o EHVI só pré-seleciona candidatos; a escolha final ainda pesa diversidade (Sec. III-E) — ver resultados_negativos.",
+      "aplicabilidade": "Não reproduzível com os dados da dissertação — exigiria registrar o valor do critério de aquisição em si (não apenas μ/σ do surrogate, que é o que a camada ③ guarda) e um cálculo de referência exato do mesmo critério, algo que a instrumentação atual não faz para nenhum algoritmo do roster."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "NSGAIII-EHVI é comparado com sete algoritmos SOTA assistidos por surrogate (ParEGO, SMS-EGO, EIM-EGO, KTA2, CSEA, K-RVEA, HSMEA) em DTLZ1-7 e IDTLZ1-3 (10 problemas × M∈{3,5,8,10} = 40 células), métrica IGD, teste de Wilcoxon rank-sum tendo o NSGAIII-EHVI como referência fixa.",
+      "literal": "the proposed NSGAIII-EHVI algorithm obtains 21 best results among 40 test problems, followed by KTA2 with 15 best results",
+      "localizador": "Sec. IV-D, Table VI",
+      "metricas": [
+        "IGD",
+        "HV (mencionada apenas — \"the HV results are shown and discussed in the supplementary material\", não incluída neste PDF)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos +/−/= vs. NSGAIII-EHVI"
+      ],
+      "convencoes": "Média (desvio-padrão) sobre 30 execuções; melhor em negrito por linha; linha final \"+/−/=\" por baseline (ex.: KTA2 8/16/16); linha \"Best\": ParEGO 0, SMSEGO 1, EIMEGO 0, KTA2 15, CSEA 0, KRVEA 2, HSMEA 1, NSGAIII-EHVI 21.",
+      "achado": "NSGAIII-EHVI é significativamente melhor que todos os baselines, exceto KTA2 (\"significantly better than those of the compared algorithms except for KTA2\"), que só o supera de forma mais clara nos problemas multimodais DTLZ1/DTLZ3, onde KTA2 prioriza mais a convergência — ver caracteristica_x_desempenho.",
+      "aplicabilidade": "Mesmo formato das matrizes de placar e teste vs. referência da dissertação (fichas 1/3, aqui com o próprio método proposto como referência, não o melhor de cada linha) — mas nenhum dos 8 algoritmos comparados está no roster experimental da dissertação; não há dado ① para reproduzir estes números."
+    },
+    {
+      "fichas": [
+        1,
+        3
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma estrutura da análise anterior (mesmos 8 algoritmos, mesmo teste, referência fixa NSGAIII-EHVI), agora em WFG1-9 e IWFG4-6 (12 problemas × M∈{3,5,8,10} = 48 células), métrica IGD.",
+      "literal": "NSGAIII-EHVI obtains 36 best results out of 48 problems, followed by KTA2, with only 10 best results",
+      "localizador": "Sec. IV-D, Table VII",
+      "metricas": [
+        "IGD",
+        "HV (mencionada apenas — resultados no material suplementar, não incluído neste PDF)"
+      ],
+      "testes": [
+        "Wilcoxon rank-sum, α=0,05, símbolos +/−/= vs. NSGAIII-EHVI"
+      ],
+      "convencoes": "Mesmo formato da Table VI; linha final \"+/−/=\" por baseline (ex.: KTA2 4/23/21); linha \"Best\": ParEGO 0, SMSEGO 0, EIMEGO 0, KTA2 10, CSEA 0, KRVEA 0, HSMEA 2, NSGAIII-EHVI 36.",
+      "achado": "Vantagem do NSGAIII-EHVI mais acentuada no WFG (75% das células) do que no DTLZ (52,5%); a única exceção sistemática relativa ao KTA2 aparece em WFG1 (transformações que dificultam diversidade) e o padrão WFG2-melhor/WFG3-pior se repete — ver caracteristica_x_desempenho.",
+      "aplicabilidade": "Idem à análise anterior (fichas 1/3); mesma ressalva de ausência do algoritmo e dos baselines no roster experimental da dissertação."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade aos hiperparâmetros internos de busca e diversidade (t_max, β)",
+      "grupo_sugerido": "E",
+      "descricao": "O artigo declara os valores recomendados de t_max (nº de gerações do NSGA-III entre infills) = 15 e β (parâmetro que sorteia a proporção de candidatos usada na seleção por diversidade, Eq. 19-20) = 0,3, mas remete a análise de sensibilidade a esses dois parâmetros ao material suplementar, não incluído no PDF disponível.",
+      "literal": "Due to page limitations, the experiments and discussions regarding the effects of these two parameters are given in the supplementary material.",
+      "localizador": "Sec. IV-A, p. 8",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "",
+      "achado": "Não reportado no texto disponível — só mencionado; nenhum número ou tendência pôde ser extraído.",
+      "aplicabilidade": "não reproduzível — análise apenas mencionada, dados no material suplementar externo ao PDF disponível; note-se que t_max e β controlam o orçamento de busca interna e o compromisso convergência/diversidade da seleção final do infill, não diretamente o USO da incerteza (que já está embutido no EHVI e testado, junto da ordenação, nas Tables IV e V).",
+      "observacoes": "só mencionada"
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Efeito do método de especificação do ponto de referência do HV",
+      "grupo_sugerido": "I",
+      "descricao": "O artigo usa um ponto de referência fixo (1,2 em cada dimensão normalizada) para o cálculo do HV e menciona ter testado o método de Ishibuchi et al. [22] (que especifica o ponto de referência em função do número de objetivos e da partição em cada dimensão) como alternativa, mas remete os experimentos correspondentes ao material suplementar.",
+      "literal": "A recent study [22] provides a method to specify the reference point according to the number of objectives and the partition in each dimension of the given problem.",
+      "localizador": "Sec. IV-A, p. 8",
+      "metricas": [
+        "HV (mencionado, sem números no PDF disponível)"
+      ],
+      "testes": [],
+      "convencoes": "",
+      "achado": "Segundo o próprio texto (fora de tabela, portanto sem número extraível), o método alternativo de especificação do ponto de referência \"does not make evident improvement in the performance of the proposed NSGAIII-EHVI algorithm\" — mas os experimentos que sustentam essa afirmação estão no material suplementar, não disponível.",
+      "aplicabilidade": "não reproduzível — análise apenas mencionada, dados no material suplementar externo ao PDF disponível; é uma questão de como a métrica HV é definida (régua), próxima em espírito às fichas 60/62 da dissertação, não um mecanismo do algoritmo em si.",
+      "observacoes": "só mencionada"
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo usa a MSE (σ²) do kriging diretamente em dois lugares — como dimensão extra da ordenação não-dominada (Eq. 9, Algorithm 2) e implicitamente no cálculo do EHVI (via a distribuição normal de cada predição, Eqs. 6-14) — mas em nenhum momento verifica se essa MSE é uma medida confiável de incerteza: não há cobertura empírica (fração dentro de μ±2σ), correlação σ×erro, nem qualquer outro teste de calibração.",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "(a) Complexidade teórica O(·) das etapas do cálculo do EHVI por IS versus por MCS (Sec. III-F, Tables I e II): para o IS, o total é O(N_E·M + PE_max·N_E·N_P·M); para a MCS convencional, cada etapa análoga ganha um fator extra N_P (amostragem individuo a individuo), tornando o total O(PE_max·N_P·N_E·M + PE_max·N_P·N_E²·M) — a diferença central é que o IS faz UMA amostragem para toda a população, enquanto a MCS amostra indivíduo a indivíduo. (b) Tempo de execução total empírico (Table V): NSGAIII-EHVI (IS) < 2 minutos por execução em DTLZ1-7 (M=5 e 10); NSGAIII-EHVI3 (MCS) ≈ 1 hora — quase duas ordens de grandeza mais lento, e o tempo da MCS cresce visivelmente com M (~2,4e3 s em M=5 vs. ~3,5e3 s em M=10) enquanto o do IS quase não muda (~62-82 s). (c) A Fig. 3 mostra histogramas do tempo de cálculo do EHVI por IS, MCS e método exato (BoTorch) em função de M (DTLZ1/DTLZ3, M=4,5,6), confirmando que o exato é o mais caro e o mais sensível a M. Não há decomposição fit/busca/avaliação separada — o tempo reportado é sempre o total da execução (Table V) ou o tempo do cálculo do EHVI isolado (Fig. 3).",
+    "literal": "In each problem, NSGAIII-EHVI takes less than two minutes to finish the optimization, but NSGAIII-EHVI3 takes approximately one hour.",
+    "localizador": "Sec. III-F (Tables I-II, teórico); Sec. IV-C (Table V, Fig. 3, empírico)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "O mecanismo central do artigo (a ordenação não-dominada assistida por incerteza) é construído como uma salvaguarda explícita contra deixar a MSE do kriging dominar cegamente a seleção: no subconjunto NÃO-dominado pela PF corrente (R1), a MSE entra com sinal positivo (menor incerteza é melhor, favorecendo convergência); no subconjunto DOMINADO (R2), a mesma grandeza entra com sinal invertido (negativo), porque ali se quer justamente maior incerteza (para explorar pontos mal preditos). É a MSE do kriging usada com sinal trocado conforme a região — não uma medida única e monotônica de \"quanto confiar\".",
+      "literal": "It should be noted that 𝑅𝑅2 is combined with the negative 𝑈𝑈2 value because the points in 𝑅𝑅2 with large uncertainty are desired.",
+      "localizador": "Sec. III-B, p. 5 (em torno da Eq. 9 e do Algorithm 2, Steps 10-11)"
+    },
+    {
+      "descricao": "A própria simplificação central proposta pelo artigo (estimar o EHVI por amostragem por importância, IS, em vez de Monte Carlo, MCS) não melhora — e no agregado de HV piora — a qualidade da solução, embora reduza o custo computacional em quase duas ordens de grandeza; a causa apontada é que a amostragem uniforme do IS fica confinada à área normalizada, enquanto a MCS (normal) cobre uma área teoricamente infinita, o que piora a estimativa do EHVI perto dos limites do domínio normalizado.",
+      "literal": "This indicates that the introduced IS method does not improve the accuracy of the proposed algorithm and even slightly worsens it.",
+      "localizador": "Sec. IV-C, p. 9 (discussão da Table V)"
+    },
+    {
+      "descricao": "Os autores reconhecem que a fidelidade do EHVI aproximado (por IS ou por MCS) ao valor exato piora conforme o número de objetivos cresce (Fig. 3) e descrevem explicitamente um mecanismo de defesa contra esse erro: o EHVI aproximado só serve para pré-selecionar candidatos; a escolha final do ponto a avaliar ainda pondera um critério de diversidade (Eq. 19-20), o que os próprios autores dizem proteger o algoritmo contra os erros do critério aproximado.",
+      "literal": "This mechanism improves the robustness of the proposed algorithm against the EHVI calculation errors from the approximated methods.",
+      "localizador": "Sec. IV-C, p. 10 (discussão da Fig. 3)"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "multimodalidade (múltiplos ótimos de Pareto locais) — DTLZ1, DTLZ3",
+      "afirmacao": "Nos dois únicos problemas multimodais do DTLZ, o NSGAIII-EHVI perde do KTA2 (que enfatiza mais a convergência) e só supera marginalmente os demais baselines, porque o EHVI pesa convergência E incerteza, o que atrapalha quando há muitos ótimos locais competindo pela fronteira.",
+      "literal": "in DTLZ1 and DTLZ3, a multimodel function is introduced, resulting in numerous local Pareto-optimal solutions to the problems and hindering the convergence of the solution.",
+      "localizador": "Sec. IV-D (discussão da Table VI)"
+    },
+    {
+      "caracteristica": "paisagem simples / frente esférica — DTLZ2, DTLZ4",
+      "afirmacao": "Nos problemas com paisagem simples e PF esférica, o NSGAIII-EHVI supera os demais métodos (exceto o valor médio do KTA2 em DTLZ2 com M=5 e 8), evidenciando boa capacidade de distribuir a solução quando a geometria não é o fator limitante.",
+      "literal": "DTLZ2 and DTLZ4 are problems with a relatively simple fitness landscape and a spherical PF.",
+      "localizador": "Sec. IV-D"
+    },
+    {
+      "caracteristica": "frente degenerada (curva de baixa dimensão) — DTLZ5",
+      "afirmacao": "É o único caso do DTLZ em que o NSGAIII-EHVI perde de forma mais ampla dos baselines, porque o esquema de pontos de referência do NSGA-III distribui poucos pontos perto de uma PF que é uma curva, prejudicando a convergência independentemente da qualidade do critério EHVI.",
+      "literal": "it is difficult for NSGAIII-EHVI to converge to the PF with a curved shape in DTLZ5, as only a few reference points in NSGA-III are distributed near the curve.",
+      "localizador": "Sec. IV-D"
+    },
+    {
+      "caracteristica": "frente desconexa / irregular — DTLZ6 (regiões desconexas) e DTLZ7 (reta + hiperplano)",
+      "afirmacao": "Ao contrário de DTLZ5, aqui os pontos de referência do NSGA-III conseguem cobrir a maior parte das regiões da PF, e o NSGAIII-EHVI consegue então usar sua capacidade de descobrir pontos potencialmente ótimos para superar todos os baselines em ambos os problemas.",
+      "literal": "for DTLZ6 and DTLZ7, although the PF is irregular, the reference points in NSGA-III can cover most of the region.",
+      "localizador": "Sec. IV-D"
+    },
+    {
+      "caracteristica": "frente desconexa (WFG2) vs. mesma estrutura com frente contínua (WFG3)",
+      "afirmacao": "O NSGAIII-EHVI supera o KTA2 em WFG2 (PF desconexa) mas perde em WFG3 (mesma estrutura, PF contínua) — o mesmo padrão de vantagem em frentes desconexas já visto em DTLZ6, e não uma vantagem geral em qualquer versão do problema.",
+      "literal": "NSGAIII-EHVI performs better than KTA2 on WFG2 but worse on WFG3.",
+      "localizador": "Sec. IV-D"
+    },
+    {
+      "caracteristica": "frente invertida — IDTLZ1-3",
+      "afirmacao": "Nos três problemas com PF invertida, o NSGAIII-EHVI obtém o maior número de melhores resultados à frente do KTA2; os demais cinco algoritmos não vencem nenhuma célula, indicando boa adequação do método a essa geometria.",
+      "literal": "the proposed NSGAIII-EHVI obtains 7 best results, followed by KTA2 with 5 best results. The other algorithms yield no best results.",
+      "localizador": "Sec. IV-D"
+    },
+    {
+      "caracteristica": "não separabilidade e engano (deceptiveness) — suíte WFG em geral",
+      "afirmacao": "No conjunto WFG, que tem propriedades ausentes do DTLZ (não separabilidade, engano), o NSGAIII-EHVI é significativamente melhor que todos os outros MOEAs comparados, com uma margem de vitórias maior do que a observada no DTLZ (36/48 vs. 21/40).",
+      "literal": "The WFG test suite includes problems that exhibit properties that are not evident in the DTLZ test suite [20], such as being nonseparable and deceptive.",
+      "localizador": "Sec. IV-D"
+    },
+    {
+      "caracteristica": "muitas funções de transformação, dificultando a diversidade — WFG1",
+      "afirmacao": "É a exceção mais clara dentro do WFG: como o NSGAIII-EHVI pondera diversidade de forma mais fraca que o KTA2 (que a trata como critério explícito de infill), ele perde terreno relativo em WFG1, embora ainda vença em 2 das 4 células de M testadas.",
+      "literal": "a number of transformation functions are introduced, making it difficult for MOEAs to maintain the diversity of the solutions",
+      "localizador": "Sec. IV-D"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) Classes da taxonomia dadas no pedido, conferidas no texto: motor=EA-Decomposição (o framework é o NSGA-III [9], cuja sobrevivência por pontos de referência associativos é tratada nesta dissertação como uma forma de decomposição do espaço de objetivos); função da incerteza=O1·Aquisição exploratória (o EHVI é por definição um critério de melhoria esperada, e a ordenação com sinal invertido em R2 reforça essa leitura exploratória — ver resultados_negativos); surrogate=GP/Kriging (confirmado, Sec. II-A); medição=VAR-GP/posterior fechada de GP (confirmado — a MSE, Eq. 2, é a variância analítica do preditor kriging, sem amostragem nem ensemble); regime=online (infill sequencial, um ponto real por iteração, do início ao PE_max). Nenhuma discrepância encontrada entre as classes dadas e o texto lido.\n\n(2) Não há piso evolutivo sem surrogate em nenhuma comparação do artigo (nem NSGA-III puro, nem qualquer outro) — todos os 10 algoritmos envolvidos (NSGAIII-EHVI + 2 variantes de ablação + 7 baselines externos) usam surrogate.\n\n(3) A Table IV (ablação da ordenação, fichas 11/15) é, ao mesmo tempo, a comparação natural que o próprio método faz de si mesmo com/sem o componente de incerteza (\"o artigo compara variantes do próprio método = ablação natural\") — não há necessidade de uma ablação externa adicional para constatar isso.\n\n(4) Estranheza de numeração de seções: a introdução promete \"Section V concludes this paper\", mas o documento salta de \"IV. EXPERIMENTAL STUDIES\" diretamente para \"VI. CONCLUSION\" — não existe nenhuma seção \"V.\" em lugar nenhum do texto (confirmado por busca na seção estruturada e na camada de texto bruta integral); provável erro de numeração dos próprios autores/editoração, preservado como lido, sem correção pela mineração.\n\n(5) Três conteúdos são apenas MENCIONADOS e remetidos ao material suplementar (não incluído neste PDF/markdown): (i) sensibilidade a t_max e β; (ii) os resultados de HV da comparação final (Tables VI-VII só têm IGD no corpo do texto); (iii) o efeito de usar o método de especificação do ponto de referência do HV de Ishibuchi et al. [22] em vez do valor fixo 1,2.\n\n(6) Inconsistência interna não resolvida: o texto afirma em dois lugares valores diferentes para o ponto de referência do HV — \"the reference point is (1,1,...,1)\" na introdução da Seção IV, e \"it is set to 1.2 in this work\" (u_R da Table III) na Seção IV-A — reportado literalmente em setup.benchmarks, sem tentar reconciliar.\n\n(7) HSMEA é o único dos 7 baselines da comparação final NÃO implementado em PlatEMO (\"All the compared algorithms are implemented in PlatEMO [44] except for HSMEA\").\n\n(8) Nenhuma variante em lote (q>1) é testada — todas as 100 avaliações reais (20 DoE + 80 infill) são de um ponto por vez; a ficha 64 (sub-estudo de lote) não tem correlato neste artigo.\n\n(9) Leitura completa confirmada: as 15 páginas do artigo foram lidas na seção estruturada (Introdução a Referências + biografias dos autores, incluindo Algorithms 1-3 e Eqs. 1-20), na camada de texto bruto integral (ANEXO — get_text, página a página, conferida por busca de cabeçalhos de seção e de termos-chave — nenhuma Fig. 4-6, nenhuma Table VIII, nenhum Algorithm além do 3, nenhuma menção a calibração/cobertura/equivalência de critérios além do já capturado — redundante com a seção estruturada) e no ANEXO final de OCR de figuras (rótulos e valores de R²/tempo das Figs. 1-3, consistentes com e complementares ao texto — sem conteúdo numérico substantivamente novo além dos R² individuais de ~0,75 a ~0,99 usados no achado da análise sobre a Fig. 3). As equações e tabelas da seção estruturada vieram parcialmente corrompidas pela conversão do PDF (símbolos matemáticos fragmentados, subscritos/sobrescritos deslocados); todos os números e citações usados nesta extração foram conferidos contra a camada de texto bruto (mais limpa) antes de serem citados. Nenhum problema de leitura remanescente."
+}

@@ -1,0 +1,242 @@
+{
+  "id": "c106",
+  "sigla": "EMMI",
+  "titulo": "Multiobjective Optimization of Expensive Black-Box Functions via Expected Maximin Improvement",
+  "ano": 2016,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Apenas 2 funções-teste sintéticas determinísticas, sem famílias tipo ZDT/DTLZ/WFG/BBOB da dissertação (embora DTLZ2 seja usado, isoladamente, não como parte de uma suíte varrida): (1) MOP2 (Fonseca & Fleming 1995), d=2, m=2, X=[-2,2]^2, frente de Pareto = segmento de reta; frente verdadeira aproximada por 201 pontos uniformes sobre o conjunto de Pareto. (2) DTLZ2 (Deb et al. 2005), d=4, m=4, X=[0,1]^4, frente côncava (g(x4)=0); frente verdadeira aproximada por 20.000 pontos uniformes. Nenhum problema real; nenhum problema multimodal/desconexo/degenerado. O artigo cita 'additional ones [examples] that are given in the Supplementary Material' (não incluído neste documento).",
+    "orcamento": "MOP2: DoE inicial de 10 pontos (LHS maximin, 5 por dimensão de entrada) via MATLAB bestlh + 10 avaliações sequenciais (1 por iteração, q=1) = 20 avaliações totais por execução. DTLZ2: DoE inicial de 20 pontos + 20 avaliações sequenciais = 40 avaliações totais. Não há fórmula tipo 31D-1 da dissertação; os tamanhos de DoE e do orçamento sequencial são fixados ad-hoc por exemplo.",
+    "execucoes": "Cada uma das 6 configurações (3 critérios de melhoria — EMMI, CWPI, PI — × 2 estruturas de GP — independente '-Ind' e dependência não-separável '-Dep') é rodada 5 vezes por problema. IMPORTANTE: a fonte de variação entre as 5 execuções não é declarada como novo sorteio do DoE inicial; o texto atribui a aleatoriedade a 'stochastic search components' dos algoritmos de maximização (MADS/NOMADm, e SAA quando m>=3) usados para otimizar a própria função de melhoria a cada passo — não é o desenho de 30 sementes por DoE compartilhado da dissertação.",
+    "baselines": "NÃO há piso evolutivo sem surrogate (nenhum NSGA-II/MOEA/D/NSGA-III/SMS-EMOA). Todas as 6 configurações comparadas são, elas próprias, critérios de melhoria esperada assistidos por GP: EMMI (proposto pelo artigo), CWPI e PI (ambos de Keane 2006), cada um cruzado com modelo GP independente ou GP multivariado de dependência não-separável (proposto pelo artigo, Seção 3). Reimplementação própria dos autores para CWPI/PI ('this example utilizes code written by the authors provides more favorable results for PI and CWPI... than [the code in Forrester et al. 2008]').",
+    "metricas_principais": [
+      "Indicador aditivo binary-epsilon (I_epsilon+) da aproximação contra a frente de Pareto verdadeira/discretizada",
+      "Indicador de hipervolume (I_H) com ponto de referência R fixo (R=(1,1) no MOP2)"
+    ],
+    "testes": [
+      "nenhum teste estatístico de hipótese em lugar nenhum do artigo (sem Wilcoxon/Friedman/Nemenyi); apenas média, faixa (range) e desvio-padrão sobre 5 execuções"
+    ],
+    "apresentacao": "Duas tabelas (uma por problema-teste) com Média, Faixa (mín-máx) e Desvio-Padrão de cada indicador, para as 6 configurações; sem negrito indicando o melhor; sem símbolos +/=/-; nenhuma mediana (só média aritmética). Para o problema bi-objetivo (MOP2) há também comparação gráfica (dispersão dos pontos de uma das 5 execuções vs. frente verdadeira); para DTLZ2 (m=4) o artigo declara explicitamente que a via gráfica é inviável e usa só as métricas numéricas. As saídas são reescaladas empiricamente para [0,1] por objetivo (min-max dos dados observados) antes de calcular o critério de melhoria.",
+    "codigo_plataforma": "MATLAB: função bestlh (LHD maximin; Forrester/Sobester/Keane 2008) para o DoE inicial; software próprio MPErK (obtido por contato com o 2o autor) para REML do modelo GP independente; função ga do MATLAB (estimativa inicial) + fmincon (refino) para REML do modelo de dependência não-separável; paretoset.m (Y. Cao, MATLAB File Exchange) para calcular P^n_X e P^n_Y; NOMADm (implementação MATLAB de MADS, Abramson) para otimizar EIM(x)/I_CWPI(x)/I_PI(x); quando m>=3, aproximação por amostragem média (SAA) via amostras N(0,I) transformadas pela decomposição de Cholesky de S(x) (nenhum valor de tamanho de amostra S é declarado explicitamente no texto disponível)."
+  },
+  "analises": [
+    {
+      "fichas": [
+        1,
+        8
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara seis configurações (3 criterios de melhoria esperada -- EMMI, CWPI, PI -- cada um com GP independente ou GP de dependencia nao-separavel) no problema MOP2 (d=2, m=2), apos DoE inicial de 10 pontos mais 10 pontos sequenciais por criterio. Reporta, por configuracao, media, faixa e desvio-padrao do indicador aditivo epsilon (I_epsilon+, contra a frente de Pareto discretizada em 201 pontos) e do indicador de hipervolume (I_H, R=(1,1)), sobre 5 execucoes independentes.",
+      "literal": "From the results in Table 1, it appears that EMMI, calculated using either the independence or dependence GP model, performed significantly better than either the CWPI and PI implementations",
+      "localizador": "Sec. 6.1 (MOP2 Function), Table 1, p. 16",
+      "metricas": [
+        "Indicador aditivo binary-epsilon (I_epsilon+)",
+        "Indicador de hipervolume (I_H)"
+      ],
+      "testes": [
+        "nenhum (sem teste de hipotese); so estatistica descritiva sobre 5 execucoes"
+      ],
+      "convencoes": "Media, Faixa (min-max) e Desvio-Padrao sobre 5 execucoes independentes por metodo; sem negrito/marcacao de melhor; sem simbolos +/=/-; metrica calculada sobre o conjunto de Pareto de todas as n=20 avaliacoes (10 DoE + 10 sequenciais); Desvio-Padrao e Faixa sao usados explicitamente no texto como evidencia extra de consistencia (nao so a media).",
+      "achado": "EMMI (Ind ou Dep) supera CWPI e PI nos dois indicadores: hipervolume medio de EMMI fica acima de 0,28 em ambos os modelos, contra abaixo de 0,28 (CWPI) e 0,26 (PI); o indicador epsilon aditivo e, em media, maior (pior) para CWPI e PI do que para EMMI nos dois modelos. CWPI supera PI em ambos os modelos, 'consistent with the results in [12]' (Keane 2006). Achado adicional de dispersao: EMMI-Ind e muito mais consistente entre execucoes (Desvio-Padrao de 0,0001 no epsilon aditivo e 0,0002 no HV) do que PI-Ind (0,0552 e 0,0096) -- mas como nao ha piso evolutivo sem surrogate no desenho do artigo, a leitura da ficha 8 aqui compara dispersao ENTRE criterios assistidos, nao assistido-vs-piso.",
+      "aplicabilidade": "(1) endpoint -- reproduzivel calculando IGD+/HV (ou indicador equivalente) sobre o ND acumulado das avaliacoes reais (camada 1) ao final do orcamento, por configuracao x problema, com media/faixa/desvio-padrao sobre repeticoes; mas note que aqui as 'repeticoes' nao sao sementes de DoE re-sorteado, e sim reinicializacoes do otimizador da funcao de aquisicao (MADS/SAA), o que limita comparabilidade direta com o desenho de 30 sementes da dissertacao."
+    },
+    {
+      "fichas": [
+        1,
+        8
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Repete o desenho da Secao 6.1 no problema DTLZ2 (d=4, m=4, frente concava), com DoE inicial de 20 pontos e 20 pontos sequenciais adicionais (n=40 no total), reportando a mesma tabela de media/faixa/desvio-padrao de I_epsilon+ e I_H para as mesmas 6 configuracoes, tambem sobre 5 execucoes cada. Como m=4 inviabiliza inspecao grafica direta, so os dois indicadores numericos sao usados.",
+      "literal": "In every run, EMMI-Ind outperforms CWPI-Ind and CWPI-Ind outperforms PI-Ind in terms of both the binary-ϵ indicator and the hypervolume indicator.",
+      "localizador": "Sec. 6.2 (DTLZ2 Function), Table 2, p. 18-19",
+      "metricas": [
+        "Indicador aditivo binary-epsilon (I_epsilon+)",
+        "Indicador de hipervolume (I_H)"
+      ],
+      "testes": [
+        "nenhum (sem teste de hipotese); so estatistica descritiva sobre 5 execucoes"
+      ],
+      "convencoes": "Mesmo formato da Tabela 1 (Media/Faixa/Desvio-Padrao sobre 5 execucoes); metricas sobre as n=40 avaliacoes finais; m=4 impede visualizacao grafica, por isso so metricas numericas sao reportadas.",
+      "achado": "Com o modelo de independencia, EMMI-Ind supera CWPI-Ind que supera PI-Ind em TODAS as execucoes, nos dois indicadores -- o mesmo padrao do MOP2. Com o modelo de dependencia, o padrao muda: EMMI-Dep tem hipervolume medio ligeiramente maior que CWPI-Dep, mas CWPI-Dep tem epsilon aditivo ligeiramente menor (melhor), com faixas sobrepostas -- os dois ficam essencialmente empatados sob dependencia nesta dimensao maior; PI-Dep continua bem pior. Novamente a dispersao (Faixa/Desvio-Padrao) e eixo explicito de leitura (mesma ressalva da ficha 8 sem piso evolutivo do item anterior).",
+      "aplicabilidade": "(1) endpoint -- mesma logica de reproducao do item anterior (ND acumulado das avaliacoes reais, media/faixa/desvio-padrao por configuracao x problema); a inviabilidade grafica relatada para m=4 e analoga ao que ocorreria na dissertacao para problemas com M>2/3 objetivos ao tentar visualizar fronteiras (ficha 54)."
+    },
+    {
+      "fichas": [
+        54,
+        44
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para o MOP2, plota os pontos sequencialmente adicionados por cada criterio (CWPI, EMMI, PI) sobre a frente de Pareto verdadeira, separadamente para o modelo GP independente e o dependente, com os pontos do DoE inicial marcados a parte (Figura 3, uma das 5 execucoes). A discussao textual associada caracteriza a geometria dessas adicoes: PI tende a agrupar pontos com saidas semelhantes; CWPI e EMMI espalham melhor as avaliacoes, embora nenhum dos tres deposite pontos exatamente sobre (so perto d)a frente verdadeira.",
+      "literal": "The PI criterion appears to suffer from some clustering issues, because under both the independence and dependence GP models it has a tendency to sequential add inputs with similar outputs",
+      "localizador": "Sec. 6.1 (MOP2 Function), Fig. 3, p. 17",
+      "metricas": [
+        "nenhuma metrica numerica -- comparacao visual/qualitativa da dispersao dos pontos"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Grafico de dispersao de UMA das cinco execucoes (nao identificada como mediana nem escolhida por outro criterio declarado) por modelo (independente a esquerda, dependente a direita); marcadores distintos por criterio (losango=CWPI, estrela=EMMI, circulo=PI, cruz=DoE inicial); frente verdadeira sobreposta como curva continua.",
+      "achado": "Visualmente, os pontos do EMMI cobrem a frente verdadeira de forma mais uniforme e espalhada (maior exploracao/cobertura); o PI sofre de 'clustering issues' (baixa diversidade -- adiciona pontos com saidas semelhantes, repetidas vezes, em ambos os modelos GP); CWPI fica no meio-termo, mais efetivo em espalhar avaliacoes do que PI mas sem a uniformidade do EMMI. Nenhum metodo deposita pontos exatamente SOBRE a frente verdadeira -- so proximo dela.",
+      "aplicabilidade": "(1) todas as avaliacoes reais (x,f) permite reconstruir grafico de dispersao equivalente contra a frente verdadeira (ficha 54), e medir a geometria de exploracao/explotacao (ficha 44, ex.: distancia entre infills consecutivos ou dispersao no espaco de objetivos) para qualquer problema biobjetivo da dissertacao; exigiria escolher uma execucao especifica (aqui NAO e a execucao mediana, ao contrario da convencao editorial da dissertacao)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablacao da estrutura de covariancia do GP multiobjetivo (independente x dependencia nao-separavel)",
+      "grupo_sugerido": "E",
+      "descricao": "Comparando as colunas '-Ind' e '-Dep' das Tabelas 1 e 2 para os mesmos tres criterios de melhoria (EMMI, CWPI, PI), o artigo avalia se modelar a dependencia entre objetivos (GP multivariado nao-separavel, a principal inovacao de modelagem do artigo alem do proprio EMMI) melhora a qualidade da fronteira aproximada frente a ajustar um GP independente por objetivo -- isolando o efeito da ESTRUTURA DE COVARIANCIA do surrogate mantendo fixo o criterio de melhoria usado para escolher os pontos. Nao e uma ablacao do uso da incerteza (sigma vs. media), e sim da forma como a incerteza conjunta entre objetivos e modelada.",
+      "literal": "The somewhat surprising result here is that the dependence GP model appears to offer little advantage over the less computationally demanding independence model.",
+      "localizador": "Sec. 6.1, p. 17; Sec. 6.2, p. 18-19; Sec. 7 (Conclusions and Discussion), p. 19-20",
+      "metricas": [
+        "Indicador aditivo binary-epsilon (I_epsilon+)",
+        "Indicador de hipervolume (I_H)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Comparacao textual (nao ha tabela dedicada) construida a partir dos mesmos numeros das Tabelas 1 e 2, contrastando a coluna '-Dep' com a '-Ind' para os mesmos 3 criterios, em cada um dos 2 problemas.",
+      "achado": "Resultado NEGATIVO para a propria contribuicao central do artigo: o modelo de dependencia nao-separavel (mais caro, com mais parametros a estimar) nao entrega a vantagem esperada nos dois exemplos. No MOP2, o modelo dependente tem desempenho, em media, ligeiramente PIOR em quase todos os criterios (excecao: epsilon aditivo do PI). No DTLZ2 o quadro e misto (EMMI-Dep piora; CWPI-Dep e PI-Dep melhoram ligeiramente). Ao final (Sec. 7), os proprios autores recomendam o modelo de independencia (EMMI-Ind) para uso pratico, por ser mais simples e mais barato computacionalmente -- um recuo explicito em relacao a propria inovacao metodologica mais sofisticada do artigo.",
+      "aplicabilidade": "Nao reproduzivel diretamente com as 7 camadas -- nenhum dos 15 algoritmos do roster contrasta GP independente x GP nao-separavel (dependente) para os multiplos objetivos dentro do MESMO algoritmo; exigiria implementar essa variante de modelo. A camada (3) (predicoes do surrogate, mu/sigma) poderia, em principio, comparar a QUALIDADE preditiva de duas estruturas de covariancia alternativas se algum algoritmo do roster oferecesse ambas, o que nao e o caso."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Custo de estimacao via REML por numero de parametros de covariancia (independente x dependente)",
+      "grupo_sugerido": "F",
+      "descricao": "Quantifica, para os dois exemplos, quantos parametros de covariancia cada estrutura de GP exige estimar por maxima verossimilhanca restrita (REML): 7 parametros conjuntos para o modelo dependente vs. duas otimizacoes separadas de 2 parametros cada para o independente (MOP2, m=2); 26 parametros conjuntos vs. quatro otimizacoes separadas de 4 parametros cada (DTLZ2, m=4) -- como explicacao candidata para a dificuldade pratica (possivel otimo local) do modelo dependente na ablacao anterior. Nao ha medicao de tempo de parede (wall-clock).",
+      "literal": "Recall that obtaining estimates of the covariance parameters for the dependence model requires maximization of a restricted likelihood function which is a function of seven parameters.",
+      "localizador": "Sec. 6.1, p. 17 (7 parametros); Sec. 6.2, p. 18-19 (26 parametros)",
+      "metricas": [
+        "numero de parametros de covariancia estimados via REML (proxy de custo/dificuldade de otimizacao, nao tempo)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Numeros citados em prosa (nao em tabela): 7 (dependente) vs. 2+2 (independente) no MOP2; 26 (dependente) vs. 4+4+4+4 (independente) no DTLZ2 -- sem medicao de tempo de parede em nenhum dos dois casos.",
+      "achado": "O modelo de dependencia exige estimar muito mais parametros conjuntamente (7 e depois 26, crescendo com m(m+1)/2 + m*d) do que o modelo de independencia (que decompoe em m otimizacoes separadas e pequenas, de d parametros cada). Os autores usam essa maior dificuldade de otimizacao (risco de otimo local) como explicacao candidata para o modelo dependente nao entregar a vantagem esperada -- ligando custo/dificuldade de ajuste diretamente a um resultado negativo de desempenho.",
+      "aplicabilidade": "Nao reproduzivel com as camadas da dissertacao -- a instrumentacao (camada 4) registra tempo de parede por geracao, nao o numero de parametros de covariancia estimados via REML; exigiria introspeccao especifica do ajuste do modelo (nao coletada pela instrumentacao das 7 camadas)."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Nas conclusoes, o artigo cita exemplos adicionais realizados pelos autores e reportados apenas no Material Suplementar/Online Resource (nao incluido neste documento/PDF de 21 paginas), como parte da base empirica para a recomendacao final de usar o EMMI com modelo independente (EMMI-Ind) na pratica. Presume-se, pelo contexto, que sigam o mesmo formato das Tabelas 1-2 (comparacao de indicadores de qualidade entre EMMI/CWPI/PI x Ind/Dep), mas isso nao e verificavel.",
+      "literal": "Based on the examples presented in the paper and additional ones that are given in the Supplementary Material, the authors recommend using the expected maximin improvement computed using independent Gaussian process models",
+      "localizador": "Sec. 7 (Conclusions and Discussion), p. 19",
+      "metricas": [
+        "presumivelmente I_epsilon+ e I_H, como nas Tabelas 1-2 -- nao confirmavel (so mencionada)"
+      ],
+      "testes": [
+        "nao mencionado"
+      ],
+      "convencoes": "Nao aplicavel -- conteudo nao presente no texto disponivel; so mencao textual.",
+      "achado": "Nao verificavel a partir do texto disponivel -- so a mencao confirma a existencia de exemplos adicionais no Material Suplementar, usados para reforcar a recomendacao de EMMI-Ind. Observacoes: 'so mencionada'.",
+      "aplicabilidade": "Nao reproduzivel -- Material Suplementar (Online Resource) nao incluido neste documento."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablacao da estrutura de covariancia do GP multiobjetivo (independente x dependencia nao-separavel)",
+      "grupo_sugerido": "E",
+      "descricao": "Ao final da Secao 6.1, o artigo menciona -- sem tabela nem numeros -- que, em exemplos construidos deliberadamente para satisfazer a forma EXATA do modelo de dependencia nao-separavel (ao contrario de MOP2/DTLZ2, que sao funcoes-teste genericas nao construidas para favorecer esse modelo), o EMMI com essa estrutura passa a superar a versao independente. E o contra-exemplo/nuance que os proprios autores oferecem para o resultado negativo do item anterior.",
+      "literal": "in other examples that the authors have run, which were constructed to satisfy the form of the nonseparable dependence model used here, EMMI with a nonseparable dependence structure produces larger hypervolume indicator",
+      "localizador": "Sec. 6.1, p. 17",
+      "metricas": [
+        "Indicador de hipervolume (I_H)",
+        "Indicador aditivo binary-epsilon (I_epsilon+)"
+      ],
+      "testes": [
+        "nao mencionado"
+      ],
+      "convencoes": "Nao aplicavel -- relato textual sem tabela/figura; so comparativo qualitativo ('larger'/'smaller').",
+      "achado": "Quando a funcao verdadeira e construida para de fato satisfazer a estrutura de dependencia assumida pelo modelo, o EMMI-Dep produz hipervolume maior e epsilon aditivo menor (ambos melhores) do que a versao independente -- ou seja, o resultado negativo do MOP2/DTLZ2 e atribuido pelos autores a desajuste de modelo (mismatch) nessas duas funcoes especificas, nao a uma falha geral da ideia de modelar dependencia entre objetivos. Observacoes: 'so mencionada'.",
+      "aplicabilidade": "Nao reproduzivel -- resultado so mencionado, sem dados; mesmo se fosse, exigiria uma funcao-teste construida sob medida para a forma exata do modelo de dependencia, fora do escopo dos 28 problemas fixos da dissertacao."
+    },
+    {
+      "fichas": [
+        1
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Nas conclusoes, menciona brevemente um criterio alternativo baseado em melhoria de hipervolume esperado (EIH, Expected Hypervolume Improvement, inspirado em Emmerich et al. 2006), descrevendo-o como competitivo com o EMMI quando e possivel implementa-lo, mas aponta duas dificuldades praticas do EIH: alto custo computacional do calculo do hipervolume (agravado por precisar de S amostras Monte Carlo, uma por avaliacao de EIH) e dependencia do resultado ao ponto de referencia R, dificil de fixar para funcoes verdadeiramente caixa-preta. Nenhuma tabela numerica e dada para essa comparacao no corpo do artigo.",
+      "literal": "While the authors have found that when EIH(x) can be implemented, it produces Pareto Front approximations that are competitive with those created using EIM(x).",
+      "localizador": "Sec. 7 (Conclusions and Discussion), p. 20",
+      "metricas": [
+        "presumivelmente I_H e/ou I_epsilon+ -- nao especificado, sem numeros (so mencionada)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Nao aplicavel -- comparacao apenas qualitativa em prosa, sem tabela/figura no corpo do artigo.",
+      "achado": "EIH e dito 'competitivo' com EMMI quando implementavel, mas os autores preferem recomendar EMMI-Ind por ser mais simples e ter muito menos custo computacional que EIH (que exigiria S calculos caros de hipervolume, alem de exigir especificar um ponto de referencia R dificil de definir para funcoes caixa-preta). Observacoes: 'so mencionada'.",
+      "aplicabilidade": "Nao reproduzivel diretamente -- exigiria implementar EIH como motor de aquisicao adicional dentro do framework EMMI; nenhum dos 15 algoritmos do roster faz exatamente isso (embora exista familia EHVI/afins em outras siglas do corpus). Comparacao so qualitativa no artigo, sem numeros."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Nao e reportado tempo de execucao (wall-clock) em nenhum lugar do artigo; o que e reportado e a complexidade de estimacao via REML pelo NUMERO de parametros de covariancia a maximizar conjuntamente no modelo de dependencia nao-separavel versus separadamente nos modelos independentes univariados: 7 parametros (dependencia) vs. duas verossimilhancas restritas separadas de 2 parametros cada (independencia) no exemplo MOP2 (m=2, d=2); 26 parametros (dependencia) vs. quatro verossimilhancas restritas separadas de 4 parametros cada (independencia) no exemplo DTLZ2 (m=4, d=4). Tambem se discute qualitativamente (Sec. 7) o custo extra do criterio alternativo EIH (S calculos de hipervolume por avaliacao), sem numeros. Nenhuma complexidade assintotica (tipo O(n^3) do GP) e declarada explicitamente.",
+    "literal": "Recall that obtaining estimates of the covariance parameters for the dependence model requires maximization of a restricted likelihood function which is a function of seven parameters. This is computationally more difficult than the parameter estimation in the independence model, which requires us to maximize two seperate restricted likelhihood functions, each of which depends on two parameters.",
+    "localizador": "Sec. 6.1, p. 17; ver tambem Sec. 6.2, p. 18-19 ('this model depends on 26 parameters which must be estimated... independence model, which only requires maximization of four separate restricted likelihood functions, each of which depends on four parameters.')"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "O modelo de GP com dependencia nao-separavel entre objetivos -- a principal contribuicao de modelagem do artigo, alem do proprio EMMI -- nao entrega a vantagem esperada nos dois exemplos testados: em media piora o desempenho de quase todos os criterios no MOP2, e no DTLZ2 piora especificamente o EMMI (embora ajude ligeiramente CWPI e PI).",
+      "literal": "The somewhat surprising result here is that the dependence GP model appears to offer little advantage over the less computationally demanding independence model. In fact, on average, it seems to perform slightly worse for almost all improvement criteria",
+      "localizador": "Sec. 6.1, p. 17"
+    },
+    {
+      "descricao": "No DTLZ2 (dimensao maior, m=4), a dependencia piora especificamente o EMMI nos dois indicadores de qualidade, embora CWPI e PI melhorem ligeiramente com ela -- um resultado misto que enfraquece a recomendacao de usar dependencia mesmo quando aparentemente ajuda outros criterios.",
+      "literal": "While EMMI-Dep performs considerably poorer with the dependence model in regards to the two Pareto set quality indicators, both CWPI-Dep and PI-Dep seem to have, on average, slightly better performance when using the dependence model.",
+      "localizador": "Sec. 6.2, p. 18-19"
+    },
+    {
+      "descricao": "Apesar de a dependencia ser a contribuicao central de modelagem do artigo (GP multivariado nao-separavel), os autores concluem recomendando o modelo mais simples (independente) para uso pratico, citando facilidade de implementacao e menor custo computacional -- um recuo explicito em relacao a proposta mais sofisticada.",
+      "literal": "However, the authors recommend the EMMI-Ind procedure because it is simpler to implement, and requires considerably less computational overhead.",
+      "localizador": "Sec. 7 (Conclusions and Discussion), p. 20"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "No DTLZ2 sob o modelo de dependencia, CWPI-Dep e EMMI-Dep ficam com desempenho essencialmente equivalente: cada um vence em um dos dois indicadores, e as faixas (range) das 5 execucoes se sobrepoem consideravelmente -- um caso de empate pratico entre dois criterios de melhoria diferentes quando o surrogate (aqui, a estrutura de dependencia) e o mesmo.",
+      "literal": "The range of both performance measures shows considerable overlap between the two improvement criteria.",
+      "localizador": "Sec. 6.2, p. 19"
+    },
+    {
+      "descricao": "Os autores afirmam que o criterio baseado em hipervolume esperado (EIH) rende aproximacoes de Pareto competitivas com as do EMMI quando e possivel implementa-lo -- dois criterios de melhoria bem diferentes na formulacao (maximin vs. hipervolume) convergindo para qualidade semelhante, ainda que sem numeros mostrados.",
+      "literal": "While the authors have found that when EIH(x) can be implemented, it produces Pareto Front approximations that are competitive with those created using EIM(x).",
+      "localizador": "Sec. 7 (Conclusions and Discussion), p. 20"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "aumento do numero de objetivos m e da dimensao de entrada d (MOP2: m=2,d=2 -> DTLZ2: m=4,d=4)",
+      "afirmacao": "Com m=4, os metodos de comparacao grafica/visual das aproximacoes de Pareto deixam de ser viaveis, restando so os indicadores numericos (hipervolume e epsilon aditivo); e o numero de parametros de covariancia do modelo de dependencia cresce de 7 para 26, tornando a estimacao por REML consideravelmente mais dificil (mais sujeita a otimo local).",
+      "literal": "In this m = 4 dimensional example, graphical methods are problematic to evaluate",
+      "localizador": "Sec. 6.2 (DTLZ2 Function), p. 18"
+    },
+    {
+      "caracteristica": "desajuste entre a estrutura de dependencia real da funcao-teste e o pressuposto do modelo (nonseparable dependence GP) no MOP2",
+      "afirmacao": "Os autores atribuem o desempenho pior do modelo de dependencia, em parte, ao modelo nao capturar bem a funcao especifica testada (ma especificacao/mismatch), e nao a uma falha geral da ideia de modelar dependencia entre objetivos -- o que reforca a ficha de ablacao nova (item acima) como dependente da caracteristica da propria funcao objetivo.",
+      "literal": "One possible explanation is that the nonseparable dependence GP model does not model this particular function well.",
+      "localizador": "Sec. 6.1 (MOP2 Function), p. 17"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Leitura completa confirmada: arquivo lido integralmente do inicio ao fim (2176 linhas), em 4 chamadas sequenciais de Read (offsets 1, 500, 1000, 1500, cobrindo ate a linha 2176 sem lacunas). Estrutura do arquivo: (a) secao estruturada via pymupdf4llm com texto+tabelas+equacoes, linhas 1-597; (b) ANEXO 'Camada de texto completa do PDF (get_text)', linhas 599-2156, reproducao pagina a pagina (paginas 1-21) do mesmo conteudo, mas com ligaduras tipograficas quebradas (ex.: 'ﬁrst', 'signiﬁcantly', 'seperate'/'likelhihood' -- estes dois ultimos sao erros de digitacao do PROPRIO artigo original, preservados na citacao apenas ate o ponto anterior ao erro, por clareza); (c) ANEXO de OCR de imagens (Apple Vision), linhas 2161-2176, cobrindo so as Figuras 1 e 3 -- conteudo ilegivel/fragmentado (rotulos de eixo parciais e ruido tipo 'C DA 0 0 1S O O'), sem numeros novos alem dos ja capturados na secao estruturada e no ANEXO de texto. Os literais desta ficha foram extraidos preferencialmente da secao estruturada (mais limpa). Nao ha Apendice numerado presente no documento (a unica referencia e 'Proof See Online Reseource 1' e 'Proof We prove this result in Appendix ??' -- ambas remetem a material suplementar/online nao incluido neste PDF de 21 paginas, que termina nas Referencias). Artigo E MAJORITARIAMENTE TEORICO/METODOLOGICO: Secoes 1-5 derivam o EGO de Jones-Schonlau-Welch (Sec. 2), o modelo GP multivariado independente/dependente (Sec. 3), a funcao de melhoria maximin esperada EIM/EMMI e sua relacao EXATA (Teorema 1) com o indicador aditivo epsilon de Zitzler et al. 2003, alem da forma fechada para m=2 (Teorema 2, Sec. 4), e o algoritmo sequencial (Sec. 5) -- nada disso e experimental e foi deliberadamente EXCLUIDO de 'analises'. A parte empirica inteira do artigo (Sec. 6) sao os 2 exemplos (MOP2, DTLZ2) mapeados acima. NOTA CRITICA para uso na dissertacao: pelo Teorema 1, IM(y(x)) = I_epsilon+(P^n_Y, P^{n+1}_Y(x)) EXATAMENTE -- ou seja, a metrica usada no artigo para julgar as fronteiras finais (indicador epsilon aditivo) e analiticamente IDENTICA a propria funcao que o EMMI maximiza a cada passo de selecao. Isso torna a superioridade do EMMI em I_epsilon+ parcialmente 'garantida por construcao' (nao e evidencia totalmente independente), enquanto a vantagem em hipervolume (I_H, uma metrica que o EMMI NAO otimiza diretamente) e evidencia mais robusta/independente -- vale registrar essa ressalva caso a dissertacao cite este artigo como precedente historico do motor 'BO-Melhoria-de-Pareto'. Classificacao fornecida no pedido (motor=BO-Melhoria-de-Pareto; funcao da incerteza=O1 Aquisicao exploratoria; surrogate=GP/Kriging; medicao=VAR-GP; regime=online) casa com o mecanismo: a incerteza (S(x), a covariancia condicional do GP) entra DIRETAMENTE na formula fechada de EIM(x) (Teorema 2) exatamente como no EI classico de Jones-Schonlau-Welch (a funcao cresce com s(x) quando a media esta perto do incumbente) -- e uma aquisicao exploratoria classica generalizada para multiobjetivo via a 'maximin fitness function' de Balling (2003), aplicada dentro do arcabouco EGO/EI de [16]/[11]. NAO ha piso evolutivo sem surrogate em lugar nenhum do artigo (todas as 6 configuracoes comparadas sao criterios de melhoria assistidos por GP); portanto fichas do Grupo B (9-16, assistido x piso) NAO se aplicam a este artigo, e a ficha 8 foi mapeada com ressalva explicita (dispersao ENTRE criterios assistidos, nao assistido-vs-piso). Nao ha problemas reais, nao ha trajetorias de convergencia por iteracao/orcamento (Grupo D inteiro nao se aplica -- so se reporta o estado FINAL apos o orcamento fixo), nao ha sonda/calibracao de sigma (Grupo E fichas 31-38 nao se aplicam -- sigma e usado so operacionalmente dentro da formula fechada de EIM, nunca validado contra erro real: calibracao_do_sigma.mede=false), nao ha 'filme' de decisoes internas nem contagens de mecanismo (ficha 45 nao se aplica -- o metodo e puramente sequencial ponto-a-ponto, sem geracoes/populacao), nao ha regime offline, nao ha lote (q=1 sempre, embora a Sec. 7 cite 'updating strategies that add points in batches rather than one-at-a-time' como trabalho futuro nao realizado). O numero de amostras S usado na aproximacao SAA para DTLZ2 (m=4>=3) nao e declarado explicitamente no texto disponivel -- uma lacuna de transparencia relevante caso a dissertacao queira citar este metodo. roster_bloco=null conforme instrucao do pedido (artigo fora do roster experimental) -- 'mecanismo_proprio'/'reprodutivel_com_camadas'/'parametros_do_uso_da_incerteza' nao preenchidos."
+}

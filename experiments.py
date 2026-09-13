@@ -1,316 +1,522 @@
-"""
-Parallel experiment runner for surrogate-assisted MOEA benchmarking.
+"""Despachante PYTHON do harness (raiz) — arquitetura A2 (§16.5 / §19).
 
-Mirrors the pattern of ``fitness_landscape.py``: one task per
-(algorithm, problem, seed) triple, dispatched via ``joblib.Parallel``
-with the ``loky`` backend.
+Recebe `{algoritmos} × {problemas} × {sementes}` e roda uma task por
+`(algoritmo, problema, semente)` chamando a *main oficial* via o adapter
+`src/experiment.py` (nada é reimplementado — §2/§20). Paraleliza com
+`joblib.Parallel` (backend `loky`), 1 processo por núcleo; a esteira é
+**idempotente e resumível** (manifesto `run_id → status`, D58/§19): células
+prontas são puladas — com ~16 mil runs, quebras são certas e nunca se re-roda
+uma célula concluída.
 
-Usage:
-    python experiments.py                                   # full run, all defaults
-    python experiments.py --modo-rapido                     # quick smoke test
-    python experiments.py --algorithms NSGA2_surrogate K-RVEA \
-                          --problems MMF1 MMF4 \
-                          --seeds 42 43 --n-jobs 4 --modo-rapido
+    python3 experiments.py --exp main --algorithms c262 c154 \
+                           --problems MMF1 ZDT1 --seeds 0 1 42 --n-jobs 10
+    python3 experiments.py --algorithms none --problems MMF1 --seeds 0   # só monta o grid
 
-Output layout:
-    data/experiments/kriging_cache/{problem}_seed{seed}.pkl  (shared GPs)
-    data/experiments/single/{algo}_{problem}_seed{seed}.parquet  (per-task)
-    data/experiments/all.parquet                              (consolidated)
+**Fase 0 (F0-01-harness):** o despacho por algoritmo ainda **não existe**
+(`src.experiment.run` levanta `NotImplementedError` — corpo real em R1/R2/R3).
+Este arquivo entrega o **andaime**: grid, esteira idempotente, manifesto por
+run (§17.2), logger `.jsonl` (§17.5) e placar de console (D23). Uma task
+executada agora fecha como `failed` (adapter não ligado) — honesto e nunca
+silencioso; use `--algorithms none` para exercitar só o encanamento.
+
+Imports pesados (`joblib`, `pandas`, `tqdm`) são **lazy** — o andaime roda em
+qualquer interpretador; só a execução paralela real (n-jobs>1) e a
+consolidação (F0-03) puxam essas libs.
 """
 
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 import time
-import traceback
 from pathlib import Path
 
-import numpy as np
-import pandas as pd
-from joblib import Parallel, delayed
-from tqdm.auto import tqdm
-
-
-class _ProgressParallel(Parallel):
-    """joblib.Parallel subclass with a tqdm progress bar.
-
-    Pass ``total=N`` so the bar knows the denominator up-front. Each
-    completed task increments the bar — works regardless of dispatch order
-    and with any backend.
-    """
-
-    def __init__(self, *args, total=None, tqdm_desc='Tasks', **kwargs):
-        self._total = total
-        self._tqdm_desc = tqdm_desc
-        self._pbar = None
-        super().__init__(*args, **kwargs)
-
-    def __call__(self, *args, **kwargs):
-        with tqdm(total=self._total, desc=self._tqdm_desc) as self._pbar:
-            return super().__call__(*args, **kwargs)
-
-    def print_progress(self):
-        # Called by joblib after each task completes
-        if self._pbar is not None:
-            self._pbar.n = self.n_completed_tasks
-            self._pbar.refresh()
-
-# Ensure src/ is importable when invoked from repo root
+# src/ importável a partir da raiz do repo
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from src.experiment import (
-    ALGORITHM_DISPATCH,
-    ALL_PROBLEMS,
-    BASE_CONFIG,
-    experiment_sa_moea,
-    train_and_cache_kriging,
-    load_kriging_cache,
+from src import naming
+from src import experiment as _adapter
+from src.manifest import (CAMPANHA_ENV, Scoreboard, campanha_id_corrente,
+                          is_run_done, limpar_celula, new_manifest,
+                          read_manifest, write_manifest)
+from src.audit_log import AuditLogger
+
+# ── Roster canônico do stack PYTHON (§21.2 / S.4-F0#2) ─────────────────────
+# Os algoritmos MATLAB (b1,b3,b4,e7,c217,c141,e74,c238,e103,pisos) rodam pelo
+# despachante `experiments.m`. Aqui, só o lado Python (BoTorch + standalone).
+#
+# [DI-31] KNOWN_ALGORITHMS é DERIVADO dos loaders reais (`_DISPATCH_LOADERS`) —
+# a lista literal antiga (`…,'b5','c311'`) era um bug de bateria: 'b5' NÃO existe
+# no dispatch (as chaves são 'b5r'/'b5m') e 'moead_media' faltava ⇒ a validação
+# do CLI (bad_alg abaixo) REJEITAVA os 3 configs offline b5r/b5m/moead_media e a
+# bateria M9 era irrodável. Derivar do dispatch torna o allowlist IMPOSSÍVEL de
+# driftar (o teste `test_roster_cobre_loaders` trava a regressão).
+KNOWN_ALGORITHMS: frozenset = frozenset(
+    a for a in _adapter._DISPATCH_LOADERS if not a.startswith('stub'))
+#: Default do no-arg (coerente com DEFAULT_EXP='main'): só os ONLINE. Os OFFLINE
+#: (b5r/b5m/c311/moead_media/e103/treed_media) rodam com `--exp {off,sweep-*}
+#: --algorithms …` explícito (treed_media só em sweep-big-{lhs,mvns}).
+_OFFLINE = frozenset({'b5r', 'b5m', 'c311', 'moead_media', 'e103', 'treed_media'})
+DEFAULT_ALGORITHMS: list[str] = sorted(KNOWN_ALGORITHMS - _OFFLINE)
+
+# ── Problemas: os 28 canônicos (A2/§4; MMF16_L3 removido) ──────────────────
+DEFAULT_PROBLEMS: list[str] = list(_adapter.ALL_PROBLEMS)
+
+# ── Sementes: {0..28} ∪ {42} = 30 (§5.3/D85) ───────────────────────────────
+DEFAULT_SEEDS: list[int] = list(range(29)) + [42]
+
+DEFAULT_EXP = 'main'
+DEFAULT_DATA_ROOT = 'data'
+
+# ── Política de retry da bateria [M7/DI-06 item 1] ──────────────────────────
+#: Tentativas por run (1 + N−1 retries). D23 pedia 1 retry; a bateria pede mais.
+RETRY_ATTEMPTS = 3
+#: Base do backoff exponencial em segundos (0s → 5s → 20s nas 3 tentativas).
+RETRY_BACKOFF_S = 5
+#: [B-16/DI-42.7=(a)] Falhas DETERMINÍSTICAS — retriar só queima o mesmo custo 3×.
+#: Casamento por SUBSTRING de `f'{tipo}: {mensagem}'`. As 3 foram medidas na
+#: rodada-42, e a prova de determinismo é empírica: `main/b1/DTLZ4` falhou
+#: IDÊNTICO em duas arquiteturas (vm3 Linux/Intel e Mac arm64); no `main/c154`
+#: (ZDT6 it 62, BBOB_F55 it 55) a própria escada de random search já esgotou as
+#: 3 relaxações internas; no `main/c262/WFG1` (it 41, n_train=281) o BoTorch já
+#: esgotou as tentativas internas de fit. Em 30 sementes: ~430 h-core com retry
+#: contra ~145 h-core sem — economia de ~285 h-core para o MESMO fim.
+NO_RETRY_SUBSTRINGS: tuple[str, ...] = (
+    'least squares problem is underdetermined',
+    'random_search_optimizer falhou nas 3 tentativas',
+    'ModelFittingError: All attempts to fit',
 )
+GCS_BUCKET = 'mestrado_experiments'   # espelho Python (§17.7); MATLAB = só local
+#: [D-16/DI-21] Configs BoTorch — o despachante desliga o kernel fusionado
+#: (DEF-L2/DI-05) antes de despachá-los; estado POR PROCESSO.
+BOTORCH_ALGS = frozenset({'c262', 'c154', 'e81'})
 
 
-# ── ALGORITMOS A RODAR ────────────────────────────────────────────────────
-# Disponíveis: 'NSGA2_surrogate', 'DR-NSGA-II', 'Prob-MOEA/D',
-#              'K-RVEA', 'ParEGO', 'KTA2', 'K-RVEA-OPT'
-# K-RVEA-OPT é a variante otimizada (vetorizada + GP custom + threading
-# paralela dos M GPs + numba) — estatisticamente equivalente ao K-RVEA.
-DEFAULT_ALGORITHMS = [
-    'NSGA2_surrogate',
-    'DR-NSGA-II',
-    'Prob-MOEA/D',
-    'K-RVEA',
-    'ParEGO',
-    'KTA2',
-    'K-RVEA-OPT',
-]
+# ═══════════════════════════════════════════════════════════════════════════
+#  Uma task = um run (adapter + manifesto + log de auditoria)
+# ═══════════════════════════════════════════════════════════════════════════
 
-# ── PROBLEMAS A RODAR ─────────────────────────────────────────────────────
-# Disponíveis (catálogo completo em src/experiment.py::PROBLEM_CLASSES):
-#   MMF1, MMF4, MMF11_L, MMF16_L3, MMF16_20,
-#   ZDT1, ZDT3, ZDT4, ZDT6,
-#   DTLZ1, DTLZ2, DTLZ3, DTLZ4, DTLZ7,
-#   WFG1, WFG2, WFG4, WFG5, WFG9,
-#   BBOB1, BBOB5, BBOB17, BBOB22, BBOB37, BBOB49, BBOB55
-DEFAULT_PROBLEMS = [
-    'MMF1', 'MMF4', 'MMF11_L', 'MMF16_L3', 'MMF16_20',
-    'ZDT1', 'ZDT3', 'ZDT4', 'ZDT6',
-    'DTLZ1', 'DTLZ2', 'DTLZ3', 'DTLZ4', 'DTLZ7',
-    'WFG1', 'WFG2', 'WFG4', 'WFG5', 'WFG9',
-    'BBOB1', 'BBOB5', 'BBOB17', 'BBOB22', 'BBOB37', 'BBOB49', 'BBOB55',
-]
+def _run_one(exp: str, alg: str, problema: str, semente: int,
+             data_root: str, *, modo_rapido: bool = False,
+             enable_bucket: bool = False,
+             teto_s: float | None = None,
+             checar_pronto: bool = True) -> str:
+    """Executa (ou tenta) um run e materializa manifesto + `.jsonl`.
 
-# ── SEEDS A RODAR ─────────────────────────────────────────────────────────
-DEFAULT_SEEDS = [42, 33]#, 43, 44, 45, 46]
+    Retorna o `status` ∈ {ok, retried_ok, failed, **skipped**}. A política de
+    erro-duro (D23) dá **1 retry** em falha genérica; um `NotImplementedError`
+    (adapter ausente na Fase 0) NÃO é retriável — fecha `failed` na hora, com a
+    razão registrada. Toda parada é logada (nunca silenciosa — D23/D60).
 
-# ── NOISY PROBLEM TOGGLE ──────────────────────────────────────────────────
-# Se True (legado), os algoritmos online (K-RVEA, ParEGO, KTA2) e o
-# treinamento Kriging usam o wrapper ``NoisyProblem`` (NOISE_CONFIG).
-# Se False, usa os problemas originais sem transformacao (fitness limpa).
-# Caches em ``single_dir`` / ``kriging_cache_dir`` sao indexados separadamente
-# (sufixo ``_clean``) para evitar colisao entre runs noisy/clean.
-NOISY_PROBLEM = False
-
-DEFAULT_SINGLE_DIR = 'data/experiments/single'
-DEFAULT_KRIGING_CACHE_DIR = 'data/experiments/kriging_cache'
-DEFAULT_OUT = 'data/experiments/all.parquet'
-
-
-def _safe(name: str) -> str:
-    return name.replace('/', '_').replace(' ', '_').replace('-', '_').lower()
-
-
-def _build_cfg(modo_rapido: bool) -> dict:
-    cfg = BASE_CONFIG.copy()
-    if modo_rapido:
-        cfg['n_generations'] = max(1, int(cfg['n_generations'] * 0.1))
-        cfg['krvea_feval']   = max(1, int(cfg['krvea_feval']   * 0.1))
-        cfg['kta2_feval']    = max(1, int(cfg['kta2_feval']    * 0.1))
-        cfg['parego_feval']  = max(1, int(cfg['parego_feval']  * 0.1))
-        cfg['FEmax']         = cfg['krvea_feval']
-    return cfg
-
-
-def _task_safe(algo: str, problem: str, seed: int, cfg: dict,
-               single_dir: str, kriging_cache_dir: str,
-               load_memory: bool = True,
-               noisy_problem: bool = True):
-    """One unit of parallel work — one experiment, one parquet, one tuple.
-
-    ``load_memory`` is forwarded to ``experiment_sa_moea`` so the cache
-    lookup in ``single_dir`` is handled in a single place.
+    `checar_pronto=False` é para quem JÁ decidiu (o `_stage_grid`, que filtra a
+    esteira antes de montar o `pending`): `is_run_done` lista o BUCKET nos 5
+    configs bucket-only (D58), então checar duas vezes por célula custa rede.
     """
-    try:
-        kr = load_kriging_cache(problem, seed, cache_dir=kriging_cache_dir,
-                                noisy_problem=noisy_problem)
-        df = experiment_sa_moea(algo, problem, seed, config=cfg,
-                                 kriging_models=kr,
-                                 load_memory=load_memory,
-                                 single_dir=single_dir,
-                                 noisy_problem=noisy_problem)
-        return (algo, problem, seed, True, '', df)
-    except Exception as e:
-        err = f'{type(e).__name__}: {e}'
-        tb = traceback.format_exc()
-        return (algo, problem, seed, False, err + '\n' + tb, None)
-
-
-def _precache_kriging(problems, seeds, cache_dir: str, skip_existing: bool,
-                       n_train: int = 500, n_jobs: int = 1,
-                       noisy_problem: bool = True):
-    """Train and cache Kriging models for every (problem, seed) pair.
-
-    Same models are reused by NSGA2_surrogate, DR-NSGA-II, Prob-MOEA/D.
-    Skipped if file already exists and skip_existing=True.
-    """
-    os.makedirs(cache_dir, exist_ok=True)
-    pairs = [(p, s) for p in problems for s in seeds]
-
-    def _one(p, s):
-        try:
-            train_and_cache_kriging(p, s, cache_dir=cache_dir,
-                                     n_train=n_train,
-                                     skip_existing=skip_existing,
-                                     noisy_problem=noisy_problem)
-            return (p, s, True, '')
-        except Exception as e:
-            return (p, s, False, f'{type(e).__name__}: {e}')
-
-    print(f'[Stage 1/3] Pre-caching Kriging for {len(pairs)} (problem, seed) pairs ...')
-    results = _ProgressParallel(
-        n_jobs=n_jobs, backend='loky', verbose=0,
-        total=len(pairs), tqdm_desc='Kriging cache',
-    )(delayed(_one)(p, s) for p, s in pairs)
-    failed = [(p, s, e) for p, s, ok, e in results if not ok]
-    if failed:
-        print(f'  ⚠ {len(failed)} Kriging caches failed:')
-        for p, s, e in failed[:10]:
-            print(f'     - {p} seed={s}: {e}')
-
-
-def _print_summary(ok, fail, elapsed):
-    print('\n' + '=' * 70)
-    print(f'Done in {elapsed:.1f}s.  OK: {len(ok)}  FAIL: {len(fail)}')
-    print('=' * 70)
-    if fail:
-        print('Failures:')
-        for algo, problem, seed, _, err, _ in fail[:20]:
-            first_line = err.splitlines()[0] if err else ''
-            print(f'  - {algo} | {problem} | seed={seed}: {first_line}')
-        if len(fail) > 20:
-            print(f'  ... and {len(fail) - 20} more')
-
-
-def main():
-    p = argparse.ArgumentParser(description=__doc__,
-                                 formatter_class=argparse.RawTextHelpFormatter)
-    p.add_argument('--algorithms', nargs='+', default=DEFAULT_ALGORITHMS,
-                    help='Algorithms to run (subset of ALGORITHM_DISPATCH).')
-    p.add_argument('--problems', nargs='+', default=DEFAULT_PROBLEMS,
-                    help='Problems to run (short names from PROBLEM_CLASSES).')
-    p.add_argument('--seeds', nargs='+', type=int, default=DEFAULT_SEEDS,
-                    help='Random seeds.')
-    p.add_argument('--n-jobs', type=int, default=10,
-                    help='Parallel workers for joblib (default: 10).')
-    p.add_argument('--modo-rapido', action='store_true',
-                    help='Scale iteration budgets to 10%% for quick tests.')
-    p.add_argument('--single-dir', default=DEFAULT_SINGLE_DIR,
-                    help=f'Per-task parquet dir (default: {DEFAULT_SINGLE_DIR}).')
-    p.add_argument('--kriging-cache-dir', default=DEFAULT_KRIGING_CACHE_DIR,
-                    help='Where to cache trained Kriging models per (problem, seed).')
-    p.add_argument('--out', default=DEFAULT_OUT,
-                    help=f'Consolidated parquet path (default: {DEFAULT_OUT}).')
-    p.add_argument('--skip-existing', action='store_true',
-                    help='(legacy alias of load_memory=True; kept for CLI compat).')
-    p.add_argument('--no-load-memory', action='store_true',
-                    help='Disable the per-experiment parquet cache in single_dir '
-                         '(re-runs every (algo, problem, seed) from scratch).')
-    p.add_argument('--no-kriging-cache', action='store_true',
-                    help='Skip pre-caching of Kriging models (re-train per task).')
-    p.add_argument('--no-consolidate', action='store_true',
-                    help='Skip the final pd.concat / out.parquet step.')
-    noisy_group = p.add_mutually_exclusive_group()
-    noisy_group.add_argument('--noisy-problem', dest='noisy_problem',
-                              action='store_true',
-                              help='Wrap problems with NoisyProblem (default '
-                                   'follows NOISY_PROBLEM constant).')
-    noisy_group.add_argument('--no-noisy-problem', dest='noisy_problem',
-                              action='store_false',
-                              help='Use original (clean) problems without '
-                                   'NoisyProblem wrapping.')
-    p.set_defaults(noisy_problem=NOISY_PROBLEM)
-    args = p.parse_args()
-
-    # Validate inputs
-    bad_algos = [a for a in args.algorithms if a not in ALGORITHM_DISPATCH]
-    if bad_algos:
-        raise SystemExit(f'Unknown algorithms: {bad_algos}. '
-                          f'Available: {list(ALGORITHM_DISPATCH)}')
-    bad_probs = [p for p in args.problems if p not in ALL_PROBLEMS]
-    if bad_probs:
-        raise SystemExit(f'Unknown problems: {bad_probs}.')
-
-    os.makedirs(args.single_dir, exist_ok=True)
-    os.makedirs(os.path.dirname(args.out), exist_ok=True)
-    os.makedirs(args.kriging_cache_dir, exist_ok=True)
-
-    cfg = _build_cfg(args.modo_rapido)
-
-    print(f"\n[Config] noisy_problem={args.noisy_problem} "
-          f"({'NoisyProblem wrapper' if args.noisy_problem else 'problemas originais sem ruido'})")
-
-    # ── Stage 1: Pre-cache Kriging ────────────────────────────────────────
-    if not args.no_kriging_cache:
-        _precache_kriging(args.problems, args.seeds,
-                           cache_dir=args.kriging_cache_dir,
-                           skip_existing=args.skip_existing,
-                           n_train=cfg.get('n_kriging_train', 500),
-                           n_jobs=args.n_jobs,
-                           noisy_problem=args.noisy_problem)
-
-    # ── Stage 2: Parallel experiments ─────────────────────────────────────
-    tasks = [(a, p, s)
-              for a in args.algorithms
-              for p in args.problems
-              for s in args.seeds]
-    print(f'\n[Stage 2/3] Running {len(tasks)} tasks on {args.n_jobs} workers '
-          f'(algorithms={len(args.algorithms)} × problems={len(args.problems)} '
-          f'× seeds={len(args.seeds)}) ...')
-
-    load_memory = not args.no_load_memory
-
+    # ── [B-02] O ⑥ SÓ ABRE DEPOIS DE DECIDIR EXECUTAR ────────────────────────
+    # Antes, `AuditLogger.for_run` era a 1ª linha: qualquer invocação que não
+    # executasse nada (smoke por token, teste unitário, célula já pronta)
+    # deixava 1 par header+footer no ⑥ da célula — 22 células "pulou"/semente
+    # ⇒ ~660 células/campanha com ⑥ poluído, e a regra O-22 dando ~270 falsos
+    # alarmes de "morte de máquina". O caminho de skip agora vive no stdout (o
+    # driver de lote deriva o `pulou` do mtime do ⑤ e escreve o done.txt).
+    rid = naming.run_id(exp, alg, problema, semente)
+    if checar_pronto and is_run_done(exp, alg, problema, semente, data_root):
+        print(f'[skip] {rid}: já pronta (is_run_done) — ⑥ intocado.', flush=True)
+        return 'skipped'
+    status, n_retries, stack_trace = 'failed', 0, None
     t0 = time.time()
-    results = _ProgressParallel(
-        n_jobs=args.n_jobs, backend='loky', verbose=0,
-        total=len(tasks),
-        tqdm_desc=f'Experiments ({args.n_jobs} workers)',
-    )(
-        delayed(_task_safe)(a, p, s, cfg, args.single_dir,
-                             args.kriging_cache_dir, load_memory,
-                             args.noisy_problem)
-        for a, p, s in tasks
-    )
-    elapsed = time.time() - t0
+    # [I-10] Os kwargs do run são montados UMA vez, ANTES de tudo, porque o
+    # manifesto do ABORTO também precisa deles: os 5 manifestos abortados de
+    # `batch/c262` gravaram `q=1` enquanto o `header.params.q` do ⑥ dizia 10 (o
+    # ramo `new_manifest` não herdava nada do run) — 150 células com o `q` errado
+    # no ⑤ no roster completo.
+    _kw = {} if teto_s is None else {'teto_s': float(teto_s)}
+    if exp == 'batch':
+        from src.budget import Q_BATCH
+        _kw['q'] = Q_BATCH
+    # [B-01/B-11] `append=False`: quem chega aqui VAI executar, e é por isso o
+    # dono do ⑥ — trunca e assume, o mesmo rito dos runners e do harness MATLAB
+    # (`experiment.m:jsonl_open`). Em append, a guarda anti-append do B-01
+    # levantaria `RunJaFechado` em toda re-execução de célula cujo run anterior
+    # fechou com `fe_final` (as ~29 não-ok da s42, p.ex.), matando o resume; e a
+    # higiene de partida é justamente o que a OP-6 pede do `--force`.
+    log = AuditLogger.for_run(exp, alg, problema, semente, data_root,
+                              append=False)
+    try:
+        log.header(run_id=rid, alg=alg, problema=problema, semente=semente,
+                   exp=exp, modo_rapido=modo_rapido)
+        # ── Retry com BACKOFF [M7/DI-06 item 1 — o incremento 1 do autor] ────
+        # A bateria são 16.500 runs em máquina compartilhada: falhas transitórias
+        # (licença MATLAB contendida, I/O, OOM momentâneo, rede no upload) são
+        # CERTAS. O D23 já previa 1 retry; aqui ele vira `RETRY_ATTEMPTS`
+        # tentativas com espera crescente `RETRY_BACKOFF_S · 2^i` (0s → 5s → 20s),
+        # que é o que separa "falha transitória" de "falha real". Erros
+        # NÃO-RETRIÁVEIS (adapter ausente, arquivo de contexto faltando) cortam na
+        # hora — retriar não conserta e só queima tempo.
+        attempts = RETRY_ATTEMPTS
+        # [D-16/DI-21 — a letra da DI-05] DEF-L2 é estado POR PROCESSO: o
+        # despachante também desliga o kernel fusionado antes de despachar um
+        # runner BoTorch, sem depender da ordem de importação do runner. Import
+        # LAZY e tolerante: no Mac/MATLAB o stack torch pode nem existir.
+        if alg in BOTORCH_ALGS:
+            try:
+                from src.c262_qnehvi import disable_fused_kernel
+                disable_fused_kernel()
+            except Exception as e:  # noqa: BLE001 — melhor rodar que abortar
+                log.event('fused_kernel_disable_indisponivel', err=repr(e))
+        for i in range(attempts):
+            try:
+                # [D-06/DI-21] repassa `data_root` (a mescla DI-13.1 procurava o
+                # manifesto no root ERRADO sob --data-root customizado e regravava
+                # o toco com 3 timings None — o defeito voltava por outra porta).
+                # [DI-32/T2] `enable_bucket` agora é FIO DE PONTA A PONTA: o CLI
+                # `--enable-bucket` liga o dual-write §17.7 (a VM efêmera do M8
+                # gravaria SÓ local sem isto — perda total no descarte). Default
+                # False = Mac/pilotos local puro (RI-08/DI-16.8), como sempre.
+                # [DI-34] `q` FIADO AO RUNNER: exp=batch ⇒ q=Q_BATCH (D66; fonte
+                # única em budget.py). Sem este fio a bateria batch rodava em
+                # q=1 SILENCIOSO (achado crítico da validação final da torre).
+                # [T6-batch] `teto_s` FIADO ATE O RUNNER. Os runners que o
+                # aceitam (c311, e81) tratam o estouro como DADO — aborto limpo
+                # com manifesto `failed`/`teto_wall` (D61/§22.5), nao excecao.
+                # Antes o parametro existia mas o despachante NUNCA o passava:
+                # o `_TetoWall` era inalcancavel na bateria. Os runners que nao
+                # o conhecem simplesmente ignoram (cai no **_kwargs deles).
+                _adapter.run(alg, problema, semente, exp=exp,
+                             data_root=data_root, enable_bucket=enable_bucket,
+                             **_kw)
+                status = 'ok' if i == 0 else 'retried_ok'
+                n_retries = i          # nº de re-tentativas até o sucesso
+                break
+            except NotImplementedError as e:
+                # Andaime da Fase 0: adapter não ligado — NÃO retriar.
+                status, stack_trace, n_retries = 'failed', repr(e), i
+                log.event('not_implemented', msg=str(e))
+                break
+            except (FileNotFoundError, KeyError) as e:
+                # [M7] artefato/config ausente (DoE, dataset, sonda, chave de env):
+                # é ERRO DE PREPARAÇÃO, não transitório — retriar não conserta.
+                status, stack_trace, n_retries = 'failed', repr(e), i
+                log.guard('nao_retriavel', err=f'{type(e).__name__}: {e}')
+                break
+            except Exception as e:  # noqa: BLE001 — D23: capturar tudo, logar, seguir
+                # [D-07/DI-21] Aborto por TETO de wall-clock (`WallClockAbort`
+                # dos runners BoTorch) NÃO é retriável: cada retry estouraria o
+                # MESMO teto e um teto de 8h viraria 24h. Checagem pelo NOME da
+                # classe para não importar torch no despachante.
+                if type(e).__name__ == 'WallClockAbort':
+                    status, stack_trace, n_retries = 'failed', repr(e), i
+                    log.guard('teto_wall_nao_retriavel', err=str(e)[:200])
+                    break
+                # [B-16] Falha DETERMINÍSTICA: a mesma exceção vai acontecer nas
+                # 3 tentativas, então o retry só multiplica o custo (~285 h-core
+                # em 30 sementes). O casamento é por SUBSTRING da mensagem
+                # porque a exceção chega embrulhada em RuntimeError pelas rotas
+                # dos runners (a classe original se perde; o texto, não).
+                msg = f'{type(e).__name__}: {e}'
+                padrao = next((s for s in NO_RETRY_SUBSTRINGS if s in msg), None)
+                if padrao is not None:
+                    import traceback
+                    status, n_retries = 'failed', i
+                    stack_trace = traceback.format_exc()
+                    log.guard('determinista_nao_retriavel', padrao=padrao,
+                              err=msg[:200])
+                    break
+                import traceback
+                stack_trace = traceback.format_exc()
+                n_retries = i          # i re-tentativas já gastas
+                log.guard('hard_error', attempt=i, err=f'{type(e).__name__}: {e}')
+                if i + 1 >= attempts:
+                    status = 'failed'  # esgotou as tentativas
+                else:
+                    espera = RETRY_BACKOFF_S * (2 ** i)
+                    log.event('retry', tentativa=i + 1, de=attempts,
+                              espera_s=espera, motivo=f'{type(e).__name__}')
+                    time.sleep(espera)
+    finally:
+        log.footer(status=status, n_retries=n_retries,
+                   tempo_total_s=round(time.time() - t0, 4),
+                   stack_trace=stack_trace)
+        log.close()
 
-    ok = [r for r in results if r[3]]
-    fail = [r for r in results if not r[3]]
-    _print_summary(ok, fail, elapsed)
+    # ── Manifesto: MESCLAR, nunca reconstruir [DI-13.1, autor 2026-07-19] ──────
+    # O RUNNER já gravou o manifesto RICO (doe_hash, fe_final, n_geracoes, timing
+    # medido, fit_series, sigma_dict, bloco sonda). O despachante sabe outras 3
+    # coisas — status/n_retries/stack_trace — e o wall-clock de fora. Reconstruir
+    # aqui (o comportamento anterior) SOBRESCREVIA a certidão do runner e a bateria
+    # M8 perderia TODO o payload DI-09/DI-10 da camada ⑤, sem sintoma visível.
+    # Regra: se o runner gravou → mescla só os campos do despachante; se não gravou
+    # (run morreu antes) → cria do zero, como antes.
+    bucket = GCS_BUCKET  # Python espelha no bucket (§17.7); o upload é F0-03
+    wall = round(time.time() - t0, 4)
+    mpath = naming.manifest_path(exp, alg, problema, semente, data_root=data_root)
+    man = read_manifest(mpath)
+    if man is None:                       # o runner não chegou a gravar
+        # [D-06/DI-21] `bucket=None`: se o runner morreu antes de gravar, nada
+        # subiu — o carimbo de espelho só entra quando o upload CONFIRMA.
+        # [I-10] A CÉLULA do grid vai no ⑤ mesmo no aborto: `q` dos kwargs do
+        # run (era `q=1` fixo nos 5 manifestos abortados de `batch/c262`, contra
+        # `header.params.q=10` no ⑥) e `tier`/`dist` do próprio token `exp` —
+        # sem eles o manifesto de uma célula de sweep abortada não diz de que
+        # tier ela é, e o censo/gate lê a célula errada.
+        tier, dist = naming.parse_sweep(exp)
+        man = new_manifest(exp, alg, problema, semente, status=status,
+                           n_retries=n_retries, stack_trace=stack_trace,
+                           q=int(_kw.get('q', 1)), tier=tier, dist=dist,
+                           regime=('offline' if alg in _OFFLINE else 'online'),
+                           timing={'tempo_total_s': wall,
+                                   'tempo_fit_surrogate_s': None,
+                                   'tempo_busca_s': None, 'tempo_aval_real_s': None},
+                           data_root=data_root, bucket=None)
+    else:                                 # MESCLA (preserva tudo que o runner pôs)
+        # [DI-42.1] O runner é a AUTORIDADE sobre o próprio fim: os standalone
+        # abortam por `break` SEM exceção (teto_wall, cache_hit_travado,
+        # gpy_bfgs_linalg…) e gravam status='failed' + motivo_parada no
+        # manifesto — e o despachante, vendo retorno sem exceção, REBAIXAVA
+        # para 'ok' (a célula c311/sweep-big-mvns/MMF16_20/42 da rodada-42 é a
+        # prova empírica: LinAlgError do GPy carimbada 'ok'). Regra: 'failed'
+        # do runner NUNCA é rebaixado; o contrário (runner 'ok' + exceção no
+        # despachante ⇒ 'failed') continua valendo, como antes.
+        if man.get('status') != 'failed':
+            man['status'] = status
+        man['n_retries'] = n_retries
+        if stack_trace:
+            man['stack_trace'] = stack_trace
+        man.setdefault('timing', {})
+        # o wall do despachante inclui overhead de orquestração; só preenche se o
+        # runner não mediu (nunca sobrescreve medida por estimativa).
+        if not man['timing'].get('tempo_total_s'):
+            man['timing']['tempo_total_s'] = wall
+        man['timing']['tempo_total_despachante_s'] = wall
+        # [D-06/DI-21] O carimbo `paths.bucket` é CONDICIONAL: só afirma o
+        # espelho quando o upload de fato aconteceu — `upload_status` é o mapa
+        # por artefato que `dual_write_run` grava ({art: "uploaded"|...}); no
+        # Mac ele é None e o carimbo NÃO acontece. Um manifesto que MENTE sobre
+        # persistência é pior que um que se cala: a VM é efêmera e a ③ dos 5
+        # volumosos é o dado insubstituível.
+        us = man.get('upload_status')
+        subiu = isinstance(us, dict) and any(
+            str(v).startswith('uploaded') for v in us.values())
+        if bucket and subiu:
+            man.setdefault('paths', {})['bucket'] = man.get('paths', {}).get('bucket') or bucket
+    write_manifest(man, data_root)
+    # ── [B-09] a EVIDÊNCIA do run não-OK também sobe ─────────────────────────
+    # `mirror_run` só roda no fim de run bem-sucedido (dentro de
+    # `write_run_outputs`), então as ~870 células não-OK de 30 sementes
+    # (29/semente) ficavam órfãs no disco de uma VM efêmera. Aqui é a última
+    # linha de defesa e a única que cobre TODAS as rotas de morte: exceção do
+    # runner, aborto por teto, `break` silencioso, subprocesso venv-only.
+    # Sobe só ⑥+⑤ (a trilha leve), depois da mescla, e NUNCA levanta.
+    if enable_bucket and man.get('status') == 'failed':
+        from src import gcs as _gcs
+        ev = _gcs.mirror_evidencia(exp, alg, problema, semente,
+                                   data_root=data_root)
+        us = man.get('upload_status')
+        if not isinstance(us, dict):      # `None` quando o run nunca falou com
+            us = {}                       # o bucket — o carimbo entra igual.
+        us.update({f'evidencia_{k}': v for k, v in ev.items()})
+        man['upload_status'] = us
+        write_manifest(man, data_root)
+    return status
 
-    # ── Stage 3: Consolidate ──────────────────────────────────────────────
-    if args.no_consolidate:
-        print('\n[Stage 3/3] Skipping consolidation (--no-consolidate).')
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Estágios (§16.5): (1) pré-cache compartilhável · (2) grid · (3) consolidação
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _stage_precache(problems, seeds, data_root):
+    """Estágio 1 — pré-cache do compartilhável por (problema, semente).
+
+    Na arquitetura final, gera/garante o DoE `11D−1` e o dataset offline
+    (artefatos parquet — D87/D90). **Fase 0:** stub — o gerador é o cartão
+    **F0-02-doe**. Aqui só anuncia.
+    """
+    print(f'[1/3] Pré-cache compartilhável (DoE/dataset) → cartão F0-02 '
+          f'(stub; {len(problems)}×{len(seeds)} pares).')
+
+
+def sweep_tmp_orfaos(data_root: str = DEFAULT_DATA_ROOT, *, idade_min_s: float = 3600,
+                     dry_run: bool = False) -> list[str]:
+    """Remove `.tmp` ÓRFÃOS de escritas atômicas interrompidas [M7/DI-06 item 1].
+
+    A escrita atômica (D58) grava em `<arquivo>.tmp` e faz `replace` no fim — um
+    crash DURO (kill -9, spot-VM revogada, OOM) entre os dois deixa o `.tmp` para
+    trás. Eles não corrompem nada (o resume ignora), mas em 16.500 runs viram
+    dezenas de GB de lixo silencioso no disco e no bucket.
+
+    Só apaga o que tem **mais de `idade_min_s`** (default 1h): um `.tmp` recente
+    pode ser de um run VIVO neste instante — apagá-lo mataria a escrita em curso.
+    Devolve a lista de caminhos (removidos, ou que seriam removidos em `dry_run`).
+    """
+    from pathlib import Path
+    agora, alvos = time.time(), []
+    raiz = Path(data_root)
+    if not raiz.exists():
+        return alvos
+    for p in raiz.rglob('*.tmp'):
+        try:
+            if agora - p.stat().st_mtime < idade_min_s:
+                continue           # jovem demais: pode ser um run VIVO
+            alvos.append(str(p))
+            if not dry_run:
+                p.unlink()
+        except OSError:
+            continue               # sumiu no caminho / sem permissão: ignora
+    return alvos
+
+
+def _stage_grid(tasks, exp, data_root, *, n_jobs, force, modo_rapido, sb,
+                enable_bucket=False, teto_s=None):
+    """Estágio 2 — executa o grid (idempotente/resumível)."""
+    pending = []
+    for alg, prob, seed in tasks:
+        if not force and is_run_done(exp, alg, prob, seed, data_root):
+            sb.record_skip()
+        else:
+            pending.append((alg, prob, seed))
+
+    print(f'[2/3] Grid: {len(tasks)} células — {sb.skipped} prontas (skip), '
+          f'{len(pending)} a rodar em {n_jobs} worker(s).')
+    print(f'[campanha] campanha_id = {campanha_id_corrente()} '
+          f'(B-03; crave com {CAMPANHA_ENV} nas campanhas longas).')
+    if not pending:
         return
+    # ── [OP-6] higiene do --force: LIMPA antes de re-rodar ───────────────────
+    # Re-rodar por cima deixava as camadas da execução anterior no disco: se o
+    # run novo morresse antes de reescrever todas, a célula ficava com ①②③④ de
+    # uma execução e ⑤ de outra — a mecânica da quimera `batch/c149/q10_ZDT4`.
+    if force:
+        n_arq = 0
+        for alg, prob, seed in pending:
+            n_arq += len(limpar_celula(exp, alg, prob, seed, data_root))
+        print(f'[--force] {n_arq} artefato(s) local(is) de {len(pending)} '
+              f'célula(s) removido(s) antes do re-run (OP-6; o bucket é intocado).')
 
-    print(f'\n[Stage 3/3] Consolidating {len(ok)} task DataFrames → {args.out} ...')
-    dfs = [r[5] for r in ok if r[5] is not None]
-    if not dfs:
-        print('  No DataFrames to consolidate.')
+    # [B-02] a esteira JÁ decidiu acima (o `pending`), então o `_run_one` não
+    # repete o `is_run_done` — que lista o bucket nos 5 bucket-only (D58).
+    def _placar(st: str) -> None:
+        sb.record_skip() if st == 'skipped' else sb.record(st)
+
+    if n_jobs == 1:
+        # Serial — sem joblib (mantém o andaime rodável no python3 base).
+        for alg, prob, seed in pending:
+            _placar(_run_one(exp, alg, prob, seed, data_root,
+                             modo_rapido=modo_rapido, checar_pronto=False,
+                             enable_bucket=enable_bucket, teto_s=teto_s))
+            sb.print()
+    else:
+        from joblib import Parallel, delayed  # lazy (execução paralela real)
+        results = Parallel(n_jobs=n_jobs, backend='loky', verbose=0)(
+            delayed(_run_one)(exp, alg, prob, seed, data_root,
+                              modo_rapido=modo_rapido, checar_pronto=False,
+                              enable_bucket=enable_bucket, teto_s=teto_s)
+            for alg, prob, seed in pending)
+        for st in results:
+            _placar(st)
+        sb.print()
+
+
+def _stage_consolidate(exp, data_root, *, enabled):
+    """Estágio 3 — consolida os Parquet por task no export final (§17.4).
+
+    Lê Mac-local + bucket, re-encoda brotli→zstd. **Fase 0:** stub — a
+    consolidação real é o cartão de export/consolidação (F0-03/D82). Puxa
+    `pandas`/`pyarrow` de forma lazy quando ligada.
+    """
+    if not enabled:
+        print('[3/3] Consolidação desligada (--no-consolidate) — '
+              'implementação em F0-03.')
         return
+    print('[3/3] Consolidação → cartão F0-03/consolidação (stub).')
 
-    df_all = pd.concat(dfs, ignore_index=True)
-    df_all.to_parquet(args.out)
-    print(f'  Saved: {args.out}  shape={df_all.shape}')
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  CLI
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _parse_algorithms(values) -> list[str]:
+    """Resolve o roster. Sentinela `none` (ou vazio) = roster vazio — permite
+    montar o grid/manifesto sem executar nada (andaime da Fase 0)."""
+    if values is None:
+        return list(DEFAULT_ALGORITHMS)
+    vals = [v for v in values]
+    if len(vals) == 1 and vals[0].lower() == 'none':
+        return []
+    return vals
+
+
+def main(argv=None):
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    p.add_argument('--exp', default=DEFAULT_EXP,
+                   help="Token de experimento (main|off|batch|sweep-<tier>-<dist>).")
+    p.add_argument('--algorithms', nargs='+', default=None,
+                   help="Roster (subset do stack Python). 'none' = só monta o grid.")
+    p.add_argument('--problems', nargs='+', default=DEFAULT_PROBLEMS,
+                   help='Problemas (short names; 28 canônicos).')
+    p.add_argument('--seeds', nargs='+', type=int, default=DEFAULT_SEEDS,
+                   help='Sementes (default: 30 = {0..28} ∪ {42}).')
+    p.add_argument('--n-jobs', type=int, default=1,
+                   help='Workers joblib (default 1 = serial, sem joblib).')
+    p.add_argument('--data-root', default=DEFAULT_DATA_ROOT,
+                   help='Raiz das saídas (default: data).')
+    p.add_argument('--force', action='store_true',
+                   help='Re-roda mesmo células já prontas (ignora a esteira).')
+    p.add_argument('--teto-s', type=float, default=43200.0,
+                   help='[DI-35.5] TETO UNIVERSAL por run (segundos; default '
+                        '12h=43200 nos experimentos definitivos, decisão do '
+                        'autor). Runners que o honram abortam LIMPO ao '
+                        'estourar — manifesto failed/teto_wall (aborto por '
+                        'teto = DADO, D61/§22.5). Passe 0 para desligar.')
+    p.add_argument('--no-consolidate', action='store_true',
+                   help='Pula o estágio 3 de consolidação (§17.4/F0-03).')
+    p.add_argument('--modo-rapido', action='store_true',
+                   help='(passthrough) marca budget reduzido p/ smoke — F0-03.')
+    p.add_argument('--enable-bucket', action='store_true',
+                   help='[DI-32/T2] liga o dual-write local+bucket (§17.7) — '
+                        'OBRIGATÓRIO na VM efêmera do M8; default = só local.')
+    args = p.parse_args(argv)
+
+    # Validação de entradas
+    if not naming.is_valid_exp(args.exp):
+        raise SystemExit(f"exp inválido: {args.exp!r} "
+                         f"(main|off|batch|sweep-<tier>-<dist>).")
+    algorithms = _parse_algorithms(args.algorithms)
+    bad_alg = [a for a in algorithms if a not in KNOWN_ALGORITHMS]
+    if bad_alg:
+        raise SystemExit(
+            f"Algoritmos fora do stack Python: {bad_alg}. "
+            f"Conhecidos aqui: {sorted(KNOWN_ALGORITHMS)} "
+            f"(os MATLAB rodam via experiments.m).")
+    bad_prob = [q for q in args.problems if not _adapter.is_known_problem(q)]
+    if bad_prob:
+        raise SystemExit(f"Problemas desconhecidos: {bad_prob}. "
+                         f"Conhecidos: {_adapter.ALL_PROBLEMS}")
+
+    tasks = [(a, q, s) for a in algorithms for q in args.problems for s in args.seeds]
+    print(f"\n[grid] exp={args.exp} | algs={len(algorithms)} × "
+          f"problemas={len(args.problems)} × sementes={len(args.seeds)} "
+          f"= {len(tasks)} células")
+    if not algorithms:
+        print("[grid] roster vazio (--algorithms none) — só andaime; "
+              "nenhum run executado.")
+
+    sb = Scoreboard()
+    t0 = time.time()
+    _stage_precache(args.problems, args.seeds, args.data_root)
+    _stage_grid(tasks, args.exp, args.data_root,
+                n_jobs=args.n_jobs, force=args.force,
+                modo_rapido=args.modo_rapido, sb=sb,
+                enable_bucket=args.enable_bucket, teto_s=(args.teto_s or None))
+    _stage_consolidate(args.exp, args.data_root, enabled=not args.no_consolidate)
+
+    print(f"\n{'=' * 66}")
+    print(f"Concluído em {time.time() - t0:.1f}s.  {sb.render()}")
+    print('=' * 66)
+    # A esteira nunca falha o processo por um run `failed` (D23: segue o grid);
+    # o placar/manifesto carregam o status. Saída != 0 só em erro de invocação.
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

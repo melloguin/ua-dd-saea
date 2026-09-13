@@ -1,0 +1,375 @@
+{
+  "id": "c131",
+  "sigla": "MORBO",
+  "titulo": "Multi-Objective Bayesian Optimization over High-Dimensional Search Spaces",
+  "ano": 2022,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Sinteticos: DTLZ2 (M=2, d in {10,30,100}); DTLZ3, DTLZ5, DTLZ7 (M in {2,4}, d=100, 6 problemas no total); MW7 (M=2, V=2 restricoes, d=10, usado so ilustrativamente nas Fig. 1-2); Welded Beam (M=2, V=4, d=4); Vehicle Safety (M=3, d=5). Reais/aplicados (Sec. 5.1): Trajectory Planning/Rover (M=2, d=60, adaptado de Wang et al. [2018]); Optical Design AR/VR (M=2, d=146, avaliado via um surrogate de rede neural convolucional treinado em 101.000 designs oticos, nao a simulacao fisica real); Mazda vehicle design (M=2, V=54 restricoes black-box, d=222, 'a maior instancia MOO ja considerada por um metodo de BO', requer ajustar 56 GPs por regiao de confianca). Pontos de referencia por problema listados na Table 1 (Apendice D.2).",
+    "orcamento": "Varia por problema, sem unidade comum do tipo 31D-1: DTLZ2 (ablacao, Fig. 4) e DTLZ3/5/7 (Apendice F.4): 2.000 avaliacoes, lote q=50. MW7: sem orcamento fixo, so ilustrativo (Fig. 1-2). Welded Beam e Vehicle Safety: 200 avaliacoes, q=1 (q=5 so para NSGA-II evitar populacao unitaria). Trajectory Planning/Rover: 2.000 avaliacoes, q=50, 200 pontos iniciais. Optical Design: 10.000 avaliacoes, q=50, 250 pontos iniciais (a maioria dos baselines de BO so rodou 1.000-2.000 avaliacoes por custo; LaMOO-CMAES parou em 7.600 por estourar memoria de GPU). Mazda: 10.000 avaliacoes, q=50, 300 pontos iniciais, mais um ponto factivel inicial dado a todos os metodos.",
+    "execucoes": "20 replicacoes independentes por metodo x problema. 'We run all methods for 20 replications and initialize them using the same quasi-random initial points for each replication' -- os mesmos pontos iniciais quase-aleatorios (Sobol) sao compartilhados entre os METODOS dentro de cada replicacao, um paralelo direto ao DoE inicial compartilhado da dissertacao, embora aqui o DoE seja por replicacao/metodo e nao haja conceito de 'semente' unico atravessando toda a bateria.",
+    "baselines": "qNEHVI, qParEGO, TS-TCH, TSEMO, DGEMO, MOEA/D-EGO (metodos de BO multiobjetivo com GP GLOBAL); LaMOO-CMAES e LaMOO-qNEHVI (particionamento do espaco de busca em regioes 'boas'/'ruins', com CMA-ES ou qNEHVI dentro da regiao boa); NSGA-II (piso evolutivo SEM surrogate, via pacote Platypus); Sobol (piso quase-aleatorio SEM surrogate, sequencia de Sobol embaralhada). Ha piso sem surrogate: SIM -- NSGA-II e Sobol aparecem em toda comparacao empirica do artigo, mas nao ha piso 'casado' por classe de motor como na dissertacao (e um unico piso evolutivo generico para todos os assistidos).",
+    "metricas_principais": [
+      "Hypervolume (HV)",
+      "Log Hypervolume Regret (usado nas figuras de ablacao/RFF)"
+    ],
+    "testes": [
+      "Nenhum teste de hipotese formal (sem Wilcoxon/Friedman/Nemenyi); reporta media +/- 1 ou 2 erros-padrao da media sobre as replicacoes"
+    ],
+    "apresentacao": "Curvas de HV (ou Log HV Regret) x avaliacoes mostrando media e 1 erro-padrao da media sobre 20 replicacoes (Fig. 3, 4, 6, 11, 12); tabelas de tempo de execucao reportando media (2 erros-padrao) em segundos, com 'N/A' quando o metodo nao roda no problema (Tabelas 2-5); ranking medio final por problema, menor=melhor, sem simbolos +/=/- nem negrito (Tabela 6); Fig. 10 mostra, para 4 problemas, as fronteiras das replicas pior/mediana/melhor (pelo HV final) lado a lado -- nao uma superficie de attainment agregada nem uma unica 'execucao mediana'.",
+    "codigo_plataforma": "MORBO implementado em BoTorch [Balandat et al., 2020]; DGEMO, TSEMO e MOEA/D-EGO usam a implementacao de codigo aberto do repositorio do DGEMO (yunshengtian/DGEMO) com configuracoes padrao; NSGA-II via pacote Platypus com configuracoes padrao; LaMOO via implementacao compartilhada pelos autores originais. Todos os experimentos principais rodaram em GPU Tesla V100 SXM2 (16GB RAM); os tempos de ajuste/geracao das Tabelas 2-5 foram medidos em CPUs 2x Intel Xeon Gold 6138 (exceto MORBO/qParEGO/TS-TCH/qNEHVI na Table 4, em GPU)."
+  },
+  "analises": [
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Comparacao qualitativa ilustrativa (scatter dos pontos avaliados, coloridos por regiao de confianca/TR, mais a fronteira aproximada) entre uma extensao ingenua de TuRBO com escalarizacoes de Chebyshev fixas por TR e o MORBO (aquisicao por hipervolume), em DTLZ2 (d=100, 600 avaliacoes, lote 50, 3 TRs); e ilustracao de MORBO recuperando regioes desconexas da fronteira verdadeira em MW7 (d=10, 2 restricoes, usando 3-5 TRs coordenadas).",
+      "literal": "this approach results in a PF with very poor coverage",
+      "localizador": "Sec. 2.3 ('Issues with scalarized TuRBO'), Sec. 3.1; Fig. 1; Fig. 2",
+      "metricas": [
+        "cobertura/diversidade qualitativa da fronteira nao-dominada (visual)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Scatter de pontos avaliados coloridos por TR; linha preta = fronteira aproximada de cada metodo; pontos cinza = design inicial (comum aos dois metodos); um unico run ilustrativo por painel, nao agregado sobre replicas.",
+      "achado": "Escalarizacoes de Chebyshev fixas por TR (mantidas por toda a vida da TR, porque as TRs raramente reiniciam) fazem com que poucas escalarizacoes distintas sejam de fato usadas, produzindo cobertura pobre da fronteira; a selecao coordenada de centros de TR por contribuicao de hipervolume do MORBO produz cobertura muito melhor e, em MW7, recupera as multiplas regioes desconexas da fronteira verdadeira, algo que a variante escalarizada nao consegue mesmo com a frente conectada e simples (DTLZ2).",
+      "aplicabilidade": "Nao reproduzivel tal-qual com as 7 camadas -- exigiria implementar a variante 'TuRBO+Chebyshev' e um mecanismo de multiplas regioes de confianca coordenadas, ausente dos 15+4 algoritmos do roster (nenhum usa TRs). A logica de comparar visualmente a cobertura do ND contra a frente verdadeira e analoga a ficha 54, usando a camada ① (x,f de cada avaliacao real)."
+    },
+    {
+      "fichas": [
+        23,
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curva de Hypervolume medio x ate 2.000 avaliacoes reais (lote q=50, 200 pontos iniciais) no problema de planejamento de trajetoria (d=60, 2 objetivos concorrentes: recompensa da trajetoria integrada e distancia negativa ate o alvo), comparando MORBO a 10 metodos (qNEHVI, qParEGO, TS-TCH, TSEMO, DGEMO, MOEA/D-EGO, LaMOO-CMAES, LaMOO-qNEHVI, NSGA-II, Sobol).",
+      "literal": "MORBO performs the best and even state-of-the-art methods such as qNEHVI do not out perform NSGA-II",
+      "localizador": "Sec. 5.1 ('Trajectory Planning'), Fig. 3 (esquerda)",
+      "metricas": [
+        "Hypervolume (HV)"
+      ],
+      "testes": [
+        "nenhum teste formal -- media +/- 1 erro-padrao da media sobre 20 replicacoes"
+      ],
+      "convencoes": "Curva de HV medio x avaliacoes reais, banda de +/-1 erro-padrao sobre 20 replicacoes; mesmos pontos iniciais quase-aleatorios para todos os metodos em cada replicacao.",
+      "achado": "MORBO supera todos os 10 baselines nesse problema de 60 dimensoes; mesmo o metodo de BO multiobjetivo entao estado-da-arte (qNEHVI, com GP global) nao supera o piso evolutivo sem surrogate NSGA-II -- um caso em que BO 'assistido' convencional perde para o piso em alta dimensao.",
+      "aplicabilidade": "① endpoint/checkpoints por avaliacao real + ficha 26 (trajetoria de convergencia); nao reproduzivel tal-qual -- exige o problema especifico de trajectory planning (B-spline de 30 pontos) e os baselines externos, fora do roster."
+    },
+    {
+      "fichas": [
+        16,
+        23,
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curva de HV medio x ate 10.000 avaliacoes (lote q=50, 250 pontos iniciais) no problema de design otico AR/VR (d=146, eficiencia x qualidade de display, avaliado por um surrogate de rede neural). Por custo computacional, a maioria dos baselines de BO so rodou 1.000-2.000 avaliacoes (DGEMO so 1.000; LaMOO-CMAES parou em 7.600 por estourar memoria de GPU).",
+      "literal": "no other baselines are competitive with NSGA-II except in the very small sample regime (less than 500 evaluations)",
+      "localizador": "Sec. 5.1 ('Optical design problem'), Fig. 3 (centro)",
+      "metricas": [
+        "Hypervolume (HV)"
+      ],
+      "testes": [
+        "nenhum teste formal -- media +/- 1 erro-padrao da media sobre 20 replicacoes"
+      ],
+      "convencoes": "Mesma convencao da Fig. 3; baselines de BO com GP global rodados por menos avaliacoes que MORBO/NSGA-II/Sobol, por custo computacional (ver localizador do custo).",
+      "achado": "MORBO obtem ganhos substanciais de eficiencia amostral sobre NSGA-II; TODOS os outros metodos de BO existentes (com GP global) perdem para o piso evolutivo NSGA-II fora do regime de amostra muito pequena (<500 avaliacoes) -- um resultado em que o surrogate global, nao o piso, e o fator limitante em alta dimensao.",
+      "aplicabilidade": "① endpoint/checkpoints + ficha 26 e ficha 16 (piso vencendo o assistido); exige o simulador surrogate de design otico (indisponivel/proprietario) e os baselines externos -- nao reproduzivel na dissertacao."
+    },
+    {
+      "fichas": [
+        23,
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curva de HV medio x ate 10.000 avaliacoes (lote q=50, 300 pontos iniciais) no problema veicular Mazda (d=222, 2 objetivos, 54 restricoes black-box de seguranca/colisao). Um ponto inicial factivel e fornecido a todos os metodos; MORBO ajusta 56x5=280 GPs por iteracao (5 TRs x 56 objetivos+restricoes).",
+      "literal": "MORBO clearly outperforms the other methods",
+      "localizador": "Sec. 5.1 ('Mazda vehicle design problem'), Fig. 3 (direita)",
+      "metricas": [
+        "Hypervolume (HV)"
+      ],
+      "testes": [
+        "nenhum teste formal -- media +/- 1 erro-padrao da media sobre 20 replicacoes"
+      ],
+      "convencoes": "Mesma convencao da Fig. 3; so NSGA-II e Sobol sao baselines aplicaveis (demais metodos de BO sao inviaveis com 56 GPs globais; LaMOO nao trata restricoes black-box).",
+      "achado": "MORBO domina claramente os demais; Sobol nao encontra outro desenho factivel apos o ponto inicial (ilustrando a dificuldade das 54 restricoes); NSGA-II progride a partir da solucao inicial factivel mas nao compete com MORBO -- 'to the best of our knowledge, the largest MOO problem considered by any BO method'.",
+      "aplicabilidade": "① endpoint/checkpoints + ficha 26; exige o benchmark Mazda de 222D com 54 restricoes e os baselines -- nao reproduzivel na dissertacao (nenhum problema do roster tem essa escala/numero de restricoes)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Ablacao dos componentes de busca do proprio algoritmo (n. de regioes de confianca, tolerancia a falha, compartilhamento de dados entre regioes, modelo local x global, aquisicao HVI x escalarizacao, estrategia de reinicializacao)",
+      "grupo_sugerido": "B",
+      "descricao": "Estudo de sensibilidade/ablacao do MORBO a seis escolhas de projeto do proprio algoritmo -- numero de trust regions (1, 5[padrao], 10), tolerancia a falhas tau_fail (10, ~max(10,d/3)[padrao], 100), compartilhamento de observacoes entre TRs (com/sem), escopo do modelo (local/padrao vs. GP global unico), funcao de aquisicao (HVI colaborativo via Thompson Sampling vs. escalarizacao de Chebyshev por TR) e estrategia de reinicializacao de TR (escalarizacao de hipervolume vs. ponto aleatorio) -- medido por HV ou Log HV Regret x avaliacoes em DTLZ2 (d=100), trajectory planning (d=60) e optical design (d=146).",
+      "literal": "We observe that multiple TRs and the HVI acquisition function are important as neither a single TR nor a Chebyshev scalarization performs well",
+      "localizador": "Sec. 5.2 ('Ablation study'), Fig. 4",
+      "metricas": [
+        "Hypervolume (HV)",
+        "Log Hypervolume Regret"
+      ],
+      "testes": [
+        "nenhum teste formal -- media +/- 1 erro-padrao da media sobre 20 replicacoes"
+      ],
+      "convencoes": "Curvas de HV/Log HV Regret x avaliacoes; cada variante e o MORBO padrao com exatamente um componente trocado; apenas 3 problemas (nao os ~25 sinteticos do artigo).",
+      "achado": "Multiplas TRs (vs. 1 TR) e a aquisicao por HVI colaborativo (vs. escalarizacao) sao componentes essenciais -- nenhuma das duas alternativas performa bem sozinha; a tolerancia a falha padrao e robusta, exceto em optical design, onde tau_fail=10 encolhe as TRs rapido demais e piora o resultado; nao compartilhar dados entre TRs piora DTLZ2 e optical design; um GP global iguala o desempenho em DTLZ2/trajectory mas piora em optical design, alem de custar ~30h de overhead computacional contra <1h do modelo local (10.000 avaliacoes); as duas estrategias de reinicializacao (escalarizacao de HV vs. aleatoria) tem desempenho consistentemente forte e parecido -- ver equivalencia_criterios.",
+      "aplicabilidade": "Nao reproduzivel com as 7 camadas tal-qual -- exige rodar variantes internas do proprio algoritmo, e MORBO nao esta no roster. A logica geral (trocar um componente por vez, medir o endpoint/trajetoria via camada ①, contar decisoes via camada ⑥) e a mesma usada nas ablacoes proprias do roster (ficha 11), mas aqui nenhum dos componentes ablados e especificamente o sigma/incerteza -- sao escolhas de estrategia de busca (paralelismo, escopo do modelo, tipo de aquisicao)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Fidelidade da amostragem posterior aproximada (RFF) vs. exata para Thompson Sampling, por dimensao",
+      "grupo_sugerido": "E",
+      "descricao": "Compara cinco esquemas de amostragem da posterior do GP usados no Thompson Sampling para selecionar candidatos -- amostragem exata sobre um conjunto discreto de 4096 pontos (Disc-Exact), aproximacao por Random Fourier Features sobre o mesmo conjunto discreto com 1024 ou 4096 funcoes-base (Disc-RFF-1024/4096), e otimizacao continua por gradiente sobre subespacos eixo-alinhados usando as amostras de RFF (Cont-RFF-1024/4096) -- em DTLZ2 com d em {10, 30, 100}, medindo Log Hypervolume Regret x avaliacoes.",
+      "literal": "optimization performance using RFFs improves if we use more basis functions on higher dimensional problems (4096 works better than 1024)",
+      "localizador": "Apendice A.1 ('RFFs for fast posterior sampling'), Fig. 6",
+      "metricas": [
+        "Log Hypervolume Regret"
+      ],
+      "testes": [
+        "nenhum teste formal"
+      ],
+      "convencoes": "Curvas de Log HV Regret x avaliacoes, um painel por dimensao (d=10,30,100), 5 variantes de amostragem por painel.",
+      "achado": "A amostragem exata sobre um conjunto discreto (Disc-Exact) supera as aproximacoes por RFF conforme a dimensao cresce; a qualidade da aproximacao RFF degrada em alta dimensao; e otimizar continuamente sobre as amostras de RFF por gradiente leva muitos parametros a ficarem na fronteira da caixa de busca, causando sobre-exploracao e desempenho pior de BO -- por isso o artigo usa amostragem exata discreta em TODOS os experimentos principais do corpo do artigo, apesar de ser computacionalmente mais cara que RFF.",
+      "aplicabilidade": "③ sonda (comparar previsoes/amostras da posterior aproximada vs. exata nos 2.000 pontos fixos, por dimensao) + ⑥ filme (contar candidatos que caem na fronteira da caixa); nao reproduzivel tal-qual -- exige implementar RFFs e a variante de otimizacao continua, ausentes dos algoritmos do roster (nenhum usa Thompson Sampling com RFF)."
+    },
+    {
+      "fichas": [
+        46
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Caracteriza empiricamente como a modelagem LOCAL do MORBO evita a parede cubica do GP: numero de pontos por TR, fracao de pontos de uma TR que foram coletados por OUTRAS TRs, comprimento das TRs, e eta (numero medio de TRs que contem um dado ponto) x avaliacoes, em optical design, trajectory planning e DTLZ2 (Fig. 7); e o tempo de ajuste do modelo x avaliacoes comparando modelo local vs. GP global (dentro do proprio MORBO) no problema de optical design (d=146) (Fig. 8).",
+      "literal": "Fitting a global model takes almost 20 minutes towards the end of the optimization run compared to 10 seconds for MORBO",
+      "localizador": "Apendice E ('Complexity improvements from local modeling'), E.1; Fig. 7; Fig. 8",
+      "metricas": [
+        "n. de pontos por TR",
+        "fracao de pontos compartilhados entre TRs",
+        "comprimento da TR",
+        "eta (TRs por ponto)",
+        "tempo de ajuste do modelo (s)"
+      ],
+      "testes": [
+        "nenhum -- media entre replicacoes, com tracos de replicas individuais mostrados de forma transparente"
+      ],
+      "convencoes": "Linha solida = media entre replicacoes; linhas transparentes = tracos de replicas individuais; comparacao pareada 'Local Models' vs 'Global Models' dentro do proprio MORBO (nao contra outros algoritmos).",
+      "achado": "Conforme o orcamento avanca e as TRs encolhem, eta cai abaixo de 1 (cada ponto pertence, em media, a menos de uma TR), validando empiricamente o argumento teorico de que a modelagem local produz speedups de ordem O(n^2_TR/eta^3); na pratica, isso se traduz em duas ordens de magnitude de aceleracao frente a um GP global, cujo tempo de ajuste cresce ate ~20 min por iteracao no fim da busca, contra ~10s do modelo local.",
+      "aplicabilidade": "④ tempos por geracao (ajuste do modelo) x D e x n. de pontos acumulados -- ficha 46 diretamente aplicavel. O roster da dissertacao usa GPs GLOBAIS (nao locais/multi-TR), entao a comparacao local x global do MORBO nao tem contraparte direta nos 19 algoritmos, mas a curva 'tempo de ajuste x avaliacoes acumuladas' e exatamente a mesma logica que evidenciaria a parede O(n^3) nos algoritmos do roster."
+    },
+    {
+      "fichas": [
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tempo de ajuste do modelo (model fitting), em segundos, medido SEPARADAMENTE da busca da aquisicao, para MORBO e para os baselines de BO com GP global (qParEGO, TS-TCH, qNEHVI, DGEMO, TSEMO, MOEA/D-EGO) em todos os problemas -- as 6 variantes DTLZ3/5/7 (M=2,4) na Table 2, e Welded Beam/Vehicle Safety/Rover/Optical Design/Mazda na Table 3.",
+      "literal": "the model fitting causes a significant overhead with almost an hour being spent on model fitting after collecting 2,000 evaluations on the trajectory planning problem",
+      "localizador": "Apendice E.1, Table 2, Table 3",
+      "metricas": [
+        "tempo de ajuste do modelo (s)"
+      ],
+      "testes": [
+        "nenhum -- media (2 erros-padrao)"
+      ],
+      "convencoes": "Tabelas com media (2 erros-padrao) em segundos, uma linha por metodo e uma coluna por problema; 'N/A' quando o metodo nao roda no problema; hardware fixo (2x Intel Xeon Gold 6138 CPU).",
+      "achado": "O ajuste do modelo domina o tempo total para metodos com GP global (ex.: quase 1h para TSEMO em trajectory planning apos 2.000 avaliacoes; milhares de segundos para DGEMO/TSEMO/MOEA-D-EGO em DTLZ3), enquanto o MORBO com modelagem local mantem o ajuste em segundos mesmo tendo que ajustar ate 280 GPs por iteracao no problema Mazda (56 objetivos+restricoes x 5 TRs), levando menos de 3 minutos no total.",
+      "aplicabilidade": "④ tempos por geracao (ajuste do modelo, componente separado da busca) -- camada diretamente aplicavel e comparavel entre os algoritmos do roster que ja registram o tempo de ajuste do GP separadamente do tempo de busca da aquisicao."
+    },
+    {
+      "fichas": [
+        7
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curva de HV medio x 200 avaliacoes (q=1, exceto NSGA-II com q=5 para evitar populacao unitaria) em dois problemas de BAIXA dimensao, fora do regime-alvo do MORBO: vehicle safety (d=5, 3 objetivos, sem restricoes) e welded beam (d=4, 2 objetivos, 4 restricoes black-box), comparando MORBO a ate 10 baselines.",
+      "literal": "While MORBO is not designed for such simple, low-dimensional problems, it is still competitive with other baselines such as TS-TCH and qParEGO on the vehicle design problem, though it cannot quite match the performance of qNEHVI and TSEMO",
+      "localizador": "Apendice F.1 ('Low-dimensional problems'), Fig. 9",
+      "metricas": [
+        "Hypervolume (HV)"
+      ],
+      "testes": [
+        "nenhum teste formal -- media +/- 1 erro-padrao da media sobre 20 replicacoes"
+      ],
+      "convencoes": "Mesma convencao de curvas de HV x avaliacoes da Fig. 3; DGEMO excluido de vehicle safety (crash de implementacao no algoritmo de graph-cutting); DGEMO/TSEMO/MOEA-D-EGO/TS-TCH excluidos de welded beam (nao tratam restricoes).",
+      "achado": "Em baixa dimensao e orcamento pequeno, o MORBO perde para metodos de BO com GP global (qNEHVI, TSEMO) no problema SEM restricoes (vehicle safety), mas vence TODOS os metodos no problema COM restricoes (welded beam) -- ou seja, a vantagem de MORBO em baixa dimensao parece condicionada a presenca de restricoes black-box, nao a dimensao per se. Em ambos os problemas, NSGA-II mal supera (vehicle safety) ou fica pior (welded beam) que a exploracao quase-aleatoria Sobol.",
+      "aplicabilidade": "① endpoint/checkpoints + ficha 7 (tendencia com D, aqui na direcao oposta -- baixa dimensao); o roster da dissertacao nao inclui problemas de d<=5, entao nao ha ponto de comparacao direta, mas a logica de tendencia com D e a mesma."
+    },
+    {
+      "fichas": [
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tempo de geracao de candidatos (selecao do lote, EXCLUINDO o ajuste do modelo), em segundos, para MORBO e baselines em Welded Beam/Vehicle Safety/Rover/Optical Design/Mazda (Table 4) e nas 6 variantes DTLZ3/5/7 M=2,4 (Table 5).",
+      "literal": "the candidate generation for MORBO is two orders of magnitudes faster than for other methods such as qParEGO and qNEHVI on the trajectory planning problem",
+      "localizador": "Apendice F.2 ('Candidate generation wall time'), Table 4, Table 5",
+      "metricas": [
+        "tempo de geracao de candidatos / selecao do lote (s)"
+      ],
+      "testes": [
+        "nenhum -- media (2 erros-padrao)"
+      ],
+      "convencoes": "Mesma convencao de tabelas com media (2 erros-padrao); GPU Tesla V100 para MORBO/qParEGO/TS-TCH/qNEHVI, CPU 2x Xeon Gold 6138 para os demais.",
+      "achado": "A geracao de candidatos do MORBO e ate duas ordens de magnitude mais rapida que qParEGO/qNEHVI em problemas de alta dimensao (atribuida ao uso de modelos locais e a um conjunto discreto de candidatos por TR menor) -- um componente de custo tipicamente ofuscado, em BO classico, pelo custo de avaliacao da funcao real, mas que se torna o gargalo em regimes de alto throughput/alta dimensao e avaliacao assincrona.",
+      "aplicabilidade": "④ tempos por geracao (busca da aquisicao no modelo) -- camada diretamente aplicavel ao componente 'busca' da decomposicao de custo (complementa a analise anterior, que cobre o componente 'ajuste')."
+    },
+    {
+      "fichas": [
+        54,
+        55
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mostra, lado a lado em 3 colunas, as fronteiras nao-dominadas das replicas PIOR/MEDIANA/MELHOR (segundo o HV final) para welded beam, trajectory planning, optical design e Mazda, com o ponto de referencia marcado como estrela, comparando MORBO aos baselines aplicaveis (NSGA-II, Sobol, e os de BO).",
+      "literal": "The use of multiple trust regions allows MORBO to consistently achieve good coverage of the Pareto frontier, in addition to large hypervolumes",
+      "localizador": "Apendice F.3 ('Pareto frontiers'), Fig. 10",
+      "metricas": [
+        "cobertura/distribuicao qualitativa da fronteira nao-dominada"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "3 colunas (pior/mediana/melhor replica pelo HV final) x 4 problemas; vehicle safety (3 objetivos) excluido por dificuldade de visualizacao; eixos indicam se o objetivo e minimizado (-) ou maximizado (+).",
+      "achado": "MORBO cobre melhor os trade-offs nos 4 problemas, inclusive no welded beam de baixa dimensao; em trajectory planning, MORBO encontra consistentemente trajetorias com recompensa proxima do maximo possivel (5), algo que os demais metodos nao conseguem; no Mazda, MORBO reduz bastante a massa do veiculo a custa de usar menos pecas comuns, um trade-off que o NSGA-II falha em explorar.",
+      "aplicabilidade": "① avaliacoes reais (x,f) + ND por replica -- analogo as fichas 54 (execucao mediana, estendida aqui a pior/melhor tambem) e 55 (resumo distribucional das replicas, embora simplificado: 3 replicas individuais escolhidas, nao uma superficie de attainment agregada sobre TODAS as replicas)."
+    },
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Curva de HV medio x 2.000 avaliacoes (q=50) nas variantes de 2 e 4 objetivos de DTLZ3, DTLZ5 e DTLZ7 (d=100 em todas), comparando MORBO a NSGA-II, TSEMO, MOEA/D-EGO, DGEMO (so M=2), Sobol, qParEGO, qNEHVI, TS-TCH.",
+      "literal": "MORBO performs best on the four-objective DTLZ7 and achieve the best final hypervolume on the four-objective DTLZ3 problem",
+      "localizador": "Apendice F.4 ('Additional benchmark problems'), Fig. 11 (M=2), Fig. 12 (M=4)",
+      "metricas": [
+        "Hypervolume (HV)"
+      ],
+      "testes": [
+        "nenhum teste formal -- media sobre 20 replicacoes"
+      ],
+      "convencoes": "Curvas de HV x avaliacoes, um painel por problema; DGEMO ausente em M=4 (implementacao de codigo aberto nao suporta mais de 2 objetivos).",
+      "achado": "Em M=2, MORBO fica sempre entre os 4 melhores metodos nos 3 problemas; em M=4, e o melhor em DTLZ7 e alcanca o melhor HV final em DTLZ3; DGEMO, MOEA/D-EGO e qNEHVI sao competitivos em M=2 mas todos significativamente mais lentos que MORBO.",
+      "aplicabilidade": "① endpoint/checkpoints + ficha 26; DTLZ3/5/7 com d=100 e M=2/4 nao fazem parte do roster de 28 problemas da dissertacao, mas a logica de checkpoint por fracao do orcamento e identica."
+    },
+    {
+      "fichas": [
+        2
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ranking medio de cada metodo atraves dos 3 problemas (DTLZ3, DTLZ5, DTLZ7), calculado a partir do HV medio final de cada replica, separadamente para M=2 e M=4.",
+      "literal": "MORBO achieves the lowest rank across all methods (which is best) on both M=2 and M=4 problems",
+      "localizador": "Apendice F.4, Table 6",
+      "metricas": [
+        "rank medio do HV final"
+      ],
+      "testes": [
+        "nenhum -- apenas rank medio, sem teste de significancia"
+      ],
+      "convencoes": "Rank medio (menor = melhor) por metodo, uma coluna para M=2 e outra para M=4; calculado a partir do HV MEDIO final de cada replica (nao a mediana, e sem Friedman/Nemenyi).",
+      "achado": "MORBO obtem o melhor (menor) rank medio tanto em M=2 (3,0 -- empatado com qNEHVI e DGEMO) quanto em M=4 (1,67 -- a frente de todos os demais, cujo proximo melhor e qNEHVI com 3,16).",
+      "aplicabilidade": "Ficha 2 (ranking agregado por rank medio) diretamente aplicavel, trocando IGD+/mediana por HV/media; reproduzivel com a camada ① (endpoint) se o MORBO fosse incluido no roster."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo NAO mede calibracao, cobertura ou correlacao sigma-vs-erro do GP em nenhum experimento. O GP usado (kernel Matern-5/2 com ARD, media constante, ajustado por maxima verossimilhanca marginal) e tratado como dado; sua incerteza e consumida via Thompson Sampling (amostras da posterior conjunta) para calcular HVI, mas a qualidade dessa incerteza nunca e avaliada contra o valor real da funcao. A analise mais proxima de uma checagem indireta e a comparacao de desempenho posterior-a-jusante entre amostragem exata da posterior e aproximacoes por RFF (Fig. 6, Apendice A.1) -- mas isso mede o efeito da APROXIMACAO NUMERICA da amostragem sobre o desempenho de otimizacao, nao a calibracao do sigma do GP em si (que e sempre o mesmo GP, so muda como se amostra dele).",
+    "literal": "NAO LOCALIZADO",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Decompoe explicitamente o tempo de ajuste do modelo (model fitting) e o tempo de geracao de candidatos/selecao do lote (batch selection, 'excluding model fitting') separadamente, por problema e por metodo (Tables 2-5); apresenta um argumento teorico de complexidade O(n^3) do GP global vs. O(eta^3 N^3 / n^2_TR) da modelagem local (Apendice E) e valida empiricamente o speedup resultante com estatisticas de TR (n. de pontos por TR, eta) e uma curva de tempo de ajuste x avaliacoes, local vs. global (Fig. 7-8); reporta tambem um overhead total comparativo agregado (30h com GP global vs. <1h com modelagem local, para 10.000 avaliacoes no problema de design otico).",
+    "literal": "Using a global GP, running MORBO with a budget of 10,000 evaluations on the optical design problem required 30 hours of computational overhead, whereas MORBO did 10,000 evaluations in less than an hour using local models",
+    "localizador": "Sec. 5.2; Apendice E, E.1, F.2; Tables 2-5; Fig. 7-8"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Tentativa de otimizar continuamente as amostras de RFF da posterior por gradiente falha: muitos parametros acabam na fronteira da caixa de busca, causando sobre-exploracao e piorando o desempenho de BO -- um caso claro em que uma forma especifica de explorar a incerteza do modelo (via otimizacao continua sobre amostras aproximadas) prejudica a otimizacao.",
+      "literal": "We tried to optimize these RFF samples using a gradient based optimizer, but found that many parameters ended up on the boundary, which led to over-exploration and poor BO performance",
+      "localizador": "Apendice A.1"
+    },
+    {
+      "descricao": "A aproximacao da posterior via Random Fourier Features degrada com o aumento da dimensao: em espacos de alta dimensao, amostrar exatamente a posterior sobre um conjunto discreto supera usar RFFs, atribuido a perda de qualidade da aproximacao RFF -- ou seja, a representacao aproximada da incerteza do modelo piora justamente no regime (alta dimensao) em que o artigo mais precisa dela.",
+      "literal": "we find that exact posterior sampling over a discrete set achieves better performance than using RFFs, which we hypothesize is due to the quality of the RFF approximations degrading in higher dimensions",
+      "localizador": "Apendice A.1"
+    },
+    {
+      "descricao": "No problema de design otico (alta dimensao, d=146), NENHUM dos outros baselines de BO com GP global e competitivo com o piso evolutivo sem surrogate NSGA-II fora do regime de amostra muito pequena -- os metodos de BO 'assistidos' convencionais perdem sistematicamente para o piso quando o surrogate global nao escala.",
+      "literal": "no other baselines are competitive with NSGA-II except in the very small sample regime (less than 500 evaluations)",
+      "localizador": "Sec. 5.1 ('Optical design problem')"
+    },
+    {
+      "descricao": "No problema de baixa dimensao vehicle safety (d=5, sem restricoes), o proprio MORBO nao alcanca o desempenho de qNEHVI e TSEMO -- os autores reconhecem que o metodo nao e desenhado para esse regime.",
+      "literal": "though it cannot quite match the performance of qNEHVI and TSEMO",
+      "localizador": "Apendice F.1"
+    },
+    {
+      "descricao": "Limitacao reconhecida na Discussao: a aquisicao baseada em hipervolume (usada pelo MORBO) tem complexidade computacional que escala mal com o numero de objetivos, e o MORBO e otimizado para o regime de lote grande/alto orcamento, podendo perder para outros metodos em problemas de baixa dimensao com orcamentos pequenos.",
+      "literal": "using hypervolume-based acquisition means the computational complexity scales poorly with the number of objectives",
+      "localizador": "Sec. 6 (Discussion)"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "O artigo observa explicitamente que qNEHVI (usado como um dos baselines/componentes) e matematicamente equivalente a qEHVI em problemas sem ruido -- um caso textual do 'parentesco' entre criterios de aquisicao mencionado na moldura da dissertacao.",
+      "literal": "We note that qNEHVI is mathematically equivalent to qEHVI on noiseless problems",
+      "localizador": "Apendice D.1.1"
+    },
+    {
+      "descricao": "Na ablacao da estrategia de reinicializacao de TR (Fig. 4, Sec. 5.2), a estrategia padrao (maximizar uma escalarizacao aleatoria de hipervolume sob uma amostra da posterior) e uma estrategia MUITO mais simples (escolher o novo centro aleatoriamente) produzem desempenho consistentemente forte e semelhante -- ou seja, o CRITERIO de reinicializacao pouco importa desde que TRs sejam reinicializadas em posicoes diversas; a diferenca esta em ter ou nao a garantia teorica de regret, nao no desempenho empirico.",
+      "literal": "we find consistently strong performance for both our default HV scalarization-based re-initialization strategy and a strategy that selects a new design at random (denoted as \"Random restart points\")",
+      "localizador": "Sec. 5.2"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "alta dimensao / muitos parametros de decisao (dezenas a centenas)",
+      "afirmacao": "A maioria dos metodos de BO multiobjetivo existentes (com GP global) falha em escalar e ter bom desempenho em espacos de busca com mais de algumas dezenas de parametros; o MORBO estende BO multiobjetivo a centenas de parametros (146, 222) com ganhos de ordem de magnitude em eficiencia amostral sobre o estado da arte.",
+      "literal": "most existing multi-objective BO methods perform poorly on search spaces with more than a few dozen parameters and rely on global surrogate models that scale cubically with the number of observations",
+      "localizador": "Abstract; Sec. 1"
+    },
+    {
+      "caracteristica": "muitas restricoes black-box simultaneas (54, problema Mazda)",
+      "afirmacao": "Mesmo o piso quase-aleatorio (Sobol) tem dificuldade de permanecer factivel apos o ponto inicial dado a todos os metodos, ilustrando o quao dificil e satisfazer 54 restricoes simultaneas por amostragem cega; MORBO, por outro lado, consegue progredir de forma factivel e dominar os demais metodos aplicaveis.",
+      "literal": "in subsequent evaluations Sobol did not find another feasible design, illustrating the challenge of satisfying the 54 constraints",
+      "localizador": "Sec. 5.1 ('Mazda vehicle design problem')"
+    },
+    {
+      "caracteristica": "frente de Pareto desconexa (MW7, d=10, 2 restricoes)",
+      "afirmacao": "Usando multiplas TRs coordenadas que compartilham observacoes e maximizam uma utilidade global de hipervolume, o MORBO consegue recuperar regioes desconexas da fronteira global -- algo que uma abordagem com uma unica escalarizacao fixa por regiao de confianca (TuRBO+Chebyshev) nao consegue, mesmo em frentes conectadas e simples.",
+      "literal": "MORBO can discover disconnected regions of global PF on the MW7 function (d = 10, with 2 constraints) by using 5 TRs to locally optimize disjoint regions of PF collaboratively, in parallel",
+      "localizador": "Fig. 2 (legenda); Sec. 2.3"
+    },
+    {
+      "caracteristica": "baixa dimensao com restricoes (welded beam, d=4, 4 restricoes) vs. sem restricoes (vehicle safety, d=5)",
+      "afirmacao": "A vantagem de MORBO em baixa dimensao parece condicionada a presenca de restricoes black-box: no problema COM restricoes, MORBO vence todos os demais metodos ('efficient constraint handling'); no problema SEM restricoes de dimensao comparavel, MORBO fica atras de qNEHVI e TSEMO.",
+      "literal": "The results on the welded beam problem illustrate the efficient constraint handling of MORBO",
+      "localizador": "Apendice F.1"
+    },
+    {
+      "caracteristica": "muitos objetivos (M crescente, ate M=4 testado)",
+      "afirmacao": "Uma limitacao reconhecida pelos proprios autores: a aquisicao baseada em hipervolume (nucleo do MORBO) tem complexidade computacional que piora mal conforme o numero de objetivos M cresce, ao contrario da escalabilidade em D que e o foco central do metodo.",
+      "literal": "using hypervolume-based acquisition means the computational complexity scales poorly with the number of objectives",
+      "localizador": "Sec. 6 (Discussion)"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Artigo classificado na taxonomia da dissertacao como motor=BO-Hipervolume / funcao da incerteza=O1 (Aquisicao exploratoria) / surrogate=GP-Processo Gaussiano/Kriging / medicao=VAR-GP (posterior fechada de GP) / regime=online -- consistente com o que o proprio artigo descreve: GP independente (Matern-5/2, ARD, media constante, MLE) por regiao de confianca, com Thompson Sampling (amostras da posterior) alimentando uma aquisicao de melhoria esperada de hipervolume (HVI) selecionada de forma sequencial-gulosa (Sec. 3.1, Apendice D.1). NAO e artigo do roster experimental da dissertacao (roster_bloco=null conforme instrucao do pedido); MORBO nao aparece nas 15+4 configuracoes comparadas nem em nenhum dos 28 problemas do roster -- os benchmarks do MORBO (DTLZ2/3/5/7 com d ate 100, MW7, welded beam, vehicle safety, trajectory planning/rover, optical design, Mazda) sao todos DIFERENTES dos 28 problemas da dissertacao (ZDT, DTLZ, WFG, MMF, BBOB e RE21/ESTOQUE40/DDMOP7). Li o artigo INTEIRO (3214 linhas): a conversao estruturada (pymupdf4llm, linhas 1-668, corpo + apendices A-F ate a Table 6), o ANEXO de camada de texto bruta completa (linhas 670-3169, pagina a pagina, redundante em conteudo mas confirmei cada citacao usada aqui contra ele), e o ANEXO final de OCR de imagens (linhas 3171-3214) -- este ultimo so trouxe fragmentos ilegiveis/invertidos de rotulos de eixo de figuras (ex. 'unJoAJod^H', 'parolio squiod Jo under'), sem nenhum conteudo substantivo novo alem do ja capturado pela conversao estruturada e pelas legendas das figuras. Nenhuma pagina, secao ou apendice foi pulado. O artigo e fundamentalmente um paper de METODO/ESCALABILIDADE (UAI 2022), nao um paper focado em diagnostico de incerteza: NAO mede IGD+ (so HV), NAO usa Wilcoxon/Friedman/Nemenyi (so media +/- erro-padrao), NAO tem piso 'casado' por classe de motor (NSGA-II e Sobol servem de piso generico para todos os assistidos), e NAO tem instrumentacao tipo sonda/filme (as fichas do grupo E, 31-46, quase nao se aplicam -- so a ficha 46, sobre a parede do retreino, encontrou correspondencia direta). Em contrapartida, o desenho de MORBO E notavelmente proximo do espirito da dissertacao em alguns pontos: (a) usa o MESMO conjunto de pontos iniciais quase-aleatorios entre metodos dentro de cada replicacao (um DoE compartilhado, embora nao seja LHS nem atravesse 'sementes' no sentido da dissertacao); (b) reporta tempo de ajuste do modelo separado do tempo de busca (Tables 2-5), o que mapeia bem para a ficha 48; (c) tem uma secao de ablacao dedicada (Sec. 5.2) no espirito da ficha 11, ainda que nenhum dos componentes ablados seja especificamente 'a incerteza'. O Teorema 4.1 (Sec. 4, cota teorica de regret de hipervolume) e as provas do Apendice C sao puramente teoricos/matematicos e NAO foram listados em 'analises' por nao serem estudos empiricos (regra do cartao: so analises experimentais). Duas fichas novas foram sugeridas (ablacao de componentes de busca do proprio algoritmo, grupo B; fidelidade RFF vs. amostragem exata da posterior, grupo E) por nao corresponderem a nenhuma das 64 fichas existentes, que sao majoritariamente calibradas para o desenho especifico da dissertacao (GP unico global, IGD+, sonda de 2.000 pontos, camada ⑥ de filme)."
+}

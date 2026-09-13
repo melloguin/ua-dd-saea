@@ -1,0 +1,272 @@
+{
+ "id": "b5",
+ "sigla": "Prob-RVEA / Prob-MOEA/D (+ Hyb-RVEA / Hyb-MOEA/D)",
+ "titulo": "Probabilistic Selection Approaches in Decomposition-Based Evolutionary Algorithms for Offline Data-Driven Multiobjective Optimization",
+ "ano": 2022,
+ "roster": true,
+ "setup": {
+  "benchmarks": "DBMOPP (distance-based visualizable test problems, gerador de Fieldsend et al. [27],[29]) — dois conjuntos denominados P1 e P2 (detalhes completos no material suplementar), K = 2 a 10 objetivos, n = 10 variáveis de decisão; e a suíte DTLZ (K variado) — resultados apresentados só no material suplementar, não neste PDF. A Tabela I mostra só 'a few' (poucas) instâncias DBMOPP em detalhe; a Fig. 8 (heatmap) cobre 'all the tested DBMOPP instances', mas sem DTLZ.",
+  "orcamento": "FEmax = 40.000 avaliações de função usando os surrogates Kriging (regime totalmente offline — nenhuma avaliação real adicional é feita durante a otimização, todas as 40.000 'avaliações' são no surrogate). Conjunto de dados offline inicial de tamanho N_D = 109, gerado por Latin Hypercube Sampling (LHS) ou amostragem normal multivariada (MVNS, variância 0,1); todas as 8 abordagens comparadas partem do MESMO dataset inicial.",
+  "execucoes": "31 execuções independentes por instância ('Number of Independent Runs for Each Instance: 31').",
+  "baselines": "8 abordagens comparadas, todas offline e todas partindo do mesmo dataset inicial: Init (a própria amostra/ND inicial, sem otimização), TL (transfer learning de Yang et al. 2020, [6], implementação MATLAB dos autores originais), Gen-RVEA e Gen-MOEA/D (seleção genérica pela média posterior do Kriging, sem incerteza), e as propostas Prob-RVEA / Prob-MOEA/D (seleção probabilística via Monte-Carlo + KDE sobre a posterior do Kriging) e Hyb-RVEA / Hyb-MOEA/D (híbrido 50/50 de seleção probabilística e genérica). NÃO há piso evolutivo sem surrogate (tipo NSGA-II com avaliações reais) — impossível por definição no regime totalmente offline testado; o 'piso' mais próximo é o Init (dataset inicial, sem qualquer otimização).",
+  "metricas_principais": [
+   "HV (hypervolume) — reportado tanto no espaço do surrogate ('surrogate hypervolume') quanto no espaço da função verdadeira (underlying)",
+   "RMSE — entre o valor aproximado (Kriging) e o valor verdadeiro das soluções aproximadas retornadas"
+  ],
+  "testes": [
+   "Wilcoxon pareado (rank-sum) entre TODAS as abordagens (não só contra a melhor), com correção de Bonferroni dos p-valores, α = 0,05; convertido num escore +1 (significativamente melhor)/0 (empate)/−1 (pior) somado por abordagem para produzir um ranking global — método descrito em Sec. IV-A, mas sem tabela de escores/ranking final explícita no texto principal visível"
+  ],
+  "apresentacao": "mediana ± desvio-padrão entre as 31 execuções (Tabela I); melhor valor em negrito por célula; heatmap colorido por rank usando o colormap 'viridis' (amarelo = melhor, roxo = pior) para todas as instâncias DBMOPP (Fig. 8); 'execução com HV mediano' escolhida para as figuras de trajetória/visualização (Fig. 9 e Fig. 10) — mesma convenção de 'execução mediana' usada na dissertação.",
+  "codigo_plataforma": "Python, framework DESDEO (desdeo.it.jyu.fi), código disponível em github.com/industrial-optimization-group/offline_data_driven_moea; Kriging via scikit-learn (kernel Gaussiano, otimização de hiperparâmetros por BFGS); TL implementada em MATLAB (código dos autores originais, Yang et al.); DBMOPP gerado pelo código de Fieldsend et al. (github.com/fieldsend/DBMOPP_generator)."
+ },
+ "analises": [
+  {
+   "fichas": [
+    2,
+    4
+   ],
+   "nova": false,
+   "nome_sugerido": "",
+   "grupo_sugerido": "",
+   "descricao": "Teste de Wilcoxon pareado (rank-sum) conduzido entre TODAS as 8 abordagens (não apenas cada uma contra a melhor), com os p-valores corrigidos por Bonferroni e α = 0,05; um sistema de pontuação atribui +1 quando a abordagem alternativa é significativamente melhor que a nula, 0 se não há diferença significativa, e −1 se é significativamente pior — a soma dos escores por abordagem gera um ranking global em ordem decrescente. É uma agregação estatística de comparações pareadas para um ranking único, mas o mecanismo (escore somado de todas as comparações pareadas) difere tanto do rank médio simples (ficha 2) quanto de Friedman+Nemenyi/diagrama de diferença crítica (ficha 4).",
+   "literal": "A pairwise Wilcoxon significance test [32] was conducted between the different approaches and the calculated p-values were later Bonferroni corrected.",
+   "localizador": "Sec. IV-A (parágrafo imediatamente antes da apresentação da Table I)",
+   "metricas": [
+    "HV",
+    "RMSE"
+   ],
+   "testes": [
+    "Wilcoxon rank-sum pareado, correção de Bonferroni, α = 0,05; escore +1/0/−1 somado por abordagem"
+   ],
+   "convencoes": "escore agregado por abordagem; ranking em ordem decrescente da soma dos escores",
+   "achado": "O método é descrito em detalhe, mas nenhuma tabela ou lista explícita de escores/ranking final resultante deste procedimento específico aparece com números no texto principal visível — possivelmente é o critério usado para decidir os negritos da Tabela I e/ou as cores do heatmap da Fig. 8, mas isso não é dito explicitamente no texto.",
+   "aplicabilidade": "① + ⑦ — camada estatística pós-hoc aplicável em princípio aos endpoints das configurações do roster (b5m, b5r), embora o desenho pareado exato (todas as combinações, não só vs. melhor) precise ser replicado à parte.",
+   "observacoes": "resultado numérico do próprio procedimento não é mostrado explicitamente no corpo do artigo — só a metodologia."
+  },
+  {
+   "fichas": [
+    1,
+    13,
+    14
+   ],
+   "nova": false,
+   "nome_sugerido": "",
+   "grupo_sugerido": "",
+   "descricao": "Tabela com a mediana (e o desvio-padrão entre as 31 execuções) do HV e do RMSE — ambos calculados reavaliando as soluções aproximadas retornadas na função verdadeira — para uma seleção ('poucas') de instâncias DBMOPP, comparando as 8 abordagens (Init, TL, Gen-RVEA, Prob-RVEA, Hyb-RVEA, Gen-MOEA/D, Prob-MOEA/D, Hyb-MOEA/D). O melhor valor de cada célula aparece em negrito. Todas as abordagens partem do MESMO dataset offline inicial (N_D = 109) — corresponde ao desenho 'endpoint via ⑦, mesma ① compartilhada' descrito na ficha 13, e o próprio 'Init' funciona como a leitura da ficha 14 (ganho sobre o dataset).",
+   "literal": "We show the median HVs and RMSEs (along with the standard deviations in different runs) for a few DBMOPP test instances in Table I. The items in bold represent the best performing approaches.",
+   "localizador": "Sec. IV-A, Table I",
+   "metricas": [
+    "HV (na função verdadeira/underlying)",
+    "RMSE"
+   ],
+   "testes": [],
+   "convencoes": "mediana ± desvio-padrão entre as 31 execuções; melhor valor em negrito por célula; tabela cobre só um subconjunto das instâncias (o restante só no material suplementar)",
+   "achado": "O conteúdo numérico de célula da Tabela I não foi recuperável nesta conversão em Markdown (ver observações do JSON). Qualitativamente, a discussão que segue a tabela e a Fig. 8 afirma que Prob-RVEA e Hyb-RVEA lideram em HV e Prob-MOEA/D lidera em RMSE.",
+   "aplicabilidade": "① + ⑦ (ND final reavaliado na função verdadeira, regime offline) — mesmo desenho conceitual de b5r/b5m contra uma variante-média equivalente, mas aplicado às instâncias DBMOPP do artigo, que não fazem parte da bateria de 28 problemas da dissertação.",
+   "observacoes": "valores numéricos de célula não recuperáveis desta conversão (ver observações gerais do JSON sobre a Tabela I)."
+  },
+  {
+   "fichas": [
+    1,
+    2,
+    13,
+    14
+   ],
+   "nova": false,
+   "nome_sugerido": "",
+   "grupo_sugerido": "",
+   "descricao": "Mapas de calor (heatmap) do HV e do RMSE (ambos na função verdadeira) para TODAS as instâncias DBMOPP testadas (não só as 'poucas' da Tabela I), com o ranking das 8 abordagens codificado por cor usando o colormap 'viridis' (amarelo = melhor, roxo = pior) — uma visão de placar completo, em vez de números de célula.",
+   "literal": "We also show the heatmap for all the tested DBMOPP instances comparing HV and RMSE in Fig. 8. The rankings of the approaches are color coded from best (yellow) to worst (purple) using the \"viridis\" colormap.",
+   "localizador": "Sec. IV-A, Fig. 8",
+   "metricas": [
+    "HV",
+    "RMSE"
+   ],
+   "testes": [],
+   "convencoes": "heatmap por rank codificado em cor (viridis); linhas = instâncias DBMOPP, colunas = 8 abordagens (RVEA-based e MOEA/D-based)",
+   "achado": "\"It can be observed that most of the yellow colors are around Prob-RVEA, Hyb-RVEA, and Prob-MOEA/D.\" — essas três concentram os melhores ranks (mais amarelo) através das instâncias.",
+   "aplicabilidade": "① + ⑦ para as duas configurações do roster (b5m/b5r) nos 28 problemas da dissertação; a réplica das instâncias DBMOPP específicas do artigo (P1/P2) não é aplicável, pois não fazem parte da bateria da dissertação."
+  },
+  {
+   "fichas": [
+    11
+   ],
+   "nova": false,
+   "nome_sugerido": "",
+   "grupo_sugerido": "",
+   "descricao": "Comparação que isola o efeito do uso da incerteza: Prob-RVEA vs. Gen-RVEA e Prob-MOEA/D vs. Gen-MOEA/D usam exatamente a mesma maquinaria evolutiva (mesmo motor RVEA ou MOEA/D, mesmos hiperparâmetros, mesmo dataset inicial compartilhado), diferindo apenas em usar (Prob, via Monte-Carlo + KDE sobre a posterior do Kriging) ou não (Gen, só a média posterior) a incerteza na seleção — é a ablação exata do artigo, a mesma referida nominalmente pela ficha 11 da tipologia ('Prob-MOEA/D × MOEA/D-média').",
+   "literal": "Overall, the probabilistic approaches outperformed their generic counterparts, TL, and initial sampling in both HV and RMSE.",
+   "localizador": "Sec. IV-A (discussão logo após Table I / Fig. 8)",
+   "metricas": [
+    "HV",
+    "RMSE"
+   ],
+   "testes": [],
+   "convencoes": "síntese textual apoiada nas Tabelas/Figuras 8-10; possivelmente também no teste de Wilcoxon+Bonferroni descrito antes da Table I (não fica claro no texto qual exatamente embasa esta frase)",
+   "achado": "As abordagens probabilísticas (com σ) superam consistentemente suas contrapartes genéricas (sem σ, só média) tanto em HV quanto em RMSE — evidência direta de que usar a incerteza do Kriging na seleção melhora o resultado no regime offline.",
+   "aplicabilidade": "① + ⑦ — reprodução direta da ficha 11 (Prob-MOEA/D × MOEA/D-média) e, por analogia direta com a mesma lógica, também de Prob-RVEA × RVEA-média; usa exatamente o desenho do artigo (mesmo dataset inicial, mesma maquinaria, único fator manipulado é o uso do σ)."
+  },
+  {
+   "fichas": [
+    11
+   ],
+   "nova": false,
+   "nome_sugerido": "",
+   "grupo_sugerido": "",
+   "descricao": "Nuance sobre o componente híbrido: Hyb-RVEA e Hyb-MOEA/D (mistura 50/50 de seleção probabilística e genérica) foram propostos para combinar os benefícios de ambos, mas Hyb-MOEA/D NÃO superou Prob-MOEA/D — porque a metade 'genérica' da mistura (Gen-MOEA/D) tem desempenho extremamente ruim e arrasta o resultado combinado para baixo. É uma variação sobre o mesmo tema da ablação do σ (ficha 11), mas testando uma MISTURA de 3 condições (Prob puro / Gen puro / 50-50) em vez de só duas.",
+   "literal": "However, we found that Hyb-MOEA/D did not perform better than Prob-MOEA/D. This is because of the extremely poor performance of Gen-MOEA/D in terms of both HV and RMSE.",
+   "localizador": "Sec. IV-A",
+   "metricas": [
+    "HV",
+    "RMSE"
+   ],
+   "testes": [],
+   "convencoes": "síntese textual apoiada nas Tabelas/Figuras 8-10",
+   "achado": "Resultado negativo/contraintuitivo para o híbrido: misturar 50% de seleção sem incerteza com 50% de seleção com incerteza NÃO garante ganho sobre a seleção puramente probabilística — o componente fraco (genérico) pode arrastar o todo para baixo quando seu desempenho isolado é muito ruim (efeito não observado para Hyb-RVEA, cujo componente Gen-RVEA não é tão ruim).",
+   "aplicabilidade": "não reproduzível com as camadas/roster da dissertação tal como descrito — o roster (b5m, b5r) inclui só 2 das 4 variantes do artigo (aparentemente as puramente probabilísticas, não as híbridas); exigiria rodar a variante Hyb-* à parte, fora do roster."
+  },
+  {
+   "fichas": [
+    54
+   ],
+   "nova": false,
+   "nome_sugerido": "",
+   "grupo_sugerido": "",
+   "descricao": "Visualização qualitativa (execução com HV mediano) da convergência das soluções — avaliadas na função verdadeira — em direção ao front de Pareto verdadeiro (representado por círculos/pontos do gerador DBMOPP), em duas instâncias (linha superior: P1, K=5, LHS; linha inferior: P2, K=8, MVNS, com duas frentes de Pareto desconexas), ao longo das avaliações (cor = contagem de FE), para as 8 abordagens; espaço de decisão 10-D projetado em 2-D.",
+   "literal": "Prob-RVEA in Fig. 9(d) and (l), Hyb-RVEA in Fig. 9(e) and (m), Prob-MOEA/D in Fig. 9(g) and (o), and Hyb-MOEA/D in Fig. 9(h) and (p) converged much closer to the Pareto front.",
+   "localizador": "Sec. IV-A, Fig. 9",
+   "metricas": [
+    "cobertura visual/proximidade do front verdadeiro (qualitativo, sem indicador numérico nesta figura)"
+   ],
+   "testes": [],
+   "convencoes": "execução com valor mediano de HV escolhida para a figura ('execução mediana'); espaço de decisão 10-D projetado em 2-D; cor = contagem de avaliações; soluções não-dominadas da última geração em vermelho",
+   "achado": "As variantes probabilísticas e híbridas convergem visivelmente mais perto do front verdadeiro que as genéricas e a TL, cujas soluções ficam mais distantes; nenhuma das 8 abordagens converge bem para as duas frentes desconexas do segundo problema (ver caracteristica_x_desempenho e resultados_negativos).",
+   "aplicabilidade": "⑦ (ND final reavaliado na função verdadeira) para o resultado agregado da convergência; a visualização geométrica específica (projeção 10-D→2-D contra círculos do gerador DBMOPP) não é diretamente replicável nos problemas da dissertação (ZDT/DTLZ/WFG/MMF/BBOB/reais não usam essa parametrização por distância)."
+  },
+  {
+   "fichas": [
+    26,
+    41
+   ],
+   "nova": false,
+   "nome_sugerido": "",
+   "grupo_sugerido": "",
+   "descricao": "Três curvas, da mesma execução com HV mediano, ao longo de FE (checkpoints a cada 1000 avaliações, até 40000, na instância DBMOPP P1 K=5/LHS): (a) HV no espaço do surrogate ('acreditado'); (b) HV no espaço da função verdadeira; (c) RMSE entre a predição e o valor verdadeiro das soluções — para as 8 abordagens. É a versão deste artigo do gap 'fronteira acreditada vs. fronteira real' ao longo da busca (fantasia), medido por FE em vez de por geração.",
+   "literal": "In Fig. 10, we show the surrogate HV, HV in the underlying objective space, and RMSE after every 1000 function evaluations.",
+   "localizador": "Sec. IV-A, Fig. 10",
+   "metricas": [
+    "HV (surrogate/acreditado)",
+    "HV (underlying/verdadeiro)",
+    "RMSE"
+   ],
+   "testes": [],
+   "convencoes": "execução única com HV mediano (não mediana+IQR de todas as 31 execuções); checkpoints a cada 1000 FE de um total de 40000; só a instância P1 K=5/LHS é mostrada",
+   "achado": "Abordagens probabilísticas/híbridas melhoram o HV verdadeiro com as avaliações; genéricas e TL não melhoram mais. O HV surrogate da TL melhora, mas o das probabilísticas DIMINUI gradualmente (rejeitam soluções de melhor média mas alta incerteza) — olhar só a métrica surrogate seria enganoso. RMSE cai ao longo do orçamento para as probabilísticas (especialmente Prob-RVEA); RMSE final da TL é o pior.",
+   "aplicabilidade": "Conceitualmente próximo das fichas 26 (trajetória × orçamento) e 41 (fantasia: acreditado vs. real), mas NÃO da ficha 31 (sonda fixa de 2000 pontos comuns — aqui o RMSE é sobre as soluções que o próprio algoritmo escolheu/retornou, não sobre uma sonda comum). Diferenças de desenho: (a) uma única execução 'de HV mediano', não mediana+IQR de 30/31 sementes; (b) reavalia o ND corrente na função verdadeira a cada 1000 FE — a instrumentação padrão da dissertação, no regime offline, só faz isso no FINAL (camada ⑦), não em checkpoints intermediários; reproduzir a curva completa exigiria reavaliações reais extras fora do desenho padrão de 7 camadas."
+  },
+  {
+   "fichas": [],
+   "nova": false,
+   "nome_sugerido": "",
+   "grupo_sugerido": "",
+   "descricao": "O artigo MENCIONA, mas não mostra neste texto, resultados detalhados em instâncias DBMOPP adicionais (além das 'poucas' da Tabela I) e na suíte DTLZ completa (com números de objetivos variados), remetendo tudo ao material suplementar.",
+   "literal": "Detailed results on other DBMOPP and DTLZ instances are provided in the supplementary material.",
+   "localizador": "Sec. IV-A (também: \"Test results with DTLZ suite are provided in the supplementary material\", Sec. IV-A item 1)",
+   "metricas": [
+    "HV (mencionado, não mostrado)",
+    "RMSE (mencionado, não mostrado)"
+   ],
+   "testes": [],
+   "convencoes": "",
+   "achado": "não reportado neste artigo — apenas mencionado; números e figuras estariam no material suplementar (não disponível para esta extração).",
+   "aplicabilidade": "não reproduzível a partir deste documento — depende do material suplementar do artigo, que não faz parte do corpus_md convertido.",
+   "observacoes": "só mencionada — sem números/figuras no corpo principal do artigo."
+  }
+ ],
+ "calibracao_do_sigma": {
+  "mede": false,
+  "como": "Não mede calibração/cobertura do σ (não há checagem da fração de pontos cujo f cai dentro de μ ± zσ, nem correlação σ×erro, nem nada análogo às fichas 33-34). O artigo mede apenas ACURÁCIA da média predita via RMSE entre a aproximação Kriging e a função verdadeira, calculado sobre as soluções finais/correntes retornadas (Tabela I: ao final da busca; Fig. 10c: a cada 1000 FE) — não sobre um conjunto de sonda fixo comum entre algoritmos. O RMSE cai ao longo do orçamento para as abordagens probabilísticas, o que é uma medida de erro médio da aproximação, não de qualidade/calibração do σ reportado em si.",
+  "literal": "we evaluated the approximated solutions obtained with different approaches with underlying objective function values to calculate HV and RMSE.",
+  "localizador": "Sec. IV-A"
+ },
+ "custo": {
+  "reporta": true,
+  "o_que": "Apenas complexidade computacional teórica (Big-O), SEM tempo de parede medido: custo da atribuição probabilística de indivíduos a subpopulações/vetores de referência O(N·|P|) — reduzido por um mecanismo de votação (contar quantas amostras Monte-Carlo de cada indivíduo caem em cada vetor de referência, em vez de integrar numericamente); custo da seleção probabilística pareada dentro de cada subpopulação O(|P̄j|²) — reduzido via CDF empírica (em vez de integração dupla fechada), mudança do limite inferior da integral do APD para zero, e paralelização do cálculo de P_wrong entre indivíduos. Nenhum tempo de execução em segundos/minutos, nem decomposição fit/busca/avaliação/instrumentação, é reportado numericamente.",
+  "literal": "the computation cost of performing the probabilistic selection is O(|¯Pj|2), where |¯Pj| is the number of individuals in the jth subpopulation.",
+  "localizador": "Sec. III-A2"
+ },
+ "resultados_negativos": [
+  {
+   "descricao": "Abordagens sem uso de incerteza (genéricas, Gen-RVEA/Gen-MOEA/D) e a TL podem produzir soluções PIORES (em HV e RMSE) do que simplesmente usar a amostra/dataset inicial (Init) em certas instâncias — otimizar sem considerar a incerteza pode ser pior que não otimizar.",
+   "literal": "For certain test instances, the generic approaches and TL produced worse solutions (both in HV and RMSE) compared to the initial sampling.",
+   "localizador": "Sec. IV-A"
+  },
+  {
+   "descricao": "Ignorar a incerteza faz os algoritmos convergirem, no espaço verdadeiro, para soluções piores do que o valor observado no espaço do surrogate durante a busca — o 'engano' do modelo é a causa central do mau desempenho das abordagens sem σ.",
+   "literal": "The performances of the generic approaches and TL were poor because they did not consider uncertainty in the solutions during the optimization process.",
+   "localizador": "Sec. IV-A"
+  },
+  {
+   "descricao": "O HV no espaço do surrogate ('acreditado') das abordagens probabilísticas efetivamente DIMINUI ao longo da busca, mesmo enquanto o HV verdadeiro aumenta — a seleção probabilística rejeita deliberadamente soluções de média melhor mas alta incerteza; confiar só na métrica surrogate seria enganoso.",
+   "literal": "the surrogate HV for TL improved with function evaluations and the probabilistic approaches it gradually decreased. This is because the probabilistic approaches reject solutions with better objective values if they have high uncertainties.",
+   "localizador": "Sec. IV-A, Fig. 10"
+  },
+  {
+   "descricao": "A transfer learning (TL) converge mais rápido no espaço do surrogate, mas isso não se traduz em proximidade real do front verdadeiro — a busca esparsa da TL 'engana' a métrica surrogate; TL tem o pior RMSE final entre todas as 8 abordagens.",
+   "literal": "TL performed the worst because the sparse search adopted in the approach led to faster convergence in the surrogate objective space but far from the Pareto front.",
+   "localizador": "Sec. IV-A"
+  },
+  {
+   "descricao": "O híbrido (50% probabilístico + 50% genérico) não supera o puro probabilístico quando a metade genérica tem desempenho muito ruim — misturar as duas seleções não garante o melhor dos dois mundos.",
+   "literal": "However, we found that Hyb-MOEA/D did not perform better than Prob-MOEA/D. This is because of the extremely poor performance of Gen-MOEA/D in terms of both HV and RMSE.",
+   "localizador": "Sec. IV-A"
+  },
+  {
+   "descricao": "Mesmo as abordagens propostas (com incerteza) falham completamente em problemas com frente de Pareto desconexa, por falta de dados offline suficientes — um limite reconhecido pelos próprios autores, não resolvido pelo uso do σ.",
+   "literal": "We also observed that all approaches failed to get solutions closer to both disconnected Pareto sets in the bottom row. This is because of the lack of adequate offline data for solving such MOPs.",
+   "localizador": "Sec. IV-A, Fig. 9"
+  }
+ ],
+ "equivalencia_criterios": [],
+ "caracteristica_x_desempenho": [
+  {
+   "caracteristica": "frente de Pareto desconexa (DBMOPP P2, K=8, MVNS, duas frentes desconexas)",
+   "afirmacao": "Todas as 8 abordagens testadas — incluindo as probabilísticas/híbridas propostas — falham em se aproximar das duas frentes de Pareto desconexas; os autores atribuem isso à falta de dados offline suficientes para essa geometria, não a uma limitação específica do mecanismo de incerteza em si.",
+   "literal": "We also observed that all approaches failed to get solutions closer to both disconnected Pareto sets in the bottom row. This is because of the lack of adequate offline data for solving such MOPs.",
+   "localizador": "Sec. IV-A, Fig. 9"
+  },
+  {
+   "caracteristica": "muitos objetivos (K>3, testado de K=2 a K=10)",
+   "afirmacao": "MOEAs tradicionais baseados em dominância degradam com o aumento do número de objetivos; por isso os autores escolhem, como motor, MOEAs baseados em decomposição (RVEA, MOEA/D), que lidam explicitamente com muitos objetivos — motivação de projeto testada em K=2..10, mas sem uma quebra explícita de desempenho por valor de K reportada com números no texto principal visível.",
+   "literal": "the performance of traditional MOEAs, such as MOGA [10], MO-CMA-ES [11], NSGA-II [12], etc., deteriorates when the number of objectives increases [13]–[15].",
+   "localizador": "Sec. I"
+  }
+ ],
+ "roster_bloco": {
+  "mecanismo_proprio": [
+   {
+    "descricao": "Ablação exata do uso da incerteza (a própria ficha 11 da tipologia, nominalmente): Prob-RVEA / Prob-MOEA/D (ranking probabilístico via Monte-Carlo + KDE sobre a posterior gaussiana do Kriging, Eq. 7-14) vs. Gen-RVEA / Gen-MOEA/D (apenas a média posterior, mesma maquinaria evolutiva, mesmo dataset inicial compartilhado) — único fator manipulado é usar ou não o σ na seleção.",
+    "literal": "Overall, the probabilistic approaches outperformed their generic counterparts, TL, and initial sampling in both HV and RMSE.",
+    "localizador": "Sec. IV-A"
+   },
+   {
+    "descricao": "Componente do híbrido: mistura 50/50 de seleção probabilística e genérica (Hyb-RVEA, Hyb-MOEA/D); Hyb-MOEA/D não supera Prob-MOEA/D porque a metade genérica (Gen-MOEA/D) tem desempenho muito ruim — mostra que o mecanismo de mistura não é robusto ao desempenho do componente sem incerteza.",
+    "literal": "However, we found that Hyb-MOEA/D did not perform better than Prob-MOEA/D. This is because of the extremely poor performance of Gen-MOEA/D in terms of both HV and RMSE.",
+    "localizador": "Sec. IV-A"
+   },
+   {
+    "descricao": "σ do modelo em ação ao longo da busca, via proxy do HV no espaço do surrogate: o HV 'acreditado' das abordagens probabilísticas cai ao longo do orçamento porque o mecanismo rejeita deliberadamente soluções de média melhor mas incerteza alta — evidência direta e explicada pelos próprios autores do mecanismo de incerteza operando (não é um efeito colateral não-explicado).",
+    "literal": "the surrogate HV for TL improved with function evaluations and the probabilistic approaches it gradually decreased. This is because the probabilistic approaches reject solutions with better objective values if they have high uncertainties.",
+    "localizador": "Sec. IV-A, Fig. 10"
+   }
+  ],
+  "reprodutivel_com_camadas": "Item 1 (Prob×Gen, a ablação exata do σ) é DIRETAMENTE reproduzível com ① + ⑦: comparar o endpoint (ND final reavaliado na função verdadeira) de b5r/b5m (as variantes do roster) contra uma variante 'motor-média' equivalente rodada a partir do MESMO dataset inicial compartilhado — é literalmente a ficha 11 aplicada aos problemas da dissertação. Item 2 (Hyb×Prob, o híbrido não supera o puro quando o genérico é ruim) NÃO é reproduzível com o roster atual, porque este inclui só duas das quatro variantes do artigo (b5m, b5r — pela sigla do pedido de extração e pela ênfase da conclusão do próprio artigo em favor da abordagem puramente probabilística, presumivelmente Prob-MOEA/D e Prob-RVEA, não as híbridas); reproduzir exigiria rodar Hyb-RVEA/Hyb-MOEA/D à parte, fora do roster — mas essa correspondência b5m/b5r=Prob-MOEA/D/Prob-RVEA é inferência deste extrator, não está no texto de b5. Item 3 (trajetória HV-surrogate vs. HV-verdadeiro vs. RMSE a cada 1000 FE) é PARCIALMENTE reproduzível: no regime offline, a dissertação registra a camada ⑦ só no FINAL da busca (não em checkpoints intermediários), então recriar a curva completa exigiria reavaliações reais extras do ND corrente ao longo do orçamento, fora do desenho padrão de 7 camadas; a camada ③ (predições registradas) permite reconstruir o RMSE de acurácia da média em qualquer ponto salvo, mas não substitui a reavaliação real necessária para o HV verdadeiro em checkpoints intermediários.",
+  "parametros_do_uso_da_incerteza": [
+   "S (nº de amostras Monte-Carlo por indivíduo, extraídas da posterior gaussiana multivariada do Kriging, Eq. 10) = 1000 — Algorithm 1 linha 9; Sec. IV-A item 6 ('Number of samples for Monte-Carlo sampling S = 1000').",
+   "Bandwidth do KDE (kernel Gaussiano usado para estimar a PDF do critério de seleção — APD em RVEA, PBI em MOEA/D) definido pela regra de Silverman ('Silvermann's rule') — sem valor numérico único fixo, recalculado por amostra a cada seleção.",
+   "Proporção de mistura do híbrido (Hyb-RVEA, Hyb-MOEA/D) = 50%/50% entre seleção probabilística e seleção genérica (pela média), explicitamente sem parâmetros extras: \"no further parameters are required\".",
+   "Não há gate/limiar (tipo δ de confiança ou β de UCB) que module QUANDO usar a incerteza: a seleção probabilística via P_wrong (Eq. 7-9) é aplicada uniformemente a toda a população/subpopulação em cada geração; o único parâmetro numérico próximo é α=2 do APD, que é do RVEA em si (penalização ângulo-distância), não do uso da incerteza."
+  ]
+ },
+ "observacoes": "Este artigo (b5) É a fonte primária das abordagens Prob-RVEA/Prob-MOEA/D e Hyb-RVEA/Hyb-MOEA/D citadas nominalmente nas fichas 11 e 13 da tipologia — a comparação interna Prob×Gen (mesma maquinaria RVEA/MOEA/D, único fator manipulado é o uso do σ do Kriging na seleção) é, portanto, literalmente a 'ablação exata do σ' da ficha 11, e a comparação das 8 abordagens partindo todas do MESMO dataset offline inicial corresponde ao desenho das fichas 13/14. O artigo NÃO testa problemas reais (RE21/ESTOQUE40/DDMOP7 pertencem à bateria da própria dissertação, não a b5): 'In the future, we plan to test the proposed approaches...on real-world problems' é declarado como trabalho futuro (Sec. V) — logo a ficha 12 (extensão da ablação a problemas reais) NÃO se aplica ao conteúdo de b5 em si, ainda que os algoritmos b5m/b5r do roster venham a ser rodados pela própria dissertação nesses problemas reais. Os rótulos 'b5m'/'b5r' usados na tipologia (ficha 13) não aparecem no texto de b5 — são nomenclatura da dissertação; pela ênfase da conclusão do próprio artigo ('if more accurate solutions are required, the probabilistic approach should be preferred', Sec. V) e pela sigla informada no pedido de extração ('Prob-RVEA / Prob-MOEA/D (+ Hyb-RVEA / Hyb-MOEA/D)', que já lista as versões Hyb como secundárias/parentéticas), é plausível que b5r=Prob-RVEA e b5m=Prob-MOEA/D (as duas variantes NÃO-híbridas) — mas essa correspondência é INFERÊNCIA deste extrator, não está no texto de b5 e não deve ser tratada como fato citável. A Tabela I (HV e RMSE por instância) teve APENAS a legenda recuperada tanto pela camada estruturada (pymupdf4llm) quanto pela camada de texto bruto (ANEXO — get_text); o corpo numérico da tabela não veio como texto/números organizáveis por linha/coluna. Existe uma camada adicional de OCR (ANEXO — Conteúdo textual das imagens, p.8) com uma lista solta de números (ex.: 6.13E+03, 8.71E+03, 1.85E+00, 9.09E+05, etc., incluindo alguns claramente corrompidos como '7.778+05' e '1.73B+00') sem cabeçalhos de linha/coluna reconstruíveis com segurança — por isso NENHUM valor numérico de célula específico foi citado nos achados das análises sobre a Tabela I / Fig. 8; qualquer leitura desses números exigiria o PDF original com as imagens. Resultados na suíte DTLZ e em instâncias DBMOPP adicionais além das 'poucas' da Tabela I/Fig. 8 estão só no material suplementar do artigo, não presente neste corpus_md. As Figuras 3, 4, 5, 6 e 7 (Seção III, método) são ilustrações CONCEITUAIS do mecanismo probabilístico (indivíduos/exemplos didáticos para explicar P_wrong, a atribuição a subpopulações e o híbrido) — não foram tratadas como 'análises experimentais' sobre os problemas de teste e não entraram em 'analises'. A métrica RMSE do artigo é calculada sobre as soluções aproximadas RETORNADAS pelo algoritmo em cada checkpoint (Tabela I: ao final; Fig. 10: a cada 1000 FE), reavaliadas na função verdadeira — NÃO sobre uma sonda fixa comum a todos os algoritmos (não há um conjunto de 2000 pontos fixos re-preditos a cada retreino, ao contrário da camada ③/ficha 31 da dissertação); por isso o mapeamento à ficha 31 foi evitado e usei as fichas 26/41 (trajetória + fantasia) para a Fig. 10. Não há piso evolutivo sem surrogate (tipo NSGA-II com avaliações reais) em nenhuma comparação deste artigo — impossível por definição no regime totalmente offline testado; o 'piso' mais próximo disponível é o 'Init' (a própria amostra/ND do dataset offline inicial, sem otimização alguma), o que motiva o mapeamento às fichas 13/14 em vez da ficha 9 (que pressupõe um piso evolutivo real, com avaliações verdadeiras adicionais, incompatível com o regime offline)."
+}

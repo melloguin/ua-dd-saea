@@ -1,0 +1,196 @@
+{
+  "id": "c250",
+  "sigla": "K-MOGA",
+  "titulo": "A Kriging Metamodel Assisted Multi-Objective Genetic Algorithm for Design Optimization",
+  "ano": 2008,
+  "roster": false,
+  "setup": {
+    "benchmarks": "7 exemplos, nenhum deles nas suites-padrao da dissertacao (artigo pre-data ZDT/DTLZ/WFG como convencao fixada; usa formulacoes originais de Deb 2001 e Wilson et al. 2001): (1) ZDT2 simplificado [Deb 2001] - biobjetivo, SEM restricao, 3 variaveis (nao as 30 variaveis do ZDT2 padrao), frente nao-convexa em forma fechada conhecida; (2) Cabinet - problema real de engenharia termica (arranjo de servidores blade num gabinete, simulacao de transferencia de calor 2D de Rolander et al. 2005 / Li et al. 2007), biobjetivo (minimizar temperatura maxima dos servidores; maximizar soma ponderada da geracao de calor), 4 variaveis continuas (velocidade do ar de entrada + 3 taxas de geracao de calor por secao), 1 restricao de temperatura maxima; (3) ZDT1 [Deb 2001] - biobjetivo, sem restricao, frente convexa conexa; (4) ZDT3 [Deb 2001] - biobjetivo, sem restricao, frente DESCONEXA; (5) GearTrain [Deb 2001] - biobjetivo, 4 variaveis de projeto INTEIRAS; (6) OSY [Deb 2001] - biobjetivo, 6 variaveis, 6 restricoes de desigualdade; (7) TEST4 [Wilson et al. 2001] - biobjetivo, 2 variaveis, 2 restricoes, frente DESCONEXA. As formulacoes completas de (3)-(7) estao na Tabela 2, cujo conteudo e uma tabela-imagem sem camada de texto extraida na versao limpa do PDF->Markdown (so recuperavel de forma aproximada/corrompida via OCR do apendice de imagens do arquivo-fonte).",
+    "orcamento": "SEM orcamento fixo nem DoE inicial compartilhado no sentido da dissertacao: cada execucao roda ate satisfazer DOIS criterios de parada por convergencia simultaneamente - (i) fracao de pontos nao-dominados na populacao >= 80% e estavel por 5 geracoes; (ii) a curva 'no. de chamadas de simulacao x geracao' fica achatada (plana). A populacao inicial e sempre avaliada 100% por simulacao (para construir os Krigings iniciais); o tamanho da populacao inicial VARIA por problema (Tabela 3, coluna 'Pop-size'): 30 para ZDT1/ZDT2/ZDT3/GearTrain/Cabinet, 20 para TEST4, 50 para OSY - o que contradiz uma frase do texto corrido ('the same initial population size of 30 individuals is used for all experiments'), inconsistencia nao resolvida no artigo (ver observacoes). Operadores geneticos: 95% crossover, 5% mutacao; elitismo mantem nao-dominados ate ~70-80% da populacao.",
+    "execucoes": "30 execucoes independentes de cada algoritmo (MOGA e K-MOGA) em cada um dos 7 problemas, 'to account for randomness'; nao fica explicito se as 30 execucoes de MOGA e K-MOGA compartilham a mesma populacao inicial por indice de execucao (DoE pareado) ou usam sementes totalmente independentes.",
+    "baselines": "MOGA - a mesma base evolutiva do K-MOGA (NSGA com estrategia de elitismo, chamada pelos autores de 'improved NSGA'), SEM nenhum metamodelo: toda avaliacao e feita por simulacao real. E o unico piso, presente em TODAS as comparacoes (todos os 7 problemas). Nao ha outro algoritmo assistido por surrogate no artigo (nao ha comparacao com redes neurais, RSM, RBF ou outros metamodelos).",
+    "metricas_principais": [
+      "numero de chamadas de simulacao ate convergencia (media/STD/faixa sobre 30 execucoes) - metrica primaria de custo",
+      "hyperarea difference (HD, proxy de convergencia, so ZDT2)",
+      "overall spread (OS, proxy de diversidade, so ZDT2)",
+      "MMD_fm - verdadeira vs. estimada (so ZDT2, verificacao de mecanismo, nao uma metrica de desempenho final)",
+      "erro real vs. erro previsto (0.5*s_m) - so ZDT2, 10a geracao (calibracao do sigma)"
+    ],
+    "testes": [
+      "nenhum teste de significancia formal (sem Wilcoxon/Friedman/Holm) em nenhuma comparacao do artigo - so media+-desvio-padrao, faixa min-max e leitura visual"
+    ],
+    "apresentacao": "Tabela unica combinando todos os 7 problemas para o resultado central (Tabela 3: pop-size, % de reducao, faixa/media/STD do no. de chamadas para MOGA e K-MOGA); tabela separada so para ZDT2 com HD/OS (Tabela 1, mesma convencao media+-STD); graficos de dispersao/linha qualitativos do conjunto nao-dominado no espaco de objetivos (execucao 'tipica', nao formalmente definida como mediana), um por problema; grafico de barras do no. de chamadas por execucao individual (30 barras, so ZDT2); sem simbolos +/=/-, sem negrito, sem teste estatistico em nenhuma tabela.",
+    "codigo_plataforma": "Implementacao propria dos autores (MOGA baseado em NSGA + elitismo, mais Kriging ordinario proprio, ajustado por maxima verossimilhanca); nao menciona PlatEMO, BoTorch ou MATLAB. O modelo de simulacao do exemplo Cabinet (transferencia de calor 2D) vem de trabalho anterior dos mesmos autores/colaboradores (Rolander et al. 2005; Li et al. 2007, Georgia Tech + University of Maryland), nao detalhado neste artigo."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Economia de avaliacoes reais ate convergencia sob parada adaptativa (custo em chamadas de simulacao, sem orcamento fixo)",
+      "grupo_sugerido": "F",
+      "descricao": "Para os 7 exemplos (ZDT1, ZDT2, ZDT3, TEST4, OSY, Gear train, Cabinet), o artigo compara o numero de chamadas de simulacao (avaliacoes reais de objetivo/restricao) que MOGA e K-MOGA precisam para satisfazer os dois criterios de parada por convergencia, sobre 30 execucoes independentes de cada algoritmo em cada problema: faixa (min-max), media e desvio-padrao, e a reducao percentual media de K-MOGA sobre MOGA (Tabela 3); para o ZDT2 especificamente, tambem plota o numero de chamadas por execucao individual (Fig. 4).",
+      "literal": "The results show that on the average K-MOGA converges to the Pareto frontier with an approximately 50% fewer number of simulation calls compared to a conventional MOGA.",
+      "localizador": "Sec. 4.1 (Fig. 4) e Sec. 4.3, Table 3 (p. 031401-5 a 031401-9)",
+      "metricas": [
+        "numero de chamadas de simulacao ate convergencia (media, desvio-padrao, faixa min-max sobre 30 execucoes)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Faixa (min-max) + media + desvio-padrao sobre 30 execucoes independentes, uma linha por problema numa unica tabela combinada (Tabela 3, todos os 7 problemas); percentual medio de reducao do no. de chamadas por problema; para o ZDT2, tambem grafico de barras por execucao individual (Fig. 4, 30 barras). Sem mediana, sem simbolos +/=/-, sem negrito, sem teste de significancia.",
+      "achado": "Em todos os 7 exemplos K-MOGA usa menos chamadas de simulacao que MOGA (reducao media de 42% no Cabinet a 63% no ZDT2, todas >=42%); no ZDT2 a execucao de MOGA com MENOS chamadas (231, na execucao 15) ainda precisa de mais chamadas que a execucao de K-MOGA com MAIS chamadas (197) - os intervalos nem se sobrepoem. Na maioria dos exemplos (6 de 7) o desvio-padrao de K-MOGA tambem e menor que o de MOGA; a excecao e Cabinet, onde os desvios-padrao empatam (75 e 75).",
+      "aplicabilidade": "nao reproduzivel diretamente - a bateria da dissertacao usa orcamento FIXO e compartilhado (31D-1 avaliacoes reais, mesmo DoE por semente) sem criterio de parada adaptativo; o artigo, ao contrario, deixa cada execucao rodar ate um criterio de convergencia proprio, tornando o NUMERO de avaliacoes reais em si a variavel de resposta - nao ha um checkpoint fixo comparavel nos dados da dissertacao para replicar esse desenho; a camada (1) (todas as avaliacoes reais, em ordem) permitiria em principio recalcular 'quantas avaliacoes ate estabilizar' post-hoc segundo um criterio de convergencia analogo aplicado ao ND acumulado, mas isso seria uma leitura NOVA sobre os dados existentes, nao uma reproducao direta de nenhuma ficha do catalogo."
+    },
+    {
+      "fichas": [
+        1,
+        8,
+        9
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para o exemplo ZDT2, o artigo calcula duas metricas de qualidade da fronteira propostas na literatura (Wu e Azarm 2001): a diferenca de hiperarea (HD, proxy de convergencia: quanto menor, mais perto da fronteira verdadeira) e o espalhamento total (OS, proxy de diversidade: quanto mais perto de 1, mais parecido com o espalhamento da fronteira verdadeira), sobre as mesmas 30 execucoes de MOGA e K-MOGA, reportando media e desvio-padrao de cada uma (Tabela 1), contra os valores de referencia da fronteira verdadeira (HD_true=2/3, OS_true=1).",
+      "literal": "From Table 1, it can be seen that the convergence and diversity of the obtained Pareto frontiers from the MOGA and K-MOGA are comparable.",
+      "localizador": "Sec. 4.1.1, Table 1 (p. 031401-6)",
+      "metricas": [
+        "hyperarea difference (HD) - proxy de convergencia",
+        "overall spread (OS) - proxy de diversidade"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Media +- desvio-padrao sobre 30 execucoes (nao mediana); um unico problema (ZDT2), nao uma matriz algoritmo x problema; valores de referencia da fronteira verdadeira dados a parte (HD_true=2/3 aprox 0.667, OS_true=1) em vez de incorporados a tabela; nao fica explicito no texto se os 30 runs de MOGA e K-MOGA usam a mesma populacao inicial por execucao (DoE pareado) ou sementes independentes.",
+      "achado": "MOGA: HD=0.75+-0.069, OS=0.66+-0.200; K-MOGA: HD=0.72+-0.097, OS=0.69+-0.331 - nas duas metricas a media de K-MOGA fica ligeiramente mais proxima do valor da fronteira verdadeira (HD_true aprox 0.667, OS_true=1) que a de MOGA, mas com desvio-padrao maior nas duas (0.097>0.069 em HD; 0.331>0.200 em OS): o artigo le isso como 'comparavel', nao como uma vitoria de K-MOGA, e nao comenta o aumento de dispersao.",
+      "aplicabilidade": "(1) (todas as avaliacoes reais) - parcialmente reproduzivel: HD e OS nao sao as metricas primarias da dissertacao (IGD+/HV), mas sao da mesma familia (convergencia/diversidade do ND); dado um ponto 'bad'/'good' de referencia analogo a p_bad/p_good, seria possivel recalcular HD/OS sobre o ND acumulado de cada semente exatamente como a ficha 1 faz com IGD+/HV - mas a comparacao aqui e media+-std (nao mediana) e nao fica claro se os 30 runs de MOGA e K-MOGA compartilham o mesmo DoE por execucao, o que impede lê-la como um Delta pareado no sentido da ficha 9."
+    },
+    {
+      "fichas": [
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para cada um dos 7 exemplos, o artigo plota qualitativamente o conjunto nao-dominado obtido por MOGA e por K-MOGA no espaco de objetivos - de uma execucao (dita 'tipica') para ZDT2 (Fig. 3) e Cabinet (Fig. 8), e de forma semelhante (simbolos 'K-MOGA' vs 'MOGA' sobrepostos) para as 5 demais dentro da Tabela 2 - contra a fronteira de Pareto verdadeira em forma fechada quando disponivel (ZDT2 dada pela Eq. 16; demais quando aplicavel).",
+      "literal": "The results from K-MOGA are in good agreement with MOGA and the true Pareto frontier.",
+      "localizador": "Sec. 4.1, Fig. 3 (p. 031401-5); Sec. 4.2, Fig. 8 (p. 031401-7); Sec. 4.3, Table 2 (p. 031401-8)",
+      "metricas": [
+        "cobertura/distribuicao visual do conjunto nao-dominado no espaco de objetivos, contra a fronteira verdadeira quando disponivel"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execucao unica (dita 'tipica', nao explicitamente 'mediana' por nenhum criterio declarado) por problema, nao agregacao sobre as 30 execucoes; leitura visual, sem metrica numerica de cobertura na propria figura; frente verdadeira plotada so onde ha forma fechada conhecida.",
+      "achado": "Em todos os exemplos ilustrados, o conjunto nao-dominado de K-MOGA acompanha visualmente o de MOGA e a fronteira verdadeira (quando conhecida), sem degradacao perceptivel de forma ou cobertura apesar do numero muito menor de chamadas de simulacao usadas.",
+      "aplicabilidade": "(1) (ND de cada execucao, avaliacoes reais verdadeiras) - diretamente reproduzivel: plot do ND de uma execucao contra a frente verdadeira, exatamente como a ficha 54 propoe, para os problemas sinteticos com frente conhecida em forma fechada (ZDT1/2/3, TEST4, OSY quando disponivel); para GearTrain (variaveis inteiras) e Cabinet (real, sem forma fechada) so a comparacao K-MOGA x MOGA e possivel, sem 'frente verdadeira' plotavel."
+    },
+    {
+      "fichas": [
+        41
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "So para o exemplo ZDT2, o artigo compara, geracao a geracao ao longo de uma execucao, a MMD_fm (a distancia minima entre os conjuntos nao-dominado e dominado no espaco de objetivos, quantidade central do criterio de aceitacao do metamodelo) calculada so com valores de simulacao verdadeiros contra a MMD_fm calculada com a mistura real+Kriging que o proprio K-MOGA usa para decidir o gate, separadamente para f1 e f2 (Fig. 6).",
+      "literal": "According to our experiments, the estimated MMDfm as obtained from the combined Kriging metamodels and simulations is less than or equal to MMDfm from the simulation for most generations.",
+      "localizador": "Sec. 4.1.2, Fig. 6 (p. 031401-6 a 031401-7)",
+      "metricas": [
+        "MMD_fm (minimum of minimum distance) - verdadeira (toda-simulacao) vs. estimada (mistura real+Kriging)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execucao unica do ZDT2, curvas de MMD_f1 e MMD_f2 por geracao (nao agregado sobre as 30 execucoes); leitura visual, sem metrica numerica de erro/gap resumida.",
+      "achado": "A MMD_fm estimada (mistura real+Kriging) e <= a MMD_fm verdadeira (toda-simulacao) na maioria das geracoes, e essa aproximacao melhora nas geracoes mais avancadas de K-MOGA - evidencia de que a quantidade que o proprio criterio de aceitacao usa internamente (Eq. 12/14) e uma boa aproximacao (e, quando erra, erra para o lado conservador: MMD estimada menor ou igual, nao maior, o que tende a tornar o gate mais, nao menos, exigente).",
+      "aplicabilidade": "nao reproduzivel diretamente com as 7 camadas tal como gravadas - exigiria, geracao a geracao, calcular a MMD 'de verdade' usando o valor REAL (simulado) de TODOS os individuos da populacao daquela geracao (inclusive os que o gate teria aceitado via metamodelo) para comparar com a MMD que o algoritmo efetivamente usou (mistura real+Kriging); a camada (1) so grava os pontos EFETIVAMENTE simulados, entao nao permite recompor a MMD 'toda-simulacao' de uma geracao sem uma avaliacao retrospectiva extra fora do desenho da bateria; a camada (6) (filme) poderia se aproximar SE registrasse, por individuo e por geracao, tanto o valor predito quanto (quando disponivel) o valor real."
+    },
+    {
+      "fichas": [
+        33
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "So para o exemplo ZDT2, numa unica geracao (a 10a) de uma execucao, o artigo compara, ponto a ponto para cada um dos individuos da populacao daquela geracao, o 'erro real' (|valor real simulado - valor predito pelo Kriging|) contra o 'erro previsto' (0.5*s_m(x), metade do desvio-padrao do Kriging, a mesma quantidade PE_m usada no criterio da Eq. 11-12), separadamente para f1 e f2 (Fig. 7).",
+      "literal": "As shown in Fig. 7, for most design points (i.e., 25 out of 30 designs) in the tenth generation, the real error is less than the predicted error, which means that sm(x) is a valid estimation of the STD.",
+      "localizador": "Sec. 4.1.3, Fig. 7 (p. 031401-6 a 031401-7)",
+      "metricas": [
+        "erro real |valor real - valor predito|",
+        "erro previsto PE_m = 0.5*s_m(x)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Uma unica geracao (10a) de uma unica execucao, aprox. 30 individuos (tamanho da populacao); leitura visual/contagem simples (25 de 30), sem cobertura numerica formal; 'resultados semelhantes' para restricoes e outras geracoes/problemas sao mencionados mas nao mostrados com numeros.",
+      "achado": "Em 25 dos 30 individuos da 10a geracao, o erro real ficou abaixo do erro previsto (0.5*s_m(x)) - o artigo le isso como validacao de que s_m(x) e uma estimativa valida do desvio-padrao do erro de predicao, sustentando o uso de s_m(x) como o termo de incerteza no criterio de aceitacao (Eq. 12); resultados 'semelhantes' sao reportados para o erro de restricao e outras geracoes/problemas, mas sem numeros.",
+      "aplicabilidade": "(3) (sonda, pontos fixos re-preditos a cada retreino, com f verdadeiro conhecido) e o analogo mais proximo - permitiria uma versao mais rigorosa e agregada-sobre-sementes desta checagem de calibracao do sigma (ficha 33: cobertura de |mu-f| vs sigma), mas tal como o artigo fez - usando os individuos da populacao real de UMA geracao de UMA execucao, nao uma sonda fixa externa - a replica exata exigiria mu/sigma de TODOS os individuos daquela geracao no momento da decisao (inclusive os aceitos pelo gate, nao simulados por desenho), o que nao e o que a (1) grava; a sonda (3) da uma checagem equivalente em espirito, so que sobre pontos fixos, nao sobre a populacao evolutiva do momento."
+    },
+    {
+      "fichas": [
+        45
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Na definicao do criterio de aceitacao para restricoes (Eq. 13), o artigo relata ter testado, alem do multiplicador padrao de 2x o desvio-padrao do Kriging (2*s_j(x), a margem de confianca que decide se uma predicao de factibilidade e aceita sem simulacao), variantes com 1x e 3x s_j(x), verificando o efeito no numero de chamadas de simulacao de K-MOGA.",
+      "literal": "We have observed that by using a different setting, e.g., one or three times instead of two times sj as in Eq. (13), the performance of K-MOGA does not change significantly in terms of the number of simulation calls.",
+      "localizador": "Sec. 3.2 (Predicted Error for Constraint Functions), p. 031401-3 a 031401-4",
+      "metricas": [
+        "numero de chamadas de simulacao"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Resultado so narrativo - nenhuma tabela ou figura dedicada e referenciada para este teste; nenhum numero de chamadas de simulacao e dado para as variantes 1x e 3x, so a afirmacao qualitativa de que a mudanca 'nao e significativa'.",
+      "achado": "O desempenho de K-MOGA (em numero de chamadas de simulacao) nao muda significativamente ao variar o multiplicador de confianca do gate de restricoes entre 1x, 2x (padrao) e 3x o desvio-padrao do Kriging - o artigo trata a escolha exata desse hiperparametro de confianca como pouco critica, ao contrario da escolha de USAR ou nao a incerteza (que e o ponto central do metodo).",
+      "aplicabilidade": "nao reproduzivel com os dados ja gravados da bateria - exige rodar variantes do proprio K-MOGA com o multiplicador de confianca do gate de restricoes (1x, 2x congelado, 3x sigma_j) diferente do congelado numa unica configuracao por algoritmo; e um estudo de sensibilidade ao parametro que define o uso da incerteza (papel analogo ao delta do gate de confianca dos algoritmos do roster), nao coberto pelos dados de uma configuracao fixa."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "Duas verificacoes pontuais, ambas restritas ao exemplo ZDT2 e nao generalizadas com numeros para os demais 6 problemas: (1) Fig. 6, geracao a geracao, compara MMD_fm calculada so com valores de simulacao (verdade) contra a MMD_fm calculada com a mistura de valores reais e preditos pelo Kriging que o proprio K-MOGA usa internamente para decidir o gate; (2) Fig. 7, na 10a geracao de uma execucao, compara o erro real |valor real - valor predito| contra o 'erro previsto' (0.5*s_m(x), metade do desvio-padrao do Kriging) para cada um dos individuos de projeto daquela geracao, em f1 e f2.",
+    "literal": "As shown in Fig. 7, for most design points (i.e., 25 out of 30 designs) in the tenth generation, the real error is less than the predicted error, which means that sm(x) is a valid estimation of the STD.",
+    "localizador": "Sec. 4.1.2-4.1.3, Figs. 6-7 (p. 031401-6 a 031401-7)"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Custo medido exclusivamente como numero de chamadas de simulacao (avaliacoes reais de objetivo/restricao) ate a convergencia, nao como tempo de CPU/parede; sem decomposicao de tempo de ajuste do Kriging separado da busca; sem complexidade Big-O explicita para o proprio K-MOGA (o artigo so alerta, na revisao de fundamentos da Secao 2.2, que a inversao de matrizes do Kriging 'pode aumentar o custo computacional quando a dimensao do problema e alta', citando a revisao de Jin [16], sem quantificar para os proprios experimentos).",
+    "literal": "the Kriging metamodeling needs to perform matrix inversions for predicting the response, which can increase the computational expense when the dimension of the problem is high [16].",
+    "localizador": "Sec. 2.2 (p. 031401-2, caveat geral) e Table 3 / Sec. 4.3 (p. 031401-9, resultado principal de custo por chamadas de simulacao)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Os proprios autores reconhecem que o criterio de aceitacao do metamodelo (Eq. 12-14, ligando erro previsto do Kriging a MMD) foi derivado a partir de um cenario de PIOR CASO, sendo portanto conservador - o que sugere que K-MOGA provavelmente usa mais chamadas de simulacao do que estritamente necessario, e que um criterio menos conservador poderia economizar ainda mais avaliacoes.",
+      "literal": "it should be noticed that the relation between Kriging's predicted error and MMD for the objective functions, and also for the constraints, is devised based on a worst case scenario and thus the proposed criterion can be considered to be conservative.",
+      "localizador": "Sec. 5 (Summary), p. 031401-9 a 031401-10"
+    },
+    {
+      "descricao": "Caveat metodologico explicito: o conjunto de pontos usado para treinar o Kriging nao e escolhido por nenhum criterio de amostragem proprio para metamodelagem - e simplesmente o subconjunto de individuos que os operadores geneticos (crossover/mutacao) produziram e que falharam o gate - o que pode afetar a acuracia do metamodelo; os autores apontam uma estrategia de amostragem melhorada como trabalho futuro.",
+      "literal": "the sample set used in Kriging metamodel can affect the accuracy of the metamodel (currently, they are generated by GA operations). By devising a less conservative criterion and an improved sampling strategy for Kriging, it should be possible to further improve the efficiency of K-MOGA in terms of the number of simulation calls.",
+      "localizador": "Sec. 5 (Summary), p. 031401-9 a 031401-10"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "O artigo testa variar o multiplicador de confianca do gate de restricoes (1x, 2x padrao, 3x o desvio-padrao do Kriging, Eq. 13) e relata que o desempenho de K-MOGA em numero de chamadas de simulacao nao muda significativamente - o valor exato do multiplicador de confianca importa pouco, desde que ALGUMA margem de confianca seja usada.",
+      "literal": "We have observed that by using a different setting, e.g., one or three times instead of two times sj as in Eq. (13), the performance of K-MOGA does not change significantly in terms of the number of simulation calls.",
+      "localizador": "Sec. 3.2, p. 031401-3 a 031401-4"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "frente de Pareto desconectada (ZDT3, TEST4)",
+      "afirmacao": "Mesmo nos dois problemas com frente de Pareto desconexa, K-MOGA obtem reducoes de chamadas de simulacao (50% em ZDT3, 60% em TEST4) na mesma faixa dos demais problemas com frente conexa - o artigo conclui que o criterio e aplicavel a frentes convexas, nao-convexas e desconexas sem distincao especial.",
+      "literal": "For instance, the Pareto frontiers for ZDT3 and TEST4 are disconnected. [...] Based on the results in Table 2, K-MOGA is expected to be applicable to problems with convex, nonconvex, and even those with disconnected Pareto frontier.",
+      "localizador": "Sec. 4.3, p. 031401-7 e p. 031401-9"
+    },
+    {
+      "caracteristica": "variaveis de projeto inteiras (GearTrain)",
+      "afirmacao": "O unico exemplo com variaveis de projeto inteiras (GearTrain, 4 variaveis) e tratado sem nenhuma adaptacao especial mencionada do criterio baseado em Kriging (que assume implicitamente um espaco continuo), obtendo reducao de 50% nas chamadas de simulacao - na mesma faixa dos problemas continuos - sem discussao explicita de qualquer efeito da integralidade sobre a qualidade do metamodelo.",
+      "literal": "The GearTrain test example has integer design variables.",
+      "localizador": "Sec. 4.3, p. 031401-7"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "O mecanismo central do artigo (criterio da Eq. 12-14: aceitar a predicao do Kriging so se o erro previsto PE_m=0.5*s_m(x) para objetivos, e 2*s_j(x) para restricoes, for pequeno o bastante frente a MMD/margem de factibilidade; senao, simular de verdade) e um exemplo direto e limpo de 'gestao de confianca' (A3): o sigma do GP nao entra numa funcao de aquisicao/selecao - ele decide se CONFIA na predicao o bastante para pular a avaliacao real, exatamente a classe da taxonomia atribuida a este artigo. O artigo e de 2008 e antecede as convencoes da dissertacao: nao usa IGD+/HV nem testes de significancia; a metrica central e o NUMERO DE AVALIACOES REAIS (chamadas de simulacao) necessario para CONVERGIR sob um criterio de parada adaptativo (nao um orcamento fixo), o que nao tem equivalente direto entre as 64 fichas (todas assumem orcamento fixo e compartilhado 31D-1) - dai a ficha nova sugerida para a Tabela 3/Fig. 4. Inconsistencia textual nao resolvida: a Secao 4 diz 'the same initial population size of 30 individuals is used for all experiments', mas a Tabela 3 lista Pop-size=20 para TEST4 e Pop-size=50 para OSY - mantive os numeros da Tabela 3 (mais especificos e verificaveis) como autoritativos na descricao do orcamento. Artefato de extracao: a camada de texto bruta (ANEXO) intercala trechos fora da ordem de leitura visual (comum em PDFs de 2 colunas): a Tabela 3 e as Secoes 5/Acknowledgment/Referencias aparecem fora de ordem na camada bruta, mas a extracao estruturada (pymupdf4llm, secao principal) preserva a ordem logica correta (4.1 -> 4.1.1 -> 4.1.2 -> 4.1.3 -> 4.2 -> 4.3 -> 5), que foi a usada para esta mineracao; a Tabela 2 (formulacoes de ZDT1/ZDT3/GearTrain/OSY/TEST4) e uma tabela-imagem sem texto extraido na camada limpa, so parcialmente recuperavel via OCR (Apple Vision) no apendice de imagens do arquivo-fonte, com simbolos claramente corrompidos - por isso a descricao de benchmarks neste JSON se apoia nas afirmacoes textuais claras do corpo do artigo em vez de tentar transcrever as formulas corrompidas da Tabela 2. Leitura completa: 10 paginas (031401-1 a 031401-10), Secoes 1-5 + Acknowledgment + Referencias [1]-[31], sem apendices formais no proprio artigo (so o ANEXO da pipeline de extracao); nenhum conteudo aparenta ter sido perdido entre a camada de texto limpa e a camada bruta+OCR, checado por comparacao cruzada. roster_bloco = null por instrucao do pedido (artigo fora do roster experimental)."
+}

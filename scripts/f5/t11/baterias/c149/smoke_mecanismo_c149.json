@@ -1,0 +1,15 @@
+{
+ "A01_len1": [
+  true,
+  "len(①)=61 esperado=61"
+ ],
+ "A01_feidx": [
+  true,
+  "fe_index denso 0-based"
+ ],
+ "A01_parada": [
+  true,
+  "orcamento fe=61"
+ ],
+ "A02_init": [
+  

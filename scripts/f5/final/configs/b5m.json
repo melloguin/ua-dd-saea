@@ -1,0 +1,143 @@
+{
+ "config": "b5m (Prob-MOEA/D, mode 72, offline) — RODADA FINAL sobre corpus CONGELADO. Novo desde F30: +30 DDMOP7 (campanha 7be66e65522c_2026-08-15 [s0] + _2026-08-19 [29], repo 7be66e65522c, 100% matlab-vm5). SEM RE21/EST40 — lacuna ACEITA pelo autor. Sinteticas e sweeps intocadas (0 mtime pos-14/08) — herdam F30/T11 com spot-check confirmado.",
+ "celulas_final": "729 celulas VALIDAS no censo final (censo==disco bidirecional exato: 0 divergencias) = 679 off sinteticas (25 problemas, sementes 27-28/problema; herdadas F30) + 30 off DDMOP7 (30/30 sementes {0-28,42} — unica familia b5m com censo COMPLETO de sementes) + 20 sweep s42 (5 problemas x 4 sweeps, mtime jul/23-27, herdadas F5/T11). Estados O-21: 729 rodape-ok+manifesto (100%), 0 ⚪ teto_wall, 0 conflitos manifesto-vs-rodape. Fora do censo: 7 abortos s25 (2 linhas de jsonl, SEM rodape, SEM manifesto, SEM parquet — invalidas por O-21, ja excluidas). Entrega sintetica 679/750 = 90,5% agora DEFINITIVA (autor congelou: 'o que nao executou, nao vou executar mais').",
+ "novas_desde_f30": "30 celulas DDMOP7 (mtimes: s0 15/08 16:37; s1-28+42 19/08 08:42-10:46). ZERO sinteticas alteradas (max mtime sintetico 13/08 19:51 < inicio T15), ZERO sweeps alteradas. Bateria completa nas 30 (nao amostra — cobre as 30 sementes): ① 526 linhas fase=init fe_index denso 30/30; ② vazia por construcao 30/30 (real_solution_id nao-nulo = 0 em 1.201.500 linhas de ③); ③ 40.050 linhas = 50x801 densas 30/30, fe_treino_max=525 unico, 0 NaN/negativo em sigma, 0 NaN em mu, 0 violacoes de bounds [-1,1] em 40.050x17x30; ④ 1 linha, |fit+busca-ger|<1e-2 30/30; ⑤ completo (params 11 chaves incl. zona_morta.tau=0,5 e nd_final; schema_version=2; env pins identicos aos da campanha main: py3.7.12/sklearn0.21.3/numpy1.21.6) 30/30; ⑥ 800 p_wrong_stats+n_substituicoes+flag_vetores_degenerados por celula, n_nan=0 em 24.000 geracoes, Σn_chamadas=40.000 exato 30/30 (A19: pop=50 → 40.000); orcamento 31D-1: maxfe=fe_final=526=31x17-1, motivo_parada=orcamento, tempo_aval_real_s=null, zero eventos guard 30/30 (offline puro A1 conforme). Rodape do runner integro 30/30 (29 com footer duplo runner+despachante; s0 so runner — padrao benigno ja classificado na T11). RESPOSTA AO FOCO 1 — a ⑦ NAO existe em NENHUMA das 30 (0/30 __final.parquet): SANCIONADO D102.9/D102.18 (Processo B), declarado no rodape (n_final=null + final_pos_hoc) E no ⑤ (params.nd_final) 30/30; e estado de CORPUS (0/630 celulas DDMOP7 dos 21 configs tem ⑦) — scripts/final_eval.py NUNCA rodou no canonico. RESPOSTA AO FOCO 2 — a A8 NAO aparece no DDMOP7: 0/30 celulas com colapso total OU parcial, max n_norma_zero=0 em 24.030 geracoes, 0 geracoes com pmax==0,0; regime-moeda AUSENTE (fracao max de geracoes com med∈[0,45;0,55] = 8,7% vs limiar 90%); DDMOP7 se comporta como problema SADIO (d_tipica=1,347, f∈[0,1] — escala compativel com o GP), coerente com a doutrina F30 de que a degeneracao e determinismo do problema.",
+ "mecanismo_nos_novos": "QUERY-JOIA A10 (toda substituicao cabe numa UNICA vizinhanca de 20) nas 30 celulas novas, TODAS as 800 transicoes de cada: 275.150/275.153 grupos contidos = 99,9989% — o batch mais limpo das 4 auditorias. 27/30 celulas fecham 100,0000%; 3 excecoes no total (s2, s11, s19 — 1 grupo cada, taxas 99,9908/99,9920/99,9898%), TODAS cobertas pela uniao de exatamente 2 vizinhancas e NENHUMA com |grupo|>20 — assinatura de aliasing fp32 (D53), nao violacao. Implementacao reconciliada com a canonica da casa (f5/baterias/b5m/b5m_06_vizinhanca.py — lattice normalizado + argsort quicksort): reproduzi EXATOS os numeros da F30 nas celulas-ancora (ZDT1/s0 7.137/7.137, WFG9/s4 7.172/7.172, BBOB_F1/s0 11.128/11.128) e as 3 excecoes DDMOP7 batem 1:1 entre minha reimplementacao independente e a canonica. Spot-check sintetico adicional (herdam F30): MMF1/s12 98,22% com tam_max=25>20 e DTLZ2/s10 99,98% — o residuo segue concentrado nas celulas degeneradas, como a F30 mediu. Identidades de apoio nos novos: rampa θ com Spearman(P_wrong med, geracao) NEGATIVO em 30/30 (−0,34 a −0,95; mediana da ultima geracao ~0,005 vs 0,497 na ger. 2); A16 DIRETA tambem no problema real: 1.635/1.635 transicoes do flag em geracoes ≡2 (mod 10); A12: 2 casos pmax<=0,5, 0 violacoes; f_best re-derivado da ③ fecha 801/801 em 30/30; n_front1 fecha 24.020/24.030 (99,96%) — os 10 desvios (5 celulas) sao Δ=1 em geracoes com mu duplicado fp32 (3-6 duplicatas), familia D53. Curiosidade mecanica: s1 ger.584 tem n_sub=1 com 0 slots trocados = offspring clone do incumbente (aceito e invisivel na ③) — explica a unica quebra da identidade n_sub==0 ⟺ pop imutavel (29/30).",
+ "reais": "b5m so tem DDMOP7 (sem RE21/EST40 — aceito). Comportamento nos 30/30: (1) REGUA — checa_regua(①,'DDMOP7') PASS 30/30 com ZERO avisos; f_min global [0,1765; 0,1406] ≥ ideal [0;0] (REAL-2.15 ERRATA 2); f_max [1,0; 0,855] (pontos alem do nadir de front 468/690 sao esperados no DoE). (2) MECANISMO DA CAIXA-PRETA CONFERE: f0 na grade exata k/17 em 30/30 e f1 na grade n/690 em 30/30 (15.780 avaliacoes) — o .p se comportou como o problema de CONTAGEM declarado. (3) BINDING: ① X == bloco da CSV congelada (sha256 03056b6e... CONFERIDO) bit-a-bit no dtype do export (fp32) em 30/30; semente 0 (unico dataset local) fecha fp64 bit-a-bit ①↔ds_parquet↔manifesto (dX=dF=0,0). (4) ZONA MORTA D102.17 medida: DoE fica CRU (24,3-26,1% das coords da ① em |x|<0,5 nao-zeradas, 30/30) e a busca vive NA zona morta (~87-94% das coords das propostas) — o algoritmo persegue esparsidade via f1=k/17, e a codificacao zera ~93% das coords da ultima geracao. (5) |ND| POR x_EFETIVO (§T15.13, dedupado como o contrato manda): candidatos ⑦ (ND da ultima ger. pela predicao, D102.18) = 2-40 slots/celula (sempre << teto 600 do final_eval); |ND| bruto Σ354 → efetivo Σ245 (−31%; razao mediana 0,845; pior celula 3x: 9→3); na pop inteira 46→34 medianos — publicar o bruto superestimaria diversidade ~25-70%. (6) A8/moeda: ausentes (0/30) — ver novas_desde_f30. (7) CUSTO: wall mediano 9.032 s (2,51 h), max 9.479 s, 74,8 h-core, 100% matlab-vm5 pos-degrau de 14/08 (internamente homogeneo; nada novo para o eixo N4, que segue vazio para b5m). NAO MEDIDO com motivo: ablacao D77/sigma(⑦) e qualquer metrica de endpoint no DDMOP7 — sem sonda (D102.10) e sem ⑦ (pos-hoc pendente) nao existe regua; computavel apos final_eval.",
+ "aspectos_mudados": [
+  {
+   "id": "A6-sonda",
+   "o_que": "Sonda offline no problema real",
+   "antes": "1 bloco x 20.000 pontos, geracao NULL (686/686 na F30)",
+   "agora": "DDMOP7 SEM sonda (D102.10): header declara {status:'sem_sonda_por_problema', n_blocos:0} 30/30, ③ tem exatamente 40.050 linhas sem bloco de sonda; header trocou sonda_x_hash/sonda_S (22 chaves) pelo dict sonda (21 chaves) — sancionado, visto no diff do repo"
+  },
+  {
+   "id": "A21-⑦",
+   "o_que": "Endpoint ⑦",
+   "antes": "|⑦|==pop inline, ND≡nd_pos_real bit-a-bit (F30 63/63)",
+   "agora": "DDMOP7 ⑦ POS-HOC (D102.9/D102.18): 0/30 no disco, declarado em rodape (n_final=null+final_pos_hoc) e ⑤ (params.nd_final) 30/30; candidatos = ND da ultima geracao PELA PREDICAO (medido: 2-40 slots, teto 600 nunca ameacado); estado de corpus (0/630 nos 21 configs) — final_eval pendente"
+  },
+  {
+   "id": "A8",
+   "o_que": "Congelamento/regime-moeda",
+   "antes": "15/679 colapso total, 73 parcial, 88 regime-moeda (13%) nas sinteticas",
+   "agora": "AUSENTE no DDMOP7: 0/30 colapso (max n_norma_zero=0), 0 ger. pmax==0, moeda max 8,7% de geracoes — confirma que a degeneracao e do PROBLEMA (escala), nao do algoritmo; instrumentacao viva e serie por geracao 30/30 (A25 segue resolvido)"
+  },
+  {
+   "id": "A24-proveniencia",
+   "o_que": "Campanha/repo",
+   "antes": "7f4f0e429a46_M8, repo 63db46b1, 6 hosts",
+   "agora": "campanhas 7be66e65522c_2026-08-15 (s0, sem footer do despachante — padrao benigno T11) + _2026-08-19 (29, footer duplo), repo unico 7be66e65522c; diff b5_prob.py 63db46b1→7be66e65522c = EXATAMENTE as 3 emendas T15 (D102.10 sonda, D102.19 espaco de entrada, D102.9 ⑦ pos-hoc) — mecanismo de selecao intocado no codigo E no dado"
+  },
+  {
+   "id": "NOVO-zona-morta",
+   "o_que": "Codificacao D102.17",
+   "antes": "nao existia",
+   "agora": "params.zona_morta.tau=0,5 injetado 30/30; ① grava x_PROPOSTO (DoE cru confirmado: ~25% coords vivas em |x|<0,5); regra §T15.13 e LOAD-BEARING no b5m: |ND| 354→245 (−31%), ate 3x por celula"
+  },
+  {
+   "id": "NOVO-espaco-GP",
+   "o_que": "Espaco de entrada do GP (D102.19)",
+   "antes": "cru implicito",
+   "agora": "decision b5_espaco_entrada_gp explicita 30/30: d_tipica=1,347 < teto ls=100 ⇒ modo 'cru' (paridade com o piso); espaco_modelo='cru', transf_tipo=null em 1.201.500 linhas; sigma_dict ganhou a chave espaco_entrada_gp (20 vs 19)"
+  },
+  {
+   "id": "A30",
+   "o_que": "Upload ao bucket",
+   "antes": "654/679 upload_failed na campanha main",
+   "agora": "PERSISTE na campanha T15: 29/30 com o MESMO AttributeError('Request' object has no attribute 'session'); s0 null. Espelho local segue copia unica"
+  },
+  {
+   "id": "A29",
+   "o_que": "Lacuna censitaria 679/750",
+   "antes": "escalada como decisao pendente (F30)",
+   "agora": "RESOLVIDA POR CONGELAMENTO do autor ('nao vou executar mais'): b5m roda oficialmente com 27-28 sementes/problema sintetico; deixa de ser pendencia e vira caveat obrigatorio de tabela (n=27-28); DDMOP7, em contraste, tem 30/30"
+  }
+ ],
+ "celulas_invalidas": [
+  {
+   "celula": "off/b5m/BBOB_F49/25",
+   "motivo": "aborto 13/08: jsonl com 2 linhas (header+sonda), SEM rodape, SEM manifesto, SEM parquet — invalida por O-21 (nao e ⚪: ⚪ exige rodape ok)",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "off/b5m/BBOB_F5/25",
+   "motivo": "idem",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "off/b5m/BBOB_F55/25",
+   "motivo": "idem",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "off/b5m/DTLZ1/25",
+   "motivo": "idem",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "off/b5m/DTLZ2/25",
+   "motivo": "idem",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "off/b5m/DTLZ3/25",
+   "motivo": "idem",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "off/b5m/DTLZ4/25",
+   "motivo": "idem — as 7 ja estao FORA do censo_final; excluir e o estado atual, nada a fazer",
+   "recuperavel_sem_rerun": "NAO_rerun"
+  },
+  {
+   "celula": "off/b5m/DDMOP7/* (30 celulas — camada ⑦ apenas; as celulas SAO validas)",
+   "motivo": "⑦ ausente 30/30 por desenho sancionado (D102.9 Processo B): final_eval.py nunca foi executado no corpus DDMOP7 (0/630 nos 21 configs). Sem a ⑦ nao ha HV de endpoint nem ablacao de acuracia no problema real",
+   "recuperavel_sem_rerun": "SIM_poshoc"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "A26",
+   "descricao": "PESOS de decomposicao no HEADER do ⑥ seguem ausentes — QUARTA auditoria consecutiva (F5, T11, F30, FINAL): os 30 headers novos tem 21 chaves e nenhuma e os vetores/pesos; CONTRATO_DE_DADOS.md linha b5 segue exigindo, contrato_61.json segue nao pedindo, G-7 segue verde por consultar o executavel",
+   "gravidade": "baixa em analitica (reconstrui o lattice e ele fecha 99,9989% nas novas), ALTA em governanca — o gate-que-nunca-reprova esta agora documentado em 4 exames",
+   "acao": "com o corpus congelado, so resta a via documental: registrar a retirada como decisao explicita no §6.1 (implementar ja nao alcanca as 716 celulas gravadas)",
+   "arquivo_linha": "CONTRATO_DE_DADOS.md (linha b5) · claude_code_context/artifacts/contrato_61.json"
+  },
+  {
+   "id": "A28",
+   "descricao": "HERDADO da F30, segue sem resposta do autor: LHS inicial da busca e funcao de (semente,D). Medicao nova desta rodada: DDMOP7 tem D=17, dimensao que NAO existe no grid sintetico ({2,7,10,12,20,22,30}) ⇒ o DDMOP7 NAO e afetado pelo acoplamento — nenhum outro problema compartilha sua populacao inicial",
+   "gravidade": "media (inalterada) para as analises problema×semente sinteticas; NULA para o DDMOP7",
+   "acao": "segue escalado (D81): declarar a propriedade e parear por semente nas analises, como a D77 ja faz",
+   "arquivo_linha": "B18.9 / _patch_lhs_seeding"
+  },
+  {
+   "id": "A30",
+   "descricao": "Upload ao bucket falhou DE NOVO na campanha T15: 29/30 celulas DDMOP7 com o mesmo AttributeError de biblioteca — o bug de infra sobreviveu a troca de campanha e de repo_hash",
+   "gravidade": "baixa — zero perda analitica (8 arquivos/celula completos no espelho local), mas o espelho segue copia UNICA de 716 celulas do config",
+   "acao": "re-upload a partir do espelho local (nao exige re-run); consertar o cliente antes de qualquer campanha futura",
+   "arquivo_linha": "manifesto ⑤, upload_status.erro"
+  },
+  {
+   "id": "PEND-⑦",
+   "descricao": "NAO e classe 3 estrita (sancionado D102.9/D102.18 = classe 2) — listado pela criticidade: a ⑦ pos-hoc do DDMOP7 esta declarada em 30/30 rodapes mas final_eval.py nunca rodou em nenhuma celula do corpus (0/630). E o ULTIMO elo pendente do config",
+   "gravidade": "ALTA operacional: bloqueia o UNICO endpoint permitido ao DDMOP7 (HV, D102.4) e a Fase 2 sobre recomendacoes; nula para a fidelidade das celulas em si",
+   "acao": "rodar scripts/final_eval.py numa VM com matlab.engine (Processo A antes, PROVISIONAR-VM-DO-ZERO.md); para b5m os candidatos sao 2-40 pontos/celula — custo trivial, teto 600 nunca ameacado",
+   "arquivo_linha": "scripts/final_eval.py · rodape final_pos_hoc · params.nd_final"
+  }
+ ],
+ "score_final": 9,
+ "trajetoria_scores": "F5 8,0 → T11 8,5 → F30 9,0 → FINAL 9,0. Causas nomeadas: 8,0→8,5 = o unico classe-3 da F5 (p_wrong_stats/A25 morto) foi implementado e reconciliado contra a ③; 8,5→9,0 = os classe-3 da T11 fechados em dado de producao (flag vivo 679/679, cadeia A8 provada nas duas pontas, tempo_aval_real_s null) + afirmacoes do artigo testadas com 30 sementes e sobrevivendo (sigma p=2e-59, RMSE p=5e-42); 9,0→9,0 (SEGURA, nao sobe) = a favor: o mecanismo estendeu-se a uma classe NOVA de problema (real, caixa-preta MATLAB, D=17 inedito) com o batch mais limpo das 4 auditorias (99,9989% na joia, 0 degeneracao, regua-guard 0 furos, binding bit-exato a CSV congelada) e censo de sementes COMPLETO 30/30; contra (o que impede 9,5): (i) a camada ⑦ do DDMOP7 esta pendente em 30/30 — sancionada, mas o endpoint do problema real do config NAO EXISTE ate o autor rodar final_eval; (ii) A26 chega a QUARTA auditoria sem errata; (iii) A30 REINCIDIU na campanha nova (29/30). Nenhum movimento negativo: zero bugs de algoritmo em 4 exames consecutivos.",
+ "veredito": "RECOMENDACAO AO AUTOR (D97 — o veredito e seu): ACEITAR o b5m como fiel na RODADA FINAL, score 9,0/10, com 1 acao pendente e 2 caveats obrigatorios. AS 30 CELULAS NOVAS DE DDMOP7 SAO VALIDAS E O MECANISMO E O MESMO: query-joia 99,9989% (27/30 a 100%, 3 excecoes-aliasing cobertas por 2 vizinhancas), orcamento 31D-1 exato, offline puro, rampa e adaptacao com assinaturas exatas (1.635/1.635 transicoes em ≡2 mod 10), binding bit-exato a fonte congelada, regua [0;0] sem um unico furo em 15.780 avaliacoes, e o .p respondendo NA GRADE k/17 e n/690 em 100% — a caixa-preta e o problema declarado. A A8 NAO aparece no DDMOP7 (0/30, nem parcial, nem moeda), fechando a doutrina F30: a degeneracao e determinismo da ESCALA do problema, e o DDMOP7 esta na escala certa. ACAO PENDENTE (a unica): rodar final_eval nas VMs — sem a ⑦ pos-hoc o endpoint HV do problema real nao computa; os candidatos do b5m sao 2-40 pontos/celula, custo trivial, e a operacao NAO e re-run (SIM_poshoc). CAVEATS de leitura: (1) sinteticos com n=27-28 sementes (lacuna congelada pelo autor; DTLZ3/DTLZ1 seguem quase-vazios como na F30); (2) TODA contagem de |ND|/diversidade no DDMOP7 sobre x_EFETIVO (§T15.13) — medido: o bruto superestima ate 3x. Sem 'artigo melhor' (Botao 4): interseccao com o paper segue vazia; e o DDMOP7 nem regua de ablacao tem ate a ⑦ existir.",
+ "decisoes_ao_autor": [
+  "⑦ DO DDMOP7 — DECIDIR QUANDO RODAR O final_eval (SIM_poshoc, nao e re-run): 0/630 celulas do corpus DDMOP7 tem __final.parquet; para o b5m sao 30 execucoes de 2-40 pontos cada (teto 600 nunca ameacado — o RuntimeError do final_eval:196 nao dispara). Exige VM com matlab.engine (Processo A; PROVISIONAR-VM-DO-ZERO.md). Sem isso: sem HV de endpoint, sem Fase 2 sobre recomendacoes, sem ablacao de acuracia no unico problema real do config.",
+  "A26 — 4a AUDITORIA: com o corpus congelado, implementar o campo ja nao alcanca as 716 celulas gravadas; a unica saida coerente e registrar a RETIRADA como decisao no §6.1 do CONTRATO_DE_DADOS (hoje contrato escrito e executavel discordam e o G-7 da verde).",
+  "A28 — segue ESCALADO da F30, sem resposta. Medicao nova a registrar: D=17 do DDMOP7 e dimensao unica no corpus ⇒ o problema real esta FORA do acoplamento LHS; o caveat vale so para as analises problema×semente sinteticas.",
+  "A29 — DAR POR RESPONDIDA: a declaracao de congelamento responde a pergunta da F30. Registrar nas tabelas n=27-28 por problema sintetico (e n=30 no DDMOP7).",
+  "A30 — REINCIDIU na campanha T15 (29/30 DDMOP7, mesmo AttributeError). Re-upload do espelho local resolve sem re-run; consertar o cliente se houver qualquer campanha futura.",
+  "ARMADILHA DE LEITURA no 3 (nova, familia D53): recomputar doe_hash lendo a CSV congelada com pandas NAO reproduz o hash — o parser difere do gerador em 1 ULP fp64 (2,2e-16) em 29% das coords. A cadeia canonica CSV→gerador→parquet fecha bit-a-bit (verificado na s0: hash do parquet == manifesto == header). Quem auditar ① contra a CSV deve comparar no dtype do export (fp32: 30/30 = 0,0) ou contra o parquet do dataset, nunca por hash recomputado do texto.",
+  "REGISTRO DE LEITURA menor: n_front1 do ⑥ fecha 24.020/24.030 contra a ③; os 10 desvios (5 celulas) sao Δ=1 em geracoes com mu DUPLICADO fp32 (3-6 duplicatas) — mesmo fenomeno de empate que o write_final documenta. E s1/ger.584 tem n_sub=1 com pop imutavel na ③ = offspring clone do incumbente (aceitacao invisivel no export) — ambos benignos, nenhum re-run.",
+  "PROVENIENCIA das 30: s0 veio do lote de 15/08 (sem footer do despachante — padrao benigno ja visto na T11) e as 29 do lote de 19/08; repo_hash UNICO 7be66e65522c nas 30, e o diff contra o m8-freeze em b5_prob.py e exatamente as 3 emendas T15 sancionadas (D102.10/D102.19/D102.9) — mecanismo intocado tambem no codigo. Tudo em vm5 pos-degrau: o eixo de deriva cross-maquina (N4) segue vazio para b5m, agora por construcao.",
+  "CUSTO para arquivamento: DDMOP7 30 celulas = 74,8 h-core, wall mediano 2,51 h (max 2,63 h) — mais barato que a mediana sintetica do config (2,54 h) apesar de D=17, porque nao ha sonda."
+ ]
+}

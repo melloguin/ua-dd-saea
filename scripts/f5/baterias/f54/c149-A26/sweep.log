@@ -1,0 +1,12 @@
+surrogate files: 666
+  0/666 0s
+  50/666 1s
+  200/666 1s
+  250/666 2s
+  300/666 2s
+  400/666 3s
+  450/666 3s
+  500/666 4s
+Counter({'OK': 360, 'no_flagged': 200, 'empty_L3': 105, 'MISMATCH': 1})
+MISMATCHES:
+   c149 q10_ZDT4 42 0.0 9.999449729919434 2000

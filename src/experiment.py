@@ -1,56 +1,54 @@
-"""
-Experiment harness for surrogate-assisted MOEA benchmarking.
+"""Adapter Python do harness (arquitetura A2, §2 / §16.5.3).
 
-Single entry point: ``experiment_sa_moea(algorithm, problem, seed)`` runs ONE
-algorithm on ONE problem with ONE seed and returns a long-format DataFrame
-with the full population recorded at every generation/iteration:
+Traduz `run(algoritmo, problema_id, semente)` numa chamada à *main OFICIAL* de
+cada repositório em `algorithms/` — **nada é reimplementado** (fidelidade §20).
+Este arquivo é o **esqueleto** montado na Fase 0 (cartão F0-01-harness): o
+catálogo de problemas (fonte única A2) e o contrato do adapter existem; o
+**despacho por algoritmo é preenchido nas rodadas** R1 (MATLAB via ponte),
+R2 (BoTorch) e R3 (standalone). [R2-00-harness] O despacho é um registro
+**LAZY** (`_DISPATCH_LOADERS`): `ALGORITHM_DISPATCH` fica vazio no import (o
+módulo segue leve) e `run()` resolve/importa o runner da rodada sob demanda;
+algoritmo sem loader levanta `NotImplementedError`.
 
-    columns: algorithm, problem, seed, generation, individual_id,
-             x_1..x_n, f1..fm
+> **Descomissionado (§16.5).** A POC antiga (7 algoritmos reimplementados em
+> `src/*_runner.py` + `NoisyProblem`/Kriging + toggle de ruído) **não entra no
+> experimento** — o único código executado é o dos 16 repos oficiais. Este
+> módulo foi **reescrito** para chamar as mains oficiais; o padrão de despacho,
+> o logging por geração e a re-avaliação limpa da fitness são reaproveitados
+> nas rodadas, não aqui.
 
-The `f*` columns are always re-evaluated against the **clean** problem,
-guaranteeing comparability across algorithms regardless of the surrogate or
-noise source seen during optimization.
+Contrato do adapter por (algoritmo, problema) — preenchido nas rodadas (§16.5.3):
+  1. Instancia o problema de `src/problems.py` pelo `problema_id` (A2/§2).
+  2. Aplica bounds/sinal (§5.5): des-normaliza [0,1]↔nativo p/ BoTorch; nativo
+     p/ PlatEMO/EA; devolve −f aos motores que maximizam. Métrica sempre sobre
+     o `f` verdadeiro de minimização (CP-bounds/CP-sinal).
+  3. Semeia (§5.3): `Generator` próprio p/ o DoE + salvar/restaurar o RNG
+     global em volta de `pymoo.minimize`; offset `+1000·semente` p/ e81/c149
+     (D22); `SeedSequence` p/ as sementes que o harness cria (D62/D91).
+  4. Injeta `maxFE = 31D−1` e o DoE `11D−1` carregado do artefato (D87/D88),
+     com hard-stop exato no wrapper de FE (D21/D89).
+  5. Chama a main oficial, coleta a trajetória (② população real + ③ surrogate)
+     e grava o export §17 (`src/manifest.py`, `src/audit_log.py`, F0-03).
+  6. `try/except` + 1 retry (D23) → status ∈ {ok, retried_ok, failed}.
 
-Used by:
-    - Notebook ``2. optimization.ipynb`` (sequential loop, seed=42)
-    - Script ``experiments.py`` (parallel via joblib over algo×problem×seed)
+Módulo **leve por design**: o import de `src.problems` (que puxa pymoo/numpy) é
+**lazy** — importar `src.experiment` funciona em qualquer interpretador, o que
+mantém o despachante e o runner de aceitação rodando no `python3` base.
 """
 
 from __future__ import annotations
 
-import os
-import warnings
-import pickle
-from pathlib import Path
-
-import numpy as np
-import pandas as pd
-from scipy.stats import qmc
-from sklearn.exceptions import ConvergenceWarning
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import Matern, ConstantKernel
-
-from src import problems as _problems_mod
-from src.processing import NoisyProblem
-from src.nsgaII_runner import run_my_nsga2
-from src.k_rvea_runner import run_k_rvea
-from src.dr_nsgaII_runner import run_dr_nsga2
-from src.prob_moead_runner import run_prob_moead
-from src.parego_runner import run_parego
-from src.kta2_runner import run_kta2
-from src.k_rvea_opt_runner import run_k_rvea_opt
-
-
 # ═══════════════════════════════════════════════════════════════════════════
-#  Problem catalog (short name → class name in src.problems)
+#  Catálogo de problemas — fonte ÚNICA (A2/§2/§4). 28 classes concretas
+#  (25 sintéticos + 3 de dados reais, D101).
+#  MMF16_L3 (d=3) foi REMOVIDO (Anexo D/REF-1); mantém-se só MMF16_20.
+#  short name (usado no grid/CLI) → nome da classe em src.problems.
 # ═══════════════════════════════════════════════════════════════════════════
 
 PROBLEM_CLASSES: dict[str, str] = {
     'MMF1':     'MMF1',
     'MMF4':     'MMF4',
     'MMF11_L':  'MMF11_L',
-    'MMF16_L3': 'MMF16_L3',
     'MMF16_20': 'MMF16_20',
     'ZDT1':     'ZDT1',
     'ZDT3':     'ZDT3',
@@ -66,479 +64,246 @@ PROBLEM_CLASSES: dict[str, str] = {
     'WFG4':     'WFG4',
     'WFG5':     'WFG5',
     'WFG9':     'WFG9',
-    'BBOB1':    'BBOB_F1_Sphere_Sphere',
-    'BBOB5':    'BBOB_F5_Sphere_SharpRidge',
-    'BBOB17':   'BBOB_F17_EllipsoidSeparable_SchafferF7',
-    'BBOB22':   'BBOB_F22_AttractiveSector_SharpRidge',
-    'BBOB37':   'BBOB_F37_SharpRidge_Rastrigin',
-    'BBOB49':   'BBOB_F49_Rastrigin_Gallagher101',
-    'BBOB55':   'BBOB_F55_Gallagher101_Gallagher101',
+    'BBOB_F1':    'BBOB_F1_Sphere_Sphere',
+    'BBOB_F5':    'BBOB_F5_Sphere_SharpRidge',
+    'BBOB_F17':   'BBOB_F17_EllipsoidSeparable_SchafferF7',
+    'BBOB_F22':   'BBOB_F22_AttractiveSector_SharpRidge',
+    'BBOB_F37':   'BBOB_F37_SharpRidge_Rastrigin',
+    'BBOB_F49':   'BBOB_F49_Rastrigin_Gallagher101',
+    'BBOB_F55':   'BBOB_F55_Gallagher101_Gallagher101',
+    # [D101/Q1] Os 3 problemas de DADOS REAIS — append ESTRITAMENTE no fim:
+    # PROBLEMA_ID é posicional (doe.py) e alimenta a SeedSequence (D62) —
+    # inserir no meio re-semearia DoE/dataset/sonda de todos os posteriores.
+    # Ordem = escada de D (4→17→40), cravada pelo autor; um 4º problema real
+    # entra por append no fim, nunca no meio. ids: RE21=25 DDMOP7=26
+    # ESTOQUE40=27.
+    'RE21':      'RE21',
+    'DDMOP7':    'DDMOP7',
+    'ESTOQUE40': 'ESTOQUE40',
 }
 
 ALL_PROBLEMS: list[str] = list(PROBLEM_CLASSES)
 
+# ── Instâncias NÃO-canônicas p/ a validação MANUAL de fidelidade do autor (D97) ──
+# [R1-c217] Fora dos 28 do A2 e do grid: existem só para o autor reproduzir a
+# config EXATA do paper de um algoritmo e comparar com a âncora (Anexo J). NÃO
+# entram em ALL_PROBLEMS/PROBLEMA_ID (os gates F0 exigem exatamente 28; seeds.json
+# == doe.PROBLEMA_ID), nem na bateria. `short → (classe, kwargs)`.
+#   DTLZ2_d15: DTLZ2 com n_var=2+13=15, m=3 = a config do paper do c217 PC-SAEA
+#   (âncora IGD≈6,9212e-2; a bateria usa o canônico 'DTLZ2' = d=12).
+FIDELITY_PROBLEMS: dict[str, tuple[str, dict]] = {
+    'DTLZ2_d15': ('DTLZ2', {'k': 13}),
+}
+
+#: [D102.10/REAL-2.10] Problemas SEM régua de sonda — por INVALIDEZ do
+#: instrumento, não por custo: no DDMOP7 o f1 ("ratio of nonzero weights") é
+#: constante em todo ponto sem coordenada exatamente zero, e a sonda é Sobol
+#: embaralhado (contínuo ⇒ nunca produz zero exato) ⇒ os 20.000 pontos sairiam
+#: todos com f1 ≡ 1,0 — régua constante não mede nada. Fonte ÚNICA do opt-out:
+#: `gen_sonda.py` pula, os dois `load_sonda` devolvem None, o ⑤ declara
+#: `status='sem_sonda_por_problema'` e os gates exigem ZERO linhas de sonda.
+#: Precedente da gramática ("ausência declarada, não sumida"):
+#: `experiment.m:2928-2944` (sonda ausente ⇒ run segue e o ⑤ declara).
+PROBLEMAS_SEM_SONDA: frozenset = frozenset({'DDMOP7'})
+
+#: [D102.10] O bloco ⑤ DECLARADO da ausência de sonda POR PROBLEMA — fonte
+#: única: os runners gravam `dict(SONDA_AUSENTE_INFO)` e os gates o exigem.
+#: O status é DISTINTO de 'nao_se_aplica' (config sem surrogate —
+#: `sobol_batch.py:257`) e de 'artefato_ausente' (acidente/piloto —
+#: `experiment.m:3320`): as três ausências têm de ser inconfundíveis
+#: (doutrina das "duas espécies de None", `gates_proveniencia.py:334-352`).
+SONDA_AUSENTE_INFO: dict = {
+    "status": "sem_sonda_por_problema",
+    "motivo": "D102.10 — problema declaradamente fora da régua de sonda (§17.2.2)",
+    "n_blocos": 0, "n_linhas": 0, "S": 0,
+}
+
+#: [T15.7b/D102.9 — "Processo B"] Problemas cuja avaliação REAL exige processo
+#: EXTERNO ao runner — hoje só o DDMOP7: o f mora no `DDMOP7.p` (MATLAB
+#: Engine), impossível nos venvs offline congelados (env_b5 py3.7, env_c311
+#: py3.8). Consequência ÚNICA: nos runners OFFLINE a camada ⑦ (`__final`,
+#: DI-08) NÃO é avaliada inline — o run DECLARA no ⑤ (`params.nd_final` =
+#: FINAL_POS_HOC_INFO) e no ⑥ (footer), e a ⑦ é gravada PÓS-HOC por
+#: `scripts/final_eval.py` (ramo DDMOP7: motor da ponte + guard de 600) numa
+#: máquina com matlab.engine — o MESMO mecanismo retroativo que o e103
+#: (MATLAB) sempre usou. Os gates NÃO mudam de veredito: ⑦ ausente segue
+#: VERMELHA até o final_eval rodar — exatamente como o e103 hoje.
+#: O discriminador é "avaliação exige processo externo", NÃO "sem sonda":
+#: coincidem no DDMOP7 mas são decisões distintas (D102.10 vs D102.9).
+PROBLEMAS_FINAL_POS_HOC: frozenset = frozenset({'DDMOP7'})
+
+#: [T15.7b] A declaração canônica do ⑤ (`params.nd_final`) quando a ⑦ fica
+#: pós-hoc — a MESMA gramática do e103 (`experiment.m::run_e103`,
+#: `params.nd_final`), com a decisão tomada (D102.9/Processo B) no lugar do
+#: "DEFINICAO EM ABERTO" histórico. Fonte única: os runners gravam ESTA
+#: string, nunca um dialeto próprio.
+FINAL_POS_HOC_INFO: str = (
+    "AVALIACAO REAL DO ND FINAL (§11/B7.5) NAO acontece neste run "
+    "(D102.9/Processo B: a avaliacao do problema exige processo EXTERNO — "
+    "DDMOP7.p via MATLAB Engine, ausente neste venv): os decs finais estao "
+    "na ③ (ultima geracao); a ⑦ e gravada POS-HOC por scripts/final_eval.py "
+    "numa maquina com matlab.engine, no MESMO contrato DI-08 — o precedente "
+    "retroativo do e103.")
+
+
+def is_known_problem(short_name: str) -> bool:
+    return short_name in PROBLEM_CLASSES or short_name in FIDELITY_PROBLEMS
+
 
 def _instantiate_problem(short_name: str):
-    """Instantiate a problem class by short name (e.g. 'MMF1' or 'BBOB1')."""
-    cls_name = PROBLEM_CLASSES[short_name]
-    return getattr(_problems_mod, cls_name)()
+    """Instancia a classe do problema pelo short name (A2).
+
+    Import de `src.problems` **lazy** de propósito (puxa pymoo/numpy) — só é
+    exigido quando um problema é de fato instanciado (nas rodadas), nunca só
+    por importar este módulo. Além dos 28 canônicos, resolve as instâncias de
+    FIDELITY_PROBLEMS (não-canônicas, D97) — que NÃO estão em ALL_PROBLEMS.
+    """
+    from src import problems as _problems_mod  # lazy (pymoo/numpy)
+    if short_name in PROBLEM_CLASSES:
+        return getattr(_problems_mod, PROBLEM_CLASSES[short_name])()
+    if short_name in FIDELITY_PROBLEMS:
+        cls, kw = FIDELITY_PROBLEMS[short_name]
+        return getattr(_problems_mod, cls)(**kw)
+    raise ValueError(f"Problema desconhecido: {short_name!r}. "
+                     f"Conhecidos: {ALL_PROBLEMS} (+ fidelidade: {list(FIDELITY_PROBLEMS)})")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  Algorithm dispatch
+#  Despacho por algoritmo — registro LAZY, preenchido pelas rodadas.
+#  Estrutura (por id): {'stack': 'botorch'|'standalone'|..., 'main': <callable>}.
+#  A lista canônica de configs Python está em experiments.py::DEFAULT_ALGORITHMS.
+#
+#  [R2-00-harness] O registro é LAZY por design: `ALGORITHM_DISPATCH` fica
+#  VAZIO no import (o módulo continua leve — importável no `python3` base, e o
+#  andaime F0-01 segue verificável) e é populado por `_resolve_dispatch` na
+#  PRIMEIRA chamada de `run()` para o algoritmo — só então o módulo pesado da
+#  rodada (torch/botorch) é importado. Cada cartão de rodada adiciona a sua
+#  linha em `_DISPATCH_LOADERS` (c262/c154 no R2; R3 idem).
 # ═══════════════════════════════════════════════════════════════════════════
 
-ALGORITHM_DISPATCH: dict[str, dict] = {
-    'NSGA2_surrogate':  {'mode': 'offline_kriging', 'runner': run_my_nsga2},
-    'DR-NSGA-II':       {'mode': 'offline_kriging', 'runner': run_dr_nsga2},
-    'Prob-MOEA/D':      {'mode': 'offline_kriging', 'runner': run_prob_moead},
-    'K-RVEA':           {'mode': 'online_noisy',    'runner': run_k_rvea},
-    'ParEGO':           {'mode': 'online_noisy',    'runner': run_parego},
-    'KTA2':             {'mode': 'online_noisy',    'runner': run_kta2},
-    'K-RVEA-OPT':       {'mode': 'online_noisy',    'runner': run_k_rvea_opt},
+ALGORITHM_DISPATCH: dict[str, dict] = {}
+
+#: `alg → (módulo, callable, stack)` — resolvido/importado sob demanda.
+#: Assinatura padrão do runner: `runner(exp, alg, problema_id, semente, **kw)`.
+_DISPATCH_LOADERS: dict[str, tuple[str, str, str]] = {
+    # stubpy = run-STUB transversal do R2-00 (prova de encanamento do contrato
+    # N.1; NÃO é config do estudo — o token `stub` é o STUB MATLAB do R1-00).
+    'stubpy': ('src.botorch_harness', 'run_stubpy', 'botorch'),
+    # [R2-c262] qNEHVI (qLogNEHVI, BoTorch OFICIAL 0.18.1) sobre o harness R2-00.
+    'c262': ('src.c262_qnehvi', 'run_c262', 'botorch'),
+    # [R2-c154] JES (qLBMOJES-LB, BoTorch OFICIAL 0.18.1) sobre o harness R2-00.
+    'c154': ('src.c154_jes', 'run_c154', 'botorch'),
+    # ── Rodada 3 — standalone de implementação própria (contrato N.2) ──────
+    # [R3-00-harness] run-STUB OFFLINE transversal (token distinto de `stub`
+    # do R1-00 e `stubpy` do R2-00). NÃO é config do estudo.
+    'stubr3': ('src.standalone_harness', 'run_stubr3', 'standalone'),
+    # Os 6 configs da R3 entram aqui, 1 linha por cartão. O `stack` é
+    # 'standalone' e o env de cada um vem do `envs.json` (D79) — b5r/b5m e
+    # c311 rodam em venvs PRÓPRIOS e NUNCA podem ser co-importados (N.1.2):
+    # o despacho da bateria usa `standalone_harness.run_in_venv`, que dá um
+    # processo por run. Descomente ao fechar o cartão correspondente.
+    # [R3-c122] θ-DEA-DP (2 FNNs par-a-par, driver próprio) sobre o harness R3-00.
+    'c122':          ('src.c122_thetadeadp', 'run_c122', 'standalone'),
+    # [R3-c149] LBN-MOBO (deep ensemble K=10 + HVI-greedy D96) sobre o R3-00.
+    'c149':          ('src.c149_lbnmobo',    'run_c149', 'standalone'),
+    # [R3-e81] qPOTS (Thompson + NSGA-II + maximin) sobre o R3-00. ⚠ env
+    # PRÓPRIO `env_e81_qpots` (botorch 0.16.1 / pymoo 0.6.1.6 — NUNCA misturar
+    # com o env-main): o despachante resolve por `envs.json:alg_to_env` e
+    # roda em subprocess (D79/N.2).
+    'e81':           ('src.e81_qpots',       'run_e81',  'standalone'),
+    # [R3-b5] Prob-RVEA (b5r, mode 7) / Prob-MOEA/D (b5m, mode 72), OFFLINE. env
+    # PRÓPRIO `env_b5` (sklearn 0.21.3, desdeo VENDORIZADO root-first) — subprocess
+    # por venv (D79/N.2); NUNCA co-importar com c311 (N.1.2).
+    'b5r':           ('src.b5_prob',         'run_b5r',  'standalone'),
+    'b5m':           ('src.b5_prob',         'run_b5m',  'standalone'),
+    # [R3-c311] TGPR-MO (treed-GP/GPy), OFFLINE. env PRÓPRIO `env_c311` (py3.8,
+    # GPy 1.9.9, desdeo VENDORIZADO root-first) — subprocess por venv (D79/N.2);
+    # NUNCA co-importar com b5 (N.1.2 — mesmo nome de pacote, código diferente).
+    'c311':          ('src.c311_tgprmo',     'run_c311', 'standalone'),
+    # [R3-piso-off] Piso offline MOEA/D-média (moead_media, DESDEO mode 12 = Gen-
+    # MOEA/D PBI) — a ablação cirúrgica do b5 ("b5 sem σ"). env PRÓPRIO `env_b5`
+    # (o MESMO do b5; sklearn 0.21.3, desdeo VENDORIZADO root-first) — subprocess
+    # por venv (D79/N.2); NUNCA co-importar com c311 (N.1.2).
+    'moead_media':   ('src.piso_offline',    'run_piso_offline', 'standalone'),
+    # [DI-35.2/T8] piso-big do sweep (treed-GP-média, env_c311) — a ablação do
+    # c311 no tier big (build_surrogates direto, sem addGPs; sigma NULL DI-16.1):
+    'treed_media':   ('src.treed_media',      'run_treed_media', 'standalone'),
+    # [T6-batch] sobol_batch — o PISO do sub-estudo batch q=10 (DI-33). Piso
+    # ONLINE (avaliação real de lotes Sobol scrambled, SEM surrogate); roda no
+    # env_main (não é venv-only). alg_id=22 no seeds.json.
+    'sobol_batch':   ('src.sobol_batch',     'run_sobol_batch', 'standalone'),
 }
 
 
-def _apply_algorithm_overrides(cfg: dict, algo: str, n_var: int) -> dict:
-    """Apply per-algorithm config tunings (centralized from the old notebook).
+def _resolve_dispatch(algoritmo: str) -> dict | None:
+    """Resolve (e cacheia em `ALGORITHM_DISPATCH`) a entrada de despacho do
+    algoritmo, importando o módulo da rodada só agora (import pesado — lazy)."""
+    entry = ALGORITHM_DISPATCH.get(algoritmo)
+    if entry is None and algoritmo in _DISPATCH_LOADERS:
+        import importlib
+        mod_name, fn_name, stack = _DISPATCH_LOADERS[algoritmo]
+        mod = importlib.import_module(mod_name)
+        entry = {'stack': stack, 'main': getattr(mod, fn_name)}
+        ALGORITHM_DISPATCH[algoritmo] = entry
+    return entry
 
-    Reads ``cfg['krvea_feval' | 'kta2_feval' | 'parego_feval' | 'n_generations']``
-    so MODO_RAPIDO scaling (or any user override of those keys) is respected.
-    Returns the mutated cfg.
+
+def run(algoritmo: str, problema_id: str, semente: int, *,
+        exp: str = "main", **kwargs):
+    """Ponto de entrada lógico do adapter: `run(alg, problema_id, semente)`.
+
+    [R2-00-harness] Corpo real: resolve o despacho (lazy) e chama o runner da
+    rodada com a assinatura padrão `runner(exp, alg, problema_id, semente,
+    **kwargs)` — `kwargs` repassa `data_root`/`enable_bucket` etc. Erros do
+    runner PROPAGAM (o despachante `experiments.py` aplica o retry D23; o
+    `BudgetExhausted` nunca chega aqui — o runner o captura no ponto único de
+    avaliação, D61). Algoritmo sem loader ⇒ `NotImplementedError` (cartões
+    futuros preenchem `_DISPATCH_LOADERS`).
     """
-    if algo == 'K-RVEA':
-        cfg['FEmax'] = cfg.get('krvea_feval', 300)
-        cfg.setdefault('krvea_wmax', 20)
-        cfg.setdefault('krvea_u', 5)
-        cfg['krvea_NI'] = 11 * n_var - 1
-    elif algo == 'K-RVEA-OPT':
-        # Same overrides as K-RVEA: K-RVEA-OPT is a drop-in optimized
-        # variant, not a new algorithm.
-        cfg['FEmax'] = cfg.get('krvea_feval', 300)
-        cfg.setdefault('krvea_wmax', 20)
-        cfg.setdefault('krvea_u', 5)
-        cfg['krvea_NI'] = 11 * n_var - 1
-    elif algo == 'ParEGO':
-        cfg['FEmax'] = cfg.get('parego_feval', 250)
-        cfg['parego_NI'] = 11 * n_var - 1
-    elif algo == 'KTA2':
-        cfg['FEmax'] = cfg.get('kta2_feval', 300)
-        cfg.setdefault('kta2_archive_size', 100)
-        cfg.setdefault('kta2_eta', 5)
-    elif algo == 'Prob-MOEA/D':
-        cfg.setdefault('prob_moead_samples', 50)
-        cfg.setdefault('moead_neighborhood', 20)
-    return cfg
+    entry = _resolve_dispatch(algoritmo)
+    if entry is None:
+        raise NotImplementedError(
+            f"Adapter do algoritmo {algoritmo!r} ainda não implementado "
+            f"(despacho preenchido pelos cartões R1/R2/R3 em "
+            f"_DISPATCH_LOADERS). Problema={problema_id!r}, "
+            f"semente={semente}, exp={exp!r}.")
 
+    # [R3-00-harness] ROTEAMENTO OBRIGATÓRIO por venv (D79/N.1.2). b5 e c311
+    # vendorizam `desdeo_*` HOMÔNIMOS com código diferente: rodá-los no mesmo
+    # processo faz o `sys.modules` entregar as classes erradas SEM ERRO. Isso
+    # não pode depender de o operador lembrar de chamar `run_in_venv` — o
+    # despachante serial (`experiments.py`, n_jobs=1) e o paralelo (loky, que
+    # REUSA workers) chamam `run()` direto. Aqui a regra vira MECANISMO.
+    # `_in_child` é posto pelo bootstrap do subprocesso e corta a recursão.
+    if not kwargs.pop('_in_child', False):
+        from src.standalone_harness import VENV_ONLY_ALGS
+        if algoritmo in VENV_ONLY_ALGS:
+            from src.standalone_harness import run_in_venv
+            # [T7-sweep] 🔴 FIX: `run_in_venv` é TRANSPORTE — sua assinatura só
+            # conhece exp/data_root/envs/interpreter/timeout/extra_kwargs/
+            # capture_output. Repassar `**kwargs` cru estourava
+            # `TypeError: run_in_venv() got an unexpected keyword argument
+            # 'enable_bucket'` em TODO run dos 4 configs venv-only despachado
+            # por `experiments.py` (que sempre passa enable_bucket) — o
+            # TypeError caía no `except Exception` genérico do despachante e
+            # virava 3 retries + `status='failed'`, não pára-e-loga. Latente
+            # porque os cartões R3 chamaram os runners direto.
+            # A separação é por CAMADA, não por lista de nomes: o que o
+            # transporte entende fica aqui; TODO o resto (enable_bucket, tier,
+            # dist, q, teto_s, sonda_on…) desce ao runner por `extra_kwargs`.
+            # Drift-proof: um kwarg novo de runner passa a funcionar sozinho.
+            _TRANSPORTE = ('envs', 'interpreter', 'timeout', 'capture_output')
+            transporte = {k: kwargs.pop(k) for k in _TRANSPORTE if k in kwargs}
+            data_root = kwargs.pop('data_root', None)
+            if data_root is not None:
+                transporte['data_root'] = data_root
+            r = run_in_venv(algoritmo, problema_id, semente, exp=exp,
+                            extra_kwargs=kwargs or None, **transporte)
+            if not r.get('ok'):
+                raise RuntimeError(
+                    f"run em venv próprio falhou p/ {algoritmo!r} "
+                    f"(rc={r.get('returncode')}, env={r.get('env_id')}):\n"
+                    f"{r.get('traceback')}")
+            return r['result']
 
-# ═══════════════════════════════════════════════════════════════════════════
-#  Base configuration (same as notebook 2)
-# ═══════════════════════════════════════════════════════════════════════════
-
-BASE_CONFIG: dict = {
-    'population_size': 100,
-    'n_generations': 100,
-    'krvea_feval':   300,
-    'kta2_feval':    300,
-    'parego_feval':  250,
-    'k_tournament': 2,
-    'crossover_prob': 0.9,
-    'crossover_eta': 15,
-    'mutation_eta': 20,
-    'seed': 42,
-    'track_progress': False,
-    'utiliza_ds_niching': False,
-    'pesos_ds_niching': [1, 1],
-    'maximize': False,
-    'n_restricoes': 0,
-    'tipo_variavel_genotipo': float,
-    'verbose': False,
-    'mostrar_grafico': False,
-}
-
-
-NOISE_CONFIG: dict = {
-    1:  {'dist': 'bimodal',     'target_mean': 0.0, 'forca_ruido': 0.2, 'params': {'p': [0.6, 0.4], 'mu1': -2, 'sd1': 0.5, 'mu2': 2, 'sd2': 1}},
-    2:  {'dist': 'student_t',   'target_mean': 0.0, 'forca_ruido': 0.2, 'params': {'df': 3}},
-    3:  {'dist': 'lognormal',   'target_mean': 0.0, 'forca_ruido': 0.2, 'params': {'mean': 0, 'sigma': 0.8}},
-    4:  {'dist': 'poisson',     'target_mean': 0.0, 'forca_ruido': 0.2, 'params': {'lam': 5.0}},
-    5:  {'dist': 'binomial',    'target_mean': 0.0, 'forca_ruido': 0.2, 'params': {'n': 10, 'p': 0.5}},
-    6:  {'dist': 'geometric',   'target_mean': 0.0, 'forca_ruido': 0.2, 'params': {'p': 0.3}},
-    7:  {'dist': 'exponential', 'target_mean': 0.0, 'forca_ruido': 0.2, 'params': {'scale': 1.0}},
-    8:  {'dist': 'uniform',     'target_mean': 0.0, 'forca_ruido': 0.2, 'params': {'low': -1.0, 'high': 1.0}},
-    9:  {'dist': 'laplace',     'target_mean': 0.0, 'forca_ruido': 0.2, 'params': {'loc': 0.0, 'scale': 1.0}},
-    10: {'dist': 'gamma',       'target_mean': 0.0, 'forca_ruido': 0.2, 'params': {'shape': 2.0, 'scale': 2.0}},
-    11: {'dist': 'beta',        'target_mean': 0.0, 'forca_ruido': 0.2, 'params': {'a': 0.5, 'b': 0.5}},
-    12: {'dist': 'rayleigh',    'target_mean': 0.0, 'forca_ruido': 0.2, 'params': {'scale': 1.0}},
-    13: {'dist': 'weibull',     'target_mean': 0.0, 'forca_ruido': 0.2, 'params': {'a': 1.5}},
-    14: {'dist': 'logistic',    'target_mean': 0.0, 'forca_ruido': 0.2, 'params': {'loc': 0.0, 'scale': 1.0}},
-    15: {'dist': 'pareto',      'target_mean': 0.0, 'forca_ruido': 0.2, 'params': {'a': 3.0}},
-    16: {'dist': 'rademacher',  'target_mean': 0.0, 'forca_ruido': 0.2, 'params': {}},
-}
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-#  Kriging training (replaces df_previsao dependency)
-# ═══════════════════════════════════════════════════════════════════════════
-
-def _train_one_gp(X, y, seed):
-    kernel = ConstantKernel(1.0) * Matern(nu=2.5)
-    gp = GaussianProcessRegressor(
-        kernel=kernel, alpha=1e-3,
-        n_restarts_optimizer=2, normalize_y=True,
-        random_state=seed,
-    )
-    gp.fit(X, y)
-    return gp
-
-
-def _train_kriging_from_landscape(clean_problem, noisy_problem, seed: int,
-                                   n_train: int = 500):
-    """Train one Kriging (GP) model per objective.
-
-    Replaces the old ``train_kriging_surrogates(df_previsao, ...)`` dependency:
-    samples ``n_train`` points via Latin Hypercube Sampling within the problem
-    bounds and queries the ``noisy_problem`` (NoisyProblem wrapper) to obtain
-    noisy fitness for training.  Deterministic given ``(problem, seed)``.
-
-    LHS is preferred over Sobol here because ``n_train`` is not constrained to
-    a power of 2 (Sobol's balance properties require ``n = 2^k``); LHS gives
-    well-spread coverage for any ``n`` and is the canonical DOE for kriging.
-    """
-    sampler = qmc.LatinHypercube(d=clean_problem.n_var, seed=seed)
-    U = sampler.random(n_train)
-    X = qmc.scale(U, clean_problem.xl, clean_problem.xu)
-    out = {'F': np.zeros((n_train, clean_problem.n_obj))}
-    noisy_problem._evaluate(X, out)
-    return [_train_one_gp(X, out['F'][:, j], seed)
-            for j in range(clean_problem.n_obj)]
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-#  Runner dispatch and history → long-DataFrame
-# ═══════════════════════════════════════════════════════════════════════════
-
-def _build_config(problem_name: str, seed: int, clean_problem,
-                  algorithm: str, base_config: dict | None) -> dict:
-    """Merge BASE_CONFIG + per-problem fields + per-algorithm overrides."""
-    cfg = (base_config or BASE_CONFIG).copy()
-    cfg['seed'] = seed
-    cfg['tamanho_genotipo'] = clean_problem.n_var
-    cfg['limite_inferior'] = clean_problem.xl.copy()
-    cfg['limite_superior'] = clean_problem.xu.copy()
-    cfg['n_objetivos'] = clean_problem.n_obj
-    cfg['fitness_cols'] = [f'fitness{j+1}' for j in range(clean_problem.n_obj)]
-    cfg['mutation_prob'] = 1.0 / clean_problem.n_var
-    cfg['alpha_exploration_rank_distance'] = np.linspace(
-        1.0, 0.0, cfg['n_generations'])
-    return _apply_algorithm_overrides(cfg, algorithm, clean_problem.n_var)
-
-
-def _invoke_runner(algorithm: str, cfg: dict, clean_problem,
-                   problem_for_runners, kriging_models):
-    """Dispatch to the appropriate runner with ``save_history=True``.
-
-    Parameters
-    ----------
-    problem_for_runners : pymoo Problem
-        The problem instance passed to the online runners (K-RVEA, ParEGO,
-        KTA2). It is the ``NoisyProblem`` wrapper when ``noisy_problem=True``
-        in the caller, and the bare ``clean_problem`` when ``False``.
-        (Previously misnamed ``noisy_problem``.)
-
-    Returns the ``history`` list (see _history_to_long_df for schema).
-    """
-    if algorithm == 'NSGA2_surrogate':
-        _, _, history = run_my_nsga2(cfg, kriging_models=kriging_models,
-                                     save_history=True)
-    elif algorithm == 'DR-NSGA-II':
-        _, _, history = run_dr_nsga2(cfg, kriging_models=kriging_models,
-                                     save_history=True, z=1.28)
-    elif algorithm == 'Prob-MOEA/D':
-        _, _, history = run_prob_moead(cfg, kriging_models=kriging_models,
-                                       save_history=True)
-    elif algorithm == 'K-RVEA':
-        _, _, history = run_k_rvea(problem_for_runners, cfg, save_history=True)
-    elif algorithm == 'ParEGO':
-        _, _, history = run_parego(problem_for_runners, cfg, save_history=True)
-    elif algorithm == 'KTA2':
-        _, _, history = run_kta2(problem_for_runners, cfg, save_history=True)
-    elif algorithm == 'K-RVEA-OPT':
-        _, _, history = run_k_rvea_opt(problem_for_runners, cfg,
-                                       save_history=True)
-    else:
-        raise ValueError(f"Unknown algorithm: {algorithm}")
-    return history
-
-
-def _history_to_long_df(history, algorithm: str, problem_name: str,
-                        seed: int, clean_problem) -> pd.DataFrame:
-    """Convert runner history (list of {'generation', 'population'}) into the
-    long-format DataFrame defined by the harness spec.
-
-    Re-evaluates ``f*`` columns vectorized on the **clean** problem so values
-    are comparable across algorithms regardless of surrogate/noise during
-    search.
-    """
-    n_var = clean_problem.n_var
-    n_obj = clean_problem.n_obj
-
-    rows = []
-    for snap in history:
-        g = snap['generation']
-        for idx, ind in enumerate(snap['population']):
-            geno = ind['genotype']
-            row = {
-                'algorithm': algorithm,
-                'problem': problem_name,
-                'seed': seed,
-                'generation': g,
-                'individual_id': idx,
-            }
-            for i in range(n_var):
-                row[f'x_{i+1}'] = float(geno[i])
-            rows.append(row)
-
-    df = pd.DataFrame(rows)
-    if df.empty:
-        for j in range(n_obj):
-            df[f'f{j+1}'] = pd.Series(dtype=float)
-        return df
-
-    # Vectorized clean re-evaluation
-    x_cols = [f'x_{i+1}' for i in range(n_var)]
-    X = df[x_cols].to_numpy(dtype=float)
-    out = {'F': np.zeros((len(X), n_obj))}
-    clean_problem._evaluate(X, out)
-    for j in range(n_obj):
-        df[f'f{j+1}'] = out['F'][:, j]
-
-    return df
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-#  Public entry point
-# ═══════════════════════════════════════════════════════════════════════════
-
-DEFAULT_SINGLE_DIR = 'data/experiments/single'
-
-
-def _safe_algo_name(name: str) -> str:
-    return name.replace('/', '_').replace(' ', '_').replace('-', '_').lower()
-
-
-def experiment_cache_path(algorithm: str, problem: str, seed: int,
-                          single_dir: str = DEFAULT_SINGLE_DIR,
-                          noisy_problem: bool = True) -> str:
-    """Path of the per-experiment parquet cache under ``single_dir``.
-
-    When ``noisy_problem=True`` a ``_noisy`` suffix is added so that
-    noisy/clean runs don't overwrite each other. When ``noisy_problem=False``
-    no suffix is used (clean is the default/canonical cache name).
-    """
-    suffix = '_noisy' if noisy_problem else ''
-    return os.path.join(
-        single_dir,
-        f'{_safe_algo_name(algorithm)}_{problem}_seed{seed}{suffix}.parquet',
-    )
-
-
-def experiment_sa_moea(
-    algorithm: str,
-    problem: str,
-    seed: int,
-    config: dict | None = None,
-    *,
-    kriging_models=None,
-    sampling_method: str = 'sobol',
-    load_memory: bool = True,
-    single_dir: str = DEFAULT_SINGLE_DIR,
-    noisy_problem: bool = True,
-) -> pd.DataFrame:
-    """Run one (algorithm, problem, seed) experiment with population logging.
-
-    Parameters
-    ----------
-    algorithm : key of ``ALGORITHM_DISPATCH``.
-    problem   : short problem name (key of ``PROBLEM_CLASSES``).
-    seed      : integer random seed (sets numpy RNG inside the runner).
-    config    : optional config dict override; merged on top of BASE_CONFIG.
-    kriging_models : optional pre-trained list of GPs (one per objective);
-        skips internal Kriging training (used by ``experiments.py`` cache).
-    sampling_method : one of {'sobol', 'latin_hypercube', 'random'} —
-        used to locate the cached landscape parquet for the mean_f estimate.
-    load_memory : bool, default True
-        If True, before running, check ``single_dir`` for a parquet matching
-        ``(algorithm, problem, seed)``; if present, load and return it instead
-        of recomputing. The freshly computed DataFrame is also saved back to
-        ``single_dir`` so the next call can hit the cache.
-    single_dir : str, default ``data/experiments/single``
-        Directory used for the per-experiment parquet cache.
-    noisy_problem : bool, default True
-        If True (legado), envolve o problema base com ``NoisyProblem`` —
-        Kriging eh treinado sobre amostras ruidosas e os algoritmos online
-        (K-RVEA, ParEGO, KTA2) buscam sobre o problema ruidoso. O cache do
-        parquet recebe sufixo ``_noisy``.
-        If False, usa o problema original sem transformacao: Kriging eh
-        treinado sobre fitness limpa e os runners recebem o problema base.
-        O cache do parquet NAO recebe sufixo (nome canonico).
-
-    Returns
-    -------
-    pd.DataFrame in long format with columns
-        ``algorithm, problem, seed, generation, individual_id,
-        x_1..x_n, f1..fm``
-    where ``f*`` are clean (true) fitness values.
-    """
-    if load_memory:
-        cache_path = experiment_cache_path(algorithm, problem, seed, single_dir,
-                                            noisy_problem=noisy_problem)
-        if os.path.exists(cache_path):
-            try:
-                df_cached = pd.read_parquet(cache_path)
-                print(f'parquet {cache_path} encontrado')
-                return df_cached
-            except Exception:
-                # corrupt cache → fall through and recompute
-                pass
-
-    if algorithm not in ALGORITHM_DISPATCH:
-        raise ValueError(f"Unknown algorithm '{algorithm}'. "
-                         f"Available: {list(ALGORITHM_DISPATCH)}")
-    if problem not in PROBLEM_CLASSES:
-        raise ValueError(f"Unknown problem '{problem}'. "
-                         f"Available: {list(PROBLEM_CLASSES)}")
-
-    clean_problem = _instantiate_problem(problem)
-    assert clean_problem.n_var >= 2, "NoisyProblem requires n_var >= 2"
-
-    cfg = _build_config(problem, seed, clean_problem, algorithm, config)
-
-    # 1. Build NoisyProblem from landscape mean_f (apenas se noisy_problem=True).
-    #    Caso contrario, os runners online recebem o problema limpo e o
-    #    Kriging eh treinado sobre fitness limpa.
-    if noisy_problem:
-        base_dir = Path('data/dataframes') / problem
-        landscape_path = base_dir / f'df_{problem}_landscape_{sampling_method}.parquet'
-        df_land = pd.read_parquet(landscape_path)
-        f_cols = [f'f{j+1}' for j in range(clean_problem.n_obj)]
-        mean_f = df_land[f_cols].mean().to_numpy()
-        problem_for_runners = NoisyProblem(clean_problem, NOISE_CONFIG, mean_f)
-        assert isinstance(problem_for_runners, NoisyProblem), \
-            "noisy_problem=True deve produzir um wrapper NoisyProblem"
-    else:
-        problem_for_runners = clean_problem
-        # Invariante: com noisy_problem=False, NAO deve haver wrapper de ruido.
-        # Garante que nenhum caminho acima injetou um NoisyProblem por engano.
-        assert not isinstance(problem_for_runners, NoisyProblem), \
-            "noisy_problem=False mas problem_for_runners ficou NoisyProblem"
-        assert problem_for_runners is clean_problem, \
-            "noisy_problem=False exige que os runners recebam o clean_problem"
-
-    # 2. Kriging surrogates for offline_kriging algorithms
-    mode = ALGORITHM_DISPATCH[algorithm]['mode']
-    if mode == 'offline_kriging' and kriging_models is None:
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=ConvergenceWarning)
-            kriging_models = _train_kriging_from_landscape(
-                clean_problem, problem_for_runners, seed,
-                n_train=cfg.get('n_kriging_train', 500))
-
-    # 3. Run with save_history=True
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore', category=ConvergenceWarning)
-        history = _invoke_runner(algorithm, cfg, clean_problem,
-                                  problem_for_runners, kriging_models)
-
-    if history is None or len(history) == 0:
-        # Defensive: return empty DataFrame with expected columns
-        cols = (['algorithm', 'problem', 'seed', 'generation', 'individual_id']
-                + [f'x_{i+1}' for i in range(clean_problem.n_var)]
-                + [f'f{j+1}' for j in range(clean_problem.n_obj)])
-        return pd.DataFrame(columns=cols)
-
-    # 4. Convert history → long-DataFrame with clean re-eval
-    df_long = _history_to_long_df(history, algorithm, problem, seed,
-                                   clean_problem)
-
-    if load_memory:
-        cache_path = experiment_cache_path(algorithm, problem, seed, single_dir,
-                                            noisy_problem=noisy_problem)
-        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
-        try:
-            df_long.to_parquet(cache_path)
-        except Exception:
-            pass
-
-    return df_long
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-#  Kriging disk cache (used by experiments.py parallel script)
-# ═══════════════════════════════════════════════════════════════════════════
-
-def kriging_cache_path(problem: str, seed: int,
-                        cache_dir: str = 'data/experiments/kriging_cache',
-                        noisy_problem: bool = True) -> str:
-    """Path of the Kriging .pkl cache.
-
-    ``noisy_problem=True`` adds a ``_noisy`` suffix; ``noisy_problem=False``
-    uses no suffix (clean is the default/canonical name).
-    """
-    suffix = '_noisy' if noisy_problem else ''
-    return os.path.join(cache_dir, f'{problem}_seed{seed}{suffix}.pkl')
-
-
-def train_and_cache_kriging(problem: str, seed: int,
-                             cache_dir: str = 'data/experiments/kriging_cache',
-                             n_train: int = 500,
-                             sampling_method: str = 'sobol',
-                             skip_existing: bool = True,
-                             noisy_problem: bool = True) -> str:
-    """Train Kriging models for (problem, seed) and pickle them.
-
-    Returns the path to the pickle file.  Shared across NSGA2_surrogate,
-    DR-NSGA-II, Prob-MOEA/D for the same (problem, seed).
-
-    Quando ``noisy_problem=False`` (default) o GP eh treinado sobre fitness
-    limpa do problema original (sem o wrapper NoisyProblem) e o cache eh
-    gravado SEM sufixo. Quando ``noisy_problem=True`` o cache recebe sufixo
-    ``_noisy``.
-    """
-    os.makedirs(cache_dir, exist_ok=True)
-    path = kriging_cache_path(problem, seed, cache_dir,
-                              noisy_problem=noisy_problem)
-    if skip_existing and os.path.exists(path):
-        return path
-
-    clean_problem = _instantiate_problem(problem)
-    if noisy_problem:
-        base_dir = Path('data/dataframes') / problem
-        landscape_path = base_dir / f'df_{problem}_landscape_{sampling_method}.parquet'
-        df_land = pd.read_parquet(landscape_path)
-        f_cols = [f'f{j+1}' for j in range(clean_problem.n_obj)]
-        mean_f = df_land[f_cols].mean().to_numpy()
-        problem_for_training = NoisyProblem(clean_problem, NOISE_CONFIG, mean_f)
-    else:
-        problem_for_training = clean_problem
-
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore', category=ConvergenceWarning)
-        models = _train_kriging_from_landscape(
-            clean_problem, problem_for_training, seed, n_train=n_train)
-
-    with open(path, 'wb') as f:
-        pickle.dump(models, f)
-    return path
-
-
-def load_kriging_cache(problem: str, seed: int,
-                        cache_dir: str = 'data/experiments/kriging_cache',
-                        noisy_problem: bool = True):
-    """Return pickled Kriging models for (problem, seed) or None if missing."""
-    path = kriging_cache_path(problem, seed, cache_dir,
-                              noisy_problem=noisy_problem)
-    if not os.path.exists(path):
-        return None
-    with open(path, 'rb') as f:
-        return pickle.load(f)
+    return entry['main'](exp, algoritmo, problema_id, semente, **kwargs)

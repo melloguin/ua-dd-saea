@@ -1,0 +1,107 @@
+{
+ "config": "e7 · EDN-ARMOEA (Guo, Wang, Gao, Jin, Ding, Chai — IEEE TSMC:Systems 52(4):2084-2097, 2022 · DOI 10.1109/TSMC.2020.3044418 · PlatEMO 4.15 built-in, MATLAB R2025a) · exp=main · RODADA FINAL, corpus CONGELADO: 724 células = 664 sintéticas (25 problemas, herança F30) + 30 RE21 + 30 DDMOP7 (SEM ESTOQUE40 — lacuna aceita pelo autor). Proveniência: sintéticas repo 63db46b100635a5c (campanha M8, intocadas desde 14/08 — 0 arquivos com mtime pós-15/08); RE21 30/30 repo 3240f4b26fae (vm1, 15/08 22:47-23:15Z); DDMOP7 semente 0 repo 3240f4b26fae (vm1, 15/08) + 29 sementes repo 7be66e65522c (vm5, 17/08 17:03-21:51Z). ARTIGO: o mesmo das 3 auditorias (\"e7. Evolutionary Optimization of High-Dimensional... Dropout Neural Network.md\"), reconciliado — nada novo a validar (e7 não é piso). Interpretador: /Users/gmello/Documents/python_venvs/mestrado_experimentos_dissertacao/bin/python. NENHUMA célula executada, experiments.py/experiments.m NÃO invocados, MATLAB Engine NÃO tocado, nada escrito no repo (só scratchpad). Volume lido nesta rodada: 8.823.000 linhas de ③ (7.923.000 online + 900.000 sonda), 19.470 de ①, 1.282.230 de ②, 4.230 de ④, ~115,4 M coordenadas de X contra o box nativo, 4.170 ciclos e7_gen, 450 blocos de sonda, 60 manifestos + 10 spot sintéticos.",
+ "celulas_final": "724 células e7 no censo_final (censo meu re-derivado bate exato): 664 sintéticas + 30 RE21 + 30 DDMOP7, sementes válidas {0-28,42} em 100% (nada de semente 30; _quarentena sem nenhum arquivo e7). Estados O-21 (rodapé = autoridade, lido célula a célula nas 60 novas + 10 spot): 724 ok · 0 ⚪ teto_wall · 0 fail · 0 sem_manifest · 0 manifest≠rodapé. Nas 60 novas: footer status=ok, termino=normal, cp_init=true, fe_final==maxfe==31D−1 (123 RE21 / 526 DDMOP7) em 60/60; n_retries=0 e fallback_ativado=false em 60/60. Lacunas herdadas e aceitas: 86 ausências sintéticas (truncamento de campanha, F30 N5) + ESTOQUE40 inteiro (30 células nunca rodadas — \"o que não executou, não vou executar mais\").",
+ "novas_desde_f30": "+60 células desde o F30 (664→724): 30 RE21 (D=4, M=2, C=26=⌊80/3⌋, 15 blocos de sonda cada) e 30 DDMOP7 (D=17, M=2, C=113=⌊340/3⌋, SEM sonda — D102.10 declarado no ⑤ com motivo em 30/30). Reconciliação por mtime + contagem: as 664 sintéticas têm mtime ≤ 14/08 (censo E disco: zero .jsonl sintético pós-15/08) e contagem por problema idêntica ao F30 — herdam o veredito F30 com spot-check de 10 células (10/10: query-joia 100%, O-21 ok, 31D−1 exato, repo 63db46b1, e os 3 marcos do F30 reproduzem bit-a-bit — MMF1/24 n_std_neg=2, WFG2/42 n_dup=1/C=147/sem hard_stop, MMF11_L/12 incerteza=0). Bateria de contrato completa nas 60 novas (100% delas, não amostra): orçamento 31D−1 + índices densos 60/60 · DoE bit-a-bit vs artefato ≤3e-7 relativo + doe_hash ⑤≡header≡manifesto-do-DoE 60/60 · ②=Σ(11D−1+3(g−1)) e ④=C+1 com geração 1 duplicada 60/60 · ③online=1900·C 60/60 · sonda RE21: cadência {1}∪{pares≤Gstart}∪{Gstart} ≡ ⑤ 30/30, blocos 2000 pts ok 450/450, x_hash ≡ gabarito 30/30, join posicional 1,19e-7 · bounds 0 fora em ~115,4 M coordenadas · σ>0 não-NaN em 8.823.000/8.823.000 (mín 4,53e-5 RE21 · 6,24e-3 DDMOP7) · echo modelo_hp (T=100, dropP [0.1,0.1] D30, 40/40, 8e4/8e3, lr 0,01, wd 1e-5, batch=D∈{4,17}, sentinela loss INACESSIVEL) 4.170/4.170 · cadeia ymin[c+1]==f_best[c] erro 0,0 e transf_params③≡ymin⑥ 60/60 · U7 0 violações em 4.170 · Ratio·NW inteiro (erro ≤1e-9) 4.170/4.170 · hard_stop presente 60/60 (correto: 80 mod 3=2, 340 mod 3=1) com o ciclo abortado consumindo exatamente 20D mod 3 FE (2/1) presentes na ① sem linha ⑥ — assinatura A16 do F30 · n_dup_infill=0, stall=0, n_std_neg=0, dist_min_arquivo>0 nos 60.",
+ "mecanismo_nos_novos": "QUERY-JOIA DECLARADA (estado ⇔ desigualdade) rodada no CENSO das 60 células novas, não em amostra: ((RatioOld−Ratio) < delta) == (ramo=='convergencia') == flag em 4.170/4.170 ciclos (780 RE21 + 3.390 DDMOP7) = 100,00%, erro ZERO; motivo por extenso coerente 4.170/4.170. Teste severo: 172 ciclos a <1e-9 do limiar, incluindo EMPATES EXATOS 0,0 em IEEE-754 (margem mín 0,0 em 20 células DDMOP7) — a reconstrução em Python acerta o ramo do MATLAB em todos. QUERY-JOIA COMPORTAMENTAL (A19) nos mesmos 4.170 ciclos, 30/30 sementes: infills localizados na janela final 4.170/4.170; ramo convergência argmin global ‖μ‖ = 3.303/3.303 (100,00%); ramo incerteza argmax global σ̄ = 867/867 (100,00%). Poder do teste preservado: o refutador \"espaço cru (μ+ymin)\" fecha só 22/23 e 20/22 nas 2 células sondadas. Distribuição de ramos: RE21 740 conv/40 inc (5,1% exploração; 5/30 sementes com inc=0 — GPC-ARMOEA espontâneo, agora fora do D=2 sintético) · DDMOP7 2.563/827 (24,4%). BÔNUS DDMOP7 (fidelidade T15): checa_regua PASSOU em 15.780/15.780 pontos da ① (0 furos, 0 avisos — ideal [0;0] intacto, f1 mín observado 1/17, f2 mín 89/690); quantização f1·17 e f2·690 inteiras 30/30; ZONA MORTA D102.17 provada por experimento natural — 5 pares de propostas distintas (Δx_proposto até 0,81) com o MESMO x_efetivo têm f BIT-IDÊNTICO (Δf=0,0 exato), nos DOIS commits (3240f4b e 7be66e) — o oráculo viu zona_morta(x_proposto). |ND| §T15.13: n_front1 ≡ |ND| RAW (sem dedup por x_efetivo) em 3.390/3.390 ciclos; sob a regra de leitura, sobrecontagem de +1 em 13 ciclos de 3 células (ver classe 3). RE21: a formulação fechada (F=10,σ=10,E=2e5,L=200) re-verificada DENTRO do corpus: f da ① ≡ fórmula com erro rel máx 2,4e-7 (float32) em 30 células × 123 FE.",
+ "reais": "e7 nos reais = RE21 + DDMOP7 (sem EST40, aceito). RE21 (30 células, vm1, commit 3240f4b): o problema MELHOR modelado da história do config — WAPE de fantasia mediana 0,0208 (faixa 0,016-0,028; contra 0,208 da mediana sintética F30); exploração quase nula (40/780 = 5,1% incerteza; sementes 7,12,21,24,25 com ZERO ciclos de incerteza — o run inteiro como AR-MOEA guiado por μ, gatilho calculado corretamente em 100%); sonda completa (15 blocos/célula, 450/450 ok, gabarito por hash); custo: busca 84,6%, t_ciclo ~23 s, RSS ≤1,90 GB. DDMOP7 (30 células; semente 0 vm1/15-08, demais vm5/17-08): WAPE mediana 0,2066 (0,176-0,255); exploração 24,4%; 156 ciclos com margem <1e-9 do gatilho (f quantizado em k/17 e n/690 gera platôs de Ratio — empates exatos 0,0 tratados certo em 100%); zona morta quase não colapsa as propostas do e7 (340 propostas distintas → 339-340 efetivas; 1 par colapsado em 5/30 células, 1 FE redundante cada); f nunca fura o ideal [0;0] (checa_regua 0/15.780); PERFIL DE CUSTO INVERTIDO — primeira família de células do e7 em que a avaliação REAL domina o relógio: aval_real (.p via Engine) 53,7% × busca 42,5% × fit 1,8% (mediana; t_ciclo ~54 s, RSS ≤2,72 GB — na escada de D do F30, sem salto novo). Fase 2 pooled da régua segue OBRIGATÓRIA (selo D102.3) — agora computável com as 629 células DDMOP7 do corpus.",
+ "aspectos_mudados": [
+  {
+   "id": "A17",
+   "o_que": "Sonda agora também em problema real (RE21)",
+   "antes": "F30: 30.679 blocos nos 25 sintéticos, x_hash por hash em 664/664",
+   "agora": "+450 blocos RE21 (15/célula, incl. finalProbe em Gstart=27 ímpar), 2000 pts e ok=true em 450/450, x_hash ≡ gabarito 30/30, join posicional 1,19e-7; DDMOP7 SEM sonda por decisão (D102.10) declarada no ⑤ em 30/30 com 0 linhas de regime sonda na ③"
+  },
+  {
+   "id": "A16",
+   "o_que": "Overshoot/ciclo abortado nos novos D",
+   "antes": "F30: guard hard_stop sse 20D mod 3 ≠ 0, aritmética fecha na unidade",
+   "agora": "60/60 com hard_stop (80 mod 3=2, 340 mod 3=1); o ciclo abortado consome exatamente 2 (RE21) / 1 (DDMOP7) FE, presentes na ① sem linha ⑥/④ — mesma assinatura de flush; ①==31D−1 em 60/60"
+  },
+  {
+   "id": "A26",
+   "o_que": "n_front1 em problema com codificação (zona morta)",
+   "antes": "T11/F30: n_front1 ≡ |ND| do arquivo pós-infills (H2), 100% fora do underflow DTLZ4",
+   "agora": "DDMOP7: n_front1 ≡ |ND| RAW do arquivo em 3.390/3.390 ciclos — SEM dedup por x_efetivo; sob a regra de leitura §T15.13 há sobrecontagem +1 em 13 ciclos de 3 células (s3 c112-113, s22 c111-113, s28 c106-113), quando a duplicata colapsada está no front; RE21 100% sem ressalva"
+  },
+  {
+   "id": "A28",
+   "o_que": "Perfil de custo",
+   "antes": "F30: busca 91,6% · fit 4,7% · avaliação real 0,005% — o FE real era grátis",
+   "agora": "DDMOP7 inverte: aval_real 53,7% × busca 42,5% × fit 1,8% (o .p caixa-preta via Engine é o dono do relógio, t_ciclo 54 s); RE21 mantém o padrão sintético (busca 84,6%, aval_real ~0,05 s/célula); RSS sem salto novo (1,90/2,72 GB, na escada de D do F30)"
+  },
+  {
+   "id": "A25",
+   "o_que": "Erro de fantasia (U11)",
+   "antes": "F30: WAPE mediana 0,208, extremos 0,051-0,763, tudo sintético",
+   "agora": "RE21 = 0,0208 mediana (0,016-0,028) — o melhor regime já medido no config, 2,5× melhor que o melhor sintético; DDMOP7 = 0,207 (0,176-0,255) — exatamente a mediana sintética; a separação fidelidade-do-mecanismo × qualidade-do-surrogate se mantém nos reais"
+  },
+  {
+   "id": "A04",
+   "o_que": "Degenerescência GPC-ARMOEA (incerteza nunca acionada)",
+   "antes": "F30: 3/664 células (0,45%), todas MMF11_L D=2",
+   "agora": "+5/30 no RE21 (sementes 7,12,21,24,25 — 16,7% do grupo, D=4): não é infidelidade (query-joia 26/26 nesses runs), é resultado do algoritmo em problema real suave; DDMOP7 nunca degenera (mín 18 ciclos de incerteza)"
+  },
+  {
+   "id": "A31/A32",
+   "o_que": "Proveniência e deriva",
+   "antes": "F30: corpus mono-commit 63db46b1, deriva bimodal vm1×vm5 medida em 18 pares",
+   "agora": "reais em DOIS commits novos (3240f4b26fae 15/08: 30 RE21 + DDMOP7/0; 7be66e65522c 17/08: 29 DDMOP7 na vm5 pós-degrau); zero pares duplicados nos reais — deriva cross-commit NÃO-MEDIDA por ausência de par; mecanismo re-medido 100% nos dois lados; sintéticas intocadas"
+  },
+  {
+   "id": "T15-NOVO",
+   "o_que": "Fidelidade da codificação zona-morta (D102.17) e da régua (T15.13)",
+   "antes": "provada só nos smokes de 15/08 (outros configs); e7 nunca tinha rodado problema real",
+   "agora": "provada NO CORPUS do e7: 5 pares naturais Δx_proposto≤0,81 → Δf=0,0 exato (o oráculo avaliou zona_morta(x)); checa_regua 0 furos/0 avisos em 15.780 pontos; f1/f2 quantizados exatamente como o contrato declara; RE21 re-verificado contra a formulação fechada dentro do próprio corpus (2,4e-7)"
+  }
+ ],
+ "celulas_invalidas": [],
+ "classe3": [
+  {
+   "id": "E7-F-01",
+   "descricao": "D89 (identidade do ponto) NO DDMOP7 OPERA SOBRE O X PROPOSTO, MAS O CONTRATO §T15.12 DIZ 'opera sobre o efetivo — é o que o oráculo viu'. Medido: 5 pares de propostas distintas com o MESMO x_efetivo (s0: sids 408/409 mesmo lote; s3: 425/520; s8: 436/437 mesmo lote; s22: 347/517; s28: 405/502) — TODAS consumiram FE (① completa com 526), cache_hits=1 (só o do init), n_dup_infill=0 em 30/30. Se a identidade operasse sobre o efetivo, a segunda proposta de cada par seria cache-hit com 0 FE. Efeito colateral: o arquivo ganha uma linha f bit-idêntica e o n_front1 (RAW) sobreconta +1 quando ela está no front (13 ciclos em 3 células). Custo: 1 FE redundante em 5/30 células (o f é determinístico e idêntico — informação zero).",
+   "gravidade": "baixa",
+   "acao": "ESCALAR (D81): decidir se o texto do CONTRATO §T15.12 vira errata ('a identidade D89 do harness opera sobre o PROPOSTO; o efetivo é regra de leitura') ou se o comportamento é declarado desvio conhecido. Recuperável 100% sem re-run: regra de leitura (dedup por x_efetivo ao publicar |ND|/cardinalidade, §T15.13, que já existe).",
+   "arquivo_linha": "ua-dd-saea/CONTRATO_DE_DADOS.md §T15.12 ('A D89 opera sobre o efetivo') × medição na ① de resultados_experimentos/e7/DDMOP7/{0,3,8,22,28}"
+  },
+  {
+   "id": "E7-F-02",
+   "descricao": "O GRUPO DDMOP7 DO e7 É BI-COMMIT E BI-VM SEM DECLARAÇÃO: semente 0 = repo 3240f4b26fae/vm1/15-08 15:54Z; sementes 1-28+42 = repo 7be66e65522c/vm5/17-08 (vm5 PÓS-degrau de 14/08). Nenhum handoff que li menciona 7be66e65522c (grep em handoff/*.md: só 3240f4b aparece, no gate da zona morta); c122 rodou DDMOP7 inteiro em 7be66e/18-08, então é o commit da batelada da frota — mas a mistura DENTRO do grupo e7 não está declarada em lugar nenhum do corpus. Mecanismo re-medido 100% nos dois lados (a query-joia, a zona morta e a régua fecham na semente 0 e nas 29); nenhum par duplicado cross-commit existe, então a deriva 3240f4b×7be66e é NÃO-MEDIDA.",
+   "gravidade": "baixa",
+   "acao": "ESCALAR: (a) declarar no handoff/SPEC o mapa commit×VM do grupo (mesma natureza da ESCALAÇÃO 1 do F30); (b) proibir contraste de CUSTO semente-0-vs-resto (commit+VM+shape perfeitamente confundidos — só a semente 0 está do outro lado); contrastes de desempenho seguem seguros pela evidência F30 (R²_VM≈0,003).",
+   "arquivo_linha": "resultados_experimentos/e7/DDMOP7/*/exp_main_e7_DDMOP7_*.manifest.json (repo_hash, campanha_id, env.host)"
+  },
+  {
+   "id": "E7-3-01 (herdada F30, ABERTA)",
+   "descricao": "Contador n_std_neg estruturalmente inobservável na ③ + armadilha 10 do T11 (non sequitur) — inalterada; nos 60 novos n_std_neg=0, nada a acrescentar.",
+   "gravidade": "baixa",
+   "acao": "pendente: errata no T11 §9 armadilha 10 e A20(c) (decisão do autor).",
+   "arquivo_linha": "Estimate.m:29; EDNARMOEA.m:84-85,97-98; T11 §9"
+  },
+  {
+   "id": "E7-3-02 (herdada F30, ABERTA)",
+   "descricao": "A s42 canônica é OUTRA execução (63db46b1) que não reproduz os números da F5/T11 (195f64ed) e nada no corpus declara — inalterada (sintéticas intocadas desde o F30; spot 10/10 confirma o estado F30).",
+   "gravidade": "média",
+   "acao": "pendente: as 3 decisões da ESCALAÇÃO 1 do F30 (declarar substituição, herança×re-emissão da certificação, erratas).",
+   "arquivo_linha": "resultados_experimentos/e7/*/42/*.manifest.json; F30 configs/e7.json E7-3-02"
+  },
+  {
+   "id": "E7-3-03 (herdada F30, ABERTA)",
+   "descricao": "RSS 2,3-2,9× o teto da T11 na mesma célula sintética, sem causa medida — inalterada; os reais NÃO agravam (1,90/2,72 GB, dentro da escada de D do F30).",
+   "gravidade": "baixa",
+   "acao": "pendente: dono para o número (shape/BLAS/workers).",
+   "arquivo_linha": "⑥ e7_gen.rss_mb; F30 E7-3-03"
+  }
+ ],
+ "score_final": 9,
+ "trajetoria_scores": "F5 10/10 (s42, 666 células, 0 aspectos classe-3; teto T1 declarado) → T11 10/10 (re-medição rica: A11 migra (2)→(1) — a divergência de normalização da SPEC é falsa; T1 FECHADO pelo par g6_com×g6_sem — ③ bit-idêntica incluindo μ/σ) → F30 9,0 (CAUSA: corpus e metrologia, não algoritmo — E7-3-02 média: a s42 canônica foi re-executada noutro commit sem declaração e os números F5/T11 não reproduzem nela; E7-3-01 baixa: contador inobservável + corolário falso no T11; E7-3-03 baixa: salto de RAM sem dono; T1/§3.1 REABERTO — nenhum par COM/SEM no commit 63db46b1) → FINAL 9,0 (CAUSA DA MANUTENÇÃO: as 60 células novas são LIMPAS — mecanismo 100,00% em 4.170 ciclos nas duas queries-joia, O-21 724 ok/0 ⚪/0 fail, zona morta e régua do DDMOP7 provadas no próprio corpus, RE21 re-verificado contra a fonte dentro do corpus, herança F30 confirmada por spot 10/10 — mas os débitos que derrubaram o 10 no F30 continuam ABERTOS aguardando decisão do autor (E7-3-01/02/03, T1/§3.1 agora sem prova também nos commits 3240f4b e 7be66e em que a sonda do RE21 rodou LIGADA 30/30), e a rodada acrescenta 2 classe-3 novas de natureza documental/proveniência (E7-F-01 D89×T15.12; E7-F-02 bi-commit DDMOP7), ambas baixas, investigadas até a causa, benignas para o que a dissertação vai afirmar e recuperáveis por regra de leitura/declaração. Nada no algoritmo em 4 exames.)",
+ "veredito": "RECOMENDO ACEITAR o corpus FINAL do e7 (724 células) para a análise da dissertação — o veredito é do autor (D97). O mecanismo EDN-ARMOEA chega à rodada final com fidelidade estrutural perfeita e agora TRANS-PROBLEMA: a identidade decisória (gatilho dual δ=0,05 '<' estrito + argmin ‖μ‖/argmax σ̄) fecha 100,00% com erro zero em 25 problemas sintéticos (F30: 59.079 ciclos), em RE21 e em DDMOP7 (esta rodada: 4.170 ciclos, incl. empates IEEE-754 exatos no f quantizado do DDMOP7), sob 4 commits e 2 arquiteturas. As exceções do DDMOP7 são exatamente as sancionadas (sem sonda D102.10, sem front D102.4, régua provisória com fase 2 obrigatória D102.3, zona morta D102.17 — esta PROVADA no corpus por 5 pares naturais com Δf=0,0). Condições anexas à recomendação: (i) as decisões pendentes do F30 (herança da certificação s42, §3.1) continuam pré-requisito de fechamento documental, não de validade do dado; (ii) quem publicar |ND| do DDMOP7 a partir de n_front1 DEVE aplicar a regra §T15.13 (n_front1 é RAW; +1 em 13 ciclos de 3 células); (iii) declarar o mapa bi-commit do grupo DDMOP7. Nenhuma célula inválida: nada a excluir.",
+ "decisoes_ao_autor": [
+  "ESCALAÇÃO F-1 (D81, nova) — D89 × CONTRATO §T15.12: o texto diz que a identidade do ponto no DDMOP7 'opera sobre o efetivo', mas o harness deduplica pelo PROPOSTO — 5 pares medidos com mesmo x_efetivo consumiram 2 FE cada (0 cache-hit, ndup=0). Decidir: errata no texto do CONTRATO ou declaração de desvio conhecido. Custo real: 1 FE redundante em 5/30 células; leitura já coberta pela regra §T15.13.",
+  "ESCALAÇÃO F-2 (nova) — Declarar o mapa de proveniência do grupo DDMOP7 do e7: semente 0 = 3240f4b26fae/vm1/15-08, sementes 1-28+42 = 7be66e65522c/vm5-pós-degrau/17-08 (commit que nenhum handoff nomeia; é o da batelada da frota — c122 idem em 18/08). Proibir contraste de CUSTO semente-0-vs-resto (commit+VM+shape confundidos); desempenho seguro (R²_VM≈0,003 no F30).",
+  "ESCALAÇÃO F-3 (regra de leitura, nova) — n_front1 do DDMOP7 é |ND| RAW do arquivo (3.390/3.390 medido): sobreconta +1 nos 13 ciclos (s3 c112-113, s22 c111-113, s28 c106-113) em que a duplicata colapsada está no front. Quem publicar |ND| aplica dedup por x_efetivo (§T15.13). Recuperável 100% sem re-run.",
+  "ESCALAÇÃO F-4 (§3.1, atualiza a ESCALAÇÃO 2 do F30) — O invariante 🔴 'a sonda não toca o RNG' segue sem prova nos commits do dado da tese, e agora também em 3240f4b26fae, onde a sonda do RE21 rodou LIGADA em 30/30 células (15 blocos × 200 máscaras Bernoulli por Estimate). No DDMOP7 o risco NÃO existe (sem sonda). Decidir: aceitar por herança da prova T11 (commit 195f64ed, par g6) ou registrar teto declarado no capítulo — um par COM/SEM exigiria re-run, que você já vetou.",
+  "PENDÊNCIAS F30 QUE CONTINUAM ABERTAS (decisão só sua): ESCALAÇÃO 1 (s42 substituída pela M8 — declarar os dois repo_hash e decidir herança×re-emissão da certificação F5/T11), erratas T11 (armadilha 10 do n_std_neg; 'não degenera em nenhuma célula'; SPEC §1784/§1878 e bundle I.4 sobre a normalização A11), RAM sem dono (E7-3-03), WFG2/4 e WFG4/23 sem causa.",
+  "RESULTADO PARA O CAPÍTULO (não é fidelidade) — Exploração do e7 nos reais: RE21 5,1% (40/780) com 5/30 sementes em EXATOS 0% de incerteza — a degenerescência GPC-ARMOEA que o F30 viu em 0,45% das células sintéticas (só MMF11_L D=2) sobe a 16,7% no problema real suave; DDMOP7 24,4% com 156 ciclos em empate quase-exato do gatilho (f quantizado em k/17 e n/690 gera platôs de Ratio). E o perfil de custo do DDMOP7 inverte a tese de escalabilidade do §III-C na prática: 53,7% do relógio é a avaliação real (.p), não a busca — o primeiro regime do e7 em que o FE é o recurso caro DE FATO, que é exatamente o cenário que SAEA pressupõe.",
+  "LEMBRETE DE ANÁLISE — Fase 2 pooled da régua DDMOP7 (D102.3) segue OBRIGATÓRIA antes de publicar HV: a fase 1 passou limpa aqui (checa_regua 0 furos/0 avisos em 15.780 pontos da ① do e7), mas o selo REGUAS_PROVISORIAS continua ativo; com as ~629 células DDMOP7 do corpus ela é computável agora."
+ ]
+}

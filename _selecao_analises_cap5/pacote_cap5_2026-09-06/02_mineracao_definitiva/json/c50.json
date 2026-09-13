@@ -1,0 +1,283 @@
+{
+  "id": "c50",
+  "sigla": "PD-MOEA",
+  "titulo": "Data-Driven Multi-Objective Optimisation of Coal-Fired Boiler Combustion Systems",
+  "ano": 2018,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Não é uma suíte de benchmarks sintéticos: é um único problema real biobjetivo (minimizar NOx e UBC) de otimização de combustão de uma caldeira a carvão de 330 MW, tangencialmente disparada, de fundo seco (usina Jianbi, China; caldeira nº7, capacidade da usina >2400 MW/12 caldeiras), com M=16 parâmetros de controle contínuos (4 vazões de carvão pulverizado primário AA-DD, 5 vazões de ar secundário A-E, OFA, O2, 4 frequências de rotação do alimentador de carvão F1-F4, e consumo total de ar TA). Na Seção 6 o mesmo problema é reformulado como um espaço combinado de objetivo+restrição de 3 dimensões (UBC, NOx, Load), tratando a carga (Load) como uma dimensão adicional do arquivo, não como objetivo a minimizar.",
+    "orcamento": "Não há orçamento de avaliações reais tipo '31D−1': existe um dataset fixo de 654 pontos medidos fisicamente ao longo de 5 dias de operação normal da caldeira, usado para treinar os dois GPs (UBC, NOx) UMA ÚNICA VEZ, de forma totalmente offline. Toda a busca evolutiva subsequente consulta exclusivamente os GPs já treinados — não há nenhuma avaliação real adicional durante a busca, e não existe uma função verdadeira reexecutável para reavaliar o resultado final (o 'verdadeiro' seria operar a caldeira real). Caso de carga fixa (L=300MW): 20.000 gerações (checagem extra a 10^5 gerações), arquivo final com 22.068 soluções, 40.000 avaliações do GP (2 filhos/geração × 20.000). Caso de todas as cargas simultaneamente: 150×10^3 e 250×10^3 gerações.",
+    "execucoes": "10 execuções independentes do otimizador são usadas apenas para as superfícies de atingimento medianas da Fig. 4d ('the median (50th percentile) was taken over 10 independent runs of the optimiser'; percentis 10/90 não plotados por ficarem muito próximos da mediana). As demais figuras principais (3, 4a-c, 5, 6, 7, 8) não declaram explicitamente nº de execuções nem sementes — parecem ilustrar o resultado de uma única execução representativa do arquivo.",
+    "baselines": "Nenhum piso evolutivo determinístico (ex. NSGA-II) é executado no artigo para comparação direta, nem outro algoritmo SA-MOO é comparado — é um artigo de método único aplicado a um caso real. A única comparação de 'ganho' presente é população inicial (medições brutas mapeadas para a carga-alvo, sem otimização) vs. arquivo final otimizado, via probabilidade de dominância (Fig. 4b-c) — mais próxima, na lógica da dissertação, do papel do DoE inicial vs. endpoint de um algoritmo offline do que de um confronto assistido×piso.",
+    "metricas_principais": [
+      "Hypervolume (das predições médias μ do GP, não da função verdadeira)",
+      "RMSE (qualidade preditiva dos GPs, validação cruzada 10-fold)",
+      "probabilidade de dominância p(x≺x') / p(x≺z) (Eqs. 7-9, 14-15)",
+      "probabilidade máxima de dominância ρ(z) = max_x∈A p(x≺z) (Eq. 16)"
+    ],
+    "testes": [
+      "nenhum teste estatístico formal (sem Wilcoxon rank-sum, sem Friedman/Nemenyi) em qualquer análise do artigo"
+    ],
+    "apresentacao": "Predições médias com barras de erro de 1 desvio-padrão (subamostradas nas figuras por clareza, já que a magnitude da incerteza é comparável entre soluções vizinhas); execução única para as figuras de arquivo (3, 4, 5, 6, 7, 8); mediana sobre 10 execuções independentes para as superfícies de atingimento (Fig. 4d), com percentis 10/90 omitidos por proximidade da mediana; percentuais de variação entre extremos do arquivo relatados em prosa, sem tabela formal; não há símbolos +/=/−, negrito ou qualquer convenção de comparação multi-algoritmo (não se aplica a um artigo de método único).",
+    "codigo_plataforma": "GPy (framework Python para Processos Gaussianos, referência [28]) para treinar G_UBC e G_NOx, com hiperparâmetros otimizados por BFGS (quase-Newton) a partir de 10 reinícios aleatórios; algoritmo evolutivo próprio — arquivo elitista não-restrito com seleção PQRS (Partitioned Quasi Random Selection), herdado de Fieldsend & Everson [35] — adaptado para usar dominância probabilística (não é PlatEMO/BoTorch nem nenhuma das 13 famílias online/2 offline do roster da dissertação)."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Seleção de kernel do GP por validação cruzada",
+      "grupo_sugerido": "E",
+      "descricao": "Antes de treinar os modelos finais, o artigo compara três funções de covariância candidatas para o GP (exponencial-quadrática, Matern52 e perceptron multicamadas/MLP com determinação automática de relevância) por validação cruzada 10-fold do erro quadrático médio (MSE) da predição, escolhendo o kernel vencedor (MLP+ARD) para ambos os modelos G_UBC e G_NOx. É uma decisão de configuração do surrogate, não uma comparação de algoritmos de otimização.",
+      "literal": "We examined a range of common covariance functions (squared exponential, Matern52, and multi-layer perceptron) and selected the multileayer perceptron (MLP) kernel with automatic relevance determination based on a 10-fold cross-validation of the mean squared error in the prediction.",
+      "localizador": "Sec. 3, p.8 (antes da Eq. 4)",
+      "metricas": [
+        "MSE (validação cruzada 10-fold)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Apenas a decisão final é relatada em prosa; não há tabela com o MSE de cada um dos três kernels candidatos.",
+      "achado": "O kernel MLP com ARD foi selecionado como superior aos kernels exponencial-quadrático e Matern52 para este problema; os valores exatos de MSE por kernel não são reportados, apenas o resultado da escolha.",
+      "aplicabilidade": "não reproduzível com as 7 camadas da dissertação — é uma etapa de seleção de configuração do modelo anterior e externa à busca instrumentada; as camadas registram a busca com o modelo já escolhido, não a comparação de kernels candidatos.",
+      "observacoes": "Resultado apenas mencionado (a comparação em si, com números, não é mostrada) — decisão de engenharia de modelo, não um estudo experimental completo com tabela própria."
+    },
+    {
+      "fichas": [
+        31,
+        33
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Os dois GPs independentes (G_UBC, G_NOx) são avaliados por validação cruzada 10-fold sobre os 654 pontos coletados: para cada ponto, a predição vem de um GP treinado nos outros 90% dos dados; a Figura 2 plota predito×medido com barras de erro de 1 desvio-padrão. O RMSE médio entre predição e medição (0,07% UBC; 6,67ppm NOx) é comparado ao desvio-padrão do ruído de medição assumido no treino (0,2%; 17ppm), e o texto observa visualmente que a maioria das medições cai dentro de 2 desvios-padrão da média predita.",
+      "literal": "The average root mean squared errors (RMSE) between the mean predictions and the measurements are 0.07% for GUBC and 6.67ppm for GNOx, which is well within the estimated measurement noise variance of 0.2% and 17ppm respectively.",
+      "localizador": "Sec. 3.1, Fig. 2, p.8-9",
+      "metricas": [
+        "RMSE"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Gráfico predito×medido; barras de erro de 1 desvio-padrão; RMSE médio sobre os 654 pontos via CV 10-fold (não uma sonda de pontos fixos repetida a cada retreino); comparação do RMSE com o desvio-padrão do ruído assumido no treino de cada GP.",
+      "achado": "Os GPs preveem bem os dados (RMSE dentro do nível de ruído de medição assumido), mas os autores alertam explicitamente que a incerteza preditiva é 'a considerable fraction of the range of variation' de UBC/NOx — um alerta que motiva o uso de otimização com incerteza em vez de ignorá-la.",
+      "aplicabilidade": "parcialmente aplicável — usaria uma versão estática da camada ③ (predições do surrogate vs. valor real) sobre os pontos de treino via k-fold, não a sonda de 2.000 pontos fixos repetida a cada retreino; como o regime aqui é offline com treino único (sem retreinos durante a busca), não existe uma trajetória 'ao longo do orçamento' equivalente às fichas 31/33 — é uma foto única da acurácia/calibração antes da otimização começar.",
+      "observacoes": "É a análise que preenche calibracao_do_sigma neste artigo."
+    },
+    {
+      "fichas": [
+        54,
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Com carga fixa em L=300MW e α=0,5, o algoritmo evolutivo de dominância probabilística roda por 20.000 gerações (checagem extra a 10^5 gerações), produzindo um arquivo de 22.068 soluções. A Figura 3 mostra a frente estimada (predições médias + barras de incerteza para alguns membros) e a progressão do hipervolume das predições médias ao longo das gerações; o texto também relata percentuais de variação de UBC e NOx entre os extremos do arquivo (ex.: pior UBC é 49% maior e melhor NOx é 47% menor que no extremo oposto).",
+      "literal": "The progression of the dominated hypervolume indicates that the front is well converged after 20,000 generations and there is little to gain from additional iterations.",
+      "localizador": "Sec. 5, Fig. 3, p.14-15",
+      "metricas": [
+        "Hypervolume (das predições médias μ)",
+        "variação percentual de UBC/NOx entre extremos do arquivo"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução única (não média±dp sobre sementes); pontos médios do arquivo com barras de erro de 1 dp em apenas alguns membros, por clareza; hipervolume calculado sobre as predições médias (não sobre a função verdadeira); ponto extra a 10^5 gerações marcado com símbolo distinto (quadrado sólido) para checagem de convergência.",
+      "achado": "O arquivo probabilístico converge bem em 20.000 gerações, com ganho adicional pequeno até 10^5 gerações; a frente estimada é visivelmente mais 'espessa' que uma frente Pareto determinística ('the estimated probabilistic front is thicker than a traditional estimated Pareto front'), pois soluções mutuamente não-dominadas a α=0,5 nem sempre se dominam com alta confiança — efeito esperado e direto do uso de dominância probabilística em vez de determinística.",
+      "aplicabilidade": "camada ② (população/arquivo por geração, aqui via μ do GP) combinada com ⑥ (filme) permitiria reconstruir uma trajetória de HV por geração; porém não há camada ⑦ aplicável (o ND nunca é reavaliado numa função verdadeira executável) e é execução única, não agregada sobre sementes como pede a ficha 26 padrão da dissertação.",
+      "observacoes": "A 'espessura' da frente (efeito do α<1) é descrita qualitativamente aqui, mas o artigo não varia α para produzir uma curva de sensibilidade — ver observações gerais."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Probabilidade de dominância no espaço de objetivos — mapa (dim. 1)",
+      "grupo_sugerido": "H",
+      "descricao": "Usando as distribuições preditivas do GP, o artigo define ρ(z) = probabilidade máxima de que algum membro do arquivo A domine um ponto arbitrário z do espaço de objetivos (Eq. 16), e mapeia essa quantidade em toda a região UBC×NOx (Figura 4a). O mapa caracteriza visualmente onde no espaço de objetivos há alta ou baixa chance de encontrar, no arquivo, uma solução que supere aquele desempenho.",
+      "literal": "The spatial characterisation of the objective space using probability of dominance clearly depicts the performance that may be achieved using any solutions from the archive A.",
+      "localizador": "Sec. 5.1, Fig. 4a, p.16",
+      "metricas": [
+        "probabilidade máxima de dominância ρ(z)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mapa de contorno/calor de ρ(z) sobre uma grade do espaço UBC×NOx; execução única (arquivo já mostrado na Fig. 3).",
+      "achado": "A caracterização espacial mostra baixa probabilidade de se obter simultaneamente bom desempenho em ambos os objetivos — a maior parte do espaço de objetivos tem baixa chance de ser dominada por alguma solução do arquivo, confirmando visualmente o formato e os limites do trade-off encontrado.",
+      "aplicabilidade": "não corresponde diretamente a nenhuma das 7 camadas — é uma consulta pós-hoc adicional ao GP (μ,σ, análoga à camada ③) sobre uma grade do espaço de objetivos, feita depois de a busca terminar; reproduzível como pós-processamento sobre o arquivo final, mas não é uma das fichas do catálogo atual."
+    },
+    {
+      "fichas": [
+        14
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo compara, via p(x≺z)/ρ(z), a população inicial do arquivo (medições brutas dos 654 pontos, mapeadas para a carga-alvo de 300MW antes de qualquer otimização, Figura 4b) com o arquivo final otimizado após 20.000 gerações (Figura 4c), mostrando que toda solução inicial passa a ser dominada por alguma solução final com probabilidade de pelo menos 50%.",
+      "literal": "As the figure shows, all the initial solutions are dominated by a member of the final archive with probability at least 50%.",
+      "localizador": "Sec. 5.1, Fig. 4b-c, p.16-17",
+      "metricas": [
+        "probabilidade de dominância p(x≺z)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Cruzes pretas = população inicial (Fig. 4b); triângulos pretos = predições médias do arquivo final (Fig. 4c); mesma escala/eixos que o mapa ρ(z) da Fig. 4a.",
+      "achado": "Toda a população inicial é dominada com probabilidade ≥50% por algum membro do arquivo final — evidência de que a busca evolutiva de fato melhorou sobre o ponto de partida, papel análogo ao 'ganho sobre o dataset' de um algoritmo offline (métrica do DoE/dataset inicial vs. endpoint).",
+      "aplicabilidade": "camada ② (população inicial vs. arquivo final) combinada com ③ (predições do GP) para calcular p(x≺z) entre os dois conjuntos — análogo direto à ficha 14, substituindo HV/IGD+ por probabilidade de dominância como a métrica de comparação."
+    },
+    {
+      "fichas": [
+        55
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Repetindo a otimização de carga fixa 10 vezes de forma independente, o artigo calcula superfícies de atingimento (attainment surfaces, método de Fonseca & Fleming [39], computado eficientemente via [40]) medianas para os contornos ρ(z)=0,1, 0,5 e 0,9 (Figura 4d), observando que as superfícies correspondentes aos percentis 10 e 90 ficam tão próximas da mediana que não chegam a ser plotadas separadamente.",
+      "literal": "The summary attainment surfaces shown in Figure 4d show the median position of the ρ(z) = 0.1, 0.5 and 0.9 contours, where the median (50th percentile) was taken over 10 independent runs of the optimiser.",
+      "localizador": "Sec. 5.1, Fig. 4d, p.16-17",
+      "metricas": [
+        "ρ(z) em 3 níveis de contorno (0,1/0,5/0,9)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mediana (percentil 50) sobre 10 execuções independentes; percentis 10/90 omitidos por estarem muito próximos da mediana; 3 níveis de contorno de ρ(z), símbolos distintos por nível (círculos azuis, quadrados verdes, diamantes vermelhos).",
+      "achado": "A variação entre os percentis 10 e 90 das superfícies de atingimento é muito pequena, indicando boa repetibilidade e convergência do algoritmo entre execuções independentes — um resultado de robustez, não de desempenho comparativo.",
+      "aplicabilidade": "não há camada ⑦ aqui (offline sem reavaliação); a superfície de atingimento seria construída a partir do arquivo final de cada execução (camada ② agregada por execução), adaptando o cálculo de ρ(z)/atingimento em vez do ND bruto — mesma família de técnica da ficha 55(a), mas aplicada a contornos de probabilidade de dominância em vez de ao próprio conjunto não-dominado."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Probabilidade de dominância no espaço de objetivos — seleção de operating point (dim. 2)",
+      "grupo_sugerido": "H",
+      "descricao": "Dado um ponto de desempenho desejado z*, o artigo seleciona o ponto de operação x*=argmax_{x∈A} p(x≺z*) (Eq. 17, Figura 5a); estende a demonstração para dez alvos z1,...,z10 cobrindo a faixa de trade-offs (Figura 5b), mostrando que a solução do arquivo visualmente 'mais próxima' de um alvo nem sempre é a que tem maior probabilidade de dominá-lo, especialmente perto dos extremos da frente.",
+      "literal": "the solution that has the maximum probability of dominating the desired point should be selected as the operating point.",
+      "localizador": "Sec. 5.1, Fig. 5a-b, Eq. 17, p.17-18",
+      "metricas": [
+        "probabilidade de dominância p(x≺z)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Losangos magenta = alvos desejados z*/zi; pontos cinza = predições médias do arquivo; barras de erro brancas com cruzes = incerteza (1 dp) da solução selecionada; linhas magenta conectando cada alvo à solução escolhida (comprimento da linha = quão 'longe' a solução ótima por probabilidade está do alvo nominal).",
+      "achado": "A solução mais próxima em distância euclidiana de um ponto de operação desejado nem sempre é a solução com maior probabilidade de dominá-lo — divergência mais visível perto dos extremos da frente — o que demonstra a necessidade de usar o critério de probabilidade de dominância (que incorpora σ) em vez de proximidade ingênua sobre as médias para selecionar o ponto de operação.",
+      "aplicabilidade": "pós-processamento do arquivo final (mesma base da camada ③, novas consultas ao GP num conjunto de pontos-alvo arbitrários do espaço de objetivos); não corresponde a nenhuma camada específica além de reconsultar o modelo treinado — é a contribuição metodológica central do artigo (seleção de ponto de operação), sem equivalente direto na tipologia atual."
+    },
+    {
+      "fichas": [
+        55
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para as dez soluções x1 a x10 selecionadas na Figura 5b (cobrindo a faixa de trade-off UBC-NOx), a Figura 6 mostra, num gráfico de coordenadas paralelas com um eixo por parâmetro de controle (AA-DD, A-E, OFA, O2, F1-F4, TA), como cada parâmetro varia ao longo da frente; o texto interpreta fisicamente as tendências (TA e O2 caem; OFA não varia monotonicamente; fluxo secundário em D cresce para compensar; F2 sobe enquanto F1,F3,F4 caem para manter a carga de 300MW).",
+      "literal": "Generally, UBC increases from x1 to x10, while NOx is reduced, as shown in the table on the left, which gives the mean predicted UBC and NOx objectives, µU(x) and µN(x).",
+      "localizador": "Sec. 5.2, Fig. 6, p.19-20",
+      "metricas": [
+        "valores dos 16 parâmetros de controle (AA-DD, A-E, OFA, O2, F1-F4, TA)",
+        "UBC",
+        "NOx"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Gráfico de coordenadas paralelas, um eixo por parâmetro de controle, uma linha por solução (x1 a x10); tabela lateral com UBC/NOx médios de cada solução; soluções ordenadas de x1 (menor UBC, maior NOx) a x10 (maior UBC, menor NOx).",
+      "achado": "TA e O2 mostram tendência clara de queda com o aumento de UBC/redução de NOx ao longo da frente, como esperado fisicamente (menos ar/O2 → mais carbono não queimado, menos NOx); a variação de OFA não é monotônica, compensada por mudanças na distribuição de ar secundário (vazão em D cresce para apoiar o OFA); pouquíssima variação nos fluxos primários AA-DD ao longo de toda a frente.",
+      "aplicabilidade": "não envolve tempo (④ não se aplica); usaria os próprios vetores de decisão x1..x10 do arquivo final (extração pontual da camada ②) — reproduzível como visualização de coordenadas paralelas das variáveis de decisão para membros selecionados do arquivo final, mesma técnica da ficha 55(b)."
+    },
+    {
+      "fichas": [
+        46
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo relata o tempo de treino de cada GP (feito uma única vez, <10s) e descreve analiticamente o custo de avaliação subsequente (produto escalar para a média μ; solução de um sistema de N equações lineares para a variância σ²), observando que cada geração requer 2 predições completas (uma por filho), totalizando 40.000 avaliações do GP ao longo das 20.000 gerações do caso de carga fixa.",
+      "literal": "although the training of the GPs, which has to be done only once, is relatively slow (but taking less than 10 s for each of these models) the evaluation for a new parameter vector is very fast, requiring only a dot product to compute the mean",
+      "localizador": "Sec. 5, p.14-15 (parágrafo após Fig. 3)",
+      "metricas": [
+        "tempo de treino do GP (s)",
+        "nº de avaliações do GP na busca"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Valor único relatado em prosa (não em tabela); sem decomposição fit/busca/sonda/avaliação em frações de tempo; sem estudo de crescimento do custo com D ou N; contagem de avaliações derivada de gerações × filhos por geração.",
+      "achado": "O treino do GP é relativamente lento mas necessário apenas uma vez (<10s por modelo); a avaliação subsequente é muito rápida (fechada, analítica), permitindo 40.000 consultas ao GP ao longo da busca sem custo proibitivo — a estrutura offline (treino único + busca barata no surrogate) é o que torna a otimização evolutiva de milhares de gerações viável.",
+      "aplicabilidade": "camada ④ (tempos por geração/ajuste do modelo) seria a correspondente direta; aqui há apenas um valor agregado (treino único <10s) e uma contagem total de avaliações (40.000), sem decomposição por geração — mais próximo da 'parede do retreino' da ficha 46 do que de uma decomposição completa fit/busca/avaliação (ficha 48), já que não há retreinos repetidos (regime offline, treino único)."
+    },
+    {
+      "fichas": [
+        54,
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo estende o algoritmo removendo a restrição de carga fixa: a carga passa a ser uma terceira dimensão do arquivo (UBC, NOx, Load), e soluções só são comparadas por dominância probabilística quando suas cargas diferem por no máximo σL≈11MW (Eq. 18). O otimizador roda por 150×10^3 e 250×10^3 gerações; a Figura 7 mostra o arquivo 3D resultante e a progressão do hipervolume (agora somado sobre 'fatias' discretas de carga) ao longo das gerações, junto com as faixas de UBC (1,48%-2,3%), NOx (248,68-404,63ppm) e carga (160,7-374,8MW) cobertas.",
+      "literal": "the hypervolume progression suggests that the optimisation is well converged after 50 × 103 generations.",
+      "localizador": "Sec. 6, Fig. 7, p.21-22",
+      "metricas": [
+        "Hypervolume (somado sobre fatias de carga)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Mesmo estilo visual da Fig. 3, com eixo adicional de carga; hipervolume somado sobre fatias discretas de carga (adaptação específica deste artigo, não uma convenção padrão da dissertação); ponto extra a 250.000 gerações marcado com símbolo distinto (quadrado cinza sólido) para checagem de convergência; execução única.",
+      "achado": "O arquivo 3D (UBC, NOx, Load) converge por volta de 50.000 gerações (de até 250.000 testadas), com ganho marginal adicional — mesmo padrão de convergência do caso de carga fixa (Fig. 3), agora com o hipervolume agregado sobre fatias de carga; uma faixa ampla de soluções é encontrada cobrindo praticamente toda a extensão observada de carga na usina.",
+      "aplicabilidade": "mesma lógica da entrada de Fig. 3 (② + ⑥), mas para o algoritmo estendido a 3 dimensões; a soma do HV sobre fatias de carga é uma adaptação específica deste artigo (não uma das convenções padrão de HV/IGD+ por checkpoint da dissertação) e exigiria uma definição própria caso se quisesse reproduzir algo equivalente."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Probabilidade de dominância no espaço de objetivos — extensão 3D/carga (dim. 3)",
+      "grupo_sugerido": "H",
+      "descricao": "Usando o arquivo tridimensional (UBC, NOx, Load) da Seção 6, o artigo constrói isossuperfícies de ρ(z) em 3D e três fatias 2D complementares — carga fixa em L=300MW (comparável à Fig. 5), NOx fixo em 340ppm, e UBC fixo em 2,1% (Figura 8) — para comparar como a área/volume dominado do espaço de objetivos varia com a carga de operação.",
+      "literal": "Increasing load from 330 MW results in a drastic deterioration in performance, while decreasing load also diminishes performance but at a lower rate.",
+      "localizador": "Sec. 6, Fig. 8, p.22-23",
+      "metricas": [
+        "probabilidade máxima de dominância ρ(z) em 3D (UBC, NOx, Load)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Isossuperfícies 3D em 5 níveis de probabilidade (0/0,25/0,5/0,75/1); três fatias 2D adicionais (a carga fixa, a NOx fixo, a UBC fixo) para leitura complementar da região dominada.",
+      "achado": "A região dominada do espaço de objetivos é maior quando a carga está próxima de 330MW — a carga de projeto da caldeira — e o desempenho degrada mais rapidamente ao aumentar a carga acima de 330MW do que ao reduzi-la abaixo desse valor; um resultado específico do domínio de engenharia (a caldeira é mais eficiente perto de sua carga de projeto), não um resultado sobre o mecanismo de incerteza em si.",
+      "aplicabilidade": "pós-processamento do arquivo final 3D via novas consultas ao GP variando a carga (mesma técnica de ρ(z) das entradas anteriores desta família, agora em 3D); o achado específico (desempenho ótimo perto da carga de projeto) não é generalizável a outros problemas do catálogo, mas o MÉTODO (mapa de dominância fatiado por uma variável de contexto) poderia inspirar uma ficha nova para estudos de sensibilidade a condições operacionais/contexto."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "Validação cruzada 10-fold sobre os 654 pontos coletados: para cada GP (UBC, NOx), o RMSE entre predição média e medição é calculado e comparado ao desvio-padrão do ruído de medição assumido no treino (0,2% para UBC; 17ppm para NOx, incorporados à matriz de covariância via K:=K+diag(σ²)); checagem visual complementar de que a maioria das medições cai dentro de 2 desvios-padrão da predição média (Figura 2). Não há cálculo de cobertura numérica exata (fração de pontos dentro de μ±2σ) nem correlação ρ entre σ e erro — é uma checagem mais informal que a 'sonda' da dissertação, e feita uma única vez (não ao longo de um orçamento, já que o GP é treinado uma única vez).",
+    "literal": "The average root mean squared errors (RMSE) between the mean predictions and the measurements are 0.07% for GUBC and 6.67ppm for GNOx, which is well within the estimated measurement noise variance of 0.2% and 17ppm respectively.",
+    "localizador": "Sec. 3.1, Fig. 2"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo de treino de cada GP (uma única vez, <10s por modelo) e custo qualitativo/analítico de avaliação subsequente (produto escalar para a média; solução de um sistema de N equações lineares para a variância); contagem total de avaliações do GP na busca principal (40.000 = 2 filhos × 20.000 gerações, para o caso de carga fixa). Não há decomposição fit/busca/sonda/avaliação em frações de tempo, nem estudo de como o custo cresce com D ou com o tamanho do dataset N.",
+    "literal": "although the training of the GPs, which has to be done only once, is relatively slow (but taking less than 10 s for each of these models) the evaluation for a new parameter vector is very fast, requiring only a dot product to compute the mean",
+    "localizador": "Sec. 5, p.14-15 (parágrafo após Fig. 3)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Os autores alertam explicitamente que a incerteza preditiva dos GPs é uma fração considerável da faixa de variação de UBC e NOx, e que otimizar essas métricas SEM contabilizar a incerteza pode levar a configurações de parâmetros irrealisticamente otimistas e erradas — a motivação central para usar dominância probabilística em vez de otimização determinística sobre a média.",
+      "literal": "optimising these performance measures without accounting for the uncertainty may lead to unrealistically optimistic and wrong settings of the boiler parameters.",
+      "localizador": "Sec. 3.1, p.9 (após Fig. 2)"
+    },
+    {
+      "descricao": "As grandes incertezas associadas a todos os pontos do arquivo probabilístico tornam a seleção de um único ponto de operação um desafio real: não é óbvio, a partir das predições médias isoladamente, como discriminar entre soluções ou como incorporar a incerteza numa decisão informada — problema que motiva o procedimento de seleção por probabilidade máxima de dominância (Fig. 5).",
+      "literal": "the large uncertainties associated with all the points in the Pareto archive makes the selection of an operating point rather challenging: it is not obvious how to discriminate between the mean predictions",
+      "localizador": "Sec. 5, p.15 (após Fig. 3)"
+    }
+  ],
+  "equivalencia_criterios": [],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "distância da carga de operação em relação à carga nominal de projeto (330 MW)",
+      "afirmacao": "No arquivo 3D (UBC, NOx, Load), a região do espaço de objetivos dominada por alguma solução do arquivo é maior quando a carga está próxima de 330MW (carga de projeto da caldeira); o desempenho conjunto degrada mais rapidamente ao AUMENTAR a carga acima de 330MW do que ao reduzi-la abaixo desse valor.",
+      "literal": "Increasing load from 330 MW results in a drastic deterioration in performance, while decreasing load also diminishes performance but at a lower rate.",
+      "localizador": "Sec. 6, Fig. 8, p.22"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Artigo de estudo de caso único sobre dado real (usina Jianbi, China) — não há piso evolutivo determinístico executado para comparação direta, nem outros algoritmos SA-MOO comparados; os grupos B/C/G da tipologia praticamente não se aplicam (única aproximação é a ficha 14, via a comparação população inicial × arquivo final na Fig. 4b-c). Não há nenhum teste estatístico formal (Wilcoxon/Friedman) em qualquer análise. O artigo descreve CONCEITUALMENTE (Sec. 4, prosa da descrição do algoritmo) como α próximo de 1 produz um arquivo probabilístico mais 'gordo' e α mais baixo (rumo ao limite determinístico) produz um arquivo mais 'fino', mas NÃO executa uma varredura empírica de α com resultados — todos os experimentos numéricos usam α=0,5 fixo (exceto os 3 níveis de CONTORNO de ρ(z) plotados na Fig. 4d/8, que são um recorte de visualização do MESMO arquivo, não arquivos construídos com α diferente); por isso nenhuma análise de 'sensibilidade a α' foi listada (Regra 3 — não inventar). Regime claramente offline no sentido da dissertação: os dois GPs (UBC, NOx) são treinados uma única vez sobre um dataset fixo de 654 pontos medidos fisicamente ao longo de 5 dias; toda a busca evolutiva ocorre inteiramente contra o par de GPs treinados, sem avaliações reais adicionais durante a busca e sem uma função verdadeira reexecutável para reavaliar o ND final — não há camada ⑦ aplicável (o 'verdadeiro' seria a operação real da caldeira, não reexecutável em lote). A escolha de GPs independentes para UBC e NOx (em vez de um GP multivariado correlacionado) é justificada por citação a um estudo externo ([30], Kleijnen & Mehdad), não por uma comparação própria do artigo — não listada como análise. A regressão linear restrita usada para modelar a relação carga×frequências dos alimentadores (c≈0,155; σL≈11MW, Sec. 2) é uma etapa de pré-processamento para impor a restrição de carga (Eq. 11), não uma análise experimental do surrogate objetivo (UBC/NOx) — mencionada aqui só por completude. Nº de execuções independentes: 10 apenas para as superfícies de atingimento (Fig. 4d); as demais figuras (3, 4a-c, 5, 6, 7, 8) parecem ilustrar uma única execução representativa, sem declaração explícita de sementes/repetições. Nenhuma seção, apêndice ou material suplementar foi pulado: o corpo estruturado (linhas 1-506 do .md, incluindo Nomenclatura, Agradecimentos e Referências), o ANEXO de camada de texto bruta do PDF (get_text, linhas 686-2179, integralmente redundante com o corpo estruturado, sem conteúdo adicional) e o ANEXO de OCR de figuras (linhas 2185-2217, rótulos de eixo sem números novos) foram todos lidos até o fim do arquivo."
+}

@@ -1,0 +1,362 @@
+{
+  "id": "c59",
+  "sigla": "UA-DBO",
+  "titulo": "Uncertainty-Aware Data-Based Method for Fast and Reliable Shape Optimization",
+  "ano": 2026,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Dois problemas de otimização aerodinâmica multiponto de forma (nada como ZDT/DTLZ/WFG/MMF/BBOB da dissertação, nem problemas reais de engenharia genéricos): (1) divergência de arrasto (drag divergence) do aerofólio RAE2822, segundo caso de referência do ADODG — MONO-objetivo, minimizar C̄_D médio sobre 6 números de Mach (0,710 a 0,760), D=20 variáveis de projeto (dois conjuntos de 10 parâmetros CST de 9ª ordem para as superfícies superior/inferior), restrições de área seccional (A≥A0), momento de arfagem de cruzeiro, AOA de cruzeiro (1,0°–5,0°) e espessura a 15% da corda; 3 aerofólios-base (caso A1, t/c_max=0,081, geometricamente fora da distribuição de treino/OOD; caso A2, t/c_max=0,101; caso A3 = RAE2822 original). (2) Início de buffet (buffet onset), Apêndice C — BIobjetivo, maximizar (L/D)_cruzeiro e C_L,buffet (critério lift-curve-break), D=21 (as mesmas 20 CST + espessura relativa máxima (t/c)_max como variável extra); 6 aerofólios-base (A1–A3 da família RAE2822, t/c≈0,08/0,10/0,12; B1–B3 da família OAT15A, t/c≈0,08/0,10/0,12). Não há piso evolutivo 'clássico' tipo NSGA-II/MOEA-D — o piso é uma otimização 100% via CFD usando o MESMO algoritmo evolutivo diferencial (AeroOPT).",
+    "orcamento": "Não segue o formato 31D−1/DoE inicial compartilhado da dissertação — é DBO (offline puro). Um dataset de pré-treino é construído UMA ÚNICA VEZ (1420 geometrias de aerofólio via output space sampling [28], 17386 simulações CFD convergidas para o problema de arrasto — CFL3D/SST, Re=20 milhões; 25607 amostras para o problema de buffet onset, AOAs fora de projeto entre −3° e 5°). O surrogate é treinado sobre esse dataset e a busca evolutiva em si (AeroOPT: população inicial de 64 indivíduos por perturbação em bump da geometria-base + refit CST, seguida de 50 iterações com população de 32) NÃO faz nenhuma avaliação CFD real durante a busca — usa apenas o surrogate treinado. CFD real é usado só (a) para construir o dataset de pré-treino e (b) DEPOIS de concluída a busca, para verificar a população final e reconstruir a trajetória 'real'. No problema de arrasto isso totaliza 1.696 chamadas CFD por caso completo em DBO/UA-DBO, contra 9.984 chamadas do piso 100%-CFD (Tabela 4).",
+    "execucoes": "Divergência de arrasto: 5 execuções independentes (populações iniciais e sementes diferentes) por caso × método (DBO, UA-DBO), com média ± erro-padrão reportados (Tabela 3); o piso CFD-based aparenta ter sido rodado uma única vez por caso (valor único, sem ±). Início de buffet (Apêndice C): não há menção a repetições — Tabelas 5 e 6 reportam valores únicos (sem ±), sugerindo uma execução por caso (6 casos); a comparação com o piso CFD-based não é apresentada nessa parte.",
+    "baselines": "3 frameworks de otimização comparados diretamente: (1) 'CFD-based' — SEM surrogate, o MESMO algoritmo evolutivo diferencial multiobjetivo (AeroOPT) avaliando via CFD a cada iteração — funciona como o 'piso' não-assistido da comparação, mas só é de fato executado (com tabela/figura de resultado) para o problema de divergência de arrasto — para o buffet onset, o custo de ~110h é apenas mencionado, sem resultado de qualidade correspondente; (2) 'Original DBO' — encoder-decoder determinístico (mesma arquitetura-base do GS-ED, exceto a cabeça probabilística), objetivo = predição pontual do modelo; (3) proposto 'UA-DBO' — GS-ED (encoder-decoder variacional) + objetivo consciente da confiança do modelo (usa o limite superior do IC, Eq. 2–4). Adicionalmente, só para avaliar a QUALIDADE da incerteza (não em otimização completa), o artigo compara GS-ED contra um 'deep ensemble' clássico (n=3 e n=6 modelos determinísticos independentes, cada um treinado com subamostragem de 90% do dataset) — Tabela 2. Há, portanto, piso sem surrogate (CFD-based) para o problema de arrasto.",
+    "metricas_principais": [
+      "redução do coeficiente de arrasto médio C̄_D (em counts), média sobre 6 números de Mach",
+      "razão sustentação/arrasto de cruzeiro (L/D)_cruzeiro e coeficiente de sustentação de início de buffet C_L,buffet (problema biobjetivo do Apêndice C)",
+      "MAE (erro absoluto médio) do modelo — acurácia pontual da média predita",
+      "ECE (expected calibration error) e cobertura empírica do intervalo de confiança de 90% — qualidade da incerteza",
+      "tempo de parede, tempo de GPU (treino/inferência) e número de chamadas CFD — custo computacional"
+    ],
+    "testes": [
+      "nenhum — todo o artigo reporta média ± erro-padrão (ou valores únicos) sem nenhum teste de hipótese formal (Wilcoxon, Friedman, t-test, etc.)"
+    ],
+    "apresentacao": "Média ± erro-padrão sobre as execuções independentes (só na divergência de arrasto); percentuais de redução/melhoria entre parênteses, relativos ao DBO original (Tabela 5) ou ao aerofólio-baseline não otimizado (Tabela 6); casos em que UA-DBO supera DBO marcados em NEGRITO (Tabela 6); uma única execução 'selecionada entre as cinco' (não a mediana, não média/IQR) usada para as curvas de convergência (Fig. 8) e para a análise erro×incerteza (Fig. 9); 'amostra típica' do Pareto selecionada por maior ganho em C_L,buffet condicionado a (L/D)_cruzeiro acima do baseline (Tabela 6); nenhuma escala logarítmica mencionada; nenhum teste estatístico em nenhuma tabela; footnotes numéricas ('1') em algumas linhas de A1/B1 nas Tabelas 3, 5 e 6 cujo texto explicativo não foi capturado pela conversão do PDF (provavelmente relacionado ao caráter fora-de-distribuição desses casos).",
+    "codigo_plataforma": "Otimização evolutiva: código próprio in-house 'AeroOPT' (Li et al., ref. [29]), implementando um algoritmo evolutivo diferencial multiobjetivo, gradiente-livre e estocástico. CFD: solver RANS de código aberto CFL3D, com fechamento de turbulência Shear Stress Transport (SST), malha estruturada tipo C gerada por código in-house, estratégia multigrid em W (3 níveis, 1000/1000/4000 iterações), Re=20 milhões, T=580°R. Framework de deep learning não nomeado explicitamente; treino com otimizador Adam, warmup (1e-4→1e-3 nas primeiras 20 épocas) + decaimento exponencial (base 0,95), até 300 épocas, batch size 16. Hardware: GPU NVIDIA P2000 (treino/inferência dos modelos) e 8 núcleos de CPU Intel Xeon Gold 6145 (simulações CFD)."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Acurácia da média: modelo determinístico vs. modelo com UQ, em treino/teste (pré-treino)",
+      "grupo_sugerido": "E",
+      "descricao": "Tabela única (Tabela 1) comparando o MAE de predição do coeficiente de arrasto entre o modelo determinístico (ED) e o proposto GS-ED (probabilístico), separadamente nos conjuntos de treino e teste do dataset de pré-treino (1420 aerofólios, 17386 simulações CFD). Reporta duas granularidades: o MAE de C_D sobre todas as amostras (todas as condições de Mach) e o MAE de C̄_D (a métrica agregada de fato usada na otimização, média sobre as 6 condições de projeto). Responde: adicionar a cabeça probabilística/variacional piora a acurácia pontual do modelo?",
+      "literal": "By comparing the errors of the deterministic and probabilistic models, it is found that the introduction of UQ slightly worsens the model's performance on the training dataset.",
+      "localizador": "Sec. 4.1.1, Table 1, p. 13–14",
+      "metricas": [
+        "MAE de C_D (todas as amostras, em counts)",
+        "MAE de C̄_D (média por aerofólio, em counts)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "MAE em 'counts' (10⁻⁴); valores separados para treino e teste; sem barra de erro/desvio-padrão reportada; comparação lado a lado dos dois modelos (determinístico × GS-ED), ambos com Encoder/Decoder idênticos exceto a cabeça latente.",
+      "achado": "A introdução da UQ piora ligeiramente a acurácia no treino (MAE de C̄_D: 0,93 GS-ED vs. 0,86 determinístico; MAE de C_D geral: 1,72 vs. 1,69), atribuído à complexidade extra do termo probabilístico da perda e a aproximações na posterior; no teste, porém, os dois modelos ficam praticamente empatados (C̄_D: 0,96 ambos; C_D: 1,83 GS-ED vs. 1,85 determinístico), evidenciando melhor capacidade de generalização do modelo probabilístico apesar do leve custo de acurácia no treino.",
+      "aplicabilidade": "não diretamente reproduzível com as 7 camadas tal como está — exigiria treinar duas variantes (determinística vs. probabilística) da MESMA arquitetura de surrogate sobre o mesmo dataset de pré-treino, o que não está entre as configurações executadas na bateria (cada algoritmo já usa um surrogate fixo). O par mais próximo disponível na dissertação é a ablação exata Prob-MOEA/D × MOEA/D-média (ficha 11, via camadas ③+⑦), mas ali a incerteza é usada na SELEÇÃO durante a busca, não comparada em acurácia pontual pré-implantação como aqui."
+    },
+    {
+      "fichas": [
+        33,
+        47
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela (Tabela 2) comparando a QUALIDADE da incerteza calibrada entre o GS-ED proposto e um 'deep ensemble' clássico (n=3 e n=6 modelos determinísticos independentes), via duas métricas: a cobertura empírica do intervalo de confiança de 90% (percentual de amostras abaixo do limite inferior, dentro do intervalo, e acima do limite superior — alvo 5%/90%/5%) e o ECE (expected calibration error, média sobre 9 níveis de confiança α=0,1,...,0,9), em treino e teste, após calibração linear dos limites (Eq. 10). Reporta também o tempo de GPU (treino e inferência) de cada método, permitindo comparar qualidade de calibração contra custo computacional.",
+      "literal": "The GS-ED model achieves the ECE between ensemble with n = 3 and n = 6, while providing more accurate coverage of the 90% interval on the test set.",
+      "localizador": "Sec. 4.1.2, Table 2, p. 13–15",
+      "metricas": [
+        "frequência abaixo do LB90%",
+        "frequência dentro do IC90%",
+        "frequência acima do UB90%",
+        "ECE (expected calibration error)",
+        "tempo de GPU (treino)",
+        "tempo de GPU (inferência)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Percentuais de frequência (abaixo do LB / dentro do IC / acima do UB) somando 100%; ECE como média ponderada (pesos iguais 1/9) sobre 9 níveis de confiança; treino × teste; GS-ED com 3 execuções de validação cruzada, médias reportadas; ensemble com n=3 e n=6 membros; tempo de GPU em horas (treino) e segundos (inferência); todas as medições em uma GPU NVIDIA P2000.",
+      "achado": "Todos os métodos alcançam calibração boa e cobertura próxima de 90% no teste (GS-ED 89,5%, Ensemble n=3 89,2%, Ensemble n=6 87,6%); ECE no teste: GS-ED=0,0491, Ensemble n=3=0,0599, Ensemble n=6=0,0345 — o ensemble n=6 tem o MENOR ECE mas a cobertura MENOS precisa; GS-ED fica entre os dois ensembles em ECE mas com a cobertura mais precisa. Em custo, GS-ED treina em 0,53h e infere em 0,10s (um único modelo, um único forward pass), contra 1,41h/0,27s do ensemble n=3 e 2,82h/0,54s do ensemble n=6 — GS-ED atinge qualidade de calibração comparável a 1/5 do custo de treino do ensemble n=6 (citado na Conclusão como 'reducing training cost by 1/5').",
+      "aplicabilidade": "③ sonda (μ, σ e f verdadeiro sobre um conjunto de pontos de teste conhecidos) — cobertura empírica e ECE por nível de confiança são diretamente calculáveis a partir da sonda para qualquer algoritmo que produza σ/score (dimensão 3 da sonda, ficha 33); aqui, porém, a medição é PONTUAL (pré-implantação, sobre um split fixo de treino/teste), não uma curva ao longo do orçamento como a ficha 33 pressupõe — seria o equivalente a UM ÚNICO ponto dessa curva."
+    },
+    {
+      "fichas": [
+        1,
+        13,
+        40,
+        52
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela final (Tabela 3) comparando os 3 frameworks (CFD-based, DBO, UA-DBO) nos 3 casos de divergência de arrasto (A1, A2, A3): para DBO/UA-DBO, reporta a redução de C̄_D predita pelo modelo no ponto ótimo, a redução avaliada por CFD desse MESMO ponto, o erro entre as duas (o 'gap de fantasia'), e a redução real do melhor indivíduo (reavaliado por CFD) de toda a população final — este último diretamente comparável ao resultado do piso CFD-based. Todos os valores são média ± erro-padrão sobre 5 execuções independentes.",
+      "literal": "On average, UA-DBO delivers a drag reduction 1.47 times greater than that achieved by DBO and reduces the model error of the optimized sample by 39.6%.",
+      "localizador": "Sec. 4.2, Table 3, p. 15–16",
+      "metricas": [
+        "redução de C̄_D predita pelo modelo (counts)",
+        "redução de C̄_D avaliada por CFD (counts)",
+        "erro de predição no ótimo (counts)",
+        "redução real do melhor indivíduo da população final (counts)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Média ± erro-padrão sobre 5 execuções independentes (DBO/UA-DBO); CFD-based sem repetição (valor único); DBO e UA-DBO compartilham o MESMO dataset de pré-treino e a mesma configuração de busca (AeroOPT), diferindo só no surrogate (determinístico × GS-ED) e no objetivo (predição pontual × limite superior do IC) — um par quase-gêmeo controlado.",
+      "achado": "UA-DBO produz reduções reais maiores e mais estáveis que DBO nos 3 casos (ex. A1: 28,9±7,0 vs. 15,3±8,1 counts; A3: 87,7±5,7 vs. 69,9±20,9 counts); em média, redução 1,47× maior que DBO e 39,6% menos erro de predição no ponto ótimo, com variância do erro substancialmente reduzida. Já o DBO acumula erro crescente ao longo da busca, gerando 'mínimos falsos' (o modelo acredita que melhorou, mas o CFD mostra que não): no caso A3, por exemplo, DBO prevê 92,9±11,0 counts mas o CFD confirma só 65,4±23,3 (erro de 27,5±14,6), enquanto UA-DBO prevê 91,6±3,9 e o CFD confirma 87,5±6,0 (erro de só 7,2±6,0).",
+      "aplicabilidade": "① avaliação real do ponto ótimo (fantasia, ficha 40) + ⑦ endpoint reavaliado dos algoritmos offline (ficha 13, já que DBO e UA-DBO compartilham o mesmo dataset/① por desenho, análogo aos quatro offline do roster) — o par DBO×UA-DBO em si (mesma maquinaria, só a incerteza difere) é estruturalmente o padrão da ficha 52 ('lupa da incerteza'), embora nenhum dos dois esteja no roster da dissertação; o piso CFD-based corresponde a um piso evolutivo (ficha 1) rodando com o MESMO motor, só que com avaliação real a cada iteração."
+    },
+    {
+      "fichas": [
+        26,
+        41
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para cada um dos 3 casos, uma execução (dentre as 5) é selecionada para plotar a convergência do objetivo ao longo das 50 iterações (Fig. 8): a curva 'acreditada' pelo modelo (predição do surrogate no indivíduo apontado como ótimo a cada iteração) sobreposta à curva 'real' (mesmo indivíduo, reavaliado por CFD), para CFD-based, DBO e UA-DBO simultaneamente, incluindo a faixa do IC de 90% para UA-DBO.",
+      "literal": "DBO exhibits increasing prediction errors as optimization proceeds, ultimately resulting in false minima, where the predicted performance is better but the actual performance deteriorates.",
+      "localizador": "Sec. 4.2, Fig. 8, p. 16–17",
+      "metricas": [
+        "C̄_D predito pelo modelo (counts)",
+        "C̄_D real, via CFD (counts)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "UMA execução selecionada entre as cinco por caso (não mediana/IQR de todas); curvas tracejadas (crença do modelo) sobrepostas a curvas sólidas (CFD-verificado); faixa sombreada = IC de 90% (só UA-DBO); marcadores distintos por método no ponto de descoberta do ótimo real (quadrado preto=CFD-based, triângulo azul=DBO, losango vermelho=UA-DBO); eixo x = iteração (não fração do orçamento real, já que não há avaliações reais durante a busca).",
+      "achado": "Ao longo das iterações, a curva 'acreditada' do DBO se afasta cada vez mais da curva real (divergência crescente = 'mínimo falso': o modelo diz que está melhorando, mas o CFD mostra estagnação ou piora); a curva real do UA-DBO, por otimizar o limite superior do IC em vez da média, permanece dentro da própria faixa de confiança predita e mais próxima da curva acreditada, evitando esse tipo de divergência.",
+      "aplicabilidade": "② população por geração + ③ predição (μ) do indivíduo apontado como melhor a cada geração + ① avaliação real do MESMO indivíduo — reconstrução geração-a-geração da 'fronteira/valor acreditado vs. real' (ficha 41); para os offline do roster, isso exigiria reavaliar indivíduos intermediários na função verdadeira ao longo da busca, o que a instrumentação da dissertação só faz ao final (camada ⑦), não geração a geração — logo, só parcialmente reprodutível com os dados já gravados."
+    },
+    {
+      "fichas": [
+        34,
+        33
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para a mesma execução da Fig. 8, o artigo plota (Fig. 9) o erro real do modelo contra a largura do intervalo de confiança de 90% predito, para cada indivíduo das populações inicial e final (DBO e UA-DBO), nos 3 casos — avaliando se a incerteza reportada de fato separa (discrimina) os candidatos de erro grande dos de erro pequeno, e se está bem calibrada nas populações reais de busca (não só no split de treino/teste da Tabela 2).",
+      "literal": "In Case A3, the GS-ED model assigns substantially larger predictive intervals to DBO's final individuals (red points), preventing UA-DBO from being led astray by these falsely under-predicted optima.",
+      "localizador": "Sec. 4.2, Fig. 9, p. 17–18",
+      "metricas": [
+        "erro do modelo (counts)",
+        "largura do IC de 90% predito (counts)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Eixo x=erro do modelo, eixo y=largura do IC90%; pontos cinza=população inicial, vermelho=DBO final, azul=UA-DBO final; duas linhas tracejadas marcam os limites de calibração ideal (onde 90% dos erros deveriam cair); mesma execução usada na Fig. 8; discussão qualitativa caso a caso (A1, A2, A3), sem métrica de correlação (ρ) explicitada.",
+      "achado": "No caso A3, o GS-ED atribui intervalos muito maiores aos indivíduos finais do DBO (que de fato têm erro real maior), permitindo ao UA-DBO evitar esses ótimos falsos; no caso A2 os erros de ambos já são pequenos e a UQ é a mais precisa, então o ganho do UA-DBO é só marginal; no caso A1 (geometria OOD) o modelo é MENOS bem calibrado e tanto DBO quanto UA-DBO acabam incluindo amostras numa região enganosa de subestimação do erro — um resultado parcialmente negativo para a calibração fora de distribuição, ainda que a incerteza consiga preservar um subconjunto de indivíduos de baixo erro.",
+      "aplicabilidade": "③ sonda — σ predito e erro real |μ−f| por ponto — a discriminação do σ (ficha 34) é diretamente calculável comparando σ predito e erro real nos indivíduos das populações inicial e final de qualquer algoritmo; a checagem de cobertura nas populações de busca (não só no split de treino/teste) também se conecta à dimensão 3 da sonda (ficha 33)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Comparação qualitativa da geometria/aerodinâmica da solução otimizada",
+      "grupo_sugerido": "H",
+      "descricao": "Comparação visual (Figs. 10–11) entre o melhor aerofólio obtido por CFD-based e por UA-DBO no caso A3 (RAE2822): geometrias, distribuições de Cp de cruzeiro, curva de C_D×Mach, distribuições de pressão de superfície e contornos de número de Mach através da faixa de Mach de projeto, acompanhada de interpretação física dos mecanismos aerodinâmicos (posição/força da onda de choque, pico de sucção, front-loading) responsáveis pelas diferenças de desempenho entre os frameworks.",
+      "literal": "These results demonstrate that incorporating uncertainty does not limit the search region and hinders the optimization process from finding the optimal.",
+      "localizador": "Sec. 4.2, Figs. 10-11, p. 18–20",
+      "metricas": [
+        "nenhuma métrica numérica — comparação qualitativa de geometria, distribuição de Cp e número de Mach de choque"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Comparação lado a lado de UM caso (A3/RAE2822), sem estatística; geometrias sobrepostas, distribuições de Cp/Cf e contornos de Mach para as 6 condições de Mach de projeto; inspeção qualitativa apoiada em conhecimento de engenharia aerodinâmica (localização de choque, separação).",
+      "achado": "CFD-based e UA-DBO convergem para geometrias com o mesmo mecanismo qualitativo de melhoria (enfraquecimento/atraso da onda de choque, eliminando separação em Mach alto), mas variações no compromisso entre pico de sucção, aceleração pós-choque e front-loading na borda de ataque geram mínimos locais de C_D distintos — UA-DBO alcança 93,2% da redução média obtida pelo piso CFD-based com esse mecanismo, sem restringir a região de busca explorada.",
+      "aplicabilidade": "não reproduzível com as 7 camadas da dissertação — exige interpretação física de engenharia da solução (geometria de aerofólio, distribuição de pressão, ondas de choque) sem análogo nos benchmarks sintéticos (ZDT/DTLZ/WFG/MMF/BBOB) e sem contraparte instrumentada nas camadas ①-⑦; nos 3 problemas reais da dissertação poderia inspirar uma inspeção qualitativa pontual da solução final, mas não uma camada de dados gravada sistematicamente."
+    },
+    {
+      "fichas": [
+        47,
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela (Tabela 4) decompondo o tempo de parede de um caso completo de otimização em preparação de dados (construção do dataset de pré-treino), treino do modelo, avaliação de cruzeiro por amostra, avaliação fora de projeto por amostra, verificação dos ótimos via CFD, número total de chamadas CFD e tempo total de otimização, para CFD-based, DBO e UA-DBO; o texto complementa com o overhead percentual de treino introduzido pela UQ e o argumento teórico de que a amostragem Monte Carlo na inferência escala memória, não tempo.",
+      "literal": "In the CFD-based framework, each optimization iteration requires multipoint CFD evaluations, leading to a total of 9,984 CFD calls and a wall-clock time of 41.6 hours for a single optimization case.",
+      "localizador": "Sec. 4.3, Table 4, p. 21",
+      "metricas": [
+        "tempo de preparação de dados (h)",
+        "tempo de treino do modelo (h)",
+        "tempo de avaliação de cruzeiro (h)",
+        "tempo de avaliação fora de projeto (h ou s)",
+        "tempo de verificação dos ótimos (h)",
+        "nº total de chamadas CFD por caso",
+        "tempo total de otimização por caso (h)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tempos de treino/inferência de ML sublinhados na tabela original (GPU NVIDIA P2000); demais tempos em CPU (8 núcleos Xeon Gold 6145); '/' indica não aplicável; a tabela extraída apresenta algumas células (preparação de dados, nº de chamadas CFD, tempo total) sem separação visível entre as colunas DBO e UA-DBO — possível artefato de mesclagem de células na conversão do PDF, já que preparação de dados e o dataset de pré-treino são efetivamente compartilhados entre os dois frameworks.",
+      "achado": "UA-DBO conclui uma otimização completa em 7,7 horas com 1.696 chamadas CFD (majoritariamente para verificação pós-busca, não durante a busca), contra 41,6 horas e 9.984 chamadas do piso CFD-based — mais de 5× mais rápido, mesmo contabilizando as 830h de preparação do dataset (amortizadas por ser reutilizável em múltiplos problemas). A UQ acrescenta apenas 13% ao tempo de treino do modelo (0,53h vs. 0,47h do DBO) e, segundo o artigo, a amostragem Monte Carlo de Ns vetores latentes na inferência multiplica apenas o custo de MEMÓRIA (não o tempo), pois decodificação e pós-processamento são paralelizáveis — 'the efficiency of DBO is maintained in UA-DBO'.",
+      "aplicabilidade": "④ tempos por geração (ajuste do modelo, busca, sonda) — decomposição fit/busca/avaliação diretamente análoga à camada ④ (ficha 48); a comparação contra um 'piso' 100% avaliação real (aqui CFD-based) corresponde a comparar contra os pisos evolutivos sem surrogate da dissertação (ficha 47, custo × qualidade)."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade da calibração do σ aos hiperparâmetros de treino do modelo probabilístico (peso KL β, nº de amostras Nl)",
+      "grupo_sugerido": "E",
+      "descricao": "Estudo de sensibilidade cruzada (Apêndice B) do peso do termo extra de regularização KL na perda do GS-ED (β=0, 10⁻⁶, 10⁻⁵, 10⁻⁴) e do número de amostras latentes usadas no TREINO (Nl=1, 4, 8) sobre a acurácia da média (MAE de C̄_D) e a qualidade calibrada da incerteza (ECE), com 3 execuções de validação cruzada por configuração, referenciadas contra o ED determinístico (MAE) e o deep ensemble n=6 (ECE). β=0 funciona como uma ablação implícita do termo de regularização KL introduzido pelos autores (Sec. 2.3.1).",
+      "literal": "However, the corresponding calibrated ECE is significantly worse and remains far above the ensemble reference line, demonstrating that the resulting uncertainty estimates are poorly calibrated.",
+      "localizador": "Appendix B, p. 26–27",
+      "metricas": [
+        "MAE de C̄_D",
+        "ECE calibrado"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "3 execuções de validação cruzada por configuração de hiperparâmetro, média com barra de erro; linhas tracejadas de referência (ED determinístico para MAE; deep ensemble n=6 para ECE); grade de 4 valores de β × 3 valores de Nl.",
+      "achado": "Sem o termo KL extra (β=0), o MAE é baixo (boa acurácia pontual) mas a incerteza fica mal calibrada (ECE bem acima da referência do ensemble) — um trade-off explícito: aumentar β para 10⁻⁵/10⁻⁴ aproxima a ECE da referência do ensemble às custas de MAE ligeiramente pior; aumentar Nl de 1 para 4 melhora tanto MAE quanto ECE, e Nl=8 traz ganho só marginal. A configuração β=10⁻⁵, Nl=4 foi adotada como o compromisso usado no corpo principal do artigo (Tabela 1, 2, 3 etc.).",
+      "aplicabilidade": "não reproduzível com as 7 camadas tal como está — exigiria retreinar o surrogate com múltiplos valores de hiperparâmetros de TREINO (peso da regularização, nº de amostras), fora das configurações já executadas; a instrumentação da dissertação registra o comportamento do surrogate JÁ treinado (camada ③), não uma varredura de hiperparâmetros de treinamento do próprio modelo."
+    },
+    {
+      "fichas": [
+        42,
+        54
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para os 6 casos do problema de buffet onset (Apêndice C), o artigo plota a frente não-dominada ACREDITADA pelo modelo (população final, avaliada só pelo surrogate) contra a frente REAL (mesma população, reavaliada por CFD), separadamente para DBO (Fig. 4a) e UA-DBO (Fig. 4b) — o análogo bi-objetivo/offline do 'gap de fantasia' das Figs. 8–9 do corpo principal.",
+      "literal": "In Fig. 4a, significant prediction errors are observed in several cases (e.g., Cases B1 and B2), where the dashed actual Pareto fronts are below the model-predicted ones, indicating over-predictions of buffet onset.",
+      "localizador": "Appendix C.4.1, Fig. 4, p. 30",
+      "metricas": [
+        "nenhuma métrica numérica — comparação visual de frentes de Pareto (predita × real)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Quadrados pretos=baseline; círculos cinza=predição do modelo na população final; linha tracejada cinza=frente ND predita; quadrados sólidos=CFD-verificado; linha sólida colorida=frente ND real; 6 casos (A1–A3, B1–B3); painel (a) DBO × painel (b) UA-DBO; aparentemente uma única execução por caso (sem repetição mencionada).",
+      "achado": "Para DBO, a frente real fica sistematicamente ABAIXO da frente predita em vários casos (ex. B1, B2) — superestimação do buffet onset pelo modelo; para UA-DBO essa discrepância encolhe bastante (frentes tracejada e sólida quase coincidem nos 6 casos). As frentes PREDITAS de DBO e UA-DBO são parecidas entre si — é a frente REAL (pós-reavaliação) que difere, mostrando que o ganho vem da confiabilidade do modelo, não de uma busca melhor em si.",
+      "aplicabilidade": "⑦ (regime offline) — fração/coincidência do ND acreditado vs. ND real após reavaliação na função verdadeira, exatamente o padrão da ficha 42, disponível para os 4 algoritmos offline do roster (b5m, b5r, moead_media, e103) via reavaliação final; a visualização lado a lado das duas frentes também se conecta à ficha 54, embora ali o contraste usual seja com a frente VERDADEIRA conhecida (não com a frente 'acreditada')."
+    },
+    {
+      "fichas": [
+        40
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela (Tabela 5) reportando o MAE do coeficiente de sustentação de início de buffet (C_L,buffet) nas populações finais de DBO e UA-DBO, para os 6 casos, com o percentual de redução do erro do UA-DBO em relação ao DBO entre parênteses — a versão numérica/agregada do 'gap de fantasia' cuja versão visual é a Fig. 4.",
+      "literal": "On average, UA-DBO reduces model prediction errors by 32.8%.",
+      "localizador": "Appendix C.4.1, Table 5, p. 30–31",
+      "metricas": [
+        "MAE de C_L,buffet (população final)",
+        "percentual de redução relativo ao DBO"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Valor absoluto de MAE + percentual de redução entre parênteses, relativo ao DBO original citado de [5]; 6 casos; sem repetições/desvio-padrão reportado.",
+      "achado": "UA-DBO reduz o MAE de C_L,buffet em relação ao DBO em todos os 6 casos: A1 0,027→0,016 (−38,4%), A2 0,017→0,016 (−7,6%), A3 0,019→0,013 (−30,5%), B1 0,037→0,024 (−34,9%), B2 0,032→0,010 (−70,3%), B3 0,028→0,024 (−15,1%) — redução média de 32,8%, com o caso A2 mostrando o menor ganho (erros já pequenos em ambos os frameworks) e B2 o maior.",
+      "aplicabilidade": "③ predições na população final + ① avaliação real correspondente — MAE/RMSE entre a predição que motivou a escolha (μ) e o f real obtido, exatamente a ficha 40, calculável na população final de qualquer execução offline do roster."
+    },
+    {
+      "fichas": [
+        1,
+        52
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Tabela final (Tabela 6) com o desempenho CFD-verificado (C_L,buffet e (L/D)_cruzeiro) de uma 'amostra típica' selecionada da frente de Pareto de DBO e de UA-DBO em cada um dos 6 casos, comparada ao aerofólio-baseline não otimizado, com percentual de melhoria entre parênteses e os casos em que UA-DBO supera DBO em cada objetivo marcados em negrito.",
+      "literal": "In four out of six cases, the representative UA-DBO samples demonstrate superior performance in both objectives compared to their DBO counterparts, and in the remaining two cases, at least one objective shows improvement.",
+      "localizador": "Appendix C.4.2, Table 6, p. 31–32",
+      "metricas": [
+        "C_L,buffet",
+        "(L/D)_cruzeiro",
+        "percentual de melhoria relativo ao baseline"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Percentual de melhoria relativo ao baseline entre parênteses; resultados em que UA-DBO supera DBO marcados em NEGRITO; 'amostra típica' escolhida por maior ganho de C_L,buffet mantendo (L/D)_cruzeiro acima do baseline; 6 casos; sem repetição/desvio-padrão reportado; par DBO×UA-DBO controla a mesma maquinaria (mesma arquitetura, mesmo AeroOPT), variando só a incerteza.",
+      "achado": "Em 4 dos 6 casos (A1, A2, A3, B1) a amostra típica do UA-DBO supera a do DBO nos DOIS objetivos simultaneamente (ex. A2: C_L,buffet +10,5% vs. +9,6%, (L/D)_cruzeiro +17,9% vs. +13,7%); nos 2 casos restantes (B2, B3) apenas um objetivo melhora — em B2 o ganho de (L/D)_cruzeiro empata (0,0% ambos) e em B3 o ganho de C_L,buffet do UA-DBO (20,1%) fica ABAIXO do DBO (28,8%), embora o (L/D)_cruzeiro suba muito mais (12,9% vs. 0,4%) — um resultado misto/trade-off, não dominância estrita do UA-DBO sobre o DBO em todos os casos.",
+      "aplicabilidade": "① endpoint reavaliado + ⑦ (regime offline) — placar final por caso (ficha 1), comparando um par de mesma maquinaria com/sem uso explícito da incerteza no objetivo (padrão da ficha 52, 'lupa da incerteza'), embora nenhum dos dois esteja no roster da dissertação."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Comparação qualitativa da geometria/aerodinâmica da solução otimizada",
+      "grupo_sugerido": "H",
+      "descricao": "Comparação visual (Fig. 5, Apêndice C) das geometrias e distribuições de Cp de cruzeiro das 'amostras típicas' selecionadas na Tabela 6 (DBO × UA-DBO), para os 6 casos do problema de buffet onset, com interpretação física do deslocamento/enfraquecimento da onda de choque e da suavidade das distribuições de Cp resultantes.",
+      "literal": "Additionally, UA-DBO promotes the generation of samples with smoother Cp distributions, reducing unfavorable bumps and fluctuations during cruise conditions.",
+      "localizador": "Appendix C.4.2, Fig. 5, p. 32",
+      "metricas": [
+        "nenhuma métrica numérica — comparação qualitativa de geometria e distribuição de Cp"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Comparação visual lado a lado das geometrias/Cp típicas selecionadas na Tabela 6, sem estatística; 6 casos (A1–A3, B1–B3).",
+      "achado": "Os aerofólios otimizados por DBO e UA-DBO deslocam e enfraquecem a onda de choque na superfície superior (favorável ao retardo do buffet) em ambos os frameworks, mas as amostras do UA-DBO exibem distribuições de Cp mais suaves, com menos ondulações desfavoráveis em condição de cruzeiro do que as do DBO.",
+      "aplicabilidade": "não reproduzível com as 7 camadas da dissertação — mesma limitação da análise das Figs. 10-11 do corpo principal: interpretação física de engenharia sem análogo nos benchmarks sintéticos nem contraparte instrumentada nas camadas ①-⑦."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "Duas frentes complementares, ambas no conjunto de teste (não visto) após calibração linear feita no treino (fatores κ_L, κ_U, Eq. 10): (1) cobertura empírica do IC de 90% — fração de amostras com erro real abaixo do limite inferior, dentro do intervalo, e acima do limite superior, comparada aos alvos teóricos 5%/90%/5%; (2) ECE (expected calibration error) — calculado sobre 9 níveis de confiança α=0,1,...,0,9: para cada nível, mede-se a fração empírica ĉ_α de amostras cujo valor real cai dentro do intervalo [LB_α, UB_α] predito, e o ECE é a média (peso 1/9) da diferença absoluta |ĉ_α − α|. Ambas as métricas são aplicadas ao GS-ED proposto E a um deep ensemble clássico (n=3, n=6), permitindo comparar a calibração entre dois mecanismos de incerteza distintos (Tabela 2); adicionalmente, uma checagem qualitativa de cobertura é refeita sobre as populações reais de busca (não o split de treino/teste) na Fig. 9, e um estudo de sensibilidade da ECE aos hiperparâmetros de treino (peso KL β, nº de amostras Nl) aparece no Apêndice B.",
+    "literal": "The ECE is then defined by averaging the distance between ĉα and target α: ECE = Σ α=0.1,···0.9 wα |ĉα −α| where wα = 1/9.",
+    "localizador": "Sec. 2.3.3 (Eq. 10, calibração linear); Sec. 4.1.2, Table 2, p. 13–15; Appendix B, p. 26–27 (sensibilidade); Fig. 9, p. 17–18 (checagem nas populações de busca)"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Tempo total de parede por caso completo de otimização, decomposto em: preparação de dados/dataset de pré-treino (830h, aparentemente compartilhado entre DBO e UA-DBO), treino do modelo (0,47h DBO / 0,53h UA-DBO), avaliação de cruzeiro por amostra (0,03h), avaliação fora de projeto por amostra (0,20h no CFD-based vs. 0,09s DBO vs. 0,10s UA-DBO — 3 ordens de grandeza mais rápido), verificação dos ótimos via CFD (0,83h), número total de chamadas CFD por caso (9.984 CFD-based vs. 1.696 DBO/UA-DBO) e tempo total de otimização por caso (41,6h CFD-based vs. 7,7h DBO/UA-DBO). O texto complementa com o overhead de treino introduzido pela UQ (+13% de tempo de treino) e argumenta que a amostragem Monte Carlo de Ns vetores latentes na inferência escala o custo de MEMÓRIA, não o tempo, pois decodificação/pós-processamento são paralelizáveis. A Tabela 2 (Sec. 4.1.2) reporta ainda tempo de GPU (treino/inferência) do GS-ED contra deep ensembles (n=3, n=6) como parte da comparação de qualidade de calibração.",
+    "literal": "In the CFD-based framework, each optimization iteration requires multipoint CFD evaluations, leading to a total of 9,984 CFD calls and a wall-clock time of 41.6 hours for a single optimization case.",
+    "localizador": "Sec. 4.3, Table 4, p. 21; Sec. 4.1.2, Table 2, p. 13–15 (colunas GPU Training/Inference)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "A introdução de UQ piora levemente a acurácia do modelo no conjunto de treino em comparação ao modelo determinístico equivalente.",
+      "literal": "By comparing the errors of the deterministic and probabilistic models, it is found that the introduction of UQ slightly worsens the model's performance on the training dataset.",
+      "localizador": "Sec. 4.1.1, p. 13–14"
+    },
+    {
+      "descricao": "O GS-ED não mantém boa generalização quando encontra geometrias produzidas pela otimização que se desviam muito da distribuição de treino, sobretudo combinações de parâmetros pouco representadas no dataset.",
+      "literal": "the proposed GS-ED model does not consistently maintain strong generalization performance when encountering geometries produced by optimization that deviate greatly from the training distribution.",
+      "localizador": "Sec. 5 (Limitations), p. 22"
+    },
+    {
+      "descricao": "Sem o termo extra de regularização KL (β=0), embora a acurácia da média seja boa, a incerteza estimada fica mal calibrada — um caveat explícito dos autores sobre a necessidade da regularização.",
+      "literal": "However, the corresponding calibrated ECE is significantly worse and remains far above the ensemble reference line, demonstrating that the resulting uncertainty estimates are poorly calibrated.",
+      "localizador": "Appendix B, p. 26–27"
+    },
+    {
+      "descricao": "No caso A1 (fora da distribuição de treino), o modelo é menos bem calibrado e tanto DBO quanto UA-DBO acabam incluindo amostras numa região enganosa de subestimação do erro.",
+      "literal": "For Case A1, the model is less well-calibrated, so both DBO and UA-DBO include some samples that fall into a misleading under-estimated region.",
+      "localizador": "Sec. 4.2, p. 17–18"
+    },
+    {
+      "descricao": "No caso A2, a melhoria do UA-DBO sobre o DBO é apenas marginal, já que os erros de ambos já eram pequenos e a UQ era a mais precisa desse caso.",
+      "literal": "Most errors in Case A2 correspond to over-predictions, yet UA-DBO drives the population toward regions with small predicted uncertainty, resulting in only marginal improvement over DBO.",
+      "localizador": "Sec. 4.2, p. 18"
+    },
+    {
+      "descricao": "No problema de buffet onset, em 2 dos 6 casos a amostra típica do UA-DBO não supera o DBO nos dois objetivos simultaneamente: no caso B2 o ganho em (L/D)cruzeiro empata (0,0%) e no caso B3 o ganho em C_L,buffet do UA-DBO fica abaixo do obtido pelo DBO (20,1% vs. 28,8%).",
+      "literal": "in the remaining two cases, at least one objective shows improvement.",
+      "localizador": "Appendix C.4.2, Table 6, p. 31–32"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "O GS-ED (mecanismo de incerteza proposto, um único modelo com amostragem Monte Carlo barata) e o deep ensemble tradicional (caro, múltiplos modelos independentes treinados do zero) alcançam qualidade de calibração comparável, apesar de custos computacionais de treino/inferência muito diferentes — o mecanismo de estimação da incerteza, não a qualidade final da calibração, é o que muda de forma relevante entre os dois.",
+      "literal": "Overall, GS-ED and deep ensembles demonstrate comparable capability in estimating predictive uncertainty, with all models achieving good calibration.",
+      "localizador": "Sec. 4.1.2, p. 14"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "geometria fora da distribuição de treino (OOD geométrico)",
+      "afirmacao": "O caso A1 (fora da distribuição de treino em geometria) não apresenta erro substancialmente maior porque a estratégia prior-based inclui o campo de escoamento de cruzeiro (obtido por uma simulação CFD one-shot) como entrada, além da geometria, reduzindo a dificuldade de prever amostras OOD em geometria.",
+      "literal": "the geometry-OOD Case A1 does not exhibit substantially larger errors. The reason is that our optimization framework incorporates the cruise flow field as part of the inputs, along with geometry",
+      "localizador": "Sec. 4.2, p. 17–18"
+    },
+    {
+      "caracteristica": "geometrias produzidas pela otimização que se afastam muito da distribuição de treino / regiões esparsamente amostradas",
+      "afirmacao": "A generalização do GS-ED se degrada nessas regiões, sobretudo para combinações de parâmetros pouco representadas no dataset de treino, mesmo com a estratégia prior-based (campo de escoamento de cruzeiro como entrada).",
+      "literal": "This issue is particularly noticeable for parameter combinations that are sparsely represented in the training dataset.",
+      "localizador": "Sec. 5 (Limitations), p. 22"
+    },
+    {
+      "caracteristica": "coeficiente de arrasto de baseline mais alto (magnitude/dificuldade do caso)",
+      "afirmacao": "Os erros relativamente maiores no caso A3 podem resultar de um coeficiente de arrasto de baseline mais alto.",
+      "literal": "The relatively larger errors in Case A3, on the other hand, may result from a higher baseline drag coefficient.",
+      "localizador": "Sec. 4.2, p. 17–18"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "(1) Classificação recebida no pedido e como se manifesta no artigo: motor=EA-Dominância → o texto só descreve o otimizador como 'the multi-objective differential evolutionary algorithm... that identifies optimal samples by iteratively updating a population through mutation, crossover, and selection based on individuals' fitness values' (código in-house AeroOPT, [29]); NÃO há, no texto disponível, a palavra 'dominância'/'non-dominated sorting' explícita para descrever o mecanismo de seleção — a classificação é plausível (uso convencional do termo para DE multiobjetivo) mas não 100% literal. função da incerteza=A1·Penalização avessa a risco → CONFIRMADA de forma explícita e central: o objetivo consciente da confiança usa o limite superior do IC em vez da média (Eq. 2-4), equivalente a um trade-off média+w·desvio-padrão (Eq. 4), e o artigo argumenta textualmente que a incerteza deve 'inform the optimization process itself by regulate exploitation and prevent overconfidence', em contraste deliberado com o uso exploratório da incerteza em EGO/BO online — é a distinção que o próprio artigo elege como sua contribuição conceitual central. surrogate=NN — Rede Neural (GS-ED variacional) → confirmado (encoder 1D-convolucional + decoder MLP, cabeça latente variacional inspirada em VAE). medição=DISC-ENS (discordância entre predições) → a rigor o GS-ED é 'variacional' na perda de treino, mas o σ efetivamente REPORTADO na inferência (Eq. 7 e 9) vem de amostragem Monte Carlo de Ns vetores latentes, decodificados e agregados por desvio-padrão amostral — ou seja, uma dispersão entre um 'ensemble' de predições geradas por um único modelo (não uma variância fechada tipo GP), o que justifica DISC-ENS em vez de uma classe 'VA' fechada; note-se que, nessa leitura, o baseline 'deep ensemble' usado como referência de comparação (Tabela 2) é tecnicamente da MESMA classe grossa (DISC-ENS), só que via múltiplos modelos treinados independentemente em vez de amostragem latente de um único modelo — a Tabela 2 é portanto uma comparação INTRA-classe (dois mecanismos de dispersão), não uma comparação entre classes de medição distintas como a ficha 36 pressupõe; por isso a ficha 36 NÃO foi usada. regime=offline → fortemente confirmado: é o paradigma DBO por definição ('a surrogate model is pretrained... and is subsequently deployed offline... largely or entirely eliminating the need for CFD evaluations during optimization'); nas 50 iterações da busca em si, ZERO avaliações CFD reais ocorrem — CFD só é usado para construir o dataset de pré-treino e para verificar/reavaliar a posteriori. (2) O par DBO×UA-DBO É, por construção, uma ablação natural e praticamente exata do uso da incerteza (mesma arquitetura Encoder/Decoder, mesmo dataset de pré-treino, mesmo otimizador AeroOPT, mesmas condições/casos) — o padrão mais próximo, na tipologia, das fichas 11 (ablação exata do σ) e 52 (pares quase-gêmeos, 'lupa da incerteza'), embora nem DBO nem UA-DBO estejam no roster da dissertação (por isso mapeados como fichas normais, não como roster_bloco). (3) O piso sem surrogate (CFD-based, 100% avaliação real) só é de fato executado e comparado quantitativamente para o problema de divergência de arrasto (Tabela 3/Fig. 8-11); para o problema de buffet onset (Apêndice C) o custo do piso é apenas estimado em prosa ('leads to even larger optimization time near 110 hours', Sec. 4.3) sem tabela/figura de qualidade correspondente — não há, portanto, comparação DBO/UA-DBO vs. piso real para o problema biobjetivo, só DBO vs. UA-DBO entre si. (4) O Grupo E da tipologia (o modelo por dentro: sonda/fantasia/infill/mecanismo, fichas 31-46) tem analogias parciais importantes (Tabelas 1-2 ~ dimensões 1 e 3 da sonda; Figs. 8-9 ~ fantasia geracional e discriminação do σ) mas NUNCA na forma exata da ficha 31/33 (sonda de pontos FIXOS re-preditos a cada RETREINO ao longo do orçamento) — aqui todas as checagens de acurácia/calibração são feitas ANTES do deployment, sobre um split fixo de treino/teste (ou, no caso da Fig. 9, sobre as populações real e final de UMA execução), nunca como uma curva indexada por fração do orçamento consumido, porque o modelo NUNCA é retreinado durante a busca (regime offline puro). (5) Não há nenhum teste estatístico de hipótese em nenhuma parte do artigo (nem Wilcoxon, nem Friedman, nem t-test) — só média±erro-padrão (5 execuções, divergência de arrasto) ou valores únicos (buffet onset, aparentemente 1 execução por caso). (6) Figuras/seções excluídas de 'analises' por serem método/framework, não resultado experimental (Regra 3 do cartão): Fig. 1 (diagrama do framework DBO×UA-DBO); Fig. 2 (diagrama ilustrativo/esquemático de trajetória COM/SEM UQ, não dado real); Fig. 3 (arquiteturas ED×GS-ED); Fig. 4 e Fig. 5 do corpo principal (framework prior-based e arquitetura do modelo de arrasto); Fig. 6 e Fig. 7 (dataset de pré-treino e geometrias-base — descritivas do SETUP, não um resultado); Apêndice A inteiro (derivação matemática das perdas VAE/PVAE/GS-ED, sem dados); Fig. 1-3 do Apêndice C (definição do problema, arquitetura, critério lift-curve-break). (7) Tabelas 3, 5 e 6 trazem marcadores de nota de rodapé ('¹') em linhas de A1/B1 cujo texto explicativo não foi capturado pela camada de texto extraída do PDF (provavelmente uma nota sobre o caráter fora-de-distribuição desses casos-base) — sinalizado aqui por transparência (Regra 1 do cartão), já que não localizamos a citação exata da nota. (8) Domínio do artigo é fundamentalmente diferente do restante do corpus da dissertação: otimização aerodinâmica de forma (variáveis de projeto = coeficientes CST de geometria de aerofólio, conectados a simulações CFD/RANS reais), sem qualquer benchmark sintético (ZDT/DTLZ/WFG/MMF/BBOB); a métrica primária da dissertação (IGD+) não se aplica (só há frente de Pareto real conhecida — IGD+/HV — em nenhum dos dois problemas, já que ambos são físicos, sem forma analítica de referência); o artigo usa reduções percentuais/em 'counts' de C_D e, no caso biobjetivo, C_L,buffet e (L/D)cruzeiro diretamente."
+}

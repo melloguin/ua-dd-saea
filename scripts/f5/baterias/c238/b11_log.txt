@@ -1,0 +1,8 @@
+OK DTLZ4 linhas=371 unicas=371 maior_empate_f0=9 subnormais=38
+OK MMF11_L linhas=61 unicas=61 maior_empate_f0=4 subnormais=0
+OK ZDT6 linhas=309 unicas=290 maior_empate_f0=23 subnormais=0
+            n  dentro  larg_med  larg_max    rel_hi_med    rel_hi_max  uniq  n_lin  top_tie  n_sub
+problema                                                                                          
+DTLZ4     240       0       0.0       0.0  2.597023e-08  8.260876e-08   371    371        9     38
+MMF11_L    40       0       0.0       0.0  4.992071e-08  5.057245e-07    61     61        4      0
+ZDT6      200      11       0.0       0.0  3.976346e-05  1.845203e-03   290    309       23      0

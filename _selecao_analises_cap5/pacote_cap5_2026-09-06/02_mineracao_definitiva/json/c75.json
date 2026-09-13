@@ -1,0 +1,196 @@
+{
+  "id": "c75",
+  "sigla": "MO-EI/PI (Keane)",
+  "titulo": "Statistical Improvement Criteria for Use in Multiobjective Design Optimization",
+  "ano": 2006,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Três problemas de engenharia, nenhum pertencente às suítes padrão da dissertação (ZDT/DTLZ/WFG/MMF/BBOB): (1) 'First Example' — minimização single-objective (não-MOO) do coeficiente de arrasto Cd de um perfil aerodinâmico via código CFD VGK (full potential, viscous-coupled), M=0.78, sustentação fixa, 6 variáveis de projeto (parametrização ortogonal de Robinson e Keane); (2) 'Multiobjective Example 1' — variante do problema clássico da viga de Norwacki: M=2 objetivos (área de seção transversal A; tensão de flexão σB), D=2 variáveis (breadth b, height h), com restrições de deflexão, tensão de cisalhamento, razão h/b e flambagem por torção, frente de Pareto com extremidades conhecidas analiticamente; (3) 'Multiobjective Example 2' — variante robusta do problema do aerofólio VGK: M=2 objetivos (Cd; desvio-padrão de Cd sob ±5% de perturbações geométricas em 20 amostras aleatórias), D=6 variáveis, o mesmo problema estudado por Keane e Nair (referência 1) com busca direta estendida.",
+    "orcamento": "Exemplo SO (aerofólio): 75 pontos DOE L_Pτ (52 viáveis) + até 325 atualizações sequenciais (1 ponto por vez, krig retunado a cada atualização), melhor projeto na avaliação 396; GA direto: 1000 avaliações (20 gerações × 50). Exemplo MOO 1 (viga): 35 pontos DOE Latin hypercube + 100 atualizações sequenciais (1 ponto por vez) = 135 avaliações, usado igualmente por E[I]/P[I] e por NSGA-ii+krig; NSGA-ii direto: 1000 avaliações. Exemplo MOO 2 (aerofólio robusto): 75 pontos DOE L_Pτ + 375 atualizações em 25 lotes de 15 pontos (q=15) = 450 avaliações, usado igualmente por P[I]/E[I] e por NSGA-ii+krig; NSGA-ii direto: 1000 avaliações; busca GA direta estendida (Keane e Nair, ref. 1): 50.000 avaliações. Em cada exemplo MOO o DOE inicial é compartilhado entre os métodos assistidos por krig.",
+    "execucoes": "Heterogêneo entre as análises e muito abaixo do padrão de 30 sementes da dissertação. Exemplo SO (Fig. 6): execução única de cada método ('a typical optimization history'). Exemplo MOO 1: Fig. 12a reporta média ± 1 desvio-padrão sobre 5 execuções independentes explicitamente para a busca E[I]dom (o texto não deixa claro se as buscas NSGA-ii mostradas na mesma figura também foram médias de 5 execuções ou execuções únicas); Fig. 12b mostra 'um exemplo típico' (execução única) de todos os métodos. Exemplo MOO 2 (Tabela 2, Fig. 13): nenhuma menção a repetição — parecem ser execuções únicas por método, sem dispersão reportada.",
+    "baselines": "Sim, há piso sem surrogate: NSGA-ii aplicado diretamente ao código caro (sem RSM) nos dois exemplos MOO, e um GA direto (não-NSGA) convencional no exemplo SO. Há também um piso assistido não-estatístico: NSGA-ii aplicado ao krig sem P[I]/E[I] ('greedy', apoiado em nicho/crowding), implementado por Voutchkov, Song e Keane (ref. 20, agradecida). No Exemplo MOO 2 há ainda um quarto comparador externo: a busca GA direta estendida de Keane e Nair (50.000 avaliações, de outro estudo, ref. 1).",
+    "metricas_principais": [
+      "Cd (coeficiente de arrasto, menor é melhor)",
+      "desvio-padrão de Cd sob perturbação geométrica (robustez)",
+      "área de seção transversal A e tensão de flexão σB da viga",
+      "número de pontos no conjunto de Pareto final (cardinalidade)",
+      "número de pontos de um front dominados pela união dos resultados de outras buscas (comparação cruzada ad hoc, tipo C-metric)",
+      "número total de avaliações de função (custo)",
+      "cobertura/extensão qualitativa da frente de Pareto por inspeção visual, contra pontos-extremos analíticos conhecidos"
+    ],
+    "testes": [
+      "nenhum teste de hipótese formal em nenhuma das análises — apenas média ± 1 desvio-padrão descritiva sobre 5 execuções (Fig. 12a) e comparação de valores únicos em tabela (Tabela 2)"
+    ],
+    "apresentacao": "Nenhuma convenção de melhor-em-negrito nem símbolos +/=/−. Fig. 6 e Fig. 12b mostram 'uma execução típica' (não fica explícito se é a mediana ou apenas uma execução arbitrária); Fig. 12a usa média ± 1 desvio-padrão sobre 5 execuções; Tabela 2 lista um valor único por método, sem dispersão; pontos-extremos analíticos conhecidos da frente de Pareto são plotados como referência (losangos) no Exemplo MOO 1; eixos aparentam escala linear (sem menção a escala logarítmica em nenhuma figura).",
+    "codigo_plataforma": "Código próprio do autor, não PlatEMO/BoTorch/MATLAB Toolbox padrão: GA híbrido com codificação binária de 12 bits, inversão, elitismo, algoritmo de K-means adaptativo de MacQueen (Yin e Germay) para formação de nichos, e busca downhill DHC ('dynamic hill climbing', Yuret e de la Maza) para otimizar tanto os hiperparâmetros do krig quanto os critérios de melhoria estatística; implementação de kriging própria (ver Eqs. de correlação/verossimilhança no corpo do artigo); NSGA-ii com suporte de krig implementado por Ivan I. Voutchkov e Wenbin Song (creditados nos Acknowledgments); todo o arcabouço é situado no sistema OPTIONS Design Exploration do autor (ref. 11)."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Convergência SO ilustrativa (pré-MOO): krig+E[I] sequencial vs GA direto",
+      "grupo_sugerido": "D",
+      "descricao": "No 'First Example' (single-objective, precursor às análises multiobjetivo), o artigo compara a busca sequencial DOE (75 pontos L_Pτ) + krig + atualização por E[I] contra uma busca GA direta (1000 avaliações, 20 gerações de 50) na minimização do coeficiente de arrasto Cd de um perfil aerodinâmico via código CFD VGK (6 variáveis de projeto). A Fig. 6 plota o histórico de otimização (melhor Cd encontrado) em função do número de avaliações para os dois métodos, numa única execução de cada. É a demonstração motivacional do mecanismo de melhoria estatística antes de sua extensão ao caso multiobjetivo — por isso não corresponde a nenhuma ficha do catálogo, que é centrado em comparações MOO com IGD+/HV, múltiplos algoritmos e sementes.",
+      "literal": "Figure 6 shows a typical optimization history arising from the DOE plus kriging approach already outlined, where updates are driven by the expected improvement criterion.",
+      "localizador": "First Example and Some Basic Searches, Fig. 6 (p. 883-884)",
+      "metricas": [
+        "Cd (coeficiente de arrasto)",
+        "número de avaliações de função"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução única por método ('typical optimization history'); linha conectando os pontos do krig, pontos de 'melhor da geração' (sem linha, para clareza) para o GA direto; linha pontilhada indica o nível de arrasto atingido pelo krig; avaliações 1-75 = DOE inicial, 76-400 = sequência de atualização.",
+      "achado": "A busca sequencial DOE+krig+E[I] (single-objective) atinge um Cd melhor (0,00844) na avaliação 396 do que a busca GA direta na paisagem de arrasto (Cd=0,00850 com 1000 avaliações), exigindo 250% do esforço do krig para o GA atingir seu resultado (pior); resultado favorável ao surrogate, mas fora do escopo MOO propriamente dito.",
+      "aplicabilidade": "não reproduzível com as 7 camadas da dissertação — problema single-objective de engenharia (VGK) fora do corpus de 28 problemas, execução única sem sementes, sem estrutura MOO; ilustra o mesmo mecanismo (krig + melhoria estatística sequencial) que fundamenta os algoritmos do roster, mas não há equivalente direto nas camadas para replicar um estudo single-objective isolado."
+    },
+    {
+      "fichas": [
+        54,
+        55,
+        14
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "No 'Multiobjective Example 1' (viga de Norwacki, M=2: área × tensão de flexão), o artigo compara visualmente os conjuntos de Pareto obtidos por E[I]dom (35 DOE + 100 atualizações sequenciais, 1 ponto por vez) contra NSGA-ii direto (1000 avaliações), NSGA-ii aplicado ao krig (35+100 avaliações) e o front do DoE inicial de 35 pontos. A Fig. 12a mostra a média ± 1 desvio-padrão sobre 5 execuções independentes do E[I]dom; a Fig. 12b mostra uma execução típica de todos os métodos, sobreposta aos pontos-extremos analiticamente conhecidos da frente verdadeira (losangos).",
+      "literal": "Here Fig. 12a shows the results of averaging over five independent runs with errors bars of ±1 standard deviation, whereas Fig. 12b shows a typical example result along with the front from the initial sample of 35 points.",
+      "localizador": "Multiobjective Example 1, Fig. 12a-b (p. 889)",
+      "metricas": [
+        "cobertura/distribuição do conjunto não-dominado (qualitativo)",
+        "distância aos pontos-extremos analíticos conhecidos da frente verdadeira",
+        "número de avaliações de função"
+      ],
+      "testes": [
+        "nenhum (apenas média ± 1 desvio-padrão descritiva sobre 5 execuções, Fig. 12a)"
+      ],
+      "convencoes": "Fig. 12a: média ± 1 desvio-padrão sobre 5 execuções independentes (explícito apenas para E[I]dom; ambíguo para as buscas NSGA-ii mostradas na mesma figura); Fig. 12b: execução única ('um exemplo típico'); pontos-extremos analíticos da frente verdadeira marcados como losangos; front do DoE inicial (35 pontos) plotado como referência; sem teste estatístico, sem símbolos +/=/−, sem negrito.",
+      "achado": "O E[I]dom produz frentes de Pareto de boa qualidade que superam a NSGA-ii aplicada diretamente ao krig e são competitivas com a NSGA-ii direta usando 8 vezes menos avaliações; diferentemente das duas variantes de NSGA-ii — que falham em identificar as extremidades verdadeiras da frente —, todas as execuções do E[I] localizam essas extremidades dentro de limites estreitos, porque os critérios de melhoria reduzem o problema multiobjetivo a uma única medida de mérito passível de otimização baseada em gradiente.",
+      "aplicabilidade": "parcialmente reproduzível com as 7 camadas: ① endpoint (ND final acumulado das avaliações reais) reconstitui os conjuntos de Pareto por algoritmo/problema para comparação visual contra a frente verdadeira (ficha 54); a banda de 5 execuções (ficha 55, simplificada como média±dp em vez de attainment surface completa) seria reconstruída repetindo ① sobre 5 das 30 sementes disponíveis; o 'front do DoE inicial' (ficha 14, versão online: métrica do DoE vs. endpoint) é diretamente reproduzível via ① restrito às primeiras 31D−1 avaliações de cada execução."
+    },
+    {
+      "fichas": [
+        47
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Ainda no Exemplo MOO 1, o artigo quantifica textualmente a eficiência em avaliações de função: a frente do E[I]dom (135 avaliações totais) é dita competitiva com a da NSGA-ii direta (1000 avaliações) usando 8 vezes menos avaliações, e para alcançar cobertura de qualidade semelhante na identificação das extremidades da frente a NSGA-ii direta precisaria de cerca de 5000 avaliações. É uma comparação de custo × qualidade expressa em prosa, não uma tabela ou gráfico dedicado.",
+      "literal": "The fronts are also competitive with those coming from direct application of NSGA-ii to the problem code but use eight times fewer function evaluations.",
+      "localizador": "Multiobjective Example 1, discussão após a Fig. 12 (p. 889)",
+      "metricas": [
+        "número de avaliações de função (custo)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Números citados em prosa como razões/percentuais ('8 vezes menos avaliações', 'da ordem de 5000 avaliações'), sem tabela dedicada nem gráfico de quadrantes custo × qualidade.",
+      "achado": "Para alcançar cobertura de extremidade de frente comparável à do E[I]dom (135 avaliações), a NSGA-ii direta precisaria de cerca de 5000 avaliações — quase 40x mais; mesmo obtendo apenas uma frente competitiva (não necessariamente as extremidades exatas), a NSGA-ii direta já usa 8x mais avaliações do que o krig-E[I] para esse Exemplo.",
+      "aplicabilidade": "reproduzível via ① (contagem de avaliações reais até um checkpoint de qualidade do ND acumulado) comparando algoritmos sob a métrica de endpoint — adaptação da ficha 47 trocando tempo de parede por número de avaliações de função como eixo de custo."
+    },
+    {
+      "fichas": [
+        1,
+        47
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "No 'Multiobjective Example 2' (aerofólio VGK robusto, M=2: Cd × desvio-padrão de Cd sob 20 perturbações geométricas de ±5%), a Tabela 2 tabula, para 5 métodos (GA direto estendido de Keane e Nair, 50.000 avaliações; NSGA-ii direto, 1000; NSGA-ii+krig, 450; P[I], 450; E[I], 450), o total de avaliações, o Cd do projeto de menor arrasto, o desvio-padrão de Cd do projeto mais robusto, o número de pontos no front final, e o número de pontos desse front dominados pela união dos resultados dos outros 4 métodos. É a única tabela numérica comparativa do artigo, sem sementes/dispersão reportadas.",
+      "literal": "Table 2 provides a summary of the results obtained. Note that in the last column of Table 2 the Pareto front produced by a search is compared to the combined set of all results coming from the other four searches...",
+      "localizador": "Multiobjective Example 2, Table 2 (p. 890)",
+      "metricas": [
+        "Cd para o projeto de menor arrasto",
+        "desvio-padrão de Cd para o projeto mais robusto",
+        "número de pontos no front final",
+        "número de pontos dominados por outras buscas",
+        "avaliações totais de função"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tabela única com uma linha por método (5 métodos), sem dispersão/desvio-padrão, sem sementes explícitas; a última coluna é definida como a contagem de pontos do front de um método que são dominados pela união dos resultados dos outros 4 métodos (métrica ad hoc, tipo C-metric/coverage, não IGD+/HV).",
+      "achado": "Sob orçamento igual (450 avaliações), P[I] atinge Cd=0,00820 e desvio-padrão=0,0000136 (9 pontos no front, apenas 8 dominados por outras buscas) e E[I] atinge o menor Cd de todos os métodos (0,00810) com 12 pontos no front (mas 28 dominados por outras buscas, sugerindo menor robustez de conjunto apesar do melhor valor pontual); ambos superam claramente a NSGA-ii direta (1000 avaliações, só 2 pontos no front, 105 dominados) e a NSGA-ii+krig (450 avaliações, 3 pontos, 26 dominados), e usam apenas 1% do esforço computacional da busca GA direta estendida (50.000 avaliações, 6 pontos, 30 dominados).",
+      "aplicabilidade": "parcialmente reproduzível: ① endpoint fornece as métricas de 'melhor valor por objetivo' e '|ND|' por algoritmo/problema (análogo à ficha 1, mas com métricas ad hoc em vez de IGD+/HV, e ficha 47 para o par avaliações×qualidade); a coluna de 'pontos dominados por outras buscas' exigiria calcular dominância cruzada sobre a união dos NDs de todos os algoritmos na mesma célula — não é nativa das 7 camadas, mas é derivável de ① de todos os algoritmos naquela célula."
+    },
+    {
+      "fichas": [
+        54,
+        14
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Complementando a Tabela 2, a Fig. 13 mostra visualmente, em dois painéis, os conjuntos de Pareto obtidos pelo P[I]avg (a) e pelo E[I]avg (b) contra os mesmos 4 comparadores (GA direto estendido de Keane e Nair, NSGA-ii direto, NSGA-ii+krig, e o front do DoE inicial de 75 pontos) no espaço objetivo (Cd, desvio-padrão de Cd). A discussão textual associada (itens numerados 1-5 após a Tabela 2) interpreta essas figuras método a método, notando que nenhum método popula bem a extremidade de baixo desvio-padrão (mais robusta) da frente.",
+      "literal": "Pareto fronts resulting from a) P[I]avg search and b) E[I]avg search on airfoil problem along with direct and krig-based NSGA-ii searches, front from initial DOE together with results from extended direct GA search, direct NSGA-ii search, and krig-based NSGA-ii searches.",
+      "localizador": "Multiobjective Example 2, Fig. 13 (p. 890)",
+      "metricas": [
+        "cobertura/distribuição do conjunto não-dominado (qualitativo)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Execução única por método nesta figura (sem menção de médias/desvio-padrão, diferente da Fig. 12a do Exemplo 1); comparação visual sobreposta em um único gráfico de dispersão por painel (a: P[I]avg; b: E[I]avg); pontos de infill escolhidos em lotes de 15 (q=15) via as métricas 'avg' (média de aug/dom).",
+      "achado": "Visualmente, os fronts de P[I]avg e E[I]avg cobrem melhor o espaço objetivo do que as duas variantes de NSGA-ii e do que a busca GA direta estendida de 50.000 avaliações, embora nenhum método consiga popular bem a extremidade de baixo desvio-padrão (mais robusta) da frente — a região mais difícil do problema, onde perturbações geométricas mais frequentemente levam o solver VGK a não convergir.",
+      "aplicabilidade": "parcialmente reproduzível: ① endpoint reconstitui o ND final de cada algoritmo para plotagem qualitativa contra os demais e contra o 'front do DoE inicial' (fichas 54 e 14, versão online); sem sementes reportadas nesta figura, não há banda de dispersão a reconstruir (diferindo da Fig. 12a do Exemplo 1)."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "",
+    "literal": "",
+    "localizador": ""
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Apenas contagem de avaliações de função reais — nunca tempo de parede, nunca decomposição fit/busca/avaliação, nunca complexidade assintótica medida empiricamente: comparações percentuais/multiplicativas de esforço ('250% do esforço do krig', 'oito vezes menos avaliações de função', 'da ordem de 5000 avaliações de função', '1% do esforço computacional exigido'); a Tabela 2 lista 'Total function evaluations' por método como uma das colunas comparativas. Há ainda uma discussão teórica (não medida empiricamente neste artigo) do custo de ajuste do krig na seção 'Kriging': decomposição LU repetida de uma matriz de correlação com a mesma dimensão do número de pontos, custo que cresce fortemente com o número de variáveis, e verossimilhança de sintonia de hiperparâmetros tipicamente multimodal — motivando o limite prático do autor de 'até ~20 variáveis e 500 pontos de dados'.",
+    "literal": "again analyzed in parallel, giving a best Cd value of 0.00850 and requiring 250% of the effort of the krig approach.",
+    "localizador": "First Example and Some Basic Searches, p. 883-884 (discussão da Fig. 6)"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "No problema do aerofólio robusto (Exemplo MOO 2), o critério E[I]avg — mais agressivo, mais fortemente enviesado pela magnitude da melhoria esperada do que pela simples probabilidade — tem desempenho pior do que P[I]avg porque empurra a busca para muitos designs onde o solver CFD VGK não converge sob as perturbações geométricas exigidas, reduzindo os dados disponíveis para reajustar os krigs nas atualizações seguintes.",
+      "literal": "The search based on E[I]avg does slightly less well in this example than P[I]avg because the more aggressive nature of this metric leads to many more designs where VGK cannot solve for all of the geometry perturbations considered.",
+      "localizador": "Multiobjective Example 2, item 5 da discussão após a Tabela 2 (p. 890-891)"
+    },
+    {
+      "descricao": "O próprio autor adverte que o kriging (o surrogate GP usado em todo o artigo) tem limitações práticas de escala: fica difícil ajustar modelos com mais de ~15-20 variáveis, e o custo numérico cresce muito com mais de algumas centenas de pontos de dado, porque a sintonia de hiperparâmetros exige decomposição LU repetida de uma matriz de correlação densa do tamanho do número de pontos, e a verossimilhança usada nessa sintonia é comumente altamente multimodal — um caveat estrutural sobre a própria máquina de incerteza usada, não sobre um resultado empírico específico deste artigo.",
+      "literal": "Kriging is not a panacea for all evils, however. It is commonly found that it is difficult to set up such models for more than 15–20 variables and also that the approach is numerically expensive...",
+      "localizador": "Kriging, p. 881 (parágrafo de abertura da seção)"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Com base nos dois exemplos multiobjetivo, o artigo conclui explicitamente que a escolha precisa entre as seis formulações de critério introduzidas (P[I]aug, P[I]dom, P[I]avg, E[I]aug, E[I]dom, E[I]avg) não é crucial para o resultado, devendo antes refletir a estabilidade da ferramenta de análise, dificuldades de escalonamento relativo dos objetivos, e o equilíbrio desejado entre buscar agressivamente as extremidades da frente ou obter uma frente mais uniformemente espaçada.",
+      "literal": "Based on these results and those from the first example, it would appear that the precise choice of improvement metric is not crucial but should reflect the stability of the analysis tool,...",
+      "localizador": "Multiobjective Example 2, final da discussão, antes de Conclusions (p. 891)"
+    },
+    {
+      "descricao": "No Exemplo MOO 1 (viga de Norwacki), o artigo afirma que todas as métricas de melhoria introduzidas (as seis variantes de P[I]/E[I]) tendem a superar de forma semelhante a NSGA-ii aplicada diretamente ao krig sob o mesmo orçamento — ou seja, as variantes do próprio critério de melhoria se agrupam entre si em desempenho, distinguindo-se claramente apenas do piso assistido não-estatístico (NSGA-ii+krig 'greedy').",
+      "literal": "In fact, all of the improvement metrics introduced here are generally better than those achieved by simply applying NSGA-ii to the krig models directly, using the same number of function evaluations and update strategies.",
+      "localizador": "Multiobjective Example 1, discussão após a Fig. 12 (p. 889)"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "não convergência do solver CFD sob perturbação geométrica (falha de avaliação)",
+      "afirmacao": "O critério mais agressivo (E[I]avg) explora regiões onde mais designs perturbados fazem o solver VGK falhar, empobrecendo os dados disponíveis para o krig nas atualizações seguintes — um critério de aquisição mais 'exploratório'/agressivo pode piorar o desempenho quando o código de avaliação real é frágil a perturbações.",
+      "literal": "The search based on E[I]avg does slightly less well in this example than P[I]avg because the more aggressive nature of this metric leads to many more designs where VGK cannot solve for all of the geometry perturbations considered.",
+      "localizador": "Multiobjective Example 2, item 5 da discussão (p. 890-891)"
+    },
+    {
+      "caracteristica": "extremidade da frente definida pela interseção de duas fronteiras de restrição ativas",
+      "afirmacao": "Tanto a NSGA-ii direta quanto a NSGA-ii+krig falham em identificar as extremidades verdadeiras da frente de Pareto (conhecidas analiticamente) na viga de Norwacki, enquanto todas as execuções do critério E[I] as identificam dentro de limites estreitos, porque reduzir o problema multiobjetivo a uma única medida de mérito escalar permite usar otimizadores baseados em gradiente para varrer com precisão a interseção de restrições.",
+      "literal": "Notice also that both the direct and krig-based variants of NSGA-ii fail to identify the true ends of the front, whereas all runs of the E[I] metric identify these locations to within rather tight bounds.",
+      "localizador": "Multiobjective Example 1, discussão após a Fig. 12 (p. 889)"
+    },
+    {
+      "caracteristica": "alta taxa basal de falha de avaliação (~30%) concentrada perto das melhores regiões de projeto",
+      "afirmacao": "Segundo a experiência do autor, cerca de 30% de todas as soluções falham ao resolver por algum motivo (código CAD, malha, ou convergência do escoamento), e essas falhas tendem a ocorrer justamente perto das regiões de projeto mais desejáveis; todos os métodos usados no artigo (incluindo P[I]/E[I]) contornam essa dificuldade por evitarem buscas por gradiente/descida aplicadas diretamente às funções caras sendo otimizadas, operando sempre sobre o surrogate.",
+      "literal": "In the author’s experience, it is not uncommon for 30% of all solutions to fail to solve for one reason or another and, moreover, for these failures to occur in regions close to the most desirable solutions.",
+      "localizador": "Multiobjective Example 2, item 5 da discussão (p. 890-891)"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Artigo histórico/fundacional: introduz P[I] e E[I] multiobjetivo (seis variantes: aug/dom/avg × P[I]/E[I]) para busca de Pareto assistida por kriging — a raiz conceitual mais provável da linhagem 'MO-EI/PI (Keane)' que dá nome ao roster (mesmo este artigo não estando no roster experimental conforme o cabeçalho do pedido; roster_bloco = null por instrução explícita do pedido). É um artigo pré-métricas-padrão: não usa IGD+/HV, não usa suítes ZDT/DTLZ/WFG/BBOB, não roda sementes no padrão de 30 execuções da dissertação (no máximo 5 execuções, só para uma sub-figura do Exemplo 1), e não aplica nenhum teste estatístico de hipótese — os 'placares' são tabelas/figuras únicas com métricas de engenharia ad hoc (melhor Cd, desvio-padrão de Cd, |ND|, contagem de dominância cruzada tipo C-metric). Isso limita a comparabilidade numérica direta com os resultados da dissertação; o valor do artigo para a dissertação é sobretudo mecanístico/qualitativo: (a) confirma analiticamente que P[I]/E[I] fechados em forma de GP funcionam para Pareto multiobjetivo; (b) mostra a equivalência de desempenho entre variantes do critério (ver 'equivalencia_criterios'); (c) mostra um caso concreto em que um critério mais agressivo/explorador (E[I]avg) piora por interação com falhas de avaliação do código caro (ver 'resultados_negativos' e 'caracteristica_x_desempenho'). O Exemplo MOO 2 usa atualização em lote (q=15 por iteração, 25 lotes) — um precursor histórico de métodos batch de BO multiobjetivo (qNEHVI/qPOTS no roster da dissertação), mas o artigo não faz nenhuma comparação controlada lote-vs-sequencial dentro de si mesmo (o Exemplo 1 é sempre sequencial, o Exemplo 2 é sempre em lote — problemas diferentes, não uma ablação), por isso a ficha 64 não foi mapeada a nenhuma análise. calibracao_do_sigma.mede=false porque em nenhum momento o artigo mede a acurácia/calibração do σ do krig contra o erro real (não há RMSE, cobertura, nem correlação σ×erro) — o σ é usado apenas como insumo direto das fórmulas fechadas de P[I]/E[I], nunca validado à parte. Não foram contabilizadas como 'análises' as Figs. 2 (ilustração didática de P[I]/E[I] em função-teste 1D não nomeada, sem comparação de método), 4 (formas de aerofólio, ilustrativa), 5 e 11 (mapas/paisagens de projeto — caracterização do problema, não comparação de métodos) e 3/9 (fluxogramas conceituais), seguindo a Regra 3 do cartão (não inventar análise que o artigo não faz responder a uma pergunta comparativa). Leitura completa: 13 páginas conforme cabeçalho do arquivo-fonte; lido o corpo estruturado inteiro, o ANEXO de camada de texto completa (conferido como duplicata fiel, útil para recuperar as equações que a extração estruturada quebrou em fragmentos ilegíveis) e o ANEXO de OCR de imagens (confirma apenas rótulos de eixo/legenda das Figs. 2, 4-7, 9-13, sem conteúdo numérico novo); nenhuma seção, apêndice ou material suplementar foi pulado — o artigo não tem apêndices nem menciona material suplementar externo."
+}

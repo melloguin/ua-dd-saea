@@ -1,0 +1,251 @@
+{
+ "spec_version": "5.2",
+ "note": "D80: cada patch amarra (repo,arquivo,linha,expect_before,expect_after,sha_arquivo). O patcher ABORTA se o conteúdo atual ≠ expect_before. sha_arquivo preenchido no pre-flight (repos sem .git → pin por hash de conteúdo, ver repos.lock). Higiene v5.2: nomes de arquivo corrigidos (S.2#1), expect_before/after separados, âncoras faltantes + D93/D94/D95 adicionadas.",
+ "patches": [
+  {
+   "id": "c217-B5.1-guard1",
+   "repo": "PlatEMO",
+   "file": "Multi-objective optimization/PC-SAEA/SurrogateAssistedSelectionPC.m",
+   "line": 21,
+   "kind": "fidelidade-🔴",
+   "expect_before": "if error1 < 1-delta",
+   "expect_after": "if error1 > delta"
+  },
+  {
+   "id": "c217-B5.1-guard2",
+   "repo": "PlatEMO",
+   "file": "Multi-objective optimization/PC-SAEA/SurrogateAssistedSelectionPC.m",
+   "line": 39,
+   "kind": "fidelidade-🔴",
+   "expect_before": "elseif error2 < 1-delta",
+   "expect_after": "elseif error2 > delta"
+  },
+  {
+   "id": "e74-mask",
+   "repo": "e74_clmea",
+   "file": "CLMEA_Code/Algorithms/Multi-objective optimization/CLMEA/Local_infill.m",
+   "line": 47,
+   "kind": "🔴-D76",
+   "expect_before": "x_candidates = [x_candidates; x_offspring(Choose,:)];",
+   "expect_after": "x_candidates = [x_candidates; x_offspring(index(Choose),:)];"
+  },
+  {
+   "id": "b1-mse-guard-L8",
+   "repo": "PlatEMO",
+   "file": "Multi-objective optimization/ParEGO/EvolALG.m",
+   "line": 25,
+   "kind": "🟠-D76",
+   "expect_before": "sqrt(mse);",
+   "expect_after": "sqrt(max(mse,0));"
+  },
+  {
+   "id": "c141-sde-eps-L4",
+   "repo": "c141_mmraea",
+   "file": "extracted/MMRAEA/calFitness.m",
+   "line": 6,
+   "kind": "🟠-D76",
+   "expect_before": "PopObj = (PopObj-repmat(fmin,N,1))./repmat(fmax-fmin,N,1);",
+   "expect_after": "den(den == 0) = eps;"
+  },
+  {
+   "id": "e103-pm-D93a",
+   "repo": "e103_ibeams",
+   "file": "IBEAMS.m",
+   "line": 43,
+   "expect_before": "1/Global.D",
+   "expect_after": "{1,20,1,20}",
+   "kind": "fidelidade-🔴 (pm 1/D²→1/D)",
+   "nota": "[R1-e103] expect_after concretizado ('1' era fraco demais — casaria com qualquer arquivo): o literal e a cell de parametros do GA pos-patch, {proC=1,disC=20,proM=1,disM=20}. proM=1 na chamada -> pm efetiva 1/D (GA.m:69 divide por D — convencao PlatEMO; GA.m INTACTO)."
+  },
+  {
+   "id": "e103-judgemodel",
+   "repo": "e103_ibeams",
+   "file": "JudgeModel.m",
+   "line": 32,
+   "expect_before": "Msite = (sum(site,3)>=(M-1));",
+   "expect_after": "Msite = (sum(site,3)>=(M-1)) | logical(eye(N));",
+   "kind": "fidelidade-🔴",
+   "nota": "[R1-e103] Concretizacao da ancora descritiva ('<inclui diagonal i==j>' -> literais): o OR com logical(eye(N)) equivale ao `Msite(logical(eye(N)))=true;` sugerido no S.2-e103 (mesma semantica em 1 linha: o par i==i passa a contar como confiavel em TODOS os objetivos — a comparacao de um individuo consigo mesmo nao informa ordem). SINALIZADA p/ veto do autor (precedente e74-ndsort-obj/c238-hypervolume-rm)."
+  },
+  {
+   "id": "e103-centros-D93",
+   "repo": "e103_ibeams",
+   "file": "construct_Rnets.m",
+   "line": 4,
+   "expect_before": "center_num = ceil(sqrt(Global.D*11-1));",
+   "expect_after": "center_num = ceil(sqrt(Global.n_dataset));",
+   "kind": "fidelidade-D93 (mata o NO-OP)",
+   "nota": "[R1-e103] expect_after concretizado ('n_dataset' descritivo -> o literal MATLAB): o n INJETADO chega pelo campo Global.n_dataset, montado pelo run_e103 com o tamanho REAL do dataset carregado (31D-1 no principal; 2k/50k no sweep — D93)."
+  },
+  {
+   "id": "b1-doe-D94",
+   "repo": "PlatEMO",
+   "file": "Multi-objective optimization/ParEGO/ParEGO.m",
+   "line": 29,
+   "expect_before": "PopDec        = UniformPoint(N,Problem.D,'Latin');",
+   "expect_after": "Population    = Problem.Evaluation(Problem.data.X0);",
+   "kind": "D94 (evita dupla-escala; literais concretizados no R1-b1 — precedente Sessao 1/c141/b3)"
+  },
+  {
+   "id": "e7-doe-D94",
+   "repo": "PlatEMO",
+   "file": "Multi-objective optimization/EDN-ARMOEA/EDNARMOEA.m",
+   "line": 31,
+   "expect_before": "P     = UniformPoint(NI,Problem.D,'Latin');",
+   "expect_after": "A     = Problem.Evaluation(Problem.data.X0);",
+   "kind": "D94 (evita dupla-escala; literais concretizados no R1-e7 — precedente Sessao 1/c141/b3/b1)"
+  },
+  {
+   "id": "b4-cap109",
+   "repo": "PlatEMO",
+   "file": "Multi-objective optimization/CSEA/CSEA.m",
+   "line": 29,
+   "expect_before": "min(11*Problem.D-1,109);",
+   "expect_after": "11*Problem.D-1; % remover cap 109 (S.2#2)",
+   "kind": "init"
+  },
+  {
+   "id": "b4-cpu",
+   "repo": "PlatEMO",
+   "file": "Multi-objective optimization/CSEA/CSEA.m",
+   "line": 47,
+   "expect_before": "'ExecutionEnvironment','auto'",
+   "expect_after": "'ExecutionEnvironment','cpu'",
+   "kind": "repro"
+  },
+  {
+   "id": "e74-ndsort-obj",
+   "repo": "e74_clmea",
+   "file": "CLMEA_Code/Algorithms/Multi-objective optimization/CLMEA/ClassifierSelect.m",
+   "line": 9,
+   "expect_before": "[y_label,~] = NDSort(Parent,inf);",
+   "expect_after": "[y_label,~] = NDSort(y_obj_e74,inf);",
+   "kind": "fidelidade-🔴",
+   "nota": "[R1-e74] Concretizacao da ancora descritiva: NDSort sobre os OBJETIVOS reais dos pais (y_obj_e74 = 3o output read-only do Data_Process, alinhado linha-a-linha a x_train) — nos pontos do arquivo 'preditos' ≡ reais (newrbe e interpolador exato). Re-sim do PNN rejeitado: nivel-1 poderia sair VAZIO (crash novo no randi) e o stock recomputa por ND-sort, nao por PNN. SINALIZADA p/ veto do autor (precedente c238-hypervolume-rm)."
+  },
+  {
+   "id": "b3-updataarchive-guard",
+   "repo": "PlatEMO",
+   "file": "Multi-objective optimization/K-RVEA/UpdataArchive.m",
+   "line": 61,
+   "expect_before": "A1 = [Total(Next),New];",
+   "expect_after": "A1 = [Total(Next(Next~=0)),New];",
+   "kind": "[IMPL] crash latente (literais concretizados no R1-b3 — precedente Sessao 1/c141)"
+  },
+  {
+   "id": "c238-hypervolume-rm",
+   "repo": "c238_eim",
+   "file": "MultiObjective_EIM.m",
+   "line": 40,
+   "expect_before": "Hypervolume(",
+   "expect_after": "% [R1-c238] chamada ao mex Hypervolume removida (Windows-only — c238-hypervolume-rm)",
+   "kind": "[IMPL] (as 2 linhas :40/:64 viram o comentario-marcador; literais concretizados no R1-c238 — precedente Sessao 1/c141/b3/b1/e7)"
+  },
+  {
+   "id": "e81-matern",
+   "repo": "e81_qpots",
+   "file": "qpots/model_object.py",
+   "line": 120,
+   "expect_before": "SingleTaskGP(",
+   "expect_after": "SingleTaskGP(..., covar_module=<Matérn>)",
+   "kind": "🔵 ARTIGO"
+  },
+  {
+   "id": "e81-offset1",
+   "repo": "e81_qpots",
+   "file": "qpots/acquisition.py",
+   "line": 219,
+   "expect_before": "torch.manual_seed(1024 + seed_iter)",
+   "expect_after": "<+1000·semente (D22)>",
+   "kind": "D22"
+  },
+  {
+   "id": "e81-offset2",
+   "repo": "e81_qpots",
+   "file": "qpots/acquisition.py",
+   "line": 366,
+   "expect_before": "seed=2430",
+   "expect_after": "<+1000·semente (D22)>",
+   "kind": "D22"
+  },
+  {
+   "id": "c149-fix-M",
+   "repo": "c149_lbnmobo",
+   "file": "BO_surrogate_function_uncertainty.py",
+   "line": 46,
+   "expect_before": "[:, :2]",
+   "expect_after": "[:, :M]",
+   "kind": "fidelidade-🔴"
+  },
+  {
+   "id": "b5-mode72-kde",
+   "repo": "b5_desdeo",
+   "file": "desdeo_emo/selection/ProbMOEAD_select.py",
+   "line": 66,
+   "expect_before": "        pwrong_current.pdf_list = {}",
+   "expect_after": "[R3-b5 / anchor b5-mode72-kde] Bloco KDE MORTO",
+   "kind": "[IMPL] crash",
+   "nota": "[R3-b5/H1/DI-16.20] literal concretizado pela sessao contra a arvore montada (off-by-one :65->66 reconciliado). Comenta o bloco :66-75 (KDE morto :66-73 + plt_density CRASHY :75, que salva PDF por vizinho sob usetex e reshape(20,...)); a decisao mode 72 usa compute_probability_wrong_MC (linha 79). Sinalizado p/ veto do autor."
+  },
+  {
+   "id": "b5-mode7-archive",
+   "repo": "b5_desdeo",
+   "file": "desdeo_emo/EAs/BaseEA.py",
+   "line": 206,
+   "expect_before": "        self.population.keep(selected)\n        self._current_gen_count += 1",
+   "expect_after": "self.population.individuals_archive[_gk] = self.population.individuals.copy()",
+   "kind": "[IMPL] gate-🔴 (DI-16.16)",
+   "nota": "[R3-b5/DI-16.16] mini-patch pos-keep() em BaseDecompositionEA._next_gen: re-carimba o arquivo da geracao com a populacao POS-selecao (sobreviventes). Sem ele a ⑦ do mode 7 (ProbRVEA) nasce irreconstituivel da ③ (prole pre-selecao — defeito 🔴 do R3-00). Afeta so ProbRVEA; ProbMOEAD sobrescreve _next_gen. Sinalizado p/ veto do autor."
+  },
+  {
+   "id": "e74-classifierselect-idx",
+   "repo": "e74_clmea",
+   "file": "CLMEA_Code/Algorithms/Multi-objective optimization/CLMEA/ClassifierSelect.m",
+   "line": 46,
+   "expect_before": "[~,index] = sort(min(pdist2(Parent(y_label==1,:), Arc.decs),[],2),'descend');",
+   "expect_after": "S = find(y_label==1);",
+   "kind": "[FIDELIDADE] bug do codigo original -> segue o ARTIGO (bussola D29)",
+   "nota": "[DI-45, autorizada pelo autor 2026-07-29; fecha a DI-07b aberta desde 18/07] Desalinhamento mascara x Parent: `index` e posicao DENTRO de S=find(y_label==1) e era usado como indice ABSOLUTO de Parent. 1 linha nova + 1 alterada. Efeito medido na s42 (25 celulas): metade 'classificador guia' OPERA (elite em 96,7% dos 2.091 infills), metade 'incerteza escolhe' INERTE (argmax em 12,24%, rank mediano 43/100) + 13,31% de no-op — 1 das 3 contribuicoes do artigo nao se reproduzia. PRESERVAR a telemetria `n_desalinhado`: ela deve CAIR a ~0 no regime produtivo e e a PROVA do fix na re-validacao da semente 1. Precedente: D76 patchou o MESMO tipo de bug de mascara aqui."
+  },
+  {
+   "id": "b5-pwrong-stats",
+   "repo": "b5_desdeo",
+   "file": "desdeo_emo/selection/ProbMOEAD_select.py",
+   "line": 28,
+   "expect_before": "n_samples = 1000\nclass ProbMOEAD_select(SelectionBase):",
+   "expect_after": "P_WRONG_STATS = {}",
+   "kind": "[INSTRUMENTACAO] read-only (DI-12.1)",
+   "nota": "[T11-A3/I-05] Acumulador modulo-nivel de P_wrong lido pelo replay do runner. `p_wrong_stats` era o UNICO campo DI-10 com 0/N no estudo (0 de 30.165 eventos do b5; zeros absolutos so em b5m/b5r/moead_media). Sem ele a cadeia A8 (congelamento: adapt zera values -> PBI NaN -> P_wrong = 0,0 -> zero substituicoes) fica INFERIDA em 4.050 celulas e o congelamento PARCIAL (8 celulas do piso, 8/8 por face do lattice) invisivel. Nao consome RNG, nao altera retorno, nao entra em ramo de decisao; custo medido 0,022 s/run (0,0008% de tempo_busca_s mediano = 2.868,2 s). Prova de nao-perturbacao: run com x sem o patch, ①③⑦ byte-identicas. ⚠ O `expect_before` inclui a linha SEGUINTE (`class ProbMOEAD_select`) de proposito: o patch e ADITIVO (insere entre as duas), entao um expect_before de 1 linha sobrevive a ele e o validador reportaria STOCK num arquivo patchado. ERRATA 9 (2026-07-30): eu reescrevi este acumulador em O(1) alegando que ele causava 2,5x de lentidao no b5m. Microbenchmark isolado (100k chamadas, array de 20 = o tamanho real de `probabilities`) REFUTA: 30,5 us/chamada na versao vigente x 7,1 us na O(1); com ~80k chamadas por run a diferenca e ~1,9 s, nao 23 min. O wall de 43 min tinha CONTENCAO DE CPU (um b5m zumbi de 6h51) e o proprio b5m/MMF1 custa ~44 min nesta maquina (medido: 2619 s). Como o motivo caiu, a reescrita foi REVERTIDA e a versao PLANEJADA (min/mediana/max por chamada, com a MEDIANA preservada) e a que vale — regra do autor: mudar so o essencial. O ponto de coleta E hot-loop (`_next_gen` chama `_select` uma vez por individuo), mas o custo medido nao justifica mexer. Se algum dia a memoria (~3 tuplas x 80k chamadas por run) virar problema medido, a versao O(1) esta no historico desta nota."
+  },
+  {
+   "id": "c238-infill-min-dim-euclidean",
+   "repo": "c238_eim",
+   "file": "Infill_EIM.m",
+   "line": 34,
+   "expect_before": "y = min(reshape(sqrt(sum(EIM.^2,2)),[num_pareto,num_x]))';",
+   "expect_after": "y = min(reshape(sqrt(sum(EIM.^2,2)),[num_pareto,num_x]),[],1)';",
+   "kind": "[FIDELIDADE] bug do codigo original -> segue o ARTIGO (bussola D29)",
+   "nota": "[T15.9/DEC-8 autor 2026-08-14] Front singleton (num_pareto==1) colapsava min(reshape(...)) a ESCALAR -> badsubscript no Optimizer_GA:17 (censura NAO-aleatoria: matava os runs cujo infill dominava o arquivo). `,[],1` explicita a dim de reducao: IDENTIDADE p/ num_pareto>=2 (617 celulas ok bit-exatas). Laudo: handoff/D0-LAUDO-C238-BADSUBSCRIPT.md; separacao 28/28 vs 0/617 por n_front1==1."
+  },
+  {
+   "id": "c238-infill-min-dim-maximin",
+   "repo": "c238_eim",
+   "file": "Infill_EIM.m",
+   "line": 36,
+   "expect_before": "y = min(reshape(max(EIM,[],2),[num_pareto,num_x]))';",
+   "expect_after": "y = min(reshape(max(EIM,[],2),[num_pareto,num_x]),[],1)';",
+   "kind": "[FIDELIDADE] bug do codigo original -> segue o ARTIGO (bussola D29)",
+   "nota": "[T15.9/DEC-8 autor 2026-08-14] Front singleton (num_pareto==1) colapsava min(reshape(...)) a ESCALAR -> badsubscript no Optimizer_GA:17 (censura NAO-aleatoria: matava os runs cujo infill dominava o arquivo). `,[],1` explicita a dim de reducao: IDENTIDADE p/ num_pareto>=2 (617 celulas ok bit-exatas). Laudo: handoff/D0-LAUDO-C238-BADSUBSCRIPT.md; separacao 28/28 vs 0/617 por n_front1==1."
+  },
+  {
+   "id": "c238-infill-min-dim-hv",
+   "repo": "c238_eim",
+   "file": "Infill_EIM.m",
+   "line": 39,
+   "expect_before": "y = min(reshape(prod(ref_point-f_matrix+EIM,2)-prod(ref_point-f_matrix,2),[num_pareto,num_x]))';",
+   "expect_after": "y = min(reshape(prod(ref_point-f_matrix+EIM,2)-prod(ref_point-f_matrix,2),[num_pareto,num_x]),[],1)';",
+   "kind": "[FIDELIDADE] bug do codigo original -> segue o ARTIGO (bussola D29)",
+   "nota": "[T15.9/DEC-8 autor 2026-08-14] Front singleton (num_pareto==1) colapsava min(reshape(...)) a ESCALAR -> badsubscript no Optimizer_GA:17 (censura NAO-aleatoria: matava os runs cujo infill dominava o arquivo). `,[],1` explicita a dim de reducao: IDENTIDADE p/ num_pareto>=2 (617 celulas ok bit-exatas). Laudo: handoff/D0-LAUDO-C238-BADSUBSCRIPT.md; separacao 28/28 vs 0/617 por n_front1==1."
+  }
+ ]
+}

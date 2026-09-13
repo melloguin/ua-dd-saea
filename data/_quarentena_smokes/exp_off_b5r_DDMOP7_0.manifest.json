@@ -1,0 +1,125 @@
+{
+  "schema_version": 2,
+  "campanha_id": "8463e55b10a6_2026-08-14",
+  "run_id": "off_b5r_DDMOP7_0",
+  "exp": "off",
+  "alg": "b5r",
+  "problema": "DDMOP7",
+  "semente": 0,
+  "regime": "offline",
+  "q": 1,
+  "tier": null,
+  "dist": null,
+  "status": "ok",
+  "n_retries": 0,
+  "stack_trace": null,
+  "maxfe": 526,
+  "fe_final": 526,
+  "n_geracoes": 928,
+  "doe_hash": "4426d05dfec819d6c64c99fb71bc12195ff505c81940ed331004a212ff948f81",
+  "repo_hash": "8463e55b10a6435c79fddfca7f1ed367c272b162",
+  "algo_version": "b5-prob-1.0",
+  "env": {
+    "python": "3.7.12",
+    "executable": "/Users/gmello/Documents/python_venvs/env_b5/bin/python",
+    "host": "Guilhermes-MacBook-Pro",
+    "plataforma": "Darwin/x86_64",
+    "numpy": "1.21.6",
+    "scipy": "1.7.3",
+    "pymoo": "0.6.1.2",
+    "sklearn": "0.21.3",
+    "torch": null,
+    "gpytorch": null,
+    "pandas": "1.3.5",
+    "pyarrow": "12.0.1",
+    "pinning": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "torch": null,
+      "torch_num_threads": null,
+      "default_dtype": null,
+      "device": null
+    }
+  },
+  "timing": {
+    "tempo_total_s": 165.0109,
+    "tempo_fit_surrogate_s": 9.6897,
+    "tempo_busca_s": 152.0177,
+    "tempo_aval_real_s": null,
+    "tempo_pred_sonda_s": 0.0
+  },
+  "fit_series": [
+    {
+      "iter": 1,
+      "n_acumulado": 526,
+      "tempo_fit_s": 9.689690828323364
+    }
+  ],
+  "fallback_ativado": false,
+  "paths": {
+    "local": {
+      "real": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/b5r/exp_off_b5r_DDMOP7_0__real.parquet",
+      "pop": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/b5r/exp_off_b5r_DDMOP7_0__pop.parquet",
+      "surrogate": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/b5r/exp_off_b5r_DDMOP7_0__surrogate.parquet",
+      "timing": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/b5r/exp_off_b5r_DDMOP7_0__timing.parquet",
+      "jsonl": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/b5r/exp_off_b5r_DDMOP7_0.jsonl",
+      "manifest": "/Users/gmello/Documents/python_repos/mestrado/ua-dd-saea/data/experiments/off/b5r/exp_off_b5r_DDMOP7_0.manifest.json"
+    },
+    "bucket": null
+  },
+  "upload_status": null,
+  "created_at": "2026-08-14T18:20:03+00:00",
+  "updated_at": "2026-08-14T18:20:03+00:00",
+  "cache_hits": 0,
+  "sigma_dict": {
+    "modelo": "SurrogateKriging (DESDEO vendorizado): 1 GaussianProcess por objetivo; kernel C(1,(1e-3,1e3))*RBF(10,(1e-2,1e2)), alpha=0, n_restarts_optimizer=9, normalize_y=False (hard-coded na SurrogateKriging.fit); treino UNICO no dataset (offline nao retreina).",
+    "mu_*": "media a posteriori do GPR, em f de MINIMIZACAO (sem flip de sinal)",
+    "sigma_*": "DESVIO-PADRAO a posteriori do GPR por objetivo (NUNCA variancia); mesma semantica em b5r e b5m (surrogate identico — so a selecao difere).",
+    "granularidade_③": "ger 1 = pop INICIAL (LHS, PRÉ-seleção); 2..n = PÓS-seleção; passos de seleção = n_geracoes−1; FE conta init+pop (bundle v2.2). Controle negativo: o treed_media, que engancha em `_next_gen`, NÃO tem o fenômeno",
+    "regime": "offline = candidatos da busca no surrogate · sonda = regua fixa (§17.2.2)",
+    "espaco_modelo": "cru — o GP prediz em f nativa (b5 NAO transforma); transf_tipo/params NULL",
+    "fe_treino_max": "constante 525 (=n_dataset-1) em TODA linha (busca+sonda) — o modelo ve o dataset inteiro 1×.",
+    "pop_inicial_②": "VAZIA POR CONSTRUCAO (DI-16.17): a pop inicial do motor e LHS NOVO (create_new_individuals/LHSDesign) + SBX/PM continuos => nenhum individuo coincide com o dataset; real_solution_id=NULL em TODA linha de busca; n_ds_membros=0 (no jsonl). O gate NAO exige ② nao-vazia.",
+    "sonda_offline": "1 bloco de 20.000 (§17.2.2), geracao=NULL (DI-13.5 — carimbada pos-hoc no buffer, pois emit_sonda_block faz int(geracao); precedente c149._stamp_c3_sonda). Custo FE=ZERO; RNG salvo/restaurado (nao-perturbacao §3.1).",
+    "dist_min_arquivo": "NULL no offline — nao ha arquivo crescente/infill real [D-08]",
+    "modelo_hp": "NULL no offline — HP fixos, treino unico [D-08]",
+    "fidelidade_por_modo": "mode 7 (ProbRVEA_v3 / Prob_APD_select_v3): APD probabilistico via aproximacao MEDIA-MC — DECLARADA como aproximacao, NAO o Prob-APD publicado exato",
+    "rampa_theta": "o APD/decomposicao usa rampa θ funcao de fe/total_function_evaluations (=40000, SEMPRE); por isso 40000 e obrigatorio mesmo com FE real=0.",
+    "overshoot": "terminacao por FE (>=40000): a ultima geracao que cruza o teto completa (mate+add+select+keep) => overshoot <= 1 geracao, esperado e documentado.",
+    "④_1_linha": "④ = 1 LINHA por config (cartao): n_acumulado=n_dataset, tempo_fit_s=wall do train, tempo_busca_s=wall do laco, tempo_geracao_s EXCLUI a sonda (o motor e caixa-preta: iterate() roda 10 geracoes sem gancho por geracao).",
+    "desdeo_emo_pin": "VENDORED root-first, SEM pacote pip (cravado no gate R3.2; content-hash b5_desdeo no repos.lock).",
+    "patches_vendorizados": "b5m: ProbMOEAD_select.py:66-75 comentado (KDE morto + plt_density crashy); b5r: BaseEA._next_gen re-carimba o arquivo pos-keep (DI-16.16). Ancoras b5-mode72-kde / b5-mode7-archive.",
+    "pymoo": "0.6.1.2 em env_b5 (finais ⑦ + filtro ND via src/problems.py; shim py3.7 typing.Literal; puro-python sem Cython = so velocidade, finais pequenos).",
+    "LHS_determinismo": "o pyDOE 0.9.1 mudou a API: lhs(n,samples) SEM semente usa np.random.default_rng() FRESCO (ignora np.random.seed), tornando a pop inicial NAO-reprodutivel. O runner injeta o RandomState GLOBAL semeado no lhs do create_new_individuals (replica o pyDOE classico) — LHS deterministico E fiel. [R3-b5/env — ver handoff]."
+  },
+  "motivo_parada": "orcamento",
+  "params": {
+    "alg": "b5r",
+    "mode": 7,
+    "motor": "Prob-RVEA (mode 7)",
+    "surrogate": "SurrogateKriging DESDEO: 1 GP por objetivo, C(1,(1e-3,1e3))*RBF(10,(1e-2,1e2)), alpha=0, n_restarts_optimizer=9, normalize_y=False",
+    "treino": "UNICO no dataset (offline nao retreina)",
+    "n_dataset": 526,
+    "regime": "offline",
+    "q": 1,
+    "patches_vendorizados": [
+      "b5-mode72-kde",
+      "b5-mode7-archive",
+      "b5-pwrong-stats"
+    ],
+    "nd_final": "AVALIACAO REAL DO ND FINAL (§11/B7.5) NAO acontece neste run (D102.9/Processo B: a avaliacao do problema exige processo EXTERNO — DDMOP7.p via MATLAB Engine, ausente neste venv): os decs finais estao na ③ (ultima geracao); a ⑦ e gravada POS-HOC por scripts/final_eval.py numa maquina com matlab.engine, no MESMO contrato DI-08 — o precedente retroativo do e103."
+  },
+  "cp_init_offline": {
+    "x_hash": "4426d05dfec819d6c64c99fb71bc12195ff505c81940ed331004a212ff948f81",
+    "f_hash": "69a0209085eab9765d573c2381eca0636b987c6fefc769a08dd2a9ab536993b8"
+  },
+  "sonda": {
+    "status": "sem_sonda_por_problema",
+    "motivo": "D102.10 — problema declaradamente fora da régua de sonda (§17.2.2)",
+    "n_blocos": 0,
+    "n_linhas": 0,
+    "S": 0
+  }
+}

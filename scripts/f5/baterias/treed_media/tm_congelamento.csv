@@ -1,0 +1,11 @@
+label,dist,problema,D,M,n_busca,n_X_unicos,n_X_repetidos,n_reaval_totais,max_reaval_de_um_X,n_X_com_mu_divergente,CONGELADO_mu_unico_por_X,span_ger_max_de_X_repetido,span_ger_mediano,suporte_obj0_busca,suporte_obj0_sonda,suporte_obj0_busca_em_sonda_pct,suporte_obj1_busca,suporte_obj1_sonda,suporte_obj1_busca_em_sonda_pct,suporte_obj2_busca,suporte_obj2_sonda,suporte_obj2_busca_em_sonda_pct,suporte_min_busca_em_sonda_pct,n_fit_series,n_linhas_4
+swap_big-lhs_DTLZ2,lhs,DTLZ2,12,3,104895,2137,1958,104716,983,0,True,982,20.0,255,323,100.0,264,324,100.0,164.0,327.0,100.0,100.0,1,1
+swap_big-lhs_MMF16_20,lhs,MMF16_20,20,3,104818,1088,979,104709,991,0,True,990,40.0,139,189,100.0,137,184,100.0,95.0,188.0,100.0,100.0,1,1
+swap_big-lhs_WFG9,lhs,WFG9,22,2,45294,519,470,45245,990,0,True,989,35.0,92,169,100.0,98,173,100.0,,,,100.0,1,1
+swap_big-lhs_ZDT1,lhs,ZDT1,30,2,49874,359,320,49835,1000,0,True,999,12.0,104,128,100.0,77,124,100.0,,,,100.0,1,1
+swap_big-lhs_ZDT4,lhs,ZDT4,10,2,37073,751,642,36964,997,0,True,996,21.0,240,256,100.0,67,393,100.0,,,,100.0,1,1
+swap_big-mvns_DTLZ2,mvns,DTLZ2,12,3,101957,1716,1562,101803,994,0,True,993,27.0,125,327,100.0,160,274,98.75,99.0,273.0,95.96,95.96,1,1
+swap_big-mvns_MMF16_20,mvns,MMF16_20,20,3,101102,2030,1857,100929,985,0,True,984,21.0,116,189,100.0,131,165,97.71,111.0,172.0,99.1,97.71,1,1
+swap_big-mvns_WFG9,mvns,WFG9,22,2,46596,457,421,46560,999,0,True,998,51.0,116,168,98.28,124,171,95.97,,,,95.97,1,1
+swap_big-mvns_ZDT1,mvns,ZDT1,30,2,47737,570,521,47688,993,0,True,992,31.0,107,115,99.07,94,124,100.0,,,,99.07,1,1
+swap_big-mvns_ZDT4,mvns,ZDT4,10,2,37281,827,713,37167,994,0,True,993,16.0,268,319,99.63,48,372,100.0,,,,99.63,1,1

@@ -1,0 +1,355 @@
+{
+  "id": "c154",
+  "sigla": "JES",
+  "titulo": "Joint Entropy Search for Multi-Objective Bayesian Optimization",
+  "ano": 2022,
+  "roster": true,
+  "setup": {
+    "benchmarks": "4 problemas, todos sem piso evolutivo comparado: ZDT2 (D=6, M=2, sintético, ruído gaussiano aditivo ~10% da amplitude do objetivo, reference point r=(-11,-11)); SnAr — reação química de substituição nucleofílica aromática (D=4, M=2, real/simulado por EDO cinética calibrada empiricamente, objetivos log-transformados, ruído ~3%, r=(5.5,-5)); Penicillin — simulação da produção farmacêutica (D=7, M=3, ruído ~1%, r=(-1.85,-86.93,-514.70)); Marine design — projeto de graneleiro sob restrições do Canal do Panamá, reformulado com as restrições como objetivo extra (D=6, M=4, ruído ~0.5%, r=(250,-20000,-25000,-15.0)). Nenhum ZDT/DTLZ/WFG/MMF/BBOB da bateria da dissertação além do ZDT2 (com D diferente); nenhum dos 3 reais da dissertação (RE21/ESTOQUE40/DDMOP7) coincide com SnAr/Penicillin/Marine. Nota de leitura: o cabeçalho da Seç. L.2 exibe 'ZDT2 (D=2, M=2, Noise=10%)', divergente de D=6 usado no texto principal (Seç. 5.1) e em TODAS as demais legendas de figura do artigo — tratado como artefato de extração (ver observações) e usado D=6.",
+    "orcamento": "DoE inicial = 2(D+1) pontos por delineamento aleatório de preenchimento de espaço (14 para ZDT2/Marine, 10 para SnAr, 16 para Penicillin) — não é 11D-1 nem LHS, diferente da convenção da dissertação. Regime sequencial (q=1): 100 iterações (avaliações reais) após o DoE, sobre 100 sementes. Regime em lote (q em {2,4,8}): o artigo reporta apenas o resultado FINAL por tamanho de lote (Fig. 5 inferior e Figs. 19-22 inferior), sem declarar explicitamente quantas iterações/lotes foram executados nem se o orçamento TOTAL de avaliações reais foi igualado entre os tamanhos de lote testados — problema de leitura sinalizado em observações.",
+    "execucoes": "100 sementes/execuções independentes por problema x algoritmo ('All experiments are repeated using 100 different initial seeds'), reportadas como MÉDIA (não mediana) +/- 2 erros-padrão — não desvio-padrão, não IQR.",
+    "baselines": "TSEMO, ParEGO, NParEGO, EHVI, NEHVI, PES (implementado do zero pelos autores) e Sobol (sequência quase-aleatória de baixa discrepância consultada ao longo de TODO o orçamento, não só no DoE inicial) como o mais próximo de um 'piso sem informação' do estudo. NENHUM piso evolutivo canônico da dissertação (NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) é testado. O próprio MES (reimplementado pelos autores em 4 variantes de estimador: MES-0/LB/LB2/MC) funciona, dentro do artigo, como o 'quase-gêmeo' mecanístico de JES — mesma maquinaria de GP, amostragem via NSGA2, decomposição em caixas e estratégia de lote, diferindo apenas em condicionar (JES) ou não (MES) sobre a localização ótima X*, além do valor ótimo Y*.",
+    "metricas_principais": [
+      "log HV discrepancy (log d_HV = log|U_HV(recomendação) - U_HV(frente de Pareto verdadeira)|) — única métrica primária; IGD/IGD+ NUNCA é usada",
+      "log Generalized HV discrepancy (log d_GHV) — variante ponderada por região do espaço de objetivos, proposta no próprio artigo (Apêndice K)"
+    ],
+    "testes": [
+      "nenhum — nenhum teste de significância estatística (Wilcoxon, Friedman, sinal, etc.) em qualquer comparação do artigo; só média +/- 2 erros-padrão nos gráficos"
+    ],
+    "apresentacao": "100% gráfico: nenhuma tabela numérica de resultados em todo o artigo (as únicas duas tabelas, Table 1 e Table 2, são fórmulas de complexidade computacional teórica, não resultados empíricos). Curvas de log HV discrepancy x iterações (sequencial) ou x tamanho de lote (batch); heatmaps de log GHV discrepancy por 'parametrização' (distribuição de peso); box-plots de tempo de parede (log10 segundos) sem valores numéricos impressos. A 'recomendação' X̂*_n reportada em TODA figura de desempenho NÃO é o conjunto não-dominado das avaliações reais (equivalente à convenção de endpoint da dissertação, camada ①), mas sim 50 pontos obtidos otimizando a MÉDIA POSTERIOR do GP via NSGA2 (Npop=500, Ngen=500, Noff=10), truncados por HV guloso e aumentados com a recomendação da iteração anterior — convenção distinta e estruturalmente mais favorável a métodos exploradores/guiados por informação do que a convenção da dissertação (ver item 'in-sample', L.5, e observações). A frente de Pareto verdadeira (usada como referência da discrepância de HV) é assumida CONHECIDA, obtida via NSGA2 com orçamento enorme (Npop=1000, Ngen=5000, Noff=10) — viável porque os 4 problemas do artigo são, na prática, simuladores baratos de reexecutar, não avaliações verdadeiramente caras/únicas.",
+    "codigo_plataforma": "Python 3.8; BoTorch 0.5.1; GPyTorch 1.6.0; NumPy 1.21.2; Pymoo 0.5.0 (NSGA2); PyTorch 1.9.0; SciPy 1.7.3; execuções restritas a 1 núcleo de CPU de um AMD EPYC 7742 64-Core @ 2.25GHz; código em https://github.com/benmltu/JES."
+  },
+  "analises": [
+    {
+      "fichas": [
+        26
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara JES-LB com Sobol, TSEMO, NParEGO, NEHVI, PES e MES-LB (subconjunto dos ~15 algoritmos/variantes testados) nos 4 problemas de benchmark, no regime SEQUENCIAL (q=1): curva da log HV discrepancy média +/- 2 erros-padrão sobre 100 sementes, ao longo de 100 iterações após o DoE inicial de 2(D+1) pontos.",
+      "literal": "The JES approach is consistently one of the stronger performing algorithms for these set of experiments.",
+      "localizador": "Sec. 5.2, Fig. 5 (painel superior)",
+      "metricas": [
+        "log HV discrepancy"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "média +/- 2 erros-padrão sobre 100 execuções independentes; recomendação X̂*_n = 50 pontos que maximizam a média posterior via NSGA2 (não o ND das avaliações reais); 100 iterações após DoE de 2(D+1) pontos; escala log no eixo da métrica",
+      "achado": "JES-LB é consistentemente um dos algoritmos de melhor desempenho nos 4 problemas testados no regime sequencial, junto com NEHVI e MES-LB; Sobol (quase-aleatório) é claramente o pior em todos os problemas.",
+      "aplicabilidade": "① (avaliações reais em ordem) forneceria a trajetória do ND acumulado, mas a métrica do artigo usa uma RECOMENDAÇÃO separada (argmax da média posterior via NSGA2 sobre camada ③, não o ND de ①); reproduzir literalmente exigiria também computar essa recomendação a cada checkpoint. Nenhum piso evolutivo canônico da dissertação está presente — Sobol é o substituto (aleatório/quase-aleatório puro, não evolutivo)."
+    },
+    {
+      "fichas": [
+        64
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Mesma comparação de algoritmos (JES-LB, Sobol, TSEMO, NParEGO, NEHVI, PES, MES-LB) nos mesmos 4 problemas, agora no regime EM LOTE: log HV discrepancy final (ao fim do orçamento) em função do tamanho de lote q em {1,2,4,8}, usando as versões lower-bound das aquisições informacionais (LB-JES-*, LB-MES-*).",
+      "literal": "We present the sequential and batch results on the top and bottom, respectively.",
+      "localizador": "Sec. 5.2, Fig. 5 (painel inferior)",
+      "metricas": [
+        "log HV discrepancy"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "eixo x = tamanho de lote (1,2,4,8), não iterações; média +/- 2 erros-padrão sobre 100 execuções; para q>1 usa-se a cota inferior batch (soma das entropias condicionais individuais) em vez do termo conjunto q-dimensional exato",
+      "achado": "O ranking relativo dos algoritmos observado no regime sequencial mantém-se amplamente no regime em lote — JES-LB permanece competitivo à medida que o tamanho do lote cresce até 8; o artigo não discute textualmente nenhuma mudança de ranking específica do regime em lote além da afirmação geral de que JES é 'consistentemente' um dos mais fortes.",
+      "aplicabilidade": "Análogo à ficha 64 (sub-estudo de lote da dissertação, q=10 para qNEHVI/qPOTS): reproduzível na medida em que a dissertação registre execuções em lote de algum algoritmo do roster a q>1 (JES tem regime=online sem menção de q>1 no roster). Problema de leitura: o artigo não deixa claro se o orçamento TOTAL de avaliações reais foi igualado entre os tamanhos de lote testados (ficha 64 pressupõe comparação 'a FEs iguais')."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade da aquisição aos hiperparâmetros de estimação (nº de amostras MC S; nº de pontos ótimos p)",
+      "grupo_sugerido": "E",
+      "descricao": "Varia isoladamente o nº de amostras de Monte Carlo do conjunto/frente de Pareto (S em {1,5,10,25,50}, com p=10 fixo) e o nº de pontos de Pareto retidos por amostra após truncamento por HV (p em {1,5,10,25,50}, com S=10 fixo), para as 4 variantes de JES, as 4 de MES e para PES, no problema ZDT2, medindo log HV discrepancy ao longo de 100 iterações (100 execuções) e o tempo de parede da etapa de aquisição.",
+      "literal": "there does not appear to be much benefit in using a larger number of Monte Carlo samples S or Pareto optimal points p",
+      "localizador": "Apêndice L.3, Figs. 14, 15, 16",
+      "metricas": [
+        "log HV discrepancy",
+        "tempo de parede (wall time) da etapa de aquisição"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "1 único problema (ZDT2) usado para toda a sensibilidade, 'for the sake of brevity'; box-plots de tempo de parede em escala log10; S=p=10 é o valor padrão usado em todo o resto do artigo, escolhido por comparabilidade com a literatura prévia, não por esta sensibilidade",
+      "achado": "Para S>1 e p>1 não há variação relevante de desempenho — ganhos de S ou p maiores são desprezíveis, mas o tempo de parede cresce com S (a amostragem e otimização das trajetórias do GP são feitas em sequência, não em paralelo); os autores mantêm S=p=10 como padrão por já ser suficiente.",
+      "aplicabilidade": "não reproduzível apenas com os dados coletados — S e p são hiperparâmetros que definem COMO a própria aquisição estima a informação a cada passo (mudá-los muda quais pontos são escolhidos), exigindo reexecução com cada config registrada na camada ⑤ (manifesto); não há como recomputar post-hoc a partir de uma única execução gravada."
+    },
+    {
+      "fichas": [
+        18
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "No problema ZDT2 (D=6, M=2), com a recomendação obtida por argmax da média posterior, varia o nível de ruído de observação gaussiano injetado artificialmente de 0% a 20% (0,1,2,3,4,5,10,20%) e mede a log HV discrepancy ao longo de 100 iterações para as 4 variantes de estimador de JES (Fig. 17) e as 4 de MES (Fig. 18), separadamente.",
+      "literal": "we observe that the performance decreases as the noise levels increases",
+      "localizador": "Apêndice L.4, Figs. 17, 18",
+      "metricas": [
+        "log HV discrepancy"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "8 níveis de ruído (degraus 0%->20%) como eixo de dificuldade controlado sobre um único problema sintético, não sobre uma família de problemas distintos; média +/- 2 erros-padrão; recomendação via argmax da média posterior",
+      "achado": "O desempenho de todos os estimadores piora monotonicamente com o ruído crescente; entre as variantes de JES o desempenho é muito parecido em todos os níveis, mas entre as de MES, MES-0 (que assume ruído zero) é visivelmente mais fraco que as demais mesmo após a correção ad hoc — a suposição de ruído zero já 'deixa de funcionar' em níveis baixos de ruído.",
+      "aplicabilidade": "não reproduzível diretamente com as 7 camadas — o artigo injeta ruído artificial crescente sobre UM problema sintético como variável experimental controlada; a bateria da dissertação usa nível de ruído fixo (se algum) por problema, não como eixo varrido. Reprodutível só se a dissertação rodar o mesmo problema sob múltiplos níveis de ruído injetado como estudo dedicado, fora do desenho padrão."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Comparação das estratégias de aproximação numérica da entropia condicional (JES-0/LB/LB2/MC; MES-0/LB/LB2/MC)",
+      "grupo_sugerido": "E",
+      "descricao": "Nos 4 problemas de benchmark principais (sequencial q=1 e lote q=2,4,8), compara as 4 formas de estimar a entropia condicional usada na aquisição — JES-0 (assume ruído de observação zero, entropia da normal truncada), JES-LB (moment-matching com covariância completa, cota inferior), JES-LB2 (moment-matching ignorando termos fora da diagonal, cota inferior mais fraca) e JES-MC (Monte Carlo, I=128) — e o mesmo para MES — em termos de log HV discrepancy.",
+      "literal": "we generally recommend against using the zero-variance estimate if possible",
+      "localizador": "Apêndice L.6, Figs. 20, 21",
+      "metricas": [
+        "log HV discrepancy"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "mesmos 4 problemas e mesmas convenções (100 execuções, média +/- 2 erros-padrão) da Fig. 5, agora reagrupadas por variante de estimador em vez de por algoritmo; inclui q=1 e q em {2,4,8}",
+      "achado": "Na maioria dos casos as diferentes aproximações têm desempenho parecido — recomenda-se usar a mais barata (tipicamente as cotas inferiores JES-LB/JES-LB2, não a Monte Carlo); exceção: no problema Marine (M=4, o de mais objetivos), a estimativa de variância-zero (JES-0/MES-0) é nitidamente mais fraca mesmo após a correção ad hoc do Apêndice E — sugerindo que a aproximação mais barata degrada especificamente quando M cresce e/ou o ruído não é desprezível.",
+      "aplicabilidade": "não reproduzível apenas com os dados coletados — cada variante de estimador (JES-0/LB/LB2/MC) determina qual ponto é escolhido a cada iteração, logo mudar a variante muda a trajetória inteira de ①; exigiria registrar cada variante como config separada na camada ⑤. Estruturalmente adjacente às fichas 36/37 (qualidade da medição por classe/agregação), mas aqui comparam-se fórmulas de estimação da MESMA quantidade teórica (entropia conjunta), não classes de medição distintas — por isso tratado como ficha nova."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Comparação entre variantes gulosas e cientes de ruído dos métodos por melhoria (ParEGO x NParEGO; EHVI x NEHVI)",
+      "grupo_sugerido": "G",
+      "descricao": "Compara os 4 algoritmos de melhoria/escalarização usados como baseline (ParEGO, NParEGO — versão ciente de ruído — EHVI, NEHVI — versão ciente de ruído) nos 4 problemas, sequencial e lote, em log HV discrepancy.",
+      "literal": "the greedier strategy which ignores the noise seems to perform reasonably well compared to the strategy which accounts for the noise",
+      "localizador": "Apêndice L.7, Fig. 22",
+      "metricas": [
+        "log HV discrepancy"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "mesmas convenções da Fig. 5 (100 execuções, média +/- 2 erros-padrão); os 4 algoritmos NÃO são do mecanismo de JES — são baselines de melhoria/escalarização usados só para contextualizar o desempenho de JES",
+      "achado": "Modelar explicitamente o ruído de observação (NParEGO, NEHVI) não traz vantagem clara sobre ignorá-lo (ParEGO, EHVI) nesta bateria — a versão 'gulosa' que ignora ruído tem desempenho comparável ou até melhor, um resultado contra-intuitivo para o valor de modelar incerteza de observação nesses dois métodos específicos.",
+      "aplicabilidade": "não é sobre o mecanismo de JES — é uma comparação entre 4 algoritmos-baseline não pertencentes ao roster; registrado por exaustividade (Regra 2 do CARTÃO). Relevante como evidência de que 'modelar ruído' nem sempre paga, tema geral de resultados_negativos mesmo fora do mecanismo próprio de JES; não reproduzível como mecanismo de JES em si."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Recomendação restrita às amostras visitadas (X_N) vs. otimizada sobre todo X — custo da avaliação 'in-sample' para métodos informacionais",
+      "grupo_sugerido": "B",
+      "descricao": "Repete a comparação da Fig. 5 (mesmos algoritmos, 4 problemas, sequencial e lote) trocando a definição da recomendação X̂*: em vez de otimizar a média posterior sobre todo X via NSGA2, restringe X̂* ao subconjunto que maximiza a média posterior DENTRO dos pontos já amostrados X_N (arg max sobre X_N, não sobre X).",
+      "literal": "the information-theoretic approaches were occasionally outperformed by the improvement and scalarization based acquisition functions, which picked points more greedily",
+      "localizador": "Sec. 5.2 (discussão) e Apêndice L.5, Fig. 19",
+      "metricas": [
+        "log HV discrepancy (recomendação restrita a X_N)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "idêntica à Fig. 5 em tudo, exceto a definição de X̂* (restrita a X_N); mesmas 100 execuções, média +/- 2 erros-padrão",
+      "achado": "RESULTADO NEGATIVO: os métodos informacionais (PES, MES, JES) têm uma tendência a NÃO consultar diretamente os pontos de melhor desempenho, preferindo pontos mais informativos que reduzem a incerteza sobre os pontos ótimos — por isso, quando a avaliação é restrita aos pontos de fato visitados (X_N), esses métodos tendem a parecer PIORES do que quando avaliados pela recomendação livre sobre todo X; métodos gulosos por melhoria/escalarização saem-se relativamente melhor nesse protocolo restrito.",
+      "aplicabilidade": "ALTAMENTE relevante para a dissertação: a convenção de endpoint da dissertação (mediana do IGD+/HV sobre o ND das avaliações reais, camada ①) É estruturalmente a versão 'in-sample' (X_N) que este item mostra ser DESFAVORÁVEL a métodos guiados por informação como o próprio JES — diferente da Fig. 5 principal do artigo (que usa recomendação livre via ③, com otimização extra sobre μ). Ou seja: o desempenho de JES medido só por ① pode ser sistematicamente mais conservador/pior do que o retrato que este próprio artigo pinta de si mesmo. Reprodutível: ① dá diretamente a versão in-sample; ③ (predições μ do surrogate) seria necessária para reconstruir a versão livre/otimista do artigo."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Hipervolume generalizado (GHV) por região do espaço de objetivos — desempenho local em vez de global",
+      "grupo_sugerido": "A",
+      "descricao": "No problema ZDT2 biobjetivo, particiona o espaço de objetivos em 3 regiões (via distribuições Beta diferentes sobre o peso da parametrização polar do HV, Apêndice K) e mede a log GHV discrepancy — recomendação via média posterior — separadamente por região, mais uma visualização da frente de Pareto e sua aproximação (execução no percentil 80 do HV padrão) para todos os algoritmos da Fig. 5.",
+      "literal": "the main source of difficulty for this problem arises from approximating the points in the left section of the Pareto front",
+      "localizador": "Sec. 5.2, Fig. 6",
+      "metricas": [
+        "log GHV discrepancy (por região)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "3 regiões via distribuições Beta sobre [0,1]; execução escolhida para o painel visual = a que atinge o percentil 80 ('top 20th percentile') do HV padrão — NÃO a execução mediana, diferente da convenção 'execução mediana' de outros artigos do roster",
+      "achado": "Todos os algoritmos de BO identificam rapidamente a região certa da frente de Pareto nas 3 regiões testadas; a dificuldade principal concentra-se na região esquerda (que favorece o segundo objetivo) — um padrão que o HV padrão (agregado) esconderia por completo, motivando o uso do GHV como diagnóstico regional.",
+      "aplicabilidade": "ficha nova, adjacente à ficha 25 (métricas no espaço de decisão nos MMF) mas para o ESPAÇO DE OBJETIVOS, não de decisão — reproduzível de forma adaptada via ① (ND das avaliações reais) recortado por região do espaço de objetivos, se a dissertação implementar essa ponderação; a visualização com execução do percentil 80 (não mediana) precisaria ser adaptada à convenção de 'execução mediana' da dissertação."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Robustez do ranking sob reparametrização do espaço de objetivos — hipervolume generalizado em muitas parametrizações",
+      "grupo_sugerido": "A",
+      "descricao": "Para os 4 problemas de benchmark, gera de 20 a 125 'parametrizações' distintas do espaço de objetivos (famílias de distribuições Beta usadas para ponderar a integral do HV, Apêndice K) e apresenta um heatmap da log GHV discrepancy MEDIANA final, para os ~15 algoritmos/variantes, por parametrização — validação empírica direta da Proposição 3 (invariância dos métodos informacionais à reparametrização).",
+      "literal": "we found that the performance of each algorithm changed with regards to the choice of parameterization, but the JES approaches tended to be one of the strongest performers throughout",
+      "localizador": "Sec. 4 (texto) e Apêndice L.8, Figs. 26-29",
+      "metricas": [
+        "log GHV discrepancy (mediana, por parametrização)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "mediana (não média) sobre as execuções, ao contrário da convenção de média +/- 2 EP usada no resto do artigo; heatmap com uma coluna por parametrização (20 para ZDT2/SnAr, 100 para Penicillin, 125 para Marine) e uma linha por algoritmo",
+      "achado": "O ranking de cada algoritmo MUDA conforme o espaço de objetivos é ponderado/reparametrizado — nenhum algoritmo é uniformemente ótimo sob todas as parametrizações — mas as variantes de JES tendem a permanecer entre as mais fortes na maioria das parametrizações testadas, suportando empiricamente a Proposição 3 (só métodos informacionais são invariantes à reparametrização por construção).",
+      "aplicabilidade": "não reproduzível com as 7 camadas da dissertação — a bateria usa IGD+/HV padrão sobre o espaço de objetivos original, sem a família de reparametrizações/pesos do GHV; exigiria implementar a métrica GHV (Apêndice K) sobre a camada ① por problema, fora do desenho padrão."
+    },
+    {
+      "fichas": [
+        48
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Compara o tempo de parede (wall-clock) da etapa de AQUISIÇÃO (não inclui o ajuste do modelo GP) entre os ~15 algoritmos/variantes, nos 4 problemas e em q em {1,2,4,8}, via box-plots em escala log10; decompõe esse tempo em 4 fases — inicialização (amostras-base MC, condicionamento, EP inicial), amostragem de pontos de Pareto (via GP path sampling), decomposição em caixas, e otimização da aquisição — via gráfico de proporção de tempo.",
+      "literal": "the one time box decomposition is the dominant contributor to the wall time for the MES and JES",
+      "localizador": "Sec. 5.2 (resumo) e Apêndice L.9, Figs. 29 (box-plots) e 29 (decomposição por fase)",
+      "metricas": [
+        "tempo de parede (wall time, log10 segundos)",
+        "proporção do tempo por fase"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "box-plots (mediana, IQR, extremos excluindo outliers) sem valores numéricos impressos; execução em 1 núcleo de CPU (AMD EPYC 7742 @ 2.25GHz) por execução; o ajuste do modelo GP em si NÃO está incluído nesse tempo (só a etapa de aquisição)",
+      "achado": "O custo de adquirir um novo ponto com JES é comparável ao do NEHVI, um pouco mais caro que o MES, mas mais barato que o PES; a decomposição por fase mostra que, conforme o número de objetivos M cresce, a decomposição em caixas (custo O(p^(⌊M/2⌋+1)), exclusiva dos métodos JES/MES) passa a dominar o tempo total, enquanto o PES é sempre dominado pela otimização via diferenças finitas do gradiente (mais cara e ineficiente que o gradiente automático usado pelos demais).",
+      "aplicabilidade": "④ (tempos por geração/iteração: ajuste do modelo, busca, sonda) reproduziria uma decomposição análoga se a dissertação registrar, dentro do tempo de 'busca' de JES, sub-categorias equivalentes a amostragem de Pareto/decomposição em caixas/otimização da aquisição — a granularidade do artigo (4 fases) é mais fina que a genérica da camada ④; a dissertação pode ir além do artigo aqui, ou precisaria colapsar as 4 fases do artigo dentro do bucket 'busca' de ④."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Curvas de nível da aquisição em problema de brinquedo single-objective — comparação visual PES x MES x JES x EI x PoI x UCB x KG",
+      "grupo_sugerido": "H",
+      "descricao": "Em um problema single-objective de brinquedo (Rastrigin normalizado, D=2, M=1, após 8 observações ruidosas), plota lado a lado os contornos 2D da aquisição PES, MES (3 aproximações: MES-0/LB/MC) e JES (3 aproximações: JES-0/LB/MC), comparando com os contornos de EI, PoI, UCB (β=3) e KG, mais uma amostra de Thompson sampling — todos calculados sobre o mesmo posterior de GP, com a localização do maximizador verdadeiro destacada.",
+      "literal": "the PES and MES prefer querying around the lower mode, whilst JES prefers the upper mode",
+      "localizador": "Apêndice J, Figs. 7-11",
+      "metricas": [],
+      "testes": [],
+      "convencoes": "1 único problema single-objective (M=1) de brinquedo, 1 única realização/amostra dos pontos ótimos — puramente ilustrativo/didático, sem repetição de sementes nem métrica de desempenho agregada",
+      "achado": "Visualmente, todas as aproximações de uma mesma família (PES/MES/JES) concordam razoavelmente com a versão de referência obtida por rejection sampling; PES e MES preferem consultar perto do modo inferior do posterior, enquanto JES prefere o modo superior — os autores especulam que isso reflete um melhor equilíbrio entre ganho de informação sobre a entrada ótima E o valor ótimo simultaneamente, a vantagem conceitual central de JES sobre PES/MES isolados.",
+      "aplicabilidade": "não reproduzível — problema single-objective (M=1) de brinquedo, fora do escopo multiobjetivo (M>=2) da dissertação; útil só como ilustração conceitual do mecanismo de JES (por que difere de PES/MES), não como dado quantitativo agregável às 7 camadas."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": false,
+    "como": "O artigo NUNCA verifica calibração/cobertura do posterior do GP (a incerteza de base) contra erro real em pontos de teste conhecidos — não há sonda com f verdadeiro. O que É avaliado, em vez disso, é a qualidade da APROXIMAÇÃO NUMÉRICA da quantidade de informação teórica (entropia condicional) que a aquisição usa — comparando 4 fórmulas de estimação (JES-0/LB/LB2/MC) entre si pelo desempenho de otimização resultante (log HV discrepancy), não contra um valor de entropia 'verdadeiro' conhecido nem contra calibração do σ do GP em si. É, portanto, uma checagem de ACURÁCIA DA APROXIMAÇÃO da aquisição, não uma calibração do modelo probabilístico subjacente.",
+    "literal": "We observed that the different conditional entropy estimates seem to perform similarly across the board.",
+    "localizador": "Apêndice L.6"
+  },
+  "custo": {
+    "reporta": true,
+    "o_que": "Complexidade computacional teórica completa (Tabelas 1 e 2, Apêndice H) por operação (amostragem do GP, otimização multiobjetivo da amostra, decomposição em caixas O(p^(⌊M/2⌋+1)), condicionamento, avaliação da entropia condicional) para JES, MES e PES; empiricamente, tempo de parede da etapa de aquisição via box-plots em escala log10 (sem valores numéricos impressos) para os ~15 algoritmos/variantes, nos 4 problemas e em q em {1,2,4,8} (Apêndice L.9); decomposição por fase (inicialização, amostragem de Pareto, decomposição em caixas, otimização) via gráfico de proporção de tempo. O ajuste do modelo GP em si NÃO está incluído no tempo reportado — só a etapa de aquisição.",
+    "literal": "the cost of acquiring a new point with JES is comparable with NEHVI, slightly more expensive than MES, but cheaper than PES",
+    "localizador": "Sec. 5.2 e Apêndice H, L.9"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Métodos informacionais (JES/MES/PES) tendem a não consultar diretamente os pontos de melhor desempenho, preferindo pontos informativos — por isso, quando a avaliação é restrita aos pontos de fato amostrados (X_N), esses métodos são ocasionalmente superados por métodos gulosos de melhoria/escalarização.",
+      "literal": "the information-theoretic approaches were occasionally outperformed by the improvement and scalarization based acquisition functions, which picked points more greedily",
+      "localizador": "Sec. 5.2 / Apêndice L.5"
+    },
+    {
+      "descricao": "A estimativa de entropia condicional que assume ruído zero (JES-0/MES-0) é nitidamente mais fraca que as demais no problema Marine (M=4) mesmo após a correção ad hoc para ruído — os autores recomendam explicitamente não usá-la quando possível.",
+      "literal": "we generally recommend against using the zero-variance estimate if possible",
+      "localizador": "Apêndice L.6"
+    },
+    {
+      "descricao": "Entre os baselines de melhoria/escalarização, a versão que ignora o ruído de observação (ParEGO, EHVI) tem desempenho comparável ou melhor que a versão que o modela explicitamente (NParEGO, NEHVI) — modelar o ruído não compensa claramente nesses dois métodos.",
+      "literal": "the greedier strategy which ignores the noise seems to perform reasonably well compared to the strategy which accounts for the noise",
+      "localizador": "Apêndice L.7"
+    },
+    {
+      "descricao": "Os próprios autores reconhecem, na conclusão, que a principal limitação de JES é depender de rotinas (decomposição em caixas; otimização multiobjetivo de amostras) caras de executar para problemas muito grandes.",
+      "literal": "relies on routines such as box decompositions and multi-objective optimization of function samples, which can be expensive to execute for very large problems",
+      "localizador": "Sec. 6 (Conclusion)"
+    },
+    {
+      "descricao": "A substituição da condição de otimalidade GLOBAL (f(X)⪯Y*) pela condição LOCAL (f(x)⪯Y*, só no ponto candidato) é explicitamente uma aproximação por cota inferior — um viés sistemático reconhecido pelos autores como fonte de erro, cujo efeito no caso em lote (q>1) é descrito como difícil de quantificar empiricamente.",
+      "literal": "the effects of this error on the batch acquisition function is unclear because computing an unbiased estimate of the exact batch acquisition function over the whole input space is too expensive to do in practice",
+      "localizador": "Apêndice I"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "JES é formalmente uma cota superior a qualquer combinação convexa de PES e MES (Proposição 1) — um resultado teórico de parentesco entre os três critérios informacionais, não uma coincidência empírica.",
+      "literal": "The JES is an upper bound to any convex combination of the PES and MES acquisition functions",
+      "localizador": "Sec. 2, Proposição 1"
+    },
+    {
+      "descricao": "As 4 formas de aproximar a entropia condicional (estimador zero-variância, cota inferior com covariância completa, cota inferior diagonal, Monte Carlo) rendem desempenho de otimização parecido na maioria dos casos, tanto para JES quanto para MES — a escolha da aproximação importa pouco, e recomenda-se a mais barata.",
+      "literal": "we observed that in the majority of cases all the estimates exhibit similar performance",
+      "localizador": "Sec. 5.2, referenciando Apêndice L.6"
+    },
+    {
+      "descricao": "Entre os baselines de melhoria, ignorar ou modelar o ruído de observação (ParEGO vs NParEGO; EHVI vs NEHVI) rende desempenho aproximadamente equivalente — mais uma instância de critérios/variantes distintas convergindo para desempenho parecido.",
+      "literal": "the greedier strategy which ignores the noise seems to perform reasonably well compared to the strategy which accounts for the noise",
+      "localizador": "Apêndice L.7"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "nível de ruído de observação (0%→20%, injetado artificialmente sobre um único problema)",
+      "afirmacao": "O desempenho de todas as variantes de JES/MES piora monotonicamente com o ruído crescente; a estimativa que assume ruído zero (JES-0/MES-0) degrada mais rápido que as demais.",
+      "literal": "we observe that the performance decreases as the noise levels increases",
+      "localizador": "Apêndice L.4"
+    },
+    {
+      "caracteristica": "número de objetivos M (2→4, entre os 4 problemas de benchmark)",
+      "afirmacao": "O custo da decomposição em caixas (exclusiva dos métodos informacionais conjuntos, O(p^(⌊M/2⌋+1))) passa a dominar o tempo de parede à medida que M cresce, tornando JES/MES proporcionalmente mais caros em problemas de mais objetivos.",
+      "literal": "As the number of objectives increases, the one time box decomposition is the dominant contributor to the wall time for the MES and JES.",
+      "localizador": "Apêndice L.9"
+    },
+    {
+      "caracteristica": "parametrização/escala do espaço de objetivos",
+      "afirmacao": "Sob transformações monotônicas diferentes de cada objetivo (reparametrização), o ranking de cada algoritmo muda — exceto os métodos informacionais (PES/MES/JES), teoricamente invariantes à reparametrização (Proposição 3) e que se mantêm entre os mais fortes na maioria das parametrizações testadas empiricamente.",
+      "literal": "the performance of each algorithm changed with regards to the choice of parameterization, but the JES approaches tended to be one of the strongest performers throughout",
+      "localizador": "Sec. 4 / Apêndice L.8"
+    },
+    {
+      "caracteristica": "região do espaço de objetivos (dentro de um único problema biobjetivo)",
+      "afirmacao": "A dificuldade de aproximação não é uniforme dentro da frente de Pareto — no ZDT2, a região que favorece o segundo objetivo é sistematicamente mais difícil para todos os algoritmos de BO testados, algo que o HV agregado padrão esconde.",
+      "literal": "the main source of difficulty for this problem arises from approximating the points in the left section of the Pareto front",
+      "localizador": "Sec. 5.2, Fig. 6"
+    }
+  ],
+  "roster_bloco": {
+    "mecanismo_proprio": [
+      {
+        "descricao": "Sensibilidade da aquisição a S (nº de amostras de Monte Carlo do conjunto/frente de Pareto ótimos) e p (nº de pontos ótimos retidos por amostra) — os dois hiperparâmetros que definem a fidelidade numérica com que a informação/incerteza é estimada a cada iteração.",
+        "literal": "there does not appear to be much benefit in using a larger number of Monte Carlo samples S or Pareto optimal points p",
+        "localizador": "Apêndice L.3, Figs. 14-16"
+      },
+      {
+        "descricao": "Comparação entre as 4 fórmulas de estimação da entropia condicional (JES-0/LB/LB2/MC) que aproximam a MESMA quantidade teórica (o ganho de informação conjunto) por vias numéricas diferentes — o equivalente, para este mecanismo, a comparar classes de medição da incerteza.",
+        "literal": "we generally recommend against using the zero-variance estimate if possible",
+        "localizador": "Apêndice L.6, Figs. 20-21"
+      },
+      {
+        "descricao": "Decomposição do tempo de parede da aquisição por fase, mostrando que a decomposição em caixas — etapa exclusiva de JES/MES, necessária justamente por condicionarem sobre o conjunto Y* (ou (X*,Y*)) — passa a dominar o custo total conforme M cresce.",
+        "literal": "the one time box decomposition is the dominant contributor to the wall time for the MES and JES",
+        "localizador": "Apêndice L.9"
+      },
+      {
+        "descricao": "Diagnóstico mecanístico de POR QUE a busca guiada por informação difere de uma busca gulosa: JES/MES/PES preferem pontos informativos (que reduzem a incerteza sobre (X*,Y*)) em vez dos pontos de melhor valor esperado — evidenciado pela queda de desempenho quando a recomendação é restrita aos pontos de fato visitados (X_N).",
+        "literal": "information-theoretic strategies have a tendency to not directly query the best performing points but instead opt for more informative points that will reduce the overall model uncertainty over the optimal points",
+        "localizador": "Sec. 5.2 / Apêndice L.5"
+      },
+      {
+        "descricao": "Degradação específica da estimativa JES-0/MES-0 (que assume ruído de observação zero) conforme o nível de ruído injetado cresce de 0% a 20% — diagnóstico de robustez de UMA das 4 variantes de medição da incerteza usada na aquisição.",
+        "literal": "the MES-0 estimate is noticeable weaker than the rest even after the ad hoc correction described in Appendix E",
+        "localizador": "Apêndice L.4, Figs. 17-18"
+      },
+      {
+        "descricao": "Resultado teórico central do artigo: JES é uma cota superior a qualquer combinação convexa de PES (só sobre X*) e MES (só sobre Y*) — formaliza o mecanismo próprio de JES como estritamente mais informativo que seus componentes isolados, por construção.",
+        "literal": "The JES is an upper bound to any convex combination of the PES and MES acquisition functions",
+        "localizador": "Sec. 2, Proposição 1"
+      }
+    ],
+    "reprodutivel_com_camadas": "IMPORTANTE antes de mapear qualquer item: a métrica de desempenho deste artigo (log HV discrepancy da Fig. 5 e de quase todos os itens acima) é calculada sobre uma RECOMENDAÇÃO obtida otimizando a média posterior do GP via NSGA2 (camada ③ + otimização extra), NÃO sobre o ND das avaliações reais (camada ①) — a diferença entre essas duas convenções é justamente o objeto do item L.5 (in-sample), que mostra que a convenção ① (a da dissertação) é estruturalmente desfavorável a JES/MES/PES. Item 1 (sensibilidade S,p) e item 2 (comparação de estimadores JES-0/LB/LB2/MC): NÃO reproduzíveis apenas com os dados coletados — ambos mudam QUAL ponto é escolhido a cada iteração, exigindo reexecução com cada config (S, p, ou estimador) registrada na camada ⑤ (manifesto) como um estudo dedicado fora do desenho padrão de 1 config por algoritmo. Item 3 (decomposição do tempo de parede): reproduzível via camada ④ se a dissertação subdividir o tempo de 'busca' de JES em sub-fases equivalentes a amostragem de Pareto/decomposição em caixas/otimização — mais fino que a granularidade padrão de ④. Item 4 (recomendação in-sample x livre): ① fornece diretamente a leitura in-sample (a própria convenção padrão da dissertação); a leitura livre/otimista do artigo exigiria adicionalmente a camada ③ (μ do surrogate) para rodar uma otimização de posterior mean sobre todo X a cada checkpoint — não incluída no desenho padrão, mas computável post-hoc se ③ for gravada com granularidade suficiente. Item 5 (degradação de JES-0/MES-0 com ruído): não reproduzível diretamente — exige reexecuções com ruído artificial injetado em níveis crescentes sobre um problema, fora do desenho padrão; SE a dissertação gravar qual variante de estimador foi usada (camada ⑤), o mesmo padrão poderia ao menos ser verificado nos problemas já ruidosos da bateria via ③ (sonda). Item 6 (Proposição 1): resultado teórico, não uma contagem reproduzível por dados — mas justifica por que, SE JES/MES/PES entrassem simultaneamente no roster, seria esperado JES >= max(PES,MES) em expectativa de informação (não necessariamente em desempenho final).",
+    "parametros_do_uso_da_incerteza": [
+      "S = 10 — nº de amostras de Monte Carlo dos conjuntos/frentes de Pareto ótimos (X*_s,Y*_s) usadas para estimar a expectativa na informação mútua; sensibilidade testada em {1,5,10,25,50} (Apêndice L.3).",
+      "p = 10 — nº de pontos de Pareto retidos por amostra, via truncamento guloso pela contribuição ao HV da amostra; sensibilidade testada em {1,5,10,25,50} (Apêndice L.3).",
+      "Estratégia de estimação da entropia condicional (a 'medição' operacional do ganho de informação): JES-LB (moment-matching, covariância completa, cota inferior — usada como padrão na comparação principal, Fig. 5) vs. JES-0 (assume ruído de observação zero) vs. JES-LB2 (ignora termos fora da diagonal da covariância, cota inferior mais fraca e decomponível por objetivo) vs. JES-MC (Monte Carlo, I=128 amostras-base para o truque de reparametrização).",
+      "L = 500 — nº de features de Fourier aleatórias usadas para amostrar trajetórias do GP via random Fourier features + regra de Matheron.",
+      "NSGA2 para amostrar (X*_s,Y*_s) por trajetória: N_pop=100, N_gen=500, N_off=10.",
+      "NSGA2 para a recomendação final (argmax da média posterior): N_pop=500, N_gen=500, N_off=10, conjunto aumentado com a recomendação da iteração anterior para evitar perder soluções promissoras.",
+      "Estratégia dinâmica de ponto de referência para truncamento por HV (tanto da amostra de Pareto quanto da recomendação): r̂_n − 0,1|r̂_n|, onde r̂_n é o nadir estimado a partir das observações correntes."
+    ]
+  },
+  "observacoes": "(1) DIVERGÊNCIAS METODOLÓGICAS relevantes para a dissertação, válidas para quase todos os itens acima: (a) a métrica é log HV discrepancy contra uma frente de Pareto verdadeira ASSUMIDA CONHECIDA (via NSGA2 com orçamento enorme), nunca IGD/IGD+; (b) a 'recomendação' comparada em toda figura de desempenho é o argmax da média posterior do GP sobre TODO o espaço X (via NSGA2 extra), não o ND das avaliações reais — convenção mais próxima da literatura de BO de otimização single-objective do que da convenção evolutiva da dissertação; (c) nenhum teste estatístico é usado, só média +/- 2 erros-padrão (não mediana/IQR); (d) nenhum piso evolutivo canônico (NSGA-II/MOEA-D/NSGA-III/SMS-EMOA) é comparado — Sobol faz esse papel; (e) 100 sementes (não 30). (2) A tipologia (tipologia_64.md, ficha 45) cita 'c154' como exemplo de algoritmo que reporta 'quantos warnings/estagnações'. Não foi localizada, em nenhuma parte do artigo (corpo, apêndices, camada de texto bruta ou OCR de figuras), nenhuma contagem explícita de warnings/estagnações específica do próprio mecanismo de JES — a única menção a falha de convergência no artigo é do PES (baseline reimplementado pelos autores: 'If the expectation propagation failed to converge, we outputted a random vector...', Apêndice L.1), não de JES. Registrado aqui para transparência; nenhuma ficha 45 foi atribuída a este artigo por falta de conteúdo correspondente encontrado. (3) Consistência com a taxonomia: motor=BO-Especiais (não há motor evolutivo iterando gerações; a 'busca' é a otimização direta da aquisição via NSGA2 sobre AMOSTRAS de f, não sobre a população real); função da incerteza=O2·Ganho de informação (a aquisição É literalmente uma informação mútua MI(y;(X*,Y*)|x,Dn), Eq. 3); surrogate=GP (processos gaussianos independentes por objetivo, kernel Matérn 5/2 ARD, média constante); medição=VAR-GP (toda a aquisição deriva de μ_n e Σ_n em forma fechada da posterior do GP — mesmo as aproximações JES-LB/LB2/MC partem exatamente dos dois primeiros momentos centrais fechados, Proposição 2); regime=online (cada iteração consulta o black-box verdadeiro e reajusta o GP, Algoritmo 2) — todas as 4 classificações fornecidas no pedido são consistentes com o texto. (4) Dentro do próprio artigo, a comparação JES-LB x MES-LB (mesma maquinaria de GP/NSGA2/box-decomposition, diferindo só em condicionar ou não sobre X*) é estruturalmente idêntica ao padrão da ficha 52 ('pares quase-gêmeos experimentais... a lupa da incerteza'), mas não foi marcada com essa ficha porque não há confirmação de que MES seja também um algoritmo separado do roster da dissertação; registrado aqui para referência cruzada futura. (5) Leitura completa confirmada: o corpo estruturado (linhas 1-1354 do .md, título/abstract às referências e checklist, incluindo TODOS os apêndices A-M) foi lido integralmente linha a linha; o ANEXO de camada de texto bruta do PDF (get_text, linhas 1356-7661) foi verificado por múltiplas buscas direcionadas (todas as ocorrências de 'Table', cabeçalhos de apêndice A-M, palavras-chave 'wall time'/'hyperparameter'/'ablation'/'warning'/'converge'/'percentile') e confirmado redundante com o corpo estruturado, sem nenhuma tabela numérica ou seção adicional; o ANEXO de OCR de figuras (linhas 7664-7723) foi lido integralmente e contém só rótulos ruidosos de eixo/legenda sem dado novo. Nenhuma seção, apêndice ou figura foi pulada. (6) Artefato de extração: o cabeçalho da Seç. L.2 no corpo estruturado lê 'ZDT2 (D=2, M=2, Noise=10%)', divergente de D=6 (usado no texto principal, Seç. 5.1, e em toda legenda de figura do artigo, incluindo a própria Fig. 5 logo abaixo do mesmo cabeçalho) — tratado como erro de conversão pymupdf4llm, não como valor real; D=6 usado em todo este JSON. (7) Não fica claro no texto se o orçamento total de avaliações reais foi igualado entre os tamanhos de lote testados (q=1,2,4,8) nos experimentos em lote — ver setup.orcamento. (8) O artigo (Apêndice M) menciona que JES-LB2/MES-LB2 têm uma propriedade de 'decoupling' (decomponibilidade por objetivo, α = Σ_m α_m) por ignorarem a covariância entre objetivos — não testada empiricamente como decoupled evaluation neste artigo, só mencionada como extensão possível; não contabilizada como análise própria."
+}

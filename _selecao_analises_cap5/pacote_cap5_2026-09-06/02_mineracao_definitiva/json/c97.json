@@ -1,0 +1,279 @@
+{
+  "id": "c97",
+  "sigla": "EnGP-MRO",
+  "titulo": "Coupled simulation-optimization model for coastal aquifer management using genetic programming-based ensemble surrogate models and multiple-realization optimization",
+  "ano": 2011,
+  "roster": false,
+  "setup": {
+    "benchmarks": "Nenhuma suíte sintética (sem ZDT/DTLZ/WFG) — um único estudo de caso ilustrativo/hipotético de aquífero costeiro (2,52 km², monocamada, profundidade média 60 m), com 8 poços de produção (PW1–PW8), 3 poços de barreira (BW1–BW3) e 3 locais de monitoramento de salinidade (C1, C2, C3). Horizonte de gestão de 3 anos (3 períodos de 1 ano, bombeamento uniforme por período) ⇒ D=33 variáveis de decisão (11 poços × 3 períodos). M=2 objetivos conflitantes: f1 = maximizar bombeamento benéfico total dos poços de produção; f2 = minimizar bombeamento total dos poços de barreira. Restrição: concentração de sal nos 3 locais de monitoramento ≤ limites (0,5; 0,6; 0,6 kg/m³).",
+    "orcamento": "230 padrões entrada-saída (LHS de taxas de bombeamento × FEMWATER) usados para treinar os surrogates — dataset único, gerado uma vez, offline. O bootstrap não-paramétrico gera realizações desse dataset para treinar até 30 modelos GP por local monitorado (90 modelos GP no total: 30×C1+30×C2+30×C3), cada um com metade dos dados para treino e metade para teste. Dentro do NSGA-II: população 200 × 750 gerações = 150.000 avaliações do SURROGATE (nenhuma chamada adicional a FEMWATER durante a busca — regime totalmente offline). Validação pós-hoc: apenas 5 soluções selecionadas da fronteira, por configuração, são reavaliadas em FEMWATER.",
+    "execucoes": "Não relatado — o artigo não menciona número de execuções independentes nem sementes do NSGA-II (nenhuma ocorrência de 'seed', 'independent run(s)' ou 'replicat*' no texto); não há média±dp nem qualquer medida de dispersão entre execuções em nenhuma tabela/figura, sugerindo uma única execução por combinação (método de otimização × nível de confiabilidade, ou método × tamanho do ensemble).",
+    "baselines": "3 configurações de otimização, TODAS usando o mesmo NSGA-II sobre o mesmo par de objetivos/restrições, diferindo apenas em como tratam a incerteza do surrogate: (1) modelo de surrogate único (o de menor erro de treino entre os 30 candidatos, resíduo assumido = 0 — a única configuração que NÃO usa incerteza); (2) múltiplas realizações/stacking (empilha os 30 surrogates do ensemble como restrições simultâneas, produzindo soluções em vários níveis de confiabilidade n/N); (3) chance-constrained (usa a CDF empírica dos resíduos do ensemble para obter o equivalente determinístico da restrição probabilística, também parametrizado por nível de confiabilidade). NÃO há piso evolutivo puro (NSGA-II chamando FEMWATER diretamente) executado no estudo — a computação direta é citada apenas como motivação (custo proibitivo), nunca rodada.",
+    "metricas_principais": [
+      "RMSE do surrogate (no conjunto de teste, por modelo individual e agregado do ensemble)",
+      "coeficiente de variação (CV) do RMSE entre os modelos do ensemble — proxy de incerteza preditiva",
+      "CDF empírica dos resíduos de predição (erro = salinidade real via FEMWATER − salinidade predita)",
+      "concentração de salinidade predita (surrogate) vs. simulada (FEMWATER) para soluções selecionadas — checagem de viabilidade",
+      "NENHUM indicador de qualidade de fronteira de Pareto (sem hipervolume, sem IGD/IGD+/GD) em nenhuma parte do artigo"
+    ],
+    "testes": [
+      "nenhum teste estatístico de hipótese é usado em todo o artigo (sem Wilcoxon, Friedman, Kruskal-Wallis etc.)"
+    ],
+    "apresentacao": "Comparações de fronteiras de Pareto feitas por sobreposição gráfica no espaço de objetivos (bombeamento benéfico × bombeamento de poços barreira), sem tabela agregada de indicador de qualidade, sem média±dp, sem negrito/símbolos de significância (porque não há múltiplas execuções nem teste estatístico). Tabelas numéricas (2, 3 e 4) reportam valores brutos de salinidade ou resíduos para exatamente 5 soluções amostradas da fronteira, por configuração, sem qualquer agregação estatística. Não há menção ao conceito de 'execução mediana'.",
+    "codigo_plataforma": "Discipulus (software comercial de programação genética, gera código-fonte em C para os modelos evoluídos) para os 90 surrogates GP; FEMWATER (Lin et al., 1997) como simulador numérico 3-D de fluxo/transporte com densidade variável — fonte da verdade para treino e validação; NSGA-II (Deb, 2001) como motor evolutivo multiobjetivo, implementação não nomeada além da citação."
+  },
+  "analises": [
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "RMSE individual dos membros do ensemble por saída (variabilidade entre bootstraps)",
+      "grupo_sugerido": "E",
+      "descricao": "Para cada uma das três saídas de salinidade (C1, C2, C3), o artigo calcula o RMSE de teste de CADA um dos até 30 modelos substitutos individuais do ensemble — cada um treinado por programação genética sobre uma reamostragem bootstrap distinta do mesmo conjunto de 230 padrões LHS/FEMWATER — e plota o RMSE por índice do modelo (Figuras 4, 5 e 6). É uma fotografia da dispersão de acurácia entre membros do ensemble, feita antes de qualquer otimização, sem relação com orçamento de busca.",
+      "literal": "It could be observed that for different realizations of the same data set, the root mean square errors are different for different surrogate models. This is due to the predictive uncertainty of the surrogate models.",
+      "localizador": "Sec. 6.1 [38], Figs. 4, 5, 6",
+      "metricas": [
+        "RMSE (por modelo individual, no conjunto de teste)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "RMSE plotado por índice do modelo no ensemble (gráfico de barras/pontos, sem média±dp explícita, sem teste); uma figura por local de monitoramento (C1, C2, C3).",
+      "achado": "Modelos treinados em diferentes reamostragens bootstrap do mesmo conjunto de dados apresentam RMSEs de teste distintos entre si nos três locais, evidenciando incerteza estrutural/paramétrica do próprio processo de ajuste por GP (não há um único RMSE reprodutível para 'o' surrogate).",
+      "aplicabilidade": "não reproduzível — a instrumentação da dissertação não treina múltiplos surrogates independentes via bootstrap sobre um dataset fixo antes da busca; o mais próximo seria a camada ③ (predições do surrogate), mas não há reamostragem bootstrap nem RMSE por membro de um ensemble nas 7 camadas registradas."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "RMSE do ensemble agregado em função do número de membros (C1)",
+      "grupo_sugerido": "E",
+      "descricao": "O artigo plota o RMSE da predição agregada do ensemble (apenas para a salinidade C1) em função do número de modelos substitutos incluídos, partindo de um ensemble inicial de 10 e adicionando modelos um a um, sobre o mesmo conjunto de teste (Figura 7).",
+      "literal": "The root mean square errors for the ensemble of models predicting salinity C1 are plotted against the number of surrogate models in the ensemble starting from an initial ensemble size of 10 in Figure 7.",
+      "localizador": "Sec. 6.1 [38]-[39], Fig. 7",
+      "metricas": [
+        "RMSE do ensemble agregado"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Curva única (restrita a C1) de RMSE do ensemble vs. número de modelos incluídos; sem repetição/replicação declarada.",
+      "achado": "À medida que mais modelos são adicionados ao ensemble, o RMSE da predição agregada diminui — 'pelo menos neste exemplo' (o próprio artigo qualifica o achado como não necessariamente geral).",
+      "aplicabilidade": "não reproduzível — exige retreinar e agregar ensembles com cardinalidade crescente sobre um dataset fixo, procedimento de construção do surrogate anterior à busca, ausente das 7 camadas da dissertação."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Convergência da incerteza (CV do RMSE) com o tamanho do ensemble — escolha de N=30",
+      "grupo_sugerido": "E",
+      "descricao": "Para cada uma das três saídas (C1, C2, C3), o coeficiente de variação (CV) dos RMSEs dos modelos do ensemble é plotado contra o número de modelos incluídos (Figuras 8, 9 e 10), como medida operacional de incerteza preditiva. A tendência decrescente e a estabilização por volta de 30 modelos motivam a escolha do tamanho final do ensemble (N=30) usado em todo o restante do estudo.",
+      "literal": "the uncertainty in the ensemble of surrogate model decreases with the number of models in the ensemble and reaches a constant value when the number of models in the ensemble is around 30.",
+      "localizador": "Sec. 6.1 [39], Figs. 8, 9, 10",
+      "metricas": [
+        "coeficiente de variação do RMSE (medida de incerteza preditiva)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Uma curva de CV(RMSE) vs. número de modelos por local monitorado (C1, C2, C3); critério de parada é estabilização visual, sem limiar numérico declarado.",
+      "achado": "A incerteza (CV do RMSE) decresce com o número de modelos no ensemble e estabiliza perto de 30 para as três saídas; esse ponto de estabilização é adotado como tamanho ótimo do ensemble para todo o restante do artigo — quanto mais complexo o sistema, mais membros seriam necessários (afirmação qualitativa, não testada no case study).",
+      "aplicabilidade": "não reproduzível — não há, nas 7 camadas, um procedimento de crescimento incremental de um ensemble de surrogates com recomputação do CV do RMSE; é uma decisão de design do surrogate anterior à execução registrada, não um diagnóstico feito durante a busca."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade do NSGA-II a tamanho de população e número de gerações",
+      "grupo_sugerido": "J",
+      "descricao": "O artigo relata, apenas em texto (sem figura/tabela), experimentos numéricos variando o tamanho de população e o número de gerações do NSGA-II (mantendo os demais parâmetros fixos: crossover 0,9, mutação 0,02), observando o efeito sobre a convergência à fronteira de Pareto e sobre a dispersão/cobertura da fronteira obtida. Não é uma sensibilidade relacionada à incerteza do surrogate — é puramente do motor evolutivo.",
+      "literal": "It was found that for the number of generations less than 750 and population size less than 200, convergence to the Pareto-optimal front is not achieved.",
+      "localizador": "Sec. 6.2 [40]",
+      "metricas": [
+        "convergência qualitativa à fronteira (obtida/não obtida)",
+        "cobertura/dispersão da fronteira obtida"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Relato textual, sem tabela nem figura; nenhuma combinação exata de parâmetros testados, nem número de execuções, é dado.",
+      "achado": "Menos de 750 gerações ou menos de 200 indivíduos de população impedem a convergência à fronteira de Pareto; reduzir a população (mesmo compensando com mais gerações) elimina regiões inteiras da fronteira obtida.",
+      "aplicabilidade": "não reproduzível diretamente com as 7 camadas — é sensibilidade de hiperparâmetro do motor evolutivo (NSGA-II), não do mecanismo de incerteza; o mais próximo seria a camada ② (população por geração) para reconstruir convergência, mas sem relação com σ/uso da incerteza."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Fronteiras de Pareto por nível de confiabilidade (múltiplas realizações × chance-constrained)",
+      "grupo_sugerido": "H",
+      "descricao": "Para quatro níveis de confiabilidade impostos à restrição de salinidade máxima (0,99; 0,8; 0,66; 0,5), o artigo plota e compara visualmente, no espaço de objetivos (bombeamento benéfico × bombeamento de poços barreira), a fronteira de Pareto obtida pela abordagem de múltiplas realizações (empilhamento dos 30 surrogates como restrições) contra a obtida pela abordagem chance-constrained (baseada na CDF dos resíduos) — Figuras 11 a 14. Observa também que, com 30 modelos no ensemble, as duas abordagens convergem para a mesma fronteira em cada nível de confiabilidade.",
+      "literal": "The Pareto-optimal solutions for different reliabilities obtained by the multiple-realization and chance-constrained methods are compared in Figures 11–13.",
+      "localizador": "Sec. 6.3 [42]-[44], Figs. 11, 12, 13, 14; equivalência MRO≈CC em Sec. 6.4 [47]",
+      "metricas": [
+        "nenhuma métrica escalar — comparação visual de fronteiras no espaço de objetivos (f1: bombeamento benéfico; f2: bombeamento de poços barreira)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Fronteiras sobrepostas em gráfico de dispersão/linha, uma figura por nível de confiabilidade (0,99 / 0,8 / 0,66 / 0,5); sem agregação estatística (aparentemente 1 execução por configuração).",
+      "achado": "Fronteiras com maior confiabilidade exigida são aparentemente inferiores (menos otimistas) às de menor confiabilidade, porque soluções de aparência melhor sob baixa confiabilidade têm maior probabilidade de violar as restrições reais; com ensemble de 30 modelos, a abordagem de múltiplas realizações reproduz a mesma fronteira da chance-constrained em cada nível de confiabilidade testado.",
+      "aplicabilidade": "não reproduzível — exige rodar variantes do algoritmo com restrição estocástica parametrizada por um nível de confiabilidade contínuo, mecanismo inexistente nos 15 algoritmos SA-MOO da dissertação (que não têm um parâmetro de confiabilidade comparável entre si)."
+    },
+    {
+      "fichas": [
+        11
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "O artigo compara a fronteira de Pareto obtida usando um único surrogate (o de menor erro de treino, sem qualquer tratamento de incerteza — resíduo assumido zero) contra as fronteiras do ensemble/chance-constrained no nível de confiabilidade 0,5, usando a mesma estrutura de objetivos/restrições e o mesmo NSGA-II (Figura 14). Conclui que a fronteira do modelo único é próxima — e ligeiramente 'melhor' (mais otimista) — que a fronteira de confiabilidade 0,5, inferindo que ignorar a incerteza equivale implicitamente a uma confiabilidade real inferior a 0,5.",
+      "literal": "It could be observed that the front obtained using the single-surrogate model is very close to and slightly better than the fronts obtained for a reliability level of 0.5",
+      "localizador": "Sec. 6.3 [44], Fig. 14",
+      "metricas": [
+        "nenhuma métrica escalar — comparação visual de fronteiras"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Sobreposição gráfica de 3 fronteiras (modelo único; múltiplas realizações reliability=0,5; chance-constrained reliability=0,5) no mesmo espaço de objetivos.",
+      "achado": "Ignorar a incerteza do surrogate (usar um único modelo, assumindo resíduo zero) produz uma fronteira otimista demais, equivalente a uma confiabilidade real inferior a 0,5 — abaixo do nível que os próprios métodos com incerteza já tratam como arriscado.",
+      "aplicabilidade": "não reproduzível — exige rodar a variante 'sem tratamento de incerteza' (surrogate único, resíduo=0) do mesmo problema; conceitualmente análoga à ablação σ-vs-média da ficha 11 (mesmo NSGA-II e mesmos objetivos/restrições-base), mas aqui a 'maquinaria' difere mais do que na ablação exata (um único modelo vs. ensemble de 30), não é apenas uma leitura diferente do mesmo modelo."
+    },
+    {
+      "fichas": [
+        33
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para cada local de monitoramento (C1, C2, C3), o artigo constrói a função de distribuição cumulativa (CDF) empírica dos resíduos de predição do ensemble de surrogates (erro = salinidade real via FEMWATER − salinidade predita pelo ensemble), usada tanto para formular a restrição chance-constrained (equação determinística equivalente, eqs. 13-15) quanto para caracterizar a simetria/viés do erro do modelo (Figuras 15-17).",
+      "literal": "The errors are more or less symmetrically distributed with a probability of 0.5 for zero residual in all three cases.",
+      "localizador": "Sec. 4.2 (eqs. 13-15); Sec. 6.3 [43], Figs. 15, 16, 17",
+      "metricas": [
+        "CDF empírica dos resíduos de predição (erro de salinidade)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Uma curva de CDF por local monitorado (C1, C2, C3); a CDF é invertida para obter o erro correspondente a qualquer nível de confiabilidade α.",
+      "achado": "Os erros de predição do ensemble são aproximadamente simétricos em torno de zero, com probabilidade de resíduo nulo próxima de 0,5 nos três locais — usado pelos autores para argumentar que um surrogate único (que assume resíduo zero) corresponde implicitamente a uma confiabilidade de apenas ~0,5.",
+      "aplicabilidade": "não reproduzível diretamente — seria aproximável com a camada ③ (predições do surrogate) se houvesse um conjunto de teste fixo com verdade conhecida (como a sonda), mas a dissertação mede cobertura de μ±2σ contra 95,4% nominal (ficha 33), não uma CDF empírica invertida para construir restrições estocásticas por nível de confiabilidade."
+    },
+    {
+      "fichas": [
+        42
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para cinco soluções ótimas selecionadas em diferentes regiões da fronteira de Pareto obtida com o surrogate único (sem ensemble), o artigo reavalia os padrões de bombeamento na simulação numérica verdadeira (FEMWATER) e compara a concentração de salinidade predita pelo surrogate (SM) com a simulada pelo modelo numérico (NM) em C1, C2 e C3 (Tabela 2), revelando que algumas soluções 'ótimas' segundo o surrogate violam os limites de concentração quando checadas na função verdadeira.",
+      "literal": "some of the actual salinity levels obtained from the numerical simulation model violate the constraints, thus forcing the derived optimal solutions into the infeasible zone.",
+      "localizador": "Sec. 6.3 [45], Table 2",
+      "metricas": [
+        "concentração de salinidade predita (SM) vs. simulada (NM), por local (C1, C2, C3)"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Tabela com 5 soluções × 3 locais × 2 colunas (SM, NM), valores absolutos (×10⁻³ kg/m³), sem agregação estatística.",
+      "achado": "O uso de um único surrogate (sem quantificar incerteza) permite que soluções aparentemente ótimas e viáveis segundo o surrogate sejam, na verdade, infactíveis quando reavaliadas no modelo numérico verdadeiro — a fronteira 'acreditada' não sobrevive integralmente à reavaliação.",
+      "aplicabilidade": "camada ⑦ (só offline) — reavaliação do ND final na função verdadeira; aqui restrita a 5 soluções amostradas da fronteira (não ao ND completo) e mede violação de restrição/viabilidade em vez de dominância ou IGD+."
+    },
+    {
+      "fichas": [
+        33,
+        42
+      ],
+      "nova": false,
+      "nome_sugerido": "",
+      "grupo_sugerido": "",
+      "descricao": "Para as mesmas cinco soluções (agora obtidas pelas abordagens de múltiplas realizações e chance-constrained), o artigo tabula o resíduo (diferença entre concentração real via FEMWATER e concentração predita) em C1, C2 e C3, para cada um dos quatro níveis de confiabilidade (0,99; 0,8; 0,66; 0,5), separadamente para múltiplas realizações (Tabela 3) e chance-constrained (Tabela 4).",
+      "literal": "it is evident that the errors are less when the reliability level is high.",
+      "localizador": "Sec. 6.3 [45]-[46], Tables 3 e 4",
+      "metricas": [
+        "resíduo de predição de salinidade (NM − SM), por local e nível de confiabilidade"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Duas tabelas (uma por método) com 5 soluções × 4 níveis de confiabilidade × 3 locais; valores absolutos de erro (×10⁻³ kg/m³), sem agregação estatística nem símbolos de significância.",
+      "achado": "Em ambas as abordagens (múltiplas realizações e chance-constrained), o erro de predição — validado contra a simulação numérica verdadeira — diminui à medida que o nível de confiabilidade declarado aumenta: evidência de que a confiabilidade nominal do método rastreia o erro real, isto é, a incerteza quantificada pelo ensemble está minimamente calibrada em sentido ordinal.",
+      "aplicabilidade": "camada ⑦ combinada com um proxy de ③ — reavaliação de soluções específicas sob diferentes níveis de confiabilidade declarados; não há, na dissertação, um parâmetro de 'nível de confiabilidade' contínuo comparável entre múltiplos algoritmos online."
+    },
+    {
+      "fichas": [],
+      "nova": true,
+      "nome_sugerido": "Sensibilidade da fronteira de Pareto ao número de membros do ensemble (5/10/15/30)",
+      "grupo_sugerido": "E",
+      "descricao": "Mantendo a confiabilidade em 0,99, o artigo recomputa a fronteira de Pareto pela abordagem de múltiplas realizações usando ensembles de 5, 10, 15 e 30 modelos substitutos, comparando as quatro fronteiras entre si e com a fronteira chance-constrained (Figura 18). Mostra que ensembles menores deslocam a fronteira para soluções aparentemente melhores, mas prováveis infactíveis, porque a incerteza fica subestimada; o artigo afirma (sem mostrar as figuras) que resultados semelhantes ocorrem nos demais níveis de confiabilidade.",
+      "literal": "As the size of the ensemble decreases, the fronts move further to find seemingly better solutions, which actually may be infeasible solutions.",
+      "localizador": "Sec. 6.4 [48], Fig. 18",
+      "metricas": [
+        "nenhuma métrica escalar — comparação visual de 5 fronteiras (N=5,10,15,30 e chance-constrained) no espaço de objetivos"
+      ],
+      "testes": [
+        "nenhum"
+      ],
+      "convencoes": "Sobreposição gráfica de fronteiras por tamanho de ensemble, nível de confiabilidade fixo em 0,99; generalização para outros níveis afirmada apenas em texto ('similar results were obtained for other reliability levels also'), sem figuras adicionais mostradas.",
+      "achado": "Ensembles pequenos (5, 10, 15 membros) subestimam a incerteza do surrogate e produzem fronteiras otimistas/infactíveis; só com ensemble grande o suficiente (30) a abordagem de múltiplas realizações converge para o resultado da chance-constrained — o tamanho do ensemble é, portanto, um parâmetro crítico de calibração do método, não um mero custo computacional.",
+      "aplicabilidade": "não reproduzível — exige retreinar e reotimizar com cardinalidades diferentes de ensemble, procedimento fora do escopo das 7 camadas (que tratam algoritmos com surrogate fixo, não um hiperparâmetro de contagem de membros do ensemble variado sistematicamente)."
+    }
+  ],
+  "calibracao_do_sigma": {
+    "mede": true,
+    "como": "O artigo mede a qualidade da incerteza de duas formas complementares: (1) constrói a CDF empírica dos resíduos de predição do ensemble para C1/C2/C3 (Figs. 15-17), usada para converter um nível de confiabilidade α na margem de erro correspondente, e observa que os erros são aproximadamente simétricos em torno de zero (p≈0,5 de resíduo nulo); (2) reavalia com o modelo numérico verdadeiro (FEMWATER) 5 soluções ótimas obtidas em 4 níveis de confiabilidade declarados, mostrando que o erro real de predição diminui conforme o nível de confiabilidade declarado aumenta (Tabelas 3 e 4) — uma checagem indireta de que a incerteza quantificada pelo ensemble é ordinalmente coerente com o erro real. Adicionalmente, a incerteza é operacionalizada desde a origem como discordância entre modelos do ensemble (CV do RMSE, Figs. 8-10), não como uma variância bayesiana única.",
+    "literal": "it is evident that the errors are less when the reliability level is high.",
+    "localizador": "Sec. 4.2 (eqs. 13-15); Sec. 6.1 Figs. 8-10; Sec. 6.3 Figs. 15-17 e Tables 3-4"
+  },
+  "custo": {
+    "reporta": false,
+    "o_que": "O artigo não reporta nenhum número de tempo de execução (nem total, nem por geração, nem tempo de ajuste do GP separado da busca), nem complexidade assintótica. A única quantificação relacionada a custo é o número de avaliações do SURROGATE exigidas pelo NSGA-II (200×750=150.000) e o número de restrições do problema (90 = 30 modelos × 3 locais) — usados apenas para indicar a ordem de grandeza que seria proibitiva se aplicada diretamente ao modelo numérico verdadeiro (FEMWATER). A motivação inteira do artigo é reduzir esse 'computational burden', mas ele nunca é medido em tempo (segundos/horas) nem comparado explicitamente (surrogate vs. FEMWATER) em nenhuma tabela ou figura.",
+    "literal": "One of the major disadvantages of using the coupled simulation-optimization model is the huge computational burden involved due to multiple calls of the simulation model by the optimization algorithm.",
+    "localizador": "Sec. 1 (Introduction) [2]; contagem de avaliações/restrições em Sec. 6.2 [40]"
+  },
+  "resultados_negativos": [
+    {
+      "descricao": "Ao usar um único surrogate (o de menor erro, sem qualquer tratamento de incerteza), várias das soluções consideradas ótimas e viáveis pelo surrogate revelam-se, na verdade, infactíveis quando os padrões de bombeamento são resimulados no modelo numérico verdadeiro (FEMWATER) — a incerteza ignorada se traduz em violação real de restrição.",
+      "literal": "some of the actual salinity levels obtained from the numerical simulation model violate the constraints, thus forcing the derived optimal solutions into the infeasible zone.",
+      "localizador": "Sec. 6.3 [45]"
+    },
+    {
+      "descricao": "Como a maioria das soluções ótimas do problema é do tipo 'estado-limite' (na fronteira das restrições de salinidade), mesmo um pequeno erro do surrogate é suficiente para empurrar a solução para a região inviável — a própria arquitetura do problema amplifica o custo de ignorar a incerteza.",
+      "literal": "the uncertainty in the surrogate model structure often causes the optimal solution to move into the infeasible region.",
+      "localizador": "Sec. 6.3 [44]"
+    },
+    {
+      "descricao": "Fronteiras obtidas sob maior confiabilidade (mais conservadoras quanto à incerteza) aparentam desempenho inferior (pior trade-off aparente) às de menor confiabilidade — respeitar a incerteza tem um custo direto e visível em termos da otimalidade aparente da fronteira, não é 'de graça'.",
+      "literal": "Pareto-optimal solutions with a higher reliability level appears to be inferior to those with a lower reliability level.",
+      "localizador": "Sec. 6.3 [44]"
+    },
+    {
+      "descricao": "Ensembles pequenos (5, 10 ou 15 modelos) subestimam a incerteza real do surrogate: a otimização baseada neles desloca a fronteira de Pareto para soluções aparentemente melhores que, na prática, tendem a ser infactíveis — uma quantificação de incerteza malfeita (poucos membros) é enganosa, não neutra.",
+      "literal": "As the size of the ensemble decreases, the fronts move further to find seemingly better solutions, which actually may be infeasible solutions.",
+      "localizador": "Sec. 6.4 [48]"
+    }
+  ],
+  "equivalencia_criterios": [
+    {
+      "descricao": "Quando o ensemble tem membros suficientes (30) para caracterizar bem a incerteza do surrogate, a abordagem de múltiplas realizações (que empilha os N surrogates como restrições) passa a impor uma restrição tão rígida quanto a abordagem chance-constrained (baseada na CDF do erro) para o mesmo nível de confiabilidade — dois mecanismos matematicamente distintos de tratar a incerteza convergem para o mesmo resultado quando a caracterização da incerteza (não o mecanismo) é suficientemente boa.",
+      "literal": "the constraints imposed by stochastic optimization using multiple realization is as rigid as the chance constraints when the number of surrogate models in the ensemble is large enough to quantify the uncertainty in the model structures and parameters.",
+      "localizador": "Sec. 6.4 [47]"
+    },
+    {
+      "descricao": "Reforçando o achado anterior, o artigo generaliza que a equivalência entre múltiplas realizações e chance-constrained se mantém para outros níveis de confiabilidade também, desde que o ensemble seja suficientemente grande — a diferença de formulação matemática entre os dois métodos deixa de importar na prática.",
+      "literal": "With a sufficiently large number of models in the ensemble, the multiple-realization approach performs similar to the chance-constrained optimization approach.",
+      "localizador": "Sec. 6.4, final"
+    }
+  ],
+  "caracteristica_x_desempenho": [
+    {
+      "caracteristica": "restrições ativas / soluções em estado-limite (ótimo na fronteira das restrições)",
+      "afirmacao": "Como a maioria das soluções ótimas do problema de bombeamento é do tipo 'estado-limite' (na fronteira das restrições de salinidade), mesmo um pequeno erro do surrogate pode empurrar a solução para a região inviável quando reavaliada na simulação verdadeira — o problema em si (restrições apertadas, soluções nos limites) amplifica a sensibilidade à incerteza do modelo.",
+      "literal": "Since most of the optimal solutions are limit state designs, i.e., optimal solution lying on the constraint bounds, the uncertainty in the surrogate model structure often causes the optimal solution to move into the infeasible region.",
+      "localizador": "Sec. 6.3 [44]"
+    },
+    {
+      "caracteristica": "complexidade do sistema/processo físico modelado (não quantificada por D ou M explicitamente)",
+      "afirmacao": "O artigo afirma, em termos gerais (sem testar empiricamente dentro deste estudo de caso, que usa D=33, M=2), que sistemas mais complexos teriam maior incerteza estrutural/paramétrica no surrogate e exigiriam mais membros no ensemble para caracterizá-la adequadamente — um argumento qualitativo/conjectural, não uma medição feita no case study estudado.",
+      "literal": "For more complex systems the uncertainty in the model structure and parameters of surrogate models will be larger and hence more number of surrogate models will be required in the ensemble.",
+      "localizador": "Sec. 6.1 [39]"
+    }
+  ],
+  "roster_bloco": null,
+  "observacoes": "Artigo de estudo de caso único (aquífero costeiro hipotético/ilustrativo), fora do protocolo de benchmark sintético multi-problema/multi-semente assumido pela dissertação: sem ZDT/DTLZ/WFG, sem HV/IGD/IGD+ em qualquer lugar do texto, sem teste estatístico algum, sem piso evolutivo puro executado (a computação direta via FEMWATER é só motivação), e sem número relatado de execuções/sementes independentes do NSGA-II. Por isso a maioria das análises (6 de 10) foi marcada NOVA: o artigo caracteriza a incerteza do surrogate no momento da CONSTRUÇÃO do ensemble (RMSE por membro, RMSE agregado e CV do RMSE em função do número de membros do bootstrap, usados para fixar N=30 antes da busca) — um tipo de diagnóstico anterior/externo à busca que as fichas de grupo E (sonda/fantasia, fichas 31-38) não cobrem, pois estas assumem um único surrogate diagnosticado AO LONGO do orçamento de busca via uma sonda fixa, não um ensemble bootstrap dimensionado antes da otimização começar. A classificação da dissertação para este artigo (motor=EA-Dominância/NSGA-II; função da incerteza=Resíduo; surrogate=RG, regressor clássico via ensemble de programação genética; medição=DISC-ENS, discordância entre predições; regime=offline) é inteiramente consistente com o que foi lido: a 'incerteza' é sempre operacionalizada como discordância entre os 30 membros do ensemble (CV do RMSE) ou como a distribuição empírica do resíduo (erro real vs. predito) — nunca como uma variância bayesiana de um único modelo — e a busca inteira (NSGA-II, 200×750 gerações) roda sobre o surrogate fixo, sem qualquer avaliação real adicional (offline), com apenas 5 soluções finais reavaliadas em FEMWATER por configuração. A ablação 'surrogate único (sem incerteza) vs. ensemble/chance-constrained' (Fig. 14, Tabela 2) foi mapeada à ficha 11 por analogia metodológica geral (mesma otimização/objetivos, tratamento de incerteza como única diferença relevante), mas a analogia é aproximada, não exata: a 'mesma maquinaria' da ficha 11 (mesmo modelo, só muda a leitura μ-vs-σ) não se aplica literalmente aqui, pois o surrogate único é um objeto distinto (1 modelo) do ensemble (30 modelos), não a mesma predição lida de dois jeitos. Uma frase do artigo (Sec. 5) menciona que os parâmetros de GP 'foram usados conforme diretrizes, após realizar uma análise de sensibilidade' ('as per the guidelines after performing a sensitivity analysis'), mas nenhum dado/figura dessa sensibilidade é mostrado no artigo — tratada como 'só mencionada', não listada como análise. Conferi a seção 'ANEXO — Camada de texto completa' (OCR bruto, linhas 594-2334) e a seção 'ANEXO — Conteúdo textual das imagens' (OCR de figuras, linhas 2340-2517): ambas são fiéis ao conteúdo estruturado já citado acima (mesmas Tabelas 2-4, mesmos números, mesmo texto de corpo), sem apêndice ou seção adicional com conteúdo novo — apenas rótulos de eixo/legenda das Figuras 1 a 18 (parse tree da GP; esquema do fluxo do método; geometria do aquífero; 'Number of models in ensemble' e 'Uncertainty (COV of RMSEs)' nas Figs. 4-10; 'Beneficial pumping'/'Barrier well pumping' nas Figs. 11-14 e 18; 'Probability' nas Figs. 15-17), todos já refletidos conceitualmente nas descrições das análises 1-3, 5, 6 e 10 acima; usei a seção estruturada (limpa) para todas as citações literais, não a camada OCR bruta."
+}

@@ -1,0 +1,77 @@
+#### U1 orcamento
+  maxfe 61 fe_final 61 len(1) 61 31D-1 61
+  fe_index denso 0-based: True
+  solution_id denso: True
+  termino: normal status ok
+#### U2 DoE
+  n_init 21 11D-1 21
+  doe cols ['x0', 'x1'] shape (21, 2)
+  max|dX| float64 = 1.1457521598146059e-07
+  bit-exato em float32: True
+  doe_hash manifesto b4682dc218d24077 == header b4682dc218d24077
+#### U3 1 retreino por ciclo
+  |4| 10 |c141_gen| 10 |fit_series| 10
+  geracao sequencial: True
+  tempo_fit_s todos > 0: True
+  n_geracoes manifesto 11 = |gen|+1 ? True
+#### U4 sonda: cadencia + join posicional
+  blocos 7 geracoes [1, 2, 4, 6, 8, 10, 11] manifest.geracoes [1, 2, 4, 6, 8, 10, 11]
+  linhas por bloco: {1: 2000, 2: 2000, 4: 2000, 6: 2000, 8: 2000, 10: 2000, 11: 2000}
+  regra g==1 v g%%2==0 + finalProbe -> [1, 2, 4, 6, 8, 10, 11]  bate: True
+  motivo do ultimo bloco: final  | todos motivos: ['cadencia', 'cadencia', 'cadencia', 'cadencia', 'cadencia', 'cadencia', 'final']
+  n_falhas 0
+  gabarito shape (20000, 5) cols ['sonda_id', 'x0', 'x1', 'f0', 'f1']
+  max|dX| join POSICIONAL [0:2000] em todos os blocos = 1.1920928955078125e-07
+  (armadilha) max|dX| contra as 2000 ULTIMAS = 0.967276630923152
+  x_hash eventos unicos: True
+#### U6 invariante do timing (DI-13.10)
+  violacoes fit+busca > geracao (>1e-6): 0 / 10
+  folga mediana s: 0.008948540315032005
+  violacoes COM sonda: 6  gerac. logadas com bloco: 6
+  tempo_aval_real_s (I-3): 0.01727529166666667
+#### U7 fe_treino_max
+  serie [20, 24, 25, 28, 35, 40, 42, 48, 50, 53]  monotonico: True
+  modelo_hp.n [21, 25, 26, 29, 36, 41, 43, 49, 51, 54]  == ftm+1 em 10 / 10
+  |(1) com fe_index<=ftm| por ciclo: [21, 25, 26, 29, 36, 41, 43, 49, 51, 54]
+#### U8 guards
+   Counter({'cache_hit': 1, 'hard_stop': 1}) [('cache_hit', 1), ('hard_stop', 61)]
+  manifest.cache_hits 1 footer.cache_hits 1
+  cache-hit no init (fe <= 11D-1)? [(1, True)]
+  hard_stop fe == maxfe: [(61, True)]
+#### U9 ledger de FE
+  11D-1 = 21  Sum lote logado = 37  cache = 1
+  lote_final derivado = 4  identidade fecha: True
+  lotes: [4, 1, 3, 7, 5, 2, 6, 2, 3, 4]  min 1
+  (2) pop: linhas 128 grupos geracao 11 tamanhos {1: 21, 2: 8, 3: 8, 4: 9, 5: 10, 6: 10, 7: 10, 8: 13, 9: 13, 10: 13, 11: 13}
+#### U10 erro de fantasia / interpolacao exata
+  linhas com real_solution_id: 37  in-sample: 0  fantasia: 37
+  in-sample |mu-f| max: None  mediana: None
+  fantasia |mu-f| mediana: 17.922502517700195  max: 208.8318328857422
+  otimismo (mu < f) fracao: 1.0
+#### C1/C2 N por subpopulacao, pool 2N, wmax
+  params.N_subpop 21  min(100,11D-1) = 21
+  n_sub1/n_sub2/n_pool por ciclo: {(21, 21, 42)}
+  (3)-online linhas por geracao: {1: 42, 2: 42, 3: 42, 4: 42, 5: 42, 6: 42, 7: 42, 8: 42, 9: 42, 10: 42}
+  wmax 20
+#### C3 u=5 revogado, nivel de saida, batch
+  lotes >5: 2  max lote: 7
+  niveis de saida: Counter({3: 10})
+  ramo_QU True: 10 / 10
+  n_front2 nos ciclos que NAO sao nivel 3: []
+  lote>=1 em todos: True
+#### C6 telemetria DI-10
+  presentes em todos os 10 eventos: {'n_por_nivel': 10, 'modelo_hp': 10, 'U_pool_max': 10, 'dist_min_arquivo': 10, 'f_best': 10, 'ramo_QU': 10, 'motivo': 10, 'fit1': 10, 'fit2': 10, 'fit3': 10, 'Q': 10, 'U': 10, 'n_front1': 10, 'n_front2': 10, 'fe_treino_max': 10, 'tempo_geracao_s': 10}
+  n_por_nivel.entrada == 2N: True
+  nivel1==n_front1 e nivel2==n_front2: True
+  selecionados == lote: 10 / 10
+#### F7 sigma_0 = U de ranks do pool completo (D45)
+  inteiro em 100.0 % das 420 linhas; NaN: 0
+  max sigma_0 = 82.0  teto teorico 2(2N-1) = 82
+  U_pool_max do (6): [64, 72, 74, 82, 76, 68, 82, 72, 82, 82]  max = 82
+  max sigma_0 por geracao: {1: 64.0, 2: 72.0, 3: 74.0, 4: 82.0, 5: 76.0, 6: 68.0, 7: 82.0, 8: 72.0, 9: 82.0, 10: 82.0}
+  U_pool_max == max(sigma_0) por ciclo: 10 / 10
+  sigma_1 NaN: 0  mediana 4.636624336242676  max 535.4777221679688
+  sigma_2 existe na (3)? False
+  espaco_modelo/transf_tipo: [None] [None]
+  pred_tipo/classe/score/confianca: ['valor'] [None] [nan] [nan]
+  modelo_flag: ['RBF-MQ3']

@@ -1,0 +1,125 @@
+{
+ "config": "smsemoa · exp=main · SMS-EMOA PURO (piso ONLINE sem surrogate, PlatEMO 4.15 stock, zero patches — árvore RE-LACRADA hoje: HEAD b686ca20cd89, git status 0 em SMS-EMOA/, sha256 SMSEMOA.m=45e68c67/Reduce.m=5b62f0ab/CalHV.m=349fa80d/UpdateFront.m=e3aec8a1 idênticos ao F30). RODADA FINAL: 840 células = 28 problemas × 30 sementes {0-28,42} (25 sintéticos herdados do F30 + RE21/DDMOP7/ESTOQUE40 novos). Nada rodado, nada editado; experiments.py/experiment.run/experiments.m NÃO invocados; MATLAB Engine NÃO usado. Evidência: scratchpad/{battery,mech,extra,spot}.py + cells_new.csv.",
+ "celulas_final": "840/840 ok sob O-21 (rodapé = autoridade): 28 problemas × 30 sementes {0-28,42}, 30/30 em todos (censo_final ≡ recontagem minha em disco a ZERO células; 840 jsonl, 840 manifestos). Footer.status='ok' ≡ manifest.status, footer.fe_final==maxfe==31D-1, termino='normal', n_retries=0, fallback=false — verificado DIRETO em 98 células nesta rodada (90 novas + 8 spot sintéticas) e herdado do F30 (750/750 já varridas lá) para o resto. 0 ⚪ teto, 0 fail, 0 sem_manifesto, 0 células na _quarentena. O smsemoa segue o ÚNICO estrato do estudo com 100% de sucesso — agora também nos 3 problemas reais (o .p caixa-preta de 3.290 s/célula incluído).",
+ "novas_desde_f30": "90 células novas: RE21 30 (15/08 16:53–17:00Z, matlab-vm1, commit 3240f4b26fae) · ESTOQUE40 30 (idem) · DDMOP7 30 (semente 0 em 15/08/vm1/3240f4b26fae; 29 em 18–19/08/matlab-vm5/commit 7be66e65522c — batelada longa do .p, 27,5 h-core). As 750 sintéticas estão INTOCADAS desde o F30: arquivo mais novo = ZDT6/26 em 2026-08-14T11:02:58Z, exatamente o fim da janela F30; contagens idênticas ⇒ herdam o veredito F30, confirmado por spot-check de 8 células (DTLZ2/5, MMF16_20/17, DTLZ4/42, ZDT1/0, WFG1/13, BBOB_F49/13, MMF1/11, ZDT6/26): 8/8 conformes, assinatura da query-joia intacta (M=2 0 pioras; M=3 3/12 e 3/20). Diff entre os 2 commits da onda MEDIDO: só CONTRATO/REGISTRO/handoff/scripts/lote3s.sh/src/metrics.py/tests — ZERO arquivos .m, zero harness ⇒ as duas metades do DDMOP7 são mecanicamente equivalentes.",
+ "mecanismo_nos_novos": "Query-joia (ramo interno do Reduce.m: M=2 deltaS EXATO com extremos protegidos ⇒ ideal NUNCA piora; M≥3 CalHV Monte-Carlo 10k ref móvel 1,1*max ⇒ pode piorar) rodada nas 90/90 células novas (cobertura total, não amostra): **M=2 (RE21 120 + DDMOP7 510 transições): 0/630 pioras do ideal, erro máximo 0,0 EXATO — inclusive no front QUANTIZADO do DDMOP7**. **M=3 (EST40): 923/1200 = 76,92%** (corte 1e-9 ≡ estrito), todas as 30 sementes com 27–36 pioras em 40 — vs 11,29% dos M=3 sintéticos do F30: assinatura do ramo MC AMPLIFICADA 6,8× (mecanismo nomeado em C3-4F). Segunda perna (HV EXATO, ref fixo por problema = max união das 30 ① + 1% do range): RE21 0/120 quedas · DDMOP7 0/510 quedas com 81,2% das transições ΔHV==0 (platô do front quantizado — o Reduce SE COMPORTA: nunca cai, descarta duplicatas de deltaS=0) · EST40 597/1200 = 49,75% quedas, pior −34,5%. Bateria de contrato: 0 falhas em 90 células × ~40 testes (orçamento 31D-1 exato, ① densa, fases 11D-1/20D, ② 20/geração, ③ vazia, ④ NaN+série≡⑥+Σ≤⑤, ⑥ íntegro 1 header/1 seeding/1 footer, arranque 21 guards com repetido≡posição 0 de ②(1) 90/90, fechamento Δfe resíduo zero, elitismo 0 violações, recomputo ideal/nadir máx 5,9e-8 ≈ 1 ULP float32, f_best≡ideal). Seeding D88 recomputado idêntico 90/90. DoE pareado smsemoa×nsga2 bit-idêntico 8/8 pares testáveis. geracoes_derivadas (n_dup=cache_hits) acerta 90/90.",
+ "reais": "**RE21** (D=4, M=2): 30/30 ok, n_ger=5=D+1 30/30. Fidelidade de avaliação PROVADA: recomputei f pela fórmula fechada (F=10,σ=10,E=2e5,L=200) sobre a ① inteira das 30 células — erro relativo MÁXIMO 2,36e-7 = ULP float32/D53; bounds 0 violações; checa_regua verde. Cauda benigna tipo-D-pequeno: 18/30 hard_stop, 22 cache-hits de evolução, 5 slots duplicados na ② (todos explicados por guard). **DDMOP7** (D=17, M=2, caixa-preta .p, zona morta τ=0,5): 30/30 ok, n_ger=18=D+1 30/30, custo 27,5 h-core (3.290 s/célula, 99,8% no .p). Quantização EXATA: f0∈{k/17} (desvio máx 4,8e-7), f1∈{n/690}, k≤17 em 15.780/15.780; **checa_regua (ideal=[0;0] ínfimo REAL-2.15 ERRATA 2) RODADO: verde 30/30, ZERO furos e ZERO avisos**. Zona morta PROVADA no dado: 541 grupos de x_efetivo duplicado no ①-opt com f BIT-IDÊNTICO em 541/541 (o .p viu o efetivo; 0 incoerências) — mas cada repetição CONSUMIU FE: dedup D89 opera no x PROPOSTO ⇒ **48,1% do FE de busca (4.911/10.200) reavalia efetivo já visto** (transversal S5 do moead: lá 59,2%). |ND| da busca dedupado (CONTRATO §T15.13): proposto mediana 258 → efetivo mediana 94 → F distinto mediana 3; pop final: 10 efetivos e 3 F distintos nos 20 slots (mediana). HV interno: 0 quedas, 81,2% platôs — o ramo exato M=2 é imune à quantização. **ESTOQUE40** (D=40, M=3, N_efetivo=20 mantido ✓): 30/30 ok, n_ger=41=D+1; f recomputado via problems.py (npz sha 660b5896 ✓) erro máx 5,19e-7; checa_regua (régua D102.20 pelos cantos) verde 30/30. MAS o ramo M≥3 do stock COLAPSA com f1 NEGATIVO (receita negada): CalHV amostra em [Fmin, 1,1*max] e com max(f1)<0 a \"margem\" 1,1 vira CORTE — em 82,4% das gerações (1014/1230, pior-frente da ②) 1,1*max_f1 < min_f1 ⇒ unifrnd com hi<lo ⇒ amostras NaN ⇒ deltaS todo-zero ⇒ min() descarta o PRIMEIRO índice da pior frente: seleção por S-metric INOPERANTE. Consequência medida: ideal piora 76,92%, HV populacional cai em 49,75% das transições (pior −34,5%), e **ganho de HV início→fim NEGATIVO em 30/30 células (mediana −25,5%, pior −67,0%)** — único problema do config, em 4 auditorias, onde o run TERMINA pior do que a semeadura.",
+ "aspectos_mudados": [
+  {
+   "id": "A01/A19",
+   "o_que": "Orçamento/O-21 estendidos aos reais",
+   "antes": "750/750 ok, hard_stop 89/750",
+   "agora": "840/840 ok; novas: hard_stop RE21 18/30 · DDMOP7 1/30 · EST40 0/30; 19 células com linhas-fantasma pós-último evento (D21×D89, contábil); n_geracoes concorda ⑤/⑥/②/④ 90/90"
+  },
+  {
+   "id": "A06",
+   "o_que": "Query-joia do ramo do Reduce",
+   "antes": "M=2 0/7.980 × M=3 288/2.550 = 11,29%",
+   "agora": "M=2 0/8.610 (inclui 630 novas, erro 0,0 exato — front quantizado incluído) × M=3 sintético 11,29% × EST40 923/1.200 = 76,92%: assinatura amplificada 6,8× por mecanismo NOVO nomeado (C3-4F: ref 1,1*max com objetivo negativo)"
+  },
+  {
+   "id": "A07",
+   "o_que": "Monotonicidade do HV (S-metric)",
+   "antes": "0,598% quedas, pior −0,335%, ganho>0 750/750",
+   "agora": "RE21+DDMOP7: 0 quedas (DDMOP7 81,2% ΔHV==0, platô quantizado); EST40: 49,75% quedas, pior −34,5%, ganho início→fim NEGATIVO 30/30 — princípio de seleção inoperante no EST40"
+  },
+  {
+   "id": "A04",
+   "o_que": "Seeding D88",
+   "antes": "720/750 (exceção DTLZ4 30/30, teto float32)",
+   "agora": "+90/90 nos reais — nenhuma exceção nova, nem no front quantizado do DDMOP7"
+  },
+  {
+   "id": "A15/A16",
+   "o_que": "Dedup D57/D89 nos reais",
+   "antes": "153 evo-hits, dedup por X bit-a-bit",
+   "agora": "RE21 22 evo-hits/5 slots dup (D=4); DDMOP7 1 evo-hit — o dedup é pelo x PROPOSTO: 48,1% do FE de busca do DDMOP7 reavalia x_efetivo já visto (S5 transversal); arranque 21 com repetido≡posição 0 mantém 90/90"
+  },
+  {
+   "id": "A21 (C3-1)",
+   "o_que": "campanha_id × repo_hash",
+   "antes": "NÃO deriva em 709/750 ('7f4f0e429a46_M8')",
+   "agora": "as 90 novas DERIVAM (formato fallback {commit12}_{dataUTC}) — parcialmente SANEADO; resíduo: carimbo partido na meia-noite UTC (7be66e65522c_2026-08-18 ×2 vs _2026-08-19 ×27) e 2 repo_hashes na onda (diff medido: zero .m). Corpus final tem 5 campanha_id para 3 árvores"
+  },
+  {
+   "id": "A23 (C3-2)",
+   "o_que": "env.host",
+   "antes": "709 'vmN' + 41 'matlab-*'",
+   "agora": "novas 90/90 'matlab-vm1/vm5' (frota.json conforme); corpus final segue com 2 convenções — normalizar na análise"
+  },
+  {
+   "id": "A24 (C3-3)",
+   "o_que": "SPEC 'custo exato do HV irrelevante em M≤3'",
+   "antes": "errata da SPEC, magnitude ≤0,335%",
+   "agora": "AGRAVADO: no EST40 a magnitude chega a −34,5%/transição e −67% no acumulado; a errata deixa de ser rodapé e vira caveat estrutural da leitura D25"
+  },
+  {
+   "id": "A25",
+   "o_que": "geracoes_derivadas",
+   "antes": "750/750 com n_dup=cache_hits",
+   "agora": "840/840 (90/90 novas) — em N_ef=20 sem a fronteira de divisibilidade que fez o moead errar 6/90"
+  },
+  {
+   "id": "NOVO-1",
+   "o_que": "Fidelidade de avaliação dos reais",
+   "antes": "—",
+   "agora": "RE21 recomputado por fórmula fechada: máx 2,36e-7; EST40 via problems.py (npz sha 660b5896): máx 5,19e-7; DDMOP7 quantização k/17 e n/690 exata + zona morta provada (541 grupos, f bit-idêntico 541/541); checa_regua verde 90/90; bounds 0 violações"
+  },
+  {
+   "id": "NOVO-2",
+   "o_que": "⑤ dos reais",
+   "antes": "—",
+   "agora": "schema v2, repo_hash presente, sonda/sigma_dict nao_se_aplica, timing NULL — 90/90; params.zona_morta AUSENTE 30/30 no DDMOP7 (S4 transversal); paths.local ABSOLUTO em 1/90 (DDMOP7/0, resto relativo); header ⑥ segue 19 chaves (T-2 da T11 aberto, agora 840/840)"
+  }
+ ],
+ "classe3": [
+  {
+   "id": "C3-4F",
+   "descricao": "ESTOQUE40 × ramo M≥3 do stock: Reduce.m:26 chama CalHV(PopObj, max(PopObj)*1.1, 1, 10000), que amostra unifrnd(Fmin, 1,1*max). Com f1 = receita NEGADA (sempre <0 — decisão nossa D101), 1,1*max_f1 < max_f1: a margem multiplicativa vira CORTE do eixo f1, e quando 1,1*max_f1 < min_f1 da pior frente (medido no proxy da ②: 1.014/1.230 gerações = 82,4%; a pior frente É a população em 87%) o unifrnd recebe hi<lo ⇒ amostras NaN ⇒ deltaS todo-zero ⇒ min() descarta o PRIMEIRO índice: a seleção por contribuição de HV — a razão de ser do config no par D25 — fica INOPERANTE na maior parte do run. Consequência medida: pioras do ideal 76,92% (406 f1/562 f2/432 f3; magnitude mediana 0,46% do range D69, máx 34,8%), quedas do HV exato em 49,75% das transições (pior −34,5%), ganho de HV início→fim NEGATIVO em 30/30 células (mediana −25,5%, pior −67,0%) — o run termina PIOR que o DoE. NÃO é bug nosso nem infidelidade do corpus: é o código lacrado stock (D30/patch-mínimo) executado e logado fielmente; o CalHV assume objetivos positivos e a SPEC nunca declarou essa hipótese. Interseção D101×D25 não prevista. Amplia o C3-3 do F30 de rodapé para caveat estrutural.",
+   "gravidade": "media-alta (de LEITURA, nao de validade)",
+   "acao": "Bússola D29: errata do TEXTO, fica o código. (a) Errata SPEC §3.2/D25: o par smsemoa×c262 só é espelho-HV em M=2; em M=3 é HV-estimado, e no EST40 especificamente NÃO é seletor de HV (números acima). (b) Caveat OBRIGATÓRIO na análise: no EST40 ler o smsemoa como EA (μ+1) com descarte quase-arbitrário na pior frente, jamais como piso-HV; o contraste c262-vs-piso no EST40 mede GP contra um controle degradado. (c) Nenhum re-run possível ou necessário (corpus congelado; células VÁLIDAS). ESCALO (D81/D97).",
+   "arquivo_linha": "algorithms/_PlatEMO/.../SMS-EMOA/Reduce.m:26 + CalHV.m:24 (unifrnd) × SPEC_experimentos_v5.2 §3.2/D25 × REGISTRO D101"
+  },
+  {
+   "id": "S1R-sms",
+   "descricao": "RECONCILIA com moead/S1R (transversal T15): as 90 novas usam campanha_id formato fallback {commit12}_{dataUTC} — deriva do repo_hash (sana C3-1 do F30 na onda nova) mas a batelada DDMOP7 da vm5 cruzou a meia-noite UTC e partiu o carimbo (2× _2026-08-18, 27× _2026-08-19); 2 repo_hashes na onda (3240f4b26fae ×61, 7be66e65522c ×29). MITIGANTE MEDIDO POR MIM: git diff entre os 2 commits = só docs/metrics.py/tests/lote3s.sh, ZERO .m, zero harness ⇒ equivalência mecânica das duas metades. env.host 'matlab-*' 90/90 (conforme frota.json). Corpus final smsemoa: 5 campanha_id e 2 convenções de host para 3 árvores/6+2 máquinas.",
+   "gravidade": "baixa",
+   "acao": "Mesma do moead: autor declara no REGISTRO a equivalência dos 3 carimbos da onda (evidência: diff), ou normaliza por script de metadados auditado; groupby de análise deve normalizar campanha/host. Sem re-run.",
+   "arquivo_linha": "manifest.campanha_id/env.host das 90 células novas"
+  },
+  {
+   "id": "S4-sms",
+   "descricao": "RECONCILIA com moead/S4: params.zona_morta AUSENTE do ⑤ nas 30/30 células DDMOP7 do smsemoa (rota MATLAB aplica a codificação dentro de ddmop7_value_local.m e não ecoa τ ao manifesto), contra a letra do CONTRATO §T15.13 ('o τ está em params.zona_morta do ⑤') e da D102.17 ('injeção automática no ⑤'). A APLICAÇÃO está provada no meu dado (541 grupos de efetivo duplicado com f bit-idêntico; k<17 na busca): lacuna DECLARATIVA, não de execução.",
+   "gravidade": "baixa",
+   "acao": "Errata do §T15.13 (apontar onde τ mora na rota R1) OU enriquecimento dos ⑤ MATLAB por script auditado — decisão já em curso pela torre do moead; só somo o denominador smsemoa.",
+   "arquivo_linha": "CONTRATO_DE_DADOS.md §T15.13 × manifests DDMOP7/*/"
+  },
+  {
+   "id": "S5-sms",
+   "descricao": "RECONCILIA com moead/S5: a letra do §T15.13 ('a D89 opera sobre o efetivo') contradiz a implementação (dedup pelo x PROPOSTO). No smsemoa×DDMOP7: 4.911/10.200 linhas de busca (48,1%; moead 59,2%) reavaliam no .p um x_efetivo já visto — FE redundante, idêntico por desenho nos 21 configs (comparabilidade preservada), mas material para a leitura de custo-efetivo do problema.",
+   "gravidade": "baixa",
+   "acao": "Errata de 1 frase no §T15.13 ('o dedup D89 opera sobre o x PROPOSTO; a identidade ANALÍTICA opera sobre o efetivo') + registrar 48,1% na leitura de custo do DDMOP7.",
+   "arquivo_linha": "CONTRATO_DE_DADOS.md §T15.13 × src FEBudget (rota MATLAB)"
+  },
+  {
+   "id": "OBS-regua",
+   "descricao": "Transversal T15.13b (régua arredondada, já escalada): no recorte smsemoa, pontos f<ideal-declarado em ZDT6 21/30 células e MMF4 3/30 (MMF1 0/30); pior furo MMF4 = 9,32e-4 = 93% do corte 1e-3·range do checa_regua — ACIMA da banda de arredondamento documentada (1,1e-4–3,6e-4). Nenhum RuntimeError; tolerado pelo guard.",
+   "gravidade": "baixa",
+   "acao": "Sinalizo ao autor que o furo MMF4 do smsemoa excede a banda citada na doc do guard e roça o corte: confirmar que segue classificado como arredondamento de régua (achado de régua, não do config).",
+   "arquivo_linha": "src/metrics.py:355-370 (T15.13b) × ① de MMF4/ZDT6"
+  }
+ ],
+ "celulas_invalidas": [],
+ "score_final": 9,
+ "trajetoria_scores": "F5 = 10 → T11 = 10 → F30 = 9 → FINAL = 9. **F5→T11 (10→10):** mecanismo confirmado em s42 com 2 tetos derrubados (ramo do Reduce medido, pais lidos na árvore lacrada); zero classe 3. **T11→F30 (10→9):** o −1 veio inteiro de proveniência/doc-sync invisível a 1 semente/1 VM — C3-1 (campanha_id não deriva do repo_hash em 709/750), C3-2 (2 convenções de env.host) e C3-3 (SPEC promete HV exato em M≤3, stock usa MC 10k) — mecanismo GANHOU evidência (query-joia 0/7.980 × 288/2.550). **F30→FINAL (9→9):** o mecanismo segue impecável e agora coberto nos 3 reais (0 falhas de contrato em 90 células, query-joia M=2 0/630 com erro 0,0 exato, avaliação recomputada a ULP de float32 no RE21/EST40, seeding 90/90, checa_regua verde 90/90); C3-1 parcialmente SANEADO na onda nova (carimbo deriva; resíduo S1R). O que impede a volta ao 10: C3-2 persiste no corpus, os transversais declarativos novos S4/S5 (⑤ mudo sobre τ; letra do §T15.13 vs dedup), e sobretudo C3-4F — o EST40 transforma o C3-3 de rodapé em caveat estrutural (seleção por HV inoperante em 82% das gerações, ganho de HV NEGATIVO 30/30). Nada disso é infidelidade de mecanismo ou de instrumentação — é texto normativo desatualizado + uma interação D101×stock não prevista — e por isso não desce de 9; mas 'contrato perfeito' (requisito do 10) não se sustenta com o caveat EST40 pendente de errata.",
+ "veredito": "RECOMENDO ACEITAR as 840 células do smsemoa (750 sintéticas herdadas do F30 + 90 reais novas) para a dissertação, com ZERO células inválidas e ZERO exclusões — o único config do estudo com 100% de sucesso em 28/28 problemas, incluindo a caixa-preta .p. A fidelidade de MECANISMO é integral: o corpus novo reproduz cada identidade estrutural do F30 (contrato 0 falhas, elitismo 0 violações, recomputo a 1 ULP float32, fechamento aritmético resíduo zero, DoE pareado bit-exato com nsga2, seeding D88 90/90) e a avaliação dos 3 problemas reais foi verificada por recomputação independente (RE21 2,4e-7; EST40 5,2e-7; DDMOP7 quantização exata + zona morta provada + checa_regua verde 30/30). Respostas ao FOCO: (1) DDMOP7/front quantizado — o Reduce SE COMPORTA: ramo M=2 exato imune à quantização (0 pioras do ideal em 510, 0 quedas de HV, 81,2% platôs; duplicatas de deltaS=0 descartadas primeiro); mas |ND| publicável EXIGE dedup por x_efetivo (§T15.13: 258→94→3) e 48,1% do FE de busca é redundante (dedup por proposto — S5). (2) EST40 M=3/ramo do ideal — o ramo MC com f1 NEGATIVO degenera: caixa de amostragem invertida em 82,4% das gerações, ideal piora 76,9%, HV cai 49,7% das transições, ganho início→fim NEGATIVO em 30/30; a leitura D25 no EST40 deve tratar o smsemoa como EA-sem-modelo, NUNCA como espelho-HV do c262 — errata da SPEC obrigatória (C3-4F). Condições da recomendação: os 5 itens classe 3/observação roteados (nenhum exige re-run; 4 são erratas de texto/normalização de metadados) e os caveats de leitura herdados do F30 (D=2 cegos, DTLZ4 não-auditável pela ①, ④ não-normalizado por máquina). O veredito é do AUTOR (D97) — isto é evidência + recomendação.",
+ "decisoes_ao_autor": [
+  "C3-4F (a decisão que importa) · Bússola D29 = errata do texto, fica o código: a SPEC §3.2/D25 ('custo exato do HV irrelevante em M≤3'; 'espelho mecânico exato do c262') precisa de errata em DOIS níveis agora — (i) M=3 usa CalHV MC 10k (já escalado no F30, C3-3); (ii) NOVO e mais grave: no ESTOQUE40 o f1 NEGATIVO (receita negada, D101) inverte a caixa de amostragem do CalHV (1,1*max < min da pior frente em 82,4% das gerações medidas na ②) ⇒ deltaS≡0 ⇒ descarte pelo primeiro índice ⇒ seleção por S-metric INOPERANTE: ideal piora 76,9%, HV cai 49,7% das transições (pior −34,5%), ganho início→fim NEGATIVO 30/30 (mediana −25,5%). Decidir o texto do caveat na análise: no EST40 o smsemoa vale como piso EA sem modelo, não como piso-HV; o par casado D25 fica restrito a M=2 (e com ressalva de resolução no DDMOP7 quantizado). Ressalva de honestidade: a condição NaN vale para o estado logado da ② (fim de laço externo); os estados intra-geração (μ+1) não são exportados (teto A26) — a fração 82,4% é proxy, a CONSEQUÊNCIA (HV −67% acumulado) é medida direta.",
+  "S1R (transversal, reconcilia com moead): as 90 novas derivam campanha_id do repo_hash (sana o C3-1 do F30 na onda) mas com carimbo fallback partido na meia-noite (2×18/08 + 27×19/08 no DDMOP7-vm5) e 2 commits na onda. MEDIDO por mim: diff 3240f4b26fae→7be66e65522c toca só docs/metrics.py/tests/lote3s.sh — zero .m, zero harness ⇒ proponho declarar no REGISTRO a equivalência dos 3 carimbos da onda T15 com essa evidência. Corpus smsemoa final: 5 campanha_id/2 convenções de host — normalizar SEMPRE na análise (strip '^matlab-'; agrupar por repo_hash, único elo 840/840).",
+  "S4/S5 (transversais, reconcilia com moead — só somo denominadores smsemoa): params.zona_morta ausente do ⑤ em 30/30 DDMOP7 (aplicação PROVADA no dado: 541 grupos de efetivo duplicado com f bit-idêntico 541/541) e dedup D89 pelo x PROPOSTO com 48,1% de FE de busca redundante (4.911/10.200; moead 59,2%). Duas erratas de 1 frase no CONTRATO §T15.13 resolvem ambos. Registrar o 48,1% na leitura de custo-efetivo do DDMOP7 — vale para os 21 configs por desenho.",
+  "§T15.13 na prática do smsemoa: qualquer |ND| ou contagem de diversidade publicada do DDMOP7 DEVE dedupar por x_efetivo — medido: ND da busca 258 (proposto) → 94 (efetivo) → 3 (F distinto) na mediana; pop final 10 efetivos/3 F em 20 slots. O front efetivo tem ~3 degraus: resolução baixa para qualquer régua — considerar declarar o DDMOP7 como problema de RESOLUÇÃO limitada na comparação entre configs.",
+  "OBS-regua (T15.13b, já escalada — só o recorte novo): o pior furo tolerado do smsemoa em MMF4 é 9,32e-4 = 93% do corte do guard e ACIMA da banda de arredondamento documentada (1,1e-4–3,6e-4). Confirmar classificação como imprecisão de régua declarada; se a banda documentada for citada na dissertação, atualizá-la.",
+  "T-2 da T11 segue aberto e agora em 840/840: header do ⑥ com 19 chaves, sem run_id/ambiente/params/sigma_dict do CONTRATO §6 — decisão pendente desde a T11 (writer emite ou §6 descreve o que existe). Sem impacto analítico.",
+  "Miudezas de registro: paths.local ABSOLUTO ('/home/gmello/...') em 1/90 manifesto (DDMOP7/0, o único da vm1 na batelada) vs relativo nos demais — cosmético, nenhum consumidor usa; nsga2×ESTOQUE40/13 ausente impede 1 dos 9 pares do meu teste de DoE pareado (lacuna do nsga2, não do smsemoa); custo da onda nova 27,59 h-core (99,5% no .p do DDMOP7 a 3.290 s/célula, uniforme — sem o degrau de hardware da vm5 pós-14/08 visível aqui)."
+ ]
+}

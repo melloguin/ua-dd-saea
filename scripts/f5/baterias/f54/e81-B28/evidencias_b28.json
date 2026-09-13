@@ -1,0 +1,75 @@
+{
+  "achado": "e81-B28",
+  "veredito": "CONFIRMADO(d) — duplicata de DI-42.7/DI-42.2 ja ratificada pelo autor em 2026-07-28",
+  "contagem_reproduzida": {
+    "consolidado_747_linhas": {
+      "header": 95,
+      "footer": 95,
+      "header_runner": 1,
+      "header_despachante": 94,
+      "footer_runner": 1,
+      "footer_despachante": 94
+    },
+    "sitio_767_linhas": {
+      "header": 105,
+      "footer": 105,
+      "header_despachante": 104,
+      "footer_despachante": 104
+    }
+  },
+  "crescimento": {
+    "A29_2026-07-28": 90,
+    "consolidado_ate_2026-07-28T18:42:14Z": 94,
+    "sitio_ate_2026-07-29T01:59:34Z": 104,
+    "pares_por_execucao_da_suite": 2
+  },
+  "causa_raiz": {
+    "arquivo": "tests/test_batch_q10.py",
+    "linha": 168,
+    "classe": "TestTetoFiadoPeloDespachante._adapter_kwargs",
+    "chamada": "experiments._run_one(\"batch\",\"e81\",\"ZDT4\",42,\"data\",**kw)",
+    "mecanismo": [
+      "experiments.py:100 log.header antes do adapter",
+      "experiments.py:182 log.footer no finally",
+      "src/audit_log.py:55 open(path,'a') append + makedirs",
+      "experiments.py:208-239 merge do manifesto (updated_at + tempo_total_despachante_s)"
+    ],
+    "prova_controlada": "unittest da classe em sandbox cria data/experiments/batch/e81/exp_batch_e81_ZDT4_42.jsonl com EXATAMENTE 2 header + 2 footer, mesmo conjunto de chaves dos 94 espurios"
+  },
+  "controle": {
+    "arquivos_jsonl_varridos": 666,
+    "configs": 24,
+    "unico_com_multiplicidade": "e81/q10_ZDT4/42",
+    "topologia_e81": "29/30 celulas com 1 header + 2 footers (1 runner + 1 despachante)"
+  },
+  "dano_zero_provado": {
+    "sha256_16_iguais_sitio_x_consolidado": true,
+    "①_real": 2109,
+    "②_pop": 222800,
+    "③_surrogate": 204678,
+    "④_timing": 200,
+    "③_split": {
+      "sonda": 202000,
+      "online": 2678
+    }
+  },
+  "dano_real": {
+    "manifest.updated_at": "2026-07-28T18:42:14 (consol) / 2026-07-29T01:59:34 (sitio) vs created_at 2026-07-24T12:21:10",
+    "manifest.timing.tempo_total_despachante_s": "0.0002 s FABRICADO (as outras 29 celulas: tempo_total_s + 3..8 s)",
+    "consumidores_quebrados": [
+      "scripts/progress.py:95 (ultimo footer)",
+      "scripts/accept.py:794 recs[-1] (padrao generico; o check_r3_e81 filtra rec=='decision' e por isso ficou VERDE)"
+    ]
+  },
+  "erro_no_relatorio": {
+    "secao8_evidencia5": "'③=277.043 (202.000 sonda + 75.043 online)' pertence a q10_DTLZ2; o valor de q10_ZDT4 e 204.678 (202.000 + 2.678)"
+  },
+  "proveniencia": {
+    "q10_ZDT4_created_at": "2026-07-24T12:21:10Z = 09:21:10 -03",
+    "commit_2fa542f": "2026-07-24 09:21:53 -03 (43 s depois)",
+    "irmas_q10": "2026-07-27T00:08..02:57Z",
+    "build_delta": "c2a522d tocou src/e81_qpots.py so no rito straddle (inalcancavel: 2109-109=2000=200x10)",
+    "verificacao": "0 guards hard_stop_lote; |lote|=10 em 200/200; 55 linhas +qmaximin em 28 geracoes"
+  },
+  "numeros_publicados_afetados": "nenhum (tempo_f52d.csv usa tempo_total_s=2076.7516; gates_f51 VERDE; integridade_f52a e contrato_f52b com 0 linhas de e81)"
+}

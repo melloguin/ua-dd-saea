@@ -267,6 +267,80 @@ def hv(approx_norm, ref_coord: float = HV_REF_COORD) -> float:
     return float(HV(ref_point=np.full(M, float(ref_coord)))(A))
 
 
+# ── CPF_K20 — cobertura da frente a resolução fixa (Tian et al., 2019; porte do CPF.m do PlatEMO) ──
+#  Variante declarada: cota por solução VPF/K com K = 20 fixo (K=None → CPF publicada, cota VPF/N).
+#  Diversidade PURA (ignora convergência) em [0, 1], maior é melhor. Entradas JÁ normalizadas (D69).
+
+#: Resolução fixa da CPF_K20 — a população dos pisos (uma solução representa no máximo 1/K da frente).
+CPF_K = 20
+
+
+def _cpf_map(x, PF):
+    """`map()` do CPF.m: projeta pontos da variedade (M−1)-d da frente no hipercubo unitário (M−1)-d.
+    Em M = 2 reduz-se a y = (f₁ − f₂ + 1)/2 — a posição ao longo da reta f₁ + f₂ = 1."""
+    x = np.array(x, float); PF = np.array(PF, float); N, M = x.shape
+    x = x - ((x.sum(1) - 1) / M)[:, None]; PF = PF - ((PF.sum(1) - 1) / M)[:, None]   # desliza na diagonal até Σf = 1
+    x = x - PF.min(0); x = x / x.sum(1)[:, None]; x = np.maximum(1e-6, x)
+    y = np.zeros((N, M - 1))
+    for i in range(N):                                   # índices 1-based do MATLAB emulados
+        c = np.ones(M + 1); k = int(np.nonzero(x[i] != 0)[0][0]) + 1
+        for j in range(k + 1, M + 1):
+            lo, hi = M - j + 2, M - k
+            temp = x[i, j - 1] / x[i, k - 1] * (np.prod(c[lo:hi + 1]) if lo <= hi else 1.0)
+            c[M - j + 1] = 1.0 / (temp + 1.0)
+        y[i] = c[1:M]
+    return y ** np.arange(M - 1, 0, -1)[None, :]
+
+
+def _cpf_coverage(P, maxv):
+    """`Coverage()` do CPF.m: soma dos hipercubos monopolizados — lado = distância de Chebyshev ao vizinho
+    mais próximo, limitado a maxv^(1/(M−1)); hipercubo centrado no ponto e recortado em [0, 1]."""
+    P = np.array(P, float); N, M = P.shape; L = np.zeros(N)
+    for i in range(N):
+        P1 = P.copy(); P1[i] = np.inf
+        L[i] = np.max(np.abs(P1 - P[i]), axis=1).min()   # N = 1 → inf → vira a cota
+    L = np.minimum(L, maxv ** (1.0 / M))
+    Lower = np.maximum(0, P - (L / 2)[:, None]); Upper = np.minimum(1, P + (L / 2)[:, None])
+    return float(np.prod(Upper - Lower, axis=1).sum())
+
+
+def _cpf_scale(ref_norm):
+    """Passo 1 da CPF: mínimo e range de Z, coordenada a coordenada (guarda `range ≥ 1e-12`)."""
+    Z = np.atleast_2d(np.asarray(ref_norm, dtype=np.float64))
+    fmin = Z.min(0)
+    return fmin, np.maximum(Z.max(0) - fmin, _RANGE_FLOOR)
+
+
+def cpf_vpf(ref_norm) -> float:
+    """VPF: cobertura da própria frente de referência Z na régua, SEM cota (lado = distância ao vizinho) —
+    denominador da CPF. O(|Z|²): calcular UMA vez por problema e cachear."""
+    fmin, rng = _cpf_scale(ref_norm)
+    Z = (np.atleast_2d(np.asarray(ref_norm, dtype=np.float64)) - fmin) / rng
+    return _cpf_coverage(_cpf_map(Z, Z), np.inf)
+
+
+def cpf(approx_norm, ref_norm, K: int | None = CPF_K, VPF: float | None = None) -> float:
+    """CPF_K20 do conjunto-aproximação (normalizado) contra a frente de referência Z (normalizada).
+
+    (1) reescala S e Z pelo min/max de Z; (2) leva cada s ao ponto mais próximo de Z (z*) e DEDUPLICA
+    (dois s no mesmo z* contam uma vez); (3) projeta z* e Z na régua pelo `map`; (4) cada ponto ganha um
+    hipercubo de lado min(dist. ao vizinho, (VPF/K)^(1/(M−1))) recortado em [0,1]; (5) CPF = Σ volumes / VPF.
+    `S` vazio → NaN. `VPF` (de `cpf_vpf`) é cacheado por problema pelo chamador."""
+    S = np.atleast_2d(np.asarray(approx_norm, dtype=np.float64))
+    Z = np.atleast_2d(np.asarray(ref_norm, dtype=np.float64))
+    if S.shape[0] == 0 or S.shape[1] != Z.shape[1]:
+        return float("nan")
+    fmin, rng = _cpf_scale(Z)
+    S = (S - fmin) / rng; Z = (Z - fmin) / rng                                     # passo 1
+    j = np.linalg.norm(S[:, None, :] - Z[None, :, :], axis=-1).argmin(1)           # passo 2: z*(s)
+    S = Z[np.unique(j)]                                                            # duplicatas em z* contam uma vez
+    if VPF is None:
+        VPF = _cpf_coverage(_cpf_map(Z, Z), np.inf)                                # = cpf_vpf(ref_norm)
+    V = _cpf_coverage(_cpf_map(S, Z), VPF / (K if K else S.shape[0]))              # passos 3–4
+    return float(V / VPF)                                                          # passo 5
+
+
+
 def spacing(approx_norm) -> float:
     """Spacing de Schott (1995) sobre objetivos normalizados, distância **L1**:
 
@@ -522,6 +596,7 @@ def hv_front_sanity_bbob_f1(n: int = 50000) -> float:
     ideal, nadir = reference_bounds("BBOB_F1")
     F = true_front_raw("BBOB_F1", n)
     return hv(normalize(F, ideal, nadir), 1.0)
+
 
 
 __all__ = [

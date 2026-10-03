@@ -1,0 +1,4 @@
+,relação,rho_spearman,n
+0,(a) modelo acurado → otimização boa?,0.109404074554909,1478
+1,(b) incerteza calibrada → otimização boa?,-0.16215093967038402,979
+2,(c) banda honesta → mais hipervolume?,-0.07197680777600278,979

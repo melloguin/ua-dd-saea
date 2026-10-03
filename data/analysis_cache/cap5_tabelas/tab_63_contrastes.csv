@@ -1,0 +1,267 @@
+,par,a,b,problema,delta
+0,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,BBOB_F1,-0.03046146813687093
+1,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,BBOB_F17,0.001081677493714045
+2,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,BBOB_F22,-0.007860141759830963
+3,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,BBOB_F37,-0.004448635053016334
+4,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,BBOB_F49,0.12444753137600495
+5,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,BBOB_F5,-0.021973037189926548
+6,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,BBOB_F55,0.5126151429472221
+7,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,DDMOP7,
+8,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,DTLZ1,55.95633633825298
+9,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,DTLZ2,0.04569851545375918
+10,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,DTLZ3,48.955834869845376
+11,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,DTLZ4,0.05721564712514382
+12,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,DTLZ7,-0.5603846183674309
+13,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,MMF1,0.0346847779752692
+14,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,MMF11_L,-0.018257156442068316
+15,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,MMF16_20,0.10922078613299838
+16,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,MMF4,0.06183656168157718
+17,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,WFG1,0.03275208131938634
+18,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,WFG2,0.30367083041295523
+19,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,WFG4,0.30468491428557
+20,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,WFG5,-0.0866071162266322
+21,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,WFG9,0.04248117077723229
+22,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,ZDT1,-0.8288886461866823
+23,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,ZDT3,-0.4110364802167672
+24,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,ZDT4,43.107388890165666
+25,"ablação exata do σ
+Prob-MOEA/D × MOEA/D-média",b5m,moead_media,ZDT6,-1.2488989073742924
+26,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,BBOB_F1,0.13664178774883667
+27,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,BBOB_F17,-0.004635747870754419
+28,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,BBOB_F22,0.24427005067432517
+29,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,BBOB_F37,0.09715566933113345
+30,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,BBOB_F49,0.051972590090766546
+31,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,BBOB_F5,0.17142442856597367
+32,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,BBOB_F55,0.31510018747143526
+33,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,DDMOP7,
+34,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,DTLZ1,-16.43801594015069
+35,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,DTLZ2,0.1249975643814224
+36,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,DTLZ3,-40.16374539053993
+37,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,DTLZ4,-0.13305275446826476
+38,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,MMF1,0.020247700314101214
+39,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,MMF11_L,0.027569858964133564
+40,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,MMF16_20,-0.015316955593872188
+41,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,MMF4,0.017198245591489907
+42,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,RE21,0.04730651470082518
+43,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,WFG1,-0.020112972721901906
+44,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,WFG2,0.061688596898299
+45,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,WFG4,-0.021746537537050102
+46,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,WFG5,0.052334589797453354
+47,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,WFG9,-0.030130259229853962
+48,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,ZDT1,0.6889038640868013
+49,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,ZDT4,9.508001928210717
+50,"espelho do hipervolume
+qNEHVI × SMS-EMOA",c262,smsemoa,ZDT6,6.163822057771478
+51,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,BBOB_F1,0.019577531782708185
+52,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,BBOB_F17,-0.0008553476195468559
+53,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,BBOB_F22,0.08692133804278865
+54,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,BBOB_F37,0.000840336704720307
+55,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,BBOB_F49,0.0014901877113485396
+56,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,BBOB_F5,-0.015891109574148132
+57,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,BBOB_F55,0.03669221780936094
+58,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,DDMOP7,
+59,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,DTLZ1,-6.346679920150489
+60,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,DTLZ2,-0.013821627580931792
+61,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,DTLZ3,-31.709221778112777
+62,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,DTLZ4,-0.018502641295150335
+63,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,DTLZ7,0.07552674305997287
+64,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,MMF1,0.0012163494506477676
+65,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,MMF11_L,-0.0004922312775827477
+66,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,MMF16_20,0.00666973382330196
+67,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,MMF4,0.0032448932023620165
+68,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,RE21,-0.004250049119452565
+69,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,WFG1,-0.017364873614842402
+70,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,WFG2,-0.011059765047286785
+71,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,WFG4,-0.002536194084928306
+72,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,WFG5,-0.023414012228510306
+73,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,WFG9,0.0049060772176860445
+74,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,ZDT1,-0.1098361280333825
+75,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,ZDT3,-0.08560645865974564
+76,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,ZDT4,3.187916690926407
+77,"mesma classe, gerações distintas
+PC-SAEA × CSEA",c217,b4,ZDT6,0.47441361961552175
+78,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,BBOB_F1,-0.025211880215581454
+79,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,BBOB_F17,-0.00038400706557331285
+80,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,BBOB_F22,-0.15458420107652504
+81,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,BBOB_F37,-0.023958997663561216
+82,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,BBOB_F49,0.0431123832192586
+83,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,BBOB_F5,-0.05560623271439924
+84,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,BBOB_F55,-0.047931606308100776
+85,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,DDMOP7,
+86,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,DTLZ1,-15.900789470466961
+87,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,DTLZ2,0.035420518693621214
+88,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,DTLZ3,-115.20187884704723
+89,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,DTLZ4,0.16358991791562347
+90,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,DTLZ7,-0.5541200742654033
+91,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,MMF1,-0.0010067090504983882
+92,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,MMF11_L,-0.020777201156773277
+93,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,MMF16_20,-0.016636898114775436
+94,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,MMF4,-0.00507045260261043
+95,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,RE21,-0.004036228116255211
+96,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,WFG1,-0.016885792997669125
+97,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,WFG2,-0.09376713076268066
+98,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,WFG4,-0.0009736723533839975
+99,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,WFG5,-0.07535039287449566
+100,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,WFG9,-0.00013038249605396013
+101,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,ZDT1,-0.46220632190084954
+102,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,ZDT3,-0.3427126390981939
+103,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,ZDT4,-10.412254331315005
+104,"rede × processo gaussiano
+EDN-ARMOEA × K-RVEA",e7,b3,ZDT6,-2.665216874614572
+105,"discordância × distância
+MMRAEA × CLMEA",c141,e74,BBOB_F1,-0.0007518133622226527
+106,"discordância × distância
+MMRAEA × CLMEA",c141,e74,BBOB_F17,0.005763379797716685
+107,"discordância × distância
+MMRAEA × CLMEA",c141,e74,BBOB_F22,0.047950842585595815
+108,"discordância × distância
+MMRAEA × CLMEA",c141,e74,BBOB_F37,0.06367056925773545
+109,"discordância × distância
+MMRAEA × CLMEA",c141,e74,BBOB_F49,0.1263790171432272
+110,"discordância × distância
+MMRAEA × CLMEA",c141,e74,BBOB_F5,0.009333269727959578
+111,"discordância × distância
+MMRAEA × CLMEA",c141,e74,BBOB_F55,0.1920623927572256
+112,"discordância × distância
+MMRAEA × CLMEA",c141,e74,DDMOP7,
+113,"discordância × distância
+MMRAEA × CLMEA",c141,e74,DTLZ1,-15.031306513887209
+114,"discordância × distância
+MMRAEA × CLMEA",c141,e74,DTLZ2,0.07749544923890782
+115,"discordância × distância
+MMRAEA × CLMEA",c141,e74,DTLZ3,-42.34977291794962
+116,"discordância × distância
+MMRAEA × CLMEA",c141,e74,DTLZ4,-0.014619768184130494
+117,"discordância × distância
+MMRAEA × CLMEA",c141,e74,DTLZ7,0.08903063510677091
+118,"discordância × distância
+MMRAEA × CLMEA",c141,e74,ESTOQUE40,-0.0017372436926519474
+119,"discordância × distância
+MMRAEA × CLMEA",c141,e74,MMF1,0.006666888458645999
+120,"discordância × distância
+MMRAEA × CLMEA",c141,e74,MMF11_L,-0.00420346712730987
+121,"discordância × distância
+MMRAEA × CLMEA",c141,e74,MMF16_20,0.0066904515794317075
+122,"discordância × distância
+MMRAEA × CLMEA",c141,e74,MMF4,-0.005689035476661592
+123,"discordância × distância
+MMRAEA × CLMEA",c141,e74,RE21,0.0024050046746528285
+124,"discordância × distância
+MMRAEA × CLMEA",c141,e74,WFG1,0.0014051986145456885
+125,"discordância × distância
+MMRAEA × CLMEA",c141,e74,WFG2,-0.01304998210072289
+126,"discordância × distância
+MMRAEA × CLMEA",c141,e74,WFG4,0.016913931869454446
+127,"discordância × distância
+MMRAEA × CLMEA",c141,e74,WFG5,0.013360631291877686
+128,"discordância × distância
+MMRAEA × CLMEA",c141,e74,WFG9,0.0038189912878119833
+129,"discordância × distância
+MMRAEA × CLMEA",c141,e74,ZDT1,0.05216472565442796
+130,"discordância × distância
+MMRAEA × CLMEA",c141,e74,ZDT3,0.1875554803308116
+131,"discordância × distância
+MMRAEA × CLMEA",c141,e74,ZDT4,29.8560811204311
+132,"discordância × distância
+MMRAEA × CLMEA",c141,e74,ZDT6,0.27684127383544704

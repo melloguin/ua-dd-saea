@@ -1,0 +1,171 @@
+,raia,paradigma,degrau,degrau_rotulo,grupo,hv_pct,vs_piso
+0,enganosidade / falsos ótimos · enganosidade,enganosidade / falsos ótimos,1,E1,AEd,81.60469736068558,23.668928898947755
+1,enganosidade / falsos ótimos · enganosidade,enganosidade / falsos ótimos,1,E1,AEe,54.8761892380005,-3.059579223737323
+2,enganosidade / falsos ótimos · enganosidade,enganosidade / falsos ótimos,1,E1,OB,73.07032781067085,15.134559348933024
+3,enganosidade / falsos ótimos · enganosidade,enganosidade / falsos ótimos,1,E1,OE,74.79409273996446,16.858324278226632
+4,enganosidade / falsos ótimos · enganosidade,enganosidade / falsos ótimos,1,E1,piso,57.93576846173782,0.0
+5,enganosidade / falsos ótimos · enganosidade,enganosidade / falsos ótimos,9,E chefe,AEd,63.358942600654785,7.142533503558752
+6,enganosidade / falsos ótimos · enganosidade,enganosidade / falsos ótimos,9,E chefe,AEe,53.74268925855445,-2.4737198385415837
+7,enganosidade / falsos ótimos · enganosidade,enganosidade / falsos ótimos,9,E chefe,OB,34.61837139236215,-21.598037704733883
+8,enganosidade / falsos ótimos · enganosidade,enganosidade / falsos ótimos,9,E chefe,OE,44.47253090562687,-11.743878191469165
+9,enganosidade / falsos ótimos · enganosidade,enganosidade / falsos ótimos,9,E chefe,piso,56.21640909709603,0.0
+10,enganosidade / falsos ótimos · falso ótimo,enganosidade / falsos ótimos,1,F1,AEd,93.79407948552729,3.7498472331622708
+11,enganosidade / falsos ótimos · falso ótimo,enganosidade / falsos ótimos,1,F1,AEe,89.38944795444628,-0.6547842979187379
+12,enganosidade / falsos ótimos · falso ótimo,enganosidade / falsos ótimos,1,F1,OB,92.70130278854424,2.6570705361792193
+13,enganosidade / falsos ótimos · falso ótimo,enganosidade / falsos ótimos,1,F1,OE,93.46870141095113,3.4244691585861062
+14,enganosidade / falsos ótimos · falso ótimo,enganosidade / falsos ótimos,1,F1,piso,90.04423225236502,0.0
+15,enganosidade / falsos ótimos · falso ótimo,enganosidade / falsos ótimos,2,F2,AEd,73.95173064793417,37.151790754886704
+16,enganosidade / falsos ótimos · falso ótimo,enganosidade / falsos ótimos,2,F2,AEe,43.12684703549255,6.326907142445087
+17,enganosidade / falsos ótimos · falso ótimo,enganosidade / falsos ótimos,2,F2,OB,47.904444377239464,11.104504484191999
+18,enganosidade / falsos ótimos · falso ótimo,enganosidade / falsos ótimos,2,F2,OE,59.62595108500623,22.826011191958763
+19,enganosidade / falsos ótimos · falso ótimo,enganosidade / falsos ótimos,2,F2,piso,36.799939893047465,0.0
+20,enganosidade / falsos ótimos · falso ótimo,enganosidade / falsos ótimos,3,F3,AEd,91.55597408158059,3.507266245971664
+21,enganosidade / falsos ótimos · falso ótimo,enganosidade / falsos ótimos,3,F3,AEe,90.39561397800475,2.3469061423958237
+22,enganosidade / falsos ótimos · falso ótimo,enganosidade / falsos ótimos,3,F3,OB,86.68018315944722,-1.368524676161698
+23,enganosidade / falsos ótimos · falso ótimo,enganosidade / falsos ótimos,3,F3,OE,88.88818150150414,0.8394736658952127
+24,enganosidade / falsos ótimos · falso ótimo,enganosidade / falsos ótimos,3,F3,piso,88.04870783560892,0.0
+25,"geometria do front (côncavo, desconexo) · convexa","geometria do front (côncavo, desconexo)",0,S (sanidade),AEd,96.66575979729062,24.359551447444787
+26,"geometria do front (côncavo, desconexo) · convexa","geometria do front (côncavo, desconexo)",0,S (sanidade),AEe,68.34315449921885,-3.9630538506269772
+27,"geometria do front (côncavo, desconexo) · convexa","geometria do front (côncavo, desconexo)",0,S (sanidade),OB,89.65274556690665,17.346537217060813
+28,"geometria do front (côncavo, desconexo) · convexa","geometria do front (côncavo, desconexo)",0,S (sanidade),OE,88.67444305036665,16.368234700520816
+29,"geometria do front (côncavo, desconexo) · convexa","geometria do front (côncavo, desconexo)",0,S (sanidade),piso,72.30620834984583,0.0
+30,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",1,C1,AEd,88.33748829615784,2.878744695749745
+31,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",1,C1,AEe,85.62258305562366,0.16383945521556598
+32,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",1,C1,OB,90.03559321227786,4.576849611869761
+33,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",1,C1,OE,88.8112522366477,3.3525086362396053
+34,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",1,C1,piso,85.4587436004081,0.0
+35,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",2,C2,AEd,89.74552787990378,56.209658132255846
+36,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",2,C2,AEe,29.393116912124356,-4.142752835523574
+37,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",2,C2,OB,51.41280741963149,17.876937671983562
+38,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",2,C2,OE,54.770693429976745,21.234823682328816
+39,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",2,C2,piso,33.53586974764793,0.0
+40,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",3,C3,AEd,19.010715313061567,8.059700653617222
+41,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",3,C3,AEe,0.0,-10.951014659444345
+42,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",3,C3,OB,16.437640475223883,5.486625815779538
+43,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",3,C3,OE,0.0,-10.951014659444345
+44,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",3,C3,piso,0.0,-10.951014659444345
+45,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",3,C3b,AEd,15.273662722461818,4.322648063017473
+46,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",3,C3b,AEe,8.0260364509036,-2.924978208540745
+47,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",3,C3b,OB,0.0,-10.951014659444345
+48,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",3,C3b,OE,13.45239422242928,2.501379562984935
+49,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",3,C3b,piso,21.90202931888869,10.951014659444345
+50,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",4,C4,AEd,0.0,0.0
+51,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",4,C4,AEe,0.0,0.0
+52,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",4,C4,OB,0.0,0.0
+53,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",4,C4,OE,0.0,0.0
+54,"geometria do front (côncavo, desconexo) · côncava","geometria do front (côncavo, desconexo)",4,C4,piso,0.0,0.0
+55,"geometria do front (côncavo, desconexo) · desconexa","geometria do front (côncavo, desconexo)",1,D1,AEd,64.55418867769387,39.64348474292735
+56,"geometria do front (côncavo, desconexo) · desconexa","geometria do front (côncavo, desconexo)",1,D1,AEe,24.74388502648781,-0.1668189082787137
+57,"geometria do front (côncavo, desconexo) · desconexa","geometria do front (côncavo, desconexo)",1,D1,OB,86.3469374541423,61.43623351937578
+58,"geometria do front (côncavo, desconexo) · desconexa","geometria do front (côncavo, desconexo)",1,D1,OE,37.21391355317736,12.30320961841084
+59,"geometria do front (côncavo, desconexo) · desconexa","geometria do front (côncavo, desconexo)",1,D1,piso,24.910703934766524,0.0
+60,"geometria do front (côncavo, desconexo) · desconexa","geometria do front (côncavo, desconexo)",2,D2,AEd,85.12428697172393,85.12428697172393
+61,"geometria do front (côncavo, desconexo) · desconexa","geometria do front (côncavo, desconexo)",2,D2,AEe,0.0,0.0
+62,"geometria do front (côncavo, desconexo) · desconexa","geometria do front (côncavo, desconexo)",2,D2,OB,16.799616982691866,16.799616982691866
+63,"geometria do front (côncavo, desconexo) · desconexa","geometria do front (côncavo, desconexo)",2,D2,OE,64.02371397960067,64.02371397960067
+64,"geometria do front (côncavo, desconexo) · desconexa","geometria do front (côncavo, desconexo)",2,D2,piso,0.0,0.0
+65,"geometria do front (côncavo, desconexo) · desconexa","geometria do front (côncavo, desconexo)",3,D3,AEd,62.740833654317214,-9.823113297077924
+66,"geometria do front (côncavo, desconexo) · desconexa","geometria do front (côncavo, desconexo)",3,D3,AEe,69.55580707355998,-3.0081398778351627
+67,"geometria do front (côncavo, desconexo) · desconexa","geometria do front (côncavo, desconexo)",3,D3,OB,59.22644197475619,-13.337504976638947
+68,"geometria do front (côncavo, desconexo) · desconexa","geometria do front (côncavo, desconexo)",3,D3,OE,68.01692052916326,-4.54702642223188
+69,"geometria do front (côncavo, desconexo) · desconexa","geometria do front (côncavo, desconexo)",3,D3,piso,72.56394695139514,0.0
+70,heterocedasticidade / densidade irregular · única,heterocedasticidade / densidade irregular,1,1,AEd,19.010715313061567,19.010715313061567
+71,heterocedasticidade / densidade irregular · única,heterocedasticidade / densidade irregular,1,1,AEe,0.0,0.0
+72,heterocedasticidade / densidade irregular · única,heterocedasticidade / densidade irregular,1,1,OB,16.437640475223883,16.437640475223883
+73,heterocedasticidade / densidade irregular · única,heterocedasticidade / densidade irregular,1,1,OE,0.0,0.0
+74,heterocedasticidade / densidade irregular · única,heterocedasticidade / densidade irregular,1,1,piso,0.0,0.0
+75,heterocedasticidade / densidade irregular · única,heterocedasticidade / densidade irregular,2,2,AEd,15.273662722461818,-6.628366596426872
+76,heterocedasticidade / densidade irregular · única,heterocedasticidade / densidade irregular,2,2,AEe,8.0260364509036,-13.87599286798509
+77,heterocedasticidade / densidade irregular · única,heterocedasticidade / densidade irregular,2,2,OB,0.0,-21.90202931888869
+78,heterocedasticidade / densidade irregular · única,heterocedasticidade / densidade irregular,2,2,OE,13.45239422242928,-8.44963509645941
+79,heterocedasticidade / densidade irregular · única,heterocedasticidade / densidade irregular,2,2,piso,21.90202931888869,0.0
+80,heterocedasticidade / densidade irregular · única,heterocedasticidade / densidade irregular,3,3,AEd,95.03038757995564,43.26002380323254
+81,heterocedasticidade / densidade irregular · única,heterocedasticidade / densidade irregular,3,3,AEe,47.0910019472346,-4.679361829488499
+82,heterocedasticidade / densidade irregular · única,heterocedasticidade / densidade irregular,3,3,OB,74.87116908488646,23.10080530816336
+83,heterocedasticidade / densidade irregular · única,heterocedasticidade / densidade irregular,3,3,OE,85.97914436201577,34.20878058529267
+84,heterocedasticidade / densidade irregular · única,heterocedasticidade / densidade irregular,3,3,piso,51.7703637767231,0.0
+85,multimodalidade · A,multimodalidade,1,A1 (sanidade),AEd,87.67257150605448,0.46781895194862955
+86,multimodalidade · A,multimodalidade,1,A1 (sanidade),AEe,87.39294260412433,0.188190050018477
+87,multimodalidade · A,multimodalidade,1,A1 (sanidade),OB,88.5839578297088,1.379205275602942
+88,multimodalidade · A,multimodalidade,1,A1 (sanidade),OE,86.75812229538596,-0.4466302587198925
+89,multimodalidade · A,multimodalidade,1,A1 (sanidade),piso,87.20475255410585,0.0
+90,multimodalidade · A,multimodalidade,2,A2,AEd,88.33748829615784,2.878744695749745
+91,multimodalidade · A,multimodalidade,2,A2,AEe,85.62258305562366,0.16383945521556598
+92,multimodalidade · A,multimodalidade,2,A2,OB,90.03559321227786,4.576849611869761
+93,multimodalidade · A,multimodalidade,2,A2,OE,88.8112522366477,3.3525086362396053
+94,multimodalidade · A,multimodalidade,2,A2,piso,85.4587436004081,0.0
+95,multimodalidade · A,multimodalidade,3,A3,AEd,93.79407948552729,3.7498472331622708
+96,multimodalidade · A,multimodalidade,3,A3,AEe,89.38944795444628,-0.6547842979187379
+97,multimodalidade · A,multimodalidade,3,A3,OB,92.70130278854424,2.6570705361792193
+98,multimodalidade · A,multimodalidade,3,A3,OE,93.46870141095113,3.4244691585861062
+99,multimodalidade · A,multimodalidade,3,A3,piso,90.04423225236502,0.0
+100,multimodalidade · A,multimodalidade,9,A chefe,AEd,91.55597408158059,3.507266245971664
+101,multimodalidade · A,multimodalidade,9,A chefe,AEe,90.39561397800475,2.3469061423958237
+102,multimodalidade · A,multimodalidade,9,A chefe,OB,86.68018315944722,-1.368524676161698
+103,multimodalidade · A,multimodalidade,9,A chefe,OE,88.88818150150414,0.8394736658952127
+104,multimodalidade · A,multimodalidade,9,A chefe,piso,88.04870783560892,0.0
+105,multimodalidade · B,multimodalidade,1,B1,AEd,0.0,0.0
+106,multimodalidade · B,multimodalidade,1,B1,AEe,0.0,0.0
+107,multimodalidade · B,multimodalidade,1,B1,OB,0.0,0.0
+108,multimodalidade · B,multimodalidade,1,B1,OE,0.0,0.0
+109,multimodalidade · B,multimodalidade,1,B1,piso,0.0,0.0
+110,multimodalidade · B,multimodalidade,2,B2,AEd,0.0,0.0
+111,multimodalidade · B,multimodalidade,2,B2,AEe,0.0,0.0
+112,multimodalidade · B,multimodalidade,2,B2,OB,0.0,0.0
+113,multimodalidade · B,multimodalidade,2,B2,OE,0.0,0.0
+114,multimodalidade · B,multimodalidade,2,B2,piso,0.0,0.0
+115,multimodalidade · B,multimodalidade,3,B3,AEd,0.0,0.0
+116,multimodalidade · B,multimodalidade,3,B3,AEe,0.0,0.0
+117,multimodalidade · B,multimodalidade,3,B3,OB,0.0,0.0
+118,multimodalidade · B,multimodalidade,3,B3,OE,0.0,0.0
+119,multimodalidade · B,multimodalidade,3,B3,piso,0.0,0.0
+120,multimodalidade · B,multimodalidade,9,B chefe,AEd,70.57843898976856,-1.0743469572416018
+121,multimodalidade · B,multimodalidade,9,B chefe,AEe,68.41802714393728,-3.2347588030728787
+122,multimodalidade · B,multimodalidade,9,B chefe,OB,50.33745937485194,-21.31532657215822
+123,multimodalidade · B,multimodalidade,9,B chefe,OE,59.70556361260348,-11.947222334406682
+124,multimodalidade · B,multimodalidade,9,B chefe,piso,71.65278594701016,0.0
+125,multimodalidade · C,multimodalidade,1,C1,AEd,94.02840871325469,0.27734654714265616
+126,multimodalidade · C,multimodalidade,1,C1,AEe,93.28056299029325,-0.4704991758187873
+127,multimodalidade · C,multimodalidade,1,C1,OB,91.86605662491668,-1.8850055411953548
+128,multimodalidade · C,multimodalidade,1,C1,OE,93.74197903754967,-0.009083128562366483
+129,multimodalidade · C,multimodalidade,1,C1,piso,93.75106216611204,0.0
+130,multimodalidade · C,multimodalidade,2,C2,AEd,74.52066458311059,24.732907294285376
+131,multimodalidade · C,multimodalidade,2,C2,AEe,45.66496397486427,-4.1227933139609405
+132,multimodalidade · C,multimodalidade,2,C2,OB,53.72966190013193,3.941904611306718
+133,multimodalidade · C,multimodalidade,2,C2,OE,63.74570514762641,13.957947858801198
+134,multimodalidade · C,multimodalidade,2,C2,piso,49.78775728882521,0.0
+135,multimodalidade · C,multimodalidade,3,C3,AEd,78.78325078947634,27.16945096652148
+136,multimodalidade · C,multimodalidade,3,C3,AEe,51.76192889702472,0.14812907406985687
+137,multimodalidade · C,multimodalidade,3,C3,OB,47.904444377239464,-3.7093554457153957
+138,multimodalidade · C,multimodalidade,3,C3,OE,63.48374495866952,11.869945135714659
+139,multimodalidade · C,multimodalidade,3,C3,piso,51.61379982295486,0.0
+140,multimodalidade · C,multimodalidade,9,C chefe,AEd,62.138689836184184,44.79418699249727
+141,multimodalidade · C,multimodalidade,9,C chefe,AEe,12.741462061107573,-4.603040782579335
+142,multimodalidade · C,multimodalidade,9,C chefe,OB,48.116492241847084,30.771989398160176
+143,multimodalidade · C,multimodalidade,9,C chefe,OE,45.236004692532205,27.891501848845298
+144,multimodalidade · C,multimodalidade,9,C chefe,piso,17.344502843686907,0.0
+145,não separabilidade · única,não separabilidade,1,1 (parcial),AEd,95.21305106930555,16.322814113466677
+146,não separabilidade · única,não separabilidade,1,1 (parcial),AEe,89.87361364331885,10.983376687479975
+147,não separabilidade · única,não separabilidade,1,1 (parcial),OB,91.47010214092349,12.579865185084614
+148,não separabilidade · única,não separabilidade,1,1 (parcial),OE,93.28170059538883,14.391463639549954
+149,não separabilidade · única,não separabilidade,1,1 (parcial),piso,78.89023695583887,0.0
+150,não separabilidade · única,não separabilidade,2,2,AEd,95.03038757995564,43.26002380323254
+151,não separabilidade · única,não separabilidade,2,2,AEe,47.0910019472346,-4.679361829488499
+152,não separabilidade · única,não separabilidade,2,2,OB,74.87116908488646,23.10080530816336
+153,não separabilidade · única,não separabilidade,2,2,OE,85.97914436201577,34.20878058529267
+154,não separabilidade · única,não separabilidade,2,2,piso,51.7703637767231,0.0
+155,não separabilidade · única,não separabilidade,3,3,AEd,71.10136275753095,19.616047023698457
+156,não separabilidade · única,não separabilidade,3,3,AEe,48.49824685500871,-2.9870688788237842
+157,não separabilidade · única,não separabilidade,3,3,OB,55.61746240909893,4.1321466752664335
+158,não separabilidade · única,não separabilidade,3,3,OE,63.36518554527781,11.879869811445317
+159,não separabilidade · única,não separabilidade,3,3,piso,51.48531573383249,0.0
+160,não separabilidade · única,não separabilidade,9,chefe,AEd,63.358942600654785,7.142533503558752
+161,não separabilidade · única,não separabilidade,9,chefe,AEe,53.74268925855445,-2.4737198385415837
+162,não separabilidade · única,não separabilidade,9,chefe,OB,34.61837139236215,-21.598037704733883
+163,não separabilidade · única,não separabilidade,9,chefe,OE,44.47253090562687,-11.743878191469165
+164,não separabilidade · única,não separabilidade,9,chefe,piso,56.21640909709603,0.0
+165,regiões planas · única,regiões planas,1,1,AEd,19.816961492240893,-2.1599936524853263
+166,regiões planas · única,regiões planas,1,1,AEe,22.184564746774345,0.20760960204812662
+167,regiões planas · única,regiões planas,1,1,OB,2.641901570099332,-19.335053574626887
+168,regiões planas · única,regiões planas,1,1,OE,20.806568090100793,-1.1703870546254258
+169,regiões planas · única,regiões planas,1,1,piso,21.97695514472622,0.0

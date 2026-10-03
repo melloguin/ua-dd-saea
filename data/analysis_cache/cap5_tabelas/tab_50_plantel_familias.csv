@@ -1,0 +1,22 @@
+alg,id,papel,familia,familia_nome,grupo,grupo_nome,motor,surrogate,funcao,medicao,regime,paradigma_motor,nome
+b1,b1,assistido,OB,oportunidade bayesiana,OB,oportunidade bayesiana,BO-Decomposição,GP,OV,VA,online,BO,ParEGO
+b3,b3,assistido,OE,oportunidade evolutiva,OE,oportunidade evolutiva,EA-Decomposição,GP,OM,VA,online,EA,K-RVEA
+b4,b4,assistido,AE,ameaça evolutiva,AEe,AE por erro empírico,EA-Dominância,CL,AM,EE,online,EA,CSEA
+b5m,b5,assistido,AE,ameaça evolutiva,AEa,AE analítica,EA-Decomposição,GP,AR,VA,offline,EA,Prob-MOEA/D
+b5r,b5,assistido,AE,ameaça evolutiva,AEa,AE analítica,EA-Decomposição,GP,AR,VA,offline,EA,Prob-RVEA
+c122,c122,assistido,isolado,caso isolado,isolado,caso isolado,EA-Decomposição,CL,AR,VN,online,EA,θ-DEA-DP
+c141,c141,assistido,AE,ameaça evolutiva,AEd,AE por discordância,EA-Dominância,RG,AV,DE,online,EA,MMRAEA
+c149,c149,assistido,OB,oportunidade bayesiana,OB,oportunidade bayesiana,BO-Especiais,NN,OV,DE,online,BO,LBN-MOBO
+c154,c154,assistido,OB,oportunidade bayesiana,OB,oportunidade bayesiana,BO-Especiais,GP,OL,VA,online,BO,JES
+c217,c217,assistido,AE,ameaça evolutiva,AEe,AE por erro empírico,EA-Dominância,CL,AM,EE,online,EA,PC-SAEA
+c238,c238,assistido,OB,oportunidade bayesiana,OB,oportunidade bayesiana,BO-Melhoria-de-Pareto,GP,OV,VA,online,BO,EIM
+c262,c262,assistido,OB,oportunidade bayesiana,OB,oportunidade bayesiana,BO-Hipervolume,GP,OV,VA,online,BO,qNEHVI
+e7,e7,assistido,OE,oportunidade evolutiva,OE,oportunidade evolutiva,EA-Indicador,NN,OM,DE,online,EA,EDN-ARMOEA
+e74,e74,assistido,OE,oportunidade evolutiva,OE,oportunidade evolutiva,EA-Dominância,RG,OM,DG,online,EA,CLMEA
+e81,e81,assistido,OB,oportunidade bayesiana,OB,oportunidade bayesiana,BO-Especiais,GP,OV,VA,online,BO,qPOTS
+e103,e103,assistido,AE,ameaça evolutiva,AEa,AE analítica,EA-Indicador,GP,AM,VA,offline,EA,IBEA-MS
+nsga2,,piso,piso,piso sem surrogate,piso,piso sem surrogate,,,,,online,EA,NSGA-II
+nsga3,,piso,piso,piso sem surrogate,piso,piso sem surrogate,,,,,online,EA,NSGA-III
+moead,,piso,piso,piso sem surrogate,piso,piso sem surrogate,,,,,online,EA,MOEA/D
+smsemoa,,piso,piso,piso sem surrogate,piso,piso sem surrogate,,,,,online,EA,SMS-EMOA
+moead_media,,piso,piso,piso sem surrogate,piso,piso sem surrogate,,,,,offline,EA,MOEA/D-média

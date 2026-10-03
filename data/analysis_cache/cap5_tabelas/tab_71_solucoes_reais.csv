@@ -1,0 +1,10 @@
+Unnamed: 0,problema,algoritmo,solução,volume de material,deslocamento do nó,receita realizada,custo de estoque parado,complexidade: pesos não nulos / 17,erro de classificação: casos / 690
+0,RE21,EIM,extremo em $f_1$,1237.841552734375,0.03999999538064,,,,
+1,RE21,EIM,extremo em $f_2$,2886.36962890625,0.0027614238206297,,,,
+2,RE21,EIM,meio-termo (joelho),1858.9886474609375,0.0161715559661388,,,,
+3,ESTOQUE40,CLMEA,extremo em $f_1$,,,-17899.478515625,7467.05712890625,,
+4,ESTOQUE40,CLMEA,extremo em $f_2$,,,-551.306396484375,5.21342658996582,,
+5,ESTOQUE40,CLMEA,meio-termo (joelho),,,-13541.1494140625,1639.9832763671875,,
+6,DDMOP7,PC-SAEA,extremo em $f_1$,,,,,1.0000000037252903,307.0000049471855
+7,DDMOP7,PC-SAEA,extremo em $f_2$,,,,,4.000000014901161,97.000003606081
+8,DDMOP7,PC-SAEA,meio-termo (joelho),,,,,3.000000074505806,99.99999672174454

@@ -1,0 +1,12 @@
+,paradigma,raia,pódio (rank médio de IGD+)
+0,enganosidade / falsos ótimos,enganosidade,"MMRAEA (AEd, 3,2) · CLMEA (OE, 3,6) · EIM (OB, 4,6)"
+1,enganosidade / falsos ótimos,falso ótimo,"qNEHVI (OB, 4,1) · K-RVEA (OE, 4,3) · θ-DEA-DP (isolado, 4,4)"
+2,"geometria do front (côncavo, desconexo)",convexa,"qNEHVI (OB, 1,9) · MMRAEA (AEd, 4,5) · CLMEA (OE, 5,5)"
+3,"geometria do front (côncavo, desconexo)",côncava,"qNEHVI (OB, 3,8) · θ-DEA-DP (isolado, 4,5) · ParEGO (OB, 5,0)"
+4,"geometria do front (côncavo, desconexo)",desconexa,"qNEHVI (OB, 1,0) · K-RVEA (OE, 2,2) · θ-DEA-DP (isolado, 5,1)"
+5,heterocedasticidade / densidade irregular,única,"θ-DEA-DP (isolado, 3,3) · MMRAEA (AEd, 3,9) · qNEHVI (OB, 4,3)"
+6,multimodalidade,A,"qNEHVI (OB, 2,3) · K-RVEA (OE, 5,5) · EIM (OB, 5,6)"
+7,multimodalidade,B,"θ-DEA-DP (isolado, 3,1) · qNEHVI (OB, 5,8) · MMRAEA (AEd, 6,6)"
+8,multimodalidade,C,"MMRAEA (AEd, 2,8) · θ-DEA-DP (isolado, 3,0) · JES (OB, 5,5)"
+9,não separabilidade,única,"MMRAEA (AEd, 3,5) · θ-DEA-DP (isolado, 4,2) · qNEHVI (OB, 4,6)"
+10,regiões planas,única,"CSEA (AEe, 2,0) · K-RVEA (OE, 5,0) · PC-SAEA (AEe, 6,3)"

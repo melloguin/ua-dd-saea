@@ -8,6 +8,9 @@ data/dataframes/
 data/gifs/
 data/models/
 data/images/
+analises_finais/df_memoria_calculo.parquet
+analises_finais/relatorio_memoria_calculo_seed42.html
+
 
 # Inputs pequenos e determinísticos: VERSIONAR (não ignorar)
 !data/bbob_pf_cache/
@@ -23,3 +26,4 @@ venv*/
 algorithms/**/data/
 *.asv
 *.orig
+
